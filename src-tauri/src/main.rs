@@ -176,6 +176,8 @@ fn main() {
             fetch_contact_numbers_by_id_range,
             fetch_contact_numbers_by_id_range_unconsumed,
             mark_contact_numbers_used_by_id_range,
+            // 批量将号码回滚为“未导入到任何手机”
+            mark_contact_numbers_as_not_imported,
             // 号码批次与导入追踪
             create_vcf_batch_record,
             list_vcf_batch_records,
@@ -197,6 +199,8 @@ fn main() {
             delete_import_session_cmd,
             list_import_session_events_cmd,
                 allocate_numbers_to_device_cmd,
+            // 号码ID查询（全量按筛选）
+            list_all_contact_number_ids,
             // 新增的VCF导入和小红书自动关注功能
             generate_vcf_file,
             import_vcf_contacts_multi_brand,    // 多品牌批量尝试导入

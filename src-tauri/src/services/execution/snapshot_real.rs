@@ -19,7 +19,7 @@ impl UiSnapshotProvider for RealSnapshotProvider {
                 return Ok(UiSnapshot { raw_xml: None, screenshot_path: None });
             }
         };
-        let xml = session.execute_command("uiautomator dump /sdcard/ui_dump.xml && cat /sdcard/ui_dump.xml").await.unwrap_or_default();
+        let xml = session.execute_command("uiautomator dump /sdcard/ui_dump.xml > /dev/null && cat /sdcard/ui_dump.xml").await.unwrap_or_default();
         Ok(UiSnapshot { raw_xml: Some(xml), screenshot_path: None })
     }
 }

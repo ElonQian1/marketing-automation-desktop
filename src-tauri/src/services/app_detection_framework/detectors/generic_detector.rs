@@ -174,7 +174,7 @@ impl AppDetector for GenericDetector {
         
         // 通用的权限处理逻辑
         let ui_content = self.base.shell_session
-            .execute_command("uiautomator dump /data/local/tmp/ui.xml && cat /data/local/tmp/ui.xml")
+            .execute_command("uiautomator dump /data/local/tmp/ui.xml > /dev/null && cat /data/local/tmp/ui.xml")
             .await?;
         
         if ui_content.contains("允许") || ui_content.contains("Allow") {

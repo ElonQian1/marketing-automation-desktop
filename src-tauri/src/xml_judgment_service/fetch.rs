@@ -26,7 +26,7 @@ impl XmlJudgmentService {
             // 1) 首选 /sdcard/ui_dump.xml 路径
             let _ = session.execute_command("rm -f /sdcard/ui_dump.xml").await; // 忽略错误
             if let Ok(xml) = session
-                .execute_command("uiautomator dump /sdcard/ui_dump.xml && cat /sdcard/ui_dump.xml")
+                .execute_command("uiautomator dump /sdcard/ui_dump.xml > /dev/null && cat /sdcard/ui_dump.xml")
                 .await
             {
                 if xml.trim().starts_with("<?xml") || xml.contains("<hierarchy") {
@@ -39,7 +39,7 @@ impl XmlJudgmentService {
             // 2) 兜底使用 /data/local/tmp/ui.xml（部分设备对 /sdcard 写权限受限）
             let _ = session.execute_command("rm -f /data/local/tmp/ui.xml").await; // 忽略错误
             if let Ok(xml) = session
-                .execute_command("uiautomator dump /data/local/tmp/ui.xml && cat /data/local/tmp/ui.xml")
+                .execute_command("uiautomator dump /data/local/tmp/ui.xml > /dev/null && cat /data/local/tmp/ui.xml")
                 .await
             {
                 if xml.trim().starts_with("<?xml") || xml.contains("<hierarchy") {

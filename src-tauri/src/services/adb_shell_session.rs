@@ -222,7 +222,7 @@ impl AdbShellSession {
     /// 获取当前界面UI层次结构
     pub async fn dump_ui(&self) -> Result<String> {
         // 使用标准方法：dump到文件然后读取文件内容
-        let command = "uiautomator dump && cat /sdcard/window_dump.xml";
+        let command = "uiautomator dump > /dev/null && cat /sdcard/window_dump.xml";
         let result = self.execute_command_with_timeout(command, Duration::from_secs(15)).await?;
         
         // 检查是否包含XML内容

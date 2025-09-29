@@ -2,6 +2,7 @@ pub mod commands;
 pub mod models;
 pub mod parser;
 pub mod repo;
+pub mod queries;
 
 pub use commands::{
     allocate_numbers_to_device_cmd,
@@ -32,4 +33,6 @@ pub use commands::{
     set_contact_numbers_industry_by_id_range,
     tag_numbers_industry_by_vcf_batch_cmd,
     list_import_session_events_cmd,
+    list_all_contact_number_ids,
 };
+

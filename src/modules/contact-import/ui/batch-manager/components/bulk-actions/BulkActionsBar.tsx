@@ -6,7 +6,7 @@ import {
   CloseOutlined,
   ReloadOutlined 
 } from '@ant-design/icons';
-import { ContactNumberDto, markContactNumbersAsNotImported } from '../../../services/contactNumberService';
+import { ContactNumberDto, markContactNumbersAsNotImportedBatch } from '../../../services/contactNumberService';
 
 const { Text } = Typography;
 
@@ -71,14 +71,15 @@ export const BulkActionsBar: React.FC<BulkActionsBarProps> = ({
       const numberIds = archiveableNumbers.map(number => number.id);
       
       // 批量重置号码状态
-      await markContactNumbersAsNotImported(numberIds);
-      
-      message.success(`成功归档 ${numberIds.length} 个号码`);
+  const affected = await markContactNumbersAsNotImportedBatch(numberIds);
+
+  message.success(`成功归档 ${affected} 个号码`);
       await onArchiveComplete();
       onClearSelection();
     } catch (error) {
       console.error('批量归档失败:', error);
-      message.error('归档操作失败，请重试');
+      const msg = (error as any)?.message || String(error);
+      message.error(`归档操作失败：${msg}`);
     } finally {
       setArchiving(false);
     }

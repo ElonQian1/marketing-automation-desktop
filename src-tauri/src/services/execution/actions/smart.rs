@@ -183,7 +183,7 @@ pub async fn handle_recognize_page(
     let ui_dump = match executor.capture_ui_snapshot().await {
         Ok(Some(xml)) if !xml.is_empty() => xml,
         _ => session
-            .execute_command("uiautomator dump /sdcard/ui_dump.xml && cat /sdcard/ui_dump.xml")
+            .execute_command("uiautomator dump /sdcard/ui_dump.xml > /dev/null && cat /sdcard/ui_dump.xml")
             .await?,
     };
 

@@ -90,7 +90,7 @@ pub trait AppDetector: Send + Sync {
     /// 快速状态检查（用于轮询）
     async fn quick_state_check(&self) -> Result<AppLaunchState> {
         // 获取当前UI内容
-        let ui_content = match self.get_shell_session().execute_command("uiautomator dump /data/local/tmp/ui.xml && cat /data/local/tmp/ui.xml").await {
+        let ui_content = match self.get_shell_session().execute_command("uiautomator dump /data/local/tmp/ui.xml > /dev/null && cat /data/local/tmp/ui.xml").await {
             Ok(content) => content,
             Err(_) => return Ok(AppLaunchState::Error("UI内容获取失败".to_string())),
         };

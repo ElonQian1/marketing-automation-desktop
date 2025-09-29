@@ -92,9 +92,30 @@ export async function markContactNumbersUsedByIdRange(startId: number, endId: nu
  */
 export async function markContactNumbersAsNotImported(numberIds: number[]): Promise<number> {
   if (numberIds.length === 0) return 0;
-  return invoke<number>('mark_contact_numbers_as_not_imported', { 
-    number_ids: numberIds 
-  });
+  // 同时传递 snake_case 与 camelCase，兼容不同命名约定的命令参数
+  return invoke<number>('mark_contact_numbers_as_not_imported', {
+    number_ids: numberIds,
+    numberIds: numberIds,
+  } as any);
+}
+
+/**
+ * 批量（分片）将号码重置为未导入状态，自动处理：
+ * - 将 Key 转为 number 并去重
+ * - 大集合分片（默认 800/批）避免 SQLite 参数数量上限
+ */
+export async function markContactNumbersAsNotImportedBatch(keys: Array<number | string>, chunkSize = 800): Promise<number> {
+  // 强制转 number 并过滤无效
+  const uniq = Array.from(new Set(keys.map(k => Number(k)).filter(n => Number.isFinite(n)))) as number[];
+  if (uniq.length === 0) return 0;
+  let total = 0;
+  for (let i = 0; i < uniq.length; i += chunkSize) {
+    const slice = uniq.slice(i, i + chunkSize);
+    // 直接调用现有命令
+    const affected = await markContactNumbersAsNotImported(slice);
+    total += affected;
+  }
+  return total;
 }
 
 // -------- 批次与导入会话：前端服务封装 --------

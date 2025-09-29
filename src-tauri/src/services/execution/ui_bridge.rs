@@ -69,7 +69,7 @@ impl UiBridge {
                     let session = get_device_session(&device_id).await?;
                     let dump = session
                         .execute_command(
-                            "uiautomator dump /sdcard/ui_dump.xml && cat /sdcard/ui_dump.xml",
+                            "uiautomator dump /sdcard/ui_dump.xml > /dev/null && cat /sdcard/ui_dump.xml",
                         )
                         .await?;
 

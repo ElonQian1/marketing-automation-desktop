@@ -41,6 +41,7 @@ use super::repo::{
     list_import_session_events,
     delete_import_session,
 };
+use super::queries::list_number_ids;
 
 #[tauri::command]
 pub async fn import_contact_numbers_from_file(file_path: String) -> Result<ImportNumbersResult, String> {
@@ -208,6 +209,15 @@ pub async fn mark_contact_numbers_as_not_imported(number_ids: Vec<i64>) -> Resul
     let conn = Connection::open(&db_path).map_err(|e| format!("打开数据库失败: {}", e))?;
     init_db(&conn).map_err(|e| format!("初始化数据库失败: {}", e))?;
     mark_numbers_as_not_imported_by_ids(&conn, &number_ids).map_err(|e| e.to_string())
+}
+
+/// 返回满足筛选条件的所有号码 ID（不分页）
+#[tauri::command]
+pub async fn list_all_contact_number_ids(search: Option<String>, industry: Option<String>, status: Option<String>) -> Result<Vec<i64>, String> {
+    let db_path = get_contacts_db_path();
+    let conn = Connection::open(&db_path).map_err(|e| format!("打开数据库失败: {}", e))?;
+    init_db(&conn).map_err(|e| format!("初始化数据库失败: {}", e))?;
+    list_number_ids(&conn, search, industry, status).map_err(|e| e.to_string())
 }
 
 // -------- 新增：批次与导入会话 API --------

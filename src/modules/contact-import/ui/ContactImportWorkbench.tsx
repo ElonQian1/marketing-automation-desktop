@@ -27,6 +27,7 @@ import { useSourceFolders } from './hooks/useSourceFolders';
 import { SourceFolderAddButton } from './components/SourceFolderAddButton';
 import { SourceFoldersList } from './components/SourceFoldersList';
 import { registerGeneratedBatch } from './services/vcfBatchRegistrationService';
+import WorkbenchNumbersActionsBar from './components/WorkbenchNumbersActionsBar';
 
 const { Title, Text } = Typography;
 
@@ -492,6 +493,16 @@ export const ContactImportWorkbench: React.FC = () => {
       {/* 面板3：号码池（移动到底部右侧） */}
       <Col xs={24} md={16}>
         <Card title={<Space><DatabaseOutlined />号码池</Space>} extra={<Tag color="blue">共 {total} 条</Tag>}>
+          <WorkbenchNumbersActionsBar
+            selectedRowKeys={selectedRowKeys as number[]}
+            pageItemIds={items.map(i => i.id)}
+            onChangeSelected={(keys) => setSelectedRowKeys(keys as any)}
+            onArchived={async () => {
+              await loadList();
+              await loadStats();
+            }}
+            disabled={loading}
+          />
           <Table
             rowKey="id"
             columns={columns as any}

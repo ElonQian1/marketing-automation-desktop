@@ -143,7 +143,7 @@ impl XiaohongshuDetector {
         
         // 获取当前UI
         let ui_content = self.base.shell_session
-            .execute_command("uiautomator dump /data/local/tmp/ui.xml && cat /data/local/tmp/ui.xml")
+            .execute_command("uiautomator dump /data/local/tmp/ui.xml > /dev/null && cat /data/local/tmp/ui.xml")
             .await?;
         
         // 查找"允许"按钮并点击
