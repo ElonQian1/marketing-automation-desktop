@@ -16,7 +16,8 @@ import {
   Col,
   Badge,
   Tag,
-  Tooltip
+  Tooltip,
+  theme
 } from 'antd';
 import { 
   EyeOutlined,
@@ -56,6 +57,7 @@ export const UnifiedVisualizationView: React.FC<UnifiedVisualizationViewProps> =
   onElementSelect,
   onRefresh
 }) => {
+  const { token } = theme.useToken();
   const [searchText, setSearchText] = useState('');
   const [selectedTab, setSelectedTab] = useState('all');
   const [activeView, setActiveView] = useState('visual'); // visual, list, tree
@@ -114,7 +116,7 @@ export const UnifiedVisualizationView: React.FC<UnifiedVisualizationViewProps> =
         <Space>
           <EyeOutlined />
           <span>可视化视图</span>
-          <Badge count={elements.length} style={{ backgroundColor: '#10b981' }} />
+          <Badge count={elements.length} style={{ backgroundColor: token.colorSuccess }} />
         </Space>
       }
       className="unified-visualization-view"
@@ -131,7 +133,7 @@ export const UnifiedVisualizationView: React.FC<UnifiedVisualizationViewProps> =
         </Button>
       ]}
     >
-      <div style={{ background: 'linear-gradient(135deg, #111827, #1f2937)', padding: '24px', minHeight: '600px' }}>
+      <div style={{ background: `linear-gradient(135deg, ${token.colorBgContainer}, ${token.colorBgLayout})`, padding: token.paddingLG, minHeight: '600px' }}>
         
         {/* 搜索和筛选区域 */}
         <Card 
@@ -141,7 +143,7 @@ export const UnifiedVisualizationView: React.FC<UnifiedVisualizationViewProps> =
               <span>搜索与筛选</span>
             </Space>
           }
-          style={{ marginBottom: '16px' }}
+          style={{ marginBottom: token.margin }}
           size="small"
         >
           <Row gutter={[16, 16]} align="middle">
@@ -157,13 +159,13 @@ export const UnifiedVisualizationView: React.FC<UnifiedVisualizationViewProps> =
             <Col xs={24} md={12}>
               <Space wrap>
                 {[
-                  { key: 'all', label: '全部', count: stats.total, color: '#3b82f6' },
-                  { key: 'interactive', label: '可交互', count: stats.interactive, color: '#10b981' },
+                  { key: 'all', label: '全部', count: stats.total, color: token.colorPrimary },
+                  { key: 'interactive', label: '可交互', count: stats.interactive, color: token.colorSuccess },
                   ...Object.entries(stats.grouped).slice(0, 4).map(([type, items]) => ({
                     key: type,
                     label: type,
                     count: items.length,
-                    color: '#8b5cf6'
+                    color: token.colorPrimary
                   }))
                 ].map(tab => (
                   <Tag
@@ -220,12 +222,12 @@ export const UnifiedVisualizationView: React.FC<UnifiedVisualizationViewProps> =
                   title="页面布局预览" 
                   size="small"
                   style={{ height: '100%' }}
-                  bodyStyle={{ padding: '8px' }}
+                  bodyStyle={{ padding: token.paddingXS }}
                 >
                   <div style={{ 
                     width: '100%', 
                     height: '450px', 
-                    background: '#374151',
+                    background: token.colorBgContainer,
                     borderRadius: '8px',
                     position: 'relative',
                     overflow: 'hidden',
@@ -282,7 +284,7 @@ export const UnifiedVisualizationView: React.FC<UnifiedVisualizationViewProps> =
                   title="元素详情" 
                   size="small"
                   style={{ height: '100%' }}
-                  bodyStyle={{ padding: '8px', maxHeight: '450px', overflowY: 'auto' }}
+                  bodyStyle={{ padding: token.paddingXS, maxHeight: '450px', overflowY: 'auto' }}
                 >
                   <Row gutter={[8, 8]}>
                     {filteredElements.map((element, index) => (
@@ -297,14 +299,14 @@ export const UnifiedVisualizationView: React.FC<UnifiedVisualizationViewProps> =
                               ? 'linear-gradient(135deg, #065f46, #047857)'
                               : 'linear-gradient(135deg, #4b5563, #6b7280)'
                           }}
-                          bodyStyle={{ padding: '8px' }}
+                          bodyStyle={{ padding: token.paddingXS }}
                         >
                           <div>
-                            <Text strong style={{ color: '#f9fafb', fontSize: '11px' }}>
+                            <Text strong style={{ color: token.colorText, fontSize: token.fontSizeSM }}>
                               {element.text || element.element_type}
                             </Text>
                             <br />
-                            <Text style={{ fontSize: '10px', color: '#d1d5db' }}>
+                            <Text style={{ fontSize: token.fontSizeSM, color: token.colorTextSecondary }}>
                               {element.bounds.left}, {element.bounds.top}
                             </Text>
                             <div style={{ marginTop: '4px' }}>
@@ -355,11 +357,11 @@ export const UnifiedVisualizationView: React.FC<UnifiedVisualizationViewProps> =
                       bodyStyle={{ padding: '12px' }}
                     >
                       <div>
-                        <Text strong style={{ color: '#f9fafb', fontSize: '12px' }}>
+                        <Text strong style={{ color: token.colorText, fontSize: token.fontSizeSM }}>
                           {element.text || element.element_type || '未知元素'}
                         </Text>
                         <br />
-                        <Text type="secondary" style={{ fontSize: '11px', color: '#9ca3af' }}>
+                        <Text type="secondary" style={{ fontSize: token.fontSizeSM, color: token.colorTextSecondary }}>
                           {element.element_type}
                         </Text>
                         <div style={{ marginTop: '8px' }}>
@@ -407,25 +409,25 @@ export const UnifiedVisualizationView: React.FC<UnifiedVisualizationViewProps> =
         </Tabs>
 
         {/* 底部统计信息 */}
-        <Card size="small" style={{ marginTop: '16px' }}>
+        <Card size="small" style={{ marginTop: token.margin }}>
           <Row gutter={[16, 8]} align="middle">
             <Col xs={12} md={6}>
-              <Text style={{ color: '#e5e7eb' }}>
+              <Text style={{ color: token.colorText }}>
                 <strong>总元素:</strong> {stats.total}
               </Text>
             </Col>
             <Col xs={12} md={6}>
-              <Text style={{ color: '#e5e7eb' }}>
+              <Text style={{ color: token.colorText }}>
                 <strong>可交互:</strong> {stats.interactive}
               </Text>
             </Col>
             <Col xs={12} md={6}>
-              <Text style={{ color: '#e5e7eb' }}>
+              <Text style={{ color: token.colorText }}>
                 <strong>已筛选:</strong> {filteredElements.length}
               </Text>
             </Col>
             <Col xs={12} md={6}>
-              <Text style={{ color: '#e5e7eb' }}>
+              <Text style={{ color: token.colorText }}>
                 <strong>当前视图:</strong> {
                   activeView === 'visual' ? '可视化分析' :
                   activeView === 'list' ? '列表视图' : '层级树'

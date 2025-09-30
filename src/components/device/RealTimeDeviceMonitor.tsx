@@ -1,5 +1,5 @@
 import React from 'react';
-import { Card, Tag, Button, Space, List, Statistic, Row, Col, Alert, Typography } from 'antd';
+import { Card, Tag, Button, Space, List, Statistic, Row, Col, Alert, Typography, theme } from 'antd';
 import { 
   MobileOutlined, 
   WifiOutlined, 
@@ -19,6 +19,7 @@ const { Title, Text, Paragraph } = Typography;
  * 展示基于host:track-devices协议的事件驱动设备管理
  */
 export const RealTimeDeviceMonitor: React.FC = () => {
+  const { token } = theme.useToken();
   const {
     devices,
     onlineDevices,
@@ -57,8 +58,8 @@ export const RealTimeDeviceMonitor: React.FC = () => {
    */
   const getConnectionIcon = (device: TrackedDevice) => {
     return device.connection_type === 'emulator' 
-      ? <DesktopOutlined style={{ color: '#1890ff' }} />
-      : <UsbOutlined style={{ color: '#52c41a' }} />;
+      ? <DesktopOutlined style={{ color: token.colorPrimary }} />
+      : <UsbOutlined style={{ color: token.colorSuccess }} />;
   };
 
   /**
@@ -78,7 +79,7 @@ export const RealTimeDeviceMonitor: React.FC = () => {
   };
 
   return (
-    <div style={{ padding: '24px', minHeight: '100vh' }}>
+    <div style={{ padding: token.paddingLG, minHeight: '100vh' }}>
       <div style={{ maxWidth: '1200px', margin: '0 auto' }}>
         {/* 标题和控制面板 */}
         <Card style={{ marginBottom: '16px' }}>
@@ -87,7 +88,7 @@ export const RealTimeDeviceMonitor: React.FC = () => {
               <Title level={2} style={{ margin: 0 }}>
                 <MobileOutlined /> 实时ADB设备监控
               </Title>
-              <Paragraph style={{ margin: '8px 0 0 0' }} type="secondary">
+              <Paragraph style={{ margin: `${token.marginXS}px 0 0 0` }} type="secondary">
                 基于 <Text code>host:track-devices</Text> 协议的事件驱动设备管理，告别轮询！
               </Paragraph>
             </div>
@@ -119,15 +120,15 @@ export const RealTimeDeviceMonitor: React.FC = () => {
             description={error}
             showIcon
             closable
-            style={{ marginBottom: '16px' }}
+            style={{ marginBottom: token.margin }}
           />
         )}
 
         {/* 跟踪状态 */}
-        <Card style={{ marginBottom: '16px' }}>
+        <Card style={{ marginBottom: token.margin }}>
           <Row gutter={16}>
             <Col span={6}>
-              <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: token.marginXS }}>
                 <div style={{
                   width: '8px',
                   height: '8px',
@@ -296,21 +297,21 @@ export const RealTimeDeviceMonitor: React.FC = () => {
         >
           <Row gutter={16}>
             <Col span={8}>
-              <div style={{ padding: '12px', background: '#f6ffed', borderRadius: '6px' }}>
+              <div style={{ padding: token.padding, background: token.colorSuccessBg, borderRadius: token.borderRadiusXS }}>
                 <Text strong style={{ color: '#52c41a' }}>✅ 实时响应</Text>
                 <br />
                 <Text type="secondary">基于TCP长连接，设备状态变化即时通知</Text>
               </div>
             </Col>
             <Col span={8}>
-              <div style={{ padding: '12px', background: '#fff7e6', borderRadius: '6px' }}>
+              <div style={{ padding: token.padding, background: token.colorWarningBg, borderRadius: token.borderRadiusXS }}>
                 <Text strong style={{ color: '#faad14' }}>⚡ 零轮询</Text>
                 <br />
                 <Text type="secondary">使用host:track-devices协议，告别定时查询</Text>
               </div>
             </Col>
             <Col span={8}>
-              <div style={{ padding: '12px', background: '#f0f5ff', borderRadius: '6px' }}>
+              <div style={{ padding: token.padding, background: token.colorPrimaryBg, borderRadius: token.borderRadiusXS }}>
                 <Text strong style={{ color: '#1890ff' }}>🔧 资源节约</Text>
                 <br />
                 <Text type="secondary">减少ADB命令执行，降低系统开销</Text>

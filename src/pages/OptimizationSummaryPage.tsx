@@ -11,6 +11,7 @@ import {
   Alert,
   Row,
   Col,
+  theme,
 } from 'antd';
 import {
   CheckCircleOutlined,
@@ -26,6 +27,8 @@ const { Title, Paragraph, Text } = Typography;
 const { Step } = Steps;
 
 const OptimizationSummaryPage: React.FC = () => {
+  const { token } = theme.useToken();
+  
   const optimizationSteps = [
     {
       title: '后端集成',
@@ -127,14 +130,14 @@ const OptimizationSummaryPage: React.FC = () => {
   ];
 
   return (
-    <div style={{ padding: 24, background: '#f0f2f5', minHeight: '100vh' }}>
+    <div style={{ padding: token.paddingLG, background: token.colorBgLayout, minHeight: '100vh' }}>
       <div style={{ maxWidth: 1200, margin: '0 auto' }}>
-        <div style={{ textAlign: 'center', marginBottom: 32 }}>
-          <RocketOutlined style={{ fontSize: 48, color: '#1890ff', marginBottom: 16 }} />
-          <Title level={1} style={{ margin: 0, color: '#1890ff' }}>
+        <div style={{ textAlign: 'center', marginBottom: token.marginXL }}>
+          <RocketOutlined style={{ fontSize: 48, color: token.colorPrimary, marginBottom: token.margin }} />
+          <Title level={1} style={{ margin: 0, color: token.colorPrimary }}>
             🎉 脚本自动化系统优化完成
           </Title>
-          <Paragraph style={{ fontSize: 16, marginTop: 8 }}>
+          <Paragraph style={{ fontSize: token.fontSizeLG, marginTop: token.marginXS }}>
             6步优化计划全部完成，打造企业级脚本自动化解决方案
           </Paragraph>
         </div>
@@ -143,18 +146,18 @@ const OptimizationSummaryPage: React.FC = () => {
           message="优化任务全部完成！"
           description="经过6个步骤的系统性优化，我们已经构建了一个功能完整、性能优异的脚本自动化系统。从后端集成到高级循环控制，每个环节都经过精心设计和实现。"
           type="success"
-          style={{ marginBottom: 32 }}
+          style={{ marginBottom: token.marginXL }}
           showIcon
         />
 
         <Card 
           title={
             <Space>
-              <CheckCircleOutlined style={{ color: '#52c41a' }} />
+              <CheckCircleOutlined style={{ color: token.colorSuccess }} />
               <span>优化进度总览</span>
             </Space>
           }
-          style={{ marginBottom: 24 }}
+          style={{ marginBottom: token.marginLG }}
         >
           <Steps
             direction="vertical"
@@ -173,13 +176,13 @@ const OptimizationSummaryPage: React.FC = () => {
                   </Space>
                 }
                 description={
-                  <div style={{ marginTop: 8 }}>
-                    <Paragraph style={{ marginBottom: 8 }}>
+                  <div style={{ marginTop: token.marginXS }}>
+                    <Paragraph style={{ marginBottom: token.marginXS }}>
                       {step.description}
                     </Paragraph>
                     <div>
                       <Text strong>关键功能:</Text>
-                      <ul style={{ marginTop: 4, marginBottom: 8 }}>
+                      <ul style={{ marginTop: token.marginXXS, marginBottom: token.marginXS }}>
                         {step.details.map((detail) => (
                           <li key={detail}>{detail}</li>
                         ))}
@@ -187,9 +190,9 @@ const OptimizationSummaryPage: React.FC = () => {
                     </div>
                     <div>
                       <Text strong>相关组件:</Text>
-                      <div style={{ marginTop: 4 }}>
+                      <div style={{ marginTop: token.marginXXS }}>
                         {step.components.map((component) => (
-                          <Tag key={component} color="blue" style={{ marginBottom: 4 }}>
+                          <Tag key={component} color="blue" style={{ marginBottom: token.marginXXS }}>
                             {component}
                           </Tag>
                         ))}
@@ -208,11 +211,11 @@ const OptimizationSummaryPage: React.FC = () => {
             <Card title="技术架构亮点">
               <div>
                 {technicalHighlights.map((highlight) => (
-                  <div key={highlight.category} style={{ marginBottom: 16 }}>
+                  <div key={highlight.category} style={{ marginBottom: token.margin }}>
                     <Text strong>{highlight.category}:</Text>
-                    <div style={{ marginTop: 4 }}>
+                    <div style={{ marginTop: token.marginXXS }}>
                       {highlight.items.map((item) => (
-                        <Tag key={item} style={{ margin: '2px' }}>
+                        <Tag key={item} style={{ margin: token.marginXXS }}>
                           {item}
                         </Tag>
                       ))}
@@ -268,7 +271,7 @@ const OptimizationSummaryPage: React.FC = () => {
 
         <Card 
           title="下一步建议" 
-          style={{ marginTop: 24 }}
+          style={{ marginTop: token.marginLG }}
         >
           <Row gutter={[16, 16]}>
             <Col xs={24} md={8}>

@@ -1,12 +1,11 @@
 import React, { useState, useEffect } from 'react';
-import { Card, Row, Col, Select, Button, Space, Typography, Alert, Divider } from 'antd';
+import { Card, Row, Col, Select, Button, Space, Typography, Alert, Empty } from 'antd';
 import { invoke } from '@tauri-apps/api/core';
 import { SmartElementFinder } from '../components/smart-element-finder';
 import { useAdb } from '../application/hooks/useAdb';
 import { MobileOutlined, RobotOutlined, BugOutlined } from '@ant-design/icons';
 
 const { Title, Text, Paragraph } = Typography;
-const { Option } = Select;
 
 interface Device {
     id: string;
@@ -54,73 +53,69 @@ const SmartElementFinderTestPage: React.FC = () => {
     };
 
     return (
-        <div style={{ padding: '24px', maxWidth: '1200px', margin: '0 auto' }}>
+        <Space direction="vertical" size="large" style={{ width: '100%' }}>
             <Card>
-                <div style={{ marginBottom: '24px' }}>
+                <Space direction="vertical" size={8} style={{ width: '100%' }}>
                     <Title level={2}>
-                        <RobotOutlined style={{ marginRight: '8px' }} />
-                        智能元素查找器测试页面
+                        <Space>
+                            <RobotOutlined />
+                            智能元素查找器测试页面
+                        </Space>
                     </Title>
                     <Paragraph>
                         这个工具可以智能识别应用的导航栏并精确定位特定按钮。
                         专为小红书等应用的自动化操作设计，支持底部导航、侧边导航等多种布局。
                     </Paragraph>
-                </div>
+                </Space>
 
-                <Divider />
-
-                {/* 设备选择区域 */}
-                <Card size="small" title="设备连接" style={{ marginBottom: '24px' }}>
-                    <Space style={{ width: '100%' }}>
-                        <MobileOutlined />
-                        <Text strong>选择设备：</Text>
-                        <Select
-                            value={selectedDevice}
-                            onChange={setSelectedDevice}
-                            style={{ width: 300 }}
-                            placeholder="请选择设备"
-                        >
-                            {devices.map(device => (
-                                <Option key={device.id} value={device.id}>
-                                    {device.name} ({device.status})
-                                </Option>
-                            ))}
-                        </Select>
-                        <Button 
-                            onClick={handleRefreshDevices} 
-                            loading={loading}
-                        >
+                <Card
+                    size="small"
+                    title="设备连接"
+                    extra={
+                        <Button onClick={handleRefreshDevices} loading={loading}>
                             刷新设备
                         </Button>
-                    </Space>
+                    }
+                >
+                    <Row gutter={[16, 16]}>
+                        <Col xs={24} md={12} lg={8}>
+                            <Space>
+                                <MobileOutlined />
+                                <Text strong>选择设备：</Text>
+                                <Select
+                                    value={selectedDevice}
+                                    onChange={setSelectedDevice}
+                                    placeholder="请选择设备"
+                                    options={devices.map((device) => ({
+                                        value: device.id,
+                                        label: `${device.name} (${device.status})`,
+                                    }))}
+                                />
+                            </Space>
+                        </Col>
+                    </Row>
 
                     {devices.length === 0 && (
                         <Alert
                             type="warning"
                             message="未找到连接的设备"
                             description="请确保设备已连接并启用USB调试"
-                            style={{ marginTop: '16px' }}
                         />
                     )}
                 </Card>
 
-                {/* 智能元素查找器 */}
-                {selectedDevice && (
-                    <Row gutter={[24, 24]}>
-                        <Col xs={24}>
-                            <SmartElementFinder
-                                deviceId={selectedDevice}
-                                onStepCreated={handleStepCreated}
-                            />
-                        </Col>
-                    </Row>
+                {selectedDevice ? (
+                    <Card title="智能元素查找器" size="small">
+                        <SmartElementFinder deviceId={selectedDevice} onStepCreated={handleStepCreated} />
+                    </Card>
+                ) : (
+                    <Empty description="请选择设备后使用智能元素查找器" />
                 )}
 
-                {/* 使用说明 */}
-                <Card size="small" title="功能说明" style={{ marginTop: '24px' }}>
+                <Card size="small" title="功能说明">
                     <Row gutter={[16, 16]}>
                         <Col xs={24} md={8}>
-                            <Card size="small" hoverable>
+                            <Card size="small">
                                 <Space direction="vertical">
                                     <Text strong>🎯 预设配置</Text>
                                     <Text type="secondary">
@@ -131,7 +126,7 @@ const SmartElementFinderTestPage: React.FC = () => {
                             </Card>
                         </Col>
                         <Col xs={24} md={8}>
-                            <Card size="small" hoverable>
+                            <Card size="small">
                                 <Space direction="vertical">
                                     <Text strong>🤖 智能识别</Text>
                                     <Text type="secondary">
@@ -142,7 +137,7 @@ const SmartElementFinderTestPage: React.FC = () => {
                             </Card>
                         </Col>
                         <Col xs={24} md={8}>
-                            <Card size="small" hoverable>
+                            <Card size="small">
                                 <Space direction="vertical">
                                     <Text strong>📱 多场景支持</Text>
                                     <Text type="secondary">
@@ -155,8 +150,7 @@ const SmartElementFinderTestPage: React.FC = () => {
                     </Row>
                 </Card>
 
-                {/* 测试步骤指南 */}
-                <Card size="small" title="测试指南" style={{ marginTop: '16px' }}>
+                <Card size="small" title="测试指南">
                     <Space direction="vertical" style={{ width: '100%' }}>
                         <Text><BugOutlined /> <strong>步骤1：</strong> 确保设备已连接并打开小红书应用</Text>
                         <Text><BugOutlined /> <strong>步骤2：</strong> 选择预设配置"小红书_底部导航"</Text>
@@ -167,7 +161,7 @@ const SmartElementFinderTestPage: React.FC = () => {
                     </Space>
                 </Card>
             </Card>
-        </div>
+        </Space>
     );
 };
 

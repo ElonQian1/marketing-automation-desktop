@@ -1,70 +1,99 @@
-import { invoke } from '@tauri-apps/api/core';
 import { Alert, Button, Card, Space, Typography } from 'antd';
-import React, { useState } from 'react';
+import React, { useMemo, useState } from 'react';
 import DevicesResultCard from './adb-path-test/components/DevicesResultCard';
+import { useAdb } from '@/application/hooks/useAdb';
+import { AdbConfig, Device, DeviceStatus } from '@/domain/adb';
 
 const { Title, Text, Paragraph } = Typography;
 
 export const AdbPathTestPage: React.FC = () => {
   const [smartPath, setSmartPath] = useState<string>('');
-  const [devices, setDevices] = useState<string>('');
-  const [loading, setLoading] = useState(false);
+  const [devicesOutput, setDevicesOutput] = useState<string>('');
   const [error, setError] = useState<string>('');
 
+  const {
+    autoDetectAdbPath,
+    updateConfig,
+    refreshDevices,
+    devices,
+    isLoading,
+    adbPath,
+  } = useAdb();
+
+  // 将当前 store 中的设备格式化为 adb devices 风格输出
+  const adbDevicesLikeOutput = useMemo(() => {
+    const header = 'List of devices attached';
+    if (!devices || devices.length === 0) {
+      return `${header}\n`;
+    }
+    const mapStatus = (d: Device) => {
+      switch (d.status) {
+        case DeviceStatus.ONLINE:
+          return 'device';
+        case DeviceStatus.OFFLINE:
+          return 'offline';
+        case DeviceStatus.UNAUTHORIZED:
+          return 'unauthorized';
+        default:
+          return 'unknown';
+      }
+    };
+    const lines = devices.map((d) => `${d.id}\t${mapStatus(d)}`);
+    return `${header}\n${lines.join('\n')}`;
+  }, [devices]);
+
   const testSmartAdbPath = async () => {
-    setLoading(true);
     setError('');
     try {
-      const path = await invoke<string>('detect_smart_adb_path');
+      const path = await autoDetectAdbPath();
       setSmartPath(path);
-      console.log('智能ADB路径检测结果:', path);
+      // 将路径写入全局配置，便于后续设备刷新与连接
+      await updateConfig(AdbConfig.default().withAdbPath(path));
+      // 立即刷新一次设备
+      await refreshDevices();
     } catch (err) {
-      setError(`ADB路径检测失败: ${err}`);
+      setError(`ADB路径检测失败: ${err instanceof Error ? err.message : String(err)}`);
       console.error('ADB路径检测失败:', err);
-    } finally {
-      setLoading(false);
     }
   };
 
   const testDevices = async () => {
-    if (!smartPath) {
+    if (!smartPath && !adbPath) {
       setError('请先检测ADB路径');
       return;
     }
-
-    setLoading(true);
     setError('');
     try {
-      const output = await invoke<string>('get_adb_devices', { adbPath: smartPath });
-      setDevices(output);
-      console.log('设备检测结果:', output);
+      // 通过应用层刷新设备
+      await refreshDevices();
+      // 构造输出
+      setDevicesOutput(adbDevicesLikeOutput);
+      console.log('设备检测结果:', adbDevicesLikeOutput);
     } catch (err) {
-      setError(`设备检测失败: ${err}`);
+      setError(`设备检测失败: ${err instanceof Error ? err.message : String(err)}`);
       console.error('设备检测失败:', err);
-    } finally {
-      setLoading(false);
     }
   };
 
   return (
-    <div style={{ padding: 24 }}>
+    <>
       <Title level={2}>ADB 路径检测测试</Title>
-      
+
       <Space direction="vertical" size="large" style={{ width: '100%' }}>
-  <Card title="1. 智能 ADB 路径检测">
+        <Card title="1. 智能 ADB 路径检测">
           <Space direction="vertical" style={{ width: '100%' }}>
-            <Button 
-              type="primary" 
+            <Button
+              type="primary"
               onClick={testSmartAdbPath}
-              loading={loading}
+              loading={isLoading}
             >
               检测智能 ADB 路径
             </Button>
-            
-            {smartPath && (
-              <Alert 
-                type="success" 
-                message={`检测到 ADB 路径: ${smartPath}`}
+
+            {(smartPath || adbPath) && (
+              <Alert
+                type="success"
+                message={`检测到 ADB 路径: ${smartPath || adbPath}`}
               />
             )}
           </Space>
@@ -72,16 +101,16 @@ export const AdbPathTestPage: React.FC = () => {
 
         <Card title="2. 设备检测测试">
           <Space direction="vertical" style={{ width: '100%' }}>
-            <Button 
-              type="primary" 
+            <Button
+              type="primary"
               onClick={testDevices}
-              loading={loading}
-              disabled={!smartPath}
+              loading={isLoading}
+              disabled={!smartPath && !adbPath}
             >
               检测连接的设备
             </Button>
-            
-            <DevicesResultCard devices={devices} />
+
+            <DevicesResultCard devices={devicesOutput || adbDevicesLikeOutput} />
           </Space>
         </Card>
 
@@ -102,7 +131,7 @@ export const AdbPathTestPage: React.FC = () => {
           </Paragraph>
         </Card>
       </Space>
-    </div>
+    </>
   );
 };
 

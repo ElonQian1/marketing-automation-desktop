@@ -1,5 +1,5 @@
 import React from 'react';
-import { Card, Steps, Space, Typography, Row, Col } from 'antd';
+import { Card, Steps, Space, Typography, Row, Col, Button, Checkbox } from 'antd';
 import { SafetyOutlined, SettingOutlined } from '@ant-design/icons';
 import { AuthStep, AuthStatus } from './types';
 import { useAdb } from '../../../application/hooks/useAdb';
@@ -131,7 +131,7 @@ const EnhancedADBAuthWizard: React.FC = () => {
     switch (state.step) {
       case AuthStep.PREREQUISITES:
         return (
-          <Space direction="vertical" style={{ width: '100%' }}>
+          <Space direction="vertical">
             <StatusIndicator
               status={state.busy ? AuthStatus.IN_PROGRESS : AuthStatus.IDLE}
               title="准备工作"
@@ -144,63 +144,48 @@ const EnhancedADBAuthWizard: React.FC = () => {
               }
             />
             <Space>
-              <button 
-                className="ant-btn ant-btn-primary"
-                disabled={state.busy}
-                onClick={oneClickRecover}
-              >
-                {state.busy ? '修复中...' : '🔧 一键修复'}
-              </button>
-              <button 
-                className="ant-btn ant-btn-primary"
-                onClick={() => dispatch({ type: 'NEXT' })}
-              >
+              <Button type="primary" loading={state.busy} onClick={oneClickRecover}>
+                🔧 一键修复
+              </Button>
+              <Button type="primary" onClick={() => dispatch({ type: 'NEXT' })}>
                 下一步
-              </button>
+              </Button>
             </Space>
           </Space>
         );
 
       case AuthStep.USB_TRUST:
         return (
-          <Space direction="vertical" style={{ width: '100%' }}>
+          <Space direction="vertical">
             <StatusIndicator
               status={state.userConfirmedUsbAllow ? AuthStatus.SUCCESS : AuthStatus.IDLE}
               title="USB 授权确认"
               description="请在手机上确认'允许 USB 调试'对话框"
             />
-            <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-              <input 
-                type="checkbox"
-                checked={state.userConfirmedUsbAllow}
-                onChange={(e) => dispatch({ 
-                  type: 'SET_USB_CONFIRMED', 
-                  value: e.target.checked 
-                })}
-              />
-              <span>我已在手机上点击了"允许"</span>
-            </div>
+            <Checkbox
+              checked={state.userConfirmedUsbAllow}
+              onChange={(e) =>
+                dispatch({ type: 'SET_USB_CONFIRMED', value: e.target.checked })
+              }
+            >
+              我已在手机上点击了"允许"
+            </Checkbox>
             <Space>
-              <button 
-                className="ant-btn"
-                onClick={() => dispatch({ type: 'PREV' })}
-              >
-                上一步
-              </button>
-              <button 
-                className="ant-btn ant-btn-primary"
+              <Button onClick={() => dispatch({ type: 'PREV' })}>上一步</Button>
+              <Button
+                type="primary"
                 disabled={!state.userConfirmedUsbAllow}
                 onClick={() => dispatch({ type: 'NEXT' })}
               >
                 下一步
-              </button>
+              </Button>
             </Space>
           </Space>
         );
 
       case AuthStep.WIRELESS:
         return (
-          <Space direction="vertical" style={{ width: '100%' }}>
+          <Space direction="vertical">
             <StatusIndicator
               status={AuthStatus.IDLE}
               title="无线调试设置（可选）"
@@ -208,31 +193,16 @@ const EnhancedADBAuthWizard: React.FC = () => {
             />
             <Paragraph>此步骤为可选步骤，你可以跳过继续验证有线连接。</Paragraph>
             <Space>
-              <button 
-                className="ant-btn"
-                onClick={() => dispatch({ type: 'PREV' })}
-              >
-                上一步
-              </button>
-              <button 
-                className="ant-btn"
-                onClick={() => dispatch({ type: 'NEXT' })}
-              >
-                跳过无线设置
-              </button>
-              <button 
-                className="ant-btn ant-btn-primary"
-                onClick={() => dispatch({ type: 'NEXT' })}
-              >
-                下一步
-              </button>
+              <Button onClick={() => dispatch({ type: 'PREV' })}>上一步</Button>
+              <Button onClick={() => dispatch({ type: 'NEXT' })}>跳过无线设置</Button>
+              <Button type="primary" onClick={() => dispatch({ type: 'NEXT' })}>下一步</Button>
             </Space>
           </Space>
         );
 
       case AuthStep.VERIFY:
         return (
-          <Space direction="vertical" style={{ width: '100%' }}>
+          <Space direction="vertical">
             <StatusIndicator
               status={adb.devices.length > 0 ? AuthStatus.SUCCESS : AuthStatus.ERROR}
               title="连接验证"
@@ -249,42 +219,24 @@ const EnhancedADBAuthWizard: React.FC = () => {
               <div>未检测到设备，请检查连接和授权状态。</div>
             )}
             <Space>
-              <button 
-                className="ant-btn"
-                onClick={() => dispatch({ type: 'PREV' })}
-              >
-                上一步
-              </button>
-              <button 
-                className="ant-btn"
-                onClick={() => adb.refreshDevices()}
-              >
-                重新检测
-              </button>
-              <button 
-                className="ant-btn ant-btn-primary"
-                onClick={() => dispatch({ type: 'NEXT' })}
-              >
-                完成设置
-              </button>
+              <Button onClick={() => dispatch({ type: 'PREV' })}>上一步</Button>
+              <Button onClick={() => adb.refreshDevices()}>重新检测</Button>
+              <Button type="primary" onClick={() => dispatch({ type: 'NEXT' })}>完成设置</Button>
             </Space>
           </Space>
         );
 
       case AuthStep.DONE:
         return (
-          <Space direction="vertical" style={{ width: '100%' }}>
+          <Space direction="vertical">
             <StatusIndicator
               status={AuthStatus.SUCCESS}
               title="授权完成"
               description="恭喜！ADB 授权设置已完成，你现在可以正常使用 ADB 功能了。"
             />
-            <button 
-              className="ant-btn"
-              onClick={() => dispatch({ type: 'GOTO', step: AuthStep.PREREQUISITES })}
-            >
+            <Button onClick={() => dispatch({ type: 'GOTO', step: AuthStep.PREREQUISITES })}>
               重新开始
-            </button>
+            </Button>
           </Space>
         );
 
@@ -304,7 +256,7 @@ const EnhancedADBAuthWizard: React.FC = () => {
             </Space>
           }
         >
-          <Space direction="vertical" style={{ width: '100%' }}>
+          <Space direction="vertical">
             <Paragraph>
               按步骤完成 USB 授权与（可选的）无线调试，全部操作通过统一的 useAdb() 接口。
             </Paragraph>
@@ -325,9 +277,9 @@ const EnhancedADBAuthWizard: React.FC = () => {
               ]}
             />
             
-            <div style={{ marginTop: 24 }}>
+            <Space direction="vertical" size="middle">
               {renderStepContent()}
-            </div>
+            </Space>
             
             {state.errors.length > 0 && (
               <ErrorList 
@@ -340,7 +292,7 @@ const EnhancedADBAuthWizard: React.FC = () => {
       </Col>
       
       <Col span={6}>
-        <Space direction="vertical" style={{ width: '100%' }}>
+        <Space direction="vertical">
           <SettingsForm
             rememberSettings={state.rememberSettings}
             autoSkipCompleted={state.autoSkipCompleted}

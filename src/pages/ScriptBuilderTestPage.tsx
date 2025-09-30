@@ -4,7 +4,7 @@
  */
 
 import React, { useState } from 'react';
-import { Card, Space, Typography, Button, Alert, Divider } from 'antd';
+import { Card, Space, Typography, Button, Alert, Divider, theme } from 'antd';
 import { ScriptBuilderContainer } from '../components/feature-modules/script-builder';
 import type { Script } from '../components/feature-modules/script-builder';
 
@@ -197,6 +197,7 @@ const EXAMPLE_SCRIPT: Script = {
  * 脚本构建器测试页面组件
  */
 export const ScriptBuilderTestPage: React.FC = () => {
+  const { token } = theme.useToken();
   const [selectedDevice, setSelectedDevice] = useState<string>('device1');
   const [useExampleScript, setUseExampleScript] = useState(false);
 
@@ -216,9 +217,9 @@ export const ScriptBuilderTestPage: React.FC = () => {
   };
 
   return (
-    <div style={{ padding: 24, background: '#f5f5f5', minHeight: '100vh' }}>
+    <div style={{ padding: token.paddingLG, background: token.colorBgLayout, minHeight: '100vh' }}>
       <div style={{ maxWidth: 1200, margin: '0 auto' }}>
-        <Card style={{ marginBottom: 24 }}>
+        <Card style={{ marginBottom: token.marginLG }}>
           <Title level={2}>脚本构建器模块测试</Title>
           <Paragraph>
             这个页面用于测试脚本构建器模块的各项功能，包括：
@@ -250,7 +251,7 @@ export const ScriptBuilderTestPage: React.FC = () => {
 
           {useExampleScript && (
             <Alert
-              style={{ marginTop: 16 }}
+              style={{ marginTop: token.margin }}
               message="示例脚本已加载"
               description="当前加载的是一个小红书自动点赞的示例脚本，包含7个步骤，您可以查看、编辑或执行这个脚本。"
               type="info"
@@ -278,7 +279,7 @@ export const ScriptBuilderTestPage: React.FC = () => {
         </div>
 
         {/* 功能说明 */}
-        <Card style={{ marginTop: 24 }} title="功能说明">
+        <Card style={{ marginTop: token.marginLG }} title="功能说明">
           <Space direction="vertical" size="middle" style={{ width: '100%' }}>
             <div>
               <Text strong>🎯 基本操作：</Text>

@@ -98,10 +98,10 @@ export const RealTimeDeviceMonitorPage: React.FC = () => {
   };
 
   return (
-    <div style={{ padding: 24 }}>
-      <Card style={{ marginBottom: 12 }}>
-        <Space direction="vertical" style={{ width: '100%' }}>
-          <Title level={3} style={{ margin: 0 }}><MobileOutlined /> 实时设备监控</Title>
+    <Space direction="vertical" size="middle">
+      <Card>
+        <Space direction="vertical">
+          <Title level={3}><MobileOutlined /> 实时设备监控</Title>
           <Text type="secondary">仅保留实时监控入口，设备状态由 host:track-devices 事件驱动</Text>
           <DeviceToolbar
             isTracking={isTracking}
@@ -137,7 +137,7 @@ export const RealTimeDeviceMonitorPage: React.FC = () => {
           </Card>
         </Col>
         <Col span={8}>
-          <Space direction="vertical" style={{ width: '100%' }}>
+          <Space direction="vertical">
             <DeviceActionsPanel onShowDetails={() => setDrawerOpen(true)} />
             <DeviceEventLog lastEvent={lastEvent} />
             <DeviceEventStream lastEvent={lastEvent} />
@@ -145,7 +145,7 @@ export const RealTimeDeviceMonitorPage: React.FC = () => {
         </Col>
       </Row>
       <DeviceDetailDrawer open={drawerOpen} onClose={() => setDrawerOpen(false)} />
-    </div>
+    </Space>
   );
 };
 

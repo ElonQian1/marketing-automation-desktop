@@ -1,15 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { 
-  Layout, 
-  Card, 
-  Button, 
-  Typography, 
-  Space, 
-  Alert, 
-  Spin,
-  Modal,
-  theme,
-} from 'antd';
+import { Layout, Card, Button, Typography, Space, Alert, Spin, Modal } from 'antd';
 import { PlusOutlined, UserOutlined } from '@ant-design/icons';
 import { EmployeeTable, EmployeeForm } from '../components';
 import { EmployeeAPI } from '../api';
@@ -30,8 +20,7 @@ export const EmployeePage: React.FC = () => {
   const [isFormLoading, setIsFormLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  // AntD v5 主题 token（暗黑/明亮算法统一来源）
-  const { token } = theme.useToken();
+  // 采用原生 AntD 样式：不做额外 token 配色与内联主题覆盖
 
   // 加载员工列表
   const loadEmployees = async () => {
@@ -140,45 +129,31 @@ export const EmployeePage: React.FC = () => {
   };
 
   return (
-    <Layout style={{ minHeight: '100vh' }}>
-      <Content style={{ padding: token.paddingLG }}>
-        <Card>
-          {/* 页头 */}
-          <div style={{ marginBottom: token.marginLG }}>
-            <Space align="center" style={{ width: '100%', justifyContent: 'space-between' }}>
-              <Space align="center">
-                <UserOutlined style={{ fontSize: 24, color: token.colorPrimary }} />
-                <Title level={2} style={{ margin: 0 }}>员工管理系统</Title>
-              </Space>
-              {!isShowingForm && (
-                <Button 
-                  type="primary" 
-                  icon={<PlusOutlined />}
-                  onClick={() => setIsShowingForm(true)}
-                >
-                  添加员工
-                </Button>
-              )}
+    <Layout>
+      <Content>
+        <Card
+          title={
+            <Space>
+              <UserOutlined />
+              <Title level={3}>员工管理系统</Title>
             </Space>
-          </div>
+          }
+          extra={!isShowingForm && (
+            <Button type="primary" icon={<PlusOutlined />} onClick={() => setIsShowingForm(true)}>
+              添加员工
+            </Button>
+          )}
+        >
+          <Space direction="vertical" size="middle">
 
           {/* 错误提示 */}
           {error && (
-            <Alert
-              message={error}
-              type="error"
-              closable
-              onClose={() => setError(null)}
-              style={{ marginBottom: token.margin }}
-            />
+            <Alert message={error} type="error" closable onClose={() => setError(null)} />
           )}
 
           {/* 表单区域 */}
           {isShowingForm && (
-            <Card 
-              title={editingEmployee ? '编辑员工' : '添加员工'} 
-              style={{ marginBottom: token.marginLG }}
-            >
+            <Card title={editingEmployee ? '编辑员工' : '添加员工'}>
               <Spin spinning={isFormLoading}>
                 <EmployeeForm
                   employee={editingEmployee}
@@ -203,6 +178,7 @@ export const EmployeePage: React.FC = () => {
               </Spin>
             </Card>
           )}
+          </Space>
         </Card>
       </Content>
     </Layout>

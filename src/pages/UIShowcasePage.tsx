@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { theme } from 'antd';
 import { 
   PrimaryButton, 
   SecondaryButton, 
@@ -25,6 +26,7 @@ import {
  * 展示所有可用的UI组件及其用法
  */
 const UIShowcasePage: React.FC = () => {
+  const { token } = theme.useToken();
   const [isLoading, setIsLoading] = useState(false);
   const [formData, setFormData] = useState({
     username: '',
@@ -50,17 +52,17 @@ const UIShowcasePage: React.FC = () => {
 
   return (
     <PageContainer>
-      <div style={{ padding: 24 }}>
-        <div style={{ marginBottom: 24 }}>
+      <div style={{ padding: token.paddingLG }}>
+        <div style={{ marginBottom: token.marginLG }}>
           <h1>UI组件库展示</h1>
           <p>所有可用的UI组件及其使用示例</p>
         </div>
       {/* 按钮组件展示 */}
-      <Panel title="按钮组件" style={{ marginBottom: 24 }}>
+      <Panel title="按钮组件" style={{ marginBottom: token.marginLG }}>
         <Grid spacing="medium">
           <GridItem span={8}>
             <h4>主要按钮</h4>
-            <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
+            <div style={{ display: 'flex', gap: token.marginXS, flexWrap: 'wrap' }}>
               <PrimaryButton size="small">小按钮</PrimaryButton>
               <PrimaryButton size="medium">中按钮</PrimaryButton>
               <PrimaryButton size="large">大按钮</PrimaryButton>
@@ -71,7 +73,7 @@ const UIShowcasePage: React.FC = () => {
           
           <GridItem span={8}>
             <h4>次要按钮</h4>
-            <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
+            <div style={{ display: 'flex', gap: token.marginXS, flexWrap: 'wrap' }}>
               <SecondaryButton size="small">小按钮</SecondaryButton>
               <SecondaryButton size="medium">中按钮</SecondaryButton>
               <SecondaryButton size="large">大按钮</SecondaryButton>
@@ -81,7 +83,7 @@ const UIShowcasePage: React.FC = () => {
           
           <GridItem span={8}>
             <h4>图标按钮</h4>
-            <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
+            <div style={{ display: 'flex', gap: token.marginXS, flexWrap: 'wrap' }}>
               <IconButton variant="primary" tooltip="刷新">
                 <ReloadOutlined />
               </IconButton>
@@ -100,7 +102,7 @@ const UIShowcasePage: React.FC = () => {
       </Panel>
 
       {/* 表单组件展示 */}
-      <Panel title="表单组件" style={{ marginBottom: 24 }}>
+      <Panel title="表单组件" style={{ marginBottom: token.marginLG }}>
         <Grid spacing="medium">
           <GridItem span={12}>
             <FormField
@@ -161,7 +163,7 @@ const UIShowcasePage: React.FC = () => {
           </GridItem>
           
           <GridItem span={24}>
-            <div style={{ display: 'flex', gap: 12, justifyContent: 'flex-end' }}>
+            <div style={{ display: 'flex', gap: token.margin, justifyContent: 'flex-end' }}>
               <SecondaryButton>重置</SecondaryButton>
               <PrimaryButton 
                 loading={isLoading}
@@ -175,45 +177,45 @@ const UIShowcasePage: React.FC = () => {
       </Panel>
 
       {/* 布局组件展示 */}
-      <Panel title="布局组件" style={{ marginBottom: 24 }}>
+      <Panel title="布局组件" style={{ marginBottom: token.marginLG }}>
         <h4>网格系统</h4>
-        <Grid spacing="medium" style={{ marginBottom: 16 }}>
+        <Grid spacing="medium" style={{ marginBottom: token.margin }}>
           <GridItem span={6}>
             <div style={{ 
-              background: '#f0f0f0', 
-              padding: 16, 
+              background: token.colorFillSecondary, 
+              padding: token.padding, 
               textAlign: 'center',
-              borderRadius: 4 
+              borderRadius: token.borderRadius 
             }}>
               span=6
             </div>
           </GridItem>
           <GridItem span={6}>
             <div style={{ 
-              background: '#f0f0f0', 
-              padding: 16, 
+              background: token.colorFillSecondary, 
+              padding: token.padding, 
               textAlign: 'center',
-              borderRadius: 4 
+              borderRadius: token.borderRadius 
             }}>
               span=6
             </div>
           </GridItem>
           <GridItem span={6}>
             <div style={{ 
-              background: '#f0f0f0', 
-              padding: 16, 
+              background: token.colorFillSecondary, 
+              padding: token.padding, 
               textAlign: 'center',
-              borderRadius: 4 
+              borderRadius: token.borderRadius 
             }}>
               span=6
             </div>
           </GridItem>
           <GridItem span={6}>
             <div style={{ 
-              background: '#f0f0f0', 
-              padding: 16, 
+              background: token.colorFillSecondary, 
+              padding: token.padding, 
               textAlign: 'center',
-              borderRadius: 4 
+              borderRadius: token.borderRadius 
             }}>
               span=6
             </div>
@@ -223,20 +225,20 @@ const UIShowcasePage: React.FC = () => {
         <Grid spacing="large">
           <GridItem span={8}>
             <div style={{ 
-              background: '#e6f7ff', 
-              padding: 16, 
+              background: token.colorPrimaryBg, 
+              padding: token.padding, 
               textAlign: 'center',
-              borderRadius: 4 
+              borderRadius: token.borderRadius 
             }}>
               span=8
             </div>
           </GridItem>
           <GridItem span={16}>
             <div style={{ 
-              background: '#fff2e8', 
-              padding: 16, 
+              background: token.colorWarningBg, 
+              padding: token.padding, 
               textAlign: 'center',
-              borderRadius: 4 
+              borderRadius: token.borderRadius 
             }}>
               span=16
             </div>
@@ -254,7 +256,7 @@ const UIShowcasePage: React.FC = () => {
           
           <GridItem span={8}>
             <h4>不同尺寸</h4>
-            <div style={{ display: 'flex', gap: 16, alignItems: 'center' }}>
+            <div style={{ display: 'flex', gap: token.margin, alignItems: 'center' }}>
               <Loading size="small" showText={false} />
               <Loading size="medium" showText={false} />
               <Loading size="large" showText={false} />
@@ -265,9 +267,9 @@ const UIShowcasePage: React.FC = () => {
             <h4>包装内容</h4>
             <Loading spinning={isLoading} text="数据加载中...">
               <div style={{ 
-                padding: 20, 
-                background: '#f9f9f9', 
-                borderRadius: 4,
+                padding: token.paddingLG, 
+                background: token.colorFillTertiary, 
+                borderRadius: token.borderRadius,
                 textAlign: 'center' 
               }}>
                 {isLoading ? '正在加载数据...' : '数据已加载完成'}

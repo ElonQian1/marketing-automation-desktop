@@ -4,7 +4,7 @@
  */
 
 import React, { useState } from 'react';
-import { Button, Card, Space, Typography, Divider, message } from 'antd';
+import { Button, Card, Space, Typography, Divider, message, theme } from 'antd';
 import { SearchOutlined, BugOutlined } from '@ant-design/icons';
 import { UniversalPageFinderModal } from '../components/universal-ui/UniversalPageFinderModal';
 // 统一卡片渲染已采用 DraggableStepCard，通过 SmartStepCardWrapper 进行适配
@@ -55,6 +55,7 @@ const createMockStep = (elementData: any): SmartScriptStep => ({
 });
 
 export const UniversalUITestPage: React.FC = () => {
+  const { token } = theme.useToken();
   const [showPageFinder, setShowPageFinder] = useState(false);
   const [showXmlInspector, setShowXmlInspector] = useState(false);
   const [testSteps, setTestSteps] = useState<SmartScriptStep[]>([]);
@@ -77,7 +78,7 @@ export const UniversalUITestPage: React.FC = () => {
   };
 
   return (
-    <div style={{ padding: 24 }}>
+    <div style={{ padding: token.padding }}>
       <Card>
         <Title level={2}>Universal UI 智能页面查找器测试</Title>
         <Paragraph>

@@ -8,6 +8,7 @@ import {
   Tag,
   Alert,
   Divider,
+  theme,
 } from 'antd';
 import {
   PlayCircleOutlined,
@@ -117,6 +118,7 @@ const SAMPLE_SCRIPTS = [
 ];
 
 const ExecutionMonitorPage: React.FC = () => {
+  const { token } = theme.useToken();
   const [selectedScript, setSelectedScript] = useState<any>(null);
   const [showMonitor, setShowMonitor] = useState(false);
 
@@ -133,14 +135,14 @@ const ExecutionMonitorPage: React.FC = () => {
   const getStepTypeIcon = (type: string) => {
     switch (type) {
       case 'open_app':
-        return <PlayCircleOutlined style={{ color: '#1890ff' }} />;
+        return <PlayCircleOutlined style={{ color: token.colorPrimary }} />;
       case 'tap':
-        return <CheckCircleOutlined style={{ color: '#52c41a' }} />;
+        return <CheckCircleOutlined style={{ color: token.colorSuccess }} />;
       case 'wait':
       case 'wait_for_element':
-        return <ClockCircleOutlined style={{ color: '#faad14' }} />;
+        return <ClockCircleOutlined style={{ color: token.colorWarning }} />;
       default:
-        return <ExclamationCircleOutlined style={{ color: '#ff4d4f' }} />;
+        return <ExclamationCircleOutlined style={{ color: token.colorError }} />;
     }
   };
 
@@ -167,10 +169,10 @@ const ExecutionMonitorPage: React.FC = () => {
   }
 
   return (
-    <div style={{ padding: 24, background: '#f0f2f5', minHeight: '100vh' }}>
+    <div style={{ padding: token.paddingLG, background: token.colorBgLayout, minHeight: '100vh' }}>
       <div style={{ maxWidth: 1200, margin: '0 auto' }}>
         <div style={{ marginBottom: 24 }}>
-          <Title level={2} style={{ margin: 0, color: '#1890ff' }}>
+          <Title level={2} style={{ margin: 0, color: token.colorPrimary }}>
             📊 脚本执行监控
           </Title>
           <Paragraph type="secondary">

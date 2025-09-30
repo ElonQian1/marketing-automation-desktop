@@ -1,16 +1,35 @@
-import React, { useState } from 'react';
-import { Card, Button, Space, message, Typography, Divider, List } from 'antd';
+import React, { useEffect, useState } from 'react';
+import { Card, Button, Space, message, Typography, List, Row, Col, Select, Empty } from 'antd';
 import { PlusOutlined, PlayCircleOutlined, DeleteOutlined } from '@ant-design/icons';
 import NavigationBarDetector from '../components/navigation/NavigationBarDetector';
 import NavigationStepDisplay from '../components/navigation/NavigationStepDisplay';
 import { NavigationClickStepData } from '../types/navigation';
+import { useAdb } from '../application/hooks/useAdb';
 
 const { Title, Paragraph } = Typography;
 
 const NavigationDetectorTestPage: React.FC = () => {
+    const { devices, refreshDevices } = useAdb();
     const [steps, setSteps] = useState<NavigationClickStepData[]>([]);
     const [showDetector, setShowDetector] = useState(false);
-    const [selectedDevice] = useState('emulator-5554');
+    const [selectedDevice, setSelectedDevice] = useState<string>('');
+    const [loading, setLoading] = useState(false);
+
+    useEffect(() => {
+        const init = async () => {
+            try {
+                setLoading(true);
+                await refreshDevices();
+                if (devices.length > 0) setSelectedDevice(devices[0].id);
+            } catch (e) {
+                console.error('获取设备失败:', e);
+            } finally {
+                setLoading(false);
+            }
+        };
+        void init();
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, []);
 
     // 处理创建新步骤
     const handleStepCreate = (stepData: NavigationClickStepData) => {
@@ -56,66 +75,65 @@ const NavigationDetectorTestPage: React.FC = () => {
     };
 
     return (
-        <div style={{ padding: '24px', backgroundColor: '#f0f2f5', minHeight: '100vh' }}>
+        <Space direction="vertical" size="large" style={{ width: '100%' }}>
             <Title level={2}>导航栏检测器测试页面</Title>
-            
             <Paragraph>
                 此页面用于测试通用导航栏检测功能。可以创建导航点击步骤，并将其集成到智能脚本中。
                 主要功能包括：检测应用底部导航栏、识别特定按钮、执行点击操作。
             </Paragraph>
 
-            {/* 操作按钮区域 */}
-            <Card style={{ marginBottom: '16px' }}>
-                <Space size="middle">
-                    <Button 
-                        type="primary" 
+            <Card title="设备管理" size="small" extra={<span>当前设备: {selectedDevice || '未选择'}</span>}>
+                <Row gutter={16}>
+                    <Col xs={24} md={12} lg={8}>
+                        <Space>
+                            <Select
+                                placeholder="选择Android设备"
+                                value={selectedDevice}
+                                onChange={setSelectedDevice}
+                                loading={loading}
+                                style={{ minWidth: 260 }}
+                                options={devices.map((d) => ({ value: d.id, label: `${d.name || d.id} (${d.status})` }))}
+                            />
+                            <Button onClick={async () => { setLoading(true); await refreshDevices(); setLoading(false); }}>
+                                刷新设备
+                            </Button>
+                        </Space>
+                    </Col>
+                </Row>
+                {devices.length === 0 && <Empty description="未找到设备，请连接后重试" />}
+            </Card>
+
+            <Card>
+                <Space size="middle" wrap>
+                    <Button
+                        type="primary"
                         icon={<PlusOutlined />}
                         onClick={() => setShowDetector(true)}
+                        disabled={!selectedDevice}
                     >
                         添加导航点击步骤
                     </Button>
-                    
-                    <Button 
-                        type="default"
+                    <Button
                         icon={<PlayCircleOutlined />}
                         onClick={handleExecuteSteps}
-                        disabled={steps.length === 0}
+                        disabled={steps.length === 0 || !selectedDevice}
                     >
                         执行所有步骤 ({steps.length})
                     </Button>
-                    
-                    <div>
-                        <strong>当前设备:</strong> {selectedDevice}
-                    </div>
                 </Space>
             </Card>
 
             {/* 导航栏检测器 */}
             {showDetector && (
-                <Card 
-                    title="创建导航点击步骤" 
-                    style={{ marginBottom: '16px' }}
-                    extra={
-                        <Button onClick={() => setShowDetector(false)}>
-                            取消
-                        </Button>
-                    }
-                >
-                    <NavigationBarDetector 
-                        onStepCreate={handleStepCreate}
-                        deviceId={selectedDevice}
-                    />
+                <Card title="创建导航点击步骤" extra={<Button onClick={() => setShowDetector(false)}>取消</Button>}>
+                    <NavigationBarDetector onStepCreate={handleStepCreate} deviceId={selectedDevice} />
                 </Card>
             )}
 
             {/* 步骤列表 */}
             <Card title="已创建的导航点击步骤">
                 {steps.length === 0 ? (
-                    <div style={{ textAlign: 'center', padding: '40px' }}>
-                        <Paragraph type="secondary">
-                            暂无导航点击步骤，点击上方按钮开始添加
-                        </Paragraph>
-                    </div>
+                    <Empty description="暂无导航点击步骤，点击上方按钮开始添加" />
                 ) : (
                     <List
                         itemLayout="vertical"
@@ -124,9 +142,9 @@ const NavigationDetectorTestPage: React.FC = () => {
                             <List.Item
                                 key={index}
                                 actions={[
-                                    <Button 
+                                    <Button
                                         key="delete"
-                                        type="text" 
+                                        type="text"
                                         danger
                                         icon={<DeleteOutlined />}
                                         onClick={() => handleDeleteStep(index)}
@@ -135,10 +153,7 @@ const NavigationDetectorTestPage: React.FC = () => {
                                     </Button>
                                 ]}
                             >
-                                <NavigationStepDisplay 
-                                    stepData={step}
-                                    isActive={false}
-                                />
+                                <NavigationStepDisplay stepData={step} isActive={false} />
                             </List.Item>
                         )}
                     />
@@ -146,7 +161,7 @@ const NavigationDetectorTestPage: React.FC = () => {
             </Card>
 
             {/* 使用说明 */}
-            <Card title="使用说明" style={{ marginTop: '16px' }}>
+            <Card title="使用说明">
                 <Space direction="vertical">
                     <div>
                         <strong>1. 添加步骤:</strong> 点击"添加导航点击步骤"按钮，配置目标应用和按钮
@@ -165,7 +180,7 @@ const NavigationDetectorTestPage: React.FC = () => {
                     </div>
                 </Space>
             </Card>
-        </div>
+        </Space>
     );
 };
 

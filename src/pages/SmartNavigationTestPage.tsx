@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Card, Select, Space, Typography, Button, message, Divider, List, Tag, Popconfirm } from 'antd';
+import { Card, Select, Space, Typography, Button, message, List, Tag, Popconfirm, Row, Col, Empty } from 'antd';
 import { invoke } from '@tauri-apps/api/core';
 import { 
   MobileOutlined, 
@@ -13,7 +13,6 @@ import { useAdb } from '../application/hooks/useAdb';
 import type { ElementFinderResult, DetectedElement } from '../components/smart-element-finder/SmartElementFinder';
 
 const { Title, Text } = Typography;
-const { Option } = Select;
 
 interface Device {
   id: string;
@@ -166,65 +165,50 @@ const SmartNavigationTestPage: React.FC = () => {
   };
 
   return (
-    <div style={{ padding: '24px', backgroundColor: '#f0f2f5', minHeight: '100vh' }}>
+    <Space direction="vertical" size="large" style={{ width: '100%' }}>
       <Title level={2}>
         <Space>
-          <MobileOutlined style={{ color: '#1890ff' }} />
+          <MobileOutlined />
           智能导航栏操作测试
         </Space>
       </Title>
 
-      {/* 设备选择 */}
-      <Card 
-        title="设备管理" 
-        size="small" 
-        style={{ marginBottom: 16 }}
+      <Card
+        title="设备管理"
+        size="small"
         extra={
-          <Button 
-            icon={<ReloadOutlined />} 
-            size="small"
-            loading={loading}
-            onClick={fetchDevices}
-          >
+          <Button icon={<ReloadOutlined />} size="small" loading={loading} onClick={fetchDevices}>
             刷新设备
           </Button>
         }
       >
-        <Space>
-          <Text>选择设备:</Text>
-          <Select
-            style={{ width: 300 }}
-            placeholder="选择Android设备"
-            value={selectedDevice}
-            onChange={setSelectedDevice}
-            loading={loading}
-          >
-            {devices.map(device => (
-              <Option key={device.id} value={device.id}>
-                <Space>
-                  <MobileOutlined />
-                  <span>{device.id}</span>
-                  <Tag color={device.status === 'online' ? 'green' : 'orange'}>
-                    {device.status}
-                  </Tag>
-                </Space>
-              </Option>
-            ))}
-          </Select>
-        </Space>
+        <Row gutter={16}>
+          <Col xs={24} md={12} lg={8}>
+            <Space>
+              <Text>选择设备:</Text>
+              <Select
+                placeholder="选择Android设备"
+                value={selectedDevice}
+                onChange={setSelectedDevice}
+                loading={loading}
+                style={{ minWidth: 260 }}
+                options={devices.map((device) => ({
+                  value: device.id,
+                  label: `${device.id} (${device.status})`,
+                }))}
+              />
+            </Space>
+          </Col>
+        </Row>
       </Card>
 
-      <div style={{ display: 'flex', gap: '16px' }}>
-        {/* 左侧：步骤构建器 */}
-        <div style={{ flex: 1 }}>
-          <SmartNavigationStepBuilder
-            deviceId={selectedDevice}
-            onStepGenerated={handleStepGenerated}
-          />
-        </div>
-
-        {/* 右侧：智能步骤列表 */}
-        <div style={{ flex: 1 }}>
+      <Row gutter={[16, 16]}>
+        <Col xs={24} lg={12}>
+          <Card title="步骤构建器">
+            <SmartNavigationStepBuilder deviceId={selectedDevice} onStepGenerated={handleStepGenerated} />
+          </Card>
+        </Col>
+        <Col xs={24} lg={12}>
           <Card
             title={
               <Space>
@@ -246,17 +230,8 @@ const SmartNavigationTestPage: React.FC = () => {
                 >
                   执行全部
                 </Button>
-                <Popconfirm
-                  title="确定要清空所有步骤吗？"
-                  onConfirm={handleClearAllSteps}
-                  disabled={smartSteps.length === 0}
-                >
-                  <Button
-                    danger
-                    size="small"
-                    icon={<DeleteOutlined />}
-                    disabled={smartSteps.length === 0}
-                  >
+                <Popconfirm title="确定要清空所有步骤吗？" onConfirm={handleClearAllSteps} disabled={smartSteps.length === 0}>
+                  <Button danger size="small" icon={<DeleteOutlined />} disabled={smartSteps.length === 0}>
                     清空
                   </Button>
                 </Popconfirm>
@@ -264,11 +239,7 @@ const SmartNavigationTestPage: React.FC = () => {
             }
           >
             {smartSteps.length === 0 ? (
-              <div style={{ textAlign: 'center', padding: '40px', color: '#666' }}>
-                <PlusOutlined style={{ fontSize: '48px', marginBottom: '16px' }} />
-                <div>还没有智能导航步骤</div>
-                <div>使用左侧的步骤构建器来创建步骤</div>
-              </div>
+              <Empty description="还没有智能导航步骤，使用左侧的步骤构建器来创建步骤" />
             ) : (
               <List
                 dataSource={smartSteps}
@@ -284,19 +255,11 @@ const SmartNavigationTestPage: React.FC = () => {
                       >
                         执行
                       </Button>,
-                      <Popconfirm
-                        key="delete"
-                        title="确定删除这个步骤吗？"
-                        onConfirm={() => handleDeleteStep(step.id)}
-                      >
-                        <Button
-                          type="link"
-                          danger
-                          icon={<DeleteOutlined />}
-                        >
+                      <Popconfirm key="delete" title="确定删除这个步骤吗？" onConfirm={() => handleDeleteStep(step.id)}>
+                        <Button type="link" danger icon={<DeleteOutlined />}>
                           删除
                         </Button>
-                      </Popconfirm>
+                      </Popconfirm>,
                     ]}
                   >
                     <List.Item.Meta
@@ -307,15 +270,15 @@ const SmartNavigationTestPage: React.FC = () => {
                         </Space>
                       }
                       description={
-                        <div>
+                        <Space direction="vertical" size={4}>
                           <Text type="secondary">{step.description}</Text>
-                          <div style={{ marginTop: 4 }}>
+                          <Space wrap>
                             <Tag>应用: {step.config.app_name}</Tag>
                             <Tag>位置: {step.config.navigation_type}</Tag>
                             <Tag>按钮: {step.config.button_name}</Tag>
                             <Tag>动作: {step.config.click_action}</Tag>
-                          </div>
-                        </div>
+                          </Space>
+                        </Space>
                       }
                     />
                   </List.Item>
@@ -323,36 +286,36 @@ const SmartNavigationTestPage: React.FC = () => {
               />
             )}
           </Card>
-        </div>
-      </div>
+        </Col>
+      </Row>
 
-      <Divider />
-
-      {/* 使用说明 */}
       <Card title="使用说明" size="small">
-        <div>
-          <Title level={5}>功能特点：</Title>
-          <ul>
-            <li>🎯 <strong>智能导航识别</strong>：自动识别应用的底部导航栏、顶部导航栏等</li>
-            <li>📱 <strong>多应用预设</strong>：内置小红书、微信、抖音等常用应用配置</li>
-            <li>🔧 <strong>灵活配置</strong>：支持预设按钮选择和手动输入</li>
-            <li>⚡ <strong>即时执行</strong>：可单步执行或批量执行导航操作</li>
-          </ul>
-          
-          <Title level={5}>操作流程：</Title>
-          <ol>
-            <li>选择并连接Android设备</li>
-            <li>在步骤构建器中选择导航栏类型（下方导航栏、顶部导航栏等）</li>
-            <li>选择目标应用（小红书、微信等）</li>
-            <li>选择或输入目标按钮（我、首页、消息等）</li>
-            <li>选择操作动作（单击、双击、长按）</li>
-            <li>点击"智能检测"验证配置</li>
-            <li>点击"添加到步骤"生成智能脚本步骤</li>
-            <li>执行单个步骤或批量执行所有步骤</li>
-          </ol>
-        </div>
+        <Space direction="vertical">
+          <div>
+            <Title level={5}>功能特点：</Title>
+            <ul>
+              <li>🎯 <strong>智能导航识别</strong>：自动识别应用的底部导航栏、顶部导航栏等</li>
+              <li>📱 <strong>多应用预设</strong>：内置小红书、微信、抖音等常用应用配置</li>
+              <li>🔧 <strong>灵活配置</strong>：支持预设按钮选择和手动输入</li>
+              <li>⚡ <strong>即时执行</strong>：可单步执行或批量执行导航操作</li>
+            </ul>
+          </div>
+          <div>
+            <Title level={5}>操作流程：</Title>
+            <ol>
+              <li>选择并连接Android设备</li>
+              <li>在步骤构建器中选择导航栏类型（下方导航栏、顶部导航栏等）</li>
+              <li>选择目标应用（小红书、微信等）</li>
+              <li>选择或输入目标按钮（我、首页、消息等）</li>
+              <li>选择操作动作（单击、双击、长按）</li>
+              <li>点击"智能检测"验证配置</li>
+              <li>点击"添加到步骤"生成智能脚本步骤</li>
+              <li>执行单个步骤或批量执行所有步骤</li>
+            </ol>
+          </div>
+        </Space>
       </Card>
-    </div>
+    </Space>
   );
 };
 

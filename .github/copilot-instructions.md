@@ -1,4 +1,4 @@
-# GitHub Copilot 开发指导文档
+ GitHub Copilot 开发指导文档
 
 本文档为 AI 代理开发者提供项目特定的指导和约束，确保代码质量和架构一致性。
 
