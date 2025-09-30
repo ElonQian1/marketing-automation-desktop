@@ -1,0 +1,380 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>循环卡片修复测试</title>
+    <style>
+        body {
+            background: #2d2d2d;
+            color: white;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            padding: 20px;
+        }
+        
+        .test-container {
+            max-width: 800px;
+            margin: 0 auto;
+        }
+        
+        .test-section {
+            margin: 30px 0;
+            padding: 20px;
+            border: 1px solid #555;
+            border-radius: 8px;
+        }
+        
+        /* 模拟问题的黑底黑字卡片 */
+        .problematic-card {
+            background: black;
+            color: black;
+            padding: 20px;
+            margin: 10px 0;
+            border: 1px solid #333;
+            border-radius: 8px;
+        }
+        
+        /* 应该是白底黑字的循环卡片 */
+        .loop-step-card {
+            background: white;
+            color: #333;
+            padding: 20px;
+            margin: 10px 0;
+            border: 1px solid #d9d9d9;
+            border-radius: 8px;
+        }
+        
+        .step-card {
+            background: white;
+            color: #333;
+            padding: 15px;
+            margin: 10px 0;
+            border: 1px solid #d9d9d9;
+            border-radius: 6px;
+        }
+        
+        .white-background-allowed {
+            background: white;
+            color: #333;
+            padding: 15px;
+            margin: 10px 0;
+            border: 1px solid #d9d9d9;
+            border-radius: 6px;
+        }
+        
+        .button {
+            padding: 8px 16px;
+            margin: 5px;
+            border: 1px solid #d9d9d9;
+            border-radius: 4px;
+            background: white;
+            color: #333;
+            cursor: pointer;
+        }
+        
+        .button:hover {
+            background: #f0f0f0;
+        }
+        
+        .test-button {
+            background: #1890ff;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 4px;
+            cursor: pointer;
+            margin: 10px 5px;
+        }
+        
+        .emergency-button {
+            background: #ff4d4f;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 4px;
+            cursor: pointer;
+            margin: 10px 5px;
+        }
+        
+        .status {
+            padding: 10px;
+            margin: 10px 0;
+            border-radius: 4px;
+            border: 1px solid #555;
+        }
+        
+        .status.success {
+            background: #f6ffed;
+            border-color: #b7eb8f;
+            color: #389e0d;
+        }
+        
+        .status.error {
+            background: #fff2f0;
+            border-color: #ffccc7;
+            color: #cf1322;
+        }
+    </style>
+</head>
+<body>
+    <div class="test-container">
+        <h1>🎨 循环卡片主题修复测试页面</h1>
+        
+        <div class="test-section">
+            <h2>测试控制</h2>
+            <button class="test-button" onclick="runEmergencyFix()">运行紧急修复脚本</button>
+            <button class="test-button" onclick="loadThemeSystem()">加载主题系统</button>
+            <button class="test-button" onclick="createProblematicCard()">创建问题卡片</button>
+            <button class="emergency-button" onclick="forceRefresh()">强制刷新</button>
+            
+            <div id="status" class="status">准备就绪</div>
+        </div>
+        
+        <div class="test-section">
+            <h2>🔴 问题演示：黑底黑字卡片（应该被修复）</h2>
+            <div class="problematic-card loop-step-card" id="problem-card-1">
+                <h3>这是一个问题卡片</h3>
+                <p>这段文字应该是黑底黑字（不可读），修复后应该变成白底黑字</p>
+                <button class="button">按钮</button>
+                <span class="ant-tag">标签</span>
+            </div>
+            
+            <div class="problematic-card step-card" id="problem-card-2">
+                <h3>另一个问题卡片</h3>
+                <p>这也是黑底黑字，需要修复</p>
+                <button class="button">操作</button>
+            </div>
+        </div>
+        
+        <div class="test-section">
+            <h2>✅ 正确示例：白底黑字循环卡片</h2>
+            <div class="loop-step-card" data-loop-badge="1">
+                <h3>正确的循环步骤卡片</h3>
+                <p>这个卡片应该保持白底黑字，清晰可读</p>
+                <button class="button">执行步骤</button>
+                <span class="ant-tag ant-tag-blue">循环</span>
+            </div>
+            
+            <div class="step-card white-background-allowed">
+                <h3>白色背景允许的卡片</h3>
+                <p>这类卡片应该保持白色背景</p>
+                <button class="button">编辑</button>
+                <button class="button">删除</button>
+            </div>
+        </div>
+        
+        <div class="test-section">
+            <h2>📊 修复统计</h2>
+            <div id="stats">等待修复...</div>
+        </div>
+        
+        <div class="test-section">
+            <h2>🛠️ 调试工具</h2>
+            <button class="test-button" onclick="checkThemeSystem()">检查主题系统状态</button>
+            <button class="test-button" onclick="highlightLoopCards()">高亮循环卡片</button>
+            <button class="test-button" onclick="showComputedStyles()">显示计算样式</button>
+            <button class="emergency-button" onclick="clearAllFixes()">清除所有修复</button>
+            
+            <div id="debug-info" style="margin-top: 10px; padding: 10px; background: #1a1a1a; border-radius: 4px; font-family: monospace; font-size: 12px;"></div>
+        </div>
+    </div>
+
+    <script>
+        // 状态更新函数
+        function updateStatus(message, type = 'info') {
+            const status = document.getElementById('status');
+            status.textContent = message;
+            status.className = `status ${type}`;
+        }
+        
+        // 运行紧急修复脚本
+        async function runEmergencyFix() {
+            updateStatus('正在运行紧急修复脚本...', 'info');
+            
+            try {
+                // 这里会加载我们的紧急修复脚本
+                const response = await fetch('./emergency-fix-loop-cards.js');
+                const script = await response.text();
+                eval(script);
+                
+                updateStatus('紧急修复脚本执行成功！', 'success');
+                updateStats();
+            } catch (error) {
+                updateStatus(`紧急修复脚本执行失败: ${error.message}`, 'error');
+                console.error('紧急修复失败:', error);
+            }
+        }
+        
+        // 加载主题系统
+        function loadThemeSystem() {
+            updateStatus('主题系统应该已通过应用自动加载', 'info');
+            
+            // 检查是否有全局的修复方法
+            if (typeof window.fixLoopCards === 'function') {
+                window.fixLoopCards();
+                updateStatus('主题系统修复方法已执行', 'success');
+            } else if (typeof window.fixLoopCardsEmergency === 'function') {
+                window.fixLoopCardsEmergency();
+                updateStatus('紧急修复方法已执行', 'success');
+            } else {
+                updateStatus('未找到主题系统修复方法', 'error');
+            }
+            
+            updateStats();
+        }
+        
+        // 创建问题卡片
+        function createProblematicCard() {
+            const container = document.querySelector('.test-section:nth-child(3)');
+            const newCard = document.createElement('div');
+            newCard.className = 'problematic-card loop-step-card';
+            newCard.style.background = 'black';
+            newCard.style.color = 'black';
+            newCard.innerHTML = `
+                <h3>动态创建的问题卡片</h3>
+                <p>这是通过JavaScript动态创建的黑底黑字卡片，时间: ${new Date().toLocaleTimeString()}</p>
+                <button class="button">动态按钮</button>
+            `;
+            container.appendChild(newCard);
+            
+            updateStatus('已创建新的问题卡片', 'info');
+            
+            // 如果有自动修复，稍后触发
+            setTimeout(() => {
+                if (typeof window.fixLoopCardsEmergency === 'function') {
+                    window.fixLoopCardsEmergency();
+                    updateStatus('自动修复已触发', 'success');
+                }
+            }, 500);
+        }
+        
+        // 检查主题系统状态
+        function checkThemeSystem() {
+            const debugInfo = document.getElementById('debug-info');
+            let info = [];
+            
+            info.push('=== 主题系统状态检查 ===');
+            
+            // 检查全局方法
+            info.push(`themeOverrideManager: ${typeof window.themeOverrideManager}`);
+            info.push(`fixLoopCards: ${typeof window.fixLoopCards}`);
+            info.push(`fixLoopCardsEmergency: ${typeof window.fixLoopCardsEmergency}`);
+            info.push(`getLoopCardStats: ${typeof window.getLoopCardStats}`);
+            
+            // 检查统计信息
+            if (typeof window.getThemeStats === 'function') {
+                try {
+                    const stats = window.getThemeStats();
+                    info.push('=== 修复统计 ===');
+                    Object.entries(stats).forEach(([key, value]) => {
+                        info.push(`${key}: ${JSON.stringify(value)}`);
+                    });
+                } catch (e) {
+                    info.push(`统计获取失败: ${e.message}`);
+                }
+            }
+            
+            // 检查循环卡片
+            const loopCards = document.querySelectorAll('.loop-step-card, .step-card, .white-background-allowed');
+            info.push(`=== 循环卡片检查 (${loopCards.length}个) ===`);
+            
+            loopCards.forEach((card, index) => {
+                const computed = window.getComputedStyle(card);
+                const isFixed = card.getAttribute('data-white-theme-forced') === 'true';
+                info.push(`卡片${index + 1}: bg=${computed.backgroundColor}, color=${computed.color}, 已修复=${isFixed}`);
+            });
+            
+            debugInfo.textContent = info.join('\n');
+        }
+        
+        // 高亮循环卡片
+        function highlightLoopCards() {
+            const cards = document.querySelectorAll('.loop-step-card, .step-card, .white-background-allowed');
+            
+            cards.forEach((card, index) => {
+                const originalStyle = card.style.cssText;
+                card.style.boxShadow = '0 0 10px #ff4d4f';
+                card.style.border = '2px solid #ff4d4f';
+                
+                setTimeout(() => {
+                    card.style.cssText = originalStyle;
+                }, 2000);
+            });
+            
+            updateStatus(`已高亮 ${cards.length} 个循环卡片`, 'info');
+        }
+        
+        // 显示计算样式
+        function showComputedStyles() {
+            const debugInfo = document.getElementById('debug-info');
+            const cards = document.querySelectorAll('.loop-step-card, .step-card, .white-background-allowed');
+            let info = ['=== 计算样式详情 ==='];
+            
+            cards.forEach((card, index) => {
+                const computed = window.getComputedStyle(card);
+                info.push(`卡片 ${index + 1}:`);
+                info.push(`  background-color: ${computed.backgroundColor}`);
+                info.push(`  color: ${computed.color}`);
+                info.push(`  border-color: ${computed.borderColor}`);
+                info.push(`  classes: ${card.className}`);
+                info.push(`  data-white-theme-forced: ${card.getAttribute('data-white-theme-forced')}`);
+                info.push('');
+            });
+            
+            debugInfo.textContent = info.join('\n');
+        }
+        
+        // 更新统计信息
+        function updateStats() {
+            const stats = document.getElementById('stats');
+            let info = [];
+            
+            const loopCards = document.querySelectorAll('.loop-step-card, .step-card, .white-background-allowed');
+            const fixedCards = document.querySelectorAll('[data-white-theme-forced="true"]');
+            
+            info.push(`总循环卡片: ${loopCards.length}`);
+            info.push(`已修复卡片: ${fixedCards.length}`);
+            
+            if (typeof window.getLoopCardStats === 'function') {
+                try {
+                    const themStats = window.getLoopCardStats();
+                    info.push(`主题系统统计: ${JSON.stringify(themStats)}`);
+                } catch (e) {
+                    info.push(`主题统计获取失败: ${e.message}`);
+                }
+            }
+            
+            stats.innerHTML = info.join('<br>');
+        }
+        
+        // 清除所有修复
+        function clearAllFixes() {
+            // 移除强制修复标记
+            document.querySelectorAll('[data-white-theme-forced="true"]').forEach(card => {
+                card.removeAttribute('data-white-theme-forced');
+                card.style.cssText = '';
+            });
+            
+            // 移除紧急修复CSS
+            const emergencyStyle = document.getElementById('loop-card-emergency-fix');
+            if (emergencyStyle) {
+                emergencyStyle.remove();
+            }
+            
+            updateStatus('已清除所有修复', 'info');
+            updateStats();
+        }
+        
+        // 强制刷新
+        function forceRefresh() {
+            location.reload();
+        }
+        
+        // 页面加载完成后自动更新统计
+        document.addEventListener('DOMContentLoaded', () => {
+            updateStats();
+            updateStatus('测试页面已加载，请运行修复测试', 'info');
+        });
+    </script>
+</body>
+</html>

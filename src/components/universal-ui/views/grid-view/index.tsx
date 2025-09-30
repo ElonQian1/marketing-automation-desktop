@@ -11,3 +11,22 @@ export { ScreenPreview } from './ScreenPreview';
 export { NodeDetail } from './NodeDetail';
 export { Breadcrumbs } from './Breadcrumbs';
 export { XPathBuilder } from './XPathBuilder';
+
+// 🆕 子元素选择功能导出
+export {
+  ChildElementSelectorModal,
+  type ChildElementSelectorModalProps,
+} from './components/ChildElementSelectorModal';
+
+export {
+  childElementAnalyzer,
+  type ActionableChildElement,
+  type ActionableElementType,
+  type ChildElementAnalysis,
+} from './services/childElementAnalyzer';
+
+export {
+  smartRecommendationEnhancer,
+  type UserIntent,
+  type ElementContext,
+} from './services/smartRecommendationEnhancer';

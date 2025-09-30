@@ -271,6 +271,33 @@ const DraggableStepCardInner: React.FC<
               boundNode={boundNode}
               snapshotAvailable={snapshotAvailable}
               onOpenXmlInspector={() => setXmlInspectorOpen(true)}
+              onSelectChildElement={(element) => {
+                // 🆕 子元素选择处理：更新步骤参数为选中的子元素
+                if (onUpdateStepParameters) {
+                  const newParams = {
+                    ...step.parameters,
+                    resource_id: element.node.attrs['resource-id'] || '',
+                    text: element.node.attrs['text'] || '',
+                    content_desc: element.node.attrs['content-desc'] || '',
+                    class_name: element.node.attrs['class'] || '',
+                    bounds: element.node.attrs['bounds'] || '',
+                    package: element.node.attrs['package'] || '',
+                    // 保留匹配策略信息
+                    matching: {
+                      ...step.parameters?.matching,
+                      values: {
+                        'resource-id': element.node.attrs['resource-id'] || '',
+                        'text': element.node.attrs['text'] || '',
+                        'content-desc': element.node.attrs['content-desc'] || '',
+                        'class': element.node.attrs['class'] || '',
+                        'bounds': element.node.attrs['bounds'] || '',
+                        'package': element.node.attrs['package'] || '',
+                      }
+                    }
+                  };
+                  onUpdateStepParameters(step.id, newParams);
+                }
+              }}
               onUpdateStepParameters={onUpdateStepParameters}
             />
           }

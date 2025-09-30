@@ -1,0 +1,274 @@
+/**
+ * CSS层级隔离系统
+ * 使用CSS @layer确保循环卡片样式和暗色主题互不干扰
+ */
+
+/* ==================== 暗色主题保护层 ==================== */
+@layer dark-theme-protection {
+  /* 全局暗色主题变量重置 */
+  :root {
+    --dark-bg-primary: #1a1a1a;
+    --dark-bg-secondary: #2d2d2d;
+    --dark-bg-tertiary: #1f1f1f;
+    --dark-text-primary: #ffffff;
+    --dark-text-secondary: #e6e6e6;
+    --dark-text-tertiary: #cccccc;
+    --dark-border-primary: #404040;
+    --dark-border-secondary: #333333;
+  }
+
+  /* ADB检查器专用保护 */
+  ._root_1melx_11,
+  [data-adb-inspector],
+  [data-xml-viewer] {
+    background: var(--dark-bg-secondary) !important;
+    color: var(--dark-text-primary) !important;
+    border-color: var(--dark-border-primary) !important;
+  }
+
+  ._root_1melx_11 *,
+  [data-adb-inspector] *,
+  [data-xml-viewer] * {
+    color: var(--dark-text-primary) !important;
+  }
+
+  /* ADB检查器卡片 */
+  ._card_1melx_151 {
+    background: var(--dark-bg-card, #2d2d2d) !important;
+    color: var(--dark-text-primary) !important;
+    border-color: var(--dark-border-primary) !important;
+  }
+
+  /* ADB检查器按钮 */
+  ._btn_1melx_41 {
+    background: var(--dark-bg-hover, #333333) !important;
+    color: var(--dark-text-primary) !important;
+    border-color: var(--dark-border-primary) !important;
+  }
+
+  ._btn_1melx_41:hover {
+    background: var(--dark-bg-hover, #404040) !important;
+  }
+
+  /* ADB检查器输入框 */
+  ._input_1melx_65 {
+    background: var(--dark-bg-primary) !important;
+    color: var(--dark-text-primary) !important;
+    border-color: var(--dark-border-primary) !important;
+  }
+
+  /* ADB检查器标签 */
+  ._badge_1melx_281 {
+    background: var(--dark-bg-tertiary) !important;
+    color: var(--dark-text-secondary) !important;
+    border-color: var(--dark-border-secondary) !important;
+  }
+
+  /* 通用暗色主题组件保护 */
+  [data-theme="dark"],
+  .dark-theme-only,
+  [data-dark-theme-protected="true"] {
+    background: var(--dark-bg-secondary) !important;
+    color: var(--dark-text-primary) !important;
+  }
+
+  [data-theme="dark"] *,
+  .dark-theme-only *,
+  [data-dark-theme-protected="true"] * {
+    color: var(--dark-text-primary) !important;
+  }
+
+  /* Ant Design组件暗色保护 */
+  .ant-modal:not([data-loop-container]),
+  .ant-drawer:not([data-loop-container]),
+  .ant-table:not([data-loop-container]),
+  .ant-menu:not([data-loop-container]) {
+    background: var(--dark-bg-secondary) !important;
+    color: var(--dark-text-primary) !important;
+  }
+
+  .ant-modal:not([data-loop-container]) *,
+  .ant-drawer:not([data-loop-container]) *,
+  .ant-table:not([data-loop-container]) *,
+  .ant-menu:not([data-loop-container]) * {
+    color: var(--dark-text-primary) !important;
+  }
+}
+
+/* ==================== 循环卡片专用层 ==================== */
+@layer loop-card-isolation {
+  /* 精确的循环卡片选择器 */
+  [data-loop-step="true"],
+  [data-loop-badge][data-component="loop-step"],
+  .loop-step-card[data-step-type="loop"],
+  .white-background-allowed[data-component="loop-step"],
+  .step-card[data-loop="true"],
+  [data-loop-container="true"] > .step-card {
+    background: #ffffff !important;
+    color: #333333 !important;
+    border-color: #d9d9d9 !important;
+    
+    /* 覆盖暗色主题变量 */
+    --dark-bg-primary: #ffffff !important;
+    --dark-bg-secondary: #ffffff !important;
+    --dark-text-primary: #333333 !important;
+    --dark-text-secondary: #666666 !important;
+  }
+
+  /* 循环卡片内的直接子元素 */
+  [data-loop-step="true"] > *,
+  [data-loop-badge][data-component="loop-step"] > *,
+  .loop-step-card[data-step-type="loop"] > *,
+  .white-background-allowed[data-component="loop-step"] > *,
+  .step-card[data-loop="true"] > * {
+    color: #333333 !important;
+  }
+
+  /* 循环卡片内的Ant Design按钮 */
+  [data-loop-step="true"] .ant-btn:not(.ant-btn-dangerous),
+  [data-loop-badge][data-component="loop-step"] .ant-btn:not(.ant-btn-dangerous),
+  .loop-step-card[data-step-type="loop"] .ant-btn:not(.ant-btn-dangerous) {
+    background: #ffffff !important;
+    color: #333333 !important;
+    border-color: #d9d9d9 !important;
+  }
+
+  /* 循环卡片内的危险按钮 */
+  [data-loop-step="true"] .ant-btn-dangerous,
+  [data-loop-badge][data-component="loop-step"] .ant-btn-dangerous,
+  .loop-step-card[data-step-type="loop"] .ant-btn-dangerous {
+    background: #fff2f0 !important;
+    color: #ff4d4f !important;
+    border-color: #ff4d4f !important;
+  }
+
+  /* 循环卡片内的主要按钮 */
+  [data-loop-step="true"] .ant-btn-primary,
+  [data-loop-badge][data-component="loop-step"] .ant-btn-primary,
+  .loop-step-card[data-step-type="loop"] .ant-btn-primary {
+    background: #1890ff !important;
+    color: #ffffff !important;
+    border-color: #1890ff !important;
+  }
+
+  /* 循环卡片内的标签 */
+  [data-loop-step="true"] .ant-tag,
+  [data-loop-badge][data-component="loop-step"] .ant-tag,
+  .loop-step-card[data-step-type="loop"] .ant-tag {
+    background: #f0f0f0 !important;
+    color: #333333 !important;
+    border-color: #d9d9d9 !important;
+  }
+
+  /* 循环卡片内的蓝色标签 */
+  [data-loop-step="true"] .ant-tag-blue,
+  [data-loop-badge][data-component="loop-step"] .ant-tag-blue,
+  .loop-step-card[data-step-type="loop"] .ant-tag-blue {
+    background: #e6f7ff !important;
+    color: #1890ff !important;
+    border-color: #91d5ff !important;
+  }
+
+  /* 循环卡片内的输入框 */
+  [data-loop-step="true"] .ant-input,
+  [data-loop-step="true"] input,
+  [data-loop-step="true"] textarea,
+  [data-loop-badge][data-component="loop-step"] .ant-input,
+  .loop-step-card[data-step-type="loop"] .ant-input {
+    background: #ffffff !important;
+    color: #333333 !important;
+    border-color: #d9d9d9 !important;
+  }
+
+  /* 循环卡片内的开关 */
+  [data-loop-step="true"] .ant-switch,
+  [data-loop-badge][data-component="loop-step"] .ant-switch,
+  .loop-step-card[data-step-type="loop"] .ant-switch {
+    background: #bfbfbf !important;
+  }
+
+  [data-loop-step="true"] .ant-switch-checked,
+  [data-loop-badge][data-component="loop-step"] .ant-switch-checked,
+  .loop-step-card[data-step-type="loop"] .ant-switch-checked {
+    background: #1890ff !important;
+  }
+
+  /* 循环卡片内的图标 */
+  [data-loop-step="true"] .anticon,
+  [data-loop-badge][data-component="loop-step"] .anticon,
+  .loop-step-card[data-step-type="loop"] .anticon {
+    color: #666666 !important;
+  }
+
+  /* 循环卡片内的文字组件 */
+  [data-loop-step="true"] h1,
+  [data-loop-step="true"] h2,
+  [data-loop-step="true"] h3,
+  [data-loop-step="true"] h4,
+  [data-loop-step="true"] h5,
+  [data-loop-step="true"] h6,
+  [data-loop-step="true"] p,
+  [data-loop-step="true"] span,
+  [data-loop-step="true"] .ant-typography {
+    color: #333333 !important;
+  }
+}
+
+/* ==================== 隔离边界层 ==================== */
+@layer isolation-boundaries {
+  /* 确保ADB检查器不受循环卡片样式影响 */
+  ._root_1melx_11 [data-loop-step="true"],
+  [data-adb-inspector] [data-loop-step="true"],
+  [data-xml-viewer] [data-loop-step="true"] {
+    background: var(--dark-bg-secondary) !important;
+    color: var(--dark-text-primary) !important;
+    border-color: var(--dark-border-primary) !important;
+  }
+
+  /* 确保循环卡片内不被暗色主题影响 */
+  [data-loop-step="true"] ._root_1melx_11,
+  [data-loop-step="true"] [data-adb-inspector],
+  [data-loop-step="true"] [data-xml-viewer] {
+    background: #ffffff !important;
+    color: #333333 !important;
+    border-color: #d9d9d9 !important;
+  }
+
+  /* 模态框和抽屉内的元素隔离 */
+  .ant-modal-content [data-loop-step="true"],
+  .ant-drawer-content [data-loop-step="true"] {
+    background: #ffffff !important;
+    color: #333333 !important;
+  }
+
+  /* 表格内的循环卡片隔离 */
+  .ant-table [data-loop-step="true"] {
+    background: #ffffff !important;
+    color: #333333 !important;
+  }
+}
+
+/* ==================== 强制优先级层 ==================== */
+@layer force-priority {
+  /* 最高优先级：确保关键元素不被误伤 */
+  
+  /* ADB检查器强制保护 */
+  ._root_1melx_11,
+  ._root_1melx_11 *:not([data-loop-step="true"]) {
+    background: var(--dark-bg-secondary, #2d2d2d) !important;
+    color: var(--dark-text-primary, #ffffff) !important;
+  }
+
+  /* 循环卡片强制应用 */
+  [data-loop-step="true"]:not(._root_1melx_11):not([data-adb-inspector]):not([data-xml-viewer]),
+  [data-loop-step="true"]:not(._root_1melx_11):not([data-adb-inspector]):not([data-xml-viewer]) * {
+    background: #ffffff !important;
+    color: #333333 !important;
+  }
+
+  /* 特殊元素的颜色覆盖保护 */
+  [data-white-theme-forced="true"]:not([data-loop-step="true"]) {
+    background: var(--dark-bg-secondary, #2d2d2d) !important;
+    color: var(--dark-text-primary, #ffffff) !important;
+  }
+}

@@ -17,6 +17,8 @@ export class HardcodedStyleFixer {
   private observer: MutationObserver | null = null;
   private intervalId: number | null = null;
   private fixCounter = 0;
+  private isFixing = false; // 防止重入修复
+  private fixedElements = new Set<HTMLElement>();
 
   // 需要修复的硬编码背景色
   private readonly targetBackgrounds = [
@@ -40,8 +42,8 @@ export class HardcodedStyleFixer {
 
   constructor(config: HardcodedStyleFixerConfig = {}) {
     this.config = {
-      frequency: config.frequency ?? 1500,
-      autoFix: config.autoFix ?? true,
+      frequency: config.frequency ?? 5000, // 增加间隔到5秒
+      autoFix: config.autoFix ?? false, // 暂时关闭自动修复
       debug: config.debug ?? false
     };
   }
@@ -85,17 +87,33 @@ export class HardcodedStyleFixer {
    * 扫描并修复所有问题元素
    */
   scanAndFix(): number {
+    // 防止重入
+    if (this.isFixing) {
+      this.log('⏸️ 修复正在进行中，跳过重复扫描');
+      return 0;
+    }
+
+    this.isFixing = true;
     const beforeCount = this.fixCounter;
     const allElements = document.querySelectorAll('*') as NodeListOf<HTMLElement>;
     
     allElements.forEach(element => {
+      // 跳过已修复的元素
+      if (this.fixedElements.has(element)) {
+        return;
+      }
+      
       if (this.shouldFix(element)) {
         this.applyFix(element);
+        this.fixedElements.add(element); // 标记为已修复
       }
     });
 
     const fixedCount = this.fixCounter - beforeCount;
     this.log(`🔧 本轮修复: ${fixedCount} 个元素，总计: ${this.fixCounter} 个`);
+    
+    // 释放重入锁
+    this.isFixing = false;
     
     return fixedCount;
   }
@@ -164,36 +182,64 @@ export class HardcodedStyleFixer {
    */
   private startObserver(): void {
     this.observer = new MutationObserver((mutations) => {
-      let hasChanges = false;
+      // 防止在修复过程中触发新的检查
+      if (this.isFixing) {
+        return;
+      }
+
+      let hasRelevantChanges = false;
       
       mutations.forEach(mutation => {
         if (mutation.type === 'childList') {
           mutation.addedNodes.forEach(node => {
             if (node.nodeType === Node.ELEMENT_NODE) {
-              this.checkElementAndChildren(node as HTMLElement);
-              hasChanges = true;
+              const element = node as HTMLElement;
+              // 只有当元素没有被修复过时才检查
+              if (!this.fixedElements.has(element)) {
+                hasRelevantChanges = true;
+              }
             }
           });
-        } else if (mutation.type === 'attributes' && mutation.attributeName === 'style') {
-          const element = mutation.target as HTMLElement;
-          if (this.shouldFix(element)) {
-            this.applyFix(element);
-            hasChanges = true;
-          }
         }
+        // 移除style属性监听，避免修复过程中触发无限循环
       });
       
-      if (hasChanges) {
-        this.log('🔄 检测到DOM变化，触发检查');
+      // 节流处理
+      if (hasRelevantChanges) {
+        setTimeout(() => {
+          if (!this.isFixing) {
+            this.checkNewElements();
+          }
+        }, 500);
       }
     });
 
     this.observer.observe(document.body, {
       childList: true,
       subtree: true,
-      attributes: true,
-      attributeFilter: ['style']
+      attributes: false // 不监听属性变化，避免因修复样式触发无限循环
     });
+  }
+
+  /**
+   * 只检查新元素，而不是全面扫描
+   */
+  private checkNewElements(): void {
+    const allElements = document.querySelectorAll('*') as NodeListOf<HTMLElement>;
+    let newFixCount = 0;
+    
+    allElements.forEach(element => {
+      // 只处理未修复的元素
+      if (!this.fixedElements.has(element) && this.shouldFix(element)) {
+        this.applyFix(element);
+        this.fixedElements.add(element);
+        newFixCount++;
+      }
+    });
+    
+    if (newFixCount > 0) {
+      this.log(`🔧 检查新元素: 修复了 ${newFixCount} 个`);
+    }
   }
 
   /**
@@ -201,7 +247,10 @@ export class HardcodedStyleFixer {
    */
   private startIntervalScan(): void {
     this.intervalId = window.setInterval(() => {
-      this.scanAndFix();
+      // 只有在不进行修复时才执行定时扫描
+      if (!this.isFixing) {
+        this.checkNewElements(); // 使用较轻量的检查而不是全面扫描
+      }
     }, this.config.frequency);
   }
 

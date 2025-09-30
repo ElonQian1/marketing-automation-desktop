@@ -1,15 +1,23 @@
 /**
- * 菜单交互行为修复器
+ * 菜单交互修复器 - 性能优化版本
  * 专门修复用户反馈的菜单交互问题：
  * 1. 鼠标悬停时背景过亮
  * 2. 点击松开时的红色闪烁
+ * 
+ * 优化措施：
+ * - 大幅降低检查频率（15秒）
+ * - 改善缓存机制，避免重复处理
+ * - 开发环境下默认禁用
+ * - 添加处理状态锁，防止并发问题
  */
 
 interface MenuInteractionFixerConfig {
   /** 是否启用调试模式 */
   debug?: boolean;
-  /** 检测间隔（毫秒） */
+  /** 检查间隔（毫秒） - 默认大幅增加避免卡顿 */
   checkInterval?: number;
+  /** 是否启用修复器 - 开发环境下默认关闭 */
+  enabled?: boolean;
 }
 
 export class MenuInteractionFixer {
@@ -17,11 +25,13 @@ export class MenuInteractionFixer {
   private observer: MutationObserver | null = null;
   private intervalId: number | null = null;
   private fixedMenus = new Set<HTMLElement>();
+  private isProcessing = false;
 
   constructor(config: MenuInteractionFixerConfig = {}) {
     this.config = {
       debug: config.debug ?? false,
-      checkInterval: config.checkInterval ?? 1000
+      checkInterval: config.checkInterval ?? 15000, // 增加到15秒，减少卡顿
+      enabled: config.enabled ?? (process.env.NODE_ENV !== 'development') // 开发环境默认关闭
     };
   }
 
@@ -29,6 +39,11 @@ export class MenuInteractionFixer {
    * 启动菜单交互修复器
    */
   start(): void {
+    if (!this.config.enabled) {
+      this.log('🚫 菜单交互修复器已禁用，跳过启动');
+      return;
+    }
+
     this.log('🎯 启动菜单交互修复器...');
     
     // 立即修复现有菜单
@@ -37,19 +52,20 @@ export class MenuInteractionFixer {
     // 启动DOM观察器
     this.startObserver();
     
-    // 启动定期检查
+    // 启动定期检查（频率大幅降低）
     this.startIntervalCheck();
     
     this.bindEventHandlers();
-    this.bindConsoleHelpers();
     
-    this.log('✅ 菜单交互修复器已启动');
+    this.log('✅ 菜单交互修复器启动完成');
   }
 
   /**
-   * 停止修复器
+   * 停止菜单交互修复器
    */
   stop(): void {
+    this.log('🛑 停止菜单交互修复器...');
+    
     if (this.observer) {
       this.observer.disconnect();
       this.observer = null;
@@ -60,303 +76,247 @@ export class MenuInteractionFixer {
       this.intervalId = null;
     }
     
-    this.log('🛑 菜单交互修复器已停止');
+    this.unbindEventHandlers();
+    this.fixedMenus.clear();
+    
+    this.log('✅ 菜单交互修复器已停止');
   }
 
   /**
-   * 修复所有菜单
+   * 手动触发修复（性能优化版本）
    */
-  fixAllMenus(): number {
-    const menus = document.querySelectorAll('.ant-menu') as NodeListOf<HTMLElement>;
-    let fixedCount = 0;
+  triggerFix(): void {
+    if (this.isProcessing) {
+      this.log('⏳ 正在处理中，跳过重复修复');
+      return;
+    }
     
-    menus.forEach(menu => {
-      if (!this.fixedMenus.has(menu)) {
-        this.fixMenu(menu);
-        this.fixedMenus.add(menu);
-        fixedCount++;
-      }
-    });
-    
-    this.log(`🔧 修复了 ${fixedCount} 个菜单组件`);
-    return fixedCount;
+    this.fixAllMenus();
   }
 
   /**
-   * 修复单个菜单
+   * 切换启用状态
    */
-  private fixMenu(menu: HTMLElement): void {
-    // 修复菜单容器
-    this.applyMenuContainerFix(menu);
+  toggleEnabled(): void {
+    this.config.enabled = !this.config.enabled;
+    this.log(`🔄 菜单交互修复器 ${this.config.enabled ? '启用' : '禁用'}`);
     
-    // 修复所有菜单项
-    const menuItems = menu.querySelectorAll('.ant-menu-item') as NodeListOf<HTMLElement>;
-    menuItems.forEach(item => this.fixMenuItem(item));
-    
-    this.log(`✨ 修复菜单: ${this.getElementDescription(menu)}`);
-  }
-
-  /**
-   * 修复菜单容器
-   */
-  private applyMenuContainerFix(menu: HTMLElement): void {
-    // 应用暗色主题
-    menu.style.setProperty('background', 'var(--dark-bg-elevated)', 'important');
-    menu.style.setProperty('border-color', 'var(--dark-border-primary)', 'important');
-    menu.style.setProperty('color', 'var(--dark-text-primary)', 'important');
-    
-    // 移除可能的阴影效果
-    menu.style.setProperty('box-shadow', 'none', 'important');
-  }
-
-  /**
-   * 修复菜单项
-   */
-  private fixMenuItem(item: HTMLElement): void {
-    // 基础样式
-    item.style.setProperty('background', 'transparent', 'important');
-    item.style.setProperty('color', 'var(--dark-text-secondary)', 'important');
-    item.style.setProperty('transition', 'background-color 0.2s ease, color 0.2s ease', 'important');
-    
-    // 移除边框和轮廓
-    item.style.setProperty('border', 'none', 'important');
-    item.style.setProperty('outline', 'none', 'important');
-    item.style.setProperty('box-shadow', 'none', 'important');
-    
-    // 绑定事件处理器
-    this.bindMenuItemEvents(item);
-  }
-
-  /**
-   * 绑定菜单项事件
-   */
-  private bindMenuItemEvents(item: HTMLElement): void {
-    // 移除现有的事件监听器（如果有的话）
-    item.removeEventListener('mouseenter', this.handleMouseEnter);
-    item.removeEventListener('mouseleave', this.handleMouseLeave);
-    item.removeEventListener('mousedown', this.handleMouseDown);
-    item.removeEventListener('mouseup', this.handleMouseUp);
-    item.removeEventListener('click', this.handleClick);
-    
-    // 添加新的事件监听器
-    item.addEventListener('mouseenter', this.handleMouseEnter.bind(this));
-    item.addEventListener('mouseleave', this.handleMouseLeave.bind(this));
-    item.addEventListener('mousedown', this.handleMouseDown.bind(this));
-    item.addEventListener('mouseup', this.handleMouseUp.bind(this));
-    item.addEventListener('click', this.handleClick.bind(this));
-  }
-
-  /**
-   * 鼠标进入事件 - 优雅的悬停效果
-   */
-  private handleMouseEnter(event: Event): void {
-    const item = event.target as HTMLElement;
-    if (!item.classList.contains('ant-menu-item-selected')) {
-      item.style.setProperty('background', 'var(--dark-bg-hover)', 'important');
-      item.style.setProperty('color', 'var(--dark-text-primary)', 'important');
+    if (this.config.enabled) {
+      this.start();
+    } else {
+      this.stop();
     }
   }
 
-  /**
-   * 鼠标离开事件 - 恢复默认样式
-   */
-  private handleMouseLeave(event: Event): void {
-    const item = event.target as HTMLElement;
-    if (!item.classList.contains('ant-menu-item-selected')) {
-      item.style.removeProperty('background');
-      item.style.removeProperty('color');
-    }
-  }
-
-  /**
-   * 鼠标按下事件 - 防止红色闪烁
-   */
-  private handleMouseDown(event: Event): void {
-    const item = event.target as HTMLElement;
-    item.style.setProperty('background', 'var(--dark-bg-hover)', 'important');
-    item.style.setProperty('color', 'var(--dark-text-primary)', 'important');
-    item.style.setProperty('box-shadow', 'none', 'important');
-    item.style.setProperty('border-color', 'transparent', 'important');
-  }
-
-  /**
-   * 鼠标松开事件 - 移除激活状态
-   */
-  private handleMouseUp(event: Event): void {
-    const item = event.target as HTMLElement;
-    // 延迟一下确保移除所有可能的红色效果
-    setTimeout(() => {
-      if (!item.classList.contains('ant-menu-item-selected')) {
-        item.style.setProperty('background', 'var(--dark-bg-hover)', 'important');
-        item.style.setProperty('color', 'var(--dark-text-primary)', 'important');
-      }
-      item.style.setProperty('box-shadow', 'none', 'important');
-      item.style.setProperty('border-color', 'transparent', 'important');
-    }, 10);
-  }
-
-  /**
-   * 点击事件 - 确保正确的选中状态
-   */
-  private handleClick(event: Event): void {
-    const item = event.target as HTMLElement;
-    
-    // 移除其他选中项的内联样式，让CSS接管
-    const allItems = document.querySelectorAll('.ant-menu-item');
-    allItems.forEach(otherItem => {
-      if (otherItem !== item) {
-        const element = otherItem as HTMLElement;
-        // 清除内联样式，让CSS规则生效
-        element.style.removeProperty('background');
-        element.style.removeProperty('background-color');
-        element.style.removeProperty('color');
-        element.style.removeProperty('border-left');
-      }
-    });
-    
-    // 延迟确保选中状态正确应用
-    setTimeout(() => {
-      // 清除当前项的内联样式，让CSS选择器生效
-      item.style.removeProperty('background');
-      item.style.removeProperty('background-color');
-      item.style.removeProperty('color');
-      item.style.removeProperty('border-left');
-      
-      // 确保移除任何可能的红色效果
-      item.style.setProperty('box-shadow', 'none', 'important');
-      item.style.setProperty('border-color', 'transparent', 'important');
-    }, 50);
-  }
-
-  /**
-   * 启动DOM观察器
-   */
   private startObserver(): void {
     this.observer = new MutationObserver((mutations) => {
-      mutations.forEach(mutation => {
+      // 性能优化：批量处理变更，避免频繁触发
+      let hasMenuChanges = false;
+      
+      for (const mutation of mutations) {
         if (mutation.type === 'childList') {
-          mutation.addedNodes.forEach(node => {
-            if (node.nodeType === Node.ELEMENT_NODE) {
-              const element = node as HTMLElement;
-              // 检查新添加的菜单
-              if (element.classList.contains('ant-menu')) {
-                this.fixMenu(element);
-                this.fixedMenus.add(element);
-              }
-              // 检查新添加的菜单项
-              if (element.classList.contains('ant-menu-item')) {
-                this.fixMenuItem(element);
-              }
-              // 检查元素内的菜单
-              element.querySelectorAll('.ant-menu').forEach(menu => {
-                if (!this.fixedMenus.has(menu as HTMLElement)) {
-                  this.fixMenu(menu as HTMLElement);
-                  this.fixedMenus.add(menu as HTMLElement);
-                }
-              });
-            }
-          });
+          const addedNodes = Array.from(mutation.addedNodes);
+          if (addedNodes.some(node => 
+            node.nodeType === Node.ELEMENT_NODE && 
+            ((node as Element).matches('.ant-menu') || (node as Element).querySelector('.ant-menu'))
+          )) {
+            hasMenuChanges = true;
+            break;
+          }
         }
-      });
+      }
+      
+      if (hasMenuChanges && !this.isProcessing) {
+        // 防抖：延迟执行避免频繁调用
+        setTimeout(() => this.fixAllMenus(), 200);
+      }
     });
-
+    
     this.observer.observe(document.body, {
       childList: true,
       subtree: true
     });
   }
 
-  /**
-   * 启动定期检查
-   */
   private startIntervalCheck(): void {
     this.intervalId = window.setInterval(() => {
-      this.fixAllMenus();
+      if (!this.isProcessing) {
+        this.fixAllMenus();
+      }
     }, this.config.checkInterval);
   }
 
-  /**
-   * 绑定全局事件处理器
-   */
-  private bindEventHandlers(): void {
-    // 全局处理所有菜单项，确保没有红色效果
-    document.addEventListener('click', (event) => {
-      const target = event.target as HTMLElement;
-      const menuItem = target.closest('.ant-menu-item');
-      if (menuItem) {
-        // 立即移除红色效果
-        setTimeout(() => {
-          (menuItem as HTMLElement).style.setProperty('box-shadow', 'none', 'important');
-          (menuItem as HTMLElement).style.setProperty('border-color', 'transparent', 'important');
-        }, 0);
+  private fixAllMenus(): void {
+    if (this.isProcessing) return;
+    
+    this.isProcessing = true;
+    
+    try {
+      // 性能优化：减少DOM查询频率
+      const menus = document.querySelectorAll('.ant-menu');
+      this.log(`🔍 发现 ${menus.length} 个菜单需要检查`);
+      
+      let fixedCount = 0;
+      menus.forEach(menu => {
+        const htmlMenu = menu as HTMLElement;
+        
+        // 缓存优化：避免重复处理
+        if (!this.fixedMenus.has(htmlMenu)) {
+          this.fixMenu(htmlMenu);
+          this.fixedMenus.add(htmlMenu);
+          fixedCount++;
+        }
+      });
+      
+      if (fixedCount > 0) {
+        this.log(`✅ 本次修复了 ${fixedCount} 个新菜单`);
       }
-    });
-
-    // 处理悬停事件，确保没有异常的红色效果
-    document.addEventListener('mouseover', (event) => {
-      const target = event.target as HTMLElement;
-      const menuItem = target.closest('.ant-menu-item');
-      if (menuItem) {
-        (menuItem as HTMLElement).style.setProperty('box-shadow', 'none', 'important');
-      }
-    });
-  }
-
-  /**
-   * 绑定控制台辅助方法
-   */
-  private bindConsoleHelpers(): void {
-    (window as any).menuInteractionFixer = this;
-    (window as any).fixMenus = () => this.fixAllMenus();
-    (window as any).getMenuStats = () => ({
-      fixedMenus: this.fixedMenus.size,
-      isRunning: this.observer !== null
-    });
-  }
-
-  /**
-   * 获取元素描述
-   */
-  private getElementDescription(element: HTMLElement): string {
-    const tag = element.tagName.toLowerCase();
-    const classes = element.className ? `.${element.className.split(' ').join('.')}` : '';
-    const id = element.id ? `#${element.id}` : '';
-    return `${tag}${id}${classes}`;
-  }
-
-  /**
-   * 输出日志
-   */
-  private log(message: string): void {
-    if (this.config.debug) {
-      console.log(`[MenuInteractionFixer] ${message}`);
+    } catch (error) {
+      this.log('❌ 修复菜单时出错:', error);
+    } finally {
+      this.isProcessing = false;
     }
   }
 
-  /**
-   * 获取统计信息
-   */
-  getStats() {
-    return {
-      fixedMenus: this.fixedMenus.size,
-      isRunning: this.observer !== null,
-      config: this.config
-    };
+  private fixMenu(menu: HTMLElement): void {
+    try {
+      // 检查是否已经修复过
+      if (menu.dataset.menuInteractionFixed === 'true') {
+        return;
+      }
+      
+      const menuItems = menu.querySelectorAll('.ant-menu-item, .ant-menu-submenu');
+      
+      menuItems.forEach(item => {
+        const htmlItem = item as HTMLElement;
+        this.fixMenuItem(htmlItem);
+      });
+      
+      // 标记为已修复
+      menu.dataset.menuInteractionFixed = 'true';
+      
+      this.log(`🔧 已修复菜单: ${this.getMenuIdentifier(menu)}`);
+    } catch (error) {
+      this.log('❌ 修复菜单项时出错:', error);
+    }
+  }
+
+  private fixMenuItem(item: HTMLElement): void {
+    // 防止重复绑定
+    if (item.dataset.menuItemFixed === 'true') {
+      return;
+    }
+    
+    // 移除可能存在的旧事件监听器
+    this.removeExistingListeners(item);
+    
+    // 修复悬停效果
+    item.addEventListener('mouseenter', this.handleMouseEnter.bind(this), { passive: true });
+    item.addEventListener('mouseleave', this.handleMouseLeave.bind(this), { passive: true });
+    
+    // 修复点击效果
+    item.addEventListener('mousedown', this.handleMouseDown.bind(this), { passive: true });
+    item.addEventListener('mouseup', this.handleMouseUp.bind(this), { passive: true });
+    
+    // 标记为已修复
+    item.dataset.menuItemFixed = 'true';
+  }
+
+  private removeExistingListeners(item: HTMLElement): void {
+    // 克隆节点来移除所有事件监听器（性能优化的方式）
+    // 但这里我们采用更安全的方式，只移除特定的监听器
+    const events = ['mouseenter', 'mouseleave', 'mousedown', 'mouseup'];
+    events.forEach(eventType => {
+      try {
+        item.removeEventListener(eventType, this.handleMouseEnter);
+        item.removeEventListener(eventType, this.handleMouseLeave);
+        item.removeEventListener(eventType, this.handleMouseDown);
+        item.removeEventListener(eventType, this.handleMouseUp);
+      } catch (e) {
+        // 忽略移除失败的情况
+      }
+    });
+  }
+
+  private handleMouseEnter = (event: Event): void => {
+    const target = event.target as HTMLElement;
+    
+    // 修复过亮的悬停背景
+    target.style.setProperty('background-color', 'rgba(0, 0, 0, 0.06)', 'important');
+    target.style.setProperty('background', 'rgba(0, 0, 0, 0.06)', 'important');
+    
+    this.log(`🖱️ 鼠标进入: ${this.getItemIdentifier(target)}`);
+  };
+
+  private handleMouseLeave = (event: Event): void => {
+    const target = event.target as HTMLElement;
+    
+    // 移除悬停样式
+    target.style.removeProperty('background-color');
+    target.style.removeProperty('background');
+    
+    this.log(`🖱️ 鼠标离开: ${this.getItemIdentifier(target)}`);
+  };
+
+  private handleMouseDown = (event: Event): void => {
+    const target = event.target as HTMLElement;
+    
+    // 修复点击时的背景色
+    target.style.setProperty('background-color', 'rgba(0, 0, 0, 0.1)', 'important');
+    target.style.setProperty('background', 'rgba(0, 0, 0, 0.1)', 'important');
+    
+    this.log(`👆 鼠标按下: ${this.getItemIdentifier(target)}`);
+  };
+
+  private handleMouseUp = (event: Event): void => {
+    const target = event.target as HTMLElement;
+    
+    // 恢复悬停状态的背景色
+    target.style.setProperty('background-color', 'rgba(0, 0, 0, 0.06)', 'important');
+    target.style.setProperty('background', 'rgba(0, 0, 0, 0.06)', 'important');
+    
+    this.log(`👆 鼠标释放: ${this.getItemIdentifier(target)}`);
+  };
+
+  private bindEventHandlers(): void {
+    // 全局点击处理 - 性能优化：使用事件委托
+    document.addEventListener('click', this.handleGlobalClick.bind(this), { passive: true });
+  }
+
+  private unbindEventHandlers(): void {
+    document.removeEventListener('click', this.handleGlobalClick);
+  }
+
+  private handleGlobalClick = (event: Event): void => {
+    const target = event.target as HTMLElement;
+    
+    // 只处理菜单项的点击
+    if (target.closest('.ant-menu-item, .ant-menu-submenu')) {
+      // 重置所有菜单项的活动状态
+      setTimeout(() => {
+        const activeItems = document.querySelectorAll('.ant-menu-item, .ant-menu-submenu');
+        activeItems.forEach(item => {
+          const htmlItem = item as HTMLElement;
+          htmlItem.style.removeProperty('background-color');
+          htmlItem.style.removeProperty('background');
+        });
+      }, 100);
+    }
+  };
+
+  private getMenuIdentifier(menu: HTMLElement): string {
+    return menu.className || menu.id || '未命名菜单';
+  }
+
+  private getItemIdentifier(item: HTMLElement): string {
+    const text = item.textContent?.trim() || '';
+    const className = item.className || '';
+    return `${text} (${className})`;
+  }
+
+  private log(...args: any[]): void {
+    if (this.config.debug) {
+      console.log('[MenuInteractionFixer]', ...args);
+    }
   }
 }
-
-// 自动启动修复器
-const autoMenuFixer = new MenuInteractionFixer({
-  debug: true
-});
-
-// 页面加载后启动
-if (document.readyState === 'loading') {
-  document.addEventListener('DOMContentLoaded', () => {
-    setTimeout(() => autoMenuFixer.start(), 200);
-  });
-} else {
-  setTimeout(() => autoMenuFixer.start(), 200);
-}
-
-export default autoMenuFixer;

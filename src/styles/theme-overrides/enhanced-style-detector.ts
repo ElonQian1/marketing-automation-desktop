@@ -22,6 +22,8 @@ export class EnhancedStyleDetector {
   private intervalId: number | null = null;
   private fixedCount = 0;
   private detectedProblems: HTMLElement[] = [];
+  private fixedElements = new Set<HTMLElement>();
+  private isFixing = false; // 防止重入修复
 
   // 问题背景色列表（用户遇到的具体颜色）
   private readonly problemBackgrounds = [
@@ -102,6 +104,13 @@ export class EnhancedStyleDetector {
    * 执行全面检查
    */
   public performFullCheck(): number {
+    // 防止重入
+    if (this.isFixing) {
+      this.log('⏸️ 修复正在进行中，跳过重复检查');
+      return 0;
+    }
+
+    this.isFixing = true;
     const beforeCount = this.fixedCount;
     this.detectedProblems = [];
     
@@ -109,16 +118,25 @@ export class EnhancedStyleDetector {
     const allElements = document.querySelectorAll('*') as NodeListOf<HTMLElement>;
     
     allElements.forEach(element => {
+      // 跳过已修复的元素
+      if (this.fixedElements.has(element)) {
+        return;
+      }
+      
       if (this.isProblemElement(element)) {
         this.detectedProblems.push(element);
         if (this.config.forceFixMode) {
           this.fixElement(element);
+          this.fixedElements.add(element); // 标记为已修复
         }
       }
     });
 
     const fixedInThisRound = this.fixedCount - beforeCount;
     this.log(`🔍 全面检查完成: 发现 ${this.detectedProblems.length} 个问题元素，修复 ${fixedInThisRound} 个`);
+    
+    // 释放重入锁
+    this.isFixing = false;
     
     return fixedInThisRound;
   }
@@ -182,35 +200,73 @@ export class EnhancedStyleDetector {
 
   private startObserver(): void {
     this.observer = new MutationObserver((mutations) => {
+      // 防止在修复过程中触发新的检查
+      if (this.isFixing) {
+        return;
+      }
+
+      let hasRelevantChanges = false;
+      
       mutations.forEach(mutation => {
         if (mutation.type === 'childList') {
           mutation.addedNodes.forEach(node => {
             if (node.nodeType === Node.ELEMENT_NODE) {
               const element = node as HTMLElement;
-              // 检查新添加的元素及其子元素
-              this.checkElementTree(element);
+              // 只有当元素没有被修复过时才检查
+              if (!this.fixedElements.has(element)) {
+                hasRelevantChanges = true;
+              }
             }
           });
-        } else if (mutation.type === 'attributes' && mutation.attributeName === 'style') {
-          const element = mutation.target as HTMLElement;
-          if (this.isProblemElement(element)) {
-            this.fixElement(element);
-          }
         }
+        // 移除style属性监听，避免修复过程中触发无限循环
       });
+
+      // 节流处理：只有发现相关变化时才进行检查
+      if (hasRelevantChanges) {
+        // 延迟执行，避免频繁触发
+        setTimeout(() => {
+          if (!this.isFixing) {
+            this.checkNewElements();
+          }
+        }, 300);
+      }
     });
 
     this.observer.observe(document.body, {
       childList: true,
       subtree: true,
-      attributes: true,
-      attributeFilter: ['style', 'class']
+      attributes: false // 不监听属性变化，避免因修复样式触发无限循环
     });
+  }
+
+  // 新增：只检查新元素，而不是全面检查
+  private checkNewElements(): void {
+    const allElements = document.querySelectorAll('*') as NodeListOf<HTMLElement>;
+    let newFixCount = 0;
+    
+    allElements.forEach(element => {
+      // 只处理未修复的元素
+      if (!this.fixedElements.has(element) && this.isProblemElement(element)) {
+        if (this.config.forceFixMode) {
+          this.fixElement(element);
+          this.fixedElements.add(element);
+          newFixCount++;
+        }
+      }
+    });
+    
+    if (newFixCount > 0) {
+      this.log(`🔧 检查新元素: 修复了 ${newFixCount} 个`);
+    }
   }
 
   private startIntervalCheck(): void {
     this.intervalId = window.setInterval(() => {
-      this.performFullCheck();
+      // 只有在不进行修复时才执行定时检查
+      if (!this.isFixing) {
+        this.checkNewElements(); // 使用较轻量的检查而不是全面检查
+      }
     }, this.config.checkInterval);
   }
 
@@ -301,14 +357,16 @@ export class EnhancedStyleDetector {
   }
 }
 
-// 创建默认实例并自动启动
+// 创建默认实例（暂时不自动启动以避免无限循环）
 const defaultDetector = new EnhancedStyleDetector({
-  debugMode: true,
-  forceFixMode: true,
-  checkInterval: 3000
+  debugMode: false, // 关闭调试模式减少日志
+  forceFixMode: false, // 暂时关闭强制修复模式
+  checkInterval: 10000 // 增加检测间隔到10秒
 });
 
-// 页面加载后启动
+// 手动控制启动，避免自动启动造成问题
+// 注释掉自动启动代码
+/*
 if (document.readyState === 'loading') {
   document.addEventListener('DOMContentLoaded', () => {
     setTimeout(() => defaultDetector.start(), 1000);
@@ -316,5 +374,6 @@ if (document.readyState === 'loading') {
 } else {
   setTimeout(() => defaultDetector.start(), 1000);
 }
+*/
 
 export default defaultDetector;

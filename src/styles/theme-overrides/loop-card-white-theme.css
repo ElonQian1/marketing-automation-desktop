@@ -1,0 +1,293 @@
+@layer theme-overrides {
+  /* ==================== 循环步骤卡片专用样式增强 ==================== */
+  
+  /* 循环卡片主容器 - 强制白底黑字 */
+  .loop-step-card,
+  .step-card,
+  .white-background-allowed,
+  [data-loop-badge],
+  .loop-surface,
+  .loop-card,
+  .loop-anchor {
+    background: white !important;
+    color: #333 !important;
+    border-color: #d9d9d9 !important;
+    
+    /* 强制覆盖任何可能的暗色主题样式 */
+    --dark-bg-primary: white !important;
+    --dark-bg-secondary: white !important;
+    --dark-bg-tertiary: #f9f9f9 !important;
+    --dark-text-primary: #333 !important;
+    --dark-text-secondary: #666 !important;
+    --dark-text-tertiary: #999 !important;
+  }
+
+  /* 循环卡片内的所有直接子元素 */
+  .loop-step-card *,
+  .step-card *,
+  .white-background-allowed *,
+  [data-loop-badge] *,
+  .loop-surface *,
+  .loop-card *,
+  .loop-anchor * {
+    color: #333 !important;
+    
+    /* 重置任何可能被应用的暗色背景 */
+    &:not(.ant-btn):not(.ant-tag):not(.ant-typography):not(.ant-switch) {
+      background: transparent !important;
+    }
+  }
+
+  /* 循环卡片内的Ant Design组件特殊处理 */
+  .loop-step-card .ant-card,
+  .step-card .ant-card,
+  .white-background-allowed .ant-card {
+    background: white !important;
+    color: #333 !important;
+    border-color: #d9d9d9 !important;
+    
+    /* 卡片头部 */
+    .ant-card-head {
+      background: white !important;
+      color: #333 !important;
+      border-color: #d9d9d9 !important;
+      
+      .ant-card-head-title {
+        color: #333 !important;
+        
+        * {
+          color: #333 !important;
+        }
+      }
+    }
+    
+    /* 卡片主体 */
+    .ant-card-body {
+      background: white !important;
+      color: #333 !important;
+      
+      * {
+        color: #333 !important;
+      }
+    }
+  }
+
+  /* 循环卡片内的按钮样式 */
+  .loop-step-card .ant-btn,
+  .step-card .ant-btn,
+  .white-background-allowed .ant-btn {
+    background: white !important;
+    color: #333 !important;
+    border-color: #d9d9d9 !important;
+
+    &:hover {
+      background: #f5f5f5 !important;
+      color: #333 !important;
+      border-color: #bfbfbf !important;
+    }
+
+    &:active,
+    &:focus {
+      background: #e6f7ff !important;
+      color: #1890ff !important;
+      border-color: #1890ff !important;
+    }
+
+    /* 危险按钮 */
+    &.ant-btn-dangerous {
+      background: white !important;
+      color: #ff4d4f !important;
+      border-color: #ff4d4f !important;
+
+      &:hover {
+        background: #fff2f0 !important;
+        color: #ff4d4f !important;
+        border-color: #ff4d4f !important;
+      }
+    }
+
+    /* 文本按钮 */
+    &.ant-btn-text {
+      background: transparent !important;
+      color: #333 !important;
+      border: none !important;
+
+      &:hover {
+        background: rgba(0, 0, 0, 0.04) !important;
+        color: #333 !important;
+      }
+    }
+
+    /* 链接按钮 */
+    &.ant-btn-link {
+      background: transparent !important;
+      color: #1890ff !important;
+      border: none !important;
+
+      &:hover {
+        color: #40a9ff !important;
+      }
+    }
+  }
+
+  /* 循环卡片内的标签 */
+  .loop-step-card .ant-tag,
+  .step-card .ant-tag,
+  .white-background-allowed .ant-tag {
+    background: #f0f0f0 !important;
+    color: #333 !important;
+    border-color: #d9d9d9 !important;
+
+    /* 彩色标签 */
+    &.ant-tag-blue {
+      background: #e6f7ff !important;
+      color: #1890ff !important;
+      border-color: #91d5ff !important;
+    }
+
+    &.ant-tag-green {
+      background: #f6ffed !important;
+      color: #52c41a !important;
+      border-color: #b7eb8f !important;
+    }
+
+    &.ant-tag-red {
+      background: #fff2f0 !important;
+      color: #ff4d4f !important;
+      border-color: #ffccc7 !important;
+    }
+  }
+
+  /* 循环卡片内的排版组件 */
+  .loop-step-card .ant-typography,
+  .step-card .ant-typography,
+  .white-background-allowed .ant-typography {
+    color: #333 !important;
+
+    strong {
+      color: #262626 !important;
+    }
+
+    &.ant-typography-caption {
+      color: #666 !important;
+    }
+  }
+
+  /* 循环卡片内的开关组件 */
+  .loop-step-card .ant-switch,
+  .step-card .ant-switch,
+  .white-background-allowed .ant-switch {
+    background: #bfbfbf !important;
+
+    &.ant-switch-checked {
+      background: #1890ff !important;
+    }
+
+    .ant-switch-handle {
+      background: white !important;
+    }
+  }
+
+  /* 循环卡片内的空间组件 */
+  .loop-step-card .ant-space,
+  .step-card .ant-space,
+  .white-background-allowed .ant-space {
+    color: #333 !important;
+
+    .ant-space-item * {
+      color: inherit !important;
+    }
+  }
+
+  /* 循环卡片内的图标颜色 */
+  .loop-step-card .anticon,
+  .step-card .anticon,
+  .white-background-allowed .anticon {
+    color: #666 !important;
+
+    /* 特殊状态的图标 */
+    &.text-blue-800,
+    &.text-blue-600 {
+      color: #1890ff !important;
+    }
+
+    &.text-red-500 {
+      color: #ff4d4f !important;
+    }
+
+    &.text-green-500 {
+      color: #52c41a !important;
+    }
+  }
+
+  /* 循环卡片内的自定义样式类 */
+  .loop-step-card .loop-icon-pill,
+  .step-card .loop-icon-pill,
+  .white-background-allowed .loop-icon-pill {
+    background: #f0f0f0 !important;
+    color: #333 !important;
+  }
+
+  .loop-step-card .loop-title-tag,
+  .step-card .loop-title-tag,
+  .white-background-allowed .loop-title-tag {
+    background: #e6f7ff !important;
+    color: #1890ff !important;
+    border-color: #91d5ff !important;
+  }
+
+  /* 循环卡片内的装饰元素 */
+  .loop-step-card .loop-top-accent,
+  .step-card .loop-top-accent,
+  .white-background-allowed .loop-top-accent {
+    background: linear-gradient(90deg, #1890ff, #52c41a) !important;
+  }
+
+  .loop-step-card .loop-left-accent,
+  .step-card .loop-left-accent,
+  .white-background-allowed .loop-left-accent {
+    background: #1890ff !important;
+  }
+
+  /* 强制覆盖任何暗色主题变量在循环卡片内的应用 */
+  .loop-step-card,
+  .step-card,
+  .white-background-allowed {
+    /* 重置所有可能影响的CSS变量 */
+    --color-bg-layout: white !important;
+    --color-bg-container: white !important;
+    --color-bg-elevated: white !important;
+    --color-text: #333 !important;
+    --color-text-secondary: #666 !important;
+    --color-text-tertiary: #999 !important;
+    --color-border: #d9d9d9 !important;
+    --color-split: #f0f0f0 !important;
+    
+    /* Ant Design 主题变量重置 */
+    --ant-color-bg-base: white !important;
+    --ant-color-text-base: #333 !important;
+    --ant-color-text-secondary: #666 !important;
+    --ant-color-border-secondary: #d9d9d9 !important;
+  }
+
+  /* 特殊处理：确保没有任何黑色背景泄露 */
+  .loop-step-card *[style*="background: rgb(0, 0, 0)"],
+  .loop-step-card *[style*="background-color: rgb(0, 0, 0)"],
+  .loop-step-card *[style*="background: black"],
+  .loop-step-card *[style*="background-color: black"],
+  .step-card *[style*="background: rgb(0, 0, 0)"],
+  .step-card *[style*="background-color: rgb(0, 0, 0)"],
+  .step-card *[style*="background: black"],
+  .step-card *[style*="background-color: black"] {
+    background: white !important;
+    color: #333 !important;
+  }
+
+  /* 防止暗色文字在循环卡片中出现 */
+  .loop-step-card *[style*="color: rgb(255, 255, 255)"],
+  .loop-step-card *[style*="color: white"],
+  .step-card *[style*="color: rgb(255, 255, 255)"],
+  .step-card *[style*="color: white"] {
+    color: #333 !important;
+  }
+}

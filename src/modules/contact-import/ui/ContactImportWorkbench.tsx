@@ -32,6 +32,7 @@ import WorkbenchNumbersActionsBar from './components/WorkbenchNumbersActionsBar'
 import { useColumnSettings } from './components/columns/useColumnSettings';
 import ColumnSettingsModal from './components/columns/ColumnSettingsModal';
 import { ResizableHeaderCell, useResizableColumns } from '../../../components/universal-ui/table/resizable';
+import { useDragConflictResolver } from './components/grid-layout/hooks/useDragConflictResolver';
 
 const { Title, Text } = Typography;
 
@@ -82,6 +83,14 @@ export const ContactImportWorkbench: React.FC = () => {
     defaultPanels,
     storageKey: 'contact-import-workbench-layout'
   });
+
+  // 启用拖拽冲突解决器，自动处理表格列宽拖拽与其他拖拽事件的冲突
+  const conflictResolver = useDragConflictResolver({
+    autoFix: true,
+    debug: false, // 生产环境关闭调试
+    priority: 'table-resize' // 优先保护表格列宽拖拽
+  });
+
   // 设备
   // 顶部已默认加载设备卡片，不再需要单独“选择设备/刷新设备”控件
 

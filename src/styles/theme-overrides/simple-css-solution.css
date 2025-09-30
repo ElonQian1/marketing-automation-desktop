@@ -1,0 +1,207 @@
+/**
+ * 简洁主题解决方案 - 纯CSS，无JavaScript监控
+ * 直接解决白底白字问题，不需要保护机制
+ */
+
+/* =============================================================================
+   1. ADB XML检查器白底白字修复
+   ============================================================================= */
+
+/* 强制ADB XML检查器区域使用深色文字 */
+.adb-xml-inspector,
+.adb-xml-inspector *,
+[class*="xml-inspector"],
+[class*="xml-parser"],
+[class*="xml-viewer"] {
+  color: #333333 !important;
+  background-color: #ffffff !important;
+}
+
+/* XML内容区域 */
+.xml-content,
+.xml-node,
+.xml-element,
+[data-xml="true"],
+[data-xml-content="true"] {
+  color: #333333 !important;
+  background-color: #ffffff !important;
+}
+
+/* XML高亮和语法着色 */
+.xml-tag { color: #d73a49 !important; }
+.xml-attribute { color: #6f42c1 !important; }
+.xml-value { color: #032f62 !important; }
+.xml-text { color: #24292e !important; }
+
+/* =============================================================================
+   2. 网格视图(Grid View)样式修复
+   ============================================================================= */
+
+/* Grid Inspector 网格检查器 */
+.grid-inspector,
+.grid-view,
+.element-grid,
+[class*="grid-inspector"],
+[class*="grid-view"] {
+  color: #333333 !important;
+  background-color: #ffffff !important;
+}
+
+/* 网格单元格 */
+.grid-cell,
+.grid-item,
+.element-card,
+[class*="grid-cell"],
+[class*="grid-item"] {
+  color: #333333 !important;
+  background-color: #ffffff !important;
+  border: 1px solid #e1e4e8 !important;
+}
+
+/* =============================================================================
+   3. 表格和列表修复
+   ============================================================================= */
+
+/* Ant Design 表格强制深色文字 */
+.ant-table,
+.ant-table *,
+.ant-table-tbody > tr > td,
+.ant-table-thead > tr > th {
+  color: #333333 !important;
+  background-color: #ffffff !important;
+}
+
+/* 列表项 */
+.ant-list,
+.ant-list-item,
+.ant-list-item * {
+  color: #333333 !important;
+  background-color: #ffffff !important;
+}
+
+/* =============================================================================
+   4. 模态框和弹出层修复
+   ============================================================================= */
+
+/* 模态框内容 */
+.ant-modal,
+.ant-modal-content,
+.ant-modal-body,
+.ant-modal-body * {
+  color: #333333 !important;
+  background-color: #ffffff !important;
+}
+
+/* 抽屉 */
+.ant-drawer,
+.ant-drawer-content,
+.ant-drawer-body,
+.ant-drawer-body * {
+  color: #333333 !important;
+  background-color: #ffffff !important;
+}
+
+/* 下拉菜单 */
+.ant-dropdown,
+.ant-dropdown-menu,
+.ant-dropdown-menu-item {
+  color: #333333 !important;
+  background-color: #ffffff !important;
+}
+
+/* =============================================================================
+   5. 表单控件修复
+   ============================================================================= */
+
+/* 输入框 */
+.ant-input,
+.ant-textarea,
+.ant-select,
+.ant-select-selector {
+  color: #333333 !important;
+  background-color: #ffffff !important;
+  border-color: #d9d9d9 !important;
+}
+
+/* 按钮基础样式保持不变，只修复特定问题按钮 */
+.ant-btn-ghost,
+.ant-btn-text {
+  color: #333333 !important;
+}
+
+/* =============================================================================
+   6. 特定组件修复
+   ============================================================================= */
+
+/* 代码显示区域 */
+.ant-typography-caption,
+.ant-typography code,
+pre, code {
+  color: #333333 !important;
+  background-color: #f6f8fa !important;
+}
+
+/* 标签 */
+.ant-tag {
+  color: #333333 !important;
+  background-color: #f6f8fa !important;
+  border-color: #e1e4e8 !important;
+}
+
+/* 面包屑 */
+.ant-breadcrumb,
+.ant-breadcrumb a {
+  color: #333333 !important;
+}
+
+/* =============================================================================
+   7. 循环卡片特殊处理（保持白底黑字）
+   ============================================================================= */
+
+/* 智能脚本构建器中的循环卡片 */
+.loop-card,
+.step-card[data-loop="true"],
+[class*="loop-card"],
+[data-loop-step="true"] {
+  color: #333333 !important;
+  background-color: #ffffff !important;
+  border: 1px solid #e1e4e8 !important;
+}
+
+/* 循环卡片标题和内容 */
+.loop-card h3,
+.loop-card h4,
+.loop-card p,
+.loop-card span,
+.loop-card .ant-typography {
+  color: #333333 !important;
+}
+
+/* =============================================================================
+   8. 全局备用规则（最低优先级）
+   ============================================================================= */
+
+/* 防止任何元素出现白底白字 */
+[style*="color: white"][style*="background: white"],
+[style*="color: #fff"][style*="background: #fff"],
+[style*="color: #ffffff"][style*="background: #ffffff"] {
+  color: #333333 !important;
+}
+
+@media (prefers-color-scheme: dark) {
+  /* 响应系统暗色主题时的调整 */
+  .force-light-readable {
+    color: #333333 !important;
+    background-color: #ffffff !important;
+  }
+}
+
+/* =============================================================================
+   9. 性能优化注释
+   ============================================================================= */
+
+/*
+  此CSS文件采用纯CSS方案，避免了JavaScript监控和定时器，
+  不会造成性能问题和卡顿。所有样式都是静态的，由浏览器
+  直接应用，无需运行时检查。
+*/

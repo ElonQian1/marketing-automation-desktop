@@ -2,8 +2,7 @@ import React, { memo, useMemo } from 'react';
 import { Button, Tooltip, Space, Dropdown, Typography, message } from 'antd';
 import { 
   DragOutlined, 
-  SettingOutlined, 
-  ReloadOutlined
+  SettingOutlined
 } from '@ant-design/icons';
 import { useDraggableOptimized } from '../hooks/useDraggableOptimized';
 import { useToolbarManager } from '../hooks/useToolbarManager';
@@ -92,16 +91,7 @@ export const EnhancedDraggableToolbar = memo<EnhancedDraggableToolbarProps>(({
     [panels, onPanelVisibilityChange]
   );
 
-  // 处理重置布局
-  const handleLayoutReset = () => {
-    if (onLayoutReset) {
-      onLayoutReset();
-      message.success('布局已重置');
-    } else {
-      // 使用内置的重置逻辑
-      toolbarActions.resetLayout();
-    }
-  };
+
 
   // 如果工具栏被隐藏，不渲染
   if (!isVisible) {
@@ -161,17 +151,7 @@ export const EnhancedDraggableToolbar = memo<EnhancedDraggableToolbarProps>(({
               </Button>
             </Dropdown>
 
-            {/* 重置布局 */}
-            <Tooltip title="重置布局到默认状态">
-              <Button
-                size="small"
-                type="text"
-                icon={<ReloadOutlined />}
-                onClick={handleLayoutReset}
-              >
-                重置
-              </Button>
-            </Tooltip>
+
           </>
         )}
 

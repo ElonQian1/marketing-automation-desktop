@@ -64,6 +64,8 @@ import { useSearchAndMatch } from './hooks/useSearchAndMatch';
 import { useXPathNavigator } from './hooks/useXPathNavigator';
 import { useMatchingSelection } from './hooks/useMatchingSelection';
 import { usePanelSync } from './hooks/usePanelSync';
+import { ChildElementSelectorModal } from './components/ChildElementSelectorModal';
+import type { ActionableChildElement } from './services/childElementAnalyzer';
 
 // 兼容遗留调用：在模块级声明可变引用，供组件内赋值
 // 某些历史代码片段可能直接引用这些名称
@@ -125,6 +127,11 @@ export const GridElementView: React.FC<GridElementViewProps> = ({
 }) => {
   // 选中节点
   const [selected, setSelected] = useState<UiNode | null>(null);
+  
+  // 🆕 子元素选择状态
+  const [childSelectorVisible, setChildSelectorVisible] = useState<boolean>(false);
+  const [pendingParentNode, setPendingParentNode] = useState<UiNode | null>(null);
+  
   // 展开/折叠与层级控制
   const [expandAll, setExpandAll] = useState<boolean>(false);
   const [collapseVersion, setCollapseVersion] = useState<number>(0);
@@ -262,6 +269,118 @@ export const GridElementView: React.FC<GridElementViewProps> = ({
 
   // 兼容旧 onParse 调用点（按钮） -> 调用 parse
   const onParse = (xmlToUse?: string) => parse(xmlToUse);
+
+  // 🆕 子元素选择处理函数
+  const handleElementClick = (node: UiNode) => {
+    // 检查是否有可操作的子元素
+    const hasActionableChildren = node.children.some(child => 
+      child.attrs['clickable'] === 'true' || 
+      child.attrs['class']?.includes('Button') ||
+      child.attrs['class']?.includes('EditText') ||
+      child.attrs['class']?.includes('CheckBox') ||
+      child.attrs['class']?.includes('Switch')
+    );
+    
+    if (hasActionableChildren) {
+      // 有可操作子元素，显示选择弹窗
+      setPendingParentNode(node);
+      setChildSelectorVisible(true);
+    } else {
+      // 没有可操作子元素，直接选择
+      setSelected(node);
+    }
+  };
+
+  const handleChildElementSelect = (element: ActionableChildElement) => {
+    // 选择子元素
+    setSelected(element.node);
+    
+    // 如果有回调，通知上层组件
+    if (onElementSelect) {
+      // 解析bounds字符串 "[left,top][right,bottom]"
+      const boundsStr = element.node.attrs['bounds'] || '[0,0][0,0]';
+      const boundsMatch = boundsStr.match(/\[(\d+),(\d+)\]\[(\d+),(\d+)\]/);
+      let position = { x: 0, y: 0, width: 0, height: 0 };
+      
+      if (boundsMatch) {
+        const left = parseInt(boundsMatch[1]);
+        const top = parseInt(boundsMatch[2]);
+        const right = parseInt(boundsMatch[3]);
+        const bottom = parseInt(boundsMatch[4]);
+        position = {
+          x: left,
+          y: top,
+          width: right - left,
+          height: bottom - top
+        };
+      }
+      
+      // 构造兼容的VisualUIElement
+      const visualElement: VisualUIElement = {
+        id: element.key,
+        type: element.type,
+        text: element.node.attrs['text'] || '',
+        description: element.node.attrs['content-desc'] || element.actionText,
+        category: 'interactive',
+        position,
+        clickable: element.node.attrs['clickable'] === 'true',
+        importance: element.confidence > 0.8 ? 'high' : element.confidence > 0.5 ? 'medium' : 'low',
+        userFriendlyName: element.actionText,
+        enabled: element.node.attrs['enabled'] !== 'false',
+        element_type: element.node.attrs['class']?.split('.').pop() || element.type,
+        is_clickable: element.node.attrs['clickable'] === 'true'
+      };
+      onElementSelect(visualElement);
+    }
+  };
+
+  const handleDirectParentSelect = () => {
+    // 直接选择父元素
+    if (pendingParentNode) {
+      setSelected(pendingParentNode);
+      
+      if (onElementSelect) {
+        // 解析bounds字符串
+        const boundsStr = pendingParentNode.attrs['bounds'] || '[0,0][0,0]';
+        const boundsMatch = boundsStr.match(/\[(\d+),(\d+)\]\[(\d+),(\d+)\]/);
+        let position = { x: 0, y: 0, width: 0, height: 0 };
+        
+        if (boundsMatch) {
+          const left = parseInt(boundsMatch[1]);
+          const top = parseInt(boundsMatch[2]);
+          const right = parseInt(boundsMatch[3]);
+          const bottom = parseInt(boundsMatch[4]);
+          position = {
+            x: left,
+            y: top,
+            width: right - left,
+            height: bottom - top
+          };
+        }
+        
+        const visualElement: VisualUIElement = {
+          id: pendingParentNode.attrs['resource-id'] || `${pendingParentNode.tag}@${boundsStr}`,
+          type: 'container',
+          text: pendingParentNode.attrs['text'] || '',
+          description: pendingParentNode.attrs['content-desc'] || '容器元素',
+          category: 'container',
+          position,
+          clickable: pendingParentNode.attrs['clickable'] === 'true',
+          importance: 'medium',
+          userFriendlyName: pendingParentNode.attrs['text'] || pendingParentNode.attrs['class']?.split('.').pop() || '容器',
+          enabled: pendingParentNode.attrs['enabled'] !== 'false',
+          element_type: pendingParentNode.attrs['class']?.split('.').pop() || pendingParentNode.tag,
+          is_clickable: pendingParentNode.attrs['clickable'] === 'true'
+        };
+        onElementSelect(visualElement);
+      }
+    }
+  };
+
+  const handleChildSelectorClose = () => {
+    setChildSelectorVisible(false);
+    setPendingParentNode(null);
+  };
 
   // 真机匹配回调：根据返回的 xpath 或 bounds 在当前树中选中并高亮
   const handleMatchedFromDevice = (payload: { preview?: { xpath?: string; bounds?: string } | null }) => {
@@ -475,7 +594,7 @@ export const GridElementView: React.FC<GridElementViewProps> = ({
             <div className={styles.cardHeader}>节点树</div>
             <div className={`${styles.cardBody} ${styles.tree}`}>
               {root ? (
-                <TreeRow node={root} depth={0} selected={selected} onSelect={setSelected} onHoverNode={handleHoverNode} filter={filter} searchOptions={searchOptions} expandAll={expandAll} collapseVersion={collapseVersion} expandDepth={expandDepth} matchedSet={matchedSet} selectedAncestors={selectedAncestors} showMatchedOnly={showMatchedOnly} hasActiveFilter={Boolean(filter.trim()) || Boolean(advFilter.enabled && (advFilter.resourceId || advFilter.text || advFilter.className || advFilter.packageName || advFilter.clickable !== null || advFilter.nodeEnabled !== null))} onSelectForStep={onApplyCriteria as any} />
+                <TreeRow node={root} depth={0} selected={selected} onSelect={handleElementClick} onHoverNode={handleHoverNode} filter={filter} searchOptions={searchOptions} expandAll={expandAll} collapseVersion={collapseVersion} expandDepth={expandDepth} matchedSet={matchedSet} selectedAncestors={selectedAncestors} showMatchedOnly={showMatchedOnly} hasActiveFilter={Boolean(filter.trim()) || Boolean(advFilter.enabled && (advFilter.resourceId || advFilter.text || advFilter.className || advFilter.packageName || advFilter.clickable !== null || advFilter.nodeEnabled !== null))} onSelectForStep={onApplyCriteria as any} />
               ) : (
                 <div className="p-3 text-sm text-neutral-500">解析 XML 后在此展示树结构…</div>
               )}
@@ -559,7 +678,17 @@ export const GridElementView: React.FC<GridElementViewProps> = ({
         1) 搜索框会对 resource-id / text / content-desc / class 做包含匹配；
         2) 选中节点后可复制 XPath；
         3) 屏幕预览按 bounds 画出全部元素矩形，蓝色高亮为当前选中元素。
+        4) 🆕 点击元素时会智能识别可操作的子元素，提供精确选择选项。
       </div>
+
+      {/* 🆕 子元素选择弹窗 */}
+      <ChildElementSelectorModal
+        visible={childSelectorVisible}
+        parentNode={pendingParentNode}
+        onClose={handleChildSelectorClose}
+        onSelect={handleChildElementSelect}
+        onDirectSelect={handleDirectParentSelect}
+      />
     </div>
   );
 }

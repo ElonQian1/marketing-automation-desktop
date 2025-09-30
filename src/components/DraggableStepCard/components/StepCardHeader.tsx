@@ -50,6 +50,7 @@ interface StepCardHeaderProps {
   boundNode: any;
   snapshotAvailable: boolean;
   onOpenXmlInspector: () => void;
+  onSelectChildElement?: (element: any) => void; // 🆕 子元素选择回调
   // smart scroll
   onUpdateStepParameters?: (id: string, nextParams: any) => void;
 }
@@ -78,6 +79,7 @@ export const StepCardHeader: React.FC<StepCardHeaderProps> = ({
   boundNode,
   snapshotAvailable,
   onOpenXmlInspector,
+  onSelectChildElement,
   onUpdateStepParameters,
 }) => {
   return (
@@ -152,7 +154,7 @@ export const StepCardHeader: React.FC<StepCardHeaderProps> = ({
       </div>
 
   <Space {...noDragProps}>
-        <InfoBubble step={step as any} boundNode={boundNode} snapshotAvailable={snapshotAvailable} onOpenXmlInspector={onOpenXmlInspector} />
+        <InfoBubble step={step as any} boundNode={boundNode} snapshotAvailable={snapshotAvailable} onOpenXmlInspector={onOpenXmlInspector} onSelectChildElement={onSelectChildElement} />
 
         {(step.step_type === 'loop_start' || step.step_type === 'loop_end') && (
           <Button
