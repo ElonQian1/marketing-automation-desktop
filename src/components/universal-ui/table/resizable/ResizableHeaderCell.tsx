@@ -18,11 +18,11 @@ const ResizableHeaderCell: React.FC<Props> = ({ width, minWidth = 60, maxWidth =
     ...style,
   };
   return (
-    <th {...rest} style={mergedStyle}>
+    <th {...rest} style={mergedStyle} draggable={false} onDragStart={(e) => e.preventDefault()}>
       <div style={{ display: 'flex', alignItems: 'center' }}>
         <div style={{ flex: 1, minWidth: 0 }}>{children}</div>
         <div
-          onPointerDown={onResizeStart}
+          onPointerDown={(e) => { e.stopPropagation(); e.preventDefault(); onResizeStart?.(e); }}
           role="separator"
           aria-orientation="vertical"
           style={{
@@ -35,6 +35,8 @@ const ResizableHeaderCell: React.FC<Props> = ({ width, minWidth = 60, maxWidth =
             touchAction: 'none',
             userSelect: 'none',
           }}
+          draggable={false}
+          onDragStart={(e) => e.preventDefault()}
           title="拖拽调整列宽"
         />
       </div>

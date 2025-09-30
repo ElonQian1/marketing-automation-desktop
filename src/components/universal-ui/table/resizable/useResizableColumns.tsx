@@ -47,15 +47,7 @@ export function useResizableColumns(
     [configs, minWidth, maxWidth]
   );
 
-  const onResizeStart = useCallback((key: string, e: React.PointerEvent<HTMLDivElement>) => {
-    activeKeyRef.current = key;
-    startXRef.current = e.clientX;
-    startWRef.current = widthMap[key] ?? configs.find(c => c.key === key)?.width ?? 120;
-    (e.target as HTMLElement).setPointerCapture?.(e.pointerId);
-    window.addEventListener('pointermove', onPointerMove);
-    window.addEventListener('pointerup', onPointerUp, { once: true });
-  }, [widthMap, configs]);
-
+  // 先定义全局移动/结束回调，供 onResizeStart 引用，避免 TDZ 报错
   const onPointerMove = useCallback((e: PointerEvent) => {
     const key = activeKeyRef.current;
     if (!key) return;
@@ -74,6 +66,38 @@ export function useResizableColumns(
     activeKeyRef.current = null;
     window.removeEventListener('pointermove', onPointerMove);
   }, [getBounds, onPointerMove, onWidthChange, widthMap]);
+
+  const onResizeStart = useCallback((key: string, e: React.PointerEvent<HTMLDivElement>) => {
+    activeKeyRef.current = key;
+    startXRef.current = e.clientX;
+    startWRef.current = widthMap[key] ?? configs.find(c => c.key === key)?.width ?? 120;
+    const el = e.target as HTMLElement;
+    el.setPointerCapture?.(e.pointerId);
+    // 阻止页面级拖拽/选择
+    e.preventDefault();
+    document.body.style.userSelect = 'none';
+    window.addEventListener('pointermove', onPointerMove, { passive: false });
+    const handleKeyDown = (ev: KeyboardEvent) => {
+      if (ev.key === 'Escape') {
+        // 取消并回退到开始宽度
+        const keyNow = activeKeyRef.current;
+        if (keyNow) {
+          setWidthMap(prev => ({ ...prev, [keyNow]: startWRef.current }));
+        }
+        handlePointerUp(ev as unknown as PointerEvent);
+      }
+    };
+    const handlePointerUp = (ev: PointerEvent) => {
+      onPointerUp(ev);
+      // 恢复选择
+      document.body.style.userSelect = '';
+      window.removeEventListener('pointermove', onPointerMove as any);
+      window.removeEventListener('pointerup', handlePointerUp as any);
+      window.removeEventListener('keydown', handleKeyDown as any);
+    };
+    window.addEventListener('pointerup', handlePointerUp, { once: true });
+    window.addEventListener('keydown', handleKeyDown);
+  }, [widthMap, configs, onPointerMove, onPointerUp]);
 
   const runtime = useMemo<ResizableColumnRuntime[]>(() => {
     return configs.map(c => ({

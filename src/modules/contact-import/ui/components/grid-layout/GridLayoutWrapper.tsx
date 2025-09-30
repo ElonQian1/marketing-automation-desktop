@@ -1,14 +1,15 @@
-import React, { useState, useCallback, useMemo } from 'react';
+import React, { useState, useCallback, useMemo, useEffect } from 'react';
 import GridLayout, { Layout, Responsive, WidthProvider } from 'react-grid-layout';
 import { Button } from 'antd';
 import { EyeInvisibleOutlined } from '@ant-design/icons';
 import { ResizablePanel } from './ResizablePanel';
 import { ScrollableContainer } from './components/ScrollableContainer';
-import { EnhancedResizablePanel } from './components/EnhancedResizablePanel';
+import { DraggableHeaderPanel } from './components/DraggableHeaderPanel';
 import { SmartLayoutToolbarOptimized } from './components/SmartLayoutToolbarOptimized';
 import { useViewportHeight } from './hooks/useViewportHeight';
 import { useLayoutVersions } from './hooks/useLayoutVersions';
 import { useLayoutPerformance } from './hooks/useLayoutPerformance';
+import { createDragBehaviorOptimizer, DRAG_CONFIGS } from './hooks/performance/DragBehaviorOptimizer';
 import 'react-grid-layout/css/styles.css';
 
 const ResponsiveGridLayout = WidthProvider(Responsive);
@@ -99,6 +100,18 @@ export const GridLayoutWrapper: React.FC<GridLayoutWrapperProps> = ({
     minHeight: 400,
     padding: 24
   });
+  
+  // 拖拽行为优化器
+  const dragOptimizer = useMemo(() => 
+    createDragBehaviorOptimizer(DRAG_CONFIGS.PANEL_HEADER), 
+    []
+  );
+  
+  // 注入拖拽优化样式
+  useEffect(() => {
+    dragOptimizer.injectStyles();
+    return () => dragOptimizer.removeStyles();
+  }, [dragOptimizer]);
 
   // 生成布局配置
   const layouts = useMemo(() => {
@@ -212,14 +225,15 @@ export const GridLayoutWrapper: React.FC<GridLayoutWrapperProps> = ({
           onBreakpointChange={handleBreakpointChange}
           compactType={compactType}
           preventCollision={false}
-          isDraggable
+          isDraggable={true}
           isResizable
           resizeHandles={['se']}
           useCSSTransforms
+          draggableHandle=".panel-header-draggable, .ant-card-head-title"  // 标题栏拖拽
         >
           {visiblePanels.map((panel) => (
             <div key={panel.i} className="grid-item">
-              <EnhancedResizablePanel
+              <DraggableHeaderPanel
                 title={panel.title}
                 headerActions={
                   onPanelVisibilityChange && (
@@ -235,7 +249,7 @@ export const GridLayoutWrapper: React.FC<GridLayoutWrapperProps> = ({
                 enableAutoScroll
               >
                 {panel.content}
-              </EnhancedResizablePanel>
+              </DraggableHeaderPanel>
             </div>
           ))}
         </ResponsiveGridLayout>

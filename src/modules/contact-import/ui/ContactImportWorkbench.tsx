@@ -31,6 +31,7 @@ import { registerGeneratedBatch } from './services/vcfBatchRegistrationService';
 import WorkbenchNumbersActionsBar from './components/WorkbenchNumbersActionsBar';
 import { useColumnSettings } from './components/columns/useColumnSettings';
 import ColumnSettingsModal from './components/columns/ColumnSettingsModal';
+import { ResizableHeaderCell, useResizableColumns } from '../../../components/universal-ui/table/resizable';
 
 const { Title, Text } = Typography;
 
@@ -421,6 +422,31 @@ export const ContactImportWorkbench: React.FC = () => {
     return arr;
   }, [columnSettings.configs, page, pageSize]);
 
+  // 列宽拖拽（表头分隔线）集成
+  const visibleCfgs = useMemo(() => columnSettings.configs.filter(c => c.visible), [columnSettings.configs]);
+  const resizable = useResizableColumns(
+    visibleCfgs.map(c => ({ key: c.key, width: (columns as any[]).find(col => (col.dataIndex ?? col.key) === c.key)?.width })),
+    { onWidthChange: (key, width) => columnSettings.setWidth(key, width) }
+  );
+  const components = useMemo(() => ({
+    header: {
+      cell: (props: any) => {
+        const key = props['data-key'] || props['data-col-key'] || props?.column?.dataIndex || props?.column?.key;
+        const runtime = resizable.columns.find((c: any) => c.key === key);
+        if (!runtime) return <th {...props} />;
+        return (
+          <ResizableHeaderCell
+            {...props}
+            width={runtime.width}
+            minWidth={runtime.minWidth}
+            maxWidth={runtime.maxWidth}
+            onResizeStart={runtime.onResizeStart}
+          />
+        );
+      }
+    }
+  }), [resizable.columns]);
+
   const hasInvalidRanges = useMemo(() => {
     return Object.values(assignment).some(cfg => {
       if (typeof cfg.idStart === 'number' && typeof cfg.idEnd === 'number') {
@@ -612,7 +638,12 @@ export const ContactImportWorkbench: React.FC = () => {
       />
       <Table
         rowKey="id"
-        columns={columns as any}
+        components={components as any}
+        columns={(columns as any[]).map(c => ({
+          ...c,
+          key: c.key ?? c.dataIndex,
+          onHeaderCell: () => ({ 'data-col-key': c.key ?? c.dataIndex }),
+        })) as any}
         dataSource={items}
         loading={loading}
         size="middle"

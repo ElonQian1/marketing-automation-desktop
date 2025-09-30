@@ -2,7 +2,6 @@ import React, { useState } from 'react';
 import { Button, Card, Typography, Space, message } from 'antd';
 import { useAdb } from '../../application/hooks/useAdb';
 import { AppSelectorDetector } from '../../modules/contact-import/automation/detectors/AppSelectorDetector';
-import { ImportAutomationService } from '../../modules/contact-import/automation/services/ImportAutomationService';
 
 const { Title, Text } = Typography;
 
@@ -44,14 +43,8 @@ export const QuickAppSelectorTest: React.FC = () => {
       // 测试检测 - 暂时禁用
       // const result = await detector.detect(xmlContent);
       console.log('🎯 检测功能暂时禁用');
-      
-      // setDetectionResult(result);
-      
-      // if (result.detected) {
-        message.success('✅ 检测到应用选择器对话框！');
-      } else {
-        message.warning('❌ 未检测到应用选择器对话框');
-      }
+      // 占位提示：当前检测逻辑未启用
+      message.info('⚠️ 检测功能暂未启用（仅日志验证）');
       
     } catch (error) {
       console.error('检测失败:', error);
@@ -65,6 +58,10 @@ export const QuickAppSelectorTest: React.FC = () => {
    * 测试点击
    */
   const testClick = async () => {
+    // 占位提示：点击功能暂未启用
+    message.info('⚠️ 点击功能暂未启用');
+    return;
+
     if (!selectedDevice || !detectionResult?.targetElement) {
       message.error('请先检测到目标元素');
       return;
@@ -78,18 +75,16 @@ export const QuickAppSelectorTest: React.FC = () => {
       console.log('目标元素:', element);
       
       // 尝试通过resource-id点击
-      const clickResult = await automationService.clickElement(
-        selectedDevice.id, 
-        element.resourceId
-      );
-      
-      console.log('点击结果:', clickResult);
-      
-      if (clickResult.success) {
-        message.success('✅ 点击成功！');
-      } else {
-        message.error(`❌ 点击失败: ${clickResult.error}`);
-      }
+      // const clickResult = await automationService.clickElement(
+      //   selectedDevice.id, 
+      //   element.resourceId
+      // );
+      // console.log('点击结果:', clickResult);
+      // if (clickResult.success) {
+      //   message.success('✅ 点击成功！');
+      // } else {
+      //   message.error(`❌ 点击失败: ${clickResult.error}`);
+      // }
       
     } catch (error) {
       console.error('点击失败:', error);
