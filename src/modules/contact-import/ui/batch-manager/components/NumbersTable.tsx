@@ -4,7 +4,7 @@ import type { ContactNumberList } from '../types';
 import { getDistinctIndustries as fetchDistinctIndustries, ContactNumberDto } from '../../services/contactNumberService';
 import { useColumnSettings } from '../../components/columns/useColumnSettings';
 import ColumnSettingsModal from '../../components/columns/ColumnSettingsModal';
-import { ResizableHeaderCell, useResizableColumns } from '../../../../components/universal-ui/table/resizable';
+import { ResizableHeaderCell, useResizableColumns } from '../../../../../components/universal-ui/table/resizable';
 
 interface Props {
   data?: ContactNumberList | null;
@@ -234,14 +234,11 @@ const NumbersTable: React.FC<Props> = ({
   }, [columnSettings.configs, pagination, distinctIndustries, industryFilter, statusFilter, controlledFilters]);
 
   // 可调整列宽（拖拽表头分隔线）
-  const resizable = useMemo(() => {
-    const visible = columnSettings.configs.filter(c => c.visible);
-    return useResizableColumns(
-      visible.map(c => ({ key: c.key, width: (columns as any[]).find(col => (col.dataIndex ?? col.key) === c.key)?.width })),
-      { onWidthChange: (key, width) => columnSettings.setWidth(key, width) }
-    );
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [columnSettings.configs, columns]);
+  const visibleCols = columnSettings.configs.filter(c => c.visible);
+  const resizable = useResizableColumns(
+    visibleCols.map(c => ({ key: c.key, width: (columns as any[]).find(col => (col.dataIndex ?? col.key) === c.key)?.width })),
+    { onWidthChange: (key, width) => columnSettings.setWidth(key, width) }
+  );
   const components = useMemo(() => ({
     header: {
       cell: (props: any) => {
@@ -351,7 +348,11 @@ const NumbersTable: React.FC<Props> = ({
           showSizeChanger: true,
           showTotal: (t) => `共 ${t} 条`,
         } : false}
-        columns={(columns as any[]).map(c => ({ ...c, key: c.key ?? c.dataIndex })) as any}
+        columns={(columns as any[]).map(c => ({
+          ...c,
+          key: c.key ?? c.dataIndex,
+          onHeaderCell: () => ({ 'data-col-key': c.key ?? c.dataIndex }),
+        })) as any}
       />
 
       <ColumnSettingsModal
