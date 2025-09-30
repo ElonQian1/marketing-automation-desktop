@@ -639,7 +639,11 @@ export const ContactImportWorkbench: React.FC = () => {
       />
       <Table
         rowKey="id"
-        columns={columns as any}
+        components={components as any}
+        columns={columns.map((c: any) => ({
+          ...c,
+          key: c.key ?? c.dataIndex, // 确保有 key 用于匹配可调整列
+        })) as any}
         dataSource={items}
         loading={loading}
         size="middle"
