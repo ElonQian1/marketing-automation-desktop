@@ -91,13 +91,12 @@ export const SmartLayoutToolbar: React.FC<SmartLayoutToolbarProps> = ({
 
     return (
       <div
-        className="smart-layout-toolbar-control"
         style={{
           position: 'fixed',
           top: 10,
           left: 10,
           zIndex: 10000,
-          // 移除硬编码背景，使用CSS类控制
+          background: 'rgba(255, 255, 255, 0.9)',
           borderRadius: '4px',
           padding: '4px',
           backdropFilter: 'blur(4px)'
@@ -185,13 +184,12 @@ export const SmartLayoutToolbar: React.FC<SmartLayoutToolbarProps> = ({
 
     return (
       <div
-        className="smart-layout-toolbar-trigger"
         style={{
           position: 'fixed',
           top: 50,
           left: 10,
           zIndex: 10000,
-          // 移除硬编码背景，使用CSS类控制
+          background: 'rgba(255, 255, 255, 0.7)',
           borderRadius: '4px',
           padding: '2px',
           backdropFilter: 'blur(4px)'

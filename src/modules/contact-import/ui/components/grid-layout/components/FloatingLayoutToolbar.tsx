@@ -300,10 +300,9 @@ export const FloatingLayoutToolbar: React.FC<FloatingLayoutToolbarProps> = ({
     <>
       <div
         ref={draggable.dragHandlers.ref}
-        className="floating-layout-toolbar draggable-toolbar"
         style={{
           ...draggable.style,
-          // 移除硬编码背景，使用CSS类控制
+          background: 'white',
           padding: isCollapsed ? '4px 8px' : '8px 12px',
           borderRadius: '8px',
           boxShadow: '0 4px 12px rgba(0, 0, 0, 0.15)',
@@ -313,6 +312,7 @@ export const FloatingLayoutToolbar: React.FC<FloatingLayoutToolbarProps> = ({
           maxWidth: isCollapsed ? '200px' : '400px',
           minWidth: isCollapsed ? '120px' : '300px'
         }}
+        className="floating-layout-toolbar"
       >
         {/* 工具栏标题和拖拽手柄 */}
         {(showTitle || !isCollapsed) && (

@@ -130,12 +130,12 @@ export const LayoutControlToolbar: React.FC<LayoutControlToolbarProps> = ({
 
   return (
     <>
-      <div className={`layout-control-toolbar draggable-toolbar ${className}`} style={{
+      <div className={`layout-control-toolbar ${className}`} style={{
         position: 'fixed',
         top: 20,
         right: 20,
         zIndex: 9999,
-        // 移除硬编码背景，使用CSS类控制
+        background: 'white',
         padding: '8px 12px',
         borderRadius: '8px',
         boxShadow: '0 4px 12px rgba(0, 0, 0, 0.15)',

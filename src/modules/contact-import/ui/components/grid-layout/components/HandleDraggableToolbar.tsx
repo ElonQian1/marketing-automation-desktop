@@ -106,13 +106,13 @@ export const HandleDraggableToolbar = memo<HandleDraggableToolbarProps>(({
     return null;
   }
 
-  // 工具栏样式 - 移除硬编码颜色，使用CSS类
+  // 工具栏样式
   const toolbarStyle = useMemo(() => ({
     ...dragStyle,
-    // 移除硬编码背景和边框，改用CSS类控制
+    background: 'rgba(255, 255, 255, 0.95)',
+    border: '1px solid #d9d9d9',
     borderRadius: '8px',
     padding: settings.isCollapsed ? '6px' : '8px 12px',
-    // 保留动态阴影效果
     boxShadow: isDragging && isThresholdReached
       ? '0 8px 16px rgba(0, 0, 0, 0.15)' 
       : '0 2px 8px rgba(0, 0, 0, 0.1)',
@@ -129,7 +129,7 @@ export const HandleDraggableToolbar = memo<HandleDraggableToolbarProps>(({
     <div
       ref={containerHandlers.ref}
       style={toolbarStyle}
-      className={`header-only-drag-toolbar ${className} ${isDragging ? 'dragging' : ''}`}
+      className={`handle-draggable-toolbar ${className} ${isDragging ? 'dragging' : ''}`}
       onMouseDown={containerHandlers.onMouseDown}
     >
       {/* 拖拽手柄 - 只有这个区域可以拖拽 */}
