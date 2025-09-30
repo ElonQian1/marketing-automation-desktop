@@ -1,5 +1,18 @@
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
-import { Card, Col, Row, Space, Typography, Button, Table, Input, Pagination, message, Divider, Tag, Alert, Switch } from 'antd';
+import { Card, Col, Row, Space, Typ  // � 禁用防护守卫
+  // const dragGuards = useGridDragGuards({
+  //   enabled: false,
+  //   debug: false
+  // });
+
+  // ✅ 使用简单静态修复器（一次性执行，无循环）
+  const staticDragFix = useStaticDragFix({
+    enabled: true,
+    debug: false
+  });
+
+  // 设备
+  // 顶部已默认加载设备卡片，不再需要单独"选择设备/刷新设备"控件 Button, Table, Input, Pagination, message, Divider, Tag, Alert, Switch } from 'antd';
 import { DatabaseOutlined, FileTextOutlined, FolderOpenOutlined, MobileOutlined, FileDoneOutlined, LayoutOutlined } from '@ant-design/icons';
 import styles from './ContactImportWorkbench.module.css';
 import { GridLayoutWrapper, useGridLayout } from './components/grid-layout';
@@ -84,39 +97,35 @@ export const ContactImportWorkbench: React.FC = () => {
     storageKey: 'contact-import-workbench-layout'
   });
 
-  // 🚫 暂时禁用复杂的拖拽修复器，避免循环执行
+  // 🚫 暂时禁用健康检查，避免循环执行
+  // const healthCheck = useDragHealthCheck(false);
+
+  // � 禁用拖拽恢复器，避免过度修复
+  // const dragRestore = useDragRestore({
+  //   enabled: false,
+  //   mode: 'gentle',
+  //   debug: false
+  // });
+
+  // � 禁用冲突解决器自动修复
   // const conflictResolver = useDragConflictResolver({
-  //   autoFix: true,
-  //   debug: false, // 生产环境关闭调试
-  //   priority: 'table-resize' // 优先保护表格列宽拖拽
+  //   autoFix: false,
+  //   debug: false,
+  //   priority: 'table-resize'
   // });
 
-  // � 禁用强化拖拽修复器（避免过度修复）
+  // � 暂时禁用激进的修复器，避免过度修复
   // const dragFixer = useDragFixer({
-  //   enabled: true,
-  //   intensity: 'aggressive', // 使用最强修复模式
-  //   debug: process.env.NODE_ENV === 'development',
-  //   targetTables: [
-  //     '[data-testid="workbench-numbers-table"]',
-  //     '.ant-table-container'
-  //   ]
+  //   enabled: false, // 暂时禁用
+  //   intensity: 'gentle', // 如果启用，使用温和模式
+  //   debug: false
   // });
 
-  // � 禁用拖拽防护守卫
+  // � 禁用防护守卫
   // const dragGuards = useGridDragGuards({
-  //   enabled: true,
-  //   debug: process.env.NODE_ENV === 'development',
-  //   tableSelectors: [
-  //     '[data-testid="workbench-numbers-table"]',
-  //     '.contact-import-table'
-  //   ]
+  //   enabled: false,
+  //   debug: false
   // });
-
-  // ✅ 使用简单静态修复器（一次性执行，无循环）
-  useStaticDragFix({
-    enabled: true,
-    debug: false
-  });
 
   // 设备
   // 顶部已默认加载设备卡片，不再需要单独“选择设备/刷新设备”控件
@@ -696,6 +705,11 @@ export const ContactImportWorkbench: React.FC = () => {
 
   return (
     <div>
+      {/* � 暂时禁用拖拽诊断面板，避免过度干预 */}
+      {/* {process.env.NODE_ENV === 'development' && (
+        <DragDiagnosticPanel visible={true} size="small" />
+      )} */}
+
       {/* 布局切换控制 */}
       <div style={{ marginBottom: 16, padding: '8px 16px', backgroundColor: '#f5f5f5', borderRadius: 6 }}>
         <Space>

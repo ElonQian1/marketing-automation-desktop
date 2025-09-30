@@ -199,7 +199,9 @@ const UniversalPageFinderModal: React.FC<UniversalPageFinderModalProps> = ({
   // 注意：必须先定义 categories，再调用 usePageFinderCategories(categories)
   const [categories, setCategories] = useState<VisualElementCategory[]>([]);
   // 分类筛选（与视觉解析 categories 协同）
-  const { selectedCategory, setSelectedCategory } = usePageFinderCategories(categories as any);
+  const { selectedCategory, setSelectedCategory } = usePageFinderCategories(
+    categories as any
+  );
   // 搜索 / 过滤逻辑抽离
   const {
     searchText,
@@ -226,14 +228,15 @@ const UniversalPageFinderModal: React.FC<UniversalPageFinderModalProps> = ({
     }
   );
   // 统一化的元素选择 Hook
-  const { handleSmartElementSelect, handleVisualElementSelect } = usePageFinderSelection({
-    currentXmlContent,
-    currentXmlCacheId,
-    selectedDeviceId: selectedDevice,
-    findDeviceName: (id?: string) => devices.find((d) => d.id === id)?.name,
-    onElementSelected,
-    onClose,
-  });
+  const { handleSmartElementSelect, handleVisualElementSelect } =
+    usePageFinderSelection({
+      currentXmlContent,
+      currentXmlCacheId,
+      selectedDeviceId: selectedDevice,
+      findDeviceName: (id?: string) => devices.find((d) => d.id === id)?.name,
+      onElementSelected,
+      onClose,
+    });
 
   // === 设备连接处理 ===
   useEffect(() => {
@@ -253,8 +256,12 @@ const UniversalPageFinderModal: React.FC<UniversalPageFinderModalProps> = ({
           message.error({
             content: (
               <div>
-                <div style={{ fontWeight: 600 }}>XML 内容损坏，功能可能受限</div>
-                <div style={{ fontSize: 12, color: "#8c8c8c" }}>{health.messages[0]}</div>
+                <div style={{ fontWeight: 600 }}>
+                  XML 内容损坏，功能可能受限
+                </div>
+                <div style={{ fontSize: 12, color: "#8c8c8c" }}>
+                  {health.messages[0]}
+                </div>
               </div>
             ),
             duration: 4,
@@ -269,7 +276,9 @@ const UniversalPageFinderModal: React.FC<UniversalPageFinderModalProps> = ({
                 <div style={{ fontWeight: 600 }}>XML 可能不完整</div>
                 <ul style={{ margin: 0, paddingLeft: 18 }}>
                   {health.messages.slice(0, 2).map((m, i) => (
-                    <li key={i} style={{ fontSize: 12, color: "#8c8c8c" }}>{m}</li>
+                    <li key={i} style={{ fontSize: 12, color: "#8c8c8c" }}>
+                      {m}
+                    </li>
                   ))}
                 </ul>
               </div>
@@ -315,10 +324,8 @@ const UniversalPageFinderModal: React.FC<UniversalPageFinderModalProps> = ({
     setLoading(true);
     try {
       // 首先获取XML内容
-  const pageCapture = await UniversalUIAPI.analyzeUniversalUIPage(device);
-  const { xmlContent, screenshotAbsolutePath, screenshotRelativePath, xmlFileName } = pageCapture;
-
-  setCurrentXmlContent(xmlContent);
+      const xmlContent = await UniversalUIAPI.analyzeUniversalUIPage(device);
+      setCurrentXmlContent(xmlContent);
 
       // 🆕 通知父组件XML内容已更新
       if (onXmlContentUpdated) {
@@ -347,7 +354,7 @@ const UniversalPageFinderModal: React.FC<UniversalPageFinderModalProps> = ({
       }
 
       // 生成唯一的XML缓存ID并保存
-  const uniqueCacheId = `xml_${Date.now()}_${device}`;
+      const uniqueCacheId = `xml_${Date.now()}_${device}`;
       setCurrentXmlCacheId(uniqueCacheId);
 
       console.log("📦 生成XML缓存ID:", uniqueCacheId);
@@ -367,9 +374,6 @@ const UniversalPageFinderModal: React.FC<UniversalPageFinderModalProps> = ({
           pageType: "分析页面",
           elementCount: 0, // 会在解析后更新
         },
-        screenshotAbsolutePath,
-        screenshotRelativePath,
-        sourceFileName: xmlFileName,
       };
 
       xmlCacheManager.cacheXmlPage(cacheEntry);
@@ -572,7 +576,9 @@ const UniversalPageFinderModal: React.FC<UniversalPageFinderModalProps> = ({
         />
       </Card>
 
-      <Card title={`元素列表 (${filteredElements.length}/${uiElements.length})`}>
+      <Card
+        title={`元素列表 (${filteredElements.length}/${uiElements.length})`}
+      >
         <ResultList
           elements={filteredElements}
           totalStats={stats}
@@ -851,7 +857,9 @@ const UniversalPageFinderModal: React.FC<UniversalPageFinderModalProps> = ({
           onShowOnlyClickableChange={setShowOnlyClickable}
         />
       </Card>
-      <Card title={`元素列表 (${filteredElements.length}/${uiElements.length})`}>
+      <Card
+        title={`元素列表 (${filteredElements.length}/${uiElements.length})`}
+      >
         <ResultList
           elements={filteredElements}
           totalStats={stats}

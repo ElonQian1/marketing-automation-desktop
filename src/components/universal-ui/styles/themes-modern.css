@@ -1,0 +1,346 @@
+/**
+ * Universal UI 现代化主题系统 v2.0
+ * 基于现代设计语言，支持深色模式和高对比度
+ */
+
+/* =============================================================================
+   深色主题 (默认)
+   ============================================================================= */
+
+.universal-page-finder {
+  /* 主要背景色 */
+  --uui-theme-bg-primary: var(--uui-neutral-950);
+  --uui-theme-bg-secondary: var(--uui-neutral-900);
+  --uui-theme-bg-tertiary: var(--uui-neutral-800);
+  --uui-theme-bg-elevated: rgba(38, 38, 38, 0.95);
+  --uui-theme-bg-glass: rgba(23, 23, 23, 0.8);
+  
+  /* 文本颜色 */
+  --uui-theme-text-primary: var(--uui-neutral-50);
+  --uui-theme-text-secondary: var(--uui-neutral-200);
+  --uui-theme-text-tertiary: var(--uui-neutral-400);
+  --uui-theme-text-muted: var(--uui-neutral-500);
+  
+  /* 边框颜色 */
+  --uui-theme-border-primary: var(--uui-neutral-800);
+  --uui-theme-border-secondary: var(--uui-neutral-700);
+  --uui-theme-border-accent: var(--uui-blue-500);
+  
+  /* 交互颜色 */
+  --uui-theme-accent: var(--uui-blue-500);
+  --uui-theme-accent-hover: var(--uui-blue-400);
+  --uui-theme-accent-active: var(--uui-blue-600);
+  
+  /* 状态颜色 */
+  --uui-theme-success: var(--uui-emerald-500);
+  --uui-theme-warning: var(--uui-amber-500);
+  --uui-theme-error: var(--uui-red-500);
+  --uui-theme-info: var(--uui-blue-500);
+  
+  /* 渐变 */
+  --uui-theme-gradient-primary: var(--uui-gradient-primary);
+  --uui-theme-gradient-accent: var(--uui-gradient-accent);
+  --uui-theme-gradient-surface: var(--uui-gradient-surface);
+  
+  /* 阴影 */
+  --uui-theme-shadow-sm: var(--uui-shadow-sm);
+  --uui-theme-shadow-md: var(--uui-shadow-md);
+  --uui-theme-shadow-lg: var(--uui-shadow-lg);
+  --uui-theme-shadow-xl: var(--uui-shadow-xl);
+  --uui-theme-shadow-glow: var(--uui-shadow-glow);
+}
+
+/* =============================================================================
+   浅色主题 (可选)
+   ============================================================================= */
+
+.universal-page-finder[data-theme="light"] {
+  /* 主要背景色 */
+  --uui-theme-bg-primary: var(--uui-neutral-50);
+  --uui-theme-bg-secondary: var(--uui-neutral-100);
+  --uui-theme-bg-tertiary: var(--uui-neutral-200);
+  --uui-theme-bg-elevated: rgba(255, 255, 255, 0.95);
+  --uui-theme-bg-glass: rgba(255, 255, 255, 0.8);
+  
+  /* 文本颜色 */
+  --uui-theme-text-primary: var(--uui-neutral-900);
+  --uui-theme-text-secondary: var(--uui-neutral-700);
+  --uui-theme-text-tertiary: var(--uui-neutral-600);
+  --uui-theme-text-muted: var(--uui-neutral-500);
+  
+  /* 边框颜色 */
+  --uui-theme-border-primary: var(--uui-neutral-200);
+  --uui-theme-border-secondary: var(--uui-neutral-300);
+  --uui-theme-border-accent: var(--uui-blue-500);
+  
+  /* 渐变 */
+  --uui-theme-gradient-primary: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 50%, #e2e8f0 100%);
+  --uui-theme-gradient-surface: linear-gradient(145deg, #ffffff 0%, #f8fafc 100%);
+  
+  /* 阴影 */
+  --uui-theme-shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+  --uui-theme-shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+  --uui-theme-shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+  --uui-theme-shadow-xl: 0 20px 25px -5px rgba(0, 0, 0, 0.1);
+  --uui-theme-shadow-glow: 0 0 20px rgba(59, 130, 246, 0.15);
+}
+
+/* =============================================================================
+   高对比度主题
+   ============================================================================= */
+
+.universal-page-finder[data-theme="high-contrast"] {
+  /* 高对比度背景 */
+  --uui-theme-bg-primary: #000000;
+  --uui-theme-bg-secondary: #1a1a1a;
+  --uui-theme-bg-tertiary: #333333;
+  --uui-theme-bg-elevated: #2a2a2a;
+  
+  /* 高对比度文本 */
+  --uui-theme-text-primary: #ffffff;
+  --uui-theme-text-secondary: #f0f0f0;
+  --uui-theme-text-tertiary: #cccccc;
+  --uui-theme-text-muted: #999999;
+  
+  /* 高对比度边框 */
+  --uui-theme-border-primary: #666666;
+  --uui-theme-border-secondary: #888888;
+  --uui-theme-border-accent: #00aaff;
+  
+  /* 高对比度交互色 */
+  --uui-theme-accent: #00aaff;
+  --uui-theme-accent-hover: #33bbff;
+  --uui-theme-accent-active: #0099ee;
+  
+  /* 高对比度状态色 */
+  --uui-theme-success: #00ff00;
+  --uui-theme-warning: #ffaa00;
+  --uui-theme-error: #ff3333;
+  --uui-theme-info: #00aaff;
+  
+  /* 移除阴影和透明效果 */
+  --uui-theme-shadow-sm: none;
+  --uui-theme-shadow-md: none;
+  --uui-theme-shadow-lg: none;
+  --uui-theme-shadow-xl: none;
+  --uui-theme-shadow-glow: none;
+  
+  /* 移除背景模糊 */
+  backdrop-filter: none !important;
+  -webkit-backdrop-filter: none !important;
+}
+
+/* =============================================================================
+   紫色主题 (可选)
+   ============================================================================= */
+
+.universal-page-finder[data-theme="purple"] {
+  /* 紫色主题交互色 */
+  --uui-theme-accent: var(--uui-violet-500);
+  --uui-theme-accent-hover: var(--uui-violet-400);
+  --uui-theme-accent-active: var(--uui-violet-600);
+  --uui-theme-border-accent: var(--uui-violet-500);
+  
+  /* 紫色渐变 */
+  --uui-theme-gradient-accent: linear-gradient(135deg, var(--uui-violet-500) 0%, var(--uui-violet-600) 100%);
+  
+  /* 紫色光晕 */
+  --uui-theme-shadow-glow: 0 0 20px rgba(139, 92, 246, 0.15);
+}
+
+/* =============================================================================
+   绿色主题 (可选)
+   ============================================================================= */
+
+.universal-page-finder[data-theme="emerald"] {
+  /* 绿色主题交互色 */
+  --uui-theme-accent: var(--uui-emerald-500);
+  --uui-theme-accent-hover: var(--uui-emerald-400);
+  --uui-theme-accent-active: var(--uui-emerald-600);
+  --uui-theme-border-accent: var(--uui-emerald-500);
+  
+  /* 绿色渐变 */
+  --uui-theme-gradient-accent: linear-gradient(135deg, var(--uui-emerald-500) 0%, var(--uui-emerald-600) 100%);
+  
+  /* 绿色光晕 */
+  --uui-theme-shadow-glow: 0 0 20px rgba(16, 185, 129, 0.15);
+}
+
+/* =============================================================================
+   主题应用 - 使用主题变量
+   ============================================================================= */
+
+.universal-page-finder {
+  /* 应用主题背景色 */
+  background: var(--uui-theme-bg-primary);
+  color: var(--uui-theme-text-primary);
+}
+
+.universal-page-finder .modal-container {
+  background: var(--uui-theme-bg-elevated);
+  border-color: var(--uui-theme-border-primary);
+  box-shadow: var(--uui-theme-shadow-xl);
+}
+
+.universal-page-finder .modal-header,
+.universal-page-finder .modal-footer {
+  background: var(--uui-theme-bg-secondary);
+  border-color: var(--uui-theme-border-primary);
+}
+
+.universal-page-finder .modal-title {
+  color: var(--uui-theme-text-primary);
+}
+
+.universal-page-finder .modal-subtitle {
+  color: var(--uui-theme-text-tertiary);
+}
+
+.universal-page-finder .uui-button-primary {
+  background: var(--uui-theme-gradient-accent);
+  border-color: var(--uui-theme-accent-active);
+}
+
+.universal-page-finder .uui-button-primary:hover {
+  background: var(--uui-theme-accent-hover);
+  box-shadow: var(--uui-theme-shadow-glow);
+}
+
+.universal-page-finder .uui-button-secondary {
+  background: var(--uui-theme-bg-tertiary);
+  color: var(--uui-theme-text-secondary);
+  border-color: var(--uui-theme-border-secondary);
+}
+
+.universal-page-finder input,
+.universal-page-finder textarea,
+.universal-page-finder select {
+  background: var(--uui-theme-bg-tertiary);
+  border-color: var(--uui-theme-border-primary);
+  color: var(--uui-theme-text-primary);
+}
+
+.universal-page-finder input:focus,
+.universal-page-finder textarea:focus,
+.universal-page-finder select:focus {
+  border-color: var(--uui-theme-accent);
+  background: var(--uui-theme-bg-secondary);
+}
+
+.universal-page-finder .uui-card {
+  background: var(--uui-theme-gradient-surface);
+  border-color: var(--uui-theme-border-primary);
+  box-shadow: var(--uui-theme-shadow-lg);
+}
+
+.universal-page-finder .uui-card:hover {
+  box-shadow: var(--uui-theme-shadow-xl);
+  border-color: var(--uui-theme-border-secondary);
+}
+
+/* =============================================================================
+   主题切换动画
+   ============================================================================= */
+
+.universal-page-finder {
+  transition: 
+    background-color var(--uui-duration-slow) var(--uui-ease-out),
+    color var(--uui-duration-slow) var(--uui-ease-out),
+    border-color var(--uui-duration-slow) var(--uui-ease-out);
+}
+
+.universal-page-finder * {
+  transition: 
+    background-color var(--uui-duration-normal) var(--uui-ease-out),
+    color var(--uui-duration-normal) var(--uui-ease-out),
+    border-color var(--uui-duration-normal) var(--uui-ease-out),
+    box-shadow var(--uui-duration-normal) var(--uui-ease-out);
+}
+
+/* =============================================================================
+   系统偏好适配
+   ============================================================================= */
+
+/* 系统深色模式偏好 */
+@media (prefers-color-scheme: dark) {
+  .universal-page-finder:not([data-theme]) {
+    /* 默认使用深色主题变量 (已在上方定义) */
+  }
+}
+
+/* 系统浅色模式偏好 */
+@media (prefers-color-scheme: light) {
+  .universal-page-finder:not([data-theme]) {
+    /* 可选：自动切换到浅色主题 */
+    /* --uui-theme-bg-primary: var(--uui-neutral-50); */
+    /* ... 其他浅色主题变量 */
+  }
+}
+
+/* 高对比度偏好 */
+@media (prefers-contrast: high) {
+  .universal-page-finder:not([data-theme="high-contrast"]) {
+    /* 自动提升对比度 */
+    --uui-theme-border-primary: var(--uui-neutral-600);
+    --uui-theme-border-secondary: var(--uui-neutral-500);
+    --uui-theme-text-tertiary: var(--uui-neutral-300);
+  }
+}
+
+/* 减少动画偏好 */
+@media (prefers-reduced-motion: reduce) {
+  .universal-page-finder,
+  .universal-page-finder * {
+    transition: none !important;
+    animation: none !important;
+  }
+}
+
+/* =============================================================================
+   主题工具类
+   ============================================================================= */
+
+.universal-page-finder {
+  /* 背景工具类 */
+  .uui-bg-primary { background: var(--uui-theme-bg-primary) !important; }
+  .uui-bg-secondary { background: var(--uui-theme-bg-secondary) !important; }
+  .uui-bg-tertiary { background: var(--uui-theme-bg-tertiary) !important; }
+  .uui-bg-elevated { background: var(--uui-theme-bg-elevated) !important; }
+  
+  /* 文本颜色工具类 */
+  .uui-text-primary { color: var(--uui-theme-text-primary) !important; }
+  .uui-text-secondary { color: var(--uui-theme-text-secondary) !important; }
+  .uui-text-tertiary { color: var(--uui-theme-text-tertiary) !important; }
+  .uui-text-muted { color: var(--uui-theme-text-muted) !important; }
+  .uui-text-accent { color: var(--uui-theme-accent) !important; }
+  .uui-text-success { color: var(--uui-theme-success) !important; }
+  .uui-text-warning { color: var(--uui-theme-warning) !important; }
+  .uui-text-error { color: var(--uui-theme-error) !important; }
+  
+  /* 边框颜色工具类 */
+  .uui-border-primary { border-color: var(--uui-theme-border-primary) !important; }
+  .uui-border-secondary { border-color: var(--uui-theme-border-secondary) !important; }
+  .uui-border-accent { border-color: var(--uui-theme-accent) !important; }
+  .uui-border-success { border-color: var(--uui-theme-success) !important; }
+  .uui-border-warning { border-color: var(--uui-theme-warning) !important; }
+  .uui-border-error { border-color: var(--uui-theme-error) !important; }
+}
+
+/* =============================================================================
+   调试和开发工具
+   ============================================================================= */
+
+.universal-page-finder[data-debug="true"]::after {
+  content: '🎨 主题: ' attr(data-theme);
+  position: fixed;
+  top: 50px;
+  left: 8px;
+  background: var(--uui-theme-accent);
+  color: white;
+  padding: 4px 8px;
+  border-radius: var(--uui-radius-sm);
+  font-size: 12px;
+  font-weight: 600;
+  z-index: var(--uui-z-tooltip);
+  pointer-events: none;
+}

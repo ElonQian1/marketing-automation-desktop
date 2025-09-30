@@ -146,13 +146,13 @@ export const ChildElementCard: React.FC<ChildElementCardProps> = ({
               {highlightText(label, searchKeyword)}
             </Text>
             {isRecommended && (
-              <Tag color="green" size="small">推荐</Tag>
+              <Tag color="green">推荐</Tag>
             )}
           </div>
           
           <div className="flex items-center space-x-1">
-            {isClickable && <Tag color="blue" size="small">可点击</Tag>}
-            {!isEnabled && <Tag color="red" size="small">禁用</Tag>}
+            {isClickable && <Tag color="blue">可点击</Tag>}
+            {!isEnabled && <Tag color="red">禁用</Tag>}
           </div>
         </div>
 

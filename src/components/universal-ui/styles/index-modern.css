@@ -1,0 +1,263 @@
+/**
+ * Universal UI 现代化样式系统 v2.0 - 主入口文件
+ * 整合所有现代化样式模块
+ */
+
+/* =============================================================================
+   导入现代化样式模块
+   ============================================================================= */
+
+/* 1. 基础样式系统 - 变量、重置、工具类 */
+@import './foundation.css';
+
+/* 2. 现代化模态框系统 - Glassmorphism 设计 */
+@import './modal-modern.css';
+
+/* 3. 现代化组件系统 - 按钮、输入框、卡片等 */
+@import './components-modern.css';
+
+/* 4. 现代化主题系统 - 多主题支持 */
+@import './themes-modern.css';
+
+/* =============================================================================
+   Universal UI 现代化样式激活器
+   ============================================================================= */
+
+.universal-page-finder {
+  /* 确保现代化样式系统生效 */
+  font-family: var(--uui-font-sans);
+  font-size: var(--uui-text-base);
+  line-height: 1.6;
+  
+  /* 现代化渲染 */
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  text-rendering: optimizeLegibility;
+  
+  /* 确保完全可见 */
+  opacity: 1 !important;
+  visibility: visible !important;
+  
+  /* 现代化样式版本标记 */
+  --uui-version: '2.0-modern';
+}
+
+/* =============================================================================
+   现代化样式系统覆盖旧样式
+   ============================================================================= */
+
+/* 覆盖任何可能存在的旧 Universal UI 样式 */
+.universal-page-finder[data-modern="true"] {
+  /* 强制使用现代化背景 */
+  background: var(--uui-bg-primary) !important;
+  
+  /* 强制使用现代化边框 */
+  border: 1px solid rgba(255, 255, 255, 0.1) !important;
+  border-radius: var(--uui-radius-3xl) !important;
+  
+  /* 强制使用现代化阴影 */
+  box-shadow: var(--uui-shadow-2xl) !important;
+  
+  /* 强制使用现代化过渡 */
+  transition: all var(--uui-duration-normal) var(--uui-ease-out) !important;
+}
+
+/* =============================================================================
+   现代化兼容性增强
+   ============================================================================= */
+
+/* 确保与现有组件的兼容性 */
+.universal-page-finder .ant-modal,
+.universal-page-finder .ant-modal-content,
+.universal-page-finder .ant-modal-wrap {
+  /* 覆盖 Ant Design 默认样式 */
+  background: transparent !important;
+  box-shadow: none !important;
+  border: none !important;
+  border-radius: 0 !important;
+  padding: 0 !important;
+  margin: 0 !important;
+}
+
+.universal-page-finder .ant-modal-header,
+.universal-page-finder .ant-modal-body,
+.universal-page-finder .ant-modal-footer {
+  /* 移除 Ant Design 默认样式 */
+  background: transparent !important;
+  border: none !important;
+  padding: 0 !important;
+}
+
+/* =============================================================================
+   现代化开发者工具
+   ============================================================================= */
+
+/* 开发模式样式调试 */
+.universal-page-finder[data-debug="true"] {
+  /* 调试边框 */
+  outline: 2px dashed var(--uui-blue-500) !important;
+  outline-offset: -2px !important;
+}
+
+.universal-page-finder[data-debug="true"]::before {
+  /* 调试信息 */
+  content: '🎨 Universal UI v2.0 - 现代化样式系统';
+  position: absolute;
+  top: 8px;
+  left: 8px;
+  background: var(--uui-blue-500);
+  color: white;
+  padding: 4px 8px;
+  border-radius: var(--uui-radius-sm);
+  font-size: 12px;
+  font-weight: 600;
+  z-index: 9999;
+  pointer-events: none;
+}
+
+/* =============================================================================
+   现代化性能优化
+   ============================================================================= */
+
+.universal-page-finder {
+  /* 硬件加速 */
+  transform: translateZ(0);
+  will-change: transform, opacity;
+  
+  /* 优化重绘 */
+  contain: layout style paint;
+  
+  /* 优化合成层 */
+  isolation: isolate;
+}
+
+.universal-page-finder * {
+  /* 优化子元素渲染 */
+  backface-visibility: hidden;
+  -webkit-backface-visibility: hidden;
+}
+
+/* =============================================================================
+   现代化无障碍访问增强
+   ============================================================================= */
+
+.universal-page-finder {
+  /* 支持键盘导航 */
+  [tabindex]:focus,
+  button:focus,
+  input:focus,
+  textarea:focus,
+  select:focus {
+    outline: 2px solid var(--uui-blue-500);
+    outline-offset: 2px;
+  }
+  
+  /* 支持屏幕阅读器 */
+  [aria-hidden="true"] {
+    display: none !important;
+  }
+  
+  /* 支持高对比度模式 */
+  @media (prefers-contrast: high) {
+    * {
+      border-width: 2px !important;
+    }
+  }
+  
+  /* 支持减少动画偏好 */
+  @media (prefers-reduced-motion: reduce) {
+    *,
+    *::before,
+    *::after {
+      animation-duration: 0.01ms !important;
+      animation-iteration-count: 1 !important;
+      transition-duration: 0.01ms !important;
+      scroll-behavior: auto !important;
+    }
+  }
+}
+
+/* =============================================================================
+   现代化浏览器兼容性
+   ============================================================================= */
+
+/* 支持 Safari */
+@supports (-webkit-backdrop-filter: blur(10px)) {
+  .universal-page-finder {
+    -webkit-backdrop-filter: var(--uui-blur-lg);
+  }
+  
+  .universal-page-finder .modal-container {
+    -webkit-backdrop-filter: var(--uui-blur-xl);
+  }
+}
+
+/* 支持 Firefox */
+@supports (backdrop-filter: blur(10px)) {
+  .universal-page-finder {
+    backdrop-filter: var(--uui-blur-lg);
+  }
+  
+  .universal-page-finder .modal-container {
+    backdrop-filter: var(--uui-blur-xl);
+  }
+}
+
+/* 旧浏览器降级方案 */
+@supports not (backdrop-filter: blur(10px)) {
+  .universal-page-finder {
+    background: rgba(0, 0, 0, 0.9) !important;
+  }
+  
+  .universal-page-finder .modal-container {
+    background: var(--uui-bg-primary) !important;
+  }
+}
+
+/* =============================================================================
+   现代化响应式设计
+   ============================================================================= */
+
+/* 超大屏幕 */
+@media (min-width: 1920px) {
+  .universal-page-finder {
+    --uui-scale: 1.1;
+    transform: scale(var(--uui-scale));
+  }
+}
+
+/* 移动设备优化 */
+@media (max-width: 768px) {
+  .universal-page-finder {
+    /* 移动端优化 */
+    --uui-space-base: 0.75rem;
+    --uui-text-scale: 0.9;
+    
+    /* 触摸优化 */
+    button,
+    .uui-button {
+      min-height: 44px;
+    }
+    
+    input,
+    textarea,
+    select {
+      min-height: 44px;
+    }
+  }
+}
+
+/* 打印样式 */
+@media print {
+  .universal-page-finder {
+    background: white !important;
+    color: black !important;
+    box-shadow: none !important;
+    backdrop-filter: none !important;
+  }
+  
+  .universal-page-finder * {
+    animation: none !important;
+    transition: none !important;
+  }
+}

@@ -4,8 +4,8 @@ import '@ant-design/v5-patch-for-react-19';
 import ReactDOM from "react-dom/client";
 import App from "./App";
 
-// 初始化主题覆盖系统
-import './styles/theme-overrides';
+// 初始化现代化主题系统
+import './styles/theme-overrides/index-modern.ts';
 
 ReactDOM.createRoot(document.getElementById("root") as HTMLElement).render(
   <React.StrictMode>

@@ -12,6 +12,15 @@ export { NodeDetail } from './NodeDetail';
 export { Breadcrumbs } from './Breadcrumbs';
 export { XPathBuilder } from './XPathBuilder';
 
+// 导出快照解析器
+export { 
+  resolveSnapshot, 
+  useSnapshotResolver,
+  resolveFromBinding,
+  resolveFromSnapshotAndXPath 
+} from './snapshotResolver';
+export type { SnapshotResolveInput, SnapshotResolveResult } from './snapshotResolver';
+
 // 🆕 子元素选择功能导出
 export {
   ChildElementListModal,
@@ -19,9 +28,19 @@ export {
 } from './components/ChildElementListModal';
 
 export {
+  EnhancedChildElementListModal,
+  type EnhancedChildElementListModalProps,
+} from './components/EnhancedChildElementListModal';
+
+export {
   ChildElementCard,
   type ChildElementCardProps,
 } from './components/ChildElementCard';
+
+export {
+  EnhancedChildElementCard,
+  type EnhancedChildElementCardProps,
+} from './components/EnhancedChildElementCard';
 
 export {
   childElementAnalyzer,

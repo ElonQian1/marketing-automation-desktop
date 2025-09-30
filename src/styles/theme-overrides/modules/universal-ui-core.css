@@ -1,0 +1,254 @@
+/**
+ * Universal UI 核心样式模块
+ * 专门为Universal UI智能页面查找器提供完整的样式保护和增强
+ */
+
+/* =============================================================================
+   Universal UI 颜色变量系统
+   ============================================================================= */
+
+:root {
+  /* Universal UI 专用颜色系统 */
+  --universal-ui-bg-primary: #1f2937;
+  --universal-ui-bg-secondary: #374151;
+  --universal-ui-bg-tertiary: #4b5563;
+  --universal-ui-bg-quaternary: #6b7280;
+  
+  --universal-ui-text-primary: #f9fafb;
+  --universal-ui-text-secondary: #e5e7eb;
+  --universal-ui-text-muted: #9ca3af;
+  --universal-ui-text-disabled: #6b7280;
+  
+  --universal-ui-border-primary: #374151;
+  --universal-ui-border-secondary: #4b5563;
+  --universal-ui-border-light: #6b7280;
+  
+  --universal-ui-accent-blue: #3b82f6;
+  --universal-ui-accent-blue-hover: #2563eb;
+  --universal-ui-accent-blue-light: #60a5fa;
+  
+  --universal-ui-success: #10b981;
+  --universal-ui-warning: #f59e0b;
+  --universal-ui-error: #ef4444;
+  --universal-ui-info: #06b6d4;
+  
+  /* 渐变色系 */
+  --universal-ui-gradient-primary: linear-gradient(135deg, #3b82f6, #2563eb);
+  --universal-ui-gradient-secondary: linear-gradient(135deg, #374151, #4b5563);
+  --universal-ui-gradient-card: linear-gradient(145deg, #374151 0%, #4b5563 100%);
+  
+  /* 阴影系统 */
+  --universal-ui-shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.3);
+  --universal-ui-shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.4);
+  --universal-ui-shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.5);
+  --universal-ui-shadow-xl: 0 20px 25px -5px rgba(0, 0, 0, 0.6);
+  
+  /* 过渡动画 */
+  --universal-ui-transition-fast: all 0.15s ease;
+  --universal-ui-transition-normal: all 0.2s ease;
+  --universal-ui-transition-slow: all 0.3s ease;
+  
+  /* 圆角系统 */
+  --universal-ui-radius-sm: 4px;
+  --universal-ui-radius-md: 6px;
+  --universal-ui-radius-lg: 8px;
+  --universal-ui-radius-xl: 12px;
+  --universal-ui-radius-full: 50%;
+}
+
+/* =============================================================================
+   Universal UI 基础层级架构
+   ============================================================================= */
+
+@layer universal-ui-base {
+  /* Universal UI 根容器强制保护 */
+  .universal-page-finder {
+    /* 覆盖任何可能的外部样式 */
+    background-color: var(--universal-ui-bg-primary) !important;
+    color: var(--universal-ui-text-secondary) !important;
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif !important;
+    line-height: 1.6 !important;
+    
+    /* 确保容器可见性 */
+    opacity: 1 !important;
+    visibility: visible !important;
+    z-index: 1000 !important;
+  }
+  
+  /* 防止被其他CSS层级覆盖 */
+  .universal-page-finder * {
+    box-sizing: border-box !important;
+  }
+  
+  /* Universal UI 内部元素基础样式 */
+  .universal-page-finder,
+  .universal-page-finder * {
+    /* 重置可能被其他层级影响的样式 */
+    background-color: inherit;
+    color: inherit;
+  }
+}
+
+/* =============================================================================
+   Universal UI 容器和布局
+   ============================================================================= */
+
+@layer universal-ui-layout {
+  /* 主容器确保可见性 */
+  .universal-page-finder {
+    position: relative !important;
+    width: 100% !important;
+    height: 100% !important;
+    min-height: 600px !important;
+    background: var(--universal-ui-bg-primary) !important;
+    border-radius: var(--universal-ui-radius-xl) !important;
+    overflow: hidden !important;
+    box-shadow: var(--universal-ui-shadow-xl) !important;
+  }
+  
+  /* 确保内部容器可见 */
+  .universal-page-finder .ant-modal-content {
+    background: var(--universal-ui-bg-primary) !important;
+    border: 1px solid var(--universal-ui-border-primary) !important;
+    border-radius: var(--universal-ui-radius-xl) !important;
+    overflow: hidden !important;
+    min-height: 500px !important;
+  }
+  
+  /* 头部区域 */
+  .universal-page-finder .ant-modal-header {
+    background: var(--universal-ui-bg-secondary) !important;
+    border-bottom: 1px solid var(--universal-ui-border-secondary) !important;
+    border-radius: var(--universal-ui-radius-xl) var(--universal-ui-radius-xl) 0 0 !important;
+    padding: 16px 24px !important;
+  }
+  
+  /* 内容区域 */
+  .universal-page-finder .ant-modal-body {
+    background: var(--universal-ui-bg-primary) !important;
+    padding: 24px !important;
+    min-height: 400px !important;
+  }
+  
+  /* 底部区域 */
+  .universal-page-finder .ant-modal-footer {
+    background: var(--universal-ui-bg-secondary) !important;
+    border-top: 1px solid var(--universal-ui-border-secondary) !important;
+    border-radius: 0 0 var(--universal-ui-radius-xl) var(--universal-ui-radius-xl) !important;
+    padding: 12px 24px !important;
+  }
+}
+
+/* =============================================================================
+   Universal UI 响应式和自适应
+   ============================================================================= */
+
+@layer universal-ui-responsive {
+  /* 大屏幕优化 */
+  @media (min-width: 1200px) {
+    .universal-page-finder .ant-modal-content {
+      max-width: 1400px !important;
+      width: 90vw !important;
+    }
+  }
+  
+  /* 中等屏幕 */
+  @media (min-width: 768px) and (max-width: 1199px) {
+    .universal-page-finder .ant-modal-content {
+      max-width: 1000px !important;
+      width: 85vw !important;
+    }
+  }
+  
+  /* 小屏幕适配 */
+  @media (max-width: 767px) {
+    .universal-page-finder .ant-modal-content {
+      width: 95vw !important;
+      margin: 10px auto !important;
+    }
+    
+    .universal-page-finder .ant-modal-body {
+      padding: 16px !important;
+    }
+  }
+}
+
+/* =============================================================================
+   Universal UI 可访问性和用户体验
+   ============================================================================= */
+
+@layer universal-ui-accessibility {
+  /* 焦点管理 */
+  .universal-page-finder *:focus {
+    outline: 2px solid var(--universal-ui-accent-blue-light) !important;
+    outline-offset: 2px !important;
+  }
+  
+  /* 键盘导航 */
+  .universal-page-finder [tabindex]:focus {
+    box-shadow: 0 0 0 2px var(--universal-ui-accent-blue-light) !important;
+  }
+  
+  /* 高对比度模式 */
+  @media (prefers-contrast: high) {
+    .universal-page-finder {
+      --universal-ui-text-primary: #ffffff;
+      --universal-ui-text-secondary: #f0f0f0;
+      --universal-ui-bg-primary: #000000;
+      --universal-ui-bg-secondary: #1a1a1a;
+    }
+  }
+  
+  /* 减少动画模式 */
+  @media (prefers-reduced-motion: reduce) {
+    .universal-page-finder * {
+      animation-duration: 0.01ms !important;
+      animation-iteration-count: 1 !important;
+      transition-duration: 0.01ms !important;
+    }
+  }
+}
+
+/* =============================================================================
+   Universal UI 调试和开发工具
+   ============================================================================= */
+
+@layer universal-ui-debug {
+  /* 开发模式调试边框（仅在开发环境显示） */
+  [data-debug="true"] .universal-page-finder {
+    outline: 2px dashed var(--universal-ui-accent-blue) !important;
+    outline-offset: -2px !important;
+  }
+  
+  [data-debug="true"] .universal-page-finder .ant-modal-content {
+    outline: 1px dashed var(--universal-ui-success) !important;
+    outline-offset: -1px !important;
+  }
+  
+  /* 组件状态指示器 */
+  .universal-page-finder[data-state="loading"]::before {
+    content: "🔄 Loading...";
+    position: absolute;
+    top: 10px;
+    right: 10px;
+    background: var(--universal-ui-info);
+    color: white;
+    padding: 4px 8px;
+    border-radius: var(--universal-ui-radius-sm);
+    font-size: 12px;
+    z-index: 9999;
+  }
+  
+  .universal-page-finder[data-state="error"]::before {
+    content: "❌ Error";
+    position: absolute;
+    top: 10px;
+    right: 10px;
+    background: var(--universal-ui-error);
+    color: white;
+    padding: 4px 8px;
+    border-radius: var(--universal-ui-radius-sm);
+    font-size: 12px;
+    z-index: 9999;
+  }
+}

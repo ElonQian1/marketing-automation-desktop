@@ -13,8 +13,8 @@ import './modules/layer-architecture.css';        // CSS层级架构控制器
 import './modules/main-app-protection.css';       // 主程序暗灰色系保护
 import './modules/loop-card-force.css';           // 循环卡片强制白底黑字
 
-// Universal UI 现代化样式系统 v2.0
-// import '../components/universal-ui/styles/index-modern.css';  // 现代化样式系统主入口 (暂时禁用，路径需要调整)
+// Universal UI 现代化样式系统 v2.0 - 直接导入CSS文件
+import '../../components/universal-ui/styles/index-modern.css';  // 现代化样式系统主入口
 
 // Universal UI 传统模块（向后兼容 - 低优先级）
 import './modules/universal-ui-core.css';         // Universal UI 核心样式和变量
@@ -32,33 +32,34 @@ import './modules/universal-ui-protection.css';
 // import './modules/loop-cards-theme.css';
 
 /**
- * 终极模块化主题管理器 - 专门解决循环卡片黑底黑字问题 + Universal UI 增强
+ * 现代化主题管理器 - 专门解决循环卡片黑底黑字问题 + Universal UI 现代化增强
  */
-class UltimateThemeManager {
+class ModernThemeManager {
   private isInitialized = false;
 
   constructor() {
-    console.log('🎨 终极主题管理器 - 循环卡片黑底黑字问题解决方案 + Universal UI 增强');
+    console.log('🎨 现代化主题管理器 v2.0 - Universal UI 现代化样式系统');
     console.log('📦 模块包含:');
+    console.log('  ├─ 现代化 Glassmorphism 设计');
     console.log('  ├─ CSS Layers架构 + 强制白底黑字 + 主程序保护');
-    console.log('  ├─ Universal UI 核心样式系统');
-    console.log('  ├─ Modal 专属样式优化');
-    console.log('  ├─ 组件样式完整覆盖');
-    console.log('  └─ 高级主题和交互效果');
+    console.log('  ├─ Universal UI 现代化样式系统');
+    console.log('  ├─ 现代化模态框和组件');
+    console.log('  └─ 多主题支持和无障碍访问');
   }
 
   /**
-   * 初始化（仅添加标记，无JavaScript监控）
+   * 初始化现代化主题系统
    */
   init() {
     if (this.isInitialized) {
-      console.warn('终极主题管理器已经初始化');
+      console.warn('现代化主题管理器已经初始化');
       return;
     }
 
-    console.log('🎨 初始化终极主题系统...');
+    console.log('🎨 初始化现代化主题系统...');
+    console.log('✅ 现代化 Glassmorphism 样式');
     console.log('✅ 循环卡片样式修复模块');
-    console.log('✅ Universal UI 完整样式保护');
+    console.log('✅ Universal UI 现代化保护');
     console.log('✅ Modal 背景透明问题修复');
 
     // 添加主题标记
@@ -170,11 +171,33 @@ class UltimateThemeManager {
       }
     });
     
+    console.log(`✨ Glassmorphism 效果已${enabled ? '启用' : '禁用'}`);
+  }
+
+  /**
+   * 添加主题标记（原有方法）
+   */
+  private addThemeMarkers() {
+    const root = document.documentElement;
+    
+    // 主程序主题标记
+    root.setAttribute('data-theme', 'modern-solution');
+    root.classList.add('modern-theme-applied');
+    root.classList.add('loop-card-fix-applied');
+    
+    // 调试模式标记（开发环境）
+    if (typeof window !== 'undefined' && window.location.hostname === 'localhost') {
+      root.setAttribute('data-debug', 'true');
+    }
+  }
+
   /**
    * 记录主题状态
    */
   private logThemeStatus() {
-    console.log('🔍 主题状态检查:');
+    console.log('🔍 现代化主题状态检查:');
+    console.log('  - 现代化样式系统: index-modern.css');
+    console.log('  - Glassmorphism 效果: 已启用');
     console.log('  - CSS Layers: layer-architecture.css');
     console.log('  - 循环卡片强制: loop-card-force.css');
     console.log('  - 主程序保护: main-app-protection.css');
@@ -195,16 +218,16 @@ class UltimateThemeManager {
   /**
    * 启用调试模式
    */
-  enableDebug() {
+  public enableDebug() {
     document.documentElement.setAttribute('data-debug', 'true');
-    console.log('🔧 调试模式已启用 - 循环卡片将显示绿色调试边框');
+    console.log('🔧 调试模式已启用 - 现代化样式调试');
     this.logThemeStatus();
   }
 
   /**
    * 禁用调试模式
    */
-  disableDebug() {
+  public disableDebug() {
     document.documentElement.removeAttribute('data-debug');
     console.log('🔧 调试模式已禁用');
   }
@@ -212,53 +235,63 @@ class UltimateThemeManager {
   /**
    * 销毁（清理标记）
    */
-  destroy() {
+  public destroy() {
     const root = document.documentElement;
     root.removeAttribute('data-theme');
     root.removeAttribute('data-debug');
-    root.classList.remove('ultimate-theme-applied');
+    root.classList.remove('modern-theme-applied');
     root.classList.remove('loop-card-fix-applied');
     this.isInitialized = false;
-    console.log('🛑 终极主题系统已销毁');
+    console.log('🛑 现代化主题系统已销毁');
   }
 
   /**
    * 获取状态
    */
-  getStats() {
+  public getStats() {
     return {
       initialized: this.isInitialized,
-      method: 'Ultimate CSS Architecture - Layer-based isolation',
-      performance: 'Optimal - CSS layers and force overrides only',
+      version: '2.0-modern',
+      method: 'Modern Glassmorphism Architecture - Layer-based isolation',
+      performance: 'Optimal - Modern CSS with hardware acceleration',
       modules: {
+        modernStyles: 'Glassmorphism effects with backdrop-filter',
         layerArchitecture: 'CSS Layers with proper priority order',
         loopCardForce: 'Force white background with black text for loop cards',
         mainAppProtection: 'Protect main app dark theme from contamination',
-        universalUIProtection: 'Protected dark theme for Universal UI'
+        universalUIProtection: 'Modern dark theme for Universal UI'
       },
-      architecture: 'Layer-based separation with force overrides',
-      problem: 'Loop cards black-on-black text issue',
-      solution: 'Force white-on-black theme with highest priority'
+      features: {
+        glassmorphism: true,
+        animations: true,
+        themes: ['dark', 'light', 'high-contrast', 'purple', 'emerald'],
+        accessibility: true
+      },
+      architecture: 'Modern layer-based separation with glassmorphism effects',
+      problem: 'Loop cards black-on-black text issue + outdated UI design',
+      solution: 'Modern glassmorphism design with force white-on-black theme'
     };
   }
 }
 
-// 创建终极主题管理器实例
-const ultimateThemeManager = new UltimateThemeManager();
+// 创建现代化主题管理器实例
+const modernThemeManager = new ModernThemeManager();
 
 // 自动初始化
-ultimateThemeManager.init();
+modernThemeManager.init();
 
 // 导出到全局作用域便于调试
 if (typeof window !== 'undefined') {
-  (window as any).ultimateThemeManager = ultimateThemeManager;
+  (window as any).modernThemeManager = modernThemeManager;
   
-  console.log('🎨 终极主题管理器已加载！');
+  console.log('🎨 现代化主题管理器已加载！');
   console.log('调试方法:');
-  console.log('  ultimateThemeManager.getStats() - 查看状态信息');
-  console.log('  ultimateThemeManager.enableDebug() - 启用调试模式');
-  console.log('  ultimateThemeManager.disableDebug() - 禁用调试模式');
-  console.log('  ultimateThemeManager.destroy() - 销毁主题系统');
+  console.log('  modernThemeManager.getStats() - 查看状态信息');
+  console.log('  modernThemeManager.enableDebug() - 启用调试模式');
+  console.log('  modernThemeManager.disableDebug() - 禁用调试模式');
+  console.log('  modernThemeManager.switchUniversalUITheme("purple") - 切换主题');
+  console.log('  modernThemeManager.toggleGlassmorphism(false) - 切换玻璃效果');
+  console.log('  modernThemeManager.destroy() - 销毁主题系统');
 }
 
-export default ultimateThemeManager;
+export default modernThemeManager;
