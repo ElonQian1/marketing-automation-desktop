@@ -26,35 +26,48 @@ export function useViewportHeight(options: UseViewportHeightOptions = {}) {
   });
 
   const rafRef = useRef<number | null>(null);
+  const optsRef = useRef<{ excludeSelectors: string[]; minHeight: number; padding: number }>({ excludeSelectors, minHeight, padding });
+
+  // 同步最新 options 到 ref，避免因依赖变化导致 effect 反复重建
+  useEffect(() => {
+    optsRef.current = { excludeSelectors, minHeight, padding };
+  }, [excludeSelectors, minHeight, padding]);
 
   const calculateDimensions = useCallback(() => {
     if (typeof window === 'undefined') return;
 
+    const { excludeSelectors: ex, minHeight: minH, padding: pad } = optsRef.current;
     const windowHeight = window.innerHeight;
     const windowWidth = window.innerWidth;
 
     // 计算被排除元素占用的高度
     let excludedHeight = 0;
-    excludeSelectors.forEach(selector => {
+    for (const selector of ex) {
       const element = document.querySelector(selector);
       if (element) {
         const rect = element.getBoundingClientRect();
         excludedHeight += rect.height;
       }
-    });
+    }
 
     // 计算可用高度
     const availableHeight = Math.max(
-      minHeight,
-      windowHeight - excludedHeight - padding
+      minH,
+      windowHeight - excludedHeight - pad
     );
 
-    setDimensions({
-      width: windowWidth,
-      height: windowHeight,
-      availableHeight,
+    // 仅在确实发生变化时更新，避免渲染-观察-再渲染的死循环
+    setDimensions(prev => {
+      if (
+        prev.width === windowWidth &&
+        prev.height === windowHeight &&
+        prev.availableHeight === availableHeight
+      ) {
+        return prev;
+      }
+      return { width: windowWidth, height: windowHeight, availableHeight };
     });
-  }, [excludeSelectors, minHeight, padding]);
+  }, []);
 
   useEffect(() => {
     // 初始计算
@@ -79,9 +92,10 @@ export function useViewportHeight(options: UseViewportHeightOptions = {}) {
       rafRef.current = requestAnimationFrame(calculateDimensions);
     });
 
+    // 仅观察 class/style 变化，限制在 body 直接子层，降低抖动概率
     observer.observe(document.body, {
       childList: true,
-      subtree: true,
+      subtree: false,
       attributes: true,
       attributeFilter: ['style', 'class']
     });

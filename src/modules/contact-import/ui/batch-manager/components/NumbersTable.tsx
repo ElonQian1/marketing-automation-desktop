@@ -1,7 +1,9 @@
 import React, { useMemo, useState } from 'react';
-import { Table, Tag, Space, Typography } from 'antd';
+import { Table, Tag, Space, Typography, Button } from 'antd';
 import type { ContactNumberList } from '../types';
 import { getDistinctIndustries as fetchDistinctIndustries, ContactNumberDto } from '../../services/contactNumberService';
+import { useColumnSettings } from '../../components/columns/useColumnSettings';
+import ColumnSettingsModal from '../../components/columns/ColumnSettingsModal';
 
 interface Props {
   data?: ContactNumberList | null;
@@ -105,104 +107,51 @@ const NumbersTable: React.FC<Props> = ({
 
   const { Text } = Typography;
 
-  return (
-    <div>
-      {/* 顶部汇总与筛选提示（本页统计） */}
-      <Space size={[8, 8]} wrap style={{ marginBottom: 8 }}>
-        <Text type="secondary">本页统计：</Text>
-        <Tag
-          color={statusFilter === 'imported' ? 'green' : 'default'}
-          onClick={() => {
-            if (controlledFilters?.onChange) {
-              controlledFilters.onChange({ status: statusFilter === 'imported' ? null : 'imported', industry: industryFilter ?? null });
-            } else {
-              setStatusFilterInner(prev => (prev === 'imported' ? null : 'imported'));
-            }
-          }}
-          style={{ cursor: 'pointer' }}
-        >
-          已导入 {importedCount}
-        </Tag>
-        <Tag
-          color={statusFilter === 'not_imported' ? 'orange' : 'default'}
-          onClick={() => {
-            if (controlledFilters?.onChange) {
-              controlledFilters.onChange({ status: statusFilter === 'not_imported' ? null : 'not_imported', industry: industryFilter ?? null });
-            } else {
-              setStatusFilterInner(prev => (prev === 'not_imported' ? null : 'not_imported'));
-            }
-          }}
-          style={{ cursor: 'pointer' }}
-        >
-          待导入 {notImportedCount}
-        </Tag>
-        <Tag
-          color={statusFilter === 'vcf_generated' ? 'blue' : 'default'}
-          onClick={() => {
-            if (controlledFilters?.onChange) {
-              controlledFilters.onChange({ status: statusFilter === 'vcf_generated' ? null : 'vcf_generated', industry: industryFilter ?? null });
-            } else {
-              setStatusFilterInner(prev => (prev === 'vcf_generated' ? null : 'vcf_generated'));
-            }
-          }}
-          style={{ cursor: 'pointer' }}
-        >
-          已生成VCF {vcfGeneratedCount}
-        </Tag>
-        {(statusFilter || industryFilter) && (
-          <Tag
-            color="magenta"
-            onClick={() => {
-              if (controlledFilters?.onChange) {
-                controlledFilters.onChange({ status: null, industry: null });
-              } else {
-                setStatusFilterInner(null);
-                setIndustryFilterInner(null);
-              }
-            }}
-            style={{ cursor: 'pointer' }}
-          >
-            重置筛选
-          </Tag>
-        )}
-      </Space>
+  // 列配置（与工作台一致，但按抽屉场景裁剪：不含“是否已用”列）
+  const columnDefaults = useMemo(() => ([
+    { key: 'seq', title: '序号', defaultVisible: true, defaultWidth: 70 },
+    { key: 'id', title: 'ID', defaultVisible: true, defaultWidth: 80 },
+    { key: 'phone', title: '号码', defaultVisible: true },
+    { key: 'name', title: '姓名', defaultVisible: true, defaultWidth: 160 },
+    { key: 'industry', title: '行业', defaultVisible: true, defaultWidth: 120 },
+    { key: 'status', title: '状态', defaultVisible: true, defaultWidth: 140 },
+    { key: 'used_batch', title: 'VCF 批次', defaultVisible: true, defaultWidth: 160 },
+    { key: 'imported_device_id', title: '导入设备', defaultVisible: true, defaultWidth: 140 },
+    { key: 'source_file', title: '来源', defaultVisible: true },
+    { key: 'created_at', title: '时间', defaultVisible: true, defaultWidth: 180 },
+  ]), []);
+  const columnSettings = useColumnSettings('contactImport.drawer.numberPool.columns', columnDefaults);
+  const [settingsOpen, setSettingsOpen] = useState(false);
 
-      <Table
-        rowKey="id"
-        size="small"
-        loading={loading}
-        dataSource={filteredItems}
-        rowSelection={selection ? {
-          type: 'checkbox',
-          selectedRowKeys: selection.selectedRows.map(row => row.id),
-          onChange: (selectedRowKeys, selectedRows) => {
-            selection.onChange(selectedRows as ContactNumberDto[], selectedRowKeys);
-          },
-          getCheckboxProps: selection.getCheckboxProps,
-          preserveSelectedRowKeys: true,
-        } : undefined}
-        pagination={pagination ? {
-          current: pagination.current,
-          pageSize: pagination.pageSize,
-          total: pagination.total,
-          onChange: pagination.onChange,
-          showSizeChanger: true,
-          showTotal: (t) => `共 ${t} 条`,
-        } : false}
-        columns={[
-          { title: 'ID', dataIndex: 'id', width: 80 },
-          { title: '号码', dataIndex: 'phone' },
-          { title: '姓名', dataIndex: 'name', width: 160 },
-          {
-            title: '行业',
+  const columns = useMemo(() => {
+    const baseIndexOffset = pagination ? ((pagination.current - 1) * pagination.pageSize) : 0;
+    return columnSettings.configs.filter(c => c.visible).map(c => {
+      const common = { title: c.title, width: c.width } as const;
+      switch (c.key) {
+        case 'seq':
+          return {
+            ...common,
+            dataIndex: 'seq',
+            key: 'seq',
+            render: (_: any, __: any, index: number) => baseIndexOffset + index + 1,
+          };
+        case 'id':
+          return { ...common, dataIndex: 'id', key: 'id' };
+        case 'phone':
+          return { ...common, dataIndex: 'phone', key: 'phone' };
+        case 'name':
+          return { ...common, dataIndex: 'name', key: 'name' };
+        case 'industry':
+          return {
+            ...common,
             dataIndex: 'industry',
-            width: 120,
+            key: 'industry',
             filters: distinctIndustries.map(ind => ({
               text: ind === INDUSTRY_UNCLASSIFIED ? '未分类' : ind,
               value: ind,
             })),
-            onFilter: (value, record) => {
-              const indRaw = (record as any).industry as string | null | undefined;
+            onFilter: (value: any, record: any) => {
+              const indRaw = record.industry as string | null | undefined;
               const ind = indRaw && indRaw.trim() ? indRaw.trim() : INDUSTRY_UNCLASSIFIED;
               return ind === value;
             },
@@ -226,17 +175,18 @@ const NumbersTable: React.FC<Props> = ({
                 </Tag>
               );
             },
-          },
-          {
-            title: '状态',
+          };
+        case 'status':
+          return {
+            ...common,
             dataIndex: 'status',
-            width: 140,
+            key: 'status',
             filters: [
               { text: '已导入', value: 'imported' },
               { text: '待导入', value: 'not_imported' },
               { text: '已生成VCF', value: 'vcf_generated' },
             ],
-            onFilter: (value, record) => (record as any).status === value,
+            onFilter: (value: any, record: any) => record.status === value,
             render: (s: string | null | undefined) => {
               if (s === 'imported') return (
                 <Tag color={statusFilter === 'imported' ? 'green' : 'success'} style={{ cursor: 'pointer' }} onClick={() => {
@@ -267,12 +217,121 @@ const NumbersTable: React.FC<Props> = ({
               );
               return <Tag>—</Tag>;
             }
+          };
+        case 'used_batch':
+          return { ...common, dataIndex: 'used_batch', key: 'used_batch' };
+        case 'imported_device_id':
+          return { ...common, dataIndex: 'imported_device_id', key: 'imported_device_id' };
+        case 'source_file':
+          return { ...common, dataIndex: 'source_file', key: 'source_file' };
+        case 'created_at':
+          return { ...common, dataIndex: 'created_at', key: 'created_at' };
+        default:
+          return { ...common, dataIndex: c.key, key: c.key } as any;
+      }
+    });
+  }, [columnSettings.configs, pagination, distinctIndustries, industryFilter, statusFilter, controlledFilters]);
+
+  return (
+    <div>
+      {/* 顶部汇总与筛选提示（本页统计） + 列设置入口 */}
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 8 }}>
+        <Space size={[8, 8]} wrap>
+          <Text type="secondary">本页统计：</Text>
+          <Tag
+            color={statusFilter === 'imported' ? 'green' : 'default'}
+            onClick={() => {
+              if (controlledFilters?.onChange) {
+                controlledFilters.onChange({ status: statusFilter === 'imported' ? null : 'imported', industry: industryFilter ?? null });
+              } else {
+                setStatusFilterInner(prev => (prev === 'imported' ? null : 'imported'));
+              }
+            }}
+            style={{ cursor: 'pointer' }}
+          >
+            已导入 {importedCount}
+          </Tag>
+          <Tag
+            color={statusFilter === 'not_imported' ? 'orange' : 'default'}
+            onClick={() => {
+              if (controlledFilters?.onChange) {
+                controlledFilters.onChange({ status: statusFilter === 'not_imported' ? null : 'not_imported', industry: industryFilter ?? null });
+              } else {
+                setStatusFilterInner(prev => (prev === 'not_imported' ? null : 'not_imported'));
+              }
+            }}
+            style={{ cursor: 'pointer' }}
+          >
+            待导入 {notImportedCount}
+          </Tag>
+          <Tag
+            color={statusFilter === 'vcf_generated' ? 'blue' : 'default'}
+            onClick={() => {
+              if (controlledFilters?.onChange) {
+                controlledFilters.onChange({ status: statusFilter === 'vcf_generated' ? null : 'vcf_generated', industry: industryFilter ?? null });
+              } else {
+                setStatusFilterInner(prev => (prev === 'vcf_generated' ? null : 'vcf_generated'));
+              }
+            }}
+            style={{ cursor: 'pointer' }}
+          >
+            已生成VCF {vcfGeneratedCount}
+          </Tag>
+          {(statusFilter || industryFilter) && (
+            <Tag
+              color="magenta"
+              onClick={() => {
+                if (controlledFilters?.onChange) {
+                  controlledFilters.onChange({ status: null, industry: null });
+                } else {
+                  setStatusFilterInner(null);
+                  setIndustryFilterInner(null);
+                }
+              }}
+              style={{ cursor: 'pointer' }}
+            >
+              重置筛选
+            </Tag>
+          )}
+        </Space>
+        <Button size="small" onClick={() => setSettingsOpen(true)} disabled={loading}>
+          列设置{columnSettings.visibleCount > 0 ? `（${columnSettings.visibleCount}）` : ''}
+        </Button>
+      </div>
+
+      <Table
+        rowKey="id"
+        size="small"
+        loading={loading}
+        dataSource={filteredItems}
+        rowSelection={selection ? {
+          type: 'checkbox',
+          selectedRowKeys: selection.selectedRows.map(row => row.id),
+          onChange: (selectedRowKeys, selectedRows) => {
+            selection.onChange(selectedRows as ContactNumberDto[], selectedRowKeys);
           },
-          { title: 'VCF 批次', dataIndex: 'used_batch', width: 160 },
-          { title: '导入设备', dataIndex: 'imported_device_id', width: 140 },
-          { title: '来源', dataIndex: 'source_file' },
-          { title: '时间', dataIndex: 'created_at', width: 180 },
-        ]}
+          getCheckboxProps: selection.getCheckboxProps,
+          preserveSelectedRowKeys: true,
+        } : undefined}
+        pagination={pagination ? {
+          current: pagination.current,
+          pageSize: pagination.pageSize,
+          total: pagination.total,
+          onChange: pagination.onChange,
+          showSizeChanger: true,
+          showTotal: (t) => `共 ${t} 条`,
+        } : false}
+        columns={columns as any}
+      />
+
+      <ColumnSettingsModal
+        open={settingsOpen}
+        onClose={() => setSettingsOpen(false)}
+        configs={columnSettings.configs}
+        onToggle={columnSettings.setVisible}
+        onWidthChange={columnSettings.setWidth}
+        onReset={columnSettings.reset}
+        onReorder={columnSettings.reorder}
       />
     </div>
   );

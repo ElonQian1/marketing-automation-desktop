@@ -60,8 +60,26 @@ export function useColumnSettings(storageKey: string, defaults: ColumnSettingIte
 
   const api = useMemo<UseColumnSettingsResult>(() => ({
     configs,
-    setVisible: (key, visible) => setConfigs(prev => prev.map(c => c.key === key ? { ...c, visible } : c)),
-    setWidth: (key, width) => setConfigs(prev => prev.map(c => c.key === key ? { ...c, width } : c)),
+    setVisible: (key, visible) => setConfigs(prev => {
+      let changed = false;
+      const next = prev.map(c => {
+        if (c.key !== key) return c;
+        if (c.visible === visible) return c;
+        changed = true;
+        return { ...c, visible };
+      });
+      return changed ? next : prev;
+    }),
+    setWidth: (key, width) => setConfigs(prev => {
+      let changed = false;
+      const next = prev.map(c => {
+        if (c.key !== key) return c;
+        if (c.width === width) return c;
+        changed = true;
+        return { ...c, width };
+      });
+      return changed ? next : prev;
+    }),
     reorder: (keys) => setConfigs(prev => {
       const map = new Map(prev.map(c => [c.key, c] as const));
       const next: ColumnRuntimeConfig[] = [];

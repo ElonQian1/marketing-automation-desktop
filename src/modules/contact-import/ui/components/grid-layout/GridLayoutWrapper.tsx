@@ -5,7 +5,7 @@ import { EyeInvisibleOutlined } from '@ant-design/icons';
 import { ResizablePanel } from './ResizablePanel';
 import { ScrollableContainer } from './components/ScrollableContainer';
 import { EnhancedResizablePanel } from './components/EnhancedResizablePanel';
-import { SmartLayoutToolbar } from './components/SmartLayoutToolbar';
+import { SmartLayoutToolbarFinal } from './components/SmartLayoutToolbarFinal';
 import { useViewportHeight } from './hooks/useViewportHeight';
 import { useLayoutVersions } from './hooks/useLayoutVersions';
 import { useLayoutPerformance } from './hooks/useLayoutPerformance';
@@ -178,7 +178,7 @@ export const GridLayoutWrapper: React.FC<GridLayoutWrapperProps> = ({
     if (!showToolbar) return null;
     
     return (
-      <SmartLayoutToolbar
+      <SmartLayoutToolbarFinal
         panels={panels}
         onPanelVisibilityChange={onPanelVisibilityChange}
         onLayoutReset={handleLayoutReset}
@@ -187,7 +187,7 @@ export const GridLayoutWrapper: React.FC<GridLayoutWrapperProps> = ({
         onCompactTypeChange={setCompactType}
         enableSmartMode={enablePerformanceMode}
         allowUserControl={true}
-        storageKey={`${storageKey}-toolbar`}
+        storageKey={`${storageKey}-toolbar-final`}
       />
     );
   };
