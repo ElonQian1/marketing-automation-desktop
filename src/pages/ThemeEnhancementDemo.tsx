@@ -131,43 +131,43 @@ export const ThemeEnhancementDemo: React.FC = () => {
       id: 'default',
       name: '默认蓝色',
       description: 'Ant Design 经典蓝色主题',
-      primary: '#1677ff',
-      success: '#52c41a',
-      warning: '#faad14',
-      error: '#ff4d4f',
-      info: '#1677ff',
+  primary: '#1677ff',
+  success: '#52c41a',
+  warning: '#faad14',
+  error: '#ff4d4f',
+  info: '#1677ff',
       favorite: true,
     },
     {
       id: 'green',
       name: '自然绿色',
       description: '清新自然的绿色主题',
-      primary: '#52c41a',
-      success: '#389e0d',
-      warning: '#faad14',
-      error: '#ff4d4f',
-      info: '#52c41a',
+  primary: '#52c41a',
+  success: '#389e0d',
+  warning: '#faad14',
+  error: '#ff4d4f',
+  info: '#52c41a',
     },
     {
       id: 'purple',
       name: '优雅紫色',
       description: '优雅神秘的紫色主题',
-      primary: '#722ed1',
-      success: '#52c41a',
-      warning: '#faad14',
-      error: '#ff4d4f',
-      info: '#722ed1',
+  primary: '#722ed1',
+  success: '#52c41a',
+  warning: '#faad14',
+  error: '#ff4d4f',
+  info: '#722ed1',
       favorite: true,
     },
     {
       id: 'orange',
       name: '活力橙色',
       description: '充满活力的橙色主题',
-      primary: '#fa541c',
-      success: '#52c41a',
-      warning: '#faad14',
-      error: '#ff4d4f',
-      info: '#fa541c',
+  primary: '#fa541c',
+  success: '#52c41a',
+  warning: '#faad14',
+  error: '#ff4d4f',
+  info: '#fa541c',
     },
   ];
 
@@ -329,13 +329,6 @@ export const ThemeEnhancementDemo: React.FC = () => {
 
         {/* 高级主题组件演示 */}
         <Row gutter={24}>
-          <Col span={16}>
-            <ThemeAnimationSettings
-              onAnimationChange={(newSettings) => 
-                setAnimationSettings({ ...animationSettings, ...newSettings })
-              }
-            />
-          </Col>
           <Col span={16}>
             <ThemeAnimationSettings
               onAnimationChange={(newSettings) => 

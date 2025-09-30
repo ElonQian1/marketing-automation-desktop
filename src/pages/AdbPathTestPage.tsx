@@ -1,6 +1,7 @@
 import { invoke } from '@tauri-apps/api/core';
 import { Alert, Button, Card, Space, Typography } from 'antd';
 import React, { useState } from 'react';
+import DevicesResultCard from './adb-path-test/components/DevicesResultCard';
 
 const { Title, Text, Paragraph } = Typography;
 
@@ -46,24 +47,24 @@ export const AdbPathTestPage: React.FC = () => {
   };
 
   return (
-    <div style={{ padding: '24px' }}>
-      <Title level={2}>ADB路径检测测试</Title>
+    <div style={{ padding: 24 }}>
+      <Title level={2}>ADB 路径检测测试</Title>
       
       <Space direction="vertical" size="large" style={{ width: '100%' }}>
-        <Card title="1. 智能ADB路径检测">
+  <Card title="1. 智能 ADB 路径检测">
           <Space direction="vertical" style={{ width: '100%' }}>
             <Button 
               type="primary" 
               onClick={testSmartAdbPath}
               loading={loading}
             >
-              检测智能ADB路径
+              检测智能 ADB 路径
             </Button>
             
             {smartPath && (
               <Alert 
                 type="success" 
-                message={`检测到ADB路径: ${smartPath}`}
+                message={`检测到 ADB 路径: ${smartPath}`}
               />
             )}
           </Space>
@@ -80,18 +81,7 @@ export const AdbPathTestPage: React.FC = () => {
               检测连接的设备
             </Button>
             
-            {devices && (
-              <Alert 
-                type="info" 
-                style={{ backgroundColor: 'var(--bg-secondary)', color: 'var(--text-primary)', borderColor: 'var(--border-primary)' }}
-                message={<span style={{ color: 'var(--text-primary)' }}>设备检测结果</span>}
-                description={
-                  <pre style={{ background: 'var(--bg-secondary)', color: 'var(--text-primary)', padding: '8px', borderRadius: '4px', margin: 0 }}>
-                    {devices}
-                  </pre>
-                }
-              />
-            )}
+            <DevicesResultCard devices={devices} />
           </Space>
         </Card>
 

@@ -28,11 +28,7 @@ export {
 } from './ThemePageComponents';
 
 // 导出高级主题组件（使用模块化实现）
-export {
-  ThemeColorPicker,
-  ThemePresetSelector,
-  ThemeAnimationSettings,
-} from './theme-advanced';
+export { ThemeColorPicker, ThemePresetSelector, ThemeAnimationSettings } from './theme-advanced';
 
 // 导出类型定义
 export type {
@@ -57,12 +53,7 @@ export type {
   ImportSession,
 } from './ThemePageComponents';
 
-export type {
-  ThemeColorPickerProps,
-  ThemePresetSelectorProps,
-  ThemeAnimationSettingsProps,
-  ThemePreset,
-} from './theme-advanced';
+export type { ThemeColorPickerProps, ThemePresetSelectorProps, ThemeAnimationSettingsProps, ThemePreset } from './theme-advanced';
 
 // 重新导出主题管理钩子
 export { useThemeManager } from '../theme-system';

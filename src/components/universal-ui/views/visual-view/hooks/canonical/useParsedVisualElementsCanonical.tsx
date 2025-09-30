@@ -64,7 +64,7 @@ export function useParsedVisualElements(
         } as any);
 
         const element: VisualUIElement = {
-          id: `element-${index}`,
+          id: `element_${index}`,
           text,
           description:
             contentDesc || `${userFriendlyName}${clickable ? "（可点击）" : ""}`,

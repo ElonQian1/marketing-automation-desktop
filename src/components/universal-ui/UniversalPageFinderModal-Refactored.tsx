@@ -128,17 +128,7 @@ const UniversalPageFinderModal: React.FC<UniversalPageFinderModalProps> = ({
     captureCurrentPage,
     loadXmlSnapshot,
     createSnapshot
-  } = usePageFinderModal({
-    visible,
-    snapshotOnlyMode,
-    initialViewMode,
-    loadFromStepXml,
-    preselectLocator,
-    initialMatching,
-    onSnapshotCaptured,
-    onXmlContentUpdated,
-    onSnapshotUpdated,
-  });
+  } = usePageFinderModal();
 
   // 本地状态
   const [viewMode, setViewMode] = useState<ViewMode>(initialViewMode);
@@ -146,8 +136,7 @@ const UniversalPageFinderModal: React.FC<UniversalPageFinderModalProps> = ({
   const [uiElements, setUIElements] = useState<UIElement[]>([]);
 
   // ADB 集成
-  const adbData = useAdb();
-  const devices = adbData.devices || [];
+  const { devices, isConnecting } = useAdb();
 
   // 初始化逻辑
   useEffect(() => {
@@ -257,7 +246,7 @@ const UniversalPageFinderModal: React.FC<UniversalPageFinderModalProps> = ({
         return (
           <ErrorBoundary>
             <VisualElementView
-              elements={elements as any}
+              elements={elements}
               selectedElementId={selectedElementId}
               onElementSelect={handleElementSelect}
             />
@@ -296,7 +285,7 @@ const UniversalPageFinderModal: React.FC<UniversalPageFinderModalProps> = ({
           <ErrorBoundary>
             <GridElementView
               xmlContent={xmlContent}
-              elements={elements as any}
+              elements={elements}
               onElementSelect={handleElementSelect}
               selectedElementId={selectedElementId}
               locator={preselectLocator}
@@ -345,8 +334,8 @@ const UniversalPageFinderModal: React.FC<UniversalPageFinderModalProps> = ({
               selectedDevice={selectedDevice}
               onDeviceSelect={setSelectedDevice}
               onRefreshDevices={refreshDevices}
-              onCaptureCurrentPage={handleSnapshotCapture}
-              loading={loading}
+              onCaptureClick={handleSnapshotCapture}
+              loading={loading || isConnecting}
             />
 
             {/* 视图模式选择器 */}

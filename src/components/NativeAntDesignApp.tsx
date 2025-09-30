@@ -49,6 +49,11 @@ import { PageFinderView } from "./universal-ui/page-finder";
 import { ThemeSettingsPage } from "../pages/ThemeSettingsPage";
 import { NativeAntDashboard } from "./native-dashboard/NativeAntDashboard";
 
+// 原生 Ant Design 页面版本导入
+import { StatisticsPageNative } from "../pages/statistics/StatisticsPageNative";
+import { DeviceManagementPageNative } from "../pages/device-management/DeviceManagementPageNative";
+import { LoginPageNative } from "../pages/auth/LoginPageNative";
+
 const { Header, Sider, Content } = Layout;
 const { Title } = Typography;
 
@@ -120,6 +125,21 @@ const NativeAntDesignApp: React.FC = () => {
       icon: <BgColorsOutlined />,
       label: "主题设置",
     },
+    {
+      key: "statistics-native",
+      icon: <DashboardOutlined />,
+      label: "统计页面（原生）",
+    },
+    {
+      key: "device-management-native",
+      icon: <MobileOutlined />,
+      label: "设备管理（原生）",
+    },
+    {
+      key: "login-native",
+      icon: <UserAddOutlined />,
+      label: "登录页面（原生）",
+    },
   ];
 
   const renderContent = () => {
@@ -142,6 +162,12 @@ const NativeAntDesignApp: React.FC = () => {
         return <PageFinderView />;
       case "theme-settings":
         return <ThemeSettingsPage />;
+      case "statistics-native":
+        return <StatisticsPageNative />;
+      case "device-management-native":
+        return <DeviceManagementPageNative />;
+      case "login-native":
+        return <LoginPageNative />;
       default:
         return <NativeAntDashboard />;
     }
