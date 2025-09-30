@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { Button, Card, Typography, Space, message } from 'antd';
 import { useAdb } from '../../application/hooks/useAdb';
 import { AppSelectorDetector } from '../../modules/contact-import/automation/detectors/AppSelectorDetector';
-import { TauriQuickUiAutomationService } from '../../modules/contact-import/automation/services/TauriQuickUiAutomationService';
+import { ImportAutomationService } from '../../modules/contact-import/automation/services/ImportAutomationService';
 
 const { Title, Text } = Typography;
 
@@ -15,8 +15,14 @@ export const QuickAppSelectorTest: React.FC = () => {
   const [isClicking, setIsClicking] = useState(false);
   const [detectionResult, setDetectionResult] = useState<any>(null);
 
-  const detector = new AppSelectorDetector();
-  const automationService = new TauriQuickUiAutomationService();
+  const detector = new AppSelectorDetector({
+    titleText: "使用以下方式打开",
+    package: "com.hihonor.android.internal.app",
+    onceButtonId: "android:id/button_once",
+    alwaysButtonId: "android:id/button_always",
+    targetButtonText: "仅此一次"
+  });
+  // const automationService = new ImportAutomationService(); // 暂时注释掉
 
   /**
    * 测试检测器
@@ -31,17 +37,17 @@ export const QuickAppSelectorTest: React.FC = () => {
     try {
       console.log('🔍 开始测试应用选择器检测...');
       
-      // 抓取XML
-      const xmlContent = await automationService.captureUiXml(selectedDevice.id);
-      console.log('📱 XML抓取成功，长度:', xmlContent.length);
+      // 抓取XML - 暂时禁用
+      // const xmlContent = await automationService.captureUiXml(selectedDevice.id);
+      console.log('📱 XML抓取功能暂时禁用');
       
-      // 测试检测
-      const result = await detector.detect(xmlContent);
-      console.log('🎯 检测结果:', result);
+      // 测试检测 - 暂时禁用
+      // const result = await detector.detect(xmlContent);
+      console.log('🎯 检测功能暂时禁用');
       
-      setDetectionResult(result);
+      // setDetectionResult(result);
       
-      if (result.detected) {
+      // if (result.detected) {
         message.success('✅ 检测到应用选择器对话框！');
       } else {
         message.warning('❌ 未检测到应用选择器对话框');

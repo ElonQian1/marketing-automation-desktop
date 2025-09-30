@@ -1,7 +1,8 @@
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
-import { Card, Col, Row, Space, Typography, Button, Table, Input, Pagination, message, Divider, Tag, Alert } from 'antd';
-import { DatabaseOutlined, FileTextOutlined, FolderOpenOutlined, MobileOutlined, FileDoneOutlined } from '@ant-design/icons';
+import { Card, Col, Row, Space, Typography, Button, Table, Input, Pagination, message, Divider, Tag, Alert, Switch } from 'antd';
+import { DatabaseOutlined, FileTextOutlined, FolderOpenOutlined, MobileOutlined, FileDoneOutlined, LayoutOutlined } from '@ant-design/icons';
 import styles from './ContactImportWorkbench.module.css';
+import { GridLayoutWrapper, useGridLayout } from './components/grid-layout';
 import { selectFolder, selectTxtFile } from './utils/dialog';
 import { importNumbersFromFolder, importNumbersFromFolders, importNumbersFromTxtFile, listContactNumbers, ContactNumberDto } from './services/contactNumberService';
 import { VcfActions } from './services/vcfActions';
@@ -28,12 +29,58 @@ import { SourceFolderAddButton } from './components/SourceFolderAddButton';
 import { SourceFoldersList } from './components/SourceFoldersList';
 import { registerGeneratedBatch } from './services/vcfBatchRegistrationService';
 import WorkbenchNumbersActionsBar from './components/WorkbenchNumbersActionsBar';
+import { useColumnSettings } from './components/columns/useColumnSettings';
+import ColumnSettingsModal from './components/columns/ColumnSettingsModal';
 
 const { Title, Text } = Typography;
 
 // 复用工具函数 buildVcfFromNumbers
 
 export const ContactImportWorkbench: React.FC = () => {
+  // 网格布局配置
+  const [enableGridLayout, setEnableGridLayout] = useState(true);
+  
+  // 定义默认面板配置
+  const defaultPanels = useMemo(() => [
+    {
+      i: 'devices-panel',
+      x: 0,
+      y: 0,
+      w: 12,
+      h: 8,
+      minW: 6,
+      minH: 6,
+      visible: true,
+      title: '设备与VCF',
+    },
+    {
+      i: 'import-panel',
+      x: 0,
+      y: 8,
+      w: 6,
+      h: 6,
+      minW: 4,
+      minH: 4,
+      visible: true,
+      title: '导入 TXT 到号码池',
+    },
+    {
+      i: 'numbers-panel',
+      x: 6,
+      y: 8,
+      w: 6,
+      h: 8,
+      minW: 4,
+      minH: 6,
+      visible: true,
+      title: '号码池',
+    },
+  ], []);
+  
+  const gridLayout = useGridLayout({ 
+    defaultPanels,
+    storageKey: 'contact-import-workbench-layout'
+  });
   // 设备
   // 顶部已默认加载设备卡片，不再需要单独“选择设备/刷新设备”控件
 
@@ -88,6 +135,22 @@ export const ContactImportWorkbench: React.FC = () => {
   useEffect(() => {
     loadStats();
   }, [loadStats]);
+
+  // 列配置（可见性与列宽，带本地持久化）
+  const columnDefaults = useMemo(() => ([
+    { key: 'seq', title: '序号', defaultVisible: true, defaultWidth: 70 },
+    { key: 'id', title: 'ID', defaultVisible: true, defaultWidth: 80 },
+    { key: 'phone', title: '号码', defaultVisible: true },
+    { key: 'name', title: '姓名', defaultVisible: true, defaultWidth: 180 },
+    { key: 'industry', title: '行业分类', defaultVisible: true, defaultWidth: 120 },
+    { key: 'status', title: '状态', defaultVisible: true, defaultWidth: 120 },
+    { key: 'used', title: '是否已用', defaultVisible: true, defaultWidth: 100 },
+    { key: 'imported_device_id', title: '导入设备', defaultVisible: true, defaultWidth: 150 },
+    { key: 'source_file', title: '来源', defaultVisible: true },
+    { key: 'created_at', title: '创建时间', defaultVisible: true, defaultWidth: 160 },
+  ]), []);
+  const columnSettings = useColumnSettings('contactImport.numberPool.columns', columnDefaults);
+  const [settingsOpen, setSettingsOpen] = useState(false);
 
   // 导入面板
   const handleImportTxt = async () => {
@@ -310,18 +373,53 @@ export const ContactImportWorkbench: React.FC = () => {
     }
   }, [contactImportApp, onlyUnconsumed]);
 
-  const columns = [
-    {
-      title: '序号',
-      width: 70,
-      render: (_: any, __: any, index: number) => (page - 1) * pageSize + index + 1,
-    },
-    { title: 'ID', dataIndex: 'id', width: 80 },
-    { title: '号码', dataIndex: 'phone' },
-    { title: '姓名', dataIndex: 'name', width: 180 },
-    { title: '来源', dataIndex: 'source_file', ellipsis: true },
-    { title: '时间', dataIndex: 'created_at', width: 200 },
-  ];
+  const columns = useMemo(() => {
+    const arr: any[] = [];
+    for (const cfg of columnSettings.configs) {
+      if (!cfg.visible) continue;
+      switch (cfg.key) {
+        case 'seq':
+          arr.push({ title: cfg.title, width: cfg.width ?? 70, render: (_: any, __: any, index: number) => (page - 1) * pageSize + index + 1 });
+          break;
+        case 'id':
+          arr.push({ title: cfg.title, dataIndex: 'id', width: cfg.width ?? 80 });
+          break;
+        case 'phone':
+          arr.push({ title: cfg.title, dataIndex: 'phone', width: cfg.width });
+          break;
+        case 'name':
+          arr.push({ title: cfg.title, dataIndex: 'name', width: cfg.width ?? 180 });
+          break;
+        case 'industry':
+          arr.push({ title: cfg.title, dataIndex: 'industry', width: cfg.width ?? 120, render: (industry: string | null) => industry ? <Tag color="geekblue">{industry}</Tag> : <Text type="secondary">未分类</Text> });
+          break;
+        case 'status':
+          arr.push({ title: cfg.title, dataIndex: 'status', width: cfg.width ?? 120, render: (status: string | null) => {
+            const config = status === 'imported' ? { color: 'success', text: '已导入' } :
+                          status === 'vcf_generated' ? { color: 'processing', text: 'VCF已生成' } :
+                          status === 'not_imported' ? { color: 'default', text: '未导入' } :
+                          { color: 'default', text: '未知' };
+            return <Tag color={config.color}>{config.text}</Tag>;
+          }});
+          break;
+        case 'used':
+          arr.push({ title: cfg.title, dataIndex: 'used', width: cfg.width ?? 100, render: (used: number | null) => used === 1 ? <Tag color="warning">已使用</Tag> : used === 0 ? <Tag color="default">未使用</Tag> : <Tag color="default">-</Tag> });
+          break;
+        case 'imported_device_id':
+          arr.push({ title: cfg.title, dataIndex: 'imported_device_id', width: cfg.width ?? 150, render: (deviceId: string | null) => deviceId ? <Tag color="blue" icon={<MobileOutlined />}>{deviceId}</Tag> : <Text type="secondary">-</Text> });
+          break;
+        case 'source_file':
+          arr.push({ title: cfg.title, dataIndex: 'source_file', ellipsis: true, width: cfg.width });
+          break;
+        case 'created_at':
+          arr.push({ title: cfg.title, dataIndex: 'created_at', width: cfg.width ?? 160, render: (time: string) => { try { return <Text>{new Date(time).toLocaleString('zh-CN')}</Text>; } catch { return <Text>{time}</Text>; } } });
+          break;
+        default:
+          break;
+      }
+    }
+    return arr;
+  }, [columnSettings.configs, page, pageSize]);
 
   const hasInvalidRanges = useMemo(() => {
     return Object.values(assignment).some(cfg => {
@@ -414,116 +512,177 @@ export const ContactImportWorkbench: React.FC = () => {
     }
   };
 
-  return (
-    <Row gutter={[16, 16]}>
-      {/* 面板1：设备与VCF（移动到页面上方） */}
-      <Col xs={24}>
-        <Card title={<Space><MobileOutlined />设备与VCF</Space>}>
-          <StatsBar stats={stats} onRefresh={loadStats} />
-          {rangeConflicts.length > 0 && (
-            <Alert
-              type="error"
-              showIcon
-              className={styles.alertCompact}
-              message={`发现 ${rangeConflicts.length} 处区间冲突`}
-              description={
-                <div>
-                  {rangeConflicts.slice(0, 5).map((c, i) => (
-                    <div key={i}>设备 {c.deviceA} [{c.rangeA.start}-{c.rangeA.end}] 与 设备 {c.deviceB} [{c.rangeB.start}-{c.rangeB.end}] 重叠</div>
-                  ))}
-                  {rangeConflicts.length > 5 && <div style={{ opacity: 0.7 }}>仅显示前5条</div>}
-                </div>
-              }
-            />
-          )}
-          <Space wrap>
-            <Button type="primary" icon={<FileDoneOutlined />} onClick={handleTopLevelImportHint}>
-              将所选号码生成VCF并导入设备（请在下方设备卡片执行）
-            </Button>
-          </Space>
-          <Divider />
-          <ConflictNavigator conflictIds={conflictDeviceIds} currentTargetId={currentJumpId} onJump={handleJumpToDevice} />
-          <DeviceAssignmentGrid
-            value={assignment}
-            onChange={setAssignment}
-            conflictingDeviceIds={conflictDeviceIds}
-            conflictPeersByDevice={conflictPeersByDevice}
-            onGenerateVcf={handleGenerateVcfForDevice}
-            onImportToDevice={handleImportToDeviceFromCard}
-            onOpenSessions={({ deviceId, status }) => setSessionsModal({ open: true, deviceId, status: (status ?? 'all') as any })}
-          />
-          <div className={styles.batchActionsRow}>
-            <Button type="primary" onClick={handleGenerateBatches} disabled={hasInvalidRanges || allRangesEmpty}>
-              根据分配生成VCF批次
-            </Button>
-            <label style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
-              <input type="checkbox" checked={onlyUnconsumed} onChange={e => setOnlyUnconsumed(e.target.checked)} />
-              仅使用未消费号码
-            </label>
-            {hasInvalidRanges && <Text type="danger">存在非法区间（起始大于结束）</Text>}
-            {allRangesEmpty && <Text type="secondary">请为至少一台设备设置有效区间</Text>}
-          </div>
-        </Card>
-      </Col>
-
-      {/* 面板2：导入TXT到号码池（移动到中间左侧） */}
-      <Col xs={24} md={8}>
-        <Card title={<Space><DatabaseOutlined />导入 TXT 到号码池</Space>} extra={<Button onClick={() => setBatchDrawerOpen(true)}>按批次/设备筛选</Button>}>
-          <Space direction="vertical" style={{ width: '100%' }}>
-            <Text type="secondary">支持单个 TXT 或TXT文件夹，自动提取手机号码并去重入库</Text>
-            <Space>
-              <Button icon={<FileTextOutlined />} onClick={handleImportTxt}>导入TXT文件</Button>
-              <Button icon={<FolderOpenOutlined />} onClick={handleImportFolder}>导入文件夹</Button>
-              <SourceFolderAddButton onAdded={addFolder} />
-              <Button onClick={handleImportFromSavedFolders} disabled={!hasItems}>从已保存目录导入</Button>
-            </Space>
-            <SourceFoldersList folders={folders} onRemove={removeFolder} onClearAll={clearAll} />
-            <Divider className={styles.dividerTight} />
-            <div className={styles.searchBar}>
-              <Input.Search
-                placeholder="搜索 号码/姓名"
-                allowClear
-                onSearch={(v) => {
-                  setSearch(v);
-                  setPage(1);
-                }}
-                className={styles.searchInput}
-              />
-              <Button onClick={loadList}>刷新列表</Button>
+  // 渲染设备与VCF面板内容
+  const renderDevicesPanel = () => (
+    <>
+      <StatsBar stats={stats} onRefresh={loadStats} />
+      {rangeConflicts.length > 0 && (
+        <Alert
+          type="error"
+          showIcon
+          className={styles.alertCompact}
+          message={`发现 ${rangeConflicts.length} 处区间冲突`}
+          description={
+            <div>
+              {rangeConflicts.slice(0, 5).map((c, i) => (
+                <div key={i}>设备 {c.deviceA} [{c.rangeA.start}-{c.rangeA.end}] 与 设备 {c.deviceB} [{c.rangeB.start}-{c.rangeB.end}] 重叠</div>
+              ))}
+              {rangeConflicts.length > 5 && <div style={{ opacity: 0.7 }}>仅显示前5条</div>}
             </div>
-          </Space>
-        </Card>
-      </Col>
+          }
+        />
+      )}
+      <Space wrap>
+        <Button type="primary" icon={<FileDoneOutlined />} onClick={handleTopLevelImportHint}>
+          将所选号码生成VCF并导入设备（请在下方设备卡片执行）
+        </Button>
+      </Space>
+      <Divider />
+      <ConflictNavigator conflictIds={conflictDeviceIds} currentTargetId={currentJumpId} onJump={handleJumpToDevice} />
+      <DeviceAssignmentGrid
+        value={assignment}
+        onChange={setAssignment}
+        conflictingDeviceIds={conflictDeviceIds}
+        conflictPeersByDevice={conflictPeersByDevice}
+        onGenerateVcf={handleGenerateVcfForDevice}
+        onImportToDevice={handleImportToDeviceFromCard}
+        onOpenSessions={({ deviceId, status }) => setSessionsModal({ open: true, deviceId, status: (status ?? 'all') as any })}
+      />
+      <div className={styles.batchActionsRow}>
+        <Button type="primary" onClick={handleGenerateBatches} disabled={hasInvalidRanges || allRangesEmpty}>
+          根据分配生成VCF批次
+        </Button>
+        <label style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+          <input type="checkbox" checked={onlyUnconsumed} onChange={e => setOnlyUnconsumed(e.target.checked)} />
+          仅使用未消费号码
+        </label>
+        {hasInvalidRanges && <Text type="danger">存在非法区间（起始大于结束）</Text>}
+        {allRangesEmpty && <Text type="secondary">请为至少一台设备设置有效区间</Text>}
+      </div>
+    </>
+  );
 
-      {/* 面板3：号码池（移动到底部右侧） */}
-      <Col xs={24} md={16}>
-        <Card title={<Space><DatabaseOutlined />号码池</Space>} extra={<Tag color="blue">共 {total} 条</Tag>}>
-          <WorkbenchNumbersActionsBar
-            selectedRowKeys={selectedRowKeys as number[]}
-            pageItemIds={items.map(i => i.id)}
-            onChangeSelected={(keys) => setSelectedRowKeys(keys as any)}
-            onArchived={async () => {
-              await loadList();
-              await loadStats();
-            }}
-            disabled={loading}
+  // 渲染导入面板内容
+  const renderImportPanel = () => (
+    <Space direction="vertical" style={{ width: '100%' }}>
+      <Space wrap style={{ marginBottom: 8 }}>
+        <Button onClick={() => setBatchDrawerOpen(true)}>按批次/设备筛选</Button>
+      </Space>
+      <Text type="secondary">支持单个 TXT 或TXT文件夹，自动提取手机号码并去重入库</Text>
+      <Space wrap>
+        <Button icon={<FileTextOutlined />} onClick={handleImportTxt}>导入TXT文件</Button>
+        <Button icon={<FolderOpenOutlined />} onClick={handleImportFolder}>导入文件夹</Button>
+        <SourceFolderAddButton onAdded={addFolder} />
+        <Button onClick={handleImportFromSavedFolders} disabled={!hasItems}>从已保存目录导入</Button>
+      </Space>
+      <SourceFoldersList folders={folders} onRemove={removeFolder} onClearAll={clearAll} />
+      <Divider className={styles.dividerTight} />
+      <div className={styles.searchBar}>
+        <Input.Search
+          placeholder="搜索 号码/姓名"
+          allowClear
+          onSearch={(v) => {
+            setSearch(v);
+            setPage(1);
+          }}
+          className={styles.searchInput}
+        />
+        <Button onClick={loadList}>刷新列表</Button>
+      </div>
+    </Space>
+  );
+
+  // 渲染号码池面板内容
+  const renderNumbersPanel = () => (
+    <>
+      <Space wrap style={{ marginBottom: 16 }}>
+        <Button size="small" onClick={() => setSettingsOpen(true)}>列设置</Button>
+        <Tag color="blue">共 {total} 条</Tag>
+      </Space>
+      <WorkbenchNumbersActionsBar
+        selectedRowKeys={selectedRowKeys as number[]}
+        pageItemIds={items.map(i => i.id)}
+        onChangeSelected={(keys) => setSelectedRowKeys(keys as any)}
+        onArchived={async () => {
+          await loadList();
+          await loadStats();
+        }}
+        disabled={loading}
+        globalFilter={{ search }}
+      />
+      <Table
+        rowKey="id"
+        columns={columns as any}
+        dataSource={items}
+        loading={loading}
+        size="middle"
+        rowSelection={{ selectedRowKeys, onChange: setSelectedRowKeys }}
+        pagination={false}
+        scroll={{ x: true, y: 400 }}
+      />
+      <div className={styles.tableFooter}>
+        <Pagination current={page} pageSize={pageSize} total={total} onChange={(p, ps) => { setPage(p); setPageSize(ps); }} showSizeChanger />
+        <Text type="secondary">已选 {selectedRowKeys.length} 条</Text>
+      </div>
+    </>
+  );
+
+  return (
+    <div>
+      {/* 布局切换控制 */}
+      <div style={{ marginBottom: 16, padding: '8px 16px', backgroundColor: '#f5f5f5', borderRadius: 6 }}>
+        <Space>
+          <LayoutOutlined />
+          <Text>布局模式:</Text>
+          <Switch 
+            checked={enableGridLayout} 
+            onChange={setEnableGridLayout}
+            checkedChildren="网格布局"
+            unCheckedChildren="传统布局"
           />
-          <Table
-            rowKey="id"
-            columns={columns as any}
-            dataSource={items}
-            loading={loading}
-            size="middle"
-            rowSelection={{ selectedRowKeys, onChange: setSelectedRowKeys }}
-            pagination={false}
-            scroll={{ x: true }}
-          />
-          <div className={styles.tableFooter}>
-            <Pagination current={page} pageSize={pageSize} total={total} onChange={(p, ps) => { setPage(p); setPageSize(ps); }} showSizeChanger />
-            <Text type="secondary">已选 {selectedRowKeys.length} 条</Text>
-          </div>
-        </Card>
-      </Col>
+        </Space>
+      </div>
+
+      {enableGridLayout ? (
+        <GridLayoutWrapper
+          panels={gridLayout.getVisiblePanels().map(panel => ({
+            ...panel,
+            icon: panel.i === 'devices-panel' ? <MobileOutlined /> :
+                  panel.i === 'import-panel' ? <DatabaseOutlined /> :
+                  panel.i === 'numbers-panel' ? <DatabaseOutlined /> :
+                  undefined,
+            content: panel.i === 'devices-panel' ? renderDevicesPanel() :
+                    panel.i === 'import-panel' ? renderImportPanel() :
+                    panel.i === 'numbers-panel' ? renderNumbersPanel() :
+                    <div>未知面板: {panel.i}</div>
+          }))}
+          onLayoutChange={gridLayout.handleLayoutChange}
+          onPanelVisibilityChange={gridLayout.togglePanelVisibility}
+        />
+      ) : (
+        <Row gutter={[16, 16]}>
+          {/* 传统布局 */}
+          <Col xs={24}>
+            <Card title={<Space><MobileOutlined />设备与VCF</Space>}>
+              {renderDevicesPanel()}
+            </Card>
+          </Col>
+
+          <Col xs={24} md={8}>
+            <Card title={<Space><DatabaseOutlined />导入 TXT 到号码池</Space>}>
+              {renderImportPanel()}
+            </Card>
+          </Col>
+
+          <Col xs={24} md={16}>
+            <Card title={<Space><DatabaseOutlined />号码池</Space>}>
+              {renderNumbersPanel()}
+            </Card>
+          </Col>
+        </Row>
+      )}
+
+      {/* 模态框保持不变 */}
       <BatchPreviewModal
         open={previewOpen}
         batches={previewBatches as any}
@@ -554,8 +713,8 @@ export const ContactImportWorkbench: React.FC = () => {
           } catch (e) {
             message.error(`重试失败：${e}`);
           }
-            // 如果批量执行时选择了标记 consumed，则 stats 中的未导入计数会变化
-            loadStats();
+          // 如果批量执行时选择了标记 consumed，则 stats 中的未导入计数会变化
+          loadStats();
         }}
       />
       <BatchManagerDrawer open={batchDrawerOpen} onClose={() => setBatchDrawerOpen(false)} />
@@ -565,7 +724,16 @@ export const ContactImportWorkbench: React.FC = () => {
         deviceId={sessionsModal.deviceId}
         status={sessionsModal.status}
       />
-    </Row>
+      <ColumnSettingsModal
+        open={settingsOpen}
+        onClose={() => setSettingsOpen(false)}
+        configs={columnSettings.configs}
+        onToggle={columnSettings.setVisible}
+        onWidthChange={columnSettings.setWidth}
+        onReset={columnSettings.reset}
+        onReorder={columnSettings.reorder}
+      />
+    </div>
   );
 };
 

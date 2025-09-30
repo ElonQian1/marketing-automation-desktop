@@ -1,0 +1,110 @@
+/* 滚动容器样式 */
+.scrollable-container {
+  position: relative;
+  overflow-x: hidden;
+}
+
+/* 自定义滚动条样式 - Webkit */
+.scrollable-container::-webkit-scrollbar {
+  width: 8px;
+}
+
+.scrollable-container::-webkit-scrollbar-track {
+  background: #f1f1f1;
+  border-radius: 4px;
+}
+
+.scrollable-container::-webkit-scrollbar-thumb {
+  background: #c1c1c1;
+  border-radius: 4px;
+  transition: background 0.2s ease;
+}
+
+.scrollable-container::-webkit-scrollbar-thumb:hover {
+  background: #a1a1a1;
+}
+
+.scrollable-container:focus {
+  outline: 2px solid #1890ff;
+  outline-offset: -2px;
+}
+
+/* Firefox 滚动条样式 */
+.scrollable-container {
+  scrollbar-width: thin;
+  scrollbar-color: #c1c1c1 #f1f1f1;
+}
+
+/* 网格布局容器优化 */
+.grid-layout-container {
+  position: relative;
+  width: 100%;
+}
+
+.grid-layout-container .react-grid-layout {
+  position: relative;
+}
+
+/* 面板内容滚动优化 */
+.resizable-panel-content {
+  height: 100%;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+}
+
+.resizable-panel-body {
+  flex: 1;
+  overflow-y: auto;
+  overflow-x: hidden;
+  padding: 16px;
+}
+
+/* 虚拟滚动优化 */
+.virtual-scroll {
+  position: relative;
+}
+
+.virtual-scroll-content {
+  position: relative;
+  width: 100%;
+}
+
+/* 响应式优化 */
+@media (max-width: 768px) {
+  .scrollable-container::-webkit-scrollbar {
+    width: 6px;
+  }
+  
+  .resizable-panel-body {
+    padding: 12px;
+  }
+}
+
+/* 平滑滚动动画 */
+.smooth-scroll {
+  scroll-behavior: smooth;
+}
+
+/* 高对比度模式支持 */
+@media (prefers-contrast: high) {
+  .scrollable-container::-webkit-scrollbar-track {
+    background: #000000;
+  }
+  
+  .scrollable-container::-webkit-scrollbar-thumb {
+    background: #ffffff;
+  }
+}
+
+/* 减少动画模式 */
+@media (prefers-reduced-motion: reduce) {
+  .scrollable-container,
+  .smooth-scroll {
+    scroll-behavior: auto;
+  }
+  
+  .scrollable-container::-webkit-scrollbar-thumb {
+    transition: none;
+  }
+}
