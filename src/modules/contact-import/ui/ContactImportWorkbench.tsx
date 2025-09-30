@@ -32,7 +32,7 @@ import WorkbenchNumbersActionsBar from './components/WorkbenchNumbersActionsBar'
 import { useColumnSettings } from './components/columns/useColumnSettings';
 import ColumnSettingsModal from './components/columns/ColumnSettingsModal';
 import { ResizableHeaderCell, useResizableColumns } from '../../../components/universal-ui/table/resizable';
-import { useDragConflictResolver } from './components/grid-layout/hooks/useDragConflictResolver';
+import { useDragConflictResolver, useDragFixer, useGridDragGuards } from './components/grid-layout/hooks';
 
 const { Title, Text } = Typography;
 
@@ -89,6 +89,27 @@ export const ContactImportWorkbench: React.FC = () => {
     autoFix: true,
     debug: false, // 生产环境关闭调试
     priority: 'table-resize' // 优先保护表格列宽拖拽
+  });
+
+  // 🔥 启用强化拖拽修复器（解决顽固冲突）
+  const dragFixer = useDragFixer({
+    enabled: true,
+    intensity: 'aggressive', // 使用最强修复模式
+    debug: process.env.NODE_ENV === 'development',
+    targetTables: [
+      '[data-testid="workbench-numbers-table"]',
+      '.ant-table-container'
+    ]
+  });
+
+  // 🛡️ 启用拖拽防护守卫
+  const dragGuards = useGridDragGuards({
+    enabled: true,
+    debug: process.env.NODE_ENV === 'development',
+    tableSelectors: [
+      '[data-testid="workbench-numbers-table"]',
+      '.contact-import-table'
+    ]
   });
 
   // 设备

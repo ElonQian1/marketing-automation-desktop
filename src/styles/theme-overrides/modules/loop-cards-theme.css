@@ -1,0 +1,231 @@
+/**
+ * 循环卡片专用样式模块
+ * 专门管理循环步骤卡片的白底黑字主题
+ */
+
+/* =============================================================================
+   循环卡片基础定义
+   ============================================================================= */
+
+/* 循环卡片CSS变量 */
+:root {
+  --loop-card-bg: #ffffff;
+  --loop-card-text: #333333;
+  --loop-card-border: #e1e4e8;
+  --loop-card-hover: #f6f8fa;
+  --loop-card-active: #e1e4e8;
+  --loop-card-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+/* =============================================================================
+   循环卡片主要选择器
+   ============================================================================= */
+
+/* 核心循环卡片选择器 */
+.loop-card,
+.step-card[data-loop="true"],
+.step-card[data-step-type="loop"],
+.draggable-step-card[data-is-loop="true"],
+.smart-step-card[data-loop="true"],
+[data-loop-step="true"],
+[data-component="loop-card"] {
+  /* 基础样式 */
+  background-color: var(--loop-card-bg) !important;
+  color: var(--loop-card-text) !important;
+  border: 1px solid var(--loop-card-border) !important;
+  border-radius: 8px !important;
+  box-shadow: var(--loop-card-shadow) !important;
+  
+  /* 确保字体清晰 */
+  font-weight: 400 !important;
+  line-height: 1.5 !important;
+}
+
+/* 循环卡片悬停效果 */
+.loop-card:hover,
+.step-card[data-loop="true"]:hover,
+.draggable-step-card[data-is-loop="true"]:hover {
+  background-color: var(--loop-card-hover) !important;
+  border-color: var(--loop-card-active) !important;
+}
+
+/* =============================================================================
+   循环卡片内部元素样式
+   ============================================================================= */
+
+/* 所有内部文本元素 */
+.loop-card *,
+.step-card[data-loop="true"] *,
+.draggable-step-card[data-is-loop="true"] * {
+  color: var(--loop-card-text) !important;
+}
+
+/* 标题元素 */
+.loop-card h1,
+.loop-card h2,
+.loop-card h3,
+.loop-card h4,
+.loop-card h5,
+.loop-card h6,
+.step-card[data-loop="true"] h1,
+.step-card[data-loop="true"] h2,
+.step-card[data-loop="true"] h3 {
+  color: var(--loop-card-text) !important;
+  font-weight: 600 !important;
+}
+
+/* 段落和文本 */
+.loop-card p,
+.loop-card span,
+.loop-card div,
+.step-card[data-loop="true"] p,
+.step-card[data-loop="true"] span {
+  color: var(--loop-card-text) !important;
+}
+
+/* =============================================================================
+   循环卡片内的Ant Design组件
+   ============================================================================= */
+
+/* 按钮组件 */
+.loop-card .ant-btn,
+.step-card[data-loop="true"] .ant-btn {
+  background-color: var(--loop-card-bg) !important;
+  color: var(--loop-card-text) !important;
+  border-color: var(--loop-card-border) !important;
+}
+
+.loop-card .ant-btn:hover,
+.step-card[data-loop="true"] .ant-btn:hover {
+  background-color: var(--loop-card-hover) !important;
+  border-color: var(--loop-card-active) !important;
+}
+
+/* 标签组件 */
+.loop-card .ant-tag,
+.step-card[data-loop="true"] .ant-tag {
+  background-color: var(--loop-card-hover) !important;
+  color: var(--loop-card-text) !important;
+  border-color: var(--loop-card-border) !important;
+}
+
+/* 卡片组件 */
+.loop-card .ant-card,
+.step-card[data-loop="true"] .ant-card {
+  background-color: var(--loop-card-bg) !important;
+  border-color: var(--loop-card-border) !important;
+}
+
+.loop-card .ant-card-head,
+.loop-card .ant-card-body {
+  background-color: var(--loop-card-bg) !important;
+  color: var(--loop-card-text) !important;
+}
+
+/* 表单元素 */
+.loop-card .ant-input,
+.loop-card .ant-select,
+.loop-card .ant-textarea {
+  background-color: var(--loop-card-bg) !important;
+  color: var(--loop-card-text) !important;
+  border-color: var(--loop-card-border) !important;
+}
+
+/* Typography 组件 */
+.loop-card .ant-typography,
+.step-card[data-loop="true"] .ant-typography {
+  color: var(--loop-card-text) !important;
+}
+
+/* =============================================================================
+   循环卡片特殊状态
+   ============================================================================= */
+
+/* 选中状态 */
+.loop-card.selected,
+.step-card[data-loop="true"].selected {
+  border-color: #1890ff !important;
+  box-shadow: 0 0 0 2px rgba(24, 144, 255, 0.2) !important;
+}
+
+/* 拖拽状态 */
+.loop-card.dragging,
+.step-card[data-loop="true"].dragging {
+  opacity: 0.8 !important;
+  transform: rotate(2deg) !important;
+}
+
+/* 禁用状态 */
+.loop-card.disabled,
+.step-card[data-loop="true"].disabled {
+  opacity: 0.5 !important;
+  cursor: not-allowed !important;
+}
+
+/* =============================================================================
+   循环指示器
+   ============================================================================= */
+
+/* 循环标识 */
+.loop-card::before,
+.step-card[data-loop="true"]::before {
+  content: "🔄";
+  position: absolute;
+  top: 8px;
+  right: 8px;
+  font-size: 12px;
+  opacity: 0.6;
+}
+
+/* 循环计数显示 */
+.loop-card .loop-counter,
+.step-card[data-loop="true"] .loop-counter {
+  background-color: var(--loop-card-border) !important;
+  color: var(--loop-card-text) !important;
+  border-radius: 12px !important;
+  padding: 2px 8px !important;
+  font-size: 12px !important;
+  font-weight: 500 !important;
+}
+
+/* =============================================================================
+   响应式设计
+   ============================================================================= */
+
+@media (max-width: 768px) {
+  .loop-card,
+  .step-card[data-loop="true"] {
+    padding: 12px !important;
+    margin: 8px 0 !important;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .loop-card,
+  .step-card[data-loop="true"] {
+    transition: none !important;
+  }
+}
+
+/* =============================================================================
+   调试辅助（开发环境）
+   ============================================================================= */
+
+[data-debug="true"] .loop-card,
+[data-debug="true"] .step-card[data-loop="true"] {
+  outline: 2px dashed #ff6b6b !important;
+  outline-offset: 2px !important;
+}
+
+[data-debug="true"] .loop-card::after,
+[data-debug="true"] .step-card[data-loop="true"]::after {
+  content: "LOOP CARD";
+  position: absolute;
+  top: -20px;
+  left: 0;
+  background: #ff6b6b;
+  color: white;
+  font-size: 10px;
+  padding: 2px 6px;
+  border-radius: 4px;
+}

@@ -64,7 +64,7 @@ import { useSearchAndMatch } from './hooks/useSearchAndMatch';
 import { useXPathNavigator } from './hooks/useXPathNavigator';
 import { useMatchingSelection } from './hooks/useMatchingSelection';
 import { usePanelSync } from './hooks/usePanelSync';
-import { ChildElementSelectorModal } from './components/ChildElementSelectorModal';
+import { ChildElementListModal } from './components/ChildElementListModal';
 import type { ActionableChildElement } from './services/childElementAnalyzer';
 
 // 兼容遗留调用：在模块级声明可变引用，供组件内赋值
@@ -128,9 +128,9 @@ export const GridElementView: React.FC<GridElementViewProps> = ({
   // 选中节点
   const [selected, setSelected] = useState<UiNode | null>(null);
   
-  // 🆕 子元素选择状态
-  const [childSelectorVisible, setChildSelectorVisible] = useState<boolean>(false);
-  const [pendingParentNode, setPendingParentNode] = useState<UiNode | null>(null);
+  // 🆕 子元素列表弹窗状态
+  const [childListVisible, setChildListVisible] = useState<boolean>(false);
+  const [selectedParentNode, setSelectedParentNode] = useState<UiNode | null>(null);
   
   // 展开/折叠与层级控制
   const [expandAll, setExpandAll] = useState<boolean>(false);
@@ -282,9 +282,9 @@ export const GridElementView: React.FC<GridElementViewProps> = ({
     );
     
     if (hasActionableChildren) {
-      // 有可操作子元素，显示选择弹窗
-      setPendingParentNode(node);
-      setChildSelectorVisible(true);
+      // 有可操作子元素，显示子元素列表弹窗
+      setSelectedParentNode(node);
+      setChildListVisible(true);
     } else {
       // 没有可操作子元素，直接选择
       setSelected(node);
@@ -336,12 +336,12 @@ export const GridElementView: React.FC<GridElementViewProps> = ({
 
   const handleDirectParentSelect = () => {
     // 直接选择父元素
-    if (pendingParentNode) {
-      setSelected(pendingParentNode);
+    if (selectedParentNode) {
+      setSelected(selectedParentNode);
       
       if (onElementSelect) {
         // 解析bounds字符串
-        const boundsStr = pendingParentNode.attrs['bounds'] || '[0,0][0,0]';
+        const boundsStr = selectedParentNode.attrs['bounds'] || '[0,0][0,0]';
         const boundsMatch = boundsStr.match(/\[(\d+),(\d+)\]\[(\d+),(\d+)\]/);
         let position = { x: 0, y: 0, width: 0, height: 0 };
         
@@ -359,27 +359,106 @@ export const GridElementView: React.FC<GridElementViewProps> = ({
         }
         
         const visualElement: VisualUIElement = {
-          id: pendingParentNode.attrs['resource-id'] || `${pendingParentNode.tag}@${boundsStr}`,
+          id: selectedParentNode.attrs['resource-id'] || `${selectedParentNode.tag}@${boundsStr}`,
           type: 'container',
-          text: pendingParentNode.attrs['text'] || '',
-          description: pendingParentNode.attrs['content-desc'] || '容器元素',
+          text: selectedParentNode.attrs['text'] || '',
+          description: selectedParentNode.attrs['content-desc'] || '容器元素',
           category: 'container',
           position,
-          clickable: pendingParentNode.attrs['clickable'] === 'true',
+          clickable: selectedParentNode.attrs['clickable'] === 'true',
           importance: 'medium',
-          userFriendlyName: pendingParentNode.attrs['text'] || pendingParentNode.attrs['class']?.split('.').pop() || '容器',
-          enabled: pendingParentNode.attrs['enabled'] !== 'false',
-          element_type: pendingParentNode.attrs['class']?.split('.').pop() || pendingParentNode.tag,
-          is_clickable: pendingParentNode.attrs['clickable'] === 'true'
+          userFriendlyName: selectedParentNode.attrs['text'] || selectedParentNode.attrs['class']?.split('.').pop() || '容器',
+          enabled: selectedParentNode.attrs['enabled'] !== 'false',
+          element_type: selectedParentNode.attrs['class']?.split('.').pop() || selectedParentNode.tag,
+          is_clickable: selectedParentNode.attrs['clickable'] === 'true'
         };
         onElementSelect(visualElement);
       }
     }
   };
 
-  const handleChildSelectorClose = () => {
-    setChildSelectorVisible(false);
-    setPendingParentNode(null);
+  const handleChildListClose = () => {
+    setChildListVisible(false);
+    setSelectedParentNode(null);
+  };
+
+  const handleChildSelect = (childNode: UiNode) => {
+    // 选择子元素并关闭弹窗
+    setSelected(childNode);
+    
+    // 如果有外部选择回调，通知上层组件
+    if (onElementSelect) {
+      // 解析bounds字符串
+      const boundsStr = childNode.attrs['bounds'] || '[0,0][0,0]';
+      const boundsMatch = boundsStr.match(/\[(\d+),(\d+)\]\[(\d+),(\d+)\]/);
+      let position = { x: 0, y: 0, width: 0, height: 0 };
+      
+      if (boundsMatch) {
+        const left = parseInt(boundsMatch[1]);
+        const top = parseInt(boundsMatch[2]);
+        const right = parseInt(boundsMatch[3]);
+        const bottom = parseInt(boundsMatch[4]);
+        position = {
+          x: left,
+          y: top,
+          width: right - left,
+          height: bottom - top
+        };
+      }
+      
+      const visualElement: VisualUIElement = {
+        id: childNode.attrs['resource-id'] || `${childNode.tag}@${boundsStr}`,
+        type: childNode.attrs['class']?.split('.').pop() || childNode.tag,
+        text: childNode.attrs['text'] || '',
+        description: childNode.attrs['content-desc'] || '子元素',
+        category: 'child',
+        position,
+        clickable: childNode.attrs['clickable'] === 'true',
+        importance: 'medium',
+        userFriendlyName: childNode.attrs['text'] || childNode.attrs['class']?.split('.').pop() || '子元素',
+        enabled: childNode.attrs['enabled'] !== 'false',
+        element_type: childNode.attrs['class']?.split('.').pop() || childNode.tag,
+        is_clickable: childNode.attrs['clickable'] === 'true'
+      };
+      onElementSelect(visualElement);
+    }
+    
+    handleChildListClose();
+  };
+
+  const handleShowChildDetails = (childNode: UiNode) => {
+    // 显示子元素详情（可以选择子元素并在右侧面板显示详情）
+    setSelected(childNode);
+    panelSync.setHighlightNode(childNode, { refresh: true, switchToResults: false });
+  };
+
+  const handleCopyChildXPath = (childNode: UiNode) => {
+    // 复制子元素的XPath到剪贴板
+    try {
+      // 这里需要根据现有的XPath生成逻辑来生成XPath
+      // 简化版本：基于属性生成基本的XPath
+      let xpath = '';
+      const resourceId = childNode.attrs['resource-id'];
+      const text = childNode.attrs['text'];
+      const className = childNode.attrs['class'];
+      
+      if (resourceId) {
+        xpath = `//*[@resource-id='${resourceId}']`;
+      } else if (text) {
+        xpath = `//*[@text='${text}']`;
+      } else if (className) {
+        xpath = `//*[@class='${className}']`;
+      } else {
+        xpath = `//${childNode.tag}`;
+      }
+      
+      navigator.clipboard.writeText(xpath).then(() => {
+        // 可以添加提示消息
+        console.log('XPath 已复制到剪贴板:', xpath);
+      });
+    } catch (error) {
+      console.error('复制XPath失败:', error);
+    }
   };
 
   // 真机匹配回调：根据返回的 xpath 或 bounds 在当前树中选中并高亮
@@ -639,6 +718,7 @@ export const GridElementView: React.FC<GridElementViewProps> = ({
             root={root}
             selected={selected}
             onSelect={(n) => setSelected(n)}
+            onElementClick={handleElementClick}
             matchedSet={matchedSet}
             highlightNode={panelHighlightNode}
             highlightKey={panelActivateKey}
@@ -681,13 +761,14 @@ export const GridElementView: React.FC<GridElementViewProps> = ({
         4) 🆕 点击元素时会智能识别可操作的子元素，提供精确选择选项。
       </div>
 
-      {/* 🆕 子元素选择弹窗 */}
-      <ChildElementSelectorModal
-        visible={childSelectorVisible}
-        parentNode={pendingParentNode}
-        onClose={handleChildSelectorClose}
-        onSelect={handleChildElementSelect}
-        onDirectSelect={handleDirectParentSelect}
+      {/* 🆕 子元素列表弹窗 */}
+      <ChildElementListModal
+        visible={childListVisible}
+        parentNode={selectedParentNode}
+        onClose={handleChildListClose}
+        onSelectChild={handleChildSelect}
+        onShowChildDetails={handleShowChildDetails}
+        onCopyChildXPath={handleCopyChildXPath}
       />
     </div>
   );

@@ -187,4 +187,4 @@ export function useGridDragGuards(options: DragGuardOptions = {}) {
   };
 }
 
-export default useGridDragGuards;
+export default useGridDragGuards

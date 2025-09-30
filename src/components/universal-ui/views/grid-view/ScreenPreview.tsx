@@ -5,7 +5,27 @@ import styles from './GridElementView.module.css';
 
 type ScaleMode = 'fit' | 'actual' | 'custom';
 
-export const ScreenPreview: React.FC<{ root: UiNode | null; selected: UiNode | null; onSelect?: (n: UiNode) => void; matchedSet?: Set<UiNode>; highlightNode?: UiNode | null; highlightKey?: number; enableFlashHighlight?: boolean; previewAutoCenter?: boolean; }> = ({ root, selected, onSelect, matchedSet, highlightNode, highlightKey, enableFlashHighlight = true, previewAutoCenter = true }) => {
+export const ScreenPreview: React.FC<{ 
+  root: UiNode | null; 
+  selected: UiNode | null; 
+  onSelect?: (n: UiNode) => void;
+  onElementClick?: (n: UiNode) => void;
+  matchedSet?: Set<UiNode>; 
+  highlightNode?: UiNode | null; 
+  highlightKey?: number; 
+  enableFlashHighlight?: boolean; 
+  previewAutoCenter?: boolean; 
+}> = ({ 
+  root, 
+  selected, 
+  onSelect, 
+  onElementClick,
+  matchedSet, 
+  highlightNode, 
+  highlightKey, 
+  enableFlashHighlight = true, 
+  previewAutoCenter = true 
+}) => {
   const [scaleMode, setScaleMode] = useState<ScaleMode>('fit');
   const [zoom, setZoom] = useState<number>(100); // percent for custom
   const flashRef = useRef<number>(0);
@@ -157,7 +177,13 @@ export const ScreenPreview: React.FC<{ root: UiNode | null; selected: UiNode | n
                 height: Math.max(1, Math.round(b.h * scale)),
               }}
               title={n.attrs['class'] || n.tag}
-              onClick={() => onSelect?.(n)}
+              onClick={() => {
+                if (onElementClick) {
+                  onElementClick(n);
+                } else {
+                  onSelect?.(n);
+                }
+              }}
             />
           );
         })}

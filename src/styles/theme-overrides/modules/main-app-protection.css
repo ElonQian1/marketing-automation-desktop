@@ -1,0 +1,312 @@
+/**
+ * 主程序暗灰色系保护模块
+ * 确保所有非循环卡片元素使用暗灰色系，防止被循环卡片样式污染
+ */
+
+/* =============================================================================
+   主程序核心变量系统
+   ============================================================================= */
+
+:root {
+  /* 主程序颜色系统 */
+  --main-dark-bg: #1f2937;
+  --main-dark-bg-secondary: #374151;
+  --main-dark-bg-tertiary: #4b5563;
+  --main-dark-text: #e5e7eb;
+  --main-dark-text-secondary: #9ca3af;
+  --main-dark-text-muted: #6b7280;
+  --main-dark-border: #374151;
+  --main-dark-border-light: #4b5563;
+  --main-dark-hover: #4b5563;
+  --main-dark-active: #374151;
+  --main-dark-primary: #3b82f6;
+  --main-dark-success: #10b981;
+  --main-dark-warning: #f59e0b;
+  --main-dark-error: #ef4444;
+  --main-dark-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.4);
+}
+
+/* =============================================================================
+   根容器和布局保护
+   ============================================================================= */
+
+/* 应用根容器 */
+body:not(.step-card):not(.loop-card),
+#root:not(.step-card):not(.loop-card),
+.ant-app:not(.step-card):not(.loop-card) {
+  background-color: var(--main-dark-bg) !important;
+  color: var(--main-dark-text) !important;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif !important;
+  line-height: 1.6 !important;
+}
+
+/* 主要布局容器 */
+.ant-layout:not(.step-card .ant-layout):not(.loop-card .ant-layout),
+.ant-layout-content:not(.step-card .ant-layout-content):not(.loop-card .ant-layout-content),
+.ant-layout-header:not(.step-card .ant-layout-header):not(.loop-card .ant-layout-header),
+.ant-layout-footer:not(.step-card .ant-layout-footer):not(.loop-card .ant-layout-footer),
+.ant-layout-sider:not(.step-card .ant-layout-sider):not(.loop-card .ant-layout-sider) {
+  background-color: var(--main-dark-bg) !important;
+  color: var(--main-dark-text) !important;
+}
+
+/* 侧边栏特殊处理 */
+.ant-layout-sider:not(.step-card .ant-layout-sider):not(.loop-card .ant-layout-sider) {
+  background-color: var(--main-dark-bg-secondary) !important;
+  border-right: 1px solid var(--main-dark-border) !important;
+}
+
+/* 头部导航 */
+.ant-layout-header:not(.step-card .ant-layout-header):not(.loop-card .ant-layout-header) {
+  background-color: var(--main-dark-bg-secondary) !important;
+  border-bottom: 1px solid var(--main-dark-border) !important;
+}
+
+/* =============================================================================
+   Ant Design 组件保护 - 排除循环卡片和Universal UI
+   ============================================================================= */
+
+/* 卡片组件 */
+.ant-card:not(.step-card):not(.loop-card):not(.loop-step-card):not(.universal-page-finder .ant-card):not(.xml-inspector-modal .ant-card) {
+  background-color: var(--main-dark-bg-secondary) !important;
+  color: var(--main-dark-text) !important;
+  border-color: var(--main-dark-border) !important;
+  box-shadow: var(--main-dark-shadow) !important;
+}
+
+.ant-card:not(.step-card):not(.loop-card):not(.loop-step-card):not(.universal-page-finder .ant-card):not(.xml-inspector-modal .ant-card) .ant-card-head {
+  background-color: var(--main-dark-bg-tertiary) !important;
+  color: var(--main-dark-text) !important;
+  border-bottom-color: var(--main-dark-border) !important;
+}
+
+.ant-card:not(.step-card):not(.loop-card):not(.loop-step-card):not(.universal-page-finder .ant-card):not(.xml-inspector-modal .ant-card) .ant-card-body {
+  background-color: var(--main-dark-bg-secondary) !important;
+  color: var(--main-dark-text) !important;
+}
+
+/* 表格组件 */
+.ant-table:not(.step-card .ant-table):not(.loop-card .ant-table):not(.universal-page-finder .ant-table):not(.xml-inspector-modal .ant-table) {
+  background-color: var(--main-dark-bg-secondary) !important;
+  color: var(--main-dark-text) !important;
+}
+
+.ant-table:not(.step-card .ant-table):not(.loop-card .ant-table):not(.universal-page-finder .ant-table):not(.xml-inspector-modal .ant-table) .ant-table-thead > tr > th {
+  background-color: var(--main-dark-bg-tertiary) !important;
+  color: var(--main-dark-text) !important;
+  border-bottom-color: var(--main-dark-border) !important;
+  font-weight: 600 !important;
+}
+
+.ant-table:not(.step-card .ant-table):not(.loop-card .ant-table):not(.universal-page-finder .ant-table):not(.xml-inspector-modal .ant-table) .ant-table-tbody > tr > td {
+  background-color: var(--main-dark-bg-secondary) !important;
+  color: var(--main-dark-text) !important;
+  border-bottom-color: var(--main-dark-border) !important;
+}
+
+.ant-table:not(.step-card .ant-table):not(.loop-card .ant-table):not(.universal-page-finder .ant-table):not(.xml-inspector-modal .ant-table) .ant-table-tbody > tr:hover > td {
+  background-color: var(--main-dark-hover) !important;
+  color: var(--main-dark-text) !important;
+}
+
+/* 列表组件 */
+.ant-list:not(.step-card .ant-list):not(.loop-card .ant-list):not(.universal-page-finder .ant-list):not(.xml-inspector-modal .ant-list) {
+  background-color: var(--main-dark-bg-secondary) !important;
+  color: var(--main-dark-text) !important;
+}
+
+.ant-list:not(.step-card .ant-list):not(.loop-card .ant-list):not(.universal-page-finder .ant-list):not(.xml-inspector-modal .ant-list) .ant-list-item {
+  background-color: var(--main-dark-bg-secondary) !important;
+  color: var(--main-dark-text) !important;
+  border-bottom-color: var(--main-dark-border) !important;
+}
+
+/* =============================================================================
+   表单控件保护
+   ============================================================================= */
+
+/* 输入框 */
+.ant-input:not(.step-card .ant-input):not(.loop-card .ant-input):not(.universal-page-finder .ant-input):not(.xml-inspector-modal .ant-input),
+.ant-input-group:not(.step-card .ant-input-group):not(.loop-card .ant-input-group):not(.universal-page-finder .ant-input-group):not(.xml-inspector-modal .ant-input-group) {
+  background-color: var(--main-dark-bg-tertiary) !important;
+  color: var(--main-dark-text) !important;
+  border-color: var(--main-dark-border) !important;
+}
+
+.ant-input:not(.step-card .ant-input):not(.loop-card .ant-input):not(.universal-page-finder .ant-input):not(.xml-inspector-modal .ant-input):focus,
+.ant-input:not(.step-card .ant-input):not(.loop-card .ant-input):not(.universal-page-finder .ant-input):not(.xml-inspector-modal .ant-input):focus-within {
+  border-color: var(--main-dark-primary) !important;
+  box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.2) !important;
+}
+
+/* 选择器 */
+.ant-select:not(.step-card .ant-select):not(.loop-card .ant-select):not(.universal-page-finder .ant-select):not(.xml-inspector-modal .ant-select) .ant-select-selector {
+  background-color: var(--main-dark-bg-tertiary) !important;
+  color: var(--main-dark-text) !important;
+  border-color: var(--main-dark-border) !important;
+}
+
+/* 文本域 */
+.ant-input-textarea:not(.step-card .ant-input-textarea):not(.loop-card .ant-input-textarea):not(.universal-page-finder .ant-input-textarea):not(.xml-inspector-modal .ant-input-textarea),
+.ant-input-textarea:not(.step-card .ant-input-textarea):not(.loop-card .ant-input-textarea):not(.universal-page-finder .ant-input-textarea):not(.xml-inspector-modal .ant-input-textarea) textarea {
+  background-color: var(--main-dark-bg-tertiary) !important;
+  color: var(--main-dark-text) !important;
+  border-color: var(--main-dark-border) !important;
+}
+
+/* =============================================================================
+   按钮组件保护
+   ============================================================================= */
+
+/* 默认按钮 */
+.ant-btn:not(.step-card .ant-btn):not(.loop-card .ant-btn):not(.universal-page-finder .ant-btn):not(.xml-inspector-modal .ant-btn) {
+  background-color: var(--main-dark-bg-tertiary) !important;
+  color: var(--main-dark-text) !important;
+  border-color: var(--main-dark-border) !important;
+}
+
+.ant-btn:not(.step-card .ant-btn):not(.loop-card .ant-btn):not(.universal-page-finder .ant-btn):not(.xml-inspector-modal .ant-btn):hover {
+  background-color: var(--main-dark-hover) !important;
+  color: var(--main-dark-text) !important;
+  border-color: var(--main-dark-border-light) !important;
+}
+
+/* 主按钮 */
+.ant-btn-primary:not(.step-card .ant-btn-primary):not(.loop-card .ant-btn-primary):not(.universal-page-finder .ant-btn-primary):not(.xml-inspector-modal .ant-btn-primary) {
+  background-color: var(--main-dark-primary) !important;
+  border-color: var(--main-dark-primary) !important;
+  color: #ffffff !important;
+}
+
+/* 危险按钮 */
+.ant-btn-dangerous:not(.step-card .ant-btn-dangerous):not(.loop-card .ant-btn-dangerous):not(.universal-page-finder .ant-btn-dangerous):not(.xml-inspector-modal .ant-btn-dangerous) {
+  background-color: var(--main-dark-error) !important;
+  border-color: var(--main-dark-error) !important;
+  color: #ffffff !important;
+}
+
+/* =============================================================================
+   导航和菜单保护
+   ============================================================================= */
+
+/* 菜单组件 */
+.ant-menu:not(.step-card .ant-menu):not(.loop-card .ant-menu):not(.universal-page-finder .ant-menu):not(.xml-inspector-modal .ant-menu) {
+  background-color: var(--main-dark-bg-secondary) !important;
+  color: var(--main-dark-text) !important;
+}
+
+.ant-menu:not(.step-card .ant-menu):not(.loop-card .ant-menu):not(.universal-page-finder .ant-menu):not(.xml-inspector-modal .ant-menu) .ant-menu-item {
+  color: var(--main-dark-text-secondary) !important;
+}
+
+.ant-menu:not(.step-card .ant-menu):not(.loop-card .ant-menu):not(.universal-page-finder .ant-menu):not(.xml-inspector-modal .ant-menu) .ant-menu-item:hover,
+.ant-menu:not(.step-card .ant-menu):not(.loop-card .ant-menu):not(.universal-page-finder .ant-menu):not(.xml-inspector-modal .ant-menu) .ant-menu-item-selected {
+  background-color: var(--main-dark-hover) !important;
+  color: var(--main-dark-text) !important;
+}
+
+/* 面包屑导航 */
+.ant-breadcrumb:not(.step-card .ant-breadcrumb):not(.loop-card .ant-breadcrumb):not(.universal-page-finder .ant-breadcrumb):not(.xml-inspector-modal .ant-breadcrumb) {
+  color: var(--main-dark-text-secondary) !important;
+}
+
+.ant-breadcrumb:not(.step-card .ant-breadcrumb):not(.loop-card .ant-breadcrumb):not(.universal-page-finder .ant-breadcrumb):not(.xml-inspector-modal .ant-breadcrumb) a {
+  color: var(--main-dark-primary) !important;
+}
+
+/* 分页组件 */
+.ant-pagination:not(.step-card .ant-pagination):not(.loop-card .ant-pagination):not(.universal-page-finder .ant-pagination):not(.xml-inspector-modal .ant-pagination) {
+  color: var(--main-dark-text) !important;
+}
+
+.ant-pagination:not(.step-card .ant-pagination):not(.loop-card .ant-pagination):not(.universal-page-finder .ant-pagination):not(.xml-inspector-modal .ant-pagination) .ant-pagination-item {
+  background-color: var(--main-dark-bg-tertiary) !important;
+  border-color: var(--main-dark-border) !important;
+}
+
+.ant-pagination:not(.step-card .ant-pagination):not(.loop-card .ant-pagination):not(.universal-page-finder .ant-pagination):not(.xml-inspector-modal .ant-pagination) .ant-pagination-item a {
+  color: var(--main-dark-text) !important;
+}
+
+/* =============================================================================
+   通用文本和图标保护
+   ============================================================================= */
+
+/* 所有非循环卡片的文本 */
+body *:not(.step-card):not(.step-card *):not(.loop-card):not(.loop-card *):not(.universal-page-finder *):not(.xml-inspector-modal *) {
+  color: var(--main-dark-text) !important;
+}
+
+/* 图标颜色 */
+.anticon:not(.step-card .anticon):not(.loop-card .anticon):not(.universal-page-finder .anticon):not(.xml-inspector-modal .anticon) {
+  color: var(--main-dark-text-secondary) !important;
+}
+
+/* 标题文本 */
+h1:not(.step-card h1):not(.loop-card h1):not(.universal-page-finder h1):not(.xml-inspector-modal h1),
+h2:not(.step-card h2):not(.loop-card h2):not(.universal-page-finder h2):not(.xml-inspector-modal h2),
+h3:not(.step-card h3):not(.loop-card h3):not(.universal-page-finder h3):not(.xml-inspector-modal h3),
+h4:not(.step-card h4):not(.loop-card h4):not(.universal-page-finder h4):not(.xml-inspector-modal h4),
+h5:not(.step-card h5):not(.loop-card h5):not(.universal-page-finder h5):not(.xml-inspector-modal h5),
+h6:not(.step-card h6):not(.loop-card h6):not(.universal-page-finder h6):not(.xml-inspector-modal h6) {
+  color: var(--main-dark-text) !important;
+}
+
+/* =============================================================================
+   特殊组件保护
+   ============================================================================= */
+
+/* 标签页 */
+.ant-tabs:not(.step-card .ant-tabs):not(.loop-card .ant-tabs):not(.universal-page-finder .ant-tabs):not(.xml-inspector-modal .ant-tabs) .ant-tabs-tab {
+  color: var(--main-dark-text-secondary) !important;
+}
+
+.ant-tabs:not(.step-card .ant-tabs):not(.loop-card .ant-tabs):not(.universal-page-finder .ant-tabs):not(.xml-inspector-modal .ant-tabs) .ant-tabs-tab-active {
+  color: var(--main-dark-primary) !important;
+}
+
+.ant-tabs:not(.step-card .ant-tabs):not(.loop-card .ant-tabs):not(.universal-page-finder .ant-tabs):not(.xml-inspector-modal .ant-tabs) .ant-tabs-content-holder {
+  background-color: var(--main-dark-bg-secondary) !important;
+}
+
+/* 模态框 */
+.ant-modal:not(.universal-page-finder):not(.xml-inspector-modal) .ant-modal-content {
+  background-color: var(--main-dark-bg-secondary) !important;
+  color: var(--main-dark-text) !important;
+}
+
+.ant-modal:not(.universal-page-finder):not(.xml-inspector-modal) .ant-modal-header {
+  background-color: var(--main-dark-bg-tertiary) !important;
+  color: var(--main-dark-text) !important;
+  border-bottom-color: var(--main-dark-border) !important;
+}
+
+/* 抽屉 */
+.ant-drawer:not(.universal-page-finder):not(.xml-inspector-modal) .ant-drawer-content {
+  background-color: var(--main-dark-bg) !important;
+  color: var(--main-dark-text) !important;
+}
+
+.ant-drawer:not(.universal-page-finder):not(.xml-inspector-modal) .ant-drawer-header {
+  background-color: var(--main-dark-bg-secondary) !important;
+  color: var(--main-dark-text) !important;
+  border-bottom-color: var(--main-dark-border) !important;
+}
+
+/* =============================================================================
+   防污染保护
+   ============================================================================= */
+
+/* 防止循环卡片样式泄露到主程序 */
+body:not(.step-card):not(.loop-card),
+body *:not(.step-card):not(.step-card *):not(.loop-card):not(.loop-card *) {
+  /* 重置可能被污染的样式 */
+  background-color: initial;
+  color: inherit;
+}
+
+/* 确保主程序根元素样式 */
+body {
+  background-color: var(--main-dark-bg) !important;
+  color: var(--main-dark-text) !important;
+}

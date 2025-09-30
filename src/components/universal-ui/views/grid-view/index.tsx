@@ -14,9 +14,14 @@ export { XPathBuilder } from './XPathBuilder';
 
 // 🆕 子元素选择功能导出
 export {
-  ChildElementSelectorModal,
-  type ChildElementSelectorModalProps,
-} from './components/ChildElementSelectorModal';
+  ChildElementListModal,
+  type ChildElementListModalProps,
+} from './components/ChildElementListModal';
+
+export {
+  ChildElementCard,
+  type ChildElementCardProps,
+} from './components/ChildElementCard';
 
 export {
   childElementAnalyzer,

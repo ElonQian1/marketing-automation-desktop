@@ -8,16 +8,27 @@ interface ScreenPreviewPanelProps {
   root: UiNode | null;
   selected: UiNode | null;
   onSelect: (n: UiNode) => void;
+  onElementClick?: (n: UiNode) => void;
   matchedSet: Set<UiNode>;
   highlightNode?: UiNode | null;
   highlightKey?: number;
   enableFlashHighlight?: boolean;
   previewAutoCenter?: boolean;
-  // 可选：在“修改参数”模式下，允许直接从预览设置为步骤元素
   onSelectForStep?: (criteria: CompleteStepCriteria) => void;
 }
 
-export const ScreenPreviewPanel: React.FC<ScreenPreviewPanelProps> = ({ root, selected, onSelect, matchedSet, highlightNode, highlightKey, enableFlashHighlight, previewAutoCenter, onSelectForStep }) => {
+export const ScreenPreviewPanel: React.FC<ScreenPreviewPanelProps> = ({ 
+  root, 
+  selected, 
+  onSelect, 
+  onElementClick,
+  matchedSet, 
+  highlightNode, 
+  highlightKey, 
+  enableFlashHighlight, 
+  previewAutoCenter, 
+  onSelectForStep 
+}) => {
   return (
     <div className={styles.card}>
       <div className={styles.cardHeader}>
@@ -32,7 +43,17 @@ export const ScreenPreviewPanel: React.FC<ScreenPreviewPanelProps> = ({ root, se
         </div>
       </div>
       <div className={styles.cardBody}>
-        <ScreenPreview root={root} selected={selected} onSelect={onSelect} matchedSet={matchedSet} highlightNode={highlightNode} highlightKey={highlightKey} enableFlashHighlight={enableFlashHighlight} previewAutoCenter={previewAutoCenter} />
+        <ScreenPreview 
+          root={root} 
+          selected={selected} 
+          onSelect={onSelect}
+          onElementClick={onElementClick}
+          matchedSet={matchedSet} 
+          highlightNode={highlightNode} 
+          highlightKey={highlightKey} 
+          enableFlashHighlight={enableFlashHighlight} 
+          previewAutoCenter={previewAutoCenter} 
+        />
       </div>
     </div>
   );
