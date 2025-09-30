@@ -1,5 +1,35 @@
 import React, { useState, useEffect } from 'react';
+import {
+  Card,
+  Input,
+  Button,
+  Space,
+  Typography,
+  Row,
+  Col,
+  Checkbox,
+  Alert,
+  List,
+  Tag,
+  Collapse,
+  Descriptions,
+  Badge,
+  message
+} from 'antd';
+import {
+  SearchOutlined,
+  ReloadOutlined,
+  BugOutlined,
+  MobileOutlined,
+  ClockCircleOutlined,
+  CheckCircleOutlined,
+  FileTextOutlined
+} from '@ant-design/icons';
 import { invoke } from '@tauri-apps/api/core';
+
+const { Title, Text, Paragraph } = Typography;
+const { TextArea } = Input;
+const { Panel } = Collapse;
 
 interface UIElement {
   text: string;
@@ -20,6 +50,10 @@ interface DeviceUIState {
   suggested_action: string;
 }
 
+/**
+ * 设备UI状态分析器 - 原生 Ant Design 实现
+ * 提供设备UI元素分析和查找功能
+ */
 const UIAnalyzer: React.FC = () => {
   const [deviceId, setDeviceId] = useState('emulator-5554');
   const [uiState, setUiState] = useState<DeviceUIState | null>(null);
@@ -40,9 +74,12 @@ const UIAnalyzer: React.FC = () => {
       
       console.log('✅ UI状态读取成功:', result);
       setUiState(result);
+      message.success('UI状态读取成功');
     } catch (err) {
       console.error('❌ UI状态读取失败:', err);
-      setError(err as string);
+      const errorMsg = err as string;
+      setError(errorMsg);
+      message.error('UI状态读取失败');
     } finally {
       setLoading(false);
     }
@@ -75,181 +112,233 @@ const UIAnalyzer: React.FC = () => {
       });
       
       console.log(`找到 ${elements.length} 个匹配元素:`, elements);
-      alert(`找到 ${elements.length} 个匹配的UI元素，详情请查看控制台`);
+      message.success(`找到 ${elements.length} 个匹配的UI元素`);
     } catch (err) {
       console.error('查找UI元素失败:', err);
       setError(err as string);
+      message.error('查找UI元素失败');
     }
   };
 
-  // 格式化元素显示
-  const formatElement = (element: UIElement, index: number) => (
-    <div key={index} className="border border-gray-300 rounded p-3 mb-2 bg-gray-50">
-      <div className="grid grid-cols-2 gap-2 text-sm">
-        <div><strong>Text:</strong> {element.text || '(空)'}</div>
-        <div><strong>可点击:</strong> {element.clickable ? '✅' : '❌'}</div>
-        <div><strong>类名:</strong> <span className="font-mono text-xs">{element.class}</span></div>
-        <div><strong>资源ID:</strong> <span className="font-mono text-xs">{element.resource_id || '(无)'}</span></div>
-        <div><strong>内容描述:</strong> {element.content_desc || '(无)'}</div>
-        <div><strong>位置:</strong> <span className="font-mono text-xs">{element.bounds}</span></div>
-      </div>
-    </div>
+  // 渲染UI元素
+  const renderElement = (element: UIElement) => (
+    <Card size="small" style={{ marginBottom: 8 }}>
+      <Descriptions size="small" column={2}>
+        <Descriptions.Item label="文本">
+          {element.text || <Text type="secondary">(空)</Text>}
+        </Descriptions.Item>
+        <Descriptions.Item label="可点击">
+          {element.clickable ? <CheckCircleOutlined style={{ color: '#52c41a' }} /> : '❌'}
+        </Descriptions.Item>
+        <Descriptions.Item label="类名">
+          <Text code style={{ fontSize: '11px' }}>{element.class}</Text>
+        </Descriptions.Item>
+        <Descriptions.Item label="资源ID">
+          <Text code style={{ fontSize: '11px' }}>{element.resource_id || '(无)'}</Text>
+        </Descriptions.Item>
+        <Descriptions.Item label="内容描述">
+          {element.content_desc || <Text type="secondary">(无)</Text>}
+        </Descriptions.Item>
+        <Descriptions.Item label="位置">
+          <Text code style={{ fontSize: '11px' }}>{element.bounds}</Text>
+        </Descriptions.Item>
+      </Descriptions>
+    </Card>
   );
 
+  const clickableElements = uiState?.elements.filter(e => e.clickable) || [];
+  const textElements = uiState?.elements.filter(e => e.text.trim().length > 0) || [];
+
   return (
-    <div className="p-6 max-w-6xl mx-auto">
-      <div className="bg-white rounded-lg shadow-lg p-6">
-        <h1 className="text-2xl font-bold mb-6 text-center text-blue-600">
-          🔍 设备UI状态分析器
-        </h1>
+    <div style={{ padding: '24px', maxWidth: '1200px', margin: '0 auto' }}>
+      <Card>
+        <Title level={2} style={{ textAlign: 'center', marginBottom: 24 }}>
+          <BugOutlined style={{ marginRight: 8 }} />
+          设备UI状态分析器
+        </Title>
 
         {/* 控制面板 */}
-        <div className="bg-blue-50 rounded-lg p-4 mb-6">
-          <div className="flex flex-wrap gap-4 items-center">
-            <div className="flex items-center gap-2">
-              <label className="font-medium">设备ID:</label>
-              <input
-                type="text"
+        <Card 
+          size="small" 
+          title={<><MobileOutlined style={{ marginRight: 8 }} />控制面板</>}
+          style={{ marginBottom: 16 }}
+        >
+          <Space wrap>
+            <Space>
+              <Text strong>设备ID:</Text>
+              <Input
                 value={deviceId}
                 onChange={(e) => setDeviceId(e.target.value)}
-                className="border border-gray-300 rounded px-3 py-1 w-40"
                 placeholder="emulator-5554"
+                style={{ width: 160 }}
               />
-            </div>
+            </Space>
             
-            <button
+            <Button
+              type="primary"
+              icon={<SearchOutlined />}
               onClick={readUIState}
-              disabled={loading}
-              className="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600 disabled:bg-gray-400"
+              loading={loading}
             >
-              {loading ? '🔄 读取中...' : '📱 读取UI状态'}
-            </button>
+              {loading ? '读取中...' : '读取UI状态'}
+            </Button>
 
-            <div className="flex items-center gap-2">
-              <input
-                type="checkbox"
-                id="autoRefresh"
-                checked={autoRefresh}
-                onChange={(e) => setAutoRefresh(e.target.checked)}
-                className="w-4 h-4"
-              />
-              <label htmlFor="autoRefresh" className="font-medium">自动刷新 (3秒)</label>
-            </div>
-          </div>
+            <Checkbox 
+              checked={autoRefresh}
+              onChange={(e) => setAutoRefresh(e.target.checked)}
+            >
+              自动刷新 (3秒)
+            </Checkbox>
+          </Space>
 
           {/* 快速查找工具 */}
-          <div className="mt-4 flex flex-wrap gap-2">
-            <button
-              onClick={() => findElements('clickable', 'true')}
-              className="bg-green-500 text-white px-3 py-1 rounded text-sm hover:bg-green-600"
-            >
-              查找可点击元素
-            </button>
-            <button
-              onClick={() => findElements('text', 'vcf')}
-              className="bg-purple-500 text-white px-3 py-1 rounded text-sm hover:bg-purple-600"
-            >
-              查找VCF相关元素
-            </button>
-            <button
-              onClick={() => findElements('text', '联系人')}
-              className="bg-orange-500 text-white px-3 py-1 rounded text-sm hover:bg-orange-600"
-            >
-              查找联系人相关元素
-            </button>
+          <div style={{ marginTop: 16 }}>
+            <Text strong style={{ marginRight: 16 }}>快速查找:</Text>
+            <Space wrap>
+              <Button
+                size="small"
+                type="default"
+                onClick={() => findElements('clickable', 'true')}
+              >
+                可点击元素
+              </Button>
+              <Button
+                size="small"
+                type="default"
+                onClick={() => findElements('text', 'vcf')}
+              >
+                VCF相关
+              </Button>
+              <Button
+                size="small"
+                type="default"
+                onClick={() => findElements('text', '联系人')}
+              >
+                联系人相关
+              </Button>
+            </Space>
           </div>
-        </div>
+        </Card>
 
         {/* 错误显示 */}
         {error && (
-          <div className="bg-red-50 border border-red-200 rounded-lg p-4 mb-6">
-            <h3 className="text-red-600 font-medium mb-2">❌ 错误信息</h3>
-            <p className="text-red-700 text-sm font-mono">{error}</p>
-          </div>
+          <Alert
+            message="错误信息"
+            description={error}
+            type="error"
+            showIcon
+            style={{ marginBottom: 16 }}
+          />
         )}
 
         {/* UI状态显示 */}
         {uiState && (
-          <div className="space-y-6">
+          <Space direction="vertical" style={{ width: '100%' }} size="middle">
             {/* 状态概览 */}
-            <div className="bg-green-50 border border-green-200 rounded-lg p-4">
-              <h3 className="text-green-600 font-medium mb-3">📊 状态概览</h3>
-              <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm">
-                <div>
-                  <strong>设备ID:</strong>
-                  <div className="font-mono">{uiState.device_id}</div>
-                </div>
-                <div>
-                  <strong>读取时间:</strong>
-                  <div className="font-mono">{uiState.timestamp}</div>
-                </div>
-                <div>
-                  <strong>页面类型:</strong>
-                  <div className="font-mono text-blue-600">{uiState.page_type}</div>
-                </div>
-                <div>
-                  <strong>建议操作:</strong>
-                  <div className="font-mono text-purple-600">{uiState.suggested_action}</div>
-                </div>
-              </div>
-            </div>
+            <Card 
+              size="small" 
+              title="📊 状态概览" 
+              type="inner"
+            >
+              <Row gutter={16}>
+                <Col span={6}>
+                  <Badge status="processing" text="设备ID" />
+                  <br />
+                  <Text code>{uiState.device_id}</Text>
+                </Col>
+                <Col span={6}>
+                  <Badge status="default" text="读取时间" />
+                  <br />
+                  <Text code>
+                    <ClockCircleOutlined style={{ marginRight: 4 }} />
+                    {uiState.timestamp}
+                  </Text>
+                </Col>
+                <Col span={6}>
+                  <Badge status="success" text="页面类型" />
+                  <br />
+                  <Tag color="blue">{uiState.page_type}</Tag>
+                </Col>
+                <Col span={6}>
+                  <Badge status="warning" text="建议操作" />
+                  <br />
+                  <Tag color="purple">{uiState.suggested_action}</Tag>
+                </Col>
+              </Row>
+            </Card>
 
-            {/* 可点击元素 */}
-            <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4">
-              <h3 className="text-yellow-600 font-medium mb-3">
-                👆 可点击元素 ({uiState.elements.filter(e => e.clickable).length} 个)
-              </h3>
-              <div className="max-h-60 overflow-y-auto space-y-2">
-                {uiState.elements
-                  .filter(e => e.clickable)
-                  .slice(0, 10) // 只显示前10个
-                  .map((element, index) => formatElement(element, index))}
-              </div>
-              {uiState.elements.filter(e => e.clickable).length > 10 && (
-                <p className="text-sm text-gray-500 mt-2">... 还有更多元素，总共 {uiState.elements.filter(e => e.clickable).length} 个</p>
-              )}
-            </div>
+            {/* 分类显示 */}
+            <Collapse>
+              <Panel 
+                header={`👆 可点击元素 (${clickableElements.length} 个)`} 
+                key="clickable"
+              >
+                <div style={{ maxHeight: 400, overflowY: 'auto' }}>
+                  {clickableElements.slice(0, 10).map((element, index) => (
+                    <div key={index}>
+                      {renderElement(element)}
+                    </div>
+                  ))}
+                  {clickableElements.length > 10 && (
+                    <Text type="secondary">
+                      ... 还有 {clickableElements.length - 10} 个元素
+                    </Text>
+                  )}
+                </div>
+              </Panel>
 
-            {/* 有文本的元素 */}
-            <div className="bg-purple-50 border border-purple-200 rounded-lg p-4">
-              <h3 className="text-purple-600 font-medium mb-3">
-                📝 文本元素 ({uiState.elements.filter(e => e.text.trim().length > 0).length} 个)
-              </h3>
-              <div className="max-h-60 overflow-y-auto space-y-2">
-                {uiState.elements
-                  .filter(e => e.text.trim().length > 0)
-                  .slice(0, 10)
-                  .map((element, index) => formatElement(element, index))}
-              </div>
-            </div>
+              <Panel 
+                header={`📝 文本元素 (${textElements.length} 个)`} 
+                key="text"
+              >
+                <div style={{ maxHeight: 400, overflowY: 'auto' }}>
+                  {textElements.slice(0, 10).map((element, index) => (
+                    <div key={index}>
+                      {renderElement(element)}
+                    </div>
+                  ))}
+                </div>
+              </Panel>
 
-            {/* XML源码 */}
-            <div className="bg-gray-50 border border-gray-200 rounded-lg p-4">
-              <h3 className="text-gray-600 font-medium mb-3">
-                🔧 XML源码 ({uiState.xml_content.length} 字符)
-              </h3>
-              <textarea
-                value={uiState.xml_content}
-                readOnly
-                className="w-full h-40 p-3 border border-gray-300 rounded font-mono text-xs bg-white"
-                placeholder="XML内容将显示在这里..."
-              />
-            </div>
-          </div>
+              <Panel 
+                header={`🔧 XML源码 (${uiState.xml_content.length} 字符)`} 
+                key="xml"
+              >
+                <TextArea
+                  value={uiState.xml_content}
+                  readOnly
+                  rows={10}
+                  style={{ fontFamily: 'monospace', fontSize: '12px' }}
+                />
+              </Panel>
+            </Collapse>
+          </Space>
         )}
 
         {/* 使用说明 */}
-        <div className="mt-8 bg-blue-50 border border-blue-200 rounded-lg p-4">
-          <h3 className="text-blue-600 font-medium mb-2">💡 使用说明</h3>
-          <ul className="text-sm text-blue-700 space-y-1">
-            <li>• 确保设备已连接并可通过ADB访问</li>
-            <li>• 点击"读取UI状态"可获取当前屏幕的所有UI元素</li>
-            <li>• 页面类型会自动识别当前应用界面</li>
-            <li>• 建议操作会根据当前状态推荐下一步操作</li>
-            <li>• 可以开启自动刷新实时监控UI变化</li>
-          </ul>
-        </div>
-      </div>
+        <Card 
+          size="small" 
+          title="💡 使用说明" 
+          type="inner" 
+          style={{ marginTop: 16 }}
+        >
+          <List
+            size="small"
+            dataSource={[
+              '确保设备已连接并可通过ADB访问',
+              '点击"读取UI状态"可获取当前屏幕的所有UI元素',
+              '页面类型会自动识别当前应用界面',
+              '建议操作会根据当前状态推荐下一步操作',
+              '可以开启自动刷新实时监控UI变化'
+            ]}
+            renderItem={(item) => (
+              <List.Item>
+                <Text>• {item}</Text>
+              </List.Item>
+            )}
+          />
+        </Card>
+      </Card>
     </div>
   );
 };

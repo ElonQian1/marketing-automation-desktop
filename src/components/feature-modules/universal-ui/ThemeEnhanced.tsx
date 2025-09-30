@@ -13,14 +13,14 @@ import {
   ArrowUpOutlined,
   ArrowDownOutlined,
 } from '@ant-design/icons';
-import { useThemeState } from '../theme-system';
+import { useThemeManager } from '../theme-system';
 
 const { Title, Text, Paragraph } = Typography;
 
 /**
  * 主题感知的统计卡片
  */
-interface ThemeAwareStatCardProps {
+export interface ThemeAwareStatCardProps {
   title: string;
   value: number | string;
   prefix?: React.ReactNode;
@@ -41,7 +41,8 @@ export const ThemeAwareStatCard: React.FC<ThemeAwareStatCardProps> = ({
   color = 'primary',
   loading = false,
 }) => {
-  const { isDark } = useThemeState();
+  const themeManager = useThemeManager();
+  const isDark = themeManager.mode === 'dark';
 
   const getColorValue = (colorType: string) => {
     const colorMap = {
@@ -122,7 +123,7 @@ export const ThemeAwareStatCard: React.FC<ThemeAwareStatCardProps> = ({
 /**
  * 主题感知的进度卡片
  */
-interface ThemeAwareProgressCardProps {
+export interface ThemeAwareProgressCardProps {
   title: string;
   items: Array<{
     label: string;
@@ -137,7 +138,8 @@ export const ThemeAwareProgressCard: React.FC<ThemeAwareProgressCardProps> = ({
   items,
   showPercentText = true,
 }) => {
-  const { isDark } = useThemeState();
+  const themeManager = useThemeManager();
+  const isDark = themeManager.mode === 'dark';
 
   const cardStyle: React.CSSProperties = {
     backgroundColor: 'var(--colorBgContainer)',
@@ -189,7 +191,7 @@ export const ThemeAwareProgressCard: React.FC<ThemeAwareProgressCardProps> = ({
 /**
  * 主题感知的用户信息卡片
  */
-interface ThemeAwareUserCardProps {
+export interface ThemeAwareUserCardProps {
   name: string;
   avatar?: string;
   description?: string;
@@ -207,7 +209,8 @@ export const ThemeAwareUserCard: React.FC<ThemeAwareUserCardProps> = ({
   stats = [],
   actions,
 }) => {
-  const { isDark } = useThemeState();
+  const themeManager = useThemeManager();
+  const isDark = themeManager.mode === 'dark';
 
   const cardStyle: React.CSSProperties = {
     backgroundColor: 'var(--colorBgContainer)',
@@ -273,7 +276,7 @@ export const ThemeAwareUserCard: React.FC<ThemeAwareUserCardProps> = ({
 /**
  * 主题感知的功能卡片
  */
-interface ThemeAwareFeatureCardProps {
+export interface ThemeAwareFeatureCardProps {
   title: string;
   description?: string;
   icon?: React.ReactNode;
@@ -292,7 +295,8 @@ export const ThemeAwareFeatureCard: React.FC<ThemeAwareFeatureCardProps> = ({
   onClick,
   actions,
 }) => {
-  const { isDark } = useThemeState();
+  const themeManager = useThemeManager();
+  const isDark = themeManager.mode === 'dark';
 
   const getStatusColor = () => {
     switch (status) {
@@ -378,7 +382,7 @@ export const ThemeAwareFeatureCard: React.FC<ThemeAwareFeatureCardProps> = ({
 /**
  * 主题感知的空状态组件
  */
-interface ThemeAwareEmptyProps {
+export interface ThemeAwareEmptyProps {
   description?: string;
   action?: React.ReactNode;
   image?: React.ReactNode;
@@ -389,7 +393,8 @@ export const ThemeAwareEmpty: React.FC<ThemeAwareEmptyProps> = ({
   action,
   image,
 }) => {
-  const { isDark } = useThemeState();
+  const themeManager = useThemeManager();
+  const isDark = themeManager.mode === 'dark';
 
   return (
     <div style={{ 

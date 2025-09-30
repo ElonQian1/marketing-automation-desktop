@@ -1,5 +1,20 @@
-import React, { useState, useEffect } from 'react';
+import React, { useEffect } from 'react';
+import { 
+  Form, 
+  Input, 
+  InputNumber, 
+  Select, 
+  DatePicker, 
+  Button, 
+  Card,
+  Row,
+  Col,
+  Space 
+} from 'antd';
+import dayjs from 'dayjs';
 import type { EmployeeData, EmployeeFormData } from '../types';
+
+const { Option } = Select;
 
 interface EmployeeFormProps {
   employee?: EmployeeData | null;
@@ -9,8 +24,8 @@ interface EmployeeFormProps {
 }
 
 /**
- * 员工表单组件
- * 可复用的表单组件，支持新增和编辑模式
+ * 员工表单组件 - 原生 Ant Design 实现
+ * 使用 Ant Design Form 组件提供完整的表单功能
  */
 export const EmployeeForm: React.FC<EmployeeFormProps> = ({
   employee,
@@ -18,190 +33,183 @@ export const EmployeeForm: React.FC<EmployeeFormProps> = ({
   onCancel,
   isLoading = false
 }) => {
-  const [formData, setFormData] = useState<EmployeeFormData>({
-    name: '',
-    email: '',
-    department: '',
-    phone: '',
-    position: '',
-    salary: 0,
-    hire_date: new Date().toISOString().split('T')[0]
-  });
+  const [form] = Form.useForm();
+  const isEditing = !!employee;
 
   // 当employee prop变化时，更新表单数据
   useEffect(() => {
     if (employee) {
-      setFormData({
+      form.setFieldsValue({
         name: employee.name,
         email: employee.email,
         department: employee.department,
         phone: employee.phone || '',
         position: employee.position || '',
         salary: employee.salary || 0,
-        hire_date: employee.hire_date || new Date().toISOString().split('T')[0]
+        hire_date: employee.hire_date ? dayjs(employee.hire_date) : dayjs(),
       });
     } else {
-      setFormData({
-        name: '',
-        email: '',
-        department: '',
-        phone: '',
-        position: '',
-        salary: 0,
-        hire_date: new Date().toISOString().split('T')[0]
+      form.resetFields();
+      form.setFieldsValue({
+        hire_date: dayjs(),
       });
     }
-  }, [employee]);
+  }, [employee, form]);
 
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    if (isLoading) return;
+  const handleSubmit = (values: any) => {
+    const formData: EmployeeFormData = {
+      name: values.name,
+      email: values.email,
+      department: values.department,
+      phone: values.phone || '',
+      position: values.position || '',
+      salary: values.salary || 0,
+      hire_date: values.hire_date?.format('YYYY-MM-DD') || dayjs().format('YYYY-MM-DD'),
+    };
     onSubmit(formData);
   };
 
-  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
-    const { name, value } = e.target;
-    setFormData(prev => ({
-      ...prev,
-      [name]: name === 'salary' ? parseFloat(value) || 0 : value
-    }));
-  };
-
-  const isEditing = !!employee;
-
   return (
-    <div className="bg-white p-6 rounded-lg shadow">
-      <h2 className="text-lg font-medium text-gray-900 mb-6">
-        {isEditing ? '编辑员工' : '添加员工'}
-      </h2>
-      
-      <form onSubmit={handleSubmit} className="space-y-6">
-        <div className="grid grid-cols-1 gap-6 sm:grid-cols-2">
-          <div>
-            <label htmlFor="name" className="block text-sm font-medium text-gray-700">
-              姓名 *
-            </label>
-            <input
-              type="text"
+    <Card 
+      title={isEditing ? '编辑员工' : '添加员工'}
+      style={{ width: '100%' }}
+    >
+      <Form
+        form={form}
+        layout="vertical"
+        onFinish={handleSubmit}
+        autoComplete="off"
+        disabled={isLoading}
+        initialValues={{
+          hire_date: dayjs(),
+        }}
+      >
+        <Row gutter={16}>
+          <Col span={12}>
+            <Form.Item
+              label="姓名"
               name="name"
-              id="name"
-              required
-              value={formData.name}
-              onChange={handleInputChange}
-              className="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
-              disabled={isLoading}
-            />
-          </div>
-
-          <div>
-            <label htmlFor="email" className="block text-sm font-medium text-gray-700">
-              邮箱 *
-            </label>
-            <input
-              type="email"
-              name="email"
-              id="email"
-              required
-              value={formData.email}
-              onChange={handleInputChange}
-              className="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
-              disabled={isLoading}
-            />
-          </div>
-
-          <div>
-            <label htmlFor="department" className="block text-sm font-medium text-gray-700">
-              部门 *
-            </label>
-            <select
-              name="department"
-              id="department"
-              required
-              value={formData.department}
-              onChange={handleInputChange}
-              className="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
-              disabled={isLoading}
+              rules={[
+                { required: true, message: '请输入员工姓名' },
+                { min: 2, message: '姓名至少2个字符' },
+              ]}
             >
-              <option value="">请选择部门</option>
-              <option value="技术部">技术部</option>
-              <option value="产品部">产品部</option>
-              <option value="市场部">市场部</option>
-              <option value="销售部">销售部</option>
-              <option value="人事部">人事部</option>
-              <option value="财务部">财务部</option>
-            </select>
-          </div>
+              <Input placeholder="请输入员工姓名" />
+            </Form.Item>
+          </Col>
+          
+          <Col span={12}>
+            <Form.Item
+              label="邮箱"
+              name="email"
+              rules={[
+                { required: true, message: '请输入邮箱地址' },
+                { type: 'email', message: '请输入有效的邮箱地址' },
+              ]}
+            >
+              <Input placeholder="请输入邮箱地址" />
+            </Form.Item>
+          </Col>
+        </Row>
 
-          <div>
-            <label htmlFor="position" className="block text-sm font-medium text-gray-700">
-              职位 *
-            </label>
-            <input
-              type="text"
+        <Row gutter={16}>
+          <Col span={12}>
+            <Form.Item
+              label="部门"
+              name="department"
+              rules={[{ required: true, message: '请选择部门' }]}
+            >
+              <Select placeholder="请选择部门">
+                <Option value="技术部">技术部</Option>
+                <Option value="产品部">产品部</Option>
+                <Option value="市场部">市场部</Option>
+                <Option value="销售部">销售部</Option>
+                <Option value="人事部">人事部</Option>
+                <Option value="财务部">财务部</Option>
+              </Select>
+            </Form.Item>
+          </Col>
+          
+          <Col span={12}>
+            <Form.Item
+              label="职位"
               name="position"
-              id="position"
-              required
-              value={formData.position}
-              onChange={handleInputChange}
-              className="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
-              disabled={isLoading}
-            />
-          </div>
+              rules={[{ required: true, message: '请输入职位' }]}
+            >
+              <Input placeholder="请输入职位" />
+            </Form.Item>
+          </Col>
+        </Row>
 
-          <div>
-            <label htmlFor="salary" className="block text-sm font-medium text-gray-700">
-              薪资 *
-            </label>
-            <input
-              type="number"
+        <Row gutter={16}>
+          <Col span={12}>
+            <Form.Item
+              label="薪资"
               name="salary"
-              id="salary"
-              required
-              min="0"
-              step="0.01"
-              value={formData.salary}
-              onChange={handleInputChange}
-              className="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
-              disabled={isLoading}
-            />
-          </div>
-
-          <div>
-            <label htmlFor="hire_date" className="block text-sm font-medium text-gray-700">
-              入职日期 *
-            </label>
-            <input
-              type="date"
+              rules={[
+                { required: true, message: '请输入薪资' },
+                { type: 'number', min: 0, message: '薪资不能为负数' },
+              ]}
+            >
+              <InputNumber
+                placeholder="请输入薪资"
+                style={{ width: '100%' }}
+                formatter={(value) => `¥ ${value}`.replace(/\B(?=(\d{3})+(?!\d))/g, ',')}
+                parser={(value) => {
+                  const parsed = value!.replace(/¥\s?|(,*)/g, '');
+                  return parsed as any;
+                }}
+                precision={2}
+                min={0}
+              />
+            </Form.Item>
+          </Col>
+          
+          <Col span={12}>
+            <Form.Item
+              label="入职日期"
               name="hire_date"
-              id="hire_date"
-              required
-              value={formData.hire_date}
-              onChange={handleInputChange}
-              className="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
-              disabled={isLoading}
-            />
-          </div>
-        </div>
+              rules={[{ required: true, message: '请选择入职日期' }]}
+            >
+              <DatePicker 
+                style={{ width: '100%' }}
+                placeholder="请选择入职日期"
+                format="YYYY-MM-DD"
+              />
+            </Form.Item>
+          </Col>
+        </Row>
 
-        <div className="flex justify-end space-x-3">
-          <button
-            type="button"
-            onClick={onCancel}
-            className="bg-white py-2 px-4 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
-            disabled={isLoading}
-          >
-            取消
-          </button>
-          <button
-            type="submit"
-            className="ml-3 inline-flex justify-center py-2 px-4 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 disabled:opacity-50"
-            disabled={isLoading}
-          >
-            {isLoading ? '保存中...' : (isEditing ? '更新' : '添加')}
-          </button>
-        </div>
-      </form>
-    </div>
+        <Row gutter={16}>
+          <Col span={24}>
+            <Form.Item
+              label="手机号码"
+              name="phone"
+              rules={[
+                { pattern: /^1[3-9]\d{9}$/, message: '请输入有效的手机号码' },
+              ]}
+            >
+              <Input placeholder="请输入手机号码（可选）" />
+            </Form.Item>
+          </Col>
+        </Row>
+
+        <Form.Item>
+          <Space>
+            <Button onClick={onCancel}>
+              取消
+            </Button>
+            <Button 
+              type="primary" 
+              htmlType="submit" 
+              loading={isLoading}
+            >
+              {isEditing ? '更新' : '添加'}
+            </Button>
+          </Space>
+        </Form.Item>
+      </Form>
+    </Card>
   );
 };
 

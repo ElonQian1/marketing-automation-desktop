@@ -306,6 +306,8 @@ export const ThemeConfigPanel: React.FC<ThemeConfigPanelProps> = ({
 
                 {/* 动画配置 */}
                 <Card size="small" title="动画配置">
+                  {/** 为了类型安全，局部断言一次 */}
+                  {(() => { const lc = localConfig as LocalThemeConfig; return null; })()}
                   <Row gutter={[16, 16]} align="middle">
                     <Col span={8}>
                       <Text>启用动画：</Text>
@@ -313,9 +315,12 @@ export const ThemeConfigPanel: React.FC<ThemeConfigPanelProps> = ({
                     <Col span={16}>
                       <Switch
                         checked={(localConfig as LocalThemeConfig).animation?.enabled}
-                        onChange={(checked) => updateLocalConfig({
-                          animation: { ...((localConfig as LocalThemeConfig).animation || {}), enabled: checked }
-                        })}
+                        onChange={(checked) => {
+                          const lc = localConfig as LocalThemeConfig;
+                          updateLocalConfig({
+                            animation: { ...(lc.animation || {}), enabled: checked },
+                          });
+                        }}
                       />
                     </Col>
 
@@ -327,9 +332,12 @@ export const ThemeConfigPanel: React.FC<ThemeConfigPanelProps> = ({
                         min={100}
                         max={1000}
                         value={(localConfig as LocalThemeConfig).animation?.duration || 200}
-                        onChange={(value) => updateLocalConfig({
-                          animation: { ...((localConfig as LocalThemeConfig).animation || {}), duration: value as number }
-                        })}
+                        onChange={(value) => {
+                          const lc = localConfig as LocalThemeConfig;
+                          updateLocalConfig({
+                            animation: { ...(lc.animation || {}), duration: value as number },
+                          });
+                        }}
                         marks={{ 100: '100ms', 200: '200ms', 500: '500ms', 1000: '1000ms' }}
                         disabled={!((localConfig as LocalThemeConfig).animation?.enabled)}
                       />

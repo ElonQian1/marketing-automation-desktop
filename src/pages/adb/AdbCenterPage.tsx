@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Card, Tabs, Row, Col, Typography, Alert, Space } from 'antd';
+import { Card, Tabs, Row, Col, Typography, Alert, Space, theme } from 'antd';
 import { MobileOutlined } from '@ant-design/icons';
 import { useAdb } from '../../application/hooks/useAdb';
 import RealTimeDeviceMonitorPage from '../device-monitor/RealTimeDeviceMonitorPage';
@@ -14,6 +14,7 @@ const { Title, Paragraph } = Typography;
 export const AdbCenterPage: React.FC = () => {
   const [activeTab, setActiveTab] = useState('monitor');
   const { devices, isLoading } = useAdb();
+  const { token } = theme.useToken();
 
   const items = [
     {
@@ -48,7 +49,7 @@ export const AdbCenterPage: React.FC = () => {
   ];
 
   return (
-    <div style={{ padding: 24 }}>
+    <div style={{ padding: token.paddingLG }}>
       <Row gutter={[16, 16]}>
         <Col span={24}>
           <Card extra={<HeaderToolbar /> }>
@@ -62,7 +63,7 @@ export const AdbCenterPage: React.FC = () => {
                 message={`当前有 ${devices.filter(d => d.isOnline()).length} 台设备在线`}
                 description={`设备总数: ${devices.length}，状态：${isLoading ? '加载中' : '就绪'}`}
                 showIcon
-                style={{ marginTop: 12 }}
+                style={{ marginTop: token.marginSM }}
               />
             )}
           </Card>

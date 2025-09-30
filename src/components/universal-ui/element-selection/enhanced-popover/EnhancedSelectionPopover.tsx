@@ -61,7 +61,22 @@ export const EnhancedSelectionPopover: React.FC<EnhancedSelectionPopoverProps> =
 
   // 当选择变化时，计算替代元素
   useEffect(() => {
-    if (!selection || !showAlternatives || !selection.allElements) {
+    console.log('🔄 EnhancedSelectionPopover useEffect 触发:', {
+      hasSelection: !!selection,
+      showAlternatives,
+      allElementsLength: selection?.allElements?.length
+    });
+    
+    if (!selection || !showAlternatives) {
+      console.log('🚫 跳过替代元素计算:', { hasSelection: !!selection, showAlternatives });
+      setAlternatives([]);
+      return;
+    }
+
+    if (!selection.allElements || selection.allElements.length === 0) {
+      console.log('❌ 缺少 allElements 数据，无法分析层次结构');
+      console.log('   - allElements 是否存在:', !!selection.allElements);
+      console.log('   - allElements 长度:', selection.allElements?.length);
       setAlternatives([]);
       return;
     }
@@ -70,10 +85,19 @@ export const EnhancedSelectionPopover: React.FC<EnhancedSelectionPopoverProps> =
       setLoading(true);
       try {
         console.log('🔍 开始计算替代元素...');
+        console.log('📊 传入元素总数:', selection.allElements?.length);
+        console.log('🎯 目标元素:', selection.element.id, selection.element.text);
         
         // 构建层次结构
         const hierarchy = ElementHierarchyAnalyzer.analyzeHierarchy(selection.allElements!);
         const targetNode = hierarchy.nodeMap.get(selection.element.id);
+        
+        console.log('🏗️ 层次结构构建完成:', {
+          总节点数: hierarchy.nodeMap.size,
+          最大深度: hierarchy.maxDepth,
+          叶子节点数: hierarchy.leafNodes.length,
+          目标节点存在: !!targetNode
+        });
         
         if (targetNode) {
           // 查找替代元素
@@ -88,7 +112,14 @@ export const EnhancedSelectionPopover: React.FC<EnhancedSelectionPopoverProps> =
           );
           
           console.log('✅ 找到替代元素:', foundAlternatives.length);
+          foundAlternatives.forEach((alt, index) => {
+            console.log(`  ${index + 1}. ${alt.relationship} - ${alt.node.element.text || alt.node.element.element_type} (质量: ${alt.qualityScore.toFixed(2)})`);
+          });
+          
           setAlternatives(foundAlternatives);
+        } else {
+          console.log('❌ 目标节点未找到，无法生成替代元素');
+          setAlternatives([]);
         }
       } catch (error) {
         console.error('❌ 计算替代元素失败:', error);

@@ -167,7 +167,6 @@ export const StepCard: React.FC<StepCardProps> = ({
     {
       key: 'delete',
       label: '删除步骤',
-      icon: <DeleteOutlined />,
       danger: true,
       onClick: () => onDelete?.(step.id),
     },
@@ -263,8 +262,8 @@ export const StepCard: React.FC<StepCardProps> = ({
       onDragStart={(e) => onDragStart?.(e, step, index)}
       onDragEnd={onDragEnd}
       onMouseEnter={() => setIsHovered(true)}
-      onMouseLeave={() => setIsHovered(false)}
-  onClick={() => onStepClick?.(step)}
+    onMouseLeave={() => setIsHovered(false)}
+    onClick={() => onStepClick?.(step)}
     >
       {/* 执行进度条 */}
       {isExecuting && executionProgress !== undefined && (

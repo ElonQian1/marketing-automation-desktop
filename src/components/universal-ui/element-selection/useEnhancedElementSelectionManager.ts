@@ -83,16 +83,24 @@ export const useEnhancedElementSelectionManager = (
     }
 
     console.log('🎯 元素点击 (增强版):', element.id, element.text, '坐标:', clickPosition);
+    console.log('📊 所有元素数量:', allElements.length);
+    console.log('🔄 清除旧选择状态'); // 🆕 添加清除日志
     
-    // 设置增强的选择状态
-    const enhancedSelection: EnhancedElementSelectionState = {
-      element,
-      position: clickPosition,
-      confirmed: false,
-      allElements: enableAlternatives ? allElements : undefined
-    };
+    // 🆕 先清除旧的选择状态，确保气泡能刷新
+    setPendingSelection(null);
     
-    setPendingSelection(enhancedSelection);
+    // 短暂延迟后设置新的选择状态，确保 React 能检测到变化
+    setTimeout(() => {
+      console.log('✨ 设置新的选择状态');
+      const enhancedSelection: EnhancedElementSelectionState = {
+        element,
+        position: clickPosition,
+        confirmed: false,
+        allElements: enableAlternatives ? allElements : undefined
+      };
+      
+      setPendingSelection(enhancedSelection);
+    }, 10); // 10ms 延迟确保状态刷新
   }, [isElementHidden, enableAlternatives, allElements]);
 
   // 处理元素悬停

@@ -1,7 +1,5 @@
-// 可拖拽的步骤列表容器
-
 import React, { useMemo } from 'react';
-import { Card, Typography, Button } from 'antd';
+import { Card, Typography, Button, Space } from 'antd';
 import { ActionsToolbar } from './universal-ui/script-builder/components/ActionsToolbar/ActionsToolbar';
 import { closestCenter, DragOverlay, useDndMonitor, type DragEndEvent } from '@dnd-kit/core';
 import { InteractivePointerSensor } from './universal-ui/dnd';
@@ -15,7 +13,7 @@ import { SortableItem } from './universal-ui/dnd/SortableItem';
 import { DragOverlayGhost } from './universal-ui/dnd/DragOverlayGhost';
 import { DnDUIConfigProvider, useDnDUIConfig, DnDUIConfigPersistence } from './universal-ui/dnd/DnDUIConfigContext';
 
-const { Title } = Typography;
+const { Title, Text } = Typography;
 
 export interface DraggableStepsContainerProps {
   /** 步骤列表 */
@@ -109,15 +107,15 @@ export const DraggableStepsContainer: React.FC<DraggableStepsContainerProps> = (
       <DnDUIConfigProvider>
         <DnDUIConfigPersistence />
         <Card title={title}>
-          <div className="text-center p-8">
-            <div className="mt-4 text-gray-500">
+          <div style={{ textAlign: 'center', padding: 32 }}>
+            <div style={{ marginTop: 16, color: '#999' }}>
               还没有添加智能步骤，点击上方按钮开始构建智能脚本
             </div>
           </div>
           
           {/* 智能页面分析器快捷按钮 - 无步骤时也显示 */}
           {onOpenPageAnalyzer && (
-            <div className="mt-4">
+            <div style={{ marginTop: 16 }}>
               <ActionsToolbar
                 onOpenPageAnalyzer={onOpenPageAnalyzer}
                 onCreateLoop={onCreateLoop}
@@ -152,16 +150,16 @@ export const DraggableStepsContainer: React.FC<DraggableStepsContainerProps> = (
   <DnDUIConfigProvider>
   <DnDUIConfigPersistence />
     <Card title={
-      <div className="flex items-center space-x-2">
+      <Space>
         <span>{title}</span>
-        <span className="text-sm text-gray-500">({steps.length} 个步骤)</span>
-      </div>
+        <Text type="secondary">({steps.length} 个步骤)</Text>
+      </Space>
     }>
       <DragSensorsProvider activationDistance={6} collisionDetection={closestCenter} onDragEnd={handleDragEnd}>
         {/* 拖拽监听器：必须在 DndContext 内部 */}
         <DragMonitor onActiveIdChange={setActiveId} />
         <SortableList items={stepIds}>
-          <div className="space-y-3">
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
             {steps.map((step, index) => (
               <SortableItem key={step.id} id={step.id}>
                 <SmartStepCardWrapper

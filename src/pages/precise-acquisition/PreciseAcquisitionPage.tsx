@@ -1,10 +1,15 @@
 import React, { useState } from 'react';
+import { Layout, Typography, Space, Alert, Button } from 'antd';
+import { WarningOutlined, ReloadOutlined } from '@ant-design/icons';
 import { PreciseAcquisitionForm } from '../../components/task';
 import { useAdb } from '../../application/hooks/useAdb';
 import { Platform } from '../../types';
 
+const { Content } = Layout;
+const { Title, Paragraph } = Typography;
+
 /**
- * 精准获客页面
+ * 精准获客页面 - 原生Ant Design版本
  * 专注于精准获客功能
  */
 export const PreciseAcquisitionPage: React.FC = () => {
@@ -53,51 +58,63 @@ export const PreciseAcquisitionPage: React.FC = () => {
 
   if (onlineDevices.length === 0) {
     return (
-      <div className="space-y-6">
-        <h1 className="text-2xl font-bold text-gray-900">精准获客</h1>
-        <div className="bg-yellow-50 border border-yellow-200 rounded-md p-6 text-center">
-          <div className="text-yellow-400 text-4xl mb-4">⚠️</div>
-          <h3 className="text-lg font-medium text-yellow-800 mb-2">
-            暂无可用设备
-          </h3>
-          <p className="text-yellow-700">
-            请先到设备管理页面连接设备后再执行获客操作。
-          </p>
-          <button
-            onClick={refreshDevices}
-            className="mt-4 px-4 py-2 bg-yellow-600 text-white rounded hover:bg-yellow-700"
-          >
-            刷新设备列表
-          </button>
-        </div>
-      </div>
+      <Layout>
+        <Content style={{ padding: 24 }}>
+          <Space direction="vertical" style={{ width: '100%' }} size="large">
+            <div>
+              <Title level={2}>精准获客</Title>
+            </div>
+            
+            <Alert
+              message="暂无可用设备"
+              description="请先到设备管理页面连接设备后再执行获客操作。"
+              type="warning"
+              showIcon
+              icon={<WarningOutlined />}
+              action={
+                <Button
+                  icon={<ReloadOutlined />}
+                  onClick={refreshDevices}
+                  type="primary"
+                >
+                  刷新设备列表
+                </Button>
+              }
+            />
+          </Space>
+        </Content>
+      </Layout>
     );
   }
 
   return (
-    <div className="space-y-6">
-      {/* 页面标题 */}
-      <div>
-        <h1 className="text-2xl font-bold text-gray-900">精准获客</h1>
-        <p className="mt-2 text-sm text-gray-700">
-          基于关键词和竞对分析的精准用户获取平台
-        </p>
-      </div>
+    <Layout>
+      <Content style={{ padding: 24 }}>
+        <Space direction="vertical" style={{ width: '100%' }} size="large">
+          {/* 页面标题 */}
+          <div>
+            <Title level={2}>精准获客</Title>
+            <Paragraph type="secondary">
+              基于关键词和竞对分析的精准用户获取平台
+            </Paragraph>
+          </div>
 
-      {/* 精准获客表单 */}
-      <div className="min-h-screen">
-        <PreciseAcquisitionForm
-          platform={platform}
-          onPlatformChange={setPlatform}
-          balance={balance}
-          onSubmit={handleAcquisitionSubmit}
-          availableDevices={availableDevices}
-          selectedDevices={selectedDevices}
-          onDeviceSelectionChange={setSelectedDevices}
-          isLoading={isLoading}
-        />
-      </div>
-    </div>
+          {/* 精准获客表单 */}
+          <div style={{ minHeight: '70vh' }}>
+            <PreciseAcquisitionForm
+              platform={platform}
+              onPlatformChange={setPlatform}
+              balance={balance}
+              onSubmit={handleAcquisitionSubmit}
+              availableDevices={availableDevices}
+              selectedDevices={selectedDevices}
+              onDeviceSelectionChange={setSelectedDevices}
+              isLoading={isLoading}
+            />
+          </div>
+        </Space>
+      </Content>
+    </Layout>
   );
 };
 

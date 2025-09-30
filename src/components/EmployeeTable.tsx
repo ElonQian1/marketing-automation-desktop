@@ -1,5 +1,10 @@
 import React from 'react';
+import { Table, Button, Space, Tag, Typography } from 'antd';
+import { EditOutlined, DeleteOutlined } from '@ant-design/icons';
+import type { ColumnsType } from 'antd/es/table';
 import type { EmployeeData } from '../types';
+
+const { Text } = Typography;
 
 interface EmployeeTableProps {
   employees: EmployeeData[];
@@ -10,7 +15,7 @@ interface EmployeeTableProps {
 
 /**
  * 员工列表表格组件
- * 可复用的UI组件，只负责展示数据和触发事件
+ * 使用原生Ant Design Table组件
  */
 export const EmployeeTable: React.FC<EmployeeTableProps> = ({
   employees,
@@ -18,90 +23,83 @@ export const EmployeeTable: React.FC<EmployeeTableProps> = ({
   onDelete,
   isLoading = false
 }) => {
-  if (isLoading) {
-    return (
-      <div className="flex justify-center items-center py-8">
-        <div className="text-gray-500">加载中...</div>
-      </div>
-    );
-  }
-
-  if (employees.length === 0) {
-    return (
-      <div className="text-center py-8 text-gray-500">
-        暂无员工数据
-      </div>
-    );
-  }
+  const columns: ColumnsType<EmployeeData> = [
+    {
+      title: '姓名',
+      dataIndex: 'name',
+      key: 'name',
+      render: (text: string) => <Text strong>{text}</Text>,
+    },
+    {
+      title: '邮箱',
+      dataIndex: 'email',
+      key: 'email',
+    },
+    {
+      title: '部门',
+      dataIndex: 'department',
+      key: 'department',
+      render: (text: string) => <Tag color="blue">{text}</Tag>,
+    },
+    {
+      title: '职位',
+      dataIndex: 'position',
+      key: 'position',
+    },
+    {
+      title: '薪资',
+      dataIndex: 'salary',
+      key: 'salary',
+      render: (salary: number) => `¥${salary.toLocaleString()}`,
+      sorter: (a, b) => a.salary - b.salary,
+    },
+    {
+      title: '入职日期',
+      dataIndex: 'hire_date',
+      key: 'hire_date',
+      sorter: (a, b) => new Date(a.hire_date).getTime() - new Date(b.hire_date).getTime(),
+    },
+    {
+      title: '操作',
+      key: 'action',
+      render: (_, record) => (
+        <Space size="middle">
+          <Button
+            type="link"
+            icon={<EditOutlined />}
+            onClick={() => onEdit(record)}
+          >
+            编辑
+          </Button>
+          <Button
+            type="link"
+            danger
+            icon={<DeleteOutlined />}
+            onClick={() => record.id && onDelete(Number(record.id))}
+          >
+            删除
+          </Button>
+        </Space>
+      ),
+    },
+  ];
 
   return (
-    <div className="overflow-x-auto">
-      <table className="min-w-full bg-white border border-gray-200">
-        <thead className="bg-gray-50">
-          <tr>
-            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-              姓名
-            </th>
-            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-              邮箱
-            </th>
-            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-              部门
-            </th>
-            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-              职位
-            </th>
-            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-              薪资
-            </th>
-            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-              入职日期
-            </th>
-            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-              操作
-            </th>
-          </tr>
-        </thead>
-        <tbody className="bg-white divide-y divide-gray-200">
-          {employees.map((employee) => (
-            <tr key={employee.id} className="hover:bg-gray-50">
-              <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
-                {employee.name}
-              </td>
-              <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                {employee.email}
-              </td>
-              <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                {employee.department}
-              </td>
-              <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                {employee.position}
-              </td>
-              <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                ¥{employee.salary.toLocaleString()}
-              </td>
-              <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                {employee.hire_date}
-              </td>
-              <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
-                <button
-                  onClick={() => onEdit(employee)}
-                  className="text-indigo-600 hover:text-indigo-900 mr-3"
-                >
-                  编辑
-                </button>
-                <button
-                  onClick={() => employee.id && onDelete(Number(employee.id))}
-                  className="text-red-600 hover:text-red-900"
-                >
-                  删除
-                </button>
-              </td>
-            </tr>
-          ))}
-        </tbody>
-      </table>
-    </div>
+    <Table
+      columns={columns}
+      dataSource={employees}
+      rowKey="id"
+      loading={isLoading}
+      pagination={{
+        showSizeChanger: true,
+        showQuickJumper: true,
+        showTotal: (total, range) => 
+          `第 ${range[0]}-${range[1]} 条，共 ${total} 条`,
+      }}
+      locale={{
+        emptyText: '暂无员工数据',
+      }}
+    />
   );
 };
 

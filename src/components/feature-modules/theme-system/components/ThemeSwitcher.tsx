@@ -40,14 +40,13 @@ export interface ThemeSwitcherProps {
  * Switch 模式的主题切换器
  */
 const SwitchThemeSwitcher: React.FC<ThemeSwitcherProps> = ({
-  size = 'middle',
+  size: controlSize = 'middle',
   showLabel = true,
   disabled,
   onChange,
   variant,
   className,
   style,
-  ..._restProps
 }) => {
   const { mode } = useThemeState();
   const { toggleMode } = useThemeActions();
@@ -64,7 +63,7 @@ const SwitchThemeSwitcher: React.FC<ThemeSwitcherProps> = ({
       <Switch
         checked={mode === 'dark'}
         onChange={handleChange}
-        size={size === 'small' ? 'small' : 'default'}
+        size={controlSize === 'small' ? 'small' : 'default'}
         disabled={disabled}
         checkedChildren={<MoonOutlined />}
         unCheckedChildren={<SunOutlined />}
@@ -82,10 +81,9 @@ const ButtonThemeSwitcher: React.FC<ThemeSwitcherProps> = ({
   showLabel = false,
   disabled,
   onChange,
-  variant,
+  variant: _variant, // prevent passing to Button
   className,
   style,
-  ..._restProps
 }) => {
   const { mode } = useThemeState();
   const { toggleMode } = useThemeActions();
@@ -108,7 +106,7 @@ const ButtonThemeSwitcher: React.FC<ThemeSwitcherProps> = ({
         disabled={disabled}
         onClick={handleClick}
         className={className}
-        style={style}
+        style={style as any}
       >
         {showLabel && (mode === 'dark' ? '亮色' : '暗色')}
       </Button>
@@ -123,10 +121,9 @@ const DropdownThemeSwitcher: React.FC<ThemeSwitcherProps> = ({
   size = 'middle',
   disabled,
   onChange,
-  variant,
+  variant: _variant,
   className,
   style,
-  ..._restProps
 }) => {
   const { mode } = useThemeState();
   const { setMode, followSystemTheme } = useThemeActions();
@@ -195,10 +192,9 @@ const IconThemeSwitcher: React.FC<ThemeSwitcherProps> = ({
   size = 'middle',
   disabled,
   onChange,
-  variant,
+  variant: _variant,
   className,
   style,
-  ..._restProps
 }) => {
   const { mode } = useThemeState();
   const { toggleMode } = useThemeActions();
@@ -222,7 +218,7 @@ const IconThemeSwitcher: React.FC<ThemeSwitcherProps> = ({
         disabled={disabled}
         onClick={handleClick}
         className={className}
-        style={style}
+        style={style as any}
       />
     </Tooltip>
   );

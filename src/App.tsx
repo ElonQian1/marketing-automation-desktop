@@ -1,8 +1,7 @@
 import React, { useEffect, useState } from "react";
 import { isTauri } from '@tauri-apps/api/core';
-// 导入现代化设计系统和增强主题样式
-import "./styles/modern.css";
-import "./styles/enhanced-theme.css";
+// 使用最小化样式，不覆盖Ant Design原生样式
+import "./styles/native-minimal.css";
 
 function App() {
   const [tauriReady, setTauriReady] = useState(false);
@@ -23,11 +22,11 @@ function App() {
         setTauriReady(true);
 
         // 直接加载完整应用
-        console.log('🔄 加载完整应用程序...');
-        const module = await import("./components/AntDesignDemo");
-        console.log('✅ 应用程序加载成功');
+        console.log('🔄 加载原生Ant Design应用程序...');
+        const module = await import("./components/NativeAntDesignApp");
+        console.log('✅ 原生应用程序加载成功');
         
-        setFullApp(() => module.AntDesignIntegrationDemo);
+        setFullApp(() => module.NativeAntDesignIntegration);
         setLoading(false);
       } catch (error) {
         console.error('❌ 应用程序加载失败:', error);

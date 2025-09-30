@@ -237,6 +237,12 @@ const UniversalPageFinderModal: React.FC<UniversalPageFinderModalProps> = ({
       allElements: uiElements // 🆕 传递所有元素用于构建层次结构
     }
   );
+  
+  // 🆕 调试日志：检查传入的元素数量
+  console.log('🏗️ UniversalPageFinderModal - 初始化增强选择管理器:', {
+    uiElementsCount: uiElements.length,
+    sampleElements: uiElements.slice(0, 3).map(el => ({ id: el.id, text: el.text, type: el.element_type }))
+  });
   // 统一化的元素选择 Hook
   const { handleSmartElementSelect, handleVisualElementSelect } =
     usePageFinderSelection({
@@ -545,11 +551,18 @@ const UniversalPageFinderModal: React.FC<UniversalPageFinderModalProps> = ({
       // 🆕 使用新的模块化XML解析功能解析视觉元素
       if (pageContent.xmlContent) {
         try {
+          // 🔧 关键修复：使用 UniversalUIAPI 提取正确的 UIElement 数据
+          const uiElementsList = await UniversalUIAPI.extractPageElements(pageContent.xmlContent);
+          setUIElements(uiElementsList);
+          console.log("🔧 修复：设置 uiElements 为提取结果:", uiElementsList.length);
+          
           const parseResult = parseXML(pageContent.xmlContent);
           setElements(parseResult.elements);
           setCategories(parseResult.categories);
+          
           console.log("🚀 缓存页面XML解析完成:", {
             elementsCount: parseResult.elements.length,
+            uiElementsCount: uiElementsList.length, // 🆕 添加 UI 元素数量
             categoriesCount: parseResult.categories.length,
             appInfo: parseResult.appInfo,
           });

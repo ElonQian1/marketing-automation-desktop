@@ -1,7 +1,22 @@
 import React, { useState, useEffect } from 'react';
+import { 
+  Layout, 
+  Card, 
+  Button, 
+  Typography, 
+  Space, 
+  Alert, 
+  Spin,
+  Modal,
+  theme,
+} from 'antd';
+import { PlusOutlined, UserOutlined } from '@ant-design/icons';
 import { EmployeeTable, EmployeeForm } from '../components';
 import { EmployeeAPI } from '../api';
 import type { EmployeeData, EmployeeFormData } from '../types';
+
+const { Content } = Layout;
+const { Title } = Typography;
 
 /**
  * 员工管理主页面
@@ -14,6 +29,9 @@ export const EmployeePage: React.FC = () => {
   const [isLoading, setIsLoading] = useState(false);
   const [isFormLoading, setIsFormLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+
+  // AntD v5 主题 token（暗黑/明亮算法统一来源）
+  const { token } = theme.useToken();
 
   // 加载员工列表
   const loadEmployees = async () => {
@@ -76,7 +94,18 @@ export const EmployeePage: React.FC = () => {
 
   // 处理删除员工
   const handleDeleteEmployee = async (id: number) => {
-    if (!confirm('确定要删除这个员工吗？')) return;
+    const confirmed = await new Promise<boolean>((resolve) => {
+      Modal.confirm({
+        title: '确认删除',
+        content: '确定要删除这个员工吗？此操作不可恢复。',
+        okText: '删除',
+        okButtonProps: { danger: true },
+        cancelText: '取消',
+        onOk: () => resolve(true),
+        onCancel: () => resolve(false),
+      });
+    });
+    if (!confirmed) return;
 
     try {
       setError(null);
@@ -111,61 +140,72 @@ export const EmployeePage: React.FC = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gray-100">
-      <div className="max-w-7xl mx-auto py-6 sm:px-6 lg:px-8">
-        <div className="px-4 py-6 sm:px-0">
+    <Layout style={{ minHeight: '100vh' }}>
+      <Content style={{ padding: token.paddingLG }}>
+        <Card>
           {/* 页头 */}
-          <div className="flex justify-between items-center mb-6">
-            <h1 className="text-3xl font-bold text-gray-900">员工管理系统</h1>
-            {!isShowingForm && (
-              <button
-                onClick={() => setIsShowingForm(true)}
-                className="bg-indigo-600 hover:bg-indigo-700 text-white font-medium py-2 px-4 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
-              >
-                添加员工
-              </button>
-            )}
+          <div style={{ marginBottom: token.marginLG }}>
+            <Space align="center" style={{ width: '100%', justifyContent: 'space-between' }}>
+              <Space align="center">
+                <UserOutlined style={{ fontSize: 24, color: token.colorPrimary }} />
+                <Title level={2} style={{ margin: 0 }}>员工管理系统</Title>
+              </Space>
+              {!isShowingForm && (
+                <Button 
+                  type="primary" 
+                  icon={<PlusOutlined />}
+                  onClick={() => setIsShowingForm(true)}
+                >
+                  添加员工
+                </Button>
+              )}
+            </Space>
           </div>
 
           {/* 错误提示 */}
           {error && (
-            <div className="mb-4 bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-md">
-              {error}
-              <button
-                onClick={() => setError(null)}
-                className="float-right text-red-500 hover:text-red-700"
-              >
-                ✕
-              </button>
-            </div>
+            <Alert
+              message={error}
+              type="error"
+              closable
+              onClose={() => setError(null)}
+              style={{ marginBottom: token.margin }}
+            />
           )}
 
           {/* 表单区域 */}
           {isShowingForm && (
-            <div className="mb-6">
-              <EmployeeForm
-                employee={editingEmployee}
-                onSubmit={handleFormSubmit}
-                onCancel={handleCancelForm}
-                isLoading={isFormLoading}
-              />
-            </div>
+            <Card 
+              title={editingEmployee ? '编辑员工' : '添加员工'} 
+              style={{ marginBottom: token.marginLG }}
+            >
+              <Spin spinning={isFormLoading}>
+                <EmployeeForm
+                  employee={editingEmployee}
+                  onSubmit={handleFormSubmit}
+                  onCancel={handleCancelForm}
+                  isLoading={isFormLoading}
+                />
+              </Spin>
+            </Card>
           )}
 
           {/* 员工列表 */}
           {!isShowingForm && (
-            <div className="bg-white shadow overflow-hidden sm:rounded-md">
-              <EmployeeTable
-                employees={employees}
-                onEdit={handleEditEmployee}
-                onDelete={handleDeleteEmployee}
-                isLoading={isLoading}
-              />
-            </div>
+            <Card title="员工列表">
+              <Spin spinning={isLoading}>
+                <EmployeeTable
+                  employees={employees}
+                  onEdit={handleEditEmployee}
+                  onDelete={handleDeleteEmployee}
+                  isLoading={isLoading}
+                />
+              </Spin>
+            </Card>
           )}
-        </div>
-      </div>
-    </div>
+        </Card>
+      </Content>
+    </Layout>
   );
 };
 

@@ -90,8 +90,7 @@ export const AlternativeElementCard: React.FC<AlternativeElementCardProps> = ({
         padding: compact ? '8px 12px' : '12px 16px' 
       }}
       hoverable
-      onClick={() => onSelect(alternative)}
-    >
+      onClick={() => onSelect(alternative)}>
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
         {/* 左侧信息 */}
         <div style={{ flex: 1, minWidth: 0 }}>
@@ -117,7 +116,7 @@ export const AlternativeElementCard: React.FC<AlternativeElementCardProps> = ({
                     fontWeight: 500
                   }}
                 >
-                  文本: "{element.text.substring(0, 20)}{element.text.length > 20 ? '...' : ''}"
+                  文本: {`"${element.text.substring(0, 20)}${element.text.length > 20 ? '...' : ''}"`}
                 </Text>
               </div>
             )}
