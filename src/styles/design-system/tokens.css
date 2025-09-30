@@ -5,46 +5,127 @@
 
 :root {
   /* ===== 颜色系统 ===== */
-  /* 主要品牌色 */
-  --color-primary-50: #eff6ff;
-  --color-primary-100: #dbeafe;
-  --color-primary-200: #bfdbfe;
-  --color-primary-300: #93c5fd;
-  --color-primary-400: #60a5fa;
-  --color-primary-500: #3b82f6;
-  --color-primary-600: #2563eb;
-  --color-primary-700: #1d4ed8;
-  --color-primary-800: #1e40af;
-  --color-primary-900: #1e3a8a;
+  /* 主色（蓝）- 可信/效率 */
+  --color-primary-50:  #eef6ff;
+  --color-primary-100: #d9eaff;
+  --color-primary-200: #b8d7ff;
+  --color-primary-300: #8bbcff;
+  --color-primary-400: #5a9aff;
+  --color-primary-500: #3478f6; /* 主按钮/高亮 */
+  --color-primary-600: #1f63ea;
+  --color-primary-700: #184fc6;
+  --color-primary-800: #153fa0;
+  --color-primary-900: #133684;
+  --color-primary-950: #0d265c;
 
-  /* 中性色系 */
-  --color-gray-50: #f9fafb;
-  --color-gray-100: #f3f4f6;
-  --color-gray-200: #e5e7eb;
-  --color-gray-300: #d1d5db;
-  --color-gray-400: #9ca3af;
-  --color-gray-500: #6b7280;
-  --color-gray-600: #4b5563;
-  --color-gray-700: #374151;
+  /* 辅色（紫）- 品牌强调 */
+  --color-secondary-50:  #f5f0ff;
+  --color-secondary-100: #ece4ff;
+  --color-secondary-200: #d9caff;
+  --color-secondary-300: #bea4ff;
+  --color-secondary-400: #9b74ff;
+  --color-secondary-500: #7a46ff; /* 品牌强调/标签 */
+  --color-secondary-600: #6130e6;
+  --color-secondary-700: #4c25bf;
+  --color-secondary-800: #3d1e99;
+  --color-secondary-900: #321a7d;
+  --color-secondary-950: #1f104d;
+
+  /* 强调色（青）- 互动/活力 */
+  --color-accent-50:  #e8fbf7;
+  --color-accent-100: #c9f7ee;
+  --color-accent-200: #95ecdd;
+  --color-accent-300: #63dfcc;
+  --color-accent-400: #34cfba;
+  --color-accent-500: #18b7a3; /* 悬浮/聚焦 辅助 */
+  --color-accent-600: #0d9d8c;
+  --color-accent-700: #0a7f73;
+  --color-accent-800: #09675e;
+  --color-accent-900: #0a544d;
+  --color-accent-950: #073a35;
+
+  /* 中性色（石墨） */
+  --color-gray-50:  #f8fafc;
+  --color-gray-100: #f1f5f9;
+  --color-gray-200: #e2e8f0;
+  --color-gray-300: #cbd5e1;
+  --color-gray-400: #94a3b8;
+  --color-gray-500: #64748b;
+  --color-gray-600: #475569;
+  --color-gray-700: #334155;
   --color-gray-800: #1f2937;
   --color-gray-900: #111827;
+  --color-gray-950: #0b1220;
 
-  /* 语义化颜色 */
-  --color-success: #10b981;
-  --color-warning: #f59e0b;
-  --color-error: #ef4444;
-  --color-info: #3b82f6;
+  /* 语义色（完整阶梯） */
+  /* 成功（绿色） */
+  --color-success-50:  #ecfdf5;
+  --color-success-100: #d1fae5;
+  --color-success-200: #a7f3d0;
+  --color-success-300: #6ee7b7;
+  --color-success-400: #34d399;
+  --color-success-500: #10b981;
+  --color-success-600: #059669;
+  --color-success-700: #047857;
+  --color-success-800: #065f46;
+  --color-success-900: #064e3b;
+  --color-success-950: #033427;
 
-  /* 暗色主题 */
-  --color-dark-bg-primary: #0f0f23;
-  --color-dark-bg-secondary: #16213e;
-  --color-dark-bg-tertiary: #1e293b;
-  --color-dark-surface: #1e293b;
-  --color-dark-surface-hover: #334155;
-  --color-dark-border: #334155;
-  --color-dark-text-primary: #f1f5f9;
+  /* 警告（橙） */
+  --color-warning-50:  #fff7ed;
+  --color-warning-100: #ffedd5;
+  --color-warning-200: #fed7aa;
+  --color-warning-300: #fdba74;
+  --color-warning-400: #fb923c;
+  --color-warning-500: #f59e0b;
+  --color-warning-600: #d97706;
+  --color-warning-700: #b45309;
+  --color-warning-800: #92400e;
+  --color-warning-900: #78350f;
+  --color-warning-950: #4f230a;
+
+  /* 错误（红） */
+  --color-error-50:  #fef2f2;
+  --color-error-100: #fee2e2;
+  --color-error-200: #fecaca;
+  --color-error-300: #fca5a5;
+  --color-error-400: #f87171;
+  --color-error-500: #ef4444;
+  --color-error-600: #dc2626;
+  --color-error-700: #b91c1c;
+  --color-error-800: #991b1b;
+  --color-error-900: #7f1d1d;
+  --color-error-950: #4a0f0f;
+
+  /* 信息（蓝）- 与主色一致以便替换 */
+  --color-info-50:  #eff6ff;
+  --color-info-100: #dbeafe;
+  --color-info-200: #bfdbfe;
+  --color-info-300: #93c5fd;
+  --color-info-400: #60a5fa;
+  --color-info-500: #3b82f6;
+  --color-info-600: #2563eb;
+  --color-info-700: #1d4ed8;
+  --color-info-800: #1e40af;
+  --color-info-900: #1e3a8a;
+  --color-info-950: #162b64;
+
+  /* 暗色主题（中性色衍生） */
+  --color-dark-bg-primary:  #0b1020;  /* 背景基底 */
+  --color-dark-bg-secondary:#0f172a;  /* 次级背景 */
+  --color-dark-bg-tertiary: #111827;  /* 第三级背景 */
+  --color-dark-surface:      #0f172a;  /* 表面层 */
+  --color-dark-surface-hover:#1f2937;  /* 表面悬停 */
+  --color-dark-border:       #243041;  /* 轮廓边界 */
+  --color-dark-text-primary:   #e5e7eb;
   --color-dark-text-secondary: #cbd5e1;
-  --color-dark-text-muted: #64748b;
+  --color-dark-text-muted:     #94a3b8;
+
+  /* 语义别名（向后兼容） */
+  --color-success: var(--color-success-500);
+  --color-warning: var(--color-warning-500);
+  --color-error:   var(--color-error-500);
+  --color-info:    var(--color-info-500);
 
   /* ===== 字体系统 ===== */
   --font-family-sans: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;

@@ -154,7 +154,6 @@ export const DragDiagnosticPanel: React.FC<DragDiagnosticPanelProps> = ({
         {criticalIssues.length > 0 && (
           <Alert
             type="error"
-            size="small"
             showIcon
             message={`${criticalIssues.length} 个严重问题`}
             description={criticalIssues.slice(0, 2).map(issue => issue.message).join('; ')}
@@ -165,7 +164,6 @@ export const DragDiagnosticPanel: React.FC<DragDiagnosticPanelProps> = ({
         {warningIssues.length > 0 && (
           <Alert
             type="warning"
-            size="small"
             showIcon
             message={`${warningIssues.length} 个警告`}
             description={warningIssues.slice(0, 2).map(issue => issue.message).join('; ')}
@@ -178,7 +176,7 @@ export const DragDiagnosticPanel: React.FC<DragDiagnosticPanelProps> = ({
   return (
     <>
       <Card
-        size={size}
+        size={size === 'large' ? 'default' : size}
         title={
           <Space size="small">
             <HeartOutlined />
@@ -225,7 +223,6 @@ export const DragDiagnosticPanel: React.FC<DragDiagnosticPanelProps> = ({
         {report && report.overall === 'healthy' && (
           <Alert
             type="success"
-            size="small"
             showIcon
             message="拖拽功能正常"
             style={{ marginTop: 12 }}

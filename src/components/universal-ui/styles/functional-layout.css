@@ -1,0 +1,381 @@
+/**
+ * Universal UI 功能区域样式 v3.0
+ * 基于配色系统的具体布局实现
+ */
+
+/* =============================================================================
+   主容器和布局
+   ============================================================================= */
+
+.universal-page-finder {
+  background: var(--uui-bg-app);
+  color: var(--uui-text-primary);
+  border-radius: 8px;
+  overflow: hidden;
+  box-shadow: var(--uui-shadow-lg);
+}
+
+/* =============================================================================
+   顶部操作栏 - 主要功能区域
+   ============================================================================= */
+
+.universal-page-finder .toolbar-section,
+.universal-page-finder .top-controls {
+  background: var(--uui-bg-toolbar);
+  border-bottom: 1px solid var(--uui-border-toolbar);
+  padding: 12px 16px;
+}
+
+.universal-page-finder .toolbar-section .btn,
+.universal-page-finder .top-controls .ant-btn {
+  background: var(--uui-btn-secondary-bg);
+  border: 1px solid var(--uui-btn-secondary-border);
+  color: var(--uui-btn-secondary-text);
+  border-radius: 6px;
+  font-weight: 500;
+  transition: all 0.2s ease;
+}
+
+.universal-page-finder .toolbar-section .btn:hover,
+.universal-page-finder .top-controls .ant-btn:hover {
+  background: var(--uui-btn-secondary-bg-hover);
+  border-color: var(--uui-border-accent);
+  color: var(--uui-text-primary);
+  transform: translateY(-1px);
+}
+
+.universal-page-finder .toolbar-section .btn.primary,
+.universal-page-finder .top-controls .ant-btn-primary {
+  background: var(--uui-btn-primary-bg);
+  border-color: var(--uui-btn-primary-border);
+  color: var(--uui-btn-primary-text);
+}
+
+.universal-page-finder .toolbar-section .btn.primary:hover,
+.universal-page-finder .top-controls .ant-btn-primary:hover {
+  background: var(--uui-btn-primary-bg-hover);
+  border-color: var(--uui-btn-primary-bg-hover);
+}
+
+/* =============================================================================
+   搜索和筛选控制区 - 中等重要度
+   ============================================================================= */
+
+.universal-page-finder .search-section,
+.universal-page-finder .filter-controls {
+  background: var(--uui-bg-search);
+  border-bottom: 1px solid var(--uui-border-search);
+  padding: 16px;
+}
+
+/* 搜索输入框 */
+.universal-page-finder .search-input,
+.universal-page-finder .ant-input {
+  background: var(--uui-input-bg) !important;
+  border: 1px solid var(--uui-input-border) !important;
+  color: var(--uui-input-text) !important;
+  border-radius: 6px;
+  padding: 8px 12px;
+  font-size: 14px;
+}
+
+.universal-page-finder .search-input:focus,
+.universal-page-finder .ant-input:focus {
+  background: var(--uui-input-bg-focus) !important;
+  border-color: var(--uui-input-border-focus) !important;
+  box-shadow: var(--uui-focus-ring);
+  outline: none;
+}
+
+.universal-page-finder .search-input::placeholder,
+.universal-page-finder .ant-input::placeholder {
+  color: var(--uui-input-placeholder);
+}
+
+/* 收藏按钮和小型控制按钮 */
+.universal-page-finder .star-btn,
+.universal-page-finder .clear-btn,
+.universal-page-finder .small-control-btn {
+  background: var(--uui-btn-tertiary-bg);
+  border: 1px solid var(--uui-btn-tertiary-border);
+  color: var(--uui-btn-tertiary-text);
+  padding: 6px 12px;
+  border-radius: 6px;
+  transition: all 0.2s ease;
+}
+
+.universal-page-finder .star-btn:hover,
+.universal-page-finder .clear-btn:hover,
+.universal-page-finder .small-control-btn:hover {
+  background: var(--uui-btn-tertiary-bg-hover);
+  color: var(--uui-text-primary);
+  border-color: var(--uui-border-accent);
+}
+
+.universal-page-finder .star-btn.active {
+  background: var(--uui-btn-warning-bg);
+  border-color: var(--uui-btn-warning-bg);
+  color: var(--uui-btn-warning-text);
+}
+
+/* =============================================================================
+   属性筛选区 - 功能密集区域
+   ============================================================================= */
+
+.universal-page-finder .attributes-section,
+.universal-page-finder .filter-attributes {
+  background: var(--uui-bg-filter);
+  border-bottom: 1px solid var(--uui-border-filter);
+  padding: 16px;
+}
+
+/* 属性筛选标签组 */
+.universal-page-finder .attribute-group {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-bottom: 12px;
+}
+
+.universal-page-finder .attribute-tag,
+.universal-page-finder .filter-tag {
+  background: var(--uui-tag-bg);
+  border: 1px solid var(--uui-tag-border);
+  color: var(--uui-tag-text);
+  padding: 6px 12px;
+  border-radius: 16px;
+  font-size: 12px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  user-select: none;
+}
+
+.universal-page-finder .attribute-tag:hover,
+.universal-page-finder .filter-tag:hover {
+  background: var(--uui-bg-filter-hover);
+  border-color: var(--uui-border-accent);
+  transform: translateY(-1px);
+}
+
+.universal-page-finder .attribute-tag.active,
+.universal-page-finder .filter-tag.active {
+  background: var(--uui-tag-active-bg);
+  border-color: var(--uui-tag-active-border);
+  color: var(--uui-tag-active-text);
+  box-shadow: var(--uui-shadow-glow);
+}
+
+/* 专用属性字段样式 */
+.universal-page-finder .attr-id { --tag-accent: var(--uui-blue-500); }
+.universal-page-finder .attr-text { --tag-accent: var(--uui-emerald-500); }
+.universal-page-finder .attr-desc { --tag-accent: var(--uui-violet-500); }
+.universal-page-finder .attr-class { --tag-accent: var(--uui-amber-500); }
+.universal-page-finder .attr-package { --tag-accent: var(--uui-red-500); }
+
+.universal-page-finder .attribute-tag.active.attr-id,
+.universal-page-finder .attribute-tag.active.attr-text,
+.universal-page-finder .attribute-tag.active.attr-desc,
+.universal-page-finder .attribute-tag.active.attr-class,
+.universal-page-finder .attribute-tag.active.attr-package {
+  background: var(--tag-accent);
+  border-color: var(--tag-accent);
+  color: white;
+}
+
+/* 开关控制 */
+.universal-page-finder .toggle-switch,
+.universal-page-finder .ant-switch {
+  background: var(--uui-switch-bg) !important;
+  border: none !important;
+}
+
+.universal-page-finder .toggle-switch.active,
+.universal-page-finder .ant-switch-checked {
+  background: var(--uui-switch-bg-active) !important;
+}
+
+.universal-page-finder .toggle-switch .toggle-thumb,
+.universal-page-finder .ant-switch .ant-switch-handle {
+  background: var(--uui-switch-thumb) !important;
+}
+
+/* =============================================================================
+   层级路径区 - 导航显示
+   ============================================================================= */
+
+.universal-page-finder .hierarchy-section,
+.universal-page-finder .xpath-section {
+  background: var(--uui-bg-content);
+  border-bottom: 1px solid var(--uui-border-content);
+  padding: 12px 16px;
+}
+
+.universal-page-finder .hierarchy-path,
+.universal-page-finder .xpath-display {
+  background: var(--uui-bg-content-alt);
+  border: 1px solid var(--uui-border-primary);
+  border-radius: 6px;
+  padding: 8px 12px;
+  font-family: var(--uui-font-mono, 'JetBrains Mono', monospace);
+  font-size: 13px;
+  color: var(--uui-text-secondary);
+  word-break: break-all;
+}
+
+/* =============================================================================
+   高级筛选区 - 复杂操作
+   ============================================================================= */
+
+.universal-page-finder .advanced-filters {
+  background: var(--uui-bg-filter);
+  border-bottom: 1px solid var(--uui-border-filter);
+  padding: 16px;
+}
+
+.universal-page-finder .condition-group {
+  background: var(--uui-bg-filter-item);
+  border: 1px solid var(--uui-border-filter);
+  border-radius: 8px;
+  padding: 12px;
+  margin-bottom: 8px;
+}
+
+.universal-page-finder .logic-connector {
+  background: var(--uui-btn-secondary-bg);
+  border: 1px solid var(--uui-btn-secondary-border);
+  color: var(--uui-btn-secondary-text);
+  padding: 4px 8px;
+  border-radius: 4px;
+  font-size: 12px;
+  font-weight: 600;
+}
+
+/* =============================================================================
+   底部状态和操作区
+   ============================================================================= */
+
+.universal-page-finder .bottom-section,
+.universal-page-finder .status-bar {
+  background: var(--uui-bg-status);
+  border-top: 1px solid var(--uui-border-status);
+  padding: 12px 16px;
+}
+
+.universal-page-finder .xml-source-area {
+  background: var(--uui-bg-content-alt);
+  border: 1px solid var(--uui-border-content);
+  border-radius: 6px;
+  min-height: 200px;
+  font-family: var(--uui-font-mono, 'JetBrains Mono', monospace);
+  font-size: 12px;
+  color: var(--uui-text-secondary);
+  padding: 12px;
+}
+
+/* =============================================================================
+   状态指示器和反馈
+   ============================================================================= */
+
+.universal-page-finder .status-indicator {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 8px;
+  border-radius: 12px;
+  font-size: 12px;
+  font-weight: 500;
+}
+
+.universal-page-finder .status-indicator.success {
+  background: rgba(16, 185, 129, 0.1);
+  color: var(--uui-text-success);
+  border: 1px solid rgba(16, 185, 129, 0.2);
+}
+
+.universal-page-finder .status-indicator.warning {
+  background: rgba(245, 158, 11, 0.1);
+  color: var(--uui-text-warning);
+  border: 1px solid rgba(245, 158, 11, 0.2);
+}
+
+.universal-page-finder .status-indicator.error {
+  background: rgba(239, 68, 68, 0.1);
+  color: var(--uui-text-danger);
+  border: 1px solid rgba(239, 68, 68, 0.2);
+}
+
+.universal-page-finder .status-indicator.info {
+  background: rgba(59, 130, 246, 0.1);
+  color: var(--uui-text-info);
+  border: 1px solid rgba(59, 130, 246, 0.2);
+}
+
+/* =============================================================================
+   计数器和数字显示
+   ============================================================================= */
+
+.universal-page-finder .count-display,
+.universal-page-finder .number-badge {
+  background: var(--uui-bg-content-alt);
+  border: 1px solid var(--uui-border-primary);
+  color: var(--uui-text-primary);
+  padding: 4px 8px;
+  border-radius: 12px;
+  font-size: 12px;
+  font-weight: 600;
+  min-width: 24px;
+  text-align: center;
+}
+
+/* =============================================================================
+   滚动条和交互细节
+   ============================================================================= */
+
+.universal-page-finder ::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+
+.universal-page-finder ::-webkit-scrollbar-track {
+  background: var(--uui-bg-app);
+}
+
+.universal-page-finder ::-webkit-scrollbar-thumb {
+  background: var(--uui-border-primary);
+  border-radius: 3px;
+}
+
+.universal-page-finder ::-webkit-scrollbar-thumb:hover {
+  background: var(--uui-border-accent);
+}
+
+/* =============================================================================
+   响应式和间距微调
+   ============================================================================= */
+
+.universal-page-finder .section-divider {
+  height: 1px;
+  background: var(--uui-border-subtle);
+  margin: 0;
+}
+
+.universal-page-finder .control-group {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.universal-page-finder .label-text {
+  color: var(--uui-text-secondary);
+  font-size: 13px;
+  font-weight: 500;
+  white-space: nowrap;
+}
+
+.universal-page-finder .helper-text {
+  color: var(--uui-text-tertiary);
+  font-size: 11px;
+  font-style: italic;
+}

@@ -1,0 +1,5 @@
+/* AntD core resets */
+.ant-app {
+  font-family: var(--font-family-sans) !important;
+  line-height: 1.6 !important;
+}

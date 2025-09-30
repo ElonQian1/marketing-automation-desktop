@@ -9,26 +9,14 @@ import {
     SyncOutlined,
     ThunderboltOutlined,
     UserOutlined,
-    RobotOutlined
+    RobotOutlined,
+    BgColorsOutlined
 } from '@ant-design/icons';
-import {
-  App,
-  Avatar,
-  Badge,
-  Button,
-  Card,
-  Divider,
-  Layout,
-  Menu,
-  Progress,
-  Space,
-  Statistic,
-  Typography,
-  Switch,
-  Tooltip
-} from 'antd';
-import { AppThemeProvider, useTheme } from '../theme';
-import '../styles/theme.css';
+import { App, Avatar, Badge, Button, Card, Divider, Layout, Menu, Progress, Space, Statistic, Typography, Switch, Tooltip } from 'antd';
+// 使用新的增强主题提供者
+import { EnhancedThemeProvider, ThemeSwitcher, useTheme, useThemeState } from '../components/feature-modules/theme-system';
+// 旧的主题CSS已被现代设计系统替代
+// import '../styles/theme.css';
 import React, { useState } from 'react';
 import { GlobalAdbProvider } from '../providers';
 import InspectorPage from '../pages/InspectorPage';
@@ -42,6 +30,11 @@ import { ContactImportWizard } from '../modules/contact-import';
 import { featureFlags } from '../config/featureFlags';
 import ContactImportPage from '../pages/contact-import/ContactImportPage';
 import QuickPhoneMirror from './QuickPhoneMirror';
+import { AppShell } from './app-shell';
+import { Sidebar as ShellSidebar } from './app-shell/Sidebar';
+import { HeaderBar } from './app-shell/HeaderBar';
+import { PageFinderView } from './universal-ui/page-finder';
+import { ThemeSettingsPage } from '../pages/ThemeSettingsPage';
 
 const { Header, Sider, Content } = Layout;
 const { Title, Text } = Typography;
@@ -50,7 +43,8 @@ const DemoInner: React.FC = () => {
   const [selectedKey, setSelectedKey] = useState('dashboard'); // 默认选中仪表板
   const [selectedDevice, setSelectedDevice] = useState<string>('');
   const [inspectorOpen, setInspectorOpen] = useState<{open: boolean; sessionId?: string; stepId?: string}>({ open: false });
-  const { mode, setMode } = useTheme();
+  const { mode } = useThemeState();
+  const { toggleMode } = useTheme();
 
   const handleDeviceSelect = (deviceId: string) => {
     setSelectedDevice(deviceId);
@@ -96,155 +90,139 @@ const DemoInner: React.FC = () => {
       icon: <FolderOutlined />,
       label: '模板库',
     }
+    ,
+    {
+      key: 'page-finder',
+      icon: <EyeOutlined />,
+      label: '页面查找器（新）',
+    },
+    {
+      key: 'theme-settings',
+      icon: <BgColorsOutlined />,
+      label: '主题设置',
+    }
   ];
 
   return (
       <App>
-        <Layout style={{ minHeight: '100vh' }}>
-        {/* 侧边栏 */}
-        <Sider width={240} style={{ background: '#161b22' }}>
-          <div className="p-4">
-            <div className="flex items-center space-x-3 mb-8">
-              <div
-                className="w-10 h-10 rounded-xl flex items-center justify-center text-xl"
-                style={{ background: 'linear-gradient(135deg, #ff6b8a, #4ecdc4)' }}
+        <AppShell
+          sidebar={
+            <ShellSidebar
+              brand={(
+                <div className="modern-brand">
+                  <div className="modern-brand-icon">🦄</div>
+                  <div className="modern-brand-text">
+                    <h3 className="modern-brand-title">Flow Farm</h3>
+                    <p className="modern-brand-subtitle">Automation Platform</p>
+                  </div>
+                </div>
+              )}
+              items={menuItems}
+              activeKey={selectedKey}
+              onChange={setSelectedKey}
+            />
+          }
+          headerTitle={<h2>{menuItems.find(item => item.key === selectedKey)?.label || '仪表板'}</h2>}
+          headerActions={(
+            <Space size="middle">
+              <ThemeSwitcher 
+                variant="dropdown"
+                size="middle"
+                className="modern-theme-switcher"
+              />
+              <Button 
+                onClick={() => setInspectorOpen({ open: true })} 
+                type="primary"
+                className="modern-action-btn"
               >
-                🦄
-              </div>
-              <div>
-                <Title level={4} style={{ margin: 0, color: 'var(--text-primary)' }}>
-                  Flow Farm
-                </Title>
-                <Text type="secondary">Automation Platform</Text>
-              </div>
-            </div>
-          </div>
-
-          <Menu
-            selectedKeys={[selectedKey]}
-            mode="inline"
-            items={menuItems}
-            onClick={({ key }) => setSelectedKey(key)}
-            style={{ border: 'none' }}
-          />
-        </Sider>
-
-        <Layout>
-          {/* 顶部栏 */}
-          <Header style={{
-            background: '#161b22',
-            borderBottom: '1px solid #30363d',
-            padding: '0 24px',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'space-between'
-          }}>
-            <Title level={3} style={{ margin: 0, color: 'var(--text-primary)' }}>
-              {menuItems.find(item => item.key === selectedKey)?.label || '仪表板'}
-            </Title>
-
-            <Space>
-              <Tooltip title={mode === 'dark' ? '切换到浅色' : '切换到深色'}>
-                <Switch
-                  checkedChildren="🌙"
-                  unCheckedChildren="☀️"
-                  checked={mode === 'dark'}
-                  onChange={(v) => setMode(v ? 'dark' : 'light')}
-                />
-              </Tooltip>
-              <Button onClick={() => setInspectorOpen({ open: true })} type="primary">打开检查器</Button>
+                打开检查器
+              </Button>
               <QuickPhoneMirror 
                 type="default" 
                 onMirrorStarted={(sessionId, deviceId) => {
                   console.log(`手机镜像已启动: 会话ID=${sessionId}, 设备=${deviceId}`);
                 }} 
               />
-              <Badge count={5} style={{ backgroundColor: '#ff6b8a' }}>
-                <Button icon={<SyncOutlined />} size="large">
+              <Badge count={5} className="modern-badge">
+                <Button 
+                  icon={<SyncOutlined />} 
+                  size="large"
+                  className="modern-refresh-btn"
+                >
                   刷新设备
                 </Button>
               </Badge>
-              <Avatar style={{ backgroundColor: '#722ed1' }}>
-                U
-              </Avatar>
+              <Avatar className="modern-avatar">U</Avatar>
             </Space>
-          </Header>
-
-          {/* 主内容区域 */}
-          <Content style={{ 
-            margin: '0', 
-            padding: '0',
-            background: '#0d1117',
-            height: 'calc(100vh - 64px)',
-            overflow: 'hidden'
-          }}>
-            <div style={{ 
-              padding: '24px',
-              height: '100%',
-              overflow: 'auto'
-            }}>
+          )}
+        >
+          <>
             {inspectorOpen.open && (
-              <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.6)', zIndex: 1000 }} onClick={() => setInspectorOpen({ open: false })}>
-                <div style={{ width: '95vw', height: '90vh', margin: '4vh auto 0', background: '#111', borderRadius: 12, overflow: 'hidden' }} onClick={e => e.stopPropagation()}>
+              <div className="modal-overlay" onClick={() => setInspectorOpen({ open: false })}>
+                <div className="modal-content" style={{ width: '95vw', height: '90vh' }} onClick={e => e.stopPropagation()}>
                   <InspectorPage sessionId={inspectorOpen.sessionId} stepId={inspectorOpen.stepId} />
                 </div>
               </div>
             )}
             {selectedKey === 'dashboard' && (
-              <div className="space-y-6">
+              <div className="modern-dashboard">
                 {/* 统计卡片 */}
-                <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-                  <Card>
+                <div className="modern-stats-grid">
+                  <Card className="modern-stat-card card-hover">
                     <Statistic
                       title="在线设备"
                       value={2}
                       suffix="/ 5"
-                      valueStyle={{ color: '#52c41a', fontSize: '2rem' }}
+                      valueStyle={{ color: 'var(--color-success-500)', fontSize: '2rem' }}
                       prefix={<MobileOutlined />}
                     />
                   </Card>
-                  <Card>
+                  <Card className="modern-stat-card card-hover">
                     <Statistic
                       title="今日任务"
                       value={23}
-                      valueStyle={{ color: '#ff6b8a', fontSize: '2rem' }}
+                      valueStyle={{ color: 'var(--color-primary-500)', fontSize: '2rem' }}
                       prefix={<AimOutlined />}
                     />
                   </Card>
-                  <Card>
+                  <Card className="modern-stat-card card-hover">
                     <Statistic
                       title="成功关注"
                       value={189}
-                      valueStyle={{ color: '#722ed1', fontSize: '2rem' }}
+                      valueStyle={{ color: 'var(--color-secondary-500)', fontSize: '2rem' }}
                       prefix={<UserOutlined />}
                     />
                   </Card>
-                  <Card>
+                  <Card className="modern-stat-card card-hover">
                     <Statistic
                       title="账户余额"
                       value={1250}
                       prefix="¥"
-                      valueStyle={{ color: '#faad14', fontSize: '2rem' }}
+                      valueStyle={{ color: 'var(--color-warning-500)', fontSize: '2rem' }}
                     />
                   </Card>
                 </div>
 
                 {/* 进度显示 */}
-                <Card title="任务进度" extra={<Button type="link">查看详情</Button>}>
-                  <div className="space-y-4">
-                    <div>
+                <Card 
+                  title="任务进度" 
+                  extra={<Button type="link" className="modern-link-btn">查看详情</Button>}
+                  className="modern-progress-card card-hover"
+                >
+                  <div className="modern-progress-list">
+                    <div className="modern-progress-item">
                       <div className="flex justify-between mb-2">
-                        <Text>小红书关注任务</Text>
-                        <Text>15/20 完成</Text>
+                        <Text className="progress-label">小红书关注任务</Text>
+                        <Text className="progress-value">15/20 完成</Text>
                       </div>
-                      <Progress percent={75} strokeColor="#ff6b8a" />
+                      <Progress percent={75} strokeColor="var(--color-primary-500)" />
                     </div>
-                    <div>
+                    <div className="modern-progress-item">
                       <div className="flex justify-between mb-2">
-                        <Text>通讯录导入</Text>
-                        <Text>100/100 完成</Text>
+                        <Text className="progress-label">通讯录导入</Text>
+                        <Text className="progress-value">100/100 完成</Text>
                       </div>
-                      <Progress percent={100} strokeColor="#52c41a" />
+                      <Progress percent={100} strokeColor="var(--color-success-500)" />
                     </div>
                   </div>
                 </Card>
@@ -295,21 +273,38 @@ const DemoInner: React.FC = () => {
             {selectedKey === 'template-library' && (
               <TemplateLibrary />
             )}
-            </div>
-          </Content>
-        </Layout>
-      </Layout>
+
+            {selectedKey === 'page-finder' && (
+              <PageFinderView />
+            )}
+
+            {selectedKey === 'theme-settings' && (
+              <ThemeSettingsPage />
+            )}
+          </>
+        </AppShell>
       </App>
   );
 };
 
 export const AntDesignIntegrationDemo: React.FC = () => {
   return (
-    <AppThemeProvider>
+    <EnhancedThemeProvider 
+      options={{ 
+        defaultMode: 'dark',
+        detectSystemTheme: true,
+        animation: {
+          enabled: true,
+          duration: 200,
+          easing: 'cubic-bezier(0.4, 0, 0.2, 1)',
+          enableDarkModeTransition: true,
+        }
+      }}
+    >
       <GlobalAdbProvider>
         <DemoInner />
       </GlobalAdbProvider>
-    </AppThemeProvider>
+    </EnhancedThemeProvider>
   );
 };
 

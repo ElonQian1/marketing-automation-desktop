@@ -1,0 +1,250 @@
+/**
+ * 设计令牌系统 - UI/UX 设计基础
+ * 基于原子设计方法论和现代设计系统原则
+ */
+
+/* =============================================================================
+   颜色设计令牌 - 语义化色彩系统
+   ============================================================================= */
+
+:root {
+  /* === 主色彩系统 === */
+  --dt-color-primary-50: #eff6ff;
+  --dt-color-primary-100: #dbeafe;
+  --dt-color-primary-200: #bfdbfe;
+  --dt-color-primary-300: #93c5fd;
+  --dt-color-primary-400: #60a5fa;
+  --dt-color-primary-500: #3b82f6;
+  --dt-color-primary-600: #2563eb;
+  --dt-color-primary-700: #1d4ed8;
+  --dt-color-primary-800: #1e40af;
+  --dt-color-primary-900: #1e3a8a;
+
+  /* === 功能色彩系统 === */
+  --dt-color-success-50: #ecfdf5;
+  --dt-color-success-100: #d1fae5;
+  --dt-color-success-200: #a7f3d0;
+  --dt-color-success-500: #10b981;
+  --dt-color-success-600: #059669;
+  --dt-color-success-700: #047857;
+
+  --dt-color-warning-50: #fffbeb;
+  --dt-color-warning-100: #fef3c7;
+  --dt-color-warning-200: #fde68a;
+  --dt-color-warning-500: #f59e0b;
+  --dt-color-warning-600: #d97706;
+  --dt-color-warning-700: #b45309;
+
+  --dt-color-error-50: #fef2f2;
+  --dt-color-error-100: #fee2e2;
+  --dt-color-error-200: #fecaca;
+  --dt-color-error-500: #ef4444;
+  --dt-color-error-600: #dc2626;
+  --dt-color-error-700: #b91c1c;
+
+  /* === 中性色彩系统 === */
+  --dt-color-neutral-0: #ffffff;
+  --dt-color-neutral-50: #f9fafb;
+  --dt-color-neutral-100: #f3f4f6;
+  --dt-color-neutral-200: #e5e7eb;
+  --dt-color-neutral-300: #d1d5db;
+  --dt-color-neutral-400: #9ca3af;
+  --dt-color-neutral-500: #6b7280;
+  --dt-color-neutral-600: #4b5563;
+  --dt-color-neutral-700: #374151;
+  --dt-color-neutral-800: #1f2937;
+  --dt-color-neutral-900: #111827;
+  --dt-color-neutral-950: #030712;
+
+  /* === 语义化颜色映射 === */
+  /* 设备状态颜色 */
+  --dt-device-online: var(--dt-color-success-500);
+  --dt-device-offline: var(--dt-color-neutral-400);
+  --dt-device-connecting: var(--dt-color-warning-500);
+  --dt-device-error: var(--dt-color-error-500);
+
+  /* 背景色彩 */
+  --dt-bg-canvas: var(--dt-color-neutral-950);
+  --dt-bg-surface: var(--dt-color-neutral-900);
+  --dt-bg-elevated: var(--dt-color-neutral-800);
+  --dt-bg-overlay: rgba(17, 24, 39, 0.8);
+
+  /* 文字色彩 */
+  --dt-text-primary: var(--dt-color-neutral-0);
+  --dt-text-secondary: var(--dt-color-neutral-300);
+  --dt-text-tertiary: var(--dt-color-neutral-500);
+  --dt-text-disabled: var(--dt-color-neutral-600);
+
+  /* 边框色彩 */
+  --dt-border-subtle: var(--dt-color-neutral-800);
+  --dt-border-default: var(--dt-color-neutral-700);
+  --dt-border-strong: var(--dt-color-neutral-600);
+  --dt-border-focus: var(--dt-color-primary-500);
+}
+
+/* =============================================================================
+   间距设计令牌 - 8px 基准网格系统
+   ============================================================================= */
+
+:root {
+  /* === 间距基础单位 === */
+  --dt-space-0: 0;
+  --dt-space-1: 0.25rem;  /* 4px */
+  --dt-space-2: 0.5rem;   /* 8px */
+  --dt-space-3: 0.75rem;  /* 12px */
+  --dt-space-4: 1rem;     /* 16px */
+  --dt-space-5: 1.25rem;  /* 20px */
+  --dt-space-6: 1.5rem;   /* 24px */
+  --dt-space-8: 2rem;     /* 32px */
+  --dt-space-10: 2.5rem;  /* 40px */
+  --dt-space-12: 3rem;    /* 48px */
+  --dt-space-16: 4rem;    /* 64px */
+  --dt-space-20: 5rem;    /* 80px */
+
+  /* === 语义化间距 === */
+  --dt-space-xs: var(--dt-space-2);    /* 8px */
+  --dt-space-sm: var(--dt-space-3);    /* 12px */
+  --dt-space-md: var(--dt-space-4);    /* 16px */
+  --dt-space-lg: var(--dt-space-6);    /* 24px */
+  --dt-space-xl: var(--dt-space-8);    /* 32px */
+  --dt-space-2xl: var(--dt-space-12);  /* 48px */
+}
+
+/* =============================================================================
+   字体设计令牌 - 类型比例系统
+   ============================================================================= */
+
+:root {
+  /* === 字体族 === */
+  --dt-font-sans: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  --dt-font-mono: 'JetBrains Mono', 'Fira Code', Consolas, monospace;
+
+  /* === 字体大小 === */
+  --dt-text-xs: 0.75rem;    /* 12px */
+  --dt-text-sm: 0.875rem;   /* 14px */
+  --dt-text-base: 1rem;     /* 16px */
+  --dt-text-lg: 1.125rem;   /* 18px */
+  --dt-text-xl: 1.25rem;    /* 20px */
+  --dt-text-2xl: 1.5rem;    /* 24px */
+  --dt-text-3xl: 1.875rem;  /* 30px */
+
+  /* === 字重 === */
+  --dt-font-normal: 400;
+  --dt-font-medium: 500;
+  --dt-font-semibold: 600;
+  --dt-font-bold: 700;
+
+  /* === 行高 === */
+  --dt-leading-tight: 1.25;
+  --dt-leading-normal: 1.5;
+  --dt-leading-relaxed: 1.75;
+}
+
+/* =============================================================================
+   圆角设计令牌 - 现代化圆角系统
+   ============================================================================= */
+
+:root {
+  --dt-radius-none: 0;
+  --dt-radius-sm: 0.25rem;    /* 4px */
+  --dt-radius-md: 0.375rem;   /* 6px */
+  --dt-radius-lg: 0.5rem;     /* 8px */
+  --dt-radius-xl: 0.75rem;    /* 12px */
+  --dt-radius-2xl: 1rem;      /* 16px */
+  --dt-radius-full: 9999px;
+}
+
+/* =============================================================================
+   阴影设计令牌 - 分层阴影系统
+   ============================================================================= */
+
+:root {
+  --dt-shadow-xs: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+  --dt-shadow-sm: 0 1px 3px 0 rgba(0, 0, 0, 0.1), 0 1px 2px 0 rgba(0, 0, 0, 0.06);
+  --dt-shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+  --dt-shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+  --dt-shadow-xl: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+  
+  /* 设备连接专用阴影 */
+  --dt-shadow-glow-success: 0 0 20px rgba(16, 185, 129, 0.3);
+  --dt-shadow-glow-warning: 0 0 20px rgba(245, 158, 11, 0.3);
+  --dt-shadow-glow-error: 0 0 20px rgba(239, 68, 68, 0.3);
+}
+
+/* =============================================================================
+   动画设计令牌 - 动效时间和缓动函数
+   ============================================================================= */
+
+:root {
+  /* === 动画时长 === */
+  --dt-duration-instant: 0ms;
+  --dt-duration-fast: 150ms;
+  --dt-duration-normal: 300ms;
+  --dt-duration-slow: 500ms;
+  --dt-duration-slower: 750ms;
+
+  /* === 缓动函数 === */
+  --dt-ease-out: cubic-bezier(0, 0, 0.2, 1);
+  --dt-ease-in: cubic-bezier(0.4, 0, 1, 1);
+  --dt-ease-in-out: cubic-bezier(0.4, 0, 0.2, 1);
+  --dt-ease-back: cubic-bezier(0.34, 1.56, 0.64, 1);
+  --dt-ease-elastic: cubic-bezier(0.68, -0.55, 0.265, 1.55);
+}
+
+/* =============================================================================
+   设备连接专用设计令牌
+   ============================================================================= */
+
+:root {
+  /* === 设备卡片设计 === */
+  --dt-device-card-bg: var(--dt-bg-elevated);
+  --dt-device-card-border: var(--dt-border-default);
+  --dt-device-card-radius: var(--dt-radius-xl);
+  --dt-device-card-shadow: var(--dt-shadow-md);
+  --dt-device-card-shadow-hover: var(--dt-shadow-lg);
+  
+  /* === 连接状态指示器 === */
+  --dt-status-indicator-size: 12px;
+  --dt-status-indicator-size-lg: 16px;
+  --dt-status-indicator-glow: 4px;
+  
+  /* === 操作按钮样式 === */
+  --dt-button-height: 44px;
+  --dt-button-height-sm: 36px;
+  --dt-button-height-lg: 52px;
+  --dt-button-radius: var(--dt-radius-lg);
+  
+  /* === 设备选择器样式 === */
+  --dt-selector-min-height: 56px;
+  --dt-selector-padding: var(--dt-space-4);
+  --dt-selector-gap: var(--dt-space-3);
+}
+
+/* =============================================================================
+   响应式设计令牌
+   ============================================================================= */
+
+:root {
+  /* === 断点 === */
+  --dt-breakpoint-sm: 640px;
+  --dt-breakpoint-md: 768px;
+  --dt-breakpoint-lg: 1024px;
+  --dt-breakpoint-xl: 1280px;
+  
+  /* === 容器最大宽度 === */
+  --dt-container-sm: 640px;
+  --dt-container-md: 768px;
+  --dt-container-lg: 1024px;
+  --dt-container-xl: 1280px;
+}
+
+/* =============================================================================
+   Z-index 管理
+   ============================================================================= */
+
+:root {
+  --dt-z-dropdown: 1000;
+  --dt-z-modal: 2000;
+  --dt-z-tooltip: 3000;
+  --dt-z-notification: 4000;
+}

@@ -61,9 +61,6 @@ class UltimateThemeManager {
     console.log('✅ Universal UI 完整样式保护');
     console.log('✅ Modal 背景透明问题修复');
 
-    // 添加主题标记
-    this.addThemeMarkers();
-
     // 添加Universal UI特定标记
     this.addUniversalUIMarkers();
 
@@ -169,7 +166,8 @@ class UltimateThemeManager {
         element.removeAttribute('data-glassmorphism');
       }
     });
-    
+  }
+
   /**
    * 记录主题状态
    */

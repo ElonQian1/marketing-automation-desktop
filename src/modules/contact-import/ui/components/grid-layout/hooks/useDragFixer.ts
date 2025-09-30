@@ -203,8 +203,8 @@ export function useDragFixer(options: DragFixerOptions = {}) {
 
     // 立即应用所有修复策略
     strategies.forEach(strategy => {
-      const cleanup = strategy();
-      if (cleanup) cleanupFns.push(cleanup);
+      const res = strategy();
+      if (typeof res === 'function') cleanupFns.push(res as () => void);
     });
 
     // 延迟额外修复（确保DOM完全加载）
@@ -234,7 +234,7 @@ export function useDragFixer(options: DragFixerOptions = {}) {
   const triggerManualFix = useCallback(() => {
     log('手动触发强化修复');
     const strategies = getFixingStrategies();
-    strategies.forEach(strategy => strategy());
+  strategies.forEach(strategy => { try { strategy(); } catch (_) {} });
     fixerRef.current.fixCount++;
     fixerRef.current.lastFix = Date.now();
   }, [log, getFixingStrategies]);

@@ -1,0 +1,203 @@
+/**
+ * Universal UI 功能性配色系统 v3.0
+ * 基于智能页面查找器的具体功能区域设计
+ */
+
+:root {
+  /* =============================================================================
+     基础色彩调色板 - 专业开发工具风格
+     ============================================================================= */
+  
+  /* 专业蓝灰色系 - 主背景色调 */
+  --uui-slate-50: #f8fafc;
+  --uui-slate-100: #f1f5f9;
+  --uui-slate-200: #e2e8f0;
+  --uui-slate-300: #cbd5e1;
+  --uui-slate-400: #94a3b8;
+  --uui-slate-500: #64748b;
+  --uui-slate-600: #475569;
+  --uui-slate-700: #334155;
+  --uui-slate-800: #1e293b;
+  --uui-slate-900: #0f172a;
+  --uui-slate-950: #020617;
+
+  /* 功能色系 - 交互和状态 */
+  --uui-blue-400: #60a5fa;
+  --uui-blue-500: #3b82f6;
+  --uui-blue-600: #2563eb;
+  --uui-blue-700: #1d4ed8;
+  
+  --uui-emerald-400: #34d399;
+  --uui-emerald-500: #10b981;
+  --uui-emerald-600: #059669;
+  
+  --uui-amber-400: #fbbf24;
+  --uui-amber-500: #f59e0b;
+  --uui-amber-600: #d97706;
+  
+  --uui-red-400: #f87171;
+  --uui-red-500: #ef4444;
+  --uui-red-600: #dc2626;
+  
+  --uui-violet-400: #a78bfa;
+  --uui-violet-500: #8b5cf6;
+  --uui-violet-600: #7c3aed;
+
+  /* =============================================================================
+     功能区域专用配色
+     ============================================================================= */
+  
+  /* 主背景 - 深蓝灰 */
+  --uui-bg-app: var(--uui-slate-950);
+  --uui-bg-app-alt: var(--uui-slate-900);
+  
+  /* 顶部操作栏 - 重要功能区域 */
+  --uui-bg-toolbar: var(--uui-slate-800);
+  --uui-bg-toolbar-hover: var(--uui-slate-700);
+  --uui-border-toolbar: var(--uui-slate-600);
+  
+  /* 搜索和筛选区 - 中等重要度 */
+  --uui-bg-search: var(--uui-slate-850);
+  --uui-bg-search-hover: var(--uui-slate-800);
+  --uui-border-search: var(--uui-slate-600);
+  
+  /* 属性筛选区 - 功能密集区域 */
+  --uui-bg-filter: var(--uui-slate-875);
+  --uui-bg-filter-item: var(--uui-slate-800);
+  --uui-bg-filter-hover: var(--uui-slate-750);
+  --uui-border-filter: var(--uui-slate-650);
+  
+  /* 内容展示区 - 主要工作区域 */
+  --uui-bg-content: var(--uui-slate-900);
+  --uui-bg-content-alt: var(--uui-slate-850);
+  --uui-border-content: var(--uui-slate-700);
+  
+  /* 底部状态栏 - 信息展示 */
+  --uui-bg-status: var(--uui-slate-825);
+  --uui-border-status: var(--uui-slate-675);
+
+  /* 自定义中间色值 */
+  --uui-slate-650: #3f4a5f;
+  --uui-slate-675: #39455a;
+  --uui-slate-750: #2a3441;
+  --uui-slate-825: #1a232e;
+  --uui-slate-850: #162029;
+  --uui-slate-875: #111b26;
+
+  /* =============================================================================
+     交互元素配色
+     ============================================================================= */
+  
+  /* 主要操作按钮 */
+  --uui-btn-primary-bg: var(--uui-blue-600);
+  --uui-btn-primary-bg-hover: var(--uui-blue-700);
+  --uui-btn-primary-text: #ffffff;
+  --uui-btn-primary-border: var(--uui-blue-500);
+  
+  /* 次要操作按钮 */
+  --uui-btn-secondary-bg: var(--uui-slate-700);
+  --uui-btn-secondary-bg-hover: var(--uui-slate-600);
+  --uui-btn-secondary-text: var(--uui-slate-200);
+  --uui-btn-secondary-border: var(--uui-slate-600);
+  
+  /* 辅助操作按钮 */
+  --uui-btn-tertiary-bg: transparent;
+  --uui-btn-tertiary-bg-hover: var(--uui-slate-800);
+  --uui-btn-tertiary-text: var(--uui-slate-400);
+  --uui-btn-tertiary-border: var(--uui-slate-700);
+  
+  /* 成功状态 */
+  --uui-btn-success-bg: var(--uui-emerald-600);
+  --uui-btn-success-bg-hover: var(--uui-emerald-700);
+  --uui-btn-success-text: #ffffff;
+  
+  /* 警告状态 */
+  --uui-btn-warning-bg: var(--uui-amber-600);
+  --uui-btn-warning-bg-hover: var(--uui-amber-700);
+  --uui-btn-warning-text: #ffffff;
+  
+  /* 危险状态 */
+  --uui-btn-danger-bg: var(--uui-red-600);
+  --uui-btn-danger-bg-hover: var(--uui-red-700);
+  --uui-btn-danger-text: #ffffff;
+
+  /* 输入框 */
+  --uui-input-bg: var(--uui-slate-800);
+  --uui-input-bg-focus: var(--uui-slate-750);
+  --uui-input-border: var(--uui-slate-600);
+  --uui-input-border-focus: var(--uui-blue-500);
+  --uui-input-text: var(--uui-slate-100);
+  --uui-input-placeholder: var(--uui-slate-500);
+
+  /* 开关和选择器 */
+  --uui-switch-bg: var(--uui-slate-700);
+  --uui-switch-bg-active: var(--uui-blue-600);
+  --uui-switch-thumb: #ffffff;
+  
+  /* 标签和徽章 */
+  --uui-tag-bg: var(--uui-slate-700);
+  --uui-tag-text: var(--uui-slate-200);
+  --uui-tag-border: var(--uui-slate-600);
+  
+  --uui-tag-active-bg: var(--uui-blue-600);
+  --uui-tag-active-text: #ffffff;
+  --uui-tag-active-border: var(--uui-blue-500);
+
+  /* =============================================================================
+     文字色彩层次
+     ============================================================================= */
+  
+  /* 主要文字 - 最高对比度 */
+  --uui-text-primary: var(--uui-slate-50);
+  --uui-text-primary-emphasis: #ffffff;
+  
+  /* 次要文字 - 中等对比度 */
+  --uui-text-secondary: var(--uui-slate-300);
+  --uui-text-secondary-emphasis: var(--uui-slate-200);
+  
+  /* 辅助文字 - 较低对比度 */
+  --uui-text-tertiary: var(--uui-slate-500);
+  --uui-text-muted: var(--uui-slate-600);
+  
+  /* 禁用状态 */
+  --uui-text-disabled: var(--uui-slate-700);
+  
+  /* 功能性文字色彩 */
+  --uui-text-success: var(--uui-emerald-400);
+  --uui-text-warning: var(--uui-amber-400);
+  --uui-text-danger: var(--uui-red-400);
+  --uui-text-info: var(--uui-blue-400);
+  --uui-text-accent: var(--uui-violet-400);
+
+  /* =============================================================================
+     边框和分割线
+     ============================================================================= */
+  
+  --uui-border-primary: var(--uui-slate-700);
+  --uui-border-secondary: var(--uui-slate-800);
+  --uui-border-subtle: var(--uui-slate-825);
+  --uui-border-accent: var(--uui-blue-500);
+  --uui-border-focus: var(--uui-blue-400);
+
+  /* =============================================================================
+     特殊效果
+     ============================================================================= */
+  
+  /* 玻璃形态效果 */
+  --uui-glass-bg: rgba(30, 41, 59, 0.8);
+  --uui-glass-border: rgba(100, 116, 139, 0.2);
+  --uui-glass-backdrop: blur(12px);
+  
+  /* 阴影 */
+  --uui-shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.3);
+  --uui-shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.4), 0 2px 4px -1px rgba(0, 0, 0, 0.3);
+  --uui-shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.4), 0 4px 6px -2px rgba(0, 0, 0, 0.3);
+  --uui-shadow-glow: 0 0 20px rgba(59, 130, 246, 0.3);
+  
+  /* 焦点环 */
+  --uui-focus-ring: 0 0 0 3px rgba(59, 130, 246, 0.2);
+  
+  /* 选中状态 */
+  --uui-selection-bg: rgba(59, 130, 246, 0.2);
+  --uui-selection-border: var(--uui-blue-500);
+}

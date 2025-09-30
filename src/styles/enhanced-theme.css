@@ -1,0 +1,333 @@
+/**
+ * 增强主题样式
+ * 配合原生 Ant Design 5 暗黑模式的额外样式定制
+ */
+
+/* 主题容器基础样式 */
+.theme-provider-container {
+  min-height: 100vh;
+  background-color: var(--colorBgBase);
+  color: var(--colorText);
+  transition: background-color 200ms cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* 主题模式特定样式 */
+.theme-light {
+  --shadow-elevation-1: 0 2px 8px rgba(0, 0, 0, 0.06);
+  --shadow-elevation-2: 0 4px 16px rgba(0, 0, 0, 0.08);
+  --shadow-elevation-3: 0 8px 24px rgba(0, 0, 0, 0.12);
+}
+
+.theme-dark {
+  --shadow-elevation-1: 0 2px 8px rgba(0, 0, 0, 0.2);
+  --shadow-elevation-2: 0 4px 16px rgba(0, 0, 0, 0.3);
+  --shadow-elevation-3: 0 8px 24px rgba(0, 0, 0, 0.4);
+}
+
+/* 主题切换器样式 */
+.modern-theme-switcher {
+  background: transparent !important;
+  border: 1px solid var(--colorBorder) !important;
+  border-radius: 6px;
+  transition: all 200ms cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.modern-theme-switcher:hover {
+  border-color: var(--colorPrimary) !important;
+  box-shadow: var(--shadow-elevation-1);
+}
+
+.modern-theme-switcher:focus {
+  border-color: var(--colorPrimary) !important;
+  box-shadow: 0 0 0 2px rgba(22, 119, 255, 0.1);
+}
+
+/* 增强的卡片样式 */
+.modern-card-enhanced {
+  background: var(--colorBgContainer) !important;
+  border: 1px solid var(--colorBorderSecondary) !important;
+  border-radius: 8px !important;
+  box-shadow: var(--shadow-elevation-1) !important;
+  transition: all 200ms cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.modern-card-enhanced:hover {
+  box-shadow: var(--shadow-elevation-2) !important;
+  border-color: var(--colorBorder) !important;
+}
+
+/* 统计卡片增强 */
+.modern-stat-card {
+  background: var(--colorBgContainer) !important;
+  border: 1px solid var(--colorBorderSecondary) !important;
+  border-radius: 8px !important;
+  transition: all 200ms cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.modern-stat-card:hover {
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-elevation-2) !important;
+  border-color: var(--colorPrimary) !important;
+}
+
+.modern-stat-card .ant-statistic-title {
+  color: var(--colorTextSecondary) !important;
+}
+
+.modern-stat-card .ant-statistic-content {
+  color: var(--colorText) !important;
+}
+
+/* 进度条增强 */
+.modern-progress-card {
+  background: var(--colorBgContainer) !important;
+  border-radius: 8px !important;
+}
+
+.modern-progress-item {
+  margin-bottom: 16px;
+}
+
+.modern-progress-item:last-child {
+  margin-bottom: 0;
+}
+
+.progress-label {
+  color: var(--colorText) !important;
+  font-weight: 500;
+}
+
+.progress-value {
+  color: var(--colorTextSecondary) !important;
+  font-size: 12px;
+}
+
+/* 头部操作区域 */
+.modern-header-actions {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.modern-action-btn {
+  border-radius: 6px !important;
+  transition: all 200ms cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.modern-action-btn:hover {
+  transform: translateY(-1px);
+  box-shadow: var(--shadow-elevation-1);
+}
+
+/* 侧边栏增强 */
+.modern-sidebar {
+  background: var(--colorBgContainer) !important;
+  border-right: 1px solid var(--colorBorderSecondary) !important;
+}
+
+.modern-nav-item {
+  background: transparent !important;
+  border: none !important;
+  color: var(--colorText) !important;
+  border-radius: 6px !important;
+  margin: 2px 8px !important;
+  transition: all 200ms cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.modern-nav-item:hover {
+  background: var(--colorBgTextHover) !important;
+  color: var(--colorPrimary) !important;
+}
+
+.modern-nav-item.active {
+  background: var(--colorPrimaryBg) !important;
+  color: var(--colorPrimary) !important;
+  font-weight: 500;
+}
+
+/* 主内容区域 */
+.modern-main {
+  background: var(--colorBgLayout) !important;
+}
+
+.modern-content {
+  background: var(--colorBgLayout) !important;
+  min-height: calc(100vh - 64px);
+}
+
+/* 模态框增强 */
+.modal-overlay {
+  background: rgba(0, 0, 0, 0.45) !important;
+  backdrop-filter: blur(4px);
+}
+
+.theme-dark .modal-overlay {
+  background: rgba(0, 0, 0, 0.65) !important;
+}
+
+.modal-content {
+  background: var(--colorBgElevated) !important;
+  border: 1px solid var(--colorBorderSecondary) !important;
+  border-radius: 8px !important;
+  box-shadow: var(--shadow-elevation-3) !important;
+}
+
+/* 徽章增强 */
+.modern-badge .ant-badge-count {
+  background: var(--colorError) !important;
+  color: var(--colorWhite) !important;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+/* 头像增强 */
+.modern-avatar {
+  background: var(--colorPrimary) !important;
+  color: var(--colorWhite) !important;
+  border: 2px solid var(--colorBorderSecondary) !important;
+  transition: all 200ms cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.modern-avatar:hover {
+  transform: scale(1.05);
+  border-color: var(--colorPrimary) !important;
+}
+
+/* 主题预览特定样式 */
+.theme-preview {
+  background: var(--colorBgContainer) !important;
+  border: 1px solid var(--colorBorderSecondary) !important;
+  border-radius: 8px !important;
+  overflow: hidden;
+}
+
+.theme-comparison {
+  gap: 16px;
+}
+
+/* 主题配置面板样式 */
+.theme-config-panel {
+  background: var(--colorBgContainer) !important;
+  border: 1px solid var(--colorBorderSecondary) !important;
+  border-radius: 8px !important;
+}
+
+.theme-config-panel .ant-card-head {
+  background: var(--colorBgContainer) !important;
+  border-bottom: 1px solid var(--colorBorderSecondary) !important;
+}
+
+.theme-config-panel .ant-card-body {
+  background: var(--colorBgContainer) !important;
+}
+
+/* 颜色选择器增强 */
+.ant-color-picker-trigger {
+  border: 1px solid var(--colorBorder) !important;
+  background: var(--colorBgContainer) !important;
+  transition: all 200ms cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.ant-color-picker-trigger:hover {
+  border-color: var(--colorPrimary) !important;
+  box-shadow: var(--shadow-elevation-1);
+}
+
+/* 滑块增强 */
+.ant-slider {
+  background: transparent !important;
+}
+
+.ant-slider-rail {
+  background: var(--colorBorderSecondary) !important;
+}
+
+.ant-slider-track {
+  background: var(--colorPrimary) !important;
+}
+
+.ant-slider-handle {
+  border: 2px solid var(--colorPrimary) !important;
+  background: var(--colorBgContainer) !important;
+}
+
+.ant-slider-handle:hover,
+.ant-slider-handle:focus {
+  border-color: var(--colorPrimaryHover) !important;
+  box-shadow: 0 0 0 4px rgba(22, 119, 255, 0.1) !important;
+}
+
+/* 折叠面板增强 */
+.ant-collapse {
+  background: var(--colorBgContainer) !important;
+  border: 1px solid var(--colorBorderSecondary) !important;
+  border-radius: 8px !important;
+}
+
+.ant-collapse-item {
+  border-bottom: 1px solid var(--colorBorderSecondary) !important;
+}
+
+.ant-collapse-header {
+  background: var(--colorBgContainer) !important;
+  color: var(--colorText) !important;
+}
+
+.ant-collapse-content {
+  background: var(--colorBgContainer) !important;
+  border-top: 1px solid var(--colorBorderSecondary) !important;
+}
+
+/* 响应式优化 */
+@media (max-width: 768px) {
+  .modern-header-actions {
+    gap: 8px;
+  }
+  
+  .modern-theme-switcher {
+    padding: 4px 8px !important;
+  }
+  
+  .modern-stat-card {
+    margin-bottom: 12px;
+  }
+  
+  .theme-comparison .ant-col {
+    margin-bottom: 16px;
+  }
+}
+
+/* 深色模式特定增强 */
+.theme-dark .ant-card {
+  box-shadow: var(--shadow-elevation-1) !important;
+}
+
+.theme-dark .ant-btn-primary {
+  box-shadow: 0 2px 8px rgba(22, 119, 255, 0.2) !important;
+}
+
+.theme-dark .ant-btn-primary:hover {
+  box-shadow: 0 4px 16px rgba(22, 119, 255, 0.3) !important;
+}
+
+/* 动画增强 */
+.theme-transition-enter {
+  opacity: 0;
+  transform: translateY(10px);
+}
+
+.theme-transition-enter-active {
+  opacity: 1;
+  transform: translateY(0);
+  transition: all 200ms cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.theme-transition-exit {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+.theme-transition-exit-active {
+  opacity: 0;
+  transform: translateY(-10px);
+  transition: all 200ms cubic-bezier(0.4, 0, 0.2, 1);
+}

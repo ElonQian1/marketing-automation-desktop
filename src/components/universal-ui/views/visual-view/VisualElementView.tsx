@@ -16,7 +16,7 @@ import { useParsedVisualElements } from ".";
 import { useFilteredVisualElements } from "./hooks/useFilteredVisualElements";
 import {
   useElementSelectionManager,
-  ElementSelectionPopover,
+  // ElementSelectionPopover, // 🚫 已移除 - 由上层统一管理
 } from "../../element-selection";
 import type { UIElement } from "../../../../api/universalUIAPI";
 
@@ -206,13 +206,8 @@ export const VisualElementView: React.FC<VisualElementViewProps> = ({
         convertedElements={convertedElements}
       />
 
-      {/* 🎯 重新添加气泡弹窗功能 */}
-      <ElementSelectionPopover
-        visible={!!selectionManager.pendingSelection}
-        selection={selectionManager.pendingSelection}
-        onConfirm={selectionManager.confirmSelection}
-        onCancel={selectionManager.hideElement}
-      />
+      {/* 🚫 移除重复的气泡弹窗 - 由上层 UniversalPageFinderModal 统一管理 */}
+      {/* ElementSelectionPopover 已在 UniversalPageFinderModal 中渲染，避免重复 */}
     </div>
   );
 };

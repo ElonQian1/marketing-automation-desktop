@@ -1,0 +1,377 @@
+/**
+ * 设备连接面板 - 主组合样式文件
+ * 将所有设备连接相关的组件样式整合在一起
+ * 确保组件间的协调性和一致性
+ */
+
+/* =============================================================================
+   引入所有设备连接组件样式
+   ============================================================================= */
+
+@import './panel-layout.css';
+@import './device-selector.css';
+@import './connection-controls.css';
+
+/* =============================================================================
+   设备连接面板 - 主容器
+   ============================================================================= */
+
+.device-connection-panel {
+  /* 继承面板基础布局 */
+  background: var(--dt-bg-canvas);
+  border-radius: var(--dt-radius-xl);
+  border: 1px solid var(--dt-border-subtle);
+  padding: var(--dt-space-xl);
+  margin-bottom: var(--dt-space-lg);
+  
+  /* 现代设计增强 */
+  box-shadow: var(--dt-shadow-sm);
+  transition: all var(--dt-duration-normal) var(--dt-ease-out);
+}
+
+.device-connection-panel:hover {
+  box-shadow: var(--dt-shadow-md);
+  border-color: var(--dt-border-default);
+}
+
+/* =============================================================================
+   面板头部 - 标题和状态区域
+   ============================================================================= */
+
+.device-connection-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: var(--dt-space-lg);
+  gap: var(--dt-space-md);
+}
+
+.device-connection-title {
+  display: flex;
+  align-items: center;
+  gap: var(--dt-space-sm);
+}
+
+.device-connection-title h3 {
+  font-size: var(--dt-text-lg);
+  font-weight: var(--dt-font-semibold);
+  color: var(--dt-text-primary);
+  margin: 0;
+  line-height: var(--dt-leading-tight);
+}
+
+.device-connection-title-icon {
+  width: 24px;
+  height: 24px;
+  color: var(--dt-color-primary-500);
+  flex-shrink: 0;
+}
+
+/* 面板状态指示器 */
+.device-connection-status {
+  display: flex;
+  align-items: center;
+  gap: var(--dt-space-sm);
+}
+
+/* =============================================================================
+   面板内容区域
+   ============================================================================= */
+
+.device-connection-content {
+  display: flex;
+  flex-direction: column;
+  gap: var(--dt-space-lg);
+}
+
+/* 设备信息展示区域 */
+.device-info-section {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  gap: var(--dt-space-md);
+  align-items: start;
+}
+
+/* 设备详细信息卡片 */
+.device-details-card {
+  background: var(--dt-bg-surface);
+  border: 1px solid var(--dt-border-subtle);
+  border-radius: var(--dt-radius-lg);
+  padding: var(--dt-space-md);
+  
+  transition: all var(--dt-duration-normal) var(--dt-ease-out);
+}
+
+.device-details-card:hover {
+  border-color: var(--dt-border-default);
+  box-shadow: var(--dt-shadow-sm);
+}
+
+.device-details-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+  gap: var(--dt-space-sm);
+  margin-top: var(--dt-space-sm);
+}
+
+.device-detail-item {
+  display: flex;
+  flex-direction: column;
+  gap: var(--dt-space-1);
+}
+
+.device-detail-label {
+  font-size: var(--dt-text-xs);
+  font-weight: var(--dt-font-medium);
+  color: var(--dt-text-tertiary);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.device-detail-value {
+  font-size: var(--dt-text-sm);
+  font-weight: var(--dt-font-medium);
+  color: var(--dt-text-secondary);
+  word-break: break-all;
+}
+
+/* =============================================================================
+   快速操作区域
+   ============================================================================= */
+
+.quick-actions-section {
+  background: var(--dt-bg-surface);
+  border: 1px solid var(--dt-border-subtle);
+  border-radius: var(--dt-radius-lg);
+  padding: var(--dt-space-md);
+}
+
+.quick-actions-title {
+  font-size: var(--dt-text-sm);
+  font-weight: var(--dt-font-semibold);
+  color: var(--dt-text-secondary);
+  margin: 0 0 var(--dt-space-sm) 0;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.quick-actions-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+  gap: var(--dt-space-sm);
+}
+
+.quick-action-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--dt-space-xs);
+  
+  min-height: 40px;
+  padding: var(--dt-space-sm);
+  
+  background: var(--dt-bg-elevated);
+  border: 1px solid var(--dt-border-default);
+  border-radius: var(--dt-radius-md);
+  color: var(--dt-text-secondary);
+  
+  font-size: var(--dt-text-sm);
+  font-weight: var(--dt-font-medium);
+  text-decoration: none;
+  cursor: pointer;
+  
+  transition: all var(--dt-duration-fast) var(--dt-ease-out);
+}
+
+.quick-action-btn:hover {
+  background: var(--dt-color-primary-50);
+  border-color: var(--dt-color-primary-200);
+  color: var(--dt-color-primary-600);
+  transform: translateY(-1px);
+}
+
+.quick-action-icon {
+  width: 16px;
+  height: 16px;
+  flex-shrink: 0;
+}
+
+/* =============================================================================
+   错误和警告状态
+   ============================================================================= */
+
+.device-connection-panel.error {
+  border-color: var(--dt-device-error);
+  background: rgba(239, 68, 68, 0.02);
+}
+
+.device-connection-panel.warning {
+  border-color: var(--dt-device-connecting);
+  background: rgba(245, 158, 11, 0.02);
+}
+
+/* 错误消息显示 */
+.device-error-message {
+  background: rgba(239, 68, 68, 0.1);
+  border: 1px solid rgba(239, 68, 68, 0.2);
+  border-radius: var(--dt-radius-md);
+  padding: var(--dt-space-sm) var(--dt-space-md);
+  margin-top: var(--dt-space-md);
+  
+  display: flex;
+  align-items: start;
+  gap: var(--dt-space-sm);
+}
+
+.device-error-icon {
+  width: 16px;
+  height: 16px;
+  color: var(--dt-device-error);
+  flex-shrink: 0;
+  margin-top: 2px;
+}
+
+.device-error-content {
+  flex: 1;
+}
+
+.device-error-title {
+  font-size: var(--dt-text-sm);
+  font-weight: var(--dt-font-semibold);
+  color: var(--dt-device-error);
+  margin: 0 0 var(--dt-space-xs) 0;
+}
+
+.device-error-description {
+  font-size: var(--dt-text-sm);
+  color: rgb(127, 29, 29);
+  margin: 0;
+  line-height: var(--dt-leading-relaxed);
+}
+
+/* =============================================================================
+   加载状态
+   ============================================================================= */
+
+.device-connection-panel.loading {
+  position: relative;
+  pointer-events: none;
+}
+
+.device-connection-panel.loading::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: rgba(255, 255, 255, 0.8);
+  border-radius: var(--dt-radius-xl);
+  
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  
+  backdrop-filter: blur(2px);
+  z-index: 10;
+}
+
+/* 骨架屏效果 */
+.device-connection-skeleton {
+  animation: skeleton-pulse 1.5s ease-in-out infinite;
+}
+
+@keyframes skeleton-pulse {
+  0%, 100% { 
+    background-color: var(--dt-bg-surface);
+  }
+  50% { 
+    background-color: var(--dt-border-subtle);
+  }
+}
+
+/* =============================================================================
+   响应式设计
+   ============================================================================= */
+
+@media (max-width: 1024px) {
+  .device-connection-header {
+    flex-direction: column;
+    align-items: stretch;
+    gap: var(--dt-space-sm);
+  }
+  
+  .device-info-section {
+    grid-template-columns: 1fr;
+    gap: var(--dt-space-sm);
+  }
+  
+  .device-details-grid {
+    grid-template-columns: repeat(auto-fit, minmax(100px, 1fr));
+  }
+}
+
+@media (max-width: 768px) {
+  .device-connection-panel {
+    padding: var(--dt-space-lg);
+    margin-bottom: var(--dt-space-md);
+  }
+  
+  .device-connection-content {
+    gap: var(--dt-space-md);
+  }
+  
+  .quick-actions-grid {
+    grid-template-columns: 1fr;
+  }
+  
+  .device-details-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 480px) {
+  .device-connection-panel {
+    padding: var(--dt-space-md);
+    border-radius: var(--dt-radius-lg);
+  }
+  
+  .device-connection-title h3 {
+    font-size: var(--dt-text-base);
+  }
+  
+  .device-connection-title-icon {
+    width: 20px;
+    height: 20px;
+  }
+}
+
+/* =============================================================================
+   高对比度支持
+   ============================================================================= */
+
+@media (prefers-contrast: high) {
+  .device-connection-panel {
+    border-width: 2px;
+  }
+  
+  .device-details-card,
+  .quick-actions-section {
+    border-width: 2px;
+  }
+  
+  .quick-action-btn:hover {
+    border-width: 2px;
+  }
+}
+
+/* =============================================================================
+   深色模式优化
+   ============================================================================= */
+
+@media (prefers-color-scheme: dark) {
+  .device-connection-panel.loading::after {
+    background: rgba(17, 24, 39, 0.8);
+  }
+  
+  .device-error-description {
+    color: rgb(252, 165, 165);
+  }
+}

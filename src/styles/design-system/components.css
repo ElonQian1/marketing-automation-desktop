@@ -65,40 +65,54 @@
 }
 
 .btn-success {
-  background-color: var(--color-success);
+  background-color: var(--color-success-600);
   color: white;
-  border-color: var(--color-success);
+  border-color: var(--color-success-600);
 }
 
 .btn-success:hover:not(:disabled) {
-  background-color: #059669;
-  border-color: #059669;
+  background-color: var(--color-success-700);
+  border-color: var(--color-success-700);
   transform: translateY(-1px);
   box-shadow: var(--shadow-md);
 }
 
 .btn-warning {
-  background-color: var(--color-warning);
+  background-color: var(--color-warning-600);
   color: white;
-  border-color: var(--color-warning);
+  border-color: var(--color-warning-600);
 }
 
 .btn-warning:hover:not(:disabled) {
-  background-color: #d97706;
-  border-color: #d97706;
+  background-color: var(--color-warning-700);
+  border-color: var(--color-warning-700);
   transform: translateY(-1px);
   box-shadow: var(--shadow-md);
 }
 
 .btn-error {
-  background-color: var(--color-error);
+  background-color: var(--color-error-600);
   color: white;
-  border-color: var(--color-error);
+  border-color: var(--color-error-600);
 }
 
 .btn-error:hover:not(:disabled) {
-  background-color: #dc2626;
-  border-color: #dc2626;
+  background-color: var(--color-error-700);
+  border-color: var(--color-error-700);
+  transform: translateY(-1px);
+  box-shadow: var(--shadow-md);
+}
+
+/* 品牌强调按钮 */
+.btn-accent {
+  background-color: var(--color-accent-600);
+  color: white;
+  border-color: var(--color-accent-600);
+}
+
+.btn-accent:hover:not(:disabled) {
+  background-color: var(--color-accent-700);
+  border-color: var(--color-accent-700);
   transform: translateY(-1px);
   box-shadow: var(--shadow-md);
 }

@@ -19,7 +19,7 @@ import {
 } from '../../../../services/RealXMLAnalysisService';
 import { parseXML, analyzeAppAndPageInfo } from '../../xml-parser';
 import { convertVisualToUIElement, createElementContext } from '../../data-transform';
-import { useElementSelectionManager, ElementSelectionPopover } from '../../element-selection';
+import { useElementSelectionManager, /* ElementSelectionPopover */ } from '../../element-selection';
 import { VisualPagePreview } from './VisualPagePreview';
 
 const { Text, Title } = Typography;
@@ -487,13 +487,8 @@ export const VisualPageAnalyzerContent: React.FC<VisualPageAnalyzerContentProps>
         </Space>
       </div>
 
-      {/* 使用新的元素选择弹出框组件 */}
-      <ElementSelectionPopover
-        visible={!!selectionManager.pendingSelection}
-        selection={selectionManager.pendingSelection}
-        onConfirm={selectionManager.confirmSelection}
-        onCancel={selectionManager.hideElement}
-      />
+      {/* 🚫 移除重复的气泡弹窗组件 - 应由使用此组件的父级统一管理 */}
+      {/* 注意：如果此组件作为独立页面使用，需要重新启用此 ElementSelectionPopover */}
     </div>
   );
 };

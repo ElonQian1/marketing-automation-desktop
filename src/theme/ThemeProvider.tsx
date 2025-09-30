@@ -1,6 +1,7 @@
 import React from 'react';
 import { ConfigProvider, theme as antdTheme, App } from 'antd';
 import { ThemeMode, antdTokens, cssVars } from './tokens';
+import { TokenBridge } from './TokenBridge';
 
 export interface ThemeContextValue {
   mode: ThemeMode;
@@ -17,7 +18,9 @@ export const AppThemeProvider: React.FC<{ children: React.ReactNode; defaultMode
   React.useEffect(() => {
     localStorage.setItem('app.theme', mode);
     const root = document.documentElement;
-    // 切换根类名，便于全局选择器使用 .theme-dark/.theme-light
+    // 同步 AntD 原生主题优先的暗黑模式：设置 data-theme 属性，兼容设计系统 [data-theme="*"] 选择器
+    root.setAttribute('data-theme', mode);
+    // 兼容历史：保留 class，避免旧样式依赖失效
     root.classList.remove('theme-dark', 'theme-light');
     root.classList.add(mode === 'dark' ? 'theme-dark' : 'theme-light');
     // 写入 CSS 变量
@@ -30,36 +33,20 @@ export const AppThemeProvider: React.FC<{ children: React.ReactNode; defaultMode
       <ConfigProvider
         theme={{
           algorithm: mode === 'dark' ? antdTheme.darkAlgorithm : antdTheme.defaultAlgorithm,
-          token: antdTokens(mode) as any,
+          // 让 AntD 负责配色，仅保留极少形状参数
+          token: {
+            borderRadius: 12,
+            borderRadiusLG: 16,
+          } as any,
           components: {
-            Layout: {
-              headerBg: cssVars[mode]['--color-bg-container'],
-              bodyBg: cssVars[mode]['--color-bg-layout'],
-            },
-            Menu: {
-              colorBgContainer: cssVars[mode]['--color-bg-container'],
-              itemBg: 'transparent',
-              itemSelectedBg: 'rgba(255, 107, 138, 0.1)',
-              itemSelectedColor: cssVars[mode]['--color-primary'],
-              itemHoverBg: 'rgba(255, 255, 255, 0.05)',
-            },
-            Card: {
-              colorBgContainer: cssVars[mode]['--card-glass-bg'],
-              colorBorderSecondary: cssVars[mode]['--card-glass-border'],
-            },
-            Table: {
-              colorBgContainer: mode === 'dark' ? 'rgba(255, 255, 255, 0.02)' : '#fff',
-              colorBorderSecondary: cssVars[mode]['--card-glass-border'],
-            },
-            Button: {
-              controlHeight: 36,
-              borderRadius: 10,
-              fontWeight: 500,
-            },
+            Button: { controlHeight: 36, borderRadius: 10, fontWeight: 500 },
           },
         }}
       >
-        <App>{children}</App>
+        <App>
+          <TokenBridge />
+          {children}
+        </App>
       </ConfigProvider>
     </ThemeContext.Provider>
   );

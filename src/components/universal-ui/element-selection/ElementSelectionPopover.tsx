@@ -2,6 +2,7 @@ import React from 'react';
 import { Popconfirm } from 'antd';
 import { CheckOutlined, EyeInvisibleOutlined } from '@ant-design/icons';
 import type { UIElement } from '../../../api/universalUIAPI';
+import { useSmartPopoverPosition } from './utils/popoverPositioning';
 
 export interface ElementSelectionState {
   element: UIElement;
@@ -22,17 +23,33 @@ export const ElementSelectionPopover: React.FC<ElementSelectionPopoverProps> = (
   onConfirm,
   onCancel
 }) => {
-  if (!visible || !selection) {
+  // 使用智能定位计算气泡位置
+  const positioning = useSmartPopoverPosition(
+    selection?.position || null,
+    {
+      preferredPlacement: 'top',
+      popoverSize: { width: 220, height: 100 },
+      margin: 12
+    }
+  );
+
+  if (!visible || !selection || !positioning) {
     return null;
   }
+
+  console.log('🎯 气泡定位计算:', {
+    原始点击位置: selection.position,
+    计算后位置: positioning.position,
+    placement: positioning.placement
+  });
 
   return (
     <div
       key={`selection-${selection.element.id}`}
       style={{
         position: 'fixed',
-        left: selection.position.x + 10,
-        top: selection.position.y + 10, // 调整为鼠标下方，配合placement="top"
+        left: positioning.position.x,
+        top: positioning.position.y,
         zIndex: 10000,
         pointerEvents: 'none',
       }}
@@ -74,16 +91,16 @@ export const ElementSelectionPopover: React.FC<ElementSelectionPopoverProps> = (
           console.log('🎯 ElementSelectionPopover: onCancel called');
           onCancel();
         }}
-        placement="top" // 气泡在鼠标上方显示，箭头指向下方（鼠标位置）
+        placement={positioning.placement}
         arrow={{ pointAtCenter: true }}
-        getPopupContainer={() => document.body} // 确保在 body 中渲染
+        getPopupContainer={() => document.body}
       >
         {/* 不可见的触发器 */}
         <div style={{ 
           width: 1, 
           height: 1, 
           opacity: 0,
-          pointerEvents: 'auto' // 允许这个触发器接收事件
+          pointerEvents: 'auto'
         }} />
       </Popconfirm>
     </div>

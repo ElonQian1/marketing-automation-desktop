@@ -1,0 +1,373 @@
+/**
+ * Universal UI 现代化集成文件
+ * 
+ * 这个文件负责将新的现代化设计系统与现有组件进行集成
+ * 优先级高于旧样式，提供平滑的迁移路径
+ */
+
+/* =============================================================================
+   导入新的现代化设计系统
+   ============================================================================= */
+@import './universal-ui.css';
+
+/* =============================================================================
+   重写旧的 Ant Design 样式，使用新的设计令牌
+   ============================================================================= */
+
+/* Universal Page Finder Modal 重新设计 */
+.universal-page-finder .ant-modal-content {
+  background: var(--dt-bg-canvas) !important;
+  border: 2px solid var(--dt-border-default) !important;
+  border-radius: var(--dt-radius-xl) !important;
+  box-shadow: var(--dt-shadow-xl) !important;
+  overflow: hidden !important;
+}
+
+.universal-page-finder .ant-modal-header {
+  background: var(--dt-bg-surface) !important;
+  border-bottom: 2px solid var(--dt-border-subtle) !important;
+  border-radius: var(--dt-radius-xl) var(--dt-radius-xl) 0 0 !important;
+  padding: var(--dt-space-lg) var(--dt-space-xl) !important;
+}
+
+.universal-page-finder .ant-modal-title {
+  color: var(--dt-text-primary) !important;
+  font-size: var(--dt-text-xl) !important;
+  font-weight: var(--dt-font-bold) !important;
+  line-height: var(--dt-leading-tight) !important;
+}
+
+.universal-page-finder .ant-modal-close {
+  color: var(--dt-text-tertiary) !important;
+  font-size: 18px !important;
+  transition: all var(--dt-duration-fast) var(--dt-ease-out) !important;
+}
+
+.universal-page-finder .ant-modal-close:hover {
+  color: var(--dt-text-primary) !important;
+  background: var(--dt-bg-elevated) !important;
+  border-radius: var(--dt-radius-md) !important;
+}
+
+.universal-page-finder .ant-modal-body {
+  background: var(--dt-bg-canvas) !important;
+  padding: var(--dt-space-xl) !important;
+}
+
+/* =============================================================================
+   输入框现代化重设计
+   ============================================================================= */
+
+.universal-page-finder .ant-input {
+  background: var(--dt-bg-surface) !important;
+  border: 2px solid var(--dt-border-default) !important;
+  border-radius: var(--dt-radius-lg) !important;
+  color: var(--dt-text-primary) !important;
+  font-size: var(--dt-text-sm) !important;
+  padding: var(--dt-space-sm) var(--dt-space-md) !important;
+  min-height: var(--dt-input-height) !important;
+  transition: all var(--dt-duration-normal) var(--dt-ease-out) !important;
+}
+
+.universal-page-finder .ant-input:hover {
+  border-color: var(--dt-border-strong) !important;
+  box-shadow: var(--dt-shadow-sm) !important;
+}
+
+.universal-page-finder .ant-input:focus,
+.universal-page-finder .ant-input-focused {
+  background: var(--dt-bg-surface) !important;
+  border-color: var(--dt-border-focus) !important;
+  box-shadow: 
+    0 0 0 4px rgba(59, 130, 246, 0.1),
+    var(--dt-shadow-sm) !important;
+}
+
+.universal-page-finder .ant-input::placeholder {
+  color: var(--dt-text-tertiary) !important;
+  font-style: italic !important;
+}
+
+/* =============================================================================
+   选择框现代化重设计
+   ============================================================================= */
+
+.universal-page-finder .ant-select {
+  font-size: var(--dt-text-sm) !important;
+}
+
+.universal-page-finder .ant-select-selector {
+  background: var(--dt-bg-surface) !important;
+  border: 2px solid var(--dt-border-default) !important;
+  border-radius: var(--dt-radius-lg) !important;
+  color: var(--dt-text-primary) !important;
+  min-height: var(--dt-input-height) !important;
+  padding: var(--dt-space-xs) var(--dt-space-md) !important;
+  transition: all var(--dt-duration-normal) var(--dt-ease-out) !important;
+}
+
+.universal-page-finder .ant-select-selector:hover {
+  border-color: var(--dt-border-strong) !important;
+  box-shadow: var(--dt-shadow-sm) !important;
+}
+
+.universal-page-finder .ant-select-focused .ant-select-selector {
+  border-color: var(--dt-border-focus) !important;
+  box-shadow: 
+    0 0 0 4px rgba(59, 130, 246, 0.1),
+    var(--dt-shadow-sm) !important;
+}
+
+.universal-page-finder .ant-select-selection-placeholder {
+  color: var(--dt-text-tertiary) !important;
+  font-style: italic !important;
+}
+
+/* =============================================================================
+   按钮现代化重设计
+   ============================================================================= */
+
+.universal-page-finder .ant-btn {
+  font-size: var(--dt-text-sm) !important;
+  font-weight: var(--dt-font-medium) !important;
+  min-height: var(--dt-button-height) !important;
+  padding: 0 var(--dt-space-md) !important;
+  border-radius: var(--dt-radius-lg) !important;
+  border-width: 2px !important;
+  transition: all var(--dt-duration-normal) var(--dt-ease-out) !important;
+  box-shadow: var(--dt-shadow-sm) !important;
+}
+
+.universal-page-finder .ant-btn:hover {
+  transform: translateY(-1px) !important;
+  box-shadow: var(--dt-shadow-md) !important;
+}
+
+.universal-page-finder .ant-btn:active {
+  transform: translateY(0) !important;
+}
+
+/* 主按钮 */
+.universal-page-finder .ant-btn-primary {
+  background: var(--dt-color-primary-500) !important;
+  border-color: var(--dt-color-primary-500) !important;
+  color: white !important;
+}
+
+.universal-page-finder .ant-btn-primary:hover {
+  background: var(--dt-color-primary-600) !important;
+  border-color: var(--dt-color-primary-600) !important;
+}
+
+/* 默认按钮 */
+.universal-page-finder .ant-btn-default {
+  background: var(--dt-bg-surface) !important;
+  border-color: var(--dt-border-default) !important;
+  color: var(--dt-text-secondary) !important;
+}
+
+.universal-page-finder .ant-btn-default:hover {
+  background: var(--dt-bg-elevated) !important;
+  border-color: var(--dt-border-strong) !important;
+  color: var(--dt-text-primary) !important;
+}
+
+/* =============================================================================
+   卡片现代化重设计
+   ============================================================================= */
+
+.universal-page-finder .ant-card {
+  background: var(--dt-bg-surface) !important;
+  border: 1px solid var(--dt-border-subtle) !important;
+  border-radius: var(--dt-radius-xl) !important;
+  box-shadow: var(--dt-shadow-sm) !important;
+  transition: all var(--dt-duration-normal) var(--dt-ease-out) !important;
+}
+
+.universal-page-finder .ant-card:hover {
+  border-color: var(--dt-border-default) !important;
+  box-shadow: var(--dt-shadow-md) !important;
+  transform: translateY(-2px) !important;
+}
+
+.universal-page-finder .ant-card-head {
+  background: var(--dt-bg-surface) !important;
+  border-bottom: 1px solid var(--dt-border-subtle) !important;
+  border-radius: var(--dt-radius-xl) var(--dt-radius-xl) 0 0 !important;
+  padding: var(--dt-space-md) var(--dt-space-lg) !important;
+}
+
+.universal-page-finder .ant-card-head-title {
+  color: var(--dt-text-primary) !important;
+  font-size: var(--dt-text-base) !important;
+  font-weight: var(--dt-font-semibold) !important;
+}
+
+.universal-page-finder .ant-card-body {
+  padding: var(--dt-space-lg) !important;
+}
+
+/* =============================================================================
+   标签现代化重设计
+   ============================================================================= */
+
+.universal-page-finder .ant-tag {
+  border: 1px solid var(--dt-border-default) !important;
+  border-radius: var(--dt-radius-md) !important;
+  font-size: var(--dt-text-xs) !important;
+  font-weight: var(--dt-font-medium) !important;
+  padding: var(--dt-space-1) var(--dt-space-sm) !important;
+  margin: var(--dt-space-1) !important;
+  transition: all var(--dt-duration-fast) var(--dt-ease-out) !important;
+}
+
+.universal-page-finder .ant-tag-blue {
+  background: rgba(59, 130, 246, 0.1) !important;
+  border-color: rgba(59, 130, 246, 0.3) !important;
+  color: var(--dt-color-primary-600) !important;
+}
+
+.universal-page-finder .ant-tag-green {
+  background: rgba(16, 185, 129, 0.1) !important;
+  border-color: rgba(16, 185, 129, 0.3) !important;
+  color: var(--dt-device-online) !important;
+}
+
+.universal-page-finder .ant-tag-orange {
+  background: rgba(245, 158, 11, 0.1) !important;
+  border-color: rgba(245, 158, 11, 0.3) !important;
+  color: var(--dt-device-connecting) !important;
+}
+
+.universal-page-finder .ant-tag-red {
+  background: rgba(239, 68, 68, 0.1) !important;
+  border-color: rgba(239, 68, 68, 0.3) !important;
+  color: var(--dt-device-error) !important;
+}
+
+/* =============================================================================
+   列表现代化重设计
+   ============================================================================= */
+
+.universal-page-finder .ant-list {
+  background: transparent !important;
+}
+
+.universal-page-finder .ant-list-item {
+  background: var(--dt-bg-surface) !important;
+  border: 1px solid var(--dt-border-subtle) !important;
+  border-radius: var(--dt-radius-lg) !important;
+  margin-bottom: var(--dt-space-sm) !important;
+  padding: var(--dt-space-md) !important;
+  transition: all var(--dt-duration-fast) var(--dt-ease-out) !important;
+}
+
+.universal-page-finder .ant-list-item:hover {
+  background: var(--dt-bg-elevated) !important;
+  border-color: var(--dt-border-default) !important;
+  transform: translateX(4px) !important;
+  box-shadow: var(--dt-shadow-sm) !important;
+}
+
+/* =============================================================================
+   警告框现代化重设计
+   ============================================================================= */
+
+.universal-page-finder .ant-alert {
+  border-radius: var(--dt-radius-lg) !important;
+  border-width: 1px !important;
+  padding: var(--dt-space-md) !important;
+  margin-bottom: var(--dt-space-md) !important;
+}
+
+.universal-page-finder .ant-alert-info {
+  background: rgba(59, 130, 246, 0.05) !important;
+  border-color: rgba(59, 130, 246, 0.2) !important;
+  color: var(--dt-color-primary-600) !important;
+}
+
+.universal-page-finder .ant-alert-success {
+  background: rgba(16, 185, 129, 0.05) !important;
+  border-color: rgba(16, 185, 129, 0.2) !important;
+  color: var(--dt-device-online) !important;
+}
+
+.universal-page-finder .ant-alert-warning {
+  background: rgba(245, 158, 11, 0.05) !important;
+  border-color: rgba(245, 158, 11, 0.2) !important;
+  color: var(--dt-device-connecting) !important;
+}
+
+.universal-page-finder .ant-alert-error {
+  background: rgba(239, 68, 68, 0.05) !important;
+  border-color: rgba(239, 68, 68, 0.2) !important;
+  color: var(--dt-device-error) !important;
+}
+
+/* =============================================================================
+   加载器现代化重设计
+   ============================================================================= */
+
+.universal-page-finder .ant-spin {
+  color: var(--dt-color-primary-500) !important;
+}
+
+.universal-page-finder .ant-spin-dot {
+  color: var(--dt-color-primary-500) !important;
+}
+
+.universal-page-finder .ant-spin-container {
+  background: var(--dt-bg-canvas) !important;
+}
+
+/* =============================================================================
+   分割线现代化重设计
+   ============================================================================= */
+
+.universal-page-finder .ant-divider {
+  border-color: var(--dt-border-subtle) !important;
+  margin: var(--dt-space-lg) 0 !important;
+}
+
+.universal-page-finder .ant-divider-horizontal.ant-divider-with-text {
+  color: var(--dt-text-secondary) !important;
+  font-size: var(--dt-text-sm) !important;
+  font-weight: var(--dt-font-medium) !important;
+}
+
+/* =============================================================================
+   网格系统现代化重设计
+   ============================================================================= */
+
+.universal-page-finder .ant-row {
+  margin-left: calc(-1 * var(--dt-space-sm)) !important;
+  margin-right: calc(-1 * var(--dt-space-sm)) !important;
+}
+
+.universal-page-finder .ant-col {
+  padding-left: var(--dt-space-sm) !important;
+  padding-right: var(--dt-space-sm) !important;
+}
+
+/* =============================================================================
+   响应式调整
+   ============================================================================= */
+
+@media (max-width: 768px) {
+  .universal-page-finder .ant-modal-content {
+    margin: var(--dt-space-md) !important;
+    max-width: calc(100vw - 32px) !important;
+  }
+  
+  .universal-page-finder .ant-modal-header {
+    padding: var(--dt-space-md) !important;
+  }
+  
+  .universal-page-finder .ant-modal-body {
+    padding: var(--dt-space-md) !important;
+  }
+  
+  .universal-page-finder .ant-card-body {
+    padding: var(--dt-space-md) !important;
+  }
+}

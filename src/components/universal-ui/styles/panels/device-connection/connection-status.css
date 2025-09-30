@@ -1,0 +1,371 @@
+/**
+ * 连接状态组件 - 直观的状态反馈
+ * 提供清晰的视觉和动画反馈
+ */
+
+/* =============================================================================
+   连接状态设计令牌
+   ============================================================================= */
+
+:root {
+  /* 状态色彩系统 */
+  --status-online: #10b981;
+  --status-online-bg: rgba(16, 185, 129, 0.1);
+  --status-online-border: rgba(16, 185, 129, 0.3);
+  
+  --status-offline: #ef4444;
+  --status-offline-bg: rgba(239, 68, 68, 0.1);
+  --status-offline-border: rgba(239, 68, 68, 0.3);
+  
+  --status-connecting: #f59e0b;
+  --status-connecting-bg: rgba(245, 158, 11, 0.1);
+  --status-connecting-border: rgba(245, 158, 11, 0.3);
+  
+  --status-unknown: #6b7280;
+  --status-unknown-bg: rgba(107, 114, 128, 0.1);
+  --status-unknown-border: rgba(107, 114, 128, 0.3);
+  
+  /* 状态组件样式 */
+  --status-component-bg: linear-gradient(135deg, #1e293b 0%, #334155 100%);
+  --status-component-border: #475569;
+}
+
+/* =============================================================================
+   连接状态主容器
+   ============================================================================= */
+
+.connection-status-container {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-bottom: 16px;
+}
+
+.connection-status-label {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--uui-text-secondary);
+  letter-spacing: 0.025em;
+}
+
+/* =============================================================================
+   状态指示器主体
+   ============================================================================= */
+
+.connection-status {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  
+  background: var(--status-component-bg);
+  border: 2px solid var(--status-component-border);
+  border-radius: 8px;
+  padding: 12px 16px;
+  
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  position: relative;
+  overflow: hidden;
+}
+
+/* 状态特定样式 */
+.connection-status.online {
+  border-color: var(--status-online-border);
+  background: 
+    linear-gradient(135deg, 
+      rgba(16, 185, 129, 0.05) 0%, 
+      rgba(16, 185, 129, 0.02) 100%),
+    var(--status-component-bg);
+}
+
+.connection-status.offline {
+  border-color: var(--status-offline-border);
+  background: 
+    linear-gradient(135deg, 
+      rgba(239, 68, 68, 0.05) 0%, 
+      rgba(239, 68, 68, 0.02) 100%),
+    var(--status-component-bg);
+}
+
+.connection-status.connecting {
+  border-color: var(--status-connecting-border);
+  background: 
+    linear-gradient(135deg, 
+      rgba(245, 158, 11, 0.05) 0%, 
+      rgba(245, 158, 11, 0.02) 100%),
+    var(--status-component-bg);
+}
+
+.connection-status.unknown {
+  border-color: var(--status-unknown-border);
+}
+
+/* =============================================================================
+   状态指示灯
+   ============================================================================= */
+
+.status-indicator {
+  position: relative;
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+
+.status-indicator::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: 50%;
+  transition: all 0.3s ease;
+}
+
+.status-indicator::after {
+  content: '';
+  position: absolute;
+  inset: -4px;
+  border-radius: 50%;
+  opacity: 0;
+  transition: all 0.3s ease;
+}
+
+/* 在线状态 */
+.status-indicator.online::before {
+  background: var(--status-online);
+  box-shadow: 0 0 8px rgba(16, 185, 129, 0.4);
+}
+
+.status-indicator.online::after {
+  background: radial-gradient(circle, rgba(16, 185, 129, 0.3) 0%, transparent 70%);
+  animation: pulse-online 2s infinite;
+}
+
+@keyframes pulse-online {
+  0% { opacity: 0; transform: scale(0.8); }
+  50% { opacity: 1; transform: scale(1.2); }
+  100% { opacity: 0; transform: scale(1.4); }
+}
+
+/* 离线状态 */
+.status-indicator.offline::before {
+  background: var(--status-offline);
+  box-shadow: 0 0 6px rgba(239, 68, 68, 0.3);
+}
+
+/* 连接中状态 */
+.status-indicator.connecting::before {
+  background: var(--status-connecting);
+  animation: pulse-connecting-dot 1.5s infinite;
+}
+
+@keyframes pulse-connecting-dot {
+  0%, 100% { 
+    box-shadow: 0 0 0 0 rgba(245, 158, 11, 0.4);
+    transform: scale(1);
+  }
+  50% { 
+    box-shadow: 0 0 0 6px rgba(245, 158, 11, 0);
+    transform: scale(1.1);
+  }
+}
+
+/* 未知状态 */
+.status-indicator.unknown::before {
+  background: var(--status-unknown);
+  opacity: 0.6;
+}
+
+/* =============================================================================
+   状态文本信息
+   ============================================================================= */
+
+.status-content {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.status-text {
+  font-size: 14px;
+  font-weight: 600;
+  line-height: 1.2;
+  transition: color 0.3s ease;
+}
+
+.status-text.online {
+  color: var(--status-online);
+}
+
+.status-text.offline {
+  color: var(--status-offline);
+}
+
+.status-text.connecting {
+  color: var(--status-connecting);
+}
+
+.status-text.unknown {
+  color: var(--status-unknown);
+}
+
+.status-details {
+  font-size: 12px;
+  color: var(--uui-text-tertiary);
+  line-height: 1.3;
+}
+
+/* =============================================================================
+   状态徽章
+   ============================================================================= */
+
+.status-badge {
+  padding: 4px 8px;
+  border-radius: 12px;
+  font-size: 11px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.025em;
+  flex-shrink: 0;
+  border: 1px solid;
+}
+
+.status-badge.online {
+  background: var(--status-online-bg);
+  color: var(--status-online);
+  border-color: var(--status-online-border);
+}
+
+.status-badge.offline {
+  background: var(--status-offline-bg);
+  color: var(--status-offline);
+  border-color: var(--status-offline-border);
+}
+
+.status-badge.connecting {
+  background: var(--status-connecting-bg);
+  color: var(--status-connecting);
+  border-color: var(--status-connecting-border);
+  animation: badge-pulse 2s infinite;
+}
+
+@keyframes badge-pulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.7; }
+}
+
+.status-badge.unknown {
+  background: var(--status-unknown-bg);
+  color: var(--status-unknown);
+  border-color: var(--status-unknown-border);
+}
+
+/* =============================================================================
+   紧凑状态组件（用于小空间）
+   ============================================================================= */
+
+.connection-status-compact {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 8px;
+  border-radius: 16px;
+  font-size: 12px;
+  font-weight: 500;
+}
+
+.connection-status-compact .status-indicator {
+  width: 8px;
+  height: 8px;
+}
+
+.connection-status-compact .status-indicator::after {
+  inset: -2px;
+}
+
+/* =============================================================================
+   状态历史和时间戳
+   ============================================================================= */
+
+.status-timestamp {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  margin-top: 4px;
+  font-size: 11px;
+  color: var(--uui-text-muted);
+}
+
+.status-timestamp-icon {
+  width: 12px;
+  height: 12px;
+  opacity: 0.7;
+}
+
+/* =============================================================================
+   状态转换动画
+   ============================================================================= */
+
+.connection-status {
+  animation-duration: 0.5s;
+  animation-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.connection-status.status-changed {
+  animation-name: status-change;
+}
+
+@keyframes status-change {
+  0% { transform: scale(1); }
+  50% { transform: scale(1.02); }
+  100% { transform: scale(1); }
+}
+
+/* =============================================================================
+   多设备状态概览
+   ============================================================================= */
+
+.multi-device-status {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 8px;
+}
+
+.device-status-mini {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  padding: 4px 8px;
+  border-radius: 6px;
+  background: var(--uui-bg-tertiary);
+  border: 1px solid var(--uui-border-subtle);
+  font-size: 11px;
+}
+
+.device-status-mini .status-indicator {
+  width: 6px;
+  height: 6px;
+}
+
+/* =============================================================================
+   响应式设计
+   ============================================================================= */
+
+@media (max-width: 768px) {
+  .connection-status {
+    padding: 10px 12px;
+    gap: 10px;
+  }
+  
+  .status-content {
+    gap: 2px;
+  }
+  
+  .status-text {
+    font-size: 13px;
+  }
+  
+  .status-details {
+    font-size: 11px;
+  }
+}

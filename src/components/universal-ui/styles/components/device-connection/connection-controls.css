@@ -1,0 +1,406 @@
+/**
+ * 连接控制组件 - 设备连接管理按钮组
+ * 专注于直观的连接状态管理和快速操作
+ */
+
+/* =============================================================================
+   连接控制容器
+   ============================================================================= */
+
+.connection-controls {
+  display: flex;
+  align-items: center;
+  gap: var(--dt-space-sm);
+  margin-top: var(--dt-space-md);
+}
+
+.connection-controls-group {
+  display: flex;
+  align-items: center;
+  gap: var(--dt-space-xs);
+}
+
+/* =============================================================================
+   主要操作按钮（刷新、重连）
+   ============================================================================= */
+
+.connection-btn {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--dt-space-xs);
+  
+  min-height: var(--dt-button-height);
+  padding: 0 var(--dt-space-md);
+  
+  font-size: var(--dt-text-sm);
+  font-weight: var(--dt-font-medium);
+  line-height: var(--dt-leading-normal);
+  
+  background: var(--dt-bg-surface);
+  border: 2px solid var(--dt-border-default);
+  border-radius: var(--dt-radius-lg);
+  color: var(--dt-text-secondary);
+  
+  cursor: pointer;
+  transition: all var(--dt-duration-normal) var(--dt-ease-out);
+  white-space: nowrap;
+  user-select: none;
+  
+  box-shadow: var(--dt-shadow-sm);
+}
+
+.connection-btn:hover {
+  background: var(--dt-bg-elevated);
+  border-color: var(--dt-border-strong);
+  color: var(--dt-text-primary);
+  transform: translateY(-1px);
+  box-shadow: var(--dt-shadow-md);
+}
+
+.connection-btn:active {
+  transform: translateY(0);
+  box-shadow: var(--dt-shadow-sm);
+}
+
+.connection-btn:focus {
+  outline: none;
+  border-color: var(--dt-border-focus);
+  box-shadow: 
+    0 0 0 4px rgba(59, 130, 246, 0.1),
+    var(--dt-shadow-sm);
+}
+
+/* 按钮禁用状态 */
+.connection-btn:disabled {
+  background: var(--dt-bg-canvas);
+  border-color: var(--dt-border-subtle);
+  color: var(--dt-text-disabled);
+  cursor: not-allowed;
+  transform: none;
+  box-shadow: none;
+}
+
+/* =============================================================================
+   按钮变体 - 主要操作
+   ============================================================================= */
+
+.connection-btn.primary {
+  background: var(--dt-color-primary-500);
+  border-color: var(--dt-color-primary-500);
+  color: white;
+}
+
+.connection-btn.primary:hover {
+  background: var(--dt-color-primary-600);
+  border-color: var(--dt-color-primary-600);
+  color: white;
+}
+
+.connection-btn.primary:focus {
+  border-color: var(--dt-color-primary-400);
+  box-shadow: 
+    0 0 0 4px rgba(59, 130, 246, 0.2),
+    var(--dt-shadow-sm);
+}
+
+/* =============================================================================
+   按钮变体 - 成功状态
+   ============================================================================= */
+
+.connection-btn.success {
+  background: var(--dt-device-online);
+  border-color: var(--dt-device-online);
+  color: white;
+}
+
+.connection-btn.success:hover {
+  background: rgb(5, 150, 105);
+  border-color: rgb(5, 150, 105);
+}
+
+/* =============================================================================
+   按钮变体 - 警告状态
+   ============================================================================= */
+
+.connection-btn.warning {
+  background: var(--dt-device-connecting);
+  border-color: var(--dt-device-connecting);
+  color: var(--dt-text-primary);
+}
+
+.connection-btn.warning:hover {
+  background: rgb(217, 119, 6);
+  border-color: rgb(217, 119, 6);
+  color: white;
+}
+
+/* =============================================================================
+   按钮变体 - 危险操作
+   ============================================================================= */
+
+.connection-btn.danger {
+  background: transparent;
+  border-color: var(--dt-device-error);
+  color: var(--dt-device-error);
+}
+
+.connection-btn.danger:hover {
+  background: var(--dt-device-error);
+  border-color: var(--dt-device-error);
+  color: white;
+}
+
+/* =============================================================================
+   按钮图标
+   ============================================================================= */
+
+.connection-btn-icon {
+  width: 16px;
+  height: 16px;
+  flex-shrink: 0;
+}
+
+/* 加载状态图标旋转 */
+.connection-btn-icon.loading {
+  animation: btn-icon-spin 1s linear infinite;
+}
+
+@keyframes btn-icon-spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+
+/* =============================================================================
+   加载状态按钮
+   ============================================================================= */
+
+.connection-btn.loading {
+  pointer-events: none;
+  position: relative;
+}
+
+.connection-btn.loading::after {
+  content: '';
+  position: absolute;
+  inset: 2px;
+  border-radius: calc(var(--dt-radius-lg) - 2px);
+  background: inherit;
+  opacity: 0.8;
+  
+  /* 渐变加载效果 */
+  background-image: linear-gradient(
+    90deg,
+    transparent,
+    rgba(255, 255, 255, 0.2),
+    transparent
+  );
+  background-size: 200% 100%;
+  animation: btn-loading-shimmer 1.5s infinite;
+}
+
+@keyframes btn-loading-shimmer {
+  0% { background-position: -200% 0; }
+  100% { background-position: 200% 0; }
+}
+
+/* =============================================================================
+   连接状态指示器
+   ============================================================================= */
+
+.connection-status {
+  display: flex;
+  align-items: center;
+  gap: var(--dt-space-xs);
+  padding: var(--dt-space-xs) var(--dt-space-sm);
+  border-radius: var(--dt-radius-md);
+  font-size: var(--dt-text-xs);
+  font-weight: var(--dt-font-medium);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.connection-status-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+
+/* 连接状态变体 */
+.connection-status.online {
+  background: rgba(16, 185, 129, 0.1);
+  color: var(--dt-device-online);
+  border: 1px solid rgba(16, 185, 129, 0.2);
+}
+
+.connection-status.online .connection-status-dot {
+  background: var(--dt-device-online);
+  box-shadow: 0 0 4px rgba(16, 185, 129, 0.4);
+}
+
+.connection-status.offline {
+  background: rgba(107, 114, 128, 0.1);
+  color: var(--dt-device-offline);
+  border: 1px solid rgba(107, 114, 128, 0.2);
+}
+
+.connection-status.offline .connection-status-dot {
+  background: var(--dt-device-offline);
+}
+
+.connection-status.connecting {
+  background: rgba(245, 158, 11, 0.1);
+  color: var(--dt-device-connecting);
+  border: 1px solid rgba(245, 158, 11, 0.2);
+}
+
+.connection-status.connecting .connection-status-dot {
+  background: var(--dt-device-connecting);
+  animation: status-dot-pulse 1s infinite;
+}
+
+@keyframes status-dot-pulse {
+  0%, 100% { 
+    opacity: 1;
+    transform: scale(1);
+  }
+  50% { 
+    opacity: 0.7;
+    transform: scale(1.1);
+  }
+}
+
+/* =============================================================================
+   工具提示增强
+   ============================================================================= */
+
+.connection-controls [data-tooltip] {
+  position: relative;
+}
+
+.connection-controls [data-tooltip]:hover::after {
+  content: attr(data-tooltip);
+  position: absolute;
+  bottom: calc(100% + var(--dt-space-xs));
+  left: 50%;
+  transform: translateX(-50%);
+  
+  padding: var(--dt-space-xs) var(--dt-space-sm);
+  background: var(--dt-bg-overlay);
+  color: white;
+  font-size: var(--dt-text-xs);
+  font-weight: var(--dt-font-medium);
+  border-radius: var(--dt-radius-md);
+  white-space: nowrap;
+  z-index: var(--dt-z-tooltip);
+  
+  opacity: 0;
+  animation: tooltip-fade-in var(--dt-duration-fast) var(--dt-ease-out) forwards;
+}
+
+@keyframes tooltip-fade-in {
+  0% {
+    opacity: 0;
+    transform: translateX(-50%) translateY(4px);
+  }
+  100% {
+    opacity: 1;
+    transform: translateX(-50%) translateY(0);
+  }
+}
+
+/* =============================================================================
+   紧凑模式
+   ============================================================================= */
+
+.connection-controls.compact {
+  gap: var(--dt-space-xs);
+}
+
+.connection-controls.compact .connection-btn {
+  min-height: 32px;
+  padding: 0 var(--dt-space-sm);
+  font-size: var(--dt-text-xs);
+}
+
+.connection-controls.compact .connection-btn-icon {
+  width: 14px;
+  height: 14px;
+}
+
+.connection-controls.compact .connection-status {
+  padding: var(--dt-space-1) var(--dt-space-xs);
+  font-size: 10px;
+}
+
+.connection-controls.compact .connection-status-dot {
+  width: 6px;
+  height: 6px;
+}
+
+/* =============================================================================
+   响应式设计
+   ============================================================================= */
+
+@media (max-width: 768px) {
+  .connection-controls {
+    flex-wrap: wrap;
+    gap: var(--dt-space-xs);
+  }
+  
+  .connection-btn {
+    min-height: 40px;
+    padding: 0 var(--dt-space-sm);
+    font-size: var(--dt-text-xs);
+  }
+  
+  .connection-btn-icon {
+    width: 14px;
+    height: 14px;
+  }
+  
+  /* 在小屏幕上隐藏按钮文字，只显示图标 */
+  .connection-btn.icon-only .connection-btn-text {
+    display: none;
+  }
+}
+
+/* =============================================================================
+   高对比度支持
+   ============================================================================= */
+
+@media (prefers-contrast: high) {
+  .connection-btn {
+    border-width: 3px;
+  }
+  
+  .connection-btn:focus {
+    box-shadow: 
+      0 0 0 4px var(--dt-border-focus),
+      var(--dt-shadow-sm);
+  }
+  
+  .connection-status {
+    border-width: 2px;
+  }
+}
+
+/* =============================================================================
+   减少动效支持
+   ============================================================================= */
+
+@media (prefers-reduced-motion: reduce) {
+  .connection-btn,
+  .connection-btn-icon,
+  .connection-status-dot {
+    transition: none;
+    animation: none;
+  }
+  
+  .connection-btn.loading::after {
+    animation: none;
+    background: rgba(255, 255, 255, 0.2);
+  }
+}

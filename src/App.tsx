@@ -1,6 +1,8 @@
 import React, { useEffect, useState } from "react";
 import { isTauri } from '@tauri-apps/api/core';
-import "./style.css";
+// 导入现代化设计系统和增强主题样式
+import "./styles/modern.css";
+import "./styles/enhanced-theme.css";
 
 function App() {
   const [tauriReady, setTauriReady] = useState(false);
@@ -83,11 +85,7 @@ function App() {
   }
 
   if (FullApp) {
-    return (
-      <div className="dark-theme">
-        <FullApp />
-      </div>
-    );
+    return <FullApp />;
   }
 
   return (

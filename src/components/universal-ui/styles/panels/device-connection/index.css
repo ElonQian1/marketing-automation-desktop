@@ -1,0 +1,210 @@
+/**
+ * 设备连接面板模块 - 样式聚合入口
+ * 整合所有设备连接相关组件样式
+ */
+
+/* =============================================================================
+   设备连接面板模块导入
+   ============================================================================= */
+
+/* 1. 设备选择器组件 - 核心交互元素 */
+@import './device-selector.css';
+
+/* 2. 连接状态组件 - 状态反馈系统 */
+@import './connection-status.css';
+
+/* 3. 设备连接面板 - 主面板容器 */
+@import './device-connection-panel.css';
+
+/* =============================================================================
+   面板模块全局增强
+   ============================================================================= */
+
+/* 设备连接区域的统一容器 */
+.universal-page-finder .device-connection-section {
+  /* 为设备连接区域提供特殊标识 */
+  position: relative;
+  margin-bottom: 24px;
+}
+
+/* 设备连接区域标题增强 */
+.universal-page-finder .device-section-title {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--uui-text-primary);
+  margin-bottom: 12px;
+  padding-bottom: 8px;
+  border-bottom: 2px solid var(--device-panel-accent);
+}
+
+.universal-page-finder .device-section-icon {
+  width: 18px;
+  height: 18px;
+  color: var(--device-panel-accent);
+}
+
+/* =============================================================================
+   与Ant Design组件的集成
+   ============================================================================= */
+
+/* 增强 Ant Design Select 组件样式 */
+.universal-page-finder .ant-select.device-selector-antd {
+  width: 100%;
+  min-height: 44px;
+}
+
+.universal-page-finder .ant-select.device-selector-antd .ant-select-selector {
+  background: var(--device-selector-bg) !important;
+  border: 2px solid var(--device-selector-border) !important;
+  border-radius: 8px !important;
+  padding: 8px 12px !important;
+  min-height: 44px !important;
+  color: var(--device-option-text) !important;
+}
+
+.universal-page-finder .ant-select.device-selector-antd:hover .ant-select-selector {
+  border-color: var(--device-selector-border-hover) !important;
+}
+
+.universal-page-finder .ant-select.device-selector-antd.ant-select-focused .ant-select-selector {
+  border-color: var(--device-selector-border-focus) !important;
+  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1) !important;
+}
+
+/* 下拉框样式 */
+.device-selector-dropdown.ant-select-dropdown {
+  background: var(--device-dropdown-bg) !important;
+  border: 2px solid var(--device-dropdown-border) !important;
+  border-radius: 8px !important;
+  box-shadow: var(--device-dropdown-shadow) !important;
+}
+
+.device-selector-dropdown .ant-select-item {
+  color: var(--device-option-text) !important;
+  padding: 12px 16px !important;
+}
+
+.device-selector-dropdown .ant-select-item-option-selected {
+  background: var(--device-option-bg-selected) !important;
+  color: var(--device-option-text-selected) !important;
+}
+
+.device-selector-dropdown .ant-select-item:hover {
+  background: var(--device-option-bg-hover) !important;
+}
+
+/* =============================================================================
+   响应式布局增强
+   ============================================================================= */
+
+@media (max-width: 768px) {
+  .universal-page-finder .device-connection-section {
+    margin-bottom: 20px;
+  }
+  
+  .universal-page-finder .device-section-title {
+    font-size: 13px;
+    margin-bottom: 10px;
+  }
+}
+
+/* =============================================================================
+   设备连接面板的特殊动画
+   ============================================================================= */
+
+/* 面板初始化动画 */
+.device-connection-panel {
+  animation: panel-fade-in 0.6s cubic-bezier(0.4, 0, 0.2, 1) backwards;
+}
+
+@keyframes panel-fade-in {
+  0% {
+    opacity: 0;
+    transform: translateY(20px) scale(0.95);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+/* 设备状态变化的全局动画 */
+.device-connection-panel.status-changed {
+  animation: panel-highlight 0.8s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+@keyframes panel-highlight {
+  0% { 
+    box-shadow: var(--device-panel-shadow);
+  }
+  50% { 
+    box-shadow: 
+      var(--device-panel-shadow-focus),
+      0 0 20px rgba(59, 130, 246, 0.2);
+  }
+  100% { 
+    box-shadow: var(--device-panel-shadow);
+  }
+}
+
+/* =============================================================================
+   无障碍访问增强
+   ============================================================================= */
+
+/* 高对比度模式支持 */
+@media (prefers-contrast: high) {
+  .device-connection-panel {
+    border-width: 3px;
+  }
+  
+  .device-selector {
+    border-width: 3px;
+  }
+  
+  .connection-status {
+    border-width: 3px;
+  }
+}
+
+/* 减少动画偏好支持 */
+@media (prefers-reduced-motion: reduce) {
+  .panel-fade-in,
+  .panel-highlight,
+  .status-changed {
+    animation: none;
+  }
+}
+
+/* =============================================================================
+   模块导出说明
+   ============================================================================= */
+
+/*
+  设备连接面板模块包含以下组件：
+  
+  1. device-selector.css - 设备选择器组件
+     - 现代化下拉选择器
+     - 设备状态指示
+     - 响应式设计
+  
+  2. connection-status.css - 连接状态组件
+     - 状态指示灯动画
+     - 多种状态支持（在线/离线/连接中）
+     - 紧凑和完整两种展示模式
+  
+  3. device-connection-panel.css - 主面板容器
+     - 渐变背景和阴影
+     - 操作按钮样式
+     - 设备信息展示
+  
+  使用方法：
+  @import 'panels/device-connection/index.css';
+  
+  或者在HTML中添加对应的CSS类名：
+  - .device-connection-panel
+  - .device-selector
+  - .connection-status
+*/

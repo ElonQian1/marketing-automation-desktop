@@ -1,0 +1,37 @@
+/* AntD Table */
+.ant-table-wrapper { border-radius: var(--radius-lg) !important; overflow: hidden !important; border: 1px solid var(--color-border) !important; }
+.ant-table { background-color: var(--color-surface) !important; }
+.ant-table-thead > tr > th { background-color: var(--color-bg-secondary) !important; color: var(--color-text-primary) !important; font-weight: var(--font-weight-semibold) !important; border-bottom: 1px solid var(--color-border) !important; padding: var(--space-4) !important; }
+.ant-table-tbody > tr > td { color: var(--color-text-secondary) !important; border-bottom: 1px solid var(--color-border) !important; padding: var(--space-4) !important; }
+.ant-table-tbody > tr:hover > td { background-color: var(--color-surface-hover) !important; }
+.ant-table-tbody > tr:last-child > td { border-bottom: none !important; }
+
+/* AntD Tag */
+.ant-tag { border-radius: var(--radius-base) !important; font-weight: var(--font-weight-medium) !important; font-size: var(--text-xs) !important; padding: var(--space-1) var(--space-2) !important; line-height: 1.4 !important; border: 1px solid !important; }
+.ant-tag-blue { background-color: var(--color-primary-100) !important; color: var(--color-primary-800) !important; border-color: var(--color-primary-200) !important; }
+.ant-tag-green { background-color: color-mix(in srgb, var(--color-success) 18%, transparent) !important; color: var(--color-success) !important; border-color: color-mix(in srgb, var(--color-success) 40%, transparent) !important; }
+.ant-tag-orange { background-color: color-mix(in srgb, var(--color-warning) 18%, transparent) !important; color: var(--color-warning) !important; border-color: color-mix(in srgb, var(--color-warning) 40%, transparent) !important; }
+.ant-tag-red { background-color: color-mix(in srgb, var(--color-error) 18%, transparent) !important; color: var(--color-error) !important; border-color: color-mix(in srgb, var(--color-error) 40%, transparent) !important; }
+
+/* AntD Message */
+.ant-message { top: 24px !important; }
+.ant-message-notice { border-radius: var(--radius-lg) !important; box-shadow: var(--shadow-lg) !important; border: 1px solid var(--color-border) !important; }
+.ant-message-notice-content { background-color: var(--color-surface) !important; color: var(--color-text-primary) !important; border-radius: var(--radius-lg) !important; padding: var(--space-4) var(--space-5) !important; }
+
+/* AntD Notification */
+.ant-notification { top: 24px !important; right: 24px !important; }
+.ant-notification-notice { background-color: var(--color-surface) !important; border: 1px solid var(--color-border) !important; border-radius: var(--radius-lg) !important; box-shadow: var(--shadow-lg) !important; padding: var(--space-5) !important; }
+.ant-notification-notice-message { color: var(--color-text-primary) !important; font-weight: var(--font-weight-semibold) !important; }
+.ant-notification-notice-description { color: var(--color-text-secondary) !important; }
+
+/* AntD Drawer */
+.ant-drawer-mask { background-color: rgba(0, 0, 0, 0.5) !important; backdrop-filter: blur(4px) !important; }
+.ant-drawer-content-wrapper { box-shadow: var(--shadow-2xl) !important; }
+.ant-drawer-content { background-color: var(--color-surface) !important; }
+.ant-drawer-header { background-color: var(--color-bg-secondary) !important; border-bottom: 1px solid var(--color-border) !important; padding: var(--space-6) !important; }
+.ant-drawer-title { color: var(--color-text-primary) !important; font-weight: var(--font-weight-semibold) !important; font-size: var(--text-lg) !important; }
+.ant-drawer-body { padding: var(--space-6) !important; }
+
+/* AntD Menu */
+.ant-menu { background-color: transparent !important; border: none !important; font-family: var(--font-family-sans) !important; }
+.ant-menu-item { color: var(--color-text-secondary) !important; margin: var(--space-1) 0 !important; border-radius: 0 var(--radius-lg) var(--radius-lg) 0 !important; margin-right: var(--space-4) !important; height: auto !important; line-height: 1.5 !important; padding: var(--space-3) var(--space-6) !important; }

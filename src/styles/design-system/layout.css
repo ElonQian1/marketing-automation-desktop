@@ -7,7 +7,7 @@
 .modern-app {
   min-height: 100vh;
   display: flex;
-  flex-direction: column;
+  flex-direction: row; /* 水平布局：侧边栏 + 主内容 */
   font-family: var(--font-family-sans);
   background-color: var(--color-bg-primary);
   color: var(--color-text-primary);
@@ -68,6 +68,7 @@
 .modern-main {
   flex: 1;
   display: flex;
+  flex-direction: column; /* 垂直布局：头部 + 内容 */
   overflow: hidden;
 }
 
@@ -92,6 +93,44 @@
   background-color: var(--color-bg-secondary);
 }
 
+/* ===== 品牌区域 ===== */
+.modern-brand {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+}
+
+.modern-brand-icon {
+  width: 40px;
+  height: 40px;
+  border-radius: var(--radius-xl);
+  background: linear-gradient(135deg, var(--color-primary-500), var(--color-secondary-500));
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: var(--text-xl);
+  box-shadow: var(--shadow-sm);
+}
+
+.modern-brand-text {
+  flex: 1;
+}
+
+.modern-brand-title {
+  margin: 0;
+  font-size: var(--text-base);
+  font-weight: var(--font-weight-semibold);
+  color: var(--color-text-primary);
+  line-height: 1.2;
+}
+
+.modern-brand-subtitle {
+  margin: 0;
+  font-size: var(--text-xs);
+  color: var(--color-text-muted);
+  line-height: 1.2;
+}
+
 .modern-sidebar-content {
   flex: 1;
   padding: var(--space-4) 0;
@@ -113,9 +152,10 @@
 
 .modern-nav-item {
   margin-bottom: var(--space-1);
-}
-
-.modern-nav-link {
+  width: 100%;
+  background: transparent;
+  border: none;
+  cursor: pointer;
   display: flex;
   align-items: center;
   gap: var(--space-3);
@@ -127,21 +167,22 @@
   margin-right: var(--space-4);
   transition: all var(--transition-base);
   position: relative;
+  font-size: var(--text-sm);
 }
 
-.modern-nav-link:hover {
+.modern-nav-item:hover {
   background-color: var(--color-surface-hover);
   color: var(--color-text-primary);
   transform: translateX(4px);
 }
 
-.modern-nav-link.active {
+.modern-nav-item.active {
   background-color: var(--color-primary-50);
   color: var(--color-primary-700);
   box-shadow: var(--shadow-sm);
 }
 
-.modern-nav-link.active::before {
+.modern-nav-item.active::before {
   content: '';
   position: absolute;
   left: 0;
@@ -152,9 +193,26 @@
   border-radius: 0 var(--radius-base) var(--radius-base) 0;
 }
 
-[data-theme="dark"] .modern-nav-link.active {
-  background-color: var(--color-primary-900);
-  color: var(--color-primary-300);
+[data-theme="dark"] .modern-nav-item.active {
+  background-color: color-mix(in oklab, var(--color-primary-900) 85%, black);
+  color: var(--color-primary-200);
+}
+
+.modern-nav-item:hover .modern-nav-icon {
+  color: var(--color-accent-600);
+}
+
+.modern-nav-icon {
+  width: 20px;
+  height: 20px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.modern-nav-label {
+  flex: 1;
+  text-align: left;
 }
 
 .modern-nav-icon {
@@ -392,6 +450,115 @@
   .modern-sidebar {
     border-width: 2px;
   }
+}
+
+/* ===== 现代仪表板布局 ===== */
+.modern-dashboard {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-6);
+  animation: fadeIn 0.5s ease-out;
+}
+
+.modern-stats-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: var(--space-4);
+  margin-bottom: var(--space-6);
+}
+
+.modern-stat-card {
+  border-radius: var(--radius-lg) !important;
+  border: 1px solid var(--color-border) !important;
+  background: var(--color-surface) !important;
+  box-shadow: var(--shadow-sm) !important;
+  transition: all var(--transition-base) !important;
+}
+
+.modern-stat-card:hover {
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-md) !important;
+}
+
+.modern-progress-card {
+  border-radius: var(--radius-lg) !important;
+  border: 1px solid var(--color-border) !important;
+  background: var(--color-surface) !important;
+  box-shadow: var(--shadow-sm) !important;
+}
+
+.modern-progress-list {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+}
+
+.modern-progress-item {
+  display: flex;
+  flex-direction: column;
+}
+
+.progress-label {
+  font-weight: var(--font-weight-medium);
+  color: var(--color-text-primary);
+}
+
+.progress-value {
+  font-size: var(--text-sm);
+  color: var(--color-text-secondary);
+}
+
+.modern-link-btn {
+  color: var(--color-primary-600) !important;
+  font-weight: var(--font-weight-medium) !important;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* ===== 现代头部样式增强 ===== */
+.modern-header-title h2 {
+  margin: 0;
+  font-size: var(--text-xl);
+  font-weight: var(--font-weight-semibold);
+  color: var(--color-text-primary);
+}
+
+.modern-header-actions {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+}
+
+.modern-theme-switch {
+  border-radius: var(--radius-full) !important;
+}
+
+.modern-action-btn {
+  border-radius: var(--radius-md) !important;
+  font-weight: var(--font-weight-medium) !important;
+}
+
+.modern-refresh-btn {
+  border-radius: var(--radius-md) !important;
+}
+
+.modern-badge .ant-badge-count {
+  background: var(--color-primary-500) !important;
+  border-color: var(--color-primary-500) !important;
+}
+
+.modern-avatar {
+  background: var(--color-secondary-500) !important;
+  border: 2px solid var(--color-border) !important;
 }
 
 /* 打印样式 */

@@ -6,15 +6,7 @@ import {
     ThunderboltOutlined,
     UserOutlined
 } from '@ant-design/icons';
-import {
-    Alert,
-    Badge,
-    Button,
-    Card,
-    ConfigProvider,
-    Space,
-    theme
-} from 'antd';
+import { Alert, Badge, Button, Card, Space, theme } from 'antd';
 import React from 'react';
 
 interface ModernDashboardProps {
@@ -32,6 +24,7 @@ export const ModernDashboard: React.FC<ModernDashboardProps> = ({
   onPageChange,
   balance
 }) => {
+  const { token } = theme.useToken();
   const navigation = [
     {
       key: 'devices',
@@ -71,32 +64,7 @@ export const ModernDashboard: React.FC<ModernDashboardProps> = ({
   ];
 
   return (
-    <ConfigProvider
-      theme={{
-        algorithm: theme.darkAlgorithm,
-        token: {
-          colorPrimary: '#ff6b8a',
-          colorBgContainer: '#161b22',
-          colorBgElevated: '#21262d',
-          borderRadius: 16,
-          colorText: '#f0f6fc',
-          colorTextSecondary: '#8b949e',
-          colorBorder: '#30363d',
-        },
-        components: {
-          Card: {
-            colorBgContainer: 'rgba(255, 255, 255, 0.05)',
-            colorBorder: 'rgba(255, 255, 255, 0.1)',
-          },
-          Button: {
-            borderRadius: 12,
-            controlHeight: 40,
-            fontWeight: 600,
-          }
-        }
-      }}
-    >
-      <div className="p-6 min-h-screen" style={{ background: 'var(--bg-primary)' }}>
+      <div className="p-6 min-h-screen" style={{ background: token.colorBgLayout }}>
         {/* 顶部欢迎区域 */}
         <Card
           className="mb-6"
@@ -238,7 +206,6 @@ export const ModernDashboard: React.FC<ModernDashboardProps> = ({
           }}
         />
       </div>
-    </ConfigProvider>
   );
 };
 

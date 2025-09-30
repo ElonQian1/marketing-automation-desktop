@@ -5,6 +5,7 @@
 
 import React, { useState, useEffect } from "react";
 import "./UniversalPageFinder.css";
+import "./styles/universal-ui-integration.css";
 import {
   Modal,
   Button,
@@ -112,8 +113,8 @@ import {
 import { saveLatestMatching } from "./views/grid-view/matchingCache";
 import type { MatchCriteria as UIMatchCriteria } from "./views/grid-view/panels/node-detail/types";
 import {
-  useElementSelectionManager,
-  ElementSelectionPopover,
+  useEnhancedElementSelectionManager,
+  EnhancedSelectionPopover,
 } from "./element-selection";
 // 抽离的属性匹配服务
 import { pickByAttributes } from "./page-finder/services/pickByAttributes";
@@ -218,13 +219,22 @@ const UniversalPageFinderModal: React.FC<UniversalPageFinderModalProps> = ({
 
   // elements/categories 已上移
 
-  // 使用新的元素选择管理器
-  const selectionManager = useElementSelectionManager(
+  // 使用增强的元素选择管理器（支持父子元素选择）
+  const selectionManager = useEnhancedElementSelectionManager(
     uiElements,
     async (selectedElement) => {
       console.log("✅ 用户确认选择元素:", selectedElement);
       // 统一走增强元素构建逻辑，确保带上 xmlContent/xmlCacheId 等上下文
       await handleSmartElementSelect(selectedElement as any);
+    },
+    async (alternative) => {
+      console.log("✅ 用户选择替代元素:", alternative);
+      // 处理替代元素选择，使用 node.element
+      await handleSmartElementSelect(alternative.node.element as any);
+    },
+    {
+      enableAlternatives: true,
+      allElements: uiElements // 🆕 传递所有元素用于构建层次结构
     }
   );
   // 统一化的元素选择 Hook
@@ -324,8 +334,9 @@ const UniversalPageFinderModal: React.FC<UniversalPageFinderModalProps> = ({
     setLoading(true);
     try {
       // 首先获取XML内容
-      const xmlContent = await UniversalUIAPI.analyzeUniversalUIPage(device);
-      setCurrentXmlContent(xmlContent);
+  const capture = await UniversalUIAPI.analyzeUniversalUIPage(device);
+  const xmlStr = capture.xmlContent;
+  setCurrentXmlContent(xmlStr);
 
       // 🆕 通知父组件XML内容已更新
       if (onXmlContentUpdated) {
@@ -340,12 +351,12 @@ const UniversalPageFinderModal: React.FC<UniversalPageFinderModalProps> = ({
           pageType: "分析页面",
           elementCount: 0, // 会在解析后更新
         };
-        onXmlContentUpdated(xmlContent, deviceInfo, pageInfo);
+  onXmlContentUpdated(xmlStr, deviceInfo, pageInfo);
 
         // 🆕 预先构建一次快照（元素数量稍后更新，不影响核心）
         {
           const snap = buildSnapshotIfPossible(
-            xmlContent,
+            xmlStr,
             deviceInfo,
             pageInfo as any
           );
@@ -363,7 +374,7 @@ const UniversalPageFinderModal: React.FC<UniversalPageFinderModalProps> = ({
       const xmlCacheManager = XmlCacheManager.getInstance();
       const cacheEntry = {
         cacheId: uniqueCacheId,
-        xmlContent: xmlContent,
+        xmlContent: xmlStr,
         deviceId: device,
         deviceName: devices.find((d) => d.id === device)?.name || device,
         timestamp: Date.now(),
@@ -376,21 +387,21 @@ const UniversalPageFinderModal: React.FC<UniversalPageFinderModalProps> = ({
         },
       };
 
-      xmlCacheManager.cacheXmlPage(cacheEntry);
+  xmlCacheManager.cacheXmlPage(cacheEntry);
 
       console.log("✅ XML页面已缓存:", uniqueCacheId);
 
       // 然后提取元素
-      const elements = await UniversalUIAPI.extractPageElements(xmlContent);
-      setUIElements(elements);
+  const uiList = await UniversalUIAPI.extractPageElements(xmlStr);
+  setUIElements(uiList);
 
       // 更新缓存条目的元素数量
-      cacheEntry.pageInfo.elementCount = elements.length;
+  cacheEntry.pageInfo.elementCount = uiList.length;
 
       // 🆕 使用新的模块化XML解析功能解析视觉元素
-      if (xmlContent) {
+      if (xmlStr) {
         try {
-          const parseResult = parseXML(xmlContent);
+          const parseResult = parseXML(xmlStr);
           setElements(parseResult.elements);
           setCategories(parseResult.categories);
           console.log("🚀 新模块化XML解析完成:", {
@@ -413,7 +424,7 @@ const UniversalPageFinderModal: React.FC<UniversalPageFinderModalProps> = ({
               elementCount: parseResult.elements.length,
             } as any;
             const snap = buildSnapshotIfPossible(
-              xmlContent,
+              xmlStr,
               deviceInfo,
               pageInfo
             );
@@ -430,7 +441,7 @@ const UniversalPageFinderModal: React.FC<UniversalPageFinderModalProps> = ({
       if (snapshotOnlyMode && onSnapshotCaptured) {
         try {
           const snapshot: XmlSnapshot = createXmlSnapshot(
-            xmlContent,
+            xmlStr,
             {
               deviceId: cacheEntry.deviceId,
               deviceName: cacheEntry.deviceName,
@@ -440,7 +451,7 @@ const UniversalPageFinderModal: React.FC<UniversalPageFinderModalProps> = ({
             {
               pageTitle: cacheEntry.pageInfo?.pageTitle || "未知页面",
               pageType: cacheEntry.pageInfo?.pageType || "unknown",
-              elementCount: elements.length,
+              elementCount: uiList.length,
             }
           );
           onSnapshotCaptured(snapshot);
@@ -964,12 +975,13 @@ const UniversalPageFinderModal: React.FC<UniversalPageFinderModalProps> = ({
         </Col>
       </Row>
 
-      {/* 使用新的元素选择弹出框组件（保留模块化交互） */}
-      <ElementSelectionPopover
+      {/* 使用增强的元素选择弹出框组件（支持父子元素选择） */}
+      <EnhancedSelectionPopover
         visible={!!selectionManager.pendingSelection}
         selection={selectionManager.pendingSelection}
         onConfirm={selectionManager.confirmSelection}
         onCancel={selectionManager.hideElement}
+        onAlternativeSelected={selectionManager.selectAlternative}
       />
     </Modal>
   );

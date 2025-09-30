@@ -1,0 +1,392 @@
+/**
+ * Universal UI 智能页面查找器 - 主样式文件
+ * 现代化重新设计 - 解决单一色调问题，建立清晰的视觉层次
+ * 
+ * 设计原则：
+ * - 使用语义化的设计令牌系统
+ * - 建立清晰的视觉层次和信息架构
+ * - 提供优秀的用户体验和交互反馈
+ * - 确保可访问性和响应式设计
+ * - 采用原子设计方法论构建可维护的组件系统
+ */
+
+/* =============================================================================
+   设计令牌系统 - 核心基础
+   ============================================================================= */
+
+@import './design-tokens/tokens.css';
+
+/* =============================================================================
+   设备连接面板 - 完整组件系统
+   ============================================================================= */
+
+@import './components/device-connection/index.css';
+
+/* =============================================================================
+   Universal UI 主容器
+   ============================================================================= */
+
+.universal-ui-container {
+  /* 使用设计令牌 */
+  background: var(--dt-bg-canvas);
+  color: var(--dt-text-primary);
+  font-family: var(--dt-font-sans);
+  
+  /* 布局基础 */
+  min-height: 100vh;
+  padding: var(--dt-space-xl);
+  
+  /* 现代设计增强 */
+  background-image: 
+    radial-gradient(circle at 25% 25%, rgba(59, 130, 246, 0.05) 0%, transparent 50%),
+    radial-gradient(circle at 75% 75%, rgba(16, 185, 129, 0.05) 0%, transparent 50%);
+}
+
+/* =============================================================================
+   页面头部区域
+   ============================================================================= */
+
+.universal-ui-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: var(--dt-space-xl);
+  gap: var(--dt-space-lg);
+}
+
+.universal-ui-title {
+  display: flex;
+  align-items: center;
+  gap: var(--dt-space-md);
+}
+
+.universal-ui-title h1 {
+  font-size: var(--dt-text-2xl);
+  font-weight: var(--dt-font-bold);
+  color: var(--dt-text-primary);
+  margin: 0;
+  line-height: var(--dt-leading-tight);
+  
+  background: linear-gradient(135deg, 
+    var(--dt-color-primary-600), 
+    var(--dt-color-primary-500)
+  );
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+.universal-ui-title-icon {
+  width: 32px;
+  height: 32px;
+  color: var(--dt-color-primary-500);
+  flex-shrink: 0;
+}
+
+.universal-ui-subtitle {
+  font-size: var(--dt-text-base);
+  color: var(--dt-text-secondary);
+  margin: var(--dt-space-xs) 0 0 0;
+  line-height: var(--dt-leading-relaxed);
+}
+
+/* 头部操作区域 */
+.universal-ui-header-actions {
+  display: flex;
+  align-items: center;
+  gap: var(--dt-space-sm);
+}
+
+/* =============================================================================
+   主内容区域
+   ============================================================================= */
+
+.universal-ui-main {
+  display: flex;
+  flex-direction: column;
+  gap: var(--dt-space-xl);
+  max-width: 1400px;
+  margin: 0 auto;
+}
+
+/* =============================================================================
+   面板容器布局
+   ============================================================================= */
+
+.universal-ui-panels {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: var(--dt-space-xl);
+}
+
+/* 双列布局（大屏幕） */
+@media (min-width: 1200px) {
+  .universal-ui-panels.two-column {
+    grid-template-columns: 400px 1fr;
+  }
+}
+
+/* =============================================================================
+   通用面板样式
+   ============================================================================= */
+
+.universal-ui-panel {
+  background: var(--dt-bg-canvas);
+  border: 1px solid var(--dt-border-subtle);
+  border-radius: var(--dt-radius-xl);
+  padding: var(--dt-space-xl);
+  
+  box-shadow: var(--dt-shadow-sm);
+  transition: all var(--dt-duration-normal) var(--dt-ease-out);
+}
+
+.universal-ui-panel:hover {
+  box-shadow: var(--dt-shadow-md);
+  border-color: var(--dt-border-default);
+}
+
+.universal-ui-panel-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: var(--dt-space-lg);
+  gap: var(--dt-space-md);
+}
+
+.universal-ui-panel-title {
+  display: flex;
+  align-items: center;
+  gap: var(--dt-space-sm);
+}
+
+.universal-ui-panel-title h2 {
+  font-size: var(--dt-text-lg);
+  font-weight: var(--dt-font-semibold);
+  color: var(--dt-text-primary);
+  margin: 0;
+  line-height: var(--dt-leading-tight);
+}
+
+.universal-ui-panel-icon {
+  width: 20px;
+  height: 20px;
+  color: var(--dt-color-primary-500);
+  flex-shrink: 0;
+}
+
+/* =============================================================================
+   状态指示器
+   ============================================================================= */
+
+.universal-ui-status {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--dt-space-xs);
+  padding: var(--dt-space-xs) var(--dt-space-sm);
+  border-radius: var(--dt-radius-md);
+  font-size: var(--dt-text-xs);
+  font-weight: var(--dt-font-medium);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.universal-ui-status.ready {
+  background: rgba(16, 185, 129, 0.1);
+  color: var(--dt-device-online);
+  border: 1px solid rgba(16, 185, 129, 0.2);
+}
+
+.universal-ui-status.pending {
+  background: rgba(245, 158, 11, 0.1);
+  color: var(--dt-device-connecting);
+  border: 1px solid rgba(245, 158, 11, 0.2);
+}
+
+.universal-ui-status.error {
+  background: rgba(239, 68, 68, 0.1);
+  color: var(--dt-device-error);
+  border: 1px solid rgba(239, 68, 68, 0.2);
+}
+
+.universal-ui-status-dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+
+.universal-ui-status.ready .universal-ui-status-dot {
+  background: var(--dt-device-online);
+  animation: status-dot-pulse 2s infinite;
+}
+
+.universal-ui-status.pending .universal-ui-status-dot {
+  background: var(--dt-device-connecting);
+  animation: status-dot-pulse 1s infinite;
+}
+
+.universal-ui-status.error .universal-ui-status-dot {
+  background: var(--dt-device-error);
+}
+
+@keyframes status-dot-pulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.5; }
+}
+
+/* =============================================================================
+   loading 状态
+   ============================================================================= */
+
+.universal-ui-loading {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: var(--dt-space-xl);
+  color: var(--dt-text-tertiary);
+}
+
+.universal-ui-spinner {
+  width: 32px;
+  height: 32px;
+  border: 3px solid var(--dt-border-subtle);
+  border-top: 3px solid var(--dt-color-primary-500);
+  border-radius: 50%;
+  animation: universal-ui-spin 1s linear infinite;
+  margin-right: var(--dt-space-sm);
+}
+
+@keyframes universal-ui-spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+
+/* =============================================================================
+   响应式设计
+   ============================================================================= */
+
+@media (max-width: 1024px) {
+  .universal-ui-container {
+    padding: var(--dt-space-lg);
+  }
+  
+  .universal-ui-header {
+    flex-direction: column;
+    align-items: stretch;
+    gap: var(--dt-space-md);
+  }
+  
+  .universal-ui-panels {
+    gap: var(--dt-space-lg);
+  }
+  
+  .universal-ui-panel {
+    padding: var(--dt-space-lg);
+  }
+}
+
+@media (max-width: 768px) {
+  .universal-ui-container {
+    padding: var(--dt-space-md);
+  }
+  
+  .universal-ui-title h1 {
+    font-size: var(--dt-text-xl);
+  }
+  
+  .universal-ui-title-icon {
+    width: 24px;
+    height: 24px;
+  }
+  
+  .universal-ui-panels {
+    gap: var(--dt-space-md);
+  }
+  
+  .universal-ui-panel {
+    padding: var(--dt-space-md);
+    border-radius: var(--dt-radius-lg);
+  }
+  
+  .universal-ui-panel-header {
+    flex-direction: column;
+    align-items: stretch;
+    gap: var(--dt-space-sm);
+  }
+}
+
+@media (max-width: 480px) {
+  .universal-ui-container {
+    padding: var(--dt-space-sm);
+  }
+  
+  .universal-ui-title h1 {
+    font-size: var(--dt-text-lg);
+  }
+  
+  .universal-ui-header-actions {
+    justify-content: stretch;
+  }
+  
+  .universal-ui-panel {
+    padding: var(--dt-space-sm);
+  }
+}
+
+/* =============================================================================
+   可访问性增强
+   ============================================================================= */
+
+@media (prefers-contrast: high) {
+  .universal-ui-panel {
+    border-width: 2px;
+  }
+  
+  .universal-ui-status {
+    border-width: 2px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .universal-ui-container,
+  .universal-ui-panel,
+  .universal-ui-spinner,
+  .universal-ui-status-dot {
+    transition: none;
+    animation: none;
+  }
+}
+
+/* =============================================================================
+   深色模式支持
+   ============================================================================= */
+
+@media (prefers-color-scheme: dark) {
+  .universal-ui-container {
+    background-image: 
+      radial-gradient(circle at 25% 25%, rgba(59, 130, 246, 0.1) 0%, transparent 50%),
+      radial-gradient(circle at 75% 75%, rgba(16, 185, 129, 0.1) 0%, transparent 50%);
+  }
+}
+
+/* =============================================================================
+   打印样式
+   ============================================================================= */
+
+@media print {
+  .universal-ui-container {
+    background: white;
+    background-image: none;
+    color: black;
+  }
+  
+  .universal-ui-panel {
+    box-shadow: none;
+    border: 1px solid #ccc;
+  }
+  
+  .universal-ui-header-actions,
+  .connection-controls {
+    display: none;
+  }
+}
