@@ -31,7 +31,7 @@ import { registerGeneratedBatch } from './services/vcfBatchRegistrationService';
 import WorkbenchNumbersActionsBar from './components/WorkbenchNumbersActionsBar';
 import { useColumnSettings } from './components/columns/useColumnSettings';
 import ColumnSettingsModal from './components/columns/ColumnSettingsModal';
-import { ResizableHeaderCell, useResizableColumns } from '../../components/universal-ui/table/resizable';
+import { ResizableHeaderCell, useResizableColumns } from '../../../components/universal-ui/table/resizable';
 
 const { Title, Text } = Typography;
 
@@ -642,7 +642,8 @@ export const ContactImportWorkbench: React.FC = () => {
         components={components as any}
         columns={columns.map((c: any) => ({
           ...c,
-          key: c.key ?? c.dataIndex, // 确保有 key 用于匹配可调整列
+          key: c.key ?? c.dataIndex,
+          onHeaderCell: () => ({ 'data-col-key': c.key ?? c.dataIndex }),
         })) as any}
         dataSource={items}
         loading={loading}
