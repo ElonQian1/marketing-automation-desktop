@@ -329,12 +329,11 @@ export const ThemeEnhancementDemo: React.FC = () => {
 
         {/* 高级主题组件演示 */}
         <Row gutter={24}>
-          <Col span={8}>
-            <ThemeColorPicker
-              label="主要颜色"
-              value={selectedColor}
-              onChange={setSelectedColor}
-              showPresets={true}
+          <Col span={16}>
+            <ThemeAnimationSettings
+              onAnimationChange={(newSettings) => 
+                setAnimationSettings({ ...animationSettings, ...newSettings })
+              }
             />
           </Col>
           <Col span={16}>
