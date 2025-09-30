@@ -1,6 +1,7 @@
 import React from 'react';
 import { DndContext, type UniqueIdentifier } from '@dnd-kit/core';
-import { PointerSensor, useSensor, useSensors } from '@dnd-kit/core';
+import { useSensor, useSensors } from '@dnd-kit/core';
+import { InteractivePointerSensor } from './InteractivePointerSensor';
 
 export interface DragSensorsProviderProps {
   children: React.ReactNode;
@@ -24,7 +25,7 @@ export const DragSensorsProvider: React.FC<DragSensorsProviderProps> = ({
   ...ctxProps
 }) => {
   const sensors = useSensors(
-    useSensor(PointerSensor, {
+    useSensor(InteractivePointerSensor as any, {
       activationConstraint: activationDistance != null
         ? { distance: activationDistance }
         : { delay: activationDelayMs, tolerance: activationTolerance },

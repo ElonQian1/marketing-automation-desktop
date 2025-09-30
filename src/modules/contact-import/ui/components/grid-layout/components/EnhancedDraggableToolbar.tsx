@@ -1,23 +1,19 @@
 import React, { memo, useMemo } from 'react';
-import { Button, Tooltip, Space, Dropdown, Typography } from 'antd';
+import { Button, Tooltip, Space, Dropdown, Typography, message } from 'antd';
 import { 
   DragOutlined, 
   SettingOutlined, 
-  ReloadOutlined,
-  PushpinFilled,
-  PushpinOutlined,
-  ExpandOutlined,
-  CompressOutlined,
-  EyeInvisibleOutlined
+  ReloadOutlined
 } from '@ant-design/icons';
 import { useDraggableOptimized } from '../hooks/useDraggableOptimized';
 import { useToolbarManager } from '../hooks/useToolbarManager';
 import { useToolbarActions } from './toolbar-actions';
 import type { PanelConfig } from '../GridLayoutWrapper';
+import styles from './EnhancedDraggableToolbar.module.css';
 
 const { Text } = Typography;
 
-export interface PerformantDraggableToolbarProps {
+export interface EnhancedDraggableToolbarProps {
   panels: PanelConfig[];
   onPanelVisibilityChange: (panelId: string, visible: boolean) => void;
   onLayoutReset?: () => void;
@@ -31,36 +27,53 @@ export interface PerformantDraggableToolbarProps {
 }
 
 /**
- * 高性能拖拽工具栏组件
- * 使用优化的拖拽Hook和React.memo减少重渲染
+ * 增强的高性能拖拽工具栏组件
+ * 包含完整的布局控制功能和性能优化
  */
-export const PerformantDraggableToolbar = memo<PerformantDraggableToolbarProps>(({
+export const EnhancedDraggableToolbar = memo<EnhancedDraggableToolbarProps>(({
   panels,
   onPanelVisibilityChange,
   onLayoutReset,
+  onLayoutChange,
   onVersionSwitch,
   className = '',
   enablePerformanceMode = true,
-  storageKey = 'draggable-toolbar'
+  onPerformanceModeChange,
+  onToolbarVisibilityChange,
+  storageKey = 'enhanced-draggable-toolbar'
 }) => {
-  // 工具栏管理器
-  const { settings, updateSettings, isVisible, hideToolbar } = useToolbarManager({ storageKey });
-  
-  // 优化的拖拽功能
+  // 工具栏管理
+  const { 
+    isVisible, 
+    hideToolbar 
+  } = useToolbarManager();
+
+  // 拖拽功能
   const {
-    position,
+    style: dragStyle,
     isDragging,
-    dragHandlers,
-    style: dragStyle
+    dragHandlers
   } = useDraggableOptimized({
     initialPosition: { x: 20, y: 20 },
     bounds: 'window',
-    disabled: settings.isPinned,
+    disabled: false,
     storageKey: `${storageKey}-position`,
     enablePerformanceMode
   });
 
-  // 面板操作菜单 - 使用useMemo避免重复创建
+  // 工具栏操作
+  const toolbarActions = useToolbarActions({
+    panels,
+    onPanelVisibilityChange,
+    onLayoutChange: onLayoutChange || (() => {
+      message.warning('布局变更功能未配置');
+    }),
+    enablePerformanceMode,
+    onPerformanceModeChange,
+    onToolbarVisibilityChange
+  });
+
+  // 面板操作菜单
   const panelMenuItems = useMemo(() => 
     panels.map(panel => ({
       key: panel.i,
@@ -79,62 +92,39 @@ export const PerformantDraggableToolbar = memo<PerformantDraggableToolbarProps>(
     [panels, onPanelVisibilityChange]
   );
 
-  // 设置菜单 - 使用useMemo避免重复创建
-  const settingsMenuItems = useMemo(() => [
-    {
-      key: 'pin',
-      label: settings.isPinned ? '取消固定' : '固定位置',
-      icon: settings.isPinned ? <PushpinFilled /> : <PushpinOutlined />,
-      onClick: () => updateSettings({ isPinned: !settings.isPinned })
-    },
-    {
-      key: 'collapse',
-      label: settings.isCollapsed ? '展开工具栏' : '收起工具栏',
-      icon: settings.isCollapsed ? <ExpandOutlined /> : <CompressOutlined />,
-      onClick: () => updateSettings({ isCollapsed: !settings.isCollapsed })
-    },
-    {
-      key: 'performance',
-      label: enablePerformanceMode ? '禁用性能模式' : '启用性能模式',
-      onClick: () => {
-        // 这里可以通过props回调通知父组件切换性能模式
-        console.log('Performance mode toggle requested');
-      }
-    },
-    {
-      type: 'divider' as const
-    },
-    {
-      key: 'hide',
-      label: '隐藏工具栏',
-      icon: <EyeInvisibleOutlined />,
-      onClick: () => hideToolbar()
+  // 处理重置布局
+  const handleLayoutReset = () => {
+    if (onLayoutReset) {
+      onLayoutReset();
+      message.success('布局已重置');
+    } else {
+      // 使用内置的重置逻辑
+      toolbarActions.resetLayout();
     }
-  ], [settings, updateSettings, enablePerformanceMode]);
+  };
 
   // 如果工具栏被隐藏，不渲染
   if (!isVisible) {
     return null;
   }
 
-  // 工具栏样式 - 完全移除硬编码颜色样式，只保留位置和布局
+  // 工具栏样式
   const toolbarStyle = useMemo(() => ({
     ...dragStyle,
-    padding: settings.isCollapsed ? '4px' : '8px 12px',
-    // 移除所有硬编码的颜色样式，改用CSS类控制
+    padding: toolbarActions.settings.isCollapsed ? '4px' : '8px 12px',
     transform: enablePerformanceMode ? 'translateZ(0)' : undefined,
     willChange: isDragging ? 'transform, opacity' : 'auto'
-  }), [dragStyle, settings.isCollapsed, isDragging, enablePerformanceMode]);
+  }), [dragStyle, toolbarActions.settings.isCollapsed, isDragging, enablePerformanceMode]);
 
   return (
     <div
       ref={dragHandlers.ref}
       style={toolbarStyle}
-      className={`draggable-toolbar ${className} ${isDragging ? 'dragging' : ''}`}
+      className={`${styles['enhanced-toolbar']} draggable-toolbar ${className} ${isDragging ? styles.dragging : ''}`}
     >
       <Space size="small" wrap={false}>
         {/* 拖拽手柄 */}
-        {!settings.isPinned && (
+        {!toolbarActions.settings.isPinned && (
           <Tooltip title="拖拽移动工具栏">
             <div
               {...dragHandlers}
@@ -151,8 +141,8 @@ export const PerformantDraggableToolbar = memo<PerformantDraggableToolbarProps>(
           </Tooltip>
         )}
 
-        {/* 主要功能按钮 - 只在未收起时显示 */}
-        {!settings.isCollapsed && (
+        {/* 主要功能按钮 */}
+        {!toolbarActions.settings.isCollapsed && (
           <>
             {/* 面板控制 */}
             <Dropdown
@@ -172,11 +162,12 @@ export const PerformantDraggableToolbar = memo<PerformantDraggableToolbarProps>(
             </Dropdown>
 
             {/* 重置布局 */}
-            <Tooltip title="重置布局">
+            <Tooltip title="重置布局到默认状态">
               <Button
                 size="small"
                 type="text"
-                onClick={onLayoutReset}
+                icon={<ReloadOutlined />}
+                onClick={handleLayoutReset}
               >
                 重置
               </Button>
@@ -186,11 +177,15 @@ export const PerformantDraggableToolbar = memo<PerformantDraggableToolbarProps>(
 
         {/* 设置菜单 */}
         <Dropdown
-          menu={{ items: settingsMenuItems }}
+          menu={{ 
+            items: toolbarActions.settings.isCollapsed 
+              ? toolbarActions.compactSettingsMenuItems 
+              : toolbarActions.enhancedSettingsMenuItems
+          }}
           trigger={['click']}
           placement="bottomRight"
         >
-          <Tooltip title="设置">
+          <Tooltip title="更多设置">
             <Button
               size="small"
               type="text"
@@ -200,7 +195,7 @@ export const PerformantDraggableToolbar = memo<PerformantDraggableToolbarProps>(
         </Dropdown>
       </Space>
 
-      {/* 性能指示器 - 仅在开发模式显示 */}
+      {/* 性能指示器 */}
       {process.env.NODE_ENV === 'development' && enablePerformanceMode && (
         <div
           style={{
@@ -211,14 +206,33 @@ export const PerformantDraggableToolbar = memo<PerformantDraggableToolbarProps>(
             height: 8,
             borderRadius: '50%',
             background: '#52c41a',
-            border: '1px solid white',
+            border: '1px solid #f0f0f0',
             boxShadow: '0 1px 2px rgba(0,0,0,0.1)'
           }}
           title="性能优化模式已启用"
+        />
+      )}
+
+      {/* 布局预设指示器 */}
+      {toolbarActions.availablePresets.length > 0 && (
+        <div
+          style={{
+            position: 'absolute',
+            top: -8,
+            left: -8,
+            width: 8,
+            height: 8,
+            borderRadius: '50%',
+            background: '#1890ff',
+            border: '1px solid #f0f0f0'
+          }}
+          title={`${toolbarActions.availablePresets.length} 个布局预设可用`}
         />
       )}
     </div>
   );
 });
 
-PerformantDraggableToolbar.displayName = 'PerformantDraggableToolbar';
+EnhancedDraggableToolbar.displayName = 'EnhancedDraggableToolbar';
+
+export default EnhancedDraggableToolbar;

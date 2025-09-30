@@ -1,0 +1,151 @@
+@layer theme-overrides {
+  /* ==================== 超级强力主题修复器 ==================== */
+  
+  /* 
+   * 针对用户报告的具体问题：rgb(245, 245, 245) 背景色
+   * 使用超高优先级选择器强制覆盖所有内联样式
+   */
+
+  /* ==================== 基础内联样式覆盖 ==================== */
+
+  /* 所有白色系背景的强制修复 - 超高优先级 */
+  html body * {
+    &[style*="background: rgb(245, 245, 245)"]:not(.loop-step-card):not(.step-card):not([data-allow-white]),
+    &[style*="background-color: rgb(245, 245, 245)"]:not(.loop-step-card):not(.step-card):not([data-allow-white]) {
+      background: var(--dark-bg-secondary) !important;
+      background-color: var(--dark-bg-secondary) !important;
+      color: var(--dark-text-primary) !important;
+    }
+  }
+
+  /* 扩展所有浅色背景 */
+  html body *:not(.loop-step-card):not(.step-card):not([data-allow-white]) {
+    &[style*="background: rgb(248, 248, 248)"],
+    &[style*="background: rgb(250, 250, 250)"],
+    &[style*="background: rgb(252, 252, 252)"],
+    &[style*="background: rgb(249, 249, 249)"],
+    &[style*="background: rgb(247, 247, 247)"],
+    &[style*="background: rgb(255, 255, 255)"],
+    &[style*="background-color: rgb(248, 248, 248)"],
+    &[style*="background-color: rgb(250, 250, 250)"],
+    &[style*="background-color: rgb(252, 252, 252)"],
+    &[style*="background-color: rgb(249, 249, 249)"],
+    &[style*="background-color: rgb(247, 247, 247)"],
+    &[style*="background-color: rgb(255, 255, 255)"],
+    &[style*="background: #f5f5f5"],
+    &[style*="background: #f8f8f8"],
+    &[style*="background: #fafafa"],
+    &[style*="background: #fcfcfc"],
+    &[style*="background: #f9f9f9"],
+    &[style*="background: #f7f7f7"],
+    &[style*="background: #fff"],
+    &[style*="background: white"],
+    &[style*="background-color: #f5f5f5"],
+    &[style*="background-color: #f8f8f8"],
+    &[style*="background-color: #fafafa"],
+    &[style*="background-color: #fcfcfc"],
+    &[style*="background-color: #f9f9f9"],
+    &[style*="background-color: #f7f7f7"],
+    &[style*="background-color: #fff"],
+    &[style*="background-color: white"] {
+      background: var(--dark-bg-secondary) !important;
+      background-color: var(--dark-bg-secondary) !important;
+      color: var(--dark-text-primary) !important;
+    }
+  }
+
+  /* ==================== 特定组件强制修复 ==================== */
+
+  /* Ant Design 组件强制暗色化 */
+  .ant-space:not(.loop-step-card):not(.step-card):not([data-allow-white]),
+  .ant-typography:not(.loop-step-card):not(.step-card):not([data-allow-white]),
+  .ant-button:not(.loop-step-card):not(.step-card):not([data-allow-white]),
+  .ant-input:not(.loop-step-card):not(.step-card):not([data-allow-white]),
+  .ant-card:not(.loop-step-card):not(.step-card):not([data-allow-white]) {
+    background: var(--dark-bg-secondary) !important;
+    background-color: var(--dark-bg-secondary) !important;
+    color: var(--dark-text-primary) !important;
+    border-color: var(--dark-border-primary) !important;
+  }
+
+  /* 布局容器强制修复（用户描述的特征） */
+  div[style*="margin-bottom: 16px"]:not(.loop-step-card):not(.step-card):not([data-allow-white]),
+  div[style*="padding: 8px 16px"]:not(.loop-step-card):not(.step-card):not([data-allow-white]),
+  div[style*="border-radius: 6px"]:not(.loop-step-card):not(.step-card):not([data-allow-white]) {
+    background: var(--dark-bg-secondary) !important;
+    background-color: var(--dark-bg-secondary) !important;
+    color: var(--dark-text-primary) !important;
+    border-color: var(--dark-border-primary) !important;
+  }
+
+  /* ==================== 深层嵌套强制修复 ==================== */
+
+  /* 针对用户提到的具体路径强制修复 */
+  main div div div div div div div:not(.loop-step-card):not(.step-card):not([data-allow-white]) {
+    &[style*="background"],
+    &[style*="background-color"] {
+      background: var(--dark-bg-secondary) !important;
+      background-color: var(--dark-bg-secondary) !important;
+      color: var(--dark-text-primary) !important;
+    }
+  }
+
+  /* 超高优先级选择器 - 最后的杀手锏 */
+  html[data-theme="dark"] body div:not(.loop-step-card):not(.step-card):not([data-allow-white]) {
+    &[style*="background: rgb(245, 245, 245)"],
+    &[style*="background-color: rgb(245, 245, 245)"] {
+      background: var(--dark-bg-secondary) !important;
+      background-color: var(--dark-bg-secondary) !important;
+      color: var(--dark-text-primary) !important;
+    }
+    
+    /* 修复子元素文字颜色 */
+    * {
+      color: var(--dark-text-primary) !important;
+    }
+    
+    /* 但是保护循环步骤卡片 */
+    .loop-step-card,
+    .step-card,
+    [data-allow-white] {
+      background: white !important;
+      color: black !important;
+      
+      * {
+        color: black !important;
+      }
+    }
+  }
+
+  /* ==================== 动态应用暗色主题标记 ==================== */
+
+  /* 确保 html 元素有暗色主题标记 */
+  html:not([data-theme]) {
+    /* 如果没有主题标记，自动添加 */
+    &::before {
+      content: '';
+      display: none;
+    }
+  }
+
+  /* ==================== 递归子元素修复 ==================== */
+
+  /* 修复白色背景容器内的所有子元素 */
+  [style*="background: rgb(245, 245, 245)"] *:not(.loop-step-card):not(.step-card):not([data-allow-white]),
+  [style*="background-color: rgb(245, 245, 245)"] *:not(.loop-step-card):not(.step-card):not([data-allow-white]) {
+    color: var(--dark-text-primary) !important;
+  }
+
+  /* 特别处理 Ant Design 组件内部 */
+  [style*="background: rgb(245, 245, 245)"] .ant-typography:not(.loop-step-card):not(.step-card),
+  [style*="background-color: rgb(245, 245, 245)"] .ant-typography:not(.loop-step-card):not(.step-card),
+  [style*="background: rgb(245, 245, 245)"] .ant-space:not(.loop-step-card):not(.step-card),
+  [style*="background-color: rgb(245, 245, 245)"] .ant-space:not(.loop-step-card):not(.step-card) {
+    color: var(--dark-text-primary) !important;
+    
+    /* 继续修复嵌套元素 */
+    * {
+      color: var(--dark-text-primary) !important;
+    }
+  }
+}

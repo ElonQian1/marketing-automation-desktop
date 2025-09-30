@@ -4,6 +4,7 @@ import React, { useMemo } from 'react';
 import { Card, Typography, Button } from 'antd';
 import { ActionsToolbar } from './universal-ui/script-builder/components/ActionsToolbar/ActionsToolbar';
 import { closestCenter, DragOverlay, useDndMonitor, type DragEndEvent } from '@dnd-kit/core';
+import { InteractivePointerSensor } from './universal-ui/dnd';
 import { arrayMove } from '@dnd-kit/sortable';
 import { SmartStepCardWrapper } from './SmartStepCardWrapper'; // 使用智能步骤卡片包装器
 import { SmartScriptStep } from '../types/smartScript'; // 使用统一的类型定义

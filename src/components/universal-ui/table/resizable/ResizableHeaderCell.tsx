@@ -25,6 +25,8 @@ const ResizableHeaderCell: React.FC<Props> = ({ width, minWidth = 60, maxWidth =
           onPointerDown={(e) => { e.stopPropagation(); e.preventDefault(); onResizeStart?.(e); }}
           role="separator"
           aria-orientation="vertical"
+          data-resize-handle
+          data-dnd-ignore
           style={{
             position: 'absolute',
             top: 0,

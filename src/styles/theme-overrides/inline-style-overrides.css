@@ -1,0 +1,145 @@
+@layer theme-overrides {
+  /* ==================== 内联样式智能覆盖 ==================== */
+  
+  /* 使用属性选择器强制覆盖内联样式 */
+  
+  /* 白色背景覆盖 */
+  [style*="background: rgb(250, 250, 250)"]:not(.loop-step-card):not(.step-card),
+  [style*="background: rgb(255, 255, 255)"]:not(.loop-step-card):not(.step-card),
+  [style*="background-color: rgb(250, 250, 250)"]:not(.loop-step-card):not(.step-card),
+  [style*="background-color: rgb(255, 255, 255)"]:not(.loop-step-card):not(.step-card),
+  [style*="background: white"]:not(.loop-step-card):not(.step-card),
+  [style*="background-color: white"]:not(.loop-step-card):not(.step-card),
+  [style*="background: #fff"]:not(.loop-step-card):not(.step-card),
+  [style*="background-color: #fff"]:not(.loop-step-card):not(.step-card),
+  [style*="background: #fafafa"]:not(.loop-step-card):not(.step-card),
+  [style*="background-color: #fafafa"]:not(.loop-step-card):not(.step-card) {
+    background: var(--dark-bg-secondary) !important;
+    color: var(--dark-text-primary) !important;
+  }
+
+  /* 浅色边框覆盖 */
+  [style*="border: 1px solid rgb(240, 240, 240)"]:not(.loop-step-card):not(.step-card),
+  [style*="border-color: rgb(240, 240, 240)"]:not(.loop-step-card):not(.step-card),
+  [style*="border: 1px solid #f0f0f0"]:not(.loop-step-card):not(.step-card),
+  [style*="border-color: #f0f0f0"]:not(.loop-step-card):not(.step-card),
+  [style*="border: 1px solid #d9d9d9"]:not(.loop-step-card):not(.step-card),
+  [style*="border-color: #d9d9d9"]:not(.loop-step-card):not(.step-card) {
+    border-color: var(--dark-border-primary) !important;
+  }
+
+  /* 文字颜色覆盖 */
+  [style*="color: rgb(0, 0, 0)"]:not(.loop-step-card):not(.step-card),
+  [style*="color: black"]:not(.loop-step-card):not(.step-card),
+  [style*="color: #000"]:not(.loop-step-card):not(.step-card),
+  [style*="color: #333"]:not(.loop-step-card):not(.step-card) {
+    color: var(--dark-text-primary) !important;
+  }
+
+  /* ==================== 特殊容器强制暗色 ==================== */
+
+  /* 操作栏和工具栏 */
+  div[style*="padding: 8px 12px"]:not(.loop-step-card):not(.step-card),
+  div[style*="display: flex"]:not(.loop-step-card):not(.step-card) {
+    &[style*="background: rgb(250, 250, 250)"],
+    &[style*="background: white"] {
+      background: var(--dark-bg-secondary) !important;
+      color: var(--dark-text-primary) !important;
+      border-color: var(--dark-border-primary) !important;
+    }
+  }
+
+  /* 卡片容器 */
+  .ant-card:not(.loop-step-card):not(.step-card),
+  .card-container:not(.loop-step-card):not(.step-card),
+  .panel-container:not(.loop-step-card):not(.step-card) {
+    background: var(--dark-bg-card) !important;
+    color: var(--dark-text-primary) !important;
+    border-color: var(--dark-border-primary) !important;
+
+    .ant-card-head {
+      background: var(--dark-bg-tertiary) !important;
+      color: var(--dark-text-primary) !important;
+      border-color: var(--dark-border-primary) !important;
+    }
+
+    .ant-card-body {
+      background: var(--dark-bg-card) !important;
+      color: var(--dark-text-primary) !important;
+    }
+  }
+
+  /* 表格组件 */
+  .ant-table:not(.loop-step-card *):not(.step-card *) {
+    background: var(--dark-bg-card) !important;
+    color: var(--dark-text-primary) !important;
+
+    .ant-table-thead > tr > th {
+      background: var(--dark-bg-tertiary) !important;
+      color: var(--dark-text-primary) !important;
+      border-color: var(--dark-border-primary) !important;
+    }
+
+    .ant-table-tbody > tr > td {
+      background: var(--dark-bg-card) !important;
+      color: var(--dark-text-primary) !important;
+      border-color: var(--dark-border-primary) !important;
+    }
+
+    .ant-table-tbody > tr:hover > td {
+      background: var(--dark-bg-hover) !important;
+    }
+  }
+
+  /* ==================== 按钮组件特殊处理 ==================== */
+
+  .ant-btn:not(.loop-step-card *):not(.step-card *) {
+    /* 默认按钮 */
+    &.ant-btn-default {
+      background: var(--dark-bg-tertiary) !important;
+      color: var(--dark-text-primary) !important;
+      border-color: var(--dark-border-primary) !important;
+
+      &:hover {
+        background: var(--dark-bg-hover) !important;
+        color: var(--dark-text-primary) !important;
+        border-color: var(--dark-border-focus) !important;
+      }
+    }
+
+    /* 主要按钮保持原色 */
+    &.ant-btn-primary {
+      background: var(--color-primary) !important;
+      border-color: var(--color-primary) !important;
+      color: white !important;
+    }
+
+    /* 文字按钮 */
+    &.ant-btn-text {
+      background: transparent !important;
+      color: var(--dark-text-primary) !important;
+
+      &:hover {
+        background: var(--dark-bg-hover) !important;
+      }
+    }
+  }
+
+  /* ==================== 下拉菜单和弹出框 ==================== */
+
+  .ant-dropdown-menu:not(.loop-step-card *):not(.step-card *),
+  .ant-menu:not(.loop-step-card *):not(.step-card *),
+  .ant-tooltip-inner:not(.loop-step-card *):not(.step-card *) {
+    background: var(--dark-bg-elevated) !important;
+    color: var(--dark-text-primary) !important;
+    border-color: var(--dark-border-primary) !important;
+
+    .ant-menu-item {
+      color: var(--dark-text-primary) !important;
+
+      &:hover {
+        background: var(--dark-bg-hover) !important;
+      }
+    }
+  }
+}

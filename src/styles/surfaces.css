@@ -6,3 +6,8 @@
 @import './surfaces/buttons.css';
 @import './surfaces/themes.css';
 @import './surfaces/toolbar.css';
+
+/* 主题覆盖系统 - 最高优先级 */
+@import './theme-overrides/global-dark-theme.css';
+@import './theme-overrides/inline-style-overrides.css';
+@import './theme-overrides/component-specific.css';

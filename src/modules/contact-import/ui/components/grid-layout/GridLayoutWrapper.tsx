@@ -6,6 +6,7 @@ import { ResizablePanel } from './ResizablePanel';
 import { ScrollableContainer } from './components/ScrollableContainer';
 import { DraggableHeaderPanel } from './components/DraggableHeaderPanel';
 import { SmartLayoutToolbarOptimized } from './components/SmartLayoutToolbarOptimized';
+import { EnhancedDraggableToolbar } from './components/EnhancedDraggableToolbar';
 import { useViewportHeight } from './hooks/useViewportHeight';
 import { useLayoutVersions } from './hooks/useLayoutVersions';
 import { useLayoutPerformance } from './hooks/useLayoutPerformance';
@@ -191,16 +192,14 @@ export const GridLayoutWrapper: React.FC<GridLayoutWrapperProps> = ({
     if (!showToolbar) return null;
     
     return (
-      <SmartLayoutToolbarOptimized
+      <EnhancedDraggableToolbar
         panels={panels}
         onPanelVisibilityChange={onPanelVisibilityChange}
         onLayoutReset={handleLayoutReset}
+        onLayoutChange={onLayoutChange}
         onVersionSwitch={handleVersionSwitch}
-        compactType={compactType}
-        onCompactTypeChange={setCompactType}
-        enableSmartMode={enablePerformanceMode}
-        allowUserControl={true}
-        storageKey={`${storageKey}-toolbar-optimized`}
+        enablePerformanceMode={enablePerformanceMode}
+        storageKey={`${storageKey}-enhanced-toolbar`}
       />
     );
   };

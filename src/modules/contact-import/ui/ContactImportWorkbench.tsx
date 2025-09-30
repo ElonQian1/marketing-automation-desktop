@@ -676,7 +676,7 @@ export const ContactImportWorkbench: React.FC = () => {
 
       {enableGridLayout ? (
         <GridLayoutWrapper
-          panels={gridLayout.getVisiblePanels().map(panel => ({
+          panels={gridLayout.panelConfigs.map(panel => ({
             ...panel,
             icon: panel.i === 'devices-panel' ? <MobileOutlined /> :
                   panel.i === 'import-panel' ? <DatabaseOutlined /> :

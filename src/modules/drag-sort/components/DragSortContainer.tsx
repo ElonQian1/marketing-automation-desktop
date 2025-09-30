@@ -53,7 +53,6 @@ export const DragSortContainer: React.FC<DragSortContainerProps> = ({
   const handleDragStart = useCallback((event: DragStartEvent) => {
     const { active } = event;
     setActiveId(active.id.toString());
-
     const draggedItem = itemsState.find(item => item.id === active.id.toString());
     if (draggedItem && onDragStart) {
       onDragStart(draggedItem);

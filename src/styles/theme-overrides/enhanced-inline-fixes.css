@@ -1,0 +1,91 @@
+@layer theme-overrides {
+  /* ==================== 增强内联样式修复 ==================== */
+  
+  /* 针对用户发现的具体问题：rgb(245, 245, 245) 等更多白色系背景 */
+  
+  /* 扩展白色背景覆盖范围 */
+  [style*="background: rgb(245, 245, 245)"]:not(.loop-step-card):not(.step-card),
+  [style*="background-color: rgb(245, 245, 245)"]:not(.loop-step-card):not(.step-card),
+  [style*="background: rgb(248, 248, 248)"]:not(.loop-step-card):not(.step-card),
+  [style*="background-color: rgb(248, 248, 248)"]:not(.loop-step-card):not(.step-card),
+  [style*="background: rgb(252, 252, 252)"]:not(.loop-step-card):not(.step-card),
+  [style*="background-color: rgb(252, 252, 252)"]:not(.loop-step-card):not(.step-card),
+  [style*="background: rgb(249, 249, 249)"]:not(.loop-step-card):not(.step-card),
+  [style*="background-color: rgb(249, 249, 249)"]:not(.loop-step-card):not(.step-card),
+  [style*="background: rgb(247, 247, 247)"]:not(.loop-step-card):not(.step-card),
+  [style*="background-color: rgb(247, 247, 247)"]:not(.loop-step-card):not(.step-card),
+  [style*="background: #f5f5f5"]:not(.loop-step-card):not(.step-card),
+  [style*="background-color: #f5f5f5"]:not(.loop-step-card):not(.step-card),
+  [style*="background: #f8f8f8"]:not(.loop-step-card):not(.step-card),
+  [style*="background-color: #f8f8f8"]:not(.loop-step-card):not(.step-card),
+  [style*="background: #fcfcfc"]:not(.loop-step-card):not(.step-card),
+  [style*="background-color: #fcfcfc"]:not(.loop-step-card):not(.step-card),
+  [style*="background: #f9f9f9"]:not(.loop-step-card):not(.step-card),
+  [style*="background-color: #f9f9f9"]:not(.loop-step-card):not(.step-card),
+  [style*="background: #f7f7f7"]:not(.loop-step-card):not(.step-card),
+  [style*="background-color: #f7f7f7"]:not(.loop-step-card):not(.step-card) {
+    background: var(--dark-bg-secondary) !important;
+    color: var(--dark-text-primary) !important;
+  }
+
+  /* 针对 Ant Design 容器的强制修复 */
+  .ant-space[style*="background"],
+  .ant-typography[style*="background"],
+  .ant-switch[style*="background"] {
+    &:not(.loop-step-card):not(.step-card) {
+      background: var(--dark-bg-secondary) !important;
+      color: var(--dark-text-primary) !important;
+    }
+  }
+
+  /* 特定布局容器修复 */
+  div[style*="margin-bottom: 16px"][style*="padding: 8px 16px"]:not(.loop-step-card):not(.step-card),
+  div[style*="border-radius: 6px"]:not(.loop-step-card):not(.step-card) {
+    background: var(--dark-bg-secondary) !important;
+    color: var(--dark-text-primary) !important;
+    border-color: var(--dark-border-primary) !important;
+  }
+
+  /* 工具栏和操作栏专用修复 */
+  [class*="toolbar"][style*="background"],
+  [class*="header"][style*="background"],
+  [class*="operation"][style*="background"],
+  [class*="control"][style*="background"] {
+    &:not(.loop-step-card):not(.step-card) {
+      background: var(--dark-bg-secondary) !important;
+      color: var(--dark-text-primary) !important;
+    }
+  }
+
+  /* ==================== 递归子元素修复 ==================== */
+
+  /* 修复容器内的子元素 */
+  div[style*="background: rgb(245, 245, 245)"] > *:not(.loop-step-card):not(.step-card),
+  div[style*="background-color: rgb(245, 245, 245)"] > *:not(.loop-step-card):not(.step-card) {
+    color: var(--dark-text-primary) !important;
+  }
+
+  /* 修复 Ant Design 组件内部样式 */
+  div[style*="background: rgb(245, 245, 245)"] .ant-typography:not(.loop-step-card):not(.step-card),
+  div[style*="background-color: rgb(245, 245, 245)"] .ant-typography:not(.loop-step-card):not(.step-card) {
+    color: var(--dark-text-primary) !important;
+  }
+
+  /* ==================== 超高优先级修复 ==================== */
+
+  /* 使用更具体的选择器强制覆盖 */
+  html body div div div div div div main div div div div div div div:not(.loop-step-card):not(.step-card) {
+    &[style*="background: rgb(245, 245, 245)"],
+    &[style*="background-color: rgb(245, 245, 245)"] {
+      background: var(--dark-bg-secondary) !important;
+      color: var(--dark-text-primary) !important;
+    }
+  }
+
+  /* 针对深层嵌套的强制修复 */
+  [style*="background: rgb(245, 245, 245)"][style*="padding"][style*="border-radius"]:not(.loop-step-card):not(.step-card) {
+    background: var(--dark-bg-secondary) !important;
+    color: var(--dark-text-primary) !important;
+    border-color: var(--dark-border-primary) !important;
+  }
+}

@@ -1,0 +1,231 @@
+@layer theme-overrides {
+  /* ==================== Ant Design 菜单组件优化 ==================== */
+  
+  /* 专门针对侧边栏菜单的样式修复 */
+  .ant-menu {
+    background: var(--dark-bg-elevated) !important;
+    border-color: var(--dark-border-primary) !important;
+    color: var(--dark-text-primary) !important;
+  }
+
+  /* 移除所有状态下的红色效果 */
+  .ant-menu-item,
+  .ant-menu-item:hover,
+  .ant-menu-item:active,
+  .ant-menu-item:focus,
+  .ant-menu-item-selected,
+  .ant-menu-item-active {
+    box-shadow: none !important;
+    outline: none !important;
+    border-color: transparent !important;
+  }
+
+  /* 非选中项的默认状态 */
+  .ant-menu-item:not(.ant-menu-item-selected) {
+    background: transparent !important;
+    color: var(--dark-text-secondary) !important;
+    border-left: none !important;
+    border-right: none !important;
+  }
+
+  /* 非选中项的悬停状态 */
+  .ant-menu-item:not(.ant-menu-item-selected):hover {
+    background: var(--dark-bg-hover) !important;
+    color: var(--dark-text-primary) !important;
+  }
+
+  /* 菜单项基础样式 */
+  .ant-menu-item {
+    background: transparent !important;
+    color: var(--dark-text-secondary) !important;
+    border-radius: 0 !important;
+    margin: 0 !important;
+    
+    /* 移除不美观的过渡效果 */
+    transition: background-color 0.2s ease, color 0.2s ease !important;
+  }
+
+  /* 菜单项悬停效果 - 优雅的渐变 */
+  .ant-menu-item:hover {
+    background: var(--dark-bg-hover) !important;
+    color: var(--dark-text-primary) !important;
+    
+    /* 移除多余的效果 */
+    box-shadow: none !important;
+    transform: none !important;
+  }
+
+  /* 菜单项选中状态 - 简洁美观的设计 */
+  .ant-menu-item-selected {
+    background: var(--dark-bg-secondary) !important;
+    color: var(--dark-text-primary) !important;
+    border-left: none !important;
+    border-right: none !important;
+    position: relative;
+    
+    /* 移除闪烁效果 */
+    animation: none !important;
+    box-shadow: none !important;
+  }
+
+  /* 选中状态的左侧细线指示器 */
+  .ant-menu-item-selected::before {
+    content: '';
+    position: absolute;
+    left: 0;
+    top: 0;
+    width: 2px;
+    height: 100%;
+    background: var(--primary);
+    z-index: 1;
+  }
+
+  /* 选中状态的文字保持正常色彩 */
+  .ant-menu-item-selected .ant-menu-title-content {
+    color: var(--dark-text-primary) !important;
+    font-weight: 500 !important;
+  }
+
+  /* 选中状态的图标保持正常色彩 */
+  .ant-menu-item-selected .ant-menu-item-icon {
+    color: var(--dark-text-primary) !important;
+  }
+
+  /* 菜单项激活状态 - 移除红色闪烁 */
+  .ant-menu-item:active,
+  .ant-menu-item-active {
+    background: var(--dark-bg-hover) !important;
+    color: var(--dark-text-primary) !important;
+    
+    /* 完全移除红色和闪烁效果 */
+    box-shadow: none !important;
+    outline: none !important;
+    border-color: transparent !important;
+  }
+
+  /* 临时点击状态 - 短暂的视觉反馈 */
+  .ant-menu-item:not(.ant-menu-item-selected):active {
+    background: rgba(255, 107, 138, 0.15) !important;
+    color: var(--dark-text-primary) !important;
+    transform: scale(0.98) !important;
+    transition: all 0.1s ease !important;
+  }
+
+  /* 菜单图标样式 */
+  .ant-menu-item-icon {
+    color: inherit !important;
+    transition: color 0.2s ease !important;
+  }
+
+  /* 菜单标题内容 */
+  .ant-menu-title-content {
+    color: inherit !important;
+    transition: color 0.2s ease !important;
+  }
+
+  /* 移除焦点时的轮廓线 */
+  .ant-menu-item:focus,
+  .ant-menu-item:focus-visible {
+    outline: none !important;
+    box-shadow: none !important;
+  }
+
+  /* ==================== 特定交互状态优化 ==================== */
+
+  /* 完全移除点击时的红色效果 */
+  .ant-menu-item::before,
+  .ant-menu-item::after {
+    display: none !important;
+  }
+
+  /* 移除点击时的阴影和边框效果 */
+  .ant-menu-item:not(.ant-menu-item-disabled):active {
+    background: var(--dark-bg-hover) !important;
+    color: var(--dark-text-primary) !important;
+    border-color: transparent !important;
+    box-shadow: none !important;
+  }
+
+  /* 菜单项内容区域 */
+  .ant-menu-item > * {
+    transition: all 0.2s ease !important;
+  }
+
+  /* ==================== 美观的交互动画 ==================== */
+
+  /* 优雅的悬停动画 */
+  .ant-menu-item {
+    position: relative;
+    overflow: hidden;
+  }
+
+  .ant-menu-item:hover::before {
+    content: '';
+    position: absolute;
+    left: 0;
+    top: 0;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(90deg, var(--primary) 0%, transparent 100%);
+    opacity: 0.1;
+    pointer-events: none;
+    animation: none !important;
+  }
+
+  /* 选中状态的左侧指示线 */
+  .ant-menu-item-selected::before {
+    content: '';
+    position: absolute;
+    left: 0;
+    top: 0;
+    width: 3px;
+    height: 100%;
+    background: var(--primary);
+    z-index: 1;
+  }
+
+  /* ==================== 移除所有不需要的效果 ==================== */
+
+  /* 移除 Ant Design 默认的悬停背景 */
+  .ant-menu-light .ant-menu-item:hover,
+  .ant-menu-light .ant-menu-item-active,
+  .ant-menu-light .ant-menu-submenu-active,
+  .ant-menu-light .ant-menu-submenu:hover {
+    background: var(--dark-bg-hover) !important;
+    color: var(--dark-text-primary) !important;
+  }
+
+  /* 移除选中项的默认样式 */
+  .ant-menu-light .ant-menu-item-selected {
+    background: var(--dark-bg-primary) !important;
+    color: var(--primary) !important;
+  }
+
+  /* 确保所有状态下都没有红色 - 最终覆盖 */
+  .ant-menu-item,
+  .ant-menu-item:hover,
+  .ant-menu-item:active,
+  .ant-menu-item:focus,
+  .ant-menu-item-active {
+    border-color: transparent !important;
+    outline: none !important;
+  }
+
+  /* 选中状态保留左边框指示器 */
+  .ant-menu-item-selected {
+    border-left: 3px solid var(--primary) !important;
+    border-right: none !important;
+    border-top: none !important;
+    border-bottom: none !important;
+  }
+
+  /* 移除所有子元素的红色效果 */
+  .ant-menu-item *,
+  .ant-menu-item:hover *,
+  .ant-menu-item:active *,
+  .ant-menu-item:focus * {
+    border-color: transparent !important;
+    box-shadow: none !important;
+    outline: none !important;
+  }
+}

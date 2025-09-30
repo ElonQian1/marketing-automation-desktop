@@ -64,11 +64,13 @@ export const HandleDraggableToolbar = memo<HandleDraggableToolbarProps>(({
     panels.map(panel => ({
       key: panel.i,
       label: (
-        <Space>
+        <Space style={{ width: '100%', justifyContent: 'space-between' }}>
           <span style={{ color: panel.visible ? '#1890ff' : '#999' }}>
             {panel.title}
           </span>
-          {panel.visible && <Text type="success">显示</Text>}
+          <Text type={panel.visible ? 'success' : 'secondary'} style={{ fontSize: '12px' }}>
+            {panel.visible ? '✓ 显示' : '✕ 隐藏'}
+          </Text>
         </Space>
       ),
       onClick: () => onPanelVisibilityChange(panel.i, !panel.visible)
@@ -166,12 +168,18 @@ export const HandleDraggableToolbar = memo<HandleDraggableToolbarProps>(({
           <>
             {/* 面板控制 */}
             <Dropdown
-              menu={{ items: panelMenuItems }}
+              menu={{ 
+                items: panelMenuItems,
+                style: { minWidth: '160px' }
+              }}
               trigger={['click']}
               placement="bottomLeft"
             >
-              <Button size="small" type="text">
-                面板控制
+              <Button size="small" type="text" style={{ 
+                fontWeight: panels.some(p => !p.visible) ? 'bold' : 'normal',
+                color: panels.some(p => !p.visible) ? '#faad14' : undefined
+              }}>
+                面板控制 {panels.some(p => !p.visible) && `(${panels.filter(p => !p.visible).length} 隐藏)`}
               </Button>
             </Dropdown>
 

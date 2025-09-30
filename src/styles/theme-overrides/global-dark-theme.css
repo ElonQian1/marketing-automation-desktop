@@ -1,0 +1,144 @@
+@layer theme-overrides {
+  /* ==================== 全局暗色主题强制覆盖 ==================== */
+  
+  /* 强制所有容器元素跟随暗色主题 */
+  * {
+    /* 防止硬编码白色背景 */
+    &:not(.loop-step-card):not(.step-card):not(.white-background-allowed) {
+      /* 覆盖常见的白色背景 */
+      &[style*="background: rgb(250, 250, 250)"],
+      &[style*="background: rgb(255, 255, 255)"],
+      &[style*="background-color: rgb(250, 250, 250)"],
+      &[style*="background-color: rgb(255, 255, 255)"],
+      &[style*="background: white"],
+      &[style*="background-color: white"],
+      &[style*="background: #fff"],
+      &[style*="background-color: #fff"],
+      &[style*="background: #fafafa"],
+      &[style*="background-color: #fafafa"] {
+        background: var(--dark-bg-secondary) !important;
+        color: var(--dark-text-primary) !important;
+        border-color: var(--dark-border-primary) !important;
+      }
+    }
+  }
+
+  /* ==================== 特定组件覆盖 ==================== */
+
+  /* 批量操作栏等容器组件 */
+  .ant-space,
+  .batch-operation-bar,
+  .operation-toolbar,
+  .action-bar {
+    &:not(.loop-step-card *):not(.step-card *) {
+      background: var(--dark-bg-secondary) !important;
+      color: var(--dark-text-primary) !important;
+      border-color: var(--dark-border-primary) !important;
+    }
+  }
+
+  /* Ant Design 组件覆盖 */
+  .ant-btn,
+  .ant-tag,
+  .ant-typography,
+  .ant-card,
+  .ant-table,
+  .ant-dropdown,
+  .ant-menu {
+    &:not(.loop-step-card *):not(.step-card *) {
+      background: var(--dark-bg-secondary) !important;
+      color: var(--dark-text-primary) !important;
+      border-color: var(--dark-border-primary) !important;
+
+      /* 悬停状态 */
+      &:hover {
+        background: var(--dark-bg-hover) !important;
+        color: var(--dark-text-primary) !important;
+      }
+
+      /* 激活状态 */
+      &:active,
+      &.ant-btn-primary {
+        background: var(--color-primary) !important;
+        color: white !important;
+      }
+    }
+  }
+
+  /* 表格和列表组件 */
+  .ant-table-tbody > tr > td,
+  .ant-table-thead > tr > th,
+  .ant-list-item {
+    &:not(.loop-step-card *):not(.step-card *) {
+      background: var(--dark-bg-secondary) !important;
+      color: var(--dark-text-primary) !important;
+      border-color: var(--dark-border-primary) !important;
+    }
+  }
+
+  /* 输入框组件 */
+  .ant-input,
+  .ant-select-selector,
+  .ant-picker {
+    &:not(.loop-step-card *):not(.step-card *) {
+      background: var(--dark-bg-tertiary) !important;
+      color: var(--dark-text-primary) !important;
+      border-color: var(--dark-border-primary) !important;
+
+      &::placeholder {
+        color: var(--dark-text-tertiary) !important;
+      }
+    }
+  }
+
+  /* ==================== 循环步骤卡片例外 ==================== */
+
+  /* 确保循环步骤卡片保持白色背景 */
+  .loop-step-card,
+  .step-card,
+  .white-background-allowed {
+    background: white !important;
+    color: #333 !important;
+    border-color: #d9d9d9 !important;
+
+    /* 子元素也保持白底黑字 */
+    * {
+      color: #333 !important;
+      
+      &.ant-btn {
+        background: white !important;
+        color: #333 !important;
+        border-color: #d9d9d9 !important;
+
+        &:hover {
+          background: #f5f5f5 !important;
+          color: #333 !important;
+        }
+      }
+    }
+  }
+
+  /* ==================== 调试辅助 ==================== */
+  
+  /* 开发模式下显示问题元素 */
+  [data-debug="true"] {
+    [style*="background: rgb(250, 250, 250)"],
+    [style*="background: white"]:not(.loop-step-card):not(.step-card) {
+      outline: 2px dashed red !important;
+      position: relative !important;
+      
+      &::before {
+        content: "⚠️ 白色背景问题";
+        position: absolute;
+        top: -20px;
+        left: 0;
+        background: red;
+        color: white;
+        padding: 2px 4px;
+        font-size: 10px;
+        z-index: 9999;
+        pointer-events: none;
+      }
+    }
+  }
+}
