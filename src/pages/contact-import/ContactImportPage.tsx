@@ -4,8 +4,8 @@ import { ErrorBoundary } from '../../components/common/ErrorBoundary';
 import { lazyRetry } from '../../utils/lazyRetry';
 
 const ContactImportWorkbench = React.lazy(() => lazyRetry(() =>
-  import('../../modules/contact-import/ui/ContactImportWorkbenchSimple')
-    .then(m => ({ default: m.ContactImportWorkbenchSimple }))
+  import('../../modules/contact-import/ui/ContactImportWorkbench')
+    .then(m => ({ default: m.ContactImportWorkbench }))
 ));
 
 const ContactImportPage: React.FC = () => {

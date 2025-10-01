@@ -11,12 +11,13 @@
 
 import React, { useMemo, useState } from 'react';
 import { 
-  Card, Col, Row, Space, Button, Input, Divider, Tag, 
+  Card, Col, Row, Space, Button, Divider, Tag, 
   TableAdapter as Table, 
   PaginationAdapter as Pagination,
   AlertCard as Alert,
   SwitchAdapter as Switch,
-  Text
+  Text,
+  Search,
 } from '../../../components/adapters';
 import { DatabaseOutlined, FileTextOutlined, FolderOpenOutlined, MobileOutlined, FileDoneOutlined, LayoutOutlined } from '@ant-design/icons';
 import styles from './ContactImportWorkbench.module.css';
@@ -93,10 +94,17 @@ export const ContactImportWorkbench: React.FC = () => {
   const [settingsOpen, setSettingsOpen] = useState(false);
 
   // 表格列配置和可调整大小
-  const resizableColumns = useResizableColumns({
-    columns: getWorkbenchTableColumns({ columnSettings, resizableRuntime: null }),
-    onColumnResize: () => {},
-  });
+  const baseColumns = useMemo(() => (
+    getWorkbenchTableColumns({ 
+      columnSettings: { visibleColumns: columnSettings.configs }, 
+      resizableRuntime: null 
+    })
+  ), [columnSettings.configs]);
+
+  const resizable = useResizableColumns(
+    baseColumns.map(c => ({ key: String(c.dataIndex), width: c.width })),
+    { onWidthChange: (key, w) => columnSettings.setWidth(key, w) }
+  );
 
   // 计算冲突
   const rangeConflicts = useMemo(() => 
@@ -178,13 +186,13 @@ export const ContactImportWorkbench: React.FC = () => {
       <SourceFoldersList folders={folders} onRemove={removeFolder} onClearAll={clearAll} />
       <Divider className={styles.dividerTight} />
       <div className={styles.searchBar}>
-        <Input.Search
+        <Search
           placeholder="搜索 号码/姓名"
           allowClear
           enterButton="搜索"
           size="middle"
           value={workbenchData.search}
-          onChange={e => workbenchData.setSearch(e.target.value)}
+          onChange={e => workbenchData.setSearch((e.target as HTMLInputElement).value)}
           className={styles.searchInput}
         />
         <Button onClick={workbenchData.loadList}>刷新列表</Button>
@@ -201,16 +209,23 @@ export const ContactImportWorkbench: React.FC = () => {
       </Space>
       <WorkbenchNumbersActionsBar
         selectedRowKeys={workbenchData.selectedRowKeys as number[]}
-        onSelectionChange={workbenchData.setSelectedRowKeys}
-        onBulkDelete={() => {}}
-        onBulkUpdate={() => {}}
-        onExport={() => {}}
+        pageItemIds={workbenchData.items.map(i => i.id as number)}
+        onChangeSelected={workbenchData.setSelectedRowKeys}
+        onArchived={async () => { await workbenchData.loadList(); }}
+        disabled={workbenchData.loading}
         globalFilter={{ search: workbenchData.search }}
       />
       <Table
         rowKey="id"
         dataSource={workbenchData.items}
-        columns={resizableColumns.columns}
+        columns={baseColumns.map(col => {
+          const runtime = resizable.columns.find(rc => rc.key === String(col.dataIndex));
+          return {
+            ...col,
+            width: runtime?.width ?? col.width,
+            onHeaderCell: () => ({ resizableRuntime: { width: runtime?.width ?? col.width, onResizeStart: runtime?.onResizeStart } })
+          } as any;
+        })}
         loading={workbenchData.loading}
         pagination={false}
         rowSelection={{

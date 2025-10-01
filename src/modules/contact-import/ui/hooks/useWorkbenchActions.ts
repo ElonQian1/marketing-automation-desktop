@@ -17,13 +17,11 @@ import {
   importNumbersFromFolders, 
   importNumbersFromTxtFile, 
   ContactNumberDto,
-  finishImportSessionRecord
 } from '../services/contactNumberService';
 import { VcfActions } from '../services/vcfActions';
 import { VcfImportService } from '../../../../services/VcfImportService';
 import { buildVcfFromNumbers } from '../../utils/vcf';
 import { fetchUnclassifiedNumbers } from '../services/unclassifiedService';
-import { markBatchImportedForDevice } from '../services/deviceBatchBinding';
 import { registerGeneratedBatch } from '../services/vcfBatchRegistrationService';
 import { executeBatches } from '../services/batchExecutor';
 import ServiceFactory from '../../../../application/services/ServiceFactory';
@@ -146,24 +144,32 @@ export const useWorkbenchActions = ({
         return;
       }
 
-      const count = end && start ? end - start + 1 : 100; // 默认100个
-      const numbers = await fetchUnclassifiedNumbers(count, onlyUnconsumed);
+  const count = end && start ? end - start + 1 : 100; // 默认100个
+  const numbers = await fetchUnclassifiedNumbers(count, onlyUnconsumed);
 
       if (numbers.length === 0) {
         message.warning('没有可用的号码');
         return;
       }
 
+      // 写入临时 VCF 文件并导入
       const vcfContent = buildVcfFromNumbers(numbers);
-      const success = await VcfActions.saveVcfToDevice(deviceId, vcfContent);
+      const tempPath = VcfImportService.generateTempVcfPath();
+      await VcfImportService.writeVcfFile(tempPath, vcfContent);
+      const outcome = await VcfActions.importVcfToDevice(tempPath, deviceId);
       
-      if (success) {
-        await markBatchImportedForDevice(deviceId, numbers.map(n => n.id));
-        await registerGeneratedBatch(deviceId, numbers, { industry });
+      if (outcome.success) {
+        const batchId = `batch_${Date.now()}`;
+        await registerGeneratedBatch({
+          deviceId,
+          batchId,
+          vcfFilePath: tempPath,
+          numberIds: numbers.map(n => n.id),
+        });
   message.success('成功生成VCF文件到设备 ' + deviceId);
         await onDataRefresh();
       } else {
-        message.error('VCF文件生成失败');
+        message.error('VCF导入失败: ' + (outcome.message || '未知错误'));
       }
     } catch (error) {
       console.error('生成VCF失败:', error);
@@ -181,25 +187,25 @@ export const useWorkbenchActions = ({
         return;
       }
 
-      const count2 = end && start ? end - start + 1 : 100; // 默认100个
-      const numbers = await fetchUnclassifiedNumbers(count2, onlyUnconsumed);
+  const count2 = end && start ? end - start + 1 : 100; // 默认100个
+  const numbers = await fetchUnclassifiedNumbers(count2, onlyUnconsumed);
 
       if (numbers.length === 0) {
         message.warning('没有可用的号码');
         return;
       }
 
+      // 写临时文件并导入
       const vcfContent = buildVcfFromNumbers(numbers);
-      const vcfImportService = new VcfImportService();
-      const success = await vcfImportService.importToDevice(deviceId, vcfContent, scriptKey);
+      const tempPath = VcfImportService.generateTempVcfPath();
+      await VcfImportService.writeVcfFile(tempPath, vcfContent);
+      const result = await VcfImportService.importVcfFile(tempPath, deviceId);
       
-      if (success) {
-        await markBatchImportedForDevice(deviceId, numbers.map(n => n.id));
-        await finishImportSessionRecord(deviceId, numbers, 'success', { industry });
-  message.success('成功导入 ' + numbers.length + ' 个联系人到设备 ' + deviceId);
+      if (result.success) {
+        message.success('成功导入 ' + numbers.length + ' 个联系人到设备 ' + deviceId);
         await onDataRefresh();
       } else {
-        message.error('导入失败');
+        message.error('导入失败: ' + (result.message || '未知错误'));
       }
     } catch (error) {
       console.error('导入到设备失败:', error);
@@ -254,8 +260,10 @@ export const useWorkbenchActions = ({
         selectedDeviceIds.includes(batch.deviceId)
       );
 
-      const adbService = ServiceFactory.getAdbApplicationService();
-      const result = await executeBatches(selectedBatches, adbService, options);
+      const result = await executeBatches(selectedBatches, {
+        ...options,
+        markConsumed: options.markConsumed ? async (_batchId: string) => { /* TODO: implement consumption mark if needed */ } : undefined,
+      });
       
       setLastResult(result);
       setResultOpen(true);
