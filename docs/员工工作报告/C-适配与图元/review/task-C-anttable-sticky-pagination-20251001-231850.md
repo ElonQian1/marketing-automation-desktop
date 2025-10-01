@@ -15,6 +15,7 @@
 
 ## 更新记录（累积）
 - [2025-10-01 23:18:50] 适配层统一方案已落地（见当前实现）；演示入口已就绪
+- [2025-10-01 15:30:57] 运行 type-check（tsc -p tsconfig.app.json）存在遗留错误（Universal UI 等模块），与 Table 适配层无直接关系；不阻塞本卡 review → 请在 BrandShowcasePage 验证 sticky & 分页表现
 
 ## 验证清单
 - [ ] Dark/Compact 正常

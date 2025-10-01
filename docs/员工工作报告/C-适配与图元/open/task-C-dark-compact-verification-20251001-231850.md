@@ -20,3 +20,4 @@
 
 ## 记录与结论
 - [ ] 截图与备注链接 … （通过后移动到 review/ 并在 _index.md 登记）
+- [2025-10-01 15:30:57] 已跑 type-check，遗留 76 个错误集中在 Universal UI 与旧页面；不影响本卡在 BrandShowcasePage 的暗黑/紧凑校验进行。
