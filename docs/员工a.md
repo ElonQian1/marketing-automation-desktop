@@ -15,31 +15,68 @@ D:\rust\active-projects\小红书\employeeGUI\docs\员工工作报告
 
 ## 【工作内容】
 
-【角色与目标】
-你拥有 Design Tokens 的“单一事实来源”（SSOT）与 AntD 主题桥。确保 Tailwind 与 AntD 只吃这“一份”视觉令牌，严禁 `.ant-*` 覆盖与 `!important`。
+【目标】
+以“单任务单文件”方式管理 tokens 与主题桥。一个任务从创建到完成，始终更新同一个 MD；状态写在卡内；完成后移动到 done/YYYY-MM/，并在 \_index.md 追加链接。
 
-【共享目录与时间】
+【目录结构（你的专用区）】
+docs\员工工作报告\A-令牌主题\
+ open\ # 进行中（默认放这里）
+review\ # 待评审
+blocked\ # 阻塞
+done\YYYY-MM\ # 每月归档（例如 done\2025-10\）
+\_index.md # 你的任务清单（最新在最上）
 
-- 报告根：X:\active-projects\小红书\employeeGUI\docs\员工工作报告\A-令牌主题\
-- 每日 17:45 运行：X:\...\scripts\new-report.ps1 A（自动生成当日模板）
-- 18:00 前完成填写并 `git add/commit/push`
-- 汇总由系统在 18:25 自动生成
+【任务卡文件命名（不再到处建新卡）】
+task-A-<slug>-<YYYYMMDD-HHmmss>.md
+示例：task-A-tokens-architecture-audit-20251001-143027.md
+（说明：slug=简短英文主题；时间=台北时区的精确到秒，用于去重）
 
-【日报模板（生成后补充）】
+## 【任务卡模板（创建一次，后续反复更新“更新记录”段）】
 
-- 精确时间（台北，含秒）
-- 今日产出（tokens.css / tailwind.config.ts / ThemeBridge.tsx）
-- 提交记录（PR/commit）
-- 风险与依赖（@B/@C/@D）
-- 明日计划
+任务 ID: A-<YYYYMMDD-HHmmss>
+状态: open | review | blocked | done
+创建时间（台北）: YYYY-MM-DD HH:mm:ss (UTC+08:00)
+主题: <例如> 同步圆角与控件高度到 ThemeBridge
 
-【一周循环任务】
+---
 
-1. 维护 `styles/tokens.css`（--brand / --bg-_ / --text-_ / --radius / --shadow / --font / --control-h）。
-2. `tailwind.config.ts` 对齐；`theme/ThemeBridge.tsx` 使用 `darkAlgorithm` + 最小 token。
-3. 提供 tokens 对照表（文档），禁止页面/组件硬编码视觉值。
-4. 运行覆盖扫描，保证 `.ant-*` 与 `!important` 为 0；在《汇总.md》标注异常与修复进度。
+## 背景
 
-【失联与自走】
+为什么做；关联需求/问题编号。
 
-- 若 B/C/D 当日未提交，你仍可冻结 tokens（保持兼容），不做破坏性变更；在汇总“阻塞”栏记录待确认项。
+## 变更范围
+
+- styles/tokens.css（列出新增/修改的变量键名与示例值）
+- tailwind.config.ts（对齐项）
+- theme/ThemeBridge.tsx（darkAlgorithm + token）
+
+## 更新记录
+
+- [YYYY-MM-DD HH:mm:ss] 完成变量梳理，准备 PR #xxx
+- [YYYY-MM-DD HH:mm:ss] 修正 text-2 对比度
+  （每推进一次，就在这里追加一行；**不要新建新文件**）
+
+## 验证清单
+
+- [ ] 暗黑/紧凑 OK
+- [ ] 无 `.ant-*` / 无 `!important`
+- [ ] 关键页面 smoke pass
+
+## 风险与回滚
+
+……
+
+## 下一步
+
+下一张卡的标题或依赖 @B/@C/@D
+
+【动作规则】
+
+1. 新任务 → 在 open\ 下创建一张卡（用上面模板）；
+2. 要评审 → 把“状态”改为 review，并把文件移到 review\；
+3. 完成 → 将“状态”改为 done，文件移到 done\YYYY-MM\，并把链接追加到 \_index.md 顶部；
+4. 阻塞 → 状态=blocked，移入 blocked\，在卡内写清卡点与 owner。
+
+【硬性约束】
+
+- 单文件 ≤ 500 行；视觉值仅在 tokens；禁用 `.ant-*` 与 `!important`。

@@ -15,28 +15,55 @@ X:\active-projects\小红书\employeeGUI\docs\员工工作报告
 
 ## 【任务描述】
 
-【角色与目标】
-用 Radix + shadcn 源码 + Tailwind 皮肤交付 Button/CardShell/TagPill/Tooltip/Dialog/Dropdown；用 Motion 统一动效（入 180–220ms / 出 120–160ms / 悬停 80–120ms）。
+【目标】
+以“单任务单文件”方式实现/演进轻组件（Button/CardShell/TagPill/Tooltip/Dialog/Dropdown）与 Motion 预设。每个组件或子能力一个任务卡，从创建到完成始终更新同一文件。
 
-【共享目录与时间】
+【目录结构】
+docs\员工工作报告\B-轻组件动效\
+ open\ review\ blocked\ done\YYYY-MM\
+ \_index.md
 
-- 报告根：X:\active-projects\小红书\employeeGUI\docs\员工工作报告\B-轻组件动效\
-- 17:45：运行 X:\...\scripts\new-report.ps1 B 自动生成模板
-- 18:00 前填写并 push；18:25 汇总自动更新
+【命名】
+task-B-<slug>-<YYYYMMDD-HHmmss>.md
+示例：task-B-button-variants-20251001-142015.md
 
-【日报要点】
+## 【任务卡模板】
 
-- 新/改轻组件清单、动效预设（motion/presets.ts）
-- A11y（焦点环/键盘/读屏）验证结果
-- 影响范围（需 C 接入 patterns，D 页面替换）
-- PR/commit 与明日计划
+任务 ID: B-<YYYYMMDD-HHmmss>
+状态: open | review | blocked | done
+创建时间（台北）: YYYY-MM-DD HH:mm:ss (UTC+08:00)
+主题: 新增 Button 变体与焦点环
 
-【一周循环任务】
+---
 
-1. `components/ui/*` 轻组件只读 tokens，不硬编码颜色/圆角/阴影。
-2. `components/dialog/SmartDialog.tsx`（Radix + Motion）。
-3. 提供 Story/截图与“替换清单”（哪些页面组件可直接替换）。
+## 背景
 
-【失联与自走】
+……
 
-- 若 A 未更新 tokens：使用现有 tokens 继续推进；在汇总注明“待 A 同步”。
+## 实现要点
+
+- components/ui/Button.tsx: 新增 variant/尺寸/禁用态（仅读 tokens）
+- motion/presets.ts: 统一 enter/exit/hover（入 180–220ms / 出 120–160ms / 悬停 80–120ms）
+
+## 更新记录
+
+- [YYYY-MM-DD HH:mm:ss] 完成 primary/secondary；附 Story 截图链接
+- [YYYY-MM-DD HH:mm:ss] A11y 焦点环通过；@C 接入 patterns
+  （持续追加，不要另起新文件）
+
+## 验证清单
+
+- [ ] 仅读 tokens（不硬编码颜色/圆角/阴影）
+- [ ] Dark/Compact 正常
+- [ ] Story 截图/录屏可查
+
+## 风险与回滚
+
+……
+
+【动作规则】
+open ↔ review ↔ done/blocked 用“移动目录 + 更新卡内状态”的方式流转；每完一步在“更新记录”追加一行，并 push；done 后把链接写入 \_index.md 顶部。
+
+【硬性约束】
+
+- 禁止覆盖 `.ant-*`；不可在 AntD 内部加渐变/阴影/圆角；单文件 ≤ 500 行。
