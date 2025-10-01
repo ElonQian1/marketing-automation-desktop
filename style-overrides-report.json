@@ -1,10 +1,10 @@
 {
   "summary": {
-    "scannedFiles": 1249,
-    "totalIssues": 1458,
-    "criticalIssues": 21,
+    "scannedFiles": 1258,
+    "totalIssues": 1481,
+    "criticalIssues": 23,
     "highIssues": 32,
-    "mediumIssues": 1405
+    "mediumIssues": 1426
   },
   "violations": [
     {
@@ -237,6 +237,28 @@
       "match": ".ant-table-container",
       "context": "//     '.ant-table-container'",
       "fix": "移除覆盖，通过 tokens 和适配器统一"
+    },
+    {
+      "file": "src\\pages\\device-management\\DeviceManagementPageBrandNew.tsx",
+      "line": 32,
+      "column": 19,
+      "type": "importantUsage",
+      "name": "!important 使用",
+      "severity": "critical",
+      "match": "!important",
+      "context": "* - 无 .ant-* 覆盖或 !important",
+      "fix": "移除 !important，通过正确的CSS层级和tokens处理"
+    },
+    {
+      "file": "src\\pages\\EmployeePageBrandNew.tsx",
+      "line": 29,
+      "column": 20,
+      "type": "importantUsage",
+      "name": "!important 使用",
+      "severity": "critical",
+      "match": "!important",
+      "context": "* - 禁止 .ant-* 覆盖和 !important",
+      "fix": "移除 !important，通过正确的CSS层级和tokens处理"
     },
     {
       "file": "src\\components\\EnhancedDraggableToolbar.module.css",
@@ -589,6 +611,17 @@
       "match": "border-radius: 4px",
       "context": "border-radius: 4px;",
       "fix": "使用 var(--radius) 等 tokens 替换"
+    },
+    {
+      "file": "src\\components\\adapters\\table\\TableAdapter.tsx",
+      "line": 71,
+      "column": 22,
+      "type": "hardcodedGradient",
+      "name": "硬编码渐变",
+      "severity": "medium",
+      "match": "linear-gradient(to right, rgba(59, 130, 246, 0.05)",
+      "context": "rowHoverBg: 'linear-gradient(to right, rgba(59, 130, 246, 0.05), transparent)',",
+      "fix": "定义渐变tokens或使用Tailwind工具类"
     },
     {
       "file": "src\\components\\adb-xml-inspector\\AdbXmlInspector.tsx",
@@ -12097,6 +12130,50 @@
       "fix": "使用 tokens 颜色变量替换"
     },
     {
+      "file": "src\\modules\\contact-import\\ui\\batch-manager\\components\\resizable-table\\ResizableTable.css",
+      "line": 10,
+      "column": 27,
+      "type": "hardcodedColors",
+      "name": "硬编码颜色",
+      "severity": "medium",
+      "match": "#d9d9d9",
+      "context": "border-right: 1px solid #d9d9d9;",
+      "fix": "使用 tokens 颜色变量替换"
+    },
+    {
+      "file": "src\\modules\\contact-import\\ui\\batch-manager\\components\\resizable-table\\ResizableTable.css",
+      "line": 12,
+      "column": 15,
+      "type": "hardcodedColors",
+      "name": "硬编码颜色",
+      "severity": "medium",
+      "match": "#fafafa",
+      "context": "background: #fafafa;",
+      "fix": "使用 tokens 颜色变量替换"
+    },
+    {
+      "file": "src\\modules\\contact-import\\ui\\batch-manager\\components\\resizable-table\\ResizableTable.css",
+      "line": 17,
+      "column": 27,
+      "type": "hardcodedColors",
+      "name": "硬编码颜色",
+      "severity": "medium",
+      "match": "#f0f0f0",
+      "context": "border-right: 1px solid #f0f0f0;",
+      "fix": "使用 tokens 颜色变量替换"
+    },
+    {
+      "file": "src\\modules\\contact-import\\ui\\batch-manager\\components\\resizable-table\\ResizableTable.css",
+      "line": 33,
+      "column": 15,
+      "type": "hardcodedColors",
+      "name": "硬编码颜色",
+      "severity": "medium",
+      "match": "#1890ff",
+      "context": "background: #1890ff;",
+      "fix": "使用 tokens 颜色变量替换"
+    },
+    {
       "file": "src\\modules\\contact-import\\ui\\batch-manager\\components\\resizable-table\\ResizableTable.tsx",
       "line": 102,
       "column": 58,
@@ -15046,6 +15123,72 @@
     },
     {
       "file": "src\\styles\\tokens.css",
+      "line": 57,
+      "column": 29,
+      "type": "hardcodedGradient",
+      "name": "硬编码渐变",
+      "severity": "medium",
+      "match": "linear-gradient(135deg, #6E8BFF 0%, #8B5CF6 100%)",
+      "context": "--brand-gradient-primary: linear-gradient(135deg, #6E8BFF 0%, #8B5CF6 100%);",
+      "fix": "定义渐变tokens或使用Tailwind工具类"
+    },
+    {
+      "file": "src\\styles\\tokens.css",
+      "line": 58,
+      "column": 31,
+      "type": "hardcodedGradient",
+      "name": "硬编码渐变",
+      "severity": "medium",
+      "match": "linear-gradient(135deg, #8B5CF6 0%, #EC4899 100%)",
+      "context": "--brand-gradient-secondary: linear-gradient(135deg, #8B5CF6 0%, #EC4899 100%);",
+      "fix": "定义渐变tokens或使用Tailwind工具类"
+    },
+    {
+      "file": "src\\styles\\tokens.css",
+      "line": 59,
+      "column": 28,
+      "type": "hardcodedGradient",
+      "name": "硬编码渐变",
+      "severity": "medium",
+      "match": "linear-gradient(135deg, #3B82F6 0%, #6E8BFF 100%)",
+      "context": "--brand-gradient-accent: linear-gradient(135deg, #3B82F6 0%, #6E8BFF 100%);",
+      "fix": "定义渐变tokens或使用Tailwind工具类"
+    },
+    {
+      "file": "src\\styles\\tokens.css",
+      "line": 60,
+      "column": 28,
+      "type": "hardcodedGradient",
+      "name": "硬编码渐变",
+      "severity": "medium",
+      "match": "linear-gradient(135deg, rgba(110, 139, 255, 0.1)",
+      "context": "--brand-gradient-subtle: linear-gradient(135deg, rgba(110, 139, 255, 0.1) 0%, rgba(139, 92, 246, 0.05) 100%);",
+      "fix": "定义渐变tokens或使用Tailwind工具类"
+    },
+    {
+      "file": "src\\styles\\tokens.css",
+      "line": 68,
+      "column": 27,
+      "type": "hardcodedGradient",
+      "name": "硬编码渐变",
+      "severity": "medium",
+      "match": "linear-gradient(135deg, \r\n    rgba(110, 139, 255, 0.95)",
+      "context": "--brand-gradient-glass: linear-gradient(135deg,",
+      "fix": "定义渐变tokens或使用Tailwind工具类"
+    },
+    {
+      "file": "src\\styles\\tokens.css",
+      "line": 74,
+      "column": 34,
+      "type": "hardcodedGradient",
+      "name": "硬编码渐变",
+      "severity": "medium",
+      "match": "linear-gradient(135deg,\r\n    rgba(110, 139, 255, 0.08)",
+      "context": "--brand-gradient-subtle-hover: linear-gradient(135deg,",
+      "fix": "定义渐变tokens或使用Tailwind工具类"
+    },
+    {
+      "file": "src\\styles\\tokens.css",
       "line": 14,
       "column": 12,
       "type": "hardcodedColors",
@@ -15376,7 +15519,117 @@
     },
     {
       "file": "src\\styles\\tokens.css",
-      "line": 51,
+      "line": 57,
+      "column": 53,
+      "type": "hardcodedColors",
+      "name": "硬编码颜色",
+      "severity": "medium",
+      "match": "#6E8BFF",
+      "context": "--brand-gradient-primary: linear-gradient(135deg, #6E8BFF 0%, #8B5CF6 100%);",
+      "fix": "使用 tokens 颜色变量替换"
+    },
+    {
+      "file": "src\\styles\\tokens.css",
+      "line": 57,
+      "column": 65,
+      "type": "hardcodedColors",
+      "name": "硬编码颜色",
+      "severity": "medium",
+      "match": "#8B5CF6",
+      "context": "--brand-gradient-primary: linear-gradient(135deg, #6E8BFF 0%, #8B5CF6 100%);",
+      "fix": "使用 tokens 颜色变量替换"
+    },
+    {
+      "file": "src\\styles\\tokens.css",
+      "line": 58,
+      "column": 55,
+      "type": "hardcodedColors",
+      "name": "硬编码颜色",
+      "severity": "medium",
+      "match": "#8B5CF6",
+      "context": "--brand-gradient-secondary: linear-gradient(135deg, #8B5CF6 0%, #EC4899 100%);",
+      "fix": "使用 tokens 颜色变量替换"
+    },
+    {
+      "file": "src\\styles\\tokens.css",
+      "line": 58,
+      "column": 67,
+      "type": "hardcodedColors",
+      "name": "硬编码颜色",
+      "severity": "medium",
+      "match": "#EC4899",
+      "context": "--brand-gradient-secondary: linear-gradient(135deg, #8B5CF6 0%, #EC4899 100%);",
+      "fix": "使用 tokens 颜色变量替换"
+    },
+    {
+      "file": "src\\styles\\tokens.css",
+      "line": 59,
+      "column": 52,
+      "type": "hardcodedColors",
+      "name": "硬编码颜色",
+      "severity": "medium",
+      "match": "#3B82F6",
+      "context": "--brand-gradient-accent: linear-gradient(135deg, #3B82F6 0%, #6E8BFF 100%);",
+      "fix": "使用 tokens 颜色变量替换"
+    },
+    {
+      "file": "src\\styles\\tokens.css",
+      "line": 59,
+      "column": 64,
+      "type": "hardcodedColors",
+      "name": "硬编码颜色",
+      "severity": "medium",
+      "match": "#6E8BFF",
+      "context": "--brand-gradient-accent: linear-gradient(135deg, #3B82F6 0%, #6E8BFF 100%);",
+      "fix": "使用 tokens 颜色变量替换"
+    },
+    {
+      "file": "src\\styles\\tokens.css",
+      "line": 73,
+      "column": 5,
+      "type": "hardcodedColors",
+      "name": "硬编码颜色",
+      "severity": "medium",
+      "match": "#6E8BFF",
+      "context": "#6E8BFF 0deg, #8B5CF6 120deg, #EC4899 240deg, #6E8BFF 360deg);",
+      "fix": "使用 tokens 颜色变量替换"
+    },
+    {
+      "file": "src\\styles\\tokens.css",
+      "line": 73,
+      "column": 19,
+      "type": "hardcodedColors",
+      "name": "硬编码颜色",
+      "severity": "medium",
+      "match": "#8B5CF6",
+      "context": "#6E8BFF 0deg, #8B5CF6 120deg, #EC4899 240deg, #6E8BFF 360deg);",
+      "fix": "使用 tokens 颜色变量替换"
+    },
+    {
+      "file": "src\\styles\\tokens.css",
+      "line": 73,
+      "column": 35,
+      "type": "hardcodedColors",
+      "name": "硬编码颜色",
+      "severity": "medium",
+      "match": "#EC4899",
+      "context": "#6E8BFF 0deg, #8B5CF6 120deg, #EC4899 240deg, #6E8BFF 360deg);",
+      "fix": "使用 tokens 颜色变量替换"
+    },
+    {
+      "file": "src\\styles\\tokens.css",
+      "line": 73,
+      "column": 51,
+      "type": "hardcodedColors",
+      "name": "硬编码颜色",
+      "severity": "medium",
+      "match": "#6E8BFF",
+      "context": "#6E8BFF 0deg, #8B5CF6 120deg, #EC4899 240deg, #6E8BFF 360deg);",
+      "fix": "使用 tokens 颜色变量替换"
+    },
+    {
+      "file": "src\\styles\\tokens.css",
+      "line": 87,
       "column": 14,
       "type": "hardcodedColors",
       "name": "硬编码颜色",
@@ -15387,7 +15640,7 @@
     },
     {
       "file": "src\\styles\\tokens.css",
-      "line": 52,
+      "line": 88,
       "column": 18,
       "type": "hardcodedColors",
       "name": "硬编码颜色",
@@ -15398,7 +15651,7 @@
     },
     {
       "file": "src\\styles\\tokens.css",
-      "line": 53,
+      "line": 89,
       "column": 19,
       "type": "hardcodedColors",
       "name": "硬编码颜色",
@@ -15409,7 +15662,7 @@
     },
     {
       "file": "src\\styles\\tokens.css",
-      "line": 54,
+      "line": 90,
       "column": 18,
       "type": "hardcodedColors",
       "name": "硬编码颜色",
@@ -15420,7 +15673,7 @@
     },
     {
       "file": "src\\styles\\tokens.css",
-      "line": 55,
+      "line": 91,
       "column": 15,
       "type": "hardcodedColors",
       "name": "硬编码颜色",
@@ -15431,7 +15684,7 @@
     },
     {
       "file": "src\\styles\\tokens.css",
-      "line": 58,
+      "line": 94,
       "column": 20,
       "type": "hardcodedColors",
       "name": "硬编码颜色",
@@ -15442,7 +15695,7 @@
     },
     {
       "file": "src\\styles\\tokens.css",
-      "line": 59,
+      "line": 95,
       "column": 24,
       "type": "hardcodedColors",
       "name": "硬编码颜色",
@@ -15453,7 +15706,7 @@
     },
     {
       "file": "src\\styles\\tokens.css",
-      "line": 60,
+      "line": 96,
       "column": 25,
       "type": "hardcodedColors",
       "name": "硬编码颜色",
@@ -15464,7 +15717,7 @@
     },
     {
       "file": "src\\styles\\tokens.css",
-      "line": 63,
+      "line": 103,
       "column": 13,
       "type": "hardcodedColors",
       "name": "硬编码颜色",
@@ -15475,7 +15728,7 @@
     },
     {
       "file": "src\\styles\\tokens.css",
-      "line": 64,
+      "line": 104,
       "column": 13,
       "type": "hardcodedColors",
       "name": "硬编码颜色",
@@ -15486,7 +15739,7 @@
     },
     {
       "file": "src\\styles\\tokens.css",
-      "line": 65,
+      "line": 105,
       "column": 13,
       "type": "hardcodedColors",
       "name": "硬编码颜色",
@@ -15497,7 +15750,7 @@
     },
     {
       "file": "src\\styles\\tokens.css",
-      "line": 66,
+      "line": 106,
       "column": 17,
       "type": "hardcodedColors",
       "name": "硬编码颜色",
@@ -15508,7 +15761,7 @@
     },
     {
       "file": "src\\styles\\tokens.css",
-      "line": 67,
+      "line": 107,
       "column": 19,
       "type": "hardcodedColors",
       "name": "硬编码颜色",
@@ -15519,7 +15772,7 @@
     },
     {
       "file": "src\\styles\\tokens.css",
-      "line": 70,
+      "line": 110,
       "column": 21,
       "type": "hardcodedColors",
       "name": "硬编码颜色",
@@ -15530,7 +15783,7 @@
     },
     {
       "file": "src\\styles\\tokens.css",
-      "line": 71,
+      "line": 111,
       "column": 23,
       "type": "hardcodedColors",
       "name": "硬编码颜色",
@@ -15541,7 +15794,7 @@
     },
     {
       "file": "src\\styles\\tokens.css",
-      "line": 72,
+      "line": 112,
       "column": 19,
       "type": "hardcodedColors",
       "name": "硬编码颜色",
@@ -15552,7 +15805,7 @@
     },
     {
       "file": "src\\styles\\tokens.css",
-      "line": 160,
+      "line": 231,
       "column": 14,
       "type": "hardcodedColors",
       "name": "硬编码颜色",
@@ -15563,7 +15816,7 @@
     },
     {
       "file": "src\\styles\\tokens.css",
-      "line": 161,
+      "line": 232,
       "column": 18,
       "type": "hardcodedColors",
       "name": "硬编码颜色",
@@ -15574,7 +15827,7 @@
     },
     {
       "file": "src\\styles\\tokens.css",
-      "line": 162,
+      "line": 233,
       "column": 19,
       "type": "hardcodedColors",
       "name": "硬编码颜色",
@@ -15585,7 +15838,7 @@
     },
     {
       "file": "src\\styles\\tokens.css",
-      "line": 164,
+      "line": 235,
       "column": 13,
       "type": "hardcodedColors",
       "name": "硬编码颜色",
@@ -15596,7 +15849,7 @@
     },
     {
       "file": "src\\styles\\tokens.css",
-      "line": 165,
+      "line": 236,
       "column": 13,
       "type": "hardcodedColors",
       "name": "硬编码颜色",
@@ -15607,7 +15860,7 @@
     },
     {
       "file": "src\\styles\\tokens.css",
-      "line": 166,
+      "line": 237,
       "column": 13,
       "type": "hardcodedColors",
       "name": "硬编码颜色",
@@ -15618,7 +15871,7 @@
     },
     {
       "file": "src\\styles\\tokens.css",
-      "line": 171,
+      "line": 242,
       "column": 14,
       "type": "hardcodedColors",
       "name": "硬编码颜色",
@@ -15629,7 +15882,7 @@
     },
     {
       "file": "src\\styles\\tokens.css",
-      "line": 172,
+      "line": 243,
       "column": 18,
       "type": "hardcodedColors",
       "name": "硬编码颜色",
@@ -15640,7 +15893,7 @@
     },
     {
       "file": "src\\styles\\tokens.css",
-      "line": 173,
+      "line": 244,
       "column": 19,
       "type": "hardcodedColors",
       "name": "硬编码颜色",
@@ -15651,7 +15904,7 @@
     },
     {
       "file": "src\\styles\\tokens.css",
-      "line": 175,
+      "line": 246,
       "column": 13,
       "type": "hardcodedColors",
       "name": "硬编码颜色",
@@ -15662,7 +15915,7 @@
     },
     {
       "file": "src\\styles\\tokens.css",
-      "line": 176,
+      "line": 247,
       "column": 13,
       "type": "hardcodedColors",
       "name": "硬编码颜色",
@@ -15673,7 +15926,7 @@
     },
     {
       "file": "src\\styles\\tokens.css",
-      "line": 177,
+      "line": 248,
       "column": 13,
       "type": "hardcodedColors",
       "name": "硬编码颜色",
@@ -15684,7 +15937,7 @@
     },
     {
       "file": "src\\styles\\tokens.css",
-      "line": 179,
+      "line": 250,
       "column": 21,
       "type": "hardcodedColors",
       "name": "硬编码颜色",
@@ -15695,7 +15948,7 @@
     },
     {
       "file": "src\\styles\\tokens.css",
-      "line": 180,
+      "line": 251,
       "column": 23,
       "type": "hardcodedColors",
       "name": "硬编码颜色",
@@ -16071,6 +16324,17 @@
         "match": ".ant-table-",
         "context": "* 2. 不覆写 .ant-table-* 内部样式，仅通过 ConfigProvider 和外层容器",
         "fix": "移除覆盖，通过 tokens 和适配器统一"
+      },
+      {
+        "file": "src\\components\\adapters\\table\\TableAdapter.tsx",
+        "line": 71,
+        "column": 22,
+        "type": "hardcodedGradient",
+        "name": "硬编码渐变",
+        "severity": "medium",
+        "match": "linear-gradient(to right, rgba(59, 130, 246, 0.05)",
+        "context": "rowHoverBg: 'linear-gradient(to right, rgba(59, 130, 246, 0.05), transparent)',",
+        "fix": "定义渐变tokens或使用Tailwind工具类"
       }
     ],
     "src\\components\\adb-xml-inspector\\AdbXmlInspector.tsx": [
@@ -28130,6 +28394,52 @@
         "fix": "使用 tokens 颜色变量替换"
       }
     ],
+    "src\\modules\\contact-import\\ui\\batch-manager\\components\\resizable-table\\ResizableTable.css": [
+      {
+        "file": "src\\modules\\contact-import\\ui\\batch-manager\\components\\resizable-table\\ResizableTable.css",
+        "line": 10,
+        "column": 27,
+        "type": "hardcodedColors",
+        "name": "硬编码颜色",
+        "severity": "medium",
+        "match": "#d9d9d9",
+        "context": "border-right: 1px solid #d9d9d9;",
+        "fix": "使用 tokens 颜色变量替换"
+      },
+      {
+        "file": "src\\modules\\contact-import\\ui\\batch-manager\\components\\resizable-table\\ResizableTable.css",
+        "line": 12,
+        "column": 15,
+        "type": "hardcodedColors",
+        "name": "硬编码颜色",
+        "severity": "medium",
+        "match": "#fafafa",
+        "context": "background: #fafafa;",
+        "fix": "使用 tokens 颜色变量替换"
+      },
+      {
+        "file": "src\\modules\\contact-import\\ui\\batch-manager\\components\\resizable-table\\ResizableTable.css",
+        "line": 17,
+        "column": 27,
+        "type": "hardcodedColors",
+        "name": "硬编码颜色",
+        "severity": "medium",
+        "match": "#f0f0f0",
+        "context": "border-right: 1px solid #f0f0f0;",
+        "fix": "使用 tokens 颜色变量替换"
+      },
+      {
+        "file": "src\\modules\\contact-import\\ui\\batch-manager\\components\\resizable-table\\ResizableTable.css",
+        "line": 33,
+        "column": 15,
+        "type": "hardcodedColors",
+        "name": "硬编码颜色",
+        "severity": "medium",
+        "match": "#1890ff",
+        "context": "background: #1890ff;",
+        "fix": "使用 tokens 颜色变量替换"
+      }
+    ],
     "src\\modules\\contact-import\\ui\\batch-manager\\components\\resizable-table\\ResizableTable.tsx": [
       {
         "file": "src\\modules\\contact-import\\ui\\batch-manager\\components\\resizable-table\\ResizableTable.tsx",
@@ -30549,6 +30859,32 @@
         "fix": "使用 tokens 颜色变量替换"
       }
     ],
+    "src\\pages\\device-management\\DeviceManagementPageBrandNew.tsx": [
+      {
+        "file": "src\\pages\\device-management\\DeviceManagementPageBrandNew.tsx",
+        "line": 32,
+        "column": 19,
+        "type": "importantUsage",
+        "name": "!important 使用",
+        "severity": "critical",
+        "match": "!important",
+        "context": "* - 无 .ant-* 覆盖或 !important",
+        "fix": "移除 !important，通过正确的CSS层级和tokens处理"
+      }
+    ],
+    "src\\pages\\EmployeePageBrandNew.tsx": [
+      {
+        "file": "src\\pages\\EmployeePageBrandNew.tsx",
+        "line": 29,
+        "column": 20,
+        "type": "importantUsage",
+        "name": "!important 使用",
+        "severity": "critical",
+        "match": "!important",
+        "context": "* - 禁止 .ant-* 覆盖和 !important",
+        "fix": "移除 !important，通过正确的CSS层级和tokens处理"
+      }
+    ],
     "src\\pages\\ScriptBuilderTestPage.tsx": [
       {
         "file": "src\\pages\\ScriptBuilderTestPage.tsx",
@@ -31515,6 +31851,72 @@
     "src\\styles\\tokens.css": [
       {
         "file": "src\\styles\\tokens.css",
+        "line": 57,
+        "column": 29,
+        "type": "hardcodedGradient",
+        "name": "硬编码渐变",
+        "severity": "medium",
+        "match": "linear-gradient(135deg, #6E8BFF 0%, #8B5CF6 100%)",
+        "context": "--brand-gradient-primary: linear-gradient(135deg, #6E8BFF 0%, #8B5CF6 100%);",
+        "fix": "定义渐变tokens或使用Tailwind工具类"
+      },
+      {
+        "file": "src\\styles\\tokens.css",
+        "line": 58,
+        "column": 31,
+        "type": "hardcodedGradient",
+        "name": "硬编码渐变",
+        "severity": "medium",
+        "match": "linear-gradient(135deg, #8B5CF6 0%, #EC4899 100%)",
+        "context": "--brand-gradient-secondary: linear-gradient(135deg, #8B5CF6 0%, #EC4899 100%);",
+        "fix": "定义渐变tokens或使用Tailwind工具类"
+      },
+      {
+        "file": "src\\styles\\tokens.css",
+        "line": 59,
+        "column": 28,
+        "type": "hardcodedGradient",
+        "name": "硬编码渐变",
+        "severity": "medium",
+        "match": "linear-gradient(135deg, #3B82F6 0%, #6E8BFF 100%)",
+        "context": "--brand-gradient-accent: linear-gradient(135deg, #3B82F6 0%, #6E8BFF 100%);",
+        "fix": "定义渐变tokens或使用Tailwind工具类"
+      },
+      {
+        "file": "src\\styles\\tokens.css",
+        "line": 60,
+        "column": 28,
+        "type": "hardcodedGradient",
+        "name": "硬编码渐变",
+        "severity": "medium",
+        "match": "linear-gradient(135deg, rgba(110, 139, 255, 0.1)",
+        "context": "--brand-gradient-subtle: linear-gradient(135deg, rgba(110, 139, 255, 0.1) 0%, rgba(139, 92, 246, 0.05) 100%);",
+        "fix": "定义渐变tokens或使用Tailwind工具类"
+      },
+      {
+        "file": "src\\styles\\tokens.css",
+        "line": 68,
+        "column": 27,
+        "type": "hardcodedGradient",
+        "name": "硬编码渐变",
+        "severity": "medium",
+        "match": "linear-gradient(135deg, \r\n    rgba(110, 139, 255, 0.95)",
+        "context": "--brand-gradient-glass: linear-gradient(135deg,",
+        "fix": "定义渐变tokens或使用Tailwind工具类"
+      },
+      {
+        "file": "src\\styles\\tokens.css",
+        "line": 74,
+        "column": 34,
+        "type": "hardcodedGradient",
+        "name": "硬编码渐变",
+        "severity": "medium",
+        "match": "linear-gradient(135deg,\r\n    rgba(110, 139, 255, 0.08)",
+        "context": "--brand-gradient-subtle-hover: linear-gradient(135deg,",
+        "fix": "定义渐变tokens或使用Tailwind工具类"
+      },
+      {
+        "file": "src\\styles\\tokens.css",
         "line": 14,
         "column": 12,
         "type": "hardcodedColors",
@@ -31845,7 +32247,117 @@
       },
       {
         "file": "src\\styles\\tokens.css",
-        "line": 51,
+        "line": 57,
+        "column": 53,
+        "type": "hardcodedColors",
+        "name": "硬编码颜色",
+        "severity": "medium",
+        "match": "#6E8BFF",
+        "context": "--brand-gradient-primary: linear-gradient(135deg, #6E8BFF 0%, #8B5CF6 100%);",
+        "fix": "使用 tokens 颜色变量替换"
+      },
+      {
+        "file": "src\\styles\\tokens.css",
+        "line": 57,
+        "column": 65,
+        "type": "hardcodedColors",
+        "name": "硬编码颜色",
+        "severity": "medium",
+        "match": "#8B5CF6",
+        "context": "--brand-gradient-primary: linear-gradient(135deg, #6E8BFF 0%, #8B5CF6 100%);",
+        "fix": "使用 tokens 颜色变量替换"
+      },
+      {
+        "file": "src\\styles\\tokens.css",
+        "line": 58,
+        "column": 55,
+        "type": "hardcodedColors",
+        "name": "硬编码颜色",
+        "severity": "medium",
+        "match": "#8B5CF6",
+        "context": "--brand-gradient-secondary: linear-gradient(135deg, #8B5CF6 0%, #EC4899 100%);",
+        "fix": "使用 tokens 颜色变量替换"
+      },
+      {
+        "file": "src\\styles\\tokens.css",
+        "line": 58,
+        "column": 67,
+        "type": "hardcodedColors",
+        "name": "硬编码颜色",
+        "severity": "medium",
+        "match": "#EC4899",
+        "context": "--brand-gradient-secondary: linear-gradient(135deg, #8B5CF6 0%, #EC4899 100%);",
+        "fix": "使用 tokens 颜色变量替换"
+      },
+      {
+        "file": "src\\styles\\tokens.css",
+        "line": 59,
+        "column": 52,
+        "type": "hardcodedColors",
+        "name": "硬编码颜色",
+        "severity": "medium",
+        "match": "#3B82F6",
+        "context": "--brand-gradient-accent: linear-gradient(135deg, #3B82F6 0%, #6E8BFF 100%);",
+        "fix": "使用 tokens 颜色变量替换"
+      },
+      {
+        "file": "src\\styles\\tokens.css",
+        "line": 59,
+        "column": 64,
+        "type": "hardcodedColors",
+        "name": "硬编码颜色",
+        "severity": "medium",
+        "match": "#6E8BFF",
+        "context": "--brand-gradient-accent: linear-gradient(135deg, #3B82F6 0%, #6E8BFF 100%);",
+        "fix": "使用 tokens 颜色变量替换"
+      },
+      {
+        "file": "src\\styles\\tokens.css",
+        "line": 73,
+        "column": 5,
+        "type": "hardcodedColors",
+        "name": "硬编码颜色",
+        "severity": "medium",
+        "match": "#6E8BFF",
+        "context": "#6E8BFF 0deg, #8B5CF6 120deg, #EC4899 240deg, #6E8BFF 360deg);",
+        "fix": "使用 tokens 颜色变量替换"
+      },
+      {
+        "file": "src\\styles\\tokens.css",
+        "line": 73,
+        "column": 19,
+        "type": "hardcodedColors",
+        "name": "硬编码颜色",
+        "severity": "medium",
+        "match": "#8B5CF6",
+        "context": "#6E8BFF 0deg, #8B5CF6 120deg, #EC4899 240deg, #6E8BFF 360deg);",
+        "fix": "使用 tokens 颜色变量替换"
+      },
+      {
+        "file": "src\\styles\\tokens.css",
+        "line": 73,
+        "column": 35,
+        "type": "hardcodedColors",
+        "name": "硬编码颜色",
+        "severity": "medium",
+        "match": "#EC4899",
+        "context": "#6E8BFF 0deg, #8B5CF6 120deg, #EC4899 240deg, #6E8BFF 360deg);",
+        "fix": "使用 tokens 颜色变量替换"
+      },
+      {
+        "file": "src\\styles\\tokens.css",
+        "line": 73,
+        "column": 51,
+        "type": "hardcodedColors",
+        "name": "硬编码颜色",
+        "severity": "medium",
+        "match": "#6E8BFF",
+        "context": "#6E8BFF 0deg, #8B5CF6 120deg, #EC4899 240deg, #6E8BFF 360deg);",
+        "fix": "使用 tokens 颜色变量替换"
+      },
+      {
+        "file": "src\\styles\\tokens.css",
+        "line": 87,
         "column": 14,
         "type": "hardcodedColors",
         "name": "硬编码颜色",
@@ -31856,7 +32368,7 @@
       },
       {
         "file": "src\\styles\\tokens.css",
-        "line": 52,
+        "line": 88,
         "column": 18,
         "type": "hardcodedColors",
         "name": "硬编码颜色",
@@ -31867,7 +32379,7 @@
       },
       {
         "file": "src\\styles\\tokens.css",
-        "line": 53,
+        "line": 89,
         "column": 19,
         "type": "hardcodedColors",
         "name": "硬编码颜色",
@@ -31878,7 +32390,7 @@
       },
       {
         "file": "src\\styles\\tokens.css",
-        "line": 54,
+        "line": 90,
         "column": 18,
         "type": "hardcodedColors",
         "name": "硬编码颜色",
@@ -31889,7 +32401,7 @@
       },
       {
         "file": "src\\styles\\tokens.css",
-        "line": 55,
+        "line": 91,
         "column": 15,
         "type": "hardcodedColors",
         "name": "硬编码颜色",
@@ -31900,7 +32412,7 @@
       },
       {
         "file": "src\\styles\\tokens.css",
-        "line": 58,
+        "line": 94,
         "column": 20,
         "type": "hardcodedColors",
         "name": "硬编码颜色",
@@ -31911,7 +32423,7 @@
       },
       {
         "file": "src\\styles\\tokens.css",
-        "line": 59,
+        "line": 95,
         "column": 24,
         "type": "hardcodedColors",
         "name": "硬编码颜色",
@@ -31922,7 +32434,7 @@
       },
       {
         "file": "src\\styles\\tokens.css",
-        "line": 60,
+        "line": 96,
         "column": 25,
         "type": "hardcodedColors",
         "name": "硬编码颜色",
@@ -31933,7 +32445,7 @@
       },
       {
         "file": "src\\styles\\tokens.css",
-        "line": 63,
+        "line": 103,
         "column": 13,
         "type": "hardcodedColors",
         "name": "硬编码颜色",
@@ -31944,7 +32456,7 @@
       },
       {
         "file": "src\\styles\\tokens.css",
-        "line": 64,
+        "line": 104,
         "column": 13,
         "type": "hardcodedColors",
         "name": "硬编码颜色",
@@ -31955,7 +32467,7 @@
       },
       {
         "file": "src\\styles\\tokens.css",
-        "line": 65,
+        "line": 105,
         "column": 13,
         "type": "hardcodedColors",
         "name": "硬编码颜色",
@@ -31966,7 +32478,7 @@
       },
       {
         "file": "src\\styles\\tokens.css",
-        "line": 66,
+        "line": 106,
         "column": 17,
         "type": "hardcodedColors",
         "name": "硬编码颜色",
@@ -31977,7 +32489,7 @@
       },
       {
         "file": "src\\styles\\tokens.css",
-        "line": 67,
+        "line": 107,
         "column": 19,
         "type": "hardcodedColors",
         "name": "硬编码颜色",
@@ -31988,7 +32500,7 @@
       },
       {
         "file": "src\\styles\\tokens.css",
-        "line": 70,
+        "line": 110,
         "column": 21,
         "type": "hardcodedColors",
         "name": "硬编码颜色",
@@ -31999,7 +32511,7 @@
       },
       {
         "file": "src\\styles\\tokens.css",
-        "line": 71,
+        "line": 111,
         "column": 23,
         "type": "hardcodedColors",
         "name": "硬编码颜色",
@@ -32010,7 +32522,7 @@
       },
       {
         "file": "src\\styles\\tokens.css",
-        "line": 72,
+        "line": 112,
         "column": 19,
         "type": "hardcodedColors",
         "name": "硬编码颜色",
@@ -32021,7 +32533,7 @@
       },
       {
         "file": "src\\styles\\tokens.css",
-        "line": 160,
+        "line": 231,
         "column": 14,
         "type": "hardcodedColors",
         "name": "硬编码颜色",
@@ -32032,7 +32544,7 @@
       },
       {
         "file": "src\\styles\\tokens.css",
-        "line": 161,
+        "line": 232,
         "column": 18,
         "type": "hardcodedColors",
         "name": "硬编码颜色",
@@ -32043,7 +32555,7 @@
       },
       {
         "file": "src\\styles\\tokens.css",
-        "line": 162,
+        "line": 233,
         "column": 19,
         "type": "hardcodedColors",
         "name": "硬编码颜色",
@@ -32054,7 +32566,7 @@
       },
       {
         "file": "src\\styles\\tokens.css",
-        "line": 164,
+        "line": 235,
         "column": 13,
         "type": "hardcodedColors",
         "name": "硬编码颜色",
@@ -32065,7 +32577,7 @@
       },
       {
         "file": "src\\styles\\tokens.css",
-        "line": 165,
+        "line": 236,
         "column": 13,
         "type": "hardcodedColors",
         "name": "硬编码颜色",
@@ -32076,7 +32588,7 @@
       },
       {
         "file": "src\\styles\\tokens.css",
-        "line": 166,
+        "line": 237,
         "column": 13,
         "type": "hardcodedColors",
         "name": "硬编码颜色",
@@ -32087,7 +32599,7 @@
       },
       {
         "file": "src\\styles\\tokens.css",
-        "line": 171,
+        "line": 242,
         "column": 14,
         "type": "hardcodedColors",
         "name": "硬编码颜色",
@@ -32098,7 +32610,7 @@
       },
       {
         "file": "src\\styles\\tokens.css",
-        "line": 172,
+        "line": 243,
         "column": 18,
         "type": "hardcodedColors",
         "name": "硬编码颜色",
@@ -32109,7 +32621,7 @@
       },
       {
         "file": "src\\styles\\tokens.css",
-        "line": 173,
+        "line": 244,
         "column": 19,
         "type": "hardcodedColors",
         "name": "硬编码颜色",
@@ -32120,7 +32632,7 @@
       },
       {
         "file": "src\\styles\\tokens.css",
-        "line": 175,
+        "line": 246,
         "column": 13,
         "type": "hardcodedColors",
         "name": "硬编码颜色",
@@ -32131,7 +32643,7 @@
       },
       {
         "file": "src\\styles\\tokens.css",
-        "line": 176,
+        "line": 247,
         "column": 13,
         "type": "hardcodedColors",
         "name": "硬编码颜色",
@@ -32142,7 +32654,7 @@
       },
       {
         "file": "src\\styles\\tokens.css",
-        "line": 177,
+        "line": 248,
         "column": 13,
         "type": "hardcodedColors",
         "name": "硬编码颜色",
@@ -32153,7 +32665,7 @@
       },
       {
         "file": "src\\styles\\tokens.css",
-        "line": 179,
+        "line": 250,
         "column": 21,
         "type": "hardcodedColors",
         "name": "硬编码颜色",
@@ -32164,7 +32676,7 @@
       },
       {
         "file": "src\\styles\\tokens.css",
-        "line": 180,
+        "line": 251,
         "column": 23,
         "type": "hardcodedColors",
         "name": "硬编码颜色",
@@ -32752,6 +33264,371 @@
         "match": ".ant-table-container",
         "context": "//     '.ant-table-container'",
         "fix": "移除覆盖，通过 tokens 和适配器统一"
+      }
+    ],
+    "hardcodedGradient": [
+      {
+        "file": "src\\components\\adapters\\table\\TableAdapter.tsx",
+        "line": 71,
+        "column": 22,
+        "type": "hardcodedGradient",
+        "name": "硬编码渐变",
+        "severity": "medium",
+        "match": "linear-gradient(to right, rgba(59, 130, 246, 0.05)",
+        "context": "rowHoverBg: 'linear-gradient(to right, rgba(59, 130, 246, 0.05), transparent)',",
+        "fix": "定义渐变tokens或使用Tailwind工具类"
+      },
+      {
+        "file": "src\\components\\device\\RealDeviceManager.tsx",
+        "line": 95,
+        "column": 35,
+        "type": "hardcodedGradient",
+        "name": "硬编码渐变",
+        "severity": "medium",
+        "match": "linear-gradient(135deg, #4facfe, #00f2fe)",
+        "context": "style={{ background: 'linear-gradient(135deg, #4facfe, #00f2fe)' }}",
+        "fix": "定义渐变tokens或使用Tailwind工具类"
+      },
+      {
+        "file": "src\\components\\LoopEndCard.tsx",
+        "line": 99,
+        "column": 24,
+        "type": "hardcodedGradient",
+        "name": "硬编码渐变",
+        "severity": "medium",
+        "match": "linear-gradient(to bottom right, #dbeafe, #bfdbfe, #93c5fd)",
+        "context": "background: 'linear-gradient(to bottom right, #dbeafe, #bfdbfe, #93c5fd)',",
+        "fix": "定义渐变tokens或使用Tailwind工具类"
+      },
+      {
+        "file": "src\\components\\LoopStartCard\\index.tsx",
+        "line": 73,
+        "column": 22,
+        "type": "hardcodedGradient",
+        "name": "硬编码渐变",
+        "severity": "medium",
+        "match": "linear-gradient(135deg, #ffffff 0%, #f8fafc 100%)",
+        "context": "background: 'linear-gradient(135deg, #ffffff 0%, #f8fafc 100%)',",
+        "fix": "定义渐变tokens或使用Tailwind工具类"
+      },
+      {
+        "file": "src\\components\\ModernDashboard.tsx",
+        "line": 72,
+        "column": 26,
+        "type": "hardcodedGradient",
+        "name": "硬编码渐变",
+        "severity": "medium",
+        "match": "linear-gradient(135deg, #ff6b8a 0%, #4ecdc4 50%, #a8e6cf 100%)",
+        "context": "background: 'linear-gradient(135deg, #ff6b8a 0%, #4ecdc4 50%, #a8e6cf 100%)',",
+        "fix": "定义渐变tokens或使用Tailwind工具类"
+      },
+      {
+        "file": "src\\components\\ModernDashboard.tsx",
+        "line": 154,
+        "column": 30,
+        "type": "hardcodedGradient",
+        "name": "硬编码渐变",
+        "severity": "medium",
+        "match": "linear-gradient(135deg, #1890ff, #722ed1)",
+        "context": "background: 'linear-gradient(135deg, #1890ff, #722ed1)',",
+        "fix": "定义渐变tokens或使用Tailwind工具类"
+      },
+      {
+        "file": "src\\components\\ui\\buttons\\PrimaryButton.tsx",
+        "line": 102,
+        "column": 15,
+        "type": "hardcodedGradient",
+        "name": "硬编码渐变",
+        "severity": "medium",
+        "match": "linear-gradient(135deg, #3b82f6, #2563eb)",
+        "context": "background: linear-gradient(135deg, #3b82f6, #2563eb);",
+        "fix": "定义渐变tokens或使用Tailwind工具类"
+      },
+      {
+        "file": "src\\components\\unified-view\\UnifiedVisualizationView.tsx",
+        "line": 299,
+        "column": 34,
+        "type": "hardcodedGradient",
+        "name": "硬编码渐变",
+        "severity": "medium",
+        "match": "linear-gradient(135deg, #065f46, #047857)",
+        "context": "? 'linear-gradient(135deg, #065f46, #047857)'",
+        "fix": "定义渐变tokens或使用Tailwind工具类"
+      },
+      {
+        "file": "src\\components\\unified-view\\UnifiedVisualizationView.tsx",
+        "line": 300,
+        "column": 34,
+        "type": "hardcodedGradient",
+        "name": "硬编码渐变",
+        "severity": "medium",
+        "match": "linear-gradient(135deg, #4b5563, #6b7280)",
+        "context": ": 'linear-gradient(135deg, #4b5563, #6b7280)'",
+        "fix": "定义渐变tokens或使用Tailwind工具类"
+      },
+      {
+        "file": "src\\components\\universal-ui\\views\\list-view\\ElementListView.tsx",
+        "line": 206,
+        "column": 25,
+        "type": "hardcodedGradient",
+        "name": "硬编码渐变",
+        "severity": "medium",
+        "match": "linear-gradient(135deg, #ff6b6b, #ff8e53)",
+        "context": "legendary: { bg: 'linear-gradient(135deg, #ff6b6b, #ff8e53)', border: '#ff4757', glow: '#ff6b6b' },",
+        "fix": "定义渐变tokens或使用Tailwind工具类"
+      },
+      {
+        "file": "src\\components\\universal-ui\\views\\list-view\\ElementListView.tsx",
+        "line": 207,
+        "column": 20,
+        "type": "hardcodedGradient",
+        "name": "硬编码渐变",
+        "severity": "medium",
+        "match": "linear-gradient(135deg, #a55eea, #26de81)",
+        "context": "epic: { bg: 'linear-gradient(135deg, #a55eea, #26de81)', border: '#8854d0', glow: '#a55eea' },",
+        "fix": "定义渐变tokens或使用Tailwind工具类"
+      },
+      {
+        "file": "src\\components\\universal-ui\\views\\list-view\\ElementListView.tsx",
+        "line": 208,
+        "column": 20,
+        "type": "hardcodedGradient",
+        "name": "硬编码渐变",
+        "severity": "medium",
+        "match": "linear-gradient(135deg, #3742fa, #2f3542)",
+        "context": "rare: { bg: 'linear-gradient(135deg, #3742fa, #2f3542)', border: '#2f3093', glow: '#3742fa' },",
+        "fix": "定义渐变tokens或使用Tailwind工具类"
+      },
+      {
+        "file": "src\\components\\universal-ui\\views\\list-view\\ElementListView.tsx",
+        "line": 209,
+        "column": 24,
+        "type": "hardcodedGradient",
+        "name": "硬编码渐变",
+        "severity": "medium",
+        "match": "linear-gradient(135deg, #2ed573, #1e90ff)",
+        "context": "uncommon: { bg: 'linear-gradient(135deg, #2ed573, #1e90ff)', border: '#20bf6b', glow: '#2ed573' },",
+        "fix": "定义渐变tokens或使用Tailwind工具类"
+      },
+      {
+        "file": "src\\components\\universal-ui\\views\\list-view\\ElementListView.tsx",
+        "line": 210,
+        "column": 22,
+        "type": "hardcodedGradient",
+        "name": "硬编码渐变",
+        "severity": "medium",
+        "match": "linear-gradient(135deg, #747d8c, #57606f)",
+        "context": "common: { bg: 'linear-gradient(135deg, #747d8c, #57606f)', border: '#5f6368', glow: '#747d8c' }",
+        "fix": "定义渐变tokens或使用Tailwind工具类"
+      },
+      {
+        "file": "src\\components\\universal-ui\\views\\list-view\\ElementListView.tsx",
+        "line": 338,
+        "column": 22,
+        "type": "hardcodedGradient",
+        "name": "硬编码渐变",
+        "severity": "medium",
+        "match": "linear-gradient(135deg, #f8f9fa, #e9ecef)",
+        "context": ": 'linear-gradient(135deg, #f8f9fa, #e9ecef)',",
+        "fix": "定义渐变tokens或使用Tailwind工具类"
+      },
+      {
+        "file": "src\\components\\universal-ui\\views\\list-view\\utils.ts",
+        "line": 38,
+        "column": 10,
+        "type": "hardcodedGradient",
+        "name": "硬编码渐变",
+        "severity": "medium",
+        "match": "linear-gradient(135deg, #ff6b6b, #ff8e53)",
+        "context": "bg: 'linear-gradient(135deg, #ff6b6b, #ff8e53)',",
+        "fix": "定义渐变tokens或使用Tailwind工具类"
+      },
+      {
+        "file": "src\\components\\universal-ui\\views\\list-view\\utils.ts",
+        "line": 43,
+        "column": 10,
+        "type": "hardcodedGradient",
+        "name": "硬编码渐变",
+        "severity": "medium",
+        "match": "linear-gradient(135deg, #a55eea, #26de81)",
+        "context": "bg: 'linear-gradient(135deg, #a55eea, #26de81)',",
+        "fix": "定义渐变tokens或使用Tailwind工具类"
+      },
+      {
+        "file": "src\\components\\universal-ui\\views\\list-view\\utils.ts",
+        "line": 48,
+        "column": 10,
+        "type": "hardcodedGradient",
+        "name": "硬编码渐变",
+        "severity": "medium",
+        "match": "linear-gradient(135deg, #3742fa, #2f3542)",
+        "context": "bg: 'linear-gradient(135deg, #3742fa, #2f3542)',",
+        "fix": "定义渐变tokens或使用Tailwind工具类"
+      },
+      {
+        "file": "src\\components\\universal-ui\\views\\list-view\\utils.ts",
+        "line": 53,
+        "column": 10,
+        "type": "hardcodedGradient",
+        "name": "硬编码渐变",
+        "severity": "medium",
+        "match": "linear-gradient(135deg, #2ed573, #1e90ff)",
+        "context": "bg: 'linear-gradient(135deg, #2ed573, #1e90ff)',",
+        "fix": "定义渐变tokens或使用Tailwind工具类"
+      },
+      {
+        "file": "src\\components\\universal-ui\\views\\list-view\\utils.ts",
+        "line": 58,
+        "column": 10,
+        "type": "hardcodedGradient",
+        "name": "硬编码渐变",
+        "severity": "medium",
+        "match": "linear-gradient(135deg, #747d8c, #57606f)",
+        "context": "bg: 'linear-gradient(135deg, #747d8c, #57606f)',",
+        "fix": "定义渐变tokens或使用Tailwind工具类"
+      },
+      {
+        "file": "src\\components\\xml-cache\\components\\Thumbnail.tsx",
+        "line": 214,
+        "column": 30,
+        "type": "hardcodedGradient",
+        "name": "硬编码渐变",
+        "severity": "medium",
+        "match": "linear-gradient(45deg, #1f2937, #1f2937 10px, #111827 10px, #111827 20px)",
+        "context": "\"repeating-linear-gradient(45deg, #1f2937, #1f2937 10px, #111827 10px, #111827 20px)\",",
+        "fix": "定义渐变tokens或使用Tailwind工具类"
+      },
+      {
+        "file": "src\\components\\xml-cache\\components\\Thumbnail.tsx",
+        "line": 226,
+        "column": 26,
+        "type": "hardcodedGradient",
+        "name": "硬编码渐变",
+        "severity": "medium",
+        "match": "linear-gradient(45deg, #1f2937, #1f2937 10px, #111827 10px, #111827 20px)",
+        "context": "\"repeating-linear-gradient(45deg, #1f2937, #1f2937 10px, #111827 10px, #111827 20px)\",",
+        "fix": "定义渐变tokens或使用Tailwind工具类"
+      },
+      {
+        "file": "src\\modules\\contact-import\\ui\\batch-manager\\components\\bulk-actions\\BulkActionsBar.tsx",
+        "line": 95,
+        "column": 20,
+        "type": "hardcodedGradient",
+        "name": "硬编码渐变",
+        "severity": "medium",
+        "match": "linear-gradient(90deg, #f0f9ff 0%, #e0f2fe 100%)",
+        "context": "background: 'linear-gradient(90deg, #f0f9ff 0%, #e0f2fe 100%)',",
+        "fix": "定义渐变tokens或使用Tailwind工具类"
+      },
+      {
+        "file": "src\\modules\\contact-import\\ui\\components\\drag-drop-layout\\DragDropGrid.tsx",
+        "line": 321,
+        "column": 22,
+        "type": "hardcodedGradient",
+        "name": "硬编码渐变",
+        "severity": "medium",
+        "match": "linear-gradient(-45deg, transparent 30%, #ccc 30%, #ccc 35%, transparent 35%)",
+        "context": "background: 'linear-gradient(-45deg, transparent 30%, #ccc 30%, #ccc 35%, transparent 35%)',",
+        "fix": "定义渐变tokens或使用Tailwind工具类"
+      },
+      {
+        "file": "src\\modules\\contact-import\\ui\\components\\resizable-layout\\LayoutManager.tsx",
+        "line": 129,
+        "column": 11,
+        "type": "hardcodedGradient",
+        "name": "硬编码渐变",
+        "severity": "medium",
+        "match": "linear-gradient(rgba(0,0,0,0.05)",
+        "context": "linear-gradient(rgba(0,0,0,0.05) 1px, transparent 1px),",
+        "fix": "定义渐变tokens或使用Tailwind工具类"
+      },
+      {
+        "file": "src\\modules\\contact-import\\ui\\components\\resizable-layout\\LayoutManager.tsx",
+        "line": 130,
+        "column": 11,
+        "type": "hardcodedGradient",
+        "name": "硬编码渐变",
+        "severity": "medium",
+        "match": "linear-gradient(90deg, rgba(0,0,0,0.05)",
+        "context": "linear-gradient(90deg, rgba(0,0,0,0.05) 1px, transparent 1px)",
+        "fix": "定义渐变tokens或使用Tailwind工具类"
+      },
+      {
+        "file": "src\\modules\\contact-import\\ui\\components\\resizable-layout\\ResizableDraggablePanel.tsx",
+        "line": 205,
+        "column": 26,
+        "type": "hardcodedGradient",
+        "name": "硬编码渐变",
+        "severity": "medium",
+        "match": "linear-gradient(-45deg, transparent 30%, #ccc 30%, #ccc 35%, transparent 35%, transparent 65%, #ccc 65%, #ccc 70%, transparent 70%)",
+        "context": "background: 'linear-gradient(-45deg, transparent 30%, #ccc 30%, #ccc 35%, transparent 35%, transparent 65%, #ccc 65%, #ccc 70%, transparent 70%)',",
+        "fix": "定义渐变tokens或使用Tailwind工具类"
+      },
+      {
+        "file": "src\\styles\\tokens.css",
+        "line": 57,
+        "column": 29,
+        "type": "hardcodedGradient",
+        "name": "硬编码渐变",
+        "severity": "medium",
+        "match": "linear-gradient(135deg, #6E8BFF 0%, #8B5CF6 100%)",
+        "context": "--brand-gradient-primary: linear-gradient(135deg, #6E8BFF 0%, #8B5CF6 100%);",
+        "fix": "定义渐变tokens或使用Tailwind工具类"
+      },
+      {
+        "file": "src\\styles\\tokens.css",
+        "line": 58,
+        "column": 31,
+        "type": "hardcodedGradient",
+        "name": "硬编码渐变",
+        "severity": "medium",
+        "match": "linear-gradient(135deg, #8B5CF6 0%, #EC4899 100%)",
+        "context": "--brand-gradient-secondary: linear-gradient(135deg, #8B5CF6 0%, #EC4899 100%);",
+        "fix": "定义渐变tokens或使用Tailwind工具类"
+      },
+      {
+        "file": "src\\styles\\tokens.css",
+        "line": 59,
+        "column": 28,
+        "type": "hardcodedGradient",
+        "name": "硬编码渐变",
+        "severity": "medium",
+        "match": "linear-gradient(135deg, #3B82F6 0%, #6E8BFF 100%)",
+        "context": "--brand-gradient-accent: linear-gradient(135deg, #3B82F6 0%, #6E8BFF 100%);",
+        "fix": "定义渐变tokens或使用Tailwind工具类"
+      },
+      {
+        "file": "src\\styles\\tokens.css",
+        "line": 60,
+        "column": 28,
+        "type": "hardcodedGradient",
+        "name": "硬编码渐变",
+        "severity": "medium",
+        "match": "linear-gradient(135deg, rgba(110, 139, 255, 0.1)",
+        "context": "--brand-gradient-subtle: linear-gradient(135deg, rgba(110, 139, 255, 0.1) 0%, rgba(139, 92, 246, 0.05) 100%);",
+        "fix": "定义渐变tokens或使用Tailwind工具类"
+      },
+      {
+        "file": "src\\styles\\tokens.css",
+        "line": 68,
+        "column": 27,
+        "type": "hardcodedGradient",
+        "name": "硬编码渐变",
+        "severity": "medium",
+        "match": "linear-gradient(135deg, \r\n    rgba(110, 139, 255, 0.95)",
+        "context": "--brand-gradient-glass: linear-gradient(135deg,",
+        "fix": "定义渐变tokens或使用Tailwind工具类"
+      },
+      {
+        "file": "src\\styles\\tokens.css",
+        "line": 74,
+        "column": 34,
+        "type": "hardcodedGradient",
+        "name": "硬编码渐变",
+        "severity": "medium",
+        "match": "linear-gradient(135deg,\r\n    rgba(110, 139, 255, 0.08)",
+        "context": "--brand-gradient-subtle-hover: linear-gradient(135deg,",
+        "fix": "定义渐变tokens或使用Tailwind工具类"
       }
     ],
     "hardcodedColors": [
@@ -44020,6 +44897,50 @@
         "fix": "使用 tokens 颜色变量替换"
       },
       {
+        "file": "src\\modules\\contact-import\\ui\\batch-manager\\components\\resizable-table\\ResizableTable.css",
+        "line": 10,
+        "column": 27,
+        "type": "hardcodedColors",
+        "name": "硬编码颜色",
+        "severity": "medium",
+        "match": "#d9d9d9",
+        "context": "border-right: 1px solid #d9d9d9;",
+        "fix": "使用 tokens 颜色变量替换"
+      },
+      {
+        "file": "src\\modules\\contact-import\\ui\\batch-manager\\components\\resizable-table\\ResizableTable.css",
+        "line": 12,
+        "column": 15,
+        "type": "hardcodedColors",
+        "name": "硬编码颜色",
+        "severity": "medium",
+        "match": "#fafafa",
+        "context": "background: #fafafa;",
+        "fix": "使用 tokens 颜色变量替换"
+      },
+      {
+        "file": "src\\modules\\contact-import\\ui\\batch-manager\\components\\resizable-table\\ResizableTable.css",
+        "line": 17,
+        "column": 27,
+        "type": "hardcodedColors",
+        "name": "硬编码颜色",
+        "severity": "medium",
+        "match": "#f0f0f0",
+        "context": "border-right: 1px solid #f0f0f0;",
+        "fix": "使用 tokens 颜色变量替换"
+      },
+      {
+        "file": "src\\modules\\contact-import\\ui\\batch-manager\\components\\resizable-table\\ResizableTable.css",
+        "line": 33,
+        "column": 15,
+        "type": "hardcodedColors",
+        "name": "硬编码颜色",
+        "severity": "medium",
+        "match": "#1890ff",
+        "context": "background: #1890ff;",
+        "fix": "使用 tokens 颜色变量替换"
+      },
+      {
         "file": "src\\modules\\contact-import\\ui\\batch-manager\\components\\resizable-table\\ResizableTable.tsx",
         "line": 102,
         "column": 58,
@@ -47255,7 +48176,117 @@
       },
       {
         "file": "src\\styles\\tokens.css",
-        "line": 51,
+        "line": 57,
+        "column": 53,
+        "type": "hardcodedColors",
+        "name": "硬编码颜色",
+        "severity": "medium",
+        "match": "#6E8BFF",
+        "context": "--brand-gradient-primary: linear-gradient(135deg, #6E8BFF 0%, #8B5CF6 100%);",
+        "fix": "使用 tokens 颜色变量替换"
+      },
+      {
+        "file": "src\\styles\\tokens.css",
+        "line": 57,
+        "column": 65,
+        "type": "hardcodedColors",
+        "name": "硬编码颜色",
+        "severity": "medium",
+        "match": "#8B5CF6",
+        "context": "--brand-gradient-primary: linear-gradient(135deg, #6E8BFF 0%, #8B5CF6 100%);",
+        "fix": "使用 tokens 颜色变量替换"
+      },
+      {
+        "file": "src\\styles\\tokens.css",
+        "line": 58,
+        "column": 55,
+        "type": "hardcodedColors",
+        "name": "硬编码颜色",
+        "severity": "medium",
+        "match": "#8B5CF6",
+        "context": "--brand-gradient-secondary: linear-gradient(135deg, #8B5CF6 0%, #EC4899 100%);",
+        "fix": "使用 tokens 颜色变量替换"
+      },
+      {
+        "file": "src\\styles\\tokens.css",
+        "line": 58,
+        "column": 67,
+        "type": "hardcodedColors",
+        "name": "硬编码颜色",
+        "severity": "medium",
+        "match": "#EC4899",
+        "context": "--brand-gradient-secondary: linear-gradient(135deg, #8B5CF6 0%, #EC4899 100%);",
+        "fix": "使用 tokens 颜色变量替换"
+      },
+      {
+        "file": "src\\styles\\tokens.css",
+        "line": 59,
+        "column": 52,
+        "type": "hardcodedColors",
+        "name": "硬编码颜色",
+        "severity": "medium",
+        "match": "#3B82F6",
+        "context": "--brand-gradient-accent: linear-gradient(135deg, #3B82F6 0%, #6E8BFF 100%);",
+        "fix": "使用 tokens 颜色变量替换"
+      },
+      {
+        "file": "src\\styles\\tokens.css",
+        "line": 59,
+        "column": 64,
+        "type": "hardcodedColors",
+        "name": "硬编码颜色",
+        "severity": "medium",
+        "match": "#6E8BFF",
+        "context": "--brand-gradient-accent: linear-gradient(135deg, #3B82F6 0%, #6E8BFF 100%);",
+        "fix": "使用 tokens 颜色变量替换"
+      },
+      {
+        "file": "src\\styles\\tokens.css",
+        "line": 73,
+        "column": 5,
+        "type": "hardcodedColors",
+        "name": "硬编码颜色",
+        "severity": "medium",
+        "match": "#6E8BFF",
+        "context": "#6E8BFF 0deg, #8B5CF6 120deg, #EC4899 240deg, #6E8BFF 360deg);",
+        "fix": "使用 tokens 颜色变量替换"
+      },
+      {
+        "file": "src\\styles\\tokens.css",
+        "line": 73,
+        "column": 19,
+        "type": "hardcodedColors",
+        "name": "硬编码颜色",
+        "severity": "medium",
+        "match": "#8B5CF6",
+        "context": "#6E8BFF 0deg, #8B5CF6 120deg, #EC4899 240deg, #6E8BFF 360deg);",
+        "fix": "使用 tokens 颜色变量替换"
+      },
+      {
+        "file": "src\\styles\\tokens.css",
+        "line": 73,
+        "column": 35,
+        "type": "hardcodedColors",
+        "name": "硬编码颜色",
+        "severity": "medium",
+        "match": "#EC4899",
+        "context": "#6E8BFF 0deg, #8B5CF6 120deg, #EC4899 240deg, #6E8BFF 360deg);",
+        "fix": "使用 tokens 颜色变量替换"
+      },
+      {
+        "file": "src\\styles\\tokens.css",
+        "line": 73,
+        "column": 51,
+        "type": "hardcodedColors",
+        "name": "硬编码颜色",
+        "severity": "medium",
+        "match": "#6E8BFF",
+        "context": "#6E8BFF 0deg, #8B5CF6 120deg, #EC4899 240deg, #6E8BFF 360deg);",
+        "fix": "使用 tokens 颜色变量替换"
+      },
+      {
+        "file": "src\\styles\\tokens.css",
+        "line": 87,
         "column": 14,
         "type": "hardcodedColors",
         "name": "硬编码颜色",
@@ -47266,7 +48297,7 @@
       },
       {
         "file": "src\\styles\\tokens.css",
-        "line": 52,
+        "line": 88,
         "column": 18,
         "type": "hardcodedColors",
         "name": "硬编码颜色",
@@ -47277,7 +48308,7 @@
       },
       {
         "file": "src\\styles\\tokens.css",
-        "line": 53,
+        "line": 89,
         "column": 19,
         "type": "hardcodedColors",
         "name": "硬编码颜色",
@@ -47288,7 +48319,7 @@
       },
       {
         "file": "src\\styles\\tokens.css",
-        "line": 54,
+        "line": 90,
         "column": 18,
         "type": "hardcodedColors",
         "name": "硬编码颜色",
@@ -47299,7 +48330,7 @@
       },
       {
         "file": "src\\styles\\tokens.css",
-        "line": 55,
+        "line": 91,
         "column": 15,
         "type": "hardcodedColors",
         "name": "硬编码颜色",
@@ -47310,7 +48341,7 @@
       },
       {
         "file": "src\\styles\\tokens.css",
-        "line": 58,
+        "line": 94,
         "column": 20,
         "type": "hardcodedColors",
         "name": "硬编码颜色",
@@ -47321,7 +48352,7 @@
       },
       {
         "file": "src\\styles\\tokens.css",
-        "line": 59,
+        "line": 95,
         "column": 24,
         "type": "hardcodedColors",
         "name": "硬编码颜色",
@@ -47332,7 +48363,7 @@
       },
       {
         "file": "src\\styles\\tokens.css",
-        "line": 60,
+        "line": 96,
         "column": 25,
         "type": "hardcodedColors",
         "name": "硬编码颜色",
@@ -47343,7 +48374,7 @@
       },
       {
         "file": "src\\styles\\tokens.css",
-        "line": 63,
+        "line": 103,
         "column": 13,
         "type": "hardcodedColors",
         "name": "硬编码颜色",
@@ -47354,7 +48385,7 @@
       },
       {
         "file": "src\\styles\\tokens.css",
-        "line": 64,
+        "line": 104,
         "column": 13,
         "type": "hardcodedColors",
         "name": "硬编码颜色",
@@ -47365,7 +48396,7 @@
       },
       {
         "file": "src\\styles\\tokens.css",
-        "line": 65,
+        "line": 105,
         "column": 13,
         "type": "hardcodedColors",
         "name": "硬编码颜色",
@@ -47376,7 +48407,7 @@
       },
       {
         "file": "src\\styles\\tokens.css",
-        "line": 66,
+        "line": 106,
         "column": 17,
         "type": "hardcodedColors",
         "name": "硬编码颜色",
@@ -47387,7 +48418,7 @@
       },
       {
         "file": "src\\styles\\tokens.css",
-        "line": 67,
+        "line": 107,
         "column": 19,
         "type": "hardcodedColors",
         "name": "硬编码颜色",
@@ -47398,7 +48429,7 @@
       },
       {
         "file": "src\\styles\\tokens.css",
-        "line": 70,
+        "line": 110,
         "column": 21,
         "type": "hardcodedColors",
         "name": "硬编码颜色",
@@ -47409,7 +48440,7 @@
       },
       {
         "file": "src\\styles\\tokens.css",
-        "line": 71,
+        "line": 111,
         "column": 23,
         "type": "hardcodedColors",
         "name": "硬编码颜色",
@@ -47420,7 +48451,7 @@
       },
       {
         "file": "src\\styles\\tokens.css",
-        "line": 72,
+        "line": 112,
         "column": 19,
         "type": "hardcodedColors",
         "name": "硬编码颜色",
@@ -47431,7 +48462,7 @@
       },
       {
         "file": "src\\styles\\tokens.css",
-        "line": 160,
+        "line": 231,
         "column": 14,
         "type": "hardcodedColors",
         "name": "硬编码颜色",
@@ -47442,7 +48473,7 @@
       },
       {
         "file": "src\\styles\\tokens.css",
-        "line": 161,
+        "line": 232,
         "column": 18,
         "type": "hardcodedColors",
         "name": "硬编码颜色",
@@ -47453,7 +48484,7 @@
       },
       {
         "file": "src\\styles\\tokens.css",
-        "line": 162,
+        "line": 233,
         "column": 19,
         "type": "hardcodedColors",
         "name": "硬编码颜色",
@@ -47464,7 +48495,7 @@
       },
       {
         "file": "src\\styles\\tokens.css",
-        "line": 164,
+        "line": 235,
         "column": 13,
         "type": "hardcodedColors",
         "name": "硬编码颜色",
@@ -47475,7 +48506,7 @@
       },
       {
         "file": "src\\styles\\tokens.css",
-        "line": 165,
+        "line": 236,
         "column": 13,
         "type": "hardcodedColors",
         "name": "硬编码颜色",
@@ -47486,7 +48517,7 @@
       },
       {
         "file": "src\\styles\\tokens.css",
-        "line": 166,
+        "line": 237,
         "column": 13,
         "type": "hardcodedColors",
         "name": "硬编码颜色",
@@ -47497,7 +48528,7 @@
       },
       {
         "file": "src\\styles\\tokens.css",
-        "line": 171,
+        "line": 242,
         "column": 14,
         "type": "hardcodedColors",
         "name": "硬编码颜色",
@@ -47508,7 +48539,7 @@
       },
       {
         "file": "src\\styles\\tokens.css",
-        "line": 172,
+        "line": 243,
         "column": 18,
         "type": "hardcodedColors",
         "name": "硬编码颜色",
@@ -47519,7 +48550,7 @@
       },
       {
         "file": "src\\styles\\tokens.css",
-        "line": 173,
+        "line": 244,
         "column": 19,
         "type": "hardcodedColors",
         "name": "硬编码颜色",
@@ -47530,7 +48561,7 @@
       },
       {
         "file": "src\\styles\\tokens.css",
-        "line": 175,
+        "line": 246,
         "column": 13,
         "type": "hardcodedColors",
         "name": "硬编码颜色",
@@ -47541,7 +48572,7 @@
       },
       {
         "file": "src\\styles\\tokens.css",
-        "line": 176,
+        "line": 247,
         "column": 13,
         "type": "hardcodedColors",
         "name": "硬编码颜色",
@@ -47552,7 +48583,7 @@
       },
       {
         "file": "src\\styles\\tokens.css",
-        "line": 177,
+        "line": 248,
         "column": 13,
         "type": "hardcodedColors",
         "name": "硬编码颜色",
@@ -47563,7 +48594,7 @@
       },
       {
         "file": "src\\styles\\tokens.css",
-        "line": 179,
+        "line": 250,
         "column": 21,
         "type": "hardcodedColors",
         "name": "硬编码颜色",
@@ -47574,7 +48605,7 @@
       },
       {
         "file": "src\\styles\\tokens.css",
-        "line": 180,
+        "line": 251,
         "column": 23,
         "type": "hardcodedColors",
         "name": "硬编码颜色",
@@ -47923,294 +48954,6 @@
         "match": "#0ea5e9",
         "context": "'--color-info': '#0ea5e9',",
         "fix": "使用 tokens 颜色变量替换"
-      }
-    ],
-    "hardcodedGradient": [
-      {
-        "file": "src\\components\\device\\RealDeviceManager.tsx",
-        "line": 95,
-        "column": 35,
-        "type": "hardcodedGradient",
-        "name": "硬编码渐变",
-        "severity": "medium",
-        "match": "linear-gradient(135deg, #4facfe, #00f2fe)",
-        "context": "style={{ background: 'linear-gradient(135deg, #4facfe, #00f2fe)' }}",
-        "fix": "定义渐变tokens或使用Tailwind工具类"
-      },
-      {
-        "file": "src\\components\\LoopEndCard.tsx",
-        "line": 99,
-        "column": 24,
-        "type": "hardcodedGradient",
-        "name": "硬编码渐变",
-        "severity": "medium",
-        "match": "linear-gradient(to bottom right, #dbeafe, #bfdbfe, #93c5fd)",
-        "context": "background: 'linear-gradient(to bottom right, #dbeafe, #bfdbfe, #93c5fd)',",
-        "fix": "定义渐变tokens或使用Tailwind工具类"
-      },
-      {
-        "file": "src\\components\\LoopStartCard\\index.tsx",
-        "line": 73,
-        "column": 22,
-        "type": "hardcodedGradient",
-        "name": "硬编码渐变",
-        "severity": "medium",
-        "match": "linear-gradient(135deg, #ffffff 0%, #f8fafc 100%)",
-        "context": "background: 'linear-gradient(135deg, #ffffff 0%, #f8fafc 100%)',",
-        "fix": "定义渐变tokens或使用Tailwind工具类"
-      },
-      {
-        "file": "src\\components\\ModernDashboard.tsx",
-        "line": 72,
-        "column": 26,
-        "type": "hardcodedGradient",
-        "name": "硬编码渐变",
-        "severity": "medium",
-        "match": "linear-gradient(135deg, #ff6b8a 0%, #4ecdc4 50%, #a8e6cf 100%)",
-        "context": "background: 'linear-gradient(135deg, #ff6b8a 0%, #4ecdc4 50%, #a8e6cf 100%)',",
-        "fix": "定义渐变tokens或使用Tailwind工具类"
-      },
-      {
-        "file": "src\\components\\ModernDashboard.tsx",
-        "line": 154,
-        "column": 30,
-        "type": "hardcodedGradient",
-        "name": "硬编码渐变",
-        "severity": "medium",
-        "match": "linear-gradient(135deg, #1890ff, #722ed1)",
-        "context": "background: 'linear-gradient(135deg, #1890ff, #722ed1)',",
-        "fix": "定义渐变tokens或使用Tailwind工具类"
-      },
-      {
-        "file": "src\\components\\ui\\buttons\\PrimaryButton.tsx",
-        "line": 102,
-        "column": 15,
-        "type": "hardcodedGradient",
-        "name": "硬编码渐变",
-        "severity": "medium",
-        "match": "linear-gradient(135deg, #3b82f6, #2563eb)",
-        "context": "background: linear-gradient(135deg, #3b82f6, #2563eb);",
-        "fix": "定义渐变tokens或使用Tailwind工具类"
-      },
-      {
-        "file": "src\\components\\unified-view\\UnifiedVisualizationView.tsx",
-        "line": 299,
-        "column": 34,
-        "type": "hardcodedGradient",
-        "name": "硬编码渐变",
-        "severity": "medium",
-        "match": "linear-gradient(135deg, #065f46, #047857)",
-        "context": "? 'linear-gradient(135deg, #065f46, #047857)'",
-        "fix": "定义渐变tokens或使用Tailwind工具类"
-      },
-      {
-        "file": "src\\components\\unified-view\\UnifiedVisualizationView.tsx",
-        "line": 300,
-        "column": 34,
-        "type": "hardcodedGradient",
-        "name": "硬编码渐变",
-        "severity": "medium",
-        "match": "linear-gradient(135deg, #4b5563, #6b7280)",
-        "context": ": 'linear-gradient(135deg, #4b5563, #6b7280)'",
-        "fix": "定义渐变tokens或使用Tailwind工具类"
-      },
-      {
-        "file": "src\\components\\universal-ui\\views\\list-view\\ElementListView.tsx",
-        "line": 206,
-        "column": 25,
-        "type": "hardcodedGradient",
-        "name": "硬编码渐变",
-        "severity": "medium",
-        "match": "linear-gradient(135deg, #ff6b6b, #ff8e53)",
-        "context": "legendary: { bg: 'linear-gradient(135deg, #ff6b6b, #ff8e53)', border: '#ff4757', glow: '#ff6b6b' },",
-        "fix": "定义渐变tokens或使用Tailwind工具类"
-      },
-      {
-        "file": "src\\components\\universal-ui\\views\\list-view\\ElementListView.tsx",
-        "line": 207,
-        "column": 20,
-        "type": "hardcodedGradient",
-        "name": "硬编码渐变",
-        "severity": "medium",
-        "match": "linear-gradient(135deg, #a55eea, #26de81)",
-        "context": "epic: { bg: 'linear-gradient(135deg, #a55eea, #26de81)', border: '#8854d0', glow: '#a55eea' },",
-        "fix": "定义渐变tokens或使用Tailwind工具类"
-      },
-      {
-        "file": "src\\components\\universal-ui\\views\\list-view\\ElementListView.tsx",
-        "line": 208,
-        "column": 20,
-        "type": "hardcodedGradient",
-        "name": "硬编码渐变",
-        "severity": "medium",
-        "match": "linear-gradient(135deg, #3742fa, #2f3542)",
-        "context": "rare: { bg: 'linear-gradient(135deg, #3742fa, #2f3542)', border: '#2f3093', glow: '#3742fa' },",
-        "fix": "定义渐变tokens或使用Tailwind工具类"
-      },
-      {
-        "file": "src\\components\\universal-ui\\views\\list-view\\ElementListView.tsx",
-        "line": 209,
-        "column": 24,
-        "type": "hardcodedGradient",
-        "name": "硬编码渐变",
-        "severity": "medium",
-        "match": "linear-gradient(135deg, #2ed573, #1e90ff)",
-        "context": "uncommon: { bg: 'linear-gradient(135deg, #2ed573, #1e90ff)', border: '#20bf6b', glow: '#2ed573' },",
-        "fix": "定义渐变tokens或使用Tailwind工具类"
-      },
-      {
-        "file": "src\\components\\universal-ui\\views\\list-view\\ElementListView.tsx",
-        "line": 210,
-        "column": 22,
-        "type": "hardcodedGradient",
-        "name": "硬编码渐变",
-        "severity": "medium",
-        "match": "linear-gradient(135deg, #747d8c, #57606f)",
-        "context": "common: { bg: 'linear-gradient(135deg, #747d8c, #57606f)', border: '#5f6368', glow: '#747d8c' }",
-        "fix": "定义渐变tokens或使用Tailwind工具类"
-      },
-      {
-        "file": "src\\components\\universal-ui\\views\\list-view\\ElementListView.tsx",
-        "line": 338,
-        "column": 22,
-        "type": "hardcodedGradient",
-        "name": "硬编码渐变",
-        "severity": "medium",
-        "match": "linear-gradient(135deg, #f8f9fa, #e9ecef)",
-        "context": ": 'linear-gradient(135deg, #f8f9fa, #e9ecef)',",
-        "fix": "定义渐变tokens或使用Tailwind工具类"
-      },
-      {
-        "file": "src\\components\\universal-ui\\views\\list-view\\utils.ts",
-        "line": 38,
-        "column": 10,
-        "type": "hardcodedGradient",
-        "name": "硬编码渐变",
-        "severity": "medium",
-        "match": "linear-gradient(135deg, #ff6b6b, #ff8e53)",
-        "context": "bg: 'linear-gradient(135deg, #ff6b6b, #ff8e53)',",
-        "fix": "定义渐变tokens或使用Tailwind工具类"
-      },
-      {
-        "file": "src\\components\\universal-ui\\views\\list-view\\utils.ts",
-        "line": 43,
-        "column": 10,
-        "type": "hardcodedGradient",
-        "name": "硬编码渐变",
-        "severity": "medium",
-        "match": "linear-gradient(135deg, #a55eea, #26de81)",
-        "context": "bg: 'linear-gradient(135deg, #a55eea, #26de81)',",
-        "fix": "定义渐变tokens或使用Tailwind工具类"
-      },
-      {
-        "file": "src\\components\\universal-ui\\views\\list-view\\utils.ts",
-        "line": 48,
-        "column": 10,
-        "type": "hardcodedGradient",
-        "name": "硬编码渐变",
-        "severity": "medium",
-        "match": "linear-gradient(135deg, #3742fa, #2f3542)",
-        "context": "bg: 'linear-gradient(135deg, #3742fa, #2f3542)',",
-        "fix": "定义渐变tokens或使用Tailwind工具类"
-      },
-      {
-        "file": "src\\components\\universal-ui\\views\\list-view\\utils.ts",
-        "line": 53,
-        "column": 10,
-        "type": "hardcodedGradient",
-        "name": "硬编码渐变",
-        "severity": "medium",
-        "match": "linear-gradient(135deg, #2ed573, #1e90ff)",
-        "context": "bg: 'linear-gradient(135deg, #2ed573, #1e90ff)',",
-        "fix": "定义渐变tokens或使用Tailwind工具类"
-      },
-      {
-        "file": "src\\components\\universal-ui\\views\\list-view\\utils.ts",
-        "line": 58,
-        "column": 10,
-        "type": "hardcodedGradient",
-        "name": "硬编码渐变",
-        "severity": "medium",
-        "match": "linear-gradient(135deg, #747d8c, #57606f)",
-        "context": "bg: 'linear-gradient(135deg, #747d8c, #57606f)',",
-        "fix": "定义渐变tokens或使用Tailwind工具类"
-      },
-      {
-        "file": "src\\components\\xml-cache\\components\\Thumbnail.tsx",
-        "line": 214,
-        "column": 30,
-        "type": "hardcodedGradient",
-        "name": "硬编码渐变",
-        "severity": "medium",
-        "match": "linear-gradient(45deg, #1f2937, #1f2937 10px, #111827 10px, #111827 20px)",
-        "context": "\"repeating-linear-gradient(45deg, #1f2937, #1f2937 10px, #111827 10px, #111827 20px)\",",
-        "fix": "定义渐变tokens或使用Tailwind工具类"
-      },
-      {
-        "file": "src\\components\\xml-cache\\components\\Thumbnail.tsx",
-        "line": 226,
-        "column": 26,
-        "type": "hardcodedGradient",
-        "name": "硬编码渐变",
-        "severity": "medium",
-        "match": "linear-gradient(45deg, #1f2937, #1f2937 10px, #111827 10px, #111827 20px)",
-        "context": "\"repeating-linear-gradient(45deg, #1f2937, #1f2937 10px, #111827 10px, #111827 20px)\",",
-        "fix": "定义渐变tokens或使用Tailwind工具类"
-      },
-      {
-        "file": "src\\modules\\contact-import\\ui\\batch-manager\\components\\bulk-actions\\BulkActionsBar.tsx",
-        "line": 95,
-        "column": 20,
-        "type": "hardcodedGradient",
-        "name": "硬编码渐变",
-        "severity": "medium",
-        "match": "linear-gradient(90deg, #f0f9ff 0%, #e0f2fe 100%)",
-        "context": "background: 'linear-gradient(90deg, #f0f9ff 0%, #e0f2fe 100%)',",
-        "fix": "定义渐变tokens或使用Tailwind工具类"
-      },
-      {
-        "file": "src\\modules\\contact-import\\ui\\components\\drag-drop-layout\\DragDropGrid.tsx",
-        "line": 321,
-        "column": 22,
-        "type": "hardcodedGradient",
-        "name": "硬编码渐变",
-        "severity": "medium",
-        "match": "linear-gradient(-45deg, transparent 30%, #ccc 30%, #ccc 35%, transparent 35%)",
-        "context": "background: 'linear-gradient(-45deg, transparent 30%, #ccc 30%, #ccc 35%, transparent 35%)',",
-        "fix": "定义渐变tokens或使用Tailwind工具类"
-      },
-      {
-        "file": "src\\modules\\contact-import\\ui\\components\\resizable-layout\\LayoutManager.tsx",
-        "line": 129,
-        "column": 11,
-        "type": "hardcodedGradient",
-        "name": "硬编码渐变",
-        "severity": "medium",
-        "match": "linear-gradient(rgba(0,0,0,0.05)",
-        "context": "linear-gradient(rgba(0,0,0,0.05) 1px, transparent 1px),",
-        "fix": "定义渐变tokens或使用Tailwind工具类"
-      },
-      {
-        "file": "src\\modules\\contact-import\\ui\\components\\resizable-layout\\LayoutManager.tsx",
-        "line": 130,
-        "column": 11,
-        "type": "hardcodedGradient",
-        "name": "硬编码渐变",
-        "severity": "medium",
-        "match": "linear-gradient(90deg, rgba(0,0,0,0.05)",
-        "context": "linear-gradient(90deg, rgba(0,0,0,0.05) 1px, transparent 1px)",
-        "fix": "定义渐变tokens或使用Tailwind工具类"
-      },
-      {
-        "file": "src\\modules\\contact-import\\ui\\components\\resizable-layout\\ResizableDraggablePanel.tsx",
-        "line": 205,
-        "column": 26,
-        "type": "hardcodedGradient",
-        "name": "硬编码渐变",
-        "severity": "medium",
-        "match": "linear-gradient(-45deg, transparent 30%, #ccc 30%, #ccc 35%, transparent 35%, transparent 65%, #ccc 65%, #ccc 70%, transparent 70%)",
-        "context": "background: 'linear-gradient(-45deg, transparent 30%, #ccc 30%, #ccc 35%, transparent 35%, transparent 65%, #ccc 65%, #ccc 70%, transparent 70%)',",
-        "fix": "定义渐变tokens或使用Tailwind工具类"
       }
     ],
     "hardcodedShadow": [
@@ -48567,6 +49310,30 @@
         "match": "border-radius: 4px",
         "context": "border-radius: 4px;",
         "fix": "使用 var(--radius) 等 tokens 替换"
+      }
+    ],
+    "importantUsage": [
+      {
+        "file": "src\\pages\\device-management\\DeviceManagementPageBrandNew.tsx",
+        "line": 32,
+        "column": 19,
+        "type": "importantUsage",
+        "name": "!important 使用",
+        "severity": "critical",
+        "match": "!important",
+        "context": "* - 无 .ant-* 覆盖或 !important",
+        "fix": "移除 !important，通过正确的CSS层级和tokens处理"
+      },
+      {
+        "file": "src\\pages\\EmployeePageBrandNew.tsx",
+        "line": 29,
+        "column": 20,
+        "type": "importantUsage",
+        "name": "!important 使用",
+        "severity": "critical",
+        "match": "!important",
+        "context": "* - 禁止 .ant-* 覆盖和 !important",
+        "fix": "移除 !important，通过正确的CSS层级和tokens处理"
       }
     ]
   }

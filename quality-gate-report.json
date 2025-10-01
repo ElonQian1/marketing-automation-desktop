@@ -1,14 +1,13 @@
 {
-  "timestamp": "2025-10-01T06:01:27.840Z",
+  "timestamp": "2025-10-01T07:04:10.698Z",
   "passed": false,
   "errors": [
     "TypeScript 类型检查失败",
-    "项目构建失败",
-    "包大小超限: 37.5 MB > 5 MB"
+    "包大小超限: 40.1 MB > 5 MB"
   ],
   "warnings": [
     "样式覆盖扫描发现问题，请查看详细报告",
-    "CSS大小超限: 233.8 KB > 100 KB",
+    "CSS大小超限: 276.6 KB > 100 KB",
     "发现 41 个超大文件需要拆分"
   ],
   "results": {
@@ -18,12 +17,12 @@
       "error": "Command failed: npm run type-check"
     },
     "buildCheck": {
-      "success": false,
-      "error": "Command failed: npm run build\n\u001b[31m✗\u001b[39m Build failed in 11.19s\n\u001b[31merror during build:\n\u001b[31mCould not resolve \"./ElementListView.css\" from \"src/components/universal-ui/views/list-view/ElementListView.tsx\"\u001b[31m\nfile: \u001b[36mD:/rust/active-projects/小红书/employeeGUI/src/components/universal-ui/views/list-view/ElementListView.tsx\u001b[31m\n    at getRollupError (file:///D:/rust/active-projects/%E5%B0%8F%E7%BA%A2%E4%B9%A6/employeeGUI/node_modules/rollup/dist/es/shared/parseAst.js:401:41)\n    at error (file:///D:/rust/active-projects/%E5%B0%8F%E7%BA%A2%E4%B9%A6/employeeGUI/node_modules/rollup/dist/es/shared/parseAst.js:397:42)\n    at ModuleLoader.handleInvalidResolvedId (file:///D:/rust/active-projects/%E5%B0%8F%E7%BA%A2%E4%B9%A6/employeeGUI/node_modules/rollup/dist/es/shared/node-entry.js:21534:24)\n    at file:///D:/rust/active-projects/%E5%B0%8F%E7%BA%A2%E4%B9%A6/employeeGUI/node_modules/rollup/dist/es/shared/node-entry.js:21494:26\u001b[39m\n"
+      "success": true,
+      "output": "\n> employee-drainage-tool@0.2.0 build\n> vite build\n\n[watch-mode] cache-hit usePolling=false reason=default-native\n[watch-mode] usePolling=false reason=default-native-cached cwd=D:\\rust\\active-projects\\小红书\\employeeGUI\n\u001b[36mvite v7.1.4 \u001b[32mbuilding for production...\u001b[36m\u001b[39m\ntransforming...\n\u001b[32m✓\u001b[39m 7127 modules transformed.\nrendering chunks...\ncomputing gzip size...\n\u001b[2mdist/\u001b[22m\u001b[32mindex.html                                  \u001b[39m\u001b[1m\u001b[2m    0.62 kB\u001b[22m\u001b[1m\u001b[22m\u001b[2m │ gzip:   0.39 kB\u001b[22m\n\u001b[2mdist/\u001b[22m\u001b[35massets/ContactImportWorkbench-wWwLVXql.css  \u001b[39m\u001b[1m\u001b[2m    5.95 kB\u001b[22m\u001b[1m\u001b[22m\u001b[2m │ gzip:   1.63 kB\u001b[22m\n\u001b[2mdist/\u001b[22m\u001b[35massets/NativeAntDesignApp-D3b2IRDY.css      \u001b[39m\u001b[1m\u001b[2m    7.18 kB\u001b[22m\u001b[1m\u001b[22m\u001b[2m │ gzip:   2.10 kB\u001b[22m\n\u001b[2mdist/\u001b[22m\u001b[35massets/index-BpCLhsoB.css                   \u001b[39m\u001b[1m\u001b[2m   30.74 kB\u001b[22m\u001b[1m\u001b[22m\u001b[2m │ gzip:   6.91 kB\u001b[22m\n\u001b[2mdist/\u001b[22m\u001b[36massets/frontendLoop-B-BMIn-F.js             \u001b[39m\u001b[1m\u001b[2m    1.15 kB\u001b[22m\u001b[1m\u001b[22m\u001b[2m │ gzip:   0.79 kB\u001b[22m\n\u001b[2mdist/\u001b[22m\u001b[36massets/tauri-api-B0DbQSw4.js                \u001b[39m\u001b[1m\u001b[2m    1.35 kB\u001b[22m\u001b[1m\u001b[22m\u001b[2m │ gzip:   0.68 kB\u001b[22m\n\u001b[2mdist/\u001b[22m\u001b[36massets/ContactImportWorkbench-Bhpbyrfr.js   \u001b[39m\u001b[1m\u001b[2m  245.51 kB\u001b[22m\u001b[1m\u001b[22m\u001b[2m │ gzip:  77.43 kB\u001b[22m\n\u001b[2mdist/\u001b[22m\u001b[36massets/index-C86VmcMH.js                    \u001b[39m\u001b[1m\u001b[2m  472.22 kB\u001b[22m\u001b[1m\u001b[22m\u001b[2m │ gzip: 153.55 kB\u001b[22m\n\u001b[2mdist/\u001b[22m\u001b[36massets/NativeAntDesignApp-CtRxLYJb.js       \u001b[39m\u001b[1m\u001b[33m1,916.21 kB\u001b[39m\u001b[22m\u001b[2m │ gzip: 576.47 kB\u001b[22m\n\u001b[32m✓ built in 20.03s\u001b[39m\n"
     },
     "performanceCheck": {
-      "totalSize": 39357144,
-      "cssSize": 239364
+      "totalSize": 42036092,
+      "cssSize": 283233
     },
     "fileSizeCheck": {
       "largeFiles": [
@@ -955,8 +954,8 @@
       ]
     },
     "a11yCheck": {
-      "focusStyles": 67,
-      "ariaAttributes": 12
+      "focusStyles": 68,
+      "ariaAttributes": 16
     }
   },
   "standards": {
