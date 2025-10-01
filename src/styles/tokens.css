@@ -52,6 +52,36 @@
   --status-success: var(--success);
   --status-info: var(--info);
 
+  /* ==================== 品牌渐变系统 ==================== */
+  /* 主品牌渐变 - 现代深蓝紫商业风格 */
+  --brand-gradient-primary: linear-gradient(135deg, #6E8BFF 0%, #8B5CF6 100%);
+  --brand-gradient-secondary: linear-gradient(135deg, #8B5CF6 0%, #EC4899 100%);
+  --brand-gradient-accent: linear-gradient(135deg, #3B82F6 0%, #6E8BFF 100%);
+  --brand-gradient-subtle: linear-gradient(135deg, rgba(110, 139, 255, 0.1) 0%, rgba(139, 92, 246, 0.05) 100%);
+
+  /* 品牌发光效果 */
+  --brand-glow: 0 0 24px rgba(110, 139, 255, 0.3);
+  --brand-glow-hover: 0 0 32px rgba(110, 139, 255, 0.5);
+  --brand-glow-focus: 0 0 0 3px rgba(110, 139, 255, 0.2);
+
+  /* 商业化渐变增强 - 现代玻璃态与网格效果 */
+  --brand-gradient-glass: linear-gradient(135deg, 
+    rgba(110, 139, 255, 0.95) 0%, 
+    rgba(139, 92, 246, 0.9) 50%,
+    rgba(236, 72, 153, 0.85) 100%);
+  --brand-gradient-mesh: conic-gradient(from 180deg at 50% 50%, 
+    #6E8BFF 0deg, #8B5CF6 120deg, #EC4899 240deg, #6E8BFF 360deg);
+  --brand-gradient-subtle-hover: linear-gradient(135deg,
+    rgba(110, 139, 255, 0.08) 0%,
+    rgba(139, 92, 246, 0.05) 100%);
+
+  /* 玻璃态背景系统 */
+  --bg-glass-light: rgba(248, 250, 252, 0.8);
+  --bg-glass-dark: rgba(15, 23, 42, 0.8);
+  --bg-glass-elevated: rgba(30, 41, 59, 0.9);
+  --backdrop-blur: blur(12px);
+  --backdrop-blur-heavy: blur(20px);
+
   /* ==================== 背景色系 ==================== */
   /* 深色背景系统 - 现代化商业应用风格 */
   --bg-base: #0F172A;          /* 页面深色底 */
@@ -88,14 +118,34 @@
   --radius-lg: 16px;          /* 大圆角 - 对话框、面板等 */
   --radius-xl: 24px;          /* 超大圆角 - 特殊容器 */
 
-  /* 阴影系统 - 商业化软阴影 */
-  --shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
-  --shadow-sm: 0 2px 8px rgba(0, 0, 0, 0.10);
-  --shadow-lg: 0 8px 32px rgba(0, 0, 0, 0.20);
-  --shadow-xl: 0 12px 48px rgba(0, 0, 0, 0.25);
+  /* 现代分层阴影系统 */
+  --shadow-xs: 0 1px 2px rgba(0, 0, 0, 0.05);
+  --shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.08), 0 2px 6px rgba(0, 0, 0, 0.04);
+  --shadow: 0 1px 3px rgba(0, 0, 0, 0.12), 0 4px 16px rgba(0, 0, 0, 0.08);
+  --shadow-lg: 0 4px 16px rgba(0, 0, 0, 0.12), 0 8px 32px rgba(0, 0, 0, 0.08);
+  --shadow-xl: 0 8px 32px rgba(0, 0, 0, 0.16), 0 16px 64px rgba(0, 0, 0, 0.08);
   
-  /* 内阴影 - 输入框等 */
+  /* 品牌色阴影 - 突出重要元素 */
+  --shadow-brand: 0 4px 24px rgba(110, 139, 255, 0.2);
+  --shadow-brand-lg: 0 8px 40px rgba(110, 139, 255, 0.25);
+  
+  /* 商业化发光阴影系统 */
+  --shadow-brand-glow: 0 0 20px rgba(110, 139, 255, 0.4), 
+                       0 8px 32px rgba(110, 139, 255, 0.2);
+  --shadow-interactive-hover: 0 0 16px rgba(110, 139, 255, 0.3),
+                              0 4px 20px rgba(110, 139, 255, 0.15);
+  --shadow-success-glow: 0 0 16px rgba(16, 185, 129, 0.3);
+  --shadow-glass: 0 8px 32px rgba(0, 0, 0, 0.12), 
+                  0 0 0 1px rgba(255, 255, 255, 0.05);
+  
+  /* 彩色状态阴影 */
+  --shadow-success: 0 4px 20px rgba(16, 185, 129, 0.15);
+  --shadow-warning: 0 4px 20px rgba(245, 158, 11, 0.15);
+  --shadow-error: 0 4px 20px rgba(239, 68, 68, 0.15);
+  
+  /* 内阴影与特殊效果 */
   --shadow-inset: inset 0 2px 4px rgba(0, 0, 0, 0.06);
+  --shadow-glow: 0 0 20px rgba(110, 139, 255, 0.4);
 
   /* ==================== 字体系统 ==================== */
   /* 字体族 */
@@ -141,17 +191,28 @@
   --space-16: 4rem;           /* 64px */
   --space-20: 5rem;           /* 80px */
 
-  /* ==================== 动画系统 ==================== */
-  /* 缓动函数 */
+  /* ==================== 动效系统令牌 ==================== */
+  /* 微交互变换 */
+  --motion-scale-hover: 1.02;        /* 悬停轻微放大 */
+  --motion-scale-active: 0.98;       /* 点击轻微缩小 */
+  --motion-blur-bg: blur(12px);      /* 毛玻璃背景 */
+  --motion-opacity-disabled: 0.6;    /* 禁用状态透明度 */
+
+  /* 现代缓动函数系统 */
+  --motion-spring: cubic-bezier(0.34, 1.56, 0.64, 1);      /* 弹性效果 */
+  --motion-smooth: cubic-bezier(0.22, 1, 0.36, 1);         /* 流畅过渡 */
+  --motion-sharp: cubic-bezier(0.4, 0, 0.2, 1);            /* 锐利切换 */
   --ease-in: cubic-bezier(0.4, 0, 1, 1);
   --ease-out: cubic-bezier(0, 0, 0.2, 1);
   --ease-in-out: cubic-bezier(0.4, 0, 0.2, 1);
   --ease-brand: cubic-bezier(0.22, 1, 0.36, 1);
 
-  /* 动画时长 */
-  --duration-fast: 120ms;      /* 快速动画 - 悬停效果 */
-  --duration-normal: 180ms;    /* 标准动画 - 入场效果 */
-  --duration-slow: 220ms;      /* 慢速动画 - 复杂转场 */
+  /* 时长分级系统 */
+  --duration-micro: 80ms;            /* 微交互 - 按钮反馈 */
+  --duration-fast: 120ms;            /* 快速 - 悬停效果 */  
+  --duration-normal: 180ms;          /* 标准 - 入场动画 */
+  --duration-slow: 220ms;            /* 慢速 - 复杂转场 */
+  --duration-slower: 300ms;          /* 更慢 - 页面切换 */
 
   /* ==================== Z-Index 层级 ==================== */
   --z-dropdown: 1000;
