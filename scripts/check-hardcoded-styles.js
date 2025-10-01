@@ -40,9 +40,9 @@ const DETECTION_RULES = {
     severity: 'error'
   },
   
-  // 硬编码阴影（排除基于token的）
+  // 硬编码阴影（仅检测内联值，排除标准Tailwind类和tokens）
   hardcodedShadows: {
-    pattern: /shadow-(?!(\[var\(|none))/g,
+    pattern: /shadow-\[(?!var\()[^\]]*\]/g,
     description: '硬编码阴影值',
     severity: 'error'
   },

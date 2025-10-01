@@ -74,7 +74,7 @@ const contentVariants = cva(
     "fixed left-[50%] top-[50%] z-modal translate-x-[-50%] translate-y-[-50%]",
     "grid w-full gap-4 border border-border-primary bg-background-elevated p-6",
     // 品牌化阴影和模糊效果
-    "shadow-[var(--shadow-glass)] backdrop-blur-[var(--backdrop-blur)]",
+    "shadow-2xl backdrop-blur-[var(--backdrop-blur)]",
     "duration-200 data-[state=open]:animate-in data-[state=closed]:animate-out",
     "data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0",
     "data-[state=closed]:zoom-out-95 data-[state=open]:zoom-in-95",
@@ -129,7 +129,7 @@ const DialogContent = React.forwardRef<
           <DialogPrimitive.Close
             className={cn(
               "absolute right-4 top-4 rounded-sm opacity-70 transition-all duration-200",
-              "hover:opacity-100 hover:bg-background-secondary hover:shadow-[var(--shadow-brand-glow)]",
+              "hover:opacity-100 hover:bg-background-secondary hover:shadow-lg",
               "focus:outline-none focus:ring-2 focus:ring-brand focus:ring-offset-2",
               "disabled:pointer-events-none data-[state=open]:bg-background-secondary data-[state=open]:text-text-muted",
               "p-1",

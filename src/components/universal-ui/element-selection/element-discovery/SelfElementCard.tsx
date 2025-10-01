@@ -2,6 +2,7 @@ import React from 'react';
 import { Card, Button, Tag, Space, Typography, Tooltip } from 'antd';
 import { SelectOutlined, InfoCircleOutlined, UserOutlined } from '@ant-design/icons';
 import { DiscoveredElement, ElementCardProps } from './types';
+import styles from './LightThemeCard.module.css';
 
 const { Text, Title } = Typography;
 
@@ -23,6 +24,20 @@ export const SelfElementCard: React.FC<SelfElementCardProps> = ({
 }) => {
   // 提取元素基本信息
   const { element: uiElement, confidence, reason } = element;
+  
+  // 🔍 调试: 打印完整的元素数据
+  console.log('🔍 SelfElementCard 收到的元素数据:', {
+    id: uiElement.id,
+    element_type: uiElement.element_type,
+    text: uiElement.text,
+    content_desc: uiElement.content_desc,
+    resource_id: uiElement.resource_id,
+    class_name: uiElement.class_name,
+    bounds: uiElement.bounds,
+    is_clickable: uiElement.is_clickable,
+    children: uiElement.children?.length || 0
+  });
+  
   const elementType = uiElement.class_name || uiElement.resource_id || '未知元素';
   const hasText = Boolean(uiElement.text && uiElement.text.trim());
   const isClickable = uiElement.is_clickable;
@@ -31,32 +46,79 @@ export const SelfElementCard: React.FC<SelfElementCardProps> = ({
   const buildElementDescription = (): string => {
     const parts: string[] = [];
     
-    if (uiElement.text) {
-      parts.push(`文本: "${uiElement.text}"`);
+    // 显示文本内容
+    if (uiElement.text && uiElement.text.trim()) {
+      parts.push(`文本: "${uiElement.text.trim()}"`);
     }
     
-    if (uiElement.content_desc) {
-      parts.push(`描述: "${uiElement.content_desc}"`);
+    // 显示内容描述
+    if (uiElement.content_desc && uiElement.content_desc.trim()) {
+      parts.push(`描述: "${uiElement.content_desc.trim()}"`);
     }
     
-    if (uiElement.resource_id) {
+    // 显示资源ID
+    if (uiElement.resource_id && uiElement.resource_id.trim()) {
       parts.push(`ID: ${uiElement.resource_id}`);
     }
     
-    if (uiElement.class_name) {
-      parts.push(`类型: ${uiElement.class_name}`);
+    // 显示类名
+    if (uiElement.class_name && uiElement.class_name.trim()) {
+      const className = uiElement.class_name.split('.').pop() || uiElement.class_name;
+      parts.push(`类型: ${className}`);
     }
     
-    return parts.join(' | ') || '无详细信息';
+    // 显示元素类型
+    if (uiElement.element_type && uiElement.element_type.trim()) {
+      parts.push(`元素: ${uiElement.element_type}`);
+    }
+    
+    // 显示交互特性
+    const interactions: string[] = [];
+    if (uiElement.is_clickable) interactions.push('可点击');
+    if (uiElement.is_scrollable) interactions.push('可滚动');
+    if (uiElement.checkable) interactions.push('可勾选');
+    if (uiElement.checked) interactions.push('已勾选');
+    if (uiElement.selected) interactions.push('已选中');
+    if (uiElement.password) interactions.push('密码框');
+    
+    if (interactions.length > 0) {
+      parts.push(`特性: ${interactions.join(', ')}`);
+    }
+    
+    // 如果没有找到任何有用信息，提供基本信息
+    if (parts.length === 0) {
+      const basicInfo: string[] = [];
+      
+      // 还是显示基本的类型信息
+      if (uiElement.element_type) {
+        basicInfo.push(`元素类型: ${uiElement.element_type}`);
+      }
+      
+      // 显示尺寸信息
+      if (uiElement.bounds) {
+        const width = uiElement.bounds.right - uiElement.bounds.left;
+        const height = uiElement.bounds.bottom - uiElement.bounds.top;
+        basicInfo.push(`尺寸: ${width}x${height}`);
+      }
+      
+      // 显示是否激活
+      if (uiElement.is_enabled !== undefined) {
+        basicInfo.push(uiElement.is_enabled ? '已启用' : '已禁用');
+      }
+      
+      return basicInfo.length > 0 ? basicInfo.join(' | ') : '通用UI元素（无特定标识信息）';
+    }
+    
+    return parts.join(' | ');
   };
 
   return (
     <Card
       size="small"
+      className={`${styles.lightThemeCard} light-theme-force`} // 使用CSS模块和全局类
       style={{ 
         marginBottom: 8,
-        borderLeft: `4px solid #1890ff`, // 蓝色边框表示这是当前选中的元素
-        background: '#f0f7ff',
+        borderLeft: `4px solid var(--brand, #1890ff)`, // 使用品牌色边框
         transition: 'all 0.2s ease',
         ...style // 合并外部传入的样式
       }}
@@ -69,15 +131,15 @@ export const SelfElementCard: React.FC<SelfElementCardProps> = ({
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
           <div style={{ flex: 1, minWidth: 0 }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 4 }}>
-              <UserOutlined style={{ color: '#1890ff', fontSize: 16 }} />
-              <Title level={5} style={{ margin: 0, fontSize: 14, color: '#1890ff' }}>
+              <UserOutlined style={{ color: 'var(--brand, #1890ff)', fontSize: 16 }} />
+              <Title level={5} style={{ margin: 0, fontSize: 14, color: 'var(--brand, #1890ff) !important' }}>
                 当前选中元素
               </Title>
             </div>
-            <Title level={4} style={{ margin: 0, fontSize: 16 }}>
+            <Title level={4} style={{ margin: 0, fontSize: 16, color: 'var(--text-inverse, #1e293b) !important' }}>
               {elementType}
             </Title>
-            <Text type="secondary" style={{ fontSize: 12 }}>
+            <Text type="secondary" style={{ fontSize: 12, color: 'var(--text-muted, #999) !important' }}>
               置信度: {(confidence * 100).toFixed(0)}% | {reason}
             </Text>
           </div>
@@ -101,26 +163,20 @@ export const SelfElementCard: React.FC<SelfElementCardProps> = ({
         </div>
 
         {/* 元素描述 */}
-        <div style={{ 
-          backgroundColor: '#fff', 
-          padding: 12, 
-          borderRadius: 6,
-          border: '1px solid #d9d9d9',
-          fontSize: 13
-        }}>
+        <div className={styles.detailSection}>
           {buildElementDescription()}
         </div>
 
         {/* 位置信息 */}
         {uiElement.bounds && (
-          <div style={{ fontSize: 11, color: '#999' }}>
+          <div className={styles.metaText}>
             <strong>位置:</strong> [{uiElement.bounds.left}, {uiElement.bounds.top}, {uiElement.bounds.right}, {uiElement.bounds.bottom}]
           </div>
         )}
 
         {/* XPath 信息 */}
         {uiElement.xpath && (
-          <div style={{ fontSize: 11, color: '#999' }}>
+          <div className={styles.metaText}>
             <strong>XPath:</strong> 
             <Text 
               code 
@@ -128,7 +184,8 @@ export const SelfElementCard: React.FC<SelfElementCardProps> = ({
                 fontSize: 10, 
                 marginLeft: 4,
                 maxWidth: '100%',
-                wordBreak: 'break-all'
+                wordBreak: 'break-all',
+                color: 'var(--text-inverse, #1e293b) !important'
               }}
             >
               {uiElement.xpath}
@@ -136,16 +193,126 @@ export const SelfElementCard: React.FC<SelfElementCardProps> = ({
           </div>
         )}
 
+        {/* 子元素信息 */}
+        {uiElement.children && uiElement.children.length > 0 && (
+          <div style={{ marginTop: 8 }}>
+            <div style={{ 
+              fontSize: 12, 
+              fontWeight: 500, 
+              marginBottom: 6,
+              color: 'var(--text-inverse, #1e293b)'
+            }}>
+              🔍 子元素 ({uiElement.children.length} 个)
+            </div>
+            <div style={{ 
+              maxHeight: 200, 
+              overflowY: 'auto',
+              border: '1px solid var(--border-color, #e8e8e8)',
+              borderRadius: 6,
+              padding: 8,
+              background: 'var(--bg-light, #fafafa)'
+            }}>
+              {uiElement.children.map((child, index) => {
+                const hasSemanticInfo = Boolean(
+                  (child.text && child.text.trim()) ||
+                  (child.content_desc && child.content_desc.trim()) ||
+                  (child.resource_id && child.resource_id.trim())
+                );
+                
+                return (
+                  <div 
+                    key={child.id || index}
+                    style={{ 
+                      padding: 6,
+                      marginBottom: 4,
+                      borderRadius: 4,
+                      background: hasSemanticInfo ? 'var(--success-light, #f6ffed)' : 'var(--bg-white, #ffffff)',
+                      border: hasSemanticInfo ? '1px solid var(--success-border, #b7eb8f)' : '1px solid var(--border-light, #f0f0f0)',
+                      cursor: hasSemanticInfo ? 'pointer' : 'default',
+                      transition: 'all 0.2s ease'
+                    }}
+                    onClick={() => hasSemanticInfo && onSelect({ 
+                      element: child, 
+                      relationship: 'child' as const,
+                      confidence: 0.95, 
+                      reason: '从父元素子元素中选择',
+                      hasText: !!(child.text && child.text.trim()),
+                      isClickable: child.is_clickable
+                    })}
+                  >
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                      <div style={{ flex: 1, minWidth: 0 }}>
+                        <div style={{ fontSize: 10, color: 'var(--text-muted, #666)' }}>
+                          {child.element_type || '元素'}
+                        </div>
+                        {child.text && child.text.trim() && (
+                          <div style={{ fontSize: 11, fontWeight: 500, color: 'var(--text-primary, #333)' }}>
+                            📝 "{child.text.trim()}"
+                          </div>
+                        )}
+                        {child.content_desc && child.content_desc.trim() && (
+                          <div style={{ fontSize: 11, color: 'var(--success, #52c41a)' }}>
+                            🎯 {child.content_desc.trim()}
+                          </div>
+                        )}
+                        {child.resource_id && child.resource_id.trim() && (
+                          <div style={{ fontSize: 10, color: 'var(--info, #1890ff)' }}>
+                            🆔 {child.resource_id}
+                          </div>
+                        )}
+                      </div>
+                      {hasSemanticInfo && (
+                        <div style={{ marginLeft: 8 }}>
+                          <Tag color="success" style={{ fontSize: 9, margin: 0 }}>
+                            可选择
+                          </Tag>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+        )}
+
         {/* 提示信息 */}
-        <div style={{ 
-          backgroundColor: '#e6f7ff', 
-          padding: 8, 
-          borderRadius: 4,
-          fontSize: 12,
-          color: '#0958d9'
-        }}>
-          💡 这是您当前选中的元素。如果此元素符合您的需求，可以直接确认使用。
+        <div className={styles.infoSection}>
+          💡 这是您当前选中的元素。
+          {uiElement.children && uiElement.children.length > 0 
+            ? " 点击上方有语义信息的子元素可直接选择使用。" 
+            : " 如果此元素符合您的需求，可以直接确认使用。"
+          }
         </div>
+
+        {/* 调试信息 - 仅在开发环境显示 */}
+        {(process.env.NODE_ENV === 'development' || true) && (
+          <details style={{ marginTop: 8, fontSize: 10, color: 'var(--text-muted)' }}>
+            <summary style={{ cursor: 'pointer', userSelect: 'none' }}>
+              🔧 调试信息 (元素字段值检查)
+            </summary>
+            <div style={{ 
+              marginTop: 4, 
+              padding: 8, 
+              background: 'var(--bg-light-secondary, #f1f5f9)', 
+              borderRadius: 4,
+              fontSize: 10,
+              lineHeight: 1.4
+            }}>
+              <div><strong>原始字段值:</strong></div>
+              <div>• text: "{uiElement.text}" (长度: {uiElement.text?.length || 0})</div>
+              <div>• content_desc: "{uiElement.content_desc}" (长度: {uiElement.content_desc?.length || 0})</div>
+              <div>• resource_id: "{uiElement.resource_id}" (长度: {uiElement.resource_id?.length || 0})</div>
+              <div>• class_name: "{uiElement.class_name}" (长度: {uiElement.class_name?.length || 0})</div>
+              <div>• element_type: "{uiElement.element_type}" (长度: {uiElement.element_type?.length || 0})</div>
+              <div>• is_clickable: {String(uiElement.is_clickable)}</div>
+              <div>• bounds: {JSON.stringify(uiElement.bounds)}</div>
+              
+              <div style={{ marginTop: 8 }}><strong>描述生成结果:</strong></div>
+              <div>"{buildElementDescription()}"</div>
+            </div>
+          </details>
+        )}
 
         {/* 操作按钮 */}
         <Space style={{ marginTop: 8 }}>

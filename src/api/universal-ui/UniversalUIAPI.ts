@@ -133,6 +133,7 @@ export class UniversalUIAPI {
               selected,
               password,
               content_desc: contentDesc,
+              children: [], // 添加 children 字段
             };
             
             elements.push(element);

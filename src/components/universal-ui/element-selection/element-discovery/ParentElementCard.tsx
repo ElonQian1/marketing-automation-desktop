@@ -27,10 +27,33 @@ export const ParentElementCard: React.FC<ElementCardProps> = ({
 
   // 获取元素显示名称
   const getDisplayName = () => {
-    return uiElement.text?.trim() || 
-           uiElement.resource_id || 
-           uiElement.class_name || 
-           '未知父元素';
+    // 优先显示文本内容
+    if (uiElement.text && uiElement.text.trim()) {
+      return `"${uiElement.text.trim()}"`;
+    }
+    
+    // 然后是内容描述
+    if (uiElement.content_desc && uiElement.content_desc.trim()) {
+      return `"${uiElement.content_desc.trim()}"`;
+    }
+    
+    // 接着是资源ID
+    if (uiElement.resource_id && uiElement.resource_id.trim()) {
+      return uiElement.resource_id;
+    }
+    
+    // 最后是类名（简化显示）
+    if (uiElement.class_name && uiElement.class_name.trim()) {
+      const className = uiElement.class_name.split('.').pop() || uiElement.class_name;
+      return className;
+    }
+    
+    // 如果都没有，显示元素类型
+    if (uiElement.element_type && uiElement.element_type.trim()) {
+      return `${uiElement.element_type}元素`;
+    }
+    
+    return '未知父元素';
   };
 
   // 获取置信度颜色
@@ -54,17 +77,20 @@ export const ParentElementCard: React.FC<ElementCardProps> = ({
   return (
     <Card
       size="small"
+      className="light-theme-force" // 添加强制主题覆盖类
       style={{ 
         marginBottom: compact ? 8 : 12,
         border: `2px solid ${getConfidenceColor(confidence)}`,
-        borderRadius: 8
+        borderRadius: 8,
+        background: 'var(--bg-light-elevated, #ffffff)',
+        color: 'var(--text-inverse, #1e293b)'
       }}
       bodyStyle={{ padding: compact ? 8 : 12 }}
       title={
         <Space size="small">
-          <ArrowUpOutlined style={{ color: '#1890ff' }} />
+          <ArrowUpOutlined style={{ color: 'var(--brand, #1890ff)' }} />
           <ContainerOutlined />
-          <Text strong style={{ fontSize: compact ? 12 : 14 }}>
+          <Text strong style={{ fontSize: compact ? 12 : 14, color: 'var(--text-inverse, #1e293b) !important' }}>
             父级元素
           </Text>
           <Tag color="blue" style={{ fontSize: 10 }}>
@@ -86,7 +112,7 @@ export const ParentElementCard: React.FC<ElementCardProps> = ({
       <Space direction="vertical" size="small" style={{ width: '100%' }}>
         {/* 元素名称 */}
         <div>
-          <Text strong style={{ fontSize: compact ? 12 : 13 }}>
+          <Text strong style={{ fontSize: compact ? 12 : 13, color: 'var(--text-inverse, #1e293b) !important' }}>
             {getDisplayName()}
           </Text>
           {hasText && (
@@ -104,8 +130,8 @@ export const ParentElementCard: React.FC<ElementCardProps> = ({
         {/* 发现原因 */}
         <div>
           <Space size="small">
-            <InfoCircleOutlined style={{ color: '#666', fontSize: 12 }} />
-            <Text type="secondary" style={{ fontSize: 11 }}>
+            <InfoCircleOutlined style={{ color: 'var(--text-muted, #666)', fontSize: 12 }} />
+            <Text type="secondary" style={{ fontSize: 11, color: 'var(--text-muted, #999) !important' }}>
               {reason}
             </Text>
           </Space>
@@ -113,7 +139,7 @@ export const ParentElementCard: React.FC<ElementCardProps> = ({
 
         {/* 元素详细信息 */}
         {!compact && (
-          <div style={{ fontSize: 10, color: '#999' }}>
+          <div style={{ fontSize: 10, color: 'var(--text-muted, #999)' }}>
             {uiElement.resource_id && (
               <div>ID: {uiElement.resource_id}</div>
             )}

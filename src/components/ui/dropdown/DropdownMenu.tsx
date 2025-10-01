@@ -27,7 +27,7 @@ const DropdownMenuRadioGroup = DropdownMenuPrimitive.RadioGroup;
 
 const dropdownContentBase = cn(
   "min-w-[12rem] overflow-hidden rounded-[var(--radius-md)] border border-border-primary",
-  "bg-background-elevated/98 text-text-primary shadow-[var(--shadow-lg)] backdrop-blur-[var(--backdrop-blur-sm,8px)]",
+  "bg-background-elevated/98 text-text-primary shadow-lg backdrop-blur-[var(--backdrop-blur-sm,8px)]",
   "p-1"
 );
 
@@ -111,7 +111,7 @@ const DropdownMenuArrow = React.forwardRef<
     ref={ref}
     className={cn(
       "fill-[color:var(--bg-elevated)]",
-      "drop-shadow-[var(--shadow-dropdown)]",
+      "drop-shadow-md",
       className
     )}
     {...props}

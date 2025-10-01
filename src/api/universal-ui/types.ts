@@ -87,7 +87,7 @@ export interface UIElement {
   checked: boolean;
   selected: boolean;
   password: boolean;
-  content_desc?: string;
+  content_desc: string; // 修正：与Rust后端保持一致，为必需字段
   
   // 🆕 上下文关系信息 - 用于精准定位
   parent_element?: UIElementContext;           // 父元素信息
@@ -95,6 +95,9 @@ export interface UIElement {
   child_elements?: UIElementContext[];         // 子元素信息
   context_fingerprint?: ElementContextFingerprint; // 上下文指纹
   relative_position?: RelativePosition;        // 相对位置信息
+  
+  // 🆕 直接子元素（与 Rust 后端保持一致）
+  children?: UIElement[];                      // 直接子元素数组（可选）
 }
 
 // 智能导航相关类型定义

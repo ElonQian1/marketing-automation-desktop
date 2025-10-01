@@ -13,6 +13,8 @@ export interface UseResizableColumnsOptions {
   onWidthChange?: (key: string, width: number) => void;
   /** 是否为受控模式，受控模式下完全依赖外部传入的width */
   controlled?: boolean;
+  /** 受控模式下的宽度映射 */
+  widthMap?: Record<string, number>;
 }
 
 export interface ResizableColumnRuntime extends ResizableColumnConfig {
@@ -25,7 +27,13 @@ export function useResizableColumns(
   configs: ResizableColumnConfig[],
   options: UseResizableColumnsOptions = {}
 ) {
-  const { minWidth = 60, maxWidth = 600, onWidthChange, controlled = false } = options;
+  const { 
+    minWidth = 60, 
+    maxWidth = 600, 
+    onWidthChange, 
+    controlled = false,
+    widthMap: propWidthMap = {}
+  } = options;
 
   const activeKeyRef = useRef<string | null>(null);
   const startXRef = useRef<number>(0);
@@ -41,15 +49,19 @@ export function useResizableColumns(
     return map;
   });
 
-  // 受控模式下，从外部configs提取width
+  // 受控模式下，从外部 propWidthMap 或 configs 提取 width
   const externalWidthMap = useMemo(() => {
     if (!controlled) return {};
-    const map: Record<string, number> = {};
+    
+    // 优先使用 propWidthMap，回退到 configs 中的 width
+    const map: Record<string, number> = { ...propWidthMap };
     for (const c of configs) {
-      if (typeof c.width === 'number') map[c.key] = c.width;
+      if (typeof c.width === 'number' && !map[c.key]) {
+        map[c.key] = c.width;
+      }
     }
     return map;
-  }, [configs, controlled]);
+  }, [configs, controlled, propWidthMap]);
 
   // 获取当前使用的widthMap
   const widthMap = controlled ? externalWidthMap : internalWidthMap;
@@ -133,7 +145,13 @@ export function useResizableColumns(
         // 取消并回退到开始宽度
         const keyNow = activeKeyRef.current;
         if (keyNow) {
-          setWidthMap(prev => ({ ...prev, [keyNow]: startWRef.current }));
+          if (controlled) {
+            // 受控模式：通知外部回退到原始值
+            onWidthChange?.(keyNow, startWRef.current);
+          } else {
+            // 非受控模式：更新内部状态
+            setInternalWidthMap(prev => ({ ...prev, [keyNow]: startWRef.current }));
+          }
         }
         handlePointerUp(ev as unknown as PointerEvent);
       }

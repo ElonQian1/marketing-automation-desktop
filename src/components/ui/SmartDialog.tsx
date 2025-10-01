@@ -29,7 +29,7 @@ const dialogContentVariants = cva(
 
     // 视觉样式
   "bg-background-elevated border border-border-primary",
-    "rounded-[var(--radius-lg)] shadow-[var(--shadow-xl)]",
+    "rounded-[var(--radius-lg)] shadow-2xl",
 
     // 焦点 & 层级
   "z-[var(--z-modal)]",

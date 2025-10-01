@@ -48,7 +48,8 @@ const sampleElement: UIElement = {
   checked: false,
   selected: false,
   password: false,
-  content_desc: '一个示例点击按钮'
+  content_desc: '一个示例点击按钮',
+  children: []
 };
 
 const sampleElements: UIElement[] = [
@@ -69,7 +70,8 @@ const sampleElements: UIElement[] = [
     checked: false,
     selected: false,
     password: false,
-    content_desc: '示例文本视图'
+    content_desc: '示例文本视图',
+    children: []
   },
   {
     id: 'com.example.app:id/sample_input',
@@ -87,7 +89,8 @@ const sampleElements: UIElement[] = [
     checked: false,
     selected: false,
     password: false,
-    content_desc: '输入框'
+    content_desc: '输入框',
+    children: []
   }
 ];
 

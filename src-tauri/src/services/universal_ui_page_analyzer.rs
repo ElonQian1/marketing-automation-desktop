@@ -23,23 +23,31 @@ pub struct UniversalPageCaptureResult {
     pub screenshot_absolute_path: Option<String>,
 }
 
-/// UI元素结构（增强版）
+/// UI元素结构（与前端接口匹配）
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct UIElement {
     pub id: String,
     pub element_type: String,
     pub text: String,
-    pub content_desc: String,
-    pub resource_id: Option<String>,
-    pub class_name: String,
     pub bounds: ElementBounds,
+    pub xpath: String,               // 前端需要的 xpath 字段
+    pub resource_id: Option<String>,
+    pub class_name: Option<String>,  // 改为 Option 以匹配前端
     pub is_clickable: bool,
     pub is_scrollable: bool,
     pub is_enabled: bool,
     pub is_focused: bool,
-    pub is_selected: bool,
-    pub children: Vec<UIElement>,
+    pub checkable: bool,            // 前端需要的字段
+    pub checked: bool,              // 前端需要的字段  
+    pub selected: bool,             // 匹配前端的 selected 字段
+    pub password: bool,             // 前端需要的字段
+    pub content_desc: String,       // 保持为必需字段
+    
+    // 保留用于内部处理的字段
+    pub children: Vec<UIElement>,  // 移除 skip_serializing，允许传递子元素到前端
+    #[serde(skip_serializing)]
     pub parent: Option<String>,
+    #[serde(skip_serializing)]
     pub depth: u32,
 }
 
@@ -185,6 +193,9 @@ impl UniversalUIPageAnalyzer {
         let mut is_enabled = true;
         let mut is_focused = false;
         let mut is_selected = false;
+        let mut checkable = false;
+        let mut checked = false;
+        let mut password = false;
         
         for attr in element.attributes() {
             if let Ok(attr) = attr {
@@ -224,6 +235,15 @@ impl UniversalUIPageAnalyzer {
                     b"selected" => {
                         is_selected = String::from_utf8_lossy(&attr.value) == "true";
                     }
+                    b"checkable" => {
+                        checkable = String::from_utf8_lossy(&attr.value) == "true";
+                    }
+                    b"checked" => {
+                        checked = String::from_utf8_lossy(&attr.value) == "true";
+                    }
+                    b"password" => {
+                        password = String::from_utf8_lossy(&attr.value) == "true";
+                    }
                     _ => {}
                 }
             }
@@ -232,19 +252,26 @@ impl UniversalUIPageAnalyzer {
         // 智能分类元素类型
         let element_type = self.classify_element_type(&class_name, &text, is_clickable, &content_desc);
 
+        // 生成 xpath （简化版，使用 element_id）
+        let xpath = format!("element_{}", element_id);
+        
         Ok(UIElement {
             id: element_id.to_string(),
             element_type,
             text,
-            content_desc,
-            resource_id,
-            class_name,
             bounds,
+            xpath,
+            resource_id,
+            class_name: if class_name.is_empty() { None } else { Some(class_name) },
             is_clickable,
             is_scrollable,
             is_enabled,
             is_focused,
-            is_selected,
+            checkable,
+            checked,
+            selected: is_selected,
+            password,
+            content_desc,
             children: Vec::new(),
             parent: None,
             depth,

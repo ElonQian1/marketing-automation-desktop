@@ -56,6 +56,7 @@ import {
   ScrcpyControlView,
 } from "./views";
 import type { VisualUIElement } from "./types";
+import type { ElementWithHierarchy } from "./views/tree-view/types";
 import { convertVisualToUIElement } from "./views/visual-view/utils/elementTransform";
 
 const { Text, Title } = Typography;
@@ -181,9 +182,9 @@ const UniversalPageFinderModal: React.FC<UniversalPageFinderModalProps> = ({
   };
 
   // 元素选择处理
-  const handleUIElementSelect = (element: UIElement) => {
+  const handleUIElementSelect = (element: UIElement | ElementWithHierarchy) => {
     setSelectedElementId(element.id);
-    onElementSelected?.(element);
+    onElementSelected?.(element as UIElement);
   };
 
   const handleVisualElementSelect = (element: VisualUIElement) => {

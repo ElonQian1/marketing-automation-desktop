@@ -81,7 +81,7 @@ export const ContactImportWorkbench: React.FC = () => {
   // 列配置
   const columnDefaults = useMemo(() => ([
     { key: 'id', title: 'ID', defaultVisible: true, defaultWidth: 80 },
-    { key: 'phone_number', title: '号码', defaultVisible: true },
+    { key: 'phone_number', title: '号码', defaultVisible: true, defaultWidth: 130 },
     { key: 'name', title: '姓名', defaultVisible: true, defaultWidth: 180 },
     { key: 'industry', title: '行业分类', defaultVisible: true, defaultWidth: 120 },
     { key: 'status', title: '状态', defaultVisible: true, defaultWidth: 120 },
@@ -101,9 +101,25 @@ export const ContactImportWorkbench: React.FC = () => {
     })
   ), [columnSettings.configs]);
 
+  // 创建 widthMap：只包含可见列的宽度映射，确保每个列都有宽度值
+  const widthMap = useMemo(() => {
+    const map: Record<string, number> = {};
+    baseColumns.forEach(col => {
+      const config = columnSettings.configs.find(c => c.key === String(col.dataIndex));
+      // 确保每个可见列都有宽度值，优先使用config.width，回退到col.width，最后回退到默认值
+      const width = config?.width ?? col.width ?? 120;
+      map[String(col.dataIndex)] = width;
+    });
+    return map;
+  }, [baseColumns, columnSettings.configs]);
+
   const resizable = useResizableColumns(
     baseColumns.map(c => ({ key: String(c.dataIndex), width: c.width })),
-    { onWidthChange: (key, w) => columnSettings.setWidth(key, w) }
+    { 
+      controlled: true,
+      widthMap,
+      onWidthChange: (key, w) => columnSettings.setWidth(key, w) 
+    }
   );
 
   // 计算冲突
@@ -220,10 +236,17 @@ export const ContactImportWorkbench: React.FC = () => {
         dataSource={workbenchData.items}
         columns={baseColumns.map(col => {
           const runtime = resizable.columns.find(rc => rc.key === String(col.dataIndex));
+          // 在受控模式下，优先使用 runtime 的宽度，它来自受控的 widthMap
+          const finalWidth = runtime?.width ?? col.width;
           return {
             ...col,
-            width: runtime?.width ?? col.width,
-            onHeaderCell: () => ({ resizableRuntime: { width: runtime?.width ?? col.width, onResizeStart: runtime?.onResizeStart } })
+            width: finalWidth,
+            onHeaderCell: () => ({ 
+              resizableRuntime: { 
+                width: finalWidth, 
+                onResizeStart: runtime?.onResizeStart 
+              } 
+            })
           } as any;
         })}
         loading={workbenchData.loading}

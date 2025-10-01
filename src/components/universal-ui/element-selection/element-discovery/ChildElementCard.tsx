@@ -31,19 +31,47 @@ export const ChildElementCard: React.FC<ChildElementCardProps> = ({
   const buildElementDescription = (): string => {
     const parts: string[] = [];
     
-    if (uiElement.text) {
-      parts.push(`文本: "${uiElement.text}"`);
+    // 显示文本内容
+    if (uiElement.text && uiElement.text.trim()) {
+      parts.push(`文本: "${uiElement.text.trim()}"`);
     }
     
-    if (uiElement.content_desc) {
-      parts.push(`描述: "${uiElement.content_desc}"`);
+    // 显示内容描述
+    if (uiElement.content_desc && uiElement.content_desc.trim()) {
+      parts.push(`描述: "${uiElement.content_desc.trim()}"`);
     }
     
-    if (uiElement.resource_id) {
+    // 显示资源ID
+    if (uiElement.resource_id && uiElement.resource_id.trim()) {
       parts.push(`ID: ${uiElement.resource_id}`);
     }
     
-    return parts.join(' | ') || '无详细信息';
+    // 显示类名
+    if (uiElement.class_name && uiElement.class_name.trim()) {
+      const className = uiElement.class_name.split('.').pop() || uiElement.class_name;
+      parts.push(`类型: ${className}`);
+    }
+    
+    // 如果没有找到任何有用信息，提供基本信息
+    if (parts.length === 0) {
+      const basicInfo: string[] = [];
+      
+      if (uiElement.element_type) {
+        basicInfo.push(`元素: ${uiElement.element_type}`);
+      }
+      
+      const interactions: string[] = [];
+      if (uiElement.is_clickable) interactions.push('可点击');
+      if (uiElement.is_scrollable) interactions.push('可滚动');
+      
+      if (interactions.length > 0) {
+        basicInfo.push(interactions.join(', '));
+      }
+      
+      return basicInfo.length > 0 ? basicInfo.join(' | ') : `${uiElement.element_type || 'UI'}元素（无标识信息）`;
+    }
+    
+    return parts.join(' | ');
   };
 
   // 获取推荐原因显示文本
@@ -64,10 +92,13 @@ export const ChildElementCard: React.FC<ChildElementCardProps> = ({
     <Card
       size="small"
       hoverable
+      className="light-theme-force" // 添加强制主题覆盖类
       style={{ 
         marginBottom: 8,
         borderLeft: `3px solid ${getConfidenceColor(confidence)}`,
-        transition: 'all 0.2s ease'
+        transition: 'all 0.2s ease',
+        background: 'var(--bg-light-elevated, #ffffff)',
+        color: 'var(--text-inverse, #1e293b)'
       }}
       styles={{
         body: { padding: 12 }
@@ -77,10 +108,10 @@ export const ChildElementCard: React.FC<ChildElementCardProps> = ({
         {/* 标题行 */}
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
           <div style={{ flex: 1, minWidth: 0 }}>
-            <Title level={5} style={{ margin: 0, fontSize: 13 }}>
+            <Title level={5} style={{ margin: 0, fontSize: 13, color: 'var(--text-inverse, #1e293b) !important' }}>
               {elementType}
             </Title>
-            <Text type="secondary" style={{ fontSize: 11 }}>
+            <Text type="secondary" style={{ fontSize: 11, color: 'var(--text-muted, #999) !important' }}>
               置信度: {(confidence * 100).toFixed(0)}%
             </Text>
           </div>
@@ -102,7 +133,8 @@ export const ChildElementCard: React.FC<ChildElementCardProps> = ({
 
         {/* 元素描述 */}
         <div style={{ 
-          backgroundColor: '#f8f9fa', 
+          backgroundColor: 'var(--bg-light-elevated, #f8f9fa)', 
+          color: 'var(--text-inverse, #1e293b)',
           padding: 8, 
           borderRadius: 4,
           fontSize: 12
@@ -112,7 +144,7 @@ export const ChildElementCard: React.FC<ChildElementCardProps> = ({
 
         {/* 推荐原因 */}
         <div style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
-          <Text style={{ fontSize: 11, color: '#666' }}>
+          <Text style={{ fontSize: 11, color: 'var(--text-muted, #666)' }}>
             推荐原因:
           </Text>
           <Tag 
@@ -125,7 +157,7 @@ export const ChildElementCard: React.FC<ChildElementCardProps> = ({
 
         {/* 位置信息 */}
         {uiElement.bounds && (
-          <div style={{ fontSize: 11, color: '#999' }}>
+          <div style={{ fontSize: 11, color: 'var(--text-muted, #999)' }}>
             位置: [{uiElement.bounds.left}, {uiElement.bounds.top}, {uiElement.bounds.right}, {uiElement.bounds.bottom}]
           </div>
         )}

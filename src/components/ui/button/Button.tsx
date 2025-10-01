@@ -38,7 +38,7 @@ const buttonVariants = cva(
   {
     variants: {
       variant: {
-        solid: "border border-transparent shadow-[var(--shadow-sm)]",
+        solid: "border border-transparent shadow-sm",
         soft: "border border-transparent",
         outline: "border bg-transparent",
         ghost: "border border-transparent bg-transparent",

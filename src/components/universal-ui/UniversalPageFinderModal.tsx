@@ -26,6 +26,7 @@ import {
   AnalysisPanel,
   usePageFinderModal
 } from "./page-finder-modal";
+import type { ElementWithHierarchy } from "./views/tree-view/types";
 import type {
   ViewMode,
   XmlSnapshot,
@@ -202,9 +203,9 @@ const UniversalPageFinderModal: React.FC<UniversalPageFinderModalProps> = ({
   };
 
   // 元素选择处理
-  const handleElementSelect = (element: UIElement) => {
+  const handleElementSelect = (element: UIElement | ElementWithHierarchy) => {
     setSelectedElementId(element.id || element.resource_id || "");
-    onElementSelected?.(element);
+    onElementSelected?.(element as UIElement);
   };
 
   // 可视化/网格视图选中（将 VisualUIElement 适配为 UIElement）

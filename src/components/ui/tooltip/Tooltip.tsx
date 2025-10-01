@@ -44,7 +44,7 @@ const TooltipArrow = React.forwardRef<
     ref={ref}
     className={cn(
       "fill-[color:var(--bg-elevated)]",
-      "drop-shadow-[var(--shadow-tooltip)]",
+      "drop-shadow-md",
       className
     )}
     {...props}
@@ -105,7 +105,7 @@ const TooltipContent = React.forwardRef<
             className={cn(
               "z-tooltip max-w-xs rounded-[var(--radius-sm)] border border-border-primary",
               "bg-background-elevated/95 px-3 py-2 text-xs font-medium leading-relaxed text-text-inverse",
-              "shadow-[var(--shadow-lg)] backdrop-blur-[var(--backdrop-blur-sm,8px)]",
+              "shadow-lg backdrop-blur-[var(--backdrop-blur-sm,8px)]",
               fastTransition,
               className
             )}

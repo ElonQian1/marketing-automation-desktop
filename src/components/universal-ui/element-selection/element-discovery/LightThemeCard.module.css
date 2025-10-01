@@ -1,0 +1,55 @@
+/* 
+ * 浅色主题卡片样式模块
+ * 专门用于解决发现元素弹窗中的颜色继承问题
+ */
+
+.lightThemeCard {
+  background: var(--bg-light-elevated, #f8fafc) !important;
+  color: var(--text-inverse, #1e293b) !important;
+  border: 1px solid var(--border-muted, #e2e8f0);
+}
+
+/* 强制覆盖 Ant Design 组件的颜色 */
+.lightThemeCard :global(.ant-typography),
+.lightThemeCard :global(.ant-typography-title),
+.lightThemeCard :global(.ant-typography-paragraph) {
+  color: var(--text-inverse, #1e293b) !important;
+}
+
+.lightThemeCard :global(.ant-typography-secondary) {
+  color: var(--text-muted, #94a3b8) !important;
+}
+
+.lightThemeCard :global(.ant-tag) {
+  background: var(--bg-light-secondary, #f1f5f9);
+  border-color: var(--border-muted, #d1d5db);
+}
+
+/* 信息提示区域样式 */
+.infoSection {
+  background: var(--info-bg, #dbeafe) !important;
+  color: var(--info, #3b82f6) !important;
+  padding: 8px;
+  border-radius: 4px;
+  font-size: 12px;
+}
+
+/* 详细信息区域样式 */
+.detailSection {
+  background: var(--bg-light-base, #ffffff) !important;
+  color: var(--text-inverse, #1e293b) !important;
+  padding: 12px;
+  border-radius: 6px;
+  border: 1px solid var(--border-muted, #d9d9d9);
+  font-size: 13px;
+}
+
+/* 元数据文本样式 */
+.metaText {
+  color: var(--text-muted, #94a3b8) !important;
+  font-size: 11px;
+}
+
+.metaText strong {
+  color: var(--text-inverse, #1e293b) !important;
+}

@@ -1,6 +1,20 @@
 /**
- * ElementHierarchyAnalyzer 修复验证脚本
- * 
+ * ElementHierarchyAnaly    {
+      id: 'element_1',
+      element_type: 'View',
+      text: '',
+      content_desc: '',
+      bounds: { left: 100, top: 200, right: 300, bottom: 250 },
+      xpath: '/hierarchy/android.widget.FrameLayout[0]/android.widget.LinearLayout[0]',
+      is_clickable: false,
+      is_scrollable: false,
+      is_enabled: true,
+      is_focused: false,
+      checkable: false,
+      checked: false,
+      selected: false,
+      password: false
+    },
  * 此脚本用于验证ElementHierarchyAnalyzer在处理"无根节点"情况时的修复效果
  */
 
@@ -16,6 +30,7 @@ function createTestElements(): UIElement[] {
       id: 'element_1',
       element_type: 'android.widget.FrameLayout',
       text: '',
+      content_desc: '',
       bounds: { left: 0, top: 0, right: 1000, bottom: 2000 },
       xpath: '/hierarchy/android.widget.FrameLayout[1]',
       is_clickable: false,
@@ -31,6 +46,7 @@ function createTestElements(): UIElement[] {
       id: 'element_2',
       element_type: 'android.widget.LinearLayout',
       text: '',
+      content_desc: '',
       bounds: { left: 50, top: 100, right: 950, bottom: 800 },
       xpath: '/hierarchy/android.widget.FrameLayout[1]/android.widget.LinearLayout[1]',
       is_clickable: false,
@@ -46,6 +62,7 @@ function createTestElements(): UIElement[] {
       id: 'element_3',
       element_type: 'android.widget.Button',
       text: '确定',
+      content_desc: '确定按钮',
       bounds: { left: 100, top: 200, right: 300, bottom: 280 },
       xpath: '/hierarchy/android.widget.FrameLayout[1]/android.widget.LinearLayout[1]/android.widget.Button[1]',
       is_clickable: true,
@@ -93,6 +110,7 @@ export function testEdgeCase(): void {
         id: 'element_A',
         element_type: 'Container',
         text: '',
+        content_desc: '',
         bounds: { left: 0, top: 0, right: 100, bottom: 100 },
         xpath: '/element_A',
         is_clickable: false,
@@ -108,6 +126,7 @@ export function testEdgeCase(): void {
         id: 'element_B',
         element_type: 'Container',
         text: '',
+        content_desc: '',
         bounds: { left: 10, top: 10, right: 90, bottom: 90 },
         xpath: '/element_B',
         is_clickable: false,

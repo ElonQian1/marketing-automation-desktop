@@ -123,6 +123,21 @@ code {
 
 /* 品牌化工具类补充 */
 
+/* 浅色主题强制覆盖类（解决 Ant Design 继承问题） */
+.light-theme-force {
+  color: var(--text-inverse) !important;
+}
+
+.light-theme-force .ant-typography,
+.light-theme-force .ant-typography-title,
+.light-theme-force .ant-typography-paragraph {
+  color: var(--text-inverse) !important;
+}
+
+.light-theme-force .ant-typography-secondary {
+  color: var(--text-muted) !important;
+}
+
 /* 平滑过渡效果 */
 .smooth-transition {
   transition: all var(--duration-normal) var(--ease-out);
