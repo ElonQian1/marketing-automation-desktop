@@ -1,0 +1,81 @@
+/* Ant Design 原生颜值重置（局部作用域）：
+   仅在 [data-antd-native] 容器内生效，
+   尽可能“撤销/压低”项目自定义的 antd 全局样式覆盖，回到原生视觉。 */
+
+[data-antd-native] .ant-card,
+[data-antd-native] .ant-card-head,
+[data-antd-native] .ant-card-body,
+[data-antd-native] .ant-input,
+[data-antd-native] .ant-input-affix-wrapper,
+[data-antd-native] .ant-input-number,
+[data-antd-native] .ant-select-selector,
+[data-antd-native] .ant-picker,
+[data-antd-native] .ant-btn,
+[data-antd-native] .ant-modal,
+[data-antd-native] .ant-modal-content,
+[data-antd-native] .ant-dropdown-menu,
+[data-antd-native] .ant-menu,
+[data-antd-native] .ant-popover-inner,
+[data-antd-native] .ant-tooltip-inner,
+[data-antd-native] .ant-segmented,
+[data-antd-native] .ant-tabs,
+[data-antd-native] .ant-tabs-nav,
+[data-antd-native] .ant-tabs-tab,
+[data-antd-native] .ant-table,
+[data-antd-native] .ant-table-thead > tr > th,
+[data-antd-native] .ant-table-tbody > tr > td,
+[data-antd-native] .ant-tag,
+[data-antd-native] .ant-badge-count,
+[data-antd-native] .ant-divider {
+  /* 撤销项目层的覆盖，回归上一个样式来源（AntD 注入的样式） */
+  background: revert !important;
+  background-color: revert !important;
+  border: revert !important;
+  border-color: revert !important;
+  border-radius: revert !important;
+  box-shadow: revert !important;
+  color: revert !important;
+  padding: revert !important;
+}
+
+/* 对商业化润色（polish）进行软禁用：
+   若容器声明 data-polish="off"，则覆盖 polish 文件中的强化规则 */
+[data-antd-native][data-polish='off'] .ant-card,
+[data-antd-native][data-polish='off'] .ant-input,
+[data-antd-native][data-polish='off'] .ant-input-affix-wrapper,
+[data-antd-native][data-polish='off'] .ant-select-selector,
+[data-antd-native][data-polish='off'] .ant-picker,
+[data-antd-native][data-polish='off'] .ant-btn,
+[data-antd-native][data-polish='off'] .ant-dropdown-menu,
+[data-antd-native][data-polish='off'] .ant-menu,
+[data-antd-native][data-polish='off'] .ant-popover-inner,
+[data-antd-native][data-polish='off'] .ant-tooltip-inner,
+[data-antd-native][data-polish='off'] .ant-segmented,
+[data-antd-native][data-polish='off'] .ant-tabs,
+[data-antd-native][data-polish='off'] .ant-table,
+[data-antd-native][data-polish='off'] .ant-tag,
+[data-antd-native][data-polish='off'] .ant-badge-count,
+[data-antd-native][data-polish='off'] .ant-divider {
+  background: revert !important;
+  background-color: revert !important;
+  border: revert !important;
+  border-color: revert !important;
+  box-shadow: revert !important;
+}
+
+/* 线条密度开关：minimal 时进一步弱化线条存在感 */
+[data-antd-native][data-outline='minimal'] .ant-divider { border-block-start-color: color-mix(in srgb, currentColor 12%, transparent) !important; }
+[data-antd-native][data-outline='minimal'] .ant-card { box-shadow: 0 2px 10px rgba(0,0,0,0.18) !important; }
+
+/* 保留 AntD 默认的焦点样式，避免项目中强行清除 */
+[data-antd-native] .ant-btn:focus,
+[data-antd-native] .ant-input:focus,
+[data-antd-native] .ant-select:focus {
+  box-shadow: revert !important;
+}
+
+/* 对少数被强制 transform 的 hover 效果还原 */
+[data-antd-native] .ant-btn:hover,
+[data-antd-native] .ant-card:hover {
+  transform: none !important;
+}
