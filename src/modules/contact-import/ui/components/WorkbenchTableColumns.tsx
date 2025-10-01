@@ -23,7 +23,7 @@ export interface TableColumn {
 
 export interface WorkbenchTableColumnsProps {
   columnSettings: {
-    visibleColumns: Array<{
+    configs: Array<{
       key: string;
       title: string;
       visible: boolean;
@@ -42,7 +42,7 @@ export const getWorkbenchTableColumns = ({
 }: WorkbenchTableColumnsProps) => {
   const columns: TableColumn[] = [];
 
-  columnSettings.visibleColumns.forEach(cfg => {
+  columnSettings.configs.forEach(cfg => {
     if (!cfg.visible) return;
 
     switch (cfg.key) {

@@ -146,18 +146,15 @@ export const useWorkbenchActions = ({
         return;
       }
 
-      const numbers = await fetchUnclassifiedNumbers({ 
-        limit: end && start ? end - start + 1 : undefined,
-        offset: start ? start - 1 : undefined,
-        onlyUnused: onlyUnconsumed
-      });
+      const count = end && start ? end - start + 1 : 100; // 默认100个
+      const numbers = await fetchUnclassifiedNumbers(count, onlyUnconsumed);
 
       if (numbers.length === 0) {
         message.warning('没有可用的号码');
         return;
       }
 
-      const vcfContent = buildVcfFromNumbers(numbers, { industry });
+      const vcfContent = buildVcfFromNumbers(numbers);
       const success = await VcfActions.saveVcfToDevice(deviceId, vcfContent);
       
       if (success) {
@@ -184,18 +181,15 @@ export const useWorkbenchActions = ({
         return;
       }
 
-      const numbers = await fetchUnclassifiedNumbers({ 
-        limit: end && start ? end - start + 1 : undefined,
-        offset: start ? start - 1 : undefined,
-        onlyUnused: onlyUnconsumed
-      });
+      const count2 = end && start ? end - start + 1 : 100; // 默认100个
+      const numbers = await fetchUnclassifiedNumbers(count2, onlyUnconsumed);
 
       if (numbers.length === 0) {
         message.warning('没有可用的号码');
         return;
       }
 
-      const vcfContent = buildVcfFromNumbers(numbers, { industry });
+      const vcfContent = buildVcfFromNumbers(numbers);
       const vcfImportService = new VcfImportService();
       const success = await vcfImportService.importToDevice(deviceId, vcfContent, scriptKey);
       
@@ -237,11 +231,8 @@ export const useWorkbenchActions = ({
       
       for (const [deviceId, config] of validAssignments) {
         const { idStart, idEnd, industry } = config;
-        const numbers = await fetchUnclassifiedNumbers({ 
-          limit: idEnd! - idStart! + 1,
-          offset: idStart! - 1,
-          onlyUnused: onlyUnconsumed
-        });
+        const count3 = idEnd! - idStart! + 1;
+        const numbers = await fetchUnclassifiedNumbers(count3, onlyUnconsumed);
         
         if (numbers.length > 0) {
           batches.push({ deviceId, industry, numbers });

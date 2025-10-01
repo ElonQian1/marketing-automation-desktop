@@ -8,6 +8,7 @@ import { App } from "antd";
 import { useAdb } from "../../../../application/hooks/useAdb";
 import { UniversalUIAPI } from "../../../../api/universal-ui/UniversalUIAPI";
 import type { UIElement } from "../../../../api/universal-ui/types";
+import { transformUIElement } from "../../types/index";
 import type {
   XmlSnapshot,
   VisualUIElement,
@@ -146,7 +147,6 @@ export const usePageFinderModal = (props: UsePageFinderModalProps): UsePageFinde
       setUIElements(parsedElements);
       
       // 转换为可视化元素并设置给 VisualElementView
-      const { transformUIElement } = await import("../../types/index");
       const visualElements = parsedElements.map(transformUIElement);
       setElements(visualElements);
       

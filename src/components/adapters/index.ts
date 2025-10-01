@@ -171,8 +171,8 @@ export {
   FeedbackAdapter,
 } from "../ui/feedback/FeedbackAdapter";
 
-// Button - 轻组件按钮 (通过UI层)
-export { Button } from "../ui";
+// Button - 按钮适配器（兼容 AntD 风格属性）
+export { Button, type ButtonAdapterProps } from "./button/ButtonAdapter";
 
 // Input - 输入框适配器 (Employee D)
 export {
