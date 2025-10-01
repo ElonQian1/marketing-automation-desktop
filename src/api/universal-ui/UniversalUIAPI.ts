@@ -25,10 +25,10 @@ export class UniversalUIAPI {
    */
   static async analyzeUniversalUIPage(deviceId: string): Promise<UniversalPageCaptureResult> {
     try {
-      // 使用默认的 invokeCompat 策略，让其自动处理参数格式转换
-      const result = await invokeCompat<UniversalPageCaptureResultBackend>(
+      // 直接使用正确的 snake_case 参数名调用后端
+      const result = await invoke<UniversalPageCaptureResultBackend>(
         'analyze_universal_ui_page',
-        { deviceId }
+        { device_id: deviceId }
       );
       return UniversalUIAPI.normalizeUniversalPageCaptureResult(result);
     } catch (error) {
@@ -54,9 +54,9 @@ export class UniversalUIAPI {
    */
   static async extractPageElements(xmlContent: string): Promise<UIElement[]> {
     try {
-      // 优先使用后端统一解析器，使用默认的 invokeCompat 策略
+      // 直接使用正确的 snake_case 参数名调用后端
       try {
-        return await invokeCompat<UIElement[]>('extract_page_elements', { xmlContent });
+        return await invoke<UIElement[]>('extract_page_elements', { xml_content: xmlContent });
       } catch (backendError) {
         console.warn('[UniversalUIAPI] 后端解析失败，使用前端上下文感知解析:', backendError);
         // 后端失败时使用前端上下文感知解析
