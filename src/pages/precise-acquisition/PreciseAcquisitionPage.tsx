@@ -13,7 +13,7 @@ import { useAdb } from '../../application/hooks/useAdb';
 
 // 导入子模块组件
 import { IndustryMonitoringModule } from './modules/IndustryMonitoringModule';
-// import { AccountMonitoringModule } from './modules/AccountMonitoringModule';
+import { AccountMonitoringModule } from './modules/AccountMonitoringModule';
 import { TaskManagementCenter } from './modules/TaskManagementCenter';
 import { DailyReportModule } from './modules/DailyReportModule';
 // import { MonitoringDashboard } from './modules/MonitoringDashboard';
@@ -83,17 +83,11 @@ export const PreciseAcquisitionPage: React.FC = () => {
           账号监控
         </span>
       ),
-      children: (
-        <Card>
-          <Typography.Title level={3}>👤 账号监控</Typography.Title>
-          <Typography.Text type="secondary">监控指定账号或视频的评论区，获取潜在客户线索</Typography.Text>
-          <div className="mt-8">
-            <Typography.Text>
-              🚧 开发模式：账号监控模块正在开发中...
-            </Typography.Text>
-          </div>
-        </Card>
-      )
+      children: <AccountMonitoringModule 
+        onlineDevices={onlineDevices}
+        selectedDevice={selectedDevice}
+        refreshDevices={refreshDevices}
+      />
     },
     {
       key: 'tasks',
