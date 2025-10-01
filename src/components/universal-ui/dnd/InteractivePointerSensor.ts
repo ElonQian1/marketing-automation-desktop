@@ -21,13 +21,13 @@ function shouldIgnoreDrag(target: EventTarget | null): boolean {
   if (el.isContentEditable) return true;
   if (closest('a[href]')) return true;
 
-  // 常见 antd 交互控件
-  if (closest('.ant-select')) return true;
-  if (closest('.ant-switch')) return true;
-  if (closest('.ant-slider')) return true;
-  if (closest('.ant-input-number')) return true;
-  if (closest('.ant-checkbox')) return true;
-  if (closest('.ant-radio')) return true;
+  // 通用交互控件检测（避免AntD特定选择器）
+  if (closest('[role="combobox"]')) return true;  // select
+  if (closest('[role="switch"]')) return true;   // switch
+  if (closest('[role="slider"]')) return true;   // slider
+  if (closest('[role="spinbutton"]')) return true;  // input-number
+  if (closest('[role="checkbox"]')) return true; // checkbox
+  if (closest('[role="radio"]')) return true;    // radio
 
   return false;
 }

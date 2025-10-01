@@ -17,17 +17,17 @@ export interface CachedPageListProps {
   getAppIcon: (appPackage: string) => string;
 }
 
-const listItemStyles = `
-  .xml-cache-list-item .ant-list-item-action {
-    margin-left: 8px !important;
-    min-width: 32px !important;
-    flex: 0 0 32px !important;
-  }
-  .xml-cache-list-item .ant-list-item-action > li {
-    padding: 0 !important;
-    margin: 0 !important;
-  }
-`;
+// 使用内联样式而非全局覆盖
+const actionStyles: React.CSSProperties = {
+  marginLeft: '8px',
+  minWidth: '32px',
+  flex: '0 0 32px',
+};
+
+const actionItemStyles: React.CSSProperties = {
+  padding: 0,
+  margin: 0,
+};
 
 export const CachedPageList: React.FC<CachedPageListProps> = ({
   pages,
@@ -73,9 +73,7 @@ export const CachedPageList: React.FC<CachedPageListProps> = ({
   // Use virtualization for large lists to improve performance
   if (pages.length >= VIRTUALIZE_THRESHOLD) {
     return (
-      <>
-        <style dangerouslySetInnerHTML={{ __html: listItemStyles }} />
-        <VirtualizedCachedPageList
+      <VirtualizedCachedPageList
           pages={pages}
           height={640}
           columns={1}
@@ -88,14 +86,11 @@ export const CachedPageList: React.FC<CachedPageListProps> = ({
           formatTime={formatTime}
           getAppIcon={getAppIcon}
         />
-      </>
     );
   }
 
   return (
-    <>
-      <style dangerouslySetInnerHTML={{ __html: listItemStyles }} />
-      <List
+    <List
         grid={{ gutter: 16, column: 1 }}
         dataSource={pages}
         renderItem={(page) => (
@@ -113,7 +108,6 @@ export const CachedPageList: React.FC<CachedPageListProps> = ({
           </List.Item>
         )}
       />
-    </>
   );
 };
 

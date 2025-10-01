@@ -125,7 +125,7 @@ export class DragBehaviorOptimizer {
       }
       
       .drag-protected-area * {
-        cursor: inherit !important;
+        cursor: inherit;
       }
       
       /* 拖拽状态指示 */

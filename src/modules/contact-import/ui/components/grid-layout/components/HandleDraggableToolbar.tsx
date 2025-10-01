@@ -258,15 +258,15 @@ export const HandleDraggableToolbar = memo<HandleDraggableToolbarProps>(({
         }
         
         .handle-draggable-toolbar .toolbar-drag-handle:active {
-          cursor: grabbing !important;
+          cursor: grabbing;
         }
         
         .handle-draggable-toolbar .toolbar-no-drag * {
-          cursor: default !important;
+          cursor: default;
         }
         
         .handle-draggable-toolbar .toolbar-no-drag button {
-          cursor: pointer !important;
+          cursor: pointer;
         }
       `}</style>
     </div>

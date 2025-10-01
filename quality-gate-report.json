@@ -1,0 +1,985 @@
+{
+  "timestamp": "2025-10-01T05:45:32.267Z",
+  "passed": false,
+  "errors": [
+    "TypeScript 类型检查失败",
+    "项目构建失败",
+    "包大小超限: 37.5 MB > 5 MB"
+  ],
+  "warnings": [
+    "样式覆盖扫描发现问题，请查看详细报告",
+    "CSS大小超限: 233.8 KB > 100 KB",
+    "发现 41 个超大文件需要拆分"
+  ],
+  "results": {
+    "overridesScan": null,
+    "typeCheck": {
+      "success": false,
+      "error": "Command failed: npm run type-check"
+    },
+    "buildCheck": {
+      "success": false,
+      "error": "Command failed: npm run build\n\u001b[31m✗\u001b[39m Build failed in 6.90s\n\u001b[31merror during build:\n\u001b[31mCould not resolve \"../../components/business\" from \"src/pages/BusinessComponentsDemo.tsx\"\u001b[31m\nfile: \u001b[36mD:/rust/active-projects/小红书/employeeGUI/src/pages/BusinessComponentsDemo.tsx\u001b[31m\n    at getRollupError (file:///D:/rust/active-projects/%E5%B0%8F%E7%BA%A2%E4%B9%A6/employeeGUI/node_modules/rollup/dist/es/shared/parseAst.js:401:41)\n    at error (file:///D:/rust/active-projects/%E5%B0%8F%E7%BA%A2%E4%B9%A6/employeeGUI/node_modules/rollup/dist/es/shared/parseAst.js:397:42)\n    at ModuleLoader.handleInvalidResolvedId (file:///D:/rust/active-projects/%E5%B0%8F%E7%BA%A2%E4%B9%A6/employeeGUI/node_modules/rollup/dist/es/shared/node-entry.js:21534:24)\n    at file:///D:/rust/active-projects/%E5%B0%8F%E7%BA%A2%E4%B9%A6/employeeGUI/node_modules/rollup/dist/es/shared/node-entry.js:21494:26\u001b[39m\n"
+    },
+    "performanceCheck": {
+      "totalSize": 39357144,
+      "cssSize": 239364
+    },
+    "fileSizeCheck": {
+      "largeFiles": [
+        {
+          "path": "src\\components\\universal-ui\\views\\grid-view\\GridElementView.tsx",
+          "lines": 872,
+          "size": 33644
+        },
+        {
+          "path": "src\\components\\universal-ui\\UniversalElementAnalyzer.ts",
+          "lines": 847,
+          "size": 31864
+        },
+        {
+          "path": "src\\pages\\SmartScriptBuilderPage\\hooks\\usePageFinder.tsx",
+          "lines": 840,
+          "size": 35339
+        },
+        {
+          "path": "src\\application\\services\\AdbApplicationService.ts",
+          "lines": 826,
+          "size": 23703
+        },
+        {
+          "path": "src\\components\\element-name-editor\\BatchRuleConfigPanel_old.tsx",
+          "lines": 822,
+          "size": 25300
+        },
+        {
+          "path": "src\\modules\\contact-import\\ui\\ContactImportWorkbench.tsx",
+          "lines": 808,
+          "size": 34570
+        },
+        {
+          "path": "src\\components\\loop-control\\AdvancedLoopBuilder.tsx",
+          "lines": 734,
+          "size": 23316
+        },
+        {
+          "path": "src\\services\\batchMatchingEngine.ts",
+          "lines": 723,
+          "size": 20696
+        },
+        {
+          "path": "src\\components\\template\\TemplateLibrary.tsx",
+          "lines": 716,
+          "size": 23738
+        },
+        {
+          "path": "src\\components\\execution\\ScriptExecutionMonitor.tsx",
+          "lines": 696,
+          "size": 22479
+        },
+        {
+          "path": "src\\modules\\ElementNameMapper.ts",
+          "lines": 690,
+          "size": 22434
+        },
+        {
+          "path": "src\\components\\execution\\SimpleExecutionMonitor.tsx",
+          "lines": 689,
+          "size": 20943
+        },
+        {
+          "path": "src\\components\\template\\TemplateEditor.tsx",
+          "lines": 685,
+          "size": 22393
+        },
+        {
+          "path": "src\\modules\\xml-inspector\\XmlInspectorModal.tsx",
+          "lines": 641,
+          "size": 20415
+        },
+        {
+          "path": "src\\components\\smart-navigation-finder\\SmartNavigationStepBuilder.tsx",
+          "lines": 628,
+          "size": 22215
+        },
+        {
+          "path": "src\\services\\UnifiedViewDataManager_backup.ts",
+          "lines": 623,
+          "size": 18926
+        },
+        {
+          "path": "src\\components\\element-name-editor\\ElementNameEditor.tsx",
+          "lines": 622,
+          "size": 21399
+        },
+        {
+          "path": "src\\components\\adb-xml-inspector\\AdbXmlInspector.tsx",
+          "lines": 619,
+          "size": 19075
+        },
+        {
+          "path": "src\\components\\template\\TemplateIOManager.tsx",
+          "lines": 596,
+          "size": 19863
+        },
+        {
+          "path": "src\\components\\smart-navigation-finder\\SmartNavigationFinder.tsx",
+          "lines": 592,
+          "size": 20071
+        },
+        {
+          "path": "src\\modules\\unified-element-selection\\EnhancedElementRelocator.ts",
+          "lines": 569,
+          "size": 16164
+        },
+        {
+          "path": "src\\modules\\contact-import\\core\\ContactImporter.ts",
+          "lines": 565,
+          "size": 15648
+        },
+        {
+          "path": "src\\components\\VisualPageAnalyzer.tsx",
+          "lines": 560,
+          "size": 21623
+        },
+        {
+          "path": "src\\components\\element-xml-hierarchy\\HierarchyTreeViewerFixed.tsx",
+          "lines": 556,
+          "size": 18732
+        },
+        {
+          "path": "src\\components\\feature-modules\\script-builder\\components\\ExecutionControl.tsx",
+          "lines": 547,
+          "size": 14889
+        },
+        {
+          "path": "src\\pages\\SmartScriptBuilderPage\\helpers\\constants.ts",
+          "lines": 547,
+          "size": 13952
+        },
+        {
+          "path": "src\\services\\customMatchingEngine.ts",
+          "lines": 547,
+          "size": 14551
+        },
+        {
+          "path": "src\\components\\element-name-editor\\FieldMatchingController_old.tsx",
+          "lines": 545,
+          "size": 17060
+        },
+        {
+          "path": "src\\modules\\smart-script-management\\components\\ScriptBuilderIntegration.tsx",
+          "lines": 544,
+          "size": 19779
+        },
+        {
+          "path": "src\\components\\element-xml-hierarchy\\CachedHierarchyTreeViewer.tsx",
+          "lines": 533,
+          "size": 18510
+        },
+        {
+          "path": "src\\application\\hooks\\useAdb.ts",
+          "lines": 531,
+          "size": 15709
+        },
+        {
+          "path": "src\\components\\feature-modules\\script-builder\\components\\ScriptBuilderContainer.tsx",
+          "lines": 530,
+          "size": 13825
+        },
+        {
+          "path": "src\\components\\loop-control\\LoopBuilder.tsx",
+          "lines": 527,
+          "size": 16475
+        },
+        {
+          "path": "src\\modules\\distributed-script-quality\\DistributedScriptRecoveryService.ts",
+          "lines": 521,
+          "size": 18144
+        },
+        {
+          "path": "src\\components\\feature-modules\\script-builder\\components\\StepList.tsx",
+          "lines": 518,
+          "size": 13885
+        },
+        {
+          "path": "src\\components\\contact\\ContactReader.tsx",
+          "lines": 516,
+          "size": 21483
+        },
+        {
+          "path": "src\\components\\element-xml-hierarchy\\HierarchyTreeViewer.tsx",
+          "lines": 512,
+          "size": 17730
+        },
+        {
+          "path": "src\\components\\element-xml-hierarchy\\EnhancedHierarchyTreeViewer.tsx",
+          "lines": 508,
+          "size": 16352
+        },
+        {
+          "path": "src\\domain\\page-analysis\\services\\PageAnalysisDomainService.ts",
+          "lines": 506,
+          "size": 15808
+        },
+        {
+          "path": "src\\components\\UnifiedViewContainer.tsx",
+          "lines": 505,
+          "size": 14927
+        },
+        {
+          "path": "src\\services\\ElementFieldAnalyzer.ts",
+          "lines": 503,
+          "size": 15183
+        },
+        {
+          "path": "src\\components\\universal-ui\\views\\visual-view\\VisualPageAnalyzerContent.tsx",
+          "lines": 497,
+          "size": 16920
+        },
+        {
+          "path": "src\\services\\XmlPageCacheService.ts",
+          "lines": 495,
+          "size": 16124
+        },
+        {
+          "path": "src\\modules\\distributed-script-quality\\DistributedScriptQualityPanel.tsx",
+          "lines": 477,
+          "size": 17218
+        },
+        {
+          "path": "src\\components\\universal-ui\\enhanced-element-creation\\EnhancedElementCreator.ts",
+          "lines": 476,
+          "size": 16175
+        },
+        {
+          "path": "src\\components\\contact\\ImportAndFollow.tsx",
+          "lines": 474,
+          "size": 17562
+        },
+        {
+          "path": "src\\components\\SmartVcfImporter.tsx",
+          "lines": 473,
+          "size": 16811
+        },
+        {
+          "path": "src\\modules\\contact-import\\strategies\\ImportStrategies.ts",
+          "lines": 473,
+          "size": 13152
+        },
+        {
+          "path": "src\\pages\\SmartScriptBuilderPage\\hooks\\useStepForm.tsx",
+          "lines": 469,
+          "size": 20255
+        },
+        {
+          "path": "src\\components\\feature-modules\\script-builder\\hooks\\useScriptBuilderState.ts",
+          "lines": 468,
+          "size": 11196
+        },
+        {
+          "path": "src\\components\\feature-modules\\script-builder\\hooks\\useStepManagement.ts",
+          "lines": 468,
+          "size": 12336
+        },
+        {
+          "path": "src\\components\\universal-ui\\views\\grid-view\\panels\\node-detail\\elementToStepHelper.ts",
+          "lines": 466,
+          "size": 15932
+        },
+        {
+          "path": "src\\components\\smart-element-finder\\SmartElementFinder.tsx",
+          "lines": 454,
+          "size": 18993
+        },
+        {
+          "path": "src\\components\\universal-ui\\views\\grid-view\\panels\\NodeDetailPanel.tsx",
+          "lines": 450,
+          "size": 19621
+        },
+        {
+          "path": "src\\pages\\SmartScriptBuilderPage\\components\\StepEditModal.tsx",
+          "lines": 450,
+          "size": 16308
+        },
+        {
+          "path": "src\\components\\feature-modules\\script-builder\\hooks\\useScriptExecution.ts",
+          "lines": 448,
+          "size": 11466
+        },
+        {
+          "path": "src\\components\\contact\\XiaohongshuAutoFollow.tsx",
+          "lines": 445,
+          "size": 12816
+        },
+        {
+          "path": "src\\components\\unified-view\\UnifiedVisualizationView.tsx",
+          "lines": 444,
+          "size": 15992
+        },
+        {
+          "path": "src\\components\\patterns\\marketplace-card\\MarketplaceCard.tsx",
+          "lines": 440,
+          "size": 12750
+        },
+        {
+          "path": "src\\api\\ContactAPI.ts",
+          "lines": 437,
+          "size": 10569
+        },
+        {
+          "path": "src\\components\\feature-modules\\universal-ui\\ThemeLayouts.tsx",
+          "lines": 435,
+          "size": 11582
+        },
+        {
+          "path": "src\\modules\\contact-import\\parsers\\VcfParser.ts",
+          "lines": 434,
+          "size": 11690
+        },
+        {
+          "path": "src\\components\\feature-modules\\universal-ui\\ThemePageComponents.tsx",
+          "lines": 433,
+          "size": 13492
+        },
+        {
+          "path": "src\\components\\feature-modules\\script-builder\\components\\StepCard.tsx",
+          "lines": 428,
+          "size": 11691
+        },
+        {
+          "path": "src\\components\\smart\\SmartAppSelector.tsx",
+          "lines": 428,
+          "size": 14195
+        },
+        {
+          "path": "src\\hooks\\useUnifiedView.ts",
+          "lines": 427,
+          "size": 12670
+        },
+        {
+          "path": "src\\components\\feature-modules\\universal-ui\\ThemeEnhanced.tsx",
+          "lines": 422,
+          "size": 11928
+        },
+        {
+          "path": "src\\components\\universal-ui\\views\\grid-view\\services\\childElementAnalyzer.ts",
+          "lines": 422,
+          "size": 12615
+        },
+        {
+          "path": "src\\pages\\SmartScriptBuilderPage\\helpers\\saveStep.tsx",
+          "lines": 422,
+          "size": 18332
+        },
+        {
+          "path": "src\\modules\\smart-script-management\\components\\ScriptManager.tsx",
+          "lines": 421,
+          "size": 12137
+        },
+        {
+          "path": "src\\services\\AdbPrecisionStrategy.ts",
+          "lines": 417,
+          "size": 12869
+        },
+        {
+          "path": "src\\components\\contact\\EnhancedImportAndFollow.tsx",
+          "lines": 412,
+          "size": 14238
+        },
+        {
+          "path": "src\\modules\\unified-element-selection\\UnifiedElementSelectionHandler.ts",
+          "lines": 410,
+          "size": 12623
+        },
+        {
+          "path": "src\\modules\\smart-script-management\\hooks\\useScriptManager.ts",
+          "lines": 406,
+          "size": 11290
+        },
+        {
+          "path": "src\\components\\task\\PreciseAcquisitionForm.tsx",
+          "lines": 404,
+          "size": 15123
+        },
+        {
+          "path": "src\\stores\\elementSelectionStore.ts",
+          "lines": 403,
+          "size": 10560
+        },
+        {
+          "path": "src\\components\\element-xml-hierarchy\\ElementXmlHierarchyTab.tsx",
+          "lines": 400,
+          "size": 13138
+        },
+        {
+          "path": "src\\components\\feature-modules\\theme-system\\components\\ThemeConfigPanel.tsx",
+          "lines": 400,
+          "size": 13185
+        },
+        {
+          "path": "src\\components\\universal-ui\\views\\list-view\\ElementListView.tsx",
+          "lines": 399,
+          "size": 13747
+        },
+        {
+          "path": "src\\api\\universal-ui\\UniversalUIAPI.ts",
+          "lines": 398,
+          "size": 15538
+        },
+        {
+          "path": "src\\services\\EnhancedXmlCacheService.ts",
+          "lines": 398,
+          "size": 12427
+        },
+        {
+          "path": "src\\modules\\contact-import\\devices\\IDeviceManager.ts",
+          "lines": 396,
+          "size": 11138
+        },
+        {
+          "path": "src\\modules\\distributed-script-quality\\XmlDataValidator.ts",
+          "lines": 395,
+          "size": 12730
+        },
+        {
+          "path": "src\\components\\feature-modules\\page-analyzer\\components\\MatchStrategySelector.tsx",
+          "lines": 394,
+          "size": 11615
+        },
+        {
+          "path": "src\\components\\universal-ui\\views\\mirror-view\\ScrcpyControlView.tsx",
+          "lines": 393,
+          "size": 17393
+        },
+        {
+          "path": "src\\components\\feature-modules\\script-builder\\components\\StepEditor-Refactored.tsx",
+          "lines": 392,
+          "size": 9933
+        },
+        {
+          "path": "src\\modules\\enhanced-step-card\\EnhancedStepCard.tsx",
+          "lines": 392,
+          "size": 12938
+        },
+        {
+          "path": "src\\components\\contact\\VcfImportDialog.tsx",
+          "lines": 391,
+          "size": 12235
+        },
+        {
+          "path": "src\\components\\DraggableStepCard.tsx",
+          "lines": 391,
+          "size": 15377
+        },
+        {
+          "path": "src\\components\\element-name-editor\\ConstraintFieldEditor.tsx",
+          "lines": 391,
+          "size": 12639
+        },
+        {
+          "path": "src\\components\\universal-ui\\views\\grid-view\\panels\\node-detail\\helpers.ts",
+          "lines": 391,
+          "size": 12902
+        },
+        {
+          "path": "src\\components\\feature-modules\\script-builder\\types\\index.ts",
+          "lines": 390,
+          "size": 8714
+        },
+        {
+          "path": "src\\components\\ui\\motion\\MotionSystem.tsx",
+          "lines": 388,
+          "size": 8254
+        },
+        {
+          "path": "src\\components\\navigation\\NavigationBarDetector.tsx",
+          "lines": 385,
+          "size": 15505
+        },
+        {
+          "path": "src\\modules\\contact-import\\ui\\components\\grid-layout\\components\\FloatingLayoutToolbar.tsx",
+          "lines": 385,
+          "size": 11382
+        },
+        {
+          "path": "src\\modules\\parent-node-enhancement-tests\\index.ts",
+          "lines": 385,
+          "size": 13205
+        },
+        {
+          "path": "src\\components\\feature-modules\\theme-system\\tokens\\index.ts",
+          "lines": 381,
+          "size": 11281
+        },
+        {
+          "path": "src\\components\\NewAdbManagementExample.tsx",
+          "lines": 381,
+          "size": 11671
+        },
+        {
+          "path": "src\\modules\\smart-script-management\\utils\\serializer.ts",
+          "lines": 379,
+          "size": 12141
+        },
+        {
+          "path": "src\\components\\universal-ui\\UniversalPageFinderModal.tsx",
+          "lines": 376,
+          "size": 10242
+        },
+        {
+          "path": "src\\components\\feature-modules\\script-builder\\components\\StepEditor.tsx",
+          "lines": 375,
+          "size": 9451
+        },
+        {
+          "path": "src\\components\\universal-ui\\UniversalPageFinderModal-Refactored.tsx",
+          "lines": 375,
+          "size": 10216
+        },
+        {
+          "path": "src\\services\\customMatchingIntegration.ts",
+          "lines": 375,
+          "size": 12008
+        },
+        {
+          "path": "src\\components\\smart\\LaunchAppSmartComponent.tsx",
+          "lines": 373,
+          "size": 11064
+        },
+        {
+          "path": "src\\modules\\parent-xml-enhancement\\ParentXmlEnhancementService.ts",
+          "lines": 373,
+          "size": 11379
+        },
+        {
+          "path": "src\\components\\patterns\\filter-bar\\FilterBar.tsx",
+          "lines": 372,
+          "size": 11219
+        },
+        {
+          "path": "src\\modules\\contact-import\\ui\\batch-manager\\components\\NumbersTable.tsx",
+          "lines": 372,
+          "size": 16399
+        },
+        {
+          "path": "src\\pages\\AppLaunchTestPage.tsx",
+          "lines": 371,
+          "size": 13953
+        },
+        {
+          "path": "src\\domain\\adb\\services\\ConnectionService.ts",
+          "lines": 370,
+          "size": 9873
+        },
+        {
+          "path": "src\\components\\universal-ui\\views\\grid-view\\panels\\node-detail\\enhanced-field-selector\\fieldDefinitions.ts",
+          "lines": 366,
+          "size": 13728
+        },
+        {
+          "path": "src\\modules\\contact-import\\ui\\components\\drag-drop-layout\\DragDropGrid.tsx",
+          "lines": 366,
+          "size": 9408
+        },
+        {
+          "path": "src\\pages\\ThemeEnhancementDemo.tsx",
+          "lines": 366,
+          "size": 10982
+        },
+        {
+          "path": "src\\modules\\contact-import\\ui\\sessions\\ImportSessionsModal.tsx",
+          "lines": 365,
+          "size": 15861
+        },
+        {
+          "path": "src\\components\\NativeAntDesignApp.tsx",
+          "lines": 363,
+          "size": 10647
+        },
+        {
+          "path": "src\\components\\adapters\\form\\FormAdapter.tsx",
+          "lines": 359,
+          "size": 9692
+        },
+        {
+          "path": "src\\examples\\AppLifecycleExample.tsx",
+          "lines": 359,
+          "size": 11980
+        },
+        {
+          "path": "src\\modules\\enhanced-element-info\\EnhancedElementInfoService.ts",
+          "lines": 356,
+          "size": 11726
+        },
+        {
+          "path": "src\\services\\RealXMLAnalysisService.ts",
+          "lines": 355,
+          "size": 11233
+        },
+        {
+          "path": "src\\modules\\contact-import\\ui\\components\\DeviceAssignmentGrid\\components\\DeviceSpecificImportDialog.tsx",
+          "lines": 352,
+          "size": 10952
+        },
+        {
+          "path": "src\\modules\\enhanced-matching\\generator\\SmartConditionGenerator.ts",
+          "lines": 352,
+          "size": 10778
+        },
+        {
+          "path": "src\\components\\smart-page-finder\\ElementHierarchyTree.tsx",
+          "lines": 351,
+          "size": 12714
+        },
+        {
+          "path": "src\\modules\\contact-import\\import-strategies\\services\\ImportStrategyExecutor.ts",
+          "lines": 351,
+          "size": 10756
+        },
+        {
+          "path": "src\\pages\\brand-showcase\\BrandShowcasePage.tsx",
+          "lines": 349,
+          "size": 13299
+        },
+        {
+          "path": "src\\application\\page-analysis\\PageAnalysisStore.ts",
+          "lines": 348,
+          "size": 11092
+        },
+        {
+          "path": "src\\components\\UIAnalyzer.tsx",
+          "lines": 348,
+          "size": 10741
+        },
+        {
+          "path": "src\\components\\smart-page-finder\\SmartPageFinderModal.tsx",
+          "lines": 347,
+          "size": 10644
+        },
+        {
+          "path": "src\\modules\\contact-import\\ui\\services\\contactNumberService.ts",
+          "lines": 346,
+          "size": 14490
+        },
+        {
+          "path": "src\\components\\universal-ui\\views\\grid-view\\components\\ChildElementSelectorModal.tsx",
+          "lines": 344,
+          "size": 11320
+        },
+        {
+          "path": "src\\pages\\device-monitor\\SelectionBar.tsx",
+          "lines": 344,
+          "size": 14716
+        },
+        {
+          "path": "src\\modules\\contact-import\\ui\\batch-manager\\components\\table-columns\\SessionsTableColumns.tsx",
+          "lines": 342,
+          "size": 10926
+        },
+        {
+          "path": "src\\components\\universal-ui\\views\\grid-view\\components\\ChildElementListModal.tsx",
+          "lines": 341,
+          "size": 11446
+        },
+        {
+          "path": "src\\components\\universal-ui\\views\\grid-view\\services\\smartRecommendationEnhancer.ts",
+          "lines": 341,
+          "size": 11205
+        },
+        {
+          "path": "src\\components\\universal-ui\\views\\visual-view\\VisualPagePreview.tsx",
+          "lines": 339,
+          "size": 11668
+        },
+        {
+          "path": "src\\pages\\BrandShowcasePage.tsx",
+          "lines": 336,
+          "size": 9707
+        },
+        {
+          "path": "src\\pages\\OptimizationSummaryPage.tsx",
+          "lines": 335,
+          "size": 11118
+        },
+        {
+          "path": "src\\components\\element-xml-hierarchy\\ElementFieldsViewer.tsx",
+          "lines": 334,
+          "size": 10732
+        },
+        {
+          "path": "src\\pages\\adb\\auth\\services\\AuthorizationService.ts",
+          "lines": 334,
+          "size": 9884
+        },
+        {
+          "path": "src\\components\\patterns\\empty-state\\EmptyState.tsx",
+          "lines": 333,
+          "size": 8354
+        },
+        {
+          "path": "src\\modules\\contact-import\\import-strategies\\ui\\ImportStrategyDialog.tsx",
+          "lines": 333,
+          "size": 10317
+        },
+        {
+          "path": "src\\modules\\contact-import\\ui\\components\\grid-layout\\hooks\\useHandleDrag.ts",
+          "lines": 333,
+          "size": 10696
+        },
+        {
+          "path": "src\\components\\feature-modules\\page-analyzer\\components\\PropertyPanel.tsx",
+          "lines": 332,
+          "size": 9186
+        },
+        {
+          "path": "src\\pages\\SmartScriptBuilderPage_New.tsx",
+          "lines": 332,
+          "size": 12391
+        },
+        {
+          "path": "src\\components\\universal-ui\\views\\grid-view\\panels\\node-detail\\SetAsStepElementButton.tsx",
+          "lines": 331,
+          "size": 10444
+        },
+        {
+          "path": "src\\modules\\smart-script-management\\services\\scriptService.ts",
+          "lines": 331,
+          "size": 8980
+        },
+        {
+          "path": "src\\pages\\SmartScriptBuilderPage\\components\\smart-step-adder\\SmartStepEditorModal.tsx",
+          "lines": 331,
+          "size": 10788
+        },
+        {
+          "path": "src\\pages\\DesignTokensDemo.tsx",
+          "lines": 329,
+          "size": 11886
+        },
+        {
+          "path": "src\\components\\universal-ui\\views\\grid-view\\utils.ts",
+          "lines": 328,
+          "size": 12203
+        },
+        {
+          "path": "src\\hooks\\useContacts.ts",
+          "lines": 328,
+          "size": 8649
+        },
+        {
+          "path": "src\\modules\\contact-import\\hooks\\useUnifiedContactImport.ts",
+          "lines": 328,
+          "size": 9539
+        },
+        {
+          "path": "src\\services\\smartAppService.ts",
+          "lines": 328,
+          "size": 10144
+        },
+        {
+          "path": "src\\components\\device\\RealTimeDeviceMonitor.tsx",
+          "lines": 327,
+          "size": 11681
+        },
+        {
+          "path": "src\\modules\\enhanced-matching\\integration\\EnhancedMatchingHelper.ts",
+          "lines": 327,
+          "size": 9694
+        },
+        {
+          "path": "src\\pages\\ScriptBuilderTestPage.tsx",
+          "lines": 327,
+          "size": 10341
+        },
+        {
+          "path": "src\\components\\element-name-editor\\AndroidXMLFieldAnalyzer.ts",
+          "lines": 326,
+          "size": 9485
+        },
+        {
+          "path": "src\\components\\feature-modules\\script-builder\\components\\ThemeEnhanced.tsx",
+          "lines": 326,
+          "size": 8463
+        },
+        {
+          "path": "src\\components\\element-name-editor\\ElementHierarchyDisplay.tsx",
+          "lines": 322,
+          "size": 11564
+        },
+        {
+          "path": "src\\pages\\SmartNavigationTestPage.tsx",
+          "lines": 322,
+          "size": 10883
+        },
+        {
+          "path": "src\\domain\\adb\\services\\DiagnosticService.ts",
+          "lines": 319,
+          "size": 8790
+        },
+        {
+          "path": "src\\components\\device\\CoordinateCapture.tsx",
+          "lines": 318,
+          "size": 9818
+        },
+        {
+          "path": "src\\pages\\adb\\auth\\EnhancedADBAuthWizard.tsx",
+          "lines": 318,
+          "size": 10901
+        },
+        {
+          "path": "src\\components\\universal-ui\\page-finder-modal\\components\\AnalysisPanel.tsx",
+          "lines": 317,
+          "size": 9887
+        },
+        {
+          "path": "src\\components\\universal-ui\\data-transform\\ElementContextCreator.ts",
+          "lines": 315,
+          "size": 11034
+        },
+        {
+          "path": "src\\components\\universal-ui\\element-selection\\alternative-selection\\AlternativeElementFinder.ts",
+          "lines": 315,
+          "size": 8954
+        },
+        {
+          "path": "src\\api\\universal-ui\\SmartMatcher.ts",
+          "lines": 314,
+          "size": 10345
+        },
+        {
+          "path": "src\\application\\page-analysis\\usePageAnalysis.ts",
+          "lines": 314,
+          "size": 8846
+        },
+        {
+          "path": "src\\components\\universal-ui\\views\\grid-view\\components\\EnhancedChildElementListModal.tsx",
+          "lines": 313,
+          "size": 10661
+        },
+        {
+          "path": "src\\modules\\contact-import\\adapters\\UnifiedAdbDeviceManager.ts",
+          "lines": 313,
+          "size": 9656
+        },
+        {
+          "path": "src\\components\\AntDesignDemo.tsx",
+          "lines": 311,
+          "size": 11295
+        },
+        {
+          "path": "src\\components\\patterns\\header-bar\\HeaderBar.tsx",
+          "lines": 311,
+          "size": 8045
+        },
+        {
+          "path": "src\\components\\feature-modules\\theme-system\\components\\ThemePreview.tsx",
+          "lines": 310,
+          "size": 8889
+        },
+        {
+          "path": "src\\modules\\loop-control\\components\\LoopStepCard.tsx",
+          "lines": 309,
+          "size": 9491
+        },
+        {
+          "path": "src\\services\\unified-view-data\\utils\\ElementEnhancer.ts",
+          "lines": 309,
+          "size": 8747
+        },
+        {
+          "path": "src\\components\\universal-ui\\analyzer\\ElementAnalysisUtils.ts",
+          "lines": 308,
+          "size": 8929
+        },
+        {
+          "path": "src\\components\\feature-modules\\theme-system\\hooks\\useThemeManager.ts",
+          "lines": 307,
+          "size": 9295
+        },
+        {
+          "path": "src\\components\\element-name-editor\\FieldMatchingController.tsx",
+          "lines": 306,
+          "size": 10305
+        },
+        {
+          "path": "src\\components\\ui\\motion\\MotionComponents.tsx",
+          "lines": 306,
+          "size": 6218
+        },
+        {
+          "path": "src\\modules\\enhanced-matching\\analyzer\\HierarchyAnalyzer.ts",
+          "lines": 306,
+          "size": 9345
+        },
+        {
+          "path": "src\\modules\\smart-script-management\\types\\index.ts",
+          "lines": 306,
+          "size": 6105
+        },
+        {
+          "path": "src\\components\\universal-ui\\views\\grid-view\\panels\\node-detail\\enhanced-field-selector\\AdvancedFieldSelector.tsx",
+          "lines": 305,
+          "size": 9973
+        },
+        {
+          "path": "src\\modules\\loop-control\\utils\\LoopExecutionEngine.ts",
+          "lines": 305,
+          "size": 8723
+        },
+        {
+          "path": "src\\pages\\SmartScriptBuilderPage\\components\\StepListPanel.tsx",
+          "lines": 304,
+          "size": 10441
+        },
+        {
+          "path": "src\\pages\\ui-showcase\\UIShowcasePageNative.tsx",
+          "lines": 304,
+          "size": 10059
+        },
+        {
+          "path": "src\\infrastructure\\repositories\\TauriDiagnosticRepository.ts",
+          "lines": 303,
+          "size": 9019
+        },
+        {
+          "path": "src\\modules\\contact-import\\ui\\sessions\\SessionActionsBar.tsx",
+          "lines": 303,
+          "size": 13600
+        },
+        {
+          "path": "src\\modules\\loop-control\\hooks\\useLoopControl.ts",
+          "lines": 303,
+          "size": 8611
+        },
+        {
+          "path": "src\\modules\\contact-import\\ui\\components\\grid-layout\\hooks\\useDraggableOptimized.ts",
+          "lines": 302,
+          "size": 9528
+        }
+      ]
+    },
+    "a11yCheck": {
+      "focusStyles": 67,
+      "ariaAttributes": 12
+    }
+  },
+  "standards": {
+    "performance": {
+      "maxBundleSize": 5242880,
+      "maxChunkSize": 1048576,
+      "maxCSSSize": 102400,
+      "maxAssetSize": 2097152
+    },
+    "codeQuality": {
+      "maxFileLines": 500,
+      "maxFunctionLines": 80,
+      "minTestCoverage": 70
+    },
+    "architecture": {
+      "maxOverrideViolations": 0,
+      "maxImportantUsage": 0,
+      "maxHardcodedValues": 10
+    }
+  }
+}

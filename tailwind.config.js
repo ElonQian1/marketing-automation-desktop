@@ -1,98 +1,125 @@
-/** @type {import('tailwindcss').Config} */
+// 文件路径：tailwind.config.js
+
 export default {
-  darkMode: 'class',
+  darkMode: ["class", "[data-theme=\"dark\"]"],
   content: [
     "./index.html",
     "./src/**/*.{js,ts,jsx,tsx}",
   ],
   theme: {
     extend: {
-      // 与设计令牌系统对齐的颜色
       colors: {
-        primary: {
-          50: '#eff6ff',
-          100: '#dbeafe', 
-          200: '#bfdbfe',
-          300: '#93c5fd',
-          400: '#60a5fa',
-          500: '#3b82f6',
-          600: '#2563eb',
-          700: '#1d4ed8',
-          800: '#1e40af',
-          900: '#1e3a8a',
+        brand: {
+          DEFAULT: "var(--brand)",
+          50: "var(--brand-50)",
+          100: "var(--brand-100)",
+          200: "var(--brand-200)",
+          300: "var(--brand-300)",
+          400: "var(--brand-400)",
+          500: "var(--brand-500)",
+          600: "var(--brand-600)",
+          700: "var(--brand-700)",
+          800: "var(--brand-800)",
+          900: "var(--brand-900)",
         },
-        device: {
-          online: '#10b981',
-          connecting: '#f59e0b',
-          offline: '#6b7280',
-          error: '#ef4444',
+        neutral: {
+          50: "var(--neutral-50)",
+          100: "var(--neutral-100)",
+          200: "var(--neutral-200)",
+          300: "var(--neutral-300)",
+          400: "var(--neutral-400)",
+          500: "var(--neutral-500)",
+          600: "var(--neutral-600)",
+          700: "var(--neutral-700)",
+          800: "var(--neutral-800)",
+          900: "var(--neutral-900)",
+          950: "var(--neutral-950)",
         },
-        background: {
-          canvas: '#fafafa',
-          surface: '#ffffff',
-          elevated: '#ffffff',
-        },
-        text: {
-          primary: '#111827',
-          secondary: '#374151',
-          tertiary: '#6b7280',
-          disabled: '#9ca3af',
-        },
-        border: {
-          subtle: '#f3f4f6',
-          default: '#e5e7eb',
-          strong: '#d1d5db',
-          focus: '#3b82f6',
-        }
+        success: "var(--success)",
+        warning: "var(--warning)",
+        error: "var(--error)",
+        info: "var(--info)",
       },
-      // 与设计令牌对齐的间距
-      spacing: {
-        '1': '2px',
-        '2': '4px',
-        'xs': '4px',
-        'sm': '8px',
-        'md': '16px',
-        'lg': '24px',
-        'xl': '32px',
-        '2xl': '48px',
-        '3xl': '64px',
+      backgroundColor: {
+        "background-base": "var(--bg-base)",
+        "background-elevated": "var(--bg-elevated)",
+        "background-secondary": "var(--bg-secondary)",
+        "background-tertiary": "var(--bg-tertiary)",
+        "background-muted": "var(--bg-muted)",
+        "background-light-base": "var(--bg-light-base)",
+        "background-light-elevated": "var(--bg-light-elevated)",
+        "background-light-secondary": "var(--bg-light-secondary)",
       },
-      // 与设计令牌对齐的圆角
-      borderRadius: {
-        'sm': '4px',
-        'md': '8px', 
-        'lg': '12px',
-        'xl': '16px',
-        '2xl': '24px',
+      textColor: {
+        "text-primary": "var(--text-1)",
+        "text-secondary": "var(--text-2)",
+        "text-tertiary": "var(--text-3)",
+        "text-muted": "var(--text-muted)",
+        "text-inverse": "var(--text-inverse)",
       },
-      // 与设计令牌对齐的阴影
+      borderColor: {
+        "border-primary": "var(--border-primary)",
+        "border-secondary": "var(--border-secondary)",
+        "border-muted": "var(--border-muted)",
+      },
+      ringColor: {
+        brand: "var(--brand)",
+        success: "var(--success)",
+        warning: "var(--warning)",
+        error: "var(--error)",
+      },
+      ringOffsetColor: {
+        background: "var(--bg-base)",
+        "background-base": "var(--bg-base)",
+        "background-elevated": "var(--bg-elevated)",
+      },
       boxShadow: {
-        'sm': '0 1px 2px 0 rgba(0, 0, 0, 0.05)',
-        'md': '0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06)',
-        'lg': '0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05)',
-        'xl': '0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04)',
+        sm: "var(--shadow-sm)",
+        DEFAULT: "var(--shadow)",
+        lg: "var(--shadow-lg)",
+        xl: "var(--shadow-xl)",
+        inset: "var(--shadow-inset)",
       },
-      // 字体大小
-      fontSize: {
-        'xs': '12px',
-        'sm': '14px',
-        'base': '16px',
-        'lg': '18px',
-        'xl': '20px',
-        '2xl': '24px',
+      borderRadius: {
+        DEFAULT: "var(--radius)",
+        sm: "var(--radius-sm)",
+        md: "var(--radius)",
+        lg: "var(--radius-lg)",
+        xl: "var(--radius-xl)",
       },
-      // 动画时长
-      transitionDuration: {
-        'fast': '150ms',
-        'normal': '300ms',
-        'slow': '500ms',
+      fontFamily: {
+        sans: ["var(--font-family)", "sans-serif"],
+        mono: ["var(--font-mono)", "monospace"],
       },
-      // 缓动函数
+      height: {
+        control: "var(--control-h)",
+        "control-sm": "var(--control-h-sm)",
+        "control-lg": "var(--control-h-lg)",
+      },
+      width: {
+        control: "var(--control-h)",
+      },
       transitionTimingFunction: {
-        'ease-out': 'cubic-bezier(0, 0, 0.2, 1)',
-        'ease-in': 'cubic-bezier(0.4, 0, 1, 1)',
-        'ease-in-out': 'cubic-bezier(0.4, 0, 0.2, 1)',
-      }
+        brand: "var(--ease-brand)",
+        in: "var(--ease-in)",
+        out: "var(--ease-out)",
+        "in-out": "var(--ease-in-out)",
+      },
+      transitionDuration: {
+        fast: "var(--duration-fast)",
+        normal: "var(--duration-normal)",
+        slow: "var(--duration-slow)",
+      },
+      zIndex: {
+        dropdown: "var(--z-dropdown)",
+        sticky: "var(--z-sticky)",
+        fixed: "var(--z-fixed)",
+        "modal-backdrop": "var(--z-modal-backdrop)",
+        modal: "var(--z-modal)",
+        popover: "var(--z-popover)",
+        tooltip: "var(--z-tooltip)",
+        toast: "var(--z-toast)",
+      },
     },
   },
   plugins: [],

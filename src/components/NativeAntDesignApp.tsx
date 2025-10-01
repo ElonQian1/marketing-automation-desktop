@@ -60,6 +60,9 @@ import { StatisticsPageOptimized } from "../pages/statistics/StatisticsPageOptim
 import { DeviceManagementPageOptimized } from "../pages/device-management/DeviceManagementPageOptimized";
 import BusinessComponentsDemo from "../pages/BusinessComponentsDemo";
 
+// Design Tokens 演示页面
+import { DesignTokensDemo } from "../pages/DesignTokensDemo";
+
 const { Header, Sider, Content } = Layout;
 const { Title } = Typography;
 
@@ -132,6 +135,11 @@ const NativeAntDesignApp: React.FC = () => {
       label: "主题设置",
     },
     {
+      key: "design-tokens-demo",
+      icon: <BgColorsOutlined />,
+      label: "🎨 Design Tokens 演示",
+    },
+    {
       key: "statistics-native",
       icon: <DashboardOutlined />,
       label: "统计页面（原生）",
@@ -188,6 +196,8 @@ const NativeAntDesignApp: React.FC = () => {
         return <PageFinderView />;
       case "theme-settings":
         return <ThemeSettingsPage />;
+      case "design-tokens-demo":
+        return <DesignTokensDemo />;
       case "statistics-native":
         return <StatisticsPageNative />;
       case "statistics-optimized":
@@ -343,22 +353,10 @@ const NativeAntDesignApp: React.FC = () => {
 };
 
 export const NativeAntDesignIntegration: React.FC = () => {
+  // 顶层已有 ThemeBridge/ConfigProvider，这里仅保留业务 Provider，避免重复主题包裹
   return (
-    <EnhancedThemeProvider
-      options={{
-        defaultMode: "dark",
-        detectSystemTheme: true,
-        animation: {
-          enabled: true,
-          duration: 200,
-          easing: "cubic-bezier(0.4, 0, 0.2, 1)",
-          enableDarkModeTransition: true,
-        },
-      }}
-    >
-      <GlobalAdbProvider>
-        <NativeAntDesignApp />
-      </GlobalAdbProvider>
-    </EnhancedThemeProvider>
+    <GlobalAdbProvider>
+      <NativeAntDesignApp />
+    </GlobalAdbProvider>
   );
 };

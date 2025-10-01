@@ -1,0 +1,195 @@
+/* 文件路径：src/styles/tokens.css */
+
+/**
+ * 设计令牌 - Single Source of Truth
+ * 定义项目的核心视觉变量：品牌色、圆角、阴影、字体、间距等
+ * 
+ * 本文件是所有视觉样式的唯一真实来源，确保品牌一致性
+ * Tailwind 和 Ant Design 都从这些变量读取配置
+ */
+
+:root {
+  /* ==================== 品牌色系 ==================== */
+  /* 主品牌色 - 现代化深蓝紫渐变 */
+  --brand: #6E8BFF;
+  --brand-50: #F0F4FF;
+  --brand-100: #E0EAFF;
+  --brand-200: #C7D7FF;
+  --brand-300: #A3BFFF;
+  --brand-400: #7A9BFF;
+  --brand-500: #6E8BFF;
+  --brand-600: #5B73E8;
+  --brand-700: #4A5FD1;
+  --brand-800: #3B4DA6;
+  --brand-900: #334085;
+
+  /* 中性色系 */
+  --neutral-50: #F8FAFC;
+  --neutral-100: #F1F5F9;
+  --neutral-200: #E2E8F0;
+  --neutral-300: #CBD5E1;
+  --neutral-400: #94A3B8;
+  --neutral-500: #64748B;
+  --neutral-600: #475569;
+  --neutral-700: #334155;
+  --neutral-800: #1E293B;
+  --neutral-900: #0F172A;
+  --neutral-950: #020617;
+
+  /* 语义色系 */
+  --success: #10B981;
+  --success-bg: #D1FAE5;
+  --warning: #F59E0B;
+  --warning-bg: #FEF3C7;
+  --error: #EF4444;
+  --error-bg: #FEE2E2;
+  --info: #3B82F6;
+  --info-bg: #DBEAFE;
+
+  /* ==================== 背景色系 ==================== */
+  /* 深色背景系统 - 现代化商业应用风格 */
+  --bg-base: #0F172A;          /* 页面深色底 */
+  --bg-elevated: #1E293B;      /* 浮层/面板底 */
+  --bg-secondary: #334155;     /* 次级背景 */
+  --bg-tertiary: #475569;      /* 第三级背景 */
+  --bg-muted: #64748B;         /* 静音背景 */
+
+  /* 浅色背景（用于白色主题或对比） */
+  --bg-light-base: #FFFFFF;
+  --bg-light-elevated: #F8FAFC;
+  --bg-light-secondary: #F1F5F9;
+
+  /* ==================== 文本颜色 ==================== */
+  --text-1: #F8FAFC;          /* 主文本 - 高对比度 */
+  --text-2: #E2E8F0;          /* 次级文本 - 中对比度 */
+  --text-3: #CBD5E1;          /* 三级文本 - 低对比度 */
+  --text-muted: #94A3B8;      /* 静音文本 */
+  --text-inverse: #1E293B;    /* 反色文本（用于浅色背景） */
+
+  /* ==================== 边框和分割线 ==================== */
+  --border-primary: #334155;
+  --border-secondary: #475569;
+  --border-muted: #64748B;
+
+  /* ==================== 几何属性 ==================== */
+  /* 圆角系统 - 现代化软边风格 */
+  --radius: 12px;             /* 统一圆角 - 卡片、按钮等 */
+  --radius-sm: 8px;           /* 小圆角 - 标签、徽章等 */
+  --radius-lg: 16px;          /* 大圆角 - 对话框、面板等 */
+  --radius-xl: 24px;          /* 超大圆角 - 特殊容器 */
+
+  /* 阴影系统 - 商业化软阴影 */
+  --shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
+  --shadow-sm: 0 2px 8px rgba(0, 0, 0, 0.10);
+  --shadow-lg: 0 8px 32px rgba(0, 0, 0, 0.20);
+  --shadow-xl: 0 12px 48px rgba(0, 0, 0, 0.25);
+  
+  /* 内阴影 - 输入框等 */
+  --shadow-inset: inset 0 2px 4px rgba(0, 0, 0, 0.06);
+
+  /* ==================== 字体系统 ==================== */
+  /* 字体族 */
+  --font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei', 'Helvetica Neue', Helvetica, Arial, sans-serif;
+  --font-mono: 'JetBrains Mono', 'Fira Code', Consolas, 'Courier New', monospace;
+
+  /* 字号系统 */
+  --font-xs: 0.75rem;         /* 12px - 辅助信息 */
+  --font-sm: 0.875rem;        /* 14px - 小文本 */
+  --font: 1rem;               /* 16px - 基础文本 */
+  --font-lg: 1.125rem;        /* 18px - 强调文本 */
+  --font-xl: 1.25rem;         /* 20px - 标题 */
+  --font-2xl: 1.5rem;         /* 24px - 大标题 */
+  --font-3xl: 1.875rem;       /* 30px - 特大标题 */
+
+  /* 字重 */
+  --font-weight-normal: 400;
+  --font-weight-medium: 500;
+  --font-weight-semibold: 600;
+  --font-weight-bold: 700;
+
+  /* 行高 */
+  --leading-tight: 1.25;
+  --leading-normal: 1.5;
+  --leading-relaxed: 1.75;
+
+  /* ==================== 控件尺寸 ==================== */
+  /* 控件高度系统 */
+  --control-h: 40px;          /* 标准控件高度 */
+  --control-h-sm: 32px;       /* 小控件高度 */
+  --control-h-lg: 48px;       /* 大控件高度 */
+
+  /* 间距系统 */
+  --space-1: 0.25rem;         /* 4px */
+  --space-2: 0.5rem;          /* 8px */
+  --space-3: 0.75rem;         /* 12px */
+  --space-4: 1rem;            /* 16px */
+  --space-5: 1.25rem;         /* 20px */
+  --space-6: 1.5rem;          /* 24px */
+  --space-8: 2rem;            /* 32px */
+  --space-10: 2.5rem;         /* 40px */
+  --space-12: 3rem;           /* 48px */
+  --space-16: 4rem;           /* 64px */
+  --space-20: 5rem;           /* 80px */
+
+  /* ==================== 动画系统 ==================== */
+  /* 缓动函数 */
+  --ease-in: cubic-bezier(0.4, 0, 1, 1);
+  --ease-out: cubic-bezier(0, 0, 0.2, 1);
+  --ease-in-out: cubic-bezier(0.4, 0, 0.2, 1);
+  --ease-brand: cubic-bezier(0.22, 1, 0.36, 1);
+
+  /* 动画时长 */
+  --duration-fast: 120ms;      /* 快速动画 - 悬停效果 */
+  --duration-normal: 180ms;    /* 标准动画 - 入场效果 */
+  --duration-slow: 220ms;      /* 慢速动画 - 复杂转场 */
+
+  /* ==================== Z-Index 层级 ==================== */
+  --z-dropdown: 1000;
+  --z-sticky: 1020;
+  --z-fixed: 1030;
+  --z-modal-backdrop: 1040;
+  --z-modal: 1050;
+  --z-popover: 1060;
+  --z-tooltip: 1070;
+  --z-toast: 1080;
+}
+
+/* ==================== 暗色主题 ==================== */
+[data-theme="dark"] {
+  /* 使用相同的变量名，但调整具体值 */
+  --bg-base: #0F172A;
+  --bg-elevated: #1E293B;
+  --bg-secondary: #334155;
+  
+  --text-1: #F8FAFC;
+  --text-2: #E2E8F0;
+  --text-3: #CBD5E1;
+}
+
+/* ==================== 浅色主题 ==================== */
+[data-theme="light"] {
+  --bg-base: #FFFFFF;
+  --bg-elevated: #F8FAFC;
+  --bg-secondary: #F1F5F9;
+  
+  --text-1: #1E293B;
+  --text-2: #334155;
+  --text-3: #475569;
+  
+  --border-primary: #E2E8F0;
+  --border-secondary: #CBD5E1;
+  
+  /* 浅色主题下的阴影调整 */
+  --shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+  --shadow-sm: 0 2px 8px rgba(0, 0, 0, 0.05);
+  --shadow-lg: 0 8px 32px rgba(0, 0, 0, 0.12);
+}
+
+/* ==================== 紧凑模式 ==================== */
+[data-density="compact"] {
+  --control-h: 36px;
+  --control-h-sm: 28px;
+  --control-h-lg: 44px;
+  --space-4: 0.75rem;         /* 减少默认间距 */
+  --space-6: 1.25rem;
+}
