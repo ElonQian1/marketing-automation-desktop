@@ -13,41 +13,33 @@ D:\rust\active-projects\小红书\employeeGUI\docs\员工工作报告
 你能否继续完成你的分内工作？
 在你的报告中， 写上你的时间精确时间，因为失联的员工可能也在同一天工作，精确时间是有必要的
 
+## 【工作内容】
+
 【角色与目标】
-你负责 Design Tokens（单一事实来源）与 AntD 主题桥，确保 Tailwind 与 AntD 使用同一套 CSS 变量；禁止任何 `.ant-*` 覆盖与 `!important`。
+你拥有 Design Tokens 的“单一事实来源”（SSOT）与 AntD 主题桥。确保 Tailwind 与 AntD 只吃这“一份”视觉令牌，严禁 `.ant-*` 覆盖与 `!important`。
 
-【远程同步目录（必用）】
+【共享目录与时间】
 
-- 根目录：X:\active-projects\小红书\employeeGUI\docs\员工工作报告\A-令牌主题\
-- 每日日报文件名：YYYY-MM-DD*员工 A*令牌主题.md
-- 提交流程（18:00 台北前）：保存日报 → git add . → git commit -m "chore(report): YYYY-MM-DD 员工 A" → git push
+- 报告根：X:\active-projects\小红书\employeeGUI\docs\员工工作报告\A-令牌主题\
+- 每日 17:45 运行：X:\...\scripts\new-report.ps1 A（自动生成当日模板）
+- 18:00 前完成填写并 `git add/commit/push`
+- 汇总由系统在 18:25 自动生成
 
-## 【日报模板】
+【日报模板（生成后补充）】
 
-日期: YYYY-MM-DD（台北）
-提交时间: HH:MM:SS (UTC+08:00)
-负责人: 员工 A
-今日产出:
+- 精确时间（台北，含秒）
+- 今日产出（tokens.css / tailwind.config.ts / ThemeBridge.tsx）
+- 提交记录（PR/commit）
+- 风险与依赖（@B/@C/@D）
+- 明日计划
 
-- tokens.css 更新项（brand/bg/text/radius/shadow/font/control-h）
-- tailwind.config.ts 对应变更
-- ThemeBridge.tsx tokens 对齐项（darkAlgorithm）
-  提交记录: #PR 号 / 提交哈希
-  影响与风险: （需 B/C/D 跟进的点）
-  明日计划: ...
-  需协作: @B 吸收 tokens；@C 紧凑模式回归；@D 跟踪覆盖扫描
+【一周循环任务】
 
----
+1. 维护 `styles/tokens.css`（--brand / --bg-_ / --text-_ / --radius / --shadow / --font / --control-h）。
+2. `tailwind.config.ts` 对齐；`theme/ThemeBridge.tsx` 使用 `darkAlgorithm` + 最小 token。
+3. 提供 tokens 对照表（文档），禁止页面/组件硬编码视觉值。
+4. 运行覆盖扫描，保证 `.ant-*` 与 `!important` 为 0；在《汇总.md》标注异常与修复进度。
 
-【本周任务清单（循环执行）】
+【失联与自走】
 
-1. 维护 `styles/tokens.css`：--brand/--bg-base/--bg-elevated/--text-1/--text-2/--radius/--shadow/--font/--control-h。
-2. 配置 `tailwind.config.ts` 读取 tokens；`theme/ThemeBridge.tsx` 用 `algorithm:[theme.darkAlgorithm]` 和少量 token（colorPrimary/borderRadius/controlHeight/fontSize）。
-3. 提供 tokens 对照表与约束（页面/组件不得硬编码视觉值）。
-4. 运行覆盖扫描脚本，确保 `.ant-*`/`!important` 为 0，并在《汇总.md》@D。
-5. 离线应对：若 B/C/D 失联，先冻结 tokens；仅做后向兼容的微调，避免破坏。
-
-【禁行项】
-
-- 不在 ThemeBridge 中引入自定义渐变/阴影逻辑；
-- 不提供多套分散 tokens；一切以 `tokens.css` 为准。
+- 若 B/C/D 当日未提交，你仍可冻结 tokens（保持兼容），不做破坏性变更；在汇总“阻塞”栏记录待确认项。

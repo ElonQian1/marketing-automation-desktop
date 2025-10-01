@@ -16,39 +16,27 @@ X:\active-projects\小红书\employeeGUI\docs\员工工作报告
 ## 【任务描述】
 
 【角色与目标】
-你用 Radix + shadcn 源码 + Tailwind 皮肤打造高曝光“轻组件”（Button/CardShell/TagPill/Tooltip/Dialog/Dropdown），并用 Motion 统一动效节奏（入场 180–220ms / 退场 120–160ms / 悬停 80–120ms）。
+用 Radix + shadcn 源码 + Tailwind 皮肤交付 Button/CardShell/TagPill/Tooltip/Dialog/Dropdown；用 Motion 统一动效（入 180–220ms / 出 120–160ms / 悬停 80–120ms）。
 
-【远程同步目录（必用）】
+【共享目录与时间】
 
-- 根目录：docs\员工工作报告\B-轻组件动效\
-- 每日日报文件名：YYYY-MM-DD*员工 B*轻组件动效.md
-- 提交流程（18:00 台北前）：保存日报 → git add . → git commit -m "chore(report): YYYY-MM-DD 员工 B" → git push
+- 报告根：X:\active-projects\小红书\employeeGUI\docs\员工工作报告\B-轻组件动效\
+- 17:45：运行 X:\...\scripts\new-report.ps1 B 自动生成模板
+- 18:00 前填写并 push；18:25 汇总自动更新
 
-## 【日报模板】
+【日报要点】
 
-日期: YYYY-MM-DD（台北）
-提交时间: HH:MM:SS (UTC+08:00)
-负责人: 员工 B
-今日产出:
+- 新/改轻组件清单、动效预设（motion/presets.ts）
+- A11y（焦点环/键盘/读屏）验证结果
+- 影响范围（需 C 接入 patterns，D 页面替换）
+- PR/commit 与明日计划
 
-- 新/改轻组件: Button/CardShell/TagPill/SmartDialog 等
-- 动效预设: motion/presets.ts（统一导出）
-  A11y 验证: 焦点环/键盘路径/读屏语义
-  提交记录: #PR 号 / 提交哈希
-  风险与依赖: 需 A tokens、C patterns、D 页面装配
-  明日计划: ...
-  需协作: @C 接入 patterns；@D 替换页面组件
+【一周循环任务】
 
----
+1. `components/ui/*` 轻组件只读 tokens，不硬编码颜色/圆角/阴影。
+2. `components/dialog/SmartDialog.tsx`（Radix + Motion）。
+3. 提供 Story/截图与“替换清单”（哪些页面组件可直接替换）。
 
-【本周任务清单】
+【失联与自走】
 
-1. `components/ui/*`：轻组件必须只读 tokens，不得硬编码视觉值。
-2. `components/dialog/SmartDialog.tsx`：Radix + Motion 弹层，统一动画。
-3. `motion/presets.ts`：提供 enter/exit/hover 参数，给 patterns 与 pages 复用。
-4. Story 与截图：提供用法与视觉示例（Dark）。
-5. 离线应对：若 A 失联，维持现有 tokens 不改；若 C/D 失联，先在示例页展示，不阻塞。
-
-【禁行项】
-
-- 不覆盖 `.ant-*`；不在 AntD 子元素上加渐变/阴影/圆角。
+- 若 A 未更新 tokens：使用现有 tokens 继续推进；在汇总注明“待 A 同步”。

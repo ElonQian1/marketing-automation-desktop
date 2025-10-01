@@ -46,6 +46,12 @@
   --info: #3B82F6;
   --info-bg: #DBEAFE;
 
+  /* 语义色别名（适配器兼容） */
+  --status-error: var(--error);
+  --status-warning: var(--warning);
+  --status-success: var(--success);
+  --status-info: var(--info);
+
   /* ==================== 背景色系 ==================== */
   /* 深色背景系统 - 现代化商业应用风格 */
   --bg-base: #0F172A;          /* 页面深色底 */
@@ -58,6 +64,10 @@
   --bg-light-base: #FFFFFF;
   --bg-light-elevated: #F8FAFC;
   --bg-light-secondary: #F1F5F9;
+
+  /* 输入框专用背景（适配器兼容） */
+  --bg-input: var(--bg-elevated);
+  --bg-input-hover: var(--bg-secondary);
 
   /* ==================== 文本颜色 ==================== */
   --text-1: #F8FAFC;          /* 主文本 - 高对比度 */
