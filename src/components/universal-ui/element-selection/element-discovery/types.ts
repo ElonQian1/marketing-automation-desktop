@@ -2,6 +2,7 @@
  * 元素发现功能的类型定义
  */
 
+import type React from 'react';
 import type { UIElement } from '../../../../api/universalUIAPI';
 
 // 发现的元素信息
@@ -44,6 +45,7 @@ export interface ElementCardProps {
   onPreview?: (element: DiscoveredElement) => void;
   onShowDetails?: (element: DiscoveredElement) => void;
   compact?: boolean;
+  style?: React.CSSProperties;
 }
 
 // 子元素卡片额外属性

@@ -1,14 +1,12 @@
 import React from 'react';
 import { Card, Button, Tag, Space, Typography, Tooltip } from 'antd';
 import { SelectOutlined, InfoCircleOutlined, UserOutlined } from '@ant-design/icons';
-import { DiscoveredElement } from './types';
+import { DiscoveredElement, ElementCardProps } from './types';
 
 const { Text, Title } = Typography;
 
-interface SelfElementCardProps {
-  element: DiscoveredElement;
-  onSelect: (element: DiscoveredElement) => void;
-  onShowDetails?: (element: DiscoveredElement) => void;
+interface SelfElementCardProps extends ElementCardProps {
+  // 继承 ElementCardProps，可以添加 self 特有的属性
 }
 
 /**
@@ -19,6 +17,9 @@ export const SelfElementCard: React.FC<SelfElementCardProps> = ({
   element,
   onSelect,
   onShowDetails,
+  onPreview,
+  compact,
+  style,
 }) => {
   // 提取元素基本信息
   const { element: uiElement, confidence, reason } = element;
@@ -56,7 +57,8 @@ export const SelfElementCard: React.FC<SelfElementCardProps> = ({
         marginBottom: 8,
         borderLeft: `4px solid #1890ff`, // 蓝色边框表示这是当前选中的元素
         background: '#f0f7ff',
-        transition: 'all 0.2s ease'
+        transition: 'all 0.2s ease',
+        ...style // 合并外部传入的样式
       }}
       styles={{
         body: { padding: 16 }

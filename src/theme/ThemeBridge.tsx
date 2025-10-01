@@ -11,6 +11,7 @@
 
 import React from 'react';
 import { App as AntdApp, ConfigProvider, theme } from 'antd';
+import type { ThemeConfig } from 'antd';
 
 type ThemeMode = 'light' | 'dark';
 type DensityMode = 'default' | 'compact';
@@ -81,9 +82,7 @@ const getVarNumberPx = (varName: string, fallback: number): number => {
   return Number.isFinite(n) ? n : fallback;
 };
 
-// 使用本地别名避免与 antd 的 ThemeConfig 冲突
-type AntdThemeConfig = Parameters<typeof ConfigProvider>[0]['theme'];
-const createThemeConfig = (mode: ThemeMode, density: DensityMode): AntdThemeConfig => {
+const createThemeConfig = (mode: ThemeMode, density: DensityMode): ThemeConfig => {
   const algorithms: Array<typeof theme.darkAlgorithm> = [];
   if (mode === 'dark') algorithms.push(theme.darkAlgorithm);
   if (density === 'compact') algorithms.push(theme.compactAlgorithm);
@@ -113,9 +112,9 @@ const createThemeConfig = (mode: ThemeMode, density: DensityMode): AntdThemeConf
     motionDurationFast: getCSSVar('--duration-fast') || '0.12s',
     boxShadow: getCSSVar('--shadow') || '0 4px 20px rgba(0, 0, 0, 0.15)',
     boxShadowSecondary: getCSSVar('--shadow-sm') || '0 2px 8px rgba(0, 0, 0, 0.10)',
-  } as AntdThemeConfig['token'];
+  } satisfies ThemeConfig['token'];
 
-  const components: AntdThemeConfig['components'] = {
+  const components: ThemeConfig['components'] = {
     Button: {
       borderRadius: getVarNumberPx('--radius', 12),
     },
@@ -143,7 +142,7 @@ const createThemeConfig = (mode: ThemeMode, density: DensityMode): AntdThemeConf
     },
   };
 
-  const algorithmConfig: AntdThemeConfig['algorithm'] =
+  const algorithmConfig: ThemeConfig['algorithm'] =
     algorithms.length === 0 ? undefined : algorithms.length === 1 ? algorithms[0] : algorithms;
 
   return {
@@ -217,7 +216,7 @@ export const useThemeConfig = () => {
 export const useTheme = useThemeConfig;
 
 // 导出配置类型
-export type ThemeConfig = ThemeBridgeContextValue;
+export type { ThemeBridgeContextValue as ThemeConfig };
 
 export const ThemeToggler: React.FC = () => {
   const { isDark, isCompact, toggleTheme, toggleDensity } = useThemeConfig();

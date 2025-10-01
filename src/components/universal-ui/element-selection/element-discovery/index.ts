@@ -35,6 +35,3 @@ export { ParentElementCard } from './ParentElementCard';
 export { ChildElementCard } from './ChildElementCard';
 export { SelfElementCard } from './SelfElementCard';
 export { ElementDiscoveryModal } from './ElementDiscoveryModal';
-
-// 默认导出主要的模态框组件
-export { ElementDiscoveryModal as default } from './ElementDiscoveryModal';
