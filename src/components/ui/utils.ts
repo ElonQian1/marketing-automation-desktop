@@ -6,6 +6,7 @@
  * 确保所有轻组件使用一致的样式合并逻辑
  */
 
+import * as React from "react";
 import { type ClassValue, clsx } from "clsx";
 
 /**
@@ -120,6 +121,3 @@ export function isValidElement(element: any): element is React.ReactElement {
  * 强制类型的forwardRef包装器 - 简化版本
  */
 export const forwardRefWithAs = React.forwardRef;
-
-// React 类型导入
-import * as React from "react";
