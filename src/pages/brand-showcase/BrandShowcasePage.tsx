@@ -12,13 +12,17 @@
  * 这个页面可以作为团队成员学习新组件用法的参考。
  */
 
-import React, { useState } from "react";
+import React, { useMemo, useState } from "react";
+import { ConfigProvider, Switch, theme } from "antd";
 import { Plus, Users, Smartphone, TrendingUp, Settings } from "lucide-react";
 
 // 导入品牌化组件
 import { Button } from "../../components/ui/button/Button";
 import { Card } from "../../components/ui/card/Card";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "../../components/ui/dialog/Dialog";
+import { Input } from "../../components/ui/forms/Input";
+import { Select } from "../../components/ui/forms/Select";
+import { TagPill } from "../../components/ui/TagPill";
 import { TableAdapter } from "../../components/adapters/table/TableAdapter";
 import { FormAdapter, FormItemAdapter } from "../../components/adapters/form/FormAdapter";
 import { 
@@ -29,6 +33,10 @@ import {
   DeviceCard,
   NoDataState 
 } from "../../components/patterns";
+// 懒加载 PatternDemos，按需展示
+const PatternDemos = React.lazy(() => import("../../examples/PatternDemos"));
+// 懒加载 AdapterDemos，按需展示
+const AdapterDemos = React.lazy(() => import("../../examples/AdapterDemos"));
 
 /**
  * 模拟数据
@@ -75,6 +83,17 @@ export const BrandShowcasePage: React.FC = () => {
   const [filterValues, setFilterValues] = useState({});
   const [selectedEmployees, setSelectedEmployees] = useState([]);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
+  const [showPatternDemos, setShowPatternDemos] = useState(false);
+  const [showAdapterDemos, setShowAdapterDemos] = useState(false);
+  // 主题切换（仅作用于下方 Demos 区域）
+  const [enableDark, setEnableDark] = useState(false);
+  const [enableCompact, setEnableCompact] = useState(false);
+  const algorithms = useMemo(() => {
+    const arr = [] as any[];
+    arr.push(enableDark ? theme.darkAlgorithm : theme.defaultAlgorithm);
+    if (enableCompact) arr.push(theme.compactAlgorithm);
+    return arr;
+  }, [enableDark, enableCompact]);
 
   const handleSearch = (value: string) => {
     setSearchValue(value);
@@ -130,19 +149,21 @@ export const BrandShowcasePage: React.FC = () => {
                   onCancel={() => setIsDialogOpen(false)}
                 >
                   <FormItemAdapter name="name" label="姓名" required>
-                    <input 
-                      type="text" 
+                    <Input 
                       placeholder="请输入员工姓名"
-                      className="w-full px-3 py-2 bg-bg-input border border-border-primary rounded-lg text-text-1 placeholder-text-3 focus:outline-none focus:border-brand focus:ring-2 focus:ring-brand/20"
+                      fullWidth={true}
                     />
                   </FormItemAdapter>
                   <FormItemAdapter name="department" label="部门" required>
-                    <select className="w-full px-3 py-2 bg-bg-input border border-border-primary rounded-lg text-text-1 focus:outline-none focus:border-brand focus:ring-2 focus:ring-brand/20">
-                      <option value="">请选择部门</option>
-                      <option value="marketing">营销部</option>
-                      <option value="operations">运营部</option>
-                      <option value="support">客服部</option>
-                    </select>
+                    <Select
+                      placeholder="请选择部门"
+                      fullWidth={true}
+                      options={[
+                        { label: '营销部', value: 'marketing' },
+                        { label: '运营部', value: 'operations' },
+                        { label: '客服部', value: 'support' }
+                      ]}
+                    />
                   </FormItemAdapter>
                 </FormAdapter>
               </DialogContent>
@@ -279,6 +300,85 @@ export const BrandShowcasePage: React.FC = () => {
               </div>
             </div>
           </Card>
+
+          {/* 标签组件演示 */}
+          <Card variant="default" className="p-6">
+            <h3 className="text-lg font-semibold text-text-1 mb-4">标签组件演示 - 品牌渐变效果</h3>
+            <div className="space-y-4">
+              <div className="flex items-center gap-3 flex-wrap">
+                <TagPill variant="neutral">中性标签</TagPill>
+                <TagPill variant="brand">品牌标签</TagPill>
+                <TagPill variant="success">成功标签</TagPill>
+                <TagPill variant="warning">警告标签</TagPill>
+                <TagPill variant="error">错误标签</TagPill>
+                <TagPill variant="info">信息标签</TagPill>
+              </div>
+              
+              <div className="flex items-center gap-3 flex-wrap">
+                <TagPill variant="solid">实心标签 - 发光效果</TagPill>
+                <TagPill variant="outline">轮廓标签 - 悬停渐变</TagPill>
+                <TagPill variant="brand" selected>选中状态</TagPill>
+                <TagPill variant="brand" closable onClose={() => console.log('关闭')}>可关闭</TagPill>
+              </div>
+              
+              <div className="flex items-center gap-3 flex-wrap">
+                <TagPill variant="brand" size="sm">小尺寸</TagPill>
+                <TagPill variant="brand" size="md">中尺寸</TagPill>
+                <TagPill variant="brand" size="lg">大尺寸</TagPill>
+              </div>
+            </div>
+          </Card>
+
+          {/* 表单组件演示 */}
+          <Card variant="default" className="p-6">
+            <h3 className="text-lg font-semibold text-text-1 mb-4">表单组件演示 - 聚焦发光效果</h3>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <div className="space-y-4">
+                <div>
+                  <label className="block text-sm font-medium text-text-1 mb-2">
+                    现代化输入框 - 聚焦发光
+                  </label>
+                  <Input placeholder="点击体验聚焦发光效果" />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-text-1 mb-2">
+                    不同尺寸输入框
+                  </label>
+                  <div className="space-y-2">
+                    <Input placeholder="小尺寸输入框" size="small" />
+                    <Input placeholder="中尺寸输入框" size="medium" />
+                    <Input placeholder="大尺寸输入框" size="large" />
+                  </div>
+                </div>
+              </div>
+              
+              <div className="space-y-4">
+                <div>
+                  <label className="block text-sm font-medium text-text-1 mb-2">
+                    现代化选择器 - 玻璃态下拉
+                  </label>
+                  <Select 
+                    placeholder="点击体验玻璃态下拉面板"
+                    options={[
+                      { label: '营销部', value: 'marketing' },
+                      { label: '运营部', value: 'operations' },
+                      { label: '客服部', value: 'support' }
+                    ]}
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-text-1 mb-2">
+                    不同变体选择器
+                  </label>
+                  <div className="space-y-2">
+                    <Select placeholder="默认变体" variant="default" />
+                    <Select placeholder="填充变体" variant="filled" />
+                    <Select placeholder="无边框变体" variant="borderless" />
+                  </div>
+                </div>
+              </div>
+            </div>
+          </Card>
         </div>
 
         {/* 设计令牌展示 */}
@@ -343,6 +443,55 @@ export const BrandShowcasePage: React.FC = () => {
             </div>
           </div>
         </Card>
+
+        {/* Theme 控制区 + Demos（局部 ConfigProvider） */}
+        <ConfigProvider theme={{ algorithm: algorithms }}>
+          <Card variant="default" className="p-6">
+            <div className="flex items-center justify-between">
+              <h3 className="text-lg font-semibold text-text-1">Theme 控制区（仅作用于下方示例）</h3>
+              <div className="flex items-center gap-4">
+                <div className="flex items-center gap-2">
+                  <span className="text-sm text-text-2">暗黑</span>
+                  <Switch checked={enableDark} onChange={setEnableDark} />
+                </div>
+                <div className="flex items-center gap-2">
+                  <span className="text-sm text-text-2">紧凑</span>
+                  <Switch checked={enableCompact} onChange={setEnableCompact} />
+                </div>
+              </div>
+            </div>
+          </Card>
+
+          {/* Pattern Demos 按需展示 */}
+          <Card variant="default" className="p-6">
+            <div className="flex items-center justify-between mb-4">
+              <h3 className="text-lg font-semibold text-text-1">Pattern Demos</h3>
+              <Button variant="outline" size="default" onClick={() => setShowPatternDemos(v => !v)}>
+                {showPatternDemos ? "隐藏示例" : "显示示例"}
+              </Button>
+            </div>
+            {showPatternDemos && (
+              <React.Suspense fallback={<div className="text-text-2">加载示例...</div>}>
+                <PatternDemos />
+              </React.Suspense>
+            )}
+          </Card>
+
+          {/* Adapter Demos 按需展示 */}
+          <Card variant="default" className="p-6">
+            <div className="flex items-center justify-between mb-4">
+              <h3 className="text-lg font-semibold text-text-1">Adapter Demos</h3>
+              <Button variant="outline" size="default" onClick={() => setShowAdapterDemos(v => !v)}>
+                {showAdapterDemos ? "隐藏示例" : "显示示例"}
+              </Button>
+            </div>
+            {showAdapterDemos && (
+              <React.Suspense fallback={<div className="text-text-2">加载示例...</div>}>
+                <AdapterDemos />
+              </React.Suspense>
+            )}
+          </Card>
+        </ConfigProvider>
       </div>
     </div>
   );
