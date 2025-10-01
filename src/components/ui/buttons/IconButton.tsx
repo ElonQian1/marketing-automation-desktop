@@ -103,29 +103,29 @@ const iconButtonVariants = cva(
       {
         variant: "soft",
         tone: "success",
-        className: "bg-success-50 text-success hover:bg-success-100",
+        className: "bg-[var(--success-50)] text-[var(--success)] hover:bg-[var(--success-100)]",
       },
       {
         variant: "soft",
         tone: "warning",
-        className: "bg-warning-50 text-warning hover:bg-warning-100",
+        className: "bg-[var(--warning-50)] text-[var(--warning)] hover:bg-[var(--warning-100)]",
       },
       {
         variant: "soft",
         tone: "danger",
-        className: "bg-error-50 text-error hover:bg-error-100",
+        className: "bg-[var(--error-50)] text-[var(--error)] hover:bg-[var(--error-100)]",
       },
       {
         variant: "soft",
         tone: "info",
-        className: "bg-info-50 text-info hover:bg-info-100",
+        className: "bg-[var(--info-50)] text-[var(--info)] hover:bg-[var(--info-100)]",
       },
       
       // Outline variant colors
       {
         variant: "outline",
         tone: "brand",
-        className: "border-brand text-brand hover:bg-brand-50",
+        className: "border-[var(--brand)] text-[var(--brand)] hover:bg-[var(--brand-50)]",
       },
       {
         variant: "outline",
@@ -135,29 +135,29 @@ const iconButtonVariants = cva(
       {
         variant: "outline",
         tone: "success",
-        className: "border-success text-success hover:bg-success-50",
+        className: "border-[var(--success)] text-[var(--success)] hover:bg-[var(--success-50)]",
       },
       {
         variant: "outline",
         tone: "warning",
-        className: "border-warning text-warning hover:bg-warning-50",
+        className: "border-[var(--warning)] text-[var(--warning)] hover:bg-[var(--warning-50)]",
       },
       {
         variant: "outline",
         tone: "danger",
-        className: "border-error text-error hover:bg-error-50",
+        className: "border-[var(--error)] text-[var(--error)] hover:bg-[var(--error-50)]",
       },
       {
         variant: "outline",
         tone: "info",
-        className: "border-info text-info hover:bg-info-50",
+        className: "border-[var(--info)] text-[var(--info)] hover:bg-[var(--info-50)]",
       },
       
       // Ghost variant colors
       {
         variant: "ghost",
         tone: "brand",
-        className: "text-brand hover:bg-brand-50",
+        className: "text-[var(--brand)] hover:bg-[var(--brand-50)]",
       },
       {
         variant: "ghost",
@@ -167,22 +167,22 @@ const iconButtonVariants = cva(
       {
         variant: "ghost",
         tone: "success",
-        className: "text-success hover:bg-success-50",
+        className: "text-[var(--success)] hover:bg-[var(--success-50)]",
       },
       {
         variant: "ghost",
         tone: "warning",
-        className: "text-warning hover:bg-warning-50",
+        className: "text-[var(--warning)] hover:bg-[var(--warning-50)]",
       },
       {
         variant: "ghost",
         tone: "danger",
-        className: "text-error hover:bg-error-50",
+        className: "text-[var(--error)] hover:bg-[var(--error-50)]",
       },
       {
         variant: "ghost",
         tone: "info",
-        className: "text-info hover:bg-info-50",
+        className: "text-[var(--info)] hover:bg-[var(--info-50)]",
       },
     ],
     defaultVariants: {
