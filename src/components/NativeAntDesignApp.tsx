@@ -28,6 +28,7 @@ import {
   MenuFoldOutlined,
   MenuUnfoldOutlined,
   SyncOutlined,
+  AimOutlined,
 } from "@ant-design/icons";
 import type { MenuProps } from "antd";
 
@@ -54,6 +55,7 @@ import EmployeePageNativeWrapper from "../pages/native-wrappers/EmployeePage.nat
 import { StatisticsPageNative } from "../pages/statistics/StatisticsPageNative";
 import { DeviceManagementPageNative } from "../pages/device-management/DeviceManagementPageNative";
 import { LoginPageNative } from "../pages/auth/LoginPageNative";
+import { PreciseAcquisitionPage } from "../pages/precise-acquisition/PreciseAcquisitionPage";
 
 // 优化后的商业化页面
 import { StatisticsPageOptimized } from "../pages/statistics/StatisticsPageOptimized";
@@ -99,6 +101,11 @@ const NativeAntDesignApp: React.FC = () => {
       key: "contact-import",
       icon: <ContactsOutlined />,
       label: "联系人导入向导",
+    },
+    {
+      key: "precise-acquisition",
+      icon: <AimOutlined />,
+      label: "精准获客系统",
     },
     ...(featureFlags.SHOW_LEGACY_VCF_IMPORT
       ? [
@@ -184,6 +191,8 @@ const NativeAntDesignApp: React.FC = () => {
         return <AdbCenterPage />;
       case "contact-import":
         return <ContactImportPage />;
+      case "precise-acquisition":
+        return <PreciseAcquisitionPage />;
       case "smart-vcf":
         return <SmartVcfImporter />;
       case "permission-test":
