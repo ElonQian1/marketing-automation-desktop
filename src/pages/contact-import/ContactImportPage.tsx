@@ -3,19 +3,17 @@ import { PageWrapper } from '../../components/layout';
 import { ErrorBoundary } from '../../components/common/ErrorBoundary';
 import { lazyRetry } from '../../utils/lazyRetry';
 
-// Temporarily disabled: ContactImportWorkbench is under migration and excluded from type-check
-// const ContactImportWorkbench = React.lazy(() => lazyRetry(() =>
-//   import('../../modules/contact-import/ui/ContactImportWorkbench')
-//     .then(m => ({ default: m.ContactImportWorkbench }))
-// ));
+const ContactImportWorkbench = React.lazy(() => lazyRetry(() =>
+  import('../../modules/contact-import/ui/ContactImportWorkbenchSimple')
+    .then(m => ({ default: m.ContactImportWorkbenchSimple }))
+));
 
 const ContactImportPage: React.FC = () => {
   return (
     <PageWrapper title="联系人导入工作台" subtitle="随时导入TXT到号码池 · 随时选择设备与生成VCF并导入">
       <ErrorBoundary>
-        {/* ContactImportWorkbench is temporarily disabled during migration */}
         <Suspense fallback={<div style={{ padding: 16 }}>加载中...</div>}>
-          <div style={{ padding: 16 }}>联系人导入模块迁移中，暂不可用</div>
+          <ContactImportWorkbench />
         </Suspense>
       </ErrorBoundary>
     </PageWrapper>

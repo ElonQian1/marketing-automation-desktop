@@ -112,6 +112,7 @@ const UniversalPageFinderModal: React.FC<UniversalPageFinderModalProps> = ({
     setXmlContent,
     elements,
     setElements,
+    uiElements,
     deviceInfo,
     setDeviceInfo,
     snapshots,
@@ -134,7 +135,9 @@ const UniversalPageFinderModal: React.FC<UniversalPageFinderModalProps> = ({
   // 本地状态
   const [viewMode, setViewMode] = useState<ViewMode>(initialViewMode);
   const [selectedElementId, setSelectedElementId] = useState<string>("");
-  const [uiElements, setUIElements] = useState<UIElement[]>([]);
+
+  // 使用 Hook 中的 UI 元素状态，不要创建重复的本地状态
+  // const [uiElements, setUIElements] = useState<UIElement[]>([]);
 
   // ADB 集成
   const adbData = useAdb();

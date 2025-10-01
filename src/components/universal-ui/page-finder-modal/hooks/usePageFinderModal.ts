@@ -6,7 +6,8 @@
 import { useState, useEffect } from "react";
 import { App } from "antd";
 import { useAdb } from "../../../../application/hooks/useAdb";
-import UniversalUIAPI, { UIElement } from "../../../../api/universalUIAPI";
+import { UniversalUIAPI } from "../../../../api/universal-ui/UniversalUIAPI";
+import type { UIElement } from "../../../../api/universal-ui/types";
 import type {
   XmlSnapshot,
   VisualUIElement,
@@ -56,7 +57,7 @@ export interface UsePageFinderModalReturn {
   setElements: (elements: VisualUIElement[]) => void;
   refreshDevices: () => Promise<void>;
   captureCurrentPage: (deviceId: string) => Promise<string | null>;
-  loadXmlSnapshot: (snapshot: any) => Promise<boolean>;
+  loadXmlSnapshot: (cachedPage: any) => Promise<boolean>;
   createSnapshot: (xmlContent: string, deviceInfo?: any) => XmlSnapshot;
   setCurrentXmlCacheId: (id: string) => void;
   setViewMode: (mode: ViewMode) => void;
@@ -144,6 +145,11 @@ export const usePageFinderModal = (props: UsePageFinderModalProps): UsePageFinde
       const parsedElements = await UniversalUIAPI.extractPageElements(xmlContent);
       setUIElements(parsedElements);
       
+      // 转换为可视化元素并设置给 VisualElementView
+      const { transformUIElement } = await import("../../types/index");
+      const visualElements = parsedElements.map(transformUIElement);
+      setElements(visualElements);
+      
       // 创建快照
       const snapshot: XmlSnapshot = {
         id: `snapshot_${Date.now()}`,
@@ -226,26 +232,34 @@ export const usePageFinderModal = (props: UsePageFinderModalProps): UsePageFinde
   };
 
   // 从缓存加载
-  const handleLoadFromCache = async (xmlCacheId: string) => {
+  const handleLoadFromCache = async (cachedPageOrId: any) => {
     try {
       setLoading(true);
       
-      // 这里应该调用缓存API获取XML内容
-      // const xmlContent = await CacheAPI.getXmlContent(xmlCacheId);
-      // 暂时使用有效的XML占位符
-      const xmlContent = `<?xml version='1.0' encoding='UTF-8' standalone='yes' ?>
-<hierarchy rotation="0">
-  <node index="0" text="缓存的XML内容 - ${xmlCacheId}" resource-id="placeholder" class="android.widget.TextView" package="com.placeholder" content-desc="占位元素" checkable="false" checked="false" clickable="true" enabled="true" focusable="true" focused="false" scrollable="false" long-clickable="false" password="false" selected="false" bounds="[0,0][1080,1920]">
-    <node index="0" text="示例文本" resource-id="com.example:id/text" class="android.widget.TextView" package="com.example" content-desc="示例描述" checkable="false" checked="false" clickable="true" enabled="true" focusable="true" focused="false" scrollable="false" long-clickable="false" password="false" selected="false" bounds="[100,200][500,300]" />
-  </node>
-</hierarchy>`;
+      // 如果传入的是 CachedXmlPage 对象，直接使用
+      let cachedPage = cachedPageOrId;
       
-      setCurrentXmlCacheId(xmlCacheId);
-      await handleLoadXmlContent(xmlContent);
+      // 如果传入的是字符串 ID，需要先查找对应的页面（这里暂时跳过，直接处理对象）
+      if (typeof cachedPageOrId === 'string') {
+        console.warn("传入的是 ID，但当前实现需要完整的 CachedXmlPage 对象");
+        throw new Error("需要完整的 CachedXmlPage 对象来加载内容");
+      }
+      
+      console.log("🔄 从缓存加载页面:", cachedPage);
+      
+      // 使用 XmlPageCacheService 加载真实的 XML 内容
+      const { XmlPageCacheService } = await import("../../../../services/XmlPageCacheService");
+      const pageContent = await XmlPageCacheService.loadPageContent(cachedPage);
+      
+      console.log("📄 加载的 XML 内容长度:", pageContent.xmlContent.length);
+      console.log("🎯 提取的 UI 元素数量:", pageContent.elements.length);
+      
+      setCurrentXmlCacheId(cachedPage.fileName || cachedPage.id);
+      await handleLoadXmlContent(pageContent.xmlContent);
       
     } catch (error) {
-      console.error("从缓存加载失败:", error);
-      message.error("从缓存加载失败");
+      console.error("❌ 从缓存加载失败:", error);
+      message.error(`从缓存加载失败: ${error.message}`);
     } finally {
       setLoading(false);
     }
@@ -275,8 +289,8 @@ export const usePageFinderModal = (props: UsePageFinderModalProps): UsePageFinde
       await handleCaptureCurrentPage();
       return currentXmlContent || null;
     },
-    loadXmlSnapshot: async (snapshot: any) => {
-      await handleLoadFromCache(snapshot.id);
+    loadXmlSnapshot: async (cachedPage: any) => {
+      await handleLoadFromCache(cachedPage);
       return true;
     },
     createSnapshot: (xmlContent: string, deviceInfo?: any) => ({
