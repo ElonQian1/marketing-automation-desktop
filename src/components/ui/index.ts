@@ -51,6 +51,27 @@ export {
   useTooltip,
 } from './tooltip/Tooltip';
 
+// 下拉菜单组件
+export {
+  DropdownMenu,
+  DropdownMenuTrigger,
+  DropdownMenuContent,
+  DropdownMenuArrow,
+  DropdownMenuItem,
+  DropdownMenuCheckboxItem,
+  DropdownMenuRadioGroup,
+  DropdownMenuRadioItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuShortcut,
+  DropdownMenuGroup,
+  DropdownMenuPortal,
+  DropdownMenuSub,
+  DropdownMenuSubTrigger,
+  DropdownMenuSubContent,
+  DropdownMenuSubContentWithArrow,
+} from './dropdown/DropdownMenu';
+
 // 对话框组件
 export {
   Dialog,

@@ -21,3 +21,6 @@
 
 ## 不阻塞声明
 - 本卡不阻塞适配层与 Pattern 的页面验收；相关验收在 BrandShowcasePage 已提供局部入口
+
+## 更新记录
+- [2025-10-01 15:42:41] 再次执行 `npm run type-check`（tsconfig.app.json）统计 66 个错误，范围仍为 Universal UI / 旧页面 / Button 变体引用，适配层入口调整未带来新增告警。

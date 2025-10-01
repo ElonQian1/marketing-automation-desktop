@@ -1,10 +1,10 @@
 {
+  "extends": "./tsconfig.json",
   "compilerOptions": {
-    "target": "ES2020",
-    "useDefineForClassFields": true,
-    "lib": ["ES2020", "DOM", "DOM.Iterable"],
-    "module": "ESNext",
-    "skipLibCheck": true,
+    "baseUrl": ".",
+    "paths": {
+      "@/*": ["src/*"]
+    },
     "moduleResolution": "bundler",
     "allowImportingTsExtensions": true,
     "resolveJsonModule": true,
@@ -17,9 +17,7 @@
     "noFallthroughCasesInSwitch": false,
     "noImplicitAny": false
   },
-  "include": [
-    "src"
-  ],
+  "include": ["src"],
   "exclude": [
     // 显式排除 JSX-capable shim，防止重复实现与冲突
     "src/components/universal-ui/views/visual-view/hooks/useParsedVisualElements.tsx",
@@ -30,19 +28,18 @@
     "src/pages/contact-management/**",
     "src/pages/ContactManagementPage*",
     "src/pages/ContactImportPage*",
-  "src/pages/ContactAutomationPage*",
-  "src/pages/ContactAutomationPage_sindre.tsx",
-  "src/pages/ContactManagementPage_Enhanced.tsx",
-  "src/pages/contact-management/**",
-  "src/modules/contact-automation/**",
-  "src/utils/typeAdapters.ts",
-  // 智能导航查找演示
+    "src/pages/ContactAutomationPage*",
+    "src/pages/ContactAutomationPage_sindre.tsx",
+    "src/pages/ContactManagementPage_Enhanced.tsx",
+    "src/modules/contact-automation/**",
+    "src/utils/typeAdapters.ts",
+    // 智能导航查找演示
     "src/components/smart-navigation-finder/**",
-  "src/pages/SmartNavigationTestPage.tsx",
-  // 循环拖拽实验模块（当前未纳入主流程）
-  "src/modules/loop-drag-integration/**",
-  // 统一视图演示（示例数据，不参与本轮验证）
-  "src/components/unified-view/**",
+    "src/pages/SmartNavigationTestPage.tsx",
+    // 循环拖拽实验模块（当前未纳入主流程）
+    "src/modules/loop-drag-integration/**",
+    // 统一视图演示（示例数据，不参与本轮验证）
+    "src/components/unified-view/**",
     // ADB 授权向导（未纳入本轮工作）
     "src/pages/adb/auth/**",
     "src/pages/adb/AdbCenterPage.tsx",

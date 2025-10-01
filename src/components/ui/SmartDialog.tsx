@@ -12,30 +12,27 @@
  * - 键盘导航和焦点管理
  */
 
-import React from 'react';
-import * as Dialog from '@radix-ui/react-dialog';
-import { cva, type VariantProps } from 'class-variance-authority';
-import { cn } from '@/utils/cn';
+import * as React from "react";
+import * as Dialog from "@radix-ui/react-dialog";
+import { motion } from "framer-motion";
+import { cva, type VariantProps } from "class-variance-authority";
+
+import { cn, focusRing, fastTransition } from "./utils";
+import { motionPresets } from "./motion";
 
 // 对话框内容变体
 const dialogContentVariants = cva(
   [
     // 基础样式
-    'fixed left-[50%] top-[50%] translate-x-[-50%] translate-y-[-50%]',
-    'w-full max-w-lg max-h-[85vh] overflow-auto',
-    
+    "fixed left-[50%] top-[50%] translate-x-[-50%] translate-y-[-50%]",
+    "w-full max-w-lg max-h-[85vh] overflow-auto",
+
     // 视觉样式
-    'bg-background-elevated border border-border-primary',
-    'rounded-[var(--radius-lg)] shadow-[var(--shadow-xl)]',
-    
-    // 动效
-    'duration-[var(--duration-normal)] ease-[var(--ease-out)]',
-    
-    // 焦点
-    'focus:outline-none',
-    
-    // 层级
-    'z-[var(--z-modal)]',
+  "bg-background-elevated border border-border-primary",
+    "rounded-[var(--radius-lg)] shadow-[var(--shadow-xl)]",
+
+    // 焦点 & 层级
+  "z-[var(--z-modal)]",
   ],
   {
     variants: {
@@ -55,11 +52,10 @@ const dialogContentVariants = cva(
 
 // 遮罩层变体
 const dialogOverlayVariants = cva([
-  'fixed inset-0',
-  'bg-black/50 backdrop-blur-sm',
-  'z-[var(--z-modal-backdrop)]',
-  'data-[state=open]:animate-in data-[state=open]:fade-in-0',
-  'data-[state=closed]:animate-out data-[state=closed]:fade-out-0',
+  "fixed inset-0",
+  "z-[var(--z-modal-backdrop)]",
+  "bg-[color:var(--overlay-scrim,rgba(15,23,42,0.58))]",
+  "backdrop-blur-[var(--backdrop-blur-md,12px)]",
 ]);
 
 export interface SmartDialogProps extends VariantProps<typeof dialogContentVariants> {
@@ -100,66 +96,82 @@ const SmartDialog: React.FC<SmartDialogProps> = ({
       <Dialog.Portal>
         {/* 遮罩层 */}
         <Dialog.Overlay
-          className={dialogOverlayVariants()}
+          asChild
           onClick={closeOnOverlayClick ? undefined : (e) => e.preventDefault()}
-        />
+        >
+          <motion.div
+            className={dialogOverlayVariants()}
+            initial="initial"
+            animate="animate"
+            exit="exit"
+            variants={motionPresets.variants.overlay}
+          />
+        </Dialog.Overlay>
         
         {/* 对话框内容 */}
         <Dialog.Content
-          className={cn(
-            dialogContentVariants({ size }),
-            contentClassName
-          )}
+          asChild
           onEscapeKeyDown={closeOnEscape ? undefined : (e) => e.preventDefault()}
           onPointerDownOutside={
             closeOnOverlayClick ? undefined : (e) => e.preventDefault()
           }
         >
-          <div className="p-6">
-            {/* 头部 */}
-            {(title || description || showCloseButton) && (
-              <div className="flex items-start justify-between mb-6">
-                <div className="flex-1">
-                  {title && (
-                    <Dialog.Title className="text-lg font-semibold text-text-primary">
-                      {title}
-                    </Dialog.Title>
-                  )}
-                  {description && (
-                    <Dialog.Description className="mt-2 text-sm text-text-secondary">
-                      {description}
-                    </Dialog.Description>
+          <motion.div
+            className={cn(
+              dialogContentVariants({ size }),
+              focusRing,
+              contentClassName
+            )}
+            initial="initial"
+            animate="animate"
+            exit="exit"
+            variants={motionPresets.variants.modal}
+            transition={motionPresets.transitions.enter}
+          >
+            <div className="p-6">
+              {/* 头部 */}
+              {(title || description || showCloseButton) && (
+                <div className="mb-4 flex items-start justify-between">
+                  <div className="flex-1">
+                    {title && (
+                      <Dialog.Title className="text-lg font-semibold text-text-primary">
+                        {title}
+                      </Dialog.Title>
+                    )}
+                    {description && (
+                      <Dialog.Description className="mt-2 text-sm text-text-secondary">
+                        {description}
+                      </Dialog.Description>
+                    )}
+                  </div>
+                  
+                  {/* 关闭按钮 */}
+                  {showCloseButton && (
+                    <Dialog.Close asChild>
+                      <button
+                        type="button"
+                        className={cn(
+                          "ml-4 inline-flex h-8 w-8 items-center justify-center rounded-[var(--radius-sm)]",
+                          "text-text-tertiary hover:text-text-primary",
+                          "hover:bg-background-secondary/80",
+                          fastTransition,
+                          focusRing
+                        )}
+                        aria-label="关闭对话框"
+                      >
+                        <CloseIcon className="h-4 w-4" />
+                      </button>
+                    </Dialog.Close>
                   )}
                 </div>
-                
-                {/* 关闭按钮 */}
-                {showCloseButton && (
-                  <Dialog.Close asChild>
-                    <button
-                      type="button"
-                      className={cn(
-                        'inline-flex items-center justify-center',
-                        'w-8 h-8 rounded-[var(--radius-sm)]',
-                        'text-text-tertiary hover:text-text-primary',
-                        'hover:bg-background-secondary',
-                        'transition-colors duration-[var(--duration-fast)]',
-                        'focus:outline-none focus:ring-2 focus:ring-brand focus:ring-offset-2',
-                        'ml-4 shrink-0'
-                      )}
-                      aria-label="关闭对话框"
-                    >
-                      <CloseIcon className="w-4 h-4" />
-                    </button>
-                  </Dialog.Close>
-                )}
+              )}
+              
+              {/* 内容区域 */}
+              <div className="text-text-primary">
+                {children}
               </div>
-            )}
-            
-            {/* 内容区域 */}
-            <div className="text-text-primary">
-              {children}
             </div>
-          </div>
+          </motion.div>
         </Dialog.Content>
       </Dialog.Portal>
     </Dialog.Root>
@@ -207,7 +219,7 @@ const DialogActions = React.forwardRef<HTMLDivElement, DialogActionsProps>(
     <div
       ref={ref}
       className={cn(
-        'flex gap-3 pt-4 mt-6 border-t border-border-primary',
+  'flex gap-3 border-t border-border-primary px-6 pt-4 mt-6',
         align === 'left' && 'justify-start',
         align === 'center' && 'justify-center',
         align === 'right' && 'justify-end',
