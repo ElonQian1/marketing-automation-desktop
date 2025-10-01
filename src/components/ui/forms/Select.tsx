@@ -18,7 +18,7 @@ const selectVariants = cva(
   [
     "flex w-full rounded-[var(--radius)] border bg-transparent",
     "text-sm text-[var(--text-primary)]",
-    "shadow-[var(--shadow-sm)] transition-all duration-200",
+    "shadow-[var(--shadow-sm)] transition-all duration-[var(--duration-hover)]",
     focusRing,
     "disabled:cursor-not-allowed disabled:opacity-50",
     // 边框与背景状态

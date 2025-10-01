@@ -22,4 +22,7 @@ export const MessageAdapter = {
   config: message.config,
 };
 
+// 直接导出为 message，便于替换 antd message
+export { message };
+
 export default MessageAdapter;

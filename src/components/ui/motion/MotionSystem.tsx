@@ -25,7 +25,7 @@ export const FadeIn: React.FC<{ children: React.ReactNode; className?: string }>
 }) => {
   return (
     <div 
-      className={`transition-opacity duration-300 ease-out ${className}`}
+      className={`transition-opacity duration-[var(--duration-enter)] ease-out ${className}`}
       style={{ animationName: 'fadeIn', animationDuration: `${motionConfig.duration.normal}s` }}
     >
       {children}
@@ -45,7 +45,7 @@ export const SlideIn: React.FC<{
 }) => {
   return (
     <div 
-      className={`transition-all duration-300 ease-out ${className}`}
+      className={`transition-all duration-[var(--duration-enter)] ease-out ${className}`}
       style={{ animationName: 'slideIn', animationDuration: `${motionConfig.duration.normal}s` }}
     >
       {children}
@@ -60,7 +60,7 @@ export const ScaleIn: React.FC<{ children: React.ReactNode; className?: string }
 }) => {
   return (
     <div 
-      className={`transition-transform duration-300 ease-out hover:scale-105 ${className}`}
+      className={`transition-transform duration-[var(--duration-enter)] ease-out hover:scale-105 ${className}`}
     >
       {children}
     </div>
@@ -74,7 +74,7 @@ export const HoverScale: React.FC<{ children: React.ReactNode; className?: strin
 }) => {
   return (
     <div 
-      className={`transition-transform duration-200 ease-out hover:scale-105 cursor-pointer ${className}`}
+      className={`transition-transform duration-[var(--duration-hover)] ease-out hover:scale-105 cursor-pointer ${className}`}
     >
       {children}
     </div>

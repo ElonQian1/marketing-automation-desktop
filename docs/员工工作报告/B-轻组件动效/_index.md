@@ -19,6 +19,7 @@
 - [PrimaryButton 组件 CSS 硬编码修复](./done/2025-10/task-B-primarybutton-css-20251001-234600.md)
 - [🏆 轻组件硬编码清理最终完成报告](./done/2025-10/task-B-final-cleanup-complete-20251001-235100.md)
 - [🔧 轻组件质量监控与维护体系建立](./done/2025-10/task-B-quality-monitoring-system-20251002-000000.md)
+- [动效时长统一优化](./completed/task-B-motion-duration-unification-20251001-235900.md)
 
 ## open
 - 暂无

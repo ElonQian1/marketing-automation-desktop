@@ -18,7 +18,7 @@ const inputVariants = cva(
   [
     "flex w-full rounded-[var(--radius)] border bg-transparent px-3 py-2",
     "text-sm text-[var(--text-primary)] placeholder:text-[var(--text-muted)]",
-    "shadow-[var(--shadow-sm)] transition-all duration-200",
+    "shadow-[var(--shadow-sm)] transition-all duration-[var(--duration-hover)]",
     focusRing,
     "disabled:cursor-not-allowed disabled:opacity-50",
     // 边框与背景状态
@@ -119,7 +119,7 @@ const textAreaVariants = cva(
   [
     "flex w-full rounded-[var(--radius)] border bg-transparent px-3 py-2",
     "text-sm text-[var(--text-primary)] placeholder:text-[var(--text-muted)]",
-    "shadow-[var(--shadow-sm)] transition-all duration-200",
+    "shadow-[var(--shadow-sm)] transition-all duration-[var(--duration-hover)]",
     focusRing,
     "disabled:cursor-not-allowed disabled:opacity-50",
     "border-[var(--border-primary)] hover:border-[var(--border-hover)]",

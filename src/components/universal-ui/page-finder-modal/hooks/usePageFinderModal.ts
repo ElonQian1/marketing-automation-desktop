@@ -229,8 +229,13 @@ export const usePageFinderModal = (props: UsePageFinderModalProps): UsePageFinde
       
       // 这里应该调用缓存API获取XML内容
       // const xmlContent = await CacheAPI.getXmlContent(xmlCacheId);
-      // 暂时使用占位符
-      const xmlContent = `<!-- Cached XML content for ${xmlCacheId} -->`;
+      // 暂时使用有效的XML占位符
+      const xmlContent = `<?xml version='1.0' encoding='UTF-8' standalone='yes' ?>
+<hierarchy rotation="0">
+  <node index="0" text="缓存的XML内容 - ${xmlCacheId}" resource-id="placeholder" class="android.widget.TextView" package="com.placeholder" content-desc="占位元素" checkable="false" checked="false" clickable="true" enabled="true" focusable="true" focused="false" scrollable="false" long-clickable="false" password="false" selected="false" bounds="[0,0][1080,1920]">
+    <node index="0" text="示例文本" resource-id="com.example:id/text" class="android.widget.TextView" package="com.example" content-desc="示例描述" checkable="false" checked="false" clickable="true" enabled="true" focusable="true" focused="false" scrollable="false" long-clickable="false" password="false" selected="false" bounds="[100,200][500,300]" />
+  </node>
+</hierarchy>`;
       
       setCurrentXmlCacheId(xmlCacheId);
       await handleLoadXmlContent(xmlContent);

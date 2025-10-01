@@ -1,0 +1,31 @@
+{
+  "extends": "./tsconfig.json",
+  "compilerOptions": {
+    "baseUrl": ".",
+    "paths": {
+      "@/*": ["src/*"]
+    },
+    "moduleResolution": "bundler",
+    "allowImportingTsExtensions": true,
+    "resolveJsonModule": true,
+    "isolatedModules": true,
+    "noEmit": true,
+    "jsx": "react-jsx",
+    "strict": false,
+    "noUnusedLocals": false,
+    "noUnusedParameters": false,
+    "noFallthroughCasesInSwitch": false,
+    "noImplicitAny": false
+  },
+  "include": [
+    "src/components/adapters/**",
+    "src/components/patterns/**",
+    "src/pages/BrandShowcasePage.tsx",
+    "src/main.tsx",
+    "src/App.tsx"
+  ],
+  "exclude": [
+    "src/**/*_old.ts",
+    "src/**/*_old.tsx"
+  ]
+}

@@ -4,7 +4,7 @@
  */
 
 import React, { useCallback, useEffect, useState } from "react";
-import { Typography, message } from "antd";
+import { Typography, App } from "antd";
 import type { CachedXmlPage } from "../../services/XmlPageCacheService";
 import { XmlPageCacheService } from "../../services/XmlPageCacheService";
 import { CacheToolbar } from "./components/CacheToolbar";
@@ -28,6 +28,7 @@ export const XmlCachePageSelector: React.FC<XmlCachePageSelectorProps> = ({
   showStats = true,
   maxPages = 20,
 }) => {
+  const { message } = App.useApp();
   const [loading, setLoading] = useState(false);
   const [cachedPages, setCachedPages] = useState<CachedXmlPage[]>([]);
   const [filteredPages, setFilteredPages] = useState<CachedXmlPage[]>([]);

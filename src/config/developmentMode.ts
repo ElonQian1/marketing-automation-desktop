@@ -77,7 +77,7 @@ export const getMockMonitoringData = () => ({
       deviceIds: ['mock_device_1', 'mock_device_2'],
       targetCount: 500,
       currentCount: 234,
-      status: 'running' as 'running' | 'paused' | 'stopped',
+      status: 'running' as 'running' | 'paused' | 'completed' | 'failed',
       createTime: new Date(Date.now() - 2 * 24 * 60 * 60 * 1000),
       lastActive: new Date(Date.now() - 5 * 60 * 1000),
       successRate: 89.5
@@ -91,7 +91,7 @@ export const getMockMonitoringData = () => ({
       deviceIds: ['mock_device_1'],
       targetCount: 300,
       currentCount: 156,
-      status: 'running' as 'running' | 'paused' | 'stopped',
+      status: 'running' as 'running' | 'paused' | 'completed' | 'failed',
       createTime: new Date(Date.now() - 1 * 24 * 60 * 60 * 1000),
       lastActive: new Date(Date.now() - 10 * 60 * 1000),
       successRate: 92.3

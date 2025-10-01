@@ -14,8 +14,6 @@ import * as React from "react";
 import { Slot } from "@radix-ui/react-slot";
 import { cva, type VariantProps } from "class-variance-authority";
 import { motion, type HTMLMotionProps } from "framer-motion";
-import { Button } from "antd";
-import type { ButtonProps as AntButtonProps } from "antd";
 
 import { cn, focusRing, fastTransition } from "../utils";
 import { motionPresets } from "../motion";
@@ -213,7 +211,6 @@ const IconButton = React.forwardRef<HTMLButtonElement, IconButtonProps>(
       size,
       shape,
       asChild = false,
-      tooltip,
       children,
       disabled,
       type: buttonType = "button",
@@ -274,7 +271,7 @@ const IconButton = React.forwardRef<HTMLButtonElement, IconButtonProps>(
 
   const buttonContent = (
     <Button
-      {...rest}
+      {...props}
       size={getAntdSize()}
       type={getAntdType()}
       danger={variant === 'danger'}
@@ -285,7 +282,7 @@ const IconButton = React.forwardRef<HTMLButtonElement, IconButtonProps>(
         alignItems: 'center',
         justifyContent: 'center',
         padding: circular ? 0 : '4px',
-        ...(rest.style ?? {}),
+        ...props.style,
       }}
     >
       {children}
@@ -299,7 +296,7 @@ const IconButton = React.forwardRef<HTMLButtonElement, IconButtonProps>(
   }
 
   return buttonContent;
-});
+};
 
 /**
  * 圆形图标按钮
@@ -316,6 +313,3 @@ export const CircularIconButton: React.FC<Omit<IconButtonProps, 'circular' | 'sq
 export const SquareIconButton: React.FC<Omit<IconButtonProps, 'circular' | 'square'>> = (props) => {
   return <IconButton {...props} square circular={false} />;
 };
-
-// 主要导出
-export { IconButton };

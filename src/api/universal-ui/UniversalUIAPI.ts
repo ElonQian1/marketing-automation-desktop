@@ -25,28 +25,12 @@ export class UniversalUIAPI {
    */
   static async analyzeUniversalUIPage(deviceId: string): Promise<UniversalPageCaptureResult> {
     try {
-      try {
-        // 优先按后端约定使用 snake_case
-        const result = await invokeCompat<UniversalPageCaptureResultBackend>(
-          'analyze_universal_ui_page',
-          { deviceId },
-          { forceSnake: true }
-        );
-        return UniversalUIAPI.normalizeUniversalPageCaptureResult(result);
-      } catch (e) {
-        const msg = String(e ?? '');
-        // 若后端报缺少 camelCase key（deviceId），则改用 camelCase 再试一次
-        if (msg.includes('missing required key deviceId') || msg.includes('invalid args `deviceId`')) {
-          console.warn('[UniversalUIAPI] analyze_universal_ui_page: 检测到 camelCase 形参要求，回退 forceCamel 重试…', msg);
-          const result = await invokeCompat<UniversalPageCaptureResultBackend>(
-            'analyze_universal_ui_page',
-            { deviceId },
-            { forceCamel: true }
-          );
-          return UniversalUIAPI.normalizeUniversalPageCaptureResult(result);
-        }
-        throw e;
-      }
+      // 使用默认的 invokeCompat 策略，让其自动处理参数格式转换
+      const result = await invokeCompat<UniversalPageCaptureResultBackend>(
+        'analyze_universal_ui_page',
+        { deviceId }
+      );
+      return UniversalUIAPI.normalizeUniversalPageCaptureResult(result);
     } catch (error) {
       console.error('Failed to analyze universal UI page:', error);
       throw new Error(`Universal UI页面分析失败: ${error}`);
@@ -70,27 +54,16 @@ export class UniversalUIAPI {
    */
   static async extractPageElements(xmlContent: string): Promise<UIElement[]> {
     try {
-      // 优先使用后端统一解析器
+      // 优先使用后端统一解析器，使用默认的 invokeCompat 策略
       try {
-        try {
-          // 优先按后端约定使用 snake_case
-          return await invokeCompat<UIElement[]>('extract_page_elements', { xmlContent }, { forceSnake: true });
-        } catch (e) {
-          const msg = String(e ?? '');
-          // 若后端报缺少 camelCase key（xmlContent），则改用 camelCase 再试一次
-          if (msg.includes('missing required key xmlContent') || msg.includes('invalid args `xmlContent`')) {
-            console.warn('[UniversalUIAPI] extract_page_elements: 检测到 camelCase 形参要求，回退 forceCamel 重试…', msg);
-            return await invokeCompat<UIElement[]>('extract_page_elements', { xmlContent }, { forceCamel: true });
-          }
-          throw e;
-        }
+        return await invokeCompat<UIElement[]>('extract_page_elements', { xmlContent });
       } catch (backendError) {
-        console.warn('后端解析失败，使用前端上下文感知解析:', backendError);
+        console.warn('[UniversalUIAPI] 后端解析失败，使用前端上下文感知解析:', backendError);
         // 后端失败时使用前端上下文感知解析
         return this.parseXMLToElementsWithContext(xmlContent);
       }
     } catch (error) {
-      console.error('Failed to extract page elements:', error);
+      console.error('[UniversalUIAPI] 提取页面元素失败:', error);
       throw new Error(`提取页面元素失败: ${error}`);
     }
   }

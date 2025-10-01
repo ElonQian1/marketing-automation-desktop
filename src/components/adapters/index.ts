@@ -162,7 +162,6 @@ export {
 export {
   Text,
   Title,
-  TypographyAdapter,
 } from "../ui/typography/TypographyAdapter";
 
 // Feedback - 反馈组件适配器 (Employee D)  
@@ -174,5 +173,37 @@ export {
 
 // Button - 轻组件按钮 (通过UI层)
 export { Button } from "../ui";
+
+// Input - 输入框适配器 (Employee D)
+export {
+  Input,
+  TextArea,
+  Search,
+  Password,
+  InputAdapter,
+} from "./input/InputAdapter";
+
+// Message - 消息适配器 (Employee D)
+export {
+  message,
+  MessageAdapter,
+} from "./message/MessageAdapter";
+
+// Tag - 标签适配器 (Employee D) 
+export {
+  Tag,
+  CheckableTag,
+  TagAdapter,
+} from "./tag/TagAdapter";
+
+// Card - 使用UI层CardShell (Employee D)
+export { 
+  CardShell as Card,
+  CardShellHeader as CardHeader,
+  CardShellContent as CardContent,
+  CardShellFooter as CardFooter,
+  CardShellTitle as CardTitle,
+  CardShellDescription as CardDescription,
+} from "../ui";
 
 // 提示：请不要在此处导出任何以 Ant* 命名的重复适配器，避免双实现。
