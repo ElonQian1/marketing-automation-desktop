@@ -1,41 +1,72 @@
+/**
+ * 增强的选择框组件 - 基于 design tokens 的品牌化选择器
+ * 
+ * 特性：
+ * - 统一令牌：完全基于 design tokens，支持主题切换
+ * - CVA 变体：规范化的尺寸和样式变体系统
+ * - 现代动效：集成 focusRing 与统一过渡效果
+ * - 完整 A11y：焦点环、错误状态等无障碍支持
+ */
+
 import React from 'react';
 import { Select as AntSelect, type SelectProps as AntSelectProps } from 'antd';
-import { clsx } from 'clsx';
+import { cva, type VariantProps } from 'class-variance-authority';
+import { cn, focusRing, fastTransition } from '../utils';
 
-// 工具函数：合并类名
-const cn = (...classes: (string | undefined | null | boolean)[]) => {
-  return clsx(classes.filter(Boolean));
-};
+const selectVariants = cva(
+  // 基础样式 - 使用 design tokens
+  [
+    "flex w-full rounded-[var(--radius)] border bg-transparent",
+    "text-sm text-[var(--text-primary)]",
+    "shadow-[var(--shadow-sm)] transition-all duration-200",
+    focusRing,
+    "disabled:cursor-not-allowed disabled:opacity-50",
+    // 边框与背景状态
+    "border-[var(--border-primary)] hover:border-[var(--border-hover)]",
+    "focus-within:border-[var(--brand)] focus-within:shadow-[var(--shadow-brand-glow)]"
+  ],
+  {
+    variants: {
+      size: {
+        sm: "h-[var(--control-h-sm)] text-xs",
+        md: "h-[var(--control-h)] text-sm", 
+        lg: "h-[var(--control-h-lg)] text-base",
+      },
+      selectVariant: {
+        default: "",
+        filled: "bg-[var(--bg-secondary)]",
+        borderless: "border-transparent shadow-none",
+      },
+      fullWidth: {
+        true: "w-full",
+        false: "w-auto"
+      },
+      error: {
+        true: "border-[var(--error)] focus-within:border-[var(--error)] focus-within:shadow-[var(--shadow-error-glow)]",
+        false: ""
+      }
+    },
+    defaultVariants: {
+      size: "md",
+      selectVariant: "default",
+      fullWidth: true,
+      error: false
+    },
+  }
+);
 
-/**
- * 增强的选择框组件props
- * 扩展Ant Design Select的功能，排除冲突的属性
- */
-export interface SelectProps extends Omit<AntSelectProps, 'size' | 'variant'> {
+export interface SelectProps 
+  extends Omit<AntSelectProps, 'size' | 'variant'>, 
+          VariantProps<typeof selectVariants> {
   /**
-   * 组件尺寸
+   * 选择器变体
    */
-  size?: 'small' | 'medium' | 'large';
-  
-  /**
-   * 组件变体
-   */
-  variant?: 'default' | 'filled' | 'borderless';
+  selectVariant?: 'default' | 'filled' | 'borderless';
   
   /**
    * 是否为必填字段
    */
   required?: boolean;
-  
-  /**
-   * 错误状态
-   */
-  error?: boolean;
-  
-  /**
-   * 全宽度
-   */
-  fullWidth?: boolean;
   
   /**
    * 自定义类名
@@ -63,20 +94,20 @@ export interface MultiSelectProps extends Omit<SelectProps, 'mode'> {
  * 基于Ant Design Select，提供一致的设计系统集成
  */
 export const Select: React.FC<SelectProps> = ({
-  size = 'medium',
-  variant = 'default',
+  size = 'md',
+  selectVariant = 'default',
   required = false,
   error = false,
-  fullWidth = false,
+  fullWidth = true,
   className,
   ...props
 }) => {
   // 映射自定义尺寸到Ant Design尺寸
   const getAntdSize = (): AntSelectProps['size'] => {
     switch (size) {
-      case 'small':
+      case 'sm':
         return 'small';
-      case 'large':
+      case 'lg':
         return 'large';
       default:
         return 'middle';
@@ -85,7 +116,7 @@ export const Select: React.FC<SelectProps> = ({
 
   // 映射自定义变体到Ant Design变体
   const getAntdVariant = (): AntSelectProps['variant'] => {
-    switch (variant) {
+    switch (selectVariant) {
       case 'filled':
         return 'filled';
       case 'borderless':
@@ -95,31 +126,14 @@ export const Select: React.FC<SelectProps> = ({
     }
   };
 
+  // 使用CVA生成样式类
   const selectClassName = cn(
-    // 基础样式
-    'ui-select',
-    
-    // 品牌化样式：与Input保持一致的现代化效果
-    'transition-all duration-200 ease-out',
-    'border border-border/60',
-    'hover:border-border',
-    'hover:shadow-[0_2px_4px_rgba(0,0,0,0.05)]',
-    
-    // 尺寸样式
-    size === 'small' && 'ui-select--small',
-    size === 'medium' && 'ui-select--medium',
-    size === 'large' && 'ui-select--large',
-    
-    // 变体样式
-    variant === 'default' && 'ui-select--default',
-    variant === 'filled' && 'ui-select--filled',
-    variant === 'borderless' && 'ui-select--borderless',
-    
-    // 状态样式
-    required && 'ui-select--required',
-    error && 'ui-select--error',
-    fullWidth && 'ui-select--full-width',
-    
+    selectVariants({ 
+      size: size as 'sm' | 'md' | 'lg', 
+      selectVariant: selectVariant as 'default' | 'filled' | 'borderless',
+      fullWidth,
+      error 
+    }),
     className
   );
 
@@ -130,12 +144,12 @@ export const Select: React.FC<SelectProps> = ({
       variant={getAntdVariant()}
       status={error ? 'error' : props.status}
       className={selectClassName}
-      // 品牌化下拉面板样式：玻璃态效果
+      // 品牌化下拉面板样式：使用design tokens
       popupClassName={cn(
         'ui-select-dropdown',
-        'bg-background/95 backdrop-blur-[var(--backdrop-blur)]',
-        'shadow-[var(--shadow-glass)] border border-border/40',
-        'rounded-lg overflow-hidden',
+        'bg-[var(--bg-elevated)]/95 backdrop-blur-[var(--backdrop-blur)]',
+        'shadow-[var(--shadow-glass)] border border-[var(--border-primary)]/40',
+        'rounded-[var(--radius)] overflow-hidden',
         props.popupClassName
       )}
       style={{

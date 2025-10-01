@@ -15,6 +15,10 @@ import { AlertCard, LoadingSpinner } from '../../components/ui';
 import { Button } from '../../components/ui';
 import { Text } from '../../components/ui/typography/TypographyAdapter';
 
+// 临时使用AntD Alert，等待Alert适配器完成
+import { Alert, Typography } from 'antd';
+const { Paragraph } = Typography;
+
 import { DeviceList } from '../../components/device';
 import { useAdb } from '../../application/hooks/useAdb';
 import { DeviceStatusCards, DevicePageHeader, DeviceInstructions } from './components';
@@ -40,11 +44,11 @@ export const DeviceManagementPageNative: React.FC = () => {
       // onRefresh={refreshDevices}
       actions={
         <Button 
-          type="primary" 
-          icon={<PlusOutlined />} 
-          size="small"
+          variant="solid" 
+          tone="brand"
+          size="sm"
         >
-          添加设备
+          <PlusOutlined /> 添加设备
         </Button>
       }
     >
@@ -93,12 +97,12 @@ export const DeviceManagementPageNative: React.FC = () => {
           }
           extra={
             <Button 
-              type="text" 
-              icon={<ReloadOutlined />} 
+              variant="ghost"
+              size="sm"
               onClick={refreshDevices}
-              loading={isLoading}
+              disabled={isLoading}
             >
-              刷新
+              <ReloadOutlined /> 刷新
             </Button>
           }
           style={{ width: '100%' }}

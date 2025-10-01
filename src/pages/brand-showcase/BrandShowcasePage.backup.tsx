@@ -346,9 +346,9 @@ export const BrandShowcasePage: React.FC = () => {
                     不同尺寸输入框
                   </label>
                   <div className="space-y-2">
-                    <Input placeholder="小尺寸输入框" size="small" />
-                    <Input placeholder="中尺寸输入框" size="medium" />
-                    <Input placeholder="大尺寸输入框" size="large" />
+                    <Input placeholder="小尺寸输入框" size="sm" />
+                    <Input placeholder="中尺寸输入框" size="md" />
+                    <Input placeholder="大尺寸输入框" size="lg" />
                   </div>
                 </div>
               </div>

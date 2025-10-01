@@ -12,7 +12,7 @@ import {
   Button,
   Avatar,
   Badge,
-  App,
+  App as AntApp,
   theme,
 } from "antd";
 import {
@@ -218,7 +218,7 @@ const NativeAntDesignApp: React.FC = () => {
   };
 
   return (
-    <App>
+    <AntApp>
       <Layout style={{ minHeight: "100vh" }}>
         <Sider
           trigger={null}
@@ -348,7 +348,7 @@ const NativeAntDesignApp: React.FC = () => {
           </div>
         </div>
       )}
-    </App>
+    </AntApp>
   );
 };
 

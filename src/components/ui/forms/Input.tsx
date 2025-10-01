@@ -1,20 +1,60 @@
 /**
- * 增强的输入框组件
- * 基于Ant Design Input的增强版本
- * 文件大小控制：< 200行
+ * 增强的输入框组件 - 基于 design tokens 的品牌化输入组件
+ * 
+ * 特性：
+ * - 统一令牌：完全基于 design tokens，支持主题切换
+ * - 现代动效：集成 fastTransition 与 focusRing
+ * - 尺寸一致：与其他组件保持尺寸变体一致性
+ * - 完整 A11y：焦点环、禁用状态等无障碍支持
  */
 
 import React from 'react';
 import { Input as AntInput, InputProps as AntInputProps } from 'antd';
-import classNames from 'classnames';
+import { cva, type VariantProps } from 'class-variance-authority';
+import { cn, focusRing, fastTransition } from '../utils';
 
-export interface InputProps extends Omit<AntInputProps, 'size'> {
-  /** 输入框尺寸 */
-  size?: 'small' | 'medium' | 'large';
+const inputVariants = cva(
+  // 基础样式 - 使用 design tokens
+  [
+    "flex w-full rounded-[var(--radius)] border bg-transparent px-3 py-2",
+    "text-sm text-[var(--text-primary)] placeholder:text-[var(--text-muted)]",
+    "shadow-[var(--shadow-sm)] transition-all duration-200",
+    focusRing,
+    "disabled:cursor-not-allowed disabled:opacity-50",
+    // 边框与背景状态
+    "border-[var(--border-primary)] hover:border-[var(--border-hover)]",
+    "focus-within:border-[var(--brand)] focus-within:shadow-[var(--shadow-brand-glow)]"
+  ],
+  {
+    variants: {
+      size: {
+        sm: "h-[var(--control-h-sm)] px-2 text-xs",
+        md: "h-[var(--control-h)] px-3 text-sm", 
+        lg: "h-[var(--control-h-lg)] px-4 text-base",
+      },
+      inputVariant: {
+        default: "",
+        filled: "bg-[var(--bg-secondary)]",
+        borderless: "border-transparent shadow-none",
+      },
+      fullWidth: {
+        true: "w-full",
+        false: "w-auto"
+      }
+    },
+    defaultVariants: {
+      size: "md",
+      inputVariant: "default",
+      fullWidth: true
+    },
+  }
+);
+
+export interface InputProps 
+  extends Omit<AntInputProps, 'size' | 'variant'>, 
+          VariantProps<typeof inputVariants> {
   /** 输入框变体 */
-  variant?: 'outlined' | 'filled' | 'borderless';
-  /** 是否全宽 */
-  fullWidth?: boolean;
+  inputVariant?: 'default' | 'filled' | 'borderless';
   /** 自定义类名 */
   className?: string;
 }
@@ -24,48 +64,40 @@ export interface InputProps extends Omit<AntInputProps, 'size'> {
  * 提供统一的输入框样式和行为
  */
 export const Input: React.FC<InputProps> = ({
-  size = 'medium',
-  variant = 'outlined',
-  fullWidth = false,
+  size = 'md',
+  inputVariant = 'default',
+  fullWidth = true,
   className,
   ...props
 }) => {
-  // 尺寸映射
+  // 尺寸映射到Ant Design
   const sizeMap = {
-    small: 'small' as const,
-    medium: 'middle' as const,
-    large: 'large' as const,
+    sm: 'small' as const,
+    md: 'middle' as const,
+    lg: 'large' as const,
   };
 
-  // 变体映射
+  // 变体映射到Ant Design
   const variantMap = {
-    outlined: undefined,
+    default: undefined,
     filled: 'filled',
     borderless: 'borderless',
   };
 
-  // 构建CSS类名
-  const inputClasses = classNames(
-    'enhanced-input',
-    `enhanced-input--${variant}`,
-    `enhanced-input--${size}`,
-    // 品牌化样式：聚焦发光效果和渐变边框
-    'transition-all duration-200 ease-out',
-    'border border-border/60',
-    'focus-within:border-brand-500',
-    'focus-within:shadow-[var(--shadow-brand-glow)]',
-    'hover:border-border',
-    'hover:shadow-[0_2px_4px_rgba(0,0,0,0.05)]',
-    {
-      'enhanced-input--full-width': fullWidth,
-    },
+  // 使用CVA生成样式类
+  const inputClasses = cn(
+    inputVariants({ 
+      size: size as 'sm' | 'md' | 'lg', 
+      inputVariant: inputVariant as 'default' | 'filled' | 'borderless', 
+      fullWidth 
+    }),
     className
   );
 
   return (
     <AntInput
-      size={sizeMap[size]}
-      variant={variantMap[variant] as any}
+      size={sizeMap[size!]}
+      variant={variantMap[inputVariant!] as any}
       className={inputClasses}
       {...props}
       style={{
@@ -81,11 +113,44 @@ export const PasswordInput: React.FC<InputProps> = (props) => {
   return <Input {...props} type="password" />;
 };
 
-// 文本域
+// 文本域变体样式
+const textAreaVariants = cva(
+  // 复用输入框基础样式，但调整高度
+  [
+    "flex w-full rounded-[var(--radius)] border bg-transparent px-3 py-2",
+    "text-sm text-[var(--text-primary)] placeholder:text-[var(--text-muted)]",
+    "shadow-[var(--shadow-sm)] transition-all duration-200",
+    focusRing,
+    "disabled:cursor-not-allowed disabled:opacity-50",
+    "border-[var(--border-primary)] hover:border-[var(--border-hover)]",
+    "focus-within:border-[var(--brand)] focus-within:shadow-[var(--shadow-brand-glow)]",
+    "min-h-[80px] resize-y"  // TextArea特有样式
+  ],
+  {
+    variants: {
+      size: {
+        sm: "px-2 py-1.5 text-xs",
+        md: "px-3 py-2 text-sm", 
+        lg: "px-4 py-3 text-base",
+      },
+      inputVariant: {
+        default: "",
+        filled: "bg-[var(--bg-secondary)]",
+        borderless: "border-transparent shadow-none",
+      }
+    },
+    defaultVariants: {
+      size: "md",
+      inputVariant: "default"
+    },
+  }
+);
+
 interface TextAreaProps {
   rows?: number;
   autoSize?: boolean | { minRows?: number; maxRows?: number };
-  size?: 'small' | 'medium' | 'large';
+  size?: 'sm' | 'md' | 'lg';
+  inputVariant?: 'default' | 'filled' | 'borderless';
   className?: string;
   placeholder?: string;
   value?: string;
@@ -98,26 +163,24 @@ interface TextAreaProps {
 export const TextArea: React.FC<TextAreaProps> = ({
   rows = 4,
   autoSize = false,
-  size = 'medium',
+  size = 'md',
+  inputVariant = 'default',
   className,
   ...props
 }) => {
-  // 尺寸映射
+  // 尺寸映射到Ant Design
   const sizeMap = {
-    small: 'small' as const,
-    medium: 'middle' as const,
-    large: 'large' as const,
+    sm: 'small' as const,
+    md: 'middle' as const,
+    lg: 'large' as const,
   };
 
-  const inputClasses = classNames(
-    'enhanced-textarea',
-    // 品牌化样式：与Input保持一致的现代化效果
-    'transition-all duration-200 ease-out',
-    'border border-border/60',
-    'focus-within:border-brand-500',
-    'focus-within:shadow-[var(--shadow-brand-glow)]',
-    'hover:border-border',
-    'hover:shadow-[0_2px_4px_rgba(0,0,0,0.05)]',
+  // 使用CVA生成样式类
+  const textAreaClasses = cn(
+    textAreaVariants({ 
+      size: size as 'sm' | 'md' | 'lg', 
+      inputVariant: inputVariant as 'default' | 'filled' | 'borderless'
+    }),
     className
   );
 
@@ -126,7 +189,7 @@ export const TextArea: React.FC<TextAreaProps> = ({
       rows={rows}
       autoSize={autoSize}
       size={sizeMap[size]}
-      className={inputClasses}
+      className={textAreaClasses}
       {...props}
     />
   );

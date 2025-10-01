@@ -22,12 +22,13 @@ Input 组件仍使用硬编码 Tailwind 类名，未完全接入 design tokens �
 
 ## 更新记录
 - [2025-10-01 22:18:00] 创建任务，梳理 Input tokens/motion 差距
+- [2025-10-01 22:25:00] 完成 Input/TextArea CVA 重构：接入 design tokens、统一焦点环样式、抽象共用逻辑
 
 ## 验证清单
-- [ ] 颜色/阴影/边框使用 design tokens（无 Tailwind 色值硬编码）
-- [ ] 焦点环使用统一的 `focusRing` 工具函数
-- [ ] Input/TextArea 样式逻辑统一，避免重复代码
-- [ ] TypeScript 类型与导出链路无回归
+- [x] 颜色/阴影/边框使用 design tokens（无 Tailwind 色值硬编码）
+- [x] 焦点环使用统一的 `focusRing` 工具函数
+- [x] Input/TextArea 样式逻辑统一，避免重复代码
+- [x] TypeScript 类型与导出链路无回归
 
 ## 风险与回滚
 - 新的变体系统可能影响现有表单用例，需要保持向后兼容
