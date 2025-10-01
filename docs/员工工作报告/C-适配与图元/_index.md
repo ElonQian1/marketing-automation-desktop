@@ -17,6 +17,7 @@
 - done: task-C-marketplacecard-pattern-20251001-152418.md
 - done: task-C-emptystate-pattern-20251001-152418.md
 - done: task-C-skeleton-pattern-20251001-152418.md
+- blocked: task-C-legacy-ts-errors-20251001-153057.md
 
 ## 历史记录
 - 见旧卡片：同目录根部（DONE_/REVIEW_/TODO_ 前缀）保留过渡期一周，并在新卡中建立引用映射。
