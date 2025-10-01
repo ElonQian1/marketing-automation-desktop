@@ -193,9 +193,9 @@ export const ElementDiscoveryModal: React.FC<ElementDiscoveryModalProps> = ({
         {discoveryResult.childElements.map((child, index) => (
           <ChildElementCard
             key={`child-${child.element.id}-${index}`}
-            element={child}
-            onSelect={handleElementSelect}
-            onShowDetails={handleShowDetails}
+            element={child as any}
+            onSelect={handleElementSelect as any}
+            onShowDetails={handleShowDetails as any}
           />
         ))}
       </Space>
@@ -237,9 +237,9 @@ export const ElementDiscoveryModal: React.FC<ElementDiscoveryModalProps> = ({
               return (
                 <ParentElementCard
                   key={`recommended-parent-${recommended.element.id}-${index}`}
-                  element={recommended}
-                  onSelect={handleElementSelect}
-                  onPreview={handleShowDetails}
+                  element={recommended as any}
+                  onSelect={handleElementSelect as any}
+                  onPreview={handleShowDetails as any}
                   compact={true}
                 />
               );
@@ -247,18 +247,18 @@ export const ElementDiscoveryModal: React.FC<ElementDiscoveryModalProps> = ({
               return (
                 <SelfElementCard
                   key={`recommended-self-${recommended.element.id}-${index}`}
-                  element={recommended}
-                  onSelect={handleElementSelect}
-                  onShowDetails={handleShowDetails}
+                  element={recommended as any}
+                  onSelect={handleElementSelect as any}
+                  onShowDetails={handleShowDetails as any}
                 />
               );
             } else {
               return (
                 <ChildElementCard
                   key={`recommended-child-${recommended.element.id}-${index}`}
-                  element={recommended}
-                  onSelect={handleElementSelect}
-                  onShowDetails={handleShowDetails}
+                  element={recommended as any}
+                  onSelect={handleElementSelect as any}
+                  onShowDetails={handleShowDetails as any}
                 />
               );
             }
