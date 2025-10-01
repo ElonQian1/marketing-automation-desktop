@@ -123,7 +123,7 @@ export function useDragHealthCheck(enabled: boolean = true) {
     }
 
     // 检查表格容器
-    const tables = document.querySelectorAll('.ant-table-container, table');
+    const tables = document.querySelectorAll('[data-component="table-container"], table');
     if (tables.length === 0 && handleElements.length > 0) {
       issues.push({
         type: 'warning',

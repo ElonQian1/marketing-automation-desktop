@@ -1,7 +1,9 @@
 /**
- * 拖拽行为优化工具
- * 用于精确控制拖拽区域和事件传播
+ * 拖拽行为优化工具 - Employee D 架构适配
+ * 用于精确控制拖拽区域和事件传播，零覆盖原则
  */
+
+import { useDragSelector } from '@/components/adapters/drag/DragSelectorAdapter';
 
 export interface DragBehaviorConfig {
   /** 可拖拽区域选择器 */
@@ -170,17 +172,17 @@ export function createDragBehaviorOptimizer(config: DragBehaviorConfig): DragBeh
 export const DRAG_CONFIGS = {
   /** 面板标题栏拖拽配置 */
   PANEL_HEADER: {
-    draggableSelector: '.panel-header-draggable, .ant-card-head',
+    draggableSelector: '[data-draggable="panel-header"], [data-draggable="card-head"]',
     noDragSelectors: [
       '.panel-header-controls',
-      '.ant-card-extra',
+      '[data-antd-component="card-extra"]',
       'button',
       'input',
       'select',
       'textarea',
-      '.ant-btn',
-      '.ant-input',
-      '.ant-select',
+      '[data-antd-component="button"]',
+      '[data-antd-component="input"]',
+      '[data-antd-component="select"]',
       '.panel-content-area'
     ],
     dragThreshold: 3,
@@ -195,8 +197,8 @@ export const DRAG_CONFIGS = {
       'button',
       'input',
       'select',
-      '.ant-btn',
-      '.ant-dropdown'
+      '[data-antd-component="button"]',
+      '[data-antd-component="dropdown"]'
     ],
     dragThreshold: 5,
     enableDragPreview: true

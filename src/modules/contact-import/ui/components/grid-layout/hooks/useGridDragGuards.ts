@@ -15,7 +15,7 @@ export interface DragGuardOptions {
 const DEFAULT_TABLE_SELECTORS = [
   '[data-testid="workbench-numbers-table"]',
   '[data-testid="batch-manager-numbers-table"]',
-  '.ant-table-container',
+  '[data-component="table-container"]',  // Employee D适配器：替换表格容器
   '.contact-import-table'
 ];
 

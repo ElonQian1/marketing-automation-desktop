@@ -6,6 +6,8 @@
 - [Dropdown 组件品牌化重构](./done/2025-10/task-B-dropdown-refresh-20251001-180000.md)
 - [SmartDialog 动效与 tokens 对齐](./done/2025-10/task-B-smartdialog-refresh-20251001-183000.md)
 - [Dialog 接入 motionPresets 动效](./done/2025-10/task-B-dialog-motion-20251001-173500.md)
+- [CardShell 语义色与动效统一](./done/2025-10/task-B-cardshell-motion-20251001-202000.md)
+- [Button 令牌化与交互动效统一](./done/2025-10/task-B-button-refresh-20251001-212000.md)
 
 ## open
 - 暂无

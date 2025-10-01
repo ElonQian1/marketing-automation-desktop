@@ -189,8 +189,8 @@ function checkBrandImports() {
       path: 'src/pages/BrandShowcasePage.tsx',
       patterns: [
         'from.*components/layout',
-        'from.*components/ui',
-        'from.*motion.*import.*motion'
+        'from.*components/ui', 
+        'import.*motion.*from.*framer-motion'
       ]
     }
   ];

@@ -13,6 +13,7 @@ export {
   Button,
   buttonVariants,
   type ButtonProps,
+  type ButtonTone,
 } from './button/Button';
 
 // 卡片组件
@@ -28,8 +29,15 @@ export {
 
 export {
   CardShell,
+  CardShellHeader,
+  CardShellContent,
+  CardShellFooter,
+  CardShellTitle,
+  CardShellDescription,
+  CardShellBadges,
   cardShellVariants,
   type CardShellProps,
+  type CardShellTone,
 } from './card/CardShell';
 
 // 标签组件
@@ -89,6 +97,18 @@ export {
 
 // Motion 预设与包装组件
 export * from './motion';
+
+// 反馈组件适配器 - Employee D
+export {
+  AlertCard,
+  LoadingSpinner,
+} from './feedback/FeedbackAdapter';
+
+// Typography 适配器 - Employee D  
+export {
+  Text,
+  Title,
+} from './typography/TypographyAdapter';
 
 // 类型导出
 export type { VariantProps } from 'class-variance-authority';

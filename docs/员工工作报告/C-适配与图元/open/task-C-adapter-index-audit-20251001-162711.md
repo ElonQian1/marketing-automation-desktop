@@ -1,0 +1,1 @@
+> 该任务卡已移动至 `../review/task-C-adapter-index-audit-20251001-162711.md`，请在 review 阶段继续跟进。

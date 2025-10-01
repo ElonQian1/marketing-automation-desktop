@@ -1,14 +1,14 @@
 {
-  "timestamp": "2025-10-01T07:04:10.698Z",
+  "timestamp": "2025-10-01T08:45:46.365Z",
   "passed": false,
   "errors": [
     "TypeScript 类型检查失败",
-    "包大小超限: 40.1 MB > 5 MB"
+    "包大小超限: 45.2 MB > 5 MB"
   ],
   "warnings": [
     "样式覆盖扫描发现问题，请查看详细报告",
-    "CSS大小超限: 276.6 KB > 100 KB",
-    "发现 41 个超大文件需要拆分"
+    "CSS大小超限: 359.2 KB > 100 KB",
+    "发现 43 个超大文件需要拆分"
   ],
   "results": {
     "overridesScan": null,
@@ -18,11 +18,11 @@
     },
     "buildCheck": {
       "success": true,
-      "output": "\n> employee-drainage-tool@0.2.0 build\n> vite build\n\n[watch-mode] cache-hit usePolling=false reason=default-native\n[watch-mode] usePolling=false reason=default-native-cached cwd=D:\\rust\\active-projects\\小红书\\employeeGUI\n\u001b[36mvite v7.1.4 \u001b[32mbuilding for production...\u001b[36m\u001b[39m\ntransforming...\n\u001b[32m✓\u001b[39m 7127 modules transformed.\nrendering chunks...\ncomputing gzip size...\n\u001b[2mdist/\u001b[22m\u001b[32mindex.html                                  \u001b[39m\u001b[1m\u001b[2m    0.62 kB\u001b[22m\u001b[1m\u001b[22m\u001b[2m │ gzip:   0.39 kB\u001b[22m\n\u001b[2mdist/\u001b[22m\u001b[35massets/ContactImportWorkbench-wWwLVXql.css  \u001b[39m\u001b[1m\u001b[2m    5.95 kB\u001b[22m\u001b[1m\u001b[22m\u001b[2m │ gzip:   1.63 kB\u001b[22m\n\u001b[2mdist/\u001b[22m\u001b[35massets/NativeAntDesignApp-D3b2IRDY.css      \u001b[39m\u001b[1m\u001b[2m    7.18 kB\u001b[22m\u001b[1m\u001b[22m\u001b[2m │ gzip:   2.10 kB\u001b[22m\n\u001b[2mdist/\u001b[22m\u001b[35massets/index-BpCLhsoB.css                   \u001b[39m\u001b[1m\u001b[2m   30.74 kB\u001b[22m\u001b[1m\u001b[22m\u001b[2m │ gzip:   6.91 kB\u001b[22m\n\u001b[2mdist/\u001b[22m\u001b[36massets/frontendLoop-B-BMIn-F.js             \u001b[39m\u001b[1m\u001b[2m    1.15 kB\u001b[22m\u001b[1m\u001b[22m\u001b[2m │ gzip:   0.79 kB\u001b[22m\n\u001b[2mdist/\u001b[22m\u001b[36massets/tauri-api-B0DbQSw4.js                \u001b[39m\u001b[1m\u001b[2m    1.35 kB\u001b[22m\u001b[1m\u001b[22m\u001b[2m │ gzip:   0.68 kB\u001b[22m\n\u001b[2mdist/\u001b[22m\u001b[36massets/ContactImportWorkbench-Bhpbyrfr.js   \u001b[39m\u001b[1m\u001b[2m  245.51 kB\u001b[22m\u001b[1m\u001b[22m\u001b[2m │ gzip:  77.43 kB\u001b[22m\n\u001b[2mdist/\u001b[22m\u001b[36massets/index-C86VmcMH.js                    \u001b[39m\u001b[1m\u001b[2m  472.22 kB\u001b[22m\u001b[1m\u001b[22m\u001b[2m │ gzip: 153.55 kB\u001b[22m\n\u001b[2mdist/\u001b[22m\u001b[36massets/NativeAntDesignApp-CtRxLYJb.js       \u001b[39m\u001b[1m\u001b[33m1,916.21 kB\u001b[39m\u001b[22m\u001b[2m │ gzip: 576.47 kB\u001b[22m\n\u001b[32m✓ built in 20.03s\u001b[39m\n"
+      "output": "\n> employee-drainage-tool@0.2.0 build\n> vite build\n\n[watch-mode] cache-hit usePolling=false reason=default-native\n[watch-mode] usePolling=false reason=default-native-cached cwd=D:\\rust\\active-projects\\小红书\\employeeGUI\n\u001b[36mvite v7.1.4 \u001b[32mbuilding for production...\u001b[36m\u001b[39m\ntransforming...\n\u001b[32m✓\u001b[39m 7127 modules transformed.\nrendering chunks...\ncomputing gzip size...\n\u001b[2mdist/\u001b[22m\u001b[32mindex.html                                  \u001b[39m\u001b[1m\u001b[2m    0.62 kB\u001b[22m\u001b[1m\u001b[22m\u001b[2m │ gzip:   0.39 kB\u001b[22m\n\u001b[2mdist/\u001b[22m\u001b[35massets/ContactImportWorkbench-wWwLVXql.css  \u001b[39m\u001b[1m\u001b[2m    5.95 kB\u001b[22m\u001b[1m\u001b[22m\u001b[2m │ gzip:   1.63 kB\u001b[22m\n\u001b[2mdist/\u001b[22m\u001b[35massets/NativeAntDesignApp-D3b2IRDY.css      \u001b[39m\u001b[1m\u001b[2m    7.18 kB\u001b[22m\u001b[1m\u001b[22m\u001b[2m │ gzip:   2.10 kB\u001b[22m\n\u001b[2mdist/\u001b[22m\u001b[35massets/index-BwDas_4a.css                   \u001b[39m\u001b[1m\u001b[2m   41.52 kB\u001b[22m\u001b[1m\u001b[22m\u001b[2m │ gzip:   8.26 kB\u001b[22m\n\u001b[2mdist/\u001b[22m\u001b[36massets/frontendLoop-BQgVfxIQ.js             \u001b[39m\u001b[1m\u001b[2m    1.15 kB\u001b[22m\u001b[1m\u001b[22m\u001b[2m │ gzip:   0.78 kB\u001b[22m\n\u001b[2mdist/\u001b[22m\u001b[36massets/tauri-api-B0DbQSw4.js                \u001b[39m\u001b[1m\u001b[2m    1.35 kB\u001b[22m\u001b[1m\u001b[22m\u001b[2m │ gzip:   0.68 kB\u001b[22m\n\u001b[2mdist/\u001b[22m\u001b[36massets/ContactImportWorkbench-DCC8WIvA.js   \u001b[39m\u001b[1m\u001b[2m  245.51 kB\u001b[22m\u001b[1m\u001b[22m\u001b[2m │ gzip:  77.43 kB\u001b[22m\n\u001b[2mdist/\u001b[22m\u001b[36massets/index-BzJ4oXSI.js                    \u001b[39m\u001b[1m\u001b[2m  472.22 kB\u001b[22m\u001b[1m\u001b[22m\u001b[2m │ gzip: 153.55 kB\u001b[22m\n\u001b[2mdist/\u001b[22m\u001b[36massets/NativeAntDesignApp-3rthj4Cp.js       \u001b[39m\u001b[1m\u001b[33m1,916.21 kB\u001b[39m\u001b[22m\u001b[2m │ gzip: 576.47 kB\u001b[22m\n\u001b[32m✓ built in 18.30s\u001b[39m\n"
     },
     "performanceCheck": {
-      "totalSize": 42036092,
-      "cssSize": 283233
+      "totalSize": 47390814,
+      "cssSize": 367797
     },
     "fileSizeCheck": {
       "largeFiles": [
@@ -100,6 +100,11 @@
           "path": "src\\components\\smart-navigation-finder\\SmartNavigationStepBuilder.tsx",
           "lines": 628,
           "size": 22215
+        },
+        {
+          "path": "src\\pages\\brand-showcase\\BrandShowcasePage.backup.tsx",
+          "lines": 628,
+          "size": 26838
         },
         {
           "path": "src\\services\\UnifiedViewDataManager_backup.ts",
@@ -220,6 +225,11 @@
           "path": "src\\domain\\page-analysis\\services\\PageAnalysisDomainService.ts",
           "lines": 506,
           "size": 15808
+        },
+        {
+          "path": "src\\components\\ui\\button\\Button.tsx",
+          "lines": 505,
+          "size": 14415
         },
         {
           "path": "src\\components\\UnifiedViewContainer.tsx",
@@ -487,6 +497,11 @@
           "size": 8714
         },
         {
+          "path": "src\\pages\\brand-showcase\\components\\DialogDemo.tsx",
+          "lines": 390,
+          "size": 14577
+        },
+        {
           "path": "src\\components\\navigation\\NavigationBarDetector.tsx",
           "lines": 385,
           "size": 15505
@@ -592,6 +607,11 @@
           "size": 10647
         },
         {
+          "path": "src\\components\\ui\\card\\CardShell.tsx",
+          "lines": 360,
+          "size": 9911
+        },
+        {
           "path": "src\\components\\adapters\\form\\FormAdapter.tsx",
           "lines": 359,
           "size": 9692
@@ -630,11 +650,6 @@
           "path": "src\\modules\\contact-import\\import-strategies\\services\\ImportStrategyExecutor.ts",
           "lines": 351,
           "size": 10756
-        },
-        {
-          "path": "src\\pages\\brand-showcase\\BrandShowcasePage.tsx",
-          "lines": 349,
-          "size": 13299
         },
         {
           "path": "src\\application\\page-analysis\\PageAnalysisStore.ts",
@@ -682,14 +697,14 @@
           "size": 11205
         },
         {
+          "path": "src\\pages\\DeviceManagementPageBrandNew.tsx",
+          "lines": 341,
+          "size": 10744
+        },
+        {
           "path": "src\\components\\universal-ui\\views\\visual-view\\VisualPagePreview.tsx",
           "lines": 339,
           "size": 11668
-        },
-        {
-          "path": "src\\pages\\BrandShowcasePage.tsx",
-          "lines": 336,
-          "size": 9707
         },
         {
           "path": "src\\pages\\OptimizationSummaryPage.tsx",
@@ -954,7 +969,7 @@
       ]
     },
     "a11yCheck": {
-      "focusStyles": 68,
+      "focusStyles": 60,
       "ariaAttributes": 16
     }
   },

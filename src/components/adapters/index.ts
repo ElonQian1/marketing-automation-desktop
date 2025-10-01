@@ -46,4 +46,26 @@ export {
   type StepsAdapterProps,
 } from "./steps/StepsAdapter";
 
+// Grid - 栅格布局适配器
+export {
+  GridRow,
+  GridCol,
+  GridSpace,
+  type GridRowProps,
+  type GridColProps,
+  type GridSpaceProps,
+} from "./grid/GridAdapter";
+
+// Icons - 图标适配器
+export {
+  BrandStarIcon,
+  BrandRocketIcon,
+  BrandBulbIcon,
+  BrandSuccessIcon,
+  BrandWarningIcon,
+  BrandInfoIcon,
+  BrandErrorIcon,
+  type IconProps,
+} from "./icons/IconAdapter";
+
 // 提示：请不要在此处导出任何以 Ant* 命名的重复适配器，避免双实现。

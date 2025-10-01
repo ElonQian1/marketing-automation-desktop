@@ -1,15 +1,26 @@
 import React from 'react';
-import { Card, Typography, Space, Alert, theme, Spin } from 'antd';
+import { Card, theme, Statistic, List } from 'antd';
 import {
   MobileOutlined,
   WarningOutlined,
-  CheckCircleOutlined
+  CheckCircleOutlined,
+  PlusOutlined,
+  ReloadOutlined,
+  BulbOutlined
 } from '@ant-design/icons';
+
+// Employee D 适配器
+import { Row, Col, Space } from '../../components/adapters/layout/LayoutAdapter';
+import { AlertCard, LoadingSpinner } from '../../components/ui';
+import { Button } from '../../components/ui';
+import { Text } from '../../components/ui/typography/TypographyAdapter';
+
 import { DeviceList } from '../../components/device';
 import { useAdb } from '../../application/hooks/useAdb';
 import { DeviceStatusCards, DevicePageHeader, DeviceInstructions } from './components';
+import { PageShell as PageWrapper } from '../../components/layout/PageShell';
 
-const { Paragraph, Text } = Typography;
+// const { Paragraph, Text } = Typography; // Employee D: 已移除直连AntD
 
 /**
  * 设备管理页面 - 原生 Ant Design 版本
@@ -24,9 +35,9 @@ export const DeviceManagementPageNative: React.FC = () => {
   return (
     <PageWrapper
       title="设备管理"
-      subtitle="管理最多10台设备的连接状态，确保任务正常执行"
-  icon={<MobileOutlined />}
-      onRefresh={refreshDevices}
+      // subtitle="管理最多10台设备的连接状态，确保任务正常执行"
+      // icon={<MobileOutlined />}
+      // onRefresh={refreshDevices}
       actions={
         <Button 
           type="primary" 

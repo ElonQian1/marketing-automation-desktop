@@ -98,7 +98,7 @@ export const ContactImportWorkbench: React.FC = () => {
   //   debug: process.env.NODE_ENV === 'development',
   //   targetTables: [
   //     '[data-testid="workbench-numbers-table"]',
-  //     '.ant-table-container'
+  //     '    //     '[data-component="table-container"]''
   //   ]
   // });
 

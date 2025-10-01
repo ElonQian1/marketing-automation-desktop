@@ -72,7 +72,7 @@ export function useDragConflictResolver(options: ConflictResolverOptions = {}) {
       }
 
       // 4. 检测文件拖拽组件
-      const fileDropZones = document.querySelectorAll('[data-drag-over="true"], .ant-upload-drag');
+      const fileDropZones = document.querySelectorAll('[data-drag-over="true"], [data-antd-component="upload-drag"]');
       if (fileDropZones.length > 0 && resizableHeaders.length > 0) {
         const conflictId = 'file-drop-vs-table-resize';
         

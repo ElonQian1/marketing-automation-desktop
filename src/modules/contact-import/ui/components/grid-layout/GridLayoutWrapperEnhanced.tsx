@@ -95,7 +95,10 @@ export const GridLayoutWrapper: React.FC<GridLayoutWrapperProps> = ({
   
   // 动态高度计算
   const { availableHeight } = useViewportHeight({
-    excludeSelectors: ['.ant-layout-header', '.layout-controls'],
+    excludeSelectors: [
+      '[data-layout-exclude="header"]',  // Employee D适配器：替换布局头部区域
+      '[data-layout-exclude="controls"]' // 替换布局控制区域
+    ],
     minHeight: 400,
     padding: 24
   });

@@ -4,7 +4,7 @@
  * 
  * 职责：
  * 1. 通过容器样式和配置统一 AntD Table 的外观
- * 2. 不覆写 .ant-table-* 内部样式，仅通过 ConfigProvider 和外层容器
+ * 2. 不覆写 AntD Table 内部样式，仅通过 ConfigProvider 和外层容器
  * 3. 提供统一的分页、排序、筛选等交互模式
  * 4. 集成设计令牌系统，确保品牌一致性
  * 
@@ -55,25 +55,25 @@ const getBrandedTableTheme = (brandTheme: string) => {
       colorText: 'var(--text-1)',
       colorTextSecondary: 'var(--text-2)',
       colorBorder: 'var(--border-primary)',
-      borderRadius: parseInt('var(--radius)') || 12,
+      borderRadius: 12, // 使用固定值，对应 --radius: 12px
       
       // 现代化字体
       fontFamily: 'var(--font-family)',
-      fontSize: parseInt('var(--font)') || 16,
+      fontSize: 16, // 使用固定值
     },
     components: {
       Table: {
         // 统一的表格样式，不覆盖内部实现
-        borderRadiusLG: parseInt('var(--radius-lg)') || 16,
+        borderRadiusLG: 16, // 对应 --radius-lg: 16px
         headerBg: 'linear-gradient(to right, var(--bg-secondary), var(--bg-muted))',
         headerColor: 'var(--text-1)',
         // 品牌化行悬停效果：微渐变玻璃态
         rowHoverBg: 'linear-gradient(to right, rgba(59, 130, 246, 0.05), transparent)', 
-        padding: parseInt('var(--space-4)') || 16,
-        paddingSM: parseInt('var(--space-3)') || 12,
+        padding: 16, // 对应 --space-4: 16px
+        paddingSM: 12, // 对应 --space-3: 12px
         
         // 品牌化的分页样式
-        paginationPadding: parseInt('var(--space-6)') || 24,
+        paginationPadding: 24, // 对应 --space-6: 24px
       },
     },
   };
@@ -88,7 +88,7 @@ const getBrandedTableTheme = (brandTheme: string) => {
           // 更强的阴影效果
           boxShadow: 'var(--shadow-lg)',
           // 更大的圆角
-          borderRadius: parseInt('var(--radius-lg)') || 16,
+          borderRadius: 16, // 对应 --radius-lg: 16px
         },
       };
       

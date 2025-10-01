@@ -14,22 +14,25 @@ const { Title, Paragraph, Text } = Typography;
  * 3. 所有令牌的实际应用效果
  */
 export const DesignTokensDemo: React.FC = () => {
-  const { theme, updateTheme } = useTheme();
+  const { mode, density, isDark, isCompact, setMode, setDensity, toggleTheme, toggleDensity } = useTheme();
 
   // 主题切换处理
-  const handleThemeChange = (isDark: boolean) => {
-    if (isDark) {
-      theme.setMode('dark');
+  const handleThemeChange = (isDarkMode: boolean) => {
+    if (isDarkMode) {
+      setMode('dark');
     } else {
-      theme.setMode('light');
+      setMode('light');
     }
   };
 
   // 密度切换处理
   const handleDensityChange = (value: string) => {
-    const isCompact = value === 'compact';
-    // 这里可以扩展密度相关的配置
-    console.log('Density changed to:', value);
+    const isCompactMode = value === 'compact';
+    if (isCompactMode) {
+      setDensity('compact');
+    } else {
+      setDensity('default');
+    }
   };
 
   return (

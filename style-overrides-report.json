@@ -1,265 +1,12 @@
 {
   "summary": {
-    "scannedFiles": 1258,
-    "totalIssues": 1481,
-    "criticalIssues": 23,
+    "scannedFiles": 1281,
+    "totalIssues": 1519,
+    "criticalIssues": 0,
     "highIssues": 32,
-    "mediumIssues": 1426
+    "mediumIssues": 1487
   },
   "violations": [
-    {
-      "file": "src\\components\\adapters\\form\\FormAdapter.tsx",
-      "line": 7,
-      "column": 11,
-      "type": "antdOverrides",
-      "name": "AntD 类覆盖",
-      "severity": "critical",
-      "match": ".ant-form-",
-      "context": "* 2. 不覆写 .ant-form-* 内部样式，仅通过 ConfigProvider 和外层容器",
-      "fix": "移除覆盖，通过 tokens 和适配器统一"
-    },
-    {
-      "file": "src\\components\\adapters\\table\\TableAdapter.tsx",
-      "line": 7,
-      "column": 11,
-      "type": "antdOverrides",
-      "name": "AntD 类覆盖",
-      "severity": "critical",
-      "match": ".ant-table-",
-      "context": "* 2. 不覆写 .ant-table-* 内部样式，仅通过 ConfigProvider 和外层容器",
-      "fix": "移除覆盖，通过 tokens 和适配器统一"
-    },
-    {
-      "file": "src\\modules\\contact-import\\ui\\components\\DeviceAssignmentGrid\\DeviceCard.tsx",
-      "line": 137,
-      "column": 93,
-      "type": "antdOverrides",
-      "name": "AntD 类覆盖",
-      "severity": "critical",
-      "match": ".ant-select",
-      "context": "if (target && target.closest('input, button, select, textarea, [role=\"spinbutton\"], .ant-select, .ant-input-number, .ant-btn, [data-no-card-toggle]')) return;",
-      "fix": "移除覆盖，通过 tokens 和适配器统一"
-    },
-    {
-      "file": "src\\modules\\contact-import\\ui\\components\\DeviceAssignmentGrid\\DeviceCard.tsx",
-      "line": 137,
-      "column": 106,
-      "type": "antdOverrides",
-      "name": "AntD 类覆盖",
-      "severity": "critical",
-      "match": ".ant-input-number",
-      "context": "if (target && target.closest('input, button, select, textarea, [role=\"spinbutton\"], .ant-select, .ant-input-number, .ant-btn, [data-no-card-toggle]')) return;",
-      "fix": "移除覆盖，通过 tokens 和适配器统一"
-    },
-    {
-      "file": "src\\modules\\contact-import\\ui\\components\\DeviceAssignmentGrid\\DeviceCard.tsx",
-      "line": 137,
-      "column": 125,
-      "type": "antdOverrides",
-      "name": "AntD 类覆盖",
-      "severity": "critical",
-      "match": ".ant-btn",
-      "context": "if (target && target.closest('input, button, select, textarea, [role=\"spinbutton\"], .ant-select, .ant-input-number, .ant-btn, [data-no-card-toggle]')) return;",
-      "fix": "移除覆盖，通过 tokens 和适配器统一"
-    },
-    {
-      "file": "src\\modules\\contact-import\\ui\\components\\grid-layout\\GridLayoutWrapper.tsx",
-      "line": 100,
-      "column": 25,
-      "type": "antdOverrides",
-      "name": "AntD 类覆盖",
-      "severity": "critical",
-      "match": ".ant-layout-header",
-      "context": "excludeSelectors: ['.ant-layout-header', '.layout-controls'],",
-      "fix": "移除覆盖，通过 tokens 和适配器统一"
-    },
-    {
-      "file": "src\\modules\\contact-import\\ui\\components\\grid-layout\\GridLayoutWrapper.tsx",
-      "line": 231,
-      "column": 53,
-      "type": "antdOverrides",
-      "name": "AntD 类覆盖",
-      "severity": "critical",
-      "match": ".ant-card-head-title",
-      "context": "draggableHandle=\".panel-header-draggable, .ant-card-head-title\"  // 标题栏拖拽",
-      "fix": "移除覆盖，通过 tokens 和适配器统一"
-    },
-    {
-      "file": "src\\modules\\contact-import\\ui\\components\\grid-layout\\GridLayoutWrapperEnhanced.tsx",
-      "line": 98,
-      "column": 25,
-      "type": "antdOverrides",
-      "name": "AntD 类覆盖",
-      "severity": "critical",
-      "match": ".ant-layout-header",
-      "context": "excludeSelectors: ['.ant-layout-header', '.layout-controls'],",
-      "fix": "移除覆盖，通过 tokens 和适配器统一"
-    },
-    {
-      "file": "src\\modules\\contact-import\\ui\\components\\grid-layout\\hooks\\performance\\DragBehaviorOptimizer.ts",
-      "line": 173,
-      "column": 50,
-      "type": "antdOverrides",
-      "name": "AntD 类覆盖",
-      "severity": "critical",
-      "match": ".ant-card-head",
-      "context": "draggableSelector: '.panel-header-draggable, .ant-card-head',",
-      "fix": "移除覆盖，通过 tokens 和适配器统一"
-    },
-    {
-      "file": "src\\modules\\contact-import\\ui\\components\\grid-layout\\hooks\\performance\\DragBehaviorOptimizer.ts",
-      "line": 176,
-      "column": 8,
-      "type": "antdOverrides",
-      "name": "AntD 类覆盖",
-      "severity": "critical",
-      "match": ".ant-card-extra",
-      "context": "'.ant-card-extra',",
-      "fix": "移除覆盖，通过 tokens 和适配器统一"
-    },
-    {
-      "file": "src\\modules\\contact-import\\ui\\components\\grid-layout\\hooks\\performance\\DragBehaviorOptimizer.ts",
-      "line": 181,
-      "column": 8,
-      "type": "antdOverrides",
-      "name": "AntD 类覆盖",
-      "severity": "critical",
-      "match": ".ant-btn",
-      "context": "'.ant-btn',",
-      "fix": "移除覆盖，通过 tokens 和适配器统一"
-    },
-    {
-      "file": "src\\modules\\contact-import\\ui\\components\\grid-layout\\hooks\\performance\\DragBehaviorOptimizer.ts",
-      "line": 182,
-      "column": 8,
-      "type": "antdOverrides",
-      "name": "AntD 类覆盖",
-      "severity": "critical",
-      "match": ".ant-input",
-      "context": "'.ant-input',",
-      "fix": "移除覆盖，通过 tokens 和适配器统一"
-    },
-    {
-      "file": "src\\modules\\contact-import\\ui\\components\\grid-layout\\hooks\\performance\\DragBehaviorOptimizer.ts",
-      "line": 183,
-      "column": 8,
-      "type": "antdOverrides",
-      "name": "AntD 类覆盖",
-      "severity": "critical",
-      "match": ".ant-select",
-      "context": "'.ant-select',",
-      "fix": "移除覆盖，通过 tokens 和适配器统一"
-    },
-    {
-      "file": "src\\modules\\contact-import\\ui\\components\\grid-layout\\hooks\\performance\\DragBehaviorOptimizer.ts",
-      "line": 198,
-      "column": 8,
-      "type": "antdOverrides",
-      "name": "AntD 类覆盖",
-      "severity": "critical",
-      "match": ".ant-btn",
-      "context": "'.ant-btn',",
-      "fix": "移除覆盖，通过 tokens 和适配器统一"
-    },
-    {
-      "file": "src\\modules\\contact-import\\ui\\components\\grid-layout\\hooks\\performance\\DragBehaviorOptimizer.ts",
-      "line": 199,
-      "column": 8,
-      "type": "antdOverrides",
-      "name": "AntD 类覆盖",
-      "severity": "critical",
-      "match": ".ant-dropdown",
-      "context": "'.ant-dropdown'",
-      "fix": "移除覆盖，通过 tokens 和适配器统一"
-    },
-    {
-      "file": "src\\modules\\contact-import\\ui\\components\\grid-layout\\hooks\\useDragConflictResolver.ts",
-      "line": 75,
-      "column": 81,
-      "type": "antdOverrides",
-      "name": "AntD 类覆盖",
-      "severity": "critical",
-      "match": ".ant-upload-drag",
-      "context": "const fileDropZones = document.querySelectorAll('[data-drag-over=\"true\"], .ant-upload-drag');",
-      "fix": "移除覆盖，通过 tokens 和适配器统一"
-    },
-    {
-      "file": "src\\modules\\contact-import\\ui\\components\\grid-layout\\hooks\\useDragFixer.ts",
-      "line": 34,
-      "column": 8,
-      "type": "antdOverrides",
-      "name": "AntD 类覆盖",
-      "severity": "critical",
-      "match": ".ant-table-container",
-      "context": "'.ant-table-container',",
-      "fix": "移除覆盖，通过 tokens 和适配器统一"
-    },
-    {
-      "file": "src\\modules\\contact-import\\ui\\components\\grid-layout\\hooks\\useDragHealthCheck.ts",
-      "line": 126,
-      "column": 47,
-      "type": "antdOverrides",
-      "name": "AntD 类覆盖",
-      "severity": "critical",
-      "match": ".ant-table-container",
-      "context": "const tables = document.querySelectorAll('.ant-table-container, table');",
-      "fix": "移除覆盖，通过 tokens 和适配器统一"
-    },
-    {
-      "file": "src\\modules\\contact-import\\ui\\components\\grid-layout\\hooks\\useDragRestore.ts",
-      "line": 36,
-      "column": 8,
-      "type": "antdOverrides",
-      "name": "AntD 类覆盖",
-      "severity": "critical",
-      "match": ".ant-table-thead",
-      "context": "'.ant-table-thead th',",
-      "fix": "移除覆盖，通过 tokens 和适配器统一"
-    },
-    {
-      "file": "src\\modules\\contact-import\\ui\\components\\grid-layout\\hooks\\useGridDragGuards.ts",
-      "line": 18,
-      "column": 4,
-      "type": "antdOverrides",
-      "name": "AntD 类覆盖",
-      "severity": "critical",
-      "match": ".ant-table-container",
-      "context": "'.ant-table-container',",
-      "fix": "移除覆盖，通过 tokens 和适配器统一"
-    },
-    {
-      "file": "src\\modules\\contact-import\\ui\\ContactImportWorkbench.tsx",
-      "line": 101,
-      "column": 11,
-      "type": "antdOverrides",
-      "name": "AntD 类覆盖",
-      "severity": "critical",
-      "match": ".ant-table-container",
-      "context": "//     '.ant-table-container'",
-      "fix": "移除覆盖，通过 tokens 和适配器统一"
-    },
-    {
-      "file": "src\\pages\\device-management\\DeviceManagementPageBrandNew.tsx",
-      "line": 32,
-      "column": 19,
-      "type": "importantUsage",
-      "name": "!important 使用",
-      "severity": "critical",
-      "match": "!important",
-      "context": "* - 无 .ant-* 覆盖或 !important",
-      "fix": "移除 !important，通过正确的CSS层级和tokens处理"
-    },
-    {
-      "file": "src\\pages\\EmployeePageBrandNew.tsx",
-      "line": 29,
-      "column": 20,
-      "type": "importantUsage",
-      "name": "!important 使用",
-      "severity": "critical",
-      "match": "!important",
-      "context": "* - 禁止 .ant-* 覆盖和 !important",
-      "fix": "移除 !important，通过正确的CSS层级和tokens处理"
-    },
     {
       "file": "src\\components\\EnhancedDraggableToolbar.module.css",
       "line": 10,
@@ -570,7 +317,7 @@
     },
     {
       "file": "src\\modules\\contact-import\\ui\\components\\grid-layout\\hooks\\performance\\DragBehaviorOptimizer.ts",
-      "line": 117,
+      "line": 119,
       "column": 9,
       "type": "hardcodedShadow",
       "name": "硬编码阴影",
@@ -581,7 +328,7 @@
     },
     {
       "file": "src\\modules\\contact-import\\ui\\components\\grid-layout\\hooks\\performance\\DragBehaviorOptimizer.ts",
-      "line": 134,
+      "line": 136,
       "column": 9,
       "type": "hardcodedShadow",
       "name": "硬编码阴影",
@@ -8148,6 +7895,677 @@
       "fix": "使用 tokens 颜色变量替换"
     },
     {
+      "file": "src\\components\\ui\\design-tokens\\colors.ts",
+      "line": 9,
+      "column": 10,
+      "type": "hardcodedColors",
+      "name": "硬编码颜色",
+      "severity": "medium",
+      "match": "#f0f9ff",
+      "context": "50: '#f0f9ff',",
+      "fix": "使用 tokens 颜色变量替换"
+    },
+    {
+      "file": "src\\components\\ui\\design-tokens\\colors.ts",
+      "line": 10,
+      "column": 11,
+      "type": "hardcodedColors",
+      "name": "硬编码颜色",
+      "severity": "medium",
+      "match": "#e0f2fe",
+      "context": "100: '#e0f2fe',",
+      "fix": "使用 tokens 颜色变量替换"
+    },
+    {
+      "file": "src\\components\\ui\\design-tokens\\colors.ts",
+      "line": 11,
+      "column": 11,
+      "type": "hardcodedColors",
+      "name": "硬编码颜色",
+      "severity": "medium",
+      "match": "#bae6fd",
+      "context": "200: '#bae6fd',",
+      "fix": "使用 tokens 颜色变量替换"
+    },
+    {
+      "file": "src\\components\\ui\\design-tokens\\colors.ts",
+      "line": 12,
+      "column": 11,
+      "type": "hardcodedColors",
+      "name": "硬编码颜色",
+      "severity": "medium",
+      "match": "#7dd3fc",
+      "context": "300: '#7dd3fc',",
+      "fix": "使用 tokens 颜色变量替换"
+    },
+    {
+      "file": "src\\components\\ui\\design-tokens\\colors.ts",
+      "line": 13,
+      "column": 11,
+      "type": "hardcodedColors",
+      "name": "硬编码颜色",
+      "severity": "medium",
+      "match": "#38bdf8",
+      "context": "400: '#38bdf8',",
+      "fix": "使用 tokens 颜色变量替换"
+    },
+    {
+      "file": "src\\components\\ui\\design-tokens\\colors.ts",
+      "line": 14,
+      "column": 11,
+      "type": "hardcodedColors",
+      "name": "硬编码颜色",
+      "severity": "medium",
+      "match": "#0ea5e9",
+      "context": "500: '#0ea5e9',  // 主色",
+      "fix": "使用 tokens 颜色变量替换"
+    },
+    {
+      "file": "src\\components\\ui\\design-tokens\\colors.ts",
+      "line": 15,
+      "column": 11,
+      "type": "hardcodedColors",
+      "name": "硬编码颜色",
+      "severity": "medium",
+      "match": "#0284c7",
+      "context": "600: '#0284c7',",
+      "fix": "使用 tokens 颜色变量替换"
+    },
+    {
+      "file": "src\\components\\ui\\design-tokens\\colors.ts",
+      "line": 16,
+      "column": 11,
+      "type": "hardcodedColors",
+      "name": "硬编码颜色",
+      "severity": "medium",
+      "match": "#0369a1",
+      "context": "700: '#0369a1',",
+      "fix": "使用 tokens 颜色变量替换"
+    },
+    {
+      "file": "src\\components\\ui\\design-tokens\\colors.ts",
+      "line": 17,
+      "column": 11,
+      "type": "hardcodedColors",
+      "name": "硬编码颜色",
+      "severity": "medium",
+      "match": "#075985",
+      "context": "800: '#075985',",
+      "fix": "使用 tokens 颜色变量替换"
+    },
+    {
+      "file": "src\\components\\ui\\design-tokens\\colors.ts",
+      "line": 18,
+      "column": 11,
+      "type": "hardcodedColors",
+      "name": "硬编码颜色",
+      "severity": "medium",
+      "match": "#0c4a6e",
+      "context": "900: '#0c4a6e',",
+      "fix": "使用 tokens 颜色变量替换"
+    },
+    {
+      "file": "src\\components\\ui\\design-tokens\\colors.ts",
+      "line": 23,
+      "column": 10,
+      "type": "hardcodedColors",
+      "name": "硬编码颜色",
+      "severity": "medium",
+      "match": "#f8fafc",
+      "context": "50: '#f8fafc',",
+      "fix": "使用 tokens 颜色变量替换"
+    },
+    {
+      "file": "src\\components\\ui\\design-tokens\\colors.ts",
+      "line": 24,
+      "column": 11,
+      "type": "hardcodedColors",
+      "name": "硬编码颜色",
+      "severity": "medium",
+      "match": "#f1f5f9",
+      "context": "100: '#f1f5f9',",
+      "fix": "使用 tokens 颜色变量替换"
+    },
+    {
+      "file": "src\\components\\ui\\design-tokens\\colors.ts",
+      "line": 25,
+      "column": 11,
+      "type": "hardcodedColors",
+      "name": "硬编码颜色",
+      "severity": "medium",
+      "match": "#e2e8f0",
+      "context": "200: '#e2e8f0',",
+      "fix": "使用 tokens 颜色变量替换"
+    },
+    {
+      "file": "src\\components\\ui\\design-tokens\\colors.ts",
+      "line": 26,
+      "column": 11,
+      "type": "hardcodedColors",
+      "name": "硬编码颜色",
+      "severity": "medium",
+      "match": "#cbd5e1",
+      "context": "300: '#cbd5e1',",
+      "fix": "使用 tokens 颜色变量替换"
+    },
+    {
+      "file": "src\\components\\ui\\design-tokens\\colors.ts",
+      "line": 27,
+      "column": 11,
+      "type": "hardcodedColors",
+      "name": "硬编码颜色",
+      "severity": "medium",
+      "match": "#94a3b8",
+      "context": "400: '#94a3b8',",
+      "fix": "使用 tokens 颜色变量替换"
+    },
+    {
+      "file": "src\\components\\ui\\design-tokens\\colors.ts",
+      "line": 28,
+      "column": 11,
+      "type": "hardcodedColors",
+      "name": "硬编码颜色",
+      "severity": "medium",
+      "match": "#64748b",
+      "context": "500: '#64748b',  // 辅助色",
+      "fix": "使用 tokens 颜色变量替换"
+    },
+    {
+      "file": "src\\components\\ui\\design-tokens\\colors.ts",
+      "line": 29,
+      "column": 11,
+      "type": "hardcodedColors",
+      "name": "硬编码颜色",
+      "severity": "medium",
+      "match": "#475569",
+      "context": "600: '#475569',",
+      "fix": "使用 tokens 颜色变量替换"
+    },
+    {
+      "file": "src\\components\\ui\\design-tokens\\colors.ts",
+      "line": 30,
+      "column": 11,
+      "type": "hardcodedColors",
+      "name": "硬编码颜色",
+      "severity": "medium",
+      "match": "#334155",
+      "context": "700: '#334155',",
+      "fix": "使用 tokens 颜色变量替换"
+    },
+    {
+      "file": "src\\components\\ui\\design-tokens\\colors.ts",
+      "line": 31,
+      "column": 11,
+      "type": "hardcodedColors",
+      "name": "硬编码颜色",
+      "severity": "medium",
+      "match": "#1e293b",
+      "context": "800: '#1e293b',",
+      "fix": "使用 tokens 颜色变量替换"
+    },
+    {
+      "file": "src\\components\\ui\\design-tokens\\colors.ts",
+      "line": 32,
+      "column": 11,
+      "type": "hardcodedColors",
+      "name": "硬编码颜色",
+      "severity": "medium",
+      "match": "#0f172a",
+      "context": "900: '#0f172a',",
+      "fix": "使用 tokens 颜色变量替换"
+    },
+    {
+      "file": "src\\components\\ui\\design-tokens\\colors.ts",
+      "line": 37,
+      "column": 10,
+      "type": "hardcodedColors",
+      "name": "硬编码颜色",
+      "severity": "medium",
+      "match": "#f0fdf4",
+      "context": "50: '#f0fdf4',",
+      "fix": "使用 tokens 颜色变量替换"
+    },
+    {
+      "file": "src\\components\\ui\\design-tokens\\colors.ts",
+      "line": 38,
+      "column": 11,
+      "type": "hardcodedColors",
+      "name": "硬编码颜色",
+      "severity": "medium",
+      "match": "#dcfce7",
+      "context": "100: '#dcfce7',",
+      "fix": "使用 tokens 颜色变量替换"
+    },
+    {
+      "file": "src\\components\\ui\\design-tokens\\colors.ts",
+      "line": 39,
+      "column": 11,
+      "type": "hardcodedColors",
+      "name": "硬编码颜色",
+      "severity": "medium",
+      "match": "#bbf7d0",
+      "context": "200: '#bbf7d0',",
+      "fix": "使用 tokens 颜色变量替换"
+    },
+    {
+      "file": "src\\components\\ui\\design-tokens\\colors.ts",
+      "line": 40,
+      "column": 11,
+      "type": "hardcodedColors",
+      "name": "硬编码颜色",
+      "severity": "medium",
+      "match": "#86efac",
+      "context": "300: '#86efac',",
+      "fix": "使用 tokens 颜色变量替换"
+    },
+    {
+      "file": "src\\components\\ui\\design-tokens\\colors.ts",
+      "line": 41,
+      "column": 11,
+      "type": "hardcodedColors",
+      "name": "硬编码颜色",
+      "severity": "medium",
+      "match": "#4ade80",
+      "context": "400: '#4ade80',",
+      "fix": "使用 tokens 颜色变量替换"
+    },
+    {
+      "file": "src\\components\\ui\\design-tokens\\colors.ts",
+      "line": 42,
+      "column": 11,
+      "type": "hardcodedColors",
+      "name": "硬编码颜色",
+      "severity": "medium",
+      "match": "#22c55e",
+      "context": "500: '#22c55e',  // 成功色",
+      "fix": "使用 tokens 颜色变量替换"
+    },
+    {
+      "file": "src\\components\\ui\\design-tokens\\colors.ts",
+      "line": 43,
+      "column": 11,
+      "type": "hardcodedColors",
+      "name": "硬编码颜色",
+      "severity": "medium",
+      "match": "#16a34a",
+      "context": "600: '#16a34a',",
+      "fix": "使用 tokens 颜色变量替换"
+    },
+    {
+      "file": "src\\components\\ui\\design-tokens\\colors.ts",
+      "line": 44,
+      "column": 11,
+      "type": "hardcodedColors",
+      "name": "硬编码颜色",
+      "severity": "medium",
+      "match": "#15803d",
+      "context": "700: '#15803d',",
+      "fix": "使用 tokens 颜色变量替换"
+    },
+    {
+      "file": "src\\components\\ui\\design-tokens\\colors.ts",
+      "line": 45,
+      "column": 11,
+      "type": "hardcodedColors",
+      "name": "硬编码颜色",
+      "severity": "medium",
+      "match": "#166534",
+      "context": "800: '#166534',",
+      "fix": "使用 tokens 颜色变量替换"
+    },
+    {
+      "file": "src\\components\\ui\\design-tokens\\colors.ts",
+      "line": 46,
+      "column": 11,
+      "type": "hardcodedColors",
+      "name": "硬编码颜色",
+      "severity": "medium",
+      "match": "#14532d",
+      "context": "900: '#14532d',",
+      "fix": "使用 tokens 颜色变量替换"
+    },
+    {
+      "file": "src\\components\\ui\\design-tokens\\colors.ts",
+      "line": 50,
+      "column": 10,
+      "type": "hardcodedColors",
+      "name": "硬编码颜色",
+      "severity": "medium",
+      "match": "#fffbeb",
+      "context": "50: '#fffbeb',",
+      "fix": "使用 tokens 颜色变量替换"
+    },
+    {
+      "file": "src\\components\\ui\\design-tokens\\colors.ts",
+      "line": 51,
+      "column": 11,
+      "type": "hardcodedColors",
+      "name": "硬编码颜色",
+      "severity": "medium",
+      "match": "#fef3c7",
+      "context": "100: '#fef3c7',",
+      "fix": "使用 tokens 颜色变量替换"
+    },
+    {
+      "file": "src\\components\\ui\\design-tokens\\colors.ts",
+      "line": 52,
+      "column": 11,
+      "type": "hardcodedColors",
+      "name": "硬编码颜色",
+      "severity": "medium",
+      "match": "#fde68a",
+      "context": "200: '#fde68a',",
+      "fix": "使用 tokens 颜色变量替换"
+    },
+    {
+      "file": "src\\components\\ui\\design-tokens\\colors.ts",
+      "line": 53,
+      "column": 11,
+      "type": "hardcodedColors",
+      "name": "硬编码颜色",
+      "severity": "medium",
+      "match": "#fcd34d",
+      "context": "300: '#fcd34d',",
+      "fix": "使用 tokens 颜色变量替换"
+    },
+    {
+      "file": "src\\components\\ui\\design-tokens\\colors.ts",
+      "line": 54,
+      "column": 11,
+      "type": "hardcodedColors",
+      "name": "硬编码颜色",
+      "severity": "medium",
+      "match": "#fbbf24",
+      "context": "400: '#fbbf24',",
+      "fix": "使用 tokens 颜色变量替换"
+    },
+    {
+      "file": "src\\components\\ui\\design-tokens\\colors.ts",
+      "line": 55,
+      "column": 11,
+      "type": "hardcodedColors",
+      "name": "硬编码颜色",
+      "severity": "medium",
+      "match": "#f59e0b",
+      "context": "500: '#f59e0b',  // 警告色",
+      "fix": "使用 tokens 颜色变量替换"
+    },
+    {
+      "file": "src\\components\\ui\\design-tokens\\colors.ts",
+      "line": 56,
+      "column": 11,
+      "type": "hardcodedColors",
+      "name": "硬编码颜色",
+      "severity": "medium",
+      "match": "#d97706",
+      "context": "600: '#d97706',",
+      "fix": "使用 tokens 颜色变量替换"
+    },
+    {
+      "file": "src\\components\\ui\\design-tokens\\colors.ts",
+      "line": 57,
+      "column": 11,
+      "type": "hardcodedColors",
+      "name": "硬编码颜色",
+      "severity": "medium",
+      "match": "#b45309",
+      "context": "700: '#b45309',",
+      "fix": "使用 tokens 颜色变量替换"
+    },
+    {
+      "file": "src\\components\\ui\\design-tokens\\colors.ts",
+      "line": 58,
+      "column": 11,
+      "type": "hardcodedColors",
+      "name": "硬编码颜色",
+      "severity": "medium",
+      "match": "#92400e",
+      "context": "800: '#92400e',",
+      "fix": "使用 tokens 颜色变量替换"
+    },
+    {
+      "file": "src\\components\\ui\\design-tokens\\colors.ts",
+      "line": 59,
+      "column": 11,
+      "type": "hardcodedColors",
+      "name": "硬编码颜色",
+      "severity": "medium",
+      "match": "#78350f",
+      "context": "900: '#78350f',",
+      "fix": "使用 tokens 颜色变量替换"
+    },
+    {
+      "file": "src\\components\\ui\\design-tokens\\colors.ts",
+      "line": 63,
+      "column": 10,
+      "type": "hardcodedColors",
+      "name": "硬编码颜色",
+      "severity": "medium",
+      "match": "#fef2f2",
+      "context": "50: '#fef2f2',",
+      "fix": "使用 tokens 颜色变量替换"
+    },
+    {
+      "file": "src\\components\\ui\\design-tokens\\colors.ts",
+      "line": 64,
+      "column": 11,
+      "type": "hardcodedColors",
+      "name": "硬编码颜色",
+      "severity": "medium",
+      "match": "#fee2e2",
+      "context": "100: '#fee2e2',",
+      "fix": "使用 tokens 颜色变量替换"
+    },
+    {
+      "file": "src\\components\\ui\\design-tokens\\colors.ts",
+      "line": 65,
+      "column": 11,
+      "type": "hardcodedColors",
+      "name": "硬编码颜色",
+      "severity": "medium",
+      "match": "#fecaca",
+      "context": "200: '#fecaca',",
+      "fix": "使用 tokens 颜色变量替换"
+    },
+    {
+      "file": "src\\components\\ui\\design-tokens\\colors.ts",
+      "line": 66,
+      "column": 11,
+      "type": "hardcodedColors",
+      "name": "硬编码颜色",
+      "severity": "medium",
+      "match": "#fca5a5",
+      "context": "300: '#fca5a5',",
+      "fix": "使用 tokens 颜色变量替换"
+    },
+    {
+      "file": "src\\components\\ui\\design-tokens\\colors.ts",
+      "line": 67,
+      "column": 11,
+      "type": "hardcodedColors",
+      "name": "硬编码颜色",
+      "severity": "medium",
+      "match": "#f87171",
+      "context": "400: '#f87171',",
+      "fix": "使用 tokens 颜色变量替换"
+    },
+    {
+      "file": "src\\components\\ui\\design-tokens\\colors.ts",
+      "line": 68,
+      "column": 11,
+      "type": "hardcodedColors",
+      "name": "硬编码颜色",
+      "severity": "medium",
+      "match": "#ef4444",
+      "context": "500: '#ef4444',  // 错误色",
+      "fix": "使用 tokens 颜色变量替换"
+    },
+    {
+      "file": "src\\components\\ui\\design-tokens\\colors.ts",
+      "line": 69,
+      "column": 11,
+      "type": "hardcodedColors",
+      "name": "硬编码颜色",
+      "severity": "medium",
+      "match": "#dc2626",
+      "context": "600: '#dc2626',",
+      "fix": "使用 tokens 颜色变量替换"
+    },
+    {
+      "file": "src\\components\\ui\\design-tokens\\colors.ts",
+      "line": 70,
+      "column": 11,
+      "type": "hardcodedColors",
+      "name": "硬编码颜色",
+      "severity": "medium",
+      "match": "#b91c1c",
+      "context": "700: '#b91c1c',",
+      "fix": "使用 tokens 颜色变量替换"
+    },
+    {
+      "file": "src\\components\\ui\\design-tokens\\colors.ts",
+      "line": 71,
+      "column": 11,
+      "type": "hardcodedColors",
+      "name": "硬编码颜色",
+      "severity": "medium",
+      "match": "#991b1b",
+      "context": "800: '#991b1b',",
+      "fix": "使用 tokens 颜色变量替换"
+    },
+    {
+      "file": "src\\components\\ui\\design-tokens\\colors.ts",
+      "line": 72,
+      "column": 11,
+      "type": "hardcodedColors",
+      "name": "硬编码颜色",
+      "severity": "medium",
+      "match": "#7f1d1d",
+      "context": "900: '#7f1d1d',",
+      "fix": "使用 tokens 颜色变量替换"
+    },
+    {
+      "file": "src\\components\\ui\\design-tokens\\colors.ts",
+      "line": 77,
+      "column": 10,
+      "type": "hardcodedColors",
+      "name": "硬编码颜色",
+      "severity": "medium",
+      "match": "#fafafa",
+      "context": "50: '#fafafa',",
+      "fix": "使用 tokens 颜色变量替换"
+    },
+    {
+      "file": "src\\components\\ui\\design-tokens\\colors.ts",
+      "line": 78,
+      "column": 11,
+      "type": "hardcodedColors",
+      "name": "硬编码颜色",
+      "severity": "medium",
+      "match": "#f5f5f5",
+      "context": "100: '#f5f5f5',",
+      "fix": "使用 tokens 颜色变量替换"
+    },
+    {
+      "file": "src\\components\\ui\\design-tokens\\colors.ts",
+      "line": 79,
+      "column": 11,
+      "type": "hardcodedColors",
+      "name": "硬编码颜色",
+      "severity": "medium",
+      "match": "#e5e5e5",
+      "context": "200: '#e5e5e5',",
+      "fix": "使用 tokens 颜色变量替换"
+    },
+    {
+      "file": "src\\components\\ui\\design-tokens\\colors.ts",
+      "line": 80,
+      "column": 11,
+      "type": "hardcodedColors",
+      "name": "硬编码颜色",
+      "severity": "medium",
+      "match": "#d4d4d4",
+      "context": "300: '#d4d4d4',",
+      "fix": "使用 tokens 颜色变量替换"
+    },
+    {
+      "file": "src\\components\\ui\\design-tokens\\colors.ts",
+      "line": 81,
+      "column": 11,
+      "type": "hardcodedColors",
+      "name": "硬编码颜色",
+      "severity": "medium",
+      "match": "#a3a3a3",
+      "context": "400: '#a3a3a3',",
+      "fix": "使用 tokens 颜色变量替换"
+    },
+    {
+      "file": "src\\components\\ui\\design-tokens\\colors.ts",
+      "line": 82,
+      "column": 11,
+      "type": "hardcodedColors",
+      "name": "硬编码颜色",
+      "severity": "medium",
+      "match": "#737373",
+      "context": "500: '#737373',  // 中性色",
+      "fix": "使用 tokens 颜色变量替换"
+    },
+    {
+      "file": "src\\components\\ui\\design-tokens\\colors.ts",
+      "line": 83,
+      "column": 11,
+      "type": "hardcodedColors",
+      "name": "硬编码颜色",
+      "severity": "medium",
+      "match": "#525252",
+      "context": "600: '#525252',",
+      "fix": "使用 tokens 颜色变量替换"
+    },
+    {
+      "file": "src\\components\\ui\\design-tokens\\colors.ts",
+      "line": 84,
+      "column": 11,
+      "type": "hardcodedColors",
+      "name": "硬编码颜色",
+      "severity": "medium",
+      "match": "#404040",
+      "context": "700: '#404040',",
+      "fix": "使用 tokens 颜色变量替换"
+    },
+    {
+      "file": "src\\components\\ui\\design-tokens\\colors.ts",
+      "line": 85,
+      "column": 11,
+      "type": "hardcodedColors",
+      "name": "硬编码颜色",
+      "severity": "medium",
+      "match": "#262626",
+      "context": "800: '#262626',",
+      "fix": "使用 tokens 颜色变量替换"
+    },
+    {
+      "file": "src\\components\\ui\\design-tokens\\colors.ts",
+      "line": 86,
+      "column": 11,
+      "type": "hardcodedColors",
+      "name": "硬编码颜色",
+      "severity": "medium",
+      "match": "#171717",
+      "context": "900: '#171717',",
+      "fix": "使用 tokens 颜色变量替换"
+    },
+    {
+      "file": "src\\components\\ui\\design-tokens\\spacing.ts",
+      "line": 91,
+      "column": 14,
+      "type": "hardcodedColors",
+      "name": "硬编码颜色",
+      "severity": "medium",
+      "match": "#0000",
+      "context": "none: '0 0 #0000',",
+      "fix": "使用 tokens 颜色变量替换"
+    },
+    {
       "file": "src\\components\\UIAnalyzer.tsx",
       "line": 131,
       "column": 70,
@@ -12263,7 +12681,7 @@
     },
     {
       "file": "src\\modules\\contact-import\\ui\\components\\DeviceAssignmentGrid\\DeviceCard.tsx",
-      "line": 50,
+      "line": 51,
       "column": 56,
       "type": "hardcodedColors",
       "name": "硬编码颜色",
@@ -12274,7 +12692,7 @@
     },
     {
       "file": "src\\modules\\contact-import\\ui\\components\\DeviceAssignmentGrid\\DeviceCard.tsx",
-      "line": 134,
+      "line": 138,
       "column": 61,
       "type": "hardcodedColors",
       "name": "硬编码颜色",
@@ -12285,7 +12703,7 @@
     },
     {
       "file": "src\\modules\\contact-import\\ui\\components\\DeviceAssignmentGrid\\DeviceCard.tsx",
-      "line": 134,
+      "line": 138,
       "column": 93,
       "type": "hardcodedColors",
       "name": "硬编码颜色",
@@ -16300,31 +16718,7 @@
     }
   ],
   "byFile": {
-    "src\\components\\adapters\\form\\FormAdapter.tsx": [
-      {
-        "file": "src\\components\\adapters\\form\\FormAdapter.tsx",
-        "line": 7,
-        "column": 11,
-        "type": "antdOverrides",
-        "name": "AntD 类覆盖",
-        "severity": "critical",
-        "match": ".ant-form-",
-        "context": "* 2. 不覆写 .ant-form-* 内部样式，仅通过 ConfigProvider 和外层容器",
-        "fix": "移除覆盖，通过 tokens 和适配器统一"
-      }
-    ],
     "src\\components\\adapters\\table\\TableAdapter.tsx": [
-      {
-        "file": "src\\components\\adapters\\table\\TableAdapter.tsx",
-        "line": 7,
-        "column": 11,
-        "type": "antdOverrides",
-        "name": "AntD 类覆盖",
-        "severity": "critical",
-        "match": ".ant-table-",
-        "context": "* 2. 不覆写 .ant-table-* 内部样式，仅通过 ConfigProvider 和外层容器",
-        "fix": "移除覆盖，通过 tokens 和适配器统一"
-      },
       {
         "file": "src\\components\\adapters\\table\\TableAdapter.tsx",
         "line": 71,
@@ -24117,6 +24511,681 @@
         "fix": "使用 tokens 颜色变量替换"
       }
     ],
+    "src\\components\\ui\\design-tokens\\colors.ts": [
+      {
+        "file": "src\\components\\ui\\design-tokens\\colors.ts",
+        "line": 9,
+        "column": 10,
+        "type": "hardcodedColors",
+        "name": "硬编码颜色",
+        "severity": "medium",
+        "match": "#f0f9ff",
+        "context": "50: '#f0f9ff',",
+        "fix": "使用 tokens 颜色变量替换"
+      },
+      {
+        "file": "src\\components\\ui\\design-tokens\\colors.ts",
+        "line": 10,
+        "column": 11,
+        "type": "hardcodedColors",
+        "name": "硬编码颜色",
+        "severity": "medium",
+        "match": "#e0f2fe",
+        "context": "100: '#e0f2fe',",
+        "fix": "使用 tokens 颜色变量替换"
+      },
+      {
+        "file": "src\\components\\ui\\design-tokens\\colors.ts",
+        "line": 11,
+        "column": 11,
+        "type": "hardcodedColors",
+        "name": "硬编码颜色",
+        "severity": "medium",
+        "match": "#bae6fd",
+        "context": "200: '#bae6fd',",
+        "fix": "使用 tokens 颜色变量替换"
+      },
+      {
+        "file": "src\\components\\ui\\design-tokens\\colors.ts",
+        "line": 12,
+        "column": 11,
+        "type": "hardcodedColors",
+        "name": "硬编码颜色",
+        "severity": "medium",
+        "match": "#7dd3fc",
+        "context": "300: '#7dd3fc',",
+        "fix": "使用 tokens 颜色变量替换"
+      },
+      {
+        "file": "src\\components\\ui\\design-tokens\\colors.ts",
+        "line": 13,
+        "column": 11,
+        "type": "hardcodedColors",
+        "name": "硬编码颜色",
+        "severity": "medium",
+        "match": "#38bdf8",
+        "context": "400: '#38bdf8',",
+        "fix": "使用 tokens 颜色变量替换"
+      },
+      {
+        "file": "src\\components\\ui\\design-tokens\\colors.ts",
+        "line": 14,
+        "column": 11,
+        "type": "hardcodedColors",
+        "name": "硬编码颜色",
+        "severity": "medium",
+        "match": "#0ea5e9",
+        "context": "500: '#0ea5e9',  // 主色",
+        "fix": "使用 tokens 颜色变量替换"
+      },
+      {
+        "file": "src\\components\\ui\\design-tokens\\colors.ts",
+        "line": 15,
+        "column": 11,
+        "type": "hardcodedColors",
+        "name": "硬编码颜色",
+        "severity": "medium",
+        "match": "#0284c7",
+        "context": "600: '#0284c7',",
+        "fix": "使用 tokens 颜色变量替换"
+      },
+      {
+        "file": "src\\components\\ui\\design-tokens\\colors.ts",
+        "line": 16,
+        "column": 11,
+        "type": "hardcodedColors",
+        "name": "硬编码颜色",
+        "severity": "medium",
+        "match": "#0369a1",
+        "context": "700: '#0369a1',",
+        "fix": "使用 tokens 颜色变量替换"
+      },
+      {
+        "file": "src\\components\\ui\\design-tokens\\colors.ts",
+        "line": 17,
+        "column": 11,
+        "type": "hardcodedColors",
+        "name": "硬编码颜色",
+        "severity": "medium",
+        "match": "#075985",
+        "context": "800: '#075985',",
+        "fix": "使用 tokens 颜色变量替换"
+      },
+      {
+        "file": "src\\components\\ui\\design-tokens\\colors.ts",
+        "line": 18,
+        "column": 11,
+        "type": "hardcodedColors",
+        "name": "硬编码颜色",
+        "severity": "medium",
+        "match": "#0c4a6e",
+        "context": "900: '#0c4a6e',",
+        "fix": "使用 tokens 颜色变量替换"
+      },
+      {
+        "file": "src\\components\\ui\\design-tokens\\colors.ts",
+        "line": 23,
+        "column": 10,
+        "type": "hardcodedColors",
+        "name": "硬编码颜色",
+        "severity": "medium",
+        "match": "#f8fafc",
+        "context": "50: '#f8fafc',",
+        "fix": "使用 tokens 颜色变量替换"
+      },
+      {
+        "file": "src\\components\\ui\\design-tokens\\colors.ts",
+        "line": 24,
+        "column": 11,
+        "type": "hardcodedColors",
+        "name": "硬编码颜色",
+        "severity": "medium",
+        "match": "#f1f5f9",
+        "context": "100: '#f1f5f9',",
+        "fix": "使用 tokens 颜色变量替换"
+      },
+      {
+        "file": "src\\components\\ui\\design-tokens\\colors.ts",
+        "line": 25,
+        "column": 11,
+        "type": "hardcodedColors",
+        "name": "硬编码颜色",
+        "severity": "medium",
+        "match": "#e2e8f0",
+        "context": "200: '#e2e8f0',",
+        "fix": "使用 tokens 颜色变量替换"
+      },
+      {
+        "file": "src\\components\\ui\\design-tokens\\colors.ts",
+        "line": 26,
+        "column": 11,
+        "type": "hardcodedColors",
+        "name": "硬编码颜色",
+        "severity": "medium",
+        "match": "#cbd5e1",
+        "context": "300: '#cbd5e1',",
+        "fix": "使用 tokens 颜色变量替换"
+      },
+      {
+        "file": "src\\components\\ui\\design-tokens\\colors.ts",
+        "line": 27,
+        "column": 11,
+        "type": "hardcodedColors",
+        "name": "硬编码颜色",
+        "severity": "medium",
+        "match": "#94a3b8",
+        "context": "400: '#94a3b8',",
+        "fix": "使用 tokens 颜色变量替换"
+      },
+      {
+        "file": "src\\components\\ui\\design-tokens\\colors.ts",
+        "line": 28,
+        "column": 11,
+        "type": "hardcodedColors",
+        "name": "硬编码颜色",
+        "severity": "medium",
+        "match": "#64748b",
+        "context": "500: '#64748b',  // 辅助色",
+        "fix": "使用 tokens 颜色变量替换"
+      },
+      {
+        "file": "src\\components\\ui\\design-tokens\\colors.ts",
+        "line": 29,
+        "column": 11,
+        "type": "hardcodedColors",
+        "name": "硬编码颜色",
+        "severity": "medium",
+        "match": "#475569",
+        "context": "600: '#475569',",
+        "fix": "使用 tokens 颜色变量替换"
+      },
+      {
+        "file": "src\\components\\ui\\design-tokens\\colors.ts",
+        "line": 30,
+        "column": 11,
+        "type": "hardcodedColors",
+        "name": "硬编码颜色",
+        "severity": "medium",
+        "match": "#334155",
+        "context": "700: '#334155',",
+        "fix": "使用 tokens 颜色变量替换"
+      },
+      {
+        "file": "src\\components\\ui\\design-tokens\\colors.ts",
+        "line": 31,
+        "column": 11,
+        "type": "hardcodedColors",
+        "name": "硬编码颜色",
+        "severity": "medium",
+        "match": "#1e293b",
+        "context": "800: '#1e293b',",
+        "fix": "使用 tokens 颜色变量替换"
+      },
+      {
+        "file": "src\\components\\ui\\design-tokens\\colors.ts",
+        "line": 32,
+        "column": 11,
+        "type": "hardcodedColors",
+        "name": "硬编码颜色",
+        "severity": "medium",
+        "match": "#0f172a",
+        "context": "900: '#0f172a',",
+        "fix": "使用 tokens 颜色变量替换"
+      },
+      {
+        "file": "src\\components\\ui\\design-tokens\\colors.ts",
+        "line": 37,
+        "column": 10,
+        "type": "hardcodedColors",
+        "name": "硬编码颜色",
+        "severity": "medium",
+        "match": "#f0fdf4",
+        "context": "50: '#f0fdf4',",
+        "fix": "使用 tokens 颜色变量替换"
+      },
+      {
+        "file": "src\\components\\ui\\design-tokens\\colors.ts",
+        "line": 38,
+        "column": 11,
+        "type": "hardcodedColors",
+        "name": "硬编码颜色",
+        "severity": "medium",
+        "match": "#dcfce7",
+        "context": "100: '#dcfce7',",
+        "fix": "使用 tokens 颜色变量替换"
+      },
+      {
+        "file": "src\\components\\ui\\design-tokens\\colors.ts",
+        "line": 39,
+        "column": 11,
+        "type": "hardcodedColors",
+        "name": "硬编码颜色",
+        "severity": "medium",
+        "match": "#bbf7d0",
+        "context": "200: '#bbf7d0',",
+        "fix": "使用 tokens 颜色变量替换"
+      },
+      {
+        "file": "src\\components\\ui\\design-tokens\\colors.ts",
+        "line": 40,
+        "column": 11,
+        "type": "hardcodedColors",
+        "name": "硬编码颜色",
+        "severity": "medium",
+        "match": "#86efac",
+        "context": "300: '#86efac',",
+        "fix": "使用 tokens 颜色变量替换"
+      },
+      {
+        "file": "src\\components\\ui\\design-tokens\\colors.ts",
+        "line": 41,
+        "column": 11,
+        "type": "hardcodedColors",
+        "name": "硬编码颜色",
+        "severity": "medium",
+        "match": "#4ade80",
+        "context": "400: '#4ade80',",
+        "fix": "使用 tokens 颜色变量替换"
+      },
+      {
+        "file": "src\\components\\ui\\design-tokens\\colors.ts",
+        "line": 42,
+        "column": 11,
+        "type": "hardcodedColors",
+        "name": "硬编码颜色",
+        "severity": "medium",
+        "match": "#22c55e",
+        "context": "500: '#22c55e',  // 成功色",
+        "fix": "使用 tokens 颜色变量替换"
+      },
+      {
+        "file": "src\\components\\ui\\design-tokens\\colors.ts",
+        "line": 43,
+        "column": 11,
+        "type": "hardcodedColors",
+        "name": "硬编码颜色",
+        "severity": "medium",
+        "match": "#16a34a",
+        "context": "600: '#16a34a',",
+        "fix": "使用 tokens 颜色变量替换"
+      },
+      {
+        "file": "src\\components\\ui\\design-tokens\\colors.ts",
+        "line": 44,
+        "column": 11,
+        "type": "hardcodedColors",
+        "name": "硬编码颜色",
+        "severity": "medium",
+        "match": "#15803d",
+        "context": "700: '#15803d',",
+        "fix": "使用 tokens 颜色变量替换"
+      },
+      {
+        "file": "src\\components\\ui\\design-tokens\\colors.ts",
+        "line": 45,
+        "column": 11,
+        "type": "hardcodedColors",
+        "name": "硬编码颜色",
+        "severity": "medium",
+        "match": "#166534",
+        "context": "800: '#166534',",
+        "fix": "使用 tokens 颜色变量替换"
+      },
+      {
+        "file": "src\\components\\ui\\design-tokens\\colors.ts",
+        "line": 46,
+        "column": 11,
+        "type": "hardcodedColors",
+        "name": "硬编码颜色",
+        "severity": "medium",
+        "match": "#14532d",
+        "context": "900: '#14532d',",
+        "fix": "使用 tokens 颜色变量替换"
+      },
+      {
+        "file": "src\\components\\ui\\design-tokens\\colors.ts",
+        "line": 50,
+        "column": 10,
+        "type": "hardcodedColors",
+        "name": "硬编码颜色",
+        "severity": "medium",
+        "match": "#fffbeb",
+        "context": "50: '#fffbeb',",
+        "fix": "使用 tokens 颜色变量替换"
+      },
+      {
+        "file": "src\\components\\ui\\design-tokens\\colors.ts",
+        "line": 51,
+        "column": 11,
+        "type": "hardcodedColors",
+        "name": "硬编码颜色",
+        "severity": "medium",
+        "match": "#fef3c7",
+        "context": "100: '#fef3c7',",
+        "fix": "使用 tokens 颜色变量替换"
+      },
+      {
+        "file": "src\\components\\ui\\design-tokens\\colors.ts",
+        "line": 52,
+        "column": 11,
+        "type": "hardcodedColors",
+        "name": "硬编码颜色",
+        "severity": "medium",
+        "match": "#fde68a",
+        "context": "200: '#fde68a',",
+        "fix": "使用 tokens 颜色变量替换"
+      },
+      {
+        "file": "src\\components\\ui\\design-tokens\\colors.ts",
+        "line": 53,
+        "column": 11,
+        "type": "hardcodedColors",
+        "name": "硬编码颜色",
+        "severity": "medium",
+        "match": "#fcd34d",
+        "context": "300: '#fcd34d',",
+        "fix": "使用 tokens 颜色变量替换"
+      },
+      {
+        "file": "src\\components\\ui\\design-tokens\\colors.ts",
+        "line": 54,
+        "column": 11,
+        "type": "hardcodedColors",
+        "name": "硬编码颜色",
+        "severity": "medium",
+        "match": "#fbbf24",
+        "context": "400: '#fbbf24',",
+        "fix": "使用 tokens 颜色变量替换"
+      },
+      {
+        "file": "src\\components\\ui\\design-tokens\\colors.ts",
+        "line": 55,
+        "column": 11,
+        "type": "hardcodedColors",
+        "name": "硬编码颜色",
+        "severity": "medium",
+        "match": "#f59e0b",
+        "context": "500: '#f59e0b',  // 警告色",
+        "fix": "使用 tokens 颜色变量替换"
+      },
+      {
+        "file": "src\\components\\ui\\design-tokens\\colors.ts",
+        "line": 56,
+        "column": 11,
+        "type": "hardcodedColors",
+        "name": "硬编码颜色",
+        "severity": "medium",
+        "match": "#d97706",
+        "context": "600: '#d97706',",
+        "fix": "使用 tokens 颜色变量替换"
+      },
+      {
+        "file": "src\\components\\ui\\design-tokens\\colors.ts",
+        "line": 57,
+        "column": 11,
+        "type": "hardcodedColors",
+        "name": "硬编码颜色",
+        "severity": "medium",
+        "match": "#b45309",
+        "context": "700: '#b45309',",
+        "fix": "使用 tokens 颜色变量替换"
+      },
+      {
+        "file": "src\\components\\ui\\design-tokens\\colors.ts",
+        "line": 58,
+        "column": 11,
+        "type": "hardcodedColors",
+        "name": "硬编码颜色",
+        "severity": "medium",
+        "match": "#92400e",
+        "context": "800: '#92400e',",
+        "fix": "使用 tokens 颜色变量替换"
+      },
+      {
+        "file": "src\\components\\ui\\design-tokens\\colors.ts",
+        "line": 59,
+        "column": 11,
+        "type": "hardcodedColors",
+        "name": "硬编码颜色",
+        "severity": "medium",
+        "match": "#78350f",
+        "context": "900: '#78350f',",
+        "fix": "使用 tokens 颜色变量替换"
+      },
+      {
+        "file": "src\\components\\ui\\design-tokens\\colors.ts",
+        "line": 63,
+        "column": 10,
+        "type": "hardcodedColors",
+        "name": "硬编码颜色",
+        "severity": "medium",
+        "match": "#fef2f2",
+        "context": "50: '#fef2f2',",
+        "fix": "使用 tokens 颜色变量替换"
+      },
+      {
+        "file": "src\\components\\ui\\design-tokens\\colors.ts",
+        "line": 64,
+        "column": 11,
+        "type": "hardcodedColors",
+        "name": "硬编码颜色",
+        "severity": "medium",
+        "match": "#fee2e2",
+        "context": "100: '#fee2e2',",
+        "fix": "使用 tokens 颜色变量替换"
+      },
+      {
+        "file": "src\\components\\ui\\design-tokens\\colors.ts",
+        "line": 65,
+        "column": 11,
+        "type": "hardcodedColors",
+        "name": "硬编码颜色",
+        "severity": "medium",
+        "match": "#fecaca",
+        "context": "200: '#fecaca',",
+        "fix": "使用 tokens 颜色变量替换"
+      },
+      {
+        "file": "src\\components\\ui\\design-tokens\\colors.ts",
+        "line": 66,
+        "column": 11,
+        "type": "hardcodedColors",
+        "name": "硬编码颜色",
+        "severity": "medium",
+        "match": "#fca5a5",
+        "context": "300: '#fca5a5',",
+        "fix": "使用 tokens 颜色变量替换"
+      },
+      {
+        "file": "src\\components\\ui\\design-tokens\\colors.ts",
+        "line": 67,
+        "column": 11,
+        "type": "hardcodedColors",
+        "name": "硬编码颜色",
+        "severity": "medium",
+        "match": "#f87171",
+        "context": "400: '#f87171',",
+        "fix": "使用 tokens 颜色变量替换"
+      },
+      {
+        "file": "src\\components\\ui\\design-tokens\\colors.ts",
+        "line": 68,
+        "column": 11,
+        "type": "hardcodedColors",
+        "name": "硬编码颜色",
+        "severity": "medium",
+        "match": "#ef4444",
+        "context": "500: '#ef4444',  // 错误色",
+        "fix": "使用 tokens 颜色变量替换"
+      },
+      {
+        "file": "src\\components\\ui\\design-tokens\\colors.ts",
+        "line": 69,
+        "column": 11,
+        "type": "hardcodedColors",
+        "name": "硬编码颜色",
+        "severity": "medium",
+        "match": "#dc2626",
+        "context": "600: '#dc2626',",
+        "fix": "使用 tokens 颜色变量替换"
+      },
+      {
+        "file": "src\\components\\ui\\design-tokens\\colors.ts",
+        "line": 70,
+        "column": 11,
+        "type": "hardcodedColors",
+        "name": "硬编码颜色",
+        "severity": "medium",
+        "match": "#b91c1c",
+        "context": "700: '#b91c1c',",
+        "fix": "使用 tokens 颜色变量替换"
+      },
+      {
+        "file": "src\\components\\ui\\design-tokens\\colors.ts",
+        "line": 71,
+        "column": 11,
+        "type": "hardcodedColors",
+        "name": "硬编码颜色",
+        "severity": "medium",
+        "match": "#991b1b",
+        "context": "800: '#991b1b',",
+        "fix": "使用 tokens 颜色变量替换"
+      },
+      {
+        "file": "src\\components\\ui\\design-tokens\\colors.ts",
+        "line": 72,
+        "column": 11,
+        "type": "hardcodedColors",
+        "name": "硬编码颜色",
+        "severity": "medium",
+        "match": "#7f1d1d",
+        "context": "900: '#7f1d1d',",
+        "fix": "使用 tokens 颜色变量替换"
+      },
+      {
+        "file": "src\\components\\ui\\design-tokens\\colors.ts",
+        "line": 77,
+        "column": 10,
+        "type": "hardcodedColors",
+        "name": "硬编码颜色",
+        "severity": "medium",
+        "match": "#fafafa",
+        "context": "50: '#fafafa',",
+        "fix": "使用 tokens 颜色变量替换"
+      },
+      {
+        "file": "src\\components\\ui\\design-tokens\\colors.ts",
+        "line": 78,
+        "column": 11,
+        "type": "hardcodedColors",
+        "name": "硬编码颜色",
+        "severity": "medium",
+        "match": "#f5f5f5",
+        "context": "100: '#f5f5f5',",
+        "fix": "使用 tokens 颜色变量替换"
+      },
+      {
+        "file": "src\\components\\ui\\design-tokens\\colors.ts",
+        "line": 79,
+        "column": 11,
+        "type": "hardcodedColors",
+        "name": "硬编码颜色",
+        "severity": "medium",
+        "match": "#e5e5e5",
+        "context": "200: '#e5e5e5',",
+        "fix": "使用 tokens 颜色变量替换"
+      },
+      {
+        "file": "src\\components\\ui\\design-tokens\\colors.ts",
+        "line": 80,
+        "column": 11,
+        "type": "hardcodedColors",
+        "name": "硬编码颜色",
+        "severity": "medium",
+        "match": "#d4d4d4",
+        "context": "300: '#d4d4d4',",
+        "fix": "使用 tokens 颜色变量替换"
+      },
+      {
+        "file": "src\\components\\ui\\design-tokens\\colors.ts",
+        "line": 81,
+        "column": 11,
+        "type": "hardcodedColors",
+        "name": "硬编码颜色",
+        "severity": "medium",
+        "match": "#a3a3a3",
+        "context": "400: '#a3a3a3',",
+        "fix": "使用 tokens 颜色变量替换"
+      },
+      {
+        "file": "src\\components\\ui\\design-tokens\\colors.ts",
+        "line": 82,
+        "column": 11,
+        "type": "hardcodedColors",
+        "name": "硬编码颜色",
+        "severity": "medium",
+        "match": "#737373",
+        "context": "500: '#737373',  // 中性色",
+        "fix": "使用 tokens 颜色变量替换"
+      },
+      {
+        "file": "src\\components\\ui\\design-tokens\\colors.ts",
+        "line": 83,
+        "column": 11,
+        "type": "hardcodedColors",
+        "name": "硬编码颜色",
+        "severity": "medium",
+        "match": "#525252",
+        "context": "600: '#525252',",
+        "fix": "使用 tokens 颜色变量替换"
+      },
+      {
+        "file": "src\\components\\ui\\design-tokens\\colors.ts",
+        "line": 84,
+        "column": 11,
+        "type": "hardcodedColors",
+        "name": "硬编码颜色",
+        "severity": "medium",
+        "match": "#404040",
+        "context": "700: '#404040',",
+        "fix": "使用 tokens 颜色变量替换"
+      },
+      {
+        "file": "src\\components\\ui\\design-tokens\\colors.ts",
+        "line": 85,
+        "column": 11,
+        "type": "hardcodedColors",
+        "name": "硬编码颜色",
+        "severity": "medium",
+        "match": "#262626",
+        "context": "800: '#262626',",
+        "fix": "使用 tokens 颜色变量替换"
+      },
+      {
+        "file": "src\\components\\ui\\design-tokens\\colors.ts",
+        "line": 86,
+        "column": 11,
+        "type": "hardcodedColors",
+        "name": "硬编码颜色",
+        "severity": "medium",
+        "match": "#171717",
+        "context": "900: '#171717',",
+        "fix": "使用 tokens 颜色变量替换"
+      }
+    ],
+    "src\\components\\ui\\design-tokens\\spacing.ts": [
+      {
+        "file": "src\\components\\ui\\design-tokens\\spacing.ts",
+        "line": 91,
+        "column": 14,
+        "type": "hardcodedColors",
+        "name": "硬编码颜色",
+        "severity": "medium",
+        "match": "#0000",
+        "context": "none: '0 0 #0000',",
+        "fix": "使用 tokens 颜色变量替换"
+      }
+    ],
     "src\\components\\UIAnalyzer.tsx": [
       {
         "file": "src\\components\\UIAnalyzer.tsx",
@@ -28539,40 +29608,7 @@
     "src\\modules\\contact-import\\ui\\components\\DeviceAssignmentGrid\\DeviceCard.tsx": [
       {
         "file": "src\\modules\\contact-import\\ui\\components\\DeviceAssignmentGrid\\DeviceCard.tsx",
-        "line": 137,
-        "column": 93,
-        "type": "antdOverrides",
-        "name": "AntD 类覆盖",
-        "severity": "critical",
-        "match": ".ant-select",
-        "context": "if (target && target.closest('input, button, select, textarea, [role=\"spinbutton\"], .ant-select, .ant-input-number, .ant-btn, [data-no-card-toggle]')) return;",
-        "fix": "移除覆盖，通过 tokens 和适配器统一"
-      },
-      {
-        "file": "src\\modules\\contact-import\\ui\\components\\DeviceAssignmentGrid\\DeviceCard.tsx",
-        "line": 137,
-        "column": 106,
-        "type": "antdOverrides",
-        "name": "AntD 类覆盖",
-        "severity": "critical",
-        "match": ".ant-input-number",
-        "context": "if (target && target.closest('input, button, select, textarea, [role=\"spinbutton\"], .ant-select, .ant-input-number, .ant-btn, [data-no-card-toggle]')) return;",
-        "fix": "移除覆盖，通过 tokens 和适配器统一"
-      },
-      {
-        "file": "src\\modules\\contact-import\\ui\\components\\DeviceAssignmentGrid\\DeviceCard.tsx",
-        "line": 137,
-        "column": 125,
-        "type": "antdOverrides",
-        "name": "AntD 类覆盖",
-        "severity": "critical",
-        "match": ".ant-btn",
-        "context": "if (target && target.closest('input, button, select, textarea, [role=\"spinbutton\"], .ant-select, .ant-input-number, .ant-btn, [data-no-card-toggle]')) return;",
-        "fix": "移除覆盖，通过 tokens 和适配器统一"
-      },
-      {
-        "file": "src\\modules\\contact-import\\ui\\components\\DeviceAssignmentGrid\\DeviceCard.tsx",
-        "line": 50,
+        "line": 51,
         "column": 56,
         "type": "hardcodedColors",
         "name": "硬编码颜色",
@@ -28583,7 +29619,7 @@
       },
       {
         "file": "src\\modules\\contact-import\\ui\\components\\DeviceAssignmentGrid\\DeviceCard.tsx",
-        "line": 134,
+        "line": 138,
         "column": 61,
         "type": "hardcodedColors",
         "name": "硬编码颜色",
@@ -28594,7 +29630,7 @@
       },
       {
         "file": "src\\modules\\contact-import\\ui\\components\\DeviceAssignmentGrid\\DeviceCard.tsx",
-        "line": 134,
+        "line": 138,
         "column": 93,
         "type": "hardcodedColors",
         "name": "硬编码颜色",
@@ -29261,124 +30297,10 @@
         "fix": "使用 tokens 颜色变量替换"
       }
     ],
-    "src\\modules\\contact-import\\ui\\components\\grid-layout\\GridLayoutWrapper.tsx": [
-      {
-        "file": "src\\modules\\contact-import\\ui\\components\\grid-layout\\GridLayoutWrapper.tsx",
-        "line": 100,
-        "column": 25,
-        "type": "antdOverrides",
-        "name": "AntD 类覆盖",
-        "severity": "critical",
-        "match": ".ant-layout-header",
-        "context": "excludeSelectors: ['.ant-layout-header', '.layout-controls'],",
-        "fix": "移除覆盖，通过 tokens 和适配器统一"
-      },
-      {
-        "file": "src\\modules\\contact-import\\ui\\components\\grid-layout\\GridLayoutWrapper.tsx",
-        "line": 231,
-        "column": 53,
-        "type": "antdOverrides",
-        "name": "AntD 类覆盖",
-        "severity": "critical",
-        "match": ".ant-card-head-title",
-        "context": "draggableHandle=\".panel-header-draggable, .ant-card-head-title\"  // 标题栏拖拽",
-        "fix": "移除覆盖，通过 tokens 和适配器统一"
-      }
-    ],
-    "src\\modules\\contact-import\\ui\\components\\grid-layout\\GridLayoutWrapperEnhanced.tsx": [
-      {
-        "file": "src\\modules\\contact-import\\ui\\components\\grid-layout\\GridLayoutWrapperEnhanced.tsx",
-        "line": 98,
-        "column": 25,
-        "type": "antdOverrides",
-        "name": "AntD 类覆盖",
-        "severity": "critical",
-        "match": ".ant-layout-header",
-        "context": "excludeSelectors: ['.ant-layout-header', '.layout-controls'],",
-        "fix": "移除覆盖，通过 tokens 和适配器统一"
-      }
-    ],
     "src\\modules\\contact-import\\ui\\components\\grid-layout\\hooks\\performance\\DragBehaviorOptimizer.ts": [
       {
         "file": "src\\modules\\contact-import\\ui\\components\\grid-layout\\hooks\\performance\\DragBehaviorOptimizer.ts",
-        "line": 173,
-        "column": 50,
-        "type": "antdOverrides",
-        "name": "AntD 类覆盖",
-        "severity": "critical",
-        "match": ".ant-card-head",
-        "context": "draggableSelector: '.panel-header-draggable, .ant-card-head',",
-        "fix": "移除覆盖，通过 tokens 和适配器统一"
-      },
-      {
-        "file": "src\\modules\\contact-import\\ui\\components\\grid-layout\\hooks\\performance\\DragBehaviorOptimizer.ts",
-        "line": 176,
-        "column": 8,
-        "type": "antdOverrides",
-        "name": "AntD 类覆盖",
-        "severity": "critical",
-        "match": ".ant-card-extra",
-        "context": "'.ant-card-extra',",
-        "fix": "移除覆盖，通过 tokens 和适配器统一"
-      },
-      {
-        "file": "src\\modules\\contact-import\\ui\\components\\grid-layout\\hooks\\performance\\DragBehaviorOptimizer.ts",
-        "line": 181,
-        "column": 8,
-        "type": "antdOverrides",
-        "name": "AntD 类覆盖",
-        "severity": "critical",
-        "match": ".ant-btn",
-        "context": "'.ant-btn',",
-        "fix": "移除覆盖，通过 tokens 和适配器统一"
-      },
-      {
-        "file": "src\\modules\\contact-import\\ui\\components\\grid-layout\\hooks\\performance\\DragBehaviorOptimizer.ts",
-        "line": 182,
-        "column": 8,
-        "type": "antdOverrides",
-        "name": "AntD 类覆盖",
-        "severity": "critical",
-        "match": ".ant-input",
-        "context": "'.ant-input',",
-        "fix": "移除覆盖，通过 tokens 和适配器统一"
-      },
-      {
-        "file": "src\\modules\\contact-import\\ui\\components\\grid-layout\\hooks\\performance\\DragBehaviorOptimizer.ts",
-        "line": 183,
-        "column": 8,
-        "type": "antdOverrides",
-        "name": "AntD 类覆盖",
-        "severity": "critical",
-        "match": ".ant-select",
-        "context": "'.ant-select',",
-        "fix": "移除覆盖，通过 tokens 和适配器统一"
-      },
-      {
-        "file": "src\\modules\\contact-import\\ui\\components\\grid-layout\\hooks\\performance\\DragBehaviorOptimizer.ts",
-        "line": 198,
-        "column": 8,
-        "type": "antdOverrides",
-        "name": "AntD 类覆盖",
-        "severity": "critical",
-        "match": ".ant-btn",
-        "context": "'.ant-btn',",
-        "fix": "移除覆盖，通过 tokens 和适配器统一"
-      },
-      {
-        "file": "src\\modules\\contact-import\\ui\\components\\grid-layout\\hooks\\performance\\DragBehaviorOptimizer.ts",
-        "line": 199,
-        "column": 8,
-        "type": "antdOverrides",
-        "name": "AntD 类覆盖",
-        "severity": "critical",
-        "match": ".ant-dropdown",
-        "context": "'.ant-dropdown'",
-        "fix": "移除覆盖，通过 tokens 和适配器统一"
-      },
-      {
-        "file": "src\\modules\\contact-import\\ui\\components\\grid-layout\\hooks\\performance\\DragBehaviorOptimizer.ts",
-        "line": 117,
+        "line": 119,
         "column": 9,
         "type": "hardcodedShadow",
         "name": "硬编码阴影",
@@ -29389,7 +30311,7 @@
       },
       {
         "file": "src\\modules\\contact-import\\ui\\components\\grid-layout\\hooks\\performance\\DragBehaviorOptimizer.ts",
-        "line": 134,
+        "line": 136,
         "column": 9,
         "type": "hardcodedShadow",
         "name": "硬编码阴影",
@@ -29397,71 +30319,6 @@
         "match": "box-shadow: 0 4px 12px rgba(",
         "context": "box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);",
         "fix": "使用 var(--shadow) 等 tokens 替换"
-      }
-    ],
-    "src\\modules\\contact-import\\ui\\components\\grid-layout\\hooks\\useDragConflictResolver.ts": [
-      {
-        "file": "src\\modules\\contact-import\\ui\\components\\grid-layout\\hooks\\useDragConflictResolver.ts",
-        "line": 75,
-        "column": 81,
-        "type": "antdOverrides",
-        "name": "AntD 类覆盖",
-        "severity": "critical",
-        "match": ".ant-upload-drag",
-        "context": "const fileDropZones = document.querySelectorAll('[data-drag-over=\"true\"], .ant-upload-drag');",
-        "fix": "移除覆盖，通过 tokens 和适配器统一"
-      }
-    ],
-    "src\\modules\\contact-import\\ui\\components\\grid-layout\\hooks\\useDragFixer.ts": [
-      {
-        "file": "src\\modules\\contact-import\\ui\\components\\grid-layout\\hooks\\useDragFixer.ts",
-        "line": 34,
-        "column": 8,
-        "type": "antdOverrides",
-        "name": "AntD 类覆盖",
-        "severity": "critical",
-        "match": ".ant-table-container",
-        "context": "'.ant-table-container',",
-        "fix": "移除覆盖，通过 tokens 和适配器统一"
-      }
-    ],
-    "src\\modules\\contact-import\\ui\\components\\grid-layout\\hooks\\useDragHealthCheck.ts": [
-      {
-        "file": "src\\modules\\contact-import\\ui\\components\\grid-layout\\hooks\\useDragHealthCheck.ts",
-        "line": 126,
-        "column": 47,
-        "type": "antdOverrides",
-        "name": "AntD 类覆盖",
-        "severity": "critical",
-        "match": ".ant-table-container",
-        "context": "const tables = document.querySelectorAll('.ant-table-container, table');",
-        "fix": "移除覆盖，通过 tokens 和适配器统一"
-      }
-    ],
-    "src\\modules\\contact-import\\ui\\components\\grid-layout\\hooks\\useDragRestore.ts": [
-      {
-        "file": "src\\modules\\contact-import\\ui\\components\\grid-layout\\hooks\\useDragRestore.ts",
-        "line": 36,
-        "column": 8,
-        "type": "antdOverrides",
-        "name": "AntD 类覆盖",
-        "severity": "critical",
-        "match": ".ant-table-thead",
-        "context": "'.ant-table-thead th',",
-        "fix": "移除覆盖，通过 tokens 和适配器统一"
-      }
-    ],
-    "src\\modules\\contact-import\\ui\\components\\grid-layout\\hooks\\useGridDragGuards.ts": [
-      {
-        "file": "src\\modules\\contact-import\\ui\\components\\grid-layout\\hooks\\useGridDragGuards.ts",
-        "line": 18,
-        "column": 4,
-        "type": "antdOverrides",
-        "name": "AntD 类覆盖",
-        "severity": "critical",
-        "match": ".ant-table-container",
-        "context": "'.ant-table-container',",
-        "fix": "移除覆盖，通过 tokens 和适配器统一"
       }
     ],
     "src\\modules\\contact-import\\ui\\components\\grid-layout\\hooks\\useToolbarManager.ts": [
@@ -29813,17 +30670,6 @@
       }
     ],
     "src\\modules\\contact-import\\ui\\ContactImportWorkbench.tsx": [
-      {
-        "file": "src\\modules\\contact-import\\ui\\ContactImportWorkbench.tsx",
-        "line": 101,
-        "column": 11,
-        "type": "antdOverrides",
-        "name": "AntD 类覆盖",
-        "severity": "critical",
-        "match": ".ant-table-container",
-        "context": "//     '.ant-table-container'",
-        "fix": "移除覆盖，通过 tokens 和适配器统一"
-      },
       {
         "file": "src\\modules\\contact-import\\ui\\ContactImportWorkbench.tsx",
         "line": 700,
@@ -30857,32 +31703,6 @@
         "match": "#1677ff",
         "context": "valueStyle={{ color: '#1677ff' }}",
         "fix": "使用 tokens 颜色变量替换"
-      }
-    ],
-    "src\\pages\\device-management\\DeviceManagementPageBrandNew.tsx": [
-      {
-        "file": "src\\pages\\device-management\\DeviceManagementPageBrandNew.tsx",
-        "line": 32,
-        "column": 19,
-        "type": "importantUsage",
-        "name": "!important 使用",
-        "severity": "critical",
-        "match": "!important",
-        "context": "* - 无 .ant-* 覆盖或 !important",
-        "fix": "移除 !important，通过正确的CSS层级和tokens处理"
-      }
-    ],
-    "src\\pages\\EmployeePageBrandNew.tsx": [
-      {
-        "file": "src\\pages\\EmployeePageBrandNew.tsx",
-        "line": 29,
-        "column": 20,
-        "type": "importantUsage",
-        "name": "!important 使用",
-        "severity": "critical",
-        "match": "!important",
-        "context": "* - 禁止 .ant-* 覆盖和 !important",
-        "fix": "移除 !important，通过正确的CSS层级和tokens处理"
       }
     ],
     "src\\pages\\ScriptBuilderTestPage.tsx": [
@@ -33033,239 +33853,6 @@
     ]
   },
   "byType": {
-    "antdOverrides": [
-      {
-        "file": "src\\components\\adapters\\form\\FormAdapter.tsx",
-        "line": 7,
-        "column": 11,
-        "type": "antdOverrides",
-        "name": "AntD 类覆盖",
-        "severity": "critical",
-        "match": ".ant-form-",
-        "context": "* 2. 不覆写 .ant-form-* 内部样式，仅通过 ConfigProvider 和外层容器",
-        "fix": "移除覆盖，通过 tokens 和适配器统一"
-      },
-      {
-        "file": "src\\components\\adapters\\table\\TableAdapter.tsx",
-        "line": 7,
-        "column": 11,
-        "type": "antdOverrides",
-        "name": "AntD 类覆盖",
-        "severity": "critical",
-        "match": ".ant-table-",
-        "context": "* 2. 不覆写 .ant-table-* 内部样式，仅通过 ConfigProvider 和外层容器",
-        "fix": "移除覆盖，通过 tokens 和适配器统一"
-      },
-      {
-        "file": "src\\modules\\contact-import\\ui\\components\\DeviceAssignmentGrid\\DeviceCard.tsx",
-        "line": 137,
-        "column": 93,
-        "type": "antdOverrides",
-        "name": "AntD 类覆盖",
-        "severity": "critical",
-        "match": ".ant-select",
-        "context": "if (target && target.closest('input, button, select, textarea, [role=\"spinbutton\"], .ant-select, .ant-input-number, .ant-btn, [data-no-card-toggle]')) return;",
-        "fix": "移除覆盖，通过 tokens 和适配器统一"
-      },
-      {
-        "file": "src\\modules\\contact-import\\ui\\components\\DeviceAssignmentGrid\\DeviceCard.tsx",
-        "line": 137,
-        "column": 106,
-        "type": "antdOverrides",
-        "name": "AntD 类覆盖",
-        "severity": "critical",
-        "match": ".ant-input-number",
-        "context": "if (target && target.closest('input, button, select, textarea, [role=\"spinbutton\"], .ant-select, .ant-input-number, .ant-btn, [data-no-card-toggle]')) return;",
-        "fix": "移除覆盖，通过 tokens 和适配器统一"
-      },
-      {
-        "file": "src\\modules\\contact-import\\ui\\components\\DeviceAssignmentGrid\\DeviceCard.tsx",
-        "line": 137,
-        "column": 125,
-        "type": "antdOverrides",
-        "name": "AntD 类覆盖",
-        "severity": "critical",
-        "match": ".ant-btn",
-        "context": "if (target && target.closest('input, button, select, textarea, [role=\"spinbutton\"], .ant-select, .ant-input-number, .ant-btn, [data-no-card-toggle]')) return;",
-        "fix": "移除覆盖，通过 tokens 和适配器统一"
-      },
-      {
-        "file": "src\\modules\\contact-import\\ui\\components\\grid-layout\\GridLayoutWrapper.tsx",
-        "line": 100,
-        "column": 25,
-        "type": "antdOverrides",
-        "name": "AntD 类覆盖",
-        "severity": "critical",
-        "match": ".ant-layout-header",
-        "context": "excludeSelectors: ['.ant-layout-header', '.layout-controls'],",
-        "fix": "移除覆盖，通过 tokens 和适配器统一"
-      },
-      {
-        "file": "src\\modules\\contact-import\\ui\\components\\grid-layout\\GridLayoutWrapper.tsx",
-        "line": 231,
-        "column": 53,
-        "type": "antdOverrides",
-        "name": "AntD 类覆盖",
-        "severity": "critical",
-        "match": ".ant-card-head-title",
-        "context": "draggableHandle=\".panel-header-draggable, .ant-card-head-title\"  // 标题栏拖拽",
-        "fix": "移除覆盖，通过 tokens 和适配器统一"
-      },
-      {
-        "file": "src\\modules\\contact-import\\ui\\components\\grid-layout\\GridLayoutWrapperEnhanced.tsx",
-        "line": 98,
-        "column": 25,
-        "type": "antdOverrides",
-        "name": "AntD 类覆盖",
-        "severity": "critical",
-        "match": ".ant-layout-header",
-        "context": "excludeSelectors: ['.ant-layout-header', '.layout-controls'],",
-        "fix": "移除覆盖，通过 tokens 和适配器统一"
-      },
-      {
-        "file": "src\\modules\\contact-import\\ui\\components\\grid-layout\\hooks\\performance\\DragBehaviorOptimizer.ts",
-        "line": 173,
-        "column": 50,
-        "type": "antdOverrides",
-        "name": "AntD 类覆盖",
-        "severity": "critical",
-        "match": ".ant-card-head",
-        "context": "draggableSelector: '.panel-header-draggable, .ant-card-head',",
-        "fix": "移除覆盖，通过 tokens 和适配器统一"
-      },
-      {
-        "file": "src\\modules\\contact-import\\ui\\components\\grid-layout\\hooks\\performance\\DragBehaviorOptimizer.ts",
-        "line": 176,
-        "column": 8,
-        "type": "antdOverrides",
-        "name": "AntD 类覆盖",
-        "severity": "critical",
-        "match": ".ant-card-extra",
-        "context": "'.ant-card-extra',",
-        "fix": "移除覆盖，通过 tokens 和适配器统一"
-      },
-      {
-        "file": "src\\modules\\contact-import\\ui\\components\\grid-layout\\hooks\\performance\\DragBehaviorOptimizer.ts",
-        "line": 181,
-        "column": 8,
-        "type": "antdOverrides",
-        "name": "AntD 类覆盖",
-        "severity": "critical",
-        "match": ".ant-btn",
-        "context": "'.ant-btn',",
-        "fix": "移除覆盖，通过 tokens 和适配器统一"
-      },
-      {
-        "file": "src\\modules\\contact-import\\ui\\components\\grid-layout\\hooks\\performance\\DragBehaviorOptimizer.ts",
-        "line": 182,
-        "column": 8,
-        "type": "antdOverrides",
-        "name": "AntD 类覆盖",
-        "severity": "critical",
-        "match": ".ant-input",
-        "context": "'.ant-input',",
-        "fix": "移除覆盖，通过 tokens 和适配器统一"
-      },
-      {
-        "file": "src\\modules\\contact-import\\ui\\components\\grid-layout\\hooks\\performance\\DragBehaviorOptimizer.ts",
-        "line": 183,
-        "column": 8,
-        "type": "antdOverrides",
-        "name": "AntD 类覆盖",
-        "severity": "critical",
-        "match": ".ant-select",
-        "context": "'.ant-select',",
-        "fix": "移除覆盖，通过 tokens 和适配器统一"
-      },
-      {
-        "file": "src\\modules\\contact-import\\ui\\components\\grid-layout\\hooks\\performance\\DragBehaviorOptimizer.ts",
-        "line": 198,
-        "column": 8,
-        "type": "antdOverrides",
-        "name": "AntD 类覆盖",
-        "severity": "critical",
-        "match": ".ant-btn",
-        "context": "'.ant-btn',",
-        "fix": "移除覆盖，通过 tokens 和适配器统一"
-      },
-      {
-        "file": "src\\modules\\contact-import\\ui\\components\\grid-layout\\hooks\\performance\\DragBehaviorOptimizer.ts",
-        "line": 199,
-        "column": 8,
-        "type": "antdOverrides",
-        "name": "AntD 类覆盖",
-        "severity": "critical",
-        "match": ".ant-dropdown",
-        "context": "'.ant-dropdown'",
-        "fix": "移除覆盖，通过 tokens 和适配器统一"
-      },
-      {
-        "file": "src\\modules\\contact-import\\ui\\components\\grid-layout\\hooks\\useDragConflictResolver.ts",
-        "line": 75,
-        "column": 81,
-        "type": "antdOverrides",
-        "name": "AntD 类覆盖",
-        "severity": "critical",
-        "match": ".ant-upload-drag",
-        "context": "const fileDropZones = document.querySelectorAll('[data-drag-over=\"true\"], .ant-upload-drag');",
-        "fix": "移除覆盖，通过 tokens 和适配器统一"
-      },
-      {
-        "file": "src\\modules\\contact-import\\ui\\components\\grid-layout\\hooks\\useDragFixer.ts",
-        "line": 34,
-        "column": 8,
-        "type": "antdOverrides",
-        "name": "AntD 类覆盖",
-        "severity": "critical",
-        "match": ".ant-table-container",
-        "context": "'.ant-table-container',",
-        "fix": "移除覆盖，通过 tokens 和适配器统一"
-      },
-      {
-        "file": "src\\modules\\contact-import\\ui\\components\\grid-layout\\hooks\\useDragHealthCheck.ts",
-        "line": 126,
-        "column": 47,
-        "type": "antdOverrides",
-        "name": "AntD 类覆盖",
-        "severity": "critical",
-        "match": ".ant-table-container",
-        "context": "const tables = document.querySelectorAll('.ant-table-container, table');",
-        "fix": "移除覆盖，通过 tokens 和适配器统一"
-      },
-      {
-        "file": "src\\modules\\contact-import\\ui\\components\\grid-layout\\hooks\\useDragRestore.ts",
-        "line": 36,
-        "column": 8,
-        "type": "antdOverrides",
-        "name": "AntD 类覆盖",
-        "severity": "critical",
-        "match": ".ant-table-thead",
-        "context": "'.ant-table-thead th',",
-        "fix": "移除覆盖，通过 tokens 和适配器统一"
-      },
-      {
-        "file": "src\\modules\\contact-import\\ui\\components\\grid-layout\\hooks\\useGridDragGuards.ts",
-        "line": 18,
-        "column": 4,
-        "type": "antdOverrides",
-        "name": "AntD 类覆盖",
-        "severity": "critical",
-        "match": ".ant-table-container",
-        "context": "'.ant-table-container',",
-        "fix": "移除覆盖，通过 tokens 和适配器统一"
-      },
-      {
-        "file": "src\\modules\\contact-import\\ui\\ContactImportWorkbench.tsx",
-        "line": 101,
-        "column": 11,
-        "type": "antdOverrides",
-        "name": "AntD 类覆盖",
-        "severity": "critical",
-        "match": ".ant-table-container",
-        "context": "//     '.ant-table-container'",
-        "fix": "移除覆盖，通过 tokens 和适配器统一"
-      }
-    ],
     "hardcodedGradient": [
       {
         "file": "src\\components\\adapters\\table\\TableAdapter.tsx",
@@ -41091,6 +41678,677 @@
         "fix": "使用 tokens 颜色变量替换"
       },
       {
+        "file": "src\\components\\ui\\design-tokens\\colors.ts",
+        "line": 9,
+        "column": 10,
+        "type": "hardcodedColors",
+        "name": "硬编码颜色",
+        "severity": "medium",
+        "match": "#f0f9ff",
+        "context": "50: '#f0f9ff',",
+        "fix": "使用 tokens 颜色变量替换"
+      },
+      {
+        "file": "src\\components\\ui\\design-tokens\\colors.ts",
+        "line": 10,
+        "column": 11,
+        "type": "hardcodedColors",
+        "name": "硬编码颜色",
+        "severity": "medium",
+        "match": "#e0f2fe",
+        "context": "100: '#e0f2fe',",
+        "fix": "使用 tokens 颜色变量替换"
+      },
+      {
+        "file": "src\\components\\ui\\design-tokens\\colors.ts",
+        "line": 11,
+        "column": 11,
+        "type": "hardcodedColors",
+        "name": "硬编码颜色",
+        "severity": "medium",
+        "match": "#bae6fd",
+        "context": "200: '#bae6fd',",
+        "fix": "使用 tokens 颜色变量替换"
+      },
+      {
+        "file": "src\\components\\ui\\design-tokens\\colors.ts",
+        "line": 12,
+        "column": 11,
+        "type": "hardcodedColors",
+        "name": "硬编码颜色",
+        "severity": "medium",
+        "match": "#7dd3fc",
+        "context": "300: '#7dd3fc',",
+        "fix": "使用 tokens 颜色变量替换"
+      },
+      {
+        "file": "src\\components\\ui\\design-tokens\\colors.ts",
+        "line": 13,
+        "column": 11,
+        "type": "hardcodedColors",
+        "name": "硬编码颜色",
+        "severity": "medium",
+        "match": "#38bdf8",
+        "context": "400: '#38bdf8',",
+        "fix": "使用 tokens 颜色变量替换"
+      },
+      {
+        "file": "src\\components\\ui\\design-tokens\\colors.ts",
+        "line": 14,
+        "column": 11,
+        "type": "hardcodedColors",
+        "name": "硬编码颜色",
+        "severity": "medium",
+        "match": "#0ea5e9",
+        "context": "500: '#0ea5e9',  // 主色",
+        "fix": "使用 tokens 颜色变量替换"
+      },
+      {
+        "file": "src\\components\\ui\\design-tokens\\colors.ts",
+        "line": 15,
+        "column": 11,
+        "type": "hardcodedColors",
+        "name": "硬编码颜色",
+        "severity": "medium",
+        "match": "#0284c7",
+        "context": "600: '#0284c7',",
+        "fix": "使用 tokens 颜色变量替换"
+      },
+      {
+        "file": "src\\components\\ui\\design-tokens\\colors.ts",
+        "line": 16,
+        "column": 11,
+        "type": "hardcodedColors",
+        "name": "硬编码颜色",
+        "severity": "medium",
+        "match": "#0369a1",
+        "context": "700: '#0369a1',",
+        "fix": "使用 tokens 颜色变量替换"
+      },
+      {
+        "file": "src\\components\\ui\\design-tokens\\colors.ts",
+        "line": 17,
+        "column": 11,
+        "type": "hardcodedColors",
+        "name": "硬编码颜色",
+        "severity": "medium",
+        "match": "#075985",
+        "context": "800: '#075985',",
+        "fix": "使用 tokens 颜色变量替换"
+      },
+      {
+        "file": "src\\components\\ui\\design-tokens\\colors.ts",
+        "line": 18,
+        "column": 11,
+        "type": "hardcodedColors",
+        "name": "硬编码颜色",
+        "severity": "medium",
+        "match": "#0c4a6e",
+        "context": "900: '#0c4a6e',",
+        "fix": "使用 tokens 颜色变量替换"
+      },
+      {
+        "file": "src\\components\\ui\\design-tokens\\colors.ts",
+        "line": 23,
+        "column": 10,
+        "type": "hardcodedColors",
+        "name": "硬编码颜色",
+        "severity": "medium",
+        "match": "#f8fafc",
+        "context": "50: '#f8fafc',",
+        "fix": "使用 tokens 颜色变量替换"
+      },
+      {
+        "file": "src\\components\\ui\\design-tokens\\colors.ts",
+        "line": 24,
+        "column": 11,
+        "type": "hardcodedColors",
+        "name": "硬编码颜色",
+        "severity": "medium",
+        "match": "#f1f5f9",
+        "context": "100: '#f1f5f9',",
+        "fix": "使用 tokens 颜色变量替换"
+      },
+      {
+        "file": "src\\components\\ui\\design-tokens\\colors.ts",
+        "line": 25,
+        "column": 11,
+        "type": "hardcodedColors",
+        "name": "硬编码颜色",
+        "severity": "medium",
+        "match": "#e2e8f0",
+        "context": "200: '#e2e8f0',",
+        "fix": "使用 tokens 颜色变量替换"
+      },
+      {
+        "file": "src\\components\\ui\\design-tokens\\colors.ts",
+        "line": 26,
+        "column": 11,
+        "type": "hardcodedColors",
+        "name": "硬编码颜色",
+        "severity": "medium",
+        "match": "#cbd5e1",
+        "context": "300: '#cbd5e1',",
+        "fix": "使用 tokens 颜色变量替换"
+      },
+      {
+        "file": "src\\components\\ui\\design-tokens\\colors.ts",
+        "line": 27,
+        "column": 11,
+        "type": "hardcodedColors",
+        "name": "硬编码颜色",
+        "severity": "medium",
+        "match": "#94a3b8",
+        "context": "400: '#94a3b8',",
+        "fix": "使用 tokens 颜色变量替换"
+      },
+      {
+        "file": "src\\components\\ui\\design-tokens\\colors.ts",
+        "line": 28,
+        "column": 11,
+        "type": "hardcodedColors",
+        "name": "硬编码颜色",
+        "severity": "medium",
+        "match": "#64748b",
+        "context": "500: '#64748b',  // 辅助色",
+        "fix": "使用 tokens 颜色变量替换"
+      },
+      {
+        "file": "src\\components\\ui\\design-tokens\\colors.ts",
+        "line": 29,
+        "column": 11,
+        "type": "hardcodedColors",
+        "name": "硬编码颜色",
+        "severity": "medium",
+        "match": "#475569",
+        "context": "600: '#475569',",
+        "fix": "使用 tokens 颜色变量替换"
+      },
+      {
+        "file": "src\\components\\ui\\design-tokens\\colors.ts",
+        "line": 30,
+        "column": 11,
+        "type": "hardcodedColors",
+        "name": "硬编码颜色",
+        "severity": "medium",
+        "match": "#334155",
+        "context": "700: '#334155',",
+        "fix": "使用 tokens 颜色变量替换"
+      },
+      {
+        "file": "src\\components\\ui\\design-tokens\\colors.ts",
+        "line": 31,
+        "column": 11,
+        "type": "hardcodedColors",
+        "name": "硬编码颜色",
+        "severity": "medium",
+        "match": "#1e293b",
+        "context": "800: '#1e293b',",
+        "fix": "使用 tokens 颜色变量替换"
+      },
+      {
+        "file": "src\\components\\ui\\design-tokens\\colors.ts",
+        "line": 32,
+        "column": 11,
+        "type": "hardcodedColors",
+        "name": "硬编码颜色",
+        "severity": "medium",
+        "match": "#0f172a",
+        "context": "900: '#0f172a',",
+        "fix": "使用 tokens 颜色变量替换"
+      },
+      {
+        "file": "src\\components\\ui\\design-tokens\\colors.ts",
+        "line": 37,
+        "column": 10,
+        "type": "hardcodedColors",
+        "name": "硬编码颜色",
+        "severity": "medium",
+        "match": "#f0fdf4",
+        "context": "50: '#f0fdf4',",
+        "fix": "使用 tokens 颜色变量替换"
+      },
+      {
+        "file": "src\\components\\ui\\design-tokens\\colors.ts",
+        "line": 38,
+        "column": 11,
+        "type": "hardcodedColors",
+        "name": "硬编码颜色",
+        "severity": "medium",
+        "match": "#dcfce7",
+        "context": "100: '#dcfce7',",
+        "fix": "使用 tokens 颜色变量替换"
+      },
+      {
+        "file": "src\\components\\ui\\design-tokens\\colors.ts",
+        "line": 39,
+        "column": 11,
+        "type": "hardcodedColors",
+        "name": "硬编码颜色",
+        "severity": "medium",
+        "match": "#bbf7d0",
+        "context": "200: '#bbf7d0',",
+        "fix": "使用 tokens 颜色变量替换"
+      },
+      {
+        "file": "src\\components\\ui\\design-tokens\\colors.ts",
+        "line": 40,
+        "column": 11,
+        "type": "hardcodedColors",
+        "name": "硬编码颜色",
+        "severity": "medium",
+        "match": "#86efac",
+        "context": "300: '#86efac',",
+        "fix": "使用 tokens 颜色变量替换"
+      },
+      {
+        "file": "src\\components\\ui\\design-tokens\\colors.ts",
+        "line": 41,
+        "column": 11,
+        "type": "hardcodedColors",
+        "name": "硬编码颜色",
+        "severity": "medium",
+        "match": "#4ade80",
+        "context": "400: '#4ade80',",
+        "fix": "使用 tokens 颜色变量替换"
+      },
+      {
+        "file": "src\\components\\ui\\design-tokens\\colors.ts",
+        "line": 42,
+        "column": 11,
+        "type": "hardcodedColors",
+        "name": "硬编码颜色",
+        "severity": "medium",
+        "match": "#22c55e",
+        "context": "500: '#22c55e',  // 成功色",
+        "fix": "使用 tokens 颜色变量替换"
+      },
+      {
+        "file": "src\\components\\ui\\design-tokens\\colors.ts",
+        "line": 43,
+        "column": 11,
+        "type": "hardcodedColors",
+        "name": "硬编码颜色",
+        "severity": "medium",
+        "match": "#16a34a",
+        "context": "600: '#16a34a',",
+        "fix": "使用 tokens 颜色变量替换"
+      },
+      {
+        "file": "src\\components\\ui\\design-tokens\\colors.ts",
+        "line": 44,
+        "column": 11,
+        "type": "hardcodedColors",
+        "name": "硬编码颜色",
+        "severity": "medium",
+        "match": "#15803d",
+        "context": "700: '#15803d',",
+        "fix": "使用 tokens 颜色变量替换"
+      },
+      {
+        "file": "src\\components\\ui\\design-tokens\\colors.ts",
+        "line": 45,
+        "column": 11,
+        "type": "hardcodedColors",
+        "name": "硬编码颜色",
+        "severity": "medium",
+        "match": "#166534",
+        "context": "800: '#166534',",
+        "fix": "使用 tokens 颜色变量替换"
+      },
+      {
+        "file": "src\\components\\ui\\design-tokens\\colors.ts",
+        "line": 46,
+        "column": 11,
+        "type": "hardcodedColors",
+        "name": "硬编码颜色",
+        "severity": "medium",
+        "match": "#14532d",
+        "context": "900: '#14532d',",
+        "fix": "使用 tokens 颜色变量替换"
+      },
+      {
+        "file": "src\\components\\ui\\design-tokens\\colors.ts",
+        "line": 50,
+        "column": 10,
+        "type": "hardcodedColors",
+        "name": "硬编码颜色",
+        "severity": "medium",
+        "match": "#fffbeb",
+        "context": "50: '#fffbeb',",
+        "fix": "使用 tokens 颜色变量替换"
+      },
+      {
+        "file": "src\\components\\ui\\design-tokens\\colors.ts",
+        "line": 51,
+        "column": 11,
+        "type": "hardcodedColors",
+        "name": "硬编码颜色",
+        "severity": "medium",
+        "match": "#fef3c7",
+        "context": "100: '#fef3c7',",
+        "fix": "使用 tokens 颜色变量替换"
+      },
+      {
+        "file": "src\\components\\ui\\design-tokens\\colors.ts",
+        "line": 52,
+        "column": 11,
+        "type": "hardcodedColors",
+        "name": "硬编码颜色",
+        "severity": "medium",
+        "match": "#fde68a",
+        "context": "200: '#fde68a',",
+        "fix": "使用 tokens 颜色变量替换"
+      },
+      {
+        "file": "src\\components\\ui\\design-tokens\\colors.ts",
+        "line": 53,
+        "column": 11,
+        "type": "hardcodedColors",
+        "name": "硬编码颜色",
+        "severity": "medium",
+        "match": "#fcd34d",
+        "context": "300: '#fcd34d',",
+        "fix": "使用 tokens 颜色变量替换"
+      },
+      {
+        "file": "src\\components\\ui\\design-tokens\\colors.ts",
+        "line": 54,
+        "column": 11,
+        "type": "hardcodedColors",
+        "name": "硬编码颜色",
+        "severity": "medium",
+        "match": "#fbbf24",
+        "context": "400: '#fbbf24',",
+        "fix": "使用 tokens 颜色变量替换"
+      },
+      {
+        "file": "src\\components\\ui\\design-tokens\\colors.ts",
+        "line": 55,
+        "column": 11,
+        "type": "hardcodedColors",
+        "name": "硬编码颜色",
+        "severity": "medium",
+        "match": "#f59e0b",
+        "context": "500: '#f59e0b',  // 警告色",
+        "fix": "使用 tokens 颜色变量替换"
+      },
+      {
+        "file": "src\\components\\ui\\design-tokens\\colors.ts",
+        "line": 56,
+        "column": 11,
+        "type": "hardcodedColors",
+        "name": "硬编码颜色",
+        "severity": "medium",
+        "match": "#d97706",
+        "context": "600: '#d97706',",
+        "fix": "使用 tokens 颜色变量替换"
+      },
+      {
+        "file": "src\\components\\ui\\design-tokens\\colors.ts",
+        "line": 57,
+        "column": 11,
+        "type": "hardcodedColors",
+        "name": "硬编码颜色",
+        "severity": "medium",
+        "match": "#b45309",
+        "context": "700: '#b45309',",
+        "fix": "使用 tokens 颜色变量替换"
+      },
+      {
+        "file": "src\\components\\ui\\design-tokens\\colors.ts",
+        "line": 58,
+        "column": 11,
+        "type": "hardcodedColors",
+        "name": "硬编码颜色",
+        "severity": "medium",
+        "match": "#92400e",
+        "context": "800: '#92400e',",
+        "fix": "使用 tokens 颜色变量替换"
+      },
+      {
+        "file": "src\\components\\ui\\design-tokens\\colors.ts",
+        "line": 59,
+        "column": 11,
+        "type": "hardcodedColors",
+        "name": "硬编码颜色",
+        "severity": "medium",
+        "match": "#78350f",
+        "context": "900: '#78350f',",
+        "fix": "使用 tokens 颜色变量替换"
+      },
+      {
+        "file": "src\\components\\ui\\design-tokens\\colors.ts",
+        "line": 63,
+        "column": 10,
+        "type": "hardcodedColors",
+        "name": "硬编码颜色",
+        "severity": "medium",
+        "match": "#fef2f2",
+        "context": "50: '#fef2f2',",
+        "fix": "使用 tokens 颜色变量替换"
+      },
+      {
+        "file": "src\\components\\ui\\design-tokens\\colors.ts",
+        "line": 64,
+        "column": 11,
+        "type": "hardcodedColors",
+        "name": "硬编码颜色",
+        "severity": "medium",
+        "match": "#fee2e2",
+        "context": "100: '#fee2e2',",
+        "fix": "使用 tokens 颜色变量替换"
+      },
+      {
+        "file": "src\\components\\ui\\design-tokens\\colors.ts",
+        "line": 65,
+        "column": 11,
+        "type": "hardcodedColors",
+        "name": "硬编码颜色",
+        "severity": "medium",
+        "match": "#fecaca",
+        "context": "200: '#fecaca',",
+        "fix": "使用 tokens 颜色变量替换"
+      },
+      {
+        "file": "src\\components\\ui\\design-tokens\\colors.ts",
+        "line": 66,
+        "column": 11,
+        "type": "hardcodedColors",
+        "name": "硬编码颜色",
+        "severity": "medium",
+        "match": "#fca5a5",
+        "context": "300: '#fca5a5',",
+        "fix": "使用 tokens 颜色变量替换"
+      },
+      {
+        "file": "src\\components\\ui\\design-tokens\\colors.ts",
+        "line": 67,
+        "column": 11,
+        "type": "hardcodedColors",
+        "name": "硬编码颜色",
+        "severity": "medium",
+        "match": "#f87171",
+        "context": "400: '#f87171',",
+        "fix": "使用 tokens 颜色变量替换"
+      },
+      {
+        "file": "src\\components\\ui\\design-tokens\\colors.ts",
+        "line": 68,
+        "column": 11,
+        "type": "hardcodedColors",
+        "name": "硬编码颜色",
+        "severity": "medium",
+        "match": "#ef4444",
+        "context": "500: '#ef4444',  // 错误色",
+        "fix": "使用 tokens 颜色变量替换"
+      },
+      {
+        "file": "src\\components\\ui\\design-tokens\\colors.ts",
+        "line": 69,
+        "column": 11,
+        "type": "hardcodedColors",
+        "name": "硬编码颜色",
+        "severity": "medium",
+        "match": "#dc2626",
+        "context": "600: '#dc2626',",
+        "fix": "使用 tokens 颜色变量替换"
+      },
+      {
+        "file": "src\\components\\ui\\design-tokens\\colors.ts",
+        "line": 70,
+        "column": 11,
+        "type": "hardcodedColors",
+        "name": "硬编码颜色",
+        "severity": "medium",
+        "match": "#b91c1c",
+        "context": "700: '#b91c1c',",
+        "fix": "使用 tokens 颜色变量替换"
+      },
+      {
+        "file": "src\\components\\ui\\design-tokens\\colors.ts",
+        "line": 71,
+        "column": 11,
+        "type": "hardcodedColors",
+        "name": "硬编码颜色",
+        "severity": "medium",
+        "match": "#991b1b",
+        "context": "800: '#991b1b',",
+        "fix": "使用 tokens 颜色变量替换"
+      },
+      {
+        "file": "src\\components\\ui\\design-tokens\\colors.ts",
+        "line": 72,
+        "column": 11,
+        "type": "hardcodedColors",
+        "name": "硬编码颜色",
+        "severity": "medium",
+        "match": "#7f1d1d",
+        "context": "900: '#7f1d1d',",
+        "fix": "使用 tokens 颜色变量替换"
+      },
+      {
+        "file": "src\\components\\ui\\design-tokens\\colors.ts",
+        "line": 77,
+        "column": 10,
+        "type": "hardcodedColors",
+        "name": "硬编码颜色",
+        "severity": "medium",
+        "match": "#fafafa",
+        "context": "50: '#fafafa',",
+        "fix": "使用 tokens 颜色变量替换"
+      },
+      {
+        "file": "src\\components\\ui\\design-tokens\\colors.ts",
+        "line": 78,
+        "column": 11,
+        "type": "hardcodedColors",
+        "name": "硬编码颜色",
+        "severity": "medium",
+        "match": "#f5f5f5",
+        "context": "100: '#f5f5f5',",
+        "fix": "使用 tokens 颜色变量替换"
+      },
+      {
+        "file": "src\\components\\ui\\design-tokens\\colors.ts",
+        "line": 79,
+        "column": 11,
+        "type": "hardcodedColors",
+        "name": "硬编码颜色",
+        "severity": "medium",
+        "match": "#e5e5e5",
+        "context": "200: '#e5e5e5',",
+        "fix": "使用 tokens 颜色变量替换"
+      },
+      {
+        "file": "src\\components\\ui\\design-tokens\\colors.ts",
+        "line": 80,
+        "column": 11,
+        "type": "hardcodedColors",
+        "name": "硬编码颜色",
+        "severity": "medium",
+        "match": "#d4d4d4",
+        "context": "300: '#d4d4d4',",
+        "fix": "使用 tokens 颜色变量替换"
+      },
+      {
+        "file": "src\\components\\ui\\design-tokens\\colors.ts",
+        "line": 81,
+        "column": 11,
+        "type": "hardcodedColors",
+        "name": "硬编码颜色",
+        "severity": "medium",
+        "match": "#a3a3a3",
+        "context": "400: '#a3a3a3',",
+        "fix": "使用 tokens 颜色变量替换"
+      },
+      {
+        "file": "src\\components\\ui\\design-tokens\\colors.ts",
+        "line": 82,
+        "column": 11,
+        "type": "hardcodedColors",
+        "name": "硬编码颜色",
+        "severity": "medium",
+        "match": "#737373",
+        "context": "500: '#737373',  // 中性色",
+        "fix": "使用 tokens 颜色变量替换"
+      },
+      {
+        "file": "src\\components\\ui\\design-tokens\\colors.ts",
+        "line": 83,
+        "column": 11,
+        "type": "hardcodedColors",
+        "name": "硬编码颜色",
+        "severity": "medium",
+        "match": "#525252",
+        "context": "600: '#525252',",
+        "fix": "使用 tokens 颜色变量替换"
+      },
+      {
+        "file": "src\\components\\ui\\design-tokens\\colors.ts",
+        "line": 84,
+        "column": 11,
+        "type": "hardcodedColors",
+        "name": "硬编码颜色",
+        "severity": "medium",
+        "match": "#404040",
+        "context": "700: '#404040',",
+        "fix": "使用 tokens 颜色变量替换"
+      },
+      {
+        "file": "src\\components\\ui\\design-tokens\\colors.ts",
+        "line": 85,
+        "column": 11,
+        "type": "hardcodedColors",
+        "name": "硬编码颜色",
+        "severity": "medium",
+        "match": "#262626",
+        "context": "800: '#262626',",
+        "fix": "使用 tokens 颜色变量替换"
+      },
+      {
+        "file": "src\\components\\ui\\design-tokens\\colors.ts",
+        "line": 86,
+        "column": 11,
+        "type": "hardcodedColors",
+        "name": "硬编码颜色",
+        "severity": "medium",
+        "match": "#171717",
+        "context": "900: '#171717',",
+        "fix": "使用 tokens 颜色变量替换"
+      },
+      {
+        "file": "src\\components\\ui\\design-tokens\\spacing.ts",
+        "line": 91,
+        "column": 14,
+        "type": "hardcodedColors",
+        "name": "硬编码颜色",
+        "severity": "medium",
+        "match": "#0000",
+        "context": "none: '0 0 #0000',",
+        "fix": "使用 tokens 颜色变量替换"
+      },
+      {
         "file": "src\\components\\UIAnalyzer.tsx",
         "line": 131,
         "column": 70,
@@ -45030,7 +46288,7 @@
       },
       {
         "file": "src\\modules\\contact-import\\ui\\components\\DeviceAssignmentGrid\\DeviceCard.tsx",
-        "line": 50,
+        "line": 51,
         "column": 56,
         "type": "hardcodedColors",
         "name": "硬编码颜色",
@@ -45041,7 +46299,7 @@
       },
       {
         "file": "src\\modules\\contact-import\\ui\\components\\DeviceAssignmentGrid\\DeviceCard.tsx",
-        "line": 134,
+        "line": 138,
         "column": 61,
         "type": "hardcodedColors",
         "name": "硬编码颜色",
@@ -45052,7 +46310,7 @@
       },
       {
         "file": "src\\modules\\contact-import\\ui\\components\\DeviceAssignmentGrid\\DeviceCard.tsx",
-        "line": 134,
+        "line": 138,
         "column": 93,
         "type": "hardcodedColors",
         "name": "硬编码颜色",
@@ -49080,7 +50338,7 @@
       },
       {
         "file": "src\\modules\\contact-import\\ui\\components\\grid-layout\\hooks\\performance\\DragBehaviorOptimizer.ts",
-        "line": 117,
+        "line": 119,
         "column": 9,
         "type": "hardcodedShadow",
         "name": "硬编码阴影",
@@ -49091,7 +50349,7 @@
       },
       {
         "file": "src\\modules\\contact-import\\ui\\components\\grid-layout\\hooks\\performance\\DragBehaviorOptimizer.ts",
-        "line": 134,
+        "line": 136,
         "column": 9,
         "type": "hardcodedShadow",
         "name": "硬编码阴影",
@@ -49310,30 +50568,6 @@
         "match": "border-radius: 4px",
         "context": "border-radius: 4px;",
         "fix": "使用 var(--radius) 等 tokens 替换"
-      }
-    ],
-    "importantUsage": [
-      {
-        "file": "src\\pages\\device-management\\DeviceManagementPageBrandNew.tsx",
-        "line": 32,
-        "column": 19,
-        "type": "importantUsage",
-        "name": "!important 使用",
-        "severity": "critical",
-        "match": "!important",
-        "context": "* - 无 .ant-* 覆盖或 !important",
-        "fix": "移除 !important，通过正确的CSS层级和tokens处理"
-      },
-      {
-        "file": "src\\pages\\EmployeePageBrandNew.tsx",
-        "line": 29,
-        "column": 20,
-        "type": "importantUsage",
-        "name": "!important 使用",
-        "severity": "critical",
-        "match": "!important",
-        "context": "* - 禁止 .ant-* 覆盖和 !important",
-        "fix": "移除 !important，通过正确的CSS层级和tokens处理"
       }
     ]
   }

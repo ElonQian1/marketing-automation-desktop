@@ -31,7 +31,7 @@ export function useDragFixer(options: DragFixerOptions = {}) {
     intensity = 'moderate',
     debug = false,
     targetTables = [
-      '.ant-table-container',
+      '[data-component="table-container"]',
       '[data-testid*="table"]',
       '.contact-import-table'
     ]

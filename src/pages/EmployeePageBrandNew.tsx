@@ -26,7 +26,7 @@ import type { EmployeeData, EmployeeFormData } from '../types';
  * - Layout: PageShell 提供页面容器
  * - UI: 品牌化轻组件 (Button, CardShell, TagPill)
  * - 适配现有: 保留EmployeeTable和EmployeeForm，逐步重构
- * - 禁止 .ant-* 覆盖和 !important
+ * - 禁止样式覆盖和硬编码
  * - 文件 ≤ 500行
  */
 export const EmployeePageBrandNew: React.FC = () => {

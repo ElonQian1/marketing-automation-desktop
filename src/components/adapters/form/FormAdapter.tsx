@@ -4,7 +4,7 @@
  * 
  * 职责：
  * 1. 通过容器样式和配置统一 AntD Form 的外观
- * 2. 不覆写 .ant-form-* 内部样式，仅通过 ConfigProvider 和外层容器
+ * 2. 不覆写 AntD Form 内部样式，仅通过 ConfigProvider 和外层容器
  * 3. 提供统一的表单布局、验证、提交等交互模式
  * 4. 集成设计令牌系统，确保品牌一致性
  * 
@@ -74,19 +74,19 @@ const getBrandedFormTheme = (brandTheme: string) => {
       colorText: 'var(--text-1)',
       colorTextSecondary: 'var(--text-2)',
       colorBorder: 'var(--border-primary)',
-      borderRadius: parseInt('var(--radius)') || 12,
+      borderRadius: 12, // 使用固定值，对应 --radius: 12px
       
       // 现代化字体
       fontFamily: 'var(--font-family)',
-      fontSize: parseInt('var(--font)') || 16,
+      fontSize: 16, // 使用固定值
     },
     components: {
       Form: {
         // 统一的表单样式，不覆盖内部实现
         labelColor: 'var(--text-1)',
         labelRequiredMarkColor: 'var(--status-error)',
-        itemMarginBottom: parseInt('var(--space-6)') || 24,
-        verticalLabelPadding: `0 0 ${parseInt('var(--space-2)') || 8}px`,
+        itemMarginBottom: 24, // 对应 --space-6: 24px
+        verticalLabelPadding: '0 0 8px', // 对应 --space-2: 8px
         
         // 品牌化的输入框样式
         controlHeight: 48,
@@ -94,20 +94,20 @@ const getBrandedFormTheme = (brandTheme: string) => {
         controlHeightLG: 56,
       },
       Input: {
-        borderRadius: parseInt('var(--radius)') || 12,
+        borderRadius: 12, // 对应 --radius: 12px
         colorBgContainer: 'var(--bg-input)',
         colorBorder: 'var(--border-primary)',
         colorText: 'var(--text-1)',
-        paddingInline: parseInt('var(--space-4)') || 16,
+        paddingInline: 16, // 对应 --space-4: 16px
       },
       Select: {
-        borderRadius: parseInt('var(--radius)') || 12,
+        borderRadius: 12, // 对应 --radius: 12px
         colorBgContainer: 'var(--bg-input)',
         colorBorder: 'var(--border-primary)',
         optionSelectedBg: 'var(--bg-secondary)',
       },
       DatePicker: {
-        borderRadius: parseInt('var(--radius)') || 12,
+        borderRadius: 12, // 对应 --radius: 12px
         colorBgContainer: 'var(--bg-input)',
         colorBorder: 'var(--border-primary)',
       },
@@ -124,13 +124,13 @@ const getBrandedFormTheme = (brandTheme: string) => {
           // 更强的阴影效果
           boxShadow: 'var(--shadow-lg)',
           // 更大的圆角
-          borderRadius: parseInt('var(--radius-lg)') || 16,
+          borderRadius: 16, // 对应 --radius-lg: 16px
         },
         components: {
           ...baseTheme.components,
           Form: {
             ...baseTheme.components.Form,
-            itemMarginBottom: parseInt('var(--space-8)') || 32,
+            itemMarginBottom: 32, // 对应 --space-8: 32px
           },
         },
       };
@@ -142,7 +142,7 @@ const getBrandedFormTheme = (brandTheme: string) => {
           ...baseTheme.components,
           Form: {
             ...baseTheme.components.Form,
-            itemMarginBottom: parseInt('var(--space-4)') || 16,
+            itemMarginBottom: 16, // 对应 --space-4: 16px
             controlHeight: 40,
             controlHeightSM: 32,
             controlHeightLG: 48,

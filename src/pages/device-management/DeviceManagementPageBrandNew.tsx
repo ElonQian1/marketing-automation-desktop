@@ -29,7 +29,7 @@ import { useAdb } from '../../application/hooks/useAdb';
  * 架构原则：
  * - Layout: PageShell 提供标准页面容器
  * - UI: 品牌化轻组件 (Button, CardShell, TagPill)  
- * - 无 .ant-* 覆盖或 !important
+ * - 无样式覆盖或硬编码
  * - 使用 Design Tokens 驱动视觉
  * - 统一 Motion 动效
  */

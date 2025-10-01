@@ -1,104 +1,330 @@
 
 /**
- * Button 组件 - 基于 Radix UI Slot 的现代化按钮
- * 
+ * Button 组件 - 基于设计令牌与 motionPresets 的品牌化按钮
+ *
  * 特性：
- * - 基于设计令牌的品牌化样式
- * - 支持多种变体：primary, secondary, ghost, outline
- * - 支持多种尺寸：sm, md, lg
- * - 完整的 A11y 支持和键盘导航
- * - 统一的动效和悬停效果
- * - 支持 asChild 模式用于链接等场景
+ * - 颜色、阴影、圆角均来源于 tokens，支持主题/密度切换
+ * - 提供 solid/soft/outline/ghost/link 样式与 tone 语义扩展
+ * - 支持 icon-only、加载态、asChild、prefers-reduced-motion 适配
+ * - 统一 hover/tap 动效，保持可访问性
  */
 
 import * as React from "react";
 import { Slot } from "@radix-ui/react-slot";
 import { cva, type VariantProps } from "class-variance-authority";
-import { motion, type HTMLMotionProps } from "framer-motion";
+import { motion, useReducedMotion } from "framer-motion";
+import type { HTMLMotionProps } from "framer-motion";
+
 import { cn, focusRing, modernTransition } from "../utils";
 import { motionPresets } from "../motion";
 
-/**
- * 按钮样式变体配置
- */
+const MotionSlot = motion(Slot);
+
+type ButtonTone = "brand" | "neutral" | "success" | "warning" | "danger" | "info";
+type ButtonStyleVariant = "solid" | "soft" | "outline" | "ghost" | "link";
+type LegacyButtonVariant = "default" | "primary" | "secondary" | "destructive";
+
 const buttonVariants = cva(
-  // 基础样式 - 所有按钮共享
   [
-  "inline-flex items-center justify-center gap-2 whitespace-nowrap",
-  "rounded-[var(--radius-sm)] text-sm font-medium",
-  "ring-offset-[var(--bg-base)] transition-colors",
+    "relative inline-flex items-center justify-center gap-2 whitespace-nowrap",
+    "rounded-[var(--radius-sm)] font-medium",
+    "transition-[background-color,color,border-color,box-shadow,transform]",
+    "ring-offset-[color:var(--bg-base)]",
     focusRing,
     modernTransition,
-    "disabled:pointer-events-none disabled:opacity-50",
-    // 确保按钮有合适的最小尺寸用于触摸
-    "min-h-[2.5rem]"
+    "disabled:pointer-events-none disabled:opacity-60",
+    "min-h-[var(--control-h-sm)]",
   ],
   {
     variants: {
       variant: {
-        // 主要按钮 - 品牌渐变 + 商业化发光
-        default: [
-          "bg-gradient-to-br from-brand-500 to-brand-600 text-white",
-          "shadow-[var(--shadow-brand)]",
-          "hover:shadow-[var(--shadow-brand-glow)] hover:from-brand-400 hover:to-brand-500",
-          "active:bg-brand-700 active:shadow-[var(--shadow-brand)]",
-        ],
-        
-        // 危险操作按钮
-        destructive: [
-          "bg-error text-white shadow-sm",
-          "hover:opacity-90 active:opacity-80",
-        ],
-        
-        // 轮廓按钮 - 适用于次要操作
-        outline: [
-          "border border-border-primary bg-transparent text-text-primary shadow-sm",
-          "hover:bg-background-secondary hover:text-text-primary",
-        ],
-        
-        // 次级按钮 - 较低的视觉重量
-        secondary: [
-          "bg-background-secondary text-text-primary shadow-sm",
-          "hover:bg-background-tertiary",
-        ],
-        
-        // 幽灵按钮 - 最低的视觉重量
-        ghost: [
-          "text-text-secondary",
-          "hover:bg-background-secondary hover:text-text-primary",
-        ],
-        
-        // 链接样式按钮
-        link: [
-          "text-brand underline-offset-4",
-          "hover:underline",
-        ],
+        solid: "border border-transparent shadow-[var(--shadow-sm)]",
+        soft: "border border-transparent",
+        outline: "border bg-transparent",
+        ghost: "border border-transparent bg-transparent",
+        link: "border border-transparent bg-transparent underline-offset-4 font-semibold",
       },
-      
+      tone: {
+        brand: "",
+        neutral: "",
+        success: "",
+        warning: "",
+        danger: "",
+        info: "",
+      },
       size: {
-        // 小尺寸 - 用于密集界面
-        sm: "h-control-sm px-3 text-xs",
-        
-        // 默认尺寸 - 最常用
-        default: "h-control px-4 py-2",
-        
-        // 大尺寸 - 用于重要操作
-        lg: "h-control-lg px-8 text-base",
-        
-        // 图标按钮 - 正方形
-        icon: "h-control w-control p-0",
+        sm: "h-[var(--control-h-sm)] px-3 text-xs",
+        md: "h-[var(--control-h)] px-4 text-sm",
+        default: "h-[var(--control-h)] px-4 text-sm",
+        lg: "h-[var(--control-h-lg)] px-6 text-base",
+        icon: "h-[var(--control-h)] w-[var(--control-h)] p-0 text-base",
+      },
+      fullWidth: {
+        true: "w-full",
+        false: "",
       },
     },
+    compoundVariants: [
+      // Solid buttons
+      {
+        variant: "solid",
+        tone: "brand",
+        className: cn(
+          "bg-[color:var(--brand)] text-[color:var(--text-1)]",
+          "hover:bg-[color:var(--brand-600)]",
+          "active:bg-[color:var(--brand-700)]",
+          "shadow-[var(--shadow)]"
+        ),
+      },
+      {
+        variant: "solid",
+        tone: "neutral",
+        className: cn(
+          "bg-[color:var(--bg-secondary)] text-[color:var(--text-1)]",
+          "hover:bg-[color:var(--bg-tertiary)]",
+          "active:bg-[color:var(--bg-muted)]"
+        ),
+      },
+      {
+        variant: "solid",
+        tone: "success",
+        className: cn(
+          "bg-[color:var(--success)] text-[color:var(--bg-light-base)]",
+          "hover:brightness-110",
+          "active:brightness-95"
+        ),
+      },
+      {
+        variant: "solid",
+        tone: "warning",
+        className: cn(
+          "bg-[color:var(--warning)] text-[color:var(--bg-light-base)]",
+          "hover:brightness-110",
+          "active:brightness-95"
+        ),
+      },
+      {
+        variant: "solid",
+        tone: "danger",
+        className: cn(
+          "bg-[color:var(--error)] text-[color:var(--bg-light-base)]",
+          "hover:brightness-110",
+          "active:brightness-95"
+        ),
+      },
+      {
+        variant: "solid",
+        tone: "info",
+        className: cn(
+          "bg-[color:var(--info)] text-[color:var(--bg-light-base)]",
+          "hover:brightness-110",
+          "active:brightness-95"
+        ),
+      },
+
+      // Soft buttons
+      {
+        variant: "soft",
+        tone: "brand",
+        className: cn(
+          "bg-[color:var(--brand-100)] text-[color:var(--brand-700)]",
+          "hover:bg-[color:var(--brand-200)]"
+        ),
+      },
+      {
+        variant: "soft",
+        tone: "neutral",
+        className: cn(
+          "bg-[color:var(--bg-secondary)] text-[color:var(--text-primary)]",
+          "hover:bg-[color:var(--bg-tertiary)]"
+        ),
+      },
+      {
+        variant: "soft",
+        tone: "success",
+        className: cn(
+          "bg-[color:var(--success-bg)] text-[color:var(--success)]",
+          "hover:bg-[color:var(--success-bg)] hover:brightness-110"
+        ),
+      },
+      {
+        variant: "soft",
+        tone: "warning",
+        className: cn(
+          "bg-[color:var(--warning-bg)] text-[color:var(--warning)]",
+          "hover:bg-[color:var(--warning-bg)] hover:brightness-110"
+        ),
+      },
+      {
+        variant: "soft",
+        tone: "danger",
+        className: cn(
+          "bg-[color:var(--error-bg)] text-[color:var(--error)]",
+          "hover:bg-[color:var(--error-bg)] hover:brightness-110"
+        ),
+      },
+      {
+        variant: "soft",
+        tone: "info",
+        className: cn(
+          "bg-[color:var(--info-bg)] text-[color:var(--info)]",
+          "hover:bg-[color:var(--info-bg)] hover:brightness-110"
+        ),
+      },
+
+      // Outline buttons
+      {
+        variant: "outline",
+        tone: "brand",
+        className: cn(
+          "border-[color:var(--brand-400)] text-[color:var(--brand-600)]",
+          "hover:bg-[color:var(--brand-50)]"
+        ),
+      },
+      {
+        variant: "outline",
+        tone: "neutral",
+        className: cn(
+          "border-[color:var(--border-primary)] text-[color:var(--text-primary)]",
+          "hover:bg-[color:var(--bg-secondary)]"
+        ),
+      },
+      {
+        variant: "outline",
+        tone: "success",
+        className: cn(
+          "border-[color:var(--success)] text-[color:var(--success)]",
+          "hover:bg-[color:var(--success-bg)]"
+        ),
+      },
+      {
+        variant: "outline",
+        tone: "warning",
+        className: cn(
+          "border-[color:var(--warning)] text-[color:var(--warning)]",
+          "hover:bg-[color:var(--warning-bg)]"
+        ),
+      },
+      {
+        variant: "outline",
+        tone: "danger",
+        className: cn(
+          "border-[color:var(--error)] text-[color:var(--error)]",
+          "hover:bg-[color:var(--error-bg)]"
+        ),
+      },
+      {
+        variant: "outline",
+        tone: "info",
+        className: cn(
+          "border-[color:var(--info)] text-[color:var(--info)]",
+          "hover:bg-[color:var(--info-bg)]"
+        ),
+      },
+
+      // Ghost buttons
+      {
+        variant: "ghost",
+        tone: "brand",
+        className: cn(
+          "text-[color:var(--brand-500)]",
+          "hover:bg-[color:var(--brand-50)]"
+        ),
+      },
+      {
+        variant: "ghost",
+        tone: "neutral",
+        className: cn(
+          "text-[color:var(--text-secondary)]",
+          "hover:bg-[color:var(--bg-secondary)]"
+        ),
+      },
+      {
+        variant: "ghost",
+        tone: "success",
+        className: cn(
+          "text-[color:var(--success)]",
+          "hover:bg-[color:var(--success-bg)]"
+        ),
+      },
+      {
+        variant: "ghost",
+        tone: "warning",
+        className: cn(
+          "text-[color:var(--warning)]",
+          "hover:bg-[color:var(--warning-bg)]"
+        ),
+      },
+      {
+        variant: "ghost",
+        tone: "danger",
+        className: cn(
+          "text-[color:var(--error)]",
+          "hover:bg-[color:var(--error-bg)]"
+        ),
+      },
+      {
+        variant: "ghost",
+        tone: "info",
+        className: cn(
+          "text-[color:var(--info)]",
+          "hover:bg-[color:var(--info-bg)]"
+        ),
+      },
+
+      // Link buttons
+      {
+        variant: "link",
+        tone: "brand",
+        className: "text-[color:var(--brand)] hover:text-[color:var(--brand-600)] hover:underline",
+      },
+      {
+        variant: "link",
+        tone: "neutral",
+        className: "text-[color:var(--text-primary)] hover:text-[color:var(--text-secondary)] hover:underline",
+      },
+      {
+        variant: "link",
+        tone: "success",
+        className: "text-[color:var(--success)] hover:underline",
+      },
+      {
+        variant: "link",
+        tone: "warning",
+        className: "text-[color:var(--warning)] hover:underline",
+      },
+      {
+        variant: "link",
+        tone: "danger",
+        className: "text-[color:var(--error)] hover:underline",
+      },
+      {
+        variant: "link",
+        tone: "info",
+        className: "text-[color:var(--info)] hover:underline",
+      },
+    ],
     defaultVariants: {
-      variant: "default",
-      size: "default",
+      variant: "solid",
+      tone: "brand",
+      size: "md",
+      fullWidth: false,
     },
   }
 );
 
+const legacyVariantMap: Record<LegacyButtonVariant, { variant: ButtonStyleVariant; tone: ButtonTone }> = {
+  default: { variant: "solid", tone: "brand" },
+  primary: { variant: "solid", tone: "brand" },
+  secondary: { variant: "soft", tone: "neutral" },
+  destructive: { variant: "solid", tone: "danger" },
+};
+
 export interface ButtonProps
   extends React.ButtonHTMLAttributes<HTMLButtonElement>,
-    VariantProps<typeof buttonVariants> {
+    Omit<VariantProps<typeof buttonVariants>, "variant"> {
+  /** 样式变体：支持新版 solid/soft/outline/ghost/link 及旧版 default/secondary/destructive */
+  variant?: ButtonStyleVariant | LegacyButtonVariant;
   /** 是否作为子组件渲染（用于自定义元素如 Link） */
   asChild?: boolean;
   /** 按钮是否处于加载状态 */
@@ -112,73 +338,137 @@ export interface ButtonProps
 }
 
 const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
-  ({ 
-    className, 
-    variant, 
-    size, 
-    asChild = false, 
-    loading = false,
-    loadingText,
-    leftIcon,
-    rightIcon,
-    children,
-    disabled,
-    type: buttonType = "button",
-    ...props 
-  }, ref) => {
+  (
+    {
+      className,
+      variant: incomingVariant,
+      tone,
+      size,
+      fullWidth,
+      asChild = false,
+      loading = false,
+      loadingText,
+      leftIcon,
+      rightIcon,
+      children,
+      disabled,
+      type: buttonType = "button",
+      ...rest
+    },
+    ref
+  ) => {
+    const prefersReducedMotion = useReducedMotion();
     const isDisabled = disabled || loading;
-    
-    // 如果是 asChild，使用 Slot，否则使用 motion.button
+
+    const resolvedMapping =
+      (incomingVariant && legacyVariantMap[incomingVariant as LegacyButtonVariant]) ||
+      null;
+
+    const resolvedVariant: ButtonStyleVariant = resolvedMapping
+      ? resolvedMapping.variant
+      : ((incomingVariant as ButtonStyleVariant) ?? "solid");
+
+    const resolvedTone: ButtonTone = tone || resolvedMapping?.tone || "brand";
+    const resolvedSize = size ?? "md";
+    const isIconOnly = resolvedSize === "icon";
+    const resolvedFullWidth = fullWidth ?? false;
+
+    const baseClassName = buttonVariants({
+      variant: resolvedVariant,
+      tone: resolvedTone,
+      size: resolvedSize,
+      fullWidth: resolvedFullWidth,
+    });
+
+    const composedClassName = cn(baseClassName, className);
+    const shouldAnimate = !prefersReducedMotion && !isDisabled;
+
+    const content = (
+      <>
+        {loading ? (
+          <LoadingSpinner className="h-4 w-4" />
+        ) : leftIcon ? (
+          <span className="inline-flex shrink-0 items-center justify-center">{leftIcon}</span>
+        ) : null}
+
+        {!isIconOnly && (
+          <span className="truncate">
+            {loading && loadingText ? loadingText : children}
+          </span>
+        )}
+
+        {!loading && rightIcon ? (
+          <span className="inline-flex shrink-0 items-center justify-center">{rightIcon}</span>
+        ) : null}
+      </>
+    );
+
+    const commonProps = {
+      className: composedClassName,
+      "data-tone": resolvedTone,
+      "data-variant": resolvedVariant,
+      "data-size": resolvedSize,
+      "data-disabled": isDisabled || undefined,
+      "aria-disabled": isDisabled || undefined,
+      "aria-busy": loading || undefined,
+    } as const;
+
     if (asChild) {
-      return (
-        <Slot
-          className={cn(buttonVariants({ variant, size, className }))}
-          ref={ref}
-          data-disabled={isDisabled || undefined}
-          aria-disabled={isDisabled || undefined}
-          aria-busy={loading || undefined}
-          {...props}
-        >
-          <motion.span
+      if (shouldAnimate) {
+        return (
+          <MotionSlot
+            ref={ref as React.Ref<any>}
+            {...commonProps}
             variants={motionPresets.variants.hover}
             initial="rest"
-            whileHover={isDisabled ? "rest" : "hover"}
-            whileTap={isDisabled ? "rest" : "tap"}
+            whileHover={"hover"}
+            whileTap={"tap"}
             transition={motionPresets.transitions.hover}
+            {...(rest as any)}
           >
-            {loading && <LoadingSpinner className="h-4 w-4" />}
-            {!loading && leftIcon && leftIcon}
-            {loading && loadingText ? loadingText : children}
-            {!loading && rightIcon && rightIcon}
-          </motion.span>
+            {content}
+          </MotionSlot>
+        );
+      }
+
+      return (
+        <Slot ref={ref} {...commonProps} {...rest}>
+          {content}
         </Slot>
       );
     }
-    
-    const motionProps = props as unknown as HTMLMotionProps<"button">;
+
+    if (shouldAnimate) {
+      const motionProps = rest as unknown as HTMLMotionProps<"button">;
+
+      return (
+        <motion.button
+          ref={ref}
+          type={buttonType}
+          disabled={isDisabled}
+          {...commonProps}
+          variants={motionPresets.variants.hover}
+          initial="rest"
+          whileHover={"hover"}
+          whileTap={"tap"}
+          transition={motionPresets.transitions.hover}
+          {...motionProps}
+        >
+          {content}
+        </motion.button>
+      );
+    }
 
     return (
-      <motion.button
-        className={cn(buttonVariants({ variant, size, className }))}
+      <button
         ref={ref}
-        disabled={isDisabled}
-        aria-disabled={isDisabled}
-        aria-busy={loading || undefined}
-        variants={motionPresets.variants.hover}
-        initial="rest"
-        whileHover={isDisabled ? "rest" : "hover"}
-        whileTap={isDisabled ? "rest" : "tap"}
-        transition={motionPresets.transitions.hover}
         type={buttonType}
-        {...motionProps}
+        disabled={isDisabled}
+        {...commonProps}
+        {...rest}
       >
-        {loading && (
-          <LoadingSpinner className="h-4 w-4" />
-        )}
-        {!loading && leftIcon && leftIcon}
-        {loading && loadingText ? loadingText : children}
-        {!loading && rightIcon && rightIcon}
-      </motion.button>
+        {content}
+      </button>
     );
   }
 );
@@ -186,7 +476,7 @@ const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
 Button.displayName = "Button";
 
 /**
- * 加载动画组件 - 简单的旋转动画
+ * 加载动画组件 - 使用当前文本颜色
  */
 const LoadingSpinner: React.FC<{ className?: string }> = ({ className }) => (
   <svg
@@ -212,3 +502,4 @@ const LoadingSpinner: React.FC<{ className?: string }> = ({ className }) => (
 );
 
 export { Button, buttonVariants };
+export type { ButtonTone };

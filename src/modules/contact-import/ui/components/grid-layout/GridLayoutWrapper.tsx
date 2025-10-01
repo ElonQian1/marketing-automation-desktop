@@ -11,6 +11,7 @@ import { useViewportHeight } from './hooks/useViewportHeight';
 import { useLayoutVersions } from './hooks/useLayoutVersions';
 import { useLayoutPerformance } from './hooks/useLayoutPerformance';
 import { createDragBehaviorOptimizer, DRAG_CONFIGS } from './hooks/performance/DragBehaviorOptimizer';
+import { useGridLayoutSelector } from '@/components/adapters/grid-layout/GridLayoutSelectorAdapter';
 import 'react-grid-layout/css/styles.css';
 
 const ResponsiveGridLayout = WidthProvider(Responsive);
@@ -83,6 +84,9 @@ export const GridLayoutWrapper: React.FC<GridLayoutWrapperProps> = ({
   const [currentBreakpoint, setCurrentBreakpoint] = useState('lg');
   const [compactType, setCompactType] = useState<'vertical' | 'horizontal' | null>('vertical');
   
+  // Employee D适配器：网格布局选择器适配器
+  const gridLayoutSelector = useGridLayoutSelector();
+  
   // 版本管理
   const versionManager = useLayoutVersions({
     storageKey: `${storageKey}-versions`
@@ -95,9 +99,9 @@ export const GridLayoutWrapper: React.FC<GridLayoutWrapperProps> = ({
     debounceMs: 150
   });
   
-  // 动态高度计算
+  // 动态高度计算 - Employee D适配器：零覆盖原则
   const { availableHeight } = useViewportHeight({
-    excludeSelectors: ['.ant-layout-header', '.layout-controls'],
+    excludeSelectors: gridLayoutSelector.viewportExcludeSelectors,
     minHeight: 400,
     padding: 24
   });
@@ -228,7 +232,7 @@ export const GridLayoutWrapper: React.FC<GridLayoutWrapperProps> = ({
           isResizable
           resizeHandles={['se']}
           useCSSTransforms
-          draggableHandle=".panel-header-draggable, .ant-card-head-title"  // 标题栏拖拽
+          draggableHandle={gridLayoutSelector.draggableHandleSelector}  // Employee D适配器：语义化拖拽句柄
         >
           {visiblePanels.map((panel) => (
             <div key={panel.i} className="grid-item">
