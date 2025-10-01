@@ -28,12 +28,12 @@ const tagPillVariants = cva(
     variants: {
       variant: {
         neutral: "",
-        brand: "bg-gradient-to-r from-brand-100 to-brand-50 text-brand border-brand/30 shadow-[0_1px_3px_rgba(59,130,246,0.1)]",
-        success: "bg-gradient-to-r from-success-100 to-success-50 text-success border-success/30 shadow-[0_1px_3px_rgba(34,197,94,0.1)]",
-        warning: "bg-gradient-to-r from-warning-100 to-warning-50 text-warning border-warning/30 shadow-[0_1px_3px_rgba(234,179,8,0.1)]",
-        error: "bg-gradient-to-r from-error-100 to-error-50 text-error border-error/30 shadow-[0_1px_3px_rgba(239,68,68,0.1)]",
-        info: "bg-gradient-to-r from-info-100 to-info-50 text-info border-info/30 shadow-[0_1px_3px_rgba(59,130,246,0.1)]",
-        solid: "bg-gradient-to-r from-brand-500 to-brand-600 text-white border-brand shadow-[var(--shadow-brand-glow)]",
+        brand: "bg-gradient-to-r from-[var(--brand-100)] to-[var(--brand-50)] text-[var(--brand)] border-[var(--brand)]/30 shadow-[var(--shadow-tag-brand)]",
+        success: "bg-gradient-to-r from-[var(--success-100)] to-[var(--success-50)] text-[var(--success)] border-[var(--success)]/30 shadow-[var(--shadow-tag-success)]",
+        warning: "bg-gradient-to-r from-[var(--warning-100)] to-[var(--warning-50)] text-[var(--warning)] border-[var(--warning)]/30 shadow-[var(--shadow-tag-warning)]",
+        error: "bg-gradient-to-r from-[var(--error-100)] to-[var(--error-50)] text-[var(--error)] border-[var(--error)]/30 shadow-[var(--shadow-tag-error)]",
+        info: "bg-gradient-to-r from-[var(--info-100)] to-[var(--info-50)] text-[var(--info)] border-[var(--info)]/30 shadow-[var(--shadow-tag-info)]",
+        solid: "bg-gradient-to-r from-[var(--brand-500)] to-[var(--brand-600)] text-[var(--text-contrast)] border-[var(--brand)] shadow-[var(--shadow-brand-glow)]",
         outline: "bg-transparent text-text-primary border-border-primary hover:bg-gradient-to-r hover:from-brand-50/30 hover:to-transparent",
       },
       size: {
@@ -50,7 +50,7 @@ const tagPillVariants = cva(
         false: "",
       },
       selected: {
-        true: "bg-brand text-white border-brand shadow-sm", // 与 solid 保持一致
+        true: "bg-[var(--brand)] text-[var(--text-contrast)] border-[var(--brand)] shadow-[var(--shadow-sm)]", // 与 solid 保持一致
         false: "",
       },
     },

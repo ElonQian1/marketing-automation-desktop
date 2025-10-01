@@ -40,7 +40,7 @@ const cardVariants = cva(
         ghost: "border-transparent shadow-none",
         
         // 渐变卡片 - 品牌渐变背景
-        gradient: "shadow-[var(--shadow-brand-lg)] border-transparent bg-gradient-to-br from-[var(--brand)] to-[var(--brand-700)] text-white",
+        gradient: "shadow-[var(--shadow-brand-lg)] border-transparent bg-gradient-to-br from-[var(--brand)] to-[var(--brand-700)] text-[var(--text-contrast)]",
         
         // 玻璃态卡片 - 现代玻璃效果
         glass: "border border-white/20 shadow-[var(--shadow-glass)] backdrop-blur-[var(--backdrop-blur)] bg-[var(--bg-glass-elevated)]",

@@ -61,7 +61,7 @@ const iconButtonVariants = cva(
       {
         variant: "solid",
         tone: "brand",
-        className: "bg-brand text-white hover:bg-brand-600 shadow-[var(--shadow-brand-glow)]",
+        className: "bg-[var(--brand)] text-[var(--text-contrast)] hover:bg-[var(--brand-600)] shadow-[var(--shadow-brand-glow)]",
       },
       {
         variant: "solid",
@@ -71,29 +71,29 @@ const iconButtonVariants = cva(
       {
         variant: "solid",
         tone: "success",
-        className: "bg-success text-white hover:opacity-90",
+        className: "bg-[var(--success)] text-[var(--text-contrast)] hover:opacity-90",
       },
       {
         variant: "solid",
         tone: "warning",
-        className: "bg-warning text-white hover:opacity-90",
+        className: "bg-[var(--warning)] text-[var(--text-contrast)] hover:opacity-90",
       },
       {
         variant: "solid",
         tone: "danger",
-        className: "bg-error text-white hover:opacity-90",
+        className: "bg-[var(--error)] text-[var(--text-contrast)] hover:opacity-90",
       },
       {
         variant: "solid",
         tone: "info",
-        className: "bg-info text-white hover:opacity-90",
+        className: "bg-[var(--info)] text-[var(--text-contrast)] hover:opacity-90",
       },
       
       // Soft variant colors
       {
         variant: "soft",
         tone: "brand",
-        className: "bg-brand-50 text-brand hover:bg-brand-100",
+        className: "bg-[var(--brand-50)] text-[var(--brand)] hover:bg-[var(--brand-100)]",
       },
       {
         variant: "soft",

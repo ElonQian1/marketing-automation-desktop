@@ -75,7 +75,7 @@ const cardShellVariants = cva(
         ghost: "border-transparent bg-transparent shadow-none",
         soft: "bg-background-secondary border-transparent",
         gradient:
-          "border-transparent text-white shadow-[var(--shadow-lg)] bg-[radial-gradient(circle_at_top,var(--brand)_0%,var(--brand-700)_100%)]",
+          "border-transparent text-[var(--text-contrast)] shadow-[var(--shadow-lg)] bg-[radial-gradient(circle_at_top,var(--brand)_0%,var(--brand-700)_100%)]",
       },
       size: {
         none: "p-0 gap-0",
