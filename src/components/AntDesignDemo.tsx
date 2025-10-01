@@ -13,8 +13,7 @@ import {
     BgColorsOutlined
 } from '@ant-design/icons';
 import { App, Avatar, Badge, Button, Card, Divider, Layout, Menu, Progress, Space, Statistic, Typography, Switch, Tooltip } from 'antd';
-// 使用新的增强主题提供者
-import { EnhancedThemeProvider, ThemeSwitcher, useTheme, useThemeState } from '../components/feature-modules/theme-system';
+// 使用新的增强主题提供�?import { EnhancedThemeProvider, ThemeSwitcher, useTheme, useThemeState } from '../components/feature-modules/theme-system';
 // 旧的主题CSS已被现代设计系统替代
 // import '../styles/theme.css';
 import React, { useState } from 'react';
@@ -22,26 +21,19 @@ import { GlobalAdbProvider } from '../providers';
 import InspectorPage from '../pages/InspectorPage';
 import PermissionTestPage from '../pages/PermissionTestPage';
 import AdbCenterPage from '../pages/adb/AdbCenterPage';
-import SmartScriptBuilderPage from '../pages/SmartScriptBuilderPage'; // 智能脚本构建器
-import RealTimeDeviceMonitorPage from '../pages/device-monitor/RealTimeDeviceMonitorPage';
+import SmartScriptBuilderPage from '../pages/SmartScriptBuilderPage'; // 智能脚本构建�?import RealTimeDeviceMonitorPage from '../pages/device-monitor/RealTimeDeviceMonitorPage';
 import SmartVcfImporter from './SmartVcfImporter';
-import TemplateLibrary from './template/TemplateLibrary'; // 模板库
-import { ContactImportWizard } from '../modules/contact-import';
+import TemplateLibrary from './template/TemplateLibrary'; // 模板�?import { ContactImportWizard } from '../modules/contact-import';
 import { featureFlags } from '../config/featureFlags';
 import ContactImportPage from '../pages/contact-import/ContactImportPage';
 import QuickPhoneMirror from './QuickPhoneMirror';
-import { AppShell } from './app-shell';
-import { Sidebar as ShellSidebar } from './app-shell/Sidebar';
-import { HeaderBar } from './app-shell/HeaderBar';
-import { PageFinderView } from './universal-ui/page-finder';
-import { ThemeSettingsPage } from '../pages/ThemeSettingsPage';
+import { PreciseAcquisitionPage } from 
 
 const { Header, Sider, Content } = Layout;
 const { Title, Text } = Typography;
 
 const DemoInner: React.FC = () => {
-  const [selectedKey, setSelectedKey] = useState('dashboard'); // 默认选中仪表板
-  const [selectedDevice, setSelectedDevice] = useState<string>('');
+  const [selectedKey, setSelectedKey] = useState('dashboard'); // 默认选中仪表�?  const [selectedDevice, setSelectedDevice] = useState<string>('');
   const [inspectorOpen, setInspectorOpen] = useState<{open: boolean; sessionId?: string; stepId?: string}>({ open: false });
   const { mode } = useThemeState();
   const { toggleMode } = useTheme();
@@ -54,7 +46,7 @@ const DemoInner: React.FC = () => {
     {
       key: 'dashboard',
       icon: <BarChartOutlined />,
-      label: '仪表板',
+      label: '仪表�?,
     },
     {
       key: 'adb-center',
@@ -64,10 +56,9 @@ const DemoInner: React.FC = () => {
     {
       key: 'contact-import',
       icon: <InboxOutlined />,
-      label: '联系人导入向导',
+      label: '联系人导入向�?,
     },
-    // 旧版入口：可通过特性开关开启/隐藏，避免与新向导产生歧义
-    ...(featureFlags.SHOW_LEGACY_VCF_IMPORT
+    // 旧版入口：可通过特性开关开�?隐藏，避免与新向导产生歧�?    ...(featureFlags.SHOW_LEGACY_VCF_IMPORT
       ? [{ key: 'smart-vcf', icon: <ThunderboltOutlined />, label: 'VCF 导入（旧版）' } as const]
       : []),
     {
@@ -83,12 +74,12 @@ const DemoInner: React.FC = () => {
     {
       key: 'smart-script-builder',
       icon: <RobotOutlined />,
-      label: '智能脚本构建器',
+      label: '智能脚本构建�?,
     },
     {
       key: 'template-library',
       icon: <FolderOutlined />,
-      label: '模板库',
+      label: '模板�?,
     }
     ,
     {
@@ -122,7 +113,7 @@ const DemoInner: React.FC = () => {
               onChange={setSelectedKey}
             />
           }
-          headerTitle={<h2>{menuItems.find(item => item.key === selectedKey)?.label || '仪表板'}</h2>}
+          headerTitle={<h2>{menuItems.find(item => item.key === selectedKey)?.label || '仪表�?}</h2>}
           headerActions={(
             <Space size="middle">
               <ThemeSwitcher 
@@ -140,7 +131,7 @@ const DemoInner: React.FC = () => {
               <QuickPhoneMirror 
                 type="default" 
                 onMirrorStarted={(sessionId, deviceId) => {
-                  console.log(`手机镜像已启动: 会话ID=${sessionId}, 设备=${deviceId}`);
+                  console.log(`手机镜像已启�? 会话ID=${sessionId}, 设备=${deviceId}`);
                 }} 
               />
               <Badge count={5} className="modern-badge">
@@ -212,14 +203,14 @@ const DemoInner: React.FC = () => {
                   <div className="modern-progress-list">
                     <div className="modern-progress-item">
                       <div className="flex justify-between mb-2">
-                        <Text className="progress-label">小红书关注任务</Text>
+                        <Text className="progress-label">小红书关注任�?/Text>
                         <Text className="progress-value">15/20 完成</Text>
                       </div>
                       <Progress percent={75} strokeColor="var(--color-primary-500)" />
                     </div>
                     <div className="modern-progress-item">
                       <div className="flex justify-between mb-2">
-                        <Text className="progress-label">通讯录导入</Text>
+                        <Text className="progress-label">通讯录导�?/Text>
                         <Text className="progress-value">100/100 完成</Text>
                       </div>
                       <Progress percent={100} strokeColor="var(--color-success-500)" />
@@ -246,24 +237,10 @@ const DemoInner: React.FC = () => {
               <PermissionTestPage />
             )}
 
-            {/* 旧的 ADB 诊断入口已并入 ADB 中心 */}
+            {/* 旧的 ADB 诊断入口已并�?ADB 中心 */}
 
             {selectedKey === 'acquisition' && (
-              <Card title={`${menuItems.find(item => item.key === selectedKey)?.label} 功能`}>
-                <div className="text-center py-16">
-                  <div className="text-6xl mb-4">🚧</div>
-                  <Title level={3} style={{ color: 'var(--text-secondary)' }}>
-                    功能开发中
-                  </Title>
-                  <Text type="secondary">
-                    这个功能正在开发中，敬请期待...
-                  </Text>
-                  <Divider />
-                  <Button type="primary" size="large">
-                    返回仪表板
-                  </Button>
-                </div>
-              </Card>
+              <PreciseAcquisitionPage />
             )}
 
             {selectedKey === 'smart-script-builder' && (
