@@ -121,6 +121,7 @@ export const DraggableHeaderPanel: React.FC<DraggableHeaderPanelProps> = ({
   const draggableTitle = (
     <div 
       className="panel-header-draggable" 
+      data-draggable="panel-header"  // 修复：添加拖拽选择器适配器所需的属性
       style={{ 
         display: 'flex', 
         alignItems: 'center', 
