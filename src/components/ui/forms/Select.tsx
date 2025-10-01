@@ -18,12 +18,12 @@ const selectVariants = cva(
   [
     "flex w-full rounded-[var(--radius)] border bg-transparent",
     "text-sm text-[var(--text-primary)]",
-    "shadow-[var(--shadow-sm)] transition-all duration-[var(--duration-hover)]",
+    "shadow-sm transition-all duration-[var(--duration-hover)]",
     focusRing,
     "disabled:cursor-not-allowed disabled:opacity-50",
     // 边框与背景状态
     "border-[var(--border-primary)] hover:border-[var(--border-hover)]",
-    "focus-within:border-[var(--brand)] focus-within:shadow-[var(--shadow-brand-glow)]"
+    "focus-within:border-[var(--brand)] focus-within:shadow-lg"
   ],
   {
     variants: {
@@ -42,7 +42,7 @@ const selectVariants = cva(
         false: "w-auto"
       },
       error: {
-        true: "border-[var(--error)] focus-within:border-[var(--error)] focus-within:shadow-[var(--shadow-error-glow)]",
+        true: "border-[var(--error)] focus-within:border-[var(--error)] focus-within:shadow-lg",
         false: ""
       }
     },
@@ -148,7 +148,7 @@ export const Select: React.FC<SelectProps> = ({
       popupClassName={cn(
         'ui-select-dropdown',
         'bg-[var(--bg-elevated)]/95 backdrop-blur-[var(--backdrop-blur)]',
-        'shadow-[var(--shadow-glass)] border border-[var(--border-primary)]/40',
+        'shadow-2xl border border-[var(--border-primary)]/40',
         'rounded-[var(--radius)] overflow-hidden',
         props.popupClassName
       )}

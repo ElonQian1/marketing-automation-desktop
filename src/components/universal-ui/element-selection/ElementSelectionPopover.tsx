@@ -3,8 +3,7 @@ import { Popconfirm, Space, Button } from 'antd';
 import { CheckOutlined, EyeInvisibleOutlined, SearchOutlined } from '@ant-design/icons';
 import type { UIElement } from '../../../api/universalUIAPI';
 import { useSmartPopoverPosition } from './utils/popoverPositioning';
-// 占位：避免引入 './element-discovery' 导致额外编译
-const ElementDiscoveryModal: React.FC<any> = () => null;
+import { ElementDiscoveryModal } from './element-discovery';
 
 export interface ElementSelectionState {
   element: UIElement;

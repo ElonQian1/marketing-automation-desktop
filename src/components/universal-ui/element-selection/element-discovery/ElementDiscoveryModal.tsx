@@ -1,17 +1,3 @@
-// @ts-nocheck
-import React from 'react';
-
-export interface ElementDiscoveryModalProps {
-  open: boolean;
-  onClose: () => void;
-  targetElement: any;
-  onElementSelect: (element: any) => void;
-  allElements: any[];
-  discoveryOptions?: any;
-}
-
-export const ElementDiscoveryModal: React.FC<ElementDiscoveryModalProps> = () => null;
-export default ElementDiscoveryModal;
 /**
  * 元素发现模态框
  * 提供父容器、子元素、自己和智能推荐的四个分类展示
@@ -65,13 +51,16 @@ export const ElementDiscoveryModal: React.FC<ElementDiscoveryModalProps> = ({
     error
   } = useElementDiscovery(allElements, discoveryOptions);
 
-  // 执行发现分析
+  // 执行发现分析 - 使用ref来避免无限循环
+  const discoverElementsRef = React.useRef(discoverElements);
+  discoverElementsRef.current = discoverElements;
+
   React.useEffect(() => {
     if (targetElement && open) {
       console.log('🔍 开始执行元素发现分析:', targetElement);
-      discoverElements(targetElement);
+      discoverElementsRef.current(targetElement);
     }
-  }, [targetElement, open, discoverElements]);
+  }, [targetElement, open]);
 
   // 处理元素选择
   const handleElementSelect = useCallback((discoveredElement: DiscoveredElement) => {

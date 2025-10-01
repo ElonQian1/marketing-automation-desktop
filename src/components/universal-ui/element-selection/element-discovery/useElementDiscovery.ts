@@ -3,7 +3,7 @@
  * 负责分析元素层次关系和生成发现结果
  */
 
-import { useState, useCallback, useMemo } from 'react';
+import { useState, useCallback, useMemo, useRef } from 'react';
 import type { UIElement } from '../../../../api/universalUIAPI';
 import type { 
   ElementDiscoveryResult, 
@@ -184,8 +184,18 @@ export const useElementDiscovery = (
       .slice(0, 20); // 限制显示数量
   }, [finalOptions, calculateConfidence, generateReason]);
 
+  // 防重复调用的标记
+  const isAnalyzingRef = useRef(false);
+
   // 执行元素发现分析
   const discoverElements = useCallback(async (targetElement: UIElement) => {
+    // 防止重复调用
+    if (isAnalyzingRef.current) {
+      console.log('⏭️ 跳过重复的元素发现分析:', targetElement.id);
+      return;
+    }
+
+    isAnalyzingRef.current = true;
     setIsAnalyzing(true);
     setError(null);
     console.log('🔍 开始元素发现分析:', targetElement.id);
@@ -237,6 +247,7 @@ export const useElementDiscovery = (
       setError(errorMessage);
     } finally {
       setIsAnalyzing(false);
+      isAnalyzingRef.current = false;
     }
   }, [allElements, findParentElements, findChildElements]);
 

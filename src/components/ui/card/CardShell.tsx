@@ -41,13 +41,13 @@ const cardShellInteractiveVariants: Variants = {
   rest: {
     y: 0,
     scale: 1,
-    boxShadow: "var(--shadow-sm)",
+    boxShadow: "0 1px 3px rgba(0, 0, 0, 0.08), 0 2px 6px rgba(0, 0, 0, 0.04)",
     transition: motionPresets.transitions.hover,
   },
   hover: {
     y: -4,
     scale: 1.01,
-    boxShadow: "var(--shadow)",
+    boxShadow: "0 1px 3px rgba(0, 0, 0, 0.12), 0 4px 16px rgba(0, 0, 0, 0.08)",
     transition: motionPresets.transitions.hover,
   },
   tap: {
@@ -70,12 +70,12 @@ const cardShellVariants = cva(
     variants: {
       variant: {
         default: "",
-        elevated: "shadow-[var(--shadow)]",
+        elevated: "shadow-md",
         flat: "shadow-none border-border-secondary bg-background-base",
         ghost: "border-transparent bg-transparent shadow-none",
         soft: "bg-background-secondary border-transparent",
         gradient:
-          "border-transparent text-[var(--text-contrast)] shadow-[var(--shadow-lg)] bg-[radial-gradient(circle_at_top,var(--brand)_0%,var(--brand-700)_100%)]",
+          "border-transparent text-[var(--text-contrast)] shadow-lg bg-[radial-gradient(circle_at_top,var(--brand)_0%,var(--brand-700)_100%)]",
       },
       size: {
         none: "p-0 gap-0",

@@ -18,12 +18,12 @@ const inputVariants = cva(
   [
     "flex w-full rounded-[var(--radius)] border bg-transparent px-3 py-2",
     "text-sm text-[var(--text-primary)] placeholder:text-[var(--text-muted)]",
-    "shadow-[var(--shadow-sm)] transition-all duration-[var(--duration-hover)]",
+    "shadow-sm transition-all duration-[var(--duration-hover)]",
     focusRing,
     "disabled:cursor-not-allowed disabled:opacity-50",
     // 边框与背景状态
     "border-[var(--border-primary)] hover:border-[var(--border-hover)]",
-    "focus-within:border-[var(--brand)] focus-within:shadow-[var(--shadow-brand-glow)]"
+    "focus-within:border-[var(--brand)] focus-within:shadow-lg"
   ],
   {
     variants: {
@@ -119,11 +119,11 @@ const textAreaVariants = cva(
   [
     "flex w-full rounded-[var(--radius)] border bg-transparent px-3 py-2",
     "text-sm text-[var(--text-primary)] placeholder:text-[var(--text-muted)]",
-    "shadow-[var(--shadow-sm)] transition-all duration-[var(--duration-hover)]",
+    "shadow-sm transition-all duration-[var(--duration-hover)]",
     focusRing,
     "disabled:cursor-not-allowed disabled:opacity-50",
     "border-[var(--border-primary)] hover:border-[var(--border-hover)]",
-    "focus-within:border-[var(--brand)] focus-within:shadow-[var(--shadow-brand-glow)]",
+    "focus-within:border-[var(--brand)] focus-within:shadow-lg",
     "min-h-[80px] resize-y"  // TextArea特有样式
   ],
   {

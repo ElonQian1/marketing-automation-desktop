@@ -90,12 +90,12 @@ const buttonStyles = `
   font-weight: 600;
   border-radius: 8px;
   transition: all 0.2s ease;
-  box-shadow: var(--shadow-brand-sm);
+  box-shadow: 0 1px 3px rgba(110, 139, 255, 0.15), 0 2px 6px rgba(110, 139, 255, 0.08);
 }
 
 .primary-button:hover:not(:disabled) {
   transform: translateY(-1px);
-  box-shadow: var(--shadow-brand-md);
+  box-shadow: 0 2px 6px rgba(110, 139, 255, 0.2), 0 4px 12px rgba(110, 139, 255, 0.15);
 }
 
 .primary-button--gradient {
@@ -104,7 +104,7 @@ const buttonStyles = `
 }
 
 .primary-button--elevated {
-  box-shadow: var(--shadow-brand-lg);
+  box-shadow: 0 4px 16px rgba(110, 139, 255, 0.25), 0 8px 32px rgba(110, 139, 255, 0.15);
 }
 
 .primary-button--loading {

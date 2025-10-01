@@ -33,7 +33,7 @@ const iconButtonVariants = cva(
   {
     variants: {
       variant: {
-        solid: "shadow-[var(--shadow-sm)]",
+        solid: "shadow-sm",
         soft: "",
         outline: "border-border-primary bg-transparent",
         ghost: "bg-transparent",
@@ -61,7 +61,7 @@ const iconButtonVariants = cva(
       {
         variant: "solid",
         tone: "brand",
-        className: "bg-[var(--brand)] text-[var(--text-contrast)] hover:bg-[var(--brand-600)] shadow-[var(--shadow-brand-glow)]",
+        className: "bg-[var(--brand)] text-[var(--text-contrast)] hover:bg-[var(--brand-600)] shadow-lg",
       },
       {
         variant: "solid",

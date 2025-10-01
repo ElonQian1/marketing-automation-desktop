@@ -28,11 +28,11 @@ const tagPillVariants = cva(
     variants: {
       variant: {
         neutral: "",
-        brand: "bg-gradient-to-r from-[var(--brand-100)] to-[var(--brand-50)] text-[var(--brand)] border-[var(--brand)]/30 shadow-[var(--shadow-tag-brand)]",
-        success: "bg-gradient-to-r from-[var(--success-100)] to-[var(--success-50)] text-[var(--success)] border-[var(--success)]/30 shadow-[var(--shadow-tag-success)]",
-        warning: "bg-gradient-to-r from-[var(--warning-100)] to-[var(--warning-50)] text-[var(--warning)] border-[var(--warning)]/30 shadow-[var(--shadow-tag-warning)]",
-        error: "bg-gradient-to-r from-[var(--error-100)] to-[var(--error-50)] text-[var(--error)] border-[var(--error)]/30 shadow-[var(--shadow-tag-error)]",
-        info: "bg-gradient-to-r from-[var(--info-100)] to-[var(--info-50)] text-[var(--info)] border-[var(--info)]/30 shadow-[var(--shadow-tag-info)]",
+        brand: "bg-gradient-to-r from-[var(--brand-100)] to-[var(--brand-50)] text-[var(--brand)] border-[var(--brand)]/30 shadow-[var(--shadow-sm)]",
+        success: "bg-gradient-to-r from-[var(--success-100)] to-[var(--success-50)] text-[var(--success)] border-[var(--success)]/30 shadow-[var(--shadow-success)]",
+        warning: "bg-gradient-to-r from-[var(--warning-100)] to-[var(--warning-50)] text-[var(--warning)] border-[var(--warning)]/30 shadow-[var(--shadow-warning)]",
+        error: "bg-gradient-to-r from-[var(--error-100)] to-[var(--error-50)] text-[var(--error)] border-[var(--error)]/30 shadow-[var(--shadow-error)]",
+        info: "bg-gradient-to-r from-[var(--info-100)] to-[var(--info-50)] text-[var(--info)] border-[var(--info)]/30 shadow-[var(--shadow-sm)]",
         solid: "bg-gradient-to-r from-[var(--brand-500)] to-[var(--brand-600)] text-[var(--text-contrast)] border-[var(--brand)] shadow-[var(--shadow-brand-glow)]",
         outline: "bg-transparent text-text-primary border-border-primary hover:bg-gradient-to-r hover:from-brand-50/30 hover:to-transparent",
       },

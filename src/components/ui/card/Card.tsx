@@ -28,10 +28,10 @@ const cardVariants = cva(
     variants: {
       variant: {
         // 默认卡片 - 现代分层阴影
-        default: "shadow-[var(--shadow)]",
+        default: "shadow-md",
         
         // 突出卡片 - 更强的阴影
-        elevated: "shadow-[var(--shadow-lg)]",
+        elevated: "shadow-lg",
         
         // 扁平卡片 - 仅边框无阴影
         flat: "shadow-none",
@@ -40,10 +40,10 @@ const cardVariants = cva(
         ghost: "border-transparent shadow-none",
         
         // 渐变卡片 - 品牌渐变背景
-        gradient: "shadow-[var(--shadow-brand-lg)] border-transparent bg-gradient-to-br from-[var(--brand)] to-[var(--brand-700)] text-[var(--text-contrast)]",
+        gradient: "shadow-xl border-transparent bg-gradient-to-br from-[var(--brand)] to-[var(--brand-700)] text-[var(--text-contrast)]",
         
         // 玻璃态卡片 - 现代玻璃效果
-        glass: "border border-white/20 shadow-[var(--shadow-glass)] backdrop-blur-[var(--backdrop-blur)] bg-[var(--bg-glass-elevated)]",
+        glass: "border border-white/20 shadow-2xl backdrop-blur-[var(--backdrop-blur)] bg-[var(--bg-glass-elevated)]",
       },
       
       size: {
@@ -54,7 +54,7 @@ const cardVariants = cva(
       },
       
       hoverable: {
-        true: "cursor-pointer hover:shadow-[var(--shadow-lg)] hover:-translate-y-0.5 hover:scale-[var(--motion-scale-hover)] transition-all duration-[var(--duration-normal)] ease-[var(--motion-smooth)]",
+        true: "cursor-pointer hover:shadow-lg hover:-translate-y-0.5 hover:scale-[var(--motion-scale-hover)] transition-all duration-[var(--duration-normal)] ease-[var(--motion-smooth)]",
         false: "",
       }
     },
