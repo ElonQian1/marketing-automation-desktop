@@ -3,3 +3,4 @@
  */
 
 export { AccountMonitoringConfig } from './AccountMonitoringConfig';
+export { AccountMonitoringConfigPanel } from './AccountMonitoringConfigPanel';

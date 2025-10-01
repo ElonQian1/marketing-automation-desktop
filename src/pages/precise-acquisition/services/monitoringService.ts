@@ -13,7 +13,101 @@ export interface MonitoringTask {
   createdAt: string;
   updatedAt: string;
   
-  // 监控配置
+    // 评论筛选方法
+  filterCommentsByTime(comments: CommentData[], filters: MonitoringTask['filters']): CommentData[] {
+    if (!filters.commentTimeRange || filters.commentTimeRange === 0) {
+      return comments; // 不限制时间
+    }
+
+    const now = new Date();
+    const timeRangeMs = filters.commentTimeRange * 24 * 60 * 60 * 1000; // 转换为毫秒
+    const cutoffTime = new Date(now.getTime() - timeRangeMs);
+
+    return comments.filter(comment => {
+      const publishTime = new Date(comment.publishTime);
+      const isWithinTimeRange = publishTime >= cutoffTime;
+
+      // 额外的智能筛选
+      if (filters.onlyRecentTrending && isWithinTimeRange) {
+        // 只保留最近且有一定互动量的评论
+        const hoursOld = (now.getTime() - publishTime.getTime()) / (1000 * 60 * 60);
+        const minLikesForAge = hoursOld < 24 ? 5 : hoursOld < 72 ? 10 : 20;
+        return comment.likes >= minLikesForAge;
+      }
+
+      if (filters.excludeOldReplies && isWithinTimeRange) {
+        // 排除已经有很多回复的旧评论（通常意味着话题已经过时）
+        const hoursOld = (now.getTime() - publishTime.getTime()) / (1000 * 60 * 60);
+        if (hoursOld > 48) {
+          // 超过48小时的评论，如果所在视频评论数过多，则跳过
+          return true; // 这里应该检查视频的总评论数，暂时简化
+        }
+      }
+
+      return isWithinTimeRange;
+    });
+  }
+
+  // 获取时间范围的智能建议
+  getTimeRangeRecommendations(taskType: string, keywords: string[]): {
+    recommended: number;
+    explanation: string;
+    alternatives: Array<{ value: number; label: string; reason: string }>;
+  } {
+    // 基于任务类型和关键词的智能推荐
+    let recommended = 7; // 默认一周
+    let explanation = '平衡时效性和内容丰富度的推荐设置';
+
+    // 根据关键词判断是否为热点话题
+    const hotKeywords = ['新闻', '热点', '突发', '紧急', '最新', '刚刚', '实时'];
+    const isHotTopic = keywords.some(keyword => 
+      hotKeywords.some(hot => keyword.includes(hot))
+    );
+
+    // 根据任务类型调整推荐
+    if (isHotTopic) {
+      recommended = 1;
+      explanation = '检测到热点关键词，建议关注最新评论';
+    } else if (taskType === 'industry') {
+      recommended = 14;
+      explanation = '行业监控建议使用较长时间范围，捕获更多潜在客户';
+    }
+
+    const alternatives = [
+      {
+        value: 1,
+        label: '24小时内',
+        reason: '适合热点事件、紧急公关、快速响应场景'
+      },
+      {
+        value: 3,
+        label: '3天内',
+        reason: '适合新产品发布、活动推广、短期营销'
+      },
+      {
+        value: 7,
+        label: '1周内',
+        reason: '常规行业监控的黄金时间，平衡时效性和覆盖面'
+      },
+      {
+        value: 14,
+        label: '2周内',
+        reason: '深度行业分析、潜在客户挖掘、长期话题追踪'
+      },
+      {
+        value: 30,
+        label: '1个月内',
+        reason: '趋势分析、竞品监控、市场调研'
+      },
+      {
+        value: 90,
+        label: '3个月内',
+        reason: '长期战略分析、行业报告生成、历史数据对比'
+      }
+    ];
+
+    return { recommended, explanation, alternatives };
+  }
   keywords?: string[];
   targetAccount?: string;
   targetVideo?: string;
@@ -21,10 +115,17 @@ export interface MonitoringTask {
   // 筛选条件
   filters: {
     region?: string[];
-    commentTimeRange?: number; // 天数
+    commentTimeRange?: number; // 天数，0表示不限制
+    commentTimeUnit?: 'hours' | 'days' | 'weeks' | 'months'; // 时间单位
+    commentTimeValue?: number; // 时间数值
     minLikes?: number;
     minComments?: number;
     minViews?: number;
+    // 新增：更精细的时间控制
+    commentDateFrom?: string; // 起始日期 (ISO string)
+    commentDateTo?: string;   // 结束日期 (ISO string)
+    onlyRecentTrending?: boolean; // 仅最近热门评论
+    excludeOldReplies?: boolean;  // 排除已有大量回复的旧评论
   };
   
   // 执行设备

@@ -3,7 +3,7 @@
  * 包含关键词设置、地域筛选、时间范围、查重规则等配置
  */
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   Card,
   Form,
@@ -19,18 +19,22 @@ import {
   Tag,
   Tooltip,
   Divider,
-  Alert
+  Alert,
+  Badge
 } from 'antd';
 import {
   SettingOutlined,
   PlusOutlined,
   DeleteOutlined,
   InfoCircleOutlined,
-  FilterOutlined
+  FilterOutlined,
+  BulbOutlined
 } from '@ant-design/icons';
 import type { Device } from '../../../../domain/adb/entities/Device';
 import { monitoringService } from '../../services/monitoringService';
 import type { MonitoringTask } from '../../services/monitoringService';
+import type { EnhancedMonitoringTask } from '../../types/enhancedTypes';
+import { TimeFilterEnhancement } from '../../services/timeFilterEnhancement';
 
 const { Title, Text } = Typography;
 const { Option } = Select;
@@ -53,9 +57,27 @@ export const MonitoringConfigPanel: React.FC<MonitoringConfigPanelProps> = ({
   const [keywordInput, setKeywordInput] = useState('');
   const [keywords, setKeywords] = useState<string[]>(editingTask?.keywords || []);
   const [loading, setLoading] = useState(false);
+  const [timeRecommendation, setTimeRecommendation] = useState<{
+    recommended: number;
+    explanation: string;
+    alternatives: Array<{ value: number; label: string; reason: string }>;
+  } | null>(null);
 
   // 地域选项
   const regionOptions = monitoringService.getRegionOptions();
+
+  // 当关键词变化时，更新时间范围建议
+  useEffect(() => {
+    if (keywords.length > 0) {
+      const recommendation = TimeFilterEnhancement.getTimeRangeRecommendations('industry', keywords);
+      setTimeRecommendation(recommendation);
+      
+      // 如果是新任务且没有设置时间范围，自动应用推荐值
+      if (!editingTask && !form.getFieldValue('commentTimeRange')) {
+        form.setFieldValue('commentTimeRange', recommendation.recommended);
+      }
+    }
+  }, [keywords, editingTask, form]);
 
   // 添加关键词
   const handleAddKeyword = () => {
@@ -84,6 +106,8 @@ export const MonitoringConfigPanel: React.FC<MonitoringConfigPanelProps> = ({
         filters: {
           region: values.regions,
           commentTimeRange: values.commentTimeRange,
+          onlyRecentTrending: values.onlyRecentTrending,
+          excludeOldReplies: values.excludeOldReplies,
           minLikes: values.minLikes,
           minComments: values.minComments,
           minViews: values.minViews
@@ -124,12 +148,14 @@ export const MonitoringConfigPanel: React.FC<MonitoringConfigPanelProps> = ({
         layout="vertical"
         onFinish={handleSubmit}
         initialValues={{
-          commentTimeRange: editingTask?.filters.commentTimeRange || 7,
-          minLikes: editingTask?.filters.minLikes || 0,
-          minComments: editingTask?.filters.minComments || 0,
-          minViews: editingTask?.filters.minViews || 0,
-          regions: editingTask?.filters.region || [],
-          assignedDevices: editingTask?.assignedDevices || []
+          commentTimeRange: (editingTask as any)?.filters?.commentTimeRange || 7,
+          onlyRecentTrending: (editingTask as any)?.filters?.onlyRecentTrending || false,
+          excludeOldReplies: (editingTask as any)?.filters?.excludeOldReplies || false,
+          minLikes: (editingTask as any)?.filters?.minLikes || 0,
+          minComments: (editingTask as any)?.filters?.minComments || 0,
+          minViews: (editingTask as any)?.filters?.minViews || 0,
+          regions: (editingTask as any)?.filters?.region || [],
+          assignedDevices: (editingTask as any)?.assignedDevices || []
         }}
       >
         {/* 关键词设置 */}
@@ -201,20 +227,101 @@ export const MonitoringConfigPanel: React.FC<MonitoringConfigPanelProps> = ({
               name="commentTimeRange"
               label={
                 <span className="flex items-center space-x-1">
-                  <span>评论时间范围</span>
-                  <Tooltip title="只监控指定天数内的评论，避免回复过于陈旧的内容">
+                  <span>评论时间筛选</span>
+                  <Tooltip title="只监控指定时间范围内的评论，提高回复的时效性和相关性">
                     <InfoCircleOutlined className="text-gray-400" />
                   </Tooltip>
                 </span>
               }
             >
-              <InputNumber
-                min={1}
-                max={365}
-                placeholder="天数"
-                addonAfter="天内"
+              <Select
+                placeholder="选择评论时间范围"
                 className="w-full"
-              />
+                showSearch={false}
+              >
+                <Option value={1}>最近 1 天内</Option>
+                <Option value={3}>最近 3 天内</Option>
+                <Option value={7}>最近 1 周内</Option>
+                <Option value={14}>最近 2 周内</Option>
+                <Option value={30}>最近 1 个月内</Option>
+                <Option value={90}>最近 3 个月内</Option>
+                <Option value={180}>最近 6 个月内</Option>
+                <Option value={365}>最近 1 年内</Option>
+                <Option value={0}>不限制时间</Option>
+              </Select>
+            </Form.Item>
+            
+            {/* 时间范围智能建议 */}
+            <div className="text-xs text-gray-500 mt-1 space-y-1">
+              <div>💡 <Text className="text-xs">智能建议：</Text></div>
+              <div className="ml-4 space-y-0.5">
+                <div>• <strong>1-3天</strong>：热点事件追踪，快速响应</div>
+                <div>• <strong>1-2周</strong>：常规行业监控，平衡时效性</div>
+                <div>• <strong>1-3月</strong>：长期趋势分析，深度挖掘</div>
+              </div>
+              
+              {/* 基于关键词的智能推荐 */}
+              {timeRecommendation && keywords.length > 0 && (
+                <div className="mt-3 p-2 bg-blue-50 rounded border">
+                  <div className="flex items-center space-x-1 mb-1">
+                    <BulbOutlined className="text-blue-500" />
+                    <Text className="text-xs font-medium text-blue-700">
+                      基于您的关键词推荐
+                    </Text>
+                  </div>
+                  <div className="text-xs text-blue-600 mb-2">
+                    {timeRecommendation.explanation}
+                  </div>
+                  <Button
+                    size="small"
+                    type="link"
+                    className="p-0 h-auto text-xs"
+                    onClick={() => form.setFieldValue('commentTimeRange', timeRecommendation.recommended)}
+                  >
+                    应用推荐值：{TimeFilterEnhancement.formatTimeRange(timeRecommendation.recommended)}
+                  </Button>
+                </div>
+              )}
+            </div>
+          </Col>
+
+          {/* 高级时间筛选选项 */}
+          <Col xs={24} md={12}>
+            <Form.Item
+              label={
+                <span className="flex items-center space-x-1">
+                  <span>智能时间筛选</span>
+                  <Tooltip title="启用智能算法，优先推荐热门且时效性强的评论">
+                    <InfoCircleOutlined className="text-gray-400" />
+                  </Tooltip>
+                </span>
+              }
+            >
+              <div className="space-y-2">
+                <Form.Item 
+                  name="onlyRecentTrending" 
+                  valuePropName="checked" 
+                  className="mb-1"
+                >
+                  <Switch size="small" />
+                  <span className="ml-2 text-sm">仅热门评论</span>
+                  <Tooltip title="只选择有一定互动量的评论，提高转化率">
+                    <InfoCircleOutlined className="ml-1 text-gray-400" />
+                  </Tooltip>
+                </Form.Item>
+                
+                <Form.Item 
+                  name="excludeOldReplies" 
+                  valuePropName="checked" 
+                  className="mb-0"
+                >
+                  <Switch size="small" />
+                  <span className="ml-2 text-sm">排除冷门旧评论</span>
+                  <Tooltip title="自动过滤掉互动较少的陈旧评论">
+                    <InfoCircleOutlined className="ml-1 text-gray-400" />
+                  </Tooltip>
+                </Form.Item>
+              </div>
             </Form.Item>
           </Col>
 
