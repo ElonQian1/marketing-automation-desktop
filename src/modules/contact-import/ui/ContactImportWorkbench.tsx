@@ -1,22 +1,5 @@
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
-// Employee D 架构 - 通过adapters统一访问AntD组件
-import { 
-  Row, 
-  Col, 
-  Space, 
-  Divider,
-  Text,
-  Title,
-  Button,
-  TableAdapter,
-  Input,
-  PaginationAdapter,
-  MessageAdapter,
-  Tag,
-  AlertCard,
-  SwitchAdapter 
-} from '@/components/adapters';
-import { Card } from '@/components/ui';
+import { Card, Col, Row, Space, Typography, Button, Table, Input, Pagination, message, Divider, Tag, Alert, Switch } from 'antd';
 import { DatabaseOutlined, FileTextOutlined, FolderOpenOutlined, MobileOutlined, FileDoneOutlined, LayoutOutlined } from '@ant-design/icons';
 import styles from './ContactImportWorkbench.module.css';
 import { GridLayoutWrapper, useGridLayout } from './components/grid-layout';
@@ -30,7 +13,7 @@ import { fetchUnclassifiedNumbers } from './services/unclassifiedService';
 import { markBatchImportedForDevice } from './services/deviceBatchBinding';
 import BatchPreviewModal from './components/BatchPreviewModal';
 import { executeBatches } from './services/batchExecutor';
-// 新的竖向卡片栅格组件，替代表格视�?
+// 新的竖向卡片栅格组件，替代表格视图
 import { DeviceAssignmentGrid } from './components/DeviceAssignmentGrid/DeviceAssignmentGrid';
 import ServiceFactory from '../../../application/services/ServiceFactory';
 import { findRangeConflicts } from '../utils/assignmentValidation';
@@ -50,6 +33,8 @@ import { useColumnSettings } from './components/columns/useColumnSettings';
 import ColumnSettingsModal from './components/columns/ColumnSettingsModal';
 import { ResizableHeaderCell, useResizableColumns } from '../../../components/universal-ui/table/resizable';
 import { useStaticDragFix } from './components/grid-layout/hooks/useStaticDragFix';
+
+const { Title, Text } = Typography;
 
 // 复用工具函数 buildVcfFromNumbers
 
@@ -90,7 +75,7 @@ export const ContactImportWorkbench: React.FC = () => {
       minW: 4,
       minH: 6,
       visible: true,
-      title: '号码�?,
+      title: '号码池',
     },
   ], []);
   
@@ -99,17 +84,17 @@ export const ContactImportWorkbench: React.FC = () => {
     storageKey: 'contact-import-workbench-layout'
   });
 
-  // 🚫 暂时禁用复杂的拖拽修复器，避免循环执�?
+  // 🚫 暂时禁用复杂的拖拽修复器，避免循环执行
   // const conflictResolver = useDragConflictResolver({
   //   autoFix: true,
   //   debug: false, // 生产环境关闭调试
   //   priority: 'table-resize' // 优先保护表格列宽拖拽
   // });
 
-  // �?禁用强化拖拽修复器（避免过度修复�?
+  // � 禁用强化拖拽修复器（避免过度修复）
   // const dragFixer = useDragFixer({
   //   enabled: true,
-  //   intensity: 'aggressive', // 使用最强修复模�?
+  //   intensity: 'aggressive', // 使用最强修复模式
   //   debug: process.env.NODE_ENV === 'development',
   //   targetTables: [
   //     '[data-testid="workbench-numbers-table"]',
@@ -117,7 +102,7 @@ export const ContactImportWorkbench: React.FC = () => {
   //   ]
   // });
 
-  // �?禁用拖拽防护守卫
+  // � 禁用拖拽防护守卫
   // const dragGuards = useGridDragGuards({
   //   enabled: true,
   //   debug: process.env.NODE_ENV === 'development',
@@ -127,16 +112,16 @@ export const ContactImportWorkbench: React.FC = () => {
   //   ]
   // });
 
-  // �?使用简单静态修复器（一次性执行，无循环）
+  // ✅ 使用简单静态修复器（一次性执行，无循环）
   useStaticDragFix({
     enabled: true,
     debug: false
   });
 
   // 设备
-  // 顶部已默认加载设备卡片，不再需要单独“选择设备/刷新设备”控�?
+  // 顶部已默认加载设备卡片，不再需要单独“选择设备/刷新设备”控件
 
-  // 号码池列�?
+  // 号码池列表
   const [loading, setLoading] = useState(false);
   const [search, setSearch] = useState('');
   const [page, setPage] = useState(1);
@@ -148,11 +133,11 @@ export const ContactImportWorkbench: React.FC = () => {
   const contactImportApp = useMemo(() => ServiceFactory.getContactImportApplicationService(), []);
   // 是否仅使用未消费号码（供下方设备卡片回调与批次生成共用）
   const [onlyUnconsumed, setOnlyUnconsumed] = useState<boolean>(true);
-  // 号码池统�?
+  // 号码池统计
   const [stats, setStats] = useState<ContactNumberStatsDto | null>(null);
-  // 持久化的“文件夹路径列表�?
+  // 持久化的“文件夹路径列表”
   const { folders, addFolder, removeFolder, clearAll, hasItems } = useSourceFolders();
-  // 加载号码池列�?
+  // 加载号码池列表
   const loadList = useCallback(async () => {
     setLoading(true);
     try {
@@ -165,7 +150,7 @@ export const ContactImportWorkbench: React.FC = () => {
       setTotal(res.total);
     } catch (e) {
       console.error(e);
-      MessageAdapter.error('加载号码池失�?);
+      message.error('加载号码池失败');
     } finally {
       setLoading(false);
     }
@@ -195,7 +180,7 @@ export const ContactImportWorkbench: React.FC = () => {
     { key: 'phone', title: '号码', defaultVisible: true },
     { key: 'name', title: '姓名', defaultVisible: true, defaultWidth: 180 },
     { key: 'industry', title: '行业分类', defaultVisible: true, defaultWidth: 120 },
-    { key: 'status', title: '状�?, defaultVisible: true, defaultWidth: 120 },
+    { key: 'status', title: '状态', defaultVisible: true, defaultWidth: 120 },
     { key: 'used', title: '是否已用', defaultVisible: true, defaultWidth: 100 },
     { key: 'imported_device_id', title: '导入设备', defaultVisible: true, defaultWidth: 150 },
     { key: 'source_file', title: '来源', defaultVisible: true },
@@ -211,11 +196,11 @@ export const ContactImportWorkbench: React.FC = () => {
     setLoading(true);
     try {
       const res = await importNumbersFromTxtFile(file);
-      MessageAdapter.success(`写入 ${res.inserted} 条，重复 ${res.duplicates}`);
+      message.success(`写入 ${res.inserted} 条，重复 ${res.duplicates}`);
       loadList();
       loadStats();
     } catch (e) {
-      MessageAdapter.error(`导入失败: ${e}`);
+      message.error(`导入失败: ${e}`);
     } finally { setLoading(false); }
   };
 
@@ -225,59 +210,59 @@ export const ContactImportWorkbench: React.FC = () => {
     setLoading(true);
     try {
       const res = await importNumbersFromFolder(folder);
-      MessageAdapter.success(`文件 ${res.total_files}，写�?${res.inserted}，重�?${res.duplicates}`);
+      message.success(`文件 ${res.total_files}，写入 ${res.inserted}，重复 ${res.duplicates}`);
       loadList();
       loadStats();
     } catch (e) {
-      MessageAdapter.error(`导入失败: ${e}`);
+      message.error(`导入失败: ${e}`);
     } finally { setLoading(false); }
   };
 
   const handleImportFromSavedFolders = async () => {
     if (!folders.length) {
-      MessageAdapter.info('请先添加至少一个文件夹路径');
+      message.info('请先添加至少一个文件夹路径');
       return;
     }
     setLoading(true);
     try {
       const res = await importNumbersFromFolders(folders);
       if (res.success) {
-        MessageAdapter.success(`文件 ${res.total_files}，写�?${res.inserted}，重�?${res.duplicates}`);
+        message.success(`文件 ${res.total_files}，写入 ${res.inserted}，重复 ${res.duplicates}`);
       } else {
-        MessageAdapter.error(`部分导入失败：写�?${res.inserted}，重�?${res.duplicates}`);
+        message.error(`部分导入失败：写入 ${res.inserted}，重复 ${res.duplicates}`);
       }
       loadList();
       loadStats();
     } catch (e) {
-      MessageAdapter.error(`导入失败: ${e}`);
+      message.error(`导入失败: ${e}`);
     } finally { setLoading(false); }
   };
 
   // 生成并导入VCF
   const selectedItems = useMemo(() => items.filter(i => selectedRowKeys.includes(i.id)), [items, selectedRowKeys]);
-  // 顶部快速按钮：提示使用下方设备卡片上的“生成VCF/导入�?
+  // 顶部快速按钮：提示使用下方设备卡片上的“生成VCF/导入”
   const handleTopLevelImportHint = () => {
     if (selectedItems.length === 0) {
-      MessageAdapter.info('请先在右侧“号码池”勾选号码，然后到下方设备卡片上执行“生成VCF/导入”�?);
+      message.info('请先在右侧“号码池”勾选号码，然后到下方设备卡片上执行“生成VCF/导入”。');
     } else {
-      MessageAdapter.info('已选择号码，可在下方任意设备卡片使用“生成VCF/导入”进行操作（支持批量选择设备）�?);
+      message.info('已选择号码，可在下方任意设备卡片使用“生成VCF/导入”进行操作（支持批量选择设备）。');
     }
-    // 可选：自动滚动到设备卡片区�?
+    // 可选：自动滚动到设备卡片区域
     const el = document.querySelector('[data-device-card]');
     if (el && 'scrollIntoView' in el) {
       (el as HTMLElement).scrollIntoView({ behavior: 'smooth', block: 'center' });
     }
   };
 
-  // 设备卡片：生成VCF（仅生成文件，不导入�?
+  // 设备卡片：生成VCF（仅生成文件，不导入）
   const handleGenerateVcfForDevice = useCallback(async (deviceId: string, params: { start?: number; end?: number; industry?: string }) => {
     let { start, end } = params;
     try {
-      // 若未设定区间：直接选取“未分类”的100个号码（仅未消费），避免使用连续区间导致误�?
+      // 若未设定区间：直接选取“未分类”的100个号码（仅未消费），避免使用连续区间导致误选
       if (typeof start !== 'number' || typeof end !== 'number' || end < start) {
         const unclassified = await fetchUnclassifiedNumbers(100, true);
         if (unclassified.length === 0) {
-          MessageAdapter.warning('没有可用的未分类号码');
+          message.warning('没有可用的未分类号码');
           return;
         }
         const content = buildVcfFromNumbers(unclassified as any);
@@ -293,9 +278,9 @@ export const ContactImportWorkbench: React.FC = () => {
           sourceStartId: ids[0],
           sourceEndId: ids[ids.length - 1],
         });
-        MessageAdapter.success(`VCF 文件已生成：${filePath}`);
+        message.success(`VCF 文件已生成：${filePath}`);
         if (!mappingOk) {
-          MessageAdapter.warning('VCF已生成，但批次映射保存失败（后端未记录）。可稍后在会话面板重试�?);
+          message.warning('VCF已生成，但批次映射保存失败（后端未记录）。可稍后在会话面板重试。');
         }
         return;
       }
@@ -315,32 +300,32 @@ export const ContactImportWorkbench: React.FC = () => {
         sourceStartId: start,
         sourceEndId: end,
       });
-      MessageAdapter.success(`VCF 文件已生成：${filePath}`);
+      message.success(`VCF 文件已生成：${filePath}`);
       if (!mappingOk) {
-        MessageAdapter.warning('VCF已生成，但批次映射保存失败（后端未记录）。可稍后在会话面板重试�?);
+        message.warning('VCF已生成，但批次映射保存失败（后端未记录）。可稍后在会话面板重试。');
       }
-      // 行业可能在生�?导入前设置于 assignment，但号码库行业不变；状态栏无需刷新
+      // 行业可能在生成/导入前设置于 assignment，但号码库行业不变；状态栏无需刷新
     } catch (e) {
-      MessageAdapter.error(`生成失败�?{e}`);
+      message.error(`生成失败：${e}`);
     }
   }, [contactImportApp, onlyUnconsumed]);
 
-  // 设备卡片：生成并导入到设备（根据脚本键选择实现�?
+  // 设备卡片：生成并导入到设备（根据脚本键选择实现）
   const handleImportToDeviceFromCard = useCallback(async (deviceId: string, params: { start?: number; end?: number; industry?: string; scriptKey?: string }) => {
     let { start, end, scriptKey } = params;
     try {
-      // 若未设定区间：直接选取“未分类”的100个号码（未消费）生成VCF并导�?
+      // 若未设定区间：直接选取“未分类”的100个号码（未消费）生成VCF并导入
       if (typeof start !== 'number' || typeof end !== 'number' || end < start) {
         const unclassified = await fetchUnclassifiedNumbers(100, true);
         if (unclassified.length === 0) {
-          MessageAdapter.warning('没有可用的未分类号码');
+          message.warning('没有可用的未分类号码');
           return;
         }
         const vcfContent = buildVcfFromNumbers(unclassified as any);
         const tempPath = VcfImportService.generateTempVcfPath();
         await VcfImportService.writeVcfFile(tempPath, vcfContent);
 
-        // 批次与映�?+ 会话
+        // 批次与映射 + 会话
         const ids = unclassified.map(n => n.id).sort((a, b) => a - b);
         const generatedBatchId = `vcf_${deviceId}_${ids[0]}_${ids[ids.length - 1]}_${Date.now()}`;
         const { mappingOk, sessionId } = await registerGeneratedBatch({
@@ -364,16 +349,16 @@ export const ContactImportWorkbench: React.FC = () => {
             markBatchImportedForDevice(deviceId, generatedBatchId);
           }
         } catch (e) {
-          console.warn('完成导入会话记录失败�?, e);
+          console.warn('完成导入会话记录失败：', e);
         }
 
         if (outcome.success) {
-          MessageAdapter.success(`导入成功�?{outcome.importedCount}`);
+          message.success(`导入成功：${outcome.importedCount}`);
           if (!mappingOk) {
-            MessageAdapter.warning('导入成功，但批次映射保存失败（后端未记录）�?);
+            message.warning('导入成功，但批次映射保存失败（后端未记录）。');
           }
         } else {
-          MessageAdapter.error(outcome.message || '导入失败');
+          message.error(outcome.message || '导入失败');
         }
         return;
       }
@@ -408,20 +393,20 @@ export const ContactImportWorkbench: React.FC = () => {
           markBatchImportedForDevice(deviceId, generatedBatchId);
         }
       } catch (e) {
-        console.warn('完成导入会话记录失败�?, e);
+        console.warn('完成导入会话记录失败：', e);
       }
 
       if (outcome.success) {
-        MessageAdapter.success(`导入成功�?{outcome.importedCount}`);
+        message.success(`导入成功：${outcome.importedCount}`);
         if (!mappingOk) {
-          MessageAdapter.warning('导入成功，但批次映射保存失败（后端未记录）�?);
+          message.warning('导入成功，但批次映射保存失败（后端未记录）。');
         }
-        // 导入不直接修�?used 标记，只有在预览执行批量时才可选标记；此处不刷�?stats
+        // 导入不直接修改 used 标记，只有在预览执行批量时才可选标记；此处不刷新 stats
       } else {
-        MessageAdapter.error(outcome.message || '导入失败');
+        message.error(outcome.message || '导入失败');
       }
     } catch (e) {
-      MessageAdapter.error(`导入失败�?{e}`);
+      message.error(`导入失败：${e}`);
     }
   }, [contactImportApp, onlyUnconsumed]);
 
@@ -443,19 +428,19 @@ export const ContactImportWorkbench: React.FC = () => {
           arr.push({ title: cfg.title, dataIndex: 'name', width: cfg.width ?? 180 });
           break;
         case 'industry':
-          arr.push({ title: cfg.title, dataIndex: 'industry', width: cfg.width ?? 120, render: (industry: string | null) => industry ? <Tag color="geekblue">{industry}</Tag> : <Text type="secondary">未分�?/Text> });
+          arr.push({ title: cfg.title, dataIndex: 'industry', width: cfg.width ?? 120, render: (industry: string | null) => industry ? <Tag color="geekblue">{industry}</Tag> : <Text type="secondary">未分类</Text> });
           break;
         case 'status':
           arr.push({ title: cfg.title, dataIndex: 'status', width: cfg.width ?? 120, render: (status: string | null) => {
-            const config = status === 'imported' ? { color: 'success', text: '已导�? } :
-                          status === 'vcf_generated' ? { color: 'processing', text: 'VCF已生�? } :
-                          status === 'not_imported' ? { color: 'default', text: '未导�? } :
+            const config = status === 'imported' ? { color: 'success', text: '已导入' } :
+                          status === 'vcf_generated' ? { color: 'processing', text: 'VCF已生成' } :
+                          status === 'not_imported' ? { color: 'default', text: '未导入' } :
                           { color: 'default', text: '未知' };
             return <Tag color={config.color}>{config.text}</Tag>;
           }});
           break;
         case 'used':
-          arr.push({ title: cfg.title, dataIndex: 'used', width: cfg.width ?? 100, render: (used: number | null) => used === 1 ? <Tag color="warning">已使�?/Tag> : used === 0 ? <Tag color="default">未使�?/Tag> : <Tag color="default">-</Tag> });
+          arr.push({ title: cfg.title, dataIndex: 'used', width: cfg.width ?? 100, render: (used: number | null) => used === 1 ? <Tag color="warning">已使用</Tag> : used === 0 ? <Tag color="default">未使用</Tag> : <Tag color="default">-</Tag> });
           break;
         case 'imported_device_id':
           arr.push({ title: cfg.title, dataIndex: 'imported_device_id', width: cfg.width ?? 150, render: (deviceId: string | null) => deviceId ? <Tag color="blue" icon={<MobileOutlined />}>{deviceId}</Tag> : <Text type="secondary">-</Text> });
@@ -473,7 +458,7 @@ export const ContactImportWorkbench: React.FC = () => {
     return arr;
   }, [columnSettings.configs, page, pageSize]);
 
-  // 列宽拖拽（表头分隔线）集�?
+  // 列宽拖拽（表头分隔线）集成
   const visibleCfgs = useMemo(() => columnSettings.configs.filter(c => c.visible), [columnSettings.configs]);
   const resizable = useResizableColumns(
     visibleCfgs.map(c => ({ key: c.key, width: (columns as any[]).find(col => (col.dataIndex ?? col.key) === c.key)?.width })),
@@ -553,14 +538,14 @@ export const ContactImportWorkbench: React.FC = () => {
         Object.fromEntries(Object.entries(assignment).map(([id, a]) => [id, { idStart: a.idStart, idEnd: a.idEnd }]))
       );
       if (conflicts.length > 0) {
-        MessageAdapter.error('发现区间冲突，请先修正再生成');
+        message.error('发现区间冲突，请先修正再生成');
         return;
       }
       const batches = await contactImportApp.generateVcfBatches(assignment, { onlyUnconsumed });
       setPreviewBatches(batches as any);
       setPreviewOpen(true);
     } catch (e) {
-      MessageAdapter.error(`生成批次失败�?{e}`);
+      message.error(`生成批次失败：${e}`);
     }
   };
 
@@ -580,12 +565,12 @@ export const ContactImportWorkbench: React.FC = () => {
         perDeviceRetryDelayMs: 500,
         interDeviceDelayMs: 150,
       });
-      MessageAdapter.success(`导入完成：成�?${res.successDevices}/${res.totalDevices}`);
+      message.success(`导入完成：成功 ${res.successDevices}/${res.totalDevices}`);
       setPreviewOpen(false);
       setLastResult(res);
       setResultOpen(true);
     } catch (e) {
-      MessageAdapter.error(`批次导入失败�?{e}`);
+      message.error(`批次导入失败：${e}`);
     }
   };
 
@@ -594,7 +579,7 @@ export const ContactImportWorkbench: React.FC = () => {
     <>
       <StatsBar stats={stats} onRefresh={loadStats} />
       {rangeConflicts.length > 0 && (
-        <AlertCard
+        <Alert
           type="error"
           showIcon
           className={styles.alertCompact}
@@ -602,16 +587,16 @@ export const ContactImportWorkbench: React.FC = () => {
           description={
             <div>
               {rangeConflicts.slice(0, 5).map((c, i) => (
-                <div key={i}>设备 {c.deviceA} [{c.rangeA.start}-{c.rangeA.end}] �?设备 {c.deviceB} [{c.rangeB.start}-{c.rangeB.end}] 重叠</div>
+                <div key={i}>设备 {c.deviceA} [{c.rangeA.start}-{c.rangeA.end}] 与 设备 {c.deviceB} [{c.rangeB.start}-{c.rangeB.end}] 重叠</div>
               ))}
-              {rangeConflicts.length > 5 && <div style={{ opacity: 0.7 }}>仅显示前5�?/div>}
+              {rangeConflicts.length > 5 && <div style={{ opacity: 0.7 }}>仅显示前5条</div>}
             </div>
           }
         />
       )}
       <Space wrap>
-        <Button variant="solid" tone="brand" leftIcon={<FileDoneOutlined />} onClick={handleTopLevelImportHint}>
-          将所选号码生成VCF并导入设备（请在下方设备卡片执行�?
+        <Button type="primary" icon={<FileDoneOutlined />} onClick={handleTopLevelImportHint}>
+          将所选号码生成VCF并导入设备（请在下方设备卡片执行）
         </Button>
       </Space>
       <Divider />
@@ -626,7 +611,7 @@ export const ContactImportWorkbench: React.FC = () => {
         onOpenSessions={({ deviceId, status }) => setSessionsModal({ open: true, deviceId, status: (status ?? 'all') as any })}
       />
       <div className={styles.batchActionsRow}>
-        <Button variant="solid" tone="brand" onClick={handleGenerateBatches} disabled={hasInvalidRanges || allRangesEmpty}>
+        <Button type="primary" onClick={handleGenerateBatches} disabled={hasInvalidRanges || allRangesEmpty}>
           根据分配生成VCF批次
         </Button>
         <label style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
@@ -634,7 +619,7 @@ export const ContactImportWorkbench: React.FC = () => {
           仅使用未消费号码
         </label>
         {hasInvalidRanges && <Text type="danger">存在非法区间（起始大于结束）</Text>}
-        {allRangesEmpty && <Text type="secondary">请为至少一台设备设置有效区�?/Text>}
+        {allRangesEmpty && <Text type="secondary">请为至少一台设备设置有效区间</Text>}
       </div>
     </>
   );
@@ -643,12 +628,12 @@ export const ContactImportWorkbench: React.FC = () => {
   const renderImportPanel = () => (
     <Space direction="vertical" style={{ width: '100%' }}>
       <Space wrap style={{ marginBottom: 8 }}>
-        <Button onClick={() => setBatchDrawerOpen(true)}>按批�?设备筛�?/Button>
+        <Button onClick={() => setBatchDrawerOpen(true)}>按批次/设备筛选</Button>
       </Space>
-      <Text type="secondary">支持单个 TXT 或TXT文件夹，自动提取手机号码并去重入�?/Text>
+      <Text type="secondary">支持单个 TXT 或TXT文件夹，自动提取手机号码并去重入库</Text>
       <Space wrap>
         <Button icon={<FileTextOutlined />} onClick={handleImportTxt}>导入TXT文件</Button>
-        <Button icon={<FolderOpenOutlined />} onClick={handleImportFolder}>导入文件�?/Button>
+        <Button icon={<FolderOpenOutlined />} onClick={handleImportFolder}>导入文件夹</Button>
         <SourceFolderAddButton onAdded={addFolder} />
         <Button onClick={handleImportFromSavedFolders} disabled={!hasItems}>从已保存目录导入</Button>
       </Space>
@@ -669,12 +654,12 @@ export const ContactImportWorkbench: React.FC = () => {
     </Space>
   );
 
-  // 渲染号码池面板内�?
+  // 渲染号码池面板内容
   const renderNumbersPanel = () => (
     <>
       <Space wrap style={{ marginBottom: 16 }}>
-        <Button size="small" onClick={() => setSettingsOpen(true)}>列设�?/Button>
-        <Tag color="blue">�?{total} �?/Tag>
+        <Button size="small" onClick={() => setSettingsOpen(true)}>列设置</Button>
+        <Tag color="blue">共 {total} 条</Tag>
       </Space>
       <WorkbenchNumbersActionsBar
         selectedRowKeys={selectedRowKeys as number[]}
@@ -687,7 +672,7 @@ export const ContactImportWorkbench: React.FC = () => {
         disabled={loading}
         globalFilter={{ search }}
       />
-      <TableAdapter
+      <Table
         rowKey="id"
         components={components as any}
         columns={(columns as any[]).map(c => ({
@@ -703,8 +688,8 @@ export const ContactImportWorkbench: React.FC = () => {
         scroll={{ x: true, y: 400 }}
       />
       <div className={styles.tableFooter}>
-        <PaginationAdapter current={page} pageSize={pageSize} total={total} onChange={(p, ps) => { setPage(p); setPageSize(ps); }} showSizeChanger />
-        <Text type="secondary">已�?{selectedRowKeys.length} �?/Text>
+        <Pagination current={page} pageSize={pageSize} total={total} onChange={(p, ps) => { setPage(p); setPageSize(ps); }} showSizeChanger />
+        <Text type="secondary">已选 {selectedRowKeys.length} 条</Text>
       </div>
     </>
   );
@@ -724,7 +709,7 @@ export const ContactImportWorkbench: React.FC = () => {
         <Space>
           <LayoutOutlined />
           <Text>布局模式:</Text>
-          <SwitchAdapter 
+          <Switch 
             checked={enableGridLayout} 
             onChange={setEnableGridLayout}
             checkedChildren="网格布局"
@@ -765,7 +750,7 @@ export const ContactImportWorkbench: React.FC = () => {
           </Col>
 
           <Col xs={24} md={16}>
-            <Card title={<Space><DatabaseOutlined />号码�?/Space>}>
+            <Card title={<Space><DatabaseOutlined />号码池</Space>}>
               {renderNumbersPanel()}
             </Card>
           </Col>
@@ -788,7 +773,7 @@ export const ContactImportWorkbench: React.FC = () => {
           if (!lastResult) return;
           const failedIds = lastResult.deviceResults.filter(d => !d.success).map(d => d.deviceId);
           if (failedIds.length === 0) {
-            MessageAdapter.info('没有失败的设备需要重�?);
+            message.info('没有失败的设备需要重试');
             return;
           }
           try {
@@ -799,11 +784,11 @@ export const ContactImportWorkbench: React.FC = () => {
               interDeviceDelayMs: 150,
             });
             setLastResult(res);
-            MessageAdapter.success(`重试完成：成�?${res.successDevices}/${res.totalDevices}`);
+            message.success(`重试完成：成功 ${res.successDevices}/${res.totalDevices}`);
           } catch (e) {
-            MessageAdapter.error(`重试失败�?{e}`);
+            message.error(`重试失败：${e}`);
           }
-          // 如果批量执行时选择了标�?consumed，则 stats 中的未导入计数会变化
+          // 如果批量执行时选择了标记 consumed，则 stats 中的未导入计数会变化
           loadStats();
         }}
       />
