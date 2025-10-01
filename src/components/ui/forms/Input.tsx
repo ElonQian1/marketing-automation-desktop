@@ -49,6 +49,13 @@ export const Input: React.FC<InputProps> = ({
     'enhanced-input',
     `enhanced-input--${variant}`,
     `enhanced-input--${size}`,
+    // 品牌化样式：聚焦发光效果和渐变边框
+    'transition-all duration-200 ease-out',
+    'border border-border/60',
+    'focus-within:border-brand-500',
+    'focus-within:shadow-[var(--shadow-brand-glow)]',
+    'hover:border-border',
+    'hover:shadow-[0_2px_4px_rgba(0,0,0,0.05)]',
     {
       'enhanced-input--full-width': fullWidth,
     },
@@ -104,6 +111,13 @@ export const TextArea: React.FC<TextAreaProps> = ({
 
   const inputClasses = classNames(
     'enhanced-textarea',
+    // 品牌化样式：与Input保持一致的现代化效果
+    'transition-all duration-200 ease-out',
+    'border border-border/60',
+    'focus-within:border-brand-500',
+    'focus-within:shadow-[var(--shadow-brand-glow)]',
+    'hover:border-border',
+    'hover:shadow-[0_2px_4px_rgba(0,0,0,0.05)]',
     className
   );
 

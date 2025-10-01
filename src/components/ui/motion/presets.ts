@@ -11,13 +11,17 @@
 import type { Transition, Variants } from "framer-motion";
 
 /**
- * 动效时长（单位：秒）
+ * 动效时长（基于 Design Tokens，单位：秒）
  */
 export const motionDurations = {
-  hover: 0.1, // 100ms，位于 80-120ms 区间
-  press: 0.08, // 80ms，按下反馈更快
-  enter: 0.2, // 200ms，位于 180-220ms 区间
-  exit: 0.14, // 140ms，位于 120-160ms 区间
+  // 从 CSS 变量读取，确保与 Design Tokens 同步
+  micro: parseFloat(getComputedStyle(document.documentElement).getPropertyValue('--duration-micro')) / 1000 || 0.08,
+  hover: parseFloat(getComputedStyle(document.documentElement).getPropertyValue('--duration-fast')) / 1000 || 0.12,
+  press: parseFloat(getComputedStyle(document.documentElement).getPropertyValue('--duration-micro')) / 1000 || 0.08,
+  enter: parseFloat(getComputedStyle(document.documentElement).getPropertyValue('--duration-normal')) / 1000 || 0.18,
+  exit: parseFloat(getComputedStyle(document.documentElement).getPropertyValue('--duration-fast')) / 1000 || 0.12,
+  slow: parseFloat(getComputedStyle(document.documentElement).getPropertyValue('--duration-slow')) / 1000 || 0.22,
+  slower: parseFloat(getComputedStyle(document.documentElement).getPropertyValue('--duration-slower')) / 1000 || 0.3,
   overlay: 0.15, // 遮罩层淡入淡出
   stagger: 0.05, // 列表交错间隔
 } as const;

@@ -1,9 +1,10 @@
 
 /**
  * Card 组件 - 现代化卡片容器
- * 
- * 特性：
- * - 基于设计令牌的统一样式
+ *        // 高程卡片 - 现代大阴影
+        elevated: "shadow-[var(--shadow-lg)]",
+ * 特性：        // 渐变卡片 - 品牌色背景和阴影
+        gradient: "shadow-[var(--shadow-brand-lg)] border-transparent gradient-brand text-white", * - 基于设计令牌的统一样式
  * - 支持多种变体和尺寸
  * - 可选的悬停效果和阴影
  * - 灵活的内容区域组合
@@ -26,8 +27,8 @@ const cardVariants = cva(
   {
     variants: {
       variant: {
-        // 默认卡片 - 标准阴影和边框
-        default: "shadow-sm",
+        // 默认卡片 - 现代分层阴影
+        default: "shadow-[var(--shadow)]",
         
         // 突出卡片 - 更强的阴影
         elevated: "shadow-lg",
@@ -38,8 +39,11 @@ const cardVariants = cva(
         // 幽灵卡片 - 无边框无阴影
         ghost: "border-transparent shadow-none",
         
-        // 渐变卡片 - 品牌化背景
-        gradient: "shadow-lg border-transparent gradient-brand text-white",
+        // 渐变卡片 - 品牌渐变背景
+        gradient: "shadow-[var(--shadow-brand-lg)] border-transparent bg-gradient-to-br from-brand-500 to-brand-600 text-white",
+        
+        // 玻璃态卡片 - 现代玻璃效果
+        glass: "border border-white/20 shadow-[var(--shadow-glass)] backdrop-blur-[var(--backdrop-blur)] bg-[var(--bg-glass-elevated)]",
       },
       
       size: {
@@ -50,7 +54,7 @@ const cardVariants = cva(
       },
       
       hoverable: {
-        true: "cursor-pointer hover:shadow-md hover:-translate-y-0.5",
+        true: "cursor-pointer hover:shadow-[var(--shadow-lg)] hover:-translate-y-0.5 hover:scale-[var(--motion-scale-hover)] transition-all duration-[var(--duration-normal)] ease-[var(--motion-smooth)]",
         false: "",
       }
     },

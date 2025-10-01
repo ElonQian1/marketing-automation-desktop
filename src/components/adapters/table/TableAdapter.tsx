@@ -65,9 +65,10 @@ const getBrandedTableTheme = (brandTheme: string) => {
       Table: {
         // 统一的表格样式，不覆盖内部实现
         borderRadiusLG: parseInt('var(--radius-lg)') || 16,
-        headerBg: 'var(--bg-secondary)',
+        headerBg: 'linear-gradient(to right, var(--bg-secondary), var(--bg-muted))',
         headerColor: 'var(--text-1)',
-        rowHoverBg: 'var(--bg-tertiary)', 
+        // 品牌化行悬停效果：微渐变玻璃态
+        rowHoverBg: 'linear-gradient(to right, rgba(59, 130, 246, 0.05), transparent)', 
         padding: parseInt('var(--space-4)') || 16,
         paddingSM: parseInt('var(--space-3)') || 12,
         

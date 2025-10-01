@@ -14,9 +14,9 @@
 import * as React from "react";
 import { Slot } from "@radix-ui/react-slot";
 import { cva, type VariantProps } from "class-variance-authority";
-import { motion } from "framer-motion";
+import { motion, type HTMLMotionProps } from "framer-motion";
 import { cn, focusRing, modernTransition } from "../utils";
-import { hoverVariants } from "../motion";
+import { motionPresets } from "../motion";
 
 /**
  * 按钮样式变体配置
@@ -24,8 +24,9 @@ import { hoverVariants } from "../motion";
 const buttonVariants = cva(
   // 基础样式 - 所有按钮共享
   [
-    "inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-lg text-sm font-medium",
-    "ring-offset-background transition-colors",
+  "inline-flex items-center justify-center gap-2 whitespace-nowrap",
+  "rounded-[var(--radius-sm)] text-sm font-medium",
+  "ring-offset-[var(--bg-base)] transition-colors",
     focusRing,
     modernTransition,
     "disabled:pointer-events-none disabled:opacity-50",
@@ -35,10 +36,12 @@ const buttonVariants = cva(
   {
     variants: {
       variant: {
-        // 主要按钮 - 品牌色，高对比度
+        // 主要按钮 - 品牌渐变 + 商业化发光
         default: [
-          "bg-brand text-white shadow-sm",
-          "hover:bg-brand-600 active:bg-brand-700",
+          "bg-gradient-to-br from-brand-500 to-brand-600 text-white",
+          "shadow-[var(--shadow-brand)]",
+          "hover:shadow-[var(--shadow-brand-glow)] hover:from-brand-400 hover:to-brand-500",
+          "active:bg-brand-700 active:shadow-[var(--shadow-brand)]",
         ],
         
         // 危险操作按钮
@@ -120,6 +123,7 @@ const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
     rightIcon,
     children,
     disabled,
+    type: buttonType = "button",
     ...props 
   }, ref) => {
     const isDisabled = disabled || loading;
@@ -130,13 +134,17 @@ const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
         <Slot
           className={cn(buttonVariants({ variant, size, className }))}
           ref={ref}
+          data-disabled={isDisabled || undefined}
+          aria-disabled={isDisabled || undefined}
+          aria-busy={loading || undefined}
           {...props}
         >
           <motion.span
-            variants={hoverVariants}
+            variants={motionPresets.variants.hover}
             initial="rest"
             whileHover={isDisabled ? "rest" : "hover"}
             whileTap={isDisabled ? "rest" : "tap"}
+            transition={motionPresets.transitions.hover}
           >
             {loading && <LoadingSpinner className="h-4 w-4" />}
             {!loading && leftIcon && leftIcon}
@@ -147,17 +155,22 @@ const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
       );
     }
     
+    const motionProps = props as unknown as HTMLMotionProps<"button">;
+
     return (
       <motion.button
         className={cn(buttonVariants({ variant, size, className }))}
         ref={ref}
         disabled={isDisabled}
-        variants={hoverVariants}
+        aria-disabled={isDisabled}
+        aria-busy={loading || undefined}
+        variants={motionPresets.variants.hover}
         initial="rest"
         whileHover={isDisabled ? "rest" : "hover"}
         whileTap={isDisabled ? "rest" : "tap"}
-        // 分离 motion props 和 HTML props
-        {...(props as any)}
+        transition={motionPresets.transitions.hover}
+        type={buttonType}
+        {...motionProps}
       >
         {loading && (
           <LoadingSpinner className="h-4 w-4" />

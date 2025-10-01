@@ -99,6 +99,12 @@ export const Select: React.FC<SelectProps> = ({
     // 基础样式
     'ui-select',
     
+    // 品牌化样式：与Input保持一致的现代化效果
+    'transition-all duration-200 ease-out',
+    'border border-border/60',
+    'hover:border-border',
+    'hover:shadow-[0_2px_4px_rgba(0,0,0,0.05)]',
+    
     // 尺寸样式
     size === 'small' && 'ui-select--small',
     size === 'medium' && 'ui-select--medium',
@@ -124,6 +130,14 @@ export const Select: React.FC<SelectProps> = ({
       variant={getAntdVariant()}
       status={error ? 'error' : props.status}
       className={selectClassName}
+      // 品牌化下拉面板样式：玻璃态效果
+      popupClassName={cn(
+        'ui-select-dropdown',
+        'bg-background/95 backdrop-blur-[var(--backdrop-blur)]',
+        'shadow-[var(--shadow-glass)] border border-border/40',
+        'rounded-lg overflow-hidden',
+        props.popupClassName
+      )}
       style={{
         width: fullWidth ? '100%' : props.style?.width,
         ...props.style,

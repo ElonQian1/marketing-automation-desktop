@@ -1,5 +1,6 @@
 import React from "react";
-import { DatePicker, type DatePickerProps, type RangePickerProps } from "antd";
+import { DatePicker } from "antd";
+import type { DatePickerProps, RangePickerProps } from "antd/es/date-picker";
 
 type Size = "small" | "middle" | "large";
 

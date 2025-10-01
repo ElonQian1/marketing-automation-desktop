@@ -5,40 +5,68 @@
  * 使用方式：import { Button, CardShell, TagPill } from '@/components/ui'
  */
 
+// 工具函数
+export { cn, focusRing, modernTransition, fastTransition, commonStyles } from './utils';
+
 // 按钮组件
-export { 
-  Button, 
+export {
+  Button,
   buttonVariants,
-  type ButtonProps 
-} from './Button';
+  type ButtonProps,
+} from './button/Button';
 
 // 卡片组件
 export {
-  CardShell,
+  Card,
   CardHeader,
-  CardContent,
   CardFooter,
+  CardTitle,
+  CardDescription,
+  CardContent,
   cardVariants,
-  type CardShellProps
-} from './CardShell';
+} from './card/Card';
+
+export {
+  CardShell,
+  cardShellVariants,
+  type CardShellProps,
+} from './card/CardShell';
 
 // 标签组件
 export {
   TagPill,
   tagPillVariants,
-  type TagPillProps
-} from './TagPill';
+  type TagPillProps,
+} from './tag-pill/TagPill';
+
+// 提示组件
+export {
+  Tooltip,
+  TooltipTrigger,
+  TooltipContent,
+  TooltipProvider,
+  TooltipArrow,
+  SimpleTooltip,
+  InfoTooltip,
+  useTooltip,
+} from './tooltip/Tooltip';
 
 // 对话框组件
 export {
-  SmartDialog,
+  Dialog,
+  DialogPortal,
+  DialogOverlay,
   DialogTrigger,
   DialogClose,
-  DialogActions,
-  dialogContentVariants,
-  dialogOverlayVariants,
-  type SmartDialogProps
-} from './SmartDialog';
+  DialogContent,
+  DialogHeader,
+  DialogFooter,
+  DialogTitle,
+  DialogDescription,
+  type DialogContentProps,
+} from './dialog/Dialog';
+
+// Motion 预设与包装组件
 export * from './motion';
 
 // 类型导出

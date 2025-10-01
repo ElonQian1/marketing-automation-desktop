@@ -1,18 +1,56 @@
 
+// 文件路径：src/components/ui/tooltip/Tooltip.tsx
+
 /**
- * Tooltip 组件 - 基于 Radix UI 的工具提示
- * 
+ * Tooltip 组件 - 基于 Radix UI 的品牌化工具提示
+ *
  * 特性：
- * - 智能定位和碰撞检测
- * - 完整的 A11y 支持
- * - 可定制的延迟和动画
- * - 基于设计令牌的统一样式
- * - 支持富文本内容
+ * - 统一动效：使用 motionPresets 的 slide 变体，入场 200ms、离场 140ms
+ * - 设计令牌：背景、文本、阴影、圆角均来源于 tokens，支持暗色/紧凑模式
+ * - 完整 A11y：焦点环、隐藏文案、可控 open 状态
+ * - 组合能力：提供 SimpleTooltip、InfoTooltip 与 useTooltip，覆盖常规与程序化场景
  */
 
 import * as React from "react";
 import * as TooltipPrimitive from "@radix-ui/react-tooltip";
-import { cn } from "../utils";
+import { motion, type Variants } from "framer-motion";
+
+import { cn, focusRing, fastTransition } from "../utils";
+import { motionPresets } from "../motion";
+
+type TooltipContentBaseProps = React.ComponentPropsWithoutRef<
+  typeof TooltipPrimitive.Content
+>;
+
+interface TooltipContentProps extends TooltipContentBaseProps {
+  /** 是否渲染箭头 */
+  withArrow?: boolean;
+}
+
+type TooltipSide = NonNullable<TooltipContentProps["side"]>;
+
+const slideVariantMap: Record<TooltipSide, Variants> = {
+  top: motionPresets.variants.slide.fromBottom,
+  bottom: motionPresets.variants.slide.fromTop,
+  left: motionPresets.variants.slide.fromRight,
+  right: motionPresets.variants.slide.fromLeft,
+};
+
+const TooltipArrow = React.forwardRef<
+  React.ElementRef<typeof TooltipPrimitive.Arrow>,
+  React.ComponentPropsWithoutRef<typeof TooltipPrimitive.Arrow>
+>(({ className, ...props }, ref) => (
+  <TooltipPrimitive.Arrow
+    ref={ref}
+    className={cn(
+      "fill-[color:var(--bg-elevated)]",
+      "drop-shadow-[0px_4px_10px_rgba(15,23,42,0.18)]",
+      className
+    )}
+    {...props}
+  />
+));
+TooltipArrow.displayName = "TooltipArrow";
 
 /**
  * Tooltip Provider - 需要在应用根部使用
@@ -30,34 +68,65 @@ const Tooltip = TooltipPrimitive.Root;
 const TooltipTrigger = TooltipPrimitive.Trigger;
 
 /**
- * Tooltip 内容组件
+ * Tooltip 内容组件，集成品牌样式与统一动效
  */
 const TooltipContent = React.forwardRef<
   React.ElementRef<typeof TooltipPrimitive.Content>,
-  React.ComponentPropsWithoutRef<typeof TooltipPrimitive.Content>
->(({ className, sideOffset = 4, ...props }, ref) => (
-  <TooltipPrimitive.Content
-    ref={ref}
-    sideOffset={sideOffset}
-    className={cn(
-      // 基础样式
-      "z-tooltip overflow-hidden rounded-lg bg-neutral-900 px-3 py-1.5 text-xs text-white",
-      // 动画效果
-      "animate-in fade-in-0 zoom-in-95 data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=closed]:zoom-out-95",
-      // 位置动画
-      "data-[side=bottom]:slide-in-from-top-2 data-[side=left]:slide-in-from-right-2 data-[side=right]:slide-in-from-left-2 data-[side=top]:slide-in-from-bottom-2",
-      // 阴影
-      "shadow-lg",
-      className
-    )}
-    {...props}
-  />
-));
-TooltipContent.displayName = TooltipPrimitive.Content.displayName;
+  TooltipContentProps
+>(
+  (
+    {
+      className,
+      side = "top",
+      align = "center",
+      sideOffset = 8,
+      collisionPadding = 12,
+      withArrow = true,
+      children,
+      ...props
+    },
+    ref
+  ) => {
+    const resolvedSide: TooltipSide = side ?? "top";
+    const variants = slideVariantMap[resolvedSide];
+
+    return (
+      <TooltipPrimitive.Portal>
+        <TooltipPrimitive.Content
+          ref={ref}
+          side={resolvedSide}
+          align={align}
+          sideOffset={sideOffset}
+          collisionPadding={collisionPadding}
+          asChild
+          {...props}
+        >
+          <motion.div
+            className={cn(
+              "z-tooltip max-w-xs rounded-[var(--radius-sm)] border border-border-primary",
+              "bg-background-elevated/95 px-3 py-2 text-xs font-medium leading-relaxed text-text-inverse",
+              "shadow-[var(--shadow-lg)] backdrop-blur-[var(--backdrop-blur-sm,8px)]",
+              fastTransition,
+              className
+            )}
+            initial="initial"
+            animate="animate"
+            exit="exit"
+            variants={variants}
+          >
+            {children}
+            {withArrow ? <TooltipArrow /> : null}
+          </motion.div>
+        </TooltipPrimitive.Content>
+      </TooltipPrimitive.Portal>
+    );
+  }
+);
+TooltipContent.displayName = "TooltipContent";
 
 /**
  * 简化的 Tooltip 组合组件
- * 
+ *
  * @example
  * ```tsx
  * <SimpleTooltip content="这是一个提示">
@@ -70,38 +139,56 @@ interface SimpleTooltipProps {
   children: React.ReactNode;
   /** 延迟时间（毫秒） */
   delayDuration?: number;
-  /** 触发方式 */
-  trigger?: "hover" | "focus" | "click";
   /** 位置 */
-  side?: "top" | "right" | "bottom" | "left";
+  side?: TooltipSide;
   /** 对齐方式 */
-  align?: "start" | "center" | "end";
+  align?: NonNullable<TooltipContentProps["align"]>;
+  /** 距离触发器的偏移量 */
+  sideOffset?: number;
+  /** 是否显示箭头 */
+  withArrow?: boolean;
   /** 是否禁用 */
   disabled?: boolean;
+  /** 内容额外类名 */
+  contentClassName?: string;
+  /** 预留：兼容旧 trigger 配置 */
+  trigger?: "hover" | "focus" | "click";
 }
 
 const SimpleTooltip: React.FC<SimpleTooltipProps> = ({
   content,
   children,
-  delayDuration = 200,
-  trigger = "hover",
+  delayDuration = 150,
   side = "top",
   align = "center",
+  sideOffset = 8,
+  withArrow = true,
   disabled = false,
+  contentClassName,
 }) => {
   if (disabled || !content) {
     return <>{children}</>;
   }
 
   return (
-    <Tooltip delayDuration={delayDuration}>
-      <TooltipTrigger asChild>
-        {children}
-      </TooltipTrigger>
-      <TooltipContent side={side} align={align}>
-        {content}
-      </TooltipContent>
-    </Tooltip>
+    <TooltipProvider delayDuration={delayDuration} skipDelayDuration={75}>
+      <Tooltip>
+        <TooltipTrigger asChild>{children}</TooltipTrigger>
+        <TooltipContent
+          side={side}
+          align={align}
+          sideOffset={sideOffset}
+          withArrow={withArrow}
+          className={contentClassName}
+        >
+          {typeof content === "string" ? (
+            <span className="whitespace-pre-line">{content}</span>
+          ) : (
+            content
+          )}
+        </TooltipContent>
+      </Tooltip>
+    </TooltipProvider>
   );
 };
 
@@ -113,38 +200,45 @@ interface InfoTooltipProps {
   /** 图标大小 */
   iconSize?: "sm" | "md" | "lg";
   className?: string;
+  ariaLabel?: string;
+  delayDuration?: number;
 }
+
+const iconSizeClassMap: Record<NonNullable<InfoTooltipProps["iconSize"]>, string> = {
+  sm: "h-4 w-4",
+  md: "h-5 w-5",
+  lg: "h-6 w-6",
+};
 
 const InfoTooltip: React.FC<InfoTooltipProps> = ({
   content,
   iconSize = "md",
   className,
+  ariaLabel = "更多信息",
+  delayDuration,
 }) => {
-  const iconSizeClass = {
-    sm: "h-3 w-3",
-    md: "h-4 w-4", 
-    lg: "h-5 w-5",
-  }[iconSize];
-
   return (
-    <SimpleTooltip content={content}>
+    <SimpleTooltip content={content} delayDuration={delayDuration}>
       <button
         type="button"
         className={cn(
-          "inline-flex items-center justify-center rounded-full text-text-muted",
-          "hover:text-text-primary focus:outline-none focus:ring-2 focus:ring-brand focus:ring-offset-2",
-          "transition-colors",
-          iconSizeClass,
+          "inline-flex items-center justify-center rounded-full bg-transparent",
+          "text-text-secondary hover:text-text-primary",
+          focusRing,
+          fastTransition,
+          iconSizeClassMap[iconSize],
           className
         )}
-        aria-label="更多信息"
+        aria-label={ariaLabel}
       >
         <svg
           className="h-full w-full"
-          fill="none"
           viewBox="0 0 24 24"
+          fill="none"
           stroke="currentColor"
           strokeWidth={2}
+          strokeLinecap="round"
+          strokeLinejoin="round"
         >
           <circle cx="12" cy="12" r="10" />
           <path d="M12 16v-4" />
@@ -173,6 +267,7 @@ export {
   TooltipTrigger,
   TooltipContent,
   TooltipProvider,
+  TooltipArrow,
   SimpleTooltip,
   InfoTooltip,
   useTooltip,
