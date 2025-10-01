@@ -45,9 +45,12 @@ export const TreeView: React.FC<TreeViewProps> = ({
   }
 
   const renderNode = (node: UiNode, depth = 0): React.ReactNode => {
+    // 为节点生成唯一键值
+    const nodeKey = `${node.tag}-${node.attrs['resource-id'] || ''}-${depth}-${collapseVersion}`;
+    
     return (
       <TreeRow
-        key={`${node.id}-${collapseVersion}`}
+        key={nodeKey}
         node={node}
         depth={depth}
         expandAll={expandAll}
@@ -55,10 +58,11 @@ export const TreeView: React.FC<TreeViewProps> = ({
         expandDepth={expandDepth}
         showMatchedOnly={showMatchedOnly}
         matchedSet={matchedSet}
-        selectedAncestors={selectedAncestors}
+        selectedAncestors={new Set(selectedAncestors)}
         selected={selected}
         onSelect={onSelect}
-        onHover={onHoverNode}
+        onHoverNode={onHoverNode}
+        filter=""
       />
     );
   };
@@ -66,8 +70,25 @@ export const TreeView: React.FC<TreeViewProps> = ({
   return (
     <div className={`${styles.leftPanel} flex flex-col h-full`}>
       <div className="p-2 border-b">
-        <MatchCountSummary matchedSet={matchedSet} />
-        <AdvancedFilterSummary />
+        <MatchCountSummary 
+          total={matchedSet.size} 
+          index={selected ? (Array.from(matchedSet).indexOf(selected)) : -1}
+          autoSelectOnParse={false}
+          onToggleAutoSelect={() => {}}
+        />
+        <AdvancedFilterSummary 
+          value={{
+            enabled: false,
+            mode: 'AND',
+            resourceId: '',
+            text: '',
+            className: '',
+            packageName: '',
+            clickable: null,
+            nodeEnabled: null
+          }}
+          onClear={() => {}}
+        />
         <Breadcrumbs selected={selected} onSelect={onSelect} />
       </div>
       <div className="flex-1 overflow-auto">

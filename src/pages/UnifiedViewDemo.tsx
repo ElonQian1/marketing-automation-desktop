@@ -158,7 +158,7 @@ const UnifiedViewDemo: React.FC = () => {
               <li>活跃视图: <Tag>{viewState.activeView}</Tag></li>
               <li>搜索词: <Tag>{viewState.searchTerm || '无'}</Tag></li>
               <li>加载中: <Tag color={viewState.loading ? 'orange' : 'green'}>{viewState.loading ? '是' : '否'}</Tag></li>
-              <li>选中元素: <Tag>{viewState.selectedElement ? viewState.selectedElement.displayName : '无'}</Tag></li>
+              <li>选中元素: <Tag>{viewState.selectedElement ? (viewState.selectedElement.text || viewState.selectedElement.resource_id || viewState.selectedElement.id || '无文本') : '无'}</Tag></li>
             </ul>
           </div>
         </Card>

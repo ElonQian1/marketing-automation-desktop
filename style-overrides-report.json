@@ -1,10 +1,10 @@
 {
   "summary": {
-    "scannedFiles": 1280,
-    "totalIssues": 1519,
+    "scannedFiles": 1296,
+    "totalIssues": 1487,
     "criticalIssues": 0,
-    "highIssues": 32,
-    "mediumIssues": 1487
+    "highIssues": 29,
+    "mediumIssues": 1458
   },
   "violations": [
     {
@@ -28,39 +28,6 @@
       "match": "border-radius: 6px",
       "context": "border-radius: 6px;",
       "fix": "使用 var(--radius) 等 tokens 替换"
-    },
-    {
-      "file": "src\\components\\ui\\buttons\\PrimaryButton.tsx",
-      "line": 93,
-      "column": 3,
-      "type": "hardcodedShadow",
-      "name": "硬编码阴影",
-      "severity": "high",
-      "match": "box-shadow: 0 2px 4px rgba(",
-      "context": "box-shadow: 0 2px 4px rgba(59, 130, 246, 0.2);",
-      "fix": "使用 var(--shadow) 等 tokens 替换"
-    },
-    {
-      "file": "src\\components\\ui\\buttons\\PrimaryButton.tsx",
-      "line": 98,
-      "column": 3,
-      "type": "hardcodedShadow",
-      "name": "硬编码阴影",
-      "severity": "high",
-      "match": "box-shadow: 0 4px 8px rgba(",
-      "context": "box-shadow: 0 4px 8px rgba(59, 130, 246, 0.3);",
-      "fix": "使用 var(--shadow) 等 tokens 替换"
-    },
-    {
-      "file": "src\\components\\ui\\buttons\\PrimaryButton.tsx",
-      "line": 107,
-      "column": 3,
-      "type": "hardcodedShadow",
-      "name": "硬编码阴影",
-      "severity": "high",
-      "match": "box-shadow: 0 4px 12px rgba(",
-      "context": "box-shadow: 0 4px 12px rgba(59, 130, 246, 0.3);",
-      "fix": "使用 var(--shadow) 等 tokens 替换"
     },
     {
       "file": "src\\components\\ui\\buttons\\PrimaryButton.tsx",
@@ -1603,17 +1570,6 @@
       "fix": "使用 tokens 颜色变量替换"
     },
     {
-      "file": "src\\components\\element-name-editor\\FieldMatchingController_old.tsx",
-      "line": 535,
-      "column": 71,
-      "type": "hardcodedColors",
-      "name": "硬编码颜色",
-      "severity": "medium",
-      "match": "#f5f5f5",
-      "context": "<div style={{ marginTop: 16, padding: '12px', backgroundColor: '#f5f5f5', borderRadius: 4 }}>",
-      "fix": "使用 tokens 颜色变量替换"
-    },
-    {
       "file": "src\\components\\element-name-editor\\tabs\\BasicConfigTab.tsx",
       "line": 45,
       "column": 33,
@@ -2645,83 +2601,6 @@
       "severity": "medium",
       "match": "#999",
       "context": "<ClockCircleOutlined style={{ color: '#999', fontSize: '12px' }} />",
-      "fix": "使用 tokens 颜色变量替换"
-    },
-    {
-      "file": "src\\components\\element-xml-hierarchy\\PageSelector.tsx",
-      "line": 198,
-      "column": 54,
-      "type": "hardcodedColors",
-      "name": "硬编码颜色",
-      "severity": "medium",
-      "match": "#e6f7ff",
-      "context": "backgroundColor: isSelected ? '#e6f7ff' : '#f5f5f5',",
-      "fix": "使用 tokens 颜色变量替换"
-    },
-    {
-      "file": "src\\components\\element-xml-hierarchy\\PageSelector.tsx",
-      "line": 198,
-      "column": 66,
-      "type": "hardcodedColors",
-      "name": "硬编码颜色",
-      "severity": "medium",
-      "match": "#f5f5f5",
-      "context": "backgroundColor: isSelected ? '#e6f7ff' : '#f5f5f5',",
-      "fix": "使用 tokens 颜色变量替换"
-    },
-    {
-      "file": "src\\components\\element-xml-hierarchy\\PageSelector.tsx",
-      "line": 199,
-      "column": 50,
-      "type": "hardcodedColors",
-      "name": "硬编码颜色",
-      "severity": "medium",
-      "match": "#91d5ff",
-      "context": "borderColor: isSelected ? '#91d5ff' : '#d9d9d9',",
-      "fix": "使用 tokens 颜色变量替换"
-    },
-    {
-      "file": "src\\components\\element-xml-hierarchy\\PageSelector.tsx",
-      "line": 199,
-      "column": 62,
-      "type": "hardcodedColors",
-      "name": "硬编码颜色",
-      "severity": "medium",
-      "match": "#d9d9d9",
-      "context": "borderColor: isSelected ? '#91d5ff' : '#d9d9d9',",
-      "fix": "使用 tokens 颜色变量替换"
-    },
-    {
-      "file": "src\\components\\element-xml-hierarchy\\PageSelector.tsx",
-      "line": 200,
-      "column": 44,
-      "type": "hardcodedColors",
-      "name": "硬编码颜色",
-      "severity": "medium",
-      "match": "#096dd9",
-      "context": "color: isSelected ? '#096dd9' : '#666'",
-      "fix": "使用 tokens 颜色变量替换"
-    },
-    {
-      "file": "src\\components\\element-xml-hierarchy\\PageSelector.tsx",
-      "line": 200,
-      "column": 56,
-      "type": "hardcodedColors",
-      "name": "硬编码颜色",
-      "severity": "medium",
-      "match": "#666",
-      "context": "color: isSelected ? '#096dd9' : '#666'",
-      "fix": "使用 tokens 颜色变量替换"
-    },
-    {
-      "file": "src\\components\\element-xml-hierarchy\\PageSelector.tsx",
-      "line": 214,
-      "column": 76,
-      "type": "hardcodedColors",
-      "name": "硬编码颜色",
-      "severity": "medium",
-      "match": "#fafafa",
-      "context": "<Card size=\"small\" style={{ textAlign: 'center', backgroundColor: '#fafafa' }}>",
       "fix": "使用 tokens 颜色变量替换"
     },
     {
@@ -6829,7 +6708,7 @@
     },
     {
       "file": "src\\components\\NativeAntDesignApp.tsx",
-      "line": 240,
+      "line": 243,
       "column": 23,
       "type": "hardcodedColors",
       "name": "硬编码颜色",
@@ -6840,7 +6719,7 @@
     },
     {
       "file": "src\\components\\NativeAntDesignApp.tsx",
-      "line": 260,
+      "line": 263,
       "column": 40,
       "type": "hardcodedColors",
       "name": "硬编码颜色",
@@ -6851,7 +6730,7 @@
     },
     {
       "file": "src\\components\\NativeAntDesignApp.tsx",
-      "line": 298,
+      "line": 301,
       "column": 52,
       "type": "hardcodedColors",
       "name": "硬编码颜色",
@@ -7078,28 +6957,6 @@
       "severity": "medium",
       "match": "#f0f8ff",
       "context": "backgroundColor: selectedApp?.package_name === app.package_name ? '#f0f8ff' : undefined",
-      "fix": "使用 tokens 颜色变量替换"
-    },
-    {
-      "file": "src\\components\\smart\\SmartAppSelector.tsx",
-      "line": 365,
-      "column": 63,
-      "type": "hardcodedColors",
-      "name": "硬编码颜色",
-      "severity": "medium",
-      "match": "#f5f5f5",
-      "context": "backgroundColor: app.is_system_app ? '#f5f5f5' : '#e6f7ff'",
-      "fix": "使用 tokens 颜色变量替换"
-    },
-    {
-      "file": "src\\components\\smart\\SmartAppSelector.tsx",
-      "line": 365,
-      "column": 75,
-      "type": "hardcodedColors",
-      "name": "硬编码颜色",
-      "severity": "medium",
-      "match": "#e6f7ff",
-      "context": "backgroundColor: app.is_system_app ? '#f5f5f5' : '#e6f7ff'",
       "fix": "使用 tokens 颜色变量替换"
     },
     {
@@ -7859,39 +7716,6 @@
       "severity": "medium",
       "match": "#87d068",
       "context": "'100%': '#87d068',",
-      "fix": "使用 tokens 颜色变量替换"
-    },
-    {
-      "file": "src\\components\\ui\\buttons\\PrimaryButton.tsx",
-      "line": 102,
-      "column": 15,
-      "type": "hardcodedGradient",
-      "name": "硬编码渐变",
-      "severity": "medium",
-      "match": "linear-gradient(135deg, #3b82f6, #2563eb)",
-      "context": "background: linear-gradient(135deg, #3b82f6, #2563eb);",
-      "fix": "定义渐变tokens或使用Tailwind工具类"
-    },
-    {
-      "file": "src\\components\\ui\\buttons\\PrimaryButton.tsx",
-      "line": 102,
-      "column": 39,
-      "type": "hardcodedColors",
-      "name": "硬编码颜色",
-      "severity": "medium",
-      "match": "#3b82f6",
-      "context": "background: linear-gradient(135deg, #3b82f6, #2563eb);",
-      "fix": "使用 tokens 颜色变量替换"
-    },
-    {
-      "file": "src\\components\\ui\\buttons\\PrimaryButton.tsx",
-      "line": 102,
-      "column": 48,
-      "type": "hardcodedColors",
-      "name": "硬编码颜色",
-      "severity": "medium",
-      "match": "#2563eb",
-      "context": "background: linear-gradient(135deg, #3b82f6, #2563eb);",
       "fix": "使用 tokens 颜色变量替换"
     },
     {
@@ -8794,17 +8618,6 @@
       "severity": "medium",
       "match": "#999",
       "context": "color: '#999',",
-      "fix": "使用 tokens 颜色变量替换"
-    },
-    {
-      "file": "src\\components\\universal-ui\\DesignSystemTestPage.tsx",
-      "line": 31,
-      "column": 75,
-      "type": "hardcodedColors",
-      "name": "硬编码颜色",
-      "severity": "medium",
-      "match": "#f5f5f5",
-      "context": "<div style={{ marginTop: '32px', padding: '24px', backgroundColor: '#f5f5f5', borderRadius: '8px' }}>",
       "fix": "使用 tokens 颜色变量替换"
     },
     {
@@ -12284,6 +12097,17 @@
       "fix": "使用 tokens 颜色变量替换"
     },
     {
+      "file": "src\\examples\\PatternDemos.tsx",
+      "line": 256,
+      "column": 69,
+      "type": "hardcodedColors",
+      "name": "硬编码颜色",
+      "severity": "medium",
+      "match": "#f8f9fa",
+      "context": "<div style={{ marginBottom: 24, padding: 16, background: '#f8f9fa', borderRadius: 8 }}>",
+      "fix": "使用 tokens 颜色变量替换"
+    },
+    {
       "file": "src\\examples\\SmartPageFinderExample.tsx",
       "line": 103,
       "column": 42,
@@ -12758,17 +12582,6 @@
     },
     {
       "file": "src\\modules\\contact-import\\ui\\components\\drag-drop-layout\\DragDropGrid.tsx",
-      "line": 176,
-      "column": 23,
-      "type": "hardcodedColors",
-      "name": "硬编码颜色",
-      "severity": "medium",
-      "match": "#f5f5f5",
-      "context": "backgroundColor: '#f5f5f5',",
-      "fix": "使用 tokens 颜色变量替换"
-    },
-    {
-      "file": "src\\modules\\contact-import\\ui\\components\\drag-drop-layout\\DragDropGrid.tsx",
       "line": 208,
       "column": 35,
       "type": "hardcodedColors",
@@ -12864,28 +12677,6 @@
       "severity": "medium",
       "match": "#ff4d4f",
       "context": "color: report.stats.workingHandles === report.stats.totalHandles ? '#52c41a' : '#ff4d4f'",
-      "fix": "使用 tokens 颜色变量替换"
-    },
-    {
-      "file": "src\\modules\\contact-import\\ui\\components\\grid-layout\\components\\DraggableHeaderPanel.tsx",
-      "line": 156,
-      "column": 36,
-      "type": "hardcodedColors",
-      "name": "硬编码颜色",
-      "severity": "medium",
-      "match": "#f0f0f0",
-      "context": "borderBottom: '1px solid #f0f0f0',",
-      "fix": "使用 tokens 颜色变量替换"
-    },
-    {
-      "file": "src\\modules\\contact-import\\ui\\components\\grid-layout\\components\\DraggableHeaderPanel.tsx",
-      "line": 157,
-      "column": 29,
-      "type": "hardcodedColors",
-      "name": "硬编码颜色",
-      "severity": "medium",
-      "match": "#fafafa",
-      "context": "backgroundColor: '#fafafa',",
       "fix": "使用 tokens 颜色变量替换"
     },
     {
@@ -13483,17 +13274,6 @@
       "fix": "定义渐变tokens或使用Tailwind工具类"
     },
     {
-      "file": "src\\modules\\contact-import\\ui\\components\\resizable-layout\\LayoutManager.tsx",
-      "line": 95,
-      "column": 23,
-      "type": "hardcodedColors",
-      "name": "硬编码颜色",
-      "severity": "medium",
-      "match": "#f5f5f5",
-      "context": "backgroundColor: '#f5f5f5',",
-      "fix": "使用 tokens 颜色变量替换"
-    },
-    {
       "file": "src\\modules\\contact-import\\ui\\components\\resizable-layout\\NumberPoolPanel.tsx",
       "line": 91,
       "column": 31,
@@ -13514,28 +13294,6 @@
       "match": "linear-gradient(-45deg, transparent 30%, #ccc 30%, #ccc 35%, transparent 35%, transparent 65%, #ccc 65%, #ccc 70%, transparent 70%)",
       "context": "background: 'linear-gradient(-45deg, transparent 30%, #ccc 30%, #ccc 35%, transparent 35%, transparent 65%, #ccc 65%, #ccc 70%, transparent 70%)',",
       "fix": "定义渐变tokens或使用Tailwind工具类"
-    },
-    {
-      "file": "src\\modules\\contact-import\\ui\\components\\resizable-layout\\ResizableDraggablePanel.tsx",
-      "line": 133,
-      "column": 30,
-      "type": "hardcodedColors",
-      "name": "硬编码颜色",
-      "severity": "medium",
-      "match": "#f0f0f0",
-      "context": "borderBottom: '1px solid #f0f0f0',",
-      "fix": "使用 tokens 颜色变量替换"
-    },
-    {
-      "file": "src\\modules\\contact-import\\ui\\components\\resizable-layout\\ResizableDraggablePanel.tsx",
-      "line": 134,
-      "column": 23,
-      "type": "hardcodedColors",
-      "name": "硬编码颜色",
-      "severity": "medium",
-      "match": "#fafafa",
-      "context": "backgroundColor: '#fafafa',",
-      "fix": "使用 tokens 颜色变量替换"
     },
     {
       "file": "src\\modules\\contact-import\\ui\\components\\resizable-layout\\ResizableDraggablePanel.tsx",
@@ -13590,39 +13348,6 @@
       "severity": "medium",
       "match": "#1890ff",
       "context": "<InfoCircleOutlined style={{ color: '#1890ff' }} />",
-      "fix": "使用 tokens 颜色变量替换"
-    },
-    {
-      "file": "src\\modules\\contact-import\\ui\\components\\WorkbenchNumbersActionsBar.tsx",
-      "line": 91,
-      "column": 20,
-      "type": "hardcodedColors",
-      "name": "硬编码颜色",
-      "severity": "medium",
-      "match": "#fafafa",
-      "context": "background: '#fafafa',",
-      "fix": "使用 tokens 颜色变量替换"
-    },
-    {
-      "file": "src\\modules\\contact-import\\ui\\components\\WorkbenchNumbersActionsBar.tsx",
-      "line": 92,
-      "column": 26,
-      "type": "hardcodedColors",
-      "name": "硬编码颜色",
-      "severity": "medium",
-      "match": "#f0f0f0",
-      "context": "border: '1px solid #f0f0f0',",
-      "fix": "使用 tokens 颜色变量替换"
-    },
-    {
-      "file": "src\\modules\\contact-import\\ui\\ContactImportWorkbench.tsx",
-      "line": 700,
-      "column": 78,
-      "type": "hardcodedColors",
-      "name": "硬编码颜色",
-      "severity": "medium",
-      "match": "#f5f5f5",
-      "context": "<div style={{ marginBottom: 16, padding: '8px 16px', backgroundColor: '#f5f5f5', borderRadius: 6 }}>",
       "fix": "使用 tokens 颜色变量替换"
     },
     {
@@ -13777,17 +13502,6 @@
       "severity": "medium",
       "match": "#ff4d4f",
       "context": "color: '#ff4d4f',",
-      "fix": "使用 tokens 颜色变量替换"
-    },
-    {
-      "file": "src\\modules\\drag-sort\\components\\DragSortContainer.tsx",
-      "line": 147,
-      "column": 59,
-      "type": "hardcodedColors",
-      "name": "硬编码颜色",
-      "severity": "medium",
-      "match": "#fafafa",
-      "context": "backgroundColor: area.backgroundColor || '#fafafa'",
       "fix": "使用 tokens 颜色变量替换"
     },
     {
@@ -14023,17 +13737,6 @@
     },
     {
       "file": "src\\modules\\loop-drag-integration\\LoopDragIntegration.tsx",
-      "line": 61,
-      "column": 27,
-      "type": "hardcodedColors",
-      "name": "硬编码颜色",
-      "severity": "medium",
-      "match": "#fafafa",
-      "context": "backgroundColor: \"#fafafa\",",
-      "fix": "使用 tokens 颜色变量替换"
-    },
-    {
-      "file": "src\\modules\\loop-drag-integration\\LoopDragIntegration.tsx",
       "line": 73,
       "column": 29,
       "type": "hardcodedColors",
@@ -14132,39 +13835,6 @@
       "fix": "使用 tokens 颜色变量替换"
     },
     {
-      "file": "src\\modules\\loop-drag-integration\\LoopDragIntegration.tsx",
-      "line": 256,
-      "column": 35,
-      "type": "hardcodedColors",
-      "name": "硬编码颜色",
-      "severity": "medium",
-      "match": "#f5f5f5",
-      "context": "backgroundColor: \"#f5f5f5\",",
-      "fix": "使用 tokens 颜色变量替换"
-    },
-    {
-      "file": "src\\modules\\loop-drag-integration\\LoopDragIntegration.tsx",
-      "line": 257,
-      "column": 25,
-      "type": "hardcodedColors",
-      "name": "硬编码颜色",
-      "severity": "medium",
-      "match": "#666",
-      "context": "color: \"#666\",",
-      "fix": "使用 tokens 颜色变量替换"
-    },
-    {
-      "file": "src\\modules\\loop-drag-integration\\LoopDragIntegration.tsx",
-      "line": 258,
-      "column": 36,
-      "type": "hardcodedColors",
-      "name": "硬编码颜色",
-      "severity": "medium",
-      "match": "#d9d9d9",
-      "context": "border: \"1px solid #d9d9d9\",",
-      "fix": "使用 tokens 颜色变量替换"
-    },
-    {
       "file": "src\\modules\\smart-script-management\\components\\ScriptBuilderIntegration.tsx",
       "line": 393,
       "column": 38,
@@ -14232,18 +13902,7 @@
     },
     {
       "file": "src\\modules\\xml-inspector\\XmlInspectorModal.tsx",
-      "line": 510,
-      "column": 31,
-      "type": "hardcodedColors",
-      "name": "硬编码颜色",
-      "severity": "medium",
-      "match": "#f5f5f5",
-      "context": "backgroundColor: '#f5f5f5'",
-      "fix": "使用 tokens 颜色变量替换"
-    },
-    {
-      "file": "src\\modules\\xml-inspector\\XmlInspectorModal.tsx",
-      "line": 593,
+      "line": 596,
       "column": 88,
       "type": "hardcodedColors",
       "name": "硬编码颜色",
@@ -14254,7 +13913,7 @@
     },
     {
       "file": "src\\modules\\xml-inspector\\XmlInspectorModal.tsx",
-      "line": 606,
+      "line": 609,
       "column": 39,
       "type": "hardcodedColors",
       "name": "硬编码颜色",
@@ -14844,17 +14503,6 @@
       "severity": "medium",
       "match": "#666",
       "context": "<div style={{ fontSize: 12, color: \"#666\" }}>{nextTitle}</div>",
-      "fix": "使用 tokens 颜色变量替换"
-    },
-    {
-      "file": "src\\pages\\TestCommandFix.tsx",
-      "line": 216,
-      "column": 31,
-      "type": "hardcodedColors",
-      "name": "硬编码颜色",
-      "severity": "medium",
-      "match": "#f5f5f5",
-      "context": "backgroundColor: '#f5f5f5',",
       "fix": "使用 tokens 颜色变量替换"
     },
     {
@@ -18001,17 +17649,6 @@
         "match": "#1890ff",
         "context": "<InfoCircleOutlined style={{ color: '#1890ff' }} />",
         "fix": "使用 tokens 颜色变量替换"
-      },
-      {
-        "file": "src\\components\\element-name-editor\\FieldMatchingController_old.tsx",
-        "line": 535,
-        "column": 71,
-        "type": "hardcodedColors",
-        "name": "硬编码颜色",
-        "severity": "medium",
-        "match": "#f5f5f5",
-        "context": "<div style={{ marginTop: 16, padding: '12px', backgroundColor: '#f5f5f5', borderRadius: 4 }}>",
-        "fix": "使用 tokens 颜色变量替换"
       }
     ],
     "src\\components\\element-name-editor\\tabs\\BasicConfigTab.tsx": [
@@ -19083,83 +18720,6 @@
         "severity": "medium",
         "match": "#999",
         "context": "<ClockCircleOutlined style={{ color: '#999', fontSize: '12px' }} />",
-        "fix": "使用 tokens 颜色变量替换"
-      },
-      {
-        "file": "src\\components\\element-xml-hierarchy\\PageSelector.tsx",
-        "line": 198,
-        "column": 54,
-        "type": "hardcodedColors",
-        "name": "硬编码颜色",
-        "severity": "medium",
-        "match": "#e6f7ff",
-        "context": "backgroundColor: isSelected ? '#e6f7ff' : '#f5f5f5',",
-        "fix": "使用 tokens 颜色变量替换"
-      },
-      {
-        "file": "src\\components\\element-xml-hierarchy\\PageSelector.tsx",
-        "line": 198,
-        "column": 66,
-        "type": "hardcodedColors",
-        "name": "硬编码颜色",
-        "severity": "medium",
-        "match": "#f5f5f5",
-        "context": "backgroundColor: isSelected ? '#e6f7ff' : '#f5f5f5',",
-        "fix": "使用 tokens 颜色变量替换"
-      },
-      {
-        "file": "src\\components\\element-xml-hierarchy\\PageSelector.tsx",
-        "line": 199,
-        "column": 50,
-        "type": "hardcodedColors",
-        "name": "硬编码颜色",
-        "severity": "medium",
-        "match": "#91d5ff",
-        "context": "borderColor: isSelected ? '#91d5ff' : '#d9d9d9',",
-        "fix": "使用 tokens 颜色变量替换"
-      },
-      {
-        "file": "src\\components\\element-xml-hierarchy\\PageSelector.tsx",
-        "line": 199,
-        "column": 62,
-        "type": "hardcodedColors",
-        "name": "硬编码颜色",
-        "severity": "medium",
-        "match": "#d9d9d9",
-        "context": "borderColor: isSelected ? '#91d5ff' : '#d9d9d9',",
-        "fix": "使用 tokens 颜色变量替换"
-      },
-      {
-        "file": "src\\components\\element-xml-hierarchy\\PageSelector.tsx",
-        "line": 200,
-        "column": 44,
-        "type": "hardcodedColors",
-        "name": "硬编码颜色",
-        "severity": "medium",
-        "match": "#096dd9",
-        "context": "color: isSelected ? '#096dd9' : '#666'",
-        "fix": "使用 tokens 颜色变量替换"
-      },
-      {
-        "file": "src\\components\\element-xml-hierarchy\\PageSelector.tsx",
-        "line": 200,
-        "column": 56,
-        "type": "hardcodedColors",
-        "name": "硬编码颜色",
-        "severity": "medium",
-        "match": "#666",
-        "context": "color: isSelected ? '#096dd9' : '#666'",
-        "fix": "使用 tokens 颜色变量替换"
-      },
-      {
-        "file": "src\\components\\element-xml-hierarchy\\PageSelector.tsx",
-        "line": 214,
-        "column": 76,
-        "type": "hardcodedColors",
-        "name": "硬编码颜色",
-        "severity": "medium",
-        "match": "#fafafa",
-        "context": "<Card size=\"small\" style={{ textAlign: 'center', backgroundColor: '#fafafa' }}>",
         "fix": "使用 tokens 颜色变量替换"
       }
     ],
@@ -23361,7 +22921,7 @@
     "src\\components\\NativeAntDesignApp.tsx": [
       {
         "file": "src\\components\\NativeAntDesignApp.tsx",
-        "line": 240,
+        "line": 243,
         "column": 23,
         "type": "hardcodedColors",
         "name": "硬编码颜色",
@@ -23372,7 +22932,7 @@
       },
       {
         "file": "src\\components\\NativeAntDesignApp.tsx",
-        "line": 260,
+        "line": 263,
         "column": 40,
         "type": "hardcodedColors",
         "name": "硬编码颜色",
@@ -23383,7 +22943,7 @@
       },
       {
         "file": "src\\components\\NativeAntDesignApp.tsx",
-        "line": 298,
+        "line": 301,
         "column": 52,
         "type": "hardcodedColors",
         "name": "硬编码颜色",
@@ -23620,28 +23180,6 @@
         "severity": "medium",
         "match": "#f0f8ff",
         "context": "backgroundColor: selectedApp?.package_name === app.package_name ? '#f0f8ff' : undefined",
-        "fix": "使用 tokens 颜色变量替换"
-      },
-      {
-        "file": "src\\components\\smart\\SmartAppSelector.tsx",
-        "line": 365,
-        "column": 63,
-        "type": "hardcodedColors",
-        "name": "硬编码颜色",
-        "severity": "medium",
-        "match": "#f5f5f5",
-        "context": "backgroundColor: app.is_system_app ? '#f5f5f5' : '#e6f7ff'",
-        "fix": "使用 tokens 颜色变量替换"
-      },
-      {
-        "file": "src\\components\\smart\\SmartAppSelector.tsx",
-        "line": 365,
-        "column": 75,
-        "type": "hardcodedColors",
-        "name": "硬编码颜色",
-        "severity": "medium",
-        "match": "#e6f7ff",
-        "context": "backgroundColor: app.is_system_app ? '#f5f5f5' : '#e6f7ff'",
         "fix": "使用 tokens 颜色变量替换"
       },
       {
@@ -24435,39 +23973,6 @@
     "src\\components\\ui\\buttons\\PrimaryButton.tsx": [
       {
         "file": "src\\components\\ui\\buttons\\PrimaryButton.tsx",
-        "line": 93,
-        "column": 3,
-        "type": "hardcodedShadow",
-        "name": "硬编码阴影",
-        "severity": "high",
-        "match": "box-shadow: 0 2px 4px rgba(",
-        "context": "box-shadow: 0 2px 4px rgba(59, 130, 246, 0.2);",
-        "fix": "使用 var(--shadow) 等 tokens 替换"
-      },
-      {
-        "file": "src\\components\\ui\\buttons\\PrimaryButton.tsx",
-        "line": 98,
-        "column": 3,
-        "type": "hardcodedShadow",
-        "name": "硬编码阴影",
-        "severity": "high",
-        "match": "box-shadow: 0 4px 8px rgba(",
-        "context": "box-shadow: 0 4px 8px rgba(59, 130, 246, 0.3);",
-        "fix": "使用 var(--shadow) 等 tokens 替换"
-      },
-      {
-        "file": "src\\components\\ui\\buttons\\PrimaryButton.tsx",
-        "line": 107,
-        "column": 3,
-        "type": "hardcodedShadow",
-        "name": "硬编码阴影",
-        "severity": "high",
-        "match": "box-shadow: 0 4px 12px rgba(",
-        "context": "box-shadow: 0 4px 12px rgba(59, 130, 246, 0.3);",
-        "fix": "使用 var(--shadow) 等 tokens 替换"
-      },
-      {
-        "file": "src\\components\\ui\\buttons\\PrimaryButton.tsx",
         "line": 91,
         "column": 3,
         "type": "hardcodedRadius",
@@ -24476,39 +23981,6 @@
         "match": "border-radius: 8px",
         "context": "border-radius: 8px;",
         "fix": "使用 var(--radius) 等 tokens 替换"
-      },
-      {
-        "file": "src\\components\\ui\\buttons\\PrimaryButton.tsx",
-        "line": 102,
-        "column": 15,
-        "type": "hardcodedGradient",
-        "name": "硬编码渐变",
-        "severity": "medium",
-        "match": "linear-gradient(135deg, #3b82f6, #2563eb)",
-        "context": "background: linear-gradient(135deg, #3b82f6, #2563eb);",
-        "fix": "定义渐变tokens或使用Tailwind工具类"
-      },
-      {
-        "file": "src\\components\\ui\\buttons\\PrimaryButton.tsx",
-        "line": 102,
-        "column": 39,
-        "type": "hardcodedColors",
-        "name": "硬编码颜色",
-        "severity": "medium",
-        "match": "#3b82f6",
-        "context": "background: linear-gradient(135deg, #3b82f6, #2563eb);",
-        "fix": "使用 tokens 颜色变量替换"
-      },
-      {
-        "file": "src\\components\\ui\\buttons\\PrimaryButton.tsx",
-        "line": 102,
-        "column": 48,
-        "type": "hardcodedColors",
-        "name": "硬编码颜色",
-        "severity": "medium",
-        "match": "#2563eb",
-        "context": "background: linear-gradient(135deg, #3b82f6, #2563eb);",
-        "fix": "使用 tokens 颜色变量替换"
       }
     ],
     "src\\components\\ui\\design-tokens\\colors.ts": [
@@ -25420,19 +24892,6 @@
         "severity": "medium",
         "match": "#999",
         "context": "color: '#999',",
-        "fix": "使用 tokens 颜色变量替换"
-      }
-    ],
-    "src\\components\\universal-ui\\DesignSystemTestPage.tsx": [
-      {
-        "file": "src\\components\\universal-ui\\DesignSystemTestPage.tsx",
-        "line": 31,
-        "column": 75,
-        "type": "hardcodedColors",
-        "name": "硬编码颜色",
-        "severity": "medium",
-        "match": "#f5f5f5",
-        "context": "<div style={{ marginTop: '32px', padding: '24px', backgroundColor: '#f5f5f5', borderRadius: '8px' }}>",
         "fix": "使用 tokens 颜色变量替换"
       }
     ],
@@ -29174,6 +28633,19 @@
         "fix": "使用 tokens 颜色变量替换"
       }
     ],
+    "src\\examples\\PatternDemos.tsx": [
+      {
+        "file": "src\\examples\\PatternDemos.tsx",
+        "line": 256,
+        "column": 69,
+        "type": "hardcodedColors",
+        "name": "硬编码颜色",
+        "severity": "medium",
+        "match": "#f8f9fa",
+        "context": "<div style={{ marginBottom: 24, padding: 16, background: '#f8f9fa', borderRadius: 8 }}>",
+        "fix": "使用 tokens 颜色变量替换"
+      }
+    ],
     "src\\examples\\SmartPageFinderExample.tsx": [
       {
         "file": "src\\examples\\SmartPageFinderExample.tsx",
@@ -29702,17 +29174,6 @@
       },
       {
         "file": "src\\modules\\contact-import\\ui\\components\\drag-drop-layout\\DragDropGrid.tsx",
-        "line": 176,
-        "column": 23,
-        "type": "hardcodedColors",
-        "name": "硬编码颜色",
-        "severity": "medium",
-        "match": "#f5f5f5",
-        "context": "backgroundColor: '#f5f5f5',",
-        "fix": "使用 tokens 颜色变量替换"
-      },
-      {
-        "file": "src\\modules\\contact-import\\ui\\components\\drag-drop-layout\\DragDropGrid.tsx",
         "line": 208,
         "column": 35,
         "type": "hardcodedColors",
@@ -29810,30 +29271,6 @@
         "severity": "medium",
         "match": "#ff4d4f",
         "context": "color: report.stats.workingHandles === report.stats.totalHandles ? '#52c41a' : '#ff4d4f'",
-        "fix": "使用 tokens 颜色变量替换"
-      }
-    ],
-    "src\\modules\\contact-import\\ui\\components\\grid-layout\\components\\DraggableHeaderPanel.tsx": [
-      {
-        "file": "src\\modules\\contact-import\\ui\\components\\grid-layout\\components\\DraggableHeaderPanel.tsx",
-        "line": 156,
-        "column": 36,
-        "type": "hardcodedColors",
-        "name": "硬编码颜色",
-        "severity": "medium",
-        "match": "#f0f0f0",
-        "context": "borderBottom: '1px solid #f0f0f0',",
-        "fix": "使用 tokens 颜色变量替换"
-      },
-      {
-        "file": "src\\modules\\contact-import\\ui\\components\\grid-layout\\components\\DraggableHeaderPanel.tsx",
-        "line": 157,
-        "column": 29,
-        "type": "hardcodedColors",
-        "name": "硬编码颜色",
-        "severity": "medium",
-        "match": "#fafafa",
-        "context": "backgroundColor: '#fafafa',",
         "fix": "使用 tokens 颜色变量替换"
       }
     ],
@@ -30527,17 +29964,6 @@
         "match": "linear-gradient(90deg, rgba(0,0,0,0.05)",
         "context": "linear-gradient(90deg, rgba(0,0,0,0.05) 1px, transparent 1px)",
         "fix": "定义渐变tokens或使用Tailwind工具类"
-      },
-      {
-        "file": "src\\modules\\contact-import\\ui\\components\\resizable-layout\\LayoutManager.tsx",
-        "line": 95,
-        "column": 23,
-        "type": "hardcodedColors",
-        "name": "硬编码颜色",
-        "severity": "medium",
-        "match": "#f5f5f5",
-        "context": "backgroundColor: '#f5f5f5',",
-        "fix": "使用 tokens 颜色变量替换"
       }
     ],
     "src\\modules\\contact-import\\ui\\components\\resizable-layout\\NumberPoolPanel.tsx": [
@@ -30564,28 +29990,6 @@
         "match": "linear-gradient(-45deg, transparent 30%, #ccc 30%, #ccc 35%, transparent 35%, transparent 65%, #ccc 65%, #ccc 70%, transparent 70%)",
         "context": "background: 'linear-gradient(-45deg, transparent 30%, #ccc 30%, #ccc 35%, transparent 35%, transparent 65%, #ccc 65%, #ccc 70%, transparent 70%)',",
         "fix": "定义渐变tokens或使用Tailwind工具类"
-      },
-      {
-        "file": "src\\modules\\contact-import\\ui\\components\\resizable-layout\\ResizableDraggablePanel.tsx",
-        "line": 133,
-        "column": 30,
-        "type": "hardcodedColors",
-        "name": "硬编码颜色",
-        "severity": "medium",
-        "match": "#f0f0f0",
-        "context": "borderBottom: '1px solid #f0f0f0',",
-        "fix": "使用 tokens 颜色变量替换"
-      },
-      {
-        "file": "src\\modules\\contact-import\\ui\\components\\resizable-layout\\ResizableDraggablePanel.tsx",
-        "line": 134,
-        "column": 23,
-        "type": "hardcodedColors",
-        "name": "硬编码颜色",
-        "severity": "medium",
-        "match": "#fafafa",
-        "context": "backgroundColor: '#fafafa',",
-        "fix": "使用 tokens 颜色变量替换"
       },
       {
         "file": "src\\modules\\contact-import\\ui\\components\\resizable-layout\\ResizableDraggablePanel.tsx",
@@ -30642,43 +30046,6 @@
         "severity": "medium",
         "match": "#1890ff",
         "context": "<InfoCircleOutlined style={{ color: '#1890ff' }} />",
-        "fix": "使用 tokens 颜色变量替换"
-      }
-    ],
-    "src\\modules\\contact-import\\ui\\components\\WorkbenchNumbersActionsBar.tsx": [
-      {
-        "file": "src\\modules\\contact-import\\ui\\components\\WorkbenchNumbersActionsBar.tsx",
-        "line": 91,
-        "column": 20,
-        "type": "hardcodedColors",
-        "name": "硬编码颜色",
-        "severity": "medium",
-        "match": "#fafafa",
-        "context": "background: '#fafafa',",
-        "fix": "使用 tokens 颜色变量替换"
-      },
-      {
-        "file": "src\\modules\\contact-import\\ui\\components\\WorkbenchNumbersActionsBar.tsx",
-        "line": 92,
-        "column": 26,
-        "type": "hardcodedColors",
-        "name": "硬编码颜色",
-        "severity": "medium",
-        "match": "#f0f0f0",
-        "context": "border: '1px solid #f0f0f0',",
-        "fix": "使用 tokens 颜色变量替换"
-      }
-    ],
-    "src\\modules\\contact-import\\ui\\ContactImportWorkbench.tsx": [
-      {
-        "file": "src\\modules\\contact-import\\ui\\ContactImportWorkbench.tsx",
-        "line": 700,
-        "column": 78,
-        "type": "hardcodedColors",
-        "name": "硬编码颜色",
-        "severity": "medium",
-        "match": "#f5f5f5",
-        "context": "<div style={{ marginBottom: 16, padding: '8px 16px', backgroundColor: '#f5f5f5', borderRadius: 6 }}>",
         "fix": "使用 tokens 颜色变量替换"
       }
     ],
@@ -30847,17 +30214,6 @@
       }
     ],
     "src\\modules\\drag-sort\\components\\DragSortContainer.tsx": [
-      {
-        "file": "src\\modules\\drag-sort\\components\\DragSortContainer.tsx",
-        "line": 147,
-        "column": 59,
-        "type": "hardcodedColors",
-        "name": "硬编码颜色",
-        "severity": "medium",
-        "match": "#fafafa",
-        "context": "backgroundColor: area.backgroundColor || '#fafafa'",
-        "fix": "使用 tokens 颜色变量替换"
-      },
       {
         "file": "src\\modules\\drag-sort\\components\\DragSortContainer.tsx",
         "line": 159,
@@ -31101,17 +30457,6 @@
     "src\\modules\\loop-drag-integration\\LoopDragIntegration.tsx": [
       {
         "file": "src\\modules\\loop-drag-integration\\LoopDragIntegration.tsx",
-        "line": 61,
-        "column": 27,
-        "type": "hardcodedColors",
-        "name": "硬编码颜色",
-        "severity": "medium",
-        "match": "#fafafa",
-        "context": "backgroundColor: \"#fafafa\",",
-        "fix": "使用 tokens 颜色变量替换"
-      },
-      {
-        "file": "src\\modules\\loop-drag-integration\\LoopDragIntegration.tsx",
         "line": 73,
         "column": 29,
         "type": "hardcodedColors",
@@ -31208,39 +30553,6 @@
         "match": "#1890ff",
         "context": "backgroundColor: \"#1890ff\",",
         "fix": "使用 tokens 颜色变量替换"
-      },
-      {
-        "file": "src\\modules\\loop-drag-integration\\LoopDragIntegration.tsx",
-        "line": 256,
-        "column": 35,
-        "type": "hardcodedColors",
-        "name": "硬编码颜色",
-        "severity": "medium",
-        "match": "#f5f5f5",
-        "context": "backgroundColor: \"#f5f5f5\",",
-        "fix": "使用 tokens 颜色变量替换"
-      },
-      {
-        "file": "src\\modules\\loop-drag-integration\\LoopDragIntegration.tsx",
-        "line": 257,
-        "column": 25,
-        "type": "hardcodedColors",
-        "name": "硬编码颜色",
-        "severity": "medium",
-        "match": "#666",
-        "context": "color: \"#666\",",
-        "fix": "使用 tokens 颜色变量替换"
-      },
-      {
-        "file": "src\\modules\\loop-drag-integration\\LoopDragIntegration.tsx",
-        "line": 258,
-        "column": 36,
-        "type": "hardcodedColors",
-        "name": "硬编码颜色",
-        "severity": "medium",
-        "match": "#d9d9d9",
-        "context": "border: \"1px solid #d9d9d9\",",
-        "fix": "使用 tokens 颜色变量替换"
       }
     ],
     "src\\modules\\smart-script-management\\components\\ScriptBuilderIntegration.tsx": [
@@ -31316,18 +30628,7 @@
     "src\\modules\\xml-inspector\\XmlInspectorModal.tsx": [
       {
         "file": "src\\modules\\xml-inspector\\XmlInspectorModal.tsx",
-        "line": 510,
-        "column": 31,
-        "type": "hardcodedColors",
-        "name": "硬编码颜色",
-        "severity": "medium",
-        "match": "#f5f5f5",
-        "context": "backgroundColor: '#f5f5f5'",
-        "fix": "使用 tokens 颜色变量替换"
-      },
-      {
-        "file": "src\\modules\\xml-inspector\\XmlInspectorModal.tsx",
-        "line": 593,
+        "line": 596,
         "column": 88,
         "type": "hardcodedColors",
         "name": "硬编码颜色",
@@ -31338,7 +30639,7 @@
       },
       {
         "file": "src\\modules\\xml-inspector\\XmlInspectorModal.tsx",
-        "line": 606,
+        "line": 609,
         "column": 39,
         "type": "hardcodedColors",
         "name": "硬编码颜色",
@@ -31960,19 +31261,6 @@
         "severity": "medium",
         "match": "#666",
         "context": "<div style={{ fontSize: 12, color: \"#666\" }}>{nextTitle}</div>",
-        "fix": "使用 tokens 颜色变量替换"
-      }
-    ],
-    "src\\pages\\TestCommandFix.tsx": [
-      {
-        "file": "src\\pages\\TestCommandFix.tsx",
-        "line": 216,
-        "column": 31,
-        "type": "hardcodedColors",
-        "name": "硬编码颜色",
-        "severity": "medium",
-        "match": "#f5f5f5",
-        "context": "backgroundColor: '#f5f5f5',",
         "fix": "使用 tokens 颜色变量替换"
       }
     ],
@@ -33921,17 +33209,6 @@
         "fix": "定义渐变tokens或使用Tailwind工具类"
       },
       {
-        "file": "src\\components\\ui\\buttons\\PrimaryButton.tsx",
-        "line": 102,
-        "column": 15,
-        "type": "hardcodedGradient",
-        "name": "硬编码渐变",
-        "severity": "medium",
-        "match": "linear-gradient(135deg, #3b82f6, #2563eb)",
-        "context": "background: linear-gradient(135deg, #3b82f6, #2563eb);",
-        "fix": "定义渐变tokens或使用Tailwind工具类"
-      },
-      {
         "file": "src\\components\\unified-view\\UnifiedVisualizationView.tsx",
         "line": 299,
         "column": 34,
@@ -35441,17 +34718,6 @@
         "fix": "使用 tokens 颜色变量替换"
       },
       {
-        "file": "src\\components\\element-name-editor\\FieldMatchingController_old.tsx",
-        "line": 535,
-        "column": 71,
-        "type": "hardcodedColors",
-        "name": "硬编码颜色",
-        "severity": "medium",
-        "match": "#f5f5f5",
-        "context": "<div style={{ marginTop: 16, padding: '12px', backgroundColor: '#f5f5f5', borderRadius: 4 }}>",
-        "fix": "使用 tokens 颜色变量替换"
-      },
-      {
         "file": "src\\components\\element-name-editor\\tabs\\BasicConfigTab.tsx",
         "line": 45,
         "column": 33,
@@ -36483,83 +35749,6 @@
         "severity": "medium",
         "match": "#999",
         "context": "<ClockCircleOutlined style={{ color: '#999', fontSize: '12px' }} />",
-        "fix": "使用 tokens 颜色变量替换"
-      },
-      {
-        "file": "src\\components\\element-xml-hierarchy\\PageSelector.tsx",
-        "line": 198,
-        "column": 54,
-        "type": "hardcodedColors",
-        "name": "硬编码颜色",
-        "severity": "medium",
-        "match": "#e6f7ff",
-        "context": "backgroundColor: isSelected ? '#e6f7ff' : '#f5f5f5',",
-        "fix": "使用 tokens 颜色变量替换"
-      },
-      {
-        "file": "src\\components\\element-xml-hierarchy\\PageSelector.tsx",
-        "line": 198,
-        "column": 66,
-        "type": "hardcodedColors",
-        "name": "硬编码颜色",
-        "severity": "medium",
-        "match": "#f5f5f5",
-        "context": "backgroundColor: isSelected ? '#e6f7ff' : '#f5f5f5',",
-        "fix": "使用 tokens 颜色变量替换"
-      },
-      {
-        "file": "src\\components\\element-xml-hierarchy\\PageSelector.tsx",
-        "line": 199,
-        "column": 50,
-        "type": "hardcodedColors",
-        "name": "硬编码颜色",
-        "severity": "medium",
-        "match": "#91d5ff",
-        "context": "borderColor: isSelected ? '#91d5ff' : '#d9d9d9',",
-        "fix": "使用 tokens 颜色变量替换"
-      },
-      {
-        "file": "src\\components\\element-xml-hierarchy\\PageSelector.tsx",
-        "line": 199,
-        "column": 62,
-        "type": "hardcodedColors",
-        "name": "硬编码颜色",
-        "severity": "medium",
-        "match": "#d9d9d9",
-        "context": "borderColor: isSelected ? '#91d5ff' : '#d9d9d9',",
-        "fix": "使用 tokens 颜色变量替换"
-      },
-      {
-        "file": "src\\components\\element-xml-hierarchy\\PageSelector.tsx",
-        "line": 200,
-        "column": 44,
-        "type": "hardcodedColors",
-        "name": "硬编码颜色",
-        "severity": "medium",
-        "match": "#096dd9",
-        "context": "color: isSelected ? '#096dd9' : '#666'",
-        "fix": "使用 tokens 颜色变量替换"
-      },
-      {
-        "file": "src\\components\\element-xml-hierarchy\\PageSelector.tsx",
-        "line": 200,
-        "column": 56,
-        "type": "hardcodedColors",
-        "name": "硬编码颜色",
-        "severity": "medium",
-        "match": "#666",
-        "context": "color: isSelected ? '#096dd9' : '#666'",
-        "fix": "使用 tokens 颜色变量替换"
-      },
-      {
-        "file": "src\\components\\element-xml-hierarchy\\PageSelector.tsx",
-        "line": 214,
-        "column": 76,
-        "type": "hardcodedColors",
-        "name": "硬编码颜色",
-        "severity": "medium",
-        "match": "#fafafa",
-        "context": "<Card size=\"small\" style={{ textAlign: 'center', backgroundColor: '#fafafa' }}>",
         "fix": "使用 tokens 颜色变量替换"
       },
       {
@@ -40623,7 +39812,7 @@
       },
       {
         "file": "src\\components\\NativeAntDesignApp.tsx",
-        "line": 240,
+        "line": 243,
         "column": 23,
         "type": "hardcodedColors",
         "name": "硬编码颜色",
@@ -40634,7 +39823,7 @@
       },
       {
         "file": "src\\components\\NativeAntDesignApp.tsx",
-        "line": 260,
+        "line": 263,
         "column": 40,
         "type": "hardcodedColors",
         "name": "硬编码颜色",
@@ -40645,7 +39834,7 @@
       },
       {
         "file": "src\\components\\NativeAntDesignApp.tsx",
-        "line": 298,
+        "line": 301,
         "column": 52,
         "type": "hardcodedColors",
         "name": "硬编码颜色",
@@ -40872,28 +40061,6 @@
         "severity": "medium",
         "match": "#f0f8ff",
         "context": "backgroundColor: selectedApp?.package_name === app.package_name ? '#f0f8ff' : undefined",
-        "fix": "使用 tokens 颜色变量替换"
-      },
-      {
-        "file": "src\\components\\smart\\SmartAppSelector.tsx",
-        "line": 365,
-        "column": 63,
-        "type": "hardcodedColors",
-        "name": "硬编码颜色",
-        "severity": "medium",
-        "match": "#f5f5f5",
-        "context": "backgroundColor: app.is_system_app ? '#f5f5f5' : '#e6f7ff'",
-        "fix": "使用 tokens 颜色变量替换"
-      },
-      {
-        "file": "src\\components\\smart\\SmartAppSelector.tsx",
-        "line": 365,
-        "column": 75,
-        "type": "hardcodedColors",
-        "name": "硬编码颜色",
-        "severity": "medium",
-        "match": "#e6f7ff",
-        "context": "backgroundColor: app.is_system_app ? '#f5f5f5' : '#e6f7ff'",
         "fix": "使用 tokens 颜色变量替换"
       },
       {
@@ -41653,28 +40820,6 @@
         "severity": "medium",
         "match": "#87d068",
         "context": "'100%': '#87d068',",
-        "fix": "使用 tokens 颜色变量替换"
-      },
-      {
-        "file": "src\\components\\ui\\buttons\\PrimaryButton.tsx",
-        "line": 102,
-        "column": 39,
-        "type": "hardcodedColors",
-        "name": "硬编码颜色",
-        "severity": "medium",
-        "match": "#3b82f6",
-        "context": "background: linear-gradient(135deg, #3b82f6, #2563eb);",
-        "fix": "使用 tokens 颜色变量替换"
-      },
-      {
-        "file": "src\\components\\ui\\buttons\\PrimaryButton.tsx",
-        "line": 102,
-        "column": 48,
-        "type": "hardcodedColors",
-        "name": "硬编码颜色",
-        "severity": "medium",
-        "match": "#2563eb",
-        "context": "background: linear-gradient(135deg, #3b82f6, #2563eb);",
         "fix": "使用 tokens 颜色变量替换"
       },
       {
@@ -42555,17 +41700,6 @@
         "severity": "medium",
         "match": "#999",
         "context": "color: '#999',",
-        "fix": "使用 tokens 颜色变量替换"
-      },
-      {
-        "file": "src\\components\\universal-ui\\DesignSystemTestPage.tsx",
-        "line": 31,
-        "column": 75,
-        "type": "hardcodedColors",
-        "name": "硬编码颜色",
-        "severity": "medium",
-        "match": "#f5f5f5",
-        "context": "<div style={{ marginTop: '32px', padding: '24px', backgroundColor: '#f5f5f5', borderRadius: '8px' }}>",
         "fix": "使用 tokens 颜色变量替换"
       },
       {
@@ -45902,6 +45036,17 @@
         "fix": "使用 tokens 颜色变量替换"
       },
       {
+        "file": "src\\examples\\PatternDemos.tsx",
+        "line": 256,
+        "column": 69,
+        "type": "hardcodedColors",
+        "name": "硬编码颜色",
+        "severity": "medium",
+        "match": "#f8f9fa",
+        "context": "<div style={{ marginBottom: 24, padding: 16, background: '#f8f9fa', borderRadius: 8 }}>",
+        "fix": "使用 tokens 颜色变量替换"
+      },
+      {
         "file": "src\\examples\\SmartPageFinderExample.tsx",
         "line": 103,
         "column": 42,
@@ -46354,17 +45499,6 @@
       },
       {
         "file": "src\\modules\\contact-import\\ui\\components\\drag-drop-layout\\DragDropGrid.tsx",
-        "line": 176,
-        "column": 23,
-        "type": "hardcodedColors",
-        "name": "硬编码颜色",
-        "severity": "medium",
-        "match": "#f5f5f5",
-        "context": "backgroundColor: '#f5f5f5',",
-        "fix": "使用 tokens 颜色变量替换"
-      },
-      {
-        "file": "src\\modules\\contact-import\\ui\\components\\drag-drop-layout\\DragDropGrid.tsx",
         "line": 208,
         "column": 35,
         "type": "hardcodedColors",
@@ -46460,28 +45594,6 @@
         "severity": "medium",
         "match": "#ff4d4f",
         "context": "color: report.stats.workingHandles === report.stats.totalHandles ? '#52c41a' : '#ff4d4f'",
-        "fix": "使用 tokens 颜色变量替换"
-      },
-      {
-        "file": "src\\modules\\contact-import\\ui\\components\\grid-layout\\components\\DraggableHeaderPanel.tsx",
-        "line": 156,
-        "column": 36,
-        "type": "hardcodedColors",
-        "name": "硬编码颜色",
-        "severity": "medium",
-        "match": "#f0f0f0",
-        "context": "borderBottom: '1px solid #f0f0f0',",
-        "fix": "使用 tokens 颜色变量替换"
-      },
-      {
-        "file": "src\\modules\\contact-import\\ui\\components\\grid-layout\\components\\DraggableHeaderPanel.tsx",
-        "line": 157,
-        "column": 29,
-        "type": "hardcodedColors",
-        "name": "硬编码颜色",
-        "severity": "medium",
-        "match": "#fafafa",
-        "context": "backgroundColor: '#fafafa',",
         "fix": "使用 tokens 颜色变量替换"
       },
       {
@@ -47057,17 +46169,6 @@
         "fix": "使用 tokens 颜色变量替换"
       },
       {
-        "file": "src\\modules\\contact-import\\ui\\components\\resizable-layout\\LayoutManager.tsx",
-        "line": 95,
-        "column": 23,
-        "type": "hardcodedColors",
-        "name": "硬编码颜色",
-        "severity": "medium",
-        "match": "#f5f5f5",
-        "context": "backgroundColor: '#f5f5f5',",
-        "fix": "使用 tokens 颜色变量替换"
-      },
-      {
         "file": "src\\modules\\contact-import\\ui\\components\\resizable-layout\\NumberPoolPanel.tsx",
         "line": 91,
         "column": 31,
@@ -47076,28 +46177,6 @@
         "severity": "medium",
         "match": "#f0f0f0",
         "context": "borderTop: '1px solid #f0f0f0',",
-        "fix": "使用 tokens 颜色变量替换"
-      },
-      {
-        "file": "src\\modules\\contact-import\\ui\\components\\resizable-layout\\ResizableDraggablePanel.tsx",
-        "line": 133,
-        "column": 30,
-        "type": "hardcodedColors",
-        "name": "硬编码颜色",
-        "severity": "medium",
-        "match": "#f0f0f0",
-        "context": "borderBottom: '1px solid #f0f0f0',",
-        "fix": "使用 tokens 颜色变量替换"
-      },
-      {
-        "file": "src\\modules\\contact-import\\ui\\components\\resizable-layout\\ResizableDraggablePanel.tsx",
-        "line": 134,
-        "column": 23,
-        "type": "hardcodedColors",
-        "name": "硬编码颜色",
-        "severity": "medium",
-        "match": "#fafafa",
-        "context": "backgroundColor: '#fafafa',",
         "fix": "使用 tokens 颜色变量替换"
       },
       {
@@ -47153,39 +46232,6 @@
         "severity": "medium",
         "match": "#1890ff",
         "context": "<InfoCircleOutlined style={{ color: '#1890ff' }} />",
-        "fix": "使用 tokens 颜色变量替换"
-      },
-      {
-        "file": "src\\modules\\contact-import\\ui\\components\\WorkbenchNumbersActionsBar.tsx",
-        "line": 91,
-        "column": 20,
-        "type": "hardcodedColors",
-        "name": "硬编码颜色",
-        "severity": "medium",
-        "match": "#fafafa",
-        "context": "background: '#fafafa',",
-        "fix": "使用 tokens 颜色变量替换"
-      },
-      {
-        "file": "src\\modules\\contact-import\\ui\\components\\WorkbenchNumbersActionsBar.tsx",
-        "line": 92,
-        "column": 26,
-        "type": "hardcodedColors",
-        "name": "硬编码颜色",
-        "severity": "medium",
-        "match": "#f0f0f0",
-        "context": "border: '1px solid #f0f0f0',",
-        "fix": "使用 tokens 颜色变量替换"
-      },
-      {
-        "file": "src\\modules\\contact-import\\ui\\ContactImportWorkbench.tsx",
-        "line": 700,
-        "column": 78,
-        "type": "hardcodedColors",
-        "name": "硬编码颜色",
-        "severity": "medium",
-        "match": "#f5f5f5",
-        "context": "<div style={{ marginBottom: 16, padding: '8px 16px', backgroundColor: '#f5f5f5', borderRadius: 6 }}>",
         "fix": "使用 tokens 颜色变量替换"
       },
       {
@@ -47340,17 +46386,6 @@
         "severity": "medium",
         "match": "#ff4d4f",
         "context": "color: '#ff4d4f',",
-        "fix": "使用 tokens 颜色变量替换"
-      },
-      {
-        "file": "src\\modules\\drag-sort\\components\\DragSortContainer.tsx",
-        "line": 147,
-        "column": 59,
-        "type": "hardcodedColors",
-        "name": "硬编码颜色",
-        "severity": "medium",
-        "match": "#fafafa",
-        "context": "backgroundColor: area.backgroundColor || '#fafafa'",
         "fix": "使用 tokens 颜色变量替换"
       },
       {
@@ -47586,17 +46621,6 @@
       },
       {
         "file": "src\\modules\\loop-drag-integration\\LoopDragIntegration.tsx",
-        "line": 61,
-        "column": 27,
-        "type": "hardcodedColors",
-        "name": "硬编码颜色",
-        "severity": "medium",
-        "match": "#fafafa",
-        "context": "backgroundColor: \"#fafafa\",",
-        "fix": "使用 tokens 颜色变量替换"
-      },
-      {
-        "file": "src\\modules\\loop-drag-integration\\LoopDragIntegration.tsx",
         "line": 73,
         "column": 29,
         "type": "hardcodedColors",
@@ -47695,39 +46719,6 @@
         "fix": "使用 tokens 颜色变量替换"
       },
       {
-        "file": "src\\modules\\loop-drag-integration\\LoopDragIntegration.tsx",
-        "line": 256,
-        "column": 35,
-        "type": "hardcodedColors",
-        "name": "硬编码颜色",
-        "severity": "medium",
-        "match": "#f5f5f5",
-        "context": "backgroundColor: \"#f5f5f5\",",
-        "fix": "使用 tokens 颜色变量替换"
-      },
-      {
-        "file": "src\\modules\\loop-drag-integration\\LoopDragIntegration.tsx",
-        "line": 257,
-        "column": 25,
-        "type": "hardcodedColors",
-        "name": "硬编码颜色",
-        "severity": "medium",
-        "match": "#666",
-        "context": "color: \"#666\",",
-        "fix": "使用 tokens 颜色变量替换"
-      },
-      {
-        "file": "src\\modules\\loop-drag-integration\\LoopDragIntegration.tsx",
-        "line": 258,
-        "column": 36,
-        "type": "hardcodedColors",
-        "name": "硬编码颜色",
-        "severity": "medium",
-        "match": "#d9d9d9",
-        "context": "border: \"1px solid #d9d9d9\",",
-        "fix": "使用 tokens 颜色变量替换"
-      },
-      {
         "file": "src\\modules\\smart-script-management\\components\\ScriptBuilderIntegration.tsx",
         "line": 393,
         "column": 38,
@@ -47795,18 +46786,7 @@
       },
       {
         "file": "src\\modules\\xml-inspector\\XmlInspectorModal.tsx",
-        "line": 510,
-        "column": 31,
-        "type": "hardcodedColors",
-        "name": "硬编码颜色",
-        "severity": "medium",
-        "match": "#f5f5f5",
-        "context": "backgroundColor: '#f5f5f5'",
-        "fix": "使用 tokens 颜色变量替换"
-      },
-      {
-        "file": "src\\modules\\xml-inspector\\XmlInspectorModal.tsx",
-        "line": 593,
+        "line": 596,
         "column": 88,
         "type": "hardcodedColors",
         "name": "硬编码颜色",
@@ -47817,7 +46797,7 @@
       },
       {
         "file": "src\\modules\\xml-inspector\\XmlInspectorModal.tsx",
-        "line": 606,
+        "line": 609,
         "column": 39,
         "type": "hardcodedColors",
         "name": "硬编码颜色",
@@ -48407,17 +47387,6 @@
         "severity": "medium",
         "match": "#666",
         "context": "<div style={{ fontSize: 12, color: \"#666\" }}>{nextTitle}</div>",
-        "fix": "使用 tokens 颜色变量替换"
-      },
-      {
-        "file": "src\\pages\\TestCommandFix.tsx",
-        "line": 216,
-        "column": 31,
-        "type": "hardcodedColors",
-        "name": "硬编码颜色",
-        "severity": "medium",
-        "match": "#f5f5f5",
-        "context": "backgroundColor: '#f5f5f5',",
         "fix": "使用 tokens 颜色变量替换"
       },
       {
@@ -50224,39 +49193,6 @@
         "severity": "high",
         "match": "box-shadow: 0 1px 4px rgba(",
         "context": "box-shadow: 0 1px 4px rgba(0, 0, 0, 0.1);",
-        "fix": "使用 var(--shadow) 等 tokens 替换"
-      },
-      {
-        "file": "src\\components\\ui\\buttons\\PrimaryButton.tsx",
-        "line": 93,
-        "column": 3,
-        "type": "hardcodedShadow",
-        "name": "硬编码阴影",
-        "severity": "high",
-        "match": "box-shadow: 0 2px 4px rgba(",
-        "context": "box-shadow: 0 2px 4px rgba(59, 130, 246, 0.2);",
-        "fix": "使用 var(--shadow) 等 tokens 替换"
-      },
-      {
-        "file": "src\\components\\ui\\buttons\\PrimaryButton.tsx",
-        "line": 98,
-        "column": 3,
-        "type": "hardcodedShadow",
-        "name": "硬编码阴影",
-        "severity": "high",
-        "match": "box-shadow: 0 4px 8px rgba(",
-        "context": "box-shadow: 0 4px 8px rgba(59, 130, 246, 0.3);",
-        "fix": "使用 var(--shadow) 等 tokens 替换"
-      },
-      {
-        "file": "src\\components\\ui\\buttons\\PrimaryButton.tsx",
-        "line": 107,
-        "column": 3,
-        "type": "hardcodedShadow",
-        "name": "硬编码阴影",
-        "severity": "high",
-        "match": "box-shadow: 0 4px 12px rgba(",
-        "context": "box-shadow: 0 4px 12px rgba(59, 130, 246, 0.3);",
         "fix": "使用 var(--shadow) 等 tokens 替换"
       },
       {

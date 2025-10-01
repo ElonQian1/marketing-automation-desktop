@@ -184,7 +184,7 @@ export const GridElementView: React.FC<GridElementViewProps> = (props) => {
         expandDepth={expandDepth}
         showMatchedOnly={showMatchedOnly}
         matchedSet={matchedSet}
-        selectedAncestors={selectedAncestors}
+        selectedAncestors={Array.from(selectedAncestors)}
         leftWidth={leftWidth}
         startDrag={startDrag}
         handleHoverNode={panelSync.handleHoverNode}
@@ -199,6 +199,9 @@ export const GridElementView: React.FC<GridElementViewProps> = (props) => {
         setXPathInput={setXPathInput}
         xpathTestNodes={xpathTestNodes}
         locateXPath={locateXPath}
+        xmlText={xmlText}
+        setXmlText={setXmlText}
+        onParse={parse}
         currentStrategy={currentStrategy}
         currentFields={currentFields}
         updateStrategy={updateStrategy}

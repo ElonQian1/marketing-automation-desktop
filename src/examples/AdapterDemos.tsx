@@ -1,6 +1,11 @@
 import React from "react";
-import { Space } from "antd";
+import { Space, Input, Form } from "antd";
+import { Button } from "../components/ui";
 import { 
+  TableAdapter,
+  DataTableAdapter,
+  FormAdapter,
+  FormItemAdapter,
   UploadAdapter,
   TreeAdapter,
   DatePickerAdapter,
@@ -25,6 +30,7 @@ import {
 } from "../components/adapters";
 
 export const AdapterDemos: React.FC = () => {
+  const [form] = Form.useForm();
   const [open, setOpen] = React.useState(false);
   const [modalVisible, setModalVisible] = React.useState(false);
   const [checkboxValue, setCheckboxValue] = React.useState<string[]>(['A']);
@@ -35,6 +41,11 @@ export const AdapterDemos: React.FC = () => {
   const [numberValue, setNumberValue] = React.useState<number>(1);
   const [selectValue, setSelectValue] = React.useState<string>();
   const [currentPage, setCurrentPage] = React.useState(1);
+
+  const handleFormSubmit = (values: any) => {
+    console.log('Form submitted:', values);
+    NotificationAdapter.operationSuccess('表单提交成功', '表单数据已成功提交');
+  };
 
   return (
     <Space direction="vertical" size="large" style={{ width: "100%" }}>
@@ -182,6 +193,86 @@ export const AdapterDemos: React.FC = () => {
         treeData={[{ title: "Root", key: "0", children: [{ title: "Child", key: "0-0" }] }]}
         height={240}
       />
+
+      {/* Table 适配器演示 */}
+      <TableAdapter
+        title="数据表格示例"
+        description="展示 sticky header、middle 尺寸和底部分页"
+        columns={[
+          { title: '姓名', dataIndex: 'name', key: 'name', width: 100 },
+          { title: '年龄', dataIndex: 'age', key: 'age', width: 80 },
+          { title: '地址', dataIndex: 'address', key: 'address' },
+          { title: '电话', dataIndex: 'phone', key: 'phone', width: 120 },
+          { title: '邮箱', dataIndex: 'email', key: 'email', width: 200 },
+        ]}
+        dataSource={[
+          { key: '1', name: '张三', age: 32, address: '北京市朝阳区', phone: '138****1234', email: 'zhang@example.com' },
+          { key: '2', name: '李四', age: 42, address: '上海市浦东新区', phone: '139****5678', email: 'li@example.com' },
+          { key: '3', name: '王五', age: 32, address: '广州市天河区', phone: '137****9012', email: 'wang@example.com' },
+          { key: '4', name: '赵六', age: 28, address: '深圳市南山区', phone: '136****3456', email: 'zhao@example.com' },
+          { key: '5', name: '孙七', age: 35, address: '杭州市西湖区', phone: '135****7890', email: 'sun@example.com' },
+          { key: '6', name: '周八', age: 29, address: '成都市锦江区', phone: '134****2345', email: 'zhou@example.com' },
+          { key: '7', name: '吴九', age: 38, address: '武汉市武昌区', phone: '133****6789', email: 'wu@example.com' },
+          { key: '8', name: '郑十', age: 31, address: '南京市鼓楼区', phone: '132****0123', email: 'zheng@example.com' },
+        ]}
+        pagination={{
+          pageSize: 5,
+          showSizeChanger: true,
+          showQuickJumper: true,
+        }}
+        brandTheme="modern"
+        animated={true}
+      />
+
+      {/* Form 适配器演示 */}
+      <FormAdapter 
+        form={form} 
+        layout="vertical" 
+        onFinish={handleFormSubmit}
+        title="表单适配器示例"
+        description="展示不同密度模式下的表单布局和交互"
+      >
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <FormItemAdapter label="用户名" name="username" required>
+            <Input placeholder="请输入用户名" />
+          </FormItemAdapter>
+          
+          <FormItemAdapter label="邮箱" name="email" required>
+            <Input placeholder="请输入邮箱地址" />
+          </FormItemAdapter>
+          
+          <FormItemAdapter label="电话号码" name="phone">
+            <Input placeholder="请输入电话号码" />
+          </FormItemAdapter>
+          
+          <FormItemAdapter label="部门" name="department">
+            <SelectAdapter
+              placeholder="请选择部门"
+              options={[
+                { label: '技术部', value: 'tech' },
+                { label: '市场部', value: 'market' },
+                { label: '人事部', value: 'hr' },
+                { label: '财务部', value: 'finance' }
+              ]}
+            />
+          </FormItemAdapter>
+        </div>
+        
+        <FormItemAdapter label="个人简介" name="bio">
+          <Input.TextArea rows={4} placeholder="请输入个人简介" />
+        </FormItemAdapter>
+        
+        <FormItemAdapter name="actions">
+          <div className="flex gap-3">
+            <Button variant="default" type="submit">
+              提交表单
+            </Button>
+            <Button variant="outline" onClick={() => form.resetFields()}>
+              重置表单
+            </Button>
+          </div>
+        </FormItemAdapter>
+      </FormAdapter>
 
       <Space>
         <a onClick={() => setOpen(true)}>打开抽屉</a>

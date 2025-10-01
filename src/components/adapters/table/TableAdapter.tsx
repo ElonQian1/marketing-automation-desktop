@@ -169,6 +169,9 @@ export const TableAdapter: React.FC<TableAdapterProps> = ({
     <ConfigProvider theme={brandedTheme}>
       <Table
         {...tableProps}
+        size={tableProps.size || "middle"} // 默认 middle 尺寸
+        scroll={{ y: 400, ...tableProps.scroll }} // 启用垂直滚动以支持 sticky header
+        sticky={tableProps.sticky !== false} // 默认启用 sticky header
         className={cn(
           // 品牌化容器样式 - 不覆盖 antd 内部
           "brand-table-container",
@@ -183,6 +186,7 @@ export const TableAdapter: React.FC<TableAdapterProps> = ({
             showQuickJumper: true,
             showTotal: (total, range) => 
               `第 ${range[0]}-${range[1]} 项，共 ${total} 项`,
+            position: ['bottomRight'], // 分页位置
             ...tableProps.pagination,
           }
         }

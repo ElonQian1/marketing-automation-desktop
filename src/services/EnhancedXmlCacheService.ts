@@ -387,12 +387,16 @@ export class EnhancedXmlCacheService {
     memoryCache: { size: number; keys: string[] };
     unifiedViewCache: { size: number; keys: string[] };
   } {
+    const unifiedStats = UnifiedViewDataManager.getCacheStats();
     return {
       memoryCache: {
         size: this.memoryCache.size,
         keys: Array.from(this.memoryCache.keys())
       },
-      unifiedViewCache: UnifiedViewDataManager.getCacheStats()
+      unifiedViewCache: {
+        size: unifiedStats.totalEntries,
+        keys: [] // CacheStats 不提供键列表，使用空数组
+      }
     };
   }
 }

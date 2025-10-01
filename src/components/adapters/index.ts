@@ -149,4 +149,30 @@ export {
   type NotificationAdapterConfig,
 } from "./notification/NotificationAdapter";
 
+// Layout - 布局适配器 (Employee D)
+export {
+  LayoutAdapter,
+  Row,
+  Col,
+  Space,
+  Divider,
+} from "./layout/LayoutAdapter";
+
+// Typography - 文字排版适配器 (Employee D)
+export {
+  Text,
+  Title,
+  TypographyAdapter,
+} from "../ui/typography/TypographyAdapter";
+
+// Feedback - 反馈组件适配器 (Employee D)  
+export {
+  AlertCard,
+  LoadingSpinner,
+  FeedbackAdapter,
+} from "../ui/feedback/FeedbackAdapter";
+
+// Button - 轻组件按钮 (通过UI层)
+export { Button } from "../ui";
+
 // 提示：请不要在此处导出任何以 Ant* 命名的重复适配器，避免双实现。
