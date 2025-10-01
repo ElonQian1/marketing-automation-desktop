@@ -14,7 +14,7 @@
 
 import React from 'react';
 import { motion } from 'framer-motion';
-import { FadeIn, SlideIn } from '@/components/ui/motion/MotionComponents';
+import { FadeIn, SlideIn } from '@/components/ui/motion/MotionSystem';
 import { cn } from '@/utils/cn';
 
 interface PageShellProps {
@@ -137,7 +137,7 @@ const PageShell: React.FC<PageShellProps> = ({
       
       {/* 页面内容 */}
       <main className="flex-1 min-h-0">
-        <SlideIn direction="bottom" transition={{ delay: 0.1 }}>
+        <SlideIn direction="up">
           <div className={cn(
             'h-full',
             compact ? 'p-4' : 'p-6',

@@ -152,9 +152,9 @@ export const DraggableHeaderPanel: React.FC<DraggableHeaderPanelProps> = ({
       styles={{
         header: {
           // 重要：标题栏样式，确保有足够的拖拽区域
-          padding: '8px 16px',
-          borderBottom: '1px solid #f0f0f0',
-          backgroundColor: '#fafafa',
+          padding: 'var(--space-2) var(--space-4)',
+          borderBottom: '1px solid var(--border-primary)',
+          backgroundColor: 'var(--bg-elevated)',
           cursor: 'move',
           userSelect: 'none'
         },

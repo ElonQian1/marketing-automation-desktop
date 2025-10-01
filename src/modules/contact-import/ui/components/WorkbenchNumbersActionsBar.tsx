@@ -87,16 +87,16 @@ const WorkbenchNumbersActionsBar: React.FC<Props> = ({
 
   return (
     <div style={{
-      padding: '8px 12px',
-      background: '#fafafa',
-      border: '1px solid #f0f0f0',
-      borderRadius: 6,
-      marginBottom: 8,
+      padding: 'var(--space-2) var(--space-3)',
+      background: 'var(--bg-elevated)',
+      border: '1px solid var(--border-primary)',
+      borderRadius: 'var(--radius-sm)',
+      marginBottom: 'var(--space-2)',
       display: 'flex',
       alignItems: 'center',
       justifyContent: 'space-between',
       flexWrap: 'wrap',
-      gap: 8,
+      gap: 'var(--space-2)',
     }}>
       <Space size={8} wrap>
         <Text type="secondary">批量操作：</Text>

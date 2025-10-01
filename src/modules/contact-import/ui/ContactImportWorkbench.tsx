@@ -697,7 +697,15 @@ export const ContactImportWorkbench: React.FC = () => {
   return (
     <div>
       {/* 布局切换控制 */}
-      <div style={{ marginBottom: 16, padding: '8px 16px', backgroundColor: '#f5f5f5', borderRadius: 6 }}>
+      <div 
+        style={{ 
+          marginBottom: 'var(--space-4)', 
+          padding: 'var(--space-2) var(--space-4)', 
+          backgroundColor: 'var(--bg-elevated)', 
+          borderRadius: 'var(--radius-sm)',
+          border: '1px solid var(--border-primary)'
+        }}
+      >
         <Space>
           <LayoutOutlined />
           <Text>布局模式:</Text>

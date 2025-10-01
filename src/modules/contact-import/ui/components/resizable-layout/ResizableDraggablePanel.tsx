@@ -129,9 +129,9 @@ export const ResizableDraggablePanel: React.FC<ResizableDraggablePanelProps> = (
 
   const headerStyle: React.CSSProperties = {
     cursor: 'grab',
-    padding: '8px 16px',
-    borderBottom: '1px solid #f0f0f0',
-    backgroundColor: '#fafafa',
+    padding: 'var(--space-2) var(--space-4)',
+    borderBottom: '1px solid var(--border-primary)',
+    backgroundColor: 'var(--bg-elevated)',
     display: 'flex',
     justifyContent: 'space-between',
     alignItems: 'center',

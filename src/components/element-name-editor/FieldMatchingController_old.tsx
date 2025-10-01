@@ -532,7 +532,13 @@ export default FieldMatchingController;
         </TabPane>
       </Tabs>
 
-      <div style={{ marginTop: 16, padding: '12px', backgroundColor: '#f5f5f5', borderRadius: 4 }}>
+      <div style={{ 
+        marginTop: 'var(--space-4)', 
+        padding: 'var(--space-3)', 
+        backgroundColor: 'var(--bg-elevated)', 
+        borderRadius: 'var(--radius-sm)',
+        border: '1px solid var(--border-primary)'
+      }}>
         <Text type="secondary" style={{ fontSize: '11px' }}>
           💡 提示：文本字段通常是最重要的匹配标准，类名和可点击属性可以帮助进一步确认元素类型。
           坐标信息主要用于定位，不建议作为必需字段。

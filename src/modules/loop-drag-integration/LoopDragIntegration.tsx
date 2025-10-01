@@ -58,7 +58,7 @@ export const LoopDragIntegration: React.FC<LoopDragIntegrationProps> = ({
         title: "主流程",
         type: "default",
         emptyText: "拖拽步骤到此处",
-        backgroundColor: "#fafafa",
+        backgroundColor: "var(--bg-elevated)",
       },
     ];
 
@@ -252,11 +252,11 @@ export const LoopDragIntegration: React.FC<LoopDragIntegrationProps> = ({
             <button
               onClick={() => dragSort.reset()}
               style={{
-                padding: "6px 12px",
-                backgroundColor: "#f5f5f5",
-                color: "#666",
-                border: "1px solid #d9d9d9",
-                borderRadius: "4px",
+                padding: "var(--space-1) var(--space-3)",
+                backgroundColor: "var(--bg-elevated)",
+                color: "var(--text-2)",
+                border: "1px solid var(--border-primary)",
+                borderRadius: "var(--radius-sm)",
                 cursor: "pointer",
               }}
             >

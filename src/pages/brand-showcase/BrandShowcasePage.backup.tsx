@@ -372,9 +372,9 @@ export const BrandShowcasePage: React.FC = () => {
                     不同变体选择器
                   </label>
                   <div className="space-y-2">
-                    <Select placeholder="默认变体" variant="default" />
-                    <Select placeholder="填充变体" variant="filled" />
-                    <Select placeholder="无边框变体" variant="borderless" />
+                    <Select placeholder="默认变体" selectVariant="default" />
+                    <Select placeholder="填充变体" selectVariant="filled" />
+                    <Select placeholder="无边框变体" selectVariant="borderless" />
                   </div>
                 </div>
               </div>

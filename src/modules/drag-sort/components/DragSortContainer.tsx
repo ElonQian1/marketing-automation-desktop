@@ -143,8 +143,8 @@ export const DragSortContainer: React.FC<DragSortContainerProps> = ({
               className={`droppable-area ${area.className || ''}`}
               style={{
                 minHeight: 200,
-                marginBottom: 16,
-                backgroundColor: area.backgroundColor || '#fafafa'
+                marginBottom: 'var(--space-4)',
+                backgroundColor: area.backgroundColor || 'var(--bg-elevated)'
               }}
             >
               <SortableContext 

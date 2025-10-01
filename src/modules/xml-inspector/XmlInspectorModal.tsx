@@ -504,10 +504,13 @@ export const XmlInspectorModal: React.FC<XmlInspectorProps> = ({
           value={xmlContent}
           readOnly
           style={{ 
-            fontFamily: 'monospace', 
-            fontSize: '12px',
+            fontFamily: 'var(--font-mono)', 
+            fontSize: 'var(--font-xs)',
             height: 'calc(100% - 60px)',
-            backgroundColor: '#f5f5f5'
+            backgroundColor: 'var(--bg-elevated)',
+            color: 'var(--text-2)',
+            border: '1px solid var(--border-primary)',
+            borderRadius: 'var(--radius-sm)'
           }}
         />
       </div>

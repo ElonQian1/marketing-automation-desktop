@@ -68,4 +68,85 @@ export {
   type IconProps,
 } from "./icons/IconAdapter";
 
+// Checkbox - 复选框适配器
+export {
+  CheckboxAdapter,
+  CheckboxGroupAdapter,
+  type CheckboxAdapterProps,
+  type CheckboxGroupAdapterProps,
+} from "./checkbox/CheckboxAdapter";
+
+// Radio - 单选框适配器
+export {
+  RadioAdapter,
+  RadioGroupAdapter,
+  RadioButtonAdapter,
+  type RadioAdapterProps,
+  type RadioGroupAdapterProps,
+  type RadioButtonAdapterProps,
+} from "./radio/RadioAdapter";
+
+// Switch - 开关适配器
+export {
+  SwitchAdapter,
+  type SwitchAdapterProps,
+} from "./switch/SwitchAdapter";
+
+// Slider - 滑块适配器
+export {
+  SliderAdapter,
+  RangeSliderAdapter,
+  type SliderAdapterProps,
+} from "./slider/SliderAdapter";
+
+// InputNumber - 数值输入框适配器
+export {
+  InputNumberAdapter,
+  type InputNumberAdapterProps,
+} from "./input-number/InputNumberAdapter";
+
+// Select - 选择器适配器
+export {
+  SelectAdapter,
+  OptionAdapter,
+  OptGroupAdapter,
+  type SelectAdapterProps,
+  type OptionAdapterProps,
+} from "./select/SelectAdapter";
+
+// Modal - 对话框适配器
+export {
+  ModalAdapter,
+  ConfirmAdapter,
+  InfoAdapter,
+  SuccessAdapter,
+  ErrorAdapter,
+  WarningAdapter,
+  type ModalAdapterProps,
+} from "./modal/ModalAdapter";
+
+// Tooltip - 工具提示适配器
+export {
+  TooltipAdapter,
+  type TooltipAdapterProps,
+} from "./tooltip/TooltipAdapter";
+
+// Popover - 弹出框适配器
+export {
+  PopoverAdapter,
+  type PopoverAdapterProps,
+} from "./popover/PopoverAdapter";
+
+// Pagination - 分页适配器
+export {
+  PaginationAdapter,
+  type PaginationAdapterProps,
+} from "./pagination/PaginationAdapter";
+
+// Notification - 通知适配器
+export {
+  NotificationAdapter,
+  type NotificationAdapterConfig,
+} from "./notification/NotificationAdapter";
+
 // 提示：请不要在此处导出任何以 Ant* 命名的重复适配器，避免双实现。

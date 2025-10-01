@@ -362,7 +362,7 @@ export const SmartAppSelector: React.FC<SmartAppSelectorProps> = ({
                       src={icons[app.package_name] || undefined}
                       icon={!icons[app.package_name] ? getAppIcon(app) : undefined}
                       style={{
-                        backgroundColor: app.is_system_app ? '#f5f5f5' : '#e6f7ff'
+                        backgroundColor: app.is_system_app ? 'var(--bg-elevated)' : 'var(--brand-100)'
                       }}
                     />
                   }

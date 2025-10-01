@@ -92,7 +92,7 @@ export const LayoutManager: React.FC<LayoutManagerProps> = ({
     width: '100%',
     height: '100vh',
     overflow: 'hidden',
-    backgroundColor: '#f5f5f5',
+    backgroundColor: 'var(--bg-base)',
     ...style,
   };
 

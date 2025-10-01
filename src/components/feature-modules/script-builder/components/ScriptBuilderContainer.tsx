@@ -42,7 +42,7 @@ import {
 } from '../hooks';
 
 import { StepList } from './StepList';
-import { StepEditor } from './StepEditor';
+import StepEditor from './StepEditor';
 import { ExecutionControl } from './ExecutionControl';
 
 const { Header, Content, Sider } = Layout;

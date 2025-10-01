@@ -1,7 +1,7 @@
 // 智能脚本管理模块 - React Hooks
 
 import { useState, useEffect, useCallback } from 'react';
-import { message } from 'antd';
+import { App } from 'antd';
 import { 
   SmartScript, 
   ScriptListItem, 
@@ -15,6 +15,7 @@ import { ScriptSerializer } from '../utils/serializer';
  * 脚本管理Hook
  */
 export function useScriptManager() {
+  const { message } = App.useApp();
   const [scripts, setScripts] = useState<ScriptListItem[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -96,6 +97,7 @@ export function useScriptManager() {
  * 脚本编辑器Hook
  */
 export function useScriptEditor() {
+  const { message } = App.useApp();
   const [currentScript, setCurrentScript] = useState<SmartScript | null>(null);
   const [isDirty, setIsDirty] = useState(false);
   const [saving, setSaving] = useState(false);
@@ -269,6 +271,7 @@ export function useScriptEditor() {
  * 脚本执行Hook
  */
 export function useScriptExecutor() {
+  const { message } = App.useApp();
   const [executing, setExecuting] = useState(false);
   const [executionResult, setExecutionResult] = useState<ScriptExecutionResult | null>(null);
 
@@ -354,6 +357,7 @@ export function useScriptExecutor() {
  * 脚本模板Hook
  */
 export function useScriptTemplates() {
+  const { message } = App.useApp();
   const [templates, setTemplates] = useState<ScriptTemplate[]>([]);
   const [loading, setLoading] = useState(false);
 

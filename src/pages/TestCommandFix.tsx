@@ -210,12 +210,14 @@ export const TestCommandFix: React.FC = () => {
       {detectionResult && (
         <Card title="检测结果" style={{ marginTop: '16px' }}>
           <pre style={{ 
-            fontSize: '12px', 
+            fontSize: 'var(--font-xs)', 
             maxHeight: '400px', 
             overflow: 'auto',
-            backgroundColor: '#f5f5f5',
-            padding: '12px',
-            borderRadius: '4px'
+            backgroundColor: 'var(--bg-elevated)',
+            color: 'var(--text-2)',
+            padding: 'var(--space-3)',
+            borderRadius: 'var(--radius-sm)',
+            border: '1px solid var(--border-primary)'
           }}>
             {JSON.stringify(detectionResult, null, 2)}
           </pre>

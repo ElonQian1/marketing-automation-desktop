@@ -31,7 +31,7 @@ const cardVariants = cva(
         default: "shadow-[var(--shadow)]",
         
         // 突出卡片 - 更强的阴影
-        elevated: "shadow-lg",
+        elevated: "shadow-[var(--shadow-lg)]",
         
         // 扁平卡片 - 仅边框无阴影
         flat: "shadow-none",
@@ -40,7 +40,7 @@ const cardVariants = cva(
         ghost: "border-transparent shadow-none",
         
         // 渐变卡片 - 品牌渐变背景
-        gradient: "shadow-[var(--shadow-brand-lg)] border-transparent bg-gradient-to-br from-brand-500 to-brand-600 text-white",
+        gradient: "shadow-[var(--shadow-brand-lg)] border-transparent bg-gradient-to-br from-[var(--brand)] to-[var(--brand-700)] text-white",
         
         // 玻璃态卡片 - 现代玻璃效果
         glass: "border border-white/20 shadow-[var(--shadow-glass)] backdrop-blur-[var(--backdrop-blur)] bg-[var(--bg-glass-elevated)]",

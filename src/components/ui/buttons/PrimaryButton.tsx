@@ -90,21 +90,21 @@ const buttonStyles = `
   font-weight: 600;
   border-radius: 8px;
   transition: all 0.2s ease;
-  box-shadow: 0 2px 4px rgba(59, 130, 246, 0.2);
+  box-shadow: var(--shadow-brand-sm);
 }
 
 .primary-button:hover:not(:disabled) {
   transform: translateY(-1px);
-  box-shadow: 0 4px 8px rgba(59, 130, 246, 0.3);
+  box-shadow: var(--shadow-brand-md);
 }
 
 .primary-button--gradient {
-  background: linear-gradient(135deg, #3b82f6, #2563eb);
+  background: linear-gradient(135deg, var(--brand), var(--brand-700));
   border: none;
 }
 
 .primary-button--elevated {
-  box-shadow: 0 4px 12px rgba(59, 130, 246, 0.3);
+  box-shadow: var(--shadow-brand-lg);
 }
 
 .primary-button--loading {

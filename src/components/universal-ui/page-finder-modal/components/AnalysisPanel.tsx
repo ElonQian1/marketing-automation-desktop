@@ -55,12 +55,12 @@ export const AnalysisPanel: React.FC<AnalysisPanelProps> = ({
   // 分析统计数据
   const analysisStats = React.useMemo(() => {
     const total = elements.length;
-    const clickable = elements.filter(el => el.clickable).length;
+    const clickable = elements.filter(el => el.is_clickable).length;
     const hasText = elements.filter(el => el.text && el.text.trim()).length;
-    const hasResourceId = elements.filter(el => el.resourceId).length;
-    const hasContentDesc = elements.filter(el => el.contentDesc).length;
+    const hasResourceId = elements.filter(el => el.resource_id).length;
+    const hasContentDesc = elements.filter(el => el.content_desc).length;
     const interactive = elements.filter(el => 
-      el.clickable || el.class?.includes("Button") || el.class?.includes("EditText")
+      el.is_clickable || el.class_name?.includes("Button") || el.class_name?.includes("EditText")
     ).length;
     
     const clickablePercent = total > 0 ? Math.round((clickable / total) * 100) : 0;
@@ -85,8 +85,8 @@ export const AnalysisPanel: React.FC<AnalysisPanelProps> = ({
     const typeMap = new Map<string, number>();
     
     elements.forEach(el => {
-      if (el.class) {
-        const className = el.class.split('.').pop() || el.class;
+      if (el.class_name) {
+        const className = el.class_name.split('.').pop() || el.class_name;
         typeMap.set(className, (typeMap.get(className) || 0) + 1);
       }
     });

@@ -218,7 +218,10 @@ const NativeAntDesignApp: React.FC = () => {
   };
 
   return (
-    <AntApp>
+    <AntApp 
+      message={{ maxCount: 3 }}
+      notification={{ maxCount: 3, placement: 'topRight' }}
+    >
       <Layout style={{ minHeight: "100vh" }}>
         <Sider
           trigger={null}

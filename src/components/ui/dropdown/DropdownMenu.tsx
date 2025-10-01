@@ -111,7 +111,7 @@ const DropdownMenuArrow = React.forwardRef<
     ref={ref}
     className={cn(
       "fill-[color:var(--bg-elevated)]",
-      "drop-shadow-[0px_4px_12px_rgba(15,23,42,0.18)]",
+      "drop-shadow-[var(--shadow-dropdown)]",
       className
     )}
     {...props}

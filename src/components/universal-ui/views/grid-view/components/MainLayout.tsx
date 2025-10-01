@@ -38,6 +38,11 @@ interface MainLayoutProps {
   xpathTestNodes: UiNode[];
   locateXPath: () => void;
   
+  // XML 相关
+  xmlText: string;
+  setXmlText: (text: string) => void;
+  onParse: () => void;
+  
   // 匹配策略
   currentStrategy: string;
   currentFields: string[];
@@ -78,6 +83,9 @@ export const MainLayout: React.FC<MainLayoutProps> = ({
   setXPathInput,
   xpathTestNodes,
   locateXPath,
+  xmlText,
+  setXmlText,
+  onParse,
   currentStrategy,
   currentFields,
   updateStrategy,
@@ -129,6 +137,9 @@ export const MainLayout: React.FC<MainLayoutProps> = ({
           setXPathInput={setXPathInput}
           xpathTestNodes={xpathTestNodes}
           locateXPath={locateXPath}
+          xmlText={xmlText}
+          setXmlText={setXmlText}
+          onParse={onParse}
           currentStrategy={currentStrategy}
           currentFields={currentFields}
           updateStrategy={updateStrategy}

@@ -106,7 +106,7 @@ export const Loading: React.FC<LoadingProps> = ({
         left: 0,
         right: 0,
         bottom: 0,
-        backgroundColor: 'rgba(255, 255, 255, 0.8)',
+        backgroundColor: 'var(--bg-overlay)',
         zIndex: 1000,
       }),
       ...(centered && !overlay && {

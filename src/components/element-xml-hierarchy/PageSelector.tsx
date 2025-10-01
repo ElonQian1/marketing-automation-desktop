@@ -193,11 +193,11 @@ export const PageSelector: React.FC<PageSelectorProps> = ({
                   {/* 页面类型 */}
                   <Tag 
                     style={{ 
-                      fontSize: '10px', 
+                      fontSize: 'var(--font-xs)', 
                       margin: 0,
-                      backgroundColor: isSelected ? '#e6f7ff' : '#f5f5f5',
-                      borderColor: isSelected ? '#91d5ff' : '#d9d9d9',
-                      color: isSelected ? '#096dd9' : '#666'
+                      backgroundColor: isSelected ? 'var(--brand-100)' : 'var(--bg-elevated)',
+                      borderColor: isSelected ? 'var(--brand-300)' : 'var(--border-primary)',
+                      color: isSelected ? 'var(--brand-700)' : 'var(--text-2)'
                     }}
                   >
                     {page.pageType}
@@ -211,7 +211,11 @@ export const PageSelector: React.FC<PageSelectorProps> = ({
 
       {/* 如果页面过多，显示省略提示 */}
       {pages.length > maxPages && (
-        <Card size="small" style={{ textAlign: 'center', backgroundColor: '#fafafa' }}>
+        <Card size="small" style={{ 
+          textAlign: 'center', 
+          backgroundColor: 'var(--bg-elevated)',
+          border: '1px solid var(--border-primary)'
+        }}>
           <Text type="secondary" style={{ fontSize: '12px' }}>
             还有 {pages.length - maxPages} 个页面未显示...
           </Text>

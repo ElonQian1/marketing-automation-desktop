@@ -28,6 +28,10 @@ interface PanelsContainerProps {
   setMatchIndex: (index: number) => void;
   filter: string;
   advFilter: AdvancedFilter;
+  // XML相关props
+  xmlText: string;
+  setXmlText: (text: string) => void;
+  onParse: () => void;
   searchOptions: SearchOptions;
   xPathInput: string;
   setXPathInput: (xpath: string) => void;
@@ -64,6 +68,9 @@ export const PanelsContainer: React.FC<PanelsContainerProps> = ({
   currentFields,
   updateStrategy,
   updateFields,
+  xmlText,
+  setXmlText,
+  onParse,
   panelActivateTab,
   panelActivateKey,
   panelHighlightNode,
@@ -74,7 +81,11 @@ export const PanelsContainer: React.FC<PanelsContainerProps> = ({
 }) => {
   return (
     <div className="h-full flex flex-col">
-      <XmlSourcePanel />
+      <XmlSourcePanel 
+        xmlText={xmlText}
+        setXmlText={setXmlText}
+        onParse={onParse}
+      />
       <BreadcrumbPanel selected={selected} onSelect={onSelect} />
       <NodeDetailPanel
         node={selected}
@@ -122,7 +133,7 @@ export const PanelsContainer: React.FC<PanelsContainerProps> = ({
         onInsertOnly={setXPathInput}
         xpathTestNodes={xpathTestNodes}
         onJumpToNode={onSelect}
-        activateTab={panelActivateTab}
+        activateTab={panelActivateTab as "results" | "xpath"}
         activateKey={panelActivateKey}
         highlightNode={panelHighlightNode}
         onSelectForStep={onApplyCriteria as any}

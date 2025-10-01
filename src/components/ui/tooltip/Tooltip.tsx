@@ -44,7 +44,7 @@ const TooltipArrow = React.forwardRef<
     ref={ref}
     className={cn(
       "fill-[color:var(--bg-elevated)]",
-      "drop-shadow-[0px_4px_10px_rgba(15,23,42,0.18)]",
+      "drop-shadow-[var(--shadow-tooltip)]",
       className
     )}
     {...props}

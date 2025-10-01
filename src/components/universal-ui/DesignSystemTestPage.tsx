@@ -28,7 +28,13 @@ const DesignSystemTestPage: React.FC = () => {
         onCancel={() => setPreviewVisible(false)}
       />
       
-      <div style={{ marginTop: '32px', padding: '24px', backgroundColor: '#f5f5f5', borderRadius: '8px' }}>
+      <div style={{ 
+        marginTop: 'var(--space-8)', 
+        padding: 'var(--space-6)', 
+        backgroundColor: 'var(--bg-elevated)', 
+        borderRadius: 'var(--radius)',
+        border: '1px solid var(--border-primary)'
+      }}>
         <h2>设计改进总结</h2>
         <ul>
           <li>✅ 解决了单一色调问题，引入丰富的语义化色彩系统</li>
