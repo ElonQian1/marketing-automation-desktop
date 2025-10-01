@@ -56,6 +56,16 @@ export {
   type DeviceStatus,
 } from "./marketplace-card/MarketplaceCard";
 
+// Skeleton - 骨架屏占位组件
+export {
+  SkeletonBlock,
+  SkeletonCard,
+  SkeletonList,
+  type SkeletonBlockProps,
+  type SkeletonCardProps,
+  type SkeletonListProps,
+} from "./skeleton/SkeletonPatterns";
+
 /**
  * 高曝光组件使用指南
  * 

@@ -1,8 +1,8 @@
 {
   "summary": {
-    "scannedFiles": 1235,
-    "totalIssues": 1444,
-    "criticalIssues": 21,
+    "scannedFiles": 1243,
+    "totalIssues": 1446,
+    "criticalIssues": 23,
     "highIssues": 26,
     "mediumIssues": 1397
   },
@@ -28,6 +28,28 @@
       "match": ".ant-table-",
       "context": "* 2. 不覆写 .ant-table-* 内部样式，仅通过 ConfigProvider 和外层容器",
       "fix": "移除覆盖，通过 tokens 和适配器统一"
+    },
+    {
+      "file": "src\\components\\native-antd\\native-reset.css",
+      "line": 4,
+      "column": 25,
+      "type": "importantUsage",
+      "name": "!important 使用",
+      "severity": "critical",
+      "match": "!important",
+      "context": "* 原因：直接覆盖 .ant-* 样式并使用 !important，违反了员工A的核心职责",
+      "fix": "移除 !important，通过正确的CSS层级和tokens处理"
+    },
+    {
+      "file": "src\\components\\native-antd\\native-reset.css",
+      "line": 8,
+      "column": 12,
+      "type": "importantUsage",
+      "name": "!important 使用",
+      "severity": "critical",
+      "match": "!important",
+      "context": "* 2. 禁止任何 !important 使用",
+      "fix": "移除 !important，通过正确的CSS层级和tokens处理"
     },
     {
       "file": "src\\modules\\contact-import\\ui\\components\\DeviceAssignmentGrid\\DeviceCard.tsx",
@@ -22364,6 +22386,30 @@
         "match": "#52c41a",
         "context": "color: '#52c41a'",
         "fix": "使用 tokens 颜色变量替换"
+      }
+    ],
+    "src\\components\\native-antd\\native-reset.css": [
+      {
+        "file": "src\\components\\native-antd\\native-reset.css",
+        "line": 4,
+        "column": 25,
+        "type": "importantUsage",
+        "name": "!important 使用",
+        "severity": "critical",
+        "match": "!important",
+        "context": "* 原因：直接覆盖 .ant-* 样式并使用 !important，违反了员工A的核心职责",
+        "fix": "移除 !important，通过正确的CSS层级和tokens处理"
+      },
+      {
+        "file": "src\\components\\native-antd\\native-reset.css",
+        "line": 8,
+        "column": 12,
+        "type": "importantUsage",
+        "name": "!important 使用",
+        "severity": "critical",
+        "match": "!important",
+        "context": "* 2. 禁止任何 !important 使用",
+        "fix": "移除 !important，通过正确的CSS层级和tokens处理"
       }
     ],
     "src\\components\\native-dashboard\\NativeAntDashboard.tsx": [
@@ -47807,6 +47853,30 @@
         "match": "linear-gradient(-45deg, transparent 30%, #ccc 30%, #ccc 35%, transparent 35%, transparent 65%, #ccc 65%, #ccc 70%, transparent 70%)",
         "context": "background: 'linear-gradient(-45deg, transparent 30%, #ccc 30%, #ccc 35%, transparent 35%, transparent 65%, #ccc 65%, #ccc 70%, transparent 70%)',",
         "fix": "定义渐变tokens或使用Tailwind工具类"
+      }
+    ],
+    "importantUsage": [
+      {
+        "file": "src\\components\\native-antd\\native-reset.css",
+        "line": 4,
+        "column": 25,
+        "type": "importantUsage",
+        "name": "!important 使用",
+        "severity": "critical",
+        "match": "!important",
+        "context": "* 原因：直接覆盖 .ant-* 样式并使用 !important，违反了员工A的核心职责",
+        "fix": "移除 !important，通过正确的CSS层级和tokens处理"
+      },
+      {
+        "file": "src\\components\\native-antd\\native-reset.css",
+        "line": 8,
+        "column": 12,
+        "type": "importantUsage",
+        "name": "!important 使用",
+        "severity": "critical",
+        "match": "!important",
+        "context": "* 2. 禁止任何 !important 使用",
+        "fix": "移除 !important，通过正确的CSS层级和tokens处理"
       }
     ],
     "hardcodedShadow": [

@@ -1,0 +1,27 @@
+/**
+ * [员工A-紧急修复] 原native-reset.css违反Design Tokens原则
+ * 
+ * 原因：直接覆盖 .ant-* 样式并使用强制优先级，违反了员工A的核心职责
+ * 
+ * Design Tokens原则：
+ * 1. 禁止任何 .ant-* 覆盖
+ * 2. 禁止任何强制优先级使用  
+ * 3. 一切视觉样式必须通过 tokens.css 统一
+ * 4. AntD 主题通过 ThemeBridge.tsx 配置
+ * 
+ * 🔄 正确做法：
+ * - 使用 ConfigProvider theme 配置
+ * - 通过 CSS 变量 tokens 统一样式
+ * - 避免直接样式覆盖
+ */
+
+/* 
+  该文件已被清空以符合 Design Tokens 架构原则
+  如需自定义 AntD 样式，请通过以下正确方式：
+  
+  1. 修改 src/styles/tokens.css 中的变量
+  2. 在 src/theme/ThemeBridge.tsx 中配置主题
+  3. 使用 Tailwind 类名引用 tokens
+  
+  详见：docs/员工工作报告/A-令牌主题/ 相关文档
+*/

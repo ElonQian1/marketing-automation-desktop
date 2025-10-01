@@ -14,7 +14,7 @@ import {
   BusinessPageHeader,
   BusinessPageLayout,
   MetricCard
-} from '../../components/business';
+} from '@/components/business';
 
 /**
  * 商业化组件演示页面

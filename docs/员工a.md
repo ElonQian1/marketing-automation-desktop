@@ -1,4 +1,4 @@
-D:\rust\active-projects\小红书\employeeGUI\docs\品牌化提示词.md
+docs\品牌化提示词.md
 
 我的项目需要从头到尾的一步步重构， 请你参考上面的文档， 开始重构
 
@@ -9,7 +9,7 @@ D:\rust\active-projects\小红书\employeeGUI\docs\品牌化提示词.md
 现在员工 ABCD 都没有联系上，你怎么办？
 
 下面这个文件夹，是其他员工远程同步工作信息的地方：
-X:\active-projects\小红书\employeeGUI\docs\员工工作报告
+D:\rust\active-projects\小红书\employeeGUI\docs\员工工作报告
 你能否继续完成你的分内工作？
 在你的报告中， 写上你的时间精确时间，因为失联的员工可能也在同一天工作，精确时间是有必要的
 

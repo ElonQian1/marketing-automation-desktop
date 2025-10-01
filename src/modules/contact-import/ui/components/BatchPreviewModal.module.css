@@ -1,0 +1,13 @@
+/* BatchPreviewModal.module.css */
+
+.modal {
+  max-width: 800px;
+}
+
+.table {
+  margin-top: 16px;
+}
+
+.item {
+  padding: 8px 0;
+}

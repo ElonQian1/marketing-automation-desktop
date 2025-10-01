@@ -1,4 +1,4 @@
-D:\rust\active-projects\小红书\employeeGUI\docs\品牌化提示词.md
+docs\品牌化提示词.md
 
 我的项目需要从头到尾的一步步重构， 请你参考上面的文档， 开始重构
 

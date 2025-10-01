@@ -2,7 +2,7 @@ import react from "@vitejs/plugin-react";
 import { defineConfig } from "vite";
 import { execSync } from "node:child_process";
 import { existsSync, mkdirSync, readFileSync, writeFileSync } from "node:fs";
-import { join } from "node:path";
+import { join, resolve } from "node:path";
 
 // 动态检测是否为网络共享 / 映射盘环境：
 // 1. 环境变量优先：FORCE_POLLING=1 / DISABLE_POLLING=1 / WATCH_MODE=poll|native
@@ -203,6 +203,13 @@ export default defineConfig(() => ({
 
   // 设置基础路径为相对路径，确保在Tauri中正常工作
   base: "./",
+
+  // 路径别名配置
+  resolve: {
+    alias: {
+      "@": resolve(__dirname, "src"),
+    },
+  },
 
   // Vite options tailored for Tauri development and only applied in `tauri dev` or `tauri build`
   //
