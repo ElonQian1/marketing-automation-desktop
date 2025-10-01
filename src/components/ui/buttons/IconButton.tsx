@@ -194,11 +194,12 @@ const iconButtonVariants = cva(
   }
 );
 
-export interface IconButtonProps extends React.ButtonHTMLAttributes<HTMLButtonElement> {
-  size?: 'sm' | 'md' | 'lg';
-  variant?: 'solid' | 'soft' | 'outline' | 'ghost';
-  tone?: 'brand' | 'neutral' | 'success' | 'warning' | 'danger' | 'info';
-  iconOnly?: boolean;
+export interface IconButtonProps
+  extends React.ButtonHTMLAttributes<HTMLButtonElement>,
+    VariantProps<typeof iconButtonVariants> {
+  /** 是否作为子组件渲染（用于自定义元素如 Link） */
+  asChild?: boolean;
+  /** 工具提示文本 */
   tooltip?: string;
 }
 
@@ -206,10 +207,11 @@ const IconButton = React.forwardRef<HTMLButtonElement, IconButtonProps>(
   (
     {
       className,
-  variant,
-  tone,
-  size,
-  iconOnly,
+      variant,
+      tone,
+      size,
+      shape,
+      asChild = false,
       tooltip,
       children,
       disabled,
@@ -218,76 +220,48 @@ const IconButton = React.forwardRef<HTMLButtonElement, IconButtonProps>(
     },
     ref
   ) => {
-  // 映射自定义尺寸到Ant Design尺寸
-  const getBtnSize = (): ButtonProps['size'] => (iconOnly ? 'icon' : size ?? 'md');
-
-  // 映射自定义变体到Ant Design类型
-  const getBtnVariant = (): ButtonProps['variant'] => variant ?? 'soft';
-
-  const buttonClassName = cn(
-    // 基础样式
-    'ui-icon-button',
+    const Comp = asChild ? Slot : "button";
     
-    // 尺寸样式
-  size === 'sm' && 'ui-icon-button--small',
-  size === 'md' && 'ui-icon-button--medium',
-  size === 'lg' && 'ui-icon-button--large',
-    
-    // 变体样式
-  variant === 'solid' && 'ui-icon-button--primary',
-  variant === 'ghost' && 'ui-icon-button--ghost',
-  variant === 'outline' && 'ui-icon-button--text',
-  variant === 'soft' && 'ui-icon-button--secondary',
-    
-    // 形状样式
-  iconOnly && 'ui-icon-button--circular',
-    
-    className
-  );
-
-  const buttonContent = (
-    <Button
-      {...rest}
-  size={getBtnSize()}
-  variant={getBtnVariant()}
-  tone={tone}
-      className={buttonClassName}
-      style={{
-        display: 'inline-flex',
-        alignItems: 'center',
-        justifyContent: 'center',
-  padding: iconOnly ? 0 : '4px',
-        ...(rest.style ?? {}),
-      }}
-    >
-      {children}
-    </Button>
-  );
-
-  // 如果有工具提示，包装在Tooltip组件中
-  if (tooltip) {
-    // 这里可以添加Tooltip组件，暂时返回基础按钮
-    return buttonContent;
+    return (
+      <Comp
+        className={cn(iconButtonVariants({ variant, tone, size, shape }), className)}
+        ref={ref}
+        type={buttonType}
+        disabled={disabled}
+        {...rest}
+      >
+        {children}
+      </Comp>
+    );
   }
+);
 
-  return buttonContent;
-});
+IconButton.displayName = "IconButton";
 
 /**
  * 圆形图标按钮
- * IconButton的圆形变体
+ * 便捷的圆形变体
  */
-export const CircularIconButton: React.FC<IconButtonProps> = (props) => {
-  return <IconButton {...props} iconOnly />;
-};
+export const CircularIconButton = React.forwardRef<
+  HTMLButtonElement,
+  Omit<IconButtonProps, "shape">
+>((props, ref) => {
+  return <IconButton {...props} ref={ref} shape="circular" />;
+});
+
+CircularIconButton.displayName = "CircularIconButton";
 
 /**
  * 方形图标按钮
- * IconButton的方形变体（默认）
+ * 便捷的方形变体（默认）
  */
-export const SquareIconButton: React.FC<IconButtonProps> = (props) => {
-  return <IconButton {...props} iconOnly={false} />;
-};
+export const SquareIconButton = React.forwardRef<
+  HTMLButtonElement,
+  Omit<IconButtonProps, "shape">
+>((props, ref) => {
+  return <IconButton {...props} ref={ref} shape="square" />;
+});
 
-// 主要导出
-export { IconButton };
+SquareIconButton.displayName = "SquareIconButton";
+
+export { IconButton, iconButtonVariants };

@@ -9,7 +9,15 @@ interface Props extends ThProps {
   onResizeStart?: (e: React.PointerEvent<HTMLDivElement>) => void;
 }
 
-const ResizableHeaderCell: React.FC<Props> = ({ width, minWidth = 60, maxWidth = 600, onResizeStart, children, style, ...rest }) => {
+const ResizableHeaderCell: React.FC<Props> = ({ 
+  width, 
+  minWidth = 60, 
+  maxWidth = 600, 
+  onResizeStart, 
+  children, 
+  style, 
+  ...rest 
+}) => {
   const mergedStyle: React.CSSProperties = {
     position: 'relative',
     width,

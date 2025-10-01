@@ -73,7 +73,29 @@ export const PagePreview: React.FC<PagePreviewProps> = ({
                   key={element.id}
                   title={`${element.userFriendlyName}: ${element.description}`}
                   style={{position:'absolute',left:elementLeft,top:elementTop,width:elementWidth,height:elementHeight,backgroundColor:category?.color||'#8b5cf6',opacity: !hideCompletely && displayState.isHidden ? 0.1 : displayState.isPending ? 1 : element.clickable ? 0.7 : 0.4,border: displayState.isPending ? '2px solid #52c41a' : displayState.isHovered ? '2px solid #faad14' : element.clickable ? '1px solid #fff':'1px solid rgba(255,255,255,0.3)',borderRadius: Math.min(elementWidth,elementHeight)>10?2:1,cursor: !hideCompletely && displayState.isHidden ? 'default' : element.clickable? 'pointer':'default',transition:'all .2s ease',zIndex: displayState.isPending?50:displayState.isHovered?30:element.clickable?10:5,transform: displayState.isPending?'scale(1.1)':displayState.isHovered?'scale(1.05)':'scale(1)', boxShadow: displayState.isPending?'0 4px 16px rgba(82,196,26,0.4)':displayState.isHovered?'0 2px 8px rgba(0,0,0,0.2)':'none', filter: !hideCompletely && displayState.isHidden ? 'grayscale(100%) blur(1px)':'none'}}
-                  onClick={e=>{ if(!element.clickable || (!hideCompletely && displayState.isHidden)) return; e.stopPropagation(); const uiElement = convertVisualToUIElement(element, selectedElementId) as unknown as UIElement; selectionManager.handleElementClick(uiElement,{x:e.clientX,y:e.clientY}); }}
+                  onClick={e=>{ 
+                    console.log('🖱️ [PagePreview] 元素点击事件:', {
+                      elementId: element.id,
+                      elementText: element.text,
+                      clickable: element.clickable,
+                      isHidden: displayState.isHidden,
+                      hideCompletely,
+                      clickPosition: {x: e.clientX, y: e.clientY}
+                    });
+                    
+                    if(!element.clickable || (!hideCompletely && displayState.isHidden)) {
+                      console.log('❌ [PagePreview] 元素不可点击或已隐藏，跳过处理');
+                      return; 
+                    }
+                    
+                    e.stopPropagation(); 
+                    const uiElement = convertVisualToUIElement(element, selectedElementId) as unknown as UIElement;
+                    
+                    console.log('🔄 [PagePreview] 转换后的 UIElement:', uiElement);
+                    console.log('📞 [PagePreview] 调用 selectionManager.handleElementClick');
+                    
+                    selectionManager.handleElementClick(uiElement,{x:e.clientX,y:e.clientY}); 
+                  }}
                   onMouseEnter={()=>{ if(displayState.isHidden) return; selectionManager.handleElementHover(element.id); }}
                   onMouseLeave={()=>{ if(displayState.isHidden) return; selectionManager.handleElementHover(null); }}
                 >

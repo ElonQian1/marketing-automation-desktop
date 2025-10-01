@@ -48,6 +48,10 @@ import {
   GridElementView,
   ScrcpyControlView,
 } from "./views";
+import {
+  useElementSelectionManager,
+  ElementSelectionPopover,
+} from "./element-selection";
 import { convertVisualToUIElement } from "./views/visual-view";
 import type { VisualUIElement } from "./types";
 
@@ -135,6 +139,25 @@ const UniversalPageFinderModal: React.FC<UniversalPageFinderModalProps> = ({
   // 本地状态
   const [viewMode, setViewMode] = useState<ViewMode>(initialViewMode);
   const [selectedElementId, setSelectedElementId] = useState<string>("");
+  
+  // 元素选择管理器
+  const selectionManager = useElementSelectionManager(
+    uiElements,
+    (element) => {
+      console.log('🎯 [UniversalPageFinderModal] 元素被选择:', element);
+      setSelectedElementId(element.id || element.resource_id || "");
+      onElementSelected?.(element);
+    }
+  );
+
+  // 调试日志：监听selectionManager状态变化
+  React.useEffect(() => {
+    console.log('🔍 [UniversalPageFinderModal] selectionManager.pendingSelection 状态:', {
+      hasPending: !!selectionManager.pendingSelection,
+      selection: selectionManager.pendingSelection,
+      uiElementsCount: uiElements.length
+    });
+  }, [selectionManager.pendingSelection, uiElements.length]);
 
   // 使用 Hook 中的 UI 元素状态，不要创建重复的本地状态
   // const [uiElements, setUIElements] = useState<UIElement[]>([]);
@@ -251,6 +274,7 @@ const UniversalPageFinderModal: React.FC<UniversalPageFinderModalProps> = ({
               elements={elements as any}
               selectedElementId={selectedElementId}
               onElementSelect={handleVisualElementSelect}
+              selectionManager={selectionManager}
             />
           </ErrorBoundary>
         );
@@ -380,6 +404,41 @@ const UniversalPageFinderModal: React.FC<UniversalPageFinderModalProps> = ({
           </Card>
         </Col>
       </Row>
+
+      {/* 元素选择弹出框 */}
+      {(() => {
+        const isVisible = !!selectionManager.pendingSelection;
+        console.log('🎨 [ElementSelectionPopover] 渲染状态:', {
+          visible: isVisible,
+          pendingSelection: selectionManager.pendingSelection,
+          hasPendingSelection: !!selectionManager.pendingSelection
+        });
+        return (
+          <ElementSelectionPopover
+            visible={isVisible}
+            selection={selectionManager.pendingSelection}
+            onConfirm={() => {
+              console.log('✅ [ElementSelectionPopover] onConfirm 被调用');
+              selectionManager.confirmSelection();
+            }}
+            onCancel={() => {
+              console.log('❌ [ElementSelectionPopover] onCancel 被调用');
+              selectionManager.hideElement();
+            }}
+            // 新增：支持元素发现功能
+            allElements={uiElements}
+            onElementSelect={(newElement) => {
+              console.log('🔄 [ElementSelectionPopover] 从发现结果选择新元素:', newElement);
+              // 使用新选择的元素 - 先模拟点击然后立即确认
+              selectionManager.handleElementClick(newElement, { x: 0, y: 0 });
+              // 延迟一下让状态更新，然后确认选择
+              setTimeout(() => {
+                selectionManager.confirmSelection();
+              }, 100);
+            }}
+          />
+        );
+      })()}
     </Modal>
   );
 };

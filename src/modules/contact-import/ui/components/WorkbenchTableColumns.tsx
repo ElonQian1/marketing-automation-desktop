@@ -168,16 +168,14 @@ const getStatusConfig = (status: string | null) => {
  * 可调整大小的表头组件
  */
 export const WorkbenchResizableHeader: React.FC<any> = (props) => {
-  const { resizableRuntime } = props;
+  const { resizableRuntime, onResize, onResizeStop, ...restProps } = props;
 
-  if (!resizableRuntime) return <th {...props} />;
+  if (!resizableRuntime) return <th {...restProps} />;
 
   return (
     <ResizableHeaderCell
-      {...props}
+      {...restProps}
       width={resizableRuntime.width}
-      onResize={resizableRuntime.onResize}
-      onResizeStop={resizableRuntime.onResizeStop}
       onResizeStart={resizableRuntime.onResizeStart}
     />
   );

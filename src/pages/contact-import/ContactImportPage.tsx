@@ -5,7 +5,6 @@ import { lazyRetry } from '../../utils/lazyRetry';
 
 const ContactImportWorkbench = React.lazy(() => lazyRetry(() =>
   import('../../modules/contact-import/ui/ContactImportWorkbench')
-    .then(m => ({ default: m.ContactImportWorkbench }))
 ));
 
 const ContactImportPage: React.FC = () => {

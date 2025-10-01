@@ -45,7 +45,7 @@ export const TreeView: React.FC<TreeViewProps> = ({
   }
 
   const renderNode = (node: UiNode, depth = 0): React.ReactNode => {
-    // 为节点生成唯一键值
+    // 为节点生成唯一键值，使用 UiNode 的属性而不是不存在的 id
     const nodeKey = `${node.tag}-${node.attrs['resource-id'] || ''}-${depth}-${collapseVersion}`;
     
     return (

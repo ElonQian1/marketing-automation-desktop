@@ -70,20 +70,32 @@ export const useElementSelectionManager = (
 
   // 处理元素点击
   const handleElementClick = useCallback((element: UIElement, clickPosition: { x: number; y: number }) => {
+    console.log('🚀 [useElementSelectionManager] handleElementClick 被调用:', {
+      elementId: element.id,
+      elementText: element.text,
+      clickPosition,
+      isHidden: isElementHidden(element.id),
+      currentPendingSelection: pendingSelection
+    });
+    
     // 如果元素被隐藏，不处理点击
     if (isElementHidden(element.id)) {
+      console.log('⚠️ [useElementSelectionManager] 元素被隐藏，跳过点击处理');
       return;
     }
 
-    console.log('🎯 元素点击:', element.id, element.text, '坐标:', clickPosition);
+    console.log('✅ [useElementSelectionManager] 设置 pendingSelection');
     
     // 直接设置新的选择状态
-    setPendingSelection({
+    const newSelection = {
       element,
       position: clickPosition,
       confirmed: false
-    });
-  }, [isElementHidden]);
+    };
+    
+    console.log('📝 [useElementSelectionManager] 新的 selection 状态:', newSelection);
+    setPendingSelection(newSelection);
+  }, [isElementHidden, pendingSelection]);
 
   // 处理元素悬停
   const handleElementHover = useCallback((elementId: string | null) => {

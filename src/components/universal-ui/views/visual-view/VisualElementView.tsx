@@ -83,6 +83,15 @@ export const VisualElementView: React.FC<VisualElementViewProps> = ({
 
   // 🎯 关键修复：确保只使用一个管理器，避免状态冲突
   const selectionManager = externalSelectionManager || internalSelectionManager;
+  
+  // 调试日志：检查selectionManager状态
+  console.log('🔍 [VisualElementView] selectionManager 状态:', {
+    hasExternalManager: !!externalSelectionManager,
+    hasInternalManager: !!internalSelectionManager,
+    usingExternal: !!externalSelectionManager,
+    hasHandleElementClick: typeof selectionManager.handleElementClick === 'function',
+    pendingSelection: selectionManager.pendingSelection
+  });
 
   // 🔍 添加调试：监听pendingSelection变化
   useEffect(() => {

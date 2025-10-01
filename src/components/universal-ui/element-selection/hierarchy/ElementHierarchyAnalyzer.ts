@@ -71,6 +71,8 @@ export class ElementHierarchyAnalyzer {
     nodeMap: Map<string, ElementHierarchyNode>,
     elements: UIElement[]
   ): void {
+    let relationCount = 0;
+    
     // 通过边界包含关系推断父子关系
     elements.forEach(element => {
       const currentNode = nodeMap.get(element.id);
@@ -94,8 +96,15 @@ export class ElementHierarchyAnalyzer {
           currentNode.parent = parentNode;
           parentNode.children.push(currentNode);
           parentNode.isLeaf = false;
+          relationCount++;
         }
       }
+    });
+    
+    console.log('🔗 父子关系建立完成:', {
+      建立的关系数: relationCount,
+      总元素数: elements.length,
+      无父节点的元素数: Array.from(nodeMap.values()).filter(n => !n.parent).length
     });
   }
 
@@ -128,7 +137,29 @@ export class ElementHierarchyAnalyzer {
     const rootCandidates = Array.from(nodeMap.values()).filter(node => !node.parent);
     
     if (rootCandidates.length === 0) {
-      throw new Error('无法找到根节点');
+      console.warn('⚠️ 未找到无父节点的根节点，使用备选策略');
+      
+      // 备选策略1: 选择面积最大的节点作为根节点
+      const allNodes = Array.from(nodeMap.values());
+      if (allNodes.length === 0) {
+        throw new Error('无法找到根节点: 没有可用元素');
+      }
+      
+      // 断开所有父子关系，重新构建
+      allNodes.forEach(node => {
+        node.parent = null;
+        node.children = [];
+      });
+      
+      // 找到面积最大的元素作为根节点
+      const rootNode = allNodes.reduce((largest, current) => {
+        const largestArea = this.getElementArea(largest.element);
+        const currentArea = this.getElementArea(current.element);
+        return currentArea > largestArea ? current : largest;
+      });
+      
+      console.log('✅ 使用面积最大元素作为根节点:', rootNode.element.id);
+      return rootNode;
     }
 
     // 如果有多个根候选，选择面积最大的

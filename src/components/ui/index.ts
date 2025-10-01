@@ -16,6 +16,14 @@ export {
   type ButtonTone,
 } from './button/Button';
 
+export {
+  IconButton,
+  CircularIconButton,
+  SquareIconButton,
+  iconButtonVariants,
+  type IconButtonProps,
+} from './buttons/IconButton';
+
 // 卡片组件
 export {
   Card,

@@ -346,3 +346,5 @@ export const ContactImportWorkbench: React.FC = () => {
     </div>
   );
 };
+
+export default ContactImportWorkbench;
