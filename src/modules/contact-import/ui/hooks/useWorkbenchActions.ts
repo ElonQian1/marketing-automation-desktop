@@ -83,8 +83,8 @@ export const useWorkbenchActions = ({
     try {
       const filePath = await selectTxtFile();
       if (filePath) {
-        const result = await importNumbersFromTxtFile(filePath);
-        message.success('成功导入 ' + result.imported + ' 个号码（去重 ' + result.duplicates + ' 个）');
+  const result = await importNumbersFromTxtFile(filePath);
+  message.success('成功导入 ' + result.inserted + ' 个号码（去重 ' + result.duplicates + ' 个）');
         await onDataRefresh();
       }
     } catch (error) {
@@ -98,8 +98,8 @@ export const useWorkbenchActions = ({
     try {
       const folderPath = await selectFolder();
       if (folderPath) {
-        const result = await importNumbersFromFolder(folderPath);
-        message.success('成功导入 ' + result.imported + ' 个号码（去重 ' + result.duplicates + ' 个）');
+  const result = await importNumbersFromFolder(folderPath);
+  message.success('成功导入 ' + result.inserted + ' 个号码（去重 ' + result.duplicates + ' 个）');
         await onDataRefresh();
       }
     } catch (error) {
@@ -122,8 +122,8 @@ export const useWorkbenchActions = ({
         return;
       }
       
-      const result = await importNumbersFromFolders(folders);
-  message.success('成功导入 ' + result.imported + ' 个号码（去重 ' + result.duplicates + ' 个）');
+    const result = await importNumbersFromFolders(folders);
+    message.success('成功导入 ' + result.inserted + ' 个号码（去重 ' + result.duplicates + ' 个）');
       await onDataRefresh();
     } catch (error) {
       console.error('批量导入失败:', error);
@@ -163,7 +163,7 @@ export const useWorkbenchActions = ({
       if (success) {
         await markBatchImportedForDevice(deviceId, numbers.map(n => n.id));
         await registerGeneratedBatch(deviceId, numbers, { industry });
-        message.success(`成功生成VCF文件到设备 ${deviceId}`);
+  message.success('成功生成VCF文件到设备 ' + deviceId);
         await onDataRefresh();
       } else {
         message.error('VCF文件生成失败');
@@ -202,7 +202,7 @@ export const useWorkbenchActions = ({
       if (success) {
         await markBatchImportedForDevice(deviceId, numbers.map(n => n.id));
         await finishImportSessionRecord(deviceId, numbers, 'success', { industry });
-        message.success(`成功导入 ${numbers.length} 个联系人到设备 ${deviceId}`);
+  message.success('成功导入 ' + numbers.length + ' 个联系人到设备 ' + deviceId);
         await onDataRefresh();
       } else {
         message.error('导入失败');

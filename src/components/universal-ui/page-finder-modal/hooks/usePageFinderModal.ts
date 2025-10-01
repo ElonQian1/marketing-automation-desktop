@@ -4,7 +4,7 @@
  */
 
 import { useState, useEffect } from "react";
-import { message } from "antd";
+import { App } from "antd";
 import { useAdb } from "../../../../application/hooks/useAdb";
 import UniversalUIAPI, { UIElement } from "../../../../api/universalUIAPI";
 import type {
@@ -80,6 +80,9 @@ export const usePageFinderModal = (props: UsePageFinderModalProps): UsePageFinde
     onXmlContentUpdated,
     onSnapshotUpdated
   } = props;
+
+  // 获取 App 上下文中的 message API
+  const { message } = App.useApp();
 
   // 核心状态
   const [selectedDevice, setSelectedDevice] = useState<string>("");

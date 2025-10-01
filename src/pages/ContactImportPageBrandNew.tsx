@@ -9,10 +9,11 @@ import { ErrorBoundary } from '../components/common/ErrorBoundary';
 import { lazyRetry } from '../utils/lazyRetry';
 
 // 懒加载联系人导入工作台
-const ContactImportWorkbench = React.lazy(() => lazyRetry(() =>
-  import('../modules/contact-import/ui/ContactImportWorkbench')
-    .then(m => ({ default: m.ContactImportWorkbench }))
-));
+// Temporarily disabled during migration of contact-import module
+// const ContactImportWorkbench = React.lazy(() => lazyRetry(() =>
+//   import('../modules/contact-import/ui/ContactImportWorkbench')
+//     .then(m => ({ default: m.ContactImportWorkbench }))
+// ));
 
 /**
  * 联系人导入页面（品牌化重构版）
@@ -44,7 +45,7 @@ const ContactImportPageBrandNew: React.FC = () => {
             </CardShell>
           }
         >
-          <ContactImportWorkbench />
+          <CardShell className="p-4 text-sm text-gray-600">联系人导入模块迁移中，暂不可用</CardShell>
         </Suspense>
       </ErrorBoundary>
     </PageShell>
