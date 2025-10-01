@@ -109,8 +109,9 @@ export const useUnifiedView = (): UseUnifiedViewResult => {
     if (viewState.searchTerm) {
       const searchLower = viewState.searchTerm.toLowerCase();
       elements = elements.filter(element =>
-        element.searchKeywords.some(keyword => keyword.includes(searchLower)) ||
-        element.displayName.toLowerCase().includes(searchLower)
+        (element.text && element.text.toLowerCase().includes(searchLower)) ||
+        (element.resource_id && element.resource_id.toLowerCase().includes(searchLower)) ||
+        (element.content_desc && element.content_desc.toLowerCase().includes(searchLower))
       );
     }
 
@@ -125,15 +126,16 @@ export const useUnifiedView = (): UseUnifiedViewResult => {
 
     if (filters.interactionTypes.length > 0) {
       elements = elements.filter(element =>
-        filters.interactionTypes.includes(element.interactionType)
+        filters.interactionTypes.includes(element.interactionType as any)
       );
     }
 
-    if (filters.importance.length > 0) {
-      elements = elements.filter(element =>
-        filters.importance.includes(element.importance)
-      );
-    }
+    // Note: importance 属性在 EnhancedUIElement 中不存在，跳过此过滤
+    // if (filters.importance.length > 0) {
+    //   elements = elements.filter(element =>
+    //     filters.importance.includes(element.importance)
+    //   );
+    // }
 
     if (filters.onlyClickable) {
       elements = elements.filter(element => element.is_clickable);
@@ -184,7 +186,8 @@ export const useUnifiedView = (): UseUnifiedViewResult => {
     setViewState(prev => ({ ...prev, selectedElement: element }));
     
     if (element) {
-      console.log(`🎯 元素选中: ${element.displayName} (${element.id})`);
+      const elementName = element.text || element.resource_id || element.id || '未知元素';
+      console.log(`🎯 元素选中: ${elementName} (${element.id})`);
       
       // 触发选择事件（可以用于其他组件监听）
       window.dispatchEvent(new CustomEvent('elementSelected', {

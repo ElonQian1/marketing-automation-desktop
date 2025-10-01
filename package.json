@@ -23,6 +23,7 @@
     "scan:overrides": "node scripts/scan-style-overrides.mjs",
     "quality:gate": "node scripts/quality-gate.mjs",
     "quality:check": "npm run scan:overrides && npm run type-check",
+    "check:hardcoded": "node scripts/check-hardcoded-styles.js",
     "setup:scrcpy": "pwsh -ExecutionPolicy Bypass -File scripts/setup-scrcpy.ps1",
     "verify:scrcpy": "pwsh -ExecutionPolicy Bypass -File scripts/verify-scrcpy.ps1",
     "test": "vitest run",

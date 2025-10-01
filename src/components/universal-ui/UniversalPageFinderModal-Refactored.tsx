@@ -260,10 +260,17 @@ const UniversalPageFinderModal: React.FC<UniversalPageFinderModalProps> = ({
         );
       
       case "tree":
+        // 将 UIElement[] 转换为 ElementWithHierarchy[]
+        const elementsWithHierarchy = uiElements.map((element, index) => ({
+          ...element,
+          depth: 0, // 默认深度
+          originalIndex: index
+        }));
+        
         return (
           <ErrorBoundary>
             <UIElementTree
-              elements={uiElements}
+              elements={elementsWithHierarchy}
               onElementSelect={(selectedElements) => {
                 if (selectedElements.length > 0) {
                   handleUIElementSelect(selectedElements[0]);

@@ -1,10 +1,10 @@
 {
   "summary": {
-    "scannedFiles": 1296,
-    "totalIssues": 1487,
+    "scannedFiles": 1301,
+    "totalIssues": 1493,
     "criticalIssues": 0,
     "highIssues": 29,
-    "mediumIssues": 1458
+    "mediumIssues": 1464
   },
   "violations": [
     {
@@ -14261,6 +14261,72 @@
       "severity": "medium",
       "match": "#1677ff",
       "context": "valueStyle={{ color: '#1677ff' }}",
+      "fix": "使用 tokens 颜色变量替换"
+    },
+    {
+      "file": "src\\pages\\precise-acquisition\\modules\\DailyReportModule.tsx",
+      "line": 512,
+      "column": 37,
+      "type": "hardcodedColors",
+      "name": "硬编码颜色",
+      "severity": "medium",
+      "match": "#1890ff",
+      "context": "valueStyle={{ color: '#1890ff' }}",
+      "fix": "使用 tokens 颜色变量替换"
+    },
+    {
+      "file": "src\\pages\\precise-acquisition\\modules\\DailyReportModule.tsx",
+      "line": 523,
+      "column": 37,
+      "type": "hardcodedColors",
+      "name": "硬编码颜色",
+      "severity": "medium",
+      "match": "#52c41a",
+      "context": "valueStyle={{ color: '#52c41a' }}",
+      "fix": "使用 tokens 颜色变量替换"
+    },
+    {
+      "file": "src\\pages\\precise-acquisition\\modules\\DailyReportModule.tsx",
+      "line": 535,
+      "column": 37,
+      "type": "hardcodedColors",
+      "name": "硬编码颜色",
+      "severity": "medium",
+      "match": "#722ed1",
+      "context": "valueStyle={{ color: '#722ed1' }}",
+      "fix": "使用 tokens 颜色变量替换"
+    },
+    {
+      "file": "src\\pages\\precise-acquisition\\modules\\DailyReportModule.tsx",
+      "line": 546,
+      "column": 37,
+      "type": "hardcodedColors",
+      "name": "硬编码颜色",
+      "severity": "medium",
+      "match": "#fa541c",
+      "context": "valueStyle={{ color: '#fa541c' }}",
+      "fix": "使用 tokens 颜色变量替换"
+    },
+    {
+      "file": "src\\pages\\precise-acquisition\\modules\\TaskManagementCenter.tsx",
+      "line": 294,
+      "column": 69,
+      "type": "hardcodedColors",
+      "name": "硬编码颜色",
+      "severity": "medium",
+      "match": "#1890ff",
+      "context": "style={{ backgroundColor: record.type === 'follow' ? '#1890ff' : '#52c41a' }}",
+      "fix": "使用 tokens 颜色变量替换"
+    },
+    {
+      "file": "src\\pages\\precise-acquisition\\modules\\TaskManagementCenter.tsx",
+      "line": 294,
+      "column": 81,
+      "type": "hardcodedColors",
+      "name": "硬编码颜色",
+      "severity": "medium",
+      "match": "#52c41a",
+      "context": "style={{ backgroundColor: record.type === 'follow' ? '#1890ff' : '#52c41a' }}",
       "fix": "使用 tokens 颜色变量替换"
     },
     {
@@ -31006,6 +31072,76 @@
         "fix": "使用 tokens 颜色变量替换"
       }
     ],
+    "src\\pages\\precise-acquisition\\modules\\DailyReportModule.tsx": [
+      {
+        "file": "src\\pages\\precise-acquisition\\modules\\DailyReportModule.tsx",
+        "line": 512,
+        "column": 37,
+        "type": "hardcodedColors",
+        "name": "硬编码颜色",
+        "severity": "medium",
+        "match": "#1890ff",
+        "context": "valueStyle={{ color: '#1890ff' }}",
+        "fix": "使用 tokens 颜色变量替换"
+      },
+      {
+        "file": "src\\pages\\precise-acquisition\\modules\\DailyReportModule.tsx",
+        "line": 523,
+        "column": 37,
+        "type": "hardcodedColors",
+        "name": "硬编码颜色",
+        "severity": "medium",
+        "match": "#52c41a",
+        "context": "valueStyle={{ color: '#52c41a' }}",
+        "fix": "使用 tokens 颜色变量替换"
+      },
+      {
+        "file": "src\\pages\\precise-acquisition\\modules\\DailyReportModule.tsx",
+        "line": 535,
+        "column": 37,
+        "type": "hardcodedColors",
+        "name": "硬编码颜色",
+        "severity": "medium",
+        "match": "#722ed1",
+        "context": "valueStyle={{ color: '#722ed1' }}",
+        "fix": "使用 tokens 颜色变量替换"
+      },
+      {
+        "file": "src\\pages\\precise-acquisition\\modules\\DailyReportModule.tsx",
+        "line": 546,
+        "column": 37,
+        "type": "hardcodedColors",
+        "name": "硬编码颜色",
+        "severity": "medium",
+        "match": "#fa541c",
+        "context": "valueStyle={{ color: '#fa541c' }}",
+        "fix": "使用 tokens 颜色变量替换"
+      }
+    ],
+    "src\\pages\\precise-acquisition\\modules\\TaskManagementCenter.tsx": [
+      {
+        "file": "src\\pages\\precise-acquisition\\modules\\TaskManagementCenter.tsx",
+        "line": 294,
+        "column": 69,
+        "type": "hardcodedColors",
+        "name": "硬编码颜色",
+        "severity": "medium",
+        "match": "#1890ff",
+        "context": "style={{ backgroundColor: record.type === 'follow' ? '#1890ff' : '#52c41a' }}",
+        "fix": "使用 tokens 颜色变量替换"
+      },
+      {
+        "file": "src\\pages\\precise-acquisition\\modules\\TaskManagementCenter.tsx",
+        "line": 294,
+        "column": 81,
+        "type": "hardcodedColors",
+        "name": "硬编码颜色",
+        "severity": "medium",
+        "match": "#52c41a",
+        "context": "style={{ backgroundColor: record.type === 'follow' ? '#1890ff' : '#52c41a' }}",
+        "fix": "使用 tokens 颜色变量替换"
+      }
+    ],
     "src\\pages\\ScriptBuilderTestPage.tsx": [
       {
         "file": "src\\pages\\ScriptBuilderTestPage.tsx",
@@ -47145,6 +47281,72 @@
         "severity": "medium",
         "match": "#1677ff",
         "context": "valueStyle={{ color: '#1677ff' }}",
+        "fix": "使用 tokens 颜色变量替换"
+      },
+      {
+        "file": "src\\pages\\precise-acquisition\\modules\\DailyReportModule.tsx",
+        "line": 512,
+        "column": 37,
+        "type": "hardcodedColors",
+        "name": "硬编码颜色",
+        "severity": "medium",
+        "match": "#1890ff",
+        "context": "valueStyle={{ color: '#1890ff' }}",
+        "fix": "使用 tokens 颜色变量替换"
+      },
+      {
+        "file": "src\\pages\\precise-acquisition\\modules\\DailyReportModule.tsx",
+        "line": 523,
+        "column": 37,
+        "type": "hardcodedColors",
+        "name": "硬编码颜色",
+        "severity": "medium",
+        "match": "#52c41a",
+        "context": "valueStyle={{ color: '#52c41a' }}",
+        "fix": "使用 tokens 颜色变量替换"
+      },
+      {
+        "file": "src\\pages\\precise-acquisition\\modules\\DailyReportModule.tsx",
+        "line": 535,
+        "column": 37,
+        "type": "hardcodedColors",
+        "name": "硬编码颜色",
+        "severity": "medium",
+        "match": "#722ed1",
+        "context": "valueStyle={{ color: '#722ed1' }}",
+        "fix": "使用 tokens 颜色变量替换"
+      },
+      {
+        "file": "src\\pages\\precise-acquisition\\modules\\DailyReportModule.tsx",
+        "line": 546,
+        "column": 37,
+        "type": "hardcodedColors",
+        "name": "硬编码颜色",
+        "severity": "medium",
+        "match": "#fa541c",
+        "context": "valueStyle={{ color: '#fa541c' }}",
+        "fix": "使用 tokens 颜色变量替换"
+      },
+      {
+        "file": "src\\pages\\precise-acquisition\\modules\\TaskManagementCenter.tsx",
+        "line": 294,
+        "column": 69,
+        "type": "hardcodedColors",
+        "name": "硬编码颜色",
+        "severity": "medium",
+        "match": "#1890ff",
+        "context": "style={{ backgroundColor: record.type === 'follow' ? '#1890ff' : '#52c41a' }}",
+        "fix": "使用 tokens 颜色变量替换"
+      },
+      {
+        "file": "src\\pages\\precise-acquisition\\modules\\TaskManagementCenter.tsx",
+        "line": 294,
+        "column": 81,
+        "type": "hardcodedColors",
+        "name": "硬编码颜色",
+        "severity": "medium",
+        "match": "#52c41a",
+        "context": "style={{ backgroundColor: record.type === 'follow' ? '#1890ff' : '#52c41a' }}",
         "fix": "使用 tokens 颜色变量替换"
       },
       {
