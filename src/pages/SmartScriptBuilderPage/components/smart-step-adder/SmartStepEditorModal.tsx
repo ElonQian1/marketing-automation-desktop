@@ -220,7 +220,7 @@ export const SmartStepEditorModal: React.FC<SmartStepEditorModalProps> = ({
                     showIcon
                     style={{ marginBottom: 16 }}
                   />
-                  <Card className="text-center" style={{ marginBottom: 16 }}>
+                  <Card style={{ marginBottom: 16, textAlign: 'center' }}>
                     <Button
                       type="primary"
                       size="large"
@@ -248,7 +248,7 @@ export const SmartStepEditorModal: React.FC<SmartStepEditorModalProps> = ({
                     showIcon
                     style={{ marginBottom: 16 }}
                   />
-                  <Card className="text-center" style={{ marginBottom: 16 }}>
+                  <Card style={{ marginBottom: 16, textAlign: 'center' }}>
                     <Button
                       type="primary"
                       size="large"
@@ -269,7 +269,7 @@ export const SmartStepEditorModal: React.FC<SmartStepEditorModalProps> = ({
             return (
               <div>
                 <Divider orientation="left">参数配置</Divider>
-                <Alert message={config.description} type="info" showIcon className="mb-4" />
+                <Alert message={config.description} type="info" showIcon style={{ marginBottom: 16 }} />
                 {config.parameters?.map((param: any) => (
                   <Form.Item
                     key={param.key}

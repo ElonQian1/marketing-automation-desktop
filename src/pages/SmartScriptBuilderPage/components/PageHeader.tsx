@@ -22,10 +22,10 @@ const PageHeader: React.FC<PageHeaderProps> = ({
   onQuickAddApp,
 }) => {
   return (
-    <div className="mb-6">
+    <div style={{ marginBottom: 24 }}>
       <Row align="middle" justify="space-between">
         <Col>
-          <Title level={2} className="mb-2">
+          <Title level={2} style={{ marginBottom: 8 }}>
             🤖 智能脚本构建器
           </Title>
           <Paragraph type="secondary">

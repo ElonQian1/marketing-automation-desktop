@@ -4,8 +4,6 @@
  */
 
 import React, { useState, useEffect } from "react";
-import "./UniversalPageFinder.css";
-import "./styles/universal-ui-integration.css";
 import {
   Modal,
   Button,
@@ -16,17 +14,9 @@ import {
   Alert,
   Spin,
   message,
-  theme,
+  Card,
 } from "antd";
-import {
-  SearchOutlined,
-  ReloadOutlined,
-  MobileOutlined,
-  EyeOutlined,
-  FilterOutlined,
-  BugOutlined,
-  CheckOutlined,
-} from "@ant-design/icons";
+import { CheckOutlined } from "@ant-design/icons";
 
 // 导入模块化组件
 import {
@@ -58,6 +48,8 @@ import {
   GridElementView,
   ScrcpyControlView,
 } from "./views";
+import { convertVisualToUIElement } from "./views/visual-view";
+import type { VisualUIElement } from "./types";
 
 const { Text, Title } = Typography;
 
@@ -109,7 +101,6 @@ const UniversalPageFinderModal: React.FC<UniversalPageFinderModalProps> = ({
   onApplyCriteria,
   initialMatching,
 }) => {
-  const { token } = theme.useToken();
   
   // 使用模块化的 Hook
   const {
@@ -186,8 +177,14 @@ const UniversalPageFinderModal: React.FC<UniversalPageFinderModalProps> = ({
 
   // 元素选择处理
   const handleElementSelect = (element: UIElement) => {
-    setSelectedElementId(element.resourceId || "");
+    setSelectedElementId(element.id || element.resource_id || "");
     onElementSelected?.(element);
+  };
+
+  // 可视化/网格视图选中（将 VisualUIElement 适配为 UIElement）
+  const handleVisualElementSelect = (element: VisualUIElement) => {
+    const ui = convertVisualToUIElement(element);
+    handleElementSelect(ui as unknown as UIElement);
   };
 
   // 从缓存加载页面
@@ -243,15 +240,6 @@ const UniversalPageFinderModal: React.FC<UniversalPageFinderModalProps> = ({
 
   // 渲染视图内容
   const renderViewContent = () => {
-    if (loading) {
-      return (
-        <div style={{ textAlign: "center", padding: 50 }}>
-          <Spin size="large" />
-          <div style={{ marginTop: 16 }}>正在分析页面...</div>
-        </div>
-      );
-    }
-
     switch (viewMode) {
       case "visual":
         return (
@@ -259,7 +247,7 @@ const UniversalPageFinderModal: React.FC<UniversalPageFinderModalProps> = ({
             <VisualElementView
               elements={elements as any}
               selectedElementId={selectedElementId}
-              onElementSelect={handleElementSelect}
+              onElementSelect={handleVisualElementSelect}
             />
           </ErrorBoundary>
         );
@@ -297,7 +285,7 @@ const UniversalPageFinderModal: React.FC<UniversalPageFinderModalProps> = ({
             <GridElementView
               xmlContent={xmlContent}
               elements={elements as any}
-              onElementSelect={handleElementSelect}
+              onElementSelect={handleVisualElementSelect}
               selectedElementId={selectedElementId}
               locator={preselectLocator}
               onApplyCriteria={handleApplyCriteria}
@@ -325,20 +313,14 @@ const UniversalPageFinderModal: React.FC<UniversalPageFinderModalProps> = ({
       title="Universal UI 智能页面查找器"
       open={visible}
       onCancel={onClose}
-      width="98vw"
-      style={{ top: 10 }}
+      width="90%"
       footer={null}
-      className="universal-page-finder"
-      styles={{
-        body: {
-          padding: token.padding,
-        },
-      }}
+      destroyOnClose
     >
-      <Row gutter={[16, 16]} style={{ flexWrap: "nowrap", height: "80vh" }}>
+      <Row gutter={16}>
         {/* 左侧控制面板 */}
-        <Col flex="0 0 300px" style={{ minWidth: 300 }}>
-          <Space direction="vertical" style={{ width: "100%" }} size="middle">
+        <Col xs={24} md={8} lg={7} xl={6}>
+          <Space direction="vertical" size="middle">
             {/* 设备选择器 */}
             <DeviceSelector
               devices={devices}
@@ -375,16 +357,14 @@ const UniversalPageFinderModal: React.FC<UniversalPageFinderModalProps> = ({
         </Col>
 
         {/* 右侧主要内容区域 */}
-        <Col flex="1 1 auto" style={{ minWidth: 0, overflow: "hidden" }}>
-          <div style={{ 
-            height: "100%", 
-            border: `1px solid ${token.colorBorder}`,
-            borderRadius: token.borderRadius,
-            backgroundColor: token.colorBgContainer,
-            overflow: "hidden"
-          }}>
-            {renderViewContent()}
-          </div>
+        <Col xs={24} md={16} lg={17} xl={18}>
+          <Card size="small">
+            {loading ? (
+              <Spin size="large" tip="正在分析页面..." />
+            ) : (
+              renderViewContent()
+            )}
+          </Card>
         </Col>
       </Row>
     </Modal>

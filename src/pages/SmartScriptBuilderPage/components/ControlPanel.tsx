@@ -7,6 +7,8 @@ import {
   App,
   Select,
   Divider,
+  Row,
+  Col,
 } from "antd";
 import {
   ThunderboltOutlined,
@@ -59,10 +61,10 @@ const ControlPanel: React.FC<ControlPanelProps> = ({
 }) => {
   const { message } = App.useApp();
   return (
-    <Space direction="vertical" size="middle" className="w-full">
+    <Space direction="vertical" size="middle" style={{ width: '100%' }}>
       {/* 脚本控制 */}
       <Card title="🎮 智能脚本控制">
-        <Space direction="vertical" className="w-full">
+        <Space direction="vertical" style={{ width: '100%' }}>
           <Button
             type="primary"
             block
@@ -75,22 +77,28 @@ const ControlPanel: React.FC<ControlPanelProps> = ({
             {isExecuting ? "智能执行中..." : "执行智能脚本"}
           </Button>
           
-          <div className="grid grid-cols-2 gap-2">
-            <Button
-              size="small"
-              icon={<SaveOutlined />}
-              onClick={onSaveScript}
-            >
-              保存脚本
-            </Button>
-            <Button
-              size="small"
-              icon={<UploadOutlined />}
-              onClick={onLoadScript}
-            >
-              加载脚本
-            </Button>
-          </div>
+          <Row gutter={8}>
+            <Col span={12}>
+              <Button
+                size="small"
+                icon={<SaveOutlined />}
+                onClick={onSaveScript}
+                block
+              >
+                保存脚本
+              </Button>
+            </Col>
+            <Col span={12}>
+              <Button
+                size="small"
+                icon={<UploadOutlined />}
+                onClick={onLoadScript}
+                block
+              >
+                加载脚本
+              </Button>
+            </Col>
+          </Row>
           
           <Button
             type="dashed"
@@ -109,40 +117,40 @@ const ControlPanel: React.FC<ControlPanelProps> = ({
       <Card
         title={
           <span>
-            <EyeOutlined className="mr-1" />
+            <EyeOutlined style={{ marginRight: 4 }} />
             功能特性
           </span>
         }
         size="small"
       >
-        <div className="space-y-2 text-xs">
-          <div className="flex items-center space-x-2">
-            <CheckCircleOutlined className="text-green-500" />
+        <Space direction="vertical" size="small" style={{ fontSize: 12 }}>
+          <Space size="small">
+            <CheckCircleOutlined style={{ color: '#52c41a' }} />
             <span>智能页面识别</span>
-          </div>
-          <div className="flex items-center space-x-2">
-            <CheckCircleOutlined className="text-green-500" />
+          </Space>
+          <Space size="small">
+            <CheckCircleOutlined style={{ color: '#52c41a' }} />
             <span>自适应元素定位</span>
-          </div>
-          <div className="flex items-center space-x-2">
-            <CheckCircleOutlined className="text-green-500" />
+          </Space>
+          <Space size="small">
+            <CheckCircleOutlined style={{ color: '#52c41a' }} />
             <span>操作结果验证</span>
-          </div>
-          <div className="flex items-center space-x-2">
-            <CheckCircleOutlined className="text-green-500" />
+          </Space>
+          <Space size="small">
+            <CheckCircleOutlined style={{ color: '#52c41a' }} />
             <span>智能重试和恢复</span>
-          </div>
-          <div className="flex items-center space-x-2">
-            <CheckCircleOutlined className="text-green-500" />
+          </Space>
+          <Space size="small">
+            <CheckCircleOutlined style={{ color: '#52c41a' }} />
             <span>复杂工作流程支持</span>
-          </div>
-        </div>
+          </Space>
+        </Space>
       </Card>
 
       {/* 外观换肤 */}
       <Card title="🎨 外观换肤" size="small">
-        <Space direction="vertical" className="w-full">
-          <div className="text-xs text-gray-500">循环体皮肤</div>
+        <Space direction="vertical" style={{ width: '100%' }}>
+          <div style={{ fontSize: 12, color: '#8c8c8c' }}>循环体皮肤</div>
           <Select
             size="small"
             value={loopTheme ?? ''}
@@ -155,7 +163,7 @@ const ControlPanel: React.FC<ControlPanelProps> = ({
             ]}
           />
           <Divider style={{ margin: '8px 0' }} />
-          <div className="text-xs text-gray-500">非循环步骤皮肤</div>
+          <div style={{ fontSize: 12, color: '#8c8c8c' }}>非循环步骤皮肤</div>
           <Select
             size="small"
             value={nonLoopTheme ?? ''}
@@ -179,35 +187,35 @@ const ControlPanel: React.FC<ControlPanelProps> = ({
               key: 'basic',
               label: '基础操作',
               children: (
-                <div className="text-xs space-y-1">
+                <Space direction="vertical" size="small" style={{ fontSize: '12px' }}>
                   <div>• 基础点击 - 固定坐标点击</div>
                   <div>• 滑动操作 - 屏幕滑动</div>
                   <div>• 文本输入 - 键盘输入</div>
                   <div>• 等待操作 - 时间延迟</div>
-                </div>
+                </Space>
               ),
             },
             {
               key: 'smart',
               label: '智能操作',
               children: (
-                <div className="text-xs space-y-1">
+                <Space direction="vertical" size="small" style={{ fontSize: '12px' }}>
                   <div>• 智能点击 - AI识别元素</div>
                   <div>• 智能查找 - 动态元素定位</div>
                   <div>• 页面识别 - 状态智能判断</div>
                   <div>• 智能导航 - 复杂路径规划</div>
-                </div>
+                </Space>
               ),
             },
             {
               key: 'verification',
               label: '验证操作',
               children: (
-                <div className="text-xs space-y-1">
+                <Space direction="vertical" size="small" style={{ fontSize: '12px' }}>
                   <div>• 操作验证 - 结果确认</div>
                   <div>• 状态等待 - 页面切换等待</div>
                   <div>• 数据提取 - 信息采集</div>
-                </div>
+                </Space>
               ),
             },
           ]}
@@ -216,7 +224,7 @@ const ControlPanel: React.FC<ControlPanelProps> = ({
 
       {/* 调试和测试区域 */}
       <Card title="🧪 调试测试">
-        <Space direction="vertical" className="w-full">
+        <Space direction="vertical" style={{ width: '100%' }}>
           <Button
             size="small"
             type="default"

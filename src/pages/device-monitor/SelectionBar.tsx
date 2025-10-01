@@ -248,10 +248,10 @@ export const SelectionBar: React.FC<SelectionBarProps> = ({ devices, selectedIds
         已选 {selectedIds.length} / 共 {devices.length}
       </Typography.Text>
       <Space size={4}>
-        <Tag color="green">在线 {selectedDevices.filter(d => d.status === 'device' || d.status === 'online').length}</Tag>
+        <Tag>在线 {selectedDevices.filter(d => d.status === 'device' || d.status === 'online').length}</Tag>
         <Tag>USB {selectedDevices.filter(d => d.connection_type === 'usb').length}</Tag>
         <Tag>模拟器 {selectedDevices.filter(d => d.connection_type === 'emulator').length}</Tag>
-        <Tag color="gold">未授权 {selectedDevices.filter(d => d.status === 'unauthorized').length}</Tag>
+        <Tag>未授权 {selectedDevices.filter(d => d.status === 'unauthorized').length}</Tag>
         <Tag>离线 {selectedDevices.filter(d => d.status === 'offline').length}</Tag>
       </Space>
 
@@ -272,7 +272,7 @@ export const SelectionBar: React.FC<SelectionBarProps> = ({ devices, selectedIds
           message.success('已保存预设');
         }}
       >
-        <Space direction="vertical" style={{ width: '100%' }}>
+        <Space direction="vertical">
           <Typography.Text type="secondary">将保存当前选中设备ID集合为本地预设</Typography.Text>
           <Input placeholder="预设名称" value={presetName} onChange={e => setPresetName(e.target.value)} />
         </Space>
@@ -283,7 +283,7 @@ export const SelectionBar: React.FC<SelectionBarProps> = ({ devices, selectedIds
         ref={fileInputRef}
         type="file"
         accept="application/json,.json"
-        style={{ display: 'none' }}
+        hidden
         onChange={(e) => {
           const f = e.target.files?.[0];
           if (f) handleImportFile(f);
@@ -301,11 +301,10 @@ export const SelectionBar: React.FC<SelectionBarProps> = ({ devices, selectedIds
         {presets.length === 0 ? (
           <Typography.Text type="secondary">暂无预设</Typography.Text>
         ) : (
-          <Space direction="vertical" style={{ width: '100%' }}>
+          <Space direction="vertical">
             {presets.map((p, idx) => (
-              <Space key={p.name} style={{ display: 'flex', justifyContent: 'space-between' }} align="center">
+              <Space key={p.name} align="center">
                 <Input
-                  style={{ flex: 1 }}
                   value={presetEdits[idx] ?? p.name}
                   onChange={e => setPresetEdits(ed => { const cp = [...ed]; cp[idx] = e.target.value; return cp; })}
                 />

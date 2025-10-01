@@ -3,7 +3,7 @@
  * 从 UniversalPageFinderModal.tsx 中提取的类型定义
  */
 
-import { UIElement } from "../../../api/universalUIAPI";
+import { UIElement } from "../../../../api/universalUIAPI";
 
 // 重新导出 UIElement 类型
 export type { UIElement };
@@ -41,26 +41,7 @@ export interface UIMatchCriteria {
 }
 
 // 可视化 UI 元素类型
-export interface VisualUIElement {
-  id: string;
-  bounds: {
-    left: number;
-    top: number;
-    right: number;
-    bottom: number;
-  };
-  text?: string;
-  resourceId?: string;
-  className?: string;
-  contentDesc?: string;
-  package?: string;
-  clickable?: boolean;
-  scrollable?: boolean;
-  focusable?: boolean;
-  enabled?: boolean;
-  selected?: boolean;
-  checked?: boolean;
-}
+export type { VisualUIElement } from "../../types";
 
 // 视图模式类型
 export type ViewMode = "visual" | "tree" | "list" | "grid" | "mirror";

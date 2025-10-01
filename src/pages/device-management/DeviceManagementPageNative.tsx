@@ -1,17 +1,15 @@
 import React from 'react';
-import { Card, Typography, Space, Alert, Button, Row, Col, Statistic, List } from 'antd';
+import { Card, Typography, Space, Alert, theme, Spin } from 'antd';
 import {
   MobileOutlined,
-  PlusOutlined,
-  ReloadOutlined,
-  BulbOutlined,
-  WarningOutlined
+  WarningOutlined,
+  CheckCircleOutlined
 } from '@ant-design/icons';
 import { DeviceList } from '../../components/device';
-import { PageWrapper } from '../../components/layout';
 import { useAdb } from '../../application/hooks/useAdb';
+import { DeviceStatusCards, DevicePageHeader, DeviceInstructions } from './components';
 
-const { Title, Paragraph, Text } = Typography;
+const { Paragraph, Text } = Typography;
 
 /**
  * 设备管理页面 - 原生 Ant Design 版本

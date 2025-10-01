@@ -122,6 +122,16 @@ export const useThemeManager = (options: Partial<ThemeOptions> = {}) => {
     
     // 设置主题属性
     root.setAttribute('data-theme', newMode);
+    // 统一设置更克制的描边密度，弱化“线框感”
+    if (!root.getAttribute('data-outline')) {
+      root.setAttribute('data-outline', 'minimal'); // minimal | default | strong
+    }
+    // Tailwind 兼容：darkMode: 'class'，同步 html.dark 类
+    if (newMode === 'dark') {
+      root.classList.add('dark');
+    } else {
+      root.classList.remove('dark');
+    }
     
     // 兼容性类名
     root.classList.remove('theme-light', 'theme-dark');

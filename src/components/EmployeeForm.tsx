@@ -72,7 +72,6 @@ export const EmployeeForm: React.FC<EmployeeFormProps> = ({
   return (
     <Card 
       title={isEditing ? '编辑员工' : '添加员工'}
-      style={{ width: '100%' }}
     >
       <Form
         form={form}
@@ -152,8 +151,7 @@ export const EmployeeForm: React.FC<EmployeeFormProps> = ({
               ]}
             >
               <InputNumber
-                placeholder="请输入薪资"
-                style={{ width: '100%' }}
+                    placeholder="请输入薪资"
                 formatter={(value) => `¥ ${value}`.replace(/\B(?=(\d{3})+(?!\d))/g, ',')}
                 parser={(value) => {
                   const parsed = value!.replace(/¥\s?|(,*)/g, '');
@@ -172,7 +170,6 @@ export const EmployeeForm: React.FC<EmployeeFormProps> = ({
               rules={[{ required: true, message: '请选择入职日期' }]}
             >
               <DatePicker 
-                style={{ width: '100%' }}
                 placeholder="请选择入职日期"
                 format="YYYY-MM-DD"
               />

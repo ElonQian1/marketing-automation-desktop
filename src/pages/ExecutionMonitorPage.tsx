@@ -1,15 +1,5 @@
 import React, { useState } from 'react';
-import {
-  Card,
-  Button,
-  Typography,
-  Space,
-  List,
-  Tag,
-  Alert,
-  Divider,
-  theme,
-} from 'antd';
+import { Typography, Space } from 'antd';
 import {
   PlayCircleOutlined,
   ClockCircleOutlined,
@@ -17,6 +7,10 @@ import {
   ExclamationCircleOutlined,
 } from '@ant-design/icons';
 import SimpleExecutionMonitor from '../components/execution/SimpleExecutionMonitor';
+import PageHeader from './execution-monitor/components/PageHeader';
+import InfoAlert from './execution-monitor/components/InfoAlert';
+import ScriptList from './execution-monitor/components/ScriptList';
+import MonitorFeatureGrid from './execution-monitor/components/MonitorFeatureGrid';
 
 const { Title, Text, Paragraph } = Typography;
 
@@ -118,7 +112,6 @@ const SAMPLE_SCRIPTS = [
 ];
 
 const ExecutionMonitorPage: React.FC = () => {
-  const { token } = theme.useToken();
   const [selectedScript, setSelectedScript] = useState<any>(null);
   const [showMonitor, setShowMonitor] = useState(false);
 
@@ -135,14 +128,14 @@ const ExecutionMonitorPage: React.FC = () => {
   const getStepTypeIcon = (type: string) => {
     switch (type) {
       case 'open_app':
-        return <PlayCircleOutlined style={{ color: token.colorPrimary }} />;
+        return <PlayCircleOutlined />;
       case 'tap':
-        return <CheckCircleOutlined style={{ color: token.colorSuccess }} />;
+        return <CheckCircleOutlined />;
       case 'wait':
       case 'wait_for_element':
-        return <ClockCircleOutlined style={{ color: token.colorWarning }} />;
+        return <ClockCircleOutlined />;
       default:
-        return <ExclamationCircleOutlined style={{ color: token.colorError }} />;
+        return <ExclamationCircleOutlined />;
     }
   };
 
@@ -169,135 +162,17 @@ const ExecutionMonitorPage: React.FC = () => {
   }
 
   return (
-    <div style={{ padding: token.paddingLG, background: token.colorBgLayout, minHeight: '100vh' }}>
-      <div style={{ maxWidth: 1200, margin: '0 auto' }}>
-        <div style={{ marginBottom: 24 }}>
-          <Title level={2} style={{ margin: 0, color: token.colorPrimary }}>
-            📊 脚本执行监控
-          </Title>
-          <Paragraph type="secondary">
-            选择一个脚本开始执行监控，实时查看执行进度和状态
-          </Paragraph>
-        </div>
-
-        <Alert
-          message="执行监控功能"
-          description="选择下方的示例脚本开始体验执行监控功能。监控系统将实时跟踪脚本执行状态、步骤进度、日志记录和性能数据。"
-          type="info"
-          style={{ marginBottom: 24 }}
-          showIcon
-        />
-
-        <Card title="可用脚本列表" style={{ marginBottom: 24 }}>
-          <List
-            grid={{ gutter: 16, column: 1 }}
-            dataSource={SAMPLE_SCRIPTS}
-            renderItem={(script) => (
-              <List.Item>
-                <Card
-                  hoverable
-                  style={{ marginBottom: 16 }}
-                  actions={[
-                    <Button
-                      key="execute"
-                      type="primary"
-                      icon={<PlayCircleOutlined />}
-                      onClick={() => handleSelectScript(script)}
-                    >
-                      开始执行监控
-                    </Button>
-                  ]}
-                >
-                  <Card.Meta
-                    title={
-                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                        <span>{script.name}</span>
-                        <Tag color="blue">{script.steps.length} 个步骤</Tag>
-                      </div>
-                    }
-                    description={
-                      <div>
-                        <Paragraph ellipsis={{ rows: 2 }} style={{ marginBottom: 12 }}>
-                          {script.description}
-                        </Paragraph>
-                        
-                        <Divider style={{ margin: '12px 0' }} />
-                        
-                        <div>
-                          <Text strong style={{ marginBottom: 8, display: 'block' }}>
-                            脚本步骤:
-                          </Text>
-                          <Space direction="vertical" style={{ width: '100%' }}>
-                            {script.steps.slice(0, 3).map((step: any, index: number) => (
-                              <div key={step.id} style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-                                <span style={{ 
-                                  minWidth: 20, 
-                                  height: 20, 
-                                  borderRadius: '50%', 
-                                  backgroundColor: '#1890ff', 
-                                  color: 'white', 
-                                  fontSize: 11, 
-                                  display: 'flex', 
-                                  alignItems: 'center', 
-                                  justifyContent: 'center' 
-                                }}>
-                                  {index + 1}
-                                </span>
-                                {getStepTypeIcon(step.type)}
-                                <Text style={{ fontSize: 13 }}>
-                                  {step.name}
-                                </Text>
-                                <Tag color="geekblue">
-                                  {getStepTypeText(step.type)}
-                                </Tag>
-                              </div>
-                            ))}
-                            {script.steps.length > 3 && (
-                              <Text type="secondary" style={{ fontSize: 12, marginLeft: 28 }}>
-                                ... 还有 {script.steps.length - 3} 个步骤
-                              </Text>
-                            )}
-                          </Space>
-                        </div>
-                      </div>
-                    }
-                  />
-                </Card>
-              </List.Item>
-            )}
-          />
-        </Card>
-
-        <Card title="监控功能说明">
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(250px, 1fr))', gap: 16 }}>
-            <div>
-              <Title level={5}>📈 实时进度跟踪</Title>
-              <Text type="secondary">
-                实时显示脚本执行进度，包括当前步骤、完成状态和剩余时间预估
-              </Text>
-            </div>
-            <div>
-              <Title level={5}>📝 详细日志记录</Title>
-              <Text type="secondary">
-                记录每个步骤的执行日志，包括成功、警告和错误信息
-              </Text>
-            </div>
-            <div>
-              <Title level={5}>⏸️ 执行控制</Title>
-              <Text type="secondary">
-                支持暂停、继续、停止和重新执行脚本，灵活控制执行流程
-              </Text>
-            </div>
-            <div>
-              <Title level={5}>📊 性能统计</Title>
-              <Text type="secondary">
-                提供执行时间、成功率、错误统计等性能数据分析
-              </Text>
-            </div>
-          </div>
-        </Card>
-      </div>
-    </div>
+    <Space direction="vertical" size="large">
+      <PageHeader />
+      <InfoAlert />
+      <ScriptList
+        scripts={SAMPLE_SCRIPTS}
+        onExecute={handleSelectScript}
+        getStepTypeIcon={getStepTypeIcon}
+        getStepTypeText={getStepTypeText}
+      />
+      <MonitorFeatureGrid />
+    </Space>
   );
 };
 

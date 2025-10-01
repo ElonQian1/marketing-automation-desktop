@@ -33,61 +33,61 @@ const ExecutorConfigPanel: React.FC<ExecutorConfigPanelProps> = ({
     <Card
       title={
         <span>
-          <SettingOutlined className="mr-2" />
+          <SettingOutlined style={{ marginRight: 8 }} />
           执行器配置
         </span>
       }
       size="small"
-      className="mb-4"
+      style={{ marginBottom: 16 }}
     >
       <Row gutter={16}>
         <Col span={6}>
-          <div className="text-center">
+          <div style={{ textAlign: 'center' }}>
             <Switch
               checked={config.page_recognition_enabled}
               onChange={(checked) =>
                 updateConfig("page_recognition_enabled", checked)
               }
             />
-            <div className="text-xs mt-1">页面识别</div>
+            <div style={{ fontSize: 12, marginTop: 4 }}>页面识别</div>
           </div>
         </Col>
         <Col span={6}>
-          <div className="text-center">
+          <div style={{ textAlign: 'center' }}>
             <Switch
               checked={config.auto_verification_enabled}
               onChange={(checked) =>
                 updateConfig("auto_verification_enabled", checked)
               }
             />
-            <div className="text-xs mt-1">自动验证</div>
+            <div style={{ fontSize: 12, marginTop: 4 }}>自动验证</div>
           </div>
         </Col>
         <Col span={6}>
-          <div className="text-center">
+          <div style={{ textAlign: 'center' }}>
             <Switch
               checked={config.smart_recovery_enabled}
               onChange={(checked) =>
                 updateConfig("smart_recovery_enabled", checked)
               }
             />
-            <div className="text-xs mt-1">智能恢复</div>
+            <div style={{ fontSize: 12, marginTop: 4 }}>智能恢复</div>
           </div>
         </Col>
         <Col span={6}>
-          <div className="text-center">
+          <div style={{ textAlign: 'center' }}>
             <Switch
               checked={config.detailed_logging}
               onChange={(checked) => updateConfig("detailed_logging", checked)}
             />
-            <div className="text-xs mt-1">详细日志</div>
+            <div style={{ fontSize: 12, marginTop: 4 }}>详细日志</div>
           </div>
         </Col>
       </Row>
-      <Row gutter={16} className="mt-4">
+      <Row gutter={16} style={{ marginTop: 16 }}>
         <Col span={12}>
-          <div className="text-center">
-            <Text type="secondary" className="text-xs">
+          <div style={{ textAlign: 'center' }}>
+            <Text type="secondary" style={{ fontSize: 12 }}>
               默认超时(ms)
             </Text>
             <InputNumber
@@ -104,8 +104,8 @@ const ExecutorConfigPanel: React.FC<ExecutorConfigPanelProps> = ({
           </div>
         </Col>
         <Col span={12}>
-          <div className="text-center">
-            <Text type="secondary" className="text-xs">
+          <div style={{ textAlign: 'center' }}>
+            <Text type="secondary" style={{ fontSize: 12 }}>
               默认重试次数
             </Text>
             <InputNumber

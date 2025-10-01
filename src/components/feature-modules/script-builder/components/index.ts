@@ -5,7 +5,7 @@
 
 export { StepCard } from './StepCard';
 export { StepList } from './StepList';
-export { StepEditor } from './StepEditor';
+export { default as StepEditor } from './StepEditor';
 export { ExecutionControl } from './ExecutionControl';
 export { ScriptBuilderContainer } from './ScriptBuilderContainer';
 

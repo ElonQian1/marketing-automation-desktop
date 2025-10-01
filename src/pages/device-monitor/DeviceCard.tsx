@@ -6,25 +6,21 @@ import type { DeviceCardProps } from './types';
 const { Text } = Typography;
 
 const statusTag = (status: string) => {
-  const map: Record<string, { color: string; text: string }> = {
-    device: { color: 'green', text: '在线' },
-    online: { color: 'green', text: '在线' },
-    unauthorized: { color: 'gold', text: '未授权' },
-    offline: { color: 'default', text: '离线' },
+  const map: Record<string, string> = {
+    device: '在线',
+    online: '在线',
+    unauthorized: '未授权',
+    offline: '离线',
   };
-  const cfg = map[status] || { color: 'default', text: status };
-  return <Tag color={cfg.color}>{cfg.text}</Tag>;
+  const text = map[status] || status;
+  return <Tag>{text}</Tag>;
 };
 
 export const DeviceCard: React.FC<DeviceCardProps> = ({ device, onSelect, selected, selectable, checked, onCheckedChange }) => {
   const icon = device.connection_type === 'emulator' ? <DesktopOutlined /> : <UsbOutlined />;
-  const borderStyle: React.CSSProperties | undefined =
-    selected ? { borderColor: '#ff6b8a' } : (device.status === 'unauthorized' ? { borderColor: '#faad14' } : undefined);
   return (
-    <Card size="small" hoverable onClick={() => onSelect?.(device.id)}
-      style={borderStyle}
-    >
-      <Space direction="vertical" style={{ width: '100%' }}>
+    <Card size="small" hoverable onClick={() => onSelect?.(device.id)}>
+      <Space direction="vertical">
         <Space align="center">
           {selectable && (
             <Checkbox

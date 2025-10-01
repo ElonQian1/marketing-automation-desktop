@@ -56,11 +56,11 @@ export const DeviceActionsPanel: React.FC<Props> = ({ onShowDetails }) => {
   }, [runQuickDiagnostic]);
 
   return (
-    <Card title="选中设备" size="small" extra={selectedDevice?.id ? <Tag color={selectedDevice.isOnline?.() ? 'green' : 'default'}>{selectedDevice.isOnline?.() ? '在线' : '离线'}</Tag> : null}>
+  <Card title="选中设备" size="small" extra={selectedDevice?.id ? <Tag>{selectedDevice.isOnline?.() ? '在线' : '离线'}</Tag> : null}>
       {!selectedDevice ? (
         <Text type="secondary">未选中设备。请在左侧列表中选择一个设备。</Text>
       ) : (
-        <Space direction="vertical" style={{ width: '100%' }}>
+  <Space direction="vertical">
           <div>
             <Text strong>ID：</Text>
             <Text copyable>{(selectedDevice as any).id}</Text>

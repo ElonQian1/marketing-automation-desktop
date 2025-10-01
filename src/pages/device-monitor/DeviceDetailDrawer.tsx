@@ -38,7 +38,7 @@ export const DeviceDetailDrawer: React.FC<Props> = ({ open, onClose }) => {
         <Spin />
       ) : (
         <>
-          <Space style={{ marginBottom: 12 }} wrap>
+          <Space wrap>
             <Tooltip title="复制设备详情 JSON">
               <Button
                 icon={<CopyOutlined />}
@@ -69,7 +69,7 @@ export const DeviceDetailDrawer: React.FC<Props> = ({ open, onClose }) => {
               >复制 IP</Button>
             </Tooltip>
           </Space>
-          <Descriptions column={1} bordered size="small" style={{ marginBottom: 12 }}>
+          <Descriptions column={1} bordered size="small">
             {(() => {
               const norm = normalizeDeviceDetail(info as any);
               return (
@@ -80,24 +80,20 @@ export const DeviceDetailDrawer: React.FC<Props> = ({ open, onClose }) => {
                     <Descriptions.Item label="SDK">
                       {norm.sdkInt != null ? `API ${norm.sdkInt}` : '-'}
                       {norm.androidVersion ? `（${norm.androidVersion}）` : ''}
-                      {norm.sdkSource && <Tag style={{ marginLeft: 8 }} color="default">{norm.sdkSource}</Tag>}
+                      {norm.sdkSource && <Tag>{norm.sdkSource}</Tag>}
                     </Descriptions.Item>
                   )}
                   {norm.resolution && (
                     <Descriptions.Item label="分辨率">
                       {`${norm.resolution.width} x ${norm.resolution.height}`}
-                      {norm.resolutionSource && <Tag style={{ marginLeft: 8 }} color="default">{norm.resolutionSource}</Tag>}
+                      {norm.resolutionSource && <Tag>{norm.resolutionSource}</Tag>}
                     </Descriptions.Item>
                   )}
-                  {norm.ip && <Descriptions.Item label="IP">{norm.ip}{norm.ipSource && <Tag style={{ marginLeft: 8 }} color="default">{norm.ipSource}</Tag>}</Descriptions.Item>}
+                  {norm.ip && <Descriptions.Item label="IP">{norm.ip}{norm.ipSource && <Tag>{norm.ipSource}</Tag>}</Descriptions.Item>}
                   {norm.status && (
                     <Descriptions.Item label="状态">
                       <Tooltip title={`来源: ${norm.statusSource ?? '未知'}`}>
-                        <Tag color={
-                          norm.status.toLowerCase().includes('unauth') ? 'gold' :
-                          norm.status.toLowerCase().includes('offline') ? 'default' :
-                          (norm.status.toLowerCase().includes('device') || norm.status.toLowerCase().includes('online')) ? 'green' : 'blue'
-                        }>
+                        <Tag>
                           {norm.status}
                         </Tag>
                       </Tooltip>
@@ -106,11 +102,7 @@ export const DeviceDetailDrawer: React.FC<Props> = ({ open, onClose }) => {
                   {norm.conn && (
                     <Descriptions.Item label="连接">
                       <Tooltip title={`来源: ${norm.connSource ?? '未知'}`}>
-                        <Tag color={
-                          norm.conn.toLowerCase().includes('usb') ? 'geekblue' :
-                          (norm.conn.toLowerCase().includes('wifi') || norm.conn.toLowerCase().includes('tcp') || norm.conn.toLowerCase().includes('wireless')) ? 'purple' :
-                          norm.conn.toLowerCase().includes('emulator') ? 'cyan' : 'default'
-                        }>
+                        <Tag>
                           {norm.conn}
                         </Tag>
                       </Tooltip>
@@ -131,7 +123,7 @@ export const DeviceDetailDrawer: React.FC<Props> = ({ open, onClose }) => {
           {/* 设备专属日志 */}
           {selectedDevice?.id && (
             <>
-              <Divider style={{ margin: '12px 0' }} />
+              <Divider />
               <DeviceLogPanel deviceId={selectedDevice.id} title="该设备相关日志" />
             </>
           )}

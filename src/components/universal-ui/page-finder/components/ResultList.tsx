@@ -13,10 +13,10 @@ interface ResultListProps {
 const ResultList: React.FC<ResultListProps> = ({ elements, totalStats, onSelect }) => {
   return (
     <>
-      <Space style={{ marginBottom: 8 }}>
-        <Tag color="blue">总数: {totalStats.total}</Tag>
-        <Tag color="green">可点击: {totalStats.clickable}</Tag>
-        <Tag color="orange">含文本: {totalStats.withText}</Tag>
+      <Space>
+        <Tag>总数: {totalStats.total}</Tag>
+        <Tag>可点击: {totalStats.clickable}</Tag>
+        <Tag>含文本: {totalStats.withText}</Tag>
       </Space>
       <List
         dataSource={elements}
@@ -39,18 +39,17 @@ const ResultList: React.FC<ResultListProps> = ({ elements, totalStats, onSelect 
               title={
                 <Space>
                   <Text strong>{element.text || element.element_type}</Text>
-                  {element.is_clickable && <Tag color="green">可点击</Tag>}
-                  {element.is_scrollable && <Tag color="blue">可滚动</Tag>}
+                  {element.is_clickable && <Tag>可点击</Tag>}
+                  {element.is_scrollable && <Tag>可滚动</Tag>}
                 </Space>
               }
               description={
-                <div>
+                <Space direction="vertical">
                   <Text type="secondary">{element.content_desc || '无描述'}</Text>
-                  <br />
-                  <Text type="secondary" style={{ fontSize: 12 }}>
+                  <Text type="secondary">
                     位置: ({element.bounds.left}, {element.bounds.top}) 大小: {element.bounds.right - element.bounds.left} × {element.bounds.bottom - element.bounds.top}
                   </Text>
-                </div>
+                </Space>
               }
             />
           </List.Item>

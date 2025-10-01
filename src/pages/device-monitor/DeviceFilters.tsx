@@ -22,9 +22,8 @@ export const DeviceFilters: React.FC<DeviceFiltersProps> = ({ value, onChange })
         placeholder="按状态过滤"
         options={STATUS_OPTIONS}
         value={value.statuses}
-        style={{ minWidth: 220 }}
         onChange={(v) => onChange({ ...value, statuses: v as any })}
-        tagRender={(props) => <Tag color="blue" closable={props.closable} onClose={props.onClose}>{props.label}</Tag>}
+        tagRender={(props) => <Tag closable={props.closable} onClose={props.onClose}>{props.label}</Tag>}
       />
       <Select
         mode="multiple"
@@ -32,16 +31,14 @@ export const DeviceFilters: React.FC<DeviceFiltersProps> = ({ value, onChange })
         placeholder="按连接类型过滤"
         options={CONN_OPTIONS}
         value={value.connections}
-        style={{ minWidth: 220 }}
         onChange={(v) => onChange({ ...value, connections: v as any })}
-        tagRender={(props) => <Tag color="purple" closable={props.closable} onClose={props.onClose}>{props.label}</Tag>}
+        tagRender={(props) => <Tag closable={props.closable} onClose={props.onClose}>{props.label}</Tag>}
       />
       <Input
         allowClear
         placeholder="按设备ID关键字过滤"
         value={value.keyword}
         onChange={(e) => onChange({ ...value, keyword: e.target.value })}
-        style={{ width: 240 }}
       />
     </Space>
   );

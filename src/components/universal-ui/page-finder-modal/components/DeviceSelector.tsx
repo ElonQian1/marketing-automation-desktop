@@ -4,15 +4,7 @@
  */
 
 import React from "react";
-import { 
-  Card, 
-  Select, 
-  Button, 
-  Space, 
-  Typography, 
-  Tag,
-  theme 
-} from "antd";
+import { Card, Select, Button, Space, Typography, Tag } from "antd";
 import {
   MobileOutlined,
   ReloadOutlined,
@@ -51,15 +43,10 @@ export const DeviceSelector: React.FC<DeviceSelectorProps> = ({
   onCaptureCurrentPage,
   onCaptureClick
 }) => {
-  const { token } = theme.useToken();
-
   const getDeviceStatusTag = (device: DeviceInfo) => {
     const isOnline = device.isOnline();
     return (
-      <Tag 
-        icon={isOnline ? <CheckCircleOutlined /> : <ExclamationCircleOutlined />}
-        color={isOnline ? "success" : "warning"}
-      >
+      <Tag icon={isOnline ? <CheckCircleOutlined /> : <ExclamationCircleOutlined /> }>
         {isOnline ? "在线" : "离线"}
       </Tag>
     );
@@ -71,7 +58,7 @@ export const DeviceSelector: React.FC<DeviceSelectorProps> = ({
     <Card
       title={
         <Space>
-          <MobileOutlined style={{ color: token.colorPrimary }} />
+          <MobileOutlined />
           <span>设备选择</span>
         </Space>
       }
@@ -87,16 +74,16 @@ export const DeviceSelector: React.FC<DeviceSelectorProps> = ({
         </Button>
       }
     >
-      <Space direction="vertical" style={{ width: "100%" }}>
+      <Space direction="vertical">
         {/* 设备选择下拉框 */}
         <div>
-          <Text type="secondary" style={{ fontSize: token.fontSizeSM }}>
+          <Text type="secondary">
             选择设备
           </Text>
           <Select
             value={selectedDevice}
             onChange={onDeviceSelect}
-            style={{ width: "100%", marginTop: token.marginXXS }}
+            style={{ width: "100%" }}
             placeholder="请选择设备"
             optionLabelProp="label"
           >
@@ -111,21 +98,21 @@ export const DeviceSelector: React.FC<DeviceSelectorProps> = ({
                   </Space>
                 }
               >
-                <Space direction="vertical" size="small" style={{ width: "100%" }}>
+                <Space direction="vertical" size="small">
                   <Space>
                     <Text strong>{device.name}</Text>
                     {getDeviceStatusTag(device)}
                   </Space>
-                  <Text type="secondary" style={{ fontSize: token.fontSizeSM }}>
+                  <Text type="secondary">
                     ID: {device.id}
                   </Text>
                   {device.model && (
-                    <Text type="secondary" style={{ fontSize: token.fontSizeSM }}>
+                    <Text type="secondary">
                       型号: {device.model}
                     </Text>
                   )}
                   {device.androidVersion && (
-                    <Text type="secondary" style={{ fontSize: token.fontSizeSM }}>
+                    <Text type="secondary">
                       Android: {device.androidVersion}
                     </Text>
                   )}
@@ -137,33 +124,26 @@ export const DeviceSelector: React.FC<DeviceSelectorProps> = ({
 
         {/* 选中设备信息显示 */}
         {selectedDeviceInfo && (
-          <div 
-            style={{ 
-              padding: token.paddingXS,
-              backgroundColor: token.colorBgLayout,
-              borderRadius: token.borderRadius,
-              border: `1px solid ${token.colorBorder}`
-            }}
-          >
+          <div>
             <Space direction="vertical" size="small">
               <Space>
-                <Text strong style={{ fontSize: token.fontSizeSM }}>
+                <Text strong>
                   当前设备:
                 </Text>
-                <Text style={{ fontSize: token.fontSizeSM }}>
+                <Text>
                   {selectedDeviceInfo.name}
                 </Text>
                 {getDeviceStatusTag(selectedDeviceInfo)}
               </Space>
               
               {selectedDeviceInfo.model && (
-                <Text type="secondary" style={{ fontSize: token.fontSizeSM }}>
+                <Text type="secondary">
                   型号: {selectedDeviceInfo.model}
                 </Text>
               )}
               
               {selectedDeviceInfo.androidVersion && (
-                <Text type="secondary" style={{ fontSize: token.fontSizeSM }}>
+                <Text type="secondary">
                   Android: {selectedDeviceInfo.androidVersion}
                 </Text>
               )}
@@ -178,15 +158,14 @@ export const DeviceSelector: React.FC<DeviceSelectorProps> = ({
           onClick={onCaptureCurrentPage}
           disabled={!selectedDevice || !selectedDeviceInfo?.isOnline()}
           loading={loading}
-          style={{ width: "100%" }}
         >
           {loading ? "采集中..." : "采集当前页面"}
         </Button>
 
         {/* 设备状态提示 */}
         {selectedDevice && selectedDeviceInfo && !selectedDeviceInfo.isOnline() && (
-          <Text type="warning" style={{ fontSize: token.fontSizeSM }}>
-            <ExclamationCircleOutlined style={{ marginRight: token.marginXXS }} />
+          <Text type="warning">
+            <ExclamationCircleOutlined />
             所选设备离线，无法采集页面
           </Text>
         )}

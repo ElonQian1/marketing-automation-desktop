@@ -4,8 +4,7 @@
  */
 
 import React, { useState, useEffect } from "react";
-import "./UniversalPageFinder.css";
-import "./styles/universal-ui-integration.css";
+// 统一原生 AntD 外观：移除自定义样式文件
 import {
   Modal,
   Button,
@@ -16,7 +15,6 @@ import {
   Alert,
   Spin,
   message,
-  theme,
 } from "antd";
 import {
   SearchOutlined,
@@ -46,7 +44,6 @@ import type {
 // 保留必要的依赖（用于高级功能）
 import { useAdb } from "../../application/hooks/useAdb";
 import UniversalUIAPI from "../../api/universalUIAPI";
-import VisualPageAnalyzer from "../VisualPageAnalyzer";
 import { ErrorBoundary } from "../ErrorBoundary";
 import { CacheHistoryPanel } from "./views/cache-view";
 
@@ -58,6 +55,8 @@ import {
   GridElementView,
   ScrcpyControlView,
 } from "./views";
+import type { VisualUIElement } from "./types";
+import { convertVisualToUIElement } from "./views/visual-view/utils/elementTransform";
 
 const { Text, Title } = Typography;
 
@@ -109,9 +108,7 @@ const UniversalPageFinderModal: React.FC<UniversalPageFinderModalProps> = ({
   onApplyCriteria,
   initialMatching,
 }) => {
-  const { token } = theme.useToken();
-  
-  // 使用模块化的 Hook
+  // 使用模块化的 Hook（需要显式传入 props）
   const {
     selectedDevice,
     setSelectedDevice,
@@ -128,7 +125,17 @@ const UniversalPageFinderModal: React.FC<UniversalPageFinderModalProps> = ({
     captureCurrentPage,
     loadXmlSnapshot,
     createSnapshot
-  } = usePageFinderModal();
+  } = usePageFinderModal({
+    visible,
+    snapshotOnlyMode,
+    initialViewMode,
+    loadFromStepXml,
+    preselectLocator,
+    initialMatching,
+    onSnapshotCaptured,
+    onXmlContentUpdated,
+    onSnapshotUpdated
+  });
 
   // 本地状态
   const [viewMode, setViewMode] = useState<ViewMode>(initialViewMode);
@@ -136,7 +143,7 @@ const UniversalPageFinderModal: React.FC<UniversalPageFinderModalProps> = ({
   const [uiElements, setUIElements] = useState<UIElement[]>([]);
 
   // ADB 集成
-  const { devices, isConnecting } = useAdb();
+  const { devices } = useAdb();
 
   // 初始化逻辑
   useEffect(() => {
@@ -174,9 +181,15 @@ const UniversalPageFinderModal: React.FC<UniversalPageFinderModalProps> = ({
   };
 
   // 元素选择处理
-  const handleElementSelect = (element: UIElement) => {
-    setSelectedElementId(element.resourceId || "");
+  const handleUIElementSelect = (element: UIElement) => {
+    setSelectedElementId(element.id);
     onElementSelected?.(element);
+  };
+
+  const handleVisualElementSelect = (element: VisualUIElement) => {
+    setSelectedElementId(element.id);
+    const bridged = convertVisualToUIElement(element);
+    onElementSelected?.(bridged as unknown as UIElement);
   };
 
   // 从缓存加载页面
@@ -232,14 +245,7 @@ const UniversalPageFinderModal: React.FC<UniversalPageFinderModalProps> = ({
 
   // 渲染视图内容
   const renderViewContent = () => {
-    if (loading) {
-      return (
-        <div style={{ textAlign: "center", padding: 50 }}>
-          <Spin size="large" />
-          <div style={{ marginTop: 16 }}>正在分析页面...</div>
-        </div>
-      );
-    }
+    if (loading) return <Space direction="vertical"><Spin size="large" /><Text type="secondary">正在分析页面...</Text></Space>;
 
     switch (viewMode) {
       case "visual":
@@ -248,7 +254,7 @@ const UniversalPageFinderModal: React.FC<UniversalPageFinderModalProps> = ({
             <VisualElementView
               elements={elements}
               selectedElementId={selectedElementId}
-              onElementSelect={handleElementSelect}
+              onElementSelect={handleVisualElementSelect}
             />
           </ErrorBoundary>
         );
@@ -260,7 +266,7 @@ const UniversalPageFinderModal: React.FC<UniversalPageFinderModalProps> = ({
               elements={uiElements}
               onElementSelect={(selectedElements) => {
                 if (selectedElements.length > 0) {
-                  handleElementSelect(selectedElements[0]);
+                  handleUIElementSelect(selectedElements[0]);
                 }
               }}
             />
@@ -271,7 +277,7 @@ const UniversalPageFinderModal: React.FC<UniversalPageFinderModalProps> = ({
         return (
           <ElementList
             elements={uiElements}
-            onElementInspect={handleElementSelect}
+            onElementInspect={handleUIElementSelect}
             onElementCopy={(element) => {
               navigator.clipboard.writeText(JSON.stringify(element, null, 2));
               message.success("元素信息已复制");
@@ -286,7 +292,7 @@ const UniversalPageFinderModal: React.FC<UniversalPageFinderModalProps> = ({
             <GridElementView
               xmlContent={xmlContent}
               elements={elements}
-              onElementSelect={handleElementSelect}
+              onElementSelect={handleVisualElementSelect}
               selectedElementId={selectedElementId}
               locator={preselectLocator}
               onApplyCriteria={handleApplyCriteria}
@@ -315,19 +321,12 @@ const UniversalPageFinderModal: React.FC<UniversalPageFinderModalProps> = ({
       open={visible}
       onCancel={onClose}
       width="98vw"
-      style={{ top: 10 }}
       footer={null}
-      className="universal-page-finder"
-      styles={{
-        body: {
-          padding: token.padding,
-        },
-      }}
     >
-      <Row gutter={[16, 16]} style={{ flexWrap: "nowrap", height: "80vh" }}>
+      <Row gutter={[16, 16]}>
         {/* 左侧控制面板 */}
-        <Col flex="0 0 300px" style={{ minWidth: 300 }}>
-          <Space direction="vertical" style={{ width: "100%" }} size="middle">
+        <Col span={6}>
+          <Space direction="vertical" size="middle">
             {/* 设备选择器 */}
             <DeviceSelector
               devices={devices}
@@ -335,7 +334,8 @@ const UniversalPageFinderModal: React.FC<UniversalPageFinderModalProps> = ({
               onDeviceSelect={setSelectedDevice}
               onRefreshDevices={refreshDevices}
               onCaptureClick={handleSnapshotCapture}
-              loading={loading || isConnecting}
+              onCaptureCurrentPage={handleSnapshotCapture}
+              loading={loading}
             />
 
             {/* 视图模式选择器 */}
@@ -357,23 +357,13 @@ const UniversalPageFinderModal: React.FC<UniversalPageFinderModalProps> = ({
             />
 
             {/* 缓存历史面板 */}
-            <CacheHistoryPanel 
-              onPageSelected={handleCachedPageSelect} 
-            />
+            <CacheHistoryPanel onPageSelected={handleCachedPageSelect} />
           </Space>
         </Col>
 
         {/* 右侧主要内容区域 */}
-        <Col flex="1 1 auto" style={{ minWidth: 0, overflow: "hidden" }}>
-          <div style={{ 
-            height: "100%", 
-            border: `1px solid ${token.colorBorder}`,
-            borderRadius: token.borderRadius,
-            backgroundColor: token.colorBgContainer,
-            overflow: "hidden"
-          }}>
-            {renderViewContent()}
-          </div>
+        <Col span={18}>
+          {renderViewContent()}
         </Col>
       </Row>
     </Modal>

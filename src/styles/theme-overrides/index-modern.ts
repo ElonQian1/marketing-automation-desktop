@@ -25,6 +25,9 @@ import './modules/universal-ui-themes.css';       // 高级主题和增强效果
 // 保留通用UI保护模块（向后兼容）
 import './modules/universal-ui-protection.css';
 
+// 引入 Ant Design 设计系统覆盖（包含商业化润色与 token 驱动的细节优化）
+import '../design-system/antd-theme.css';
+
 // 旧模块化方案暂时禁用（避免冲突）
 // import './modules/css-layer-isolation.css';
 // import './modules/precise-style-separator.css';

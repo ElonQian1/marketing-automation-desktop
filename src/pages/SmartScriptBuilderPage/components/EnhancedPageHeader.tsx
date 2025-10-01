@@ -42,10 +42,10 @@ const PageHeader: React.FC<PageHeaderProps> = ({
   return (
     <>
       {/* 页面标题 */}
-      <div className="mb-6">
+      <div style={{ marginBottom: 24 }}>
         <Row align="middle" justify="space-between">
           <Col>
-            <Title level={2} className="mb-2">
+            <Title level={2} style={{ marginBottom: 8 }}>
               🤖 智能脚本构建器
             </Title>
             <Paragraph type="secondary">
@@ -123,16 +123,16 @@ const PageHeader: React.FC<PageHeaderProps> = ({
       <Card
         title={
           <span>
-            <SettingOutlined className="mr-2" />
+            <SettingOutlined style={{ marginRight: 8 }} />
             执行器配置
           </span>
         }
         size="small"
-        className="mb-4"
+        style={{ marginBottom: 16 }}
       >
         <Row gutter={16}>
           <Col span={6}>
-            <div className="text-center">
+            <div style={{ textAlign: 'center' }}>
               <Switch
                 checked={executorConfig.page_recognition_enabled}
                 onChange={(checked) =>
@@ -142,11 +142,11 @@ const PageHeader: React.FC<PageHeaderProps> = ({
                   }))
                 }
               />
-              <div className="mt-1 text-xs">页面识别</div>
+              <div style={{ marginTop: 4, fontSize: 12 }}>页面识别</div>
             </div>
           </Col>
           <Col span={6}>
-            <div className="text-center">
+            <div style={{ textAlign: 'center' }}>
               <Switch
                 checked={executorConfig.auto_verification_enabled}
                 onChange={(checked) =>
@@ -156,11 +156,11 @@ const PageHeader: React.FC<PageHeaderProps> = ({
                   }))
                 }
               />
-              <div className="mt-1 text-xs">自动验证</div>
+              <div style={{ marginTop: 4, fontSize: 12 }}>自动验证</div>
             </div>
           </Col>
           <Col span={6}>
-            <div className="text-center">
+            <div style={{ textAlign: 'center' }}>
               <Switch
                 checked={executorConfig.smart_recovery_enabled}
                 onChange={(checked) =>
@@ -170,11 +170,11 @@ const PageHeader: React.FC<PageHeaderProps> = ({
                   }))
                 }
               />
-              <div className="mt-1 text-xs">智能恢复</div>
+              <div style={{ marginTop: 4, fontSize: 12 }}>智能恢复</div>
             </div>
           </Col>
           <Col span={6}>
-            <div className="text-center">
+            <div style={{ textAlign: 'center' }}>
               <Switch
                 checked={executorConfig.detailed_logging}
                 onChange={(checked) =>
@@ -184,7 +184,7 @@ const PageHeader: React.FC<PageHeaderProps> = ({
                   }))
                 }
               />
-              <div className="mt-1 text-xs">详细日志</div>
+              <div style={{ marginTop: 4, fontSize: '12px' }}>详细日志</div>
             </div>
           </Col>
         </Row>

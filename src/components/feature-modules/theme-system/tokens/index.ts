@@ -81,34 +81,34 @@ const lightThemeTokens: ThemeTokens = {
  * 暗色主题令牌
  */
 const darkThemeTokens: ThemeTokens = {
-  // 主色调
-  colorPrimary: colorPalette.pink[400],
-  colorSuccess: '#73d13d',
-  colorWarning: '#ffd666',
-  colorError: '#ff7875',
-  colorInfo: '#69c0ff',
-  
-  // 背景色
-  colorBgBase: '#000000',
-  colorBgContainer: '#141414',
-  colorBgLayout: '#0a0a0a',
-  colorBgElevated: '#1f1f1f',
-  colorBgMask: 'rgba(0, 0, 0, 0.65)',
-  
-  // 文本色
-  colorText: 'rgba(255, 255, 255, 0.88)',
-  colorTextSecondary: 'rgba(255, 255, 255, 0.65)',
-  colorTextDisabled: 'rgba(255, 255, 255, 0.25)',
-  
-  // 边框色
-  colorBorder: '#424242',
-  colorBorderSecondary: '#303030',
-  colorSplit: 'rgba(253, 253, 253, 0.12)',
-  
-  // 特效
-  boxShadow: '0 6px 16px 0 rgba(0, 0, 0, 0.32), 0 3px 6px -4px rgba(0, 0, 0, 0.48), 0 9px 28px 8px rgba(0, 0, 0, 0.2)',
-  colorBgBlur: 'rgba(20, 20, 20, 0.8)',
-  colorBorderGlass: 'rgba(255, 255, 255, 0.1)',
+  // 主色调（在暗色下略微提升亮度，增强可读性）
+  colorPrimary: colorPalette.pink[500], // #ff6b8a
+  colorSuccess: '#7ee787',
+  colorWarning: '#e3b341',
+  colorError: '#ff7b72',
+  colorInfo: '#79c0ff',
+
+  // 背景层级（对齐 GitHub Dark 风格）
+  colorBgBase: '#0d1117',
+  colorBgContainer: '#161b22',
+  colorBgLayout: '#0d1117',
+  colorBgElevated: '#1f232a',
+  colorBgMask: 'rgba(1, 4, 9, 0.65)',
+
+  // 文本（AntD 建议的透明度系数，兼顾可读性）
+  colorText: 'rgba(240, 246, 252, 0.88)', // #f0f6fc
+  colorTextSecondary: 'rgba(240, 246, 252, 0.65)',
+  colorTextDisabled: 'rgba(240, 246, 252, 0.35)',
+
+  // 边框与分割线（微对比增强）
+  colorBorder: '#30363d',
+  colorBorderSecondary: '#21262d',
+  colorSplit: 'rgba(240, 246, 252, 0.12)',
+
+  // 阴影与玻璃效果
+  boxShadow: '0 6px 16px 0 rgba(1, 4, 9, 0.45), 0 3px 6px -4px rgba(1, 4, 9, 0.6), 0 9px 28px 8px rgba(1, 4, 9, 0.35)',
+  colorBgBlur: 'rgba(22, 27, 34, 0.8)',
+  colorBorderGlass: 'rgba(240, 246, 252, 0.12)',
 };
 
 /**
@@ -172,22 +172,22 @@ const lightComponentConfig: ComponentThemeConfig = {
  */
 const darkComponentConfig: ComponentThemeConfig = {
   Layout: {
-    headerBg: '#141414',
-    bodyBg: '#0a0a0a',
-    siderBg: '#141414',
-    footerBg: '#0a0a0a',
+    headerBg: '#0d1117',
+    bodyBg: '#0d1117',
+    siderBg: '#161b22',
+    footerBg: '#0d1117',
   },
   Menu: {
-    colorBgContainer: '#141414',
+    colorBgContainer: '#161b22',
     itemBg: 'transparent',
-    itemSelectedBg: 'rgba(255, 107, 138, 0.15)',
-    itemSelectedColor: colorPalette.pink[400],
-    itemHoverBg: 'rgba(255, 255, 255, 0.08)',
-    itemHoverColor: 'rgba(255, 255, 255, 0.88)',
+    itemSelectedBg: 'rgba(255, 107, 138, 0.16)',
+    itemSelectedColor: colorPalette.pink[500],
+    itemHoverBg: 'rgba(240, 246, 252, 0.08)',
+    itemHoverColor: 'rgba(240, 246, 252, 0.88)',
   },
   Card: {
-    colorBgContainer: '#141414',
-    colorBorderSecondary: '#303030',
+    colorBgContainer: '#161b22',
+    colorBorderSecondary: '#21262d',
     paddingLG: 24,
     borderRadiusLG: 12,
   },
@@ -195,22 +195,22 @@ const darkComponentConfig: ComponentThemeConfig = {
     controlHeight: 36,
     borderRadius: 8,
     fontWeight: 500,
-    primaryShadow: '0 2px 4px rgba(255, 107, 138, 0.3)',
+    primaryShadow: '0 2px 4px rgba(255, 107, 138, 0.28)',
   },
   Table: {
-    colorBgContainer: 'rgba(255, 255, 255, 0.02)',
-    colorBorderSecondary: '#303030',
-    headerBg: '#1f1f1f',
-    rowHoverBg: '#262626',
+    colorBgContainer: 'rgba(240, 246, 252, 0.02)',
+    colorBorderSecondary: '#21262d',
+    headerBg: '#1f232a',
+    rowHoverBg: '#1e2630',
   },
   Modal: {
-    colorBgElevated: '#1f1f1f',
-    colorBgMask: 'rgba(0, 0, 0, 0.65)',
+    colorBgElevated: '#1f232a',
+    colorBgMask: 'rgba(1, 4, 9, 0.65)',
     borderRadiusLG: 12,
   },
   Input: {
-    colorBgContainer: '#141414',
-    colorBorder: '#424242',
+    colorBgContainer: '#161b22',
+    colorBorder: '#30363d',
     borderRadius: 8,
     controlHeight: 36,
   },
@@ -307,6 +307,9 @@ export const generateAntdThemeConfig = (mode: ThemeMode) => {
       colorTextSecondary: tokens.colorTextSecondary,
       colorBorder: tokens.colorBorder,
       colorBorderSecondary: tokens.colorBorderSecondary,
+      // 更轻盈的描边，减少“线框感”
+      lineWidth: 1,
+      lineWidthBold: 2,
       borderRadius: 8,
       controlHeight: 36,
       fontSize: 14,
@@ -347,6 +350,31 @@ export const generateAntdThemeConfig = (mode: ThemeMode) => {
       DatePicker: {
         colorBgElevated: tokens.colorBgElevated,
         colorBgContainer: tokens.colorBgContainer,
+      },
+      Segmented: {
+        itemSelectedBg: 'rgba(255, 107, 138, 0.16)',
+        itemHoverBg: 'rgba(240, 246, 252, 0.08)',
+        borderRadius: 999,
+        controlHeight: 32,
+      },
+      Tag: {
+        borderRadiusSM: 999,
+        defaultBg: mode === 'dark' ? 'rgba(240, 246, 252, 0.06)' : 'rgba(0, 0, 0, 0.04)',
+        defaultColor: tokens.colorTextSecondary,
+      },
+      Tabs: {
+        itemSelectedColor: tokens.colorText,
+        inkBarColor: tokens.colorPrimary,
+        itemHoverColor: tokens.colorText,
+        cardBg: tokens.colorBgElevated,
+      },
+      Badge: {
+        colorBg: tokens.colorPrimary,
+        colorText: '#ffffff',
+      },
+      Divider: {
+        colorSplit: tokens.colorSplit,
+        marginLG: 16,
       },
     },
   };

@@ -1,8 +1,8 @@
 import { Alert, Button, Card, Space, Typography } from 'antd';
 import React, { useMemo, useState } from 'react';
 import DevicesResultCard from './adb-path-test/components/DevicesResultCard';
-import { useAdb } from '@/application/hooks/useAdb';
-import { AdbConfig, Device, DeviceStatus } from '@/domain/adb';
+import { useAdb } from '../application/hooks/useAdb';
+import { AdbConfig, Device, DeviceStatus } from '../domain/adb';
 
 const { Title, Text, Paragraph } = Typography;
 
@@ -79,9 +79,9 @@ export const AdbPathTestPage: React.FC = () => {
     <>
       <Title level={2}>ADB 路径检测测试</Title>
 
-      <Space direction="vertical" size="large" style={{ width: '100%' }}>
+      <Space direction="vertical" size="large">
         <Card title="1. 智能 ADB 路径检测">
-          <Space direction="vertical" style={{ width: '100%' }}>
+          <Space direction="vertical">
             <Button
               type="primary"
               onClick={testSmartAdbPath}
@@ -100,7 +100,7 @@ export const AdbPathTestPage: React.FC = () => {
         </Card>
 
         <Card title="2. 设备检测测试">
-          <Space direction="vertical" style={{ width: '100%' }}>
+          <Space direction="vertical">
             <Button
               type="primary"
               onClick={testDevices}

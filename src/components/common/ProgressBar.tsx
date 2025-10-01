@@ -1,4 +1,7 @@
 import React from 'react';
+import { Progress, Typography, Space } from 'antd';
+
+const { Text } = Typography;
 
 interface ProgressBarProps {
   current: number;
@@ -7,10 +10,11 @@ interface ProgressBarProps {
   showPercentage?: boolean;
   className?: string;
   barColor?: string;
+  style?: React.CSSProperties;
 }
 
 /**
- * 进度条组件
+ * 进度条组件 - 使用原生 Ant Design Progress
  * 统一的任务进度显示UI
  */
 export const ProgressBar: React.FC<ProgressBarProps> = ({
@@ -18,29 +22,35 @@ export const ProgressBar: React.FC<ProgressBarProps> = ({
   total,
   label,
   showPercentage = true,
-  className = '',
-  barColor = 'bg-blue-600'
+  className,
+  barColor,
+  style,
 }) => {
   const percentage = total > 0 ? Math.round((current / total) * 100) : 0;
 
   return (
-    <div className={`${className}`}>
+    <div className={className} style={style}>
       {(label || showPercentage) && (
-        <div className="flex justify-between items-center mb-2">
-          {label && <span className="text-sm font-medium text-gray-700">{label}</span>}
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 8 }}>
+          {label && (
+            <Text style={{ fontSize: '14px', fontWeight: 500, color: '#374151' }}>
+              {label}
+            </Text>
+          )}
           {showPercentage && (
-            <span className="text-sm text-gray-500">
+            <Text style={{ fontSize: '14px', color: '#6b7280' }}>
               {current}/{total} ({percentage}%)
-            </span>
+            </Text>
           )}
         </div>
       )}
-      <div className="w-full bg-gray-200 rounded-full h-2.5">
-        <div
-          className={`h-2.5 rounded-full transition-all duration-300 ${barColor}`}
-          style={{ width: `${percentage}%` }}
-        ></div>
-      </div>
+      <Progress
+        percent={percentage}
+        showInfo={false}
+        strokeColor={barColor}
+        trailColor="#e5e7eb"
+        size="small"
+      />
     </div>
   );
 };

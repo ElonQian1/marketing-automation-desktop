@@ -10,12 +10,8 @@ import {
   Space,
   Button,
   Tabs,
-  Row,
-  Col,
-  Divider,
   Alert,
   message,
-  theme,
 } from 'antd';
 import {
   CheckCircleOutlined,
@@ -69,7 +65,6 @@ const StepEditor: React.FC<StepEditorProps> = ({
   onTest,
   onOpenPageSelector,
 }) => {
-  const { token } = theme.useToken();
   const [form] = Form.useForm();
   const [currentStepType, setCurrentStepType] = useState<StepType>('tap');
   const [loading, setLoading] = useState(false);
@@ -268,12 +263,12 @@ const StepEditor: React.FC<StepEditorProps> = ({
     const { isValid, errors, warnings } = validation;
     
     return (
-      <Space direction="vertical" style={{ width: '100%' }}>
+      <Space direction="vertical">
         {!isValid && errors?.length > 0 && (
           <Alert
             message="配置错误"
             description={
-              <ul style={{ margin: 0, paddingLeft: 16 }}>
+              <ul>
                 {errors.map((error, index) => (
                   <li key={index}>{error}</li>
                 ))}
@@ -288,7 +283,7 @@ const StepEditor: React.FC<StepEditorProps> = ({
           <Alert
             message="配置警告"
             description={
-              <ul style={{ margin: 0, paddingLeft: 16 }}>
+              <ul>
                 {warnings.map((warning, index) => (
                   <li key={index}>{warning}</li>
                 ))}
@@ -307,7 +302,6 @@ const StepEditor: React.FC<StepEditorProps> = ({
       title={`${isNew ? '新建' : '编辑'}步骤`}
       open={visible}
       onCancel={onClose}
-      width={800}
       footer={
         <Space>
           <Button onClick={onClose} disabled={loading}>
@@ -332,13 +326,6 @@ const StepEditor: React.FC<StepEditorProps> = ({
           </Button>
         </Space>
       }
-      styles={{
-        body: { 
-          padding: token.padding,
-          maxHeight: '70vh',
-          overflowY: 'auto'
-        }
-      }}
     >
       <Form
         form={form}
@@ -348,11 +335,7 @@ const StepEditor: React.FC<StepEditorProps> = ({
           type: 'tap',
         }}
       >
-        <Tabs 
-          activeKey={activeTab} 
-          onChange={setActiveTab}
-          size="small"
-        >
+        <Tabs activeKey={activeTab} onChange={setActiveTab}>
           <TabPane tab="基础配置" key="basic">
             <BasicConfig
               stepType={currentStepType}
@@ -372,9 +355,9 @@ const StepEditor: React.FC<StepEditorProps> = ({
                 <Space>
                   <span>验证结果</span>
                   {validation.isValid ? (
-                    <CheckCircleOutlined style={{ color: token.colorSuccess }} />
+                    <CheckCircleOutlined />
                   ) : (
-                    <CloseCircleOutlined style={{ color: token.colorError }} />
+                    <CloseCircleOutlined />
                   )}
                 </Space>
               } 

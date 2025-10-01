@@ -39,7 +39,7 @@ export const EmployeeTable: React.FC<EmployeeTableProps> = ({
       title: '部门',
       dataIndex: 'department',
       key: 'department',
-      render: (text: string) => <Tag color="blue">{text}</Tag>,
+  render: (text: string) => <Tag>{text}</Tag>,
     },
     {
       title: '职位',

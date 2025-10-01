@@ -1,5 +1,5 @@
 import React from 'react';
-import styles from './GridElementView.module.css';
+import { Space, Checkbox, Input, Select } from 'antd';
 import { AdvancedFilter } from './types';
 
 export interface FilterBarProps {
@@ -10,67 +10,66 @@ export interface FilterBarProps {
 export const FilterBar: React.FC<FilterBarProps> = ({ value, onChange }) => {
   const set = (patch: Partial<AdvancedFilter>) => onChange({ ...value, ...patch });
   return (
-    <div className="flex flex-wrap items-center gap-2">
-      <label className="text-xs text-neutral-500 flex items-center gap-1">
-        <input type="checkbox" checked={value.enabled} onChange={(e) => set({ enabled: e.target.checked })} /> 启用多条件过滤
-      </label>
-      <select
-        className={styles.input}
-        value={value.mode}
-        onChange={(e) => set({ mode: (e.target.value as 'AND' | 'OR') })}
-        style={{ width: 88 }}
+    <Space wrap>
+      <Checkbox
+        checked={value.enabled}
+        onChange={(e) => set({ enabled: e.target.checked })}
       >
-        <option value="AND">AND</option>
-        <option value="OR">OR</option>
-      </select>
-      <input
-        className={styles.input}
+        启用多条件过滤
+      </Checkbox>
+
+      <Select
+        value={value.mode}
+        onChange={(v: 'AND' | 'OR') => set({ mode: v })}
+        options={[
+          { label: 'AND', value: 'AND' },
+          { label: 'OR', value: 'OR' },
+        ]}
+      />
+
+      <Input
         placeholder="resource-id"
         value={value.resourceId}
         onChange={(e) => set({ resourceId: e.target.value })}
-        style={{ width: 160 }}
       />
-      <input
-        className={styles.input}
+
+      <Input
         placeholder="text/content-desc"
         value={value.text}
         onChange={(e) => set({ text: e.target.value })}
-        style={{ width: 200 }}
       />
-      <input
-        className={styles.input}
+
+      <Input
         placeholder="class"
         value={value.className}
         onChange={(e) => set({ className: e.target.value })}
-        style={{ width: 160 }}
       />
-      <input
-        className={styles.input}
+
+      <Input
         placeholder="package"
         value={value.packageName}
         onChange={(e) => set({ packageName: e.target.value })}
-        style={{ width: 180 }}
       />
-      <select
-        className={styles.input}
+
+      <Select
         value={value.clickable === null ? 'any' : value.clickable ? 'true' : 'false'}
-        onChange={(e) => set({ clickable: e.target.value === 'any' ? null : e.target.value === 'true' })}
-        style={{ width: 120 }}
-      >
-        <option value="any">clickable:any</option>
-        <option value="true">clickable:true</option>
-        <option value="false">clickable:false</option>
-      </select>
-      <select
-        className={styles.input}
+        onChange={(v: 'any' | 'true' | 'false') => set({ clickable: v === 'any' ? null : v === 'true' })}
+        options={[
+          { label: 'clickable:any', value: 'any' },
+          { label: 'clickable:true', value: 'true' },
+          { label: 'clickable:false', value: 'false' },
+        ]}
+      />
+
+      <Select
         value={value.nodeEnabled === null ? 'any' : value.nodeEnabled ? 'true' : 'false'}
-        onChange={(e) => set({ nodeEnabled: e.target.value === 'any' ? null : e.target.value === 'true' })}
-        style={{ width: 120 }}
-      >
-        <option value="any">enabled:any</option>
-        <option value="true">enabled:true</option>
-        <option value="false">enabled:false</option>
-      </select>
-    </div>
+        onChange={(v: 'any' | 'true' | 'false') => set({ nodeEnabled: v === 'any' ? null : v === 'true' })}
+        options={[
+          { label: 'enabled:any', value: 'any' },
+          { label: 'enabled:true', value: 'true' },
+          { label: 'enabled:false', value: 'false' },
+        ]}
+      />
+    </Space>
   );
 };

@@ -169,7 +169,7 @@ const StepEditModal: React.FC<StepEditModalProps> = ({
                     showIcon
                     style={{ marginBottom: 16 }}
                   />
-                  <Card className="text-center" style={{ marginBottom: 16 }}>
+                  <Card style={{ marginBottom: 16, textAlign: 'center' }}>
                     <Button
                       type="primary"
                       size="large"
@@ -201,7 +201,7 @@ const StepEditModal: React.FC<StepEditModalProps> = ({
                     showIcon
                     style={{ marginBottom: 16 }}
                   />
-                  <Card className="text-center" style={{ marginBottom: 16 }}>
+                  <Card style={{ marginBottom: 16, textAlign: 'center' }}>
                     <Button
                       type="primary"
                       size="large"
@@ -231,7 +231,7 @@ const StepEditModal: React.FC<StepEditModalProps> = ({
                     message={config.description}
                     type="info"
                     showIcon
-                    className="mb-4"
+                    style={{ marginBottom: 16 }}
                   />
 
                   {config.parameters?.map((param) => (
@@ -256,7 +256,7 @@ const StepEditModal: React.FC<StepEditModalProps> = ({
                   ))}
 
                   {config.advanced && config.advanced.length > 0 && (
-                    <Collapse size="small" className="mt-4">
+                    <Collapse size="small" style={{ marginTop: 16 }}>
                       <Panel header="高级配置" key="advanced">
                         {config.advanced.map((param) => (
                           <Form.Item
@@ -330,14 +330,12 @@ const StepEditModal: React.FC<StepEditModalProps> = ({
             return (
               <div>
                 <Divider orientation="left">参数配置</Divider>
-                <Alert
-                  message={config.description}
-                  type="info"
-                  showIcon
-                  className="mb-4"
-                />
-
-                {config.parameters?.map((param) => (
+                  <Alert
+                    message={config.description}
+                    type="info"
+                    showIcon
+                    style={{ marginBottom: 16 }}
+                  />                {config.parameters?.map((param) => (
                   <Form.Item
                     key={param.key}
                     name={param.key}
@@ -359,7 +357,7 @@ const StepEditModal: React.FC<StepEditModalProps> = ({
                 ))}
 
                 {config.advanced && config.advanced.length > 0 && (
-                  <Collapse size="small" className="mt-4">
+                  <Collapse size="small" style={{ marginTop: 16 }}>
                     <Panel header="高级配置" key="advanced">
                       {config.advanced.map((param) => (
                         <Form.Item

@@ -1,5 +1,5 @@
 import React from 'react';
-import { Card, Tag, Typography } from 'antd';
+import { Card, Tag, Typography, Space } from 'antd';
 import type { EventLogProps } from './types';
 
 const { Text } = Typography;
@@ -18,27 +18,27 @@ export const DeviceEventLog: React.FC<EventLogProps> = ({ lastEvent }) => {
   return (
     <Card size="small" title="最近事件">
       {lastEvent ? (
-        <div>
-          <div style={{ marginBottom: 8 }}>
+        <Space direction="vertical">
+          <div>
             <Text strong>事件类型:</Text><br />
             <Text>{fmtEvent(lastEvent)}</Text>
           </div>
-          <div style={{ marginBottom: 8 }}>
+          <div>
             <Text strong>时间戳:</Text><br />
             <Text>{new Date(lastEvent.timestamp * 1000).toLocaleString()}</Text>
           </div>
-          <div style={{ marginBottom: 8 }}>
+          <div>
             <Text strong>设备数量:</Text><br />
             <Text>{lastEvent.devices.length}</Text>
           </div>
           <div>
             {lastEvent.devices.map((d, idx) => (
-              <Tag key={idx} style={{ marginBottom: 4 }}>{d.id}: {d.status}</Tag>
+              <Tag key={idx}>{d.id}: {d.status}</Tag>
             ))}
           </div>
-        </div>
+        </Space>
       ) : (
-        <div style={{ color: '#999' }}>暂无事件</div>
+        <Text type="secondary">暂无事件</Text>
       )}
     </Card>
   );
