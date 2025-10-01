@@ -1,6 +1,7 @@
 import React from "react";
 import { Steps } from "antd";
-import type { StepsProps } from "antd/es/steps";
+
+type StepsProps = React.ComponentProps<typeof Steps>;
 
 export interface StepsAdapterProps extends Omit<StepsProps, 'size'> {
   /** 统一密度：默认 middle；会映射到 AntD 的 size（small/default） */
