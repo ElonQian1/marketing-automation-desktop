@@ -13,7 +13,9 @@
 import * as React from "react";
 import * as DialogPrimitive from "@radix-ui/react-dialog";
 import { cva, type VariantProps } from "class-variance-authority";
+import { motion } from "framer-motion";
 import { cn, focusRing, modernTransition } from "../utils";
+import { motionPresets } from "../motion";
 import { X } from "lucide-react";
 
 /**
@@ -52,11 +54,15 @@ const DialogOverlay = React.forwardRef<
   React.ElementRef<typeof DialogPrimitive.Overlay>,
   React.ComponentPropsWithoutRef<typeof DialogPrimitive.Overlay>
 >(({ className, ...props }, ref) => (
-  <DialogPrimitive.Overlay
-    ref={ref}
-    className={cn(overlayVariants(), className)}
-    {...props}
-  />
+  <DialogPrimitive.Overlay ref={ref} asChild {...props}>
+    <motion.div
+      className={cn(overlayVariants(), className)}
+      initial="initial"
+      animate="animate"
+      exit="exit"
+      variants={motionPresets.variants.overlay}
+    />
+  </DialogPrimitive.Overlay>
 ));
 DialogOverlay.displayName = DialogPrimitive.Overlay.displayName;
 
@@ -106,25 +112,30 @@ const DialogContent = React.forwardRef<
 >(({ className, children, size, showCloseButton = true, ...props }, ref) => (
   <DialogPortal>
     <DialogOverlay />
-    <DialogPrimitive.Content
-      ref={ref}
-      className={cn(contentVariants({ size }), className)}
-      {...props}
-    >
-      {children}
-      {showCloseButton && (
-        <DialogPrimitive.Close 
-          className={cn(
-            "absolute right-4 top-4 rounded-sm opacity-70 ring-offset-background transition-opacity",
-            "hover:opacity-100 focus:outline-none focus:ring-2 focus:ring-brand focus:ring-offset-2",
-            "disabled:pointer-events-none data-[state=open]:bg-background-secondary data-[state=open]:text-text-muted",
-            "p-1"
-          )}
-        >
-          <X className="h-4 w-4" />
-          <span className="sr-only">关闭</span>
-        </DialogPrimitive.Close>
-      )}
+    <DialogPrimitive.Content ref={ref} asChild {...props}>
+      <motion.div
+        className={cn(contentVariants({ size }), className)}
+        initial="initial"
+        animate="animate"
+        exit="exit"
+        variants={motionPresets.variants.modal}
+        transition={motionPresets.transitions.enter}
+      >
+        {children}
+        {showCloseButton && (
+          <DialogPrimitive.Close
+            className={cn(
+              "absolute right-4 top-4 rounded-sm opacity-70 ring-offset-background transition-opacity",
+              "hover:opacity-100 focus:outline-none focus:ring-2 focus:ring-brand focus:ring-offset-2",
+              "disabled:pointer-events-none data-[state=open]:bg-background-secondary data-[state=open]:text-text-muted",
+              "p-1"
+            )}
+          >
+            <X className="h-4 w-4" />
+            <span className="sr-only">关闭</span>
+          </DialogPrimitive.Close>
+        )}
+      </motion.div>
     </DialogPrimitive.Content>
   </DialogPortal>
 ));
