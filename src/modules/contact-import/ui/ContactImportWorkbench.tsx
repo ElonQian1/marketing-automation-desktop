@@ -273,7 +273,6 @@ export const ContactImportWorkbench: React.FC = () => {
                   panel.i === 'numbers-panel' ? <DatabaseOutlined /> :
                   null
           }))}
-          layout={gridLayout.layout}
           onLayoutChange={gridLayout.handleLayoutChange}
           onPanelVisibilityChange={gridLayout.togglePanelVisibility}
         />
@@ -281,17 +280,17 @@ export const ContactImportWorkbench: React.FC = () => {
         <Row gutter={[16, 16]}>
           {/* 传统布局 */}
           <Col xs={24}>
-            <Card title={<Space><MobileOutlined />设备与VCF</Space>}>
+            <Card title={'设备与VCF'}>
               {renderDevicesPanel()}
             </Card>
           </Col>
           <Col xs={24} md={8}>
-            <Card title={<Space><DatabaseOutlined />导入 TXT 到号码池</Space>}>
+            <Card title={'导入 TXT 到号码池'}>
               {renderImportPanel()}
             </Card>
           </Col>
           <Col xs={24} md={16}>
-            <Card title={<Space><DatabaseOutlined />号码池</Space>}>
+            <Card title={'号码池'}>
               {renderNumbersPanel()}
             </Card>
           </Col>
@@ -309,12 +308,8 @@ export const ContactImportWorkbench: React.FC = () => {
         open={workbenchActions.resultOpen}
         result={workbenchActions.lastResult}
         onClose={() => workbenchActions.setResultOpen(false)}
-        onViewDetails={(deviceId: string) => {
-          workbenchActions.setSessionsModal({ open: true, deviceId });
-          workbenchActions.setResultOpen(false);
-        }}
-        onRetry={(failedDevices: string[]) => {
-          // 重试逻辑
+        onRetryFailed={() => {
+          // 可在此触发失败项重试逻辑或打开会话
         }}
       />
       <BatchManagerDrawer open={workbenchActions.batchDrawerOpen} onClose={() => workbenchActions.setBatchDrawerOpen(false)} />
@@ -327,10 +322,11 @@ export const ContactImportWorkbench: React.FC = () => {
       <ColumnSettingsModal
         open={settingsOpen}
         onClose={() => setSettingsOpen(false)}
-        columns={columnSettings.columns}
-        onVisibilityChange={columnSettings.toggleVisibility}
-        onWidthChange={columnSettings.updateWidth}
+        configs={columnSettings.configs}
+        onToggle={columnSettings.setVisible}
+        onWidthChange={columnSettings.setWidth}
         onReorder={columnSettings.reorder}
+        onReset={columnSettings.reset}
       />
     </div>
   );
