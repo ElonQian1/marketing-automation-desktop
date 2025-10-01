@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import { Card, Typography, Row, Col, Statistic, Progress, Space, Button, Empty } from 'antd';
 import { 
   BarChartOutlined, 
@@ -8,6 +8,8 @@ import {
   TrophyOutlined,
   ClockCircleOutlined
 } from '@ant-design/icons';
+import { AnalyticsService } from './analytics-reporting/AnalyticsService';
+import type { ReportMetrics } from './analytics-reporting/types';
 
 const { Title, Text } = Typography;
 
@@ -26,15 +28,40 @@ export const MonitoringDashboard: React.FC<MonitoringDashboardProps> = ({
   selectedDevice,
   refreshDevices
 }) => {
-  // 模拟数据 - 在实际应用中这些数据来自后端
-  const mockData = {
-    todayLeads: 23,
-    totalLeads: 1247,
-    todayInteractions: 156,
-    successRate: 68.5,
-    activeMonitors: 8,
-    lastUpdate: '刚刚'
+  const [metrics, setMetrics] = useState<ReportMetrics | null>(null);
+  const [loading, setLoading] = useState(false);
+  const [lastUpdate, setLastUpdate] = useState<string>('—');
+
+  const analytics = new AnalyticsService();
+
+  const loadMetrics = async () => {
+    setLoading(true);
+    try {
+      const end = new Date();
+      const start = new Date();
+      start.setDate(end.getDate() - 7);
+      const data = await analytics.getReportMetrics({
+        start: start.toISOString().split('T')[0],
+        end: end.toISOString().split('T')[0],
+        period: 'daily'
+      });
+      setMetrics(data);
+      setLastUpdate('刚刚');
+    } finally {
+      setLoading(false);
+    }
   };
+
+  useEffect(() => {
+    loadMetrics();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  const todayLeads = metrics?.effectiveness.conversions.leads ?? 0;
+  const totalLeads = (metrics?.effectiveness.conversions.leads ?? 0) * 50; // 粗略累计占位
+  const todayInteractions = (metrics?.execution.operations.follows ?? 0) + (metrics?.execution.operations.replies ?? 0);
+  const successRate = metrics?.execution.successRate ?? 0;
+  const activeMonitors = 8; // 后续可从服务端获取
 
   return (
     <div className="space-y-6">
@@ -54,7 +81,7 @@ export const MonitoringDashboard: React.FC<MonitoringDashboardProps> = ({
           <Card>
             <Statistic
               title="今日新增线索"
-              value={mockData.todayLeads}
+              value={todayLeads}
               prefix={<UserOutlined />}
               valueStyle={{ color: '#3f8600' }}
             />
@@ -64,7 +91,7 @@ export const MonitoringDashboard: React.FC<MonitoringDashboardProps> = ({
           <Card>
             <Statistic
               title="累计线索"
-              value={mockData.totalLeads}
+              value={totalLeads}
               prefix={<TrophyOutlined />}
               valueStyle={{ color: '#1677ff' }}
             />
@@ -74,7 +101,7 @@ export const MonitoringDashboard: React.FC<MonitoringDashboardProps> = ({
           <Card>
             <Statistic
               title="今日互动次数"
-              value={mockData.todayInteractions}
+              value={todayInteractions}
               prefix={<MessageOutlined />}
               valueStyle={{ color: '#722ed1' }}
             />
@@ -84,7 +111,7 @@ export const MonitoringDashboard: React.FC<MonitoringDashboardProps> = ({
           <Card>
             <Statistic
               title="转化成功率"
-              value={mockData.successRate}
+              value={successRate}
               suffix="%"
               prefix={<HeartOutlined />}
               valueStyle={{ color: '#cf1322' }}
@@ -100,7 +127,7 @@ export const MonitoringDashboard: React.FC<MonitoringDashboardProps> = ({
             <Space direction="vertical" className="w-full">
               <div className="flex justify-between items-center">
                 <Text>活动监控任务</Text>
-                <Text strong>{mockData.activeMonitors} 个</Text>
+                <Text strong>{activeMonitors} 个</Text>
               </div>
               <Progress percent={85} status="active" />
               
@@ -118,11 +145,16 @@ export const MonitoringDashboard: React.FC<MonitoringDashboardProps> = ({
               <div className="flex justify-between items-center mt-4">
                 <Text type="secondary">
                   <ClockCircleOutlined className="mr-1" />
-                  最后更新: {mockData.lastUpdate}
+                  最后更新: {lastUpdate}
                 </Text>
-                <Button size="small" onClick={refreshDevices}>
-                  刷新状态
-                </Button>
+                <Space>
+                  <Button size="small" loading={loading} onClick={loadMetrics}>
+                    刷新数据
+                  </Button>
+                  <Button size="small" onClick={refreshDevices}>
+                    刷新设备
+                  </Button>
+                </Space>
               </div>
             </Space>
           </Card>

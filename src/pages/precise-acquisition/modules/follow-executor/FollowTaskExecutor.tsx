@@ -41,6 +41,7 @@ import {
   InfoCircleOutlined
 } from '@ant-design/icons';
 import type { Device } from '../../../../domain/adb/entities/Device';
+import { checkDuplication } from '../../../../services/duplicationGuard';
 
 const { Title, Text } = Typography;
 const { Option } = Select;
@@ -320,8 +321,45 @@ export const FollowTaskExecutor: React.FC<FollowTaskExecutorProps> = ({
     }
   ];
 
-  // 启动任务
-  const handleStartTask = (taskId: string) => {
+  // 启动任务（含非阻塞的查重预检）
+  const handleStartTask = async (taskId: string) => {
+    try {
+      const task = tasks.find(t => t.id === taskId);
+      if (task && task.settings.enableDeduplication) {
+        const pendingTargets = task.targets.filter(t => t.status === 'pending');
+        const sampleSize = Math.min(task.settings.batchSize || 5, 10);
+        const sampleTargets = pendingTargets.slice(0, sampleSize);
+        const deviceForCheck = (sampleTargets[0]?.assignedDevice) || task.assignedDevices[0];
+
+        if (deviceForCheck && sampleTargets.length > 0) {
+          const results = await Promise.all(
+            sampleTargets.map(async (t) => {
+              try {
+                const res = await checkDuplication({
+                  action: 'follow',
+                  target_id: t.accountId,
+                  device_id: deviceForCheck,
+                });
+                return { target: t, res };
+              } catch (e) {
+                return { target: t, res: null as any };
+              }
+            })
+          );
+
+          const duplicates = results.filter(r => r.res && r.res.result === 'blocked');
+          if (duplicates.length > 0) {
+            const names = duplicates.slice(0, 3).map(d => d.target.accountName || d.target.accountId).join('、');
+            const more = duplicates.length > 3 ? ` 等 ${duplicates.length} 个目标` : '';
+            message.warning(`查重预检：检测到${duplicates.length}个可能重复的关注目标（如：${names}${more}）。将继续启动任务，重复目标将在执行时跳过。`);
+          }
+        }
+      }
+    } catch (err) {
+      // 预检不阻断启动，仅记录提示
+      console.warn('Dedup preflight failed:', err);
+    }
+
     setTasks(prev => prev.map(task => 
       task.id === taskId 
         ? { ...task, status: 'running', startedAt: new Date().toISOString() }

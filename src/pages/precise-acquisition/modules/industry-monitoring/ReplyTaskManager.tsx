@@ -33,6 +33,7 @@ import {
 import type { CommentData, ReplyTask } from '../../services/monitoringService';
 import type { Device } from '../../../../domain/adb/entities/Device';
 import { monitoringService } from '../../services/monitoringService';
+import { checkDuplication, recordDuplicationAction } from '../../../../services/duplicationGuard';
 
 const { Title, Text, Paragraph } = Typography;
 const { Option } = Select;
@@ -78,11 +79,12 @@ export const ReplyTaskManager: React.FC<ReplyTaskManagerProps> = ({
     setLoading(true);
     try {
       // 检查查重
-      const isDuplicate = await monitoringService.checkDuplication(
-        'reply',
-        selectedComment.id,
-        values.deviceId
-      );
+      const dup = await checkDuplication({
+        action: 'reply',
+        target_id: selectedComment.id,
+        device_id: values.deviceId,
+      });
+      const isDuplicate = dup.result === 'blocked';
 
       if (isDuplicate) {
         message.warning('检测到重复操作，根据查重规则无法执行此次回复');
@@ -104,6 +106,12 @@ export const ReplyTaskManager: React.FC<ReplyTaskManagerProps> = ({
             `reply_${Date.now()}`,
             true
           );
+          // 记录一次成功的回复行为，便于后续查重参考
+          await recordDuplicationAction({
+            action: 'reply',
+            target_id: selectedComment.id,
+            device_id: values.deviceId,
+          });
           
           onCommentUpdate(selectedComment.id, 'replied');
           message.success('回复成功！');
@@ -140,11 +148,12 @@ export const ReplyTaskManager: React.FC<ReplyTaskManagerProps> = ({
     
     try {
       // 检查查重
-      const isDuplicate = await monitoringService.checkDuplication(
-        'follow',
-        comment.authorId,
-        deviceId
-      );
+      const dup = await checkDuplication({
+        action: 'follow',
+        target_id: comment.authorId,
+        device_id: deviceId,
+      });
+      const isDuplicate = dup.result === 'blocked';
 
       if (isDuplicate) {
         message.warning('检测到重复操作，根据查重规则无法执行关注');
@@ -153,6 +162,12 @@ export const ReplyTaskManager: React.FC<ReplyTaskManagerProps> = ({
 
       // 模拟关注操作
       onCommentUpdate(comment.id, 'followed');
+      // 记录一次关注行为
+      await recordDuplicationAction({
+        action: 'follow',
+        target_id: comment.authorId,
+        device_id: deviceId,
+      });
       message.success(`已关注用户 ${comment.authorName}`);
       
     } catch (error) {

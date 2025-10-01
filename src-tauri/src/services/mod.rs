@@ -20,6 +20,7 @@ pub mod contact_storage; // 新增：联系人号码存储（TXT导入到SQLite�
 pub mod crash_debugger;
 pub mod device_contact_metrics;
 pub mod employee_service;
+pub mod duplication_guard; // 新增：查重防护服务（内存态）
 pub mod execution; // 新增：执行分层骨架 (模型/重试/快照)
 pub mod huawei_enhanced_importer; // 基于Python成功经验的华为增强导入器
 pub mod ldplayer_vcf_opener;

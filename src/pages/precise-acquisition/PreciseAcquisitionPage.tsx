@@ -7,7 +7,8 @@ import {
   SettingOutlined,
   ThunderboltOutlined,
   BellOutlined,
-  FileTextOutlined
+  FileTextOutlined,
+  SafetyCertificateOutlined
 } from '@ant-design/icons';
 import { useAdb } from '../../application/hooks/useAdb';
 
@@ -16,7 +17,8 @@ import { IndustryMonitoringModule } from './modules/IndustryMonitoringModule';
 import { AccountMonitoringModule } from './modules/AccountMonitoringModule';
 import { TaskManagementCenter } from './modules/TaskManagementCenter';
 import { DailyReportModule } from './modules/DailyReportModule';
-// import { MonitoringDashboard } from './modules/MonitoringDashboard';
+import { MonitoringDashboard } from './modules/MonitoringDashboard';
+import { DuplicationProtectionPanel } from './modules/safety-protection';
 
 const { Title, Text } = Typography;
 
@@ -50,15 +52,11 @@ export const PreciseAcquisitionPage: React.FC = () => {
         </span>
       ),
       children: (
-        <Card>
-          <Typography.Title level={3}>📊 监控总览</Typography.Title>
-          <Typography.Text type="secondary">精准获客系统整体数据概览和实时状态</Typography.Text>
-          <div className="mt-8">
-            <Typography.Text>
-              🚧 开发模式：监控总览模块正在开发中...
-            </Typography.Text>
-          </div>
-        </Card>
+        <MonitoringDashboard 
+          onlineDevices={onlineDevices}
+          selectedDevice={selectedDevice}
+          refreshDevices={refreshDevices}
+        />
       )
     },
     {
@@ -116,6 +114,21 @@ export const PreciseAcquisitionPage: React.FC = () => {
         selectedDevice={selectedDevice}
         refreshDevices={refreshDevices}
       />
+    },
+    {
+      key: 'safety',
+      label: (
+        <span>
+          <SafetyCertificateOutlined />
+          安全保护
+        </span>
+      ),
+      children: (
+        <DuplicationProtectionPanel 
+          onlineDevices={onlineDevices}
+          onRuleUpdate={() => { /* no-op wiring for now */ }}
+        />
+      )
     },
     {
       key: 'settings',

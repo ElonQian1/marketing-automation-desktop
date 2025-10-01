@@ -11,5 +11,7 @@ export type {
   DuplicationRule,
   DuplicationCheck,
   DuplicationHistory,
-  DuplicationEvent
+  DuplicationEvent,
+  DuplicationConfig,
+  DuplicationAnalytics
 } from './types';
