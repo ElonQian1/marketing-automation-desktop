@@ -1,0 +1,23 @@
+/* BatchManagerDrawer.module.css */
+
+.drawer {
+  width: 800px;
+}
+
+.section {
+  margin-bottom: 24px;
+}
+
+.filterSection {
+  padding: 16px;
+  background: #f5f5f5;
+  border-radius: 8px;
+}
+
+.listSection {
+  margin-top: 16px;
+}
+
+.table {
+  margin-top: 16px;
+}

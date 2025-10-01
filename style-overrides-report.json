@@ -1,10 +1,10 @@
 {
   "summary": {
-    "scannedFiles": 1243,
-    "totalIssues": 1446,
-    "criticalIssues": 23,
-    "highIssues": 26,
-    "mediumIssues": 1397
+    "scannedFiles": 1249,
+    "totalIssues": 1458,
+    "criticalIssues": 21,
+    "highIssues": 32,
+    "mediumIssues": 1405
   },
   "violations": [
     {
@@ -28,28 +28,6 @@
       "match": ".ant-table-",
       "context": "* 2. 不覆写 .ant-table-* 内部样式，仅通过 ConfigProvider 和外层容器",
       "fix": "移除覆盖，通过 tokens 和适配器统一"
-    },
-    {
-      "file": "src\\components\\native-antd\\native-reset.css",
-      "line": 4,
-      "column": 25,
-      "type": "importantUsage",
-      "name": "!important 使用",
-      "severity": "critical",
-      "match": "!important",
-      "context": "* 原因：直接覆盖 .ant-* 样式并使用 !important，违反了员工A的核心职责",
-      "fix": "移除 !important，通过正确的CSS层级和tokens处理"
-    },
-    {
-      "file": "src\\components\\native-antd\\native-reset.css",
-      "line": 8,
-      "column": 12,
-      "type": "importantUsage",
-      "name": "!important 使用",
-      "severity": "critical",
-      "match": "!important",
-      "context": "* 2. 禁止任何 !important 使用",
-      "fix": "移除 !important，通过正确的CSS层级和tokens处理"
     },
     {
       "file": "src\\modules\\contact-import\\ui\\components\\DeviceAssignmentGrid\\DeviceCard.tsx",
@@ -259,6 +237,28 @@
       "match": ".ant-table-container",
       "context": "//     '.ant-table-container'",
       "fix": "移除覆盖，通过 tokens 和适配器统一"
+    },
+    {
+      "file": "src\\components\\EnhancedDraggableToolbar.module.css",
+      "line": 10,
+      "column": 3,
+      "type": "hardcodedShadow",
+      "name": "硬编码阴影",
+      "severity": "high",
+      "match": "box-shadow: 0 1px 4px rgba(",
+      "context": "box-shadow: 0 1px 4px rgba(0, 0, 0, 0.1);",
+      "fix": "使用 var(--shadow) 等 tokens 替换"
+    },
+    {
+      "file": "src\\components\\EnhancedDraggableToolbar.module.css",
+      "line": 9,
+      "column": 3,
+      "type": "hardcodedRadius",
+      "name": "硬编码圆角",
+      "severity": "high",
+      "match": "border-radius: 6px",
+      "context": "border-radius: 6px;",
+      "fix": "使用 var(--radius) 等 tokens 替换"
     },
     {
       "file": "src\\components\\ui\\buttons\\PrimaryButton.tsx",
@@ -492,6 +492,28 @@
       "fix": "使用 var(--radius) 等 tokens 替换"
     },
     {
+      "file": "src\\components\\universal-ui\\views\\list-view\\ElementListView.css",
+      "line": 16,
+      "column": 3,
+      "type": "hardcodedRadius",
+      "name": "硬编码圆角",
+      "severity": "high",
+      "match": "border-radius: 8px",
+      "context": "border-radius: 8px;",
+      "fix": "使用 var(--radius) 等 tokens 替换"
+    },
+    {
+      "file": "src\\modules\\contact-import\\ui\\batch-manager\\BatchManagerDrawer.module.css",
+      "line": 14,
+      "column": 3,
+      "type": "hardcodedRadius",
+      "name": "硬编码圆角",
+      "severity": "high",
+      "match": "border-radius: 8px",
+      "context": "border-radius: 8px;",
+      "fix": "使用 var(--radius) 等 tokens 替换"
+    },
+    {
       "file": "src\\modules\\contact-import\\ui\\components\\DeviceAssignmentGrid.module.css",
       "line": 15,
       "column": 3,
@@ -500,6 +522,28 @@
       "severity": "high",
       "match": "border-radius: 10px",
       "context": "border-radius: 10px;",
+      "fix": "使用 var(--radius) 等 tokens 替换"
+    },
+    {
+      "file": "src\\modules\\contact-import\\ui\\components\\grid-layout\\components\\EnhancedDraggableToolbar.module.css",
+      "line": 10,
+      "column": 3,
+      "type": "hardcodedShadow",
+      "name": "硬编码阴影",
+      "severity": "high",
+      "match": "box-shadow: 0 1px 4px rgba(",
+      "context": "box-shadow: 0 1px 4px rgba(0, 0, 0, 0.1);",
+      "fix": "使用 var(--shadow) 等 tokens 替换"
+    },
+    {
+      "file": "src\\modules\\contact-import\\ui\\components\\grid-layout\\components\\EnhancedDraggableToolbar.module.css",
+      "line": 9,
+      "column": 3,
+      "type": "hardcodedRadius",
+      "name": "硬编码圆角",
+      "severity": "high",
+      "match": "border-radius: 6px",
+      "context": "border-radius: 6px;",
       "fix": "使用 var(--radius) 等 tokens 替换"
     },
     {
@@ -2898,6 +2942,28 @@
       "severity": "medium",
       "match": "#fafafa",
       "context": "<Card size=\"small\" style={{ textAlign: 'center', backgroundColor: '#fafafa' }}>",
+      "fix": "使用 tokens 颜色变量替换"
+    },
+    {
+      "file": "src\\components\\EnhancedDraggableToolbar.module.css",
+      "line": 8,
+      "column": 21,
+      "type": "hardcodedColors",
+      "name": "硬编码颜色",
+      "severity": "medium",
+      "match": "#d9d9d9",
+      "context": "border: 1px solid #d9d9d9;",
+      "fix": "使用 tokens 颜色变量替换"
+    },
+    {
+      "file": "src\\components\\EnhancedDraggableToolbar.module.css",
+      "line": 22,
+      "column": 15,
+      "type": "hardcodedColors",
+      "name": "硬编码颜色",
+      "severity": "medium",
+      "match": "#d9d9d9",
+      "context": "background: #d9d9d9;",
       "fix": "使用 tokens 颜色变量替换"
     },
     {
@@ -9534,6 +9600,39 @@
       "fix": "使用 tokens 颜色变量替换"
     },
     {
+      "file": "src\\components\\universal-ui\\views\\list-view\\ElementListView.css",
+      "line": 15,
+      "column": 21,
+      "type": "hardcodedColors",
+      "name": "硬编码颜色",
+      "severity": "medium",
+      "match": "#d9d9d9",
+      "context": "border: 1px solid #d9d9d9;",
+      "fix": "使用 tokens 颜色变量替换"
+    },
+    {
+      "file": "src\\components\\universal-ui\\views\\list-view\\ElementListView.css",
+      "line": 22,
+      "column": 28,
+      "type": "hardcodedColors",
+      "name": "硬编码颜色",
+      "severity": "medium",
+      "match": "#f0f0f0",
+      "context": "border-bottom: 1px solid #f0f0f0;",
+      "fix": "使用 tokens 颜色变量替换"
+    },
+    {
+      "file": "src\\components\\universal-ui\\views\\list-view\\ElementListView.css",
+      "line": 28,
+      "column": 21,
+      "type": "hardcodedColors",
+      "name": "硬编码颜色",
+      "severity": "medium",
+      "match": "#f5f5f5",
+      "context": "background-color: #f5f5f5;",
+      "fix": "使用 tokens 颜色变量替换"
+    },
+    {
       "file": "src\\components\\universal-ui\\views\\list-view\\ElementListView.tsx",
       "line": 206,
       "column": 25,
@@ -11866,6 +11965,17 @@
       "fix": "使用 tokens 颜色变量替换"
     },
     {
+      "file": "src\\modules\\contact-import\\ui\\batch-manager\\BatchManagerDrawer.module.css",
+      "line": 13,
+      "column": 15,
+      "type": "hardcodedColors",
+      "name": "硬编码颜色",
+      "severity": "medium",
+      "match": "#f5f5f5",
+      "context": "background: #f5f5f5;",
+      "fix": "使用 tokens 颜色变量替换"
+    },
+    {
       "file": "src\\modules\\contact-import\\ui\\batch-manager\\components\\bulk-actions\\BulkActionsBar.tsx",
       "line": 95,
       "column": 20,
@@ -12336,6 +12446,28 @@
       "severity": "medium",
       "match": "#fa8c16",
       "context": "valueStyle={{ color: '#fa8c16' }}",
+      "fix": "使用 tokens 颜色变量替换"
+    },
+    {
+      "file": "src\\modules\\contact-import\\ui\\components\\grid-layout\\components\\EnhancedDraggableToolbar.module.css",
+      "line": 8,
+      "column": 21,
+      "type": "hardcodedColors",
+      "name": "硬编码颜色",
+      "severity": "medium",
+      "match": "#d9d9d9",
+      "context": "border: 1px solid #d9d9d9;",
+      "fix": "使用 tokens 颜色变量替换"
+    },
+    {
+      "file": "src\\modules\\contact-import\\ui\\components\\grid-layout\\components\\EnhancedDraggableToolbar.module.css",
+      "line": 22,
+      "column": 15,
+      "type": "hardcodedColors",
+      "name": "硬编码颜色",
+      "severity": "medium",
+      "match": "#d9d9d9",
+      "context": "background: #d9d9d9;",
       "fix": "使用 tokens 颜色变量替换"
     },
     {
@@ -18373,6 +18505,52 @@
         "fix": "使用 tokens 颜色变量替换"
       }
     ],
+    "src\\components\\EnhancedDraggableToolbar.module.css": [
+      {
+        "file": "src\\components\\EnhancedDraggableToolbar.module.css",
+        "line": 10,
+        "column": 3,
+        "type": "hardcodedShadow",
+        "name": "硬编码阴影",
+        "severity": "high",
+        "match": "box-shadow: 0 1px 4px rgba(",
+        "context": "box-shadow: 0 1px 4px rgba(0, 0, 0, 0.1);",
+        "fix": "使用 var(--shadow) 等 tokens 替换"
+      },
+      {
+        "file": "src\\components\\EnhancedDraggableToolbar.module.css",
+        "line": 9,
+        "column": 3,
+        "type": "hardcodedRadius",
+        "name": "硬编码圆角",
+        "severity": "high",
+        "match": "border-radius: 6px",
+        "context": "border-radius: 6px;",
+        "fix": "使用 var(--radius) 等 tokens 替换"
+      },
+      {
+        "file": "src\\components\\EnhancedDraggableToolbar.module.css",
+        "line": 8,
+        "column": 21,
+        "type": "hardcodedColors",
+        "name": "硬编码颜色",
+        "severity": "medium",
+        "match": "#d9d9d9",
+        "context": "border: 1px solid #d9d9d9;",
+        "fix": "使用 tokens 颜色变量替换"
+      },
+      {
+        "file": "src\\components\\EnhancedDraggableToolbar.module.css",
+        "line": 22,
+        "column": 15,
+        "type": "hardcodedColors",
+        "name": "硬编码颜色",
+        "severity": "medium",
+        "match": "#d9d9d9",
+        "context": "background: #d9d9d9;",
+        "fix": "使用 tokens 颜色变量替换"
+      }
+    ],
     "src\\components\\ErrorBoundary.tsx": [
       {
         "file": "src\\components\\ErrorBoundary.tsx",
@@ -22388,30 +22566,6 @@
         "fix": "使用 tokens 颜色变量替换"
       }
     ],
-    "src\\components\\native-antd\\native-reset.css": [
-      {
-        "file": "src\\components\\native-antd\\native-reset.css",
-        "line": 4,
-        "column": 25,
-        "type": "importantUsage",
-        "name": "!important 使用",
-        "severity": "critical",
-        "match": "!important",
-        "context": "* 原因：直接覆盖 .ant-* 样式并使用 !important，违反了员工A的核心职责",
-        "fix": "移除 !important，通过正确的CSS层级和tokens处理"
-      },
-      {
-        "file": "src\\components\\native-antd\\native-reset.css",
-        "line": 8,
-        "column": 12,
-        "type": "importantUsage",
-        "name": "!important 使用",
-        "severity": "critical",
-        "match": "!important",
-        "context": "* 2. 禁止任何 !important 使用",
-        "fix": "移除 !important，通过正确的CSS层级和tokens处理"
-      }
-    ],
     "src\\components\\native-dashboard\\NativeAntDashboard.tsx": [
       {
         "file": "src\\components\\native-dashboard\\NativeAntDashboard.tsx",
@@ -25401,6 +25555,52 @@
         "fix": "使用 tokens 颜色变量替换"
       }
     ],
+    "src\\components\\universal-ui\\views\\list-view\\ElementListView.css": [
+      {
+        "file": "src\\components\\universal-ui\\views\\list-view\\ElementListView.css",
+        "line": 16,
+        "column": 3,
+        "type": "hardcodedRadius",
+        "name": "硬编码圆角",
+        "severity": "high",
+        "match": "border-radius: 8px",
+        "context": "border-radius: 8px;",
+        "fix": "使用 var(--radius) 等 tokens 替换"
+      },
+      {
+        "file": "src\\components\\universal-ui\\views\\list-view\\ElementListView.css",
+        "line": 15,
+        "column": 21,
+        "type": "hardcodedColors",
+        "name": "硬编码颜色",
+        "severity": "medium",
+        "match": "#d9d9d9",
+        "context": "border: 1px solid #d9d9d9;",
+        "fix": "使用 tokens 颜色变量替换"
+      },
+      {
+        "file": "src\\components\\universal-ui\\views\\list-view\\ElementListView.css",
+        "line": 22,
+        "column": 28,
+        "type": "hardcodedColors",
+        "name": "硬编码颜色",
+        "severity": "medium",
+        "match": "#f0f0f0",
+        "context": "border-bottom: 1px solid #f0f0f0;",
+        "fix": "使用 tokens 颜色变量替换"
+      },
+      {
+        "file": "src\\components\\universal-ui\\views\\list-view\\ElementListView.css",
+        "line": 28,
+        "column": 21,
+        "type": "hardcodedColors",
+        "name": "硬编码颜色",
+        "severity": "medium",
+        "match": "#f5f5f5",
+        "context": "background-color: #f5f5f5;",
+        "fix": "使用 tokens 颜色变量替换"
+      }
+    ],
     "src\\components\\universal-ui\\views\\list-view\\ElementListView.tsx": [
       {
         "file": "src\\components\\universal-ui\\views\\list-view\\ElementListView.tsx",
@@ -27781,6 +27981,30 @@
         "fix": "使用 tokens 颜色变量替换"
       }
     ],
+    "src\\modules\\contact-import\\ui\\batch-manager\\BatchManagerDrawer.module.css": [
+      {
+        "file": "src\\modules\\contact-import\\ui\\batch-manager\\BatchManagerDrawer.module.css",
+        "line": 14,
+        "column": 3,
+        "type": "hardcodedRadius",
+        "name": "硬编码圆角",
+        "severity": "high",
+        "match": "border-radius: 8px",
+        "context": "border-radius: 8px;",
+        "fix": "使用 var(--radius) 等 tokens 替换"
+      },
+      {
+        "file": "src\\modules\\contact-import\\ui\\batch-manager\\BatchManagerDrawer.module.css",
+        "line": 13,
+        "column": 15,
+        "type": "hardcodedColors",
+        "name": "硬编码颜色",
+        "severity": "medium",
+        "match": "#f5f5f5",
+        "context": "background: #f5f5f5;",
+        "fix": "使用 tokens 颜色变量替换"
+      }
+    ],
     "src\\modules\\contact-import\\ui\\batch-manager\\components\\bulk-actions\\BulkActionsBar.tsx": [
       {
         "file": "src\\modules\\contact-import\\ui\\batch-manager\\components\\bulk-actions\\BulkActionsBar.tsx",
@@ -28321,6 +28545,52 @@
         "severity": "medium",
         "match": "#fa8c16",
         "context": "valueStyle={{ color: '#fa8c16' }}",
+        "fix": "使用 tokens 颜色变量替换"
+      }
+    ],
+    "src\\modules\\contact-import\\ui\\components\\grid-layout\\components\\EnhancedDraggableToolbar.module.css": [
+      {
+        "file": "src\\modules\\contact-import\\ui\\components\\grid-layout\\components\\EnhancedDraggableToolbar.module.css",
+        "line": 10,
+        "column": 3,
+        "type": "hardcodedShadow",
+        "name": "硬编码阴影",
+        "severity": "high",
+        "match": "box-shadow: 0 1px 4px rgba(",
+        "context": "box-shadow: 0 1px 4px rgba(0, 0, 0, 0.1);",
+        "fix": "使用 var(--shadow) 等 tokens 替换"
+      },
+      {
+        "file": "src\\modules\\contact-import\\ui\\components\\grid-layout\\components\\EnhancedDraggableToolbar.module.css",
+        "line": 9,
+        "column": 3,
+        "type": "hardcodedRadius",
+        "name": "硬编码圆角",
+        "severity": "high",
+        "match": "border-radius: 6px",
+        "context": "border-radius: 6px;",
+        "fix": "使用 var(--radius) 等 tokens 替换"
+      },
+      {
+        "file": "src\\modules\\contact-import\\ui\\components\\grid-layout\\components\\EnhancedDraggableToolbar.module.css",
+        "line": 8,
+        "column": 21,
+        "type": "hardcodedColors",
+        "name": "硬编码颜色",
+        "severity": "medium",
+        "match": "#d9d9d9",
+        "context": "border: 1px solid #d9d9d9;",
+        "fix": "使用 tokens 颜色变量替换"
+      },
+      {
+        "file": "src\\modules\\contact-import\\ui\\components\\grid-layout\\components\\EnhancedDraggableToolbar.module.css",
+        "line": 22,
+        "column": 15,
+        "type": "hardcodedColors",
+        "name": "硬编码颜色",
+        "severity": "medium",
+        "match": "#d9d9d9",
+        "context": "background: #d9d9d9;",
         "fix": "使用 tokens 颜色变量替换"
       }
     ],
@@ -34829,6 +35099,28 @@
         "fix": "使用 tokens 颜色变量替换"
       },
       {
+        "file": "src\\components\\EnhancedDraggableToolbar.module.css",
+        "line": 8,
+        "column": 21,
+        "type": "hardcodedColors",
+        "name": "硬编码颜色",
+        "severity": "medium",
+        "match": "#d9d9d9",
+        "context": "border: 1px solid #d9d9d9;",
+        "fix": "使用 tokens 颜色变量替换"
+      },
+      {
+        "file": "src\\components\\EnhancedDraggableToolbar.module.css",
+        "line": 22,
+        "column": 15,
+        "type": "hardcodedColors",
+        "name": "硬编码颜色",
+        "severity": "medium",
+        "match": "#d9d9d9",
+        "context": "background: #d9d9d9;",
+        "fix": "使用 tokens 颜色变量替换"
+      },
+      {
         "file": "src\\components\\ErrorBoundary.tsx",
         "line": 65,
         "column": 66,
@@ -41385,6 +41677,39 @@
         "fix": "使用 tokens 颜色变量替换"
       },
       {
+        "file": "src\\components\\universal-ui\\views\\list-view\\ElementListView.css",
+        "line": 15,
+        "column": 21,
+        "type": "hardcodedColors",
+        "name": "硬编码颜色",
+        "severity": "medium",
+        "match": "#d9d9d9",
+        "context": "border: 1px solid #d9d9d9;",
+        "fix": "使用 tokens 颜色变量替换"
+      },
+      {
+        "file": "src\\components\\universal-ui\\views\\list-view\\ElementListView.css",
+        "line": 22,
+        "column": 28,
+        "type": "hardcodedColors",
+        "name": "硬编码颜色",
+        "severity": "medium",
+        "match": "#f0f0f0",
+        "context": "border-bottom: 1px solid #f0f0f0;",
+        "fix": "使用 tokens 颜色变量替换"
+      },
+      {
+        "file": "src\\components\\universal-ui\\views\\list-view\\ElementListView.css",
+        "line": 28,
+        "column": 21,
+        "type": "hardcodedColors",
+        "name": "硬编码颜色",
+        "severity": "medium",
+        "match": "#f5f5f5",
+        "context": "background-color: #f5f5f5;",
+        "fix": "使用 tokens 颜色变量替换"
+      },
+      {
         "file": "src\\components\\universal-ui\\views\\list-view\\ElementListView.tsx",
         "line": 206,
         "column": 49,
@@ -43574,6 +43899,17 @@
         "fix": "使用 tokens 颜色变量替换"
       },
       {
+        "file": "src\\modules\\contact-import\\ui\\batch-manager\\BatchManagerDrawer.module.css",
+        "line": 13,
+        "column": 15,
+        "type": "hardcodedColors",
+        "name": "硬编码颜色",
+        "severity": "medium",
+        "match": "#f5f5f5",
+        "context": "background: #f5f5f5;",
+        "fix": "使用 tokens 颜色变量替换"
+      },
+      {
         "file": "src\\modules\\contact-import\\ui\\batch-manager\\components\\bulk-actions\\BulkActionsBar.tsx",
         "line": 95,
         "column": 43,
@@ -44022,6 +44358,28 @@
         "severity": "medium",
         "match": "#fa8c16",
         "context": "valueStyle={{ color: '#fa8c16' }}",
+        "fix": "使用 tokens 颜色变量替换"
+      },
+      {
+        "file": "src\\modules\\contact-import\\ui\\components\\grid-layout\\components\\EnhancedDraggableToolbar.module.css",
+        "line": 8,
+        "column": 21,
+        "type": "hardcodedColors",
+        "name": "硬编码颜色",
+        "severity": "medium",
+        "match": "#d9d9d9",
+        "context": "border: 1px solid #d9d9d9;",
+        "fix": "使用 tokens 颜色变量替换"
+      },
+      {
+        "file": "src\\modules\\contact-import\\ui\\components\\grid-layout\\components\\EnhancedDraggableToolbar.module.css",
+        "line": 22,
+        "column": 15,
+        "type": "hardcodedColors",
+        "name": "硬编码颜色",
+        "severity": "medium",
+        "match": "#d9d9d9",
+        "context": "background: #d9d9d9;",
         "fix": "使用 tokens 颜色变量替换"
       },
       {
@@ -47855,31 +48213,18 @@
         "fix": "定义渐变tokens或使用Tailwind工具类"
       }
     ],
-    "importantUsage": [
-      {
-        "file": "src\\components\\native-antd\\native-reset.css",
-        "line": 4,
-        "column": 25,
-        "type": "importantUsage",
-        "name": "!important 使用",
-        "severity": "critical",
-        "match": "!important",
-        "context": "* 原因：直接覆盖 .ant-* 样式并使用 !important，违反了员工A的核心职责",
-        "fix": "移除 !important，通过正确的CSS层级和tokens处理"
-      },
-      {
-        "file": "src\\components\\native-antd\\native-reset.css",
-        "line": 8,
-        "column": 12,
-        "type": "importantUsage",
-        "name": "!important 使用",
-        "severity": "critical",
-        "match": "!important",
-        "context": "* 2. 禁止任何 !important 使用",
-        "fix": "移除 !important，通过正确的CSS层级和tokens处理"
-      }
-    ],
     "hardcodedShadow": [
+      {
+        "file": "src\\components\\EnhancedDraggableToolbar.module.css",
+        "line": 10,
+        "column": 3,
+        "type": "hardcodedShadow",
+        "name": "硬编码阴影",
+        "severity": "high",
+        "match": "box-shadow: 0 1px 4px rgba(",
+        "context": "box-shadow: 0 1px 4px rgba(0, 0, 0, 0.1);",
+        "fix": "使用 var(--shadow) 等 tokens 替换"
+      },
       {
         "file": "src\\components\\ui\\buttons\\PrimaryButton.tsx",
         "line": 93,
@@ -47980,6 +48325,17 @@
         "fix": "使用 var(--shadow) 等 tokens 替换"
       },
       {
+        "file": "src\\modules\\contact-import\\ui\\components\\grid-layout\\components\\EnhancedDraggableToolbar.module.css",
+        "line": 10,
+        "column": 3,
+        "type": "hardcodedShadow",
+        "name": "硬编码阴影",
+        "severity": "high",
+        "match": "box-shadow: 0 1px 4px rgba(",
+        "context": "box-shadow: 0 1px 4px rgba(0, 0, 0, 0.1);",
+        "fix": "使用 var(--shadow) 等 tokens 替换"
+      },
+      {
         "file": "src\\modules\\contact-import\\ui\\components\\grid-layout\\hooks\\performance\\DragBehaviorOptimizer.ts",
         "line": 117,
         "column": 9,
@@ -48003,6 +48359,17 @@
       }
     ],
     "hardcodedRadius": [
+      {
+        "file": "src\\components\\EnhancedDraggableToolbar.module.css",
+        "line": 9,
+        "column": 3,
+        "type": "hardcodedRadius",
+        "name": "硬编码圆角",
+        "severity": "high",
+        "match": "border-radius: 6px",
+        "context": "border-radius: 6px;",
+        "fix": "使用 var(--radius) 等 tokens 替换"
+      },
       {
         "file": "src\\components\\ui\\buttons\\PrimaryButton.tsx",
         "line": 91,
@@ -48136,6 +48503,28 @@
         "fix": "使用 var(--radius) 等 tokens 替换"
       },
       {
+        "file": "src\\components\\universal-ui\\views\\list-view\\ElementListView.css",
+        "line": 16,
+        "column": 3,
+        "type": "hardcodedRadius",
+        "name": "硬编码圆角",
+        "severity": "high",
+        "match": "border-radius: 8px",
+        "context": "border-radius: 8px;",
+        "fix": "使用 var(--radius) 等 tokens 替换"
+      },
+      {
+        "file": "src\\modules\\contact-import\\ui\\batch-manager\\BatchManagerDrawer.module.css",
+        "line": 14,
+        "column": 3,
+        "type": "hardcodedRadius",
+        "name": "硬编码圆角",
+        "severity": "high",
+        "match": "border-radius: 8px",
+        "context": "border-radius: 8px;",
+        "fix": "使用 var(--radius) 等 tokens 替换"
+      },
+      {
         "file": "src\\modules\\contact-import\\ui\\components\\DeviceAssignmentGrid.module.css",
         "line": 15,
         "column": 3,
@@ -48144,6 +48533,17 @@
         "severity": "high",
         "match": "border-radius: 10px",
         "context": "border-radius: 10px;",
+        "fix": "使用 var(--radius) 等 tokens 替换"
+      },
+      {
+        "file": "src\\modules\\contact-import\\ui\\components\\grid-layout\\components\\EnhancedDraggableToolbar.module.css",
+        "line": 9,
+        "column": 3,
+        "type": "hardcodedRadius",
+        "name": "硬编码圆角",
+        "severity": "high",
+        "match": "border-radius: 6px",
+        "context": "border-radius: 6px;",
         "fix": "使用 var(--radius) 等 tokens 替换"
       },
       {

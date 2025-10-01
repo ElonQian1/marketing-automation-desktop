@@ -1,0 +1,24 @@
+/* EnhancedDraggableToolbar.module.css */
+
+.toolbar {
+  display: flex;
+  gap: 8px;
+  padding: 8px;
+  background: white;
+  border: 1px solid #d9d9d9;
+  border-radius: 6px;
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.1);
+}
+
+.toolGroup {
+  display: flex;
+  gap: 4px;
+  align-items: center;
+}
+
+.divider {
+  width: 1px;
+  height: 20px;
+  background: #d9d9d9;
+  margin: 0 8px;
+}

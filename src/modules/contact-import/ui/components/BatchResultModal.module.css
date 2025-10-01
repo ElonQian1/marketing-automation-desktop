@@ -1,0 +1,21 @@
+/* BatchResultModal.module.css */
+
+.modal {
+  max-width: 900px;
+}
+
+.successSection {
+  margin-bottom: 24px;
+}
+
+.failureSection {
+  margin-bottom: 24px;
+}
+
+.table {
+  margin-top: 16px;
+}
+
+.statusTag {
+  font-weight: 500;
+}
