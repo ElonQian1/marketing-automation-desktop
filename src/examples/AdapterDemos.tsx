@@ -7,7 +7,7 @@ import {
   RangeDatePickerAdapter,
   DrawerAdapter,
   StepsAdapter,
-} from "@/components/adapters";
+} from "../components/adapters";
 
 export const AdapterDemos: React.FC = () => {
   const [open, setOpen] = React.useState(false);
