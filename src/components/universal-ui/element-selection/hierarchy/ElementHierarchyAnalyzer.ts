@@ -145,12 +145,6 @@ export class ElementHierarchyAnalyzer {
         throw new Error('无法找到根节点: 没有可用元素');
       }
       
-      // 断开所有父子关系，重新构建
-      allNodes.forEach(node => {
-        node.parent = null;
-        node.children = [];
-      });
-      
       // 找到面积最大的元素作为根节点
       const rootNode = allNodes.reduce((largest, current) => {
         const largestArea = this.getElementArea(largest.element);
@@ -158,7 +152,22 @@ export class ElementHierarchyAnalyzer {
         return currentArea > largestArea ? current : largest;
       });
       
+      // 断开所有父子关系，然后重新构建以根节点为中心的层次结构
+      allNodes.forEach(node => {
+        node.parent = null;
+        node.children = [];
+      });
+      
+      // 重新建立父子关系：除了根节点外，其他节点都作为根节点的直接子节点
+      allNodes.forEach(node => {
+        if (node !== rootNode) {
+          node.parent = rootNode;
+          rootNode.children.push(node);
+        }
+      });
+      
       console.log('✅ 使用面积最大元素作为根节点:', rootNode.element.id);
+      console.log('📊 重新构建层次结构: 根节点有', rootNode.children.length, '个直接子节点');
       return rootNode;
     }
 
