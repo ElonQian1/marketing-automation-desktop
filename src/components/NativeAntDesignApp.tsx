@@ -39,7 +39,7 @@ import { featureFlags } from "../config/featureFlags";
 import InspectorPage from "../pages/InspectorPage";
 import PermissionTestPage from "../pages/PermissionTestPage";
 import AdbCenterPage from "../pages/adb/AdbCenterPage";
-import SmartScriptBuilderPage from "../pages/SmartScriptBuilderPage";
+import SmartScriptBuilderPageNativeWrapper from "../pages/native-wrappers/SmartScriptBuilderPage.native";
 import RealTimeDeviceMonitorPage from "../pages/device-monitor/RealTimeDeviceMonitorPage";
 import SmartVcfImporter from "./SmartVcfImporter";
 import TemplateLibrary from "./template/TemplateLibrary";
@@ -48,11 +48,17 @@ import QuickPhoneMirror from "./QuickPhoneMirror";
 import { PageFinderView } from "./universal-ui/page-finder";
 import { ThemeSettingsPage } from "../pages/ThemeSettingsPage";
 import { NativeAntDashboard } from "./native-dashboard/NativeAntDashboard";
+import EmployeePageNativeWrapper from "../pages/native-wrappers/EmployeePage.native";
 
 // 原生 Ant Design 页面版本导入
 import { StatisticsPageNative } from "../pages/statistics/StatisticsPageNative";
 import { DeviceManagementPageNative } from "../pages/device-management/DeviceManagementPageNative";
 import { LoginPageNative } from "../pages/auth/LoginPageNative";
+
+// 优化后的商业化页面
+import { StatisticsPageOptimized } from "../pages/statistics/StatisticsPageOptimized";
+import { DeviceManagementPageOptimized } from "../pages/device-management/DeviceManagementPageOptimized";
+import BusinessComponentsDemo from "../pages/BusinessComponentsDemo";
 
 const { Header, Sider, Content } = Layout;
 const { Title } = Typography;
@@ -131,14 +137,34 @@ const NativeAntDesignApp: React.FC = () => {
       label: "统计页面（原生）",
     },
     {
+      key: "statistics-optimized",
+      icon: <DashboardOutlined />,
+      label: "📊 统计中心（商业版）",
+    },
+    {
       key: "device-management-native",
       icon: <MobileOutlined />,
       label: "设备管理（原生）",
     },
     {
+      key: "device-management-optimized",
+      icon: <MobileOutlined />,
+      label: "📱 设备中心（商业版）",
+    },
+    {
+      key: "business-demo",
+      icon: <BgColorsOutlined />,
+      label: "🎨 商业组件演示",
+    },
+    {
       key: "login-native",
       icon: <UserAddOutlined />,
       label: "登录页面（原生）",
+    },
+    {
+      key: "employee-native",
+      icon: <UserAddOutlined />,
+      label: "员工管理（原生包装）",
     },
   ];
 
@@ -155,7 +181,7 @@ const NativeAntDesignApp: React.FC = () => {
       case "permission-test":
         return <PermissionTestPage />;
       case "smart-script-builder":
-        return <SmartScriptBuilderPage />;
+        return <SmartScriptBuilderPageNativeWrapper />;
       case "template-library":
         return <TemplateLibrary />;
       case "page-finder":
@@ -164,10 +190,18 @@ const NativeAntDesignApp: React.FC = () => {
         return <ThemeSettingsPage />;
       case "statistics-native":
         return <StatisticsPageNative />;
+      case "statistics-optimized":
+        return <StatisticsPageOptimized />;
       case "device-management-native":
         return <DeviceManagementPageNative />;
+      case "device-management-optimized":
+        return <DeviceManagementPageOptimized />;
+      case "business-demo":
+        return <BusinessComponentsDemo />;
       case "login-native":
         return <LoginPageNative />;
+      case "employee-native":
+        return <EmployeePageNativeWrapper />;
       default:
         return <NativeAntDashboard />;
     }
