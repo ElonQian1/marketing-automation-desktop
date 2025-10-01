@@ -10,7 +10,8 @@
  */
 
 import { useState, useEffect, useCallback } from 'react';
-import { listContactNumbers, ContactNumberDto, getContactNumberStats, ContactNumberStatsDto } from '../services/contactNumberService';
+import { listContactNumbers, ContactNumberDto } from '../services/contactNumberService';
+import { getContactNumberStats, ContactNumberStatsDto } from '../services/stats/contactStatsService';
 
 export interface UseWorkbenchDataReturn {
   // 数据状态
@@ -62,8 +63,8 @@ export const useWorkbenchData = (): UseWorkbenchDataReturn => {
     try {
       setLoading(true);
       const response = await listContactNumbers({
-        page,
-        pageSize,
+        limit: pageSize,
+        offset: (page - 1) * pageSize,
         search: search.trim() || undefined,
       });
       setItems(response.items);
