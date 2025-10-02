@@ -3,7 +3,7 @@ import React, { useCallback, useMemo, useRef, useState, useEffect } from 'react'
 export interface ResizableColumnConfig {
   key: string;
   width?: number; // px
-  minWidth?: number; // default 60
+  minWidth?: number; // default 20
   maxWidth?: number; // default 600
 }
 
@@ -28,7 +28,7 @@ export function useResizableColumns(
   options: UseResizableColumnsOptions = {}
 ) {
   const { 
-    minWidth = 60, 
+    minWidth = 20, 
     maxWidth = 600, 
     onWidthChange, 
     controlled = false,

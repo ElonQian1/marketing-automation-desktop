@@ -11,7 +11,7 @@ interface Props extends ThProps {
 
 const ResizableHeaderCell: React.FC<Props> = ({ 
   width, 
-  minWidth = 60, 
+  minWidth = 20, 
   maxWidth = 600, 
   onResizeStart, 
   children, 
