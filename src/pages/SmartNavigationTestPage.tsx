@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
-import { Card, Select, Space, Typography, Button, message, List, Tag, Popconfirm, Row, Col, Empty } from 'antd';
+import { Card, Select, Space, Typography, Button, message, List, Tag, Row, Col, Empty } from 'antd';
+import ConfirmPopover from '@/components/universal-ui/common-popover/ConfirmPopover';
 import { invoke } from '@tauri-apps/api/core';
 import { 
   MobileOutlined, 
@@ -230,11 +231,11 @@ const SmartNavigationTestPage: React.FC = () => {
                 >
                   执行全部
                 </Button>
-                <Popconfirm title="确定要清空所有步骤吗？" onConfirm={handleClearAllSteps} disabled={smartSteps.length === 0}>
+                <ConfirmPopover mode="default" title="确定要清空所有步骤吗？" onConfirm={handleClearAllSteps} disabled={smartSteps.length === 0}>
                   <Button danger size="small" icon={<DeleteOutlined />} disabled={smartSteps.length === 0}>
                     清空
                   </Button>
-                </Popconfirm>
+                </ConfirmPopover>
               </Space>
             }
           >
@@ -255,11 +256,11 @@ const SmartNavigationTestPage: React.FC = () => {
                       >
                         执行
                       </Button>,
-                      <Popconfirm key="delete" title="确定删除这个步骤吗？" onConfirm={() => handleDeleteStep(step.id)}>
+                      <ConfirmPopover key="delete" mode="default" title="确定删除这个步骤吗？" onConfirm={() => handleDeleteStep(step.id)}>
                         <Button type="link" danger icon={<DeleteOutlined />}>
                           删除
                         </Button>
-                      </Popconfirm>,
+                      </ConfirmPopover>,
                     ]}
                   >
                     <List.Item.Meta

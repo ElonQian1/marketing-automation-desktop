@@ -45,6 +45,9 @@ use services::contact_storage::commands::{
     update_import_session_industry_cmd,
     revert_import_session_to_failed_cmd,
     delete_import_session_cmd,
+    // TXT文件导入记录命令（新增）
+    list_txt_import_records_cmd,
+    delete_txt_import_record_cmd,
 };
 use services::crash_debugger::*;
 use services::employee_service::EmployeeService;
@@ -198,6 +201,9 @@ fn main() {
             revert_import_session_to_failed_cmd,
             delete_import_session_cmd,
             list_import_session_events_cmd,
+            // TXT文件导入记录管理（新增）
+            list_txt_import_records_cmd,
+            delete_txt_import_record_cmd,
                 allocate_numbers_to_device_cmd,
             // 号码ID查询（全量按筛选）
             list_all_contact_number_ids,

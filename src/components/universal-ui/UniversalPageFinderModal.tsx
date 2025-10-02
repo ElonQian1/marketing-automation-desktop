@@ -460,8 +460,14 @@ const UniversalPageFinderModal: React.FC<UniversalPageFinderModalProps> = ({
               console.log('✅ [ElementSelectionPopover] onConfirm 被调用');
               selectionManager.confirmSelection();
             }}
+            // 取消：仅关闭并清空待选
             onCancel={() => {
               console.log('❌ [ElementSelectionPopover] onCancel 被调用');
+              selectionManager.cancelSelection();
+            }}
+            // 隐藏：执行真正的隐藏逻辑
+            onHide={() => {
+              console.log('🫥 [ElementSelectionPopover] onHide 被调用');
               selectionManager.hideElement();
             }}
             // 新增：支持元素发现功能

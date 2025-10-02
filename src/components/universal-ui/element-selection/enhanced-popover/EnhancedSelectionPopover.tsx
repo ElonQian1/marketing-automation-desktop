@@ -4,7 +4,8 @@
  */
 
 import React, { useState, useEffect } from 'react';
-import { Popconfirm, Divider, Space, Typography, Button, Empty, Spin } from 'antd';
+import { Divider, Space, Typography, Button, Empty, Spin } from 'antd';
+import ConfirmPopover from '../../common-popover/ConfirmPopover';
 import { 
   CheckOutlined, 
   EyeInvisibleOutlined, 
@@ -233,36 +234,12 @@ export const EnhancedSelectionPopover: React.FC<EnhancedSelectionPopoverProps> =
         pointerEvents: 'none',
       }}
     >
-      <Popconfirm
+      <ConfirmPopover
         open={visible}
         title={renderMainContent()}
-        description=""
-        okText={
-          <span style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
-            <CheckOutlined />
-            确定
-          </span>
-        }
-        cancelText={
-          <span style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
-            <EyeInvisibleOutlined />
-            隐藏
-          </span>
-        }
-        onConfirm={(e) => {
-          if (e) e.stopPropagation();
-          onConfirm();
-        }}
-        onCancel={(e) => {
-          if (e) e.stopPropagation();
-          onCancel();
-        }}
         placement={positioning.placement}
-        arrow={{ pointAtCenter: true }}
-        getPopupContainer={() => document.body}
-        overlayStyle={{
-          maxWidth: showAlternativesList ? '350px' : '250px'
-        }}
+        overlayStyle={{ maxWidth: showAlternativesList ? '350px' : '250px' }}
+        onCancel={() => onCancel()}
       >
         <div style={{ 
           width: 1, 
@@ -270,7 +247,7 @@ export const EnhancedSelectionPopover: React.FC<EnhancedSelectionPopoverProps> =
           opacity: 0,
           pointerEvents: 'auto'
         }} />
-      </Popconfirm>
+      </ConfirmPopover>
     </div>
   );
 };

@@ -1,5 +1,6 @@
 import React, { useMemo, useState } from 'react';
-import { Button, Space, Typography, Popconfirm, message, Tag, Dropdown } from 'antd';
+import { Button, Space, Typography, message, Tag, Dropdown } from 'antd';
+import ConfirmPopover from '@/components/universal-ui/common-popover/ConfirmPopover';
 import { InboxOutlined, CheckSquareOutlined, CloseOutlined } from '@ant-design/icons';
 import { markContactNumbersAsNotImportedBatch } from '../services/contactNumberService';
 import { listAllContactNumberIds } from '../services/numberIdsService';
@@ -123,7 +124,8 @@ const WorkbenchNumbersActionsBar: React.FC<Props> = ({
         >
           清空选择
         </Button>
-        <Popconfirm
+        <ConfirmPopover
+          mode="default"
           title="确认归档"
           description={`将 ${totalSelected} 条号码重置为未导入状态？`}
           okText="确认"
@@ -140,7 +142,7 @@ const WorkbenchNumbersActionsBar: React.FC<Props> = ({
           >
             批量归档为未导入
           </Button>
-        </Popconfirm>
+  </ConfirmPopover>
       </Space>
     </div>
   );

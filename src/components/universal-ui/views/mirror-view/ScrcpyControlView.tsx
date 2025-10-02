@@ -1,5 +1,6 @@
 import React, { useEffect, useMemo, useState } from 'react';
-import { Button, Card, Select, Space, Tag, Typography, Alert, Divider, Tooltip, Input, InputNumber, Switch, Form, Popconfirm, Radio } from 'antd';
+import { Button, Card, Select, Space, Tag, Typography, Alert, Divider, Tooltip, Input, InputNumber, Switch, Form, Radio } from 'antd';
+import ConfirmPopover from '@/components/universal-ui/common-popover/ConfirmPopover';
 import { scrcpyService, ScrcpyCapabilities } from '../../../../application/services/ScrcpyApplicationService';
 import { useAdb } from '../../../../application/hooks/useAdb';
 import EmbeddedScrcpyPlayer from './EmbeddedScrcpyPlayer';
@@ -361,7 +362,8 @@ export const ScrcpyControlView: React.FC = () => {
           ) : (
             <Space wrap>
               {sessions.map((s) => (
-                <Popconfirm
+                <ConfirmPopover
+                  mode="default"
                   key={s}
                   title={`停止会话 ${s} ？`}
                   onConfirm={async () => {
@@ -372,7 +374,7 @@ export const ScrcpyControlView: React.FC = () => {
                   }}
                 >
                   <Tag color="geekblue" style={{ cursor: 'pointer' }}>{s}</Tag>
-                </Popconfirm>
+                </ConfirmPopover>
               ))}
             </Space>
           )}

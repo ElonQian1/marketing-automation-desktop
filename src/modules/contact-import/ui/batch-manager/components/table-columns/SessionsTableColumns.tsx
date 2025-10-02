@@ -1,5 +1,6 @@
 import type { ColumnsType } from 'antd/es/table';
-import { Tag, Space, Button, Popconfirm, Modal } from 'antd';
+import { Tag, Space, Button, Modal } from 'antd';
+import ConfirmPopover from '@/components/universal-ui/common-popover/ConfirmPopover';
 import React from 'react';
 import { TimeFormatterCell, BatchIdCell, LatestImportTimeCell, IndustryTagCell } from '../table-cells';
 import { EnhancedSessionImportButton } from '../enhanced-import/EnhancedSessionImportButton';
@@ -254,7 +255,8 @@ export const createSessionsTableColumns = (options: CreateSessionsTableColumnsOp
               onRefresh={onRefresh}
             />
             {record.status === 'success' && (
-              <Popconfirm
+              <ConfirmPopover
+                mode="default"
                 title="将该会话标记为失败并回滚号码？"
                 description="相关号码将恢复为未导入，可重新分配/导入。此操作不可逆。"
                 okText="确认回滚"
@@ -262,7 +264,7 @@ export const createSessionsTableColumns = (options: CreateSessionsTableColumnsOp
                 onConfirm={() => onRevertSession?.(record.id)}
               >
                 <Button size="small" danger>回滚</Button>
-              </Popconfirm>
+              </ConfirmPopover>
             )}
             <Button size="small" danger ghost onClick={openDeleteConfirm} disabled={!onDeleteSession}>
               删除

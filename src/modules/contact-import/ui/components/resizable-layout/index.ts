@@ -1,20 +1,20 @@
 // 导出可拖拽布局系统的所有组件和工具
-export { useResizableLayout } from './useResizableLayout';
-export type { PanelConfig, LayoutState } from './useResizableLayout';
+export { useResizableLayout } from "./useResizableLayout";
+export type { PanelConfig, LayoutState } from "./useResizableLayout";
 
-export { ResizableDraggablePanel } from './ResizableDraggablePanel';
-export { LayoutManager } from './LayoutManager';
-export { NumberPoolPanel } from './NumberPoolPanel';
-export { DeviceAssignmentPanel } from './DeviceAssignmentPanel';
-export { TxtImportPanel } from './TxtImportPanel';
+export { ResizableDraggablePanel } from "./ResizableDraggablePanel";
+export { LayoutManager } from "./LayoutManager";
+export { NumberPoolPanel } from "./NumberPoolPanel";
+export { DeviceAssignmentPanel } from "./DeviceAssignmentPanel";
+export { TxtImportPanel } from "./TxtImportPanel";
 
 // 预定义的面板配置
-import type { PanelConfig } from './useResizableLayout';
+import type { PanelConfig } from "./useResizableLayout";
 
 export const DEFAULT_PANELS: PanelConfig[] = [
   {
-    id: 'device-assignment',
-    title: '设备与VCF',
+    id: "device-assignment",
+    title: "设备与VCF",
     x: 20,
     y: 20,
     width: 1200,
@@ -25,8 +25,8 @@ export const DEFAULT_PANELS: PanelConfig[] = [
     zIndex: 1,
   },
   {
-    id: 'txt-import',
-    title: '导入 TXT 到号码池',
+    id: "txt-import",
+    title: "导入 TXT 到号码池",
     x: 20,
     y: 440,
     width: 800,
@@ -37,8 +37,8 @@ export const DEFAULT_PANELS: PanelConfig[] = [
     zIndex: 2,
   },
   {
-    id: 'number-pool',
-    title: '号码池',
+    id: "number-pool",
+    title: "号码池",
     x: 840,
     y: 440,
     width: 900,

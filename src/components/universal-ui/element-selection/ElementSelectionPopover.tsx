@@ -2,8 +2,10 @@
 // 说明：提供默认导出与具名导出 ElementSelectionPopover，避免导入歧义
 
 import React, { useState, useEffect, useMemo, useCallback } from 'react';
-import { Popconfirm, Space, Button } from 'antd';
-import { CheckOutlined, EyeInvisibleOutlined, SearchOutlined } from '@ant-design/icons';
+import ConfirmPopover from '../common-popover/ConfirmPopover';
+// icons are handled inside PopoverActionButtons
+import { PopoverActionButtons } from './components/PopoverActionButtons';
+import type { PopoverActionTokens } from './components/tokens';
 import type { UIElement } from '../../../api/universalUIAPI';
 import { useSmartPopoverPosition } from './utils/popoverPositioning';
 import { ElementDiscoveryModal } from './element-discovery';
@@ -18,9 +20,11 @@ export interface ElementSelectionPopoverProps {
   visible: boolean;
   selection: ElementSelectionState | null;
   onConfirm: () => void;
-  onCancel: () => void;
+  onCancel: () => void; // 取消选择并关闭
+  onHide?: () => void;  // 隐藏元素（与业务 hide 行为绑定）
   allElements?: UIElement[];
   onElementSelect?: (element: UIElement) => void;
+  actionTokens?: Partial<PopoverActionTokens>; // 注入尺寸/间距令牌
 }
 
 const ElementSelectionPopoverComponent: React.FC<ElementSelectionPopoverProps> = ({
@@ -28,8 +32,10 @@ const ElementSelectionPopoverComponent: React.FC<ElementSelectionPopoverProps> =
   selection,
   onConfirm,
   onCancel,
+  onHide,
   allElements = [],
-  onElementSelect
+  onElementSelect,
+  actionTokens
 }) => {
   const [discoveryModalOpen, setDiscoveryModalOpen] = useState(false);
   
@@ -116,11 +122,8 @@ const ElementSelectionPopoverComponent: React.FC<ElementSelectionPopoverProps> =
           pointerEvents: 'none',
         }}
       >
-        <Popconfirm
+        <ConfirmPopover
           open={visible}
-          // 隐藏默认 OK/Cancel，避免出现多余的 ok/cancel 按钮
-          showCancel={false}
-          okButtonProps={{ style: { display: 'none' } }}
           title={
             <div style={{ maxWidth: '220px' }}>
               <div style={{ fontSize: '12px', color: '#666', marginBottom: '4px' }}>
@@ -132,53 +135,21 @@ const ElementSelectionPopoverComponent: React.FC<ElementSelectionPopoverProps> =
                  selection.element.class_name || '未知元素'}
               </div>
               
-              <Space size={4} wrap>
-                <Button
-                  type="primary"
-                  size="small"
-                  icon={<CheckOutlined />}
-                  onClick={handleConfirm}
-                  style={{ fontSize: '11px' }}
-                >
-                  确定
-                </Button>
-                
-                {allElements.length > 0 && onElementSelect && (
-                  <Button
-                    size="small"
-                    icon={<SearchOutlined />}
-                    onClick={handleDiscovery}
-                    style={{ fontSize: '11px' }}
-                  >
-                    发现元素
-                  </Button>
-                )}
-                {/* 隐藏（与父层 onCancel 映射到 hideElement 行为一致） */}
-                <Button
-                  size="small"
-                  icon={<EyeInvisibleOutlined />}
-                  onClick={(e) => {
-                    e?.stopPropagation?.();
-                    console.log('🫥 [ElementSelectionPopover] 隐藏按钮被点击');
-                    onCancel();
-                  }}
-                  style={{ fontSize: '11px' }}
-                >
-                  隐藏
-                </Button>
-                
-                <Button
-                  size="small"
-                  icon={<EyeInvisibleOutlined />}
-                  onClick={(e) => {
-                    console.log('🖱️ [ElementSelectionPopover] 取消按钮被点击');
-                    handleCancel(e);
-                  }}
-                  style={{ fontSize: '11px' }}
-                >
-                  取消
-                </Button>
-              </Space>
+              <PopoverActionButtons
+                onConfirm={handleConfirm}
+                onDiscovery={allElements.length > 0 && onElementSelect ? handleDiscovery : undefined}
+                onHide={(e) => {
+                  e?.stopPropagation?.();
+                  console.log('🫥 [ElementSelectionPopover] 隐藏按钮被点击');
+                  if (onHide) onHide(); else onCancel();
+                }}
+                onCancel={(e) => {
+                  console.log('🖱️ [ElementSelectionPopover] 取消按钮被点击');
+                  handleCancel(e);
+                }}
+                tokens={actionTokens}
+                autoCompact
+              />
             </div>
           }
           overlayStyle={{ pointerEvents: 'auto' }}
@@ -186,7 +157,7 @@ const ElementSelectionPopoverComponent: React.FC<ElementSelectionPopoverProps> =
         >
           {/* 隐藏的触发元素 */}
           <div style={{ width: 1, height: 1, opacity: 0 }} />
-        </Popconfirm>
+  </ConfirmPopover>
       </div>
 
       {/* 元素发现模态框 */}
@@ -219,6 +190,7 @@ const ElementSelectionPopover = React.memo(ElementSelectionPopoverComponent, (pr
     // 🔧 修复：确保事件处理器变化时组件会重新渲染
     prevProps.onConfirm === nextProps.onConfirm &&
     prevProps.onCancel === nextProps.onCancel &&
+    prevProps.onHide === nextProps.onHide &&
     prevProps.onElementSelect === nextProps.onElementSelect
   );
 });

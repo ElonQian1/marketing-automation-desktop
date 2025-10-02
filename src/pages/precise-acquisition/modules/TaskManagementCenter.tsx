@@ -15,9 +15,9 @@ import {
   Input,
   Select,
   message,
-  Popconfirm,
   Divider
 } from 'antd';
+import ConfirmPopover from '@/components/universal-ui/common-popover/ConfirmPopover';
 import {
   UserAddOutlined,
   MessageOutlined,
@@ -364,14 +364,15 @@ export const TaskManagementCenter: React.FC<TaskManagementCenterProps> = ({
               执行
             </Button>
           )}
-          <Popconfirm
+          <ConfirmPopover
+            mode="default"
             title="确定删除这个任务吗？"
             onConfirm={() => handleDeleteTask(record.id)}
             okText="确定"
             cancelText="取消"
           >
             <Button size="small" danger icon={<DeleteOutlined />} />
-          </Popconfirm>
+          </ConfirmPopover>
         </Space>
       )
     }

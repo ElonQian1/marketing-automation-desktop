@@ -4,6 +4,14 @@ pub mod parser;
 pub mod repo;
 pub mod queries;
 
+// 新增：模块化架构
+pub mod repositories;
+
+// 向后兼容：重新导出新模块的功能
+pub use repositories::txt_import_records_repo;
+pub use commands::txt_import_records;
+
+// 统一从 commands 模块导入所有命令函数
 pub use commands::{
     allocate_numbers_to_device_cmd,
     create_import_session_record,
@@ -18,6 +26,7 @@ pub use commands::{
     finish_import_session_record,
     // 统计与行业设置
     get_contact_number_stats_cmd,
+    get_distinct_industries_cmd,
     get_vcf_batch_record,
     import_contact_numbers_from_file,
     import_contact_numbers_from_folder,
@@ -34,5 +43,12 @@ pub use commands::{
     tag_numbers_industry_by_vcf_batch_cmd,
     list_import_session_events_cmd,
     list_all_contact_number_ids,
+    // TXT导入记录管理命令（新模块化接口）
+    list_txt_import_records_cmd,
+    delete_txt_import_record_cmd,
+    // 会话管理增强命令
+    update_import_session_industry_cmd,
+    revert_import_session_to_failed_cmd,
+    delete_import_session_cmd,
 };
 

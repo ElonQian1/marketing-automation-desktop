@@ -46,6 +46,34 @@ pub struct ContactNumberStatsDto {
     pub per_industry: Vec<IndustryCountDto>,
 }
 
+// ----- TXT文件导入记录模型 -----
+
+#[derive(Debug, Serialize, Deserialize, Clone)]
+pub struct TxtImportRecordDto {
+    pub id: i64,
+    pub file_path: String,
+    pub file_name: String,
+    pub total_numbers: i64,
+    pub imported_numbers: i64,
+    pub duplicate_numbers: i64,
+    pub status: String,  // 'success' | 'failed' | 'partial'
+    pub error_message: Option<String>,
+    pub created_at: String,
+}
+
+#[derive(Debug, Serialize, Deserialize, Clone)]
+pub struct TxtImportRecordList {
+    pub total: i64,
+    pub items: Vec<TxtImportRecordDto>,
+}
+
+#[derive(Debug, Serialize, Deserialize, Clone)]
+pub struct DeleteTxtImportRecordResult {
+    pub record_id: i64,
+    pub archived_number_count: i64,
+    pub success: bool,
+}
+
 // ----- 批次与导入追踪模型 -----
 
 #[derive(Debug, Serialize, Deserialize, Clone)]

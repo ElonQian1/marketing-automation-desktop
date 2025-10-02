@@ -12,13 +12,13 @@ import {
   Select,
   Tag,
   Tooltip,
-  Popconfirm,
   message,
   Row,
   Col,
   Typography,
   Divider
 } from 'antd';
+import ConfirmPopover from '@/components/universal-ui/common-popover/ConfirmPopover';
 import {
   PlusOutlined,
   EditOutlined,
@@ -267,20 +267,20 @@ export const ScriptManager: React.FC<ScriptManagerProps> = ({
               onClick={() => handleRename(record)}
             />
           </Tooltip>
-          <Popconfirm
+          <ConfirmPopover
+            mode="default"
             title="确认删除"
             description="删除后无法恢复，确认删除这个脚本吗？"
             onConfirm={() => handleDelete(record.id)}
             okText="删除"
             cancelText="取消"
-            okType="danger"
           >
             <Button
               danger
               icon={<DeleteOutlined />}
               size="small"
             />
-          </Popconfirm>
+          </ConfirmPopover>
         </Space>
       )
     }

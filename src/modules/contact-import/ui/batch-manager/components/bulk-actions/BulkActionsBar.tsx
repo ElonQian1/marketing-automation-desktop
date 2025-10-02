@@ -1,5 +1,6 @@
 import React, { useState, useMemo } from 'react';
-import { Button, Space, message, Typography, Popconfirm, Badge } from 'antd';
+import { Button, Space, message, Typography, Badge } from 'antd';
+import ConfirmPopover from '@/components/universal-ui/common-popover/ConfirmPopover';
 import { 
   InboxOutlined, 
   CheckCircleOutlined, 
@@ -133,7 +134,8 @@ export const BulkActionsBar: React.FC<BulkActionsBarProps> = ({
             取消选择
           </Button>
           
-          <Popconfirm
+          <ConfirmPopover
+            mode="default"
             title="归档确认"
             description={`将 ${statistics.archiveable} 个号码重置为未导入状态？`}
             onConfirm={handleArchive}
@@ -150,7 +152,7 @@ export const BulkActionsBar: React.FC<BulkActionsBarProps> = ({
             >
               批量归档 ({statistics.archiveable})
             </Button>
-          </Popconfirm>
+          </ConfirmPopover>
         </Space>
       </div>
     </div>

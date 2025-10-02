@@ -1,5 +1,6 @@
 import React from "react";
-import { Dropdown, MenuProps, Popconfirm, Button, Typography } from "antd";
+import { Dropdown, MenuProps, Button, Typography } from "antd";
+import ConfirmPopover from '@/components/universal-ui/common-popover/ConfirmPopover';
 import { DeleteOutlined, EllipsisOutlined } from "@ant-design/icons";
 import { toAssetUrl } from "../utils/fileUrl";
 import Thumbnail from "./Thumbnail";
@@ -117,17 +118,15 @@ export const CachedPageCard: React.FC<CachedPageCardProps> = ({
           </div>
         </div>
         <div style={{ display: "flex", gap: 8, marginTop: 4 }}>
-          <Popconfirm
+          <ConfirmPopover
+            mode="default"
             title="删除?"
-            onConfirm={(e) => {
-              e?.stopPropagation();
-              onDelete(page);
-            }}
+            onConfirm={() => { onDelete(page); }}
             okText="删除"
             cancelText="取消"
           >
             <Button type="text" danger size="small" icon={<DeleteOutlined />} onClick={(e) => e.stopPropagation()} />
-          </Popconfirm>
+          </ConfirmPopover>
           <Button type="link" size="small" onClick={(e) => { e.stopPropagation(); onReveal(page); }}>打开位置</Button>
           <Button type="link" size="small" onClick={(e) => { e.stopPropagation(); onCopyPath(page); }}>复制路径</Button>
         </div>

@@ -20,8 +20,8 @@ import {
   Badge,
   Progress,
   Tooltip,
-  Popconfirm
 } from 'antd';
+import ConfirmPopover from '@/components/universal-ui/common-popover/ConfirmPopover';
 import type { ColumnsType } from 'antd/es/table';
 import type { Key } from 'antd/es/table/interface';
 import {
@@ -385,7 +385,8 @@ export const TaskExecutionCenter: React.FC<TaskExecutionCenterProps> = ({
             </Button>
           )}
           
-          <Popconfirm
+          <ConfirmPopover
+            mode="default"
             title="确认删除"
             description="删除后无法恢复，确认删除此任务？"
             onConfirm={() => deleteTask(record.id)}
@@ -399,7 +400,7 @@ export const TaskExecutionCenter: React.FC<TaskExecutionCenterProps> = ({
             >
               删除
             </Button>
-          </Popconfirm>
+          </ConfirmPopover>
         </Space>
       )
     }

@@ -13,10 +13,10 @@ import {
   Typography,
   Tooltip,
   Badge,
-  Popconfirm,
   Dropdown,
   Progress
 } from 'antd';
+import ConfirmPopover from '@/components/universal-ui/common-popover/ConfirmPopover';
 import type { ColumnsType } from 'antd/es/table';
 import type { Key } from 'antd/es/table/interface';
 import {
@@ -246,7 +246,8 @@ export const TaskList: React.FC<TaskListProps> = ({
               <Button type="text" size="small" icon={<MoreOutlined />} />
             </Dropdown>
 
-            <Popconfirm
+            <ConfirmPopover
+              mode="default"
               title="确认删除"
               description="删除任务将同时清理相关的评论数据和回复任务，此操作不可恢复。"
               onConfirm={() => onDeleteTask(record.id)}
@@ -260,7 +261,7 @@ export const TaskList: React.FC<TaskListProps> = ({
                 icon={<DeleteOutlined />}
                 className="text-red-500"
               />
-            </Popconfirm>
+            </ConfirmPopover>
           </Space>
         );
       }

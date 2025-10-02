@@ -96,6 +96,23 @@ pub fn init_db(conn: &Connection) -> SqlResult<()> {
         )",
         [],
     )?;
+    
+    // TXT文件导入记录表（新增）
+    conn.execute(
+        "CREATE TABLE IF NOT EXISTS txt_import_records (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            file_path TEXT NOT NULL,
+            file_name TEXT NOT NULL,
+            total_numbers INTEGER NOT NULL DEFAULT 0,
+            imported_numbers INTEGER NOT NULL DEFAULT 0,
+            duplicate_numbers INTEGER NOT NULL DEFAULT 0,
+            status TEXT NOT NULL DEFAULT 'success',
+            error_message TEXT,
+            created_at TEXT NOT NULL DEFAULT (datetime('now'))
+        )",
+        [],
+    )?;
+    
     Ok(())
 }
 
@@ -1206,5 +1223,117 @@ pub fn delete_import_session(conn: &Connection, session_id: i64, archive_numbers
         removed_event_count,
         removed_batch_link_count,
         removed_batch_record,
+    })
+}
+
+// ===== TXT文件导入记录管理 =====
+
+/// 创建TXT文件导入记录
+pub fn create_txt_import_record(
+    conn: &Connection,
+    file_path: &str,
+    file_name: &str,
+    total_numbers: i64,
+    imported_numbers: i64,
+    duplicate_numbers: i64,
+    status: &str,
+    error_message: Option<&str>,
+) -> SqlResult<i64> {
+    let now = Local::now().format("%Y-%m-%d %H:%M:%S").to_string();
+    conn.execute(
+        "INSERT INTO txt_import_records (file_path, file_name, total_numbers, imported_numbers, duplicate_numbers, status, error_message, created_at)
+         VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7, ?8)",
+        params![file_path, file_name, total_numbers, imported_numbers, duplicate_numbers, status, error_message, now],
+    )?;
+    Ok(conn.last_insert_rowid())
+}
+
+/// 获取TXT文件导入记录列表
+pub fn list_txt_import_records(
+    conn: &Connection,
+    limit: i64,
+    offset: i64,
+) -> SqlResult<super::models::TxtImportRecordList> {
+    let total: i64 = conn.query_row(
+        "SELECT COUNT(*) FROM txt_import_records",
+        [],
+        |row| row.get(0),
+    )?;
+
+    let mut stmt = conn.prepare(
+        "SELECT id, file_path, file_name, total_numbers, imported_numbers, duplicate_numbers, status, error_message, created_at 
+         FROM txt_import_records 
+         ORDER BY created_at DESC 
+         LIMIT ?1 OFFSET ?2"
+    )?;
+
+    let mut rows = stmt.query(params![limit, offset])?;
+    let mut items = Vec::new();
+
+    while let Some(row) = rows.next()? {
+        items.push(super::models::TxtImportRecordDto {
+            id: row.get(0)?,
+            file_path: row.get(1)?,
+            file_name: row.get(2)?,
+            total_numbers: row.get(3)?,
+            imported_numbers: row.get(4)?,
+            duplicate_numbers: row.get(5)?,
+            status: row.get(6)?,
+            error_message: row.get(7).ok(),
+            created_at: row.get(8)?,
+        });
+    }
+
+    Ok(super::models::TxtImportRecordList { total, items })
+}
+
+/// 删除TXT文件导入记录（可选择是否归档相关号码）
+pub fn delete_txt_import_record(
+    conn: &Connection,
+    record_id: i64,
+    archive_numbers: bool,
+) -> SqlResult<super::models::DeleteTxtImportRecordResult> {
+    let record_info: Option<String> = conn
+        .query_row(
+            "SELECT file_path FROM txt_import_records WHERE id = ?1",
+            params![record_id],
+            |row| row.get(0),
+        )
+        .optional()?;
+
+    if record_info.is_none() {
+        return Ok(super::models::DeleteTxtImportRecordResult {
+            record_id,
+            archived_number_count: 0,
+            success: false,
+        });
+    }
+
+    let file_path = record_info.unwrap();
+    let mut archived_number_count: i64 = 0;
+
+    let tx = conn.unchecked_transaction()?;
+
+    if archive_numbers {
+        // 将来源为该文件的号码重置为未导入状态
+        archived_number_count = tx
+            .execute(
+                "UPDATE contact_numbers SET used = 0, status = 'not_imported', imported_device_id = NULL, used_batch = NULL WHERE source_file = ?1",
+                params![&file_path],
+            )? as i64;
+    }
+
+    // 删除记录
+    tx.execute(
+        "DELETE FROM txt_import_records WHERE id = ?1",
+        params![record_id],
+    )?;
+
+    tx.commit()?;
+
+    Ok(super::models::DeleteTxtImportRecordResult {
+        record_id,
+        archived_number_count,
+        success: true,
     })
 }

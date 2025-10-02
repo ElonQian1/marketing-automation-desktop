@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
-import { Popconfirm, Space, Button } from 'antd';
+import { Space, Button } from 'antd';
+import ConfirmPopover from '../common-popover/ConfirmPopover';
 import { CheckOutlined, EyeInvisibleOutlined, SearchOutlined } from '@ant-design/icons';
 import type { UIElement } from '../../../api/universalUIAPI';
 import { useSmartPopoverPosition } from './utils/popoverPositioning';
@@ -13,7 +14,7 @@ import { usePopoverInteractionManager } from './hooks/useGlobalInteractionManage
 import { usePopoverZIndex } from './utils/zIndexManager';
 import { usePopoverUserExperience } from './utils/advancedUserExperience';
 import { usePopoverPerformanceMonitor } from './utils/performanceMonitor';
-
+// Legacy backup removed. Intentionally left blank to avoid compilation.
 export interface ElementSelectionState {
   element: UIElement;
   position: { x: number; y: number };
@@ -33,9 +34,9 @@ export interface ElementSelectionPopoverProps {
 export const ElementSelectionPopover: React.FC<ElementSelectionPopoverProps> = ({
   visible,
   selection,
-  onConfirm,
-  onCancel,
-  allElements = [],
+        <ConfirmPopover
+          open={visible}
+          title={
   onElementSelect
 }) => {
   // 元素发现模态框状态
@@ -44,11 +45,9 @@ export const ElementSelectionPopover: React.FC<ElementSelectionPopoverProps> = (
   // 生成唯一ID
   const popoverId = `element-popover-${selection?.element.id || 'unknown'}`;
   
-  // 🆕 生命周期管理
-  const lifecycleManager = usePopoverLifecycleManager({
-    autoCleanupDelay: 300,
+        >
     enableDebugLog: true
-  });
+        </ConfirmPopover>
 
   // 🆕 状态监控
   const monitor = PopoverStateMonitor.getInstance();

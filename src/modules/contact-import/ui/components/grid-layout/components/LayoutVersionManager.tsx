@@ -1,8 +1,9 @@
 import React, { useState, useCallback } from 'react';
 import {
-  Modal, Button, List, Space, Typography, Popconfirm, message,
+  Modal, Button, List, Space, Typography, message,
   Input, Form, Tag, Upload, Divider, Tooltip, Badge
 } from 'antd';
+import ConfirmPopover from '@/components/universal-ui/common-popover/ConfirmPopover';
 import {
   SaveOutlined, DeleteOutlined, DownloadOutlined, UploadOutlined,
   StarOutlined, StarFilled, EditOutlined, CheckOutlined, CloseOutlined
@@ -178,7 +179,8 @@ export const LayoutVersionManager: React.FC<LayoutVersionManagerProps> = ({
                     icon={<DownloadOutlined />}
                     onClick={() => exportVersion(version.id)}
                   />,
-                  <Popconfirm
+                  <ConfirmPopover
+                    mode="default"
                     key="delete"
                     title="确定要删除这个版本吗？"
                     onConfirm={() => handleDelete(version.id)}
@@ -190,7 +192,7 @@ export const LayoutVersionManager: React.FC<LayoutVersionManagerProps> = ({
                       icon={<DeleteOutlined />}
                       disabled={versions.length <= 1}
                     />
-                  </Popconfirm>
+                  </ConfirmPopover>
                 ]}
               >
                 <List.Item.Meta
