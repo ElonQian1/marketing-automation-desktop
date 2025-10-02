@@ -1,17 +1,24 @@
 // Prevents additional console window on Windows in release, DO NOT REMOVE!!
 #![cfg_attr(not(debug_assertions), windows_subsystem = "windows")]
 
-// mod commands;
-mod application; // expose new application module (normalizer, device_metrics)
-mod domain;      // expose domain DSL (actions, coords, direction)
-mod infra;       // expose infra (adb injector, device metrics provider)
-mod screenshot_service;
-mod services;
-mod commands; // 新增：集中管理 Tauri 命令
-mod new_backend; // 新后端（可灰度切换）
 mod types;
 mod utils;
-pub mod xml_judgment_service; // 新模块化 XML 判断服务 (旧文件已弃用)
+mod services;
+mod commands;
+mod application;
+mod domain;
+mod infra;
+mod screenshot_service;
+mod new_backend;
+pub mod xml_judgment_service;
+            cleanup_database_cmd,es;
+mod commands;
+mod application;
+mod domain;
+mod infra;
+mod screenshot_service;
+mod new_backend;
+pub mod xml_judgment_service;
 
 // Universal UI Finder 模块桥接
 // 注意：universal-ui-finder模块位于src/modules/，我们通过services层桥接
@@ -182,31 +189,34 @@ fn main() {
             // 批量将号码回滚为“未导入到任何手机”
             mark_contact_numbers_as_not_imported,
             // 号码批次与导入追踪
-            create_vcf_batch_record,
-            list_vcf_batch_records,
-            get_vcf_batch_record,
-            create_import_session_record,
-            finish_import_session_record,
-            list_import_session_records,
-            list_numbers_by_vcf_batch,
-            list_numbers_by_vcf_batch_filtered,
-            list_numbers_without_vcf_batch,
+            create_vcf_batch_cmd,
+            list_vcf_batches_cmd,
+            get_vcf_batch_cmd,
+            create_import_session_cmd,
+            finish_import_session_cmd,
+            list_import_sessions_cmd,
+            list_contact_numbers_by_batch_filtered,
+            list_contact_numbers_without_batch,
             get_contact_number_stats_cmd,
             get_distinct_industries_cmd,
             set_contact_numbers_industry_by_id_range,
             create_vcf_batch_with_numbers_cmd,
-            list_numbers_for_vcf_batch_cmd,
-            tag_numbers_industry_by_vcf_batch_cmd,
+            get_industries_for_vcf_batch_cmd,
+            tag_contact_numbers_industry_by_vcf_batch,
             update_import_session_industry_cmd,
             revert_import_session_to_failed_cmd,
             delete_import_session_cmd,
-            list_import_session_events_cmd,
+            get_import_session_events_cmd,
             // TXT文件导入记录管理（新增）
             list_txt_import_records_cmd,
             delete_txt_import_record_cmd,
-                allocate_numbers_to_device_cmd,
-            // 号码ID查询（全量按筛选）
-            list_all_contact_number_ids,
+            allocate_contact_numbers_to_device,
+            // 数据库管理命令
+            init_contact_storage_cmd,
+            get_database_info_cmd,
+            cleanup_database_cmd,
+            get_import_session_stats_cmd,
+            get_vcf_batch_stats_cmd,
             // 新增的VCF导入和小红书自动关注功能
             generate_vcf_file,
             import_vcf_contacts_multi_brand,    // 多品牌批量尝试导入

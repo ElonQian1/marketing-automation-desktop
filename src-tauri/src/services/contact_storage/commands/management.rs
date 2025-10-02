@@ -54,7 +54,22 @@ pub async fn import_txt_to_contact_numbers_cmd(
 
     // 批量插入到数据库
     let inserted_count = with_db_connection(&app_handle, |conn| {
-        contact_numbers_repo::insert_numbers(conn, &phone_numbers)
+        let phone_pairs: Vec<(String, String)> = phone_numbers
+            .iter()
+            .enumerate()
+            .map(|(i, phone)| (phone.clone(), format!("联系人{}", i + 1)))
+            .collect();
+        
+        let (inserted, _duplicates, _errors) = contact_numbers_repo::insert_numbers(
+            conn, 
+            &phone_pairs,
+            &std::path::Path::new(&file_path)
+                .file_name()
+                .and_then(|f| f.to_str())
+                .unwrap_or("unknown.txt")
+        )?;
+        
+        Ok(inserted)
     })?;
 
     Ok(models::ImportResultDto {
@@ -197,9 +212,9 @@ pub async fn backup_database_cmd(
 
     // 获取数据库文件路径
     let app_data_dir = app_handle
-        .path_resolver()
+        .path()
         .app_data_dir()
-        .ok_or("无法获取应用数据目录")?;
+        .map_err(|e| format!("无法获取应用数据目录: {}", e))?;
 
     let db_path = app_data_dir.join("contact_storage.db");
 
@@ -235,9 +250,9 @@ pub async fn restore_database_cmd(
 
     // 获取数据库文件路径
     let app_data_dir = app_handle
-        .path_resolver()
+        .path()
         .app_data_dir()
-        .ok_or("无法获取应用数据目录")?;
+        .map_err(|e| format!("无法获取应用数据目录: {}", e))?;
 
     let db_path = app_data_dir.join("contact_storage.db");
 

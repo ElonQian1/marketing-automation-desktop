@@ -13,9 +13,9 @@ import {
   Switch,
   Tooltip,
   Modal,
-  Popconfirm,
   message,
 } from 'antd';
+import ConfirmPopover from '@/components/universal-ui/common-popover/ConfirmPopover';
 import {
   PlusOutlined,
   DeleteOutlined,
@@ -459,13 +459,13 @@ const AdvancedLoopBuilder: React.FC = () => {
                 onClick={() => handleCloneLoop(loop)}
                 title="复制循环"
               />
-              <Popconfirm
+              <ConfirmPopover
+                mode="default"
                 title="确认删除高级循环"
                 description="确定要删除这个高级循环配置吗？此操作不可撤销。"
                 onConfirm={() => handleRemoveLoop(loop.id)}
                 okText="删除"
                 cancelText="取消"
-                okType="danger"
                 placement="topLeft"
               >
                 <Button
@@ -474,7 +474,7 @@ const AdvancedLoopBuilder: React.FC = () => {
                   icon={<DeleteOutlined />}
                   title="删除循环"
                 />
-              </Popconfirm>
+              </ConfirmPopover>
             </Space>
           </div>
         }

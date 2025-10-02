@@ -1,5 +1,6 @@
 import React from 'react';
-import { Button, Space, Switch, Tag, Typography, Popconfirm, message } from 'antd';
+import { Button, Space, Switch, Tag, Typography, message } from 'antd';
+import ConfirmPopover from '@/components/universal-ui/common-popover/ConfirmPopover';
 import { DragOutlined, EditOutlined, DeleteOutlined, ReloadOutlined, EyeOutlined } from '@ant-design/icons';
 import { InfoBubble } from './InfoBubble';
 import { SmartScrollControls } from '../components/SmartScrollControls';
@@ -209,23 +210,17 @@ export const StepCardHeader: React.FC<StepCardHeaderProps> = ({
           }}
         />
 
-        <Popconfirm
+        <ConfirmPopover
+          mode="default"
           title="确认删除步骤"
           description="删除后无法恢复，确定要删除这个步骤吗？"
-          onConfirm={(e) => {
-            e?.stopPropagation();
-            onDelete(step.id);
-          }}
-          onCancel={(e) => {
-            e?.stopPropagation();
-          }}
+          onConfirm={() => onDelete(step.id)}
           okText="删除"
           cancelText="取消"
-          okType="danger"
           placement="topRight"
         >
           <Button type="text" size="small" danger icon={<DeleteOutlined />} onClick={(e) => e.stopPropagation()} />
-        </Popconfirm>
+        </ConfirmPopover>
       </Space>
     </div>
   );

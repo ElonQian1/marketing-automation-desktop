@@ -8,8 +8,8 @@ import {
   Space,
   Button,
   Input,
-  Popconfirm,
 } from 'antd';
+import ConfirmPopover from '@/components/universal-ui/common-popover/ConfirmPopover';
 import {
   ReloadOutlined,
   EditOutlined,
@@ -121,15 +121,13 @@ export const LoopHeader: React.FC<LoopHeaderProps> = ({
               />
             </Tooltip>
             <Tooltip title="删除循环">
-              <Popconfirm
+              <ConfirmPopover
+                mode="default"
                 title="确认删除"
                 description="删除循环将同时删除循环内的所有步骤，此操作无法撤销。"
                 onConfirm={() => onDeleteLoop(tempConfig.loopId)}
                 okText="确认删除"
                 cancelText="取消"
-                okButtonProps={{
-                  danger: true,
-                }}
               >
                 <Button
                   size="small"
@@ -140,7 +138,7 @@ export const LoopHeader: React.FC<LoopHeaderProps> = ({
                     borderColor: '#fecaca',
                   }}
                 />
-              </Popconfirm>
+              </ConfirmPopover>
             </Tooltip>
           </>
         )}
