@@ -339,20 +339,16 @@ const LayoutToolbar: React.FC<LayoutToolbarProps> = ({
   onToggleVisibility,
 }) => {
   return (
-    <div 
-      style={{
-        position: 'fixed',
-        top: 10,
-        right: 10,
-        zIndex: 9999,
-        background: 'var(--bg-light-base, #ffffff)',
-        color: 'var(--text-inverse, #1e293b)',
-        padding: '8px',
-        borderRadius: '6px',
-        boxShadow: '0 2px 8px rgba(0, 0, 0, 0.15)',
-      }}
-      className="light-theme-force"
-    >
+    <div style={{
+      position: 'fixed',
+      top: 10,
+      right: 10,
+      zIndex: 9999,
+      background: 'white',
+      padding: '8px',
+      borderRadius: '6px',
+      boxShadow: '0 2px 8px rgba(0, 0, 0, 0.15)',
+    }}>
       {/* 显示/隐藏按钮 */}
       {items.map(item => (
         <Button

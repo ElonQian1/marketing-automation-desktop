@@ -336,12 +336,10 @@ export const ContactImportWorkbench: React.FC = () => {
           top: 80,
           right: 16,
           zIndex: 1000,
-          background: 'var(--bg-elevated, #1e293b)',
-          color: 'var(--text-1, #f8fafc)',
+          background: 'rgba(255, 255, 255, 0.95)',
           padding: '8px 16px',
           borderRadius: 6,
-          boxShadow: '0 2px 8px rgba(0, 0, 0, 0.3)',
-          border: '1px solid var(--border-primary, #334155)',
+          boxShadow: '0 2px 8px rgba(0, 0, 0, 0.1)',
         }}
       >
         <Space>

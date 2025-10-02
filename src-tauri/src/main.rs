@@ -55,7 +55,6 @@ use services::safe_adb_shell::safe_adb_shell_command;
 use services::device_contact_metrics::get_device_contact_count;
 use services::script_executor::*;
 use services::script_manager::*;  // 新增：脚本管理服务
-use services::duplication_guard::{check_duplication_action_cmd, record_duplication_action_cmd};
 use services::smart_app_service::*;
 use services::smart_element_finder_service::{smart_element_finder, click_detected_element};
 use services::commands::{execute_single_step_test, execute_smart_automation_script, execute_smart_automation_script_multi};
@@ -302,10 +301,6 @@ fn main() {
             ,
             check_scrcpy_available,
             get_scrcpy_capabilities
-            ,
-            // 查重防护
-            check_duplication_action_cmd,
-            record_duplication_action_cmd
         ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");

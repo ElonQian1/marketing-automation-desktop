@@ -1,9 +1,9 @@
-import React, { useCallback, useMemo, useRef, useState, useEffect } from 'react';
+import React, { useCallback, useMemo, useRef, useState } from 'react';
 
 export interface ResizableColumnConfig {
   key: string;
   width?: number; // px
-  minWidth?: number; // default 20
+  minWidth?: number; // default 60
   maxWidth?: number; // default 600
 }
 
@@ -11,10 +11,6 @@ export interface UseResizableColumnsOptions {
   minWidth?: number;
   maxWidth?: number;
   onWidthChange?: (key: string, width: number) => void;
-  /** 是否为受控模式，受控模式下完全依赖外部传入的width */
-  controlled?: boolean;
-  /** 受控模式下的宽度映射 */
-  widthMap?: Record<string, number>;
 }
 
 export interface ResizableColumnRuntime extends ResizableColumnConfig {
@@ -27,63 +23,19 @@ export function useResizableColumns(
   configs: ResizableColumnConfig[],
   options: UseResizableColumnsOptions = {}
 ) {
-  const { 
-    minWidth = 20, 
-    maxWidth = 600, 
-    onWidthChange, 
-    controlled = false,
-    widthMap: propWidthMap = {}
-  } = options;
+  const { minWidth = 60, maxWidth = 600, onWidthChange } = options;
 
   const activeKeyRef = useRef<string | null>(null);
   const startXRef = useRef<number>(0);
   const startWRef = useRef<number>(0);
 
-  // 内部状态：仅在非受控模式下使用
-  const [internalWidthMap, setInternalWidthMap] = useState<Record<string, number>>(() => {
-    if (controlled) return {}; // 受控模式下不使用内部状态
+  const [widthMap, setWidthMap] = useState<Record<string, number>>(() => {
     const map: Record<string, number> = {};
     for (const c of configs) {
       if (typeof c.width === 'number') map[c.key] = c.width;
     }
     return map;
   });
-
-  // 受控模式下，从外部 propWidthMap 或 configs 提取 width
-  const externalWidthMap = useMemo(() => {
-    if (!controlled) return {};
-    
-    // 优先使用 propWidthMap，回退到 configs 中的 width
-    const map: Record<string, number> = { ...propWidthMap };
-    for (const c of configs) {
-      if (typeof c.width === 'number' && !map[c.key]) {
-        map[c.key] = c.width;
-      }
-    }
-    return map;
-  }, [configs, controlled, propWidthMap]);
-
-  // 获取当前使用的widthMap
-  const widthMap = controlled ? externalWidthMap : internalWidthMap;
-
-  // 当configs变化时，同步内部状态（仅非受控模式）
-  useEffect(() => {
-    if (controlled) return;
-    
-    setInternalWidthMap(prev => {
-      const next = { ...prev };
-      let changed = false;
-      
-      for (const c of configs) {
-        if (typeof c.width === 'number' && prev[c.key] !== c.width) {
-          next[c.key] = c.width;
-          changed = true;
-        }
-      }
-      
-      return changed ? next : prev;
-    });
-  }, [configs, controlled]);
 
   const getBounds = useCallback(
     (key: string, w: number) => {
@@ -101,34 +53,19 @@ export function useResizableColumns(
     if (!key) return;
     const dx = e.clientX - startXRef.current;
     const nextW = getBounds(key, startWRef.current + dx);
-    
-    if (controlled) {
-      // 受控模式：立即通知外部
-      onWidthChange?.(key, nextW);
-    } else {
-      // 非受控模式：更新内部状态
-      setInternalWidthMap(prev => ({ ...prev, [key]: nextW }));
-    }
-  }, [getBounds, controlled, onWidthChange]);
+    setWidthMap(prev => ({ ...prev, [key]: nextW }));
+  }, [getBounds]);
 
   const onPointerUp = useCallback((e: PointerEvent) => {
     const key = activeKeyRef.current;
     if (!key) return;
     const finalW = widthMap[key] ?? startWRef.current;
     const bounded = getBounds(key, finalW);
-    
-    if (controlled) {
-      // 受控模式：确保最终值也通知外部
-      onWidthChange?.(key, bounded);
-    } else {
-      // 非受控模式：更新内部状态并通知外部
-      setInternalWidthMap(prev => ({ ...prev, [key]: bounded }));
-      onWidthChange?.(key, bounded);
-    }
-    
+    setWidthMap(prev => ({ ...prev, [key]: bounded }));
+    onWidthChange?.(key, bounded);
     activeKeyRef.current = null;
     window.removeEventListener('pointermove', onPointerMove);
-  }, [getBounds, onPointerMove, onWidthChange, widthMap, controlled]);
+  }, [getBounds, onPointerMove, onWidthChange, widthMap]);
 
   const onResizeStart = useCallback((key: string, e: React.PointerEvent<HTMLDivElement>) => {
     activeKeyRef.current = key;
@@ -145,13 +82,7 @@ export function useResizableColumns(
         // 取消并回退到开始宽度
         const keyNow = activeKeyRef.current;
         if (keyNow) {
-          if (controlled) {
-            // 受控模式：通知外部回退到原始值
-            onWidthChange?.(keyNow, startWRef.current);
-          } else {
-            // 非受控模式：更新内部状态
-            setInternalWidthMap(prev => ({ ...prev, [keyNow]: startWRef.current }));
-          }
+          setWidthMap(prev => ({ ...prev, [keyNow]: startWRef.current }));
         }
         handlePointerUp(ev as unknown as PointerEvent);
       }

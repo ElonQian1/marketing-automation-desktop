@@ -52,6 +52,8 @@ import {
 import {
   useElementSelectionManager,
   ElementSelectionPopover,
+  ZIndexManager,
+  useZIndexManager,
 } from "./element-selection";
 import { convertVisualToUIElement } from "./views/visual-view";
 import type { VisualUIElement } from "./types";
@@ -151,22 +153,49 @@ const UniversalPageFinderModal: React.FC<UniversalPageFinderModalProps> = ({
     }
   );
 
-  // 🔧 只在模态框完全关闭时清理气泡状态
+  // 🆕 Z轴层级管理
+  const modalZIndexManager = useZIndexManager('universal-page-finder-modal', 'modal');
+  
+  // 🆕 模态框生命周期管理 - 关闭时清理气泡状态
   useEffect(() => {
     if (!visible) {
-      console.log('🧹 [UniversalPageFinderModal] 模态框关闭，清理气泡状态');
-      selectionManager.cancelSelection();
+      console.log('🚪 [UniversalPageFinderModal] 模态框关闭，清理所有状态');
+      
+      // 延迟清理，确保关闭动画完成
+      const cleanup = setTimeout(() => {
+        selectionManager.clearAllStates?.();
+        modalZIndexManager.unregisterComponent();
+      }, 300); // 等待模态框关闭动画
+      
+      return () => clearTimeout(cleanup);
+    } else {
+      // 模态框打开时注册Z轴层级
+      modalZIndexManager.registerComponent();
     }
-  }, [visible, selectionManager]);
+  }, [visible]); // 🔧 只依赖visible，避免循环
 
-  // 调试日志：监听selectionManager状态变化
+  // 🆕 组件卸载时的清理
+  useEffect(() => {
+    return () => {
+      console.log('🗑️ [UniversalPageFinderModal] 组件卸载，执行最终清理');
+      selectionManager.clearAllStates?.();
+      modalZIndexManager.unregisterComponent();
+      
+      // 清理全局状态
+      const zIndexManager = ZIndexManager.getInstance();
+      zIndexManager.clearAllModals();
+    };
+  }, []); // 🔧 空依赖数组，只在卸载时执行一次
+
+  // 🔧 优化调试日志，减少频繁输出
   React.useEffect(() => {
-    console.log('🔍 [UniversalPageFinderModal] selectionManager.pendingSelection 状态:', {
-      hasPending: !!selectionManager.pendingSelection,
-      selection: selectionManager.pendingSelection,
-      uiElementsCount: uiElements.length
-    });
-  }, [selectionManager.pendingSelection, uiElements.length]);
+    if (process.env.NODE_ENV === 'development' && selectionManager.pendingSelection) {
+      console.log('🔍 [UniversalPageFinderModal] 选择状态变化:', {
+        elementId: selectionManager.pendingSelection.element.id,
+        uiElementsCount: uiElements.length
+      });
+    }
+  }, [selectionManager.pendingSelection?.element.id, uiElements.length]); // 🔧 优化依赖
 
   // 使用 Hook 中的 UI 元素状态，不要创建重复的本地状态
   // const [uiElements, setUIElements] = useState<UIElement[]>([]);

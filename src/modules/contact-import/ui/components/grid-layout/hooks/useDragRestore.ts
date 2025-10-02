@@ -33,7 +33,7 @@ export function useDragRestore(options: DragRestoreOptions = {}) {
     targets = [
       '[data-resize-handle]',
       '[role="separator"]',
-      '[data-antd-component="table-thead"] th',
+      '.ant-table-thead th',
       '.resizable-header'
     ]
   } = options;

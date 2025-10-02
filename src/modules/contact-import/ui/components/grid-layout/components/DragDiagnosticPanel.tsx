@@ -160,7 +160,7 @@ export const DragDiagnosticPanel: React.FC<DragDiagnosticPanelProps> = ({
             style={{ marginBottom: 8 }}
           />
         )}
-        
+
         {warningIssues.length > 0 && (
           <Alert
             type="warning"
@@ -176,7 +176,7 @@ export const DragDiagnosticPanel: React.FC<DragDiagnosticPanelProps> = ({
   return (
     <>
       <Card
-        size={size === 'large' ? 'default' : size}
+        size={size}
         title={
           <Space size="small">
             <HeartOutlined />

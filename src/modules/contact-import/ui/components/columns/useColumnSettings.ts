@@ -37,7 +37,7 @@ export function useColumnSettings(storageKey: string, defaults: ColumnSettingIte
             key: d.key,
             title: d.title,
             visible: prev ? prev.visible : d.defaultVisible !== false,
-            width: prev && typeof prev.width !== 'undefined' ? prev.width : (d.defaultWidth ?? 120),
+            width: prev && typeof prev.width !== 'undefined' ? prev.width : d.defaultWidth,
           };
         });
       }
@@ -46,7 +46,7 @@ export function useColumnSettings(storageKey: string, defaults: ColumnSettingIte
       key: d.key,
       title: d.title,
       visible: d.defaultVisible !== false,
-      width: d.defaultWidth ?? 120,
+      width: d.defaultWidth,
     }));
   };
 

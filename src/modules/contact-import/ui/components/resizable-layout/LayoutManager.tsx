@@ -44,20 +44,16 @@ export const LayoutManager: React.FC<LayoutManagerProps> = ({
 
   // 布局控制工具栏
   const layoutToolbar = (
-    <div 
-      style={{
-        position: 'fixed',
-        top: 10,
-        right: 10,
-        zIndex: 9999,
-        background: 'var(--bg-light-base, #ffffff)',
-        color: 'var(--text-inverse, #1e293b)',
-        padding: '8px',
-        borderRadius: '6px',
-        boxShadow: '0 2px 8px rgba(0, 0, 0, 0.15)',
-      }}
-      className="light-theme-force"
-    >
+    <div style={{
+      position: 'fixed',
+      top: 10,
+      right: 10,
+      zIndex: 9999,
+      background: 'white',
+      padding: '8px',
+      borderRadius: '6px',
+      boxShadow: '0 2px 8px rgba(0, 0, 0, 0.15)',
+    }}>
       <Space>
         <Tooltip title="显示/隐藏面板">
           <Dropdown overlay={visibilityMenu} trigger={['click']}>

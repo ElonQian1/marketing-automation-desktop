@@ -8,7 +8,6 @@ import { buildVcfFromNumbers } from '../../../utils/vcf';
 import { VcfImportService } from '../../../../../services/VcfImportService';
 import styles from '../DeviceAssignmentGrid.module.css';
 import { normalizeIndustry } from '../../shared/industryOptions';
-import { useInteractionSelector } from '@/components/adapters/interaction/InteractionSelectorAdapter';
 import { registerGeneratedBatch } from '../../services/vcfBatchRegistrationService';
 
 const { Text } = Typography;
@@ -61,9 +60,6 @@ export const DeviceCard: React.FC<DeviceCardProps> = (props) => {
   const [preparingVcf, setPreparingVcf] = useState(false);
   const row = props.row;
   const industryValue = normalizeIndustry(row.industry) ?? '';
-  
-  // Employee D适配器：替换.ant-*选择器
-  const { isInteractionElement } = useInteractionSelector();
 
   /**
    * 为设备准备VCF文件
@@ -138,8 +134,7 @@ export const DeviceCard: React.FC<DeviceCardProps> = (props) => {
       style={{ height: '100%', borderColor: hasSelfError ? '#ff4d4f' : (props.isSelected ? '#1677ff' : undefined), cursor: 'pointer' }}
       onClick={(e) => {
         const target = e.target as HTMLElement | null;
-        // Employee D适配器：零覆盖原则，使用语义化交互检测
-        if (isInteractionElement(target)) return;
+        if (target && target.closest('input, button, select, textarea, [role="spinbutton"], .ant-select, .ant-input-number, .ant-btn, [data-no-card-toggle]')) return;
         props.setSelected(!props.isSelected);
       }}
       title={
