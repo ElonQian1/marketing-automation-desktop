@@ -27,3 +27,7 @@ export type {
   EnhancedElementSelectionState,
   EnhancedSelectionPopoverProps 
 } from './enhanced-popover/EnhancedSelectionPopover';
+
+// 🆕 气泡管理模块（简化版）
+export { usePopoverManager } from './hooks/usePopoverManager';
+export { SmartPopoverContainer } from './components/SmartPopoverContainer';

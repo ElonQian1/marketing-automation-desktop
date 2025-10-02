@@ -1,9 +1,11 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState } from 'react';
 import { Popconfirm, Space, Button } from 'antd';
 import { CheckOutlined, EyeInvisibleOutlined, SearchOutlined } from '@ant-design/icons';
 import type { UIElement } from '../../../api/universalUIAPI';
 import { useSmartPopoverPosition } from './utils/popoverPositioning';
 import { ElementDiscoveryModal } from './element-discovery';
+import { usePopoverManager } from './hooks/usePopoverManager';
+import { SmartPopoverContainer } from './components/SmartPopoverContainer';
 
 export interface ElementSelectionState {
   element: UIElement;
@@ -31,74 +33,13 @@ export const ElementSelectionPopover: React.FC<ElementSelectionPopoverProps> = (
 }) => {
   // 元素发现模态框状态
   const [discoveryModalOpen, setDiscoveryModalOpen] = useState(false);
-  // 气泡容器引用
-  const popoverRef = useRef<HTMLDivElement>(null);
   
-  // 🔧 生命周期管理：监听外部点击
-  useEffect(() => {
-    const handleClickOutside = (event: MouseEvent) => {
-      // 如果点击的不是气泡内部且不是模态框，则关闭气泡
-      if (
-        visible && 
-        popoverRef.current && 
-        !popoverRef.current.contains(event.target as Node) &&
-        !discoveryModalOpen && // 发现模态框打开时不关闭气泡
-        !(event.target as HTMLElement)?.closest('.ant-modal') // 点击模态框内部时不关闭
-      ) {
-        console.log('🔔 [ElementSelectionPopover] 外部点击，关闭气泡');
-        onCancel();
-      }
-    };
-
-    if (visible) {
-      // 延迟添加监听器，避免立即触发
-      const timer = setTimeout(() => {
-        document.addEventListener('mousedown', handleClickOutside);
-      }, 100);
-      
-      return () => {
-        clearTimeout(timer);
-        document.removeEventListener('mousedown', handleClickOutside);
-      };
-    }
-  }, [visible, onCancel, discoveryModalOpen]);
-
-  // 🔧 生命周期管理：组件卸载时清理状态
-  useEffect(() => {
-    return () => {
-      if (discoveryModalOpen) {
-        setDiscoveryModalOpen(false);
-      }
-    };
-  }, []);
-
-  // 🔧 监听模态框状态变化，模态框关闭时也关闭气泡
-  useEffect(() => {
-    if (!discoveryModalOpen && visible) {
-      // 模态框关闭后延迟一点再允许外部点击关闭气泡
-      const timer = setTimeout(() => {
-        console.log('🔔 [ElementSelectionPopover] 发现模态框已关闭');
-      }, 200);
-      return () => clearTimeout(timer);
-    }
-  }, [discoveryModalOpen, visible]);
-
-  // 🔧 监听ESC键关闭气泡
-  useEffect(() => {
-    const handleEscapeKey = (event: KeyboardEvent) => {
-      if (event.key === 'Escape' && visible && !discoveryModalOpen) {
-        console.log('🔔 [ElementSelectionPopover] ESC键关闭气泡');
-        onCancel();
-      }
-    };
-
-    if (visible) {
-      document.addEventListener('keydown', handleEscapeKey);
-      return () => {
-        document.removeEventListener('keydown', handleEscapeKey);
-      };
-    }
-  }, [visible, onCancel, discoveryModalOpen]);
+  // 🎯 使用简化的气泡管理hook
+  const { popoverRef } = usePopoverManager({
+    visible,
+    onClose: onCancel,
+    hasModalOpen: discoveryModalOpen
+  });
   // 使用智能定位计算气泡位置
   const positioning = useSmartPopoverPosition(
     selection?.position || null,
@@ -121,16 +62,11 @@ export const ElementSelectionPopover: React.FC<ElementSelectionPopoverProps> = (
 
   return (
     <>
-      <div
-        ref={popoverRef}
-        key={`selection-${selection.element.id}`}
-        style={{
-          position: 'fixed',
-          left: positioning.position.x,
-          top: positioning.position.y,
-          zIndex: discoveryModalOpen ? 1050 : 10000, // 模态框打开时降低气泡层级
-          pointerEvents: 'none',
-        }}
+      <SmartPopoverContainer
+        visible={visible}
+        hasModalOpen={discoveryModalOpen}
+        position={positioning.position}
+        containerRef={popoverRef}
       >
         <Popconfirm
           open={visible}
@@ -207,7 +143,7 @@ export const ElementSelectionPopover: React.FC<ElementSelectionPopoverProps> = (
             pointerEvents: 'auto'
           }} />
         </Popconfirm>
-      </div>
+      </SmartPopoverContainer>
       
       {/* 元素发现模态框 */}
       <ElementDiscoveryModal

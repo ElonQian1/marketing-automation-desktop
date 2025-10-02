@@ -60,12 +60,6 @@ export interface UseTableColumnsResult {
   setOrder: (keys: string[]) => void;
   reset: () => void;
   
-  // 拖拽相关
-  getResizableProps: (key: string) => {
-    width: number;
-    onResizeStart: (e: React.PointerEvent<HTMLDivElement>) => void;
-  };
-  
   // 统计
   visibleCount: number;
   totalCount: number;
@@ -135,7 +129,7 @@ export function useTableColumns(options: UseTableColumnsOptions): UseTableColumn
       .sort((a, b) => a.order - b.order);
   }, [columnStates]);
 
-  // 生成最终的Ant Design列配置
+  // 生成最终的Ant Design列配置 - 使用官方推荐的方式
   const columns = useMemo((): ColumnType<any>[] => {
     return visibleColumns.map(colState => {
       const config = configs.find(c => c.key === colState.key);
@@ -149,52 +143,17 @@ export function useTableColumns(options: UseTableColumnsOptions): UseTableColumn
         fixed: config.fixed,
         render: config.render,
         onHeaderCell: () => ({
-          resizableProps: config.resizable !== false ? {
-            width: colState.width,
-            onResizeStart: (e: React.PointerEvent<HTMLDivElement>) => {
-              handleResizeStart(colState.key, e);
-            },
+          width: colState.width,
+          onResize: config.resizable !== false ? (width: number) => {
+            setColumnStates(prev => prev.map(col => 
+              col.key === colState.key ? { ...col, width } : col
+            ));
+            onWidthChange?.(colState.key, width);
           } : undefined,
         }),
       };
     }).filter(Boolean) as ColumnType<any>[];
-  }, [visibleColumns, configs]);
-
-  // 简单直接的拖拽实现
-  const handleResizeStart = useCallback((key: string, e: React.PointerEvent<HTMLDivElement>) => {
-    const column = columnStates.find(col => col.key === key);
-    if (!column) return;
-
-    const startX = e.clientX;
-    const startWidth = column.width;
-
-    e.preventDefault();
-    document.body.style.userSelect = 'none';
-
-    const handleMouseMove = (moveEvent: MouseEvent) => {
-      const deltaX = moveEvent.clientX - startX;
-      const newWidth = Math.max(60, Math.min(600, startWidth + deltaX));
-      
-      // 直接更新React状态，简单明了
-      setColumnStates(prev => prev.map(col => 
-        col.key === key ? { ...col, width: newWidth } : col
-      ));
-    };
-
-    const handleMouseUp = () => {
-      const finalColumn = columnStates.find(col => col.key === key);
-      if (finalColumn) {
-        onWidthChange?.(key, finalColumn.width);
-      }
-      
-      document.body.style.userSelect = '';
-      document.removeEventListener('mousemove', handleMouseMove);
-      document.removeEventListener('mouseup', handleMouseUp);
-    };
-
-    document.addEventListener('mousemove', handleMouseMove);
-    document.addEventListener('mouseup', handleMouseUp);
-  }, [columnStates, onWidthChange]);
+  }, [visibleColumns, configs, onWidthChange]);
 
   // API方法
   const setVisible = useCallback((key: string, visible: boolean) => {
@@ -232,14 +191,6 @@ export function useTableColumns(options: UseTableColumnsOptions): UseTableColumn
     })));
   }, [configs]);
 
-  const getResizableProps = useCallback((key: string) => {
-    const column = columnStates.find(col => col.key === key);
-    return {
-      width: column?.width ?? 120,
-      onResizeStart: (e: React.PointerEvent<HTMLDivElement>) => handleResizeStart(key, e),
-    };
-  }, [columnStates, handleResizeStart]);
-
   return {
     // 状态
     columns,
@@ -251,9 +202,6 @@ export function useTableColumns(options: UseTableColumnsOptions): UseTableColumn
     setWidth,
     setOrder,
     reset,
-    
-    // 拖拽相关
-    getResizableProps,
     
     // 统计
     visibleCount: visibleColumns.length,
