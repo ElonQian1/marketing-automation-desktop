@@ -11,7 +11,6 @@ export interface ResizableHeaderProps {
   children?: React.ReactNode;
   className?: string;
   style?: React.CSSProperties;
-  columnKey?: string; // 新增：用于DOM操作的列标识
 }
 
 // 优化的拖拽手柄样式 - 更好的用户体验
@@ -73,7 +72,6 @@ const ResizableHeaderComponent: React.FC<ResizableHeaderProps> = ({
   children,
   className,
   style,
-  columnKey,
   ...restProps
 }) => {
   const headerRef = useRef<HTMLTableHeaderCellElement>(null);
@@ -130,7 +128,6 @@ const ResizableHeaderComponent: React.FC<ResizableHeaderProps> = ({
         ref={headerRef}
         className={className}
         style={headerStyle}
-        data-column-key={columnKey}
         {...restProps}
       >
         {children}
@@ -143,7 +140,6 @@ const ResizableHeaderComponent: React.FC<ResizableHeaderProps> = ({
       ref={headerRef}
       className={className}
       style={headerStyle}
-      data-column-key={columnKey}
       {...restProps}
     >
       <div style={{ 
@@ -186,13 +182,12 @@ export const ResizableHeader = React.memo(ResizableHeaderComponent);
  * 用于Ant Design Table的表头组件
  */
 const AntTableResizableHeaderComponent: React.FC<any> = (props) => {
-  const { resizableProps, columnKey, ...restProps } = props;
+  const { resizableProps, ...restProps } = props;
   
   return (
     <ResizableHeader
       width={resizableProps?.width}
       onResizeStart={resizableProps?.onResizeStart}
-      columnKey={columnKey}
       {...restProps}
     />
   );

@@ -123,19 +123,6 @@ export function useTableColumns(options: UseTableColumnsOptions): UseTableColumn
 
   const [columnStates, setColumnStates] = useState<TableColumnState[]>(loadStoredState);
 
-  // 拖拽状态管理 - 使用ref避免频繁更新
-  const dragStateRef = useRef<{
-    activeKey: string | null;
-    startX: number;
-    startWidth: number;
-    originalStates: TableColumnState[];
-  }>({
-    activeKey: null,
-    startX: 0,
-    startWidth: 0,
-    originalStates: [],
-  });
-
   // 防抖保存到localStorage
   useEffect(() => {
     debouncedSave(columnStates);
@@ -168,132 +155,45 @@ export function useTableColumns(options: UseTableColumnsOptions): UseTableColumn
               handleResizeStart(colState.key, e);
             },
           } : undefined,
-          columnKey: colState.key, // 传递列标识用于DOM操作
         }),
       };
     }).filter(Boolean) as ColumnType<any>[];
   }, [visibleColumns, configs]);
 
-  // 拖拽开始 - 高性能版本：拖拽时只更新DOM样式，不触发React重新渲染
+  // 简单直接的拖拽实现
   const handleResizeStart = useCallback((key: string, e: React.PointerEvent<HTMLDivElement>) => {
     const column = columnStates.find(col => col.key === key);
     if (!column) return;
 
-    // 使用ref存储拖拽状态，避免频繁重新渲染
-    dragStateRef.current = {
-      activeKey: key,
-      startX: e.clientX,
-      startWidth: column.width,
-      originalStates: [...columnStates],
-    };
+    const startX = e.clientX;
+    const startWidth = column.width;
 
-    // 阻止默认行为
     e.preventDefault();
     document.body.style.userSelect = 'none';
 
-    // 获取当前表格的DOM引用，用于直接操作样式
-    const findTableColumn = () => {
-      // 查找对应的表格列
-      const tables = document.querySelectorAll('table');
-      for (const table of tables) {
-        const headerCell = table.querySelector(`th[data-column-key="${key}"]`);
-        if (headerCell) {
-          return {
-            table,
-            headerCell,
-            columnIndex: Array.from(headerCell.parentElement?.children || []).indexOf(headerCell)
-          };
-        }
-      }
-      return null;
-    };
-
-    const tableInfo = findTableColumn();
-
-    // 高性能拖拽：直接操作DOM样式
-    let lastUpdateTime = 0;
-    const throttleDelay = 16; // 约60fps
-
     const handleMouseMove = (moveEvent: MouseEvent) => {
-      const dragState = dragStateRef.current;
-      if (!dragState.activeKey || dragState.activeKey !== key) return;
-
-      const now = Date.now();
-      if (now - lastUpdateTime < throttleDelay) return;
-      lastUpdateTime = now;
-
-      const deltaX = moveEvent.clientX - dragState.startX;
-      const newWidth = Math.max(60, Math.min(600, dragState.startWidth + deltaX));
+      const deltaX = moveEvent.clientX - startX;
+      const newWidth = Math.max(60, Math.min(600, startWidth + deltaX));
       
-      // 🚀 关键优化：直接更新DOM样式，不触发React重新渲染
-      if (tableInfo) {
-        const { table, columnIndex } = tableInfo;
-        
-        // 更新表头列宽
-        const headerCell = table.querySelector(`th[data-column-key="${key}"]`) as HTMLElement;
-        if (headerCell) {
-          headerCell.style.width = `${newWidth}px`;
-          headerCell.style.minWidth = `${newWidth}px`;
-          headerCell.style.maxWidth = `${newWidth}px`;
-        }
-
-        // 更新对应的所有数据行列宽
-        const bodyRows = table.querySelectorAll('tbody tr');
-        bodyRows.forEach(row => {
-          const cell = row.children[columnIndex] as HTMLElement;
-          if (cell) {
-            cell.style.width = `${newWidth}px`;
-            cell.style.minWidth = `${newWidth}px`;
-            cell.style.maxWidth = `${newWidth}px`;
-          }
-        });
-
-        // 添加拖拽预览效果
-        if (headerCell) {
-          headerCell.style.borderRight = '2px dashed #1890ff';
-          headerCell.style.backgroundColor = 'rgba(24, 144, 255, 0.05)';
-        }
-      }
+      // 直接更新React状态，简单明了
+      setColumnStates(prev => prev.map(col => 
+        col.key === key ? { ...col, width: newWidth } : col
+      ));
     };
 
-    const handleMouseUp = (upEvent: MouseEvent) => {
-      const dragState = dragStateRef.current;
-      
-      if (dragState.activeKey && tableInfo) {
-        const deltaX = upEvent.clientX - dragState.startX;
-        const finalWidth = Math.max(60, Math.min(600, dragState.startWidth + deltaX));
-        
-        // 清理拖拽预览效果
-        const { table } = tableInfo;
-        const headerCell = table.querySelector(`th[data-column-key="${key}"]`) as HTMLElement;
-        if (headerCell) {
-          headerCell.style.borderRight = '';
-          headerCell.style.backgroundColor = '';
-        }
-
-        // 🎯 只在拖拽完成时更新React状态，触发一次重新渲染
-        setColumnStates(prev => prev.map(col => 
-          col.key === key ? { ...col, width: finalWidth } : col
-        ));
-
-        onWidthChange?.(key, finalWidth);
+    const handleMouseUp = () => {
+      const finalColumn = columnStates.find(col => col.key === key);
+      if (finalColumn) {
+        onWidthChange?.(key, finalColumn.width);
       }
-      
-      // 清理拖拽状态
-      dragStateRef.current = {
-        activeKey: null,
-        startX: 0,
-        startWidth: 0,
-        originalStates: [],
-      };
       
       document.body.style.userSelect = '';
-      window.removeEventListener('mousemove', handleMouseMove);
-      window.removeEventListener('mouseup', handleMouseUp);
+      document.removeEventListener('mousemove', handleMouseMove);
+      document.removeEventListener('mouseup', handleMouseUp);
     };
 
-    window.addEventListener('mousemove', handleMouseMove);
-    window.addEventListener('mouseup', handleMouseUp);
+    document.addEventListener('mousemove', handleMouseMove);
+    document.addEventListener('mouseup', handleMouseUp);
   }, [columnStates, onWidthChange]);
 
   // API方法

@@ -151,27 +151,39 @@ const UniversalPageFinderModal: React.FC<UniversalPageFinderModalProps> = ({
     }
   );
 
-  // 模态框关闭时清理气泡状态
+  // 🔧 气泡状态清理：监听页面切换和模态框关闭
   useEffect(() => {
     if (!visible) {
+      // 模态框关闭时清理气泡状态
       console.log('🧹 [UniversalPageFinderModal] 模态框关闭，清理气泡状态');
-      selectionManager.clearAllStates();
+      selectionManager.cancelSelection();
     }
   }, [visible, selectionManager]);
 
-  // 视图模式切换时清理气泡状态
+  // 🔧 气泡状态清理：监听视图模式切换
   useEffect(() => {
+    // 视图模式切换时清理气泡状态
     console.log('🧹 [UniversalPageFinderModal] 视图模式切换，清理气泡状态');
-    selectionManager.clearAllStates();
+    selectionManager.cancelSelection();
   }, [viewMode, selectionManager]);
 
-  // 页面切换时清理气泡状态
+  // 🔧 气泡状态清理：监听设备切换
   useEffect(() => {
-    return () => {
-      console.log('🧹 [UniversalPageFinderModal] 组件卸载，清理气泡状态');
-      selectionManager.clearAllStates();
-    };
-  }, [selectionManager]);
+    // 设备切换时清理气泡状态
+    if (selectedDevice) {
+      console.log('🧹 [UniversalPageFinderModal] 设备切换，清理气泡状态');
+      selectionManager.cancelSelection();
+    }
+  }, [selectedDevice, selectionManager]);
+
+  // 🔧 气泡状态清理：监听XML内容变化
+  useEffect(() => {
+    // XML内容变化（新的页面）时清理气泡状态
+    if (xmlContent) {
+      console.log('🧹 [UniversalPageFinderModal] XML内容变化，清理气泡状态');
+      selectionManager.cancelSelection();
+    }
+  }, [xmlContent, selectionManager]);
 
   // 调试日志：监听selectionManager状态变化
   React.useEffect(() => {
@@ -441,7 +453,6 @@ const UniversalPageFinderModal: React.FC<UniversalPageFinderModalProps> = ({
           <ElementSelectionPopover
             visible={isVisible}
             selection={selectionManager.pendingSelection}
-            isModalOpen={true} // 告诉气泡当前有模态框打开
             onConfirm={() => {
               console.log('✅ [ElementSelectionPopover] onConfirm 被调用');
               selectionManager.confirmSelection();
@@ -449,10 +460,6 @@ const UniversalPageFinderModal: React.FC<UniversalPageFinderModalProps> = ({
             onCancel={() => {
               console.log('❌ [ElementSelectionPopover] onCancel 被调用');
               selectionManager.hideElement();
-            }}
-            onOutsideClick={() => {
-              console.log('🎯 [ElementSelectionPopover] 外部点击触发关闭');
-              selectionManager.cancelSelection();
             }}
             // 新增：支持元素发现功能
             allElements={uiElements}
