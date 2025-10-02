@@ -8,11 +8,13 @@ import type { UIElement } from '../../../../api/universalUIAPI';
 // 发现的元素信息
 export interface DiscoveredElement {
   element: UIElement;
-  relationship: 'parent' | 'child' | 'sibling' | 'self';
+  relationship: 'parent' | 'child' | 'sibling' | 'self' | 'direct-parent' | 'grandparent' | 'ancestor' | 'direct-child' | 'grandchild' | 'descendant';
   confidence: number; // 0-1，匹配置信度
   reason: string; // 发现原因描述
   hasText: boolean; // 是否包含文本
   isClickable: boolean; // 是否可点击
+  depth?: number; // 层级深度（可选）
+  path?: string; // 元素路径（可选）
 }
 
 // 元素发现结果

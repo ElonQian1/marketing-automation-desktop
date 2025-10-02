@@ -74,6 +74,26 @@ export const ChildElementCard: React.FC<ChildElementCardProps> = ({
     return parts.join(' | ');
   };
 
+  // 获取关系标签
+  const getRelationshipLabel = () => {
+    switch (element.relationship) {
+      case 'direct-child': return '直接子元素';
+      case 'grandchild': return '孙子元素';
+      case 'descendant': return '后代元素';
+      default: return '子元素';
+    }
+  };
+
+  // 获取关系颜色
+  const getRelationshipColor = () => {
+    switch (element.relationship) {
+      case 'direct-child': return 'green';
+      case 'grandchild': return 'lime';
+      case 'descendant': return 'orange';
+      default: return 'green';
+    }
+  };
+
   // 获取推荐原因显示文本
   const getReasonText = (reason: string): string => {
     const reasonMap: Record<string, string> = {
@@ -108,9 +128,14 @@ export const ChildElementCard: React.FC<ChildElementCardProps> = ({
         {/* 标题行 */}
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
           <div style={{ flex: 1, minWidth: 0 }}>
-            <Title level={5} style={{ margin: 0, fontSize: 13, color: 'var(--text-inverse, #1e293b) !important' }}>
-              {elementType}
-            </Title>
+            <Space size={4} style={{ marginBottom: 2 }}>
+              <Title level={5} style={{ margin: 0, fontSize: 13, color: 'var(--text-inverse, #1e293b) !important' }}>
+                {elementType}
+              </Title>
+              <Tag color={getRelationshipColor()} style={{ fontSize: 10 }}>
+                {getRelationshipLabel()}
+              </Tag>
+            </Space>
             <Text type="secondary" style={{ fontSize: 11, color: 'var(--text-muted, #999) !important' }}>
               置信度: {(confidence * 100).toFixed(0)}%
             </Text>

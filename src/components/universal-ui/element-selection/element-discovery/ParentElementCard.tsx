@@ -63,6 +63,26 @@ export const ParentElementCard: React.FC<ElementCardProps> = ({
     return '#ff4d4f'; // 红色
   };
 
+  // 获取关系标签
+  const getRelationshipLabel = () => {
+    switch (element.relationship) {
+      case 'direct-parent': return '直接父元素';
+      case 'grandparent': return '祖父元素';
+      case 'ancestor': return '祖先元素';
+      default: return '父级元素';
+    }
+  };
+
+  // 获取关系颜色
+  const getRelationshipColor = () => {
+    switch (element.relationship) {
+      case 'direct-parent': return 'blue';
+      case 'grandparent': return 'cyan';
+      case 'ancestor': return 'geekblue';
+      default: return 'blue';
+    }
+  };
+
   // 获取元素类型标签
   const getElementTypeTag = () => {
     const className = uiElement.class_name || '';
@@ -91,9 +111,9 @@ export const ParentElementCard: React.FC<ElementCardProps> = ({
           <ArrowUpOutlined style={{ color: 'var(--brand, #1890ff)' }} />
           <ContainerOutlined />
           <Text strong style={{ fontSize: compact ? 12 : 14, color: 'var(--text-inverse, #1e293b) !important' }}>
-            父级元素
+            {getRelationshipLabel()}
           </Text>
-          <Tag color="blue" style={{ fontSize: 10 }}>
+          <Tag color={getRelationshipColor()} style={{ fontSize: 10 }}>
             {getElementTypeTag()}
           </Tag>
         </Space>

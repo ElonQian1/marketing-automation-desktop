@@ -11,6 +11,7 @@ import type {
   DiscoveryOptions 
 } from './types';
 import { ElementHierarchyAnalyzer } from '../hierarchy/ElementHierarchyAnalyzer';
+import { ElementBoundsAnalyzer } from '../hierarchy/ElementBoundsAnalyzer';
 
 const DEFAULT_OPTIONS: DiscoveryOptions = {
   includeParents: true,
@@ -112,19 +113,36 @@ export const useElementDiscovery = (
 
     if (targetNode) {
       let currentNode = targetNode.parent;
-      let depth = 0;
+      let depth = 1; // 从1开始，表示直接父元素
 
-      while (currentNode && depth < finalOptions.maxDepth) {
+      while (currentNode && depth <= finalOptions.maxDepth) {
         const confidence = calculateConfidence(currentNode.element, 'parent');
-        const reason = generateReason(currentNode.element, 'parent');
+        
+        // 根据层级深度生成更清晰的关系描述
+        let relationshipType: DiscoveredElement['relationship'] = 'parent';
+        let levelDescription = '';
+        
+        if (depth === 1) {
+          relationshipType = 'direct-parent';
+          levelDescription = '直接父元素';
+        } else if (depth === 2) {
+          relationshipType = 'grandparent';
+          levelDescription = '祖父元素';
+        } else {
+          relationshipType = 'ancestor';
+          levelDescription = `${depth}级祖先元素`;
+        }
+        
+        const reason = `${levelDescription} - ${generateReason(currentNode.element, 'parent')}`;
 
         parents.push({
           element: currentNode.element,
-          relationship: 'parent',
-          confidence,
+          relationship: relationshipType,
+          confidence: confidence * (1 / depth), // 距离越远置信度越低
           reason,
           hasText: !!currentNode.element.text,
-          isClickable: currentNode.element.is_clickable || false
+          isClickable: currentNode.element.is_clickable || false,
+          depth // 添加深度信息
         });
 
         currentNode = currentNode.parent;
@@ -132,8 +150,11 @@ export const useElementDiscovery = (
       }
     }
 
-    // 按置信度排序
-    return parents.sort((a, b) => b.confidence - a.confidence);
+    // 按深度排序（直接父元素优先），然后按置信度
+    return parents.sort((a, b) => {
+      if ((a.depth || 0) !== (b.depth || 0)) return (a.depth || 0) - (b.depth || 0);
+      return b.confidence - a.confidence;
+    });
   }, [finalOptions, calculateConfidence, generateReason]);
 
   // 查找子元素
@@ -146,30 +167,117 @@ export const useElementDiscovery = (
     const children: DiscoveredElement[] = [];
     const targetNode = hierarchy.nodeMap.get(targetElement.id);
 
-    if (targetNode) {
-      // 递归收集子元素
-      const collectChildren = (node: any, depth: number) => {
-        if (depth >= finalOptions.maxDepth) return;
+    console.log('🔍 查找子元素:', {
+      targetElementId: targetElement.id,
+      targetNodeFound: !!targetNode,
+      directChildrenCount: targetNode?.children?.length || 0,
+      targetElementBounds: targetElement.bounds,
+      targetElementType: targetElement.element_type
+    });
 
-        node.children.forEach((childNode: any) => {
+    // 详细调试目标节点信息
+    if (targetNode) {
+      console.log('🎯 目标节点详细信息:', {
+        hasChildrenArray: !!targetNode.children,
+        childrenLength: targetNode.children?.length,
+        isLeaf: targetNode.isLeaf,
+        parent: targetNode.parent?.element.id || null,
+        depth: targetNode.depth
+      });
+
+      // 如果没有子元素，使用边界分析器进行详细分析
+      if (targetNode.children.length === 0) {
+        console.log('🔍 没有找到子元素，开始边界关系分析...');
+        
+        // 使用边界分析器分析关系
+        ElementBoundsAnalyzer.debugElementRelations(targetElement, allElements);
+        
+        const boundsAnalysis = ElementBoundsAnalyzer.analyzeElementRelations(targetElement, allElements);
+        console.log('� 边界分析结果:', {
+          潜在子元素数量: boundsAnalysis.potentialChildren.length,
+          潜在父元素数量: boundsAnalysis.potentialParents.length,
+          目标元素面积: boundsAnalysis.analysis.targetArea,
+          前5个潜在子元素: boundsAnalysis.potentialChildren.slice(0, 5).map(c => ({
+            id: c.element.id,
+            text: c.element.text,
+            type: c.element.element_type,
+            面积比例: (c.containmentRatio * 100).toFixed(2) + '%',
+            bounds: c.element.bounds
+          }))
+        });
+
+        // 检查这些潜在子元素在层次结构中的实际父节点
+        const allNodes = Array.from(hierarchy.nodeMap.values()) as any[];
+        boundsAnalysis.potentialChildren.forEach(child => {
+          const childNode = allNodes.find((n: any) => n.element.id === child.element.id);
+          if (childNode) {
+            console.log(`🧩 潜在子元素 ${child.element.id} 的实际父节点: ${childNode.parent?.element.id || 'null'}`);
+          }
+        });
+      }
+    }
+
+    if (targetNode && targetNode.children && targetNode.children.length > 0) {
+      // 递归收集子元素
+      const collectChildren = (node: any, depth: number, parentPath: string = '') => {
+        if (depth >= finalOptions.maxDepth) {
+          console.log('⚠️ 达到最大深度限制:', depth);
+          return;
+        }
+
+        console.log(`📊 处理节点 [深度${depth}]:`, {
+          nodeId: node.element.id,
+          childrenCount: node.children?.length || 0,
+          hasText: !!node.element.text,
+          text: node.element.text
+        });
+
+        node.children.forEach((childNode: any, index: number) => {
           const confidence = calculateConfidence(childNode.element, 'child');
-          const reason = generateReason(childNode.element, 'child');
+          
+          // 根据层级生成关系描述
+          let relationshipType: DiscoveredElement['relationship'] = 'child';
+          let levelDescription = '';
+          
+          if (depth === 0) {
+            relationshipType = 'direct-child';
+            levelDescription = '直接子元素';
+          } else if (depth === 1) {
+            relationshipType = 'grandchild';
+            levelDescription = '孙子元素';
+          } else {
+            relationshipType = 'descendant';
+            levelDescription = `${depth + 1}级后代元素`;
+          }
+          
+          const currentPath = parentPath ? `${parentPath} > 子${index + 1}` : `子${index + 1}`;
+          const reason = `${levelDescription} (${currentPath}) - ${generateReason(childNode.element, 'child')}`;
 
           children.push({
             element: childNode.element,
-            relationship: 'child',
-            confidence,
+            relationship: relationshipType,
+            confidence: confidence * (1 / (depth + 1)), // 距离越远置信度越低
             reason,
             hasText: !!childNode.element.text,
-            isClickable: childNode.element.is_clickable || false
+            isClickable: childNode.element.is_clickable || false,
+            depth: depth + 1, // 添加深度信息
+            path: currentPath // 添加路径信息
           });
 
           // 递归收集更深层的子元素
-          collectChildren(childNode, depth + 1);
+          if (childNode.children && childNode.children.length > 0) {
+            collectChildren(childNode, depth + 1, currentPath);
+          }
         });
       };
 
       collectChildren(targetNode, 0);
+    } else {
+      console.log('⚠️ 未找到子元素:', {
+        targetNodeExists: !!targetNode,
+        hasChildren: !!(targetNode?.children),
+        childrenLength: targetNode?.children?.length
+      });
     }
 
     // 按置信度排序，优先显示有文本的元素
@@ -250,6 +358,16 @@ export const useElementDiscovery = (
       isAnalyzingRef.current = false;
     }
   }, [allElements, findParentElements, findChildElements]);
+
+  // 元素包含检测函数
+  const isElementContained = useCallback((elementA: UIElement, elementB: UIElement): boolean => {
+    return (
+      elementB.bounds.left <= elementA.bounds.left &&
+      elementB.bounds.top <= elementA.bounds.top &&
+      elementB.bounds.right >= elementA.bounds.right &&
+      elementB.bounds.bottom >= elementA.bounds.bottom
+    );
+  }, []);
 
   // 清除发现结果
   const clearDiscovery = useCallback(() => {
