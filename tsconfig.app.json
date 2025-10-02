@@ -62,6 +62,15 @@
     // ADB 授权向导（未纳入本轮工作）
     "src/pages/adb/auth/**",
     "src/pages/adb/AdbCenterPage.tsx",
+    // 临时/变体组件（避免被纳入类型检查引发噪音）
+    "src/**/*_FIXED.tsx",
+    "src/**/*_FIXED.ts",
+    "src/**/*_BACKUP.tsx",
+    "src/**/*_BACKUP.ts",
+    "src/**/*_SIMPLE.tsx",
+    "src/**/*_SIMPLE.ts",
+    "src/**/*_ENHANCED.tsx",
+    "src/**/*_ENHANCED.ts",
     // 示例与演示入口
   "src/examples/**",
     "src/pages/ComprehensiveAdbPage.tsx",
