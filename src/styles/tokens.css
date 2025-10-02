@@ -279,3 +279,100 @@
   --space-4: 0.75rem;         /* 减少默认间距 */
   --space-6: 1.25rem;
 }
+
+/* ==================== 浅色主题强制覆盖（解决 Ant Design 继承问题） ==================== */
+/*
+ * 解决方案：当使用浅色背景容器时，必须为 Ant Design 组件强制设置深色文字
+ * 防止出现白底白字等不可读的组合
+ */
+.light-theme-force {
+  color: var(--text-inverse, #1e293b) !important;
+}
+
+/* 普通HTML元素颜色覆盖 */
+.light-theme-force span,
+.light-theme-force p,
+.light-theme-force strong,
+.light-theme-force b,
+.light-theme-force em,
+.light-theme-force i,
+.light-theme-force div {
+  color: var(--text-inverse, #1e293b) !important;
+}
+
+.light-theme-force .ant-typography,
+.light-theme-force .ant-typography-title,
+.light-theme-force .ant-typography-paragraph,
+.light-theme-force .ant-typography-text {
+  color: var(--text-inverse, #1e293b) !important;
+}
+
+.light-theme-force .ant-typography-secondary {
+  color: var(--text-muted, #94a3b8) !important;
+}
+
+/* Tag 组件颜色覆盖 */
+.light-theme-force .ant-tag {
+  color: var(--text-inverse, #1e293b) !important;
+  background: var(--bg-light-secondary, #f1f5f9) !important;
+  border-color: var(--border-muted, #d1d5db) !important;
+}
+
+.light-theme-force .ant-tag-green {
+  color: var(--success, #10b981) !important;
+  background: var(--success-bg, #d1fae5) !important;
+  border-color: var(--success, #10b981) !important;
+}
+
+.light-theme-force .ant-tag-red {
+  color: var(--error, #ef4444) !important;
+  background: var(--error-bg, #fee2e2) !important;
+  border-color: var(--error, #ef4444) !important;
+}
+
+.light-theme-force .ant-tag-blue {
+  color: var(--info, #3b82f6) !important;
+  background: var(--info-bg, #dbeafe) !important;
+  border-color: var(--info, #3b82f6) !important;
+}
+
+.light-theme-force .ant-tag-orange {
+  color: var(--warning, #f59e0b) !important;
+  background: var(--warning-bg, #fef3c7) !important;
+  border-color: var(--warning, #f59e0b) !important;
+}
+
+/* Button 组件颜色覆盖 */
+.light-theme-force .ant-btn {
+  color: var(--text-inverse, #1e293b) !important;
+}
+
+.light-theme-force .ant-btn-default {
+  color: var(--text-inverse, #1e293b) !important;
+  background: var(--bg-light-elevated, #f8fafc) !important;
+  border-color: var(--border-muted, #d1d5db) !important;
+}
+
+/* Card 组件内容颜色覆盖 */
+.light-theme-force .ant-card-body {
+  color: var(--text-inverse, #1e293b) !important;
+}
+
+.light-theme-force .ant-card-meta-title,
+.light-theme-force .ant-card-meta-description {
+  color: var(--text-inverse, #1e293b) !important;
+}
+
+/* Space 组件继承父级颜色设置，无需额外处理 */
+
+/* Input 组件颜色覆盖 */
+.light-theme-force .ant-input,
+.light-theme-force .ant-select-selector {
+  color: var(--text-inverse, #1e293b) !important;
+  background: var(--bg-light-base, #ffffff) !important;
+}
+
+/* Form 组件颜色覆盖 */
+.light-theme-force .ant-form-item-label > label {
+  color: var(--text-inverse, #1e293b) !important;
+}

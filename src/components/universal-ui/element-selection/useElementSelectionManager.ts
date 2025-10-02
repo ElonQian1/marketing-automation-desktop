@@ -211,6 +211,22 @@ export const useElementSelectionManager = (
     };
   }, [isElementHidden, hoveredElement, pendingSelection]);
 
+  // 清理所有状态（用于组件卸载或页面切换）
+  const clearAllStates = useCallback(() => {
+    console.log('🧹 清理所有选择管理器状态');
+    setPendingSelection(null);
+    setHiddenElements([]);
+    setHoveredElement(null);
+    
+    // 清除所有定时器
+    if (hoverTimeoutRef.current) {
+      clearTimeout(hoverTimeoutRef.current);
+      hoverTimeoutRef.current = null;
+    }
+    restoreTimeoutsRef.current.forEach(timeout => clearTimeout(timeout));
+    restoreTimeoutsRef.current.clear();
+  }, []);
+
   return {
     // 状态
     pendingSelection,
@@ -231,6 +247,7 @@ export const useElementSelectionManager = (
     restoreElement,
     restoreAllElements,
     getElementDisplayState,
+    clearAllStates, // 新增：清理所有状态
     
     // 工具方法
     isElementHidden

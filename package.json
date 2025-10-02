@@ -25,6 +25,7 @@
   "quality:check": "npm run scan:overrides && npm run type-check && npm run check:adapters",
   "check:adapters": "node scripts/check-adapter-usage.js",
     "check:hardcoded": "node scripts/check-hardcoded-styles.js",
+    "check:contrast": "node scripts/check-color-contrast.js",
     "setup:scrcpy": "pwsh -ExecutionPolicy Bypass -File scripts/setup-scrcpy.ps1",
     "verify:scrcpy": "pwsh -ExecutionPolicy Bypass -File scripts/verify-scrcpy.ps1",
     "test": "vitest run",

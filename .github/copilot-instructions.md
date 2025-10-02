@@ -24,7 +24,10 @@
 1. **强制使用统一接口**
 
    - ✅ 必须使用：`useAdb()` Hook
-   - ❌ 禁止使用：`useAdbDevices`、`useDevices`、`useAdbDiagnostic` 等旧接口
+   - ❌ 禁止使用：`useAdbDevices`、`useDevice7. **主动模块化守护**：发现文件超标或结构臃肿时优先建议/实施拆分，而非继续累积
+8. **防重复调用检查**：创建新组件时必须检查是否会导致重复初始化或资源浪费
+9. **样式可读性守护**：创建任何带背景色的组件时必须检查文字对比度和可读性
+10. **颜色变量强制**：禁止硬编码颜色值，必须使用项目统一的 CSS 变量系统、`useAdbDiagnostic` 等旧接口
    - ❌ 禁止直接调用：`adbService`、`AdbDiagnosticService` 等底层服务
 
 2. **架构分层严格遵守**
@@ -288,6 +291,157 @@ import { useAdbDevices } from "@/hooks/useAdbDevices";
 - 组件样式使用 CSS Modules 或 styled-components
 - 避免内联样式
 
+### 🎨 样式和颜色强制约束（防止白底白字等可读性问题）：
+
+#### **颜色配对强制规则**：
+
+1. **浅色背景必须配深色文字**
+   ```css
+   /* ✅ 正确：浅色背景 + 深色文字 */
+   background: var(--bg-light-base, #ffffff);
+   color: var(--text-inverse, #1e293b);
+   
+   /* ❌ 错误：浅色背景 + 浅色文字（不可读） */
+   background: #ffffff;
+   color: #f8fafc; /* 几乎看不见！ */
+   ```
+
+2. **深色背景必须配浅色文字**
+   ```css
+   /* ✅ 正确：深色背景 + 浅色文字 */
+   background: var(--bg-base, #0f172a);
+   color: var(--text-1, #f8fafc);
+   
+   /* ❌ 错误：深色背景 + 深色文字 */
+   background: #1e293b;
+   color: #334155; /* 对比度不足！ */
+   ```
+
+#### **强制执行的对比度标准**：
+
+- **最低对比度**: 4.5:1 (WCAG AA标准)
+- **推荐对比度**: 7:1 (WCAG AAA标准)
+- **常用配对表**：
+  ```css
+  /* 白色背景系列 */
+  --bg-white: #ffffff → color: var(--text-inverse, #1e293b)
+  --bg-light-elevated: #f8fafc → color: var(--text-inverse, #1e293b) 
+  --bg-light-secondary: #f1f5f9 → color: var(--text-inverse, #1e293b)
+  
+  /* 深色背景系列 */
+  --bg-base: #0f172a → color: var(--text-1, #f8fafc)
+  --bg-elevated: #1e293b → color: var(--text-1, #f8fafc)
+  --bg-secondary: #334155 → color: var(--text-1, #f8fafc)
+  
+  /* 品牌色背景 */
+  --brand: #6e8bff → color: #ffffff
+  --success: #10b981 → color: #ffffff  
+  --warning: #f59e0b → color: #1e293b (深色文字更清晰)
+  --error: #ef4444 → color: #ffffff
+  ```
+
+#### **Ant Design 组件颜色覆盖强制规范**：
+
+由于 Ant Design 组件会继承全局样式，在浅色背景容器中使用时必须强制覆盖：
+
+```tsx
+// ❌ 问题代码：白底 + 继承的白字 = 不可读
+<div style={{ background: '#ffffff' }}>
+  <Title>看不见的标题</Title>
+  <Text>看不见的文本</Text>
+</div>
+
+// ✅ 解决方案1：逐个组件显式设置
+<div style={{ background: 'var(--bg-light-base)', color: 'var(--text-inverse)' }}>
+  <Title style={{ color: 'var(--text-inverse) !important' }}>清晰标题</Title>
+  <Text style={{ color: 'var(--text-inverse)' }}>清晰文本</Text>
+</div>
+
+// ✅ 解决方案2：CSS类统一覆盖（推荐）
+<div className="light-theme-force" style={{ background: 'var(--bg-light-base)' }}>
+  <Title>自动深色标题</Title>
+  <Text>自动深色文本</Text>
+</div>
+```
+
+**CSS类定义**：
+```css
+/* 在 global.css 或 tokens.css 中定义 */
+.light-theme-force {
+  color: var(--text-inverse, #1e293b) !important;
+}
+
+.light-theme-force .ant-typography,
+.light-theme-force .ant-typography-title,
+.light-theme-force .ant-typography-paragraph {
+  color: var(--text-inverse, #1e293b) !important;
+}
+
+.light-theme-force .ant-typography-secondary {
+  color: var(--text-muted, #94a3b8) !important;
+}
+
+.light-theme-force .ant-tag {
+  color: var(--text-inverse, #1e293b) !important;
+  background: var(--bg-light-secondary, #f1f5f9) !important;
+  border-color: var(--border-muted, #d1d5db) !important;
+}
+```
+
+#### **AI 代理必须遵守的颜色检查清单**：
+
+创建任何包含背景色的组件时，必须检查：
+
+```
+□ 是否为浅色背景设置了深色文字？
+□ 是否为深色背景设置了浅色文字？  
+□ 是否使用了 CSS 变量而非硬编码颜色？
+□ 是否为 Ant Design 组件添加了颜色覆盖？
+□ 是否测试了文字在目标背景上的可读性？
+□ 是否添加了 .light-theme-force 类（浅色背景容器）？
+□ 是否避免了相近颜色的组合（如白底+淡灰文字）？
+```
+
+#### **常见错误模式及修复**：
+
+```tsx
+// ❌ 错误模式1：硬编码白色背景但忘记设置文字颜色
+<Card style={{ background: '#ffffff' }}>
+  <div>内容</div> {/* 继承全局白色文字 = 看不见 */}
+</Card>
+
+// ✅ 修复：使用变量 + 明确文字颜色
+<Card 
+  className="light-theme-force" 
+  style={{ background: 'var(--bg-light-base)' }}
+>
+  <div>内容</div>
+</Card>
+
+// ❌ 错误模式2：浅灰背景 + 浅色文字
+<div style={{ background: '#f1f5f9', color: '#cbd5e1' }}>
+  低对比度文本 {/* 对比度不足 */}
+</div>
+
+// ✅ 修复：确保足够对比度
+<div style={{ 
+  background: 'var(--bg-light-secondary)', 
+  color: 'var(--text-inverse)' 
+}}>
+  高对比度文本
+</div>
+
+// ❌ 错误模式3：忘记处理 Ant Design 子组件
+<div className="bg-white">
+  <Tag color="blue">标签</Tag> {/* 可能不可读 */}
+</div>
+
+// ✅ 修复：整体应用主题类
+<div className="light-theme-force bg-white">
+  <Tag>标签</Tag> {/* 自动使用正确颜色 */}
+</div>
+```
+
 ## 🚫 严格禁止事项
 
 1. **架构违反**
@@ -319,6 +473,13 @@ import { useAdbDevices } from "@/hooks/useAdbDevices";
    - 必须在 Hook 内部实现防重复调用机制
    - 避免在短时间内重复执行昂贵的操作（如设备检测、文件操作）
 
+6. **样式和可读性违规**
+   - 禁止创建对比度不足的颜色组合（最低 4.5:1）
+   - 禁止浅色背景使用浅色文字或深色背景使用深色文字
+   - 禁止硬编码颜色值，必须使用 CSS 变量
+   - 禁止在浅色背景容器中使用 Ant Design 组件而不设置文字颜色覆盖
+   - 禁止忽略 `.light-theme-force` 类的使用（浅色背景时）
+
 ## 📋 代码审查检查点
 
 开发完成后必须检查：
@@ -332,6 +493,9 @@ import { useAdbDevices } from "@/hooks/useAdbDevices";
 7. ✅ 是否存在超过行数阈值但未给出拆分计划的文件
 8. ✅ **新增**：是否存在重复调用初始化函数的风险
 9. ✅ **新增**：多个组件同时使用 `useAdb()` 时是否会造成性能问题
+10. ✅ **样式检查**：是否存在白底白字等可读性问题
+11. ✅ **颜色对比度**：是否满足 WCAG AA 标准（4.5:1）
+12. ✅ **CSS 变量使用**：是否使用了硬编码颜色而非设计令牌
 
 ## 🎯 AI 代理特别指令
 
@@ -346,6 +510,27 @@ import { useAdbDevices } from "@/hooks/useAdbDevices";
 7. **生产就绪标准**：所有代码必须达到生产环境标准，不接受简化版本
 8. **主动模块化守护**：发现文件超标或结构臃肿时优先建议/实施拆分，而非继续累积
 9. **防重复调用检查**：创建新组件时必须检查是否会导致重复初始化或资源浪费
+10. **白底白字强制预防**：任何包含浅色背景的代码必须立即添加 `.light-theme-force` 类
+
+### 🚨 白底白字问题快速检测卡
+
+**项目特殊情况**: 全局深色主题 (`color: rgba(255,255,255,0.85)`) + 局部浅色组件
+
+**⚡ 写代码时立即检查：**
+```tsx
+// 看到这些立即添加 className="light-theme-force"
+background: '#fff'
+background: 'white' 
+background: rgb(255,255,255)
+background: '#f8fafc'
+
+// 快速修复模板
+<div className="light-theme-force" style={{ background: 'var(--bg-light-base)' }}>
+  内容会自动使用正确的深色文字
+</div>
+```
+
+**🎯 必查场景**: Card、Modal、卡片列表、数据展示、元素详情面板
 
 **禁止行为：**
 
@@ -357,6 +542,9 @@ import { useAdbDevices } from "@/hooks/useAdbDevices";
 - 构建非业务核心的展示组件
 - 将新增逻辑持续堆叠到已超标的巨型文件中而不提出拆分方案
 - **新增**：在一个页面/模态框中创建多个同时调用 `useAdb()` 的组件
+- **新增**：创建白底白字、深底深字等低对比度的不可读组合
+- **新增**：在浅色背景中使用 Ant Design 组件而不添加 `.light-theme-force` 类
+- **新增**：硬编码颜色值而不使用 CSS 变量系统
 
 ## 📚 相关文档
 

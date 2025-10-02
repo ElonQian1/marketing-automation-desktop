@@ -151,6 +151,28 @@ const UniversalPageFinderModal: React.FC<UniversalPageFinderModalProps> = ({
     }
   );
 
+  // 模态框关闭时清理气泡状态
+  useEffect(() => {
+    if (!visible) {
+      console.log('🧹 [UniversalPageFinderModal] 模态框关闭，清理气泡状态');
+      selectionManager.clearAllStates();
+    }
+  }, [visible, selectionManager]);
+
+  // 视图模式切换时清理气泡状态
+  useEffect(() => {
+    console.log('🧹 [UniversalPageFinderModal] 视图模式切换，清理气泡状态');
+    selectionManager.clearAllStates();
+  }, [viewMode, selectionManager]);
+
+  // 页面切换时清理气泡状态
+  useEffect(() => {
+    return () => {
+      console.log('🧹 [UniversalPageFinderModal] 组件卸载，清理气泡状态');
+      selectionManager.clearAllStates();
+    };
+  }, [selectionManager]);
+
   // 调试日志：监听selectionManager状态变化
   React.useEffect(() => {
     console.log('🔍 [UniversalPageFinderModal] selectionManager.pendingSelection 状态:', {
@@ -419,6 +441,7 @@ const UniversalPageFinderModal: React.FC<UniversalPageFinderModalProps> = ({
           <ElementSelectionPopover
             visible={isVisible}
             selection={selectionManager.pendingSelection}
+            isModalOpen={true} // 告诉气泡当前有模态框打开
             onConfirm={() => {
               console.log('✅ [ElementSelectionPopover] onConfirm 被调用');
               selectionManager.confirmSelection();
@@ -426,6 +449,10 @@ const UniversalPageFinderModal: React.FC<UniversalPageFinderModalProps> = ({
             onCancel={() => {
               console.log('❌ [ElementSelectionPopover] onCancel 被调用');
               selectionManager.hideElement();
+            }}
+            onOutsideClick={() => {
+              console.log('🎯 [ElementSelectionPopover] 外部点击触发关闭');
+              selectionManager.cancelSelection();
             }}
             // 新增：支持元素发现功能
             allElements={uiElements}
