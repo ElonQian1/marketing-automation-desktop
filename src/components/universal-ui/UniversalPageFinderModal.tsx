@@ -276,6 +276,7 @@ const UniversalPageFinderModal: React.FC<UniversalPageFinderModalProps> = ({
               selectedElementId={selectedElementId}
               onElementSelect={handleVisualElementSelect}
               selectionManager={selectionManager}
+              originalUIElements={uiElements}
             />
           </ErrorBoundary>
         );

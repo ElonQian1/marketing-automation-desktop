@@ -155,12 +155,93 @@ export const ChildElementCard: React.FC<ChildElementCardProps> = ({
           </Tag>
         </div>
 
-        {/* 位置信息 */}
-        {uiElement.bounds && (
-          <div style={{ fontSize: 11, color: 'var(--text-muted, #999)' }}>
-            位置: [{uiElement.bounds.left}, {uiElement.bounds.top}, {uiElement.bounds.right}, {uiElement.bounds.bottom}]
+        {/* 元素详细字段信息 - 自适应展示 */}
+        <details style={{ marginTop: 8, fontSize: 10, color: 'var(--text-muted)' }}>
+          <summary style={{ cursor: 'pointer', userSelect: 'none' }}>
+            📋 子元素详细字段信息
+          </summary>
+          <div style={{ 
+            marginTop: 4, 
+            padding: 8, 
+            background: 'var(--bg-light-secondary, #f1f5f9)', 
+            borderRadius: 4,
+            fontSize: 10,
+            lineHeight: 1.4
+          }}>
+            <div><strong>元素字段信息:</strong></div>
+            {/* 自适应显示所有有值的字段 */}
+            {Object.entries(uiElement)
+              .filter(([key, value]) => {
+                // 排除一些不需要显示的字段
+                if (['children', 'bounds'].includes(key)) return false;
+                
+                // 只显示有意义的字段值
+                if (typeof value === 'string') {
+                  return value.trim().length > 0;
+                }
+                if (typeof value === 'boolean') {
+                  return true; // 布尔值总是显示
+                }
+                if (typeof value === 'number') {
+                  return true; // 数字总是显示
+                }
+                return value != null; // 其他非空值
+              })
+              .map(([key, value]) => {
+                let displayValue = value;
+                let fieldLabel = key;
+                
+                // 字段名称本地化
+                const fieldNames: Record<string, string> = {
+                  'text': '文本内容',
+                  'content_desc': '内容描述',
+                  'resource_id': '资源ID', 
+                  'class_name': '类名',
+                  'element_type': '元素类型',
+                  'is_clickable': '可点击',
+                  'is_scrollable': '可滚动',
+                  'is_enabled': '已启用',
+                  'is_focused': '已聚焦',
+                  'checkable': '可勾选',
+                  'checked': '已勾选',
+                  'selected': '已选中',
+                  'password': '密码框',
+                  'xpath': 'XPath路径',
+                  'parentId': '父元素ID'
+                };
+                
+                fieldLabel = fieldNames[key] || key;
+                
+                // 值格式化
+                if (typeof value === 'string') {
+                  displayValue = `"${value}" (长度: ${value.length})`;
+                } else if (typeof value === 'boolean') {
+                  displayValue = value ? '是' : '否';
+                } else {
+                  displayValue = String(value);
+                }
+                
+                return (
+                  <div key={key}>
+                    • {fieldLabel}: {displayValue}
+                  </div>
+                );
+              })}
+            
+            {/* 位置信息单独处理 */}
+            {uiElement.bounds && (
+              <div>• 位置信息: [{uiElement.bounds.left}, {uiElement.bounds.top}, {uiElement.bounds.right}, {uiElement.bounds.bottom}]</div>
+            )}
+            
+            {/* 子元素数量 */}
+            {uiElement.children && uiElement.children.length > 0 && (
+              <div>• 子元素数量: {uiElement.children.length} 个</div>
+            )}
+            
+            <div style={{ marginTop: 8 }}><strong>生成描述:</strong></div>
+            <div>"{buildElementDescription()}"</div>
           </div>
-        )}
+        </details>
 
         {/* 操作按钮 */}
         <Space style={{ marginTop: 4 }}>

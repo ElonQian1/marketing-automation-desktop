@@ -17,6 +17,8 @@ export interface PagePreviewProps {
   deviceFramePadding: number;
   selectionManager: any;
   selectedElementId: string;
+  // 新增：原始完整UIElement数据，用于保留语义信息
+  originalUIElements?: UIElement[];
 }
 
 export const PagePreview: React.FC<PagePreviewProps> = ({
@@ -27,7 +29,8 @@ export const PagePreview: React.FC<PagePreviewProps> = ({
   xmlContent,
   deviceFramePadding,
   selectionManager,
-  selectedElementId
+  selectedElementId,
+  originalUIElements = []
 }) => {
   if (finalElements.length === 0) {
     return (
@@ -68,11 +71,25 @@ export const PagePreview: React.FC<PagePreviewProps> = ({
               const elementWidth = Math.max(element.position.width * scale, 1);
               const elementHeight = Math.max(element.position.height * scale, 1);
               const displayState = selectionManager.getElementDisplayState(element.id);
+              
+              // 🎯 检查是否有语义信息
+              const originalElement = originalUIElements.find(orig => orig.id === element.id);
+              const hasSemanticInfo = originalElement && (
+                (originalElement.content_desc && originalElement.content_desc.trim()) ||
+                (originalElement.resource_id && originalElement.resource_id.trim() && !originalElement.resource_id.includes('/'))
+              );
+              
+              // 🎯 为有语义信息的元素添加视觉标识
+              const semanticIndicator = hasSemanticInfo ? '🏷️' : '';
+              const semanticBorder = hasSemanticInfo ? '2px solid #52c41a' : (element.clickable ? '1px solid #fff' : '1px solid rgba(255,255,255,0.3)');
+              const semanticTitle = hasSemanticInfo 
+                ? `${element.userFriendlyName}: ${element.description} | 语义: ${originalElement?.content_desc || originalElement?.resource_id || '有标识'}`
+                : `${element.userFriendlyName}: ${element.description}`;
               return (
                 <div
                   key={element.id}
-                  title={`${element.userFriendlyName}: ${element.description}`}
-                  style={{position:'absolute',left:elementLeft,top:elementTop,width:elementWidth,height:elementHeight,backgroundColor:category?.color||'#8b5cf6',opacity: !hideCompletely && displayState.isHidden ? 0.1 : displayState.isPending ? 1 : element.clickable ? 0.7 : 0.4,border: displayState.isPending ? '2px solid #52c41a' : displayState.isHovered ? '2px solid #faad14' : element.clickable ? '1px solid #fff':'1px solid rgba(255,255,255,0.3)',borderRadius: Math.min(elementWidth,elementHeight)>10?2:1,cursor: !hideCompletely && displayState.isHidden ? 'default' : element.clickable? 'pointer':'default',transition:'all .2s ease',zIndex: displayState.isPending?50:displayState.isHovered?30:element.clickable?10:5,transform: displayState.isPending?'scale(1.1)':displayState.isHovered?'scale(1.05)':'scale(1)', boxShadow: displayState.isPending?'0 4px 16px rgba(82,196,26,0.4)':displayState.isHovered?'0 2px 8px rgba(0,0,0,0.2)':'none', filter: !hideCompletely && displayState.isHidden ? 'grayscale(100%) blur(1px)':'none'}}
+                  title={semanticTitle}
+                  style={{position:'absolute',left:elementLeft,top:elementTop,width:elementWidth,height:elementHeight,backgroundColor:category?.color||'#8b5cf6',opacity: !hideCompletely && displayState.isHidden ? 0.1 : displayState.isPending ? 1 : element.clickable ? 0.7 : 0.4,border: displayState.isPending ? '2px solid #52c41a' : displayState.isHovered ? '2px solid #faad14' : semanticBorder,borderRadius: Math.min(elementWidth,elementHeight)>10?2:1,cursor: !hideCompletely && displayState.isHidden ? 'default' : element.clickable? 'pointer':'default',transition:'all .2s ease',zIndex: displayState.isPending?50:displayState.isHovered?30:(hasSemanticInfo?20:element.clickable?10:5),transform: displayState.isPending?'scale(1.1)':displayState.isHovered?'scale(1.05)':'scale(1)', boxShadow: displayState.isPending?'0 4px 16px rgba(82,196,26,0.4)':displayState.isHovered?'0 2px 8px rgba(0,0,0,0.2)':(hasSemanticInfo?'0 0 4px rgba(82,196,26,0.6)':'none'), filter: !hideCompletely && displayState.isHidden ? 'grayscale(100%) blur(1px)':'none'}}
                   onClick={e=>{ 
                     console.log('🖱️ [PagePreview] 元素点击事件:', {
                       elementId: element.id,
@@ -88,10 +105,31 @@ export const PagePreview: React.FC<PagePreviewProps> = ({
                       return; 
                     }
                     
-                    e.stopPropagation(); 
-                    const uiElement = convertVisualToUIElement(element, selectedElementId) as unknown as UIElement;
+                    e.stopPropagation();
                     
-                    console.log('🔄 [PagePreview] 转换后的 UIElement:', uiElement);
+                    // 🎯 关键修复：优先使用原始UIElement数据，保留语义信息
+                    let uiElement: UIElement;
+                    const originalElement = originalUIElements.find(orig => orig.id === element.id);
+                    
+                    if (originalElement) {
+                      console.log('✅ [PagePreview] 使用原始UIElement数据（保留语义信息）:', {
+                        id: originalElement.id,
+                        content_desc: originalElement.content_desc,
+                        resource_id: originalElement.resource_id,
+                        text: originalElement.text
+                      });
+                      uiElement = originalElement;
+                    } else {
+                      console.log('⚠️ [PagePreview] 原始数据未找到，使用转换数据（可能丢失语义信息）');
+                      uiElement = convertVisualToUIElement(element, selectedElementId) as unknown as UIElement;
+                    }
+                    
+                    console.log('🔄 [PagePreview] 最终使用的 UIElement:', {
+                      id: uiElement.id,
+                      content_desc: uiElement.content_desc,
+                      resource_id: uiElement.resource_id,
+                      text: uiElement.text
+                    });
                     console.log('📞 [PagePreview] 调用 selectionManager.handleElementClick');
                     
                     selectionManager.handleElementClick(uiElement,{x:e.clientX,y:e.clientY}); 
@@ -99,9 +137,62 @@ export const PagePreview: React.FC<PagePreviewProps> = ({
                   onMouseEnter={()=>{ if(displayState.isHidden) return; selectionManager.handleElementHover(element.id); }}
                   onMouseLeave={()=>{ if(displayState.isHidden) return; selectionManager.handleElementHover(null); }}
                 >
+                  {/* 🎯 优先显示语义信息，然后是文本 */}
+                  {elementWidth>20 && elementHeight>15 && hasSemanticInfo && originalElement?.content_desc && (
+                    <div style={{
+                      position: 'absolute',
+                      top: 0,
+                      left: 0,
+                      fontSize: Math.max(6, Math.min(10, elementHeight/4)),
+                      color: '#52c41a',
+                      background: 'rgba(0,0,0,0.8)',
+                      textShadow: '0 1px 2px rgba(0,0,0,0.9)',
+                      padding: '0px 2px',
+                      overflow: 'hidden',
+                      whiteSpace: 'nowrap',
+                      textOverflow: 'ellipsis',
+                      lineHeight: 1.1,
+                      fontWeight: 'bold',
+                      maxWidth: '100%',
+                      borderRadius: '2px'
+                    }}>
+                      {semanticIndicator}{originalElement.content_desc.substring(0,8)}
+                    </div>
+                  )}
                   {elementWidth>40 && elementHeight>20 && element.text && (
-                    <div style={{fontSize:Math.max(8, Math.min(12, elementHeight/3)), color:'#fff', textShadow:'0 1px 2px rgba(0,0,0,0.8)', padding:'1px 2px', overflow:'hidden', whiteSpace:'nowrap', textOverflow:'ellipsis', lineHeight:1.2}}>
+                    <div style={{
+                      fontSize:Math.max(8, Math.min(12, elementHeight/3)), 
+                      color:'#fff', 
+                      textShadow:'0 1px 2px rgba(0,0,0,0.8)', 
+                      padding:'1px 2px', 
+                      overflow:'hidden', 
+                      whiteSpace:'nowrap', 
+                      textOverflow:'ellipsis', 
+                      lineHeight:1.2,
+                      marginTop: hasSemanticInfo && originalElement?.content_desc ? `${Math.max(8, Math.min(12, elementHeight/4)) + 2}px` : '0'
+                    }}>
                       {element.text.substring(0,10)}
+                    </div>
+                  )}
+                  {/* 显示其他描述信息 */}
+                  {elementWidth>30 && elementHeight>15 && element.description && !hasSemanticInfo && (
+                    <div style={{
+                      position: 'absolute',
+                      bottom: 0,
+                      left: 0,
+                      right: 0,
+                      fontSize: Math.max(6, Math.min(10, elementHeight/4)), 
+                      color: '#ffeb3b', 
+                      background: 'rgba(0,0,0,0.7)',
+                      textShadow:'0 1px 2px rgba(0,0,0,0.9)', 
+                      padding:'1px 2px', 
+                      overflow:'hidden', 
+                      whiteSpace:'nowrap', 
+                      textOverflow:'ellipsis', 
+                      lineHeight: 1.2,
+                      borderRadius: '0 0 2px 2px'
+                    }}>
+                      {element.description ? `🎯 ${element.description.substring(0,8)}` : element.text ? `📝 ${element.text.substring(0,6)}` : ''}
                     </div>
                   )}
                 </div>

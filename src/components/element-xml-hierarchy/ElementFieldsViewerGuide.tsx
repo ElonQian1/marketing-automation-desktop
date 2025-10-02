@@ -71,6 +71,8 @@ const sampleElements: UIElement[] = [
     selected: false,
     password: false,
     content_desc: '示例文本视图',
+    children: [] // 🎯 添加必需的children字段
+  },
     children: []
   },
   {
@@ -90,6 +92,8 @@ const sampleElements: UIElement[] = [
     selected: false,
     password: false,
     content_desc: '输入框',
+    children: [] // 🎯 添加必需的children字段
+  },
     children: []
   }
 ];

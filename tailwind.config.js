@@ -11,6 +11,7 @@ export default {
       colors: {
         brand: {
           DEFAULT: "var(--brand)",
+          text: "var(--brand-text)",
           50: "var(--brand-50)",
           100: "var(--brand-100)",
           200: "var(--brand-200)",

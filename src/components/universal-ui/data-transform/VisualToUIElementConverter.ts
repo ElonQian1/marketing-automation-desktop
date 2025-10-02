@@ -1,10 +1,7 @@
 /**
  * 可视化元素到UI元素转换器
  * 负责将VisualUIElement转换为UIElement
- *      password: this.inferPassword(visualElement),
-      // 避免把友好描述（如"未知元素（可点击）"）写入 content_desc
-      content_desc: '',
-      children: [] // 添加子元素字段
+ */
 import { UIElement } from '../../../api/universalUIAPI';
 import { VisualUIElement } from '../xml-parser/types';
 import { ConversionOptions, ConversionResult } from './types';

@@ -44,7 +44,8 @@ const convertVisualToUIElement = (element: VisualUIElement): UIElement => {
     checked: false,
     focusable: false,
     selected: element.selected || false,
-    password: false
+    password: false,
+    children: [] // 🎯 添加必需的children字段
   } as UIElement;
 };
 

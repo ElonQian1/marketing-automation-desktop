@@ -19,7 +19,7 @@ import {
   Text,
   Search,
 } from '../../../components/adapters';
-import { DatabaseOutlined, FileTextOutlined, FolderOpenOutlined, MobileOutlined, FileDoneOutlined, LayoutOutlined } from '@ant-design/icons';
+import { DatabaseOutlined, FileTextOutlined, FolderOpenOutlined, MobileOutlined, FileDoneOutlined, LayoutOutlined, SettingOutlined } from '@ant-design/icons';
 import styles from './ContactImportWorkbench.module.css';
 import { GridLayoutWrapper, useGridLayout } from './components/grid-layout';
 import BatchPreviewModal from './components/BatchPreviewModal';
@@ -34,9 +34,9 @@ import { useSourceFolders } from './hooks/useSourceFolders';
 import { SourceFolderAddButton } from './components/SourceFolderAddButton';
 import { SourceFoldersList } from './components/SourceFoldersList';
 import WorkbenchNumbersActionsBar from './components/WorkbenchNumbersActionsBar';
-import { useColumnSettings } from './components/columns/useColumnSettings';
+import { useTableColumns } from '@/components/universal-ui/table/useTableColumns';
+import { AntTableResizableHeader } from '@/components/universal-ui/table/ResizableHeader';
 import ColumnSettingsModal from './components/columns/ColumnSettingsModal';
-import { useResizableColumns } from '../../../components/universal-ui/table/resizable';
 import { useStaticDragFix } from './components/grid-layout/hooks/useStaticDragFix';
 
 // 新的hooks和组件
@@ -45,6 +45,16 @@ import { useWorkbenchActions } from './hooks/useWorkbenchActions';
 import { getWorkbenchTableColumns, WorkbenchResizableHeader } from './components/WorkbenchTableColumns';
 
 export const ContactImportWorkbench: React.FC = () => {
+  // 状态配置辅助函数
+  const getStatusConfig = (status: string | null) => {
+    switch (status) {
+      case 'success': return { color: 'green', text: '成功' };
+      case 'failed': return { color: 'red', text: '失败' };
+      case 'pending': return { color: 'blue', text: '待导入' };
+      default: return { color: 'default', text: '未知' };
+    }
+  };
+
   // 数据管理hook
   const workbenchData = useWorkbenchData();
   
@@ -78,49 +88,104 @@ export const ContactImportWorkbench: React.FC = () => {
   // 持久化的文件夹路径
   const { folders, addFolder, removeFolder, clearAll, hasItems } = useSourceFolders();
 
-  // 列配置
-  const columnDefaults = useMemo(() => ([
-    { key: 'id', title: 'ID', defaultVisible: true, defaultWidth: 80 },
-    { key: 'phone_number', title: '号码', defaultVisible: true, defaultWidth: 130 },
-    { key: 'name', title: '姓名', defaultVisible: true, defaultWidth: 180 },
-    { key: 'industry', title: '行业分类', defaultVisible: true, defaultWidth: 120 },
-    { key: 'status', title: '状态', defaultVisible: true, defaultWidth: 120 },
-    { key: 'used', title: '是否已用', defaultVisible: true, defaultWidth: 100 },
-    { key: 'imported_device_id', title: '导入设备', defaultVisible: true, defaultWidth: 150 },
-    { key: 'created_at', title: '创建时间', defaultVisible: true, defaultWidth: 160 },
-  ]), []);
-
-  const columnSettings = useColumnSettings('contactImport.numberPool.columns', columnDefaults);
+  // 统一的列管理系统（同时支持拖拽调整和设置界面）
+  const tableColumns = useTableColumns({
+    configs: [
+      { 
+        key: 'id', 
+        title: 'ID', 
+        dataIndex: 'id',
+        defaultVisible: true, 
+        defaultWidth: 80,
+        resizable: true,
+      },
+      { 
+        key: 'phone_number', 
+        title: '号码', 
+        dataIndex: 'phone_number',
+        defaultVisible: true, 
+        defaultWidth: 500,
+        resizable: true,
+        render: (value: string) => <Text copyable>{value}</Text>,
+      },
+      { 
+        key: 'display_name', 
+        title: '姓名', 
+        dataIndex: 'display_name',
+        defaultVisible: true, 
+        defaultWidth: 180,
+        resizable: true,
+      },
+      { 
+        key: 'industry', 
+        title: '行业分类', 
+        dataIndex: 'industry',
+        defaultVisible: true, 
+        defaultWidth: 120,
+        resizable: true,
+        render: (industry: string | null) => {
+          if (!industry) return <Text type="secondary">未分类</Text>;
+          return <Tag color="geekblue">{industry}</Tag>;
+        },
+      },
+      { 
+        key: 'status', 
+        title: '状态', 
+        dataIndex: 'status',
+        defaultVisible: true, 
+        defaultWidth: 120,
+        resizable: true,
+        render: (status: string | null) => {
+          const config = getStatusConfig(status);
+          return <Tag color={config.color}>{config.text}</Tag>;
+        },
+      },
+      { 
+        key: 'used', 
+        title: '是否已用', 
+        dataIndex: 'used',
+        defaultVisible: true, 
+        defaultWidth: 100,
+        resizable: true,
+        render: (used: boolean) => (
+          <Tag color={used ? 'orange' : 'green'}>{used ? '已使用' : '未使用'}</Tag>
+        ),
+      },
+      { 
+        key: 'imported_device_id', 
+        title: '导入设备', 
+        dataIndex: 'imported_device_id',
+        defaultVisible: true, 
+        defaultWidth: 150,
+        resizable: true,
+        render: (deviceId: string | null) => {
+          if (!deviceId) return <Text type="secondary">未导入</Text>;
+          return (
+            <Space>
+              <MobileOutlined style={{ color: '#1890ff' }} />
+              <Text>{deviceId}</Text>
+            </Space>
+          );
+        },
+      },
+      { 
+        key: 'created_at', 
+        title: '创建时间', 
+        dataIndex: 'created_at',
+        defaultVisible: true, 
+        defaultWidth: 160,
+        resizable: true,
+        render: (time: string) => {
+          if (!time) return '-';
+          return new Date(time).toLocaleString('zh-CN');
+        },
+      },
+    ],
+    storageKey: 'contact-import-workbench-columns'
+  });
+  
+  // 列设置模态框状态
   const [settingsOpen, setSettingsOpen] = useState(false);
-
-  // 表格列配置和可调整大小
-  const baseColumns = useMemo(() => (
-    getWorkbenchTableColumns({ 
-      columnSettings: { visibleColumns: columnSettings.configs }, 
-      resizableRuntime: null 
-    })
-  ), [columnSettings.configs]);
-
-  // 创建 widthMap：只包含可见列的宽度映射，确保每个列都有宽度值
-  const widthMap = useMemo(() => {
-    const map: Record<string, number> = {};
-    baseColumns.forEach(col => {
-      const config = columnSettings.configs.find(c => c.key === String(col.dataIndex));
-      // 确保每个可见列都有宽度值，优先使用config.width，回退到col.width，最后回退到默认值
-      const width = config?.width ?? col.width ?? 120;
-      map[String(col.dataIndex)] = width;
-    });
-    return map;
-  }, [baseColumns, columnSettings.configs]);
-
-  const resizable = useResizableColumns(
-    baseColumns.map(c => ({ key: String(c.dataIndex), width: c.width })),
-    { 
-      controlled: true,
-      widthMap,
-      onWidthChange: (key, w) => columnSettings.setWidth(key, w) 
-    }
-  );
 
   // 计算冲突
   const rangeConflicts = useMemo(() => 
@@ -220,8 +285,14 @@ export const ContactImportWorkbench: React.FC = () => {
   const renderNumbersPanel = () => (
     <>
       <Space wrap style={{ marginBottom: 16 }}>
-        <Button size="small" onClick={() => setSettingsOpen(true)}>列设置</Button>
+        <Button 
+          icon={<SettingOutlined />} 
+          onClick={() => setSettingsOpen(true)}
+        >
+          列设置
+        </Button>
         <Tag color="blue">共 {workbenchData.total} 条</Tag>
+        <Tag color="green">显示 {tableColumns.visibleCount} / {tableColumns.totalCount} 列</Tag>
       </Space>
       <WorkbenchNumbersActionsBar
         selectedRowKeys={workbenchData.selectedRowKeys as number[]}
@@ -234,21 +305,7 @@ export const ContactImportWorkbench: React.FC = () => {
       <Table
         rowKey="id"
         dataSource={workbenchData.items}
-        columns={baseColumns.map(col => {
-          const runtime = resizable.columns.find(rc => rc.key === String(col.dataIndex));
-          // 在受控模式下，优先使用 runtime 的宽度，它来自受控的 widthMap
-          const finalWidth = runtime?.width ?? col.width;
-          return {
-            ...col,
-            width: finalWidth,
-            onHeaderCell: () => ({ 
-              resizableRuntime: { 
-                width: finalWidth, 
-                onResizeStart: runtime?.onResizeStart 
-              } 
-            })
-          } as any;
-        })}
+        columns={tableColumns.columns}
         loading={workbenchData.loading}
         pagination={false}
         rowSelection={{
@@ -257,7 +314,7 @@ export const ContactImportWorkbench: React.FC = () => {
         }}
         components={{
           header: {
-            cell: WorkbenchResizableHeader,
+            cell: AntTableResizableHeader,
           },
         }}
         scroll={{ x: true, y: 400 }}
@@ -360,11 +417,16 @@ export const ContactImportWorkbench: React.FC = () => {
       <ColumnSettingsModal
         open={settingsOpen}
         onClose={() => setSettingsOpen(false)}
-        configs={columnSettings.configs}
-        onToggle={columnSettings.setVisible}
-        onWidthChange={columnSettings.setWidth}
-        onReorder={columnSettings.reorder}
-        onReset={columnSettings.reset}
+        configs={tableColumns.allColumns.map(col => ({
+          key: col.key,
+          title: col.title,
+          visible: col.visible,
+          width: col.width
+        }))}
+        onToggle={tableColumns.setVisible}
+        onWidthChange={tableColumns.setWidth}
+        onReorder={(keys) => tableColumns.setOrder && tableColumns.setOrder(keys)}
+        onReset={tableColumns.reset}
       />
     </div>
   );

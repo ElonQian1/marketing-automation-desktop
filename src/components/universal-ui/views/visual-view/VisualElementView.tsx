@@ -29,6 +29,8 @@ interface VisualElementViewProps {
   onElementSelect?: (element: VisualUIElement) => void;
   selectedElementId?: string;
   selectionManager?: ReturnType<typeof useElementSelectionManager>;
+  // 🎯 新增：原始完整UIElement数据，用于保留语义信息
+  originalUIElements?: UIElement[];
 }
 
 export const VisualElementView: React.FC<VisualElementViewProps> = ({
@@ -37,6 +39,7 @@ export const VisualElementView: React.FC<VisualElementViewProps> = ({
   onElementSelect,
   selectedElementId = "",
   selectionManager: externalSelectionManager,
+  originalUIElements = [],
 }) => {
   // 设备外框（bezel）内边距，让设备看起来比页面更大，但不改变页面坐标/缩放
   const DEVICE_FRAME_PADDING = 24; // px，可调
@@ -204,6 +207,7 @@ export const VisualElementView: React.FC<VisualElementViewProps> = ({
           deviceFramePadding={DEVICE_FRAME_PADDING}
           selectionManager={selectionManager}
           selectedElementId={selectedElementId}
+          originalUIElements={originalUIElements}
         />
       </div>
 

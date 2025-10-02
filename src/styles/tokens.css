@@ -11,15 +11,16 @@
 :root {
   /* ==================== 品牌色系 ==================== */
   /* 主品牌色 - 现代化深蓝紫渐变 */
-  --brand: #6E8BFF;
+  --brand: #4A5FD1;          /* 主品牌色，适合背景使用 */
+  --brand-text: #8B9EFF;     /* 品牌色文本变体，确保深色背景对比度 */
   --brand-50: #F0F4FF;
   --brand-100: #E0EAFF;
   --brand-200: #C7D7FF;
   --brand-300: #A3BFFF;
   --brand-400: #7A9BFF;
-  --brand-500: #6E8BFF;
+  --brand-500: #6E8BFF;      /* 原主品牌色移至500级 */
   --brand-600: #5B73E8;
-  --brand-700: #4A5FD1;
+  --brand-700: #4A5FD1;      /* 主品牌色 */
   --brand-800: #3B4DA6;
   --brand-900: #334085;
 
@@ -235,6 +236,17 @@
   --text-1: #F8FAFC;
   --text-2: #E2E8F0;
   --text-3: #CBD5E1;
+  
+  --border-primary: #334155;
+  --border-secondary: #475569;
+  
+  /* 深色主题阴影保持默认 */
+  --shadow: 0 1px 3px rgba(0, 0, 0, 0.12), 0 4px 16px rgba(0, 0, 0, 0.08);
+  --shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.08), 0 2px 6px rgba(0, 0, 0, 0.04);
+  --shadow-lg: 0 4px 16px rgba(0, 0, 0, 0.12), 0 8px 32px rgba(0, 0, 0, 0.08);
+  
+  /* 品牌文本色在深色主题下 */
+  --brand-text: #8B9EFF;
 }
 
 /* ==================== 浅色主题 ==================== */
@@ -254,6 +266,9 @@
   --shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
   --shadow-sm: 0 2px 8px rgba(0, 0, 0, 0.05);
   --shadow-lg: 0 8px 32px rgba(0, 0, 0, 0.12);
+  
+  /* 品牌文本色在浅色主题下需要更深 */
+  --brand-text: #4A5FD1;
 }
 
 /* ==================== 紧凑模式 ==================== */
