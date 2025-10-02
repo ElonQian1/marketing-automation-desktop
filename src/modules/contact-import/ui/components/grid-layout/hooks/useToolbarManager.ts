@@ -157,7 +157,8 @@ export function useToolbarManager({
     const baseStyle: React.CSSProperties = {
       position: 'fixed',
       zIndex: 9999,
-      background: 'white',
+      background: 'var(--bg-light-base, #ffffff)',
+      color: 'var(--text-inverse, #1e293b)',
       padding: '8px 12px',
       borderRadius: '8px',
       boxShadow: '0 4px 12px rgba(0, 0, 0, 0.15)',

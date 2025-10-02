@@ -84,7 +84,8 @@ export const ElementSelectionConfirm: React.FC<ElementSelectionConfirmProps> = (
     top: y,
     width: '200px',
     zIndex: 9999,
-    background: 'white',
+    background: 'var(--bg-light-base, #ffffff)',
+    color: 'var(--text-inverse, #1e293b)',
     border: '1px solid #e8e8e8',
     borderRadius: '8px',
     boxShadow: '0 6px 16px rgba(0, 0, 0, 0.12)',
@@ -160,7 +161,7 @@ export const ElementSelectionConfirm: React.FC<ElementSelectionConfirmProps> = (
       />
       
       {/* 气泡确认框 */}
-      <div style={bubbleStyle}>
+      <div style={bubbleStyle} className="light-theme-force">
         {/* 箭头边框 */}
         <div style={arrowBorderStyle} />
         {/* 箭头 */}

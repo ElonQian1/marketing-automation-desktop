@@ -130,17 +130,21 @@ export const LayoutControlToolbar: React.FC<LayoutControlToolbarProps> = ({
 
   return (
     <>
-      <div className={`layout-control-toolbar ${className}`} style={{
-        position: 'fixed',
-        top: 20,
-        right: 20,
-        zIndex: 9999,
-        background: 'white',
-        padding: '8px 12px',
-        borderRadius: '8px',
-        boxShadow: '0 4px 12px rgba(0, 0, 0, 0.15)',
-        border: '1px solid #f0f0f0',
-      }}>
+      <div 
+        className={`layout-control-toolbar light-theme-force ${className}`} 
+        style={{
+          position: 'fixed',
+          top: 20,
+          right: 20,
+          zIndex: 9999,
+          background: 'var(--bg-light-base, #ffffff)',
+          color: 'var(--text-inverse, #1e293b)',
+          padding: '8px 12px',
+          borderRadius: '8px',
+          boxShadow: '0 4px 12px rgba(0, 0, 0, 0.15)',
+          border: '1px solid #f0f0f0',
+        }}
+      >
         <Space size="small">
           {/* 版本管理 */}
           <Tooltip title="布局版本">

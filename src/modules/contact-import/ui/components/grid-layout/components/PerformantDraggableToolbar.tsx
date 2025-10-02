@@ -47,13 +47,24 @@ export const PerformantDraggableToolbar = memo<PerformantDraggableToolbarProps>(
   const { settings, updateSettings, isVisible, hideToolbar } = useToolbarManager({ storageKey });
   
   // 优化的拖拽功能
+  // 拖拽功能 - 计算右上角位置（布局切换器下方）
+  const calculateInitialPosition = () => {
+    if (typeof window !== 'undefined') {
+      return { 
+        x: Math.max(window.innerWidth - 300, 20), // 距离右边300px，最小距离左边20px
+        y: 130 // 布局切换器下方50px（80px + 切换器高度）
+      };
+    }
+    return { x: 20, y: 20 }; // 服务端渲染时的回退值
+  };
+
   const {
     position,
     isDragging,
     dragHandlers,
     style: dragStyle
   } = useDraggableOptimized({
-    initialPosition: { x: 20, y: 20 },
+    initialPosition: calculateInitialPosition(),
     bounds: 'window',
     disabled: settings.isPinned,
     storageKey: `${storageKey}-position`,

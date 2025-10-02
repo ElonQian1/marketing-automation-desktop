@@ -47,13 +47,23 @@ export const EnhancedDraggableToolbar = memo<EnhancedDraggableToolbarProps>(({
     hideToolbar 
   } = useToolbarManager();
 
-  // 拖拽功能
+  // 拖拽功能 - 计算右上角位置（布局切换器下方）
+  const calculateInitialPosition = () => {
+    if (typeof window !== 'undefined') {
+      return { 
+        x: Math.max(window.innerWidth - 300, 20), // 距离右边300px，最小距离左边20px
+        y: 130 // 布局切换器下方50px（80px + 切换器高度）
+      };
+    }
+    return { x: 20, y: 20 }; // 服务端渲染时的回退值
+  };
+
   const {
     style: dragStyle,
     isDragging,
     dragHandlers
   } = useDraggableOptimized({
-    initialPosition: { x: 20, y: 20 },
+    initialPosition: calculateInitialPosition(),
     bounds: 'window',
     disabled: false,
     storageKey: `${storageKey}-position`,

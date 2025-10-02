@@ -361,14 +361,18 @@ export const ScriptBuilderContainer: React.FC<ScriptBuilderContainerProps> = ({
 
   // 渲染头部工具栏
   const renderHeader = () => (
-    <div style={{ 
-      display: 'flex', 
-      alignItems: 'center', 
-      justifyContent: 'space-between',
-      padding: '0 16px',
-      background: '#fff',
-      borderBottom: '1px solid #f0f0f0',
-    }}>
+    <div 
+      style={{ 
+        display: 'flex', 
+        alignItems: 'center', 
+        justifyContent: 'space-between',
+        padding: '0 16px',
+        background: 'var(--bg-light-base, #ffffff)',
+        color: 'var(--text-inverse, #1e293b)',
+        borderBottom: '1px solid #f0f0f0',
+      }}
+      className="light-theme-force"
+    >
       <div style={{ display: 'flex', alignItems: 'center', gap: 16 }}>
         <Title level={4} style={{ margin: 0 }}>
           {currentScript?.name || '脚本构建器'}
@@ -486,7 +490,12 @@ export const ScriptBuilderContainer: React.FC<ScriptBuilderContainerProps> = ({
         {/* 左侧步骤列表 */}
         <Sider 
           width={400} 
-          style={{ background: '#fff', borderRight: '1px solid #f0f0f0' }}
+          style={{ 
+            background: 'var(--bg-light-base, #ffffff)', 
+            color: 'var(--text-inverse, #1e293b)',
+            borderRight: '1px solid #f0f0f0' 
+          }}
+          className="light-theme-force"
         >
           {renderStepList()}
         </Sider>

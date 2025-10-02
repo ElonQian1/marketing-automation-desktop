@@ -166,14 +166,22 @@ export const PageAnalyzerContainer: React.FC<PageAnalyzerContainerProps> = ({
       </Card>
 
       {/* 主要内容区域 */}
-      <Layout style={{ background: '#fff' }}>
+      <Layout 
+        style={{ 
+          background: 'var(--bg-light-base, #ffffff)',
+          color: 'var(--text-inverse, #1e293b)'
+        }}
+        className="light-theme-force"
+      >
         {/* 左侧元素树 */}
         <Sider 
           width={320} 
           style={{ 
-            background: '#fff',
+            background: 'var(--bg-light-base, #ffffff)',
+            color: 'var(--text-inverse, #1e293b)',
             borderRight: '1px solid #f0f0f0'
           }}
+          className="light-theme-force"
         >
           <div style={{ padding: '0 8px' }}>
             <ElementTree

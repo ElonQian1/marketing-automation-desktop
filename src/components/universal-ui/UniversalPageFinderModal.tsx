@@ -151,39 +151,13 @@ const UniversalPageFinderModal: React.FC<UniversalPageFinderModalProps> = ({
     }
   );
 
-  // 🔧 气泡状态清理：监听页面切换和模态框关闭
+  // 🔧 只在模态框完全关闭时清理气泡状态
   useEffect(() => {
     if (!visible) {
-      // 模态框关闭时清理气泡状态
       console.log('🧹 [UniversalPageFinderModal] 模态框关闭，清理气泡状态');
       selectionManager.cancelSelection();
     }
   }, [visible, selectionManager]);
-
-  // 🔧 气泡状态清理：监听视图模式切换
-  useEffect(() => {
-    // 视图模式切换时清理气泡状态
-    console.log('🧹 [UniversalPageFinderModal] 视图模式切换，清理气泡状态');
-    selectionManager.cancelSelection();
-  }, [viewMode, selectionManager]);
-
-  // 🔧 气泡状态清理：监听设备切换
-  useEffect(() => {
-    // 设备切换时清理气泡状态
-    if (selectedDevice) {
-      console.log('🧹 [UniversalPageFinderModal] 设备切换，清理气泡状态');
-      selectionManager.cancelSelection();
-    }
-  }, [selectedDevice, selectionManager]);
-
-  // 🔧 气泡状态清理：监听XML内容变化
-  useEffect(() => {
-    // XML内容变化（新的页面）时清理气泡状态
-    if (xmlContent) {
-      console.log('🧹 [UniversalPageFinderModal] XML内容变化，清理气泡状态');
-      selectionManager.cancelSelection();
-    }
-  }, [xmlContent, selectionManager]);
 
   // 调试日志：监听selectionManager状态变化
   React.useEffect(() => {

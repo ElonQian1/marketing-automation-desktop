@@ -261,12 +261,16 @@ export const ScriptBuilderTestPage: React.FC = () => {
         </Card>
 
         {/* 脚本构建器主界面 */}
-        <div style={{ 
-          border: '1px solid #d9d9d9', 
-          borderRadius: 6, 
-          overflow: 'hidden',
-          background: '#fff',
-        }}>
+        <div 
+          style={{ 
+            border: '1px solid #d9d9d9', 
+            borderRadius: 6, 
+            overflow: 'hidden',
+            background: 'var(--bg-light-base, #ffffff)',
+            color: 'var(--text-inverse, #1e293b)',
+          }}
+          className="light-theme-force"
+        >
           <ScriptBuilderContainer
             initialScript={useExampleScript ? EXAMPLE_SCRIPT : undefined}
             availableDevices={MOCK_DEVICES}

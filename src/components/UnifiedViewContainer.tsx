@@ -401,9 +401,11 @@ const UnifiedViewContainer: React.FC<UnifiedViewContainerProps> = ({
         collapsible
         trigger={null}
         style={{ 
-          background: '#fff',
+          background: 'var(--bg-light-base, #ffffff)',
+          color: 'var(--text-inverse, #1e293b)',
           borderLeft: '1px solid #f0f0f0'
         }}
+        className="light-theme-force"
       >
         <div style={{ padding: '16px', height: '100%', overflow: 'auto' }}>
           {!sidebarCollapsed && (
