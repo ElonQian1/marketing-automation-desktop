@@ -73,8 +73,6 @@ const sampleElements: UIElement[] = [
     content_desc: '示例文本视图',
     children: [] // 🎯 添加必需的children字段
   },
-    children: []
-  },
   {
     id: 'com.example.app:id/sample_input',
     element_type: 'android.widget.EditText',
@@ -93,8 +91,6 @@ const sampleElements: UIElement[] = [
     password: false,
     content_desc: '输入框',
     children: [] // 🎯 添加必需的children字段
-  },
-    children: []
   }
 ];
 

@@ -2,7 +2,7 @@
  * 统一的列设置组件 - 配合useTableColumns使用
  */
 
-import React, { useState } from 'react';
+import React, { useState, useCallback, useMemo } from 'react';
 import { 
   Button, 
   Checkbox, 
@@ -33,17 +33,18 @@ export const TableColumnSettings: React.FC<TableColumnSettingsProps> = ({
   const [open, setOpen] = useState(false);
   const [draggedColumn, setDraggedColumn] = useState<string | null>(null);
 
-  const handleDragStart = (e: React.DragEvent, columnKey: string) => {
+  // 使用 useCallback 优化事件处理器
+  const handleDragStart = useCallback((e: React.DragEvent, columnKey: string) => {
     setDraggedColumn(columnKey);
     e.dataTransfer.effectAllowed = 'move';
-  };
+  }, []);
 
-  const handleDragOver = (e: React.DragEvent) => {
+  const handleDragOver = useCallback((e: React.DragEvent) => {
     e.preventDefault();
     e.dataTransfer.dropEffect = 'move';
-  };
+  }, []);
 
-  const handleDrop = (e: React.DragEvent, targetKey: string) => {
+  const handleDrop = useCallback((e: React.DragEvent, targetKey: string) => {
     e.preventDefault();
     if (!draggedColumn || draggedColumn === targetKey) return;
 
@@ -61,60 +62,69 @@ export const TableColumnSettings: React.FC<TableColumnSettingsProps> = ({
 
     tableColumns.setOrder(newOrder.map(col => col.key));
     setDraggedColumn(null);
-  };
+  }, [draggedColumn, tableColumns]);
 
-  const renderColumnItem = (column: TableColumnState) => (
-    <div
-      key={column.key}
-      draggable
-      onDragStart={(e) => handleDragStart(e, column.key)}
-      onDragOver={handleDragOver}
-      onDrop={(e) => handleDrop(e, column.key)}
-      style={{
-        padding: '8px 12px',
-        border: '1px solid #f0f0f0',
-        borderRadius: 4,
-        marginBottom: 8,
-        backgroundColor: draggedColumn === column.key ? '#f6ffed' : '#fff',
-        cursor: 'move',
-      }}
-    >
-      <Space style={{ width: '100%', justifyContent: 'space-between' }}>
-        <Space>
-          <DragOutlined style={{ color: '#999', cursor: 'grab' }} />
-          <Checkbox
-            checked={column.visible}
-            onChange={(e) => tableColumns.setVisible(column.key, e.target.checked)}
-          >
-            {column.title}
-          </Checkbox>
+  const handleOpenModal = useCallback(() => setOpen(true), []);
+  const handleCloseModal = useCallback(() => setOpen(false), []);
+
+  // 使用 useMemo 优化列项渲染
+  const renderColumnItem = useCallback((column: TableColumnState) => {
+    const itemStyle = useMemo(() => ({
+      padding: '8px 12px',
+      border: '1px solid #f0f0f0',
+      borderRadius: 4,
+      marginBottom: 8,
+      backgroundColor: draggedColumn === column.key ? '#f6ffed' : '#fff',
+      cursor: 'move',
+    }), [draggedColumn, column.key]);
+
+    return (
+      <div
+        key={column.key}
+        draggable
+        onDragStart={(e) => handleDragStart(e, column.key)}
+        onDragOver={handleDragOver}
+        onDrop={(e) => handleDrop(e, column.key)}
+        style={itemStyle}
+      >
+        <Space style={{ width: '100%', justifyContent: 'space-between' }}>
+          <Space>
+            <DragOutlined style={{ color: '#999', cursor: 'grab' }} />
+            <Checkbox
+              checked={column.visible}
+              onChange={(e) => tableColumns.setVisible(column.key, e.target.checked)}
+            >
+              {column.title}
+            </Checkbox>
+          </Space>
+          <Tooltip title="设置列宽度">
+            <InputNumber
+              size="small"
+              min={60}
+              max={600}
+              value={column.width}
+              onChange={(value) => value && tableColumns.setWidth(column.key, value)}
+              style={{ width: 80 }}
+              addonAfter="px"
+            />
+          </Tooltip>
         </Space>
-        <Tooltip title="设置列宽度">
-          <InputNumber
-            size="small"
-            min={60}
-            max={600}
-            value={column.width}
-            onChange={(value) => value && tableColumns.setWidth(column.key, value)}
-            style={{ width: 80 }}
-            addonAfter="px"
-          />
-        </Tooltip>
-      </Space>
-    </div>
-  );
+      </div>
+    );
+  }, [draggedColumn, handleDragStart, handleDragOver, handleDrop, tableColumns]);
 
-  const content = (
+  // 使用 useMemo 优化模态框内容
+  const modalContent = useMemo(() => (
     <Modal
       title="列设置"
       open={open}
-      onCancel={() => setOpen(false)}
+      onCancel={handleCloseModal}
       footer={[
         <Button key="reset" onClick={tableColumns.reset}>
           <ReloadOutlined />
           重置
         </Button>,
-        <Button key="close" type="primary" onClick={() => setOpen(false)}>
+        <Button key="close" type="primary" onClick={handleCloseModal}>
           确定
         </Button>,
       ]}
@@ -140,22 +150,28 @@ export const TableColumnSettings: React.FC<TableColumnSettingsProps> = ({
         </Space>
       </Space>
     </Modal>
-  );
+  ), [open, handleCloseModal, tableColumns, renderColumnItem]);
 
-  const triggerElement = trigger === 'button' ? (
-    <Button icon={<SettingOutlined />} onClick={() => setOpen(true)}>
-      列设置
-    </Button>
-  ) : (
-    <div onClick={() => setOpen(true)} style={{ cursor: 'pointer' }}>
-      {children}
-    </div>
-  );
+  // 使用 useMemo 优化触发器元素
+  const triggerElement = useMemo(() => {
+    if (trigger === 'button') {
+      return (
+        <Button icon={<SettingOutlined />} onClick={handleOpenModal}>
+          列设置
+        </Button>
+      );
+    }
+    return (
+      <div onClick={handleOpenModal} style={{ cursor: 'pointer' }}>
+        {children}
+      </div>
+    );
+  }, [trigger, children, handleOpenModal]);
 
   return (
     <>
       {triggerElement}
-      {content}
+      {modalContent}
     </>
   );
 };

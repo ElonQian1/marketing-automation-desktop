@@ -8,8 +8,17 @@
  * 4. 类型安全：完整的TypeScript支持
  */
 
-import { useMemo, useState, useEffect, useCallback } from 'react';
+import { useMemo, useState, useEffect, useCallback, useRef } from 'react';
 import type { ColumnType } from 'antd/es/table';
+
+// 防抖工具函数
+function debounce<T extends (...args: any[]) => any>(func: T, delay: number): T {
+  let timeoutId: NodeJS.Timeout;
+  return ((...args: Parameters<T>) => {
+    clearTimeout(timeoutId);
+    timeoutId = setTimeout(() => func(...args), delay);
+  }) as T;
+}
 
 export interface TableColumnConfig {
   key: string;
@@ -65,6 +74,17 @@ export interface UseTableColumnsResult {
 export function useTableColumns(options: UseTableColumnsOptions): UseTableColumnsResult {
   const { storageKey, configs, onWidthChange } = options;
 
+  // 防抖保存到localStorage
+  const debouncedSave = useRef(
+    debounce((data: TableColumnState[]) => {
+      try {
+        localStorage.setItem(storageKey, JSON.stringify(data));
+      } catch (error) {
+        console.warn('Failed to save table columns to localStorage:', error);
+      }
+    }, 300)
+  ).current;
+
   // 加载持久化数据
   const loadStoredState = useCallback((): TableColumnState[] => {
     try {
@@ -103,25 +123,23 @@ export function useTableColumns(options: UseTableColumnsOptions): UseTableColumn
 
   const [columnStates, setColumnStates] = useState<TableColumnState[]>(loadStoredState);
 
-  // 持久化到localStorage
-  useEffect(() => {
-    try {
-      localStorage.setItem(storageKey, JSON.stringify(columnStates));
-    } catch (error) {
-      console.warn('Failed to save table columns to localStorage:', error);
-    }
-  }, [columnStates, storageKey]);
-
-  // 拖拽状态管理
-  const [dragState, setDragState] = useState<{
+  // 拖拽状态管理 - 使用ref避免频繁更新
+  const dragStateRef = useRef<{
     activeKey: string | null;
     startX: number;
     startWidth: number;
+    originalStates: TableColumnState[];
   }>({
     activeKey: null,
     startX: 0,
     startWidth: 0,
+    originalStates: [],
   });
+
+  // 防抖保存到localStorage
+  useEffect(() => {
+    debouncedSave(columnStates);
+  }, [columnStates, debouncedSave]);
 
   // 获取可见列（按order排序）
   const visibleColumns = useMemo(() => {
@@ -160,36 +178,55 @@ export function useTableColumns(options: UseTableColumnsOptions): UseTableColumn
     const column = columnStates.find(col => col.key === key);
     if (!column) return;
 
-    setDragState({
+    // 使用ref存储拖拽状态，避免频繁重新渲染
+    dragStateRef.current = {
       activeKey: key,
       startX: e.clientX,
       startWidth: column.width,
-    });
+      originalStates: [...columnStates],
+    };
 
     // 阻止默认行为
     e.preventDefault();
     document.body.style.userSelect = 'none';
 
-    // 全局鼠标事件
+    // 全局鼠标事件 - 使用节流优化性能
+    let lastUpdateTime = 0;
+    const throttleDelay = 16; // 约60fps
+
     const handleMouseMove = (moveEvent: MouseEvent) => {
-      if (dragState.activeKey !== key) return;
+      const dragState = dragStateRef.current;
+      if (!dragState.activeKey || dragState.activeKey !== key) return;
+
+      const now = Date.now();
+      if (now - lastUpdateTime < throttleDelay) return;
+      lastUpdateTime = now;
 
       const deltaX = moveEvent.clientX - dragState.startX;
       const newWidth = Math.max(60, Math.min(600, dragState.startWidth + deltaX));
       
-      // 实时更新宽度
+      // 实时更新宽度 - 只更新对应列
       setColumnStates(prev => prev.map(col => 
         col.key === key ? { ...col, width: newWidth } : col
       ));
     };
 
     const handleMouseUp = () => {
+      const dragState = dragStateRef.current;
       const finalColumn = columnStates.find(col => col.key === key);
-      if (finalColumn) {
+      
+      if (finalColumn && dragState.activeKey) {
         onWidthChange?.(key, finalColumn.width);
       }
       
-      setDragState({ activeKey: null, startX: 0, startWidth: 0 });
+      // 清理拖拽状态
+      dragStateRef.current = {
+        activeKey: null,
+        startX: 0,
+        startWidth: 0,
+        originalStates: [],
+      };
+      
       document.body.style.userSelect = '';
       window.removeEventListener('mousemove', handleMouseMove);
       window.removeEventListener('mouseup', handleMouseUp);
@@ -197,7 +234,7 @@ export function useTableColumns(options: UseTableColumnsOptions): UseTableColumn
 
     window.addEventListener('mousemove', handleMouseMove);
     window.addEventListener('mouseup', handleMouseUp);
-  }, [columnStates, dragState, onWidthChange]);
+  }, [columnStates, onWidthChange]);
 
   // API方法
   const setVisible = useCallback((key: string, visible: boolean) => {
