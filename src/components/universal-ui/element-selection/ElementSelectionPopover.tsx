@@ -1,11 +1,12 @@
-import React, { useState } from 'react';
+// 元素选择气泡组件（稳定版）
+// 说明：提供默认导出与具名导出 ElementSelectionPopover，避免导入歧义
+
+import React, { useState, useEffect, useMemo, useCallback } from 'react';
 import { Popconfirm, Space, Button } from 'antd';
 import { CheckOutlined, EyeInvisibleOutlined, SearchOutlined } from '@ant-design/icons';
 import type { UIElement } from '../../../api/universalUIAPI';
 import { useSmartPopoverPosition } from './utils/popoverPositioning';
 import { ElementDiscoveryModal } from './element-discovery';
-import { usePopoverManager } from './hooks/usePopoverManager';
-import { SmartPopoverContainer } from './components/SmartPopoverContainer';
 
 export interface ElementSelectionState {
   element: UIElement;
@@ -18,12 +19,11 @@ export interface ElementSelectionPopoverProps {
   selection: ElementSelectionState | null;
   onConfirm: () => void;
   onCancel: () => void;
-  // 新增：元素发现功能支持
-  allElements?: UIElement[]; // 所有可用元素，用于发现分析
-  onElementSelect?: (element: UIElement) => void; // 当从发现结果中选择新元素时回调
+  allElements?: UIElement[];
+  onElementSelect?: (element: UIElement) => void;
 }
 
-export const ElementSelectionPopover: React.FC<ElementSelectionPopoverProps> = ({
+const ElementSelectionPopoverComponent: React.FC<ElementSelectionPopoverProps> = ({
   visible,
   selection,
   onConfirm,
@@ -31,16 +31,35 @@ export const ElementSelectionPopover: React.FC<ElementSelectionPopoverProps> = (
   allElements = [],
   onElementSelect
 }) => {
-  // 元素发现模态框状态
   const [discoveryModalOpen, setDiscoveryModalOpen] = useState(false);
   
-  // 🎯 使用简化的气泡管理hook
-  const { popoverRef } = usePopoverManager({
-    visible,
-    onClose: onCancel,
-    hasModalOpen: discoveryModalOpen
-  });
-  // 使用智能定位计算气泡位置
+  // 🔧 修复：使用 useMemo 稳定 ID 引用
+  const popoverId = useMemo(() => {
+    return `element-popover-${selection?.element.id || 'unknown'}`;
+  }, [selection?.element.id]);
+
+  // 🔧 修复：使用 useCallback 稳定函数引用
+  const handleConfirm = useCallback((e?: React.MouseEvent) => {
+    if (e) e.stopPropagation();
+    console.log('🎯 [ElementSelectionPopover] 确认选择');
+    onConfirm();
+  }, [onConfirm]);
+
+  const handleCancel = useCallback((e?: React.MouseEvent) => {
+    if (e) e.stopPropagation();
+    console.log('🎯 [ElementSelectionPopover] 取消选择 - 开始执行');
+    console.log('🎯 [ElementSelectionPopover] onCancel函数:', typeof onCancel, onCancel);
+    onCancel();
+    console.log('🎯 [ElementSelectionPopover] 取消选择 - 执行完成');
+  }, [onCancel]);
+
+  const handleDiscovery = useCallback((e?: React.MouseEvent) => {
+    if (e) e.stopPropagation();
+    console.log('🎯 [ElementSelectionPopover] 打开发现模态框');
+    setDiscoveryModalOpen(true);
+  }, []);
+
+  // 🔧 修复：简化的智能定位，减少重复计算
   const positioning = useSmartPopoverPosition(
     selection?.position || null,
     {
@@ -50,26 +69,58 @@ export const ElementSelectionPopover: React.FC<ElementSelectionPopoverProps> = (
     }
   );
 
-  if (!visible || !selection || !positioning) {
+  // 🔧 修复：简化的显示条件判断
+  const shouldShow = useMemo(() => {
+    return visible && selection && positioning;
+  }, [visible, selection, positioning]);
+
+  // 🔧 修复：ESC 键监听（简化版）
+  useEffect(() => {
+    if (!shouldShow) return;
+
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') {
+        console.log('⌨️ [ElementSelectionPopover] ESC键取消');
+        handleCancel();
+      }
+    };
+
+    document.addEventListener('keydown', handleKeyDown);
+    return () => document.removeEventListener('keydown', handleKeyDown);
+  }, [shouldShow, handleCancel]);
+
+  // 🔧 修复：性能监控（简化版，仅在开发环境）
+  useEffect(() => {
+    if (process.env.NODE_ENV === 'development' && shouldShow) {
+      console.log('🎯 [ElementSelectionPopover] 显示气泡', {
+        elementId: selection?.element.id?.substring(0, 20),
+        position: selection?.position
+      });
+    }
+  }, [shouldShow, selection?.element.id, selection?.position]);
+
+  if (!shouldShow) {
     return null;
   }
 
-  console.log('🎯 气泡定位计算:', {
-    原始点击位置: selection.position,
-    计算后位置: positioning.position,
-    placement: positioning.placement
-  });
-
   return (
     <>
-      <SmartPopoverContainer
-        visible={visible}
-        hasModalOpen={discoveryModalOpen}
-        position={positioning.position}
-        containerRef={popoverRef}
+      <div
+        key={popoverId}
+        className="element-selection-popover"
+        style={{
+          position: 'fixed',
+          left: positioning!.position.x,
+          top: positioning!.position.y,
+          zIndex: 10000, // 🔧 固定 Z-index，避免复杂计算
+          pointerEvents: 'none',
+        }}
       >
         <Popconfirm
           open={visible}
+          // 隐藏默认 OK/Cancel，避免出现多余的 ok/cancel 按钮
+          showCancel={false}
+          okButtonProps={{ style: { display: 'none' } }}
           title={
             <div style={{ maxWidth: '220px' }}>
               <div style={{ fontSize: '12px', color: '#666', marginBottom: '4px' }}>
@@ -81,87 +132,99 @@ export const ElementSelectionPopover: React.FC<ElementSelectionPopoverProps> = (
                  selection.element.class_name || '未知元素'}
               </div>
               
-              {/* 自定义按钮组 */}
               <Space size={4} wrap>
                 <Button
                   type="primary"
                   size="small"
                   icon={<CheckOutlined />}
-                  onClick={(e) => {
-                    if (e) e.stopPropagation();
-                    console.log('🎯 ElementSelectionPopover: onConfirm called');
-                    onConfirm();
-                  }}
+                  onClick={handleConfirm}
                   style={{ fontSize: '11px' }}
                 >
                   确定
                 </Button>
                 
-                {/* 发现元素按钮 - 仅在有完整数据时显示 */}
                 {allElements.length > 0 && onElementSelect && (
                   <Button
                     size="small"
                     icon={<SearchOutlined />}
-                    onClick={(e) => {
-                      if (e) e.stopPropagation();
-                      console.log('🎯 ElementSelectionPopover: 打开发现元素模态框');
-                      setDiscoveryModalOpen(true);
-                    }}
+                    onClick={handleDiscovery}
                     style={{ fontSize: '11px' }}
                   >
                     发现元素
                   </Button>
                 )}
-                
+                {/* 隐藏（与父层 onCancel 映射到 hideElement 行为一致） */}
                 <Button
                   size="small"
                   icon={<EyeInvisibleOutlined />}
                   onClick={(e) => {
-                    if (e) e.stopPropagation();
-                    console.log('🎯 ElementSelectionPopover: onCancel called');
+                    e?.stopPropagation?.();
+                    console.log('🫥 [ElementSelectionPopover] 隐藏按钮被点击');
                     onCancel();
                   }}
                   style={{ fontSize: '11px' }}
                 >
                   隐藏
                 </Button>
+                
+                <Button
+                  size="small"
+                  icon={<EyeInvisibleOutlined />}
+                  onClick={(e) => {
+                    console.log('🖱️ [ElementSelectionPopover] 取消按钮被点击');
+                    handleCancel(e);
+                  }}
+                  style={{ fontSize: '11px' }}
+                >
+                  取消
+                </Button>
               </Space>
             </div>
           }
-          description=""
-          showCancel={false} // 禁用默认的取消/确认按钮
-          showArrow={true}
-          placement={positioning.placement}
-          arrow={{ pointAtCenter: true }}
-          getPopupContainer={() => document.body}
+          overlayStyle={{ pointerEvents: 'auto' }}
+          placement={positioning!.placement as any}
         >
-          {/* 不可见的触发器 */}
-          <div style={{ 
-            width: 1, 
-            height: 1, 
-            opacity: 0,
-            pointerEvents: 'auto'
-          }} />
+          {/* 隐藏的触发元素 */}
+          <div style={{ width: 1, height: 1, opacity: 0 }} />
         </Popconfirm>
-      </SmartPopoverContainer>
-      
+      </div>
+
       {/* 元素发现模态框 */}
-      <ElementDiscoveryModal
-        open={discoveryModalOpen}
-        onClose={() => {
-          console.log('🔔 [ElementSelectionPopover] 发现模态框关闭');
-          setDiscoveryModalOpen(false);
-        }}
-        targetElement={selection?.element || null}
-        onElementSelect={(element: UIElement) => {
-          console.log('🎯 从发现模态框选择新元素:', element);
-          // 选择新元素并关闭所有弹窗
-          onElementSelect?.(element);
-          setDiscoveryModalOpen(false);
-          onCancel(); // 关闭原始气泡
-        }}
-        allElements={allElements}
-      />
+      {discoveryModalOpen && (
+        <ElementDiscoveryModal
+          open={discoveryModalOpen}
+          onClose={() => setDiscoveryModalOpen(false)}
+          targetElement={selection.element}
+          allElements={allElements}
+          onElementSelect={(element) => {
+            console.log('🎯 ElementSelectionPopover: 选择新发现的元素', element.id);
+            onElementSelect?.(element);
+            setDiscoveryModalOpen(false);
+          }}
+        />
+      )}
     </>
   );
 };
+
+// 🔧 修复 React.memo 比较逻辑，确保事件处理器更新
+const ElementSelectionPopover = React.memo(ElementSelectionPopoverComponent, (prevProps, nextProps) => {
+  // 🎯 完整比较所有关键属性，包括事件处理器
+  return (
+    prevProps.visible === nextProps.visible &&
+    prevProps.selection?.element.id === nextProps.selection?.element.id &&
+    prevProps.selection?.position.x === nextProps.selection?.position.x &&
+    prevProps.selection?.position.y === nextProps.selection?.position.y &&
+    prevProps.allElements.length === nextProps.allElements.length &&
+    // 🔧 修复：确保事件处理器变化时组件会重新渲染
+    prevProps.onConfirm === nextProps.onConfirm &&
+    prevProps.onCancel === nextProps.onCancel &&
+    prevProps.onElementSelect === nextProps.onElementSelect
+  );
+});
+
+ElementSelectionPopover.displayName = 'ElementSelectionPopover';
+
+// 同时提供具名导出与默认导出，兼容两种导入方式
+export { ElementSelectionPopover };
+export default ElementSelectionPopover;

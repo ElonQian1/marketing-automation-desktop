@@ -197,6 +197,33 @@ export const useElementSelectionManager = (
     setHiddenElements([]);
   }, []);
 
+  // 🆕 全局清理机制 - 重置所有状态
+  const clearAllStates = useCallback(() => {
+    console.log('🧹 [ElementSelectionManager] 执行全局清理');
+    
+    // 清除所有状态
+    setPendingSelection(null);
+    setHiddenElements([]);
+    setHoveredElement(null);
+    
+    // 清除所有定时器
+    if (hoverTimeoutRef.current) {
+      clearTimeout(hoverTimeoutRef.current);
+      hoverTimeoutRef.current = null;
+    }
+    
+    restoreTimeoutsRef.current.forEach(timeout => clearTimeout(timeout));
+    restoreTimeoutsRef.current.clear();
+    
+    console.log('✅ [ElementSelectionManager] 全局清理完成');
+  }, []);
+
+  // 🆕 强制隐藏气泡（紧急清理）
+  const forceHidePopover = useCallback(() => {
+    console.log('⚡ [ElementSelectionManager] 强制隐藏气泡');
+    setPendingSelection(null);
+  }, []);
+
   // 获取元素的显示状态
   const getElementDisplayState = useCallback((elementId: string) => {
     const isHidden = isElementHidden(elementId);
@@ -231,6 +258,10 @@ export const useElementSelectionManager = (
     restoreElement,
     restoreAllElements,
     getElementDisplayState,
+    
+    // 🆕 清理方法
+    clearAllStates,
+    forceHidePopover,
     
     // 工具方法
     isElementHidden
