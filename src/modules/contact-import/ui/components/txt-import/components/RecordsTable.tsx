@@ -1,5 +1,6 @@
-import React, { useMemo } from 'react';
-import { Table, Typography, Space, Tag } from 'antd';
+import React, { useMemo, useState, useEffect } from 'react';
+import { Table, Typography, Space, Tag, Popover, Checkbox, Button } from 'antd';
+import { SettingOutlined } from '@ant-design/icons';
 import { ColumnsType } from 'antd/es/table';
 import { FileTextOutlined } from '@ant-design/icons';
 import { TxtImportRecordDto } from '../../../services/txtImportRecordService';
@@ -22,6 +23,7 @@ interface RecordsTableProps {
   onChange: (pagination: any) => void;
   onDelete: (record: TxtImportRecordDto) => void;
   onArchive: (record: TxtImportRecordDto) => void;
+  onViewError?: (record: TxtImportRecordDto) => void;
 }
 
 export const RecordsTable: React.FC<RecordsTableProps> = ({
@@ -33,7 +35,29 @@ export const RecordsTable: React.FC<RecordsTableProps> = ({
   onChange,
   onDelete,
   onArchive,
+  onViewError,
 }) => {
+  const allColumns = ['file_name','total_numbers','imported_numbers','duplicate_numbers','status','created_at','actions'] as const;
+  type ColKey = typeof allColumns[number];
+  const [visibleCols, setVisibleCols] = useState<Record<ColKey, boolean>>(() => {
+    try {
+      const raw = localStorage.getItem('txtImport.visibleCols');
+      if (raw) return JSON.parse(raw);
+    } catch {}
+    return {
+      file_name: true,
+      total_numbers: true,
+      imported_numbers: true,
+      duplicate_numbers: true,
+      status: true,
+      created_at: true,
+      actions: true,
+    };
+  });
+
+  useEffect(() => {
+    try { localStorage.setItem('txtImport.visibleCols', JSON.stringify(visibleCols)); } catch {}
+  }, [visibleCols]);
   const columns: ColumnsType<TxtImportRecordDto> = useMemo(() => [
     {
       title: '文件名',
@@ -113,10 +137,50 @@ export const RecordsTable: React.FC<RecordsTableProps> = ({
           record={record}
           onDelete={onDelete}
           onArchive={onArchive}
+          onViewError={onViewError}
         />
       ),
     },
-  ], [onDelete, onArchive]);
+  ], [onDelete, onArchive, onViewError]);
+
+  const filteredColumns = useMemo(() => columns.filter((c) => visibleCols[(c.key as ColKey) ?? 'actions'] !== false), [columns, visibleCols]);
+
+  const defaultVisibleCols: Record<ColKey, boolean> = {
+    file_name: true,
+    total_numbers: true,
+    imported_numbers: true,
+    duplicate_numbers: true,
+    status: true,
+    created_at: true,
+    actions: true,
+  };
+
+  const visibilityPanel = (
+    <div style={{ padding: 8, width: 200 }}>
+      {allColumns.map((key) => (
+        <div key={key} style={{ marginBottom: 6 }}>
+          <Checkbox
+            checked={visibleCols[key] !== false}
+            onChange={(e) => setVisibleCols((prev) => ({ ...prev, [key]: e.target.checked }))}
+            disabled={key === 'actions'}
+          >
+            {({
+              file_name: '文件名',
+              total_numbers: '总数',
+              imported_numbers: '成功',
+              duplicate_numbers: '重复',
+              status: '状态',
+              created_at: '导入时间',
+              actions: '操作',
+            } as Record<ColKey, string>)[key]}
+          </Checkbox>
+        </div>
+      ))}
+      <div style={{ textAlign: 'right', marginTop: 8 }}>
+        <Button size="small" onClick={() => setVisibleCols(defaultVisibleCols)}>重置为默认</Button>
+      </div>
+    </div>
+  );
 
   const rowSelection = {
     selectedRowKeys,
@@ -125,11 +189,18 @@ export const RecordsTable: React.FC<RecordsTableProps> = ({
   };
 
   return (
-    <Table
+    <div>
+      <div style={{ display: 'flex', justifyContent: 'flex-end', marginBottom: 8 }}>
+        <Popover content={visibilityPanel} placement="bottomRight" trigger="click">
+          <Button size="small" icon={<SettingOutlined />}>列显示</Button>
+        </Popover>
+      </div>
+      <Table
       rowKey="id"
       columns={columns}
       dataSource={records}
       loading={loading}
+      locale={{ emptyText: '暂无导入记录' }}
       rowSelection={rowSelection}
       pagination={{
         current: pagination.current,
@@ -142,6 +213,7 @@ export const RecordsTable: React.FC<RecordsTableProps> = ({
       onChange={onChange}
       size="small"
       scroll={{ y: 400 }}
-    />
+      />
+    </div>
   );
 };

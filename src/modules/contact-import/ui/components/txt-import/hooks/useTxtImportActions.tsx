@@ -9,6 +9,7 @@ interface UseTxtImportActionsParams {
   setSelectedRowKeys: (keys: React.Key[]) => void;
   loadRecords: () => Promise<void> | void;
   onDataRefresh?: () => void;
+  setBulkDeleting?: (b: boolean) => void;
 }
 
 export function useTxtImportActions({
@@ -17,6 +18,7 @@ export function useTxtImportActions({
   setSelectedRowKeys,
   loadRecords,
   onDataRefresh,
+  setBulkDeleting,
 }: UseTxtImportActionsParams) {
   const handleDeleteRecord = async (record: TxtImportRecordDto, archiveNumbers: boolean) => {
     try {
@@ -38,7 +40,7 @@ export function useTxtImportActions({
     }
   };
 
-  const performBulkDelete = async (archiveNumbers: boolean, setBulkDeleting?: (b: boolean) => void) => {
+  const performBulkDelete = async (archiveNumbers: boolean) => {
     try {
       setBulkDeleting?.(true);
       const recordIds = selectedRowKeys.map((key) => Number(key)).filter((id) => !isNaN(id));

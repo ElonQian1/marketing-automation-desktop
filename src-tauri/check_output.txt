@@ -1,0 +1,3708 @@
+   Compiling employee-gui v0.2.0 (D:\rust\active-projects\灏忕孩涔employeeGUI\src-tauri)
+warning: unused import: `page_analysis::*`
+ --> src\types\mod.rs:3:9
+  |
+3 | pub use page_analysis::*;
+  |         ^^^^^^^^^^^^^^^^
+  |
+  = note: `#[warn(unused_imports)]` on by default
+
+warning: unused import: `AdbCommandResult`
+  --> src\services\adb_service\mod.rs:15:28
+   |
+15 | pub use core::{AdbService, AdbCommandResult};
+   |                            ^^^^^^^^^^^^^^^^
+
+warning: unused doc comment
+   --> src\services\adb_session_manager.rs:153:1
+    |
+153 | /// 鍏ㄥ眬浼氳瘽绠＄悊鍣ㄥ疄渚?    | ^^^^^^^^^^^^^^^^^^^^^^ rustdoc does not generate documentation for macro invocations
+    |
+    = help: to document an item produced by a macro, the macro must produce the documentation as part of its expansion
+    = note: `#[warn(unused_doc_comments)]` on by default
+
+warning: unused import: `std::time::Duration`
+ --> src\services\app_detection_framework\core\detector_trait.rs:2:5
+  |
+2 | use std::time::Duration;
+  |     ^^^^^^^^^^^^^^^^^^^
+
+warning: unused import: `warn`
+ --> src\services\app_detection_framework\detectors\xiaohongshu_detector.rs:3:28
+  |
+3 | use tracing::{info, debug, warn};
+  |                            ^^^^
+
+warning: unused imports: `AppConfigManager`, `AppDetector`, `BaseAppDetector`, `DetectionConfig`, `DetectionKeywords`, and `DetectionStats`
+  --> src\services\app_detection_framework\mod.rs:93:5
+   |
+93 |     AppDetector, BaseAppDetector,
+   |     ^^^^^^^^^^^  ^^^^^^^^^^^^^^^
+94 |     DetectionResult, AppLaunchState, DetectionStats,
+   |                                      ^^^^^^^^^^^^^^
+95 |     DetectionConfig, DetectionKeywords, AppConfigManager
+   |     ^^^^^^^^^^^^^^^  ^^^^^^^^^^^^^^^^^  ^^^^^^^^^^^^^^^^
+
+warning: unused imports: `GenericDetector`, `WechatDetector`, and `XiaohongshuDetector`
+  --> src\services\app_detection_framework\mod.rs:99:5
+   |
+99 |     XiaohongshuDetector, WechatDetector, GenericDetector
+   |     ^^^^^^^^^^^^^^^^^^^  ^^^^^^^^^^^^^^  ^^^^^^^^^^^^^^^
+
+warning: unused imports: `DetectorRegistry`, `create_app_detector`, and `is_specialized_app`
+   --> src\services\app_detection_framework\mod.rs:103:22
+    |
+103 |     DetectorFactory, DetectorRegistry, create_app_detector, is_specialized_app
+    |                      ^^^^^^^^^^^^^^^^  ^^^^^^^^^^^^^^^^^^^  ^^^^^^^^^^^^^^^^^^
+
+warning: unused imports: `VcfImportResult` and `VcfVerifyResult`
+  --> src\services\contact_automation.rs:10:59
+   |
+10 | use crate::services::vcf_importer::{Contact, VcfImporter, VcfImportResult, VcfVerifyResult};
+   |                                                           ^^^^^^^^^^^^^^^  ^^^^^^^^^^^^^^^
+
+warning: unused import: `std::sync::Mutex`
+ --> src\services\contact_storage\repositories\common\database.rs:2:5
+  |
+2 | use std::sync::Mutex;
+  |     ^^^^^^^^^^^^^^^^
+
+warning: unused imports: `OptionalExtension` and `params`
+ --> src\services\contact_storage\repositories\vcf_batches_repo.rs:1:16
+  |
+1 | use rusqlite::{params, Connection, OptionalExtension, Result as SqlResult};
+  |                ^^^^^^              ^^^^^^^^^^^^^^^^^
+
+warning: unused import: `common::*`
+ --> src\services\contact_storage\repositories\mod.rs:7:9
+  |
+7 | pub use common::*;
+  |         ^^^^^^^^^
+
+warning: unused import: `txt_import_records_repo::*`
+ --> src\services\contact_storage\repositories\mod.rs:8:9
+  |
+8 | pub use txt_import_records_repo::*;
+  |         ^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+warning: unused import: `repositories::txt_import_records_repo`
+  --> src\services\contact_storage\mod.rs:10:9
+   |
+10 | pub use repositories::txt_import_records_repo;
+   |         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+warning: unused import: `commands::txt_import_records`
+  --> src\services\contact_storage\mod.rs:11:9
+   |
+11 | pub use commands::txt_import_records;
+   |         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+warning: unused imports: `add_import_session_event_cmd`, `batch_delete_import_sessions_cmd`, `delete_import_session_cmd`, `get_contact_number_stats_cmd`, `get_distinct_industries_cmd`, `get_distinct_session_industries_cmd`, `get_failed_import_sessions_cmd`, `get_import_session_cmd`, `get_import_sessions_by_batch_cmd`, `get_import_sessions_by_date_range_cmd`, `get_import_sessions_by_device_cmd`, `get_recent_import_sessions_cmd`, `get_successful_import_sessions_cmd`, `revert_import_session_to_failed_cmd`, `set_contact_numbers_industry_by_id_range`, `update_import_session_industry_cmd`, and `update_import_session_status_cmd`
+  --> src\services\contact_storage\mod.rs:17:5
+   |
+17 |     get_contact_number_stats_cmd,
+   |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+18 |     get_distinct_industries_cmd,
+   |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+...
+34 |     set_contact_numbers_industry_by_id_range,
+   |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+...
+52 |     get_import_session_cmd,
+   |     ^^^^^^^^^^^^^^^^^^^^^^
+53 |     delete_import_session_cmd,
+   |     ^^^^^^^^^^^^^^^^^^^^^^^^^
+54 |     get_recent_import_sessions_cmd,
+   |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+55 |     get_import_sessions_by_device_cmd,
+   |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+56 |     get_import_sessions_by_batch_cmd,
+   |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+57 |     get_import_session_stats_cmd,
+58 |     update_import_session_industry_cmd,
+   |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+59 |     revert_import_session_to_failed_cmd,
+   |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+60 |     batch_delete_import_sessions_cmd,
+   |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+61 |     get_failed_import_sessions_cmd,
+   |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+62 |     get_successful_import_sessions_cmd,
+   |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+63 |     update_import_session_status_cmd,
+   |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+64 |     get_import_session_events_cmd,
+65 |     add_import_session_event_cmd,
+   |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+66 |     get_import_sessions_by_date_range_cmd,
+   |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+67 |     get_distinct_session_industries_cmd,
+   |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+warning: unused imports: `ExecMetrics` and `ExecVariables`
+ --> src\services\execution\model\mod.rs:8:37
+  |
+8 | pub use context::{ExecutionContext, ExecVariables, ExecMetrics};
+  |                                     ^^^^^^^^^^^^^  ^^^^^^^^^^^
+
+warning: unused imports: `info` and `warn`
+ --> src\services\execution\matcher.rs:6:15
+  |
+6 | use tracing::{info, warn};
+  |               ^^^^  ^^^^
+
+warning: unused import: `warn`
+ --> src\services\execution\matching\xml_parser.rs:8:22
+  |
+8 | use tracing::{debug, warn, info};
+  |                      ^^^^
+
+warning: unused import: `enhanced_unified::run_enhanced_unified_match`
+  --> src\services\execution\matching\mod.rs:10:9
+   |
+10 | pub use enhanced_unified::run_enhanced_unified_match;
+   |         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+warning: unused import: `extract_bounds_from_line`
+  --> src\services\execution\matching\mod.rs:12:5
+   |
+12 |     extract_bounds_from_line, find_all_follow_buttons, find_element_in_ui, run_traditional_find,
+   |     ^^^^^^^^^^^^^^^^^^^^^^^^
+
+warning: unused imports: `XmlElement` and `XmlUiParser`
+  --> src\services\execution\matching\mod.rs:15:22
+   |
+15 | pub use xml_parser::{XmlElement, XmlUiParser};
+   |                      ^^^^^^^^^^  ^^^^^^^^^^^
+
+warning: unused imports: `MatchingContext`, `ProcessingError`, `StrategyResult`, `create_strategy_processor`, and `extract_matching_context`
+  --> src\services\execution\matching\mod.rs:19:5
+   |
+19 |     create_strategy_processor, extract_matching_context, MatchingContext, ProcessingError,
+   |     ^^^^^^^^^^^^^^^^^^^^^^^^^  ^^^^^^^^^^^^^^^^^^^^^^^^  ^^^^^^^^^^^^^^^  ^^^^^^^^^^^^^^^
+20 |     StrategyResult,
+   |     ^^^^^^^^^^^^^^
+
+warning: unused import: `anyhow`
+ --> src\services\execution\actions\smart.rs:3:14
+  |
+3 | use anyhow::{anyhow, Result};
+  |              ^^^^^^
+
+warning: unused import: `crate::services::execution::run_unified_match`
+ --> src\services\execution\actions\smart.rs:9:5
+  |
+9 | use crate::services::execution::run_unified_match;
+  |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+warning: unused imports: `adapt_step`, `adapt_steps`, and `map_action_kind`
+  --> src\services\execution\mod.rs:19:19
+   |
+19 | pub use adapter::{adapt_step, adapt_steps, map_action_kind};
+   |                   ^^^^^^^^^^  ^^^^^^^^^^^  ^^^^^^^^^^^^^^^
+
+warning: unused imports: `MatchResult` and `MatcherService`
+  --> src\services\execution\mod.rs:21:19
+   |
+21 | pub use matcher::{MatcherService, MatchResult};
+   |                   ^^^^^^^^^^^^^^  ^^^^^^^^^^^
+
+warning: unused import: `run_traditional_find`
+  --> src\services\execution\mod.rs:26:2
+   |
+26 |     run_traditional_find,
+   |     ^^^^^^^^^^^^^^^^^^^^
+
+warning: unused import: `std::collections::HashMap`
+  --> src\services\huawei_enhanced_importer.rs:13:5
+   |
+13 | use std::collections::HashMap;
+   |     ^^^^^^^^^^^^^^^^^^^^^^^^^
+
+warning: unused import: `error`
+  --> src\services\huawei_enhanced_importer.rs:16:22
+   |
+16 | use tracing::{debug, error, info, warn};
+   |                      ^^^^^
+
+warning: unused import: `std::collections::HashMap`
+ --> src\services\multi_brand_vcf_importer.rs:2:5
+  |
+2 | use std::collections::HashMap;
+  |     ^^^^^^^^^^^^^^^^^^^^^^^^^
+
+warning: unused imports: `ImportStep`, `VerificationMethod`, and `VerificationType`
+  --> src\services\multi_brand_vcf_importer.rs:14:5
+   |
+14 |     ImportStep,
+   |     ^^^^^^^^^^
+15 |     ImportStepType,
+16 |     VerificationMethod,
+   |     ^^^^^^^^^^^^^^^^^^
+17 |     VerificationType,
+   |     ^^^^^^^^^^^^^^^^
+
+warning: unused import: `warn`
+ --> src\services\quick_ui_automation.rs:4:21
+  |
+4 | use tracing::{info, warn, error};
+  |                     ^^^^
+
+warning: unused import: `tauri::command`
+ --> src\services\safe_adb_shell.rs:1:5
+  |
+1 | use tauri::command;
+  |     ^^^^^^^^^^^^^^
+
+warning: unused import: `error`
+  --> src\services\script_execution\control_flow\parser.rs:11:27
+   |
+11 | use tracing::{info, warn, error};
+   |                           ^^^^^
+
+warning: unused import: `anyhow`
+ --> src\services\script_execution\control_flow\executor.rs:9:22
+  |
+9 | use anyhow::{Result, anyhow};
+  |                      ^^^^^^
+
+warning: unused import: `error`
+  --> src\services\script_execution\control_flow\executor.rs:12:27
+   |
+12 | use tracing::{info, warn, error};
+   |                           ^^^^^
+
+warning: unused import: `ControlFlowNode`
+  --> src\services\script_execution\control_flow\executor.rs:15:18
+   |
+15 | use super::ast::{ControlFlowNode, ExecutionPlan, LinearStep};
+   |                  ^^^^^^^^^^^^^^^
+
+warning: unused import: `HandlerConfig`
+  --> src\services\script_execution\control_flow\executor.rs:17:54
+   |
+17 | use super::handlers::base::{ControlStructureHandler, HandlerConfig};
+   |                                                      ^^^^^^^^^^^^^
+
+warning: unused import: `crate::services::execution::model::SmartScriptStep`
+  --> src\services\script_execution\control_flow\handlers\base.rs:10:5
+   |
+10 | use crate::services::execution::model::SmartScriptStep;
+   |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+warning: unused imports: `ControlStructureHandler`, `HandlerConfig`, `HandlerResult`, and `HandlerStats`
+  --> src\services\script_execution\control_flow\handlers\mod.rs:15:16
+   |
+15 | pub use base::{ControlStructureHandler, HandlerResult, HandlerConfig, HandlerStats};
+   |                ^^^^^^^^^^^^^^^^^^^^^^^  ^^^^^^^^^^^^^  ^^^^^^^^^^^^^  ^^^^^^^^^^^^
+
+warning: unused import: `super::context::ExecutionContext`
+  --> src\services\script_execution\control_flow\preprocessor.rs:17:5
+   |
+17 | use super::context::ExecutionContext;
+   |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+warning: unused import: `ControlFlowType`
+  --> src\services\script_execution\control_flow\mod.rs:16:32
+   |
+16 | pub use ast::{ControlFlowNode, ControlFlowType, ExecutionPlan};
+   |                                ^^^^^^^^^^^^^^^
+
+warning: unused import: `ExecutionScope`
+  --> src\services\script_execution\control_flow\mod.rs:19:37
+   |
+19 | pub use context::{ExecutionContext, ExecutionScope};
+   |                                     ^^^^^^^^^^^^^^
+
+warning: unused import: `SwipeValidationResult`
+  --> src\services\script_execution\swipe\mod.rs:14:41
+   |
+14 | pub use diagnostics::{SwipeDiagnostics, SwipeValidationResult};
+   |                                         ^^^^^^^^^^^^^^^^^^^^^
+
+warning: unused imports: `ControlFlowExecutor`, `ControlFlowNode`, `ControlFlowParser`, `ExecutionContext`, and `ExecutionPlan`
+  --> src\services\script_execution\mod.rs:13:5
+   |
+13 |     ControlFlowExecutor, ControlFlowNode, ControlFlowParser, ExecutionContext, ExecutionPlan,
+   |     ^^^^^^^^^^^^^^^^^^^  ^^^^^^^^^^^^^^^  ^^^^^^^^^^^^^^^^^  ^^^^^^^^^^^^^^^^  ^^^^^^^^^^^^^
+
+warning: unused imports: `EnhancedSwipeExecutor`, `SwipeDiagnostics`, and `SwipeValidator`
+  --> src\services\script_execution\mod.rs:18:5
+   |
+18 |     EnhancedSwipeExecutor, SwipeDiagnostics, SwipeValidator
+   |     ^^^^^^^^^^^^^^^^^^^^^  ^^^^^^^^^^^^^^^^  ^^^^^^^^^^^^^^
+
+warning: unused import: `crate::services::adb_shell_session::AdbShellSession`
+ --> src\services\smart_app_manager.rs:4:5
+  |
+4 | use crate::services::adb_shell_session::AdbShellSession;
+  |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+warning: unused import: `crate::utils::adb_utils::get_adb_path`
+ --> src\services\smart_app_manager.rs:9:5
+  |
+9 | use crate::utils::adb_utils::get_adb_path;
+  |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+warning: unused import: `error`
+  --> src\services\smart_app_manager.rs:10:27
+   |
+10 | use tracing::{info, warn, error};
+   |                           ^^^^^
+
+warning: unused import: `std::collections::HashMap`
+ --> src\services\universal_ui_finder\core.rs:4:5
+  |
+4 | use std::collections::HashMap;
+  |     ^^^^^^^^^^^^^^^^^^^^^^^^^
+
+warning: unused import: `Duration`
+ --> src\services\universal_ui_finder\executor.rs:4:17
+  |
+4 | use std::time::{Duration, Instant};
+  |                 ^^^^^^^^
+
+warning: unused import: `DetectedElement`
+ --> src\services\universal_ui_service.rs:8:5
+  |
+8 |     DetectedElement, ElementFinderResult, ClickResult
+  |     ^^^^^^^^^^^^^^^
+
+warning: unused import: `crate::services::adb_device_tracker::*`
+ --> src\commands\adb.rs:4:5
+  |
+4 | use crate::services::adb_device_tracker::*;
+  |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+warning: unused import: `crate::services::safe_adb_manager::*`
+ --> src\commands\adb.rs:5:5
+  |
+5 | use crate::services::safe_adb_manager::*;
+  |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+warning: variable does not need to be mutable
+  --> src\services\adb_session_manager.rs:73:13
+   |
+73 |         let mut map = self.last_health_check.lock().await;
+   |             ----^^^
+   |             |
+   |             help: remove this `mut`
+   |
+   = note: `#[warn(unused_mut)]` on by default
+
+warning: unused variable: `device_id`
+   --> src\services\app_lifecycle_manager.rs:385:45
+    |
+385 |     async fn launch_via_desktop_icon(&self, device_id: &str, app_name: &str, logs: &mut Vec<String>) -> Result<(), String> {
+    |                                             ^^^^^^^^^ help: if this is intentional, prefix it with an underscore: `_device_id`
+    |
+    = note: `#[warn(unused_variables)]` on by default
+
+warning: variable does not need to be mutable
+  --> src\services\error_handling\mod.rs:66:9
+   |
+66 |         mut retry_fn: F,
+   |         ----^^^^^^^^
+   |         |
+   |         help: remove this `mut`
+
+warning: variable does not need to be mutable
+   --> src\services\error_handling\mod.rs:156:53
+    |
+156 |     pub async fn handle_ui_dump_error<F>(&mut self, mut retry_fn: F) -> Result<String>
+    |                                                     ----^^^^^^^^
+    |                                                     |
+    |                                                     help: remove this `mut`
+
+warning: variable does not need to be mutable
+   --> src\services\error_handling\mod.rs:164:72
+    |
+164 |     pub async fn handle_adb_command_error<F>(&mut self, command: &str, mut retry_fn: F) -> Result<String>
+    |                                                                        ----^^^^^^^^
+    |                                                                        |
+    |                                                                        help: remove this `mut`
+
+warning: variable does not need to be mutable
+   --> src\services\error_handling\mod.rs:173:80
+    |
+173 |     pub async fn handle_device_connection_error<F>(&mut self, device_id: &str, mut retry_fn: F) -> Result<()>
+    |                                                                                ----^^^^^^^^
+    |                                                                                |
+    |                                                                                help: remove this `mut`
+
+warning: unused variable: `search`
+   --> src\services\contact_storage\commands\contact_numbers.rs:131:5
+    |
+131 |     search: Option<String>,
+    |     ^^^^^^ help: if this is intentional, prefix it with an underscore: `_search`
+
+warning: unused variable: `step`
+  --> src\services\execution\matcher.rs:39:36
+   |
+39 |     async fn match_absolute(&self, step: &ExecStep) -> Result<MatchResult> {
+   |                                    ^^^^ help: if this is intentional, prefix it with an underscore: `_step`
+
+warning: variable does not need to be mutable
+  --> src\services\quick_ui_automation.rs:55:9
+   |
+55 |     let mut safe_adb = get_global_adb().await?;
+   |         ----^^^^^^^^
+   |         |
+   |         help: remove this `mut`
+
+warning: variable does not need to be mutable
+  --> src\services\quick_ui_automation.rs:90:9
+   |
+90 |     let mut safe_adb = get_global_adb().await?;
+   |         ----^^^^^^^^
+   |         |
+   |         help: remove this `mut`
+
+warning: variable does not need to be mutable
+   --> src\services\quick_ui_automation.rs:147:9
+    |
+147 |     let mut safe_adb = get_global_adb().await?;
+    |         ----^^^^^^^^
+    |         |
+    |         help: remove this `mut`
+
+warning: variable does not need to be mutable
+   --> src\services\script_execution\control_flow\executor.rs:267:13
+    |
+267 |         let mut skipped_steps = 0i32;
+    |             ----^^^^^^^^^^^^^
+    |             |
+    |             help: remove this `mut`
+
+warning: value assigned to `app_name` is never read
+  --> src\services\smart_app\fetch.rs:25:13
+   |
+25 |     let mut app_name = package_name.to_string();
+   |             ^^^^^^^^
+   |
+   = help: maybe it is overwritten before being read?
+   = note: `#[warn(unused_assignments)]` on by default
+
+warning: unused variable: `app_name`
+  --> src\services\universal_ui_finder\mod.rs:68:21
+   |
+68 |         if let Some(app_name) = &request.app_name {
+   |                     ^^^^^^^^ help: if this is intentional, prefix it with an underscore: `_app_name`
+
+warning: unused import: `std::io::Read`
+ --> src\services\scrcpy_manager.rs:4:5
+  |
+4 | use std::io::Read;
+  |     ^^^^^^^^^^^^^
+
+warning: unused variable: `file_path`
+   --> src\services\app_detection_framework\core\detection_config.rs:282:38
+    |
+282 |     pub fn load_from_file(&mut self, file_path: &str) -> anyhow::Result<()> {
+    |                                      ^^^^^^^^^ help: if this is intentional, prefix it with an underscore: `_file_path`
+
+warning: unused variable: `file_path`
+   --> src\services\app_detection_framework\core\detection_config.rs:288:32
+    |
+288 |     pub fn save_to_file(&self, file_path: &str) -> anyhow::Result<()> {
+    |                                ^^^^^^^^^ help: if this is intentional, prefix it with an underscore: `_file_path`
+
+warning: unused variable: `resource_id`
+   --> src\services\navigation_bar_detector.rs:402:17
+    |
+402 |             let resource_id = caps
+    |                 ^^^^^^^^^^^ help: if this is intentional, prefix it with an underscore: `_resource_id`
+
+warning: unused variable: `config`
+   --> src\services\navigation_bar_detector.rs:377:9
+    |
+377 |         config: &NavigationBarDetectionConfig,
+    |         ^^^^^^ help: if this is intentional, prefix it with an underscore: `_config`
+
+warning: unused variable: `bottom`
+   --> src\services\navigation_bar_detector.rs:539:32
+    |
+539 |         let (left, top, right, bottom) = bounds;
+    |                                ^^^^^^ help: if this is intentional, prefix it with an underscore: `_bottom`
+
+warning: unused variable: `node_name`
+   --> src\services\page_analyzer_service.rs:229:9
+    |
+229 |         node_name: &str,
+    |         ^^^^^^^^^ help: if this is intentional, prefix it with an underscore: `_node_name`
+
+warning: unused variable: `resource_id`
+   --> src\services\page_analyzer_service.rs:263:9
+    |
+263 |         resource_id: &str,
+    |         ^^^^^^^^^^^ help: if this is intentional, prefix it with an underscore: `_resource_id`
+
+warning: value assigned to `kw_holder` is never read
+  --> src\services\contact_storage\queries.rs:17:13
+   |
+17 |     let mut kw_holder: Option<String> = None;
+   |             ^^^^^^^^^
+   |
+   = help: maybe it is overwritten before being read?
+
+warning: value assigned to `industry_holder` is never read
+  --> src\services\contact_storage\queries.rs:18:13
+   |
+18 |     let mut industry_holder: Option<String> = None;
+   |             ^^^^^^^^^^^^^^^
+   |
+   = help: maybe it is overwritten before being read?
+
+warning: value assigned to `status_holder` is never read
+  --> src\services\contact_storage\queries.rs:19:13
+   |
+19 |     let mut status_holder: Option<String> = None;
+   |             ^^^^^^^^^^^^^
+   |
+   = help: maybe it is overwritten before being read?
+
+warning: value assigned to `first` is never read
+  --> src\services\contact_storage\queries.rs:43:9
+   |
+43 |         first = false;
+   |         ^^^^^
+   |
+   = help: maybe it is overwritten before being read?
+
+warning: unused variable: `conn`
+  --> src\services\contact_storage\repositories\common\database.rs:52:28
+   |
+52 | pub fn ensure_tables_exist(conn: &Connection) -> SqliteResult<()> {
+   |                            ^^^^ help: if this is intentional, prefix it with an underscore: `_conn`
+
+warning: unused variable: `ind`
+   --> src\services\contact_storage\repositories\contact_numbers_repo.rs:450:32
+    |
+450 |     let mut stmt = if let Some(ind) = industry {
+    |                                ^^^ help: if this is intentional, prefix it with an underscore: `_ind`
+
+warning: unused variable: `device_id`
+   --> src\services\contact_storage\repositories\contact_numbers_repo.rs:445:5
+    |
+445 |     device_id: &str,
+    |     ^^^^^^^^^ help: if this is intentional, prefix it with an underscore: `_device_id`
+
+warning: unused variable: `params`
+   --> src\services\contact_storage\repositories\import_sessions_repo.rs:357:24
+    |
+357 |     let (where_clause, params) = if let Some(device) = device_id {
+    |                        ^^^^^^ help: if this is intentional, prefix it with an underscore: `_params`
+
+warning: unused variable: `config`
+   --> src\services\execution\matching\hierarchy_matcher.rs:109:9
+    |
+109 |         config: &HierarchyMatchConfig
+    |         ^^^^^^ help: if this is intentional, prefix it with an underscore: `_config`
+
+warning: unused variable: `config`
+   --> src\services\execution\matching\hierarchy_matcher.rs:169:9
+    |
+169 |         config: &HierarchyMatchConfig
+    |         ^^^^^^ help: if this is intentional, prefix it with an underscore: `_config`
+
+warning: unused variable: `screen_width`
+   --> src\services\smart_element_finder_service.rs:257:14
+    |
+257 |         let (screen_width, screen_height) = screen_size;
+    |              ^^^^^^^^^^^^ help: if this is intentional, prefix it with an underscore: `_screen_width`
+
+warning: unused variable: `target`
+   --> src\services\universal_ui_finder\logger.rs:145:39
+    |
+145 |     pub fn log_click_execution(&self, target: &str, step: ClickExecutionStep) {
+    |                                       ^^^^^^ help: if this is intentional, prefix it with an underscore: `_target`
+
+warning: variable does not need to be mutable
+  --> src\application\normalizer.rs:62:45
+   |
+62 | pub fn normalize_step_json(step_type: &str, mut params: serde_json::Value, metrics: &DeviceMetrics) -> (String, serde_json::Value) {
+   |                                             ----^^^^^^
+   |                                             |
+   |                                             help: remove this `mut`
+
+warning: method `center_y` is never used
+   --> src\types\page_analysis.rs:122:12
+    |
+109 | impl ElementBounds {
+    | ------------------ method in this implementation
+...
+122 |     pub fn center_y(&self) -> i32 {
+    |            ^^^^^^^^
+    |
+    = note: `#[warn(dead_code)]` on by default
+
+warning: method `subscribe` is never used
+   --> src\services\adb_device_tracker.rs:122:12
+    |
+49  | impl AdbDeviceTracker {
+    | --------------------- method in this implementation
+...
+122 |     pub fn subscribe(&self) -> broadcast::Receiver<DeviceChangeEvent> {
+    |            ^^^^^^^^^
+
+warning: type alias `AdbResult` is never used
+  --> src\services\adb_service\mod.rs:18:10
+   |
+18 | pub type AdbResult<T> = Result<T, Box<dyn std::error::Error>>;
+   |          ^^^^^^^^^
+
+warning: function `create_adb_service` is never used
+  --> src\services\adb_service\mod.rs:21:8
+   |
+21 | pub fn create_adb_service() -> AdbService {
+   |        ^^^^^^^^^^^^^^^^^^
+
+warning: multiple methods are never used
+  --> src\services\adb_service\ui_automation.rs:19:18
+   |
+5  | impl AdbService {
+   | --------------- methods in this implementation
+...
+19 |     pub async fn get_current_activity(&self, device_id: &str) -> Result<String, Box<dyn std::error::Error>> {
+   |                  ^^^^^^^^^^^^^^^^^^^^
+...
+24 |     pub async fn get_screen_size(&self, device_id: &str) -> Result<String, Box<dyn std::error::Error>> {
+   |                  ^^^^^^^^^^^^^^^
+...
+29 |     pub async fn tap_screen(&self, device_id: &str, x: i32, y: i32) -> Result<String, Box<dyn std::error::Error>> {
+   |                  ^^^^^^^^^^
+...
+36 |     pub async fn long_press(&self, device_id: &str, x: i32, y: i32, duration_ms: u32) -> Result<String, Box<dyn std::error::Error>> {
+   |                  ^^^^^^^^^^
+...
+43 |     pub async fn input_text(&self, device_id: &str, text: &str) -> Result<String, Box<dyn std::error::Error>> {
+   |                  ^^^^^^^^^^
+...
+50 |     pub async fn key_event(&self, device_id: &str, keycode: i32) -> Result<String, Box<dyn std::error::Error>> {
+   |                  ^^^^^^^^^
+...
+56 |     pub async fn swipe_screen(&self, device_id: &str, x1: i32, y1: i32, x2: i32, y2: i32, duration_ms: u32) -> Result<String, Box<dyn std...
+   |                  ^^^^^^^^^^^^
+
+warning: multiple methods are never used
+  --> src\services\adb_service\file_operations.rs:11:18
+   |
+4  | impl AdbService {
+   | --------------- methods in this implementation
+...
+11 |     pub async fn push_file(&self, device_id: &str, local_path: &str, remote_path: &str) -> Result<String, Box<dyn std::error::Error>> {
+   |                  ^^^^^^^^^
+...
+17 |     pub async fn pull_file(&self, device_id: &str, remote_path: &str, local_path: &str) -> Result<String, Box<dyn std::error::Error>> {
+   |                  ^^^^^^^^^
+...
+23 |     pub async fn create_directory(&self, device_id: &str, path: &str) -> Result<String, Box<dyn std::error::Error>> {
+   |                  ^^^^^^^^^^^^^^^^
+...
+29 |     pub async fn remove_file(&self, device_id: &str, path: &str) -> Result<String, Box<dyn std::error::Error>> {
+   |                  ^^^^^^^^^^^
+...
+35 |     pub async fn list_directory(&self, device_id: &str, path: &str) -> Result<String, Box<dyn std::error::Error>> {
+   |                  ^^^^^^^^^^^^^^
+...
+41 |     pub async fn read_file_content(&self, device_id: &str, file_path: &str) -> Result<String, Box<dyn std::error::Error>> {
+   |                  ^^^^^^^^^^^^^^^^^
+...
+47 |     pub async fn write_file_content(&self, device_id: &str, file_path: &str, content: &str) -> Result<String, Box<dyn std::error::Error>> {
+   |                  ^^^^^^^^^^^^^^^^^^
+
+warning: methods `detect_smart_adb_path`, `validate_adb_path`, and `get_adb_version` are never used
+  --> src\services\adb_service\detection.rs:66:12
+   |
+3  | impl AdbService {
+   | --------------- methods in this implementation
+...
+66 |     pub fn detect_smart_adb_path(&self) -> Option<String> {
+   |            ^^^^^^^^^^^^^^^^^^^^^
+...
+72 |     pub fn validate_adb_path(&self, adb_path: &str) -> bool {
+   |            ^^^^^^^^^^^^^^^^^
+...
+85 |     pub fn get_adb_version(&self, adb_path: &str) -> Result<String, Box<dyn std::error::Error>> {
+   |            ^^^^^^^^^^^^^^^
+
+warning: methods `remove_session`, `clear_all_sessions`, `get_active_session_count`, and `health_check` are never used
+   --> src\services\adb_session_manager.rs:101:18
+    |
+20  | impl AdbSessionManager {
+    | ---------------------- methods in this implementation
+...
+101 |     pub async fn remove_session(&self, device_id: &str) {
+    |                  ^^^^^^^^^^^^^^
+...
+109 |     pub async fn clear_all_sessions(&self) {
+    |                  ^^^^^^^^^^^^^^^^^^
+...
+117 |     pub async fn get_active_session_count(&self) -> usize {
+    |                  ^^^^^^^^^^^^^^^^^^^^^^^^
+...
+123 |     pub async fn health_check(&self) {
+    |                  ^^^^^^^^^^^^
+
+warning: function `remove_device_session` is never used
+   --> src\services\adb_session_manager.rs:164:14
+    |
+164 | pub async fn remove_device_session(device_id: &str) {
+    |              ^^^^^^^^^^^^^^^^^^^^^
+
+warning: function `perform_health_check` is never used
+   --> src\services\adb_session_manager.rs:169:14
+    |
+169 | pub async fn perform_health_check() {
+    |              ^^^^^^^^^^^^^^^^^^^^
+
+warning: multiple methods are never used
+   --> src\services\adb_shell_session.rs:32:18
+    |
+20  | impl AdbShellSession {
+    | -------------------- methods in this implementation
+...
+32  |     pub async fn get_adb_path(&self) -> String {
+    |                  ^^^^^^^^^^^^
+...
+201 |     pub async fn swipe(&self, x1: i32, y1: i32, x2: i32, y2: i32, duration_ms: u32) -> Result<()> {
+    |                  ^^^^^
+...
+215 |     pub async fn key_event(&self, keycode: i32) -> Result<()> {
+    |                  ^^^^^^^^^
+...
+239 |     pub async fn get_screen_size(&self) -> Result<(i32, i32)> {
+    |                  ^^^^^^^^^^^^^^^
+...
+261 |     pub async fn get_current_activity(&self) -> Result<String> {
+    |                  ^^^^^^^^^^^^^^^^^^^^
+...
+268 |     pub async fn start_app(&self, package_name: &str) -> Result<()> {
+    |                  ^^^^^^^^^
+...
+276 |     pub async fn execute_batch_commands(&self, commands: Vec<&str>) -> Result<Vec<String>> {
+    |                  ^^^^^^^^^^^^^^^^^^^^^^
+
+warning: methods `is_homepage_ready`, `is_splash_screen`, and `handle_permission_dialog` are never used
+  --> src\services\app_detection_framework\core\detector_trait.rs:31:14
+   |
+11 | pub trait AppDetector: Send + Sync {
+   |           ----------- methods in this trait
+...
+31 |     async fn is_homepage_ready(&self, ui_content: &str) -> bool;
+   |              ^^^^^^^^^^^^^^^^^
+...
+34 |     async fn is_splash_screen(&self, ui_content: &str) -> bool {
+   |              ^^^^^^^^^^^^^^^^
+...
+82 |     async fn handle_permission_dialog(&self) -> Result<bool> {
+   |              ^^^^^^^^^^^^^^^^^^^^^^^^
+
+warning: methods `is_terminal`, `is_error`, `is_ready`, `description`, and `name` are never used
+  --> src\services\app_detection_framework\core\detection_result.rs:36:12
+   |
+34 | impl AppLaunchState {
+   | ------------------- methods in this implementation
+35 |     /// 鍒ゆ柇鏄惁涓虹粓鎬侊紙鎴愬姛鎴栧け璐ワ級
+36 |     pub fn is_terminal(&self) -> bool {
+   |            ^^^^^^^^^^^
+...
+41 |     pub fn is_error(&self) -> bool {
+   |            ^^^^^^^^
+...
+46 |     pub fn is_ready(&self) -> bool {
+   |            ^^^^^^^^
+...
+51 |     pub fn description(&self) -> String {
+   |            ^^^^^^^^^^^
+...
+69 |     pub fn name(&self) -> String {
+   |            ^^^^
+
+warning: associated items `success`, `failure`, `error`, `success_rate`, and `state_summary` are never used
+   --> src\services\app_detection_framework\core\detection_result.rs:115:12
+    |
+113 | impl DetectionResult {
+    | -------------------- associated items in this implementation
+114 |     /// 鍒涘缓鎴愬姛缁撴灉
+115 |     pub fn success(message: String, checks: usize, elapsed: Duration) -> Self {
+    |            ^^^^^^^
+...
+128 |     pub fn failure(state: AppLaunchState, message: String, checks: usize, elapsed: Duration) -> Self {
+    |            ^^^^^^^
+...
+141 |     pub fn error(error_msg: String, checks: usize, elapsed: Duration) -> Self {
+    |            ^^^^^
+...
+154 |     pub fn success_rate(&self) -> f64 {
+    |            ^^^^^^^^^^^^
+...
+167 |     pub fn state_summary(&self) -> String {
+    |            ^^^^^^^^^^^^^
+
+warning: methods `add_result` and `success_rate` are never used
+   --> src\services\app_detection_framework\core\detection_result.rs:217:12
+    |
+204 | impl DetectionStats {
+    | ------------------- methods in this implementation
+...
+217 |     pub fn add_result(&mut self, result: &DetectionResult) {
+    |            ^^^^^^^^^^
+...
+244 |     pub fn success_rate(&self) -> f64 {
+    |            ^^^^^^^^^^^^
+
+warning: multiple methods are never used
+   --> src\services\app_detection_framework\core\detection_config.rs:255:12
+    |
+140 | impl AppConfigManager {
+    | --------------------- methods in this implementation
+...
+255 |     pub fn get_config(&self, package_name: &str) -> DetectionConfig {
+    |            ^^^^^^^^^^
+...
+262 |     pub fn set_config(&mut self, package_name: String, config: DetectionConfig) {
+    |            ^^^^^^^^^^
+...
+267 |     pub fn remove_config(&mut self, package_name: &str) {
+    |            ^^^^^^^^^^^^^
+...
+272 |     pub fn has_config(&self, package_name: &str) -> bool {
+    |            ^^^^^^^^^^
+...
+277 |     pub fn get_configured_apps(&self) -> Vec<String> {
+    |            ^^^^^^^^^^^^^^^^^^^
+...
+282 |     pub fn load_from_file(&mut self, file_path: &str) -> anyhow::Result<()> {
+    |            ^^^^^^^^^^^^^^
+...
+288 |     pub fn save_to_file(&self, file_path: &str) -> anyhow::Result<()> {
+    |            ^^^^^^^^^^^^
+
+warning: method `with_config` is never used
+  --> src\services\app_detection_framework\detectors\generic_detector.rs:22:12
+   |
+16 | impl GenericDetector {
+   | -------------------- method in this implementation
+...
+22 |     pub fn with_config(mut self, config: DetectionConfig) -> Self {
+   |            ^^^^^^^^^^^
+
+warning: associated functions `new` and `create_config` are never used
+  --> src\services\app_detection_framework\detectors\xiaohongshu_detector.rs:18:12
+   |
+17 | impl XiaohongshuDetector {
+   | ------------------------ associated functions in this implementation
+18 |     pub fn new(shell_session: AdbShellSession) -> Self {
+   |            ^^^
+...
+32 |     fn create_config() -> DetectionConfig {
+   |        ^^^^^^^^^^^^^
+
+warning: field `config_manager` is never read
+  --> src\services\app_detection_framework\factory\detector_factory.rs:12:5
+   |
+11 | pub struct DetectorFactory {
+   |            --------------- field in this struct
+12 |     config_manager: AppConfigManager,
+   |     ^^^^^^^^^^^^^^
+
+warning: multiple associated items are never used
+   --> src\services\app_detection_framework\factory\detector_factory.rs:22:12
+    |
+15  | impl DetectorFactory {
+    | -------------------- associated items in this implementation
+...
+22  |     pub fn with_config_manager(config_manager: AppConfigManager) -> Self {
+    |            ^^^^^^^^^^^^^^^^^^^
+...
+30  |     pub fn create_detector(
+    |            ^^^^^^^^^^^^^^^
+...
+65  |     pub fn create_detectors(
+    |            ^^^^^^^^^^^^^^^^
+...
+78  |     pub fn get_supported_apps(&self) -> Vec<&'static str> {
+    |            ^^^^^^^^^^^^^^^^^^
+...
+88  |     pub fn has_specialized_detector(&self, package_name: &str) -> bool {
+    |            ^^^^^^^^^^^^^^^^^^^^^^^^
+...
+93  |     pub fn get_recommended_config(&self, package_name: &str) -> DetectionConfig {
+    |            ^^^^^^^^^^^^^^^^^^^^^^
+...
+98  |     pub fn set_app_config(&mut self, package_name: String, config: DetectionConfig) {
+    |            ^^^^^^^^^^^^^^
+...
+104 |     pub fn config_manager(&self) -> &AppConfigManager {
+    |            ^^^^^^^^^^^^^^
+...
+109 |     pub fn config_manager_mut(&mut self) -> &mut AppConfigManager {
+    |            ^^^^^^^^^^^^^^^^^^
+
+warning: field `factory` is never read
+   --> src\services\app_detection_framework\factory\detector_factory.rs:152:5
+    |
+151 | pub struct DetectorRegistry {
+    |            ---------------- field in this struct
+152 |     factory: DetectorFactory,
+    |     ^^^^^^^
+
+warning: associated items `factory`, `factory_mut`, `create_detector_for`, and `global` are never used
+   --> src\services\app_detection_framework\factory\detector_factory.rs:163:12
+    |
+155 | impl DetectorRegistry {
+    | --------------------- associated items in this implementation
+...
+163 |     pub fn factory(&self) -> &DetectorFactory {
+    |            ^^^^^^^
+...
+168 |     pub fn factory_mut(&mut self) -> &mut DetectorFactory {
+    |            ^^^^^^^^^^^
+...
+173 |     pub fn create_detector_for(
+    |            ^^^^^^^^^^^^^^^^^^^
+...
+183 |     pub fn global() -> &'static std::sync::Mutex<DetectorRegistry> {
+    |            ^^^^^^
+
+warning: function `create_app_detector` is never used
+   --> src\services\app_detection_framework\factory\detector_factory.rs:196:8
+    |
+196 | pub fn create_app_detector(
+    |        ^^^^^^^^^^^^^^^^^^^
+
+warning: function `is_specialized_app` is never used
+   --> src\services\app_detection_framework\factory\detector_factory.rs:206:8
+    |
+206 | pub fn is_specialized_app(package_name: &str) -> bool {
+    |        ^^^^^^^^^^^^^^^^^^
+
+warning: variant `Starting` is never constructed
+  --> src\services\app_lifecycle_manager.rs:39:5
+   |
+34 | pub enum AppState {
+   |          -------- variant in this enum
+...
+39 |     Starting,         // 姝ｅ湪鍚姩
+   |     ^^^^^^^^
+   |
+   = note: `AppState` has derived impls for the traits `Clone` and `Debug`, but these are intentionally ignored during dead code analysis
+
+warning: field `package_name` is never read
+  --> src\services\app_lifecycle_manager.rs:50:9
+   |
+45 | pub struct AppLaunchConfig {
+   |            --------------- field in this struct
+...
+50 |     pub package_name: Option<String>, // 鍖呭悕锛堝彲閫夛紝鑷姩鎺ㄦ柇锛?   |         ^^^^^^^^^^^^
+   |
+   = note: `AppLaunchConfig` has derived impls for the traits `Clone` and `Debug`, but these are intentionally ignored during dead code analysis
+
+warning: struct `AppStateDetector` is never constructed
+  --> src\services\app_state_detector.rs:35:12
+   |
+35 | pub struct AppStateDetector {
+   |            ^^^^^^^^^^^^^^^^
+
+warning: fields `max_wait_time`, `check_interval`, `splash_timeout`, and `ui_load_timeout` are never read
+  --> src\services\app_state_detector.rs:44:9
+   |
+43 | pub struct DetectionConfig {
+   |            --------------- fields in this struct
+44 |     pub max_wait_time: Duration,     // 鏈€澶х瓑寰呮椂闂?   |         ^^^^^^^^^^^^^
+45 |     pub check_interval: Duration,    // 妫€鏌ラ棿闅?   |         ^^^^^^^^^^^^^^
+46 |     pub splash_timeout: Duration,    // 鍚姩鐢婚潰瓒呮椂鏃堕棿
+   |         ^^^^^^^^^^^^^^
+47 |     pub ui_load_timeout: Duration,   // UI鍔犺浇瓒呮椂鏃堕棿
+   |         ^^^^^^^^^^^^^^^
+   |
+   = note: `DetectionConfig` has derived impls for the traits `Clone` and `Debug`, but these are intentionally ignored during dead code analysis
+
+warning: multiple associated items are never used
+   --> src\services\app_state_detector.rs:62:12
+    |
+61  | impl AppStateDetector {
+    | --------------------- associated items in this implementation
+62  |     pub fn new(shell_session: AdbShellSession, package_name: String) -> Self {
+    |            ^^^
+...
+70  |     pub fn with_config(mut self, config: DetectionConfig) -> Self {
+    |            ^^^^^^^^^^^
+...
+76  |     pub async fn wait_for_app_ready(&self) -> Result<AppStateResult> {
+    |                  ^^^^^^^^^^^^^^^^^^
+...
+111 |     async fn detect_app_state_loop(&self) -> AppStateResult {
+    |              ^^^^^^^^^^^^^^^^^^^^^
+...
+150 |     async fn detect_current_state(&self) -> AppStateResult {
+    |              ^^^^^^^^^^^^^^^^^^^^
+...
+199 |     async fn analyze_ui_state(&self, ui_content: &str, current_activity: &Option<String>) -> AppLaunchState {
+    |              ^^^^^^^^^^^^^^^^
+...
+236 |     async fn is_process_running(&self) -> bool {
+    |              ^^^^^^^^^^^^^^^^^^
+...
+245 |     async fn get_current_activity(&self) -> Option<String> {
+    |              ^^^^^^^^^^^^^^^^^^^^
+...
+255 |     async fn get_ui_content(&self) -> Result<String> {
+    |              ^^^^^^^^^^^^^^
+...
+260 |     fn has_permission_dialog(&self, ui_content: &str) -> bool {
+    |        ^^^^^^^^^^^^^^^^^^^^^
+...
+271 |     fn has_network_check(&self, ui_content: &str) -> bool {
+    |        ^^^^^^^^^^^^^^^^^
+...
+280 |     fn has_login_screen(&self, ui_content: &str) -> bool {
+    |        ^^^^^^^^^^^^^^^^
+...
+289 |     fn has_splash_screen(&self, ui_content: &str, current_activity: &Option<String>) -> bool {
+    |        ^^^^^^^^^^^^^^^^^
+...
+307 |     fn has_loading_indicators(&self, ui_content: &str) -> bool {
+    |        ^^^^^^^^^^^^^^^^^^^^^^
+...
+316 |     fn is_app_ready(&self, ui_content: &str, current_activity: &Option<String>) -> bool {
+    |        ^^^^^^^^^^^^
+...
+328 |     async fn handle_permission_dialog(&self) -> Result<()> {
+    |              ^^^^^^^^^^^^^^^^^^^^^^^^
+...
+358 |     fn extract_key_ui_elements(&self, ui_content: &str) -> Vec<String> {
+    |        ^^^^^^^^^^^^^^^^^^^^^^^
+...
+380 |     fn get_state_message(&self, state: &AppLaunchState) -> String {
+    |        ^^^^^^^^^^^^^^^^^
+...
+395 |     pub async fn quick_state_check(&self) -> AppStateResult {
+    |                  ^^^^^^^^^^^^^^^^^
+
+warning: fields `max_retries`, `base_delay`, `max_delay`, `exponential_backoff`, and `verbose_logging` are never read
+  --> src\services\error_handling\mod.rs:20:9
+   |
+18 | pub struct ErrorHandlingConfig {
+   |            ------------------- fields in this struct
+19 |     /// 鏈€澶ч噸璇曟鏁?20 |     pub max_retries: usize,
+   |         ^^^^^^^^^^^
+21 |     /// 鍩虹閲嶈瘯寤惰繜
+22 |     pub base_delay: Duration,
+   |         ^^^^^^^^^^
+23 |     /// 鏈€澶у欢杩熸椂闂?24 |     pub max_delay: Duration,
+   |         ^^^^^^^^^
+25 |     /// 鏄惁鍚敤鎸囨暟閫€閬?26 |     pub exponential_backoff: bool,
+   |         ^^^^^^^^^^^^^^^^^^^
+27 |     /// 鏄惁鍚敤璇︾粏鏃ュ織
+28 |     pub verbose_logging: bool,
+   |         ^^^^^^^^^^^^^^^
+   |
+   = note: `ErrorHandlingConfig` has derived impls for the traits `Clone` and `Debug`, but these are intentionally ignored during dead code analysis
+
+warning: fields `config`, `classifier`, `retry_manager`, and `recovery` are never read
+  --> src\services\error_handling\mod.rs:45:5
+   |
+44 | pub struct ErrorHandler {
+   |            ------------ fields in this struct
+45 |     config: ErrorHandlingConfig,
+   |     ^^^^^^
+46 |     classifier: ErrorClassifier,
+   |     ^^^^^^^^^^
+47 |     retry_manager: RetryManager,
+   |     ^^^^^^^^^^^^^
+48 |     recovery: RecoveryStrategies,
+   |     ^^^^^^^^
+
+warning: methods `handle_error` and `should_retry` are never used
+   --> src\services\error_handling\mod.rs:62:18
+    |
+51  | impl ErrorHandler {
+    | ----------------- methods in this implementation
+...
+62  |     pub async fn handle_error<F, T, E>(
+    |                  ^^^^^^^^^^^^
+...
+132 |     fn should_retry(&self, error_type: &ErrorType) -> bool {
+    |        ^^^^^^^^^^^^
+
+warning: methods `handle_ui_dump_error`, `handle_adb_command_error`, `handle_device_connection_error`, `get_statistics`, and `reset_statistics` are never used
+   --> src\services\error_handling\mod.rs:156:18
+    |
+154 | impl ErrorHandler {
+    | ----------------- methods in this implementation
+155 |     /// 澶勭悊UI dump鎿嶄綔鐨勯敊璇?156 |     pub async fn handle_ui_dump_error<F>(&mut self, mut retry_fn: F) -> Result<String>
+    |                  ^^^^^^^^^^^^^^^^^^^^
+...
+164 |     pub async fn handle_adb_command_error<F>(&mut self, command: &str, mut retry_fn: F) -> Result<String>
+    |                  ^^^^^^^^^^^^^^^^^^^^^^^^
+...
+173 |     pub async fn handle_device_connection_error<F>(&mut self, device_id: &str, mut retry_fn: F) -> Result<()>
+    |                  ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+...
+182 |     pub fn get_statistics(&self) -> String {
+    |            ^^^^^^^^^^^^^^
+...
+194 |     pub fn reset_statistics(&mut self) {
+    |            ^^^^^^^^^^^^^^^^
+
+warning: variant `Unknown` is never constructed
+  --> src\services\error_handling\error_classifier.rs:28:5
+   |
+8  | pub enum ErrorType {
+   |          --------- variant in this enum
+...
+28 |     Unknown,
+   |     ^^^^^^^
+   |
+   = note: `ErrorType` has derived impls for the traits `Clone` and `Debug`, but these are intentionally ignored during dead code analysis
+
+warning: fields `pattern` and `description` are never read
+  --> src\services\error_handling\error_classifier.rs:37:9
+   |
+33 | pub struct ErrorPattern {
+   |            ------------ fields in this struct
+...
+37 |     pub pattern: Regex,
+   |         ^^^^^^^
+38 |     /// 妯″紡鎻忚堪
+39 |     pub description: String,
+   |         ^^^^^^^^^^^
+   |
+   = note: `ErrorPattern` has derived impls for the traits `Clone` and `Debug`, but these are intentionally ignored during dead code analysis
+
+warning: associated function `new` is never used
+  --> src\services\error_handling\error_classifier.rs:45:8
+   |
+44 | impl ErrorPattern {
+   | ----------------- associated function in this implementation
+45 |     fn new(error_type: ErrorType, pattern: &str, description: &str, priority: u8) -> Self {
+   |        ^^^
+
+warning: field `classification_cache` is never read
+  --> src\services\error_handling\error_classifier.rs:61:5
+   |
+59 | pub struct ErrorClassifier {
+   |            --------------- field in this struct
+60 |     patterns: Vec<ErrorPattern>,
+61 |     classification_cache: HashMap<String, ErrorType>,
+   |     ^^^^^^^^^^^^^^^^^^^^
+
+warning: multiple methods are never used
+   --> src\services\error_handling\error_classifier.rs:260:12
+    |
+64  | impl ErrorClassifier {
+    | -------------------- methods in this implementation
+...
+260 |     pub fn classify_error(&mut self, error_message: &str) -> ErrorType {
+    |            ^^^^^^^^^^^^^^
+...
+294 |     pub fn get_error_description(&self, error_type: &ErrorType) -> String {
+    |            ^^^^^^^^^^^^^^^^^^^^^
+...
+310 |     pub fn get_error_severity(&self, error_type: &ErrorType) -> ErrorSeverity {
+    |            ^^^^^^^^^^^^^^^^^^
+...
+330 |     pub fn clear_cache(&mut self) {
+    |            ^^^^^^^^^^^
+...
+335 |     pub fn get_cache_stats(&self) -> (usize, usize) {
+    |            ^^^^^^^^^^^^^^^
+...
+340 |     pub fn get_statistics(&self) -> ErrorClassificationStats {
+    |            ^^^^^^^^^^^^^^
+...
+349 |     pub fn reset_statistics(&mut self) {
+    |            ^^^^^^^^^^^^^^^^
+
+warning: struct `ErrorClassificationStats` is never constructed
+   --> src\services\error_handling\error_classifier.rs:356:12
+    |
+356 | pub struct ErrorClassificationStats {
+    |            ^^^^^^^^^^^^^^^^^^^^^^^^
+    |
+    = note: `ErrorClassificationStats` has a derived impl for the trait `Debug`, but this is intentionally ignored during dead code analysis
+
+warning: method `generate_report` is never used
+   --> src\services\error_handling\error_classifier.rs:363:12
+    |
+362 | impl ErrorClassificationStats {
+    | ----------------------------- method in this implementation
+363 |     pub fn generate_report(&self) -> String {
+    |            ^^^^^^^^^^^^^^^
+
+warning: variants `Recoverable`, `Warning`, `Critical`, and `Unknown` are never constructed
+   --> src\services\error_handling\error_classifier.rs:380:5
+    |
+378 | pub enum ErrorSeverity {
+    |          ------------- variants in this enum
+379 |     /// 鍙仮澶嶇殑閿欒
+380 |     Recoverable,
+    |     ^^^^^^^^^^^
+381 |     /// 璀﹀憡绾у埆
+382 |     Warning,
+    |     ^^^^^^^
+383 |     /// 涓ラ噸閿欒
+384 |     Critical,
+    |     ^^^^^^^^
+385 |     /// 鏈煡涓ラ噸绋嬪害
+386 |     Unknown,
+    |     ^^^^^^^
+    |
+    = note: `ErrorSeverity` has derived impls for the traits `Clone` and `Debug`, but these are intentionally ignored during dead code analysis
+
+warning: fields `total_operations`, `successful_operations`, `failed_operations`, and `total_retry_attempts` are never read
+  --> src\services\error_handling\retry_manager.rs:11:9
+   |
+10 | pub struct RetryStatistics {
+   |            --------------- fields in this struct
+11 |     pub total_operations: usize,
+   |         ^^^^^^^^^^^^^^^^
+12 |     pub successful_operations: usize,
+   |         ^^^^^^^^^^^^^^^^^^^^^
+13 |     pub failed_operations: usize,
+   |         ^^^^^^^^^^^^^^^^^
+14 |     pub total_retry_attempts: usize,
+   |         ^^^^^^^^^^^^^^^^^^^^
+   |
+   = note: `RetryStatistics` has a derived impl for the trait `Debug`, but this is intentionally ignored during dead code analysis
+
+warning: methods `record_success`, `record_failure`, `success_rate`, `reset`, and `generate_report` are never used
+  --> src\services\error_handling\retry_manager.rs:22:12
+   |
+17 | impl RetryStatistics {
+   | -------------------- methods in this implementation
+...
+22 |     pub fn record_success(&mut self, attempts: usize) {
+   |            ^^^^^^^^^^^^^^
+...
+28 |     pub fn record_failure(&mut self, attempts: usize) {
+   |            ^^^^^^^^^^^^^^
+...
+34 |     pub fn success_rate(&self) -> f64 {
+   |            ^^^^^^^^^^^^
+...
+42 |     pub fn reset(&mut self) {
+   |            ^^^^^
+...
+46 |     pub fn generate_report(&self) -> String {
+   |            ^^^^^^^^^^^^^^^
+
+warning: fields `config` and `stats` are never read
+  --> src\services\error_handling\retry_manager.rs:59:5
+   |
+58 | pub struct RetryManager {
+   |            ------------ fields in this struct
+59 |     config: ErrorHandlingConfig,
+   |     ^^^^^^
+60 |     stats: RetryStatistics,
+   |     ^^^^^
+
+warning: methods `execute_with_retry`, `calculate_delay`, `get_statistics`, and `reset_statistics` are never used
+   --> src\services\error_handling\retry_manager.rs:72:18
+    |
+63  | impl RetryManager {
+    | ----------------- methods in this implementation
+...
+72  |     pub async fn execute_with_retry<F, T, E>(
+    |                  ^^^^^^^^^^^^^^^^^^
+...
+138 |     fn calculate_delay(&self, attempt: usize) -> Duration {
+    |        ^^^^^^^^^^^^^^^
+...
+145 |     pub fn get_statistics(&self) -> &RetryStatistics {
+    |            ^^^^^^^^^^^^^^
+...
+150 |     pub fn reset_statistics(&mut self) {
+    |            ^^^^^^^^^^^^^^^^
+
+warning: enum `RecoveryResult` is never used
+  --> src\services\error_handling\recovery_strategies.rs:11:10
+   |
+11 | pub enum RecoveryResult {
+   |          ^^^^^^^^^^^^^^
+   |
+   = note: `RecoveryResult` has a derived impl for the trait `Debug`, but this is intentionally ignored during dead code analysis
+
+warning: fields `adb_path`, `device_id`, and `recovery_timeout` are never read
+  --> src\services\error_handling\recovery_strategies.rs:20:9
+   |
+19 | pub struct RecoveryStrategies {
+   |            ------------------ fields in this struct
+20 |     pub adb_path: String,
+   |         ^^^^^^^^
+21 |     pub device_id: Option<String>,
+   |         ^^^^^^^^^
+22 |     pub recovery_timeout: Duration,
+   |         ^^^^^^^^^^^^^^^^
+
+warning: multiple methods are never used
+   --> src\services\error_handling\recovery_strategies.rs:35:18
+    |
+25  | impl RecoveryStrategies {
+    | ----------------------- methods in this implementation
+...
+35  |     pub async fn execute_recovery(&self, error_type: &ErrorType, error_message: &str) -> Result<RecoveryResult> {
+    |                  ^^^^^^^^^^^^^^^^
+...
+67  |     async fn recover_ui_dump(&self) -> Result<RecoveryResult> {
+    |              ^^^^^^^^^^^^^^^
+...
+122 |     async fn recover_device_connection(&self) -> Result<RecoveryResult> {
+    |              ^^^^^^^^^^^^^^^^^^^^^^^^^
+...
+180 |     async fn recover_device_busy(&self) -> Result<RecoveryResult> {
+    |              ^^^^^^^^^^^^^^^^^^^
+...
+216 |     async fn recover_permission_denied(&self) -> Result<RecoveryResult> {
+    |              ^^^^^^^^^^^^^^^^^^^^^^^^^
+...
+260 |     async fn recover_connection_loss(&self) -> Result<RecoveryResult> {
+    |              ^^^^^^^^^^^^^^^^^^^^^^^
+...
+299 |     async fn recover_service_unavailable(&self) -> Result<RecoveryResult> {
+    |              ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+...
+326 |     async fn recover_adb_command_failed(&self, error_message: &str) -> Result<RecoveryResult> {
+    |              ^^^^^^^^^^^^^^^^^^^^^^^^^^
+...
+348 |     async fn recover_element_not_found(&self) -> Result<RecoveryResult> {
+    |              ^^^^^^^^^^^^^^^^^^^^^^^^^
+...
+362 |     async fn recover_unknown_error(&self, error_message: &str) -> Result<RecoveryResult> {
+    |              ^^^^^^^^^^^^^^^^^^^^^
+...
+375 |     fn get_device_arg(&self) -> String {
+    |        ^^^^^^^^^^^^^^
+...
+383 |     pub fn set_recovery_timeout(&mut self, timeout: Duration) {
+    |            ^^^^^^^^^^^^^^^^^^^^
+...
+388 |     pub async fn execute_multi_step_recovery(&self, error_types: Vec<ErrorType>) -> Result<Vec<RecoveryResult>> {
+    |                  ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+warning: function `detect_and_click_navigation_button` is never used
+   --> src\services\navigation_bar_detector.rs:644:14
+    |
+644 | pub async fn detect_and_click_navigation_button(
+    |              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+warning: fields `page_type_cache` and `deduplication_cache` are never read
+  --> src\services\page_analyzer_service.rs:16:5
+   |
+12 | pub struct PageAnalyzerService {
+   |            ------------------- fields in this struct
+...
+16 |     page_type_cache: Arc<Mutex<HashMap<String, PageType>>>,
+   |     ^^^^^^^^^^^^^^^
+17 |     /// 鍏冪礌鍘婚噸缂撳瓨
+18 |     deduplication_cache: Arc<Mutex<HashMap<String, Vec<ActionableElement>>>>,
+   |     ^^^^^^^^^^^^^^^^^^^
+
+warning: fields `parent` and `depth` are never read
+  --> src\services\universal_ui_page_analyzer.rs:49:9
+   |
+28 | pub struct UIElement {
+   |            --------- fields in this struct
+...
+49 |     pub parent: Option<String>,
+   |         ^^^^^^
+50 |     #[serde(skip_serializing)]
+51 |     pub depth: u32,
+   |         ^^^^^
+   |
+   = note: `UIElement` has derived impls for the traits `Clone` and `Debug`, but these are intentionally ignored during dead code analysis
+
+warning: field `navigation_patterns` is never read
+  --> src\services\universal_ui_page_analyzer.rs:68:5
+   |
+67 | pub struct UniversalUIPageAnalyzer {
+   |            ----------------------- field in this struct
+68 |     navigation_patterns: HashMap<String, Vec<String>>,
+   |     ^^^^^^^^^^^^^^^^^^^
+
+warning: methods `analyze_page`, `filter_interactive_elements`, and `identify_navigation_elements` are never used
+   --> src\services\universal_ui_page_analyzer.rs:99:12
+    |
+77  | impl UniversalUIPageAnalyzer {
+    | ---------------------------- methods in this implementation
+...
+99  |     pub fn analyze_page(&self, xml_content: &str, package_name: &str, activity_name: &str) -> AnyResult<PageAnalysisResult> {
+    |            ^^^^^^^^^^^^
+...
+430 |     fn filter_interactive_elements(&self, elements: &[UIElement]) -> Vec<UIElement> {
+    |        ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+...
+449 |     fn identify_navigation_elements(&self, elements: &[UIElement], package_name: &str) -> Vec<UIElement> {
+    |        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+warning: function `mark_contact_numbers_as_not_imported_by_ids` is never used
+   --> src\services\contact_storage\commands\contact_numbers.rs:201:14
+    |
+201 | pub async fn mark_contact_numbers_as_not_imported_by_ids(
+    |              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+warning: function `list_contact_numbers_without_batch_filtered` is never used
+   --> src\services\contact_storage\commands\contact_numbers.rs:263:14
+    |
+263 | pub async fn list_contact_numbers_without_batch_filtered(
+    |              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+warning: function `list_contact_numbers_by_batch` is never used
+   --> src\services\contact_storage\commands\contact_numbers.rs:321:14
+    |
+321 | pub async fn list_contact_numbers_by_batch(
+    |              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+warning: function `list_contact_numbers_filtered` is never used
+   --> src\services\contact_storage\commands\contact_numbers.rs:350:14
+    |
+350 | pub async fn list_contact_numbers_filtered(
+    |              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+warning: function `list_contact_numbers_for_vcf_batch` is never used
+   --> src\services\contact_storage\commands\contact_numbers.rs:365:14
+    |
+365 | pub async fn list_contact_numbers_for_vcf_batch(
+    |              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+warning: function `update_vcf_batch_cmd` is never used
+  --> src\services\contact_storage\commands\vcf_batches.rs:50:14
+   |
+50 | pub async fn update_vcf_batch_cmd(
+   |              ^^^^^^^^^^^^^^^^^^^^
+
+warning: function `delete_vcf_batch_cmd` is never used
+  --> src\services\contact_storage\commands\vcf_batches.rs:63:14
+   |
+63 | pub async fn delete_vcf_batch_cmd(
+   |              ^^^^^^^^^^^^^^^^^^^^
+
+warning: function `get_recent_vcf_batches_cmd` is never used
+  --> src\services\contact_storage\commands\vcf_batches.rs:74:14
+   |
+74 | pub async fn get_recent_vcf_batches_cmd(
+   |              ^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+warning: function `set_vcf_batch_file_path_cmd` is never used
+   --> src\services\contact_storage\commands\vcf_batches.rs:111:14
+    |
+111 | pub async fn set_vcf_batch_file_path_cmd(
+    |              ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+warning: function `batch_delete_vcf_batches_cmd` is never used
+   --> src\services\contact_storage\commands\vcf_batches.rs:123:14
+    |
+123 | pub async fn batch_delete_vcf_batches_cmd(
+    |              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+warning: function `search_vcf_batches_by_name_cmd` is never used
+   --> src\services\contact_storage\commands\vcf_batches.rs:134:14
+    |
+134 | pub async fn search_vcf_batches_by_name_cmd(
+    |              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+warning: function `get_vcf_batch_number_count_cmd` is never used
+   --> src\services\contact_storage\commands\vcf_batches.rs:147:14
+    |
+147 | pub async fn get_vcf_batch_number_count_cmd(
+    |              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+warning: function `mark_vcf_batch_completed_cmd` is never used
+   --> src\services\contact_storage\commands\vcf_batches.rs:158:14
+    |
+158 | pub async fn mark_vcf_batch_completed_cmd(
+    |              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+warning: function `get_recent_vcf_batches_by_device_cmd` is never used
+   --> src\services\contact_storage\commands\vcf_batches.rs:181:14
+    |
+181 | pub async fn get_recent_vcf_batches_by_device_cmd(
+    |              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+warning: function `get_import_session_cmd` is never used
+  --> src\services\contact_storage\commands\import_sessions.rs:75:14
+   |
+75 | pub async fn get_import_session_cmd(
+   |              ^^^^^^^^^^^^^^^^^^^^^^
+
+warning: function `get_recent_import_sessions_cmd` is never used
+   --> src\services\contact_storage\commands\import_sessions.rs:100:14
+    |
+100 | pub async fn get_recent_import_sessions_cmd(
+    |              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+warning: function `get_import_sessions_by_device_cmd` is never used
+   --> src\services\contact_storage\commands\import_sessions.rs:111:14
+    |
+111 | pub async fn get_import_sessions_by_device_cmd(
+    |              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+warning: function `get_import_sessions_by_batch_cmd` is never used
+   --> src\services\contact_storage\commands\import_sessions.rs:123:14
+    |
+123 | pub async fn get_import_sessions_by_batch_cmd(
+    |              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+warning: function `batch_delete_import_sessions_cmd` is never used
+   --> src\services\contact_storage\commands\import_sessions.rs:186:14
+    |
+186 | pub async fn batch_delete_import_sessions_cmd(
+    |              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+warning: function `get_failed_import_sessions_cmd` is never used
+   --> src\services\contact_storage\commands\import_sessions.rs:199:14
+    |
+199 | pub async fn get_failed_import_sessions_cmd(
+    |              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+warning: function `get_successful_import_sessions_cmd` is never used
+   --> src\services\contact_storage\commands\import_sessions.rs:210:14
+    |
+210 | pub async fn get_successful_import_sessions_cmd(
+    |              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+warning: function `update_import_session_status_cmd` is never used
+   --> src\services\contact_storage\commands\import_sessions.rs:221:14
+    |
+221 | pub async fn update_import_session_status_cmd(
+    |              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+warning: function `add_import_session_event_cmd` is never used
+   --> src\services\contact_storage\commands\import_sessions.rs:256:14
+    |
+256 | pub async fn add_import_session_event_cmd(
+    |              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+warning: function `get_import_sessions_by_date_range_cmd` is never used
+   --> src\services\contact_storage\commands\import_sessions.rs:271:14
+    |
+271 | pub async fn get_import_sessions_by_date_range_cmd(
+    |              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+warning: function `get_distinct_session_industries_cmd` is never used
+   --> src\services\contact_storage\commands\import_sessions.rs:284:14
+    |
+284 | pub async fn get_distinct_session_industries_cmd(
+    |              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+warning: function `import_txt_to_contact_numbers_cmd` is never used
+  --> src\services\contact_storage\commands\management.rs:13:14
+   |
+13 | pub async fn import_txt_to_contact_numbers_cmd(
+   |              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+warning: function `maintain_database_cmd` is never used
+   --> src\services\contact_storage\commands\management.rs:164:14
+    |
+164 | pub async fn maintain_database_cmd(
+    |              ^^^^^^^^^^^^^^^^^^^^^
+
+warning: function `backup_database_cmd` is never used
+   --> src\services\contact_storage\commands\management.rs:207:14
+    |
+207 | pub async fn backup_database_cmd(
+    |              ^^^^^^^^^^^^^^^^^^^
+
+warning: function `restore_database_cmd` is never used
+   --> src\services\contact_storage\commands\management.rs:234:14
+    |
+234 | pub async fn restore_database_cmd(
+    |              ^^^^^^^^^^^^^^^^^^^^
+
+warning: function `create_txt_import_record_internal` is never used
+  --> src\services\contact_storage\commands\txt_import_records.rs:52:14
+   |
+52 | pub async fn create_txt_import_record_internal(
+   |              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+warning: function `is_phone_number` is never used
+ --> src\services\contact_storage\parser.rs:3:8
+  |
+3 | pub fn is_phone_number(line: &str) -> bool {
+  |        ^^^^^^^^^^^^^^^
+
+warning: function `extract_numbers_from_text` is never used
+  --> src\services\contact_storage\parser.rs:19:8
+   |
+19 | pub fn extract_numbers_from_text(content: &str) -> Vec<(String, String)> {
+   |        ^^^^^^^^^^^^^^^^^^^^^^^^^
+
+warning: function `list_number_ids` is never used
+ --> src\services\contact_storage\queries.rs:7:8
+  |
+7 | pub fn list_number_ids(
+  |        ^^^^^^^^^^^^^^^
+
+warning: function `execute_in_transaction` is never used
+  --> src\services\contact_storage\repositories\common\database.rs:30:8
+   |
+30 | pub fn execute_in_transaction<T, F>(
+   |        ^^^^^^^^^^^^^^^^^^^^^^
+
+warning: function `ensure_tables_exist` is never used
+  --> src\services\contact_storage\repositories\common\database.rs:52:8
+   |
+52 | pub fn ensure_tables_exist(conn: &Connection) -> SqliteResult<()> {
+   |        ^^^^^^^^^^^^^^^^^^^
+
+warning: function `with_db_connection_async` is never used
+  --> src\services\contact_storage\repositories\common\command_base.rs:26:14
+   |
+26 | pub async fn with_db_connection_async<F, Fut, R>(
+   |              ^^^^^^^^^^^^^^^^^^^^^^^^
+
+warning: function `format_db_error` is never used
+  --> src\services\contact_storage\repositories\common\command_base.rs:43:8
+   |
+43 | pub fn format_db_error(context: &str, error: rusqlite::Error) -> String {
+   |        ^^^^^^^^^^^^^^^
+
+warning: struct `ResponseBuilder` is never constructed
+  --> src\services\contact_storage\repositories\common\command_base.rs:48:12
+   |
+48 | pub struct ResponseBuilder;
+   |            ^^^^^^^^^^^^^^^
+
+warning: associated functions `query_success`, `operation_success`, and `error` are never used
+  --> src\services\contact_storage\repositories\common\command_base.rs:52:12
+   |
+50 | impl ResponseBuilder {
+   | -------------------- associated functions in this implementation
+51 |     /// 鏋勫缓鏌ヨ鎴愬姛鍝嶅簲
+52 |     pub fn query_success<T>(data: T) -> Result<T, String> {
+   |            ^^^^^^^^^^^^^
+...
+57 |     pub fn operation_success(message: &str) -> Result<String, String> {
+   |            ^^^^^^^^^^^^^^^^^
+...
+62 |     pub fn error(context: &str, error: impl std::fmt::Display) -> Result<(), String> {
+   |            ^^^^^
+
+warning: function `create_txt_import_record` is never used
+  --> src\services\contact_storage\repositories\txt_import_records_repo.rs:14:8
+   |
+14 | pub fn create_txt_import_record(
+   |        ^^^^^^^^^^^^^^^^^^^^^^^^
+
+warning: function `create_txt_import_record_with_conn` is never used
+  --> src\services\contact_storage\repositories\txt_import_records_repo.rs:29:8
+   |
+29 | pub fn create_txt_import_record_with_conn(
+   |        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+warning: function `find_txt_import_record_by_path` is never used
+   --> src\services\contact_storage\repositories\txt_import_records_repo.rs:202:8
+    |
+202 | pub fn find_txt_import_record_by_path(
+    |        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+warning: function `find_txt_import_record_by_path_with_conn` is never used
+   --> src\services\contact_storage\repositories\txt_import_records_repo.rs:211:8
+    |
+211 | pub fn find_txt_import_record_by_path_with_conn(
+    |        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+warning: function `list_numbers_without_batch_filtered` is never used
+   --> src\services\contact_storage\repositories\contact_numbers_repo.rs:490:8
+    |
+490 | pub fn list_numbers_without_batch_filtered(
+    |        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+warning: function `list_numbers_by_batch` is never used
+   --> src\services\contact_storage\repositories\contact_numbers_repo.rs:630:8
+    |
+630 | pub fn list_numbers_by_batch(
+    |        ^^^^^^^^^^^^^^^^^^^^^
+
+warning: function `list_numbers_filtered` is never used
+   --> src\services\contact_storage\repositories\contact_numbers_repo.rs:690:8
+    |
+690 | pub fn list_numbers_filtered(
+    |        ^^^^^^^^^^^^^^^^^^^^^
+
+warning: function `list_numbers_for_vcf_batch` is never used
+   --> src\services\contact_storage\repositories\contact_numbers_repo.rs:772:8
+    |
+772 | pub fn list_numbers_for_vcf_batch(
+    |        ^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+warning: function `update_vcf_batch` is never used
+  --> src\services\contact_storage\repositories\vcf_batches_repo.rs:20:8
+   |
+20 | pub fn update_vcf_batch(_conn: &Connection, _batch_id: &str, _batch_name: Option<&str>, _description: Option<&str>) -> SqlResult<bool> {
+   |        ^^^^^^^^^^^^^^^^
+
+warning: function `delete_vcf_batch` is never used
+  --> src\services\contact_storage\repositories\vcf_batches_repo.rs:24:8
+   |
+24 | pub fn delete_vcf_batch(_conn: &Connection, _batch_id: &str) -> SqlResult<bool> {
+   |        ^^^^^^^^^^^^^^^^
+
+warning: function `get_recent_vcf_batches` is never used
+  --> src\services\contact_storage\repositories\vcf_batches_repo.rs:36:8
+   |
+36 | pub fn get_recent_vcf_batches(_conn: &Connection, _limit: i64) -> SqlResult<Vec<VcfBatchDto>> {
+   |        ^^^^^^^^^^^^^^^^^^^^^^
+
+warning: function `set_vcf_batch_file_path` is never used
+  --> src\services\contact_storage\repositories\vcf_batches_repo.rs:64:8
+   |
+64 | pub fn set_vcf_batch_file_path(_conn: &Connection, _batch_id: &str, _file_path: &str) -> SqlResult<bool> {
+   |        ^^^^^^^^^^^^^^^^^^^^^^^
+
+warning: function `batch_delete_vcf_batches` is never used
+  --> src\services\contact_storage\repositories\vcf_batches_repo.rs:68:8
+   |
+68 | pub fn batch_delete_vcf_batches(_conn: &Connection, _batch_ids: &[String]) -> SqlResult<i64> {
+   |        ^^^^^^^^^^^^^^^^^^^^^^^^
+
+warning: function `search_vcf_batches_by_name` is never used
+  --> src\services\contact_storage\repositories\vcf_batches_repo.rs:72:8
+   |
+72 | pub fn search_vcf_batches_by_name(_conn: &Connection, _search_term: &str, limit: i64, offset: i64) -> SqlResult<VcfBatchList> {
+   |        ^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+warning: function `get_vcf_batch_number_count` is never used
+  --> src\services\contact_storage\repositories\vcf_batches_repo.rs:76:8
+   |
+76 | pub fn get_vcf_batch_number_count(_conn: &Connection, _batch_id: &str) -> SqlResult<i64> {
+   |        ^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+warning: function `mark_vcf_batch_completed` is never used
+  --> src\services\contact_storage\repositories\vcf_batches_repo.rs:80:8
+   |
+80 | pub fn mark_vcf_batch_completed(_conn: &Connection, _batch_id: &str, _file_path: Option<&str>) -> SqlResult<bool> {
+   |        ^^^^^^^^^^^^^^^^^^^^^^^^
+
+warning: function `get_recent_vcf_batches_by_device` is never used
+  --> src\services\contact_storage\repositories\vcf_batches_repo.rs:84:8
+   |
+84 | pub fn get_recent_vcf_batches_by_device(_conn: &Connection, _device_id: &str, _limit: i64) -> SqlResult<Vec<VcfBatchDto>> {
+   |        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+warning: fields `session_id`, `archived_number_count`, `removed_event_count`, `removed_batch_link_count`, and `removed_batch_record` are never read
+  --> src\services\contact_storage\repositories\import_sessions_repo.rs:15:9
+   |
+14 | pub struct DeleteImportSessionResult {
+   |            ------------------------- fields in this struct
+15 |     pub session_id: i64,
+   |         ^^^^^^^^^^
+16 |     pub archived_number_count: i64,
+   |         ^^^^^^^^^^^^^^^^^^^^^
+17 |     pub removed_event_count: i64,
+   |         ^^^^^^^^^^^^^^^^^^^
+18 |     pub removed_batch_link_count: i64,
+   |         ^^^^^^^^^^^^^^^^^^^^^^^^
+19 |     pub removed_batch_record: bool,
+   |         ^^^^^^^^^^^^^^^^^^^^
+
+warning: function `get_import_session` is never used
+   --> src\services\contact_storage\repositories\import_sessions_repo.rs:447:8
+    |
+447 | pub fn get_import_session(conn: &Connection, session_id: i64) -> SqlResult<Option<ImportSessionDto>> {
+    |        ^^^^^^^^^^^^^^^^^^
+
+warning: function `get_recent_import_sessions` is never used
+   --> src\services\contact_storage\repositories\import_sessions_repo.rs:476:8
+    |
+476 | pub fn get_recent_import_sessions(conn: &Connection, limit: i64) -> SqlResult<Vec<ImportSessionDto>> {
+    |        ^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+warning: function `get_import_sessions_by_device` is never used
+   --> src\services\contact_storage\repositories\import_sessions_repo.rs:507:8
+    |
+507 | pub fn get_import_sessions_by_device(conn: &Connection, device_id: &str, limit: i64) -> SqlResult<Vec<ImportSessionDto>> {
+    |        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+warning: function `get_import_sessions_by_batch` is never used
+   --> src\services\contact_storage\repositories\import_sessions_repo.rs:538:8
+    |
+538 | pub fn get_import_sessions_by_batch(conn: &Connection, batch_id: &str, limit: i64) -> SqlResult<Vec<ImportSessionDto>> {
+    |        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+warning: function `batch_delete_import_sessions` is never used
+   --> src\services\contact_storage\repositories\import_sessions_repo.rs:569:8
+    |
+569 | pub fn batch_delete_import_sessions(conn: &Connection, session_ids: &[i64]) -> SqlResult<i64> {
+    |        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+warning: function `get_failed_import_sessions` is never used
+   --> src\services\contact_storage\repositories\import_sessions_repo.rs:581:8
+    |
+581 | pub fn get_failed_import_sessions(conn: &Connection, limit: i64) -> SqlResult<Vec<ImportSessionDto>> {
+    |        ^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+warning: function `get_successful_import_sessions` is never used
+   --> src\services\contact_storage\repositories\import_sessions_repo.rs:612:8
+    |
+612 | pub fn get_successful_import_sessions(conn: &Connection, limit: i64) -> SqlResult<Vec<ImportSessionDto>> {
+    |        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+warning: function `update_import_session_status` is never used
+   --> src\services\contact_storage\repositories\import_sessions_repo.rs:643:8
+    |
+643 | pub fn update_import_session_status(conn: &Connection, session_id: i64, status: &str) -> SqlResult<()> {
+    |        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+warning: function `add_import_session_event` is never used
+   --> src\services\contact_storage\repositories\import_sessions_repo.rs:652:8
+    |
+652 | pub fn add_import_session_event(
+    |        ^^^^^^^^^^^^^^^^^^^^^^^^
+
+warning: function `get_import_sessions_by_date_range` is never used
+   --> src\services\contact_storage\repositories\import_sessions_repo.rs:667:8
+    |
+667 | pub fn get_import_sessions_by_date_range(
+    |        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+warning: function `get_distinct_session_industries` is never used
+   --> src\services\contact_storage\repositories\import_sessions_repo.rs:703:8
+    |
+703 | pub fn get_distinct_session_industries(conn: &Connection) -> SqlResult<Vec<String>> {
+    |        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+warning: method `get_by_id` is never used
+   --> src\services\employee_service.rs:127:12
+    |
+20  | impl EmployeeService {
+    | -------------------- method in this implementation
+...
+127 |     pub fn get_by_id(&self, id: i32) -> SqliteResult<Option<Employee>> {
+    |            ^^^^^^^^^
+
+warning: static `STORE` is never used
+  --> src\services\duplication_guard\mod.rs:37:8
+   |
+37 | static STORE: OnceLock<Mutex<DuplicationStore>> = OnceLock::new();
+   |        ^^^^^
+
+warning: fields `rules` and `records` are never read
+  --> src\services\duplication_guard\mod.rs:41:9
+   |
+40 | pub struct DuplicationStore {
+   |            ---------------- fields in this struct
+41 |     pub rules: Vec<DuplicationRule>,
+   |         ^^^^^
+42 |     pub records: Vec<ActionRecord>,
+   |         ^^^^^^^
+
+warning: associated items `global`, `check`, and `record` are never used
+   --> src\services\duplication_guard\mod.rs:46:12
+    |
+45  | impl DuplicationStore {
+    | --------------------- associated items in this implementation
+46  |     pub fn global() -> &'static Mutex<DuplicationStore> {
+    |            ^^^^^^
+...
+70  |     pub fn check(&self, req: &DuplicationCheckRequest) -> DuplicationCheckResult {
+    |            ^^^^^
+...
+118 |     pub fn record(&mut self, record: ActionRecord) {
+    |            ^^^^^^
+
+warning: function `humanize_hours` is never used
+   --> src\services\duplication_guard\mod.rs:126:4
+    |
+126 | fn humanize_hours(h: u64) -> String {
+    |    ^^^^^^^^^^^^^^
+
+warning: function `check_duplication_action_cmd` is never used
+   --> src\services\duplication_guard\mod.rs:135:8
+    |
+135 | pub fn check_duplication_action_cmd(req: DuplicationCheckRequest) -> DuplicationCheckResult {
+    |        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+warning: function `record_duplication_action_cmd` is never used
+   --> src\services\duplication_guard\mod.rs:141:8
+    |
+141 | pub fn record_duplication_action_cmd(record: ActionRecord) {
+    |        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+warning: associated function `new` is never used
+  --> src\services\execution\model\step.rs:19:12
+   |
+18 | impl ExecStepId {
+   | --------------- associated function in this implementation
+19 |     pub fn new<S: Into<String>>(s: S) -> Self { Self(s.into()) }
+   |            ^^^
+
+warning: associated function `new` is never used
+  --> src\services\execution\model\step.rs:48:12
+   |
+47 | impl ExecStep {
+   | ------------- associated function in this implementation
+48 |     pub fn new(meta: ExecStepMeta, kind: ExecStepKind, raw_params: serde_json::Value) -> Self {
+   |            ^^^
+
+warning: methods `get` and `insert` are never used
+  --> src\services\execution\model\context.rs:12:12
+   |
+11 | impl ExecVariables {
+   | ------------------ methods in this implementation
+12 |     pub fn get(&self, key: &str) -> Option<&serde_json::Value> { self.0.get(key) }
+   |            ^^^
+13 |     pub fn insert<V: Into<serde_json::Value>>(&mut self, key: impl Into<String>, val: V) {
+   |            ^^^^^^
+
+warning: field `device_id` is never read
+  --> src\services\execution\model\context.rs:85:9
+   |
+84 | pub struct ExecutionContext {
+   |            ---------------- field in this struct
+85 |     pub device_id: String,
+   |         ^^^^^^^^^
+   |
+   = note: `ExecutionContext` has derived impls for the traits `Clone` and `Debug`, but these are intentionally ignored during dead code analysis
+
+warning: field `screenshot_path` is never read
+ --> src\services\execution\ui_snapshot.rs:9:9
+  |
+7 | pub struct UiSnapshot {
+  |            ---------- field in this struct
+8 |     pub raw_xml: Option<String>,
+9 |     pub screenshot_path: Option<String>,
+  |         ^^^^^^^^^^^^^^^
+  |
+  = note: `UiSnapshot` has derived impls for the traits `Clone` and `Debug`, but these are intentionally ignored during dead code analysis
+
+warning: function `map_action_kind` is never used
+  --> src\services\execution\adapter.rs:10:8
+   |
+10 | pub fn map_action_kind(action: &SmartActionType) -> ExecStepKind {
+   |        ^^^^^^^^^^^^^^^
+
+warning: function `adapt_step` is never used
+  --> src\services\execution\adapter.rs:23:8
+   |
+23 | pub fn adapt_step(old: &SmartScriptStep, original_file: Option<&str>, original_line: Option<u32>) -> ExecStep {
+   |        ^^^^^^^^^^
+
+warning: struct `MatchingMeta` is never constructed
+  --> src\services\execution\adapter.rs:53:8
+   |
+53 | struct MatchingMeta {
+   |        ^^^^^^^^^^^^
+
+warning: function `extract_matching_meta` is never used
+  --> src\services\execution\adapter.rs:59:4
+   |
+59 | fn extract_matching_meta(params: &Value) -> Option<MatchingMeta> {
+   |    ^^^^^^^^^^^^^^^^^^^^^
+
+warning: function `adapt_steps` is never used
+  --> src\services\execution\adapter.rs:82:8
+   |
+82 | pub fn adapt_steps(old_steps: &[SmartScriptStep], original_file: Option<&str>) -> Vec<ExecStep> {
+   |        ^^^^^^^^^^^
+
+warning: struct `MatchResult` is never constructed
+  --> src\services\execution\matcher.rs:12:12
+   |
+12 | pub struct MatchResult {
+   |            ^^^^^^^^^^^
+   |
+   = note: `MatchResult` has derived impls for the traits `Clone` and `Debug`, but these are intentionally ignored during dead code analysis
+
+warning: associated items `new`, `match_step`, `match_absolute`, and `match_standard_like` are never used
+  --> src\services\execution\matcher.rs:22:12
+   |
+21 | impl MatcherService {
+   | ------------------- associated items in this implementation
+22 |     pub fn new() -> Self { Self }
+   |            ^^^
+23 |
+24 |     pub async fn match_step(&self, step: &ExecStep) -> Result<MatchResult> {
+   |                  ^^^^^^^^^^
+...
+39 |     async fn match_absolute(&self, step: &ExecStep) -> Result<MatchResult> {
+   |              ^^^^^^^^^^^^^^
+...
+44 |     async fn match_standard_like(&self, step: &ExecStep) -> Result<MatchResult> {
+   |              ^^^^^^^^^^^^^^^^^^^
+
+warning: fields `enable_parent_context`, `enable_child_context`, and `prioritize_semantic_fields` are never read
+  --> src\services\execution\matching\hierarchy_matcher.rs:11:9
+   |
+10 | pub struct HierarchyMatchConfig {
+   |            -------------------- fields in this struct
+11 |     pub enable_parent_context: bool,
+   |         ^^^^^^^^^^^^^^^^^^^^^
+12 |     pub enable_child_context: bool,
+   |         ^^^^^^^^^^^^^^^^^^^^
+...
+15 |     pub prioritize_semantic_fields: bool,
+   |         ^^^^^^^^^^^^^^^^^^^^^^^^^^
+   |
+   = note: `HierarchyMatchConfig` has derived impls for the traits `Clone` and `Debug`, but these are intentionally ignored during dead code analysis
+
+warning: field `raw_line` is never read
+  --> src\services\execution\matching\hierarchy_matcher.rs:35:9
+   |
+31 | pub struct XmlNode {
+   |            ------- field in this struct
+...
+35 |     pub raw_line: String,
+   |         ^^^^^^^^
+   |
+   = note: `XmlNode` has derived impls for the traits `Clone` and `Debug`, but these are intentionally ignored during dead code analysis
+
+warning: associated functions `check_hierarchy_text_contains` and `check_hierarchy_text_excludes` are never used
+   --> src\services\execution\matching\hierarchy_matcher.rs:450:12
+    |
+40  | impl HierarchyMatcher {
+    | --------------------- associated functions in this implementation
+...
+450 |     pub fn check_hierarchy_text_contains(
+    |            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+...
+466 |     pub fn check_hierarchy_text_excludes(
+    |            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+warning: fields `bounds` and `matched_element` are never read
+  --> src\services\execution\matching\strategies\strategy_processor.rs:34:9
+   |
+30 | pub struct StrategyResult {
+   |            -------------- fields in this struct
+...
+34 |     pub bounds: Option<String>,
+   |         ^^^^^^
+35 |     pub matched_element: Option<String>,
+   |         ^^^^^^^^^^^^^^^
+   |
+   = note: `StrategyResult` has derived impls for the traits `Clone` and `Debug`, but these are intentionally ignored during dead code analysis
+
+warning: variants `UnsupportedStrategy`, `XmlParsingFailed`, and `CoordinateCalculationFailed` are never constructed
+  --> src\services\execution\matching\strategies\strategy_processor.rs:42:5
+   |
+41 | pub enum ProcessingError {
+   |          --------------- variants in this enum
+42 |     UnsupportedStrategy(String),
+   |     ^^^^^^^^^^^^^^^^^^^
+...
+45 |     XmlParsingFailed(String),
+   |     ^^^^^^^^^^^^^^^^
+46 |     CoordinateCalculationFailed(String),
+   |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+   |
+   = note: `ProcessingError` has a derived impl for the trait `Debug`, but this is intentionally ignored during dead code analysis
+
+warning: method `priority` is never used
+  --> src\services\execution\matching\strategies\strategy_processor.rs:81:8
+   |
+65 | pub trait StrategyProcessor {
+   |           ----------------- method in this trait
+...
+81 |     fn priority(&self) -> u8 {
+   |        ^^^^^^^^
+
+warning: function `run_unified_match` is never used
+  --> src\services\execution\matching\unified.rs:33:14
+   |
+33 | pub async fn run_unified_match<T>(
+   |              ^^^^^^^^^^^^^^^^^
+
+warning: struct `XmlElement` is never constructed
+  --> src\services\execution\matching\xml_parser.rs:12:12
+   |
+12 | pub struct XmlElement {
+   |            ^^^^^^^^^^
+   |
+   = note: `XmlElement` has derived impls for the traits `Clone` and `Debug`, but these are intentionally ignored during dead code analysis
+
+warning: associated items `parse_bounds`, `get_center`, `matches_criteria`, `find_all_matching`, and `find_first_matching` are never used
+   --> src\services\execution\matching\xml_parser.rs:23:12
+    |
+20  | impl XmlElement {
+    | --------------- associated items in this implementation
+...
+23  |     pub fn parse_bounds(bounds_str: &str) -> Option<(i32, i32, i32, i32)> {
+    |            ^^^^^^^^^^^^
+...
+60  |     pub fn get_center(&self) -> Option<(i32, i32)> {
+    |            ^^^^^^^^^^
+...
+71  |     pub fn matches_criteria(&self, criteria: &HashMap<String, Value>) -> bool {
+    |            ^^^^^^^^^^^^^^^^
+...
+109 |     pub fn find_all_matching(&self, criteria: &HashMap<String, Value>) -> Vec<&XmlElement> {
+    |            ^^^^^^^^^^^^^^^^^
+...
+124 |     pub fn find_first_matching(&self, criteria: &HashMap<String, Value>) -> Option<&XmlElement> {
+    |            ^^^^^^^^^^^^^^^^^^^
+
+warning: struct `XmlUiParser` is never constructed
+   --> src\services\execution\matching\xml_parser.rs:140:12
+    |
+140 | pub struct XmlUiParser {
+    |            ^^^^^^^^^^^
+
+warning: associated items `new`, `parse`, `parse_element`, `find_all_elements`, `find_first_element`, and `filter_elements` are never used
+   --> src\services\execution\matching\xml_parser.rs:146:12
+    |
+144 | impl XmlUiParser {
+    | ---------------- associated items in this implementation
+145 |     /// 鍒涘缓鏂扮殑 XML 瑙ｆ瀽鍣?146 |     pub fn new() -> Self {
+    |            ^^^
+...
+151 |     pub fn parse(&mut self, xml_content: &str) -> Result<()> {
+    |            ^^^^^
+...
+169 |     fn parse_element(&self, content: &str) -> Result<XmlElement> {
+    |        ^^^^^^^^^^^^^
+...
+224 |     pub fn find_all_elements(&self, criteria: &HashMap<String, Value>) -> Vec<&XmlElement> {
+    |            ^^^^^^^^^^^^^^^^^
+...
+233 |     pub fn find_first_element(&self, criteria: &HashMap<String, Value>) -> Option<&XmlElement> {
+    |            ^^^^^^^^^^^^^^^^^^
+...
+242 |     pub fn filter_elements<'a>(
+    |            ^^^^^^^^^^^^^^^
+
+warning: methods `device_id` and `execution_environment` are never used
+  --> src\services\execution\ui_bridge.rs:24:12
+   |
+19 | impl UiBridge {
+   | ------------- methods in this implementation
+...
+24 |     pub fn device_id(&self) -> &str {
+   |            ^^^^^^^^^
+...
+28 |     pub fn execution_environment(&self) -> Arc<ExecutionEnvironment> {
+   |            ^^^^^^^^^^^^^^^^^^^^^
+
+warning: struct `LDPlayerVcfOpener` is never constructed
+  --> src\services\ldplayer_vcf_opener.rs:19:12
+   |
+19 | pub struct LDPlayerVcfOpener {
+   |            ^^^^^^^^^^^^^^^^^
+   |
+   = note: `LDPlayerVcfOpener` has a derived impl for the trait `Debug`, but this is intentionally ignored during dead code analysis
+
+warning: multiple associated items are never used
+   --> src\services\ldplayer_vcf_opener.rs:27:12
+    |
+26  | impl LDPlayerVcfOpener {
+    | ---------------------- associated items in this implementation
+27  |     pub fn new(device_id: String) -> Self {
+    |            ^^^
+...
+37  |     pub async fn open_vcf_file_complete(&self, vcf_file_path: &str) -> Result<VcfOpenResult> {
+    |                  ^^^^^^^^^^^^^^^^^^^^^^
+...
+173 |     async fn verify_file_exists(&self, file_path: &str) -> Result<()> {
+    |              ^^^^^^^^^^^^^^^^^^
+...
+189 |     async fn ensure_device_unlocked(&self) -> Result<()> {
+    |              ^^^^^^^^^^^^^^^^^^^^^^
+...
+221 |     async fn open_file_manager(&self) -> Result<()> {
+    |              ^^^^^^^^^^^^^^^^^
+...
+281 |     async fn navigate_to_downloads(&self) -> Result<()> {
+    |              ^^^^^^^^^^^^^^^^^^^^^
+...
+330 |     async fn find_and_click_vcf_file(&self) -> Result<()> {
+    |              ^^^^^^^^^^^^^^^^^^^^^^^
+...
+395 |     async fn handle_app_selection(&self) -> Result<()> {
+    |              ^^^^^^^^^^^^^^^^^^^^
+...
+439 |     async fn click_always_or_once(&self) -> Result<()> {
+    |              ^^^^^^^^^^^^^^^^^^^^
+...
+478 |     async fn confirm_import_contacts(&self) -> Result<()> {
+    |              ^^^^^^^^^^^^^^^^^^^^^^^
+...
+522 |     async fn wait_for_import_completion(&self) -> Result<()> {
+    |              ^^^^^^^^^^^^^^^^^^^^^^^^^^
+...
+551 |     async fn dump_ui_hierarchy(&self) -> Result<String> {
+    |              ^^^^^^^^^^^^^^^^^
+...
+559 |     fn find_vcf_file_position(&self, ui_content: &str) -> Option<(i32, i32)> {
+    |        ^^^^^^^^^^^^^^^^^^^^^^
+...
+570 |     fn find_text_position(&self, ui_content: &str, text: &str) -> Option<(i32, i32)> {
+    |        ^^^^^^^^^^^^^^^^^^
+...
+580 |     async fn execute_adb_command(&self, args: Vec<&str>) -> Result<String> {
+    |              ^^^^^^^^^^^^^^^^^^^
+
+warning: methods `get_supported_strategies` and `add_custom_strategy` are never used
+   --> src\services\multi_brand_vcf_importer.rs:444:12
+    |
+30  | impl MultiBrandVcfImporter {
+    | -------------------------- methods in this implementation
+...
+444 |     pub fn get_supported_strategies(&self) -> Vec<String> {
+    |            ^^^^^^^^^^^^^^^^^^^^^^^^
+...
+451 |     pub fn add_custom_strategy(&mut self, strategy: VcfImportStrategy) {
+    |            ^^^^^^^^^^^^^^^^^^^
+
+warning: function `try_click_by_coordinates` is never used
+   --> src\services\quick_ui_automation.rs:173:10
+    |
+173 | async fn try_click_by_coordinates(
+    |          ^^^^^^^^^^^^^^^^^^^^^^^^
+
+warning: struct `SessionEventPayload` is never constructed
+   --> src\services\scrcpy_manager.rs:103:8
+    |
+103 | struct SessionEventPayload<'a> {
+    |        ^^^^^^^^^^^^^^^^^^^
+
+warning: function `start_scrcpy` is never used
+   --> src\services\scrcpy_manager.rs:221:8
+    |
+221 | pub fn start_scrcpy(device_id: &str, opts: ScrcpyOptions) -> Result<String> {
+    |        ^^^^^^^^^^^^
+
+warning: function `stop_scrcpy` is never used
+   --> src\services\scrcpy_manager.rs:283:8
+    |
+283 | pub fn stop_scrcpy(device_id: &str) -> Result<()> {
+    |        ^^^^^^^^^^^
+
+warning: function `stop_scrcpy_session` is never used
+   --> src\services\scrcpy_manager.rs:299:8
+    |
+299 | pub fn stop_scrcpy_session(device_id: &str, session: &str) -> Result<()> {
+    |        ^^^^^^^^^^^^^^^^^^^
+
+warning: method `total_step_count` is never used
+   --> src\services\script_execution\control_flow\ast.rs:247:12
+    |
+192 | impl ControlFlowNode {
+    | -------------------- method in this implementation
+...
+247 |     pub fn total_step_count(&self) -> usize {
+    |            ^^^^^^^^^^^^^^^^
+
+warning: field `enable_optimization` is never read
+  --> src\services\script_execution\control_flow\parser.rs:32:9
+   |
+27 | pub struct ParserConfig {
+   |            ------------ field in this struct
+...
+32 |     pub enable_optimization: bool,
+   |         ^^^^^^^^^^^^^^^^^^^
+   |
+   = note: `ParserConfig` has derived impls for the traits `Clone` and `Debug`, but these are intentionally ignored during dead code analysis
+
+warning: variants `Conditional`, `TryCatch`, and `Parallel` are never constructed
+  --> src\services\script_execution\control_flow\parser.rs:80:5
+   |
+78 | enum ControlStructureType {
+   |      -------------------- variants in this enum
+79 |     Loop,
+80 |     Conditional,
+   |     ^^^^^^^^^^^
+81 |     TryCatch,
+   |     ^^^^^^^^
+82 |     Parallel,
+   |     ^^^^^^^^
+   |
+   = note: `ControlStructureType` has derived impls for the traits `Clone` and `Debug`, but these are intentionally ignored during dead code analysis
+
+warning: associated function `with_config` is never used
+  --> src\services\script_execution\control_flow\parser.rs:95:12
+   |
+85 | impl ControlFlowParser {
+   | ---------------------- associated function in this implementation
+...
+95 |     pub fn with_config(config: ParserConfig) -> Self {
+   |            ^^^^^^^^^^^
+
+warning: fields `config` and `stats` are never read
+  --> src\services\script_execution\control_flow\executor.rs:26:5
+   |
+21 | pub struct ControlFlowExecutor {
+   |            ------------------- fields in this struct
+...
+26 |     config: ExecutorConfig,
+   |     ^^^^^^
+...
+29 |     stats: ExecutorStats,
+   |     ^^^^^
+
+warning: fields `enable_parallel_execution`, `max_concurrency`, `execution_timeout_ms`, `error_handling`, and `optimization` are never read
+  --> src\services\script_execution\control_flow\executor.rs:36:9
+   |
+34 | pub struct ExecutorConfig {
+   |            -------------- fields in this struct
+35 |     /// 鏄惁鍚敤骞惰鎵ц
+36 |     pub enable_parallel_execution: bool,
+   |         ^^^^^^^^^^^^^^^^^^^^^^^^^
+...
+39 |     pub max_concurrency: usize,
+   |         ^^^^^^^^^^^^^^^
+...
+42 |     pub execution_timeout_ms: Option<u64>,
+   |         ^^^^^^^^^^^^^^^^^^^^
+...
+45 |     pub error_handling: ExecutionErrorHandling,
+   |         ^^^^^^^^^^^^^^
+...
+48 |     pub optimization: OptimizationConfig,
+   |         ^^^^^^^^^^^^
+   |
+   = note: `ExecutorConfig` has derived impls for the traits `Clone` and `Debug`, but these are intentionally ignored during dead code analysis
+
+warning: fields `continue_on_error`, `max_retries`, `retry_interval_ms`, and `enable_smart_recovery` are never read
+  --> src\services\script_execution\control_flow\executor.rs:55:9
+   |
+53 | pub struct ExecutionErrorHandling {
+   |            ---------------------- fields in this struct
+54 |     /// 鏄惁鍦ㄩ敊璇椂缁х画鎵ц
+55 |     pub continue_on_error: bool,
+   |         ^^^^^^^^^^^^^^^^^
+...
+58 |     pub max_retries: i32,
+   |         ^^^^^^^^^^^
+...
+61 |     pub retry_interval_ms: u64,
+   |         ^^^^^^^^^^^^^^^^^
+...
+64 |     pub enable_smart_recovery: bool,
+   |         ^^^^^^^^^^^^^^^^^^^^^
+   |
+   = note: `ExecutionErrorHandling` has derived impls for the traits `Clone` and `Debug`, but these are intentionally ignored during dead code analysis
+
+warning: fields `enable_step_merging`, `enable_caching`, `enable_preloading`, and `batch_size` are never read
+  --> src\services\script_execution\control_flow\executor.rs:71:9
+   |
+69 | pub struct OptimizationConfig {
+   |            ------------------ fields in this struct
+70 |     /// 鏄惁鍚敤姝ラ鍚堝苟
+71 |     pub enable_step_merging: bool,
+   |         ^^^^^^^^^^^^^^^^^^^
+...
+74 |     pub enable_caching: bool,
+   |         ^^^^^^^^^^^^^^
+...
+77 |     pub enable_preloading: bool,
+   |         ^^^^^^^^^^^^^^^^^
+...
+80 |     pub batch_size: usize,
+   |         ^^^^^^^^^^
+   |
+   = note: `OptimizationConfig` has derived impls for the traits `Clone` and `Debug`, but these are intentionally ignored during dead code analysis
+
+warning: fields `plans_executed`, `total_steps_executed`, `successful_steps`, `failed_steps`, `total_execution_time_ms`, and `avg_step_time_ms` are never read
+   --> src\services\script_execution\control_flow\executor.rs:87:9
+    |
+85  | pub struct ExecutorStats {
+    |            ------------- fields in this struct
+86  |     /// 鎵ц鐨勮鍒掓暟閲?87  |     pub plans_executed: i64,
+    |         ^^^^^^^^^^^^^^
+...
+90  |     pub total_steps_executed: i64,
+    |         ^^^^^^^^^^^^^^^^^^^^
+...
+93  |     pub successful_steps: i64,
+    |         ^^^^^^^^^^^^^^^^
+...
+96  |     pub failed_steps: i64,
+    |         ^^^^^^^^^^^^
+...
+99  |     pub total_execution_time_ms: u64,
+    |         ^^^^^^^^^^^^^^^^^^^^^^^
+...
+102 |     pub avg_step_time_ms: f64,
+    |         ^^^^^^^^^^^^^^^^
+    |
+    = note: `ExecutorStats` has derived impls for the traits `Clone` and `Debug`, but these are intentionally ignored during dead code analysis
+
+warning: fields `step_results` and `final_context` are never read
+   --> src\services\script_execution\control_flow\executor.rs:112:9
+    |
+107 | pub struct ExecutionResult {
+    |            --------------- fields in this struct
+...
+112 |     pub step_results: Vec<StepExecutionResult>,
+    |         ^^^^^^^^^^^^
+...
+121 |     pub final_context: ExecutionContext,
+    |         ^^^^^^^^^^^^^
+    |
+    = note: `ExecutionResult` has a derived impl for the trait `Debug`, but this is intentionally ignored during dead code analysis
+
+warning: fields `step`, `result`, `duration_ms`, and `context_snapshot` are never read
+   --> src\services\script_execution\control_flow\executor.rs:128:9
+    |
+126 | pub struct StepExecutionResult {
+    |            ------------------- fields in this struct
+127 |     /// 姝ラ淇℃伅
+128 |     pub step: SmartScriptStep,
+    |         ^^^^
+...
+131 |     pub result: Result<SingleStepTestResult, String>,
+    |         ^^^^^^
+...
+134 |     pub duration_ms: u64,
+    |         ^^^^^^^^^^^
+...
+137 |     pub context_snapshot: Option<String>,
+    |         ^^^^^^^^^^^^^^^^
+    |
+    = note: `StepExecutionResult` has a derived impl for the trait `Debug`, but this is intentionally ignored during dead code analysis
+
+warning: fields `start_time`, `end_time`, and `performance_metrics` are never read
+   --> src\services\script_execution\control_flow\executor.rs:144:9
+    |
+142 | pub struct ExecutionStatistics {
+    |            ------------------- fields in this struct
+143 |     /// 寮€濮嬫椂闂?144 |     pub start_time: i64,
+    |         ^^^^^^^^^^
+...
+147 |     pub end_time: i64,
+    |         ^^^^^^^^
+...
+156 |     pub performance_metrics: PerformanceMetrics,
+    |         ^^^^^^^^^^^^^^^^^^^
+    |
+    = note: `ExecutionStatistics` has derived impls for the traits `Clone` and `Debug`, but these are intentionally ignored during dead code analysis
+
+warning: field `retry_count` is never read
+   --> src\services\script_execution\control_flow\executor.rs:175:9
+    |
+161 | pub struct StepStatistics {
+    |            -------------- field in this struct
+...
+175 |     pub retry_count: i32,
+    |         ^^^^^^^^^^^
+    |
+    = note: `StepStatistics` has derived impls for the traits `Clone` and `Debug`, but these are intentionally ignored during dead code analysis
+
+warning: fields `min_step_time_ms`, `max_step_time_ms`, `avg_step_time_ms`, and `throughput_steps_per_sec` are never read
+   --> src\services\script_execution\control_flow\executor.rs:182:9
+    |
+180 | pub struct PerformanceMetrics {
+    |            ------------------ fields in this struct
+181 |     /// 鏈€蹇楠よ€楁椂锛堟绉掞級
+182 |     pub min_step_time_ms: u64,
+    |         ^^^^^^^^^^^^^^^^
+...
+185 |     pub max_step_time_ms: u64,
+    |         ^^^^^^^^^^^^^^^^
+...
+188 |     pub avg_step_time_ms: f64,
+    |         ^^^^^^^^^^^^^^^^
+...
+191 |     pub throughput_steps_per_sec: f64,
+    |         ^^^^^^^^^^^^^^^^^^^^^^^^
+    |
+    = note: `PerformanceMetrics` has derived impls for the traits `Clone` and `Debug`, but these are intentionally ignored during dead code analysis
+
+warning: fields `code`, `step_id`, `stack_trace`, and `timestamp` are never read
+   --> src\services\script_execution\control_flow\executor.rs:198:9
+    |
+196 | pub struct ExecutionError {
+    |            -------------- fields in this struct
+197 |     /// 閿欒浠ｇ爜
+198 |     pub code: String,
+    |         ^^^^
+...
+204 |     pub step_id: Option<String>,
+    |         ^^^^^^^
+...
+207 |     pub stack_trace: Option<String>,
+    |         ^^^^^^^^^^^
+...
+210 |     pub timestamp: i64,
+    |         ^^^^^^^^^
+    |
+    = note: `ExecutionError` has derived impls for the traits `Clone` and `Debug`, but these are intentionally ignored during dead code analysis
+
+warning: associated items `with_config`, `execute_plan`, `update_context_for_step`, `execute_single_step`, `get_stats`, and `reset_stats` are never used
+   --> src\services\script_execution\control_flow\executor.rs:231:12
+    |
+213 | impl ControlFlowExecutor {
+    | ------------------------ associated items in this implementation
+...
+231 |     pub fn with_config(config: ExecutorConfig) -> Self {
+    |            ^^^^^^^^^^^
+...
+252 |     pub async fn execute_plan(
+    |                  ^^^^^^^^^^^^
+...
+402 |     async fn update_context_for_step(
+    |              ^^^^^^^^^^^^^^^^^^^^^^^
+...
+430 |     async fn execute_single_step(
+    |              ^^^^^^^^^^^^^^^^^^^
+...
+440 |     pub fn get_stats(&self) -> &ExecutorStats {
+    |            ^^^^^^^^^
+...
+445 |     pub fn reset_stats(&mut self) {
+    |            ^^^^^^^^^^^
+
+warning: trait `StepExecutor` is never used
+   --> src\services\script_execution\control_flow\executor.rs:455:11
+    |
+455 | pub trait StepExecutor: Send + Sync {
+    |           ^^^^^^^^^^^^
+
+warning: methods `handler_type`, `can_handle`, `handle`, `validate`, `estimate_cost`, and `default_config` are never used
+  --> src\services\script_execution\control_flow\handlers\base.rs:18:8
+   |
+16 | pub trait ControlStructureHandler: Send + Sync {
+   |           ----------------------- methods in this trait
+17 |     /// 澶勭悊鍣ㄧ被鍨嬪悕绉?18 |     fn handler_type(&self) -> &'static str;
+   |        ^^^^^^^^^^^^
+...
+21 |     fn can_handle(&self, node: &ControlFlowNode) -> bool;
+   |        ^^^^^^^^^^
+...
+24 |     async fn handle(
+   |              ^^^^^^
+...
+32 |     fn validate(&self, node: &ControlFlowNode) -> Result<ValidationResult>;
+   |        ^^^^^^^^
+...
+35 |     fn estimate_cost(&self, node: &ControlFlowNode) -> CostEstimate;
+   |        ^^^^^^^^^^^^^
+...
+38 |     fn default_config(&self) -> HandlerConfig {
+   |        ^^^^^^^^^^^^^^
+
+warning: fields `global_variables` and `config` are never read
+  --> src\services\script_execution\control_flow\context.rs:18:5
+   |
+16 | pub struct ExecutionContext {
+   |            ---------------- fields in this struct
+17 |     /// 鍏ㄥ眬鍙橀噺瀛樺偍
+18 |     global_variables: HashMap<String, ContextVariable>,
+   |     ^^^^^^^^^^^^^^^^
+...
+27 |     config: ContextConfig,
+   |     ^^^^^^
+   |
+   = note: `ExecutionContext` has derived impls for the traits `Clone` and `Debug`, but these are intentionally ignored during dead code analysis
+
+warning: fields `max_variables`, `max_scope_depth`, `enable_variable_tracking`, and `variable_ttl_ms` are never read
+   --> src\services\script_execution\control_flow\context.rs:148:9
+    |
+146 | pub struct ContextConfig {
+    |            ------------- fields in this struct
+147 |     /// 鏈€澶у彉閲忔暟閲?148 |     pub max_variables: usize,
+    |         ^^^^^^^^^^^^^
+...
+151 |     pub max_scope_depth: usize,
+    |         ^^^^^^^^^^^^^^^
+...
+154 |     pub enable_variable_tracking: bool,
+    |         ^^^^^^^^^^^^^^^^^^^^^^^^
+...
+157 |     pub variable_ttl_ms: Option<u64>,
+    |         ^^^^^^^^^^^^^^^
+    |
+    = note: `ContextConfig` has derived impls for the traits `Clone` and `Debug`, but these are intentionally ignored during dead code analysis
+
+warning: multiple associated items are never used
+   --> src\services\script_execution\control_flow\context.rs:204:12
+    |
+176 | impl ExecutionContext {
+    | --------------------- associated items in this implementation
+...
+204 |     pub fn with_config(config: ContextConfig) -> Self {
+    |            ^^^^^^^^^^^
+...
+211 |     pub fn enter_scope(&mut self, scope_type: ScopeType) -> Result<String> {
+    |            ^^^^^^^^^^^
+...
+242 |     pub fn exit_scope(&mut self) -> Result<ExecutionScope> {
+    |            ^^^^^^^^^^
+...
+258 |     pub fn current_scope(&self) -> Option<&ExecutionScope> {
+    |            ^^^^^^^^^^^^^
+...
+263 |     pub fn current_scope_mut(&mut self) -> Option<&mut ExecutionScope> {
+    |            ^^^^^^^^^^^^^^^^^
+...
+273 |     pub fn set_variable(&mut self, name: String, value: serde_json::Value, source: VariableSource) -> Result<()> {
+    |            ^^^^^^^^^^^^
+...
+314 |     pub fn get_variable(&mut self, name: &str) -> Option<&ContextVariable> {
+    |            ^^^^^^^^^^^^
+...
+329 |     pub fn remove_variable(&mut self, name: &str) -> bool {
+    |            ^^^^^^^^^^^^^^^
+...
+348 |     pub fn cleanup_expired_variables(&mut self) {
+    |            ^^^^^^^^^^^^^^^^^^^^^^^^^
+...
+364 |     pub fn get_all_visible_variables(&self) -> HashMap<String, &ContextVariable> {
+    |            ^^^^^^^^^^^^^^^^^^^^^^^^^
+...
+383 |     pub fn get_stats(&self) -> &ExecutionStats {
+    |            ^^^^^^^^^
+...
+388 |     fn infer_variable_type(value: &serde_json::Value) -> VariableType {
+    |        ^^^^^^^^^^^^^^^^^^^
+
+warning: methods `enter_loop_scope` and `update_loop_iteration` are never used
+   --> src\services\script_execution\control_flow\context.rs:420:12
+    |
+418 | impl ExecutionContext {
+    | --------------------- methods in this implementation
+419 |     /// 杩涘叆寰幆浣滅敤鍩?420 |     pub fn enter_loop_scope(&mut self, loop_id: String, max_iterations: i32) -> Result<String> {
+    |            ^^^^^^^^^^^^^^^^
+...
+431 |     pub fn update_loop_iteration(&mut self, iteration: i32) -> Result<()> {
+    |            ^^^^^^^^^^^^^^^^^^^^^
+
+warning: field `executor` is never read
+  --> src\services\script_execution\control_flow\preprocessor.rs:27:5
+   |
+22 | pub struct ScriptPreprocessor {
+   |            ------------------ field in this struct
+...
+27 |     executor: ControlFlowExecutor,
+   |     ^^^^^^^^
+
+warning: fields `parser_config` and `executor_config` are never read
+  --> src\services\script_execution\control_flow\preprocessor.rs:37:9
+   |
+35 | pub struct PreprocessorConfig {
+   |            ------------------ fields in this struct
+36 |     /// 瑙ｆ瀽鍣ㄩ厤缃?37 |     pub parser_config: ParserConfig,
+   |         ^^^^^^^^^^^^^
+...
+40 |     pub executor_config: ExecutorConfig,
+   |         ^^^^^^^^^^^^^^^
+   |
+   = note: `PreprocessorConfig` has derived impls for the traits `Clone` and `Debug`, but these are intentionally ignored during dead code analysis
+
+warning: variants `None`, `Basic`, and `Aggressive` are never constructed
+  --> src\services\script_execution\control_flow\preprocessor.rs:53:5
+   |
+51 | pub enum OptimizationLevel {
+   |          ----------------- variants in this enum
+52 |     /// 鏃犱紭鍖?53 |     None,
+   |     ^^^^
+54 |     /// 鍩虹浼樺寲
+55 |     Basic,
+   |     ^^^^^
+...
+59 |     Aggressive,
+   |     ^^^^^^^^^^
+   |
+   = note: `OptimizationLevel` has derived impls for the traits `Clone` and `Debug`, but these are intentionally ignored during dead code analysis
+
+warning: fields `original_step_count`, `processed_step_count`, `control_flow_ast`, and `preprocessing_stats` are never read
+  --> src\services\script_execution\control_flow\preprocessor.rs:66:9
+   |
+64 | pub struct PreprocessingResult {
+   |            ------------------- fields in this struct
+65 |     /// 鍘熷姝ラ鏁伴噺
+66 |     pub original_step_count: usize,
+   |         ^^^^^^^^^^^^^^^^^^^
+...
+69 |     pub processed_step_count: usize,
+   |         ^^^^^^^^^^^^^^^^^^^^
+...
+72 |     pub control_flow_ast: ControlFlowNode,
+   |         ^^^^^^^^^^^^^^^^
+...
+78 |     pub preprocessing_stats: PreprocessingStats,
+   |         ^^^^^^^^^^^^^^^^^^^
+   |
+   = note: `PreprocessingResult` has derived impls for the traits `Clone` and `Debug`, but these are intentionally ignored during dead code analysis
+
+warning: fields `control_structures_found`, `parsing_time_ms`, `linearization_time_ms`, `total_preprocessing_time_ms`, and `optimizations_applied` are never read
+  --> src\services\script_execution\control_flow\preprocessor.rs:85:9
+   |
+83 | pub struct PreprocessingStats {
+   |            ------------------ fields in this struct
+84 |     /// 璇嗗埆鐨勬帶鍒剁粨鏋勬暟閲?85 |     pub control_structures_found: i32,
+   |         ^^^^^^^^^^^^^^^^^^^^^^^^
+...
+88 |     pub parsing_time_ms: u64,
+   |         ^^^^^^^^^^^^^^^
+...
+91 |     pub linearization_time_ms: u64,
+   |         ^^^^^^^^^^^^^^^^^^^^^
+...
+94 |     pub total_preprocessing_time_ms: u64,
+   |         ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+...
+97 |     pub optimizations_applied: i32,
+   |         ^^^^^^^^^^^^^^^^^^^^^
+   |
+   = note: `PreprocessingStats` has derived impls for the traits `Clone` and `Debug`, but these are intentionally ignored during dead code analysis
+
+warning: associated items `with_config`, `preprocess_and_execute`, `validate_script`, `analyze_complexity`, `validate_ast`, and `calculate_nesting_depth` are never used
+   --> src\services\script_execution\control_flow\preprocessor.rs:111:12
+    |
+100 | impl ScriptPreprocessor {
+    | ----------------------- associated items in this implementation
+...
+111 |     pub fn with_config(config: PreprocessorConfig) -> Self {
+    |            ^^^^^^^^^^^
+...
+178 |     pub async fn preprocess_and_execute(
+    |                  ^^^^^^^^^^^^^^^^^^^^^^
+...
+215 |     pub fn validate_script(&mut self, steps: Vec<SmartScriptStep>) -> Result<ValidationReport> {
+    |            ^^^^^^^^^^^^^^^
+...
+259 |     pub fn analyze_complexity(&mut self, steps: Vec<SmartScriptStep>) -> Result<ComplexityAnalysis> {
+    |            ^^^^^^^^^^^^^^^^^^
+...
+309 |     fn validate_ast(&self, _ast: &ControlFlowNode, _report: &mut ValidationReport) -> Result<()> {
+    |        ^^^^^^^^^^^^
+...
+315 |     fn calculate_nesting_depth(&self, ast: &ControlFlowNode) -> i32 {
+    |        ^^^^^^^^^^^^^^^^^^^^^^^
+
+warning: struct `ValidationReport` is never constructed
+   --> src\services\script_execution\control_flow\preprocessor.rs:322:12
+    |
+322 | pub struct ValidationReport {
+    |            ^^^^^^^^^^^^^^^^
+    |
+    = note: `ValidationReport` has derived impls for the traits `Clone` and `Debug`, but these are intentionally ignored during dead code analysis
+
+warning: struct `ValidationIssue` is never constructed
+   --> src\services\script_execution\control_flow\preprocessor.rs:331:12
+    |
+331 | pub struct ValidationIssue {
+    |            ^^^^^^^^^^^^^^^
+    |
+    = note: `ValidationIssue` has derived impls for the traits `Clone` and `Debug`, but these are intentionally ignored during dead code analysis
+
+warning: enum `IssueSeverity` is never used
+   --> src\services\script_execution\control_flow\preprocessor.rs:340:10
+    |
+340 | pub enum IssueSeverity {
+    |          ^^^^^^^^^^^^^
+    |
+    = note: `IssueSeverity` has derived impls for the traits `Clone` and `Debug`, but these are intentionally ignored during dead code analysis
+
+warning: struct `ComplexityAnalysis` is never constructed
+   --> src\services\script_execution\control_flow\preprocessor.rs:349:12
+    |
+349 | pub struct ComplexityAnalysis {
+    |            ^^^^^^^^^^^^^^^^^^
+    |
+    = note: `ComplexityAnalysis` has derived impls for the traits `Clone` and `Debug`, but these are intentionally ignored during dead code analysis
+
+warning: associated functions `high_performance` and `debug_mode` are never used
+   --> src\services\script_execution\control_flow\preprocessor.rs:380:12
+    |
+378 | impl ScriptPreprocessor {
+    | ----------------------- associated functions in this implementation
+379 |     /// 鍒涘缓楂樻€ц兘棰勫鐞嗗櫒閰嶇疆
+380 |     pub fn high_performance() -> Self {
+    |            ^^^^^^^^^^^^^^^^
+...
+413 |     pub fn debug_mode() -> Self {
+    |            ^^^^^^^^^^
+
+warning: field `validated_params` is never read
+   --> src\services\script_execution\swipe\enhanced_executor.rs:205:9
+    |
+203 | pub struct SwipeExecutionResult {
+    |            -------------------- field in this struct
+204 |     pub success: bool,
+205 |     pub validated_params: ValidatedSwipeParams,
+    |         ^^^^^^^^^^^^^^^^
+    |
+    = note: `SwipeExecutionResult` has a derived impl for the trait `Debug`, but this is intentionally ignored during dead code analysis
+
+warning: field `duration` is never read
+   --> src\services\script_execution\swipe\enhanced_executor.rs:217:9
+    |
+214 | struct SwipeInternalResult {
+    |        ------------------- field in this struct
+...
+217 |     pub duration: Duration,
+    |         ^^^^^^^^
+    |
+    = note: `SwipeInternalResult` has a derived impl for the trait `Debug`, but this is intentionally ignored during dead code analysis
+
+warning: field `timestamp` is never read
+   --> src\services\script_execution\swipe\diagnostics.rs:171:9
+    |
+167 | pub struct PreSwipeState {
+    |            ------------- field in this struct
+...
+171 |     pub timestamp: Instant,
+    |         ^^^^^^^^^
+    |
+    = note: `PreSwipeState` has derived impls for the traits `Clone` and `Debug`, but these are intentionally ignored during dead code analysis
+
+warning: field `timestamp` is never read
+   --> src\services\script_execution\swipe\diagnostics.rs:178:9
+    |
+176 | pub struct UISnapshot {
+    |            ---------- field in this struct
+177 |     pub hash: String,
+178 |     pub timestamp: Instant,
+    |         ^^^^^^^^^
+    |
+    = note: `UISnapshot` has derived impls for the traits `Clone` and `Debug`, but these are intentionally ignored during dead code analysis
+
+warning: variants `ScrollUp`, `ElementVisibilityChange`, and `Other` are never constructed
+   --> src\services\script_execution\swipe\diagnostics.rs:185:5
+    |
+183 | pub enum SwipeExpectedChange {
+    |          ------------------- variants in this enum
+184 |     ScrollDown,
+185 |     ScrollUp,
+    |     ^^^^^^^^
+186 |     PageTransition,
+187 |     ElementVisibilityChange,
+    |     ^^^^^^^^^^^^^^^^^^^^^^^
+188 |     Other(String),
+    |     ^^^^^
+    |
+    = note: `SwipeExpectedChange` has derived impls for the traits `Clone` and `Debug`, but these are intentionally ignored during dead code analysis
+
+warning: fields `expected_change_detected`, `pre_swipe_hash`, `post_swipe_hash`, and `validation_duration` are never read
+   --> src\services\script_execution\swipe\diagnostics.rs:195:9
+    |
+193 | pub struct SwipeValidationResult {
+    |            --------------------- fields in this struct
+194 |     pub ui_changed: bool,
+195 |     pub expected_change_detected: bool,
+    |         ^^^^^^^^^^^^^^^^^^^^^^^^
+196 |     pub pre_swipe_hash: String,
+    |         ^^^^^^^^^^^^^^
+197 |     pub post_swipe_hash: String,
+    |         ^^^^^^^^^^^^^^^
+198 |     pub validation_duration: Duration,
+    |         ^^^^^^^^^^^^^^^^^^^
+    |
+    = note: `SwipeValidationResult` has derived impls for the traits `Clone` and `Debug`, but these are intentionally ignored during dead code analysis
+
+warning: field `device_id` is never read
+ --> src\services\script_execution\swipe\validator.rs:8:9
+  |
+7 | pub struct SwipeValidator {
+  |            -------------- field in this struct
+8 |     pub device_id: String,
+  |         ^^^^^^^^^
+  |
+  = note: `SwipeValidator` has derived impls for the traits `Clone` and `Debug`, but these are intentionally ignored during dead code analysis
+
+warning: field `execution_history` is never read
+  --> src\services\script_manager.rs:80:5
+   |
+77 | pub struct ScriptManagerService {
+   |            -------------------- field in this struct
+...
+80 |     execution_history: Vec<ScriptExecutionRecord>,
+   |     ^^^^^^^^^^^^^^^^^
+
+warning: methods `create_template`, `record_execution`, `update_execution_result`, and `get_execution_history` are never used
+   --> src\services\script_manager.rs:184:12
+    |
+83  | impl ScriptManagerService {
+    | ------------------------- methods in this implementation
+...
+184 |     pub fn create_template(&self, name: &str, category: &str, steps: Vec<SmartScriptStep>) -> Result<SmartScript> {
+    |            ^^^^^^^^^^^^^^^
+...
+248 |     pub fn record_execution(&mut self, script_id: String, device_id: String) -> String {
+    |            ^^^^^^^^^^^^^^^^
+...
+266 |     pub fn update_execution_result(&mut self, record_id: &str, result: SmartExecutionResult) -> Result<()> {
+    |            ^^^^^^^^^^^^^^^^^^^^^^^
+...
+280 |     pub fn get_execution_history(&self) -> Vec<&ScriptExecutionRecord> {
+    |            ^^^^^^^^^^^^^^^^^^^^^
+
+warning: method `search` is never used
+  --> src\services\smart_app\cache.rs:54:12
+   |
+25 | impl AppCache {
+   | ------------- method in this implementation
+...
+54 |     pub fn search(&self, query: &str) -> Vec<AppInfo> {
+   |            ^^^^^^
+
+warning: methods `generate_friendly_name`, `extract_apk_path`, `extract_app_name`, and `extract_main_activity` are never used
+   --> src\services\smart_app_manager.rs:341:8
+    |
+47  | impl SmartAppManager {
+    | -------------------- methods in this implementation
+...
+341 |     fn generate_friendly_name(&self, package_name: &str) -> String {
+    |        ^^^^^^^^^^^^^^^^^^^^^^
+...
+376 |     fn extract_apk_path(&self, output: &str) -> Option<String> {
+    |        ^^^^^^^^^^^^^^^^
+...
+387 |     fn extract_app_name(&self, label_output: &str) -> Option<String> {
+    |        ^^^^^^^^^^^^^^^^
+...
+398 |     fn extract_main_activity(&self, _line: &str, package_name: &str) -> String {
+    |        ^^^^^^^^^^^^^^^^^^^^^
+
+warning: methods `check_app_foreground`, `launch_app_from_desktop`, and `find_app_icon_bounds` are never used
+  --> src\services\smart_element_finder_service.rs:56:18
+   |
+50 | impl SmartElementFinderService {
+   | ------------------------------ methods in this implementation
+...
+56 |     pub async fn check_app_foreground(&self, device_id: &str, app_name: &str) -> Result<bool, String> {
+   |                  ^^^^^^^^^^^^^^^^^^^^
+...
+74 |     pub async fn launch_app_from_desktop(&self, device_id: &str, app_name: &str) -> Result<(), String> {
+   |                  ^^^^^^^^^^^^^^^^^^^^^^^
+...
+97 |     fn find_app_icon_bounds(&self, ui_xml: &str, app_name: &str) -> Option<String> {
+   |        ^^^^^^^^^^^^^^^^^^^^
+
+warning: fields `error_handler` and `exec_env` are never read
+  --> src\services\smart_script_executor.rs:41:5
+   |
+38 | pub struct SmartScriptExecutor {
+   |            ------------------- fields in this struct
+...
+41 |     error_handler: ErrorHandler,
+   |     ^^^^^^^^^^^^^
+...
+44 |     exec_env: Arc<ExecutionEnvironment>,
+   |     ^^^^^^^^
+
+warning: method `ui_bridge` is never used
+  --> src\services\smart_script_executor.rs:64:19
+   |
+48 | impl SmartScriptExecutor {
+   | ------------------------ method in this implementation
+...
+64 |     pub(crate) fn ui_bridge(&self) -> &UiBridge {
+   |                   ^^^^^^^^^
+
+warning: methods `get_error_handling_statistics`, `reset_error_handling_statistics`, and `execute_adb_command` are never used
+   --> src\services\smart_script_executor.rs:225:12
+    |
+69  | impl SmartScriptExecutor {
+    | ------------------------ methods in this implementation
+...
+225 |     pub fn get_error_handling_statistics(&self) -> String {
+    |            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+...
+230 |     pub fn reset_error_handling_statistics(&mut self) {
+    |            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+...
+244 |     async fn execute_adb_command(&self, args: &[&str]) -> Result<std::process::Output> {
+    |              ^^^^^^^^^^^^^^^^^^^
+
+warning: function `find_ui_elements` is never used
+   --> src\services\ui_reader_service.rs:273:14
+    |
+273 | pub async fn find_ui_elements(
+    |              ^^^^^^^^^^^^^^^^
+
+warning: struct `UniversalUIFinder` is never constructed
+  --> src\services\universal_ui_finder\mod.rs:43:12
+   |
+43 | pub struct UniversalUIFinder {
+   |            ^^^^^^^^^^^^^^^^^
+
+warning: multiple associated items are never used
+   --> src\services\universal_ui_finder\mod.rs:53:12
+    |
+51  | impl UniversalUIFinder {
+    | ---------------------- associated items in this implementation
+52  |     /// 鍒涘缓鏂扮殑閫氱敤UI鏌ユ壘鍣ㄥ疄渚?53  |     pub fn new(adb_path: &str, device_id: Option<String>) -> Result<Self, Box<dyn std::error::Error>> {
+    |            ^^^
+...
+64  |     pub async fn find_and_click(&mut self, request: FindRequest) -> Result<ClickResult, FindError> {
+    |                  ^^^^^^^^^^^^^^
+...
+90  |     pub async fn quick_click(&mut self, app_name: &str, button_text: &str) 
+    |                  ^^^^^^^^^^^
+...
+101 |     pub async fn smart_click(&mut self, app_name: &str, button_text: &str, position_hint: &str) 
+    |                  ^^^^^^^^^^^
+...
+112 |     pub async fn direct_click(&mut self, button_text: &str, position_hint: Option<&str>) 
+    |                  ^^^^^^^^^^^^
+...
+129 |     pub async fn direct_click_with_actions(&mut self, button_text: &str, position_hint: Option<&str>, pre_actions: Vec<String>) 
+    |                  ^^^^^^^^^^^^^^^^^^^^^^^^^
+...
+146 |     pub async fn batch_click(&mut self, operations: Vec<BatchOperation>) 
+    |                  ^^^^^^^^^^^
+...
+173 |     pub fn get_supported_apps(&self) -> Vec<String> {
+    |            ^^^^^^^^^^^^^^^^^^
+...
+178 |     pub fn add_custom_app(&mut self, app_name: String, config: AppConfig) {
+    |            ^^^^^^^^^^^^^^
+...
+183 |     pub fn set_logging(&mut self, enabled: bool, detailed: bool) {
+    |            ^^^^^^^^^^^
+...
+189 |     pub async fn find_element_only(&mut self, request: FindRequest) -> Result<UniversalUIElement, FindError> {
+    |                  ^^^^^^^^^^^^^^^^^
+
+warning: struct `FindRequest` is never constructed
+   --> src\services\universal_ui_finder\mod.rs:201:12
+    |
+201 | pub struct FindRequest {
+    |            ^^^^^^^^^^^
+    |
+    = note: `FindRequest` has derived impls for the traits `Clone` and `Debug`, but these are intentionally ignored during dead code analysis
+
+warning: struct `ClickResult` is never constructed
+   --> src\services\universal_ui_finder\mod.rs:227:12
+    |
+227 | pub struct ClickResult {
+    |            ^^^^^^^^^^^
+    |
+    = note: `ClickResult` has a derived impl for the trait `Debug`, but this is intentionally ignored during dead code analysis
+
+warning: struct `BatchOperation` is never constructed
+   --> src\services\universal_ui_finder\mod.rs:239:12
+    |
+239 | pub struct BatchOperation {
+    |            ^^^^^^^^^^^^^^
+    |
+    = note: `BatchOperation` has derived impls for the traits `Clone` and `Debug`, but these are intentionally ignored during dead code analysis
+
+warning: variants `AppNotFound`, `AppNotOpened`, `ElementNotFound`, `UserSkipped`, and `Timeout` are never constructed
+   --> src\services\universal_ui_finder\mod.rs:249:5
+    |
+248 | pub enum FindError {
+    |          --------- variants in this enum
+249 |     AppNotFound(String),
+    |     ^^^^^^^^^^^
+250 |     AppNotOpened(String), 
+    |     ^^^^^^^^^^^^
+251 |     ElementNotFound(String),
+    |     ^^^^^^^^^^^^^^^
+252 |     UserSkipped(String),
+    |     ^^^^^^^^^^^
+253 |     ExecutionFailed(String),
+254 |     Timeout(String),
+    |     ^^^^^^^
+    |
+    = note: `FindError` has a derived impl for the trait `Debug`, but this is intentionally ignored during dead code analysis
+
+warning: struct `UIFinderCore` is never constructed
+ --> src\services\universal_ui_finder\core.rs:8:12
+  |
+8 | pub struct UIFinderCore {
+  |            ^^^^^^^^^^^^
+
+warning: multiple associated items are never used
+   --> src\services\universal_ui_finder\core.rs:16:12
+    |
+15  | impl UIFinderCore {
+    | ----------------- associated items in this implementation
+16  |     pub fn new(adb_path: &str, device_id: Option<String>) -> Result<Self, Box<dyn std::error::Error>> {
+    |            ^^^
+...
+34  |     pub async fn find_element_with_guidance(&self, request: &FindRequest, logger: &mut InteractiveLogger) 
+    |                  ^^^^^^^^^^^^^^^^^^^^^^^^^^
+...
+96  |     fn get_screen_size(&self) -> Result<(i32, i32), Box<dyn std::error::Error>> {
+    |        ^^^^^^^^^^^^^^^
+...
+119 |     fn get_ui_dump(&self) -> Result<String, FindError> {
+    |        ^^^^^^^^^^^
+...
+141 |     fn parse_all_ui_elements(&self, xml_content: &str) -> Result<Vec<UniversalUIElement>, FindError> {
+    |        ^^^^^^^^^^^^^^^^^^^^^
+...
+172 |     fn parse_bounds(&self, bounds_str: &str) -> Result<UniversalElementBounds, Box<dyn std::error::Error>> {
+    |        ^^^^^^^^^^^^
+...
+189 |     fn filter_candidates(&self, all_elements: &[UniversalUIElement], request: &FindRequest) -> Vec<UniversalUIElement> {
+    |        ^^^^^^^^^^^^^^^^^
+...
+202 |     fn is_potential_match(&self, element: &UniversalUIElement, request: &FindRequest) -> bool {
+    |        ^^^^^^^^^^^^^^^^^^
+...
+230 |     fn text_matches(&self, element_text: &str, target_text: &str) -> bool {
+    |        ^^^^^^^^^^^^
+...
+253 |     fn position_matches(&self, bounds: &UniversalElementBounds, position_hint: &str) -> bool {
+    |        ^^^^^^^^^^^^^^^^
+...
+275 |     fn size_reasonable(&self, bounds: &UniversalElementBounds) -> bool {
+    |        ^^^^^^^^^^^^^^^
+...
+285 |     fn select_best_match(&self, candidates: &[UniversalUIElement], request: &FindRequest) -> UniversalUIElement {
+    |        ^^^^^^^^^^^^^^^^^
+...
+301 |     fn calculate_confidence(&self, element: &UniversalUIElement, request: &FindRequest) -> f32 {
+    |        ^^^^^^^^^^^^^^^^^^^^
+...
+346 |     async fn execute_pre_action(&self, action: &str, logger: &mut InteractiveLogger) 
+    |              ^^^^^^^^^^^^^^^^^^
+...
+388 |     fn swipe(&self, x1: i32, y1: i32, x2: i32, y2: i32, duration: i32) -> Result<(), FindError> {
+    |        ^^^^^
+
+warning: struct `UniversalUIElement` is never constructed
+   --> src\services\universal_ui_finder\core.rs:415:12
+    |
+415 | pub struct UniversalUIElement {
+    |            ^^^^^^^^^^^^^^^^^^
+    |
+    = note: `UniversalUIElement` has derived impls for the traits `Clone` and `Debug`, but these are intentionally ignored during dead code analysis
+
+warning: struct `UniversalElementBounds` is never constructed
+   --> src\services\universal_ui_finder\core.rs:427:12
+    |
+427 | pub struct UniversalElementBounds {
+    |            ^^^^^^^^^^^^^^^^^^^^^^
+    |
+    = note: `UniversalElementBounds` has derived impls for the traits `Clone` and `Debug`, but these are intentionally ignored during dead code analysis
+
+warning: associated items `new`, `width`, `height`, and `center` are never used
+   --> src\services\universal_ui_finder\core.rs:435:12
+    |
+434 | impl UniversalElementBounds {
+    | --------------------------- associated items in this implementation
+435 |     pub fn new(left: i32, top: i32, right: i32, bottom: i32) -> Self {
+    |            ^^^
+...
+439 |     pub fn width(&self) -> i32 {
+    |            ^^^^^
+...
+443 |     pub fn height(&self) -> i32 {
+    |            ^^^^^^
+...
+447 |     pub fn center(&self) -> (i32, i32) {
+    |            ^^^^^^
+
+warning: methods `get_app_config`, `get_ui_template`, `create_find_request`, `infer_pre_actions`, `add_app_config`, and `get_supported_apps` are never used
+   --> src\services\universal_ui_finder\config.rs:27:12
+    |
+12  | impl AppConfigManager {
+    | --------------------- methods in this implementation
+...
+27  |     pub fn get_app_config(&self, app_name: &str) -> Option<&AppConfig> {
+    |            ^^^^^^^^^^^^^^
+...
+32  |     pub fn get_ui_template(&self, template_name: &str) -> Option<&UITemplate> {
+    |            ^^^^^^^^^^^^^^^
+...
+37  |     pub fn create_find_request(&self, app_name: &str, button_text: &str, position_hint: Option<&str>) 
+    |            ^^^^^^^^^^^^^^^^^^^
+...
+58  |     fn infer_pre_actions(&self, button_text: &str, position_hint: Option<&str>, app_config: &AppConfig) 
+    |        ^^^^^^^^^^^^^^^^^
+...
+224 |     pub fn add_app_config(&mut self, app_name: String, config: AppConfig) {
+    |            ^^^^^^^^^^^^^^
+...
+229 |     pub fn get_supported_apps(&self) -> Vec<String> {
+    |            ^^^^^^^^^^^^^^^^^^
+
+warning: struct `InteractiveLogger` is never constructed
+ --> src\services\universal_ui_finder\logger.rs:7:12
+  |
+7 | pub struct InteractiveLogger {
+  |            ^^^^^^^^^^^^^^^^^
+
+warning: multiple associated items are never used
+   --> src\services\universal_ui_finder\logger.rs:14:12
+    |
+13  | impl InteractiveLogger {
+    | ---------------------- associated items in this implementation
+14  |     pub fn new(detailed: bool) -> Self {
+    |            ^^^
+...
+23  |     pub fn start_session(&mut self, request: &crate::services::universal_ui_finder::FindRequest) {
+    |            ^^^^^^^^^^^^^
+...
+53  |     pub fn log_app_detection(&self, app_name: &str, step: AppDetectionStep) {
+    |            ^^^^^^^^^^^^^^^^^
+...
+87  |     pub fn log_element_search(&self, target: &str, step: ElementSearchStep) {
+    |            ^^^^^^^^^^^^^^^^^^
+...
+122 |     pub fn log_pre_action(&self, action: &str, step: PreActionStep) {
+    |            ^^^^^^^^^^^^^^
+...
+145 |     pub fn log_click_execution(&self, target: &str, step: ClickExecutionStep) {
+    |            ^^^^^^^^^^^^^^^^^^^
+...
+171 |     pub fn complete_session(&self, result: &crate::services::universal_ui_finder::ClickResult) {
+    |            ^^^^^^^^^^^^^^^^
+...
+202 |     fn prompt_user_action(&self, context: &str, suggestions: Vec<&str>) {
+    |        ^^^^^^^^^^^^^^^^^^
+...
+224 |     fn prompt_element_not_found(&self, target: &str) {
+    |        ^^^^^^^^^^^^^^^^^^^^^^^^
+...
+248 |     pub fn set_detailed(&mut self, detailed: bool) {
+    |            ^^^^^^^^^^^^
+...
+253 |     pub fn set_enabled(&mut self, enabled: bool) {
+    |            ^^^^^^^^^^^
+
+warning: enum `AppDetectionStep` is never used
+   --> src\services\universal_ui_finder\logger.rs:260:10
+    |
+260 | pub enum AppDetectionStep {
+    |          ^^^^^^^^^^^^^^^^
+    |
+    = note: `AppDetectionStep` has a derived impl for the trait `Debug`, but this is intentionally ignored during dead code analysis
+
+warning: enum `ElementSearchStep` is never used
+   --> src\services\universal_ui_finder\logger.rs:270:10
+    |
+270 | pub enum ElementSearchStep {
+    |          ^^^^^^^^^^^^^^^^^
+    |
+    = note: `ElementSearchStep` has a derived impl for the trait `Debug`, but this is intentionally ignored during dead code analysis
+
+warning: enum `PreActionStep` is never used
+   --> src\services\universal_ui_finder\logger.rs:282:10
+    |
+282 | pub enum PreActionStep {
+    |          ^^^^^^^^^^^^^
+    |
+    = note: `PreActionStep` has a derived impl for the trait `Debug`, but this is intentionally ignored during dead code analysis
+
+warning: enum `ClickExecutionStep` is never used
+   --> src\services\universal_ui_finder\logger.rs:292:10
+    |
+292 | pub enum ClickExecutionStep {
+    |          ^^^^^^^^^^^^^^^^^^
+    |
+    = note: `ClickExecutionStep` has a derived impl for the trait `Debug`, but this is intentionally ignored during dead code analysis
+
+warning: struct `AppDetector` is never constructed
+ --> src\services\universal_ui_finder\detector.rs:8:12
+  |
+8 | pub struct AppDetector {
+  |            ^^^^^^^^^^^
+
+warning: multiple associated items are never used
+   --> src\services\universal_ui_finder\detector.rs:14:12
+    |
+13  | impl AppDetector {
+    | ---------------- associated items in this implementation
+14  |     pub fn new(adb_path: &str, device_id: Option<String>) -> Result<Self, Box<dyn std::error::Error>> {
+    |            ^^^
+...
+22  |     pub async fn detect_and_prepare_app(&self, request: &FindRequest, logger: &mut InteractiveLogger) 
+    |                  ^^^^^^^^^^^^^^^^^^^^^^
+...
+68  |     fn get_package_name(&self, app_name: &str) -> Result<String, FindError> {
+    |        ^^^^^^^^^^^^^^^^
+...
+87  |     fn get_common_package_map(&self) -> std::collections::HashMap<&str, &str> {
+    |        ^^^^^^^^^^^^^^^^^^^^^^
+...
+124 |     fn is_app_installed(&self, package_name: &str) -> Result<bool, Box<dyn std::error::Error>> {
+    |        ^^^^^^^^^^^^^^^^
+...
+138 |     fn is_app_in_foreground(&self, package_name: &str) -> Result<bool, Box<dyn std::error::Error>> {
+    |        ^^^^^^^^^^^^^^^^^^^^
+...
+160 |     fn check_recent_tasks(&self, package_name: &str) -> Result<bool, Box<dyn std::error::Error>> {
+    |        ^^^^^^^^^^^^^^^^^^
+...
+174 |     fn try_launch_app(&self, package_name: &str) -> Result<bool, Box<dyn std::error::Error>> {
+    |        ^^^^^^^^^^^^^^
+...
+186 |     async fn handle_app_not_found(&self, app_name: &str, logger: &mut InteractiveLogger) 
+    |              ^^^^^^^^^^^^^^^^^^^^
+...
+214 |     async fn handle_app_not_running(&self, app_name: &str, package_name: &str, logger: &mut InteractiveLogger) 
+    |              ^^^^^^^^^^^^^^^^^^^^^^
+
+warning: struct `AppStatus` is never constructed
+   --> src\services\universal_ui_finder\detector.rs:255:12
+    |
+255 | pub struct AppStatus {
+    |            ^^^^^^^^^
+    |
+    = note: `AppStatus` has derived impls for the traits `Clone` and `Debug`, but these are intentionally ignored during dead code analysis
+
+warning: struct `ActionExecutor` is never constructed
+ --> src\services\universal_ui_finder\executor.rs:9:12
+  |
+9 | pub struct ActionExecutor {
+  |            ^^^^^^^^^^^^^^
+
+warning: multiple associated items are never used
+   --> src\services\universal_ui_finder\executor.rs:15:12
+    |
+14  | impl ActionExecutor {
+    | ------------------- associated items in this implementation
+15  |     pub fn new(adb_path: &str, device_id: Option<String>) -> Result<Self, Box<dyn std::error::Error>> {
+    |            ^^^
+...
+23  |     pub async fn execute_click(&self, element: &UniversalUIElement, request: &FindRequest, logger: &mut InteractiveLogger) 
+    |                  ^^^^^^^^^^^^^
+...
+79  |     fn perform_click(&self, x: i32, y: i32) -> Result<(), FindError> {
+    |        ^^^^^^^^^^^^^
+...
+93  |     async fn verify_click_result(&self, request: &FindRequest) -> Result<bool, String> {
+    |              ^^^^^^^^^^^^^^^^^^^
+...
+115 |     fn verify_by_button_type(&self, button_text: &str, xml_content: &str) -> bool {
+    |        ^^^^^^^^^^^^^^^^^^^^^
+...
+158 |     fn detect_ui_change(&self, xml_content: &str) -> bool {
+    |        ^^^^^^^^^^^^^^^^
+...
+172 |     fn get_current_ui_dump(&self) -> Result<String, Box<dyn std::error::Error>> {
+    |        ^^^^^^^^^^^^^^^^^^^
+...
+188 |     pub async fn execute_long_press(&self, element: &UniversalUIElement, duration_ms: u64) -> Result<bool, FindError> {
+    |                  ^^^^^^^^^^^^^^^^^^
+...
+207 |     pub async fn execute_double_click(&self, element: &UniversalUIElement) -> Result<bool, FindError> {
+    |                  ^^^^^^^^^^^^^^^^^^^^
+...
+220 |     pub async fn execute_swipe_in_element(&self, element: &UniversalUIElement, direction: SwipeDirection) 
+    |                  ^^^^^^^^^^^^^^^^^^^^^^^^
+
+warning: enum `SwipeDirection` is never used
+   --> src\services\universal_ui_finder\executor.rs:260:10
+    |
+260 | pub enum SwipeDirection {
+    |          ^^^^^^^^^^^^^^
+    |
+    = note: `SwipeDirection` has derived impls for the traits `Clone` and `Debug`, but these are intentionally ignored during dead code analysis
+
+warning: function `execute_universal_quick_click` is never used
+   --> src\services\universal_ui_service.rs:270:14
+    |
+270 | pub async fn execute_universal_quick_click(
+    |              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+warning: function `execute_universal_direct_click` is never used
+   --> src\services\universal_ui_service.rs:290:14
+    |
+290 | pub async fn execute_universal_direct_click(
+    |              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+warning: function `get_universal_navigation_presets` is never used
+   --> src\services\universal_ui_service.rs:319:14
+    |
+319 | pub async fn get_universal_navigation_presets() -> Result<serde_json::Value, String> {
+    |              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+warning: fields `device_id` and `adb_path` are never read
+  --> src\services\vcf_importer.rs:52:5
+   |
+51 | pub struct VcfImporter {
+   |            ----------- fields in this struct
+52 |     device_id: String,
+   |     ^^^^^^^^^
+53 |     adb_path: String,
+   |     ^^^^^^^^
+
+warning: multiple associated items are never used
+    --> src\services\vcf_importer.rs:57:12
+     |
+56   | impl VcfImporter {
+     | ---------------- associated items in this implementation
+57   |     pub fn new(device_id: String) -> Self {
+     |            ^^^
+...
+65   |     fn execute_adb_command(&self, args: &[&str]) -> Result<std::process::Output> {
+     |        ^^^^^^^^^^^^^^^^^^^
+...
+131  |     pub async fn import_vcf_contacts(&self, contacts_file_path: &str) -> Result<VcfImportResult> {
+     |                  ^^^^^^^^^^^^^^^^^^^
+...
+233  |     fn read_contacts_from_file(&self, file_path: &str) -> Result<Vec<Contact>> {
+     |        ^^^^^^^^^^^^^^^^^^^^^^^
+...
+270  |     async fn transfer_vcf_to_device(&self, local_path: &str, device_path: &str) -> Result<()> {
+     |              ^^^^^^^^^^^^^^^^^^^^^^
+...
+335  |     async fn verify_file_on_device(&self, device_path: &str) -> Result<bool> {
+     |              ^^^^^^^^^^^^^^^^^^^^^
+...
+358  |     async fn import_via_contacts_sidebar_menu(&self, _vcf_path: &str) -> Result<()> {
+     |              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+...
+399  |     async fn open_contacts_app(&self) -> Result<()> {
+     |              ^^^^^^^^^^^^^^^^^
+...
+421  |     async fn adb_tap(&self, x: i32, y: i32) -> Result<()> {
+     |              ^^^^^^^
+...
+441  |     async fn select_vcf_file_in_picker(&self, target_filename: &str) -> Result<()> {
+     |              ^^^^^^^^^^^^^^^^^^^^^^^^^
+...
+495  |     async fn navigate_to_download_folder(&self) -> Result<()> {
+     |              ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+...
+609  |     fn find_folder_coordinates(
+     |        ^^^^^^^^^^^^^^^^^^^^^^^
+...
+658  |     async fn select_vcf_file_in_picker_optimized(&self, target_filename: &str) -> Result<()> {
+     |              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+...
+716  |     async fn navigate_to_download_folder_optimized(&self) -> Result<()> {
+     |              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+...
+763  |     fn find_vcf_file_coordinates_optimized(
+     |        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+...
+804  |     fn parse_bounds_from_line(&self, line: &str) -> Option<(i32, i32)> {
+     |        ^^^^^^^^^^^^^^^^^^^^^^
+...
+833  |     async fn get_file_picker_ui_dump(&self) -> Result<String> {
+     |              ^^^^^^^^^^^^^^^^^^^^^^^
+...
+862  |     fn find_vcf_file_coordinates(&self, ui_content: &str, filename: &str) -> Option<(i32, i32)> {
+     |        ^^^^^^^^^^^^^^^^^^^^^^^^^
+...
+929  |     async fn handle_permission_dialog(&self) -> Result<()> {
+     |              ^^^^^^^^^^^^^^^^^^^^^^^^
+...
+965  |     async fn get_current_ui_dump(&self) -> Result<String> {
+     |              ^^^^^^^^^^^^^^^^^^^
+...
+994  |     fn has_permission_dialog(&self, ui_content: &str) -> bool {
+     |        ^^^^^^^^^^^^^^^^^^^^^
+...
+1026 |     pub async fn test_permission_dialog_detection(&self) -> Result<String> {
+     |                  ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+...
+1049 |     async fn handle_app_chooser_dialog(&self) -> Result<()> {
+     |              ^^^^^^^^^^^^^^^^^^^^^^^^^
+...
+1094 |     fn has_app_chooser_dialog(&self, ui_content: &str) -> bool {
+     |        ^^^^^^^^^^^^^^^^^^^^^^
+...
+1124 |     fn find_contacts_app_in_chooser(&self, ui_content: &str) -> Option<(i32, i32)> {
+     |        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+...
+1155 |     fn find_first_app_icon_in_chooser(&self, ui_content: &str) -> Option<(i32, i32)> {
+     |        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+...
+1183 |     fn find_always_button(&self, ui_content: &str) -> Option<(i32, i32)> {
+     |        ^^^^^^^^^^^^^^^^^^
+...
+1206 |     fn parse_bounds_to_center(&self, bounds_str: &str) -> Option<(i32, i32)> {
+     |        ^^^^^^^^^^^^^^^^^^^^^^
+...
+1231 |     async fn handle_app_chooser_fallback(&self) -> Result<()> {
+     |              ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+...
+1267 |     pub async fn verify_vcf_import(
+     |                  ^^^^^^^^^^^^^^^^^
+...
+1308 |     pub async fn verify_import_success_optimized(&self) -> Result<bool> {
+     |                  ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+...
+1369 |     async fn navigate_to_contacts_home(&self) -> Result<()> {
+     |              ^^^^^^^^^^^^^^^^^^^^^^^^^
+...
+1397 |     async fn get_contacts_ui_dump(&self) -> Result<String> {
+     |              ^^^^^^^^^^^^^^^^^^^^
+...
+1426 |     fn extract_contact_names_from_ui(&self, ui_content: &str) -> Vec<String> {
+     |        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+...
+1449 |     pub async fn import_vcf_via_intent(&self, vcf_device_path: &str) -> Result<()> {
+     |                  ^^^^^^^^^^^^^^^^^^^^^
+...
+1470 |     async fn open_vcf_with_contacts_intent(&self, vcf_path: &str) -> Result<()> {
+     |              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+...
+1513 |     async fn set_default_app_for_vcf(&self) -> Result<()> {
+     |              ^^^^^^^^^^^^^^^^^^^^^^^
+...
+1547 |     async fn open_vcf_with_system_intent(&self, vcf_path: &str) -> Result<()> {
+     |              ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+...
+1581 |     pub async fn import_vcf_contacts_with_intent_fallback(&self, contacts_file_path: &str) -> Result<VcfImportResult> {
+     |                  ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+warning: struct `VcfImporterAsync` is never constructed
+  --> src\services\vcf_importer_async.rs:34:12
+   |
+34 | pub struct VcfImporterAsync {
+   |            ^^^^^^^^^^^^^^^^
+   |
+   = note: `VcfImporterAsync` has a derived impl for the trait `Debug`, but this is intentionally ignored during dead code analysis
+
+warning: multiple associated items are never used
+   --> src\services\vcf_importer_async.rs:42:12
+    |
+41  | impl VcfImporterAsync {
+    | --------------------- associated items in this implementation
+42  |     pub fn new(device_id: String) -> Self {
+    |            ^^^
+...
+52  |     pub async fn import_vcf_contacts_simple(
+    |                  ^^^^^^^^^^^^^^^^^^^^^^^^^^
+...
+196 |     async fn generate_vcf_file(&self, contacts: Vec<Contact>, output_path: &str) -> Result<String> {
+    |              ^^^^^^^^^^^^^^^^^
+...
+262 |     async fn transfer_vcf_to_device_async(
+    |              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+...
+292 |     async fn verify_file_on_device_async(&self, device_path: &str) -> Result<bool> {
+    |              ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+...
+310 |     async fn open_vcf_with_intent(&self, vcf_path: &str) -> Result<()> {
+    |              ^^^^^^^^^^^^^^^^^^^^
+...
+331 |     async fn execute_adb_command_async(&self, args: Vec<&str>) -> Result<String> {
+    |              ^^^^^^^^^^^^^^^^^^^^^^^^^
+...
+393 |     async fn run_command_with_output(&self, args: &[&str]) -> Result<String> {
+    |              ^^^^^^^^^^^^^^^^^^^^^^^
+...
+421 |     fn read_contacts_from_file(&self, file_path: &str) -> Result<Vec<Contact>> {
+    |        ^^^^^^^^^^^^^^^^^^^^^^^
+...
+458 |     fn format_chinese_phone(&self, phone: &str) -> String {
+    |        ^^^^^^^^^^^^^^^^^^^^
+
+warning: struct `VcfImporterOptimized` is never constructed
+  --> src\services\vcf_importer_optimized.rs:13:12
+   |
+13 | pub struct VcfImporterOptimized {
+   |            ^^^^^^^^^^^^^^^^^^^^
+
+warning: multiple associated items are never used
+   --> src\services\vcf_importer_optimized.rs:19:12
+    |
+18  | impl VcfImporterOptimized {
+    | ------------------------- associated items in this implementation
+19  |     pub fn new(device_id: String) -> Self {
+    |            ^^^
+...
+27  |     fn execute_adb_command(&self, args: &[&str]) -> Result<std::process::Output> {
+    |        ^^^^^^^^^^^^^^^^^^^
+...
+40  |     async fn check_device_connection(&self) -> Result<bool> {
+    |              ^^^^^^^^^^^^^^^^^^^^^^^
+...
+53  |     async fn adb_tap(&self, x: i32, y: i32, description: &str) -> Result<()> {
+    |              ^^^^^^^
+...
+77  |     async fn get_ui_dump(&self, filename: &str) -> Result<String> {
+    |              ^^^^^^^^^^^
+...
+105 |     async fn transfer_vcf_file(&self, local_path: &str) -> Result<bool> {
+    |              ^^^^^^^^^^^^^^^^^
+...
+151 |     async fn navigate_to_download_and_select_vcf(&self) -> Result<bool> {
+    |              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+...
+186 |     async fn select_vcf_file_from_ui(&self, ui_content: &str) -> Result<bool> {
+    |              ^^^^^^^^^^^^^^^^^^^^^^^
+...
+204 |     fn find_vcf_file_coordinates_optimized(&self, ui_content: &str) -> Option<(i32, i32)> {
+    |        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+...
+235 |     fn parse_bounds_from_line(&self, line: &str) -> Option<(i32, i32)> {
+    |        ^^^^^^^^^^^^^^^^^^^^^^
+...
+263 |     pub async fn run_complete_vcf_import(
+    |                  ^^^^^^^^^^^^^^^^^^^^^^^
+...
+422 |     async fn verify_import_success(&self) -> Result<bool> {
+    |              ^^^^^^^^^^^^^^^^^^^^^
+...
+496 |     fn extract_contact_names_from_ui(&self, ui_content: &str) -> Vec<String> {
+    |        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+warning: function `ensure_app_running` is never used
+  --> src\commands\app_lifecycle_commands.rs:53:14
+   |
+53 | pub async fn ensure_app_running(
+   |              ^^^^^^^^^^^^^^^^^^
+
+warning: function `detect_app_state` is never used
+  --> src\commands\app_lifecycle_commands.rs:89:14
+   |
+89 | pub async fn detect_app_state(
+   |              ^^^^^^^^^^^^^^^^
+
+warning: field `rotation` is never read
+ --> src\application\device_metrics.rs:8:6
+  |
+4 | pub struct DeviceMetrics {
+  |            ------------- field in this struct
+...
+8 |     pub rotation: Option<u8>,
+  |         ^^^^^^^^
+  |
+  = note: `DeviceMetrics` has derived impls for the traits `Clone` and `Debug`, but these are intentionally ignored during dead code analysis
+
+warning: associated function `new` is never used
+  --> src\application\device_metrics.rs:30:9
+   |
+29 | impl StubDeviceMetricsProvider {
+   | ------------------------------ associated function in this implementation
+30 |     pub fn new() -> Self { Self { cache: HashMap::new(), default_metrics: DeviceMetrics::new(1080, 1920) } }
+   |            ^^^
+
+warning: associated function `new` is never used
+  --> src\domain\coords.rs:18:12
+   |
+17 | impl<T> Point<T> {
+   | ---------------- associated function in this implementation
+18 |     pub fn new(x: T, y: T) -> Self { Self { x, y } }
+   |            ^^^
+
+warning: associated items `new` and `with_policy` are never used
+  --> src\infra\adb\safe_input_injector.rs:14:12
+   |
+13 | impl<I: InputInjector + Send + Sync> SafeInputInjector<I> {
+   | --------------------------------------------------------- associated items in this implementation
+14 |     pub fn new(inner: I) -> Self {
+   |            ^^^
+...
+34 |     pub fn with_policy(mut self, retries: usize, delay_ms: u64) -> Self {
+   |            ^^^^^^^^^^^
+
+warning: function `keyevent_symbolic_injector_first` is never used
+ --> src\infra\adb\keyevent_helper.rs:8:14
+  |
+8 | pub async fn keyevent_symbolic_injector_first(adb_path: &str, serial: &str, symbolic: &str) -> Result<()> {
+  |              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+warning: function `keyevent_code_injector_first` is never used
+  --> src\infra\adb\keyevent_helper.rs:31:14
+   |
+31 | pub async fn keyevent_code_injector_first(adb_path: &str, serial: &str, code: i32) -> Result<()> {
+   |              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+warning: function `swipe_injector_first` is never used
+  --> src\infra\adb\input_helper.rs:37:14
+   |
+37 | pub async fn swipe_injector_first(adb_path: &str, serial: &str, x1: i32, y1: i32, x2: i32, y2: i32, duration_ms: u32) -> Result<()> {
+   |              ^^^^^^^^^^^^^^^^^^^^
+
+warning: function `swipe_safe_injector_first` is never used
+   --> src\infra\adb\input_helper.rs:108:14
+    |
+108 | pub async fn swipe_safe_injector_first(adb_path: &str, serial: &str, x1: i32, y1: i32, x2: i32, y2: i32, duration_ms: u32) -> Result<()> {
+    |              ^^^^^^^^^^^^^^^^^^^^^^^^^
+
+warning: associated function `cleanup_old_screenshots` is never used
+   --> src\screenshot_service.rs:149:18
+    |
+18  | impl ScreenshotService {
+    | ---------------------- associated function in this implementation
+...
+149 |     pub async fn cleanup_old_screenshots(app_handle: &tauri::AppHandle, keep_count: usize) -> Result<(), String> {
+    |                  ^^^^^^^^^^^^^^^^^^^^^^^
+
+warning: `employee-gui` (bin "employee-gui") generated 343 warnings (run `cargo fix --bin "employee-gui"` to apply 64 suggestions)
+    Finished `dev` profile [unoptimized + debuginfo] target(s) in 6.04s

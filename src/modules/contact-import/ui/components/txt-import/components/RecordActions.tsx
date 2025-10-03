@@ -8,14 +8,18 @@ interface RecordActionsProps {
   record: TxtImportRecordDto;
   onDelete: (record: TxtImportRecordDto) => void;
   onArchive: (record: TxtImportRecordDto) => void;
+  onViewError?: (record: TxtImportRecordDto) => void;
 }
 
-export const RecordActions: React.FC<RecordActionsProps> = ({ record, onDelete, onArchive }) => {
+export const RecordActions: React.FC<RecordActionsProps> = ({ record, onDelete, onArchive, onViewError }) => {
   return (
     <Space size="small">
       {record.error_message && (
         <Tooltip title={record.error_message}>
-          <Button size="small" icon={<EyeOutlined />} />
+          <Button size="small" icon={<EyeOutlined />} onClick={(e) => {
+            e.stopPropagation();
+            onViewError?.(record);
+          }} />
         </Tooltip>
       )}
       <ConfirmPopover

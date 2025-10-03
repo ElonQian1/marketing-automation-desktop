@@ -2,9 +2,8 @@ import React from 'react';
 import { Modal, Space, Button, Alert, Typography } from 'antd';
 import { FileTextOutlined, ReloadOutlined, InboxOutlined } from '@ant-design/icons';
 import { TxtImportRecordDto } from '../../services/txtImportRecordService';
-import { useTxtImportRecords } from './hooks/useTxtImportRecords.tsx';
-import { useTxtImportActions } from './hooks/useTxtImportActions.tsx';
-import { RecordsTable } from './components';
+import { useTxtImportRecords, useTxtImportActions } from './hooks';
+import { RecordsTable, ErrorDetailModal } from './components';
 
 const { Text } = Typography;
 
@@ -19,6 +18,8 @@ export const TxtImportRecordsManager: React.FC<TxtImportRecordsManagerProps> = (
   onClose,
   onDataRefresh,
 }) => {
+  const [errorModalOpen, setErrorModalOpen] = React.useState(false);
+  const [errorRecord, setErrorRecord] = React.useState<TxtImportRecordDto | null>(null);
   const {
     records,
     total,
@@ -29,6 +30,7 @@ export const TxtImportRecordsManager: React.FC<TxtImportRecordsManagerProps> = (
     handleTableChange,
     loadRecords,
     bulkDeleting,
+    setBulkDeleting,
   } = useTxtImportRecords(visible);
 
   const { handleDeleteRecord, handleBulkDelete } = useTxtImportActions({
@@ -37,6 +39,7 @@ export const TxtImportRecordsManager: React.FC<TxtImportRecordsManagerProps> = (
     setSelectedRowKeys,
     loadRecords,
     onDataRefresh,
+    setBulkDeleting,
   });
 
   return (
@@ -74,31 +77,31 @@ export const TxtImportRecordsManager: React.FC<TxtImportRecordsManagerProps> = (
             </Text>
           </Space>
 
-          {selectedRowKeys.length > 0 && (
-            <Space>
-              <Button size="small" onClick={() => setSelectedRowKeys([])}>
-                取消选择
-              </Button>
-              <Button
-                type="primary"
-                size="small"
-                danger
-                loading={bulkDeleting}
-                onClick={() => handleBulkDelete(false)}
-              >
-                批量删除
-              </Button>
-              <Button
-                type="primary"
-                size="small"
-                loading={bulkDeleting}
-                onClick={() => handleBulkDelete(true)}
-                icon={<InboxOutlined />}
-              >
-                批量归档
-              </Button>
-            </Space>
-          )}
+          <Space>
+            <Button size="small" onClick={() => setSelectedRowKeys([])} disabled={selectedRowKeys.length === 0}>
+              取消选择
+            </Button>
+            <Button
+              type="primary"
+              size="small"
+              danger
+              loading={bulkDeleting}
+              disabled={selectedRowKeys.length === 0}
+              onClick={() => handleBulkDelete(false)}
+            >
+              批量删除
+            </Button>
+            <Button
+              type="primary"
+              size="small"
+              loading={bulkDeleting}
+              disabled={selectedRowKeys.length === 0}
+              onClick={() => handleBulkDelete(true)}
+              icon={<InboxOutlined />}
+            >
+              批量归档
+            </Button>
+          </Space>
         </div>
 
         {/* 说明信息 */}
@@ -128,6 +131,16 @@ export const TxtImportRecordsManager: React.FC<TxtImportRecordsManagerProps> = (
           onChange={handleTableChange}
           onDelete={(record: TxtImportRecordDto) => handleDeleteRecord(record, false)}
           onArchive={(record: TxtImportRecordDto) => handleDeleteRecord(record, true)}
+          onViewError={(record: TxtImportRecordDto) => {
+            setErrorRecord(record);
+            setErrorModalOpen(true);
+          }}
+        />
+
+        <ErrorDetailModal
+          open={errorModalOpen}
+          record={errorRecord}
+          onClose={() => setErrorModalOpen(false)}
         />
       </Space>
     </Modal>

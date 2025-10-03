@@ -7,13 +7,22 @@ interface PaginationState {
 }
 
 export function useTxtImportRecords(visible: boolean) {
+  const persistedPageSize = (() => {
+    try {
+      const v = localStorage.getItem('txtImport.pageSize');
+      const n = v ? parseInt(v, 10) : NaN;
+      return Number.isFinite(n) && n > 0 ? n : 10;
+    } catch {
+      return 10;
+    }
+  })();
   const [records, setRecords] = useState<TxtImportRecordDto[]>([]);
   const [loading, setLoading] = useState(false);
   const [total, setTotal] = useState(0);
   const [selectedRowKeys, setSelectedRowKeys] = useState<React.Key[]>([]);
   const [bulkDeleting, setBulkDeleting] = useState(false);
 
-  const [pagination, setPagination] = useState<PaginationState>({ current: 1, pageSize: 10 });
+  const [pagination, setPagination] = useState<PaginationState>({ current: 1, pageSize: persistedPageSize });
 
   const loadRecords = useCallback(async () => {
     try {
@@ -30,6 +39,9 @@ export function useTxtImportRecords(visible: boolean) {
 
   const handleTableChange = useCallback((newPagination: any) => {
     setPagination({ current: newPagination.current, pageSize: newPagination.pageSize });
+    try {
+      localStorage.setItem('txtImport.pageSize', String(newPagination.pageSize));
+    } catch {}
   }, []);
 
   useEffect(() => {
