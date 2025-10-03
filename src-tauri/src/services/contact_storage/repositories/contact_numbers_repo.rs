@@ -91,7 +91,7 @@ pub fn list_numbers_with_filters(
     
     // 查询数据
     let data_sql = format!(
-        "SELECT id, phone, name, source_file, created_at, industry, used, used_at, used_batch, status, imported_device_id 
+        "SELECT id, phone, name, source_file, created_at, industry, status, assigned_at, assigned_batch_id, imported_session_id, imported_device_id 
          FROM contact_numbers{} ORDER BY id DESC LIMIT ? OFFSET ?",
         where_clause
     );
@@ -109,10 +109,10 @@ pub fn list_numbers_with_filters(
             source_file: row.get(3)?,
             created_at: row.get(4)?,
             industry: row.get(5)?,
-            used: row.get(6)?,
-            used_at: row.get(7)?,
-            used_batch: row.get(8)?,
-            status: row.get(9)?,
+            status: row.get(6)?,
+            assigned_at: row.get(7)?,
+            assigned_batch_id: row.get(8)?,
+            imported_session_id: row.get(9)?,
             imported_device_id: row.get(10)?,
         })
     })?;
@@ -136,7 +136,7 @@ pub fn get_number_by_id(
     id: i64,
 ) -> SqlResult<Option<ContactNumberDto>> {
     let result = conn.query_row(
-        "SELECT id, phone, name, source_file, created_at, industry, used, used_at, used_batch, status, imported_device_id 
+        "SELECT id, phone, name, source_file, created_at, industry, status, assigned_at, assigned_batch_id, imported_session_id, imported_device_id 
          FROM contact_numbers WHERE id = ?1",
         params![id],
         |row| {
@@ -147,10 +147,10 @@ pub fn get_number_by_id(
                 source_file: row.get(3)?,
                 created_at: row.get(4)?,
                 industry: row.get(5)?,
-                used: row.get(6)?,
-                used_at: row.get(7)?,
-                used_batch: row.get(8)?,
-                status: row.get(9)?,
+                status: row.get(6)?,
+                assigned_at: row.get(7)?,
+                assigned_batch_id: row.get(8)?,
+                imported_session_id: row.get(9)?,
                 imported_device_id: row.get(10)?,
             })
         }
@@ -170,7 +170,7 @@ pub fn fetch_numbers_by_id_range(
     end_id: i64,
 ) -> SqlResult<Vec<ContactNumberDto>> {
     let mut stmt = conn.prepare(
-        "SELECT id, phone, name, source_file, created_at, industry, used, used_at, used_batch, status, imported_device_id 
+        "SELECT id, phone, name, source_file, created_at, industry, status, assigned_at, assigned_batch_id, imported_session_id, imported_device_id 
          FROM contact_numbers WHERE id >= ?1 AND id <= ?2 ORDER BY id"
     )?;
     
@@ -182,10 +182,10 @@ pub fn fetch_numbers_by_id_range(
             source_file: row.get(3)?,
             created_at: row.get(4)?,
             industry: row.get(5)?,
-            used: row.get(6)?,
-            used_at: row.get(7)?,
-            used_batch: row.get(8)?,
-            status: row.get(9)?,
+            status: row.get(6)?,
+            assigned_at: row.get(7)?,
+            assigned_batch_id: row.get(8)?,
+            imported_session_id: row.get(9)?,
             imported_device_id: row.get(10)?,
         })
     })?;
@@ -210,32 +210,21 @@ pub fn get_contact_number_stats(
         |row| row.get(0),
     )?;
     
-    let not_imported: i64 = conn.query_row(
-        "SELECT COUNT(*) FROM contact_numbers WHERE status IS NULL OR status = 'not_imported'",
-        [],
-        |row| row.get(0),
-    )?;
-    
-    let used: i64 = conn.query_row(
-        "SELECT COUNT(*) FROM contact_numbers WHERE used = 1",
-        [],
-        |row| row.get(0),
-    )?;
-    
-    let unused: i64 = conn.query_row(
-        "SELECT COUNT(*) FROM contact_numbers WHERE used = 0 OR used IS NULL",
-        [],
-        |row| row.get(0),
-    )?;
-    
-    let vcf_generated: i64 = conn.query_row(
-        "SELECT COUNT(*) FROM contact_numbers WHERE used_batch IS NOT NULL",
+    // V2.0: 统计各状态号码数量
+    let assigned: i64 = conn.query_row(
+        "SELECT COUNT(*) FROM contact_numbers WHERE status = 'assigned'",
         [],
         |row| row.get(0),
     )?;
     
     let imported: i64 = conn.query_row(
         "SELECT COUNT(*) FROM contact_numbers WHERE status = 'imported'",
+        [],
+        |row| row.get(0),
+    )?;
+    
+    let available: i64 = conn.query_row(
+        "SELECT COUNT(*) FROM contact_numbers WHERE status = 'available' OR status IS NULL",
         [],
         |row| row.get(0),
     )?;
@@ -251,13 +240,12 @@ pub fn get_contact_number_stats(
         per_industry.insert(industry, count);
     }
     
+    // V2.0: 返回新的统计结构
     Ok(ContactNumberStatsRaw {
         total,
         unclassified,
-        not_imported,
-        used,
-        unused,
-        vcf_generated,
+        available,
+        assigned,
         imported,
         per_industry,
     })
@@ -282,7 +270,7 @@ pub fn fetch_numbers(
     count: i64,
 ) -> SqlResult<Vec<ContactNumberDto>> {
     let mut stmt = conn.prepare(
-        "SELECT id, phone, name, source_file, created_at, industry, used, used_at, used_batch, status, imported_device_id 
+        "SELECT id, phone, name, source_file, created_at, industry, status, assigned_at, assigned_batch_id, imported_session_id, imported_device_id 
          FROM contact_numbers ORDER BY id ASC LIMIT ?1"
     )?;
     
@@ -294,10 +282,10 @@ pub fn fetch_numbers(
             source_file: row.get(3)?,
             created_at: row.get(4)?,
             industry: row.get(5)?,
-            used: row.get(6)?,
-            used_at: row.get(7)?,
-            used_batch: row.get(8)?,
-            status: row.get(9)?,
+            status: row.get(6)?,
+            assigned_at: row.get(7)?,
+            assigned_batch_id: row.get(8)?,
+            imported_session_id: row.get(9)?,
             imported_device_id: row.get(10)?,
         })
     })?;
@@ -317,12 +305,12 @@ pub fn fetch_unclassified_numbers(
     only_unconsumed: bool,
 ) -> SqlResult<Vec<ContactNumberDto>> {
     let sql = if only_unconsumed {
-        "SELECT id, phone, name, source_file, created_at, industry, used, used_at, used_batch, status, imported_device_id 
+        "SELECT id, phone, name, source_file, created_at, industry, status, assigned_at, assigned_batch_id, imported_session_id, imported_device_id 
          FROM contact_numbers 
          WHERE (status = 'not_imported' OR status IS NULL) AND (used = 0 OR used IS NULL) 
          ORDER BY id ASC LIMIT ?1"
     } else {
-        "SELECT id, phone, name, source_file, created_at, industry, used, used_at, used_batch, status, imported_device_id 
+        "SELECT id, phone, name, source_file, created_at, industry, status, assigned_at, assigned_batch_id, imported_session_id, imported_device_id 
          FROM contact_numbers 
          WHERE (status = 'not_imported' OR status IS NULL) 
          ORDER BY id ASC LIMIT ?1"
@@ -337,10 +325,10 @@ pub fn fetch_unclassified_numbers(
             source_file: row.get(3)?,
             created_at: row.get(4)?,
             industry: row.get(5)?,
-            used: row.get(6)?,
-            used_at: row.get(7)?,
-            used_batch: row.get(8)?,
-            status: row.get(9)?,
+            status: row.get(6)?,
+            assigned_at: row.get(7)?,
+            assigned_batch_id: row.get(8)?,
+            imported_session_id: row.get(9)?,
             imported_device_id: row.get(10)?,
         })
     })?;
@@ -360,7 +348,7 @@ pub fn fetch_numbers_by_id_range_unconsumed(
     end_id: i64,
 ) -> SqlResult<Vec<ContactNumberDto>> {
     let mut stmt = conn.prepare(
-        "SELECT id, phone, name, source_file, created_at, industry, used, used_at, used_batch, status, imported_device_id 
+        "SELECT id, phone, name, source_file, created_at, industry, status, assigned_at, assigned_batch_id, imported_session_id, imported_device_id 
          FROM contact_numbers 
          WHERE id >= ?1 AND id <= ?2 AND (used = 0 OR used IS NULL) 
          ORDER BY id"
@@ -374,10 +362,10 @@ pub fn fetch_numbers_by_id_range_unconsumed(
             source_file: row.get(3)?,
             created_at: row.get(4)?,
             industry: row.get(5)?,
-            used: row.get(6)?,
-            used_at: row.get(7)?,
-            used_batch: row.get(8)?,
-            status: row.get(9)?,
+            status: row.get(6)?,
+            assigned_at: row.get(7)?,
+            assigned_batch_id: row.get(8)?,
+            imported_session_id: row.get(9)?,
             imported_device_id: row.get(10)?,
         })
     })?;
@@ -461,7 +449,7 @@ pub fn list_numbers_without_batch(
     )?;
     
     let mut stmt = conn.prepare(
-        "SELECT id, phone, name, source_file, created_at, industry, used, used_at, used_batch, status, imported_device_id 
+        "SELECT id, phone, name, source_file, created_at, industry, status, assigned_at, assigned_batch_id, imported_session_id, imported_device_id 
          FROM contact_numbers 
          WHERE used_batch IS NULL 
          ORDER BY id DESC LIMIT ?1 OFFSET ?2"
@@ -475,10 +463,10 @@ pub fn list_numbers_without_batch(
             source_file: row.get(3)?,
             created_at: row.get(4)?,
             industry: row.get(5)?,
-            used: row.get(6)?,
-            used_at: row.get(7)?,
-            used_batch: row.get(8)?,
-            status: row.get(9)?,
+            status: row.get(6)?,
+            assigned_at: row.get(7)?,
+            assigned_batch_id: row.get(8)?,
+            imported_session_id: row.get(9)?,
             imported_device_id: row.get(10)?,
         })
     })?;
@@ -576,7 +564,7 @@ pub fn list_numbers_without_batch_filtered(
     params_vec.push(&offset as &dyn rusqlite::ToSql);
     
     let sql = format!(
-        "SELECT id, phone, name, source_file, created_at, industry, used, used_at, used_batch, status, imported_device_id 
+        "SELECT id, phone, name, source_file, created_at, industry, status, assigned_at, assigned_batch_id, imported_session_id, imported_device_id 
          FROM contact_numbers WHERE {} ORDER BY id DESC LIMIT ? OFFSET ?",
         where_clause
     );
@@ -590,10 +578,10 @@ pub fn list_numbers_without_batch_filtered(
             source_file: row.get(3)?,
             created_at: row.get(4)?,
             industry: row.get(5)?,
-            used: row.get(6)?,
-            used_at: row.get(7)?,
-            used_batch: row.get(8)?,
-            status: row.get(9)?,
+            status: row.get(6)?,
+            assigned_at: row.get(7)?,
+            assigned_batch_id: row.get(8)?,
+            imported_session_id: row.get(9)?,
             imported_device_id: row.get(10)?,
         })
     })?;
@@ -648,7 +636,7 @@ pub fn list_numbers_by_batch_filtered(
     params_vec.push(&offset as &dyn rusqlite::ToSql);
     
     let sql = format!(
-        "SELECT id, phone, name, source_file, created_at, industry, used, used_at, used_batch, status, imported_device_id 
+        "SELECT id, phone, name, source_file, created_at, industry, status, assigned_at, assigned_batch_id, imported_session_id, imported_device_id 
          FROM contact_numbers WHERE {} ORDER BY id DESC LIMIT ? OFFSET ?",
         where_clause
     );
@@ -662,10 +650,10 @@ pub fn list_numbers_by_batch_filtered(
             source_file: row.get(3)?,
             created_at: row.get(4)?,
             industry: row.get(5)?,
-            used: row.get(6)?,
-            used_at: row.get(7)?,
-            used_batch: row.get(8)?,
-            status: row.get(9)?,
+            status: row.get(6)?,
+            assigned_at: row.get(7)?,
+            assigned_batch_id: row.get(8)?,
+            imported_session_id: row.get(9)?,
             imported_device_id: row.get(10)?,
         })
     })?;
@@ -708,7 +696,7 @@ pub fn list_numbers_by_batch(
     )?;
     
     let sql = format!(
-        "SELECT id, phone, name, source_file, created_at, industry, used, used_at, used_batch, status, imported_device_id 
+        "SELECT id, phone, name, source_file, created_at, industry, status, assigned_at, assigned_batch_id, imported_session_id, imported_device_id 
          FROM contact_numbers {} ORDER BY id DESC LIMIT ?2 OFFSET ?3",
         where_clause
     );
@@ -722,10 +710,10 @@ pub fn list_numbers_by_batch(
             source_file: row.get(3)?,
             created_at: row.get(4)?,
             industry: row.get(5)?,
-            used: row.get(6)?,
-            used_at: row.get(7)?,
-            used_batch: row.get(8)?,
-            status: row.get(9)?,
+            status: row.get(6)?,
+            assigned_at: row.get(7)?,
+            assigned_batch_id: row.get(8)?,
+            imported_session_id: row.get(9)?,
             imported_device_id: row.get(10)?,
         })
     })?;
@@ -789,7 +777,7 @@ pub fn list_numbers_filtered(
     params_vec.push(offset.to_string());
     
     let sql = format!(
-        "SELECT id, phone, name, source_file, created_at, industry, used, used_at, used_batch, status, imported_device_id 
+        "SELECT id, phone, name, source_file, created_at, industry, status, assigned_at, assigned_batch_id, imported_session_id, imported_device_id 
          FROM contact_numbers {} ORDER BY id DESC LIMIT ? OFFSET ?",
         where_clause
     );
@@ -804,10 +792,10 @@ pub fn list_numbers_filtered(
             source_file: row.get(3)?,
             created_at: row.get(4)?,
             industry: row.get(5)?,
-            used: row.get(6)?,
-            used_at: row.get(7)?,
-            used_batch: row.get(8)?,
-            status: row.get(9)?,
+            status: row.get(6)?,
+            assigned_at: row.get(7)?,
+            assigned_batch_id: row.get(8)?,
+            imported_session_id: row.get(9)?,
             imported_device_id: row.get(10)?,
         })
     })?;
@@ -839,7 +827,7 @@ pub fn list_numbers_for_vcf_batch(
     )?;
     
     let mut stmt = conn.prepare(
-        "SELECT id, phone, name, source_file, created_at, industry, used, used_at, used_batch, status, imported_device_id 
+        "SELECT id, phone, name, source_file, created_at, industry, status, assigned_at, assigned_batch_id, imported_session_id, imported_device_id 
          FROM contact_numbers WHERE used_batch = ?1 ORDER BY id DESC LIMIT ?2 OFFSET ?3"
     )?;
     
@@ -851,10 +839,10 @@ pub fn list_numbers_for_vcf_batch(
             source_file: row.get(3)?,
             created_at: row.get(4)?,
             industry: row.get(5)?,
-            used: row.get(6)?,
-            used_at: row.get(7)?,
-            used_batch: row.get(8)?,
-            status: row.get(9)?,
+            status: row.get(6)?,
+            assigned_at: row.get(7)?,
+            assigned_batch_id: row.get(8)?,
+            imported_session_id: row.get(9)?,
             imported_device_id: row.get(10)?,
         })
     })?;

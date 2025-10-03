@@ -56,7 +56,7 @@ pub async fn create_txt_import_record_internal(
     app_handle: &AppHandle,
     file_path: &str,
     file_name: &str,
-    total_numbers: i64,
+    total_lines: i64,
     imported_numbers: i64,
     duplicate_numbers: i64,
     status: &str,
@@ -64,7 +64,7 @@ pub async fn create_txt_import_record_internal(
 ) -> Result<i64, String> {
     tracing::debug!(
         "创建TXT导入记录: file={}, total={}, imported={}, duplicates={}",
-        file_name, total_numbers, imported_numbers, duplicate_numbers
+        file_name, total_lines, imported_numbers, duplicate_numbers
     );
     
     with_db_connection(app_handle, |conn| {
@@ -72,7 +72,7 @@ pub async fn create_txt_import_record_internal(
             conn,
             file_path,
             file_name,
-            total_numbers,
+            total_lines,
             imported_numbers,
             duplicate_numbers,
             status,

@@ -1,4 +1,4 @@
-/**
+﻿/**
  * 联系人导入工作台事件处理Hook  
  * Employee D架构 - 单一职责：业务事件处理逻辑
  * 
@@ -10,7 +10,7 @@
  */
 
 import { useState, useCallback } from 'react';
-import { message } from '@/components/adapters';
+import { useMessage } from '@/components/adapters';
 import { selectFolder, selectTxtFile } from '../utils/dialog';
 import { 
   importNumbersFromFolder, 
@@ -66,6 +66,9 @@ export const useWorkbenchActions = ({
   onlyUnconsumed,
   hasItems
 }: UseWorkbenchActionsProps): UseWorkbenchActionsReturn => {
+  
+  // 使用上下文化的 message API（支持动态主题）
+  const message = useMessage();
   
   // 模态框状态
   const [previewOpen, setPreviewOpen] = useState(false);

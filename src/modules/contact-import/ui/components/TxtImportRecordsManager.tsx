@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+﻿import React, { useState, useEffect } from "react";
 import {
   Card,
   Table,
@@ -98,11 +98,11 @@ export const TxtImportRecordsManager: React.FC<
       if (result.success) {
         const actionText = archiveNumbers ? "归档并删除" : "删除";
         const archiveInfo =
-          archiveNumbers && result.archived_number_count > 0
-            ? `，恢复号码 ${result.archived_number_count} 个为未导入`
+          archiveNumbers && result.archivedNumberCount > 0
+            ? `，恢复号码 ${result.archivedNumberCount} 个为未导入`
             : "";
         message.success(
-          `已${actionText}记录"${record.file_name}"${archiveInfo}`
+          `已${actionText}记录"${record.fileName}"${archiveInfo}`
         );
         await loadRecords();
         onDataRefresh?.();
@@ -136,7 +136,7 @@ export const TxtImportRecordsManager: React.FC<
           <ul style={{ paddingLeft: 18, marginBottom: 12 }}>
             {selectedRecords.slice(0, 5).map((record) => (
               <li key={record.id}>
-                {record.file_name} ({record.imported_numbers} 个号码)
+                {record.fileName} ({record.importedNumbers} 个号码)
               </li>
             ))}
             {selectedRecords.length > 5 && (
@@ -305,8 +305,8 @@ export const TxtImportRecordsManager: React.FC<
       width: 120,
       render: (_, record) => (
         <Space size="small">
-          {record.error_message && (
-            <Tooltip title={record.error_message}>
+          {record.errorMessage && (
+            <Tooltip title={record.errorMessage}>
               <Button size="small" icon={<EyeOutlined />} />
             </Tooltip>
           )}
@@ -343,7 +343,7 @@ export const TxtImportRecordsManager: React.FC<
           <ConfirmPopover
             mode="default"
             title="归档确认"
-            description={`将删除记录并重置 "${record.file_name}" 相关的号码为未导入状态？`}
+            description={`将删除记录并重置 "${record.fileName}" 相关的号码为未导入状态？`}
             okText="确认归档"
             cancelText="取消"
             onConfirm={() => handleDeleteRecord(record, true)}
@@ -364,7 +364,7 @@ export const TxtImportRecordsManager: React.FC<
     selectedRowKeys,
     onChange: setSelectedRowKeys,
     getCheckboxProps: (record: TxtImportRecordDto) => ({
-      name: record.file_name,
+      name: record.fileName,
     }),
   };
 

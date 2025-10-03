@@ -42,6 +42,7 @@ pub async fn import_contact_numbers_from_file(
     }
 
     let content = fs::read_to_string(&file_path).map_err(|e| format!("读取文件失败: {}", e))?;
+    let total_lines = content.lines().count() as i64;
     let numbers = extract_numbers_from_text(&content);
 
     // 提取文件名（用于记录）
@@ -79,6 +80,7 @@ pub async fn import_contact_numbers_from_file(
             conn,
             &file_path,
             &file_name,
+            total_lines,
             numbers.len() as i64,
             inserted,
             duplicates,
@@ -138,6 +140,7 @@ pub async fn import_contact_numbers_from_folder(
                     
                     match fs::read_to_string(&path) {
                         Ok(content) => {
+                            let total_lines = content.lines().count() as i64;
                             let numbers = extract_numbers_from_text(&content);
                             let (inserted, duplicates, mut errors) = with_db_connection(&app_handle, |conn| {
                                 contact_numbers_repo::insert_numbers(conn, &numbers, &file_path_str)
@@ -161,6 +164,7 @@ pub async fn import_contact_numbers_from_folder(
                                     conn,
                                     &file_path_str,
                                     &file_name,
+                                    total_lines,
                                     numbers.len() as i64,
                                     inserted,
                                     duplicates,
@@ -300,14 +304,13 @@ pub async fn get_contact_number_stats_cmd(
         .map(|(industry, count)| models::IndustryCountDto { industry, count })
         .collect();
 
+    // V2.0: 使用新的状态字段映射
     Ok(models::ContactNumberStatsDto {
         total: stats.total,
-        used: stats.used,
-        unused: stats.unused,
-        vcf_generated: stats.vcf_generated,
+        available: stats.available,
+        assigned: stats.assigned,
         imported: stats.imported,
         unclassified: stats.unclassified,
-        not_imported: stats.not_imported,
         per_industry,
     })
 }

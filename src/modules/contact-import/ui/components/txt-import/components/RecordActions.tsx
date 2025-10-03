@@ -1,4 +1,4 @@
-import React from 'react';
+﻿import React from 'react';
 import { Button, Space, Tooltip } from 'antd';
 import { EyeOutlined, DeleteOutlined, InboxOutlined } from '@ant-design/icons';
 import ConfirmPopover from '@/components/universal-ui/common-popover/ConfirmPopover';
@@ -14,8 +14,8 @@ interface RecordActionsProps {
 export const RecordActions: React.FC<RecordActionsProps> = ({ record, onDelete, onArchive, onViewError }) => {
   return (
     <Space size="small">
-      {record.error_message && (
-        <Tooltip title={record.error_message}>
+      {record.errorMessage && (
+        <Tooltip title={record.errorMessage}>
           <Button size="small" icon={<EyeOutlined />} onClick={(e) => {
             e.stopPropagation();
             onViewError?.(record);
@@ -45,7 +45,7 @@ export const RecordActions: React.FC<RecordActionsProps> = ({ record, onDelete, 
       <ConfirmPopover
         mode="default"
         title="归档确认"
-        description={`将删除记录并重置 "${record.file_name}" 相关的号码为未导入状态？`}
+        description={`将删除记录并重置 "${record.fileName}" 相关的号码为未导入状态？`}
         okText="确认归档"
         cancelText="取消"
         onConfirm={() => onArchive(record)}

@@ -32,7 +32,7 @@ pub fn allocate_numbers_to_device(
     
     if let Some(ind) = industry {
         let mut stmt = conn.prepare(
-            "SELECT id, phone, name, source_file, created_at, industry, used, used_at, used_batch, status, imported_device_id 
+            "SELECT id, phone, name, source_file, created_at, industry, status, assigned_at, assigned_batch_id, imported_session_id, imported_device_id 
              FROM contact_numbers 
              WHERE (used = 0 OR used IS NULL) AND industry = ?1 
              ORDER BY id 
@@ -47,10 +47,10 @@ pub fn allocate_numbers_to_device(
                 source_file: row.get(3)?,
                 created_at: row.get(4)?,
                 industry: row.get(5)?,
-                used: row.get(6)?,
-                used_at: row.get(7)?,
-                used_batch: row.get(8)?,
-                status: row.get(9)?,
+                status: row.get(6)?,
+                assigned_at: row.get(7)?,
+                assigned_batch_id: row.get(8)?,
+                imported_session_id: row.get(9)?,
                 imported_device_id: row.get(10)?,
             })
         })?;
@@ -60,7 +60,7 @@ pub fn allocate_numbers_to_device(
         }
     } else {
         let mut stmt = conn.prepare(
-            "SELECT id, phone, name, source_file, created_at, industry, used, used_at, used_batch, status, imported_device_id 
+            "SELECT id, phone, name, source_file, created_at, industry, status, assigned_at, assigned_batch_id, imported_session_id, imported_device_id 
              FROM contact_numbers 
              WHERE (used = 0 OR used IS NULL) 
              ORDER BY id 
@@ -75,10 +75,10 @@ pub fn allocate_numbers_to_device(
                 source_file: row.get(3)?,
                 created_at: row.get(4)?,
                 industry: row.get(5)?,
-                used: row.get(6)?,
-                used_at: row.get(7)?,
-                used_batch: row.get(8)?,
-                status: row.get(9)?,
+                status: row.get(6)?,
+                assigned_at: row.get(7)?,
+                assigned_batch_id: row.get(8)?,
+                imported_session_id: row.get(9)?,
                 imported_device_id: row.get(10)?,
             })
         })?;

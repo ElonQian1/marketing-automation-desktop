@@ -16,26 +16,15 @@ pub fn get_contact_number_stats(
         |row| row.get(0),
     )?;
     
-    let not_imported: i64 = conn.query_row(
-        "SELECT COUNT(*) FROM contact_numbers WHERE status IS NULL OR status = 'not_imported'",
+    // V2.0: 统计各状态号码数量
+    let available: i64 = conn.query_row(
+        "SELECT COUNT(*) FROM contact_numbers WHERE status = 'available' OR status IS NULL",
         [],
         |row| row.get(0),
     )?;
     
-    let used: i64 = conn.query_row(
-        "SELECT COUNT(*) FROM contact_numbers WHERE used = 1",
-        [],
-        |row| row.get(0),
-    )?;
-    
-    let unused: i64 = conn.query_row(
-        "SELECT COUNT(*) FROM contact_numbers WHERE used = 0 OR used IS NULL",
-        [],
-        |row| row.get(0),
-    )?;
-    
-    let vcf_generated: i64 = conn.query_row(
-        "SELECT COUNT(*) FROM contact_numbers WHERE used_batch IS NOT NULL",
+    let assigned: i64 = conn.query_row(
+        "SELECT COUNT(*) FROM contact_numbers WHERE status = 'assigned'",
         [],
         |row| row.get(0),
     )?;
@@ -57,13 +46,12 @@ pub fn get_contact_number_stats(
         per_industry.insert(industry, count);
     }
     
+    // V2.0: 返回新的统计结构
     Ok(ContactNumberStatsRaw {
         total,
         unclassified,
-        not_imported,
-        used,
-        unused,
-        vcf_generated,
+        available,
+        assigned,
         imported,
         per_industry,
     })

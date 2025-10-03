@@ -35,7 +35,7 @@ pub fn fetch_numbers_by_id_range_unconsumed(
     end_id: i64,
 ) -> SqlResult<Vec<super::super::super::models::ContactNumberDto>> {
     let mut stmt = conn.prepare(
-        "SELECT id, phone, name, source_file, created_at, industry, used, used_at, used_batch, status, imported_device_id 
+        "SELECT id, phone, name, source_file, created_at, industry, status, assigned_at, assigned_batch_id, imported_session_id, imported_device_id 
          FROM contact_numbers 
          WHERE id BETWEEN ?1 AND ?2 AND (used = 0 OR used IS NULL) 
          ORDER BY id"
@@ -49,10 +49,10 @@ pub fn fetch_numbers_by_id_range_unconsumed(
             source_file: row.get(3)?,
             created_at: row.get(4)?,
             industry: row.get(5)?,
-            used: row.get(6)?,
-            used_at: row.get(7)?,
-            used_batch: row.get(8)?,
-            status: row.get(9)?,
+            status: row.get(6)?,
+            assigned_at: row.get(7)?,
+            assigned_batch_id: row.get(8)?,
+            imported_session_id: row.get(9)?,
             imported_device_id: row.get(10)?,
         })
     })?;

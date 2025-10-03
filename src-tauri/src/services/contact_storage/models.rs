@@ -17,12 +17,12 @@ pub struct ContactNumberDto {
     pub name: String,
     pub source_file: String,
     pub created_at: String,
-    // 可选的业务元数据（可能为NULL）
+    // V2.0 字段：业务元数据
     pub industry: Option<String>,
-    pub used: Option<i64>,
-    pub used_at: Option<String>,
-    pub used_batch: Option<String>,
-    pub status: Option<String>,
+    pub status: Option<String>,  // 'available' | 'assigned' | 'imported'
+    pub assigned_at: Option<String>,
+    pub assigned_batch_id: Option<String>,
+    pub imported_session_id: Option<i64>,
     pub imported_device_id: Option<String>,
 }
 
@@ -43,12 +43,10 @@ pub struct IndustryCountDto {
 #[derive(Debug, Serialize, Deserialize, Clone)]
 pub struct ContactNumberStatsDto {
     pub total: i64,
-    pub used: i64,
-    pub unused: i64,
-    pub vcf_generated: i64,
+    pub available: i64,
+    pub assigned: i64,
     pub imported: i64,
     pub unclassified: i64,
-    pub not_imported: i64,
     pub per_industry: Vec<IndustryCountDto>,
 }
 
@@ -57,10 +55,8 @@ pub struct ContactNumberStatsDto {
 pub struct ContactNumberStatsRaw {
     pub total: i64,
     pub unclassified: i64,
-    pub not_imported: i64,
-    pub used: i64,
-    pub unused: i64,
-    pub vcf_generated: i64,
+    pub available: i64,
+    pub assigned: i64,
     pub imported: i64,
     pub per_industry: std::collections::HashMap<String, i64>,
 }
@@ -94,26 +90,24 @@ pub struct MaintenanceResultDto {
 // ----- TXT文件导入记录模型 -----
 
 #[derive(Debug, Serialize, Deserialize, Clone)]
+#[serde(rename_all = "camelCase")]
 pub struct TxtImportRecordDto {
     pub id: i64,
     pub file_path: String,
     pub file_name: String,
     pub file_size: Option<i64>,
-    pub file_modified_at: Option<String>,
-    pub total_numbers: i64,
-    pub successful_imports: i64,
-    pub duplicate_numbers: i64,
-    pub invalid_numbers: i64,
-    pub import_status: String,  // 'pending' | 'success' | 'failed' | 'partial'
+    // V2.0 字段
+    pub total_lines: i64,        // 文件总行数
+    pub valid_numbers: i64,      // 有效号码数
+    pub imported_numbers: i64,   // 成功导入数
+    pub duplicate_numbers: i64,  // 重复号码数
+    pub invalid_numbers: i64,    // 无效号码数
+    pub status: String,          // 导入状态: 'success' | 'empty' | 'all_duplicates' | 'partial' | 'failed'
     pub error_message: Option<String>,
     pub created_at: String,
     pub imported_at: Option<String>,
-    pub updated_at: Option<String>,
     pub industry: Option<String>,
     pub notes: Option<String>,
-    // 向后兼容的别名字段
-    pub imported_numbers: i64,  // 等同于 successful_imports
-    pub status: String,         // 等同于 import_status
 }
 
 #[derive(Debug, Serialize, Deserialize, Clone)]
@@ -125,6 +119,7 @@ pub struct TxtImportRecordList {
 }
 
 #[derive(Debug, Serialize, Deserialize, Clone)]
+#[serde(rename_all = "camelCase")]
 pub struct DeleteTxtImportRecordResult {
     pub record_id: i64,
     pub archived_number_count: i64,
@@ -177,12 +172,11 @@ pub struct ImportSessionDto {
     pub target_app: String,
     pub session_description: Option<String>,
     pub status: String, // pending/success/failed
-    pub imported_count: i64,
+    pub success_count: i64,
     pub failed_count: i64,
     pub started_at: String,
     pub finished_at: Option<String>,
     pub created_at: String,
-    pub completed_at: Option<String>,
     pub error_message: Option<String>,
     pub industry: Option<String>,
 }

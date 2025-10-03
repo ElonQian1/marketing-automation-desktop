@@ -1,4 +1,4 @@
-import React from 'react';
+﻿import React from 'react';
 import { Modal, Typography, Space, Button, message } from 'antd';
 import { TxtImportRecordDto } from '../../../services/txtImportRecordService';
 
@@ -13,16 +13,16 @@ interface ErrorDetailModalProps {
 export const ErrorDetailModal: React.FC<ErrorDetailModalProps> = ({ open, record, onClose }) => {
   const textToCopy = record ? JSON.stringify({
     id: record.id,
-    file_name: record.file_name,
-    file_path: record.file_path,
+    file_name: record.fileName,
+    file_path: record.filePath,
     status: record.status,
     totals: {
-      total: record.total_numbers,
-      imported: record.imported_numbers,
-      duplicate: record.duplicate_numbers,
+      total: record.validNumbers,  // V2.0: 有效号码数
+      imported: record.importedNumbers,
+      duplicate: record.duplicateNumbers,
     },
-    created_at: record.created_at,
-    error_message: record.error_message,
+    created_at: record.createdAt,
+    error_message: record.errorMessage,
   }, null, 2) : '';
 
   const handleCopy = async () => {
@@ -36,7 +36,7 @@ export const ErrorDetailModal: React.FC<ErrorDetailModalProps> = ({ open, record
 
   const handleCopyErrorOnly = async () => {
     try {
-      await navigator.clipboard.writeText(record?.error_message || '');
+      await navigator.clipboard.writeText(record?.errorMessage || '');
       message.success('已复制错误信息');
     } catch {
       message.error('复制失败，请手动复制');
@@ -61,7 +61,7 @@ export const ErrorDetailModal: React.FC<ErrorDetailModalProps> = ({ open, record
   return (
     <Modal
       className="light-theme-force"
-      title={record ? `错误详情 - ${record.file_name}` : '错误详情'}
+      title={record ? `错误详情 - ${record.fileName}` : '错误详情'}
       open={open}
       onCancel={onClose}
       footer={[
@@ -92,7 +92,7 @@ export const ErrorDetailModal: React.FC<ErrorDetailModalProps> = ({ open, record
             <Text type="secondary">错误信息：</Text>
           </Paragraph>
           <Paragraph ellipsis={{ rows: 4, expandable: true, symbol: '展开' }}>
-            {record.error_message || '（空）'}
+            {record.errorMessage || '（空）'}
           </Paragraph>
         </div>
       )}

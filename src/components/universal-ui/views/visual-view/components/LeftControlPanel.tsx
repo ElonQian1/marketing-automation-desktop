@@ -40,6 +40,21 @@ export interface LeftControlPanelProps {
   // 🆕 垂直对齐（宽受限时 top/center/bottom）
   verticalAlign?: 'top' | 'center' | 'bottom';
   setVerticalAlign?: (v: 'top' | 'center' | 'bottom') => void;
+  // 🆕 自动校准 overlayScale
+  autoCalibration?: boolean;
+  setAutoCalibration?: (v: boolean) => void;
+  // 🆕 校准方案选择
+  calibrationMode?: 'A' | 'B' | 'C' | 'none';
+  setCalibrationMode?: (mode: 'A' | 'B' | 'C' | 'none') => void;
+  // 🆕 校准信息（用于显示状态）
+  calibrationInfo?: {
+    detected: boolean;
+    suggested: number;
+    confidence: number;
+    reason?: string;
+    hasDeviceProfile?: boolean;  // 是否有保存的设备配置
+    hasDims?: boolean;           // 是否已具备有效的 XML 与截图尺寸
+  };
   selectedCategory: string;
   setSelectedCategory: (v: string) => void;
   selectionManager: any;
@@ -76,6 +91,11 @@ export const LeftControlPanel: React.FC<LeftControlPanelProps> = ({
   setOffsetY,
   verticalAlign = 'center',
   setVerticalAlign,
+  autoCalibration = true,
+  setAutoCalibration,
+  calibrationMode = 'none',
+  setCalibrationMode,
+  calibrationInfo,
   selectedCategory,
   setSelectedCategory,
   selectionManager,
@@ -128,6 +148,74 @@ export const LeftControlPanel: React.FC<LeftControlPanelProps> = ({
               <Text style={{fontSize:12}}>预览缩放: {(previewZoom*100).toFixed(0)}%</Text>
               <input type="range" min={0.5} max={3} step={0.1} value={previewZoom} onChange={e=>setPreviewZoom && setPreviewZoom(parseFloat(e.target.value))} style={{width:'100%'}} />
             </div>
+            <Space align="center" size={8}>
+              <input type="checkbox" checked={autoCalibration} onChange={e=>setAutoCalibration && setAutoCalibration(e.target.checked)} />
+              <Text style={{fontSize:13}}>自动校准缩放</Text>
+            </Space>
+            <div>
+              <Text style={{fontSize:12,fontWeight:'bold',marginBottom:4,display:'block'}}>🎯 校准方案</Text>
+              <Space direction="vertical" size={4} style={{width:'100%'}}>
+                <Button 
+                  size="small" 
+                  type={calibrationMode === 'A' ? 'primary' : 'default'}
+                  onClick={() => setCalibrationMode && setCalibrationMode('A')}
+                  style={{width:'100%',textAlign:'left',fontSize:11}}
+                  disabled={!calibrationInfo?.hasDims}
+                >
+                  方案A: 自动检测
+                </Button>
+                <Button 
+                  size="small" 
+                  type={calibrationMode === 'B' ? 'primary' : 'default'}
+                  onClick={() => setCalibrationMode && setCalibrationMode('B')}
+                  style={{width:'100%',textAlign:'left',fontSize:11}}
+                  disabled={!calibrationInfo?.hasDims}
+                >
+                  方案B: 统一坐标系
+                </Button>
+                <Button 
+                  size="small" 
+                  type={calibrationMode === 'C' ? 'primary' : 'default'}
+                  onClick={() => setCalibrationMode && setCalibrationMode('C')}
+                  style={{width:'100%',textAlign:'left',fontSize:11}}
+                  disabled={!calibrationInfo?.hasDeviceProfile}
+                  title={calibrationInfo?.hasDeviceProfile ? '使用保存的设备配置' : '暂无保存的配置'}
+                >
+                  方案C: 用户配置 {!calibrationInfo?.hasDeviceProfile && '(无)'}
+                </Button>
+                <Button 
+                  size="small" 
+                  type={calibrationMode === 'none' ? 'primary' : 'default'}
+                  onClick={() => setCalibrationMode && setCalibrationMode('none')}
+                  style={{width:'100%',textAlign:'left',fontSize:11}}
+                  danger={calibrationMode === 'none'}
+                >
+                  关闭校准
+                </Button>
+              </Space>
+            </div>
+            {calibrationInfo && calibrationInfo.detected && calibrationMode !== 'none' && (
+              <Alert 
+                message="🎯 检测到校准需求" 
+                description={
+                  <div style={{fontSize:11}}>
+                    <div>建议缩放: {(calibrationInfo.suggested * 100).toFixed(0)}%</div>
+                    <div>置信度: {(calibrationInfo.confidence * 100).toFixed(0)}%</div>
+                    {calibrationInfo.reason && (
+                      <div style={{marginTop:4,color:'#666'}}>
+                        {calibrationInfo.reason.split('\n').map((line, i) => (
+                          <div key={i}>{line}</div>
+                        ))}
+                      </div>
+                    )}
+                  </div>
+                }
+                type="info"
+                showIcon
+                closable={false}
+                style={{fontSize:11}}
+              />
+            )}
             <div>
               <Text style={{fontSize:12}}>叠加层缩放: {(overlayScale*100).toFixed(0)}% <Text type="secondary" style={{fontSize:11}}>(Ctrl +/-)</Text></Text>
               <input type="range" min={0.2} max={3} step={0.1} value={overlayScale} onChange={e=>setOverlayScale && setOverlayScale(parseFloat(e.target.value))} style={{width:'100%'}} />

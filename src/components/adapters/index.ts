@@ -185,7 +185,8 @@ export {
 
 // Message - 消息适配器 (Employee D)
 export {
-  message,
+  useMessage,        // 推荐：上下文化的 Hook API
+  message,           // 兼容：静态 API（会有主题警告）
   MessageAdapter,
 } from "./message/MessageAdapter";
 

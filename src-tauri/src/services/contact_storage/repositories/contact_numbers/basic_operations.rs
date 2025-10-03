@@ -42,7 +42,7 @@ pub fn list_numbers(
     )?;
     
     let mut stmt = conn.prepare(
-        "SELECT id, phone, name, source_file, created_at, industry, used, used_at, used_batch, status, imported_device_id 
+        "SELECT id, phone, name, source_file, created_at, industry, status, assigned_at, assigned_batch_id, imported_session_id, imported_device_id 
          FROM contact_numbers ORDER BY id DESC LIMIT ?1 OFFSET ?2"
     )?;
     
@@ -54,10 +54,10 @@ pub fn list_numbers(
             source_file: row.get(3)?,
             created_at: row.get(4)?,
             industry: row.get(5)?,
-            used: row.get(6)?,
-            used_at: row.get(7)?,
-            used_batch: row.get(8)?,
-            status: row.get(9)?,
+            status: row.get(6)?,
+            assigned_at: row.get(7)?,
+            assigned_batch_id: row.get(8)?,
+            imported_session_id: row.get(9)?,
             imported_device_id: row.get(10)?,
         })
     })?;
@@ -81,7 +81,7 @@ pub fn get_number_by_id(
     id: i64,
 ) -> SqlResult<Option<ContactNumberDto>> {
     let result = conn.query_row(
-        "SELECT id, phone, name, source_file, created_at, industry, used, used_at, used_batch, status, imported_device_id 
+        "SELECT id, phone, name, source_file, created_at, industry, status, assigned_at, assigned_batch_id, imported_session_id, imported_device_id 
          FROM contact_numbers WHERE id = ?1",
         params![id],
         |row| {
@@ -92,10 +92,10 @@ pub fn get_number_by_id(
                 source_file: row.get(3)?,
                 created_at: row.get(4)?,
                 industry: row.get(5)?,
-                used: row.get(6)?,
-                used_at: row.get(7)?,
-                used_batch: row.get(8)?,
-                status: row.get(9)?,
+                status: row.get(6)?,
+                assigned_at: row.get(7)?,
+                assigned_batch_id: row.get(8)?,
+                imported_session_id: row.get(9)?,
                 imported_device_id: row.get(10)?,
             })
         }
@@ -115,7 +115,7 @@ pub fn fetch_numbers_by_id_range(
     end_id: i64,
 ) -> SqlResult<Vec<ContactNumberDto>> {
     let mut stmt = conn.prepare(
-        "SELECT id, phone, name, source_file, created_at, industry, used, used_at, used_batch, status, imported_device_id 
+        "SELECT id, phone, name, source_file, created_at, industry, status, assigned_at, assigned_batch_id, imported_session_id, imported_device_id 
          FROM contact_numbers WHERE id BETWEEN ?1 AND ?2 ORDER BY id"
     )?;
     
@@ -127,10 +127,10 @@ pub fn fetch_numbers_by_id_range(
             source_file: row.get(3)?,
             created_at: row.get(4)?,
             industry: row.get(5)?,
-            used: row.get(6)?,
-            used_at: row.get(7)?,
-            used_batch: row.get(8)?,
-            status: row.get(9)?,
+            status: row.get(6)?,
+            assigned_at: row.get(7)?,
+            assigned_batch_id: row.get(8)?,
+            imported_session_id: row.get(9)?,
             imported_device_id: row.get(10)?,
         })
     })?;

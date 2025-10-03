@@ -18,7 +18,7 @@ pub async fn create_import_session_cmd(
 ) -> Result<models::ImportSessionDto, String> {
     with_db_connection(&app_handle, |conn| {
         let session_id = import_sessions_repo::create_import_session(conn, &batch_id, &device_id)?;
-        // 返回DTO
+        // V2.0: 返回新的DTO结构
         Ok(models::ImportSessionDto {
             id: session_id,
             session_id: session_id.to_string(),
@@ -27,12 +27,11 @@ pub async fn create_import_session_cmd(
             target_app,
             session_description,
             status: "pending".to_string(),
-            imported_count: 0,
+            success_count: 0,
             failed_count: 0,
             started_at: chrono::Local::now().format("%Y-%m-%d %H:%M:%S").to_string(),
             finished_at: None,
             created_at: chrono::Local::now().format("%Y-%m-%d %H:%M:%S").to_string(),
-            completed_at: None,
             error_message: None,
             industry: None,
         })

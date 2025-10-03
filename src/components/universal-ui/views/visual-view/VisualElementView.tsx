@@ -19,6 +19,8 @@ import {
   // ElementSelectionPopover, // 🚫 已移除 - 由上层统一管理
 } from "../../element-selection";
 import type { UIElement } from "../../../../api/universalUIAPI";
+import { parseXmlViewport } from "./utils/screenGeometry";
+import { useVisualViewPreferences } from "./hooks/useVisualViewPreferences";
 
 const { Title, Text } = Typography;
 
@@ -33,6 +35,10 @@ interface VisualElementViewProps {
   originalUIElements?: UIElement[];
   // 🆕 可选：截图背景 URL，用于在可视化预览中叠加真实截图
   screenshotUrl?: string;
+  // 🆕 方案 C：设备 ID（用于持久化设备特定校准）
+  deviceId?: string;
+  // 🆕 方案 C：应用包名（用于持久化应用特定校准）
+  packageName?: string;
 }
 
 export const VisualElementView: React.FC<VisualElementViewProps> = ({
@@ -43,6 +49,8 @@ export const VisualElementView: React.FC<VisualElementViewProps> = ({
   selectionManager: externalSelectionManager,
   originalUIElements = [],
   screenshotUrl,
+  deviceId,
+  packageName,
 }) => {
   // 设备外框（bezel）内边距，让设备看起来比页面更大，但不改变页面坐标/缩放
   const DEVICE_FRAME_PADDING = 24; // px，可调
@@ -69,6 +77,88 @@ export const VisualElementView: React.FC<VisualElementViewProps> = ({
   const [offsetY, setOffsetY] = useState(0);
   // 🆕 垂直对齐（宽受限时 top/center/bottom）
   const [verticalAlign, setVerticalAlign] = useState<'top'|'center'|'bottom'>('center');
+  // 🆕 自动校准 overlayScale（根据 XML 视口 vs 截图尺寸）
+  const [autoCalibration, setAutoCalibration] = useState(true);
+  // 🆕 校准方案选择
+  const [calibrationMode, setCalibrationMode] = useState<'A' | 'B' | 'C' | 'none'>('none');
+  
+  // 🆕 提取 XML 视口尺寸用于自动校准
+  const xmlViewport = useMemo(() => {
+    if (!xmlContent) return { width: 0, height: 0 };
+    const vp = parseXmlViewport(xmlContent);
+    return vp || { width: 0, height: 0 };
+  }, [xmlContent]);
+  
+  // 🆕 提取截图尺寸（通过 Image 对象异步加载）
+  const [screenshotSize, setScreenshotSize] = useState<{w:number;h:number}>({w:0,h:0});
+  useEffect(() => {
+    if (!screenshotUrl) {
+      setScreenshotSize({w:0,h:0});
+      return;
+    }
+    const img = new Image();
+    img.onload = () => setScreenshotSize({w:img.naturalWidth, h:img.naturalHeight});
+    img.onerror = () => setScreenshotSize({w:0,h:0});
+    img.src = screenshotUrl;
+  }, [screenshotUrl]);
+  
+  // 🆕 使用统一的偏好管理 Hook（方案 B+C）
+  const preferences = useVisualViewPreferences(
+    deviceId || null,
+    packageName || null,
+    xmlViewport.width,
+    xmlViewport.height,
+    screenshotSize.w,
+    screenshotSize.h
+  );
+
+  // 🆕 与偏好中的 autoCalibration 双向同步，避免状态源不一致
+  useEffect(() => {
+    if (preferences.global.autoCalibration !== autoCalibration) {
+      setAutoCalibration(preferences.global.autoCalibration);
+    }
+    // 仅在 preferences.global.autoCalibration 变化时对齐本地 UI
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [preferences.global.autoCalibration]);
+
+  useEffect(() => {
+    if (preferences.global.autoCalibration !== autoCalibration) {
+      preferences.updateGlobal('autoCalibration', autoCalibration);
+    }
+  }, [autoCalibration, preferences]);
+
+  // 🆕 持久化校准方案选择，增强用户体验
+  useEffect(() => {
+    try {
+      const saved = localStorage.getItem('visualView.calibrationMode');
+      if (saved === 'A' || saved === 'B' || saved === 'C' || saved === 'none') {
+        setCalibrationMode(saved);
+      }
+    } catch {}
+  }, []);
+  useEffect(() => {
+    try {
+      localStorage.setItem('visualView.calibrationMode', calibrationMode);
+    } catch {}
+  }, [calibrationMode]);
+  
+  // 🆕 根据校准方案应用不同的校准策略
+  useEffect(() => {
+    if (!autoCalibration || calibrationMode === 'none') return;
+    const { detectionResult } = preferences;
+    
+    if (calibrationMode === 'A') {
+      // 方案A：自动检测 + 应用 overlayScale
+      if (detectionResult?.needsCalibration && detectionResult.suggestedOverlayScale) {
+        const suggested = detectionResult.suggestedOverlayScale;
+        if (Math.abs(suggested - overlayScale) > 0.01) {
+          console.log(`📐 方案A：自动应用 overlayScale = ${suggested}`);
+          setOverlayScale(suggested);
+        }
+      }
+    }
+    // 方案B 和 C 由 calibration 对象处理，不需要修改 overlayScale
+  }, [autoCalibration, calibrationMode, preferences.detectionResult, overlayScale]);
 
   // 偏好持久化：showScreenshot
   useEffect(() => {
@@ -118,6 +208,8 @@ export const VisualElementView: React.FC<VisualElementViewProps> = ({
       });
       const va = localStorage.getItem('visualView.verticalAlign');
       if (va === 'top' || va === 'center' || va === 'bottom') setVerticalAlign(va);
+      const ac = localStorage.getItem('visualView.autoCalibration');
+      if (ac !== null) setAutoCalibration(ac === '1');
     } catch {}
   }, []);
   useEffect(() => {
@@ -150,6 +242,9 @@ export const VisualElementView: React.FC<VisualElementViewProps> = ({
   useEffect(() => {
     try { localStorage.setItem('visualView.verticalAlign', verticalAlign); } catch {}
   }, [verticalAlign]);
+  useEffect(() => {
+    try { localStorage.setItem('visualView.autoCalibration', autoCalibration ? '1' : '0'); } catch {}
+  }, [autoCalibration]);
 
   // 快捷键支持：g 网格，c 十字线，r 旋转，s 显示截图，9/0 叠加透明度，[ / ] 暗化强度，=/+ 放大，- 缩小，方向键微调对齐（Shift 加大步）
   useEffect(() => {
@@ -369,14 +464,33 @@ export const VisualElementView: React.FC<VisualElementViewProps> = ({
         setRotate90={setRotate90}
         previewZoom={previewZoom}
         setPreviewZoom={setPreviewZoom}
-  overlayScale={overlayScale}
-  setOverlayScale={setOverlayScale}
+        overlayScale={overlayScale}
+        setOverlayScale={setOverlayScale}
         offsetX={offsetX}
         setOffsetX={setOffsetX}
         offsetY={offsetY}
         setOffsetY={setOffsetY}
-  verticalAlign={verticalAlign}
-  setVerticalAlign={setVerticalAlign}
+        verticalAlign={verticalAlign}
+        setVerticalAlign={setVerticalAlign}
+        autoCalibration={autoCalibration}
+        setAutoCalibration={setAutoCalibration}
+        calibrationMode={calibrationMode}
+        setCalibrationMode={setCalibrationMode}
+        calibrationInfo={preferences.detectionResult ? {
+          detected: preferences.detectionResult.needsCalibration,
+          suggested: preferences.detectionResult.suggestedOverlayScale,
+          confidence: preferences.detectionResult.confidence,
+          reason: preferences.detectionResult.reason,
+          hasDeviceProfile: !!preferences.calibrationProfile,
+          hasDims: (xmlViewport.width > 0 && xmlViewport.height > 0 && screenshotSize.w > 0 && screenshotSize.h > 0)
+        } : {
+          detected: false,
+          suggested: 1,
+          confidence: 0,
+          reason: undefined,
+          hasDeviceProfile: !!preferences.calibrationProfile,
+          hasDims: (xmlViewport.width > 0 && xmlViewport.height > 0 && screenshotSize.w > 0 && screenshotSize.h > 0)
+        }}
         selectedCategory={selectedCategory}
         setSelectedCategory={setSelectedCategory}
         selectionManager={selectionManager}
@@ -419,6 +533,16 @@ export const VisualElementView: React.FC<VisualElementViewProps> = ({
           offsetX={offsetX}
           offsetY={offsetY}
           verticalAlign={verticalAlign}
+          calibration={
+            calibrationMode === 'B' ? preferences.detectionResult?.calibration || undefined :
+            calibrationMode === 'C' ? preferences.currentCalibration || undefined :
+            undefined  // 方案A 或 none 不使用 calibration
+          }
+          onCalibrationSuggested={(suggested) => {
+            if (autoCalibration && calibrationMode === 'A' && Math.abs(suggested - overlayScale) > 0.01) {
+              setOverlayScale(suggested);
+            }
+          }}
         />
       </div>
 

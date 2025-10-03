@@ -139,7 +139,7 @@ pub fn list_import_sessions(
     };
 
     let list_sql = format!(
-        "SELECT id, batch_id, device_id, status, imported_count, failed_count, error_message, industry, created_at, completed_at \
+        "SELECT id, batch_id, device_id, status, success_count, failed_count, error_message, industry, created_at, finished_at \
          FROM import_sessions{} ORDER BY created_at DESC LIMIT ? OFFSET ?",
         where_sql
     );
@@ -160,12 +160,11 @@ pub fn list_import_sessions(
             target_app: "未知".to_string(),
             session_description: None,
             status: row.get(3)?,
-            imported_count: row.get(4)?,
+            success_count: row.get(4)?,
             failed_count: row.get(5)?,
             started_at: chrono::Local::now().format("%Y-%m-%d %H:%M:%S").to_string(),
-            finished_at: None,
+            finished_at: row.get(9)?,
             created_at: row.get(8)?,
-            completed_at: row.get(9)?,
             error_message: row.get(6)?,
             industry: row.get(7)?,
         })
@@ -404,7 +403,7 @@ pub fn get_import_session_stats(conn: &Connection, device_id: Option<&str>) -> S
     };
 
     let total_imported_numbers: i64 = {
-        let sql = format!("SELECT COALESCE(SUM(imported_count), 0) FROM import_sessions{}", where_clause);
+        let sql = format!("SELECT COALESCE(SUM(success_count), 0) FROM import_sessions{}", where_clause);
         let mut stmt = conn.prepare(&sql)?;
         if let Some(device) = device_id {
             stmt.query_row([device], |row| row.get(0))?
@@ -446,7 +445,7 @@ pub struct ImportSessionStats {
 /// 获取单个导入会话
 pub fn get_import_session(conn: &Connection, session_id: i64) -> SqlResult<Option<ImportSessionDto>> {
     let mut stmt = conn.prepare(
-        "SELECT id, batch_id, device_id, status, imported_count, failed_count, error_message, created_at, completed_at 
+        "SELECT id, batch_id, device_id, status, success_count, failed_count, error_message, created_at, finished_at 
          FROM import_sessions WHERE id = ?1"
     )?;
     
@@ -458,13 +457,12 @@ pub fn get_import_session(conn: &Connection, session_id: i64) -> SqlResult<Optio
             batch_id: row.get(1)?,
             device_id: row.get(2)?,
             status: row.get(3)?,
-            imported_count: row.get(4)?,
+            success_count: row.get(4)?,
             failed_count: row.get(5)?,
             error_message: row.get(6)?,
             created_at: row.get(7)?,
             started_at: row.get::<_, Option<String>>(7)?.unwrap_or_default(),
             finished_at: row.get(8)?,
-            completed_at: row.get(8)?,
             session_description: None,
             target_app: "未知".to_string(),
             industry: None,
@@ -475,7 +473,7 @@ pub fn get_import_session(conn: &Connection, session_id: i64) -> SqlResult<Optio
 /// 获取最近的导入会话
 pub fn get_recent_import_sessions(conn: &Connection, limit: i64) -> SqlResult<Vec<ImportSessionDto>> {
     let mut stmt = conn.prepare(
-        "SELECT id, batch_id, device_id, status, imported_count, failed_count, error_message, created_at, completed_at 
+        "SELECT id, batch_id, device_id, status, success_count, failed_count, error_message, industry, created_at, finished_at 
          FROM import_sessions ORDER BY created_at DESC LIMIT ?1"
     )?;
     
@@ -486,17 +484,16 @@ pub fn get_recent_import_sessions(conn: &Connection, limit: i64) -> SqlResult<Ve
             session_id: id.to_string(),
             batch_id: row.get(1)?,
             device_id: row.get(2)?,
-            status: row.get(3)?,
-            imported_count: row.get(4)?,
-            failed_count: row.get(5)?,
-            error_message: row.get(6)?,
-            created_at: row.get(7)?,
-            started_at: row.get::<_, Option<String>>(7)?.unwrap_or_default(),
-            finished_at: row.get(8)?,
-            completed_at: row.get(8)?,
-            session_description: None,
             target_app: "未知".to_string(),
-            industry: None,
+            session_description: None,
+            status: row.get(3)?,
+            success_count: row.get(4)?,
+            failed_count: row.get(5)?,
+            started_at: chrono::Local::now().format("%Y-%m-%d %H:%M:%S").to_string(),
+            finished_at: row.get(9)?,
+            created_at: row.get(8)?,
+            error_message: row.get(6)?,
+            industry: row.get(7)?,
         })
     })?;
     
@@ -506,7 +503,7 @@ pub fn get_recent_import_sessions(conn: &Connection, limit: i64) -> SqlResult<Ve
 /// 按设备ID获取导入会话
 pub fn get_import_sessions_by_device(conn: &Connection, device_id: &str, limit: i64) -> SqlResult<Vec<ImportSessionDto>> {
     let mut stmt = conn.prepare(
-        "SELECT id, batch_id, device_id, status, imported_count, failed_count, error_message, created_at, completed_at 
+        "SELECT id, batch_id, device_id, status, success_count, failed_count, error_message, industry, created_at, finished_at 
          FROM import_sessions WHERE device_id = ?1 ORDER BY created_at DESC LIMIT ?2"
     )?;
     
@@ -517,17 +514,16 @@ pub fn get_import_sessions_by_device(conn: &Connection, device_id: &str, limit: 
             session_id: id.to_string(),
             batch_id: row.get(1)?,
             device_id: row.get(2)?,
-            status: row.get(3)?,
-            imported_count: row.get(4)?,
-            failed_count: row.get(5)?,
-            error_message: row.get(6)?,
-            created_at: row.get(7)?,
-            started_at: row.get::<_, Option<String>>(7)?.unwrap_or_default(),
-            finished_at: row.get(8)?,
-            completed_at: row.get(8)?,
-            session_description: None,
             target_app: "未知".to_string(),
-            industry: None,
+            session_description: None,
+            status: row.get(3)?,
+            success_count: row.get(4)?,
+            failed_count: row.get(5)?,
+            started_at: chrono::Local::now().format("%Y-%m-%d %H:%M:%S").to_string(),
+            finished_at: row.get(9)?,
+            created_at: row.get(8)?,
+            error_message: row.get(6)?,
+            industry: row.get(7)?,
         })
     })?;
     
@@ -537,7 +533,7 @@ pub fn get_import_sessions_by_device(conn: &Connection, device_id: &str, limit: 
 /// 按批次ID获取导入会话
 pub fn get_import_sessions_by_batch(conn: &Connection, batch_id: &str, limit: i64) -> SqlResult<Vec<ImportSessionDto>> {
     let mut stmt = conn.prepare(
-        "SELECT id, batch_id, device_id, status, imported_count, failed_count, error_message, created_at, completed_at 
+        "SELECT id, batch_id, device_id, status, success_count, failed_count, error_message, industry, created_at, finished_at 
          FROM import_sessions WHERE batch_id = ?1 ORDER BY created_at DESC LIMIT ?2"
     )?;
     
@@ -548,17 +544,16 @@ pub fn get_import_sessions_by_batch(conn: &Connection, batch_id: &str, limit: i6
             session_id: id.to_string(),
             batch_id: row.get(1)?,
             device_id: row.get(2)?,
-            status: row.get(3)?,
-            imported_count: row.get(4)?,
-            failed_count: row.get(5)?,
-            error_message: row.get(6)?,
-            created_at: row.get(7)?,
-            started_at: row.get::<_, Option<String>>(7)?.unwrap_or_default(),
-            finished_at: row.get(8)?,
-            completed_at: row.get(8)?,
-            session_description: None,
             target_app: "未知".to_string(),
-            industry: None,
+            session_description: None,
+            status: row.get(3)?,
+            success_count: row.get(4)?,
+            failed_count: row.get(5)?,
+            started_at: chrono::Local::now().format("%Y-%m-%d %H:%M:%S").to_string(),
+            finished_at: row.get(9)?,
+            created_at: row.get(8)?,
+            error_message: row.get(6)?,
+            industry: row.get(7)?,
         })
     })?;
     
@@ -580,7 +575,7 @@ pub fn batch_delete_import_sessions(conn: &Connection, session_ids: &[i64]) -> S
 /// 获取失败的导入会话
 pub fn get_failed_import_sessions(conn: &Connection, limit: i64) -> SqlResult<Vec<ImportSessionDto>> {
     let mut stmt = conn.prepare(
-        "SELECT id, batch_id, device_id, status, imported_count, failed_count, error_message, created_at, completed_at 
+        "SELECT id, batch_id, device_id, status, success_count, failed_count, error_message, industry, created_at, finished_at 
          FROM import_sessions WHERE status = 'failed' ORDER BY created_at DESC LIMIT ?1"
     )?;
     
@@ -591,17 +586,16 @@ pub fn get_failed_import_sessions(conn: &Connection, limit: i64) -> SqlResult<Ve
             session_id: id.to_string(),
             batch_id: row.get(1)?,
             device_id: row.get(2)?,
-            status: row.get(3)?,
-            imported_count: row.get(4)?,
-            failed_count: row.get(5)?,
-            error_message: row.get(6)?,
-            created_at: row.get(7)?,
-            started_at: row.get::<_, Option<String>>(7)?.unwrap_or_default(),
-            finished_at: row.get(8)?,
-            completed_at: row.get(8)?,
-            session_description: None,
             target_app: "未知".to_string(),
-            industry: None,
+            session_description: None,
+            status: row.get(3)?,
+            success_count: row.get(4)?,
+            failed_count: row.get(5)?,
+            started_at: chrono::Local::now().format("%Y-%m-%d %H:%M:%S").to_string(),
+            finished_at: row.get(9)?,
+            created_at: row.get(8)?,
+            error_message: row.get(6)?,
+            industry: row.get(7)?,
         })
     })?;
     
@@ -611,7 +605,7 @@ pub fn get_failed_import_sessions(conn: &Connection, limit: i64) -> SqlResult<Ve
 /// 获取成功的导入会话
 pub fn get_successful_import_sessions(conn: &Connection, limit: i64) -> SqlResult<Vec<ImportSessionDto>> {
     let mut stmt = conn.prepare(
-        "SELECT id, batch_id, device_id, status, imported_count, failed_count, error_message, created_at, completed_at 
+        "SELECT id, batch_id, device_id, status, success_count, failed_count, error_message, industry, created_at, finished_at 
          FROM import_sessions WHERE status = 'completed' ORDER BY created_at DESC LIMIT ?1"
     )?;
     
@@ -622,17 +616,16 @@ pub fn get_successful_import_sessions(conn: &Connection, limit: i64) -> SqlResul
             session_id: id.to_string(),
             batch_id: row.get(1)?,
             device_id: row.get(2)?,
-            status: row.get(3)?,
-            imported_count: row.get(4)?,
-            failed_count: row.get(5)?,
-            error_message: row.get(6)?,
-            created_at: row.get(7)?,
-            started_at: row.get::<_, Option<String>>(7)?.unwrap_or_default(),
-            finished_at: row.get(8)?,
-            completed_at: row.get(8)?,
-            session_description: None,
             target_app: "未知".to_string(),
-            industry: None,
+            session_description: None,
+            status: row.get(3)?,
+            success_count: row.get(4)?,
+            failed_count: row.get(5)?,
+            started_at: chrono::Local::now().format("%Y-%m-%d %H:%M:%S").to_string(),
+            finished_at: row.get(9)?,
+            created_at: row.get(8)?,
+            error_message: row.get(6)?,
+            industry: row.get(7)?,
         })
     })?;
     
@@ -671,7 +664,7 @@ pub fn get_import_sessions_by_date_range(
     limit: i64
 ) -> SqlResult<Vec<ImportSessionDto>> {
     let mut stmt = conn.prepare(
-        "SELECT id, batch_id, device_id, status, imported_count, failed_count, error_message, created_at, completed_at 
+        "SELECT id, batch_id, device_id, status, success_count, failed_count, error_message, industry, created_at, finished_at 
          FROM import_sessions WHERE created_at BETWEEN ?1 AND ?2 ORDER BY created_at DESC LIMIT ?3"
     )?;
     
@@ -682,17 +675,16 @@ pub fn get_import_sessions_by_date_range(
             session_id: id.to_string(),
             batch_id: row.get(1)?,
             device_id: row.get(2)?,
-            status: row.get(3)?,
-            imported_count: row.get(4)?,
-            failed_count: row.get(5)?,
-            error_message: row.get(6)?,
-            created_at: row.get(7)?,
-            started_at: row.get::<_, Option<String>>(7)?.unwrap_or_default(),
-            finished_at: row.get(8)?,
-            completed_at: row.get(8)?,
-            session_description: None,
             target_app: "未知".to_string(),
-            industry: None,
+            session_description: None,
+            status: row.get(3)?,
+            success_count: row.get(4)?,
+            failed_count: row.get(5)?,
+            started_at: chrono::Local::now().format("%Y-%m-%d %H:%M:%S").to_string(),
+            finished_at: row.get(9)?,
+            created_at: row.get(8)?,
+            error_message: row.get(6)?,
+            industry: row.get(7)?,
         })
     })?;
     

@@ -1,4 +1,4 @@
-import React from 'react';
+﻿import React from 'react';
 import { Modal, Space, Button } from 'antd';
 import { ExclamationCircleOutlined } from '@ant-design/icons';
 import { TxtImportRecordDto } from '../../../services/txtImportRecordService';
@@ -17,7 +17,7 @@ export function confirmBulkDeleteDialog(
         <ul style={{ paddingLeft: 18, marginBottom: 12 }}>
           {selectedRecords.slice(0, 5).map((record) => (
             <li key={record.id}>
-              {record.file_name} ({record.imported_numbers} 个号码)
+              {record.fileName} ({record.importedNumbers} 个号码)
             </li>
           ))}
           {selectedRecords.length > 5 && (

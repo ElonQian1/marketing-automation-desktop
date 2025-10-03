@@ -1,25 +1,22 @@
 import { invoke } from '@tauri-apps/api/core';
 
-// ===== TXT文件导入记录类型定义 =====
+// ===== TXT文件导入记录类型定义 (V2.0) =====
 
 export interface TxtImportRecordDto {
   id: number;
-  file_path: string;
-  file_name: string;
-  file_size: number;
-  file_modified_at?: string | null;
-  total_numbers: number;
-  successful_imports: number;
-  duplicate_numbers: number;
-  invalid_numbers: number;
-  import_status: 'success' | 'failed' | 'partial' | 'pending';
-  // 向后兼容的别名字段（与后端一致）
-  imported_numbers: number; // = successful_imports
-  status: 'success' | 'failed' | 'partial' | 'pending'; // = import_status
-  error_message?: string | null;
-  created_at: string;
-  imported_at?: string | null;
-  updated_at?: string | null;
+  filePath: string;           // camelCase from backend
+  fileName: string;
+  fileSize: number | null;
+  // V2.0 字段 (camelCase)
+  totalLines: number;         // 文件总行数
+  validNumbers: number;       // 有效号码数
+  importedNumbers: number;    // 成功导入数
+  duplicateNumbers: number;   // 重复号码数
+  invalidNumbers: number;     // 无效号码数
+  status: 'success' | 'empty' | 'all_duplicates' | 'partial' | 'failed';
+  errorMessage?: string | null;
+  createdAt: string;
+  importedAt?: string | null;
   industry?: string | null;
   notes?: string | null;
 }
@@ -32,8 +29,8 @@ export interface TxtImportRecordList {
 }
 
 export interface DeleteTxtImportRecordResult {
-  record_id: number;
-  archived_number_count: number;
+  recordId: number;              // camelCase (来自后端)
+  archivedNumberCount: number;   // camelCase (来自后端)
   success: boolean;
 }
 
@@ -63,8 +60,8 @@ export async function deleteTxtImportRecord(
   archiveNumbers: boolean = false
 ): Promise<DeleteTxtImportRecordResult> {
   return invoke<DeleteTxtImportRecordResult>('delete_txt_import_record_cmd', {
-    record_id: recordId,
-    archive_numbers: archiveNumbers,
+    recordId,           // Tauri 2.0 使用 camelCase
+    archiveNumbers,     // Tauri 2.0 使用 camelCase
   });
 }
 
@@ -92,7 +89,7 @@ export async function bulkDeleteTxtImportRecords(
     const recordId = recordIds[index];
     if (result.status === 'fulfilled') {
       succeeded++;
-      archivedNumberCount += result.value.archived_number_count;
+      archivedNumberCount += result.value.archivedNumberCount;
     } else {
       failed.push({
         recordId,

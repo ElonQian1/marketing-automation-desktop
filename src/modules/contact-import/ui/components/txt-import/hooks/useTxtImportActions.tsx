@@ -1,4 +1,4 @@
-import React from 'react';
+﻿import React from 'react';
 import { message } from 'antd';
 import { TxtImportRecordDto, bulkDeleteTxtImportRecords, deleteTxtImportRecord } from '../../../services/txtImportRecordService';
 import { confirmBulkDeleteDialog } from '../logic/ConfirmBulkDeleteDialog';
@@ -25,10 +25,10 @@ export function useTxtImportActions({
       const result = await deleteTxtImportRecord(record.id, archiveNumbers);
       if (result.success) {
         const actionText = archiveNumbers ? '归档并删除' : '删除';
-        const archiveInfo = archiveNumbers && result.archived_number_count > 0
-          ? `，恢复号码 ${result.archived_number_count} 个为未导入`
+        const archiveInfo = archiveNumbers && result.archivedNumberCount > 0
+          ? `，恢复号码 ${result.archivedNumberCount} 个为未导入`
           : '';
-        message.success(`已${actionText}记录"${record.file_name}"${archiveInfo}`);
+        message.success(`已${actionText}记录"${record.fileName}"${archiveInfo}`);
         await loadRecords();
         onDataRefresh?.();
       } else {

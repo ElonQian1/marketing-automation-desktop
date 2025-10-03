@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+﻿import React, { useState } from 'react';
 import { Button, Card, Descriptions, Space, Typography, Alert, Divider, message } from 'antd';
 import { FileTextOutlined, DatabaseOutlined } from '@ant-design/icons';
 import { selectTxtFile } from '../utils/dialog';

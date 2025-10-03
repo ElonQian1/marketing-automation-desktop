@@ -10,7 +10,8 @@ pub fn create_txt_import_record(
     conn: &Connection,
     file_path: &str,
     file_name: &str,
-    total_numbers: i64,
+    total_lines: i64,
+    valid_numbers: i64,
     imported_numbers: i64,
     duplicate_numbers: i64,
     status: &str,
@@ -18,23 +19,24 @@ pub fn create_txt_import_record(
 ) -> SqliteResult<i64> {
     let mut stmt = conn.prepare(
         "INSERT INTO txt_import_records 
-         (file_path, file_name, total_numbers, successful_imports, duplicate_numbers, import_status, error_message, imported_at)
-         VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7, datetime('now'))
+         (file_path, file_name, total_lines, valid_numbers, imported_numbers, duplicate_numbers, status, error_message, imported_at)
+         VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7, ?8, datetime('now'))
          ON CONFLICT(file_path) DO UPDATE SET
            file_name = excluded.file_name,
-           total_numbers = excluded.total_numbers,
-           successful_imports = excluded.successful_imports,
+           total_lines = excluded.total_lines,
+           valid_numbers = excluded.valid_numbers,
+           imported_numbers = excluded.imported_numbers,
            duplicate_numbers = excluded.duplicate_numbers,
-           import_status = excluded.import_status,
+           status = excluded.status,
            error_message = excluded.error_message,
-           imported_at = datetime('now'),
-           updated_at = datetime('now')"
+           imported_at = datetime('now')"
     )?;
     
     stmt.execute(params![
         file_path,
         file_name,
-        total_numbers,
+        total_lines,
+        valid_numbers,
         imported_numbers,
         duplicate_numbers,
         status,
@@ -55,37 +57,30 @@ pub fn find_txt_import_record_by_path(
     file_path: &str,
 ) -> SqliteResult<Option<TxtImportRecordDto>> {
     let mut stmt = conn.prepare(
-        "SELECT id, file_path, file_name, COALESCE(file_size, 0) as file_size, file_modified_at,
-                total_numbers, successful_imports, duplicate_numbers, COALESCE(invalid_numbers, 0) as invalid_numbers,
-                import_status, error_message, created_at, imported_at, updated_at,
+        "SELECT id, file_path, file_name, COALESCE(file_size, 0) as file_size,
+                total_lines, valid_numbers, imported_numbers, duplicate_numbers, COALESCE(invalid_numbers, 0) as invalid_numbers,
+                status, error_message, created_at, imported_at,
                 industry, notes
          FROM txt_import_records WHERE file_path = ?1"
     )?;
     
     let result = stmt.query_row(params![file_path], |row| {
-        let successful_imports: i64 = row.get(6)?;
-        let import_status: String = row.get(9)?;
-        
         Ok(TxtImportRecordDto {
             id: row.get(0)?,
             file_path: row.get(1)?,
             file_name: row.get(2)?,
             file_size: Some(row.get(3)?),
-            file_modified_at: row.get(4)?,
-            total_numbers: row.get(5)?,
-            successful_imports,
+            total_lines: row.get(4)?,
+            valid_numbers: row.get(5)?,
+            imported_numbers: row.get(6)?,
             duplicate_numbers: row.get(7)?,
             invalid_numbers: row.get(8)?,
-            import_status: import_status.clone(),
+            status: row.get(9)?,
             error_message: row.get(10)?,
             created_at: row.get(11)?,
             imported_at: row.get(12)?,
-            updated_at: row.get(13)?,
-            industry: row.get(14)?,
-            notes: row.get(15)?,
-            // 兼容旧字段
-            imported_numbers: successful_imports,
-            status: import_status,
+            industry: row.get(13)?,
+            notes: row.get(14)?,
         })
     });
     
@@ -106,7 +101,7 @@ pub fn list_txt_import_records(
     // 获取总数
     let total = if let Some(status) = status_filter {
         conn.query_row(
-            "SELECT COUNT(*) FROM txt_import_records WHERE import_status = ?1",
+            "SELECT COUNT(*) FROM txt_import_records WHERE status = ?1",
             params![status],
             |row| row.get(0)
         )?
@@ -116,15 +111,15 @@ pub fn list_txt_import_records(
     
     // 获取数据
     let query = if status_filter.is_some() {
-        "SELECT id, file_path, file_name, COALESCE(file_size, 0) as file_size, file_modified_at,
-                total_numbers, successful_imports, duplicate_numbers, COALESCE(invalid_numbers, 0) as invalid_numbers,
-                import_status, error_message, created_at, imported_at, updated_at,
+        "SELECT id, file_path, file_name, COALESCE(file_size, 0) as file_size,
+                total_lines, valid_numbers, imported_numbers, duplicate_numbers, COALESCE(invalid_numbers, 0) as invalid_numbers,
+                status, error_message, created_at, imported_at,
                 industry, notes
-         FROM txt_import_records WHERE import_status = ?1 ORDER BY created_at DESC LIMIT ?2 OFFSET ?3"
+         FROM txt_import_records WHERE status = ?1 ORDER BY created_at DESC LIMIT ?2 OFFSET ?3"
     } else {
-        "SELECT id, file_path, file_name, COALESCE(file_size, 0) as file_size, file_modified_at,
-                total_numbers, successful_imports, duplicate_numbers, COALESCE(invalid_numbers, 0) as invalid_numbers,
-                import_status, error_message, created_at, imported_at, updated_at,
+        "SELECT id, file_path, file_name, COALESCE(file_size, 0) as file_size,
+                total_lines, valid_numbers, imported_numbers, duplicate_numbers, COALESCE(invalid_numbers, 0) as invalid_numbers,
+                status, error_message, created_at, imported_at,
                 industry, notes
          FROM txt_import_records ORDER BY created_at DESC LIMIT ?1 OFFSET ?2"
     };
@@ -133,29 +128,22 @@ pub fn list_txt_import_records(
     
     // 统一的闭包处理函数
     let row_mapper = |row: &rusqlite::Row| -> SqliteResult<TxtImportRecordDto> {
-        let successful_imports: i64 = row.get(6)?;
-        let import_status: String = row.get(9)?;
-        
         Ok(TxtImportRecordDto {
             id: row.get(0)?,
             file_path: row.get(1)?,
             file_name: row.get(2)?,
             file_size: Some(row.get(3)?),
-            file_modified_at: row.get(4)?,
-            total_numbers: row.get(5)?,
-            successful_imports,
+            total_lines: row.get(4)?,
+            valid_numbers: row.get(5)?,
+            imported_numbers: row.get(6)?,
             duplicate_numbers: row.get(7)?,
             invalid_numbers: row.get(8)?,
-            import_status: import_status.clone(),
+            status: row.get(9)?,
             error_message: row.get(10)?,
             created_at: row.get(11)?,
             imported_at: row.get(12)?,
-            updated_at: row.get(13)?,
-            industry: row.get(14)?,
-            notes: row.get(15)?,
-            // 兼容旧字段
-            imported_numbers: successful_imports,
-            status: import_status,
+            industry: row.get(13)?,
+            notes: row.get(14)?,
         })
     };
     

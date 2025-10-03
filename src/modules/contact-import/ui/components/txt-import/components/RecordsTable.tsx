@@ -1,4 +1,4 @@
-import React, { useMemo, useState, useEffect } from 'react';
+﻿import React, { useMemo, useState, useEffect } from 'react';
 import { Table, Typography, Space, Tag, Popover, Checkbox, Button, message } from 'antd';
 import { SettingOutlined } from '@ant-design/icons';
 import { ColumnsType } from 'antd/es/table';
@@ -37,7 +37,7 @@ export const RecordsTable: React.FC<RecordsTableProps> = ({
   onArchive,
   onViewError,
 }) => {
-  const allColumns = ['file_name','total_numbers','imported_numbers','duplicate_numbers','status','created_at','actions'] as const;
+  const allColumns = ['fileName','validNumbers','importedNumbers','duplicateNumbers','status','createdAt','actions'] as const;
   type ColKey = typeof allColumns[number];
   const [visibleCols, setVisibleCols] = useState<Record<ColKey, boolean>>(() => {
     try {
@@ -45,12 +45,12 @@ export const RecordsTable: React.FC<RecordsTableProps> = ({
       if (raw) return JSON.parse(raw);
     } catch {}
     return {
-      file_name: true,
-      total_numbers: true,
-      imported_numbers: true,
-      duplicate_numbers: true,
+      fileName: true,
+      validNumbers: true,
+      importedNumbers: true,
+      duplicateNumbers: true,
       status: true,
-      created_at: true,
+      createdAt: true,
       actions: true,
     };
   });
@@ -65,12 +65,12 @@ export const RecordsTable: React.FC<RecordsTableProps> = ({
       if (raw) return JSON.parse(raw);
     } catch {}
     return {
-      file_name: '文件名',
-      total_numbers: '总数',
-      imported_numbers: '成功',
-      duplicate_numbers: '重复',
+      fileName: '文件名',
+      validNumbers: '总数',
+      importedNumbers: '成功',
+      duplicateNumbers: '重复',
       status: '状态',
-      created_at: '导入时间',
+      createdAt: '导入时间',
       actions: '操作',
     };
   });
@@ -80,9 +80,9 @@ export const RecordsTable: React.FC<RecordsTableProps> = ({
   }, [titleMap]);
   const columns: ColumnsType<TxtImportRecordDto> = useMemo(() => [
     {
-      title: titleMap.file_name,
-      dataIndex: 'file_name',
-      key: 'file_name',
+      title: titleMap.fileName,
+      dataIndex: 'fileName',
+      key: 'fileName',
       width: 200,
       render: (fileName: string) => (
         <Space>
@@ -94,17 +94,17 @@ export const RecordsTable: React.FC<RecordsTableProps> = ({
       ),
     },
     {
-      title: titleMap.total_numbers,
-      dataIndex: 'total_numbers',
-      key: 'total_numbers',
+      title: titleMap.validNumbers,
+      dataIndex: 'validNumbers',
+      key: 'validNumbers',
       width: 80,
       align: 'center' as const,
       render: (count: number) => <Text>{count}</Text>,
     },
     {
-      title: titleMap.imported_numbers,
-      dataIndex: 'imported_numbers',
-      key: 'imported_numbers',
+      title: titleMap.importedNumbers,
+      dataIndex: 'importedNumbers',
+      key: 'importedNumbers',
       width: 80,
       align: 'center' as const,
       render: (count: number) => (
@@ -112,8 +112,8 @@ export const RecordsTable: React.FC<RecordsTableProps> = ({
       ),
     },
     {
-      title: titleMap.duplicate_numbers,
-      dataIndex: 'duplicate_numbers',
+      title: titleMap.duplicateNumbers,
+      dataIndex: 'duplicateNumbers',
       key: 'duplicate_numbers',
       width: 80,
       align: 'center' as const,
@@ -140,8 +140,8 @@ export const RecordsTable: React.FC<RecordsTableProps> = ({
       },
     },
     {
-      title: titleMap.created_at,
-      dataIndex: 'created_at',
+      title: titleMap.createdAt,
+      dataIndex: 'createdAt',
       key: 'created_at',
       width: 160,
       render: (time: string) => (
@@ -166,12 +166,12 @@ export const RecordsTable: React.FC<RecordsTableProps> = ({
   const filteredColumns = useMemo(() => columns.filter((c) => visibleCols[(c.key as ColKey) ?? 'actions'] !== false), [columns, visibleCols]);
 
   const defaultVisibleCols: Record<ColKey, boolean> = {
-    file_name: true,
-    total_numbers: true,
-    imported_numbers: true,
-    duplicate_numbers: true,
+    fileName: true,
+    validNumbers: true,
+    importedNumbers: true,
+    duplicateNumbers: true,
     status: true,
-    created_at: true,
+    createdAt: true,
     actions: true,
   };
 
@@ -198,7 +198,7 @@ export const RecordsTable: React.FC<RecordsTableProps> = ({
       <div style={{ textAlign: 'right', marginTop: 8 }}>
         <Space>
           <Button size="small" onClick={() => { setVisibleCols(defaultVisibleCols); setTitleMap({
-            file_name: '文件名', total_numbers: '总数', imported_numbers: '成功', duplicate_numbers: '重复', status: '状态', created_at: '导入时间', actions: '操作'
+            fileName: '文件名', validNumbers: '总数', importedNumbers: '成功', duplicateNumbers: '重复', status: '状态', createdAt: '导入时间', actions: '操作'
           }); }}>重置为默认</Button>
           <Button size="small" type="primary" onClick={() => {
             try {
@@ -218,7 +218,7 @@ export const RecordsTable: React.FC<RecordsTableProps> = ({
   const rowSelection = {
     selectedRowKeys,
     onChange: setSelectedRowKeys,
-    getCheckboxProps: (record: TxtImportRecordDto) => ({ name: record.file_name }),
+    getCheckboxProps: (record: TxtImportRecordDto) => ({ name: record.fileName }),
   };
 
   return (

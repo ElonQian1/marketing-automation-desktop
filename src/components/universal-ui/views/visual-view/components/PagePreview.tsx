@@ -6,6 +6,7 @@ import { analyzeAppAndPageInfo } from '../utils/appAnalysis';
 import { convertVisualToUIElement } from '../utils/elementTransform';
 import type { UIElement } from '../../../../../api/universalUIAPI';
 import { parseXmlViewport, computeContainRect, VerticalAlign } from '../utils/screenGeometry';
+import { createCoordinateTransform, type CoordinateCalibration, createBoundsTransform } from '../utils/coordinateTransform';
 
 const { Title } = Typography;
 
@@ -39,6 +40,10 @@ export interface PagePreviewProps {
   verticalAlign?: VerticalAlign;
   // 🆕 覆盖层独立缩放：仅对叠加层应用，保持截图不变
   overlayScale?: number; // 0.2 - 3.0
+  // 🆕 方案 B+C: 校准参数（设备/应用特定）
+  calibration?: CoordinateCalibration;
+  // 🆕 校准回调：当检测到需要自动校准时通知父组件
+  onCalibrationSuggested?: (overlayScale: number) => void;
 }
 
 export const PagePreview: React.FC<PagePreviewProps> = ({
@@ -63,6 +68,8 @@ export const PagePreview: React.FC<PagePreviewProps> = ({
   , offsetY = 0
   , verticalAlign = 'center'
   , overlayScale = 1.0
+  , calibration
+  , onCalibrationSuggested
 }) => {
   const [imgLoaded, setImgLoaded] = React.useState(false);
   const [imgError, setImgError] = React.useState<string | null>(null);
@@ -74,29 +81,58 @@ export const PagePreview: React.FC<PagePreviewProps> = ({
     setImgNatural(null);
   }, [screenshotUrl]);
   
-  // 🔍 坐标系诊断：检测 XML 视口与截图尺寸的差异
+  // 🔍 坐标系诊断：使用新的坐标转换模块
   React.useEffect(() => {
     if (!imgNatural || !xmlContent) return;
     const vp = parseXmlViewport(xmlContent);
     if (!vp) return;
     
-    const scaleX = imgNatural.w / vp.width;
-    const scaleY = imgNatural.h / vp.height;
-    const avgScale = (scaleX + scaleY) / 2;
-    const scaleDiff = Math.abs(avgScale - 1.0);
+    // 临时计算容器尺寸用于诊断（避免依赖 scaledWidth/scaledHeight）
+    const maxPreviewWidthTemp = Math.min(window.innerWidth * 0.5, 600);
+    const availableWidthTemp = maxPreviewWidthTemp - 40;
+    const maxDeviceWidthTemp = availableWidthTemp - deviceFramePadding * 2 - 32;
+    let scaleTemp = maxDeviceWidthTemp / vp.width;
+    scaleTemp = Math.max(0.2, Math.min(2.0, scaleTemp));
+    const scaledWidthTemp = vp.width * scaleTemp;
+    const scaledHeightTemp = vp.height * scaleTemp;
     
-    console.group('🔍 PagePreview 坐标系诊断');
-    console.log('XML 视口尺寸:', vp.width, 'x', vp.height);
-    console.log('截图实际尺寸:', imgNatural.w, 'x', imgNatural.h);
-    console.log('X 轴比例:', scaleX.toFixed(4), '| Y 轴比例:', scaleY.toFixed(4));
-    console.log('平均比例差异:', avgScale.toFixed(4));
-    if (scaleDiff > 0.05) {
-      console.warn('⚠️ 检测到显著差异 (>5%)，建议 overlayScale:', avgScale.toFixed(3));
+    // 创建诊断性转换（即使没有 calibration 也可以获取诊断信息）
+    const transform = createCoordinateTransform({
+      xmlViewportW: vp.width,
+      xmlViewportH: vp.height,
+      screenshotW: imgNatural.w,
+      screenshotH: imgNatural.h,
+      containerW: scaledWidthTemp,
+      containerH: scaledHeightTemp,
+      calibration,
+      overlayScale,
+      offsetX,
+      offsetY,
+      verticalAlign
+    });
+    
+    const { diagnostics } = transform;
+    const scaleDiff = Math.abs(diagnostics.scaleRatio.y - 1.0);
+    
+    console.group('🔍 PagePreview 坐标系诊断（v2）');
+    console.log('XML 视口尺寸:', diagnostics.xmlViewport.w, 'x', diagnostics.xmlViewport.h);
+    console.log('截图实际尺寸:', diagnostics.screenshot.w, 'x', diagnostics.screenshot.h);
+    console.log('X 轴比例:', diagnostics.scaleRatio.x.toFixed(4), '| Y 轴比例:', diagnostics.scaleRatio.y.toFixed(4));
+    console.log('校准已应用:', diagnostics.calibrationApplied);
+    if (diagnostics.calibration) {
+      console.log('校准参数:', diagnostics.calibration);
+    }
+    if (scaleDiff > 0.05 && !diagnostics.calibrationApplied) {
+      const suggested = parseFloat(diagnostics.scaleRatio.y.toFixed(3));
+      console.warn('⚠️ 检测到显著差异 (>5%)，建议 overlayScale:', suggested);
+      onCalibrationSuggested?.(suggested);
+    } else if (diagnostics.calibrationApplied) {
+      console.log('✅ 统一坐标系已激活（方案 B）');
     } else {
       console.log('✅ 视口与截图尺寸一致');
     }
     console.groupEnd();
-  }, [imgNatural, xmlContent]);
+  }, [imgNatural, xmlContent, calibration, overlayScale, offsetX, offsetY, verticalAlign, deviceFramePadding, onCalibrationSuggested]);
   if (finalElements.length === 0) {
     return (
       <div style={{width:'100%',display:'flex',alignItems:'center',justifyContent:'center',border:'1px solid #d1d5db',borderRadius:8,background:'#f9fafb'}}>
@@ -198,24 +234,35 @@ export const PagePreview: React.FC<PagePreviewProps> = ({
               )}
             {filteredElements.map((element) => {
               const category = categories.find((cat) => cat.name === element.category);
-              // 在容器内计算图片绘制区域（与上面 img 的 left/top/width/height 保持一致）
-              const contW = scaledWidth; const contH = scaledHeight;
-              const rect = imgNatural ? computeContainRect(contW, contH, imgNatural.w, imgNatural.h, verticalAlign) : { left: 0, top: 0, width: contW, height: contH };
-
-              // 将 XML 坐标映射到绘制区域内（以 XML 视口 baseW/baseH 归一化）
-              // 叠加层独立缩放：以绘制矩形中心为缩放中心，仅对叠加应用
-              const cx = rect.left + rect.width / 2;
-              const cy = rect.top + rect.height / 2;
-              const baseLeft = rect.left + (element.position.x / baseW) * rect.width;
-              const baseTop = rect.top + (element.position.y / baseH) * rect.height;
-              const baseWScaled = Math.max((element.position.width / baseW) * rect.width, 1);
-              const baseHScaled = Math.max((element.position.height / baseH) * rect.height, 1);
-              const scaledLeft = cx + (baseLeft - cx) * overlayScale;
-              const scaledTop = cy + (baseTop - cy) * overlayScale;
-              const elementLeft = scaledLeft + offsetX;
-              const elementTop = scaledTop + offsetY;
-              const elementWidth = Math.max(baseWScaled * overlayScale, 1);
-              const elementHeight = Math.max(baseHScaled * overlayScale, 1);
+              
+              // 🆕 使用统一的坐标转换管道（方案 B）
+              if (!imgNatural) return null; // 等待截图加载
+              
+              const transform = createCoordinateTransform({
+                xmlViewportW: baseW,
+                xmlViewportH: baseH,
+                screenshotW: imgNatural.w,
+                screenshotH: imgNatural.h,
+                containerW: scaledWidth,
+                containerH: scaledHeight,
+                calibration,
+                overlayScale,
+                offsetX,
+                offsetY,
+                verticalAlign
+              });
+              
+              // 转换元素的左上角和右下角
+              const topLeft = transform.xmlToOverlay(element.position.x, element.position.y);
+              const bottomRight = transform.xmlToOverlay(
+                element.position.x + element.position.width,
+                element.position.y + element.position.height
+              );
+              
+              const elementLeft = topLeft.x;
+              const elementTop = topLeft.y;
+              const elementWidth = Math.max(bottomRight.x - topLeft.x, 1);
+              const elementHeight = Math.max(bottomRight.y - topLeft.y, 1);
               const displayState = selectionManager.getElementDisplayState(element.id);
 
               const originalElement = originalUIElements.find((orig) => orig.id === element.id);

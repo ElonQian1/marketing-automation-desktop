@@ -1,4 +1,4 @@
-import React, { useMemo } from 'react';
+﻿import React, { useMemo } from 'react';
 import { Space, Select, Input, Switch, Button } from 'antd';
 import type { BatchFilterState } from '../types';
 import type { VcfBatchList } from '../../services/contactNumberService';

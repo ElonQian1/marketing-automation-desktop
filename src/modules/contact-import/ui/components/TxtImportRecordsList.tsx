@@ -137,50 +137,50 @@ export const TxtImportRecordsList: React.FC<TxtImportRecordsListProps> = ({ refr
             >
               <Space direction="vertical" style={{ width: '100%' }} size="small">
                 {/* 文件名 */}
-                <Tooltip title={record.file_path}>
+                <Tooltip title={record.filePath}>
                   <Space>
                     <FileTextOutlined style={{ fontSize: '18px', color: '#1890ff' }} />
                     <Text strong ellipsis style={{ maxWidth: '150px' }}>
-                      {record.file_name}
+                      {record.fileName}
                     </Text>
                   </Space>
                 </Tooltip>
 
                 {/* 状态标签 */}
-                <Tag color={getStatusColor(record.import_status)} icon={getStatusIcon(record.import_status)}>
-                  {getStatusText(record.import_status)}
+                <Tag color={getStatusColor(record.status)} icon={getStatusIcon(record.status)}>
+                  {getStatusText(record.status)}
                 </Tag>
 
                 {/* 统计信息 */}
                 <Space direction="vertical" size={2} style={{ width: '100%' }}>
                   <Text type="secondary" style={{ fontSize: '12px' }}>
-                    总号码: <Text strong>{record.total_numbers}</Text>
+                    总号码: <Text strong>{record.validNumbers}</Text>
                   </Text>
                   <Text type="secondary" style={{ fontSize: '12px' }}>
-                    成功导入: <Text strong style={{ color: '#52c41a' }}>{record.successful_imports}</Text>
+                    成功导入: <Text strong style={{ color: '#52c41a' }}>{record.importedNumbers}</Text>
                   </Text>
                   <Text type="secondary" style={{ fontSize: '12px' }}>
-                    重复号码: <Text strong style={{ color: '#faad14' }}>{record.duplicate_numbers}</Text>
+                    重复号码: <Text strong style={{ color: '#faad14' }}>{record.duplicateNumbers}</Text>
                   </Text>
-                  {record.invalid_numbers > 0 && (
+                  {record.invalidNumbers > 0 && (
                     <Text type="secondary" style={{ fontSize: '12px' }}>
-                      无效号码: <Text strong style={{ color: '#ff4d4f' }}>{record.invalid_numbers}</Text>
+                      无效号码: <Text strong style={{ color: '#ff4d4f' }}>{record.invalidNumbers}</Text>
                     </Text>
                   )}
                 </Space>
 
                 {/* 导入时间 */}
-                {record.imported_at && (
+                {record.importedAt && (
                   <Text type="secondary" style={{ fontSize: '11px' }}>
-                    {new Date(record.imported_at).toLocaleString('zh-CN')}
+                    {new Date(record.importedAt).toLocaleString('zh-CN')}
                   </Text>
                 )}
 
                 {/* 错误信息 */}
-                {record.error_message && (
-                  <Tooltip title={record.error_message}>
+                {record.errorMessage && (
+                  <Tooltip title={record.errorMessage}>
                     <Text type="danger" style={{ fontSize: '11px' }} ellipsis>
-                      错误: {record.error_message}
+                      错误: {record.errorMessage}
                     </Text>
                   </Tooltip>
                 )}
