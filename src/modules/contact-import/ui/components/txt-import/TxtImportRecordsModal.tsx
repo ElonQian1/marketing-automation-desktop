@@ -2,9 +2,9 @@ import React from 'react';
 import { Modal, Space, Button, Alert, Typography } from 'antd';
 import { FileTextOutlined, ReloadOutlined, InboxOutlined } from '@ant-design/icons';
 import { TxtImportRecordDto } from '../../services/txtImportRecordService';
-import { useTxtImportRecords } from './hooks/useTxtImportRecords';
-import { useTxtImportActions } from './hooks/useTxtImportActions';
-import { RecordsTable } from './components/RecordsTable';
+import { useTxtImportRecords } from './hooks/useTxtImportRecords.tsx';
+import { useTxtImportActions } from './hooks/useTxtImportActions.tsx';
+import { RecordsTable } from './components';
 
 const { Text } = Typography;
 
@@ -122,7 +122,7 @@ export const TxtImportRecordsManager: React.FC<TxtImportRecordsManagerProps> = (
         <RecordsTable
           records={records}
           loading={loading}
-          pagination={pagination}
+          pagination={{ ...pagination, total }}
           selectedRowKeys={selectedRowKeys}
           setSelectedRowKeys={setSelectedRowKeys}
           onChange={handleTableChange}

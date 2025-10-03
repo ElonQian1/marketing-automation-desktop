@@ -11,14 +11,6 @@ mod infra;
 mod screenshot_service;
 mod new_backend;
 pub mod xml_judgment_service;
-            cleanup_database_cmd,es;
-mod commands;
-mod application;
-mod domain;
-mod infra;
-mod screenshot_service;
-mod new_backend;
-pub mod xml_judgment_service;
 
 // Universal UI Finder 模块桥接
 // 注意：universal-ui-finder模块位于src/modules/，我们通过services层桥接

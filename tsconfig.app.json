@@ -55,8 +55,14 @@
     // 智能导航查找演示
     "src/components/smart-navigation-finder/**",
     "src/pages/SmartNavigationTestPage.tsx",
-    // 循环拖拽实验模块（当前未纳入主流程）
+  // 循环拖拽实验模块（当前未纳入主流程）
     "src/modules/loop-drag-integration/**",
+  // 排除 txt-import hooks 目录下的所有 .ts（仅编译 .tsx 实现）
+  "src/modules/contact-import/ui/components/txt-import/hooks/**/*.ts",
+  // 排除重复的 .ts 符号占位文件（存在同名 .tsx 实现）
+  "src/modules/contact-import/ui/components/txt-import/logic/confirmBulkDelete.ts",
+  // 排除旧的单体实现（避免与新模块重复导出/类型冲突）
+  "src/modules/contact-import/ui/components/TxtImportRecordsManager.tsx",
     // 统一视图演示（示例数据，不参与本轮验证）
     "src/components/unified-view/**",
     // ADB 授权向导（未纳入本轮工作）

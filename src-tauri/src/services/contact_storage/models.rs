@@ -58,6 +58,10 @@ pub struct ContactNumberStatsRaw {
     pub total: i64,
     pub unclassified: i64,
     pub not_imported: i64,
+    pub used: i64,
+    pub unused: i64,
+    pub vcf_generated: i64,
+    pub imported: i64,
     pub per_industry: std::collections::HashMap<String, i64>,
 }
 
@@ -232,6 +236,7 @@ pub struct AllocationResultDto {
     pub number_count: i64,
     pub number_ids: Vec<i64>,
     pub session_id: i64, // 新建的 pending 会话ID
+    pub allocated_numbers: Vec<ContactNumberDto>, // 添加分配的号码详情
 }
 
 // 会话回滚结果

@@ -80,7 +80,13 @@ pub fn list_import_session_events(
             session_id: row.get(1)?,
             event_type: row.get(2)?,
             event_data: row.get(3)?,
-            created_at: row.get(4)?,
+            created_at: row.get::<_, String>(4)?.clone(),
+            occurred_at: row.get::<_, String>(4)?,
+            device_id: None,
+            status: None,
+            imported_count: None,
+            failed_count: None,
+            error_message: None,
         })
     })?;
 
@@ -128,7 +134,8 @@ pub fn list_import_sessions(
     let total_sql = format!("SELECT COUNT(*) FROM import_sessions{}", where_sql);
     let total: i64 = {
         let mut stmt = conn.prepare(&total_sql)?;
-        stmt.query_row(&params_list.iter().map(|s| s.as_str()).collect::<Vec<_>>(), |row| row.get(0))?
+        let params_refs: Vec<&dyn rusqlite::ToSql> = params_list.iter().map(|s| s as &dyn rusqlite::ToSql).collect();
+        stmt.query_row(&params_refs[..], |row| row.get(0))?
     };
 
     let list_sql = format!(
@@ -142,18 +149,25 @@ pub fn list_import_sessions(
     list_params.push(offset.to_string());
 
     let mut stmt = conn.prepare(&list_sql)?;
-    let rows = stmt.query_map(&list_params.iter().map(|s| s.as_str()).collect::<Vec<_>>(), |row| {
+    let list_params_refs: Vec<&dyn rusqlite::ToSql> = list_params.iter().map(|s| s as &dyn rusqlite::ToSql).collect();
+    let rows = stmt.query_map(&list_params_refs[..], |row| {
+        let id: i64 = row.get(0)?;
         Ok(ImportSessionDto {
-            id: row.get(0)?,
+            id,
+            session_id: id.to_string(),
             batch_id: row.get(1)?,
             device_id: row.get(2)?,
+            target_app: "未知".to_string(),
+            session_description: None,
             status: row.get(3)?,
             imported_count: row.get(4)?,
             failed_count: row.get(5)?,
-            error_message: row.get(6)?,
-            industry: row.get(7)?,
+            started_at: chrono::Local::now().format("%Y-%m-%d %H:%M:%S").to_string(),
+            finished_at: None,
             created_at: row.get(8)?,
             completed_at: row.get(9)?,
+            error_message: row.get(6)?,
+            industry: row.get(7)?,
         })
     })?;
 
@@ -349,40 +363,64 @@ pub fn get_import_session_stats(conn: &Connection, device_id: Option<&str>) -> S
     let total_sessions: i64 = {
         let sql = format!("SELECT COUNT(*) FROM import_sessions{}", where_clause);
         let mut stmt = conn.prepare(&sql)?;
-        stmt.query_row(&params[..], |row| row.get(0))?
+        if let Some(device) = device_id {
+            stmt.query_row([device], |row| row.get(0))?
+        } else {
+            stmt.query_row([], |row| row.get(0))?
+        }
     };
 
     let pending_sessions: i64 = {
         let sql = format!("SELECT COUNT(*) FROM import_sessions{} AND status = 'pending'", 
                          if device_id.is_some() { where_clause } else { " WHERE status = 'pending'" });
         let mut stmt = conn.prepare(&sql)?;
-        stmt.query_row(&params[..], |row| row.get(0))?
+        if let Some(device) = device_id {
+            stmt.query_row([device], |row| row.get(0))?
+        } else {
+            stmt.query_row([], |row| row.get(0))?
+        }
     };
 
     let successful_sessions: i64 = {
         let sql = format!("SELECT COUNT(*) FROM import_sessions{} AND status = 'success'", 
                          if device_id.is_some() { where_clause } else { " WHERE status = 'success'" });
         let mut stmt = conn.prepare(&sql)?;
-        stmt.query_row(&params[..], |row| row.get(0))?
+        if let Some(device) = device_id {
+            stmt.query_row([device], |row| row.get(0))?
+        } else {
+            stmt.query_row([], |row| row.get(0))?
+        }
     };
 
     let failed_sessions: i64 = {
         let sql = format!("SELECT COUNT(*) FROM import_sessions{} AND status = 'failed'", 
                          if device_id.is_some() { where_clause } else { " WHERE status = 'failed'" });
         let mut stmt = conn.prepare(&sql)?;
-        stmt.query_row(&params[..], |row| row.get(0))?
+        if let Some(device) = device_id {
+            stmt.query_row([device], |row| row.get(0))?
+        } else {
+            stmt.query_row([], |row| row.get(0))?
+        }
     };
 
     let total_imported_numbers: i64 = {
         let sql = format!("SELECT COALESCE(SUM(imported_count), 0) FROM import_sessions{}", where_clause);
         let mut stmt = conn.prepare(&sql)?;
-        stmt.query_row(&params[..], |row| row.get(0))?
+        if let Some(device) = device_id {
+            stmt.query_row([device], |row| row.get(0))?
+        } else {
+            stmt.query_row([], |row| row.get(0))?
+        }
     };
 
     let total_failed_numbers: i64 = {
         let sql = format!("SELECT COALESCE(SUM(failed_count), 0) FROM import_sessions{}", where_clause);
         let mut stmt = conn.prepare(&sql)?;
-        stmt.query_row(&params[..], |row| row.get(0))?
+        if let Some(device) = device_id {
+            stmt.query_row([device], |row| row.get(0))?
+        } else {
+            stmt.query_row([], |row| row.get(0))?
+        }
     };
 
     Ok(ImportSessionStats {
@@ -403,4 +441,282 @@ pub struct ImportSessionStats {
     pub failed_sessions: i64,
     pub total_imported_numbers: i64,
     pub total_failed_numbers: i64,
+}
+
+/// 获取单个导入会话
+pub fn get_import_session(conn: &Connection, session_id: i64) -> SqlResult<Option<ImportSessionDto>> {
+    let mut stmt = conn.prepare(
+        "SELECT id, batch_id, device_id, status, imported_count, failed_count, error_message, created_at, completed_at 
+         FROM import_sessions WHERE id = ?1"
+    )?;
+    
+    stmt.query_row(params![session_id], |row| {
+        let id: i64 = row.get(0)?;
+        Ok(ImportSessionDto {
+            id,
+            session_id: id.to_string(),
+            batch_id: row.get(1)?,
+            device_id: row.get(2)?,
+            status: row.get(3)?,
+            imported_count: row.get(4)?,
+            failed_count: row.get(5)?,
+            error_message: row.get(6)?,
+            created_at: row.get(7)?,
+            started_at: row.get::<_, Option<String>>(7)?.unwrap_or_default(),
+            finished_at: row.get(8)?,
+            completed_at: row.get(8)?,
+            session_description: None,
+            target_app: "未知".to_string(),
+            industry: None,
+        })
+    }).optional()
+}
+
+/// 获取最近的导入会话
+pub fn get_recent_import_sessions(conn: &Connection, limit: i64) -> SqlResult<Vec<ImportSessionDto>> {
+    let mut stmt = conn.prepare(
+        "SELECT id, batch_id, device_id, status, imported_count, failed_count, error_message, created_at, completed_at 
+         FROM import_sessions ORDER BY created_at DESC LIMIT ?1"
+    )?;
+    
+    let rows = stmt.query_map(params![limit], |row| {
+        let id: i64 = row.get(0)?;
+        Ok(ImportSessionDto {
+            id,
+            session_id: id.to_string(),
+            batch_id: row.get(1)?,
+            device_id: row.get(2)?,
+            status: row.get(3)?,
+            imported_count: row.get(4)?,
+            failed_count: row.get(5)?,
+            error_message: row.get(6)?,
+            created_at: row.get(7)?,
+            started_at: row.get::<_, Option<String>>(7)?.unwrap_or_default(),
+            finished_at: row.get(8)?,
+            completed_at: row.get(8)?,
+            session_description: None,
+            target_app: "未知".to_string(),
+            industry: None,
+        })
+    })?;
+    
+    rows.collect::<Result<Vec<_>, _>>()
+}
+
+/// 按设备ID获取导入会话
+pub fn get_import_sessions_by_device(conn: &Connection, device_id: &str, limit: i64) -> SqlResult<Vec<ImportSessionDto>> {
+    let mut stmt = conn.prepare(
+        "SELECT id, batch_id, device_id, status, imported_count, failed_count, error_message, created_at, completed_at 
+         FROM import_sessions WHERE device_id = ?1 ORDER BY created_at DESC LIMIT ?2"
+    )?;
+    
+    let rows = stmt.query_map(params![device_id, limit], |row| {
+        let id: i64 = row.get(0)?;
+        Ok(ImportSessionDto {
+            id,
+            session_id: id.to_string(),
+            batch_id: row.get(1)?,
+            device_id: row.get(2)?,
+            status: row.get(3)?,
+            imported_count: row.get(4)?,
+            failed_count: row.get(5)?,
+            error_message: row.get(6)?,
+            created_at: row.get(7)?,
+            started_at: row.get::<_, Option<String>>(7)?.unwrap_or_default(),
+            finished_at: row.get(8)?,
+            completed_at: row.get(8)?,
+            session_description: None,
+            target_app: "未知".to_string(),
+            industry: None,
+        })
+    })?;
+    
+    rows.collect::<Result<Vec<_>, _>>()
+}
+
+/// 按批次ID获取导入会话
+pub fn get_import_sessions_by_batch(conn: &Connection, batch_id: &str, limit: i64) -> SqlResult<Vec<ImportSessionDto>> {
+    let mut stmt = conn.prepare(
+        "SELECT id, batch_id, device_id, status, imported_count, failed_count, error_message, created_at, completed_at 
+         FROM import_sessions WHERE batch_id = ?1 ORDER BY created_at DESC LIMIT ?2"
+    )?;
+    
+    let rows = stmt.query_map(params![batch_id, limit], |row| {
+        let id: i64 = row.get(0)?;
+        Ok(ImportSessionDto {
+            id,
+            session_id: id.to_string(),
+            batch_id: row.get(1)?,
+            device_id: row.get(2)?,
+            status: row.get(3)?,
+            imported_count: row.get(4)?,
+            failed_count: row.get(5)?,
+            error_message: row.get(6)?,
+            created_at: row.get(7)?,
+            started_at: row.get::<_, Option<String>>(7)?.unwrap_or_default(),
+            finished_at: row.get(8)?,
+            completed_at: row.get(8)?,
+            session_description: None,
+            target_app: "未知".to_string(),
+            industry: None,
+        })
+    })?;
+    
+    rows.collect::<Result<Vec<_>, _>>()
+}
+
+/// 批量删除导入会话
+pub fn batch_delete_import_sessions(conn: &Connection, session_ids: &[i64]) -> SqlResult<i64> {
+    let mut deleted_count = 0;
+    for session_id in session_ids {
+        let result = delete_import_session(conn, *session_id, false)?;
+        if result.session_id > 0 {
+            deleted_count += 1;
+        }
+    }
+    Ok(deleted_count)
+}
+
+/// 获取失败的导入会话
+pub fn get_failed_import_sessions(conn: &Connection, limit: i64) -> SqlResult<Vec<ImportSessionDto>> {
+    let mut stmt = conn.prepare(
+        "SELECT id, batch_id, device_id, status, imported_count, failed_count, error_message, created_at, completed_at 
+         FROM import_sessions WHERE status = 'failed' ORDER BY created_at DESC LIMIT ?1"
+    )?;
+    
+    let rows = stmt.query_map(params![limit], |row| {
+        let id: i64 = row.get(0)?;
+        Ok(ImportSessionDto {
+            id,
+            session_id: id.to_string(),
+            batch_id: row.get(1)?,
+            device_id: row.get(2)?,
+            status: row.get(3)?,
+            imported_count: row.get(4)?,
+            failed_count: row.get(5)?,
+            error_message: row.get(6)?,
+            created_at: row.get(7)?,
+            started_at: row.get::<_, Option<String>>(7)?.unwrap_or_default(),
+            finished_at: row.get(8)?,
+            completed_at: row.get(8)?,
+            session_description: None,
+            target_app: "未知".to_string(),
+            industry: None,
+        })
+    })?;
+    
+    rows.collect::<Result<Vec<_>, _>>()
+}
+
+/// 获取成功的导入会话
+pub fn get_successful_import_sessions(conn: &Connection, limit: i64) -> SqlResult<Vec<ImportSessionDto>> {
+    let mut stmt = conn.prepare(
+        "SELECT id, batch_id, device_id, status, imported_count, failed_count, error_message, created_at, completed_at 
+         FROM import_sessions WHERE status = 'completed' ORDER BY created_at DESC LIMIT ?1"
+    )?;
+    
+    let rows = stmt.query_map(params![limit], |row| {
+        let id: i64 = row.get(0)?;
+        Ok(ImportSessionDto {
+            id,
+            session_id: id.to_string(),
+            batch_id: row.get(1)?,
+            device_id: row.get(2)?,
+            status: row.get(3)?,
+            imported_count: row.get(4)?,
+            failed_count: row.get(5)?,
+            error_message: row.get(6)?,
+            created_at: row.get(7)?,
+            started_at: row.get::<_, Option<String>>(7)?.unwrap_or_default(),
+            finished_at: row.get(8)?,
+            completed_at: row.get(8)?,
+            session_description: None,
+            target_app: "未知".to_string(),
+            industry: None,
+        })
+    })?;
+    
+    rows.collect::<Result<Vec<_>, _>>()
+}
+
+/// 更新导入会话状态
+pub fn update_import_session_status(conn: &Connection, session_id: i64, status: &str) -> SqlResult<()> {
+    conn.execute(
+        "UPDATE import_sessions SET status = ?1 WHERE id = ?2",
+        params![status, session_id],
+    )?;
+    Ok(())
+}
+
+/// 添加导入会话事件
+pub fn add_import_session_event(
+    conn: &Connection, 
+    session_id: i64, 
+    event_type: &str, 
+    event_data: &str
+) -> SqlResult<i64> {
+    let now = Local::now().format("%Y-%m-%d %H:%M:%S").to_string();
+    conn.execute(
+        "INSERT INTO import_session_events (session_id, event_type, event_data, created_at) VALUES (?1, ?2, ?3, ?4)",
+        params![session_id, event_type, event_data, now],
+    )?;
+    Ok(conn.last_insert_rowid())
+}
+
+/// 按日期范围获取导入会话
+pub fn get_import_sessions_by_date_range(
+    conn: &Connection, 
+    start_date: &str, 
+    end_date: &str, 
+    limit: i64
+) -> SqlResult<Vec<ImportSessionDto>> {
+    let mut stmt = conn.prepare(
+        "SELECT id, batch_id, device_id, status, imported_count, failed_count, error_message, created_at, completed_at 
+         FROM import_sessions WHERE created_at BETWEEN ?1 AND ?2 ORDER BY created_at DESC LIMIT ?3"
+    )?;
+    
+    let rows = stmt.query_map(params![start_date, end_date, limit], |row| {
+        let id: i64 = row.get(0)?;
+        Ok(ImportSessionDto {
+            id,
+            session_id: id.to_string(),
+            batch_id: row.get(1)?,
+            device_id: row.get(2)?,
+            status: row.get(3)?,
+            imported_count: row.get(4)?,
+            failed_count: row.get(5)?,
+            error_message: row.get(6)?,
+            created_at: row.get(7)?,
+            started_at: row.get::<_, Option<String>>(7)?.unwrap_or_default(),
+            finished_at: row.get(8)?,
+            completed_at: row.get(8)?,
+            session_description: None,
+            target_app: "未知".to_string(),
+            industry: None,
+        })
+    })?;
+    
+    rows.collect::<Result<Vec<_>, _>>()
+}
+
+/// 获取会话中不同的行业列表
+pub fn get_distinct_session_industries(conn: &Connection) -> SqlResult<Vec<String>> {
+    let mut stmt = conn.prepare(
+        "SELECT DISTINCT industry FROM contact_numbers 
+         WHERE industry IS NOT NULL 
+         ORDER BY industry"
+    )?;
+    
+    let rows = stmt.query_map([], |row| row.get::<_, String>(0))?;
+    rows.collect::<Result<Vec<_>, _>>()
+}
+
+/// 获取导入会话事件（别名函数，兼容旧代码）
+pub fn get_import_session_events(
+    conn: &Connection, 
+    session_id: i64, 
+    limit: i64, 
+    offset: i64
+) -> SqlResult<ImportSessionEventList> {
+    list_import_session_events(conn, session_id, limit, offset)
 }

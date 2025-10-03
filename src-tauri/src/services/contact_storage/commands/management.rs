@@ -3,7 +3,7 @@
 /// 提供数据库初始化、文件导入等基础管理功能的 Tauri 命令
 
 use std::path::Path;
-use tauri::{command, AppHandle};
+use tauri::{command, AppHandle, Manager};
 use super::super::repositories::common::command_base::with_db_connection;
 use super::super::repositories::contact_numbers_repo;
 use super::super::models;

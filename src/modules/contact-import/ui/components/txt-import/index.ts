@@ -1,1 +1,1 @@
-export { TxtImportRecordsManager } from './TxtImportRecordsModal';
+export { TxtImportRecordsManager } from './TxtImportRecordsModal.tsx';
