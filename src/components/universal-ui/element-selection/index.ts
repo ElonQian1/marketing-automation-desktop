@@ -1,15 +1,8 @@
-export { default as ElementSelectionPopover } from './ElementSelectionPopover';
-export type { ElementSelectionPopoverProps, ElementSelectionState } from './ElementSelectionPopover';
-
-export { PopoverActionButtons } from './components/PopoverActionButtons';
-export type { PopoverActionButtonsProps } from './components/PopoverActionButtons';
-
-export type { PopoverActionTokens } from './components/tokens';
-export { defaultPopoverActionTokens } from './components/tokens';
-// 元素选择模块导出（去重）
+// 元素选择模块导出
+export { ElementSelectionPopover } from './ElementSelectionPopover';
 export { useElementSelectionManager } from './useElementSelectionManager';
 export { useEnhancedElementSelectionManager } from './useEnhancedElementSelectionManager';
-// ElementSelectionState 已在顶部一次性导出
+export type { ElementSelectionState } from './ElementSelectionPopover';
 export { useSmartPopoverPosition, PopoverPositionCalculator } from './utils/popoverPositioning';
 export type { Position, PopoverDimensions, PopoverPlacement } from './utils/popoverPositioning';
 

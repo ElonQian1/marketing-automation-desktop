@@ -1,0 +1,113 @@
+/// 复杂查询和过滤模块
+/// 处理高级查询逻辑，如搜索、过滤、分页等
+
+use rusqlite::{params, Connection, Result as SqliteResult};
+use crate::services::contact_storage::models::ContactNumberDto;
+
+/// 高级搜索和过滤查询
+pub fn search_contact_numbers(
+    conn: &Connection,
+    keyword: Option<&str>,
+    industry: Option<&str>,
+    status: Option<&str>,
+    limit: i64,
+    offset: i64,
+) -> SqliteResult<Vec<ContactNumberDto>> {
+    let mut where_conditions = Vec::new();
+    let mut params_vec: Vec<Box<dyn rusqlite::ToSql>> = Vec::new();
+
+    if let Some(kw) = keyword {
+        where_conditions.push("phone LIKE ?");
+        params_vec.push(Box::new(format!("%{}%", kw)));
+    }
+
+    if let Some(ind) = industry {
+        where_conditions.push("industry = ?");
+        params_vec.push(Box::new(ind.to_string()));
+    }
+
+    if let Some(st) = status {
+        where_conditions.push("status = ?");
+        params_vec.push(Box::new(st.to_string()));
+    }
+
+    let where_clause = if where_conditions.is_empty() {
+        String::new()
+    } else {
+        format!("WHERE {}", where_conditions.join(" AND "))
+    };
+
+    params_vec.push(Box::new(limit));
+    params_vec.push(Box::new(offset));
+
+    let sql = format!(
+        "SELECT id, phone, name, source_file, created_at, industry, used, used_at, used_batch, status, imported_device_id 
+         FROM contact_numbers {} 
+         ORDER BY created_at DESC 
+         LIMIT ? OFFSET ?",
+        where_clause
+    );
+
+    let params_refs: Vec<&dyn rusqlite::ToSql> = params_vec.iter().map(|p| p.as_ref()).collect();
+
+    let mut stmt = conn.prepare(&sql)?;
+    let rows = stmt.query_map(&params_refs[..], |row| {
+        Ok(ContactNumberDto {
+            id: row.get(0)?,
+            phone: row.get(1)?,
+            name: row.get(2)?,
+            source_file: row.get(3)?,
+            created_at: row.get(4)?,
+            industry: row.get(5)?,
+            used: row.get(6)?,
+            used_at: row.get(7)?,
+            used_batch: row.get(8)?,
+            status: row.get(9)?,
+            imported_device_id: row.get(10)?,
+        })
+    })?;
+
+    let mut results = Vec::new();
+    for row in rows {
+        results.push(row?);
+    }
+    Ok(results)
+}
+
+/// 统计搜索结果数量
+pub fn count_search_results(
+    conn: &Connection,
+    keyword: Option<&str>,
+    industry: Option<&str>,
+    status: Option<&str>,
+) -> SqliteResult<i64> {
+    let mut where_conditions = Vec::new();
+    let mut params_vec: Vec<Box<dyn rusqlite::ToSql>> = Vec::new();
+
+    if let Some(kw) = keyword {
+        where_conditions.push("phone LIKE ?");
+        params_vec.push(Box::new(format!("%{}%", kw)));
+    }
+
+    if let Some(ind) = industry {
+        where_conditions.push("industry = ?");
+        params_vec.push(Box::new(ind.to_string()));
+    }
+
+    if let Some(st) = status {
+        where_conditions.push("status = ?");
+        params_vec.push(Box::new(st.to_string()));
+    }
+
+    let where_clause = if where_conditions.is_empty() {
+        String::new()
+    } else {
+        format!("WHERE {}", where_conditions.join(" AND "))
+    };
+
+    let sql = format!("SELECT COUNT(*) FROM contact_numbers {}", where_clause);
+    let params_refs: Vec<&dyn rusqlite::ToSql> = params_vec.iter().map(|p| p.as_ref()).collect();
+
+    let mut stmt = conn.prepare(&sql)?;
+    stmt.query_row(&params_refs[..], |row| row.get(0))
+}
