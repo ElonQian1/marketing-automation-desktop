@@ -34,6 +34,9 @@ pub async fn import_contact_numbers_from_file(
     app_handle: AppHandle,
     file_path: String,
 ) -> Result<models::ImportNumbersResult, String> {
+    use super::super::repositories::txt_import_records_repo;
+    use chrono::Local;
+    
     if !Path::new(&file_path).exists() {
         return Err(format!("文件不存在: {}", file_path));
     }
@@ -44,6 +47,33 @@ pub async fn import_contact_numbers_from_file(
     let (inserted, duplicates, errors) = with_db_connection(&app_handle, |conn| {
         contact_numbers_repo::insert_numbers(conn, &numbers, &file_path)
     })?;
+    
+    // 记录导入结果到 txt_import_records 表
+    let file_name = Path::new(&file_path)
+        .file_name()
+        .and_then(|f| f.to_str())
+        .unwrap_or("unknown.txt")
+        .to_string();
+    
+    let status = if errors.is_empty() { "success" } else { "partial" };
+    let error_message = if errors.is_empty() { 
+        None 
+    } else { 
+        Some(errors.join("; ")) 
+    };
+    
+    let _ = with_db_connection(&app_handle, |conn| {
+        txt_import_records_repo::create_txt_import_record(
+            conn,
+            &file_path,
+            &file_name,
+            numbers.len() as i64,
+            inserted,
+            duplicates,
+            status,
+            error_message.as_deref(),
+        )
+    });
     
     Ok(models::ImportNumbersResult {
         success: true,
@@ -61,6 +91,9 @@ pub async fn import_contact_numbers_from_folder(
     app_handle: AppHandle,
     folder_path: String,
 ) -> Result<models::ImportNumbersResult, String> {
+    use super::super::repositories::txt_import_records_repo;
+    use chrono::Local;
+    
     let folder = Path::new(&folder_path);
     if !folder.exists() || !folder.is_dir() {
         return Err(format!("文件夹不存在或不是目录: {}", folder_path));
@@ -79,17 +112,45 @@ pub async fn import_contact_numbers_from_folder(
             if let Some(ext) = path.extension() {
                 if ext.to_string_lossy().to_lowercase() == "txt" {
                     total_files += 1;
+                    let file_path_str = path.to_string_lossy().to_string();
+                    let file_name = path
+                        .file_name()
+                        .and_then(|f| f.to_str())
+                        .unwrap_or("unknown.txt")
+                        .to_string();
+                    
                     match fs::read_to_string(&path) {
                         Ok(content) => {
                             let numbers = extract_numbers_from_text(&content);
                             let (inserted, duplicates, mut errors) = with_db_connection(&app_handle, |conn| {
-                                contact_numbers_repo::insert_numbers(conn, &numbers, &path.to_string_lossy())
+                                contact_numbers_repo::insert_numbers(conn, &numbers, &file_path_str)
                             })?;
                             
                             total_numbers += numbers.len() as i64;
                             total_inserted += inserted;
                             total_duplicates += duplicates;
                             all_errors.append(&mut errors);
+                            
+                            // 记录导入结果
+                            let status = if errors.is_empty() { "success" } else { "partial" };
+                            let error_message = if errors.is_empty() { 
+                                None 
+                            } else { 
+                                Some(errors.join("; ")) 
+                            };
+                            
+                            let _ = with_db_connection(&app_handle, |conn| {
+                                txt_import_records_repo::create_txt_import_record(
+                                    conn,
+                                    &file_path_str,
+                                    &file_name,
+                                    numbers.len() as i64,
+                                    inserted,
+                                    duplicates,
+                                    status,
+                                    error_message.as_deref(),
+                                )
+                            });
                         }
                         Err(e) => {
                             let err_msg = format!("读取文件失败 {}: {}", path.to_string_lossy(), e);
@@ -122,17 +183,18 @@ pub async fn mark_contact_numbers_as_not_imported(
     })
 }
 
-/// 列出联系人号码
+/// 列出联系人号码（支持搜索、行业、状态筛选）
 #[command]
 pub async fn list_contact_numbers(
     app_handle: AppHandle,
     limit: i64,
     offset: i64,
     search: Option<String>,
+    industry: Option<String>,
+    status: Option<String>,
 ) -> Result<models::ContactNumberList, String> {
     with_db_connection(&app_handle, |conn| {
-        // 由于仓储层的list_numbers只接受3个参数，暂时忽略search参数
-        contact_numbers_repo::list_numbers(conn, limit, offset)
+        contact_numbers_repo::list_numbers_with_filters(conn, limit, offset, search, industry, status)
     })
 }
 

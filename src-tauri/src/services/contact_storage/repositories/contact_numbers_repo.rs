@@ -33,18 +33,75 @@ pub fn list_numbers(
     limit: i64,
     offset: i64,
 ) -> SqlResult<ContactNumberList> {
-    let total: i64 = conn.query_row(
-        "SELECT COUNT(*) FROM contact_numbers",
-        [],
-        |row| row.get(0),
-    )?;
+    list_numbers_with_filters(conn, limit, offset, None, None, None)
+}
+
+/// 列出联系人号码（支持搜索、行业、状态筛选）
+pub fn list_numbers_with_filters(
+    conn: &Connection,
+    limit: i64,
+    offset: i64,
+    search: Option<String>,
+    industry: Option<String>,
+    status: Option<String>,
+) -> SqlResult<ContactNumberList> {
+    // 构建WHERE条件
+    let mut where_conditions = Vec::new();
+    let mut query_params: Vec<Box<dyn rusqlite::ToSql>> = Vec::new();
     
-    let mut stmt = conn.prepare(
+    if let Some(s) = search {
+        if !s.is_empty() {
+            where_conditions.push("(phone LIKE ?1 OR name LIKE ?1)");
+            query_params.push(Box::new(format!("%{}%", s)));
+        }
+    }
+    
+    if let Some(ind) = industry {
+        if !ind.is_empty() {
+            if ind == "__UNCLASSIFIED__" {
+                where_conditions.push("(industry IS NULL OR industry = '')");
+            } else {
+                where_conditions.push("industry = ?");
+                query_params.push(Box::new(ind));
+            }
+        }
+    }
+    
+    if let Some(st) = status {
+        if !st.is_empty() {
+            where_conditions.push("status = ?");
+            query_params.push(Box::new(st));
+        }
+    }
+    
+    let where_clause = if where_conditions.is_empty() {
+        String::new()
+    } else {
+        format!(" WHERE {}", where_conditions.join(" AND "))
+    };
+    
+    // 查询总数
+    let count_sql = format!("SELECT COUNT(*) FROM contact_numbers{}", where_clause);
+    let total: i64 = if query_params.is_empty() {
+        conn.query_row(&count_sql, [], |row| row.get(0))?
+    } else {
+        let params_refs: Vec<&dyn rusqlite::ToSql> = query_params.iter().map(|b| b.as_ref()).collect();
+        conn.query_row(&count_sql, params_refs.as_slice(), |row| row.get(0))?
+    };
+    
+    // 查询数据
+    let data_sql = format!(
         "SELECT id, phone, name, source_file, created_at, industry, used, used_at, used_batch, status, imported_device_id 
-         FROM contact_numbers ORDER BY id DESC LIMIT ?1 OFFSET ?2"
-    )?;
+         FROM contact_numbers{} ORDER BY id DESC LIMIT ? OFFSET ?",
+        where_clause
+    );
     
-    let rows = stmt.query_map(params![limit, offset], |row| {
+    query_params.push(Box::new(limit));
+    query_params.push(Box::new(offset));
+    let params_refs: Vec<&dyn rusqlite::ToSql> = query_params.iter().map(|b| b.as_ref()).collect();
+    
+    let mut stmt = conn.prepare(&data_sql)?;
+    let rows = stmt.query_map(params_refs.as_slice(), |row| {
         Ok(ContactNumberDto {
             id: row.get(0)?,
             phone: row.get(1)?,

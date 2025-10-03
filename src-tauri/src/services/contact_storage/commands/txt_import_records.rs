@@ -6,6 +6,7 @@ use crate::services::contact_storage::models::{
 use crate::services::contact_storage::repositories::txt_import_records_repo::{
     create_txt_import_record, list_txt_import_records, delete_txt_import_record
 };
+use crate::services::contact_storage::repositories::common::database::get_connection;
 
 /// TXT文件导入记录命令
 /// 负责处理前端请求，调用仓储层进行具体操作
@@ -22,7 +23,12 @@ pub async fn list_txt_import_records_cmd(
     
     tracing::debug!("获取TXT导入记录列表: limit={}, offset={}", limit, offset);
     
-    list_txt_import_records(&app_handle, limit, offset)
+    let conn = get_connection(&app_handle).map_err(|e| {
+        tracing::error!("数据库连接失败: {:?}", e);
+        format!("数据库连接失败: {}", e)
+    })?;
+    
+    list_txt_import_records(&conn, limit, offset, None)
         .map_err(|e| {
             tracing::error!("获取TXT导入记录列表失败: {:?}", e);
             format!("获取TXT导入记录列表失败: {}", e)
@@ -40,11 +46,22 @@ pub async fn delete_txt_import_record_cmd(
     
     tracing::info!("删除TXT导入记录: record_id={}, archive_numbers={}", record_id, archive);
     
-    delete_txt_import_record(&app_handle, record_id, archive)
+    let conn = get_connection(&app_handle).map_err(|e| {
+        tracing::error!("数据库连接失败: {:?}", e);
+        format!("数据库连接失败: {}", e)
+    })?;
+    
+    let affected_rows = delete_txt_import_record(&conn, record_id, archive)
         .map_err(|e| {
             tracing::error!("删除TXT导入记录失败: {:?}", e);
             format!("删除TXT导入记录失败: {}", e)
-        })
+        })?;
+        
+    Ok(DeleteTxtImportRecordResult {
+        record_id,
+        archived_number_count: affected_rows,
+        success: affected_rows > 0,
+    })
 }
 
 /// 内部辅助函数：创建TXT导入记录
@@ -64,8 +81,13 @@ pub async fn create_txt_import_record_internal(
         file_name, total_numbers, imported_numbers, duplicate_numbers
     );
     
+    let conn = get_connection(app_handle).map_err(|e| {
+        tracing::error!("数据库连接失败: {:?}", e);
+        format!("数据库连接失败: {}", e)
+    })?;
+    
     create_txt_import_record(
-        app_handle,
+        &conn,
         file_path,
         file_name,
         total_numbers,

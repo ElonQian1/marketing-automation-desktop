@@ -34,6 +34,18 @@ pub async fn list_vcf_batches_cmd(
     })
 }
 
+/// 列出 VCF 批次记录（兼容前端调用）
+#[command]
+pub async fn list_vcf_batch_records_cmd(
+    app_handle: AppHandle,
+    limit: i64,
+    offset: i64,
+) -> Result<models::VcfBatchList, String> {
+    with_db_connection(&app_handle, |conn| {
+        vcf_batches_repo::list_vcf_batches(conn, limit, offset, None)
+    })
+}
+
 /// 获取 VCF 批次详情
 #[command]
 pub async fn get_vcf_batch_cmd(

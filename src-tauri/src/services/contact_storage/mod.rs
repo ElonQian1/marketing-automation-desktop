@@ -40,6 +40,7 @@ pub use commands::{
     // vcf_batches 命令
     create_vcf_batch_cmd,
     list_vcf_batches_cmd,
+    list_vcf_batch_records_cmd,
     get_vcf_batch_cmd,
     create_vcf_batch_with_numbers_cmd,
     get_industries_for_vcf_batch_cmd,
@@ -65,5 +66,9 @@ pub use commands::{
     add_import_session_event_cmd,
     get_import_sessions_by_date_range_cmd,
     get_distinct_session_industries_cmd,
+    
+    // TXT 导入记录命令
+    list_txt_import_records_cmd,
+    delete_txt_import_record_cmd,
 };
 

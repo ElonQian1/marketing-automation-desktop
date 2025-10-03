@@ -38,6 +38,7 @@ import { useTableColumns } from '@/components/universal-ui/table/useTableColumns
 import { AntTableResizableHeader } from '@/components/universal-ui/table/ResizableHeader';
 import ColumnSettingsModal from './components/columns/ColumnSettingsModal';
 import { useStaticDragFix } from './components/grid-layout/hooks/useStaticDragFix';
+import { TxtImportRecordsList } from './components/TxtImportRecordsList';
 
 // 新的hooks和组件
 import { useWorkbenchData } from './hooks/useWorkbenchData';
@@ -54,6 +55,9 @@ export const ContactImportWorkbench: React.FC = () => {
       default: return { color: 'default', text: '未知' };
     }
   };
+
+  // 刷新计数器，用于触发子组件刷新
+  const [refreshCounter, setRefreshCounter] = useState(0);
 
   // 数据管理hook
   const workbenchData = useWorkbenchData();
@@ -253,31 +257,48 @@ export const ContactImportWorkbench: React.FC = () => {
 
   // 渲染导入面板内容
   const renderImportPanel = () => (
-    <Space direction="vertical" style={{ width: '100%' }}>
-      <Space wrap style={{ marginBottom: 8 }}>
-        <Button onClick={() => workbenchActions.setBatchDrawerOpen(true)}>按批次/设备筛选</Button>
-      </Space>
-      <Text type="secondary">支持单个 TXT 或TXT文件夹，自动提取手机号码并去重入库</Text>
-      <Space wrap>
-        <Button icon={<FileTextOutlined />} onClick={workbenchActions.handleImportTxt}>导入TXT文件</Button>
-        <Button icon={<FolderOpenOutlined />} onClick={workbenchActions.handleImportFolder}>导入文件夹</Button>
-        <SourceFolderAddButton onAdded={addFolder} />
-        <Button onClick={workbenchActions.handleImportFromSavedFolders} disabled={!hasItems}>从已保存目录导入</Button>
-      </Space>
-      <SourceFoldersList folders={folders} onRemove={removeFolder} onClearAll={clearAll} />
-      <Divider className={styles.dividerTight} />
-      <div className={styles.searchBar}>
-        <Search
-          placeholder="搜索 号码/姓名"
-          allowClear
-          enterButton="搜索"
-          size="middle"
-          value={workbenchData.search}
-          onChange={e => workbenchData.setSearch((e.target as HTMLInputElement).value)}
-          className={styles.searchInput}
-        />
-        <Button onClick={workbenchData.loadList}>刷新列表</Button>
+    <Space direction="vertical" style={{ width: '100%' }} size="large">
+      {/* 导入操作区 */}
+      <div>
+        <Space wrap style={{ marginBottom: 8 }}>
+          <Button onClick={() => workbenchActions.setBatchDrawerOpen(true)}>按批次/设备筛选</Button>
+        </Space>
+        <Text type="secondary">支持单个 TXT 或TXT文件夹，自动提取手机号码并去重入库</Text>
+        <Space wrap style={{ marginTop: 8 }}>
+          <Button 
+            icon={<FileTextOutlined />} 
+            onClick={async () => {
+              await workbenchActions.handleImportTxt();
+              setRefreshCounter(prev => prev + 1); // 刷新记录列表
+            }}
+          >
+            导入TXT文件
+          </Button>
+          <Button 
+            icon={<FolderOpenOutlined />} 
+            onClick={async () => {
+              await workbenchActions.handleImportFolder();
+              setRefreshCounter(prev => prev + 1); // 刷新记录列表
+            }}
+          >
+            导入文件夹
+          </Button>
+          <SourceFolderAddButton onAdded={addFolder} />
+          <Button 
+            onClick={async () => {
+              await workbenchActions.handleImportFromSavedFolders();
+              setRefreshCounter(prev => prev + 1); // 刷新记录列表
+            }} 
+            disabled={!hasItems}
+          >
+            从已保存目录导入
+          </Button>
+        </Space>
+        <SourceFoldersList folders={folders} onRemove={removeFolder} onClearAll={clearAll} />
       </div>
+
+      {/* TXT 导入记录展示 */}
+      <TxtImportRecordsList refresh={refreshCounter} />
     </Space>
   );
 

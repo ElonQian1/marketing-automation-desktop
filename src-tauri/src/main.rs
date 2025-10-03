@@ -183,6 +183,7 @@ fn main() {
             // 号码批次与导入追踪
             create_vcf_batch_cmd,
             list_vcf_batches_cmd,
+            list_vcf_batch_records_cmd,
             get_vcf_batch_cmd,
             create_import_session_cmd,
             finish_import_session_cmd,

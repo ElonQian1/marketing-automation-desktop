@@ -6,17 +6,24 @@ export interface TxtImportRecordDto {
   id: number;
   file_path: string;
   file_name: string;
+  file_size: number;
+  file_modified_at?: string | null;
   total_numbers: number;
-  imported_numbers: number;
+  successful_imports: number;
   duplicate_numbers: number;
-  status: 'success' | 'failed' | 'partial';
+  invalid_numbers: number;
+  import_status: 'success' | 'failed' | 'partial' | 'pending';
   error_message?: string | null;
   created_at: string;
+  imported_at?: string | null;
+  updated_at?: string | null;
+  industry?: string | null;
+  notes?: string | null;
 }
 
 export interface TxtImportRecordList {
   total: number;
-  items: TxtImportRecordDto[];
+  records: TxtImportRecordDto[];
 }
 
 export interface DeleteTxtImportRecordResult {

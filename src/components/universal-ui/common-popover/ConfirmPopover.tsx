@@ -10,6 +10,12 @@ export interface ConfirmPopoverBaseProps {
   overlayStyle?: React.CSSProperties;
   overlayClassName?: string;
   onCancel?: () => void;
+  onOpenChange?: (open: boolean) => void;
+  /**
+   * When user clicks outside and Popconfirm requests to close (open -> false),
+   * call onCancel() automatically. Default: true.
+   */
+  autoCancelOnOutsideClick?: boolean;
 }
 
 // Default mode: keep antd's ok/cancel buttons
@@ -49,7 +55,25 @@ const ConfirmPopover: React.FC<ConfirmPopoverProps> = (props) => {
     overlayStyle,
     overlayClassName,
     onCancel,
+    onOpenChange,
+    autoCancelOnOutsideClick = true,
   } = props as ConfirmPopoverBaseProps;
+
+  const handleOpenChange = (nextOpen: boolean) => {
+    try {
+      if (onOpenChange) onOpenChange(nextOpen);
+      // 用户点击空白或遮罩时，antd 会尝试关闭；此时我们触发 onCancel 以清理上层选择
+      if (autoCancelOnOutsideClick && nextOpen === false) {
+        onCancel?.();
+      }
+    } catch (err) {
+      // no-op safeguard
+      if (process.env.NODE_ENV === 'development') {
+        // eslint-disable-next-line no-console
+        console.error('[ConfirmPopover] onOpenChange error:', err);
+      }
+    }
+  };
 
   const commonProps: PopconfirmProps = {
     open,
@@ -76,6 +100,8 @@ const ConfirmPopover: React.FC<ConfirmPopoverProps> = (props) => {
     return (
       <Popconfirm
         {...commonProps}
+        destroyTooltipOnHide
+        onOpenChange={handleOpenChange}
         title={title}
         description={description}
         onConfirm={onConfirm}
@@ -95,6 +121,8 @@ const ConfirmPopover: React.FC<ConfirmPopoverProps> = (props) => {
   return (
     <Popconfirm
       {...commonProps}
+      destroyTooltipOnHide
+      onOpenChange={handleOpenChange}
       showCancel={false}
       okButtonProps={{ style: { display: 'none' } }}
       title={title}

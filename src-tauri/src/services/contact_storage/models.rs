@@ -98,18 +98,30 @@ pub struct TxtImportRecordDto {
     pub id: i64,
     pub file_path: String,
     pub file_name: String,
+    pub file_size: Option<i64>,
+    pub file_modified_at: Option<String>,
     pub total_numbers: i64,
-    pub imported_numbers: i64,
+    pub successful_imports: i64,
     pub duplicate_numbers: i64,
-    pub status: String,  // 'success' | 'failed' | 'partial'
+    pub invalid_numbers: i64,
+    pub import_status: String,  // 'pending' | 'success' | 'failed' | 'partial'
     pub error_message: Option<String>,
     pub created_at: String,
+    pub imported_at: Option<String>,
+    pub updated_at: Option<String>,
+    pub industry: Option<String>,
+    pub notes: Option<String>,
+    // 向后兼容的别名字段
+    pub imported_numbers: i64,  // 等同于 successful_imports
+    pub status: String,         // 等同于 import_status
 }
 
 #[derive(Debug, Serialize, Deserialize, Clone)]
 pub struct TxtImportRecordList {
     pub total: i64,
     pub items: Vec<TxtImportRecordDto>,
+    pub limit: i64,
+    pub offset: i64,
 }
 
 #[derive(Debug, Serialize, Deserialize, Clone)]
