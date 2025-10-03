@@ -72,13 +72,14 @@ export const VisualElementView: React.FC<VisualElementViewProps> = ({
   const [previewZoom, setPreviewZoom] = useState(1.0); // 0.5 - 3.0
   // 🆕 覆盖层独立缩放（仅叠加层），不影响截图
   const [overlayScale, setOverlayScale] = useState(1.0); // 0.2 - 3.0
+  // 🆕 轴向缩放
+  const [overlayScaleX, setOverlayScaleX] = useState<number|undefined>(undefined);
+  const [overlayScaleY, setOverlayScaleY] = useState<number|undefined>(undefined);
   // 🆕 对齐微调（像素，作用于叠加层，单位为画布像素，缩放前坐标系）
   const [offsetX, setOffsetX] = useState(0);
   const [offsetY, setOffsetY] = useState(0);
   // 🆕 垂直对齐（宽受限时 top/center/bottom）
   const [verticalAlign, setVerticalAlign] = useState<'top'|'center'|'bottom'>('center');
-  // 🆕 自动校准 overlayScale（根据 XML 视口 vs 截图尺寸）
-  const [autoCalibration, setAutoCalibration] = useState(true);
   // 🆕 校准方案选择
   const [calibrationMode, setCalibrationMode] = useState<'A' | 'B' | 'C' | 'none'>('none');
   
@@ -111,21 +112,11 @@ export const VisualElementView: React.FC<VisualElementViewProps> = ({
     screenshotSize.w,
     screenshotSize.h
   );
-
-  // 🆕 与偏好中的 autoCalibration 双向同步，避免状态源不一致
-  useEffect(() => {
-    if (preferences.global.autoCalibration !== autoCalibration) {
-      setAutoCalibration(preferences.global.autoCalibration);
-    }
-    // 仅在 preferences.global.autoCalibration 变化时对齐本地 UI
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [preferences.global.autoCalibration]);
-
-  useEffect(() => {
-    if (preferences.global.autoCalibration !== autoCalibration) {
-      preferences.updateGlobal('autoCalibration', autoCalibration);
-    }
-  }, [autoCalibration, preferences]);
+  // 🆕 自动校准 overlayScale（根据 XML 视口 vs 截图尺寸）由偏好作为单一数据源
+  const autoCalibration = preferences.global.autoCalibration;
+  const setAutoCalibration = (v: boolean) => {
+    preferences.updateGlobal('autoCalibration', v);
+  };
 
   // 🆕 持久化校准方案选择，增强用户体验
   useEffect(() => {
@@ -252,14 +243,69 @@ export const VisualElementView: React.FC<VisualElementViewProps> = ({
       // 忽略输入型元素
       const target = e.target as HTMLElement | null;
       if (target && (target.tagName === 'INPUT' || target.tagName === 'TEXTAREA' || target.isContentEditable)) return;
-      // 优先处理 Ctrl +/-：仅叠加层缩放
-      if (e.ctrlKey && (e.key === '-' )) {
+      // 优先处理 Ctrl +/-：叠加层缩放（整体）
+      if (e.ctrlKey && !e.shiftKey && (e.key === '-' )) {
         setOverlayScale(v => Math.max(0.2, +(v - 0.1).toFixed(2)));
         e.preventDefault();
         return;
       }
-      if (e.ctrlKey && (e.key === '=' || e.key === '+')) {
+      if (e.ctrlKey && !e.shiftKey && (e.key === '=' || e.key === '+')) {
         setOverlayScale(v => Math.min(3.0, +(v + 0.1).toFixed(2)));
+        e.preventDefault();
+        return;
+      }
+      // Ctrl+Shift +/-：更细的 1% 步进
+      if (e.ctrlKey && e.shiftKey && (e.key === '-' )) {
+        setOverlayScale(v => Math.max(0.2, +(v - 0.01).toFixed(2)));
+        e.preventDefault();
+        return;
+      }
+      if (e.ctrlKey && e.shiftKey && (e.key === '=' || e.key === '+')) {
+        setOverlayScale(v => Math.min(3.0, +(v + 0.01).toFixed(2)));
+        e.preventDefault();
+        return;
+      }
+      // Alt + +/-：X 轴缩放
+      if (e.altKey && !e.shiftKey && (e.key === '-' )) {
+        setOverlayScaleX(v => Math.max(0.2, +(((v ?? overlayScale) - 0.1)).toFixed(2)));
+        e.preventDefault();
+        return;
+      }
+      if (e.altKey && !e.shiftKey && (e.key === '=' || e.key === '+')) {
+        setOverlayScaleX(v => Math.min(3.0, +(((v ?? overlayScale) + 0.1)).toFixed(2)));
+        e.preventDefault();
+        return;
+      }
+      // Alt + Shift + +/-：X 轴细步进 1%
+      if (e.altKey && e.shiftKey && (e.key === '-' )) {
+        setOverlayScaleX(v => Math.max(0.2, +(((v ?? overlayScale) - 0.01)).toFixed(2)));
+        e.preventDefault();
+        return;
+      }
+      if (e.altKey && e.shiftKey && (e.key === '=' || e.key === '+')) {
+        setOverlayScaleX(v => Math.min(3.0, +(((v ?? overlayScale) + 0.01)).toFixed(2)));
+        e.preventDefault();
+        return;
+      }
+      // Ctrl + Alt +/-：Y 轴缩放
+      if (e.ctrlKey && e.altKey && !e.shiftKey && (e.key === '-' )) {
+        setOverlayScaleY(v => Math.max(0.2, +(((v ?? overlayScale) - 0.1)).toFixed(2)));
+        e.preventDefault();
+        return;
+      }
+      if (e.ctrlKey && e.altKey && !e.shiftKey && (e.key === '=' || e.key === '+')) {
+        setOverlayScaleY(v => Math.min(3.0, +(((v ?? overlayScale) + 0.1)).toFixed(2)));
+        e.preventDefault();
+        return;
+      }
+      // Ctrl + Alt + Shift +/-：Y 轴细步进 1%
+      if (e.ctrlKey && e.altKey && e.shiftKey && (e.key === '-' )) {
+        setOverlayScaleY(v => Math.max(0.2, +(((v ?? overlayScale) - 0.01)).toFixed(2)));
+        e.preventDefault();
+        return;
+      }
+      if (e.ctrlKey && e.altKey && e.shiftKey && (e.key === '=' || e.key === '+')) {
+        setOverlayScaleY(v => Math.min(3.0, +(((v ?? overlayScale) + 0.01)).toFixed(2)));
         e.preventDefault();
         return;
       }
@@ -313,6 +359,8 @@ export const VisualElementView: React.FC<VisualElementViewProps> = ({
         // Ctrl+0 重置对齐与缩放
         setPreviewZoom(1.0);
         setOverlayScale(1.0);
+        setOverlayScaleX(undefined);
+        setOverlayScaleY(undefined);
         setOffsetX(0);
         setOffsetY(0);
         e.preventDefault();
@@ -466,6 +514,10 @@ export const VisualElementView: React.FC<VisualElementViewProps> = ({
         setPreviewZoom={setPreviewZoom}
         overlayScale={overlayScale}
         setOverlayScale={setOverlayScale}
+  overlayScaleX={overlayScaleX}
+  setOverlayScaleX={setOverlayScaleX}
+  overlayScaleY={overlayScaleY}
+  setOverlayScaleY={setOverlayScaleY}
         offsetX={offsetX}
         setOffsetX={setOffsetX}
         offsetY={offsetY}
@@ -490,6 +542,23 @@ export const VisualElementView: React.FC<VisualElementViewProps> = ({
           reason: undefined,
           hasDeviceProfile: !!preferences.calibrationProfile,
           hasDims: (xmlViewport.width > 0 && xmlViewport.height > 0 && screenshotSize.w > 0 && screenshotSize.h > 0)
+        }}
+        canApplyAutoCalibration={!!preferences.detectionResult?.calibration}
+        canSaveCalibrationProfile={!!(deviceId && packageName && (preferences.currentCalibration || preferences.detectionResult?.calibration))}
+        onApplyAutoCalibration={() => {
+          // 优先使用检测到的校准
+          if (preferences.detectionResult?.calibration) {
+            preferences.applyAutoCalibration();
+            // 切换到方案 B：统一坐标系
+            setCalibrationMode('B');
+          }
+        }}
+        onSaveCalibrationProfile={() => {
+          // 若当前没有校准但检测有结果，先应用再保存
+          if (!preferences.currentCalibration && preferences.detectionResult?.calibration) {
+            preferences.applyAutoCalibration();
+          }
+          preferences.saveCurrentAsProfile();
         }}
         selectedCategory={selectedCategory}
         setSelectedCategory={setSelectedCategory}
@@ -530,6 +599,8 @@ export const VisualElementView: React.FC<VisualElementViewProps> = ({
           rotate90={rotate90}
           previewZoom={previewZoom}
           overlayScale={overlayScale}
+          overlayScaleX={overlayScaleX}
+          overlayScaleY={overlayScaleY}
           offsetX={offsetX}
           offsetY={offsetY}
           verticalAlign={verticalAlign}

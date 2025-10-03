@@ -165,7 +165,7 @@ pub async fn import_contact_numbers_from_folder(
                                     &file_path_str,
                                     &file_name,
                                     total_lines,
-                                    numbers.len() as i64,
+                                    numbers.len() as i64, // valid_numbers
                                     inserted,
                                     duplicates,
                                     status,

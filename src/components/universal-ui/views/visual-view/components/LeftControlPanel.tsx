@@ -32,6 +32,11 @@ export interface LeftControlPanelProps {
   // 🆕 覆盖层独立缩放
   overlayScale?: number; // 0.2 - 3.0
   setOverlayScale?: (v: number) => void;
+  // 🆕 轴向缩放
+  overlayScaleX?: number;
+  setOverlayScaleX?: (v: number|undefined) => void;
+  overlayScaleY?: number;
+  setOverlayScaleY?: (v: number|undefined) => void;
   // 🆕 对齐微调
   offsetX?: number;
   setOffsetX?: (v: number) => void;
@@ -55,6 +60,11 @@ export interface LeftControlPanelProps {
     hasDeviceProfile?: boolean;  // 是否有保存的设备配置
     hasDims?: boolean;           // 是否已具备有效的 XML 与截图尺寸
   };
+  // 🆕 方案 B/C 操作：应用自动校准、保存设备配置
+  canApplyAutoCalibration?: boolean;
+  canSaveCalibrationProfile?: boolean;
+  onApplyAutoCalibration?: () => void;
+  onSaveCalibrationProfile?: () => void;
   selectedCategory: string;
   setSelectedCategory: (v: string) => void;
   selectionManager: any;
@@ -85,6 +95,10 @@ export const LeftControlPanel: React.FC<LeftControlPanelProps> = ({
   setPreviewZoom,
   overlayScale = 1.0,
   setOverlayScale,
+  overlayScaleX,
+  setOverlayScaleX,
+  overlayScaleY,
+  setOverlayScaleY,
   offsetX = 0,
   setOffsetX,
   offsetY = 0,
@@ -96,6 +110,10 @@ export const LeftControlPanel: React.FC<LeftControlPanelProps> = ({
   calibrationMode = 'none',
   setCalibrationMode,
   calibrationInfo,
+  canApplyAutoCalibration,
+  canSaveCalibrationProfile,
+  onApplyAutoCalibration,
+  onSaveCalibrationProfile,
   selectedCategory,
   setSelectedCategory,
   selectionManager,
@@ -192,6 +210,18 @@ export const LeftControlPanel: React.FC<LeftControlPanelProps> = ({
                 >
                   关闭校准
                 </Button>
+                {/* 🆕 操作：应用/保存 */}
+                <div style={{marginTop:6}}>
+                  <Text style={{fontSize:12,fontWeight:600,display:'block',marginBottom:4}}>📦 设备配置</Text>
+                  <Space direction="vertical" style={{width:'100%'}} size={4}>
+                    <Button size="small" onClick={onApplyAutoCalibration} disabled={!canApplyAutoCalibration} style={{width:'100%',textAlign:'left'}}>
+                      应用自动校准为当前
+                    </Button>
+                    <Button size="small" type="dashed" onClick={onSaveCalibrationProfile} disabled={!canSaveCalibrationProfile} style={{width:'100%',textAlign:'left'}}>
+                      保存当前为设备配置
+                    </Button>
+                  </Space>
+                </div>
               </Space>
             </div>
             {calibrationInfo && calibrationInfo.detected && calibrationMode !== 'none' && (
@@ -217,8 +247,18 @@ export const LeftControlPanel: React.FC<LeftControlPanelProps> = ({
               />
             )}
             <div>
-              <Text style={{fontSize:12}}>叠加层缩放: {(overlayScale*100).toFixed(0)}% <Text type="secondary" style={{fontSize:11}}>(Ctrl +/-)</Text></Text>
-              <input type="range" min={0.2} max={3} step={0.1} value={overlayScale} onChange={e=>setOverlayScale && setOverlayScale(parseFloat(e.target.value))} style={{width:'100%'}} />
+              <Text style={{fontSize:12}}>叠加层缩放: {(overlayScale*100).toFixed(0)}% <Text type="secondary" style={{fontSize:11}}>(Ctrl +/-, Ctrl+Shift +/- = 1%)</Text></Text>
+              <input type="range" min={0.2} max={3} step={0.01} value={overlayScale} onChange={e=>setOverlayScale && setOverlayScale(parseFloat(e.target.value))} style={{width:'100%'}} />
+            </div>
+            <div>
+              <Text style={{fontSize:12}}>X 轴缩放: {(((overlayScaleX ?? overlayScale))*100).toFixed(0)}% <Text type="secondary" style={{fontSize:11}}>(Alt +/-, Alt+Shift +/-)</Text></Text>
+              <input type="range" min={0.2} max={3} step={0.01} value={overlayScaleX ?? overlayScale} onChange={e=>setOverlayScaleX && setOverlayScaleX(parseFloat(e.target.value))} style={{width:'100%'}} />
+              <Button size="small" style={{marginTop:4}} onClick={()=> setOverlayScaleX && setOverlayScaleX(undefined)}>重置 X（跟随整体）</Button>
+            </div>
+            <div>
+              <Text style={{fontSize:12}}>Y 轴缩放: {(((overlayScaleY ?? overlayScale))*100).toFixed(0)}% <Text type="secondary" style={{fontSize:11}}>(Ctrl+Alt +/-, Ctrl+Alt+Shift +/-)</Text></Text>
+              <input type="range" min={0.2} max={3} step={0.01} value={overlayScaleY ?? overlayScale} onChange={e=>setOverlayScaleY && setOverlayScaleY(parseFloat(e.target.value))} style={{width:'100%'}} />
+              <Button size="small" style={{marginTop:4}} onClick={()=> setOverlayScaleY && setOverlayScaleY(undefined)}>重置 Y（跟随整体）</Button>
             </div>
             <div>
               <Text style={{fontSize:12}}>垂直对齐（宽受限）</Text>

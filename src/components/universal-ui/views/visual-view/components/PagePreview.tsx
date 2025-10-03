@@ -40,6 +40,8 @@ export interface PagePreviewProps {
   verticalAlign?: VerticalAlign;
   // 🆕 覆盖层独立缩放：仅对叠加层应用，保持截图不变
   overlayScale?: number; // 0.2 - 3.0
+  overlayScaleX?: number; // 0.2 - 3.0
+  overlayScaleY?: number; // 0.2 - 3.0
   // 🆕 方案 B+C: 校准参数（设备/应用特定）
   calibration?: CoordinateCalibration;
   // 🆕 校准回调：当检测到需要自动校准时通知父组件
@@ -68,6 +70,8 @@ export const PagePreview: React.FC<PagePreviewProps> = ({
   , offsetY = 0
   , verticalAlign = 'center'
   , overlayScale = 1.0
+  , overlayScaleX
+  , overlayScaleY
   , calibration
   , onCalibrationSuggested
 }) => {
@@ -247,6 +251,8 @@ export const PagePreview: React.FC<PagePreviewProps> = ({
                 containerH: scaledHeight,
                 calibration,
                 overlayScale,
+                overlayScaleX,
+                overlayScaleY,
                 offsetX,
                 offsetY,
                 verticalAlign

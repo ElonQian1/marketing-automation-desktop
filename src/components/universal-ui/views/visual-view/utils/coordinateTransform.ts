@@ -48,6 +48,8 @@ export interface CoordinateTransformParams {
   
   // 用户手动调整参数（向后兼容）
   overlayScale?: number;
+  overlayScaleX?: number;
+  overlayScaleY?: number;
   offsetX?: number;
   offsetY?: number;
   verticalAlign?: VerticalAlign;
@@ -101,6 +103,8 @@ export function createCoordinateTransform(
     containerH,
     calibration,
     overlayScale = 1.0,
+    overlayScaleX,
+    overlayScaleY,
     offsetX = 0,
     offsetY = 0,
     verticalAlign = 'center'
@@ -140,12 +144,14 @@ export function createCoordinateTransform(
     let x = containRect.left + normX * containRect.width;
     let y = containRect.top + normY * containRect.height;
     
-    // Stage 4: 应用 overlayScale（围绕 rect 中心缩放）
-    // 注意：当使用方案 B 校准后，overlayScale 应该接近 1.0
+  // Stage 4: 应用 overlayScale（围绕 rect 中心缩放）
+  // 注意：当使用方案 B 校准后，overlayScale 应该接近 1.0
     const centerX = containRect.left + containRect.width / 2;
     const centerY = containRect.top + containRect.height / 2;
-    x = centerX + (x - centerX) * overlayScale;
-    y = centerY + (y - centerY) * overlayScale;
+  const scaleXUsed = (typeof overlayScaleX === 'number') ? overlayScaleX : overlayScale;
+  const scaleYUsed = (typeof overlayScaleY === 'number') ? overlayScaleY : overlayScale;
+  x = centerX + (x - centerX) * scaleXUsed;
+  y = centerY + (y - centerY) * scaleYUsed;
     
     // Stage 5: 应用偏移微调
     x += offsetX;
