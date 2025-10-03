@@ -79,12 +79,17 @@ export const generateTableColumns = (columnSettings: any) => {
       case 'used':
         arr.push({ 
           title: cfg.title, 
-          dataIndex: 'used', 
+          dataIndex: 'status', 
           width: cfg.width ?? 100, 
-          render: (used: number | null) => 
-            used === 1 ? <Tag color="warning">已使用</Tag> : 
-            used === 0 ? <Tag color="default">未使用</Tag> : 
-            <Tag color="default">-</Tag> 
+          render: (status: string | null) => {
+            switch (status) {
+              case 'available': return <Tag color="success">可用</Tag>;
+              case 'assigned': return <Tag color="processing">已分配</Tag>;
+              case 'imported': return <Tag color="warning">已导入</Tag>;
+              case 'archived': return <Tag color="default">已归档</Tag>;
+              default: return <Tag color="default">-</Tag>;
+            }
+          }
         });
         break;
         

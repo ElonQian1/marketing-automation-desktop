@@ -130,6 +130,73 @@ pub fn list_numbers_with_filters(
     })
 }
 
+/// 获取满足筛选条件的所有号码ID（不分页）
+pub fn list_all_contact_number_ids(
+    conn: &Connection,
+    search: Option<String>,
+    industry: Option<String>,
+    status: Option<String>,
+) -> SqlResult<Vec<i64>> {
+    // 构建WHERE条件（复用上面的逻辑）
+    let mut where_conditions = Vec::new();
+    let mut query_params: Vec<Box<dyn rusqlite::ToSql>> = Vec::new();
+    
+    if let Some(s) = search {
+        if !s.is_empty() {
+            where_conditions.push("(phone LIKE ?1 OR name LIKE ?1)");
+            query_params.push(Box::new(format!("%{}%", s)));
+        }
+    }
+    
+    if let Some(ind) = industry {
+        if !ind.is_empty() {
+            if ind == "__UNCLASSIFIED__" {
+                where_conditions.push("(industry IS NULL OR industry = '')");
+            } else {
+                where_conditions.push("industry = ?");
+                query_params.push(Box::new(ind));
+            }
+        }
+    }
+    
+    if let Some(st) = status {
+        if !st.is_empty() {
+            where_conditions.push("status = ?");
+            query_params.push(Box::new(st));
+        }
+    }
+    
+    let where_clause = if where_conditions.is_empty() {
+        String::new()
+    } else {
+        format!(" WHERE {}", where_conditions.join(" AND "))
+    };
+    
+    // 只查询ID字段
+    let sql = format!(
+        "SELECT id FROM contact_numbers{} ORDER BY id DESC",
+        where_clause
+    );
+    
+    let mut stmt = conn.prepare(&sql)?;
+    let mut ids = Vec::new();
+    
+    if query_params.is_empty() {
+        let rows = stmt.query_map([], |row| row.get::<_, i64>(0))?;
+        for row_result in rows {
+            ids.push(row_result?);
+        }
+    } else {
+        let params_refs: Vec<&dyn rusqlite::ToSql> = query_params.iter().map(|b| b.as_ref()).collect();
+        let rows = stmt.query_map(params_refs.as_slice(), |row| row.get::<_, i64>(0))?;
+        for row_result in rows {
+            ids.push(row_result?);
+        }
+    }
+    
+    Ok(ids)
+}
+
 /// 根据ID获取单个号码
 pub fn get_number_by_id(
     conn: &Connection,
@@ -307,12 +374,12 @@ pub fn fetch_unclassified_numbers(
     let sql = if only_unconsumed {
         "SELECT id, phone, name, source_file, created_at, industry, status, assigned_at, assigned_batch_id, imported_session_id, imported_device_id 
          FROM contact_numbers 
-         WHERE (status = 'not_imported' OR status IS NULL) AND (used = 0 OR used IS NULL) 
+         WHERE status = 'available'
          ORDER BY id ASC LIMIT ?1"
     } else {
         "SELECT id, phone, name, source_file, created_at, industry, status, assigned_at, assigned_batch_id, imported_session_id, imported_device_id 
          FROM contact_numbers 
-         WHERE (status = 'not_imported' OR status IS NULL) 
+         WHERE status IN ('available', 'assigned', 'imported')
          ORDER BY id ASC LIMIT ?1"
     };
     
@@ -350,7 +417,7 @@ pub fn fetch_numbers_by_id_range_unconsumed(
     let mut stmt = conn.prepare(
         "SELECT id, phone, name, source_file, created_at, industry, status, assigned_at, assigned_batch_id, imported_session_id, imported_device_id 
          FROM contact_numbers 
-         WHERE id >= ?1 AND id <= ?2 AND (used = 0 OR used IS NULL) 
+         WHERE id >= ?1 AND id <= ?2 AND status = 'available'
          ORDER BY id"
     )?;
     
@@ -387,7 +454,7 @@ pub fn mark_numbers_used_by_id_range(
 ) -> SqlResult<i64> {
     let affected = conn.execute(
         "UPDATE contact_numbers 
-         SET used = 1, used_at = datetime('now'), used_batch = ?1, status = 'imported' 
+         SET assigned_at = datetime('now'), assigned_batch_id = ?1, status = 'imported' 
          WHERE id >= ?2 AND id <= ?3",
         params![batch_id, start_id, end_id],
     )?;
@@ -407,7 +474,7 @@ pub fn mark_numbers_as_not_imported_by_ids(
     let placeholders = number_ids.iter().map(|_| "?").collect::<Vec<_>>().join(",");
     let sql = format!(
         "UPDATE contact_numbers 
-         SET used = 0, used_at = NULL, used_batch = NULL, status = 'not_imported', imported_device_id = NULL 
+         SET assigned_at = NULL, assigned_batch_id = NULL, status = 'available', imported_device_id = NULL 
          WHERE id IN ({})",
         placeholders
     );
@@ -443,7 +510,7 @@ pub fn list_numbers_without_batch(
     offset: i64,
 ) -> SqlResult<ContactNumberList> {
     let total: i64 = conn.query_row(
-        "SELECT COUNT(*) FROM contact_numbers WHERE used_batch IS NULL",
+        "SELECT COUNT(*) FROM contact_numbers WHERE assigned_batch_id IS NULL",
         [],
         |row| row.get(0),
     )?;
@@ -451,7 +518,7 @@ pub fn list_numbers_without_batch(
     let mut stmt = conn.prepare(
         "SELECT id, phone, name, source_file, created_at, industry, status, assigned_at, assigned_batch_id, imported_session_id, imported_device_id 
          FROM contact_numbers 
-         WHERE used_batch IS NULL 
+         WHERE assigned_batch_id IS NULL 
          ORDER BY id DESC LIMIT ?1 OFFSET ?2"
     )?;
     
@@ -495,13 +562,13 @@ pub fn allocate_numbers_to_device(
     let mut stmt = if let Some(ind) = industry {
         conn.prepare(
             "SELECT id FROM contact_numbers 
-             WHERE (used = 0 OR used IS NULL) AND industry = ?1 
+             WHERE status = 'available' AND industry = ?1 
              ORDER BY id ASC LIMIT ?2"
         )?
     } else {
         conn.prepare(
             "SELECT id FROM contact_numbers 
-             WHERE (used = 0 OR used IS NULL) 
+             WHERE status = 'available'
              ORDER BY id ASC LIMIT ?1"
         )?
     };
@@ -539,7 +606,7 @@ pub fn list_numbers_without_batch_filtered(
     industry: Option<String>,
     status: Option<String>,
 ) -> SqlResult<ContactNumberList> {
-    let mut where_conditions = vec!["used_batch IS NULL".to_string()];
+    let mut where_conditions = vec!["assigned_batch_id IS NULL".to_string()];
     let mut params_vec = Vec::new();
     
     if let Some(ind) = &industry {
@@ -608,14 +675,14 @@ pub fn list_numbers_by_batch_filtered(
     limit: i64,
     offset: i64,
 ) -> SqlResult<ContactNumberList> {
-    let mut where_conditions = vec!["used_batch = ?".to_string()];
+    let mut where_conditions = vec!["assigned_batch_id = ?".to_string()];
     let mut params_vec: Vec<&dyn rusqlite::ToSql> = vec![&batch_id];
     
     if let Some(used_only) = only_used {
         if used_only {
-            where_conditions.push("used = 1".to_string());
+            where_conditions.push("status IN ('assigned', 'imported')".to_string());
         } else {
-            where_conditions.push("(used = 0 OR used IS NULL)".to_string());
+            where_conditions.push("status = 'available'".to_string());
         }
     }
     
@@ -681,12 +748,12 @@ pub fn list_numbers_by_batch(
 ) -> SqlResult<ContactNumberList> {
     let (where_clause, total_where) = if let Some(used_only) = only_used {
         if used_only {
-            ("WHERE used_batch = ?1 AND used = 1", "WHERE used_batch = ?1 AND used = 1")
+            ("WHERE assigned_batch_id = ?1 AND status IN ('assigned', 'imported')", "WHERE assigned_batch_id = ?1 AND status IN ('assigned', 'imported')")
         } else {
-            ("WHERE used_batch = ?1 AND (used = 0 OR used IS NULL)", "WHERE used_batch = ?1 AND (used = 0 OR used IS NULL)")
+            ("WHERE assigned_batch_id = ?1 AND status = 'available'", "WHERE assigned_batch_id = ?1 AND status = 'available'")
         }
     } else {
-        ("WHERE used_batch = ?1", "WHERE used_batch = ?1")
+        ("WHERE assigned_batch_id = ?1", "WHERE assigned_batch_id = ?1")
     };
     
     let total: i64 = conn.query_row(
@@ -821,14 +888,14 @@ pub fn list_numbers_for_vcf_batch(
     offset: i64,
 ) -> SqlResult<ContactNumberList> {
     let total: i64 = conn.query_row(
-        "SELECT COUNT(*) FROM contact_numbers WHERE used_batch = ?1",
+        "SELECT COUNT(*) FROM contact_numbers WHERE assigned_batch_id = ?1",
         params![batch_id],
         |row| row.get(0),
     )?;
     
     let mut stmt = conn.prepare(
         "SELECT id, phone, name, source_file, created_at, industry, status, assigned_at, assigned_batch_id, imported_session_id, imported_device_id 
-         FROM contact_numbers WHERE used_batch = ?1 ORDER BY id DESC LIMIT ?2 OFFSET ?3"
+         FROM contact_numbers WHERE assigned_batch_id = ?1 ORDER BY id DESC LIMIT ?2 OFFSET ?3"
     )?;
     
     let rows = stmt.query_map(params![batch_id, limit, offset], |row| {
@@ -867,7 +934,7 @@ pub fn tag_numbers_industry_by_vcf_batch(
     industry: &str,
 ) -> SqlResult<i64> {
     let affected = conn.execute(
-        "UPDATE contact_numbers SET industry = ?1 WHERE used_batch = ?2",
+        "UPDATE contact_numbers SET industry = ?1 WHERE assigned_batch_id = ?2",
         params![industry, batch_id],
     )?;
     

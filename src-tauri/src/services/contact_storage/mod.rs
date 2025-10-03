@@ -14,6 +14,7 @@ pub use commands::txt_import_records;
 pub use commands::{
     // 基本命令
     list_contact_numbers,
+    list_all_contact_number_ids,
     get_contact_number_stats_cmd,
     get_distinct_industries_cmd,
     

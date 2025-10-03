@@ -57,6 +57,7 @@ import {
 } from "./element-selection";
 import { convertVisualToUIElement } from "./views/visual-view";
 import type { VisualUIElement } from "./types";
+import { isDevDebugEnabled } from "../../utils/debug";
 
 const { Text, Title } = Typography;
 
@@ -148,7 +149,9 @@ const UniversalPageFinderModal: React.FC<UniversalPageFinderModalProps> = ({
   const selectionManager = useElementSelectionManager(
     uiElements,
     (element) => {
-      console.log('🎯 [UniversalPageFinderModal] 元素被选择:', element);
+      if (isDevDebugEnabled('debug:visual')) {
+        console.debug('🎯 [UniversalPageFinderModal] 元素被选择:', element?.id);
+      }
       setSelectedElementId(element.id || element.resource_id || "");
       onElementSelected?.(element);
     }
@@ -160,7 +163,9 @@ const UniversalPageFinderModal: React.FC<UniversalPageFinderModalProps> = ({
   // 🆕 模态框生命周期管理 - 关闭时清理气泡状态
   useEffect(() => {
     if (!visible) {
-      console.log('🚪 [UniversalPageFinderModal] 模态框关闭，清理所有状态');
+      if (isDevDebugEnabled('debug:visual')) {
+        console.debug('🚪 [UniversalPageFinderModal] 模态框关闭，清理所有状态');
+      }
       
       // 延迟清理，确保关闭动画完成
       const cleanup = setTimeout(() => {
@@ -178,7 +183,9 @@ const UniversalPageFinderModal: React.FC<UniversalPageFinderModalProps> = ({
   // 🆕 组件卸载时的清理
   useEffect(() => {
     return () => {
-      console.log('🗑️ [UniversalPageFinderModal] 组件卸载，执行最终清理');
+      if (isDevDebugEnabled('debug:visual')) {
+        console.debug('🗑️ [UniversalPageFinderModal] 组件卸载，执行最终清理');
+      }
       selectionManager.clearAllStates?.();
       modalZIndexManager.unregisterComponent();
       
@@ -190,8 +197,8 @@ const UniversalPageFinderModal: React.FC<UniversalPageFinderModalProps> = ({
 
   // 🔧 优化调试日志，减少频繁输出
   React.useEffect(() => {
-    if (process.env.NODE_ENV === 'development' && selectionManager.pendingSelection) {
-      console.log('🔍 [UniversalPageFinderModal] 选择状态变化:', {
+    if (isDevDebugEnabled('debug:visual') && selectionManager.pendingSelection) {
+      console.debug('🔍 [UniversalPageFinderModal] 选择状态变化:', {
         elementId: selectionManager.pendingSelection.element.id,
         uiElementsCount: uiElements.length
       });
@@ -450,39 +457,31 @@ const UniversalPageFinderModal: React.FC<UniversalPageFinderModalProps> = ({
       {/* 元素选择弹出框 */}
       {(() => {
         const isVisible = !!selectionManager.pendingSelection;
-        console.log('🎨 [ElementSelectionPopover] 渲染状态:', {
-          visible: isVisible,
-          pendingSelection: selectionManager.pendingSelection,
-          hasPendingSelection: !!selectionManager.pendingSelection
-        });
+        // 将渲染日志移除，改为仅在需要时输出的事件日志
         return (
           <ElementSelectionPopover
             visible={isVisible}
             selection={selectionManager.pendingSelection}
             onConfirm={() => {
-              console.log('✅ [ElementSelectionPopover] onConfirm 被调用');
+              if (isDevDebugEnabled('debug:visual')) console.debug('✅ [ElementSelectionPopover] onConfirm');
               selectionManager.confirmSelection();
             }}
             // 取消：仅关闭并清空待选
             onCancel={() => {
-              console.log('❌ [ElementSelectionPopover] onCancel 被调用');
+              if (isDevDebugEnabled('debug:visual')) console.debug('❌ [ElementSelectionPopover] onCancel');
               selectionManager.cancelSelection();
             }}
             // 隐藏：执行真正的隐藏逻辑
             onHide={() => {
-              console.log('🫥 [ElementSelectionPopover] onHide 被调用');
+              if (isDevDebugEnabled('debug:visual')) console.debug('🫥 [ElementSelectionPopover] onHide');
               selectionManager.hideElement();
             }}
             // 新增：支持元素发现功能
             allElements={uiElements}
             onElementSelect={(newElement) => {
-              console.log('🔄 [ElementSelectionPopover] 从发现结果选择新元素:', newElement);
-              // 使用新选择的元素 - 先模拟点击然后立即确认
-              selectionManager.handleElementClick(newElement, { x: 0, y: 0 });
-              // 延迟一下让状态更新，然后确认选择
-              setTimeout(() => {
-                selectionManager.confirmSelection();
-              }, 100);
+              if (isDevDebugEnabled('debug:visual')) console.debug('🔄 [ElementSelectionPopover] 选择新元素:', newElement?.id);
+              // 直接确认所选元素，避免依赖 pendingSelection 时序
+              selectionManager.confirmElement?.(newElement);
             }}
           />
         );

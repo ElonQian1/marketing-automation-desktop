@@ -21,6 +21,7 @@ import {
 import type { UIElement } from "../../../../api/universalUIAPI";
 import { parseXmlViewport } from "./utils/screenGeometry";
 import { useVisualViewPreferences } from "./hooks/useVisualViewPreferences";
+import { isDevDebugEnabled, shallowEqual } from "../../../../utils/debug";
 
 const { Title, Text } = Typography;
 
@@ -407,24 +408,39 @@ export const VisualElementView: React.FC<VisualElementViewProps> = ({
   // 🎯 关键修复：确保只使用一个管理器，避免状态冲突
   const selectionManager = externalSelectionManager || internalSelectionManager;
   
-  // 调试日志：检查selectionManager状态
-  console.log('🔍 [VisualElementView] selectionManager 状态:', {
-    hasExternalManager: !!externalSelectionManager,
-    hasInternalManager: !!internalSelectionManager,
-    usingExternal: !!externalSelectionManager,
-    hasHandleElementClick: typeof selectionManager.handleElementClick === 'function',
-    pendingSelection: selectionManager.pendingSelection
-  });
+  // 🔍 开发期可控日志：仅 DEV + 本地开关 且 状态变化时打印
+  const __DEBUG_VISUAL__ = isDevDebugEnabled('debug:visual');
+  const lastMgrSnapshotRef = useRef<any>(null);
+  const lastPendingIdRef = useRef<string | undefined>(undefined);
 
-  // 🔍 添加调试：监听pendingSelection变化
   useEffect(() => {
-    const isVisible = !!selectionManager.pendingSelection;
-    console.log("🎯 VisualElementView: pendingSelection 状态变化 =", {
-      visible: isVisible,
-      hasSelection: !!selectionManager.pendingSelection,
-      elementId: selectionManager.pendingSelection?.element?.id,
-    });
-  }, [selectionManager.pendingSelection]);
+    if (!__DEBUG_VISUAL__) return;
+    const snapshot = {
+      hasExternalManager: !!externalSelectionManager,
+      hasInternalManager: !!internalSelectionManager,
+      usingExternal: !!externalSelectionManager,
+      hasHandleElementClick: typeof selectionManager.handleElementClick === 'function',
+      hasPendingSelection: !!selectionManager.pendingSelection,
+    };
+    if (!shallowEqual(lastMgrSnapshotRef.current || {}, snapshot)) {
+      console.debug('🔍 [VisualElementView] selectionManager 状态变化:', snapshot);
+      lastMgrSnapshotRef.current = snapshot;
+    }
+  }, [__DEBUG_VISUAL__, externalSelectionManager, internalSelectionManager, selectionManager.handleElementClick, selectionManager.pendingSelection]);
+
+  useEffect(() => {
+    if (!__DEBUG_VISUAL__) return;
+    const id = selectionManager.pendingSelection?.element?.id;
+    if (id !== lastPendingIdRef.current) {
+      const isVisible = !!selectionManager.pendingSelection;
+      console.debug('🎯 [VisualElementView] pendingSelection 变化:', {
+        visible: isVisible,
+        hasSelection: !!selectionManager.pendingSelection,
+        elementId: id,
+      });
+      lastPendingIdRef.current = id;
+    }
+  }, [__DEBUG_VISUAL__, selectionManager.pendingSelection?.element?.id]);
 
   // parseBounds 已抽离 utils/elementTransform.ts
 

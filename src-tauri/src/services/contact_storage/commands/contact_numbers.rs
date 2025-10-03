@@ -219,6 +219,19 @@ pub async fn list_contact_numbers(
     })
 }
 
+/// 获取满足筛选条件的所有号码ID（不分页）
+#[command]
+pub async fn list_all_contact_number_ids(
+    app_handle: AppHandle,
+    search: Option<String>,
+    industry: Option<String>,
+    status: Option<String>,
+) -> Result<Vec<i64>, String> {
+    with_db_connection(&app_handle, |conn| {
+        contact_numbers_repo::list_all_contact_number_ids(conn, search, industry, status)
+    })
+}
+
 /// 获取联系人号码
 #[command]
 pub async fn fetch_contact_numbers(

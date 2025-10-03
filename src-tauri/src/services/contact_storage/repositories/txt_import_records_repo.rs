@@ -208,7 +208,7 @@ pub fn delete_txt_import_record(
         // 归档删除：更新相关联系人号码的状态
         conn.execute(
             "UPDATE contact_numbers 
-             SET status = 'archived', used = 0, used_batch = NULL, imported_device_id = NULL
+             SET status = 'archived', assigned_batch_id = NULL, imported_device_id = NULL, assigned_at = NULL
              WHERE source_file = (SELECT file_path FROM txt_import_records WHERE id = ?1)",
             params![id],
         )?;

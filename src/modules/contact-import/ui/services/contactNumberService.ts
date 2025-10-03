@@ -45,12 +45,12 @@ export interface ContactNumberDto {
   name: string;
   source_file: string;
   created_at: string;
-  // 可选的业务元数据（后端可能为 NULL）
+  // V2.0 字段：业务元数据（与后端模型保持一致）
   industry?: string | null;
-  used?: number | null; // 0/1
-  used_at?: string | null;
-  used_batch?: string | null; // VCF 批次ID
-  status?: 'not_imported' | 'imported' | 'vcf_generated' | '' | null;
+  status?: 'available' | 'assigned' | 'imported' | null;
+  assigned_at?: string | null;
+  assigned_batch_id?: string | null;
+  imported_session_id?: number | null;
   imported_device_id?: string | null;
 }
 

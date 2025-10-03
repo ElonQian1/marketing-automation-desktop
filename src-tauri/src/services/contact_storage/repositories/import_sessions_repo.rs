@@ -229,8 +229,8 @@ pub fn revert_import_session_to_failed(
 
     // 恢复关联号码的状态
     let recovered_count = conn.execute(
-        "UPDATE contact_numbers SET used = 0, status = 'not_imported', imported_device_id = NULL 
-         WHERE imported_device_id = ?1 AND used_batch = ?2",
+        "UPDATE contact_numbers SET status = 'available', imported_device_id = NULL, assigned_batch_id = NULL, assigned_at = NULL 
+         WHERE imported_device_id = ?1 AND assigned_batch_id = ?2",
         params![device_id, batch_id],
     )? as i64;
 
@@ -290,19 +290,19 @@ pub fn delete_import_session(
     let archived_number_count = if archive_numbers {
         // 归档号码：清除导入状态但保留号码
         conn.execute(
-            "UPDATE contact_numbers SET used = 0, status = 'archived', imported_device_id = NULL 
+            "UPDATE contact_numbers SET status = 'archived', imported_device_id = NULL, assigned_batch_id = NULL, assigned_at = NULL 
              WHERE imported_device_id IN (
                  SELECT device_id FROM import_sessions WHERE id = ?1
-             ) AND used_batch = ?2",
+             ) AND assigned_batch_id = ?2",
             params![session_id, batch_id],
         )? as i64
     } else {
         // 恢复号码为可用状态
         conn.execute(
-            "UPDATE contact_numbers SET used = 0, status = 'not_imported', imported_device_id = NULL 
+            "UPDATE contact_numbers SET status = 'available', imported_device_id = NULL, assigned_batch_id = NULL, assigned_at = NULL 
              WHERE imported_device_id IN (
                  SELECT device_id FROM import_sessions WHERE id = ?1
-             ) AND used_batch = ?2",
+             ) AND assigned_batch_id = ?2",
             params![session_id, batch_id],
         )? as i64
     };

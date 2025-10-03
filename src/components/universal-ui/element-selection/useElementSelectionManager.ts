@@ -171,6 +171,19 @@ export const useElementSelectionManager = (
     setPendingSelection(null);
   }, []);
 
+  // 直接确认指定元素（跳过依赖 pendingSelection 的竞态）
+  const confirmElement = useCallback((element: UIElement) => {
+    console.log('✅ [useElementSelectionManager] 直接确认指定元素:', element.id);
+    // 清除待选，避免残留气泡
+    setPendingSelection(null);
+    // 直接触发回调，避免依赖 setState 的时序
+    try {
+      onElementSelected?.(element);
+    } catch (err) {
+      console.error('❌ confirmElement 回调异常:', err);
+    }
+  }, [onElementSelected]);
+
   // 恢复指定元素
   const restoreElement = useCallback((elementId: string) => {
     console.log('🔄 恢复元素:', elementId);
@@ -251,6 +264,7 @@ export const useElementSelectionManager = (
     handleElementClick,
     handleElementHover,
     confirmSelection,
+  confirmElement,
     hideElement,
     cancelSelection,
     

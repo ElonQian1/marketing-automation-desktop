@@ -174,6 +174,7 @@ fn main() {
             import_contact_numbers_from_file,
             import_contact_numbers_from_folder,
             list_contact_numbers,
+            list_all_contact_number_ids,
             fetch_contact_numbers,
             fetch_unclassified_contact_numbers,
             fetch_contact_numbers_by_id_range,

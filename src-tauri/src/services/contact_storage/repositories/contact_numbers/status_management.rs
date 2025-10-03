@@ -14,7 +14,7 @@ pub fn mark_numbers_as_not_imported_by_ids(
     let placeholders = number_ids.iter().map(|_| "?").collect::<Vec<_>>().join(",");
     let sql = format!(
         "UPDATE contact_numbers 
-         SET used = 0, used_at = NULL, used_batch = NULL, status = 'not_imported', imported_device_id = NULL 
+         SET status = 'available', assigned_batch_id = NULL, imported_device_id = NULL, imported_session_id = NULL, imported_at = NULL, assigned_at = NULL
          WHERE id IN ({})",
         placeholders
     );

@@ -146,14 +146,20 @@ export const ContactImportWorkbench: React.FC = () => {
       },
       { 
         key: 'used', 
-        title: '是否已用', 
-        dataIndex: 'used',
+        title: '状态', 
+        dataIndex: 'status',
         defaultVisible: true, 
-        defaultWidth: 100,
+        defaultWidth: 120,
         resizable: true,
-        render: (used: boolean) => (
-          <Tag color={used ? 'orange' : 'green'}>{used ? '已使用' : '未使用'}</Tag>
-        ),
+        render: (status: string | null) => {
+          switch (status) {
+            case 'available': return <Tag color="success">可用</Tag>;
+            case 'assigned': return <Tag color="processing">已分配</Tag>;
+            case 'imported': return <Tag color="warning">已导入</Tag>;
+            case 'archived': return <Tag color="default">已归档</Tag>;
+            default: return <Tag color="default">-</Tag>;
+          }
+        },
       },
       { 
         key: 'imported_device_id', 
