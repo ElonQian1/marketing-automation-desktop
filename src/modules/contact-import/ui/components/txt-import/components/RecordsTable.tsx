@@ -1,5 +1,5 @@
 import React, { useMemo, useState, useEffect } from 'react';
-import { Table, Typography, Space, Tag, Popover, Checkbox, Button } from 'antd';
+import { Table, Typography, Space, Tag, Popover, Checkbox, Button, message } from 'antd';
 import { SettingOutlined } from '@ant-design/icons';
 import { ColumnsType } from 'antd/es/table';
 import { FileTextOutlined } from '@ant-design/icons';
@@ -58,9 +58,29 @@ export const RecordsTable: React.FC<RecordsTableProps> = ({
   useEffect(() => {
     try { localStorage.setItem('txtImport.visibleCols', JSON.stringify(visibleCols)); } catch {}
   }, [visibleCols]);
+
+  const [titleMap, setTitleMap] = useState<Record<ColKey, string>>(() => {
+    try {
+      const raw = localStorage.getItem('txtImport.titleMap');
+      if (raw) return JSON.parse(raw);
+    } catch {}
+    return {
+      file_name: '文件名',
+      total_numbers: '总数',
+      imported_numbers: '成功',
+      duplicate_numbers: '重复',
+      status: '状态',
+      created_at: '导入时间',
+      actions: '操作',
+    };
+  });
+
+  useEffect(() => {
+    try { localStorage.setItem('txtImport.titleMap', JSON.stringify(titleMap)); } catch {}
+  }, [titleMap]);
   const columns: ColumnsType<TxtImportRecordDto> = useMemo(() => [
     {
-      title: '文件名',
+      title: titleMap.file_name,
       dataIndex: 'file_name',
       key: 'file_name',
       width: 200,
@@ -74,7 +94,7 @@ export const RecordsTable: React.FC<RecordsTableProps> = ({
       ),
     },
     {
-      title: '总数',
+      title: titleMap.total_numbers,
       dataIndex: 'total_numbers',
       key: 'total_numbers',
       width: 80,
@@ -82,7 +102,7 @@ export const RecordsTable: React.FC<RecordsTableProps> = ({
       render: (count: number) => <Text>{count}</Text>,
     },
     {
-      title: '成功',
+      title: titleMap.imported_numbers,
       dataIndex: 'imported_numbers',
       key: 'imported_numbers',
       width: 80,
@@ -92,7 +112,7 @@ export const RecordsTable: React.FC<RecordsTableProps> = ({
       ),
     },
     {
-      title: '重复',
+      title: titleMap.duplicate_numbers,
       dataIndex: 'duplicate_numbers',
       key: 'duplicate_numbers',
       width: 80,
@@ -100,7 +120,7 @@ export const RecordsTable: React.FC<RecordsTableProps> = ({
       render: (count: number) => <Text style={{ color: 'var(--warning, #f59e0b)' }}>{count}</Text>,
     },
     {
-      title: '状态',
+      title: titleMap.status,
       dataIndex: 'status',
       key: 'status',
       width: 100,
@@ -120,7 +140,7 @@ export const RecordsTable: React.FC<RecordsTableProps> = ({
       },
     },
     {
-      title: '导入时间',
+      title: titleMap.created_at,
       dataIndex: 'created_at',
       key: 'created_at',
       width: 160,
@@ -129,7 +149,7 @@ export const RecordsTable: React.FC<RecordsTableProps> = ({
       ),
     },
     {
-      title: '操作',
+      title: titleMap.actions,
       key: 'actions',
       width: 120,
       render: (_, record) => (
@@ -141,7 +161,7 @@ export const RecordsTable: React.FC<RecordsTableProps> = ({
         />
       ),
     },
-  ], [onDelete, onArchive, onViewError]);
+  ], [onDelete, onArchive, onViewError, titleMap]);
 
   const filteredColumns = useMemo(() => columns.filter((c) => visibleCols[(c.key as ColKey) ?? 'actions'] !== false), [columns, visibleCols]);
 
@@ -156,7 +176,7 @@ export const RecordsTable: React.FC<RecordsTableProps> = ({
   };
 
   const visibilityPanel = (
-    <div style={{ padding: 8, width: 200 }}>
+    <div style={{ padding: 8, width: 240 }}>
       {allColumns.map((key) => (
         <div key={key} style={{ marginBottom: 6 }}>
           <Checkbox
@@ -164,20 +184,33 @@ export const RecordsTable: React.FC<RecordsTableProps> = ({
             onChange={(e) => setVisibleCols((prev) => ({ ...prev, [key]: e.target.checked }))}
             disabled={key === 'actions'}
           >
-            {({
-              file_name: '文件名',
-              total_numbers: '总数',
-              imported_numbers: '成功',
-              duplicate_numbers: '重复',
-              status: '状态',
-              created_at: '导入时间',
-              actions: '操作',
-            } as Record<ColKey, string>)[key]}
+            {titleMap[key]}
           </Checkbox>
+          <div style={{ marginTop: 4 }}>
+            <input
+              style={{ width: '100%', fontSize: 12, padding: '2px 6px' }}
+              value={titleMap[key]}
+              onChange={(e) => setTitleMap((prev) => ({ ...prev, [key]: e.target.value }))}
+            />
+          </div>
         </div>
       ))}
       <div style={{ textAlign: 'right', marginTop: 8 }}>
-        <Button size="small" onClick={() => setVisibleCols(defaultVisibleCols)}>重置为默认</Button>
+        <Space>
+          <Button size="small" onClick={() => { setVisibleCols(defaultVisibleCols); setTitleMap({
+            file_name: '文件名', total_numbers: '总数', imported_numbers: '成功', duplicate_numbers: '重复', status: '状态', created_at: '导入时间', actions: '操作'
+          }); }}>重置为默认</Button>
+          <Button size="small" type="primary" onClick={() => {
+            try {
+              localStorage.setItem('txtImport.visibleCols', JSON.stringify(visibleCols));
+              localStorage.setItem('txtImport.titleMap', JSON.stringify(titleMap));
+              // 立即持久化（useEffect 也会覆盖），此处仅是显式“保存偏好”入口
+              message.success('偏好已保存');
+            } catch {
+              message.error('保存失败');
+            }
+          }}>保存偏好</Button>
+        </Space>
       </div>
     </div>
   );

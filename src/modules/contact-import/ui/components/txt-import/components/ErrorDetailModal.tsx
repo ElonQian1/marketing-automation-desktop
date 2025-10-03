@@ -33,6 +33,31 @@ export const ErrorDetailModal: React.FC<ErrorDetailModalProps> = ({ open, record
       message.error('复制失败，请手动复制');
     }
   };
+
+  const handleCopyErrorOnly = async () => {
+    try {
+      await navigator.clipboard.writeText(record?.error_message || '');
+      message.success('已复制错误信息');
+    } catch {
+      message.error('复制失败，请手动复制');
+    }
+  };
+
+  const handleExport = () => {
+    try {
+      const blob = new Blob([textToCopy], { type: 'application/json;charset=utf-8' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `txt-import-error-detail-${record?.id ?? 'unknown'}.json`;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      URL.revokeObjectURL(url);
+    } catch {
+      message.error('导出失败');
+    }
+  };
   return (
     <Modal
       className="light-theme-force"
@@ -41,7 +66,11 @@ export const ErrorDetailModal: React.FC<ErrorDetailModalProps> = ({ open, record
       onCancel={onClose}
       footer={[
         record ? (
-          <Button key="copy" size="small" onClick={handleCopy}>复制</Button>
+          <Space key="ops">
+            <Button size="small" onClick={handleCopy}>复制 JSON</Button>
+            <Button size="small" onClick={handleCopyErrorOnly}>复制错误信息</Button>
+            <Button size="small" onClick={handleExport}>导出 JSON</Button>
+          </Space>
         ) : null,
         <Button key="ok" type="primary" onClick={onClose}>关闭</Button>,
       ]}
@@ -62,7 +91,7 @@ export const ErrorDetailModal: React.FC<ErrorDetailModalProps> = ({ open, record
           <Paragraph style={{ marginTop: 12 }}>
             <Text type="secondary">错误信息：</Text>
           </Paragraph>
-          <Paragraph style={{ whiteSpace: 'pre-wrap' }}>
+          <Paragraph ellipsis={{ rows: 4, expandable: true, symbol: '展开' }}>
             {record.error_message || '（空）'}
           </Paragraph>
         </div>
