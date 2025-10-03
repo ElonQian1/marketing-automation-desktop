@@ -166,18 +166,18 @@ export interface AllocationResultDto {
 
 export async function createVcfBatchRecord(params: { batchId: string; vcfFilePath: string; sourceStartId?: number; sourceEndId?: number; }): Promise<void> {
   const { batchId, vcfFilePath, sourceStartId, sourceEndId } = params;
-  return invoke<void>('create_vcf_batch_record', { batch_id: batchId, vcf_file_path: vcfFilePath, source_start_id: sourceStartId, source_end_id: sourceEndId });
+  return invoke<void>('create_vcf_batch_cmd', { batch_id: batchId, vcf_file_path: vcfFilePath, source_start_id: sourceStartId, source_end_id: sourceEndId });
 }
 
 export async function listVcfBatchRecords(params: { limit?: number; offset?: number } = {}): Promise<VcfBatchList> {
   const { limit, offset } = params;
-  return invoke<VcfBatchList>('list_vcf_batch_records', { limit, offset });
+  return invoke<VcfBatchList>('list_vcf_batch_records_cmd', { limit, offset });
 }
 
 export async function getVcfBatchRecord(batchId: string): Promise<VcfBatchDto | null> {
   // 同时传递 snake_case 与 camelCase，兼容不同命名约定的命令参数
   const payload = { batch_id: batchId, batchId } as const;
-  const res = await invoke<VcfBatchDto | null>('get_vcf_batch_record', payload as any);
+  const res = await invoke<VcfBatchDto | null>('get_vcf_batch_cmd', payload as any);
   return res;
 }
 
@@ -214,7 +214,7 @@ export async function getDistinctIndustries(forceRefresh = false): Promise<strin
 export async function createImportSessionRecord(batchId: string, deviceId: string): Promise<number> {
   const payload = { batch_id: batchId, batchId, device_id: deviceId, deviceId } as const;
   console.debug('[importSession] createImportSessionRecord payload (mixed):', payload);
-  return invoke<number>('create_import_session_record', payload as any);
+  return invoke<number>('create_import_session_cmd', payload as any);
 }
 
 export async function finishImportSessionRecord(sessionId: number, status: 'success' | 'failed', importedCount: number, failedCount: number, errorMessage?: string): Promise<void> {
@@ -230,14 +230,14 @@ export async function finishImportSessionRecord(sessionId: number, status: 'succ
     errorMessage,
   } as const;
   console.debug('[importSession] finishImportSessionRecord payload (mixed):', payload);
-  return invoke<void>('finish_import_session_record', payload as any);
+  return invoke<void>('finish_import_session_cmd', payload as any);
 }
 
 export async function listImportSessionRecords(params: { deviceId?: string; batchId?: string; industry?: string; limit?: number; offset?: number } = {}): Promise<ImportSessionList> {
   const { deviceId, batchId, industry, limit, offset } = params;
   // 兼容大小写键并传递行业过滤（空串与“不限”不传）
   const ind = industry && industry.trim() && industry.trim() !== '不限' ? industry.trim() : undefined;
-  return invoke<ImportSessionList>('list_import_session_records', { device_id: deviceId, batch_id: batchId, industry: ind, Industry: ind, limit, offset });
+  return invoke<ImportSessionList>('list_import_sessions_cmd', { device_id: deviceId, batch_id: batchId, industry: ind, Industry: ind, limit, offset });
 }
 
 // 为设备在数据库层分配号码并创建 VCF 批次与 pending 会话
@@ -245,7 +245,7 @@ export async function allocateNumbersToDevice(deviceId: string, count: number = 
   // 兼容 snake/camel 命名；industry 为空或“不限”时不传递
   const ind = industry && industry.trim() && industry.trim() !== '不限' ? industry.trim() : undefined;
   const payload = { device_id: deviceId, deviceId, count, industry: ind, Industry: ind } as const;
-  return invoke<AllocationResultDto>('allocate_numbers_to_device_cmd', payload as any);
+  return invoke<AllocationResultDto>('allocate_contact_numbers_to_device', payload as any);
 }
 
 // ---- 新增：会话分类编辑 & 成功回滚为失败 ----

@@ -9,6 +9,8 @@ import { useAdb } from "../../../../application/hooks/useAdb";
 import { UniversalUIAPI } from "../../../../api/universal-ui/UniversalUIAPI";
 import type { UIElement } from "../../../../api/universal-ui/types";
 import { transformUIElement } from "../../types/index";
+import toDisplayableImageSrc from "../../../../utils/toDisplayableImageSrc";
+import { loadDataUrlWithCache as loadImageDataUrl } from "../../../xml-cache/utils/imageCache";
 import type {
   XmlSnapshot,
   VisualUIElement,
@@ -48,6 +50,8 @@ export interface UsePageFinderModalReturn {
   deviceInfo: any;
   setDeviceInfo: (info: any) => void;
   snapshots: XmlSnapshot[];
+  // 🆕 截图 URL（供 Grid 视图叠加渲染）
+  screenshotUrl?: string;
   
   // 设备相关
   devices: any[];
@@ -94,6 +98,7 @@ export const usePageFinderModal = (props: UsePageFinderModalProps): UsePageFinde
   const [viewMode, setViewMode] = useState<ViewMode>(initialViewMode);
   const [uiElements, setUIElements] = useState<UIElement[]>([]);
   const [elements, setElements] = useState<VisualUIElement[]>([]);
+  const [screenshotUrl, setScreenshotUrl] = useState<string | undefined>(undefined);
 
   // 使用 ADB Hook
   const { devices, refreshDevices } = useAdb();
@@ -137,10 +142,31 @@ export const usePageFinderModal = (props: UsePageFinderModalProps): UsePageFinde
   };
 
   // 处理加载XML内容
-  const handleLoadXmlContent = async (xmlContent: string) => {
+  const handleLoadXmlContent = async (
+    xmlContent: string,
+    opts?: { screenshotAbsolutePath?: string }
+  ) => {
     try {
       setLoading(true);
       setCurrentXmlContent(xmlContent);
+      // 当从缓存或外部加载 XML 时，优先通过后端读文件为 data:URL（避免 asset.localhost 拒绝），失败再尝试 convertFileSrc
+      if (opts?.screenshotAbsolutePath) {
+        try {
+          const dataUrl = await loadImageDataUrl(opts.screenshotAbsolutePath);
+          if (dataUrl) {
+            setScreenshotUrl(dataUrl);
+          } else {
+            const url = await toDisplayableImageSrc(opts.screenshotAbsolutePath);
+            setScreenshotUrl(url);
+          }
+        } catch (e) {
+          console.warn('[usePageFinderModal] 处理截图URL失败:', e);
+          setScreenshotUrl(undefined);
+        }
+      } else {
+        // 未提供截图路径则清空，避免残留
+        setScreenshotUrl(undefined);
+      }
       
       // 解析UI元素
       const parsedElements = await UniversalUIAPI.extractPageElements(xmlContent);
@@ -184,10 +210,27 @@ export const usePageFinderModal = (props: UsePageFinderModalProps): UsePageFinde
 
     try {
       setLoading(true);
-      
       const result = await UniversalUIAPI.analyzeUniversalUIPage(selectedDevice);
       const xmlContent = result.xmlContent;
       setCurrentXmlContent(xmlContent);
+      // 🆕 解析截图路径为 URL：优先 absolutePath。先尝试 data:URL，再回退 convertFileSrc
+      try {
+        const path = result.screenshotAbsolutePath || result.screenshotRelativePath;
+        if (path) {
+          const dataUrl = await loadImageDataUrl(path);
+          if (dataUrl) {
+            setScreenshotUrl(dataUrl);
+          } else {
+            const url = await toDisplayableImageSrc(path);
+            setScreenshotUrl(url);
+          }
+        } else {
+          setScreenshotUrl(undefined);
+        }
+      } catch (e) {
+        console.warn('[usePageFinderModal] 生成截图URL失败:', e);
+        setScreenshotUrl(undefined);
+      }
       
       const parsedElements = await UniversalUIAPI.extractPageElements(xmlContent);
       setUIElements(parsedElements);
@@ -255,7 +298,9 @@ export const usePageFinderModal = (props: UsePageFinderModalProps): UsePageFinde
       console.log("🎯 提取的 UI 元素数量:", pageContent.elements.length);
       
       setCurrentXmlCacheId(cachedPage.fileName || cachedPage.id);
-      await handleLoadXmlContent(pageContent.xmlContent);
+      await handleLoadXmlContent(pageContent.xmlContent, {
+        screenshotAbsolutePath: cachedPage.screenshotAbsolutePath,
+      });
       
     } catch (error) {
       console.error("❌ 从缓存加载失败:", error);
@@ -279,6 +324,7 @@ export const usePageFinderModal = (props: UsePageFinderModalProps): UsePageFinde
     setDeviceInfo: () => {},
     snapshots: [],
     devices,
+  screenshotUrl,
     
     // 状态设置方法
     setSelectedDevice,

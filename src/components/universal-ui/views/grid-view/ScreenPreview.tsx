@@ -15,6 +15,8 @@ export const ScreenPreview: React.FC<{
   highlightKey?: number; 
   enableFlashHighlight?: boolean; 
   previewAutoCenter?: boolean; 
+  // 🆕 可选截图 URL（通过 Tauri convertFileSrc 或 base64）
+  screenshotUrl?: string;
 }> = ({ 
   root, 
   selected, 
@@ -24,7 +26,8 @@ export const ScreenPreview: React.FC<{
   highlightNode, 
   highlightKey, 
   enableFlashHighlight = true, 
-  previewAutoCenter = true 
+  previewAutoCenter = true,
+  screenshotUrl
 }) => {
   const [scaleMode, setScaleMode] = useState<ScaleMode>('fit');
   const [zoom, setZoom] = useState<number>(100); // percent for custom
@@ -161,6 +164,24 @@ export const ScreenPreview: React.FC<{
         </div>
       </div>
       <div ref={containerRef} className={`${styles.previewBox} relative`} style={{ width: viewW, height: viewH }}>
+        {/* 背景截图层（不拦截事件） */}
+        {screenshotUrl && (
+          <img
+            src={screenshotUrl}
+            alt="device-screenshot"
+            draggable={false}
+            style={{
+              position: 'absolute',
+              left: 0,
+              top: 0,
+              width: viewW,
+              height: viewH,
+              objectFit: 'fill',
+              pointerEvents: 'none',
+              userSelect: 'none',
+            }}
+          />
+        )}
         {boxes.map(({ n, b }, i) => {
           const sel = n === selected;
           const matched = matchedSet?.has(n);

@@ -5,7 +5,7 @@
 use rusqlite::{Connection, Result as SqliteResult, params};
 use super::super::models::{TxtImportRecordDto, TxtImportRecordList};
 
-/// 创建TXT导入记录
+/// 创建TXT导入记录（使用 UPSERT 处理重复文件路径）
 pub fn create_txt_import_record(
     conn: &Connection,
     file_path: &str,
@@ -17,8 +17,18 @@ pub fn create_txt_import_record(
     error_message: Option<&str>,
 ) -> SqliteResult<i64> {
     let mut stmt = conn.prepare(
-        "INSERT INTO txt_import_records (file_path, file_name, total_numbers, successful_imports, duplicate_numbers, import_status, error_message)
-         VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7)"
+        "INSERT INTO txt_import_records 
+         (file_path, file_name, total_numbers, successful_imports, duplicate_numbers, import_status, error_message, imported_at)
+         VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7, datetime('now'))
+         ON CONFLICT(file_path) DO UPDATE SET
+           file_name = excluded.file_name,
+           total_numbers = excluded.total_numbers,
+           successful_imports = excluded.successful_imports,
+           duplicate_numbers = excluded.duplicate_numbers,
+           import_status = excluded.import_status,
+           error_message = excluded.error_message,
+           imported_at = datetime('now'),
+           updated_at = datetime('now')"
     )?;
     
     stmt.execute(params![
@@ -31,7 +41,12 @@ pub fn create_txt_import_record(
         error_message
     ])?;
     
-    Ok(conn.last_insert_rowid())
+    // 返回记录ID（对于更新操作，返回现有记录的ID）
+    conn.query_row(
+        "SELECT id FROM txt_import_records WHERE file_path = ?1",
+        params![file_path],
+        |row| row.get(0)
+    )
 }
 
 /// 根据文件路径查找TXT导入记录

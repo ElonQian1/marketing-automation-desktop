@@ -18,8 +18,11 @@ pub fn init_contact_storage_tables(conn: &Connection) -> SqliteResult<()> {
     // 创建联系人号码表
     create_contact_numbers_table(conn)?;
     
-    // 创建VCF批次表
+    // 创建VCF批次表（可能是旧结构）
     create_vcf_batches_table(conn)?;
+    
+    // 🔧 迁移检查：确保 vcf_batches 表有 is_completed 列
+    migrate_vcf_batches_if_needed(conn)?;
     
     // 创建导入会话表
     create_import_sessions_table(conn)?;
@@ -108,10 +111,11 @@ fn create_vcf_batches_table(conn: &Connection) -> SqliteResult<()> {
         [],
     )?;
     
-    conn.execute(
-        "CREATE INDEX IF NOT EXISTS idx_vcf_batches_is_completed ON vcf_batches(is_completed)",
-        [],
-    )?;
+    // 注意：is_completed 索引在迁移函数中创建,此处跳过避免错误
+    // conn.execute(
+    //     "CREATE INDEX IF NOT EXISTS idx_vcf_batches_is_completed ON vcf_batches(is_completed)",
+    //     [],
+    // )?;
 
     tracing::debug!("vcf_batches 表创建完成");
     Ok(())
@@ -249,6 +253,90 @@ pub fn get_database_version(conn: &Connection) -> SqliteResult<String> {
         let version: String = row.get(0)?;
         Ok(format!("SQLite {}", version))
     })
+}
+
+/// 检查并迁移 vcf_batches 表结构（添加 is_completed 列）
+/// 
+/// 如果表已存在但缺少 is_completed 列，则执行迁移
+fn migrate_vcf_batches_if_needed(conn: &Connection) -> SqliteResult<()> {
+    // 检查 is_completed 列是否存在
+    let column_exists = check_column_exists(conn, "vcf_batches", "is_completed")?;
+    
+    if column_exists {
+        tracing::debug!("vcf_batches 表结构已是最新");
+        return Ok(());
+    }
+    
+    tracing::info!("🔧 检测到 vcf_batches 表缺少 is_completed 列，开始迁移");
+    
+    // 获取旧表记录数
+    let old_count: i64 = conn.query_row(
+        "SELECT COUNT(*) FROM vcf_batches",
+        [],
+        |row| row.get(0)
+    ).unwrap_or(0);
+    
+    // 在事务中执行迁移
+    conn.execute_batch("
+        BEGIN TRANSACTION;
+        
+        -- 1. 备份现有数据
+        CREATE TEMPORARY TABLE vcf_batches_backup AS SELECT * FROM vcf_batches;
+        
+        -- 2. 删除旧表
+        DROP TABLE vcf_batches;
+        
+        -- 3. 创建新表（完整结构）
+        CREATE TABLE vcf_batches (
+            batch_id TEXT PRIMARY KEY,
+            batch_name TEXT NOT NULL,
+            source_type TEXT NOT NULL,
+            generation_method TEXT NOT NULL,
+            description TEXT,
+            created_at TEXT NOT NULL DEFAULT (datetime('now')),
+            vcf_file_path TEXT,
+            is_completed INTEGER DEFAULT 0,
+            source_start_id INTEGER,
+            source_end_id INTEGER
+        );
+        
+        -- 4. 恢复数据（为 is_completed 设置默认值 0）
+        INSERT INTO vcf_batches (
+            batch_id, batch_name, source_type, generation_method,
+            description, created_at, vcf_file_path, is_completed,
+            source_start_id, source_end_id
+        )
+        SELECT 
+            batch_id, batch_name, source_type, generation_method,
+            description, created_at, vcf_file_path, 0 as is_completed,
+            source_start_id, source_end_id
+        FROM vcf_batches_backup;
+        
+        -- 5. 重建索引
+        CREATE INDEX idx_vcf_batches_created_at ON vcf_batches(created_at);
+        CREATE INDEX idx_vcf_batches_is_completed ON vcf_batches(is_completed);
+        
+        -- 6. 清理临时表
+        DROP TABLE vcf_batches_backup;
+        
+        COMMIT;
+    ")?;
+    
+    tracing::info!("✅ vcf_batches 表迁移完成，保留了 {} 条记录", old_count);
+    Ok(())
+}
+
+/// 检查表中是否存在指定列
+fn check_column_exists(conn: &Connection, table_name: &str, column_name: &str) -> SqliteResult<bool> {
+    let query = format!("PRAGMA table_info({})", table_name);
+    let mut stmt = conn.prepare(&query)?;
+    
+    let columns: Vec<String> = stmt.query_map([], |row| {
+        let name: String = row.get(1)?;
+        Ok(name)
+    })?.collect::<Result<_, _>>()?;
+    
+    Ok(columns.contains(&column_name.to_string()))
 }
 
 #[cfg(test)]

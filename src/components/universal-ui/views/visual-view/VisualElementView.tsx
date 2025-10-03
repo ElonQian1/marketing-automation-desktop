@@ -31,6 +31,8 @@ interface VisualElementViewProps {
   selectionManager?: ReturnType<typeof useElementSelectionManager>;
   // 🎯 新增：原始完整UIElement数据，用于保留语义信息
   originalUIElements?: UIElement[];
+  // 🆕 可选：截图背景 URL，用于在可视化预览中叠加真实截图
+  screenshotUrl?: string;
 }
 
 export const VisualElementView: React.FC<VisualElementViewProps> = ({
@@ -40,6 +42,7 @@ export const VisualElementView: React.FC<VisualElementViewProps> = ({
   selectedElementId = "",
   selectionManager: externalSelectionManager,
   originalUIElements = [],
+  screenshotUrl,
 }) => {
   // 设备外框（bezel）内边距，让设备看起来比页面更大，但不改变页面坐标/缩放
   const DEVICE_FRAME_PADDING = 24; // px，可调
@@ -49,6 +52,180 @@ export const VisualElementView: React.FC<VisualElementViewProps> = ({
   const [selectedCategory, setSelectedCategory] = useState<string>("all");
   const [showOnlyClickable, setShowOnlyClickable] = useState(true); // 🎯 默认勾选只显示可点击元素
   const [hideCompletely, setHideCompletely] = useState(false); // 🎯 默认不勾选：使用半透明显示模式
+  // 🆕 显示截图背景（默认开启）
+  const [showScreenshot, setShowScreenshot] = useState(true);
+  // 🆕 预览辅助与可视化参数
+  const [showGrid, setShowGrid] = useState(false);
+  const [showCrosshair, setShowCrosshair] = useState(false);
+  const [overlayOpacity, setOverlayOpacity] = useState(0.7);
+  const [screenshotDim, setScreenshotDim] = useState(0);
+  const [rotate90, setRotate90] = useState(false);
+  // 🆕 统一预览缩放（同时作用于截图与叠加）
+  const [previewZoom, setPreviewZoom] = useState(1.0); // 0.5 - 3.0
+  // 🆕 覆盖层独立缩放（仅叠加层），不影响截图
+  const [overlayScale, setOverlayScale] = useState(1.0); // 0.2 - 3.0
+  // 🆕 对齐微调（像素，作用于叠加层，单位为画布像素，缩放前坐标系）
+  const [offsetX, setOffsetX] = useState(0);
+  const [offsetY, setOffsetY] = useState(0);
+  // 🆕 垂直对齐（宽受限时 top/center/bottom）
+  const [verticalAlign, setVerticalAlign] = useState<'top'|'center'|'bottom'>('center');
+
+  // 偏好持久化：showScreenshot
+  useEffect(() => {
+    try {
+      const saved = localStorage.getItem('visualView.showScreenshot');
+      if (saved !== null) setShowScreenshot(saved === '1');
+    } catch {}
+  }, []);
+  useEffect(() => {
+    try {
+      localStorage.setItem('visualView.showScreenshot', showScreenshot ? '1' : '0');
+    } catch {}
+  }, [showScreenshot]);
+
+  // 偏好持久化：网格、十字线、透明度、暗化、旋转
+  useEffect(() => {
+    try {
+      const g = localStorage.getItem('visualView.showGrid');
+      if (g !== null) setShowGrid(g === '1');
+      const c = localStorage.getItem('visualView.showCrosshair');
+      if (c !== null) setShowCrosshair(c === '1');
+      const op = localStorage.getItem('visualView.overlayOpacity');
+      if (op !== null) setOverlayOpacity(Math.min(1, Math.max(0, parseFloat(op))));
+      const dim = localStorage.getItem('visualView.screenshotDim');
+      if (dim !== null) setScreenshotDim(Math.min(0.7, Math.max(0, parseFloat(dim))));
+      const r = localStorage.getItem('visualView.rotate90');
+      if (r !== null) setRotate90(r === '1');
+      const z = localStorage.getItem('visualView.previewZoom');
+      if (z !== null) setPreviewZoom(() => {
+        const v = parseFloat(z);
+        return isNaN(v) ? 1 : Math.min(3, Math.max(0.5, v));
+      });
+      const oz = localStorage.getItem('visualView.overlayScale');
+      if (oz !== null) setOverlayScale(() => {
+        const v = parseFloat(oz);
+        return isNaN(v) ? 1 : Math.min(3, Math.max(0.2, v));
+      });
+      const ox = localStorage.getItem('visualView.offsetX');
+      if (ox !== null) setOffsetX(() => {
+        const v = parseInt(ox, 10);
+        return Number.isFinite(v) ? Math.max(-2000, Math.min(2000, v)) : 0;
+      });
+      const oy = localStorage.getItem('visualView.offsetY');
+      if (oy !== null) setOffsetY(() => {
+        const v = parseInt(oy, 10);
+        return Number.isFinite(v) ? Math.max(-2000, Math.min(2000, v)) : 0;
+      });
+      const va = localStorage.getItem('visualView.verticalAlign');
+      if (va === 'top' || va === 'center' || va === 'bottom') setVerticalAlign(va);
+    } catch {}
+  }, []);
+  useEffect(() => {
+    try { localStorage.setItem('visualView.showGrid', showGrid ? '1' : '0'); } catch {}
+  }, [showGrid]);
+  useEffect(() => {
+    try { localStorage.setItem('visualView.showCrosshair', showCrosshair ? '1' : '0'); } catch {}
+  }, [showCrosshair]);
+  useEffect(() => {
+    try { localStorage.setItem('visualView.overlayOpacity', String(overlayOpacity)); } catch {}
+  }, [overlayOpacity]);
+  useEffect(() => {
+    try { localStorage.setItem('visualView.screenshotDim', String(screenshotDim)); } catch {}
+  }, [screenshotDim]);
+  useEffect(() => {
+    try { localStorage.setItem('visualView.rotate90', rotate90 ? '1' : '0'); } catch {}
+  }, [rotate90]);
+  useEffect(() => {
+    try { localStorage.setItem('visualView.previewZoom', String(previewZoom)); } catch {}
+  }, [previewZoom]);
+  useEffect(() => {
+    try { localStorage.setItem('visualView.overlayScale', String(overlayScale)); } catch {}
+  }, [overlayScale]);
+  useEffect(() => {
+    try { localStorage.setItem('visualView.offsetX', String(offsetX)); } catch {}
+  }, [offsetX]);
+  useEffect(() => {
+    try { localStorage.setItem('visualView.offsetY', String(offsetY)); } catch {}
+  }, [offsetY]);
+  useEffect(() => {
+    try { localStorage.setItem('visualView.verticalAlign', verticalAlign); } catch {}
+  }, [verticalAlign]);
+
+  // 快捷键支持：g 网格，c 十字线，r 旋转，s 显示截图，9/0 叠加透明度，[ / ] 暗化强度，=/+ 放大，- 缩小，方向键微调对齐（Shift 加大步）
+  useEffect(() => {
+    const onKeyDown = (e: KeyboardEvent) => {
+      // 忽略输入型元素
+      const target = e.target as HTMLElement | null;
+      if (target && (target.tagName === 'INPUT' || target.tagName === 'TEXTAREA' || target.isContentEditable)) return;
+      // 优先处理 Ctrl +/-：仅叠加层缩放
+      if (e.ctrlKey && (e.key === '-' )) {
+        setOverlayScale(v => Math.max(0.2, +(v - 0.1).toFixed(2)));
+        e.preventDefault();
+        return;
+      }
+      if (e.ctrlKey && (e.key === '=' || e.key === '+')) {
+        setOverlayScale(v => Math.min(3.0, +(v + 0.1).toFixed(2)));
+        e.preventDefault();
+        return;
+      }
+      if (e.key === 'g' || e.key === 'G') {
+        setShowGrid(v => !v);
+        e.preventDefault();
+      } else if (e.key === 'c' || e.key === 'C') {
+        setShowCrosshair(v => !v);
+        e.preventDefault();
+      } else if (e.key === 'r' || e.key === 'R') {
+        setRotate90(v => !v);
+        e.preventDefault();
+      } else if (e.key === 's' || e.key === 'S') {
+        setShowScreenshot(v => !v);
+        e.preventDefault();
+      } else if (e.key === '9') {
+        setOverlayOpacity(v => Math.max(0, +(v - 0.1).toFixed(2)));
+        e.preventDefault();
+      } else if (e.key === '0') {
+        setOverlayOpacity(v => Math.min(1, +(v + 0.1).toFixed(2)));
+        e.preventDefault();
+      } else if (e.key === '[') {
+        setScreenshotDim(v => Math.max(0, +(v - 0.05).toFixed(2)));
+        e.preventDefault();
+      } else if (e.key === ']') {
+        setScreenshotDim(v => Math.min(0.7, +(v + 0.05).toFixed(2)));
+        e.preventDefault();
+      } else if (e.key === '-' ) {
+        setPreviewZoom(v => Math.max(0.5, +(v - 0.1).toFixed(2)));
+        e.preventDefault();
+      } else if (e.key === '=' || e.key === '+') {
+        setPreviewZoom(v => Math.min(3.0, +(v + 0.1).toFixed(2)));
+        e.preventDefault();
+      } else if (e.key === 'ArrowLeft') {
+        const step = e.shiftKey ? 10 : 1;
+        setOffsetX(v => Math.max(-2000, v - step));
+        e.preventDefault();
+      } else if (e.key === 'ArrowRight') {
+        const step = e.shiftKey ? 10 : 1;
+        setOffsetX(v => Math.min(2000, v + step));
+        e.preventDefault();
+      } else if (e.key === 'ArrowUp') {
+        const step = e.shiftKey ? 10 : 1;
+        setOffsetY(v => Math.max(-2000, v - step));
+        e.preventDefault();
+      } else if (e.key === 'ArrowDown') {
+        const step = e.shiftKey ? 10 : 1;
+        setOffsetY(v => Math.min(2000, v + step));
+        e.preventDefault();
+      } else if (e.key === '0' && e.ctrlKey) {
+        // Ctrl+0 重置对齐与缩放
+        setPreviewZoom(1.0);
+        setOverlayScale(1.0);
+        setOffsetX(0);
+        setOffsetY(0);
+        e.preventDefault();
+      }
+    };
+    window.addEventListener('keydown', onKeyDown);
+    return () => window.removeEventListener('keydown', onKeyDown);
+  }, []);
   // 已迁移：hover 逻辑在 PagePreview 内部直接驱动 selectionManager，不再需要本地 hoveredElement
 
   // 转换函数已抽离 utils/elementTransform.ts
@@ -178,6 +355,28 @@ export const VisualElementView: React.FC<VisualElementViewProps> = ({
         setShowOnlyClickable={setShowOnlyClickable}
         hideCompletely={hideCompletely}
         setHideCompletely={setHideCompletely}
+        showScreenshot={showScreenshot}
+        setShowScreenshot={setShowScreenshot}
+        showGrid={showGrid}
+        setShowGrid={setShowGrid}
+        showCrosshair={showCrosshair}
+        setShowCrosshair={setShowCrosshair}
+        overlayOpacity={overlayOpacity}
+        setOverlayOpacity={setOverlayOpacity}
+        screenshotDim={screenshotDim}
+        setScreenshotDim={setScreenshotDim}
+        rotate90={rotate90}
+        setRotate90={setRotate90}
+        previewZoom={previewZoom}
+        setPreviewZoom={setPreviewZoom}
+  overlayScale={overlayScale}
+  setOverlayScale={setOverlayScale}
+        offsetX={offsetX}
+        setOffsetX={setOffsetX}
+        offsetY={offsetY}
+        setOffsetY={setOffsetY}
+  verticalAlign={verticalAlign}
+  setVerticalAlign={setVerticalAlign}
         selectedCategory={selectedCategory}
         setSelectedCategory={setSelectedCategory}
         selectionManager={selectionManager}
@@ -208,6 +407,18 @@ export const VisualElementView: React.FC<VisualElementViewProps> = ({
           selectionManager={selectionManager}
           selectedElementId={selectedElementId}
           originalUIElements={originalUIElements}
+          screenshotUrl={screenshotUrl}
+          showScreenshot={showScreenshot}
+          showGrid={showGrid}
+          showCrosshair={showCrosshair}
+          overlayOpacity={overlayOpacity}
+          screenshotDim={screenshotDim}
+          rotate90={rotate90}
+          previewZoom={previewZoom}
+          overlayScale={overlayScale}
+          offsetX={offsetX}
+          offsetY={offsetY}
+          verticalAlign={verticalAlign}
         />
       </div>
 

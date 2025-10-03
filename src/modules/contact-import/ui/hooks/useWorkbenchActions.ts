@@ -81,13 +81,26 @@ export const useWorkbenchActions = ({
     try {
       const filePath = await selectTxtFile();
       if (filePath) {
-  const result = await importNumbersFromTxtFile(filePath);
-  message.success('成功导入 ' + result.inserted + ' 个号码（去重 ' + result.duplicates + ' 个）');
+        const result = await importNumbersFromTxtFile(filePath);
+        
+        // 根据实际结果给出不同提示
+        if (result.inserted === 0 && result.duplicates === 0) {
+          if (result.total_numbers === 0) {
+            message.warning('文件中未找到有效的手机号码');
+          } else {
+            message.warning(`文件中有 ${result.total_numbers} 个号码，但全部是重复号码`);
+          }
+        } else if (result.inserted === 0) {
+          message.info(`文件中有 ${result.total_numbers} 个号码，但全部已存在（去重 ${result.duplicates} 个）`);
+        } else {
+          message.success(`成功导入 ${result.inserted} 个号码（去重 ${result.duplicates} 个）`);
+        }
+        
         await onDataRefresh();
       }
     } catch (error) {
       console.error('导入TXT文件失败:', error);
-      message.error('导入失败');
+      message.error(`导入失败: ${error}`);
     }
   };
 
@@ -96,13 +109,26 @@ export const useWorkbenchActions = ({
     try {
       const folderPath = await selectFolder();
       if (folderPath) {
-  const result = await importNumbersFromFolder(folderPath);
-  message.success('成功导入 ' + result.inserted + ' 个号码（去重 ' + result.duplicates + ' 个）');
+        const result = await importNumbersFromFolder(folderPath);
+        
+        // 根据实际结果给出不同提示
+        if (result.inserted === 0 && result.duplicates === 0) {
+          if (result.total_numbers === 0) {
+            message.warning('文件夹中未找到有效的手机号码');
+          } else {
+            message.warning(`文件夹中有 ${result.total_numbers} 个号码，但全部是重复号码`);
+          }
+        } else if (result.inserted === 0) {
+          message.info(`文件夹中有 ${result.total_numbers} 个号码，但全部已存在（去重 ${result.duplicates} 个）`);
+        } else {
+          message.success(`成功从 ${result.total_files} 个文件导入 ${result.inserted} 个号码（去重 ${result.duplicates} 个）`);
+        }
+        
         await onDataRefresh();
       }
     } catch (error) {
       console.error('导入文件夹失败:', error);
-      message.error('导入失败');
+      message.error(`导入失败: ${error}`);
     }
   };
 
@@ -120,12 +146,25 @@ export const useWorkbenchActions = ({
         return;
       }
       
-    const result = await importNumbersFromFolders(folders);
-    message.success('成功导入 ' + result.inserted + ' 个号码（去重 ' + result.duplicates + ' 个）');
+      const result = await importNumbersFromFolders(folders);
+      
+      // 根据实际结果给出不同提示
+      if (result.inserted === 0 && result.duplicates === 0) {
+        if (result.total_numbers === 0) {
+          message.warning(`已扫描 ${folders.length} 个文件夹，未找到有效的手机号码`);
+        } else {
+          message.warning(`已扫描 ${folders.length} 个文件夹，有 ${result.total_numbers} 个号码但全部是重复号码`);
+        }
+      } else if (result.inserted === 0) {
+        message.info(`已扫描 ${folders.length} 个文件夹，有 ${result.total_numbers} 个号码但全部已存在（去重 ${result.duplicates} 个）`);
+      } else {
+        message.success(`成功从 ${folders.length} 个文件夹的 ${result.total_files} 个文件导入 ${result.inserted} 个号码（去重 ${result.duplicates} 个）`);
+      }
+      
       await onDataRefresh();
     } catch (error) {
       console.error('批量导入失败:', error);
-      message.error('批量导入失败');
+      message.error(`批量导入失败: ${error}`);
     }
   };
 

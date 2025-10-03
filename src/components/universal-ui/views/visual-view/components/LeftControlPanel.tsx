@@ -12,6 +12,34 @@ export interface LeftControlPanelProps {
   setShowOnlyClickable: (v: boolean) => void;
   hideCompletely: boolean;
   setHideCompletely: (v: boolean) => void;
+  // 🆕 显示截图背景开关
+  showScreenshot: boolean;
+  setShowScreenshot: (v: boolean) => void;
+  // 🆕 预览辅助控制
+  showGrid?: boolean;
+  setShowGrid?: (v: boolean) => void;
+  showCrosshair?: boolean;
+  setShowCrosshair?: (v: boolean) => void;
+  overlayOpacity?: number; // 0.2 - 1.0
+  setOverlayOpacity?: (v: number) => void;
+  screenshotDim?: number; // 0 - 0.7
+  setScreenshotDim?: (v: number) => void;
+  rotate90?: boolean;
+  setRotate90?: (v: boolean) => void;
+  // 🆕 统一预览缩放
+  previewZoom?: number; // 0.5 - 3.0
+  setPreviewZoom?: (v: number) => void;
+  // 🆕 覆盖层独立缩放
+  overlayScale?: number; // 0.2 - 3.0
+  setOverlayScale?: (v: number) => void;
+  // 🆕 对齐微调
+  offsetX?: number;
+  setOffsetX?: (v: number) => void;
+  offsetY?: number;
+  setOffsetY?: (v: number) => void;
+  // 🆕 垂直对齐（宽受限时 top/center/bottom）
+  verticalAlign?: 'top' | 'center' | 'bottom';
+  setVerticalAlign?: (v: 'top' | 'center' | 'bottom') => void;
   selectedCategory: string;
   setSelectedCategory: (v: string) => void;
   selectionManager: any;
@@ -26,6 +54,28 @@ export const LeftControlPanel: React.FC<LeftControlPanelProps> = ({
   setShowOnlyClickable,
   hideCompletely,
   setHideCompletely,
+  showScreenshot,
+  setShowScreenshot,
+  showGrid = false,
+  setShowGrid,
+  showCrosshair = false,
+  setShowCrosshair,
+  overlayOpacity = 0.7,
+  setOverlayOpacity,
+  screenshotDim = 0,
+  setScreenshotDim,
+  rotate90 = false,
+  setRotate90,
+  previewZoom = 1.0,
+  setPreviewZoom,
+  overlayScale = 1.0,
+  setOverlayScale,
+  offsetX = 0,
+  setOffsetX,
+  offsetY = 0,
+  setOffsetY,
+  verticalAlign = 'center',
+  setVerticalAlign,
   selectedCategory,
   setSelectedCategory,
   selectionManager,
@@ -42,6 +92,10 @@ export const LeftControlPanel: React.FC<LeftControlPanelProps> = ({
               <input type="checkbox" checked={showOnlyClickable} onChange={e=>setShowOnlyClickable(e.target.checked)} />
               <Text style={{fontSize:13}}>只显示可点击元素</Text>
             </Space>
+            <Space align="center" size={8}>
+              <input type="checkbox" checked={showScreenshot} onChange={e=>setShowScreenshot(e.target.checked)} />
+              <Text style={{fontSize:13}}>显示截图背景</Text>
+            </Space>
             <div>
               <Space align="start" size={8}>
                 <input type="checkbox" checked={hideCompletely} onChange={e=>setHideCompletely(e.target.checked)} style={{marginTop:2}} />
@@ -49,6 +103,56 @@ export const LeftControlPanel: React.FC<LeftControlPanelProps> = ({
                   <Text style={{fontSize:13}}>完全隐藏元素<br/><Text type="secondary" style={{fontSize:11,lineHeight:1.2}}>（否则半透明显示）</Text></Text>
                 </div>
               </Space>
+            </div>
+            <Space align="center" size={8}>
+              <input type="checkbox" checked={showGrid} onChange={e=>setShowGrid && setShowGrid(e.target.checked)} />
+              <Text style={{fontSize:13}}>显示网格线</Text>
+            </Space>
+            <Space align="center" size={8}>
+              <input type="checkbox" checked={showCrosshair} onChange={e=>setShowCrosshair && setShowCrosshair(e.target.checked)} />
+              <Text style={{fontSize:13}}>显示准星</Text>
+            </Space>
+            <div>
+              <Text style={{fontSize:12}}>覆盖层不透明度: {(overlayOpacity*100).toFixed(0)}%</Text>
+              <input type="range" min={0.2} max={1} step={0.05} value={overlayOpacity} onChange={e=>setOverlayOpacity && setOverlayOpacity(parseFloat(e.target.value))} style={{width:'100%'}} />
+            </div>
+            <div>
+              <Text style={{fontSize:12}}>截图暗化: {(screenshotDim*100).toFixed(0)}%</Text>
+              <input type="range" min={0} max={0.7} step={0.05} value={screenshotDim} onChange={e=>setScreenshotDim && setScreenshotDim(parseFloat(e.target.value))} style={{width:'100%'}} />
+            </div>
+            <Space align="center" size={8}>
+              <input type="checkbox" checked={rotate90} onChange={e=>setRotate90 && setRotate90(e.target.checked)} />
+              <Text style={{fontSize:13}}>旋转 90°</Text>
+            </Space>
+            <div>
+              <Text style={{fontSize:12}}>预览缩放: {(previewZoom*100).toFixed(0)}%</Text>
+              <input type="range" min={0.5} max={3} step={0.1} value={previewZoom} onChange={e=>setPreviewZoom && setPreviewZoom(parseFloat(e.target.value))} style={{width:'100%'}} />
+            </div>
+            <div>
+              <Text style={{fontSize:12}}>叠加层缩放: {(overlayScale*100).toFixed(0)}% <Text type="secondary" style={{fontSize:11}}>(Ctrl +/-)</Text></Text>
+              <input type="range" min={0.2} max={3} step={0.1} value={overlayScale} onChange={e=>setOverlayScale && setOverlayScale(parseFloat(e.target.value))} style={{width:'100%'}} />
+            </div>
+            <div>
+              <Text style={{fontSize:12}}>垂直对齐（宽受限）</Text>
+              <select value={verticalAlign} onChange={(e)=> setVerticalAlign && setVerticalAlign(e.target.value as any)} style={{width:'100%'}}>
+                <option value="top">top</option>
+                <option value="center">center</option>
+                <option value="bottom">bottom</option>
+              </select>
+            </div>
+            <div>
+              <Text style={{fontSize:12}}>对齐微调 (px)</Text>
+              <div style={{display:'grid',gridTemplateColumns:'1fr 1fr',gap:6}}>
+                <div>
+                  <Text style={{fontSize:12}}>X</Text>
+                  <input type="number" value={offsetX} onChange={e=>setOffsetX && setOffsetX(parseInt(e.target.value||'0',10)||0)} style={{width:'100%'}} />
+                </div>
+                <div>
+                  <Text style={{fontSize:12}}>Y</Text>
+                  <input type="number" value={offsetY} onChange={e=>setOffsetY && setOffsetY(parseInt(e.target.value||'0',10)||0)} style={{width:'100%'}} />
+                </div>
+              </div>
+              <Button size="small" style={{marginTop:6}} onClick={() => { setOffsetX && setOffsetX(0); setOffsetY && setOffsetY(0); }}>重置对齐 (Ctrl+0)</Button>
             </div>
             {selectionManager.hiddenElements.length>0 && (
               <div style={{padding:8,background:'#f6ffed',border:'1px solid #b7eb8f',borderRadius:4,fontSize:12}}>

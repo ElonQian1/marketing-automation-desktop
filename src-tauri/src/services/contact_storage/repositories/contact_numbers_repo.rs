@@ -319,12 +319,12 @@ pub fn fetch_unclassified_numbers(
     let sql = if only_unconsumed {
         "SELECT id, phone, name, source_file, created_at, industry, used, used_at, used_batch, status, imported_device_id 
          FROM contact_numbers 
-         WHERE industry IS NULL AND (used = 0 OR used IS NULL) 
+         WHERE (status = 'not_imported' OR status IS NULL) AND (used = 0 OR used IS NULL) 
          ORDER BY id ASC LIMIT ?1"
     } else {
         "SELECT id, phone, name, source_file, created_at, industry, used, used_at, used_batch, status, imported_device_id 
          FROM contact_numbers 
-         WHERE industry IS NULL 
+         WHERE (status = 'not_imported' OR status IS NULL) 
          ORDER BY id ASC LIMIT ?1"
     };
     

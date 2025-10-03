@@ -1,5 +1,4 @@
 use rusqlite::{Connection, Result as SqliteResult};
-use std::sync::Mutex;
 use tauri::{AppHandle, Manager};
 use super::schema;
 
@@ -8,19 +7,20 @@ use super::schema;
 
 /// 获取数据库连接
 pub fn get_connection(app_handle: &AppHandle) -> SqliteResult<Connection> {
-    // 使用固定的数据库路径：src-tauri/data/contacts.db
-    let exe_dir = std::env::current_exe()
-        .expect("failed to get current exe path")
-        .parent()
-        .expect("failed to get exe directory")
-        .to_path_buf();
-    
-    // 开发环境下，exe在target/debug/，需要回退到src-tauri/data/
-    // 生产环境下，确保data目录存在
-    let db_dir = if exe_dir.ends_with("target/debug") || exe_dir.ends_with("target\\debug") {
-        exe_dir.parent().unwrap().parent().unwrap().join("src-tauri").join("data")
+    // 使用 Tauri 推荐的方式获取应用数据目录
+    // 开发环境：项目根目录/src-tauri/data/
+    // 生产环境：系统应用数据目录
+    let db_dir = if cfg!(debug_assertions) {
+        // 开发环境：使用项目根目录的 src-tauri/data/
+        let manifest_dir = std::env::var("CARGO_MANIFEST_DIR")
+            .expect("CARGO_MANIFEST_DIR not set");
+        std::path::PathBuf::from(manifest_dir).join("data")
     } else {
-        exe_dir.join("data")
+        // 生产环境：使用 Tauri 2.0 的 path().app_data_dir()
+        app_handle
+            .path()
+            .app_data_dir()
+            .expect("failed to get app data dir")
     };
     
     std::fs::create_dir_all(&db_dir).expect("failed to create data dir");
@@ -78,9 +78,6 @@ pub fn ensure_tables_exist(conn: &Connection) -> SqliteResult<()> {
 
 #[cfg(test)]
 mod tests {
-    use super::*;
-    use tempfile::tempdir;
-    
     #[test]
     fn test_database_connection() {
         // 单元测试可以在这里添加

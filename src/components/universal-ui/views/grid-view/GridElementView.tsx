@@ -127,6 +127,8 @@ interface GridElementViewProps {
     includes?: Record<string, string[]>;
     excludes?: Record<string, string[]>;
   };
+  // 🆕 设备截图URL（来自上层模态框）
+  screenshotUrl?: string;
 }
 
 // =============== 工具函数（见 ./utils） ===============
@@ -150,6 +152,7 @@ export const GridElementView: React.FC<GridElementViewProps> = ({
   onApplyCriteria,
   onLatestMatchingChange,
   initialMatching,
+  screenshotUrl,
 }) => {
   // 选中节点
   const [selected, setSelected] = useState<UiNode | null>(null);
@@ -819,6 +822,7 @@ export const GridElementView: React.FC<GridElementViewProps> = ({
             highlightKey={panelActivateKey}
             enableFlashHighlight={loadPrefs().enableFlashHighlight !== false}
             previewAutoCenter={loadPrefs().previewAutoCenter !== false}
+            screenshotUrl={screenshotUrl}
             onSelectForStep={onApplyCriteria as any}
           />
           <ResultsAndXPathPanel

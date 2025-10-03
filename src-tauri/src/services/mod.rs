@@ -17,6 +17,7 @@ pub mod universal_ui_page_analyzer; // 新增：Universal UI 页面分析器
 pub mod commands; // Tauri 命令封装
 pub mod contact_service;
 pub mod contact_storage; // 新增：联系人号码存储（TXT导入到SQLite）
+pub use contact_storage::commands::migrate_vcf_batches_schema; // 导出迁移命令
 pub mod crash_debugger;
 pub mod device_contact_metrics;
 pub mod employee_service;

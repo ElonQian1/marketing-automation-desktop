@@ -126,7 +126,8 @@ const UniversalPageFinderModal: React.FC<UniversalPageFinderModalProps> = ({
     refreshDevices,
     captureCurrentPage,
     loadXmlSnapshot,
-    createSnapshot
+    createSnapshot,
+    screenshotUrl
   } = usePageFinderModal({
     visible,
     snapshotOnlyMode,
@@ -314,6 +315,7 @@ const UniversalPageFinderModal: React.FC<UniversalPageFinderModalProps> = ({
               onElementSelect={handleVisualElementSelect}
               selectionManager={selectionManager}
               originalUIElements={uiElements}
+              screenshotUrl={screenshotUrl}
             />
           </ErrorBoundary>
         );
@@ -362,6 +364,7 @@ const UniversalPageFinderModal: React.FC<UniversalPageFinderModalProps> = ({
               selectedElementId={selectedElementId}
               locator={preselectLocator}
               onApplyCriteria={handleApplyCriteria}
+              screenshotUrl={screenshotUrl}
             />
           </ErrorBoundary>
         );
@@ -388,7 +391,7 @@ const UniversalPageFinderModal: React.FC<UniversalPageFinderModalProps> = ({
       onCancel={onClose}
       width="90%"
       footer={null}
-      destroyOnClose
+      destroyOnHidden
     >
       <Row gutter={16}>
         {/* 左侧控制面板 */}

@@ -27,6 +27,7 @@ use std::sync::Mutex; // 为 .manage 使用
 use screenshot_service::*;
 use commands::*; // 引入拆分后的命令（所有 #[tauri::command] 均集中）
 use tracing::info; // 引入info!宏
+use services::migrate_vcf_batches_schema; // 导入迁移命令
 // use commands::app_lifecycle_commands::*;
 use services::adb_device_tracker::*;
 use services::adb_service::AdbService;
@@ -199,6 +200,7 @@ fn main() {
             update_import_session_industry_cmd,
             revert_import_session_to_failed_cmd,
             delete_import_session_cmd,
+            migrate_vcf_batches_schema,
             get_import_session_events_cmd,
             // TXT文件导入记录管理（新增）
             list_txt_import_records_cmd,

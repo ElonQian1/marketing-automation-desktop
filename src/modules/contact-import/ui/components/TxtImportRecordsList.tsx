@@ -20,8 +20,8 @@ export const TxtImportRecordsList: React.FC<TxtImportRecordsListProps> = ({ refr
   const loadRecords = async () => {
     try {
       setLoading(true);
-      const result = await listTxtImportRecords({ limit: 100, offset: 0 });
-      setRecords(result.records);
+  const result = await listTxtImportRecords({ limit: 100, offset: 0 });
+  setRecords(result.items);
     } catch (error: any) {
       console.error('加载导入记录失败:', error);
       message.error(`加载失败: ${error?.message || error}`);
@@ -101,7 +101,7 @@ export const TxtImportRecordsList: React.FC<TxtImportRecordsListProps> = ({ refr
           刷新
         </Button>
       }
-      bodyStyle={{ padding: '12px' }}
+      styles={{ body: { padding: '12px' } }}
     >
       <List
         loading={loading}
@@ -113,7 +113,7 @@ export const TxtImportRecordsList: React.FC<TxtImportRecordsListProps> = ({ refr
             <Card
               size="small"
               hoverable
-              bodyStyle={{ padding: '12px' }}
+              styles={{ body: { padding: '12px' } }}
               actions={[
                 <Popconfirm
                   key="delete"

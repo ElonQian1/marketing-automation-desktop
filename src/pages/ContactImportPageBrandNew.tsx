@@ -10,8 +10,8 @@ import { lazyRetry } from '../utils/lazyRetry';
 
 // 懒加载联系人导入工作台
 const ContactImportWorkbench = React.lazy(() => lazyRetry(() =>
-  import('../modules/contact-import/ui/ContactImportWorkbenchSimple')
-    .then(m => ({ default: m.ContactImportWorkbenchSimple }))
+  import('../modules/contact-import/ui/ContactImportWorkbench')
+    .then(m => ({ default: m.ContactImportWorkbench }))
 ));
 
 /**

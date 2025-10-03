@@ -44,25 +44,37 @@ pub async fn import_contact_numbers_from_file(
     let content = fs::read_to_string(&file_path).map_err(|e| format!("读取文件失败: {}", e))?;
     let numbers = extract_numbers_from_text(&content);
 
-    let (inserted, duplicates, errors) = with_db_connection(&app_handle, |conn| {
-        contact_numbers_repo::insert_numbers(conn, &numbers, &file_path)
-    })?;
-    
-    // 记录导入结果到 txt_import_records 表
+    // 提取文件名（用于记录）
     let file_name = Path::new(&file_path)
         .file_name()
         .and_then(|f| f.to_str())
         .unwrap_or("unknown.txt")
         .to_string();
+
+    let (inserted, duplicates, errors) = with_db_connection(&app_handle, |conn| {
+        contact_numbers_repo::insert_numbers(conn, &numbers, &file_path)
+    })?;
     
-    let status = if errors.is_empty() { "success" } else { "partial" };
+    // 无论导入结果如何都记录到 txt_import_records 表（包括空文件和全部重复）
+    let status = if errors.is_empty() { 
+        if numbers.is_empty() {
+            "empty"  // 空文件
+        } else if inserted == 0 && duplicates > 0 {
+            "all_duplicates"  // 全部重复
+        } else {
+            "success"
+        }
+    } else { 
+        "partial" 
+    };
     let error_message = if errors.is_empty() { 
         None 
     } else { 
         Some(errors.join("; ")) 
     };
     
-    let _ = with_db_connection(&app_handle, |conn| {
+    // 记录导入结果到 txt_import_records 表（使用 UPSERT 避免重复文件冲突）
+    if let Err(e) = with_db_connection(&app_handle, |conn| {
         txt_import_records_repo::create_txt_import_record(
             conn,
             &file_path,
@@ -73,7 +85,12 @@ pub async fn import_contact_numbers_from_file(
             status,
             error_message.as_deref(),
         )
-    });
+    }) {
+        tracing::warn!("⚠️  创建/更新TXT导入记录失败: {}", e);
+        eprintln!("⚠️  创建/更新TXT导入记录失败: {}", e);
+    } else {
+        tracing::info!("✅ 成功记录TXT导入: {} (导入{}/重复{})", file_name, inserted, duplicates);
+    }
     
     Ok(models::ImportNumbersResult {
         success: true,

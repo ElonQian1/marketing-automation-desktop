@@ -15,6 +15,8 @@ interface ScreenPreviewPanelProps {
   enableFlashHighlight?: boolean;
   previewAutoCenter?: boolean;
   onSelectForStep?: (criteria: CompleteStepCriteria) => void;
+  // 🆕 从上层传入的截图 URL
+  screenshotUrl?: string;
 }
 
 export const ScreenPreviewPanel: React.FC<ScreenPreviewPanelProps> = ({ 
@@ -27,7 +29,8 @@ export const ScreenPreviewPanel: React.FC<ScreenPreviewPanelProps> = ({
   highlightKey, 
   enableFlashHighlight, 
   previewAutoCenter, 
-  onSelectForStep 
+  onSelectForStep,
+  screenshotUrl
 }) => {
   return (
     <div className={styles.card}>
@@ -52,7 +55,8 @@ export const ScreenPreviewPanel: React.FC<ScreenPreviewPanelProps> = ({
           highlightNode={highlightNode} 
           highlightKey={highlightKey} 
           enableFlashHighlight={enableFlashHighlight} 
-          previewAutoCenter={previewAutoCenter} 
+          previewAutoCenter={previewAutoCenter}
+          screenshotUrl={screenshotUrl}
         />
       </div>
     </div>

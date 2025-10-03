@@ -13,6 +13,9 @@ export interface TxtImportRecordDto {
   duplicate_numbers: number;
   invalid_numbers: number;
   import_status: 'success' | 'failed' | 'partial' | 'pending';
+  // 向后兼容的别名字段（与后端一致）
+  imported_numbers: number; // = successful_imports
+  status: 'success' | 'failed' | 'partial' | 'pending'; // = import_status
   error_message?: string | null;
   created_at: string;
   imported_at?: string | null;
@@ -23,7 +26,9 @@ export interface TxtImportRecordDto {
 
 export interface TxtImportRecordList {
   total: number;
-  records: TxtImportRecordDto[];
+  items: TxtImportRecordDto[];
+  limit?: number;
+  offset?: number;
 }
 
 export interface DeleteTxtImportRecordResult {
