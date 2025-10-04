@@ -79,6 +79,19 @@ export function useDeviceAssignmentState(value?: Record<string, Omit<DeviceAssig
   };
 
   const refreshCount = async (deviceId: string) => {
+    // 检查设备是否仍在列表中且在线
+    const device = devices?.find(d => d.id === deviceId);
+    if (!device) {
+      console.warn(`[设备分配] 设备 ${deviceId} 已不存在，跳过查询`);
+      setCounts(prev => ({ ...prev, [deviceId]: 0 }));
+      return;
+    }
+    if (!device.isOnline()) {
+      console.warn(`[设备分配] 设备 ${deviceId} 已断开，跳过查询`);
+      setCounts(prev => ({ ...prev, [deviceId]: 0 }));
+      return;
+    }
+
     setLoadingIds(prev => ({ ...prev, [deviceId]: true }));
     try { const c = await getDeviceContactCount(deviceId); setCounts(prev => ({ ...prev, [deviceId]: c })); }
     finally { setLoadingIds(prev => ({ ...prev, [deviceId]: false })); }
@@ -86,7 +99,11 @@ export function useDeviceAssignmentState(value?: Record<string, Omit<DeviceAssig
 
   const refreshAllCounts = async () => {
     const list = devices || [];
-    const queue = [...list.map(d => d.id)];
+    // 仅对在线设备查询
+    const onlineDevices = list.filter(d => d.isOnline());
+    console.log(`[设备分配] 刷新所有设备联系人数量: ${onlineDevices.length}/${list.length} 在线`);
+    
+    const queue = [...onlineDevices.map(d => d.id)];
     while (queue.length) { const id = queue.shift(); if (!id) break; await refreshCount(id); }
   };
 

@@ -10,7 +10,7 @@ export function isDevDebugEnabled(flagKey: string = 'debug:visual'): boolean {
     // Vite provides import.meta.env.DEV
     // Also allow a wildcard switch 'debug:*' === '1'
     // Prefer explicit flagKey
-    const dev = (import.meta as any).env?.DEV ?? process.env.NODE_ENV === 'development';
+    const dev = (import.meta as any).env?.DEV ?? import.meta.env?.MODE === 'development';
     if (!dev) return false;
     const ls = (typeof window !== 'undefined' && window.localStorage) ? window.localStorage : null;
     const explicit = ls?.getItem(flagKey) === '1';

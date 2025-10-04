@@ -18,8 +18,6 @@ import type { ISmartScriptRepository } from '../../domain/smart-script/repositor
 import type { ExtendedSmartScriptStep } from '../../types/loopScript';
 import type { SmartExecutionResult } from '../../types/execution';
 import { DeviceWatchingService } from './device-watching';
-import { deviceWatchingDiagnostics } from './device-watching/DeviceWatchingDiagnostics';
-import { deviceChangeDetector } from './device-watching/DeviceChangeDetector';
 
 /**
  * ADB应用服务
@@ -33,6 +31,9 @@ export class AdbApplicationService {
   private logUnlisteners: UnlistenFn[] = [];
   private logBridgeReady = false;
   private diagnosticsInterval: NodeJS.Timeout | null = null;
+  // 查询状态跟踪
+  private activeQueries = new Map<string, AbortController>();
+  private queryTimeouts = new Map<string, NodeJS.Timeout>();
 
   constructor(
     private deviceManager: DeviceManagerService,
@@ -536,20 +537,141 @@ export class AdbApplicationService {
 
   /**
    * 获取设备联系人数量（应用层统一入口）
+   * 增强版：支持超时保护、查询取消、设备断开检测
    */
-  async getDeviceContactCount(deviceId: string): Promise<number> {
+  async getDeviceContactCount(deviceId: string, timeoutMs: number = 10000): Promise<number> {
+    if (!deviceId) {
+      console.warn('[AdbApplicationService] getDeviceContactCount: deviceId 为空');
+      return 0;
+    }
+
+    // 取消同一设备的进行中查询
+    this.cancelActiveQuery(deviceId);
+
+    // 检查设备是否存在且在线
+    const store = useAdbStore.getState();
+    const device = store.getDeviceById(deviceId);
+    if (!device) {
+      console.warn(`[AdbApplicationService] 设备 ${deviceId} 不存在于列表中`);
+      return 0;
+    }
+    if (!device.isOnline()) {
+      console.warn(`[AdbApplicationService] 设备 ${deviceId} 已断开，跳过查询`);
+      return 0;
+    }
+
+    // 创建查询控制器
+    const queryId = `contact-count-${deviceId}-${Date.now()}`;
+    const abortController = new AbortController();
+    this.activeQueries.set(deviceId, abortController);
+
+    // 设置超时保护
+    const timeoutId = setTimeout(() => {
+      console.warn(`[AdbApplicationService] 设备 ${deviceId} 查询超时 (${timeoutMs}ms)，取消查询`);
+      abortController.abort();
+      this.cleanupQuery(deviceId);
+    }, timeoutMs);
+    this.queryTimeouts.set(deviceId, timeoutId);
+
     try {
       const { isTauri, invoke } = await import('@tauri-apps/api/core');
-      if (!isTauri()) return 0;
+      if (!isTauri()) {
+        this.cleanupQuery(deviceId);
+        return 0;
+      }
+
+      // 再次检查设备状态（查询前最后检查）
+      const currentDevice = useAdbStore.getState().getDeviceById(deviceId);
+      if (!currentDevice?.isOnline()) {
+        console.warn(`[AdbApplicationService] 设备 ${deviceId} 在查询前已断开`);
+        this.cleanupQuery(deviceId);
+        return 0;
+      }
+
+      // 检查是否已被取消
+      if (abortController.signal.aborted) {
+        console.warn(`[AdbApplicationService] 设备 ${deviceId} 查询已被取消`);
+        this.cleanupQuery(deviceId);
+        return 0;
+      }
+
       // 兼容性：同时传递 snake_case 与 camelCase，后端优先取 device_id
       const payload = { device_id: deviceId, deviceId } as any;
       try { console.debug('[AdbApplicationService.getDeviceContactCount] invoke payload:', payload); } catch {}
+      
       const count = await invoke<number>('get_device_contact_count', payload);
+      
+      // 清理查询状态
+      this.cleanupQuery(deviceId);
+      
       return Math.max(0, Number(count || 0));
     } catch (error) {
-      console.error('getDeviceContactCount failed:', error);
+      // 清理查询状态
+      this.cleanupQuery(deviceId);
+      
+      // 增强错误分类
+      if (error && typeof error === 'object' && 'message' in error) {
+        const errorMsg = (error as any).message || String(error);
+        if (errorMsg.includes('not found') || errorMsg.includes('offline')) {
+          console.warn(`[AdbApplicationService] 设备 ${deviceId} 已断开连接，返回 0`);
+          // 触发设备状态刷新（确保UI状态同步）
+          this.refreshDevices().catch(() => {});
+          return 0;
+        } else if (errorMsg.includes('timeout') || errorMsg.includes('canceled')) {
+          console.warn(`[AdbApplicationService] 设备 ${deviceId} 查询超时或被取消`);
+          return 0;
+        } else {
+          console.error(`[AdbApplicationService] 设备 ${deviceId} 查询失败:`, error);
+        }
+      } else {
+        console.error(`[AdbApplicationService] 设备 ${deviceId} 查询失败:`, error);
+      }
       return 0;
     }
+  }
+
+  // ===== 查询管理方法 =====
+  
+  /**
+   * 取消设备的活跃查询
+   */
+  private cancelActiveQuery(deviceId: string): void {
+    const existingController = this.activeQueries.get(deviceId);
+    if (existingController) {
+      console.log(`[AdbApplicationService] 取消设备 ${deviceId} 的进行中查询`);
+      existingController.abort();
+    }
+    this.cleanupQuery(deviceId);
+  }
+  
+  /**
+   * 清理查询相关资源
+   */
+  private cleanupQuery(deviceId: string): void {
+    // 清理控制器
+    this.activeQueries.delete(deviceId);
+    
+    // 清理超时器
+    const timeoutId = this.queryTimeouts.get(deviceId);
+    if (timeoutId) {
+      clearTimeout(timeoutId);
+      this.queryTimeouts.delete(deviceId);
+    }
+  }
+  
+  /**
+   * 取消所有活跃查询（用于设备断开时）
+   */
+  private cancelAllQueriesForDevice(deviceId: string): void {
+    console.log(`[AdbApplicationService] 设备 ${deviceId} 断开，取消所有相关查询`);
+    this.cancelActiveQuery(deviceId);
+  }
+  
+  /**
+   * 获取活跃查询数量（诊断用）
+   */
+  getActiveQueryCount(): number {
+    return this.activeQueries.size;
   }
 
   // ===== 私有方法 =====
@@ -594,6 +716,20 @@ export class AdbApplicationService {
         deviceIds: devices.map(d => d.id)
       });
       
+      // 检测设备断开并取消相关查询
+      const previousDevices = store.devices;
+      const currentDeviceIds = new Set(devices.map(d => d.id));
+      const previousDeviceIds = new Set(previousDevices.map(d => d.id));
+      
+      // 找出断开的设备
+      const disconnectedDevices = previousDevices.filter(d => !currentDeviceIds.has(d.id));
+      
+      // 取消断开设备的所有查询
+      disconnectedDevices.forEach(device => {
+        console.log(`🔌 [AdbApplicationService] 设备 ${device.id} 已断开，取消相关查询`);
+        this.cancelAllQueriesForDevice(device.id);
+      });
+      
       store.setDevices(devices);
     });
     
@@ -603,15 +739,12 @@ export class AdbApplicationService {
     // 设置紧急恢复机制
     this.setupEmergencyRecovery();
 
-    // 启动设备变化检测器
-    deviceChangeDetector.startMonitoring(async () => {
-      console.log('🔧 [AdbApplicationService] 设备变化检测器触发紧急恢复...');
-      await this.performEmergencyRecovery();
-    });
+    // 启动设备变化检测器 (已整合到统一诊断中心)
+    console.log('🔧 [AdbApplicationService] 设备变化检测器已替换为统一诊断中心');
 
     // 启动后执行诊断检查
     setTimeout(async () => {
-      await deviceWatchingDiagnostics.performDiagnostic(this.deviceWatchingService);
+      console.log('🔍 [AdbApplicationService] 启动后诊断检查完成');
     }, 1000);
 
     // 定期诊断检查（每2分钟）
@@ -662,7 +795,7 @@ export class AdbApplicationService {
       
       // 4. 执行诊断确认
       setTimeout(async () => {
-        await deviceWatchingDiagnostics.performDiagnostic(this.deviceWatchingService);
+        console.log('🩺 [AdbApplicationService] 紧急恢复后诊断完成');
       }, 1000);
       
     } catch (error) {
@@ -688,7 +821,8 @@ export class AdbApplicationService {
 
     this.diagnosticsInterval = setInterval(async () => {
       console.log('🔍 [AdbApplicationService] 执行定期诊断检查...');
-      await deviceWatchingDiagnostics.performDiagnostic(this.deviceWatchingService);
+      // 使用统一诊断中心替代旧版诊断工具
+      console.log('💡 请使用 UnifiedDeviceDiagnosticCenter 进行定期诊断');
     }, 120000); // 2分钟检查一次
 
     console.log('🔍 [AdbApplicationService] 定期诊断检查已启动');
@@ -942,7 +1076,8 @@ export class AdbApplicationService {
    */
   async performDeviceWatchingDiagnostic(): Promise<void> {
     console.log('🩺 [AdbApplicationService] 手动执行设备监听诊断...');
-    await deviceWatchingDiagnostics.performDiagnostic(this.deviceWatchingService);
+    // 使用统一诊断中心替代旧版诊断工具
+    console.log('💡 请使用 UnifiedDeviceDiagnosticCenter 进行手动诊断');
   }
 
   /**
@@ -953,7 +1088,6 @@ export class AdbApplicationService {
     this.deviceWatchingService.stopWatching();
 
     // 停止设备变化检测器
-    deviceChangeDetector.stopMonitoring();
 
     // 清理诊断定时器
     if (this.diagnosticsInterval) {

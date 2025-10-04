@@ -4,6 +4,7 @@
  */
 
 import { LogLevel } from './logger/DeviceWatchingLogger';
+import { EnvironmentService } from '../../../utils/environment';
 
 export interface ProductionDeviceWatchingConfig {
   // 日志配置
@@ -46,8 +47,8 @@ class ProductionConfigManager {
   }
 
   private loadConfiguration(): ProductionDeviceWatchingConfig {
-    const isDevelopment = process.env.NODE_ENV === 'development';
-    const isProduction = process.env.NODE_ENV === 'production';
+    const isDevelopment = EnvironmentService.isDevelopment();
+    const isProduction = EnvironmentService.isProduction();
 
     // 默认配置（生产环境优化）
     const defaultConfig: ProductionDeviceWatchingConfig = {
@@ -71,7 +72,7 @@ class ProductionConfigManager {
     const envConfig: Partial<ProductionDeviceWatchingConfig> = {};
 
     // 日志级别
-    const envLogLevel = process.env.DEVICE_WATCHING_LOG_LEVEL;
+    const envLogLevel = EnvironmentService.getDeviceWatchingLogLevel();
     if (envLogLevel) {
       const level = parseInt(envLogLevel);
       if (level >= LogLevel.SILENT && level <= LogLevel.VERBOSE) {
@@ -80,37 +81,39 @@ class ProductionConfigManager {
     }
 
     // 诊断开关
-    if (process.env.DEVICE_WATCHING_ENABLE_DIAGNOSTICS !== undefined) {
-      envConfig.enableDiagnostics = process.env.DEVICE_WATCHING_ENABLE_DIAGNOSTICS === 'true';
+    const diagnosticsEnabled = EnvironmentService.getBooleanEnv('VITE_DEVICE_WATCHING_ENABLE_DIAGNOSTICS');
+    if (diagnosticsEnabled !== undefined) {
+      envConfig.enableDiagnostics = diagnosticsEnabled;
     }
 
     // 性能监控开关
-    if (process.env.DEVICE_WATCHING_ENABLE_PERFORMANCE_MONITORING !== undefined) {
-      envConfig.enablePerformanceMonitoring = process.env.DEVICE_WATCHING_ENABLE_PERFORMANCE_MONITORING === 'true';
+    const perfMonitoringEnabled = EnvironmentService.getBooleanEnv('VITE_DEVICE_WATCHING_ENABLE_PERFORMANCE_MONITORING');
+    if (perfMonitoringEnabled !== undefined) {
+      envConfig.enablePerformanceMonitoring = perfMonitoringEnabled;
     }
 
     // 自动恢复开关
-    if (process.env.DEVICE_WATCHING_ENABLE_AUTO_RECOVERY !== undefined) {
-      envConfig.enableAutoRecovery = process.env.DEVICE_WATCHING_ENABLE_AUTO_RECOVERY === 'true';
+    const autoRecoveryEnabled = EnvironmentService.getBooleanEnv('VITE_DEVICE_WATCHING_ENABLE_AUTO_RECOVERY');
+    if (autoRecoveryEnabled !== undefined) {
+      envConfig.enableAutoRecovery = autoRecoveryEnabled;
     }
 
     // 健康检查间隔
-    const envHealthCheckInterval = process.env.DEVICE_WATCHING_HEALTH_CHECK_INTERVAL;
-    if (envHealthCheckInterval) {
-      const interval = parseInt(envHealthCheckInterval);
-      if (interval > 0) {
-        envConfig.healthCheckInterval = interval;
-      }
+    const envHealthCheckInterval = EnvironmentService.getNumberEnv('VITE_DEVICE_WATCHING_HEALTH_CHECK_INTERVAL');
+    if (envHealthCheckInterval !== undefined && envHealthCheckInterval > 0) {
+      envConfig.healthCheckInterval = envHealthCheckInterval;
     }
 
     // 持续监控开关
-    if (process.env.DEVICE_WATCHING_ENABLE_CONTINUOUS_MONITORING !== undefined) {
-      envConfig.enableContinuousMonitoring = process.env.DEVICE_WATCHING_ENABLE_CONTINUOUS_MONITORING === 'true';
+    const continuousMonitoringEnabled = EnvironmentService.getBooleanEnv('VITE_DEVICE_WATCHING_ENABLE_CONTINUOUS_MONITORING');
+    if (continuousMonitoringEnabled !== undefined) {
+      envConfig.enableContinuousMonitoring = continuousMonitoringEnabled;
     }
 
     // 旧版工具开关
-    if (process.env.DEVICE_WATCHING_ENABLE_LEGACY_TOOLS !== undefined) {
-      envConfig.enableLegacyDiagnosticTools = process.env.DEVICE_WATCHING_ENABLE_LEGACY_TOOLS === 'true';
+    const legacyToolsEnabled = EnvironmentService.getBooleanEnv('VITE_DEVICE_WATCHING_ENABLE_LEGACY_TOOLS');
+    if (legacyToolsEnabled !== undefined) {
+      envConfig.enableLegacyDiagnosticTools = legacyToolsEnabled;
     }
 
     return { ...defaultConfig, ...envConfig };
@@ -152,7 +155,7 @@ class ProductionConfigManager {
   logCurrentConfig(): void {
     if (this.config.logLevel > LogLevel.SILENT) {
       console.log('📋 设备监听配置:', {
-        环境: process.env.NODE_ENV || 'unknown',
+        环境: EnvironmentService.env.MODE,
         日志级别: LogLevel[this.config.logLevel],
         诊断功能: this.config.enableDiagnostics ? '启用' : '禁用',
         性能监控: this.config.enablePerformanceMonitoring ? '启用' : '禁用',

@@ -293,12 +293,12 @@ export const useAdb = () => {
   }, []);
 
   /**
-   * 诊断回调链路
+   * 诊断回调链路 (已整合到统一诊断中心)
    */
   const diagnoseCallbackChain = useCallback(async () => {
     console.log('🔍 [useAdb] 诊断回调链路...');
-    const { callbackChainDiagnostics } = await import('../services/device-watching/CallbackChainDiagnostics');
-    await callbackChainDiagnostics.performDiagnostic();
+    // 使用统一诊断中心替代旧版诊断工具
+    console.log('💡 请使用 UnifiedDeviceDiagnosticCenter 进行诊断');
   }, []);
 
   // ===== 授权/无线调试辅助 =====

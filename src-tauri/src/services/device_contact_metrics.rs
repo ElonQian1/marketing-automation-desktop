@@ -1,5 +1,5 @@
 use tauri::command;
-use tracing::{info, warn};
+use tracing::{info, warn, error};
 
 use crate::utils::adb_utils::execute_adb_command;
 
@@ -91,8 +91,28 @@ pub async fn get_device_contact_count(
     };
 
     info!("📇 查询设备联系人数量: {} (raw inputs: device_id={:?}, deviceId={:?})", id, device_id, deviceId);
+    
+    // 增强错误处理：提供更详细的错误分类
     match try_query_contact_count(&id).await {
-        Ok(count) => Ok(count),
-        Err(e) => Err(e),
+        Ok(count) => {
+            info!("✅ 设备 {} 联系人查询成功: {} 个", id, count);
+            Ok(count)
+        },
+        Err(e) => {
+            // 错误分类处理
+            if e.contains("device") && (e.contains("not found") || e.contains("offline")) {
+                warn!("🔌 设备 {} 已断开连接: {}", id, e);
+                Err(format!("device '{}' not found", id))
+            } else if e.contains("timeout") || e.contains("连接") {
+                warn!("⏱️ 设备 {} 连接超时: {}", id, e);
+                Err(format!("device '{}' timeout", id))
+            } else if e.contains("permission") || e.contains("权限") {
+                warn!("🔐 设备 {} 权限不足: {}", id, e);
+                Err(format!("device '{}' permission denied", id))
+            } else {
+                error!("❌ 设备 {} 查询失败: {}", id, e);
+                Err(e)
+            }
+        },
     }
 }

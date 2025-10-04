@@ -3,13 +3,9 @@
  */
 
 // 调试模式控制 - 兼容浏览器环境
-const DEBUG_MODE = typeof process !== 'undefined' 
-  ? process.env.NODE_ENV === 'development' 
-  : (import.meta as any).env?.DEV || false;
+const DEBUG_MODE = import.meta.env?.MODE === 'development' || (import.meta as any).env?.DEV || false;
 
-const VERBOSE_LOGS = typeof process !== 'undefined' 
-  ? process.env.REACT_APP_VERBOSE_LOGS === 'true' 
-  : (import.meta as any).env?.VITE_VERBOSE_LOGS === 'true';
+const VERBOSE_LOGS = import.meta.env?.VITE_VERBOSE_LOGS === 'true' || (import.meta as any).env?.VITE_VERBOSE_LOGS === 'true';
 
 /**
  * 图片加载相关调试日志

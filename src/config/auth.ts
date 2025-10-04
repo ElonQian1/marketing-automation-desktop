@@ -20,7 +20,7 @@ const PRODUCTION_CONFIG = {
 };
 
 // 根据环境选择配置
-const isDevelopment = process.env.NODE_ENV === 'development';
+const isDevelopment = import.meta.env?.MODE === 'development';
 
 export const AUTH_CONFIG = isDevelopment ? DEVELOPMENT_CONFIG : PRODUCTION_CONFIG;
 

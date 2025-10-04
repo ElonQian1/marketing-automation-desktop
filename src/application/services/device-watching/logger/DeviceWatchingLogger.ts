@@ -3,6 +3,8 @@
  * 提供分级日志记录，生产环境可控制详细程度
  */
 
+import { EnvironmentService } from '../../../../utils/environment';
+
 export enum LogLevel {
   SILENT = 0,    // 静默模式，仅记录错误
   ERROR = 1,     // 仅错误
@@ -18,8 +20,8 @@ class DeviceWatchingLogger {
 
   private constructor() {
     // 根据环境变量或配置确定日志级别
-    const envLevel = process.env.DEVICE_WATCHING_LOG_LEVEL;
-    const isDevelopment = process.env.NODE_ENV === 'development';
+    const envLevel = EnvironmentService.getDeviceWatchingLogLevel();
+    const isDevelopment = EnvironmentService.isDevelopment();
     
     if (envLevel) {
       this.currentLevel = parseInt(envLevel) as LogLevel;
