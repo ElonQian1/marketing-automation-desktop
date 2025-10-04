@@ -17,6 +17,7 @@ import { listen, UnlistenFn } from '@tauri-apps/api/event';
 import type { ISmartScriptRepository } from '../../domain/smart-script/repositories/ISmartScriptRepository';
 import type { ExtendedSmartScriptStep } from '../../types/loopScript';
 import type { SmartExecutionResult } from '../../types/execution';
+import { DeviceWatchingService } from './device-watching';
 
 /**
  * ADB应用服务
@@ -25,7 +26,7 @@ import type { SmartExecutionResult } from '../../types/execution';
  * 为UI层提供简化的、业务导向的API接口
  */
 export class AdbApplicationService {
-  private deviceWatcher: (() => void) | null = null;
+  private deviceWatchingService: DeviceWatchingService;
   private healthChecker: (() => void) | null = null;
   private logUnlisteners: UnlistenFn[] = [];
   private logBridgeReady = false;
@@ -37,6 +38,13 @@ export class AdbApplicationService {
     private uiMatcherRepository: IUiMatcherRepository,
     private smartScriptRepository: ISmartScriptRepository
   ) {
+    // 初始化设备监听服务（策略可配置：VITE_DEVICE_WATCH_STRATEGY=debounce|immediate|custom）
+    const strategy = (import.meta as any)?.env?.VITE_DEVICE_WATCH_STRATEGY as ('debounce' | 'immediate' | undefined);
+    this.deviceWatchingService = new DeviceWatchingService(deviceManager, {
+      strategyType: strategy || 'debounce',
+      enableLogging: true
+    });
+    
     // 设置事件处理器来同步状态到Store
     this.setupEventHandlers();
   }
@@ -561,24 +569,41 @@ export class AdbApplicationService {
    * 启动设备监听
    */
   private startDeviceWatching(): void {
-    if (this.deviceWatcher) {
-      this.deviceWatcher();
-    }
+    console.log('🎯 [AdbApplicationService] 开始启动设备监听服务...');
+    
+    const store = useAdbStore.getState();
+    
+    // 启动前先立即回放一次当前设备列表，消除等待下一次事件的空窗
+    this.deviceManager.getDevices()
+      .then((devices) => {
+        if (!devices) return;
+        console.log('⚡ [AdbApplicationService] 启动监听前立即推送一次设备列表:', {
+          deviceCount: devices.length,
+          deviceIds: devices.map(d => d.id)
+        });
+        store.setDevices(devices);
+      })
+      .catch((e) => console.warn('⚠️ [AdbApplicationService] 启动前回放设备失败:', e));
 
-    this.deviceWatcher = this.deviceManager.watchDeviceChanges((devices) => {
-      const store = useAdbStore.getState();
+    this.deviceWatchingService.startWatching((devices) => {
+      console.log('✅ [AdbApplicationService] 更新设备到 store:', {
+        deviceCount: devices.length,
+        deviceIds: devices.map(d => d.id)
+      });
+      
       store.setDevices(devices);
     });
+    
+    console.log('✅ [AdbApplicationService] 设备监听服务已启动，策略:', 
+      this.deviceWatchingService.getCurrentStrategyName());
   }
 
   /**
    * 停止设备监听
    */
   private stopDeviceWatching(): void {
-    if (this.deviceWatcher) {
-      this.deviceWatcher();
-      this.deviceWatcher = null;
-    }
+    console.log('🛑 [AdbApplicationService] 停止设备监听服务...');
+    this.deviceWatchingService.stopWatching();
   }
 
   /**

@@ -1,6 +1,7 @@
 import React, { useState, useMemo } from 'react';
 import { Button, Space, message, Typography, Badge } from 'antd';
-import ConfirmPopover from '@/components/universal-ui/common-popover/ConfirmPopover';
+// 使用相对路径以避免在某些环境下 paths 映射未生效导致的模块解析失败
+import ConfirmPopover from '../../../../../../components/universal-ui/common-popover/ConfirmPopover';
 import { 
   InboxOutlined, 
   CheckCircleOutlined, 
@@ -41,13 +42,14 @@ export const BulkActionsBar: React.FC<BulkActionsBarProps> = ({
     };
 
     selectedNumbers.forEach(number => {
-      const status = number.status;
-      if (status === 'imported') {
+      // 统一转为普通字符串，避免不同联合类型之间的“无交集比较”告警
+      const s: string = String(number.status ?? '');
+      if (s === 'imported') {
         stats.imported++;
         stats.archiveable++;
-      } else if (status === 'not_imported') {
+      } else if (s === 'not_imported') {
         stats.notImported++;
-      } else if (status === 'vcf_generated') {
+      } else if (s === 'vcf_generated') {
         stats.vcfGenerated++;
         stats.archiveable++;
       }
@@ -66,9 +68,11 @@ export const BulkActionsBar: React.FC<BulkActionsBarProps> = ({
       setArchiving(true);
       
       // 提取要归档的号码ID（只处理已导入或已生成VCF的）
-      const archiveableNumbers = selectedNumbers.filter(n => 
-        n.status === 'imported' || n.status === 'vcf_generated'
-      );
+      const archiveableNumbers = selectedNumbers.filter(n => {
+        // 通过局部变量规避联合类型直接比较造成的 TS2367
+        const st: string = String(n.status ?? '');
+        return st === 'imported' || st === 'vcf_generated';
+      });
       const numberIds = archiveableNumbers.map(number => number.id);
       
       // 批量重置号码状态
@@ -91,13 +95,17 @@ export const BulkActionsBar: React.FC<BulkActionsBarProps> = ({
   }
 
   return (
-    <div style={{
-      padding: '12px 16px',
-      background: 'linear-gradient(90deg, #f0f9ff 0%, #e0f2fe 100%)',
-      border: '1px solid #0ea5e9',
-      borderRadius: '8px',
-      margin: '8px 0'
-    }}>
+    <div
+      className="light-theme-force"
+      style={{
+        padding: '12px 16px',
+        // 使用设计令牌，避免浅色背景下文字不可读
+        background: 'var(--bg-light-base, #ffffff)',
+        border: '1px solid var(--border-muted, #d1d5db)',
+        borderRadius: '8px',
+        margin: '8px 0'
+      }}
+    >
       <div style={{ 
         display: 'flex', 
         justifyContent: 'space-between', 
@@ -108,9 +116,9 @@ export const BulkActionsBar: React.FC<BulkActionsBarProps> = ({
         {/* 选择统计信息 */}
         <div style={{ display: 'flex', alignItems: 'center', gap: '12px', flexWrap: 'wrap' }}>
           <Badge count={statistics.total} showZero>
-            <CheckCircleOutlined style={{ fontSize: '20px', color: '#0ea5e9' }} />
+            <CheckCircleOutlined style={{ fontSize: '20px', color: 'var(--brand, #6e8bff)' }} />
           </Badge>
-          <Text strong style={{ color: '#0c4a6e' }}>
+          <Text strong style={{ color: 'var(--text-inverse, #1e293b)' }}>
             已选择 {statistics.total} 个号码
           </Text>
           

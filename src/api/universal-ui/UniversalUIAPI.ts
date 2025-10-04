@@ -3,8 +3,8 @@
  * 处理页面分析、元素提取和智能匹配
  */
 
-import { invoke } from '@tauri-apps/api/core';
-import invokeCompat from '../core/tauriInvoke';
+import { invokeUniversal } from './commands/registry';
+import { normalizeUniversalPageCaptureResult } from './adapters/normalize';
 import type {
   UIElement,
   UIElementContext,
@@ -25,28 +25,13 @@ export class UniversalUIAPI {
    */
   static async analyzeUniversalUIPage(deviceId: string): Promise<UniversalPageCaptureResult> {
     try {
-      // 直接使用正确的 snake_case 参数名调用后端
-      const result = await invoke<UniversalPageCaptureResultBackend>(
-        'analyze_universal_ui_page',
-        { device_id: deviceId }
-      );
-      return UniversalUIAPI.normalizeUniversalPageCaptureResult(result);
+      // 统一通过 invokeCompat：默认 snake_case，必要时自动回退 camelCase
+      const result = await invokeUniversal<UniversalPageCaptureResultBackend>('analyzeUniversalUIPage', { deviceId });
+      return normalizeUniversalPageCaptureResult(result);
     } catch (error) {
       console.error('Failed to analyze universal UI page:', error);
       throw new Error(`Universal UI页面分析失败: ${error}`);
     }
-  }
-
-  private static normalizeUniversalPageCaptureResult(result: UniversalPageCaptureResultBackend): UniversalPageCaptureResult {
-    return {
-      xmlContent: result.xml_content,
-      xmlFileName: result.xml_file_name,
-      xmlRelativePath: result.xml_relative_path,
-      xmlAbsolutePath: result.xml_absolute_path,
-      screenshotFileName: result.screenshot_file_name ?? undefined,
-      screenshotRelativePath: result.screenshot_relative_path ?? undefined,
-      screenshotAbsolutePath: result.screenshot_absolute_path ?? undefined,
-    };
   }
 
   /**
@@ -54,12 +39,11 @@ export class UniversalUIAPI {
    */
   static async extractPageElements(xmlContent: string): Promise<UIElement[]> {
     try {
-      // 直接使用正确的 snake_case 参数名调用后端
+      // 统一通过 invokeCompat 调用后端，失败时回退前端解析
       try {
-        return await invoke<UIElement[]>('extract_page_elements', { xml_content: xmlContent });
+        return await invokeUniversal<UIElement[]>('extractPageElements', { xmlContent });
       } catch (backendError) {
         console.warn('[UniversalUIAPI] 后端解析失败，使用前端上下文感知解析:', backendError);
-        // 后端失败时使用前端上下文感知解析
         return this.parseXMLToElementsWithContext(xmlContent);
       }
     } catch (error) {

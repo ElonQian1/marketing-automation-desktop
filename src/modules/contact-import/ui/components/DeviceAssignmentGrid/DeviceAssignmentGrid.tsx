@@ -1,5 +1,5 @@
 import React, { useEffect, useMemo, useState } from 'react';
-import { Row, Col, Space, App } from 'antd';
+import { Row, Col, Space, App, Typography } from 'antd';
 import styles from '../DeviceAssignmentGrid.module.css';
 import { useDeviceAssignmentState, type DeviceAssignmentRow } from './useDeviceAssignmentState';
 import { Toolbar } from './Toolbar';
@@ -34,13 +34,16 @@ export const DeviceAssignmentGrid: React.FC<DeviceAssignmentGridProps> = (props)
   const { message } = App.useApp();
   const {
     devices, data,
+    refreshDevices,
     rowState, updateRow,
     counts, loadingIds, refreshCount, refreshAllCounts,
     meta,
     assignCount, setAssignCount,
     selected, setSelected, selectedIds, allSelected, toggleSelectAll, clearSelection,
     autoAssignRange,
+    isTracking,
   } = useDeviceAssignmentState(props.value, props.onChange);
+  const { Text } = Typography;
 
   const [bulkCount, setBulkCount] = useState<number>(100);
   const [generatingIds, setGeneratingIds] = useState<Record<string, boolean>>({});
@@ -213,7 +216,7 @@ export const DeviceAssignmentGrid: React.FC<DeviceAssignmentGridProps> = (props)
 
   return (
     <div>
-      <Space className={styles.toolbar} wrap>
+  <Space className={`${styles.toolbar} light-theme-force`} wrap>
         <Toolbar
           allSelected={allSelected}
           selectedCount={selectedIds.length}
@@ -222,9 +225,12 @@ export const DeviceAssignmentGrid: React.FC<DeviceAssignmentGridProps> = (props)
           bulkCount={bulkCount}
           setBulkCount={setBulkCount}
           onBulkAssign={bulkAssign}
-          onRefreshDevices={undefined}
+          onRefreshDevices={refreshDevices}
           onRefreshAllCounts={refreshAllCounts}
         />
+        {isTracking && (
+          <Text type="secondary">实时监听中…</Text>
+        )}
       </Space>
       <Row gutter={[12, 12]}>
         {data.map((row) => {

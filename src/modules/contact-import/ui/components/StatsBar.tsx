@@ -26,7 +26,9 @@ export const StatsBar: React.FC<Props> = ({ stats, onRefresh }) => {
           </Tooltip>
         )}
         {onRefresh && (
-          <a onClick={onRefresh} style={{ marginLeft: 8 }}>刷新</a>
+          <a onClick={onRefresh} style={{ marginLeft: 8, fontSize: 12 }} title="刷新号码池统计信息">
+            刷新统计
+          </a>
         )}
       </Space>
     </div>

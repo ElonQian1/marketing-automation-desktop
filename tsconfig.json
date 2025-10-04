@@ -21,11 +21,7 @@
     "noFallthroughCasesInSwitch": false,
     "noImplicitAny": false,
 
-    /* Path mapping */
-    "baseUrl": ".",
-    "paths": {
-      "@/*": ["src/*"]
-    }
+    /* Path mapping is defined in tsconfig.app.json */
   },
   "include": ["src"],
   "exclude": [

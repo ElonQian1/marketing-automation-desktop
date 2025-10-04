@@ -21,7 +21,7 @@ import { ServiceFactory } from '../services/ServiceFactory';
 import { toBackendStrategy, normalizeFieldsAndValues, normalizeIncludes, normalizeExcludes } from '../../components/universal-ui/views/grid-view/panels/node-detail';
 
 // 全局初始化状态，防止多个 useAdb Hook 同时初始化
-let isGlobalInitializing = false;
+let globalInitPromise: Promise<void> | null = null;
 // 防止重复刷新设备列表
 let isRefreshingDevices = false;
 
@@ -69,14 +69,49 @@ export const useAdb = () => {
   const isReady = isConnected && !isInitializing && !isLoading;
   
   // 健康状态
-  const isHealthy = useMemo(() => {
+  const hasHealthy = useMemo(() => {
     return isConnected && !hasErrors && hasOnlineDevices;
   }, [isConnected, hasErrors, hasOnlineDevices]);
+
+  // ===== 自动初始化 =====
+  
+  useEffect(() => {
+    // 如果已经有初始化 Promise 在进行中，等待它完成
+    if (globalInitPromise) {
+      console.log('🔄 [useAdb] 初始化已在进行中，等待完成...');
+      globalInitPromise
+        .then(() => console.log('✅ [useAdb] 共享初始化完成'))
+        .catch((error) => console.error('❌ [useAdb] 共享初始化失败:', error));
+      return;
+    }
+
+    // 检查是否已经初始化过（通过 connection 状态判断）
+    if (connection) {
+      console.log('✅ [useAdb] ADB服务已初始化');
+      return;
+    }
+
+    console.log('🚀 [useAdb] 开始自动初始化ADB服务...');
+    
+    globalInitPromise = applicationService.initialize()
+      .then(() => {
+        console.log('✅ [useAdb] ADB服务自动初始化完成');
+        console.log('📱 [useAdb] 实时设备监听已启动');
+      })
+      .catch((error) => {
+        console.error('❌ [useAdb] ADB服务初始化失败:', error);
+        throw error;
+      })
+      .finally(() => {
+        // 初始化完成后清空 Promise，允许后续重试
+        globalInitPromise = null;
+      });
+  }, []); // 空依赖数组，只在组件首次挂载时执行一次
 
   // ===== 初始化 =====
   
   /**
-   * 初始化ADB环境
+   * 初始化ADB环境（手动调用）
    */
   const initialize = useCallback(async (config?: AdbConfig) => {
     // 防止重复初始化
@@ -424,31 +459,7 @@ export const useAdb = () => {
 
   // ===== 生命周期 =====
   
-  /**
-   * 自动初始化 - 防重复调用版本
-   */
-  useEffect(() => {
-    let isMounted = true;
-    
-    // 全局单例检查：防止多个组件同时初始化
-    if (!isGlobalInitializing && !isConnected && !isInitializing && !initializeRef.current) {
-      isGlobalInitializing = true;
-      
-      initialize().catch(error => {
-        if (isMounted) {
-          console.error('Auto initialization failed:', error);
-        }
-      }).finally(() => {
-        if (isMounted) {
-          isGlobalInitializing = false;
-        }
-      });
-    }
-
-    return () => {
-      isMounted = false;
-    };
-  }, []); // 移除所有依赖，只在组件挂载时执行一次
+  // 注意：自动初始化逻辑已在上方实现，此处不再需要重复代码
 
   // ===== 返回接口 =====
   
@@ -468,7 +479,7 @@ export const useAdb = () => {
     hasOnlineDevices,
     isConnected,
     isReady,
-    isHealthy,
+    isHealthy: hasHealthy,
     hasErrors,
     adbPath,
     

@@ -3,6 +3,7 @@ import { Space, Tag, Typography } from 'antd';
 import type { VisualElementCategory, VisualUIElement } from '../../../types';
 import { convertVisualToUIElement } from '../utils/elementTransform';
 import type { UIElement } from '../../../../../api/universalUIAPI';
+import { sortUnknownLastStable } from '../../../shared/utils/sorting';
 
 const { Title } = Typography;
 
@@ -29,23 +30,9 @@ export const ElementList: React.FC<ElementListProps> = ({
   }, []);
 
   // 将“未知/未命名/占位(元素 N)”排到列表底部，其余保持原顺序
-  const sortedElements = React.useMemo(() => {
-    const enriched = filteredElements.map((el, i) => ({ el, i, label: getDisplayName(el, i) }));
-    const isUnknown = (label: string) => {
-      if (!label) return true;
-      const trimmed = label.trim();
-      const hasUnknownWord = trimmed.includes('未知') || trimmed.includes('未命名');
-      const isGeneric = /^元素\s+\d+$/i.test(trimmed);
-      return hasUnknownWord || isGeneric;
-    };
-    enriched.sort((a, b) => {
-      const aU = isUnknown(a.label);
-      const bU = isUnknown(b.label);
-      if (aU === bU) return a.i - b.i; // 稳定排序
-      return aU ? 1 : -1; // 未知沉底
-    });
-    return enriched.map(x => x.el);
-  }, [filteredElements, getDisplayName]);
+  const sortedElements = React.useMemo(() => (
+    sortUnknownLastStable(filteredElements, (el, i) => getDisplayName(el, i))
+  ), [filteredElements, getDisplayName]);
 
   return (
     <div style={{width:'clamp(240px,18vw,320px)',minWidth:240,flex:'0 0 clamp(240px,18vw,320px)',flexShrink:0}}>

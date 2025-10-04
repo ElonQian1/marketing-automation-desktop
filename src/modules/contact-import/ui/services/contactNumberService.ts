@@ -47,7 +47,7 @@ export interface ContactNumberDto {
   created_at: string;
   // V2.0 字段：业务元数据（与后端模型保持一致）
   industry?: string | null;
-  status?: 'available' | 'assigned' | 'imported' | null;
+  status?: 'available' | 'assigned' | 'imported' | 'not_imported' | 'vcf_generated' | null;
   assigned_at?: string | null;
   assigned_batch_id?: string | null;
   imported_session_id?: number | null;

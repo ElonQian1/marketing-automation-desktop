@@ -1,5 +1,6 @@
 import React from 'react';
 import { Button, Checkbox, Space, Typography, InputNumber, App } from 'antd';
+import { SyncOutlined, ReloadOutlined } from '@ant-design/icons';
 const { Text } = Typography;
 
 export function Toolbar(props: {
@@ -16,8 +17,24 @@ export function Toolbar(props: {
   const { message } = App.useApp();
   return (
     <Space wrap>
-      {props.onRefreshDevices && <Button onClick={props.onRefreshDevices}>刷新设备列表</Button>}
-      {props.onRefreshAllCounts && <Button onClick={props.onRefreshAllCounts}>刷新所有联系人数量</Button>}
+      {props.onRefreshDevices && (
+        <Button 
+          onClick={props.onRefreshDevices} 
+          icon={<SyncOutlined />}
+          title="重新扫描 ADB 设备连接状态（插拔设备后点击此按钮）"
+        >
+          刷新设备列表
+        </Button>
+      )}
+      {props.onRefreshAllCounts && (
+        <Button 
+          onClick={props.onRefreshAllCounts}
+          icon={<ReloadOutlined />}
+          title="刷新每台设备的联系人数量"
+        >
+          刷新联系人数量
+        </Button>
+      )}
       <Checkbox
         checked={props.allSelected}
         indeterminate={!props.allSelected && props.selectedCount > 0}

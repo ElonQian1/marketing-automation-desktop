@@ -20,13 +20,20 @@ export class RealTimeDeviceRepository implements IDeviceRepository {
    */
   private async initializeEventListeners(): Promise<void> {
     if (this.isInitialized) {
+      console.log('✅ [RealTimeDeviceRepository] 已初始化，跳过重复初始化');
       return;
     }
 
+    console.log('🔧 [RealTimeDeviceRepository] 开始初始化事件监听器...');
     const tracker = getGlobalDeviceTracker();
     
     // 监听设备变化事件
     tracker.onDeviceChange((event) => {
+      console.log('📱 [RealTimeDeviceRepository] 检测到设备变化:', {
+        deviceCount: event.devices.length,
+        callbackCount: this.deviceChangeCallbacks.length
+      });
+      
       const devices = event.devices.map(device => this.convertToDevice(device));
       
       // 通知所有监听器
@@ -34,18 +41,22 @@ export class RealTimeDeviceRepository implements IDeviceRepository {
         try {
           callback(devices);
         } catch (error) {
-          console.error('设备变化回调执行失败:', error);
+          console.error('❌ [RealTimeDeviceRepository] 设备变化回调执行失败:', error);
         }
       });
     });
 
     // 确保跟踪器已启动
     if (!tracker.isRunning()) {
+      console.log('🚀 [RealTimeDeviceRepository] 跟踪器未运行，正在启动...');
       try {
         await tracker.startTracking();
+        console.log('✅ [RealTimeDeviceRepository] 实时设备跟踪器已启动');
       } catch (error) {
-        console.error('启动实时设备跟踪失败:', error);
+        console.error('❌ [RealTimeDeviceRepository] 启动实时设备跟踪失败:', error);
       }
+    } else {
+      console.log('✅ [RealTimeDeviceRepository] 跟踪器已在运行');
     }
 
     this.isInitialized = true;
@@ -135,7 +146,38 @@ export class RealTimeDeviceRepository implements IDeviceRepository {
    */
   watchDeviceChanges(callback: (devices: Device[]) => void): () => void {
     this.deviceChangeCallbacks.push(callback);
-    
+
+    // 注册即回放：立刻推送一次当前设备列表，消除等待下一次事件的空窗期
+    (async () => {
+      try {
+        const tracker = getGlobalDeviceTracker();
+        const current = await tracker.getCurrentDevices();
+        const devices = current.map(d => this.convertToDevice(d));
+        try {
+          callback(devices);
+        } catch (e) {
+          console.error('❌ [RealTimeDeviceRepository] 初始回放回调失败:', e);
+        }
+
+        // 若首次回放为空，延迟重试一次（捕捉 InitialList/DevicesChanged 之后的稳定态）
+        if (devices.length === 0) {
+          setTimeout(async () => {
+            try {
+              const again = await tracker.getCurrentDevices();
+              const devices2 = again.map(d => this.convertToDevice(d));
+              if (devices2.length > 0) {
+                try { callback(devices2); } catch (e2) { console.error('❌ [RealTimeDeviceRepository] 延迟回放回调失败:', e2); }
+              }
+            } catch (e3) {
+              console.error('❌ [RealTimeDeviceRepository] 延迟回放获取失败:', e3);
+            }
+          }, 300);
+        }
+      } catch (e) {
+        console.error('❌ [RealTimeDeviceRepository] 初始回放获取失败:', e);
+      }
+    })();
+
     // 返回取消监听的函数
     return () => {
       const index = this.deviceChangeCallbacks.indexOf(callback);

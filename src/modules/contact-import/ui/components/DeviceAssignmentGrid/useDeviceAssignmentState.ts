@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useState, useCallback } from 'react';
 import { useAdb } from '../../../../../application/hooks/useAdb';
+import { getGlobalDeviceTracker } from '../../../../../infrastructure/RealTimeDeviceTracker';
 
 export interface DeviceAssignmentRow {
   deviceId: string;
@@ -11,13 +12,16 @@ export interface DeviceAssignmentRow {
 }
 
 export function useDeviceAssignmentState(value?: Record<string, Omit<DeviceAssignmentRow, 'deviceId' | 'deviceName'>>, onChange?: (v: Record<string, Omit<DeviceAssignmentRow, 'deviceId' | 'deviceName'>>) => void) {
-  const { devices, getDeviceContactCount, getDeviceInfo } = useAdb();
+  const { devices, getDeviceContactCount, getDeviceInfo, refreshDevices } = useAdb();
   const [rowState, setRowState] = useState<Record<string, Omit<DeviceAssignmentRow, 'deviceId' | 'deviceName'>>>(value || {});
   const [counts, setCounts] = useState<Record<string, number>>({});
   const [loadingIds, setLoadingIds] = useState<Record<string, boolean>>({});
   const [meta, setMeta] = useState<Record<string, { manufacturer?: string; model?: string }>>({});
   const [assignCount, setAssignCount] = useState<Record<string, number>>({});
   const [selected, setSelected] = useState<Record<string, boolean>>({});
+  const [isTracking, setIsTracking] = useState<boolean>(() => {
+    try { return getGlobalDeviceTracker().isRunning(); } catch { return false; }
+  });
 
   useEffect(() => { if (value) setRowState(value); }, [value]);
 
@@ -31,6 +35,44 @@ export function useDeviceAssignmentState(value?: Record<string, Omit<DeviceAssig
       contactCount: counts[d.id],
     }));
   }, [devices, rowState, counts]);
+
+  // 🔄 自动启动实时设备跟踪 + 首次主动刷新（兜底）
+  useEffect(() => {
+    const tracker = getGlobalDeviceTracker();
+    
+    console.log('📱 [DeviceAssignment] 检查设备跟踪器状态:', tracker.isRunning());
+    
+    // 启动跟踪（如果尚未启动）
+    if (!tracker.isRunning()) {
+      console.log('🚀 [DeviceAssignment] 启动实时设备跟踪器...');
+      tracker.startTracking()
+        .then(() => {
+          console.log('✅ [DeviceAssignment] 实时设备跟踪器已启动');
+          setIsTracking(true);
+          // 兜底：触发一次设备刷新，确保初次渲染就有列表
+          try {
+            void refreshDevices();
+          } catch (e) {
+            console.warn('⚠️ [DeviceAssignment] 初次 refreshDevices 失败（可忽略）:', e);
+          }
+        })
+        .catch((error) => {
+          console.error('❌ [DeviceAssignment] 实时设备跟踪启动失败:', error);
+        });
+    } else {
+      console.log('✅ [DeviceAssignment] 实时设备跟踪器已在运行');
+      setIsTracking(true);
+      // 兜底：若已在运行也主动刷一次，避免用户误以为需要手动
+      try {
+        void refreshDevices();
+      } catch (e) {
+        console.warn('⚠️ [DeviceAssignment] refreshDevices 失败（可忽略）:', e);
+      }
+    }
+
+    // 组件卸载时不停止跟踪（其他组件可能需要）
+    // 只在应用退出时自动清理
+  }, []);
 
   const updateRow = (deviceId: string, patch: Partial<Omit<DeviceAssignmentRow, 'deviceId' | 'deviceName'>>) => {
     setRowState(prev => { const next = { ...prev, [deviceId]: { ...prev[deviceId], ...patch } }; onChange?.(next); return next; });
@@ -62,9 +104,19 @@ export function useDeviceAssignmentState(value?: Record<string, Omit<DeviceAssig
     return () => { canceled = true; };
   }, [devices, getDeviceInfo]);
 
+  // 设备变化时，自动刷新所有设备的联系人计数（轻微延迟，避免抖动）
   useEffect(() => {
-    if ((devices || []).length === 0) return;
-    const timer = setTimeout(() => { refreshAllCounts(); }, 200);
+    const list = devices || [];
+    console.log('🧮 [DeviceAssignment] 设备变化，准备刷新联系人计数:', { count: list.length, ids: list.map(d => d.id) });
+    const timer = setTimeout(() => {
+      if (list.length === 0) {
+        // 清空计数以保持 UI 一致
+        setCounts({});
+        console.log('🧹 [DeviceAssignment] 设备为空，清空联系人计数');
+      } else {
+        void refreshAllCounts();
+      }
+    }, 250);
     return () => clearTimeout(timer);
   }, [devices]);
 
@@ -96,6 +148,7 @@ export function useDeviceAssignmentState(value?: Record<string, Omit<DeviceAssig
 
   return {
     devices,
+    refreshDevices,
     rowState, setRowState, updateRow,
     counts, loadingIds, refreshCount, refreshAllCounts,
     meta,
@@ -103,5 +156,6 @@ export function useDeviceAssignmentState(value?: Record<string, Omit<DeviceAssig
     selected, setSelected, selectedIds, allSelected, toggleSelectAll, clearSelection,
     autoAssignRange,
     data,
+    isTracking,
   };
 }

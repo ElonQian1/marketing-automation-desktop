@@ -114,10 +114,19 @@ export const useAdbStore = create<AdbState & AdbActions>()(
     setConfig: (config) => set({ config }),
 
     // === 设备管理 ===
-    setDevices: (devices) => set({ 
-      devices,
-      lastRefreshTime: new Date()
-    }),
+    setDevices: (devices) => {
+      console.log('🔄 [adbStore] setDevices 被调用:', {
+        deviceCount: devices.length,
+        deviceIds: devices.map(d => d.id)
+      });
+      
+      set({ 
+        devices,
+        lastRefreshTime: new Date()
+      });
+      
+      console.log('✅ [adbStore] devices 状态已更新');
+    },
     
     addDevice: (device) => set((state) => ({
       devices: [...state.devices.filter(d => d.id !== device.id), device]

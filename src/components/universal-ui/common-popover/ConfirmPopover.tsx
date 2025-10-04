@@ -100,7 +100,7 @@ const ConfirmPopover: React.FC<ConfirmPopoverProps> = (props) => {
     return (
       <Popconfirm
         {...commonProps}
-        destroyTooltipOnHide
+        destroyOnHidden
         onOpenChange={handleOpenChange}
         title={title}
         description={description}
@@ -121,7 +121,7 @@ const ConfirmPopover: React.FC<ConfirmPopoverProps> = (props) => {
   return (
     <Popconfirm
       {...commonProps}
-      destroyTooltipOnHide
+      destroyOnHidden
       onOpenChange={handleOpenChange}
       showCancel={false}
       okButtonProps={{ style: { display: 'none' } }}
