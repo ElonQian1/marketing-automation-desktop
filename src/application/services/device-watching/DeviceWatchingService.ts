@@ -16,6 +16,8 @@ import { DeviceManagerService } from '../../../domain/adb/services/DeviceManager
 import { IDeviceUpdateStrategy } from './strategies/IDeviceUpdateStrategy';
 import { DebounceUpdateStrategy } from './strategies/DebounceUpdateStrategy';
 import { ImmediateUpdateStrategy } from './strategies/ImmediateUpdateStrategy';
+import { deviceWatchingLogger } from './logger/DeviceWatchingLogger';
+import { getDeviceWatchingConfig } from './ProductionConfigManager';
 
 export interface DeviceWatchingConfig {
   /**
@@ -42,22 +44,27 @@ export class DeviceWatchingService {
   private updateStrategy: IDeviceUpdateStrategy;
   private deviceWatcher: (() => void) | null = null;
   private healthCheckInterval: NodeJS.Timeout | null = null;
-  private readonly enableLogging: boolean;
 
   constructor(
     deviceManager: DeviceManagerService,
     config: DeviceWatchingConfig = {}
   ) {
     this.deviceManager = deviceManager;
-    this.enableLogging = config.enableLogging ?? true;
     this.updateStrategy = this.createStrategy(config);
+    
+    // 应用生产配置
+    const productionConfig = getDeviceWatchingConfig();
+    deviceWatchingLogger.info('DeviceWatchingService 已初始化', {
+      策略: config.strategyType || 'debounce',
+      生产配置: productionConfig.enableDiagnostics
+    }, 'DeviceWatchingService');
   }
 
   /**
    * 创建更新策略
    */
   private createStrategy(config: DeviceWatchingConfig): IDeviceUpdateStrategy {
-    const { strategyType = 'debounce', customStrategy, enableLogging } = config;
+    const { strategyType = 'debounce', customStrategy } = config;
 
     if (strategyType === 'custom' && customStrategy) {
       this.log('📐 使用自定义策略:', customStrategy.name);
@@ -66,15 +73,14 @@ export class DeviceWatchingService {
 
     if (strategyType === 'immediate') {
       this.log('⚡ 使用立即更新策略');
-      return new ImmediateUpdateStrategy({ enableLogging });
+      return new ImmediateUpdateStrategy();
     }
 
     // 默认使用防抖策略
     this.log('⏱️ 使用防抖策略 (300ms/500ms)');
     return new DebounceUpdateStrategy({
       debounceDelay: 300,
-      emptyListDelay: 500,
-      enableLogging
+      emptyListDelay: 500
     });
   }
 
@@ -260,12 +266,6 @@ export class DeviceWatchingService {
   }
 
   private log(message: string, data?: any): void {
-    if (!this.enableLogging) return;
-
-    if (data) {
-      console.log(`[DeviceWatchingService] ${message}`, data);
-    } else {
-      console.log(`[DeviceWatchingService] ${message}`);
-    }
+    deviceWatchingLogger.debug(message, data, 'DeviceWatchingService');
   }
 }

@@ -34,6 +34,8 @@ export class RealTimeDeviceTracker {
   private unlistenFn: UnlistenFn | null = null;
   private isTracking = false;
   private deviceChangeCallbacks: ((event: DeviceChangeEvent) => void)[] = [];
+  private healthCheckInterval: NodeJS.Timeout | null = null;
+  private lastEventTimestamp = 0;
 
   constructor() {
     this.eventManager = new EventManager();
@@ -54,10 +56,19 @@ export class RealTimeDeviceTracker {
       // 启动后端设备跟踪
       await invoke('start_device_tracking');
 
-      // 监听设备变化事件
+      // 监听设备变化事件，增加错误处理和自动恢复
       this.unlistenFn = await listen('device-change', (event) => {
-        const deviceEvent = event.payload as DeviceChangeEvent;
-        this.handleDeviceChange(deviceEvent);
+        try {
+          const deviceEvent = event.payload as DeviceChangeEvent;
+          this.handleDeviceChange(deviceEvent);
+        } catch (error) {
+          console.error('❌ [RealTimeDeviceTracker] 处理设备变化事件失败:', error);
+          // 如果是通道关闭错误，尝试自动恢复
+          if (error instanceof Error && error.message.includes('channel closed')) {
+            console.warn('🔄 [RealTimeDeviceTracker] 检测到通道关闭，尝试自动恢复...');
+            this.recoverFromChannelClosed();
+          }
+        }
       });
 
       this.isTracking = true;
@@ -65,10 +76,69 @@ export class RealTimeDeviceTracker {
       
       // 获取初始设备列表
       await this.refreshDeviceList();
+      
+      // 启动健康检查
+      this.startHealthCheck();
 
     } catch (error) {
       console.error('❌ 启动设备跟踪失败:', error);
       throw error;
+    }
+  }
+
+  /**
+   * 启动健康检查
+   */
+  private startHealthCheck(): void {
+    // 每30秒检查一次通道健康状态
+    this.healthCheckInterval = setInterval(async () => {
+      const now = Date.now();
+      const timeSinceLastEvent = now - this.lastEventTimestamp;
+      
+      // 如果超过60秒没有收到任何事件，可能通道有问题
+      if (timeSinceLastEvent > 60000 && this.lastEventTimestamp > 0) {
+        console.warn('⚠️ [RealTimeDeviceTracker] 长时间无事件，检查通道健康状态...');
+        try {
+          // 尝试获取设备列表来测试通道
+          await this.getCurrentDevices();
+          console.log('✅ [RealTimeDeviceTracker] 通道健康检查通过');
+        } catch (error) {
+          console.error('❌ [RealTimeDeviceTracker] 通道健康检查失败，尝试重启:', error);
+          this.recoverFromChannelClosed();
+        }
+      }
+    }, 30000);
+  }
+
+  /**
+   * 停止健康检查
+   */
+  private stopHealthCheck(): void {
+    if (this.healthCheckInterval) {
+      clearInterval(this.healthCheckInterval);
+      this.healthCheckInterval = null;
+    }
+  }
+
+  /**
+   * 从通道关闭错误中恢复
+   */
+  private async recoverFromChannelClosed(): Promise<void> {
+    try {
+      console.log('🔧 [RealTimeDeviceTracker] 开始自动恢复...');
+      
+      // 停止当前跟踪
+      await this.stopTracking();
+      
+      // 等待一小段时间
+      await new Promise(resolve => setTimeout(resolve, 1000));
+      
+      // 重新启动跟踪
+      await this.startTracking();
+      
+      console.log('✅ [RealTimeDeviceTracker] 自动恢复成功');
+    } catch (error) {
+      console.error('❌ [RealTimeDeviceTracker] 自动恢复失败:', error);
     }
   }
 
@@ -81,6 +151,11 @@ export class RealTimeDeviceTracker {
     }
 
     try {
+      console.log('🛑 停止设备跟踪...');
+      
+      // 停止健康检查
+      this.stopHealthCheck();
+
       // 停止事件监听
       if (this.unlistenFn) {
         this.unlistenFn();
@@ -147,6 +222,9 @@ export class RealTimeDeviceTracker {
    */
   private handleDeviceChange(event: DeviceChangeEvent): void {
     console.log('🔄 收到设备变化事件:', event);
+    
+    // 更新最后事件时间戳
+    this.lastEventTimestamp = Date.now();
 
     // 检查回调监听器数量
     if (this.deviceChangeCallbacks.length === 0) {
@@ -156,41 +234,99 @@ export class RealTimeDeviceTracker {
         event,
         callbackCount: this.deviceChangeCallbacks.length
       });
+      // 即使没有回调，也继续处理事件以便发出通用事件
     }
 
-    // 分析事件类型
-    if ('DeviceConnected' in event.event_type) {
-      console.log(`📱 设备已连接: ${event.event_type.DeviceConnected}`);
-      this.eventManager.emit('device-connected', {
-        deviceId: event.event_type.DeviceConnected,
-        devices: event.devices,
-      });
-    } else if ('DeviceDisconnected' in event.event_type) {
-      console.log(`📱 设备已断开: ${event.event_type.DeviceDisconnected}`);
-      this.eventManager.emit('device-disconnected', {
-        deviceId: event.event_type.DeviceDisconnected,
-        devices: event.devices,
-      });
-    } else if ('DevicesChanged' in event.event_type) {
-      console.log('🔄 设备状态已变化');
-      this.eventManager.emit('devices-changed', {
-        devices: event.devices,
-      });
-    } else if ('InitialList' in event.event_type) {
-      console.log('📋 收到初始设备列表');
-      this.eventManager.emit('devices-initialized', {
+    // ✅ 修复：处理新的事件类型结构（字符串形式 vs 对象形式）
+    const eventType = event.event_type;
+    
+    if (typeof eventType === 'string') {
+      // 新格式：字符串形式的事件类型
+      switch (eventType) {
+        case 'DeviceConnected':
+          console.log('📱 设备已连接');
+          this.eventManager.emit('device-connected', {
+            devices: event.devices,
+          });
+          break;
+        case 'DeviceDisconnected':
+          console.log('📱 设备已断开');
+          this.eventManager.emit('device-disconnected', {
+            devices: event.devices,
+          });
+          break;
+        case 'DevicesChanged':
+          console.log('🔄 设备状态已变化');
+          this.eventManager.emit('devices-changed', {
+            devices: event.devices,
+          });
+          break;
+        case 'InitialList':
+          console.log('📋 收到初始设备列表');
+          this.eventManager.emit('devices-initialized', {
+            devices: event.devices,
+          });
+          break;
+        default:
+          console.log('🔍 收到未知事件类型(字符串):', eventType);
+          this.eventManager.emit('unknown-device-event', {
+            eventType: eventType,
+            devices: event.devices,
+          });
+      }
+    } else if (typeof eventType === 'object' && eventType !== null) {
+      // 旧格式：对象形式的事件类型
+      if ('DeviceConnected' in eventType) {
+        console.log(`📱 设备已连接: ${eventType.DeviceConnected}`);
+        this.eventManager.emit('device-connected', {
+          deviceId: eventType.DeviceConnected,
+          devices: event.devices,
+        });
+      } else if ('DeviceDisconnected' in eventType) {
+        console.log(`📱 设备已断开: ${eventType.DeviceDisconnected}`);
+        this.eventManager.emit('device-disconnected', {
+          deviceId: eventType.DeviceDisconnected,
+          devices: event.devices,
+        });
+      } else if ('DevicesChanged' in eventType) {
+        console.log('🔄 设备状态已变化');
+        this.eventManager.emit('devices-changed', {
+          devices: event.devices,
+        });
+      } else if ('InitialList' in eventType) {
+        console.log('📋 收到初始设备列表');
+        this.eventManager.emit('devices-initialized', {
+          devices: event.devices,
+        });
+      } else {
+        console.log('🔍 收到未知事件类型(对象):', eventType);
+        this.eventManager.emit('unknown-device-event', {
+          eventType: eventType,
+          devices: event.devices,
+        });
+      }
+    } else {
+      console.log('🔍 收到未知事件类型结构:', eventType);
+      this.eventManager.emit('unknown-device-event', {
+        eventType: eventType,
         devices: event.devices,
       });
     }
 
-    // 通知所有订阅者
-    this.deviceChangeCallbacks.forEach(callback => {
+    // ✅ 修复：无论事件类型如何，都要通知所有订阅者
+    console.log(`🔔 [RealTimeDeviceTracker] 开始通知 ${this.deviceChangeCallbacks.length} 个回调监听器...`);
+    
+    this.deviceChangeCallbacks.forEach((callback, index) => {
       try {
+        console.log(`🔔 [RealTimeDeviceTracker] 调用回调 #${index + 1}...`);
         callback(event);
+        console.log(`✅ [RealTimeDeviceTracker] 回调 #${index + 1} 执行成功`);
       } catch (error) {
-        console.error('设备变化回调执行失败:', error);
+        console.error(`❌ [RealTimeDeviceTracker] 回调 #${index + 1} 执行失败:`, error);
       }
     });
+
+    console.log(`✅ [RealTimeDeviceTracker] 所有回调通知完成`);
 
     // 发送通用设备更新事件
     this.eventManager.emit('device-list-updated', {

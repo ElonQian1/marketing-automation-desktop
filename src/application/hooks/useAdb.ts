@@ -292,6 +292,15 @@ export const useAdb = () => {
     return await applicationService.triggerEmergencyRecovery();
   }, []);
 
+  /**
+   * 诊断回调链路
+   */
+  const diagnoseCallbackChain = useCallback(async () => {
+    console.log('🔍 [useAdb] 诊断回调链路...');
+    const { callbackChainDiagnostics } = await import('../services/device-watching/CallbackChainDiagnostics');
+    await callbackChainDiagnostics.performDiagnostic();
+  }, []);
+
   // ===== 授权/无线调试辅助 =====
 
   /** 清理本机 ADB 密钥（触发手机重新授权） */
@@ -535,6 +544,7 @@ export const useAdb = () => {
     getDiagnosticReport,
     performDeviceWatchingDiagnostic,
     emergencyRecoverDeviceListening,
+    diagnoseCallbackChain,
   clearAdbKeys,
   pairWireless,
   wirelessConnect,

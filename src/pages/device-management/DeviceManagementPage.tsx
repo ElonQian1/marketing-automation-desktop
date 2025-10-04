@@ -5,7 +5,8 @@ import {
   PlusOutlined,
   ReloadOutlined,
   BulbOutlined,
-  WarningOutlined
+  WarningOutlined,
+  ToolOutlined
 } from '@ant-design/icons';
 import { DeviceList } from '../../components/device';
 import { useAdb } from '../../application/hooks/useAdb';
@@ -17,7 +18,23 @@ const { Title, Paragraph, Text } = Typography;
  * 使用 Ant Design 5 原生组件和暗黑主题，完全移除 Tailwind CSS
  */
 export const DeviceManagementPage: React.FC = () => {
-  const { devices, isLoading, refreshDevices } = useAdb();
+  const { 
+    devices, 
+    isLoading, 
+    refreshDevices,
+    emergencyRecoverDeviceListening,
+    diagnoseCallbackChain 
+  } = useAdb();
+
+  const handleRestartDeviceTracking = async () => {
+    try {
+      console.log('🔄 用户手动重启设备跟踪...');
+      await emergencyRecoverDeviceListening();
+      await refreshDevices();
+    } catch (error) {
+      console.error('❌ 重启设备跟踪失败:', error);
+    }
+  };
 
   const connectedCount = devices.filter(d => d.isOnline()).length;
   const totalCount = devices.length;
@@ -52,6 +69,22 @@ export const DeviceManagementPage: React.FC = () => {
                 loading={isLoading}
               >
                 刷新设备
+              </Button>
+              <Button 
+                icon={<ToolOutlined />}
+                onClick={diagnoseCallbackChain}
+                type="default"
+                title="诊断设备自动刷新回调链路"
+              >
+                诊断回调链路
+              </Button>
+              <Button 
+                icon={<WarningOutlined />}
+                onClick={handleRestartDeviceTracking}
+                type="default"
+                title="重启设备跟踪服务"
+              >
+                重启跟踪
               </Button>
             </Space>
           </Col>

@@ -30,6 +30,7 @@ export class RealTimeDeviceRepository implements IDeviceRepository {
     
     // 监听设备变化事件
     const unsubscribe = tracker.onDeviceChange((event) => {
+      console.log('🎯 [RealTimeDeviceRepository] 回调被调用 - 开始处理设备变化事件...');
       console.log('📱 [RealTimeDeviceRepository] 检测到设备变化:', {
         deviceCount: event.devices.length,
         callbackCount: this.deviceChangeCallbacks.length,
@@ -38,14 +39,20 @@ export class RealTimeDeviceRepository implements IDeviceRepository {
       
       const devices = event.devices.map(device => this.convertToDevice(device));
       
+      console.log(`🔔 [RealTimeDeviceRepository] 开始通知 ${this.deviceChangeCallbacks.length} 个上层监听器...`);
+      
       // 通知所有监听器
-      this.deviceChangeCallbacks.forEach(callback => {
+      this.deviceChangeCallbacks.forEach((callback, index) => {
         try {
+          console.log(`🔔 [RealTimeDeviceRepository] 调用上层回调 #${index + 1}...`);
           callback(devices);
+          console.log(`✅ [RealTimeDeviceRepository] 上层回调 #${index + 1} 执行成功`);
         } catch (error) {
-          console.error('❌ [RealTimeDeviceRepository] 设备变化回调执行失败:', error);
+          console.error(`❌ [RealTimeDeviceRepository] 上层回调 #${index + 1} 执行失败:`, error);
         }
       });
+      
+      console.log(`✅ [RealTimeDeviceRepository] 所有上层回调通知完成`);
     });
 
     // 保存取消订阅函数，用于清理
