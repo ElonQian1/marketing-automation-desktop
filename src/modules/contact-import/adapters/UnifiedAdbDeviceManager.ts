@@ -132,7 +132,7 @@ export class UnifiedAdbDeviceManager implements IDeviceManager {
   async connectToDevice(device: Device): Promise<boolean> {
     try {
       // 使用统一的 ADB 服务连接设备
-      await this.applicationService.connectToDevice(device.connection.address);
+      await this.applicationService.connectDevice(device.connection.address);
       
       // connectToDevice 返回 void，我们需要检查连接状态
       const store = useAdbStore.getState();
