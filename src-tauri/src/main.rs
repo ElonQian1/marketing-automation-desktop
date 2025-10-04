@@ -182,6 +182,7 @@ fn main() {
             mark_contact_numbers_used_by_id_range,
             // 批量将号码回滚为“未导入到任何手机”
             mark_contact_numbers_as_not_imported,
+            delete_contact_numbers,
             // 号码批次与导入追踪
             create_vcf_batch_cmd,
             list_vcf_batches_cmd,

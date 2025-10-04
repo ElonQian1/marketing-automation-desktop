@@ -3,18 +3,31 @@
  * 从 UniversalPageFinderModal.tsx 中提取的元素展示逻辑
  */
 
-import React, { useMemo } from "react";
-import { Card, List, Tag, Space, Typography, Button, Tooltip, Empty, Descriptions, Divider } from "antd";
+import React, { useMemo, useState } from "react";
+import {
+  Card,
+  Tag,
+  Space,
+  Typography,
+  Button,
+  Tooltip,
+  Empty,
+  Descriptions,
+  Divider,
+  Switch,
+  List,
+} from "antd";
 import {
   EyeOutlined,
   CopyOutlined,
   InfoCircleOutlined,
   BugOutlined,
-  CheckCircleOutlined
+  CheckCircleOutlined,
 } from "@ant-design/icons";
 import type { UIElement } from "../types";
+import { getDisplayText, sortElements } from "../utils/sortElements";
 
-const { Text, Paragraph } = Typography;
+const { Text } = Typography;
 
 export interface ElementListProps {
   elements: UIElement[];
@@ -31,17 +44,29 @@ export const ElementList: React.FC<ElementListProps> = ({
   onElementInspect,
   onElementCopy,
   title = "UI元素列表",
-  showDetails = true
+  showDetails = true,
 }) => {
+  // 开关：优先展示语义元素（可点击/有文本/有ID）
+  const [prioritizeSemantic, setPrioritizeSemantic] = useState(true);
+
+  // 排序：支持“语义优先”，并将“未知/未命名/占位(元素 N)”排到最后，组内保持稳定
+  const sortedElements = useMemo(
+    () => sortElements(elements, { prioritizeSemantic }),
+    [elements, prioritizeSemantic]
+  );
+
   // 统计信息
   const stats = useMemo(() => {
     const total = elements.length;
-    const clickable = elements.filter(el => 
-      el.is_clickable || el.class_name?.includes("Button") || el.class_name?.includes("TextView")
+    const clickable = elements.filter(
+      (el) =>
+        el.is_clickable ||
+        el.class_name?.includes("Button") ||
+        el.class_name?.includes("TextView")
     ).length;
-    const hasText = elements.filter(el => el.text && el.text.trim()).length;
-    const hasId = elements.filter(el => el.resource_id).length;
-    
+    const hasText = elements.filter((el) => el.text && el.text.trim()).length;
+    const hasId = elements.filter((el) => el.resource_id).length;
+
     return { total, clickable, hasText, hasId };
   }, [elements]);
 
@@ -63,67 +88,55 @@ export const ElementList: React.FC<ElementListProps> = ({
       element.resource_id && {
         key: "resourceId",
         label: "Resource ID",
-        children: (
-          <Text code>
-            {element.resource_id}
-          </Text>
-        )
+        children: <Text code>{element.resource_id}</Text>,
       },
       element.text && {
         key: "text",
         label: "文本内容",
-        children: (
-          <Text>
-            {element.text}
-          </Text>
-        )
+        children: <Text>{element.text}</Text>,
       },
       element.content_desc && {
         key: "contentDesc",
         label: "内容描述",
-        children: (
-          <Text>
-            {element.content_desc}
-          </Text>
-        )
+        children: <Text>{element.content_desc}</Text>,
       },
       element.class_name && {
         key: "class",
         label: "类名",
-        children: (
-          <Text code>
-            {element.class_name}
-          </Text>
-        )
+        children: <Text code>{element.class_name}</Text>,
       },
       element.bounds && {
         key: "bounds",
         label: "位置信息",
         children: (
           <Text code>{`[${element.bounds.left},${element.bounds.top}][${element.bounds.right},${element.bounds.bottom}]`}</Text>
-        )
-      }
-    ].filter(Boolean);
+        ),
+      },
+    ].filter(Boolean as unknown as <T>(x: T) => x is T);
 
-    if (items.length === 0) return null;
+    if ((items as unknown as any[]).length === 0) return null;
 
-    return (<Descriptions size="small" column={1} items={items} />);
+    return <Descriptions size="small" column={1} items={items as any} />;
   };
 
   // 渲染列表项
   const renderListItem = (element: UIElement, index: number) => {
-  const typeText = getElementTypeText(element);
-    
+    const typeText = getElementTypeText(element);
     // 显示文本优先级：text > contentDesc > resourceId > class
-  const displayText = element.text || element.content_desc || element.resource_id || element.class_name || `元素 ${index + 1}`;
-  const hasMultipleProperties = [element.text, element.content_desc, element.resource_id, element.class_name].filter(Boolean).length > 1;
+    const displayText = getDisplayText(element, index);
+    const hasMultipleProperties = [
+      element.text,
+      element.content_desc,
+      element.resource_id,
+      element.class_name,
+    ].filter(Boolean).length > 1;
 
     return (
       <List.Item
         key={`element-${index}`}
         actions={[
           onElementInspect && (
-            <Tooltip title="查看详情">
+            <Tooltip title="查看详情" key="inspect">
               <Button
                 type="text"
                 icon={<EyeOutlined />}
@@ -133,7 +146,7 @@ export const ElementList: React.FC<ElementListProps> = ({
             </Tooltip>
           ),
           onElementCopy && (
-            <Tooltip title="复制信息">
+            <Tooltip title="复制信息" key="copy">
               <Button
                 type="text"
                 icon={<CopyOutlined />}
@@ -141,23 +154,17 @@ export const ElementList: React.FC<ElementListProps> = ({
                 size="small"
               />
             </Tooltip>
-          )
+          ),
         ].filter(Boolean)}
       >
         <List.Item.Meta
           avatar={<Tag>{index + 1}</Tag>}
           title={
             <Space>
-              <Text strong>
-                {displayText}
-              </Text>
-              <Tag>
-                {typeText}
-              </Tag>
+              <Text strong>{displayText}</Text>
+              <Tag>{typeText}</Tag>
               {element.is_clickable && (
-                <Tag icon={<CheckCircleOutlined />}>
-                  可交互
-                </Tag>
+                <Tag icon={<CheckCircleOutlined />}>可交互</Tag>
               )}
               {hasMultipleProperties && (
                 <Tooltip title="该元素包含多个属性信息">
@@ -185,23 +192,25 @@ export const ElementList: React.FC<ElementListProps> = ({
       extra={
         stats.total > 0 && (
           <Space split={<Divider type="vertical" />}>
-            <Text type="secondary">
-              可交互: {stats.clickable}
-            </Text>
-            <Text type="secondary">
-              有文本: {stats.hasText}
-            </Text>
-            <Text type="secondary">
-              有ID: {stats.hasId}
-            </Text>
+            <Text type="secondary">可交互: {stats.clickable}</Text>
+            <Text type="secondary">有文本: {stats.hasText}</Text>
+            <Text type="secondary">有ID: {stats.hasId}</Text>
+            <Space size={4}>
+              <Text type="secondary">优先展示语义元素</Text>
+              <Switch
+                size="small"
+                checked={prioritizeSemantic}
+                onChange={setPrioritizeSemantic}
+              />
+            </Space>
           </Space>
         )
       }
     >
-      {elements.length === 0 ? (
+      {sortedElements.length === 0 ? (
         <Empty description="暂无UI元素数据" image={Empty.PRESENTED_IMAGE_SIMPLE} />
       ) : (
-        <List dataSource={elements} renderItem={renderListItem} loading={loading} />
+        <List dataSource={sortedElements} renderItem={renderListItem} loading={loading} />
       )}
     </Card>
   );

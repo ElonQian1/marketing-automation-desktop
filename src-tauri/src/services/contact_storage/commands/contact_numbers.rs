@@ -6,27 +6,9 @@ use tauri::{command, AppHandle};
 use super::super::repositories::common::command_base::with_db_connection;
 use super::super::repositories::contact_numbers_repo;
 use super::super::models;
+use super::super::parser::extract_numbers_from_text; // 使用 parser 模块的实现
 use std::path::Path;
 use std::fs;
-
-/// 从文本提取号码的简单函数（临时实现）
-fn extract_numbers_from_text(content: &str) -> Vec<(String, String)> {
-    let mut numbers = Vec::new();
-    for line in content.lines() {
-        let line = line.trim();
-        if line.is_empty() || line.starts_with('#') {
-            continue;
-        }
-        
-        // 简单的手机号匹配逻辑
-        if let Some(phone_match) = line.split_whitespace().find(|s| s.len() >= 11 && s.chars().all(|c| c.is_ascii_digit())) {
-            let name = line.replace(phone_match, "").trim().to_string();
-            let name = if name.is_empty() { "未知".to_string() } else { name };
-            numbers.push((phone_match.to_string(), name));
-        }
-    }
-    numbers
-}
 
 /// 从文件导入联系人号码
 #[command]
@@ -43,7 +25,8 @@ pub async fn import_contact_numbers_from_file(
 
     let content = fs::read_to_string(&file_path).map_err(|e| format!("读取文件失败: {}", e))?;
     let total_lines = content.lines().count() as i64;
-    let numbers = extract_numbers_from_text(&content);
+    let parse_result = extract_numbers_from_text(&content);
+    let numbers = parse_result.contacts; // 提取联系人列表
 
     // 提取文件名（用于记录）
     let file_name = Path::new(&file_path)
@@ -141,7 +124,8 @@ pub async fn import_contact_numbers_from_folder(
                     match fs::read_to_string(&path) {
                         Ok(content) => {
                             let total_lines = content.lines().count() as i64;
-                            let numbers = extract_numbers_from_text(&content);
+                            let parse_result = extract_numbers_from_text(&content);
+                            let numbers = parse_result.contacts; // 提取联系人列表
                             let (inserted, duplicates, mut errors) = with_db_connection(&app_handle, |conn| {
                                 contact_numbers_repo::insert_numbers(conn, &numbers, &file_path_str)
                             })?;
@@ -201,6 +185,17 @@ pub async fn mark_contact_numbers_as_not_imported(
 ) -> Result<i64, String> {
     with_db_connection(&app_handle, |conn| {
         contact_numbers_repo::mark_numbers_as_not_imported_by_ids(conn, &number_ids)
+    })
+}
+
+/// 永久删除号码记录（物理删除）
+#[command]
+pub async fn delete_contact_numbers(
+    app_handle: AppHandle,
+    number_ids: Vec<i64>,
+) -> Result<i64, String> {
+    with_db_connection(&app_handle, |conn| {
+        contact_numbers_repo::delete_numbers_by_ids(conn, &number_ids)
     })
 }
 

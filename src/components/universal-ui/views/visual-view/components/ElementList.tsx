@@ -21,11 +21,37 @@ export const ElementList: React.FC<ElementListProps> = ({
   externalSelectionManager,
   convertedElements
 }) => {
+  // 统一生成用于展示与排序的名称
+  const getDisplayName = React.useCallback((el: VisualUIElement, idx?: number) => {
+    // Visual 视图优先使用 userFriendlyName，其次 text/description，最后占位 “元素 N”
+    const name = el.userFriendlyName || el.text || el.description || (typeof idx === 'number' ? `元素 ${idx + 1}` : '未命名元素');
+    return String(name).trim();
+  }, []);
+
+  // 将“未知/未命名/占位(元素 N)”排到列表底部，其余保持原顺序
+  const sortedElements = React.useMemo(() => {
+    const enriched = filteredElements.map((el, i) => ({ el, i, label: getDisplayName(el, i) }));
+    const isUnknown = (label: string) => {
+      if (!label) return true;
+      const trimmed = label.trim();
+      const hasUnknownWord = trimmed.includes('未知') || trimmed.includes('未命名');
+      const isGeneric = /^元素\s+\d+$/i.test(trimmed);
+      return hasUnknownWord || isGeneric;
+    };
+    enriched.sort((a, b) => {
+      const aU = isUnknown(a.label);
+      const bU = isUnknown(b.label);
+      if (aU === bU) return a.i - b.i; // 稳定排序
+      return aU ? 1 : -1; // 未知沉底
+    });
+    return enriched.map(x => x.el);
+  }, [filteredElements, getDisplayName]);
+
   return (
     <div style={{width:'clamp(240px,18vw,320px)',minWidth:240,flex:'0 0 clamp(240px,18vw,320px)',flexShrink:0}}>
       <Title level={5}>元素列表 ({filteredElements.length})</Title>
       <Space direction="vertical" style={{width:'100%'}} size={8}>
-        {filteredElements.map(element => {
+        {sortedElements.map(element => {
           const category = categories.find(cat=>cat.name===element.category);
           return (
             <div 

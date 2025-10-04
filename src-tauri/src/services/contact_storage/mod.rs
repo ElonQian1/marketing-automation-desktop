@@ -32,6 +32,7 @@ pub use commands::{
     fetch_contact_numbers_by_id_range_unconsumed,
     mark_contact_numbers_used_by_id_range,
     mark_contact_numbers_as_not_imported,
+    delete_contact_numbers,
     set_contact_numbers_industry_by_id_range,
     list_contact_numbers_by_batch_filtered,
     list_contact_numbers_without_batch,

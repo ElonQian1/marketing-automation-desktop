@@ -203,7 +203,7 @@ pub fn get_number_by_id(
     id: i64,
 ) -> SqlResult<Option<ContactNumberDto>> {
     let result = conn.query_row(
-        "SELECT id, phone, name, source_file, created_at, industry, status, assigned_at, assigned_batch_id, imported_session_id, imported_device_id 
+        "SELECT id, phone, name, source_file, created_at, industry, status, assigned_at, assigned_batch_id, imported_session_id, imported_de
          FROM contact_numbers WHERE id = ?1",
         params![id],
         |row| {
@@ -476,6 +476,30 @@ pub fn mark_numbers_as_not_imported_by_ids(
         "UPDATE contact_numbers 
          SET assigned_at = NULL, assigned_batch_id = NULL, status = 'available', imported_device_id = NULL 
          WHERE id IN ({})",
+        placeholders
+    );
+    
+    let mut params = Vec::new();
+    for id in number_ids {
+        params.push(id as &dyn rusqlite::ToSql);
+    }
+    
+    let affected = conn.execute(&sql, &params[..])?;
+    Ok(affected as i64)
+}
+
+/// 永久删除指定ID的号码记录（物理删除）
+pub fn delete_numbers_by_ids(
+    conn: &Connection,
+    number_ids: &[i64],
+) -> SqlResult<i64> {
+    if number_ids.is_empty() {
+        return Ok(0);
+    }
+    
+    let placeholders = number_ids.iter().map(|_| "?").collect::<Vec<_>>().join(",");
+    let sql = format!(
+        "DELETE FROM contact_numbers WHERE id IN ({})",
         placeholders
     );
     

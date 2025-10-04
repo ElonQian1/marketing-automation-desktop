@@ -1,8 +1,8 @@
 import React, { useMemo, useState } from 'react';
 import { Button, Space, Typography, message, Tag, Dropdown } from 'antd';
 import ConfirmPopover from '@/components/universal-ui/common-popover/ConfirmPopover';
-import { InboxOutlined, CheckSquareOutlined, CloseOutlined } from '@ant-design/icons';
-import { markContactNumbersAsNotImportedBatch } from '../services/contactNumberService';
+import { InboxOutlined, CheckSquareOutlined, CloseOutlined, DeleteOutlined } from '@ant-design/icons';
+import { markContactNumbersAsNotImportedBatch, deleteContactNumbersBatch } from '../services/contactNumberService';
 import { listAllContactNumberIds } from '../services/numberIdsService';
 
 interface Props {
@@ -11,13 +11,13 @@ interface Props {
   onChangeSelected: (keys: number[]) => void;
   onArchived: () => void | Promise<void>;
   disabled?: boolean;
-  // 可选：全局筛选条件，用于“选择所有”时与当前视图保持一致
+  // 可选：全局筛选条件，用于"选择所有"时与当前视图保持一致
   globalFilter?: { search?: string | null; industry?: string | null; status?: string | null };
 }
 
 /**
  * 工作台-号码池 批量操作栏（常显）
- * 放置于号码池表格上方，始终显示；当未选择任何行时禁用“归档”按钮。
+ * 放置于号码池表格上方，始终显示；当未选择任何行时禁用"归档"和"删除"按钮。
  */
 const WorkbenchNumbersActionsBar: React.FC<Props> = ({
   selectedRowKeys,
@@ -28,6 +28,7 @@ const WorkbenchNumbersActionsBar: React.FC<Props> = ({
   globalFilter,
 }) => {
   const [archiving, setArchiving] = useState(false);
+  const [deleting, setDeleting] = useState(false);
   const { Text } = Typography;
 
   const pageAllSelected = useMemo(() => {
@@ -74,7 +75,7 @@ const WorkbenchNumbersActionsBar: React.FC<Props> = ({
     try {
       setArchiving(true);
       const affected = await markContactNumbersAsNotImportedBatch(selectedRowKeys);
-      message.success(`已归档 ${affected} 条为“未导入”`);
+      message.success(`已归档 ${affected} 条为"未导入"`);
       await onArchived();
       onChangeSelected([]);
     } catch (e) {
@@ -83,6 +84,23 @@ const WorkbenchNumbersActionsBar: React.FC<Props> = ({
       message.error(`归档失败：${msg}`);
     } finally {
       setArchiving(false);
+    }
+  };
+
+  const handleDelete = async () => {
+    if (totalSelected === 0) return;
+    try {
+      setDeleting(true);
+      const affected = await deleteContactNumbersBatch(selectedRowKeys);
+      message.success(`已永久删除 ${affected} 条号码记录`);
+      await onArchived();
+      onChangeSelected([]);
+    } catch (e) {
+      console.error(e);
+      const msg = (e as any)?.message || String(e);
+      message.error(`删除失败：${msg}`);
+    } finally {
+      setDeleting(false);
     }
   };
 
@@ -142,7 +160,42 @@ const WorkbenchNumbersActionsBar: React.FC<Props> = ({
           >
             批量归档为未导入
           </Button>
-  </ConfirmPopover>
+        </ConfirmPopover>
+        <ConfirmPopover
+          mode="default"
+          title="⚠️ 永久删除警告"
+          description={
+            <div>
+              <p style={{ marginBottom: '8px' }}>
+                确认要<strong style={{ color: 'var(--error)' }}>永久删除</strong> {totalSelected} 条号码记录吗？
+              </p>
+              <p style={{ 
+                fontSize: '12px', 
+                color: 'var(--error)', 
+                background: 'var(--error-bg)',
+                padding: '8px',
+                borderRadius: '4px',
+                marginTop: '8px'
+              }}>
+                ⚠️ 此操作不可恢复！记录将从数据库中彻底删除。
+              </p>
+            </div>
+          }
+          okText="确认删除"
+          cancelText="取消"
+          onConfirm={handleDelete}
+          disabled={totalSelected === 0}
+        >
+          <Button
+            danger
+            size="small"
+            icon={<DeleteOutlined />}
+            loading={deleting}
+            disabled={disabled || totalSelected === 0}
+          >
+            永久删除
+          </Button>
+        </ConfirmPopover>
       </Space>
     </div>
   );
