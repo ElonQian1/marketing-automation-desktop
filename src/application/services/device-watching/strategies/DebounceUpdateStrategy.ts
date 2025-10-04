@@ -47,17 +47,15 @@ export class DebounceUpdateStrategy implements IDeviceUpdateStrategy {
       this.lastNonEmptyAt = Date.now();
     }
 
-    // 非空：立即更新，保证“重要情况即时刷新”
+    // 非空：立即更新（同步调用），保证“重要情况即时刷新”，且避免微任务顺序导致的丢更新
     if (devices.length > 0) {
       const toApply = devices;
-      this.debounceTimer = setTimeout(() => {
-        this.lastDeviceCount = toApply.length;
-        this.log('⚡ 立即提交设备列表（非空）', {
-          newCount: toApply.length,
-          ids: toApply.map(d => d.id)
-        });
-        onUpdate(toApply);
-      }, 0);
+      this.lastDeviceCount = toApply.length;
+      this.log('⚡ 立即提交设备列表（非空，同步）', {
+        newCount: toApply.length,
+        ids: toApply.map(d => d.id)
+      });
+      onUpdate(toApply);
       return;
     }
 

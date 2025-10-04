@@ -18,6 +18,8 @@ import type { ISmartScriptRepository } from '../../domain/smart-script/repositor
 import type { ExtendedSmartScriptStep } from '../../types/loopScript';
 import type { SmartExecutionResult } from '../../types/execution';
 import { DeviceWatchingService } from './device-watching';
+import { deviceWatchingDiagnostics } from './device-watching/DeviceWatchingDiagnostics';
+import { deviceChangeDetector } from './device-watching/DeviceChangeDetector';
 
 /**
  * ADB应用服务
@@ -30,6 +32,7 @@ export class AdbApplicationService {
   private healthChecker: (() => void) | null = null;
   private logUnlisteners: UnlistenFn[] = [];
   private logBridgeReady = false;
+  private diagnosticsInterval: NodeJS.Timeout | null = null;
 
   constructor(
     private deviceManager: DeviceManagerService,
@@ -596,6 +599,99 @@ export class AdbApplicationService {
     
     console.log('✅ [AdbApplicationService] 设备监听服务已启动，策略:', 
       this.deviceWatchingService.getCurrentStrategyName());
+
+    // 设置紧急恢复机制
+    this.setupEmergencyRecovery();
+
+    // 启动设备变化检测器
+    deviceChangeDetector.startMonitoring(async () => {
+      console.log('🔧 [AdbApplicationService] 设备变化检测器触发紧急恢复...');
+      await this.performEmergencyRecovery();
+    });
+
+    // 启动后执行诊断检查
+    setTimeout(async () => {
+      await deviceWatchingDiagnostics.performDiagnostic(this.deviceWatchingService);
+    }, 1000);
+
+    // 定期诊断检查（每2分钟）
+    this.setupPeriodicDiagnostics();
+  }
+
+  /**
+   * 设置紧急恢复机制
+   */
+  private setupEmergencyRecovery(): void {
+    try {
+      // 通过 DeviceManager 的 Repository 来访问 RealTimeDeviceTracker
+      // 这是更安全的方式，避免直接访问全局对象
+      console.log('�️ [AdbApplicationService] 紧急恢复机制已设置（通过DeviceManager）');
+      
+      // 实际的紧急恢复将由健康检查机制触发
+      // 这样避免了复杂的跨模块引用问题
+    } catch (error) {
+      console.warn('⚠️ [AdbApplicationService] 设置紧急恢复机制失败:', error);
+    }
+  }
+
+  /**
+   * 执行紧急恢复
+   */
+  private async performEmergencyRecovery(): Promise<void> {
+    console.log('🚨 [AdbApplicationService] 开始紧急恢复...');
+    
+    try {
+      // 1. 停止当前监听
+      this.deviceWatchingService.stopWatching();
+      console.log('🛑 [AdbApplicationService] 已停止设备监听');
+      
+      // 2. 等待一小段时间
+      await new Promise(resolve => setTimeout(resolve, 500));
+      
+      // 3. 重新启动设备监听
+      const store = useAdbStore.getState();
+      this.deviceWatchingService.startWatching((devices) => {
+        console.log('🔄 [AdbApplicationService] 紧急恢复 - 更新设备到 store:', {
+          deviceCount: devices.length,
+          deviceIds: devices.map(d => d.id)
+        });
+        store.setDevices(devices);
+      });
+      
+      console.log('✅ [AdbApplicationService] 紧急恢复完成');
+      
+      // 4. 执行诊断确认
+      setTimeout(async () => {
+        await deviceWatchingDiagnostics.performDiagnostic(this.deviceWatchingService);
+      }, 1000);
+      
+    } catch (error) {
+      console.error('❌ [AdbApplicationService] 紧急恢复失败:', error);
+    }
+  }
+
+  /**
+   * 手动触发紧急恢复（公开方法）
+   */
+  async triggerEmergencyRecovery(): Promise<void> {
+    await this.performEmergencyRecovery();
+  }
+
+  /**
+   * 设置定期诊断检查
+   */
+  private setupPeriodicDiagnostics(): void {
+    // 清除之前的定时器
+    if (this.diagnosticsInterval) {
+      clearInterval(this.diagnosticsInterval);
+    }
+
+    this.diagnosticsInterval = setInterval(async () => {
+      console.log('🔍 [AdbApplicationService] 执行定期诊断检查...');
+      await deviceWatchingDiagnostics.performDiagnostic(this.deviceWatchingService);
+    }, 120000); // 2分钟检查一次
+
+    console.log('🔍 [AdbApplicationService] 定期诊断检查已启动');
   }
 
   /**
@@ -604,6 +700,25 @@ export class AdbApplicationService {
   private stopDeviceWatching(): void {
     console.log('🛑 [AdbApplicationService] 停止设备监听服务...');
     this.deviceWatchingService.stopWatching();
+  }
+
+  /**
+   * 对外暴露：检查监听是否活跃
+   */
+  isDeviceWatchingActive(): boolean {
+    return this.deviceWatchingService.isWatching();
+  }
+
+  /**
+   * 对外暴露：若未监听则立即启动（幂等）
+   */
+  ensureDeviceWatchingStarted(): void {
+    if (this.deviceWatchingService.isWatching()) {
+      console.log('✅ [AdbApplicationService] 设备监听已在运行（幂等检查）');
+      return;
+    }
+    console.log('🔁 [AdbApplicationService] 检测到未在监听，立即启动监听');
+    this.startDeviceWatching();
   }
 
   /**
@@ -820,6 +935,43 @@ export class AdbApplicationService {
     } finally {
       store.setLoading(false);
     }
+  }
+
+  /**
+   * 执行设备监听诊断
+   */
+  async performDeviceWatchingDiagnostic(): Promise<void> {
+    console.log('🩺 [AdbApplicationService] 手动执行设备监听诊断...');
+    await deviceWatchingDiagnostics.performDiagnostic(this.deviceWatchingService);
+  }
+
+  /**
+   * 清理资源
+   */
+  cleanup(): void {
+    // 停止设备监听
+    this.deviceWatchingService.stopWatching();
+
+    // 停止设备变化检测器
+    deviceChangeDetector.stopMonitoring();
+
+    // 清理诊断定时器
+    if (this.diagnosticsInterval) {
+      clearInterval(this.diagnosticsInterval);
+      this.diagnosticsInterval = null;
+    }
+
+    // 清理日志监听器
+    this.logUnlisteners.forEach(unlisten => {
+      try {
+        unlisten();
+      } catch (e) {
+        console.warn('清理日志监听器失败:', e);
+      }
+    });
+    this.logUnlisteners = [];
+
+    console.log('🧹 [AdbApplicationService] 资源已清理');
   }
 }
 

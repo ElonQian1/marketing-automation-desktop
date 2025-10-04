@@ -119,13 +119,27 @@ export class RealTimeDeviceTracker {
   onDeviceChange(callback: (event: DeviceChangeEvent) => void): () => void {
     this.deviceChangeCallbacks.push(callback);
     
+    console.log('🔗 [RealTimeDeviceTracker] 注册设备变化回调:', {
+      callbackCount: this.deviceChangeCallbacks.length
+    });
+    
     // 返回取消订阅函数
     return () => {
       const index = this.deviceChangeCallbacks.indexOf(callback);
       if (index > -1) {
         this.deviceChangeCallbacks.splice(index, 1);
+        console.log('🔌 [RealTimeDeviceTracker] 移除设备变化回调:', {
+          callbackCount: this.deviceChangeCallbacks.length
+        });
       }
     };
+  }
+
+  /**
+   * 获取当前回调数量（用于诊断）
+   */
+  getCallbackCount(): number {
+    return this.deviceChangeCallbacks.length;
   }
 
   /**
@@ -133,6 +147,16 @@ export class RealTimeDeviceTracker {
    */
   private handleDeviceChange(event: DeviceChangeEvent): void {
     console.log('🔄 收到设备变化事件:', event);
+
+    // 检查回调监听器数量
+    if (this.deviceChangeCallbacks.length === 0) {
+      console.warn('⚠️ [RealTimeDeviceTracker] 收到事件但无回调监听器！可能需要重新初始化上层服务');
+      // 发出警告，让上层服务知道需要重新注册
+      this.eventManager.emit('listener-missing', {
+        event,
+        callbackCount: this.deviceChangeCallbacks.length
+      });
+    }
 
     // 分析事件类型
     if ('DeviceConnected' in event.event_type) {

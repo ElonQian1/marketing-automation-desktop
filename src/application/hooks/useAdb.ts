@@ -88,6 +88,10 @@ export const useAdb = () => {
     // 检查是否已经初始化过（通过 connection 状态判断）
     if (connection) {
       console.log('✅ [useAdb] ADB服务已初始化');
+      // 保障：若服务端连接已在，但监听未开，补偿启动（幂等）
+      try {
+        (ServiceFactory.getAdbApplicationService() as any).ensureDeviceWatchingStarted?.();
+      } catch {}
       return;
     }
 
@@ -271,6 +275,21 @@ export const useAdb = () => {
    */
   const getDiagnosticReport = useCallback(() => {
     return applicationService.getDiagnosticReport();
+  }, []);
+  
+  /**
+   * 执行设备监听诊断
+   */
+  const performDeviceWatchingDiagnostic = useCallback(async () => {
+    return await applicationService.performDeviceWatchingDiagnostic();
+  }, []);
+
+  /**
+   * 紧急恢复设备监听（当自动刷新失效时使用）
+   */
+  const emergencyRecoverDeviceListening = useCallback(async () => {
+    console.log('🚨 [useAdb] 用户手动触发紧急恢复...');
+    return await applicationService.triggerEmergencyRecovery();
   }, []);
 
   // ===== 授权/无线调试辅助 =====
@@ -514,6 +533,8 @@ export const useAdb = () => {
     runQuickDiagnostic,
     executeAutoFix,
     getDiagnosticReport,
+    performDeviceWatchingDiagnostic,
+    emergencyRecoverDeviceListening,
   clearAdbKeys,
   pairWireless,
   wirelessConnect,

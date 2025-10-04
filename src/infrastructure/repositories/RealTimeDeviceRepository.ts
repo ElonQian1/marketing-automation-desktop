@@ -10,6 +10,7 @@ import { getGlobalDeviceTracker, TrackedDevice } from '../RealTimeDeviceTracker'
 export class RealTimeDeviceRepository implements IDeviceRepository {
   private deviceChangeCallbacks: ((devices: Device[]) => void)[] = [];
   private isInitialized = false;
+  private trackerUnsubscribe: (() => void) | null = null;
   
   constructor() {
     this.initializeEventListeners();
@@ -28,10 +29,11 @@ export class RealTimeDeviceRepository implements IDeviceRepository {
     const tracker = getGlobalDeviceTracker();
     
     // 监听设备变化事件
-    tracker.onDeviceChange((event) => {
+    const unsubscribe = tracker.onDeviceChange((event) => {
       console.log('📱 [RealTimeDeviceRepository] 检测到设备变化:', {
         deviceCount: event.devices.length,
-        callbackCount: this.deviceChangeCallbacks.length
+        callbackCount: this.deviceChangeCallbacks.length,
+        eventType: event.event_type
       });
       
       const devices = event.devices.map(device => this.convertToDevice(device));
@@ -45,6 +47,9 @@ export class RealTimeDeviceRepository implements IDeviceRepository {
         }
       });
     });
+
+    // 保存取消订阅函数，用于清理
+    this.trackerUnsubscribe = unsubscribe;
 
     // 确保跟踪器已启动
     if (!tracker.isRunning()) {
@@ -147,6 +152,13 @@ export class RealTimeDeviceRepository implements IDeviceRepository {
   watchDeviceChanges(callback: (devices: Device[]) => void): () => void {
     this.deviceChangeCallbacks.push(callback);
 
+    console.log('🔗 [RealTimeDeviceRepository] 注册设备变化监听器:', {
+      callbackCount: this.deviceChangeCallbacks.length
+    });
+
+    // 确保事件监听器正常工作
+    this.ensureEventListeners();
+
     // 注册即回放：立刻推送一次当前设备列表，消除等待下一次事件的空窗期
     (async () => {
       try {
@@ -183,8 +195,41 @@ export class RealTimeDeviceRepository implements IDeviceRepository {
       const index = this.deviceChangeCallbacks.indexOf(callback);
       if (index > -1) {
         this.deviceChangeCallbacks.splice(index, 1);
+        console.log('🔌 [RealTimeDeviceRepository] 移除设备变化监听器:', {
+          callbackCount: this.deviceChangeCallbacks.length
+        });
       }
     };
+  }
+
+  /**
+   * 确保事件监听器正常工作
+   */
+  private async ensureEventListeners(): Promise<void> {
+    if (!this.isInitialized) {
+      console.log('⚠️ [RealTimeDeviceRepository] 检测到监听器未初始化，重新初始化...');
+      await this.initializeEventListeners();
+      return;
+    }
+
+    // 检查 RealTimeDeviceTracker 的回调数量
+    const tracker = getGlobalDeviceTracker();
+    const callbackCount = tracker.getCallbackCount();
+    
+    if (callbackCount === 0) {
+      console.warn('⚠️ [RealTimeDeviceRepository] 检测到 RealTimeDeviceTracker 无回调监听器，强制重新注册...');
+      
+      // 重置初始化状态并重新初始化
+      this.isInitialized = false;
+      if (this.trackerUnsubscribe) {
+        this.trackerUnsubscribe();
+        this.trackerUnsubscribe = null;
+      }
+      
+      await this.initializeEventListeners();
+    } else {
+      console.log('✅ [RealTimeDeviceRepository] 监听器健康检查通过，回调数量:', callbackCount);
+    }
   }
 
   /**
@@ -202,7 +247,15 @@ export class RealTimeDeviceRepository implements IDeviceRepository {
    * 清理资源
    */
   async cleanup(): Promise<void> {
+    // 取消跟踪器监听
+    if (this.trackerUnsubscribe) {
+      this.trackerUnsubscribe();
+      this.trackerUnsubscribe = null;
+    }
+    
     this.deviceChangeCallbacks = [];
     this.isInitialized = false;
+    
+    console.log('🧹 [RealTimeDeviceRepository] 资源已清理');
   }
 }

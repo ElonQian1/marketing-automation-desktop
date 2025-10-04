@@ -106,13 +106,27 @@ class ServiceContainer {
       const diagnosticService = this.get<DiagnosticService>('diagnosticService');
       const uiMatcherRepository = this.get<IUiMatcherRepository>('uiMatcherRepository');
       const smartScriptRepository = this.get<ISmartScriptRepository>('smartScriptRepository');
-      return new AdbApplicationService(
+      const svc = new AdbApplicationService(
         deviceManager,
         connectionService,
         diagnosticService,
         uiMatcherRepository,
         smartScriptRepository
       );
+      // 保障：服务创建后即尝试启动设备监听（幂等，无副作用）
+      try {
+        svc.ensureDeviceWatchingStarted();
+      } catch (e) {
+        console.warn('⚠️ [ServiceFactory] ensureDeviceWatchingStarted 调用失败（可忽略，稍后将通过 useAdb 重试）:', e);
+      }
+      // DEV helper: expose a function to force-start device watching for diagnostics
+      try {
+        if ((import.meta as any).env?.MODE !== 'production') {
+          (globalThis as any).__ensureDeviceWatching = () => svc.ensureDeviceWatchingStarted();
+          console.log('🧪 [ServiceFactory] Dev helper registered: window.__ensureDeviceWatching()');
+        }
+      } catch {}
+      return svc;
     });
 
     this.register('contactImportApplicationService', () => {

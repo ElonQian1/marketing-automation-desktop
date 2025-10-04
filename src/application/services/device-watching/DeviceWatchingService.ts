@@ -41,6 +41,7 @@ export class DeviceWatchingService {
   private deviceManager: DeviceManagerService;
   private updateStrategy: IDeviceUpdateStrategy;
   private deviceWatcher: (() => void) | null = null;
+  private healthCheckInterval: NodeJS.Timeout | null = null;
   private readonly enableLogging: boolean;
 
   constructor(
@@ -99,6 +100,9 @@ export class DeviceWatchingService {
     });
 
     this.log('✅ 设备监听已启动，策略:', this.updateStrategy.name);
+
+    // 启动健康检查机制
+    this.startHealthCheck(onUpdate);
   }
 
   /**
@@ -112,6 +116,9 @@ export class DeviceWatchingService {
 
     this.log('🛑 停止设备监听...');
 
+    // 停止健康检查
+    this.stopHealthCheck();
+
     // 清理监听器
     this.deviceWatcher();
     this.deviceWatcher = null;
@@ -120,6 +127,94 @@ export class DeviceWatchingService {
     this.updateStrategy.cleanup();
 
     this.log('✅ 设备监听已停止');
+  }
+
+  /**
+   * 启动健康检查（每30秒检查一次监听器状态）
+   */
+  private startHealthCheck(onUpdate: (devices: Device[]) => void): void {
+    this.stopHealthCheck(); // 确保之前的检查已停止
+
+    this.healthCheckInterval = setInterval(async () => {
+      try {
+        // 检查是否仍在监听
+        if (!this.isWatching()) {
+          this.log('⚠️ 健康检查：监听器已失效，尝试重新启动...');
+          this.startWatching(onUpdate);
+          return;
+        }
+
+        // 检查底层 RealTimeDeviceTracker 的回调数量
+        try {
+          const { getGlobalDeviceTracker } = await import('../../../infrastructure/RealTimeDeviceTracker');
+          const tracker = getGlobalDeviceTracker();
+          const callbackCount = tracker.getCallbackCount();
+          
+          if (callbackCount === 0) {
+            this.log('� 健康检查：检测到RealTimeDeviceTracker无回调监听器，强制重启监听链路...');
+            
+            // 强制重新建立整个监听链路
+            if (this.deviceWatcher) {
+              this.deviceWatcher();
+              this.deviceWatcher = null;
+            }
+            
+            // 重新启动监听器
+            this.deviceWatcher = this.deviceManager.watchDeviceChanges((devices) => {
+              this.log('📡 收到设备变化事件:', {
+                deviceCount: devices.length,
+                strategy: this.updateStrategy.name
+              });
+
+              // 委托给策略处理
+              this.updateStrategy.handleDeviceChange(devices, onUpdate);
+            });
+
+            this.log('✅ 健康检查：监听链路已强制重启');
+          } else {
+            this.log('💓 健康检查：监听器正常，回调数量:', callbackCount);
+          }
+        } catch (importError) {
+          this.log('⚠️ 健康检查：无法检查RealTimeDeviceTracker状态:', importError);
+          
+          // 降级：重新注册监听器
+          if (this.deviceWatcher) {
+            this.deviceWatcher();
+            this.deviceWatcher = null;
+          }
+          
+          this.deviceWatcher = this.deviceManager.watchDeviceChanges((devices) => {
+            this.log('📡 收到设备变化事件:', {
+              deviceCount: devices.length,
+              strategy: this.updateStrategy.name
+            });
+            this.updateStrategy.handleDeviceChange(devices, onUpdate);
+          });
+          
+          this.log('✅ 健康检查：已执行降级重启');
+        }
+
+        // 获取当前设备数量并记录
+        const devices = await this.deviceManager.getDevices();
+        this.log('💓 健康检查完成，当前设备数量:', devices.length);
+        
+      } catch (error) {
+        this.log('❌ 健康检查失败:', error);
+      }
+    }, 30000); // 30秒检查一次
+
+    this.log('💓 健康检查已启动');
+  }
+
+  /**
+   * 停止健康检查
+   */
+  private stopHealthCheck(): void {
+    if (this.healthCheckInterval) {
+      clearInterval(this.healthCheckInterval);
+      this.healthCheckInterval = null;
+      this.log('💓 健康检查已停止');
+    }
   }
 
   /**
