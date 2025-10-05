@@ -138,3 +138,70 @@ pub fn tag_numbers_industry_by_vcf_batch(
     
     Ok(affected as i64)
 }
+
+/// 按批次过滤列出号码
+pub fn list_numbers_by_batch_filtered(
+    conn: &Connection,
+    batch_id: &str,
+    limit: i64,
+    offset: i64,
+    used_only: bool,
+) -> SqlResult<crate::services::contact_storage::models::ContactNumberList> {
+    use crate::services::contact_storage::models::{ContactNumberDto, ContactNumberList};
+    
+    let condition = if used_only {
+        "WHERE used_batch = ?1 AND status = 'imported'"
+    } else {
+        "WHERE used_batch = ?1"
+    };
+    
+    let count_sql = format!("SELECT COUNT(*) FROM contact_numbers {}", condition);
+    let total: i64 = conn.query_row(&count_sql, params![batch_id], |row| row.get(0))?;
+    
+    let list_sql = format!(
+        "SELECT id, phone, name, source_file, created_at, industry, status, 
+                assigned_at, assigned_batch_id, imported_session_id, imported_device_id
+         FROM contact_numbers {} ORDER BY id LIMIT ?2 OFFSET ?3",
+        condition
+    );
+    
+    let mut stmt = conn.prepare(&list_sql)?;
+    let rows = stmt.query_map(params![batch_id, limit, offset], |row| {
+        Ok(ContactNumberDto {
+            id: row.get(0)?,
+            phone: row.get(1)?,
+            name: row.get(2)?,
+            source_file: row.get(3)?,
+            created_at: row.get(4)?,
+            industry: row.get(5)?,
+            status: row.get(6)?,
+            assigned_at: row.get(7)?,
+            assigned_batch_id: row.get(8)?,
+            imported_session_id: row.get(9)?,
+            imported_device_id: row.get(10)?,
+        })
+    })?;
+    
+    let mut items = Vec::new();
+    for row_result in rows {
+        items.push(row_result?);
+    }
+    
+    Ok(ContactNumberList {
+        total,
+        items,
+        limit,
+        offset,
+    })
+}
+
+/// 列出VCF批次的号码
+pub fn list_numbers_for_vcf_batch(
+    conn: &Connection,
+    batch_id: &str,
+    limit: i64,
+    offset: i64,
+) -> SqlResult<crate::services::contact_storage::models::ContactNumberList> {
+    // VCF批次号码与普通批次号码相同，直接复用
+    list_numbers_by_batch_filtered(conn, batch_id, limit, offset, false)
+}

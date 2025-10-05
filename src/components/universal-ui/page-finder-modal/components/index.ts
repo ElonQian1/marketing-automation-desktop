@@ -13,3 +13,7 @@ export type { ElementListProps } from "./ElementList";
 
 export { AnalysisPanel } from "./AnalysisPanel";
 export type { AnalysisPanelProps } from "./AnalysisPanel";
+
+// 过滤设置面板
+export { FilterSettingsPanel } from "../filter/FilterSettingsPanel";
+export type { FilterSettingsPanelProps } from "../filter/FilterSettingsPanel";

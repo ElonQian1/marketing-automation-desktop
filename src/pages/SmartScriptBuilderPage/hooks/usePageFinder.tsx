@@ -1,5 +1,5 @@
-import React, { useState, useCallback, useMemo } from "react";
-import { message, FormInstance } from "antd";
+import React, { useState, useCallback, useMemo, useEffect, useRef } from "react";
+import { App, FormInstance } from "antd";
 import SmartStepGenerator from "../../../modules/SmartStepGenerator";
 import {
   ElementLocator,
@@ -66,9 +66,17 @@ export function usePageFinder(deps: UsePageFinderDeps) {
   } = deps;
 
   const [showPageAnalyzer, setShowPageAnalyzer] = useState(false);
-  const [snapshotFixMode, setSnapshotFixMode] = useState<SnapshotFixMode>({
-    enabled: false,
-  });
+  const [snapshotFixMode, setSnapshotFixMode] = useState<SnapshotFixMode>({ enabled: false });
+  // 统一使用实例化的 message，避免静态 message 在动态主题下的上下文警告
+  const { message: messageApi } = App.useApp();
+  // 表单已挂载守卫：避免在未连接 Form 时调用 setFieldValue 触发警告
+  const formMountedRef = useRef(false);
+  useEffect(() => {
+    const t = setTimeout(() => {
+      formMountedRef.current = true;
+    }, 0);
+    return () => clearTimeout(t);
+  }, []);
   const [pendingAutoResave, setPendingAutoResave] = useState<boolean>(false);
   const [isQuickAnalyzer, setIsQuickAnalyzer] = useState(false);
   const [editingStepForParams, setEditingStepForParams] = useState<ExtendedSmartScriptStep | null>(null);
@@ -124,17 +132,24 @@ export function usePageFinder(deps: UsePageFinderDeps) {
     setIsQuickAnalyzer(false);
     setEditingStepForParams(null);
     setShowPageAnalyzer(true);
-    message.info("正在采集页面快照以修复当前步骤，请稍候…");
+    messageApi.info("正在采集页面快照以修复当前步骤，请稍候…");
   };
 
   const onSnapshotCaptured = (snapshot: XmlSnapshot) => {
-    form.setFieldValue("xmlSnapshot", snapshot);
+    const apply = () => {
+      try { form.setFieldValue("xmlSnapshot", snapshot); } catch {}
     updateCurrentXmlContext(
       snapshot.xmlContent,
       snapshot.deviceInfo,
       snapshot.pageInfo
     );
-    message.success("已回填最新页面快照");
+  messageApi.success("已回填最新页面快照");
+    };
+    if (!formMountedRef.current) {
+      setTimeout(apply, 0);
+    } else {
+      apply();
+    }
     setSnapshotFixMode({ enabled: false, forStepId: undefined });
     if (pendingAutoResave) {
       setPendingAutoResave(false);
@@ -145,16 +160,22 @@ export function usePageFinder(deps: UsePageFinderDeps) {
   };
 
   const onSnapshotUpdated = (snapshot: XmlSnapshot) => {
-    try {
-      form.setFieldValue("xmlSnapshot", snapshot);
+    const apply = () => {
+      try { form.setFieldValue("xmlSnapshot", snapshot); } catch (e) {
+        // 连接尚未建立时仍可能抛出，延后一次
+        setTimeout(() => { try { form.setFieldValue("xmlSnapshot", snapshot); } catch {} }, 0);
+      }
       updateCurrentXmlContext(
         snapshot.xmlContent,
         snapshot.deviceInfo,
         snapshot.pageInfo
       );
-    } catch (e) {
-      console.warn("onSnapshotUpdated 处理失败（可忽略）:", e);
+    };
+    if (!formMountedRef.current) {
+      setTimeout(apply, 0);
+      return;
     }
+    apply();
   };
 
   const onElementSelected = (element: any) => {
@@ -438,7 +459,7 @@ export function usePageFinder(deps: UsePageFinderDeps) {
           return existingStep;
         });
         setSteps(updatedSteps);
-        message.success({
+  messageApi.success({
           content: (
             <div>
               <div style={{ fontWeight: "bold", marginBottom: "4px" }}>
@@ -454,7 +475,7 @@ export function usePageFinder(deps: UsePageFinderDeps) {
       } else if (isQuickAnalyzer) {
         setEditingStep(null);
         showAddModal({ resetFields: false });
-        message.success({
+  messageApi.success({
           content: (
             <div>
               <div style={{ fontWeight: "bold", marginBottom: "4px" }}>
@@ -489,7 +510,7 @@ export function usePageFinder(deps: UsePageFinderDeps) {
           }
         }, 200);
       } else {
-        message.success({
+  messageApi.success({
           content: (
             <div>
               <div style={{ fontWeight: "bold", marginBottom: "4px" }}>
@@ -506,7 +527,7 @@ export function usePageFinder(deps: UsePageFinderDeps) {
       SmartStepGenerator.previewStepInfo(element);
     } catch (error) {
       console.error("❌ 智能步骤生成失败:", error);
-      message.error("智能步骤生成失败");
+  messageApi.error("智能步骤生成失败");
     }
   };
 
@@ -682,7 +703,7 @@ export function usePageFinder(deps: UsePageFinderDeps) {
   setAllowSaveWithoutXmlOnce(true);
   showAddModal({ resetFields: false });
 
-        message.success({
+  messageApi.success({
           content: (
             <div>
               <div style={{ fontWeight: "bold", marginBottom: 4 }}>

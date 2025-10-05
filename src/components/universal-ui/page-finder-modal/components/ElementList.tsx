@@ -25,6 +25,8 @@ import {
   CheckCircleOutlined,
 } from "@ant-design/icons";
 import type { UIElement } from "../types";
+import type { VisualFilterConfig } from "../../types";
+import { filterUIElementsByConfig } from "../../shared/filters/visualFilter";
 import { getDisplayText, sortElements } from "../utils/sortElements";
 
 const { Text } = Typography;
@@ -36,6 +38,8 @@ export interface ElementListProps {
   onElementCopy?: (element: UIElement) => void;
   title?: string;
   showDetails?: boolean;
+  // 🆕 可选：前端可视化过滤规则（与可视化视图保持一致）
+  filterConfig?: VisualFilterConfig;
 }
 
 export const ElementList: React.FC<ElementListProps> = ({
@@ -45,14 +49,20 @@ export const ElementList: React.FC<ElementListProps> = ({
   onElementCopy,
   title = "UI元素列表",
   showDetails = true,
+  filterConfig,
 }) => {
   // 开关：优先展示语义元素（可点击/有文本/有ID）
   const [prioritizeSemantic, setPrioritizeSemantic] = useState(true);
 
+  // 🆕 应用前端过滤规则（若提供）
+  const filteredByConfig = useMemo(() => {
+    return filterUIElementsByConfig(elements, filterConfig);
+  }, [elements, filterConfig]);
+
   // 排序：支持“语义优先”，并将“未知/未命名/占位(元素 N)”排到最后，组内保持稳定
   const sortedElements = useMemo(
-    () => sortElements(elements, { prioritizeSemantic }),
-    [elements, prioritizeSemantic]
+    () => sortElements(filteredByConfig, { prioritizeSemantic }),
+    [filteredByConfig, prioritizeSemantic]
   );
 
   // 统计信息

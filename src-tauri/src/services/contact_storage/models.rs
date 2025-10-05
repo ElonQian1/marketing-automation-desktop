@@ -142,6 +142,9 @@ pub struct VcfBatchDto {
     pub source_end_id: Option<i64>,
 }
 
+// 为了向后兼容，保留 VcfBatch 别名
+pub type VcfBatch = VcfBatchDto;
+
 #[derive(Debug, Serialize, Deserialize, Clone)]
 pub struct VcfBatchList {
     pub total: i64,
@@ -158,9 +161,14 @@ pub struct VcfBatchCreationResult {
 
 #[derive(Debug, Serialize, Deserialize, Clone)]
 pub struct VcfBatchStatsDto {
+    pub total_batches: i64,
+    pub completed_batches: i64,
+    pub average_batch_size: f64,
+    pub success_rate: f64,
+    pub industries: Vec<String>,
+    // VCF 批次统计需要的字段
     pub total_numbers: i64,
     pub used_numbers: i64,
-    pub industries: Vec<String>,
 }
 
 #[derive(Debug, Serialize, Deserialize, Clone)]
@@ -261,4 +269,119 @@ pub struct DeleteImportSessionResultDto {
     pub removed_event_count: i64,
     pub removed_batch_link_count: i64,
     pub removed_batch_record: bool,
+}
+
+// 用于内部仓储层的结果类型（不需要序列化）
+#[derive(Debug, Clone)]
+pub struct DeleteImportSessionResult {
+    pub session_id: i64,
+    pub archived_number_count: i64,
+    pub removed_event_count: i64,
+    pub removed_batch_link_count: i64,
+    pub removed_batch_record: bool,
+}
+
+// 新增统计相关模型
+#[derive(Debug, Serialize, Deserialize, Clone)]
+pub struct ContactNumberStats {
+    pub total: i64,
+    pub available: i64,
+    pub imported: i64,
+    pub failed: i64,
+    pub used: i64,
+    pub unused: i64,
+}
+
+#[derive(Debug, Serialize, Deserialize, Clone)]
+pub struct IndustryStats {
+    pub industry: String,
+    pub session_count: i64,
+    pub total_imported: i64,
+    pub total_failed: i64,
+    pub device_count: i64,
+}
+
+#[derive(Debug, Serialize, Deserialize, Clone)]
+pub struct AllIndustryStats {
+    pub industries: Vec<IndustryStats>,
+    pub total_sessions: i64,
+    pub total_imported: i64,
+    pub total_failed: i64,
+    pub total_devices: i64,
+}
+
+// ----- 通用结果类型 -----
+
+#[derive(Debug, Serialize, Deserialize, Clone)]
+pub struct TxtImportResult {
+    pub success: bool,
+    pub imported_count: i64,
+    pub duplicate_count: i64,
+    pub error_count: i64,
+    pub message: String,
+}
+
+#[derive(Debug, Serialize, Deserialize, Clone)]
+pub struct ValidationResult {
+    pub is_valid: bool,
+    pub cleaned_count: i64,
+    pub error_count: i64,
+    pub message: String,
+}
+
+// ----- 数据库信息类型别名 -----
+pub type DatabaseInfo = DatabaseInfoDto;
+
+#[derive(Debug, Serialize, Deserialize, Clone)]
+pub struct DeviceUsageStats {
+    pub device_id: String,
+    pub session_count: i64,
+    pub total_imported: i64,
+    pub total_failed: i64,
+    pub first_session: String,
+    pub last_session: String,
+}
+
+#[derive(Debug, Serialize, Deserialize, Clone)]
+pub struct BatchSuccessStats {
+    pub batch_id: String,
+    pub session_count: i64,
+    pub total_imported: i64,
+    pub total_failed: i64,
+    pub success_rate: f64,
+}
+
+#[derive(Debug, Serialize, Deserialize, Clone)]
+pub struct ImportTrendStats {
+    pub import_date: String,
+    pub session_count: i64,
+    pub total_imported: i64,
+    pub total_failed: i64,
+    pub device_count: i64,
+}
+
+#[derive(Debug, Serialize, Deserialize, Clone)]
+pub struct NumberUsageDistribution {
+    pub status_distribution: std::collections::HashMap<String, i64>,
+    pub batch_distribution: std::collections::HashMap<String, i64>,
+}
+
+#[derive(Debug, Serialize, Deserialize, Clone)]
+pub struct ContactDbConfig {
+    pub db_path: String,
+    pub file_size: u64,
+    pub schema_version: String,
+    pub user_version: i64,
+    pub table_count: i64,
+    pub index_count: i64,
+}
+
+#[derive(Debug, Serialize, Deserialize, Clone)]
+pub struct DatabaseSummary {
+    pub total_numbers: i64,
+    pub total_batches: i64,
+    pub total_sessions: i64,
+    pub successful_sessions: i64,
+    pub total_imported: i64,
+    pub total_failed: i64,
 }

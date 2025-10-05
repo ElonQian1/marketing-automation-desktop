@@ -12,14 +12,11 @@ export function toSnakeCaseDeep<T = any>(input: T): T {
   if (input && typeof input === 'object') {
     const out: any = {};
     for (const [k, v] of Object.entries(input as any)) {
-      // 更好的 camelCase 到 snake_case 转换
+      // 标准 camelCase -> snake_case 转换：
+      // 1) 在小写/数字与大写之间加下划线
+      // 2) 将连字符/空白替换为下划线
+      // 3) 整体转小写
       const snake = k
-        .replace(/([A-Z]+)/g, (match, p1, offset) => {
-          // 如果是开头的大写字母，直接小写
-          if (offset === 0) return match.toLowerCase();
-          // 如果连续大写字母，只在前面加下划线
-          return '_' + match.toLowerCase();
-        })
         .replace(/([a-z0-9])([A-Z])/g, '$1_$2')
         .replace(/[-\s]+/g, '_')
         .toLowerCase();

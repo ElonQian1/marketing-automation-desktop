@@ -28,7 +28,22 @@ export async function invokeUniversal<T>(command: keyof typeof UniversalCommands
       return await invokeCompat<T>(UniversalCommands[command], params as any);
     case 'extractPageElements':
       assertExtractParams(params);
-      return await invokeCompat<T>(UniversalCommands[command], params as any);
+      // 双相兼容：先强制 snake，再强制 camel，最后抛出最初错误
+      {
+        const p = params as ExtractParams;
+        const snake = { xml_content: p.xmlContent } as any;
+        const camel = { xmlContent: p.xmlContent } as any;
+        try {
+          return await invokeCompat<T>(UniversalCommands[command], snake, { forceSnake: true });
+        } catch (e1) {
+          try {
+            return await invokeCompat<T>(UniversalCommands[command], camel, { forceCamel: true });
+          } catch (e2) {
+            // 抛出更具可读性的错误（保留第一条）
+            throw e1;
+          }
+        }
+      }
     default:
       throw new Error(`Unknown command: ${command}`);
   }

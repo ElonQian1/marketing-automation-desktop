@@ -241,6 +241,218 @@ export const useAdb = () => {
     applicationService.ensureDeviceWatchingStarted();
   }, [applicationService]);
 
+  // ===== 派生状态 =====
+
+  /**
+   * 设备总数
+   */
+  const deviceCount = useMemo(() => devices.length, [devices.length]);
+
+  /**
+   * 在线设备数量
+   */
+  const onlineDeviceCount = useMemo(() => onlineDevices.length, [onlineDevices.length]);
+
+  /**
+   * 是否就绪（有设备且连接正常）
+   */
+  const isReady = useMemo(() => {
+    return isConnected && devices.length > 0 && !hasErrors;
+  }, [isConnected, devices.length, hasErrors]);
+
+  /**
+   * 是否健康（无错误且服务正常）
+   */
+  const isHealthy = useMemo(() => {
+    return !hasErrors && !lastError;
+  }, [hasErrors, lastError]);
+
+  // ===== 连接管理 =====
+
+  /**
+   * 连接到模拟器
+   */
+  const connectToEmulators = useCallback(async () => {
+    try {
+      // 常见的模拟器端口
+      const emulatorPorts = ['5554', '5555', '5556', '5557', '5558', '5559'];
+      const results = [];
+      
+      for (const port of emulatorPorts) {
+        try {
+          await connectDevice(`127.0.0.1:${port}`);
+          results.push({ port, success: true });
+        } catch (error) {
+          results.push({ port, success: false, error });
+        }
+      }
+      
+      // 刷新设备列表以获取新连接的设备
+      await refreshDevices();
+      return results;
+    } catch (error) {
+      console.error('连接模拟器失败:', error);
+      throw error;
+    }
+  }, [connectDevice, refreshDevices]);
+
+  /**
+   * 重启ADB服务器
+   */
+  const restartAdbServer = useCallback(async () => {
+    try {
+      await applicationService.stopAdbServer();
+      await new Promise(resolve => setTimeout(resolve, 1000)); // 等待1秒
+      await applicationService.startAdbServer();
+      await refreshDevices();
+    } catch (error) {
+      console.error('重启ADB服务器失败:', error);
+      throw error;
+    }
+  }, [applicationService, refreshDevices]);
+
+  /**
+   * 停止ADB服务器
+   */
+  const stopAdbServer = useCallback(async () => {
+    await applicationService.stopAdbServer();
+  }, [applicationService]);
+
+  // ===== 诊断功能 =====
+
+  /**
+   * 运行快速诊断
+   */
+  const runQuickDiagnostic = useCallback(async () => {
+    return await applicationService.runQuickDiagnostic();
+  }, [applicationService]);
+
+  /**
+   * 运行完整诊断
+   */
+  const runFullDiagnostic = useCallback(async () => {
+    return await applicationService.runFullDiagnostic();
+  }, [applicationService]);
+
+  /**
+   * 执行自动修复
+   */
+  const executeAutoFix = useCallback(async () => {
+    return await applicationService.executeAutoFix();
+  }, [applicationService]);
+
+  /**
+   * 获取诊断报告
+   */
+  const getDiagnosticReport = useCallback(() => {
+    return applicationService.getDiagnosticReport();
+  }, [applicationService]);
+
+  // ===== 快捷操作 =====
+
+  /**
+   * 快速连接（自动检测并连接设备）
+   */
+  const quickConnect = useCallback(async () => {
+    try {
+      await refreshDevices();
+      if (devices.length === 0) {
+        await connectToEmulators();
+      }
+      if (devices.length > 0 && !selectedDevice) {
+        selectDevice(devices[0].id);
+      }
+      return true;
+    } catch (error) {
+      console.error('快速连接失败:', error);
+      return false;
+    }
+  }, [refreshDevices, devices, connectToEmulators, selectedDevice, selectDevice]);
+
+  /**
+   * 快速修复（诊断并自动修复问题）
+   */
+  const quickFix = useCallback(async () => {
+    try {
+      const diagnostic = await runQuickDiagnostic();
+      if (diagnostic.hasErrors()) {
+        await executeAutoFix();
+      }
+      return true;
+    } catch (error) {
+      console.error('快速修复失败:', error);
+      return false;
+    }
+  }, [runQuickDiagnostic, executeAutoFix]);
+
+  // ===== 错误处理 =====
+
+  /**
+   * 清除错误
+   */
+  const clearError = useCallback(() => {
+    const store = useAdbStore.getState();
+    store.setError(null);
+  }, []);
+
+  // ===== ADB密钥管理 =====
+
+  /**
+   * 清除ADB密钥
+   */
+  const clearAdbKeys = useCallback(async () => {
+    return await applicationService.clearAdbKeys();
+  }, [applicationService]);
+
+  // ===== 路径检测 =====
+
+  /**
+   * 自动检测ADB路径
+   */
+  const autoDetectAdbPath = useCallback(async () => {
+    return await applicationService.autoDetectAdbPath();
+  }, [applicationService]);
+
+  // ===== 紧急恢复功能 =====
+
+  /**
+   * 紧急恢复设备监听
+   */
+  const emergencyRecoverDeviceListening = useCallback(async () => {
+    try {
+      await applicationService.emergencyRecoverDeviceListening();
+      await refreshDevices();
+    } catch (error) {
+      console.error('紧急恢复设备监听失败:', error);
+      throw error;
+    }
+  }, [applicationService, refreshDevices]);
+
+  /**
+   * 诊断回调链
+   */
+  const diagnoseCallbackChain = useCallback(async () => {
+    return await applicationService.diagnoseCallbackChain();
+  }, [applicationService]);
+
+  // ===== 批量操作 =====
+
+  /**
+   * 批量设备操作
+   */
+  const batchDeviceOperation = useCallback(async (deviceIds: string[], operation: string, params?: any) => {
+    return await applicationService.batchDeviceOperation(deviceIds, operation, params);
+  }, [applicationService]);
+
+  // ===== 智能脚本执行（多设备） =====
+
+  /**
+   * 在多个设备上执行智能脚本
+   */
+  const executeSmartScriptOnDevices = useCallback(async (deviceIds: string[], steps: any[], config?: any) => {
+    return await applicationService.executeSmartScriptOnDevices(deviceIds, steps, config);
+  }, [applicationService]);
+
   // ===== 自动初始化 =====
 
   /**
@@ -297,6 +509,12 @@ export const useAdb = () => {
     isInitializing,
     lastError,
 
+    // 派生状态
+    deviceCount,
+    onlineDeviceCount,
+    isReady,
+    isHealthy,
+
     // 初始化和配置
     initialize,
     updateConfig,
@@ -312,6 +530,9 @@ export const useAdb = () => {
     // 连接管理
     testConnection,
     startAdbServer,
+    connectToEmulators,
+    restartAdbServer,
+    stopAdbServer,
 
     // 查询功能
     getDeviceContactCount,
@@ -321,11 +542,38 @@ export const useAdb = () => {
     triggerHealthCheck,
     triggerEmergencyRecovery,
 
+    // 诊断功能
+    runQuickDiagnostic,
+    runFullDiagnostic,
+    executeAutoFix,
+    getDiagnosticReport,
+
+    // 快捷操作
+    quickConnect,
+    quickFix,
+
+    // 错误处理
+    clearError,
+
+    // ADB密钥管理
+    clearAdbKeys,
+
+    // 路径检测
+    autoDetectAdbPath,
+
+    // 紧急恢复功能
+    emergencyRecoverDeviceListening,
+    diagnoseCallbackChain,
+
+    // 批量操作
+    batchDeviceOperation,
+
     // UI匹配
     matchElementByCriteria,
 
     // 智能脚本执行
     executeSmartScript,
+    executeSmartScriptOnDevices,
 
     // 服务状态
     getServiceStatus,

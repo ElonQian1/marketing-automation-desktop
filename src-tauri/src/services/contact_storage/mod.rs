@@ -1,14 +1,18 @@
-pub mod commands;
+/// Contact Storage Module - 联系人存储模块
+/// 
+/// 本模块实现了基于DDD架构的联系人存储系统，使用Repository Pattern + Facade Pattern
+/// 提供统一的数据访问接口
+
 pub mod models;
 pub mod parser;
-pub mod queries;
-
-// 新增：模块化架构
+pub mod queries; 
+pub mod commands;
 pub mod repositories;
+pub mod facade;
+pub mod repository_facade;
 
-// 向后兼容：重新导出新模块的功能
-pub use repositories::txt_import_records_repo;
-pub use commands::txt_import_records;
+// 统一的 Facade 接口
+pub use repository_facade::ContactStorageFacade;
 
 // 统一从 commands 模块导入所有命令函数
 pub use commands::{
@@ -21,56 +25,46 @@ pub use commands::{
     // 管理命令
     import_contact_numbers_from_file,
     import_contact_numbers_from_folder,
-    init_contact_storage_cmd,
-    get_database_info_cmd,
-    cleanup_database_cmd,
     
-    // contact_numbers 命令
+    // 获取命令
     fetch_contact_numbers,
     fetch_unclassified_contact_numbers,
     fetch_contact_numbers_by_id_range,
     fetch_contact_numbers_by_id_range_unconsumed,
     mark_contact_numbers_used_by_id_range,
+    
+    // 状态管理
     mark_contact_numbers_as_not_imported,
     delete_contact_numbers,
     set_contact_numbers_industry_by_id_range,
+    
+    // VCF批次管理 
+    create_vcf_batch_cmd,
+    list_vcf_batches_cmd,
+    get_vcf_batch_cmd,
+    update_vcf_batch_cmd,
+    delete_vcf_batch_cmd,
+    get_recent_vcf_batches_cmd,
+    create_vcf_batch_with_numbers_cmd,
+    get_vcf_batch_stats_cmd,
+    set_vcf_batch_file_path_cmd,
+    batch_delete_vcf_batches_cmd,
+    search_vcf_batches_by_name_cmd,
+    get_vcf_batch_number_count_cmd,
+    mark_vcf_batch_completed_cmd,
+    get_recent_vcf_batches_by_device_cmd,
+    
+    // 高级查询命令
     list_contact_numbers_by_batch_filtered,
     list_contact_numbers_without_batch,
     tag_contact_numbers_industry_by_vcf_batch,
     allocate_contact_numbers_to_device,
     
-    // vcf_batches 命令
-    create_vcf_batch_cmd,
-    list_vcf_batches_cmd,
-    list_vcf_batch_records_cmd,
-    get_vcf_batch_cmd,
-    create_vcf_batch_with_numbers_cmd,
-    get_industries_for_vcf_batch_cmd,
-    get_vcf_batch_stats_cmd,
-    
-    // import_sessions 命令
-    create_import_session_cmd,
-    finish_import_session_cmd,
-    list_import_sessions_cmd,
-    get_import_session_cmd,
-    delete_import_session_cmd,
-    get_recent_import_sessions_cmd,
-    get_import_sessions_by_device_cmd,
-    get_import_sessions_by_batch_cmd,
-    get_import_session_stats_cmd,
-    update_import_session_industry_cmd,
-    revert_import_session_to_failed_cmd,
-    batch_delete_import_sessions_cmd,
-    get_failed_import_sessions_cmd,
-    get_successful_import_sessions_cmd,
-    update_import_session_status_cmd,
-    get_import_session_events_cmd,
-    add_import_session_event_cmd,
-    get_import_sessions_by_date_range_cmd,
-    get_distinct_session_industries_cmd,
-    
-    // TXT 导入记录命令
+    // 统计和管理命令
+    import_txt_to_contact_numbers_cmd,
     list_txt_import_records_cmd,
     delete_txt_import_record_cmd,
+    maintain_database_cmd,
+    backup_database_cmd,
+    restore_database_cmd,
 };
-

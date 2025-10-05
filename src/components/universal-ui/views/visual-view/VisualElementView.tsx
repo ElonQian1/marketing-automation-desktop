@@ -11,6 +11,7 @@ import { PagePreview } from "./components/PagePreview";
 import { ElementList } from "./components/ElementList";
 import type { VisualElementCategory } from "../../types/";
 import type { VisualUIElement } from "../../types";
+import type { VisualFilterConfig } from "../../types";
 import { convertVisualToUIElement } from "./utils/elementTransform";
 import { useParsedVisualElements } from ".";
 import { useFilteredVisualElements } from "./hooks/useFilteredVisualElements";
@@ -40,6 +41,8 @@ interface VisualElementViewProps {
   deviceId?: string;
   // 🆕 方案 C：应用包名（用于持久化应用特定校准）
   packageName?: string;
+  // 🆕 过滤配置（从上层传入）
+  filterConfig?: VisualFilterConfig;
 }
 
 export const VisualElementView: React.FC<VisualElementViewProps> = ({
@@ -52,6 +55,7 @@ export const VisualElementView: React.FC<VisualElementViewProps> = ({
   screenshotUrl,
   deviceId,
   packageName,
+  filterConfig,
 }) => {
   // 设备外框（bezel）内边距，让设备看起来比页面更大，但不改变页面坐标/缩放
   const DEVICE_FRAME_PADDING = 24; // px，可调
@@ -59,7 +63,7 @@ export const VisualElementView: React.FC<VisualElementViewProps> = ({
   const STATS_FIXED_WIDTH = 360; // px，可按需调整
   const [searchText, setSearchText] = useState("");
   const [selectedCategory, setSelectedCategory] = useState<string>("all");
-  const [showOnlyClickable, setShowOnlyClickable] = useState(true); // 🎯 默认勾选只显示可点击元素
+  const [showOnlyClickable, setShowOnlyClickable] = useState(false); // 🔧 修复：默认显示所有元素，避免过滤掉重要按钮
   const [hideCompletely, setHideCompletely] = useState(false); // 🎯 默认不勾选：使用半透明显示模式
   // 🆕 显示截图背景（默认开启）
   const [showScreenshot, setShowScreenshot] = useState(true);
@@ -468,6 +472,7 @@ export const VisualElementView: React.FC<VisualElementViewProps> = ({
     showOnlyClickable,
     hideCompletely,
     selectionManager,
+    filterConfig,
   });
 
   // 控制面板与页面统计宽度固定：不随窗口变化而压缩

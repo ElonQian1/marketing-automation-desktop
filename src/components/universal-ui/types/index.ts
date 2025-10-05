@@ -84,6 +84,40 @@ export interface ElementStatistics {
   grouped: Record<string, VisualUIElement[]>;
 }
 
+// ========== 过滤配置（可视化） ==========
+
+/**
+ * 可视化元素过滤配置
+ * 仅作用于前端展示层，不影响后台解析。
+ */
+export interface VisualFilterConfig {
+  /** 仅显示可点击元素（或被视为可点击的Button类） */
+  onlyClickable: boolean;
+  /** 将类名包含“Button”的元素视为可点击 */
+  treatButtonAsClickable: boolean;
+  /** 需要存在 text 或 content-desc */
+  requireTextOrDesc: boolean;
+  /** 最小宽度（像素） */
+  minWidth: number;
+  /** 最小高度（像素） */
+  minHeight: number;
+  /** 类名包含关键字（任意一个命中即通过） */
+  includeClasses: string[];
+  /** 类名排除关键字（任意一个命中即排除） */
+  excludeClasses: string[];
+}
+
+/** 默认过滤配置 */
+export const defaultVisualFilterConfig: VisualFilterConfig = {
+  onlyClickable: false,
+  treatButtonAsClickable: true,
+  requireTextOrDesc: false,
+  minWidth: 1,
+  minHeight: 1,
+  includeClasses: [],
+  excludeClasses: [],
+};
+
 // ========== 组件 Props 接口 ==========
 
 /**
@@ -186,6 +220,9 @@ export type ElementCategorizer = (element: UIElement) => string;
  * UIElement转换为VisualUIElement的工具函数
  */
 export const transformUIElement = (element: UIElement): VisualUIElement => {
+  // 🔧 修复：更严格的clickable判断，确保XML中真正可点击的元素不会被过滤
+  const isClickable = element.is_clickable === true || element.class_name?.includes('Button');
+  
   return {
     id: element.id,
     text: element.text || '',
@@ -198,12 +235,12 @@ export const transformUIElement = (element: UIElement): VisualUIElement => {
       width: element.bounds.right - element.bounds.left,
       height: element.bounds.bottom - element.bounds.top,
     },
-    clickable: element.is_clickable || false,
-    scrollable: element.is_scrollable || false,
-    importance: element.is_clickable ? 'high' : element.text ? 'medium' : 'low',
+    clickable: isClickable,
+    scrollable: element.is_scrollable === true,
+    importance: isClickable ? 'high' : element.text ? 'medium' : 'low',
     userFriendlyName: element.text || element.content_desc || element.resource_id || '未命名元素',
-    enabled: element.is_enabled || true,
-    selected: element.selected || false,
+    enabled: element.is_enabled !== false,
+    selected: element.selected === true,
     element_type: element.element_type,
     is_clickable: element.is_clickable,
     content_desc: element.content_desc
@@ -214,9 +251,10 @@ export const transformUIElement = (element: UIElement): VisualUIElement => {
  * 元素分类函数
  */
 export const categorizeElement = (element: UIElement): string => {
-  if (element.is_clickable) return 'interactive';
+  // 🔧 修复：优先识别Button类型或真正可点击的元素
+  if (element.is_clickable === true || element.class_name?.includes('Button')) return 'interactive';
   if (element.text && element.text.trim()) return 'text';
-  if (element.element_type.toLowerCase().includes('image')) return 'image';
-  if (element.is_scrollable) return 'scrollable';
+  if (element.element_type?.toLowerCase().includes('image')) return 'image';
+  if (element.is_scrollable === true) return 'scrollable';
   return 'container';
 };

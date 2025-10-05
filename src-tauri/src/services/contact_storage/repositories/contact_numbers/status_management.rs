@@ -64,3 +64,21 @@ pub fn fetch_numbers_by_id_range_unconsumed(
     
     Ok(numbers)
 }
+
+/// 标记号码为已导入
+pub fn mark_numbers_imported(
+    conn: &Connection,
+    start_id: i64,
+    end_id: i64,
+    device_id: &str,
+) -> SqlResult<i64> {
+    let affected = conn.execute(
+        "UPDATE contact_numbers 
+         SET status = 'imported', 
+             imported_device_id = ?1, 
+             imported_at = datetime('now')
+         WHERE id BETWEEN ?2 AND ?3 AND status = 'assigned'",
+        params![device_id, start_id, end_id],
+    )?;
+    Ok(affected as i64)
+}

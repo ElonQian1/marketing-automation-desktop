@@ -17,11 +17,10 @@ pub mod universal_ui_page_analyzer; // 新增：Universal UI 页面分析器
 pub mod commands; // Tauri 命令封装
 pub mod contact_service;
 pub mod contact_storage; // 新增：联系人号码存储（TXT导入到SQLite）
-pub use contact_storage::commands::migrate_vcf_batches_schema; // 导出迁移命令
 pub mod crash_debugger;
 pub mod device_contact_metrics;
-pub mod employee_service;
 pub mod duplication_guard; // 新增：查重防护服务（内存态）
+pub mod employee_service;
 pub mod execution; // 新增：执行分层骨架 (模型/重试/快照)
 pub mod huawei_enhanced_importer; // 基于Python成功经验的华为增强导入器
 pub mod ldplayer_vcf_opener;
@@ -50,5 +49,5 @@ pub mod vcf_importer;
 pub mod vcf_importer_async;
 pub mod vcf_importer_optimized;
 pub mod vcf_utils; // 新增：VCF 工具函数 // 设备镜像（外部 scrcpy 进程控制）
-                                         // 注意：util_fs 模块已迁移到 commands/files.rs，避免重复定义
-                                         // 已移除：xiaohongshu_* 系列模块（自动关注/长连接/服务），按照需求删除
+                   // 注意：util_fs 模块已迁移到 commands/files.rs，避免重复定义
+                   // 已移除：xiaohongshu_* 系列模块（自动关注/长连接/服务），按照需求删除

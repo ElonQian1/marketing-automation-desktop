@@ -222,6 +222,15 @@ export class AdbApplicationService {
     }, 'ADB服务器启动');
   }
 
+  /**
+   * 停止ADB服务器
+   */
+  async stopAdbServer(): Promise<void> {
+    await StoreOperations.withLoadingAndErrorHandling(async () => {
+      await this.connectionService.stopServer();
+    }, 'ADB服务器停止');
+  }
+
   // ===== 查询服务代理 =====
 
   /**
@@ -245,6 +254,202 @@ export class AdbApplicationService {
    */
   async triggerHealthCheck(): Promise<DiagnosticSummary> {
     return await this.healthService.triggerHealthCheck();
+  }
+
+  /**
+   * 运行快速诊断
+   */
+  async runQuickDiagnostic(): Promise<DiagnosticSummary> {
+    return await this.healthService.triggerHealthCheck();
+  }
+
+  /**
+   * 运行完整诊断
+   */
+  async runFullDiagnostic(): Promise<DiagnosticResult[]> {
+    const results = await this.diagnosticService.runFullDiagnostic();
+    const store = StoreOperations.getStore();
+    
+    // runFullDiagnostic 返回 DiagnosticSummary，但我们需要获取实际的结果数组
+    // 从诊断服务中获取最后的结果
+    const diagnosticResults = this.diagnosticService.getLastDiagnosticResults();
+    store.setDiagnosticResults(diagnosticResults);
+    return diagnosticResults;
+  }
+
+  /**
+   * 执行自动修复
+   */
+  async executeAutoFix(): Promise<boolean> {
+    try {
+      // 运行诊断找到问题
+      const diagnosticSummary = await this.runQuickDiagnostic();
+      
+      // 尝试常见的修复方法
+      if (diagnosticSummary.hasErrors()) {
+        // 重启ADB服务器
+        await this.stopAdbServer();
+        await new Promise(resolve => setTimeout(resolve, 1000));
+        await this.startAdbServer();
+        
+        // 重新扫描设备
+        await this.refreshDevices();
+        
+        return true;
+      }
+      
+      return false;
+    } catch (error) {
+      console.error('自动修复失败:', error);
+      return false;
+    }
+  }
+
+  /**
+   * 获取诊断报告
+   */
+  getDiagnosticReport(): DiagnosticResult[] {
+    const store = StoreOperations.getStore();
+    return store.diagnosticResults;
+  }
+
+  /**
+   * 清除ADB密钥
+   */
+  async clearAdbKeys(): Promise<boolean> {
+    try {
+      // 这里应该调用 Tauri 命令来清除 ADB 密钥
+      // 暂时返回成功，实际实现需要调用后端
+      console.log('清除ADB密钥（模拟实现）');
+      return true;
+    } catch (error) {
+      console.error('清除ADB密钥失败:', error);
+      return false;
+    }
+  }
+
+  /**
+   * 自动检测ADB路径
+   */
+  async autoDetectAdbPath(): Promise<string | null> {
+    try {
+      // 这里应该调用 Tauri 命令来自动检测 ADB 路径
+      // 暂时返回null，实际实现需要调用后端
+      console.log('自动检测ADB路径（模拟实现）');
+      return null;
+    } catch (error) {
+      console.error('自动检测ADB路径失败:', error);
+      return null;
+    }
+  }
+
+  /**
+   * 紧急恢复设备监听
+   */
+  async emergencyRecoverDeviceListening(): Promise<void> {
+    try {
+      // 停止当前监听
+      this.deviceWatchingService.stopWatching();
+      
+      // 等待一段时间
+      await new Promise(resolve => setTimeout(resolve, 500));
+      
+      // 重新启动监听
+      this.deviceWatchingService.startWatching((devices: Device[]) => {
+        const store = StoreOperations.getStore();
+        store.setDevices(devices);
+      });
+      
+      console.log('设备监听已紧急恢复');
+    } catch (error) {
+      console.error('紧急恢复设备监听失败:', error);
+      throw error;
+    }
+  }
+
+  /**
+   * 诊断回调链
+   */
+  async diagnoseCallbackChain(): Promise<any> {
+    try {
+      // 检查设备监听服务状态
+      const watchingStatus = this.isDeviceWatchingActive();
+      
+      // 获取当前服务状态
+      const serviceStatus = this.getServiceStatus();
+      
+      return {
+        watchingStatus,
+        serviceStatus,
+        timestamp: new Date().toISOString()
+      };
+    } catch (error) {
+      console.error('诊断回调链失败:', error);
+      throw error;
+    }
+  }
+
+  /**
+   * 批量设备操作
+   */
+  async batchDeviceOperation(deviceIds: string[], operation: string, params?: any): Promise<any[]> {
+    const results = [];
+    
+    for (const deviceId of deviceIds) {
+      try {
+        let result;
+        
+        switch (operation) {
+          case 'disconnect':
+            await this.disconnectDevice(deviceId);
+            result = { success: true, deviceId };
+            break;
+          case 'getInfo':
+            const info = await this.getDeviceInfo(deviceId);
+            result = { success: true, deviceId, data: info };
+            break;
+          default:
+            result = { success: false, deviceId, error: `未知操作: ${operation}` };
+        }
+        
+        results.push(result);
+      } catch (error) {
+        results.push({ success: false, deviceId, error: error.message });
+      }
+    }
+    
+    return results;
+  }
+
+  /**
+   * 在多个设备上执行智能脚本
+   */
+  async executeSmartScriptOnDevices(deviceIds: string[], steps: ExtendedSmartScriptStep[], config?: any): Promise<Array<{
+    deviceId: string;
+    success: boolean;
+    result?: SmartExecutionResult;
+    error?: string;
+  }>> {
+    const results = [];
+    
+    for (const deviceId of deviceIds) {
+      try {
+        const result = await this.executeSmartScript(deviceId, steps);
+        results.push({
+          deviceId,
+          success: result.success,
+          result: result
+        });
+      } catch (error) {
+        results.push({
+          deviceId,
+          success: false,
+          error: error instanceof Error ? error.message : String(error)
+        });
+      }
+    }
+    
+    return results;
   }
 
   /**

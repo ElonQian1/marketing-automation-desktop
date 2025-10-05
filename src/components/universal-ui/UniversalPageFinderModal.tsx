@@ -4,28 +4,13 @@
  */
 
 import React, { useState, useEffect } from "react";
-import {
-  Modal,
-  Button,
-  Space,
-  Typography,
-  Row,
-  Col,
-  Alert,
-  Spin,
-  message,
-  Card,
-} from "antd";
+import { App, Modal, Button, Space, Typography, Row, Col, Alert } from "antd";
 import { CheckOutlined } from "@ant-design/icons";
 
 // 导入模块化组件
-import {
-  DeviceSelector,
-  ViewModeSelector,
-  ElementList,
-  AnalysisPanel,
-  usePageFinderModal
-} from "./page-finder-modal";
+import { ElementList, usePageFinderModal } from "./page-finder-modal";
+import LeftControlPanel from "./page-finder-modal/panels/LeftControlPanel";
+import { FilterSettingsPanel } from "./page-finder-modal";
 import type { ElementWithHierarchy } from "./views/tree-view/types";
 import type {
   ViewMode,
@@ -49,15 +34,14 @@ import {
   GridElementView,
   ScrcpyControlView,
 } from "./views";
-import {
-  useElementSelectionManager,
-  ElementSelectionPopover,
-  ZIndexManager,
-  useZIndexManager,
-} from "./element-selection";
+import { filterUIElementsByConfig, filterVisualElementsByConfig } from "./shared/filters/visualFilter";
+import { useElementSelectionManager, ZIndexManager, useZIndexManager } from "./element-selection";
 import { convertVisualToUIElement } from "./views/visual-view";
 import type { VisualUIElement } from "./types";
 import { isDevDebugEnabled } from "../../utils/debug";
+import { defaultVisualFilterConfig, VisualFilterConfig } from "./types";
+import MainViewContainer from "./page-finder-modal/panels/MainViewContainer";
+import SelectionPopoverContainer from "./page-finder-modal/panels/SelectionPopoverContainer";
 
 const { Text, Title } = Typography;
 
@@ -109,6 +93,8 @@ const UniversalPageFinderModal: React.FC<UniversalPageFinderModalProps> = ({
   onApplyCriteria,
   initialMatching,
 }) => {
+  // 使用实例化 message，避免静态 message 的上下文告警
+  const { message } = App.useApp();
   
   // 使用模块化的 Hook
   const {
@@ -144,6 +130,20 @@ const UniversalPageFinderModal: React.FC<UniversalPageFinderModalProps> = ({
   // 本地状态
   const [viewMode, setViewMode] = useState<ViewMode>(initialViewMode);
   const [selectedElementId, setSelectedElementId] = useState<string>("");
+  // 🆕 过滤设置
+  const [filterOpen, setFilterOpen] = useState(false);
+  const [filterConfig, setFilterConfig] = useState<VisualFilterConfig>(() => {
+    try {
+      const saved = localStorage.getItem('visualFilterConfig');
+      return saved ? { ...defaultVisualFilterConfig, ...JSON.parse(saved) } : defaultVisualFilterConfig;
+    } catch {
+      return defaultVisualFilterConfig;
+    }
+  });
+  const persistFilter = (cfg: VisualFilterConfig) => {
+    setFilterConfig(cfg);
+    try { localStorage.setItem('visualFilterConfig', JSON.stringify(cfg)); } catch {}
+  };
   
   // 元素选择管理器
   const selectionManager = useElementSelectionManager(
@@ -222,7 +222,7 @@ const UniversalPageFinderModal: React.FC<UniversalPageFinderModalProps> = ({
   // 快照捕获
   const handleSnapshotCapture = async () => {
     if (!selectedDevice) {
-      message.error("请先选择设备");
+  message.error("请先选择设备");
       return;
     }
 
@@ -241,7 +241,7 @@ const UniversalPageFinderModal: React.FC<UniversalPageFinderModalProps> = ({
       }
     } catch (error) {
       console.error("快照捕获失败:", error);
-      message.error("快照捕获失败，请重试");
+  message.error("快照捕获失败，请重试");
     } finally {
       setLoading(false);
     }
@@ -265,11 +265,11 @@ const UniversalPageFinderModal: React.FC<UniversalPageFinderModalProps> = ({
       setLoading(true);
       const success = await loadXmlSnapshot(page);
       if (success) {
-        message.success("已加载缓存页面");
+  message.success("已加载缓存页面");
       }
     } catch (error) {
       console.error("加载缓存页面失败:", error);
-      message.error("加载缓存页面失败");
+  message.error("加载缓存页面失败");
     } finally {
       setLoading(false);
     }
@@ -279,11 +279,11 @@ const UniversalPageFinderModal: React.FC<UniversalPageFinderModalProps> = ({
   const handleApplyCriteria = async (criteria: any) => {
     try {
       onApplyCriteria?.(criteria);
-      message.success("匹配条件已应用");
+  message.success("匹配条件已应用");
       onClose();
     } catch (error) {
       console.error("应用匹配条件失败:", error);
-      message.error("应用匹配条件失败");
+  message.error("应用匹配条件失败");
     }
   };
 
@@ -306,7 +306,7 @@ const UniversalPageFinderModal: React.FC<UniversalPageFinderModalProps> = ({
       a.download = `ui_dump_${selectedDevice}_${Date.now()}.xml`;
       a.click();
       URL.revokeObjectURL(url);
-      message.success("XML文件已导出");
+  message.success("XML文件已导出");
     }
   };
 
@@ -323,13 +323,15 @@ const UniversalPageFinderModal: React.FC<UniversalPageFinderModalProps> = ({
               selectionManager={selectionManager}
               originalUIElements={uiElements}
               screenshotUrl={screenshotUrl}
+              filterConfig={filterConfig}
             />
           </ErrorBoundary>
         );
       
       case "tree":
-        // 将 UIElement[] 转换为 ElementWithHierarchy[]
-        const elementsWithHierarchy = uiElements.map((element, index) => ({
+        // 预过滤，再将 UIElement[] 转换为 ElementWithHierarchy[]
+        const filteredUI = filterUIElementsByConfig(uiElements, filterConfig);
+        const elementsWithHierarchy = filteredUI.map((element, index) => ({
           ...element,
           depth: 0, // 默认深度
           originalIndex: index
@@ -358,6 +360,7 @@ const UniversalPageFinderModal: React.FC<UniversalPageFinderModalProps> = ({
               message.success("元素信息已复制");
             }}
             loading={loading}
+            filterConfig={filterConfig}
           />
         );
       
@@ -366,7 +369,7 @@ const UniversalPageFinderModal: React.FC<UniversalPageFinderModalProps> = ({
           <ErrorBoundary>
             <GridElementView
               xmlContent={xmlContent}
-              elements={elements as any}
+              elements={filterVisualElementsByConfig(elements as any, filterConfig) as any}
               onElementSelect={handleVisualElementSelect}
               selectedElementId={selectedElementId}
               locator={preselectLocator}
@@ -403,89 +406,43 @@ const UniversalPageFinderModal: React.FC<UniversalPageFinderModalProps> = ({
       <Row gutter={16}>
         {/* 左侧控制面板 */}
         <Col xs={24} md={8} lg={7} xl={6}>
-          <Space direction="vertical" size="middle">
-            {/* 设备选择器 */}
-            <DeviceSelector
-              devices={devices}
-              selectedDevice={selectedDevice}
-              onDeviceSelect={setSelectedDevice}
-              onRefreshDevices={refreshDevices}
-              onCaptureCurrentPage={handleSnapshotCapture}
-              loading={loading}
-            />
-
-            {/* 视图模式选择器 */}
-            <ViewModeSelector
-              viewMode={viewMode}
-              onViewModeChange={setViewMode}
-              elementCount={elements.length || uiElements.length}
-              loading={loading}
-            />
-
-            {/* 分析面板 */}
-            <AnalysisPanel
-              elements={uiElements}
-              loading={loading}
-              xmlContent={xmlContent}
-              deviceInfo={deviceInfo}
-              onRefresh={handleRefresh}
-              onExport={handleExport}
-            />
-
-            {/* 缓存历史面板 */}
-            <CacheHistoryPanel 
-              onPageSelected={handleCachedPageSelect} 
-            />
-          </Space>
+          <LeftControlPanel
+            devices={devices}
+            selectedDevice={selectedDevice}
+            onDeviceSelect={setSelectedDevice}
+            onRefreshDevices={refreshDevices}
+            onCaptureCurrentPage={handleSnapshotCapture}
+            loading={loading}
+            viewMode={viewMode}
+            onViewModeChange={setViewMode}
+            elementCount={elements.length || uiElements.length}
+            onOpenFilterSettings={() => setFilterOpen(true)}
+            onResetFilters={() => { persistFilter(defaultVisualFilterConfig); message.success('已重置过滤规则'); }}
+            elements={uiElements}
+            xmlContent={xmlContent}
+            deviceInfo={deviceInfo}
+            onRefresh={handleRefresh}
+            onExport={handleExport}
+            onCachedPageSelected={handleCachedPageSelect}
+          />
         </Col>
 
         {/* 右侧主要内容区域 */}
         <Col xs={24} md={16} lg={17} xl={18}>
-          <Card size="small">
-            {loading ? (
-              <div style={{ textAlign: 'center', padding: '50px' }}>
-                <Spin size="large" />
-                <div style={{ marginTop: '16px', color: '#666' }}>正在分析页面...</div>
-              </div>
-            ) : (
-              renderViewContent()
-            )}
-          </Card>
+          <MainViewContainer loading={loading} content={renderViewContent()} />
         </Col>
       </Row>
 
       {/* 元素选择弹出框 */}
-      {(() => {
-        const isVisible = !!selectionManager.pendingSelection;
-        // 将渲染日志移除，改为仅在需要时输出的事件日志
-        return (
-          <ElementSelectionPopover
-            visible={isVisible}
-            selection={selectionManager.pendingSelection}
-            onConfirm={() => {
-              if (isDevDebugEnabled('debug:visual')) console.debug('✅ [ElementSelectionPopover] onConfirm');
-              selectionManager.confirmSelection();
-            }}
-            // 取消：仅关闭并清空待选
-            onCancel={() => {
-              if (isDevDebugEnabled('debug:visual')) console.debug('❌ [ElementSelectionPopover] onCancel');
-              selectionManager.cancelSelection();
-            }}
-            // 隐藏：执行真正的隐藏逻辑
-            onHide={() => {
-              if (isDevDebugEnabled('debug:visual')) console.debug('🫥 [ElementSelectionPopover] onHide');
-              selectionManager.hideElement();
-            }}
-            // 新增：支持元素发现功能
-            allElements={uiElements}
-            onElementSelect={(newElement) => {
-              if (isDevDebugEnabled('debug:visual')) console.debug('🔄 [ElementSelectionPopover] 选择新元素:', newElement?.id);
-              // 直接确认所选元素，避免依赖 pendingSelection 时序
-              selectionManager.confirmElement?.(newElement);
-            }}
-          />
-        );
-      })()}
+      <SelectionPopoverContainer selectionManager={selectionManager} />
+      {/* 🆕 过滤设置抽屉（模块化） */}
+      <FilterSettingsPanel
+        open={filterOpen}
+        config={filterConfig}
+        onChange={persistFilter}
+        onClose={() => setFilterOpen(false)}
+  onReset={() => { persistFilter(defaultVisualFilterConfig); message.success('已重置过滤规则'); }}
+      />
     </Modal>
   );
 };

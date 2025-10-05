@@ -27,7 +27,6 @@ use std::sync::Mutex; // 为 .manage 使用
 use screenshot_service::*;
 use commands::*; // 引入拆分后的命令（所有 #[tauri::command] 均集中）
 use tracing::info; // 引入info!宏
-use services::migrate_vcf_batches_schema; // 导入迁移命令
 // use commands::app_lifecycle_commands::*;
 use services::adb_device_tracker::*;
 use services::adb_service::AdbService;
@@ -40,11 +39,17 @@ use services::contact_storage::commands::{
     get_contact_number_stats_cmd,
     get_distinct_industries_cmd,
     set_contact_numbers_industry_by_id_range,
+    // VCF批次相关命令
+    get_industries_for_vcf_batch_cmd,
+    // 数据库管理命令
+    init_contact_storage_cmd,
+    get_database_info_cmd,
+    cleanup_database_cmd,
 };
 use services::contact_storage::commands::{
-    update_import_session_industry_cmd,
-    revert_import_session_to_failed_cmd,
-    delete_import_session_cmd,
+    // update_import_session_industry_cmd,      // TEMPORARILY DISABLED
+    // revert_import_session_to_failed_cmd,     // TEMPORARILY DISABLED
+    // delete_import_session_cmd,               // TEMPORARILY DISABLED
     // TXT文件导入记录命令（新增）
     list_txt_import_records_cmd,
     delete_txt_import_record_cmd,
@@ -186,11 +191,11 @@ fn main() {
             // 号码批次与导入追踪
             create_vcf_batch_cmd,
             list_vcf_batches_cmd,
-            list_vcf_batch_records_cmd,
+            // list_vcf_batch_records_cmd,                   // NOT EXISTS
             get_vcf_batch_cmd,
-            create_import_session_cmd,
-            finish_import_session_cmd,
-            list_import_sessions_cmd,
+            // create_import_session_cmd,                    // TEMPORARILY DISABLED
+            // finish_import_session_cmd,                    // TEMPORARILY DISABLED
+            // list_import_sessions_cmd,                     // TEMPORARILY DISABLED
             list_contact_numbers_by_batch_filtered,
             list_contact_numbers_without_batch,
             get_contact_number_stats_cmd,
@@ -199,11 +204,10 @@ fn main() {
             create_vcf_batch_with_numbers_cmd,
             get_industries_for_vcf_batch_cmd,
             tag_contact_numbers_industry_by_vcf_batch,
-            update_import_session_industry_cmd,
-            revert_import_session_to_failed_cmd,
-            delete_import_session_cmd,
-            migrate_vcf_batches_schema,
-            get_import_session_events_cmd,
+            // update_import_session_industry_cmd,           // TEMPORARILY DISABLED
+            // revert_import_session_to_failed_cmd,          // TEMPORARILY DISABLED
+            // delete_import_session_cmd,                    // TEMPORARILY DISABLED
+            // get_import_session_events_cmd,                // TEMPORARILY DISABLED
             // TXT文件导入记录管理（新增）
             list_txt_import_records_cmd,
             delete_txt_import_record_cmd,
@@ -212,7 +216,7 @@ fn main() {
             init_contact_storage_cmd,
             get_database_info_cmd,
             cleanup_database_cmd,
-            get_import_session_stats_cmd,
+            // get_import_session_stats_cmd,                 // TEMPORARILY DISABLED
             get_vcf_batch_stats_cmd,
             // 新增的VCF导入和小红书自动关注功能
             generate_vcf_file,

@@ -28,3 +28,28 @@ export function sortUnknownLastStable<T>(items: readonly T[], getLabel: (item: T
   });
   return enriched.map(x => x.item);
 }
+
+/**
+ * Generic stable sort combining an optional semantic score and the unknown-last strategy.
+ * - When prioritizeSemantic=true, higher score goes first.
+ * - Items with unknown/generic labels are moved after known ones.
+ * - Stability preserved within groups by original index.
+ */
+export function sortByScoreThenUnknownLastStable<T>(
+  items: readonly T[],
+  getScore: (item: T, index: number) => number,
+  getLabel: (item: T, index: number) => string,
+  prioritizeSemantic: boolean = true
+): T[] {
+  const enriched = items.map((item, i) => ({ item, i, score: getScore(item, i), label: getLabel(item, i) }));
+  enriched.sort((a, b) => {
+    if (prioritizeSemantic) {
+      if (a.score !== b.score) return b.score - a.score; // high score first
+    }
+    const aU = isUnknownLabel(a.label);
+    const bU = isUnknownLabel(b.label);
+    if (aU !== bU) return aU ? 1 : -1; // unknown goes last
+    return a.i - b.i; // stable within same group
+  });
+  return enriched.map(x => x.item);
+}

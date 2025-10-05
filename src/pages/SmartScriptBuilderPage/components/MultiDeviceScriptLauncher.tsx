@@ -73,7 +73,27 @@ const MultiDeviceScriptLauncher: React.FC<Props> = ({ steps, executorConfig }) =
     setResults(null);
     try {
       const res = await executeSmartScriptOnDevices(selectedIds, steps, executorConfig);
-      setResults(res);
+      // 将数组转换为 Record 格式
+      const resultMap: ResultMap = {};
+      res.forEach(result => {
+        if (result.result) {
+          resultMap[result.deviceId] = result.result;
+        } else {
+          // 创建一个失败的结果
+          resultMap[result.deviceId] = {
+            success: false,
+            total_steps: 0,
+            executed_steps: 0,
+            failed_steps: 0,
+            skipped_steps: 0,
+            duration_ms: 0,
+            logs: [],
+            extracted_data: {},
+            message: result.error || '执行失败'
+          };
+        }
+      });
+      setResults(resultMap);
     } catch (e) {
       message.error(`执行失败: ${e}`);
     } finally {

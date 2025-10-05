@@ -3,10 +3,7 @@ use tauri::AppHandle;
 use crate::services::contact_storage::models::{
     TxtImportRecordList, DeleteTxtImportRecordResult
 };
-use crate::services::contact_storage::repositories::txt_import_records_repo::{
-    create_txt_import_record, list_txt_import_records, delete_txt_import_record
-};
-use crate::services::contact_storage::repositories::common::command_base::with_db_connection;
+use crate::services::contact_storage::repository_facade::ContactStorageFacade;
 
 /// TXT文件导入记录命令
 /// 负责处理前端请求，调用仓储层进行具体操作
@@ -23,9 +20,8 @@ pub async fn list_txt_import_records_cmd(
     
     tracing::debug!("获取TXT导入记录列表: limit={}, offset={}", limit, offset);
     
-    with_db_connection(&app_handle, |conn| {
-        list_txt_import_records(conn, limit, offset, None)
-    })
+    let facade = ContactStorageFacade::new(&app_handle);
+    facade.list_txt_import_records(limit, offset, None)
 }
 
 /// 删除TXT文件导入记录（可选择是否归档相关号码）
@@ -39,9 +35,8 @@ pub async fn delete_txt_import_record_cmd(
     
     tracing::info!("删除TXT导入记录: record_id={}, archive_numbers={}", record_id, archive);
     
-    let affected_rows = with_db_connection(&app_handle, |conn| {
-        delete_txt_import_record(conn, record_id, archive)
-    })?;
+    let facade = ContactStorageFacade::new(&app_handle);
+    let affected_rows = facade.delete_txt_import_record(record_id, archive)?;
         
     Ok(DeleteTxtImportRecordResult {
         record_id,
@@ -68,19 +63,17 @@ pub async fn create_txt_import_record_internal(
         file_name, total_lines, imported_numbers, duplicate_numbers
     );
     
-    with_db_connection(app_handle, |conn| {
-        create_txt_import_record(
-            conn,
-            file_path,
-            file_name,
-            total_lines,
-            valid_numbers,
-            imported_numbers,
-            duplicate_numbers,
-            status,
-            error_message,
-        )
-    })
+    let facade = ContactStorageFacade::new(app_handle);
+    facade.create_txt_import_record(
+        file_path,
+        file_name,
+        total_lines,
+        valid_numbers,
+        imported_numbers,
+        duplicate_numbers,
+        status,
+        error_message,
+    )
 }
 
 #[cfg(test)]
