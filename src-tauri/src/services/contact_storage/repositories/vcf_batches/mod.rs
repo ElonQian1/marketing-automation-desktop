@@ -15,7 +15,7 @@ pub use file_operations::FileOperations;
 
 // 导入需要的类型
 use rusqlite::Connection;
-use crate::services::contact_storage::models::{VcfBatch, VcfBatchStatsDto};
+use crate::services::contact_storage::models::{VcfBatch, VcfBatchStatsDto, VcfBatchList};
 
 /// VCF批次仓储统一接口
 /// 
@@ -61,7 +61,7 @@ impl VcfBatchesRepository {
     /// 获取VCF批次列表（委托给基础操作模块）
     pub fn list_vcf_batches(
         conn: &Connection,
-    ) -> rusqlite::Result<Vec<VcfBatch>> {
+    ) -> rusqlite::Result<VcfBatchList> {
         BasicOperations::list_vcf_batches(conn, 100, 0)
     }
 

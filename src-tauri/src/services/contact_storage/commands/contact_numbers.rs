@@ -376,7 +376,7 @@ pub async fn list_contact_numbers_by_batch_filtered(
     offset: i64,
 ) -> Result<models::ContactNumberList, String> {
     let facade = ContactStorageFacade::new(&app_handle);
-    facade.list_numbers_by_batch_filtered(&batch_id, only_used, limit, offset)
+    facade.list_numbers_by_batch_filtered(&batch_id, limit, offset, only_used.unwrap_or(false))
 }
 
 /// 列出联系人号码（增强筛选版本）

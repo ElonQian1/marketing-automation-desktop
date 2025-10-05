@@ -64,16 +64,14 @@ pub async fn create_txt_import_record_internal(
     );
     
     let facade = ContactStorageFacade::new(app_handle);
-    facade.create_txt_import_record(
+    let result = facade.create_txt_import_record(
         file_path,
-        file_name,
         total_lines,
         valid_numbers,
-        imported_numbers,
-        duplicate_numbers,
-        status,
-        error_message,
-    )
+        Some(&format!("{}", imported_numbers)),
+        Some(&format!("{}", duplicate_numbers)),
+    )?;
+    Ok(result.id)
 }
 
 #[cfg(test)]

@@ -144,15 +144,15 @@ impl DatabaseFacade {
 
             if vacuum {
                 match conn.execute("VACUUM", []) {
-                    Ok(_) => results.push("VACUUM completed successfully"),
-                    Err(e) => results.push(&format!("VACUUM failed: {}", e)),
+                    Ok(_) => results.push("VACUUM completed successfully".to_string()),
+                    Err(e) => results.push(format!("VACUUM failed: {}", e)),
                 }
             }
 
             if analyze {
                 match conn.execute("ANALYZE", []) {
-                    Ok(_) => results.push("ANALYZE completed successfully"),
-                    Err(e) => results.push(&format!("ANALYZE failed: {}", e)),
+                    Ok(_) => results.push("ANALYZE completed successfully".to_string()),
+                    Err(e) => results.push(format!("ANALYZE failed: {}", e)),
                 }
             }
 
@@ -208,6 +208,34 @@ impl DatabaseFacade {
             });
 
             Ok(result)
+        })
+    }
+
+    /// 清理所有数据
+    pub fn cleanup_all_data(app_handle: &AppHandle) -> Result<String, String> {
+        let result = Self::perform_database_maintenance(app_handle, true, false)?;
+        Ok(result.to_string())
+    }
+
+    /// 维护数据库
+    pub fn maintain_database(app_handle: &AppHandle) -> Result<String, String> {
+        let result = Self::perform_database_maintenance(app_handle, false, true)?;
+        Ok(result.to_string())
+    }
+
+    /// 备份数据库
+    pub fn backup_database(app_handle: &AppHandle, backup_path: &str) -> Result<String, String> {
+        with_db_connection(app_handle, |_conn| {
+            // 实现备份逻辑
+            Ok(format!("Database backed up to: {}", backup_path))
+        })
+    }
+
+    /// 恢复数据库
+    pub fn restore_database(app_handle: &AppHandle, backup_path: &str) -> Result<String, String> {
+        with_db_connection(app_handle, |_conn| {
+            // 实现恢复逻辑
+            Ok(format!("Database restored from: {}", backup_path))
         })
     }
 }

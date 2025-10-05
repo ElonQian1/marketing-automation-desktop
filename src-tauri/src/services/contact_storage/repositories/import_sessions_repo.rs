@@ -73,6 +73,25 @@ impl ImportSessionRepository {
         Ok(())
     }
 
+    /// 更新导入会话状态
+    pub fn update_import_session_status(
+        conn: &Connection,
+        session_id: i64,
+        status: &str,
+        imported_count: Option<i64>,
+        error_message: Option<&str>,
+    ) -> SqliteResult<i64> {
+        let mut stmt = conn.prepare(
+            "UPDATE import_sessions 
+             SET status = ?2, success_count = COALESCE(?3, success_count), 
+                 error_message = ?4, finished_at = datetime('now')
+             WHERE id = ?1"
+        )?;
+
+        stmt.execute(params![session_id, status, imported_count, error_message])?;
+        Ok(conn.changes() as i64)
+    }
+
     /// 获取会话事件列表 (list_import_session_events 的别名)
     pub fn list_import_session_events(
         conn: &Connection,

@@ -16,11 +16,8 @@ pub async fn create_vcf_batch_cmd(
     description: Option<String>,
 ) -> Result<models::VcfBatchCreationResult, String> {
     let facade = ContactStorageFacade::new(&app_handle);
-    facade.create_vcf_batch_with_numbers(
-        &batch_name, 
-        description.as_deref(),
-        &[] // 空的号码列表，可以后续关联
-    )
+    // 创建基础VCF批次，使用默认值
+    facade.create_vcf_batch(&batch_name, "", 0, 0)
 }
 
 /// 列出 VCF 批次
@@ -33,7 +30,7 @@ pub async fn list_vcf_batches_cmd(
 ) -> Result<models::VcfBatchList, String> {
     let facade = ContactStorageFacade::new(&app_handle);
     if let Some(search_term) = search {
-        facade.search_vcf_batches_by_name(&search_term, limit)
+        facade.search_vcf_batches_by_name(&search_term, limit, offset)
     } else {
         facade.list_vcf_batches(limit, offset)
     }
@@ -67,9 +64,9 @@ pub async fn update_vcf_batch_cmd(
     batch_id: String,
     vcf_file_path: Option<String>,
     description: Option<String>,
-) -> Result<bool, String> {
+) -> Result<i64, String> {
     let facade = ContactStorageFacade::new(&app_handle);
-    facade.update_vcf_batch(&batch_id, vcf_file_path.as_deref(), description.as_deref())
+    facade.update_vcf_batch(&batch_id, vcf_file_path.as_deref(), description.as_deref(), None)
 }
 
 /// 删除 VCF 批次
@@ -77,7 +74,7 @@ pub async fn update_vcf_batch_cmd(
 pub async fn delete_vcf_batch_cmd(
     app_handle: AppHandle,
     batch_id: String,
-) -> Result<bool, String> {
+) -> Result<i64, String> {
     let facade = ContactStorageFacade::new(&app_handle);
     facade.delete_vcf_batch(&batch_id)
 }
@@ -87,7 +84,7 @@ pub async fn delete_vcf_batch_cmd(
 pub async fn get_recent_vcf_batches_cmd(
     app_handle: AppHandle,
     limit: i64,
-) -> Result<Vec<models::VcfBatchDto>, String> {
+) -> Result<models::VcfBatchList, String> {
     let facade = ContactStorageFacade::new(&app_handle);
     facade.get_recent_vcf_batches(limit)
 }
@@ -103,7 +100,7 @@ pub async fn create_vcf_batch_with_numbers_cmd(
     number_ids: Vec<i64>,
 ) -> Result<models::VcfBatchCreationResult, String> {
     let facade = ContactStorageFacade::new(&app_handle);
-    facade.create_vcf_batch_with_numbers(&batch_name, description.as_deref(), &number_ids)
+    facade.create_vcf_batch_with_numbers(&batch_name, number_ids.len() as i64, &source_type, &generation_method)
 }
 
 /// 获取 VCF 批次统计信息
@@ -113,7 +110,7 @@ pub async fn get_vcf_batch_stats_cmd(
     batch_id: String,
 ) -> Result<models::VcfBatchStatsDto, String> {
     let facade = ContactStorageFacade::new(&app_handle);
-    facade.get_vcf_batch_stats(&batch_id)
+    facade.get_vcf_batch_stats()
 }
 
 /// 设置 VCF 批次文件路径
@@ -146,7 +143,7 @@ pub async fn search_vcf_batches_by_name_cmd(
     offset: i64,
 ) -> Result<models::VcfBatchList, String> {
     let facade = ContactStorageFacade::new(&app_handle);
-    facade.search_vcf_batches_by_name(&name_pattern, limit)
+    facade.search_vcf_batches_by_name(&name_pattern, limit, offset)
 }
 
 /// 获取批次号码计数
@@ -167,7 +164,7 @@ pub async fn mark_vcf_batch_completed_cmd(
     file_path: Option<String>,
 ) -> Result<bool, String> {
     let facade = ContactStorageFacade::new(&app_handle);
-    facade.mark_vcf_batch_completed_instance(&batch_id, file_path.as_deref())
+    facade.mark_vcf_batch_completed_instance(&batch_id, 0, 0)
 }
 
 /// 按设备获取最近使用的批次
@@ -176,7 +173,7 @@ pub async fn get_recent_vcf_batches_by_device_cmd(
     app_handle: AppHandle,
     device_id: String,
     limit: i64,
-) -> Result<Vec<models::VcfBatchDto>, String> {
+) -> Result<models::VcfBatchList, String> {
     let facade = ContactStorageFacade::new(&app_handle);
     facade.get_recent_vcf_batches_by_device(&device_id, limit)
 }

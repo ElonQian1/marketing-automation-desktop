@@ -30,9 +30,37 @@ impl TxtImportFacade {
         batch_id: Option<&str>,
     ) -> Result<TxtImportRecordDto, String> {
         with_db_connection(app_handle, |conn| {
-            txt_import_records_repo::create_txt_import_record(
-                conn, file_path, total_lines, valid_numbers, source_info, batch_id
-            )
+            // 转换为所需的类型
+            let record_id = txt_import_records_repo::create_txt_import_record(
+                conn, 
+                file_path, 
+                "unknown_file", // file_name 参数
+                total_lines, 
+                valid_numbers, 
+                0, // imported_numbers
+                0, // duplicate_numbers
+                "pending", // status
+                source_info // error_message
+            )?;
+            
+            // 创建并返回 TxtImportRecordDto
+            Ok(super::super::models::TxtImportRecordDto {
+                id: record_id,
+                file_path: file_path.to_string(),
+                file_name: "unknown_file".to_string(),
+                file_size: None,
+                total_lines,
+                valid_numbers,
+                imported_numbers: 0,
+                duplicate_numbers: 0,
+                invalid_numbers: 0,
+                status: "pending".to_string(),
+                error_message: source_info.map(|s| s.to_string()),
+                created_at: chrono::Utc::now().to_rfc3339(),
+                imported_at: None,
+                industry: None,
+                notes: None,
+            })
         })
     }
 
@@ -80,8 +108,15 @@ impl TxtImportFacade {
     ) -> Result<i64, String> {
         Self::with_db_connection(app_handle, |conn| {
             txt_import_records_repo::update_txt_import_stats(
-                conn, record_id, processed_lines, valid_numbers, error_count, status
-            )
+                conn, 
+                record_id, 
+                processed_lines,  // total_numbers
+                valid_numbers,    // successful_imports
+                0,                // duplicate_numbers
+                error_count,      // invalid_numbers
+                status,           // import_status
+                None              // error_message
+            ).map(|_| record_id) // 返回 i64 而不是 ()
         })
     }
 
@@ -90,7 +125,14 @@ impl TxtImportFacade {
         app_handle: &AppHandle,
     ) -> Result<serde_json::Value, String> {
         Self::with_db_connection(app_handle, |conn| {
-            txt_import_records_repo::get_txt_import_stats(conn)
+            let stats = txt_import_records_repo::get_txt_import_stats(conn)?;
+            // 转换为 JSON 格式
+            let json_stats = serde_json::json!({
+                "records": stats.into_iter().map(|(name, count)| {
+                    serde_json::json!({"name": name, "count": count})
+                }).collect::<Vec<_>>()
+            });
+            Ok(json_stats)
         })
     }
 }

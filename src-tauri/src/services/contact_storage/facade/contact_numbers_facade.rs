@@ -148,9 +148,20 @@ impl ContactNumbersFacade {
         batch_id: &str,
     ) -> Result<AllocationResultDto, String> {
         Self::with_db_connection(app_handle, |conn| {
-            ContactNumberRepository::allocate_numbers_to_device(
+            let allocated_numbers = ContactNumberRepository::allocate_numbers_to_device(
                 conn, device_id, count, batch_id, industry_filter.as_deref()
-            )
+            )?;
+            
+            // 转换为 AllocationResultDto
+            Ok(super::super::models::AllocationResultDto {
+                device_id: device_id.to_string(),
+                batch_id: batch_id.to_string(),
+                vcf_file_path: format!("./vcf/{}_batch.vcf", device_id),
+                number_count: allocated_numbers.len() as i64,
+                number_ids: allocated_numbers.iter().map(|n| n.id).collect(),
+                session_id: 0, // 暂时使用0，应该创建会话
+                allocated_numbers,
+            })
         })
     }
 

@@ -27,9 +27,9 @@ impl ImportSessionsFacade {
         batch_id: &str,
         total_contacts: i64,
         session_type: &str,
-    ) -> Result<ImportSessionDto, String> {
+    ) -> Result<i64, String> {
         with_db_connection(app_handle, |conn| {
-            ImportSessionRepository::create_import_session(conn, device_id, batch_id, total_contacts, session_type)
+            ImportSessionRepository::create_import_session(conn, batch_id, device_id, None)
         })
     }
 
@@ -72,7 +72,7 @@ impl ImportSessionsFacade {
         offset: i64,
     ) -> Result<ImportSessionList, String> {
         Self::with_db_connection(app_handle, |conn| {
-            ImportSessionRepository::list_import_sessions_by_device(conn, device_id, limit, offset)
+            ImportSessionRepository::list_import_sessions(conn, limit, offset, Some(device_id), None, None)
         })
     }
 
@@ -84,7 +84,7 @@ impl ImportSessionsFacade {
         offset: i64,
     ) -> Result<ImportSessionList, String> {
         Self::with_db_connection(app_handle, |conn| {
-            ImportSessionRepository::list_import_sessions_by_batch(conn, batch_id, limit, offset)
+            ImportSessionRepository::list_import_sessions(conn, limit, offset, None, Some(batch_id), None)
         })
     }
 
@@ -98,7 +98,8 @@ impl ImportSessionsFacade {
     /// 删除导入会话
     pub fn delete_import_session(app_handle: &AppHandle, session_id: i64) -> Result<i64, String> {
         Self::with_db_connection(app_handle, |conn| {
-            ImportSessionRepository::delete_import_session(conn, session_id)
+            let result = ImportSessionRepository::delete_import_session(conn, session_id)?;
+            Ok(result.archived_number_count + result.removed_event_count)
         })
     }
 
@@ -109,7 +110,9 @@ impl ImportSessionsFacade {
         industry: Option<&str>,
     ) -> Result<i64, String> {
         Self::with_db_connection(app_handle, |conn| {
-            ImportSessionRepository::update_import_session_industry(conn, session_id, industry)
+            let industry_str = industry.unwrap_or("未知");
+            ImportSessionRepository::update_session_industry(conn, session_id, industry_str)?;
+            Ok(1) // 返回修改的行数
         })
     }
 
@@ -120,7 +123,7 @@ impl ImportSessionsFacade {
         reason: &str,
     ) -> Result<i64, String> {
         Self::with_db_connection(app_handle, |conn| {
-            ImportSessionRepository::revert_import_session_to_failed(conn, session_id, reason)
+            ImportSessionRepository::revert_session_to_failed(conn, session_id, reason)
         })
     }
 }

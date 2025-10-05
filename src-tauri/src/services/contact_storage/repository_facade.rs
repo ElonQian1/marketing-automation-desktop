@@ -275,7 +275,7 @@ impl ContactStorageFacade {
         batch_id: &str,
         total_contacts: i64,
         session_type: &str,
-    ) -> Result<ImportSessionDto, String> {
+    ) -> Result<i64, String> {
         ImportSessionsFacade::create_import_session(&self.app_handle, device_id, batch_id, total_contacts, session_type)
     }
 
@@ -436,7 +436,8 @@ impl ContactStorageFacade {
 
     /// 设置VCF批次文件路径
     pub fn set_vcf_batch_file_path(&self, batch_id: &str, file_path: &str) -> Result<bool, String> {
-        VcfBatchesFacade::set_vcf_batch_file_path(&self.app_handle, batch_id, file_path)
+        let result = VcfBatchesFacade::set_vcf_batch_file_path(&self.app_handle, batch_id, file_path)?;
+        Ok(result > 0)
     }
 
     /// 批量删除VCF批次
@@ -451,7 +452,8 @@ impl ContactStorageFacade {
 
     /// 标记VCF批次完成实例
     pub fn mark_vcf_batch_completed_instance(&self, batch_id: &str, success_count: i64, failure_count: i64) -> Result<bool, String> {
-        VcfBatchesFacade::mark_vcf_batch_completed_instance(&self.app_handle, batch_id, success_count, failure_count)
+        let result = VcfBatchesFacade::mark_vcf_batch_completed_instance(&self.app_handle, batch_id, success_count, failure_count)?;
+        Ok(result > 0)
     }
 
     /// 按设备获取最近的VCF批次
