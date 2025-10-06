@@ -16,7 +16,7 @@ import { ElementBoundsAnalyzer } from '../hierarchy/ElementBoundsAnalyzer';
 const DEFAULT_OPTIONS: DiscoveryOptions = {
   includeParents: true,
   includeChildren: true,
-  includeSiblings: false,
+  includeSiblings: true, // 🆕 启用兄弟元素发现
   maxDepth: 3,
   minConfidence: 0.3,
   prioritizeText: true,
@@ -185,6 +185,106 @@ export const useElementDiscovery = (
       return b.confidence - a.confidence;
     });
   }, [finalOptions, calculateConfidence, generateReason]);
+
+  // 🆕 查找兄弟元素
+  const findSiblingElements = useCallback((
+    targetElement: UIElement,
+    hierarchy: any
+  ): DiscoveredElement[] => {
+    if (!finalOptions.includeSiblings) return [];
+
+    const siblings: DiscoveredElement[] = [];
+    const targetNode = hierarchy.nodeMap.get(targetElement.id);
+
+    console.log('🔍 查找兄弟元素:', {
+      targetElementId: targetElement.id,
+      targetNodeFound: !!targetNode,
+      hasParent: !!targetNode?.parent
+    });
+
+    if (!targetNode || !targetNode.parent) {
+      console.log('⚠️ 目标元素没有父节点，无法查找兄弟元素');
+      return siblings;
+    }
+
+    const parentNode = targetNode.parent;
+    
+    console.log('📊 父节点信息:', {
+      parentId: parentNode.element.id,
+      siblingCount: parentNode.children?.length || 0
+    });
+
+    // 遍历父节点的所有子节点（排除自己）
+    if (parentNode.children && parentNode.children.length > 0) {
+      parentNode.children.forEach((siblingNode: any, index: number) => {
+        // 跳过自己
+        if (siblingNode.element.id === targetElement.id) {
+          return;
+        }
+
+        const siblingElement = siblingNode.element;
+        const confidence = calculateConfidence(siblingElement, 'sibling');
+        const isHidden = isHiddenElement(siblingElement);
+        const hasValidText = siblingElement.text && siblingElement.text.trim().length > 0;
+        
+        // 🌟 特别优先处理有文本的兄弟元素（如"联系人"标签）
+        let adjustedConfidence = confidence;
+        if (hasValidText) {
+          adjustedConfidence = Math.min(0.95, confidence + 0.3);
+          
+          // 隐藏文本元素更重要
+          if (isHidden) {
+            adjustedConfidence = Math.min(0.98, adjustedConfidence + 0.2);
+          }
+        }
+        
+        const reason = `兄弟元素 (位置${index + 1}) - ${generateReason(siblingElement, 'sibling')}`;
+
+        siblings.push({
+          element: siblingElement,
+          relationship: 'sibling',
+          confidence: adjustedConfidence,
+          reason,
+          hasText: hasValidText,
+          isClickable: siblingElement.is_clickable || false
+        });
+
+        console.log(`    ✅ 添加兄弟元素:`, {
+          id: siblingElement.id,
+          text: siblingElement.text || '无文本',
+          type: siblingElement.element_type,
+          confidence: adjustedConfidence.toFixed(2),
+          isHidden,
+          hasText: hasValidText,
+          index
+        });
+      });
+    }
+
+    // 📊 兄弟元素查找完成统计
+    const hiddenSiblings = siblings.filter(s => isHiddenElement(s.element));
+    const textSiblings = siblings.filter(s => s.hasText);
+    const hiddenTextSiblings = siblings.filter(s => isHiddenElement(s.element) && s.hasText);
+    
+    console.log('✅ 兄弟元素查找完成:', {
+      总数: siblings.length,
+      隐藏元素数: hiddenSiblings.length,
+      文本元素数: textSiblings.length,
+      隐藏文本元素数: hiddenTextSiblings.length,
+      隐藏文本列表: hiddenTextSiblings.map(e => e.element.text).slice(0, 3)
+    });
+
+    // 按置信度排序，优先显示有文本的兄弟元素
+    return siblings
+      .sort((a, b) => {
+        if (finalOptions.prioritizeTextElements) {
+          if (a.hasText && !b.hasText) return -1;
+          if (!a.hasText && b.hasText) return 1;
+        }
+        return b.confidence - a.confidence;
+      })
+      .slice(0, 15); // 限制显示数量
+  }, [finalOptions, calculateConfidence, generateReason, isHiddenElement]);
 
   // 查找子元素
   const findChildElements = useCallback((
@@ -380,23 +480,78 @@ export const useElementDiscovery = (
       totalElements: allElements.length
     });
 
-    try {
-      // 使用层次分析器构建层次树
+    // 🆕 智能目标检测：如果点击的是非可点击子元素，尝试找到可点击的父容器
+    let actualTargetElement = targetElement;
+    
+    if (!targetElement.is_clickable) {
+      console.log('🎯 目标元素不可点击，尝试查找可点击的父容器...');
+      
+      // 使用层次分析器查找父容器
       const hierarchy = ElementHierarchyAnalyzer.analyzeHierarchy(allElements);
+      const targetNode = hierarchy.nodeMap.get(targetElement.id);
+      
+      if (targetNode) {
+        let currentNode = targetNode.parent;
+        let searchDepth = 0;
+        
+        while (currentNode && searchDepth < 3) { // 最多向上查找3级
+          if (currentNode.element.is_clickable) {
+            console.log('✅ 找到可点击的父容器:', {
+              原始目标: targetElement.id,
+              新目标: currentNode.element.id,
+              层级差: searchDepth + 1,
+              父容器文本: currentNode.element.text || '无',
+              父容器类型: currentNode.element.element_type
+            });
+            actualTargetElement = currentNode.element;
+            break;
+          }
+          currentNode = currentNode.parent;
+          searchDepth++;
+        }
+        
+        if (actualTargetElement === targetElement) {
+          console.log('⚠️ 未找到可点击的父容器，继续使用原始目标');
+        }
+      }
+    }
+
+    try {
+      // 使用层次分析器构建层次树（如果之前没有构建的话）
+      const hierarchy = actualTargetElement === targetElement 
+        ? ElementHierarchyAnalyzer.analyzeHierarchy(allElements)
+        : ElementHierarchyAnalyzer.analyzeHierarchy(allElements); // 重新构建以确保准确性
+        
       console.log('📊 层次结构分析完成:', {
         totalNodes: hierarchy.nodeMap.size,
         hasRoot: !!hierarchy.root,
         maxDepth: hierarchy.maxDepth,
-        leafNodesCount: hierarchy.leafNodes.length
+        leafNodesCount: hierarchy.leafNodes.length,
+        使用目标: actualTargetElement.id
       });
       
-      // 查找父元素和子元素
-      const parentElements = findParentElements(targetElement, hierarchy);
-      const childElements = findChildElements(targetElement, hierarchy);
+      // 查找父元素、子元素和兄弟元素（使用实际目标）
+      const parentElements = findParentElements(actualTargetElement, hierarchy);
+      const childElements = findChildElements(actualTargetElement, hierarchy);
+      const siblingElements = findSiblingElements(actualTargetElement, hierarchy); // 🆕 添加兄弟元素查找
       
       // 🆕 统计隐藏元素信息
       const hiddenChildren = childElements.filter(c => isHiddenElement(c.element));
       const hiddenTextChildren = hiddenChildren.filter(c => c.hasText);
+      const hiddenSiblings = siblingElements.filter(s => isHiddenElement(s.element));
+      const hiddenTextSiblings = hiddenSiblings.filter(s => s.hasText);
+      
+      console.log('📋 发现统计:', {
+        父元素数: parentElements.length,
+        子元素数: childElements.length,
+        兄弟元素数: siblingElements.length, // 🆕 添加兄弟元素统计
+        隐藏子元素数: hiddenChildren.length,
+        隐藏文本子元素数: hiddenTextChildren.length,
+        隐藏兄弟元素数: hiddenSiblings.length, // 🆕 添加隐藏兄弟元素统计
+        隐藏文本兄弟数: hiddenTextSiblings.length, // 🆕 添加隐藏文本兄弟统计
+        隐藏文本内容: hiddenTextChildren.map(c => c.element.text).slice(0, 5),
+        隐藏兄弟文本: hiddenTextSiblings.map(s => s.element.text).slice(0, 5) // 🆕 显示隐藏兄弟文本
+      });
       
       console.log('📈 发现统计:', {
         parentCount: parentElements.length,
@@ -428,13 +583,14 @@ export const useElementDiscovery = (
         selfElement,
         parentElements,
         childElements,
-        siblingElements: [], // 暂不实现兄弟元素
+        siblingElements: siblingElements, // 🆕 添加兄弟元素到结果中
         recommendedMatches
       };
 
       console.log('✅ 元素发现分析完成:', {
         parents: parentElements.length,
         children: childElements.length,
+        siblings: siblingElements.length, // 🆕 显示兄弟元素数量
         recommended: recommendedMatches.length
       });
 
@@ -447,7 +603,7 @@ export const useElementDiscovery = (
       setIsAnalyzing(false);
       isAnalyzingRef.current = false;
     }
-  }, [allElements, findParentElements, findChildElements]);
+  }, [allElements, findParentElements, findChildElements, findSiblingElements]); // 🆕 添加 findSiblingElements 到依赖数组
 
   // 元素包含检测函数
   const isElementContained = useCallback((elementA: UIElement, elementB: UIElement): boolean => {

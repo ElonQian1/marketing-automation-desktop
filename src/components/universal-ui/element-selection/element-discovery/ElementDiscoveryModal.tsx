@@ -42,6 +42,7 @@ export const ElementDiscoveryModal: React.FC<ElementDiscoveryModalProps> = ({
   discoveryOptions = {}
 }) => {
   const [activeTab, setActiveTab] = useState<string>('self');
+  const [smartTabSelected, setSmartTabSelected] = useState<boolean>(false);
 
   // 使用元素发现Hook
   const {
@@ -59,8 +60,68 @@ export const ElementDiscoveryModal: React.FC<ElementDiscoveryModalProps> = ({
     if (targetElement && open) {
       console.log('🔍 开始执行元素发现分析:', targetElement);
       discoverElementsRef.current(targetElement);
+      
+      // 重置智能tab选择标记
+      setSmartTabSelected(false);
+      setActiveTab('self');
     }
   }, [targetElement, open]);
+
+  // 🆕 智能tab选择：当发现结果准备好时，根据元素特性选择最佳tab
+  React.useEffect(() => {
+    if (discoveryResult && !smartTabSelected && targetElement) {
+      const childCount = discoveryResult.childElements?.length || 0;
+      const siblingCount = discoveryResult.siblingElements?.length || 0;
+      const parentCount = discoveryResult.parentElements?.length || 0;
+      
+      console.log('🎯 智能tab选择分析:', {
+        targetId: targetElement.id,
+        targetType: targetElement.element_type,
+        isClickable: targetElement.is_clickable,
+        childCount,
+        siblingCount,
+        parentCount,
+        isImageView: targetElement.element_type?.includes('ImageView'),
+        isLeafNode: childCount === 0
+      });
+      
+      let bestTab = 'self';
+      let reason = '默认显示自己';
+      
+      // 🔍 如果是ImageView图标元素且没有子元素，优先显示兄弟元素
+      if (targetElement.element_type?.includes('ImageView') && childCount === 0) {
+        if (siblingCount > 0) {
+          bestTab = 'siblings';
+          reason = 'ImageView图标元素，显示兄弟元素（如文本标签）';
+        } else if (parentCount > 0) {
+          bestTab = 'parents';
+          reason = 'ImageView图标元素无兄弟，显示父容器';
+        }
+      }
+      // 🔍 如果是叶子节点（无子元素）且有兄弟元素，也优先显示兄弟
+      else if (childCount === 0 && siblingCount > 0) {
+        bestTab = 'siblings';
+        reason = '叶子节点，显示兄弟元素';
+      }
+      // 🔍 如果有子元素，显示子元素
+      else if (childCount > 0) {
+        bestTab = 'children';
+        reason = '有子元素，显示子元素';
+      }
+      // 🔍 如果只有父元素，显示父元素
+      else if (parentCount > 0) {
+        bestTab = 'parents';
+        reason = '只有父元素可用';
+      }
+      
+      if (bestTab !== 'self') {
+        console.log(`🎯 智能切换到 ${bestTab} tab: ${reason}`);
+        setActiveTab(bestTab);
+      }
+      
+      setSmartTabSelected(true);
+    }
+  }, [discoveryResult, smartTabSelected, targetElement]);
 
   // 处理元素选择
   const handleElementSelect = useCallback((discoveredElement: DiscoveredElement) => {
@@ -138,6 +199,29 @@ export const ElementDiscoveryModal: React.FC<ElementDiscoveryModalProps> = ({
     );
   };
 
+  // 🆕 渲染兄弟元素标签页
+  const renderSiblingsTab = () => {
+    const siblings = discoveryResult?.siblingElements || [];
+    
+    if (siblings.length === 0) {
+      return <Empty description="未发现兄弟元素" />;
+    }
+
+    return (
+      <div style={{ padding: '16px' }}>
+        {siblings.map((sibling, index) => (
+          <ChildElementCard
+            key={`sibling-${sibling.element.id}-${index}`}
+            element={sibling}
+            onSelect={handleElementSelect}
+            onShowDetails={handleShowDetails}
+            style={{ marginBottom: '12px' }}
+          />
+        ))}
+      </div>
+    );
+  };
+
   // 渲染智能推荐标签页
   const renderRecommendedTab = () => {
     const recommended = discoveryResult?.recommendedMatches || [];
@@ -173,6 +257,7 @@ export const ElementDiscoveryModal: React.FC<ElementDiscoveryModalProps> = ({
     const selfCount = discoveryResult?.selfElement ? 1 : 0;
     const parentCount = discoveryResult?.parentElements?.length || 0;
     const childCount = discoveryResult?.childElements?.length || 0;
+    const siblingCount = discoveryResult?.siblingElements?.length || 0; // 🆕 添加兄弟元素计数
     const recommendedCount = discoveryResult?.recommendedMatches?.length || 0;
 
     return [
@@ -195,6 +280,16 @@ export const ElementDiscoveryModal: React.FC<ElementDiscoveryModalProps> = ({
           </span>
         ),
         children: renderParentsTab()
+      },
+      {
+        key: 'siblings', // 🆕 添加兄弟元素tab
+        label: (
+          <span>
+            <AppstoreOutlined />
+            兄弟元素 ({siblingCount})
+          </span>
+        ),
+        children: renderSiblingsTab()
       },
       {
         key: 'children',
