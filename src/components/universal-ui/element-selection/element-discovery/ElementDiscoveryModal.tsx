@@ -22,7 +22,7 @@ import { useElementDiscovery } from './useElementDiscovery';
 import { ParentElementCard } from './ParentElementCard';
 import { ChildElementCard } from './ChildElementCard';
 import { SelfElementCard } from './SelfElementCard';
-import { ArchitectureDiagram } from './ArchitectureDiagram';
+import ArchitectureDiagram from './ArchitectureDiagram';
 
 // 模态框属性接口
 export interface ElementDiscoveryModalProps {
@@ -143,6 +143,12 @@ export const ElementDiscoveryModal: React.FC<ElementDiscoveryModalProps> = ({
     onClose();
   }, [onElementSelect, onClose]);
 
+  // 🆕 处理架构图元素选择
+  const handleArchitectureElementSelect = useCallback((element: UIElement) => {
+    onElementSelect(element);
+    onClose();
+  }, [onElementSelect, onClose]);
+
   // 处理元素详情查看
   const handleShowDetails = useCallback((discoveredElement: DiscoveredElement) => {
     console.log('🔍 查看元素详情:', discoveredElement);
@@ -255,7 +261,7 @@ export const ElementDiscoveryModal: React.FC<ElementDiscoveryModalProps> = ({
       <ArchitectureDiagram
         targetElement={targetElement}
         allElements={allElements}
-        onElementSelect={handleElementSelect}
+        onElementSelect={handleArchitectureElementSelect}
         onFindNearestClickable={handleFindNearestClickable}
       />
     );
