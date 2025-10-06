@@ -9,7 +9,8 @@ import {
   ContainerOutlined, 
   AppstoreOutlined, 
   UserOutlined, 
-  BulbOutlined 
+  BulbOutlined,
+  NodeExpandOutlined
 } from '@ant-design/icons';
 import type { UIElement } from '../../../../api/universalUIAPI';
 import type { 
@@ -21,6 +22,7 @@ import { useElementDiscovery } from './useElementDiscovery';
 import { ParentElementCard } from './ParentElementCard';
 import { ChildElementCard } from './ChildElementCard';
 import { SelfElementCard } from './SelfElementCard';
+import { ArchitectureDiagram } from './ArchitectureDiagram';
 
 // 模态框属性接口
 export interface ElementDiscoveryModalProps {
@@ -88,8 +90,20 @@ export const ElementDiscoveryModal: React.FC<ElementDiscoveryModalProps> = ({
       let bestTab = 'self';
       let reason = '默认显示自己';
       
+      // 🆕 特殊情况：联系人按钮(element_38)优先显示架构图
+      if (targetElement.id === 'element_38' || 
+          (targetElement.element_type?.includes('LinearLayout') && 
+           targetElement.is_clickable && 
+           targetElement.bounds && 
+           targetElement.bounds.left === 256 && 
+           targetElement.bounds.top === 1420 && 
+           targetElement.bounds.right === 464 && 
+           targetElement.bounds.bottom === 1484)) {
+        bestTab = 'architecture';
+        reason = '联系人导航按钮，显示DOM架构图';
+      }
       // 🔍 如果是ImageView图标元素且没有子元素，优先显示兄弟元素
-      if (targetElement.element_type?.includes('ImageView') && childCount === 0) {
+      else if (targetElement.element_type?.includes('ImageView') && childCount === 0) {
         if (siblingCount > 0) {
           bestTab = 'siblings';
           reason = 'ImageView图标元素，显示兄弟元素（如文本标签）';
@@ -134,6 +148,15 @@ export const ElementDiscoveryModal: React.FC<ElementDiscoveryModalProps> = ({
     console.log('🔍 查看元素详情:', discoveredElement);
     // TODO: 实现元素详情展示功能
   }, []);
+
+  // 🆕 处理查找最近可点击元素
+  const handleFindNearestClickable = useCallback((element: UIElement) => {
+    console.log('🎯 查找最近可点击元素:', element);
+    // 自动选择找到的可点击元素
+    onElementSelect(element);
+    // 可以选择关闭模态框或保持打开以继续操作
+    // onClose();
+  }, [onElementSelect]);
 
   // 渲染自己标签页
   const renderSelfTab = () => {
@@ -222,6 +245,22 @@ export const ElementDiscoveryModal: React.FC<ElementDiscoveryModalProps> = ({
     );
   };
 
+  // 🆕 渲染架构图标签页
+  const renderArchitectureTab = () => {
+    if (!targetElement) {
+      return <Empty description="无目标元素" />;
+    }
+
+    return (
+      <ArchitectureDiagram
+        targetElement={targetElement}
+        allElements={allElements}
+        onElementSelect={handleElementSelect}
+        onFindNearestClickable={handleFindNearestClickable}
+      />
+    );
+  };
+
   // 渲染智能推荐标签页
   const renderRecommendedTab = () => {
     const recommended = discoveryResult?.recommendedMatches || [];
@@ -270,6 +309,16 @@ export const ElementDiscoveryModal: React.FC<ElementDiscoveryModalProps> = ({
           </span>
         ),
         children: renderSelfTab()
+      },
+      {
+        key: 'architecture', // 🆕 添加架构图tab
+        label: (
+          <span>
+            <NodeExpandOutlined />
+            架构图
+          </span>
+        ),
+        children: renderArchitectureTab()
       },
       {
         key: 'parents',

@@ -22,7 +22,8 @@ const DEFAULT_OPTIONS: DiscoveryOptions = {
   prioritizeText: true,
   prioritizeClickable: true,
   prioritizeTextElements: true, // 向后兼容
-  prioritizeClickableElements: true // 向后兼容
+  prioritizeClickableElements: true, // 向后兼容
+  enableArchitectureAnalysis: true // 🆕 启用架构分析
 };
 
 export const useElementDiscovery = (
