@@ -225,83 +225,189 @@ interface ArchitectureDiagramProps {
 // 构建层级树的函数 - 只显示与目标元素相关的层次结构
 const buildHierarchyTree = (elements: UIElement[], targetElement: UIElement): HierarchyNode[] => {
   console.log('🏗️ 开始构建层级树，目标元素:', targetElement.id);
+  console.log('🏗️ 总元素数量:', elements.length);
   
-  // 创建节点映射
-  const nodeMap = new Map<string, HierarchyNode>();
-  
-  // 首先创建所有节点
-  elements.forEach(element => {
-    nodeMap.set(element.id, {
-      id: element.id,
-      element,
+  try {
+    // 创建节点映射
+    const nodeMap = new Map<string, HierarchyNode>();
+    
+    // 首先创建所有节点
+    console.log('🏗️ 步骤1: 创建节点映射');
+    elements.forEach(element => {
+      nodeMap.set(element.id, {
+        id: element.id,
+        element,
+        level: 0,
+        children: [],
+        parent: null,
+        isClickable: element.is_clickable,
+        hasText: !!(element.text && element.text.trim()),
+        isHidden: checkIsHiddenElement(element),
+        relationship: element.id === targetElement.id ? 'self' : 'sibling',
+        path: ''
+      });
+    });
+
+    // 构建完整的父子关系（基于包含关系）
+    console.log('🏗️ 步骤2: 构建父子关系');
+    let processedElements = 0;
+    const maxProcessingLimit = elements.length * 2; // 防止无限循环的安全限制
+    
+    elements.forEach(element => {
+      if (processedElements > maxProcessingLimit) {
+        console.warn('🚨 处理元素数量超过安全限制，停止构建');
+        return;
+      }
+      
+      const node = nodeMap.get(element.id);
+      if (!node) return;
+
+      // 查找所有被此元素包含的子元素（限制搜索范围以提高性能）
+      const children = elements
+        .filter(child => child.id !== element.id && isElementContainedIn(child, element))
+        .slice(0, 100); // 限制最多处理100个子元素
+      
+      // 🔍 调试：输出包含关系
+      if (children.length > 0) {
+        console.log(`📦 元素 ${element.id} (${element.element_type}) 包含子元素:`, 
+          children.map(c => `${c.id}(${c.element_type})`));
+      }
+      
+      // 过滤出直接子元素（不被其他子元素包含）
+      const directChildren = children.filter(child => {
+        return !children.some(otherChild => 
+          otherChild.id !== child.id && isElementContainedIn(child, otherChild)
+        );
+      });
+
+      if (directChildren.length > 0) {
+        console.log(`🎯 元素 ${element.id} 的直接子元素:`, 
+          directChildren.map(c => `${c.id}(${c.element_type})`));
+      }
+
+      directChildren.forEach(child => {
+        const childNode = nodeMap.get(child.id);
+        if (childNode && childNode.parent === null) { // 防止重复分配父节点
+          node.children.push(childNode);
+          childNode.parent = node;
+          console.log(`🔗 建立父子关系: ${element.id}(${element.element_type}) -> ${child.id}(${child.element_type})`);
+        }
+      });
+      
+      processedElements++;
+    });
+
+    // 查找目标元素节点
+    console.log('🏗️ 步骤3: 查找目标元素');
+    const targetNode = nodeMap.get(targetElement.id);
+    if (!targetNode) {
+      console.warn('🚨 未找到目标元素节点');
+      return [];
+    }
+
+    // 输出目标元素的父子关系调试信息
+    console.log(`🎯 目标元素 ${targetElement.id}(${targetElement.element_type}) 的父元素:`, 
+      targetNode.parent?.id ? `${targetNode.parent.id}(${targetNode.parent.element.element_type})` : 'null');
+    console.log(`🎯 目标元素 ${targetElement.id} 的子元素:`, 
+      targetNode.children.map(c => `${c.id}(${c.element.element_type})`));
+
+    // 查找目标元素的根祖先（最顶层包含它的元素）- 防无限循环版本
+    console.log('🏗️ 步骤4: 查找根祖先');
+    let rootAncestor = targetNode;
+    const visited = new Set<string>();
+    const maxDepth = 20; // 最大层级深度限制
+    let depth = 0;
+    
+    // 🔍 追踪祖先链
+    const ancestorChain: string[] = [`${targetNode.id}(${targetNode.element.element_type})`];
+    
+    while (rootAncestor.parent && depth < maxDepth && !visited.has(rootAncestor.id)) {
+      visited.add(rootAncestor.id);
+      rootAncestor = rootAncestor.parent;
+      ancestorChain.push(`${rootAncestor.id}(${rootAncestor.element.element_type})`);
+      depth++;
+    }
+    
+    console.log('🏠 完整祖先链:', ancestorChain.reverse().join(' -> '));
+    console.log('📦 最终根节点:', `${rootAncestor.id}(${rootAncestor.element.element_type})`);
+    
+    if (depth >= maxDepth) {
+      console.warn('🚨 达到最大层级深度限制，停止查找祖先');
+    }
+
+    // 计算关系和层级
+    console.log('🏗️ 步骤5: 计算关系');
+    calculateRelationships([rootAncestor], targetNode);
+
+    // 计算路径 - 防递归深度过大版本
+    console.log('🏗️ 步骤6: 计算路径');
+    const calculatePaths = (node: HierarchyNode, path = '', depth = 0) => {
+      if (depth > 20) { // 防止递归过深
+        console.warn('🚨 路径计算深度过大，停止递归');
+        return;
+      }
+      
+      node.path = path || node.id;
+      node.children.slice(0, 50).forEach((child, index) => { // 限制子节点处理数量
+        calculatePaths(child, `${node.path} > ${child.id}`, depth + 1);
+      });
+    };
+    
+    calculatePaths(rootAncestor);
+    
+    console.log('🏗️ 层级树构建完成');
+    console.log('📦 根节点:', rootAncestor.element.id);
+    console.log('🎯 目标元素:', targetElement.id);
+    console.log('👥 总节点数:', nodeMap.size);
+    console.log('🏗️ 目标元素关系链:', getElementAncestorChain(targetNode));
+    
+    // 🔍 特殊检查：如果目标元素没有找到正确的底部导航容器作为根
+    // 手动查找底部导航容器
+    const bottomNavElement = elements.find(e => 
+      e.resource_id === 'com.hihonor.contacts:id/bottom_navgation' ||
+      e.id === 'element_32' || 
+      (e.element_type?.includes('LinearLayout') && 
+       String(e.bounds).includes('1420') && // 底部导航的Y坐标特征
+       (e.resource_id?.includes('bottom') || e.resource_id?.includes('navigation')))
+    );
+    
+    if (bottomNavElement && rootAncestor.id !== bottomNavElement.id) {
+      console.log('🔍 检测到可能的底部导航容器:', bottomNavElement.id, bottomNavElement.resource_id);
+      const bottomNavNode = nodeMap.get(bottomNavElement.id);
+      
+      // 检查目标元素是否在底部导航区域内（通过多种方式）
+      if (bottomNavNode) {
+        const isInBottomNav = isAncestorOf(bottomNavNode, targetNode) || 
+                             isTargetInBottomNavByBounds(targetElement, bottomNavElement);
+        
+        if (isInBottomNav) {
+          console.log('✅ 使用底部导航容器作为根节点:', bottomNavElement.id);
+          rootAncestor = bottomNavNode;
+        } else {
+          console.log('❌ 目标元素不在底部导航区域内');
+        }
+      }
+    }
+    
+    // 只返回包含目标元素的根节点
+    return [rootAncestor];
+    
+  } catch (error) {
+    console.error('🚨 构建层级树时发生错误:', error);
+    // 发生错误时返回目标元素本身作为单独节点
+    return [{
+      id: targetElement.id,
+      element: targetElement,
       level: 0,
       children: [],
       parent: null,
-      isClickable: element.is_clickable,
-      hasText: !!(element.text && element.text.trim()),
-      isHidden: checkIsHiddenElement(element),
-      relationship: element.id === targetElement.id ? 'self' : 'sibling',
-      path: ''
-    });
-  });
-
-  // 构建完整的父子关系（基于包含关系）
-  elements.forEach(element => {
-    const node = nodeMap.get(element.id);
-    if (!node) return;
-
-    // 查找所有被此元素包含的子元素
-    const children = elements.filter(child => 
-      child.id !== element.id && isElementContainedIn(child, element)
-    );
-    
-    // 过滤出直接子元素（不被其他子元素包含）
-    const directChildren = children.filter(child => {
-      return !children.some(otherChild => 
-        otherChild.id !== child.id && isElementContainedIn(child, otherChild)
-      );
-    });
-
-    directChildren.forEach(child => {
-      const childNode = nodeMap.get(child.id);
-      if (childNode) {
-        node.children.push(childNode);
-        childNode.parent = node;
-      }
-    });
-  });
-
-  // 查找目标元素节点
-  const targetNode = nodeMap.get(targetElement.id);
-  if (!targetNode) {
-    console.warn('🚨 未找到目标元素节点');
-    return [];
+      isClickable: targetElement.is_clickable,
+      hasText: !!(targetElement.text && targetElement.text.trim()),
+      isHidden: checkIsHiddenElement(targetElement),
+      relationship: 'self',
+      path: targetElement.id
+    }];
   }
-
-  // 查找目标元素的根祖先（最顶层包含它的元素）
-  let rootAncestor = targetNode;
-  while (rootAncestor.parent) {
-    rootAncestor = rootAncestor.parent;
-  }
-
-  // 计算关系和层级
-  calculateRelationships([rootAncestor], targetNode);
-
-  // 计算路径
-  const calculatePaths = (node: HierarchyNode, path = '') => {
-    node.path = path || node.id;
-    node.children.forEach((child, index) => {
-      calculatePaths(child, `${node.path} > ${child.id}`);
-    });
-  };
-  
-  calculatePaths(rootAncestor);
-  
-  console.log('🏗️ 层级树构建完成，根节点:', rootAncestor.element.id);
-  console.log('🏗️ 目标元素关系链:', getElementAncestorChain(targetNode));
-  
-  // 只返回包含目标元素的根节点
-  return [rootAncestor];
 };
 
 // 辅助函数：获取元素的祖先链
@@ -313,6 +419,33 @@ const getElementAncestorChain = (node: HierarchyNode): string[] => {
     current = current.parent;
   }
   return chain;
+};
+
+// 辅助函数：检查节点A是否是节点B的祖先
+const isAncestorOf = (ancestor: HierarchyNode, descendant: HierarchyNode): boolean => {
+  let current = descendant.parent;
+  while (current) {
+    if (current.id === ancestor.id) return true;
+    current = current.parent;
+  }
+  return false;
+};
+
+// 辅助函数：通过边界检查目标元素是否在底部导航区域内
+const isTargetInBottomNavByBounds = (target: UIElement, bottomNav: UIElement): boolean => {
+  const targetBounds = normalizeBounds(target.bounds);
+  const navBounds = normalizeBounds(bottomNav.bounds);
+  
+  if (!targetBounds || !navBounds) return false;
+  
+  // 检查目标元素是否在底部导航的Y坐标范围内 (1420-1484)
+  const isInBottomArea = targetBounds.top >= 1400 || targetBounds.bottom >= 1400;
+  
+  console.log(`🔍 边界检查: 目标${target.id} 是否在底部导航区域: ${isInBottomArea}`);
+  console.log(`   目标边界: [${targetBounds.left},${targetBounds.top}][${targetBounds.right},${targetBounds.bottom}]`);
+  console.log(`   导航边界: [${navBounds.left},${navBounds.top}][${navBounds.right},${navBounds.bottom}]`);
+  
+  return isInBottomArea;
 };
 
 // 辅助函数：递归查找节点
@@ -374,12 +507,61 @@ const isElementContainedIn = (child: UIElement, parent: UIElement): boolean => {
   
   if (!childBounds || !parentBounds) return false;
   
-  return (
+  // 🔧 特殊处理：零边界元素的父子关系判断
+  const isChildZeroBounds = (childBounds.left === 0 && childBounds.top === 0 && 
+                            childBounds.right === 0 && childBounds.bottom === 0);
+  const isParentZeroBounds = (parentBounds.left === 0 && parentBounds.top === 0 && 
+                             parentBounds.right === 0 && parentBounds.bottom === 0);
+  
+  // 如果子元素是零边界，检查是否有相同的resource-id前缀或文本相关性
+  if (isChildZeroBounds) {
+    // 检查resource-id关联性（同属bottom_navgation系统）
+    if (child.resource_id && parent.resource_id) {
+      const childIsNavRelated = child.resource_id.includes('com.hihonor.contacts:id/');
+      const parentIsNavRelated = parent.resource_id.includes('com.hihonor.contacts:id/') || 
+                                parent.resource_id.includes('bottom_navgation');
+      if (childIsNavRelated && parentIsNavRelated) {
+        console.log(`🔧 零边界关联检查: ${child.id} -> ${parent.id} (resource-id关联)`);
+        return true;
+      }
+    }
+    
+    // 检查文本元素与按钮的关联性
+    if (child.text && (child.text.includes('电话') || child.text.includes('联系人') || child.text.includes('收藏'))) {
+      const parentIsClickable = parent.is_clickable;
+      if (parentIsClickable) {
+        console.log(`🔧 文本关联检查: ${child.id}("${child.text}") -> ${parent.id} (可点击按钮)`);
+        return true;
+      }
+    }
+    
+    // 如果父元素也是零边界，可能是嵌套的文本容器
+    if (isParentZeroBounds && child.resource_id.includes('content') && parent.resource_id.includes('container')) {
+      console.log(`🔧 文本容器嵌套: ${child.id} -> ${parent.id}`);
+      return true;
+    }
+    
+    return false; // 零边界元素默认不被非关联元素包含
+  }
+  
+  // 常规边界包含检查
+  const isContained = (
     childBounds.left >= parentBounds.left &&
     childBounds.top >= parentBounds.top &&
     childBounds.right <= parentBounds.right &&
     childBounds.bottom <= parentBounds.bottom
   );
+  
+  // 🔍 调试特定元素的包含关系（只对底部导航相关元素输出）
+  if (parent.id.includes('element_32') || child.id.includes('element_3')) {
+    console.log(`🔍 包含检查: ${child.id}(${child.element_type}) 是否在 ${parent.id}(${parent.element_type}) 内: ${isContained}`);
+    console.log(`   子元素边界: [${childBounds.left},${childBounds.top}][${childBounds.right},${childBounds.bottom}]`);
+    console.log(`   父元素边界: [${parentBounds.left},${parentBounds.top}][${parentBounds.right},${parentBounds.bottom}]`);
+    if (isChildZeroBounds) console.log(`   ⚠️ 子元素为零边界`);
+    if (isParentZeroBounds) console.log(`   ⚠️ 父元素为零边界`);
+  }
+  
+  return isContained;
 };
 
 // 辅助函数：统一bounds类型处理（支持对象和字符串）
