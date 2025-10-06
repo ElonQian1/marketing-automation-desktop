@@ -10,7 +10,8 @@ use async_trait::async_trait;
 
 use crate::services::execution::matching::legacy_regex::run_traditional_find;
 use crate::services::execution::model::SmartScriptStep;
-use crate::xml_judgment_service::{match_element_by_criteria, MatchCriteriaDTO};
+// use crate::xml_judgment::*; // 临时禁用，等待重构为使用 universal_ui_page_analyzer
+use crate::xml_judgment::MatchCriteriaDTO;
 
 /// 提供旧执行器调用 UI 操作所需的抽象接口。
 #[async_trait]
@@ -124,6 +125,11 @@ where
 
         let strategy_name = strategy.clone();
 
+        // 临时禁用：等待重构为使用 universal_ui_page_analyzer
+        logs.push("🔄 匹配功能暂时不可用，回退到传统参数解析".to_string());
+        return run_traditional_find(actions, step, logs).await;
+        
+        /*
         match match_element_by_criteria(device_id.to_string(), criteria.clone()).await {
             Ok(result) if result.ok => {
                 logs.push(format!("✅ 匹配成功: {}", result.message));
@@ -192,6 +198,7 @@ where
                 logs.push(format!("❌ 匹配引擎调用失败: {}", e));
             }
         }
+        */
     }
 
     logs.push("🔄 回退到传统参数解析".to_string());

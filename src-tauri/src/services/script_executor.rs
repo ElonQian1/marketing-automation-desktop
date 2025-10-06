@@ -474,24 +474,9 @@ impl ScriptExecutor {
 
         info!("⏳ 等待元素: {} = {}, 超时: {}ms", condition_type, selector, timeout_ms);
 
-        let condition = crate::xml_judgment_service::XmlCondition {
-            condition_type: condition_type.to_string(),
-            selector: selector.to_string(),
-            value: params.get("value").and_then(|v| v.as_str()).map(|s| s.to_string()),
-        };
-
-        let result = crate::xml_judgment_service::wait_for_element(
-            &self.device_id,
-            &condition,
-            timeout_ms
-        ).await.map_err(|e| anyhow::anyhow!("等待元素失败: {}", e))?;
-
-        if result.matched {
-            info!("✅ 元素已找到");
-            Ok(())
-        } else {
-            Err(anyhow::anyhow!("元素未找到或等待超时"))
-        }
+        // 临时禁用：等待重构为使用 universal_ui_page_analyzer
+        warn!("⚠️ 等待元素功能暂时不可用，正在重构中");
+        return Err(anyhow::anyhow!("等待元素功能暂时不可用"));
     }
 
     // 执行页面状态检查
@@ -505,17 +490,9 @@ impl ScriptExecutor {
 
         info!("🔍 检查页面状态，指示器数量: {}", indicators.len());
 
-        let result = crate::xml_judgment_service::XmlJudgmentService::check_page_state(
-            &self.device_id, 
-            &indicators
-        ).await.map_err(|e| anyhow::anyhow!("页面状态检查失败: {}", e))?;
-
-        if result {
-            info!("✅ 页面状态检查通过");
-            Ok(())
-        } else {
-            Err(anyhow::anyhow!("页面状态检查失败"))
-        }
+        // 临时禁用：等待重构为使用 universal_ui_page_analyzer
+        warn!("⚠️ 页面状态检查功能暂时不可用，正在重构中");
+        return Err(anyhow::anyhow!("页面状态检查功能暂时不可用"));
     }
 }
 

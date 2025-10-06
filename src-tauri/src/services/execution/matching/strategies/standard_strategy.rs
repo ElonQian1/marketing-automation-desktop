@@ -4,7 +4,8 @@
 //! 这是解决用户问题的核心：确保不同关注按钮能被正确匹配而不是使用固化坐标。
 
 use super::{StrategyProcessor, MatchingContext, StrategyResult, ProcessingError};
-use crate::xml_judgment_service::{match_element_by_criteria, MatchCriteriaDTO};
+// use crate::xml_judgment::*; // 临时禁用，等待重构为使用 universal_ui_page_analyzer
+use crate::xml_judgment::MatchCriteriaDTO;
 use async_trait::async_trait;
 use anyhow::Result;
 use tracing::{info, warn, debug};
@@ -127,54 +128,10 @@ impl StrategyProcessor for StandardStrategyProcessor {
         logs.push("�🚀 调用后端匹配引擎进行 Standard 匹配".to_string());
         info!("🎯 Standard 策略执行匹配 - 设备: {}", context.device_id);
         
-        // 执行匹配
-        match match_element_by_criteria(context.device_id.clone(), criteria).await {
-            Ok(result) if result.ok => {
-                logs.push(format!("✅ Standard 匹配成功: {} (候选总数: {:?}, 命中索引: {:?})",
-                    result.message, result.total, result.matchedIndex));
-                
-                if let Some(preview) = result.preview {
-                    if let Some(bounds_str) = preview.bounds {
-                        logs.push(format!("📍 匹配到元素边界: {}", bounds_str));
-                        
-                        // 解析坐标
-                        match crate::utils::bounds::parse_bounds_str(&bounds_str) {
-                            Ok(rect) => {
-                                let (center_x, center_y) = rect.center();
-                                logs.push(format!("🎯 计算中心点: ({}, {})", center_x, center_y));
-                                
-                                info!("✅ Standard 策略匹配成功 - 坐标: ({}, {})", center_x, center_y);
-                                
-                                return Ok(StrategyResult::success_with_bounds(
-                                    format!("Standard 策略匹配成功"),
-                                    (center_x, center_y),
-                                    bounds_str,
-                                ));
-                            }
-                            Err(e) => {
-                                warn!("⚠️ bounds 解析失败: {}", e);
-                                logs.push(format!("⚠️ bounds 解析失败: {}", e));
-                            }
-                        }
-                    }
-                }
-                
-                logs.push("✅ Standard 匹配成功但无坐标信息（可能是匹配到但缺少 bounds 字段）".to_string());
-                Ok(StrategyResult::success("Standard 策略匹配成功但无坐标".to_string(), (0, 0)))
-            }
-            Ok(result) => {
-                let msg = format!("❌ Standard 匹配失败: {}", result.message);
-                logs.push(msg.clone());
-                warn!("Standard 策略匹配失败: {}", result.message);
-                Ok(StrategyResult::failure(msg))
-            }
-            Err(e) => {
-                let msg = format!("❌ Standard 匹配引擎调用失败: {}", e);
-                logs.push(msg.clone());
-                warn!("Standard 匹配引擎调用失败: {}", e);
-                Err(ProcessingError::MatchingFailed(e.to_string()))
-            }
-        }
+        // 临时禁用：等待重构为使用 universal_ui_page_analyzer
+        logs.push("⚠️ Standard 策略暂时不可用，正在重构为使用统一解析器".to_string());
+        
+        Ok(StrategyResult::failure("Standard 策略暂时不可用".to_string()))
     }
     
     fn validate_parameters(&self, context: &MatchingContext) -> Result<(), ProcessingError> {

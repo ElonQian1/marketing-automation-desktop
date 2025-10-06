@@ -58,50 +58,11 @@ impl StrategyProcessor for AbsoluteStrategyProcessor {
         logs.push("🔄 固化坐标不可用，尝试完整字段匹配".to_string());
         
         if !context.fields.is_empty() && !context.values.is_empty() {
-            // 这里可以调用完整的匹配引擎，包括位置字段
-            let criteria = crate::xml_judgment_service::MatchCriteriaDTO {
-                strategy: "absolute".to_string(),
-                fields: context.fields.clone(),
-                values: context.values.clone(),
-                includes: context.includes.clone(),
-                excludes: context.excludes.clone(),
-                match_mode: context.match_mode.clone(),
-                regex_includes: context.regex_includes.clone(),
-                regex_excludes: context.regex_excludes.clone(),
-            };
-            
-            match crate::xml_judgment_service::match_element_by_criteria(context.device_id.clone(), criteria).await {
-                Ok(result) if result.ok => {
-                    if let Some(preview) = result.preview {
-                        if let Some(bounds_str) = preview.bounds {
-                            match crate::utils::bounds::parse_bounds_str(&bounds_str) {
-                                Ok(rect) => {
-                                    let (center_x, center_y) = rect.center();
-                                    logs.push(format!("✅ Absolute 完整匹配成功: ({}, {})", center_x, center_y));
-                                    
-                                    return Ok(StrategyResult::success_with_bounds(
-                                        "Absolute 策略完整匹配成功".to_string(),
-                                        (center_x, center_y),
-                                        bounds_str,
-                                    ));
-                                }
-                                Err(e) => {
-                                    logs.push(format!("⚠️ bounds 解析失败: {}", e));
-                                }
-                            }
-                        }
-                    }
-                }
-                Ok(result) => {
-                    logs.push(format!("❌ Absolute 完整匹配失败: {}", result.message));
-                }
-                Err(e) => {
-                    logs.push(format!("❌ Absolute 匹配引擎调用失败: {}", e));
-                }
-            }
+            // 临时禁用：等待重构为使用 universal_ui_page_analyzer
+            logs.push("⚠️ Absolute 策略暂时不可用，正在重构为使用统一解析器".to_string());
         }
         
-        Ok(StrategyResult::failure("Absolute 策略无法找到有效坐标".to_string()))
+        Ok(StrategyResult::failure("Absolute 策略暂时不可用".to_string()))
     }
     
     fn validate_parameters(&self, _context: &MatchingContext) -> Result<(), ProcessingError> {

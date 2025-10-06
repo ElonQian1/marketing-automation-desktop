@@ -554,80 +554,9 @@ impl UniversalUIPageAnalyzer {
 pub async fn analyze_universal_ui_page(
     device_id: String,
 ) -> Result<UniversalPageCaptureResult, String> {
-    use crate::xml_judgment_service::XmlJudgmentService;
-    use std::fs;
-    use chrono::Utc;
-    
-    info!("🔍 开始分析页面，设备ID: {}", device_id);
-    
-    // 获取设备当前UI的XML结构
-    match XmlJudgmentService::get_ui_xml(&device_id).await {
-        Ok(xml_content) => {
-            info!("✅ 成功获取XML内容，长度: {}", xml_content.len());
-            
-            // 保存XML到本地文件用于调试分析  
-            let timestamp = Utc::now().format("%Y%m%d_%H%M%S");
-            let filename = format!("ui_dump_{}_{}.xml", device_id, timestamp);
-            
-            // 保存到项目根目录的debug_xml文件夹，避免触发Tauri重新编译
-            let project_root = std::env::current_dir()
-                .unwrap_or_else(|_| std::path::PathBuf::from("."))
-                .parent()
-                .unwrap_or_else(|| std::path::Path::new(".."))
-                .to_path_buf();
-            let debug_dir = project_root.join("debug_xml");
-            let filepath = debug_dir.join(&filename);
-            
-            // 确保debug_xml目录存在
-            if let Err(e) = fs::create_dir_all(&debug_dir) {
-                warn!("创建debug_xml目录失败: {}", e);
-            }
-            
-            // 保存XML文件
-            let mut xml_absolute_path = filepath.to_string_lossy().to_string();
-            match fs::write(&filepath, &xml_content) {
-                Ok(_) => {
-                    info!("📄 XML已保存到: {}", filepath.display());
-                    if let Ok(canonical) = filepath.canonicalize() {
-                        xml_absolute_path = canonical.to_string_lossy().to_string();
-                    }
-                },
-                Err(e) => {
-                    warn!("保存XML文件失败: {}", e);
-                }
-            }
-
-            // 捕获截图并与XML同步命名
-            let screenshot_filename = format!("ui_dump_{}_{}.png", device_id, timestamp);
-            let screenshot_path = debug_dir.join(&screenshot_filename);
-            let (screenshot_relative_path, screenshot_absolute_path) = match ScreenshotService::capture_screenshot_to_path(&device_id, &screenshot_path) {
-                Ok(path) => {
-                    let relative = screenshot_filename.clone();
-                    (Some(relative), Some(path.to_string_lossy().to_string()))
-                }
-                Err(err) => {
-                    warn!("截图捕获失败，将继续返回XML: {}", err);
-                    (None, None)
-                }
-            };
-
-            let result = UniversalPageCaptureResult {
-                xml_relative_path: filename.clone(),
-                xml_absolute_path,
-                xml_content,
-                xml_file_name: filename,
-                screenshot_file_name: screenshot_relative_path.clone(),
-                screenshot_relative_path,
-                screenshot_absolute_path,
-            };
-
-            Ok(result)
-        },
-        Err(e) => {
-            error!("❌ 获取设备UI XML失败: {}", e);
-            Err(format!("获取设备UI XML失败: {}", e))
-        }
-    }
+    // 临时禁用：等待重构为使用统一的解析器架构
+    warn!("⚠️ 页面分析功能暂时不可用，正在重构中");
+    Err("页面分析功能暂时不可用".to_string())
 }
 
 /// 提取页面元素 - 统一智能解析器（临时禁用过滤器）

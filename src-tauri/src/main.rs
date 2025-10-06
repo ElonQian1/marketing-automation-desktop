@@ -10,7 +10,7 @@ mod domain;
 mod infra;
 mod screenshot_service;
 mod new_backend;
-pub mod xml_judgment_service;
+pub mod xml_judgment; // 重命名后的模块
 
 // Universal UI Finder 模块桥接
 // 注意：universal-ui-finder模块位于src/modules/，我们通过services层桥接
@@ -71,13 +71,14 @@ use services::scrcpy_manager::{start_device_mirror, stop_device_mirror, stop_dev
 use services::ui_reader_service::read_device_ui_state;
 use services::smart_vcf_opener::smart_vcf_opener;
 // 注意: write_file, delete_file, reveal_in_file_manager 已在 commands/files.rs 中定义
-use xml_judgment_service::{
-    get_device_ui_xml,
-    find_xml_ui_elements,
-    wait_for_ui_element,
-    check_device_page_state,
-    match_element_by_criteria,
-};
+// 注意：xml_judgment 模块的命令被临时禁用，因为它们需要重构来使用统一的 universal_ui_page_analyzer
+// use xml_judgment::{
+//     get_device_ui_xml,
+//     find_xml_ui_elements,
+//     wait_for_ui_element,
+//     check_device_page_state,
+//     match_element_by_criteria,
+// };
 use services::universal_ui_service::execute_universal_ui_click;
 use services::universal_ui_page_analyzer::{
     analyze_universal_ui_page,
@@ -265,12 +266,12 @@ fn main() {
             // 截图服务功能
             capture_device_screenshot,    // 捕获设备截图
             get_device_screen_resolution, // 获取设备分辨率
-            // XML判断服务功能
-            get_device_ui_xml,       // 获取UI XML结构
-            find_xml_ui_elements,    // 查找XML UI元素
-            wait_for_ui_element,     // 等待元素出现
-            check_device_page_state, // 检查页面状态
-            match_element_by_criteria, // 按匹配条件查找元素
+            // XML判断服务功能 - 临时禁用，等待重构
+            // get_device_ui_xml,       // 获取UI XML结构
+            // find_xml_ui_elements,    // 查找XML UI元素
+            // wait_for_ui_element,     // 等待元素出现
+            // check_device_page_state, // 检查页面状态
+            // match_element_by_criteria, // 按匹配条件查找元素
             // 智能应用管理功能
             get_device_apps,         // 获取设备应用列表
             get_device_apps_paged,   // 分页获取设备应用列表
