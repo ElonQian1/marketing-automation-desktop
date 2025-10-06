@@ -94,6 +94,49 @@ export class XmlPageCacheService {
     const clickableFromBackend = elements.filter(el => el.is_clickable === true);
     console.log('🎯 [ElementDiscovery] 后端返回的可点击元素数:', clickableFromBackend.length);
     
+    // 详细输出所有clickable元素信息
+    console.group("🖱️ 后端返回的所有可点击元素详情:");
+    clickableFromBackend.forEach((el, index) => {
+      console.log(`${index + 1}. 类型: ${el.element_type || 'unknown'}`);
+      console.log(`   文本: "${el.text || ''}"  ID: "${el.resource_id || ''}"  描述: "${el.content_desc || ''}"`);
+      console.log(`   位置: ${el.bounds ? JSON.stringify(el.bounds) : 'unknown'}  可点击: ${el.is_clickable}`);
+      
+      // 检查可能的过滤原因
+      const issues = [];
+      if (!el.text && !el.resource_id && !el.content_desc) {
+        issues.push("无标识信息");
+      }
+      if (el.bounds && typeof el.bounds === 'object') {
+        const width = el.bounds.right - el.bounds.left;
+        const height = el.bounds.bottom - el.bounds.top;
+        if (width < 10 || height < 10) {
+          issues.push("尺寸过小");
+        }
+        console.log(`   尺寸: ${width}x${height} 面积: ${width * height}px²`);
+      }
+      if (issues.length > 0) {
+        console.log(`   ⚠️ 潜在问题: ${issues.join(", ")}`);
+      }
+      console.log("");
+    });
+    console.groupEnd();
+
+    // 检查是否有重叠元素（可能的遮蔽问题）
+    console.group("🔍 检查元素重叠问题:");
+    let overlapCount = 0;
+    clickableFromBackend.forEach((el1, i) => {
+      clickableFromBackend.forEach((el2, j) => {
+        if (i !== j && this.elementsOverlap(el1, el2)) {
+          overlapCount++;
+          console.warn(`⚠️ 元素重叠检测: "${el1.text || el1.element_type}" 与 "${el2.text || el2.element_type}" 可能存在重叠`);
+        }
+      });
+    });
+    if (overlapCount === 0) {
+      console.log("✅ 未发现重叠元素");
+    }
+    console.groupEnd();
+    
     // 使用独立过滤器模块，明确指定不过滤
     const result = ModuleFilterFactory.forElementDiscovery(elements);
     console.log('✅ [ElementDiscovery] 解析完成，提取', result.length, '个元素（原始:', elements.length, '个）');
@@ -104,11 +147,34 @@ export class XmlPageCacheService {
     
     if (clickableFromBackend.length !== clickableAfterFilter.length) {
       console.warn('⚠️ [ElementDiscovery] 过滤器丢失了可点击元素！');
-      console.log('丢失的元素:', clickableFromBackend.filter(be => 
-        !clickableAfterFilter.some(ae => ae.id === be.id)));
+      
+      // 找出被过滤的元素
+      const filteredClickableIds = new Set(clickableAfterFilter.map(el => `${el.id || el.bounds}`));
+      const lostElements = clickableFromBackend.filter(el => !filteredClickableIds.has(`${el.id || el.bounds}`));
+      
+      console.group("❌ 被前端过滤器丢失的clickable元素:");
+      lostElements.forEach((el, index) => {
+        console.log(`${index + 1}. 类型: ${el.element_type || 'unknown'}, 文本: "${el.text || ''}", ID: "${el.resource_id || ''}", 位置: ${JSON.stringify(el.bounds)}`);
+      });
+      console.groupEnd();
     }
     
     return result;
+  }
+
+  // 辅助方法：检查两个元素是否重叠
+  private static elementsOverlap(el1: any, el2: any): boolean {
+    if (!el1.bounds || !el2.bounds) return false;
+    
+    const bounds1 = el1.bounds;
+    const bounds2 = el2.bounds;
+    
+    if (!bounds1 || !bounds2) return false;
+    
+    return !(bounds1.right <= bounds2.left || 
+             bounds2.right <= bounds1.left || 
+             bounds1.bottom <= bounds2.top || 
+             bounds2.bottom <= bounds1.top);
   }
 
   /**

@@ -39,170 +39,24 @@ export class UniversalUIAPI {
    */
   static async extractPageElements(xmlContent: string): Promise<UIElement[]> {
     try {
-      // 统一通过 invokeCompat 调用后端，失败时回退前端解析
+      console.log('🔍 [UniversalUIAPI] 开始提取页面元素，XML长度:', xmlContent.length);
+      
+      // 🎯 使用统一的 XmlPageCacheService 进行解析
       try {
+        // 动态导入以避免循环依赖
+        const { XmlPageCacheService } = await import('../../services/XmlPageCacheService');
+        const elements = await XmlPageCacheService.parseXmlToAllElements(xmlContent);
+        console.log('✅ [UniversalUIAPI] XmlPageCacheService 解析成功，返回', elements.length, '个元素');
+        return elements;
+      } catch (serviceError) {
+        console.warn('[UniversalUIAPI] XmlPageCacheService 解析失败，尝试后端调用:', serviceError);
+        
+        // 后备方案：调用后端
         return await invokeUniversal<UIElement[]>('extractPageElements', { xmlContent });
-      } catch (backendError) {
-        console.warn('[UniversalUIAPI] 后端解析失败，使用前端上下文感知解析:', backendError);
-        return this.parseXMLToElementsWithContext(xmlContent);
       }
     } catch (error) {
       console.error('[UniversalUIAPI] 提取页面元素失败:', error);
       throw new Error(`提取页面元素失败: ${error}`);
-    }
-  }
-
-  /**
-   * 前端XML解析器 - 上下文感知版本，构建完整的DOM树关系
-   */
-  private static parseXMLToElementsWithContext(xmlContent: string): UIElement[] {
-    const elements: UIElement[] = [];
-    const elementMap = new Map<Element, UIElement>(); // XML节点到UIElement的映射
-    
-    try {
-      // 轻量清洗：去除非XML头信息，提取第一个 '<' 到最后一个 '>' 之间的内容
-      let content = xmlContent;
-      if (content) {
-        const firstLt = content.indexOf('<');
-        const lastGt = content.lastIndexOf('>');
-        if (firstLt > 0 && lastGt > firstLt) {
-          content = content.slice(firstLt, lastGt + 1);
-        }
-      }
-      // 创建DOM解析器
-      const parser = new DOMParser();
-      const xmlDoc = parser.parseFromString(content, 'text/xml');
-      
-      // 检查解析错误
-      const parseError = xmlDoc.querySelector('parsererror');
-      if (parseError) {
-        throw new Error(`XML解析错误: ${parseError.textContent}`);
-      }
-      
-      // 第一遍遍历：创建所有UIElement对象
-      const firstPass = (node: Element, depth: number = 0) => {
-        if (node.nodeType === Node.ELEMENT_NODE && node.tagName === 'node') {
-          const bounds = this.parseBounds(node.getAttribute('bounds') || '');
-          const text = node.getAttribute('text') || '';
-          const contentDesc = node.getAttribute('content-desc') || '';
-          const resourceId = node.getAttribute('resource-id') || '';
-          const className = node.getAttribute('class') || '';
-          const clickable = node.getAttribute('clickable') === 'true';
-          const scrollable = node.getAttribute('scrollable') === 'true';
-          const enabled = node.getAttribute('enabled') !== 'false';
-          const checkable = node.getAttribute('checkable') === 'true';
-          const checked = node.getAttribute('checked') === 'true';
-          const selected = node.getAttribute('selected') === 'true';
-          const password = node.getAttribute('password') === 'true';
-          
-          // 🎯 保持基础过滤：保留所有有效的UI节点，让层级树视图负责显示控制
-          const hasValidBounds = bounds.right > bounds.left && bounds.bottom > bounds.top;
-          const hasMinimumSize = (bounds.right - bounds.left) >= 1 && (bounds.bottom - bounds.top) >= 1;
-          
-          if (hasValidBounds && hasMinimumSize) {
-            const element: UIElement = {
-              id: `element_${elements.length}`,
-              element_type: className || 'unknown',
-              text,
-              bounds,
-              xpath: this.generateXPath(node, depth),
-              resource_id: resourceId,
-              class_name: className,
-              is_clickable: clickable,
-              is_scrollable: scrollable,
-              is_enabled: enabled,
-              is_focused: false, // 添加缺失的字段
-              checkable,
-              checked,
-              selected,
-              password,
-              content_desc: contentDesc,
-              children: [], // 添加 children 字段
-            };
-            
-            elements.push(element);
-            elementMap.set(node, element);
-          }
-        }
-        
-        // 递归处理子节点
-        for (let i = 0; i < node.children.length; i++) {
-          firstPass(node.children[i], depth + 1);
-        }
-      };
-
-      // 第二遍遍历：构建上下文关系
-      const secondPass = (node: Element) => {
-        if (node.nodeType === Node.ELEMENT_NODE && node.tagName === 'node') {
-          const currentElement = elementMap.get(node);
-          
-          if (currentElement) {
-            // 🔍 构建父元素上下文
-            const parentNode = node.parentElement;
-            if (parentNode && elementMap.has(parentNode)) {
-              const parentElement = elementMap.get(parentNode)!;
-              currentElement.parent_element = this.createElementContext(parentElement);
-            }
-            
-            // 🔍 构建兄弟元素上下文
-            const siblings: UIElementContext[] = [];
-            if (node.parentElement) {
-              for (let i = 0; i < node.parentElement.children.length; i++) {
-                const siblingNode = node.parentElement.children[i];
-                if (siblingNode !== node && elementMap.has(siblingNode)) {
-                  const siblingElement = elementMap.get(siblingNode)!;
-                  siblings.push(this.createElementContext(siblingElement));
-                }
-              }
-            }
-            currentElement.sibling_elements = siblings;
-            
-            // 🔍 构建子元素上下文
-            const children: UIElementContext[] = [];
-            for (let i = 0; i < node.children.length; i++) {
-              const childNode = node.children[i];
-              if (elementMap.has(childNode)) {
-                const childElement = elementMap.get(childNode)!;
-                children.push(this.createElementContext(childElement));
-              }
-            }
-            currentElement.child_elements = children;
-            
-            // 🎯 生成上下文指纹
-            currentElement.context_fingerprint = this.generateContextFingerprint(
-              currentElement, 
-              currentElement.parent_element,
-              siblings,
-              children
-            );
-            
-            // 🎯 生成相对位置信息
-            currentElement.relative_position = this.generateRelativePosition(
-              currentElement,
-              siblings
-            );
-          }
-        }
-        
-        // 递归处理子节点
-        for (let i = 0; i < node.children.length; i++) {
-          secondPass(node.children[i]);
-        }
-      };
-      
-      // 从根节点开始遍历
-      const rootNodes = xmlDoc.querySelectorAll('hierarchy > node');
-      
-      // 执行两遍遍历
-      rootNodes.forEach(node => firstPass(node, 0));
-      rootNodes.forEach(node => secondPass(node));
-      
-      console.log(`🎯 上下文感知解析完成，提取到 ${elements.length} 个UI元素，包含完整上下文关系`);
-      return elements;
-      
-    } catch (error) {
-      console.error('上下文感知XML解析失败:', error);
-      throw new Error(`XML解析失败: ${error}`);
     }
   }
 
