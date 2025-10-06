@@ -8,6 +8,23 @@ import type { UIElement } from '../../../../api/universalUIAPI';
 export class ElementBoundsAnalyzer {
   
   /**
+   * 检查元素是否为隐藏元素（bounds为[0,0][0,0]）
+   */
+  static isHiddenElement(element: UIElement): boolean {
+    return element.bounds.left === 0 && 
+           element.bounds.top === 0 && 
+           element.bounds.right === 0 && 
+           element.bounds.bottom === 0;
+  }
+
+  /**
+   * 检查元素是否有有效文本内容
+   */
+  static hasValidText(element: UIElement): boolean {
+    return !!(element.text && element.text.trim().length > 0);
+  }
+
+  /**
    * 分析目标元素与所有其他元素的边界关系
    */
   static analyzeElementRelations(targetElement: UIElement, allElements: UIElement[]): {
@@ -16,6 +33,7 @@ export class ElementBoundsAnalyzer {
       containmentRatio: number;
       overlapRatio: number;
       isContained: boolean;
+      isHidden?: boolean; // 新增：标记隐藏元素
     }>;
     potentialParents: Array<{
       element: UIElement;
@@ -36,25 +54,41 @@ export class ElementBoundsAnalyzer {
     allElements.forEach(element => {
       if (element.id === targetElement.id) return;
 
-      // 检查是否为潜在子元素
-      if (this.isElementContained(element, targetElement)) {
-        const containmentRatio = this.getElementArea(element) / targetArea;
-        potentialChildren.push({
-          element,
-          containmentRatio,
-          overlapRatio: this.getOverlapRatio(element, targetElement),
-          isContained: true
-        });
+      // 特殊处理：隐藏的文本元素可能是目标元素的逻辑子元素
+      if (this.isHiddenElement(element) && this.hasValidText(element)) {
+        // 通过DOM层次结构判断是否为子元素
+        if (this.isLogicalChild(element, targetElement, allElements)) {
+          potentialChildren.push({
+            element,
+            containmentRatio: 0.1, // 给隐藏元素一个较小但有意义的比例
+            overlapRatio: 0,
+            isContained: false, // 标记为逻辑包含而非物理包含
+            isHidden: true
+          });
+        }
       }
+      // 常规边界检查
+      else {
+        // 检查是否为潜在子元素
+        if (this.isElementContained(element, targetElement)) {
+          const containmentRatio = this.getElementArea(element) / targetArea;
+          potentialChildren.push({
+            element,
+            containmentRatio,
+            overlapRatio: this.getOverlapRatio(element, targetElement),
+            isContained: true
+          });
+        }
 
-      // 检查是否为潜在父元素
-      if (this.isElementContained(targetElement, element)) {
-        const containmentRatio = targetArea / this.getElementArea(element);
-        potentialParents.push({
-          element,
-          containmentRatio,
-          isContaining: true
-        });
+        // 检查是否为潜在父元素
+        if (this.isElementContained(targetElement, element)) {
+          const containmentRatio = targetArea / this.getElementArea(element);
+          potentialParents.push({
+            element,
+            containmentRatio,
+            isContaining: true
+          });
+        }
       }
     });
 
@@ -72,6 +106,35 @@ export class ElementBoundsAnalyzer {
         candidateParentsCount: potentialParents.length
       }
     };
+  }
+
+  /**
+   * 检查隐藏元素是否为目标元素的逻辑子元素
+   * 通过检查DOM结构中的相似resource-id或相邻位置来判断
+   */
+  static isLogicalChild(hiddenElement: UIElement, targetElement: UIElement, allElements: UIElement[]): boolean {
+    // 如果隐藏元素和目标元素有相似的resource-id前缀，可能存在父子关系
+    if (hiddenElement.resource_id && targetElement.resource_id) {
+      const hiddenId = hiddenElement.resource_id;
+      const targetId = targetElement.resource_id;
+      
+      // 检查是否在同一个组件中（相同的包和基础ID）
+      if (hiddenId.includes('content') && targetId.includes('top_icon')) {
+        return true;
+      }
+    }
+
+    // 检查是否在DOM结构中相邻或相关
+    // 这里可以通过element的索引、类名等进行更精细的判断
+    const hiddenClass = hiddenElement.class_name || '';
+    const targetClass = targetElement.class_name || '';
+    
+    // TextView通常是ImageView的配套文本
+    if (hiddenClass.includes('TextView') && targetClass.includes('ImageView')) {
+      return true;
+    }
+
+    return false;
   }
 
   /**
@@ -130,6 +193,9 @@ export class ElementBoundsAnalyzer {
       report += `  ${index + 1}. ${child.element.id} - 面积比例: ${(child.containmentRatio * 100).toFixed(2)}%`;
       if (child.element.text) {
         report += ` - 文本: "${child.element.text}"`;
+      }
+      if (child.isHidden) {
+        report += ` - [隐藏元素]`;
       }
       report += `\n`;
     });

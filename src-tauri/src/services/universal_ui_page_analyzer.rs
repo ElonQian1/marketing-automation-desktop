@@ -101,8 +101,8 @@ impl UniversalUIPageAnalyzer {
         
         info!("🔍 开始分析页面: {} - {}", package_name, activity_name);
         
-        // 1. 解析XML元素
-        let elements = self.parse_xml_elements(xml_content)?;
+        // 1. 解析XML元素（使用过滤模式，只获取有价值的元素）
+        let elements = self.parse_xml_elements(xml_content, true)?;
         
         // 2. 过滤交互元素
         let interactive_elements = self.filter_interactive_elements(&elements);
@@ -132,7 +132,11 @@ impl UniversalUIPageAnalyzer {
     }
 
     /// 解析XML内容，提取UI元素（增强版）
-    fn parse_xml_elements(&self, xml_content: &str) -> AnyResult<Vec<UIElement>> {
+    /// 
+    /// # 参数
+    /// * `xml_content` - XML 内容字符串
+    /// * `enable_filtering` - 是否启用价值元素过滤，true=只返回有价值的元素，false=返回所有元素
+    pub fn parse_xml_elements(&self, xml_content: &str, enable_filtering: bool) -> AnyResult<Vec<UIElement>> {
         let mut elements = Vec::new();
         let mut reader = Reader::from_str(xml_content);
         reader.config_mut().trim_text(true);
@@ -154,8 +158,8 @@ impl UniversalUIPageAnalyzer {
                             // 应用智能分类逻辑（基于SmartElementFinderService）
                             element = self.apply_smart_classification(&element, xml_content);
                             
-                            // 只保留有价值的元素
-                            if self.is_valuable_element(&element) {
+                            // 根据 enable_filtering 参数决定是否应用过滤器
+                            if !enable_filtering || self.is_valuable_element(&element) {
                                 elements.push(element);
                             }
                         }
@@ -177,8 +181,24 @@ impl UniversalUIPageAnalyzer {
         // 应用后处理：排序和优化
         let processed_elements = self.post_process_elements(elements);
         
-        info!("✅ XML解析完成，提取到 {} 个有价值的UI元素", processed_elements.len());
+        if enable_filtering {
+            info!("✅ XML解析完成，提取到 {} 个有价值的UI元素", processed_elements.len());
+        } else {
+            info!("✅ XML解析完成，提取到 {} 个全部UI元素", processed_elements.len());
+        }
         Ok(processed_elements)
+    }
+
+    /// 解析XML内容，提取UI元素（保持向后兼容）
+    /// 默认启用过滤器，只返回有价值的元素
+    pub fn parse_xml_elements_filtered(&self, xml_content: &str) -> AnyResult<Vec<UIElement>> {
+        self.parse_xml_elements(xml_content, true)
+    }
+
+    /// 解析XML内容，提取UI元素（无过滤）
+    /// 返回所有解析的元素，包括隐藏的和小的元素
+    pub fn parse_xml_elements_unfiltered(&self, xml_content: &str) -> AnyResult<Vec<UIElement>> {
+        self.parse_xml_elements(xml_content, false)
     }
 
     /// 解析节点属性
@@ -610,7 +630,7 @@ pub async fn analyze_universal_ui_page(
     }
 }
 
-/// 提取页面元素 - 统一智能解析器
+/// 提取页面元素 - 统一智能解析器（临时禁用过滤器）
 #[tauri::command]
 pub async fn extract_page_elements(
     xml_content: String,
@@ -619,9 +639,10 @@ pub async fn extract_page_elements(
     
     let analyzer = UniversalUIPageAnalyzer::new();
     
-    match analyzer.parse_xml_elements(&xml_content) {
+    // 临时禁用过滤器，返回所有元素以保持系统一致性
+    match analyzer.parse_xml_elements(&xml_content, false) {
         Ok(elements) => {
-            info!("✅ 成功提取 {} 个元素", elements.len());
+            info!("✅ 成功提取 {} 个元素（临时禁用过滤）", elements.len());
             Ok(elements)
         },
         Err(e) => {

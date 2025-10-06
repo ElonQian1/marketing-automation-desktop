@@ -115,11 +115,68 @@ pub async fn delete_xml_cache_artifacts(
 }
 
 #[tauri::command]
-pub async fn parse_cached_xml_to_elements(xml_content: String) -> Result<serde_json::Value, String> {
-    use crate::services::ui_reader_service::parse_ui_elements;
-    match parse_ui_elements(&xml_content) {
-        Ok(elements) => serde_json::to_value(&elements).map_err(|e| format!("序列化UI元素失败: {}", e)),
-        Err(e) => Err(format!("解析XML内容失败: {}", e))
+pub async fn parse_cached_xml_to_elements(
+    xml_content: Option<String>,
+    file_path: Option<String>,
+    enable_filtering: Option<bool>, // 新增参数：是否启用过滤
+) -> Result<serde_json::Value, String> {
+    use crate::services::universal_ui_page_analyzer::UniversalUIPageAnalyzer;
+    use tracing::{info, error};
+
+    // 默认禁用过滤器，以获取所有元素用于元素发现
+    let filtering_enabled = enable_filtering.unwrap_or(false);
+    
+    info!("🎯 开始解析XML内容到UI元素 (过滤器: {})", if filtering_enabled { "启用" } else { "禁用" });
+
+    // 获取XML内容
+    let xml_data = match (xml_content, file_path) {
+        (Some(content), _) => content,
+        (None, Some(path)) => {
+            // 读取缓存文件
+            let cache_path = std::path::Path::new(&path);
+            match std::fs::read_to_string(&cache_path) {
+                Ok(content) => {
+                    info!("✅ 从缓存文件读取XML: {} (长度: {})", path, content.len());
+                    content
+                }
+                Err(e) => {
+                    error!("❌ 读取XML文件失败: {}", e);
+                    return Err(format!("无法读取XML文件 {}: {}", path, e));
+                }
+            }
+        }
+        (None, None) => {
+            error!("❌ 必须提供xml_content或file_path参数");
+            return Err("必须提供xml_content或file_path参数".to_string());
+        }
+    };
+
+    info!("📄 XML内容长度: {} 字符", xml_data.len());
+
+    // 使用统一的解析器，根据参数决定是否过滤
+    let analyzer = UniversalUIPageAnalyzer::new();
+    
+    match analyzer.parse_xml_elements(&xml_data, filtering_enabled) {
+        Ok(elements) => {
+            let count = elements.len();
+            info!("✅ 成功提取 {} 个UI元素 (过滤: {})", count, if filtering_enabled { "是" } else { "否" });
+            
+            // 转换为JSON格式
+            match serde_json::to_value(elements) {
+                Ok(json_elements) => {
+                    info!("🎉 XML解析完成，返回 {} 个元素的JSON数据", count);
+                    Ok(json_elements)
+                }
+                Err(e) => {
+                    error!("❌ 序列化为JSON失败: {}", e);
+                    Err(format!("序列化为JSON失败: {}", e))
+                }
+            }
+        }
+        Err(e) => {
+            error!("❌ 解析XML失败: {}", e);
+            Err(format!("解析XML失败: {}", e))
+        }
     }
 }
 

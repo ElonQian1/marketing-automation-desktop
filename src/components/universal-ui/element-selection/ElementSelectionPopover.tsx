@@ -1,7 +1,7 @@
 // 元素选择气泡组件（稳定版）
 // 说明：提供默认导出与具名导出 ElementSelectionPopover，避免导入歧义
 
-import React, { useState, useEffect, useMemo, useCallback } from 'react';
+import React, { useState, useEffect, useMemo, useCallback, useRef } from 'react';
 import ConfirmPopover from '../common-popover/ConfirmPopover';
 // icons are handled inside PopoverActionButtons
 import { PopoverActionButtons } from './components/PopoverActionButtons';
@@ -53,6 +53,9 @@ const ElementSelectionPopoverComponent: React.FC<ElementSelectionPopoverProps> =
   const __DEV__ = process.env.NODE_ENV === 'development';
   const __DEBUG_VISUAL__ = isDevDebugEnabled('debug:visual');
   const [discoveryModalOpen, setDiscoveryModalOpen] = useState(false);
+  // 避免“同一次点击”引发的立刻关闭：打开后的短暂宽限期内禁用外部点击自动取消
+  const [allowOutsideCancel, setAllowOutsideCancel] = useState(false);
+  const outsideCancelTimerRef = useRef<number | null>(null);
   
   // 🔧 修复：使用 useMemo 稳定 ID 引用
   const popoverId = useMemo(() => {
@@ -101,6 +104,34 @@ const ElementSelectionPopoverComponent: React.FC<ElementSelectionPopoverProps> =
     return visible && selection && positioning;
   }, [visible, selection, positioning]);
 
+  // 🔧 修复：打开后短暂忽略 outside click 导致的自动取消，避免“刚打开就消失”
+  useEffect(() => {
+    if (shouldShow) {
+      setAllowOutsideCancel(false);
+      // 100-150ms 的宽限期足以跨过同一轮事件循环的文档点击侦听
+      if (outsideCancelTimerRef.current) {
+        window.clearTimeout(outsideCancelTimerRef.current);
+      }
+      outsideCancelTimerRef.current = window.setTimeout(() => {
+        setAllowOutsideCancel(true);
+        outsideCancelTimerRef.current = null;
+      }, 150);
+    } else {
+      // 隐藏时立刻关闭允许标志并清理定时器
+      setAllowOutsideCancel(false);
+      if (outsideCancelTimerRef.current) {
+        window.clearTimeout(outsideCancelTimerRef.current);
+        outsideCancelTimerRef.current = null;
+      }
+    }
+    return () => {
+      if (outsideCancelTimerRef.current) {
+        window.clearTimeout(outsideCancelTimerRef.current);
+        outsideCancelTimerRef.current = null;
+      }
+    };
+  }, [shouldShow]);
+
   // 🔧 修复：ESC 键监听（简化版）
   useEffect(() => {
     if (!shouldShow) return;
@@ -147,7 +178,7 @@ const ElementSelectionPopoverComponent: React.FC<ElementSelectionPopoverProps> =
           open={visible}
           onCancel={() => handleCancel()}
           // 关键修复：当发现模态框打开时，禁用“外部点击自动取消”
-          autoCancelOnOutsideClick={!discoveryModalOpen && autoCancelOnOutsideClick}
+          autoCancelOnOutsideClick={allowOutsideCancel && !discoveryModalOpen && autoCancelOnOutsideClick}
           title={
             <div style={{ maxWidth: '220px' }}>
               <div style={{ fontSize: '12px', color: '#666', marginBottom: '4px' }}>
@@ -162,11 +193,11 @@ const ElementSelectionPopoverComponent: React.FC<ElementSelectionPopoverProps> =
               <PopoverActionButtons
                 onConfirm={handleConfirm}
                 onDiscovery={allElements.length > 0 && onElementSelect ? handleDiscovery : undefined}
-                onHide={(e) => {
+                onHide={onHide ? (e) => {
                   e?.stopPropagation?.();
                   if (__DEV__ && __DEBUG_VISUAL__) console.debug('🫥 [ElementSelectionPopover] 隐藏按钮被点击');
-                  if (onHide) onHide(); else onCancel();
-                }}
+                  onHide();
+                } : undefined}
                 onCancel={(e) => {
                   if (__DEV__ && __DEBUG_VISUAL__) console.debug('🖱️ [ElementSelectionPopover] 取消按钮被点击');
                   handleCancel(e);

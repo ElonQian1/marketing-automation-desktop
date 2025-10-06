@@ -38,13 +38,29 @@ export const useElementDiscovery = (
     ...options
   }), [options]);
 
+  // 🆕 检测是否为隐藏元素（bounds为[0,0][0,0]）
+  const isHiddenElement = useCallback((element: UIElement): boolean => {
+    const bounds = element.bounds;
+    return bounds.left === 0 && bounds.top === 0 && 
+           bounds.right === 0 && bounds.bottom === 0;
+  }, []);
+
   // 计算元素置信度
   const calculateConfidence = useCallback((element: UIElement, relationship: string): number => {
     let confidence = 0.5; // 基础分数
 
+    // 🆕 特别处理隐藏的文本元素
+    const isHidden = isHiddenElement(element);
+    const hasValidText = element.text && element.text.trim().length > 0;
+
     // 文本元素加分
-    if (element.text && element.text.trim().length > 0) {
+    if (hasValidText) {
       confidence += 0.3;
+      
+      // 🌟 隐藏文本元素额外加分（对自动化识别很重要）
+      if (isHidden) {
+        confidence += 0.2;
+      }
     }
 
     // 可点击元素加分
@@ -63,19 +79,32 @@ export const useElementDiscovery = (
     }
 
     // 子元素关系，如果有文本则大加分
-    if (relationship === 'child' && element.text) {
+    if (relationship === 'child' && hasValidText) {
       confidence += 0.2;
+      
+      // 🌟 隐藏子元素文本特别重要（如导航按钮的文本标签）
+      if (isHidden) {
+        confidence += 0.25;
+      }
     }
 
     return Math.min(confidence, 1.0);
-  }, []);
+  }, [isHiddenElement]);
 
   // 生成发现原因描述
   const generateReason = useCallback((element: UIElement, relationship: string): string => {
     const reasons: string[] = [];
 
+    // 🆕 检查是否为隐藏元素
+    const isHidden = isHiddenElement(element);
+
     if (element.text && element.text.trim().length > 0) {
-      reasons.push(`包含文本"${element.text.trim().substring(0, 10)}"`);
+      const textPreview = element.text.trim().substring(0, 10);
+      if (isHidden) {
+        reasons.push(`隐藏文本"${textPreview}" [重要标识]`);
+      } else {
+        reasons.push(`包含文本"${textPreview}"`);
+      }
     }
 
     if (element.is_clickable) {
@@ -91,7 +120,7 @@ export const useElementDiscovery = (
         reasons.push('父级容器');
         break;
       case 'child':
-        reasons.push('子级元素');
+        reasons.push(isHidden ? '隐藏子级元素' : '子级元素');
         break;
       case 'sibling':
         reasons.push('同级元素');
@@ -99,7 +128,7 @@ export const useElementDiscovery = (
     }
 
     return reasons.join(', ') || '相关元素';
-  }, []);
+  }, [isHiddenElement]);
 
   // 查找父元素
   const findParentElements = useCallback((
@@ -233,7 +262,16 @@ export const useElementDiscovery = (
         });
 
         node.children.forEach((childNode: any, index: number) => {
-          const confidence = calculateConfidence(childNode.element, 'child');
+          const childElement = childNode.element;
+          const confidence = calculateConfidence(childElement, 'child');
+          const isHidden = isHiddenElement(childElement);
+          const hasValidText = childElement.text && childElement.text.trim().length > 0;
+          
+          // 调整置信度：优先隐藏文本元素
+          let adjustedConfidence = confidence;
+          if (isHidden && hasValidText) {
+            adjustedConfidence = Math.min(0.95, confidence + 0.3);
+          }
           
           // 根据层级生成关系描述
           let relationshipType: DiscoveredElement['relationship'] = 'child';
@@ -251,17 +289,26 @@ export const useElementDiscovery = (
           }
           
           const currentPath = parentPath ? `${parentPath} > 子${index + 1}` : `子${index + 1}`;
-          const reason = `${levelDescription} (${currentPath}) - ${generateReason(childNode.element, 'child')}`;
+          const reason = `${levelDescription} (${currentPath}) - ${generateReason(childElement, 'child')}`;
 
           children.push({
-            element: childNode.element,
+            element: childElement,
             relationship: relationshipType,
-            confidence: confidence * (1 / (depth + 1)), // 距离越远置信度越低
+            confidence: adjustedConfidence,
             reason,
-            hasText: !!childNode.element.text,
-            isClickable: childNode.element.is_clickable || false,
-            depth: depth + 1, // 添加深度信息
-            path: currentPath // 添加路径信息
+            hasText: hasValidText,
+            isClickable: childElement.is_clickable || false,
+            depth: depth + 1,
+            path: currentPath
+          });
+
+          console.log(`    ✅ 添加子元素:`, {
+            id: childElement.id,
+            text: childElement.text || '无文本',
+            relationship: relationshipType,
+            confidence: adjustedConfidence.toFixed(2),
+            isHidden,
+            hasText: hasValidText
           });
 
           // 递归收集更深层的子元素
@@ -276,9 +323,24 @@ export const useElementDiscovery = (
       console.log('⚠️ 未找到子元素:', {
         targetNodeExists: !!targetNode,
         hasChildren: !!(targetNode?.children),
-        childrenLength: targetNode?.children?.length
+        childrenLength: targetNode?.children?.length,
+        targetElementId: targetElement.id,
+        targetElementText: targetElement.text
       });
     }
+
+    // 📊 查找完成统计
+    const hiddenElements = children.filter(c => isHiddenElement(c.element));
+    const textElements = children.filter(c => c.hasText);
+    const hiddenTextElements = children.filter(c => isHiddenElement(c.element) && c.hasText);
+    
+    console.log('✅ 子元素查找完成:', {
+      总数: children.length,
+      隐藏元素数: hiddenElements.length,
+      文本元素数: textElements.length,
+      隐藏文本元素数: hiddenTextElements.length,
+      隐藏文本列表: hiddenTextElements.map(e => e.element.text).slice(0, 3)
+    });
 
     // 按置信度排序，优先显示有文本的元素
     return children
@@ -306,15 +368,43 @@ export const useElementDiscovery = (
     isAnalyzingRef.current = true;
     setIsAnalyzing(true);
     setError(null);
-    console.log('🔍 开始元素发现分析:', targetElement.id);
+    
+    console.log('🔍🚨 [DEBUG] 开始元素发现分析:', {
+      targetId: targetElement.id,
+      targetText: targetElement.text,
+      targetBounds: targetElement.bounds,
+      allElementsLength: allElements.length,
+      timestamp: new Date().toISOString(),
+      isTargetClickable: targetElement.is_clickable,
+      isTargetHidden: isHiddenElement(targetElement),
+      totalElements: allElements.length
+    });
 
     try {
       // 使用层次分析器构建层次树
       const hierarchy = ElementHierarchyAnalyzer.analyzeHierarchy(allElements);
+      console.log('📊 层次结构分析完成:', {
+        totalNodes: hierarchy.nodeMap.size,
+        hasRoot: !!hierarchy.root,
+        maxDepth: hierarchy.maxDepth,
+        leafNodesCount: hierarchy.leafNodes.length
+      });
       
       // 查找父元素和子元素
       const parentElements = findParentElements(targetElement, hierarchy);
       const childElements = findChildElements(targetElement, hierarchy);
+      
+      // 🆕 统计隐藏元素信息
+      const hiddenChildren = childElements.filter(c => isHiddenElement(c.element));
+      const hiddenTextChildren = hiddenChildren.filter(c => c.hasText);
+      
+      console.log('📈 发现统计:', {
+        parentCount: parentElements.length,
+        childCount: childElements.length,
+        hiddenChildrenCount: hiddenChildren.length,
+        hiddenTextChildrenCount: hiddenTextChildren.length,
+        hiddenTexts: hiddenTextChildren.map(c => c.element.text).slice(0, 5)
+      });
       
       // 生成推荐匹配（综合考虑父子元素中的最佳选项）
       const allRelatedElements = [...parentElements, ...childElements];
@@ -369,6 +459,85 @@ export const useElementDiscovery = (
     );
   }, []);
 
+  // 🆕 通过文本查找对应的可点击父元素
+  const findParentByText = useCallback((targetText: string, matchType: 'contains' | 'exact' = 'contains'): UIElement[] => {
+    console.log('🔍 查找包含文本的可点击父元素:', { targetText, matchType });
+    
+    const results: UIElement[] = [];
+    
+    // 首先找到包含目标文本的元素
+    const textElements = allElements.filter(element => {
+      if (!element.text) return false;
+      
+      if (matchType === 'exact') {
+        return element.text === targetText;
+      } else {
+        return element.text.includes(targetText);
+      }
+    });
+    
+    console.log('📝 找到包含文本的元素:', textElements.length);
+    
+    if (textElements.length === 0) {
+      console.log('❌ 未找到包含目标文本的元素');
+      return results;
+    }
+    
+    // 构建层次结构
+    const hierarchy = ElementHierarchyAnalyzer.analyzeHierarchy(allElements);
+    
+    // 对每个包含文本的元素，向上查找可点击的父元素
+    for (const textElement of textElements) {
+      const textNode = hierarchy.nodeMap.get(textElement.id);
+      if (!textNode) continue;
+      
+      console.log('🧩 检查文本元素:', {
+        id: textElement.id,
+        text: textElement.text,
+        isClickable: textElement.is_clickable,
+        bounds: textElement.bounds
+      });
+      
+      // 如果文本元素本身可点击，直接添加
+      if (textElement.is_clickable) {
+        console.log('✅ 文本元素本身可点击');
+        results.push(textElement);
+        continue;
+      }
+      
+      // 向上查找可点击的父元素
+      let currentNode = textNode.parent;
+      let depth = 0;
+      const maxDepth = 5; // 最多向上查找5层
+      
+      while (currentNode && depth < maxDepth) {
+        const parentElement = currentNode.element;
+        
+        console.log(`📈 检查父元素 [深度${depth + 1}]:`, {
+          id: parentElement.id,
+          type: parentElement.element_type,
+          isClickable: parentElement.is_clickable,
+          bounds: parentElement.bounds
+        });
+        
+        if (parentElement.is_clickable) {
+          console.log('✅ 找到可点击的父元素');
+          // 避免重复添加
+          if (!results.find(r => r.id === parentElement.id)) {
+            results.push(parentElement);
+          }
+          break;
+        }
+        
+        currentNode = currentNode.parent;
+        depth++;
+      }
+    }
+    
+    console.log(`✅ 文本搜索完成，找到 ${results.length} 个可点击父元素`);
+    return results;
+  }, [allElements]);
+
   // 清除发现结果
   const clearDiscovery = useCallback(() => {
     setDiscoveryResult(null);
@@ -379,6 +548,7 @@ export const useElementDiscovery = (
     isAnalyzing,
     error,
     discoverElements,
-    clearDiscovery
+    clearDiscovery,
+    findParentByText
   };
 };

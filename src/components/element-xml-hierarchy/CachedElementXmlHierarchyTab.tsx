@@ -10,7 +10,6 @@ import CachedHierarchyTreeViewer from './CachedHierarchyTreeViewer';
 import type { CachedXmlPage, XmlPageContent } from '../../services/XmlPageCacheService';
 import { XmlPageCacheService } from '../../services/XmlPageCacheService';
 import { UIElement } from '../../api/universalUIAPI';
-import UniversalUIAPI from '../../api/universalUIAPI';
 
 interface ElementXmlHierarchyTabProps {
   /** 目标元素（用于高亮匹配） */
@@ -43,8 +42,8 @@ const ElementXmlHierarchyTab: React.FC<ElementXmlHierarchyTabProps> = ({
       // 加载页面内容
       const pageContent: XmlPageContent = await XmlPageCacheService.loadPageContent(page);
       
-      // 解析XML内容为UI元素
-      const elements = await UniversalUIAPI.extractPageElements(pageContent.xmlContent);
+      // 解析XML内容为UI元素（使用非过滤模式获取所有元素）
+      const elements = await XmlPageCacheService.parseXmlToAllElements(pageContent.xmlContent);
       
       setPageElements(elements || []);
       console.log('✅ 成功加载', elements?.length || 0, '个UI元素');

@@ -40,6 +40,17 @@ export interface DiscoveryOptions {
   prioritizeClickableElements: boolean; // 向后兼容
 }
 
+// 🆕 文本搜索类型
+export type TextSearchType = 'exact' | 'contains' | 'fuzzy';
+
+// 🆕 文本匹配结果
+export interface TextMatchResult {
+  textElement: UIElement; // 匹配的文本元素
+  clickableParents: DiscoveredElement[]; // 找到的可点击父级元素
+  matchType: TextSearchType; // 匹配类型
+  searchText: string; // 搜索的文本
+}
+
 // 元素卡片属性
 export interface ElementCardProps {
   element: DiscoveredElement;

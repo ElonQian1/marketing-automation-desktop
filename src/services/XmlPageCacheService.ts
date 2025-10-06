@@ -80,6 +80,30 @@ export class XmlPageCacheService {
   }
 
   /**
+   * 解析XML内容为UI元素（用于元素发现 - 返回所有元素）
+   * @param xmlContent XML内容
+   * @returns 所有UI元素（不过滤）
+   */
+  static async parseXmlToAllElements(xmlContent: string): Promise<any[]> {
+    console.log('🔍 [ElementDiscovery] 开始解析XML（非过滤模式），长度:', xmlContent.length);
+    const elements = await this.parseXmlToElements(xmlContent, false);
+    console.log('✅ [ElementDiscovery] 解析完成，提取', elements.length, '个元素');
+    return elements;
+  }
+
+  /**
+   * 解析XML内容为UI元素（用于页面分析 - 返回有价值的元素）
+   * @param xmlContent XML内容  
+   * @returns 过滤后的UI元素
+   */
+  static async parseXmlToValuableElements(xmlContent: string): Promise<any[]> {
+    console.log('🔍 [PageAnalysis] 开始解析XML（过滤模式），长度:', xmlContent.length);
+    const elements = await this.parseXmlToElements(xmlContent, true);
+    console.log('✅ [PageAnalysis] 解析完成，提取', elements.length, '个有价值元素');
+    return elements;
+  }
+
+  /**
    * 在文件管理器中打开指定的缓存页面文件
    */
   static async revealCachedPage(cachedPage: CachedXmlPage): Promise<void> {
@@ -379,11 +403,16 @@ export class XmlPageCacheService {
 
   /**
    * 解析XML内容为UI元素数组
+   * @param xmlContent XML内容
+   * @param enableFiltering 是否启用元素过滤（默认true用于页面分析，false用于元素发现）
    */
-  private static async parseXmlToElements(xmlContent: string): Promise<any[]> {
+  private static async parseXmlToElements(xmlContent: string, enableFiltering: boolean = true): Promise<any[]> {
     try {
-      // 调用Rust后端解析XML
-      const elements = await invoke('parse_cached_xml_to_elements', { xmlContent });
+      // 调用Rust后端解析XML，支持过滤配置
+      const elements = await invoke('parse_cached_xml_to_elements', { 
+        xml_content: xmlContent, 
+        enable_filtering: enableFiltering 
+      });
       return elements as any[];
     } catch (error) {
       console.error('❌ XML解析失败，使用前端备用解析器:', error);
