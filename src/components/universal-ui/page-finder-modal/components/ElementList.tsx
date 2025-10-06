@@ -26,7 +26,7 @@ import {
 } from "@ant-design/icons";
 import type { UIElement } from "../types";
 import type { VisualFilterConfig } from "../../types";
-import { filterUIElementsByConfig } from "../../shared/filters/visualFilter";
+import { FilterAdapter } from "../../../../services/FilterAdapter";
 import { getDisplayText, sortElements } from "../utils/sortElements";
 
 const { Text } = Typography;
@@ -56,7 +56,7 @@ export const ElementList: React.FC<ElementListProps> = ({
 
   // 🆕 应用前端过滤规则（若提供）
   const filteredByConfig = useMemo(() => {
-    return filterUIElementsByConfig(elements, filterConfig);
+    return FilterAdapter.filterUIElementsByLegacyConfig(elements, filterConfig);
   }, [elements, filterConfig]);
 
   // 排序：支持“语义优先”，并将“未知/未命名/占位(元素 N)”排到最后，组内保持稳定

@@ -1,0 +1,6 @@
+{
+  "scripts": {
+    "check:legacy-imports": "grep -r \"from.*visualFilter\\|from.*clickableHeuristics\" src/ || echo '✅ 未发现旧导入引用'",
+    "check:legacy-contacts": "grep -r \"通讯录管理\\|ContactsManagement\" src/ || echo '✅ 未发现旧通讯录引用'"
+  }
+}

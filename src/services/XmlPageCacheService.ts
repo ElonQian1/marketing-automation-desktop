@@ -5,6 +5,7 @@
 
 import { invoke } from '@tauri-apps/api/core';
 import { RealXMLAnalysisService } from './RealXMLAnalysisService';
+import { ElementFilter, ModuleFilterFactory, FilterStrategy } from './ElementFilter';
 
 export interface CachedXmlPage {
   /** 文件路径 */
@@ -87,8 +88,27 @@ export class XmlPageCacheService {
   static async parseXmlToAllElements(xmlContent: string): Promise<any[]> {
     console.log('🔍 [ElementDiscovery] 开始解析XML（非过滤模式），长度:', xmlContent.length);
     const elements = await this.parseXmlToElements(xmlContent, false);
-    console.log('✅ [ElementDiscovery] 解析完成，提取', elements.length, '个元素');
-    return elements;
+    console.log('🔧 [ElementDiscovery] 从后端获取到', elements.length, '个元素');
+    
+    // 统计原始的clickable元素
+    const clickableFromBackend = elements.filter(el => el.is_clickable === true);
+    console.log('🎯 [ElementDiscovery] 后端返回的可点击元素数:', clickableFromBackend.length);
+    
+    // 使用独立过滤器模块，明确指定不过滤
+    const result = ModuleFilterFactory.forElementDiscovery(elements);
+    console.log('✅ [ElementDiscovery] 解析完成，提取', result.length, '个元素（原始:', elements.length, '个）');
+    
+    // 检查过滤后的clickable元素
+    const clickableAfterFilter = result.filter(el => el.is_clickable === true);
+    console.log('🎯 [ElementDiscovery] 过滤后的可点击元素数:', clickableAfterFilter.length);
+    
+    if (clickableFromBackend.length !== clickableAfterFilter.length) {
+      console.warn('⚠️ [ElementDiscovery] 过滤器丢失了可点击元素！');
+      console.log('丢失的元素:', clickableFromBackend.filter(be => 
+        !clickableAfterFilter.some(ae => ae.id === be.id)));
+    }
+    
+    return result;
   }
 
   /**
@@ -97,10 +117,13 @@ export class XmlPageCacheService {
    * @returns 过滤后的UI元素
    */
   static async parseXmlToValuableElements(xmlContent: string): Promise<any[]> {
-    console.log('🔍 [PageAnalysis] 开始解析XML（过滤模式），长度:', xmlContent.length);
-    const elements = await this.parseXmlToElements(xmlContent, true);
-    console.log('✅ [PageAnalysis] 解析完成，提取', elements.length, '个有价值元素');
-    return elements;
+    console.log('🔍 [PageAnalysis] 开始解析XML，长度:', xmlContent.length);
+    // 先获取所有元素
+    const allElements = await this.parseXmlToElements(xmlContent, false);
+    // 使用页面分析专用过滤器
+    const valuableElements = ModuleFilterFactory.forPageAnalysis(allElements);
+    console.log('✅ [PageAnalysis] 解析完成，从', allElements.length, '个元素中筛选出', valuableElements.length, '个有价值元素');
+    return valuableElements;
   }
 
   /**
@@ -386,8 +409,8 @@ export class XmlPageCacheService {
         fileName: cachedPage.fileName 
       });
       
-      // 解析XML为UI元素
-      const elements = await this.parseXmlToElements(xmlContent);
+      // ✅ 使用非过滤模式解析，获取所有元素（包括完整的可点击元素）
+      const elements = await this.parseXmlToElements(xmlContent, false);
       
       return {
         xmlContent,
@@ -402,16 +425,23 @@ export class XmlPageCacheService {
   }
 
   /**
-   * 解析XML内容为UI元素数组
+   * 解析XML内容为UI元素数组（纯解析，不进行过滤）
    * @param xmlContent XML内容
-   * @param enableFiltering 是否启用元素过滤（默认true用于页面分析，false用于元素发现）
+   * @param enableFiltering 保留参数兼容性，但实际总是使用false（纯解析）
+   * @returns 完整的UI元素列表
    */
-  private static async parseXmlToElements(xmlContent: string, enableFiltering: boolean = true): Promise<any[]> {
+  private static async parseXmlToElements(xmlContent: string, enableFiltering: boolean = false): Promise<any[]> {
+    // 检查XML内容是否有效
+    if (!xmlContent || xmlContent.trim().length === 0) {
+      console.warn('⚠️ XML内容为空，返回空数组');
+      return [];
+    }
+
     try {
-      // 调用Rust后端解析XML，支持过滤配置
+      // 🔧 强制使用非过滤模式，确保这是纯解析函数
       const elements = await invoke('parse_cached_xml_to_elements', { 
         xml_content: xmlContent, 
-        enable_filtering: enableFiltering 
+        enable_filtering: false  // 总是使用false，过滤由ElementFilter模块负责
       });
       return elements as any[];
     } catch (error) {

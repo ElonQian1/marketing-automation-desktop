@@ -34,12 +34,12 @@ import {
   GridElementView,
   ScrcpyControlView,
 } from "./views";
-import { filterUIElementsByConfig, filterVisualElementsByConfig } from "./shared/filters/visualFilter";
+import { ElementFilter, ModuleFilterFactory } from "../../services/ElementFilter";
+import { FilterAdapter, type VisualFilterConfig, defaultVisualFilterConfig } from "../../services/FilterAdapter";
 import { useElementSelectionManager, ZIndexManager, useZIndexManager } from "./element-selection";
 import { convertVisualToUIElement } from "./views/visual-view";
 import type { VisualUIElement } from "./types";
 import { isDevDebugEnabled } from "../../utils/debug";
-import { defaultVisualFilterConfig, VisualFilterConfig } from "./types";
 import MainViewContainer from "./page-finder-modal/panels/MainViewContainer";
 import SelectionPopoverContainer from "./page-finder-modal/panels/SelectionPopoverContainer";
 
@@ -130,15 +130,20 @@ const UniversalPageFinderModal: React.FC<UniversalPageFinderModalProps> = ({
   // 本地状态
   const [viewMode, setViewMode] = useState<ViewMode>(initialViewMode);
   const [selectedElementId, setSelectedElementId] = useState<string>("");
-  // 🆕 过滤设置
+  // 🆕 过滤设置 - 🔧 强制禁用所有过滤器
   const [filterOpen, setFilterOpen] = useState(false);
   const [filterConfig, setFilterConfig] = useState<VisualFilterConfig>(() => {
-    try {
-      const saved = localStorage.getItem('visualFilterConfig');
-      return saved ? { ...defaultVisualFilterConfig, ...JSON.parse(saved) } : defaultVisualFilterConfig;
-    } catch {
-      return defaultVisualFilterConfig;
-    }
+    // 🔧 临时修复：强制使用无过滤配置，忽略localStorage
+    console.log('🔧 [Debug] 强制重置过滤器配置为无过滤状态');
+    return {
+      onlyClickable: false,
+      treatButtonAsClickable: true,
+      requireTextOrDesc: false,
+      minWidth: 1,
+      minHeight: 1,
+      includeClasses: [],
+      excludeClasses: [],
+    };
   });
   const persistFilter = (cfg: VisualFilterConfig) => {
     setFilterConfig(cfg);
@@ -329,9 +334,9 @@ const UniversalPageFinderModal: React.FC<UniversalPageFinderModalProps> = ({
         );
       
       case "tree":
-        // 预过滤，再将 UIElement[] 转换为 ElementWithHierarchy[]
-        const filteredUI = filterUIElementsByConfig(uiElements, filterConfig);
-        const elementsWithHierarchy = filteredUI.map((element, index) => ({
+        // ✅ 使用新的独立过滤器模块，为元素发现提供完整元素列表
+        const discoveryElements = ModuleFilterFactory.forElementDiscovery(uiElements);
+        const elementsWithHierarchy = discoveryElements.map((element, index) => ({
           ...element,
           depth: 0, // 默认深度
           originalIndex: index
@@ -369,7 +374,7 @@ const UniversalPageFinderModal: React.FC<UniversalPageFinderModalProps> = ({
           <ErrorBoundary>
             <GridElementView
               xmlContent={xmlContent}
-              elements={filterVisualElementsByConfig(elements as any, filterConfig) as any}
+              elements={FilterAdapter.smartFilter(elements as any, 'discovery') as any}
               onElementSelect={handleVisualElementSelect}
               selectedElementId={selectedElementId}
               locator={preselectLocator}
