@@ -12,6 +12,96 @@ import type {
 export class ElementHierarchyAnalyzer {
 
   /**
+    return false;
+  }
+
+  /**
+   * 🌟 专门处理隐藏元素的父子关系
+   * 对于bounds为[0,0][0,0]的元素，使用语义匹配策略
+   */
+  private static buildHiddenElementRelations(
+    nodeMap: Map<string, ElementHierarchyNode>,
+    elements: UIElement[]
+  ): void {
+    console.log('🔍 处理隐藏元素的父子关系');
+    
+    // 找到所有隐藏元素
+    const hiddenElements = elements.filter(this.isHiddenElement);
+    console.log('📝 发现隐藏元素数量:', hiddenElements.length);
+    
+    hiddenElements.forEach(hiddenElement => {
+      const hiddenNode = nodeMap.get(hiddenElement.id);
+      if (!hiddenNode || hiddenNode.parent) return;
+      
+      // 查找可能的父容器（基于语义匹配）
+      let bestParent: UIElement | null = null;
+      
+      // 策略1：通过resource_id匹配
+      if (hiddenElement.resource_id) {
+        // 查找相同组件下的可见容器
+        const sameComponentContainers = elements.filter(el => {
+          if (this.isHiddenElement(el) || el.id === hiddenElement.id) return false;
+          
+          if (!el.resource_id) return false;
+          
+          // 同一组件且是容器类型
+          const hiddenBase = hiddenElement.resource_id!.split(':')[0];
+          const containerBase = el.resource_id.split(':')[0];
+          
+          return hiddenBase === containerBase && 
+                 (el.element_type?.includes('LinearLayout') || 
+                  el.element_type?.includes('Container') ||
+                  el.is_clickable);
+        });
+        
+        if (sameComponentContainers.length > 0) {
+          // 选择最小的容器作为父元素
+          bestParent = sameComponentContainers.reduce((smallest, current) => {
+            const smallestArea = this.getElementArea(smallest);
+            const currentArea = this.getElementArea(current);
+            return currentArea < smallestArea ? current : smallest;
+          });
+        }
+      }
+      
+      // 策略2：TextView -> LinearLayout 的默认匹配
+      if (!bestParent && hiddenElement.element_type?.includes('TextView')) {
+        const nearbyLayouts = elements.filter(el => {
+          return !this.isHiddenElement(el) && 
+                 el.element_type?.includes('LinearLayout') &&
+                 el.id !== hiddenElement.id;
+        });
+        
+        if (nearbyLayouts.length > 0) {
+          bestParent = nearbyLayouts[0]; // 选择第一个LinearLayout作为候选父元素
+        }
+      }
+      
+      // 建立父子关系
+      if (bestParent) {
+        const parentNode = nodeMap.get(bestParent.id);
+        if (parentNode) {
+          parentNode.children.push(hiddenNode);
+          hiddenNode.parent = parentNode;
+          parentNode.isLeaf = false;
+          
+          console.log(`✅ 建立隐藏元素关系: ${bestParent.id}(${bestParent.element_type}) -> ${hiddenElement.id}(${hiddenElement.text || 'N/A'})`);
+        }
+      } else {
+        console.log(`⚠️ 未找到隐藏元素的父容器: ${hiddenElement.id}(${hiddenElement.text || 'N/A'})`);
+      }
+    });
+  }
+
+  /**
+   * 获取元素面积检测是否为隐藏元素（bounds为[0,0][0,0]）
+   */
+  private static isHiddenElement(element: UIElement): boolean {
+    return element.bounds.left === 0 && element.bounds.top === 0 && 
+           element.bounds.right === 0 && element.bounds.bottom === 0;
+  }
+
+  /**
    * 分析元素列表，构建层次树
    * @param elements UI元素列表
    * @returns 层次分析结果
@@ -66,6 +156,7 @@ export class ElementHierarchyAnalyzer {
 
   /**
    * 建立父子关系
+   * 🔧 修复版本：结合边界包含和XML索引信息来正确建立层级关系
    */
   private static buildParentChildRelations(
     nodeMap: Map<string, ElementHierarchyNode>,
@@ -73,19 +164,25 @@ export class ElementHierarchyAnalyzer {
   ): void {
     let relationCount = 0;
     
-    // 按面积从小到大排序，优先处理小元素（它们更可能是子元素）
+    console.log('🔍 开始建立父子关系，使用混合策略（边界包含+XML索引）');
+    
+    // 🌟 第一阶段：处理隐藏元素的特殊父子关系
+    this.buildHiddenElementRelations(nodeMap, elements);
+    
+    // 第二阶段：按面积从小到大排序，优先处理小元素（它们更可能是子元素）
     const sortedElements = [...elements].sort((a, b) => {
       const areaA = this.getElementArea(a);
       const areaB = this.getElementArea(b);
       return areaA - areaB;
     });
-
-    console.log('🔍 开始建立父子关系，排序后的元素:', sortedElements.length);
     
-    // 通过边界包含关系推断父子关系
+    // 通过边界包含关系推断父子关系（非隐藏元素）
     sortedElements.forEach((element, index) => {
       const currentNode = nodeMap.get(element.id);
-      if (!currentNode) return;
+      if (!currentNode || currentNode.parent) return; // 跳过已有父节点的元素
+      
+      // 跳过隐藏元素，它们已在第一阶段处理
+      if (this.isHiddenElement(element)) return;
 
       // 查找可能的父元素（完全包含当前元素的元素）
       const potentialParents = elements.filter(other => {
@@ -170,8 +267,51 @@ export class ElementHierarchyAnalyzer {
 
   /**
    * 检查元素A是否被元素B包含
+   * 🔧 修复版本：特别处理bounds为[0,0][0,0]的隐藏元素
    */
   private static isElementContained(elementA: UIElement, elementB: UIElement): boolean {
+    // 🌟 特殊处理：隐藏元素([0,0][0,0])的包含关系
+    const isAHidden = this.isHiddenElement(elementA);
+    const isBHidden = this.isHiddenElement(elementB);
+    
+    // 如果A是隐藏元素，使用语义相似度判断而不是边界包含
+    if (isAHidden) {
+      // 隐藏元素通常是父容器的子元素，基于以下条件判断：
+      // 1. resource_id 相似性
+      // 2. 元素类型兼容性 (TextView -> LinearLayout)
+      // 3. 文本元素通常是容器的子元素
+      
+      if (elementA.resource_id && elementB.resource_id && 
+          elementA.resource_id.includes('container') && 
+          elementB.bounds.left !== 0 && elementB.bounds.top !== 0) {
+        return true; // container元素通常是可见父容器的子元素
+      }
+      
+      // 文本元素(TextView)通常是LinearLayout容器的子元素
+      if (elementA.element_type?.includes('TextView') && 
+          elementB.element_type?.includes('LinearLayout') &&
+          !isBHidden) {
+        return true;
+      }
+      
+      // 🔍 基于resource_id层级关系的语义匹配
+      if (elementA.resource_id && elementB.resource_id) {
+        // 检查是否是同一组件的子-父关系
+        const aResourceBase = elementA.resource_id.split(':')[0];
+        const bResourceBase = elementB.resource_id.split(':')[0];
+        
+        if (aResourceBase === bResourceBase && 
+            elementA.resource_id.includes('content') && 
+            elementB.resource_id.includes('container')) {
+          return true;
+        }
+      }
+      
+      // 不使用边界检查，避免[0,0][0,0]包含失败
+      return false;
+    }
+    
+    // 对于非隐藏元素，使用原有的边界包含逻辑
     // 基本包含检查
     const basicContained = (
       elementB.bounds.left <= elementA.bounds.left &&

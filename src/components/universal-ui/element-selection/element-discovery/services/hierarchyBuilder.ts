@@ -22,12 +22,52 @@ export class HierarchyBuilder {
     console.log('🏗️ HierarchyBuilder: 开始构建层级树，目标元素:', targetElement.id);
     console.log('🏗️ HierarchyBuilder: 总元素数量:', elements.length);
     
+    // 🔍 检查关键文本元素（底部导航）
+    const navTextElements = elements.filter(el => 
+      (el.text === '电话' || el.text === '联系人' || el.text === '收藏')
+    );
+    if (navTextElements.length > 0) {
+      console.log('✅ 发现关键导航文本元素:', navTextElements.map(el => el.text).join(', '));
+    }
+    
     try {
       // 步骤1: 基于 XML 语义构建节点映射和父子关系
-      const nodeMap = XmlStructureParser.buildXmlBasedHierarchy(elements, targetElement);
+      const nodeMap = XmlStructureParser.buildXmlBasedHierarchy(elements, targetElement, 'element-discovery');
+      
+      // 🔍 调试：检查关键文本元素的层级关系
+      const textElements = ['element_37', 'element_41', 'element_45']; // 电话、联系人、收藏
+      textElements.forEach(textId => {
+        const textNode = nodeMap.get(textId);
+        if (textNode) {
+          console.log(`🔍 文本元素 ${textId} 层级关系:`, {
+            hasParent: !!textNode.parent,
+            parentId: textNode.parent?.id,
+            parentType: textNode.parent?.element.element_type,
+            hasChildren: textNode.children.length > 0,
+            text: textNode.element.text
+          });
+        } else {
+          console.log(`⚠️ 文本元素 ${textId} 不存在于节点映射中`);
+        }
+      });
+      
+      // 🔍 调试：检查按钮的子元素
+      const buttonElements = ['element_34', 'element_38', 'element_42']; // 三个按钮
+      buttonElements.forEach(buttonId => {
+        const buttonNode = nodeMap.get(buttonId);
+        if (buttonNode) {
+          console.log(`🔍 按钮 ${buttonId} 子元素:`, {
+            childrenCount: buttonNode.children.length,
+            children: buttonNode.children.map(child => ({
+              id: child.id,
+              type: child.element.element_type,
+              text: child.element.text || 'N/A'
+            }))
+          });
+        }
+      });
       
       // 步骤2: 查找目标元素节点
-      console.log('🏗️ HierarchyBuilder: 查找目标元素');
       const targetNode = nodeMap.get(targetElement.id);
       if (!targetNode) {
         console.warn('🚨 HierarchyBuilder: 未找到目标元素节点');
@@ -40,8 +80,7 @@ export class HierarchyBuilder {
       console.log(`🎯 HierarchyBuilder: 目标元素 ${targetElement.id} 的子元素:`, 
         targetNode.children.map(c => `${c.id}(${c.element.element_type})`));
 
-      // 步骤4: 智能选择根节点 - 优先选择有意义的业务容器
-      console.log('🏗️ HierarchyBuilder: 智能选择根节点');
+      // 步骤4: 智能选择根节点
       const rootAncestor = this.smartSelectRootNode(targetNode, nodeMap);
 
       // 步骤5: 计算关系
@@ -56,9 +95,7 @@ export class HierarchyBuilder {
       console.log('🏗️ HierarchyBuilder: 设置层级深度');
       this.setLevels([rootAncestor], 0);
 
-      console.log('✅ HierarchyBuilder: 层级树构建完成');
-      console.log('🏠 HierarchyBuilder: 最终根节点:', `${rootAncestor.id}(${rootAncestor.element.element_type})`);
-      console.log('📊 HierarchyBuilder: 根节点子元素数量:', rootAncestor.children.length);
+      console.log('✅ 架构图构建完成 - 根节点:', `${rootAncestor.id}(${rootAncestor.element.element_type})`, '子元素:', rootAncestor.children.length);
       
       return [rootAncestor];
       
@@ -181,13 +218,141 @@ export class HierarchyBuilder {
   
   /**
    * 生成节点标题
-   * 创建用于 Tree 组件显示的节点标题
+   * 创建用户友好的节点标题，突出显示文本元素和功能描述
    */
   static generateNodeTitle(node: HierarchyNode, report: ReturnType<typeof ElementAnalyzer.generateElementReport>): string {
+    const element = node.element;
+    
+    // 获取关系标识和层级信息
     const relationshipBadge = this.getRelationshipBadge(node.relationship);
     const levelInfo = `[L${node.level}]`;
+    const elementId = element.id.replace('element_', '');
     
-    return `${relationshipBadge} ${levelInfo} ${report.label}`;
+    // 构建用户友好的标题
+    let title = '';
+    
+    // 如果有文本内容，优先显示并突出标记
+    if (element.text && element.text.trim()) {
+      const textContent = element.text.trim();
+      // 特别突出文本元素，因为用户说这些更容易搜索
+      title = `📝 "${textContent}" ${relationshipBadge}${levelInfo}`;
+    } 
+    // 如果有内容描述，也优先显示
+    else if (element.content_desc && element.content_desc.trim()) {
+      const descContent = element.content_desc.trim();
+      title = `💬 "${descContent}" ${relationshipBadge}${levelInfo}`;
+    }
+    // 否则基于元素类型和属性生成描述
+    else {
+      const elementType = this.getElementTypeDescription(element);
+      title = `${elementType} ${relationshipBadge}${levelInfo} (${elementId})`;
+    }
+    
+    return title;
+  }
+
+  /**
+   * 基于元素属性生成用户友好的类型描述
+   */
+  static getElementTypeDescription(element: UIElement): string {
+    const className = element.element_type?.toLowerCase() || '';
+    const resourceId = element.resource_id?.toLowerCase() || '';
+    const isClickable = element.is_clickable;
+    
+    // 首先基于类名进行基础分类，这样更准确
+    
+    // 文本类型元素 - 用户最关心的
+    if (className.includes('textview')) {
+      return '📝 文本显示';
+    }
+    if (className.includes('edittext')) {
+      return '✏️ 输入框';
+    }
+    
+    // 基于resource_id识别（更精确的匹配）
+    if (resourceId.includes('phone') || resourceId.includes('call')) {
+      return '📞 电话按钮';
+    }
+    // 更精确的联系人匹配，避免误识别
+    if (resourceId.endsWith('contacts') || resourceId.includes('contacts_tab') || 
+        (resourceId.includes('contact') && (resourceId.includes('btn') || resourceId.includes('tab')))) {
+      return '👥 联系人按钮';
+    }
+    if (resourceId.includes('favorite') || resourceId.includes('star')) {
+      return '⭐ 收藏按钮';
+    }
+    if (resourceId.includes('search')) {
+      return '🔍 搜索';
+    }
+    if (resourceId.includes('menu') || resourceId.includes('navigation')) {
+      return '📋 菜单';
+    }
+    if (resourceId.includes('icon') || resourceId.includes('image')) {
+      return '🖼️ 图标';
+    }
+    if (resourceId.includes('text') || resourceId.includes('label')) {
+      return '📝 文本';
+    }
+    
+    // 基于类名识别（继续其他类型）
+    if (className.includes('button')) {
+      return isClickable ? '🔘 按钮' : '📦 按钮容器';
+    }
+    if (className.includes('imageview')) {
+      return '🖼️ 图片';
+    }
+    if (className.includes('imagebutton')) {
+      return '🖼️ 图片按钮';
+    }
+    if (className.includes('linearlayout') || className.includes('relativelayout') || className.includes('framelayout')) {
+      return '📦 布局容器';
+    }
+    if (className.includes('recyclerview') || className.includes('listview')) {
+      return '📋 列表';
+    }
+    if (className.includes('scrollview')) {
+      return '� 滚动视图';
+    }
+    if (className.includes('checkbox')) {
+      return '☑️ 复选框';
+    }
+    if (className.includes('radiobutton')) {
+      return '🔘 单选按钮';
+    }
+    if (className.includes('switch')) {
+      return '🔀 开关';
+    }
+    if (className.includes('progressbar')) {
+      return '📊 进度条';
+    }
+    if (className.includes('seekbar')) {
+      return '🎚️ 滑动条';
+    }
+    if (className.includes('webview')) {
+      return '🌐 网页视图';
+    }
+    
+    // 基于可点击性和其他属性
+    if (isClickable) {
+      return '👆 可点击元素';
+    }
+    
+    // 检查是否是容器类型
+    if (className.includes('layout') || className.includes('container')) {
+      return '📦 容器';
+    }
+    
+    // 基于尺寸判断是否可能是图标
+    const width = element.bounds.right - element.bounds.left;
+    const height = element.bounds.bottom - element.bounds.top;
+    const area = width * height;
+    
+    if (area > 0 && area < 5000) { // 小尺寸元素可能是图标
+      return '🔹 小型元素';
+    }
+    
+    // 默认情况
+    return '📱 UI元素';
   }
   
   /**

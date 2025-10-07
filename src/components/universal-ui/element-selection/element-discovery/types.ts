@@ -39,6 +39,7 @@ export interface DiscoveryOptions {
   prioritizeTextElements: boolean; // 向后兼容
   prioritizeClickableElements: boolean; // 向后兼容
   enableArchitectureAnalysis: boolean; // 🆕 启用架构分析
+  xmlContent?: string; // 🆕 原始XML内容，用于纯结构分析
 }
 
 // 🆕 文本搜索类型

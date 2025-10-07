@@ -54,6 +54,3 @@ export { ParentElementCard } from './ParentElementCard';
 export { ChildElementCard } from './ChildElementCard';
 export { SelfElementCard } from './SelfElementCard';
 export { ElementDiscoveryModal } from './ElementDiscoveryModal';
-
-// 导出原版架构图组件（兼容性）
-export { default as ArchitectureDiagramLegacy } from './ArchitectureDiagram_Legacy';

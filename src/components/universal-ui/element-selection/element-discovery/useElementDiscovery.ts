@@ -1,6 +1,18 @@
 /**
- * 元素发现逻辑 Hook
- * 负责分析元素层次关系和生成发现结果
+ * 元素发现逻辑 Hook - 纯XML结构分析模式
+ * 
+ * 🎯 专用于元素发现模态框，基于XML DOM树结构分析父子关系
+ * 
+ * 核心特性：
+ * - 仅使用PureXmlStructureAnalyzer进行分析
+ * - 不过滤bounds=[0,0][0,0]的隐藏元素
+ * - 保持完整的DOM层级结构
+ * - 必须提供xmlContent才能正常工作
+ * 
+ * 与其他分析器的区别：
+ * - 不使用边界检查（ElementHierarchyAnalyzer）
+ * - 不使用边界包含关系判断
+ * - 专注于XML语义匹配和DOM结构
  */
 
 import { useState, useCallback, useMemo, useRef } from 'react';
@@ -10,8 +22,8 @@ import type {
   DiscoveredElement, 
   DiscoveryOptions 
 } from './types';
-import { ElementHierarchyAnalyzer } from '../hierarchy/ElementHierarchyAnalyzer';
-import { ElementBoundsAnalyzer } from '../hierarchy/ElementBoundsAnalyzer';
+import { PureXmlStructureAnalyzer } from './services/PureXmlStructureAnalyzer'; // 🆕 专用纯XML分析器
+import { ElementBoundsAnalyzer } from '../hierarchy/ElementBoundsAnalyzer'; // 仅用于调试分析
 
 const DEFAULT_OPTIONS: DiscoveryOptions = {
   includeParents: true,
@@ -23,7 +35,8 @@ const DEFAULT_OPTIONS: DiscoveryOptions = {
   prioritizeClickable: true,
   prioritizeTextElements: true, // 向后兼容
   prioritizeClickableElements: true, // 向后兼容
-  enableArchitectureAnalysis: true // 🆕 启用架构分析
+  enableArchitectureAnalysis: true, // 🆕 启用架构分析
+  // xmlContent: 必须由调用者提供，没有默认值
 };
 
 export const useElementDiscovery = (
@@ -470,7 +483,7 @@ export const useElementDiscovery = (
     setIsAnalyzing(true);
     setError(null);
     
-    console.log('🔍🚨 [DEBUG] 开始元素发现分析:', {
+    console.log('🔍🚨 [元素发现] 开始纯XML结构分析:', {
       targetId: targetElement.id,
       targetText: targetElement.text,
       targetBounds: targetElement.bounds,
@@ -478,58 +491,33 @@ export const useElementDiscovery = (
       timestamp: new Date().toISOString(),
       isTargetClickable: targetElement.is_clickable,
       isTargetHidden: isHiddenElement(targetElement),
-      totalElements: allElements.length
+      hasXmlContent: !!finalOptions.xmlContent
     });
 
-    // 🆕 智能目标检测：如果点击的是非可点击子元素，尝试找到可点击的父容器
-    let actualTargetElement = targetElement;
-    
-    if (!targetElement.is_clickable) {
-      console.log('🎯 目标元素不可点击，尝试查找可点击的父容器...');
-      
-      // 使用层次分析器查找父容器
-      const hierarchy = ElementHierarchyAnalyzer.analyzeHierarchy(allElements);
-      const targetNode = hierarchy.nodeMap.get(targetElement.id);
-      
-      if (targetNode) {
-        let currentNode = targetNode.parent;
-        let searchDepth = 0;
-        
-        while (currentNode && searchDepth < 3) { // 最多向上查找3级
-          if (currentNode.element.is_clickable) {
-            console.log('✅ 找到可点击的父容器:', {
-              原始目标: targetElement.id,
-              新目标: currentNode.element.id,
-              层级差: searchDepth + 1,
-              父容器文本: currentNode.element.text || '无',
-              父容器类型: currentNode.element.element_type
-            });
-            actualTargetElement = currentNode.element;
-            break;
-          }
-          currentNode = currentNode.parent;
-          searchDepth++;
-        }
-        
-        if (actualTargetElement === targetElement) {
-          console.log('⚠️ 未找到可点击的父容器，继续使用原始目标');
-        }
-      }
-    }
-
     try {
-      // 使用层次分析器构建层次树（如果之前没有构建的话）
-      const hierarchy = actualTargetElement === targetElement 
-        ? ElementHierarchyAnalyzer.analyzeHierarchy(allElements)
-        : ElementHierarchyAnalyzer.analyzeHierarchy(allElements); // 重新构建以确保准确性
-        
-      console.log('📊 层次结构分析完成:', {
-        totalNodes: hierarchy.nodeMap.size,
-        hasRoot: !!hierarchy.root,
-        maxDepth: hierarchy.maxDepth,
-        leafNodesCount: hierarchy.leafNodes.length,
-        使用目标: actualTargetElement.id
+      // 🧩 元素发现专用：仅使用纯XML结构分析
+      if (!finalOptions.xmlContent) {
+        const errorMsg = '元素发现功能需要XML内容才能正常工作。请确保已加载页面XML数据。';
+        console.error('❌ [元素发现] 缺少XML内容:', errorMsg);
+        setError(errorMsg);
+        return;
+      }
+
+      console.log('🧩 [纯XML模式] 使用纯XML结构分析器');
+      const hierarchy = PureXmlStructureAnalyzer.buildHierarchyFromXml(
+        finalOptions.xmlContent, 
+        allElements
+      );
+      
+      console.log('📊 [纯XML模式] 分析完成:', {
+        总节点数: hierarchy.nodeMap.size,
+        根节点: hierarchy.root?.element.id || '无',
+        最大深度: hierarchy.maxDepth,
+        统计信息: hierarchy.stats
       });
+
+      // 直接使用目标元素，不进行智能检测（纯XML模式下保持原始意图）
+      const actualTargetElement = targetElement;
       
       // 查找父元素、子元素和兄弟元素（使用实际目标）
       const parentElements = findParentElements(actualTargetElement, hierarchy);
@@ -616,9 +604,15 @@ export const useElementDiscovery = (
     );
   }, []);
 
-  // 🆕 通过文本查找对应的可点击父元素
+  // 🆕 通过文本查找对应的可点击父元素（需要XML内容支持）
   const findParentByText = useCallback((targetText: string, matchType: 'contains' | 'exact' = 'contains'): UIElement[] => {
     console.log('🔍 查找包含文本的可点击父元素:', { targetText, matchType });
+    
+    // 元素发现功能需要XML内容
+    if (!finalOptions.xmlContent) {
+      console.warn('⚠️ findParentByText 需要XML内容支持，跳过查找');
+      return [];
+    }
     
     const results: UIElement[] = [];
     
@@ -640,8 +634,11 @@ export const useElementDiscovery = (
       return results;
     }
     
-    // 构建层次结构
-    const hierarchy = ElementHierarchyAnalyzer.analyzeHierarchy(allElements);
+    // 使用纯XML分析器构建层次结构
+    const hierarchy = PureXmlStructureAnalyzer.buildHierarchyFromXml(
+      finalOptions.xmlContent, 
+      allElements
+    );
     
     // 对每个包含文本的元素，向上查找可点击的父元素
     for (const textElement of textElements) {

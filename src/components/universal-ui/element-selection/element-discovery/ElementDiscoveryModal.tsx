@@ -32,6 +32,7 @@ export interface ElementDiscoveryModalProps {
   onElementSelect: (element: UIElement) => void;
   allElements: UIElement[];
   discoveryOptions?: Partial<DiscoveryOptions>;
+  xmlContent?: string; // 🆕 添加XML内容支持
 }
 
 // 主组件
@@ -41,7 +42,8 @@ export const ElementDiscoveryModal: React.FC<ElementDiscoveryModalProps> = ({
   targetElement,
   onElementSelect,
   allElements,
-  discoveryOptions = {}
+  discoveryOptions = {},
+  xmlContent // 🆕 接收XML内容
 }) => {
   const [activeTab, setActiveTab] = useState<string>('self');
   const [smartTabSelected, setSmartTabSelected] = useState<boolean>(false);
@@ -52,7 +54,10 @@ export const ElementDiscoveryModal: React.FC<ElementDiscoveryModalProps> = ({
     discoverElements, 
     isAnalyzing,
     error
-  } = useElementDiscovery(allElements, discoveryOptions);
+  } = useElementDiscovery(allElements, {
+    ...discoveryOptions,
+    xmlContent // 🆕 传递XML内容给Hook
+  });
 
   // 执行发现分析 - 使用ref来避免无限循环
   const discoverElementsRef = React.useRef(discoverElements);
@@ -60,6 +65,11 @@ export const ElementDiscoveryModal: React.FC<ElementDiscoveryModalProps> = ({
 
   React.useEffect(() => {
     if (targetElement && open) {
+      if (!xmlContent) {
+        console.warn('⚠️ 元素发现需要XML内容支持');
+        return;
+      }
+      
       console.log('🔍 开始执行元素发现分析:', targetElement);
       discoverElementsRef.current(targetElement);
       
@@ -67,7 +77,7 @@ export const ElementDiscoveryModal: React.FC<ElementDiscoveryModalProps> = ({
       setSmartTabSelected(false);
       setActiveTab('self');
     }
-  }, [targetElement, open]);
+  }, [targetElement, open, xmlContent]);
 
   // 🆕 智能tab选择：当发现结果准备好时，根据元素特性选择最佳tab
   React.useEffect(() => {
@@ -262,7 +272,6 @@ export const ElementDiscoveryModal: React.FC<ElementDiscoveryModalProps> = ({
         targetElement={targetElement}
         allElements={allElements}
         onElementSelect={handleArchitectureElementSelect}
-        onFindNearestClickable={handleFindNearestClickable}
       />
     );
   };

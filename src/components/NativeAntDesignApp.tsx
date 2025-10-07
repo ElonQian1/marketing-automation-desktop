@@ -64,6 +64,7 @@ import BusinessComponentsDemo from "../pages/BusinessComponentsDemo";
 
 // Design Tokens 演示页面
 import { DesignTokensDemo } from "../pages/DesignTokensDemo";
+import ElementDiscoveryTestPage from "../pages/ElementDiscoveryTestPage";
 
 const { Header, Sider, Content } = Layout;
 const { Title } = Typography;
@@ -147,6 +148,11 @@ const NativeAntDesignApp: React.FC = () => {
       label: "🎨 Design Tokens 演示",
     },
     {
+      key: "element-discovery-test",
+      icon: <EyeOutlined />,
+      label: "🧪 元素发现调试测试",
+    },
+    {
       key: "statistics-native",
       icon: <DashboardOutlined />,
       label: "统计页面（原生）",
@@ -207,6 +213,8 @@ const NativeAntDesignApp: React.FC = () => {
         return <ThemeSettingsPage />;
       case "design-tokens-demo":
         return <DesignTokensDemo />;
+      case "element-discovery-test":
+        return <ElementDiscoveryTestPage />;
       case "statistics-native":
         return <StatisticsPageNative />;
       case "statistics-optimized":

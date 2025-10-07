@@ -24,8 +24,7 @@ const mockElements: UIElement[] = [
     password: false,
     content_desc: '',
     resource_id: '',
-    class_name: 'android.widget.LinearLayout',
-    package_name: 'com.xingin.xhs'
+    class_name: 'android.widget.LinearLayout'
   },
   // element_38 - 图标子元素（不可点击）
   {
@@ -44,8 +43,7 @@ const mockElements: UIElement[] = [
     password: false,
     content_desc: '',
     resource_id: '',
-    class_name: 'android.widget.ImageView',
-    package_name: 'com.xingin.xhs'
+    class_name: 'android.widget.ImageView'
   },
   // element_40 - "联系人"文本子元素（隐藏）
   {
@@ -64,8 +62,7 @@ const mockElements: UIElement[] = [
     password: false,
     content_desc: '',
     resource_id: '',
-    class_name: 'android.widget.TextView',
-    package_name: 'com.xingin.xhs'
+    class_name: 'android.widget.TextView'
   }
 ];
 

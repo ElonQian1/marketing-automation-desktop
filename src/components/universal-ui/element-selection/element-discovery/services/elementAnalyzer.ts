@@ -36,8 +36,16 @@ export class ElementAnalyzer {
   /**
    * 检查元素是否为隐藏元素
    * 基于边界、可见性等特征判断
+   * @param element - 要检查的UI元素
+   * @param mode - 使用模式：'element-discovery' | 'visualization'
    */
-  static checkIsHiddenElement(element: UIElement): boolean {
+  static checkIsHiddenElement(element: UIElement, mode: 'element-discovery' | 'visualization' = 'visualization'): boolean {
+    // 🔍 发现元素模式：显示完整的XML节点结构，不过滤任何元素
+    if (mode === 'element-discovery') {
+      return false;
+    }
+    
+    // 🎨 可视化视图模式：基于边界检查隐藏元素
     const bounds = BoundaryDetector.normalizeBounds(element.bounds);
     if (!bounds) return true;
     
@@ -215,14 +223,14 @@ export class ElementAnalyzer {
       features.push(`${element.children.length}个子元素`);
     }
     
-    if (this.checkIsHiddenElement(element)) {
+    if (this.checkIsHiddenElement(element, 'element-discovery')) {
       features.push('隐藏');
     }
     
     return {
       hasText: !!(element.text && element.text.trim()),
       isClickable: element.is_clickable,
-      isHidden: this.checkIsHiddenElement(element),
+      isHidden: this.checkIsHiddenElement(element, 'element-discovery'),
       hasChildren: !!(element.children && element.children.length > 0),
       area,
       type: element.element_type,

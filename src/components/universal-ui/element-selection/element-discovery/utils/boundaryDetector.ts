@@ -30,7 +30,7 @@ export class BoundaryDetector {
         const parentIsNavRelated = parent.resource_id.includes('com.hihonor.contacts:id/') || 
                                   parent.resource_id.includes('bottom_navgation');
         if (childIsNavRelated && parentIsNavRelated) {
-          console.log(`🔧 零边界关联检查: ${child.id} -> ${parent.id} (resource-id关联)`);
+          // 零边界元素的resource-id关联性检查
           return true;
         }
       }
@@ -39,14 +39,14 @@ export class BoundaryDetector {
       if (child.text && (child.text.includes('电话') || child.text.includes('联系人') || child.text.includes('收藏'))) {
         const parentIsClickable = parent.is_clickable;
         if (parentIsClickable) {
-          console.log(`🔧 文本关联检查: ${child.id}("${child.text}") -> ${parent.id} (可点击按钮)`);
+          // 文本与可点击按钮的关联性
           return true;
         }
       }
       
       // 如果父元素也是零边界，可能是嵌套的文本容器
       if (isParentZeroBounds && child.resource_id?.includes('content') && parent.resource_id?.includes('container')) {
-        console.log(`🔧 文本容器嵌套: ${child.id} -> ${parent.id}`);
+        // 文本容器嵌套关系
         return true;
       }
       
@@ -60,15 +60,6 @@ export class BoundaryDetector {
       childBounds.right <= parentBounds.right &&
       childBounds.bottom <= parentBounds.bottom
     );
-    
-    // 🔍 调试特定元素的包含关系（只对底部导航相关元素输出）
-    if (parent.id.includes('element_32') || child.id.includes('element_3')) {
-      console.log(`🔍 包含检查: ${child.id}(${child.element_type}) 是否在 ${parent.id}(${parent.element_type}) 内: ${isContained}`);
-      console.log(`   子元素边界: [${childBounds.left},${childBounds.top}][${childBounds.right},${childBounds.bottom}]`);
-      console.log(`   父元素边界: [${parentBounds.left},${parentBounds.top}][${parentBounds.right},${parentBounds.bottom}]`);
-      if (isChildZeroBounds) console.log(`   ⚠️ 子元素为零边界`);
-      if (isParentZeroBounds) console.log(`   ⚠️ 父元素为零边界`);
-    }
     
     return isContained;
   }

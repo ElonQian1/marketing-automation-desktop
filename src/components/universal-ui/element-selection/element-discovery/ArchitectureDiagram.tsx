@@ -70,6 +70,34 @@ export const ArchitectureDiagram: React.FC<ArchitectureDiagramProps> = ({
   showVisualization = false,
   className
 }) => {
+  // 🔍 调试：输出传入的数据统计
+  console.log('🏗️ ArchitectureDiagram: 接收到的数据统计:');
+  console.log(`  - 目标元素: ${targetElement.id} (${targetElement.element_type})`);
+  console.log(`  - 总元素数量: ${allElements.length}`);
+  
+  // 统计不同类型的元素
+  const elementStats = allElements.reduce((stats, el) => {
+    const type = el.element_type || 'unknown';
+    stats[type] = (stats[type] || 0) + 1;
+    return stats;
+  }, {} as Record<string, number>);
+  
+  console.log('  - 元素类型分布:', elementStats);
+  
+  // 统计有文本内容的元素
+  const textElements = allElements.filter(el => 
+    el.text && el.text.trim().length > 0 || 
+    el.content_desc && el.content_desc.trim().length > 0
+  );
+  console.log(`  - 包含文本/描述的元素: ${textElements.length}`);
+  
+  if (textElements.length > 0) {
+    console.log('  - 文本元素示例:');
+    textElements.slice(0, 5).forEach((el, index) => {
+      console.log(`    ${index + 1}. ${el.id} (${el.element_type}): "${el.text || el.content_desc}"`);
+    });
+  }
+
   // 使用自定义hooks管理状态和业务逻辑
   const {
     hierarchyTree,
