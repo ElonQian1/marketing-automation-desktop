@@ -1,28 +1,34 @@
 /**
- * 元素发现模块 - 统一导出
+ * Element Discovery 模块化架构 - 统一导出
  * 
- * 此模块提供元素层次结构分析功能，帮助用户发现父容器和子元素，
- * 以找到更稳定和精确的元素匹配策略。
+ * 这个文件提供了重构后的模块化组件和服务的统一导出接口
  * 
- * 主要功能：
- * - 父容器分析：查找包含目标元素的上层容器
- * - 子元素分析：查找包含文本的子元素
- * - 智能推荐：基于置信度算法推荐最佳匹配
- * - 元素详情：展示完整的元素属性和层次关系
- * 
- * 使用示例：
- * ```tsx
- * import { 
- *   ElementDiscoveryModal, 
- *   useElementDiscovery, 
- *   DiscoveredElement 
- * } from './element-discovery';
- * 
- * // 在组件中使用
- * const { discoverElements } = useElementDiscovery(allElements, options);
- * const result = discoverElements(targetElement);
- * ```
+ * 架构层次：
+ * - Services: 业务逻辑服务层
+ * - Utils: 工具类和辅助函数
+ * - Hooks: React 状态管理和逻辑 Hook
+ * - Components: UI 组件层
  */
+
+// === 新的模块化架构导出 ===
+
+// 核心服务层
+export { XmlStructureParser, type HierarchyNode } from './services/xmlStructureParser';
+export { ElementAnalyzer } from './services/elementAnalyzer';
+export { HierarchyBuilder } from './services/hierarchyBuilder';
+
+// 工具层
+export { BoundaryDetector } from './utils/boundaryDetector';
+
+// Hook 层
+export { useArchitectureTree } from './hooks/useArchitectureTree';
+export { useElementVisualization } from './hooks/useElementVisualization';
+
+// 组件层
+export { default as ArchitectureDiagram } from './ArchitectureDiagram_v2';
+export type { ArchitectureDiagramProps } from './ArchitectureDiagram_v2';
+
+// === 保留的原有导出（向后兼容） ===
 
 // 导出类型定义
 export * from './types';
@@ -35,3 +41,6 @@ export { ParentElementCard } from './ParentElementCard';
 export { ChildElementCard } from './ChildElementCard';
 export { SelfElementCard } from './SelfElementCard';
 export { ElementDiscoveryModal } from './ElementDiscoveryModal';
+
+// 导出原版架构图组件（兼容性）
+export { default as ArchitectureDiagramLegacy } from './ArchitectureDiagram';
