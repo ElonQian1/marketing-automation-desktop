@@ -5,10 +5,24 @@
 
 use super::{StrategyProcessor, MatchingContext, StrategyResult, ProcessingError};
 // use crate::xml_judgment::*; // 临时禁用，等待重构为使用 universal_ui_page_analyzer
-use crate::xml_judgment::MatchCriteriaDTO;
+// use crate::xml_judgment::MatchCriteriaDTO; // 临时禁用
 use async_trait::async_trait;
 use anyhow::Result;
 use tracing::{info, warn, debug};
+use std::collections::HashMap;
+
+// 临时类型定义，替代 xml_judgment::MatchCriteriaDTO
+#[derive(Debug, Clone)]
+pub struct MatchCriteriaDTO {
+    pub strategy: String,
+    pub fields: Vec<String>,
+    pub values: HashMap<String, String>,
+    pub includes: Option<HashMap<String, Vec<String>>>,
+    pub excludes: Option<HashMap<String, Vec<String>>>,
+    pub match_mode: String,
+    pub regex_includes: HashMap<String, String>,
+    pub regex_excludes: HashMap<String, String>,
+}
 
 /// Standard 策略处理器
 /// 
@@ -108,11 +122,11 @@ impl StrategyProcessor for StandardStrategyProcessor {
             strategy: "standard".to_string(),
             fields: semantic_fields,
             values: semantic_values,
-            includes: context.includes.clone(),
-            excludes: context.excludes.clone(),
-            match_mode: self.filter_semantic_modes(&context.match_mode),
-            regex_includes: self.filter_semantic_regex_map(&context.regex_includes),
-            regex_excludes: self.filter_semantic_regex_map(&context.regex_excludes),
+            includes: Some(context.includes.clone()),
+            excludes: Some(context.excludes.clone()),
+            match_mode: "standard".to_string(),
+            regex_includes: HashMap::new(),
+            regex_excludes: HashMap::new(),
         };
 
         // 记录一次完整 criteria 快照（避免过多日志，仅在 debug 级别下一行摘要）

@@ -1,6 +1,7 @@
 import { useMemo, useState, useCallback } from 'react';
 import type { UIElement } from '../../../../../api/universal-ui';
-import { HierarchyBuilder, type HierarchyNode } from '../services/hierarchyBuilder';
+import { HierarchyBuilder } from '../services/hierarchyBuilder';
+import type { HierarchyNode } from '../../../../../types/hierarchy';
 import { ElementAnalyzer } from '../services/elementAnalyzer';
 
 /**

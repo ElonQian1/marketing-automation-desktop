@@ -11,7 +11,20 @@ use async_trait::async_trait;
 use crate::services::execution::matching::legacy_regex::run_traditional_find;
 use crate::services::execution::model::SmartScriptStep;
 // use crate::xml_judgment::*; // 临时禁用，等待重构为使用 universal_ui_page_analyzer
-use crate::xml_judgment::MatchCriteriaDTO;
+// use crate::xml_judgment::MatchCriteriaDTO; // 临时禁用
+
+// 临时类型定义，替代 xml_judgment::MatchCriteriaDTO
+#[derive(Debug, Clone)]
+pub struct MatchCriteriaDTO {
+    pub strategy: String,
+    pub fields: Vec<String>,
+    pub values: std::collections::HashMap<String, String>,
+    pub includes: Option<std::collections::HashMap<String, Vec<String>>>,
+    pub excludes: Option<std::collections::HashMap<String, Vec<String>>>,
+    pub match_mode: String,
+    pub regex_includes: std::collections::HashMap<String, String>,
+    pub regex_excludes: std::collections::HashMap<String, String>,
+}
 
 /// 提供旧执行器调用 UI 操作所需的抽象接口。
 #[async_trait]
@@ -116,9 +129,9 @@ where
             strategy: strategy.clone(),
             fields,
             values,
-            includes,
-            excludes,
-            match_mode: std::collections::HashMap::new(),
+            includes: Some(includes),
+            excludes: Some(excludes),
+            match_mode: "default".to_string(),
             regex_includes: std::collections::HashMap::new(),
             regex_excludes: std::collections::HashMap::new(),
         };
