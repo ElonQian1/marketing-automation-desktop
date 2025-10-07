@@ -25,8 +25,8 @@ export { useArchitectureTree } from './hooks/useArchitectureTree';
 export { useElementVisualization } from './hooks/useElementVisualization';
 
 // 组件层
-export { default as ArchitectureDiagram } from './ArchitectureDiagram_v2';
-export type { ArchitectureDiagramProps } from './ArchitectureDiagram_v2';
+export { default as ArchitectureDiagram } from './ArchitectureDiagram';
+export type { ArchitectureDiagramProps } from './ArchitectureDiagram';
 
 // === 保留的原有导出（向后兼容） ===
 
@@ -42,5 +42,4 @@ export { ChildElementCard } from './ChildElementCard';
 export { SelfElementCard } from './SelfElementCard';
 export { ElementDiscoveryModal } from './ElementDiscoveryModal';
 
-// 导出原版架构图组件（兼容性）
-export { default as ArchitectureDiagramLegacy } from './ArchitectureDiagram';
+// 旧版本已移除，现在使用统一的模块化架构

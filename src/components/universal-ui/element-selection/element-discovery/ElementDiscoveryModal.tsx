@@ -164,6 +164,13 @@ export const ElementDiscoveryModal: React.FC<ElementDiscoveryModalProps> = ({
     // onClose();
   }, [onElementSelect]);
 
+  // 🔧 新版本架构图适配：处理查找最近可点击元素（无参数版本）
+  const handleFindNearestClickableAdapter = useCallback(() => {
+    console.log('🎯 查找最近可点击元素 (新版本适配)');
+    // 新版本架构图会内部处理查找逻辑
+    // 这里可以添加其他必要的逻辑
+  }, []);
+
   // 渲染自己标签页
   const renderSelfTab = () => {
     if (!discoveryResult?.selfElement) {
@@ -262,7 +269,7 @@ export const ElementDiscoveryModal: React.FC<ElementDiscoveryModalProps> = ({
         targetElement={targetElement}
         allElements={allElements}
         onElementSelect={handleArchitectureElementSelect}
-        onFindNearestClickable={handleFindNearestClickable}
+        onFindNearestClickable={handleFindNearestClickableAdapter}
       />
     );
   };

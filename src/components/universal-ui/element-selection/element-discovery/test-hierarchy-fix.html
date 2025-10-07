@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>测试层级修复效果</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 20px; }
+        .test-result { margin: 10px 0; padding: 10px; border-radius: 5px; }
+        .success { background-color: #d4edda; border: 1px solid #c3e6cb; }
+        .error { background-color: #f8d7da; border: 1px solid #f5c6cb; }
+        .info { background-color: #d1ecf1; border: 1px solid #bee5eb; }
+        pre { background-color: #f8f9fa; padding: 10px; border-radius: 3px; overflow-x: auto; }
+    </style>
+</head>
+<body>
+    <h1>XML层级构建修复验证</h1>
+    
+    <div class="test-result info">
+        <h3>🎯 测试目标</h3>
+        <p>验证XML解析器是否能正确构建底部导航的完整层级结构：</p>
+        <pre>📦 底部导航栏: bottom_navgation (LinearLayout)
+├─── 📞 电话按钮 (LinearLayout, clickable)
+│    ├─── 🖼️ 电话图标 (ImageView)
+│    └─── 📋 文本容器 (LinearLayout) 
+│         └─── 📝 "电话" 文本 (TextView)
+├─── 👥 联系人按钮 (LinearLayout, clickable, selected) ⭐当前选中
+│    ├─── 🖼️ 联系人图标 (ImageView)
+│    └─── 📋 文本容器 (LinearLayout)
+│         └─── 📝 "联系人" 文本 (TextView)  
+└─── ⭐ 收藏按钮 (LinearLayout, clickable)
+     ├─── 🖼️ 收藏图标 (ImageView)
+     └─── 📋 文本容器 (LinearLayout)
+          └─── 📝 "收藏" 文本 (TextView)</pre>
+    </div>
+
+    <div class="test-result info">
+        <h3>🔧 修复内容</h3>
+        <ul>
+            <li><strong>XmlStructureParser.buildXmlBasedHierarchy</strong>: 强制将底部导航设置为根节点</li>
+            <li><strong>HierarchyBuilder.smartSelectRootNode</strong>: 智能选择业务容器作为根节点</li>
+            <li><strong>XmlStructureParser.findButtonChildren</strong>: 改进子元素按索引分配逻辑</li>
+            <li><strong>调试日志增强</strong>: 添加完整的层级结构输出</li>
+        </ul>
+    </div>
+
+    <div class="test-result success">
+        <h3>✅ 预期修复效果</h3>
+        <p>架构图现在应该显示：</p>
+        <ol>
+            <li><strong>根节点</strong>: bottom_navgation 容器而不是单个按钮</li>
+            <li><strong>三个子节点</strong>: 电话、联系人、收藏按钮（按left坐标排序）</li>
+            <li><strong>每个按钮的子节点</strong>: ImageView图标 + LinearLayout文本容器</li>
+            <li><strong>文本容器的子节点</strong>: TextView文本元素</li>
+        </ol>
+    </div>
+
+    <div class="test-result info">
+        <h3>🧪 验证步骤</h3>
+        <ol>
+            <li>打开应用的"通用UI分析器"页面</li>
+            <li>选择设备并获取UI XML</li>
+            <li>在架构图中查看DOM结构</li>
+            <li>选择element_38（联系人按钮）作为目标元素</li>
+            <li>验证是否显示完整的底部导航层级结构</li>
+        </ol>
+    </div>
+
+    <div class="test-result info">
+        <h3>🔍 关键验证点</h3>
+        <ul>
+            <li>树的根节点应该是"📦 底部导航栏: bottom_navgation"</li>
+            <li>应该有3个可展开的按钮子节点</li>
+            <li>当前选中的联系人按钮应该有特殊标记⭐</li>
+            <li>每个按钮都应该有图标和文本容器两个子元素</li>
+            <li>控制台日志应该显示完整的XML层级构建过程</li>
+        </ul>
+    </div>
+
+    <script>
+        // 可以在这里添加自动化测试脚本
+        console.log('XML层级修复验证页面已加载');
+        console.log('请按照上述步骤进行手动验证');
+    </script>
+</body>
+</html>

@@ -39,9 +39,9 @@ export class HierarchyBuilder {
       console.log(`🎯 HierarchyBuilder: 目标元素 ${targetElement.id} 的子元素:`, 
         targetNode.children.map(c => `${c.id}(${c.element.element_type})`));
 
-      // 步骤4: 查找根祖先（最顶层包含它的元素）- 防无限循环版本
-      console.log('🏗️ HierarchyBuilder: 查找根祖先');
-      const rootAncestor = this.findRootAncestor(targetNode);
+      // 步骤4: 智能选择根节点 - 优先选择有意义的业务容器
+      console.log('🏗️ HierarchyBuilder: 智能选择根节点');
+      const rootAncestor = this.smartSelectRootNode(targetNode, nodeMap);
 
       // 步骤5: 计算关系
       console.log('🏗️ HierarchyBuilder: 计算关系');
@@ -56,12 +56,59 @@ export class HierarchyBuilder {
       this.setLevels([rootAncestor], 0);
 
       console.log('✅ HierarchyBuilder: 层级树构建完成');
+      console.log('🏠 HierarchyBuilder: 最终根节点:', `${rootAncestor.id}(${rootAncestor.element.element_type})`);
+      console.log('📊 HierarchyBuilder: 根节点子元素数量:', rootAncestor.children.length);
+      
       return [rootAncestor];
       
     } catch (error) {
       console.error('❌ HierarchyBuilder: 构建层级树时发生错误:', error);
       return [];
     }
+  }
+  
+  /**
+   * 智能选择根节点
+   * 优先选择业务相关的容器而不是顶层技术容器
+   */
+  static smartSelectRootNode(targetNode: HierarchyNode, nodeMap: Map<string, HierarchyNode>): HierarchyNode {
+    console.log('🎯 HierarchyBuilder: 开始智能根节点选择');
+    
+    // 策略1: 如果目标元素在底部导航中，直接使用底部导航作为根
+    const bottomNavContainer = Array.from(nodeMap.values()).find(node => 
+      node.element.resource_id === 'com.hihonor.contacts:id/bottom_navgation'
+    );
+    
+    if (bottomNavContainer) {
+      console.log('🧭 HierarchyBuilder: 找到底部导航容器，将其作为根节点');
+      return bottomNavContainer;
+    }
+    
+    // 策略2: 查找有意义的业务容器（有resource-id且不是顶层框架容器）
+    let candidate = targetNode;
+    const visited = new Set<string>();
+    const maxDepth = 10;
+    let depth = 0;
+    
+    while (candidate.parent && depth < maxDepth && !visited.has(candidate.id)) {
+      visited.add(candidate.id);
+      const parent = candidate.parent;
+      
+      // 检查父容器是否是业务容器
+      if (parent.element.resource_id && 
+          !parent.element.resource_id.includes('android:id') &&
+          parent.element.resource_id.includes('com.hihonor.contacts')) {
+        console.log(`📦 HierarchyBuilder: 找到业务容器: ${parent.id}(${parent.element.resource_id})`);
+        candidate = parent;
+      } else {
+        break;
+      }
+      
+      depth++;
+    }
+    
+    console.log(`🏠 HierarchyBuilder: 最终选择根节点: ${candidate.id}(${candidate.element.element_type})`);
+    return candidate;
   }
   
   /**

@@ -61,30 +61,13 @@ export class XmlStructureParser {
       return;
     }
     
-    // 🏷️ 特殊处理：文本容器
-    if (parentCandidate.resource_id === 'com.hihonor.contacts:id/container') {
-      console.log('📝 处理文本容器:', parentCandidate.id);
-      
-      // 查找文本元素
-      const textElements = allElements.filter(e => 
-        e.element_type === 'android.widget.TextView' && 
-        e.text && e.text.trim()
-      );
-      
-      // 简单分配：为这个容器分配文本（这里可以优化匹配逻辑）
-      const matchingText = textElements.find(text => {
-        // 这里可以添加更精确的匹配逻辑
-        return true;
-      });
-      
-      if (matchingText) {
-        const textNode = nodeMap.get(matchingText.id);
-        if (textNode && !textNode.parent) {
-          parentNode.children.push(textNode);
-          textNode.parent = parentNode;
-          console.log(`🔗 XML推断: 文本容器 ${parentCandidate.id} -> 文本 ${matchingText.id} ("${matchingText.text}")`);
-        }
-      }
+    // 🏷️ 特殊处理：其他业务容器（如果需要）
+    // 文本容器的处理已经在 findButtonChildren 中完成
+    if (parentCandidate.resource_id && 
+        parentCandidate.resource_id.includes('com.hihonor.contacts') && 
+        parentCandidate.resource_id !== 'com.hihonor.contacts:id/bottom_navgation') {
+      console.log('🏢 处理其他业务容器:', parentCandidate.id, parentCandidate.resource_id);
+      // 可以在这里添加其他业务容器的特殊处理逻辑
     }
   }
   
@@ -100,64 +83,87 @@ export class XmlStructureParser {
     const buttonNode = nodeMap.get(button.id);
     if (!buttonNode) return;
     
-    // 查找ImageView图标
+    console.log(`🔍 为按钮 ${button.id} 查找子元素`);
+    
+    // 查找所有ImageView图标
     const icons = allElements.filter(e => 
       e.element_type === 'android.widget.ImageView' &&
       e.resource_id === 'com.hihonor.contacts:id/top_icon'
     );
     
-    // 查找文本容器
+    // 查找所有文本容器
     const containers = allElements.filter(e => 
       e.element_type === 'android.widget.LinearLayout' &&
       e.resource_id === 'com.hihonor.contacts:id/container'
     );
     
-    // 简单分配：按索引或位置关联
-    const buttonBounds = this.normalizeBounds(button.bounds);
-    if (!buttonBounds) return;
+    // 查找所有文本元素
+    const textElements = allElements.filter(e => 
+      e.element_type === 'android.widget.TextView' &&
+      e.resource_id === 'com.hihonor.contacts:id/content' &&
+      e.text && e.text.trim()
+    );
+    
+    console.log(`📊 找到 ${icons.length} 个图标, ${containers.length} 个容器, ${textElements.length} 个文本`);
     
     // 为这个按钮找到对应的图标（在同一水平范围内）
-    const matchingIcon = icons.find(icon => {
-      const iconBounds = this.normalizeBounds(icon.bounds);
-      if (!iconBounds) return false;
+    const buttonBounds = this.normalizeBounds(button.bounds);
+    if (buttonBounds) {
+      const matchingIcon = icons.find(icon => {
+        const iconBounds = this.normalizeBounds(icon.bounds);
+        if (!iconBounds) return false;
+        
+        // 图标应该在按钮的边界内
+        return iconBounds.left >= buttonBounds.left && iconBounds.right <= buttonBounds.right &&
+               iconBounds.top >= buttonBounds.top && iconBounds.bottom <= buttonBounds.bottom;
+      });
       
-      return iconBounds.left >= buttonBounds.left && iconBounds.right <= buttonBounds.right;
-    });
-    
-    if (matchingIcon) {
-      const iconNode = nodeMap.get(matchingIcon.id);
-      if (iconNode && !iconNode.parent) {
-        buttonNode.children.push(iconNode);
-        iconNode.parent = buttonNode;
-        console.log(`🔗 XML推断: 按钮 ${button.id} -> 图标 ${matchingIcon.id}`);
+      if (matchingIcon) {
+        const iconNode = nodeMap.get(matchingIcon.id);
+        if (iconNode && !iconNode.parent) {
+          buttonNode.children.push(iconNode);
+          iconNode.parent = buttonNode;
+          console.log(`🔗 XML推断: 按钮 ${button.id} -> 图标 ${matchingIcon.id}`);
+        }
       }
     }
     
-    // 为这个按钮找到对应的文本容器
-    const matchingContainer = containers.find(container => {
-      // 文本容器通常边界为[0,0][0,0]，所以用其他方式匹配
-      // 可以通过在数组中的相对位置或其他特征来匹配
-      return true; // 暂时简单处理
+    // 按照按钮在XML中的顺序分配文本和容器
+    // 获取所有底部导航按钮并按bounds.left排序
+    const allBottomButtons = allElements.filter(e => 
+      e.element_type === 'android.widget.LinearLayout' && 
+      e.is_clickable &&
+      String(e.bounds).includes('1420') // 底部导航按钮的高度特征
+    ).sort((a, b) => {
+      const aBounds = this.normalizeBounds(a.bounds);
+      const bBounds = this.normalizeBounds(b.bounds);
+      if (!aBounds || !bBounds) return 0;
+      return aBounds.left - bBounds.left;
     });
     
-    if (matchingContainer && containers.length > 0) {
-      // 简单按按钮顺序分配容器
-      const buttonIndex = allElements.filter(e => 
-        e.element_type === 'android.widget.LinearLayout' && 
-        e.is_clickable &&
-        String(e.bounds).includes('1420')
-      ).indexOf(button);
-      
+    const buttonIndex = allBottomButtons.findIndex(b => b.id === button.id);
+    console.log(`📍 按钮 ${button.id} 在导航中的索引: ${buttonIndex}`);
+    
+    // 为此按钮分配对应的文本容器和文本
+    if (buttonIndex >= 0 && buttonIndex < containers.length) {
       const targetContainer = containers[buttonIndex];
-      if (targetContainer) {
-        const containerNode = nodeMap.get(targetContainer.id);
-        if (containerNode && !containerNode.parent) {
-          buttonNode.children.push(containerNode);
-          containerNode.parent = buttonNode;
-          console.log(`🔗 XML推断: 按钮 ${button.id} -> 文本容器 ${targetContainer.id}`);
+      const containerNode = nodeMap.get(targetContainer.id);
+      
+      if (containerNode && !containerNode.parent) {
+        buttonNode.children.push(containerNode);
+        containerNode.parent = buttonNode;
+        console.log(`🔗 XML推断: 按钮 ${button.id} -> 文本容器 ${targetContainer.id}`);
+        
+        // 为容器分配对应的文本
+        if (buttonIndex < textElements.length) {
+          const targetText = textElements[buttonIndex];
+          const textNode = nodeMap.get(targetText.id);
           
-          // 为文本容器查找文本元素
-          this.inferParentChildFromContext(targetContainer, allElements, nodeMap);
+          if (textNode && !textNode.parent) {
+            containerNode.children.push(textNode);
+            textNode.parent = containerNode;
+            console.log(`🔗 XML推断: 文本容器 ${targetContainer.id} -> 文本 ${targetText.id} ("${targetText.text}")`);
+          }
         }
       }
     }
@@ -234,7 +240,7 @@ export class XmlStructureParser {
   ): Map<string, HierarchyNode> {
     console.log('🏗️ 开始基于XML构建层级关系');
     console.log('🏗️ 总元素数量:', elements.length);
-    console.log('🎯 目标元素:', targetElement.id);
+    console.log('🎯 目标元素:', targetElement.id, targetElement.element_type);
     
     // 创建节点映射
     const nodeMap = this.createNodeMap(elements);
@@ -242,23 +248,51 @@ export class XmlStructureParser {
     // 🚀 基于XML结构而非边界检测构建父子关系
     console.log('🏗️ 基于XML语义结构构建父子关系');
     
-    // 首先处理底部导航容器
+    // 首先处理底部导航容器 - 这应该作为根节点显示
     const bottomNavContainer = elements.find(e => 
       e.resource_id === 'com.hihonor.contacts:id/bottom_navgation'
     );
     
     if (bottomNavContainer) {
-      console.log('🧭 找到底部导航容器:', bottomNavContainer.id);
+      console.log('🧭 找到底部导航容器:', bottomNavContainer.id, '作为根节点');
       this.inferParentChildFromContext(bottomNavContainer, elements, nodeMap);
+      
+      // 🔧 强制将底部导航作为根节点 - 清除其parent关系
+      const bottomNavNode = nodeMap.get(bottomNavContainer.id);
+      if (bottomNavNode) {
+        bottomNavNode.parent = null;
+        console.log('🏠 将底部导航设置为根节点');
+      }
     }
     
-    // 处理其他可能的父子关系
+    // 处理其他父子关系（但不覆盖底部导航的根状态）
     elements.forEach(element => {
       if (element.id !== bottomNavContainer?.id) {
         this.inferParentChildFromContext(element, elements, nodeMap);
       }
     });
     
+    // 🔍 调试输出：验证构建的层级结构
+    console.log('🔍 构建完成后的节点关系:');
+    nodeMap.forEach((node, id) => {
+      if (node.parent === null) {
+        console.log(`🏠 根节点: ${id}(${node.element.element_type})`);
+        this.logChildrenRecursively(node, '  ');
+      }
+    });
+    
     return nodeMap;
+  }
+  
+  /**
+   * 递归记录子节点结构（用于调试）
+   */
+  static logChildrenRecursively(node: HierarchyNode, indent: string): void {
+    node.children.forEach(child => {
+      console.log(`${indent}├─ ${child.id}(${child.element.element_type})${child.element.text ? ` "${child.element.text}"` : ''}`);
+      if (child.children.length > 0) {
+        this.logChildrenRecursively(child, indent + '  ');
+      }
+    });
   }
 }
