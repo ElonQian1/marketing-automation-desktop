@@ -2,6 +2,7 @@ import { useMemo, useState, useCallback } from 'react';
 import type { UIElement } from '../../../../../api/universal-ui';
 import { HierarchyBuilder } from '../services/hierarchyBuilder';
 import { PureXmlStructureAnalyzer } from '../services/PureXmlStructureAnalyzer'; // 🆕 新增纯XML分析器
+import { LocalArchitectureAnalyzer } from '../services/LocalArchitectureAnalyzer'; // 🆕 新增局部架构分析器
 import type { HierarchyNode } from '../../../../../types/hierarchy';
 import { ElementAnalyzer } from '../services/elementAnalyzer';
 
@@ -22,19 +23,20 @@ export const useArchitectureTree = (
   const hierarchyTree = useMemo(() => {
     console.log('🔄 useArchitectureTree: 重新构建层级树');
     
-    // 🆕 如果有XML内容，优先使用纯XML结构分析器
+    // 🆕 如果有XML内容，优先使用局部架构分析器（专为元素发现设计）
     if (xmlContent) {
-      console.log('📋 使用纯XML结构分析器构建层级树');
-      const pureHierarchy = PureXmlStructureAnalyzer.buildHierarchyFromXml(xmlContent, allElements);
+      console.log('🎯 使用局部架构分析器构建目标元素周围的层级树');
+      const localResult = LocalArchitectureAnalyzer.buildLocalArchitecture(xmlContent, allElements, targetElement);
       
       // 转换为HierarchyNode数组格式
-      const hierarchyNodes: HierarchyNode[] = pureHierarchy.root ? [pureHierarchy.root] : [];
+      const hierarchyNodes: HierarchyNode[] = localResult.localRoot ? [localResult.localRoot] : [];
       
-      console.log('✅ 纯XML分析完成:', {
-        totalNodes: pureHierarchy.stats.totalNodes,
-        hiddenElements: pureHierarchy.stats.hiddenElements,
-        textElements: pureHierarchy.stats.textElements,
-        maxDepth: pureHierarchy.maxDepth
+      console.log('✅ 局部架构分析完成:', {
+        totalNodes: localResult.stats.totalNodes,
+        targetDepth: localResult.stats.targetDepth,
+        siblingCount: localResult.stats.siblingCount,
+        childrenCount: localResult.stats.childrenCount,
+        maxDepth: localResult.maxDepth
       });
       
       return hierarchyNodes;
