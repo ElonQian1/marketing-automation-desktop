@@ -50,6 +50,7 @@ const { Text } = Typography;
 interface ArchitectureDiagramProps {
   targetElement: UIElement;
   allElements: UIElement[];
+  xmlContent?: string; // 🆕 新增XML内容支持，用于纯XML结构分析
   onElementSelect?: (element: UIElement) => void;
   onRelationshipsUpdate?: (relationships: any[]) => void;
   showStatistics?: boolean;
@@ -64,6 +65,7 @@ interface ArchitectureDiagramProps {
 export const ArchitectureDiagram: React.FC<ArchitectureDiagramProps> = ({
   targetElement,
   allElements,
+  xmlContent, // 🆕 接收XML内容
   onElementSelect,
   onRelationshipsUpdate,
   showStatistics = true,
@@ -116,7 +118,7 @@ export const ArchitectureDiagram: React.FC<ArchitectureDiagramProps> = ({
     isTreeValid,
     hasSelection,
     isEmpty
-  } = useArchitectureTree(targetElement, allElements);
+  } = useArchitectureTree(targetElement, allElements, xmlContent); // 🆕 传递XML内容
 
   const {
     highlightedElements,

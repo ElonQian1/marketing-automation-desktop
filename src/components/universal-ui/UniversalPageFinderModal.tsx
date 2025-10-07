@@ -439,7 +439,10 @@ const UniversalPageFinderModal: React.FC<UniversalPageFinderModalProps> = ({
       </Row>
 
       {/* 元素选择弹出框 */}
-      <SelectionPopoverContainer selectionManager={selectionManager} />
+      <SelectionPopoverContainer 
+        selectionManager={selectionManager} 
+        xmlContent={xmlContent} // 🆕 传递XML内容给元素发现功能
+      />
       {/* 🆕 过滤设置抽屉（模块化） */}
       <FilterSettingsPanel
         open={filterOpen}

@@ -271,6 +271,7 @@ export const ElementDiscoveryModal: React.FC<ElementDiscoveryModalProps> = ({
       <ArchitectureDiagram
         targetElement={targetElement}
         allElements={allElements}
+        xmlContent={xmlContent} // 🆕 传递XML内容给纯XML结构分析器
         onElementSelect={handleArchitectureElementSelect}
       />
     );

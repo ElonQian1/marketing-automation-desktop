@@ -1,22 +1,49 @@
 import { useMemo, useState, useCallback } from 'react';
 import type { UIElement } from '../../../../../api/universal-ui';
 import { HierarchyBuilder } from '../services/hierarchyBuilder';
+import { PureXmlStructureAnalyzer } from '../services/PureXmlStructureAnalyzer'; // 🆕 新增纯XML分析器
 import type { HierarchyNode } from '../../../../../types/hierarchy';
 import { ElementAnalyzer } from '../services/elementAnalyzer';
 
 /**
  * 架构树相关状态和操作的 Hook
  * 专注于层级树的构建、管理和节点操作
+ * 🆕 已集成纯XML结构分析器用于元素发现模式
  */
-export const useArchitectureTree = (targetElement: UIElement, allElements: UIElement[]) => {
+export const useArchitectureTree = (
+  targetElement: UIElement, 
+  allElements: UIElement[],
+  xmlContent?: string // 🆕 新增XML内容参数
+) => {
   const [selectedNode, setSelectedNode] = useState<string | null>(null);
   const [expandedKeys, setExpandedKeys] = useState<string[]>([]);
 
   // 构建层级树（使用 useMemo 缓存）
   const hierarchyTree = useMemo(() => {
     console.log('🔄 useArchitectureTree: 重新构建层级树');
-    return HierarchyBuilder.buildHierarchyTree(allElements, targetElement);
-  }, [allElements, targetElement]);
+    
+    // 🆕 如果有XML内容，优先使用纯XML结构分析器
+    if (xmlContent) {
+      console.log('📋 使用纯XML结构分析器构建层级树');
+      const pureHierarchy = PureXmlStructureAnalyzer.buildHierarchyFromXml(xmlContent, allElements);
+      
+      // 转换为HierarchyNode数组格式
+      const hierarchyNodes: HierarchyNode[] = pureHierarchy.root ? [pureHierarchy.root] : [];
+      
+      console.log('✅ 纯XML分析完成:', {
+        totalNodes: pureHierarchy.stats.totalNodes,
+        hiddenElements: pureHierarchy.stats.hiddenElements,
+        textElements: pureHierarchy.stats.textElements,
+        maxDepth: pureHierarchy.maxDepth
+      });
+      
+      return hierarchyNodes;
+    } else {
+      // 🔄 回退到传统分析器（可视化模式）
+      console.log('🔄 回退到传统边界检查分析器');
+      return HierarchyBuilder.buildHierarchyTree(allElements, targetElement);
+    }
+  }, [allElements, targetElement, xmlContent]);
 
   // 转换为 Tree 组件数据格式
   const treeData = useMemo(() => {

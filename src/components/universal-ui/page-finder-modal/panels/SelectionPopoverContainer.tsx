@@ -4,14 +4,19 @@ import { isDevDebugEnabled } from '../../../../utils/debug';
 
 export interface SelectionPopoverContainerProps {
   selectionManager: any;
+  xmlContent?: string; // 🆕 新增XML内容支持
 }
 
-export const SelectionPopoverContainer: React.FC<SelectionPopoverContainerProps> = ({ selectionManager }) => {
+export const SelectionPopoverContainer: React.FC<SelectionPopoverContainerProps> = ({ 
+  selectionManager, 
+  xmlContent // 🆕 接收XML内容
+}) => {
   const isVisible = !!selectionManager.pendingSelection;
   return (
     <ElementSelectionPopover
       visible={isVisible}
       selection={selectionManager.pendingSelection}
+      xmlContent={xmlContent} // 🆕 传递XML内容
       onConfirm={() => {
         if (isDevDebugEnabled('debug:visual')) console.debug('✅ [ElementSelectionPopover] onConfirm');
         selectionManager.confirmSelection();

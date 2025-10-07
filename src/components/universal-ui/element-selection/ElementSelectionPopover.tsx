@@ -20,6 +20,7 @@ export interface ElementSelectionState {
 export interface ElementSelectionPopoverProps {
   visible: boolean;
   selection: ElementSelectionState | null;
+  xmlContent?: string; // 🆕 新增XML内容支持，用于元素发现模态框
   onConfirm: () => void;
   onCancel: () => void; // 取消选择并关闭
   onHide?: () => void;  // 隐藏元素（与业务 hide 行为绑定）
@@ -38,6 +39,7 @@ export interface ElementSelectionPopoverProps {
 const ElementSelectionPopoverComponent: React.FC<ElementSelectionPopoverProps> = ({
   visible,
   selection,
+  xmlContent, // 🆕 接收XML内容
   onConfirm,
   onCancel,
   onHide,
@@ -227,6 +229,7 @@ const ElementSelectionPopoverComponent: React.FC<ElementSelectionPopoverProps> =
           onClose={() => setDiscoveryModalOpen(false)}
           targetElement={selection.element}
           allElements={allElements}
+          xmlContent={xmlContent} // 🆕 传递XML内容
           onElementSelect={(element) => {
             if (__DEV__ && __DEBUG_VISUAL__) console.debug('🎯 ElementSelectionPopover: 选择新发现的元素', element.id);
             onElementSelect?.(element);
