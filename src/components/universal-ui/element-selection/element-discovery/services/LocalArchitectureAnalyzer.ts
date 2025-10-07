@@ -237,10 +237,44 @@ export class LocalArchitectureAnalyzer {
   ): HierarchyNode | null {
     const processedElementIds = new Set<string>();
     
+    // 🔧 关键修复：先构建XML节点到element ID的映射表
+    const xmlNodeToElementMap = new Map<Element, string>();
+    
+    // 通过遍历XML DOM构建映射表
+    let elementCounter = 0;
+    const traverseXml = (xmlNode: Element, xmlDoc: Document) => {
+      const allNodes = xmlDoc.querySelectorAll('node');
+      for (let i = 0; i < allNodes.length; i++) {
+        const node = allNodes[i];
+        elementCounter++;
+        const elementId = `element_${elementCounter}`;
+        xmlNodeToElementMap.set(node, elementId);
+      }
+    };
+    
+    // 重新计算XML节点映射
+    const xmlDoc = localRootXmlNode.ownerDocument;
+    if (xmlDoc) {
+      xmlNodeToElementMap.clear();
+      elementCounter = 0;
+      const allNodes = xmlDoc.querySelectorAll('node');
+      for (let i = 0; i < allNodes.length; i++) {
+        elementCounter++;
+        const elementId = `element_${elementCounter}`;
+        xmlNodeToElementMap.set(allNodes[i], elementId);
+      }
+    }
+    
     const buildRelations = (xmlNode: Element, parentHierarchyNode: HierarchyNode | null = null, depth: number = 0): HierarchyNode | null => {
       if (depth > 4) return null;
       
-      const matchingElement = localElements.find(el => this.isMatchingXmlNode(xmlNode, el));
+      // 🔧 使用XML映射表查找对应的element ID
+      const elementId = xmlNodeToElementMap.get(xmlNode);
+      let matchingElement: UIElement | null = null;
+      
+      if (elementId) {
+        matchingElement = localElements.find(el => el.id === elementId);
+      }
       
       if (matchingElement && !processedElementIds.has(matchingElement.id)) {
         processedElementIds.add(matchingElement.id);
@@ -270,11 +304,11 @@ export class LocalArchitectureAnalyzer {
         }
       }
       
-      // 如果当前XML节点没有匹配的元素，递归处理子节点但不改变父节点和深度
-      // 这是关键修复：保持正确的层级关系
+      // 🔧 如果当前XML节点没有匹配的元素，递归处理子节点但增加深度
+      // 这确保了隐藏的中间容器不会破坏层级关系
       if (xmlNode.children.length > 0) {
         Array.from(xmlNode.children).forEach(xmlChild => {
-          buildRelations(xmlChild, parentHierarchyNode, depth);
+          buildRelations(xmlChild, parentHierarchyNode, depth + 1);
         });
       }
       
