@@ -102,11 +102,11 @@ const ArchitectureDiagram: React.FC<ArchitectureDiagramProps> = ({
   // 如果树为空
   if (isEmpty) {
     return (
-      <Card>
+      <Card className="light-theme-force" style={{ background: 'var(--bg-light-base)' }}>
         <div style={{ textAlign: 'center', padding: '40px 0' }}>
-          <InfoCircleOutlined style={{ fontSize: '48px', color: '#d9d9d9', marginBottom: '16px' }} />
-          <Title level={4} type="secondary">暂无架构数据</Title>
-          <Text type="secondary">请检查元素数据是否正确加载</Text>
+          <InfoCircleOutlined style={{ fontSize: '48px', color: 'var(--text-muted)', marginBottom: '16px' }} />
+          <Title level={4} style={{ color: 'var(--text-muted)' }}>暂无架构数据</Title>
+          <Text style={{ color: 'var(--text-muted)' }}>请检查元素数据是否正确加载</Text>
         </div>
       </Card>
     );
@@ -115,13 +115,13 @@ const ArchitectureDiagram: React.FC<ArchitectureDiagramProps> = ({
   // 如果树结构无效
   if (!isTreeValid) {
     return (
-      <Card>
+      <Card className="light-theme-force" style={{ background: 'var(--bg-light-base)' }}>
         <div style={{ textAlign: 'center', padding: '40px 0' }}>
-          <Title level={4} type="danger">架构树验证失败</Title>
-          <Text type="secondary">检测到以下问题：</Text>
+          <Title level={4} style={{ color: 'var(--error)' }}>架构树验证失败</Title>
+          <Text style={{ color: 'var(--text-muted)' }}>检测到以下问题：</Text>
           <ul style={{ textAlign: 'left', marginTop: '16px' }}>
             {treeValidation.errors.map((error, index) => (
-              <li key={index} style={{ color: '#ff4d4f' }}>{error}</li>
+              <li key={index} style={{ color: 'var(--error)' }}>{error}</li>
             ))}
           </ul>
         </div>
@@ -130,7 +130,7 @@ const ArchitectureDiagram: React.FC<ArchitectureDiagramProps> = ({
   }
 
   return (
-    <div className="architecture-diagram">
+    <div className="architecture-diagram light-theme-force">
       {/* 顶部工具栏 */}
       <Card 
         size="small" 
@@ -219,7 +219,7 @@ const ArchitectureDiagram: React.FC<ArchitectureDiagramProps> = ({
             onExpand={handleNodeExpand}
             showIcon
             blockNode
-            className="architecture-tree"
+            className="architecture-tree light-theme-force"
           />
         </Card>
 

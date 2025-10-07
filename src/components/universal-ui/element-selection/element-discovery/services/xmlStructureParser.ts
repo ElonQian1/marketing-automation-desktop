@@ -32,15 +32,16 @@ export class XmlStructureParser {
     const parentNode = nodeMap.get(parentCandidate.id);
     if (!parentNode) return;
     
-    // 🧭 特殊处理：底部导航容器
-    if (parentCandidate.resource_id === 'com.hihonor.contacts:id/bottom_navgation') {
-      console.log('🧭 处理底部导航容器:', parentCandidate.id);
+    // 🧭 特殊处理：底部导航容器（支持多个应用包名）
+    if (parentCandidate.resource_id === 'com.hihonor.contacts:id/bottom_navgation' ||
+        parentCandidate.resource_id === 'com.xingin.xhs:id/bottom_navgation') {
+      console.log('🧭 处理底部导航容器:', parentCandidate.id, 'resource_id:', parentCandidate.resource_id);
       
-      // 查找可点击的LinearLayout按钮 (高度1420的特征)
+      // 查找可点击的LinearLayout按钮 (高度1420+的特征)
       const clickableButtons = allElements.filter(e => 
         e.element_type === 'android.widget.LinearLayout' && 
         e.is_clickable &&
-        String(e.bounds).includes('1420') // 底部导航按钮的高度特征
+        (String(e.bounds).includes('1420') || String(e.bounds).includes('1436')) // 底部导航按钮的高度特征
       );
       
       console.log(`🔍 找到 ${clickableButtons.length} 个底部导航按钮:`, 
@@ -85,22 +86,27 @@ export class XmlStructureParser {
     
     console.log(`🔍 为按钮 ${button.id} 查找子元素`);
     
-    // 查找所有ImageView图标
+    // 查找所有ImageView图标（支持多种resource_id）
     const icons = allElements.filter(e => 
       e.element_type === 'android.widget.ImageView' &&
-      e.resource_id === 'com.hihonor.contacts:id/top_icon'
+      (e.resource_id === 'com.hihonor.contacts:id/top_icon' ||
+       e.resource_id === 'com.xingin.xhs:id/tab_icon' ||
+       e.resource_id === 'com.xingin.xhs:id/top_icon')
     );
     
-    // 查找所有文本容器
+    // 查找所有文本容器（支持多种resource_id）
     const containers = allElements.filter(e => 
       e.element_type === 'android.widget.LinearLayout' &&
-      e.resource_id === 'com.hihonor.contacts:id/container'
+      (e.resource_id === 'com.hihonor.contacts:id/container' ||
+       e.resource_id === 'com.xingin.xhs:id/container')
     );
     
-    // 查找所有文本元素
+    // 查找所有文本元素（支持多种resource_id）
     const textElements = allElements.filter(e => 
       e.element_type === 'android.widget.TextView' &&
-      e.resource_id === 'com.hihonor.contacts:id/content' &&
+      (e.resource_id === 'com.hihonor.contacts:id/content' ||
+       e.resource_id === 'com.xingin.xhs:id/tab_text' ||
+       e.resource_id === 'com.xingin.xhs:id/content') &&
       e.text && e.text.trim()
     );
     
@@ -133,7 +139,7 @@ export class XmlStructureParser {
     const allBottomButtons = allElements.filter(e => 
       e.element_type === 'android.widget.LinearLayout' && 
       e.is_clickable &&
-      String(e.bounds).includes('1420') // 底部导航按钮的高度特征
+      (String(e.bounds).includes('1420') || String(e.bounds).includes('1436')) // 底部导航按钮的高度特征
     ).sort((a, b) => {
       const aBounds = this.normalizeBounds(a.bounds);
       const bBounds = this.normalizeBounds(b.bounds);
@@ -245,43 +251,111 @@ export class XmlStructureParser {
     // 创建节点映射
     const nodeMap = this.createNodeMap(elements);
     
-    // 🚀 基于XML结构而非边界检测构建父子关系
-    console.log('🏗️ 基于XML语义结构构建父子关系');
+    // 🚀 基于XPath建立精确的父子关系
+    console.log('� 基于XPath建立父子关系');
+    this.buildXPathBasedRelationships(elements, nodeMap);
     
-    // 首先处理底部导航容器 - 这应该作为根节点显示
-    const bottomNavContainer = elements.find(e => 
-      e.resource_id === 'com.hihonor.contacts:id/bottom_navgation'
-    );
-    
-    if (bottomNavContainer) {
-      console.log('🧭 找到底部导航容器:', bottomNavContainer.id, '作为根节点');
-      this.inferParentChildFromContext(bottomNavContainer, elements, nodeMap);
-      
-      // 🔧 强制将底部导航作为根节点 - 清除其parent关系
-      const bottomNavNode = nodeMap.get(bottomNavContainer.id);
-      if (bottomNavNode) {
-        bottomNavNode.parent = null;
-        console.log('🏠 将底部导航设置为根节点');
-      }
-    }
-    
-    // 处理其他父子关系（但不覆盖底部导航的根状态）
-    elements.forEach(element => {
-      if (element.id !== bottomNavContainer?.id) {
-        this.inferParentChildFromContext(element, elements, nodeMap);
-      }
-    });
+    // 🔧 应用业务特殊逻辑（如底部导航的优化处理）
+    console.log('🏢 应用业务特殊逻辑');
+    this.applyBusinessSpecificLogic(elements, nodeMap);
     
     // 🔍 调试输出：验证构建的层级结构
     console.log('🔍 构建完成后的节点关系:');
     nodeMap.forEach((node, id) => {
       if (node.parent === null) {
-        console.log(`🏠 根节点: ${id}(${node.element.element_type})`);
+        console.log(`🏠 根节点: ${id}(${node.element.element_type}) - ${node.element.resource_id}`);
         this.logChildrenRecursively(node, '  ');
       }
     });
     
     return nodeMap;
+  }
+  
+  /**
+   * 基于XPath建立父子关系
+   * 解析每个元素的xpath，推断其在DOM树中的位置
+   */
+  static buildXPathBasedRelationships(
+    elements: UIElement[], 
+    nodeMap: Map<string, HierarchyNode>
+  ): void {
+    console.log('🌳 开始XPath关系分析');
+    
+    // 按xpath深度排序，确保父节点在子节点之前处理
+    const sortedElements = elements.slice().sort((a, b) => {
+      const depthA = (a.xpath?.split('/') || []).length;
+      const depthB = (b.xpath?.split('/') || []).length;
+      return depthA - depthB;
+    });
+    
+    for (const element of sortedElements) {
+      if (!element.xpath) continue;
+      
+      const node = nodeMap.get(element.id);
+      if (!node) continue;
+      
+      // 查找直接父元素
+      const parentElement = this.findDirectParentByXPath(element, elements);
+      if (parentElement) {
+        const parentNode = nodeMap.get(parentElement.id);
+        if (parentNode && !node.parent) {
+          // 建立父子关系
+          parentNode.children.push(node);
+          node.parent = parentNode;
+          console.log(`🔗 XPath关系: ${parentElement.id}(${parentElement.element_type}) -> ${element.id}(${element.element_type})`);
+        }
+      }
+    }
+  }
+  
+  /**
+   * 根据XPath查找直接父元素
+   */
+  static findDirectParentByXPath(element: UIElement, allElements: UIElement[]): UIElement | null {
+    if (!element.xpath) return null;
+    
+    const pathSegments = element.xpath.split('/').filter(seg => seg);
+    if (pathSegments.length <= 1) return null;
+    
+    // 构建父元素的xpath模式
+    const parentSegments = pathSegments.slice(0, -1);
+    const parentXPath = '/' + parentSegments.join('/');
+    
+    // 查找匹配的父元素
+    const parentElement = allElements.find(el => 
+      el.xpath === parentXPath && el.id !== element.id
+    );
+    
+    if (parentElement) {
+      console.log(`🔍 找到XPath父元素: ${element.id} -> ${parentElement.id}`);
+      return parentElement;
+    }
+    
+    return null;
+  }
+  
+  /**
+   * 应用业务特殊逻辑
+   * 为一些特殊的业务场景应用额外的处理规则
+   */
+  static applyBusinessSpecificLogic(
+    elements: UIElement[], 
+    nodeMap: Map<string, HierarchyNode>
+  ): void {
+    // 查找底部导航容器并确保其作为根节点
+    const bottomNavElements = elements.filter(e => 
+      e.resource_id === 'com.hihonor.contacts:id/bottom_navgation' ||
+      e.resource_id === 'com.xingin.xhs:id/bottom_navgation'
+    );
+    
+    bottomNavElements.forEach(navElement => {
+      const navNode = nodeMap.get(navElement.id);
+      if (navNode) {
+        // 确保底部导航作为根节点
+        navNode.parent = null;
+        console.log(`🏠 设置 ${navElement.id} 作为根节点`);
+      }
+    });
   }
   
   /**

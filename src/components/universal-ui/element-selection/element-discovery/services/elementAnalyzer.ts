@@ -28,19 +28,34 @@ export class ElementAnalyzer {
   static getElementLabel(element: UIElement): string {
     const parts = [];
     
+    // 优先显示有意义的文本
     if (element.text && element.text.trim()) {
-      parts.push(element.text.trim());
+      const text = element.text.trim();
+      // 限制文本长度，避免显示过长
+      parts.push(text.length > 20 ? text.substring(0, 20) + '...' : text);
     }
     
+    // 显示简化的 resource_id
     if (element.resource_id) {
-      parts.push(`@${element.resource_id}`);
+      const resourceId = element.resource_id;
+      // 提取 resource_id 的最后一部分（去掉包名）
+      const shortId = resourceId.includes(':id/') 
+        ? resourceId.split(':id/')[1] 
+        : resourceId.split('/').pop() || resourceId;
+      parts.push(`@${shortId}`);
     }
     
+    // 显示简化的元素类型
     if (element.element_type) {
-      parts.push(`(${element.element_type})`);
+      const elementType = element.element_type;
+      // 提取类名的最后一部分
+      const shortType = elementType.includes('.') 
+        ? elementType.split('.').pop() || elementType
+        : elementType;
+      parts.push(`(${shortType})`);
     }
     
-    return parts.length > 0 ? parts.join(' ') : element.id;
+    return parts.length > 0 ? parts.join(' ') : `element_${element.id}`;
   }
   
   /**
@@ -155,36 +170,109 @@ export class ElementAnalyzer {
   
   /**
    * 获取元素的图标类型
-   * 根据元素类型和特征返回相应的图标
+   * 根据元素类型、文本内容和特征返回相应的图标
    */
   static getElementIcon(element: UIElement): string {
-    // 基于元素类型返回图标
-    switch (element.element_type) {
-      case 'android.widget.Button':
-      case 'android.widget.ImageButton':
-        return '🔘';
-      case 'android.widget.TextView':
-        return '📝';
-      case 'android.widget.EditText':
-        return '✏️';
-      case 'android.widget.ImageView':
-        return '🖼️';
-      case 'android.widget.LinearLayout':
-      case 'android.widget.RelativeLayout':
-      case 'android.widget.FrameLayout':
-        return '📦';
-      case 'android.widget.ListView':
-      case 'android.widget.RecyclerView':
-        return '📋';
-      case 'android.widget.ScrollView':
-        return '📜';
-      case 'android.widget.CheckBox':
-        return '☑️';
-      case 'android.widget.Switch':
-        return '🔀';
-      default:
-        return element.is_clickable ? '👆' : '🔹';
+    const elementType = element.element_type?.toLowerCase() || '';
+    const resourceId = element.resource_id?.toLowerCase() || '';
+    const text = element.text?.toLowerCase() || '';
+    const contentDesc = element.content_desc?.toLowerCase() || '';
+    
+    // 特殊功能区域识别
+    if (resourceId.includes('navigation') || resourceId.includes('tab')) {
+      return '📱'; // 导航栏/标签栏
     }
+    
+    // 按钮类型识别
+    if (elementType.includes('button') || element.is_clickable) {
+      // 根据按钮功能区分
+      if (text.includes('电话') || contentDesc.includes('电话') || resourceId.includes('phone')) {
+        return '📞'; // 电话按钮
+      }
+      if (text.includes('联系人') || contentDesc.includes('联系人') || resourceId.includes('contact')) {
+        return '�'; // 联系人按钮
+      }
+      if (text.includes('收藏') || contentDesc.includes('收藏') || resourceId.includes('favorite')) {
+        return '⭐'; // 收藏按钮
+      }
+      if (text.includes('返回') || contentDesc.includes('返回') || resourceId.includes('back')) {
+        return '⬅️'; // 返回按钮
+      }
+      if (text.includes('确认') || text.includes('确定') || contentDesc.includes('确认')) {
+        return '✅'; // 确认按钮
+      }
+      if (text.includes('取消') || contentDesc.includes('取消')) {
+        return '❌'; // 取消按钮
+      }
+      return '🔘'; // 通用按钮
+    }
+    
+    // 文本类型识别
+    if (elementType.includes('textview') || element.text) {
+      if (text.includes('标题') || elementType.includes('title')) {
+        return '🏷️'; // 标题文本
+      }
+      if (text.match(/\d{11}/)) { // 电话号码模式
+        return '📞'; // 电话号码
+      }
+      return '📝'; // 普通文本
+    }
+    
+    // 输入框类型
+    if (elementType.includes('edittext')) {
+      return '✏️'; // 输入框
+    }
+    
+    // 图片类型
+    if (elementType.includes('imageview') || elementType.includes('image')) {
+      // 根据上下文判断图片类型
+      if (resourceId.includes('icon') || resourceId.includes('avatar')) {
+        return '🏆'; // 图标/头像
+      }
+      return '🖼️'; // 普通图片
+    }
+    
+    // 容器类型
+    if (elementType.includes('layout')) {
+      // 根据资源ID判断容器类型
+      if (resourceId.includes('bottom') || resourceId.includes('navigation')) {
+        return '📦'; // 底部导航容器
+      }
+      if (resourceId.includes('header') || resourceId.includes('top')) {
+        return '📄'; // 顶部容器
+      }
+      if (resourceId.includes('content') || resourceId.includes('main')) {
+        return '📝'; // 内容容器
+      }
+      return '📦'; // 普通容器
+    }
+    
+    // 列表类型
+    if (elementType.includes('listview') || elementType.includes('recyclerview')) {
+      return '📋'; // 列表
+    }
+    
+    // 滚动类型
+    if (elementType.includes('scrollview')) {
+      return '📜'; // 滚动区域
+    }
+    
+    // 复选框类型
+    if (elementType.includes('checkbox')) {
+      return '☑️'; // 复选框
+    }
+    
+    // 开关类型
+    if (elementType.includes('switch')) {
+      return '🔀'; // 开关
+    }
+    
+    // 默认情况
+    if (element.is_clickable) {
+      return '👆'; // 可点击元素
+    }
+    
+    return '🔹'; // 默认元素
   }
   
   /**

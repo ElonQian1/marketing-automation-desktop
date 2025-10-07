@@ -18,18 +18,50 @@ export class HierarchyBuilder {
    * 这是主要的入口方法，集成了所有层级构建逻辑
    */
   static buildHierarchyTree(elements: UIElement[], targetElement: UIElement): HierarchyNode[] {
-    console.log('🏗️ HierarchyBuilder: 开始构建层级树，目标元素:', targetElement.id);
+    console.log('🏗️ HierarchyBuilder: 开始构建层级树');
+    console.log('🎯 HierarchyBuilder: 目标元素详细信息:', {
+      id: targetElement.id,
+      element_type: targetElement.element_type,
+      resource_id: targetElement.resource_id,
+      text: targetElement.text,
+      bounds: targetElement.bounds,
+      is_clickable: targetElement.is_clickable
+    });
     console.log('🏗️ HierarchyBuilder: 总元素数量:', elements.length);
+    
+    // 输出一些关键元素的信息用于调试
+    console.log('🔍 HierarchyBuilder: 底部导航元素信息:');
+    const bottomNavElements = elements.filter(e => 
+      e.resource_id === 'com.hihonor.contacts:id/bottom_navgation' ||
+      e.resource_id === 'com.xingin.xhs:id/bottom_navgation'
+    );
+    bottomNavElements.forEach(e => {
+      console.log(`  📦 底部导航: ${e.id} - ${e.element_type} - ${e.resource_id}`);
+    });
+    
+    const clickableButtons = elements.filter(e => 
+      e.element_type === 'android.widget.LinearLayout' && 
+      e.is_clickable &&
+      (String(e.bounds).includes('1420') || String(e.bounds).includes('1436'))
+    );
+    console.log(`🔍 HierarchyBuilder: 找到 ${clickableButtons.length} 个可点击按钮:`);
+    clickableButtons.forEach(e => {
+      console.log(`  🔘 按钮: ${e.id} - ${e.bounds} - selected: ${e.selected}`);
+    });
     
     try {
       // 步骤1: 基于 XML 语义构建节点映射和父子关系
       const nodeMap = XmlStructureParser.buildXmlBasedHierarchy(elements, targetElement);
+      
+      console.log('🏗️ HierarchyBuilder: 节点映射构建完成，总节点数:', nodeMap.size);
       
       // 步骤2: 查找目标元素节点
       console.log('🏗️ HierarchyBuilder: 查找目标元素');
       const targetNode = nodeMap.get(targetElement.id);
       if (!targetNode) {
         console.warn('🚨 HierarchyBuilder: 未找到目标元素节点');
+        // 输出所有节点的ID用于调试
+        console.log('📋 HierarchyBuilder: 所有可用节点ID:', Array.from(nodeMap.keys()));
         return [];
       }
 
@@ -58,6 +90,8 @@ export class HierarchyBuilder {
       console.log('✅ HierarchyBuilder: 层级树构建完成');
       console.log('🏠 HierarchyBuilder: 最终根节点:', `${rootAncestor.id}(${rootAncestor.element.element_type})`);
       console.log('📊 HierarchyBuilder: 根节点子元素数量:', rootAncestor.children.length);
+      console.log('🌳 HierarchyBuilder: 完整树结构:');
+      this.printTreeStructure(rootAncestor, 0);
       
       return [rootAncestor];
       
@@ -180,17 +214,128 @@ export class HierarchyBuilder {
   
   /**
    * 生成节点标题
-   * 创建用于 Tree 组件显示的节点标题
+   * 创建用于 Tree 组件显示的节点标题，传达清晰的层级关系
    */
   static generateNodeTitle(node: HierarchyNode, report: ReturnType<typeof ElementAnalyzer.generateElementReport>): string {
-    const relationshipBadge = this.getRelationshipBadge(node.relationship);
-    const levelInfo = `[L${node.level}]`;
+    const relationshipLabel = this.getRelationshipLabel(node.relationship, node.level);
+    const elementDescription = this.getElementDescription(node.element, report);
+    const isTarget = node.relationship === 'self' ? ' ⭐ 当前选中' : '';
     
-    return `${relationshipBadge} ${levelInfo} ${report.label}`;
+    return `${relationshipLabel} ${elementDescription}${isTarget}`;
   }
   
   /**
-   * 获取关系标识
+   * 获取层级关系标签
+   * 根据关系类型和层级返回中文描述
+   */
+  static getRelationshipLabel(relationship: HierarchyNode['relationship'], level: number): string {
+    switch (relationship) {
+      case 'self':
+        return `🎯 [L${level}]`;
+      case 'ancestor':
+        if (level === 0) return `📦 祖父: [L${level}]`;
+        if (level === 1) return `📦 父: [L${level}]`;
+        return `📦 祖先: [L${level}]`;
+      case 'descendant':
+        return `📁 子: [L${level}]`;
+      case 'parent':
+        return `📦 父: [L${level}]`;
+      case 'child':
+        return `📁 子: [L${level}]`;
+      case 'sibling':
+        return `↔️ [L${level}]`;
+      default:
+        return `🔹 [L${level}]`;
+    }
+  }
+  
+  /**
+   * 获取元素描述
+   * 结合元素类型、文本和功能生成清晰的描述
+   */
+  static getElementDescription(element: UIElement, report: any): string {
+    const parts = [];
+    
+    // 显示元素ID
+    parts.push(`element_${element.id}`);
+    
+    // 显示元素功能描述
+    const functionDesc = this.getElementFunctionDescription(element);
+    if (functionDesc) {
+      parts.push(`(${functionDesc})`);
+    }
+    
+    // 显示文本内容
+    if (element.text && element.text.trim()) {
+      const text = element.text.trim();
+      const shortText = text.length > 15 ? text.substring(0, 15) + '...' : text;
+      parts.push(`"${shortText}"`);
+    }
+    
+    return parts.join(' ');
+  }
+  
+  /**
+   * 获取元素功能描述
+   * 根据元素类型和属性返回功能描述
+   */
+  static getElementFunctionDescription(element: UIElement): string {
+    const elementType = element.element_type?.toLowerCase() || '';
+    const resourceId = element.resource_id?.toLowerCase() || '';
+    const text = element.text?.toLowerCase() || '';
+    
+    // 特殊功能区域识别
+    if (resourceId.includes('navigation') || resourceId.includes('tab')) {
+      return '底部导航栏容器';
+    }
+    
+    // 按钮类型识别
+    if (elementType.includes('button') || element.is_clickable) {
+      if (text.includes('电话') || resourceId.includes('phone')) {
+        return '电话按钮';
+      }
+      if (text.includes('联系人') || resourceId.includes('contact')) {
+        return '联系人按钮';
+      }
+      if (text.includes('收藏') || resourceId.includes('favorite')) {
+        return '收藏按钮';
+      }
+      return '按钮';
+    }
+    
+    // 文本类型
+    if (elementType.includes('textview')) {
+      if (text.includes('电话') || text.includes('联系人') || text.includes('收藏')) {
+        return '按钮文本';
+      }
+      return '文本';
+    }
+    
+    // 图片类型
+    if (elementType.includes('imageview')) {
+      if (resourceId.includes('icon')) {
+        return '图标';
+      }
+      return '图片';
+    }
+    
+    // 容器类型
+    if (elementType.includes('layout')) {
+      return '容器';
+    }
+    
+    // 输入框
+    if (elementType.includes('edittext')) {
+      return '输入框';
+    }
+    
+    // 默认
+    const shortType = elementType.includes('.') ? elementType.split('.').pop() : elementType;
+    return shortType || '元素';
+  }
+  
+  /**
+   * 获取关系标识（保留用于向后兼容）
    * 为不同的关系类型返回相应的标识符
    */
   static getRelationshipBadge(relationship: HierarchyNode['relationship']): string {
@@ -198,13 +343,13 @@ export class HierarchyBuilder {
       case 'self':
         return '🎯';
       case 'parent':
-        return '⬆️';
+        return '📦';
       case 'child':
-        return '⬇️';
+        return '📁';
       case 'ancestor':
-        return '🔼';
+        return '�';
       case 'descendant':
-        return '🔽';
+        return '�';
       case 'sibling':
         return '↔️';
       default:
@@ -369,5 +514,20 @@ export class HierarchyBuilder {
       isValid: errors.length === 0,
       errors
     };
+  }
+  
+  /**
+   * 打印树结构用于调试
+   * 递归输出完整的树层次结构
+   */
+  static printTreeStructure(node: HierarchyNode, depth: number): void {
+    const indent = '  '.repeat(depth);
+    const icon = ElementAnalyzer.getElementIcon(node.element);
+    const label = ElementAnalyzer.getElementLabel(node.element);
+    console.log(`${indent}${icon} ${node.id} - ${label} (${node.children.length} children)`);
+    
+    node.children.forEach(child => {
+      this.printTreeStructure(child, depth + 1);
+    });
   }
 }

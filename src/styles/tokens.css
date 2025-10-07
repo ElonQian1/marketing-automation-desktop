@@ -376,3 +376,74 @@
 .light-theme-force .ant-form-item-label > label {
   color: var(--text-inverse, #1e293b) !important;
 }
+
+/* Tree 组件颜色覆盖 - 解决架构图黑底黑字问题 */
+.light-theme-force .ant-tree {
+  background: transparent !important;
+  color: var(--text-inverse, #1e293b) !important;
+}
+
+.light-theme-force .ant-tree-treenode {
+  color: var(--text-inverse, #1e293b) !important;
+  padding: 2px 0 !important;
+}
+
+.light-theme-force .ant-tree-node-content-wrapper {
+  color: var(--text-inverse, #1e293b) !important;
+  padding: 4px 8px !important;
+  border-radius: 6px !important;
+  transition: all 0.2s ease !important;
+}
+
+.light-theme-force .ant-tree-title {
+  color: var(--text-inverse, #1e293b) !important;
+  font-size: 14px !important;
+  line-height: 1.4 !important;
+}
+
+.light-theme-force .ant-tree-switcher {
+  color: var(--text-inverse, #1e293b) !important;
+}
+
+.light-theme-force .ant-tree-iconEle {
+  color: var(--text-inverse, #1e293b) !important;
+  font-size: 16px !important;
+  margin-right: 6px !important;
+}
+
+/* Tree 组件选中和悬停状态 */
+.light-theme-force .ant-tree-treenode-selected .ant-tree-node-content-wrapper {
+  background-color: var(--brand-50, #f0f4ff) !important;
+  color: var(--text-inverse, #1e293b) !important;
+  border: 1px solid var(--brand, #4a5fd1) !important;
+}
+
+.light-theme-force .ant-tree-treenode:hover .ant-tree-node-content-wrapper {
+  background-color: var(--bg-light-secondary, #f1f5f9) !important;
+  color: var(--text-inverse, #1e293b) !important;
+  border: 1px solid var(--border-muted, #d1d5db) !important;
+}
+
+/* 架构树专用层级样式 */
+.architecture-tree .hierarchy-node.level-0 .ant-tree-title {
+  font-weight: 600 !important;
+  font-size: 15px !important;
+}
+
+.architecture-tree .hierarchy-node.level-1 .ant-tree-title {
+  font-weight: 500 !important;
+}
+
+.architecture-tree .hierarchy-node.relationship-self .ant-tree-node-content-wrapper {
+  background-color: var(--warning-bg, #fef3c7) !important;
+  border: 2px solid var(--warning, #f59e0b) !important;
+  font-weight: 600 !important;
+}
+
+.architecture-tree .hierarchy-node.relationship-ancestor .ant-tree-title {
+  color: var(--brand, #4a5fd1) !important;
+}
+
+.architecture-tree .hierarchy-node.relationship-descendant .ant-tree-title {
+  color: var(--success, #10b981) !important;
+}
