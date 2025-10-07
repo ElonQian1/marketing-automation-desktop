@@ -10,14 +10,25 @@ import { ElementAnalyzer } from '../services/elementAnalyzer';
  * 架构树相关状态和操作的 Hook
  * 专注于层级树的构建、管理和节点操作
  * 🆕 已集成纯XML结构分析器用于元素发现模式
+ * 🆕 新增交互式节点支持
  */
 export const useArchitectureTree = (
   targetElement: UIElement, 
   allElements: UIElement[],
-  xmlContent?: string // 🆕 新增XML内容参数
+  xmlContent?: string, // 🆕 新增XML内容参数
+  interactiveMode: boolean = false // 🆕 新增交互模式开关
 ) => {
   const [selectedNode, setSelectedNode] = useState<string | null>(null);
   const [expandedKeys, setExpandedKeys] = useState<string[]>([]);
+
+  // 🆕 交互式回调函数状态
+  const [interactiveCallbacks, setInteractiveCallbacksState] = useState<{
+    onSwitchToElement?: (element: UIElement) => void;
+    onViewDetails?: (element: UIElement) => void;
+    onHighlightElement?: (element: UIElement) => void;
+    onCopyElementInfo?: (element: UIElement) => void;
+    onShowBounds?: (element: UIElement) => void;
+  }>({});
 
   // 构建层级树（使用 useMemo 缓存）
   const hierarchyTree = useMemo(() => {
@@ -49,8 +60,18 @@ export const useArchitectureTree = (
 
   // 转换为 Tree 组件数据格式
   const treeData = useMemo(() => {
-    return HierarchyBuilder.convertToTreeData(hierarchyTree);
-  }, [hierarchyTree]);
+    if (interactiveMode) {
+      // 🆕 使用交互式节点数据格式
+      return HierarchyBuilder.convertToInteractiveTreeData(
+        hierarchyTree, 
+        targetElement.id,
+        interactiveCallbacks
+      );
+    } else {
+      // 传统的字符串标题格式
+      return HierarchyBuilder.convertToTreeData(hierarchyTree);
+    }
+  }, [hierarchyTree, interactiveMode, targetElement.id, interactiveCallbacks]);
 
   // 获取默认展开的键
   const defaultExpandedKeys = useMemo(() => {
@@ -171,6 +192,11 @@ export const useArchitectureTree = (
     return path;
   }, [hierarchyTree]);
 
+  // 🆕 设置交互式回调函数
+  const setInteractiveCallbacks = useCallback((callbacks: typeof interactiveCallbacks) => {
+    setInteractiveCallbacksState(callbacks);
+  }, []);
+
   return {
     // 核心数据
     hierarchyTree,
@@ -195,6 +221,10 @@ export const useArchitectureTree = (
     expandToTarget,
     expandAll,
     collapseAll,
+    
+    // 🆕 交互式功能
+    setInteractiveCallbacks,
+    interactiveMode,
     
     // 统计和验证
     treeStatistics,

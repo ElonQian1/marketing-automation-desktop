@@ -215,6 +215,71 @@ export class HierarchyBuilder {
       };
     });
   }
+
+  /**
+   * 🆕 转换为交互式树节点数据格式
+   * 支持自定义React组件渲染，用于InteractiveTreeNode
+   */
+  static convertToInteractiveTreeData(
+    hierarchyNodes: HierarchyNode[], 
+    targetElementId: string,
+    callbacks?: {
+      onSwitchToElement?: (element: UIElement) => void;
+      onViewDetails?: (element: UIElement) => void;
+      onHighlightElement?: (element: UIElement) => void;
+      onCopyElementInfo?: (element: UIElement) => void;
+      onShowBounds?: (element: UIElement) => void;
+    }
+  ): any[] {
+    return hierarchyNodes.map(node => {
+      const report = ElementAnalyzer.generateElementReport(node.element);
+      
+      return {
+        key: node.id,
+        title: node.id, // 临时保持简单，实际渲染由titleRender处理
+        children: node.children.length > 0 
+          ? this.convertToInteractiveTreeData(node.children, targetElementId, callbacks) 
+          : undefined,
+        isLeaf: node.children.length === 0,
+        icon: report.icon,
+        className: this.getNodeClassName(node),
+        // 🔧 新增：支持自定义渲染的数据
+        nodeData: {
+          node,
+          element: node.element,
+          title: this.generateCleanTitle(node, report),
+          relationship: node.relationship,
+          level: node.level,
+          isTarget: node.element.id === targetElementId,
+          report,
+          callbacks
+        }
+      };
+    });
+  }
+
+  /**
+   * 🆕 生成清洁的节点标题（用于InteractiveTreeNode）
+   * 移除额外的标记，交给组件处理
+   */
+  static generateCleanTitle(node: HierarchyNode, report: ReturnType<typeof ElementAnalyzer.generateElementReport>): string {
+    const element = node.element;
+    
+    // 如果有文本内容，优先显示
+    if (element.text && element.text.trim()) {
+      return element.text.trim();
+    } 
+    // 如果有内容描述，也优先显示
+    else if (element.content_desc && element.content_desc.trim()) {
+      return element.content_desc.trim();
+    }
+    // 否则基于元素类型生成描述
+    else {
+      const elementType = this.getElementTypeDescription(element);
+      const elementId = element.id.replace('element_', '');
+      return `${elementType} (${elementId})`;
+    }
+  }
   
   /**
    * 生成节点标题

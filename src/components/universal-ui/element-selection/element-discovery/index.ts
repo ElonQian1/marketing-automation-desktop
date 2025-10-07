@@ -38,6 +38,10 @@ export { useElementVisualization } from './hooks/useElementVisualization';
 export { ArchitectureDiagram as default } from './ArchitectureDiagram';
 export { ArchitectureDiagram } from './ArchitectureDiagram';
 
+// 🆕 交互式组件
+export { InteractiveTreeNode } from './components/InteractiveTreeNode';
+export type { InteractiveTreeNodeProps } from './components/InteractiveTreeNode';
+
 // === 兼容性导出 ===
 export type { DiscoveredElement } from './types';
 

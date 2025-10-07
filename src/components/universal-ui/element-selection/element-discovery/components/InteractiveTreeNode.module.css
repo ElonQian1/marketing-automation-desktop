@@ -1,0 +1,77 @@
+/**
+ * 交互式树节点样式
+ * 为InteractiveTreeNode组件提供视觉样式和交互效果
+ */
+
+.interactive-tree-node-container {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
+  padding: 2px 4px;
+  border-radius: 4px;
+  transition: all 0.2s ease;
+}
+
+.interactive-tree-node-container:hover {
+  background-color: var(--bg-light-secondary, #f1f5f9);
+}
+
+.interactive-tree-node {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-width: 0; /* 允许文本截断 */
+}
+
+.interactive-tree-node.selected {
+  background-color: var(--brand-light, #e6f3ff);
+  border-radius: 4px;
+  padding: 2px 6px;
+}
+
+.node-title {
+  flex: 1;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  font-size: 13px;
+}
+
+.node-title.target-element {
+  font-weight: 600;
+  color: var(--brand, #6e8bff);
+}
+
+.node-menu-trigger {
+  opacity: 0;
+  transition: opacity 0.2s ease;
+  padding: 0 4px;
+  min-width: auto;
+  height: 20px;
+}
+
+.interactive-tree-node-container:hover .node-menu-trigger {
+  opacity: 1;
+}
+
+/* 深色主题适配 */
+[data-theme="dark"] .interactive-tree-node-container:hover {
+  background-color: var(--bg-secondary, #334155);
+}
+
+[data-theme="dark"] .interactive-tree-node.selected {
+  background-color: var(--brand-dark, #1e3a5f);
+}
+
+/* 响应式适配 */
+@media (max-width: 768px) {
+  .node-menu-trigger {
+    opacity: 1; /* 移动端始终显示 */
+  }
+  
+  .node-title {
+    font-size: 12px;
+  }
+}

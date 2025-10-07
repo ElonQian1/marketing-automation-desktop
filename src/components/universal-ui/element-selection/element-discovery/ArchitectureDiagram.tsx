@@ -44,6 +44,10 @@ import { useElementVisualization } from './hooks/useElementVisualization';
 import { HierarchyBuilder } from './services/hierarchyBuilder';
 import { ElementAnalyzer } from './services/elementAnalyzer';
 
+// 🆕 导入交互式组件
+import { InteractiveTreeNode } from './components/InteractiveTreeNode';
+import type { InteractiveTreeNodeProps } from './components/InteractiveTreeNode';
+
 const { Text } = Typography;
 
 // 组件Props接口
@@ -55,6 +59,7 @@ interface ArchitectureDiagramProps {
   onRelationshipsUpdate?: (relationships: any[]) => void;
   showStatistics?: boolean;
   showVisualization?: boolean;
+  interactiveMode?: boolean; // 🆕 新增交互模式开关
   className?: string;
 }
 
@@ -70,6 +75,7 @@ export const ArchitectureDiagram: React.FC<ArchitectureDiagramProps> = ({
   onRelationshipsUpdate,
   showStatistics = true,
   showVisualization = false,
+  interactiveMode = false, // 🆕 交互模式默认关闭
   className
 }) => {
   // 🔍 调试：输出传入的数据统计
@@ -113,12 +119,13 @@ export const ArchitectureDiagram: React.FC<ArchitectureDiagramProps> = ({
     expandToTarget,
     expandAll,
     collapseAll,
+    setInteractiveCallbacks, // 🆕 新增交互回调设置
     treeStatistics,
     treeValidation,
     isTreeValid,
     hasSelection,
     isEmpty
-  } = useArchitectureTree(targetElement, allElements, xmlContent); // 🆕 传递XML内容
+  } = useArchitectureTree(targetElement, allElements, xmlContent, interactiveMode); // 🆕 传递交互模式
 
   const {
     highlightedElements,
@@ -148,6 +155,104 @@ export const ArchitectureDiagram: React.FC<ArchitectureDiagramProps> = ({
       onElementSelect(element);
     }
   }, [allElements, onElementSelect]);
+
+  // 🆕 交互式节点回调函数
+  const handleSwitchToElement = useCallback((element: UIElement) => {
+    console.log('🔄 切换到元素:', element.id);
+    if (onElementSelect) {
+      onElementSelect(element);
+    }
+    message.success(`已切换到元素: ${element.id}`);
+  }, [onElementSelect]);
+
+  const handleViewDetails = useCallback((element: UIElement) => {
+    console.log('👁️ 查看元素详情:', element.id);
+    // 这里可以触发详情模态框或侧边栏
+    message.info(`查看元素详情: ${element.id}`);
+  }, []);
+
+  const handleHighlightElement = useCallback((element: UIElement) => {
+    console.log('🎯 高亮元素:', element.id);
+    // 触发元素高亮
+    message.info(`高亮元素: ${element.id}`);
+  }, []);
+
+  const handleCopyElementInfo = useCallback((element: UIElement) => {
+    const info = `元素ID: ${element.id}\n类型: ${element.element_type}\n文本: ${element.text || 'N/A'}`;
+    navigator.clipboard.writeText(info).then(() => {
+      message.success('元素信息已复制到剪贴板');
+    }).catch(() => {
+      message.error('复制失败');
+    });
+  }, []);
+
+  const handleShowBounds = useCallback((element: UIElement) => {
+    console.log('📐 显示元素边界:', element.id);
+    message.info(`显示边界: ${element.id}`);
+  }, []);
+
+  // 🆕 设置交互式回调函数
+  useEffect(() => {
+    if (interactiveMode) {
+      setInteractiveCallbacks({
+        onSwitchToElement: handleSwitchToElement,
+        onViewDetails: handleViewDetails,
+        onHighlightElement: handleHighlightElement,
+        onCopyElementInfo: handleCopyElementInfo,
+        onShowBounds: handleShowBounds
+      });
+    }
+  }, [
+    interactiveMode,
+    setInteractiveCallbacks,
+    handleSwitchToElement,
+    handleViewDetails,
+    handleHighlightElement,
+    handleCopyElementInfo,
+    handleShowBounds
+  ]);
+
+  // 🆕 自定义节点渲染函数
+  const renderTreeNode = useCallback((nodeData: any) => {
+    if (!interactiveMode || !nodeData.nodeData) {
+      // 传统模式，直接返回标题字符串
+      return nodeData.title;
+    }
+
+    const { 
+      node, 
+      element, 
+      title, 
+      relationship, 
+      level, 
+      isTarget 
+    } = nodeData.nodeData;
+
+    return (
+      <InteractiveTreeNode
+        node={node}
+        element={element}
+        title={title}
+        relationship={relationship}
+        level={level}
+        isTarget={isTarget}
+        isSelected={selectedNode === element.id}
+        onSwitchToElement={handleSwitchToElement}
+        onViewDetails={handleViewDetails}
+        onHighlightElement={handleHighlightElement}
+        onCopyElementInfo={handleCopyElementInfo}
+        onShowBounds={handleShowBounds}
+      />
+    );
+  }, [
+    interactiveMode,
+    selectedNode,
+    handleSwitchToElement,
+    handleViewDetails,
+    handleHighlightElement,
+    handleCopyElementInfo,
+    handleShowBounds
+  ]);
 
   // 自动展开到目标元素
   useEffect(() => {
@@ -434,6 +539,7 @@ export const ArchitectureDiagram: React.FC<ArchitectureDiagramProps> = ({
             onExpand={handleNodeExpand}
             showLine={{ showLeafIcon: false }}
             className="architecture-tree"
+            titleRender={interactiveMode ? renderTreeNode : undefined}
           />
         )}
       </Card>

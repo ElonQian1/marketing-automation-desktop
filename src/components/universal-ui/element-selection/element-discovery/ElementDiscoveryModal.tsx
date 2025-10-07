@@ -33,6 +33,7 @@ export interface ElementDiscoveryModalProps {
   allElements: UIElement[];
   discoveryOptions?: Partial<DiscoveryOptions>;
   xmlContent?: string; // 🆕 添加XML内容支持
+  interactiveMode?: boolean; // 🆕 添加交互模式开关
 }
 
 // 主组件
@@ -43,7 +44,8 @@ export const ElementDiscoveryModal: React.FC<ElementDiscoveryModalProps> = ({
   onElementSelect,
   allElements,
   discoveryOptions = {},
-  xmlContent // 🆕 接收XML内容
+  xmlContent, // 🆕 接收XML内容
+  interactiveMode = true // 🆕 默认启用交互模式
 }) => {
   const [activeTab, setActiveTab] = useState<string>('self');
   const [smartTabSelected, setSmartTabSelected] = useState<boolean>(false);
@@ -273,6 +275,7 @@ export const ElementDiscoveryModal: React.FC<ElementDiscoveryModalProps> = ({
         allElements={allElements}
         xmlContent={xmlContent} // 🆕 传递XML内容给纯XML结构分析器
         onElementSelect={handleArchitectureElementSelect}
+        interactiveMode={interactiveMode} // 🆕 传递交互模式
       />
     );
   };
