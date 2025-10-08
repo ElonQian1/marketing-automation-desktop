@@ -1,21 +1,25 @@
 /**
- * 交互式树节点组件
- * 为架构层级树提供富交互功能，包括气泡菜单、元素切换等
+ * 交互式树节点组件（增强版）
+ * 为架构层级树提供富交互功能，包括气泡菜单、元素切换、隐藏元素父查找等
  */
 
-import React, { useState, useCallback } from 'react';
-import { Dropdown, Space, Typography, Tag, Tooltip, Button } from 'antd';
+import React, { useState, useCallback, useMemo } from 'react';
+import { Dropdown, Space, Typography, Tag, Tooltip, Button, message } from 'antd';
 import { 
   SwitcherOutlined,
   InfoCircleOutlined,
   HighlightOutlined,
   CopyOutlined,
   EyeOutlined,
-  MoreOutlined
+  MoreOutlined,
+  SearchOutlined,
+  AimOutlined
 } from '@ant-design/icons';
 import type { MenuProps } from 'antd';
 import type { UIElement } from '../../../../../api/universalUIAPI';
 import type { HierarchyNode } from '../../../../../types/hierarchy';
+import { UIElementAdapter } from '../../utils/UIElementAdapter';
+import { HiddenElementParentFinder } from '../../../views/grid-view/panels/node-detail/utils/HiddenElementParentFinder';
 import styles from './InteractiveTreeNode.module.css';
 
 const { Text } = Typography;
@@ -35,6 +39,8 @@ export interface InteractiveTreeNodeProps {
   isTarget?: boolean;
   /** 是否被选中 */
   isSelected?: boolean;
+  /** 所有UI元素列表（用于隐藏元素父查找） */
+  allElements?: UIElement[];
   /** 切换到此元素的回调 */
   onSwitchToElement?: (element: UIElement) => void;
   /** 查看元素详情的回调 */
@@ -45,6 +51,8 @@ export interface InteractiveTreeNodeProps {
   onCopyElementInfo?: (element: UIElement) => void;
   /** 显示元素边界的回调 */
   onShowBounds?: (element: UIElement) => void;
+  /** 查找隐藏元素父容器的回调 */
+  onFindHiddenParent?: (parentElement: UIElement) => void;
   /** 自定义菜单项 */
   customMenuItems?: MenuProps['items'];
   /** 自定义样式类名 */
@@ -59,15 +67,55 @@ export const InteractiveTreeNode: React.FC<InteractiveTreeNodeProps> = ({
   level,
   isTarget = false,
   isSelected = false,
+  allElements = [],
   onSwitchToElement,
   onViewDetails,
   onHighlightElement,
   onCopyElementInfo,
   onShowBounds,
+  onFindHiddenParent,
   customMenuItems = [],
   className
 }) => {
   const [dropdownVisible, setDropdownVisible] = useState(false);
+
+  // 检测是否为隐藏元素
+  const isHiddenElement = useMemo(() => {
+    return UIElementAdapter.isHiddenElement(element);
+  }, [element]);
+
+  // 隐藏元素父查找处理器
+  const handleFindHiddenParent = useCallback(async () => {
+    if (!isHiddenElement || !allElements.length) {
+      message.warning('当前元素不是隐藏元素或缺少元素上下文');
+      return;
+    }
+
+    try {
+      // 转换为UiNode格式进行查找
+      const hiddenUiNode = UIElementAdapter.toUiNode(element);
+      const allUiNodes = UIElementAdapter.toUiNodeArray(allElements);
+      const targetText = element.text || '';
+
+      const result = HiddenElementParentFinder.findClickableParent(
+        hiddenUiNode,
+        allUiNodes,
+        targetText
+      );
+
+      if (result.bestMatch) {
+        // 转换回UIElement格式
+        const parentUIElement = UIElementAdapter.toUIElement(result.bestMatch);
+        onFindHiddenParent?.(parentUIElement);
+        message.success(`找到父容器: 置信度 ${((result.confidence || 0) * 100).toFixed(1)}%`);
+      } else {
+        message.warning('未找到合适的可点击父容器');
+      }
+    } catch (error) {
+      console.error('隐藏元素父查找失败:', error);
+      message.error('父容器查找失败');
+    }
+  }, [isHiddenElement, element, allElements, onFindHiddenParent]);
 
   // 构建菜单项
   const menuItems: MenuProps['items'] = [
@@ -96,8 +144,21 @@ export const InteractiveTreeNode: React.FC<InteractiveTreeNodeProps> = ({
       label: '显示边界',
       onClick: () => onShowBounds?.(element)
     },
+    // 隐藏元素专用功能
+    ...(isHiddenElement ? [
+      {
+        type: 'divider' as const
+      },
+      {
+        key: 'findParent',
+        icon: <SearchOutlined />,
+        label: '查找可点击父容器',
+        onClick: handleFindHiddenParent,
+        style: { color: '#ff6b35' } // 突出显示
+      }
+    ] : []),
     {
-      type: 'divider'
+      type: 'divider' as const
     },
     {
       key: 'copy',
@@ -135,6 +196,14 @@ export const InteractiveTreeNode: React.FC<InteractiveTreeNodeProps> = ({
       );
     }
     
+    if (isHiddenElement) {
+      badges.push(
+        <Tag key="hidden" color="orange" icon={<AimOutlined />}>
+          隐藏元素
+        </Tag>
+      );
+    }
+    
     if (relationship) {
       badges.push(
         <Tag key="relationship" color="blue">{relationship}</Tag>
@@ -160,7 +229,7 @@ export const InteractiveTreeNode: React.FC<InteractiveTreeNodeProps> = ({
     }
     
     return badges;
-  }, [isTarget, relationship, level, element]);
+  }, [isTarget, isHiddenElement, relationship, level, element]);
 
   // 主节点内容
   const nodeContent = (
@@ -168,7 +237,7 @@ export const InteractiveTreeNode: React.FC<InteractiveTreeNodeProps> = ({
       className={`${styles.interactiveTreeNode} ${isSelected ? styles.selected : ''} ${className || ''}`}
       onContextMenu={handleContextMenu}
     >
-      <Text className={`${styles.nodeTitle} ${isTarget ? styles.targetElement : ''}`}>
+      <Text className={`${styles.nodeTitle} ${isTarget ? styles.targetElement : ''} ${isHiddenElement ? styles.hiddenElement : ''}`}>
         {title}
       </Text>
       <Space size={4}>
@@ -190,13 +259,13 @@ export const InteractiveTreeNode: React.FC<InteractiveTreeNodeProps> = ({
     >
       <div className={styles.interactiveTreeNodeContainer}>
         {nodeContent}
-        <Tooltip title="右键查看更多选项">
+        <Tooltip title={isHiddenElement ? "隐藏元素 - 右键查找父容器" : "右键查看更多选项"}>
           <Button 
             type="text" 
             size="small" 
-            icon={<MoreOutlined />}
+            icon={isHiddenElement ? <SearchOutlined /> : <MoreOutlined />}
             onClick={() => setDropdownVisible(!dropdownVisible)}
-            className={styles.nodeMenuTrigger}
+            className={`${styles.nodeMenuTrigger} ${isHiddenElement ? styles.hiddenElementTrigger : ''}`}
           />
         </Tooltip>
       </div>

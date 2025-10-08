@@ -1,18 +1,24 @@
-// UI 层策略类型：新增 'custom'，仅用于前端展示与字段自定义状态标识
-export type MatchStrategy = 'absolute' | 'strict' | 'relaxed' | 'positionless' | 'standard' | 'custom';
+// UI 层策略类型：包含隐藏元素父查找策略
+export type MatchStrategy = 'absolute' | 'strict' | 'relaxed' | 'positionless' | 'standard' | 'custom' | 'hidden-element-parent';
 
 export interface MatchCriteria {
   strategy: MatchStrategy;
-  fields: string[]; // e.g. ['resource-id','text','content-desc','class','package','bounds','index']
-  values: Record<string, string>; // 正向匹配值（从 UiNode.attrs 提取或用户编辑）
-  excludes?: Record<string, string[]>; // 负向匹配：每字段一个字符串数组，含“不包含”的词
-  includes?: Record<string, string[]>; // 额外包含：每字段一个字符串数组，含“必须包含”的词
-  /** 每字段匹配模式（默认 contains）：equals | contains | regex */
+  fields: string[];
+  values: Record<string, string>;
+  excludes?: Record<string, string[]>;
+  includes?: Record<string, string[]>;
   matchMode?: Record<string, 'equals' | 'contains' | 'regex'>;
-  /** 每字段“必须匹配”的正则数组（高级用法，全部必须命中） */
   regexIncludes?: Record<string, string[]>;
-  /** 每字段“不可匹配”的正则数组（任一命中则失败） */
   regexExcludes?: Record<string, string[]>;
+  
+  // 隐藏元素父查找策略特定配置
+  hiddenElementParentConfig?: {
+    targetText: string;
+    maxTraversalDepth?: number;
+    clickableIndicators?: string[];
+    excludeIndicators?: string[];
+    confidenceThreshold?: number;
+  };
 }
 
 export interface MatchResultSummary {
@@ -20,5 +26,12 @@ export interface MatchResultSummary {
   message: string;
   matchedIndex?: number;
   total?: number;
-  preview?: { text?: string; resource_id?: string; class_name?: string; xpath?: string; bounds?: string; package?: string };
+  preview?: { 
+    text?: string; 
+    resource_id?: string; 
+    class_name?: string; 
+    xpath?: string; 
+    bounds?: string; 
+    package?: string; 
+  };
 }

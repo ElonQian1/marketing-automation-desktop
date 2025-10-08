@@ -5,7 +5,102 @@
  * 1. 统一所有"设置为步骤元素"的回填逻辑
  * 2. 确保所有回填都包含完整参数：策略、字段、值、包含/不包含、预览信息
  * 3. 模块化设计，便于维护和扩展
- * 4. 支持从当前节点详情面板状态构建完整 Criteria
+ * 4. 支持从当前节点详情  // 当前每字段  // 当前每字段"  // 当前每字段"  // 当前每字段"不可  // 当前每字段"不可  // 当前每字段"  // 当前每字段"不可  // 当前每字段"不可匹配"的正则
+  currentRegexExcludes?: Record<string, string[]>;
+  // 隐藏元素父查找策略配置
+  hiddenElementParentConfig?: {
+    targetText: string;
+    maxTraversalDepth?: number;
+    clickableIndicators?: string[];
+    excludeIndicators?: string[];
+    confidenceThreshold?: number;
+  };
+  // 是否强制使用节点的原始值（忽略面板编辑的值）
+  forceNodeValues?: boolean;
+  // 后备策略（当无法从字段推断时使用）
+  fallbackStrategy?: MatchStrategy;
+  currentRegexExcludes?: Record<string, string[]>;
+  // 隐藏元素父查找策略配置
+  hiddenElementParentConfig?: {
+    targetText: string;
+    maxTraversalDepth?: number;
+    clickableIndicators?: string[];
+    excludeIndicators?: string[];
+    confidenceThreshold?: number;
+  };
+  // 是否强制使用节点的原始值（忽略面板编辑的值）
+  forceNodeValues?: boolean;
+  // 后备策略（当无法从字段推断时使用）
+  fallbackStrategy?: MatchStrategy;正则
+  currentRegexExcludes?: Record<string, string[]>;
+  // 隐藏元素父查找策略配置
+  hiddenElementParentConfig?: {
+    targetText: string;
+    maxTraversalDepth?: number;
+    clickableIndicators?: string[];
+    excludeIndicators?: string[];
+    confidenceThreshold?: number;
+  };
+  // 是否强制使用节点的原始值（忽略面板编辑的值）
+  forceNodeValues?: boolean;正则
+  currentRegexExcludes?: Record<string, string[]>;
+  // 隐藏元素父查找策略配置
+  hiddenElementParentConfig?: {
+    targetText: string;
+    maxTraversalDepth?: number;
+    clickableIndicators?: string[];
+    excludeIndicators?: string[];
+    confidenceThreshold?: number;
+  };
+  // 是否强制使用节点的原始值（忽略面板编辑的值）
+  forceNodeValues?: boolean;
+  // 后备策略（当无法从字段推断时使用）
+  fallbackStrategy?: MatchStrategy;
+  currentRegexExcludes?: Record<string, string[]>;
+  // 隐藏元素父查找策略配置
+  hiddenElementParentConfig?: {
+    targetText: string;
+    maxTraversalDepth?: number;
+    clickableIndicators?: string[];
+    excludeIndicators?: string[];
+    confidenceThreshold?: number;
+  };
+  // 是否强制使用节点的原始值（忽略面板编辑的值）
+  forceNodeValues?: boolean;
+  // 后备策略（当无法从字段推断时使用）
+  fallbackStrategy?: MatchStrategy;正则
+  currentRegexExcludes?: Record<string, string[]>;
+  // 隐藏元素父查找策略配置
+  hiddenElementParentConfig?: {
+    targetText: string;
+    maxTraversalDepth?: number;
+    clickableIndicators?: string[];
+    excludeIndicators?: string[];
+    confidenceThreshold?: number;
+  };
+  // 是否强制使用节点的原始值（忽略面板编辑的值）
+  forceNodeValues?: boolean;"的正则
+  currentRegexExcludes?: Record<string, string[]>;
+  // 隐藏元素父查找策略配置
+  hiddenElementParentConfig?: {
+    targetText: string;
+    maxTraversalDepth?: number;
+    clickableIndicators?: string[];
+    excludeIndicators?: string[];
+    confidenceThreshold?: number;
+  };
+  // 是否强制使用节点的原始值（忽略面板编辑的值）
+  forceNodeValues?: boolean;配"的正则
+  currentRegexExcludes?: Record<string, string[]>;
+  // 隐藏元素父查找策略配置
+  hiddenElementParentConfig?: {
+    targetText: string;
+    maxTraversalDepth?: number;
+    clickableIndicators?: string[];
+    excludeIndicators?: string[];
+    confidenceThreshold?: number;
+  };
+  // 是否强制使用节点的原始值（忽略面板编辑的值）态构建完整 Criteria
  */
 
 import type { UiNode } from '../../types';
@@ -141,6 +236,14 @@ export interface ElementToStepOptions {
   currentRegexIncludes?: Record<string, string[]>;
   // 当前每字段“不可匹配”的正则
   currentRegexExcludes?: Record<string, string[]>;
+  // 隐藏元素父查找策略配置
+  hiddenElementParentConfig?: {
+    targetText: string;
+    maxTraversalDepth?: number;
+    clickableIndicators?: string[];
+    excludeIndicators?: string[];
+    confidenceThreshold?: number;
+  };
   // 是否强制使用节点的原始值（忽略面板编辑的值）
   forceNodeValues?: boolean;
   // 后备策略（当无法从字段推断时使用）
@@ -189,6 +292,7 @@ export function buildCompleteStepCriteria(
     currentMatchMode,
     currentRegexIncludes,
     currentRegexExcludes,
+    hiddenElementParentConfig,
     forceNodeValues = false,
     fallbackStrategy = 'standard'
   } = options;
@@ -299,6 +403,7 @@ export function buildCompleteStepCriteria(
       ...(Object.keys(matchMode).length ? { matchMode } : {}),
       ...(Object.keys(regexIncludes).length ? { regexIncludes } : {}),
       ...(Object.keys(regexExcludes).length ? { regexExcludes } : {}),
+      ...(options.hiddenElementParentConfig ? { hiddenElementParentConfig: options.hiddenElementParentConfig } : {}),
       preview,
       metadata
     };
@@ -336,12 +441,29 @@ export function buildSmartStepCriteria(
   const hasText = !!(node.attrs?.['text']?.trim());
   const hasContentDesc = !!(node.attrs?.['content-desc']?.trim());
   const hasBounds = !!node.attrs?.['bounds'];
+  
+  // 🆕 检测隐藏元素（bounds=[0,0][0,0]）
+  const isHiddenElement = node.attrs?.['bounds'] === '[0,0][0,0]';
 
   let smartStrategy: MatchStrategy = 'standard';
   let smartFields: string[] = [];
+  let hiddenElementParentConfig = undefined;
 
-  // 智能策略选择逻辑
-  if (hasResourceId && hasText) {
+  // 🎯 隐藏元素特殊处理
+  if (isHiddenElement && hasText) {
+    console.log('🔍 检测到隐藏元素，使用父容器查找策略');
+    smartStrategy = 'hidden-element-parent';
+    smartFields = ['text', 'content-desc', 'class', 'clickable', 'bounds'];
+    
+    // 为隐藏元素父查找策略设置配置
+    hiddenElementParentConfig = {
+      targetText: node.attrs?.['text'] || '',
+      maxTraversalDepth: 5,
+      clickableIndicators: ['Button', 'ImageButton', 'TextView', 'LinearLayout', 'RelativeLayout'],
+      excludeIndicators: ['ScrollView', 'ListView', 'RecyclerView'],
+      confidenceThreshold: 0.7
+    };
+  } else if (hasResourceId && hasText) {
     // 有ID有文本，使用strict策略，确保精确匹配
     smartStrategy = 'strict';
     smartFields = ['resource-id', 'text', 'class'];
@@ -353,8 +475,8 @@ export function buildSmartStepCriteria(
     // 有文本有描述，使用文本匹配
     smartStrategy = 'standard';
     smartFields = ['text', 'content-desc', 'class'];
-  } else if (hasBounds) {
-    // 仅有位置信息，使用位置策略
+  } else if (hasBounds && !isHiddenElement) {
+    // 仅有位置信息且非隐藏元素，使用位置策略
     smartStrategy = 'absolute';
     smartFields = ['bounds', 'class'];
   } else {
@@ -366,6 +488,7 @@ export function buildSmartStepCriteria(
   return buildCompleteStepCriteria(node, {
     currentStrategy: smartStrategy,
     currentFields: smartFields,
+    hiddenElementParentConfig,
     forceNodeValues: true,
     fallbackStrategy: 'standard'
   }, sourceType);

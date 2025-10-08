@@ -75,3 +75,30 @@
     font-size: 12px;
   }
 }
+
+/* 隐藏元素样式 */
+.hidden-element {
+  color: var(--color-warning, #ff6b35) !important;
+  font-style: italic;
+}
+
+.hidden-element-trigger {
+  color: var(--color-warning, #ff6b35) !important;
+  border: 1px dashed var(--color-warning, #ff6b35);
+  background-color: var(--bg-warning-light, #fff3e0);
+}
+
+.hidden-element-trigger:hover {
+  background-color: var(--color-warning, #ff6b35);
+  color: white !important;
+}
+
+/* 深色主题下的隐藏元素样式 */
+[data-theme="dark"] .hidden-element-trigger {
+  background-color: rgba(255, 107, 53, 0.1);
+  border-color: var(--color-warning, #ff6b35);
+}
+
+[data-theme="dark"] .hidden-element-trigger:hover {
+  background-color: var(--color-warning, #ff6b35);
+}

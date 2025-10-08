@@ -7,6 +7,7 @@ mod strategy_processor;
 mod standard_strategy;
 mod absolute_strategy;
 mod custom_strategy;
+mod hidden_element_parent_strategy;
 
 pub use strategy_processor::{
     StrategyProcessor,
@@ -18,6 +19,7 @@ pub use strategy_processor::{
 pub use standard_strategy::StandardStrategyProcessor;
 pub use absolute_strategy::AbsoluteStrategyProcessor; 
 pub use custom_strategy::CustomStrategyProcessor;
+pub use hidden_element_parent_strategy::HiddenElementParentStrategyProcessor;
 
 use std::collections::HashMap;
 use serde_json::Value;
@@ -28,6 +30,7 @@ pub fn create_strategy_processor(strategy: &str) -> Box<dyn StrategyProcessor + 
         "standard" => Box::new(StandardStrategyProcessor::new()),
         "absolute" => Box::new(AbsoluteStrategyProcessor::new()),
         "custom" => Box::new(CustomStrategyProcessor::new()),
+        "hidden-element-parent" => Box::new(HiddenElementParentStrategyProcessor::new()),
         "strict" => Box::new(StandardStrategyProcessor::new()), // 复用 standard
         "relaxed" => Box::new(StandardStrategyProcessor::new()), // 复用 standard
         "positionless" => Box::new(StandardStrategyProcessor::new()), // 复用 standard

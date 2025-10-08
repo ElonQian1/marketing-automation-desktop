@@ -40,7 +40,41 @@ pub struct MatchCriteriaDTO {
 	pub regex_includes: HashMap<String, Vec<String>>,
 	#[serde(default)]
 	pub regex_excludes: HashMap<String, Vec<String>>,
+	#[serde(default)]
+	pub hidden_element_parent_config: Option<HiddenElementParentConfig>,
 }
+
+#[derive(Serialize, Deserialize, Clone, Debug)]
+pub struct HiddenElementParentConfig {
+	pub target_text: String,
+	#[serde(default = "default_max_traversal_depth")]
+	pub max_traversal_depth: usize,
+	#[serde(default = "default_clickable_indicators")]
+	pub clickable_indicators: Vec<String>,
+	#[serde(default = "default_exclude_indicators")]
+	pub exclude_indicators: Vec<String>,
+	#[serde(default = "default_confidence_threshold")]
+	pub confidence_threshold: f64,
+}
+
+fn default_max_traversal_depth() -> usize { 5 }
+fn default_clickable_indicators() -> Vec<String> {
+	vec![
+		"Button".to_string(), 
+		"ImageButton".to_string(), 
+		"TextView".to_string(), 
+		"LinearLayout".to_string(), 
+		"RelativeLayout".to_string()
+	]
+}
+fn default_exclude_indicators() -> Vec<String> {
+	vec![
+		"ScrollView".to_string(), 
+		"ListView".to_string(), 
+		"RecyclerView".to_string()
+	]
+}
+fn default_confidence_threshold() -> f64 { 0.7 }
 
 #[derive(Serialize, Deserialize, Clone, Debug, Default)]
 pub struct MatchPreviewDTO {

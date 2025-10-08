@@ -66,6 +66,13 @@ export const PRESET_FIELDS: Record<Exclude<MatchStrategy, 'custom'> | 'custom', 
   ],
   // 自定义：不预置任何字段，由用户勾选
   custom: [],
+  // 隐藏元素父查找：基于文本内容查找可点击父容器
+  'hidden-element-parent': [
+    "text",
+    "content-desc",
+    "resource-id",
+    "class"
+  ]
 };
 
 /**

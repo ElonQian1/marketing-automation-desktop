@@ -237,11 +237,13 @@ export const ArchitectureDiagram: React.FC<ArchitectureDiagramProps> = ({
         level={level}
         isTarget={isTarget}
         isSelected={selectedNode === element.id}
+        allElements={allElements}
         onSwitchToElement={handleSwitchToElement}
         onViewDetails={handleViewDetails}
         onHighlightElement={handleHighlightElement}
         onCopyElementInfo={handleCopyElementInfo}
         onShowBounds={handleShowBounds}
+        onFindHiddenParent={handleSwitchToElement} // 使用相同的切换处理器
       />
     );
   }, [
