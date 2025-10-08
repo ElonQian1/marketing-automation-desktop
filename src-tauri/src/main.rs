@@ -10,7 +10,7 @@ mod domain;
 mod infra;
 mod screenshot_service;
 mod new_backend;
-// pub mod xml_judgment_service; // 移除，使用实际的服务模块
+mod xml_judgment; // XML 判断模块
 
 // Universal UI Finder 模块桥接
 // 注意：universal-ui-finder模块位于src/modules/，我们通过services层桥接

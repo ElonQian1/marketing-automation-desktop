@@ -6,11 +6,10 @@
 use crate::services::execution::matching::strategies::{
     StrategyProcessor, MatchingContext, StrategyResult, ProcessingError
 };
-use crate::xml_judgment::{HiddenElementParentConfig};
+use crate::xml_judgment::HiddenElementParentConfig;
 use async_trait::async_trait;
 use anyhow::Result;
 use serde_json::Value;
-use std::collections::HashMap;
 
 pub struct HiddenElementParentStrategyProcessor;
 
@@ -111,7 +110,7 @@ impl HiddenElementParentStrategyProcessor {
         // 层级关系加分
         if self.is_potential_parent(candidate, hidden_element) { score += 0.1; }
         
-        score.min(1.0)
+        (score as f64).min(1.0)
     }
 
     /// 搜索父容器候选者
