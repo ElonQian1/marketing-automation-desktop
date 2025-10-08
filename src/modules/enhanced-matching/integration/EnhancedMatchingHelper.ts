@@ -17,6 +17,7 @@ import {
 } from '../../../pages/SmartScriptBuilderPage/helpers/matchingHelpers';
 import { saveLatestMatching } from '../../../components/universal-ui/views/grid-view/matchingCache';
 import { cleanXmlContent } from '../../../components/universal-ui/xml-parser/cleanXml';
+import { XPathService } from '../../../utils/xpath';
 
 export interface EnhancedElementLike {
   resource_id?: string;
@@ -76,7 +77,7 @@ export class EnhancedMatchingHelper {
 
     // 🔥 XPath 直接索引优先（最快匹配方式）
     const xpath = element.xpath || element.element_path;
-    if (xpath && typeof xpath === 'string' && xpath.trim() && this.isValidXPath(xpath.trim())) {
+    if (xpath && typeof xpath === 'string' && xpath.trim() && XPathService.isValid(xpath.trim())) {
       const xpathResult: BuiltMatchingResult = {
         strategy: 'xpath-direct',
         fields: ['xpath'],
@@ -403,15 +404,5 @@ export class EnhancedMatchingHelper {
    */
   static getStrictOptions(): EnhancedMatchingOptions {
     return this.getPresetOptions('STRICT');
-  }
-
-  /**
-   * 判断 XPath 是否有效
-   */
-  private static isValidXPath(xpath: string): boolean {
-    if (!xpath || xpath.trim().length === 0) return false;
-    // XPath 应该以 / 或 // 开头
-    const trimmed = xpath.trim();
-    return trimmed.startsWith('/') || trimmed.startsWith('//');
   }
 }

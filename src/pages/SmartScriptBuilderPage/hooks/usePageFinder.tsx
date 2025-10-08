@@ -32,6 +32,7 @@ import { createBindingFromSnapshotAndXPath } from "../../../components/step-card
 
 // 🆕 导入增强匹配系统
 import { EnhancedMatchingHelper } from "../../../modules/enhanced-matching/integration/EnhancedMatchingHelper";
+import { XPathService } from "../../../utils/xpath";
 
 // 轻量正则转义，避免用户输入影响 ^...$ 模式
 const escapeRegex = (input: string): string => input.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
@@ -299,23 +300,21 @@ export function usePageFinder(deps: UsePageFinderDeps) {
       // 🔥 生成 XPath：优先使用现有路径，否则基于元素属性自动生成
       let elementXPath = ee?.nodePath?.xpath ?? (element as any).xpath ?? (element as any).element_path;
       if (!elementXPath || typeof elementXPath !== 'string' || !elementXPath.trim()) {
-        // 自动生成基于属性的 XPath
+        // 提取元素属性信息
         const resourceId = ee?.nodeDetails?.resourceId ?? element.resource_id;
         const text = ee?.nodeDetails?.text ?? element.text;
         const contentDesc = ee?.nodeDetails?.contentDesc ?? element.content_desc;
         const className = ee?.nodeDetails?.className ?? (element as any).class_name ?? element.element_type;
         
-        if (resourceId) {
-          elementXPath = `//*[@resource-id='${resourceId}']`;
-        } else if (text && text.trim()) {
-          elementXPath = `//*[text()='${text.trim()}']`;
-        } else if (contentDesc && contentDesc.trim()) {
-          elementXPath = `//*[@content-desc='${contentDesc.trim()}']`;
-        } else if (className) {
-          elementXPath = `//${className}`;
-        } else {
-          elementXPath = `//*`; // 最后的兜底
-        }
+        // 使用统一的 XPath 生成服务
+        const elementForGeneration = {
+          resource_id: resourceId,
+          text: text,
+          content_desc: contentDesc,
+          class_name: className,
+        };
+        
+        elementXPath = XPathService.generateForStep(elementForGeneration);
         
         if (process.env.NODE_ENV === 'development') {
           console.log('🔧 自动生成 XPath:', {

@@ -1,28 +1,13 @@
 /**
  * 构建网格检查器可用的匹配配置（前端态）
  * 输入为可视化/通用 UI 元素（包含常见字段），输出 { strategy, fields, values }
- * - 策略默认使用 standard
- * - 字段优先级：resource-id > text > content-desc > class > bounds
- * - 父节点字段：parent_class > parent_text > pa  // 📊 策略选择逻辑（优先使用 xpath-direct 以获得最快匹配速度）
-  // - 第一优先级：xpath-direct（最快的匹配方式，直接通过路径定位）
-  // - 绝大多数场景：统一默认使用 standard（跨设备、分辨率无关，更稳健）
-  // - 特殊兜底：当仅有位置字段（bounds/index）且语义字段不足时，才使用 absolute
-  //   以避免 standard 策略下忽略位置字段导致完全失配
-  let strategy = 'xpath-direct'; // 🆕 默认使用 XPath 直接索引策略
-
-  // 判断是否属于"仅位置字段或几乎仅位置字段"的兜底情形
-  const hasBounds = fields.includes('bounds');
-  const hasIndexOnly = fields.length === 1 && fields[0] === 'index';
-  const isPositionOnly = (semanticFieldCount === 0) && (hasBounds || hasIndexOnly);
-
-  if (isPositionOnly) {
-    strategy = 'absolute';
-  }
-
-  console.log(`🎯 智能匹配配置: 策略=${strategy}, 字段=${fields.length}个, 语义字段=${semanticFieldCount}个, 父节点字段=${parentFieldCount}个`, { strategy, fields, values });
-
-  return { strategy, fields, values };强匹配精确度）
+ * - 策略默认使用 xpath-direct (优先)，然后是 standard
+ * - 字段优先级：xpath > resource-id > text > content-desc > class > bounds
+ * - 父节点字段：parent_resource_id > parent_class > parent_text > parent_content_desc
  */
+
+import { XPathService } from '../../utils/xpath';
+
 export interface ElementLike {
   resource_id?: string;
   text?: string;
@@ -89,7 +74,7 @@ export function buildDefaultMatchingFromElement(el: ElementLike): BuiltMatching 
   let parentFieldCount = 0;
   
   // 🔥 XPath 直接索引优先（最快匹配方式）
-  if (el.xpath && isValidXPath(el.xpath)) {
+  if (el.xpath && XPathService.isValid(el.xpath)) {
     push('xpath', el.xpath);
     console.log(`🎯 XPath 直接匹配: xpath=${el.xpath}`);
     return { strategy: 'xpath-direct', fields: ['xpath'], values: { xpath: el.xpath } };
@@ -267,13 +252,6 @@ export function buildDefaultMatchingFromElement(el: ElementLike): BuiltMatching 
 /**
  * 判断 XPath 是否有效
  */
-function isValidXPath(xpath: string): boolean {
-  if (!xpath || xpath.trim().length === 0) return false;
-  // XPath 应该以 / 或 // 开头
-  const trimmed = xpath.trim();
-  return trimmed.startsWith('/') || trimmed.startsWith('//');
-}
-
 /**
  * 判断文本是否有意义（过滤空白、数字、单字符等）
  */

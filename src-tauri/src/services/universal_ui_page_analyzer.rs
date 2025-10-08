@@ -9,6 +9,7 @@ use quick_xml::{Reader, events::Event};
 use serde::{Deserialize, Serialize};
 use anyhow::Result as AnyResult;
 use tracing::{info, warn, error};
+use tauri::Manager;
 use crate::types::page_analysis::ElementBounds;
 use crate::screenshot_service::ScreenshotService;
 
@@ -552,11 +553,68 @@ impl UniversalUIPageAnalyzer {
 /// 分析Universal UI页面
 #[tauri::command]
 pub async fn analyze_universal_ui_page(
+    app_handle: tauri::AppHandle,
     device_id: String,
 ) -> Result<UniversalPageCaptureResult, String> {
-    // 临时禁用：等待重构为使用统一的解析器架构
-    warn!("⚠️ 页面分析功能暂时不可用，正在重构中");
-    Err("页面分析功能暂时不可用".to_string())
+    info!("🔍 开始分析Universal UI页面，设备ID: {}", device_id);
+    
+    // 获取应用数据目录
+    let app_data_dir = app_handle.path().app_data_dir()
+        .map_err(|e| format!("无法获取应用数据目录: {}", e))?;
+    
+    // 创建universal-ui目录
+    let universal_dir = app_data_dir.join("universal-ui");
+    std::fs::create_dir_all(&universal_dir)
+        .map_err(|e| format!("创建universal-ui目录失败: {}", e))?;
+    
+    // 生成时间戳文件名
+    let timestamp = chrono::Utc::now().format("%Y%m%d_%H%M%S").to_string();
+    let device_safe_id = device_id.replace(":", "_").replace(" ", "_");
+    
+    // 1. 获取UI层次结构XML
+    info!("📱 获取设备UI层次结构...");
+    let adb_service = crate::services::adb_service::core::AdbService::new();
+    let xml_content = adb_service.dump_ui_hierarchy(&device_id).await
+        .map_err(|e| format!("获取UI层次结构失败: {}", e))?;
+    
+    if xml_content.trim().is_empty() {
+        return Err("获取的UI层次结构为空".to_string());
+    }
+    
+    // 保存XML文件
+    let xml_file_name = format!("{}_{}.xml", device_safe_id, timestamp);
+    let xml_path = universal_dir.join(&xml_file_name);
+    std::fs::write(&xml_path, &xml_content)
+        .map_err(|e| format!("保存XML文件失败: {}", e))?;
+    
+    // 2. 截取屏幕截图
+    info!("📸 截取设备屏幕截图...");
+    let screenshot_file_name = format!("{}_{}.png", device_safe_id, timestamp);
+    let screenshot_path = universal_dir.join(&screenshot_file_name);
+    
+    let screenshot_absolute_path = match crate::screenshot_service::ScreenshotService::capture_screenshot_to_path(&device_id, &screenshot_path) {
+        Ok(abs_path) => Some(abs_path.to_string_lossy().to_string()),
+        Err(e) => {
+            warn!("截图失败，继续处理: {}", e);
+            None
+        }
+    };
+    
+    // 计算相对路径
+    let xml_relative_path = format!("universal-ui/{}", xml_file_name);
+    let screenshot_relative_path = screenshot_absolute_path.as_ref().map(|_| format!("universal-ui/{}", screenshot_file_name));
+    
+    info!("✅ Universal UI页面分析完成");
+    
+    Ok(UniversalPageCaptureResult {
+        xml_content,
+        xml_file_name,
+        xml_relative_path,
+        xml_absolute_path: xml_path.to_string_lossy().to_string(),
+        screenshot_file_name: screenshot_absolute_path.as_ref().map(|_| screenshot_file_name),
+        screenshot_relative_path,
+        screenshot_absolute_path,
+    })
 }
 
 /// 提取页面元素 - 统一智能解析器（临时禁用过滤器）
