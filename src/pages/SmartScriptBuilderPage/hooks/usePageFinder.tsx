@@ -310,8 +310,12 @@ export function usePageFinder(deps: UsePageFinderDeps) {
         
         // 使用统一的 XPath 生成服务
         const elementForGeneration = {
-          resource_id: resourceId,
+          'resource-id': resourceId,  // 🔧 修正字段名映射
+          'content-desc': contentDesc, // 🔧 修正字段名映射
           text: text,
+          class: className,
+          // 保持向后兼容的字段名
+          resource_id: resourceId,
           content_desc: contentDesc,
           class_name: className,
         };

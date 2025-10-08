@@ -157,6 +157,18 @@ pub fn extract_matching_context(params: &HashMap<String, Value>) -> Option<Match
         .or_else(|| params.get("boundsRect"))
         .cloned();
 
+    // 🆕 提取原始XML快照
+    let original_xml = params.get("xmlSnapshot")
+        .and_then(|snapshot| snapshot.get("xmlContent"))
+        .and_then(|content| content.as_str())
+        .map(|s| s.to_string())
+        .or_else(|| {
+            // 也尝试从 original_xml 字段直接获取
+            params.get("original_xml")
+                .and_then(|xml| xml.as_str())
+                .map(|s| s.to_string())
+        });
+
     Some(MatchingContext {
         strategy,
         fields,
@@ -168,5 +180,6 @@ pub fn extract_matching_context(params: &HashMap<String, Value>) -> Option<Match
         regex_excludes,
         fallback_bounds,
         device_id: String::new(), // 将在调用时设置
+        original_xml,
     })
 }

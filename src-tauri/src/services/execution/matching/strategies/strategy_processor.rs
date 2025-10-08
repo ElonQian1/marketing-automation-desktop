@@ -23,6 +23,8 @@ pub struct MatchingContext {
     pub regex_excludes: HashMap<String, Vec<String>>,
     pub fallback_bounds: Option<Value>,
     pub device_id: String,
+    /// 🆕 原始XML快照（仅用于重放分析，真机操作时不使用）
+    pub original_xml: Option<String>,
 }
 
 /// 策略处理结果

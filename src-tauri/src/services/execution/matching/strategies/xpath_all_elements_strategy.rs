@@ -245,10 +245,11 @@ mod tests {
             },
             includes: HashMap::new(),
             excludes: HashMap::new(),
-            match_mode: None,
+            match_mode: HashMap::new(),
             regex_includes: HashMap::new(),
             regex_excludes: HashMap::new(),
             fallback_bounds: None,
+            original_xml: None, // 测试不使用原始XML
         };
 
         let xpath = processor.build_all_elements_xpath(&context).unwrap();

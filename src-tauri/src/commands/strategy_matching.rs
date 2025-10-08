@@ -50,6 +50,7 @@ pub async fn match_element_by_criteria(
         regex_excludes: criteria.regex_excludes.clone(),
         fallback_bounds: None, // 策略匹配不使用固化坐标
         device_id: device_id.clone(),
+        original_xml: None, // 策略匹配命令不传递原始XML（总是获取最新）
     };
 
     let mut logs = Vec::new();

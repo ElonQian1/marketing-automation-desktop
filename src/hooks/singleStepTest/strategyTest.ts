@@ -8,6 +8,98 @@ export function buildCriteriaFromStep(step: SmartScriptStep): MatchCriteriaDTO |
 
   if (params?.matching) {
     const m = params.matching as Partial<MatchCriteriaDTO> & { matchMode?: MatchCriteriaDTO['matchMode']; regexIncludes?: MatchCriteriaDTO['regexIncludes']; regexExcludes?: MatchCriteriaDTO['regexExcludes'] };
+    
+    // 🆕 XPath 直接策略特殊处理：确保 xpath 参数正确传递
+    if (m.strategy === 'xpath-direct') {
+      let xpath = m.values?.xpath;
+      
+      // 如果 matching.values.xpath 不存在，尝试从其他位置获取
+      if (!xpath || xpath.trim() === '') {
+        // 1. 尝试从 elementBinding.locator.xpath 获取
+        xpath = params.elementBinding?.locator?.xpath;
+        
+        // 2. 尝试从步骤参数中的 xpath 获取
+        if (!xpath || xpath.trim() === '') {
+          xpath = params.xpath;
+        }
+        
+        // 3. 尝试从 element_path 获取（旧版本参数）
+        if (!xpath || xpath.trim() === '') {
+          xpath = params.element_path;
+        }
+        
+        // 4. 尝试从 element_xpath 获取
+        if (!xpath || xpath.trim() === '') {
+          xpath = params.element_xpath;
+        }
+        
+        // 5. 尝试从 absoluteXPath 获取
+        if (!xpath || xpath.trim() === '') {
+          xpath = params.absoluteXPath;
+        }
+        
+        // 6. 调试输出，帮助查找 xpath 存储位置
+        console.log('🔍 XPath 直接策略参数调试:', {
+          'matching.values.xpath': m.values?.xpath,
+          'elementBinding.locator.xpath': params.elementBinding?.locator?.xpath,
+          'params.xpath': params.xpath,
+          'params.element_path': params.element_path,
+          'params.element_xpath': params.element_xpath,
+          'params.absoluteXPath': params.absoluteXPath,
+          'finalXPath': xpath,
+          'fullParams': params
+        });
+        
+        // 7. 如果仍然没有，尝试基于现有属性生成简单 xpath
+        if (!xpath || xpath.trim() === '') {
+          console.warn('⚠️ XPath 直接策略未找到 xpath 参数，尝试基于现有属性生成...');
+          
+          // 基于 resource-id 生成 xpath（最常用）
+          if (params.resource_id) {
+            xpath = `//*[@resource-id='${params.resource_id}']`;
+            console.log('🔧 基于 resource-id 生成 xpath:', xpath);
+          }
+          // 基于 content-desc 生成 xpath
+          else if (params.content_desc) {
+            xpath = `//*[@content-desc='${params.content_desc}']`;
+            console.log('🔧 基于 content-desc 生成 xpath:', xpath);
+          }
+          // 基于 text 生成 xpath
+          else if (params.element_text || params.text) {
+            const text = params.element_text || params.text;
+            xpath = `//*[@text='${text}']`;
+            console.log('🔧 基于 text 生成 xpath:', xpath);
+          }
+          // 基于 class + bounds 生成 xpath（最后的选择）
+          else if (params.element_type && params.bounds) {
+            xpath = `//*[@class='${params.element_type}' and @bounds='${params.bounds}']`;
+            console.log('🔧 基于 class+bounds 生成 xpath:', xpath);
+          }
+          
+          if (!xpath || xpath.trim() === '') {
+            console.warn('📋 完整参数结构:', JSON.stringify(params, null, 2));
+            console.warn('❌ 无法生成有效的 xpath，将传递空值给后端处理');
+          }
+        }
+      }
+      
+      return sanitizeCriteria({
+        strategy: 'xpath-direct',
+        fields: ['xpath'],
+        values: { 
+          xpath: xpath || '',
+          // 🆕 使用原始 XML 的带连字符命名规范
+          bounds: params.bounds || '',
+          'resource-id': params.resource_id || '',
+          'content-desc': params.content_desc || '',
+          text: params.element_text || params.text || '',
+          class: params.element_type || params.class_name || ''
+        },
+        includes: {},
+        excludes: {},
+      } as any);
+    }
+    
     const enhancedMatchMode = { ...(m.matchMode || {}) };
     const enhancedRegexIncludes = { ...(m.regexIncludes || {}) };
     if (m.fields?.includes('text') && m.values?.text && m.values.text.trim()) {

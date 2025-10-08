@@ -81,7 +81,7 @@ export const useSingleStepTest = () => {
         // 1) 步骤名称以“点击”开头（例如“点击FrameLayout”）；或
         // 2) 显式开启参数 flags：parameters.test_click_after_match === true
         const shouldClickAfterMatch = strategyResult.success && (
-          /^点击/.test(step.name || '') || (step.parameters as any)?.test_click_after_match === true
+          /^(点击|操作)/.test(step.name || '') || (step.parameters as any)?.test_click_after_match === true
         );
 
         if (shouldClickAfterMatch) {
