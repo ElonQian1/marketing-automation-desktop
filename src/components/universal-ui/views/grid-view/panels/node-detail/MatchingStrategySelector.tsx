@@ -12,6 +12,7 @@ const STRATEGY_LIST: Array<{ key: MatchStrategy; label: string; tip: string }> =
   { key: 'relaxed',      label: '宽松匹配', tip: '少数字段或模糊匹配，兼容性好' },
   { key: 'positionless', label: '匹配任意位置', tip: '忽略位置（bounds/index），适应布局调整' },
   { key: 'standard',     label: '标准匹配', tip: '跨设备稳定，仅用语义字段，忽略分辨率/位置' },
+  { key: 'hidden-element-parent', label: '隐藏元素', tip: '隐藏元素父查找：自动遍历父容器找到可点击元素，适用于bounds=[0,0][0,0]的隐藏元素' },
   { key: 'custom',       label: '自定义', tip: '使用下方勾选字段自由组合；与预设不一致时自动切换为自定义' },
 ];
 

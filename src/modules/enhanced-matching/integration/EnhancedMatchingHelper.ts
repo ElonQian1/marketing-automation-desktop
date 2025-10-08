@@ -83,6 +83,64 @@ export class EnhancedMatchingHelper {
       });
     }
 
+    // 🆕 检测隐藏元素（bounds=[0,0][0,0] 或类似的空bounds）
+    const bounds = element.bounds;
+    let boundsStr: string | undefined;
+    if (typeof bounds === 'string') {
+      boundsStr = bounds;
+    } else if (bounds && typeof bounds === 'object' && 'left' in bounds) {
+      const b = bounds as any;
+      boundsStr = `[${b.left},${b.top}][${b.right},${b.bottom}]`;
+    }
+    
+    const isHiddenElement = boundsStr === '[0,0][0,0]' || boundsStr === '' || 
+                           boundsStr === null || boundsStr === undefined || 
+                           boundsStr === '[0,0,0,0]' || boundsStr === '0,0,0,0' || 
+                           boundsStr === '[0][0]';
+
+    if (debug) {
+      console.log('🔍 [EnhancedMatchingHelper] 隐藏元素检测:', {
+        bounds: boundsStr,
+        isHiddenElement,
+        text: element.text,
+        contentDesc: element.content_desc,
+        resourceId: element.resource_id
+      });
+    }
+
+    // 🎯 隐藏元素特殊处理
+    if (isHiddenElement) {
+      if (debug) {
+        console.log('🎯 [EnhancedMatchingHelper] 检测到隐藏元素，使用父容器查找策略');
+      }
+      
+      // 为隐藏元素返回隐藏元素父查找策略
+      const hiddenElementResult: BuiltMatchingResult = {
+        strategy: 'hidden-element-parent',
+        fields: ['text', 'content-desc', 'resource-id', 'class'],
+        values: {
+          'text': element.text || '',
+          'content-desc': element.content_desc || '',
+          'resource-id': element.resource_id || '',
+          'class': element.class_name || ''
+        },
+        // 添加隐藏元素父查找配置
+        hiddenElementParentConfig: {
+          targetText: element.text || element.content_desc || '',
+          maxTraversalDepth: 5,
+          clickableIndicators: ['Button', 'ImageButton', 'TextView', 'LinearLayout', 'RelativeLayout'],
+          excludeIndicators: ['ScrollView', 'ListView', 'RecyclerView'],
+          confidenceThreshold: 0.7
+        }
+      };
+
+      if (debug) {
+        console.log('✅ [EnhancedMatchingHelper] 隐藏元素策略生成完成:', hiddenElementResult);
+      }
+
+      return hiddenElementResult;
+    }
+
     // 尝试使用增强匹配系统
     if (useEnhancedMatching && xmlContext) {
       try {

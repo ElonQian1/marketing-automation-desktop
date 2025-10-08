@@ -15,6 +15,7 @@ const STRATEGY_META: Record<string, { color: string; label: string; tip: string 
   positionless: { color: 'purple', label: '无位置', tip: '无位置匹配：忽略 bounds，仅用语义字段匹配' },
   standard: { color: 'cyan', label: '标准', tip: '标准匹配：跨设备稳定，忽略位置/分辨率差异，仅用语义字段' },
   custom: { color: 'gray', label: '自定义', tip: '自定义匹配：由用户勾选的字段集合，可能与任何预设不同' },
+  'hidden-element-parent': { color: 'orange', label: '隐藏元素', tip: '隐藏元素父查找：自动遍历父容器找到可点击元素，适用于bounds=[0,0][0,0]的隐藏元素' },
 };
 
 export const MatchingStrategyTag: React.FC<MatchingStrategyTagProps> = ({ strategy, small }) => {

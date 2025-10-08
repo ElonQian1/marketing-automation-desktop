@@ -114,7 +114,7 @@ export function isSameFieldsAsPreset(fields: string[], preset: string[]): boolea
  * - 否则返回 'custom'
  */
 export function inferStrategyFromFields(fields: string[]): MatchStrategy {
-  const order: Array<Exclude<MatchStrategy, 'custom'>> = ['absolute', 'strict', 'relaxed', 'positionless', 'standard'];
+  const order: Array<Exclude<MatchStrategy, 'custom'>> = ['absolute', 'strict', 'relaxed', 'positionless', 'standard', 'hidden-element-parent'];
   for (const key of order) {
     if (isSameFieldsAsPreset(fields, PRESET_FIELDS[key])) return key;
   }

@@ -26,6 +26,14 @@ export interface BuiltMatchingResult {
   strategy: string;
   fields: string[];
   values: Record<string, string>;
+  // 隐藏元素父查找策略配置
+  hiddenElementParentConfig?: {
+    targetText: string;
+    maxTraversalDepth?: number;
+    clickableIndicators?: string[];
+    excludeIndicators?: string[];
+    confidenceThreshold?: number;
+  };
 }
 
 /**

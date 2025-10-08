@@ -301,17 +301,38 @@ export function buildCompleteStepCriteria(
     // 1. 确定策略
     let strategy: MatchStrategy = currentStrategy || fallbackStrategy;
     
+    console.log('🔧 [buildCompleteStepCriteria] 策略确定:', {
+      currentStrategy,
+      fallbackStrategy,
+      initialStrategy: strategy,
+      hiddenElementParentConfig: !!hiddenElementParentConfig
+    });
+    
     // 2. 确定字段集合
     let fields: string[] = [];
     
     if (currentFields && currentFields.length > 0) {
       // 使用面板当前选择的字段
       fields = [...currentFields];
+      console.log('🔧 [buildCompleteStepCriteria] 使用面板字段:', fields);
     } else {
       // 后备：使用策略对应的预设字段
       fields = PRESET_FIELDS[strategy as keyof typeof PRESET_FIELDS] || PRESET_FIELDS.standard;
-      // 根据字段重新推断策略（保持一致性）
-      strategy = inferStrategyFromFields(fields);
+      console.log('🔧 [buildCompleteStepCriteria] 使用预设字段:', { strategy, fields });
+      
+      // 🚨 修复：对于特殊策略（如隐藏元素），不要重新推断策略
+      if (strategy !== 'hidden-element-parent') {
+        // 根据字段重新推断策略（保持一致性）
+        const inferredStrategy = inferStrategyFromFields(fields);
+        console.log('🔧 [buildCompleteStepCriteria] 策略推断:', { 
+          originalStrategy: strategy, 
+          inferredStrategy,
+          willChange: strategy !== inferredStrategy
+        });
+        strategy = inferredStrategy;
+      } else {
+        console.log('🔧 [buildCompleteStepCriteria] 保持隐藏元素策略，跳过推断');
+      }
     }
 
     // 3. 构建字段值
@@ -408,12 +429,22 @@ export function buildCompleteStepCriteria(
       metadata
     };
 
+    console.log('✅ [buildCompleteStepCriteria] 最终生成的条件:', {
+      finalStrategy: criteria.strategy,
+      fields: criteria.fields,
+      hasHiddenConfig: !!criteria.hiddenElementParentConfig,
+      sourceType,
+      originalStrategy: currentStrategy
+    });
+
     console.log('🎯 构建完整回填条件:', {
       strategy: criteria.strategy,
       fieldsCount: criteria.fields.length,
       valuesCount: Object.keys(criteria.values).length,
       includesCount: Object.keys(criteria.includes || {}).length,
       excludesCount: Object.keys(criteria.excludes || {}).length,
+      isHiddenElement: criteria.strategy === 'hidden-element-parent',
+      targetText: criteria.hiddenElementParentConfig?.targetText,
       sourceType,
       nodeLabel: preview.nodeLabel
     });
@@ -442,22 +473,39 @@ export function buildSmartStepCriteria(
   const hasContentDesc = !!(node.attrs?.['content-desc']?.trim());
   const hasBounds = !!node.attrs?.['bounds'];
   
-  // 🆕 检测隐藏元素（bounds=[0,0][0,0]）
-  const isHiddenElement = node.attrs?.['bounds'] === '[0,0][0,0]';
+  // 🆕 检测隐藏元素（bounds=[0,0][0,0] 或类似的空bounds）
+  const bounds = node.attrs?.['bounds'];
+  const isHiddenElement = bounds === '[0,0][0,0]' || bounds === '' || bounds === null || bounds === undefined || 
+                         bounds === '[0,0,0,0]' || bounds === '0,0,0,0' || bounds === '[0][0]';
+
+  console.log('🔍 [buildSmartStepCriteria] 元素检测:', {
+    bounds,
+    isHiddenElement,
+    hasText,
+    text: node.attrs?.['text'],
+    resourceId: node.attrs?.['resource-id'],
+    contentDesc: node.attrs?.['content-desc']
+  });
 
   let smartStrategy: MatchStrategy = 'standard';
   let smartFields: string[] = [];
   let hiddenElementParentConfig = undefined;
 
   // 🎯 隐藏元素特殊处理
-  if (isHiddenElement && hasText) {
-    console.log('🔍 检测到隐藏元素，使用父容器查找策略');
+  if (isHiddenElement) {
+    console.log('🎯 [buildSmartStepCriteria] 检测到隐藏元素，使用父容器查找策略');
+    console.log('🎯 隐藏元素信息:', {
+      text: node.attrs?.['text'],
+      contentDesc: node.attrs?.['content-desc'],
+      resourceId: node.attrs?.['resource-id'],
+      className: node.attrs?.['class']
+    });
     smartStrategy = 'hidden-element-parent';
-    smartFields = ['text', 'content-desc', 'class', 'clickable', 'bounds'];
+    smartFields = ['text', 'content-desc', 'resource-id', 'class'];
     
     // 为隐藏元素父查找策略设置配置
     hiddenElementParentConfig = {
-      targetText: node.attrs?.['text'] || '',
+      targetText: node.attrs?.['text'] || node.attrs?.['content-desc'] || '',
       maxTraversalDepth: 5,
       clickableIndicators: ['Button', 'ImageButton', 'TextView', 'LinearLayout', 'RelativeLayout'],
       excludeIndicators: ['ScrollView', 'ListView', 'RecyclerView'],
