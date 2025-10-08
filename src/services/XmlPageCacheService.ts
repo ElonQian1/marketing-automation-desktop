@@ -506,8 +506,8 @@ export class XmlPageCacheService {
     try {
       // 🔧 强制使用非过滤模式，确保这是纯解析函数
       const elements = await invoke('parse_cached_xml_to_elements', { 
-        xml_content: xmlContent, 
-        enable_filtering: false  // 总是使用false，过滤由ElementFilter模块负责
+        xmlContent: xmlContent, 
+        enableFiltering: false  // 总是使用false，过滤由ElementFilter模块负责
       });
       return elements as any[];
     } catch (error) {
@@ -573,8 +573,8 @@ export class XmlPageCacheService {
   static async deleteCachedPage(fileName: string, screenshotFileName?: string): Promise<void> {
     try {
       await invoke('delete_xml_cache_artifacts', {
-        xml_file_name: fileName,
-        screenshot_file_name: screenshotFileName ?? null,
+        xmlFileName: fileName,
+        screenshotFileName: screenshotFileName ?? null,
       });
       
       // 更新本地缓存

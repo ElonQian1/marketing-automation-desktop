@@ -302,9 +302,46 @@ export const usePageFinderModal = (props: UsePageFinderModalProps): UsePageFinde
       console.log("🎯 提取的 UI 元素数量:", pageContent.elements.length);
       
       setCurrentXmlCacheId(cachedPage.fileName || cachedPage.id);
-      await handleLoadXmlContent(pageContent.xmlContent, {
-        screenshotAbsolutePath: cachedPage.screenshotAbsolutePath,
-      });
+      
+      // 🔧 直接使用已解析的元素，避免重复解析
+      setCurrentXmlContent(pageContent.xmlContent);
+      
+      // 处理截图
+      if (cachedPage.screenshotAbsolutePath) {
+        try {
+          const screenshotDataUrl = await loadImageDataUrl(cachedPage.screenshotAbsolutePath);
+          setScreenshotUrl(screenshotDataUrl);
+        } catch (error) {
+          console.warn("⚠️ 无法读取截图:", error);
+          setScreenshotUrl(undefined);
+        }
+      } else {
+        setScreenshotUrl(undefined);
+      }
+      
+      // 直接使用已解析的元素，无需重新解析
+      setUIElements(pageContent.elements);
+      
+      // 转换为可视化元素并设置给 VisualElementView
+      const visualElements = pageContent.elements.map(transformUIElement);
+      setElements(visualElements);
+      
+      // 创建快照
+      const snapshot: XmlSnapshot = {
+        id: `cached-${Date.now()}`,
+        xmlContent: pageContent.xmlContent,
+        deviceInfo: pageContent.pageInfo?.deviceId ? {
+          id: pageContent.pageInfo.deviceId,
+          name: "缓存设备"
+        } : undefined,
+        pageInfo: pageContent.pageInfo,
+        timestamp: Date.now(),
+      };
+      
+      // 通知父组件快照已创建
+      if (onSnapshotCaptured) {
+        onSnapshotCaptured(snapshot);
+      }
       
     } catch (error) {
       console.error("❌ 从缓存加载失败:", error);
