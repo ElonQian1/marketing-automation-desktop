@@ -10,6 +10,7 @@ interface InfoBubbleProps {
   snapshotAvailable: boolean;
   onOpenXmlInspector: () => void;
   onSelectChildElement?: (element: ActionableChildElement) => void; // 🆕 子元素选择回调
+  onUpdateStepParameters?: (stepId: string, nextParams: any) => void; // 🆕 步骤参数更新回调
 }
 
 /**
@@ -19,7 +20,14 @@ interface InfoBubbleProps {
  * 2) 匹配规则（strategy、fields、部分值）
  * 3) 原始 XML 快照（是否可用 + 一键打开检查器）
  */
-export const InfoBubble: React.FC<InfoBubbleProps> = ({ step, boundNode, snapshotAvailable, onOpenXmlInspector, onSelectChildElement }) => {
+export const InfoBubble: React.FC<InfoBubbleProps> = ({ 
+  step, 
+  boundNode, 
+  snapshotAvailable, 
+  onOpenXmlInspector, 
+  onSelectChildElement,
+  onUpdateStepParameters 
+}) => {
   const matching = step?.parameters?.matching || {};
 
   const attrs = (() => {
@@ -67,7 +75,7 @@ export const InfoBubble: React.FC<InfoBubbleProps> = ({ step, boundNode, snapsho
         </Descriptions.Item>
         <Descriptions.Item label="匹配规则">
           <div className="flex items-center gap-2 text-xs">
-            <MatchingStrategyTag strategy={matching.strategy} small />
+            <MatchingStrategyTag strategy={matching.strategy} />
             <span>字段数: {fields.length}</span>
             {fields.length > 0 && (
               <span className="truncate max-w-64" title={fields.join(', ')}>

@@ -1,5 +1,5 @@
 // UI 层策略类型：包含隐藏元素父查找策略和 XPath 直接索引策略
-export type MatchStrategy = 'absolute' | 'strict' | 'relaxed' | 'positionless' | 'standard' | 'custom' | 'hidden-element-parent' | 'xpath-direct';
+export type MatchStrategy = 'absolute' | 'strict' | 'relaxed' | 'positionless' | 'standard' | 'custom' | 'hidden-element-parent' | 'xpath-direct' | 'xpath-first-index' | 'xpath-all-elements';
 
 export interface MatchCriteria {
   strategy: MatchStrategy;

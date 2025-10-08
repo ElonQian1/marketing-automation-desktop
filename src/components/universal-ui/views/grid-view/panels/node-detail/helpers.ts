@@ -80,6 +80,22 @@ export const PRESET_FIELDS: Record<Exclude<MatchStrategy, 'custom'> | 'custom', 
     "content-desc",
     "resource-id",
     "class"
+  ],
+  // 🆕 XPath 第一索引：使用[1]索引精确定位
+  'xpath-first-index': [
+    "xpath",      // 优先使用现有的 xpath
+    "bounds",     // 坐标信息作为构建 xpath 的备用
+    "class",      // 类名用于构建基础路径
+    "resource-id", // 资源ID有助于精确路径
+    "text"        // 文本内容用于验证
+  ],
+  // 🆕 XPath 所有元素：返回所有同类按钮
+  'xpath-all-elements': [
+    "xpath",      // 优先使用现有的 xpath 
+    "class",      // 类名用于构建通用路径
+    "resource-id", // 资源ID用于筛选
+    "text",       // 文本内容用于过滤
+    "content-desc" // 描述信息用于过滤
   ]
 };
 
@@ -122,7 +138,7 @@ export function isSameFieldsAsPreset(fields: string[], preset: string[]): boolea
  * - 否则返回 'custom'
  */
 export function inferStrategyFromFields(fields: string[]): MatchStrategy {
-  const order: Array<Exclude<MatchStrategy, 'custom'>> = ['absolute', 'strict', 'relaxed', 'positionless', 'standard', 'hidden-element-parent'];
+  const order: Array<Exclude<MatchStrategy, 'custom'>> = ['absolute', 'strict', 'relaxed', 'positionless', 'standard', 'hidden-element-parent', 'xpath-first-index', 'xpath-all-elements'];
   for (const key of order) {
     if (isSameFieldsAsPreset(fields, PRESET_FIELDS[key])) return key;
   }

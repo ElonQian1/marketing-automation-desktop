@@ -9,6 +9,8 @@ mod absolute_strategy;
 mod custom_strategy;
 mod hidden_element_parent_strategy;
 mod xpath_direct_strategy;
+mod xpath_first_index_strategy;
+mod xpath_all_elements_strategy;
 
 pub use strategy_processor::{
     StrategyProcessor,
@@ -22,6 +24,8 @@ pub use absolute_strategy::AbsoluteStrategyProcessor;
 pub use custom_strategy::CustomStrategyProcessor;
 pub use hidden_element_parent_strategy::HiddenElementParentStrategyProcessor;
 pub use xpath_direct_strategy::XPathDirectStrategyProcessor;
+pub use xpath_first_index_strategy::XPathFirstIndexStrategyProcessor;
+pub use xpath_all_elements_strategy::XPathAllElementsStrategyProcessor;
 
 use std::collections::HashMap;
 use serde_json::Value;
@@ -30,6 +34,8 @@ use serde_json::Value;
 pub fn create_strategy_processor(strategy: &str) -> Box<dyn StrategyProcessor + Send + Sync> {
     match strategy {
         "xpath-direct" => Box::new(XPathDirectStrategyProcessor::new()), // 🆕 XPath 直接索引策略
+        "xpath-first-index" => Box::new(XPathFirstIndexStrategyProcessor::new()), // 🆕 XPath 使用[1]索引策略
+        "xpath-all-elements" => Box::new(XPathAllElementsStrategyProcessor::new()), // 🆕 XPath 返回所有元素策略
         "standard" => Box::new(StandardStrategyProcessor::new()),
         "absolute" => Box::new(AbsoluteStrategyProcessor::new()),
         "custom" => Box::new(CustomStrategyProcessor::new()),

@@ -36,6 +36,8 @@ export const MatchPresetsRow: React.FC<MatchPresetsRowProps> = ({ node, onApply,
   return (
     <div className="mb-2 flex flex-wrap items-center gap-2">
       <span className="text-xs text-neutral-500">匹配预设：</span>
+      <Button label="XPath[1]索引" strategy="xpath-first-index" title="使用 [1] 索引匹配第一个符合条件的元素" />
+      <Button label="XPath全部元素" strategy="xpath-all-elements" title="返回所有符合条件的同类元素，适用于批量操作" />
       <Button label="绝对定位" strategy="absolute" title="勾选所有关键属性（含 bounds/index），尽可能精确" />
       <Button label="严格匹配" strategy="strict" title="勾选 id/text/desc/class/package 等常用稳定字段" />
       <Button label="宽松匹配" strategy="relaxed" title="勾选 id/text/desc/class，忽略 package" />

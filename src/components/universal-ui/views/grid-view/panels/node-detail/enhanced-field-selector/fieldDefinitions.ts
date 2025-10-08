@@ -318,6 +318,9 @@ export function getRecommendedGroupsForStrategy(strategy: string): string[] {
     'relaxed': ['basic', 'parent', 'child'],
     'positionless': ['basic', 'parent', 'child'],
     'standard': ['basic', 'child', 'parent'],
+    'xpath-first-index': ['basic'], // XPath策略主要使用基础字段进行路径构建
+    'xpath-all-elements': ['basic'], // XPath策略主要使用基础字段进行路径构建
+    'hidden-element-parent': ['basic', 'clickable_ancestor'],
     'custom': [] // 自定义策略不推荐特定组
   };
   

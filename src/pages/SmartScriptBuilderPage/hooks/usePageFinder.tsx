@@ -297,9 +297,11 @@ export function usePageFinder(deps: UsePageFinderDeps) {
       const ee: any = (element as any)?.enhancedElement;
       const xmlForMatch = ee?.xmlContext?.xmlSourceContent || currentXmlContent;
       
-      // 🔥 生成 XPath：优先使用现有路径，否则基于元素属性自动生成
+      // 🔥 优先保留有效的 XPath：确保 xpath-direct 策略不被覆盖
       let elementXPath = ee?.nodePath?.xpath ?? (element as any).xpath ?? (element as any).element_path;
-      if (!elementXPath || typeof elementXPath !== 'string' || !elementXPath.trim()) {
+      
+      // 仅在真正没有 XPath 时才自动生成，避免覆盖有效的 XPath
+      if (!elementXPath || typeof elementXPath !== 'string' || !elementXPath.trim() || !XPathService.isValid(elementXPath.trim())) {
         // 提取元素属性信息
         const resourceId = ee?.nodeDetails?.resourceId ?? element.resource_id;
         const text = ee?.nodeDetails?.text ?? element.text;
@@ -314,16 +316,26 @@ export function usePageFinder(deps: UsePageFinderDeps) {
           class_name: className,
         };
         
-        elementXPath = XPathService.generateForStep(elementForGeneration);
+        const generatedXPath = XPathService.generateForStep(elementForGeneration);
         
         if (process.env.NODE_ENV === 'development') {
-          console.log('🔧 自动生成 XPath:', {
-            original: ee?.nodePath?.xpath,
-            generated: elementXPath,
+          console.log('🔧 自动生成 XPath（原XPath无效）:', {
+            original: elementXPath,
+            generated: generatedXPath,
+            originalValid: elementXPath ? XPathService.isValid(elementXPath.trim()) : false,
             resourceId,
             text,
             contentDesc,
             className
+          });
+        }
+        
+        elementXPath = generatedXPath;
+      } else {
+        if (process.env.NODE_ENV === 'development') {
+          console.log('🎯 保留原有有效 XPath:', {
+            xpath: elementXPath,
+            isValid: XPathService.isValid(elementXPath.trim())
           });
         }
       }
@@ -371,6 +383,16 @@ export function usePageFinder(deps: UsePageFinderDeps) {
         fallbackToLegacy: true, // 增强匹配失败时降级到原有逻辑
         debug: process.env.NODE_ENV === 'development' // 开发模式下启用调试
       });
+      
+      if (process.env.NODE_ENV === 'development') {
+        console.log('🎯 EnhancedMatching 构建结果:', {
+          strategy: built?.strategy,
+          fields: built?.fields,
+          hasXPath: !!enhancedElement.xpath,
+          xpathValue: enhancedElement.xpath,
+          expectedStrategy: enhancedElement.xpath && XPathService.isValid(enhancedElement.xpath) ? 'xpath-direct' : 'other'
+        });
+      }
       if (built && built.fields.length > 0) {
         // 为文本相关字段默认注入精确正则 ^词$，便于后端 enhanced_unified 直接采用
         const textLike = ["text", "content-desc"] as const;

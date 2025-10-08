@@ -166,6 +166,91 @@ export default class XPathService {
     return optimizeXPath(xpath);
   }
 
+  /**
+   * 确保 XPath 使用 [1] 索引（用于 xpath-first-index 策略）
+   * @param xpath 原始 XPath
+   * @returns 修改后的 XPath，确保所有节点都使用 [1] 索引
+   */
+  static ensureFirstIndex(xpath: string): string {
+    if (!xpath || typeof xpath !== 'string') {
+      return xpath;
+    }
+
+    // 移除现有的索引，然后为每个节点添加 [1]
+    return xpath
+      .trim()
+      // 先移除现有的索引 [n]
+      .replace(/\[(\d+)\]/g, '')
+      // 为每个元素节点添加 [1] 索引（但不包括属性选择器）
+      .split('/')
+      .map((segment, index) => {
+        if (!segment) return segment; // 处理开头的空字符串
+        
+        // 跳过根节点 (/) 和属性选择器 (@...)
+        if (segment.startsWith('@') || segment === '') {
+          return segment;
+        }
+        
+        // 如果已经有条件（包含 [ 但不是位置索引），不添加 [1]
+        if (segment.includes('[') && !segment.match(/\[\d+\]$/)) {
+          return segment;
+        }
+        
+        // 为普通元素节点添加 [1]
+        return segment + '[1]';
+      })
+      .join('/');
+  }
+
+  /**
+   * 移除 XPath 中的索引（用于 xpath-all-elements 策略）
+   * @param xpath 原始 XPath
+   * @returns 移除索引后的 XPath，返回所有匹配的元素
+   */
+  static removeIndex(xpath: string): string {
+    if (!xpath || typeof xpath !== 'string') {
+      return xpath;
+    }
+
+    // 移除所有位置索引 [n]，但保留属性条件
+    return xpath
+      .trim()
+      // 移除位置索引如 [1], [2], [last()] 等
+      .replace(/\[(\d+|last\(\)|first\(\))\]/g, '')
+      // 清理可能的双斜杠
+      .replace(/\/+/g, '/');
+  }
+
+  /**
+   * 检查 XPath 是否包含索引
+   * @param xpath XPath 表达式
+   * @returns 是否包含位置索引
+   */
+  static hasIndex(xpath: string): boolean {
+    if (!xpath || typeof xpath !== 'string') {
+      return false;
+    }
+    return /\[(\d+|last\(\)|first\(\))\]/.test(xpath);
+  }
+
+  /**
+   * 提取 XPath 中的索引值
+   * @param xpath XPath 表达式
+   * @returns 索引值数组
+   */
+  static extractIndexes(xpath: string): number[] {
+    if (!xpath || typeof xpath !== 'string') {
+      return [];
+    }
+    
+    const matches = xpath.match(/\[(\d+)\]/g);
+    if (!matches) return [];
+    
+    return matches
+      .map(match => parseInt(match.slice(1, -1), 10))
+      .filter(num => !isNaN(num));
+  }
+
   // ==================== 解析方法 ====================
 
   /**

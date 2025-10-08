@@ -1,6 +1,6 @@
 import React from 'react';
 import { Button, Space, Switch, Tag, Typography, message } from 'antd';
-import ConfirmPopover from '@/components/universal-ui/common-popover/ConfirmPopover';
+import ConfirmPopover from '../../universal-ui/common-popover/ConfirmPopover';
 import { DragOutlined, EditOutlined, DeleteOutlined, ReloadOutlined, EyeOutlined } from '@ant-design/icons';
 import { InfoBubble } from './InfoBubble';
 import { SmartScrollControls } from '../components/SmartScrollControls';
@@ -155,7 +155,14 @@ export const StepCardHeader: React.FC<StepCardHeaderProps> = ({
       </div>
 
   <Space {...noDragProps}>
-        <InfoBubble step={step as any} boundNode={boundNode} snapshotAvailable={snapshotAvailable} onOpenXmlInspector={onOpenXmlInspector} onSelectChildElement={onSelectChildElement} />
+        <InfoBubble 
+          step={step as any} 
+          boundNode={boundNode} 
+          snapshotAvailable={snapshotAvailable} 
+          onOpenXmlInspector={onOpenXmlInspector} 
+          onSelectChildElement={onSelectChildElement}
+          onUpdateStepParameters={onUpdateStepParameters}
+        />
 
         {(step.step_type === 'loop_start' || step.step_type === 'loop_end') && (
           <Button
