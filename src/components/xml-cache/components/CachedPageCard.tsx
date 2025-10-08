@@ -1,6 +1,6 @@
 import React from "react";
 import { Dropdown, MenuProps, Button, Typography } from "antd";
-import ConfirmPopover from '@/components/universal-ui/common-popover/ConfirmPopover';
+import ConfirmPopover from "@/components/universal-ui/common-popover/ConfirmPopover";
 import { DeleteOutlined, EllipsisOutlined } from "@ant-design/icons";
 import { toAssetUrl } from "../utils/fileUrl";
 import Thumbnail from "./Thumbnail";
@@ -31,11 +31,19 @@ export const CachedPageCard: React.FC<CachedPageCardProps> = ({
   onCopyPath,
   onReveal,
   enableHoverExpand = true,
-  maxExpandedHeight = '80vh',
+  maxExpandedHeight = "80vh",
 }) => {
   const menuItems: MenuProps["items"] = [
-    { key: "open-explorer", label: "在文件管理器中打开", onClick: () => onReveal(page) },
-    { key: "copy-path", label: "复制绝对路径", onClick: () => onCopyPath(page) },
+    {
+      key: "open-explorer",
+      label: "在文件管理器中打开",
+      onClick: () => onReveal(page),
+    },
+    {
+      key: "copy-path",
+      label: "复制绝对路径",
+      onClick: () => onCopyPath(page),
+    },
   ];
   const thumbnailSrc = toAssetUrl(page.screenshotAbsolutePath);
 
@@ -52,7 +60,17 @@ export const CachedPageCard: React.FC<CachedPageCardProps> = ({
         cursor: "pointer",
         transition: "all 0.2s",
       }}
-      onClick={() => onSelect(page)}
+      onClick={(e) => {
+        // 检查点击目标是否在删除按钮或确认弹框内
+        const target = e.target as HTMLElement;
+        const isDeleteButton = target.closest('[aria-label="删除"]') || 
+                              target.closest('.ant-popover') ||
+                              target.closest('.ant-btn-dangerous');
+        
+        if (!isDeleteButton) {
+          onSelect(page);
+        }
+      }}
       onMouseEnter={(e) => {
         (e.currentTarget as HTMLDivElement).style.backgroundColor = "#4b5563";
         (e.currentTarget as HTMLDivElement).style.borderColor = "#6366f1";
@@ -70,7 +88,7 @@ export const CachedPageCard: React.FC<CachedPageCardProps> = ({
           fullWidth
           height={320}
           absolutePathForFallback={page.screenshotAbsolutePath}
-          expandMode={enableHoverExpand ? 'hover' : 'click'}
+          expandMode={enableHoverExpand ? "hover" : "click"}
           collapsedHeight={320}
           maxExpandedHeight={maxExpandedHeight}
         />
@@ -88,10 +106,25 @@ export const CachedPageCard: React.FC<CachedPageCardProps> = ({
           {getAppIcon(page.appPackage)}
         </span>
         <Dropdown menu={{ items: menuItems }} trigger={["click"]}>
-          <EllipsisOutlined style={{ position: "absolute", top: 8, right: 8, fontSize: 18, color: "#e5e7eb" }} />
+          <EllipsisOutlined
+            style={{
+              position: "absolute",
+              top: 8,
+              right: 8,
+              fontSize: 18,
+              color: "#e5e7eb",
+            }}
+          />
         </Dropdown>
       </div>
-      <div style={{ display: "flex", flexDirection: "column", gap: 4, marginTop: 8 }}>
+      <div
+        style={{
+          display: "flex",
+          flexDirection: "column",
+          gap: 4,
+          marginTop: 8,
+        }}
+      >
         <Text
           strong
           style={{
@@ -121,14 +154,40 @@ export const CachedPageCard: React.FC<CachedPageCardProps> = ({
           <ConfirmPopover
             mode="default"
             title="删除?"
-            onConfirm={() => { onDelete(page); }}
+            onConfirm={() => {
+              onDelete(page);
+            }}
             okText="删除"
             cancelText="取消"
           >
-            <Button type="text" danger size="small" icon={<DeleteOutlined />} onClick={(e) => e.stopPropagation()} />
+            <Button
+              type="text"
+              danger
+              size="small"
+              icon={<DeleteOutlined />}
+              onClick={(e) => e.stopPropagation()}
+            />
           </ConfirmPopover>
-          <Button type="link" size="small" onClick={(e) => { e.stopPropagation(); onReveal(page); }}>打开位置</Button>
-          <Button type="link" size="small" onClick={(e) => { e.stopPropagation(); onCopyPath(page); }}>复制路径</Button>
+          <Button
+            type="link"
+            size="small"
+            onClick={(e) => {
+              e.stopPropagation();
+              onReveal(page);
+            }}
+          >
+            打开位置
+          </Button>
+          <Button
+            type="link"
+            size="small"
+            onClick={(e) => {
+              e.stopPropagation();
+              onCopyPath(page);
+            }}
+          >
+            复制路径
+          </Button>
         </div>
       </div>
     </div>
