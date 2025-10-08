@@ -13,6 +13,21 @@ use tauri::Manager;
 use crate::types::page_analysis::ElementBounds;
 use crate::screenshot_service::ScreenshotService;
 
+// 添加获取debug_xml目录的函数
+fn get_debug_xml_dir() -> std::path::PathBuf {
+    // 确保指向项目根目录的 debug_xml 目录
+    // 无论当前工作目录在 src-tauri 还是项目根目录，都能正确找到
+    let current = std::env::current_dir().unwrap_or_else(|_| std::path::PathBuf::from("."));
+    
+    // 如果当前目录名是 src-tauri，则取父目录
+    if current.file_name().and_then(|name| name.to_str()) == Some("src-tauri") {
+        current.parent().unwrap_or(&current).join("debug_xml")
+    } else {
+        // 否则直接在当前目录下查找
+        current.join("debug_xml")
+    }
+}
+
 #[derive(Debug, Serialize)]
 pub struct UniversalPageCaptureResult {
     pub xml_content: String,
@@ -558,14 +573,10 @@ pub async fn analyze_universal_ui_page(
 ) -> Result<UniversalPageCaptureResult, String> {
     info!("🔍 开始分析Universal UI页面，设备ID: {}", device_id);
     
-    // 获取应用数据目录
-    let app_data_dir = app_handle.path().app_data_dir()
-        .map_err(|e| format!("无法获取应用数据目录: {}", e))?;
-    
-    // 创建universal-ui目录
-    let universal_dir = app_data_dir.join("universal-ui");
-    std::fs::create_dir_all(&universal_dir)
-        .map_err(|e| format!("创建universal-ui目录失败: {}", e))?;
+    // 使用与XML缓存相同的debug_xml目录
+    let debug_xml_dir = get_debug_xml_dir();
+    std::fs::create_dir_all(&debug_xml_dir)
+        .map_err(|e| format!("创建debug_xml目录失败: {}", e))?;
     
     // 生成时间戳文件名
     let timestamp = chrono::Utc::now().format("%Y%m%d_%H%M%S").to_string();
@@ -583,14 +594,14 @@ pub async fn analyze_universal_ui_page(
     
     // 保存XML文件
     let xml_file_name = format!("{}_{}.xml", device_safe_id, timestamp);
-    let xml_path = universal_dir.join(&xml_file_name);
+    let xml_path = debug_xml_dir.join(&xml_file_name);
     std::fs::write(&xml_path, &xml_content)
         .map_err(|e| format!("保存XML文件失败: {}", e))?;
     
     // 2. 截取屏幕截图
     info!("📸 截取设备屏幕截图...");
     let screenshot_file_name = format!("{}_{}.png", device_safe_id, timestamp);
-    let screenshot_path = universal_dir.join(&screenshot_file_name);
+    let screenshot_path = debug_xml_dir.join(&screenshot_file_name);
     
     let screenshot_absolute_path = match crate::screenshot_service::ScreenshotService::capture_screenshot_to_path(&device_id, &screenshot_path) {
         Ok(abs_path) => Some(abs_path.to_string_lossy().to_string()),
@@ -600,9 +611,9 @@ pub async fn analyze_universal_ui_page(
         }
     };
     
-    // 计算相对路径
-    let xml_relative_path = format!("universal-ui/{}", xml_file_name);
-    let screenshot_relative_path = screenshot_absolute_path.as_ref().map(|_| format!("universal-ui/{}", screenshot_file_name));
+    // 计算相对路径 - 统一使用debug_xml目录
+    let xml_relative_path = format!("debug_xml/{}", xml_file_name);
+    let screenshot_relative_path = screenshot_absolute_path.as_ref().map(|_| format!("debug_xml/{}", screenshot_file_name));
     
     info!("✅ Universal UI页面分析完成");
     
