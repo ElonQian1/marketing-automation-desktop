@@ -8,24 +8,48 @@ export class TauriUiMatcherRepository implements IUiMatcherRepository {
       return { ok: false, message: '非Tauri环境无法执行真机匹配' };
     }
 
-    // 隐藏元素策略的特殊处理
-    if (criteria.strategy === 'hidden-element-parent') {
-      console.log('🔍 检测到隐藏元素父查找策略，执行模拟匹配...');
+    try {
+      console.log('🎯 调用后端策略匹配命令:', { deviceId, strategy: criteria.strategy });
       
-      // 模拟成功的隐藏元素检测结果
+      // 调用新的策略匹配命令
+      const result = await invoke('match_element_by_criteria', {
+        deviceId,
+        criteria
+      }) as {
+        ok: boolean;
+        message: string;
+        preview?: {
+          text: string;
+          bounds: string;
+          class?: string;
+          content_desc?: string;
+        };
+        matched_elements: any[];
+        confidence_score: number;
+      };
+
+      console.log('🎯 策略匹配结果:', result);
+
+      // 转换结果格式以匹配前端期望
       return {
-        ok: true,
-        message: '✅ 隐藏元素父查找策略测试成功（模拟结果）',
-        total: 1,
-        matchedIndex: 0,
-        preview: {
-          text: '模拟隐藏元素父容器',
-          resource_id: 'hidden_parent_container',
-          class_name: 'android.widget.FrameLayout',
-          package: 'com.xingin.xhs',
-          bounds: '[100,200][500,400]',
-          xpath: '//android.widget.FrameLayout[contains(@resource-id,"hidden_parent_container")]'
-        }
+        ok: result.ok,
+        message: result.message,
+        total: result.matched_elements.length,
+        matchedIndex: result.ok ? 0 : -1,
+        preview: result.preview ? {
+          text: result.preview.text || '',
+          resource_id: '',
+          class_name: result.preview.class || '',
+          package: '',
+          bounds: result.preview.bounds || '[0,0][0,0]',
+          xpath: ''
+        } : undefined
+      };
+    } catch (error) {
+      console.error('❌ 策略匹配失败:', error);
+      return {
+        ok: false,
+        message: `策略匹配失败: ${error instanceof Error ? error.message : String(error)}`
       };
     }
 

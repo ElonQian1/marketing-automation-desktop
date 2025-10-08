@@ -9,6 +9,7 @@ pub mod page_analysis;
 pub mod logging;
 pub mod xml_cache;
 pub mod metrics;
+pub mod strategy_matching; // 新增策略匹配命令
 
 // 可选：统一 re-export，方便 main.rs 引入
 pub use employees::*;
@@ -18,3 +19,4 @@ pub use page_analysis::*;
 pub use logging::*;
 pub use xml_cache::*;
 pub use metrics::*;
+pub use strategy_matching::*;

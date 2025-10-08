@@ -278,7 +278,8 @@ fn main() {
             classify_ui_elements,    // 分类UI元素
             // wait_for_ui_element,     // 等待元素出现（暂未实现）
             // check_device_page_state, // 检查页面状态（暂未实现）
-            // match_element_by_criteria, // 按匹配条件查找元素（需要重新实现）
+            match_element_by_criteria, // 按匹配条件查找元素（重新实现）
+            match_hidden_element_by_text, // 隐藏元素文本匹配快捷命令
             // 智能应用管理功能
             get_device_apps,         // 获取设备应用列表
             get_device_apps_paged,   // 分页获取设备应用列表

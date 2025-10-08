@@ -3,7 +3,7 @@
 pub mod enhanced_unified;
 mod hierarchy_matcher;
 mod legacy_regex;
-mod strategies;
+pub mod strategies;
 mod unified;
 
 pub use enhanced_unified::run_enhanced_unified_match;
