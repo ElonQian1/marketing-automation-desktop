@@ -7,6 +7,7 @@ export interface MatchingStrategySelectorProps {
 }
 
 const STRATEGY_LIST: Array<{ key: MatchStrategy; label: string; tip: string }> = [
+  { key: 'xpath-direct', label: 'XPath直接', tip: '最快匹配：直接通过路径定位，性能最优但设备相关' },
   { key: 'absolute',     label: '绝对定位', tip: '含 bounds/index，最精确但跨设备脆弱' },
   { key: 'strict',       label: '严格匹配', tip: '常用语义字段组合，稳定性高' },
   { key: 'relaxed',      label: '宽松匹配', tip: '少数字段或模糊匹配，兼容性好' },

@@ -67,6 +67,13 @@ const AVAILABLE_FIELDS = [
  */
 const STRATEGY_OPTIONS = [
   {
+    value: 'xpath-direct' as const,
+    label: 'XPath直接索引',
+    description: '最快匹配速度，直接通过路径定位元素',
+    icon: <ThunderboltOutlined />,
+    color: 'gold',
+  },
+  {
     value: 'standard' as const,
     label: '标准匹配',
     description: '跨设备稳定，仅使用语义字段，忽略位置差异',

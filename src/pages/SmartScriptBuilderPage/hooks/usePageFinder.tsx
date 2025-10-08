@@ -295,13 +295,47 @@ export function usePageFinder(deps: UsePageFinderDeps) {
       // 优先使用增强元素的节点路径与节点详情，避免 xpath 不合法或 class_name 映射缺失
       const ee: any = (element as any)?.enhancedElement;
       const xmlForMatch = ee?.xmlContext?.xmlSourceContent || currentXmlContent;
+      
+      // 🔥 生成 XPath：优先使用现有路径，否则基于元素属性自动生成
+      let elementXPath = ee?.nodePath?.xpath ?? (element as any).xpath ?? (element as any).element_path;
+      if (!elementXPath || typeof elementXPath !== 'string' || !elementXPath.trim()) {
+        // 自动生成基于属性的 XPath
+        const resourceId = ee?.nodeDetails?.resourceId ?? element.resource_id;
+        const text = ee?.nodeDetails?.text ?? element.text;
+        const contentDesc = ee?.nodeDetails?.contentDesc ?? element.content_desc;
+        const className = ee?.nodeDetails?.className ?? (element as any).class_name ?? element.element_type;
+        
+        if (resourceId) {
+          elementXPath = `//*[@resource-id='${resourceId}']`;
+        } else if (text && text.trim()) {
+          elementXPath = `//*[text()='${text.trim()}']`;
+        } else if (contentDesc && contentDesc.trim()) {
+          elementXPath = `//*[@content-desc='${contentDesc.trim()}']`;
+        } else if (className) {
+          elementXPath = `//${className}`;
+        } else {
+          elementXPath = `//*`; // 最后的兜底
+        }
+        
+        if (process.env.NODE_ENV === 'development') {
+          console.log('🔧 自动生成 XPath:', {
+            original: ee?.nodePath?.xpath,
+            generated: elementXPath,
+            resourceId,
+            text,
+            contentDesc,
+            className
+          });
+        }
+      }
+      
       const enhancedElement = {
         resource_id: ee?.nodeDetails?.resourceId ?? element.resource_id,
         text: ee?.nodeDetails?.text ?? element.text,
         content_desc: ee?.nodeDetails?.contentDesc ?? element.content_desc,
         class_name: ee?.nodeDetails?.className ?? (element as any).class_name ?? element.element_type,
         bounds: ee?.nodeDetails?.bounds ?? element.bounds,
-        xpath: ee?.nodePath?.xpath ?? (element as any).xpath ?? (element as any).element_path,
+        xpath: elementXPath, // 🆕 使用生成的 XPath
         element_path: (element as any).element_path,
         // 添加可能存在的扩展属性（从交互状态映射）
         clickable: ee?.nodeDetails?.interactionStates?.clickable?.toString() ?? (element as any).clickable,

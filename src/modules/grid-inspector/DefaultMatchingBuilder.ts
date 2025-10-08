@@ -3,7 +3,25 @@
  * 输入为可视化/通用 UI 元素（包含常见字段），输出 { strategy, fields, values }
  * - 策略默认使用 standard
  * - 字段优先级：resource-id > text > content-desc > class > bounds
- * - 父节点字段：parent_class > parent_text > parent_resource_id（增强匹配精确度）
+ * - 父节点字段：parent_class > parent_text > pa  // 📊 策略选择逻辑（优先使用 xpath-direct 以获得最快匹配速度）
+  // - 第一优先级：xpath-direct（最快的匹配方式，直接通过路径定位）
+  // - 绝大多数场景：统一默认使用 standard（跨设备、分辨率无关，更稳健）
+  // - 特殊兜底：当仅有位置字段（bounds/index）且语义字段不足时，才使用 absolute
+  //   以避免 standard 策略下忽略位置字段导致完全失配
+  let strategy = 'xpath-direct'; // 🆕 默认使用 XPath 直接索引策略
+
+  // 判断是否属于"仅位置字段或几乎仅位置字段"的兜底情形
+  const hasBounds = fields.includes('bounds');
+  const hasIndexOnly = fields.length === 1 && fields[0] === 'index';
+  const isPositionOnly = (semanticFieldCount === 0) && (hasBounds || hasIndexOnly);
+
+  if (isPositionOnly) {
+    strategy = 'absolute';
+  }
+
+  console.log(`🎯 智能匹配配置: 策略=${strategy}, 字段=${fields.length}个, 语义字段=${semanticFieldCount}个, 父节点字段=${parentFieldCount}个`, { strategy, fields, values });
+
+  return { strategy, fields, values };强匹配精确度）
  */
 export interface ElementLike {
   resource_id?: string;
@@ -11,6 +29,9 @@ export interface ElementLike {
   content_desc?: string;
   class_name?: string;
   bounds?: string;
+  
+  // 🆕 XPath 直接索引字段
+  xpath?: string;             // XPath 表达式（用于直接定位）
   
   // 🆕 父节点匹配字段，用于层级查询
   parent_class?: string;      // 父节点类名（高优先级）
@@ -58,13 +79,21 @@ export function buildDefaultMatchingFromElement(el: ElementLike): BuiltMatching 
   };
 
   // 🎯 智能字段选择策略：
-  // 1. 优先级：resource-id > text > content-desc > class > bounds
-  // 2. 父节点增强：parent_resource_id > parent_class > parent_text > parent_content_desc
-  // 3. 交互状态增强：clickable, checked, scrollable, password, enabled
-  // 4. 确保至少有2个有效语义字段，提升匹配稳定性
+  // 1. XPath 直接索引优先：如果有 xpath，立即采用 xpath-direct 策略并返回
+  // 2. 语义字段优先级：resource-id > text > content-desc > class > bounds
+  // 3. 父节点增强：parent_resource_id > parent_class > parent_text > parent_content_desc
+  // 4. 交互状态增强：clickable, checked, scrollable, password, enabled
+  // 5. 确保至少有2个有效语义字段，提升匹配稳定性
 
   let semanticFieldCount = 0;
   let parentFieldCount = 0;
+  
+  // 🔥 XPath 直接索引优先（最快匹配方式）
+  if (el.xpath && isValidXPath(el.xpath)) {
+    push('xpath', el.xpath);
+    console.log(`🎯 XPath 直接匹配: xpath=${el.xpath}`);
+    return { strategy: 'xpath-direct', fields: ['xpath'], values: { xpath: el.xpath } };
+  }
   
   // 资源 id 优先（通常最稳定）
   if (push('resource-id', el.resource_id)) {
@@ -214,11 +243,12 @@ export function buildDefaultMatchingFromElement(el: ElementLike): BuiltMatching 
     return { strategy: 'standard', fields: [], values: {} };
   }
 
-  // 📊 策略选择逻辑（统一默认 standard）
+  // 📊 策略选择逻辑（优先使用 xpath-direct 以获得最快匹配速度）
+  // - 第一优先级：xpath-direct（最快的匹配方式，直接通过路径定位）
   // - 绝大多数场景：统一默认使用 standard（跨设备、分辨率无关，更稳健）
   // - 特殊兜底：当仅有位置字段（bounds/index）且语义字段不足时，才使用 absolute
   //   以避免 standard 策略下忽略位置字段导致完全失配
-  let strategy = 'standard';
+  let strategy = 'xpath-direct'; // 🆕 默认使用 XPath 直接索引策略
 
   // 判断是否属于“仅位置字段或几乎仅位置字段”的兜底情形
   const hasBounds = fields.includes('bounds');
@@ -232,6 +262,16 @@ export function buildDefaultMatchingFromElement(el: ElementLike): BuiltMatching 
   console.log(`🎯 智能匹配配置: 策略=${strategy}, 字段=${fields.length}个, 语义字段=${semanticFieldCount}个, 父节点字段=${parentFieldCount}个`, { strategy, fields, values });
 
   return { strategy, fields, values };
+}
+
+/**
+ * 判断 XPath 是否有效
+ */
+function isValidXPath(xpath: string): boolean {
+  if (!xpath || xpath.trim().length === 0) return false;
+  // XPath 应该以 / 或 // 开头
+  const trimmed = xpath.trim();
+  return trimmed.startsWith('/') || trimmed.startsWith('//');
 }
 
 /**

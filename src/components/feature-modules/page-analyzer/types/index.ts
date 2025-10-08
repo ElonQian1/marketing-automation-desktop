@@ -68,6 +68,7 @@ export type MatchStrategy =
   | 'relaxed'     // 宽松匹配，部分字段匹配
   | 'positionless'// 无位置匹配，忽略坐标
   | 'standard'    // 标准匹配，跨设备稳定
+  | 'xpath-direct' // XPath 直接索引，最快速度
   | 'custom';     // 自定义策略
 
 /**

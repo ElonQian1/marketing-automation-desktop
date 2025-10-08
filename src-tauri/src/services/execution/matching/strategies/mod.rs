@@ -8,6 +8,7 @@ mod standard_strategy;
 mod absolute_strategy;
 mod custom_strategy;
 mod hidden_element_parent_strategy;
+mod xpath_direct_strategy;
 
 pub use strategy_processor::{
     StrategyProcessor,
@@ -20,6 +21,7 @@ pub use standard_strategy::StandardStrategyProcessor;
 pub use absolute_strategy::AbsoluteStrategyProcessor; 
 pub use custom_strategy::CustomStrategyProcessor;
 pub use hidden_element_parent_strategy::HiddenElementParentStrategyProcessor;
+pub use xpath_direct_strategy::XPathDirectStrategyProcessor;
 
 use std::collections::HashMap;
 use serde_json::Value;
@@ -27,6 +29,7 @@ use serde_json::Value;
 /// 策略工厂 - 根据策略名称创建对应的处理器
 pub fn create_strategy_processor(strategy: &str) -> Box<dyn StrategyProcessor + Send + Sync> {
     match strategy {
+        "xpath-direct" => Box::new(XPathDirectStrategyProcessor::new()), // 🆕 XPath 直接索引策略
         "standard" => Box::new(StandardStrategyProcessor::new()),
         "absolute" => Box::new(AbsoluteStrategyProcessor::new()),
         "custom" => Box::new(CustomStrategyProcessor::new()),

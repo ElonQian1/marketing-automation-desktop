@@ -66,6 +66,14 @@ export const PRESET_FIELDS: Record<Exclude<MatchStrategy, 'custom'> | 'custom', 
   ],
   // 自定义：不预置任何字段，由用户勾选
   custom: [],
+  // XPath 直接索引：需要 xpath 或坐标信息来构建路径
+  'xpath-direct': [
+    "xpath",      // 优先使用现有的 xpath
+    "bounds",     // 坐标信息作为构建 xpath 的备用
+    "class",      // 类名用于构建基础路径
+    "resource-id", // 资源ID有助于精确路径
+    "text"        // 文本内容用于验证
+  ],
   // 隐藏元素父查找：基于文本内容查找可点击父容器
   'hidden-element-parent': [
     "text",

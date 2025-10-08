@@ -2,7 +2,7 @@
  * UI 元素匹配仓储接口
  */
 
-export type MatchStrategy = 'absolute' | 'strict' | 'relaxed' | 'positionless' | 'standard' | 'hidden-element-parent';
+export type MatchStrategy = 'absolute' | 'strict' | 'relaxed' | 'positionless' | 'standard' | 'hidden-element-parent' | 'xpath-direct';
 
 export interface MatchCriteriaDTO {
   strategy: MatchStrategy;

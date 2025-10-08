@@ -8,6 +8,7 @@ export interface ElementLikeForMatching {
   content_desc?: string;
   class_name?: string;
   bounds?: any;
+  xpath?: string; // 🆕 XPath 直接索引字段
   
   // 🆕 父节点字段支持
   parent_class?: string;
@@ -85,6 +86,7 @@ export function buildAndCacheDefaultMatchingFromElement(
     content_desc: enhancedElement.content_desc,
     class_name: enhancedElement.class_name,
     bounds: enhancedElement.bounds,
+    xpath: enhancedElement.xpath, // 🆕 XPath 字段传递
     
     // 🆕 父节点字段传递
     parent_class: (enhancedElement as any).parent_class,

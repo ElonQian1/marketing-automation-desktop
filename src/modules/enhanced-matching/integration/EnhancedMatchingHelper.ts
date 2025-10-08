@@ -74,6 +74,28 @@ export class EnhancedMatchingHelper {
       debug = false
     } = options;
 
+    // 🔥 XPath 直接索引优先（最快匹配方式）
+    const xpath = element.xpath || element.element_path;
+    if (xpath && typeof xpath === 'string' && xpath.trim() && this.isValidXPath(xpath.trim())) {
+      const xpathResult: BuiltMatchingResult = {
+        strategy: 'xpath-direct',
+        fields: ['xpath'],
+        values: { xpath: xpath.trim() }
+      };
+      
+      if (debug) {
+        console.log('🎯 XPath 直接匹配优先返回:', xpathResult);
+      }
+      
+      // 保存到缓存
+      saveLatestMatching({ 
+        strategy: xpathResult.strategy, 
+        fields: xpathResult.fields 
+      });
+      
+      return xpathResult;
+    }
+
     // 调试日志
     if (debug) {
       console.log('🧩 增强匹配系统启动:', {
@@ -381,5 +403,15 @@ export class EnhancedMatchingHelper {
    */
   static getStrictOptions(): EnhancedMatchingOptions {
     return this.getPresetOptions('STRICT');
+  }
+
+  /**
+   * 判断 XPath 是否有效
+   */
+  private static isValidXPath(xpath: string): boolean {
+    if (!xpath || xpath.trim().length === 0) return false;
+    // XPath 应该以 / 或 // 开头
+    const trimmed = xpath.trim();
+    return trimmed.startsWith('/') || trimmed.startsWith('//');
   }
 }

@@ -124,6 +124,7 @@ function toElementLike(node: UiNode): {
   content_desc?: string;
   class_name?: string;
   bounds?: string;
+  xpath?: string;
   parent_class?: string;
   parent_text?: string;
   parent_resource_id?: string;
@@ -191,6 +192,7 @@ function toElementLike(node: UiNode): {
     content_desc: attrs['content-desc'],
     class_name: attrs['class'],
     bounds: attrs['bounds'],
+    xpath: buildXPath(node), // 🆕 添加 XPath 字段，用于 xpath-direct 策略
 
     parent_class: parent?.attrs?.['class'],
     parent_text: parent?.attrs?.['text'],
