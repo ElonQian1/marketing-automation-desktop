@@ -235,6 +235,10 @@ export const usePageFinderModal = (props: UsePageFinderModalProps): UsePageFinde
       const parsedElements = await UniversalUIAPI.extractPageElements(xmlContent);
       setUIElements(parsedElements);
       
+      // 转换为可视化元素并设置给 VisualElementView
+      const visualElements = parsedElements.map(transformUIElement);
+      setElements(visualElements);
+      
       // 创建快照
       const snapshot: XmlSnapshot = {
         id: `snapshot_${Date.now()}`,

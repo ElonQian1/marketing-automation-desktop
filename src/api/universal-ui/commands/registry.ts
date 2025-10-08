@@ -25,7 +25,7 @@ export async function invokeUniversal<T>(command: keyof typeof UniversalCommands
   switch (command) {
     case 'analyzeUniversalUIPage':
       assertAnalyzeParams(params);
-      return await invokeCompat<T>(UniversalCommands[command], params as any, { forceSnake: true });
+      return await invokeCompat<T>(UniversalCommands[command], params as any, { forceCamel: true });
     case 'extractPageElements':
       assertExtractParams(params);
       // 双相兼容：先强制 snake，再强制 camel，最后抛出最初错误

@@ -592,15 +592,15 @@ pub async fn analyze_universal_ui_page(
         return Err("获取的UI层次结构为空".to_string());
     }
     
-    // 保存XML文件
-    let xml_file_name = format!("{}_{}.xml", device_safe_id, timestamp);
+    // 保存XML文件 - 使用ui_dump_前缀保持与缓存系统兼容
+    let xml_file_name = format!("ui_dump_{}_{}.xml", device_safe_id, timestamp);
     let xml_path = debug_xml_dir.join(&xml_file_name);
     std::fs::write(&xml_path, &xml_content)
         .map_err(|e| format!("保存XML文件失败: {}", e))?;
     
     // 2. 截取屏幕截图
     info!("📸 截取设备屏幕截图...");
-    let screenshot_file_name = format!("{}_{}.png", device_safe_id, timestamp);
+    let screenshot_file_name = format!("ui_dump_{}_{}.png", device_safe_id, timestamp);
     let screenshot_path = debug_xml_dir.join(&screenshot_file_name);
     
     let screenshot_absolute_path = match crate::screenshot_service::ScreenshotService::capture_screenshot_to_path(&device_id, &screenshot_path) {

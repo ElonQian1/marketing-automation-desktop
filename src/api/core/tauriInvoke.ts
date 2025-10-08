@@ -1,4 +1,4 @@
-import { invoke } from '@tauri-apps/api/core';
+import { invoke } from "@tauri-apps/api/core";
 
 /**
  * 递归将对象的 key 从 camelCase 转为 snake_case。
@@ -9,7 +9,7 @@ export function toSnakeCaseDeep<T = any>(input: T): T {
   if (Array.isArray(input)) {
     return input.map((v) => toSnakeCaseDeep(v)) as any;
   }
-  if (input && typeof input === 'object') {
+  if (input && typeof input === "object") {
     const out: any = {};
     for (const [k, v] of Object.entries(input as any)) {
       // 标准 camelCase -> snake_case 转换：
@@ -17,8 +17,8 @@ export function toSnakeCaseDeep<T = any>(input: T): T {
       // 2) 将连字符/空白替换为下划线
       // 3) 整体转小写
       const snake = k
-        .replace(/([a-z0-9])([A-Z])/g, '$1_$2')
-        .replace(/[-\s]+/g, '_')
+        .replace(/([a-z0-9])([A-Z])/g, "$1_$2")
+        .replace(/[-\s]+/g, "_")
         .toLowerCase();
       out[snake] = toSnakeCaseDeep(v as any);
     }
@@ -56,17 +56,24 @@ export async function invokeCompat<T = unknown>(
   try {
     return await invoke<T>(command, snakeParams as any);
   } catch (e1) {
-    const msg = String(e1 ?? '');
+    const msg = String(e1 ?? "");
     // 若错误提示缺少 camelCase key，尝试 camel 形参
     // 例如：missing required key deviceId / xmlContent
     const keys = Object.keys(camelParams);
-    const missingCamel = keys.some((k) => msg.includes(`missing required key ${k}`) || msg.includes(`invalid args \`${k}\``));
+    const missingCamel = keys.some(
+      (k) =>
+        msg.includes(`missing required key ${k}`) ||
+        msg.includes(`invalid args \`${k}\``)
+    );
     if (missingCamel) {
       console.warn(`[invokeCompat] snake_case 调用失败，尝试 camelCase…`, msg);
       return await invoke<T>(command, camelParams as any);
     }
     // 即便不匹配上述模式，也做一次回退尝试，增强鲁棒性
-    console.warn(`[invokeCompat] snake_case 调用失败，保守回退 camelCase…`, msg);
+    console.warn(
+      `[invokeCompat] snake_case 调用失败，保守回退 camelCase…`,
+      msg
+    );
     return await invoke<T>(command, camelParams as any);
   }
 }
