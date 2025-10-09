@@ -5,6 +5,8 @@
  * @description 定义元素上下文分析、层级分析等相关类型
  */
 
+import type { BoundsInfo } from '../shared/types/geometry';
+
 // === 元素分析上下文 ===
 
 /**
@@ -67,19 +69,7 @@ export interface ElementNode {
   };
 }
 
-/**
- * 位置信息
- */
-export interface BoundsInfo {
-  left: number;
-  top: number;
-  right: number;
-  bottom: number;
-  width: number;
-  height: number;
-  centerX: number;
-  centerY: number;
-}
+// BoundsInfo 类型已从 ../shared/types/geometry 中导入
 
 /**
  * 节点层级信息
