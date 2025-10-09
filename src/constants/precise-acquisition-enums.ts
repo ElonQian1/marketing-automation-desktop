@@ -11,12 +11,14 @@ export enum Platform {
   DOUYIN = 'douyin',
   OCEANENGINE = 'oceanengine', 
   PUBLIC = 'public',
+  XIAOHONGSHU = 'xiaohongshu',
 }
 
 export const PLATFORM_OPTIONS = [
   { label: '抖音', value: Platform.DOUYIN },
   { label: '巨量引擎', value: Platform.OCEANENGINE },
   { label: '公开来源', value: Platform.PUBLIC },
+  { label: '小红书', value: Platform.XIAOHONGSHU },
 ];
 
 // ==================== 目标类型枚举 ====================
@@ -24,11 +26,15 @@ export const PLATFORM_OPTIONS = [
 export enum TargetType {
   VIDEO = 'video',
   ACCOUNT = 'account',
+  USER = 'user',
+  CONTENT = 'content',
 }
 
 export const TARGET_TYPE_OPTIONS = [
   { label: '视频', value: TargetType.VIDEO },
   { label: '账号', value: TargetType.ACCOUNT },
+  { label: '用户', value: TargetType.USER },
+  { label: '内容', value: TargetType.CONTENT },
 ];
 
 // ==================== 来源类型枚举 ====================

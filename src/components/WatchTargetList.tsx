@@ -193,11 +193,11 @@ export const WatchTargetList: React.FC = () => {
       render: (tags: IndustryTag[]) => (
         <Space size="small" wrap>
           {tags.slice(0, 2).map(tag => (
-            <Tag key={tag} size="small">{tag}</Tag>
+            <Tag key={tag}>{tag}</Tag>
           ))}
           {tags.length > 2 && (
             <Tooltip title={tags.slice(2).join(', ')}>
-              <Tag size="small">+{tags.length - 2}</Tag>
+              <Tag>+{tags.length - 2}</Tag>
             </Tooltip>
           )}
         </Space>
@@ -209,7 +209,7 @@ export const WatchTargetList: React.FC = () => {
       key: 'source',
       width: 100,
       render: (source: SourceType | null) => 
-        source ? <Tag size="small">{source}</Tag> : '-',
+        source ? <Tag>{source}</Tag> : '-',
     },
     {
       title: '合规状态',
@@ -257,7 +257,7 @@ export const WatchTargetList: React.FC = () => {
           </Tooltip>
           <Popconfirm
             title="确定要删除这个目标吗？"
-            onConfirm={() => handleDelete(record.id || '')}
+            onConfirm={() => handleDelete(String(record.id || ''))}
             okText="确定"
             cancelText="取消"
           >

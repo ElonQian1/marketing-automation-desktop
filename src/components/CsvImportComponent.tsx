@@ -31,7 +31,7 @@ import {
   CloseCircleOutlined,
   InfoCircleOutlined,
 } from '@ant-design/icons';
-import { useCsvImport, type CsvValidationResult, type ImportStats } from '../../hooks/useCsvImport';
+import { useCsvImport, type CsvValidationResult, type ImportStats } from '../hooks/useCsvImport';
 
 const { Title, Text, Paragraph } = Typography;
 const { Dragger } = Upload;

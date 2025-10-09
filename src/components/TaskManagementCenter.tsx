@@ -251,7 +251,7 @@ export const TaskManagementCenter: React.FC = () => {
       key: 'executorMode',
       width: 100,
       render: (mode: ExecutorMode) => (
-        <Tag size="small" color={mode === ExecutorMode.API ? 'cyan' : 'purple'}>
+        <Tag color={mode === ExecutorMode.API ? 'cyan' : 'purple'}>
           {mode === ExecutorMode.API ? 'API' : '模拟器'}
         </Tag>
       ),

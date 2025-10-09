@@ -52,42 +52,49 @@ const defaultDeduplicationConfig: DeduplicationConfig = {
 };
 
 const defaultRateLimitConfig: RateLimitConfig = {
-  enabled: true,
   types: [RateLimitType.HOURLY, RateLimitType.DAILY],
   hourly: {
-    maxRequests: 60,
-    windowSize: 60,
-    burstLimit: 10
+    enabled: true,
+    limit: 60,
+    followLimit: 30,
+    replyLimit: 20
   },
   daily: {
-    maxRequests: 500,
-    windowSize: 86400,
-    burstLimit: 50
-  },
-  weekly: {
-    maxRequests: 2000,
-    windowSize: 604800,
-    burstLimit: 100
-  },
-  monthly: {
-    maxRequests: 8000,
-    windowSize: 2592000,
-    burstLimit: 200
+    enabled: true,
+    limit: 500,
+    followLimit: 250,
+    replyLimit: 100
   },
   interval: {
+    enabled: true,
     minIntervalSeconds: 3,
-    maxBurstRequests: 5
+    maxIntervalSeconds: 10,
+    randomizeInterval: true
+  },
+  peakHours: {
+    enabled: false,
+    timeRanges: [
+      { start: '09:00', end: '12:00' },
+      { start: '14:00', end: '18:00' }
+    ],
+    limitMultiplier: 0.5
   }
 };
 
 const defaultCircuitBreakerConfig: CircuitBreakerConfig = {
   enabled: true,
   failureThreshold: 5,
-  successThreshold: 3,
-  timeout: 30000,
-  resetTimeout: 60000,
-  monitoringPeriod: 300000,
-  halfOpenMaxCalls: 3
+  failureRateThreshold: 0.5,
+  timeWindowMinutes: 10,
+  minimumRequests: 10,
+  openDurationMinutes: 5,
+  halfOpenMaxRequests: 3,
+  autoRecovery: {
+    enabled: true,
+    checkIntervalMinutes: 5,
+    successThreshold: 3
+  }
+};
 };
 
 /**
@@ -109,7 +116,11 @@ export const useSafetyControl = () => {
   const [error, setError] = useState<string | null>(null);
   const [statistics, setStatistics] = useState<SafetyStatistics | null>(null);
   const [recentChecks, setRecentChecks] = useState<SafetyCheckResult[]>([]);
-  const [safetyService] = useState(() => new SafetyCheckService());
+  const [safetyService] = useState(() => new SafetyCheckService(
+    deduplicationConfig,
+    rateLimitConfig,
+    circuitBreakerConfig
+  ));
 
   // 统一配置对象
   const config: SafetyConfig = {
@@ -254,7 +265,6 @@ export const useSafetyControl = () => {
       
       // 模拟数据加载
       const mockStatistics: SafetyStatistics = {
-        accountId,
         timeRange,
         totalChecks: 1250,
         passedChecks: 1100,
@@ -264,6 +274,12 @@ export const useSafetyControl = () => {
           rateLimit: 45,
           circuitBreaker: 25
         },
+        hourlyStats: Array.from({ length: 24 }, (_, hour) => ({
+          hour,
+          checks: Math.floor(Math.random() * 100) + 20,
+          passed: Math.floor(Math.random() * 80) + 15,
+          blocked: Math.floor(Math.random() * 20) + 2
+        })),
         riskDistribution: {
           low: 900,
           medium: 250,
