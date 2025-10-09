@@ -19,6 +19,8 @@ import {
   PlayCircleOutlined,
 } from '@ant-design/icons';
 import { ContactAPI } from '../../api/ContactAPI';
+// ⚠️ WARNING: XiaohongshuService 已弃用，请使用通用应用服务框架
+// TODO: 替换为通用的社交媒体自动化服务
 import { XiaohongshuService, type XiaohongshuFollowOptions, type XiaohongshuFollowResult, type AppStatusResult, type NavigationResult } from '../../services/xiaohongshuService';
 
 const { Text } = Typography;

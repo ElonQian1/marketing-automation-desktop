@@ -8,15 +8,17 @@
 
 pub mod generic_detector;
 pub mod wechat_detector;
-pub mod xiaohongshu_detector;
+// DEPRECATED: xiaohongshu_detector moved to deprecated/, use GenericDetector with config instead
+// pub mod xiaohongshu_detector;
 
 // TODO: 添加更多应用的专用检测器
 // pub mod qq_detector;
-// pub mod douyin_detector;
+// pub mod douyin_detector;  
 // pub mod taobao_detector;
 // pub mod alipay_detector;
 
 // 重新导出检测器类型
 pub use generic_detector::GenericDetector;
 pub use wechat_detector::WechatDetector;
-pub use xiaohongshu_detector::XiaohongshuDetector;
+// DEPRECATED: Use GenericDetector::with_config(xiaohongshu_config) instead
+// pub use xiaohongshu_detector::XiaohongshuDetector;

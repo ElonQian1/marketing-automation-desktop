@@ -1,6 +1,8 @@
 import React, { useState } from 'react';
 import { Card, Tabs, Row, Col, Typography, Space, Alert, Empty, Button, List } from 'antd';
 import { MobileOutlined, ReloadOutlined } from '@ant-design/icons';
+// ⚠️ WARNING: XiaohongshuAutoFollow 已弃用，请使用通用自动化组件
+// TODO: 将 XiaohongshuAutoFollow 替换为 UniversalSocialAutoFollow
 import { ImportAndFollow, VcfImporter, XiaohongshuAutoFollow } from '../components/contact';
 import { useAdb } from '../application/hooks/useAdb';
 import AutomationResults, { type VcfImportResult, type XiaohongshuFollowResult, type CompleteFlowResult } from './contact-automation-sindre/components/AutomationResults';
