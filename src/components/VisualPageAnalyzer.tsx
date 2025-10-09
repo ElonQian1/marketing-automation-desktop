@@ -13,6 +13,7 @@ import {
   MenuOutlined,
   EditOutlined
 } from '@ant-design/icons';
+import { BoundsCalculator } from '../shared';
 import './VisualPageAnalyzer.css';
 import { ElementNameMapper, UIElement as MappedUIElement } from '../modules/ElementNameMapper';
 import ElementNameEditor from './element-name-editor/ElementNameEditor';
@@ -78,17 +79,16 @@ const VisualPageAnalyzer: React.FC<VisualPageAnalyzerProps> = ({
   const [elements, setElements] = useState<UIElement[]>([]);
   const [categories, setCategories] = useState<ElementCategory[]>([]);
 
-  // 解析bounds字符串为坐标
+  // 解析bounds字符串为坐标 - 使用统一的BoundsCalculator
   const parseBounds = (bounds: string): { x: number; y: number; width: number; height: number } => {
-    const match = bounds.match(/\[(\d+),(\d+)\]\[(\d+),(\d+)\]/);
-    if (!match) return { x: 0, y: 0, width: 0, height: 0 };
+    const boundsInfo = BoundsCalculator.getBoundsInfo(bounds);
+    if (!boundsInfo) return { x: 0, y: 0, width: 0, height: 0 };
     
-    const [, x1, y1, x2, y2] = match.map(Number);
     return {
-      x: x1,
-      y: y1,
-      width: x2 - x1,
-      height: y2 - y1
+      x: boundsInfo.left,
+      y: boundsInfo.top,
+      width: boundsInfo.width,
+      height: boundsInfo.height
     };
   };
 

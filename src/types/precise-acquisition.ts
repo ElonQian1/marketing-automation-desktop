@@ -1,6 +1,7 @@
 /**
  * 精准获客系统 - TypeScript 类型定义
  * 
+ * 基于 Round 2｜候选池字段清单（v1）文档规范
  * 与后端数据模型保持一致，遵循 DDD 架构原则
  */
 
@@ -422,6 +423,204 @@ export interface CsvImportProps {
   onValidationFailed?: (errors: CsvImportError[]) => void;
 }
 
+// ==================== 标签管理相关类型 ====================
+
+/**
+ * 标签映射表条目
+ */
+export interface TagMappingEntry {
+  id: string;
+  external_value: string; // 外部输入值（如 CSV 中的中文）
+  internal_value: IndustryTag | RegionTag; // 内部枚举值
+  tag_type: 'industry' | 'region';
+  enabled: boolean;
+  created_at: string;
+  updated_at: string;
+}
+
+/**
+ * 标签体系版本信息
+ */
+export interface TagSystemVersion {
+  version: string; // 如 "v1.0.0"
+  industry_tags_count: number;
+  region_tags_count: number;
+  last_updated: string;
+  update_reason?: string;
+}
+
+// ==================== 白名单管理相关类型 ====================
+
+/**
+ * 白名单数据源条目
+ */
+export interface WhitelistEntry {
+  id: string;
+  domain: string; // 域名或URL模式
+  source_name: string; // 来源名称
+  allowed_operations: ('scrape' | 'api' | 'manual')[]; // 允许的操作类型
+  compliance_verified: boolean; // 是否已验证合规
+  robots_txt_checked: boolean; // 是否检查过 robots.txt
+  notes?: string;
+  verified_by: string; // 验证人
+  verified_at: string; // 验证时间
+}
+
+/**
+ * 合规决策树节点
+ */
+export interface ComplianceDecisionNode {
+  id: string;
+  condition: string; // 判断条件描述
+  action: 'allow' | 'deny' | 'manual_review';
+  next_node_id?: string;
+  reason: string; // 决策原因
+}
+
+// ==================== 三轨适配器相关类型 ====================
+
+/**
+ * 适配器类型
+ */
+export enum AdapterType {
+  DOUYIN_API = 'douyin_api',
+  OCEANENGINE_API = 'oceanengine_api',
+  WHITELIST_SCRAPER = 'whitelist_scraper',
+}
+
+/**
+ * 适配器配置
+ */
+export interface AdapterConfig {
+  type: AdapterType;
+  enabled: boolean;
+  rate_limit: RateLimitConfig;
+  authentication?: {
+    app_id?: string;
+    app_secret?: string;
+    access_token?: string;
+    refresh_token?: string;
+    expires_at?: string;
+  };
+  whitelist_domains?: string[]; // 仅用于白名单适配器
+}
+
+/**
+ * 统一评论数据格式（适配器输出）
+ */
+export interface UnifiedCommentData {
+  platform: Platform;
+  original_id: string; // 原始平台ID
+  video_id: string;
+  video_title?: string;
+  video_url?: string;
+  author_id: string;
+  author_name?: string;
+  content: string;
+  publish_time: string; // ISO8601
+  like_count?: number;
+  reply_count?: number;
+  region?: RegionTag;
+  raw_data?: Record<string, any>; // 保留原始数据（调试用）
+}
+
+// ==================== 任务执行相关类型 ====================
+
+/**
+ * 任务执行上下文
+ */
+export interface TaskExecutionContext {
+  task: TaskRow;
+  comment?: CommentRow;
+  template?: ReplyTemplateRow;
+  device_id: string;
+  account_config: {
+    account_id: string;
+    platform_credentials: Record<string, any>;
+  };
+}
+
+/**
+ * 执行结果
+ */
+export interface TaskExecutionResult {
+  task_id: string;
+  success: boolean;
+  result_code: ResultCode;
+  error_message?: string;
+  execution_time_ms: number;
+  response_data?: Record<string, any>;
+}
+
+/**
+ * 任务队列状态
+ */
+export interface TaskQueueStatus {
+  total_pending: number;
+  executing_count: number;
+  failed_count: number;
+  average_execution_time_ms: number;
+  last_processed_at?: string;
+}
+
+// ==================== 风控相关类型 ====================
+
+/**
+ * 风控规则
+ */
+export interface RiskControlRule {
+  id: string;
+  rule_name: string;
+  rule_type: 'rate_limit' | 'duplication' | 'blacklist' | 'circuit_breaker';
+  enabled: boolean;
+  config: Record<string, any>;
+  priority: number; // 执行优先级
+  created_at: string;
+  updated_at: string;
+}
+
+/**
+ * 熔断状态
+ */
+export interface CircuitBreakerStatus {
+  account_id: string;
+  status: 'closed' | 'open' | 'half_open';
+  failure_count: number;
+  last_failure_at?: string;
+  next_retry_at?: string;
+  failure_threshold: number;
+  recovery_timeout_seconds: number;
+}
+
+/**
+ * 黑名单条目
+ */
+export interface BlacklistEntry {
+  id: string;
+  entry_type: 'keyword' | 'user_id' | 'domain' | 'content_pattern';
+  value: string;
+  reason: string;
+  added_by: string;
+  added_at: string;
+  expires_at?: string; // 可选的过期时间
+  enabled: boolean;
+}
+
+/**
+ * 频控状态
+ */
+export interface RateLimitStatus {
+  account_id: string;
+  hourly_count: number;
+  daily_count: number;
+  last_action_at?: string;
+  next_allowed_at?: string;
+  remaining_quota: {
+    hourly: number;
+    daily: number;
+  };
+}
+
 // ==================== Hook 返回类型 ====================
 
 /**
@@ -445,6 +644,18 @@ export interface UsePreciseAcquisitionReturn {
   comments: CommentRow[];
   fetchComments: (targetId: string) => Promise<void>;
   
+  // 模板管理
+  templates: ReplyTemplateRow[];
+  addTemplate: (payload: ReplyTemplatePayload) => Promise<void>;
+  updateTemplate: (id: string, payload: Partial<ReplyTemplatePayload>) => Promise<void>;
+  deleteTemplate: (id: string) => Promise<void>;
+  refreshTemplates: () => Promise<void>;
+  
+  // 标签管理
+  tagMappings: TagMappingEntry[];
+  addTagMapping: (entry: Omit<TagMappingEntry, 'id' | 'created_at' | 'updated_at'>) => Promise<void>;
+  refreshTagMappings: () => Promise<void>;
+  
   // 统计数据
   stats: PreciseAcquisitionStats | null;
   refreshStats: () => Promise<void>;
@@ -454,9 +665,51 @@ export interface UsePreciseAcquisitionReturn {
     watchTargets: boolean;
     tasks: boolean;
     comments: boolean;
+    templates: boolean;
     stats: boolean;
   };
   
   // 错误状态
   error: string | null;
+}
+
+// ==================== 导出配置 ====================
+
+/**
+ * 日报导出配置
+ */
+export interface DailyReportExportConfig {
+  date_range: {
+    start_date: string; // YYYY-MM-DD
+    end_date: string;
+  };
+  include_follow_list: boolean;
+  include_reply_list: boolean;
+  format: 'csv' | 'excel';
+  grouping: 'by_account' | 'by_date' | 'unified';
+}
+
+/**
+ * 导出的关注清单行
+ */
+export interface FollowListExportRow {
+  关注日期: string;
+  关注账号ID: string;
+  目标用户ID?: string;
+  执行设备: string;
+  任务ID: string;
+}
+
+/**
+ * 导出的回复清单行
+ */
+export interface ReplyListExportRow {
+  日期: string;
+  视频链接: string;
+  评论账户ID: string;
+  评论内容: string;
+  回复账号ID: string;
+  回复内容: string;
+  任务ID: string;
+  执行设备: string;
 }

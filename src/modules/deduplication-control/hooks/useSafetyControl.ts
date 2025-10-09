@@ -95,7 +95,6 @@ const defaultCircuitBreakerConfig: CircuitBreakerConfig = {
     successThreshold: 3
   }
 };
-};
 
 /**
  * 查重频控管理Hook

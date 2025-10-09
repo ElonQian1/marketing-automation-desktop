@@ -4,6 +4,7 @@
  */
 
 import { UIElement } from '../../api/universalUIAPI';
+import { BoundsCalculator } from '../../shared';
 
 export interface CompleteXmlNodeInfo {
   // 基础属性
@@ -64,7 +65,7 @@ export class EnhancedXmlParser {
         resourceId: node.getAttribute('resource-id') || '',
         className: node.getAttribute('class') || '',
         packageName: node.getAttribute('package') || '',
-        bounds: this.parseBounds(node.getAttribute('bounds') || ''),
+        bounds: BoundsCalculator.parseBounds(node.getAttribute('bounds') || '') || { left: 0, top: 0, right: 0, bottom: 0 },
         
         // 状态属性 (完整提取)
         clickable: node.getAttribute('clickable') === 'true',
@@ -101,16 +102,7 @@ export class EnhancedXmlParser {
     return nodeInfoList;
   }
   
-  /**
-   * 解析bounds字符串
-   */
-  private static parseBounds(boundsStr: string): { left: number; top: number; right: number; bottom: number } {
-    const match = boundsStr.match(/\[(\d+),(\d+)\]\[(\d+),(\d+)\]/);
-    if (!match) return { left: 0, top: 0, right: 0, bottom: 0 };
-    
-    const [, left, top, right, bottom] = match.map(Number);
-    return { left, top, right, bottom };
-  }
+
   
   /**
    * 生成精确的XPath

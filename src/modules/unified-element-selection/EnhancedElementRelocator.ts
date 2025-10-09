@@ -12,9 +12,9 @@ import type { ElementLocator } from '../../types/selfContainedScript';
 import { 
   findByXPathRoot,
   findAllByPredicateXPath,
-  findNearestClickableAncestor,
-  parseBounds 
+  findNearestClickableAncestor 
 } from '../../components/universal-ui/views/grid-view/utils';
+import { BoundsCalculator } from '../../shared';
 import { elementFingerprintGenerator } from './ElementFingerprintGenerator';
 
 /**
@@ -287,7 +287,7 @@ export class EnhancedElementRelocator {
 
     // 将ElementLocator的bounds格式转换为字符串
     const boundsStr = `[${locator.selectedBounds.left},${locator.selectedBounds.top}][${locator.selectedBounds.right},${locator.selectedBounds.bottom}]`;
-    const targetBounds = parseBounds(boundsStr);
+    const targetBounds = BoundsCalculator.parseBounds(boundsStr);
     if (!targetBounds) {
       return {
         node: null,
@@ -300,7 +300,7 @@ export class EnhancedElementRelocator {
     const matches: { node: UiNode; deviation: number }[] = [];
 
     for (const candidate of candidates) {
-      const candidateBounds = parseBounds(candidate.attrs?.['bounds'] || '');
+      const candidateBounds = BoundsCalculator.parseBounds(candidate.attrs?.['bounds'] || '');
       if (!candidateBounds) continue;
 
       const deviation = this.calculateBoundsDeviation(targetBounds, candidateBounds);

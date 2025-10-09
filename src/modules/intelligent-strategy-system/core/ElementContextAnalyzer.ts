@@ -16,6 +16,7 @@ import type {
   DeviceInfo,
   AppInfo
 } from '../types/AnalysisTypes';
+import { BoundsCalculator } from '../../../shared';
 
 /**
  * 元素上下文分析器
@@ -137,7 +138,7 @@ export class ElementContextAnalyzer {
     const nodes: ElementNode[] = [];
     
     const traverse = (element: Element, index: number = 0): ElementNode => {
-      const bounds = this.parseBounds(element.getAttribute('bounds') || '');
+      const bounds = BoundsCalculator.getBoundsInfo(element.getAttribute('bounds') || '');
       
       const node: ElementNode = {
         tag: element.tagName,
@@ -204,7 +205,7 @@ export class ElementContextAnalyzer {
     // 4. 通过bounds定位
     if (element.bounds) {
       const targetBounds = typeof element.bounds === 'string' 
-        ? this.parseBounds(element.bounds)
+        ? BoundsCalculator.getBoundsInfo(element.bounds)
         : element.bounds;
         
       if (targetBounds) {
@@ -270,35 +271,7 @@ export class ElementContextAnalyzer {
     return `${elementKey}_${contentHash}`;
   }
 
-  private parseBounds(boundsStr: string): any {
-    if (!boundsStr || boundsStr.trim() === '') return null;
-    
-    try {
-      // 解析格式如 "[0,0][100,50]"
-      const match = boundsStr.match(/\[(\d+),(\d+)\]\[(\d+),(\d+)\]/);
-      if (match) {
-        const left = parseInt(match[1]);
-        const top = parseInt(match[2]);
-        const right = parseInt(match[3]);
-        const bottom = parseInt(match[4]);
-        
-        return {
-          left,
-          top,
-          right,
-          bottom,
-          width: right - left,
-          height: bottom - top,
-          centerX: (left + right) / 2,
-          centerY: (top + bottom) / 2
-        };
-      }
-    } catch (error) {
-      console.warn('bounds解析失败:', boundsStr, error);
-    }
-    
-    return null;
-  }
+
 
   private extractAttributes(element: Element): Record<string, string> {
     const attrs: Record<string, string> = {};

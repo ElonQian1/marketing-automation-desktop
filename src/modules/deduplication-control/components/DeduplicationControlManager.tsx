@@ -68,8 +68,8 @@ const SystemOverview: React.FC<{
     if (!config) return { status: 'error', text: '配置未加载' };
     
     const enabledSystems = [
-      config.deduplication.enabled,
-      config.rateLimit.enabled,
+      config.deduplication.strategies.length > 0,
+      Object.values(config.rateLimit).some(config => config.enabled),
       config.circuitBreaker.enabled
     ].filter(Boolean).length;
     
@@ -176,11 +176,11 @@ const SystemOverview: React.FC<{
           <Divider type="vertical" />
           <Space>
             <Badge 
-              status={config?.deduplication.enabled ? 'success' : 'default'} 
+              status={config?.deduplication.strategies.length > 0 ? 'success' : 'default'} 
               text="去重检测" 
             />
             <Badge 
-              status={config?.rateLimit.enabled ? 'success' : 'default'} 
+              status={Object.values(config?.rateLimit || {}).some(config => typeof config === 'object' && config.enabled) ? 'success' : 'default'} 
               text="频率控制" 
             />
             <Badge 
@@ -409,9 +409,30 @@ export const DeduplicationControlManager: React.FC = () => {
               key="config"
             >
               <SafetyConfigPanel
-                config={config}
-                onConfigUpdate={handleConfigUpdate}
-                loading={loading}
+                deduplicationConfig={config.deduplication}
+                rateLimitConfig={config.rateLimit}
+                circuitBreakerConfig={config.circuitBreaker}
+                onDeduplicationChange={(changes) => handleConfigUpdate({
+                  ...config,
+                  deduplication: { ...config.deduplication, ...changes }
+                })}
+                onRateLimitChange={(changes) => handleConfigUpdate({
+                  ...config,
+                  rateLimit: { ...config.rateLimit, ...changes }
+                })}
+                onCircuitBreakerChange={(changes) => handleConfigUpdate({
+                  ...config,
+                  circuitBreaker: { ...config.circuitBreaker, ...changes }
+                })}
+                onReset={() => {
+                  // TODO: 实现重置功能
+                }}
+                onExport={() => {
+                  // TODO: 实现导出功能
+                }}
+                onImport={() => {
+                  // TODO: 实现导入功能
+                }}
               />
             </TabPane>
             

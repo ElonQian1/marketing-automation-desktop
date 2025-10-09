@@ -6,6 +6,7 @@
  */
 
 import { ParentNodeExtractor, type ParentNodeInfo, type XmlElementWithParent } from '../parent-node-extractor/ParentNodeExtractor';
+import { BoundsCalculator } from '../../shared';
 
 export interface ElementLikeForParentEnhancement {
   resource_id?: string;
@@ -283,7 +284,7 @@ export class ParentXmlEnhancementService {
         return null;
       }
       
-      const elementBounds = this.parseBounds(element.bounds);
+      const elementBounds = BoundsCalculator.parseBounds(element.bounds);
       if (!elementBounds) {
         return null;
       }
@@ -297,7 +298,7 @@ export class ParentXmlEnhancementService {
       
       while ((match = boundsRegex.exec(xmlContent)) !== null) {
         const bounds = match[1];
-        const candidateBounds = this.parseBounds(bounds);
+        const candidateBounds = BoundsCalculator.parseBounds(bounds);
         
         if (candidateBounds && this.isContaining(candidateBounds, elementBounds)) {
           // 提取候选父元素的完整信息
@@ -332,37 +333,14 @@ export class ParentXmlEnhancementService {
   }
   
   /**
-   * 解析bounds字符串为坐标对象
-   */
-  static parseBounds(bounds: string): { left: number; top: number; right: number; bottom: number } | null {
-    try {
-      const match = bounds.match(/\[(\d+),(\d+)\]\[(\d+),(\d+)\]/);
-      if (!match) {
-        return null;
-      }
-      
-      return {
-        left: parseInt(match[1], 10),
-        top: parseInt(match[2], 10),
-        right: parseInt(match[3], 10),
-        bottom: parseInt(match[4], 10)
-      };
-    } catch (error) {
-      return null;
-    }
-  }
-  
-  /**
    * 判断一个bounds是否包含另一个bounds
+   * @deprecated 请使用 BoundsCalculator.contains() 替代
    */
   static isContaining(
     container: { left: number; top: number; right: number; bottom: number },
     contained: { left: number; top: number; right: number; bottom: number }
   ): boolean {
-    return container.left <= contained.left &&
-           container.top <= contained.top &&
-           container.right >= contained.right &&
-           container.bottom >= contained.bottom &&
+    return BoundsCalculator.contains(container, contained) &&
            !(container.left === contained.left && 
              container.top === contained.top &&
              container.right === contained.right &&
