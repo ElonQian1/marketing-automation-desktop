@@ -17,10 +17,10 @@ export function parseBounds(bounds?: string): ElementBounds | null {
   const info = BoundsCalculator.getBoundsInfo(bounds);
   if (!info) return null;
   return {
-    x1: info.rect.left,
-    y1: info.rect.top,
-    x2: info.rect.right,
-    y2: info.rect.bottom,
+    x1: info.left,
+    y1: info.top,
+    x2: info.right,
+    y2: info.bottom,
     w: info.width,
     h: info.height
   };

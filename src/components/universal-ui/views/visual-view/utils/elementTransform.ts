@@ -1,11 +1,11 @@
 import { BridgeUIElement, VisualUIElement } from '../types/visual-types';
+import { BoundsCalculator } from '../../../../../shared/bounds/BoundsCalculator';
 
 // 解析 bounds 字符串 -> 坐标与尺寸
 export function parseBounds(bounds: string): { x: number; y: number; width: number; height: number } {
-  const match = bounds.match(/\[(\d+),(\d+)\]\[(\d+),(\d+)\]/);
-  if (!match) return { x: 0, y: 0, width: 0, height: 0 };
-  const [, x1, y1, x2, y2] = match.map(Number);
-  return { x: x1, y: y1, width: x2 - x1, height: y2 - y1 };
+  const info = BoundsCalculator.getBoundsInfo(bounds);
+  if (!info) return { x: 0, y: 0, width: 0, height: 0 };
+  return { x: info.left, y: info.top, width: info.width, height: info.height };
 }
 
 // VisualUIElement -> 旧 UIElement 桥接（UI 使用结构）
