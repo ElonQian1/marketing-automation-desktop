@@ -1,6 +1,6 @@
 import React from 'react';
-import { useBreakpoint, useMobileDetection, useResponsiveValue } from '../responsive';
-import { generateMobileButtonClasses, generateA11yFocusClasses, mergeClasses } from '../responsive/utils';
+import { useBreakpoint, useMobileDetection, useResponsiveValue } from './responsive';
+import { generateMobileButtonClasses, generateA11yFocusClasses, mergeClasses } from './responsive/utils';
 
 // 临时定义详细评分接口，直到与主模块集成
 interface StrategyScore {
@@ -110,7 +110,7 @@ export const StrategyScoreCard: React.FC<StrategyScoreCardProps> = ({
   };
 
   // 响应式基础样式类
-  const mobileInteractionClasses = onClick ? generateMobileButtonClasses() : '';
+  const mobileInteractionClasses = onClick ? generateMobileButtonClasses(isMobile, 'md') : '';
   const focusClasses = onClick ? generateA11yFocusClasses() : '';
   
   const baseClasses = mergeClasses(

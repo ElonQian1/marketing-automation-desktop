@@ -28,7 +28,6 @@ export type {
 export type {
   ElementAnalysisContext,
   ElementNode,
-  BoundsInfo,
   NodeHierarchyInfo,
   DocumentStructure,
   DocumentStatistics,
@@ -41,3 +40,8 @@ export type {
   AnalysisMode,
   ElementAnalysisResult,
 } from './AnalysisTypes';
+
+// === 几何相关类型 ===
+export type {
+  BoundsInfo
+} from '../shared/types/geometry';

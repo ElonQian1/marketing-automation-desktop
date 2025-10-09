@@ -14,8 +14,8 @@ use super::repositories as repo;
 
 #[tauri::command]
 pub fn bulk_upsert_watch_targets(app_handle: tauri::AppHandle, payloads: Vec<WatchTargetPayload>) -> Result<usize, String> {
-    let conn = repo::get_connection(&app_handle).map_err(|e| e.to_string())?;
-    repo::bulk_upsert_watch_targets(&conn, &payloads).map_err(|e| e.to_string())
+    let mut conn = repo::get_connection(&app_handle).map_err(|e| e.to_string())?;
+    repo::bulk_upsert_watch_targets(&mut conn, &payloads).map_err(|e| e.to_string())
 }
 
 #[tauri::command]
@@ -99,9 +99,9 @@ pub fn lock_next_ready_task(
     account_id: String,
     lease_seconds: Option<i64>,
 ) -> Result<Option<TaskRow>, String> {
-    let conn = repo::get_connection(&app_handle).map_err(|e| e.to_string())?;
+    let mut conn = repo::get_connection(&app_handle).map_err(|e| e.to_string())?;
     let lease = lease_seconds.unwrap_or(120);
-    repo::lock_next_ready_task(&conn, &account_id, lease).map_err(|e| e.to_string())
+    repo::lock_next_ready_task(&mut conn, &account_id, lease).map_err(|e| e.to_string())
 }
 
 #[tauri::command]
@@ -111,8 +111,8 @@ pub fn mark_task_result(
     result_code: Option<String>,
     error_message: Option<String>,
 ) -> Result<(), String> {
-    let conn = repo::get_connection(&app_handle).map_err(|e| e.to_string())?;
-    repo::mark_task_result(&conn, &task_id, result_code.as_deref(), error_message.as_deref()).map_err(|e| e.to_string())
+    let mut conn = repo::get_connection(&app_handle).map_err(|e| e.to_string())?;
+    repo::mark_task_result(&mut conn, &task_id, result_code.as_deref(), error_message.as_deref()).map_err(|e| e.to_string())
 }
 
 

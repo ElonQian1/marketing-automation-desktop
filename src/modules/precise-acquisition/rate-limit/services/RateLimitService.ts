@@ -214,3 +214,12 @@ export class RateLimitService {
 
 // 导出单例实例
 export const rateLimitService = new RateLimitService();
+
+// 导出类型定义
+export type {
+  RateLimitConfig,
+  DedupCheckResult,
+  RateLimitCheckResult,
+  DedupStats,
+  DedupLevel
+} from '../types';

@@ -35,3 +35,19 @@ export interface MatchResultSummary {
     package?: string; 
   };
 }
+
+// 详细策略推荐类型
+export interface DetailedStrategyScore {
+  overall: number;
+  performance?: number;
+  stability?: number;
+  accuracy?: number;
+  confidence?: number;
+}
+
+export interface DetailedStrategyRecommendation {
+  strategy: string;
+  score: DetailedStrategyScore;
+  confidence: number;
+  reason: string;
+}

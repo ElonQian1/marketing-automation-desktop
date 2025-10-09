@@ -35,8 +35,8 @@ import {
   InfoCircleOutlined
 } from '@ant-design/icons';
 import type { Device } from '../../../../domain/adb/entities/Device';
-import { monitoringService } from '../../services/monitoringService';
-import type { MonitoringTask } from '../../services/monitoringService';
+import { monitoringService } from '../../../services/monitoringService';
+import type { MonitoringTask } from '../../../services/monitoringService';
 
 const { Title, Text } = Typography;
 const { TextArea } = Input;

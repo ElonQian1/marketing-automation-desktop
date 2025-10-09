@@ -124,8 +124,8 @@ CREATE INDEX IF NOT EXISTS idx_reports_date ON daily_reports(date);
 
 pub fn get_connection(app: &AppHandle) -> rusqlite::Result<Connection> {
     // Reuse contact storage DB to keep a single database file
-    let conn = contact_db::DatabaseRepo::init_db()?;
-    contact_db::DatabaseRepo::init_db_schema(&conn)?; // ensure base tables too
+    let conn = contact_db::DatabaseRepository::init_db()?;
+    contact_db::DatabaseRepository::init_db_schema(&conn)?; // ensure base tables too
     // ensure our tables
     conn.execute_batch(CREATE_TABLES_SQL)?;
     // best-effort schema migrations for tasks table (new columns if missing)
@@ -134,7 +134,7 @@ pub fn get_connection(app: &AppHandle) -> rusqlite::Result<Connection> {
 }
 
 fn column_exists(conn: &Connection, table: &str, column: &str) -> rusqlite::Result<bool> {
-    let mut stmt = conn.prepare("PRAGMA table_info(\"".to_string() + table + "\")")?;
+    let mut stmt = conn.prepare(&format!("PRAGMA table_info(\"{}\")", table))?;
     let mut rows = stmt.query([])?;
     while let Some(row) = rows.next()? {
         let name: String = row.get(1)?; // 1 = name
@@ -165,6 +165,7 @@ fn apply_task_schema_migrations(conn: &Connection) -> rusqlite::Result<()> {
         let _ = conn.execute("ALTER TABLE tasks ADD COLUMN lease_until TEXT", []);
     }
     Ok(())
+}
 
 fn map_task_row(row: &Row) -> rusqlite::Result<TaskRow> {
     Ok(TaskRow {
@@ -222,7 +223,7 @@ ON CONFLICT(dedup_key) DO UPDATE SET
     Ok(())
 }
 
-pub fn bulk_upsert_watch_targets(conn: &Connection, payloads: &[WatchTargetPayload]) -> rusqlite::Result<usize> {
+pub fn bulk_upsert_watch_targets(conn: &mut Connection, payloads: &[WatchTargetPayload]) -> rusqlite::Result<usize> {
     let tx = conn.transaction()?;
     let mut stmt = tx.prepare(
         r#"INSERT INTO watch_targets (dedup_key, target_type, platform, id_or_url, title, source, industry_tags, region, notes, created_at, updated_at)
@@ -420,8 +421,9 @@ pub fn list_tasks(conn: &Connection, query: &ListTasksQuery) -> rusqlite::Result
     let mut out = Vec::new();
     for r in rows { out.push(r?); }
     Ok(out)
+}
 
-pub fn lock_next_ready_task(conn: &Connection, account_id: &str, lease_seconds: i64) -> rusqlite::Result<Option<TaskRow>> {
+pub fn lock_next_ready_task(conn: &mut Connection, account_id: &str, lease_seconds: i64) -> rusqlite::Result<Option<TaskRow>> {
     let lease = if lease_seconds <= 0 { 120 } else { lease_seconds };
     let mut tx = conn.transaction()?;
     let select_sql = r#"
@@ -441,8 +443,10 @@ LIMIT 1
             "UPDATE tasks SET status = 'EXECUTING', lock_owner = ?, lease_until = datetime('now', printf('+%d seconds', ?)), attempts = attempts + 1 WHERE id = ?",
             params![account_id, lease, id],
         )?;
-        let mut stmt = tx.prepare("SELECT id, task_type, comment_id, target_user_id, assign_account_id, status, executor_mode, result_code, error_message, dedup_key, created_at, executed_at, priority, attempts, deadline_at, lock_owner, lease_until FROM tasks WHERE id = ?")?;
-        let task = stmt.query_row(params![id.clone()], |row| map_task_row(row))?;
+        let task = {
+            let mut stmt = tx.prepare("SELECT id, task_type, comment_id, target_user_id, assign_account_id, status, executor_mode, result_code, error_message, dedup_key, created_at, executed_at, priority, attempts, deadline_at, lock_owner, lease_until FROM tasks WHERE id = ?")?;
+            stmt.query_row(params![id.clone()], |row| map_task_row(row))?
+        };
         tx.commit()?;
         Ok(Some(task))
     } else {
@@ -452,7 +456,7 @@ LIMIT 1
 }
 
 pub fn mark_task_result(
-    conn: &Connection,
+    conn: &mut Connection,
     task_id: &str,
     result_code: Option<&str>,
     error_message: Option<&str>,
@@ -480,7 +484,7 @@ pub fn mark_task_result(
         "RATE_LIMITED" => Some(300),
         "TEMP_ERROR" => {
             let delay = match attempts {
-                a when a <= 1 => 30,
+                a if a <= 1 => 30,
                 2 => 60,
                 3 => 120,
                 _ => 180,

@@ -2,6 +2,7 @@
  * 精准获客类型适配器
  * 
  * 处理新旧类型系统之间的转换，确保兼容性
+ * 逐步迁移到新的模块化类型系统
  */
 
 // 旧系统类型（domain entities）
@@ -15,10 +16,28 @@ import {
   Comment as NewComment,
   Task as NewTask,
   Platform,
+  TargetType,
+  SourceType,
+  IndustryTag,
+  RegionTag,
   TaskType,
   TaskStatus,
-  TaskPriority
+  TaskPriority,
+  ExecutorMode,
+  ResultCode,
+  AuditAction
 } from '../../modules/precise-acquisition/shared/types/core';
+
+// 现有系统类型（应用层）
+import {
+  WatchTargetRow,
+  WatchTargetPayload,
+  TaskRow,
+  TaskPayload,
+  CommentRow,
+  ReplyTemplateRow,
+  TaskGenerationConfig
+} from '../../types/precise-acquisition';
 
 /**
  * 类型适配器

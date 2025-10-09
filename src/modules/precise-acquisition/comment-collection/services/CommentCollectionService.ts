@@ -12,9 +12,9 @@ import {
   CommentCollectionResult, 
   AdapterStatus 
 } from '../adapters/CommentCollectionAdapter';
-import { DouyinAdapter } from '../adapters/DouyinAdapter';
-import { OceanEngineAdapter } from '../adapters/OceanEngineAdapter';
-import { WhitelistAdapter } from '../adapters/WhitelistAdapter';
+import { DouyinCommentAdapter } from '../adapters/DouyinCommentAdapter';
+import { OceanEngineCommentAdapter } from '../adapters/OceanEngineCommentAdapter';
+import { PublicWhitelistCommentAdapter } from '../adapters/PublicWhitelistCommentAdapter';
 import { 
   WatchTarget, 
   Comment, 
@@ -86,9 +86,35 @@ export class CommentCollectionService {
    * 初始化适配器
    */
   private initializeAdapters(): void {
-    this.adapters.set(Platform.DOUYIN, new DouyinAdapter());
-    this.adapters.set(Platform.OCEANENGINE, new OceanEngineAdapter());
-    this.adapters.set(Platform.PUBLIC, new WhitelistAdapter());
+    // TODO: 从配置中读取API密钥等信息
+    // 这里使用默认配置初始化适配器
+    
+    // 抖音适配器
+    const douyinConfig = {
+      app_id: process.env.DOUYIN_APP_ID || '',
+      app_secret: process.env.DOUYIN_APP_SECRET || '',
+      access_token: process.env.DOUYIN_ACCESS_TOKEN || '',
+    };
+    this.adapters.set(Platform.DOUYIN, new DouyinCommentAdapter(douyinConfig));
+    
+    // 巨量引擎适配器
+    const oceanEngineConfig = {
+      app_id: process.env.OCEANENGINE_APP_ID || '',
+      secret: process.env.OCEANENGINE_SECRET || '',
+      access_token: process.env.OCEANENGINE_ACCESS_TOKEN || '',
+      advertiser_id: process.env.OCEANENGINE_ADVERTISER_ID || '',
+    };
+    this.adapters.set(Platform.OCEANENGINE, new OceanEngineCommentAdapter(oceanEngineConfig));
+    
+    // 公开白名单适配器
+    const whitelistConfig = {
+      whitelist: [], // 初始为空，需要通过管理界面添加
+      user_agent: 'PreciseAcquisition/1.0 (+https://example.com/bot)',
+      respect_robots_txt: true,
+      max_concurrent_requests: 3,
+      request_delay_ms: 1000
+    };
+    this.adapters.set(Platform.PUBLIC, new PublicWhitelistCommentAdapter(whitelistConfig));
   }
 
   /**

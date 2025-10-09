@@ -6,12 +6,14 @@
 
 // 服务层
 export { TaskEngineService } from './services/TaskEngineService';
+export { TaskExecutorService } from './services/TaskExecutorService';
 
 // Hook
 export { useTaskEngine } from './hooks/useTaskEngine';
 
 // UI组件
 export { TaskEngineManager } from './components/TaskEngineManager';
+export { TaskExecutor } from './components/TaskExecutor';
 
 // 类型定义
 export type {
@@ -21,6 +23,11 @@ export type {
   TaskExecutionStats,
   TaskQuery
 } from './services/TaskEngineService';
+
+export type {
+  TaskExecutionContext,
+  TaskExecutionResult
+} from './services/TaskExecutorService';
 
 export type {
   UseTaskEngineOptions,

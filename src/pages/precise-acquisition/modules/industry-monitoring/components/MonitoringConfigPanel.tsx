@@ -31,8 +31,8 @@ import {
   BulbOutlined
 } from '@ant-design/icons';
 import type { Device } from '../../../../domain/adb/entities/Device';
-import { monitoringService } from '../../services/monitoringService';
-import type { MonitoringTask } from '../../services/monitoringService';
+import { monitoringService } from '../../../services/monitoringService';
+import type { MonitoringTask } from '../../../services/monitoringService';
 import type { EnhancedMonitoringTask } from '../../types/enhancedTypes';
 import { TimeFilterEnhancement } from '../../services/timeFilterEnhancement';
 

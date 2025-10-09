@@ -175,6 +175,7 @@ export const useMobileDetection = () => {
 
   return {
     isMobile,
+    isTablet: !isMobile && window.innerWidth < BREAKPOINTS.lg, // 平板检测
     hasHover,
     isTouchDevice: !hasHover,
     isHoverCapable: hasHover

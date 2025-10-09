@@ -81,6 +81,7 @@ use services::marketing_storage::{
     list_tasks,
     // 审计日志相关
     insert_audit_log,
+    check_and_reserve_dedup,
 };
 // 直接使用的其他命令函数（未在 commands::* re-export 中覆盖的服务命令）
 // use services::ui_reader_service::read_device_ui_state; // 重复导入，已在下方包含
