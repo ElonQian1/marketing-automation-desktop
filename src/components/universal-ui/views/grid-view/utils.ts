@@ -1,14 +1,11 @@
 import { UiNode, AdvancedFilter, SearchOptions } from './types';
 import { cleanXmlContent } from '../../xml-parser/cleanXml';
+import { BoundsCalculator } from '../../../../shared/bounds/BoundsCalculator';
 
 export function parseBounds(bounds?: string) {
-  if (!bounds) return null as any;
-  const m = bounds.match(/\[(\d+),(\d+)\]\[(\d+),(\d+)\]/);
-  if (!m) return null as any;
-  const [_, x1, y1, x2, y2] = m;
-  const ix1 = parseInt(x1, 10), iy1 = parseInt(y1, 10);
-  const ix2 = parseInt(x2, 10), iy2 = parseInt(y2, 10);
-  return { x1: ix1, y1: iy1, x2: ix2, y2: iy2, w: ix2 - ix1, h: iy2 - iy1 };
+  const info = BoundsCalculator.getBoundsInfo(bounds);
+  if (!info) return null as any;
+  return { x1: info.left, y1: info.top, x2: info.right, y2: info.bottom, w: info.width, h: info.height };
 }
 
 export function nodeLabel(n: UiNode) {
