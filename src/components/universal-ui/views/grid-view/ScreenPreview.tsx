@@ -1,6 +1,7 @@
 import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { UiNode } from './types';
 import { parseBounds } from './utils';
+import { BoundsCalculator } from '../../../shared/bounds/BoundsCalculator';
 import styles from './GridElementView.module.css';
 
 type ScaleMode = 'fit' | 'actual' | 'custom';
