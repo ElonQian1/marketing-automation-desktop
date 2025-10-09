@@ -254,7 +254,7 @@ export const DeduplicationControlManager: React.FC = () => {
         const startOfDay = new Date(today.getFullYear(), today.getMonth(), today.getDate());
         const endOfDay = new Date(today.getFullYear(), today.getMonth(), today.getDate(), 23, 59, 59);
         
-        await loadStatistics(selectedAccount, startOfDay, endOfDay);
+        await loadStatistics(selectedAccount, { start: startOfDay, end: endOfDay });
       } catch (error) {
         console.error('初始化数据失败:', error);
       }
@@ -286,7 +286,7 @@ export const DeduplicationControlManager: React.FC = () => {
   // 处理统计数据加载
   const handleLoadStatistics = async (accountId: string, timeRange: { start: Date; end: Date }) => {
     try {
-      await loadStatistics(accountId, timeRange.start, timeRange.end);
+      await loadStatistics(accountId, timeRange);
     } catch (error) {
       console.error('加载统计数据失败:', error);
     }

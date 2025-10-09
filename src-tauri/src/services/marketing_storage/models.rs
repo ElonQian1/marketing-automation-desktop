@@ -77,6 +77,8 @@ pub struct TaskPayload {
     pub assign_account_id: String,   // 执行账号ID
     pub executor_mode: String,  // "api" | "manual"
     pub dedup_key: String,      // 查重键
+    pub priority: Option<i32>,  // P0-P3默认 2
+    pub deadline_at: Option<String>, // ISO8601
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -93,6 +95,11 @@ pub struct TaskRow {
     pub dedup_key: String,
     pub created_at: String,
     pub executed_at: Option<String>,
+    pub priority: i32,
+    pub attempts: i32,
+    pub deadline_at: Option<String>,
+    pub lock_owner: Option<String>,
+    pub lease_until: Option<String>,
 }
 
 // ==================== 话术模板相关模型 ====================

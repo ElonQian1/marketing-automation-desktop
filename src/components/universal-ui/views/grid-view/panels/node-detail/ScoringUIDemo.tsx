@@ -245,6 +245,7 @@ const ScoringUIDemo: React.FC = () => {
           
           <InteractiveScoringPanel
             initialRecommendations={mockRecommendations}
+            sourceElement={null} // 🆕 演示模式不提供源元素
             onWeightChange={handleWeightChange}
             onStrategySelect={handleStrategySelect}
             className="border border-gray-200 dark:border-gray-700 rounded-lg"

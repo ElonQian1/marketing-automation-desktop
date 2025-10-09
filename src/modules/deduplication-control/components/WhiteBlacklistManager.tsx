@@ -356,7 +356,7 @@ const BatchImportModal: React.FC<{
                   key: 'tags',
                   render: (tags: string[]) => (
                     <Space>
-                      {tags.map(tag => <Tag key={tag} size="small">{tag}</Tag>)}
+                      {tags.map(tag => <Tag key={tag}>{tag}</Tag>)}
                     </Space>
                   )
                 }
@@ -500,7 +500,7 @@ export const WhiteBlacklistManager: React.FC<WhiteBlacklistManagerProps> = ({
           <div>
             <Text strong style={{ color: 'var(--text-inverse)' }}>{text}</Text>
             <br />
-            <Tag size="small">{record.identifierType}</Tag>
+            <Tag>{record.identifierType}</Tag>
           </div>
         )
       },
@@ -523,7 +523,7 @@ export const WhiteBlacklistManager: React.FC<WhiteBlacklistManagerProps> = ({
         render: (tags: string[] = []) => (
           <Space wrap>
             {tags.map(tag => (
-              <Tag key={tag} size="small">{tag}</Tag>
+                                    <Tag key={tag}>{tag}</Tag>
             ))}
           </Space>
         )

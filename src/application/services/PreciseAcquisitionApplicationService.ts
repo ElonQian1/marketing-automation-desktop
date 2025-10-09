@@ -303,8 +303,21 @@ export class PreciseAcquisitionApplicationService {
           });
 
           // 检查去重
-          if (!(await this.isDuplicateTask(task))) {
-            generatedTasks.push(task);
+          try {
+            const commentDedupKey = comment.generateDedupKey();
+            const reserved = await invoke('check_and_reserve_dedup', {
+              key: commentDedupKey,
+              scope: 'comment',
+              ttlDays: 90,
+              byAccount: 'default_account',
+            }) as boolean;
+            if (reserved && !(await this.isDuplicateTask(task))) {
+              generatedTasks.push(task);
+            }
+          } catch (e) {
+            if (!(await this.isDuplicateTask(task))) {
+              generatedTasks.push(task);
+            }
           }
         }
 
@@ -323,8 +336,21 @@ export class PreciseAcquisitionApplicationService {
           });
 
           // 检查去重
-          if (!(await this.isDuplicateTask(task))) {
-            generatedTasks.push(task);
+          try {
+            const userDedupKey = comment.generateUserDedupKey();
+            const reserved = await invoke('check_and_reserve_dedup', {
+              key: userDedupKey,
+              scope: 'user',
+              ttlDays: 7,
+              byAccount: 'default_account',
+            }) as boolean;
+            if (reserved && !(await this.isDuplicateTask(task))) {
+              generatedTasks.push(task);
+            }
+          } catch (e) {
+            if (!(await this.isDuplicateTask(task))) {
+              generatedTasks.push(task);
+            }
           }
         }
       }

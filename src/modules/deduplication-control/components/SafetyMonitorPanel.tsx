@@ -354,7 +354,7 @@ const RecentChecksTable: React.FC<{
         return reasons.length > 0 ? (
           <Space>
             {reasons.map(reason => (
-              <Tag key={reason} size="small">{reason}</Tag>
+              <Tag key={reason}>{reason}</Tag>
             ))}
           </Space>
         ) : (

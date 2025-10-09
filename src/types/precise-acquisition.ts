@@ -118,6 +118,8 @@ export interface TaskPayload {
   assign_account_id: string; // 执行账号ID
   executor_mode: ExecutorMode;
   dedup_key: string; // 查重键
+  priority?: number; // 默认 P2
+  deadline_at?: string; // ISO8601
 }
 
 /**
@@ -136,6 +138,11 @@ export interface TaskRow {
   dedup_key: string;
   created_at: string;
   executed_at?: string;
+  priority: number;
+  attempts: number;
+  deadline_at?: string;
+  lock_owner?: string;
+  lease_until?: string;
 }
 
 /**

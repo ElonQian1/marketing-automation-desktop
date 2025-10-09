@@ -2,6 +2,8 @@ import React, { useState, useMemo } from 'react';
 import type { StrategyRecommendation } from '../../../../../../modules/intelligent-strategy-system';
 import type { MatchStrategy } from './types';
 import { StrategyScoreCard } from './StrategyScoreCard';
+import { useBreakpoint, useMobileDetection, useResponsiveValue } from './responsive';
+import { generateMobileButtonClasses, generateA11yFocusClasses, mergeClasses } from './responsive/utils';
 
 // 临时定义详细评分接口，直到与主模块集成
 export interface DetailedStrategyScore {
@@ -32,17 +34,20 @@ interface StrategyRecommendationPanelProps {
 }
 
 /**
- * 🎯 策略推荐面板组件
+ * 🎯 策略推荐面板组件（响应式优化版）
  * 
  * 📍 功能：
  * - 显示所有策略的评分和推荐排序
  * - 支持权重调整和实时重新评分
  * - 提供策略详细分析和优缺点说明
+ * - 📱 移动端优化：智能模式切换和触摸友好交互
  * 
  * 🎨 设计原则：
  * - 清晰的信息层级和视觉分组
  * - 支持紧凑模式和详细模式切换
  * - 提供交互式的权重配置界面
+ * - 响应式布局，自适应各种屏幕尺寸
+ * - WCAG 2.1 AA 合规的可访问性支持
  */
 export const StrategyRecommendationPanel: React.FC<StrategyRecommendationPanelProps> = ({
   recommendations,
@@ -60,6 +65,59 @@ export const StrategyRecommendationPanel: React.FC<StrategyRecommendationPanelPr
     stability: 0.3,
     compatibility: 0.2,
     uniqueness: 0.2
+  });
+
+  // 响应式状态检测
+  const breakpoint = useBreakpoint();
+  const { isMobile, isTouchDevice } = useMobileDetection();
+  
+  // 智能模式切换：移动端自动使用紧凑模式
+  const isCompactMode = compact || isMobile;
+  
+  // 响应式值配置
+  const containerSpacing = useResponsiveValue({
+    xs: 'space-y-2',
+    sm: 'space-y-3',
+    md: 'space-y-4',
+    lg: 'space-y-4',
+    xl: 'space-y-4',
+    '2xl': 'space-y-5'
+  });
+
+  const titleSize = useResponsiveValue({
+    xs: 'text-base',
+    sm: 'text-lg',
+    md: 'text-lg',
+    lg: 'text-xl',
+    xl: 'text-xl',
+    '2xl': 'text-2xl'
+  });
+
+  const buttonPadding = useResponsiveValue({
+    xs: 'px-2 py-1 text-xs',
+    sm: 'px-3 py-1 text-sm',
+    md: 'px-3 py-1 text-sm',
+    lg: 'px-4 py-2 text-sm',
+    xl: 'px-4 py-2 text-base',
+    '2xl': 'px-5 py-2 text-base'
+  });
+
+  const weightConfigLayout = useResponsiveValue({
+    xs: 'grid grid-cols-1 gap-3', // 移动端单列
+    sm: 'grid grid-cols-2 gap-3', // 小平板双列
+    md: 'grid grid-cols-2 gap-4', // 桌面双列
+    lg: 'grid grid-cols-2 gap-4',
+    xl: 'grid grid-cols-2 gap-5',
+    '2xl': 'grid grid-cols-2 gap-6'
+  });
+
+  const strategiesLayout = useResponsiveValue({
+    xs: 'grid grid-cols-1 gap-2', // 移动端单列
+    sm: 'grid grid-cols-1 gap-3', // 小平板单列
+    md: 'grid grid-cols-2 gap-3', // 桌面双列
+    lg: 'grid grid-cols-2 gap-3',
+    xl: 'grid grid-cols-2 gap-4',
+    '2xl': 'grid grid-cols-3 gap-4' // 超大屏三列
   });
 
   // 策略名称映射
@@ -109,59 +167,139 @@ export const StrategyRecommendationPanel: React.FC<StrategyRecommendationPanelPr
   };
 
   const renderCompactMode = () => (
-    <div className={`space-y-2 ${className}`}>
-      {/* 🚨 加载和错误状态优先显示 */}
+    <div className={mergeClasses(containerSpacing, className)}>
+      {/* 🚨 加载和错误状态优先显示 - 响应式优化 */}
       {loading && (
-        <div className="flex items-center gap-2 text-sm text-blue-600">
-          <div className="w-4 h-4 border-2 border-blue-600 border-t-transparent rounded-full animate-spin"></div>
+        <div className={mergeClasses(
+          "flex items-center gap-2 text-blue-600",
+          useResponsiveValue({
+            xs: "text-sm",
+            sm: "text-sm",
+            md: "text-base"
+          })
+        )}>
+          <div className={mergeClasses(
+            "border-2 border-blue-600 border-t-transparent rounded-full animate-spin",
+            useResponsiveValue({
+              xs: "w-4 h-4",
+              sm: "w-4 h-4",
+              md: "w-5 h-5"
+            })
+          )}></div>
           <span>分析策略推荐中...</span>
         </div>
       )}
       
       {error && (
-        <div className="text-sm text-red-600 bg-red-50 border border-red-200 rounded px-2 py-1">
+        <div className={mergeClasses(
+          "text-red-600 bg-red-50 border border-red-200 rounded",
+          useResponsiveValue({
+            xs: "text-sm px-2 py-1",
+            sm: "text-sm px-3 py-2",
+            md: "text-base px-3 py-2"
+          })
+        )}>
           ⚠️ {error}
         </div>
       )}
       
       {!loading && !error && (
         <>
-          <div className="flex items-center justify-between text-sm font-medium">
-            <span>策略推荐</span>
+          <div className="flex items-center justify-between">
+            <span className={mergeClasses(
+              "font-medium",
+              useResponsiveValue({
+                xs: "text-sm",
+                sm: "text-base",
+                md: "text-base"
+              })
+            )}>
+              策略推荐
+            </span>
             <button 
-              className="text-xs text-blue-600 hover:text-blue-700"
+              className={mergeClasses(
+                "text-blue-600 hover:text-blue-700",
+                generateMobileButtonClasses(isMobile, 'sm'),
+                generateA11yFocusClasses(),
+                useResponsiveValue({
+                  xs: "text-xs",
+                  sm: "text-sm",
+                  md: "text-sm"
+                })
+              )}
               onClick={() => setShowWeightConfig(!showWeightConfig)}
+              aria-label={`${showWeightConfig ? '收起' : '展开'}权重配置`}
             >
               {showWeightConfig ? '收起配置' : '权重配置'}
             </button>
           </div>
 
       {showWeightConfig && (
-        <div className="bg-neutral-50 dark:bg-neutral-800 rounded-lg p-3 space-y-2">
-          {Object.entries(weights).map(([key, value]) => (
-            <div key={key} className="flex items-center justify-between">
-              <span className="text-xs">{
-                key === 'performance' ? '性能' :
-                key === 'stability' ? '稳定' :
-                key === 'compatibility' ? '兼容' : '独特'
-              }:</span>
-              <input
-                type="range"
-                min="0"
-                max="1"
-                step="0.1"
-                value={value}
-                onChange={(e) => handleWeightChange(key, parseFloat(e.target.value))}
-                className="w-16 h-1"
-              />
-              <span className="text-xs w-8 text-right">{Math.round(value * 100)}%</span>
-            </div>
-          ))}
+        <div className={mergeClasses(
+          "bg-neutral-50 dark:bg-neutral-800 rounded-lg",
+          useResponsiveValue({
+            xs: "p-3 space-y-2",
+            sm: "p-3 space-y-2", 
+            md: "p-4 space-y-3"
+          })
+        )}>
+          <div className={weightConfigLayout}>
+            {Object.entries(weights).map(([key, value]) => (
+              <div key={key} className="space-y-1">
+                <div className="flex items-center justify-between">
+                  <span className={useResponsiveValue({
+                    xs: "text-xs",
+                    sm: "text-sm",
+                    md: "text-sm"
+                  })}>
+                    {key === 'performance' ? '性能' :
+                     key === 'stability' ? '稳定' :
+                     key === 'compatibility' ? '兼容' : '独特'}:
+                  </span>
+                  <span className={mergeClasses(
+                    "font-medium",
+                    useResponsiveValue({
+                      xs: "text-xs w-10",
+                      sm: "text-sm w-12",
+                      md: "text-sm w-12"
+                    })
+                  )}>
+                    {Math.round(value * 100)}%
+                  </span>
+                </div>
+                <input
+                  type="range"
+                  min="0"
+                  max="1"
+                  step="0.1"
+                  value={value}
+                  onChange={(e) => handleWeightChange(key, parseFloat(e.target.value))}
+                  className={mergeClasses(
+                    "w-full rounded-lg appearance-none cursor-pointer",
+                    useResponsiveValue({
+                      xs: "h-2", // 移动端稍厚的滑块
+                      sm: "h-1.5",
+                      md: "h-1"
+                    }),
+                    // 移动端增强触摸反馈
+                    isTouchDevice ? "active:scale-105 transition-transform" : ""
+                  )}
+                  aria-label={`调整${key === 'performance' ? '性能' : key === 'stability' ? '稳定' : key === 'compatibility' ? '兼容' : '独特'}权重`}
+                />
+              </div>
+            ))}
+          </div>
         </div>
       )}
 
-      <div className="space-y-1">
-        {sortedRecommendations.slice(0, 3).map((rec, index) => {
+      <div className={mergeClasses(
+        useResponsiveValue({
+          xs: "space-y-1.5",
+          sm: "space-y-2",
+          md: "space-y-2"
+        })
+      )}>
+        {sortedRecommendations.slice(0, isMobile ? 2 : 3).map((rec, index) => {
           const strategyKey = rec.strategy as MatchStrategy;
           return (
             <StrategyScoreCard
@@ -171,10 +309,26 @@ export const StrategyRecommendationPanel: React.FC<StrategyRecommendationPanelPr
               isRecommended={index === 0}
               size="compact"
               onClick={() => onStrategySelect?.(strategyKey)}
-              className={currentStrategy === rec.strategy ? 'ring-2 ring-blue-300' : ''}
+              className={mergeClasses(
+                currentStrategy === rec.strategy ? 'ring-2 ring-blue-300' : '',
+                // 移动端增强触摸反馈
+                isMobile ? 'active:scale-95 transition-transform' : ''
+              )}
             />
           );
         })}
+        {sortedRecommendations.length > (isMobile ? 2 : 3) && (
+          <div className={mergeClasses(
+            "text-center text-neutral-500",
+            useResponsiveValue({
+              xs: "text-xs pt-1",
+              sm: "text-sm pt-2",
+              md: "text-sm pt-2"
+            })
+          )}>
+            还有 {sortedRecommendations.length - (isMobile ? 2 : 3)} 个策略未显示
+          </div>
+        )}
       </div>
         </>
       )}
@@ -182,31 +336,81 @@ export const StrategyRecommendationPanel: React.FC<StrategyRecommendationPanelPr
   );
 
   const renderDetailedMode = () => (
-    <div className={`space-y-4 ${className}`}>
+    <div className={mergeClasses(containerSpacing, className)}>
       <div className="flex items-center justify-between">
-        <h3 className="text-lg font-semibold">智能策略推荐</h3>
+        <h3 className={mergeClasses("font-semibold", titleSize)}>
+          智能策略推荐
+        </h3>
         <button 
-          className="text-sm text-blue-600 hover:text-blue-700 px-3 py-1 rounded border border-blue-200 hover:bg-blue-50"
+          className={mergeClasses(
+            "text-blue-600 hover:text-blue-700 rounded border border-blue-200 hover:bg-blue-50",
+            generateMobileButtonClasses(isMobile, 'md'),
+            generateA11yFocusClasses(),
+            buttonPadding
+          )}
           onClick={() => setShowWeightConfig(!showWeightConfig)}
+          aria-label={`${showWeightConfig ? '收起' : '展开'}权重配置面板`}
         >
-          {showWeightConfig ? '收起权重配置' : '调整权重配置'}
+          {isMobile 
+            ? (showWeightConfig ? '收起权重' : '权重配置')
+            : (showWeightConfig ? '收起权重配置' : '调整权重配置')
+          }
         </button>
       </div>
 
-      {/* 权重配置面板 */}
+      {/* 权重配置面板 - 响应式优化 */}
       {showWeightConfig && (
-        <div className="bg-neutral-50 dark:bg-neutral-800 rounded-lg p-4">
-          <h4 className="font-medium mb-3">评分权重配置</h4>
-          <div className="grid grid-cols-2 gap-4">
+        <div className={mergeClasses(
+          "bg-neutral-50 dark:bg-neutral-800 rounded-lg",
+          useResponsiveValue({
+            xs: "p-3",
+            sm: "p-4",
+            md: "p-4",
+            lg: "p-5",
+            xl: "p-6",
+            '2xl': "p-6"
+          })
+        )}>
+          <h4 className={mergeClasses(
+            "font-medium mb-3",
+            useResponsiveValue({
+              xs: "text-sm",
+              sm: "text-base",
+              md: "text-base"
+            })
+          )}>
+            评分权重配置
+          </h4>
+          <div className={weightConfigLayout}>
             {Object.entries(weights).map(([key, value]) => (
-              <div key={key} className="space-y-2">
+              <div key={key} className={useResponsiveValue({
+                xs: "space-y-2",
+                sm: "space-y-2",
+                md: "space-y-2"
+              })}>
                 <div className="flex justify-between items-center">
-                  <label className="text-sm font-medium">
+                  <label className={mergeClasses(
+                    "font-medium",
+                    useResponsiveValue({
+                      xs: "text-sm",
+                      sm: "text-sm",
+                      md: "text-base"
+                    })
+                  )}>
                     {key === 'performance' ? '性能表现' :
                      key === 'stability' ? '稳定性' :
                      key === 'compatibility' ? '兼容性' : '独特性'}
                   </label>
-                  <span className="text-sm text-neutral-600">{Math.round(value * 100)}%</span>
+                  <span className={mergeClasses(
+                    "text-neutral-600",
+                    useResponsiveValue({
+                      xs: "text-sm",
+                      sm: "text-sm",
+                      md: "text-base"
+                    })
+                  )}>
+                    {Math.round(value * 100)}%
+                  </span>
                 </div>
                 <input
                   type="range"
@@ -215,46 +419,135 @@ export const StrategyRecommendationPanel: React.FC<StrategyRecommendationPanelPr
                   step="0.05"
                   value={value}
                   onChange={(e) => handleWeightChange(key, parseFloat(e.target.value))}
-                  className="w-full h-2 bg-neutral-200 rounded-lg appearance-none cursor-pointer"
+                  className={mergeClasses(
+                    "w-full bg-neutral-200 rounded-lg appearance-none cursor-pointer",
+                    useResponsiveValue({
+                      xs: "h-3", // 移动端更厚的滑块
+                      sm: "h-2.5",
+                      md: "h-2"
+                    }),
+                    // 移动端增强触摸反馈
+                    isTouchDevice ? "active:scale-105 transition-transform" : ""
+                  )}
+                  aria-label={`调整${key === 'performance' ? '性能表现' : key === 'stability' ? '稳定性' : key === 'compatibility' ? '兼容性' : '独特性'}权重`}
                 />
               </div>
             ))}
           </div>
-          <div className="mt-3 text-xs text-neutral-500">
+          <div className={mergeClasses(
+            "mt-3 text-neutral-500",
+            useResponsiveValue({
+              xs: "text-xs",
+              sm: "text-xs",
+              md: "text-xs"
+            })
+          )}>
             * 权重总和会自动标准化，调整后将实时重新计算策略评分
           </div>
         </div>
       )}
 
-      {/* 推荐策略卡片 */}
+      {/* 推荐策略卡片 - 响应式布局 */}
       {topRecommendation && (
-        <div className="border-l-4 border-blue-500 pl-4">
-          <h4 className="font-medium text-blue-700 dark:text-blue-300 mb-2">🎯 推荐策略</h4>
+        <div className={mergeClasses(
+          "border-l-4 border-blue-500",
+          useResponsiveValue({
+            xs: "pl-3",
+            sm: "pl-4",
+            md: "pl-4"
+          })
+        )}>
+          <h4 className={mergeClasses(
+            "font-medium text-blue-700 dark:text-blue-300 mb-2",
+            useResponsiveValue({
+              xs: "text-sm",
+              sm: "text-base",
+              md: "text-base"
+            })
+          )}>
+            🎯 推荐策略
+          </h4>
           <StrategyScoreCard
             strategyName={strategyNameMap[topRecommendation.strategy] || topRecommendation.strategy}
             score={topRecommendation.score}
             isRecommended={true}
             size="detailed"
             onClick={() => onStrategySelect?.(topRecommendation.strategy as MatchStrategy)}
-            className={currentStrategy === topRecommendation.strategy ? 'ring-2 ring-blue-300' : 'cursor-pointer hover:shadow-md'}
+            className={mergeClasses(
+              currentStrategy === topRecommendation.strategy ? 'ring-2 ring-blue-300' : 'cursor-pointer hover:shadow-md',
+              'transition-shadow',
+              // 移动端增强触摸反馈
+              isMobile ? 'active:scale-98' : ''
+            )}
           />
           
-          {/* 策略优缺点分析 */}
+          {/* 策略优缺点分析 - 响应式布局 */}
           {strategyDescMap[topRecommendation.strategy] && (
-            <div className="mt-3 grid grid-cols-2 gap-4 text-sm">
+            <div className={mergeClasses(
+              "mt-3",
+              useResponsiveValue({
+                xs: "space-y-3", // 移动端垂直布局
+                sm: "space-y-3", // 小平板垂直布局
+                md: "grid grid-cols-2 gap-4" // 桌面端双列布局
+              })
+            )}>
               <div>
-                <h5 className="font-medium text-green-700 dark:text-green-300 mb-1">✅ 优势</h5>
-                <ul className="text-neutral-600 dark:text-neutral-400 space-y-1">
+                <h5 className={mergeClasses(
+                  "font-medium text-green-700 dark:text-green-300 mb-1",
+                  useResponsiveValue({
+                    xs: "text-sm",
+                    sm: "text-sm",
+                    md: "text-base"
+                  })
+                )}>
+                  ✅ 优势
+                </h5>
+                <ul className={mergeClasses(
+                  "text-neutral-600 dark:text-neutral-400 space-y-1",
+                  useResponsiveValue({
+                    xs: "space-y-0.5",
+                    sm: "space-y-1",
+                    md: "space-y-1"
+                  })
+                )}>
                   {strategyDescMap[topRecommendation.strategy].advantages.map((adv, idx) => (
-                    <li key={idx} className="text-xs">• {adv}</li>
+                    <li key={idx} className={useResponsiveValue({
+                      xs: "text-xs",
+                      sm: "text-xs",
+                      md: "text-sm"
+                    })}>
+                      • {adv}
+                    </li>
                   ))}
                 </ul>
               </div>
               <div>
-                <h5 className="font-medium text-orange-700 dark:text-orange-300 mb-1">⚠️ 注意</h5>
-                <ul className="text-neutral-600 dark:text-neutral-400 space-y-1">
+                <h5 className={mergeClasses(
+                  "font-medium text-orange-700 dark:text-orange-300 mb-1",
+                  useResponsiveValue({
+                    xs: "text-sm",
+                    sm: "text-sm",
+                    md: "text-base"
+                  })
+                )}>
+                  ⚠️ 注意
+                </h5>
+                <ul className={mergeClasses(
+                  "text-neutral-600 dark:text-neutral-400 space-y-1",
+                  useResponsiveValue({
+                    xs: "space-y-0.5",
+                    sm: "space-y-1",
+                    md: "space-y-1"
+                  })
+                )}>
                   {strategyDescMap[topRecommendation.strategy].disadvantages.map((dis, idx) => (
-                    <li key={idx} className="text-xs">• {dis}</li>
+                    <li key={idx} className={useResponsiveValue({
+                      xs: "text-xs",
+                      sm: "text-xs",
+                      md: "text-sm"
+                    })}>
+                      • {dis}
+                    </li>
                   ))}
                 </ul>
               </div>
@@ -263,10 +556,19 @@ export const StrategyRecommendationPanel: React.FC<StrategyRecommendationPanelPr
         </div>
       )}
 
-      {/* 所有策略列表 */}
+      {/* 所有策略列表 - 响应式网格 */}
       <div>
-        <h4 className="font-medium mb-3">所有策略评分 ({sortedRecommendations.length})</h4>
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+        <h4 className={mergeClasses(
+          "font-medium mb-3",
+          useResponsiveValue({
+            xs: "text-sm",
+            sm: "text-base",
+            md: "text-base"
+          })
+        )}>
+          所有策略评分 ({sortedRecommendations.length})
+        </h4>
+        <div className={strategiesLayout}>
           {sortedRecommendations.map((rec, index) => {
             const strategyKey = rec.strategy as MatchStrategy;
             return (
@@ -277,11 +579,13 @@ export const StrategyRecommendationPanel: React.FC<StrategyRecommendationPanelPr
                 isRecommended={index === 0}
                 size="normal"
                 onClick={() => onStrategySelect?.(strategyKey)}
-                className={`
-                  ${currentStrategy === rec.strategy ? 'ring-2 ring-blue-300' : ''}
-                  ${index === 0 ? '' : 'opacity-90'}
-                  cursor-pointer hover:shadow-md transition-shadow
-                `}
+                className={mergeClasses(
+                  currentStrategy === rec.strategy ? 'ring-2 ring-blue-300' : '',
+                  index === 0 ? '' : 'opacity-90',
+                  'cursor-pointer hover:shadow-md transition-shadow',
+                  // 移动端增强触摸反馈
+                  isMobile ? 'active:scale-98' : ''
+                )}
               />
             );
           })}
@@ -290,7 +594,8 @@ export const StrategyRecommendationPanel: React.FC<StrategyRecommendationPanelPr
     </div>
   );
 
-  return compact ? renderCompactMode() : renderDetailedMode();
+  // 智能模式渲染：移动端优先使用紧凑模式
+  return isCompactMode ? renderCompactMode() : renderDetailedMode();
 };
 
 export default StrategyRecommendationPanel;

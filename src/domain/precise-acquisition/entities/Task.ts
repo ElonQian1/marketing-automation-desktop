@@ -33,6 +33,11 @@ export class Task {
     public readonly dedupKey: string,
     public readonly createdAt: Date | null,
     public readonly executedAt: Date | null,
+    public readonly priority: number,
+    public readonly attempts: number,
+    public readonly deadlineAt: Date | null,
+    public readonly lockOwner: string | null,
+    public readonly leaseUntil: Date | null,
   ) {}
 
   /**
@@ -54,18 +59,23 @@ export class Task {
     const dedupKey = this.generateDedupKey('reply', params.commentId, params.assignAccountId);
 
     return new Task(
-      null, // 新创建时ID为null
+      null, // �´���ʱIDΪnull
       TaskType.REPLY,
       params.commentId,
-      null, // 回复任务不需要targetUserId
+      null, // �ظ�������ҪtargetUserId
       params.assignAccountId,
       TaskStatus.NEW,
       params.executorMode,
-      null, // 初始时没有结果代码
-      null, // 初始时没有错误信息
+      null, // ��ʼʱû�н������
+      null, // ��ʼʱû�д�����Ϣ
       dedupKey,
-      null, // 创建时间由数据库设置
-      null, // 执行时间初始为null
+      null, // ����ʱ�������ݿ�����
+      null, // ִ��ʱ���ʼΪnull
+      2,
+      0,
+      null,
+      null,
+      null,
     );
   }
 
@@ -80,32 +90,30 @@ export class Task {
     if (!params.targetUserId || !params.assignAccountId) {
       throw new Error('targetUserId and assignAccountId are required for follow task');
     }
-
     if (!validateExecutorMode(params.executorMode)) {
       throw new Error(`Invalid executorMode: ${params.executorMode}`);
     }
-
     const dedupKey = this.generateDedupKey('follow', params.targetUserId, params.assignAccountId);
-
     return new Task(
-      null, // 新创建时ID为null
+      null, // �´���ʱIDΪnull
       TaskType.FOLLOW,
-      null, // 关注任务不需要commentId
+      null, // ��ע������ҪcommentId
       params.targetUserId,
       params.assignAccountId,
       TaskStatus.NEW,
       params.executorMode,
-      null, // 初始时没有结果代码
-      null, // 初始时没有错误信息
+      null, // ��ʼʱû�н������
+      null, // ��ʼʱû�д�����Ϣ
       dedupKey,
-      null, // 创建时间由数据库设置
-      null, // 执行时间初始为null
+      null, // ����ʱ�������ݿ�����
+      null, // ִ��ʱ���ʼΪnull
+      3,
+      0,
+      null,
+      null,
+      null,
     );
   }
-
-  /**
-   * 从数据库行数据重建实体
-   */
   static fromDatabaseRow(row: {
     id: string;
     task_type: string;
@@ -119,6 +127,11 @@ export class Task {
     dedup_key: string;
     created_at: string;
     executed_at?: string;
+    priority: number;
+    attempts: number;
+    deadline_at?: string;
+    lock_owner?: string;
+    lease_until?: string;
   }): Task {
     return new Task(
       row.id,
@@ -133,6 +146,11 @@ export class Task {
       row.dedup_key,
       new Date(row.created_at),
       row.executed_at ? new Date(row.executed_at) : null,
+      row.priority,
+      row.attempts,
+      row.deadline_at ? new Date(row.deadline_at) : null,
+      row.lock_owner || null,
+      row.lease_until ? new Date(row.lease_until) : null,
     );
   }
 
@@ -146,6 +164,8 @@ export class Task {
     assign_account_id: string;
     executor_mode: string;
     dedup_key: string;
+    priority: number;
+    deadline_at?: string;
   } {
     return {
       task_type: this.taskType,
@@ -154,6 +174,8 @@ export class Task {
       assign_account_id: this.assignAccountId,
       executor_mode: this.executorMode,
       dedup_key: this.dedupKey,
+      priority: this.priority,
+      deadline_at: this.deadlineAt ? this.deadlineAt.toISOString() : undefined,
     };
   }
 
@@ -209,29 +231,34 @@ export class Task {
       TaskStatus.DONE,
       this.executorMode,
       resultCode,
-      null, // 成功时清除错误信息
+      null, // �ɹ�ʱ���������Ϣ
       this.dedupKey,
       this.createdAt,
-      new Date(), // 设置执行时间
+      new Date(), // ����ִ��ʱ��
+      this.priority,
+      this.attempts,
+      this.deadlineAt,
+      null,
+      null,
     );
   }
 
   /**
-   * 标记任务为失败
+   * �������Ϊʧ��
    */
   markAsFailed(resultCode: ResultCode, errorMessage: string): Task {
     if (this.status !== TaskStatus.EXECUTING && this.status !== TaskStatus.READY) {
       throw new Error(`Cannot mark task as failed from status: ${this.status}`);
     }
-
+ 
     if (!validateResultCode(resultCode)) {
       throw new Error(`Invalid resultCode: ${resultCode}`);
     }
-
+ 
     if (!errorMessage || errorMessage.trim() === '') {
       throw new Error('Error message is required when marking task as failed');
     }
-
+ 
     return new Task(
       this.id,
       this.taskType,
@@ -244,18 +271,23 @@ export class Task {
       errorMessage.trim(),
       this.dedupKey,
       this.createdAt,
-      new Date(), // 设置执行时间
+      new Date(), // ����ִ��ʱ��
+      this.priority,
+      this.attempts,
+      this.deadlineAt,
+      null,
+      null,
     );
   }
-
+ 
   /**
-   * 创建状态变更副本
+   * ����״̬�������
    */
   private withStatus(newStatus: TaskStatus): Task {
     if (!validateTaskStatus(newStatus)) {
       throw new Error(`Invalid task status: ${newStatus}`);
     }
-
+ 
     return new Task(
       this.id,
       this.taskType,
@@ -269,9 +301,13 @@ export class Task {
       this.dedupKey,
       this.createdAt,
       this.executedAt,
+      this.priority,
+      this.attempts,
+      this.deadlineAt,
+      this.lockOwner,
+      this.leaseUntil,
     );
   }
-
   /**
    * 检查是否可以重试
    */
@@ -429,3 +465,8 @@ export class Task {
     return weight;
   }
 }
+
+
+
+
+

@@ -100,3 +100,17 @@ pub fn insert_audit_log(app_handle: tauri::AppHandle, log: AuditLogPayload) -> R
     let conn = repo::get_connection(&app_handle).map_err(|e| e.to_string())?;
     repo::insert_audit_log(&conn, &log).map_err(|e| e.to_string())
 }
+
+// ==================== 去重索引（带TTL） ====================
+
+#[tauri::command]
+pub fn check_and_reserve_dedup(
+    app_handle: tauri::AppHandle,
+    key: String,
+    scope: String,
+    ttl_days: i64,
+    by_account: Option<String>,
+) -> Result<bool, String> {
+    let conn = repo::get_connection(&app_handle).map_err(|e| e.to_string())?;
+    repo::check_and_reserve_dedup(&conn, &key, &scope, ttl_days, by_account.as_deref()).map_err(|e| e.to_string())
+}

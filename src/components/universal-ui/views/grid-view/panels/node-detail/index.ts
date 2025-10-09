@@ -22,12 +22,30 @@ export {
   batchAnalyzeElementStrategies
 } from './StrategySystemAdapter';
 
-// 🆕 演示和测试组件
+// 🆕 交互式评分 Hooks
+export { 
+  useInteractiveScoring
+} from './hooks';
+
+// � 响应式设计模块
+export * from './responsive';
+
+// �🆕 演示和测试组件
 export { default as ScoringUIDemo } from './ScoringUIDemo';
 
 // 🆕 策略评分类型
 export type { DetailedStrategyRecommendation, DetailedStrategyScore } from './StrategyRecommendationPanel';
 export type { StrategyScoreInfo } from './MatchingStrategySelector';
+export type { WeightConfig } from './hooks';
+
+// 🎨 响应式设计类型
+export type { 
+  Breakpoint, 
+  DeviceType, 
+  GridColumns, 
+  ComponentSizes, 
+  FontSizes 
+} from './responsive';
 
 // 🆕 增强字段选择器模块
 export { 

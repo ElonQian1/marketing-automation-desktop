@@ -21,4 +21,5 @@ pub use commands::{
     list_tasks,
     // 审计日志相关
     insert_audit_log,
+    check_and_reserve_dedup,
 };

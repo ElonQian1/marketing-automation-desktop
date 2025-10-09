@@ -356,7 +356,9 @@ fn main() {
             update_task_status,
             list_tasks,
             // 审计日志
-            insert_audit_log
+            insert_audit_log,
+            // 去重索引（带TTL）
+            check_and_reserve_dedup
         ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");

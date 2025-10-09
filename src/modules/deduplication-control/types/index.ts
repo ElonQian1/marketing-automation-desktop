@@ -256,13 +256,22 @@ export interface CircuitBreakerStatus {
  */
 export interface SafetyCheckRequest {
   /** 任务类型 */
-  taskType: 'follow' | 'reply';
+  taskType?: 'follow' | 'reply';
   
-  /** 目标用户ID */
-  targetUserId: string;
+  /** 操作类型 */
+  action: string;
+  
+  /** 目标用户ID（兼容性） */
+  targetUserId?: string;
+  
+  /** 目标（新字段） */
+  target: string;
+  
+  /** 内容 */
+  content: string;
   
   /** 平台 */
-  platform: string;
+  platform?: string;
   
   /** 执行账号ID */
   accountId: string;
@@ -270,8 +279,8 @@ export interface SafetyCheckRequest {
   /** 设备ID */
   deviceId?: string;
   
-  /** 内容（回复时） */
-  content?: string;
+  /** 元数据 */
+  metadata?: Record<string, any>;
   
   /** 上下文信息 */
   context?: {
@@ -287,6 +296,9 @@ export interface SafetyCheckRequest {
 export interface SafetyCheckResult {
   /** 是否允许执行 */
   allowed: boolean;
+  
+  /** 拦截原因 */
+  blockReason?: string;
   
   /** 去重检查结果 */
   deduplication: DeduplicationResult;
@@ -450,4 +462,56 @@ export interface BlacklistConfig {
     addedBy: string;
     expiresAt?: Date;
   }>;
+}
+
+/**
+ * 白名单条目
+ */
+export interface WhitelistEntry {
+  id: string;
+  identifier: string;
+  identifierType: 'phone' | 'userId' | 'nickname' | 'email' | 'custom';
+  reason: string;
+  priority: 'low' | 'normal' | 'high' | 'critical';
+  tags?: string[];
+  notes?: string;
+  createdAt: Date;
+  updatedAt: Date;
+  createdBy?: string;
+}
+
+/**
+ * 黑名单条目
+ */
+export interface BlacklistEntry {
+  id: string;
+  identifier: string;
+  identifierType: 'phone' | 'userId' | 'nickname' | 'email' | 'custom';
+  reason: string;
+  severity: 'low' | 'medium' | 'high' | 'critical';
+  autoBlock: boolean;
+  tags?: string[];
+  notes?: string;
+  createdAt: Date;
+  updatedAt: Date;
+  createdBy?: string;
+}
+
+/**
+ * 列表类型
+ */
+export type ListType = 'whitelist' | 'blacklist';
+
+/**
+ * 列表操作类型
+ */
+export type ListAction = 'add' | 'update' | 'delete' | 'batch_import' | 'export';
+
+/**
+ * 安全配置（统一配置接口）
+ */
+export interface SafetyConfig {
+  deduplication: DeduplicationConfig;
+  rateLimit: RateLimitConfig;
+  circuitBreaker: CircuitBreakerConfig;
 }
