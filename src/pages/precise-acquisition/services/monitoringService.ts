@@ -73,6 +73,20 @@ export function getTimeRangeRecommendations(taskType: string, keywords: string[]
   return { recommended, explanation, alternatives };
 }
 
+// 时间范围格式化函数
+export function formatTimeRange(days: number): string {
+  if (days === 0) return '不限制时间';
+  if (days === 1) return '24小时内';
+  if (days < 7) return `${days}天内`;
+  if (days === 7) return '1周内';
+  if (days === 14) return '2周内';
+  if (days < 30) return `${Math.round(days / 7)}周内`;
+  if (days === 30) return '1个月内';
+  if (days < 90) return `${Math.round(days / 30)}个月内`;
+  if (days === 90) return '3个月内';
+  return `${Math.round(days / 30)}个月内`;
+}
+
 export interface CommentData {
   id: string;
   videoId: string;

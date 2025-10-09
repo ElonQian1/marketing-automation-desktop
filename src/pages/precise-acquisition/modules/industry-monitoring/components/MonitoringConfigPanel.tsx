@@ -34,7 +34,7 @@ import type { Device } from '../../../../domain/adb/entities/Device';
 import { monitoringService } from '../../../services/monitoringService';
 import type { MonitoringTask } from '../../../services/monitoringService';
 import type { EnhancedMonitoringTask } from '../../types/enhancedTypes';
-import { TimeFilterEnhancement } from '../../services/timeFilterEnhancement';
+import { getTimeRangeRecommendations, formatTimeRange } from '../../../services/monitoringService';
 
 const { Title, Text } = Typography;
 const { Option } = Select;
@@ -69,7 +69,7 @@ export const MonitoringConfigPanel: React.FC<MonitoringConfigPanelProps> = ({
   // 当关键词变化时，更新时间范围建议
   useEffect(() => {
     if (keywords.length > 0) {
-      const recommendation = TimeFilterEnhancement.getTimeRangeRecommendations('industry', keywords);
+      const recommendation = getTimeRangeRecommendations('industry', keywords);
       setTimeRecommendation(recommendation);
       
       // 如果是新任务且没有设置时间范围，自动应用推荐值
@@ -278,7 +278,7 @@ export const MonitoringConfigPanel: React.FC<MonitoringConfigPanelProps> = ({
                     className="p-0 h-auto text-xs"
                     onClick={() => form.setFieldValue('commentTimeRange', timeRecommendation.recommended)}
                   >
-                    应用推荐值：{TimeFilterEnhancement.formatTimeRange(timeRecommendation.recommended)}
+                    应用推荐值：{formatTimeRange(timeRecommendation.recommended)}
                   </Button>
                 </div>
               )}

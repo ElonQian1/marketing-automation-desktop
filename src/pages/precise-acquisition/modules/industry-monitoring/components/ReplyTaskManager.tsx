@@ -33,7 +33,7 @@ import {
 import type { CommentData, ReplyTask } from '../../../services/monitoringService';
 import type { Device } from '../../../../domain/adb/entities/Device';
 import { monitoringService } from '../../../services/monitoringService';
-import { checkDuplication, recordDuplicationAction } from '../../../../services/duplicationGuard';
+import { checkDuplication, recordDuplicationAction } from '../../../../../services/duplicationGuard';
 
 const { Title, Text, Paragraph } = Typography;
 const { Option } = Select;
