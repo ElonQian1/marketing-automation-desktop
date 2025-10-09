@@ -307,6 +307,7 @@ fn main() {
             analyze_current_page,        // 分析当前页面获取可操作元素
             validate_element_config,     // 验证元素配置
             execute_page_element_action, // 来自 commands::page_analysis
+            execute_xpath_action,        // 来自 commands::xpath_execution（XPath直接执行）
             get_page_analysis_history,   // 来自 commands::page_analysis
             // 应用生命周期管理功能
             // ensure_app_running,              // 确保应用运行（独立模块）

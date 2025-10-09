@@ -83,7 +83,7 @@ pub async fn read_device_ui_state(device_id: String) -> Result<DeviceUIState, St
 }
 
 /// 获取设备UI dump XML
-async fn get_ui_dump(device_id: &str) -> Result<String, String> {
+pub async fn get_ui_dump(device_id: &str) -> Result<String, String> {
     println!("📱 正在获取设备 {} 的UI dump...", device_id);
     
     // 先尝试刷新UI dump

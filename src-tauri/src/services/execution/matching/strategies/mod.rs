@@ -8,7 +8,7 @@ mod standard_strategy;
 mod absolute_strategy;
 mod custom_strategy;
 mod hidden_element_parent_strategy;
-mod xpath_direct_strategy;
+pub mod xpath_direct_strategy;
 mod xpath_first_index_strategy;
 mod xpath_all_elements_strategy;
 

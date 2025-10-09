@@ -1,0 +1,11 @@
+{
+  "id": "test-xpath-index",
+  "name": "操作底部导航我按钮",
+  "type": "tap",
+  "parameters": {
+    "matching": {
+      "strategy": "xpath-direct",
+      "xpath": "//*[@resource-id=\"com.xingin.xhs:id/0_resource_name_obfuscated\"][5]"
+    }
+  }
+}

@@ -56,6 +56,8 @@ export const StrategyControls: React.FC<StrategyControlsProps> = ({ step, boundN
           'enabled': matching.values['enabled'],
           'focusable': matching.values['focusable'],
           'scrollable': matching.values['scrollable'],
+          // 🆕 添加 index 信息，支持 XPath 索引策略
+          'index': matching.values['index'] || p.index,
         },
       };
     }

@@ -6,6 +6,8 @@ import { SelectedFieldsPreview } from './SelectedFieldsPreview';
 import type { MatchCriteria, MatchStrategy } from './types';
 import type { UiNode } from '../../types';
 import { PRESET_FIELDS, normalizeExcludes, normalizeIncludes, inferStrategyFromFields, buildDefaultValues } from './helpers';
+import { buildXPath } from '../../../../../../utils/xpath/generation';
+import XPathService from '../../../../../../utils/xpath/XPathService';
 
 export interface StrategyConfiguratorProps {
   node: UiNode | null;
@@ -59,9 +61,46 @@ export const StrategyConfigurator: React.FC<StrategyConfiguratorProps> = ({ node
           const nextFields = next === 'custom' ? (current.fields || []) : preset;
           // 当存在 node 时，用节点默认值回填新字段，再与已有值合并（用户输入优先）
           const nodeDefaults = node ? buildDefaultValues(node, nextFields) : {};
-          const mergedValues = { ...nodeDefaults, ...(current.values || {}) };
+          let mergedValues = { ...nodeDefaults, ...(current.values || {}) };
           const normalizedExcludes = normalizeExcludes(current.excludes || {}, nextFields);
           const normalizedIncludes = normalizeIncludes(current.includes || {}, nextFields);
+
+          // 🆕 XPath 策略特殊处理：生成带索引的 XPath
+          if (next === 'xpath-first-index' && node?.attrs) {
+            const elementIndex = node.attrs['index'] ? parseInt(String(node.attrs['index']), 10) : undefined;
+            const elementForXPath = {
+              'resource-id': node.attrs['resource-id'],
+              'content-desc': node.attrs['content-desc'],
+              'text': node.attrs['text'],
+              'class': node.attrs['class'],
+              'index': elementIndex,
+              // 向后兼容的字段名
+              resource_id: node.attrs['resource-id'],
+              content_desc: node.attrs['content-desc'],
+              class_name: node.attrs['class'],
+            };
+
+            try {
+              // 生成带索引的 XPath
+              const generatedXPath = buildXPath(elementForXPath, { useIndex: true });
+              if (generatedXPath) {
+                // 将生成的 XPath 添加到值中
+                mergedValues = {
+                  ...mergedValues,
+                  'xpath': generatedXPath
+                };
+                console.log('🎯 生成带索引的 XPath:', {
+                  strategy: next,
+                  elementIndex,
+                  generatedXPath,
+                  elementAttrs: node.attrs
+                });
+              }
+            } catch (error) {
+              console.warn('⚠️ 生成 XPath 索引失败:', error);
+            }
+          }
+
           onChange({
             ...current,
             strategy: next,

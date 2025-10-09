@@ -8,6 +8,7 @@ import { isSmartFindElementType, ensureBoundsNormalized } from './singleStepTest
 import { buildCriteriaFromStep, executeStrategyTestImpl } from './singleStepTest/strategyTest';
 import { runBackendLoop } from './singleStepTest/backendLoop';
 import { executeActionOnce } from './singleStepTest/singleAction';
+import { executeXPathDirect } from './singleStepTest/xpathDirectExecution';
 import type { StrategyTestResult } from './singleStepTest/types';
 
 /**
@@ -59,6 +60,19 @@ export const useSingleStepTest = () => {
 
     // 单次执行封装（SmartFindElement → 策略匹配；其他 → 调后端执行）
     const runOnce = async (): Promise<SingleStepTestResult> => {
+      // 🎯 特殊优先处理：XPath 策略直接走后端一体化流程（跳过两阶段）
+      const stepParams = step.parameters as any;
+      const matchingStrategy = stepParams?.matching?.strategy;
+      const isXPathStrategy = matchingStrategy === 'xpath-direct' || 
+                             matchingStrategy?.includes('xpath') ||
+                             matchingStrategy === 'xpath_first' ||
+                             matchingStrategy === 'xpath_all';
+      
+      if (isXPathStrategy) {
+        console.log(`🎯 检测到 XPath 策略 (${matchingStrategy})，使用直接执行模式，跳过两阶段流程`);
+        return executeXPathDirect(step, deviceId);
+      }
+
       // 智能元素查找：走策略匹配（不下发到后端执行动作）
       if (isSmartFindElementType(step.step_type)) {
         console.log('🎯 使用策略匹配模式测试元素查找（单次）');
@@ -102,13 +116,14 @@ export const useSingleStepTest = () => {
                 name: step.name ? `${step.name} - 测试点击` : '测试点击',
                 parameters: {
                   ...(step.parameters || {}),
-                  x,
-                  y,
+                  // 对于 XPath 策略，移除错误的坐标，让后端从匹配信息中计算
+                  x: undefined,
+                  y: undefined,
                   hold_duration_ms: 80,
                 },
               } as SmartScriptStep;
 
-              console.log(`🖱️ 匹配成功后执行测试点击: (${x}, ${y})`);
+              console.log(`🖱️ 使用 XPath 智能匹配执行点击，后端将自动计算坐标`);
               const tapResult = await executeActionOnce(tapStep, deviceId);
 
               // 合并结果：若点击失败，则整体记为失败并附加日志

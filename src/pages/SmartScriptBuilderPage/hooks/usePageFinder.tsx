@@ -414,7 +414,11 @@ export function usePageFinder(deps: UsePageFinderDeps) {
         form.setFieldValue("matching", {
           strategy: built.strategy,
           fields: built.fields,
-          values: built.values,
+          values: {
+            ...built.values,
+            // 🆕 确保 index 信息包含在 matching.values 中
+            index: enhancedElement.index !== undefined ? String(enhancedElement.index) : undefined,
+          },
           ...(Object.keys(matchMode).length ? { matchMode } : {}),
           ...(Object.keys(regexIncludes).length ? { regexIncludes } : {}),
           updatedAt: Date.now(),
@@ -438,6 +442,8 @@ export function usePageFinder(deps: UsePageFinderDeps) {
               bounds: element.bounds
                 ? `[${element.bounds.left},${element.bounds.top}][${element.bounds.right},${element.bounds.bottom}]`
                 : existingStep.parameters?.bounds,
+              // 🆕 保存 index 信息，支持 XPath 索引策略
+              index: (element as any).index,
               smartDescription: element.smartDescription,
               smartAnalysis: element.smartAnalysis ? {
                 confidence: element.smartAnalysis.confidence,
@@ -462,7 +468,11 @@ export function usePageFinder(deps: UsePageFinderDeps) {
               updatedParameters.matching = {
                 strategy: built.strategy,
                 fields: built.fields,
-                values: built.values,
+                values: {
+                  ...built.values,
+                  // 🆕 确保 index 信息包含在 matching.values 中
+                  index: (element as any).index !== undefined ? String((element as any).index) : undefined,
+                },
                 ...(Object.keys(matchMode).length ? { matchMode } : {}),
                 ...(Object.keys(regexIncludes).length ? { regexIncludes } : {}),
                 updatedAt: Date.now(),
