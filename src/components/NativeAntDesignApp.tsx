@@ -108,6 +108,11 @@ const NativeAntDesignApp: React.FC = () => {
       icon: <AimOutlined />,
       label: "精准获客系统",
     },
+    {
+      key: "watch-targets-list",
+      icon: <AimOutlined />,
+      label: "候选池列表（验证）",
+    },
     ...(featureFlags.SHOW_LEGACY_VCF_IMPORT
       ? [
           {
@@ -199,6 +204,8 @@ const NativeAntDesignApp: React.FC = () => {
         return <ContactImportPage />;
       case "precise-acquisition":
         return <PreciseAcquisitionPage />;
+      case "watch-targets-list":
+        return (awaitedWatchTargetsListPage)();
       case "smart-vcf":
         return <SmartVcfImporter />;
       case "permission-test":
@@ -233,6 +240,23 @@ const NativeAntDesignApp: React.FC = () => {
         return <NativeAntDashboard />;
     }
   };
+
+  // 动态导入 WatchTargetsListPage，避免主包体积膨胀
+  const awaitedWatchTargetsListPage = (() => {
+    let Comp: React.ComponentType | null = null;
+    return () => {
+      const [C, setC] = React.useState<React.ComponentType | null>(Comp);
+      React.useEffect(() => {
+        if (!C) {
+          import('../pages/precise-acquisition/WatchTargetsListPage').then(m => {
+            Comp = m.default;
+            setC(() => m.default);
+          });
+        }
+      }, [C]);
+      return C ? <C /> : <div>加载中...</div>;
+    };
+  })();
 
   return (
     <AntApp 

@@ -7,6 +7,11 @@
 
 import type { UiNode } from '../../../components/universal-ui/views/grid-view/types';
 import type { XmlSnapshot } from '../../../types/self-contained/xmlSnapshot';
+import type { 
+  StrategyRecommendation, 
+  StrategyCandidate, 
+  MatchStrategy 
+} from './StrategyTypes';
 
 // === 决策上下文 ===
 
@@ -145,89 +150,6 @@ export interface DecisionResult {
 }
 
 // === 策略候选 ===
-
-/**
- * 策略候选项 - 每个分析步骤产生的候选策略
- */
-export interface StrategyCandidate {
-  /** 候选策略ID */
-  id: string;
-  
-  /** 策略类型 */
-  strategy: MatchStrategy;
-  
-  /** 产生此候选的分析步骤 */
-  sourceStep: AnalysisStep;
-  
-  /** 评分（0-100） */
-  score: number;
-  
-  /** 置信度（0-1） */
-  confidence: number;
-  
-  /** 策略描述 */
-  description: string;
-  
-  /** 推荐理由 */
-  reason: string;
-  
-  /** 匹配字段和值 */
-  matchingCriteria: {
-    fields: string[];
-    values: Record<string, any>;
-    includes?: Record<string, string[]>;
-    excludes?: Record<string, string[]>;
-  };
-  
-  /** 本地唯一性验证结果 */
-  localValidation: {
-    /** 是否通过验证 */
-    passed: boolean;
-    
-    /** 匹配到的元素数量 */
-    matchCount: number;
-    
-    /** 验证错误信息 */
-    error?: string;
-  };
-  
-  /** 性能信息 */
-  performance: {
-    /** 预估执行速度 */
-    estimatedSpeed: 'fast' | 'medium' | 'slow';
-    
-    /** 跨设备稳定性 */
-    crossDeviceStability: 'high' | 'medium' | 'low';
-  };
-}
-
-// === 前向声明 ===
-
-/**
- * 匹配策略类型（从现有类型引入）
- */
-export type MatchStrategy = 
-  | 'absolute' 
-  | 'strict' 
-  | 'relaxed' 
-  | 'positionless' 
-  | 'standard'
-  | 'custom'
-  | 'xpath-direct'
-  | 'xpath-first-index'
-  | 'xpath-all-elements'
-  | 'hidden-element-parent';
-
-/**
- * 策略推荐结果（在 StrategyTypes.ts 中详细定义）
- */
-export interface StrategyRecommendation {
-  strategy: MatchStrategy;
-  confidence: number;
-  reason: string;
-  score: number;
-  alternatives: StrategyCandidate[];
-}
 
 // === 配置选项 ===
 

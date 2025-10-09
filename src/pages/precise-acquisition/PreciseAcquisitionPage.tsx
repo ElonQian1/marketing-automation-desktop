@@ -19,6 +19,7 @@ import { TaskManagementCenter } from './modules/TaskManagementCenter';
 import { DailyReportModule } from './modules/DailyReportModule';
 import { MonitoringDashboard } from './modules/MonitoringDashboard';
 import { DuplicationProtectionPanel } from './modules/safety-protection';
+import { CandidatePoolImportPanel } from './modules/CandidatePoolImportPanel';
 
 const { Title, Text } = Typography;
 
@@ -100,6 +101,18 @@ export const PreciseAcquisitionPage: React.FC = () => {
         selectedDevice={selectedDevice}
         refreshDevices={refreshDevices}
       />
+    },
+    {
+      key: 'candidate-import',
+      label: (
+        <span>
+          <FileTextOutlined />
+          候选池导入
+        </span>
+      ),
+      children: (
+        <CandidatePoolImportPanel />
+      )
     },
     {
       key: 'reports',

@@ -83,6 +83,22 @@ class ServiceContainer {
   this.register('contactAutomationRepository', () => new TauriContactAutomationRepository());
   this.register('deviceMetricsRepository', () => new TauriDeviceMetricsRepository());
 
+    // Marketing domain repositories
+    this.register('watchTargetRepository', () => {
+      // Prefer Tauri-backed repo when available; fallback to in-memory for web/dev
+      try {
+        const { TauriWatchTargetRepository } = require('../../infrastructure/repositories/TauriWatchTargetRepository');
+        return new TauriWatchTargetRepository();
+      } catch (e) {
+        const { InMemoryWatchTargetRepository } = require('../../infrastructure/repositories/InMemoryWatchTargetRepository');
+        return new InMemoryWatchTargetRepository();
+      }
+    });
+    this.register('tagWhitelistRepository', () => {
+      const { StaticTagWhitelistRepository } = require('../../infrastructure/repositories/StaticTagWhitelistRepository');
+      return new StaticTagWhitelistRepository();
+    });
+
     // 注册Domain Service层
     this.register('deviceManagerService', () => {
       const deviceRepository = this.get<IDeviceRepository>('deviceRepository');
@@ -142,6 +158,14 @@ class ServiceContainer {
       const repo = this.get<IDeviceMetricsRepository>('deviceMetricsRepository');
       return new DeviceMetricsApplicationService(repo);
     });
+
+    // Marketing application service
+    this.register('marketingApplicationService', () => {
+      const { MarketingApplicationService } = require('./MarketingApplicationService');
+      const watchRepo = this.get<any>('watchTargetRepository');
+      const whitelistRepo = this.get<any>('tagWhitelistRepository');
+      return new MarketingApplicationService(watchRepo, whitelistRepo);
+    });
   }
 }
 
@@ -199,6 +223,11 @@ export const ServiceFactory = {
   /** 获取 设备指标应用服务 */
   getDeviceMetricsApplicationService(): DeviceMetricsApplicationService {
     return container.get<DeviceMetricsApplicationService>('deviceMetricsApplicationService');
+  },
+
+  /** 获取 精准获客 应用服务 */
+  getMarketingApplicationService(): import('./MarketingApplicationService').MarketingApplicationService {
+    return container.get('marketingApplicationService');
   },
 
   /**

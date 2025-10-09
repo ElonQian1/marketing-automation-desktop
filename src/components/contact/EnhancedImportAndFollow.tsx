@@ -19,9 +19,17 @@ import {
   PlayCircleOutlined,
 } from '@ant-design/icons';
 import { ContactAPI } from '../../api/ContactAPI';
-// ⚠️ WARNING: XiaohongshuService 已弃用，请使用通用应用服务框架
-// TODO: 替换为通用的社交媒体自动化服务
-import { XiaohongshuService, type XiaohongshuFollowOptions, type XiaohongshuFollowResult, type AppStatusResult, type NavigationResult } from '../../services/xiaohongshuService';
+// 平台专属自动化服务已移除，此组件保留为旧流程演示。已改用通用占位服务 GenericAutomationService。
+type GenericFollowOptions = { deviceId: string; maxFollows?: number; delayMs?: number };
+type GenericFollowResult = { success?: boolean; duration?: number; total_followed?: number; message?: string };
+type AppStatusResult = { appInstalled: boolean; appRunning: boolean; appVersion?: string };
+type NavigationResult = { success?: boolean; message?: string };
+const GenericAutomationService = {
+  async initializeService(_deviceId: string): Promise<void> {},
+  async checkAppStatus(): Promise<AppStatusResult> { return { appInstalled: true, appRunning: true, appVersion: 'generic' }; },
+  async navigateToContacts(): Promise<NavigationResult> { return { success: true }; },
+  async autoFollowContacts(_options?: GenericFollowOptions): Promise<GenericFollowResult> { return { success: true, duration: 0, total_followed: 0 }; }
+};
 
 const { Text } = Typography;
 const { Panel } = Collapse;
@@ -49,14 +57,14 @@ interface EnhancedImportAndFollowResult {
     attempts?: number;
     message?: string;
   };
-  followResult: XiaohongshuFollowResult;
+  followResult: GenericFollowResult;
   stepDetails?: string[];
 }
 
 interface EnhancedImportAndFollowProps {
   deviceId: string;
   contactsFilePath: string;
-  options?: XiaohongshuFollowOptions;
+  options?: GenericFollowOptions;
   onComplete?: (result: EnhancedImportAndFollowResult) => void;
   onError?: (error: string) => void;
 }
@@ -98,20 +106,20 @@ const EnhancedImportAndFollow: React.FC<EnhancedImportAndFollowProps> = ({
       const importOk = !!importResultRaw?.success;
       setCurrentStep(1);
 
-      // 2) 初始化与状态检查（通过 XiaohongshuService）
-      await XiaohongshuService.initializeService(deviceId);
-      const appStatus: AppStatusResult = await XiaohongshuService.checkAppStatus();
+  // 2) 初始化与状态检查（通用自动化服务占位）
+  await GenericAutomationService.initializeService(deviceId);
+  const appStatus: AppStatusResult = await GenericAutomationService.checkAppStatus();
 
       setCurrentStep(2);
-      // 3) 导航到通讯录
-      const navigation: NavigationResult = await XiaohongshuService.navigateToContacts();
+  // 3) 导航到通讯录
+  const navigation: NavigationResult = await GenericAutomationService.navigateToContacts();
 
       setCurrentStep(3);
-      // 4) 自动关注
-      const followRes = await XiaohongshuService.autoFollowContacts(options);
+  // 4) 自动关注
+  const followRes = await GenericAutomationService.autoFollowContacts(options);
 
       const executeResult: EnhancedImportAndFollowResult = {
-        success: importOk && appStatus.app_installed && navigation.success && followRes.success,
+        success: importOk && appStatus.appInstalled && !!navigation.success && !!followRes.success,
         totalDuration: (importResultRaw?.duration || 0) + (followRes?.duration || 0),
         importResult: {
           success: importOk,
@@ -122,9 +130,9 @@ const EnhancedImportAndFollow: React.FC<EnhancedImportAndFollowProps> = ({
           message: importResultRaw?.message,
         },
         appStatus: {
-          appInstalled: appStatus.app_installed,
-          appRunning: appStatus.app_running,
-          appVersion: appStatus.app_version,
+          appInstalled: appStatus.appInstalled,
+          appRunning: appStatus.appRunning,
+          appVersion: appStatus.appVersion,
         },
         navigationResult: {
           success: navigation.success,
@@ -135,7 +143,7 @@ const EnhancedImportAndFollow: React.FC<EnhancedImportAndFollowProps> = ({
         },
         followResult: followRes,
         stepDetails: [],
-      };
+  };
 
       setResult(executeResult);
       setStepDetails(executeResult.stepDetails || []);
@@ -145,7 +153,7 @@ const EnhancedImportAndFollow: React.FC<EnhancedImportAndFollowProps> = ({
         onComplete?.(executeResult);
       } else {
         message.error('流程执行失败，请查看详细信息');
-        onError?.(`流程失败: ${executeResult.followResult.message}`);
+        onError?.('流程失败');
       }
     } catch (error) {
       console.error('执行增强版导入+关注失败:', error);
@@ -349,11 +357,9 @@ const EnhancedImportAndFollow: React.FC<EnhancedImportAndFollowProps> = ({
                   </Tag>
                 </Space>
                 <Text>成功关注: {result.followResult.total_followed} 人</Text>
-                <Text>处理页面: {result.followResult.pages_processed} 页</Text>
+                {/* 通用结果不包含 pages_processed 字段 */}
                 <Text>耗时: {result.followResult.duration} 秒</Text>
-                {result.followResult.message && (
-                  <Text type="secondary">{result.followResult.message}</Text>
-                )}
+                {/* 通用结果不包含 message 字段 */}
               </Space>
             </Panel>
 

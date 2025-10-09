@@ -4,6 +4,5 @@ export { default as ImportAndFollow } from "./ImportAndFollow";
 export { VcfImportDemo } from "./VcfImportDemo";
 export { VcfImportDialog } from "./VcfImportDialog";
 export { VcfImporter } from "./VcfImporter";
-// 恢复导出以匹配页面使用
-export { default as XiaohongshuAutoFollow } from "./XiaohongshuAutoFollow";
+// 已移除小红书专用组件导出，避免误导为单平台实现
 

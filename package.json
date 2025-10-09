@@ -22,6 +22,7 @@
     "validate:brand": "node scripts/validate-brand-config.mjs",
     "scan:overrides": "node scripts/scan-style-overrides.mjs",
     "quality:gate": "node scripts/quality-gate.mjs",
+    "lint": "npm run quality:check",
   "quality:check": "npm run scan:overrides && npm run type-check && npm run check:adapters",
   "check:adapters": "node scripts/check-adapter-usage.js",
     "check:hardcoded": "node scripts/check-hardcoded-styles.js",
