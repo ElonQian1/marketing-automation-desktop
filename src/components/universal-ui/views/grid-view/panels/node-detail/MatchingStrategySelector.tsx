@@ -1,9 +1,22 @@
 import React from 'react';
 import type { MatchStrategy } from './types';
+import { StrategyScoreBadge } from './StrategyScoreBadge';
+
+// 临时定义策略评分接口
+export interface StrategyScoreInfo {
+  score: number;
+  isRecommended?: boolean;
+}
 
 export interface MatchingStrategySelectorProps {
   value: MatchStrategy;
   onChange: (next: MatchStrategy) => void;
+  /** 可选的策略评分信息 */
+  strategyScores?: Record<string, StrategyScoreInfo>;
+  /** 是否显示评分徽章 */
+  showScores?: boolean;
+  /** 推荐的策略 */
+  recommendedStrategy?: MatchStrategy;
 }
 
 /**
@@ -52,28 +65,67 @@ const STRATEGY_LIST: Array<{ key: MatchStrategy; label: string; tip: string }> =
  * - 受控组件：通过 value / onChange 工作
  * - 仅负责策略切换 UI，不处理具体的匹配逻辑
  * - 策略变更会通过 onChange 回调传递给父组件
+ * - 🆕 支持显示策略评分徽章和推荐指示器
+ * 
+ * 🎨 新功能：
+ * - strategyScores: 显示每个策略的评分徽章
+ * - showScores: 控制是否显示评分徽章
+ * - recommendedStrategy: 突出显示推荐策略
  * 
  * 🐛 故障排除：
  * - 如果策略选择不生效，检查父组件是否正确处理 onChange 回调
  * - 如果新策略不显示，检查上方的 STRATEGY_LIST 配置
  * - 如果策略显示错误，检查传入的 value 参数是否正确
+ * - 如果评分徽章不显示，检查 strategyScores 和 showScores 参数
  */
-export const MatchingStrategySelector: React.FC<MatchingStrategySelectorProps> = ({ value, onChange }) => {
+export const MatchingStrategySelector: React.FC<MatchingStrategySelectorProps> = ({ 
+  value, 
+  onChange, 
+  strategyScores = {},
+  showScores = false,
+  recommendedStrategy
+}) => {
   return (
     <div className="flex flex-wrap items-center gap-2">
       <span className="text-xs text-neutral-500">匹配策略：</span>
-      {STRATEGY_LIST.map((s) => (
-        <button
-          key={s.key}
-          className={`px-2 py-1 rounded text-xs border transition-colors ${
-            value === s.key ? 'bg-blue-600 text-white border-blue-700' : 'border-neutral-300 text-neutral-700 hover:bg-neutral-50'
-          }`}
-          title={s.tip}
-          onClick={() => onChange(s.key)}
-        >
-          {s.label}
-        </button>
-      ))}
+      {STRATEGY_LIST.map((s) => {
+        const scoreInfo = strategyScores[s.key];
+        const isRecommended = recommendedStrategy === s.key || scoreInfo?.isRecommended;
+        const isSelected = value === s.key;
+        
+        return (
+          <div key={s.key} className="relative">
+            <button
+              className={`px-2 py-1 rounded text-xs border transition-colors flex items-center gap-1 ${
+                isSelected 
+                  ? 'bg-blue-600 text-white border-blue-700' 
+                  : isRecommended 
+                    ? 'border-blue-400 text-blue-700 bg-blue-50 hover:bg-blue-100' 
+                    : 'border-neutral-300 text-neutral-700 hover:bg-neutral-50'
+              } ${isRecommended ? 'ring-1 ring-blue-300 ring-opacity-50' : ''}`}
+              title={`${s.tip}${scoreInfo ? ` (评分: ${Math.round(scoreInfo.score * 100)}%)` : ''}${isRecommended ? ' [推荐]' : ''}`}
+              onClick={() => onChange(s.key)}
+            >
+              <span>{s.label}</span>
+              
+              {/* 推荐指示器 */}
+              {isRecommended && !isSelected && (
+                <span className="text-blue-500 text-[10px]">★</span>
+              )}
+              
+              {/* 评分徽章 */}
+              {showScores && scoreInfo && (
+                <StrategyScoreBadge
+                  score={scoreInfo.score}
+                  isRecommended={isRecommended}
+                  size="small"
+                  className="ml-1"
+                />
+              )}
+            </button>
+          </div>
+        );
+      })}
     </div>
   );
 };

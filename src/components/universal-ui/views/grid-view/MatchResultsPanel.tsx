@@ -1,4 +1,4 @@
-import React, { useEffect, useRef } from 'react';
+import React, { useEffect, useRef, useMemo, useState } from 'react';
 import { UiNode, AdvancedFilter, SearchOptions } from './types';
 import type { MatchCriteria } from './panels/node-detail/types';
 import { nodeLabel, buildXPath } from './utils';
@@ -6,7 +6,13 @@ import styles from './GridElementView.module.css';
 import { MatchBadges } from './MatchBadges';
 import { CopyChip } from './CopyChip';
 import { matchesToXml, downloadText } from './exporters';
-import { MatchResultSetElementButton, type CompleteStepCriteria } from './panels/node-detail';
+import { 
+  MatchResultSetElementButton, 
+  type CompleteStepCriteria, 
+  StrategyRecommendationPanel,
+  type DetailedStrategyRecommendation,
+  strategySystemAdapter
+} from './panels/node-detail';
 
 export interface MatchResultsPanelProps {
   matches: UiNode[];
@@ -24,6 +30,10 @@ export interface MatchResultsPanelProps {
   currentStrategy?: 'absolute' | 'strict' | 'relaxed' | 'positionless' | 'standard' | 'custom';
   // 由上层透传的字段勾选集合（优先用于构建）
   currentFields?: string[];
+  // 🆕 是否显示策略推荐面板
+  showStrategyRecommendation?: boolean;
+  // 🆕 策略推荐变更回调
+  onStrategyChange?: (strategy: 'absolute' | 'strict' | 'relaxed' | 'positionless' | 'standard' | 'custom') => void;
 }
 
 const highlight = (text: string, kw: string, opts?: Partial<SearchOptions>): React.ReactNode => {
@@ -48,8 +58,147 @@ const highlight = (text: string, kw: string, opts?: Partial<SearchOptions>): Rea
   }
 };
 
-export const MatchResultsPanel: React.FC<MatchResultsPanelProps> = ({ matches, matchIndex, keyword, onJump, advFilter, onInsertXPath, searchOptions, highlightNode, onHoverNode, onSelectForStep, currentStrategy, currentFields }) => {
+export const MatchResultsPanel: React.FC<MatchResultsPanelProps> = ({ 
+  matches, 
+  matchIndex, 
+  keyword, 
+  onJump, 
+  advFilter, 
+  onInsertXPath, 
+  searchOptions, 
+  highlightNode, 
+  onHoverNode, 
+  onSelectForStep, 
+  currentStrategy, 
+  currentFields,
+  showStrategyRecommendation = false,
+  onStrategyChange
+}) => {
   const listRef = useRef<HTMLDivElement | null>(null);
+  const [isLoadingRecommendations, setIsLoadingRecommendations] = useState(false);
+  const [recommendationError, setRecommendationError] = useState<string | null>(null);
+
+  // 🆕 真实策略推荐数据（使用智能策略系统适配器）
+  const realTimeRecommendations = useMemo(() => {
+    if (!showStrategyRecommendation || matches.length === 0) return [];
+    
+    // 异步计算策略推荐
+    const calculateRecommendations = async (): Promise<DetailedStrategyRecommendation[]> => {
+      try {
+        setIsLoadingRecommendations(true);
+        setRecommendationError(null);
+        
+        // 分析第一个匹配元素作为代表
+        const representativeElement = matches[0];
+        console.log('📊 分析匹配结果的策略推荐', { 
+          matchCount: matches.length, 
+          element: representativeElement.tag 
+        });
+        
+        const recommendations = await strategySystemAdapter.analyzeElement(representativeElement);
+        
+        // 基于匹配数量调整置信度
+        const adjustedRecommendations = recommendations.map(rec => ({
+          ...rec,
+          confidence: rec.confidence * (matches.length > 10 ? 0.8 : matches.length < 3 ? 1.1 : 1.0),
+          reason: `${rec.reason} (基于 ${matches.length} 个匹配结果)`
+        }));
+        
+        return adjustedRecommendations;
+      } catch (error) {
+        console.error('❌ 匹配结果策略分析失败', error);
+        setRecommendationError(error instanceof Error ? error.message : '分析失败');
+        
+        // 返回基于匹配数量的简化推荐
+        const baseScore = Math.max(0.6, Math.min(0.95, 1 - matches.length / 100));
+        return [{
+          strategy: matches.length < 5 ? 'strict' : 'relaxed',
+          score: {
+            total: baseScore,
+            performance: 0.7,
+            stability: 0.8,
+            compatibility: 0.9,
+            uniqueness: matches.length < 5 ? 0.8 : 0.6
+          },
+          confidence: baseScore,
+          reason: `基于 ${matches.length} 个匹配的简化推荐`
+        }];
+      } finally {
+        setIsLoadingRecommendations(false);
+      }
+    };
+
+    // 立即开始计算但不阻塞渲染
+    calculateRecommendations();
+    
+    // 返回临时占位数据
+    return [{
+      strategy: 'standard',
+      score: {
+        total: 0.75,
+        performance: 0.7,
+        stability: 0.8,
+        compatibility: 0.9,
+        uniqueness: 0.7
+      },
+      confidence: 0.75,
+      reason: '正在分析匹配结果...'
+    }];
+  }, [showStrategyRecommendation, matches.length]);
+
+  // 🆕 监听匹配结果变化，重新计算推荐
+  const [currentRecommendations, setCurrentRecommendations] = useState<DetailedStrategyRecommendation[]>([]);
+
+  useEffect(() => {
+    if (!showStrategyRecommendation || matches.length === 0) {
+      setCurrentRecommendations([]);
+      return;
+    }
+
+    const calculateAndSetRecommendations = async () => {
+      try {
+        setIsLoadingRecommendations(true);
+        setRecommendationError(null);
+        
+        const representativeElement = matches[0];
+        const recommendations = await strategySystemAdapter.analyzeElement(representativeElement);
+        
+        // 调整推荐基于匹配数量
+        const adjustedRecommendations = recommendations.map(rec => ({
+          ...rec,
+          score: {
+            ...rec.score,
+            total: rec.score.total * (matches.length > 20 ? 0.7 : matches.length < 3 ? 1.1 : 1.0)
+          },
+          reason: `${rec.reason} (分析了 ${matches.length} 个匹配)`
+        }));
+        
+        setCurrentRecommendations(adjustedRecommendations);
+      } catch (error) {
+        console.error('❌ 推荐计算失败', error);
+        setRecommendationError(error instanceof Error ? error.message : '计算失败');
+        setCurrentRecommendations([{
+          strategy: 'standard',
+          score: {
+            total: 0.6,
+            performance: 0.6,
+            stability: 0.7,
+            compatibility: 0.8,
+            uniqueness: 0.5
+          },
+          confidence: 0.6,
+          reason: '分析失败，使用默认推荐'
+        }]);
+      } finally {
+        setIsLoadingRecommendations(false);
+      }
+    };
+
+    // 延迟计算避免频繁调用
+    const timeoutId = setTimeout(calculateAndSetRecommendations, 300);
+    return () => clearTimeout(timeoutId);
+  }, [showStrategyRecommendation, matches.length]);
+
   useEffect(() => {
     if (!listRef.current || !highlightNode) return;
     const idx = matches.indexOf(highlightNode);
@@ -81,6 +230,12 @@ export const MatchResultsPanel: React.FC<MatchResultsPanelProps> = ({ matches, m
       // 忽略
     }
   };
+
+  // 🆕 生成策略推荐的模拟数据
+  const mockRecommendations = useMemo(() => {
+    // 已废弃：使用 currentRecommendations 替代此模拟数据
+    return [];
+  }, []);
   return (
     <div className={styles.card}>
       <div className={styles.cardHeader}>
@@ -97,6 +252,22 @@ export const MatchResultsPanel: React.FC<MatchResultsPanelProps> = ({ matches, m
           )}
         </div>
       </div>
+      
+      {/* 🆕 策略推荐面板 */}
+      {showStrategyRecommendation && matches.length > 0 && (
+        <div className="px-4 py-3 border-b border-neutral-200 dark:border-neutral-700">
+          <StrategyRecommendationPanel
+            recommendations={currentRecommendations}
+            compact={true}
+            className="bg-blue-50 dark:bg-blue-900/20"
+            onStrategySelect={onStrategyChange}
+            currentStrategy={currentStrategy}
+            loading={isLoadingRecommendations}
+            error={recommendationError}
+          />
+        </div>
+      )}
+      
       <div className={styles.cardBody} style={{ maxHeight: 240, overflow: 'auto' }} ref={listRef}>
         {matches.length === 0 ? (
           <div className="text-sm text-neutral-500">无匹配结果</div>

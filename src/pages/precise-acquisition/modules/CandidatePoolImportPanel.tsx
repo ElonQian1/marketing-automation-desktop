@@ -1,115 +1,172 @@
-import React, { useMemo, useState } from 'react';
-import { Card, Typography, Upload, Button, Table, Tag, message } from 'antd';
-import { InboxOutlined, ImportOutlined } from '@ant-design/icons';
-import ServiceFactory from '../../../application/services/ServiceFactory';
+/**
+ * 候选池导入面板
+ * 
+ * 集成 CSV 导入和候选池管理功能的完整面板
+ */
 
-interface ImportRowPreview {
-  row: number;
-  type: string;
-  platform: string;
-  id_or_url: string;
-  title?: string;
-  source: string;
-  industry_tags?: string;
-  region?: string;
-  notes?: string;
-}
+import React, { useState } from 'react';
+import { Card, Typography, Tabs, Space, Button } from 'antd';
+import { 
+  ImportOutlined, 
+  UnorderedListOutlined, 
+  BarChartOutlined,
+  DownloadOutlined
+} from '@ant-design/icons';
+import { CsvImportComponent } from '../../../components/CsvImportComponent';
+import { WatchTargetList } from '../../../components/WatchTargetList';
+import { preciseAcquisitionService } from '../../../application/services';
 
 const { Title, Text } = Typography;
 
+/**
+ * 候选池导入面板
+ */
 export const CandidatePoolImportPanel: React.FC = () => {
-  const marketing = useMemo(() => ServiceFactory.getMarketingApplicationService(), []);
-  const [csvText, setCsvText] = useState<string>('type,platform,id_or_url,title,source,industry_tags,region,notes\nvideo,douyin,https://www.douyin.com/video/xxxx,示例视频,csv,口腔;健康,华东,——');
-  const [rows, setRows] = useState<ImportRowPreview[]>([]);
-  const [errors, setErrors] = useState<{row:number; code:string; field:string; message:string;}[]>([]);
-  const [saving, setSaving] = useState(false);
-  const [savedCount, setSavedCount] = useState<number>(0);
+  const [activeTab, setActiveTab] = useState('import');
+  const [refreshKey, setRefreshKey] = useState(0);
 
-  const columns = [
-    { title: '行', dataIndex: 'row', width: 60 },
-    { title: 'type', dataIndex: 'type' },
-    { title: 'platform', dataIndex: 'platform' },
-    { title: 'id_or_url', dataIndex: 'id_or_url' },
-    { title: 'title', dataIndex: 'title' },
-    { title: 'source', dataIndex: 'source' },
-    { title: 'industry_tags', dataIndex: 'industry_tags' },
-    { title: 'region', dataIndex: 'region' },
-  ];
-
-  const errorColumns = [
-    { title: '行', dataIndex: 'row', width: 60 },
-    { title: '字段', dataIndex: 'field' },
-    { title: '错误码', dataIndex: 'code', render: (v:string) => <Tag color={v === 'E_NOT_ALLOWED' ? 'red' : v === 'E_ENUM' ? 'orange' : v === 'E_URL' ? 'magenta' : 'gold'}>{v}</Tag> },
-    { title: '说明', dataIndex: 'message' },
-  ];
-
-  const handleFile = async (file: File) => {
-    const text = await file.text();
-    setCsvText(text);
-    message.success(`已读取文件：${file.name}`);
-    return false;
+  /**
+   * 强制刷新候选池列表
+   */
+  const refreshTargetList = () => {
+    setRefreshKey(prev => prev + 1);
   };
 
-  const handleValidate = () => {
+  /**
+   * 获取统计数据
+   */
+  const handleExportStats = async () => {
     try {
-      const parsed = marketing.parseCsv(csvText);
-      const preview: ImportRowPreview[] = parsed.map((r, i) => ({ row: i+2, ...r } as any));
-      setRows(preview);
-      setErrors([]);
-      setSavedCount(0);
-      message.success(`解析成功：${preview.length} 行`);
-    } catch (e:any) {
-      message.error(`解析失败：${e?.message || e}`);
+      const stats = await preciseAcquisitionService.getStats();
+      const statsText = `精准获客统计报告\n` +
+        `生成时间: ${new Date().toLocaleString()}\n\n` +
+        `候选池统计:\n` +
+        `- 总目标数: ${stats.watch_targets_count}\n` +
+        `- 评论数: ${stats.comments_count}\n\n` +
+        `任务统计:\n` +
+        `- 总任务数: ${stats.tasks_count.total}\n` +
+        `- 新建任务: ${stats.tasks_count.new}\n` +
+        `- 就绪任务: ${stats.tasks_count.ready}\n` +
+        `- 执行中: ${stats.tasks_count.executing}\n` +
+        `- 已完成: ${stats.tasks_count.done}\n` +
+        `- 失败任务: ${stats.tasks_count.failed}\n\n` +
+        `今日指标:\n` +
+        `- 关注数: ${stats.daily_metrics.follow_count}\n` +
+        `- 回复数: ${stats.daily_metrics.reply_count}\n` +
+        `- 成功率: ${stats.daily_metrics.success_rate}%`;
+
+      const blob = new Blob([statsText], { type: 'text/plain;charset=utf-8;' });
+      const link = document.createElement('a');
+      link.href = URL.createObjectURL(blob);
+      link.download = `precise_acquisition_stats_${new Date().toISOString().split('T')[0]}.txt`;
+      link.click();
+      URL.revokeObjectURL(link.href);
+    } catch (error) {
+      console.error('导出统计数据失败:', error);
     }
   };
 
-  const handleImport = async () => {
-    try {
-      setSaving(true);
-      const res = await marketing.importCandidates(csvText);
-      setErrors(res.errors);
-      setSavedCount(res.saved);
-      message.success(`导入完成：保存 ${res.saved} 条，失败 ${res.summary.failed} 条`);
-    } catch (e:any) {
-      message.error(`导入失败：${e?.message || e}`);
-    } finally {
-      setSaving(false);
-    }
-  };
+  const tabItems = [
+    {
+      key: 'import',
+      label: (
+        <span>
+          <ImportOutlined />
+          CSV 导入
+        </span>
+      ),
+      children: (
+        <div className="space-y-4">
+          <div>
+            <Title level={4} className="mb-2">批量导入候选池目标</Title>
+            <Text type="secondary">
+              支持从 CSV 文件批量导入候选池目标，包括用户、内容、话题等多种类型。
+              系统会自动验证数据格式、检查合规性并执行去重处理。
+            </Text>
+          </div>
+          <CsvImportComponent key={`csv-import-${refreshKey}`} />
+        </div>
+      ),
+    },
+    {
+      key: 'manage',
+      label: (
+        <span>
+          <UnorderedListOutlined />
+          候选池管理
+        </span>
+      ),
+      children: (
+        <div className="space-y-4">
+          <div className="flex items-center justify-between">
+            <div>
+              <Title level={4} className="mb-2">候选池目标管理</Title>
+              <Text type="secondary">
+                查看、搜索、筛选和管理所有候选池目标。支持按平台、类型、地区等条件筛选。
+              </Text>
+            </div>
+            <Space>
+              <Button 
+                icon={<DownloadOutlined />} 
+                onClick={handleExportStats}
+              >
+                导出统计
+              </Button>
+            </Space>
+          </div>
+          <WatchTargetList key={`target-list-${refreshKey}`} />
+        </div>
+      ),
+    },
+    {
+      key: 'stats',
+      label: (
+        <span>
+          <BarChartOutlined />
+          统计概览
+        </span>
+      ),
+      children: (
+        <div className="space-y-4">
+          <div>
+            <Title level={4} className="mb-2">候选池统计分析</Title>
+            <Text type="secondary">
+              候选池目标的统计分析和数据概览。
+            </Text>
+          </div>
+          <Card>
+            <Text type="secondary">
+              统计分析功能开发中...
+            </Text>
+          </Card>
+        </div>
+      ),
+    },
+  ];
 
   return (
-    <Card className="light-theme-force" style={{ background: 'var(--bg-light-base, #ffffff)' }}>
-      <div className="flex items-start justify-between gap-4 mb-4">
-        <div>
-          <Title level={4} style={{ margin: 0 }}>候选池导入（CSV 模板）</Title>
-          <Text type="secondary">强约束模板：type, platform, id_or_url, title, source, industry_tags, region, notes</Text>
+    <div className="candidate-pool-import-panel">
+      <Card className="light-theme-force" style={{ background: 'var(--bg-light-base, #ffffff)' }}>
+        <div className="space-y-4">
+          {/* 页面标题 */}
+          <div>
+            <Title level={3} className="mb-2">候选池管理中心</Title>
+            <Text type="secondary">
+              统一管理候选池目标的导入、查看、筛选和分析功能
+            </Text>
+          </div>
+
+          {/* 功能选项卡 */}
+          <Tabs
+            activeKey={activeTab}
+            onChange={setActiveTab}
+            items={tabItems}
+            type="card"
+            className="w-full"
+          />
         </div>
-        <div className="flex gap-2">
-          <Upload beforeUpload={handleFile} showUploadList={false} accept=".csv,text/csv">
-            <Button icon={<InboxOutlined />}>选择 CSV</Button>
-          </Upload>
-          <Button onClick={handleValidate}>解析预览</Button>
-          <Button type="primary" icon={<ImportOutlined />} loading={saving} onClick={handleImport}>校验并导入</Button>
-        </div>
-      </div>
-
-      <textarea
-        className="w-full p-3 rounded border mb-4"
-        rows={6}
-        value={csvText}
-        onChange={e => setCsvText(e.target.value)}
-      />
-
-      <div className="mb-2">
-        <Text>解析结果：<b>{rows.length}</b> 行，已保存：<b>{savedCount}</b> 条</Text>
-      </div>
-      <Table rowKey="row" size="small" columns={columns as any} dataSource={rows} pagination={{ pageSize: 5 }} />
-
-      <div className="mt-6">
-        <Title level={5} style={{ marginBottom: 8 }}>错误清单</Title>
-        <Table rowKey={(r:any)=>`${r.row}-${r.field}`} size="small" columns={errorColumns as any} dataSource={errors} pagination={{ pageSize: 5 }} />
-      </div>
-    </Card>
+      </Card>
+    </div>
   );
 };
 

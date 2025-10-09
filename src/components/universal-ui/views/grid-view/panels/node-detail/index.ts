@@ -8,6 +8,27 @@ export { SelectedFieldsTable } from './SelectedFieldsTable';
 export { NegativeConditionsEditor } from './NegativeConditionsEditor';
 export { PositiveConditionsEditor } from './PositiveConditionsEditor';
 
+// 🆕 策略评分和推荐组件
+export { StrategyScoreCard } from './StrategyScoreCard';
+export { StrategyScoreBadge } from './StrategyScoreBadge';
+export { StrategyRecommendationPanel } from './StrategyRecommendationPanel';
+export { InteractiveScoringPanel } from './InteractiveScoringPanel';
+
+// 🆕 智能策略系统适配器
+export { 
+  StrategySystemAdapter,
+  strategySystemAdapter,
+  analyzeElementStrategy,
+  batchAnalyzeElementStrategies
+} from './StrategySystemAdapter';
+
+// 🆕 演示和测试组件
+export { default as ScoringUIDemo } from './ScoringUIDemo';
+
+// 🆕 策略评分类型
+export type { DetailedStrategyRecommendation, DetailedStrategyScore } from './StrategyRecommendationPanel';
+export type { StrategyScoreInfo } from './MatchingStrategySelector';
+
 // 🆕 增强字段选择器模块
 export { 
   AdvancedFieldSelector,

@@ -11,7 +11,7 @@ import type {
   ScoreBreakdown,
   ScoringContext,
   ScoreComparison
-} from './types';
+} from './types/ScoringTypes';
 import type { MatchStrategy } from '../types/StrategyTypes';
 import { ScoreWeightConfigManager } from './ScoreWeightConfig';
 import { PerformanceMetricsEvaluator } from './PerformanceMetrics';

@@ -6,6 +6,12 @@
 
 // === 导入依赖 ===
 import { StrategyDecisionEngine } from './core/StrategyDecisionEngine';
+import { 
+  createCompleteScoringSystem,
+  quickScore,
+  quickValidateUniqueness,
+  quickBatchScoreAndValidate
+} from './scoring';
 
 // === 核心类型 ===
 export type {
@@ -25,6 +31,24 @@ export { ConfidenceCalculator } from './core/ConfidenceCalculator';
 // === 分析器 ===
 export { BaseAnalyzer } from './analyzers/BaseAnalyzer';
 // export { AnalyzerFactory } from './analyzers/AnalyzerFactory';
+
+// === 评分系统 ===
+export { 
+  createCompleteScoringSystem,
+  quickScore,
+  quickValidateUniqueness,
+  quickBatchScoreAndValidate
+} from './scoring';
+
+// 导出评分系统核心组件
+export {
+  ScoreWeightConfigManager,
+  PerformanceMetricsEvaluator,
+  StabilityAssessmentEvaluator
+} from './scoring';
+
+// 导出评分系统类型
+export type * from './scoring/types';
 
 // === 便捷函数 ===
 
@@ -64,4 +88,65 @@ export const getBatchRecommendations = async (
   return await Promise.all(
     elements.map(element => engine.analyzeAndRecommend(element, xmlContent))
   );
+};
+
+/**
+ * 智能策略推荐并评分（综合函数）
+ * @param element 目标元素节点
+ * @param xmlContent XML内容
+ * @returns 包含推荐和评分的综合结果
+ */
+export const getRecommendationWithScoring = async (
+  element: any,
+  xmlContent: string
+): Promise<any> => {
+  // 1. 获取策略推荐
+  const recommendation = await getQuickRecommendation(element, xmlContent);
+  
+  // 2. 对推荐策略进行评分
+  const scoringResult = await quickScore(
+    recommendation.recommendedStrategy,
+    element,
+    xmlContent
+  );
+  
+  return {
+    ...recommendation,
+    scoring: scoringResult,
+    overallQuality: scoringResult.overallScore
+  };
+};
+
+/**
+ * 批量策略推荐、评分和验证（最强综合函数）
+ * @param elements 元素列表
+ * @param xmlContent XML内容
+ * @returns 完整的分析、评分和验证结果
+ */
+export const getComprehensiveAnalysis = async (
+  elements: any[],
+  xmlContent: string
+): Promise<any> => {
+  // 1. 批量获取推荐
+  const recommendations = await getBatchRecommendations(elements, xmlContent);
+  
+  // 2. 提取推荐策略列表
+  const strategies = recommendations.map(rec => rec.recommendedStrategy);
+  
+  // 3. 批量评分和验证
+  const scoringResults = await quickBatchScoreAndValidate(
+    strategies,
+    elements[0], // 使用第一个元素作为上下文
+    xmlContent
+  );
+  
+  return {
+    recommendations,
+    scoring: scoringResults,
+    summary: {
+      totalElements: elements.length,
+      recommendedStrategies: strategies.length,
+      averageQuality: scoringResults.validation?.summary?.qualityScore || 85
+    }
+  };
 };

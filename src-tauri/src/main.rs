@@ -68,9 +68,19 @@ use services::smart_element_finder_service::{smart_element_finder, click_detecte
 use services::commands::{execute_single_step_test, execute_smart_automation_script, execute_smart_automation_script_multi};
 use services::scrcpy_manager::{start_device_mirror, stop_device_mirror, stop_device_mirror_session, list_device_mirror_sessions, cleanup_all, check_scrcpy_available, get_scrcpy_capabilities};
 use services::marketing_storage::{
+    // 候选池相关
     bulk_upsert_watch_targets,
     get_watch_target_by_dedup_key,
     list_watch_targets,
+    // 评论相关
+    insert_comment,
+    list_comments,
+    // 任务相关
+    insert_task,
+    update_task_status,
+    list_tasks,
+    // 审计日志相关
+    insert_audit_log,
 };
 // 直接使用的其他命令函数（未在 commands::* re-export 中覆盖的服务命令）
 // use services::ui_reader_service::read_device_ui_state; // 重复导入，已在下方包含
@@ -334,10 +344,19 @@ fn main() {
             check_scrcpy_available,
             get_scrcpy_capabilities
             ,
-            // 精准获客 - 候选池存储
+            // 精准获客 - 数据存储模块
             bulk_upsert_watch_targets,
             get_watch_target_by_dedup_key,
-            list_watch_targets
+            list_watch_targets,
+            // 评论管理
+            insert_comment,
+            list_comments,
+            // 任务管理
+            insert_task,
+            update_task_status,
+            list_tasks,
+            // 审计日志
+            insert_audit_log
         ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");

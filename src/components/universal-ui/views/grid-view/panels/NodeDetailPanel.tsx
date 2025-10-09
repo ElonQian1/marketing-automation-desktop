@@ -19,6 +19,15 @@ import {
   SmartMatchingConditions
 } from '../../../../../modules/enhanced-matching';
 
+// 🆕 导入策略评分系统组件
+import { 
+  StrategyRecommendationPanel,
+  MatchingStrategySelector,
+  type StrategyScoreInfo,
+  type DetailedStrategyRecommendation,
+  strategySystemAdapter
+} from './node-detail';
+
 interface NodeDetailPanelProps {
   node: UiNode | null;
   onMatched?: (result: MatchResultSummary) => void;
@@ -59,8 +68,74 @@ export const NodeDetailPanel: React.FC<NodeDetailPanelProps> = ({
   const [enhancedAnalysis, setEnhancedAnalysis] = useState<SmartMatchingConditions | null>(null);
   const [showEnhancedView, setShowEnhancedView] = useState(false);
 
+  // 🆕 策略评分系统状态
+  const [strategyRecommendations, setStrategyRecommendations] = useState<DetailedStrategyRecommendation[]>([]);
+  const [showStrategyScoring, setShowStrategyScoring] = useState(false);
+  const [isLoadingScores, setIsLoadingScores] = useState(false);
+
+  // 🆕 真实策略评分函数（使用智能策略系统适配器）
+  const calculateStrategyScores = async (node: UiNode): Promise<DetailedStrategyRecommendation[]> => {
+    try {
+      setIsLoadingScores(true);
+      console.log('🎯 开始计算策略评分', { node: node.tag, hasXml: !!xmlContent });
+      
+      // 使用智能策略系统适配器进行真实分析
+      const recommendations = await strategySystemAdapter.analyzeElement(node, xmlContent);
+      
+      console.log('✅ 策略评分计算完成', { 
+        nodeTag: node.tag,
+        recommendationsCount: recommendations.length,
+        topStrategy: recommendations[0]?.strategy
+      });
+      
+      return recommendations;
+    } catch (error) {
+      console.error('❌ 策略评分计算失败', error);
+      
+      // 回退到简化的默认评分
+      return [{
+        strategy: 'standard',
+        score: {
+          total: 0.7,
+          performance: 0.7,
+          stability: 0.8,
+          compatibility: 0.9,
+          uniqueness: 0.6,
+          confidence: 0.7
+        },
+        confidence: 0.7,
+        reason: `策略分析失败，使用默认推荐: ${error instanceof Error ? error.message : '未知错误'}`
+      }];
+    } finally {
+      setIsLoadingScores(false);
+    }
+  };
+
   useEffect(() => { onStrategyChanged?.(strategy); }, [strategy]);
   useEffect(() => { onFieldsChanged?.(selectedFields); }, [selectedFields]);
+
+  // 🆕 策略评分计算：当节点变化时触发
+  useEffect(() => {
+    if (!node) {
+      setStrategyRecommendations([]);
+      return;
+    }
+
+    const performScoring = async () => {
+      setIsLoadingScores(true);
+      try {
+        const recommendations = await calculateStrategyScores(node);
+        setStrategyRecommendations(recommendations);
+      } catch (error) {
+        console.error('策略评分计算失败:', error);
+        setStrategyRecommendations([]);
+      } finally {
+        setIsLoadingScores(false);
+      }
+    };
+
+    performScoring();
+  }, [node]);
 
   // 🆕 增强匹配分析：当节点或XML上下文变化时触发
   useEffect(() => {
@@ -370,8 +445,101 @@ export const NodeDetailPanel: React.FC<NodeDetailPanelProps> = ({
           onPreviewFields={(fs) => setSelectedFields(fs)}
         />
 
+        {/* 🆕 智能策略选择器（带评分徽章） */}
+        <div className={styles.section}>
+          <MatchingStrategySelector
+            value={strategy}
+            onChange={(newStrategy) => {
+              setStrategy(newStrategy);
+              // 应用对应的预设字段
+              const preset = PRESET_FIELDS[newStrategy as any] || [];
+              const nextFields = newStrategy === 'custom' ? selectedFields : preset;
+              setSelectedFields(nextFields);
+              if (node) {
+                setValues(buildDefaultValues(node, nextFields));
+              }
+            }}
+            strategyScores={Object.fromEntries(
+              strategyRecommendations.map(rec => [
+                rec.strategy,
+                {
+                  score: rec.score.total,
+                  isRecommended: rec === strategyRecommendations[0]
+                }
+              ])
+            )}
+            showScores={true}
+            recommendedStrategy={strategyRecommendations[0]?.strategy as any}
+          />
+        </div>
+
         {/* 策略级预设 */}
         <MatchPresetsRow node={node} onApply={applyPreset} activeStrategy={strategy} />
+
+        {/* 🆕 智能策略推荐面板 */}
+        {strategyRecommendations.length > 0 && (
+          <div className={styles.section}>
+            <div className="flex items-center justify-between mb-3">
+              <span className="text-sm font-medium">🎯 智能策略推荐</span>
+              <button
+                className="text-xs text-blue-600 hover:text-blue-700 px-2 py-1 rounded border border-blue-200 hover:bg-blue-50"
+                onClick={() => setShowStrategyScoring(!showStrategyScoring)}
+              >
+                {showStrategyScoring ? '收起评分详情' : '查看评分详情'}
+              </button>
+            </div>
+            
+            {/* 紧凑模式的推荐显示 */}
+            {!showStrategyScoring && (
+              <StrategyRecommendationPanel
+                recommendations={strategyRecommendations}
+                currentStrategy={strategy}
+                onStrategySelect={(newStrategy) => {
+                  setStrategy(newStrategy);
+                  // 应用对应的预设字段
+                  const preset = PRESET_FIELDS[newStrategy as any] || [];
+                  const nextFields = newStrategy === 'custom' ? selectedFields : preset;
+                  setSelectedFields(nextFields);
+                  if (node) {
+                    setValues(buildDefaultValues(node, nextFields));
+                  }
+                }}
+                compact={true}
+                className="bg-blue-50 dark:bg-blue-900/20 rounded-lg p-3"
+              />
+            )}
+            
+            {/* 详细模式的评分显示 */}
+            {showStrategyScoring && (
+              <StrategyRecommendationPanel
+                recommendations={strategyRecommendations}
+                currentStrategy={strategy}
+                onStrategySelect={(newStrategy) => {
+                  setStrategy(newStrategy);
+                  // 应用对应的预设字段
+                  const preset = PRESET_FIELDS[newStrategy as any] || [];
+                  const nextFields = newStrategy === 'custom' ? selectedFields : preset;
+                  setSelectedFields(nextFields);
+                  if (node) {
+                    setValues(buildDefaultValues(node, nextFields));
+                  }
+                }}
+                onWeightChange={(weights) => {
+                  // TODO: 实时重新计算评分
+                  console.log('权重调整:', weights);
+                }}
+                compact={false}
+                className="border border-blue-200 dark:border-blue-800 rounded-lg p-4"
+              />
+            )}
+            
+            {isLoadingScores && (
+              <div className="text-center py-4 text-neutral-500">
+                正在分析策略评分...
+              </div>
+            )}
+          </div>
+        )}
 
         <div className={styles.section}>
           <SelectedFieldsChips
