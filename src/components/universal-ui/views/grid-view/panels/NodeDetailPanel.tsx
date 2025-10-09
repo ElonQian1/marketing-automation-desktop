@@ -126,6 +126,20 @@ export const NodeDetailPanel: React.FC<NodeDetailPanelProps> = ({
       try {
         const recommendations = await calculateStrategyScores(node);
         setStrategyRecommendations(recommendations);
+        
+        // 🚀 自动应用智能推荐的最佳策略（如果没有初始预设）
+        if (recommendations.length > 0 && !initialMatching) {
+          const bestStrategy = recommendations[0].strategy as MatchCriteria['strategy'];
+          console.log('🎯 自动应用智能推荐策略:', bestStrategy);
+          setStrategy(bestStrategy);
+          
+          // 应用推荐策略对应的预设字段
+          const presetFields = PRESET_FIELDS[bestStrategy as any] || [];
+          if (presetFields.length > 0) {
+            setSelectedFields(presetFields);
+            console.log('📋 自动应用推荐字段:', presetFields);
+          }
+        }
       } catch (error) {
         console.error('策略评分计算失败:', error);
         setStrategyRecommendations([]);
@@ -135,7 +149,7 @@ export const NodeDetailPanel: React.FC<NodeDetailPanelProps> = ({
     };
 
     performScoring();
-  }, [node]);
+  }, [node, initialMatching]);
 
   // 🆕 增强匹配分析：当节点或XML上下文变化时触发
   useEffect(() => {

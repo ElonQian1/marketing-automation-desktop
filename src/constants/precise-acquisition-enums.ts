@@ -11,14 +11,12 @@ export enum Platform {
   DOUYIN = 'douyin',
   OCEANENGINE = 'oceanengine', 
   PUBLIC = 'public',
-  XIAOHONGSHU = 'xiaohongshu',
 }
 
 export const PLATFORM_OPTIONS = [
   { label: '抖音', value: Platform.DOUYIN },
   { label: '巨量引擎', value: Platform.OCEANENGINE },
   { label: '公开来源', value: Platform.PUBLIC },
-  { label: '小红书', value: Platform.XIAOHONGSHU },
 ];
 
 // ==================== 目标类型枚举 ====================
@@ -26,15 +24,11 @@ export const PLATFORM_OPTIONS = [
 export enum TargetType {
   VIDEO = 'video',
   ACCOUNT = 'account',
-  USER = 'user',
-  CONTENT = 'content',
 }
 
 export const TARGET_TYPE_OPTIONS = [
   { label: '视频', value: TargetType.VIDEO },
   { label: '账号', value: TargetType.ACCOUNT },
-  { label: '用户', value: TargetType.USER },
-  { label: '内容', value: TargetType.CONTENT },
 ];
 
 // ==================== 来源类型枚举 ====================
@@ -56,46 +50,101 @@ export const SOURCE_TYPE_OPTIONS = [
 // ==================== 行业标签枚举 ====================
 
 export enum IndustryTag {
+  // 医疗健康类
   ORAL_CARE = '口腔',
+  ORAL_ORTHODONTICS = '口腔正畸',
   MATERNAL_BABY = '母婴',
   MEDICAL_HEALTH = '医疗健康',
-  BEAUTY = '美妆',
-  EDUCATION_TRAINING = '教育培训',
   FITNESS = '健身',
-  FOOD_BEVERAGE = '食品饮料',
+
+  // 美妆生活类
+  BEAUTY = '美妆',
+  SKINCARE = '护肤',
   HOME_FURNISHING = '家居',
+  FOOD_BEVERAGE = '食品饮料',
+
+  // 教育培训类
+  EDUCATION_TRAINING = '教育培训',
+  LANGUAGE_LEARNING = '语言学习',
+  SKILL_TRAINING = '技能培训',
+
+  // 科技数码类
   DIGITAL_3C = '3C',
+  SOFTWARE_APPS = '软件应用',
+  AI_TECH = 'AI科技',
+
+  // 汽车交通类
   AUTOMOTIVE = '汽车',
+  NEW_ENERGY_VEHICLE = '新能源汽车',
+
+  // 旅游娱乐类
   TRAVEL = '旅游',
+  ENTERTAINMENT = '娱乐',
+  GAMES = '游戏',
+
+  // 宠物服饰类
   PETS = '宠物',
   FASHION = '服饰',
+
+  // 金融服务类
   FINANCE = '金融',
+  INSURANCE = '保险',
   REAL_ESTATE = '房产',
-  ENTERTAINMENT = '娱乐',
+
+  // 其他
+  OTHER = '其他'
 }
 
 export const INDUSTRY_TAG_OPTIONS = [
-  { label: '口腔', value: IndustryTag.ORAL_CARE },
+  // 医疗健康类
+  { label: '口腔护理', value: IndustryTag.ORAL_CARE },
+  { label: '口腔正畸', value: IndustryTag.ORAL_ORTHODONTICS },
   { label: '母婴', value: IndustryTag.MATERNAL_BABY },
   { label: '医疗健康', value: IndustryTag.MEDICAL_HEALTH },
-  { label: '美妆', value: IndustryTag.BEAUTY },
-  { label: '教育培训', value: IndustryTag.EDUCATION_TRAINING },
   { label: '健身', value: IndustryTag.FITNESS },
+
+  // 美妆生活类
+  { label: '美妆', value: IndustryTag.BEAUTY },
+  { label: '护肤', value: IndustryTag.SKINCARE },
+  { label: '家居生活', value: IndustryTag.HOME_FURNISHING },
   { label: '食品饮料', value: IndustryTag.FOOD_BEVERAGE },
-  { label: '家居', value: IndustryTag.HOME_FURNISHING },
+
+  // 教育培训类
+  { label: '教育培训', value: IndustryTag.EDUCATION_TRAINING },
+  { label: '语言学习', value: IndustryTag.LANGUAGE_LEARNING },
+  { label: '技能培训', value: IndustryTag.SKILL_TRAINING },
+
+  // 科技数码类
   { label: '3C数码', value: IndustryTag.DIGITAL_3C },
+  { label: '软件应用', value: IndustryTag.SOFTWARE_APPS },
+  { label: 'AI科技', value: IndustryTag.AI_TECH },
+
+  // 汽车交通类
   { label: '汽车', value: IndustryTag.AUTOMOTIVE },
+  { label: '新能源汽车', value: IndustryTag.NEW_ENERGY_VEHICLE },
+
+  // 旅游娱乐类
   { label: '旅游', value: IndustryTag.TRAVEL },
-  { label: '宠物', value: IndustryTag.PETS },
-  { label: '服饰', value: IndustryTag.FASHION },
-  { label: '金融', value: IndustryTag.FINANCE },
-  { label: '房产', value: IndustryTag.REAL_ESTATE },
   { label: '娱乐', value: IndustryTag.ENTERTAINMENT },
+  { label: '游戏', value: IndustryTag.GAMES },
+
+  // 宠物服饰类
+  { label: '宠物', value: IndustryTag.PETS },
+  { label: '服饰时尚', value: IndustryTag.FASHION },
+
+  // 金融服务类
+  { label: '金融', value: IndustryTag.FINANCE },
+  { label: '保险', value: IndustryTag.INSURANCE },
+  { label: '房地产', value: IndustryTag.REAL_ESTATE },
+
+  // 其他
+  { label: '其他', value: IndustryTag.OTHER },
 ];
 
 // ==================== 地域标签枚举 ====================
 
 export enum RegionTag {
+  // 全国和大区
   NATIONWIDE = '全国',
   EAST_CHINA = '华东',
   NORTH_CHINA = '华北', 
@@ -104,9 +153,19 @@ export enum RegionTag {
   SOUTHWEST_CHINA = '西南',
   NORTHWEST_CHINA = '西北',
   NORTHEAST_CHINA = '东北',
+
+  // 主要省份（可扩展）
+  BEIJING = '北京',
+  SHANGHAI = '上海',
+  GUANGDONG = '广东',
+  ZHEJIANG = '浙江',
+  JIANGSU = '江苏',
+  SHANDONG = '山东',
+  SICHUAN = '四川',
 }
 
 export const REGION_TAG_OPTIONS = [
+  // 全国和大区
   { label: '全国', value: RegionTag.NATIONWIDE },
   { label: '华东', value: RegionTag.EAST_CHINA },
   { label: '华北', value: RegionTag.NORTH_CHINA },
@@ -115,6 +174,15 @@ export const REGION_TAG_OPTIONS = [
   { label: '西南', value: RegionTag.SOUTHWEST_CHINA },
   { label: '西北', value: RegionTag.NORTHWEST_CHINA },
   { label: '东北', value: RegionTag.NORTHEAST_CHINA },
+
+  // 主要省份
+  { label: '北京', value: RegionTag.BEIJING },
+  { label: '上海', value: RegionTag.SHANGHAI },
+  { label: '广东', value: RegionTag.GUANGDONG },
+  { label: '浙江', value: RegionTag.ZHEJIANG },
+  { label: '江苏', value: RegionTag.JIANGSU },
+  { label: '山东', value: RegionTag.SHANDONG },
+  { label: '四川', value: RegionTag.SICHUAN },
 ];
 
 // ==================== 任务类型枚举 ====================
@@ -243,16 +311,6 @@ export function validateSourceType(value: string): boolean {
 }
 
 /**
- * 校验行业标签（支持分号分隔的多个标签）
- */
-export function validateIndustryTags(value: string): boolean {
-  if (!value || value.trim() === '') return true; // 允许空值
-  
-  const tags = value.split(';').map(tag => tag.trim());
-  return tags.every(tag => Object.values(IndustryTag).includes(tag as IndustryTag));
-}
-
-/**
  * 校验地域标签
  */
 export function validateRegionTag(value: string): boolean {
@@ -296,26 +354,270 @@ export function validateAuditAction(value: string): boolean {
 
 // ==================== 工具函数 ====================
 
+// ==================== 标签体系管理 ====================
+
+/**
+ * 标签体系版本
+ */
+export const TAGS_VERSION = 'v1.0.0';
+
+/**
+ * 行业标签分类配置
+ */
+export interface IndustryTagCategory {
+  name: string;
+  tags: IndustryTag[];
+  description?: string;
+}
+
+/**
+ * 行业标签分类
+ */
+export const INDUSTRY_TAG_CATEGORIES: IndustryTagCategory[] = [
+  {
+    name: '医疗健康',
+    tags: [
+      IndustryTag.ORAL_CARE,
+      IndustryTag.ORAL_ORTHODONTICS,
+      IndustryTag.MATERNAL_BABY,
+      IndustryTag.MEDICAL_HEALTH,
+      IndustryTag.FITNESS
+    ],
+    description: '医疗、健康、护理相关行业'
+  },
+  {
+    name: '美妆生活',
+    tags: [
+      IndustryTag.BEAUTY,
+      IndustryTag.SKINCARE,
+      IndustryTag.HOME_FURNISHING,
+      IndustryTag.FOOD_BEVERAGE
+    ],
+    description: '美妆、生活用品、食品相关行业'
+  },
+  {
+    name: '教育培训',
+    tags: [
+      IndustryTag.EDUCATION_TRAINING,
+      IndustryTag.LANGUAGE_LEARNING,
+      IndustryTag.SKILL_TRAINING
+    ],
+    description: '教育、培训、学习相关行业'
+  },
+  {
+    name: '科技数码',
+    tags: [
+      IndustryTag.DIGITAL_3C,
+      IndustryTag.SOFTWARE_APPS,
+      IndustryTag.AI_TECH
+    ],
+    description: '科技、数码、软件相关行业'
+  },
+  {
+    name: '交通出行',
+    tags: [
+      IndustryTag.AUTOMOTIVE,
+      IndustryTag.NEW_ENERGY_VEHICLE,
+      IndustryTag.TRAVEL
+    ],
+    description: '汽车、交通、旅游相关行业'
+  },
+  {
+    name: '娱乐消费',
+    tags: [
+      IndustryTag.ENTERTAINMENT,
+      IndustryTag.GAMES,
+      IndustryTag.PETS,
+      IndustryTag.FASHION
+    ],
+    description: '娱乐、游戏、宠物、服饰相关行业'
+  },
+  {
+    name: '金融服务',
+    tags: [
+      IndustryTag.FINANCE,
+      IndustryTag.INSURANCE,
+      IndustryTag.REAL_ESTATE
+    ],
+    description: '金融、保险、房地产相关行业'
+  }
+];
+
+/**
+ * 外部标签到内部枚举的映射表
+ */
+export const EXTERNAL_TAG_MAPPING: Record<string, IndustryTag> = {
+  // 中文标签映射
+  '口腔': IndustryTag.ORAL_CARE,
+  '口腔护理': IndustryTag.ORAL_CARE,
+  '牙科': IndustryTag.ORAL_CARE,
+  '正畸': IndustryTag.ORAL_ORTHODONTICS,
+  '牙齿矫正': IndustryTag.ORAL_ORTHODONTICS,
+  '母婴': IndustryTag.MATERNAL_BABY,
+  '育儿': IndustryTag.MATERNAL_BABY,
+  '孕婴': IndustryTag.MATERNAL_BABY,
+  '医疗': IndustryTag.MEDICAL_HEALTH,
+  '健康': IndustryTag.MEDICAL_HEALTH,
+  '保健': IndustryTag.MEDICAL_HEALTH,
+  '美妆': IndustryTag.BEAUTY,
+  '化妆品': IndustryTag.BEAUTY,
+  '护肤': IndustryTag.SKINCARE,
+  '护肤品': IndustryTag.SKINCARE,
+  '教育': IndustryTag.EDUCATION_TRAINING,
+  '培训': IndustryTag.EDUCATION_TRAINING,
+  '健身': IndustryTag.FITNESS,
+  '运动': IndustryTag.FITNESS,
+  '食品': IndustryTag.FOOD_BEVERAGE,
+  '饮料': IndustryTag.FOOD_BEVERAGE,
+  '家居': IndustryTag.HOME_FURNISHING,
+  '生活用品': IndustryTag.HOME_FURNISHING,
+  '3C': IndustryTag.DIGITAL_3C,
+  '数码': IndustryTag.DIGITAL_3C,
+  '电子产品': IndustryTag.DIGITAL_3C,
+  '汽车': IndustryTag.AUTOMOTIVE,
+  '新能源': IndustryTag.NEW_ENERGY_VEHICLE,
+  '电动车': IndustryTag.NEW_ENERGY_VEHICLE,
+  '旅游': IndustryTag.TRAVEL,
+  '旅行': IndustryTag.TRAVEL,
+  '宠物': IndustryTag.PETS,
+  '宠物用品': IndustryTag.PETS,
+  '服装': IndustryTag.FASHION,
+  '服饰': IndustryTag.FASHION,
+  '时尚': IndustryTag.FASHION,
+  '金融': IndustryTag.FINANCE,
+  '理财': IndustryTag.FINANCE,
+  '保险': IndustryTag.INSURANCE,
+  '房地产': IndustryTag.REAL_ESTATE,
+  '房产': IndustryTag.REAL_ESTATE,
+  
+  // 英文标签映射
+  'oral': IndustryTag.ORAL_CARE,
+  'dental': IndustryTag.ORAL_CARE,
+  'beauty': IndustryTag.BEAUTY,
+  'cosmetics': IndustryTag.BEAUTY,
+  'skincare': IndustryTag.SKINCARE,
+  'education': IndustryTag.EDUCATION_TRAINING,
+  'training': IndustryTag.EDUCATION_TRAINING,
+  'fitness': IndustryTag.FITNESS,
+  'healthcare': IndustryTag.MEDICAL_HEALTH,
+  'medical': IndustryTag.MEDICAL_HEALTH,
+  'automotive': IndustryTag.AUTOMOTIVE,
+  'travel': IndustryTag.TRAVEL,
+  'tourism': IndustryTag.TRAVEL,
+  'pets': IndustryTag.PETS,
+  'fashion': IndustryTag.FASHION,
+  'finance': IndustryTag.FINANCE,
+  'insurance': IndustryTag.INSURANCE,
+  'realestate': IndustryTag.REAL_ESTATE,
+};
+
+/**
+ * 外部地域标签映射
+ */
+export const EXTERNAL_REGION_MAPPING: Record<string, RegionTag> = {
+  '全国': RegionTag.NATIONWIDE,
+  '华东': RegionTag.EAST_CHINA,
+  '华北': RegionTag.NORTH_CHINA,
+  '华南': RegionTag.SOUTH_CHINA,
+  '华中': RegionTag.CENTRAL_CHINA,
+  '西南': RegionTag.SOUTHWEST_CHINA,
+  '西北': RegionTag.NORTHWEST_CHINA,
+  '东北': RegionTag.NORTHEAST_CHINA,
+  '北京': RegionTag.BEIJING,
+  '上海': RegionTag.SHANGHAI,
+  '广东': RegionTag.GUANGDONG,
+  '浙江': RegionTag.ZHEJIANG,
+  '江苏': RegionTag.JIANGSU,
+  '山东': RegionTag.SHANDONG,
+  '四川': RegionTag.SICHUAN,
+  
+  // 英文映射
+  'nationwide': RegionTag.NATIONWIDE,
+  'beijing': RegionTag.BEIJING,
+  'shanghai': RegionTag.SHANGHAI,
+  'guangdong': RegionTag.GUANGDONG,
+  'zhejiang': RegionTag.ZHEJIANG,
+  'jiangsu': RegionTag.JIANGSU,
+  'shandong': RegionTag.SHANDONG,
+  'sichuan': RegionTag.SICHUAN,
+};
+
+// ==================== 标签验证和工具函数 ====================
+
+/**
+ * 验证行业标签是否有效
+ */
+export function isValidIndustryTag(tag: string): tag is IndustryTag {
+  return Object.values(IndustryTag).includes(tag as IndustryTag);
+}
+
+/**
+ * 验证地域标签是否有效
+ */
+export function isValidRegionTag(tag: string): tag is RegionTag {
+  return Object.values(RegionTag).includes(tag as RegionTag);
+}
+
+/**
+ * 验证行业标签数组
+ */
+export function validateIndustryTags(tags: string[]): {
+  valid: IndustryTag[];
+  invalid: string[];
+} {
+  const valid: IndustryTag[] = [];
+  const invalid: string[] = [];
+
+  for (const tag of tags) {
+    if (isValidIndustryTag(tag)) {
+      valid.push(tag);
+    } else {
+      invalid.push(tag);
+    }
+  }
+
+  return { valid, invalid };
+}
+
+/**
+ * 解析分号分隔的行业标签字符串
+ */
+export function parseIndustryTagsString(tagsString: string): {
+  valid: IndustryTag[];
+  invalid: string[];
+} {
+  if (!tagsString?.trim()) {
+    return { valid: [], invalid: [] };
+  }
+
+  const tags = tagsString.split(';').map(tag => tag.trim()).filter(Boolean);
+  return validateIndustryTags(tags);
+}
+
+/**
+ * 将行业标签数组转换为分号分隔的字符串
+ */
+export function formatIndustryTagsToString(tags: IndustryTag[]): string {
+  return tags.join(';');
+}
+
 /**
  * 解析行业标签字符串为数组
  */
 export function parseIndustryTags(value: string): IndustryTag[] {
-  if (!value || value.trim() === '') return [];
-  
-  return value.split(';')
-    .map(tag => tag.trim())
-    .filter(tag => Object.values(IndustryTag).includes(tag as IndustryTag)) as IndustryTag[];
+  const { valid } = parseIndustryTagsString(value);
+  return valid;
 }
 
 /**
  * 格式化行业标签数组为字符串
  */
 export function formatIndustryTags(tags: IndustryTag[]): string {
-  return tags.join(';');
+  return formatIndustryTagsToString(tags);
 }
 
 /**
- * 获取标签的显示名称
+ * 获取行业标签的显示名称
  */
 export function getIndustryTagLabel(tag: IndustryTag): string {
   const option = INDUSTRY_TAG_OPTIONS.find(opt => opt.value === tag);
@@ -328,6 +630,36 @@ export function getIndustryTagLabel(tag: IndustryTag): string {
 export function getRegionTagLabel(tag: RegionTag): string {
   const option = REGION_TAG_OPTIONS.find(opt => opt.value === tag);
   return option?.label || tag;
+}
+
+/**
+ * 获取所有可用的行业标签选项（用于下拉菜单等）
+ */
+export function getIndustryTagOptions(): Array<{ label: string; value: IndustryTag }> {
+  return INDUSTRY_TAG_OPTIONS.map(option => ({ ...option }));
+}
+
+/**
+ * 获取所有可用的地域标签选项（用于下拉菜单等）
+ */
+export function getRegionTagOptions(): Array<{ label: string; value: RegionTag }> {
+  return REGION_TAG_OPTIONS.map(option => ({ ...option }));
+}
+
+/**
+ * 映射外部标签到内部枚举
+ */
+export function mapExternalTagToInternal(externalTag: string): IndustryTag | null {
+  const normalized = externalTag.toLowerCase().trim();
+  return EXTERNAL_TAG_MAPPING[normalized] || null;
+}
+
+/**
+ * 映射外部地域标签到内部枚举
+ */
+export function mapExternalRegionToInternal(externalRegion: string): RegionTag | null {
+  const normalized = externalRegion.toLowerCase().trim();
+  return EXTERNAL_REGION_MAPPING[normalized] || null;
 }
 
 /**
