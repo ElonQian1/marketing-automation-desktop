@@ -1,36 +1,35 @@
-import React, { useEffect, useMemo, useRef, useState } from 'react';
-import { UiNode } from './types';
-import { parseBounds } from './utils';
-import { BoundsCalculator } from '../../../shared/bounds/BoundsCalculator';
-import styles from './GridElementView.module.css';
+import React, { useEffect, useMemo, useRef, useState } from "react";
+import { UiNode } from "./types";
+import { parseBounds } from "./utils";
+import styles from "./GridElementView.module.css";
 
-type ScaleMode = 'fit' | 'actual' | 'custom';
+type ScaleMode = "fit" | "actual" | "custom";
 
-export const ScreenPreview: React.FC<{ 
-  root: UiNode | null; 
-  selected: UiNode | null; 
+export const ScreenPreview: React.FC<{
+  root: UiNode | null;
+  selected: UiNode | null;
   onSelect?: (n: UiNode) => void;
   onElementClick?: (n: UiNode) => void;
-  matchedSet?: Set<UiNode>; 
-  highlightNode?: UiNode | null; 
-  highlightKey?: number; 
-  enableFlashHighlight?: boolean; 
-  previewAutoCenter?: boolean; 
+  matchedSet?: Set<UiNode>;
+  highlightNode?: UiNode | null;
+  highlightKey?: number;
+  enableFlashHighlight?: boolean;
+  previewAutoCenter?: boolean;
   // 🆕 可选截图 URL（通过 Tauri convertFileSrc 或 base64）
   screenshotUrl?: string;
-}> = ({ 
-  root, 
-  selected, 
-  onSelect, 
+}> = ({
+  root,
+  selected,
+  onSelect,
   onElementClick,
-  matchedSet, 
-  highlightNode, 
-  highlightKey, 
-  enableFlashHighlight = true, 
+  matchedSet,
+  highlightNode,
+  highlightKey,
+  enableFlashHighlight = true,
   previewAutoCenter = true,
-  screenshotUrl
+  screenshotUrl,
 }) => {
-  const [scaleMode, setScaleMode] = useState<ScaleMode>('fit');
+  const [scaleMode, setScaleMode] = useState<ScaleMode>("fit");
   const [zoom, setZoom] = useState<number>(100); // percent for custom
   const flashRef = useRef<number>(0);
   const rectRefs = useRef<Array<HTMLDivElement | null>>([]);
@@ -41,7 +40,7 @@ export const ScreenPreview: React.FC<{
   const screen = useMemo(() => {
     function findBounds(n?: UiNode | null): ReturnType<typeof parseBounds> {
       if (!n) return null as any;
-      const b = parseBounds(n.attrs['bounds']);
+      const b = parseBounds(n.attrs["bounds"]);
       if (b) return b;
       for (const c of n.children) {
         const r = findBounds(c);
@@ -49,7 +48,14 @@ export const ScreenPreview: React.FC<{
       }
       return null as any;
     }
-    const fb = findBounds(root) || { x1: 0, y1: 0, x2: 1080, y2: 2400, w: 1080, h: 2400 };
+    const fb = findBounds(root) || {
+      x1: 0,
+      y1: 0,
+      x2: 1080,
+      y2: 2400,
+      w: 1080,
+      h: 2400,
+    };
     return { width: fb.w, height: fb.h };
   }, [root]);
 
@@ -57,25 +63,27 @@ export const ScreenPreview: React.FC<{
     const result: { n: UiNode; b: ReturnType<typeof parseBounds> }[] = [];
     function walk(n?: UiNode | null) {
       if (!n) return;
-      const b = parseBounds(n.attrs['bounds']);
+      const b = parseBounds(n.attrs["bounds"]);
       if (b && b.w > 0 && b.h > 0) result.push({ n, b });
       for (const c of n.children) walk(c);
     }
     walk(root);
     return result;
   }, [root]);
-  
+
   // 监听滚动/滚轮，短时间内判定为用户主动滚动，避免“自动居中”打断用户操作
   useEffect(() => {
     const c = containerRef.current;
-    const mark = () => { lastUserScrollRef.current = Date.now(); };
-    c?.addEventListener('scroll', mark, { passive: true });
-    window.addEventListener('scroll', mark, { passive: true });
-    window.addEventListener('wheel', mark, { passive: true });
+    const mark = () => {
+      lastUserScrollRef.current = Date.now();
+    };
+    c?.addEventListener("scroll", mark, { passive: true });
+    window.addEventListener("scroll", mark, { passive: true });
+    window.addEventListener("wheel", mark, { passive: true });
     return () => {
-      c?.removeEventListener('scroll', mark);
-      window.removeEventListener('scroll', mark);
-      window.removeEventListener('wheel', mark);
+      c?.removeEventListener("scroll", mark);
+      window.removeEventListener("scroll", mark);
+      window.removeEventListener("wheel", mark);
     };
   }, []);
 
@@ -92,9 +100,13 @@ export const ScreenPreview: React.FC<{
   }
 
   function scrollIntoViewSafe(el: HTMLElement) {
-    if (typeof el.scrollIntoView === 'function') {
+    if (typeof el.scrollIntoView === "function") {
       try {
-        el.scrollIntoView({ behavior: 'smooth', block: 'center', inline: 'center' });
+        el.scrollIntoView({
+          behavior: "smooth",
+          block: "center",
+          inline: "center",
+        });
       } catch {
         el.scrollIntoView(true);
       }
@@ -103,14 +115,14 @@ export const ScreenPreview: React.FC<{
 
   const baseW = 300;
   let scale = screen.width > 0 ? baseW / screen.width : 1;
-  if (scaleMode === 'actual') scale = 1;
-  if (scaleMode === 'custom') scale = (zoom / 100);
+  if (scaleMode === "actual") scale = 1;
+  if (scaleMode === "custom") scale = zoom / 100;
   const viewW = Math.round(screen.width * scale);
   const viewH = Math.max(100, Math.round(screen.height * scale));
 
   // 触发闪烁：当 highlightKey 变化时，记录一次闪烁计数
   useEffect(() => {
-    if (typeof highlightKey === 'number') {
+    if (typeof highlightKey === "number") {
       flashRef.current = (flashRef.current || 0) + 1;
     }
   }, [highlightKey]);
@@ -146,10 +158,24 @@ export const ScreenPreview: React.FC<{
       <div className="flex items-center justify-between gap-2">
         <div className="text-base font-semibold">屏幕预览</div>
         <div className="flex items-center gap-2 text-xs text-neutral-500">
-          <span>{screen.width}×{screen.height}</span>
+          <span>
+            {screen.width}×{screen.height}
+          </span>
           <span>·</span>
-          <button className="underline" onClick={() => setScaleMode('fit')} title="适配宽度">适配</button>
-          <button className="underline" onClick={() => setScaleMode('actual')} title="实际像素">实际</button>
+          <button
+            className="underline"
+            onClick={() => setScaleMode("fit")}
+            title="适配宽度"
+          >
+            适配
+          </button>
+          <button
+            className="underline"
+            onClick={() => setScaleMode("actual")}
+            title="实际像素"
+          >
+            实际
+          </button>
           <span>
             <label className="mr-1">缩放</label>
             <input
@@ -157,14 +183,21 @@ export const ScreenPreview: React.FC<{
               min={25}
               max={300}
               step={5}
-              value={scaleMode === 'custom' ? zoom : Math.round(scale * 100)}
-              onChange={(e) => { setScaleMode('custom'); setZoom(parseInt(e.target.value, 10) || 100); }}
+              value={scaleMode === "custom" ? zoom : Math.round(scale * 100)}
+              onChange={(e) => {
+                setScaleMode("custom");
+                setZoom(parseInt(e.target.value, 10) || 100);
+              }}
             />
             <span className="ml-1">{Math.round(scale * 100)}%</span>
           </span>
         </div>
       </div>
-      <div ref={containerRef} className={`${styles.previewBox} relative`} style={{ width: viewW, height: viewH }}>
+      <div
+        ref={containerRef}
+        className={`${styles.previewBox} relative`}
+        style={{ width: viewW, height: viewH }}
+      >
         {/* 背景截图层（不拦截事件） */}
         {screenshotUrl && (
           <img
@@ -172,14 +205,14 @@ export const ScreenPreview: React.FC<{
             alt="device-screenshot"
             draggable={false}
             style={{
-              position: 'absolute',
+              position: "absolute",
               left: 0,
               top: 0,
               width: viewW,
               height: viewH,
-              objectFit: 'fill',
-              pointerEvents: 'none',
-              userSelect: 'none',
+              objectFit: "fill",
+              pointerEvents: "none",
+              userSelect: "none",
             }}
           />
         )}
@@ -190,15 +223,21 @@ export const ScreenPreview: React.FC<{
           return (
             <div
               key={i}
-              ref={(el) => { rectRefs.current[i] = el; }}
-              className={`${styles.elementRect} ${matched ? styles.elementRectMatched : ''} ${sel ? styles.elementRectActive : ''} ${isHL && enableFlashHighlight ? styles.elementRectFlash : ''}`}
+              ref={(el) => {
+                rectRefs.current[i] = el;
+              }}
+              className={`${styles.elementRect} ${
+                matched ? styles.elementRectMatched : ""
+              } ${sel ? styles.elementRectActive : ""} ${
+                isHL && enableFlashHighlight ? styles.elementRectFlash : ""
+              }`}
               style={{
                 left: Math.round(b.x1 * scale),
                 top: Math.round(b.y1 * scale),
                 width: Math.max(1, Math.round(b.w * scale)),
                 height: Math.max(1, Math.round(b.h * scale)),
               }}
-              title={n.attrs['class'] || n.tag}
+              title={n.attrs["class"] || n.tag}
               onClick={() => {
                 if (onElementClick) {
                   onElementClick(n);
@@ -210,9 +249,12 @@ export const ScreenPreview: React.FC<{
           );
         })}
       </div>
-      {selected?.attrs['bounds'] && (
+      {selected?.attrs["bounds"] && (
         <div className="text-xs text-neutral-600 dark:text-neutral-300">
-          选中元素 bounds: <code className="px-1 py-0.5 rounded bg-neutral-100 dark:bg-neutral-800 border border-neutral-200 dark:border-neutral-700">{selected.attrs['bounds']}</code>
+          选中元素 bounds:{" "}
+          <code className="px-1 py-0.5 rounded bg-neutral-100 dark:bg-neutral-800 border border-neutral-200 dark:border-neutral-700">
+            {selected.attrs["bounds"]}
+          </code>
         </div>
       )}
     </div>
