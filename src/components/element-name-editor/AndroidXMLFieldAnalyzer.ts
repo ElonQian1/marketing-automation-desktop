@@ -3,6 +3,8 @@
  * 基于Android XML UI元素实际提供的字段进行分析和配置
  */
 
+import { BoundsCalculator } from '../../shared/bounds/BoundsCalculator';
+
 // Android UI Dump XML 提供的常见字段分析
 export interface AndroidXMLFields {
   // 基础文本信息
@@ -264,17 +266,17 @@ export const ANDROID_XML_FIELD_CONFIG: FieldConfig[] = [
 
 /**
  * 解析bounds坐标字符串
+ * @deprecated 使用 BoundsCalculator.parseBounds() 统一接口替代
  */
 export const parseBounds = (boundsStr: string): { left: number; top: number; right: number; bottom: number } | null => {
-  const match = boundsStr.match(/\[(\d+),(\d+)\]\[(\d+),(\d+)\]/);
-  if (!match) return null;
-  
-  return {
-    left: parseInt(match[1]),
-    top: parseInt(match[2]),
-    right: parseInt(match[3]),
-    bottom: parseInt(match[4])
-  };
+  // 重定向到统一的BoundsCalculator实现
+  const bounds = BoundsCalculator.parseBounds(boundsStr);
+  return bounds ? {
+    left: bounds.left,
+    top: bounds.top,
+    right: bounds.right,
+    bottom: bounds.bottom
+  } : null;
 };
 
 /**

@@ -13,6 +13,7 @@ import type {
 import type {
   StrategyCandidate
 } from '../types/StrategyTypes';
+import { BoundsCalculator } from '../../../shared/bounds/BoundsCalculator';
 
 /**
  * 区域范围分析器 - Step 4
@@ -806,34 +807,12 @@ export class RegionScopedAnalyzer extends BaseAnalyzer {
 
   /**
    * 解析边界信息
+   * @deprecated 使用 BoundsCalculator.getBoundsInfo() 统一接口替代
    */
   private parseBounds(bounds: string | any): any {
-    // 如果已经是对象，直接返回
-    if (typeof bounds === 'object' && bounds !== null) {
-      return bounds;
-    }
-    
-    // 如果是字符串，解析
-    if (typeof bounds === 'string' && bounds) {
-      try {
-        const match = bounds.match(/\[(\d+),(\d+)\]\[(\d+),(\d+)\]/);
-        if (match) {
-          const [, left, top, right, bottom] = match.map(Number);
-          return {
-            left,
-            top,
-            right,
-            bottom,
-            width: right - left,
-            height: bottom - top
-          };
-        }
-      } catch (error) {
-        this.log('warn', '解析边界失败', { bounds, error });
-      }
-    }
-    
-    return null;
+    // 重定向到统一的BoundsCalculator实现，获取完整的边界信息
+    const boundsInfo = BoundsCalculator.getBoundsInfo(bounds);
+    return boundsInfo || null;
   }
 
   /**

@@ -6,6 +6,7 @@
 
 import { AutomationEngine } from '../modules/contact-import/automation';
 import invokeCompat from '../api/core/tauriInvoke';
+import { BoundsCalculator } from '../shared/bounds/BoundsCalculator';
 
 export class ContactImportDebugger {
   private deviceId: string;
@@ -230,20 +231,12 @@ export class ContactImportDebugger {
 
   /**
    * 解析bounds坐标
+   * @deprecated 使用统一的 BoundsCalculator.getBoundsInfo() 替代
    */
   private parseBounds(bounds: string): { centerX: number; centerY: number } | null {
-    const match = bounds.match(/\[(\d+),(\d+)\]\[(\d+),(\d+)\]/);
-    if (!match) return null;
-
-    const left = parseInt(match[1]);
-    const top = parseInt(match[2]);
-    const right = parseInt(match[3]);
-    const bottom = parseInt(match[4]);
-
-    return {
-      centerX: Math.floor((left + right) / 2),
-      centerY: Math.floor((top + bottom) / 2)
-    };
+    const info = BoundsCalculator.getBoundsInfo(bounds);
+    if (!info) return null;
+    return { centerX: info.centerX, centerY: info.centerY };
   }
 
   /**

@@ -6,6 +6,7 @@
 import { invoke } from '@tauri-apps/api/core';
 import { RealXMLAnalysisService } from './RealXMLAnalysisService';
 import { ElementFilter, ModuleFilterFactory, FilterStrategy } from './ElementFilter';
+import { BoundsCalculator } from '../shared/bounds/BoundsCalculator';
 
 export interface CachedXmlPage {
   /** 文件路径 */
@@ -550,13 +551,11 @@ export class XmlPageCacheService {
 
   /**
    * 解析bounds字符串
+   * @deprecated 使用 BoundsCalculator.parseBounds() 统一接口替代
    */
   private static parseBounds(boundsStr: string) {
-    const match = boundsStr.match(/\[(\d+),(\d+)\]\[(\d+),(\d+)\]/);
-    if (!match) return { left: 0, top: 0, right: 0, bottom: 0 };
-    
-    const [, left, top, right, bottom] = match.map(Number);
-    return { left, top, right, bottom };
+    const bounds = BoundsCalculator.parseBounds(boundsStr);
+    return bounds || { left: 0, top: 0, right: 0, bottom: 0 };
   }
 
   /**

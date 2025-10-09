@@ -3,6 +3,7 @@
  * 支持通配符、正则表达式、位置范围等多种匹配模式
  */
 
+import { BoundsCalculator } from '../shared/bounds/BoundsCalculator';
 import {
   CustomMatchingRule,
   MatchingResult,
@@ -297,27 +298,24 @@ export class CustomMatchingEngine {
   
   /**
    * 解析bounds字符串 "[left,top][right,bottom]"
+   * @deprecated 使用统一的 BoundsCalculator.getBoundsInfo() 替代
    */
   private parseBounds(boundsStr: string): ElementBounds {
     try {
-      const match = boundsStr.match(/\\[(-?\\d+),(-?\\d+)\\]\\[(-?\\d+),(-?\\d+)\\]/);
-      if (!match) {
+      const info = BoundsCalculator.getBoundsInfo(boundsStr);
+      if (!info) {
         throw new Error('Invalid bounds format');
       }
       
-      const [, left, top, right, bottom] = match.map(Number);
-      const width = right - left;
-      const height = bottom - top;
-      
       return {
-        left,
-        top,
-        right,
-        bottom,
-        width,
-        height,
-        centerX: left + width / 2,
-        centerY: top + height / 2
+        left: info.left,
+        top: info.top,
+        right: info.right,
+        bottom: info.bottom,
+        width: info.width,
+        height: info.height,
+        centerX: info.centerX,
+        centerY: info.centerY
       };
     } catch {
       return {

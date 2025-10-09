@@ -10,7 +10,7 @@ import { PerformanceMetricsEvaluator } from './PerformanceMetrics';
 import { StabilityAssessmentEvaluator } from './StabilityAssessment';
 // 尝试恢复模块导入
 import { StrategyScorer, createStrategyScorer } from './StrategyScorer';
-import { UniquenessValidator, createUniquenessValidator } from './UniquenessValidator';
+// 使用新的模块化 UniquenessValidator
 
 // === 类型导出 ===
 export type * from './types';
@@ -54,13 +54,36 @@ export {
 
 export {
   UniquenessValidator,
-  createUniquenessValidator,
-  validateUniqueness,
+  ValidationEngine,
+  SimilarityAnalyzer,
+  ConflictDetector,
   DEFAULT_UNIQUENESS_CONFIG,
   type UniquenessValidationResult,
   type SimilarityAnalysis,
-  type ConflictDetection
-} from './UniquenessValidator';
+  type ConflictDetection,
+  type UniquenessValidatorConfig
+} from './uniqueness';
+
+// 向后兼容的便捷创建函数  
+import { 
+  UniquenessValidator as NewUniquenessValidator,
+  UniquenessValidatorConfig,
+  ElementContext
+} from './uniqueness';
+import { StrategyRecommendation } from '../types/StrategyTypes';
+
+export function createUniquenessValidator(config?: Partial<UniquenessValidatorConfig>) {
+  return new NewUniquenessValidator(config);
+}
+
+export async function validateUniqueness(
+  recommendations: StrategyRecommendation[],
+  context: ElementContext,
+  config?: Partial<UniquenessValidatorConfig>
+) {
+  const validator = createUniquenessValidator(config);
+  return validator.validateUniqueness(recommendations, context);
+}
 
 // === 便捷创建函数 ===
 
@@ -73,7 +96,7 @@ export function createCompleteScoringSystem() {
   const performance = new PerformanceMetricsEvaluator();
   const stability = new StabilityAssessmentEvaluator();
   const scorer = createStrategyScorer(weightConfig);
-  const uniquenessValidator = createUniquenessValidator();
+  const uniquenessValidator = new NewUniquenessValidator();
 
   return {
     weightConfig,

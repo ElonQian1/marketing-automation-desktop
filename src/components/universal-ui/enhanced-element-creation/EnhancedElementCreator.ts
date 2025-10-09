@@ -5,6 +5,7 @@
 
 import { UIElement } from '../../../api/universalUIAPI';
 import { VisualUIElement } from '../xml-parser/types';
+import { BoundsCalculator } from '../../../shared/bounds/BoundsCalculator';
 import { 
   EnhancedUIElement,
   XmlContextInfo,
@@ -411,12 +412,12 @@ export class EnhancedElementCreator {
     return parts.length ? parts.join('') : '/';
   }
 
-  /** 将字符串 bounds 转为对象 */
+  /** 
+   * 将字符串 bounds 转为对象 
+   * @deprecated 使用 BoundsCalculator.parseBounds() 统一接口替代
+   */
   private static parseBounds(bounds?: string) {
-    if (!bounds) return null;
-    const m = bounds.match(/\[(\d+),(\d+)\]\[(\d+),(\d+)\]/);
-    if (!m) return null;
-    return { left: Number(m[1]), top: Number(m[2]), right: Number(m[3]), bottom: Number(m[4]) };
+    return BoundsCalculator.parseBounds(bounds) || null;
   }
 
   /** 将 'true'/'false' 转布尔，或沿用默认 */

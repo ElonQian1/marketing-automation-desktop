@@ -4,6 +4,7 @@
  */
 import type { UIElement } from "../../../../api/universal-ui/types";
 import type { UiNode } from "../../views/grid-view/types";
+import { BoundsCalculator } from "../../../../shared/bounds/BoundsCalculator";
 
 export class UIElementAdapter {
   /**
@@ -77,21 +78,11 @@ export class UIElementAdapter {
 
   /**
    * 解析 bounds 字符串为对象格式
+   * @deprecated 使用 BoundsCalculator.parseBounds() 统一接口替代
    */
   private static parseBounds(boundsStr: string) {
-    // 匹配 [left,top][right,bottom] 格式
-    const match = boundsStr.match(/\[(\d+),(\d+)\]\[(\d+),(\d+)\]/);
-    
-    if (!match) {
-      return { left: 0, top: 0, right: 0, bottom: 0 };
-    }
-    
-    return {
-      left: parseInt(match[1]),
-      top: parseInt(match[2]),
-      right: parseInt(match[3]),
-      bottom: parseInt(match[4])
-    };
+    const bounds = BoundsCalculator.parseBounds(boundsStr);
+    return bounds || { left: 0, top: 0, right: 0, bottom: 0 };
   }
 
   /**

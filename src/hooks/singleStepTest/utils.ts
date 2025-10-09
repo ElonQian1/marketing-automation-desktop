@@ -1,5 +1,6 @@
 import type { MatchCriteriaDTO } from '../../domain/page-analysis/repositories/IUiMatcherRepository';
 import type { SmartScriptStep, SingleStepTestResult } from '../../types/smartScript';
+import { BoundsCalculator } from '../../shared/bounds/BoundsCalculator';
 
 export const escapeRegex = (str: string): string => str.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
 
@@ -53,16 +54,9 @@ export const sanitizeCriteria = (c: MatchCriteriaDTO): MatchCriteriaDTO => {
 
 export const ensureBoundsNormalized = (paramsIn: Record<string, any>) => {
   const params = { ...(paramsIn || {}) } as Record<string, any>;
+  // 使用统一的 BoundsCalculator 替代本地重复实现
   const parseBoundsString = (s: string) => {
-    const bracket = /\[(\d+)\s*,\s*(\d+)\]\[(\d+)\s*,\s*(\d+)\]/;
-    const plain = /^(\d+)\s*,\s*(\d+)\s*,\s*(\d+)\s*,\s*(\d+)$/;
-    let m = s.match(bracket);
-    if (!m) m = s.match(plain);
-    if (m) {
-      const left = Number(m[1]); const top = Number(m[2]); const right = Number(m[3]); const bottom = Number(m[4]);
-      return { left, top, right, bottom };
-    }
-    return null;
+    return BoundsCalculator.parseBounds(s);
   };
   const fromAnyObject = (obj: any) => {
     if (!obj || typeof obj !== 'object') return null;
