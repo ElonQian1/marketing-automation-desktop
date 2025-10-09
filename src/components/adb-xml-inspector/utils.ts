@@ -5,20 +5,25 @@
 
 import { UiNode, ElementBounds } from './types';
 import { cleanXmlContent } from '../universal-ui/xml-parser/cleanXml';
+import { BoundsCalculator } from '../../shared/bounds/BoundsCalculator';
 
 /**
  * 解析 UiAutomator 的 bounds 字符串
  * @param bounds 格式如 "[0,0][1080,2400]"
  * @returns 解析后的坐标对象或null
+ * @deprecated 使用统一的 BoundsCalculator.getBoundsInfo() 替代
  */
 export function parseBounds(bounds?: string): ElementBounds | null {
-  if (!bounds) return null;
-  const m = bounds.match(/\[(\d+),(\d+)\]\[(\d+),(\d+)\]/);
-  if (!m) return null;
-  const [_, x1, y1, x2, y2] = m;
-  const ix1 = parseInt(x1, 10), iy1 = parseInt(y1, 10);
-  const ix2 = parseInt(x2, 10), iy2 = parseInt(y2, 10);
-  return { x1: ix1, y1: iy1, x2: ix2, y2: iy2, w: ix2 - ix1, h: iy2 - iy1 };
+  const info = BoundsCalculator.getBoundsInfo(bounds);
+  if (!info) return null;
+  return {
+    x1: info.rect.left,
+    y1: info.rect.top,
+    x2: info.rect.right,
+    y2: info.rect.bottom,
+    w: info.width,
+    h: info.height
+  };
 }
 
 /**
