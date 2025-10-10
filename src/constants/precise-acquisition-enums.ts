@@ -309,6 +309,7 @@ export enum AuditAction {
   IMPORT = 'IMPORT',
   BATCH_CREATE = 'BATCH_CREATE',
   COMMENT_FETCH = 'COMMENT_FETCH',
+  DELETE = 'DELETE',
 }
 
 export const AUDIT_ACTION_OPTIONS = [
@@ -319,6 +320,7 @@ export const AUDIT_ACTION_OPTIONS = [
   { label: '导入操作', value: AuditAction.IMPORT },
   { label: '批次创建', value: AuditAction.BATCH_CREATE },
   { label: '评论拉取', value: AuditAction.COMMENT_FETCH },
+  { label: '删除操作', value: AuditAction.DELETE },
 ];
 
 // ==================== 校验函数 ====================

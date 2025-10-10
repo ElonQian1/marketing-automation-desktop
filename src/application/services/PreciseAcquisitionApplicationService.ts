@@ -211,6 +211,27 @@ export class PreciseAcquisitionApplicationService {
     }
   }
 
+  /**
+   * 删除候选池目标
+   */
+  async removeWatchTarget(id: string): Promise<boolean> {
+    try {
+      // 记录审计日志
+      await this.logAuditEvent(AuditLog.createDeletion({
+        operator: 'user',
+        deletionData: { targetId: id, entityType: 'watch_target' },
+      }));
+
+      // 执行删除操作
+      await invoke('delete_watch_target', { id });
+      
+      return true;
+    } catch (error) {
+      console.error('Failed to remove watch target:', error);
+      throw error;
+    }
+  }
+
   // ==================== 评论管理 ====================
 
   /**
@@ -538,6 +559,12 @@ export class PreciseAcquisitionApplicationService {
     
     if (!complianceInfo.isCompliant) {
       return {
+        passed: false,
+        violations: complianceInfo.reason ? [complianceInfo.reason] : [],
+        warnings: [],
+        source_verified: false,
+        whitelist_approved: false,
+        compliant: false,
         is_allowed: false,
         source_type: watchTarget.source || SourceType.MANUAL,
         reason: complianceInfo.reason,
@@ -556,6 +583,12 @@ export class PreciseAcquisitionApplicationService {
 
       if (!watchTarget.isInWhitelist(whitelistEntries)) {
         return {
+          passed: false,
+          violations: ['该公开来源不在白名单中'],
+          warnings: [],
+          source_verified: true,
+          whitelist_approved: false,
+          compliant: false,
           is_allowed: false,
           source_type: SourceType.WHITELIST,
           reason: '该公开来源不在白名单中',
@@ -564,6 +597,12 @@ export class PreciseAcquisitionApplicationService {
     }
 
     return {
+      passed: true,
+      violations: [],
+      warnings: [],
+      source_verified: true,
+      whitelist_approved: watchTarget.platform === Platform.PUBLIC,
+      compliant: true,
       is_allowed: true,
       source_type: watchTarget.source || SourceType.MANUAL,
     };

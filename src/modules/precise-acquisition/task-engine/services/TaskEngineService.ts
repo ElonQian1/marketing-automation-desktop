@@ -17,11 +17,13 @@ import {
 import { TaskGenerator } from './TaskGenerator';
 import { TaskQueryService } from './TaskQueryService';
 import { TaskManager } from './TaskManager';
+import { TaskExecutorService, TaskExecutionResult } from './TaskExecutorService';
 
 export class TaskEngineService {
   private taskGenerator = new TaskGenerator();
   private taskQueryService = new TaskQueryService();
   private taskManager = new TaskManager();
+  private taskExecutor = new TaskExecutorService();
 
   // === 任务生成接口 ===
 
@@ -51,6 +53,21 @@ export class TaskEngineService {
     page_size: number;
   }> {
     return this.taskQueryService.getTasks(query);
+  }
+
+  /**
+   * 查询任务列表 (别名方法，向后兼容)
+   */
+  async queryTasks(query: TaskQuery): Promise<Task[]> {
+    const result = await this.taskQueryService.getTasks(query);
+    return result.tasks;
+  }
+
+  /**
+   * 执行单个任务
+   */
+  async executeTask(context: TaskExecutionContext): Promise<TaskExecutionResult> {
+    return this.taskExecutor.executeTask(context);
   }
 
   /**

@@ -347,4 +347,60 @@ export class Comment {
     const ageHours = (now.getTime() - this.publishTime.getTime()) / (1000 * 60 * 60);
     return ageHours > maxAgeHours;
   }
+
+  /**
+   * 生成文本指纹桶（用于去重）
+   * 将评论内容按语义分片，生成多个hash桶用于模糊去重
+   */
+  generateTextFingerprintBuckets(): string[] {
+    const crypto = require('crypto');
+    const content = this.content.trim().toLowerCase();
+    
+    if (content.length < 5) {
+      // 短内容直接生成单个hash
+      return [crypto.createHash('md5').update(content).digest('hex')];
+    }
+    
+    const buckets: string[] = [];
+    const windowSize = Math.max(10, Math.floor(content.length / 3)); // 动态窗口大小
+    
+    // 滑动窗口生成多个文本片段hash
+    for (let i = 0; i <= content.length - windowSize; i += Math.floor(windowSize / 2)) {
+      const fragment = content.substring(i, i + windowSize);
+      const hash = crypto.createHash('md5').update(fragment).digest('hex');
+      buckets.push(hash);
+    }
+    
+    // 去除重复hash
+    return [...new Set(buckets)];
+  }
+
+  /**
+   * 转换为数据库行格式
+   */
+  toDatabaseRow(): {
+    id?: string;
+    platform: string;
+    video_id: string;
+    author_id: string;
+    content: string;
+    like_count: number | null;
+    publish_time: string;
+    region: string | null;
+    source_target_id: string;
+    inserted_at?: string;
+  } {
+    return {
+      ...(this.id && { id: this.id }),
+      platform: this.platform,
+      video_id: this.videoId,
+      author_id: this.authorId,
+      content: this.content,
+      like_count: this.likeCount,
+      publish_time: this.publishTime.toISOString(),
+      region: this.region,
+      source_target_id: this.sourceTargetId,
+      ...(this.insertedAt && { inserted_at: this.insertedAt.toISOString() })
+    };
+  }
 }

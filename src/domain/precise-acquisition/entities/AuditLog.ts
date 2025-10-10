@@ -230,6 +230,23 @@ export class AuditLog {
   }
 
   /**
+   * 创建删除操作的审计日志
+   */
+  static createDeletion(params: {
+    operator: string;
+    deletionData: {
+      targetId: string;
+      entityType: string;
+    };
+  }): AuditLog {
+    return AuditLog.create({
+      action: AuditAction.DELETE,
+      operator: params.operator,
+      payloadHash: AuditLog.generatePayloadHash(params.deletionData),
+    });
+  }
+
+  /**
    * 检查是否为系统操作
    */
   isSystemOperation(): boolean {
@@ -272,6 +289,7 @@ export class AuditLog {
       AuditAction.TASK_FAIL,
       AuditAction.EXPORT,
       AuditAction.IMPORT,
+      AuditAction.DELETE,
     ];
     return criticalActions.includes(this.action);
   }
@@ -282,11 +300,14 @@ export class AuditLog {
   getOperationCategory(): 'task' | 'data' | 'system' {
     const taskActions = [AuditAction.TASK_CREATE, AuditAction.TASK_EXECUTE, AuditAction.TASK_FAIL];
     const dataActions = [AuditAction.EXPORT, AuditAction.IMPORT, AuditAction.BATCH_CREATE, AuditAction.COMMENT_FETCH];
+    const systemActions = [AuditAction.DELETE];
     
     if (taskActions.includes(this.action)) {
       return 'task';
     } else if (dataActions.includes(this.action)) {
       return 'data';
+    } else if (systemActions.includes(this.action)) {
+      return 'system';
     } else {
       return 'system';
     }
@@ -343,6 +364,7 @@ export class AuditLog {
       [AuditAction.IMPORT]: '导入数据',
       [AuditAction.BATCH_CREATE]: '创建批次',
       [AuditAction.COMMENT_FETCH]: '拉取评论',
+      [AuditAction.DELETE]: '删除操作',
     };
     
     return descriptions[this.action] || this.action;

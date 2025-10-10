@@ -464,6 +464,74 @@ export class Task {
     
     return weight;
   }
+
+  /**
+   * 创建带有新ID的任务副本
+   */
+  withId(newId: string): Task {
+    return new Task(
+      newId,
+      this.taskType,
+      this.commentId,
+      this.targetUserId,
+      this.assignAccountId,
+      this.status,
+      this.executorMode,
+      this.resultCode,
+      this.errorMessage,
+      this.dedupKey,
+      this.createdAt,
+      this.executedAt,
+      this.priority,
+      this.attempts,
+      this.deadlineAt,
+      this.lockOwner,
+      this.leaseUntil
+    );
+  }
+
+  /**
+   * 转换为数据库行格式
+   */
+  toDatabaseRow(): {
+    id?: string;
+    task_type: string;
+    comment_id?: string;
+    target_user_id?: string;
+    assign_account_id: string;
+    status: string;
+    executor_mode: string;
+    result_code?: string;
+    error_message?: string;
+    dedup_key: string;
+    created_at?: string;
+    executed_at?: string;
+    priority: number;
+    attempts: number;
+    deadline_at?: string;
+    lock_owner?: string;
+    lease_until?: string;
+  } {
+    return {
+      ...(this.id && { id: this.id }),
+      task_type: this.taskType,
+      comment_id: this.commentId || undefined,
+      target_user_id: this.targetUserId || undefined,
+      assign_account_id: this.assignAccountId,
+      status: this.status,
+      executor_mode: this.executorMode,
+      result_code: this.resultCode || undefined,
+      error_message: this.errorMessage || undefined,
+      dedup_key: this.dedupKey,
+      ...(this.createdAt && { created_at: this.createdAt.toISOString() }),
+      ...(this.executedAt && { executed_at: this.executedAt.toISOString() }),
+      priority: this.priority,
+      attempts: this.attempts,
+      ...(this.deadlineAt && { deadline_at: this.deadlineAt.toISOString() }),
+      lock_owner: this.lockOwner || undefined,
+      ...(this.leaseUntil && { lease_until: this.leaseUntil.toISOString() })
+    };
+  }
 }
 
 

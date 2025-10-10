@@ -1,27 +1,27 @@
 /**
  * 任务管理模块 - 重构版本
- * 
+ *
  * 整合了原本分散的任务管理功能：
  * - TaskManagementCenter (主入口)
  * - TaskExecutionCenter (执行中心)
  * - FollowTaskExecutor (关注执行器)
  * - SemiAutoExecutionDrawer (半自动执行)
  */
-import React, { useState } from 'react';
-import { Card, Typography, Tabs, Alert, Space, Button } from 'antd';
-import { 
-  ThunderboltOutlined, 
+import React, { useState } from "react";
+import { Card, Typography, Tabs, Alert, Space, Button } from "antd";
+import {
+  ThunderboltOutlined,
   PlayCircleOutlined,
   UserAddOutlined,
   MessageOutlined,
-  SettingOutlined
-} from '@ant-design/icons';
-import type { Device } from '../../../../domain/adb/entities/Device';
-import { shouldBypassDeviceCheck } from '../../../../config/developmentMode';
+  SettingOutlined,
+} from "@ant-design/icons";
+import type { Device } from "../../../../domain/adb/entities/Device";
+import { shouldBypassDeviceCheck } from "../../../../config/developmentMode";
 
 // 导入重构后的子组件
-import { TaskExecutionCenter } from './components/TaskExecutionCenter';
-import { FollowTaskExecutor } from '../follow-executor/FollowTaskExecutor';
+import { TaskExecutionCenter } from "./components/TaskExecutionCenter";
+import { FollowTaskExecutor } from "../follow-executor/FollowTaskExecutor";
 
 const { Title, Text } = Typography;
 
@@ -38,10 +38,10 @@ interface TaskManagementCenterProps {
 export const TaskManagementCenter: React.FC<TaskManagementCenterProps> = ({
   onlineDevices,
   selectedDevice,
-  refreshDevices
+  refreshDevices,
 }) => {
-  const [activeTab, setActiveTab] = useState('execution');
-  
+  const [activeTab, setActiveTab] = useState("execution");
+
   // 开发模式检测
   const bypass = shouldBypassDeviceCheck();
   const hasDevices = onlineDevices.length > 0;
@@ -49,7 +49,7 @@ export const TaskManagementCenter: React.FC<TaskManagementCenterProps> = ({
 
   const tabItems = [
     {
-      key: 'execution',
+      key: "execution",
       label: (
         <span>
           <PlayCircleOutlined />
@@ -64,7 +64,7 @@ export const TaskManagementCenter: React.FC<TaskManagementCenterProps> = ({
       ),
     },
     {
-      key: 'follow',
+      key: "follow",
       label: (
         <span>
           <UserAddOutlined />
@@ -74,12 +74,15 @@ export const TaskManagementCenter: React.FC<TaskManagementCenterProps> = ({
       children: (
         <FollowTaskExecutor
           onlineDevices={onlineDevices}
-          selectedDevice={selectedDevice}
+          followTargets={[]}
+          onFollowComplete={(targetId, success) => {
+            console.log("关注完成:", targetId, success);
+          }}
         />
       ),
     },
     {
-      key: 'reply',
+      key: "reply",
       label: (
         <span>
           <MessageOutlined />
@@ -93,7 +96,7 @@ export const TaskManagementCenter: React.FC<TaskManagementCenterProps> = ({
       ),
     },
     {
-      key: 'settings',
+      key: "settings",
       label: (
         <span>
           <SettingOutlined />
@@ -142,7 +145,10 @@ export const TaskManagementCenter: React.FC<TaskManagementCenterProps> = ({
       )}
 
       {/* 任务管理标签页 */}
-      <Card className="light-theme-force" style={{ background: 'var(--bg-light-base, #ffffff)' }}>
+      <Card
+        className="light-theme-force"
+        style={{ background: "var(--bg-light-base, #ffffff)" }}
+      >
         <Tabs
           activeKey={activeTab}
           onChange={setActiveTab}

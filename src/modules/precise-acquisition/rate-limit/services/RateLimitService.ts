@@ -89,6 +89,24 @@ export class RateLimitService {
     return this.dedupChecker.performComprehensiveCheck(task, effectiveConfig, comment, target);
   }
 
+  /**
+   * 通用去重检查 (向后兼容的别名方法)
+   */
+  async checkDuplicate(params: {
+    task: Task;
+    comment?: Comment;
+    target?: WatchTarget;
+    config?: Partial<RateLimitConfig>;
+  }): Promise<boolean> {
+    const result = await this.performComprehensiveCheck(
+      params.task, 
+      params.comment, 
+      params.target, 
+      params.config
+    );
+    return !result.allowed; // 返回 true 表示是重复的
+  }
+
   // === 频率限制接口 ===
 
   /**
