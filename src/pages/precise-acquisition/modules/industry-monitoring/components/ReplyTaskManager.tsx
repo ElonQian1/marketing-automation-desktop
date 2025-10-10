@@ -31,7 +31,7 @@ import {
   HeartOutlined
 } from '@ant-design/icons';
 import type { CommentData, ReplyTask } from '../../../services/monitoringService';
-import type { Device } from '../../../../domain/adb/entities/Device';
+import type { Device } from '../../../../../domain/adb/entities/Device';
 import { monitoringService } from '../../../services/monitoringService';
 import { checkDuplication, recordDuplicationAction } from '../../../../../services/duplicationGuard';
 

@@ -199,6 +199,7 @@ export interface TaskEntity {
   startedAt?: Date;
   completedAt?: Date;
   createdBy: EntityId;
+  metadata?: Record<string, unknown>;
 }
 
 /**

@@ -133,39 +133,45 @@ export class StrategySystemAdapter {
     xmlContent?: string
   ): Promise<StrategyPlan[]> {
     try {
-      // 🚧 暂时使用模拟分析结果，待 StrategyDecisionEngine 接口完善后替换
-      const analysisResult = this.generateMockAnalysisResult(element);
+      // � 使用真实的 StrategyDecisionEngine 替换模拟实现
+      const realAnalysisResult = await this.callIntelligentStrategySystem(element, xmlContent);
       
       // 生成多个 Plan 候选
       const plans: StrategyPlan[] = [];
       
-      // Plan A: 高精度方案（主推荐）
-      if (analysisResult.primary) {
+      // Plan A: 主推荐方案（来自智能引擎）
+      if (realAnalysisResult.length > 0) {
+        const primary = realAnalysisResult[0];
         plans.push({
           id: `plan-primary-${Date.now()}`,
-          name: '高精度匹配',
+          name: '智能推荐匹配',
           priority: 1,
-          confidence: analysisResult.primary.confidence,
-          strategy: analysisResult.primary.strategy,
-          criteria: analysisResult.primary.criteria,
-          fallbackChain: this.buildFallbackChain(analysisResult),
-          estimatedSuccessRate: analysisResult.primary.confidence * 0.9,
-          reasoning: `基于 ${analysisResult.context?.step || 'unknown'} 步骤分析的主要推荐`
+          confidence: primary.confidence || 0.8,
+          strategy: primary.strategy as MatchStrategy,
+          criteria: this.buildCriteriaFromRecommendation(primary, element),
+          fallbackChain: this.buildIntelligentFallbackChain(primary),
+          estimatedSuccessRate: (primary.confidence || 0.8) * 0.9,
+          reasoning: primary.reason || '基于智能策略分析的主要推荐',
+          allowBackendFallback: true,
+          timeBudget: {
+            total: 5000, // 5秒总预算
+            perCandidate: 1500 // 每候选1.5秒
+          }
         });
       }
       
       // Plan B: 兼容性方案（备选）
-      if (analysisResult.alternatives?.length > 0) {
-        analysisResult.alternatives.slice(0, 2).forEach((alt, index) => {
+      if (realAnalysisResult.length > 1) {
+        realAnalysisResult.slice(1, 3).forEach((alt, index) => {
           plans.push({
             id: `plan-alt-${index}-${Date.now()}`,
             name: `兼容性方案 ${index + 1}`,
             priority: index + 2,
-            confidence: alt.confidence,
-            strategy: alt.strategy,
-            criteria: alt.criteria,
-            fallbackChain: [alt.strategy, 'standard', 'relaxed'],
-            estimatedSuccessRate: alt.confidence * 0.8,
+            confidence: alt.confidence || 0.6,
+            strategy: alt.strategy as MatchStrategy,
+            criteria: this.buildCriteriaFromRecommendation(alt, element),
+            fallbackChain: this.buildIntelligentFallbackChain(alt),
+            estimatedSuccessRate: (alt.confidence || 0.6) * 0.8,
             reasoning: `备选策略：${alt.reason || '兼容性匹配'}`
           });
         });
@@ -251,6 +257,89 @@ export class StrategySystemAdapter {
     }
     
     return criteria;
+  }
+
+  /**
+   * 🛠️ 从智能推荐构建匹配条件
+   */
+  private buildCriteriaFromRecommendation(recommendation: SystemStrategyRecommendation, element: UiNode): any {
+    const criteria: any = {
+      fields: [],
+      values: []
+    };
+
+    // 根据策略类型选择字段
+    switch (recommendation.strategy) {
+      case 'strict':
+        if (element.attrs['resource-id']) {
+          criteria.fields.push('resource-id');
+          criteria.values.push(element.attrs['resource-id']);
+        }
+        if (element.attrs['text']) {
+          criteria.fields.push('text');
+          criteria.values.push(element.attrs['text']);
+        }
+        break;
+      case 'relaxed':
+        if (element.attrs['resource-id']) {
+          criteria.fields.push('resource-id');
+          criteria.values.push(element.attrs['resource-id']);
+        }
+        break;
+      case 'positionless':
+        if (element.attrs['content-desc']) {
+          criteria.fields.push('content-desc');
+          criteria.values.push(element.attrs['content-desc']);
+        }
+        if (element.attrs['text']) {
+          criteria.fields.push('text');
+          criteria.values.push(element.attrs['text']);
+        }
+        break;
+      default:
+        // 使用标准匹配逻辑
+        return this.buildStandardCriteria(element);
+    }
+
+    return criteria;
+  }
+
+  /**
+   * 🛠️ 构建智能回退链
+   */
+  private buildIntelligentFallbackChain(recommendation: SystemStrategyRecommendation): MatchStrategy[] {
+    const fallbackChain: MatchStrategy[] = [];
+    
+    // 添加推荐的主策略
+    if (recommendation.strategy && !fallbackChain.includes(recommendation.strategy as MatchStrategy)) {
+      fallbackChain.push(recommendation.strategy as MatchStrategy);
+    }
+    
+    // 根据推荐的策略类型添加相应的回退策略
+    switch (recommendation.strategy) {
+      case 'strict':
+        if (!fallbackChain.includes('standard')) fallbackChain.push('standard');
+        if (!fallbackChain.includes('relaxed')) fallbackChain.push('relaxed');
+        break;
+      case 'standard':
+        if (!fallbackChain.includes('relaxed')) fallbackChain.push('relaxed');
+        if (!fallbackChain.includes('positionless')) fallbackChain.push('positionless');
+        break;
+      case 'relaxed':
+        if (!fallbackChain.includes('positionless')) fallbackChain.push('positionless');
+        if (!fallbackChain.includes('standard')) fallbackChain.push('standard');
+        break;
+      case 'positionless':
+        if (!fallbackChain.includes('relaxed')) fallbackChain.push('relaxed');
+        if (!fallbackChain.includes('standard')) fallbackChain.push('standard');
+        break;
+      default:
+        if (!fallbackChain.includes('standard')) fallbackChain.push('standard');
+        if (!fallbackChain.includes('relaxed')) fallbackChain.push('relaxed');
+        if (!fallbackChain.includes('positionless')) fallbackChain.push('positionless');
+    }
+    
+    return fallbackChain;
   }
 
   /**

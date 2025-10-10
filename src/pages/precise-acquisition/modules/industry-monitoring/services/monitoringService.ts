@@ -5,9 +5,24 @@
 export interface MonitoringTask {
   id: string;
   name: string;
+  type: 'industry' | 'account' | 'video';
   status: 'running' | 'stopped' | 'error';
+  keywords?: string[];
+  targetAccount?: string;
+  targetVideo?: string;
   created_at: Date;
+  createdAt: Date; // 向后兼容
   updated_at: Date;
+  filters: {
+    commentTimeRange?: number;
+    region?: string[];
+    minLikes?: number;
+  };
+  assignedDevices: string[];
+  stats: {
+    followCount: number;
+    replyCount: number;
+  };
 }
 
 export class MonitoringService {
@@ -18,12 +33,28 @@ export class MonitoringService {
 
   async createTask(config: any): Promise<MonitoringTask> {
     // 临时实现
+    const now = new Date();
     return {
       id: Date.now().toString(),
       name: config.name || '未命名任务',
+      type: config.type || 'industry',
       status: 'stopped',
-      created_at: new Date(),
-      updated_at: new Date(),
+      keywords: config.keywords || [],
+      targetAccount: config.targetAccount,
+      targetVideo: config.targetVideo,
+      created_at: now,
+      createdAt: now, // 向后兼容
+      updated_at: now,
+      filters: {
+        commentTimeRange: config.filters?.commentTimeRange,
+        region: config.filters?.region || [],
+        minLikes: config.filters?.minLikes,
+      },
+      assignedDevices: config.assignedDevices || [],
+      stats: {
+        followCount: 0,
+        replyCount: 0,
+      },
     };
   }
 

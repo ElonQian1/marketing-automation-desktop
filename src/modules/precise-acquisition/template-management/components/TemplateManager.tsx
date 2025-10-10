@@ -223,13 +223,13 @@ export const TemplateManager: React.FC = () => {
       title: '适用渠道',
       dataIndex: 'channel',
       key: 'channel',
-      render: (channel: TemplateChannel) => {
+      render: (channel: Platform | 'all') => {
         const channelMap = {
-          [TemplateChannel.ALL]: { color: 'blue', text: '通用' },
-          [TemplateChannel.DOUYIN]: { color: 'red', text: '抖音' },
-          [TemplateChannel.OCEANENGINE]: { color: 'orange', text: '巨量引擎' }
+          'all': { color: 'blue', text: '通用' },
+          [Platform.DOUYIN]: { color: 'red', text: '抖音' },
+          [Platform.XIAOHONGSHU]: { color: 'pink', text: '小红书' },
         };
-        const config = channelMap[channel];
+        const config = channelMap[channel] || { color: 'default', text: channel };
         return <Tag color={config.color}>{config.text}</Tag>;
       }
     },
@@ -357,9 +357,9 @@ export const TemplateManager: React.FC = () => {
                 allowClear
                 style={{ width: '100%' }}
               >
-                <Option value={TemplateChannel.ALL}>通用</Option>
-                <Option value={TemplateChannel.DOUYIN}>抖音</Option>
-                <Option value={TemplateChannel.OCEANENGINE}>巨量引擎</Option>
+                <Option value="all">通用</Option>
+                <Option value={Platform.DOUYIN}>抖音</Option>
+                <Option value={Platform.XIAOHONGSHU}>小红书</Option>
               </Select>
             </Col>
             <Col xs={24} sm={12} md={6}>
@@ -430,9 +430,9 @@ export const TemplateManager: React.FC = () => {
                 rules={[{ required: true, message: '请选择适用渠道' }]}
               >
                 <Select placeholder="请选择适用渠道">
-                  <Option value={TemplateChannel.ALL}>通用</Option>
-                  <Option value={TemplateChannel.DOUYIN}>抖音专用</Option>
-                  <Option value={TemplateChannel.OCEANENGINE}>巨量引擎专用</Option>
+                  <Option value="all">通用</Option>
+                  <Option value={Platform.DOUYIN}>抖音专用</Option>
+                  <Option value={Platform.XIAOHONGSHU}>小红书专用</Option>
                 </Select>
               </Form.Item>
             </Col>

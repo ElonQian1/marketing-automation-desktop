@@ -7,9 +7,25 @@ import { Card, Statistic } from 'antd';
 export interface TaskItem {
   id: string;
   title: string;
+  name: string; // 兼容旧代码
   status: string;
   type: string;
   priority: string;
+  progress: number;
+  errorMessage?: string;
+  startTime?: string;
+  createdAt?: string;
+  updatedAt?: string;
+  completedAt?: string;
+  deviceId?: string;
+  deviceName?: string;
+  targetAccount?: string;
+  targetContent?: string;
+  content?: string;
+  executorMode?: string;
+  retryCount?: number;
+  maxRetries?: number;
+  metadata?: Record<string, unknown>;
 }
 
 interface TaskStatusCardProps {

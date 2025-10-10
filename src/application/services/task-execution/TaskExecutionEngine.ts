@@ -61,6 +61,7 @@ export interface Task {
   completed_at?: Date;
   error_message?: string;
   result_data?: any;
+  metadata?: Record<string, unknown>;
 }
 
 export interface Device {

@@ -247,6 +247,9 @@ export interface Task {
   updated_at: Date;
   executed_at?: Date;
   completed_at?: Date;      // 完成时间
+  
+  // 元数据支持（与 SemiAutoTask 保持一致）
+  metadata?: Record<string, unknown>;
 }
 
 /**

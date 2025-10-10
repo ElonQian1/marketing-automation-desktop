@@ -411,7 +411,10 @@ export const VALIDATION_RULES = {
     industry_tags: 5,
     keywords: 20,
     variables: 10
-  }
+  },
+  
+  // 批量导入限制
+  MAX_IMPORT_ROWS: 1000
 };
 
 /**

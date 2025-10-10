@@ -34,7 +34,7 @@ import {
   DeleteOutlined,
   InfoCircleOutlined
 } from '@ant-design/icons';
-import type { Device } from '../../../../domain/adb/entities/Device';
+import type { Device } from '../../../../../domain/adb/entities/Device';
 import { monitoringService } from '../../../services/monitoringService';
 import type { MonitoringTask } from '../../../services/monitoringService';
 

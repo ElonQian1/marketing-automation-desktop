@@ -41,7 +41,7 @@ import {
   MessageOutlined,
   LinkOutlined
 } from '@ant-design/icons';
-import type { Device } from '../../../../domain/adb/entities/Device';
+import type { Device } from '../../../../../domain/adb/entities/Device';
 import type { ColumnsType } from 'antd/es/table';
 
 const { Title, Text } = Typography;
