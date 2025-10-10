@@ -103,7 +103,7 @@ export const TaskEngineManager: React.FC<TaskEngineManagerProps> = ({
         max_tasks_per_target: values.max_tasks_per_target,
         task_types: values.task_types,
         priority: values.priority,
-        assignment_strategy: values.assignment_strategy,
+        assignment_strategy: values.assignment_strategy || 'round_robin',
         schedule_delay_hours: values.schedule_delay_hours,
         required_device_count: values.required_device_count
       };
@@ -123,6 +123,7 @@ export const TaskEngineManager: React.FC<TaskEngineManagerProps> = ({
           max_tasks_per_target: values.max_tasks_per_target,
           task_types: values.task_types,
           priority: values.priority,
+          assignment_strategy: values.assignment_strategy || 'round_robin',
         },
         parallel_processing: true,
         batch_size: values.batch_size || 100,

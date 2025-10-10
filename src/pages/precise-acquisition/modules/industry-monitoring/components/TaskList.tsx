@@ -28,7 +28,7 @@ import {
   EyeOutlined,
   BarChartOutlined
 } from '@ant-design/icons';
-import type { MonitoringTask } from '../services/monitoringService';
+import type { MonitoringTask } from '../../../shared/types/monitoringTypes';
 import type { Device } from '../../../../../domain/adb/entities/Device';
 
 const { Title, Text } = Typography;

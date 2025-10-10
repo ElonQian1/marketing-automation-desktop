@@ -1,24 +1,8 @@
 // 精准获客监控服务
-export interface MonitoringTask {
-  id: string;
-  type: 'industry' | 'account' | 'video';
-  status: 'active' | 'paused' | 'completed' | 'error';
-  createdAt: string;
-  updatedAt: string;
-  keywords?: string[];
-  targetAccount?: string;
-  targetVideo?: string;
-  // 筛选条件
-  filters: MonitoringFilters;
-  // 执行设备
-  assignedDevices: string[];
-  // 统计数据
-  stats: {
-    followCount: number;
-    replyCount: number;
-    lastExecuted?: string;
-  };
-}
+import { MonitoringTask, CreateMonitoringTaskConfig, UpdateMonitoringTaskConfig } from '../shared/types/monitoringTypes';
+
+// 重新导出类型供外部使用
+export type { MonitoringTask, CreateMonitoringTaskConfig, UpdateMonitoringTaskConfig } from '../shared/types/monitoringTypes';
 
 // 任务筛选条件类型
 export interface MonitoringFilters {
@@ -178,9 +162,10 @@ export class MonitoringService {
   }
 
   // 任务管理
-  async createTask(config: Partial<MonitoringTask>): Promise<MonitoringTask> {
+  async createTask(config: CreateMonitoringTaskConfig): Promise<MonitoringTask> {
     const task: MonitoringTask = {
       id: `task_${Date.now()}`,
+      name: config.name,
       type: config.type || 'industry',
       status: 'active',
       createdAt: new Date().toISOString(),

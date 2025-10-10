@@ -181,6 +181,7 @@ export const AccountMonitoringConfig: React.FC<AccountMonitoringConfigProps> = (
     setLoading(true);
     try {
       const taskConfig = {
+        name: `账号监控-${values.monitorTargets?.[0]?.value || '未知目标'}`,
         type: 'account' as const,
         targetAccount: values.monitorTargets?.[0]?.value, // 简化处理，实际可支持多账号
         filters: {

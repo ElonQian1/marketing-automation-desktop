@@ -1,4 +1,25 @@
 // File system related simple commands
+use serde::{Deserialize, Serialize};
+
+/// 文件过滤器定义（与前端匹配）
+#[derive(Debug, Serialize, Deserialize)]
+pub struct FileFilter {
+    pub name: String,
+    pub extensions: Vec<String>,
+}
+
+/// 保存文件对话框 - 通过前端处理的简化版本
+/// 前端将调用保存对话框选择路径，然后调用此函数保存内容
+#[tauri::command]
+pub async fn save_file_dialog(
+    file_path: String,
+    content: String,
+) -> Result<String, String> {
+    match std::fs::write(&file_path, content) {
+        Ok(_) => Ok(file_path),
+        Err(e) => Err(format!("保存文件失败: {}", e)),
+    }
+}
 
 #[tauri::command]
 pub async fn write_file(path: String, content: String) -> Result<(), String> {

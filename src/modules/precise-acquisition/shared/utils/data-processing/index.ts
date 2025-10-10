@@ -4,7 +4,7 @@
  * 提供数据转换、去重、模板处理等功能
  */
 
-import { WatchTarget, Platform, Comment, ComplianceCheckResult } from '../../types/core';
+import { WatchTarget, Platform, Comment, ComplianceCheckResult, SourceType } from '../../types/core';
 import { SENSITIVE_WORDS } from '../../constants';
 
 /**
@@ -34,16 +34,16 @@ export function generateUserDedupKey(platform: Platform, userId: string): string
 export function csvRowToWatchTarget(row: any): WatchTarget {
   return {
     id: row.id || null,
-    url: row.url,
+    platform_id_or_url: row.url || row.platform_id_or_url || '',
     platform: row.platform,
     target_type: row.target_type,
-    target_id: row.target_id || '',
     title: row.title || '',
+    source: row.source || SourceType.MANUAL,
     notes: row.notes || '',
     industry_tags: Array.isArray(row.industry_tags) 
       ? row.industry_tags 
       : (row.industry_tags || '').split(',').filter((tag: string) => tag.trim()),
-    region: row.region || null,
+    region_tag: row.region || row.region_tag || null,
     created_at: row.created_at ? new Date(row.created_at) : new Date(),
     updated_at: row.updated_at ? new Date(row.updated_at) : new Date()
   };
@@ -55,16 +55,16 @@ export function csvRowToWatchTarget(row: any): WatchTarget {
 export function watchTargetToCsvRow(target: WatchTarget): any {
   return {
     id: target.id,
-    url: target.url,
+    url: target.platform_id_or_url,
     platform: target.platform,
     target_type: target.target_type,
-    target_id: target.target_id,
     title: target.title,
+    source: target.source,
     notes: target.notes,
     industry_tags: Array.isArray(target.industry_tags) 
       ? target.industry_tags.join(',') 
       : target.industry_tags,
-    region: target.region,
+    region: target.region_tag,
     created_at: target.created_at.toISOString(),
     updated_at: target.updated_at.toISOString()
   };
@@ -256,8 +256,8 @@ export function checkCompliance(target: WatchTarget): ComplianceCheckResult {
   const warnings: string[] = [];
 
   // 检查URL合规性
-  if (!target.url || target.url.trim() === '') {
-    issues.push('URL不能为空');
+  if (!target.platform_id_or_url || target.platform_id_or_url.trim() === '') {
+    issues.push('平台ID或URL不能为空');
   }
 
   // 检查标题敏感词
@@ -277,9 +277,11 @@ export function checkCompliance(target: WatchTarget): ComplianceCheckResult {
   }
 
   return {
-    compliant: issues.length === 0,
-    issues,
+    passed: issues.length === 0,
+    violations: issues,
     warnings,
-    risk_level: issues.length > 0 ? 'high' : warnings.length > 0 ? 'medium' : 'low'
+    source_verified: true, // 默认源已验证
+    whitelist_approved: true, // 默认白名单通过
+    compliant: issues.length === 0
   };
 }

@@ -13,7 +13,7 @@ export function calculateSuccessRate(tasks: Task[]): number {
   if (tasks.length === 0) return 0;
   
   const successfulTasks = tasks.filter(task => 
-    task.status === 'done' || task.status === 'completed'
+    task.status === TaskStatus.DONE || task.status === TaskStatus.COMPLETED
   );
   
   return (successfulTasks.length / tasks.length) * 100;

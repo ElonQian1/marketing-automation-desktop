@@ -101,6 +101,7 @@ export const MonitoringConfigPanel: React.FC<MonitoringConfigPanelProps> = ({
     setLoading(true);
     try {
       const taskConfig = {
+        name: `行业监控-${keywords.slice(0, 3).join(',')}${keywords.length > 3 ? '等' : ''}`,
         type: 'industry' as const,
         keywords,
         filters: {

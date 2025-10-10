@@ -133,3 +133,47 @@ pub fn check_and_reserve_dedup(
     let conn = repo::get_connection(&app_handle).map_err(|e| e.to_string())?;
     repo::check_and_reserve_dedup(&conn, &key, &scope, ttl_days, by_account.as_deref()).map_err(|e| e.to_string())
 }
+
+// ==================== 扩展审计日志命令 ====================
+
+#[tauri::command]
+pub fn query_audit_logs(
+    app_handle: tauri::AppHandle,
+    start_time: Option<String>,
+    end_time: Option<String>,
+    action_filter: Option<String>,
+    limit: Option<i64>,
+    offset: Option<i64>,
+) -> Result<Vec<serde_json::Value>, String> {
+    let conn = repo::get_connection(&app_handle).map_err(|e| e.to_string())?;
+    repo::query_audit_logs(&conn, start_time.as_deref(), end_time.as_deref(), action_filter.as_deref(), limit.unwrap_or(100), offset.unwrap_or(0)).map_err(|e| e.to_string())
+}
+
+#[tauri::command]
+pub fn export_audit_logs(
+    app_handle: tauri::AppHandle,
+    start_time: Option<String>,
+    end_time: Option<String>,
+    format: Option<String>,
+) -> Result<String, String> {
+    let conn = repo::get_connection(&app_handle).map_err(|e| e.to_string())?;
+    repo::export_audit_logs(&conn, start_time.as_deref(), end_time.as_deref(), format.as_deref().unwrap_or("csv")).map_err(|e| e.to_string())
+}
+
+#[tauri::command]
+pub fn cleanup_expired_audit_logs(
+    app_handle: tauri::AppHandle,
+    retention_days: i64,
+) -> Result<i64, String> {
+    let conn = repo::get_connection(&app_handle).map_err(|e| e.to_string())?;
+    repo::cleanup_expired_audit_logs(&conn, retention_days).map_err(|e| e.to_string())
+}
+
+#[tauri::command]
+pub fn batch_store_audit_logs(
+    app_handle: tauri::AppHandle,
+    logs: Vec<AuditLogPayload>,
+) -> Result<i64, String> {
+    let conn = repo::get_connection(&app_handle).map_err(|e| e.to_string())?;
+    repo::batch_store_audit_logs(&conn, &logs).map_err(|e| e.to_string())
+}

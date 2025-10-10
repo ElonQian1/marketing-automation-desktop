@@ -17,15 +17,16 @@ pub struct WatchTargetPayload {
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct WatchTargetRow {
-    pub id: i64,
+    pub id: String,                      // 内部主键（UUID格式）
     pub dedup_key: String,
     pub target_type: String,
     pub platform: String,
     pub id_or_url: String,
     pub title: Option<String>,
-    pub source: Option<String>,
+    pub source: String,                  // source现在是必填字段
     pub industry_tags: Option<String>,
     pub region: Option<String>,
+    pub last_fetch_at: Option<String>,   // 新增：上次拉取评论时间
     pub notes: Option<String>,
     pub created_at: String,
     pub updated_at: String,

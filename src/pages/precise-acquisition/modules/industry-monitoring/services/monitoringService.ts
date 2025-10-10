@@ -2,28 +2,10 @@
  * 监控服务（临时实现）
  */
 
-export interface MonitoringTask {
-  id: string;
-  name: string;
-  type: 'industry' | 'account' | 'video';
-  status: 'running' | 'stopped' | 'error';
-  keywords?: string[];
-  targetAccount?: string;
-  targetVideo?: string;
-  created_at: Date;
-  createdAt: Date; // 向后兼容
-  updated_at: Date;
-  filters: {
-    commentTimeRange?: number;
-    region?: string[];
-    minLikes?: number;
-  };
-  assignedDevices: string[];
-  stats: {
-    followCount: number;
-    replyCount: number;
-  };
-}
+import { MonitoringTask, CreateMonitoringTaskConfig } from '../../../shared/types/monitoringTypes';
+
+// 重新导出类型供外部使用
+export type { MonitoringTask, CreateMonitoringTaskConfig } from '../../../shared/types/monitoringTypes';
 
 export class MonitoringService {
   async getTasks(): Promise<MonitoringTask[]> {
@@ -31,29 +13,36 @@ export class MonitoringService {
     return [];
   }
 
-  async createTask(config: any): Promise<MonitoringTask> {
+  async createTask(config: CreateMonitoringTaskConfig): Promise<MonitoringTask> {
     // 临时实现
-    const now = new Date();
+    const now = new Date().toISOString();
     return {
       id: Date.now().toString(),
       name: config.name || '未命名任务',
       type: config.type || 'industry',
-      status: 'stopped',
+      status: 'paused', // 使用统一的状态枚举
       keywords: config.keywords || [],
       targetAccount: config.targetAccount,
       targetVideo: config.targetVideo,
-      created_at: now,
-      createdAt: now, // 向后兼容
-      updated_at: now,
+      createdAt: now,
+      updatedAt: now,
       filters: {
         commentTimeRange: config.filters?.commentTimeRange,
         region: config.filters?.region || [],
         minLikes: config.filters?.minLikes,
+        maxLikes: config.filters?.maxLikes,
+        hasPhone: config.filters?.hasPhone,
+        hasWechat: config.filters?.hasWechat,
+        ageRange: config.filters?.ageRange,
+        gender: config.filters?.gender,
+        deviceType: config.filters?.deviceType,
+        activityTime: config.filters?.activityTime,
       },
       assignedDevices: config.assignedDevices || [],
       stats: {
         followCount: 0,
         replyCount: 0,
+        lastExecuted: undefined,
       },
     };
   }

@@ -26,6 +26,7 @@ export interface TaskItem {
   retryCount?: number;
   maxRetries?: number;
   metadata?: Record<string, unknown>;
+  estimatedTime?: string;
 }
 
 interface TaskStatusCardProps {

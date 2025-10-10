@@ -331,6 +331,7 @@ export interface ComplianceCheckResult {
   warnings: string[];
   source_verified: boolean;
   whitelist_approved: boolean;
+  compliant: boolean; // 整体合规状态
 }
 
 /**

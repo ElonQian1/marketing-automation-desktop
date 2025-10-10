@@ -37,6 +37,7 @@ export interface BatchTaskGenerationConfig {
   config: Omit<TaskGenerationConfig, 'target'>;
   parallel_processing: boolean;
   batch_size: number;
+  distribution_strategy: 'even' | 'weighted' | 'priority_based';
 }
 
 /**

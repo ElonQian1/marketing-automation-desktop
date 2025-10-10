@@ -13,18 +13,19 @@ use super::models::{
 // ==================== SQL 表创建脚本 ====================
 
 const CREATE_TABLES_SQL: &str = r#"
--- 候选池表（已存在，保持兼容）
+-- 候选池表（符合文档设计 - Round 2｜候选池字段清单（v1））
 CREATE TABLE IF NOT EXISTS watch_targets (
-  id INTEGER PRIMARY KEY AUTOINCREMENT,
-  dedup_key TEXT NOT NULL UNIQUE,
-  target_type TEXT NOT NULL,
-  platform TEXT NOT NULL,
-  id_or_url TEXT NOT NULL,
-  title TEXT,
-  source TEXT,
-  industry_tags TEXT,
-  region TEXT,
-  notes TEXT,
+  id TEXT PRIMARY KEY,              -- 内部主键（UUID格式，如 wt_01H...）
+  dedup_key TEXT NOT NULL UNIQUE,   -- 去重键（platform + id_or_url）
+  target_type TEXT NOT NULL,        -- video | account
+  platform TEXT NOT NULL,           -- douyin | oceanengine | public
+  id_or_url TEXT NOT NULL,          -- 平台唯一标识或URL
+  title TEXT,                       -- 视频标题或账号昵称
+  source TEXT NOT NULL,             -- manual | csv | whitelist | ads
+  industry_tags TEXT,               -- 行业标签（分号分隔）
+  region TEXT,                      -- 地域标签
+  last_fetch_at TEXT,               -- 上次拉取评论时间
+  notes TEXT,                       -- 备注
   created_at TEXT NOT NULL DEFAULT (datetime('now')),
   updated_at TEXT NOT NULL DEFAULT (datetime('now'))
 );
@@ -44,20 +45,25 @@ CREATE TABLE IF NOT EXISTS comments (
   FOREIGN KEY (source_target_id) REFERENCES watch_targets(id)
 );
 
--- 任务表
+-- 任务表（符合文档设计）
 CREATE TABLE IF NOT EXISTS tasks (
-  id TEXT PRIMARY KEY,
-  task_type TEXT NOT NULL,
-  comment_id TEXT,
-  target_user_id TEXT,
-  assign_account_id TEXT NOT NULL,
-  status TEXT NOT NULL DEFAULT 'NEW',
-  executor_mode TEXT NOT NULL,
-  result_code TEXT,
-  error_message TEXT,
-  dedup_key TEXT NOT NULL UNIQUE,
+  id TEXT PRIMARY KEY,                              -- 内部主键（如 tsk_01H...）
+  task_type TEXT NOT NULL,                          -- reply | follow
+  comment_id TEXT,                                  -- 关联评论（任务类型=reply时）
+  target_user_id TEXT,                              -- 目标用户（任务类型=follow时）
+  assign_account_id TEXT NOT NULL,                  -- 执行账号ID
+  status TEXT NOT NULL DEFAULT 'NEW',               -- NEW | READY | EXECUTING | DONE | FAILED
+  executor_mode TEXT NOT NULL,                      -- api | manual
+  result_code TEXT,                                 -- OK | RATE_LIMITED | DUPLICATED 等
+  error_message TEXT,                               -- 失败原因
+  dedup_key TEXT NOT NULL UNIQUE,                   -- 查重键
+  priority INTEGER NOT NULL DEFAULT 2,              -- 优先级（1=高，2=中，3=低）
+  attempts INTEGER NOT NULL DEFAULT 0,              -- 重试次数
+  deadline_at TEXT,                                 -- 截止时间
+  lock_owner TEXT,                                  -- 锁定者（多机协作）
+  lease_until TEXT,                                 -- 租约到期时间
   created_at TEXT NOT NULL DEFAULT (datetime('now')),
-  executed_at TEXT,
+  executed_at TEXT,                                 -- 实际执行时间
   FOREIGN KEY (comment_id) REFERENCES comments(id)
 );
 
@@ -189,10 +195,11 @@ fn map_task_row(row: &Row) -> rusqlite::Result<TaskRow> {
 
 // ==================== 候选池操作函数 ====================
 
-pub fn upsert_watch_target(conn: &Connection, payload: &WatchTargetPayload) -> rusqlite::Result<()> {
+pub fn upsert_watch_target(conn: &Connection, payload: &WatchTargetPayload) -> rusqlite::Result<String> {
+    let id = format!("wt_{}", Uuid::new_v4().to_string().replace("-", "")[..16].to_lowercase());
     let sql = r#"
-INSERT INTO watch_targets (dedup_key, target_type, platform, id_or_url, title, source, industry_tags, region, notes, created_at, updated_at)
-VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7, ?8, ?9, datetime('now'), datetime('now'))
+INSERT INTO watch_targets (id, dedup_key, target_type, platform, id_or_url, title, source, industry_tags, region, notes, created_at, updated_at)
+VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7, ?8, ?9, ?10, datetime('now'), datetime('now'))
 ON CONFLICT(dedup_key) DO UPDATE SET
   target_type=excluded.target_type,
   platform=excluded.platform,
@@ -207,6 +214,7 @@ ON CONFLICT(dedup_key) DO UPDATE SET
     conn.execute(
         sql,
         params![
+            id,
             payload.dedup_key,
             payload.target_type,
             payload.platform,
@@ -218,14 +226,14 @@ ON CONFLICT(dedup_key) DO UPDATE SET
             payload.notes,
         ],
     )?;
-    Ok(())
+    Ok(id)
 }
 
 pub fn bulk_upsert_watch_targets(conn: &mut Connection, payloads: &[WatchTargetPayload]) -> rusqlite::Result<usize> {
     let tx = conn.transaction()?;
     let mut stmt = tx.prepare(
-        r#"INSERT INTO watch_targets (dedup_key, target_type, platform, id_or_url, title, source, industry_tags, region, notes, created_at, updated_at)
-VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7, ?8, ?9, datetime('now'), datetime('now'))
+        r#"INSERT INTO watch_targets (id, dedup_key, target_type, platform, id_or_url, title, source, industry_tags, region, notes, created_at, updated_at)
+VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7, ?8, ?9, ?10, datetime('now'), datetime('now'))
 ON CONFLICT(dedup_key) DO UPDATE SET
   target_type=excluded.target_type,
   platform=excluded.platform,
@@ -238,7 +246,9 @@ ON CONFLICT(dedup_key) DO UPDATE SET
   updated_at=datetime('now');"#,
     )?;
     for p in payloads {
+        let id = format!("wt_{}", Uuid::new_v4().to_string().replace("-", "")[..16].to_lowercase());
         stmt.execute(params![
+            id,
             p.dedup_key,
             p.target_type,
             p.platform,
@@ -256,7 +266,7 @@ ON CONFLICT(dedup_key) DO UPDATE SET
 }
 
 pub fn get_watch_target_by_dedup_key(conn: &Connection, dedup_key: &str) -> rusqlite::Result<Option<WatchTargetRow>> {
-    let sql = r#"SELECT id, dedup_key, target_type, platform, id_or_url, title, source, industry_tags, region, notes, created_at, updated_at
+    let sql = r#"SELECT id, dedup_key, target_type, platform, id_or_url, title, source, industry_tags, region, last_fetch_at, notes, created_at, updated_at
 FROM watch_targets WHERE dedup_key = ?1 LIMIT 1"#;
     conn.query_row(sql, params![dedup_key], |row| {
         Ok(WatchTargetRow {
@@ -269,15 +279,16 @@ FROM watch_targets WHERE dedup_key = ?1 LIMIT 1"#;
             source: row.get(6)?,
             industry_tags: row.get(7)?,
             region: row.get(8)?,
-            notes: row.get(9)?,
-            created_at: row.get(10)?,
-            updated_at: row.get(11)?,
+            last_fetch_at: row.get(9)?,
+            notes: row.get(10)?,
+            created_at: row.get(11)?,
+            updated_at: row.get(12)?,
         })
     }).optional()
 }
 
 pub fn list_watch_targets(conn: &Connection, query: &ListWatchTargetsQuery) -> rusqlite::Result<Vec<WatchTargetRow>> {
-    let mut sql = String::from("SELECT id, dedup_key, target_type, platform, id_or_url, title, source, industry_tags, region, notes, created_at, updated_at FROM watch_targets WHERE 1=1");
+    let mut sql = String::from("SELECT id, dedup_key, target_type, platform, id_or_url, title, source, industry_tags, region, last_fetch_at, notes, created_at, updated_at FROM watch_targets WHERE 1=1");
     let mut params: Vec<Box<dyn rusqlite::ToSql>> = vec![];
     if let Some(platform) = &query.platform { sql.push_str(" AND platform = ?"); params.push(Box::new(platform.clone())); }
     if let Some(target_type) = &query.target_type { sql.push_str(" AND target_type = ?"); params.push(Box::new(target_type.clone())); }
@@ -297,9 +308,10 @@ pub fn list_watch_targets(conn: &Connection, query: &ListWatchTargetsQuery) -> r
             source: row.get(6)?,
             industry_tags: row.get(7)?,
             region: row.get(8)?,
-            notes: row.get(9)?,
-            created_at: row.get(10)?,
-            updated_at: row.get(11)?,
+            last_fetch_at: row.get(9)?,
+            notes: row.get(10)?,
+            created_at: row.get(11)?,
+            updated_at: row.get(12)?,
         })
     })?;
     let mut out = Vec::new();
@@ -592,4 +604,137 @@ VALUES (?1, ?2, ?3, ?4, ?5, ?6, datetime('now'))
         log.payload_hash,
     ])?;
     Ok(id)
+}
+
+/// 查询审计日志
+pub fn query_audit_logs(
+    conn: &Connection,
+    start_time: Option<&str>,
+    end_time: Option<&str>,
+    action_filter: Option<&str>,
+    limit: i64,
+    offset: i64,
+) -> rusqlite::Result<Vec<serde_json::Value>> {
+    let mut sql = "SELECT id, action, task_id, account_id, operator, payload_hash, ts FROM audit_logs WHERE 1=1".to_string();
+    let mut params: Vec<rusqlite::types::Value> = Vec::new();
+
+    if let Some(start) = start_time {
+        sql.push_str(" AND ts >= ?");
+        params.push(start.into());
+    }
+
+    if let Some(end) = end_time {
+        sql.push_str(" AND ts <= ?");
+        params.push(end.into());
+    }
+
+    if let Some(action) = action_filter {
+        sql.push_str(" AND action LIKE ?");
+        params.push(format!("%{}%", action).into());
+    }
+
+    sql.push_str(" ORDER BY ts DESC LIMIT ? OFFSET ?");
+    params.push(limit.into());
+    params.push(offset.into());
+
+    let mut stmt = conn.prepare(&sql)?;
+    let rows = stmt.query_map(rusqlite::params_from_iter(params), |row| {
+        Ok(serde_json::json!({
+            "id": row.get::<_, String>(0)?,
+            "action": row.get::<_, String>(1)?,
+            "task_id": row.get::<_, Option<String>>(2)?,
+            "account_id": row.get::<_, Option<String>>(3)?,
+            "operator": row.get::<_, String>(4)?,
+            "payload_hash": row.get::<_, String>(5)?,
+            "ts": row.get::<_, String>(6)?
+        }))
+    })?;
+
+    let mut results = Vec::new();
+    for row in rows {
+        results.push(row?);
+    }
+
+    Ok(results)
+}
+
+/// 导出审计日志
+pub fn export_audit_logs(
+    conn: &Connection,
+    start_time: Option<&str>,
+    end_time: Option<&str>,
+    format: &str,
+) -> rusqlite::Result<String> {
+    let logs = query_audit_logs(conn, start_time, end_time, None, i64::MAX, 0)?;
+
+    match format.to_lowercase().as_str() {
+        "csv" => {
+            let mut output = String::new();
+            output.push_str("ID,Action,Task ID,Account ID,Operator,Payload Hash,Timestamp\n");
+            
+            for log in logs {
+                output.push_str(&format!(
+                    "{},{},{},{},{},{},{}\n",
+                    log["id"].as_str().unwrap_or(""),
+                    log["action"].as_str().unwrap_or(""),
+                    log["task_id"].as_str().unwrap_or(""),
+                    log["account_id"].as_str().unwrap_or(""),
+                    log["operator"].as_str().unwrap_or(""),
+                    log["payload_hash"].as_str().unwrap_or(""),
+                    log["ts"].as_str().unwrap_or("")
+                ));
+            }
+            Ok(output)
+        }
+        "json" => {
+            serde_json::to_string_pretty(&logs).map_err(|_e| {
+                rusqlite::Error::ToSqlConversionFailure(Box::new(std::io::Error::new(
+                    std::io::ErrorKind::Other,
+                    "Failed to serialize JSON"
+                )))
+            })
+        }
+        _ => Err(rusqlite::Error::InvalidColumnName(format!("Unsupported export format: {}", format)))
+    }
+}
+
+/// 清理过期审计日志
+pub fn cleanup_expired_audit_logs(
+    conn: &Connection,
+    retention_days: i64,
+) -> rusqlite::Result<i64> {
+    let affected_rows = conn.execute(
+        "DELETE FROM audit_logs WHERE datetime(ts) < datetime('now', printf('-%d days', ?))",
+        [retention_days]
+    )?;
+
+    Ok(affected_rows as i64)
+}
+
+/// 批量存储审计日志
+pub fn batch_store_audit_logs(
+    conn: &Connection,
+    logs: &[AuditLogPayload],
+) -> rusqlite::Result<i64> {
+    let mut inserted_count = 0;
+    let tx = conn.unchecked_transaction()?;
+    
+    for log in logs {
+        let id = format!("aud_{}", Uuid::new_v4().to_string().replace("-", "")[..16].to_lowercase());
+        tx.execute(
+            "INSERT INTO audit_logs (id, action, task_id, account_id, operator, payload_hash, ts) VALUES (?1, ?2, ?3, ?4, ?5, ?6, datetime('now'))",
+            params![
+                id,
+                log.action,
+                log.task_id,
+                log.account_id,
+                log.operator,
+                log.payload_hash,
+            ]
+        )?;
+        inserted_count += 1;
+    }
+
+    tx.commit()?;
+    Ok(inserted_count)
 }

@@ -26,7 +26,8 @@ import {
 export const PLATFORM_LABELS: Record<Platform, string> = {
   [Platform.DOUYIN]: '抖音',
   [Platform.OCEANENGINE]: '巨量引擎',
-  [Platform.PUBLIC]: '公开平台'
+  [Platform.PUBLIC]: '公开平台',
+  [Platform.XIAOHONGSHU]: '小红书'
 };
 
 /**
@@ -162,6 +163,71 @@ export const REGION_TAG_CONFIG: Record<RegionTag, {
   [RegionTag.NORTHEAST_CHINA]: {
     label: '东北地区',
     provinces: ['辽宁', '吉林', '黑龙江']
+  },
+  // 主要省份配置
+  [RegionTag.BEIJING]: {
+    label: '北京市',
+    provinces: ['北京']
+  },
+  [RegionTag.SHANGHAI]: {
+    label: '上海市',
+    provinces: ['上海']
+  },
+  [RegionTag.GUANGDONG]: {
+    label: '广东省',
+    provinces: ['广东']
+  },
+  [RegionTag.ZHEJIANG]: {
+    label: '浙江省',
+    provinces: ['浙江']
+  },
+  [RegionTag.JIANGSU]: {
+    label: '江苏省',
+    provinces: ['江苏']
+  },
+  [RegionTag.SHANDONG]: {
+    label: '山东省',
+    provinces: ['山东']
+  },
+  [RegionTag.SICHUAN]: {
+    label: '四川省',
+    provinces: ['四川']
+  },
+  [RegionTag.HUBEI]: {
+    label: '湖北省',
+    provinces: ['湖北']
+  },
+  [RegionTag.HUNAN]: {
+    label: '湖南省',
+    provinces: ['湖南']
+  },
+  [RegionTag.FUJIAN]: {
+    label: '福建省',
+    provinces: ['福建']
+  },
+  [RegionTag.HEBEI]: {
+    label: '河北省',
+    provinces: ['河北']
+  },
+  [RegionTag.HENAN]: {
+    label: '河南省',
+    provinces: ['河南']
+  },
+  [RegionTag.ANHUI]: {
+    label: '安徽省',
+    provinces: ['安徽']
+  },
+  [RegionTag.LIAONING]: {
+    label: '辽宁省',
+    provinces: ['辽宁']
+  },
+  [RegionTag.JILIN]: {
+    label: '吉林省',
+    provinces: ['吉林']
+  },
+  [RegionTag.HEILONGJIANG]: {
+    label: '黑龙江省',
+    provinces: ['黑龙江']
   }
 };
 
@@ -185,20 +251,45 @@ export const TASK_STATUS_CONFIG: Record<TaskStatus, {
     color: '#1890ff',
     description: '任务已就绪，可以执行'
   },
+  [TaskStatus.PENDING]: {
+    label: '待执行',
+    color: '#faad14',
+    description: '任务待执行'
+  },
   [TaskStatus.EXECUTING]: {
     label: '执行中',
-    color: '#faad14',
+    color: '#fa8c16',
     description: '任务正在执行'
+  },
+  [TaskStatus.IN_PROGRESS]: {
+    label: '进行中',
+    color: '#722ed1',
+    description: '任务正在进行中'
   },
   [TaskStatus.DONE]: {
     label: '完成',
     color: '#52c41a',
     description: '任务执行成功'
   },
+  [TaskStatus.COMPLETED]: {
+    label: '已完成',
+    color: '#389e0d',
+    description: '任务已成功完成'
+  },
   [TaskStatus.FAILED]: {
     label: '失败',
     color: '#ff4d4f',
     description: '任务执行失败'
+  },
+  [TaskStatus.CANCELLED]: {
+    label: '已取消',
+    color: '#8c8c8c',
+    description: '任务已被取消'
+  },
+  [TaskStatus.RETRY]: {
+    label: '重试',
+    color: '#eb2f96',
+    description: '任务正在重试'
   }
 };
 

@@ -73,6 +73,10 @@ use services::marketing_storage::{
     list_tasks,
     // 审计日志相关
     insert_audit_log,
+    query_audit_logs,
+    export_audit_logs,
+    cleanup_expired_audit_logs,
+    batch_store_audit_logs,
     check_and_reserve_dedup,
 };
 // 直接使用的其他命令函数
@@ -223,6 +227,7 @@ fn main() {
             reveal_in_file_manager,
             delete_file,
             read_file_as_data_url,
+            save_file_dialog,
             // 联系人度量
             get_device_contact_count,
             // UI状态读取功能
@@ -332,6 +337,10 @@ fn main() {
             list_tasks,
             // 审计日志
             insert_audit_log,
+            query_audit_logs,
+            export_audit_logs,
+            cleanup_expired_audit_logs,
+            batch_store_audit_logs,
             // 去重索引（带TTL）
             check_and_reserve_dedup
         ])

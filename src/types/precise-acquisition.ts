@@ -342,8 +342,15 @@ export interface DeduplicationConfig {
  * 合规检查结果
  */
 export interface ComplianceCheckResult {
+  passed: boolean;
+  violations: string[];
+  warnings: string[];
+  source_verified: boolean;
+  whitelist_approved: boolean;
+  compliant: boolean; // 整体合规状态
+  // 向后兼容字段
   is_allowed: boolean;
-  source_type: SourceType;
+  source_type?: SourceType;
   whitelist_entry?: string; // 白名单条目（如果适用）
   reason?: string; // 不允许的原因
 }
