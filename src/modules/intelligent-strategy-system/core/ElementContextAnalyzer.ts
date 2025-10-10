@@ -17,6 +17,8 @@ import type {
   AppInfo
 } from '../types/AnalysisTypes';
 import { BoundsCalculator } from '../../../shared';
+import { getTextInfo } from '../i18n/ElementTextDictionary';
+import { StableContainerRecognizer } from '../analyzers/container/StableContainerRecognizer';
 
 /**
  * 元素上下文分析器
@@ -28,6 +30,11 @@ import { BoundsCalculator } from '../../../shared';
  */
 export class ElementContextAnalyzer {
   private cache: Map<string, ElementAnalysisContext> = new Map();
+  private containerRecognizer: StableContainerRecognizer;
+
+  constructor() {
+    this.containerRecognizer = new StableContainerRecognizer();
+  }
 
   /**
    * 分析元素并构建分析上下文
@@ -59,15 +66,27 @@ export class ElementContextAnalyzer {
       // 2. 定位目标元素节点
       const targetElement = this.locateTargetElement(element, document);
       
-      // 3. 分析层级关系
-      const hierarchy = this.analyzeHierarchy(targetElement, document);
+      // 3. Step 0增强：多语言文本规范化
+      const normalizedTarget = this.normalizeElementText(targetElement);
       
-      // 4. 构建分析上下文
+      // 4. Step 0增强：稳定容器识别
+      const stableContainers = this.containerRecognizer.identifyStableContainers(normalizedTarget, document.root);
+      
+      // 5. 分析层级关系
+      const hierarchy = this.analyzeHierarchy(normalizedTarget, document);
+      
+      // 6. 构建增强的分析上下文
       const context: ElementAnalysisContext = {
-        targetElement,
+        targetElement: normalizedTarget,
         hierarchy,
         document,
         options,
+        // Step 0增强结果
+        enhancedContext: {
+          stableContainers,
+          normalizedTexts: this.extractNormalizedTexts(normalizedTarget),
+          containerContext: stableContainers.length > 0 ? stableContainers[0] : undefined
+        },
         cache: options.enableCaching ? {
           createdAt: Date.now(),
           ttl: 60000 // 1分钟缓存
@@ -457,6 +476,77 @@ export class ElementContextAnalyzer {
       hash = hash & hash;
     }
     return hash.toString(16);
+  }
+
+  // === Step 0 增强方法 ===
+
+  /**
+   * 规范化元素文本（Step 0增强）
+   */
+  private normalizeElementText(element: ElementNode): ElementNode {
+    const originalText = element.text || '';
+    
+    if (!originalText.trim()) {
+      return element;
+    }
+
+    // 使用i18n词典进行文本规范化
+    const textInfo = getTextInfo(originalText);
+    
+    // 创建增强的元素副本
+    const normalizedElement: ElementNode = {
+      ...element,
+      text: textInfo.normalized,
+      // 添加额外的规范化信息到attributes
+      attributes: {
+        ...element.attributes,
+        'normalized-text': textInfo.normalized,
+        'text-type': textInfo.type,
+        'detected-language': textInfo.language || 'unknown'
+      }
+    };
+
+    return normalizedElement;
+  }
+
+  /**
+   * 提取规范化文本信息
+   */
+  private extractNormalizedTexts(element: ElementNode): import('../types/AnalysisTypes').NormalizedTextInfo {
+    const originalText = element.text || '';
+    const textInfo = getTextInfo(originalText);
+    
+    return {
+      original: originalText,
+      normalized: textInfo.normalized,
+      detectedLanguage: textInfo.language,
+      synonyms: textInfo.synonyms,
+      textType: this.detectTextType(originalText, element)
+    };
+  }
+
+  /**
+   * 检测文本类型
+   */
+  private detectTextType(text: string, element: ElementNode): import('../types/AnalysisTypes').NormalizedTextInfo['textType'] {
+    const clickable = element.attributes.clickable === 'true';
+    const className = element.attributes.class || '';
+    
+    // 基于元素类型判断
+    if (className.includes('Button')) return 'button';
+    if (className.includes('Tab') || className.includes('Navigation')) return 'navigation';
+    
+    // 基于文本内容判断
+    if (clickable) {
+      // 检查是否为常见的动作文本
+      const actionTexts = ['确定', '取消', '保存', '删除', '编辑', '分享', '发布', '关注', '点赞'];
+      if (actionTexts.some(action => text.includes(action))) {
+        return 'action';
+      }
+      return 'button';
+    }
+    
+    return 'label';
   }
 
   // === 公共API ===

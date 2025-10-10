@@ -1,5 +1,6 @@
 import type { UiNode } from '../../universal-ui/views/grid-view/types';
-import { buildXPath, parseUiAutomatorXml, attachParents, findByXPathRoot } from '../../universal-ui/views/grid-view/utils';
+import { parseUiAutomatorXml, attachParents, findByXPathRoot } from '../../universal-ui/views/grid-view/utils';
+import { buildXPath } from '../../../utils/xpath';
 import type { ElementBinding, ElementBindingSnapshot, ResolveResult } from './types';
 
 /**

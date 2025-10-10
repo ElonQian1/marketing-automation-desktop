@@ -1,7 +1,8 @@
 import React, { useEffect, useRef } from 'react';
 import { UiNode } from './types';
 import styles from './GridElementView.module.css';
-import { nodeLabel, buildXPath } from './utils';
+import { nodeLabel } from './utils';
+import { buildXPath } from '../../../../utils/xpath';
 import { MatchBadges } from './MatchBadges';
 import { CopyChip } from './CopyChip';
 

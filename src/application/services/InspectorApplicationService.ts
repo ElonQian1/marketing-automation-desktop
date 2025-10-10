@@ -4,7 +4,7 @@ import { useInspectorStore } from '../inspectorStore';
 import { AnalysisSession } from '../../domain/inspector/entities/AnalysisSession';
 import { Step } from '../../domain/inspector/entities/Step';
 import { NodeLocator } from '../../domain/inspector/entities/NodeLocator';
-import { buildXPath } from '../../domain/inspector/utils/xpath';
+import { buildXPath } from '../../utils/xpath';
 
 function uuid() { return crypto?.randomUUID?.() || Math.random().toString(36).slice(2); }
 function hashOf(text: string) {

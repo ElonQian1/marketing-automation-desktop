@@ -4,8 +4,8 @@
  * 集成 CSV 导入和候选池管理功能的完整面板
  */
 
-import React, { useState } from 'react';
-import { Card, Typography, Tabs, Space, Button } from 'antd';
+import React, { useState, useEffect } from 'react';
+import { Card, Typography, Tabs, Space, Button, message } from 'antd';
 import { 
   ImportOutlined, 
   UnorderedListOutlined, 
@@ -14,7 +14,7 @@ import {
 } from '@ant-design/icons';
 import { CsvImportComponent } from '../../../components/CsvImportComponent';
 import { WatchTargetList } from '../../../components/WatchTargetList';
-import { preciseAcquisitionService } from '../../../application/services';
+import { usePreciseAcquisition } from '../../../hooks/usePreciseAcquisition';
 
 const { Title, Text } = Typography;
 
@@ -23,13 +23,31 @@ const { Title, Text } = Typography;
  */
 export const CandidatePoolImportPanel: React.FC = () => {
   const [activeTab, setActiveTab] = useState('import');
-  const [refreshKey, setRefreshKey] = useState(0);
+  
+  // 使用统一的精准获客Hook
+  const {
+    watchTargets,
+    stats,
+    loading,
+    getWatchTargets,
+    refreshStats,
+    exportToCsv,
+    bulkImportWatchTargets,
+    validateCsvImport
+  } = usePreciseAcquisition();
+
+  // 初始化数据
+  useEffect(() => {
+    getWatchTargets();
+    refreshStats();
+  }, [getWatchTargets, refreshStats]);
 
   /**
    * 强制刷新候选池列表
    */
   const refreshTargetList = () => {
-    setRefreshKey(prev => prev + 1);
+    getWatchTargets();
+    refreshStats();
   };
 
   /**
@@ -37,7 +55,10 @@ export const CandidatePoolImportPanel: React.FC = () => {
    */
   const handleExportStats = async () => {
     try {
-      const stats = await preciseAcquisitionService.getStats();
+      if (!stats) {
+        await refreshStats();
+      }
+      const currentStats = stats;
       const statsText = `精准获客统计报告\n` +
         `生成时间: ${new Date().toLocaleString()}\n\n` +
         `候选池统计:\n` +
@@ -84,7 +105,7 @@ export const CandidatePoolImportPanel: React.FC = () => {
               系统会自动验证数据格式、检查合规性并执行去重处理。
             </Text>
           </div>
-          <CsvImportComponent key={`csv-import-${refreshKey}`} />
+          <CsvImportComponent />
         </div>
       ),
     },
@@ -114,7 +135,7 @@ export const CandidatePoolImportPanel: React.FC = () => {
               </Button>
             </Space>
           </div>
-          <WatchTargetList key={`target-list-${refreshKey}`} />
+          <WatchTargetList />
         </div>
       ),
     },

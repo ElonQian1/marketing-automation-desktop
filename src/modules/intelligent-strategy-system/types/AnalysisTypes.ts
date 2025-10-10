@@ -25,8 +25,45 @@ export interface ElementAnalysisContext {
   /** 分析选项 */
   options: AnalysisOptions;
   
+  /** Step 0增强上下文 */
+  enhancedContext?: EnhancedAnalysisContext;
+  
   /** 缓存数据 */
   cache?: AnalysisCache;
+}
+
+/**
+ * Step 0增强分析上下文
+ */
+export interface EnhancedAnalysisContext {
+  /** 识别到的稳定容器 */
+  stableContainers: any[]; // 引用 StableContainer 类型
+  
+  /** 规范化后的文本信息 */
+  normalizedTexts: NormalizedTextInfo;
+  
+  /** 当前容器上下文 */
+  containerContext?: any; // 引用 StableContainer 类型
+}
+
+/**
+ * 规范化文本信息
+ */
+export interface NormalizedTextInfo {
+  /** 原始文本 */
+  original: string;
+  
+  /** 规范化后的文本 */
+  normalized: string;
+  
+  /** 语言检测结果 */
+  detectedLanguage?: string;
+  
+  /** 可能的同义词 */
+  synonyms: string[];
+  
+  /** 文本类型 */
+  textType: 'button' | 'navigation' | 'action' | 'label' | 'generic';
 }
 
 /**

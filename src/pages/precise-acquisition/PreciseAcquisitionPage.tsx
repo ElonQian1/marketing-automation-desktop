@@ -20,6 +20,7 @@ import { DailyReportModule } from './modules/DailyReportModule';
 import { MonitoringDashboard } from './modules/MonitoringDashboard';
 import { DuplicationProtectionPanel } from './modules/safety-protection';
 import { CandidatePoolImportPanel } from './modules/CandidatePoolImportPanel';
+import { PreciseAcquisitionDemo } from '../../components/PreciseAcquisitionDemo';
 
 const { Title, Text } = Typography;
 
@@ -44,6 +45,16 @@ export const PreciseAcquisitionPage: React.FC = () => {
 
   // 菜单项配置 - 改用 Tabs 格式
   const tabItems = [
+    {
+      key: 'demo',
+      label: (
+        <span>
+          <ThunderboltOutlined />
+          统一服务演示
+        </span>
+      ),
+      children: <PreciseAcquisitionDemo />
+    },
     {
       key: 'dashboard',
       label: (

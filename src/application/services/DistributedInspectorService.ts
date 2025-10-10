@@ -2,7 +2,7 @@ import { useInspectorStore } from '../inspectorStore';
 import { DistributedScriptManager, DistributedStep } from '../../domain/distributed-script';
 import { LocatorService } from '../../infrastructure/inspector/LocatorService';
 import { parseUiAutomatorXml, attachParents } from '../../components/universal-ui/views/grid-view/utils';
-import { buildXPath } from '../../domain/inspector/utils/xpath';
+import { buildXPath } from '../../utils/xpath';
 
 /**
  * 分布式检查器应用服务

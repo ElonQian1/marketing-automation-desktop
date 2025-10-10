@@ -1,5 +1,5 @@
 import type { UiNode } from './types';
-import { buildXPath } from './utils';
+import { buildXPath } from '../../../../utils/xpath';
 
 export interface LocatorSuggestion {
   label: string;

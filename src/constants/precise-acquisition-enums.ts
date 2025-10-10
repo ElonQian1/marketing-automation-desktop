@@ -168,6 +168,15 @@ export enum RegionTag {
   JIANGSU = '江苏',
   SHANDONG = '山东',
   SICHUAN = '四川',
+  HUBEI = '湖北',
+  HUNAN = '湖南',
+  FUJIAN = '福建',
+  HEBEI = '河北',
+  HENAN = '河南',
+  ANHUI = '安徽',
+  LIAONING = '辽宁',
+  JILIN = '吉林',
+  HEILONGJIANG = '黑龙江'
 }
 
 export const REGION_TAG_OPTIONS = [

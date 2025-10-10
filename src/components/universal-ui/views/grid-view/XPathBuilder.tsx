@@ -1,6 +1,6 @@
 import React, { useMemo, useState } from 'react';
 import { UiNode } from './types';
-import { buildXPath } from './utils';
+import { buildXPath } from '../../../../utils/xpath';
 import styles from './GridElementView.module.css';
 import { CopyChip } from './CopyChip';
 import { getXPathHistory, addXPathHistory, clearXPathHistory, getFavoriteXPaths, toggleFavoriteXPath } from './history';

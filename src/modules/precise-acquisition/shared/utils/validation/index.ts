@@ -1,52 +1,90 @@
-/**
- * 数据验证工具
- * 
- * 提供URL、标签、CSV等数据的验证逻辑
- */
+export * from './csvValidation';export * from './csvValidation';/**/**/**
 
-import { 
-  Platform, 
-  TargetType, 
-  IndustryTag, 
-  RegionTag,
-  ImportValidationResult
-} from '../../types/core';
-import { 
-  URL_PATTERNS, 
-  VALIDATION_RULES,
-  INDUSTRY_TAG_CONFIG,
-  REGION_TAG_CONFIG
-} from '../../constants';
+ * 精准获客数据验证模块统一导出
 
-/**
- * 验证URL格式
- */
-export function validateUrl(url: string, platform: Platform, targetType: TargetType): boolean {
-  const patterns = URL_PATTERNS[platform];
-  if (!patterns) return false;
-  
-  if (platform === Platform.PUBLIC) {
-    // 公开平台需要额外的白名单验证
-    return 'general' in patterns && patterns.general.test(url);
-  }
-  
-  if (targetType === TargetType.VIDEO && 'video' in patterns) {
-    return patterns.video.test(url);
-  }
-  
-  if (targetType === TargetType.ACCOUNT && 'user' in patterns) {
-    return patterns.user.test(url);
-  }
-  
-  return false;
-}
+ *  * 数据验证工具统一导出 * 数据验证工具统一导出
 
-/**
- * 验证行业标签
- */
-export function validateIndustryTags(tags: string[]): {
-  valid: IndustryTag[];
-  invalid: string[];
+ * 提供CSV导入、数据校验、合规性检查等功能
+
+ */ *  * 
+
+
+
+export * from './csvValidation'; * 提供候选池数据验证的完整功能 * 提供候选池数据验证的完整功能
+
+ */ */
+
+
+
+// 导出CSV校验相关功能// 导出CSV校验相关功能
+
+export * from './csvValidation';export * from './csvValidation';
+
+
+
+// 导出兼容性函数// 导出兼容性函数
+
+import { checkWhitelistCompliance } from './csvValidation';import { checkWhitelistCompliance } from './csvValidation';
+
+
+
+/**/**
+
+ * 生成去重键 * 验证URL格式
+
+ */ */
+
+export function generateDedupKey(platform: string, idOrUrl: string): string {export function validateUrl(url: string, platform: Platform, targetType: TargetType): boolean {
+
+  return `${platform}:${idOrUrl}`;  const patterns = URL_PATTERNS[platform];
+
+}  if (!patterns) return false;
+
+  
+
+/**  if (platform === Platform.PUBLIC) {
+
+ * 合规性检查    // 公开平台需要额外的白名单验证
+
+ */    return 'general' in patterns && patterns.general.test(url);
+
+export function checkCompliance(target: any): {  }
+
+  passed: boolean;  
+
+  violations: string[];  if (targetType === TargetType.VIDEO && 'video' in patterns) {
+
+} {    return patterns.video.test(url);
+
+  const violations: string[] = [];  }
+
+    
+
+  // 使用新的白名单检查函数  if (targetType === TargetType.ACCOUNT && 'user' in patterns) {
+
+  if (target.platform === 'public') {    return patterns.user.test(url);
+
+    const compliance = checkWhitelistCompliance(target.idOrUrl || target.id_or_url, 'public' as any);  }
+
+    if (!compliance.allowed) {  
+
+      violations.push(compliance.reason || '不符合白名单要求');  return false;
+
+    }}
+
+  }
+
+  /**
+
+  return { * 验证行业标签
+
+    passed: violations.length === 0, */
+
+    violationsexport function validateIndustryTags(tags: string[]): {
+
+  };  valid: IndustryTag[];
+
+}  invalid: string[];
 } {
   const valid: IndustryTag[] = [];
   const invalid: string[] = [];

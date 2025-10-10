@@ -10,6 +10,7 @@ mod domain;
 mod infra;
 mod screenshot_service;
 mod new_backend;
+mod automation;
 
 // Universal UI Finder 模块桥接
 // 注意：universal-ui-finder模块位于src/modules/，我们通过services层桥接

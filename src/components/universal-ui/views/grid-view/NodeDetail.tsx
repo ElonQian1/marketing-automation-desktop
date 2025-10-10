@@ -1,6 +1,6 @@
 import React from 'react';
 import { UiNode } from './types';
-import { buildXPath } from './utils';
+import { buildXPath } from '../../../../utils/xpath';
 import { CopyChip } from './CopyChip';
 import { nodeToJson, nodeToXml, downloadText } from './exporters';
 import { FIELD_DOC_MAP, formatAttrValue } from './fieldDocs';

@@ -104,7 +104,8 @@ export enum TaskType {
  */
 export enum TaskPriority {
   LOW = 'low',
-  MEDIUM = 'medium',
+  NORMAL = 'normal',
+  MEDIUM = 'medium', 
   HIGH = 'high',
   URGENT = 'urgent'
 }
@@ -121,14 +122,19 @@ export enum TaskAssignmentStrategy {
 
 /**
  * 任务状态枚举（状态机）
+ * 与 constants/precise-acquisition-enums.ts 保持同步
  */
 export enum TaskStatus {
   NEW = 'NEW',              // 新建
-  PENDING = 'PENDING',      // 待执行
   READY = 'READY',          // 就绪
+  PENDING = 'PENDING',      // 待执行
   EXECUTING = 'EXECUTING',  // 执行中
+  IN_PROGRESS = 'IN_PROGRESS', // 进行中
   DONE = 'DONE',           // 完成
-  FAILED = 'FAILED'        // 失败
+  COMPLETED = 'COMPLETED',  // 已完成
+  FAILED = 'FAILED',       // 失败
+  CANCELLED = 'CANCELLED',  // 已取消
+  RETRY = 'RETRY'          // 重试
 }
 
 /**

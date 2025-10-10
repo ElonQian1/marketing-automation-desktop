@@ -1,7 +1,8 @@
 import React, { useEffect, useRef, useMemo, useState } from 'react';
 import { UiNode, AdvancedFilter, SearchOptions } from './types';
 import type { MatchCriteria } from './panels/node-detail/types';
-import { nodeLabel, buildXPath } from './utils';
+import { nodeLabel } from './utils';
+import { buildXPath } from '../../../../utils/xpath';
 import styles from './GridElementView.module.css';
 import { MatchBadges } from './MatchBadges';
 import { CopyChip } from './CopyChip';
