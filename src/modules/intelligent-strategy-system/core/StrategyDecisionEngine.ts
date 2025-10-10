@@ -31,6 +31,10 @@ import { ElementContextAnalyzer } from './ElementContextAnalyzer';
 import { ConfidenceCalculator } from './ConfidenceCalculator';
 import { AnalyzerFactory } from '../analyzers/index';
 
+// Plan 系统集成
+import { getStrategyPlanFactory } from '../plan/StrategyPlanFactory';
+import type { StrategyPlan } from '../types/StrategyPlanTypes';
+
 /**
  * 智能策略决策引擎
  * 
@@ -593,5 +597,109 @@ export class StrategyDecisionEngine {
    */
   updateConfig(newConfig: Partial<DecisionEngineConfig>): void {
     Object.assign(this.config, newConfig);
+  }
+
+  // === Plan 系统集成方法 ===
+
+  /**
+   * 创建策略执行计划
+   * @param element 目标元素
+   * @param xmlContent XML内容
+   * @param deviceId 设备ID
+   * @returns 策略执行计划
+   */
+  async createExecutionPlan(
+    element: any,
+    xmlContent: string,
+    deviceId: string
+  ): Promise<StrategyPlan> {
+    // 1. 分析并获取推荐
+    const recommendation = await this.analyzeAndRecommend(element, xmlContent);
+    
+    // 2. 构建执行上下文
+    const executionContext = {
+      deviceId,
+      xmlSnapshot: xmlContent,
+      targetElement: element
+    };
+    
+    // 3. 创建执行计划
+    const planFactory = getStrategyPlanFactory({
+      maxCandidates: this.config.maxSteps || 6,
+      performanceMode: this.config.performanceMode || 'balanced',
+      enableLocalValidation: this.config.enableLocalValidation || true
+    });
+    
+    return await planFactory.createPlanFromRecommendation(recommendation, executionContext);
+  }
+
+  /**
+   * 执行策略计划
+   * @param plan 策略计划
+   * @param deviceId 设备ID
+   * @param xmlContent 当前XML内容
+   * @returns 执行结果
+   */
+  async executePlan(
+    plan: StrategyPlan,
+    deviceId: string,
+    xmlContent?: string
+  ) {
+    const planFactory = getStrategyPlanFactory();
+    
+    const executionContext = {
+      deviceId,
+      xmlSnapshot: xmlContent,
+      targetElement: undefined // 将从 plan 中推断
+    };
+    
+    return await planFactory.executePlan(plan, executionContext);
+  }
+
+  /**
+   * 端到端策略执行：分析 + 计划 + 执行
+   * @param element 目标元素
+   * @param xmlContent XML内容
+   * @param deviceId 设备ID
+   * @returns 执行结果
+   */
+  async analyzeAndExecute(
+    element: any,
+    xmlContent: string,
+    deviceId: string
+  ) {
+    try {
+      // 1. 创建执行计划
+      const plan = await this.createExecutionPlan(element, xmlContent, deviceId);
+      
+      if (this.config.debugMode) {
+        console.log('创建执行计划:', {
+          planId: plan.planId,
+          candidatesCount: plan.candidates.length,
+          primaryStrategy: plan.candidates[0]?.strategy,
+          confidence: plan.metadata.statistics.totalCandidates
+        });
+      }
+      
+      // 2. 执行计划
+      const result = await this.executePlan(plan, deviceId, xmlContent);
+      
+      return {
+        success: result.success,
+        plan,
+        executionResult: result,
+        strategy: result.success ? plan.candidates[0]?.strategy : undefined
+      };
+      
+    } catch (error) {
+      console.error('端到端策略执行失败:', error);
+      
+      return {
+        success: false,
+        error: error instanceof Error ? error.message : '执行失败',
+        plan: undefined,
+        executionResult: undefined
+      };
+    }
   }
 }
