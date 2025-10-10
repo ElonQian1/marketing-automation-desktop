@@ -9,7 +9,7 @@ import {
 import { usePageAnalyzerState } from '../hooks/usePageAnalyzerState';
 import { ElementTree } from './ElementTree';
 import { PropertyPanel } from './PropertyPanel';
-import { MatchStrategySelector } from './MatchStrategySelector';
+import { UnifiedStrategyConfigurator } from '../../../universal-ui/strategy-selector';
 import type { MatchCriteria, UIElement } from '../types';
 
 const { Content, Sider } = Layout;
@@ -209,12 +209,12 @@ export const PageAnalyzerContainer: React.FC<PageAnalyzerContainerProps> = ({
             
             {/* 匹配策略面板 */}
             <Col span={12}>
-              <MatchStrategySelector
+              <UnifiedStrategyConfigurator
                 matchCriteria={matchCriteria}
                 referenceElement={selectedElement}
                 onChange={handleMatchCriteriaChange}
                 onTestMatch={handleMatchTest}
-                compact={false}
+                mode="compact"
               />
             </Col>
           </Row>

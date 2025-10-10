@@ -3,9 +3,9 @@ import {
   StrategyScoreCard,
   StrategyScoreBadge,
   StrategyRecommendationPanel,
-  InteractiveScoringPanel,
-  MatchingStrategySelector
+  InteractiveScoringPanel
 } from './index';
+import { UnifiedStrategyConfigurator } from '../../../../strategy-selector';
 import type { DetailedStrategyRecommendation } from './StrategyRecommendationPanel';
 import type { MatchStrategy } from './types';
 import type { WeightConfig } from './hooks';
@@ -392,9 +392,15 @@ const ScoringUIDemo: React.FC = () => {
             sm: "max-w-md",
             md: "max-w-lg"
           })}>
-            <MatchingStrategySelector
-              value={selectedStrategy}
-              onChange={handleStrategySelect}
+            <UnifiedStrategyConfigurator
+              matchCriteria={{
+                strategy: selectedStrategy,
+                fields: ['resource-id', 'text'],
+                values: {},
+                includes: {},
+                excludes: {}
+              }}
+              onChange={(criteria) => handleStrategySelect(criteria.strategy)}
               strategyScores={Object.fromEntries(
                 mockRecommendations.map(rec => [rec.strategy, {
                   score: rec.score.total,
@@ -402,6 +408,7 @@ const ScoringUIDemo: React.FC = () => {
                 }])
               )}
               showScores={true}
+              mode="compact"
             />
           </div>
           

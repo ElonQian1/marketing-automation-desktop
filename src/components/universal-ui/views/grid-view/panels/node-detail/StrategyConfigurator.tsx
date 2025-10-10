@@ -1,5 +1,5 @@
 import React from 'react';
-import { MatchingStrategySelector } from './MatchingStrategySelector';
+import { UnifiedStrategyConfigurator } from '../../../../strategy-selector';
 import { ElementPresetsRow } from './element-presets/ElementPresetsRow';
 import { SelectedFieldsTable } from './SelectedFieldsTable';
 import { SelectedFieldsPreview } from './SelectedFieldsPreview';
@@ -52,64 +52,46 @@ export const StrategyConfigurator: React.FC<StrategyConfiguratorProps> = ({ node
 
   return (
     <div>
-      <MatchingStrategySelector
-        value={(current.strategy as MatchStrategy) || 'standard'}
-        onChange={(next: MatchStrategy) => {
-          const preset = PRESET_FIELDS[next as any] || [];
-          // 与网格检查器保持一致：切换到某策略时直接采用该策略的完整预设字段集合
-          // 自定义策略维持当前字段集合，其它策略使用预设
-          const nextFields = next === 'custom' ? (current.fields || []) : preset;
-          // 当存在 node 时，用节点默认值回填新字段，再与已有值合并（用户输入优先）
-          const nodeDefaults = node ? buildDefaultValues(node, nextFields) : {};
-          let mergedValues = { ...nodeDefaults, ...(current.values || {}) };
-          const normalizedExcludes = normalizeExcludes(current.excludes || {}, nextFields);
-          const normalizedIncludes = normalizeIncludes(current.includes || {}, nextFields);
-
-          // 🆕 XPath 策略特殊处理：生成带索引的 XPath
-          if (next === 'xpath-first-index' && node?.attrs) {
-            const elementIndex = node.attrs['index'] ? parseInt(String(node.attrs['index']), 10) : undefined;
+      <UnifiedStrategyConfigurator
+        matchCriteria={current}
+        onChange={(newCriteria) => {
+          // 处理 XPath 策略的特殊逻辑
+          if (newCriteria.strategy.startsWith('xpath-') && node?.attrs) {
             const elementForXPath = {
               'resource-id': node.attrs['resource-id'],
               'content-desc': node.attrs['content-desc'],
               'text': node.attrs['text'],
               'class': node.attrs['class'],
-              'index': elementIndex,
-              // 向后兼容的字段名
+              'index': node.attrs['index'] ? parseInt(String(node.attrs['index']), 10) : undefined,
               resource_id: node.attrs['resource-id'],
               content_desc: node.attrs['content-desc'],
               class_name: node.attrs['class'],
             };
 
             try {
-              // 生成带索引的 XPath
-              const generatedXPath = buildXPath(elementForXPath, { useIndex: true });
+              let generatedXPath = '';
+              if (newCriteria.strategy === 'xpath-first-index') {
+                generatedXPath = buildXPath(elementForXPath, { useIndex: true });
+              } else {
+                generatedXPath = buildXPath(elementForXPath);
+              }
+              
               if (generatedXPath) {
-                // 将生成的 XPath 添加到值中
-                mergedValues = {
-                  ...mergedValues,
+                newCriteria.values = {
+                  ...newCriteria.values,
                   'xpath': generatedXPath
                 };
-                console.log('🎯 生成带索引的 XPath:', {
-                  strategy: next,
-                  elementIndex,
-                  generatedXPath,
-                  elementAttrs: node.attrs
-                });
               }
             } catch (error) {
-              console.warn('⚠️ 生成 XPath 索引失败:', error);
+              console.warn('⚠️ 生成 XPath 失败:', error);
             }
           }
-
-          onChange({
-            ...current,
-            strategy: next,
-            fields: nextFields,
-            values: mergedValues,
-            excludes: normalizedExcludes,
-            includes: normalizedIncludes,
-          });
+          
+          onChange(newCriteria);
         }}
+        referenceElement={node}
+        mode="compact"
+        showScores={false}
       />
 
       <div className="mt-2">

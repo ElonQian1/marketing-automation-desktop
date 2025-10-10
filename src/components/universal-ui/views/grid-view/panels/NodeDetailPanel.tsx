@@ -22,11 +22,13 @@ import {
 // 🆕 导入策略评分系统组件
 import { 
   StrategyRecommendationPanel,
-  MatchingStrategySelector,
   type StrategyScoreInfo,
   type DetailedStrategyRecommendation,
   strategySystemAdapter
 } from './node-detail';
+
+// 🆕 导入统一策略配置器
+import { UnifiedStrategyConfigurator } from '../../../strategy-selector';
 
 interface NodeDetailPanelProps {
   node: UiNode | null;
@@ -494,17 +496,20 @@ export const NodeDetailPanel: React.FC<NodeDetailPanelProps> = ({
 
         {/* 🆕 智能策略选择器（带评分徽章） */}
         <div className={styles.section}>
-          <MatchingStrategySelector
-            value={strategy}
-            onChange={(newStrategy) => {
-              setStrategy(newStrategy);
-              // 应用对应的预设字段
-              const preset = PRESET_FIELDS[newStrategy as any] || [];
-              const nextFields = newStrategy === 'custom' ? selectedFields : preset;
-              setSelectedFields(nextFields);
-              if (node) {
-                setValues(buildDefaultValues(node, nextFields));
-              }
+          <UnifiedStrategyConfigurator
+            matchCriteria={{
+              strategy,
+              fields: selectedFields,
+              values,
+              includes: includes || {},
+              excludes: excludes || {}
+            }}
+            onChange={(newCriteria) => {
+              setStrategy(newCriteria.strategy);
+              setSelectedFields(newCriteria.fields);
+              setValues(newCriteria.values);
+              setIncludes(newCriteria.includes || {});
+              setExcludes(newCriteria.excludes || {});
             }}
             strategyScores={Object.fromEntries(
               strategyRecommendations.map(rec => [
@@ -517,6 +522,8 @@ export const NodeDetailPanel: React.FC<NodeDetailPanelProps> = ({
             )}
             showScores={true}
             recommendedStrategy={strategyRecommendations[0]?.strategy as any}
+            mode="full"
+            referenceElement={node}
           />
         </div>
 
