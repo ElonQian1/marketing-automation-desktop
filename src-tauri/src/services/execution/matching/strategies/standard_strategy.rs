@@ -1,28 +1,13 @@
 //! standard_strategy.rs - Standard 匹配策略处理器
 //! 
 //! Standard 策略专注于语义字段匹配，忽略位置相关信息，实现跨设备稳定匹配。
-//! 这是解决用户问题的核心：确保不同关注按钮能被正确匹配而不是使用固化坐标。
+//! 这是解决用户问关注按钮能被正确匹配而不是使用固化坐标。
 
 use super::{StrategyProcessor, MatchingContext, StrategyResult, ProcessingError};
-// use crate::xml_judgment::*; // 临时禁用，等待重构为使用 universal_ui_page_analyzer
-// use crate::xml_judgment::MatchCriteriaDTO; // 临时禁用
 use async_trait::async_trait;
 use anyhow::Result;
 use tracing::{info, warn, debug};
 use std::collections::HashMap;
-
-// 临时类型定义，替代 xml_judgment::MatchCriteriaDTO
-#[derive(Debug, Clone)]
-pub struct MatchCriteriaDTO {
-    pub strategy: String,
-    pub fields: Vec<String>,
-    pub values: HashMap<String, String>,
-    pub includes: Option<HashMap<String, Vec<String>>>,
-    pub excludes: Option<HashMap<String, Vec<String>>>,
-    pub match_mode: String,
-    pub regex_includes: HashMap<String, String>,
-    pub regex_excludes: HashMap<String, String>,
-}
 
 /// Standard 策略处理器
 /// 
@@ -117,17 +102,9 @@ impl StrategyProcessor for StandardStrategyProcessor {
             logs.push(format!("❌ 排除条件: {:?}", context.excludes));
         }
         
-        // 构建匹配条件
-        let criteria = MatchCriteriaDTO {
-            strategy: "standard".to_string(),
-            fields: semantic_fields,
-            values: semantic_values,
-            includes: Some(context.includes.clone()),
-            excludes: Some(context.excludes.clone()),
-            match_mode: "standard".to_string(),
-            regex_includes: HashMap::new(),
-            regex_excludes: HashMap::new(),
-        };
+        // 记录匹配条件摘要
+        logs.push(format!("🧾 标准策略条件摘要: fields={:?}, values={:?}",
+            semantic_fields, semantic_values));
 
         // 记录一次完整 criteria 快照（避免过多日志，仅在 debug 级别下一行摘要）
         logs.push(format!("🧾 标准策略条件摘要: fields={:?}, values={:?}, match_mode={:?}",

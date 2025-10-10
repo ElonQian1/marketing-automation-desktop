@@ -29,6 +29,29 @@ export type MatchStrategy =
   | 'index-fallback';       // 索引兜底匹配（新增）
 
 /**
+ * 匹配条件接口
+ */
+export interface MatchCriteria {
+  strategy: MatchStrategy;
+  fields: string[];
+  values: Record<string, string>;
+  excludes?: Record<string, string[]>;
+  includes?: Record<string, string[]>;
+  matchMode?: Record<string, 'equals' | 'contains' | 'regex'>;
+  regexIncludes?: Record<string, string[]>;
+  regexExcludes?: Record<string, string[]>;
+  
+  // 隐藏元素父查找策略特定配置
+  hiddenElementParentConfig?: {
+    targetText: string;
+    maxTraversalDepth?: number;
+    clickableIndicators?: string[];
+    excludeIndicators?: string[];
+    confidenceThreshold?: number;
+  };
+}
+
+/**
  * 策略推荐结果
  */
 export interface StrategyRecommendation {

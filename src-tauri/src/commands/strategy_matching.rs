@@ -8,7 +8,8 @@ use tracing::{info, error};
 use crate::services::execution::matching::strategies::{
     create_strategy_processor, MatchingContext
 };
-use crate::xml_judgment::{MatchCriteriaDTO, HiddenElementParentConfig};
+use serde::{Deserialize, Serialize};
+use std::collections::HashMap;
 
 #[derive(Debug, Serialize)]
 pub struct MatchResult {
@@ -26,6 +27,49 @@ pub struct ElementPreview {
     pub class: Option<String>,
     pub content_desc: Option<String>,
 }
+
+/// 匹配条件DTO - 从前端接收的匹配参数
+#[derive(Debug, Clone, Deserialize)]
+pub struct MatchCriteriaDTO {
+    pub strategy: String,
+    pub fields: Vec<String>,
+    pub values: HashMap<String, String>,
+    #[serde(default)]
+    pub excludes: HashMap<String, Vec<String>>,
+    #[serde(default)]
+    pub includes: HashMap<String, Vec<String>>,
+    #[serde(default)]
+    pub match_mode: HashMap<String, String>,
+    #[serde(default)]
+    pub regex_includes: HashMap<String, Vec<String>>,
+    #[serde(default)]
+    pub regex_excludes: HashMap<String, Vec<String>>,
+    #[serde(default)]
+    pub hidden_element_parent_config: Option<HiddenElementParentConfig>,
+}
+
+/// 隐藏元素父容器配置
+#[derive(Debug, Clone, Deserialize)]
+pub struct HiddenElementParentConfig {
+    pub target_text: String,
+    #[serde(default = "default_max_traversal_depth")]
+    pub max_traversal_depth: u32,
+    #[serde(default = "default_clickable_indicators")]
+    pub clickable_indicators: Vec<String>,
+    #[serde(default = "default_exclude_indicators")]
+    pub exclude_indicators: Vec<String>,
+    #[serde(default = "default_confidence_threshold")]
+    pub confidence_threshold: f64,
+}
+
+fn default_max_traversal_depth() -> u32 { 3 }
+fn default_clickable_indicators() -> Vec<String> {
+    vec!["Button".to_string(), "ImageButton".to_string(), "TextView".to_string()]
+}
+fn default_exclude_indicators() -> Vec<String> {
+    vec!["android.webkit.WebView".to_string(), "android.widget.ScrollView".to_string()]
+}
+fn default_confidence_threshold() -> f64 { 0.7 }
 
 /// 策略匹配命令 - 支持隐藏元素父容器查找等策略
 #[tauri::command]

@@ -1,7 +1,48 @@
 import { invoke, isTauri } from '@tauri-apps/api/core';
-import { IUiMatcherRepository, MatchCriteriaDTO, MatchResultDTO } from '../../domain/page-analysis/repositories/IUiMatcherRepository';
+import { IUiMatcherRepository, MatchCriteriaDTO, MatchResultDTO, HiddenElementParentConfig } from '../../domain/page-analysis/repositories/IUiMatcherRepository';
 
 export class TauriUiMatcherRepository implements IUiMatcherRepository {
+  /**
+   * 将前端的 camelCase 字段转换为后端的 snake_case
+   */
+  private convertToBackendFormat(criteria: MatchCriteriaDTO): any {
+    const converted: any = {
+      strategy: criteria.strategy,
+      fields: criteria.fields,
+      values: criteria.values,
+      excludes: criteria.excludes,
+      includes: criteria.includes
+    };
+
+    // 转换 camelCase 字段为 snake_case
+    if (criteria.matchMode) {
+      converted.match_mode = criteria.matchMode;
+    }
+    if (criteria.regexIncludes) {
+      converted.regex_includes = criteria.regexIncludes;
+    }
+    if (criteria.regexExcludes) {
+      converted.regex_excludes = criteria.regexExcludes;
+    }
+    if (criteria.hiddenElementParentConfig) {
+      converted.hidden_element_parent_config = this.convertHiddenElementParentConfig(criteria.hiddenElementParentConfig);
+    }
+
+    return converted;
+  }
+
+  /**
+   * 转换隐藏元素父容器配置
+   */
+  private convertHiddenElementParentConfig(config: HiddenElementParentConfig): any {
+    return {
+      enable_parent_detection: config.enableParentDetection,
+      max_parent_levels: config.maxParentLevels,
+      expected_parent_types: config.expectedParentTypes,
+      prefer_clickable_parent: config.preferClickableParent
+    };
+  }
+
   async matchByCriteria(deviceId: string, criteria: MatchCriteriaDTO): Promise<MatchResultDTO> {
     if (!isTauri()) {
       // 浏览器环境：返回模拟结果
@@ -11,10 +52,13 @@ export class TauriUiMatcherRepository implements IUiMatcherRepository {
     try {
       console.log('🎯 调用后端策略匹配命令:', { deviceId, strategy: criteria.strategy });
       
-      // 调用新的策略匹配命令
+      // 转换前端格式到后端格式
+      const backendCriteria = this.convertToBackendFormat(criteria);
+      
+      // 调用策略匹配命令
       const result = await invoke('match_element_by_criteria', {
         deviceId,
-        criteria
+        criteria: backendCriteria
       }) as {
         ok: boolean;
         message: string;
@@ -34,7 +78,7 @@ export class TauriUiMatcherRepository implements IUiMatcherRepository {
       return {
         ok: result.ok,
         message: result.message,
-        total: result.matched_elements.length,
+        total: result.matched_elements?.length || 0,
         matchedIndex: result.ok ? 0 : -1,
         preview: result.preview ? {
           text: result.preview.text || '',
@@ -47,17 +91,6 @@ export class TauriUiMatcherRepository implements IUiMatcherRepository {
       };
     } catch (error) {
       console.error('❌ 策略匹配失败:', error);
-      return {
-        ok: false,
-        message: `策略匹配失败: ${error instanceof Error ? error.message : String(error)}`
-      };
-    }
-
-    try {
-      const res = await invoke('match_element_by_criteria', { deviceId, criteria });
-      return res as MatchResultDTO;
-    } catch (error) {
-      console.error('match_element_by_criteria 调用失败:', error);
       
       // 检查是否是命令不存在的错误
       const errorString = String(error);
@@ -82,7 +115,10 @@ export class TauriUiMatcherRepository implements IUiMatcherRepository {
         };
       }
       
-      return { ok: false, message: String(error) };
+      return {
+        ok: false,
+        message: `策略匹配失败: ${error instanceof Error ? error.message : String(error)}`
+      };
     }
   }
 }

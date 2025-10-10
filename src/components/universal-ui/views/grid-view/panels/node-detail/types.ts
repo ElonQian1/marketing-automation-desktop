@@ -1,25 +1,8 @@
-// UI 层策略类型：包含隐藏元素父查找策略和 XPath 直接索引策略
-export type MatchStrategy = 'absolute' | 'strict' | 'relaxed' | 'positionless' | 'standard' | 'custom' | 'hidden-element-parent' | 'xpath-direct' | 'xpath-first-index' | 'xpath-all-elements';
+// 导入统一的策略类型定义
+import type { MatchStrategy, MatchCriteria } from '../../../../../../modules/intelligent-strategy-system/types/StrategyTypes';
 
-export interface MatchCriteria {
-  strategy: MatchStrategy;
-  fields: string[];
-  values: Record<string, string>;
-  excludes?: Record<string, string[]>;
-  includes?: Record<string, string[]>;
-  matchMode?: Record<string, 'equals' | 'contains' | 'regex'>;
-  regexIncludes?: Record<string, string[]>;
-  regexExcludes?: Record<string, string[]>;
-  
-  // 隐藏元素父查找策略特定配置
-  hiddenElementParentConfig?: {
-    targetText: string;
-    maxTraversalDepth?: number;
-    clickableIndicators?: string[];
-    excludeIndicators?: string[];
-    confidenceThreshold?: number;
-  };
-}
+// 重新导出，保持向后兼容
+export type { MatchStrategy, MatchCriteria };
 
 export interface MatchResultSummary {
   ok: boolean;

@@ -6,7 +6,7 @@
 use crate::services::execution::matching::strategies::{
     StrategyProcessor, MatchingContext, StrategyResult, ProcessingError
 };
-use crate::xml_judgment::HiddenElementParentConfig;
+use crate::commands::strategy_matching::HiddenElementParentConfig;
 use async_trait::async_trait;
 use anyhow::Result;
 use serde_json::Value;
