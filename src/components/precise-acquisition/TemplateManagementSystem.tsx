@@ -1,0 +1,898 @@
+/**
+ * 模板管理系统界面
+ * 
+ * 基于TemplateManagementService，提供完整的模板管理功能
+ * 包括模板的创建、编辑、分类和应用
+ */
+
+import React, { useState, useEffect, useCallback } from 'react';
+import { 
+  Card, 
+  Table, 
+  Button, 
+  Space, 
+  Modal, 
+  Form, 
+  Input, 
+  Select, 
+  Tag, 
+  Drawer, 
+  Tabs, 
+  Tree, 
+  Upload, 
+  message,
+  notification,
+  Popconfirm,
+  Badge,
+  Tooltip,
+  Typography,
+  Divider,
+  Row,
+  Col,
+  Statistic,
+  Empty
+} from 'antd';
+import { 
+  PlusOutlined,
+  EditOutlined,
+  DeleteOutlined,
+  CopyOutlined,
+  EyeOutlined,
+  UploadOutlined,
+  DownloadOutlined,
+  FolderOutlined,
+  FileTextOutlined,
+  TagOutlined,
+  ReloadOutlined,
+  SearchOutlined
+} from '@ant-design/icons';
+import dayjs from 'dayjs';
+
+// 类型和服务导入
+import { TemplateManagementService } from '../../modules/precise-acquisition/template-management/services/TemplateManagementService';
+import { Platform, TaskType } from '../../constants/precise-acquisition-enums';
+
+const { TabPane } = Tabs;
+const { Option } = Select;
+const { TextArea } = Input;
+const { Title, Text, Paragraph } = Typography;
+const { TreeNode } = Tree;
+
+interface Template {
+  id: string;
+  name: string;
+  content: string;
+  category: string;
+  platform: Platform;
+  task_type: TaskType;
+  tags: string[];
+  usage_count: number;
+  success_rate: number;
+  created_at: Date;
+  updated_at: Date;
+  created_by: string;
+  is_active: boolean;
+}
+
+interface TemplateCategory {
+  id: string;
+  name: string;
+  description: string;
+  parent_id?: string;
+  children?: TemplateCategory[];
+  template_count: number;
+}
+
+interface TemplateStats {
+  total_templates: number;
+  active_templates: number;
+  categories_count: number;
+  total_usage: number;
+  average_success_rate: number;
+}
+
+export const TemplateManagementSystem: React.FC = () => {
+  // 状态管理
+  const [templates, setTemplates] = useState<Template[]>([]);
+  const [categories, setCategories] = useState<TemplateCategory[]>([]);
+  const [stats, setStats] = useState<TemplateStats>({
+    total_templates: 0,
+    active_templates: 0,
+    categories_count: 0,
+    total_usage: 0,
+    average_success_rate: 0
+  });
+  
+  const [loading, setLoading] = useState(false);
+  const [selectedTemplate, setSelectedTemplate] = useState<Template | null>(null);
+  const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
+  const [showTemplateModal, setShowTemplateModal] = useState(false);
+  const [showCategoryModal, setShowCategoryModal] = useState(false);
+  const [showTemplateDetail, setShowTemplateDetail] = useState(false);
+  const [editingTemplate, setEditingTemplate] = useState<Template | null>(null);
+  const [searchText, setSearchText] = useState('');
+  const [activeTab, setActiveTab] = useState('templates');
+
+  // 表单实例
+  const [templateForm] = Form.useForm();
+  const [categoryForm] = Form.useForm();
+
+  // 服务实例
+  const templateService = new TemplateManagementService();
+
+  // 加载模板数据
+  const loadTemplates = useCallback(async () => {
+    setLoading(true);
+    try {
+      const result = await templateService.getTemplates({
+        category: selectedCategory || undefined,
+        search: searchText || undefined
+      });
+      setTemplates(result.templates);
+      
+      // 计算统计数据
+      const newStats: TemplateStats = {
+        total_templates: result.templates.length,
+        active_templates: result.templates.filter(t => t.is_active).length,
+        categories_count: categories.length,
+        total_usage: result.templates.reduce((sum, t) => sum + t.usage_count, 0),
+        average_success_rate: result.templates.length > 0 
+          ? Math.round(result.templates.reduce((sum, t) => sum + t.success_rate, 0) / result.templates.length)
+          : 0
+      };
+      setStats(newStats);
+    } catch (error) {
+      console.error('Failed to load templates:', error);
+      notification.error({
+        message: '加载模板失败',
+        description: error instanceof Error ? error.message : '未知错误'
+      });
+    } finally {
+      setLoading(false);
+    }
+  }, [selectedCategory, searchText, categories.length]);
+
+  // 加载分类数据
+  const loadCategories = useCallback(async () => {
+    try {
+      const result = await templateService.getCategories();
+      setCategories(result.categories);
+    } catch (error) {
+      console.error('Failed to load categories:', error);
+    }
+  }, []);
+
+  // 初始化加载
+  useEffect(() => {
+    loadCategories();
+  }, [loadCategories]);
+
+  useEffect(() => {
+    loadTemplates();
+  }, [loadTemplates]);
+
+  // 创建模板
+  const handleCreateTemplate = async (values: any) => {
+    try {
+      await templateService.createTemplate({
+        name: values.name,
+        content: values.content,
+        category: values.category,
+        platform: values.platform,
+        task_type: values.task_type,
+        tags: values.tags || []
+      });
+
+      notification.success({
+        message: '模板创建成功',
+        description: `模板 "${values.name}" 已创建`
+      });
+      
+      setShowTemplateModal(false);
+      templateForm.resetFields();
+      loadTemplates();
+    } catch (error) {
+      notification.error({
+        message: '模板创建失败',
+        description: error instanceof Error ? error.message : '未知错误'
+      });
+    }
+  };
+
+  // 更新模板
+  const handleUpdateTemplate = async (values: any) => {
+    if (!editingTemplate) return;
+
+    try {
+      await templateService.updateTemplate(editingTemplate.id, {
+        name: values.name,
+        content: values.content,
+        category: values.category,
+        platform: values.platform,
+        task_type: values.task_type,
+        tags: values.tags || []
+      });
+
+      notification.success({
+        message: '模板更新成功',
+        description: `模板 "${values.name}" 已更新`
+      });
+      
+      setShowTemplateModal(false);
+      setEditingTemplate(null);
+      templateForm.resetFields();
+      loadTemplates();
+    } catch (error) {
+      notification.error({
+        message: '模板更新失败',
+        description: error instanceof Error ? error.message : '未知错误'
+      });
+    }
+  };
+
+  // 删除模板
+  const handleDeleteTemplate = async (templateId: string) => {
+    try {
+      await templateService.deleteTemplate(templateId);
+      notification.success({
+        message: '模板删除成功'
+      });
+      loadTemplates();
+    } catch (error) {
+      notification.error({
+        message: '模板删除失败',
+        description: error instanceof Error ? error.message : '未知错误'
+      });
+    }
+  };
+
+  // 复制模板
+  const handleDuplicateTemplate = async (template: Template) => {
+    try {
+      await templateService.createTemplate({
+        name: `${template.name} (副本)`,
+        content: template.content,
+        category: template.category,
+        platform: template.platform,
+        task_type: template.task_type,
+        tags: template.tags
+      });
+
+      notification.success({
+        message: '模板复制成功'
+      });
+      loadTemplates();
+    } catch (error) {
+      notification.error({
+        message: '模板复制失败',
+        description: error instanceof Error ? error.message : '未知错误'
+      });
+    }
+  };
+
+  // 创建分类
+  const handleCreateCategory = async (values: any) => {
+    try {
+      await templateService.createCategory({
+        name: values.name,
+        description: values.description,
+        parent_id: values.parent_id
+      });
+
+      notification.success({
+        message: '分类创建成功',
+        description: `分类 "${values.name}" 已创建`
+      });
+      
+      setShowCategoryModal(false);
+      categoryForm.resetFields();
+      loadCategories();
+    } catch (error) {
+      notification.error({
+        message: '分类创建失败',
+        description: error instanceof Error ? error.message : '未知错误'
+      });
+    }
+  };
+
+  // 编辑模板
+  const handleEditTemplate = (template: Template) => {
+    setEditingTemplate(template);
+    templateForm.setFieldsValue({
+      name: template.name,
+      content: template.content,
+      category: template.category,
+      platform: template.platform,
+      task_type: template.task_type,
+      tags: template.tags
+    });
+    setShowTemplateModal(true);
+  };
+
+  // 获取平台颜色
+  const getPlatformColor = (platform: Platform): string => {
+    const colorMap: Record<Platform, string> = {
+      [Platform.XIAOHONGSHU]: 'red',
+      [Platform.DOUYIN]: 'blue'
+    };
+    return colorMap[platform] || 'default';
+  };
+
+  // 获取任务类型颜色
+  const getTaskTypeColor = (taskType: TaskType): string => {
+    const colorMap: Record<TaskType, string> = {
+      [TaskType.FOLLOW]: 'green',
+      [TaskType.LIKE]: 'orange',
+      [TaskType.COMMENT]: 'purple',
+      [TaskType.REPLY]: 'cyan'
+    };
+    return colorMap[taskType] || 'default';
+  };
+
+  // 表格列定义
+  const columns = [
+    {
+      title: '模板名称',
+      dataIndex: 'name',
+      key: 'name',
+      width: 200,
+      render: (name: string, record: Template) => (
+        <div>
+          <div className="font-medium">{name}</div>
+          <div className="text-xs text-gray-500">ID: {record.id.slice(-8)}</div>
+        </div>
+      )
+    },
+    {
+      title: '分类',
+      dataIndex: 'category',
+      key: 'category',
+      render: (category: string) => <Tag icon={<FolderOutlined />}>{category}</Tag>
+    },
+    {
+      title: '平台',
+      dataIndex: 'platform',
+      key: 'platform',
+      render: (platform: Platform) => <Tag color={getPlatformColor(platform)}>{platform}</Tag>
+    },
+    {
+      title: '任务类型',
+      dataIndex: 'task_type',
+      key: 'task_type',
+      render: (taskType: TaskType) => <Tag color={getTaskTypeColor(taskType)}>{taskType}</Tag>
+    },
+    {
+      title: '标签',
+      dataIndex: 'tags',
+      key: 'tags',
+      render: (tags: string[]) => (
+        <div>
+          {tags.slice(0, 2).map(tag => (
+            <Tag key={tag} size="small" icon={<TagOutlined />}>{tag}</Tag>
+          ))}
+          {tags.length > 2 && <Tag size="small">+{tags.length - 2}</Tag>}
+        </div>
+      )
+    },
+    {
+      title: '使用次数',
+      dataIndex: 'usage_count',
+      key: 'usage_count',
+      render: (count: number) => <Badge count={count} showZero />
+    },
+    {
+      title: '成功率',
+      dataIndex: 'success_rate',
+      key: 'success_rate',
+      render: (rate: number) => (
+        <span className={rate >= 80 ? 'text-green-600' : rate >= 60 ? 'text-orange-600' : 'text-red-600'}>
+          {rate}%
+        </span>
+      )
+    },
+    {
+      title: '状态',
+      dataIndex: 'is_active',
+      key: 'is_active',
+      render: (isActive: boolean) => (
+        <Tag color={isActive ? 'success' : 'default'}>
+          {isActive ? '启用' : '禁用'}
+        </Tag>
+      )
+    },
+    {
+      title: '创建时间',
+      dataIndex: 'created_at',
+      key: 'created_at',
+      render: (date: Date) => (
+        <span className="text-xs text-gray-500">
+          {dayjs(date).format('MM-DD HH:mm')}
+        </span>
+      )
+    },
+    {
+      title: '操作',
+      key: 'actions',
+      width: 200,
+      render: (_, record: Template) => (
+        <Space size="small">
+          <Tooltip title="查看详情">
+            <Button
+              type="text"
+              size="small"
+              icon={<EyeOutlined />}
+              onClick={() => {
+                setSelectedTemplate(record);
+                setShowTemplateDetail(true);
+              }}
+            />
+          </Tooltip>
+          
+          <Tooltip title="编辑模板">
+            <Button
+              type="text"
+              size="small"
+              icon={<EditOutlined />}
+              onClick={() => handleEditTemplate(record)}
+            />
+          </Tooltip>
+          
+          <Tooltip title="复制模板">
+            <Button
+              type="text"
+              size="small"
+              icon={<CopyOutlined />}
+              onClick={() => handleDuplicateTemplate(record)}
+            />
+          </Tooltip>
+          
+          <Popconfirm
+            title="确定要删除这个模板吗？"
+            onConfirm={() => handleDeleteTemplate(record.id)}
+            okText="确定"
+            cancelText="取消"
+          >
+            <Tooltip title="删除模板">
+              <Button
+                type="text"
+                size="small"
+                danger
+                icon={<DeleteOutlined />}
+              />
+            </Tooltip>
+          </Popconfirm>
+        </Space>
+      )
+    }
+  ];
+
+  // 分类树渲染
+  const renderCategoryTree = (categoryList: TemplateCategory[]) => {
+    return categoryList.map(category => (
+      <TreeNode
+        key={category.id}
+        title={
+          <div className="flex justify-between items-center">
+            <span>{category.name}</span>
+            <Badge count={category.template_count} size="small" />
+          </div>
+        }
+        icon={<FolderOutlined />}
+      >
+        {category.children && renderCategoryTree(category.children)}
+      </TreeNode>
+    ));
+  };
+
+  return (
+    <div className="light-theme-force" style={{ background: 'var(--bg-light-base)', padding: '24px' }}>
+      <div className="mb-6">
+        <div className="flex justify-between items-center mb-4">
+          <h2 className="text-2xl font-semibold">模板管理系统</h2>
+          <Space>
+            <Button
+              type="primary"
+              icon={<PlusOutlined />}
+              onClick={() => {
+                setEditingTemplate(null);
+                templateForm.resetFields();
+                setShowTemplateModal(true);
+              }}
+            >
+              创建模板
+            </Button>
+            <Button
+              icon={<FolderOutlined />}
+              onClick={() => setShowCategoryModal(true)}
+            >
+              创建分类
+            </Button>
+            <Button
+              icon={<ReloadOutlined />}
+              onClick={loadTemplates}
+              loading={loading}
+            >
+              刷新
+            </Button>
+          </Space>
+        </div>
+
+        {/* 统计卡片 */}
+        <Row gutter={16} className="mb-6">
+          <Col span={6}>
+            <Card size="small">
+              <Statistic title="总模板数" value={stats.total_templates} />
+            </Card>
+          </Col>
+          <Col span={6}>
+            <Card size="small">
+              <Statistic 
+                title="启用模板" 
+                value={stats.active_templates}
+                valueStyle={{ color: '#52c41a' }}
+              />
+            </Card>
+          </Col>
+          <Col span={6}>
+            <Card size="small">
+              <Statistic title="总使用次数" value={stats.total_usage} />
+            </Card>
+          </Col>
+          <Col span={6}>
+            <Card size="small">
+              <Statistic 
+                title="平均成功率" 
+                value={stats.average_success_rate} 
+                suffix="%" 
+                valueStyle={{ 
+                  color: stats.average_success_rate >= 80 ? '#52c41a' : '#ff4d4f' 
+                }}
+              />
+            </Card>
+          </Col>
+        </Row>
+      </div>
+
+      <Row gutter={16}>
+        <Col span={6}>
+          <Card title="分类管理" size="small" className="mb-4">
+            <div className="mb-4">
+              <Input
+                placeholder="搜索分类..."
+                prefix={<SearchOutlined />}
+                size="small"
+              />
+            </div>
+            
+            {categories.length > 0 ? (
+              <Tree
+                showIcon
+                showLine
+                onSelect={(selectedKeys) => {
+                  setSelectedCategory(selectedKeys[0] as string || null);
+                }}
+              >
+                <TreeNode key="all" title="全部分类" icon={<FolderOutlined />}>
+                  {renderCategoryTree(categories)}
+                </TreeNode>
+              </Tree>
+            ) : (
+              <Empty 
+                image={Empty.PRESENTED_IMAGE_SIMPLE}
+                description="暂无分类"
+                className="text-center"
+              />
+            )}
+          </Card>
+        </Col>
+
+        <Col span={18}>
+          <Card>
+            <div className="mb-4 flex justify-between items-center">
+              <Input
+                placeholder="搜索模板..."
+                prefix={<SearchOutlined />}
+                style={{ width: 300 }}
+                value={searchText}
+                onChange={(e) => setSearchText(e.target.value)}
+                allowClear
+              />
+              
+              <Space>
+                <Select
+                  placeholder="筛选平台"
+                  style={{ width: 120 }}
+                  allowClear
+                >
+                  <Option value={Platform.XIAOHONGSHU}>小红书</Option>
+                  <Option value={Platform.DOUYIN}>抖音</Option>
+                </Select>
+                
+                <Select
+                  placeholder="筛选类型"
+                  style={{ width: 120 }}
+                  allowClear
+                >
+                  <Option value={TaskType.FOLLOW}>关注</Option>
+                  <Option value={TaskType.LIKE}>点赞</Option>
+                  <Option value={TaskType.COMMENT}>评论</Option>
+                  <Option value={TaskType.REPLY}>回复</Option>
+                </Select>
+              </Space>
+            </div>
+
+            <Table
+              columns={columns}
+              dataSource={templates}
+              rowKey="id"
+              loading={loading}
+              size="small"
+              pagination={{
+                pageSize: 20,
+                showSizeChanger: true,
+                showQuickJumper: true,
+                showTotal: (total) => `共 ${total} 个模板`
+              }}
+            />
+          </Card>
+        </Col>
+      </Row>
+
+      {/* 创建/编辑模板模态框 */}
+      <Modal
+        title={editingTemplate ? '编辑模板' : '创建模板'}
+        open={showTemplateModal}
+        onCancel={() => {
+          setShowTemplateModal(false);
+          setEditingTemplate(null);
+          templateForm.resetFields();
+        }}
+        footer={null}
+        width={800}
+      >
+        <Form
+          form={templateForm}
+          layout="vertical"
+          onFinish={editingTemplate ? handleUpdateTemplate : handleCreateTemplate}
+        >
+          <Row gutter={16}>
+            <Col span={12}>
+              <Form.Item
+                name="name"
+                label="模板名称"
+                rules={[{ required: true, message: '请输入模板名称' }]}
+              >
+                <Input placeholder="输入模板名称" />
+              </Form.Item>
+            </Col>
+            <Col span={12}>
+              <Form.Item
+                name="category"
+                label="分类"
+                rules={[{ required: true, message: '请选择分类' }]}
+              >
+                <Select placeholder="选择分类">
+                  {categories.map(category => (
+                    <Option key={category.id} value={category.name}>
+                      {category.name}
+                    </Option>
+                  ))}
+                </Select>
+              </Form.Item>
+            </Col>
+          </Row>
+
+          <Row gutter={16}>
+            <Col span={12}>
+              <Form.Item
+                name="platform"
+                label="平台"
+                rules={[{ required: true, message: '请选择平台' }]}
+              >
+                <Select placeholder="选择平台">
+                  <Option value={Platform.XIAOHONGSHU}>小红书</Option>
+                  <Option value={Platform.DOUYIN}>抖音</Option>
+                </Select>
+              </Form.Item>
+            </Col>
+            <Col span={12}>
+              <Form.Item
+                name="task_type"
+                label="任务类型"
+                rules={[{ required: true, message: '请选择任务类型' }]}
+              >
+                <Select placeholder="选择任务类型">
+                  <Option value={TaskType.FOLLOW}>关注</Option>
+                  <Option value={TaskType.LIKE}>点赞</Option>
+                  <Option value={TaskType.COMMENT}>评论</Option>
+                  <Option value={TaskType.REPLY}>回复</Option>
+                </Select>
+              </Form.Item>
+            </Col>
+          </Row>
+
+          <Form.Item name="tags" label="标签">
+            <Select
+              mode="tags"
+              placeholder="添加标签（回车确认）"
+              style={{ width: '100%' }}
+            />
+          </Form.Item>
+
+          <Form.Item
+            name="content"
+            label="模板内容"
+            rules={[{ required: true, message: '请输入模板内容' }]}
+          >
+            <TextArea
+              rows={8}
+              placeholder="输入模板内容，支持变量替换：{用户名}、{时间}等"
+              showCount
+              maxLength={1000}
+            />
+          </Form.Item>
+
+          <Form.Item className="mb-0 flex justify-end">
+            <Space>
+              <Button onClick={() => setShowTemplateModal(false)}>
+                取消
+              </Button>
+              <Button type="primary" htmlType="submit">
+                {editingTemplate ? '更新模板' : '创建模板'}
+              </Button>
+            </Space>
+          </Form.Item>
+        </Form>
+      </Modal>
+
+      {/* 创建分类模态框 */}
+      <Modal
+        title="创建分类"
+        open={showCategoryModal}
+        onCancel={() => {
+          setShowCategoryModal(false);
+          categoryForm.resetFields();
+        }}
+        footer={null}
+        width={600}
+      >
+        <Form
+          form={categoryForm}
+          layout="vertical"
+          onFinish={handleCreateCategory}
+        >
+          <Form.Item
+            name="name"
+            label="分类名称"
+            rules={[{ required: true, message: '请输入分类名称' }]}
+          >
+            <Input placeholder="输入分类名称" />
+          </Form.Item>
+
+          <Form.Item name="description" label="分类描述">
+            <TextArea rows={3} placeholder="输入分类描述（可选）" />
+          </Form.Item>
+
+          <Form.Item name="parent_id" label="父分类">
+            <Select placeholder="选择父分类（可选）" allowClear>
+              {categories.map(category => (
+                <Option key={category.id} value={category.id}>
+                  {category.name}
+                </Option>
+              ))}
+            </Select>
+          </Form.Item>
+
+          <Form.Item className="mb-0 flex justify-end">
+            <Space>
+              <Button onClick={() => setShowCategoryModal(false)}>
+                取消
+              </Button>
+              <Button type="primary" htmlType="submit">
+                创建分类
+              </Button>
+            </Space>
+          </Form.Item>
+        </Form>
+      </Modal>
+
+      {/* 模板详情抽屉 */}
+      <Drawer
+        title="模板详情"
+        placement="right"
+        width={600}
+        open={showTemplateDetail}
+        onClose={() => setShowTemplateDetail(false)}
+      >
+        {selectedTemplate && (
+          <div className="space-y-6">
+            <Card title="基本信息" size="small">
+              <div className="space-y-3">
+                <div>
+                  <Text strong>模板名称：</Text>
+                  <span>{selectedTemplate.name}</span>
+                </div>
+                <div>
+                  <Text strong>分类：</Text>
+                  <Tag icon={<FolderOutlined />}>{selectedTemplate.category}</Tag>
+                </div>
+                <div>
+                  <Text strong>平台：</Text>
+                  <Tag color={getPlatformColor(selectedTemplate.platform)}>
+                    {selectedTemplate.platform}
+                  </Tag>
+                </div>
+                <div>
+                  <Text strong>任务类型：</Text>
+                  <Tag color={getTaskTypeColor(selectedTemplate.task_type)}>
+                    {selectedTemplate.task_type}
+                  </Tag>
+                </div>
+                <div>
+                  <Text strong>标签：</Text>
+                  <div className="mt-1">
+                    {selectedTemplate.tags.map(tag => (
+                      <Tag key={tag} icon={<TagOutlined />}>{tag}</Tag>
+                    ))}
+                  </div>
+                </div>
+              </div>
+            </Card>
+
+            <Card title="使用统计" size="small">
+              <Row gutter={16}>
+                <Col span={12}>
+                  <Statistic title="使用次数" value={selectedTemplate.usage_count} />
+                </Col>
+                <Col span={12}>
+                  <Statistic 
+                    title="成功率" 
+                    value={selectedTemplate.success_rate} 
+                    suffix="%" 
+                    valueStyle={{ 
+                      color: selectedTemplate.success_rate >= 80 ? '#52c41a' : '#ff4d4f' 
+                    }}
+                  />
+                </Col>
+              </Row>
+            </Card>
+
+            <Card title="模板内容" size="small">
+              <div className="bg-gray-50 p-4 rounded">
+                <Paragraph copyable>{selectedTemplate.content}</Paragraph>
+              </div>
+            </Card>
+
+            <Card title="创建信息" size="small">
+              <div className="space-y-2">
+                <div>
+                  <Text strong>创建者：</Text>
+                  <span>{selectedTemplate.created_by}</span>
+                </div>
+                <div>
+                  <Text strong>创建时间：</Text>
+                  <span>{dayjs(selectedTemplate.created_at).format('YYYY-MM-DD HH:mm:ss')}</span>
+                </div>
+                <div>
+                  <Text strong>更新时间：</Text>
+                  <span>{dayjs(selectedTemplate.updated_at).format('YYYY-MM-DD HH:mm:ss')}</span>
+                </div>
+              </div>
+            </Card>
+
+            <div className="flex justify-end space-x-2">
+              <Button onClick={() => handleEditTemplate(selectedTemplate)}>
+                编辑模板
+              </Button>
+              <Button type="primary" onClick={() => handleDuplicateTemplate(selectedTemplate)}>
+                复制模板
+              </Button>
+            </div>
+          </div>
+        )}
+      </Drawer>
+    </div>
+  );
+};
+
+export default TemplateManagementSystem;
