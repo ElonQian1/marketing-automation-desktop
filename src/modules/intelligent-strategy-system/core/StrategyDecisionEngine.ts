@@ -29,6 +29,7 @@ import type {
 
 import { ElementContextAnalyzer } from './ElementContextAnalyzer';
 import { ConfidenceCalculator } from './ConfidenceCalculator';
+import { AnalyzerFactory } from '../analyzers/index';
 
 /**
  * 智能策略决策引擎
@@ -413,9 +414,27 @@ export class StrategyDecisionEngine {
   // === 辅助方法 ===
 
   private initializeAnalyzers(): void {
-    // 这里将在后续步骤中注册实际的分析器
-    // 当前为占位符实现
-    console.log('分析器初始化 - 等待后续步骤实现');
+    // 使用 AnalyzerFactory 初始化所有可用的分析器
+    const implementedSteps = AnalyzerFactory.getImplementedSteps();
+    
+    implementedSteps.forEach(step => {
+      const analyzer = AnalyzerFactory.getAnalyzerByStep(step);
+      if (analyzer) {
+        this.analyzers.set(step, analyzer);
+      }
+    });
+
+    const stats = AnalyzerFactory.getStats();
+    console.log('✅ 分析器初始化完成', {
+      total: stats.total,
+      implemented: stats.implemented,
+      pending: stats.pending,
+      implementedSteps: stats.implementedSteps
+    });
+
+    if (this.config.debugMode) {
+      console.log('📊 已实现的分析器:', Object.fromEntries(this.analyzers));
+    }
   }
 
   private getAnalysisSteps(): AnalysisStep[] {
