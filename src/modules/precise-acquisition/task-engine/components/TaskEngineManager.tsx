@@ -119,14 +119,13 @@ export const TaskEngineManager: React.FC<TaskEngineManagerProps> = ({
       const batchConfig: BatchTaskGenerationConfig = {
         targets: selectedTargets,
         comments_per_target: selectedTargets.map(() => []), // TODO: 从评论采集模块获取
-        base_config: {
+        config: {
           max_tasks_per_target: values.max_tasks_per_target,
           task_types: values.task_types,
           priority: values.priority,
-          assignment_strategy: values.assignment_strategy,
-          schedule_delay_hours: values.schedule_delay_hours,
-          required_device_count: values.required_device_count
         },
+        parallel_processing: true,
+        batch_size: values.batch_size || 100,
         distribution_strategy: values.distribution_strategy || 'even'
       };
 

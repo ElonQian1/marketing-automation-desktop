@@ -1,8 +1,22 @@
 /**
  * 精准获客统一应用服务
  * 
+ * @deprecated 此服务已被废弃，请使用 PreciseAcquisitionServiceFacade.v2.ts
+ * 
+ * 迁移指南：
+ * ```typescript
+ * // ❌ 旧方式
+ * import { UnifiedPreciseAcquisitionService } from './UnifiedPreciseAcquisitionService';
+ * const service = UnifiedPreciseAcquisitionService.getInstance();
+ * 
+ * // ✅ 新方式
+ * import { preciseAcquisitionService } from './PreciseAcquisitionServiceFacade.v2';
+ * const service = preciseAcquisitionService;
+ * ```
+ * 
  * 整合所有精准获客相关的业务功能，作为对外统一接口
  * 基于新的模块化架构，消除代码冗余
+ * 此服务将在下个版本中移除，请尽快迁移到新的统一门面
  */
 
 import { 

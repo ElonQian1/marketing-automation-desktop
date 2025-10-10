@@ -72,6 +72,10 @@ export const NodeDetailPanel: React.FC<NodeDetailPanelProps> = ({
   const [strategyRecommendations, setStrategyRecommendations] = useState<DetailedStrategyRecommendation[]>([]);
   const [showStrategyScoring, setShowStrategyScoring] = useState(false);
   const [isLoadingScores, setIsLoadingScores] = useState(false);
+  
+  // 🆕 模式切换状态
+  const [currentMode, setCurrentMode] = useState<'intelligent' | 'static'>('intelligent');
+  const [canSwitchMode, setCanSwitchMode] = useState(true);
 
   // 🆕 真实策略评分函数（使用智能策略系统适配器）
   const calculateStrategyScores = async (node: UiNode): Promise<DetailedStrategyRecommendation[]> => {
@@ -79,8 +83,8 @@ export const NodeDetailPanel: React.FC<NodeDetailPanelProps> = ({
       setIsLoadingScores(true);
       console.log('🎯 开始计算策略评分', { node: node.tag, hasXml: !!xmlContent });
       
-      // 使用智能策略系统适配器进行真实分析
-      const recommendations = await strategySystemAdapter.analyzeElement(node, xmlContent);
+      // 🎯 使用模式感知的策略分析
+      const recommendations = await strategySystemAdapter.analyzeElementByMode(node, xmlContent);
       
       console.log('✅ 策略评分计算完成', { 
         nodeTag: node.tag,
@@ -108,6 +112,35 @@ export const NodeDetailPanel: React.FC<NodeDetailPanelProps> = ({
       }];
     } finally {
       setIsLoadingScores(false);
+    }
+  };
+
+  // 🔄 模式切换处理函数
+  const handleModeSwitch = async (newMode: 'intelligent' | 'static') => {
+    if (!canSwitchMode) {
+      console.warn('⚠️ 模式切换已锁定');
+      return;
+    }
+
+    console.log(`🔄 切换策略模式: ${currentMode} → ${newMode}`);
+    
+    // 切换适配器模式
+    const success = strategySystemAdapter.switchMode(newMode);
+    if (success) {
+      setCurrentMode(newMode);
+      
+      // 如果当前有节点选中，重新分析
+      if (node) {
+        setIsLoadingScores(true);
+        try {
+          const newRecommendations = await calculateStrategyScores(node);
+          setStrategyRecommendations(newRecommendations);
+        } catch (error) {
+          console.error('❌ 模式切换后重新分析失败', error);
+        } finally {
+          setIsLoadingScores(false);
+        }
+      }
     }
   };
 
@@ -494,7 +527,36 @@ export const NodeDetailPanel: React.FC<NodeDetailPanelProps> = ({
         {strategyRecommendations.length > 0 && (
           <div className={styles.section}>
             <div className="flex items-center justify-between mb-3">
-              <span className="text-sm font-medium">🎯 智能策略推荐</span>
+              <div className="flex items-center gap-2">
+                <span className="text-sm font-medium">
+                  {currentMode === 'intelligent' ? '🧠 智能策略推荐' : '📋 静态策略推荐'}
+                </span>
+                {/* 🆕 模式切换控件 */}
+                <div className="flex items-center border border-gray-200 rounded-md overflow-hidden text-xs">
+                  <button
+                    className={`px-2 py-1 transition-colors ${
+                      currentMode === 'intelligent' 
+                        ? 'bg-blue-500 text-white' 
+                        : 'bg-gray-50 text-gray-600 hover:bg-gray-100'
+                    }`}
+                    onClick={() => handleModeSwitch('intelligent')}
+                    disabled={!canSwitchMode}
+                  >
+                    智能
+                  </button>
+                  <button
+                    className={`px-2 py-1 transition-colors ${
+                      currentMode === 'static' 
+                        ? 'bg-blue-500 text-white' 
+                        : 'bg-gray-50 text-gray-600 hover:bg-gray-100'
+                    }`}
+                    onClick={() => handleModeSwitch('static')}
+                    disabled={!canSwitchMode}
+                  >
+                    静态
+                  </button>
+                </div>
+              </div>
               <button
                 className="text-xs text-blue-600 hover:text-blue-700 px-2 py-1 rounded border border-blue-200 hover:bg-blue-50"
                 onClick={() => setShowStrategyScoring(!showStrategyScoring)}

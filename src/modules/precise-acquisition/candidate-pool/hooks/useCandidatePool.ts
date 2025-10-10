@@ -14,7 +14,9 @@ import {
   TargetType,
   SourceType
 } from '../../shared/types/core';
-import { CandidatePoolService, CandidatePoolStats } from '../services/CandidatePoolService';
+import { CandidatePoolStats } from '../services/CandidatePoolService';
+import { PreciseAcquisitionServiceFacade } from '../../../../application/services/PreciseAcquisitionServiceFacade.v2';
+import type { WatchTargetRow, WatchTargetPayload } from '../../../../types/precise-acquisition';
 
 export interface UseCandidatePoolReturn {
   // 数据状态
@@ -57,8 +59,78 @@ export interface UseCandidatePoolReturn {
   refreshStats: () => Promise<void>;
 }
 
+// 类型适配函数
+function convertStatsToLegacy(stats: any): CandidatePoolStats {
+  return {
+    total_count: stats.targets_count?.total || 0,
+    by_platform: {
+      [Platform.DOUYIN]: stats.targets_count?.by_platform?.douyin || 0,
+      [Platform.XIAOHONGSHU]: stats.targets_count?.by_platform?.xiaohongshu || 0,
+      [Platform.OCEANENGINE]: stats.targets_count?.by_platform?.oceanengine || 0,
+      [Platform.PUBLIC]: stats.targets_count?.by_platform?.public || 0
+    },
+    by_type: {
+      [TargetType.VIDEO]: stats.targets_count?.by_type?.video || 0,
+      [TargetType.ACCOUNT]: stats.targets_count?.by_type?.account || 0
+    },
+    by_source: {
+      [SourceType.MANUAL]: stats.targets_count?.by_source?.manual || 0,
+      [SourceType.CSV]: stats.targets_count?.by_source?.csv || 0,
+      [SourceType.WHITELIST]: stats.targets_count?.by_source?.whitelist || 0,
+      [SourceType.ADS]: stats.targets_count?.by_source?.ads || 0
+    },
+    recent_added: stats.targets_count?.recent_added || 0
+  };
+}
+
+function convertRowToTarget(row: WatchTargetRow): WatchTarget {
+  return {
+    id: row.id.toString(),
+    target_type: row.target_type as any, // 类型转换处理枚举差异
+    platform: row.platform as any,
+    platform_id_or_url: row.id_or_url,
+    title: row.title,
+    source: (row.source as any) || SourceType.MANUAL,
+    industry_tags: row.industry_tags ? row.industry_tags.split(';').map(tag => tag as any) : [],
+    region_tag: row.region as any,
+    notes: row.notes || '',
+    created_at: new Date(row.created_at),
+    updated_at: new Date(row.updated_at)
+  };
+}
+
+function convertTargetToPayload(target: Omit<WatchTarget, 'id' | 'created_at' | 'updated_at'>): WatchTargetPayload {
+  return {
+    dedup_key: `${target.platform}_${target.platform_id_or_url}`,
+    target_type: target.target_type as any,
+    platform: target.platform as any,
+    id_or_url: target.platform_id_or_url,
+    title: target.title,
+    source: target.source as any,
+    industry_tags: target.industry_tags ? target.industry_tags.join(';') : '',
+    region: target.region_tag as any,
+    notes: target.notes || ''
+  };
+}
+
+function convertTargetPayloadToLegacy(payload: WatchTargetPayload): WatchTarget {
+  return {
+    id: '',
+    target_type: payload.target_type as any,
+    platform: payload.platform as any,
+    platform_id_or_url: payload.id_or_url,
+    title: payload.title,
+    source: payload.source as any,
+    industry_tags: payload.industry_tags ? payload.industry_tags.split(';') as any[] : [],
+    region_tag: payload.region as any,
+    notes: payload.notes || '',
+    created_at: new Date(),
+    updated_at: new Date()
+  };
+}
+
 export function useCandidatePool(): UseCandidatePoolReturn {
-  const [service] = useState(() => new CandidatePoolService());
+  const service = PreciseAcquisitionServiceFacade.getInstance();
   
   // 数据状态
   const [targets, setTargets] = useState<WatchTarget[]>([]);
@@ -92,7 +164,7 @@ export function useCandidatePool(): UseCandidatePoolReturn {
       };
       
       const result = await service.getWatchTargets(queryParams);
-      setTargets(result);
+      setTargets(result.map(convertRowToTarget));
       
       // 这里应该从后端获取总数，暂时使用返回数据长度
       setPagination(prev => ({
@@ -121,7 +193,7 @@ export function useCandidatePool(): UseCandidatePoolReturn {
    */
   const addTarget = useCallback(async (target: Omit<WatchTarget, 'id' | 'created_at' | 'updated_at'>) => {
     try {
-      await service.addWatchTarget(target);
+      await service.addWatchTarget(convertTargetToPayload(target));
       message.success('添加成功');
       await refreshTargets();
     } catch (err) {
@@ -136,7 +208,14 @@ export function useCandidatePool(): UseCandidatePoolReturn {
    */
   const updateTarget = useCallback(async (id: string, updates: Partial<WatchTarget>) => {
     try {
-      await service.updateWatchTarget(id, updates);
+      const payload: Partial<WatchTargetPayload> = {
+        title: updates.title,
+        industry_tags: updates.industry_tags ? updates.industry_tags.join(';') : undefined,
+        region: updates.region_tag as any,
+        notes: updates.notes
+      };
+      
+      await service.updateWatchTarget(id, payload);
       message.success('更新成功');
       await refreshTargets();
     } catch (err) {
@@ -167,7 +246,7 @@ export function useCandidatePool(): UseCandidatePoolReturn {
   const batchDeleteTargets = useCallback(async (ids: string[]) => {
     try {
       const result = await service.batchDeleteWatchTargets(ids);
-      message.success(`删除成功 ${result.success} 个，失败 ${result.failed} 个`);
+      message.success(`批量删除成功：删除 ${result.deletedCount} 个目标`);
       await refreshTargets();
     } catch (err) {
       const errorMessage = err instanceof Error ? err.message : '批量删除失败';
@@ -180,7 +259,23 @@ export function useCandidatePool(): UseCandidatePoolReturn {
    * 验证CSV数据
    */
   const validateCsvData = useCallback((csvData: any[]): ImportValidationResult => {
-    return service.validateCsvImport(csvData);
+    const result = service.validateCsvImport(csvData);
+    
+    // 适配返回类型
+    return {
+      valid_rows: result.processedData.map(data => convertTargetPayloadToLegacy(data)),
+      invalid_rows: result.errors.map((error, index) => ({
+        row_index: index,
+        data: csvData[index] || {},
+        errors: [error]
+      })),
+      summary: {
+        total: csvData.length,
+        valid: result.processedData.length,
+        invalid: result.errors.length,
+        duplicates: 0
+      }
+    };
   }, [service]);
 
   /**
@@ -191,9 +286,11 @@ export function useCandidatePool(): UseCandidatePoolReturn {
     options: { update_existing?: boolean } = {}
   ) => {
     try {
-      const result = await service.importFromCsv(data, options);
+      const payloads = data.map(target => convertTargetToPayload(target));
+      const result = await service.importFromCsv(payloads, options);
+      
       message.success(
-        `导入完成：成功 ${result.imported} 个，更新 ${result.updated} 个，跳过 ${result.skipped} 个`
+        `导入完成：成功 ${result.imported} 个，更新 ${result.updated} 个`
       );
       
       if (result.errors.length > 0) {
@@ -282,7 +379,7 @@ export function useCandidatePool(): UseCandidatePoolReturn {
   const refreshStats = useCallback(async () => {
     try {
       const statsData = await service.getStats();
-      setStats(statsData);
+      setStats(convertStatsToLegacy(statsData));
     } catch (err) {
       console.error('Failed to refresh stats:', err);
     }

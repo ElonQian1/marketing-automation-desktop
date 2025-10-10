@@ -8,16 +8,7 @@ import {
   TemplateManagementService,
   TemplateContext,
   TemplateRenderResult 
-}        [Platform.PUBLIC]: {
-          enabled: true,
-          priority: 3,
-          rate_limit_multiplier: 0.8
-        },
-        [Platform.XIAOHONGSHU]: {
-          enabled: false,
-          priority: 4,
-          rate_limit_multiplier: 1.0
-        } './template-management';
+} from './template-management';
 
 import { 
   EnhancedCommentAdapterManager,
@@ -158,6 +149,11 @@ export class PreciseAcquisitionService {
           enabled: true,
           priority: 3,
           rate_limit_multiplier: 0.5
+        },
+        [Platform.XIAOHONGSHU]: {
+          enabled: false,
+          priority: 4,
+          rate_limit_multiplier: 1.0
         }
       }
     };

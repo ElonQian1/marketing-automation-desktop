@@ -164,16 +164,17 @@ export class TaskQueryService {
       platform: row.platform,
       status: row.status,
       priority: row.priority,
+      target_id: row.target_id,
       target_user_id: row.target_user_id,
       target_comment_id: row.target_comment_id,
       assigned_device_id: row.assigned_device_id,
+      retry_count: row.retry_count || 0,
+      max_retries: row.max_retries || 3,
       created_at: new Date(row.created_at),
       updated_at: new Date(row.updated_at),
       scheduled_time: row.scheduled_time ? new Date(row.scheduled_time) : undefined,
       completed_at: row.completed_at ? new Date(row.completed_at) : undefined,
       error_message: row.error_message,
-      retry_count: row.retry_count || 0,
-      metadata: row.metadata ? JSON.parse(row.metadata) : {}
     };
   }
 }

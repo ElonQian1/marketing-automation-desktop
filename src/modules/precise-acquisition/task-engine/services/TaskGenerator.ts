@@ -5,7 +5,7 @@
  */
 
 import { invoke } from '@tauri-apps/api/core';
-import { Task, WatchTarget, Comment, TaskType, TaskPriority } from '../../shared/types/core';
+import { Task, WatchTarget, Comment, TaskType, TaskPriority, TaskStatus } from '../../shared/types/core';
 import { generateId } from '../../shared/utils';
 import { TaskGenerationConfig, TaskGenerationResult, BatchTaskGenerationConfig } from '../types';
 
@@ -143,17 +143,16 @@ export class TaskGenerator {
       id: generateId('task'),
       task_type: TaskType.FOLLOW,
       platform: target.platform,
-      status: 'new' as any, // TODO: 修复类型
+      status: TaskStatus.NEW,
       priority,
-      target_user_id: target.target_id,
-      assigned_device_id: null,
+      target_id: target.id,
+      target_user_id: target.platform_id_or_url,
+      assigned_device_id: undefined,
+      retry_count: 0,
+      max_retries: 3,
       created_at: new Date(),
       updated_at: new Date(),
-      scheduled_at: new Date(),
-      metadata: {
-        target_id: target.id,
-        generated_by: 'task-generator'
-      }
+      scheduled_time: new Date(),
     };
   }
 
@@ -162,17 +161,16 @@ export class TaskGenerator {
       id: generateId('task'),
       task_type: TaskType.REPLY,
       platform: target.platform,
-      status: 'new' as any, // TODO: 修复类型
+      status: TaskStatus.NEW,
       priority,
-      target_user_id: target.target_id,
-      assigned_device_id: null,
+      target_id: target.id,
+      target_user_id: target.platform_id_or_url,
+      assigned_device_id: undefined,
+      retry_count: 0,
+      max_retries: 3,
       created_at: new Date(),
       updated_at: new Date(),
-      scheduled_at: new Date(),
-      metadata: {
-        target_id: target.id,
-        generated_by: 'task-generator'
-      }
+      scheduled_time: new Date(),
     };
   }
 
@@ -181,17 +179,16 @@ export class TaskGenerator {
       id: generateId('task'),
       task_type: TaskType.LIKE,
       platform: target.platform,
-      status: 'new' as any, // TODO: 修复类型
+      status: TaskStatus.NEW,
       priority,
-      target_user_id: target.target_id,
-      assigned_device_id: null,
+      target_id: target.id,
+      target_user_id: target.platform_id_or_url,
+      assigned_device_id: undefined,
+      retry_count: 0,
+      max_retries: 3,
       created_at: new Date(),
       updated_at: new Date(),
-      scheduled_at: new Date(),
-      metadata: {
-        target_id: target.id,
-        generated_by: 'task-generator'
-      }
+      scheduled_time: new Date(),
     };
   }
 

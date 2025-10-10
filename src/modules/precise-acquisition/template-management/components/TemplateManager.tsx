@@ -39,7 +39,7 @@ import {
   TemplateRenderResult
 } from '../services/TemplateManagementService';
 import { ReplyTemplate, Platform, IndustryTag } from '../../shared/types/core';
-import { TemplateChannel } from '../../../../constants/precise-acquisition-enums';
+
 
 const { Text, Title } = Typography;
 const { TextArea } = Input;
@@ -62,7 +62,7 @@ export const TemplateManager: React.FC = () => {
 
   // 筛选条件
   const [filters, setFilters] = useState({
-    channel: undefined as TemplateChannel | undefined,
+    channel: undefined as Platform | 'all' | undefined,
     category: undefined as string | undefined,
     enabled: undefined as boolean | undefined,
     keyword: ''

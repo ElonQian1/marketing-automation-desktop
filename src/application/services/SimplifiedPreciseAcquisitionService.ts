@@ -1,7 +1,21 @@
 /**
  * 简化的精准获客统一服务
  * 
+ * @deprecated 此服务已被废弃，请使用 PreciseAcquisitionServiceFacade.v2.ts
+ * 
+ * 迁移指南：
+ * ```typescript
+ * // ❌ 旧方式
+ * import { SimplifiedPreciseAcquisitionService } from './SimplifiedPreciseAcquisitionService';
+ * const service = new SimplifiedPreciseAcquisitionService();
+ * 
+ * // ✅ 新方式
+ * import { preciseAcquisitionService } from './PreciseAcquisitionServiceFacade.v2';
+ * const service = preciseAcquisitionService;
+ * ```
+ * 
  * 为了快速解决代码重复问题，创建一个直接使用现有组件的统一服务
+ * 此服务将在下个版本中移除，请尽快迁移到新的统一门面
  */
 
 import { PreciseAcquisitionApplicationService } from './PreciseAcquisitionApplicationService';
@@ -24,6 +38,8 @@ import {
 
 /**
  * 统一的精准获客服务门面
+ * 
+ * @deprecated 请使用 PreciseAcquisitionServiceFacade.v2.ts 替代
  * 
  * 整合现有应用服务与新模块化服务，提供统一接口
  */

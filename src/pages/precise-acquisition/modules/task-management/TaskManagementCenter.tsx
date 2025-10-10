@@ -21,7 +21,7 @@ import { shouldBypassDeviceCheck } from '../../../../config/developmentMode';
 
 // 导入重构后的子组件
 import { TaskExecutionCenter } from './components/TaskExecutionCenter';
-import { FollowTaskExecutor } from './components/FollowTaskExecutor';
+import { FollowTaskExecutor } from '../follow-executor/FollowTaskExecutor';
 
 const { Title, Text } = Typography;
 

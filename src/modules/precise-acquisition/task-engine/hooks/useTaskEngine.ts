@@ -170,7 +170,7 @@ export const useTaskEngine = (options: UseTaskEngineOptions = {}): UseTaskEngine
     clearError();
     
     try {
-      await service.updateTaskStatus(taskId, status, result, error);
+      await service.updateTaskStatus(taskId, status, error);
       
       // 更新本地任务状态
       setTasks(prevTasks => 
@@ -202,19 +202,29 @@ export const useTaskEngine = (options: UseTaskEngineOptions = {}): UseTaskEngine
     clearError();
     
     try {
-      const assignedTasks = await service.assignTasksToDevice(deviceId, maxTasks, taskTypes);
+      // 修复方法签名：assignTasksToDevice需要taskIds数组
+      const availableTasks = tasks.filter(t => 
+        t.status === TaskStatus.NEW && 
+        (!taskTypes || taskTypes.includes(t.task_type))
+      ).slice(0, maxTasks);
+      
+      const taskIds = availableTasks.map(t => t.id);
+      const assignmentResult = await service.assignTasksToDevice(deviceId, taskIds);
       
       // 更新本地任务状态
       setTasks(prevTasks => 
         prevTasks.map(task => {
-          const assignedTask = assignedTasks.find(at => at.id === task.id);
-          return assignedTask ? assignedTask : task;
+          const assignedTask = assignmentResult.assigned_tasks.find(at => at.id === task.id);
+          if (assignedTask) {
+            return { ...task, assigned_device_id: deviceId, status: TaskStatus.READY };
+          }
+          return task;
         })
       );
       
       await refreshStats();
       
-      return assignedTasks;
+      return assignmentResult.assigned_tasks;
     } catch (err) {
       setError(err instanceof Error ? err.message : '任务分配失败');
       throw err;

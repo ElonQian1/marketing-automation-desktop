@@ -124,6 +124,7 @@ export enum TaskAssignmentStrategy {
  */
 export enum TaskStatus {
   NEW = 'NEW',              // 新建
+  PENDING = 'PENDING',      // 待执行
   READY = 'READY',          // 就绪
   EXECUTING = 'EXECUTING',  // 执行中
   DONE = 'DONE',           // 完成
@@ -214,6 +215,8 @@ export interface Task {
   target_id: string;        // 关联到 WatchTarget
   comment_id?: string;      // reply任务必填
   target_user_id?: string;  // follow任务必填
+  target_nickname?: string; // 目标用户昵称
+  target_comment_id?: string; // 目标评论ID
   
   // 任务分配
   assigned_device_id?: string;
@@ -230,6 +233,7 @@ export interface Task {
   
   // 调度相关
   scheduled_time?: Date;
+  scheduled_at?: Date;      // 兼容字段
   
   // 重试机制
   retry_count: number;
@@ -242,6 +246,7 @@ export interface Task {
   created_at: Date;
   updated_at: Date;
   executed_at?: Date;
+  completed_at?: Date;      // 完成时间
 }
 
 /**

@@ -36,7 +36,8 @@ import {
 
 import { Task, TaskStatus, TaskType, ExecutorMode, ResultCode } from '../../shared/types/core';
 import { TaskExecutorService, TaskExecutionContext, TaskExecutionResult } from '../services/TaskExecutorService';
-import { TemplateManagementService, Template } from '../../template-management';
+import { TemplateManagementService } from '../../template-management';
+import { ReplyTemplate } from '../../shared/types/core';
 
 const { Title, Paragraph, Text } = Typography;
 const { TextArea } = Input;
@@ -86,7 +87,7 @@ export const TaskExecutor: React.FC<TaskExecutorProps> = ({ tasks, onTasksUpdate
   const [executionForm] = Form.useForm();
   
   // 模板数据
-  const [templates, setTemplates] = useState<Template[]>([]);
+  const [templates, setTemplates] = useState<ReplyTemplate[]>([]);
   
   // 结果查看弹窗
   const [resultModalVisible, setResultModalVisible] = useState(false);
@@ -490,7 +491,7 @@ export const TaskExecutor: React.FC<TaskExecutorProps> = ({ tasks, onTasksUpdate
           }}
           rowSelection={{
             selectedRowKeys: selectedTasks,
-            onChange: setSelectedTasks,
+            onChange: (selectedRowKeys) => setSelectedTasks(selectedRowKeys as string[]),
             getCheckboxProps: (record: Task) => ({
               disabled: record.status !== TaskStatus.PENDING || isExecuting
             })
@@ -532,7 +533,7 @@ export const TaskExecutor: React.FC<TaskExecutorProps> = ({ tasks, onTasksUpdate
               placeholder="请选择模板"
               allowClear
               options={templates.map(template => ({
-                label: template.name,
+                label: template.template_name,
                 value: template.id
               }))}
             />
