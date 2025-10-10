@@ -16,7 +16,8 @@ import {
   Row,
   Col,
   Statistic,
-  Empty
+  Empty,
+  Alert
 } from 'antd';
 import type { ColumnsType } from 'antd/es/table';
 import {
@@ -58,6 +59,7 @@ export const TaskExecutionCenter: React.FC<TaskExecutionCenterProps> = ({
   const {
     tasks,
     loading,
+    error,
     loadTasks,
     createTask,
     executeTask,
@@ -65,7 +67,7 @@ export const TaskExecutionCenter: React.FC<TaskExecutionCenterProps> = ({
     resumeTask,
     deleteTask,
     getStats
-  } = useSemiAutoTasks();
+  } = useSemiAutoTasks({ devices: onlineDevices });
 
   const stats = getStats();
 
@@ -123,14 +125,13 @@ export const TaskExecutionCenter: React.FC<TaskExecutionCenterProps> = ({
   // 创建任务
   const handleCreateTask = useCallback(async (taskData: SemiAutoTaskCreate, deviceId?: string) => {
     try {
-      await createTask(taskData);
+      await createTask(taskData, deviceId);
       message.success('任务创建成功');
       setDrawerVisible(false);
     } catch (error) {
       message.error('创建任务失败');
     }
   }, [createTask]);
-
   // 编辑任务
   const handleEditTask = useCallback((task: SemiAutoTask) => {
     setEditingTask(task);
@@ -315,7 +316,16 @@ export const TaskExecutionCenter: React.FC<TaskExecutionCenterProps> = ({
   return (
     <div className="task-execution-center">
       <Space direction="vertical" size="large" style={{ width: '100%' }}>
-        {/* 统计卡片 */}
+        {error && (
+          <Alert
+            type="error"
+            showIcon
+            message="任务数据加载失败"
+            description={error}
+          />
+        )}
+
+                {/* 统计卡片 */}
         <Row gutter={16}>
           <Col span={6}>
             <Card>

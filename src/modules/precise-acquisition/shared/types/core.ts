@@ -8,12 +8,13 @@
 // ==================== 枚举类型 ====================
 
 /**
- * 平台类型枚举
+ * 平台类型枚举 - 统一使用标准定义
  */
 export enum Platform {
   DOUYIN = 'douyin',
   OCEANENGINE = 'oceanengine', 
-  PUBLIC = 'public'
+  PUBLIC = 'public',
+  XIAOHONGSHU = 'xiaohongshu',
 }
 
 /**
@@ -54,17 +55,36 @@ export enum IndustryTag {
 }
 
 /**
- * 地域标签枚举
+ * 地域标签枚举 - 统一使用标准定义
  */
 export enum RegionTag {
+  // 全国和大区
   NATIONWIDE = '全国',
   EAST_CHINA = '华东',
-  NORTH_CHINA = '华北',
+  NORTH_CHINA = '华北', 
   SOUTH_CHINA = '华南',
   CENTRAL_CHINA = '华中',
   SOUTHWEST_CHINA = '西南',
   NORTHWEST_CHINA = '西北',
-  NORTHEAST_CHINA = '东北'
+  NORTHEAST_CHINA = '东北',
+
+  // 主要省份（可扩展）
+  BEIJING = '北京',
+  SHANGHAI = '上海',
+  GUANGDONG = '广东',
+  ZHEJIANG = '浙江',
+  JIANGSU = '江苏',
+  SHANDONG = '山东',
+  SICHUAN = '四川',
+  HUBEI = '湖北',
+  HUNAN = '湖南',
+  FUJIAN = '福建',
+  HEBEI = '河北',
+  HENAN = '河南',
+  ANHUI = '安徽',
+  LIAONING = '辽宁',
+  JILIN = '吉林',
+  HEILONGJIANG = '黑龙江'
 }
 
 /**

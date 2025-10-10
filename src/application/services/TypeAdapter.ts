@@ -1,34 +1,11 @@
 /**
- * 精准获客类型适配器
+ * 精准获客类型适配器 v4.0
  * 
- * 处理新旧类型系统之间的转换，确保兼容性
- * 逐步迁移到新的模块化类型系统
+ * 简化的类型适配器，专注于现有类型间的安全转换
+ * 避免创建不必要的中间标准格式，直接使用现有类型定义
  */
 
-// 旧系统类型（domain entities）
-import { WatchTarget as OldWatchTarget } from '../../domain/precise-acquisition/entities/WatchTarget';
-import { Comment as OldComment } from '../../domain/precise-acquisition/entities/Comment';
-import { Task as OldTask } from '../../domain/precise-acquisition/entities/Task';
-
-// 新系统类型（模块化）
-import {
-  WatchTarget as NewWatchTarget,
-  Comment as NewComment,
-  Task as NewTask,
-  Platform,
-  TargetType,
-  SourceType,
-  IndustryTag,
-  RegionTag,
-  TaskType,
-  TaskStatus,
-  TaskPriority,
-  ExecutorMode,
-  ResultCode,
-  AuditAction
-} from '../../modules/precise-acquisition/shared/types/core';
-
-// 现有系统类型（应用层）
+// 现有系统类型
 import {
   WatchTargetRow,
   WatchTargetPayload,
@@ -39,144 +16,233 @@ import {
   TaskGenerationConfig
 } from '../../types/precise-acquisition';
 
+// 现有枚举类型
+import {
+  Platform,
+  TargetType,
+  TaskStatus,
+  TaskType,
+  ExecutorMode,
+  SourceType
+} from '../../constants/precise-acquisition-enums';
+
 /**
- * 类型适配器
+ * 简化的类型适配器
+ * 
+ * 专注于现有数据类型间的安全转换和格式化
  */
 export class TypeAdapter {
+  
+  // ========== WatchTarget 相关转换 ==========
+  
   /**
-   * 将旧的WatchTarget转换为新的
+   * 创建 WatchTarget 载荷的默认值
    */
-  static adaptWatchTargetToNew(oldTarget: OldWatchTarget): NewWatchTarget {
+  static createWatchTargetPayload(data: Partial<WatchTargetPayload> & {
+    target_type: TargetType;
+    platform: Platform;
+    id_or_url: string;
+  }): WatchTargetPayload {
     return {
-      id: oldTarget.id?.toString() || '', // 转换为string
-      platform: oldTarget.platform as Platform,
-      target_type: oldTarget.targetType, // 修正属性名
-      target_id: oldTarget.idOrUrl,
-      title: oldTarget.title || '',
-      notes: oldTarget.notes || '',
-      industry_tags: oldTarget.industryTags || [], // 修正属性名
-      region: oldTarget.region || '',
-      created_at: oldTarget.createdAt?.toISOString() || new Date().toISOString(), // 修正属性名
-      updated_at: oldTarget.updatedAt?.toISOString() || new Date().toISOString()
+      dedup_key: data.dedup_key || `${data.platform}_${data.target_type}_${data.id_or_url}`,
+      target_type: data.target_type,
+      platform: data.platform,
+      id_or_url: data.id_or_url,
+      title: data.title,
+      source: data.source || SourceType.MANUAL,
+      industry_tags: data.industry_tags,
+      region: data.region,
+      notes: data.notes
     };
   }
 
   /**
-   * 将新的WatchTarget转换为旧的
+   * 从 WatchTargetRow 提取显示信息
    */
-  static adaptWatchTargetToOld(newTarget: NewWatchTarget): Promise<OldWatchTarget> {
-    return Promise.resolve(OldWatchTarget.create({
-      targetType: newTarget.target_type,
-      platform: newTarget.platform,
-      idOrUrl: newTarget.target_id,
-      title: newTarget.title,
-      notes: newTarget.notes,
-      industryTags: newTarget.industry_tags as any,
-      region: newTarget.region as any
-    }));
+  static extractWatchTargetDisplay(row: WatchTargetRow) {
+    return {
+      id: row.id,
+      displayName: row.title || row.id_or_url,
+      platform: row.platform,
+      targetType: row.target_type,
+      createdAt: row.created_at,
+      tags: row.industry_tags?.split(';').filter(Boolean) || [],
+      region: row.region
+    };
   }
 
+  // ========== Task 相关转换 ==========
+
   /**
-   * 将旧的Comment转换为新的
+   * 创建关注任务载荷
    */
-  static adaptCommentToNew(oldComment: OldComment): NewComment {
+  static createFollowTaskPayload(config: {
+    target_user_id: string;
+    assign_account_id: string;
+    executor_mode?: ExecutorMode;
+    priority?: number;
+    deadline_at?: string;
+  }): TaskPayload {
     return {
-      id: oldComment.id || '',
-      platform: oldComment.platform as Platform,
-      video_id: oldComment.videoId, // 修正属性名
-      author_id: oldComment.authorId, // 修正属性名
-      content: oldComment.content,
-      like_count: oldComment.likeCount || 0, // 修正属性名
-      publish_time: oldComment.publishTime?.toISOString() || new Date().toISOString(), // 修正属性名
-      region: oldComment.region || '',
-      source_target_id: oldComment.sourceTargetId, // 修正属性名
-      created_at: oldComment.insertedAt?.toISOString() || new Date().toISOString(),
-      updated_at: oldComment.insertedAt?.toISOString() || new Date().toISOString()
+      task_type: TaskType.FOLLOW,
+      target_user_id: config.target_user_id,
+      assign_account_id: config.assign_account_id,
+      executor_mode: config.executor_mode || ExecutorMode.API,
+      dedup_key: `follow_${config.target_user_id}_${config.assign_account_id}_${Date.now()}`,
+      priority: config.priority || 2,
+      deadline_at: config.deadline_at
     };
   }
 
   /**
-   * 将新的Comment转换为旧的
+   * 创建回复任务载荷
    */
-  static adaptCommentToOld(newComment: NewComment): Comment {
-    return OldComment.create({
-      platform: newComment.platform,
-      videoId: newComment.video_id,
-      authorId: newComment.author_id,
-      content: newComment.content,
-      likeCount: newComment.like_count,
-      publishTime: new Date(newComment.publish_time),
-      region: newComment.region as any,
-      sourceTargetId: newComment.source_target_id
-    });
-  }
-
-  /**
-   * 将旧的Task转换为新的
-   */
-  static adaptTaskToNew(oldTask: OldTask): NewTask {
+  static createReplyTaskPayload(config: {
+    comment_id: string;
+    assign_account_id: string;
+    executor_mode?: ExecutorMode;
+    priority?: number;
+    deadline_at?: string;
+  }): TaskPayload {
     return {
-      id: oldTask.id || '',
-      task_type: oldTask.taskType as TaskType, // 修正属性名
-      platform: 'xiaohongshu' as Platform, // 默认平台
-      status: oldTask.status as TaskStatus,
-      priority: 'normal' as TaskPriority, // 数字转为字符串枚举
-      target_id: oldTask.targetUserId || '',
-      assigned_device_id: oldTask.assignAccountId,
-      created_at: oldTask.createdAt?.toISOString() || new Date().toISOString(),
-      updated_at: oldTask.executedAt?.toISOString() || new Date().toISOString(),
-      scheduled_time: oldTask.deadlineAt?.toISOString(),
-      error_message: oldTask.errorMessage,
-      retry_count: oldTask.attempts || 0,
-      metadata: { executor_mode: oldTask.executorMode }
+      task_type: TaskType.REPLY,
+      comment_id: config.comment_id,
+      assign_account_id: config.assign_account_id,
+      executor_mode: config.executor_mode || ExecutorMode.API,
+      dedup_key: `reply_${config.comment_id}_${config.assign_account_id}_${Date.now()}`,
+      priority: config.priority || 2,
+      deadline_at: config.deadline_at
     };
   }
 
   /**
-   * 将新的Task转换为旧的
+   * 从 TaskRow 提取显示信息
    */
-  static adaptTaskToOld(newTask: NewTask): Task {
-    if (newTask.task_type === 'reply') {
-      return OldTask.createReplyTask({
-        commentId: newTask.target_id,
-        assignAccountId: newTask.assigned_device_id || 'default',
-        executorMode: (newTask.metadata?.executor_mode as any) || 'api'
-      });
-    } else {
-      return OldTask.createFollowTask({
-        targetUserId: newTask.target_id,
-        assignAccountId: newTask.assigned_device_id || 'default',
-        executorMode: (newTask.metadata?.executor_mode as any) || 'api'
-      });
+  static extractTaskDisplay(row: TaskRow) {
+    return {
+      id: row.id,
+      type: row.task_type,
+      status: row.status,
+      priority: row.priority,
+      targetId: row.target_user_id || row.comment_id || 'unknown',
+      assignedTo: row.assign_account_id,
+      createdAt: row.created_at,
+      executedAt: row.executed_at,
+      attempts: row.attempts,
+      error: row.error_message,
+      isOverdue: row.deadline_at ? new Date(row.deadline_at) < new Date() : false
+    };
+  }
+
+  // ========== Comment 相关转换 ==========
+
+  /**
+   * 从 CommentRow 提取显示信息
+   */
+  static extractCommentDisplay(row: CommentRow) {
+    return {
+      id: row.id,
+      platform: row.platform,
+      authorId: row.author_id,
+      content: row.content,
+      likeCount: row.like_count || 0,
+      publishTime: row.publish_time,
+      region: row.region,
+      insertedAt: row.inserted_at,
+      videoId: row.video_id,
+      sourceTargetId: row.source_target_id
+    };
+  }
+
+  // ========== 工具方法 ==========
+
+  /**
+   * 安全的JSON解析
+   */
+  static parseJsonSafely<T = any>(value?: string | null): T | null {
+    if (!value) return null;
+    try {
+      return JSON.parse(value);
+    } catch {
+      return null;
     }
+  }
+
+  /**
+   * 格式化日期为ISO字符串
+   */
+  static formatDate(value: string | Date | null | undefined): string {
+    if (!value) return new Date().toISOString();
+    if (typeof value === 'string') return value;
+    return value.toISOString();
+  }
+
+  /**
+   * 检查任务状态是否为最终状态
+   */
+  static isTaskCompleted(status: TaskStatus): boolean {
+    return [
+      TaskStatus.DONE,
+      TaskStatus.COMPLETED,
+      TaskStatus.FAILED,
+      TaskStatus.CANCELLED
+    ].includes(status);
+  }
+
+  /**
+   * 检查任务状态是否为进行中
+   */
+  static isTaskInProgress(status: TaskStatus): boolean {
+    return [
+      TaskStatus.PENDING,
+      TaskStatus.EXECUTING,
+      TaskStatus.IN_PROGRESS,
+      TaskStatus.RETRY
+    ].includes(status);
+  }
+
+  /**
+   * 获取任务状态的显示文本
+   */
+  static getTaskStatusDisplay(status: TaskStatus): string {
+    const statusMap: Record<TaskStatus, string> = {
+      [TaskStatus.NEW]: '新建',
+      [TaskStatus.READY]: '就绪',
+      [TaskStatus.PENDING]: '待执行',
+      [TaskStatus.EXECUTING]: '执行中',
+      [TaskStatus.IN_PROGRESS]: '进行中',
+      [TaskStatus.DONE]: '已完成',
+      [TaskStatus.COMPLETED]: '完成',
+      [TaskStatus.FAILED]: '失败',
+      [TaskStatus.CANCELLED]: '已取消',
+      [TaskStatus.RETRY]: '重试'
+    };
+    return statusMap[status] || status;
+  }
+
+  /**
+   * 获取平台的显示文本
+   */
+  static getPlatformDisplay(platform: Platform): string {
+    const platformMap: Record<Platform, string> = {
+      [Platform.DOUYIN]: '抖音',
+      [Platform.OCEANENGINE]: '巨量引擎',
+      [Platform.PUBLIC]: '公开来源',
+      [Platform.XIAOHONGSHU]: '小红书'
+    };
+    return platformMap[platform] || platform;
   }
 }
 
 /**
- * 统一的任务生成配置接口
+ * 任务批量生成配置
  */
-export interface UnifiedTaskGenerationConfig {
-  // 基本配置
-  target?: OldWatchTarget;
-  max_tasks_per_target?: number;
-  task_types?: TaskType[];
-  priority?: string;
-  
-  // 设备和分配
-  device_id?: string;
-  assignment_strategy?: string;
-  
-  // 时间相关
-  time_window_hours?: number;
-  schedule_delay_hours?: number;
-  
-  // 检查开关
-  require_dedup_check?: boolean;
-  require_rate_limit_check?: boolean;
-  
-  // 筛选条件
-  keywords?: string[];
-  exclude_keywords?: string[];
-  min_like_count?: number;
-  regions?: string[];
+export interface BatchTaskGenerationConfig {
+  targets: WatchTargetRow[];
+  taskTypes: TaskType[];
+  assignAccountId: string;
+  executorMode: ExecutorMode;
+  priority: number;
+  timeWindowHours?: number;
+  maxTasksPerTarget?: number;
 }

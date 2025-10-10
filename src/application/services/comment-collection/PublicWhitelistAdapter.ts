@@ -9,11 +9,11 @@ import {
   Platform, 
   TargetType, 
   IndustryTag, 
-  RegionTag 
-} from '../../../constants/precise-acquisition-enums';
-import { 
+  RegionTag,
   WatchTarget, 
-  Comment, 
+  Comment
+} from '../../../modules/precise-acquisition/shared/types/core';
+import { 
   CommentCollectionParams, 
   CommentCollectionResult, 
   AdapterStatus 
@@ -72,6 +72,26 @@ export class PublicWhitelistAdapter {
   constructor(config: PublicWhitelistConfig) {
     this.config = config;
     this.initializeWhitelistRules();
+  }
+
+  /**
+   * 获取适配器平台类型
+   */
+  getPlatform(): Platform {
+    return Platform.PUBLIC;
+  }
+
+  /**
+   * 根据URL查找匹配的白名单规则
+   */
+  private findMatchingRule(url: string): WhitelistRule | null {
+    try {
+      const domain = new URL(url).hostname;
+      return this.whitelistRules.get(domain) || null;
+    } catch (error) {
+      console.error('Invalid URL format:', url);
+      return null;
+    }
   }
 
   /**
@@ -138,7 +158,7 @@ export class PublicWhitelistAdapter {
     const rule = this.whitelistRules.get(domain)!;
 
     // 验证权限和合规性
-    const permissions = await this.validatePermissions(target, rule);
+    const permissions = await this.validatePermissionsWithRule(target, rule);
     if (!permissions.canCollect) {
       throw new Error(`Permission denied: ${permissions.reason}`);
     }
@@ -191,9 +211,29 @@ export class PublicWhitelistAdapter {
   }
 
   /**
-   * 验证采集权限
+   * 验证采集权限（CommentAdapter接口兼容版本）
    */
-  async validatePermissions(
+  async validatePermissions(target: WatchTarget): Promise<{
+    canCollect: boolean;
+    reason?: string;
+    requiredScopes?: string[];
+    compliance_status?: string;
+  }> {
+    const rule = this.findMatchingRule(target.platform_id_or_url);
+    if (!rule) {
+      return {
+        canCollect: false,
+        reason: 'Target not in whitelist'
+      };
+    }
+    
+    return await this.validatePermissionsWithRule(target, rule);
+  }
+
+  /**
+   * 验证采集权限（带规则参数的内部版本）
+   */
+  async validatePermissionsWithRule(
     target: WatchTarget, 
     rule: WhitelistRule
   ): Promise<{

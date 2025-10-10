@@ -12,6 +12,7 @@ export {
   createTaskExecutionEngine,
   getDefaultTaskEngineConfig,
   TaskStatus,
+  TaskType,
   TaskPriority,
   ExecutionStrategy,
   type TaskEngineConfig,

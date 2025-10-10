@@ -5,7 +5,7 @@
  * 实现适配器选择、权限验证、任务分发等核心功能
  */
 
-import { Platform } from '../../../constants/precise-acquisition-enums';
+import { Platform, Comment, WatchTarget } from '../../../modules/precise-acquisition/shared/types/core';
 import { 
   DouyinCommentAdapter, 
   DouyinAPIConfig,
@@ -22,70 +22,15 @@ import {
   createPublicWhitelistAdapter 
 } from './PublicWhitelistAdapter';
 
-// ==================== 通用接口定义 ====================
+// ==================== 统一接口导入 ====================
 
-export interface CommentAdapter {
-  getStatus(): Promise<AdapterStatus>;
-  isTargetSupported(target: WatchTarget): boolean;
-  collectComments(params: CommentCollectionParams): Promise<CommentCollectionResult>;
-  validatePermissions(target: WatchTarget): Promise<PermissionValidationResult>;
-  getPlatform(): Platform;
-}
-
-export interface AdapterStatus {
-  is_available: boolean;
-  last_error?: string;
-}
-
-export interface WatchTarget {
-  id: string;  // 统一使用 string 类型
-  platform: Platform;
-  platform_id_or_url: string;
-  target_type: string;
-  industry_tag?: string;
-  region?: string;
-}
-
-export interface CommentCollectionParams {
-  target: WatchTarget;
-  limit?: number;
-  cursor?: string;
-  time_range?: {
-    start: Date;
-    end: Date;
-  };
-}
-
-export interface CommentCollectionResult {
-  comments: Comment[];
-  has_more: boolean;
-  next_cursor?: string;
-  total_count?: number;
-  rate_limit_info?: {
-    remaining: number;
-    reset_time: Date;
-  };
-}
-
-export interface Comment {
-  id: string;
-  platform: Platform;
-  video_id: string;
-  author_id: string;
-  content: string;
-  like_count: number;
-  publish_time: Date;
-  region?: string;
-  source_target_id: number;
-  inserted_at: Date;
-}
-
-export interface PermissionValidationResult {
-  canCollect: boolean;
-  reason?: string;
-  requiredScopes?: string[];
-  compliance_status?: string;
-}
+import {
+  UnifiedCommentAdapter as CommentAdapter,
+  UnifiedCommentCollectionParams as CommentCollectionParams,
+  UnifiedCommentCollectionResult as CommentCollectionResult,
+  UnifiedAdapterStatus as AdapterStatus,
+  UnifiedPermissionValidationResult as PermissionValidationResult
+} from './UnifiedCommentAdapter';
 
 // ==================== 适配器管理器配置 ====================
 
@@ -170,7 +115,9 @@ export class CommentAdapterManager {
         statusMap[platform] = await adapter.getStatus();
       } catch (error) {
         statusMap[platform] = {
-          is_available: false,
+          platform,
+          available: false,
+          auth_status: 'invalid',
           last_error: error instanceof Error ? error.message : 'Unknown error'
         };
       }
@@ -193,7 +140,7 @@ export class CommentAdapterManager {
       
       if (adapter.isTargetSupported(target)) {
         const status = await adapter.getStatus();
-        if (status.is_available) {
+        if (status.available) {
           const permissions = await adapter.validatePermissions(target);
           if (permissions.canCollect) {
             return {
@@ -237,7 +184,7 @@ export class CommentAdapterManager {
       if (!adapter.isTargetSupported(target)) continue;
 
       const status = await adapter.getStatus();
-      if (!status.is_available) continue;
+      if (!status.available) continue;
 
       const permissions = await adapter.validatePermissions(target);
       if (!permissions.canCollect) continue;
@@ -288,7 +235,7 @@ export class CommentAdapterManager {
       if (!adapter.isTargetSupported(target)) continue;
 
       const status = await adapter.getStatus();
-      if (!status.is_available) continue;
+      if (!status.available) continue;
 
       const permissions = await adapter.validatePermissions(target);
       if (permissions.canCollect) {
@@ -350,7 +297,7 @@ export class CommentAdapterManager {
     for (const [platform, adapter] of this.adapters) {
       if (adapter.isTargetSupported(params.target)) {
         const status = await adapter.getStatus();
-        if (status.is_available) {
+        if (status.available) {
           const permissions = await adapter.validatePermissions(params.target);
           if (permissions.canCollect) {
             availableAdapters.push({ adapter, platform });
@@ -519,7 +466,7 @@ export class CommentAdapterManager {
         supported_platforms.push(platform);
 
         const status = await adapter.getStatus();
-        if (status.is_available) {
+        if (status.available) {
           const permissions = await adapter.validatePermissions(target);
           if (permissions.canCollect) {
             available_adapters.push(platform);

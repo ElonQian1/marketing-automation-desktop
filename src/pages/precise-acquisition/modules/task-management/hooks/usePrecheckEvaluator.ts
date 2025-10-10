@@ -6,7 +6,7 @@ import type {
   PrecheckContext,
   PrecheckResult,
   UsePrecheckEvaluatorResult,
-} from './types';
+} from '../semi-auto/types';
 
 const SENSITIVE_DICTIONARY = [
   '加微信',
@@ -21,21 +21,35 @@ const SENSITIVE_DICTIONARY = [
 const hoursToMs = (hours: number) => hours * 60 * 60 * 1000;
 
 const evaluatePermissions = (context: PrecheckContext): PrecheckResult => {
-  if (context.executorMode === ExecutorMode.API) {
+  const mode = context.executorMode || 'manual';
+  const isApiMode = mode === ExecutorMode.API || mode === 'api';
+  const isMixedMode = mode === 'mixed';
+
+  if (isApiMode) {
     return {
       key: 'permissions',
-      label: '权限',
+      label: 'Ȩ��',
       status: 'pass',
-      message: '已检测到 API 权限，可直接调用',
+      message: '�Ѽ�⵽ API Ȩ�ޣ���ֱ�ӵ���',
+    };
+  }
+
+  if (isMixedMode) {
+    return {
+      key: 'permissions',
+      label: 'Ȩ��',
+      status: 'warning',
+      message: '�������ӵ� API �� �˹� ����ģʽ��',
+      detail: '����ִ��ǰȷ����ѡ����ȷ�ĵ�������ִ�й���',
     };
   }
 
   return {
     key: 'permissions',
-    label: '权限',
+    label: 'Ȩ��',
     status: 'warning',
-    message: '当前任务需人工半自动处理',
-    detail: '账号暂未开通 API 回复权限，请按流程人工完成并回填结果',
+    message: '��ǰ�������˹����Զ�����',
+    detail: '�˺���δ��ͨ API �ظ�Ȩ�ޣ��밴�����˹���ɲ�������',
   };
 };
 
@@ -189,3 +203,4 @@ export function usePrecheckEvaluator(context: PrecheckContext | null): UsePreche
     refresh: runEvaluations,
   };
 }
+

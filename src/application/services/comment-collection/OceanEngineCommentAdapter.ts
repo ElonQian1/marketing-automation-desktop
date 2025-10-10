@@ -9,11 +9,11 @@ import {
   Platform, 
   TargetType, 
   IndustryTag, 
-  RegionTag 
-} from '../../../constants/precise-acquisition-enums';
-import { 
+  RegionTag,
   WatchTarget, 
-  Comment, 
+  Comment
+} from '../../../modules/precise-acquisition/shared/types/core';
+import { 
   CommentCollectionParams, 
   CommentCollectionResult, 
   AdapterStatus 

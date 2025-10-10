@@ -5,7 +5,21 @@
  * 支持账号分配、任务调度、重试机制和优先级管理
  */
 
-import { Platform, TargetType, TaskStatus } from '../../../constants/precise-acquisition-enums';
+// 使用现有的核心类型系统
+import { 
+  Platform, 
+  TargetType,
+  TaskType
+} from '../../../modules/precise-acquisition/shared/types/core';
+
+// 从现有精准获客枚举中导入
+import {
+  TaskStatus,
+  ExecutorMode
+} from '../../../constants/precise-acquisition-enums';
+
+// Priority类型映射
+type Priority = 'low' | 'normal' | 'high' | 'urgent';
 import { 
   CommentAdapterManager,
   CommentCollectionParams,
@@ -13,12 +27,9 @@ import {
   createCommentAdapterManager
 } from '../comment-collection';
 
-export enum TaskPriority {
-  LOW = 'low',
-  NORMAL = 'normal',
-  HIGH = 'high',
-  URGENT = 'urgent'
-}
+// 重新导出类型，保持向后兼容
+export type { TaskStatus, TaskType };
+export type TaskPriority = Priority;
 
 export enum ExecutionStrategy {
   API_FIRST = 'api_first',           // API优先
@@ -29,7 +40,7 @@ export enum ExecutionStrategy {
 // ==================== 任务接口定义 ====================
 
 export interface Task {
-  id: number;
+  id: string;  // 统一使用 string 类型的 ID
   task_type: string;
   platform: Platform;
   target_user_id: string;
@@ -37,7 +48,7 @@ export interface Task {
   target_video_url?: string;
   content?: string;
   status: TaskStatus;
-  priority: TaskPriority;
+  priority: Priority;
   execution_strategy: ExecutionStrategy;
   scheduled_time: Date;
   deadline?: Date;
@@ -77,7 +88,7 @@ export interface Account {
 // ==================== 执行结果接口 ====================
 
 export interface TaskExecutionResult {
-  task_id: number;
+  task_id: string;
   status: TaskStatus;
   execution_time_ms: number;
   strategy_used: ExecutionStrategy;
@@ -142,7 +153,7 @@ export interface TaskEngineConfig {
 export class TaskExecutionEngine {
   private config: TaskEngineConfig;
   private commentAdapterManager: CommentAdapterManager;
-  private runningTasks: Map<number, TaskExecutionContext> = new Map();
+  private runningTasks: Map<string, TaskExecutionContext> = new Map();
   private assignmentStrategy: TaskAssignmentStrategy;
   private executionStats: ExecutionStats;
 
@@ -174,7 +185,7 @@ export class TaskExecutionEngine {
 
     try {
       // 更新任务状态为执行中
-      task.status = TaskStatus.IN_PROGRESS;
+      task.status = TaskStatus.EXECUTING;
       
       // 根据执行策略选择执行方法
       let result: TaskExecutionResult;
@@ -261,14 +272,14 @@ export class TaskExecutionEngine {
    * 获取运行中的任务状态
    */
   getRunningTasksStatus(): Array<{
-    task_id: number;
+    task_id: string;
     device_id: string;
     account_id: string;
     running_time_ms: number;
     current_strategy: ExecutionStrategy;
   }> {
     const results: Array<{
-      task_id: number;
+      task_id: string;
       device_id: string;
       account_id: string;
       running_time_ms: number;
@@ -291,7 +302,7 @@ export class TaskExecutionEngine {
   /**
    * 取消任务执行
    */
-  async cancelTask(taskId: number): Promise<boolean> {
+  async cancelTask(taskId: string): Promise<boolean> {
     const context = this.runningTasks.get(taskId);
     if (!context) return false;
 
@@ -331,7 +342,10 @@ export class TaskExecutionEngine {
           id: task.id,
           platform: task.platform,
           platform_id_or_url: task.target_video_url || task.target_user_id,
-          target_type: task.target_video_url ? TargetType.VIDEO : TargetType.ACCOUNT
+          target_type: task.target_video_url ? TargetType.VIDEO : TargetType.ACCOUNT,
+          source: 'manual' as any, // 临时修复
+          created_at: new Date(),
+          updated_at: new Date()
         },
         limit: 50
       };

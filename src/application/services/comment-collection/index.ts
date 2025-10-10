@@ -13,11 +13,15 @@ export {
   validateDouyinConfig,
   type DouyinAPIConfig,
   type AdapterStatus,
-  type WatchTarget,
   type CommentCollectionParams,
-  type CommentCollectionResult,
-  type Comment
+  type CommentCollectionResult
 } from './DouyinCommentAdapter';
+
+// 统一类型导出（从核心类型模块）
+export {
+  type WatchTarget,
+  type Comment
+} from '../../../modules/precise-acquisition/shared/types/core';
 
 // 巨量引擎适配器
 export {

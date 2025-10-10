@@ -28,6 +28,12 @@ export { StrategyDecisionEngine } from './core/StrategyDecisionEngine';
 export { ElementContextAnalyzer } from './core/ElementContextAnalyzer';
 export { ConfidenceCalculator } from './core/ConfidenceCalculator';
 
+// === 增强功能 (XPath文档要求的新实现) ===
+export { EnhancedStrategyDecisionEngine } from './engines/EnhancedStrategyDecisionEngine';
+export { OfflineValidationSystem } from './validation/OfflineValidationSystem';
+export { ControlledFallbackMechanism } from './fallback/ControlledFallbackMechanism';
+export { RegionLimitedSearchOptimizer } from './optimization/RegionLimitedSearchOptimizer';
+
 // === 分析器 ===
 export { BaseAnalyzer } from './analyzers/BaseAnalyzer';
 // export { AnalyzerFactory } from './analyzers/AnalyzerFactory';

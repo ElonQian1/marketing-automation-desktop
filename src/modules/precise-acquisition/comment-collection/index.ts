@@ -4,14 +4,26 @@
  * 导出评论采集模块的所有公共组件、服务和类型
  */
 
-// 服务层
-export { CommentCollectionService } from './services/CommentCollectionService';
+// 服务层 - 向后兼容导出 (实际使用 EnhancedCommentAdapterManager)
+export { 
+  EnhancedCommentAdapterManager as CommentCollectionService,
+  createEnhancedCommentAdapterManager
+} from '../../../application/services/comment-collection/EnhancedCommentAdapterManager';
 
-// 适配器层
-export { CommentCollectionAdapter } from './adapters/CommentCollectionAdapter';
-export { DouyinAdapter } from './adapters/DouyinAdapter';
-export { OceanEngineAdapter } from './adapters/OceanEngineAdapter';
-export { WhitelistAdapter } from './adapters/WhitelistAdapter';
+// 适配器层 - 向后兼容导出 (实际使用 application 层实现)
+export type { 
+  UnifiedCommentAdapter as CommentCollectionAdapter
+} from '../../../application/services/comment-collection/UnifiedCommentAdapter';
+
+export { 
+  UnifiedCommentAdapterBase as CommentAdapterBase
+} from '../../../application/services/comment-collection/UnifiedCommentAdapter';
+
+export { 
+  DouyinCommentAdapter as DouyinAdapter,
+  OceanEngineCommentAdapter as OceanEngineAdapter,
+  PublicWhitelistAdapter as WhitelistAdapter
+} from '../../../application/services/comment-collection/';
 
 // UI组件
 export { CommentCollectionManager } from './components/CommentCollectionManager';
@@ -27,4 +39,4 @@ export type {
   CollectionStats,
   BatchCollectionConfig,
   BatchCollectionResult
-} from './services/CommentCollectionService';
+} from '../../../application/services/comment-collection/EnhancedCommentAdapterManager';

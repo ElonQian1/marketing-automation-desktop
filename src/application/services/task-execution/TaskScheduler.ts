@@ -7,8 +7,6 @@
 
 import { 
   Task, 
-  TaskStatus, 
-  TaskPriority, 
   ExecutionStrategy,
   Device, 
   Account,
@@ -16,6 +14,14 @@ import {
   TaskExecutionResult,
   BatchExecutionResult
 } from './TaskExecutionEngine';
+
+// 使用现有精准获客枚举
+import {
+  TaskStatus
+} from '../../../constants/precise-acquisition-enums';
+
+// Priority类型映射
+type TaskPriority = 'low' | 'normal' | 'high' | 'urgent';
 
 // ==================== 调度器配置 ====================
 
@@ -188,7 +194,7 @@ export class TaskScheduler {
   /**
    * 取消任务
    */
-  async cancelTask(taskId: number): Promise<boolean> {
+  async cancelTask(taskId: string): Promise<boolean> {
     try {
       // 在待处理队列中查找
       const pendingIndex = this.taskQueue.pending.findIndex(t => t.id === taskId);
@@ -221,7 +227,7 @@ export class TaskScheduler {
   /**
    * 获取任务状态
    */
-  getTaskStatus(taskId: number): TaskStatus | null {
+  getTaskStatus(taskId: string): TaskStatus | null {
     // 在所有队列中查找任务
     for (const queueName of ['pending', 'processing', 'completed', 'failed', 'cancelled'] as const) {
       const task = this.taskQueue[queueName].find(t => t.id === taskId);
@@ -431,7 +437,7 @@ export class TaskScheduler {
         case TaskStatus.FAILED:
           if (this.shouldRetryTask(task)) {
             task.current_retry_count++;
-            task.status = TaskStatus.RETRY;
+            task.status = TaskStatus.PENDING; // 重试状态用PENDING表示
             // 延迟后重新加入队列
             setTimeout(() => {
               task.status = TaskStatus.PENDING;
@@ -504,7 +510,7 @@ export class TaskScheduler {
     for (const task of expiredTasks) {
       console.warn(`[TaskScheduler] Task ${task.id} expired (deadline: ${task.deadline})`);
       
-      if (task.status === TaskStatus.IN_PROGRESS) {
+      if (task.status === TaskStatus.EXECUTING) { // 使用EXECUTING替代RUNNING
         // 尝试取消正在执行的任务
         this.executionEngine.cancelTask(task.id);
       }
@@ -697,7 +703,7 @@ export class TaskScheduler {
   /**
    * 在处理中队列查找任务
    */
-  private findTaskInProcessing(taskId: number): Task | undefined {
+  private findTaskInProcessing(taskId: string): Task | undefined {
     return this.taskQueue.processing.find(task => task.id === taskId);
   }
 

@@ -175,6 +175,17 @@ export interface MatchingCriteria {
     bottom: number;
   };
   
+  /** 搜索区域限制（区域优化器使用） */
+  searchRegions?: string[];
+  
+  /** 区域边界（区域优化器使用） */
+  regionBounds?: Array<{
+    left: number;
+    top: number;
+    right: number;
+    bottom: number;
+  }>;
+  
   /** 层级约束 */
   hierarchy?: {
     /** 相对父节点的层级 */

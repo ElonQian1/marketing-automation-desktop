@@ -8,11 +8,21 @@ import {
   TemplateManagementService,
   TemplateContext,
   TemplateRenderResult 
-} from './template-management';
+}        [Platform.PUBLIC]: {
+          enabled: true,
+          priority: 3,
+          rate_limit_multiplier: 0.8
+        },
+        [Platform.XIAOHONGSHU]: {
+          enabled: false,
+          priority: 4,
+          rate_limit_multiplier: 1.0
+        } './template-management';
 
 import { 
-  CommentCollectionService
-} from './comment-collection';
+  EnhancedCommentAdapterManager,
+  createEnhancedCommentAdapterManager
+} from '../../application/services/comment-collection/EnhancedCommentAdapterManager';
 
 import { 
   TaskEngineService,
@@ -96,7 +106,7 @@ export class PreciseAcquisitionService {
   
   // 各模块服务实例
   private templateService: TemplateManagementService;
-  private commentService: CommentCollectionService;
+  private commentService: EnhancedCommentAdapterManager;
   private taskEngineService: TaskEngineService;
   private taskExecutorService: TaskExecutorService;
   private rateControlService: RateControlService;
@@ -185,7 +195,10 @@ export class PreciseAcquisitionService {
     }
     
     if (this.systemConfig.modules.comment_collection) {
-      this.commentService = new CommentCollectionService();
+      this.commentService = createEnhancedCommentAdapterManager({
+        default_strategy: 'auto',
+        fallback_enabled: true
+      });
     }
     
     if (this.systemConfig.modules.task_execution) {
@@ -393,7 +406,7 @@ export class PreciseAcquisitionService {
   /**
    * 获取服务实例 - 评论收集
    */
-  getCommentService(): CommentCollectionService {
+  getCommentService(): EnhancedCommentAdapterManager {
     if (!this.commentService) {
       throw new Error('评论收集服务未启用');
     }

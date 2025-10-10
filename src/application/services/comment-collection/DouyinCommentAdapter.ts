@@ -5,37 +5,20 @@
  * 仅支持已授权账号下的视频/直播互动数据拉取
  */
 
+// 使用现有的核心类型系统 - 全部从core.ts导入
 import { 
   Platform, 
   TargetType, 
   IndustryTag, 
-  RegionTag 
-} from '../../../constants/precise-acquisition-enums';
+  RegionTag,
+  WatchTarget,
+  Comment
+} from '../../../modules/precise-acquisition/shared/types/core';
 
 // ==================== 接口定义 ====================
 
-export interface WatchTarget {
-  id: string;
-  target_type: TargetType;
-  platform: Platform;
-  platform_id_or_url: string;
-  title?: string;
-  industry_tags?: IndustryTag[];
-  region_tag?: RegionTag;
-}
-
-export interface Comment {
-  id: string;
-  platform: Platform;
-  video_id: string;
-  author_id: string;
-  content: string;
-  like_count?: number;
-  publish_time: Date;
-  region?: RegionTag;
-  source_target_id: string;
-  inserted_at: Date;
-}
+// 删除重复的本地接口定义，使用统一的领域类型
+// WatchTarget 和 Comment 现在从 core.ts 导入
 
 export interface CommentCollectionParams {
   target: WatchTarget;

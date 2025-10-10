@@ -42,12 +42,13 @@ import type { ColumnsType } from 'antd/es/table';
 import dayjs from 'dayjs';
 
 import { 
-  CommentCollectionService, 
+  EnhancedCommentAdapterManager,
+  createEnhancedCommentAdapterManager,
   BatchCollectionConfig, 
   BatchCollectionResult,
   CollectionStats
-} from '../services/CommentCollectionService';
-import { AdapterStatus } from '../adapters/CommentCollectionAdapter';
+} from '../../../../application/services/comment-collection/EnhancedCommentAdapterManager';
+import { UnifiedAdapterStatus as AdapterStatus } from '../../../../application/services/comment-collection/UnifiedCommentAdapter';
 import { WatchTarget, Platform, Comment } from '../../shared/types/core';
 import { PLATFORM_LABELS } from '../../shared/constants';
 import { formatDateTime } from '../../shared/utils';
@@ -67,10 +68,13 @@ export const CommentCollectionManager: React.FC<CommentCollectionManagerProps> =
   targets = [],
   onTargetsChange
 }) => {
-  const [service] = useState(() => new CommentCollectionService());
+  const [service] = useState(() => createEnhancedCommentAdapterManager({
+    default_strategy: 'auto',
+    fallback_enabled: true
+  }));
   
   // 状态管理
-  const [adaptersStatus, setAdaptersStatus] = useState<AdapterStatus[]>([]);
+  const [adaptersStatus, setAdaptersStatus] = useState<Record<Platform, AdapterStatus>>({} as Record<Platform, AdapterStatus>);
   const [collectionStats, setCollectionStats] = useState<CollectionStats | null>(null);
   const [comments, setComments] = useState<Comment[]>([]);
   const [loading, setLoading] = useState(false);
@@ -309,7 +313,7 @@ export const CommentCollectionManager: React.FC<CommentCollectionManagerProps> =
     <div className={className}>
       {/* 适配器状态卡片 */}
       <Row gutter={16} style={{ marginBottom: 16 }}>
-        {adaptersStatus.map(status => (
+        {Object.values(adaptersStatus).map(status => (
           <Col span={8} key={status.platform}>
             <Card size="small">
               <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>

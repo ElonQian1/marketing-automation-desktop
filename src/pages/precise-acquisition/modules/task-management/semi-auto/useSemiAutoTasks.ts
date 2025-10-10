@@ -1,229 +1,411 @@
-/**
- * 半自动任务管理 Hook
- */
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { message } from 'antd';
+import type { Device } from '../../../../../domain/adb/entities/Device';
+import { monitoringService } from '../../../services/monitoringService';
+import type { ReplyTask } from '../../../services/monitoringService';
+import type {
+  SemiAutoTask,
+  SemiAutoTaskCreate,
+  SemiAutoTaskFilter,
+  SemiAutoTaskStats,
+  SemiAutoTaskStatus,
+  SemiAutoTaskUpdate,
+} from './types';
 
-import { useState, useEffect, useCallback } from 'react';
-import type { SemiAutoTask, SemiAutoTaskCreate, SemiAutoTaskUpdate, SemiAutoTaskFilter, SemiAutoTaskStats } from './types';
+export interface UseSemiAutoTasksOptions {
+  devices?: Device[];
+}
 
-export const useSemiAutoTasks = () => {
+export interface UseSemiAutoTasksReturn {
+  tasks: SemiAutoTask[];
+  loading: boolean;
+  error: string | null;
+  loadTasks: (filter?: SemiAutoTaskFilter) => Promise<void>;
+  createTask: (taskData: SemiAutoTaskCreate, deviceId?: string) => Promise<string>;
+  updateTask: (taskId: string, patch: Partial<SemiAutoTaskUpdate>) => void;
+  deleteTask: (taskId: string) => Promise<void>;
+  executeTask: (taskId: string, deviceId?: string) => Promise<void>;
+  pauseTask: (taskId: string) => Promise<void>;
+  resumeTask: (taskId: string, deviceId?: string) => Promise<void>;
+  getStats: () => SemiAutoTaskStats;
+}
+
+const DEFAULT_MAX_RETRIES = 3;
+const EXECUTION_SIMULATION_MS = 4500;
+
+const buildMockFollowTasks = (devices: Device[] = []): SemiAutoTask[] => {
+  const primaryDevice = devices[0];
+
+  const now = Date.now();
+
+  return [
+    {
+      id: 'follow_seed_001',
+      type: 'follow',
+      title: '关注直播高互动用户',
+      description: '针对近期直播间互动频繁的用户，批量执行关注动作，维护社群热度。',
+      status: 'pending',
+      priority: 'high',
+      deviceId: primaryDevice?.id,
+      deviceName: primaryDevice?.name,
+      assignAccountId: 'follow_account_main',
+      executorMode: 'api',
+      targetId: 'user_001',
+      targetName: '产品经理小王',
+      targetAccount: 'user_001',
+      targetContent: '直播间互动频繁，需要重点维护',
+      dedupKey: 'follow:user_001',
+      createdAt: new Date(now - 2 * 60 * 60 * 1000).toISOString(),
+      updatedAt: new Date(now - 2 * 60 * 60 * 1000).toISOString(),
+      retryCount: 0,
+      maxRetries: DEFAULT_MAX_RETRIES,
+      progress: 0,
+      parameters: {
+        followCount: 50,
+        delayMin: 2,
+        delayMax: 6,
+        checkDuplication: true,
+        autoSwitch: true,
+      },
+      statistics: {
+        successCount: 18,
+        failureCount: 2,
+        lastExecutedAt: new Date(now - 60 * 60 * 1000).toISOString(),
+      },
+      metadata: { source: 'seed', category: 'follow' },
+    },
+    {
+      id: 'follow_seed_002',
+      type: 'follow',
+      title: '关注新品话题潜在客户',
+      description: '针对新品话题下互动的潜在客户执行关注动作，触达潜在意向用户。',
+      status: 'completed',
+      priority: 'medium',
+      deviceId: primaryDevice?.id,
+      deviceName: primaryDevice?.name,
+      assignAccountId: 'follow_account_main',
+      executorMode: 'api',
+      targetId: 'user_002',
+      targetName: '营销总监李总',
+      targetAccount: 'user_002',
+      targetContent: '新品话题互动活跃，需要重点回访',
+      dedupKey: 'follow:user_002',
+      createdAt: new Date(now - 6 * 60 * 60 * 1000).toISOString(),
+      updatedAt: new Date(now - 3 * 60 * 60 * 1000).toISOString(),
+      completedAt: new Date(now - 3 * 60 * 60 * 1000).toISOString(),
+      retryCount: 0,
+      maxRetries: DEFAULT_MAX_RETRIES,
+      progress: 100,
+      parameters: {
+        followCount: 30,
+        delayMin: 3,
+        delayMax: 5,
+        checkDuplication: true,
+      },
+      result: {
+        success: true,
+        message: '累计关注 30 位潜在客户',
+        data: { processedCount: 30 },
+      },
+      statistics: {
+        successCount: 30,
+        failureCount: 0,
+        lastExecutedAt: new Date(now - 3 * 60 * 60 * 1000).toISOString(),
+      },
+      metadata: { source: 'seed', category: 'follow' },
+    },
+  ];
+};
+
+const mapReplyTaskStatus = (status: ReplyTask['status']): SemiAutoTaskStatus => {
+  switch (status) {
+    case 'pending':
+      return 'pending';
+    case 'completed':
+      return 'completed';
+    case 'failed':
+    default:
+      return 'failed';
+  }
+};
+
+const transformReplyTask = (task: ReplyTask): SemiAutoTask => {
+  const status = mapReplyTaskStatus(task.status);
+  const baseTitle = task.comment.videoTitle || '评论回复任务';
+
+  return {
+    id: task.id,
+    type: 'reply',
+    title: baseTitle,
+    description: task.comment.content,
+    status,
+    priority: 'medium',
+    deviceId: task.assignedDevice,
+    deviceName: task.assignedDevice,
+    assignAccountId: task.assignedDevice || 'manual_ops_account',
+    executorMode: 'manual',
+    targetId: task.comment.authorId,
+    targetName: task.comment.authorName,
+    targetAccount: task.comment.authorId,
+    targetContent: task.comment.content,
+    content: task.replyContent || '',
+    dedupKey: `reply:${task.comment.id}`,
+    videoUrl: task.comment.videoUrl,
+    videoTitle: task.comment.videoTitle,
+    createdAt: task.createdAt,
+    updatedAt: task.completedAt || task.createdAt,
+    executionTime: task.completedAt,
+    completedAt: task.completedAt,
+    errorMessage: task.error,
+    retryCount: 0,
+    maxRetries: DEFAULT_MAX_RETRIES,
+    progress: status === 'completed' ? 100 : status === 'pending' ? 0 : 0,
+    parameters: {
+      replyText: task.replyContent || '',
+      delayMin: 3,
+      delayMax: 6,
+      checkDuplication: true,
+    },
+    result:
+      status === 'completed'
+        ? {
+            success: true,
+            message: '评论已回复',
+            data: { replyContent: task.replyContent },
+          }
+        : undefined,
+    metadata: { source: 'monitoring', commentId: task.comment.id },
+  };
+};
+
+const applyFilter = (tasks: SemiAutoTask[], filter?: SemiAutoTaskFilter): SemiAutoTask[] => {
+  if (!filter) return tasks;
+
+  return tasks.filter((task) => {
+    if (filter.type && task.type !== filter.type) return false;
+    if (filter.status && task.status !== filter.status) return false;
+    if (filter.priority && task.priority !== filter.priority) return false;
+    if (filter.deviceId && task.deviceId !== filter.deviceId) return false;
+    if (filter.executorMode && task.executorMode !== filter.executorMode) return false;
+    if (filter.dateFrom && task.createdAt < filter.dateFrom) return false;
+    if (filter.dateTo && task.createdAt > filter.dateTo) return false;
+    return true;
+  });
+};
+
+export const useSemiAutoTasks = (
+  options: UseSemiAutoTasksOptions = {},
+): UseSemiAutoTasksReturn => {
+  const { devices = [] } = options;
+
   const [tasks, setTasks] = useState<SemiAutoTask[]>([]);
+  const [manualTasksState, setManualTasksState] = useState<SemiAutoTask[]>([]);
+  const manualTasksRef = useRef<SemiAutoTask[]>(manualTasksState);
+  const remoteTasksRef = useRef<SemiAutoTask[]>([]);
+
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  // 加载任务列表
-  const loadTasks = useCallback(async (filter?: SemiAutoTaskFilter) => {
-    setLoading(true);
-    setError(null);
-    
-    try {
-      // 模拟数据 - 实际项目中应该调用后端API
-      await new Promise(resolve => setTimeout(resolve, 1000));
-      
-      const mockTasks: SemiAutoTask[] = [
-        {
-          id: '1',
-          type: 'follow',
-          title: '关注美食博主',
-          description: '批量关注美食类相关博主',
-          status: 'pending',
-          priority: 'high',
-          createdAt: new Date().toISOString(),
-          updatedAt: new Date().toISOString(),
-          retryCount: 0,
-          maxRetries: 3,
-          progress: 0,
-          parameters: {
-            followCount: 50,
-            delayMin: 2,
-            delayMax: 5,
-            checkDuplication: true,
-          }
-        },
-        {
-          id: '2',
-          type: 'reply',
-          title: '自动回复评论',
-          description: '针对热门内容进行互动回复',
-          status: 'executing',
-          priority: 'medium',
-          deviceId: 'device_1',
-          deviceName: '设备1',
-          createdAt: new Date().toISOString(),
-          updatedAt: new Date().toISOString(),
-          executionTime: new Date().toISOString(),
-          retryCount: 0,
-          maxRetries: 3,
-          progress: 65,
-          parameters: {
-            replyText: '很棒的内容，学到了！',
-            delayMin: 3,
-            delayMax: 8,
-            checkDuplication: true,
-          }
-        }
-      ];
-      
-      // 应用过滤器
-      let filteredTasks = mockTasks;
-      if (filter) {
-        if (filter.type) {
-          filteredTasks = filteredTasks.filter(task => task.type === filter.type);
-        }
-        if (filter.status) {
-          filteredTasks = filteredTasks.filter(task => task.status === filter.status);
-        }
-        if (filter.priority) {
-          filteredTasks = filteredTasks.filter(task => task.priority === filter.priority);
-        }
-        if (filter.deviceId) {
-          filteredTasks = filteredTasks.filter(task => task.deviceId === filter.deviceId);
-        }
-      }
-      
-      setTasks(filteredTasks);
-    } catch (err) {
-      setError(err instanceof Error ? err.message : '加载任务失败');
-    } finally {
-      setLoading(false);
-    }
-  }, []);
-
-  // 创建任务
-  const createTask = useCallback(async (taskData: SemiAutoTaskCreate): Promise<string> => {
-    setLoading(true);
-    setError(null);
-    
-    try {
-      // 模拟创建任务
-      await new Promise(resolve => setTimeout(resolve, 500));
-      
-      const newTask: SemiAutoTask = {
-        ...taskData,
-        id: Date.now().toString(),
-        status: 'pending',
-        createdAt: new Date().toISOString(),
-        updatedAt: new Date().toISOString(),
-        retryCount: 0,
-        maxRetries: 3,
-        progress: 0,
-        priority: taskData.priority || 'medium',
-        description: taskData.description || '',
-      };
-      
-      setTasks(prev => [newTask, ...prev]);
-      return newTask.id;
-    } catch (err) {
-      setError(err instanceof Error ? err.message : '创建任务失败');
-      throw err;
-    } finally {
-      setLoading(false);
-    }
-  }, []);
-
-  // 更新任务
-  const updateTask = useCallback(async (update: SemiAutoTaskUpdate) => {
-    setLoading(true);
-    setError(null);
-    
-    try {
-      // 模拟更新任务
-      await new Promise(resolve => setTimeout(resolve, 300));
-      
-      setTasks(prev => prev.map(task => 
-        task.id === update.id
-          ? { ...task, ...update, updatedAt: new Date().toISOString() }
-          : task
-      ));
-    } catch (err) {
-      setError(err instanceof Error ? err.message : '更新任务失败');
-      throw err;
-    } finally {
-      setLoading(false);
-    }
-  }, []);
-
-  // 删除任务
-  const deleteTask = useCallback(async (taskId: string) => {
-    setLoading(true);
-    setError(null);
-    
-    try {
-      // 模拟删除任务
-      await new Promise(resolve => setTimeout(resolve, 300));
-      
-      setTasks(prev => prev.filter(task => task.id !== taskId));
-    } catch (err) {
-      setError(err instanceof Error ? err.message : '删除任务失败');
-      throw err;
-    } finally {
-      setLoading(false);
-    }
-  }, []);
-
-  // 执行任务
-  const executeTask = useCallback(async (taskId: string, deviceId?: string) => {
-    await updateTask({
-      id: taskId,
-      status: 'executing',
-      progress: 0,
-      ...(deviceId && { deviceId })
-    });
-    
-    // 模拟任务执行进度
-    const progressInterval = setInterval(() => {
-      setTasks(prev => prev.map(task => {
-        if (task.id === taskId && task.status === 'executing') {
-          const newProgress = Math.min(task.progress + Math.random() * 20, 100);
-          return { ...task, progress: newProgress };
-        }
-        return task;
-      }));
-    }, 1000);
-    
-    // 模拟任务完成
-    setTimeout(async () => {
-      clearInterval(progressInterval);
-      await updateTask({
-        id: taskId,
-        status: 'completed',
-        progress: 100,
-        result: {
-          success: true,
-          message: '任务执行成功',
-          data: { processedCount: 25 }
-        }
+  const setManualTasks = useCallback(
+    (updater: (prev: SemiAutoTask[]) => SemiAutoTask[]) => {
+      setManualTasksState((prev) => {
+        const next = updater(prev);
+        manualTasksRef.current = next;
+        return next;
       });
-    }, 5000);
-  }, [updateTask]);
+    },
+    [],
+  );
 
-  // 暂停任务
-  const pauseTask = useCallback(async (taskId: string) => {
-    await updateTask({
-      id: taskId,
-      status: 'paused'
-    });
-  }, [updateTask]);
+  useEffect(() => {
+    manualTasksRef.current = manualTasksState;
+  }, [manualTasksState]);
 
-  // 重新开始任务
-  const resumeTask = useCallback(async (taskId: string) => {
-    await updateTask({
-      id: taskId,
-      status: 'executing'
-    });
-  }, [updateTask]);
+  const mergeAndSortTasks = useCallback((base: SemiAutoTask[]): SemiAutoTask[] => {
+    const manual = manualTasksRef.current;
+    const merged = [
+      ...manual,
+      ...base.filter((task) => !manual.some((manualTask) => manualTask.id === task.id)),
+    ];
+    return merged.sort(
+      (a, b) => new Date(b.updatedAt).getTime() - new Date(a.updatedAt).getTime(),
+    );
+  }, []);
 
-  // 获取统计数据
+  const loadTasks = useCallback(
+    async (filter?: SemiAutoTaskFilter) => {
+      setLoading(true);
+      setError(null);
+
+      try {
+        const [replyTasks] = await Promise.all([
+          monitoringService.getReplyTasks(),
+        ]);
+
+        const followTasks = buildMockFollowTasks(devices);
+        const mappedReplies = replyTasks.map(transformReplyTask);
+
+        const combined = applyFilter([...followTasks, ...mappedReplies], filter);
+        remoteTasksRef.current = combined;
+        setTasks(mergeAndSortTasks(remoteTasksRef.current));
+      } catch (err) {
+        const errorMessage =
+          err instanceof Error ? err.message : '加载任务失败，请稍后重试';
+        setError(errorMessage);
+        message.error(errorMessage);
+      } finally {
+        setLoading(false);
+      }
+    },
+    [devices, mergeAndSortTasks],
+  );
+
+  const createTask = useCallback(
+    async (taskData: SemiAutoTaskCreate, deviceId?: string) => {
+      setError(null);
+      const device = devices.find((item) => item.id === deviceId);
+      const now = new Date().toISOString();
+
+      const manualTask: SemiAutoTask = {
+        id: `manual_${Date.now()}`,
+        type: taskData.type,
+        title: taskData.title,
+        description: taskData.description || '',
+        status: 'pending',
+        priority: taskData.priority || 'medium',
+        deviceId,
+        deviceName: device?.name,
+        assignAccountId: taskData.assignAccountId,
+        executorMode: taskData.executorMode || 'manual',
+        targetAccount: taskData.targetAccount,
+        targetContent: taskData.targetContent,
+        createdAt: now,
+        updatedAt: now,
+        retryCount: 0,
+        maxRetries: DEFAULT_MAX_RETRIES,
+        progress: 0,
+        parameters: taskData.parameters,
+        metadata: { source: 'manual' },
+      };
+
+      setManualTasks((prev) => [manualTask, ...prev]);
+      setTasks(mergeAndSortTasks(remoteTasksRef.current));
+
+      return manualTask.id;
+    },
+    [devices, mergeAndSortTasks],
+  );
+
+  const updateTask = useCallback(
+    (taskId: string, patch: Partial<SemiAutoTaskUpdate>) => {
+      const mapper = (task: SemiAutoTask): SemiAutoTask =>
+        task.id === taskId
+          ? {
+              ...task,
+              ...('status' in patch ? { status: patch.status! } : {}),
+              ...('progress' in patch ? { progress: patch.progress ?? task.progress } : {}),
+              ...('errorMessage' in patch ? { errorMessage: patch.errorMessage } : {}),
+              ...('result' in patch ? { result: patch.result } : {}),
+              ...('deviceId' in patch ? { deviceId: patch.deviceId } : {}),
+              ...('deviceName' in patch ? { deviceName: patch.deviceName } : {}),
+              ...('completedAt' in patch ? { completedAt: patch.completedAt } : {}),
+              ...('statistics' in patch ? { statistics: patch.statistics } : {}),
+              ...('metadata' in patch ? { metadata: { ...task.metadata, ...patch.metadata } } : {}),
+              updatedAt: new Date().toISOString(),
+            }
+          : task;
+
+      setManualTasks((prev) => prev.map(mapper));
+      remoteTasksRef.current = remoteTasksRef.current.map(mapper);
+      setTasks(mergeAndSortTasks(remoteTasksRef.current));
+    },
+    [mergeAndSortTasks, setManualTasks],
+  );
+
+  const deleteTask = useCallback(
+    async (taskId: string) => {
+      setError(null);
+      setManualTasks((prev) => prev.filter((task) => task.id !== taskId));
+      remoteTasksRef.current = remoteTasksRef.current.filter((task) => task.id !== taskId);
+      setTasks(mergeAndSortTasks(remoteTasksRef.current));
+    },
+    [mergeAndSortTasks, setManualTasks],
+  );
+
+  const simulateExecution = useCallback(
+    (taskId: string) => {
+      const start = Date.now();
+
+      const progressMapper = (task: SemiAutoTask): SemiAutoTask => {
+        if (task.id !== taskId || task.status !== 'executing') return task;
+        const elapsed = Date.now() - start;
+        const progress = Math.min(100, Math.round((elapsed / EXECUTION_SIMULATION_MS) * 100));
+        return { ...task, progress };
+      };
+
+      const progressTimer = setInterval(() => {
+        setManualTasks((prev) => prev.map(progressMapper));
+        remoteTasksRef.current = remoteTasksRef.current.map(progressMapper);
+        setTasks(mergeAndSortTasks(remoteTasksRef.current));
+      }, 800);
+
+      setTimeout(() => {
+        clearInterval(progressTimer);
+        updateTask(taskId, {
+          status: 'completed',
+          progress: 100,
+          completedAt: new Date().toISOString(),
+          result: {
+            success: true,
+            message: '任务执行完成（模拟）',
+          },
+        });
+      }, EXECUTION_SIMULATION_MS);
+    },
+    [updateTask],
+  );
+
+  const executeTask = useCallback(
+    async (taskId: string, deviceId?: string) => {
+      setError(null);
+      const device = devices.find((item) => item.id === deviceId);
+      updateTask(taskId, {
+        status: 'executing',
+        progress: 0,
+        deviceId,
+        deviceName: device?.name,
+      });
+      simulateExecution(taskId);
+    },
+    [devices, simulateExecution, updateTask],
+  );
+
+  const pauseTask = useCallback(
+    async (taskId: string) => {
+      setError(null);
+      updateTask(taskId, { status: 'paused' });
+    },
+    [updateTask],
+  );
+
+  const resumeTask = useCallback(
+    async (taskId: string, deviceId?: string) => {
+      setError(null);
+      await executeTask(taskId, deviceId);
+    },
+    [executeTask],
+  );
+
   const getStats = useCallback((): SemiAutoTaskStats => {
     const total = tasks.length;
-    const pending = tasks.filter(t => t.status === 'pending').length;
-    const executing = tasks.filter(t => t.status === 'executing').length;
-    const completed = tasks.filter(t => t.status === 'completed').length;
-    const failed = tasks.filter(t => t.status === 'failed').length;
-    const paused = tasks.filter(t => t.status === 'paused').length;
-    
+    const pending = tasks.filter((task) => task.status === 'pending').length;
+    const executing = tasks.filter((task) => task.status === 'executing').length;
+    const completed = tasks.filter((task) => task.status === 'completed').length;
+    const failed = tasks.filter((task) => task.status === 'failed').length;
+    const paused = tasks.filter((task) => task.status === 'paused').length;
+
     const successRate = total > 0 ? (completed / total) * 100 : 0;
-    const avgExecutionTime = 0; // 实际计算需要基于历史数据
-    
+
     return {
       total,
       pending,
@@ -232,26 +414,47 @@ export const useSemiAutoTasks = () => {
       failed,
       paused,
       successRate,
-      avgExecutionTime
+      avgExecutionTime: 0,
     };
   }, [tasks]);
 
-  // 初始加载
-  useEffect(() => {
-    loadTasks();
-  }, [loadTasks]);
+  const state: UseSemiAutoTasksReturn = useMemo(
+    () => ({
+      tasks,
+      loading,
+      error,
+      loadTasks,
+      createTask,
+      updateTask: (taskId: string, patch: Partial<SemiAutoTaskUpdate>) =>
+        updateTask(taskId, patch),
+      deleteTask,
+      executeTask,
+      pauseTask,
+      resumeTask,
+      getStats,
+    }),
+    [
+      tasks,
+      loading,
+      error,
+      loadTasks,
+      createTask,
+      updateTask,
+      deleteTask,
+      executeTask,
+      pauseTask,
+      resumeTask,
+      getStats,
+    ],
+  );
 
-  return {
-    tasks,
-    loading,
-    error,
-    loadTasks,
-    createTask,
-    updateTask,
-    deleteTask,
-    executeTask,
-    pauseTask,
-    resumeTask,
-    getStats
-  };
+  useEffect(() => {
+    loadTasks().catch((err) => {
+      const errMsg = err instanceof Error ? err.message : '初始化任务列表失败';
+      setError(errMsg);
+    });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  return state;
 };
