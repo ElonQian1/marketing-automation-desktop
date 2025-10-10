@@ -17,30 +17,23 @@ import type {
   StrategyRecommendation as SystemStrategyRecommendation, 
   StrategyCandidate as SystemStrategyCandidate,
   MatchStrategy as SystemMatchStrategy 
-} from '../../../modules/intelligent-strategy-system/types/StrategyTypes';
+} from '../../../../../../modules/intelligent-strategy-system/types/StrategyTypes';
 
-import type { UiNode } from '../types';
+import { StrategyDecisionEngine } from '../../../../../../modules/intelligent-strategy-system/core/StrategyDecisionEngine';
+import type { UiNode } from '../../types';
 import type { MatchStrategy } from './types';
 
 // 重新导出以避免混淆
 export type { SystemStrategyRecommendation, SystemStrategyCandidate, SystemMatchStrategy };
 
-// UI 组件期望的评分格式
-export interface DetailedStrategyScore {
-  total: number;
-  performance: number;
-  stability: number;
-  compatibility: number;
-  uniqueness: number;
-  confidence?: number;
-}
-
-export interface DetailedStrategyRecommendation {
-  strategy: string;
-  score: DetailedStrategyScore;
-  confidence: number;
-  reason: string;
-}
+// 导入扩展后的类型定义
+import type { 
+  DetailedStrategyScore,
+  DetailedStrategyRecommendation,
+  StrategyPlan,
+  StrategyMode,
+  StrategyModeState
+} from './types';
 
 // 适配器状态管理
 export interface StrategyAdapterState {
@@ -59,11 +52,20 @@ export interface StrategyAdapterState {
  * - 管理异步分析状态
  * - 提供缓存和重试机制
  * - 错误处理和日志记录
+ * - 🆕 生成和管理Plan候选链
+ * - 🆕 支持智能/静态模式切换
  */
 export class StrategySystemAdapter {
   private cache = new Map<string, DetailedStrategyRecommendation[]>();
+  private planCache = new Map<string, StrategyPlan>(); // 🆕 Plan缓存
   private cacheExpiration = 5 * 60 * 1000; // 5分钟缓存
   private isAnalyzing = false;
+  private strategyEngine = new StrategyDecisionEngine(); // 🆕 策略决策引擎
+  private modeState: StrategyModeState = { // 🆕 模式状态管理
+    currentMode: 'intelligent',
+    userPreference: 'intelligent',
+    canSwitch: true
+  };
 
   /**
    * 🎯 主要分析方法：分析元素并生成策略推荐
@@ -95,12 +97,11 @@ export class StrategySystemAdapter {
       this.isAnalyzing = true;
       console.log('🔍 开始智能策略分析', { element: element.tag });
 
-      // TODO: 集成真实的 intelligent-strategy-system
-      // 当前使用改进版模拟数据，包含更真实的分析逻辑
-      const systemRecommendations = await this.callIntelligentStrategySystem(element, xmlContent);
+      // 🎯 生成 Plan 候选链并直接转换为 UI 格式
+      const plans = await this.generateCandidatePlans(element, xmlContent);
       
-      // 转换为 UI 组件期望的格式
-      const uiRecommendations = this.convertToUIFormat(systemRecommendations, element);
+      // 直接从 Plan 生成 UI 推荐（简化实现）
+      const uiRecommendations = this.convertPlansToUIRecommendations(plans, element);
       
       // 缓存结果
       this.setCachedRecommendations(cacheKey, uiRecommendations);
@@ -121,7 +122,505 @@ export class StrategySystemAdapter {
   }
 
   /**
-   * 🔗 调用智能策略系统（当前为增强模拟实现）
+   * 🎯 生成 Plan 候选链
+   * 
+   * @param element - UI 元素
+   * @param xmlContent - XML 内容
+   * @returns Plan 候选链列表
+   */
+  private async generateCandidatePlans(
+    element: UiNode, 
+    xmlContent?: string
+  ): Promise<StrategyPlan[]> {
+    try {
+      // 🚧 暂时使用模拟分析结果，待 StrategyDecisionEngine 接口完善后替换
+      const analysisResult = this.generateMockAnalysisResult(element);
+      
+      // 生成多个 Plan 候选
+      const plans: StrategyPlan[] = [];
+      
+      // Plan A: 高精度方案（主推荐）
+      if (analysisResult.primary) {
+        plans.push({
+          id: `plan-primary-${Date.now()}`,
+          name: '高精度匹配',
+          priority: 1,
+          confidence: analysisResult.primary.confidence,
+          strategy: analysisResult.primary.strategy,
+          criteria: analysisResult.primary.criteria,
+          fallbackChain: this.buildFallbackChain(analysisResult),
+          estimatedSuccessRate: analysisResult.primary.confidence * 0.9,
+          reasoning: `基于 ${analysisResult.context?.step || 'unknown'} 步骤分析的主要推荐`
+        });
+      }
+      
+      // Plan B: 兼容性方案（备选）
+      if (analysisResult.alternatives?.length > 0) {
+        analysisResult.alternatives.slice(0, 2).forEach((alt, index) => {
+          plans.push({
+            id: `plan-alt-${index}-${Date.now()}`,
+            name: `兼容性方案 ${index + 1}`,
+            priority: index + 2,
+            confidence: alt.confidence,
+            strategy: alt.strategy,
+            criteria: alt.criteria,
+            fallbackChain: [alt.strategy, 'standard', 'relaxed'],
+            estimatedSuccessRate: alt.confidence * 0.8,
+            reasoning: `备选策略：${alt.reason || '兼容性匹配'}`
+          });
+        });
+      }
+      
+      // Plan C: 标准匹配方案（保底）
+      plans.push({
+        id: `plan-standard-${Date.now()}`,
+        name: '标准匹配',
+        priority: 99,
+        confidence: 0.7,
+        strategy: 'standard',
+        criteria: this.buildStandardCriteria(element),
+        fallbackChain: ['standard', 'relaxed', 'positionless'],
+        estimatedSuccessRate: 0.75,
+        reasoning: '基于语义字段的跨设备稳定匹配'
+      });
+      
+      // 按优先级排序
+      return plans.sort((a, b) => a.priority - b.priority);
+      
+    } catch (error) {
+      console.error('❌ Plan 生成失败，返回默认 Plan', error);
+      return this.getDefaultPlan(element);
+    }
+  }
+
+  /**
+   * 🛠️ 构建回退链
+   */
+  private buildFallbackChain(analysisResult: any): MatchStrategy[] {
+    const fallbackChain: MatchStrategy[] = [];
+    
+    if (analysisResult.primary) {
+      fallbackChain.push(analysisResult.primary.strategy);
+    }
+    
+    // 添加通用回退策略
+    if (!fallbackChain.includes('standard')) {
+      fallbackChain.push('standard');
+    }
+    if (!fallbackChain.includes('relaxed')) {
+      fallbackChain.push('relaxed');
+    }
+    if (!fallbackChain.includes('positionless')) {
+      fallbackChain.push('positionless');
+    }
+    
+    return fallbackChain;
+  }
+
+  /**
+   * 🛠️ 构建标准匹配条件
+   */
+  private buildStandardCriteria(element: UiNode): any {
+    const criteria: any = {
+      fields: [],
+      values: []
+    };
+    
+    // 优先使用 resource-id
+    if (element.attrs['resource-id']) {
+      criteria.fields.push('resource-id');
+      criteria.values.push(element.attrs['resource-id']);
+    }
+    
+    // 其次使用 text
+    if (element.attrs['text']) {
+      criteria.fields.push('text');
+      criteria.values.push(element.attrs['text']);
+    }
+    
+    // 然后是 content-desc
+    if (element.attrs['content-desc']) {
+      criteria.fields.push('content-desc');
+      criteria.values.push(element.attrs['content-desc']);
+    }
+    
+    // 最后是 class
+    if (element.attrs['class']) {
+      criteria.fields.push('class');
+      criteria.values.push(element.attrs['class']);
+    }
+    
+    return criteria;
+  }
+
+  /**
+   * 🛠️ 获取默认 Plan
+   */
+  private getDefaultPlan(element: UiNode): StrategyPlan[] {
+    return [{
+      id: `default-${Date.now()}`,
+      name: '默认标准匹配',
+      priority: 100,
+      confidence: 0.6,
+      strategy: 'standard',
+      criteria: this.buildStandardCriteria(element),
+      fallbackChain: ['standard', 'relaxed', 'positionless'],
+      estimatedSuccessRate: 0.65,
+      reasoning: '默认回退方案'
+    }];
+  }
+
+  /**
+   * 🛠️ 获取速度评分
+   */
+  private getSpeedScore(strategy: MatchStrategy): 'fast' | 'medium' | 'slow' {
+    const speedMap: Partial<Record<MatchStrategy, 'fast' | 'medium' | 'slow'>> = {
+      'absolute': 'fast',
+      'strict': 'fast',
+      'standard': 'medium',
+      'relaxed': 'medium',
+      'positionless': 'slow'
+    };
+    return speedMap[strategy] || 'medium';
+  }
+
+  /**
+   * 🛠️ 获取稳定性评分
+   */
+  private getStabilityScore(strategy: MatchStrategy): 'high' | 'medium' | 'low' {
+    const stabilityMap: Partial<Record<MatchStrategy, 'high' | 'medium' | 'low'>> = {
+      'standard': 'high',
+      'strict': 'high',
+      'positionless': 'medium',
+      'relaxed': 'medium',
+      'absolute': 'low'
+    };
+    return stabilityMap[strategy] || 'medium';
+  }
+
+  /**
+   * 🛠️ 获取跨设备兼容性评分
+   */
+  private getCrossDeviceScore(strategy: MatchStrategy): 'excellent' | 'good' | 'fair' {
+    const crossDeviceMap: Partial<Record<MatchStrategy, 'excellent' | 'good' | 'fair'>> = {
+      'standard': 'excellent',
+      'positionless': 'excellent', 
+      'strict': 'good',
+      'relaxed': 'good',
+      'absolute': 'fair'
+    };
+    return crossDeviceMap[strategy] || 'good';
+  }
+
+  /**
+   * 🛠️ 获取策略标签
+   */
+  private getStrategyTags(strategy: MatchStrategy): SystemStrategyRecommendation['tags'] {
+    const tagMap: Partial<Record<MatchStrategy, SystemStrategyRecommendation['tags']>> = {
+      'absolute': ['precise', 'fast'],
+      'strict': ['recommended', 'stable'],
+      'standard': ['recommended', 'stable'],
+      'relaxed': ['fallback', 'stable'],
+      'positionless': ['stable', 'fallback']
+    };
+    return tagMap[strategy] || ['stable'];
+  }
+
+  /**
+   * 🚧 生成模拟分析结果（临时实现）
+   */
+  private generateMockAnalysisResult(element: UiNode) {
+    const hasId = !!element.attrs['resource-id']; 
+    const hasText = !!element.attrs['text'];
+    const hasDesc = !!element.attrs['content-desc'];
+
+    return {
+      primary: {
+        strategy: hasId ? 'strict' : (hasText ? 'standard' : 'relaxed') as MatchStrategy,
+        confidence: hasId ? 0.9 : (hasText ? 0.8 : 0.6),
+        criteria: this.buildStandardCriteria(element)
+      },
+      alternatives: [
+        {
+          strategy: 'standard' as MatchStrategy,
+          confidence: 0.75,
+          criteria: this.buildStandardCriteria(element),
+          reason: '标准匹配策略'
+        },
+        {
+          strategy: 'relaxed' as MatchStrategy, 
+          confidence: 0.65,
+          criteria: this.buildStandardCriteria(element),
+          reason: '宽松匹配策略'
+        }
+      ],
+      context: {
+        step: hasId ? 'Step 1: ID-Based' : (hasText ? 'Step 2: Text-Based' : 'Step 3: Structure-Based')
+      }
+    };
+  }
+
+  // ================================
+  // 🆕 模式切换功能
+  // ================================
+
+  /**
+   * 🔄 切换策略模式（智能 ↔ 静态）
+   * 
+   * @param mode - 目标模式
+   * @returns 是否切换成功
+   */
+  switchMode(mode: StrategyMode): boolean {
+    if (!this.modeState.canSwitch) {
+      console.warn('⚠️ 当前不允许切换模式');
+      return false;
+    }
+
+    const previousMode = this.modeState.currentMode;
+    this.modeState.currentMode = mode;
+    this.modeState.userPreference = mode;
+
+    console.log(`🔄 策略模式切换: ${previousMode} → ${mode}`);
+    
+    // 清除缓存，确保新模式下重新分析
+    this.clearCache();
+    
+    return true;
+  }
+
+  /**
+   * 📊 获取当前模式状态
+   */
+  getModeState(): StrategyModeState {
+    return { ...this.modeState };
+  }
+
+  /**
+   * 🧩 设置模式锁定状态
+   * 
+   * @param canSwitch - 是否允许切换
+   */
+  setCanSwitch(canSwitch: boolean): void {
+    this.modeState.canSwitch = canSwitch;
+    console.log(`🔒 模式切换状态: ${canSwitch ? '允许' : '锁定'}`);
+  }
+
+  /**
+   * 🗑️ 清除所有缓存
+   */
+  private clearCache(): void {
+    this.cache.clear();
+    this.planCache.clear();
+    console.log('🗑️ 策略缓存已清除');
+  }
+
+  /**
+   * 🎯 根据当前模式分析元素
+   * 
+   * @param element - UI元素
+   * @param xmlContent - XML内容
+   * @returns 策略推荐
+   */
+  async analyzeElementByMode(
+    element: UiNode, 
+    xmlContent?: string
+  ): Promise<DetailedStrategyRecommendation[]> {
+    const currentMode = this.modeState.currentMode;
+    
+    console.log(`🎯 使用 ${currentMode} 模式分析元素`, { element: element.tag });
+    
+    if (currentMode === 'intelligent') {
+      // 智能模式：使用 Plan 候选链
+      return this.analyzeElement(element, xmlContent);
+    } else {
+      // 静态模式：使用传统推荐逻辑
+      return this.analyzeElementStatic(element, xmlContent);
+    }
+  }
+
+  /**
+   * 📋 静态模式分析（传统逻辑）
+   * 
+   * @param element - UI元素  
+   * @param xmlContent - XML内容
+   * @returns 静态策略推荐
+   */
+  private async analyzeElementStatic(
+    element: UiNode,
+    xmlContent?: string
+  ): Promise<DetailedStrategyRecommendation[]> {
+    const hasId = !!element.attrs['resource-id'];
+    const hasText = !!element.attrs['text'];
+    const hasDesc = !!element.attrs['content-desc'];
+
+    // 传统静态推荐逻辑
+    const recommendations: DetailedStrategyRecommendation[] = [];
+
+    // 基于元素属性的简单策略推荐
+    if (hasId) {
+      recommendations.push({
+        strategy: 'strict',
+        score: {
+          total: 0.9,
+          performance: 0.9,
+          stability: 0.8,
+          compatibility: 0.85,
+          uniqueness: 0.95,
+          confidence: 0.9
+        },
+        confidence: 0.9,
+        reason: '元素具有唯一 resource-id，推荐使用严格匹配'
+      });
+    }
+
+    if (hasText || hasDesc) {
+      recommendations.push({
+        strategy: 'standard',
+        score: {
+          total: 0.75,
+          performance: 0.7,
+          stability: 0.8,
+          compatibility: 0.9,
+          uniqueness: 0.7,
+          confidence: 0.75
+        },
+        confidence: 0.75,
+        reason: '元素具有文本或描述信息，推荐使用标准匹配'
+      });
+    }
+
+    // 总是提供回退选项
+    recommendations.push({
+      strategy: 'relaxed',
+      score: {
+        total: 0.6,
+        performance: 0.6,
+        stability: 0.6,
+        compatibility: 0.8,
+        uniqueness: 0.5,
+        confidence: 0.6
+      },
+      confidence: 0.6,
+      reason: '回退选项：宽松匹配策略'
+    });
+
+    console.log(`📋 静态模式生成 ${recommendations.length} 个推荐`);
+    return recommendations;
+  }
+
+  /**
+   * 🎯 直接从 Plan 候选链生成 UI 推荐（简化实现）
+   * 
+   * @param plans - Plan 候选链
+   * @param element - UI 元素
+   * @returns UI 推荐列表
+   */
+  private convertPlansToUIRecommendations(
+    plans: StrategyPlan[], 
+    element: UiNode
+  ): DetailedStrategyRecommendation[] {
+    return plans.map((plan, index) => ({
+      strategy: plan.strategy,
+      score: {
+        total: plan.confidence,
+        performance: 0.8,
+        stability: this.getStabilityNumberScore(plan.strategy),
+        compatibility: 0.85,
+        uniqueness: 0.9,
+        confidence: plan.confidence
+      },
+      confidence: plan.confidence,
+      reason: plan.reasoning,
+      step: `Plan ${index + 1}: ${plan.name}`,
+      fallbackRank: plan.priority,
+      performance: {
+        estimatedSpeed: this.getSpeedScore(plan.strategy) === 'fast' ? 'fast' : 
+                       this.getSpeedScore(plan.strategy) === 'medium' ? 'medium' : 'slow',
+        crossDeviceStability: this.getStabilityScore(plan.strategy) === 'high' ? 'high' :
+                              this.getStabilityScore(plan.strategy) === 'medium' ? 'medium' : 'low'
+      }
+    }));
+  }
+
+  /**
+   * 🛠️ 获取数字形式的稳定性评分
+   */
+  private getStabilityNumberScore(strategy: MatchStrategy): number {
+    const stabilityMap: Partial<Record<MatchStrategy, number>> = {
+      'standard': 0.9,
+      'strict': 0.8,
+      'positionless': 0.7,
+      'relaxed': 0.6,
+      'absolute': 0.4
+    };
+    return stabilityMap[strategy] || 0.7;
+  }
+
+  /**
+   * 🎯 从 Plan 候选链中选择推荐策略
+   * 
+   * @param plans - Plan 候选链
+   * @returns 选中的策略推荐
+   */
+  private selectRecommendationsFromPlans(plans: StrategyPlan[]): SystemStrategyRecommendation[] {
+    const recommendations: SystemStrategyRecommendation[] = [];
+    
+    plans.forEach((plan, index) => {
+      const baseRecommendation: SystemStrategyRecommendation = {
+        strategy: plan.strategy,
+        confidence: plan.confidence,
+        reason: plan.reasoning,
+        score: plan.confidence * 100,
+        performance: {
+          speed: this.getSpeedScore(plan.strategy),
+          stability: this.getStabilityScore(plan.strategy),
+          crossDevice: this.getCrossDeviceScore(plan.strategy)
+        },
+        tags: this.getStrategyTags(plan.strategy),
+        scenarios: [plan.name],
+        alternatives: plans.slice(index + 1).map(altPlan => ({
+          id: altPlan.id,
+          strategy: altPlan.strategy,
+          sourceStep: altPlan.reasoning,
+          scoring: {
+            total: altPlan.confidence * 100,
+            breakdown: {
+              uniqueness: 70,
+              stability: altPlan.confidence * 80,
+              performance: 75,
+              reliability: altPlan.confidence * 90
+            },
+            bonuses: [],
+            penalties: []
+          },
+          criteria: altPlan.criteria,
+          validation: {
+            passed: true,
+            matchCount: 1,
+            uniqueness: {
+              isUnique: true
+            },
+            errors: [],
+            warnings: [],
+            validationTime: 50
+          },
+          metadata: {
+            createdAt: Date.now(),
+            estimatedExecutionTime: 200,
+            deviceCompatibility: ['android'],
+            complexity: 'medium'
+          }
+        }))
+      };
+      
+      recommendations.push(baseRecommendation);
+    });
+    
+    return recommendations;
+  }
+
+  /**
+   * 🔗 调用真实的智能策略系统
    * 
    * @param element - UI 元素
    * @param xmlContent - XML 内容
@@ -131,18 +630,53 @@ export class StrategySystemAdapter {
     element: UiNode, 
     xmlContent?: string
   ): Promise<SystemStrategyRecommendation[]> {
-    // TODO: 替换为真实的 StrategyDecisionEngine 调用
-    // const engine = new StrategyDecisionEngine();
-    // const result = await engine.analyzeAndRecommend(element, xmlContent || '');
-    // return [result];
+    try {
+      // 🚀 使用真实的 StrategyDecisionEngine
+      const engine = new StrategyDecisionEngine({
+        debugMode: true,
+        maxSteps: 6,
+        minConfidenceThreshold: 0.5,
+        performanceMode: 'balanced',
+        enableLocalValidation: true
+      });
 
-    // 当前改进版模拟实现 - 基于元素属性的智能分析
-    return new Promise((resolve) => {
-      setTimeout(() => {
-        const recommendations = this.generateIntelligentMockRecommendations(element, xmlContent);
-        resolve(recommendations);
-      }, 200 + Math.random() * 300); // 模拟分析延迟
-    });
+      console.log('🎯 调用真实智能策略决策引擎', { 
+        element: element.tag, 
+        hasXml: !!xmlContent 
+      });
+
+      // 执行完整的 Step 0-6 分析流程
+      const result = await engine.analyzeAndRecommend(element, xmlContent || '');
+      
+      console.log('✅ 智能策略分析完成', { 
+        elementTag: element.tag,
+        strategy: result.strategy,
+        confidence: result.confidence,
+        alternativesCount: result.alternatives?.length || 0
+      });
+
+      // 将单个推荐结果包装为数组格式
+      const recommendations = [result];
+      
+      // 如果有替代方案，也添加到列表中
+      if (result.alternatives && result.alternatives.length > 0) {
+        // 暂时跳过复杂的 alternatives 映射，在后续版本中完善
+        console.log('🔄 跳过复杂的 alternatives 映射', result.alternatives.length);
+      }
+
+      return recommendations;
+
+    } catch (error) {
+      console.error('❌ 智能策略系统调用失败，回退到模拟实现', error);
+      
+      // 回退到改进的模拟实现
+      return new Promise((resolve) => {
+        setTimeout(() => {
+          const recommendations = this.generateIntelligentMockRecommendations(element, xmlContent);
+          resolve(recommendations);
+        }, 200 + Math.random() * 300);
+      });
+    }
   }
 
   /**
@@ -178,7 +712,7 @@ export class StrategySystemAdapter {
           crossDevice: hasId ? 'excellent' : 'good'
         },
         alternatives: [],
-        tags: ['recommended', 'precise', hasId ? 'stable' : 'moderate'],
+        tags: ['recommended', 'precise', 'stable'],
         scenarios: ['精确定位场景', '稳定性优先场景'],
         limitations: hasId ? [] : ['依赖文本内容稳定性']
       });
@@ -198,7 +732,7 @@ export class StrategySystemAdapter {
           crossDevice: 'excellent'
         },
         alternatives: [],
-        tags: ['compatible', 'flexible'],
+        tags: ['stable', 'fallback'],
         scenarios: ['多环境部署', '界面变化频繁场景'],
         limitations: ['可能存在误匹配风险']
       });
@@ -217,7 +751,7 @@ export class StrategySystemAdapter {
           crossDevice: 'good'
         },
         alternatives: [],
-        tags: ['layout-independent', 'stable'],
+        tags: ['stable', 'cross-platform'],
         scenarios: ['响应式布局', '动态内容'],
         limitations: ['需要稳定的语义特征']
       });
@@ -237,7 +771,7 @@ export class StrategySystemAdapter {
           crossDevice: 'fair'
         },
         alternatives: [],
-        tags: ['fast', complexity.isSimple ? 'simple' : 'fragile'],
+        tags: ['fast', 'precise'],
         scenarios: ['固定布局', '高性能要求'],
         limitations: ['跨设备兼容性差', '布局变化敏感']
       });
@@ -255,7 +789,7 @@ export class StrategySystemAdapter {
         crossDevice: 'good'
       },
       alternatives: [],
-      tags: ['balanced', 'universal'],
+      tags: ['stable', 'fallback'],
       scenarios: ['通用自动化', '跨平台兼容'],
       limitations: []
     });
@@ -308,7 +842,8 @@ export class StrategySystemAdapter {
    */
   private convertToUIFormat(
     systemRecommendations: SystemStrategyRecommendation[],
-    element: UiNode
+    element: UiNode,
+    plans?: StrategyPlan[]
   ): DetailedStrategyRecommendation[] {
     return systemRecommendations.map(rec => ({
       strategy: rec.strategy,
@@ -437,13 +972,7 @@ export class StrategySystemAdapter {
     ];
   }
 
-  /**
-   * 🧹 清理缓存
-   */
-  clearCache(): void {
-    this.cache.clear();
-    console.log('🧹 策略推荐缓存已清理');
-  }
+
 
   /**
    * 📊 获取缓存统计信息
