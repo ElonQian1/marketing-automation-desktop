@@ -1,7 +1,7 @@
 //! standard_strategy.rs - Standard 匹配策略处理器
 //! 
 //! Standard 策略专注于语义字段匹配，忽略位置相关信息，实现跨设备稳定匹配。
-//! 这是解决用户问关注按钮能被正确匹配而不是使用固化坐标。
+//! 这是解决用户问题的核心策略：使用语义配置而不是使用固化坐标。
 
 use super::{StrategyProcessor, MatchingContext, StrategyResult, ProcessingError};
 use async_trait::async_trait;
@@ -106,14 +106,13 @@ impl StrategyProcessor for StandardStrategyProcessor {
         logs.push(format!("🧾 标准策略条件摘要: fields={:?}, values={:?}",
             semantic_fields, semantic_values));
 
-        // 记录一次完整 criteria 快照（避免过多日志，仅在 debug 级别下一行摘要）
-        logs.push(format!("🧾 标准策略条件摘要: fields={:?}, values={:?}, match_mode={:?}",
-            criteria.fields, criteria.values, criteria.match_mode));
-        if !criteria.regex_includes.is_empty() {
-            logs.push(format!("🧩 正则包含: {:?}", criteria.regex_includes));
+        // 记录详细匹配条件
+        logs.push(format!("📋 匹配模式: {:?}", context.match_mode));
+        if !context.regex_includes.is_empty() {
+            logs.push(format!("🧩 正则包含: {:?}", context.regex_includes));
         }
-        if !criteria.regex_excludes.is_empty() {
-            logs.push(format!("� 正则排除: {:?}", criteria.regex_excludes));
+        if !context.regex_excludes.is_empty() {
+            logs.push(format!("🚫 正则排除: {:?}", context.regex_excludes));
         }
         
         logs.push("�🚀 调用后端匹配引擎进行 Standard 匹配".to_string());

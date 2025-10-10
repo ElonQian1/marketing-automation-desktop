@@ -1,23 +1,28 @@
 /**
- * 精准获客工具函数 - 统一导出
- * 
- * 将原来的大型utils文件拆分为多个功能模块
+ * 精准获客 - 公共工具方法统一导出
+ *
+ * 将原本分散的 utils 目录按职责拆分为子模块之后，通过此文件对外导出。
  */
 
-// 数据验证工具
+// 校验相关
 export * from './validation';
 
-// 数据格式化工具
+// 数据格式化相关
 export * from './formatting';
 
-// 数据处理工具
+// 数据处理相关
 export * from './data-processing';
 
-// 数据分析工具
+// 数据分析相关
 export * from './analytics';
 
-// 重新导出常用函数（保持向后兼容）
+// 类型映射相关
+export * from './type-mappings';
+
+// 兼容旧代码的默认导出（逐步淘汰中）
 export { validateUrl, validateIndustryTags, validateRegionTag } from './validation';
 export { generateId, formatDateTime, formatTimeRange } from './formatting';
 export { generateDedupKey, csvRowToWatchTarget, detectSensitiveWords } from './data-processing';
 export { calculateSuccessRate, groupTasksByStatus, groupByDate } from './analytics';
+
+

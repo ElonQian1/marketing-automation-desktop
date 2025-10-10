@@ -1,3 +1,5 @@
+import { UnifiedExecutorMode } from '../../../../../modules/precise-acquisition/shared/utils/type-mappings';
+
 /**
  * 半自动执行域模型 - 类型定义
  *
@@ -10,7 +12,7 @@ export type SemiAutoTaskStatus = 'pending' | 'executing' | 'completed' | 'failed
 
 export type SemiAutoTaskPriority = 'high' | 'medium' | 'low';
 
-export type ExecutorModeType = 'api' | 'manual' | 'mixed';
+export type ExecutorModeType = UnifiedExecutorMode;
 
 export interface SemiAutoTaskParameterSet {
   targetUrl?: string;

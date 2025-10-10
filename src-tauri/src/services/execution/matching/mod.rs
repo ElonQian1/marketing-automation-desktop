@@ -1,12 +1,9 @@
 //! matching/mod.rs - 智能脚本匹配协作模块聚合
 
-pub mod enhanced_unified;
 mod hierarchy_matcher;
 mod legacy_regex;
 pub mod strategies;
 mod unified;
-
-pub use enhanced_unified::run_enhanced_unified_match;
 pub use legacy_regex::{
     extract_bounds_from_line, find_all_follow_buttons, find_element_in_ui, run_traditional_find,
 };

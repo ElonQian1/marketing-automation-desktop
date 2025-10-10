@@ -1,7 +1,8 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { message } from 'antd';
 import { preciseAcquisitionService } from '../../../../../application/services';
-import { ExecutorMode, TaskStatus } from '../../../../../constants/precise-acquisition-enums';
+import { TaskStatus } from '../../../../../constants/precise-acquisition-enums';
+import { normalizeExecutorMode } from '../../../../../modules/precise-acquisition/shared/utils/type-mappings';
 import type {
   PrecheckContext,
   PrecheckResult,
@@ -21,9 +22,9 @@ const SENSITIVE_DICTIONARY = [
 const hoursToMs = (hours: number) => hours * 60 * 60 * 1000;
 
 const evaluatePermissions = (context: PrecheckContext): PrecheckResult => {
-  const mode = context.executorMode || 'manual';
-  const isApiMode = mode === ExecutorMode.API || mode === 'api';
-  const isMixedMode = mode === 'mixed';
+  const normalizedMode = normalizeExecutorMode(context.executorMode);
+  const isApiMode = normalizedMode === 'api';
+  const isMixedMode = normalizedMode === 'mixed';
 
   if (isApiMode) {
     return {

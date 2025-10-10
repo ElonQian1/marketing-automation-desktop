@@ -192,7 +192,7 @@ pub async fn match_hidden_element_by_text(
     // 构造隐藏元素策略配置
     let config = HiddenElementParentConfig {
         target_text: target_text.clone(),
-        max_traversal_depth: max_traversal_depth.unwrap_or(5) as usize,
+        max_traversal_depth: max_traversal_depth.unwrap_or(5),
         clickable_indicators: vec![
             "Button".to_string(),
             "ImageButton".to_string(),
