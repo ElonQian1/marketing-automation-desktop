@@ -7,7 +7,6 @@ use async_trait::async_trait;
 use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
 
-use crate::services::execution::model::SmartScriptStep;
 use super::super::ast::{ControlFlowNode, LinearStep};
 use super::super::context::ExecutionContext;
 

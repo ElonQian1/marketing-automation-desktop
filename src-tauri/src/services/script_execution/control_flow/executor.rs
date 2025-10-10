@@ -6,15 +6,15 @@
 /// - 管理执行流程和状态
 /// - 提供执行策略和优化
 
-use anyhow::{Result, anyhow};
+use anyhow::Result;
 use std::collections::HashMap;
 use std::sync::Arc;
-use tracing::{info, warn, error};
+use tracing::{info, warn};
 
 use crate::services::execution::model::{SmartScriptStep, SingleStepTestResult, SmartExecutionResult};
-use super::ast::{ControlFlowNode, ExecutionPlan, LinearStep};
+use super::ast::{ExecutionPlan, LinearStep};
 use super::context::ExecutionContext;
-use super::handlers::base::{ControlStructureHandler, HandlerConfig};
+use super::handlers::base::ControlStructureHandler;
 use super::handlers::LoopHandler;
 
 /// 控制流执行引擎
@@ -264,7 +264,7 @@ impl ControlFlowExecutor {
         let mut errors = Vec::new();
         let mut successful_steps = 0i32;
         let mut failed_steps = 0i32;
-        let mut skipped_steps = 0i32;
+        let skipped_steps = 0i32;
         
         // 性能指标追踪
         let mut min_step_time = u64::MAX;

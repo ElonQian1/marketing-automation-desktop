@@ -1,8 +1,6 @@
 use tauri::State;
 use std::sync::Mutex;
 use crate::services::adb_service::AdbService;
-use crate::services::adb_device_tracker::*;
-use crate::services::safe_adb_manager::*;
 use crate::services::log_bridge::LOG_COLLECTOR;
 #[cfg(windows)]
 use std::os::windows::process::CommandExt; // for creation_flags to hide console window

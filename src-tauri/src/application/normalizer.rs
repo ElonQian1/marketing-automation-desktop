@@ -59,7 +59,7 @@ pub fn normalize_action(action: Action, metrics: &DeviceMetrics) -> Action {
 
 /// JSON-level normalization for legacy inbound steps (snake_case types and flat params),
 /// returns a possibly rewritten JSON parameters object and unified type string.
-pub fn normalize_step_json(step_type: &str, mut params: serde_json::Value, metrics: &DeviceMetrics) -> (String, serde_json::Value) {
+pub fn normalize_step_json(step_type: &str, params: serde_json::Value, metrics: &DeviceMetrics) -> (String, serde_json::Value) {
 	let t = step_type.to_lowercase();
 	match t.as_str() {
 		"smart_scroll" => {

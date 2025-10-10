@@ -1,13 +1,11 @@
 use anyhow::Result;
 use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
-use crate::services::adb_shell_session::AdbShellSession;
 use crate::services::adb_session_manager::get_device_session;
 use crate::services::app_detection_framework::{
     DetectorFactory, DetectionResult, AppLaunchState
 };
-use crate::utils::adb_utils::get_adb_path;
-use tracing::{info, warn, error};
+use tracing::{info, warn};
 use futures::{stream, StreamExt};
 
 use crate::services::smart_app::cache::{AppCache, CacheConfig};

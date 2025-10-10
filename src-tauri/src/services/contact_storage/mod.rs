@@ -12,15 +12,12 @@ pub mod facade;
 pub mod repository_facade;
 
 // 统一的 Facade 接口
-pub use repository_facade::ContactStorageFacade;
 
 // 统一从 commands 模块导入所有命令函数
 pub use commands::{
     // 基本命令
     list_contact_numbers,
     list_all_contact_number_ids,
-    get_contact_number_stats_cmd,
-    get_distinct_industries_cmd,
     
     // 管理命令
     import_contact_numbers_from_file,
@@ -36,35 +33,17 @@ pub use commands::{
     // 状态管理
     mark_contact_numbers_as_not_imported,
     delete_contact_numbers,
-    set_contact_numbers_industry_by_id_range,
     
     // VCF批次管理 
     create_vcf_batch_cmd,
     list_vcf_batches_cmd,
     get_vcf_batch_cmd,
-    update_vcf_batch_cmd,
-    delete_vcf_batch_cmd,
-    get_recent_vcf_batches_cmd,
     create_vcf_batch_with_numbers_cmd,
     get_vcf_batch_stats_cmd,
-    set_vcf_batch_file_path_cmd,
-    batch_delete_vcf_batches_cmd,
-    search_vcf_batches_by_name_cmd,
-    get_vcf_batch_number_count_cmd,
-    mark_vcf_batch_completed_cmd,
-    get_recent_vcf_batches_by_device_cmd,
     
     // 高级查询命令
     list_contact_numbers_by_batch_filtered,
     list_contact_numbers_without_batch,
     tag_contact_numbers_industry_by_vcf_batch,
     allocate_contact_numbers_to_device,
-    
-    // 统计和管理命令
-    import_txt_to_contact_numbers_cmd,
-    list_txt_import_records_cmd,
-    delete_txt_import_record_cmd,
-    maintain_database_cmd,
-    backup_database_cmd,
-    restore_database_cmd,
 };

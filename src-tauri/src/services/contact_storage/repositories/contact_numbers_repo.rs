@@ -1,7 +1,7 @@
 use rusqlite::{Connection, Result as SqliteResult};
 use super::common::database::log_database_error;
 
-use crate::services::contact_storage::models::{ContactNumberDto, ContactNumberList, ContactNumberStats, ContactNumberStatsRaw};
+use crate::services::contact_storage::models::{ContactNumberDto, ContactNumberList, ContactNumberStats};
 
 // 引入子模块化功能
 use super::contact_numbers::{

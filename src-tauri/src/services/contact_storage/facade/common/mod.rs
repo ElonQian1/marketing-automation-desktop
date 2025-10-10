@@ -5,4 +5,3 @@
 pub mod db_connector;
 
 // 重新导出常用功能
-pub use db_connector::{with_db_connection, convert_sqlite_error, with_transaction};

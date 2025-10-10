@@ -63,7 +63,7 @@ impl ErrorHandler {
         &mut self,
         operation_name: &str,
         error: &E,
-        mut retry_fn: F,
+        retry_fn: F,
     ) -> Result<T>
     where
         F: FnMut() -> Result<T, E> + Send,
@@ -153,7 +153,7 @@ impl ErrorHandler {
 /// 为常见的ADB操作提供便捷的错误处理方法
 impl ErrorHandler {
     /// 处理UI dump操作的错误
-    pub async fn handle_ui_dump_error<F>(&mut self, mut retry_fn: F) -> Result<String>
+    pub async fn handle_ui_dump_error<F>(&mut self, retry_fn: F) -> Result<String>
     where
         F: FnMut() -> Result<String, anyhow::Error> + Send,
     {
@@ -161,7 +161,7 @@ impl ErrorHandler {
     }
 
     /// 处理ADB命令执行错误
-    pub async fn handle_adb_command_error<F>(&mut self, command: &str, mut retry_fn: F) -> Result<String>
+    pub async fn handle_adb_command_error<F>(&mut self, command: &str, retry_fn: F) -> Result<String>
     where
         F: FnMut() -> Result<String, anyhow::Error> + Send,
     {
@@ -170,7 +170,7 @@ impl ErrorHandler {
     }
 
     /// 处理设备连接错误
-    pub async fn handle_device_connection_error<F>(&mut self, device_id: &str, mut retry_fn: F) -> Result<()>
+    pub async fn handle_device_connection_error<F>(&mut self, device_id: &str, retry_fn: F) -> Result<()>
     where
         F: FnMut() -> Result<(), anyhow::Error> + Send,
     {

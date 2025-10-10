@@ -1,12 +1,8 @@
-use tauri::AppHandle;
-use serde::{Deserialize, Serialize};
 use super::models::{
     WatchTargetPayload, WatchTargetRow, ListWatchTargetsQuery,
     CommentPayload, CommentRow, ListCommentsQuery,
     TaskPayload, TaskRow, ListTasksQuery,
-    ReplyTemplatePayload, ReplyTemplateRow, ListReplyTemplatesQuery,
-    AuditLogPayload, AuditLogRow, ListAuditLogsQuery,
-    DailyReportPayload, DailyReportRow,
+    AuditLogPayload,
 };
 use super::repositories as repo;
 

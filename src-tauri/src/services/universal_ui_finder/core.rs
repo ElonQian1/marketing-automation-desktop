@@ -1,7 +1,6 @@
 // 通用UI元素查找核心 - 适配所有Android应用的智能UI定位
 
 use regex::Regex;
-use std::collections::HashMap;
 use crate::services::universal_ui_finder::{FindRequest, FindError};
 use crate::services::universal_ui_finder::logger::{InteractiveLogger, ElementSearchStep, PreActionStep};
 

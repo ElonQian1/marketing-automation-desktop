@@ -1,7 +1,7 @@
 // 操作执行器 - 负责实际的点击操作和结果验证
 
 use std::process::Command;
-use std::time::{Duration, Instant};
+use std::time::Instant;
 use crate::services::universal_ui_finder::{FindRequest, ClickResult, UniversalUIElement, FindError};
 use crate::services::universal_ui_finder::logger::{InteractiveLogger, ClickExecutionStep};
 use crate::infra::adb::input_helper::{tap_injector_first, swipe_injector_first};

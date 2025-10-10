@@ -8,7 +8,7 @@ pub mod normalizers;
 pub mod deduplicator;
 pub mod strategies;
 
-use types::{ParsedContact, ParseStats, ParseResult};
+use types::{ParseStats, ParseResult};
 use deduplicator::deduplicate_by_phone;
 use strategies::StrategyChainParser;
 

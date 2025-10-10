@@ -1,5 +1,4 @@
-use rusqlite::{Connection, Result as SqliteResult, params};
-use super::common::database::log_database_error;
+use rusqlite::{Connection, Result as SqliteResult};
 
 use crate::services::contact_storage::models::{ContactNumberStats, AllIndustryStats};
 

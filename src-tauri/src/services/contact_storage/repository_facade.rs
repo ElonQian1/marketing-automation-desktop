@@ -1,5 +1,4 @@
 use rusqlite::{Connection, Result as SqliteResult};
-use tauri::AppHandle;
 
 // 引入新的 facade 子模块
 use super::facade::{
@@ -56,7 +55,7 @@ impl ContactStorageFacade {
     
     /// 初始化数据库
     pub fn init_db() -> SqliteResult<Connection> {
-        use super::repositories::common::database::get_connection;
+        
         // 这里需要一个临时的AppHandle，实际使用中应该从外部传入
         // 这个方法主要用于测试和初始化场景
         unimplemented!("init_db should be called with app_handle parameter")

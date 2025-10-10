@@ -12,7 +12,7 @@ pub mod file_operations; // 文件操作
 pub mod ui_automation; // UI自动化操作 // 路径检测和验证
 
 // 重新导出公共接口，保持向后兼容性
-pub use core::{AdbCommandResult, AdbService};
+pub use core::AdbService;
 
 // 导出常用的结果类型，方便其他模块使用
 pub type AdbResult<T> = Result<T, Box<dyn std::error::Error>>;

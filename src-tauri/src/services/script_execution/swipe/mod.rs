@@ -11,5 +11,5 @@ pub mod diagnostics;
 pub mod validator;
 
 pub use enhanced_executor::EnhancedSwipeExecutor;
-pub use diagnostics::{SwipeDiagnostics, SwipeValidationResult};
+pub use diagnostics::SwipeDiagnostics;
 pub use validator::SwipeValidator;

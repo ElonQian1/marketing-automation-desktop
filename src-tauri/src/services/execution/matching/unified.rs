@@ -10,7 +10,7 @@ use async_trait::async_trait;
 
 use crate::services::execution::matching::legacy_regex::run_traditional_find;
 use crate::services::execution::model::SmartScriptStep;
-use crate::commands::strategy_matching::{MatchCriteriaDTO, match_element_by_criteria};
+use crate::commands::strategy_matching::MatchCriteriaDTO;
 
 /// 提供旧执行器调用 UI 操作所需的抽象接口。
 #[async_trait]

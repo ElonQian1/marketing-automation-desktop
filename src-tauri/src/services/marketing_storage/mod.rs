@@ -19,8 +19,6 @@ pub use commands::{
     insert_task,
     update_task_status,
     list_tasks,
-    lock_next_ready_task,
-    mark_task_result,
     // 审计日志相关
     insert_audit_log,
     check_and_reserve_dedup,

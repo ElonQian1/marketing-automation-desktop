@@ -9,11 +9,5 @@ pub mod control_flow;
 pub mod swipe;
 
 // 重新导出主要接口
-pub use control_flow::{
-    ControlFlowExecutor, ControlFlowNode, ControlFlowParser, ExecutionContext, ExecutionPlan,
-    ScriptPreprocessor,
-};
+pub use control_flow::ScriptPreprocessor;
 
-pub use swipe::{
-    EnhancedSwipeExecutor, SwipeDiagnostics, SwipeValidator
-};

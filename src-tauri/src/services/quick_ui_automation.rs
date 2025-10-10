@@ -1,7 +1,7 @@
 use crate::services::safe_adb_manager::SafeAdbManager;
 use serde::{Deserialize, Serialize};
 use tauri::command;
-use tracing::{info, warn, error};
+use tracing::{info, error};
 use lazy_static::lazy_static;
 use std::sync::Mutex;
 
@@ -52,7 +52,7 @@ pub async fn adb_dump_ui_xml(device_id: String) -> Result<String, String> {
     info!("🔍 快速抓取UI XML: device={}", device_id);
 
     // 使用全局ADB管理器，避免重复初始化
-    let mut safe_adb = get_global_adb().await?;
+    let safe_adb = get_global_adb().await?;
 
     // 执行UI dump
     let dump_args = vec![
@@ -87,7 +87,7 @@ pub async fn adb_click_element(
     info!("👆 点击元素: device={}, resource_id={}", device_id, resource_id);
 
     // 使用全局ADB管理器，避免重复初始化和设备检查
-    let mut safe_adb = get_global_adb().await?;
+    let safe_adb = get_global_adb().await?;
 
     // 🚀 极速优化：单次UI抓取 + 直接坐标点击（无备用方案）
     info!("🎯 使用极速坐标点击（一次抓取，直接点击）");
@@ -144,7 +144,7 @@ pub async fn adb_tap_coordinate(
     info!("🎯 坐标点击: device={}, x={}, y={}", device_id, x, y);
 
     // 使用全局ADB管理器，跳过重复检查
-    let mut safe_adb = get_global_adb().await?;
+    let safe_adb = get_global_adb().await?;
 
     // 直接执行点击，无需重复验证设备
     let x_str = x.to_string();

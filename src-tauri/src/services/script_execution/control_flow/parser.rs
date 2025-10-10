@@ -8,7 +8,7 @@
 
 use anyhow::{Result, anyhow};
 use std::collections::HashMap;
-use tracing::{info, warn, error};
+use tracing::{info, warn};
 
 use crate::services::execution::model::{SmartScriptStep, SmartActionType};
 use super::ast::{ControlFlowNode, ControlFlowType, ExecutionPlan, LinearStep, StepContext, ExecutionStats, ControlStructureCount, ComplexityRating};

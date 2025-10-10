@@ -1,8 +1,5 @@
-use rusqlite::{Connection, Result as SqliteResult};
 use tauri::AppHandle;
 
-use super::super::repositories::contact_numbers_repo;
-use super::super::models::{ContactNumberDto, ContactNumberList, DatabaseInfo};
 use super::common::db_connector::with_db_connection;
 
 /// 数据库管理门面

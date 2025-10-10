@@ -12,5 +12,4 @@ pub mod loop_handler;     // 循环处理器
 // pub mod trycatch_handler;    // 异常处理器（未来扩展）
 
 // 重新导出主要接口
-pub use base::{ControlStructureHandler, HandlerResult, HandlerConfig, HandlerStats};
 pub use loop_handler::LoopHandler;

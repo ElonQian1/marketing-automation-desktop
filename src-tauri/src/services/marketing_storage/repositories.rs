@@ -7,9 +7,7 @@ use super::models::{
     WatchTargetPayload, WatchTargetRow, ListWatchTargetsQuery,
     CommentPayload, CommentRow, ListCommentsQuery,
     TaskPayload, TaskRow, ListTasksQuery,
-    ReplyTemplatePayload, ReplyTemplateRow, ListReplyTemplatesQuery,
-    AuditLogPayload, AuditLogRow, ListAuditLogsQuery,
-    DailyReportPayload, DailyReportRow,
+    AuditLogPayload,
 };
 
 // ==================== SQL 表创建脚本 ====================
@@ -425,7 +423,7 @@ pub fn list_tasks(conn: &Connection, query: &ListTasksQuery) -> rusqlite::Result
 
 pub fn lock_next_ready_task(conn: &mut Connection, account_id: &str, lease_seconds: i64) -> rusqlite::Result<Option<TaskRow>> {
     let lease = if lease_seconds <= 0 { 120 } else { lease_seconds };
-    let mut tx = conn.transaction()?;
+    let tx = conn.transaction()?;
     let select_sql = r#"
 SELECT id FROM tasks
 WHERE status = 'READY'
@@ -461,7 +459,7 @@ pub fn mark_task_result(
     result_code: Option<&str>,
     error_message: Option<&str>,
 ) -> rusqlite::Result<()> {
-    let mut tx = conn.transaction()?;
+    let tx = conn.transaction()?;
     let (current_status, attempts): (String, i32) = tx.query_row(
         "SELECT status, attempts FROM tasks WHERE id = ?",
         params![task_id],

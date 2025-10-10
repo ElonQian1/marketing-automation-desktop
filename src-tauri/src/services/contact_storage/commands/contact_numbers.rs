@@ -15,7 +15,7 @@ pub async fn import_contact_numbers_from_file(
     app_handle: AppHandle,
     file_path: String,
 ) -> Result<models::ImportNumbersResult, String> {
-    use chrono::Local;
+    
     
     if !Path::new(&file_path).exists() {
         return Err(format!("文件不存在: {}", file_path));
@@ -84,7 +84,7 @@ pub async fn import_contact_numbers_from_folder(
     app_handle: AppHandle,
     folder_path: String,
 ) -> Result<models::ImportNumbersResult, String> {
-    use chrono::Local;
+    
     
     let folder = Path::new(&folder_path);
     if !folder.exists() || !folder.is_dir() {

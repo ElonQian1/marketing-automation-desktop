@@ -1,5 +1,4 @@
 use anyhow::{Context, Result};
-use std::collections::HashMap;
 use std::process::Command;
 use tokio::time::{sleep, Duration};
 use tracing::{error, info, warn};
@@ -11,10 +10,7 @@ pub use crate::services::multi_brand_vcf_types::{
     DeviceBrandInfo,
     VcfImportStrategy,
     ImportMethod,
-    ImportStep,
     ImportStepType,
-    VerificationMethod,
-    VerificationType,
     MultiBrandImportResult,
     ImportAttempt,
 };

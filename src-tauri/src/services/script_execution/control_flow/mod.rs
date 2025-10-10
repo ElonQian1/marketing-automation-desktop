@@ -13,8 +13,8 @@ pub mod context;       // 执行上下文管理
 pub mod preprocessor;  // 统一预处理器
 
 // 重新导出主要接口
-pub use ast::{ControlFlowNode, ControlFlowType, ExecutionPlan};
+pub use ast::{ControlFlowNode, ExecutionPlan};
 pub use parser::ControlFlowParser;
 pub use executor::ControlFlowExecutor;
-pub use context::{ExecutionContext, ExecutionScope};
+pub use context::ExecutionContext;
 pub use preprocessor::ScriptPreprocessor;

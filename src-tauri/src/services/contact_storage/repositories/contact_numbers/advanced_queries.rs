@@ -1,7 +1,7 @@
 /// 复杂查询和过滤模块
 /// 处理高级查询逻辑，如搜索、过滤、分页等
 
-use rusqlite::{params, Connection, Result as SqliteResult};
+use rusqlite::{Connection, Result as SqliteResult};
 use crate::services::contact_storage::models::ContactNumberDto;
 
 /// 高级搜索和过滤查询

@@ -1,6 +1,6 @@
 use std::collections::HashMap;
 
-use anyhow::{anyhow, Result};
+use anyhow::Result;
 
 use crate::services::adb_session_manager::get_device_session;
 use crate::services::execution::matching::{find_all_follow_buttons, find_element_in_ui};

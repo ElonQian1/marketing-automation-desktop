@@ -2,7 +2,7 @@
 /// 
 /// 提供数据库初始化、文件导入等基础管理功能的 Tauri 命令
 use std::path::Path;
-use tauri::{command, AppHandle, Manager};
+use tauri::{command, AppHandle};
 use super::super::models;
 use super::super::repository_facade::ContactStorageFacade;
 

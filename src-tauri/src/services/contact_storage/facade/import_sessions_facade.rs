@@ -2,7 +2,7 @@ use rusqlite::{Connection, Result as SqliteResult};
 use tauri::AppHandle;
 
 use super::super::repositories::import_sessions_repo::ImportSessionRepository;
-use super::super::models::{ImportSessionDto, ImportSessionList, DeleteImportSessionResult};
+use super::super::models::{ImportSessionDto, ImportSessionList};
 use super::common::db_connector::with_db_connection;
 
 /// 导入会话管理门面

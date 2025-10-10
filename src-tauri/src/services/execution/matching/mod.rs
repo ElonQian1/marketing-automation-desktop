@@ -5,15 +5,10 @@ mod legacy_regex;
 pub mod strategies;
 mod unified;
 pub use legacy_regex::{
-    extract_bounds_from_line, find_all_follow_buttons, find_element_in_ui, run_traditional_find,
+    find_all_follow_buttons, find_element_in_ui, run_traditional_find,
 };
 pub use unified::{run_unified_match, LegacyUiActions};
 
 // 导出策略处理器相关类型
-pub use strategies::{
-    create_strategy_processor, extract_matching_context, MatchingContext, ProcessingError,
-    StrategyResult,
-};
 
 // 导出层级匹配器
-pub use hierarchy_matcher::{HierarchyMatchConfig, HierarchyMatcher};

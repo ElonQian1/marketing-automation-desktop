@@ -90,15 +90,8 @@ pub mod factory;
 
 // 重新导出主要的公共接口
 pub use core::{
-    AppDetector, BaseAppDetector,
-    DetectionResult, AppLaunchState, DetectionStats,
-    DetectionConfig, DetectionKeywords, AppConfigManager
+    DetectionResult, AppLaunchState
 };
 
-pub use detectors::{
-    WechatDetector, GenericDetector
-};
 
-pub use factory::{
-    DetectorFactory, DetectorRegistry, create_app_detector, is_specialized_app
-};
+pub use factory::DetectorFactory;

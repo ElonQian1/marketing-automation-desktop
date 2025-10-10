@@ -18,8 +18,3 @@ pub mod status_management;
 pub mod advanced_queries;
 
 // 对外统一接口（保持向后兼容）
-pub use basic_operations::*;
-pub use statistics::*;
-pub use batch_management::*;
-pub use status_management::*;
-pub use advanced_queries::*;

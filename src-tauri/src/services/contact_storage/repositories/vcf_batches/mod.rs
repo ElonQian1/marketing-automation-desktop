@@ -15,7 +15,7 @@ pub use file_operations::FileOperations;
 
 // 导入需要的类型
 use rusqlite::Connection;
-use crate::services::contact_storage::models::{VcfBatch, VcfBatchStatsDto, VcfBatchList};
+use crate::services::contact_storage::models::VcfBatchList;
 
 /// VCF批次仓储统一接口
 /// 

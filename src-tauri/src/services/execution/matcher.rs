@@ -3,7 +3,6 @@
 
 use crate::services::execution::model::ExecStep;
 use anyhow::Result;
-use tracing::{info, warn};
 
 // 未来真实依赖（当前保留注释避免循环 / 编译失败）
 // use crate::services::smart_element_finder_service::smart_element_finder;

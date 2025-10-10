@@ -16,14 +16,11 @@ pub mod ui_bridge; // UI 操作桥接层
 pub use model::*;
 pub use retry::*;
 pub use ui_snapshot::*;
-pub use adapter::{adapt_step, adapt_steps, map_action_kind};
 pub use env::ExecutionEnvironment;
-pub use matcher::{MatcherService, MatchResult};
 pub use snapshot_real::RealSnapshotProvider;
 pub use registry::{register_execution_environment, collect_execution_metrics_json};
 pub use matching::{
 	run_unified_match,
-	run_traditional_find,
 	LegacyUiActions,
 };
 pub use orchestrator::SmartScriptOrchestrator;

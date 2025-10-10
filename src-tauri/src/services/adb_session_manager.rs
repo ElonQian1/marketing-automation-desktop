@@ -70,7 +70,7 @@ impl AdbSessionManager {
             .ok()
             .and_then(|v| v.parse::<u64>().ok())
             .unwrap_or(2000);
-        let mut map = self.last_health_check.lock().await;
+        let map = self.last_health_check.lock().await;
         if let Some(last) = map.get(&device_id) {
             if last.elapsed() < std::time::Duration::from_millis(ttl_ms) {
                 // TTL 内认为仍然健康，避免重复探测
