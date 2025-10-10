@@ -9,9 +9,6 @@ export * from './types';
 // 导出核心API类
 export { UniversalUIAPI } from './UniversalUIAPI';
 
-// 导出智能匹配算法
-export { SmartMatcher } from './SmartMatcher';
-
 // 导出服务类
 export { UniversalUIService } from './UniversalUIService';
 

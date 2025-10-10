@@ -65,8 +65,8 @@ const STRATEGY_CONFIGS: StrategyConfig[] = [
   }
 ];
 
-// 智能推荐逻辑
-const analyzeElementAndRecommend = (node: UiNode | null): {
+// 🚀 新版智能推荐逻辑 - 基于现有增强匹配系统的改进版本
+const analyzeElementAndRecommend = (node: UiNode | null, xmlContent?: string): {
   recommendedStrategy: MatchStrategy;
   reason: string;
   confidence: number;
@@ -77,47 +77,63 @@ const analyzeElementAndRecommend = (node: UiNode | null): {
 
   const attrs = node.attrs || {};
   
-  // 检查是否有resource-id
-  if (attrs['resource-id'] && attrs['resource-id'].trim()) {
+  // Step 1: 自我可定位性检查 (基于文档6-8的Step 1)
+  if (attrs['resource-id']?.trim()) {
+    // 检查resource-id的唯一性（简化版本）
+    const resourceId = attrs['resource-id'];
+    if (!resourceId.includes('android:id/') && resourceId.includes(':id/')) {
+      return { 
+        recommendedStrategy: 'strict', 
+        reason: 'Step 1: 检测到应用特定resource-id，推荐严格匹配', 
+        confidence: 0.9 
+      };
+    }
+  }
+
+  // Step 1: content-desc唯一性检查
+  if (attrs['content-desc']?.trim()) {
     return { 
       recommendedStrategy: 'strict', 
-      reason: '检测到唯一ID，推荐智能匹配', 
-      confidence: 0.9 
-    };
-  }
-
-  // 检查是否是文本元素
-  if (attrs['text'] && attrs['text'].trim()) {
-    return { 
-      recommendedStrategy: 'positionless', 
-      reason: '文本元素，推荐跨设备通用', 
-      confidence: 0.8 
-    };
-  }
-
-  // 检查是否可能有子节点文本（通过class判断）
-  const className = attrs['class'] || '';
-  if (className.includes('Layout') || className.includes('Container')) {
-    return { 
-      recommendedStrategy: 'standard', 
-      reason: '容器元素，推荐智能增强匹配', 
+      reason: 'Step 1: 检测到content-desc，推荐严格匹配', 
       confidence: 0.85 
     };
   }
 
-  // 检查是否有content-desc
-  if (attrs['content-desc'] && attrs['content-desc'].trim()) {
+  // Step 2: 子树锚点查找 (文本元素)
+  if (attrs['text']?.trim()) {
+    const text = attrs['text'];
+    if (text.length < 20 && !text.includes('\n')) {
+      return { 
+        recommendedStrategy: 'positionless', 
+        reason: 'Step 2: 短文本元素，推荐忽略位置匹配', 
+        confidence: 0.8 
+      };
+    }
+  }
+
+  // Step 3: 区域限定匹配 (容器元素检查)
+  const className = attrs['class'] || '';
+  if (className.includes('Layout') || className.includes('Container') || className.includes('View')) {
     return { 
-      recommendedStrategy: 'strict', 
-      reason: '有描述信息，推荐智能匹配', 
+      recommendedStrategy: 'standard', 
+      reason: 'Step 3: 容器元素，推荐标准跨设备匹配', 
       confidence: 0.75 
+    };
+  }
+
+  // Step 6: 兜底策略
+  if (attrs['bounds'] && attrs['index']) {
+    return { 
+      recommendedStrategy: 'absolute', 
+      reason: 'Step 6: 兜底策略 - 使用位置和索引的绝对匹配', 
+      confidence: 0.6 
     };
   }
 
   return { 
     recommendedStrategy: 'standard', 
-    reason: '通用场景，推荐智能增强', 
-    confidence: 0.7 
+    reason: 'Step 6: 默认标准匹配策略', 
+    confidence: 0.5 
   };
 };
 
@@ -128,8 +144,10 @@ export const EnhancedMatchPresetsRow: React.FC<EnhancedMatchPresetsRowProps> = (
   onPreviewFields, 
   activeStrategy 
 }) => {
-  // 智能推荐分析
-  const recommendation = useMemo(() => analyzeElementAndRecommend(node), [node]);
+  // 🆕 使用同步的智能推荐
+  const recommendation = useMemo(() => {
+    return analyzeElementAndRecommend(node, xmlContent);
+  }, [node, xmlContent]);
 
   const applyStrategy = async (strategy: MatchStrategy) => {
     if (!node) return;
