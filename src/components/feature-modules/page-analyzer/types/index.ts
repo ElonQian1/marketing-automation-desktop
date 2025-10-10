@@ -60,16 +60,10 @@ export interface ElementBounds {
 }
 
 /**
- * 匹配策略类型
+ * 匹配策略类型（导入统一定义）
  */
-export type MatchStrategy = 
-  | 'absolute'    // 绝对匹配，包含位置信息
-  | 'strict'      // 严格匹配，语义字段组合
-  | 'relaxed'     // 宽松匹配，部分字段匹配
-  | 'positionless'// 无位置匹配，忽略坐标
-  | 'standard'    // 标准匹配，跨设备稳定
-  | 'xpath-direct' // XPath 直接索引，最快速度
-  | 'custom';     // 自定义策略
+import type { MatchStrategy } from '../../../../modules/intelligent-strategy-system/types/StrategyTypes';
+export type { MatchStrategy };
 
 /**
  * 匹配条件

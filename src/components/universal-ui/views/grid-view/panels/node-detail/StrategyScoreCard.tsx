@@ -2,7 +2,6 @@ import React from 'react';
 import { useBreakpoint, useMobileDetection, useResponsiveValue } from './responsive';
 import { generateMobileButtonClasses, generateA11yFocusClasses, mergeClasses } from './responsive/utils';
 
-// 临时定义详细评分接口，直到与主模块集成
 interface StrategyScore {
   total: number;
   performance: number;

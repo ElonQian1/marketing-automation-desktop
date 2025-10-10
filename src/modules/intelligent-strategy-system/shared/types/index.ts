@@ -67,8 +67,9 @@ import {
   ERROR_TYPES,
 } from './constants';
 
-// 类型别名（便于使用）
-export type MatchStrategy = typeof MATCH_STRATEGIES[keyof typeof MATCH_STRATEGIES];
+// 导入统一的策略类型定义
+import type { MatchStrategy } from '../../types/StrategyTypes';
+export type { MatchStrategy };
 export type StabilityLevel = typeof STABILITY_LEVELS[keyof typeof STABILITY_LEVELS];
 export type AnalysisMode = typeof ANALYSIS_MODES[keyof typeof ANALYSIS_MODES];
 export type DeviceType = typeof DEVICE_TYPES[keyof typeof DEVICE_TYPES];

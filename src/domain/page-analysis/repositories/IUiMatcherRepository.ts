@@ -2,7 +2,8 @@
  * UI 元素匹配仓储接口
  */
 
-export type MatchStrategy = 'absolute' | 'strict' | 'relaxed' | 'positionless' | 'standard' | 'hidden-element-parent' | 'xpath-direct';
+// 导入统一的策略类型定义
+import type { MatchStrategy } from '../../../modules/intelligent-strategy-system/types/StrategyTypes';
 
 export interface HiddenElementParentConfig {
   /** 是否启用隐藏元素的父容器策略 */

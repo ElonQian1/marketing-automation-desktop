@@ -13,10 +13,6 @@ mod new_backend;
 
 // Universal UI Finder 模块桥接
 // 注意：universal-ui-finder模块位于src/modules/，我们通过services层桥接
-// use services::smart_element_finder_service::SmartElementFinderService; // 未直接使用类型
-// 页面分析与 Universal UI 相关类型/服务已在 commands 模块中使用，不再直接在 main.rs 引入
-// use services::page_analyzer_service::PageAnalyzerService;
-// use types::page_analysis::{ PageAnalysisResult, PageAnalysisConfig, SelectedElementConfig };
 
 use tauri_plugin_dialog;
 use std::sync::Mutex; // 为 .manage 使用
@@ -26,7 +22,6 @@ use std::sync::Mutex; // 为 .manage 使用
 use screenshot_service::*;
 use commands::*; // 引入拆分后的命令（所有 #[tauri::command] 均集中）
 use tracing::info; // 引入info!宏
-// use commands::app_lifecycle_commands::*;
 use services::adb_device_tracker::*;
 use services::adb_service::AdbService;
 use services::auth_service::*;
@@ -46,9 +41,6 @@ use services::contact_storage::commands::{
     cleanup_database_cmd,
 };
 use services::contact_storage::commands::{
-    // update_import_session_industry_cmd,      // TEMPORARILY DISABLED
-    // revert_import_session_to_failed_cmd,     // TEMPORARILY DISABLED
-    // delete_import_session_cmd,               // TEMPORARILY DISABLED
     // TXT文件导入记录命令（新增）
     list_txt_import_records_cmd,
     delete_txt_import_record_cmd,
@@ -82,22 +74,13 @@ use services::marketing_storage::{
     insert_audit_log,
     check_and_reserve_dedup,
 };
-// 直接使用的其他命令函数（未在 commands::* re-export 中覆盖的服务命令）
-// use services::ui_reader_service::read_device_ui_state; // 重复导入，已在下方包含
+// 直接使用的其他命令函数
 use services::smart_vcf_opener::smart_vcf_opener;
-// 注意: write_file, delete_file, reveal_in_file_manager 已在 commands/files.rs 中定义
 // XML相关服务来源于不同模块
 use services::ui_reader_service::{read_device_ui_state, find_ui_elements};
-// use services::universal_ui_page_analyzer::classify_ui_elements; // 重复导入，已在下方包含
 use commands::xml_cache::{read_xml_cache_file, list_xml_cache_files};
-// 注意：部分命令可能需要重新映射或使用其他实现
-// use xml_judgment_service::{
-//     get_device_ui_xml,
-//     find_xml_ui_elements,
-//     wait_for_ui_element,
-//     check_device_page_state,
-//     match_element_by_criteria,
-// };
+// 使用新的策略匹配实现
+use commands::strategy_matching::match_element_by_criteria;
 use services::universal_ui_service::execute_universal_ui_click;
 use services::universal_ui_page_analyzer::{
     analyze_universal_ui_page,
@@ -211,11 +194,7 @@ fn main() {
             // 号码批次与导入追踪
             create_vcf_batch_cmd,
             list_vcf_batches_cmd,
-            // list_vcf_batch_records_cmd,                   // NOT EXISTS
             get_vcf_batch_cmd,
-            // create_import_session_cmd,                    // TEMPORARILY DISABLED
-            // finish_import_session_cmd,                    // TEMPORARILY DISABLED
-            // list_import_sessions_cmd,                     // TEMPORARILY DISABLED
             list_contact_numbers_by_batch_filtered,
             list_contact_numbers_without_batch,
             get_contact_number_stats_cmd,
@@ -224,10 +203,6 @@ fn main() {
             create_vcf_batch_with_numbers_cmd,
             get_industries_for_vcf_batch_cmd,
             tag_contact_numbers_industry_by_vcf_batch,
-            // update_import_session_industry_cmd,           // TEMPORARILY DISABLED
-            // revert_import_session_to_failed_cmd,          // TEMPORARILY DISABLED
-            // delete_import_session_cmd,                    // TEMPORARILY DISABLED
-            // get_import_session_events_cmd,                // TEMPORARILY DISABLED
             // TXT文件导入记录管理（新增）
             list_txt_import_records_cmd,
             delete_txt_import_record_cmd,
@@ -236,7 +211,6 @@ fn main() {
             init_contact_storage_cmd,
             get_database_info_cmd,
             cleanup_database_cmd,
-            // get_import_session_stats_cmd,                 // TEMPORARILY DISABLED
             get_vcf_batch_stats_cmd,
             // 新增的VCF导入和小红书自动关注功能
             generate_vcf_file,
