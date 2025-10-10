@@ -28,12 +28,12 @@ export {
 // UI组件
 export { CommentCollectionManager } from './components/CommentCollectionManager';
 
-// 类型定义
+// 类型定义 - 统一使用 application 层类型
 export type {
-  AdapterStatus,
-  CommentCollectionParams,
-  CommentCollectionResult
-} from './adapters/CommentCollectionAdapter';
+  UnifiedAdapterStatus as AdapterStatus,
+  UnifiedCommentCollectionParams as CommentCollectionParams,
+  UnifiedCommentCollectionResult as CommentCollectionResult
+} from '../../../application/services/comment-collection/UnifiedCommentAdapter';
 
 export type {
   CollectionStats,

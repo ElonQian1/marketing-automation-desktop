@@ -2,6 +2,8 @@ import type { SmartScriptStep } from '../../types/smartScript';
 import type { MatchCriteriaDTO } from '../../domain/page-analysis/repositories/IUiMatcherRepository';
 import { escapeRegex, sanitizeCriteria } from './utils';
 import type { StrategyTestResult } from './types';
+// 🆕 导入离线验证系统
+import { OfflineValidationSystem } from '../../modules/intelligent-strategy-system/validation/OfflineValidationSystem';
 
 export function buildCriteriaFromStep(step: SmartScriptStep): MatchCriteriaDTO | null {
   const params = step.parameters as any;
@@ -169,6 +171,42 @@ export async function executeStrategyTestImpl(
   if (!criteria) {
     return { success: false, output: '❌ 无法从步骤参数构建匹配条件，步骤类型不支持或缺少必要参数', error: '不支持的步骤类型或参数不足' };
   }
+
+  // 🆕 Step 0-6: 离线预验证（根据XPath文档要求）
+  // 目前暂时注释，需要与XML内容管理系统集成后启用
+  // TODO: 集成XML缓存系统，获取当前设备的XML内容进行离线验证
+  /*
+  try {
+    const offlineValidator = new OfflineValidationSystem({ enableDetailedLogging: true });
+    // 需要从某处获取当前设备的XML内容
+    const xmlContent = getCurrentDeviceXML(deviceId); // 待实现
+    if (xmlContent) {
+      console.log('🔍 执行离线预验证...');
+      const validationResult = await offlineValidator.validateCandidate({
+        strategy: criteria.strategy as any,
+        fields: criteria.fields,
+        values: criteria.values,
+        includes: criteria.includes,
+        excludes: criteria.excludes
+      }, {}, xmlContent);
+
+      console.log('📋 离线验证结果:', {
+        isValid: validationResult.isValid,
+        confidence: validationResult.confidence,
+        matchCount: validationResult.details.matchCount,
+        estimatedSpeed: validationResult.performance.estimatedSpeed
+      });
+
+      // 如果离线验证失败且置信度很低，提前警告但不阻止后端测试
+      if (!validationResult.isValid && validationResult.confidence < 0.3) {
+        console.warn('⚠️ 离线验证预警: 策略可能无效，但继续尝试后端验证');
+      }
+    }
+  } catch (offlineError) {
+    console.warn('⚠️ 离线验证执行失败，继续后端验证:', offlineError);
+  }
+  */
+
   try {
     console.log('🎯 使用策略匹配测试:', criteria);
     const matchResult = await matchElementByCriteria(deviceId, criteria);

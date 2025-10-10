@@ -13,11 +13,15 @@ import {
   WatchTarget, 
   Comment
 } from '../../../modules/precise-acquisition/shared/types/core';
+
+// 导入统一接口
 import { 
-  CommentCollectionParams, 
-  CommentCollectionResult, 
-  AdapterStatus 
-} from './DouyinCommentAdapter';
+  UnifiedCommentAdapter,
+  UnifiedAdapterStatus,
+  UnifiedCommentCollectionParams,
+  UnifiedCommentCollectionResult,
+  UnifiedPermissionValidationResult
+} from './UnifiedCommentAdapter';
 
 // ==================== 巨量引擎API配置 ====================
 
@@ -75,7 +79,7 @@ interface OceanEngineAdInfo {
 
 // ==================== 巨量引擎评论适配器 ====================
 
-export class OceanEngineCommentAdapter {
+export class OceanEngineCommentAdapter implements UnifiedCommentAdapter {
   private config: OceanEngineAPIConfig;
   private platform: Platform = Platform.OCEANENGINE;
 
@@ -86,11 +90,13 @@ export class OceanEngineCommentAdapter {
   /**
    * 获取适配器状态
    */
-  async getStatus(): Promise<AdapterStatus> {
+  async getStatus(): Promise<UnifiedAdapterStatus> {
     try {
       if (!this.config.access_token) {
         return {
-          is_available: false,
+          platform: this.platform,
+          available: false,
+          auth_status: 'missing',
           last_error: 'Access token not configured'
         };
       }
@@ -99,12 +105,16 @@ export class OceanEngineCommentAdapter {
       const isValid = await this.validateAccessToken();
       
       return {
-        is_available: isValid,
+        platform: this.platform,
+        available: isValid,
+        auth_status: isValid ? 'authenticated' : 'expired',
         last_error: isValid ? undefined : 'Access token expired or invalid advertiser permissions'
       };
     } catch (error) {
       return {
-        is_available: false,
+        platform: this.platform,
+        available: false,
+        auth_status: 'invalid',
         last_error: error instanceof Error ? error.message : 'Unknown error'
       };
     }
@@ -133,7 +143,7 @@ export class OceanEngineCommentAdapter {
   /**
    * 采集评论
    */
-  async collectComments(params: CommentCollectionParams): Promise<CommentCollectionResult> {
+  async collectComments(params: UnifiedCommentCollectionParams): Promise<UnifiedCommentCollectionResult> {
     const { target, limit = 20, cursor, time_range } = params;
 
     // 验证目标支持
@@ -175,6 +185,9 @@ export class OceanEngineCommentAdapter {
         has_more: hasMore,
         next_cursor: hasMore ? (page + 1).toString() : undefined,
         total_count: apiResponse.data.page_info.total_number,
+        collected_at: new Date(),
+        source_platform: this.platform,
+        target_id: target.id,
         rate_limit_info: await this.getRateLimitInfo()
       };
 
@@ -187,11 +200,7 @@ export class OceanEngineCommentAdapter {
   /**
    * 验证采集权限
    */
-  async validatePermissions(target: WatchTarget): Promise<{
-    canCollect: boolean;
-    reason?: string;
-    requiredScopes?: string[];
-  }> {
+  async validatePermissions(target: WatchTarget): Promise<UnifiedPermissionValidationResult> {
     try {
       if (!this.config.access_token || !this.config.advertiser_id) {
         return {

@@ -1,15 +1,13 @@
 // src-tauri/src/commands/strategy_matching.rs
 //! 策略匹配命令 - 重新实现 match_element_by_criteria
 
-use serde::Serialize;
+use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
 use tracing::{info, error};
 
 use crate::services::execution::matching::strategies::{
     create_strategy_processor, MatchingContext
 };
-use serde::{Deserialize, Serialize};
-use std::collections::HashMap;
 
 #[derive(Debug, Serialize)]
 pub struct MatchResult {
@@ -72,12 +70,26 @@ fn default_exclude_indicators() -> Vec<String> {
 fn default_confidence_threshold() -> f64 { 0.7 }
 
 /// 策略匹配命令 - 支持隐藏元素父容器查找等策略
+/// 🆕 增加时间预算控制，避免长时间阻塞
 #[tauri::command]
 pub async fn match_element_by_criteria(
     device_id: String,
     criteria: MatchCriteriaDTO,
 ) -> Result<MatchResult, String> {
+    use std::time::{Duration, Instant};
+    use tokio::time::timeout;
+
     info!("🎯 策略匹配开始: 设备={} 策略={}", device_id, criteria.strategy);
+    
+    // 🆕 受控回退机制：设置时间预算（默认5秒，复杂策略10秒）
+    let time_budget = match criteria.strategy.as_str() {
+        "xpath-direct" | "xpath-first-index" | "xpath-all-elements" => Duration::from_secs(10),
+        "hidden-element-parent" => Duration::from_secs(8),
+        _ => Duration::from_secs(5),
+    };
+
+    let start_time = Instant::now();
+    info!("⏱️ 时间预算: {:?} (策略: {})", time_budget, criteria.strategy);
 
     // 创建策略处理器
     let processor = create_strategy_processor(&criteria.strategy);
@@ -99,8 +111,13 @@ pub async fn match_element_by_criteria(
 
     let mut logs = Vec::new();
 
-    // 执行策略匹配
-    match processor.process(&mut context, &mut logs).await {
+    // 🆕 执行策略匹配 - 带时间预算控制
+    let strategy_execution = async {
+        processor.process(&mut context, &mut logs).await
+    };
+
+    match timeout(time_budget, strategy_execution).await {
+        Ok(execution_result) => match execution_result {
         Ok(result) => {
             let success = result.success;
             let message = result.message;
@@ -143,6 +160,22 @@ pub async fn match_element_by_criteria(
         Err(e) => {
             error!("❌ 策略处理失败: {}", e);
             Err(format!("策略处理失败: {}", e))
+        }
+        },
+        Err(_) => {
+            // 🆕 超时处理 - 受控回退机制
+            let elapsed = start_time.elapsed();
+            error!("⏰ 策略匹配超时: 设备={} 策略={} 耗时={:?} 预算={:?}", 
+                   device_id, criteria.strategy, elapsed, time_budget);
+            
+            // 返回超时失败结果
+            Ok(MatchResult {
+                ok: false,
+                message: format!("策略匹配超时 (耗时: {:?}, 预算: {:?})", elapsed, time_budget),
+                preview: None,
+                matched_elements: vec![],
+                confidence_score: 0.0,
+            })
         }
     }
 }

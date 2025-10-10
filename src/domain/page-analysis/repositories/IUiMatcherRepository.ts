@@ -3,7 +3,7 @@
  */
 
 // 导入统一的策略类型定义
-import type { MatchStrategy } from '../../../modules/intelligent-strategy-system/types/StrategyTypes';
+import type { MatchStrategy, MatchCriteria } from '../../../modules/intelligent-strategy-system/types/StrategyTypes';
 
 export interface HiddenElementParentConfig {
   /** 是否启用隐藏元素的父容器策略 */
@@ -16,23 +16,8 @@ export interface HiddenElementParentConfig {
   preferClickableParent?: boolean;
 }
 
-export interface MatchCriteriaDTO {
-  strategy: MatchStrategy;
-  fields: string[];
-  values: Record<string, string>;
-  /** 负向匹配：每字段一个字符串数组，表示"不包含"的词列表 */
-  excludes?: Record<string, string[]>;
-  /** 正向额外包含：每字段一个字符串数组，表示"必须包含"的词列表 */
-  includes?: Record<string, string[]>;
-  /** 每字段匹配模式：equals | contains | regex（前端使用camelCase） */
-  matchMode?: Record<string, 'equals' | 'contains' | 'regex'>;
-  /** 每字段"必须匹配"的正则（全部需满足，前端使用camelCase） */
-  regexIncludes?: Record<string, string[]>;
-  /** 每字段"不可匹配"的正则（任一命中即失败，前端使用camelCase） */
-  regexExcludes?: Record<string, string[]>;
-  /** 隐藏元素父容器配置 */
-  hiddenElementParentConfig?: HiddenElementParentConfig;
-}
+// 使用统一的MatchCriteria类型作为DTO
+export type MatchCriteriaDTO = MatchCriteria;
 
 export interface MatchPreview {
   text?: string;

@@ -1,18 +1,18 @@
 // ADB服务模块化结构
-// 
+//
 // 这个模块将原来的单一文件 adb_service.rs 重构为多个子模块，
 // 按功能职责分离，提高代码的可维护性和可扩展性。
 
 // 子模块声明
-pub mod core;           // 核心结构和数据类型
-pub mod commands;       // 基础命令执行
-pub mod devices;        // 设备管理
-pub mod ui_automation;  // UI自动化操作
-pub mod file_operations;// 文件操作
-pub mod detection;      // 路径检测和验证
+pub mod commands; // 基础命令执行
+pub mod core; // 核心结构和数据类型
+pub mod detection;
+pub mod devices; // 设备管理
+pub mod file_operations; // 文件操作
+pub mod ui_automation; // UI自动化操作 // 路径检测和验证
 
 // 重新导出公共接口，保持向后兼容性
-pub use core::{AdbService, AdbCommandResult};
+pub use core::{AdbCommandResult, AdbService};
 
 // 导出常用的结果类型，方便其他模块使用
 pub type AdbResult<T> = Result<T, Box<dyn std::error::Error>>;

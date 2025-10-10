@@ -11,10 +11,7 @@ export {
   DouyinCommentAdapter,
   createDouyinCommentAdapter,
   validateDouyinConfig,
-  type DouyinAPIConfig,
-  type AdapterStatus,
-  type CommentCollectionParams,
-  type CommentCollectionResult
+  type DouyinAPIConfig
 } from './DouyinCommentAdapter';
 
 // 统一类型导出（从核心类型模块）
@@ -48,10 +45,17 @@ export {
   createCommentAdapterManager,
   validateCommentAdapterManagerConfig,
   type CommentAdapterManagerConfig,
-  type CollectionStats,
-  type CommentAdapter,
-  type PermissionValidationResult
+  type CollectionStats
 } from './CommentAdapterManager';
+
+// 统一接口类型 (直接从 UnifiedCommentAdapter 导出)
+export {
+  type UnifiedCommentAdapter as CommentAdapter,
+  type UnifiedPermissionValidationResult as PermissionValidationResult,
+  type UnifiedAdapterStatus as AdapterStatus,
+  type UnifiedCommentCollectionParams as CommentCollectionParams,
+  type UnifiedCommentCollectionResult as CommentCollectionResult
+} from './UnifiedCommentAdapter';
 
 // ==================== 常量定义 ====================
 

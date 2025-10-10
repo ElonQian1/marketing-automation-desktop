@@ -1,5 +1,5 @@
 use async_trait::async_trait;
-use std::time::Duration;
+// use std::time::Duration;  // 暂时未使用
 use anyhow::Result;
 use super::detection_result::{DetectionResult, AppLaunchState};
 use super::detection_config::DetectionConfig;

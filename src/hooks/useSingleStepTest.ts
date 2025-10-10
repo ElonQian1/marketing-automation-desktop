@@ -10,6 +10,8 @@ import { runBackendLoop } from './singleStepTest/backendLoop';
 import { executeActionOnce } from './singleStepTest/singleAction';
 import { executeXPathDirect } from './singleStepTest/xpathDirectExecution';
 import type { StrategyTestResult } from './singleStepTest/types';
+// 🆕 导入离线验证系统
+import { OfflineValidationSystem } from '../modules/intelligent-strategy-system/validation/OfflineValidationSystem';
 
 /**
  * useSingleStepTest

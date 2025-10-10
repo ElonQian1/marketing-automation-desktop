@@ -7,7 +7,7 @@
 use crate::services::multi_brand_vcf_importer::MultiBrandVcfImporter;
 use crate::services::multi_brand_vcf_types::MultiBrandImportResult;
 use crate::services::huawei_enhanced_importer::{HuaweiEmuiEnhancedStrategy, ImportExecutionResult};
-use crate::services::vcf_importer::{Contact, VcfImporter, VcfImportResult, VcfVerifyResult};
+use crate::services::vcf_importer::{Contact, VcfImporter};
 use tracing::{error, info, warn};
 
 /// 从联系人列表生成 VCF 文件

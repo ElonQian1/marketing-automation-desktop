@@ -9,9 +9,9 @@ use quick_xml::{Reader, events::Event};
 use serde::{Deserialize, Serialize};
 use anyhow::Result as AnyResult;
 use tracing::{info, warn, error};
-use tauri::Manager;
+// use tauri::Manager;  // 暂时未使用
 use crate::types::page_analysis::ElementBounds;
-use crate::screenshot_service::ScreenshotService;
+// use crate::screenshot_service::ScreenshotService;  // 暂时未使用
 
 // 添加获取debug_xml目录的函数
 fn get_debug_xml_dir() -> std::path::PathBuf {

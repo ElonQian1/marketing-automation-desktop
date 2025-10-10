@@ -13,11 +13,15 @@ import {
   WatchTarget, 
   Comment
 } from '../../../modules/precise-acquisition/shared/types/core';
+
+// 导入统一接口
 import { 
-  CommentCollectionParams, 
-  CommentCollectionResult, 
-  AdapterStatus 
-} from './DouyinCommentAdapter';
+  UnifiedCommentAdapter,
+  UnifiedAdapterStatus,
+  UnifiedCommentCollectionParams,
+  UnifiedCommentCollectionResult,
+  UnifiedPermissionValidationResult
+} from './UnifiedCommentAdapter';
 
 // ==================== 白名单配置 ====================
 
@@ -63,7 +67,7 @@ interface PublicCommentData {
 
 // ==================== 公开白名单适配器 ====================
 
-export class PublicWhitelistAdapter {
+export class PublicWhitelistAdapter implements UnifiedCommentAdapter {
   private config: PublicWhitelistConfig;
   private whitelistRules: Map<string, WhitelistRule> = new Map();
   private robotsCache: Map<string, RobotsTxtRules> = new Map();
@@ -97,32 +101,40 @@ export class PublicWhitelistAdapter {
   /**
    * 获取适配器状态
    */
-  async getStatus(): Promise<AdapterStatus> {
+  async getStatus(): Promise<UnifiedAdapterStatus> {
     try {
       const validDomains = await this.validateWhitelistDomains();
       const robotsCompliance = await this.checkRobotsCompliance();
 
       if (validDomains === 0) {
         return {
-          is_available: false,
+          platform: this.getPlatform(),
+          available: false,
+          auth_status: 'invalid',
           last_error: 'No valid domains in whitelist'
         };
       }
 
       if (this.config.robots_txt_compliance && !robotsCompliance) {
         return {
-          is_available: false,
+          platform: this.getPlatform(),
+          available: false,
+          auth_status: 'invalid',
           last_error: 'Robots.txt compliance check failed'
         };
       }
 
       return {
-        is_available: true,
+        platform: this.getPlatform(),
+        available: true,
+        auth_status: 'authenticated',
         last_error: undefined
       };
     } catch (error) {
       return {
-        is_available: false,
+        platform: this.getPlatform(),
+        available: false,
+        auth_status: 'invalid',
         last_error: error instanceof Error ? error.message : 'Unknown error'
       };
     }
@@ -146,7 +158,7 @@ export class PublicWhitelistAdapter {
   /**
    * 采集评论
    */
-  async collectComments(params: CommentCollectionParams): Promise<CommentCollectionResult> {
+  async collectComments(params: UnifiedCommentCollectionParams): Promise<UnifiedCommentCollectionResult> {
     const { target, limit = 20, cursor, time_range } = params;
 
     // 验证目标支持
@@ -201,6 +213,9 @@ export class PublicWhitelistAdapter {
         has_more: hasMore,
         next_cursor: hasMore ? this.generateNextCursor(rawComments, cursor) : undefined,
         total_count: undefined, // 公开API通常不提供总数
+        collected_at: new Date(),
+        source_platform: this.getPlatform(),
+        target_id: target.id,
         rate_limit_info: this.getRateLimitInfo(domain, rule)
       };
 
@@ -213,12 +228,7 @@ export class PublicWhitelistAdapter {
   /**
    * 验证采集权限（CommentAdapter接口兼容版本）
    */
-  async validatePermissions(target: WatchTarget): Promise<{
-    canCollect: boolean;
-    reason?: string;
-    requiredScopes?: string[];
-    compliance_status?: string;
-  }> {
+  async validatePermissions(target: WatchTarget): Promise<UnifiedPermissionValidationResult> {
     const rule = this.findMatchingRule(target.platform_id_or_url);
     if (!rule) {
       return {

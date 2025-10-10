@@ -62,24 +62,8 @@ export interface ElementBounds {
 /**
  * 匹配策略类型（导入统一定义）
  */
-import type { MatchStrategy } from '../../../../modules/intelligent-strategy-system/types/StrategyTypes';
-export type { MatchStrategy };
-
-/**
- * 匹配条件
- */
-export interface MatchCriteria {
-  /** 匹配策略 */
-  strategy: MatchStrategy;
-  /** 要匹配的字段列表 */
-  fields: string[];
-  /** 字段对应的值 */
-  values: Record<string, string>;
-  /** 包含条件 (per-field) */
-  includes?: Record<string, string[]>;
-  /** 排除条件 (per-field) */
-  excludes?: Record<string, string[]>;
-}
+import type { MatchStrategy, MatchCriteria } from '../../../../modules/intelligent-strategy-system/types/StrategyTypes';
+export type { MatchStrategy, MatchCriteria };
 
 /**
  * 页面分析器状态

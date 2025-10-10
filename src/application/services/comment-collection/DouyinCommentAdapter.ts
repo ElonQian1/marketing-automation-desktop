@@ -15,6 +15,15 @@ import {
   Comment
 } from '../../../modules/precise-acquisition/shared/types/core';
 
+// 导入统一接口
+import { 
+  UnifiedCommentAdapter,
+  UnifiedAdapterStatus,
+  UnifiedCommentCollectionParams,
+  UnifiedCommentCollectionResult,
+  UnifiedPermissionValidationResult
+} from './UnifiedCommentAdapter';
+
 // ==================== 接口定义 ====================
 
 // 删除重复的本地接口定义，使用统一的领域类型
@@ -41,14 +50,8 @@ export interface CommentCollectionResult {
   };
 }
 
-export interface AdapterStatus {
-  is_available: boolean;
-  last_error?: string;
-  rate_limit_status?: {
-    remaining: number;
-    reset_time: Date;
-  };
-}
+// 删除本地重复接口定义，使用统一接口
+// export interface AdapterStatus - 已替换为 UnifiedAdapterStatus
 
 export interface DouyinAPIConfig {
   client_key: string;
@@ -98,7 +101,7 @@ interface DouyinUserInfo {
 
 // ==================== 抖音评论采集适配器 ====================
 
-export class DouyinCommentAdapter {
+export class DouyinCommentAdapter implements UnifiedCommentAdapter {
   private config: DouyinAPIConfig;
   private platform: Platform = Platform.DOUYIN;
 
@@ -109,12 +112,14 @@ export class DouyinCommentAdapter {
   /**
    * 获取适配器状态
    */
-  async getStatus(): Promise<AdapterStatus> {
+  async getStatus(): Promise<UnifiedAdapterStatus> {
     try {
       // 检查access_token有效性
       if (!this.config.access_token) {
         return {
-          is_available: false,
+          platform: this.platform,
+          available: false,
+          auth_status: 'missing',
           last_error: 'Access token not configured'
         };
       }
@@ -123,12 +128,16 @@ export class DouyinCommentAdapter {
       const isValid = await this.validateAccessToken();
       
       return {
-        is_available: isValid,
+        platform: this.platform,
+        available: isValid,
+        auth_status: isValid ? 'authenticated' : 'expired',
         last_error: isValid ? undefined : 'Access token expired or invalid'
       };
     } catch (error) {
       return {
-        is_available: false,
+        platform: this.platform,
+        available: false,
+        auth_status: 'invalid',
         last_error: error instanceof Error ? error.message : 'Unknown error'
       };
     }
@@ -156,7 +165,7 @@ export class DouyinCommentAdapter {
   /**
    * 采集评论
    */
-  async collectComments(params: CommentCollectionParams): Promise<CommentCollectionResult> {
+  async collectComments(params: UnifiedCommentCollectionParams): Promise<UnifiedCommentCollectionResult> {
     const { target, limit = 20, cursor, time_range } = params;
 
     // 验证目标支持
@@ -201,6 +210,9 @@ export class DouyinCommentAdapter {
         has_more: apiResponse.data.has_more,
         next_cursor: apiResponse.data.has_more ? apiResponse.data.cursor.toString() : undefined,
         total_count: apiResponse.data.total,
+        collected_at: new Date(),
+        source_platform: this.platform,
+        target_id: target.id,
         rate_limit_info: await this.getRateLimitInfo()
       };
 
@@ -213,11 +225,7 @@ export class DouyinCommentAdapter {
   /**
    * 验证采集权限
    */
-  async validatePermissions(target: WatchTarget): Promise<{
-    canCollect: boolean;
-    reason?: string;
-    requiredScopes?: string[];
-  }> {
+  async validatePermissions(target: WatchTarget): Promise<UnifiedPermissionValidationResult> {
     try {
       // 检查access_token
       if (!this.config.access_token) {
