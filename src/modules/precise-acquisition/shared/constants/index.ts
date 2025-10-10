@@ -219,6 +219,26 @@ export const TASK_TYPE_CONFIG: Record<TaskType, {
     label: '关注任务',
     icon: '👥',
     description: '关注目标用户'
+  },
+  [TaskType.LIKE]: {
+    label: '点赞任务',
+    icon: '👍',
+    description: '对内容进行点赞'
+  },
+  [TaskType.COMMENT]: {
+    label: '评论任务',
+    icon: '💭',
+    description: '对内容进行评论'
+  },
+  [TaskType.SHARE]: {
+    label: '分享任务',
+    icon: '📤',
+    description: '分享内容到其他平台'
+  },
+  [TaskType.VIEW]: {
+    label: '浏览任务',
+    icon: '👀',
+    description: '浏览指定内容'
   }
 };
 

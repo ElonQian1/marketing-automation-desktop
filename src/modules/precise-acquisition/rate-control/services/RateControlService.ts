@@ -119,6 +119,38 @@ export class RateControlService {
         max_per_hour: 100,
         max_per_day: 500,
         min_interval_seconds: 10
+      },
+      [TaskType.LIKE]: {
+        platform: Platform.DOUYIN,
+        task_type: TaskType.LIKE,
+        max_per_minute: 15,
+        max_per_hour: 300,
+        max_per_day: 2000,
+        min_interval_seconds: 3
+      },
+      [TaskType.COMMENT]: {
+        platform: Platform.DOUYIN,
+        task_type: TaskType.COMMENT,
+        max_per_minute: 8,
+        max_per_hour: 150,
+        max_per_day: 800,
+        min_interval_seconds: 7
+      },
+      [TaskType.SHARE]: {
+        platform: Platform.DOUYIN,
+        task_type: TaskType.SHARE,
+        max_per_minute: 12,
+        max_per_hour: 250,
+        max_per_day: 1200,
+        min_interval_seconds: 4
+      },
+      [TaskType.VIEW]: {
+        platform: Platform.DOUYIN,
+        task_type: TaskType.VIEW,
+        max_per_minute: 30,
+        max_per_hour: 600,
+        max_per_day: 5000,
+        min_interval_seconds: 2
       }
     },
     [Platform.OCEANENGINE]: {
@@ -137,6 +169,38 @@ export class RateControlService {
         max_per_hour: 50,
         max_per_day: 200,
         min_interval_seconds: 15
+      },
+      [TaskType.LIKE]: {
+        platform: Platform.OCEANENGINE,
+        task_type: TaskType.LIKE,
+        max_per_minute: 20,
+        max_per_hour: 400,
+        max_per_day: 2500,
+        min_interval_seconds: 2
+      },
+      [TaskType.COMMENT]: {
+        platform: Platform.OCEANENGINE,
+        task_type: TaskType.COMMENT,
+        max_per_minute: 12,
+        max_per_hour: 200,
+        max_per_day: 1000,
+        min_interval_seconds: 4
+      },
+      [TaskType.SHARE]: {
+        platform: Platform.OCEANENGINE,
+        task_type: TaskType.SHARE,
+        max_per_minute: 18,
+        max_per_hour: 350,
+        max_per_day: 1800,
+        min_interval_seconds: 3
+      },
+      [TaskType.VIEW]: {
+        platform: Platform.OCEANENGINE,
+        task_type: TaskType.VIEW,
+        max_per_minute: 40,
+        max_per_hour: 800,
+        max_per_day: 6000,
+        min_interval_seconds: 1
       }
     },
     [Platform.PUBLIC]: {
@@ -155,6 +219,38 @@ export class RateControlService {
         max_per_hour: 30,
         max_per_day: 100,
         min_interval_seconds: 20
+      },
+      [TaskType.LIKE]: {
+        platform: Platform.PUBLIC,
+        task_type: TaskType.LIKE,
+        max_per_minute: 5,
+        max_per_hour: 80,
+        max_per_day: 500,
+        min_interval_seconds: 10
+      },
+      [TaskType.COMMENT]: {
+        platform: Platform.PUBLIC,
+        task_type: TaskType.COMMENT,
+        max_per_minute: 4,
+        max_per_hour: 60,
+        max_per_day: 300,
+        min_interval_seconds: 12
+      },
+      [TaskType.SHARE]: {
+        platform: Platform.PUBLIC,
+        task_type: TaskType.SHARE,
+        max_per_minute: 6,
+        max_per_hour: 100,
+        max_per_day: 600,
+        min_interval_seconds: 8
+      },
+      [TaskType.VIEW]: {
+        platform: Platform.PUBLIC,
+        task_type: TaskType.VIEW,
+        max_per_minute: 10,
+        max_per_hour: 200,
+        max_per_day: 1500,
+        min_interval_seconds: 5
       }
     }
   };

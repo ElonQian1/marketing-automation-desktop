@@ -38,7 +38,7 @@ export interface AdapterStatus {
 }
 
 export interface WatchTarget {
-  id: number;
+  id: string;  // 统一使用 string 类型
   platform: Platform;
   platform_id_or_url: string;
   target_type: string;
@@ -507,7 +507,12 @@ export class CommentAdapterManager {
   }> {
     const supported_platforms: Platform[] = [];
     const available_adapters: Platform[] = [];
-    const permission_issues: Record<Platform, string> = {};
+    const permission_issues: Record<Platform, string> = {
+      [Platform.DOUYIN]: '',
+      [Platform.OCEANENGINE]: '',
+      [Platform.PUBLIC]: '',
+      [Platform.XIAOHONGSHU]: '',
+    };
 
     for (const [platform, adapter] of this.adapters) {
       if (adapter.isTargetSupported(target)) {

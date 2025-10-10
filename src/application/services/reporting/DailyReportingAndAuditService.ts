@@ -539,6 +539,14 @@ export class DailyReportGenerator {
         error_count: 19,
         api_calls_made: 300,
         api_quota_usage: 0.0 // 无API配额限制
+      },
+      [Platform.XIAOHONGSHU]: {
+        tasks_executed: 500,
+        success_rate: 0.92,
+        average_response_time_ms: 1500,
+        error_count: 25,
+        api_calls_made: 750,
+        api_quota_usage: 0.48
       }
     };
   }
@@ -614,7 +622,8 @@ export class DailyReportGenerator {
       errors_by_platform: {
         [Platform.DOUYIN]: 45,
         [Platform.OCEANENGINE]: 15,
-        [Platform.PUBLIC]: 29
+        [Platform.PUBLIC]: 29,
+        [Platform.XIAOHONGSHU]: 35
       },
       critical_errors: [
         {
@@ -665,32 +674,41 @@ export class DailyReportGenerator {
         ]
       },
       rate_limit_compliance: {
-        platforms_monitored: [Platform.DOUYIN, Platform.OCEANENGINE, Platform.PUBLIC],
+        platforms_monitored: [Platform.DOUYIN, Platform.OCEANENGINE, Platform.PUBLIC, Platform.XIAOHONGSHU],
         violations_detected: 3,
         most_violated_limit: 'hourly_limit',
         compliance_score: 0.92
       },
       api_quota_usage: {
-        [Platform.DOUYIN]: {
-          quota_limit: 10000,
-          quota_used: 6500,
-          usage_percentage: 65,
-          projected_daily_usage: 8000,
-          risk_level: 'medium'
-        },
-        [Platform.OCEANENGINE]: {
-          quota_limit: 5000,
-          quota_used: 1600,
-          usage_percentage: 32,
-          projected_daily_usage: 2000,
-          risk_level: 'low'
-        },
-        [Platform.PUBLIC]: {
-          quota_limit: 0, // 无限制
-          quota_used: 0,
-          usage_percentage: 0,
-          projected_daily_usage: 0,
-          risk_level: 'low'
+        platforms: {
+          [Platform.DOUYIN]: {
+            quota_limit: 10000,
+            quota_used: 6500,
+            usage_percentage: 65,
+            projected_daily_usage: 8000,
+            risk_level: 'medium'
+          },
+          [Platform.OCEANENGINE]: {
+            quota_limit: 5000,
+            quota_used: 1600,
+            usage_percentage: 32,
+            projected_daily_usage: 2000,
+            risk_level: 'low'
+          },
+          [Platform.PUBLIC]: {
+            quota_limit: 0, // 无限制
+            quota_used: 0,
+            usage_percentage: 0,
+            projected_daily_usage: 0,
+            risk_level: 'low'
+          },
+          [Platform.XIAOHONGSHU]: {
+            quota_limit: 8000,
+            quota_used: 3800,
+            usage_percentage: 48,
+            projected_daily_usage: 5500,
+            risk_level: 'medium'
+          }
         }
       }
     };

@@ -6,7 +6,9 @@ import {
   InteractiveScoringPanel,
   MatchingStrategySelector
 } from './index';
-import type { DetailedStrategyRecommendation, MatchStrategy } from './types';
+import type { DetailedStrategyRecommendation } from './StrategyRecommendationPanel';
+import type { MatchStrategy } from './types';
+import type { WeightConfig } from './hooks';
 
 // 响应式设计基础设施导入
 import {
@@ -163,8 +165,8 @@ const ScoringUIDemo: React.FC = () => {
     console.log('策略选择变更:', strategy);
   };
 
-  const handleWeightChange = (newWeights: Record<string, number>) => {
-    setWeights(newWeights as typeof weights);
+  const handleWeightChange = (newWeights: WeightConfig) => {
+    setWeights(newWeights);
     console.log('权重配置变更:', newWeights);
   };
 
@@ -366,7 +368,7 @@ const ScoringUIDemo: React.FC = () => {
                 score={rec.score}
                 isRecommended={index === 0}
                 size={showDetailed ? 'detailed' : compactMode ? 'compact' : 'normal'}
-                onClick={handleStrategySelect}
+                onClick={() => handleStrategySelect(rec.strategy as MatchStrategy)}
                 className="hover:shadow-md transition-shadow"
               />
             ))}
@@ -400,7 +402,6 @@ const ScoringUIDemo: React.FC = () => {
                 }])
               )}
               showScores={true}
-              size={compactMode ? 'small' : 'medium'}
             />
           </div>
           

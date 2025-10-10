@@ -11,12 +11,14 @@ export enum Platform {
   DOUYIN = 'douyin',
   OCEANENGINE = 'oceanengine', 
   PUBLIC = 'public',
+  XIAOHONGSHU = 'xiaohongshu',
 }
 
 export const PLATFORM_OPTIONS = [
   { label: '抖音', value: Platform.DOUYIN },
   { label: '巨量引擎', value: Platform.OCEANENGINE },
   { label: '公开来源', value: Platform.PUBLIC },
+  { label: '小红书', value: Platform.XIAOHONGSHU },
 ];
 
 // ==================== 目标类型枚举 ====================
@@ -24,11 +26,15 @@ export const PLATFORM_OPTIONS = [
 export enum TargetType {
   VIDEO = 'video',
   ACCOUNT = 'account',
+  USER = 'user',
+  CONTENT = 'content',
 }
 
 export const TARGET_TYPE_OPTIONS = [
   { label: '视频', value: TargetType.VIDEO },
   { label: '账号', value: TargetType.ACCOUNT },
+  { label: '用户', value: TargetType.USER },
+  { label: '内容', value: TargetType.CONTENT },
 ];
 
 // ==================== 来源类型枚举 ====================
@@ -190,11 +196,19 @@ export const REGION_TAG_OPTIONS = [
 export enum TaskType {
   REPLY = 'reply',
   FOLLOW = 'follow',
+  LIKE = 'like',
+  COMMENT = 'comment',
+  SHARE = 'share',
+  VIEW = 'view',
 }
 
 export const TASK_TYPE_OPTIONS = [
   { label: '回复', value: TaskType.REPLY },
   { label: '关注', value: TaskType.FOLLOW },
+  { label: '点赞', value: TaskType.LIKE },
+  { label: '评论', value: TaskType.COMMENT },
+  { label: '分享', value: TaskType.SHARE },
+  { label: '浏览', value: TaskType.VIEW },
 ];
 
 // ==================== 任务状态枚举 ====================
@@ -202,17 +216,28 @@ export const TASK_TYPE_OPTIONS = [
 export enum TaskStatus {
   NEW = 'NEW',
   READY = 'READY',
+  PENDING = 'PENDING',
   EXECUTING = 'EXECUTING',
   DONE = 'DONE',
   FAILED = 'FAILED',
+  // 额外的状态，用于兼容不同模块
+  IN_PROGRESS = 'IN_PROGRESS',
+  COMPLETED = 'COMPLETED',
+  CANCELLED = 'CANCELLED',
+  RETRY = 'RETRY',
 }
 
 export const TASK_STATUS_OPTIONS = [
   { label: '新建', value: TaskStatus.NEW },
   { label: '就绪', value: TaskStatus.READY },
+  { label: '待执行', value: TaskStatus.PENDING },
   { label: '执行中', value: TaskStatus.EXECUTING },
+  { label: '进行中', value: TaskStatus.IN_PROGRESS },
   { label: '已完成', value: TaskStatus.DONE },
+  { label: '完成', value: TaskStatus.COMPLETED },
   { label: '失败', value: TaskStatus.FAILED },
+  { label: '已取消', value: TaskStatus.CANCELLED },
+  { label: '重试', value: TaskStatus.RETRY },
 ];
 
 // ==================== 执行器模式枚举 ====================

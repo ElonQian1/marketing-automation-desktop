@@ -349,6 +349,13 @@ export class RateControlApplicationService {
               peak_hours: [9, 10, 11, 14, 15, 16, 19, 20, 21],
               peak_multiplier: 0.6
             }
+          },
+          [Platform.XIAOHONGSHU]: {
+            multiplier: 0.9,
+            special_limits: {
+              peak_hours: [20, 21, 22],
+              peak_multiplier: 0.7
+            }
           }
         }
       },
@@ -414,6 +421,13 @@ export class RateControlApplicationService {
               peak_hours: [12, 13, 19, 20, 21],
               peak_multiplier: 0.8
             }
+          },
+          [Platform.XIAOHONGSHU]: {
+            multiplier: 1.5,
+            special_limits: {
+              peak_hours: [20, 21, 22],
+              peak_multiplier: 0.9
+            }
           }
         }
       },
@@ -451,7 +465,8 @@ export class RateControlApplicationService {
         platform_specific: {
           [Platform.DOUYIN]: { multiplier: 10.0 },
           [Platform.OCEANENGINE]: { multiplier: 10.0 },
-          [Platform.PUBLIC]: { multiplier: 10.0 }
+          [Platform.PUBLIC]: { multiplier: 10.0 },
+          [Platform.XIAOHONGSHU]: { multiplier: 10.0 }
         }
       },
       dedup_config: {
@@ -484,7 +499,8 @@ export class RateControlApplicationService {
       requests_by_platform: {
         [Platform.DOUYIN]: 0,
         [Platform.OCEANENGINE]: 0,
-        [Platform.PUBLIC]: 0
+        [Platform.PUBLIC]: 0,
+        [Platform.XIAOHONGSHU]: 0
       },
       average_wait_time_ms: 0,
       max_wait_time_ms: 0,

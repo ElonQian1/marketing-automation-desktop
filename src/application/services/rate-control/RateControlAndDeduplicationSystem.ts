@@ -909,6 +909,13 @@ export function getDefaultRateControlConfig(): RateControlConfig {
           peak_hours: [9, 10, 11, 14, 15, 16], // 工作时间
           peak_multiplier: 0.8
         }
+      },
+      [Platform.XIAOHONGSHU]: {
+        multiplier: 1.2,           // 小红书API适中频率
+        special_limits: {
+          peak_hours: [20, 21, 22], // 晚高峰
+          peak_multiplier: 0.8
+        }
       }
     }
   };

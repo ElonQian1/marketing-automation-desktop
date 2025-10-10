@@ -5,24 +5,13 @@
  * 支持账号分配、任务调度、重试机制和优先级管理
  */
 
-import { Platform, TargetType } from '../../../constants/precise-acquisition-enums';
+import { Platform, TargetType, TaskStatus } from '../../../constants/precise-acquisition-enums';
 import { 
   CommentAdapterManager,
   CommentCollectionParams,
   CommentCollectionResult,
   createCommentAdapterManager
 } from '../comment-collection';
-
-// ==================== 任务状态枚举 ====================
-
-export enum TaskStatus {
-  PENDING = 'pending',
-  IN_PROGRESS = 'in_progress', 
-  COMPLETED = 'completed',
-  FAILED = 'failed',
-  CANCELLED = 'cancelled',
-  RETRY = 'retry'
-}
 
 export enum TaskPriority {
   LOW = 'low',

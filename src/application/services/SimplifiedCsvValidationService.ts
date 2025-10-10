@@ -97,6 +97,11 @@ const URL_PATTERNS: Record<Platform, RegExp[]> = {
   ],
   [Platform.PUBLIC]: [
     /^https?:\/\/[\w\-\.]+/i
+  ],
+  [Platform.XIAOHONGSHU]: [
+    /^https?:\/\/(?:www\.)?xiaohongshu\.com\/explore\/[\w]+/i,
+    /^https?:\/\/(?:www\.)?xiaohongshu\.com\/user\/profile\/[\w]+/i,
+    /^https?:\/\/xhslink\.com\/[\w]+/i
   ]
 };
 

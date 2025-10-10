@@ -19,12 +19,13 @@ export interface MatchResultSummary {
   };
 }
 
-// 详细策略推荐类型
+// 详细策略推荐类型 - 统一为 StrategyScoreCard 所期望的格式
 export interface DetailedStrategyScore {
-  overall: number;
-  performance?: number;
-  stability?: number;
-  accuracy?: number;
+  total: number;
+  performance: number;
+  stability: number;
+  compatibility: number;
+  uniqueness: number;
   confidence?: number;
 }
 

@@ -1,46 +1,36 @@
-import type { Platform } from '../types';
+import { Platform } from './precise-acquisition-enums';
 
 // 平台配置
 export const PLATFORMS: Record<Platform, { name: string; color: string; icon: string }> = {
-  xiaohongshu: {
+  [Platform.XIAOHONGSHU]: {
     name: '小红书',
     color: 'bg-red-500',
     icon: '📕'
   },
-  douyin: {
+  [Platform.DOUYIN]: {
     name: '抖音',
     color: 'bg-black',
     icon: '🎵'
   },
-  kuaishou: {
-    name: '快手',
-    color: 'bg-orange-500',
-    icon: '⚡'
-  },
-  bilibili: {
-    name: 'B站',
-    color: 'bg-pink-500',
-    icon: '📺'
-  },
-  wechat: {
-    name: '微信',
-    color: 'bg-green-500',
-    icon: '💬'
-  },
-  qq: {
-    name: 'QQ',
+  [Platform.OCEANENGINE]: {
+    name: '巨量引擎',
     color: 'bg-blue-500',
-    icon: '🐧'
+    icon: '🚀'
   },
-  weibo: {
-    name: '微博',
-    color: 'bg-orange-600',
-    icon: '📰'
-  }
+  [Platform.PUBLIC]: {
+    name: '公开来源',
+    color: 'bg-gray-500',
+    icon: '🌐'
+  },
 };
 
 // 可用平台列表（按优先级排序）
-export const AVAILABLE_PLATFORMS: Platform[] = ['xiaohongshu', 'douyin', 'kuaishou', 'bilibili'];
+export const AVAILABLE_PLATFORMS: Platform[] = [
+  Platform.XIAOHONGSHU, 
+  Platform.DOUYIN, 
+  Platform.OCEANENGINE, 
+  Platform.PUBLIC
+];
 
 // 精准获客示例关键词
 export const SAMPLE_KEYWORDS = [
