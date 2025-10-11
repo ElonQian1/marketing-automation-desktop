@@ -1,5 +1,10 @@
 # 精准获客模块增强完成报告
 
+> ⚠️ **文档状态警告**: 本文档部分内容已过时，部分服务已被重构统一。  
+> 📅 **最后更新**: 2025年10月11日之前  
+> 🔄 **最新状态**: 请参考 [MODULE_REFACTOR_COMPLETION_REPORT.md](./MODULE_REFACTOR_COMPLETION_REPORT.md)  
+> 📋 **主要变更**: DailyReport相关服务已统一为 UnifiedDailyReportService
+
 ## 📋 总体概述
 
 本次增强任务已成功完成，共实现了 **10 个主要功能模块**，大幅提升了精准获客系统的完整性和可用性。
@@ -22,16 +27,17 @@
   - 负载均衡和队列管理
   - TaskDeviceConsole 监控组件
 
-### 3. 实现每日报告导出功能 ✅
-- **状态**: 已完成
-- **实现**: 
-  - DailyReportExportService 服务
-  - DailyReportManager 界面组件
-  - DailyReportServiceMixin 集成
+### 3. 实现每日报告导出功能 ✅ (已重构)
+- **状态**: 已重构为统一服务
+- **新实现**: 
+  - ~~DailyReportExportService 服务~~ → UnifiedDailyReportService
+  - ~~DailyReportManager 界面组件~~ → DailyReportManager (v2.0)
+  - ~~DailyReportServiceMixin 集成~~ → useUnifiedDailyReport Hook
 - **功能**: 
-  - CSV 格式导出
+  - CSV/Excel 格式导出 (增强)
   - 完整字段映射和格式化
   - 审计日志集成
+- **注意**: 旧服务已删除，请使用新的 UnifiedDailyReportService
 
 ### 4. 验证后端接口调用 ✅
 - **状态**: 已完成

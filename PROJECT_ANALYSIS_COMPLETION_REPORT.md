@@ -53,7 +53,7 @@ rm CANDIDATE_POOL_COMPLETION_REPORT.md
 
 ### 3. **文档体系完善** ✅
 创建了完整的文档体系：
-- `ARCHITECTURE_ANALYSIS_REPORT.md` - 架构分析报告
+- ~~`ARCHITECTURE_ANALYSIS_REPORT.md`~~ - 架构分析报告 (已移至 deprecated/)
 - `FEATURE_COMPLETENESS_ANALYSIS.md` - 功能完整性分析
 - `PRECISE_ACQUISITION_USER_GUIDE.md` - 系统使用指南
 - `INTEGRATION_PLAN.md` - 整合方案

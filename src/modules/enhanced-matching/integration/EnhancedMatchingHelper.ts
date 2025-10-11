@@ -4,13 +4,13 @@
  */
 
 import { 
-  SmartConditionGenerator,
   HierarchyAnalyzer,
   generateEnhancedMatching,
   MATCHING_PRESETS,
   SmartMatchingConditions,
   MatchingOptimizationOptions
 } from '../index';
+import { StrategyDecisionEngine } from '../../intelligent-strategy-system/core/StrategyDecisionEngine';
 import { 
   buildAndCacheDefaultMatchingFromElement,
   BuiltMatchingResult 
@@ -240,11 +240,44 @@ export class EnhancedMatchingHelper {
       ...optimizationOptions
     };
 
-    const smartConditions = await SmartConditionGenerator.generateSmartConditions(
-      targetElement,
-      xmlDoc,
-      finalOptions
-    );
+    // 使用新的智能决策引擎
+    const engine = new StrategyDecisionEngine();
+    const recommendation = await engine.analyzeAndRecommend(targetElement, xmlDoc.toString());
+    
+    // 从元素提取字段值
+    const extractFieldValues = (element: any): Record<string, string> => {
+      const attrs = element.attributes || {};
+      const values: Record<string, string> = {};
+      
+      // 常用字段映射
+      const fieldMapping = {
+        'resource-id': attrs.resourceId || '',
+        'text': attrs.text || '',
+        'content-desc': attrs.contentDescription || '',
+        'class': attrs.className || '',
+        'bounds': attrs.bounds || ''
+      };
+      
+      Object.entries(fieldMapping).forEach(([key, value]) => {
+        if (value && typeof value === 'string') {
+          values[key] = value;
+        }
+      });
+      
+      return values;
+    };
+    
+    // 转换为兼容的 SmartMatchingConditions 格式
+    const smartConditions: SmartMatchingConditions = {
+      strategy: recommendation.strategy || 'custom',
+      fields: ['resource-id', 'text', 'content-desc', 'class'], // 根据策略推荐确定字段
+      values: extractFieldValues(targetElement),
+      includes: {},
+      excludes: {},
+      hierarchy: [], // 可以从 recommendation 中提取更多信息
+      confidence: recommendation.confidence || 0.5,
+      analysis: HierarchyAnalyzer.analyzeNodeHierarchy(targetElement, xmlDoc)
+    };
 
     if (debug) {
       console.log('🎯 智能匹配分析结果:', {

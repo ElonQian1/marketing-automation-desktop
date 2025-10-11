@@ -1,23 +1,51 @@
-# 弃用代码归档说明
+# Deprecated Documentation Archive
 
-此目录包含已弃用的特定应用专门模块，这些模块已被更通用的自动化框架替代。
+## 📋 Archive Purpose
 
-## 弃用原因
+This directory contains outdated technical documentation that has been superseded by newer implementations but is preserved for historical reference.
 
-项目已从"小红书专门工具"转型为"通用移动应用自动化平台"，以下模块不再维护：
+## 📅 Archive Date
 
-### 已移动的弃用文件
-- `XiaohongshuService.ts` - 小红书专门服务，已被通用应用服务框架替代
-- `XiaohongshuAutoFollow.tsx` - 小红书自动关注组件，已被通用社交媒体自动化组件替代  
-- `XiaohongshuFollowManager.tsx` - 小红书关注管理器，已被通用任务管理器替代
-- `xiaohongshu_detector.rs` - 小红书检测器，已集成到通用应用检测框架
+**Archived on**: 2025-10-11 17:30:18
+**Reason**: Module refactoring and architecture unification completed
 
-## 新的通用替代方案
+## 📚 Document Categories
 
-- **应用检测**: 使用 `GenericDetector` 和配置化的应用检测规则
-- **社交媒体自动化**: 使用 `UniversalSocialButton` 和通用匹配策略
-- **任务管理**: 使用统一的步骤卡片系统和批量执行引擎
+### Architecture Reports
+- Various architecture analysis and refactoring reports from different phases
+- Superseded by: MODULE_REFACTOR_COMPLETION_REPORT.md
 
-## 保留时间
+### Feature Implementation Reports  
+- Detailed implementation reports for specific features
+- Most functionality has been integrated into unified services
 
-这些文件将保留3个月（至2026年1月），之后完全删除。如需恢复特定功能，请使用新的通用框架重新实现。
+### UI Component Reports
+- Individual component implementation reports
+- Components have been integrated into unified UI architecture
+
+### XPath & XML Processing Reports
+- Stage-by-stage implementation reports
+- Functionality is now stable and integrated
+
+## ⚠️ Important Note
+
+**These documents should not be used as current reference.**
+
+For up-to-date documentation, please refer to:
+- [MODULE_REFACTOR_COMPLETION_REPORT.md](../MODULE_REFACTOR_COMPLETION_REPORT.md)
+- [ADB_ARCHITECTURE_UNIFICATION_REPORT.md](../ADB_ARCHITECTURE_UNIFICATION_REPORT.md)  
+- [README.md](../README.md)
+- [docs/](../docs/)
+
+## 🔍 Finding Current Documentation
+
+If you're looking for current documentation on a specific feature, please check:
+
+1. **Main README**: ../README.md
+2. **Docs Directory**: ../docs/
+3. **Latest Reports**: Files not in this deprecated directory
+4. **In-Code Documentation**: Comments and JSDoc in source files
+
+---
+
+*This archive was created automatically during the module refactoring process.*

@@ -4,7 +4,6 @@
  */
 
 // === 导入 ===
-import { SmartConditionGenerator } from './generator/SmartConditionGenerator';
 import { StrategyDecisionEngine } from '../intelligent-strategy-system/core/StrategyDecisionEngine';
 
 // === 核心类型 ===
@@ -21,7 +20,7 @@ export type {
 export { HierarchyAnalyzer } from './analyzer/HierarchyAnalyzer';
 
 // === 智能生成器 ===
-export { SmartConditionGenerator } from './generator/SmartConditionGenerator';
+// SmartConditionGenerator 已废弃，使用 intelligent-strategy-system 中的 StrategyDecisionEngine
 
 // === UI 组件 ===
 export { 
@@ -74,8 +73,19 @@ export async function generateEnhancedMatching(
       hierarchy: [] // TODO: 从新接口提取层级信息
     };
   } catch (error) {
-    console.warn('新的策略引擎调用失败，回退到旧接口', error);
-    return SmartConditionGenerator.generateSmartConditions(element, xmlDocument, finalOptions);
+    console.warn('策略引擎调用失败，返回基础匹配结果', error);
+    // 返回基础的匹配结果作为降级方案
+    return {
+      strategy: 'relaxed' as const,
+      fields: ['resource-id', 'text', 'content-desc'],
+      values: {
+        'resource-id': element.getAttribute('resource-id') || '',
+        'text': element.getAttribute('text') || '',
+        'content-desc': element.getAttribute('content-desc') || ''
+      },
+      confidence: 0.5,
+      hierarchy: []
+    };
   }
 }
 

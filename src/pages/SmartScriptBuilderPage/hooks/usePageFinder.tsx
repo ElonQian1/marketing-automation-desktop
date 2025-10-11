@@ -179,7 +179,7 @@ export function usePageFinder(deps: UsePageFinderDeps) {
     apply();
   };
 
-  const onElementSelected = (element: any) => {
+  const onElementSelected = async (element: any) => {
     console.log("🎯 接收到增强智能分析元素:", element);
     console.log("🎯 当前模式检查:", {
       isQuickAnalyzer,
@@ -373,7 +373,7 @@ export function usePageFinder(deps: UsePageFinderDeps) {
         });
       }
 
-      const built = EnhancedMatchingHelper.buildEnhancedMatching(enhancedElement, {
+      const built = await EnhancedMatchingHelper.buildEnhancedMatching(enhancedElement, {
         useEnhancedMatching: true,
         xmlContext: xmlForMatch,
         optimizationOptions: {
