@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import { Table, Switch, Select, InputNumber, Input, Tag, Space, Typography, Tooltip } from 'antd';
 import { InfoCircleOutlined } from '@ant-design/icons';
-import { elementFieldAnalyzer, ElementFieldInfo } from '../../services/ElementFieldAnalyzer';
+import { ElementAnalyzer, ElementFieldInfo } from '../../modules/intelligent-strategy-system';
 
 const { Text } = Typography;
 const { Option } = Select;
@@ -74,7 +74,7 @@ export const FieldMatchingController: React.FC<FieldMatchingControllerProps> = (
     const timeoutId = setTimeout(() => {
       try {
         // 只加载指定元素类型的字段数据，避免重复
-        const allAnalysis = elementFieldAnalyzer.getAllElementAnalysis();
+        const allAnalysis = ElementAnalyzer.getAllElementAnalysis();
         const elementAnalysis = allAnalysis[elementType] || allAnalysis['follow_button']; // 回退到默认
         
         if (!elementAnalysis) {

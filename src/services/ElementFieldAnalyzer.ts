@@ -1,4 +1,11 @@
-// 元素字段分析服务
+/**
+ * @deprecated 已迁移到 intelligent-strategy-system/ElementAnalyzer
+ * 此文件保留作为向后兼容适配器，建议迁移到新的统一接口
+ */
+
+import { ElementAnalyzer } from '../modules/intelligent-strategy-system/core/ElementAnalyzer';
+
+// 向后兼容的类型定义
 export interface ElementFieldInfo {
   field: string;
   displayName: string;
@@ -14,6 +21,10 @@ export interface ElementAnalysisResult {
   sampleElements: any[];
 }
 
+/**
+ * @deprecated 使用 ElementAnalyzer 替代
+ * 元素字段分析服务（向后兼容适配器）
+ */
 export class ElementFieldAnalyzer {
   // 所有可能的元素字段信息
   private fieldDefinitions: Record<string, ElementFieldInfo> = {
@@ -454,10 +465,49 @@ export class ElementFieldAnalyzer {
   }
 
   /**
+   * @deprecated 请使用 ElementAnalyzer.recommendQuickStrategy
    * 🔍 推荐最佳匹配策略
    * 基于元素特征推荐使用传统匹配还是上下文感知匹配
    */
   recommendMatchingStrategy(element: any): {
+    strategy: 'traditional' | 'context-aware' | 'hybrid';
+    reason: string;
+    fields: string[];
+  } {
+    console.warn('⚠️ ElementFieldAnalyzer.recommendMatchingStrategy 已废弃，请使用 ElementAnalyzer.recommendQuickStrategy');
+    
+    // 适配到新的统一接口
+    try {
+      const properties = ElementAnalyzer.analyzeElementProperties(element);
+      const strategy = ElementAnalyzer.recommendQuickStrategy(properties);
+      
+      // 将新格式转换为旧格式
+      const strategyMapping: Record<string, 'traditional' | 'context-aware' | 'hybrid'> = {
+        'strict': 'traditional',
+        'standard': 'traditional', 
+        'positionless': 'context-aware',
+        'xpath-direct': 'traditional',
+        'xpath-first-index': 'context-aware',
+        'custom': 'hybrid'
+      };
+      
+      return {
+        strategy: strategyMapping[strategy] || 'hybrid',
+        reason: `基于新的 ElementAnalyzer 推荐的 ${strategy} 策略`,
+        fields: ElementAnalyzer.getSupportedFields().slice(0, 4) // 返回前4个主要字段
+      };
+    } catch (error) {
+      console.error('调用新的 ElementAnalyzer 失败，回退到简化逻辑', error);
+      
+      // 回退到简化的推荐逻辑
+      return this.legacyRecommendMatchingStrategy(element);
+    }
+  }
+
+  /**
+   * 原有的推荐逻辑（作为回退）
+   */
+  private legacyRecommendMatchingStrategy(element: any): {
     strategy: 'traditional' | 'context-aware' | 'hybrid';
     reason: string;
     fields: string[];

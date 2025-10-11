@@ -1,8 +1,11 @@
 /**
+ * @deprecated 已迁移到 intelligent-strategy-system 模块
  * enhanced-matching/generator/SmartConditionGenerator.ts
- * 智能匹配条件生成器 - 解决DefaultMatchingBuilder的字段混淆问题
+ * 智能匹配条件生成器 - 向后兼容适配器
  */
 
+import { StrategyDecisionEngine } from '../../intelligent-strategy-system/core/StrategyDecisionEngine';
+import { ElementAnalyzer } from '../../intelligent-strategy-system/core/ElementAnalyzer';
 import { HierarchyAnalyzer } from '../analyzer/HierarchyAnalyzer';
 import { 
   SmartMatchingConditions, 
@@ -12,17 +15,110 @@ import {
 } from '../types';
 
 /**
- * 智能匹配条件生成器
- * 替代DefaultMatchingBuilder中存在问题的逻辑
+ * @deprecated 使用 intelligent-strategy-system/StrategyDecisionEngine 替代
+ * 智能匹配条件生成器（向后兼容适配器）
  */
 export class SmartConditionGenerator {
   /**
+   * @deprecated 请使用 StrategyDecisionEngine.analyzeAndRecommend
    * 从XML元素生成智能匹配条件
    * @param element 目标元素
    * @param xmlDocument XML文档
    * @param options 优化选项
    */
-  static generateSmartConditions(
+  static async generateSmartConditions(
+    element: Element,
+    xmlDocument: Document,
+    options: MatchingOptimizationOptions = this.getDefaultOptions()
+  ): Promise<SmartMatchingConditions> {
+    
+    console.warn('⚠️ SmartConditionGenerator.generateSmartConditions 已废弃，请使用 StrategyDecisionEngine.analyzeAndRecommend');
+    
+    try {
+      // 尝试使用新的统一接口
+      const engine = new StrategyDecisionEngine();
+      const recommendation = await engine.analyzeAndRecommend(element, xmlDocument.toString());
+      
+      // 将新格式转换为旧格式
+      return this.adaptNewRecommendationToOldFormat(recommendation, element, xmlDocument, options);
+      
+    } catch (error) {
+      console.error('调用新的 StrategyDecisionEngine 失败，回退到旧逻辑', error);
+      
+      // 回退到原有逻辑
+      return this.legacyGenerateSmartConditions(element, xmlDocument, options);
+    }
+  }
+
+  /**
+   * 适配新推荐结果到旧格式
+   */
+  private static adaptNewRecommendationToOldFormat(
+    recommendation: any,
+    element: Element,
+    xmlDocument: Document,
+    options: MatchingOptimizationOptions
+  ): SmartMatchingConditions {
+    // 基础分析（保持兼容）
+    const analysis = HierarchyAnalyzer.analyzeNodeHierarchy(element, xmlDocument);
+    
+    // 使用ElementAnalyzer获取属性分析
+    const properties = ElementAnalyzer.analyzeElementProperties(element, xmlDocument.toString());
+    
+    // 构造兼容的返回格式
+    return {
+      strategy: recommendation.strategy || 'custom',
+      fields: Object.keys(properties.fieldConfidences),
+      values: this.extractFieldValues(element),
+      includes: {},
+      excludes: {},
+      hierarchy: this.buildEnhancedFields(properties),
+      confidence: recommendation.confidence || properties.overallConfidence,
+      analysis
+    };
+  }
+
+  /**
+   * 从元素提取字段值
+   */
+  private static extractFieldValues(element: any): Record<string, string> {
+    const attrs = element.attrs || element.attributes || {};
+    const values: Record<string, string> = {};
+    
+    Object.entries(attrs).forEach(([key, value]) => {
+      if (value && typeof value === 'string') {
+        values[key] = value;
+      }
+    });
+    
+    return values;
+  }
+
+  /**
+   * 构造增强字段（兼容格式）
+   */
+  private static buildEnhancedFields(properties: any): EnhancedMatchField[] {
+    const fields: EnhancedMatchField[] = [];
+    
+    Object.entries(properties.fieldConfidences).forEach(([fieldName, confidence]) => {
+      fields.push({
+        level: 'self',
+        fieldName,
+        displayName: fieldName,
+        description: `Field ${fieldName}`,
+        value: properties[fieldName] || '',
+        confidence: confidence as number,
+        depth: 0
+      });
+    });
+    
+    return fields;
+  }
+
+  /**
+   * 原有的生成逻辑（作为回退）
+   */
+  private static legacyGenerateSmartConditions(
     element: Element,
     xmlDocument: Document,
     options: MatchingOptimizationOptions = this.getDefaultOptions()

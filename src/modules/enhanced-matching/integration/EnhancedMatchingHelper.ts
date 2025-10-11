@@ -63,10 +63,10 @@ export class EnhancedMatchingHelper {
    * @param element 元素对象
    * @param options 增强匹配选项
    */
-  static buildEnhancedMatching(
+  static async buildEnhancedMatching(
     element: EnhancedElementLike,
     options: EnhancedMatchingOptions = {}
-  ): BuiltMatchingResult | null {
+  ): Promise<BuiltMatchingResult | null> {
     const {
       useEnhancedMatching = true,
       xmlContext,
@@ -167,7 +167,7 @@ export class EnhancedMatchingHelper {
     // 尝试使用增强匹配系统
     if (useEnhancedMatching && xmlContext) {
       try {
-        const enhancedResult = this.tryEnhancedMatching(element, xmlContext, optimizationOptions, debug);
+        const enhancedResult = await this.tryEnhancedMatching(element, xmlContext, optimizationOptions, debug);
         if (enhancedResult) {
           // 保存到缓存
           saveLatestMatching({ 
@@ -209,12 +209,12 @@ export class EnhancedMatchingHelper {
   /**
    * 尝试使用增强匹配系统
    */
-  private static tryEnhancedMatching(
+  private static async tryEnhancedMatching(
     element: EnhancedElementLike,
     xmlContext: string,
     optimizationOptions?: Partial<MatchingOptimizationOptions>,
     debug?: boolean
-  ): BuiltMatchingResult | null {
+  ): Promise<BuiltMatchingResult | null> {
     // 解析XML上下文（先清洗，避免 BOM/前缀噪声）
     const parser = new DOMParser();
     const xmlDoc = parser.parseFromString(cleanXmlContent(xmlContext), 'text/xml');
@@ -240,7 +240,7 @@ export class EnhancedMatchingHelper {
       ...optimizationOptions
     };
 
-    const smartConditions = SmartConditionGenerator.generateSmartConditions(
+    const smartConditions = await SmartConditionGenerator.generateSmartConditions(
       targetElement,
       xmlDoc,
       finalOptions

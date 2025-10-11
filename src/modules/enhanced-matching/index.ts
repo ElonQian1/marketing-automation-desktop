@@ -5,6 +5,7 @@
 
 // === 导入 ===
 import { SmartConditionGenerator } from './generator/SmartConditionGenerator';
+import { StrategyDecisionEngine } from '../intelligent-strategy-system/core/StrategyDecisionEngine';
 
 // === 核心类型 ===
 export type {
@@ -40,7 +41,7 @@ import type { MatchingOptimizationOptions } from './types';
  * @param xmlDocument XML文档
  * @param options 可选的优化选项
  */
-export function generateEnhancedMatching(
+export async function generateEnhancedMatching(
   element: Element,
   xmlDocument: Document,
   options?: Partial<MatchingOptimizationOptions>
@@ -56,7 +57,26 @@ export function generateEnhancedMatching(
   };
 
   const finalOptions = { ...defaultOptions, ...options };
-  return SmartConditionGenerator.generateSmartConditions(element, xmlDocument, finalOptions);
+  
+  // 🔄 迁移到新的统一接口
+  try {
+    const engine = new StrategyDecisionEngine();
+    // 转换 Document 为 XML 字符串
+    const xmlContent = new XMLSerializer().serializeToString(xmlDocument);
+    const result = await engine.analyzeAndRecommend(element, xmlContent);
+    
+    // 转换为旧格式以保持兼容性
+    return {
+      strategy: result.strategy,
+      fields: [], // TODO: 从新接口提取关键字段
+      values: {}, // TODO: 从新接口提取字段值
+      confidence: result.confidence,
+      hierarchy: [] // TODO: 从新接口提取层级信息
+    };
+  } catch (error) {
+    console.warn('新的策略引擎调用失败，回退到旧接口', error);
+    return SmartConditionGenerator.generateSmartConditions(element, xmlDocument, finalOptions);
+  }
 }
 
 /**

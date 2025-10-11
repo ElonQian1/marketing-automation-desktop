@@ -788,10 +788,4 @@ export { useUnifiedTaskEngine as useTaskEngine };
 export { useUnifiedTaskEngine as useTaskManagement };
 export { useUnifiedTaskEngine as useEnhancedTaskEngine };
 
-// 类型导出
-export type {
-  UseUnifiedTaskEngineState,
-  UseUnifiedTaskEngineActions,
-  UseUnifiedTaskEngineReturn,
-  UseUnifiedTaskEngineOptions
-};
+// 类型已在上方单独导出，无需重复导出

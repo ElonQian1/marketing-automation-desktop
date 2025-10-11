@@ -28,6 +28,12 @@ export { StrategyDecisionEngine } from './core/StrategyDecisionEngine';
 export { ElementContextAnalyzer } from './core/ElementContextAnalyzer';
 export { ConfidenceCalculator } from './core/ConfidenceCalculator';
 
+// 🆕 统一元素分析器
+export { ElementAnalyzer } from './core/ElementAnalyzer';
+
+// === 向后兼容类型 ===
+export type { ElementFieldInfo, ElementAnalysisResult } from './core/ElementAnalyzer';
+
 // === 增强功能 (XPath文档要求的新实现) ===
 export { EnhancedStrategyDecisionEngine } from './engines/EnhancedStrategyDecisionEngine';
 export { OfflineValidationSystem } from './validation/OfflineValidationSystem';
