@@ -1,3 +1,7 @@
+// src/components/universal-ui/table/resizable/useResizableColumns.tsx
+// module: ui | layer: ui | role: component
+// summary: UI 组件
+
 import React, { useCallback, useMemo, useRef, useState } from 'react';
 
 export interface ResizableColumnConfig {

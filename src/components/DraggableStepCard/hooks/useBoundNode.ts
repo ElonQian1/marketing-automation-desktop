@@ -1,3 +1,7 @@
+// src/components/DraggableStepCard/hooks/useBoundNode.ts
+// module: ui | layer: ui | role: component
+// summary: UI 组件
+
 import { useEffect, useRef, useState } from 'react';
 import { resolveSnapshot } from '../../universal-ui/views/grid-view';
 import { createBindingFromSnapshotAndXPath } from '../../step-card/element-binding/helpers';

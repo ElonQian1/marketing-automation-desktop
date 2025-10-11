@@ -1,3 +1,7 @@
+// src/components/universal-ui/page-finder/services/pickByAttributes.ts
+// module: ui | layer: ui | role: component
+// summary: UI 组件
+
 import type { NodeLocator } from '../../../../domain/inspector/entities/NodeLocator';
 
 /**

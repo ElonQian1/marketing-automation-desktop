@@ -1,3 +1,7 @@
+// src/components/ui/layouts/Panel.tsx
+// module: ui | layer: ui | role: component
+// summary: UI 组件
+
 /**
  * 面板组件
  * 提供统一的内容面板布局

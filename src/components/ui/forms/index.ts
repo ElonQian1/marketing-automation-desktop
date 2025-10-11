@@ -1,3 +1,7 @@
+// src/components/ui/forms/index.ts
+// module: ui | layer: ui | role: component
+// summary: UI 组件
+
 /**
  * 表单组件统一导出
  */

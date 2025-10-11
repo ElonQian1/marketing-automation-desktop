@@ -1,3 +1,7 @@
+// src/components/DraggableStepCard/hooks/useCardDraggingStyle.ts
+// module: ui | layer: ui | role: component
+// summary: UI 组件
+
 import { CSS } from '@dnd-kit/utilities';
 import { usePrefersReducedMotion } from './usePrefersReducedMotion';
 

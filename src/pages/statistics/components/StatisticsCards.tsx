@@ -1,3 +1,7 @@
+// src/pages/statistics/components/StatisticsCards.tsx
+// module: ui | layer: ui | role: component
+// summary: UI 组件
+
 import React from 'react';
 import { Card, Row, Col, Statistic, Space, Typography, theme, Progress } from 'antd';
 import {

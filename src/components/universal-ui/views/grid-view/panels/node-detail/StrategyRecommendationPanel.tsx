@@ -1,3 +1,7 @@
+// src/components/universal-ui/views/grid-view/panels/node-detail/StrategyRecommendationPanel.tsx
+// module: ui | layer: ui | role: component
+// summary: UI 组件
+
 import React, { useState, useMemo } from 'react';
 import type { StrategyRecommendation } from '../../../../../../modules/intelligent-strategy-system';
 import type { MatchStrategy } from './types';

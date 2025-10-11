@@ -1,3 +1,7 @@
+// src/components/universal-ui/element-selection/hooks/useGlobalInteractionManager.ts
+// module: ui | layer: ui | role: component
+// summary: UI 组件
+
 /**
  * 交互事件管理模块
  * 专门处理点击空白、键盘事件等全局交互

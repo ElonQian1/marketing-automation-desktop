@@ -1,3 +1,7 @@
+// src/pages/SmartScriptBuilderPage/hooks/step-form/handlers/StepSaveHandler.ts
+// module: ui | layer: ui | role: page
+// summary: 页面组件
+
 import type { ExtendedSmartScriptStep } from '../../../../../types/loopScript';
 import { SmartActionType } from '../../../../../types/smartComponents';
 

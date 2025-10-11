@@ -1,3 +1,7 @@
+// src/components/feature-modules/universal-ui/ThemePageComponents.tsx
+// module: ui | layer: ui | role: component
+// summary: UI 组件
+
 /**
  * 特定页面的主题适配组件
  * 为主要功能页面提供定制化的主题组件

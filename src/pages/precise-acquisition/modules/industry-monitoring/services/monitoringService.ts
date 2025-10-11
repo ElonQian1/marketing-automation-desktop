@@ -1,3 +1,7 @@
+// src/pages/precise-acquisition/modules/industry-monitoring/services/monitoringService.ts
+// module: ui | layer: ui | role: page
+// summary: 页面组件
+
 /**
  * 监控服务（临时实现）
  */

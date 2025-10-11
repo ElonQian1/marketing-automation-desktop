@@ -1,3 +1,7 @@
+// src/pages/adb-layout-comparison/components/HeaderBar.tsx
+// module: ui | layer: ui | role: component
+// summary: UI 组件
+
 import React from 'react';
 import { Row, Col, Space, Typography, Button } from 'antd';
 import { ThunderboltOutlined, AppstoreOutlined } from '@ant-design/icons';

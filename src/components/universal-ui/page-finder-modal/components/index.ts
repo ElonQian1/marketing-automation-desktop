@@ -1,3 +1,7 @@
+// src/components/universal-ui/page-finder-modal/components/index.ts
+// module: ui | layer: ui | role: component
+// summary: UI 组件
+
 /**
  * Page Finder Modal Components 导出
  */

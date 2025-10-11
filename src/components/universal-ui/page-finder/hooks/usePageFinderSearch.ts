@@ -1,3 +1,7 @@
+// src/components/universal-ui/page-finder/hooks/usePageFinderSearch.ts
+// module: ui | layer: ui | role: component
+// summary: UI 组件
+
 import { useState, useMemo, useCallback } from 'react';
 import type { UIElement } from '../../../../api/universalUIAPI';
 

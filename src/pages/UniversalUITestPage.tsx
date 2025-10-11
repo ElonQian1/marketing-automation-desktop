@@ -1,3 +1,7 @@
+// src/pages/UniversalUITestPage.tsx
+// module: ui | layer: ui | role: page
+// summary: 页面组件
+
 /**
  * Universal UI 智能页面查找器功能验证页面
  * 用于测试完整的XML数据传递和检查器功能

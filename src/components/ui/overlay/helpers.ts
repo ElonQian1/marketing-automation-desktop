@@ -1,3 +1,7 @@
+// src/components/ui/overlay/helpers.ts
+// module: ui | layer: ui | role: component
+// summary: UI 组件
+
 import type { OverlayTheme, OverlayPopupProps } from './types';
 
 export function getOverlayClassNames(theme: OverlayTheme | undefined) {

@@ -1,3 +1,7 @@
+// src/pages/SmartScriptBuilderPage/helpers/stepUtils.ts
+// module: ui | layer: ui | role: page
+// summary: 页面组件
+
 import type { DistributedStep } from "../../../domain/distributed-script";
 import type { NodeLocator } from "../../../domain/inspector/entities/NodeLocator";
 import { generateXmlHash, XmlSnapshot } from "../../../types/selfContainedScript";

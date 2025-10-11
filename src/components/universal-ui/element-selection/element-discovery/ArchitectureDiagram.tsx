@@ -1,3 +1,7 @@
+// src/components/universal-ui/element-selection/element-discovery/ArchitectureDiagram.tsx
+// module: ui | layer: ui | role: component
+// summary: UI 组件
+
 /**
  * 重构后的架构图组件 - 纯UI展示层
  * 将所有业务逻辑迁移到服务层，专注于React组件渲染

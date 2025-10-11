@@ -1,3 +1,7 @@
+// src/components/element-xml-hierarchy/HierarchyTreeViewerFixed.tsx
+// module: ui | layer: ui | role: component
+// summary: UI 组件
+
 /**
  * XML层级树查看器组件 - 修复版本
  * 显示UnifiedViewData的树形结构，支持元素高亮和详情查看

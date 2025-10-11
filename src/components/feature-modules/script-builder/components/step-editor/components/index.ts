@@ -1,3 +1,7 @@
+// src/components/feature-modules/script-builder/components/step-editor/components/index.ts
+// module: ui | layer: ui | role: component
+// summary: UI 组件
+
 /**
  * Step Editor Components 导出
  */

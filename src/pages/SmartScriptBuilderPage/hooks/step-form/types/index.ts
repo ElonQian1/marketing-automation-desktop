@@ -1,3 +1,7 @@
+// src/pages/SmartScriptBuilderPage/hooks/step-form/types/index.ts
+// module: ui | layer: ui | role: page
+// summary: 页面组件
+
 /**
  * Step Form Hook 类型定义
  * 从 useStepForm.tsx 中提取的类型定义

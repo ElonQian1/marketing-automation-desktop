@@ -1,3 +1,7 @@
+// src/pages/BusinessComponentsDemo.tsx
+// module: ui | layer: ui | role: page
+// summary: 页面组件
+
 import React from 'react';
 import { Button, Row, Col } from 'antd';
 import {

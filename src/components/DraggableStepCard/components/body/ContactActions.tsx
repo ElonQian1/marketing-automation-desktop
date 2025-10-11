@@ -1,3 +1,7 @@
+// src/components/DraggableStepCard/components/body/ContactActions.tsx
+// module: ui | layer: ui | role: component
+// summary: UI 组件
+
 import React from 'react';
 import { Button, message } from 'antd';
 import { noDragProps } from '../../../universal-ui/dnd/noDrag';

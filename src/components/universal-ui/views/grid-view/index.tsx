@@ -1,3 +1,7 @@
+// src/components/universal-ui/views/grid-view/index.tsx
+// module: ui | layer: ui | role: component
+// summary: UI 组件
+
 /**
  * Grid View 网格视图索引 - TypeScript 模块
  * 导出网格视图相关组件和类型

@@ -1,3 +1,7 @@
+// src/components/adapters/drag/DragSelectorAdapter.tsx
+// module: ui | layer: ui | role: component
+// summary: UI 组件
+
 /**
  * 拖拽选择器适配器 - Employee D 架构
  * 

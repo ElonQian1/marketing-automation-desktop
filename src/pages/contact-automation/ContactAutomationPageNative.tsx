@@ -1,3 +1,7 @@
+// src/pages/contact-automation/ContactAutomationPageNative.tsx
+// module: ui | layer: ui | role: page
+// summary: 页面组件
+
 /**
  * 联系人自动化页面（原生 Ant Design 版本）
  * 导入联系人并自动化社交媒体交互

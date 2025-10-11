@@ -1,3 +1,7 @@
+// src/pages/ElementDiscoveryTestPage_backup.tsx
+// module: ui | layer: ui | role: page
+// summary: 页面组件
+
 /**
  * 元素发现功能测试验证页面 - 重构版本
  * 用于验证重构后的纯XML结构分析器和统一卡片组件的效果

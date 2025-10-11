@@ -1,3 +1,7 @@
+// src/components/universal-ui/views/grid-view/history.ts
+// module: ui | layer: ui | role: component
+// summary: UI 组件
+
 const KEY_SEARCH = 'gridView.searchHistory.v1';
 const KEY_XPATH = 'gridView.xpathHistory.v1';
 const KEY_FAV_SEARCH = 'gridView.favSearch.v1';

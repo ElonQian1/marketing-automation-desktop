@@ -1,3 +1,7 @@
+// src/components/smart-page-finder/PageInfoDisplay.tsx
+// module: ui | layer: ui | role: component
+// summary: UI 组件
+
 /**
  * 页面信息显示组件
  * 显示当前页面的详细信息

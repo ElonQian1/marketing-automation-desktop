@@ -1,3 +1,7 @@
+// src/components/feature-modules/theme-system/hooks/useThemeUtils.ts
+// module: ui | layer: ui | role: component
+// summary: UI 组件
+
 /**
  * 主题工具 Hook
  * 提供主题相关的实用工具函数

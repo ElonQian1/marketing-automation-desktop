@@ -1,3 +1,7 @@
+// src/components/universal-ui/element-selection/enhanced-popover/EnhancedSelectionPopover.tsx
+// module: ui | layer: ui | role: component
+// summary: UI 组件
+
 /**
  * 增强的元素选择气泡组件
  * 支持显示替代元素选项和层次导航

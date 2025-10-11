@@ -1,3 +1,7 @@
+// src/pages/device-monitor/types.ts
+// module: ui | layer: ui | role: page
+// summary: 页面组件
+
 import type { DeviceChangeEvent, TrackedDevice } from '../../infrastructure/RealTimeDeviceTracker';
 
 export interface DeviceToolbarProps {

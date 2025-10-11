@@ -1,3 +1,7 @@
+// src/components/element-name-editor/toUniversalElement.ts
+// module: ui | layer: ui | role: component
+// summary: UI 组件
+
 // 抽离自 ElementNameEditor.tsx (重新定位在目录根，避免深层相对路径问题)
 import type { UIElement as InternalUIElement } from '../../modules/ElementNameMapper';
 import type { UIElement as UniversalUIElement } from '../../api/universalUIAPI';

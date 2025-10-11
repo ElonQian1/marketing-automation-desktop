@@ -1,3 +1,7 @@
+// src/components/universal-ui/views/tree-view/hooks/useTreeState.ts
+// module: ui | layer: ui | role: component
+// summary: UI 组件
+
 /**
  * UIElementTree 状态管理 Hook
  * 管理树形视图的状态、过滤和选择逻辑

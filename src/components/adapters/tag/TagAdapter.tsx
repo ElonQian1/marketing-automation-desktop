@@ -1,3 +1,7 @@
+// src/components/adapters/tag/TagAdapter.tsx
+// module: ui | layer: ui | role: component
+// summary: UI 组件
+
 /**
  * Tag 标签适配器 - Employee D 架构
  * 

@@ -1,3 +1,7 @@
+// src/components/universal-ui/views/visual-view/components/PagePreview.tsx
+// module: ui | layer: ui | role: component
+// summary: UI 组件
+
 import React from 'react';
 import { Typography } from 'antd';
 import type { VisualUIElement } from '../types/visual-types';

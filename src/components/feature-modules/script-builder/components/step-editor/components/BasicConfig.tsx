@@ -1,3 +1,7 @@
+// src/components/feature-modules/script-builder/components/step-editor/components/BasicConfig.tsx
+// module: ui | layer: ui | role: component
+// summary: UI 组件
+
 /**
  * 步骤基础配置组件 - 原生 Ant Design 风格
  * 从 StepEditor.tsx 中提取的基础配置逻辑

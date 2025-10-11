@@ -1,3 +1,7 @@
+// src/components/feature-modules/universal-ui/ThemeAdvanced.tsx
+// module: ui | layer: ui | role: component
+// summary: UI 组件
+
 /**
  * 高级主题功能组件 - 重构版本
  * 整合各个子组件，保持文件小于500行

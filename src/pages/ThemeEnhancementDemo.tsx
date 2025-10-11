@@ -1,3 +1,7 @@
+// src/pages/ThemeEnhancementDemo.tsx
+// module: ui | layer: ui | role: page
+// summary: 页面组件
+
 /**
  * 主题增强系统演示页面
  * 展示所有主题感知组件的使用效果

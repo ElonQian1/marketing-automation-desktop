@@ -1,3 +1,7 @@
+// src/components/adapters/table/TableAdapter.tsx
+// module: ui | layer: ui | role: component
+// summary: UI 组件
+
 
 /**
  * Table 适配器 - AntD 表格组件的品牌化包装器

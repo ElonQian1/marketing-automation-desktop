@@ -1,3 +1,7 @@
+// src/components/universal-ui/xml-parser/BoundsParser.ts
+// module: ui | layer: ui | role: component
+// summary: UI 组件
+
 /**
  * 边界解析器
  * 负责解析Android XML中的bounds属性

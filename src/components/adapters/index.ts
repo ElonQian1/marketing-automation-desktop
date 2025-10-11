@@ -1,3 +1,7 @@
+// src/components/adapters/index.ts
+// module: ui | layer: ui | role: component
+// summary: UI 组件
+
 // 适配器模块聚合导出：保持单一实现与清晰入口
 export {
   TableAdapter,

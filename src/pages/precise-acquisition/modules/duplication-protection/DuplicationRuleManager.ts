@@ -1,3 +1,7 @@
+// src/pages/precise-acquisition/modules/duplication-protection/DuplicationRuleManager.ts
+// module: ui | layer: ui | role: page
+// summary: 页面组件
+
 /**
  * 查重规则管理器
  */

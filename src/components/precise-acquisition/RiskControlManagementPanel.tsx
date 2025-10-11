@@ -1,3 +1,7 @@
+// src/components/precise-acquisition/RiskControlManagementPanel.tsx
+// module: ui | layer: ui | role: component
+// summary: UI 组件
+
 /**
  * 风控机制管理界面
  * 

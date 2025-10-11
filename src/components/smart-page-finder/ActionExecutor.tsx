@@ -1,3 +1,7 @@
+// src/components/smart-page-finder/ActionExecutor.tsx
+// module: ui | layer: ui | role: component
+// summary: UI 组件
+
 /**
  * 动作执行器组件
  * 执行选中元素的各种动作

@@ -1,3 +1,7 @@
+// src/components/smart/SmartAppSelector.tsx
+// module: ui | layer: ui | role: component
+// summary: UI 组件
+
 import React, { useState, useEffect, useMemo } from 'react';
 import { 
   Modal, 

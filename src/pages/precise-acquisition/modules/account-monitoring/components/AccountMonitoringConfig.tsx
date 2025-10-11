@@ -1,3 +1,7 @@
+// src/pages/precise-acquisition/modules/account-monitoring/components/AccountMonitoringConfig.tsx
+// module: ui | layer: ui | role: component
+// summary: UI 组件
+
 /**
  * 账号监控配置组件
  * 支持手动添加监控账号或接受系统推荐

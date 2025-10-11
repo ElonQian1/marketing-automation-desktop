@@ -1,3 +1,7 @@
+// src/components/universal-ui/page-finder-modal/components/ViewModeSelector.tsx
+// module: ui | layer: ui | role: component
+// summary: UI 组件
+
 /**
  * 视图模式切换组件 - 原生 Ant Design 风格
  * 从 UniversalPageFinderModal.tsx 中提取的视图切换逻辑

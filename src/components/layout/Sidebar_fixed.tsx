@@ -1,3 +1,7 @@
+// src/components/layout/Sidebar_fixed.tsx
+// module: ui | layer: ui | role: component
+// summary: UI 组件
+
 import { BarChart3, Contact, HardDrive, Target, Zap } from 'lucide-react';
 import React from 'react';
 

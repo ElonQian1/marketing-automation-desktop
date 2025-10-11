@@ -1,3 +1,7 @@
+// src/components/universal-ui/xml-parser/cleanXml.ts
+// module: ui | layer: ui | role: component
+// summary: UI 组件
+
 /**
  * 清洗 XML 文本：
  * - 截取第一个 '<' 到最后一个 '>' 之间的内容，剔除前后非 XML 噪声

@@ -1,3 +1,7 @@
+// src/pages/SmartScriptBuilderPage/hooks/useStepForm.tsx
+// module: ui | layer: ui | role: page
+// summary: 页面组件
+
 import React, { useCallback, useState } from 'react';
 import { Form, Modal, message } from 'antd';
 import type { FormInstance } from 'antd';

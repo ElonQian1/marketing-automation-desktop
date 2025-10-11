@@ -1,3 +1,7 @@
+// src/components/universal-ui/views/grid-view/Breadcrumbs.tsx
+// module: ui | layer: ui | role: component
+// summary: UI 组件
+
 import React, { useMemo } from 'react';
 import { UiNode } from './types';
 import styles from './GridElementView.module.css';

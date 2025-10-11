@@ -1,3 +1,7 @@
+// src/pages/precise-acquisition/modules/smart-recommendation/DataAnalysisEngine.ts
+// module: ui | layer: ui | role: page
+// summary: 页面组件
+
 /**
  * 数据分析引擎
  * 基于数据指标智能推荐监控目标

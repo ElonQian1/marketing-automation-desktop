@@ -1,3 +1,7 @@
+// src/components/universal-ui/views/grid-view/hooks/useGridElementView.ts
+// module: ui | layer: ui | role: component
+// summary: UI 组件
+
 /**
  * GridElementView 主状态管理 Hook
  * 负责统筹各子 Hook 和主要状态

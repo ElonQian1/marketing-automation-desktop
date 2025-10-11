@@ -1,3 +1,7 @@
+// src/components/patterns/filter-bar/FilterBar.tsx
+// module: ui | layer: ui | role: component
+// summary: UI 组件
+
 
 /**
  * FilterBar - 高曝光筛选栏组件

@@ -1,3 +1,7 @@
+// src/components/contact/VcfImportDialog.tsx
+// module: ui | layer: ui | role: component
+// summary: UI 组件
+
 import {
     CheckCircleOutlined,
     CloudUploadOutlined,

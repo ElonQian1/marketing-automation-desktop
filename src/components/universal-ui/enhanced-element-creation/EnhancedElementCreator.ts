@@ -1,3 +1,7 @@
+// src/components/universal-ui/enhanced-element-creation/EnhancedElementCreator.ts
+// module: ui | layer: ui | role: component
+// summary: UI 组件
+
 /**
  * 增强元素创建器
  * 在用户选择UI元素时，创建包含完整XML上下文信息的增强元素

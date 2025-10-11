@@ -1,3 +1,7 @@
+// src/components/universal-ui/views/visual-view/utils/appAnalysis.ts
+// module: ui | layer: ui | role: component
+// summary: UI 组件
+
 // 应用与页面信息分析工具（从 VisualElementView 抽离）
 
 export interface AppPageInfo { appName: string; pageName: string; }

@@ -1,3 +1,7 @@
+// src/components/universal-ui/element-selection/hierarchy/ElementQualityScorer.ts
+// module: ui | layer: ui | role: component
+// summary: UI 组件
+
 /**
  * 元素质量评分器
  * 负责评估元素用于自动化匹配的质量和可靠性

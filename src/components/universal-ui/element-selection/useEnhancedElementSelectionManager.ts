@@ -1,3 +1,7 @@
+// src/components/universal-ui/element-selection/useEnhancedElementSelectionManager.ts
+// module: ui | layer: ui | role: component
+// summary: UI 组件
+
 /**
  * 增强的元素选择管理器 Hook
  * 在原有基础上增加父子元素选择功能

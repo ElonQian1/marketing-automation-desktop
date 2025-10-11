@@ -1,3 +1,7 @@
+// src/components/CsvImportComponent.tsx
+// module: ui | layer: ui | role: component
+// summary: UI 组件
+
 /**
  * CSV 导入组件
  * 

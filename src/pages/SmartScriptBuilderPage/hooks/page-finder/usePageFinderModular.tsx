@@ -1,3 +1,7 @@
+// src/pages/SmartScriptBuilderPage/hooks/page-finder/usePageFinderModular.tsx
+// module: ui | layer: ui | role: page
+// summary: 页面组件
+
 import React, { useCallback, useMemo, useRef, useState } from 'react';
 import { theme } from 'antd';
 import { useForm } from 'antd/es/form/Form';

@@ -1,3 +1,7 @@
+// src/pages/SmartScriptBuilderPage/components/step-edit-modal/components/ActionButtonsSection.tsx
+// module: ui | layer: ui | role: component
+// summary: UI 组件
+
 import React from 'react';
 import { Space, Button, Divider, theme } from 'antd';
 import { SettingOutlined, EyeOutlined } from '@ant-design/icons';

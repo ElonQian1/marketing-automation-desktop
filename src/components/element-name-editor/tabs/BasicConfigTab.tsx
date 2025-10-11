@@ -1,3 +1,7 @@
+// src/components/element-name-editor/tabs/BasicConfigTab.tsx
+// module: ui | layer: ui | role: component
+// summary: UI 组件
+
 import React from 'react';
 import { Card, Space, Tag, Alert, Typography, Form, Input, Button, Tooltip } from 'antd';
 import { EditOutlined, InfoCircleOutlined, SaveOutlined, ReloadOutlined, BulbOutlined } from '@ant-design/icons';

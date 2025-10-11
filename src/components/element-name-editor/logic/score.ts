@@ -1,3 +1,7 @@
+// src/components/element-name-editor/logic/score.ts
+// module: ui | layer: ui | role: component
+// summary: UI 组件
+
 // 抽离显示名称匹配评分逻辑
 // 便于单元测试与潜在策略扩展
 

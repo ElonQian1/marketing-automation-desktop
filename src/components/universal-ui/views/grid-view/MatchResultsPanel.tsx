@@ -1,3 +1,7 @@
+// src/components/universal-ui/views/grid-view/MatchResultsPanel.tsx
+// module: ui | layer: ui | role: component
+// summary: UI 组件
+
 import React, { useEffect, useRef, useMemo, useState } from 'react';
 import { UiNode, AdvancedFilter, SearchOptions } from './types';
 import type { MatchCriteria } from './panels/node-detail/types';

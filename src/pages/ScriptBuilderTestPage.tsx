@@ -1,3 +1,7 @@
+// src/pages/ScriptBuilderTestPage.tsx
+// module: ui | layer: ui | role: page
+// summary: 页面组件
+
 /**
  * 脚本构建器模块测试页面
  * 用于验证脚本构建器模块的功能

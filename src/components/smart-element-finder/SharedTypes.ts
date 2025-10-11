@@ -1,3 +1,7 @@
+// src/components/smart-element-finder/SharedTypes.ts
+// module: ui | layer: ui | role: component
+// summary: UI 组件
+
 // 智能元素查找器共享类型定义
 // 供新旧版本组件共同使用，确保类型一致性
 

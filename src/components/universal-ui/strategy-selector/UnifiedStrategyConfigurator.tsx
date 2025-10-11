@@ -1,3 +1,7 @@
+// src/components/universal-ui/strategy-selector/UnifiedStrategyConfigurator.tsx
+// module: ui | layer: ui | role: component
+// summary: UI 组件
+
 /**
  * 统一策略选择配置器
  * 合并了新版 MatchingStrategySelector 和旧版 MatchStrategySelector 的所有功能

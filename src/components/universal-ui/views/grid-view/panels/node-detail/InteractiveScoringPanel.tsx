@@ -1,3 +1,7 @@
+// src/components/universal-ui/views/grid-view/panels/node-detail/InteractiveScoringPanel.tsx
+// module: ui | layer: ui | role: component
+// summary: UI 组件
+
 import React, { useState } from 'react';
 import type { DetailedStrategyRecommendation, DetailedStrategyScore } from './StrategyRecommendationPanel';
 import type { MatchStrategy } from './types';

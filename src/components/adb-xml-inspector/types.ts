@@ -1,3 +1,7 @@
+// src/components/adb-xml-inspector/types.ts
+// module: ui | layer: ui | role: component
+// summary: UI 组件
+
 /**
  * ADB XML检查器类型定义
  * 定义UI层级解析和可视化相关的数据结构

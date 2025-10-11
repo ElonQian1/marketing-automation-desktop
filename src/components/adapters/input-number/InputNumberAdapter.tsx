@@ -1,3 +1,7 @@
+// src/components/adapters/input-number/InputNumberAdapter.tsx
+// module: ui | layer: ui | role: component
+// summary: UI 组件
+
 import React from "react";
 import { InputNumber } from "antd";
 

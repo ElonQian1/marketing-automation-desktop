@@ -1,3 +1,7 @@
+// src/pages/precise-acquisition/modules/smart-recommendation/types.ts
+// module: ui | layer: ui | role: page
+// summary: 页面组件
+
 /**
  * 智能推荐系统类型定义
  */

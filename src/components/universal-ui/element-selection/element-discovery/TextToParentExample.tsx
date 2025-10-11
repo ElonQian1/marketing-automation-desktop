@@ -1,3 +1,7 @@
+// src/components/universal-ui/element-selection/element-discovery/TextToParentExample.tsx
+// module: ui | layer: ui | role: component
+// summary: UI 组件
+
 /**
  * 文本到父级元素匹配功能的使用示例
  */

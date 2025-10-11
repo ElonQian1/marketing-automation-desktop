@@ -1,3 +1,7 @@
+// src/components/universal-ui/xml-parser/AppPageAnalyzer.ts
+// module: ui | layer: ui | role: component
+// summary: UI 组件
+
 /**
  * 应用页面分析器
  * 负责分析XML内容，识别应用名称和当前页面

@@ -1,3 +1,7 @@
+// src/pages/precise-acquisition/modules/industry-monitoring/components/MonitoringConfigPanel.tsx
+// module: ui | layer: ui | role: component
+// summary: UI 组件
+
 /**
  * 行业监控配置组件
  * 包含关键词设置、地域筛选、时间范围、查重规则等配置

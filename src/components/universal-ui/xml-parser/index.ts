@@ -1,3 +1,7 @@
+// src/components/universal-ui/xml-parser/index.ts
+// module: ui | layer: ui | role: component
+// summary: UI 组件
+
 /**
  * XML解析模块统一导出
  */

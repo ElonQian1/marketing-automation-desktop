@@ -1,3 +1,7 @@
+// src/components/universal-ui/views/visual-view/VisualPagePreview.tsx
+// module: ui | layer: ui | role: component
+// summary: UI 组件
+
 /**
  * 可视化页面预览组件
  * 从 UniversalPageFinderModal 的 renderPagePreview 函数提取

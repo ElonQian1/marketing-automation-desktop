@@ -1,3 +1,7 @@
+// src/components/universal-ui/views/xpath-monitor/index.ts
+// module: ui | layer: ui | role: component
+// summary: UI 组件
+
 /**
  * XPath 监控组件导出
  * 

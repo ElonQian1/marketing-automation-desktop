@@ -1,3 +1,7 @@
+// src/components/element-name-editor/ElementHierarchyDisplay.tsx
+// module: ui | layer: ui | role: component
+// summary: UI 组件
+
 /**
  * 元素层级显示组件
  * 类似于智能页面查找模态框的层级树，显示匹配项目的层级关系

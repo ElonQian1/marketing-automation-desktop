@@ -1,3 +1,7 @@
+// src/pages/ThemeSettingsPage.tsx
+// module: ui | layer: ui | role: page
+// summary: 页面组件
+
 /**
  * 主题设置页面
  * 提供完整的主题配置和预览功能

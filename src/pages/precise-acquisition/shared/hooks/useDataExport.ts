@@ -1,3 +1,7 @@
+// src/pages/precise-acquisition/shared/hooks/useDataExport.ts
+// module: ui | layer: ui | role: page
+// summary: 页面组件
+
 /**
  * 数据导出工具Hook
  * 

@@ -1,3 +1,7 @@
+// src/pages/device-monitor/utils/detailNormalize.ts
+// module: ui | layer: ui | role: page
+// summary: 页面组件
+
 export interface NormalizedDetail {
   status: string | null; statusSource: string | null;
   conn: string | null; connSource: string | null;

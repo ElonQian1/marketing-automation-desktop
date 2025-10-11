@@ -1,3 +1,7 @@
+// src/pages/adb/auth/steps/UsbTrust.tsx
+// module: ui | layer: ui | role: page
+// summary: 页面组件
+
 import React from 'react';
 import { Alert, Button, Space, Switch, Typography } from 'antd';
 import { UsbOutlined, ReloadOutlined } from '@ant-design/icons';

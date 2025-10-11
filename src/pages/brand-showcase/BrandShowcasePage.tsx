@@ -1,3 +1,7 @@
+// src/pages/brand-showcase/BrandShowcasePage.tsx
+// module: ui | layer: ui | role: page
+// summary: 页面组件
+
 
 /**
  * 品牌化组件展示页面

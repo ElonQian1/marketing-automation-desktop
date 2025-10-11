@@ -1,3 +1,7 @@
+// src/components/universal-ui/page-finder-modal/panels/LeftControlPanel.tsx
+// module: ui | layer: ui | role: component
+// summary: UI 组件
+
 import React from 'react';
 import { Button, Card, Col, Divider, Row, Space, Spin, Typography } from 'antd';
 import { DeviceSelector, ViewModeSelector, AnalysisPanel } from "..";

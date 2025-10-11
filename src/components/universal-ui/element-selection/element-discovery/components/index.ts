@@ -1,3 +1,7 @@
+// src/components/universal-ui/element-selection/element-discovery/components/index.ts
+// module: ui | layer: ui | role: component
+// summary: UI 组件
+
 /**
  * Element Discovery 组件模块导出
  * 统一导出所有交互式组件

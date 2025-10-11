@@ -1,3 +1,7 @@
+// src/components/universal-ui/element-selection/utils/popoverPositioning.ts
+// module: ui | layer: ui | role: component
+// summary: UI 组件
+
 /**
  * 气泡定位计算工具
  * 负责计算ElementSelectionPopover的最佳显示位置

@@ -1,3 +1,7 @@
+// src/components/feature-modules/page-analyzer/hooks/useElementTree.ts
+// module: ui | layer: ui | role: component
+// summary: UI 组件
+
 import { useState, useCallback, useMemo } from 'react';
 import type { 
   UIElement, 

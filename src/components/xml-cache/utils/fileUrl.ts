@@ -1,3 +1,7 @@
+// src/components/xml-cache/utils/fileUrl.ts
+// module: ui | layer: ui | role: component
+// summary: UI 组件
+
 // Small utility to convert absolute file paths to a Tauri asset URL safely across platforms.
 // - Strips Windows extended-length prefix (\\?\)
 // - Normalizes backslashes to forward slashes

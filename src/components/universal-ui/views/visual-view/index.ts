@@ -1,3 +1,7 @@
+// src/components/universal-ui/views/visual-view/index.ts
+// module: ui | layer: ui | role: component
+// summary: UI 组件
+
 // Barrel export for visual-view module
 export { VisualElementView } from "./VisualElementView";
 export { LeftControlPanel } from "./components/LeftControlPanel";

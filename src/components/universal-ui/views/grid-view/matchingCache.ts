@@ -1,3 +1,7 @@
+// src/components/universal-ui/views/grid-view/matchingCache.ts
+// module: ui | layer: ui | role: component
+// summary: UI 组件
+
 // Lightweight matching cache for Grid Inspector
 // Keeps latest matching selection (strategy + fields) in-memory and sessionStorage
 

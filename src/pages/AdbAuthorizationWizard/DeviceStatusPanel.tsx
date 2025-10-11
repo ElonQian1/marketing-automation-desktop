@@ -1,3 +1,7 @@
+// src/pages/AdbAuthorizationWizard/DeviceStatusPanel.tsx
+// module: ui | layer: ui | role: page
+// summary: 页面组件
+
 import React from 'react';
 import { Alert, Space, Spin } from 'antd';
 import { CheckCircleOutlined } from '@ant-design/icons';

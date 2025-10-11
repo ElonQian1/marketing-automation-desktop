@@ -1,3 +1,7 @@
+// src/pages/app-launch-test/types/AppLaunchTestTypes.ts
+// module: ui | layer: ui | role: page
+// summary: 页面组件
+
 /**
  * 应用启动测试相关类型定义
  */

@@ -1,3 +1,7 @@
+// src/components/feature-modules/page-analyzer/components/ElementTree.tsx
+// module: ui | layer: ui | role: component
+// summary: UI 组件
+
 import React, { useMemo } from 'react';
 import { Tree, Input, Button, Space, Typography, Tooltip } from 'antd';
 import { 

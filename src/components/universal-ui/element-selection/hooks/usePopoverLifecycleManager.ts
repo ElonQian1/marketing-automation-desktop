@@ -1,3 +1,7 @@
+// src/components/universal-ui/element-selection/hooks/usePopoverLifecycleManager.ts
+// module: ui | layer: ui | role: component
+// summary: UI 组件
+
 /**
  * 气泡卡片生命周期管理模块
  * 专门处理气泡状态的清理和生命周期管理

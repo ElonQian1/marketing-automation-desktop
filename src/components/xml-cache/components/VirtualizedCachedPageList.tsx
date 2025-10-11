@@ -1,3 +1,7 @@
+// src/components/xml-cache/components/VirtualizedCachedPageList.tsx
+// module: ui | layer: ui | role: component
+// summary: UI 组件
+
 import React, { useEffect, useMemo } from "react";
 import type { CachedXmlPage } from "../../../services/XmlPageCacheService";
 import CachedPageCard from "./CachedPageCard";

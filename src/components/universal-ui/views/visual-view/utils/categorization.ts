@@ -1,3 +1,7 @@
+// src/components/universal-ui/views/visual-view/utils/categorization.ts
+// module: ui | layer: ui | role: component
+// summary: UI 组件
+
 // 元素分类与用户友好名称工具函数（从大文件抽离）
 
 export function getUserFriendlyName(node: any): string {

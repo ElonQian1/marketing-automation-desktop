@@ -1,3 +1,7 @@
+// src/components/navigation/NavigationStepDisplay.tsx
+// module: ui | layer: ui | role: component
+// summary: UI 组件
+
 import React from 'react';
 import { Card, Typography, Tag, Space, Divider } from 'antd';
 import { MobileOutlined, CaretRightOutlined } from '@ant-design/icons';

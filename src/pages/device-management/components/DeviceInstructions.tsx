@@ -1,3 +1,7 @@
+// src/pages/device-management/components/DeviceInstructions.tsx
+// module: ui | layer: ui | role: component
+// summary: UI 组件
+
 import React from 'react';
 import { Alert, List, Typography, Space, theme } from 'antd';
 import {

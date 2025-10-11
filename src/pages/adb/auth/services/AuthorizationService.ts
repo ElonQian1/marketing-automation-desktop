@@ -1,3 +1,7 @@
+// src/pages/adb/auth/services/AuthorizationService.ts
+// module: ui | layer: ui | role: page
+// summary: 页面组件
+
 import { Device } from '../../../../domain/adb/entities/Device';
 import { useAdb } from '../../../../application/hooks/useAdb';
 import { AuthError, DeviceInfo, WirelessConfig, AuthStep } from '../types';

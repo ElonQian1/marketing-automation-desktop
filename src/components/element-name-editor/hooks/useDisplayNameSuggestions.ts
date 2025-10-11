@@ -1,3 +1,7 @@
+// src/components/element-name-editor/hooks/useDisplayNameSuggestions.ts
+// module: ui | layer: ui | role: component
+// summary: UI 组件
+
 import { useMemo } from 'react';
 import { UIElement } from '../../../modules/ElementNameMapper';
 

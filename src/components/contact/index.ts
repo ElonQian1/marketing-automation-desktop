@@ -1,3 +1,7 @@
+// src/components/contact/index.ts
+// module: ui | layer: ui | role: component
+// summary: UI 组件
+
 export { default as ContactReader } from "./ContactReader";
 export { default as EnhancedImportAndFollow } from "./EnhancedImportAndFollow";
 export { default as ImportAndFollow } from "./ImportAndFollow";

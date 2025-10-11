@@ -1,3 +1,7 @@
+// src/components/ui/design-tokens/colors.ts
+// module: ui | layer: ui | role: component
+// summary: UI 组件
+
 /**
  * Design Tokens - Colors
  * 统一的颜色设计令牌，确保品牌一致性

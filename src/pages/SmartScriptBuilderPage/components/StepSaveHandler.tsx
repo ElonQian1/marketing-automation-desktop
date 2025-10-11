@@ -1,3 +1,7 @@
+// src/pages/SmartScriptBuilderPage/components/StepSaveHandler.tsx
+// module: ui | layer: ui | role: component
+// summary: UI 组件
+
 import { message } from 'antd';
 import { FormInstance } from 'antd/es/form';
 import { SmartActionType } from '../../../types/smartComponents';

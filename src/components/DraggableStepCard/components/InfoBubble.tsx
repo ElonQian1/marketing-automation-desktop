@@ -1,3 +1,7 @@
+// src/components/DraggableStepCard/components/InfoBubble.tsx
+// module: ui | layer: ui | role: component
+// summary: UI 组件
+
 import React, { useMemo } from 'react';
 import { Popover, Button, Descriptions, Tag, Card, Badge, Divider } from 'antd';
 import { InfoCircleOutlined, EyeOutlined, AimOutlined, CheckCircleOutlined } from '@ant-design/icons';

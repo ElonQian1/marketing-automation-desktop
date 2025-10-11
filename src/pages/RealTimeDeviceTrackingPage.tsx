@@ -1,3 +1,7 @@
+// src/pages/RealTimeDeviceTrackingPage.tsx
+// module: ui | layer: ui | role: page
+// summary: 页面组件
+
 import React from 'react';
 import RealTimeDeviceMonitorPage from './device-monitor/RealTimeDeviceMonitorPage';
 

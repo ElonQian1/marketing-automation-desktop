@@ -1,3 +1,7 @@
+// src/components/universal-ui/views/grid-view/panels/node-detail/TextMatchingQuickActions.tsx
+// module: ui | layer: ui | role: component
+// summary: UI 组件
+
 /**
  * TextMatchingQuickActions.tsx
  * 文本匹配快捷操作按钮组件

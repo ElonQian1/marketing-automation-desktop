@@ -1,3 +1,7 @@
+// src/components/universal-ui/views/grid-view/panels/node-detail/enhanced-field-selector/index.ts
+// module: ui | layer: ui | role: component
+// summary: UI 组件
+
 /**
  * 增强字段选择器模块导出
  * 

@@ -1,3 +1,7 @@
+// src/components/universal-ui/views/visual-view/utils.ts
+// module: ui | layer: ui | role: component
+// summary: UI 组件
+
 /**
  * 可视化视图工具函数
  */

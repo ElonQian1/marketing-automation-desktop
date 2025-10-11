@@ -1,3 +1,7 @@
+// src/components/DraggableStepCard.tsx
+// module: ui | layer: ui | role: component
+// summary: UI 组件
+
 // 可拖拽的步骤卡片组件（还原旧版样式逻辑，模块化拼装）
 
 import React, { useMemo, useState } from "react";

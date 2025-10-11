@@ -1,3 +1,7 @@
+// src/pages/adb/auth/ActionLogPanel.tsx
+// module: ui | layer: ui | role: page
+// summary: 页面组件
+
 import React from 'react';
 import { Card, Button } from 'antd';
 

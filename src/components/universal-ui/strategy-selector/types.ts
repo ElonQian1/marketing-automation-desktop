@@ -1,3 +1,7 @@
+// src/components/universal-ui/strategy-selector/types.ts
+// module: ui | layer: ui | role: component
+// summary: UI 组件
+
 /**
  * 统一策略选择器类型定义
  * 合并了新版和旧版的所有功能

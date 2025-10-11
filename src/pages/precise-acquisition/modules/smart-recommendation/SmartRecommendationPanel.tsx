@@ -1,3 +1,7 @@
+// src/pages/precise-acquisition/modules/smart-recommendation/SmartRecommendationPanel.tsx
+// module: ui | layer: ui | role: page
+// summary: 页面组件
+
 import React, { useState, useEffect, useCallback } from 'react';
 import {
   Card,

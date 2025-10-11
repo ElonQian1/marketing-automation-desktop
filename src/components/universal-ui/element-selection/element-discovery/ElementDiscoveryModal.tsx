@@ -1,3 +1,7 @@
+// src/components/universal-ui/element-selection/element-discovery/ElementDiscoveryModal.tsx
+// module: ui | layer: ui | role: component
+// summary: UI 组件
+
 /**
  * 元素发现模态框
  * 提供父容器、子元素、自己和智能推荐的四个分类展示

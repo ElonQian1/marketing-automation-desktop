@@ -1,3 +1,7 @@
+// src/components/adapters/message/MessageAdapter.tsx
+// module: ui | layer: ui | role: component
+// summary: UI 组件
+
 /**
  * Message 消息适配器 - Employee D 架构
  * 

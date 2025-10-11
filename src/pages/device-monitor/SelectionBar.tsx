@@ -1,3 +1,7 @@
+// src/pages/device-monitor/SelectionBar.tsx
+// module: ui | layer: ui | role: page
+// summary: 页面组件
+
 import React, { useMemo } from 'react';
 import { Space, Button, Tooltip, Dropdown, MenuProps, message, Typography, Tag, Modal, Input } from 'antd';
 import { CheckSquareOutlined, ClearOutlined, UsbOutlined, DesktopOutlined, CloudDownloadOutlined, SwapOutlined, ScissorOutlined, CopyOutlined } from '@ant-design/icons';

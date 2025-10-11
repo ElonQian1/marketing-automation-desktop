@@ -1,3 +1,7 @@
+// src/components/universal-ui/views/grid-view/exporters.ts
+// module: ui | layer: ui | role: component
+// summary: UI 组件
+
 import { UiNode } from './types';
 
 export function nodeToJson(n: UiNode) {

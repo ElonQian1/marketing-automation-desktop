@@ -1,3 +1,7 @@
+// src/components/NativeAntDesignApp.tsx
+// module: ui | layer: ui | role: component
+// summary: UI 组件
+
 /**
  * 原生Ant Design主应用组件
  * 移除所有自定义样式，使用纯原生Ant Design组件和样式

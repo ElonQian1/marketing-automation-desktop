@@ -1,3 +1,7 @@
+// src/pages/adb-layout-comparison/components/LayoutOverviewCards.tsx
+// module: ui | layer: ui | role: component
+// summary: UI 组件
+
 import React from 'react';
 import { Card, Row, Col, Typography } from 'antd';
 import { ThunderboltOutlined, AppstoreOutlined } from '@ant-design/icons';

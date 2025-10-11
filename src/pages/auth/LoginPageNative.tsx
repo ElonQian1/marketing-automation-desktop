@@ -1,3 +1,7 @@
+// src/pages/auth/LoginPageNative.tsx
+// module: ui | layer: ui | role: page
+// summary: 页面组件
+
 /**
  * 登录页面（原生 Ant Design 版本）
  * 使用纯原生 Ant Design 组件和样式

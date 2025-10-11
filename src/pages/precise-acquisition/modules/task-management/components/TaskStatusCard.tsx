@@ -1,3 +1,7 @@
+// src/pages/precise-acquisition/modules/task-management/components/TaskStatusCard.tsx
+// module: ui | layer: ui | role: component
+// summary: UI 组件
+
 /**
  * 任务状态卡片组件（临时）
  */

@@ -1,3 +1,7 @@
+// src/components/universal-ui/views/mirror-view/presets/usePresets.ts
+// module: ui | layer: ui | role: component
+// summary: UI 组件
+
 import { useEffect, useMemo, useState } from 'react';
 import type { ScrcpyOptions } from '../../../../../application/services/ScrcpyApplicationService';
 import { BUILTIN_PRESETS, type ScrcpyPreset } from './presets';

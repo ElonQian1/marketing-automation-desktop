@@ -1,3 +1,7 @@
+// src/components/universal-ui/views/tree-view/UIElementTree.tsx
+// module: ui | layer: ui | role: component
+// summary: UI 组件
+
 /**
  * UIElementTree 主组件 - 临时文件
  * 高性能的UI元素树形展示组件，支持虚拟化渲染和高级过滤

@@ -1,3 +1,7 @@
+// src/components/universal-ui/page-finder/PageFinderView.tsx
+// module: ui | layer: ui | role: component
+// summary: UI 组件
+
 import React from 'react';
 import { usePageFinderState } from './hooks/usePageFinderState.ts';
 import { SidebarTree } from './components/SidebarTree.tsx';

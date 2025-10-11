@@ -1,3 +1,7 @@
+// src/pages/adb/auth/index.ts
+// module: ui | layer: ui | role: page
+// summary: 页面组件
+
 // 组件导出
 export { default as ADBAuthWizard } from './ADBAuthWizard';
 export { default as EnhancedADBAuthWizard } from './EnhancedADBAuthWizard';

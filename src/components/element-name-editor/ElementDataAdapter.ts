@@ -1,3 +1,7 @@
+// src/components/element-name-editor/ElementDataAdapter.ts
+// module: ui | layer: ui | role: component
+// summary: UI 组件
+
 /**
  * 元素数据适配器
  * 将不同格式的元素数据转换为AndroidXMLFields格式

@@ -1,3 +1,7 @@
+// src/components/feature-modules/theme-system/hooks/useThemeManager.ts
+// module: ui | layer: ui | role: component
+// summary: UI 组件
+
 /**
  * 主题管理 Hook
  * 提供主题状态管理和切换功能

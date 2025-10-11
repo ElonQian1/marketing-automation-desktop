@@ -1,3 +1,7 @@
+// src/components/universal-ui/UniversalElementAnalyzer.ts
+// module: ui | layer: ui | role: component
+// summary: UI 组件
+
 /**
  * 通用UI元素智能分析器
  * 支持多种Android应用的UI元素识别和语义分析

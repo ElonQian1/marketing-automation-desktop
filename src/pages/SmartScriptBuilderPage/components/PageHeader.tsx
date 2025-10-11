@@ -1,3 +1,7 @@
+// src/pages/SmartScriptBuilderPage/components/PageHeader.tsx
+// module: ui | layer: ui | role: component
+// summary: UI 组件
+
 import React from "react";
 import { Row, Col, Typography, Space, Select, Button, Divider, Tag } from "antd";
 import { AndroidOutlined, SyncOutlined, RocketOutlined } from "@ant-design/icons";

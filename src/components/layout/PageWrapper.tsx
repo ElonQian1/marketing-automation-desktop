@@ -1,3 +1,7 @@
+// src/components/layout/PageWrapper.tsx
+// module: ui | layer: ui | role: component
+// summary: UI 组件
+
 import React from 'react';
 import { Layout, Typography, Space, Button, Spin } from 'antd';
 import { ArrowLeftOutlined, ReloadOutlined, MoreOutlined } from '@ant-design/icons';

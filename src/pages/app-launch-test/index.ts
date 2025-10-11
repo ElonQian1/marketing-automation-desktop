@@ -1,3 +1,7 @@
+// src/pages/app-launch-test/index.ts
+// module: ui | layer: ui | role: page
+// summary: 页面组件
+
 /**
  * App Launch Test 模块导出
  */

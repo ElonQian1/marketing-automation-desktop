@@ -1,3 +1,7 @@
+// src/pages/contact-automation/components/ImportResultSummary.tsx
+// module: ui | layer: ui | role: component
+// summary: UI 组件
+
 import React from 'react';
 import { Card, Col, Row, Space, Statistic, Typography } from 'antd';
 import { FileAddOutlined } from '@ant-design/icons';

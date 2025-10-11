@@ -1,3 +1,7 @@
+// src/components/ui/dialog/Dialog.tsx
+// module: ui | layer: ui | role: component
+// summary: UI 组件
+
 
 /**
  * Dialog 组件 - 基于 Radix UI 的现代化对话框

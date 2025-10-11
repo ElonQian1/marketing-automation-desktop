@@ -1,3 +1,7 @@
+// src/components/element-discovery-test/ElementDiscoveryTestPage.tsx
+// module: ui | layer: ui | role: component
+// summary: UI 组件
+
 /**
  * 元素发现功能测试页面
  * 用于验证层次结构分析和子元素发现功能

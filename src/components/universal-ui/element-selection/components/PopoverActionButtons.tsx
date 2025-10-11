@@ -1,3 +1,7 @@
+// src/components/universal-ui/element-selection/components/PopoverActionButtons.tsx
+// module: ui | layer: ui | role: component
+// summary: UI 组件
+
 import React from 'react';
 import { Space, Button, Row, Col } from 'antd';
 import { CheckOutlined, EyeInvisibleOutlined, SearchOutlined, CloseOutlined } from '@ant-design/icons';

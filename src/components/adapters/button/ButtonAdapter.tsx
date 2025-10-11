@@ -1,3 +1,7 @@
+// src/components/adapters/button/ButtonAdapter.tsx
+// module: ui | layer: ui | role: component
+// summary: UI 组件
+
 /**
  * ButtonAdapter - 兼容 AntD 风格属性的按钮适配器
  *

@@ -1,3 +1,7 @@
+// src/components/universal-ui/views/grid-view/GridElementView.tsx
+// module: ui | layer: ui | role: component
+// summary: UI 组件
+
 /**
  * ADB XML 可视化检查器 - 网格视图版本
  * 用于在 GUI 中展示 ADB/UiAutomat  // 新增：将节点详情选择的匹配策略回传给上层（例如步骤卡片"修改参数"模式）

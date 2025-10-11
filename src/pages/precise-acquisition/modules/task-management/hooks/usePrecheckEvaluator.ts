@@ -1,3 +1,7 @@
+// src/pages/precise-acquisition/modules/task-management/hooks/usePrecheckEvaluator.ts
+// module: ui | layer: ui | role: page
+// summary: 页面组件
+
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { message } from 'antd';
 import { preciseAcquisitionService } from '../../../../../application/services';

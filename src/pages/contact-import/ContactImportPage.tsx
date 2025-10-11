@@ -1,3 +1,7 @@
+// src/pages/contact-import/ContactImportPage.tsx
+// module: ui | layer: ui | role: page
+// summary: 页面组件
+
 import React, { Suspense } from 'react';
 import { PageWrapper } from '../../components/layout';
 import { ErrorBoundary } from '../../components/common/ErrorBoundary';

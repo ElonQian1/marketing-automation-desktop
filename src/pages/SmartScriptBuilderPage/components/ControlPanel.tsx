@@ -1,3 +1,7 @@
+// src/pages/SmartScriptBuilderPage/components/ControlPanel.tsx
+// module: ui | layer: ui | role: component
+// summary: UI 组件
+
 import React from "react";
 import {
   Card,

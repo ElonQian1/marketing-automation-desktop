@@ -1,3 +1,7 @@
+// src/pages/SmartScriptBuilderPage/helpers/xmlSnapshotHelper.ts
+// module: ui | layer: ui | role: page
+// summary: 页面组件
+
 import XmlCacheManager from '../../../services/XmlCacheManager';
 import { createXmlSnapshot, type XmlSnapshot } from '../../../types/selfContainedScript';
 

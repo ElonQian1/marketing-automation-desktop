@@ -1,3 +1,7 @@
+// src/components/ui/buttons/SecondaryButton.tsx
+// module: ui | layer: ui | role: component
+// summary: UI 组件
+
 /**
  * 次要操作按钮组件
  * 用于次要操作，如取消、重置等

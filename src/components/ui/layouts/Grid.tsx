@@ -1,3 +1,7 @@
+// src/components/ui/layouts/Grid.tsx
+// module: ui | layer: ui | role: component
+// summary: UI 组件
+
 import React from 'react';
 import { Row, Col, type RowProps, type ColProps } from 'antd';
 import { clsx } from 'clsx';

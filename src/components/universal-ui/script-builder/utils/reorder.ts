@@ -1,3 +1,7 @@
+// src/components/universal-ui/script-builder/utils/reorder.ts
+// module: ui | layer: ui | role: component
+// summary: UI 组件
+
 // 纯函数：对步骤数组进行重排
 import { ScriptStep } from '../types';
 

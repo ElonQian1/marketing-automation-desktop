@@ -1,3 +1,7 @@
+// src/components/universal-ui/page-finder/services/directXmlLoader.ts
+// module: ui | layer: ui | role: component
+// summary: UI 组件
+
 import UniversalUIAPI from "../../../../api/universalUIAPI";
 import { buildSnapshotIfPossible } from "../../../../modules/self-contained/XmlSnapshotAutoBuilder";
 import { parseXML } from "../../xml-parser";

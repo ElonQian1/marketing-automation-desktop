@@ -1,3 +1,7 @@
+// src/components/step-card/screen-actions/ScreenActionDropdownButton.tsx
+// module: ui | layer: ui | role: component
+// summary: UI 组件
+
 import React, { useState } from 'react';
 import { Dropdown, Button, MenuProps } from 'antd';
 import { MobileOutlined } from '@ant-design/icons';

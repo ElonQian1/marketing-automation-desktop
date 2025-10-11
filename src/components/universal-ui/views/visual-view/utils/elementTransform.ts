@@ -1,3 +1,7 @@
+// src/components/universal-ui/views/visual-view/utils/elementTransform.ts
+// module: ui | layer: ui | role: component
+// summary: UI 组件
+
 import { BridgeUIElement, VisualUIElement } from '../types/visual-types';
 import { BoundsCalculator } from '../../../../../shared/bounds/BoundsCalculator';
 

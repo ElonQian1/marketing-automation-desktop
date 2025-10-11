@@ -1,3 +1,7 @@
+// src/components/device/DeviceList.tsx
+// module: ui | layer: ui | role: component
+// summary: UI 组件
+
 import React from 'react';
 import { List, Card, Avatar, Tag } from 'antd';
 import { MobileOutlined } from '@ant-design/icons';

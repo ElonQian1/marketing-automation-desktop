@@ -1,3 +1,7 @@
+// src/pages/precise-acquisition/shared/types/monitoringTypes.ts
+// module: ui | layer: ui | role: page
+// summary: 页面组件
+
 /**
  * 精准获客系统 - 监控任务统一类型定义
  * 

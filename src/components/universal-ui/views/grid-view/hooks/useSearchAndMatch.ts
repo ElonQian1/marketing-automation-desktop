@@ -1,3 +1,7 @@
+// src/components/universal-ui/views/grid-view/hooks/useSearchAndMatch.ts
+// module: ui | layer: ui | role: component
+// summary: UI 组件
+
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { UiNode, AdvancedFilter, SearchOptions } from '../types';
 import { makeCombinedMatcher } from '../utils';

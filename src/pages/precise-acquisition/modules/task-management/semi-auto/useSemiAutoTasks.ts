@@ -1,3 +1,7 @@
+// src/pages/precise-acquisition/modules/task-management/semi-auto/useSemiAutoTasks.ts
+// module: ui | layer: ui | role: page
+// summary: 页面组件
+
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { message } from 'antd';
 import type { Device } from '../../../../../domain/adb/entities/Device';

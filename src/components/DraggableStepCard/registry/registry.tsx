@@ -1,3 +1,7 @@
+// src/components/DraggableStepCard/registry/registry.tsx
+// module: ui | layer: ui | role: component
+// summary: UI 组件
+
 import React from 'react';
 import type { StepUIExtension, SmartScriptStepLike, StepUIContext, StepMeta } from './types';
 import { SmartScrollControls } from '../components/SmartScrollControls';

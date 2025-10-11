@@ -1,3 +1,7 @@
+// src/components/patterns/empty-state/EmptyState.tsx
+// module: ui | layer: ui | role: component
+// summary: UI 组件
+
 
 /**
  * EmptyState - 空状态展示组件

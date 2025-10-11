@@ -1,3 +1,7 @@
+// src/components/universal-ui/element-selection/element-discovery/ParentElementCard.tsx
+// module: ui | layer: ui | role: component
+// summary: UI 组件
+
 // @ts-nocheck
 /**
  * 父元素卡片组件

@@ -1,3 +1,7 @@
+// src/components/element-xml-hierarchy/ElementFieldsViewerGuide.tsx
+// module: ui | layer: ui | role: component
+// summary: UI 组件
+
 /**
  * ElementFieldsViewer 使用指南和测试页面
  * 展示如何使用新的元素字段详情查看功能

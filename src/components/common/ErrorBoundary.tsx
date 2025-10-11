@@ -1,3 +1,7 @@
+// src/components/common/ErrorBoundary.tsx
+// module: ui | layer: ui | role: component
+// summary: UI 组件
+
 import React from 'react';
 
 type Props = {
@@ -16,7 +20,7 @@ export class ErrorBoundary extends React.Component<Props, State> {
   }
 
   componentDidCatch(error: any, errorInfo: any) {
-    // eslint-disable-next-line no-console
+     
     try { console.error('[ErrorBoundary] caught error:', error, errorInfo); } catch {}
   }
 

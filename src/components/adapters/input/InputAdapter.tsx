@@ -1,3 +1,7 @@
+// src/components/adapters/input/InputAdapter.tsx
+// module: ui | layer: ui | role: component
+// summary: UI 组件
+
 /**
  * Input 输入框适配器 - Employee D 架构
  * 

@@ -1,3 +1,7 @@
+// src/components/universal-ui/element-selection/element-discovery/ElementDiscoveryDebugger.tsx
+// module: ui | layer: ui | role: component
+// summary: UI 组件
+
 /**
  * 发现元素调试工具
  * 用于测试和验证层次结构发现功能

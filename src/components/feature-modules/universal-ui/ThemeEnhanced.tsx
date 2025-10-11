@@ -1,3 +1,7 @@
+// src/components/feature-modules/universal-ui/ThemeEnhanced.tsx
+// module: ui | layer: ui | role: component
+// summary: UI 组件
+
 /**
  * 通用页面主题增强模块
  * 为各种页面提供统一的主题适配组件

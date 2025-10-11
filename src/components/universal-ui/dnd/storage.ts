@@ -1,3 +1,7 @@
+// src/components/universal-ui/dnd/storage.ts
+// module: ui | layer: ui | role: component
+// summary: UI 组件
+
 // 安全的 localStorage 读写封装（仅在浏览器环境可用）
 
 export const DND_UI_CONFIG_STORAGE_KEY = 'app.dndUiConfig.v1';

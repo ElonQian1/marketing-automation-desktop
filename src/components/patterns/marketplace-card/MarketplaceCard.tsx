@@ -1,3 +1,7 @@
+// src/components/patterns/marketplace-card/MarketplaceCard.tsx
+// module: ui | layer: ui | role: component
+// summary: UI 组件
+
 
 /**
  * MarketplaceCard - 营销卡片组件

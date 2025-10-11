@@ -1,3 +1,7 @@
+// src/components/universal-ui/views/grid-view/panels/node-detail/StrategyScoreCard.tsx
+// module: ui | layer: ui | role: component
+// summary: UI 组件
+
 import React from 'react';
 import { useBreakpoint, useMobileDetection, useResponsiveValue } from './responsive';
 import { generateMobileButtonClasses, generateA11yFocusClasses, mergeClasses } from './responsive/utils';

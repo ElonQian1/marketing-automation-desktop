@@ -1,3 +1,7 @@
+// src/components/native-dashboard/NativeAntDashboard.tsx
+// module: ui | layer: ui | role: component
+// summary: UI 组件
+
 /**
  * 原生Ant Design仪表板组件
  * 使用纯原生Ant Design组件，无自定义样式

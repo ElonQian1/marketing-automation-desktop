@@ -1,3 +1,7 @@
+// src/components/universal-ui/views/grid-view/panels/FieldDocPanel.tsx
+// module: ui | layer: ui | role: component
+// summary: UI 组件
+
 import React, { useState } from 'react';
 import styles from "../GridElementView.module.css";
 import { FIELD_DOCS } from "../fieldDocs";

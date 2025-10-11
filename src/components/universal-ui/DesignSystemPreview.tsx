@@ -1,3 +1,7 @@
+// src/components/universal-ui/DesignSystemPreview.tsx
+// module: ui | layer: ui | role: component
+// summary: UI 组件
+
 /**
  * Universal UI 设计系统预览组件
  * 展示新的现代化设计系统各个组件的视觉效果

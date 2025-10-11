@@ -1,3 +1,7 @@
+// src/components/flow-builder/services/flowExecutionService.ts
+// module: ui | layer: ui | role: component
+// summary: UI 组件
+
 import { invoke } from '@tauri-apps/api/core';
 import { convertFlowStepToScriptType, getAppFromStepId } from '../../universal-ui/script-builder/utils/flowHelpers';
 import { FlowBuilderStep } from '../../universal-ui/script-builder/services/flowTemplates';

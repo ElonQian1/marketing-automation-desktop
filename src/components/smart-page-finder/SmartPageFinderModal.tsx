@@ -1,3 +1,7 @@
+// src/components/smart-page-finder/SmartPageFinderModal.tsx
+// module: ui | layer: ui | role: component
+// summary: UI 组件
+
 /**
  * 智能页面查找模态框 - 主组件
  * Universal UI 智能元素查找器的主界面

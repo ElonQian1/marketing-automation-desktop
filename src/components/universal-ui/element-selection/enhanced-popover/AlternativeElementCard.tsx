@@ -1,3 +1,7 @@
+// src/components/universal-ui/element-selection/enhanced-popover/AlternativeElementCard.tsx
+// module: ui | layer: ui | role: component
+// summary: UI 组件
+
 /**
  * 替代元素卡片组件
  * 显示单个替代元素的信息和选择按钮

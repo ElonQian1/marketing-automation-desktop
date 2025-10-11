@@ -1,3 +1,7 @@
+// src/components/PreciseAcquisitionDemo.tsx
+// module: ui | layer: ui | role: component
+// summary: UI 组件
+
 /**
  * 精准获客系统演示组件
  * 

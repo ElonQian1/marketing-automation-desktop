@@ -1,3 +1,7 @@
+// src/components/contact/VcfImportDemo.tsx
+// module: ui | layer: ui | role: component
+// summary: UI 组件
+
 import { MobileOutlined, UserOutlined } from '@ant-design/icons';
 import { Card, Col, Divider, message, Row, Space, Typography } from 'antd';
 import React, { useState } from 'react';

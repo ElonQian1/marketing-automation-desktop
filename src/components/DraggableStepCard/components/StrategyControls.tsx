@@ -1,3 +1,7 @@
+// src/components/DraggableStepCard/components/StrategyControls.tsx
+// module: ui | layer: ui | role: component
+// summary: UI 组件
+
 import React from 'react';
 import { Button, Popover } from 'antd';
 import { SettingOutlined } from '@ant-design/icons';

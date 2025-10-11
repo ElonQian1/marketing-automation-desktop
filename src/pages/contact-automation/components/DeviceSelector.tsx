@@ -1,3 +1,7 @@
+// src/pages/contact-automation/components/DeviceSelector.tsx
+// module: ui | layer: ui | role: component
+// summary: UI 组件
+
 import React from 'react';
 import { Alert, Button, Card, Empty, List, Space, Tag, Typography } from 'antd';
 import { MobileOutlined, ReloadOutlined } from '@ant-design/icons';

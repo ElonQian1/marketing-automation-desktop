@@ -1,3 +1,7 @@
+// src/components/step-card/screen-actions/CustomScrollModal.tsx
+// module: ui | layer: ui | role: component
+// summary: UI 组件
+
 import React, { useState } from 'react';
 import { Modal, Form, Radio, InputNumber } from 'antd';
 

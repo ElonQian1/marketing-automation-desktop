@@ -1,3 +1,7 @@
+// src/components/element-xml-hierarchy/PageSelector.tsx
+// module: ui | layer: ui | role: component
+// summary: UI 组件
+
 /**
  * 页面选择器组件
  * 允许用户选择不同的XML缓存页面查看层级结构

@@ -1,3 +1,7 @@
+// src/components/element-xml-hierarchy/CachedElementXmlHierarchyTab.tsx
+// module: ui | layer: ui | role: component
+// summary: UI 组件
+
 /**
  * XML层级结构标签页 - 基于Universal UI缓存数据
  * 整合页面选择和层级树显示功能

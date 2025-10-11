@@ -1,3 +1,7 @@
+// src/components/smart-element-finder/SmartElementFinder.tsx
+// module: ui | layer: ui | role: component
+// summary: UI 组件
+
 import React, { useState, useEffect } from 'react';
 import { Card, Select, Button, Form, Input, message, Spin, Typography, Space, Divider, Tag, Alert, Radio, InputNumber } from 'antd';
 import { invoke } from '@tauri-apps/api/core';

@@ -1,3 +1,7 @@
+// src/components/step-card/screen-actions/screenTemplates.ts
+// module: ui | layer: ui | role: component
+// summary: UI 组件
+
 import { ExtendedSmartScriptStep } from '../../../types/loopScript';
 
 export type ScrollDirection = 'up' | 'down' | 'left' | 'right';

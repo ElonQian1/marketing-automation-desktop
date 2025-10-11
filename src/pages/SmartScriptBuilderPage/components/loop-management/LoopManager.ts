@@ -1,3 +1,7 @@
+// src/pages/SmartScriptBuilderPage/components/loop-management/LoopManager.ts
+// module: ui | layer: ui | role: component
+// summary: UI 组件
+
 import { message, Modal } from "antd";
 import type { ExtendedSmartScriptStep, LoopConfig } from "../../../../types/loopScript";
 import { SmartActionType } from "../../../../types/smartComponents";

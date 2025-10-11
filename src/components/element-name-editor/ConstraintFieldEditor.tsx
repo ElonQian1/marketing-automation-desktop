@@ -1,3 +1,7 @@
+// src/components/element-name-editor/ConstraintFieldEditor.tsx
+// module: ui | layer: ui | role: component
+// summary: UI 组件
+
 /**
  * 约束字段编辑器
  * 允许用户查看和编辑元素的原始匹配值，支持开启/关闭约束

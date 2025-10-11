@@ -1,3 +1,7 @@
+// src/components/universal-ui/views/grid-view/XPathTestResultsPanel.tsx
+// module: ui | layer: ui | role: component
+// summary: UI 组件
+
 import React, { useEffect, useRef } from 'react';
 import { UiNode } from './types';
 import styles from './GridElementView.module.css';

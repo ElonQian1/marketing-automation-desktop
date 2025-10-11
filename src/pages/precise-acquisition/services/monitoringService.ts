@@ -1,3 +1,7 @@
+// src/pages/precise-acquisition/services/monitoringService.ts
+// module: ui | layer: ui | role: page
+// summary: 页面组件
+
 // 精准获客监控服务
 import { MonitoringTask, CreateMonitoringTaskConfig, UpdateMonitoringTaskConfig } from '../shared/types/monitoringTypes';
 

@@ -1,3 +1,7 @@
+// src/pages/device-monitor/DeviceCard.tsx
+// module: ui | layer: ui | role: page
+// summary: 页面组件
+
 import React from 'react';
 import { Card, Space, Tag, Typography, Checkbox } from 'antd';
 import { UsbOutlined, DesktopOutlined } from '@ant-design/icons';

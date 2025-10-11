@@ -1,3 +1,7 @@
+// src/components/step-card/element-binding/types.ts
+// module: ui | layer: ui | role: component
+// summary: UI 组件
+
 export interface ElementBindingSnapshot {
   source: 'file' | 'memory';
   path?: string; // 相对路径，如 debug_xml/xxx.xml

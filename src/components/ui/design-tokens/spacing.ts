@@ -1,3 +1,7 @@
+// src/components/ui/design-tokens/spacing.ts
+// module: ui | layer: ui | role: component
+// summary: UI 组件
+
 /**
  * Design Tokens - Spacing
  * 统一的间距设计令牌，确保布局一致性

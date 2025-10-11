@@ -1,3 +1,7 @@
+// src/components/LoopEndCardNative.tsx
+// module: ui | layer: ui | role: component
+// summary: UI 组件
+
 import React, { useState } from 'react';
 import { Card, Typography, Space, Button, Tag, Modal, InputNumber, Switch } from 'antd';
 import { 

@@ -1,3 +1,7 @@
+// src/pages/SmartScriptBuilderPage/components/step-edit-modal-native/ActionConfigSection.tsx
+// module: ui | layer: ui | role: component
+// summary: UI 组件
+
 import React from "react";
 import { Card, Button, Typography, Alert, Divider } from "antd";
 import { EyeOutlined, SettingOutlined } from "@ant-design/icons";

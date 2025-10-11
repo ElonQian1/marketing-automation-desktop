@@ -1,3 +1,7 @@
+// src/components/universal-ui/script-builder/components/StepItemBase.tsx
+// module: ui | layer: ui | role: component
+// summary: UI 组件
+
 // StepItemBase 全新文件用于规避旧 StepItem.tsx 幽灵缓存问题
 import React from 'react';
 import { Card } from 'antd';

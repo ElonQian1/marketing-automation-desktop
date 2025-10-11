@@ -1,3 +1,7 @@
+// src/pages/InspectorPage.tsx
+// module: ui | layer: ui | role: page
+// summary: 页面组件
+
 import React, { useEffect, useMemo, useState } from 'react';
 import { useInspectorStore } from '../application/inspectorStore';
 import { InspectorApplicationService } from '../application/services/InspectorApplicationService';

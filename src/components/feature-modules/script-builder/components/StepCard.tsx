@@ -1,3 +1,7 @@
+// src/components/feature-modules/script-builder/components/StepCard.tsx
+// module: ui | layer: ui | role: component
+// summary: UI 组件
+
 /**
  * 脚本步骤卡片组件
  * 显示单个脚本步骤的信息，支持拖拽、编辑、删除等操作

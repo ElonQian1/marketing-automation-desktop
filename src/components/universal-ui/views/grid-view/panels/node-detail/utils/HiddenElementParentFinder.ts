@@ -1,3 +1,7 @@
+// src/components/universal-ui/views/grid-view/panels/node-detail/utils/HiddenElementParentFinder.ts
+// module: ui | layer: ui | role: component
+// summary: UI 组件
+
 /**
  * 隐藏元素检测和父容器查找工具
  * 用于检测 bounds=[0,0][0,0] 的隐藏元素，并根据文本内容查找可点击的父容器

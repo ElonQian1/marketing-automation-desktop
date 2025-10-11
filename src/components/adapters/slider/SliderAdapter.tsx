@@ -1,3 +1,7 @@
+// src/components/adapters/slider/SliderAdapter.tsx
+// module: ui | layer: ui | role: component
+// summary: UI 组件
+
 import React from "react";
 import { Slider } from "antd";
 

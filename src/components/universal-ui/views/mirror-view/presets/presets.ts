@@ -1,3 +1,7 @@
+// src/components/universal-ui/views/mirror-view/presets/presets.ts
+// module: ui | layer: ui | role: component
+// summary: UI 组件
+
 import type { ScrcpyOptions } from '../../../../../application/services/ScrcpyApplicationService';
 
 export type ScrcpyPreset = {

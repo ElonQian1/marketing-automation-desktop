@@ -1,3 +1,7 @@
+// src/pages/precise-acquisition/modules/CandidatePoolImportPanel.tsx
+// module: ui | layer: ui | role: page
+// summary: 页面组件
+
 /**
  * 候选池导入面板
  * 

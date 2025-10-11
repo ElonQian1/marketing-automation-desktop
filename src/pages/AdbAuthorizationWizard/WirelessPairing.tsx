@@ -1,3 +1,7 @@
+// src/pages/AdbAuthorizationWizard/WirelessPairing.tsx
+// module: ui | layer: ui | role: page
+// summary: 页面组件
+
 import React, { useState } from 'react';
 import { Alert, Divider, Form, Input, Button, Space, Typography } from 'antd';
 import { WifiOutlined, KeyOutlined } from '@ant-design/icons';

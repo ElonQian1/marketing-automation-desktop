@@ -1,3 +1,7 @@
+// src/components/universal-ui/element-selection/element-discovery/SelfElementCard.tsx
+// module: ui | layer: ui | role: component
+// summary: UI 组件
+
 import React from 'react';
 import { Card, Button, Tag, Space, Typography, Tooltip } from 'antd';
 import { SelectOutlined, InfoCircleOutlined, UserOutlined } from '@ant-design/icons';

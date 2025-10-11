@@ -1,3 +1,7 @@
+// src/components/DraggableStepCard/constants/actionConfigs.ts
+// module: ui | layer: ui | role: component
+// summary: UI 组件
+
 export interface ActionConfig {
   icon: string;
   name: string;

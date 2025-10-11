@@ -1,3 +1,7 @@
+// src/components/universal-ui/views/grid-view/AdvancedFilterSummary.tsx
+// module: ui | layer: ui | role: component
+// summary: UI 组件
+
 import React from 'react';
 import { AdvancedFilter } from './types';
 import styles from './GridElementView.module.css';

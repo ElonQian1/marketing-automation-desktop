@@ -1,3 +1,7 @@
+// src/components/universal-ui/page-finder/services/loadContext.ts
+// module: ui | layer: ui | role: component
+// summary: UI 组件
+
 // 通用页面查找加载上下文，供各类 XML/步骤加载 service 复用
 // 若后续需要新增字段（例如性能指标采集），统一在此扩展即可，避免多文件重复修改
 export interface PageFinderLoadContext {

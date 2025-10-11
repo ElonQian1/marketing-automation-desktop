@@ -1,3 +1,7 @@
+// src/components/patterns/index.ts
+// module: ui | layer: ui | role: component
+// summary: UI 组件
+
 
 /**
  * 高曝光模式组件导出 - 关键业务组件库

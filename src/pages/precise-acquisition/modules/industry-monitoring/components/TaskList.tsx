@@ -1,3 +1,7 @@
+// src/pages/precise-acquisition/modules/industry-monitoring/components/TaskList.tsx
+// module: ui | layer: ui | role: component
+// summary: UI 组件
+
 /**
  * 任务列表组件
  * 显示和管理所有监控任务

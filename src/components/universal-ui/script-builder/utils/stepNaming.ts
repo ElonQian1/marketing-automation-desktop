@@ -1,3 +1,7 @@
+// src/components/universal-ui/script-builder/utils/stepNaming.ts
+// module: ui | layer: ui | role: component
+// summary: UI 组件
+
 import type { SmartActionType } from '../../../../types/smartComponents';
 
 type StepLike = {

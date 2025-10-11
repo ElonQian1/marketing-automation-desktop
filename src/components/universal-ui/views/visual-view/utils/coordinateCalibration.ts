@@ -1,3 +1,7 @@
+// src/components/universal-ui/views/visual-view/utils/coordinateCalibration.ts
+// module: ui | layer: ui | role: component
+// summary: UI 组件
+
 /**
  * 坐标校准算法模块
  * 

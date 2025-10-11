@@ -1,3 +1,7 @@
+// src/components/DraggableStepCard/components/InlineLoopControl.tsx
+// module: ui | layer: ui | role: component
+// summary: UI 组件
+
 import React, { useState } from 'react';
 import { Button, Modal, InputNumber, Space, Tag, Tooltip } from 'antd';
 import { ReloadOutlined } from '@ant-design/icons';

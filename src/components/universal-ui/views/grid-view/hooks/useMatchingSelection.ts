@@ -1,3 +1,7 @@
+// src/components/universal-ui/views/grid-view/hooks/useMatchingSelection.ts
+// module: ui | layer: ui | role: component
+// summary: UI 组件
+
 import { useCallback, useEffect, useState } from 'react';
 import { loadLatestMatching, saveLatestMatching } from '../matchingCache';
 

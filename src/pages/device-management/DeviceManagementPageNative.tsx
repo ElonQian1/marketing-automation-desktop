@@ -1,3 +1,7 @@
+// src/pages/device-management/DeviceManagementPageNative.tsx
+// module: ui | layer: ui | role: page
+// summary: 页面组件
+
 import React from 'react';
 import { Card, theme, Statistic, List } from 'antd';
 import {

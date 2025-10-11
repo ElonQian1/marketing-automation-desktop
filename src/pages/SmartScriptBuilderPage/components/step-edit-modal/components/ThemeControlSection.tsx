@@ -1,3 +1,7 @@
+// src/pages/SmartScriptBuilderPage/components/step-edit-modal/components/ThemeControlSection.tsx
+// module: ui | layer: ui | role: component
+// summary: UI 组件
+
 import React from 'react';
 import { Space, Typography, theme } from 'antd';
 import { OverlayThemeSwitch } from '../../../../../components/ui/overlay';

@@ -1,3 +1,7 @@
+// src/components/feature-modules/script-builder/components/step-editor/components/TapParameters.tsx
+// module: ui | layer: ui | role: component
+// summary: UI 组件
+
 /**
  * 点击参数配置组件 - 原生 Ant Design 风格
  * 从 StepEditor.tsx 中提取的点击参数配置逻辑

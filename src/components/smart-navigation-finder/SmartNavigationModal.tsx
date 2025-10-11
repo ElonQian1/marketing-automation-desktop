@@ -1,3 +1,7 @@
+// src/components/smart-navigation-finder/SmartNavigationModal.tsx
+// module: ui | layer: ui | role: component
+// summary: UI 组件
+
 import React, { useState, useCallback, useRef } from 'react';
 import { Modal, Tabs, Typography, Card, Alert, Button, Space, message } from 'antd';
 import {

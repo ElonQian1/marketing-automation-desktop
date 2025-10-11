@@ -1,3 +1,7 @@
+// src/pages/SmartScriptBuilderPage/components/QualityCheckModal.tsx
+// module: ui | layer: ui | role: component
+// summary: UI 组件
+
 import React from "react";
 import { Modal } from "antd";
 import { DistributedScriptQualityPanel } from "../../../modules/distributed-script-quality/DistributedScriptQualityPanel";

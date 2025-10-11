@@ -1,3 +1,7 @@
+// src/pages/AdbLayoutComparisonPage.tsx
+// module: ui | layer: ui | role: page
+// summary: 页面组件
+
 import React, { useState } from 'react';
 import { Layout, Space, Divider } from 'antd';
 import HeaderBar from './adb-layout-comparison/components/HeaderBar';

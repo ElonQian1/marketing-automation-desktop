@@ -1,3 +1,7 @@
+// src/components/universal-ui/grid-layout/components/DraggableHeaderPanel.tsx
+// module: ui | layer: ui | role: component
+// summary: UI 组件
+
 import React, { ReactNode, useRef, useEffect, useState } from 'react';
 import { Card, Button, Space } from 'antd';
 import { CloseOutlined, MinusOutlined, FullscreenOutlined } from '@ant-design/icons';

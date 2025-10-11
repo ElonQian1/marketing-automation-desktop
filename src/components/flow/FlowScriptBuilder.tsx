@@ -1,3 +1,7 @@
+// src/components/flow/FlowScriptBuilder.tsx
+// module: ui | layer: ui | role: component
+// summary: UI 组件
+
 import React from 'react';
 import { Typography, Row, Col } from 'antd';
 import { useFlowBuilder, TemplateSelector, FlowConstructionCard, FlowDetailsPanel, SaveFlowModal, SavedFlowsPanel } from '../flow-builder';

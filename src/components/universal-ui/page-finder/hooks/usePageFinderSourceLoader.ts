@@ -1,3 +1,7 @@
+// src/components/universal-ui/page-finder/hooks/usePageFinderSourceLoader.ts
+// module: ui | layer: ui | role: component
+// summary: UI 组件
+
 import { useEffect, useCallback } from 'react';
 import type { PageFinderLoadContext } from '../services/loadContext';
 import { handleLoadFromDirectXmlContent } from '../services/directXmlLoader';

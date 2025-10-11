@@ -1,3 +1,7 @@
+// src/components/element-name-editor/FieldMatchingController.tsx
+// module: ui | layer: ui | role: component
+// summary: UI 组件
+
 import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import { Table, Switch, Select, InputNumber, Input, Tag, Space, Typography, Tooltip } from 'antd';
 import { InfoCircleOutlined } from '@ant-design/icons';

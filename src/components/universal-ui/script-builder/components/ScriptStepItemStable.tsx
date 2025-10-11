@@ -1,3 +1,7 @@
+// src/components/universal-ui/script-builder/components/ScriptStepItemStable.tsx
+// module: ui | layer: ui | role: component
+// summary: UI 组件
+
 // Stable renamed version to flush stale TS diagnostics of old StepItem
 import React from 'react';
 import { Card } from 'antd';

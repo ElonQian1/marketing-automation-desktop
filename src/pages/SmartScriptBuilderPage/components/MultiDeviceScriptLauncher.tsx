@@ -1,3 +1,7 @@
+// src/pages/SmartScriptBuilderPage/components/MultiDeviceScriptLauncher.tsx
+// module: ui | layer: ui | role: component
+// summary: UI 组件
+
 import React, { useMemo, useState } from 'react';
 import { Button, Modal, Checkbox, Space, Typography, Tag, message } from 'antd';
 import { ClusterOutlined } from '@ant-design/icons';

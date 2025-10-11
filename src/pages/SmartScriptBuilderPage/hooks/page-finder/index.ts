@@ -1,3 +1,7 @@
+// src/pages/SmartScriptBuilderPage/hooks/page-finder/index.ts
+// module: ui | layer: ui | role: page
+// summary: 页面组件
+
 /**
  * Page Finder 模块化导出
  * 提供简化的页面查找器Hook和相关类型

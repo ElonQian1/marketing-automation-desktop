@@ -1,3 +1,7 @@
+// src/components/universal-ui/element-selection/utils/performanceMonitor.ts
+// module: ui | layer: ui | role: component
+// summary: UI 组件
+
 /**
  * 性能监控和分析模块
  * 专门监控气泡组件的性能指标和用户行为

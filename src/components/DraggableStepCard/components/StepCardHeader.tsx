@@ -1,3 +1,7 @@
+// src/components/DraggableStepCard/components/StepCardHeader.tsx
+// module: ui | layer: ui | role: component
+// summary: UI 组件
+
 import React from 'react';
 import { Button, Space, Switch, Tag, Typography, message } from 'antd';
 import ConfirmPopover from '../../universal-ui/common-popover/ConfirmPopover';

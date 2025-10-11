@@ -1,3 +1,7 @@
+// src/components/step-card/system-actions/systemKeyTemplates.ts
+// module: ui | layer: ui | role: component
+// summary: UI 组件
+
 import { ExtendedSmartScriptStep } from '../../../types/loopScript';
 
 const genId = (prefix: string) => `${prefix}_${Date.now()}_${Math.floor(Math.random() * 1000)}`;

@@ -1,3 +1,7 @@
+// src/components/common/PlatformSelector.tsx
+// module: ui | layer: ui | role: component
+// summary: UI 组件
+
 import React from 'react';
 import { Select, Typography } from 'antd';
 import type { Platform } from '../../types';

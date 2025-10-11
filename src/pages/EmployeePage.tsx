@@ -1,3 +1,7 @@
+// src/pages/EmployeePage.tsx
+// module: ui | layer: ui | role: page
+// summary: 页面组件
+
 import React, { useState, useEffect } from 'react';
 import { Layout, Card, Button, Typography, Space, Alert, Spin, Modal } from 'antd';
 import { PlusOutlined, UserOutlined } from '@ant-design/icons';

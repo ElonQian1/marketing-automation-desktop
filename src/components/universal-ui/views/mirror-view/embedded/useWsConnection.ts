@@ -1,3 +1,7 @@
+// src/components/universal-ui/views/mirror-view/embedded/useWsConnection.ts
+// module: ui | layer: ui | role: component
+// summary: UI 组件
+
 import { useEffect, useRef, useState } from 'react';
 import type { PlayerStatus, WsScrcpyConfig } from './types';
 

@@ -1,3 +1,7 @@
+// src/components/universal-ui/data-transform/VisualToUIElementConverter.ts
+// module: ui | layer: ui | role: component
+// summary: UI 组件
+
 /**
  * 可视化元素到UI元素转换器
  * 负责将VisualUIElement转换为UIElement

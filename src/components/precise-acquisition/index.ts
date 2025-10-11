@@ -1,3 +1,7 @@
+// src/components/precise-acquisition/index.ts
+// module: ui | layer: ui | role: component
+// summary: UI 组件
+
 /**
  * 精准获客增强组件统一导出
  * 

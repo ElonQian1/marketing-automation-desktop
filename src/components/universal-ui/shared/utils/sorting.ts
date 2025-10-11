@@ -1,3 +1,7 @@
+// src/components/universal-ui/shared/utils/sorting.ts
+// module: ui | layer: ui | role: component
+// summary: UI 组件
+
 /**
  * Shared sorting helpers for UI/Visual element lists.
  * Goal: move items with unknown/unnamed/generic labels to the end, keep others stable.

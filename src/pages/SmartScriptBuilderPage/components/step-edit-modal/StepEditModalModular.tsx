@@ -1,3 +1,7 @@
+// src/pages/SmartScriptBuilderPage/components/step-edit-modal/StepEditModalModular.tsx
+// module: ui | layer: ui | role: component
+// summary: UI 组件
+
 import React from "react";
 import { Modal, Form, Space, theme } from "antd";
 import { useOverlayTheme } from "../../../../components/ui/overlay";

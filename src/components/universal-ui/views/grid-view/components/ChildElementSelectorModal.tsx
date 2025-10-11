@@ -1,3 +1,7 @@
+// src/components/universal-ui/views/grid-view/components/ChildElementSelectorModal.tsx
+// module: ui | layer: ui | role: component
+// summary: UI 组件
+
 /**
  * 子元素选择弹窗组件
  * 当用户点击元素时，展示该元素的所有可操作子元素供选择

@@ -1,3 +1,7 @@
+// src/components/SmartVcfImporter.tsx
+// module: ui | layer: ui | role: component
+// summary: UI 组件
+
 import React, { useState, useEffect } from 'react';
 import { invoke } from '@tauri-apps/api/core';
 import { useAdb } from '../application/hooks/useAdb';

@@ -1,3 +1,7 @@
+// src/components/ui/button/Button.tsx
+// module: ui | layer: ui | role: component
+// summary: UI 组件
+
 
 /**
  * Button 组件 - 基于设计令牌与 motionPresets 的品牌化按钮

@@ -1,3 +1,7 @@
+// src/pages/SmartScriptBuilderPage/helpers/matchingHelpers.ts
+// module: ui | layer: ui | role: page
+// summary: 页面组件
+
 import { buildDefaultMatchingFromElement } from '../../../modules/grid-inspector/DefaultMatchingBuilder';
 import { saveLatestMatching } from '../../../components/universal-ui/views/grid-view/matchingCache';
 import { XmlEnhancementService } from '../../../modules/xml-enhancement';

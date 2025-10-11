@@ -1,3 +1,7 @@
+// src/components/feature-modules/universal-ui/ThemeLayouts.tsx
+// module: ui | layer: ui | role: component
+// summary: UI 组件
+
 /**
  * 主题感知的布局增强模块
  * 提供适配各种页面的布局组件

@@ -1,3 +1,7 @@
+// src/components/feature-modules/index.ts
+// module: ui | layer: ui | role: component
+// summary: UI 组件
+
 /**
  * 特征模块统一导出
  */

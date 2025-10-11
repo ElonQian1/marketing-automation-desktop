@@ -1,3 +1,7 @@
+// src/components/universal-ui/views/grid-view/panels/node-detail/helpers.ts
+// module: ui | layer: ui | role: component
+// summary: UI 组件
+
 import type { UiNode } from "../../types";
 import type { MatchCriteria, MatchStrategy } from "./types";
 

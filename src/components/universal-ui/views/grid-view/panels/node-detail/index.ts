@@ -1,3 +1,7 @@
+// src/components/universal-ui/views/grid-view/panels/node-detail/index.ts
+// module: ui | layer: ui | role: component
+// summary: UI 组件
+
 // Barrel exports for node-detail submodule
 export { MatchPresetsRow } from './MatchPresetsRow';
 export { SelectedFieldsPreview } from './SelectedFieldsPreview';

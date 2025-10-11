@@ -1,3 +1,7 @@
+// src/components/universal-ui/views/tree-view/utils/filterUtils.ts
+// module: ui | layer: ui | role: component
+// summary: UI 组件
+
 /**
  * UIElementTree 过滤工具
  * 处理元素筛选、搜索和标签过滤逻辑

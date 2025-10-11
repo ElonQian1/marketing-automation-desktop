@@ -1,3 +1,7 @@
+// src/components/universal-ui/views/visual-view/utils/coordinateTransform.ts
+// module: ui | layer: ui | role: component
+// summary: UI 组件
+
 /**
  * 坐标转换核心模块
  * 

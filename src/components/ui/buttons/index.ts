@@ -1,3 +1,7 @@
+// src/components/ui/buttons/index.ts
+// module: ui | layer: ui | role: component
+// summary: UI 组件
+
 /**
  * 按钮组件库统一导出
  * 提供所有按钮组件的便捷导入方式

@@ -1,3 +1,7 @@
+// src/components/universal-ui/script-builder/components/ActionsToolbar/ActionsToolbar.tsx
+// module: ui | layer: ui | role: component
+// summary: UI 组件
+
 import React from 'react';
 import { Button } from 'antd';
 import { EyeOutlined, ReloadOutlined, PlusOutlined } from '@ant-design/icons';

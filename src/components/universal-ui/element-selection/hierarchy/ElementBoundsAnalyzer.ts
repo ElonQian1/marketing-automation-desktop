@@ -1,3 +1,7 @@
+// src/components/universal-ui/element-selection/hierarchy/ElementBoundsAnalyzer.ts
+// module: ui | layer: ui | role: component
+// summary: UI 组件
+
 /**
  * 元素边界关系分析工具
  * 用于调试和分析元素之间的包含关系

@@ -1,3 +1,7 @@
+// src/pages/brand-showcase/components/EmptyStateDemo.tsx
+// module: ui | layer: ui | role: component
+// summary: UI 组件
+
 /**
  * 空状态组件演示区
  */

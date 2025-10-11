@@ -1,3 +1,7 @@
+// src/components/universal-ui/views/grid-view/components/EnhancedChildElementCard.tsx
+// module: ui | layer: ui | role: component
+// summary: UI 组件
+
 import React from 'react';
 import { Button, Dropdown, Space, Tag, Tooltip, Badge } from 'antd';
 import { EyeOutlined, CopyOutlined, MoreOutlined, SelectOutlined, SearchOutlined, InfoCircleOutlined } from '@ant-design/icons';

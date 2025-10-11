@@ -1,3 +1,7 @@
+// src/pages/adb-layout-comparison/components/LayoutPreview.tsx
+// module: ui | layer: ui | role: component
+// summary: UI 组件
+
 import React from 'react';
 import { Card } from 'antd';
 import { ModernAdbDiagnosticPage } from '../../ModernAdbDiagnosticPage';

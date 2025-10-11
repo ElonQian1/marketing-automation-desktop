@@ -1,3 +1,7 @@
+// src/components/universal-ui/element-selection/element-discovery/ChildElementCard.tsx
+// module: ui | layer: ui | role: component
+// summary: UI 组件
+
 import React from 'react';
 import { Card } from 'antd';
 import type { ElementCardProps } from './types';

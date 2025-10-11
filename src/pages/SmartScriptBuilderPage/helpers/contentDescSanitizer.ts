@@ -1,3 +1,7 @@
+// src/pages/SmartScriptBuilderPage/helpers/contentDescSanitizer.ts
+// module: ui | layer: ui | role: page
+// summary: 页面组件
+
 /**
  * content_desc 清洗工具：
  * - 仅保留真实 XML 的 content-desc

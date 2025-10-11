@@ -1,3 +1,7 @@
+// src/pages/device-monitor/RealTimeDeviceMonitorPage.tsx
+// module: ui | layer: ui | role: page
+// summary: 页面组件
+
 import React, { useEffect, useMemo, useState } from 'react';
 import { Card, Row, Col, Typography, Space } from 'antd';
 import { MobileOutlined } from '@ant-design/icons';

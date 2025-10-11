@@ -1,3 +1,7 @@
+// src/components/WatchTargetList.tsx
+// module: ui | layer: ui | role: component
+// summary: UI 组件
+
 /**
  * 候选池列表组件
  * 

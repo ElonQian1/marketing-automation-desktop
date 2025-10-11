@@ -1,3 +1,7 @@
+// src/pages/SmartScriptBuilderPage/hooks/page-finder/types/index.ts
+// module: ui | layer: ui | role: page
+// summary: 页面组件
+
 /**
  * Page Finder Hook 类型定义 - 模块化版本
  * 简化的类型定义，去除复杂依赖

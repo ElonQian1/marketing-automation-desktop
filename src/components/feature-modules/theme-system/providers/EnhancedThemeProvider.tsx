@@ -1,3 +1,7 @@
+// src/components/feature-modules/theme-system/providers/EnhancedThemeProvider.tsx
+// module: ui | layer: ui | role: component
+// summary: UI 组件
+
 /**
  * 增强的主题提供者组件
  * 集成原生 Ant Design 5 暗黑模式

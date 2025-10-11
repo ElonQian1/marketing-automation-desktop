@@ -1,3 +1,7 @@
+// src/components/element-name-editor/tabs/HierarchyTab.tsx
+// module: ui | layer: ui | role: component
+// summary: UI 组件
+
 import React from 'react';
 import { Alert, Card } from 'antd';
 import CachedElementXmlHierarchyTab from '../../element-xml-hierarchy/CachedElementXmlHierarchyTab';

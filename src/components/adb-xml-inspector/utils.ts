@@ -1,3 +1,7 @@
+// src/components/adb-xml-inspector/utils.ts
+// module: ui | layer: ui | role: component
+// summary: UI 组件
+
 /**
  * ADB XML检查器工具函数集
  * 提供XML解析、XPath生成、节点匹配等核心功能

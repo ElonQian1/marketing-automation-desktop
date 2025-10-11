@@ -1,3 +1,7 @@
+// src/components/feature-modules/script-builder/components/StepEditor.tsx
+// module: ui | layer: ui | role: component
+// summary: UI 组件
+
 /**
  * 步骤编辑器组件 - 重构版本
  * 使用模块化组件，控制在 500 行以内

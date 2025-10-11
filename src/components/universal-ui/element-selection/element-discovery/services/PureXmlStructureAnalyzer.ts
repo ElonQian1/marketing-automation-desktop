@@ -1,3 +1,7 @@
+// src/components/universal-ui/element-selection/element-discovery/services/PureXmlStructureAnalyzer.ts
+// module: ui | layer: ui | role: component
+// summary: UI 组件
+
 /**
  * 纯XML结构分析器
  * 专门用于元素发现模态框，只基于XML DOM树结构分析，不依赖边界检查

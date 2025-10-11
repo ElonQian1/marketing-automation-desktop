@@ -1,3 +1,7 @@
+// src/components/universal-ui/element-selection/element-discovery/services/hierarchyBuilder.ts
+// module: ui | layer: ui | role: component
+// summary: UI 组件
+
 import type { UIElement } from '../../../../../api/universal-ui';
 import { XmlStructureParser } from './xmlStructureParser';
 import type { HierarchyNode } from '../../../../../types/hierarchy';

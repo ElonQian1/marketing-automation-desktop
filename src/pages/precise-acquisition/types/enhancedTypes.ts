@@ -1,3 +1,7 @@
+// src/pages/precise-acquisition/types/enhancedTypes.ts
+// module: ui | layer: ui | role: page
+// summary: 页面组件
+
 /**
  * 监控服务的增强类型定义
  */

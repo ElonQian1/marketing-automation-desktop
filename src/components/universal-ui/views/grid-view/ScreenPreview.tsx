@@ -1,3 +1,7 @@
+// src/components/universal-ui/views/grid-view/ScreenPreview.tsx
+// module: ui | layer: ui | role: component
+// summary: UI 组件
+
 import React, { useEffect, useMemo, useRef, useState } from "react";
 import { UiNode } from "./types";
 import { parseBounds } from "./utils";

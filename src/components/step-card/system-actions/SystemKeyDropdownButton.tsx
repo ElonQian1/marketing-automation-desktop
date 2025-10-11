@@ -1,3 +1,7 @@
+// src/components/step-card/system-actions/SystemKeyDropdownButton.tsx
+// module: ui | layer: ui | role: component
+// summary: UI 组件
+
 import React, { useState } from 'react';
 import { Dropdown, Button, MenuProps } from 'antd';
 import { ApiOutlined } from '@ant-design/icons';

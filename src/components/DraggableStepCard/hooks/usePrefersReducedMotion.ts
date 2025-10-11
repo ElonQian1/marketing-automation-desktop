@@ -1,3 +1,7 @@
+// src/components/DraggableStepCard/hooks/usePrefersReducedMotion.ts
+// module: ui | layer: ui | role: component
+// summary: UI 组件
+
 import { useEffect, useState } from 'react';
 
 /**

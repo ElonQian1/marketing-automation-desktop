@@ -1,3 +1,7 @@
+// src/pages/adb/auth/components/FormComponents.tsx
+// module: ui | layer: ui | role: component
+// summary: UI 组件
+
 import React, { useState } from 'react';
 import { Card, Form, Input, Button, Space, Typography, Divider, Switch, InputNumber } from 'antd';
 import { WifiOutlined, UsbOutlined, SettingOutlined } from '@ant-design/icons';

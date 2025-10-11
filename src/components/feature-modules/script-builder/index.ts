@@ -1,3 +1,7 @@
+// src/components/feature-modules/script-builder/index.ts
+// module: ui | layer: ui | role: component
+// summary: UI 组件
+
 /**
  * 脚本构建器模块主导出文件
  * 统一导出所有脚本构建器功能

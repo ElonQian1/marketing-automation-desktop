@@ -1,3 +1,7 @@
+// src/components/LoopStartCard/types.ts
+// module: ui | layer: ui | role: component
+// summary: UI 组件
+
 // 循环开始卡片相关类型定义
 
 import type { LoopConfig, ExtendedSmartScriptStep } from "../../types/loopScript";

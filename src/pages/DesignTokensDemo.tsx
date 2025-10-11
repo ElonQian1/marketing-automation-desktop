@@ -1,3 +1,7 @@
+// src/pages/DesignTokensDemo.tsx
+// module: ui | layer: ui | role: page
+// summary: 页面组件
+
 import React from 'react';
 import { Card, Button, Space, Typography, Switch, Select, Tag, Alert, Input, Divider } from 'antd';
 import { useTheme } from '../theme/ThemeBridge';

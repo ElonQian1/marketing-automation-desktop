@@ -1,3 +1,7 @@
+// src/components/universal-ui/analyzer/AppSpecificAnalyzer.ts
+// module: ui | layer: ui | role: component
+// summary: UI 组件
+
 /**
  * 应用特定分析器
  * 处理特定应用的UI元素识别逻辑

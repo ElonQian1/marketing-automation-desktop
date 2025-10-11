@@ -1,3 +1,7 @@
+// src/components/universal-ui/views/tree-view/utils/treeBuilder.ts
+// module: ui | layer: ui | role: component
+// summary: UI 组件
+
 /**
  * UIElementTree 树形结构构建工具
  * 处理树形数据的构建、排序和层级关系

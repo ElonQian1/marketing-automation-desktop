@@ -1,3 +1,7 @@
+// src/pages/precise-acquisition/modules/TaskManagementCenter.tsx
+// module: ui | layer: ui | role: page
+// summary: 页面组件
+
 /**
  * 任务管理中心模块
  * 

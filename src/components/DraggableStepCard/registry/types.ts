@@ -1,3 +1,7 @@
+// src/components/DraggableStepCard/registry/types.ts
+// module: ui | layer: ui | role: component
+// summary: UI 组件
+
 import type { ReactNode } from 'react';
 
 export interface SmartScriptStepLike {

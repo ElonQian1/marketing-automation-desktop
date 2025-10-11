@@ -1,3 +1,7 @@
+// src/components/ui/overlay/types.ts
+// module: ui | layer: ui | role: component
+// summary: UI 组件
+
 export type OverlayTheme = 'inherit' | 'light' | 'dark';
 
 export interface OverlayThemeProps {

@@ -1,3 +1,7 @@
+// src/components/debug/GlobalAdbMonitor.tsx
+// module: ui | layer: ui | role: component
+// summary: UI 组件
+
 /**
  * ADB全局状态监控面板
  * 用于验证GlobalAdbProvider是否正常工作

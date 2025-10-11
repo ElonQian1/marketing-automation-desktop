@@ -1,3 +1,7 @@
+// src/pages/SmartScriptBuilderPage/components/QuickAppSelectionModal.tsx
+// module: ui | layer: ui | role: component
+// summary: UI 组件
+
 import React from "react";
 import { Modal, Alert, message } from "antd";
 import { LaunchAppSmartComponent } from "../../../components/smart/LaunchAppSmartComponent";

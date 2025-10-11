@@ -1,3 +1,7 @@
+// src/components/ui/feedback/FeedbackAdapter.tsx
+// module: ui | layer: ui | role: component
+// summary: UI 组件
+
 /**
  * Feedback 反馈组件适配器 - Employee D 架构
  * 

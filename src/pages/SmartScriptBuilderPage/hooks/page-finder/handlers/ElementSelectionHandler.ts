@@ -1,3 +1,7 @@
+// src/pages/SmartScriptBuilderPage/hooks/page-finder/handlers/ElementSelectionHandler.ts
+// module: ui | layer: ui | role: page
+// summary: 页面组件
+
 import { theme } from 'antd';
 
 /**

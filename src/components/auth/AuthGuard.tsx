@@ -1,3 +1,7 @@
+// src/components/auth/AuthGuard.tsx
+// module: ui | layer: ui | role: component
+// summary: UI 组件
+
 import React, { useEffect } from 'react';
 import { useAuth } from '../../hooks/useAuth';
 import { LoginPage } from '../../pages/auth/LoginPage';

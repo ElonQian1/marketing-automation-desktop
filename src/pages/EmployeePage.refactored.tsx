@@ -1,4 +1,8 @@
 // src/pages/EmployeePage.refactored.tsx
+// module: ui | layer: ui | role: page
+// summary: 页面组件
+
+// src/pages/EmployeePage.refactored.tsx
 // 员工管理页面 - 品牌化重构版本
 // 使用 layout + patterns + ui + adapters 组合架构
 

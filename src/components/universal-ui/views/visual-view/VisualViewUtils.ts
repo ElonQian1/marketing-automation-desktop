@@ -1,3 +1,7 @@
+// src/components/universal-ui/views/visual-view/VisualViewUtils.ts
+// module: ui | layer: ui | role: component
+// summary: UI 组件
+
 /**
  * 可视化视图工具函数
  * 提供缩放、坐标计算、应用信息分析等工具函数

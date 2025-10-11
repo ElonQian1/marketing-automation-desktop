@@ -1,3 +1,7 @@
+// src/components/universal-ui/script-builder/types.ts
+// module: ui | layer: ui | role: component
+// summary: UI 组件
+
 // Script Builder 类型定义 (初始骨架)
 // 后续会从现有大文件迁入真实类型。
 

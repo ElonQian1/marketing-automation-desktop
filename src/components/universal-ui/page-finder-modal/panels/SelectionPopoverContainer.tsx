@@ -1,3 +1,7 @@
+// src/components/universal-ui/page-finder-modal/panels/SelectionPopoverContainer.tsx
+// module: ui | layer: ui | role: component
+// summary: UI 组件
+
 import React from 'react';
 import { ElementSelectionPopover } from '../../element-selection';
 import { isDevDebugEnabled } from '../../../../utils/debug';

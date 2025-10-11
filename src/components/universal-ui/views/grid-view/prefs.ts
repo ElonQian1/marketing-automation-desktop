@@ -1,3 +1,7 @@
+// src/components/universal-ui/views/grid-view/prefs.ts
+// module: ui | layer: ui | role: component
+// summary: UI 组件
+
 export interface GridViewPrefs {
   autoSelectOnParse: boolean;
   showMatchedOnly: boolean;

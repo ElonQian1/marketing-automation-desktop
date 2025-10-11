@@ -1,3 +1,7 @@
+// src/components/layout/AppHeader.tsx
+// module: ui | layer: ui | role: component
+// summary: UI 组件
+
 import { LogOut, Minimize2, Settings, Square, User, X } from 'lucide-react';
 import React from 'react';
 

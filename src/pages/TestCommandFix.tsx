@@ -1,3 +1,7 @@
+// src/pages/TestCommandFix.tsx
+// module: ui | layer: ui | role: page
+// summary: 页面组件
+
 import React, { useState } from 'react';
 import { Button, Card, Typography, Space, message, Row, Col } from 'antd';
 import { useAdb } from '../application/hooks/useAdb';

@@ -1,3 +1,7 @@
+// src/components/layout/StatusBar.tsx
+// module: ui | layer: ui | role: component
+// summary: UI 组件
+
 import { Activity, Clock, Wifi, WifiOff } from 'lucide-react';
 import React from 'react';
 

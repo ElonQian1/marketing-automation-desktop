@@ -1,3 +1,7 @@
+// src/components/universal-ui/analyzer/ElementAnalysisUtils.ts
+// module: ui | layer: ui | role: component
+// summary: UI 组件
+
 /**
  * 元素分析工具类
  * 包含各种分析方法的实现

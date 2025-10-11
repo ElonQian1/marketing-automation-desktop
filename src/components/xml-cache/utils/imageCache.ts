@@ -1,3 +1,7 @@
+// src/components/xml-cache/utils/imageCache.ts
+// module: ui | layer: ui | role: component
+// summary: UI 组件
+
 // In-memory LRU cache for image data URLs to avoid repeated backend reads (keyed by absolute path)
 // Simple LRU via Map insertion order: on get/set we re-insert to mark as most-recently-used
 

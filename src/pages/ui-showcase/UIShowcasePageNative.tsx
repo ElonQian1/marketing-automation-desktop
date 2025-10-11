@@ -1,3 +1,7 @@
+// src/pages/ui-showcase/UIShowcasePageNative.tsx
+// module: ui | layer: ui | role: page
+// summary: 页面组件
+
 /**
  * UI组件库展示页面（原生 Ant Design 版本）
  * 展示所有可用的原生 Ant Design 组件及其用法

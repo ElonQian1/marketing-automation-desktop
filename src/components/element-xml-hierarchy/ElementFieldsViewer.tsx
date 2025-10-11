@@ -1,3 +1,7 @@
+// src/components/element-xml-hierarchy/ElementFieldsViewer.tsx
+// module: ui | layer: ui | role: component
+// summary: UI 组件
+
 /**
  * 元素字段查看器 - 显示UI元素的详细字段信息
  * 用于树形结构最底层节点的字段展示

@@ -1,3 +1,7 @@
+// src/components/adapters/upload/UploadAdapter.tsx
+// module: ui | layer: ui | role: component
+// summary: UI 组件
+
 import React from "react";
 import { Upload, Button, type UploadProps } from "antd";
 import { UploadOutlined } from "@ant-design/icons";

@@ -1,3 +1,7 @@
+// src/components/universal-ui/views/grid-view/panels/node-detail/types.ts
+// module: ui | layer: ui | role: component
+// summary: UI 组件
+
 // 导入统一的策略类型定义
 import type { MatchStrategy, MatchCriteria } from '../../../../../../modules/intelligent-strategy-system/types/StrategyTypes';
 

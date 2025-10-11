@@ -1,3 +1,7 @@
+// src/pages/AdbAuthorizationWizard/types.ts
+// module: ui | layer: ui | role: page
+// summary: 页面组件
+
 // 本模块的类型声明，避免使用 any，保持清晰边界
 export interface DeviceStatusPanelProps {
   devices: Array<{ id: string }>;

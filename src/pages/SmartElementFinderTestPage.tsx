@@ -1,3 +1,7 @@
+// src/pages/SmartElementFinderTestPage.tsx
+// module: ui | layer: ui | role: page
+// summary: 页面组件
+
 import React, { useState, useEffect } from 'react';
 import { Card, Row, Col, Select, Button, Space, Typography, Alert, Empty } from 'antd';
 import { invoke } from '@tauri-apps/api/core';

@@ -1,3 +1,7 @@
+// src/components/step-card/MultiDeviceResultPanel.tsx
+// module: ui | layer: ui | role: component
+// summary: UI 组件
+
 import React from 'react';
 import { Badge, List, Space, Tag, Typography } from 'antd';
 import type { SingleStepTestResult } from '../../types/smartScript';

@@ -1,3 +1,7 @@
+// src/components/universal-ui/views/index.tsx
+// module: ui | layer: ui | role: component
+// summary: UI 组件
+
 /**
  * Universal UI Views 统一索引
  * 提供所有视图组件的统一导出

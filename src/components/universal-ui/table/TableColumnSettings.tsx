@@ -1,3 +1,7 @@
+// src/components/universal-ui/table/TableColumnSettings.tsx
+// module: ui | layer: ui | role: component
+// summary: UI 组件
+
 /**
  * 统一的列设置组件 - 配合useTableColumns使用
  */

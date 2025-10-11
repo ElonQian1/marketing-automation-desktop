@@ -1,3 +1,7 @@
+// src/components/universal-ui/element-selection/element-discovery/useElementDiscovery.ts
+// module: ui | layer: ui | role: component
+// summary: UI 组件
+
 /**
  * 元素发现逻辑 Hook - 纯XML结构分析模式
  * 

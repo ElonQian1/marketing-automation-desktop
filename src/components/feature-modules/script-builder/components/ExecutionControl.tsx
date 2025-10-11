@@ -1,3 +1,7 @@
+// src/components/feature-modules/script-builder/components/ExecutionControl.tsx
+// module: ui | layer: ui | role: component
+// summary: UI 组件
+
 /**
  * 脚本执行控制组件
  * 提供脚本执行、暂停、停止、监控等功能

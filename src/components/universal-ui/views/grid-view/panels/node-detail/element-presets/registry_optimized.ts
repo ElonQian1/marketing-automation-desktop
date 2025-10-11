@@ -1,3 +1,7 @@
+// src/components/universal-ui/views/grid-view/panels/node-detail/element-presets/registry_optimized.ts
+// module: ui | layer: ui | role: component
+// summary: UI 组件
+
 import type { ElementPreset } from './types';
 import type { MatchCriteria, MatchStrategy } from '../types';
 import { PRESET_FIELDS } from '../helpers';

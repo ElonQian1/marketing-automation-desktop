@@ -1,3 +1,7 @@
+// src/pages/device-management/DeviceManagementPageOptimized.tsx
+// module: ui | layer: ui | role: page
+// summary: 页面组件
+
 import React from 'react';
 import { Card, Typography, Space, Alert, theme, Spin } from 'antd';
 import {

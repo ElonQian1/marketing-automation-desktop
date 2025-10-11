@@ -1,3 +1,7 @@
+// src/components/xml-cache/__tests__/Thumbnail.test.tsx
+// module: ui | layer: ui | role: component
+// summary: UI 组件
+
 // @vitest-environment jsdom
 import React from 'react';
 import { describe, it, expect, vi, beforeEach } from 'vitest';

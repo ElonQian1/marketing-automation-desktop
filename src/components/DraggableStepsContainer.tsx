@@ -1,3 +1,7 @@
+// src/components/DraggableStepsContainer.tsx
+// module: ui | layer: ui | role: component
+// summary: UI 组件
+
 // 可拖拽的步骤列表容器
 
 import React, { useMemo } from 'react';

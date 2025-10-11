@@ -1,3 +1,7 @@
+// src/components/universal-ui/views/visual-view/hooks/canonical/useParsedVisualElementsCanonical.tsx
+// module: ui | layer: ui | role: component
+// summary: UI 组件
+
 // Canonical parser hook for visual-view kept in a dedicated file to avoid accidental duplication
 import { useState, useEffect, useCallback } from "react";
 import type { VisualUIElement, VisualElementCategory } from "../../../../types";
@@ -91,7 +95,7 @@ export function useParsedVisualElements(
         Object.values(catMap).filter((c) => (c as any).elements.length > 0) as any
       );
     } catch (err) {
-      // eslint-disable-next-line no-console
+       
       console.error("XML解析失败:", err);
     }
   }, []);

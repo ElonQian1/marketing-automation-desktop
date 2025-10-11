@@ -1,3 +1,7 @@
+// src/pages/precise-acquisition/modules/duplication-protection/types.ts
+// module: ui | layer: ui | role: page
+// summary: 页面组件
+
 /**
  * 查重防护系统类型定义
  */

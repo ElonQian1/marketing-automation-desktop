@@ -1,3 +1,7 @@
+// src/components/universal-ui/analyzer/types.ts
+// module: ui | layer: ui | role: component
+// summary: UI 组件
+
 /**
  * 通用UI元素分析器 - 类型定义
  * 将所有接口和类型定义分离到独立文件

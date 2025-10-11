@@ -1,3 +1,7 @@
+// src/pages/SmartScriptBuilderPage/components/contact-import/contactActionConfigs.ts
+// module: ui | layer: ui | role: component
+// summary: UI 组件
+
 import { SmartActionType } from "../../../../types/smartComponents";
 
 export const CONTACT_ACTION_CONFIG = {

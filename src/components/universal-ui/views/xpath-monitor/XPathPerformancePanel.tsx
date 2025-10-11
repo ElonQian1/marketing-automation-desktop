@@ -1,3 +1,7 @@
+// src/components/universal-ui/views/xpath-monitor/XPathPerformancePanel.tsx
+// module: ui | layer: ui | role: component
+// summary: UI 组件
+
 import React, { useState } from 'react';
 import { Button, Modal, Typography, Space, Divider } from 'antd';
 import { BarChartOutlined } from '@ant-design/icons';

@@ -1,3 +1,7 @@
+// src/components/universal-ui/views/grid-view/types.ts
+// module: ui | layer: ui | role: component
+// summary: UI 组件
+
 export interface UiNode {
   tag: string;
   attrs: Record<string, string>;

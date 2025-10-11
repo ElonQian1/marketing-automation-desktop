@@ -1,3 +1,7 @@
+// src/components/DraggableStepCard/components/body/AccentBars.tsx
+// module: ui | layer: ui | role: component
+// summary: UI 组件
+
 import React from 'react';
 import type { StepTypeStyle } from '../../styles/stepTypeStyles';
 

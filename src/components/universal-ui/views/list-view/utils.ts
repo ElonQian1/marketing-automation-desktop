@@ -1,3 +1,7 @@
+// src/components/universal-ui/views/list-view/utils.ts
+// module: ui | layer: ui | role: component
+// summary: UI 组件
+
 /**
  * 列表视图工具函数
  */

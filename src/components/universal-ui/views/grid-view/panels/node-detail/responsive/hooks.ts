@@ -1,3 +1,7 @@
+// src/components/universal-ui/views/grid-view/panels/node-detail/responsive/hooks.ts
+// module: ui | layer: ui | role: component
+// summary: UI 组件
+
 import { useState, useEffect, useCallback } from 'react';
 import { BREAKPOINTS, DEVICE_TYPES, type Breakpoint, type DeviceType } from './constants';
 

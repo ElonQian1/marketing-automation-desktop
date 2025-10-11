@@ -1,3 +1,7 @@
+// src/components/universal-ui/views/grid-view/components/MainLayout.tsx
+// module: ui | layer: ui | role: component
+// summary: UI 组件
+
 /**
  * GridElementView 主布局组件
  * 左侧树形视图，右侧面板区域

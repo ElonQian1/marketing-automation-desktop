@@ -1,3 +1,7 @@
+// src/components/universal-ui/views/mirror-view/ScrcpyControlView.tsx
+// module: ui | layer: ui | role: component
+// summary: UI 组件
+
 import React, { useEffect, useMemo, useState } from 'react';
 import { Button, Card, Select, Space, Tag, Typography, Alert, Divider, Tooltip, Input, InputNumber, Switch, Form, Radio } from 'antd';
 import ConfirmPopover from '@/components/universal-ui/common-popover/ConfirmPopover';

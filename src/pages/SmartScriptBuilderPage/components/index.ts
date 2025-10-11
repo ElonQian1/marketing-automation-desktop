@@ -1,3 +1,7 @@
+// src/pages/SmartScriptBuilderPage/components/index.ts
+// module: ui | layer: ui | role: component
+// summary: UI 组件
+
 export { default as PageHeader } from './PageHeader';
 export { default as ControlPanel } from './ControlPanel';
 export { default as ExecutorConfigPanel } from './ExecutorConfigPanel';

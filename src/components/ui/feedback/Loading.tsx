@@ -1,3 +1,7 @@
+// src/components/ui/feedback/Loading.tsx
+// module: ui | layer: ui | role: component
+// summary: UI 组件
+
 import React from 'react';
 import { Spin, type SpinProps } from 'antd';
 import { clsx } from 'clsx';

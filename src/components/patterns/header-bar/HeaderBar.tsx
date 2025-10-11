@@ -1,3 +1,7 @@
+// src/components/patterns/header-bar/HeaderBar.tsx
+// module: ui | layer: ui | role: component
+// summary: UI 组件
+
 
 /**
  * HeaderBar - 高曝光页面头部栏组件

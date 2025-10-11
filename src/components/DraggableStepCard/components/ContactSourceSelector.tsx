@@ -1,3 +1,7 @@
+// src/components/DraggableStepCard/components/ContactSourceSelector.tsx
+// module: ui | layer: ui | role: component
+// summary: UI 组件
+
 import React from 'react';
 import { Button } from 'antd';
 import { EditOutlined } from '@ant-design/icons';

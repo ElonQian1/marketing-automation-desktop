@@ -1,3 +1,7 @@
+// src/components/universal-ui/page-finder/hooks/usePageFinderCategories.ts
+// module: ui | layer: ui | role: component
+// summary: UI 组件
+
 import { useState, useMemo, useCallback } from 'react';
 import type { VisualUIElement, VisualElementCategory } from '../../xml-parser';
 

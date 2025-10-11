@@ -1,3 +1,7 @@
+// src/components/ui/layouts/index.ts
+// module: ui | layer: ui | role: component
+// summary: UI 组件
+
 /**
  * 布局组件统一导出
  */

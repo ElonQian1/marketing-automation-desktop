@@ -1,3 +1,7 @@
+// src/pages/ContactAutomationPage.tsx
+// module: ui | layer: ui | role: page
+// summary: 页面组件
+
 import React, { useState } from 'react';
 import { Card, Col, Empty, Row, Tabs, Typography, Space } from 'antd';
 import { useAdb } from '../application/hooks/useAdb';

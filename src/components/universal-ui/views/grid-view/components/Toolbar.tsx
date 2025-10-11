@@ -1,3 +1,7 @@
+// src/components/universal-ui/views/grid-view/components/Toolbar.tsx
+// module: ui | layer: ui | role: component
+// summary: UI 组件
+
 /**
  * GridElementView 顶部工具栏组件
  * 包含导入/导出XML、搜索、解析等功能

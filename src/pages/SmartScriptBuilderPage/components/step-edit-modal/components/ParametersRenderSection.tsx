@@ -1,3 +1,7 @@
+// src/pages/SmartScriptBuilderPage/components/step-edit-modal/components/ParametersRenderSection.tsx
+// module: ui | layer: ui | role: component
+// summary: UI 组件
+
 import React from 'react';
 import { Row, Col, Card, theme, Form, Input, Select, InputNumber } from 'antd';
 import { SmartActionType } from '../../../../../types/smartComponents';

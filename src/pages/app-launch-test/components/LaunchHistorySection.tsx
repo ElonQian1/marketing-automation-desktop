@@ -1,3 +1,7 @@
+// src/pages/app-launch-test/components/LaunchHistorySection.tsx
+// module: ui | layer: ui | role: component
+// summary: UI 组件
+
 import React from 'react';
 import { Card, Timeline, Tag, Typography, Space } from 'antd';
 import type { LaunchHistoryProps } from '../types/AppLaunchTestTypes';

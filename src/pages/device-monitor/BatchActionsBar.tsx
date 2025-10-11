@@ -1,3 +1,7 @@
+// src/pages/device-monitor/BatchActionsBar.tsx
+// module: ui | layer: ui | role: page
+// summary: 页面组件
+
 import React, { useState } from 'react';
 import { Space, Button, Tooltip, message } from 'antd';
 import { ThunderboltOutlined, PoweroffOutlined, ReloadOutlined, DesktopOutlined, DisconnectOutlined } from '@ant-design/icons';

@@ -1,3 +1,7 @@
+// src/pages/adb/LogConsole.tsx
+// module: ui | layer: ui | role: page
+// summary: 页面组件
+
 import React from 'react';
 import { Card, Alert, Space, Button, List, Typography, Tag } from 'antd';
 import { useAdbStore } from '../../application/store/adbStore';

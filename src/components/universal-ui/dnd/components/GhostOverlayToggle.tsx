@@ -1,3 +1,7 @@
+// src/components/universal-ui/dnd/components/GhostOverlayToggle.tsx
+// module: ui | layer: ui | role: component
+// summary: UI 组件
+
 import React from 'react';
 import { Switch, Tooltip } from 'antd';
 import { useDnDUIConfig } from '../DnDUIConfigContext';

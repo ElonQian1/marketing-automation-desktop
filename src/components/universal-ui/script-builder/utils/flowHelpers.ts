@@ -1,3 +1,7 @@
+// src/components/universal-ui/script-builder/utils/flowHelpers.ts
+// module: ui | layer: ui | role: component
+// summary: UI 组件
+
 // Flow 相关纯函数：从 FlowScriptBuilder 抽离
 
 export function convertFlowStepToScriptType(stepId: string): string {

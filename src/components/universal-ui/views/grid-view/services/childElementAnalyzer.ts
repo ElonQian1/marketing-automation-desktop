@@ -1,3 +1,7 @@
+// src/components/universal-ui/views/grid-view/services/childElementAnalyzer.ts
+// module: ui | layer: ui | role: component
+// summary: UI 组件
+
 /**
  * 子元素分析服务
  * 用于分析XML节点的可操作子元素，提供智能推荐

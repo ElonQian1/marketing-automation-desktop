@@ -1,3 +1,7 @@
+// src/pages/precise-acquisition/modules/duplication-protection/index.ts
+// module: ui | layer: ui | role: page
+// summary: 页面组件
+
 /**
  * 智能查重防护系统
  */

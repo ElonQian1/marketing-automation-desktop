@@ -1,3 +1,7 @@
+// src/components/feature-modules/theme-system/tokens/index.ts
+// module: ui | layer: ui | role: component
+// summary: UI 组件
+
 /**
  * 主题令牌配置
  * 基于 Ant Design 5 原生暗黑模式的设计令牌

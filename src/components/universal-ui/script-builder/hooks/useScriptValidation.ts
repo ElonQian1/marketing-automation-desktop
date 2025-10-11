@@ -1,3 +1,7 @@
+// src/components/universal-ui/script-builder/hooks/useScriptValidation.ts
+// module: ui | layer: ui | role: component
+// summary: UI 组件
+
 import { useMemo } from 'react';
 import { ScriptStep, ScriptValidationResult } from '../types';
 

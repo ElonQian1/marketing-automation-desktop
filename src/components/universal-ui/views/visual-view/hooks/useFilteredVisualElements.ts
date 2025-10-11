@@ -1,3 +1,7 @@
+// src/components/universal-ui/views/visual-view/hooks/useFilteredVisualElements.ts
+// module: ui | layer: ui | role: component
+// summary: UI 组件
+
 import { useMemo } from 'react';
 import type { VisualUIElement } from '../../../types';
 import { FilterAdapter, type VisualFilterConfig, defaultVisualFilterConfig } from '../../../../../services/FilterAdapter';

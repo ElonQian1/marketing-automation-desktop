@@ -1,3 +1,7 @@
+// src/components/ui/buttons/IconButton.tsx
+// module: ui | layer: ui | role: component
+// summary: UI 组件
+
 // 文件路径：src/components/ui/buttons/IconButton.tsx
 
 /**

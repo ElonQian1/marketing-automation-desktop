@@ -1,3 +1,7 @@
+// src/components/universal-ui/views/grid-view/components/TreeView.tsx
+// module: ui | layer: ui | role: component
+// summary: UI 组件
+
 /**
  * GridElementView 树形视图组件
  * 包装现有的树形视图组件

@@ -1,3 +1,7 @@
+// src/pages/performance-demo/XPathPerformanceDemo.tsx
+// module: ui | layer: ui | role: page
+// summary: 页面组件
+
 import React, { useState } from 'react';
 import { Card, Button, Space, Typography, Input, Row, Col, Divider } from 'antd';
 import { PlayCircleOutlined, BugOutlined } from '@ant-design/icons';

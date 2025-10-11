@@ -1,3 +1,7 @@
+// src/pages/adb/AdbCenterPage.tsx
+// module: ui | layer: ui | role: page
+// summary: 页面组件
+
 import React, { useState } from 'react';
 import { Card, Tabs, Row, Col, Typography, Alert, Space } from 'antd';
 import type { TabsProps } from 'antd';

@@ -1,3 +1,7 @@
+// src/components/universal-ui/views/visual-view/VisualPageAnalyzerContent.tsx
+// module: ui | layer: ui | role: component
+// summary: UI 组件
+
 /**
  * 可视化页面分析器内容组件
  * 从 UniversalPageFinderModal 中的内联 VisualPageAnalyzerContent 组件提取

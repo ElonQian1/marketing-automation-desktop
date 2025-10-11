@@ -1,3 +1,7 @@
+// src/components/universal-ui/views/visual-view/VisualElementView.tsx
+// module: ui | layer: ui | role: component
+// summary: UI 组件
+
 /**
  * 可视化视图组件 - 完整还原旧版VisualPageAnalyzerContent
  * 从原 UniversalPageFinderModal 的 VisualPageAnalyzerContent 迁移

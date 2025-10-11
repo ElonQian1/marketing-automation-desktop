@@ -1,3 +1,7 @@
+// src/components/feature-modules/universal-ui/theme-advanced/ThemePresetSelector.tsx
+// module: ui | layer: ui | role: component
+// summary: UI 组件
+
 /**
  * 主题预设选择器组件
  */

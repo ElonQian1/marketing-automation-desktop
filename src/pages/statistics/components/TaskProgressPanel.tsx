@@ -1,3 +1,7 @@
+// src/pages/statistics/components/TaskProgressPanel.tsx
+// module: ui | layer: ui | role: component
+// summary: UI 组件
+
 import React from 'react';
 import { Card, Progress, Typography, Space, theme, List, Tag } from 'antd';
 import {

@@ -1,3 +1,7 @@
+// src/components/TaskManagementCenter.tsx
+// module: ui | layer: ui | role: component
+// summary: UI 组件
+
 /**
  * 任务管理系统组件
  * 

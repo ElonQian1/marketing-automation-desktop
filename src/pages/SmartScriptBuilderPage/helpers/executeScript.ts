@@ -1,3 +1,7 @@
+// src/pages/SmartScriptBuilderPage/helpers/executeScript.ts
+// module: ui | layer: ui | role: page
+// summary: 页面组件
+
 import { invoke } from "@tauri-apps/api/core";
 import { message } from "antd";
 import { normalizeScriptStepsForBackend } from "../helpers/normalizeSteps";

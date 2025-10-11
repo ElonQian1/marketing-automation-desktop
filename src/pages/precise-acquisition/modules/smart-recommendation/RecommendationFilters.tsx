@@ -1,3 +1,7 @@
+// src/pages/precise-acquisition/modules/smart-recommendation/RecommendationFilters.tsx
+// module: ui | layer: ui | role: page
+// summary: 页面组件
+
 import React, { useState } from 'react';
 import {
   Card,

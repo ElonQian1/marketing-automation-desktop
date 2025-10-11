@@ -1,3 +1,7 @@
+// src/components/smart-page-finder/ElementHierarchyTree.tsx
+// module: ui | layer: ui | role: component
+// summary: UI 组件
+
 /**
  * 元素层次结构树组件
  * 以层次结构的方式展示页面元素，支持去重、搜索、过滤

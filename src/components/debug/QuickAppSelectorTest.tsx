@@ -1,3 +1,7 @@
+// src/components/debug/QuickAppSelectorTest.tsx
+// module: ui | layer: ui | role: component
+// summary: UI 组件
+
 import React, { useState } from 'react';
 import { Button, Card, Typography, Space, message } from 'antd';
 import { useAdb } from '../../application/hooks/useAdb';

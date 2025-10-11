@@ -1,3 +1,7 @@
+// src/components/task/ContactFollowForm.tsx
+// module: ui | layer: ui | role: component
+// summary: UI 组件
+
 import React, { useState, useRef } from 'react';
 import type { Platform } from '../../types';
 import { PlatformSelector, BalanceDisplay, ProgressBar } from '../common';

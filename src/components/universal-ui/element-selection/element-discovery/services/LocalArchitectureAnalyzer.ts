@@ -1,3 +1,7 @@
+// src/components/universal-ui/element-selection/element-discovery/services/LocalArchitectureAnalyzer.ts
+// module: ui | layer: ui | role: component
+// summary: UI 组件
+
 /**
  * 局部架构分析器
  * 专门用于元素发现模态框，只分析目标元素周围的相关架构

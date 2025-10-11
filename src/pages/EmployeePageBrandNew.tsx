@@ -1,3 +1,7 @@
+// src/pages/EmployeePageBrandNew.tsx
+// module: ui | layer: ui | role: page
+// summary: 页面组件
+
 // 文件路径：src/pages/EmployeePageBrandNew.tsx
 // 员工管理页面 - 品牌化重构版本 (简化版)
 // 严格遵循品牌化架构：layout + patterns + ui + adapters

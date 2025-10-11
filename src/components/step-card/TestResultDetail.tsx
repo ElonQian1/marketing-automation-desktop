@@ -1,3 +1,7 @@
+// src/components/step-card/TestResultDetail.tsx
+// module: ui | layer: ui | role: component
+// summary: UI 组件
+
 import React from 'react';
 import { Typography, Space, Tag, Divider, Alert, Badge, Button } from 'antd';
 import { CheckCircleOutlined, CloseCircleOutlined, BugOutlined } from '@ant-design/icons';

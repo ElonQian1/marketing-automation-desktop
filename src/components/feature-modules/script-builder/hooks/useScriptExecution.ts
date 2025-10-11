@@ -1,3 +1,7 @@
+// src/components/feature-modules/script-builder/hooks/useScriptExecution.ts
+// module: ui | layer: ui | role: component
+// summary: UI 组件
+
 /**
  * 脚本执行管理 Hook
  * 处理脚本执行、监控、日志记录等功能

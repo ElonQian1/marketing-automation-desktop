@@ -1,3 +1,7 @@
+// src/pages/adb/auth/ADBAuthWizard.tsx
+// module: ui | layer: ui | role: page
+// summary: 页面组件
+
 import React from 'react';
 import { Card, Steps, Space, Typography } from 'antd';
 import { SafetyOutlined } from '@ant-design/icons';

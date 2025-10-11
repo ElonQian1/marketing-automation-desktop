@@ -1,3 +1,7 @@
+// src/components/ui/buttons/PrimaryButton.tsx
+// module: ui | layer: ui | role: component
+// summary: UI 组件
+
 /**
  * 主要操作按钮组件
  * 基于设计令牌系统的现代化按钮实现

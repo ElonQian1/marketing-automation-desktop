@@ -1,3 +1,7 @@
+// src/pages/ContactImportPageBrandNew.tsx
+// module: ui | layer: ui | role: page
+// summary: 页面组件
+
 import React, { Suspense } from 'react';
 
 // 品牌化布局组件

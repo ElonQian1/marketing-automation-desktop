@@ -1,3 +1,7 @@
+// src/pages/SmartScriptBuilderPage/components/EnhancedPageHeader.tsx
+// module: ui | layer: ui | role: component
+// summary: UI 组件
+
 import React from "react";
 import { Row, Col, Typography, Space, Select, Button, Divider, Tag, Card, Switch } from "antd";
 import { 

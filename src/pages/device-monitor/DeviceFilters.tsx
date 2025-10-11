@@ -1,3 +1,7 @@
+// src/pages/device-monitor/DeviceFilters.tsx
+// module: ui | layer: ui | role: page
+// summary: 页面组件
+
 import React from 'react';
 import { Space, Select, Input, Tag } from 'antd';
 import type { DeviceFiltersProps } from './types';

@@ -1,3 +1,7 @@
+// src/components/flow-builder/services/flowPersistence.ts
+// module: ui | layer: ui | role: component
+// summary: UI 组件
+
 import { FlowBuilderStep, FlowTemplate } from '../../universal-ui/script-builder/services/flowTemplates';
 
 export interface SavedFlowRecord {

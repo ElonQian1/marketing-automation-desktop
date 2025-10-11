@@ -1,3 +1,7 @@
+// src/components/universal-ui/views/grid-view/panels/node-detail/ScoringUIDemo.tsx
+// module: ui | layer: ui | role: component
+// summary: UI 组件
+
 import React, { useState } from 'react';
 import {
   StrategyScoreCard,

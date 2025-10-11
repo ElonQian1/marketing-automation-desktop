@@ -1,3 +1,7 @@
+// src/components/universal-ui/element-selection/utils/advancedUserExperience.ts
+// module: ui | layer: ui | role: component
+// summary: UI 组件
+
 /**
  * 高级交互体验优化模块
  * 提供动画、过渡、用户体验增强功能

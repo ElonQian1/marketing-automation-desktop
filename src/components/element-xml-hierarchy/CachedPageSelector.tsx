@@ -1,3 +1,7 @@
+// src/components/element-xml-hierarchy/CachedPageSelector.tsx
+// module: ui | layer: ui | role: component
+// summary: UI 组件
+
 /**
  * 页面选择器 - 用于选择缓存的XML页面
  * 从Universal UI缓存系统中选择要分析的页面

@@ -1,3 +1,7 @@
+// src/components/feature-modules/page-analyzer/components/PageAnalyzerContainer.tsx
+// module: ui | layer: ui | role: component
+// summary: UI 组件
+
 import React from 'react';
 import { Layout, Row, Col, Card, Space, Button, Typography, Divider } from 'antd';
 import { 

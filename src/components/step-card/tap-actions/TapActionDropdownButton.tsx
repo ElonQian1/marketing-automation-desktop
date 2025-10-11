@@ -1,3 +1,7 @@
+// src/components/step-card/tap-actions/TapActionDropdownButton.tsx
+// module: ui | layer: ui | role: component
+// summary: UI 组件
+
 import React, { useState } from 'react';
 import { Dropdown, Button, MenuProps, Modal, Form, InputNumber } from 'antd';
 import { AimOutlined } from '@ant-design/icons';

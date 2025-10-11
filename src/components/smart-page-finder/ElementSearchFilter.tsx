@@ -1,3 +1,7 @@
+// src/components/smart-page-finder/ElementSearchFilter.tsx
+// module: ui | layer: ui | role: component
+// summary: UI 组件
+
 /**
  * 元素搜索过滤组件
  * 提供搜索和过滤功能

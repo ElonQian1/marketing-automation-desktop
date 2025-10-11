@@ -1,3 +1,7 @@
+// src/components/universal-ui/script-builder/components/ScriptBuilderView.tsx
+// module: ui | layer: ui | role: component
+// summary: UI 组件
+
 import React from 'react';
 import { useScriptBuilderState } from '../hooks/useScriptBuilderState';
 import { useScriptValidation } from '../hooks/useScriptValidation';

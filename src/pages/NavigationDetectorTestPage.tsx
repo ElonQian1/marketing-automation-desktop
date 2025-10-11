@@ -1,3 +1,7 @@
+// src/pages/NavigationDetectorTestPage.tsx
+// module: ui | layer: ui | role: page
+// summary: 页面组件
+
 import React, { useEffect, useState } from 'react';
 import { Card, Button, Space, message, Typography, List, Row, Col, Select, Empty } from 'antd';
 import { PlusOutlined, PlayCircleOutlined, DeleteOutlined } from '@ant-design/icons';

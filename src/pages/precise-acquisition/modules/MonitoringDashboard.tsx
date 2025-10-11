@@ -1,3 +1,7 @@
+// src/pages/precise-acquisition/modules/MonitoringDashboard.tsx
+// module: ui | layer: ui | role: page
+// summary: 页面组件
+
 import React, { useEffect, useState } from 'react';
 import { Card, Typography, Row, Col, Statistic, Progress, Space, Button, Empty } from 'antd';
 import { 

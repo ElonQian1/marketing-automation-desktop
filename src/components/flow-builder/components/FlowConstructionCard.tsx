@@ -1,3 +1,7 @@
+// src/components/flow-builder/components/FlowConstructionCard.tsx
+// module: ui | layer: ui | role: component
+// summary: UI 组件
+
 import React from 'react';
 import { Card, Space, Button, Steps, Typography, Row, Col, Tooltip } from 'antd';
 import { PlayCircleOutlined, SaveOutlined, CheckCircleOutlined, PlusOutlined } from '@ant-design/icons';

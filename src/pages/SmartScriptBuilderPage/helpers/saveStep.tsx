@@ -1,3 +1,7 @@
+// src/pages/SmartScriptBuilderPage/helpers/saveStep.tsx
+// module: ui | layer: ui | role: page
+// summary: 页面组件
+
 import type { FormInstance } from "antd";
 import { Modal, message } from "antd";
 import XmlCacheManager from "../../../services/XmlCacheManager";

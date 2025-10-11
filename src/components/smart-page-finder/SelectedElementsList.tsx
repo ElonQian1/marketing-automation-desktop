@@ -1,3 +1,7 @@
+// src/components/smart-page-finder/SelectedElementsList.tsx
+// module: ui | layer: ui | role: component
+// summary: UI 组件
+
 /**
  * 已选择元素列表组件
  * 显示用户选择的元素列表

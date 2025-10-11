@@ -1,3 +1,7 @@
+// src/pages/precise-acquisition/modules/analytics-reporting/types.ts
+// module: ui | layer: ui | role: page
+// summary: 页面组件
+
 /**
  * 分析报告系统类型定义
  */

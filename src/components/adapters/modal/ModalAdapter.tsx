@@ -1,3 +1,7 @@
+// src/components/adapters/modal/ModalAdapter.tsx
+// module: ui | layer: ui | role: component
+// summary: UI 组件
+
 import React from "react";
 import { Modal } from "antd";
 

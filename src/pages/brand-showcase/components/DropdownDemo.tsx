@@ -1,3 +1,7 @@
+// src/pages/brand-showcase/components/DropdownDemo.tsx
+// module: ui | layer: ui | role: component
+// summary: UI 组件
+
 /**
  * DropdownMenu 组件演示区
  */

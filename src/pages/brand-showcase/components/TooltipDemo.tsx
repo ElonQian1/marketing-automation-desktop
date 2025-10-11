@@ -1,3 +1,7 @@
+// src/pages/brand-showcase/components/TooltipDemo.tsx
+// module: ui | layer: ui | role: component
+// summary: UI 组件
+
 /**
  * Tooltip 演示组件 - 展示工具提示的各种用法
  * 

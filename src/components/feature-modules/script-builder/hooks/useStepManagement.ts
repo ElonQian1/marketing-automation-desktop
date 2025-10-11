@@ -1,3 +1,7 @@
+// src/components/feature-modules/script-builder/hooks/useStepManagement.ts
+// module: ui | layer: ui | role: component
+// summary: UI 组件
+
 /**
  * 步骤管理 Hook
  * 专门处理脚本步骤的验证、模板、拖拽等功能

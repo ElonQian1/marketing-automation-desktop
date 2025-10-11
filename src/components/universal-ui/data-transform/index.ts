@@ -1,3 +1,7 @@
+// src/components/universal-ui/data-transform/index.ts
+// module: ui | layer: ui | role: component
+// summary: UI 组件
+
 /**
  * 数据转换模块统一导出
  */

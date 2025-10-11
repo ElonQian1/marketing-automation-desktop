@@ -1,3 +1,7 @@
+// src/components/element-name-editor/hooks/usePrecisionAnalysis.ts
+// module: ui | layer: ui | role: component
+// summary: UI 组件
+
 import { useEffect, useMemo, useState } from 'react';
 import { ExtendedUIElement, adaptToAndroidXMLFields } from '../ElementDataAdapter';
 import { AdbPrecisionStrategy } from '../../../services/AdbPrecisionStrategy';

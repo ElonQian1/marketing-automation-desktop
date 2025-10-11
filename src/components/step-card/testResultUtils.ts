@@ -1,3 +1,7 @@
+// src/components/step-card/testResultUtils.ts
+// module: ui | layer: ui | role: component
+// summary: UI 组件
+
 // 用于格式化和复制测试结果的工具函数
 import type { SingleStepTestResult } from '../../types/smartScript';
 

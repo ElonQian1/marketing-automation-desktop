@@ -1,3 +1,7 @@
+// src/components/universal-ui/views/tree-view/components/QualityBadge.tsx
+// module: ui | layer: ui | role: component
+// summary: UI 组件
+
 /**
  * UIElementTree 质量徽章组件
  * 显示元素质量分数和颜色指示器

@@ -1,3 +1,7 @@
+// src/pages/app-launch-test/components/LaunchResultSection.tsx
+// module: ui | layer: ui | role: component
+// summary: UI 组件
+
 import React from 'react';
 import { Card, Alert, Progress, Tag, Spin, theme } from 'antd';
 import type { LaunchResultProps } from '../types/AppLaunchTestTypes';

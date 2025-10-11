@@ -1,3 +1,7 @@
+// src/components/universal-ui/views/mirror-view/embedded/useInputController.ts
+// module: ui | layer: ui | role: component
+// summary: UI 组件
+
 import { useCallback } from 'react';
 
 export function useInputController(send: (data: ArrayBuffer | string) => boolean) {

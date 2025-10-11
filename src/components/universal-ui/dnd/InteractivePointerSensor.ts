@@ -1,3 +1,7 @@
+// src/components/universal-ui/dnd/InteractivePointerSensor.ts
+// module: ui | layer: ui | role: component
+// summary: UI 组件
+
 import { PointerSensor } from '@dnd-kit/core';
 
 // 自定义 PointerSensor：在以下元素上禁止激活拖拽

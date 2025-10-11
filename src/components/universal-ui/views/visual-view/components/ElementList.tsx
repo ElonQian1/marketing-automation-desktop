@@ -1,3 +1,7 @@
+// src/components/universal-ui/views/visual-view/components/ElementList.tsx
+// module: ui | layer: ui | role: component
+// summary: UI 组件
+
 import React from 'react';
 import { Space, Tag, Typography } from 'antd';
 import type { VisualElementCategory, VisualUIElement } from '../../../types';

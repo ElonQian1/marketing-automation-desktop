@@ -1,3 +1,7 @@
+// src/components/universal-ui/DesignSystemTestPage.tsx
+// module: ui | layer: ui | role: component
+// summary: UI 组件
+
 /**
  * 设计系统测试页面
  * 独立测试新的 Universal UI 现代化设计系统

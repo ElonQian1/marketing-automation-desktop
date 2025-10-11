@@ -1,3 +1,7 @@
+// src/components/universal-ui/script-builder/components/StepItem.tsx
+// module: ui | layer: ui | role: component
+// summary: UI 组件
+
 // StepItem Ultra Minimal Version (temporary) - remove all dynamic opacity / className logic to eliminate stale type errors
 import React from 'react';
 import { Card } from 'antd';

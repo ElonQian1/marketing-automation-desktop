@@ -1,3 +1,7 @@
+// src/pages/adb/auth/components/StatusComponents.tsx
+// module: ui | layer: ui | role: component
+// summary: UI 组件
+
 import React from 'react';
 import { Alert, Space, Typography } from 'antd';
 import { ExclamationCircleOutlined, CheckCircleOutlined, CloseCircleOutlined } from '@ant-design/icons';

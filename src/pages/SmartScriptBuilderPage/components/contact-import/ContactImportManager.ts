@@ -1,3 +1,7 @@
+// src/pages/SmartScriptBuilderPage/components/contact-import/ContactImportManager.ts
+// module: ui | layer: ui | role: component
+// summary: UI 组件
+
 import { message } from "antd";
 import type { ExtendedSmartScriptStep } from "../../../../types/loopScript";
 import { SmartActionType } from "../../../../types/smartComponents";

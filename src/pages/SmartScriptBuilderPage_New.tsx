@@ -1,3 +1,7 @@
+// src/pages/SmartScriptBuilderPage_New.tsx
+// module: ui | layer: ui | role: page
+// summary: 页面组件
+
 import React, { useState, useEffect, useCallback, useMemo } from "react";
 import { useAdb } from "../application/hooks/useAdb";
 // import { DeviceStatus } from "../domain/adb/entities/Device"; // 已通过 useDefaultDeviceId 统一默认选择，不再直接使用

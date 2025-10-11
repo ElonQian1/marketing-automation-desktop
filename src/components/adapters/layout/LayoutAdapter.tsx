@@ -1,3 +1,7 @@
+// src/components/adapters/layout/LayoutAdapter.tsx
+// module: ui | layer: ui | role: component
+// summary: UI 组件
+
 /**
  * Layout 适配器 - Employee D 架构
  * 

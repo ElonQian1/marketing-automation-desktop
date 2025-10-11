@@ -1,3 +1,7 @@
+// src/components/universal-ui/views/grid-view/panels/node-detail/responsive/index.ts
+// module: ui | layer: ui | role: component
+// summary: UI 组件
+
 // 🎨 响应式设计模块统一导出
 
 // 常量和配置

@@ -1,3 +1,7 @@
+// src/components/xml-cache/components/CacheToolbar.tsx
+// module: ui | layer: ui | role: component
+// summary: UI 组件
+
 import React from "react";
 import { Card, Space, Button, Input, Typography } from "antd";
 import { ReloadOutlined, FileTextOutlined } from "@ant-design/icons";

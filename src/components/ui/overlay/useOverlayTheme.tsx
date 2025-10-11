@@ -1,3 +1,7 @@
+// src/components/ui/overlay/useOverlayTheme.tsx
+// module: ui | layer: ui | role: component
+// summary: UI 组件
+
 import React from 'react';
 import { Space, Switch, Tooltip } from 'antd';
 import type { OverlayTheme } from './types';

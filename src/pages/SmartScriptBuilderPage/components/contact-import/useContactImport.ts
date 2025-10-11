@@ -1,3 +1,7 @@
+// src/pages/SmartScriptBuilderPage/components/contact-import/useContactImport.ts
+// module: ui | layer: ui | role: component
+// summary: UI 组件
+
 import { useCallback, useState } from "react";
 import type { ExtendedSmartScriptStep } from "../../../../types/loopScript";
 import { ContactImportManager } from "./ContactImportManager";

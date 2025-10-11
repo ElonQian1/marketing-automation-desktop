@@ -1,3 +1,7 @@
+// src/components/LoopStartCard/index.tsx
+// module: ui | layer: ui | role: component
+// summary: UI 组件
+
 // 循环开始卡片主组件 - 模块化版本
 
 import React, { useState } from "react";

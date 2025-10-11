@@ -1,3 +1,7 @@
+// src/components/feature-modules/theme-system/components/ThemeSwitcher.tsx
+// module: ui | layer: ui | role: component
+// summary: UI 组件
+
 /**
  * 主题切换器组件
  * 提供主题模式切换的 UI 控件

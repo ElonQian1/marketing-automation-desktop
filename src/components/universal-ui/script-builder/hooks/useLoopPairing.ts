@@ -1,3 +1,7 @@
+// src/components/universal-ui/script-builder/hooks/useLoopPairing.ts
+// module: ui | layer: ui | role: component
+// summary: UI 组件
+
 import { useCallback } from 'react';
 
 // 这里使用 any 类型以避免与现有 ExtendedSmartScriptStep 循环导入；后续可统一到 script-builder/types

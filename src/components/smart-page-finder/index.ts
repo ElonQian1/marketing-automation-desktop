@@ -1,3 +1,7 @@
+// src/components/smart-page-finder/index.ts
+// module: ui | layer: ui | role: component
+// summary: UI 组件
+
 /**
  * 智能页面查找器组件统一导出
  */

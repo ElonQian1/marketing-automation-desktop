@@ -1,3 +1,7 @@
+// src/pages/brand-showcase/components/DialogDemo.tsx
+// module: ui | layer: ui | role: component
+// summary: UI 组件
+
 /**
  * Dialog 演示组件 - 展示对话框的各种用法
  * 

@@ -1,3 +1,7 @@
+// src/pages/adb/auth/steps/Verify.tsx
+// module: ui | layer: ui | role: page
+// summary: 页面组件
+
 import React, { useMemo } from 'react';
 import { Alert, Button, Space, Tag, Typography, Divider } from 'antd';
 import { UseAuthWizard } from '../useAuthWizard.ts';

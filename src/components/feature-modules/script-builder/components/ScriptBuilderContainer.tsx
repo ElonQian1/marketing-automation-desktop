@@ -1,3 +1,7 @@
+// src/components/feature-modules/script-builder/components/ScriptBuilderContainer.tsx
+// module: ui | layer: ui | role: component
+// summary: UI 组件
+
 /**
  * 脚本构建器容器组件
  * 整合所有脚本构建器组件的主容器

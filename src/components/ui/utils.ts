@@ -1,3 +1,7 @@
+// src/components/ui/utils.ts
+// module: ui | layer: ui | role: component
+// summary: UI 组件
+
 
 /**
  * 轻组件通用工具函数

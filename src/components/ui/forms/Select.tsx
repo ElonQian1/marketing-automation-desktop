@@ -1,3 +1,7 @@
+// src/components/ui/forms/Select.tsx
+// module: ui | layer: ui | role: component
+// summary: UI 组件
+
 /**
  * 增强的选择框组件 - 基于 design tokens 的品牌化选择器
  * 

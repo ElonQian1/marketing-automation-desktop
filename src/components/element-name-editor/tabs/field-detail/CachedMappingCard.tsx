@@ -1,3 +1,7 @@
+// src/components/element-name-editor/tabs/field-detail/CachedMappingCard.tsx
+// module: ui | layer: ui | role: component
+// summary: UI 组件
+
 import React from 'react';
 import { Card, Tag, Typography } from 'antd';
 import { colors, textStyles } from '../uiTokens';

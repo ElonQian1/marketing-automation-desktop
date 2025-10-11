@@ -1,3 +1,7 @@
+// src/pages/SmartNavigationTestPage.tsx
+// module: ui | layer: ui | role: page
+// summary: 页面组件
+
 import React, { useState, useEffect } from 'react';
 import { Card, Select, Space, Typography, Button, message, List, Tag, Row, Col, Empty } from 'antd';
 import ConfirmPopover from '@/components/universal-ui/common-popover/ConfirmPopover';

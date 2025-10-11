@@ -1,3 +1,7 @@
+// src/components/universal-ui/element-selection/element-discovery/services/xmlStructureParser.ts
+// module: ui | layer: ui | role: component
+// summary: UI 组件
+
 import type { UIElement, ElementBounds } from '../../../../../api/universal-ui';
 import type { HierarchyNode } from '../../../../../types/hierarchy';
 

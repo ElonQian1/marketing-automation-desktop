@@ -1,3 +1,7 @@
+// src/pages/adb/auth/steps/Done.tsx
+// module: ui | layer: ui | role: page
+// summary: 页面组件
+
 import React from 'react';
 import { Result, Button, Space } from 'antd';
 import { UseAuthWizard } from '../useAuthWizard.ts';

@@ -1,3 +1,7 @@
+// src/components/feature-modules/page-analyzer/components/PropertyPanel.tsx
+// module: ui | layer: ui | role: component
+// summary: UI 组件
+
 import React, { useMemo } from 'react';
 import { 
   Card, 

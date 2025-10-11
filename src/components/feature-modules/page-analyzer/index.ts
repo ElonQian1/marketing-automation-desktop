@@ -1,3 +1,7 @@
+// src/components/feature-modules/page-analyzer/index.ts
+// module: ui | layer: ui | role: component
+// summary: UI 组件
+
 /**
  * 页面分析器模块统一导出
  * 提供所有组件、Hook、类型的便捷导入方式

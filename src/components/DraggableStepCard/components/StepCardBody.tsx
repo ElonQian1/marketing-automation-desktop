@@ -1,3 +1,7 @@
+// src/components/DraggableStepCard/components/StepCardBody.tsx
+// module: ui | layer: ui | role: component
+// summary: UI 组件
+
 import React from 'react';
 import { DescriptionEditor } from './DescriptionEditor';
 import { InlineLoopControl } from './InlineLoopControl';

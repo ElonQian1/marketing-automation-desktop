@@ -1,3 +1,7 @@
+// src/pages/brand-showcase/components/InteractiveDemo.tsx
+// module: ui | layer: ui | role: component
+// summary: UI 组件
+
 /**
  * 交互组件演示区 - Tooltip & Dialog
  */

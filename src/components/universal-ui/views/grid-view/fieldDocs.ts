@@ -1,3 +1,7 @@
+// src/components/universal-ui/views/grid-view/fieldDocs.ts
+// module: ui | layer: ui | role: component
+// summary: UI 组件
+
 export interface FieldDoc {
   key: string;
   label: string;      // 中文名

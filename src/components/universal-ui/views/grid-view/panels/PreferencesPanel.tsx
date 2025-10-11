@@ -1,3 +1,7 @@
+// src/components/universal-ui/views/grid-view/panels/PreferencesPanel.tsx
+// module: ui | layer: ui | role: component
+// summary: UI 组件
+
 import React, { useEffect, useState } from 'react';
 import styles from "../GridElementView.module.css";
 import { loadPrefs, savePrefs, GridViewPrefs } from "../prefs";

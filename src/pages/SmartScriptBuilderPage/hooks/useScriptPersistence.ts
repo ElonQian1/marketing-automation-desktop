@@ -1,3 +1,7 @@
+// src/pages/SmartScriptBuilderPage/hooks/useScriptPersistence.ts
+// module: ui | layer: ui | role: page
+// summary: 页面组件
+
 import { useCallback } from "react";
 import { message } from "antd";
 import { invoke } from "@tauri-apps/api/core";

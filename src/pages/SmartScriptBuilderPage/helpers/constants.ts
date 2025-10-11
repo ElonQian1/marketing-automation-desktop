@@ -1,3 +1,7 @@
+// src/pages/SmartScriptBuilderPage/helpers/constants.ts
+// module: ui | layer: ui | role: page
+// summary: 页面组件
+
 import { SmartActionType } from "../../../types/smartComponents";
 
 // 与页面内原常量保持完全一致，纯搬迁，勿改动结构/默认值/文案

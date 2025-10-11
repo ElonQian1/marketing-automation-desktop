@@ -1,3 +1,7 @@
+// src/components/universal-ui/page-finder-modal/utils/sortElements.ts
+// module: ui | layer: ui | role: component
+// summary: UI 组件
+
 import type { UIElement } from "../types";
 import { sortByScoreThenUnknownLastStable } from "../../shared/utils/sorting";
 

@@ -1,3 +1,7 @@
+// src/components/ui/motion/tokens.ts
+// module: ui | layer: ui | role: component
+// summary: UI 组件
+
 // 文件路径：src/components/ui/motion/tokens.ts
 
 /**

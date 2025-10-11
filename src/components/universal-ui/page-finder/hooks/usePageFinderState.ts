@@ -1,3 +1,7 @@
+// src/components/universal-ui/page-finder/hooks/usePageFinderState.ts
+// module: ui | layer: ui | role: component
+// summary: UI 组件
+
 import { useMemo, useState } from 'react';
 
 interface TreeNodeLite {

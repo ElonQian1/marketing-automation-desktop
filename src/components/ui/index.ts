@@ -1,3 +1,7 @@
+// src/components/ui/index.ts
+// module: ui | layer: ui | role: component
+// summary: UI 组件
+
 /**
  * UI 组件库统一导出 - 品牌化重构后
  * 

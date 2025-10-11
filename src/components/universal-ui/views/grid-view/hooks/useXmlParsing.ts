@@ -1,3 +1,7 @@
+// src/components/universal-ui/views/grid-view/hooks/useXmlParsing.ts
+// module: ui | layer: ui | role: component
+// summary: UI 组件
+
 import { useCallback, useEffect, useState } from 'react';
 import { UiNode } from '../types';
 import { attachParents, parseUiAutomatorXml } from '../utils';

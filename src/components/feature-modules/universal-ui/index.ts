@@ -1,3 +1,7 @@
+// src/components/feature-modules/universal-ui/index.ts
+// module: ui | layer: ui | role: component
+// summary: UI 组件
+
 /**
  * 主题感知的页面增强模块导出
  * 提供统一的页面主题组件和工具

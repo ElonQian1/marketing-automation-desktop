@@ -1,3 +1,7 @@
+// src/components/common/ProgressBar.tsx
+// module: ui | layer: ui | role: component
+// summary: UI 组件
+
 import React from 'react';
 import { Progress, Typography, Space } from 'antd';
 

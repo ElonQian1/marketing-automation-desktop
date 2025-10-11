@@ -1,3 +1,7 @@
+// src/components/contact/ImportAndFollow.tsx
+// module: ui | layer: ui | role: component
+// summary: UI 组件
+
 import { AlertTriangle, ArrowRight, CheckCircle, FileDown, Heart, Play, Smartphone, Users } from 'lucide-react';
 import React, { useState } from 'react';
 import type { Contact } from '../../types';

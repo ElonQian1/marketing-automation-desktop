@@ -1,3 +1,7 @@
+// src/components/universal-ui/element-selection/element-discovery/index.ts
+// module: ui | layer: ui | role: component
+// summary: UI 组件
+
 /**
  * Element Discovery 模块化架构 - 统一导出
  * 重构后的模块化架构入口

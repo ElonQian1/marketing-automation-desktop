@@ -1,3 +1,7 @@
+// src/components/universal-ui/views/grid-view/GridElementView.refactored.tsx
+// module: ui | layer: ui | role: component
+// summary: UI 组件
+
 /**
  * GridElementView - 重构后的主组件
  * 已模块化为更小的组件和 hooks

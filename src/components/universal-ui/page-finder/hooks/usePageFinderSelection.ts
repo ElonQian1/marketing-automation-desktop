@@ -1,3 +1,7 @@
+// src/components/universal-ui/page-finder/hooks/usePageFinderSelection.ts
+// module: ui | layer: ui | role: component
+// summary: UI 组件
+
 import { useCallback } from 'react';
 import { message } from 'antd';
 import { EnhancedElementCreator } from '../../enhanced-element-creation';

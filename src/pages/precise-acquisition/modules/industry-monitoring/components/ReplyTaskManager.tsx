@@ -1,3 +1,7 @@
+// src/pages/precise-acquisition/modules/industry-monitoring/components/ReplyTaskManager.tsx
+// module: ui | layer: ui | role: component
+// summary: UI 组件
+
 /**
  * 回复任务管理组件
  * 显示待回复的评论列表，支持回复操作和任务管理

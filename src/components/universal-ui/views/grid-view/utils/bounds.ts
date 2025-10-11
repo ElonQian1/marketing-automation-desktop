@@ -1,3 +1,7 @@
+// src/components/universal-ui/views/grid-view/utils/bounds.ts
+// module: ui | layer: ui | role: component
+// summary: UI 组件
+
 // 统一的 bounds 工具：对象 <-> 字符串
 import { BoundsCalculator } from '../../../../../shared/bounds/BoundsCalculator';
 

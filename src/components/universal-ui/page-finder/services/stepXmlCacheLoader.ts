@@ -1,3 +1,7 @@
+// src/components/universal-ui/page-finder/services/stepXmlCacheLoader.ts
+// module: ui | layer: ui | role: component
+// summary: UI 组件
+
 import { message } from 'antd';
 import UniversalUIAPI from '../../../../api/universalUIAPI';
 import { buildSnapshotIfPossible } from '../../../../modules/self-contained/XmlSnapshotAutoBuilder';

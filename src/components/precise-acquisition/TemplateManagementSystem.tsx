@@ -1,3 +1,7 @@
+// src/components/precise-acquisition/TemplateManagementSystem.tsx
+// module: ui | layer: ui | role: component
+// summary: UI 组件
+
 /**
  * 模板管理系统界面
  * 

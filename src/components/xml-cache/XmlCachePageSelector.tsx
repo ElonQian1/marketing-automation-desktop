@@ -1,3 +1,7 @@
+// src/components/xml-cache/XmlCachePageSelector.tsx
+// module: ui | layer: ui | role: component
+// summary: UI 组件
+
 /**
  * XML页面缓存选择器组件
  * 用于显示和选择历史分析过的XML页面

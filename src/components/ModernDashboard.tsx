@@ -1,3 +1,7 @@
+// src/components/ModernDashboard.tsx
+// module: ui | layer: ui | role: component
+// summary: UI 组件
+
 import {
     AimOutlined,
     BarChartOutlined,

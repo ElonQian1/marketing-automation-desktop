@@ -1,3 +1,7 @@
+// src/components/universal-ui/views/grid-view/components/EnhancedChildElementListModal.tsx
+// module: ui | layer: ui | role: component
+// summary: UI 组件
+
 import React, { useState, useMemo, useCallback } from 'react';
 import { Modal, Input, Select, Segmented, Space, Divider, Empty, Badge, Tooltip, Button } from 'antd';
 import { SearchOutlined, FilterOutlined, SortAscendingOutlined, AppstoreOutlined, BarsOutlined, CloseOutlined } from '@ant-design/icons';

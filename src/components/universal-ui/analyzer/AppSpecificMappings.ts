@@ -1,3 +1,7 @@
+// src/components/universal-ui/analyzer/AppSpecificMappings.ts
+// module: ui | layer: ui | role: component
+// summary: UI 组件
+
 /**
  * 应用特定的配置和映射
  * 包含各种应用的UI元素识别规则

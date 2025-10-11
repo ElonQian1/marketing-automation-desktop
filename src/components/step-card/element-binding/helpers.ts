@@ -1,3 +1,7 @@
+// src/components/step-card/element-binding/helpers.ts
+// module: ui | layer: ui | role: component
+// summary: UI 组件
+
 import type { UiNode } from '../../universal-ui/views/grid-view/types';
 import { parseUiAutomatorXml, attachParents, findByXPathRoot } from '../../universal-ui/views/grid-view/utils';
 import { buildXPath } from '../../../utils/xpath';

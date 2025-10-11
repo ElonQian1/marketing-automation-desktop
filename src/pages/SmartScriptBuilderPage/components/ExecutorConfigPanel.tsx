@@ -1,3 +1,7 @@
+// src/pages/SmartScriptBuilderPage/components/ExecutorConfigPanel.tsx
+// module: ui | layer: ui | role: component
+// summary: UI 组件
+
 import React from "react";
 import { Card, Row, Col, Switch, InputNumber, Typography } from "antd";
 import { SettingOutlined } from "@ant-design/icons";

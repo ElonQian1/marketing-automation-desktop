@@ -1,3 +1,7 @@
+// src/components/universal-ui/script-builder/components/ScriptStepItem.tsx
+// module: ui | layer: ui | role: component
+// summary: UI 组件
+
 // ScriptStepItem (new forced-renamed component to purge stale StepItem diagnostics)
 import React from 'react';
 import { Card } from 'antd';

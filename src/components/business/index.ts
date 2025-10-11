@@ -1,3 +1,7 @@
+// src/components/business/index.ts
+// module: ui | layer: ui | role: component
+// summary: UI 组件
+
 // 页面头部组件
 export { BusinessPageHeader } from './page-headers/BusinessPageHeader';
 export type { BusinessPageHeaderProps } from './page-headers/BusinessPageHeader';

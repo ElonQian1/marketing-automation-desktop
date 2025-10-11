@@ -1,3 +1,7 @@
+// src/pages/ContactAutomationPage_sindre.tsx
+// module: ui | layer: ui | role: page
+// summary: 页面组件
+
 import React, { useState } from 'react';
 import { Card, Tabs, Row, Col, Typography, Space, Alert, Empty, Button, List } from 'antd';
 import { MobileOutlined, ReloadOutlined } from '@ant-design/icons';

@@ -1,3 +1,7 @@
+// src/components/adapters/form/FormAdapter.tsx
+// module: ui | layer: ui | role: component
+// summary: UI 组件
+
 
 /**
  * Form 适配器 - AntD 表单组件的品牌化包装器

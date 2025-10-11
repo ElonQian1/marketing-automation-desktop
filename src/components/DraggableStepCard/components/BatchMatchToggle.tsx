@@ -1,3 +1,7 @@
+// src/components/DraggableStepCard/components/BatchMatchToggle.tsx
+// module: ui | layer: ui | role: component
+// summary: UI 组件
+
 import React from 'react';
 import { Button, message } from 'antd';
 import { PRESET_FIELDS, normalizeExcludes, normalizeIncludes, buildFindSimilarCriteria } from '../../universal-ui/views/grid-view/panels/node-detail';

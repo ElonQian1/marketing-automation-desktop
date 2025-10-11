@@ -1,3 +1,7 @@
+// src/components/universal-ui/views/xpath-monitor/XPathPerformanceMonitor.tsx
+// module: ui | layer: ui | role: component
+// summary: UI 组件
+
 import React, { useState, useEffect } from 'react';
 import { Card, Progress, Button, Typography, Statistic, Row, Col, Space, Tag, Alert } from 'antd';
 import { 

@@ -1,3 +1,7 @@
+// src/pages/precise-acquisition/modules/monitoring-dashboard/MonitoringDashboard.tsx
+// module: ui | layer: ui | role: page
+// summary: 页面组件
+
 /**
  * 监控总览仪表板 - 重构版本
  * 

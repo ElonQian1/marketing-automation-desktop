@@ -1,3 +1,7 @@
+// src/components/universal-ui/strategy-selector/index.ts
+// module: ui | layer: ui | role: component
+// summary: UI 组件
+
 /**
  * 统一策略选择器模块导出
  */

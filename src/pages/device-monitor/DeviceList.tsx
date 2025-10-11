@@ -1,3 +1,7 @@
+// src/pages/device-monitor/DeviceList.tsx
+// module: ui | layer: ui | role: page
+// summary: 页面组件
+
 import React from 'react';
 import { Empty, Row, Col } from 'antd';
 import { DeviceCard } from './DeviceCard';

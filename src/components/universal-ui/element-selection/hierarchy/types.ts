@@ -1,3 +1,7 @@
+// src/components/universal-ui/element-selection/hierarchy/types.ts
+// module: ui | layer: ui | role: component
+// summary: UI 组件
+
 /**
  * 元素层次分析相关类型定义
  */

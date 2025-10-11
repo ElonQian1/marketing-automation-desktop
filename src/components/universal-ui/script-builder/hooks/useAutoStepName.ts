@@ -1,3 +1,7 @@
+// src/components/universal-ui/script-builder/hooks/useAutoStepName.ts
+// module: ui | layer: ui | role: component
+// summary: UI 组件
+
 import { useRef } from 'react';
 import { buildAutoName } from '../utils/stepNaming';
 

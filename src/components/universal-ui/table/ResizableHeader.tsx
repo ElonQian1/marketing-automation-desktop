@@ -1,3 +1,7 @@
+// src/components/universal-ui/table/ResizableHeader.tsx
+// module: ui | layer: ui | role: component
+// summary: UI 组件
+
 /**
  * 可拖拽调整宽度的表头组件
  */

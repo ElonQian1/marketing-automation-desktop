@@ -1,3 +1,7 @@
+// src/pages/app-launch-test/components/ControlPanelSection.tsx
+// module: ui | layer: ui | role: component
+// summary: UI 组件
+
 import React from 'react';
 import { Card, Button, Select, theme } from 'antd';
 import { PlayCircleOutlined, ReloadOutlined } from '@ant-design/icons';

@@ -1,3 +1,7 @@
+// src/components/element-xml-hierarchy/index.ts
+// module: ui | layer: ui | role: component
+// summary: UI 组件
+
 /**
  * Element XML Hierarchy 模块导出
  * 提供XML层级查看功能的完整组件集合

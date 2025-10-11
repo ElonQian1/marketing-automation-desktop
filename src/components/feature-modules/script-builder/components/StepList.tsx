@@ -1,3 +1,7 @@
+// src/components/feature-modules/script-builder/components/StepList.tsx
+// module: ui | layer: ui | role: component
+// summary: UI 组件
+
 /**
  * 脚本步骤列表组件
  * 显示和管理脚本中的所有步骤

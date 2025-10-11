@@ -1,3 +1,7 @@
+// src/components/element-name-editor/hooks/useElementNameEditorState.ts
+// module: ui | layer: ui | role: component
+// summary: UI 组件
+
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import ElementNameMapper, { UIElement, MatchingConstraints, DEFAULT_MATCHING_CONSTRAINTS, ElementNameMapping } from '../../../modules/ElementNameMapper';
 import { calculateDisplayMatchScore } from '../logic/score';

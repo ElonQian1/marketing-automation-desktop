@@ -1,3 +1,7 @@
+// src/pages/precise-acquisition/modules/data-filter/DataFilterEnhancement.tsx
+// module: ui | layer: ui | role: page
+// summary: 页面组件
+
 /**
  * 数据筛选增强组件
  * 基于浏览量、点赞量、评论量等指标实现智能推荐和筛选

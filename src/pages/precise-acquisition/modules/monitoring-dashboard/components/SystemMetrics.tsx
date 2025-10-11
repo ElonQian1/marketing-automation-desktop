@@ -1,3 +1,7 @@
+// src/pages/precise-acquisition/modules/monitoring-dashboard/components/SystemMetrics.tsx
+// module: ui | layer: ui | role: component
+// summary: UI 组件
+
 /**
  * 系统指标卡片组件
  */

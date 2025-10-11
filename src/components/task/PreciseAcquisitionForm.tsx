@@ -1,3 +1,7 @@
+// src/components/task/PreciseAcquisitionForm.tsx
+// module: ui | layer: ui | role: component
+// summary: UI 组件
+
 import React, { useState } from 'react';
 import type { Platform } from '../../types';
 import { PlatformSelector, BalanceDisplay } from '../common';

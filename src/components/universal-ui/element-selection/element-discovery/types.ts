@@ -1,3 +1,7 @@
+// src/components/universal-ui/element-selection/element-discovery/types.ts
+// module: ui | layer: ui | role: component
+// summary: UI 组件
+
 /**
  * 元素发现功能的类型定义
  */

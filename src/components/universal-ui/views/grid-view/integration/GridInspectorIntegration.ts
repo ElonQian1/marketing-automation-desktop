@@ -1,3 +1,7 @@
+// src/components/universal-ui/views/grid-view/integration/GridInspectorIntegration.ts
+// module: ui | layer: ui | role: component
+// summary: UI 组件
+
 /**
  * GridInspectorIntegration.ts
  * 页面分析器智能策略集成示例

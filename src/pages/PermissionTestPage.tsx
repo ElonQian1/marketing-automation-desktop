@@ -1,3 +1,7 @@
+// src/pages/PermissionTestPage.tsx
+// module: ui | layer: ui | role: page
+// summary: 页面组件
+
 import { invoke } from '@tauri-apps/api/core';
 import React, { useState } from 'react';
 import { Typography, Space, Card, Row, Col, Input, Button, Alert, List, message } from 'antd';

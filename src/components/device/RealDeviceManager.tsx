@@ -1,3 +1,7 @@
+// src/components/device/RealDeviceManager.tsx
+// module: ui | layer: ui | role: component
+// summary: UI 组件
+
 import React, { useEffect, useState } from 'react';
 import {
     Alert,

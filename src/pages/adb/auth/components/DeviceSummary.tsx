@@ -1,3 +1,7 @@
+// src/pages/adb/auth/components/DeviceSummary.tsx
+// module: ui | layer: ui | role: component
+// summary: UI 组件
+
 import React, { useMemo } from 'react';
 import { Space, Tag, Typography, List } from 'antd';
 import { Device, DeviceStatus } from '../../../../domain/adb';

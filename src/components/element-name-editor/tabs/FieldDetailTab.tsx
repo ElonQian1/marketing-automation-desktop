@@ -1,3 +1,7 @@
+// src/components/element-name-editor/tabs/FieldDetailTab.tsx
+// module: ui | layer: ui | role: component
+// summary: UI 组件
+
 import React from 'react';
 import { Alert, Col, Row } from 'antd';
 import { UIElement } from '../../../modules/ElementNameMapper';

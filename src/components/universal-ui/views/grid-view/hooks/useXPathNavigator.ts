@@ -1,3 +1,7 @@
+// src/components/universal-ui/views/grid-view/hooks/useXPathNavigator.ts
+// module: ui | layer: ui | role: component
+// summary: UI 组件
+
 import { useCallback, useState } from 'react';
 import { UiNode } from '../types';
 import { findAllByPredicateXPath, findByPredicateXPath, findByXPathRoot } from '../utils';

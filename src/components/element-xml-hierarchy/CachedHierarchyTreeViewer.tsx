@@ -1,3 +1,7 @@
+// src/components/element-xml-hierarchy/CachedHierarchyTreeViewer.tsx
+// module: ui | layer: ui | role: component
+// summary: UI 组件
+
 /**
  * XML层级树查看器 - 基于Universal UI缓存数据
  * 显示缓存XML页面的UI元素层级结构，支持展开/收缩

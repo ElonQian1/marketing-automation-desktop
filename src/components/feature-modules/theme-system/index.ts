@@ -1,3 +1,7 @@
+// src/components/feature-modules/theme-system/index.ts
+// module: ui | layer: ui | role: component
+// summary: UI 组件
+
 /**
  * 主题系统模块完整导出
  * 基于原生 Ant Design 5 暗黑模式的主题管理系统

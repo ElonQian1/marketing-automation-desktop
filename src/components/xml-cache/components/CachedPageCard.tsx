@@ -1,3 +1,7 @@
+// src/components/xml-cache/components/CachedPageCard.tsx
+// module: ui | layer: ui | role: component
+// summary: UI 组件
+
 import React from "react";
 import { Dropdown, MenuProps, Button, Typography } from "antd";
 import ConfirmPopover from "@/components/universal-ui/common-popover/ConfirmPopover";

@@ -1,3 +1,7 @@
+// src/pages/adb/auth/utils/validators.ts
+// module: ui | layer: ui | role: page
+// summary: 页面组件
+
 // 校验工具：保持纯函数，易于单元测试
 
 export const isValidHostPort = (value?: string): boolean => {

@@ -1,3 +1,7 @@
+// src/components/universal-ui/strategy-selector/StrategyScoreBadge.tsx
+// module: ui | layer: ui | role: component
+// summary: UI 组件
+
 /**
  * 策略评分徽章组件
  * 显示策略的评分信息和推荐状态

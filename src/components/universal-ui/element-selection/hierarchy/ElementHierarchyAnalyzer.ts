@@ -1,3 +1,7 @@
+// src/components/universal-ui/element-selection/hierarchy/ElementHierarchyAnalyzer.ts
+// module: ui | layer: ui | role: component
+// summary: UI 组件
+
 /**
  * 元素层次分析器
  * 负责从UIElement列表中构建层次树结构

@@ -1,3 +1,7 @@
+// src/components/adapters/grid-layout/GridLayoutSelectorAdapter.tsx
+// module: ui | layer: ui | role: component
+// summary: UI 组件
+
 /**
  * 网格布局选择器适配器 - Employee D 架构
  * 

@@ -1,3 +1,7 @@
+// src/components/universal-ui/views/visual-view/types/visual-types.ts
+// module: ui | layer: ui | role: component
+// summary: UI 组件
+
 // VisualElementView 相关桥接类型
 // 复用统一的 VisualUIElement 类型，避免重复定义造成不兼容
 export type { VisualUIElement } from "../../../types";

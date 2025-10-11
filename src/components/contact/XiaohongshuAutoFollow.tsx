@@ -1,3 +1,7 @@
+// src/components/contact/XiaohongshuAutoFollow.tsx
+// module: ui | layer: ui | role: component
+// summary: UI 组件
+
 // DEPRECATED SHIM COMPONENT: Placeholder to satisfy re-exports and legacy pages.
 // TODO: Remove after replacing with the unified automation flow.
 

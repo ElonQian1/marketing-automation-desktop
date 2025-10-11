@@ -1,3 +1,7 @@
+// src/components/universal-ui/element-selection/element-discovery/hooks/useElementVisualization.ts
+// module: ui | layer: ui | role: component
+// summary: UI 组件
+
 import { useMemo, useState, useCallback } from 'react';
 import type { UIElement } from '../../../../../api/universal-ui';
 import { BoundaryDetector } from '../utils/boundaryDetector';

@@ -1,3 +1,7 @@
+// src/components/adapters/icons/IconAdapter.tsx
+// module: ui | layer: ui | role: component
+// summary: UI 组件
+
 /**
  * Icon适配器 - AntD Icons 封装
  * 

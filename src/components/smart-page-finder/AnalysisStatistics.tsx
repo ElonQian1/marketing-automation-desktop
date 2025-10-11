@@ -1,3 +1,7 @@
+// src/components/smart-page-finder/AnalysisStatistics.tsx
+// module: ui | layer: ui | role: component
+// summary: UI 组件
+
 /**
  * 分析统计组件
  * 显示页面分析的统计信息和性能数据

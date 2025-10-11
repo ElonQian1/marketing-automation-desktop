@@ -1,3 +1,7 @@
+// src/components/universal-ui/views/grid-view/hooks/useResizableSplit.ts
+// module: ui | layer: ui | role: component
+// summary: UI 组件
+
 import { useCallback, useEffect, useRef, useState } from 'react';
 
 /**

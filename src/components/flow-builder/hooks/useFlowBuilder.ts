@@ -1,3 +1,7 @@
+// src/components/flow-builder/hooks/useFlowBuilder.ts
+// module: ui | layer: ui | role: component
+// summary: UI 组件
+
 import { useState, useCallback } from 'react';
 import { message } from 'antd';
 import { FlowTemplate, FlowStepTemplate, FlowBuilderStep, APP_TEMPLATES } from '../../universal-ui/script-builder/services/flowTemplates';

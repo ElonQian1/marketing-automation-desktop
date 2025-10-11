@@ -1,3 +1,7 @@
+// src/components/universal-ui/views/mirror-view/CapabilityChips.tsx
+// module: ui | layer: ui | role: component
+// summary: UI 组件
+
 import React from 'react';
 import { Space, Tag, Tooltip } from 'antd';
 import type { ScrcpyCapabilities } from '../../../../application/services/ScrcpyApplicationService';

@@ -1,3 +1,7 @@
+// src/components/ui/design-tokens/typography.ts
+// module: ui | layer: ui | role: component
+// summary: UI 组件
+
 /**
  * Design Tokens - Typography
  * 统一的字体设计令牌，确保文字体系一致性

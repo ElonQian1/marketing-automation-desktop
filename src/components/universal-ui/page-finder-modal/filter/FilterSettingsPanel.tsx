@@ -1,3 +1,7 @@
+// src/components/universal-ui/page-finder-modal/filter/FilterSettingsPanel.tsx
+// module: ui | layer: ui | role: component
+// summary: UI 组件
+
 import React, { useEffect } from 'react';
 import { Drawer, Form, Input, InputNumber, Switch, Alert, Space, Button } from 'antd';
 import type { VisualFilterConfig } from '../../types';

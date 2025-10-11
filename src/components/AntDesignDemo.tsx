@@ -1,3 +1,7 @@
+// src/components/AntDesignDemo.tsx
+// module: ui | layer: ui | role: component
+// summary: UI 组件
+
 import React from 'react';
 import { Layout, Card, Typography, App } from 'antd';
 

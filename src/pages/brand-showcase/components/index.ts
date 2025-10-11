@@ -1,3 +1,7 @@
+// src/pages/brand-showcase/components/index.ts
+// module: ui | layer: ui | role: component
+// summary: UI 组件
+
 /**
  * BrandShowcase 页面组件导出
  */

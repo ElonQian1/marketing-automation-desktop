@@ -1,3 +1,7 @@
+// src/components/contact/VcfImporter.tsx
+// module: ui | layer: ui | role: component
+// summary: UI 组件
+
 import { AlertTriangle, CheckCircle, FileDown, Play, Smartphone, Upload, Users } from 'lucide-react';
 import React, { useState } from 'react';
 import { Contact, VcfImportResult } from '../../types';

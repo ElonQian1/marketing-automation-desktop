@@ -1,3 +1,7 @@
+// src/pages/precise-acquisition/modules/reply-management/EnhancedReplyTaskManager.tsx
+// module: ui | layer: ui | role: page
+// summary: 页面组件
+
 /**
  * 增强版回复任务管理组件
  * 显示待回复的评论列表，支持视频超链接、更好的定位功能，优化回复流程

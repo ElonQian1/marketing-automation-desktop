@@ -1,3 +1,7 @@
+// src/pages/brand-showcase/components/ButtonDemo.tsx
+// module: ui | layer: ui | role: component
+// summary: UI 组件
+
 /**
  * 按钮组件演示区
  */

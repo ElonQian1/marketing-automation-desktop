@@ -1,3 +1,7 @@
+// src/pages/SmartScriptBuilderPage/components/step-edit-modal/index.ts
+// module: ui | layer: ui | role: component
+// summary: UI 组件
+
 /**
  * Step Edit Modal 模块化导出
  * 提供简化的步骤编辑模态框和相关组件

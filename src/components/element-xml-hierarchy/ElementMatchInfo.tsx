@@ -1,3 +1,7 @@
+// src/components/element-xml-hierarchy/ElementMatchInfo.tsx
+// module: ui | layer: ui | role: component
+// summary: UI 组件
+
 /**
  * 元素匹配信息组件
  * 显示当前元素与XML页面中匹配元素的详细信息

@@ -1,3 +1,7 @@
+// src/components/universal-ui/views/tree-view/components/TreeStatsPanel.tsx
+// module: ui | layer: ui | role: component
+// summary: UI 组件
+
 /**
  * UIElementTree 统计面板组件
  * 显示树形结构的详细统计信息

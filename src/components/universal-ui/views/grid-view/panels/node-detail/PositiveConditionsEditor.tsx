@@ -1,3 +1,7 @@
+// src/components/universal-ui/views/grid-view/panels/node-detail/PositiveConditionsEditor.tsx
+// module: ui | layer: ui | role: component
+// summary: UI 组件
+
 import React, { useEffect, useRef, useState } from 'react';
 import styles from '../../GridElementView.module.css';
 

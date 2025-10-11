@@ -1,3 +1,7 @@
+// src/components/universal-ui/views/visual-view/utils/screenGeometry.ts
+// module: ui | layer: ui | role: component
+// summary: UI 组件
+
 // 轻量屏幕几何工具：解析 XML 视口尺寸与计算 contain 绘制区域
 
 export interface ViewportSize {

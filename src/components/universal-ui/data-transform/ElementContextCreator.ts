@@ -1,3 +1,7 @@
+// src/components/universal-ui/data-transform/ElementContextCreator.ts
+// module: ui | layer: ui | role: component
+// summary: UI 组件
+
 /**
  * 元素上下文创建器
  * 负责为VisualUIElement创建完整的上下文信息

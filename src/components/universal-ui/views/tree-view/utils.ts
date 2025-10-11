@@ -1,3 +1,7 @@
+// src/components/universal-ui/views/tree-view/utils.ts
+// module: ui | layer: ui | role: component
+// summary: UI 组件
+
 import React from 'react';
 import { UIElement } from '../../../../api/universalUIAPI';
 import { TreeDataNode } from "antd";

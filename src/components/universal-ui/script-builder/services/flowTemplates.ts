@@ -1,3 +1,7 @@
+// src/components/universal-ui/script-builder/services/flowTemplates.ts
+// module: ui | layer: ui | role: component
+// summary: UI 组件
+
 // Flow 模板与类型：从 FlowScriptBuilder.tsx 抽离
 // 仅包含数据与类型；无 React 依赖
 import React from 'react';

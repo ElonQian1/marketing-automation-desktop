@@ -1,3 +1,7 @@
+// src/pages/precise-acquisition/modules/task-management/components/TaskExecutionCenter.tsx
+// module: ui | layer: ui | role: component
+// summary: UI 组件
+
 import React, { useState, useCallback } from 'react';
 import {
   Card,

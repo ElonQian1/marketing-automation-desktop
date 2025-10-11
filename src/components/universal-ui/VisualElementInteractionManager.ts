@@ -1,3 +1,7 @@
+// src/components/universal-ui/VisualElementInteractionManager.ts
+// module: ui | layer: ui | role: component
+// summary: UI 组件
+
 import { useState, useCallback, useRef, useEffect } from 'react';
 import type { UIElement } from '../../api/universalUIAPI';
 

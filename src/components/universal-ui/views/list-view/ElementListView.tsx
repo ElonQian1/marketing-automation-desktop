@@ -1,3 +1,7 @@
+// src/components/universal-ui/views/list-view/ElementListView.tsx
+// module: ui | layer: ui | role: component
+// summary: UI 组件
+
 /**
  * 列表视图组件
  * 以现代化卡片列表形式展示页面元素

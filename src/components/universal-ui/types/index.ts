@@ -1,3 +1,7 @@
+// src/components/universal-ui/types/index.ts
+// module: ui | layer: ui | role: component
+// summary: UI 组件
+
 /**
  * Universal UI 组件共享类型定义
  * 为可视化视图、列表视图、树形视图提供统一的数据接口

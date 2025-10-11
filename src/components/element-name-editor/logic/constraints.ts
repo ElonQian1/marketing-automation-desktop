@@ -1,3 +1,7 @@
+// src/components/element-name-editor/logic/constraints.ts
+// module: ui | layer: ui | role: component
+// summary: UI 组件
+
 // 抽离匹配约束配置与辅助方法
 // 与 UI 解耦，使 ElementNameEditor 主文件更精简
 

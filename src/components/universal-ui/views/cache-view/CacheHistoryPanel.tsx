@@ -1,3 +1,7 @@
+// src/components/universal-ui/views/cache-view/CacheHistoryPanel.tsx
+// module: ui | layer: ui | role: component
+// summary: UI 组件
+
 import React from "react";
 import { Card } from "antd";
 import { XmlCachePageSelector } from "../../../xml-cache/XmlCachePageSelector";

@@ -1,3 +1,7 @@
+// src/components/universal-ui/views/tree-view/utils/elementUtils.ts
+// module: ui | layer: ui | role: component
+// summary: UI 组件
+
 /**
  * UIElementTree 工具函数
  * 处理元素的层级关系、质量评估和树形结构构建

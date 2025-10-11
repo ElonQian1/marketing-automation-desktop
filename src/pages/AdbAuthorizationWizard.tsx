@@ -1,3 +1,7 @@
+// src/pages/AdbAuthorizationWizard.tsx
+// module: ui | layer: ui | role: page
+// summary: 页面组件
+
 import React from 'react';
 import { Alert, Card, Space } from 'antd';
 import { ExclamationCircleOutlined } from '@ant-design/icons';

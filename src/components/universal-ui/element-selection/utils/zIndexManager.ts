@@ -1,3 +1,7 @@
+// src/components/universal-ui/element-selection/utils/zIndexManager.ts
+// module: ui | layer: ui | role: component
+// summary: UI 组件
+
 /**
  * Z轴层级管理模块
  * 专门处理组件层级关系，避免遮挡问题

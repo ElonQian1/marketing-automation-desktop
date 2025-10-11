@@ -1,3 +1,7 @@
+// src/components/universal-ui/views/tree-view/components/TreeToolbar.tsx
+// module: ui | layer: ui | role: component
+// summary: UI 组件
+
 /**
  * UIElementTree 工具栏组件
  * 提供过滤、搜索、操作按钮等功能

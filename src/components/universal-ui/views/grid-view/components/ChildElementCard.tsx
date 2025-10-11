@@ -1,3 +1,7 @@
+// src/components/universal-ui/views/grid-view/components/ChildElementCard.tsx
+// module: ui | layer: ui | role: component
+// summary: UI 组件
+
 /**
  * 子元素卡片组件
  * 类似于元素列表的卡片样式，展示子元素的详细信息

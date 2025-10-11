@@ -1,3 +1,7 @@
+// src/components/ui/forms/FormField.tsx
+// module: ui | layer: ui | role: component
+// summary: UI 组件
+
 /**
  * 表单字段包装器组件
  * 统一的表单字段布局和样式

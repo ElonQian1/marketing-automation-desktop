@@ -1,3 +1,7 @@
+// src/components/universal-ui/element-selection/alternative-selection/AlternativeElementFinder.ts
+// module: ui | layer: ui | role: component
+// summary: UI 组件
+
 /**
  * 替代元素查找器
  * 负责为给定元素查找更适合自动化匹配的替代元素

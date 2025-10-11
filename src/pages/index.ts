@@ -1,3 +1,7 @@
+// src/pages/index.ts
+// module: ui | layer: ui | role: page
+// summary: 页面组件
+
 // 旧的员工页面（保留）
 export { EmployeePage } from "./EmployeePage";
 

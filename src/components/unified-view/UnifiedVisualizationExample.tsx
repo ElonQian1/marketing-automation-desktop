@@ -1,3 +1,7 @@
+// src/components/unified-view/UnifiedVisualizationExample.tsx
+// module: ui | layer: ui | role: component
+// summary: UI 组件
+
 /**
  * 统一可视化视图使用示例
  * 展示如何集成和使用新的统一可视化视图组件

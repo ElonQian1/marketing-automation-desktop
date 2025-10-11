@@ -1,3 +1,7 @@
+// src/pages/SmartScriptBuilderPage/helpers/normalizeSteps.ts
+// module: ui | layer: ui | role: page
+// summary: 页面组件
+
 import type { ExtendedSmartScriptStep } from "../../../types/loopScript";
 
 // 统一：将 smart_scroll 标准化为 swipe；为 tap 缺省坐标/按压时长兜底

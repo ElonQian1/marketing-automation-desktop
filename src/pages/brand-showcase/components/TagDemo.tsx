@@ -1,3 +1,7 @@
+// src/pages/brand-showcase/components/TagDemo.tsx
+// module: ui | layer: ui | role: component
+// summary: UI 组件
+
 /**
  * 标签组件演示区
  */

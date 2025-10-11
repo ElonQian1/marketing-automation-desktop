@@ -1,3 +1,7 @@
+// src/components/VisualPageAnalyzer.tsx
+// module: ui | layer: ui | role: component
+// summary: UI 组件
+
 import React, { useState } from 'react';
 import { Modal, Button, Input, Card, Tooltip, Badge, Switch, Space, Typography, Alert } from 'antd';
 import { 

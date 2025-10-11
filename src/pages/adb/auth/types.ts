@@ -1,3 +1,7 @@
+// src/pages/adb/auth/types.ts
+// module: ui | layer: ui | role: page
+// summary: 页面组件
+
 export enum AuthStep {
   PREREQUISITES = 'prereq',
   USB_TRUST = 'usb',

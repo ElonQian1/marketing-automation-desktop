@@ -1,3 +1,7 @@
+// src/pages/app-launch-test/AppLaunchTestPageModular.tsx
+// module: ui | layer: ui | role: page
+// summary: 页面组件
+
 import React, { useState, useEffect } from 'react';
 import { invoke } from '@tauri-apps/api/core';
 import { theme } from 'antd';

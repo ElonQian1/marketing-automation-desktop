@@ -1,3 +1,7 @@
+// src/components/universal-ui/views/grid-view/panels/node-detail/elementToStepHelper.ts
+// module: ui | layer: ui | role: component
+// summary: UI 组件
+
 /**
  * 统一的元素回填到步骤的工具模块
  * 

@@ -1,3 +1,7 @@
+// src/components/business/layouts/BusinessPageLayout.tsx
+// module: ui | layer: ui | role: component
+// summary: UI 组件
+
 import React from 'react';
 import { Space, theme } from 'antd';
 import type { SizeType } from 'antd/es/config-provider/SizeContext';

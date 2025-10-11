@@ -1,3 +1,7 @@
+// src/pages/SmartScriptBuilderPage/helpers/elementLocatorBuilder.ts
+// module: ui | layer: ui | role: page
+// summary: 页面组件
+
 import type { ElementLocator } from '../../../types/selfContainedScript';
 import { parseBoundsString, rectToBoundsString } from '../../../components/universal-ui/utils/bounds';
 

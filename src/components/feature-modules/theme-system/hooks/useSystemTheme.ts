@@ -1,3 +1,7 @@
+// src/components/feature-modules/theme-system/hooks/useSystemTheme.ts
+// module: ui | layer: ui | role: component
+// summary: UI 组件
+
 /**
  * 系统主题检测 Hook
  * 提供系统主题检测和监听功能

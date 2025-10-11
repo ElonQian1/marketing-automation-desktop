@@ -1,3 +1,7 @@
+// src/components/adapters/grid/GridAdapter.tsx
+// module: ui | layer: ui | role: component
+// summary: UI 组件
+
 /**
  * Grid适配器 - AntD Row/Col 封装
  * 

@@ -1,3 +1,7 @@
+// src/components/ui/layouts/PageContainer.tsx
+// module: ui | layer: ui | role: component
+// summary: UI 组件
+
 /**
  * 页面容器组件
  * 提供统一的页面布局和间距

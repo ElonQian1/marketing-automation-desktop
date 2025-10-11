@@ -1,3 +1,7 @@
+// src/components/index.ts
+// module: ui | layer: ui | role: component
+// summary: UI 组件
+
 // 旧的员工组件（保留以防需要）
 export { EmployeeForm } from './EmployeeForm';
 export { EmployeeTable } from './EmployeeTable';

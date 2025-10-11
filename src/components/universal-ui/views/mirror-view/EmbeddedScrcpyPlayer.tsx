@@ -1,3 +1,7 @@
+// src/components/universal-ui/views/mirror-view/EmbeddedScrcpyPlayer.tsx
+// module: ui | layer: ui | role: component
+// summary: UI 组件
+
 import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { Card, Typography, Space, Input, Button, Alert } from 'antd';
 import { useWsConnection } from './embedded/useWsConnection';

@@ -1,3 +1,7 @@
+// src/pages/adb/HeaderToolbar.tsx
+// module: ui | layer: ui | role: page
+// summary: 页面组件
+
 import React from 'react';
 import { Space, Button, Tooltip } from 'antd';
 import { ReloadOutlined, ThunderboltOutlined, BugOutlined, KeyOutlined } from '@ant-design/icons';

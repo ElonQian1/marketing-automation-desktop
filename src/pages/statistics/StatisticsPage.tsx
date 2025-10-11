@@ -1,3 +1,7 @@
+// src/pages/statistics/StatisticsPage.tsx
+// module: ui | layer: ui | role: page
+// summary: 页面组件
+
 import React, { useState, useEffect } from 'react';
 import { Card, Typography, Row, Col, Statistic, Progress, Alert, Space } from 'antd';
 import type { FollowStatistics } from '../../types';

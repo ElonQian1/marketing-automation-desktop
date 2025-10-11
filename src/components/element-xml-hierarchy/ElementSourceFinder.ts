@@ -1,3 +1,7 @@
+// src/components/element-xml-hierarchy/ElementSourceFinder.ts
+// module: ui | layer: ui | role: component
+// summary: UI 组件
+
 /**
  * 元素来源查找器
  * 智能查找元素在缓存页面中的最佳匹配

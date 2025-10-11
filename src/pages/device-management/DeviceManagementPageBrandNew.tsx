@@ -1,4 +1,8 @@
 // src/pages/device-management/DeviceManagementPageBrandNew.tsx
+// module: ui | layer: ui | role: page
+// summary: 页面组件
+
+// src/pages/device-management/DeviceManagementPageBrandNew.tsx
 // 设备管理页面 - 全新品牌化版本
 // 使用 layout + patterns + ui + adapters 组合架构，遵循品牌设计系统
 

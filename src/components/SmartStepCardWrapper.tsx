@@ -1,3 +1,7 @@
+// src/components/SmartStepCardWrapper.tsx
+// module: ui | layer: ui | role: component
+// summary: UI 组件
+
 /**
  * 智能步骤卡片包装器
  * - 统一使用 DraggableStepCard 作为唯一样式实现（移除增强卡）

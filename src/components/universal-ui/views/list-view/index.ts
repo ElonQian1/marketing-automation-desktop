@@ -1,3 +1,7 @@
+// src/components/universal-ui/views/list-view/index.ts
+// module: ui | layer: ui | role: component
+// summary: UI 组件
+
 /**
  * 列表视图模块入口
  */

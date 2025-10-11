@@ -1,3 +1,7 @@
+// src/pages/precise-acquisition/modules/analytics-reporting/AnalyticsService.ts
+// module: ui | layer: ui | role: page
+// summary: 页面组件
+
 /**
  * 分析报告服务
  * 提供数据收集、分析和报告生成功能

@@ -1,3 +1,7 @@
+// src/components/feature-modules/script-builder/hooks/useScriptBuilderState.ts
+// module: ui | layer: ui | role: component
+// summary: UI 组件
+
 /**
  * 脚本构建器状态管理 Hook
  * 提供脚本创建、编辑、执行等状态管理功能

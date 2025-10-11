@@ -1,3 +1,7 @@
+// src/pages/contact-automation-sindre/components/AutomationResults.tsx
+// module: ui | layer: ui | role: component
+// summary: UI 组件
+
 import React from 'react';
 import { Card, Col, Row, Statistic, Typography } from 'antd';
 import { ThunderboltOutlined, FileAddOutlined, HeartOutlined } from '@ant-design/icons';

@@ -1,3 +1,7 @@
+// src/components/universal-ui/element-selection/hierarchy/ElementHierarchyAnalyzer.test.ts
+// module: ui | layer: ui | role: component
+// summary: UI 组件
+
 /**
  * ElementHierarchyAnaly    {
       id: 'element_1',

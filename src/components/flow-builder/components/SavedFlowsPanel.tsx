@@ -1,3 +1,7 @@
+// src/components/flow-builder/components/SavedFlowsPanel.tsx
+// module: ui | layer: ui | role: component
+// summary: UI 组件
+
 import React, { useMemo } from 'react';
 import { Card, Typography } from 'antd';
 import { loadSavedFlows } from '../services/flowPersistence';

@@ -1,3 +1,7 @@
+// src/pages/precise-acquisition/modules/monitoring-dashboard/components/DeviceStatusCard.tsx
+// module: ui | layer: ui | role: component
+// summary: UI 组件
+
 /**
  * 设备状态卡片组件
  */

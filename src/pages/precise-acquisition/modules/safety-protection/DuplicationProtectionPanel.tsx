@@ -1,3 +1,7 @@
+// src/pages/precise-acquisition/modules/safety-protection/DuplicationProtectionPanel.tsx
+// module: ui | layer: ui | role: page
+// summary: 页面组件
+
 /**
  * 查重保护服务
  * 提供跨设备的查重机制，防止重复关注和回复

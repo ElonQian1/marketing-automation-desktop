@@ -1,3 +1,7 @@
+// src/pages/adb-layout-comparison/components/DesignPrincipleAlert.tsx
+// module: ui | layer: ui | role: component
+// summary: UI 组件
+
 import React from 'react';
 import { Alert } from 'antd';
 

@@ -1,3 +1,7 @@
+// src/components/universal-ui/views/visual-view/utils/calibrationStorage.ts
+// module: ui | layer: ui | role: component
+// summary: UI 组件
+
 /**
  * 校准参数持久化存储模块
  * 

@@ -1,3 +1,7 @@
+// src/components/universal-ui/views/grid-view/locatorAdvisor.ts
+// module: ui | layer: ui | role: component
+// summary: UI 组件
+
 import type { UiNode } from './types';
 import { buildXPath } from '../../../../utils/xpath';
 

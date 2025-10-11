@@ -1,3 +1,7 @@
+// src/pages/SmartScriptBuilderPage/components/loop-management/useLoopManagement.ts
+// module: ui | layer: ui | role: component
+// summary: UI 组件
+
 import { useState, useCallback } from "react";
 import type { ExtendedSmartScriptStep, LoopConfig } from "../../../../types/loopScript";
 import { LoopManager } from "./LoopManager";

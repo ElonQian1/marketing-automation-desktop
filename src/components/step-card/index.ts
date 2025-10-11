@@ -1,3 +1,7 @@
+// src/components/step-card/index.ts
+// module: ui | layer: ui | role: component
+// summary: UI 组件
+
 export { MatchingStrategyTag } from './MatchingStrategyTag';
 export type { MatchingStrategy, MatchingStrategyTagProps } from './MatchingStrategyTag';
 

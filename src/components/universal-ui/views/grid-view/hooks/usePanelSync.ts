@@ -1,3 +1,7 @@
+// src/components/universal-ui/views/grid-view/hooks/usePanelSync.ts
+// module: ui | layer: ui | role: component
+// summary: UI 组件
+
 import { useCallback, useState } from 'react';
 import type { UiNode } from '../types';
 

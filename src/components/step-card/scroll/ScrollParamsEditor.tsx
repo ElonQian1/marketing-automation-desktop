@@ -1,3 +1,7 @@
+// src/components/step-card/scroll/ScrollParamsEditor.tsx
+// module: ui | layer: ui | role: component
+// summary: UI 组件
+
 import React from 'react';
 import { Space, InputNumber, Tooltip } from 'antd';
 

@@ -1,3 +1,7 @@
+// src/pages/SmartScriptBuilderPage/helpers/parameterRenderers.tsx
+// module: ui | layer: ui | role: page
+// summary: 页面组件
+
 import React from "react";
 import { Input, InputNumber, Switch, Select, Slider } from "antd";
 

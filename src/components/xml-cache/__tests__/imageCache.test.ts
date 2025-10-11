@@ -1,3 +1,7 @@
+// src/components/xml-cache/__tests__/imageCache.test.ts
+// module: ui | layer: ui | role: component
+// summary: UI 组件
+
 import { describe, it, expect, beforeEach } from 'vitest';
 import {
   setImageCacheCapacity,

@@ -1,3 +1,7 @@
+// src/pages/precise-acquisition/modules/follow-executor/FollowTaskExecutor.tsx
+// module: ui | layer: ui | role: page
+// summary: 页面组件
+
 /**
  * 关注任务执行器
  * 支持自动关注功能和设备分配，包含查重和安全保护机制

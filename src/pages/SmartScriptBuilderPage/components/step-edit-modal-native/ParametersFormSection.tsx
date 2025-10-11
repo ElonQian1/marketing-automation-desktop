@@ -1,3 +1,7 @@
+// src/pages/SmartScriptBuilderPage/components/step-edit-modal-native/ParametersFormSection.tsx
+// module: ui | layer: ui | role: component
+// summary: UI 组件
+
 import React from "react";
 import { Form, Input, Collapse, Space, Typography, Row, Col } from "antd";
 import type { FormInstance } from "antd/es/form";

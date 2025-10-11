@@ -1,3 +1,7 @@
+// src/components/universal-ui/views/tree-view/index.ts
+// module: ui | layer: ui | role: component
+// summary: UI 组件
+
 /**
  * UIElementTree 组件导出
  */

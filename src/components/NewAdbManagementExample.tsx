@@ -1,3 +1,7 @@
+// src/components/NewAdbManagementExample.tsx
+// module: ui | layer: ui | role: component
+// summary: UI 组件
+
 import React from 'react';
 import { Card, Button, Typography, Space, Tag, Alert, List, Statistic, Row, Col } from 'antd';
 import { 

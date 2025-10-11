@@ -1,3 +1,7 @@
+// src/pages/AdbPathTestPage.tsx
+// module: ui | layer: ui | role: page
+// summary: 页面组件
+
 import { Alert, Button, Card, Space, Typography } from 'antd';
 import React, { useMemo, useState } from 'react';
 import DevicesResultCard from './adb-path-test/components/DevicesResultCard';

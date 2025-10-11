@@ -1,3 +1,7 @@
+// src/components/flow-builder/components/FlowDetailsPanel.tsx
+// module: ui | layer: ui | role: component
+// summary: UI 组件
+
 import React from 'react';
 import { Card, List, Button, Tooltip, Typography } from 'antd';
 import { DeleteOutlined, BranchesOutlined } from '@ant-design/icons';

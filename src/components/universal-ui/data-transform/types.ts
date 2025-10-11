@@ -1,3 +1,7 @@
+// src/components/universal-ui/data-transform/types.ts
+// module: ui | layer: ui | role: component
+// summary: UI 组件
+
 /**
  * 数据转换模块类型定义
  */

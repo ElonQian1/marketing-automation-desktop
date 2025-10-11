@@ -1,3 +1,7 @@
+// src/components/QuickPhoneMirror.tsx
+// module: ui | layer: ui | role: component
+// summary: UI 组件
+
 /**
  * 快速手机镜像组件
  * 提供一键启动手机屏幕镜像功能

@@ -1,3 +1,7 @@
+// src/pages/device-monitor/DeviceEventStream.tsx
+// module: ui | layer: ui | role: page
+// summary: 页面组件
+
 import React, { useEffect, useRef, useState } from 'react';
 import { Card, List, Tag } from 'antd';
 import type { DeviceChangeEvent } from '../../infrastructure/RealTimeDeviceTracker';

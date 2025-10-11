@@ -1,3 +1,7 @@
+// src/components/feature-modules/theme-system/components/ThemeConfigPanel.tsx
+// module: ui | layer: ui | role: component
+// summary: UI 组件
+
 /**
  * 主题配置面板组件
  * 提供主题自定义和高级配置功能

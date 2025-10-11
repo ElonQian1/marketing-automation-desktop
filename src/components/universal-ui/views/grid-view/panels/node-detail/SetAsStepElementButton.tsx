@@ -1,3 +1,7 @@
+// src/components/universal-ui/views/grid-view/panels/node-detail/SetAsStepElementButton.tsx
+// module: ui | layer: ui | role: component
+// summary: UI 组件
+
 /**
  * 统一的"设置为步骤元素"按钮组件
  * 

@@ -1,3 +1,7 @@
+// src/components/ui/card/Card.tsx
+// module: ui | layer: ui | role: component
+// summary: UI 组件
+
 
 /**
  * Card 组件 - 现代化卡片容器

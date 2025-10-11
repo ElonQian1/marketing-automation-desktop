@@ -1,3 +1,7 @@
+// src/components/universal-ui/element-selection/components/tokens.ts
+// module: ui | layer: ui | role: component
+// summary: UI 组件
+
 export interface PopoverActionTokens {
   gap: number;            // 间距（px）
   fontSize: number;       // 字号（px）

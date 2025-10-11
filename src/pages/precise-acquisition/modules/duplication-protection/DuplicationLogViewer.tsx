@@ -1,3 +1,7 @@
+// src/pages/precise-acquisition/modules/duplication-protection/DuplicationLogViewer.tsx
+// module: ui | layer: ui | role: page
+// summary: 页面组件
+
 /**
  * 查重日志查看器
  * 展示详细的查重检测历史和事件记录

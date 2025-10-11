@@ -1,3 +1,7 @@
+// src/components/adapters/interaction/InteractionSelectorAdapter.tsx
+// module: ui | layer: ui | role: component
+// summary: UI 组件
+
 /**
  * 交互选择器适配器 - Employee D 架构
  * 

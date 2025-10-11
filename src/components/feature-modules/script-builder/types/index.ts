@@ -1,3 +1,7 @@
+// src/components/feature-modules/script-builder/types/index.ts
+// module: ui | layer: ui | role: component
+// summary: UI 组件
+
 /**
  * 脚本构建器模块类型定义
  * 保持文件大小 < 500行，模块化管理类型

@@ -1,3 +1,7 @@
+// src/components/element-name-editor/ElementNameEditor.tsx
+// module: ui | layer: ui | role: component
+// summary: UI 组件
+
 /**
  * 元素名称编辑器组件
  * 提供用户友好的界面来修改元素名称和配置匹配规则

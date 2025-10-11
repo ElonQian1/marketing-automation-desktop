@@ -1,3 +1,7 @@
+// src/components/adapters/date-picker/DatePickerAdapter.tsx
+// module: ui | layer: ui | role: component
+// summary: UI 组件
+
 import React from "react";
 import { DatePicker } from "antd";
 

@@ -1,3 +1,7 @@
+// src/components/universal-ui/views/grid-view/panels/LocatorAdvisorPanel.tsx
+// module: ui | layer: ui | role: component
+// summary: UI 组件
+
 import React, { useMemo, useState } from 'react';
 import styles from "../GridElementView.module.css";
 import type { UiNode } from "../types";

@@ -1,3 +1,7 @@
+// src/components/universal-ui/element-selection/ElementSelectionPopover.tsx
+// module: ui | layer: ui | role: component
+// summary: UI 组件
+
 // 元素选择气泡组件（稳定版）
 // 说明：提供默认导出与具名导出 ElementSelectionPopover，避免导入歧义
 

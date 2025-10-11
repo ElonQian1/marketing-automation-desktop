@@ -1,3 +1,7 @@
+// src/components/universal-ui/views/tree-view/components/TreeNode.tsx
+// module: ui | layer: ui | role: component
+// summary: UI 组件
+
 /**
  * UIElementTree 树节点组件
  * 单个树节点的渲染和交互逻辑

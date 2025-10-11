@@ -1,3 +1,7 @@
+// src/components/element-name-editor/tabs/uiTokens.ts
+// module: ui | layer: ui | role: component
+// summary: UI 组件
+
 // 统一的 UI 令牌（仅适用于 element-name-editor 模块下的 tabs）
 // 若后续在其它模块通用，可再上移至更高层级 tokens 文件
 

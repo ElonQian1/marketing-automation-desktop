@@ -1,3 +1,7 @@
+// src/components/device/RealTimeDeviceMonitor.tsx
+// module: ui | layer: ui | role: component
+// summary: UI 组件
+
 import React from 'react';
 import { Card, Tag, Button, Space, List, Statistic, Row, Col, Alert, Typography, theme } from 'antd';
 import { 

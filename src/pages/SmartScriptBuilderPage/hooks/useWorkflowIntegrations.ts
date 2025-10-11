@@ -1,3 +1,7 @@
+// src/pages/SmartScriptBuilderPage/hooks/useWorkflowIntegrations.ts
+// module: ui | layer: ui | role: page
+// summary: 页面组件
+
 import { useCallback, useRef } from "react";
 import { message } from "antd";
 import type { FormInstance } from "antd";

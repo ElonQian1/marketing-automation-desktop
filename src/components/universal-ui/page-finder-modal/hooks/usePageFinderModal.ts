@@ -1,3 +1,7 @@
+// src/components/universal-ui/page-finder-modal/hooks/usePageFinderModal.ts
+// module: ui | layer: ui | role: component
+// summary: UI 组件
+
 /**
  * Page Finder Modal 主要状态管理 Hook
  * 从 UniversalPageFinderModal.tsx 中提取的状态逻辑

@@ -1,3 +1,7 @@
+// src/components/universal-ui/element-selection/element-discovery/ElementDiscoveryDebugInfo.tsx
+// module: ui | layer: ui | role: component
+// summary: UI 组件
+
 /**
  * 元素发现调试信息组件
  * 显示层次结构分析的详细信息，帮助调试子元素发现问题

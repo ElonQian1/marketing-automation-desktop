@@ -1,3 +1,7 @@
+// src/pages/adb/auth/useAuthWizard.ts
+// module: ui | layer: ui | role: page
+// summary: 页面组件
+
 import { useCallback, useMemo, useReducer } from 'react';
 import { useAdb } from '../../../application/hooks/useAdb';
 import { AuthAction, AuthState, AuthStatus, AuthStep, initialAuthState } from './types';

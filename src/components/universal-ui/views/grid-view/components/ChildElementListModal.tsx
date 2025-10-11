@@ -1,3 +1,7 @@
+// src/components/universal-ui/views/grid-view/components/ChildElementListModal.tsx
+// module: ui | layer: ui | role: component
+// summary: UI 组件
+
 /**
  * 子元素列表弹窗组件
  * 在可视化视图中点击元素时显示，展示该元素的所有子元素

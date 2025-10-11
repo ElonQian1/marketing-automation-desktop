@@ -1,3 +1,7 @@
+// src/components/LoopEndCard.tsx
+// module: ui | layer: ui | role: component
+// summary: UI 组件
+
 // 循环结束卡片组件
 
 import React, { useState } from 'react';

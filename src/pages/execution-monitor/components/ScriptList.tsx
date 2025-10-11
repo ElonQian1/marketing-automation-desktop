@@ -1,3 +1,7 @@
+// src/pages/execution-monitor/components/ScriptList.tsx
+// module: ui | layer: ui | role: component
+// summary: UI 组件
+
 import React from 'react';
 import { Card, List, Button, Space, Typography, Divider, Tag, Row, Col } from 'antd';
 import { PlayCircleOutlined } from '@ant-design/icons';

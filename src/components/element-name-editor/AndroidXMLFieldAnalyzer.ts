@@ -1,3 +1,7 @@
+// src/components/element-name-editor/AndroidXMLFieldAnalyzer.ts
+// module: ui | layer: ui | role: component
+// summary: UI 组件
+
 /**
  * XML字段分析器
  * 基于Android XML UI元素实际提供的字段进行分析和配置

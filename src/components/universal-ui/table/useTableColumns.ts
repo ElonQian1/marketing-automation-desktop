@@ -1,3 +1,7 @@
+// src/components/universal-ui/table/useTableColumns.ts
+// module: ui | layer: ui | role: component
+// summary: UI 组件
+
 /**
  * 统一的表格列管理Hook - 解决列设置与拖拽宽度冲突
  * 

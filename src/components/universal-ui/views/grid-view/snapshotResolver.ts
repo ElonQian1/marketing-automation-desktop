@@ -1,3 +1,7 @@
+// src/components/universal-ui/views/grid-view/snapshotResolver.ts
+// module: ui | layer: ui | role: component
+// summary: UI 组件
+
 import { useMemo } from 'react';
 import type { UiNode } from './types';
 import { parseUiAutomatorXml, attachParents, findByXPathRoot } from './utils';

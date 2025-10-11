@@ -1,3 +1,7 @@
+// src/components/universal-ui/views/tree-view/hooks/useVirtualRender.ts
+// module: ui | layer: ui | role: component
+// summary: UI 组件
+
 /**
  * UIElementTree 虚拟渲染 Hook
  * 处理大量元素的高性能渲染优化

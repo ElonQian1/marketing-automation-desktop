@@ -1,3 +1,7 @@
+// src/components/universal-ui/common-popover/ConfirmPopover.tsx
+// module: ui | layer: ui | role: component
+// summary: UI 组件
+
 import React from 'react';
 import { Popconfirm } from 'antd';
 import type { PopconfirmProps } from 'antd';
@@ -69,7 +73,7 @@ const ConfirmPopover: React.FC<ConfirmPopoverProps> = (props) => {
     } catch (err) {
       // no-op safeguard
       if (process.env.NODE_ENV === 'development') {
-        // eslint-disable-next-line no-console
+         
         console.error('[ConfirmPopover] onOpenChange error:', err);
       }
     }

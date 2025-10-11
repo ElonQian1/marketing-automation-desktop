@@ -1,3 +1,7 @@
+// src/components/universal-ui/views/grid-view/panels/node-detail/responsive/constants.ts
+// module: ui | layer: ui | role: component
+// summary: UI 组件
+
 /**
  * 🎨 响应式设计常量和断点配置
  * 

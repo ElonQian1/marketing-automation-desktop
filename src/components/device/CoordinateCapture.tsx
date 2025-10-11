@@ -1,3 +1,7 @@
+// src/components/device/CoordinateCapture.tsx
+// module: ui | layer: ui | role: component
+// summary: UI 组件
+
 import React, { useState, useRef, useEffect } from 'react';
 import { invoke } from '@tauri-apps/api/core';
 import {

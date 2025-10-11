@@ -1,3 +1,7 @@
+// src/components/common/BalanceDisplay.tsx
+// module: ui | layer: ui | role: component
+// summary: UI 组件
+
 import React from 'react';
 import { Card, Typography, Spin } from 'antd';
 import { WalletOutlined } from '@ant-design/icons';

@@ -1,3 +1,7 @@
+// src/components/universal-ui/analyzer/index.ts
+// module: ui | layer: ui | role: component
+// summary: UI 组件
+
 /**
  * 通用UI元素智能分析器 - 模块导出
  */

@@ -1,3 +1,7 @@
+// src/components/universal-ui/views/grid-view/panels/node-detail/components/HiddenElementParentPreset.tsx
+// module: ui | layer: ui | role: component
+// summary: UI 组件
+
 /**
  * 隐藏元素父查找策略预设组件
  * 当用户选择隐藏元素时，提供"查找可点击父元素"的快速操作

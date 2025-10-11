@@ -1,3 +1,7 @@
+// src/pages/AdbAuthorizationWizard/PhoneGuidance.tsx
+// module: ui | layer: ui | role: page
+// summary: 页面组件
+
 import React from 'react';
 import { Alert, Typography } from 'antd';
 import type { PhoneGuidanceProps } from './types';

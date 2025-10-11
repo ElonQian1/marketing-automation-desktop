@@ -1,3 +1,7 @@
+// src/pages/SmartScriptBuilderPage/components/step-edit-modal-native/StepEditModalNative.tsx
+// module: ui | layer: ui | role: component
+// summary: UI 组件
+
 import React from "react";
 import { Modal, Form, Button, Space, Typography } from "antd";
 import { ActionConfigSection } from "./ActionConfigSection";

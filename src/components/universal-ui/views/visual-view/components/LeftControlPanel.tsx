@@ -1,3 +1,7 @@
+// src/components/universal-ui/views/visual-view/components/LeftControlPanel.tsx
+// module: ui | layer: ui | role: component
+// summary: UI 组件
+
 import React from 'react';
 import { Input, Button, Space, Alert, Typography } from 'antd';
 import { SearchOutlined, AppstoreOutlined } from '@ant-design/icons';

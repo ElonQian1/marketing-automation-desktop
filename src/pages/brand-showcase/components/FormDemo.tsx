@@ -1,3 +1,7 @@
+// src/pages/brand-showcase/components/FormDemo.tsx
+// module: ui | layer: ui | role: component
+// summary: UI 组件
+
 /**
  * 表单组件演示区
  */

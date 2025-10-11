@@ -1,3 +1,7 @@
+// src/components/universal-ui/views/grid-view/utils.ts
+// module: ui | layer: ui | role: component
+// summary: UI 组件
+
 import { UiNode, AdvancedFilter, SearchOptions } from './types';
 import { cleanXmlContent } from '../../xml-parser/cleanXml';
 import { BoundsCalculator } from '../../../../shared/bounds/BoundsCalculator';

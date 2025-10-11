@@ -1,3 +1,7 @@
+// src/components/test/ElementDiscoveryTestPage.tsx
+// module: ui | layer: ui | role: component
+// summary: UI 组件
+
 import React, { useState } from 'react';
 import { Button, Card, Space, Typography, Alert } from 'antd';
 import { useElementDiscovery } from '../universal-ui/element-selection/element-discovery';

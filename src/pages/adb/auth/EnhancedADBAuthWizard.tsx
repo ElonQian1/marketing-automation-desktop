@@ -1,3 +1,7 @@
+// src/pages/adb/auth/EnhancedADBAuthWizard.tsx
+// module: ui | layer: ui | role: page
+// summary: 页面组件
+
 import React from 'react';
 import { Card, Steps, Space, Typography, Row, Col, Button, Checkbox } from 'antd';
 import { SafetyOutlined, SettingOutlined } from '@ant-design/icons';

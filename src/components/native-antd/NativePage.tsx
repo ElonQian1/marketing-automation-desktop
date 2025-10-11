@@ -1,3 +1,7 @@
+// src/components/native-antd/NativePage.tsx
+// module: ui | layer: ui | role: component
+// summary: UI 组件
+
 import React from 'react';
 
 /**

@@ -1,3 +1,7 @@
+// src/components/ui/typography/TypographyAdapter.tsx
+// module: ui | layer: ui | role: component
+// summary: UI 组件
+
 /**
  * Typography 适配器 - Employee D 架构
  * 

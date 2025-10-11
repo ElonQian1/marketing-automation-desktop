@@ -1,3 +1,7 @@
+// src/components/universal-ui/views/grid-view/components/PanelsContainer.tsx
+// module: ui | layer: ui | role: component
+// summary: UI 组件
+
 /**
  * GridElementView 面板容器组件
  * 包装右侧所有面板

@@ -1,3 +1,7 @@
+// src/pages/device-monitor/DeviceDetailDrawer.tsx
+// module: ui | layer: ui | role: page
+// summary: 页面组件
+
 import React, { useCallback, useEffect, useState } from 'react';
 import { Drawer, Descriptions, Spin, message, Tag, Space, Button, Tooltip, Divider } from 'antd';
 import { CopyOutlined, GlobalOutlined } from '@ant-design/icons';

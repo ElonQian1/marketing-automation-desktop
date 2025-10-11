@@ -1,3 +1,7 @@
+// src/components/EnhancedDraggableStepsContainer.tsx
+// module: ui | layer: ui | role: component
+// summary: UI 组件
+
 // 增强版可拖拽的步骤列表容器，支持循环逻辑
 
 import React from 'react';

@@ -1,3 +1,7 @@
+// src/components/universal-ui/views/grid-view/panels/ScreenPreviewPanel.tsx
+// module: ui | layer: ui | role: component
+// summary: UI 组件
+
 import React from 'react';
 import { UiNode } from "../types";
 import { ScreenPreview } from "../ScreenPreview";

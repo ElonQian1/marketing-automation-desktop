@@ -1,3 +1,7 @@
+// src/pages/app-launch-test/components/FeatureDescriptionSection.tsx
+// module: ui | layer: ui | role: component
+// summary: UI 组件
+
 import React from 'react';
 import { Card, Tag, theme } from 'antd';
 import type { FeatureDescriptionProps } from '../types/AppLaunchTestTypes';

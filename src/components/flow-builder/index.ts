@@ -1,3 +1,7 @@
+// src/components/flow-builder/index.ts
+// module: ui | layer: ui | role: component
+// summary: UI 组件
+
 export * from './hooks/useFlowBuilder';
 export * from './components/TemplateSelector';
 export * from './components/FlowConstructionCard';

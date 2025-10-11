@@ -1,3 +1,7 @@
+// src/pages/SmartScriptBuilderPage/helpers/titleBuilder.ts
+// module: ui | layer: ui | role: page
+// summary: 页面组件
+
 import type { MatchCriteria as UIMatchCriteria } from '../../../components/universal-ui/views/grid-view/panels/node-detail/types';
 import {
   buildShortTitleFromCriteria as _buildShortTitleFromCriteria,

@@ -1,3 +1,7 @@
+// src/pages/SmartScriptBuilderPage/hooks/step-form/index.ts
+// module: ui | layer: ui | role: page
+// summary: 页面组件
+
 /**
  * Step Form 模块化导出
  * 提供简化的步骤表单Hook和相关类型

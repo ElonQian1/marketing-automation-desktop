@@ -1,3 +1,7 @@
+// src/components/universal-ui/element-selection/element-discovery/components/InteractiveTreeNode.tsx
+// module: ui | layer: ui | role: component
+// summary: UI 组件
+
 /**
  * 交互式树节点组件（增强版）
  * 为架构层级树提供富交互功能，包括气泡菜单、元素切换、隐藏元素父查找等

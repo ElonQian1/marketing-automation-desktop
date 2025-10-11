@@ -1,3 +1,7 @@
+// src/components/precise-acquisition/EnhancedTaskManagementDashboard.tsx
+// module: ui | layer: ui | role: component
+// summary: UI 组件
+
 /**
  * 增强的任务管理仪表盘
  * 

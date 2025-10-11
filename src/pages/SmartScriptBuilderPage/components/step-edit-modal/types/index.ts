@@ -1,3 +1,7 @@
+// src/pages/SmartScriptBuilderPage/components/step-edit-modal/types/index.ts
+// module: ui | layer: ui | role: component
+// summary: UI 组件
+
 /**
  * Step Edit Modal 类型定义
  */

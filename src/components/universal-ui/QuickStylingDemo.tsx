@@ -1,3 +1,7 @@
+// src/components/universal-ui/QuickStylingDemo.tsx
+// module: ui | layer: ui | role: component
+// summary: UI 组件
+
 /**
  * 快速美化示例页面
  * 展示如何在现有功能组件基础上快速应用美化

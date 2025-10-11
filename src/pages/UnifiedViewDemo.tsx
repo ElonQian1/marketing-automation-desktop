@@ -1,3 +1,7 @@
+// src/pages/UnifiedViewDemo.tsx
+// module: ui | layer: ui | role: page
+// summary: 页面组件
+
 /**
  * 统一视图演示页面
  * 展示如何使用统一视图系统

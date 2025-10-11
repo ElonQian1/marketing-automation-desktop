@@ -1,3 +1,7 @@
+// src/components/adb-xml-inspector/AdbXmlInspector.tsx
+// module: ui | layer: ui | role: component
+// summary: UI 组件
+
 /**
  * ADB XML检查器主组件
  * 用于可视化展示和分析Android UiAutomator导出的XML层级结构

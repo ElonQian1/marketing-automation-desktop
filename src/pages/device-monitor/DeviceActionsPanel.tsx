@@ -1,3 +1,7 @@
+// src/pages/device-monitor/DeviceActionsPanel.tsx
+// module: ui | layer: ui | role: page
+// summary: 页面组件
+
 import React, { useCallback, useState } from 'react';
 import { Card, Space, Button, Typography, Tag, Tooltip, message } from 'antd';
 import { InfoCircleOutlined, DisconnectOutlined, ReloadOutlined, CopyOutlined, ThunderboltOutlined, ExperimentOutlined } from '@ant-design/icons';

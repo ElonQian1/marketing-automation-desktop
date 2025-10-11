@@ -1,3 +1,7 @@
+// src/components/universal-ui/xml-parser/ElementCategorizer.ts
+// module: ui | layer: ui | role: component
+// summary: UI 组件
+
 /**
  * 元素分类器
  * 负责对XML节点进行智能分类

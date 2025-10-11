@@ -1,3 +1,7 @@
+// src/components/universal-ui/views/grid-view/services/smartRecommendationEnhancer.ts
+// module: ui | layer: ui | role: component
+// summary: UI 组件
+
 /**
  * 智能推荐增强器
  * 基于上下文和用户意图提供更精准的子元素推荐

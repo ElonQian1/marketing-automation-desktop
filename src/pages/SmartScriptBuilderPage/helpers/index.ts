@@ -1,3 +1,7 @@
+// src/pages/SmartScriptBuilderPage/helpers/index.ts
+// module: ui | layer: ui | role: page
+// summary: 页面组件
+
 export { default as sanitizeContentDesc } from './contentDescSanitizer';
 export {
   buildLocatorFromParamsLike,

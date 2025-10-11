@@ -1,3 +1,7 @@
+// src/components/universal-ui/UniversalPageFinderModal-Refactored.tsx
+// module: ui | layer: ui | role: component
+// summary: UI 组件
+
 /**
  * Universal UI智能页面查找模态框 - 重构版本
  * 使用模块化组件，控制在 500 行以内

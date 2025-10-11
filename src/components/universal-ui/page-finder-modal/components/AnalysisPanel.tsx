@@ -1,3 +1,7 @@
+// src/components/universal-ui/page-finder-modal/components/AnalysisPanel.tsx
+// module: ui | layer: ui | role: component
+// summary: UI 组件
+
 /**
  * 分析面板组件 - 原生 Ant Design 风格
  * 从 UniversalPageFinderModal.tsx 中提取的分析显示逻辑

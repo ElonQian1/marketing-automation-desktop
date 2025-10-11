@@ -1,3 +1,7 @@
+// src/components/universal-ui/script-builder/hooks/useStepDragAndDrop.ts
+// module: ui | layer: ui | role: component
+// summary: UI 组件
+
 import { useCallback, useMemo } from 'react';
 import { PointerSensor, useSensor, useSensors, DragEndEvent } from '@dnd-kit/core';
 import { arrayMove } from '@dnd-kit/sortable';

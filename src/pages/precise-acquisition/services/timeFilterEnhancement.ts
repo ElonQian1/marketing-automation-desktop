@@ -1,3 +1,7 @@
+// src/pages/precise-acquisition/services/timeFilterEnhancement.ts
+// module: ui | layer: ui | role: page
+// summary: 页面组件
+
 /**
  * 时间筛选增强功能
  */

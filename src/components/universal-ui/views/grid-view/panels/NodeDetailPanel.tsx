@@ -1,3 +1,7 @@
+// src/components/universal-ui/views/grid-view/panels/NodeDetailPanel.tsx
+// module: ui | layer: ui | role: component
+// summary: UI 组件
+
 import React, { useMemo, useState, useEffect, useRef } from 'react';
 import styles from "../GridElementView.module.css";
 import { UiNode } from "../types";

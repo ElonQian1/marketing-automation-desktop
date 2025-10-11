@@ -1,3 +1,7 @@
+// src/components/universal-ui/element-selection/utils/UIElementAdapter.ts
+// module: ui | layer: ui | role: component
+// summary: UI 组件
+
 /**
  * UIElement 和 UiNode 之间的适配器
  * 用于在不同的UI系统间转换数据格式

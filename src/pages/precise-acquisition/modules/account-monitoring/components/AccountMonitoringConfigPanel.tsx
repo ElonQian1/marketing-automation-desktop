@@ -1,3 +1,7 @@
+// src/pages/precise-acquisition/modules/account-monitoring/components/AccountMonitoringConfigPanel.tsx
+// module: ui | layer: ui | role: component
+// summary: UI 组件
+
 /**
  * 账号/视频监控配置组件
  * 支持用户自主添加监控账号或视频，基于数据指标推送监控提醒

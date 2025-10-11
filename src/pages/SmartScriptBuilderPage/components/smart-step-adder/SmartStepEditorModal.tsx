@@ -1,3 +1,7 @@
+// src/pages/SmartScriptBuilderPage/components/smart-step-adder/SmartStepEditorModal.tsx
+// module: ui | layer: ui | role: component
+// summary: UI 组件
+
 import React from "react";
 import {
   Modal,

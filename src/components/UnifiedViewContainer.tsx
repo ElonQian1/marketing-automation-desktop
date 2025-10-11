@@ -1,3 +1,7 @@
+// src/components/UnifiedViewContainer.tsx
+// module: ui | layer: ui | role: component
+// summary: UI 组件
+
 /**
  * 统一视图容器组件
  * 整合三个视图（树形、可视化、列表）并实现数据联动

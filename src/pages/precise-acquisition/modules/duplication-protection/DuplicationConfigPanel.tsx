@@ -1,3 +1,7 @@
+// src/pages/precise-acquisition/modules/duplication-protection/DuplicationConfigPanel.tsx
+// module: ui | layer: ui | role: page
+// summary: 页面组件
+
 /**
  * 查重配置面板
  * 管理查重规则、查看检测日志、配置安全参数

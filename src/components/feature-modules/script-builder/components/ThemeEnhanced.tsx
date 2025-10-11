@@ -1,3 +1,7 @@
+// src/components/feature-modules/script-builder/components/ThemeEnhanced.tsx
+// module: ui | layer: ui | role: component
+// summary: UI 组件
+
 /**
  * 脚本构建器主题适配增强
  * 为智能脚本构建器提供深度主题集成

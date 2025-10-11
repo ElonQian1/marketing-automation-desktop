@@ -1,3 +1,7 @@
+// src/components/universal-ui/analyzer/GenericPatternAnalyzer.ts
+// module: ui | layer: ui | role: component
+// summary: UI 组件
+
 /**
  * 通用模式分析器
  * 处理跨应用的通用UI模式识别

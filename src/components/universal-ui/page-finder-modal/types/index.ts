@@ -1,3 +1,7 @@
+// src/components/universal-ui/page-finder-modal/types/index.ts
+// module: ui | layer: ui | role: component
+// summary: UI 组件
+
 /**
  * Page Finder Modal 相关类型定义
  * 从 UniversalPageFinderModal.tsx 中提取的类型定义

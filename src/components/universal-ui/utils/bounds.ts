@@ -1,3 +1,7 @@
+// src/components/universal-ui/utils/bounds.ts
+// module: ui | layer: ui | role: component
+// summary: UI 组件
+
 /**
  * @deprecated 请使用 src/shared/bounds/BoundsCalculator.ts 中的统一实现
  * 此文件仅为向后兼容性保留

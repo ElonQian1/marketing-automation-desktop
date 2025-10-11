@@ -1,3 +1,7 @@
+// src/components/element-xml-hierarchy/ElementXmlHierarchyTab.tsx
+// module: ui | layer: ui | role: component
+// summary: UI 组件
+
 /**
  * 元素XML层级结构Tab - 主组件
  * 利用Universal UI的增强缓存数据显示元素的XML层级关系

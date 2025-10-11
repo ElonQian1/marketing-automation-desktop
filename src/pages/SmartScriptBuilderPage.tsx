@@ -1,3 +1,7 @@
+// src/pages/SmartScriptBuilderPage.tsx
+// module: ui | layer: ui | role: page
+// summary: 页面组件
+
 import React from "react";
 import { Col, Row, Space, theme } from "antd";
 import {

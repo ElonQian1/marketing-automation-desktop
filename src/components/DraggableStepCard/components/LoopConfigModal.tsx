@@ -1,3 +1,7 @@
+// src/components/DraggableStepCard/components/LoopConfigModal.tsx
+// module: ui | layer: ui | role: component
+// summary: UI 组件
+
 import React from 'react';
 import { Modal, Divider, Switch, InputNumber, Typography } from 'antd';
 import { ReloadOutlined } from '@ant-design/icons';

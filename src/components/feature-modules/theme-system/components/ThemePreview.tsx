@@ -1,3 +1,7 @@
+// src/components/feature-modules/theme-system/components/ThemePreview.tsx
+// module: ui | layer: ui | role: component
+// summary: UI 组件
+
 /**
  * 主题预览组件
  * 展示不同主题下的 UI 效果

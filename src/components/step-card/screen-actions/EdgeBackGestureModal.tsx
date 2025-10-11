@@ -1,3 +1,7 @@
+// src/components/step-card/screen-actions/EdgeBackGestureModal.tsx
+// module: ui | layer: ui | role: component
+// summary: UI 组件
+
 import React, { useState } from 'react';
 import { Modal, Radio, InputNumber, Space, Typography, Divider } from 'antd';
 

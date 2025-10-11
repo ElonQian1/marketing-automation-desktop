@@ -1,3 +1,7 @@
+// src/components/unified-view/UnifiedVisualizationView.tsx
+// module: ui | layer: ui | role: component
+// summary: UI 组件
+
 /**
  * 统一可视化视图组件
  * 整合可视化页面分析、列表视图、层级树为一体

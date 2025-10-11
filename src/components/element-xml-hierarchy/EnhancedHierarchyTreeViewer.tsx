@@ -1,3 +1,7 @@
+// src/components/element-xml-hierarchy/EnhancedHierarchyTreeViewer.tsx
+// module: ui | layer: ui | role: component
+// summary: UI 组件
+
 /**
  * 增强的层级树查看器 - 支持最底层元素字段展开
  * 基于 CachedHierarchyTreeViewer，增加了元素字段详情展示功能

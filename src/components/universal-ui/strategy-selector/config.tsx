@@ -1,3 +1,7 @@
+// src/components/universal-ui/strategy-selector/config.tsx
+// module: ui | layer: ui | role: component
+// summary: UI 组件
+
 /**
  * 统一策略选择器配置
  * 集成新旧版本的所有策略和字段配置
