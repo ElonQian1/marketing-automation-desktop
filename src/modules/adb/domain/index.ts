@@ -1,6 +1,5 @@
-// src/modules/adb/domain/index.ts
-// module: adb | layer: domain | role: domain-core
-// summary: ADB模块领域核心，包含业务规则和领域模型
+// modules/adb/domain | index | 领域层统一导出
+// 集中导出ADB领域层的所有组件，包括实体、仓储接口、值对象等
 
-// 导出占位符，待后续实现具体领域模型
-export {};
+export * from './entities';
+export * from './repositories';
