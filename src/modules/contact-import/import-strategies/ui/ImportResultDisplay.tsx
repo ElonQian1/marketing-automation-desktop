@@ -1,3 +1,7 @@
+// src/modules/contact-import/import-strategies/ui/ImportResultDisplay.tsx
+// module: contact-import | layer: ui | role: module-component
+// summary: 模块组件
+
 import React from 'react';
 import { Result, Card, Statistic, List, Tag, Alert, Space, Button, Descriptions } from 'antd';
 import { 

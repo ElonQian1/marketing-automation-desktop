@@ -1,3 +1,7 @@
+// src/modules/intelligent-strategy-system/analyzers/neighbor-relative/strategies/MultiNeighborStrategy.ts
+// module: shared | layer: unknown | role: module-component
+// summary: 模块组件
+
 /**
  * MultiNeighborStrategy.ts
  * 多邻居组合策略 - 基于多个邻居元素的组合定位

@@ -1,3 +1,7 @@
+// src/modules/contact-automation/index.ts
+// module: shared | layer: unknown | role: module-component
+// summary: 模块组件
+
 /**
  * 通讯录自动化模块导出
  */

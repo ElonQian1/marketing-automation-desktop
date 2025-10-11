@@ -1,3 +1,7 @@
+// src/modules/intelligent-strategy-system/types/DecisionTypes.ts
+// module: shared | layer: unknown | role: module-component
+// summary: 模块组件
+
 /**
  * DecisionTypes.ts
  * 智能策略决策相关类型定义

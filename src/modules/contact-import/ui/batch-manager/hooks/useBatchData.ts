@@ -1,3 +1,7 @@
+// src/modules/contact-import/ui/batch-manager/hooks/useBatchData.ts
+// module: contact-import | layer: ui | role: module-component
+// summary: 模块组件
+
 import { useCallback, useEffect, useState } from 'react';
 import {
   listVcfBatchRecords,

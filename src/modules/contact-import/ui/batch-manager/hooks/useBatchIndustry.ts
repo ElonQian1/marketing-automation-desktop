@@ -1,3 +1,7 @@
+// src/modules/contact-import/ui/batch-manager/hooks/useBatchIndustry.ts
+// module: contact-import | layer: ui | role: module-component
+// summary: 模块组件
+
 import { useEffect, useMemo, useState } from 'react';
 import { getBatchIndustryLabel, type BatchIndustryLabel } from '../../services/industry/batchIndustryService';
 import type { ImportSessionList } from '../types';

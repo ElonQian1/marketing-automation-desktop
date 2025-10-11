@@ -1,3 +1,7 @@
+// src/modules/intelligent-strategy-system/core/ElementContextAnalyzer.ts
+// module: shared | layer: unknown | role: module-component
+// summary: 模块组件
+
 /**
  * ElementContextAnalyzer.ts
  * 元素上下文分析器

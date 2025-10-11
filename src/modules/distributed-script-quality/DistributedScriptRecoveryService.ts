@@ -1,3 +1,7 @@
+// src/modules/distributed-script-quality/DistributedScriptRecoveryService.ts
+// module: shared | layer: unknown | role: module-component
+// summary: 模块组件
+
 /**
  * 分布式脚本恢复服务
  * 处理XML快照损坏、设备兼容性等问题

@@ -1,3 +1,7 @@
+// src/modules/precise-acquisition/rate-control/index.ts
+// module: prospecting | layer: application | role: module-component
+// summary: 模块组件
+
 /**
  * 频控和去重模块导出文件
  */

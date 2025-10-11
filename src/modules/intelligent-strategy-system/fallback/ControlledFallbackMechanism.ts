@@ -1,3 +1,7 @@
+// src/modules/intelligent-strategy-system/fallback/ControlledFallbackMechanism.ts
+// module: shared | layer: unknown | role: module-component
+// summary: 模块组件
+
 /**
  * 受控回退机制 - Plan B/C/D 有序执行系统
  * 

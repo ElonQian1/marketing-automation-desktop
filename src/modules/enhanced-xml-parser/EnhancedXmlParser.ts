@@ -1,3 +1,7 @@
+// src/modules/enhanced-xml-parser/EnhancedXmlParser.ts
+// module: shared | layer: unknown | role: module-component
+// summary: 模块组件
+
 /**
  * 增强XML解析器 - 完整节点信息提取
  * 解决原有解析器信息丢失问题

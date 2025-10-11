@@ -1,6 +1,6 @@
 // src/modules/contact-import/services/index.ts
-// module: contact-import | layer: services | role: service-implementation
-// summary: 联系人导入模块服务实现层，具体导入服务实现
+// module: contact-import | layer: services | role: services-export-barrel
+// summary: 服务层导出桶文件，集中导出联系人导入模块的业务服务
 
 // 导出占位符，待后续实现具体服务
 export {};

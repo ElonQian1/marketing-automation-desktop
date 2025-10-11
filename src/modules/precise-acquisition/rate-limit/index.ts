@@ -1,3 +1,7 @@
+// src/modules/precise-acquisition/rate-limit/index.ts
+// module: prospecting | layer: application | role: module-component
+// summary: 模块组件
+
 /**
  * 查重频控模块 - 统一导出
  */

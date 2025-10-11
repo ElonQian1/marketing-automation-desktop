@@ -1,3 +1,7 @@
+// src/modules/contact-import/ui/batch-manager/components/bulk-actions/BulkActionsBar.tsx
+// module: ui | layer: ui | role: component
+// summary: UI 组件
+
 import React, { useState, useMemo } from 'react';
 import { Button, Space, message, Typography, Badge } from 'antd';
 // 使用相对路径以避免在某些环境下 paths 映射未生效导致的模块解析失败

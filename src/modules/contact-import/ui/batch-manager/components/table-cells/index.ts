@@ -1,3 +1,7 @@
+// src/modules/contact-import/ui/batch-manager/components/table-cells/index.ts
+// module: ui | layer: ui | role: component
+// summary: UI 组件
+
 /**
  * 表格单元格组件集合
  * 提供可复用的表格单元格组件，所有组件都支持主题适配

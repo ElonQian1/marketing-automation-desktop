@@ -1,3 +1,7 @@
+// src/modules/intelligent-strategy-system/analyzers/siblings/SiblingRelativeAnalyzer.ts
+// module: shared | layer: unknown | role: module-component
+// summary: 模块组件
+
 /**
  * 邻居相对定位分析器
  * 

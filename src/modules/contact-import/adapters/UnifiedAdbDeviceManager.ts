@@ -1,7 +1,9 @@
-/**
- * 统一ADB设备管理器适配器
- * 将统一的 useAdb() 接口适配为 contact-import 模块的 IDeviceManager 接口
- */
+// src/modules/contact-import/adapters/UnifiedAdbDeviceManager.ts
+// module: contact-import | layer: module | role: module-component
+// summary: 模块组件
+
+// modules/contact-import/adapters | UnifiedAdbDeviceManager | 统一ADB设备管理器适配器
+// 将统一的useAdb()接口适配为contact-import模块的IDeviceManager接口，实现设备管理的桥接
 
 import { Device as AdbDevice } from '../../../domain/adb/entities/Device';
 import { AdbApplicationService } from '../../../application/services/AdbApplicationService';

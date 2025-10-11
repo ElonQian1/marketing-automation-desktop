@@ -1,3 +1,7 @@
+// src/modules/contact-import/ui/utils/validation.ts
+// module: contact-import | layer: ui | role: module-component
+// summary: 模块组件
+
 import { Device } from "../../types";
 
 export class ValidationError extends Error {

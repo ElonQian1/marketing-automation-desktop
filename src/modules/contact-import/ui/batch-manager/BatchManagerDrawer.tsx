@@ -1,3 +1,7 @@
+// src/modules/contact-import/ui/batch-manager/BatchManagerDrawer.tsx
+// module: contact-import | layer: ui | role: module-component
+// summary: 模块组件
+
 import React, { useState } from 'react';
 import { Drawer, Tabs, Space, Divider } from 'antd';
 import FiltersBar from './components/FiltersBar';

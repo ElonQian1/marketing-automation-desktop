@@ -1,3 +1,7 @@
+// src/modules/contact-import/ui/batch-manager/components/enhanced-import/UniversalImportButton.tsx
+// module: ui | layer: ui | role: component
+// summary: UI 组件
+
 import React, { useState } from 'react';
 import { Button, App } from 'antd';
 import { ImportStrategyDialog } from '../../../../import-strategies/ui/ImportStrategyDialog';

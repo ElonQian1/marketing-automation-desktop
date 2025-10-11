@@ -1,3 +1,7 @@
+// src/modules/precise-acquisition/audit-system/components/AuditManager.tsx
+// module: ui | layer: ui | role: component
+// summary: UI 组件
+
 /**
  * 审计系统管理React组件
  * 

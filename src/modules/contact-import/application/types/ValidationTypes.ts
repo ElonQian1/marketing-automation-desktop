@@ -1,3 +1,7 @@
+// src/modules/contact-import/application/types/ValidationTypes.ts
+// module: contact-import | layer: application | role: application-logic
+// summary: 应用逻辑
+
 // contact-import/application/types | ValidationTypes | 验证相关类型定义
 // 包含数据验证、规则校验等应用层关注的类型结构
 

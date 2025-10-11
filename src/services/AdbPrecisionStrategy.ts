@@ -1,3 +1,7 @@
+// src/services/AdbPrecisionStrategy.ts
+// module: shared | layer: unknown | role: component
+// summary: AdbPrecisionStrategy.ts 文件
+
 /**
  * ADB 精准定位策略服务
  * 定义元素定位的精准度等级和自动化操作的最佳实践

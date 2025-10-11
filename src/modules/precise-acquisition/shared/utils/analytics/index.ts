@@ -1,3 +1,7 @@
+// src/modules/precise-acquisition/shared/utils/analytics/index.ts
+// module: prospecting | layer: application | role: module-component
+// summary: 模块组件
+
 /**
  * 数据分析工具
  *

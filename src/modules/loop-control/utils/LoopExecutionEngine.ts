@@ -1,3 +1,7 @@
+// src/modules/loop-control/utils/LoopExecutionEngine.ts
+// module: shared | layer: unknown | role: module-component
+// summary: 模块组件
+
 // 循环执行引擎
 
 import { 

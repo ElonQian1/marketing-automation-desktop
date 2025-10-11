@@ -1,3 +1,7 @@
+// src/services/unified-view-data/UnifiedViewDataManager.ts
+// module: shared | layer: unknown | role: component
+// summary: UnifiedViewDataManager.ts 文件
+
 /**
  * 统一视图数据管理器 - 主类
  * 中心化管理三个视图的数据，避免重复计算

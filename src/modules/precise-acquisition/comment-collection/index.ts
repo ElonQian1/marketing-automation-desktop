@@ -1,3 +1,7 @@
+// src/modules/precise-acquisition/comment-collection/index.ts
+// module: prospecting | layer: application | role: module-component
+// summary: 模块组件
+
 /**
  * 评论采集模块主入口
  * 

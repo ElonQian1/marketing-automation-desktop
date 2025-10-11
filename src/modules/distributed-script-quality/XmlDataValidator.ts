@@ -1,3 +1,7 @@
+// src/modules/distributed-script-quality/XmlDataValidator.ts
+// module: shared | layer: unknown | role: module-component
+// summary: 模块组件
+
 /**
  * XML数据质量检查器
  * 专门用于分布式脚本的数据完整性验证

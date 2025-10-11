@@ -1,3 +1,7 @@
+// src/modules/contact-import/ui/components/drag-drop-layout/DragDropGrid.tsx
+// module: ui | layer: ui | role: component
+// summary: UI 组件
+
 import React, { useState, useMemo } from 'react';
 import {
   DndContext,

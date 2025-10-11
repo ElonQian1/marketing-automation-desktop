@@ -1,3 +1,7 @@
+// src/modules/intelligent-strategy-system/shared/utils/calculationUtils.ts
+// module: shared | layer: unknown | role: module-component
+// summary: 模块组件
+
 /**
  * 统一的计算和数学工具
  * 

@@ -1,3 +1,7 @@
+// src/modules/intelligent-strategy-system/shared/types/geometry.ts
+// module: shared | layer: unknown | role: module-component
+// summary: 模块组件
+
 /**
  * 统一的边界和几何类型定义
  * 

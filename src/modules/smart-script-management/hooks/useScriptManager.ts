@@ -1,3 +1,7 @@
+// src/modules/smart-script-management/hooks/useScriptManager.ts
+// module: script-builder | layer: application | role: module-component
+// summary: 模块组件
+
 // 智能脚本管理模块 - React Hooks
 
 import { useState, useEffect, useCallback } from 'react';

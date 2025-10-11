@@ -1,3 +1,7 @@
+// src/modules/contact-import/ui/batch-manager/components/ActionsBar.tsx
+// module: ui | layer: ui | role: component
+// summary: UI 组件
+
 ﻿import React, { useMemo, useState } from 'react';
 import { Button, Space, message, Select, Tooltip } from 'antd';
 import { ReloadOutlined, FolderOpenOutlined, ImportOutlined, FileExcelOutlined, FileTextOutlined } from '@ant-design/icons';

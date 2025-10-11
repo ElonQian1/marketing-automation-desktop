@@ -1,3 +1,7 @@
+// src/modules/contact-import/ui/components/resizable-layout/ResizableDraggablePanel.tsx
+// module: ui | layer: ui | role: component
+// summary: UI 组件
+
 import React, { useRef, useState, useCallback, ReactNode } from 'react';
 import { Card, Button, Space } from 'antd';
 import { CloseOutlined, MinusOutlined, BorderOutlined, ExpandOutlined, DragOutlined } from '@ant-design/icons';

@@ -1,3 +1,7 @@
+// src/modules/adb/domain/repositories/IDeviceRepository.ts
+// module: adb | layer: domain | role: repository
+// summary: 仓储定义
+
 // modules/adb/domain/repositories | IDeviceRepository | 设备仓储接口定义
 // 定义设备数据访问的抽象契约，为领域层提供统一的设备操作接口
 

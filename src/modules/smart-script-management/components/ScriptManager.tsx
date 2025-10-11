@@ -1,3 +1,7 @@
+// src/modules/smart-script-management/components/ScriptManager.tsx
+// module: ui | layer: ui | role: component
+// summary: UI 组件
+
 // 智能脚本管理模块 - 脚本管理器组件
 
 import React, { useState } from 'react';

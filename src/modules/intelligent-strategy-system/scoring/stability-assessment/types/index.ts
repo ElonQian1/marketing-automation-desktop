@@ -1,3 +1,7 @@
+// src/modules/intelligent-strategy-system/scoring/stability-assessment/types/index.ts
+// module: shared | layer: unknown | role: module-component
+// summary: 模块组件
+
 /**
  * StabilityAssessment 类型定义
  * 

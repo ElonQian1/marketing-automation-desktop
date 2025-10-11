@@ -1,3 +1,7 @@
+// src/modules/contact-import/ui/batch-manager/types.ts
+// module: contact-import | layer: ui | role: module-component
+// summary: 模块组件
+
 import type { ContactNumberList, VcfBatchDto, ImportSessionDto, ImportSessionList, VcfBatchList } from "../services/contactNumberService";
 
 export type { ContactNumberList, VcfBatchDto, ImportSessionDto, ImportSessionList, VcfBatchList };

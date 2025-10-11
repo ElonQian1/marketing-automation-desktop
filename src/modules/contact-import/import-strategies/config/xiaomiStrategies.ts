@@ -1,3 +1,7 @@
+// src/modules/contact-import/import-strategies/config/xiaomiStrategies.ts
+// module: contact-import | layer: module | role: module-component
+// summary: 模块组件
+
 /**
  * 小米设备导入策略配置
  * 基于MIUI系统的导入策略

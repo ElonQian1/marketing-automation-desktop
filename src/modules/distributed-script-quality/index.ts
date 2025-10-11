@@ -1,3 +1,7 @@
+// src/modules/distributed-script-quality/index.ts
+// module: shared | layer: unknown | role: module-component
+// summary: 模块组件
+
 /**
  * 分布式脚本质量检查模块入口
  * 提供完整的质量检查、验证和恢复功能

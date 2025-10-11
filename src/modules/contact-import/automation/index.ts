@@ -1,3 +1,7 @@
+// src/modules/contact-import/automation/index.ts
+// module: contact-import | layer: module | role: module-component
+// summary: 模块组件
+
 /**
  * 联系人导入自动化模块统一导出
  * 

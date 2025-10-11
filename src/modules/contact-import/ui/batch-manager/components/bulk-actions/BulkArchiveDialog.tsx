@@ -1,3 +1,7 @@
+// src/modules/contact-import/ui/batch-manager/components/bulk-actions/BulkArchiveDialog.tsx
+// module: ui | layer: ui | role: component
+// summary: UI 组件
+
 import React, { useState } from 'react';
 import { Modal, Table, Typography, Space, message, Alert } from 'antd';
 import { InboxOutlined, ExclamationCircleOutlined } from '@ant-design/icons';

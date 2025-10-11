@@ -1,3 +1,7 @@
+// src/modules/intelligent-strategy-system/shared/types/element.ts
+// module: shared | layer: unknown | role: module-component
+// summary: 模块组件
+
 /**
  * 统一的元素相关类型定义
  * 

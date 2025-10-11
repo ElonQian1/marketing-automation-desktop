@@ -1,3 +1,7 @@
+// src/modules/deduplication-control/examples/IntegrationExample.tsx
+// module: shared | layer: unknown | role: module-component
+// summary: 模块组件
+
 /**
  * 查重频控模块集成示例
  * 

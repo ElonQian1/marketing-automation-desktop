@@ -1,3 +1,7 @@
+// src/modules/contact-import/ui/components/grid-layout/hooks/useDraggable.ts
+// module: ui | layer: ui | role: component
+// summary: UI 组件
+
 import React, { useState, useRef, useCallback, useEffect } from 'react';
 
 export interface UseDraggableOptions {

@@ -1,3 +1,7 @@
+// src/services/FilterAdapter.ts
+// module: shared | layer: unknown | role: component
+// summary: FilterAdapter.ts 文件
+
 /**
  * 过滤器系统适配器
  * 

@@ -1,3 +1,7 @@
+// src/modules/intelligent-strategy-system/shared/types/device.ts
+// module: shared | layer: unknown | role: module-component
+// summary: 模块组件
+
 /**
  * 统一的设备和应用类型定义
  * 

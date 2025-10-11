@@ -1,3 +1,7 @@
+// src/modules/contact-import/ui/components/grid-layout/hooks/useDragFixer.ts
+// module: ui | layer: ui | role: component
+// summary: UI 组件
+
 // 拖拽强化修复器 - 解决顽固的拖拽冲突问题
 // 当标准解决方案不足时的强化修复策略
 

@@ -1,3 +1,7 @@
+// src/modules/contact-import/ui/components/WorkbenchTableColumns.tsx
+// module: ui | layer: ui | role: component
+// summary: UI 组件
+
 /**
  * 联系人工作台表格列配置组件
  * Employee D架构 - 单一职责：表格列定义和渲染配置

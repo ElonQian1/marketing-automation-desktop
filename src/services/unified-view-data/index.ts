@@ -1,3 +1,7 @@
+// src/services/unified-view-data/index.ts
+// module: shared | layer: unknown | role: component
+// summary: index.ts 文件
+
 /**
  * 统一视图数据管理器 - 模块化导出
  */

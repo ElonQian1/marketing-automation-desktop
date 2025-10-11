@@ -1,3 +1,7 @@
+// src/modules/contact-import/ui/utils/ContactWorkbenchColumns.tsx
+// module: contact-import | layer: ui | role: module-component
+// summary: 模块组件
+
 /**
  * ContactImportWorkbench 表格列配置 - Employee D 架构
  * 

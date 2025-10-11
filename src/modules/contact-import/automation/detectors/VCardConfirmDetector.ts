@@ -1,3 +1,7 @@
+// src/modules/contact-import/automation/detectors/VCardConfirmDetector.ts
+// module: contact-import | layer: module | role: module-component
+// summary: 模块组件
+
 import { DialogType, DialogDetectionResult, VCardConfirmDialog, ElementMatch } from '../types/DialogTypes';
 
 /**

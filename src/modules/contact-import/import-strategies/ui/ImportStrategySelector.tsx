@@ -1,3 +1,7 @@
+// src/modules/contact-import/import-strategies/ui/ImportStrategySelector.tsx
+// module: contact-import | layer: ui | role: module-component
+// summary: 模块组件
+
 import React, { useState, useMemo } from 'react';
 import { Radio, Card, Badge, Tooltip, Collapse, Alert, Space, Tag } from 'antd';
 import { InfoCircleOutlined, CheckCircleOutlined, WarningOutlined, CloseCircleOutlined } from '@ant-design/icons';

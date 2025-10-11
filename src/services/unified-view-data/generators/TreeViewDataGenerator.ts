@@ -1,3 +1,7 @@
+// src/services/unified-view-data/generators/TreeViewDataGenerator.ts
+// module: shared | layer: unknown | role: component
+// summary: TreeViewDataGenerator.ts 文件
+
 /**
  * 树形视图数据生成器
  * 为树形视图生成层级结构数据

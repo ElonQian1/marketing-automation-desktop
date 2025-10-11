@@ -1,3 +1,7 @@
+// src/modules/intelligent-strategy-system/shared/index.ts
+// module: shared | layer: unknown | role: module-component
+// summary: 模块组件
+
 /**
  * 智能策略系统 - 共享工具模块
  * 统一导出所有工具类，消除项目中的重复代码

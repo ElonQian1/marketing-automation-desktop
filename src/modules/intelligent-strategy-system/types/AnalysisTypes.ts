@@ -1,3 +1,7 @@
+// src/modules/intelligent-strategy-system/types/AnalysisTypes.ts
+// module: shared | layer: unknown | role: module-component
+// summary: 模块组件
+
 /**
  * AnalysisTypes.ts
  * 元素分析相关类型定义

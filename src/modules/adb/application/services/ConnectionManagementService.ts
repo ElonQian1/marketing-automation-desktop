@@ -1,3 +1,7 @@
+// src/modules/adb/application/services/ConnectionManagementService.ts
+// module: adb | layer: application | role: app-service
+// summary: 应用服务
+
 // modules/adb/application/services | ConnectionManagementService | 连接管理专门服务
 // 负责ADB服务器的启动停止、连接测试和状态检查，从巨型AdbApplicationService中拆分出来
 

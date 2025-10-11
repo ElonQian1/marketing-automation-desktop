@@ -1,3 +1,7 @@
+// src/modules/loop-drag-integration/LoopDragIntegration.tsx
+// module: shared | layer: unknown | role: module-component
+// summary: 模块组件
+
 // 循环体拖拽集成组件 - 支持拖拽步骤到循环体内
 
 import React, { useMemo, useCallback } from "react";

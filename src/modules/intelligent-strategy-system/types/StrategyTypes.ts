@@ -1,3 +1,7 @@
+// src/modules/intelligent-strategy-system/types/StrategyTypes.ts
+// module: shared | layer: unknown | role: module-component
+// summary: 模块组件
+
 /**
  * StrategyTypes.ts
  * 匹配策略相关类型定义

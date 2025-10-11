@@ -1,3 +1,7 @@
+// src/modules/contact-import/ui/services/vcfActions.ts
+// module: contact-import | layer: ui | role: module-component
+// summary: 模块组件
+
 import { invoke } from "@tauri-apps/api/core";
 import { buildVcfFromNumbers } from "../../utils/vcf";
 import type { ContactNumberDto, VcfBatchDto } from "./contactNumberService";

@@ -1,3 +1,7 @@
+// src/modules/drag-sort/utils/dragUtils.ts
+// module: shared | layer: unknown | role: module-component
+// summary: 模块组件
+
 // 拖拽排序相关的工具函数
 
 import type { DraggableItem, DroppableArea, DragResult } from '../types';

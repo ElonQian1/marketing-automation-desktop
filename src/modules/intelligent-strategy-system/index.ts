@@ -1,3 +1,7 @@
+// src/modules/intelligent-strategy-system/index.ts
+// module: shared | layer: unknown | role: module-component
+// summary: 模块组件
+
 /**
  * 智能策略系统主导出文件
  * 

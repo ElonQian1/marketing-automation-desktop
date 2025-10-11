@@ -1,3 +1,7 @@
+// src/modules/contact-import/ui/services/deviceContactMetrics.ts
+// module: contact-import | layer: ui | role: module-component
+// summary: 模块组件
+
 import { invoke } from '@tauri-apps/api/core';
 
 export async function queryDeviceContactCount(deviceId: string): Promise<number> {

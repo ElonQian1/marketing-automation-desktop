@@ -1,3 +1,7 @@
+// src/modules/contact-import/ui/components/DeviceAssignmentGrid/components/DeviceSpecificImportDialog.tsx
+// module: ui | layer: ui | role: component
+// summary: UI 组件
+
 import React, { useState, useEffect, useMemo } from 'react';
 import { Modal, Steps, Button, Space, App, Spin, Switch, Input, Form, Alert } from 'antd';
 import { ImportResultDisplay } from '../../../../import-strategies/ui/ImportResultDisplay';

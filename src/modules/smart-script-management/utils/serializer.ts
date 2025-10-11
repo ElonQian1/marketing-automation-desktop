@@ -1,3 +1,7 @@
+// src/modules/smart-script-management/utils/serializer.ts
+// module: script-builder | layer: application | role: module-component
+// summary: 模块组件
+
 // 智能脚本管理模块 - 步骤序列化工具
 
 import { SmartScriptStep, StepActionType, StepParams, ScriptConfig } from '../types';

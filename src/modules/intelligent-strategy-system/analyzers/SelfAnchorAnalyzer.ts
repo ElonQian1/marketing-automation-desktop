@@ -1,3 +1,7 @@
+// src/modules/intelligent-strategy-system/analyzers/SelfAnchorAnalyzer.ts
+// module: shared | layer: unknown | role: module-component
+// summary: 模块组件
+
 /**
  * SelfAnchorAnalyzer.ts
  * Step 1: 自我锚点分析器

@@ -1,3 +1,7 @@
+// src/modules/enhanced-element-info/EnhancedElementInfoService.ts
+// module: shared | layer: unknown | role: module-component
+// summary: 模块组件
+
 /**
  * 增强元素信息服务
  * 负责从XML分析结果生成包含完整上下文的元素信息

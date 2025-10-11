@@ -1,3 +1,7 @@
+// src/modules/contact-import/ui/components/resizable-layout/TxtImportPanel.tsx
+// module: ui | layer: ui | role: component
+// summary: UI 组件
+
 import React, { useState } from 'react';
 import { Space, Typography, Button, Divider, Card } from 'antd';
 import { FileTextOutlined, FolderOpenOutlined, HistoryOutlined, DatabaseOutlined } from '@ant-design/icons';

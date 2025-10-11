@@ -1,3 +1,7 @@
+// src/modules/intelligent-strategy-system/analyzers/ChildAnchorAnalyzer.ts
+// module: shared | layer: unknown | role: module-component
+// summary: 模块组件
+
 /**
  * ChildAnchorAnalyzer.ts
  * Step 2: 子锚点分析器

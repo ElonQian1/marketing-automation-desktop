@@ -1,3 +1,7 @@
+// src/services/XmlPageCacheService.ts
+// module: shared | layer: unknown | role: component
+// summary: XmlPageCacheService.ts 文件
+
 /**
  * XML页面缓存管理服务
  * 用于管理和重用历史分析过的XML页面数据

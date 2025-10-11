@@ -1,3 +1,7 @@
+// src/modules/marketing/watch-targets/WatchTargetsList.tsx
+// module: shared | layer: unknown | role: module-component
+// summary: 模块组件
+
 import React, { useEffect, useState } from 'react';
 import { Card, Table, Space, Tag, Select, Typography, Button, Empty } from 'antd';
 import type { ColumnsType } from 'antd/es/table';

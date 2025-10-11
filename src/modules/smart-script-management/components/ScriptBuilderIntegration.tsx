@@ -1,3 +1,7 @@
+// src/modules/smart-script-management/components/ScriptBuilderIntegration.tsx
+// module: ui | layer: ui | role: component
+// summary: UI 组件
+
 // SmartScriptBuilderPage 的脚本管理集成示例
 
 import React, { useState, useCallback } from 'react';

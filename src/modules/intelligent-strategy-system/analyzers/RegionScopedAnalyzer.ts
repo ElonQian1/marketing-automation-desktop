@@ -1,3 +1,7 @@
+// src/modules/intelligent-strategy-system/analyzers/RegionScopedAnalyzer.ts
+// module: shared | layer: unknown | role: module-component
+// summary: 模块组件
+
 /**
  * RegionScopedAnalyzer.ts
  * Step 4: 区域范围分析器

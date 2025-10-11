@@ -1,3 +1,7 @@
+// src/modules/contact-import/ui/components/DeviceAssignmentGrid/components/types.ts
+// module: ui | layer: ui | role: component
+// summary: UI 组件
+
 import type { ImportResult } from '../../../../import-strategies/types';
 
 export interface DeviceSpecificImportDialogProps {

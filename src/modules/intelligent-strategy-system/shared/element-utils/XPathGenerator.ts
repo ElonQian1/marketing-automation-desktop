@@ -1,3 +1,7 @@
+// src/modules/intelligent-strategy-system/shared/element-utils/XPathGenerator.ts
+// module: shared | layer: unknown | role: module-component
+// summary: 模块组件
+
 /**
  * XPathGenerator.ts
  * 统一的XPath生成工具

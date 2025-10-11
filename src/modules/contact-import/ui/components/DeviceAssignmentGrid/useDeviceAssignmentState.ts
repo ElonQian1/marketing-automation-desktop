@@ -1,3 +1,7 @@
+// src/modules/contact-import/ui/components/DeviceAssignmentGrid/useDeviceAssignmentState.ts
+// module: ui | layer: ui | role: component
+// summary: UI 组件
+
 import { useEffect, useMemo, useState, useCallback } from 'react';
 import { useAdb } from '../../../../../application/hooks/useAdb';
 import { getGlobalDeviceTracker } from '../../../../../infrastructure/RealTimeDeviceTracker';

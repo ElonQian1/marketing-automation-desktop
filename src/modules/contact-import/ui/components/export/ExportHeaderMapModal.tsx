@@ -1,3 +1,7 @@
+// src/modules/contact-import/ui/components/export/ExportHeaderMapModal.tsx
+// module: ui | layer: ui | role: component
+// summary: UI 组件
+
 import React, { useMemo, useState } from 'react';
 import { Modal, Form, Input, Space, Button } from 'antd';
 import type { ExportOptions } from '../../../utils/exportTypes';

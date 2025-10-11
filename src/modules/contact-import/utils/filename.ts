@@ -1,3 +1,10 @@
+// src/modules/contact-import/utils/filename.ts
+// module: contact-import | layer: module | role: module-component
+// summary: 模块组件
+
+// modules/contact-import/utils | filename | 文件名格式化工具
+// 提供时间戳格式化、文件名生成和验证功能，确保导出文件名的一致性
+
 export function formatTimestamp(d = new Date()): string {
   const pad = (n: number) => String(n).padStart(2, '0');
   return `${d.getFullYear()}${pad(d.getMonth() + 1)}${pad(d.getDate())}-${pad(d.getHours())}${pad(d.getMinutes())}${pad(d.getSeconds())}`;

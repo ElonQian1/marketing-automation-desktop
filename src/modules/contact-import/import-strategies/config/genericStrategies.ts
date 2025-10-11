@@ -1,3 +1,7 @@
+// src/modules/contact-import/import-strategies/config/genericStrategies.ts
+// module: contact-import | layer: module | role: module-component
+// summary: 模块组件
+
 /**
  * 通用导入策略配置
  * 适用于其他品牌和未识别设备

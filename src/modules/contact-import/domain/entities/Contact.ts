@@ -1,3 +1,7 @@
+// src/modules/contact-import/domain/entities/Contact.ts
+// module: contact-import | layer: domain | role: entity
+// summary: 实体定义
+
 // contact-import/domain/entities | Contact | 联系人核心实体定义
 // 包含联系人的基本属性、标签、分组等业务概念
 

@@ -1,3 +1,7 @@
+// src/modules/contact-import/ui/hooks/useWorkbenchData.ts
+// module: contact-import | layer: ui | role: module-component
+// summary: 模块组件
+
 /**
  * 联系人导入工作台数据管理Hook
  * Employee D架构 - 单一职责：工作台数据状态管理

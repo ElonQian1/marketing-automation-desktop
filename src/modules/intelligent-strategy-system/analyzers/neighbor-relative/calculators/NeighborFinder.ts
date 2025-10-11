@@ -1,3 +1,7 @@
+// src/modules/intelligent-strategy-system/analyzers/neighbor-relative/calculators/NeighborFinder.ts
+// module: shared | layer: unknown | role: module-component
+// summary: 模块组件
+
 /**
  * NeighborFinder.ts
  * 邻居元素查找器

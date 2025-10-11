@@ -1,3 +1,7 @@
+// src/modules/precise-acquisition/shared/services/BackendInterfaceValidationService.ts
+// module: prospecting | layer: application | role: module-component
+// summary: 模块组件
+
 /**
  * 后端接口验证服务
  * 

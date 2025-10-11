@@ -1,3 +1,7 @@
+// src/modules/contact-import/ui/batch-manager/themes/styles.ts
+// module: contact-import | layer: ui | role: module-component
+// summary: 模块组件
+
 /**
  * 主题适配样式工具模块
  * 

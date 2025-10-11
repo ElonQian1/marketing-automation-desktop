@@ -1,3 +1,7 @@
+// src/modules/precise-acquisition/shared/utils/index.ts
+// module: prospecting | layer: application | role: module-component
+// summary: 模块组件
+
 /**
  * 精准获客 - 公共工具方法统一导出
  *

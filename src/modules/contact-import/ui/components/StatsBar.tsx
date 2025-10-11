@@ -1,3 +1,7 @@
+// src/modules/contact-import/ui/components/StatsBar.tsx
+// module: ui | layer: ui | role: component
+// summary: UI 组件
+
 import React from 'react';
 import { Space, Tag, Tooltip } from 'antd';
 import type { ContactNumberStatsDto } from '../services/stats/contactStatsService';

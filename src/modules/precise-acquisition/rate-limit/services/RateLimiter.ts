@@ -1,3 +1,7 @@
+// src/modules/precise-acquisition/rate-limit/services/RateLimiter.ts
+// module: prospecting | layer: application | role: module-component
+// summary: 模块组件
+
 /**
  * 查重频控 - 频率限制器
  * 

@@ -1,3 +1,7 @@
+// src/modules/intelligent-strategy-system/scoring/uniqueness/types/index.ts
+// module: shared | layer: unknown | role: module-component
+// summary: 模块组件
+
 /**
  * UniquenessValidator 模块化类型定义
  * 统一简化版和复杂版的类型，提供清晰的接口

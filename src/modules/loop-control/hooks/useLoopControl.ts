@@ -1,3 +1,7 @@
+// src/modules/loop-control/hooks/useLoopControl.ts
+// module: shared | layer: unknown | role: module-component
+// summary: 模块组件
+
 // 循环控制Hook
 
 import { useState, useCallback, useRef } from 'react';

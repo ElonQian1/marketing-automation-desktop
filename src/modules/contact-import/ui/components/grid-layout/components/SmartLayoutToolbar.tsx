@@ -1,3 +1,7 @@
+// src/modules/contact-import/ui/components/grid-layout/components/SmartLayoutToolbar.tsx
+// module: ui | layer: ui | role: component
+// summary: UI 组件
+
 import React from 'react';
 import { Button, Space, Tooltip, Dropdown, Menu } from 'antd';
 import { SettingOutlined, DragOutlined, PushpinOutlined } from '@ant-design/icons';

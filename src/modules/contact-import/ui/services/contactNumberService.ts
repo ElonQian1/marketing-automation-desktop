@@ -1,4 +1,11 @@
-﻿import { invoke } from '@tauri-apps/api/core';
+// src/modules/contact-import/ui/services/contactNumberService.ts
+// module: contact-import | layer: ui | role: module-component
+// summary: 模块组件
+
+﻿// modules/contact-import/ui/services | contactNumberService | 联系人号码服务
+// 负责联系人号码的导入、验证和管理，提供文件上传和批量处理功能
+
+import { invoke } from '@tauri-apps/api/core';
 
 export interface ImportNumbersResult {
   success: boolean;

@@ -1,3 +1,7 @@
+// src/modules/contact-import/domain/entities/ImportConfiguration.ts
+// module: contact-import | layer: domain | role: entity
+// summary: 实体定义
+
 // contact-import/domain/entities | ImportConfiguration | 导入配置核心实体定义
 // 包含导入任务的配置、策略、规则等业务概念
 

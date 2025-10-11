@@ -1,3 +1,7 @@
+// src/modules/contact-import/ui/components/result/ViewStatsBar.tsx
+// module: ui | layer: ui | role: component
+// summary: UI 组件
+
 import React from 'react';
 import { Space, Tag } from 'antd';
 

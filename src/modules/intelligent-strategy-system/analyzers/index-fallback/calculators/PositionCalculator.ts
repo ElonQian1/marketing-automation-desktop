@@ -1,3 +1,7 @@
+// src/modules/intelligent-strategy-system/analyzers/index-fallback/calculators/PositionCalculator.ts
+// module: shared | layer: unknown | role: module-component
+// summary: 模块组件
+
 /**
  * PositionCalculator.ts
  * 位置计算工具

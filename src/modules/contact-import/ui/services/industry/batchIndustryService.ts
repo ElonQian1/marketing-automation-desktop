@@ -1,3 +1,7 @@
+// src/modules/contact-import/ui/services/industry/batchIndustryService.ts
+// module: contact-import | layer: ui | role: module-component
+// summary: 模块组件
+
 import { listNumbersByVcfBatch } from "../../services/contactNumberService";
 
 // 简单的内存缓存，避免重复拉取

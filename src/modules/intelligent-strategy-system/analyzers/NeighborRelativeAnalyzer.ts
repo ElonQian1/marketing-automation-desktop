@@ -1,3 +1,7 @@
+// src/modules/intelligent-strategy-system/analyzers/NeighborRelativeAnalyzer.ts
+// module: shared | layer: unknown | role: module-component
+// summary: 模块组件
+
 /**
  * NeighborRelativeAnalyzer.ts (重构版)
  * Step 5: 相邻元素相对分析器

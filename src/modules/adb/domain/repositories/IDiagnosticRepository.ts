@@ -1,3 +1,7 @@
+// src/modules/adb/domain/repositories/IDiagnosticRepository.ts
+// module: adb | layer: domain | role: repository
+// summary: 仓储定义
+
 // modules/adb/domain/repositories | IDiagnosticRepository | 诊断仓储接口定义
 // 定义诊断数据访问的抽象契约，包含诊断检查、自动修复和建议获取功能
 

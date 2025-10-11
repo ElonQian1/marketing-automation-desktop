@@ -1,3 +1,7 @@
+// src/modules/precise-acquisition/shared/components/BackendValidationConsole.tsx
+// module: ui | layer: ui | role: component
+// summary: UI 组件
+
 /**
  * 后端接口验证控制台
  * 

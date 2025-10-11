@@ -1,3 +1,7 @@
+// src/modules/contact-import/domain/entities/Device.ts
+// module: contact-import | layer: domain | role: entity
+// summary: 实体定义
+
 // contact-import/domain/entities | Device | 设备核心实体定义
 // 包含设备连接、状态、性能等业务概念
 

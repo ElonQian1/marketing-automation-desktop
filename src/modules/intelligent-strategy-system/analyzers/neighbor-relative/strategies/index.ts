@@ -1,3 +1,7 @@
+// src/modules/intelligent-strategy-system/analyzers/neighbor-relative/strategies/index.ts
+// module: shared | layer: unknown | role: module-component
+// summary: 模块组件
+
 /**
  * Neighbor-Relative Strategies Index
  * 邻居相对策略模块导出

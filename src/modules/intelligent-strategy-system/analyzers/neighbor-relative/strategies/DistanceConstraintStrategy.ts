@@ -1,3 +1,7 @@
+// src/modules/intelligent-strategy-system/analyzers/neighbor-relative/strategies/DistanceConstraintStrategy.ts
+// module: shared | layer: unknown | role: module-component
+// summary: 模块组件
+
 /**
  * DistanceConstraintStrategy.ts  
  * 距离约束策略 - 基于距离的元素定位

@@ -1,4 +1,11 @@
-﻿import React, { useState } from 'react';
+// src/modules/contact-import/ui/steps/StepSourceSelect.tsx
+// module: contact-import | layer: ui | role: module-component
+// summary: 模块组件
+
+﻿// modules/contact-import/ui/steps | StepSourceSelect | 联系人数据源选择步骤组件
+// 提供联系人导入的数据源选择界面，支持文件夹批量导入和单文件导入两种模式
+
+import React, { useState } from 'react';
 import { Button, Card, Descriptions, Space, Typography, Alert, Divider, message } from 'antd';
 import { FileTextOutlined, DatabaseOutlined } from '@ant-design/icons';
 import { selectTxtFile } from '../utils/dialog';

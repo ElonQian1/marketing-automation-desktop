@@ -1,3 +1,7 @@
+// src/modules/enhanced-matching/analyzer/HierarchyAnalyzer.ts
+// module: shared | layer: unknown | role: module-component
+// summary: 模块组件
+
 /**
  * enhanced-matching/analyzer/HierarchyAnalyzer.ts
  * XML节点层级分析器 - 智能分析XML结构中的父子关系

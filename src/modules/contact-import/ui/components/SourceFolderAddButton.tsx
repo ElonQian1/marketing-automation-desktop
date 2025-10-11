@@ -1,3 +1,7 @@
+// src/modules/contact-import/ui/components/SourceFolderAddButton.tsx
+// module: ui | layer: ui | role: component
+// summary: UI 组件
+
 import React from 'react';
 import { Button } from 'antd';
 import { FolderAddOutlined } from '@ant-design/icons';

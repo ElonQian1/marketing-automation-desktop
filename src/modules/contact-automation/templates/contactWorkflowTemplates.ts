@@ -1,3 +1,7 @@
+// src/modules/contact-automation/templates/contactWorkflowTemplates.ts
+// module: shared | layer: unknown | role: module-component
+// summary: 模块组件
+
 /**
  * 通讯录导入智能脚本步骤模板
  */

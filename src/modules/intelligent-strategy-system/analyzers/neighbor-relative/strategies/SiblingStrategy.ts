@@ -1,3 +1,7 @@
+// src/modules/intelligent-strategy-system/analyzers/neighbor-relative/strategies/SiblingStrategy.ts
+// module: shared | layer: unknown | role: module-component
+// summary: 模块组件
+
 /**
  * SiblingStrategy.ts
  * 兄弟元素策略 - 基于兄弟元素关系的定位

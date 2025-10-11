@@ -1,3 +1,7 @@
+// src/modules/precise-acquisition/rate-limit/services/DedupChecker.ts
+// module: prospecting | layer: application | role: module-component
+// summary: 模块组件
+
 /**
  * 查重频控 - 核心检查器
  * 

@@ -1,3 +1,7 @@
+// src/modules/contact-import/ui/components/grid-layout/hooks/useDragConflictResolver.ts
+// module: ui | layer: ui | role: component
+// summary: UI 组件
+
 // 智能拖拽冲突解决器 - 运行时检测并修复拖拽冲突
 // 为现有代码提供无侵入式的拖拽冲突解决方案
 

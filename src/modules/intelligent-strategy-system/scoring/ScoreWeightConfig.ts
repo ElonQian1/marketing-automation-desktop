@@ -1,3 +1,7 @@
+// src/modules/intelligent-strategy-system/scoring/ScoreWeightConfig.ts
+// module: shared | layer: unknown | role: module-component
+// summary: 模块组件
+
 /**
  * ScoreWeightConfig.ts
  * 评分权重配置管理模块

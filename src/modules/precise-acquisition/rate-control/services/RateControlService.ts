@@ -1,3 +1,7 @@
+// src/modules/precise-acquisition/rate-control/services/RateControlService.ts
+// module: prospecting | layer: application | role: module-component
+// summary: 模块组件
+
 /**
  * 频率控制和去重服务
  * 

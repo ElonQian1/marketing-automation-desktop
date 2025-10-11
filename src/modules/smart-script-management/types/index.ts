@@ -1,3 +1,7 @@
+// src/modules/smart-script-management/types/index.ts
+// module: script-builder | layer: application | role: module-component
+// summary: 模块组件
+
 // 智能脚本管理模块 - 类型定义
 
 /**

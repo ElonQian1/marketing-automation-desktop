@@ -1,3 +1,7 @@
+// src/modules/drag-sort/index.ts
+// module: shared | layer: unknown | role: module-component
+// summary: 模块组件
+
 // 拖拽排序模块 - 主导出文件
 
 // 类型导出

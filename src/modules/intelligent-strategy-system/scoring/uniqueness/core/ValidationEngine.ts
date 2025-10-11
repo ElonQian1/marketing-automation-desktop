@@ -1,3 +1,7 @@
+// src/modules/intelligent-strategy-system/scoring/uniqueness/core/ValidationEngine.ts
+// module: shared | layer: unknown | role: module-component
+// summary: 模块组件
+
 /**
  * 验证引擎 - 统一的唯一性验证核心
  * 整合 SimilarityAnalyzer 和 ConflictDetector，提供完整的策略验证功能

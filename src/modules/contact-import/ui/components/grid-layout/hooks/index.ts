@@ -1,3 +1,7 @@
+// src/modules/contact-import/ui/components/grid-layout/hooks/index.ts
+// module: ui | layer: ui | role: component
+// summary: UI 组件
+
 // Grid Layout Hooks 导出
 export { useGridLayout } from '../useGridLayout';
 export { useDragConflictResolver } from './useDragConflictResolver';

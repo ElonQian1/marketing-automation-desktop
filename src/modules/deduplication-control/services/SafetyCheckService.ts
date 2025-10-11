@@ -1,3 +1,7 @@
+// src/modules/deduplication-control/services/SafetyCheckService.ts
+// module: shared | layer: unknown | role: module-component
+// summary: 模块组件
+
 /**
  * 安全检查服务
  * 

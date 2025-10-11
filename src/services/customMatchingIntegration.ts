@@ -1,3 +1,7 @@
+// src/services/customMatchingIntegration.ts
+// module: shared | layer: unknown | role: component
+// summary: customMatchingIntegration.ts 文件
+
 /**
  * 自定义匹配规则集成模块
  * 将CustomMatchingEngine集成到SmartScriptExecutor中，支持循环执行和批量操作

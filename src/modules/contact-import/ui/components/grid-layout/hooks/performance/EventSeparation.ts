@@ -1,3 +1,7 @@
+// src/modules/contact-import/ui/components/grid-layout/hooks/performance/EventSeparation.ts
+// module: ui | layer: ui | role: component
+// summary: UI 组件
+
 /**
  * 事件分离工具
  * 用于精确控制事件传播和分离功能区域

@@ -1,3 +1,7 @@
+// src/modules/contact-import/automation/automationBridge.ts
+// module: contact-import | layer: module | role: module-component
+// summary: 模块组件
+
 import type { ImportOptions } from '../../../application/services/contact-import/VcfImportApplicationService';
 import { permissionDialogHook } from './permissionDialogHook';
 

@@ -1,3 +1,7 @@
+// src/modules/xml-enhancement/XmlEnhancementService.ts
+// module: shared | layer: unknown | role: module-component
+// summary: 模块组件
+
 /**
  * XML增强服务
  * 

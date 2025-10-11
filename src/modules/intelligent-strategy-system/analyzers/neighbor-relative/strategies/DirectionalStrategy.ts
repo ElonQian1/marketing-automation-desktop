@@ -1,3 +1,7 @@
+// src/modules/intelligent-strategy-system/analyzers/neighbor-relative/strategies/DirectionalStrategy.ts
+// module: shared | layer: unknown | role: module-component
+// summary: 模块组件
+
 /**
  * DirectionalStrategy.ts
  * 方向性策略 - 基于方向的相邻元素定位

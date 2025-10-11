@@ -1,3 +1,7 @@
+// src/modules/contact-import/application/types/ImportResult.ts
+// module: contact-import | layer: application | role: application-logic
+// summary: 应用逻辑
+
 // contact-import/application/types | ImportResult | 导入结果类型定义
 // 包含导入操作的结果、统计、错误等应用层关注的数据结构
 

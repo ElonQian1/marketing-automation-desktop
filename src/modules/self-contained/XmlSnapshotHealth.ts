@@ -1,3 +1,7 @@
+// src/modules/self-contained/XmlSnapshotHealth.ts
+// module: shared | layer: unknown | role: module-component
+// summary: 模块组件
+
 import type { XmlSnapshot } from '../../types/selfContainedScript';
 
 export type SnapshotHealthLevel = 'ok' | 'warn' | 'error';

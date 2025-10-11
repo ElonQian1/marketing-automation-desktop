@@ -1,3 +1,7 @@
+// src/modules/intelligent-strategy-system/scoring/StabilityAssessment.ts
+// module: shared | layer: unknown | role: module-component
+// summary: 模块组件
+
 /**
  * StabilityAssessment.ts - 向后兼容包装器
  * 

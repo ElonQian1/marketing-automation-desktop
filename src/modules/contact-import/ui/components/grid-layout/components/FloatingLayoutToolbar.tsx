@@ -1,3 +1,7 @@
+// src/modules/contact-import/ui/components/grid-layout/components/FloatingLayoutToolbar.tsx
+// module: ui | layer: ui | role: component
+// summary: UI 组件
+
 import React, { useState, useCallback } from 'react';
 import { 
   Button, Space, Dropdown, Menu, Tooltip, Popover, Switch, 

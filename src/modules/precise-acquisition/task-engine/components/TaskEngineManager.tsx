@@ -1,9 +1,9 @@
-/**
- * 任务引擎管理界面 (重构版)
- * 
- * 提供任务生成、监控、分配和执行管理功能
- * 已拆分为多个子组件，符合开发规范的行数限制
- */
+// src/modules/precise-acquisition/task-engine/components/TaskEngineManager.tsx
+// module: ui | layer: ui | role: component
+// summary: UI 组件
+
+// modules/precise-acquisition/task-engine/components | TaskEngineManager | 任务引擎管理界面
+// 提供任务生成、监控、分配和执行管理功能的主控制面板，已拆分为多个子组件确保代码质量
 
 import React, { useState } from 'react';
 import {

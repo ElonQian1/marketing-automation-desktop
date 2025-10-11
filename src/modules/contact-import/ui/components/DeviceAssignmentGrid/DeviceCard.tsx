@@ -1,3 +1,7 @@
+// src/modules/contact-import/ui/components/DeviceAssignmentGrid/DeviceCard.tsx
+// module: ui | layer: ui | role: component
+// summary: UI 组件
+
 import React, { useState } from 'react';
 import { Card, InputNumber, Select, Button, Space, Typography, Tooltip, Tag, Badge, App } from 'antd';
 import { ReloadOutlined, MobileOutlined } from '@ant-design/icons';

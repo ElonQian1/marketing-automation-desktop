@@ -1,3 +1,7 @@
+// src/services/unified-view-data/generators/ListViewDataGenerator.ts
+// module: shared | layer: unknown | role: component
+// summary: ListViewDataGenerator.ts 文件
+
 /**
  * 列表视图数据生成器
  * 为列表视图生成分组、过滤和搜索数据

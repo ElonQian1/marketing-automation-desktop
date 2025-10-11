@@ -1,3 +1,7 @@
+// src/modules/contact-import/ui/sessions/SessionActionsBar.tsx
+// module: contact-import | layer: ui | role: module-component
+// summary: 模块组件
+
 ﻿import React, { useMemo, useState } from 'react';
 import { Button, Space, Tooltip, Checkbox, App } from 'antd';
 import { ReloadOutlined, FolderOpenOutlined, ImportOutlined, FileExcelOutlined, FileTextOutlined, ThunderboltOutlined, SyncOutlined, CheckCircleOutlined } from '@ant-design/icons';

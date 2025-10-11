@@ -1,3 +1,7 @@
+// src/modules/smart-script-management/services/scriptService.ts
+// module: script-builder | layer: application | role: module-component
+// summary: 模块组件
+
 // 智能脚本管理模块 - 脚本管理服务
 
 import { invoke } from '@tauri-apps/api/core';

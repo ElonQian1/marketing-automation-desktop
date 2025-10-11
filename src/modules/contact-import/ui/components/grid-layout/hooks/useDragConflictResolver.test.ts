@@ -1,3 +1,7 @@
+// src/modules/contact-import/ui/components/grid-layout/hooks/useDragConflictResolver.test.ts
+// module: ui | layer: ui | role: component
+// summary: UI 组件
+
 // 拖拽冲突解决器测试验证
 import { useDragConflictResolver } from './useDragConflictResolver';
 

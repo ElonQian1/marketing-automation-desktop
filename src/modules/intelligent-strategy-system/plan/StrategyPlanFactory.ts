@@ -1,3 +1,7 @@
+// src/modules/intelligent-strategy-system/plan/StrategyPlanFactory.ts
+// module: shared | layer: unknown | role: module-component
+// summary: 模块组件
+
 /**
  * 策略计划工厂 - 简化版
  * 

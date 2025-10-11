@@ -1,3 +1,7 @@
+// src/modules/contact-import/import-strategies/strategies.ts
+// module: contact-import | layer: module | role: module-component
+// summary: 模块组件
+
 import { ImportStrategy, VCardVersion, ImportTriggerMethod, DeviceManufacturer } from './types';
 import { HONOR_STRATEGIES, HONOR_STRATEGY_PRIORITY } from './config/honorStrategies';
 import { XIAOMI_STRATEGIES, XIAOMI_STRATEGY_PRIORITY } from './config/xiaomiStrategies';

@@ -1,3 +1,7 @@
+// src/modules/contact-import/ui/components/SourceFoldersList.tsx
+// module: ui | layer: ui | role: component
+// summary: UI 组件
+
 import React from 'react';
 import { List, Tag, Empty, Space, Typography, Button, Tooltip } from 'antd';
 import { DeleteOutlined, ClearOutlined } from '@ant-design/icons';

@@ -1,3 +1,7 @@
+// src/services/LDPlayerVcfService.ts
+// module: shared | layer: unknown | role: component
+// summary: LDPlayerVcfService.ts 文件
+
 import { invoke } from '@tauri-apps/api/core';
 
 export interface VcfOpenResult {

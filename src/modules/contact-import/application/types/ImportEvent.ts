@@ -1,3 +1,7 @@
+// src/modules/contact-import/application/types/ImportEvent.ts
+// module: contact-import | layer: application | role: application-logic
+// summary: 应用逻辑
+
 // contact-import/application/types | ImportEvent | 导入事件类型定义
 // 包含导入操作的事件通知、状态变更等应用层关注的数据结构
 

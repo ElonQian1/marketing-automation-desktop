@@ -1,3 +1,7 @@
+// src/modules/intelligent-strategy-system/shared/element-utils/ElementValidator.ts
+// module: shared | layer: unknown | role: module-component
+// summary: 模块组件
+
 /**
  * ElementValidator.ts
  * 统一的元素验证工具

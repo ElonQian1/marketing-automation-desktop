@@ -1,3 +1,7 @@
+// src/modules/contact-import/ui/components/grid-layout/hooks/useStaticDragFix.ts
+// module: ui | layer: ui | role: component
+// summary: UI 组件
+
 // 一次性拖拽修复工具 - 静态修复，无循环，无过度干预
 // 专门解决表格列宽拖拽问题的简单有效方案
 

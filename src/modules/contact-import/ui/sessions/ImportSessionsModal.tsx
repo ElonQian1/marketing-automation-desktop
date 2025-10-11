@@ -1,3 +1,7 @@
+// src/modules/contact-import/ui/sessions/ImportSessionsModal.tsx
+// module: contact-import | layer: ui | role: module-component
+// summary: 模块组件
+
 import React, { useEffect, useState, useMemo } from 'react';
 import { Modal, Tabs, Divider, Space, Button, App } from 'antd';
 import { ExclamationCircleOutlined } from '@ant-design/icons';

@@ -1,3 +1,7 @@
+// src/modules/contact-import/parsers/VcfParser.ts
+// module: contact-import | layer: module | role: module-component
+// summary: 模块组件
+
 /**
  * VCF (vCard) 格式联系人解析器
  * 支持 vCard 2.1, 3.0, 4.0 格式

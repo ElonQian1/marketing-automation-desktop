@@ -1,3 +1,7 @@
+// src/modules/grid-inspector/DefaultMatchingBuilder.ts
+// module: shared | layer: unknown | role: module-component
+// summary: 模块组件
+
 /**
  * 构建网格检查器可用的匹配配置（前端态）
  * 输入为可视化/通用 UI 元素（包含常见字段），输出 { strategy, fields, values }

@@ -1,3 +1,10 @@
+// src/modules/contact-import/ui/services/sessionImportService.ts
+// module: contact-import | layer: ui | role: module-component
+// summary: 模块组件
+
+// modules/contact-import/ui/services | sessionImportService | 会话导入服务
+// 负责导入会话的创建、管理和执行，包括批次记录处理、设备绑定和自动化流程控制
+
 import { getVcfBatchRecord, listImportSessionRecords, finishImportSessionRecord } from './contactNumberService';
 import ServiceFactory from '../../../../application/services/ServiceFactory';
 import { markBatchImportedForDevice } from './deviceBatchBinding';

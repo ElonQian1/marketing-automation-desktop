@@ -1,3 +1,7 @@
+// src/modules/adb/domain/entities/Device.ts
+// module: adb | layer: domain | role: entity
+// summary: 实体定义
+
 // modules/adb/domain/entities | Device | 设备领域实体核心定义
 // 表示Android设备或模拟器的核心业务概念，包含状态管理和类型判断逻辑
 

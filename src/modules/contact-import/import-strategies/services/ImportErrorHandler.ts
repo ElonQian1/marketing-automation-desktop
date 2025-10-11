@@ -1,3 +1,7 @@
+// src/modules/contact-import/import-strategies/services/ImportErrorHandler.ts
+// module: contact-import | layer: application | role: module-component
+// summary: 模块组件
+
 /**
  * 导入策略执行错误处理工具
  * 

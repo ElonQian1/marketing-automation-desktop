@@ -1,3 +1,7 @@
+// src/modules/precise-acquisition/candidate-pool/services/CandidatePoolService.ts
+// module: prospecting | layer: application | role: module-component
+// summary: 模块组件
+
 /**
  * 候选池服务
  * 

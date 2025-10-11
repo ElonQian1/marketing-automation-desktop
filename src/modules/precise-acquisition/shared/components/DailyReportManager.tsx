@@ -1,3 +1,7 @@
+// src/modules/precise-acquisition/shared/components/DailyReportManager.tsx
+// module: ui | layer: ui | role: component
+// summary: UI 组件
+
 /**
  * 每日报告导出管理界面
  * 

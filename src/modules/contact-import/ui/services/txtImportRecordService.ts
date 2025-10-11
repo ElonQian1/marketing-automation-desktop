@@ -1,3 +1,7 @@
+// src/modules/contact-import/ui/services/txtImportRecordService.ts
+// module: contact-import | layer: ui | role: module-component
+// summary: 模块组件
+
 import { invoke } from '@tauri-apps/api/core';
 
 // ===== TXT文件导入记录类型定义 (V2.0) =====

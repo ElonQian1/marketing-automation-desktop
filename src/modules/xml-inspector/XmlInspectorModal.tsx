@@ -1,3 +1,7 @@
+// src/modules/xml-inspector/XmlInspectorModal.tsx
+// module: shared | layer: unknown | role: module-component
+// summary: 模块组件
+
 /**
  * XML检查器组件
  * 用于显示元素的XML上下文信息和节点树

@@ -1,3 +1,7 @@
+// src/services/smartAppService.ts
+// module: shared | layer: unknown | role: component
+// summary: smartAppService.ts 文件
+
 import { invoke } from '@tauri-apps/api/core';
 import type { AppInfo, AppLaunchResult } from '../types/smartComponents';
 

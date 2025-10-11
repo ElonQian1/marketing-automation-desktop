@@ -1,3 +1,7 @@
+// src/modules/contact-import/ui/steps/StepDetectDevices.tsx
+// module: contact-import | layer: ui | role: module-component
+// summary: 模块组件
+
 import React from 'react';
 import { Button, Card, Space, Table, Typography } from 'antd';
 import type { Device } from '../../types';

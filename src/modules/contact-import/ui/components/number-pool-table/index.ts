@@ -1,3 +1,7 @@
+// src/modules/contact-import/ui/components/number-pool-table/index.ts
+// module: ui | layer: ui | role: component
+// summary: UI 组件
+
 // 导出所有号码池表格相关的组件和工具
 export { useNumberPoolTable } from './useNumberPoolTable';
 export type { 

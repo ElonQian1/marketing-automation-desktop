@@ -1,3 +1,7 @@
+// src/modules/contact-import/ui/components/grid-layout/components/HeaderOnlyDragToolbar.tsx
+// module: ui | layer: ui | role: component
+// summary: UI 组件
+
 import React, { memo, useMemo } from 'react';
 import { Button, Tooltip, Space, Dropdown, Typography } from 'antd';
 import { 

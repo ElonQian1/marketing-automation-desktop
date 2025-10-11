@@ -1,3 +1,7 @@
+// src/modules/contact-import/ui/components/resizable-layout/LayoutManager.tsx
+// module: ui | layer: ui | role: component
+// summary: UI 组件
+
 import React, { ReactNode } from 'react';
 import { Button, Space, Dropdown, Menu, Tooltip } from 'antd';
 import { LayoutOutlined, EyeOutlined, EyeInvisibleOutlined, ReloadOutlined, SettingOutlined } from '@ant-design/icons';

@@ -1,3 +1,7 @@
+// src/modules/adb/domain/repositories/IAdbRepository.ts
+// module: adb | layer: domain | role: repository
+// summary: 仓储定义
+
 // modules/adb/domain/repositories | IAdbRepository | ADB仓储接口定义
 // 定义ADB连接和配置的抽象契约，包含路径检测、服务器管理和无线调试功能
 

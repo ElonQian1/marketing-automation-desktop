@@ -1,3 +1,7 @@
+// src/modules/precise-acquisition/candidate-pool/components/CandidatePoolManager.tsx
+// module: ui | layer: ui | role: component
+// summary: UI 组件
+
 /**
  * 候选池管理主界面组件
  * 

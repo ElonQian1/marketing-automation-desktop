@@ -1,3 +1,7 @@
+// src/modules/contact-import/ui/components/DeviceAssignmentGrid/components/strategy-configurator/EnhancedStrategyConfigurator.tsx
+// module: ui | layer: ui | role: component
+// summary: UI 组件
+
 import React, { useState } from 'react';
 import { Card, Switch, Space, Divider, Typography, Alert } from 'antd';
 import { SettingOutlined, ThunderboltOutlined } from '@ant-design/icons';

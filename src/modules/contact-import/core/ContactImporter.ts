@@ -1,3 +1,7 @@
+// src/modules/contact-import/core/ContactImporter.ts
+// module: contact-import | layer: module | role: module-component
+// summary: 模块组件
+
 /**
  * 联系人导入器核心类
  * 整合所有模块，提供统一的导入接口

@@ -1,3 +1,7 @@
+// src/modules/precise-acquisition/task-engine/services/TaskManager.ts
+// module: prospecting | layer: application | role: module-component
+// summary: 模块组件
+
 /**
  * 任务管理器
  * 

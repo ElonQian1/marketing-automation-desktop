@@ -1,3 +1,7 @@
+// src/modules/intelligent-strategy-system/analyzers/index-fallback/strategies/XPathDirectStrategy.ts
+// module: shared | layer: unknown | role: module-component
+// summary: 模块组件
+
 /**
  * XPathDirectStrategy.ts
  * XPath直接定位策略

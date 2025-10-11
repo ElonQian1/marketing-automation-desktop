@@ -1,3 +1,7 @@
+// src/modules/adb/domain/repositories/index.ts
+// module: adb | layer: domain | role: repository
+// summary: 仓储定义
+
 // modules/adb/domain/repositories | index | 仓储接口统一导出
 // 集中导出所有ADB相关的仓储接口定义
 

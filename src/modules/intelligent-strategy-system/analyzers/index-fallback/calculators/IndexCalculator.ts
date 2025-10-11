@@ -1,3 +1,7 @@
+// src/modules/intelligent-strategy-system/analyzers/index-fallback/calculators/IndexCalculator.ts
+// module: shared | layer: unknown | role: module-component
+// summary: 模块组件
+
 /**
  * IndexCalculator.ts
  * 索引计算工具

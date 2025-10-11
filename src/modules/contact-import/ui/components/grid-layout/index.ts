@@ -1,3 +1,7 @@
+// src/modules/contact-import/ui/components/grid-layout/index.ts
+// module: ui | layer: ui | role: component
+// summary: UI 组件
+
 // 原始组件导出
 export { GridLayoutWrapper } from './GridLayoutWrapper';
 export { ResizablePanel } from './ResizablePanel';

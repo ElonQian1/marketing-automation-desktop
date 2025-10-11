@@ -1,3 +1,7 @@
+// src/modules/enhanced-matching/integration/EnhancedMatchingHelper.ts
+// module: shared | layer: unknown | role: module-component
+// summary: 模块组件
+
 /**
  * enhanced-matching/integration/EnhancedMatchingHelper.ts
  * 增强匹配助手 - 集成到现有 usePageFinder 工作流

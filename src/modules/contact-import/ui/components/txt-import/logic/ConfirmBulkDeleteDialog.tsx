@@ -1,3 +1,7 @@
+// src/modules/contact-import/ui/components/txt-import/logic/ConfirmBulkDeleteDialog.tsx
+// module: ui | layer: ui | role: component
+// summary: UI 组件
+
 ﻿import React from 'react';
 import { Modal, Space, Button } from 'antd';
 import { ExclamationCircleOutlined } from '@ant-design/icons';

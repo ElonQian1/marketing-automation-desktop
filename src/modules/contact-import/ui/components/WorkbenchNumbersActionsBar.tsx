@@ -1,3 +1,7 @@
+// src/modules/contact-import/ui/components/WorkbenchNumbersActionsBar.tsx
+// module: ui | layer: ui | role: component
+// summary: UI 组件
+
 import React, { useMemo, useState } from 'react';
 import { Button, Space, Typography, message, Tag, Dropdown } from 'antd';
 import ConfirmPopover from '@/components/universal-ui/common-popover/ConfirmPopover';

@@ -1,7 +1,9 @@
-/**
- * 重构后的联系人导入 Hook
- * 使用统一的 ADB 设备管理器适配器
- */
+// src/modules/contact-import/hooks/useUnifiedContactImport.ts
+// module: contact-import | layer: module | role: module-component
+// summary: 模块组件
+
+// modules/contact-import/hooks | useUnifiedContactImport | 统一联系人导入Hook
+// 重构后的联系人导入Hook，使用统一的ADB设备管理器适配器，提供完整的联系人导入流程管理和状态控制
 
 import { useState, useRef, useCallback, useEffect } from 'react';
 import { ContactImporter, ContactImporterEventListener } from '../core/ContactImporter';

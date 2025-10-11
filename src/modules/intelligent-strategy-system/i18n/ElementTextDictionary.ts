@@ -1,3 +1,7 @@
+// src/modules/intelligent-strategy-system/i18n/ElementTextDictionary.ts
+// module: shared | layer: unknown | role: module-component
+// summary: 模块组件
+
 /**
  * 多语言元素文本词典
  * 

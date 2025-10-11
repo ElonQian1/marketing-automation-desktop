@@ -1,3 +1,7 @@
+// src/modules/adb/domain/entities/DiagnosticResult.ts
+// module: adb | layer: domain | role: entity
+// summary: 实体定义
+
 // modules/adb/domain/entities | DiagnosticResult | ADB诊断结果领域实体
 // 表示ADB环境诊断的结果，包含状态管理、自动修复和健康度评估逻辑
 

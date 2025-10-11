@@ -1,3 +1,7 @@
+// src/modules/precise-acquisition/task-engine/types/index.ts
+// module: prospecting | layer: application | role: module-component
+// summary: 模块组件
+
 /**
  * 任务引擎 - 类型定义
  */

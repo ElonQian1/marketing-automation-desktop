@@ -1,3 +1,7 @@
+// src/modules/contact-import/application/types/index.ts
+// module: contact-import | layer: application | role: application-logic
+// summary: 应用逻辑
+
 // contact-import/application/types | index | 应用层类型统一导出
 // 提供所有应用层类型的统一访问入口
 

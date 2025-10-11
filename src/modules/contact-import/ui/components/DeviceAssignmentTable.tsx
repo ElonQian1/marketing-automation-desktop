@@ -1,3 +1,7 @@
+// src/modules/contact-import/ui/components/DeviceAssignmentTable.tsx
+// module: ui | layer: ui | role: component
+// summary: UI 组件
+
 import React, { useEffect, useMemo, useState } from 'react';
 import { Table, InputNumber, Select, Button, Space, Typography, Tooltip, Divider, Checkbox, Tag } from 'antd';
 import { ReloadOutlined } from '@ant-design/icons';

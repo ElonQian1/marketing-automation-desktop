@@ -1,3 +1,7 @@
+// src/modules/precise-acquisition/shared/components/EnhancedWatchTargetManager.tsx
+// module: ui | layer: ui | role: component
+// summary: UI 组件
+
 /**
  * 增强的候选池管理组件
  * 

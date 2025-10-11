@@ -1,3 +1,7 @@
+// src/modules/adb/domain/entities/AdbConnection.ts
+// module: adb | layer: domain | role: entity
+// summary: 实体定义
+
 // modules/adb/domain/entities | AdbConnection | ADB连接领域实体
 // 表示与ADB服务的连接状态和配置，包含连接管理和状态判断逻辑
 

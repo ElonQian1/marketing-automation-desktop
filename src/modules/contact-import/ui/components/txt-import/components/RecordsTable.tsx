@@ -1,3 +1,7 @@
+// src/modules/contact-import/ui/components/txt-import/components/RecordsTable.tsx
+// module: ui | layer: ui | role: component
+// summary: UI 组件
+
 ﻿import React, { useMemo, useState, useEffect } from 'react';
 import { Table, Typography, Space, Tag, Popover, Checkbox, Button, message } from 'antd';
 import { SettingOutlined } from '@ant-design/icons';

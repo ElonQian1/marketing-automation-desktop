@@ -1,3 +1,7 @@
+// src/modules/contact-import/ui/providers/types.ts
+// module: contact-import | layer: ui | role: module-component
+// summary: 模块组件
+
 /**
  * 联系人导入模块统一状态管理类型定义
  */

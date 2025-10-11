@@ -1,3 +1,7 @@
+// src/modules/smart-script-management/index.ts
+// module: script-builder | layer: application | role: module-component
+// summary: 模块组件
+
 // 智能脚本管理模块 - 统一入口
 
 // 导出类型定义

@@ -1,3 +1,7 @@
+// src/modules/intelligent-strategy-system/scoring/UniquenessValidator.complex.ts
+// module: shared | layer: unknown | role: module-component
+// summary: 模块组件
+
 /**
  * 策略唯一性校验器
  * 验证策略推荐的唯一性和有效性，防止重复或冲突的策略建议

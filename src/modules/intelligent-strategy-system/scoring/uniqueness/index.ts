@@ -1,3 +1,7 @@
+// src/modules/intelligent-strategy-system/scoring/uniqueness/index.ts
+// module: shared | layer: unknown | role: module-component
+// summary: 模块组件
+
 /**
  * UniquenessValidator 模块化重构 - 统一导出
  * 

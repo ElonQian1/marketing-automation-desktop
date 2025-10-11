@@ -1,3 +1,7 @@
+// src/modules/loop-control/utils/loopUtils.ts
+// module: shared | layer: unknown | role: module-component
+// summary: 模块组件
+
 // 循环控制工具函数
 
 import { ExtendedSmartScriptStep, ExtendedStepActionType, LoopConfig, LoopType } from '../types';

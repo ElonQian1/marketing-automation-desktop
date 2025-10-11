@@ -1,3 +1,7 @@
+// src/modules/intelligent-strategy-system/scoring/stability-assessment/calculators/StabilityScoreCalculator.ts
+// module: shared | layer: unknown | role: module-component
+// summary: 模块组件
+
 /**
  * 稳定性分数计算器
  * 

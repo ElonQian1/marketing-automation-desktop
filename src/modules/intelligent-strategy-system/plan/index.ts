@@ -1,3 +1,7 @@
+// src/modules/intelligent-strategy-system/plan/index.ts
+// module: shared | layer: unknown | role: module-component
+// summary: 模块组件
+
 /**
  * Strategy Plan Module Index
  * 策略计划模块索引文件

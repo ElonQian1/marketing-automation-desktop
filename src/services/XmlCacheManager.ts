@@ -1,3 +1,7 @@
+// src/services/XmlCacheManager.ts
+// module: shared | layer: unknown | role: component
+// summary: XmlCacheManager.ts 文件
+
 /**
  * XML缓存管理器
  * 统一管理XML页面的缓存、关联和加载

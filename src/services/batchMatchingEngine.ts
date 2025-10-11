@@ -1,3 +1,7 @@
+// src/services/batchMatchingEngine.ts
+// module: shared | layer: unknown | role: component
+// summary: batchMatchingEngine.ts 文件
+
 /**
  * 批量匹配执行引擎
  * 支持多种执行策略的批量UI元素匹配和操作

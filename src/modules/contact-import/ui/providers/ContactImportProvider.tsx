@@ -1,3 +1,10 @@
+// src/modules/contact-import/ui/providers/ContactImportProvider.tsx
+// module: contact-import | layer: ui | role: module-component
+// summary: 模块组件
+
+// modules/contact-import/ui/providers | ContactImportProvider | 联系人导入上下文提供器
+// 为联系人导入功能提供统一的状态管理和业务逻辑封装，整合设备操作、批量处理和导入状态
+
 import React, { createContext, useContext, useCallback, useState } from 'react';
 import { useAdb } from '../../../../application/hooks/useAdb';
 import { useContactImportState } from '../hooks/useContactImportState';

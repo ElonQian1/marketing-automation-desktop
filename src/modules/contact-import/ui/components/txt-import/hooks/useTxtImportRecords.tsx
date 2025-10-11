@@ -1,3 +1,7 @@
+// src/modules/contact-import/ui/components/txt-import/hooks/useTxtImportRecords.tsx
+// module: ui | layer: ui | role: component
+// summary: UI 组件
+
 import { useCallback, useEffect, useState } from 'react';
 import { TxtImportRecordDto, listTxtImportRecords } from '../../../services/txtImportRecordService';
 

@@ -1,3 +1,7 @@
+// src/modules/contact-import/ui/services/batchExecutor.ts
+// module: contact-import | layer: ui | role: module-component
+// summary: 模块组件
+
 import { buildVcfFromNumbers } from '../../utils/vcf';
 import { VcfImportService } from '../../../../services/VcfImportService';
 

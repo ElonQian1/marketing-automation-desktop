@@ -1,3 +1,7 @@
+// src/modules/contact-import/ui/components/grid-layout/hooks/useDraggableOptimized.ts
+// module: ui | layer: ui | role: component
+// summary: UI 组件
+
 import React, { useState, useRef, useCallback, useEffect, useMemo } from 'react';
 import { rafThrottle, createBatchUpdater, createEventListenerManager } from './performance/performanceUtils';
 

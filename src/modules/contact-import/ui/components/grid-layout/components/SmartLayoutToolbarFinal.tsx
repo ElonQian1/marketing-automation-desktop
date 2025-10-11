@@ -1,3 +1,7 @@
+// src/modules/contact-import/ui/components/grid-layout/components/SmartLayoutToolbarFinal.tsx
+// module: ui | layer: ui | role: component
+// summary: UI 组件
+
 import React from 'react';
 import { HandleDraggableToolbar } from './HandleDraggableToolbar';
 import type { PanelConfig } from '../GridLayoutWrapper';

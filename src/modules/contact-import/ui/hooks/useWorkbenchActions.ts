@@ -1,3 +1,7 @@
+// src/modules/contact-import/ui/hooks/useWorkbenchActions.ts
+// module: contact-import | layer: ui | role: module-component
+// summary: 模块组件
+
 ﻿/**
  * 联系人导入工作台事件处理Hook  
  * Employee D架构 - 单一职责：业务事件处理逻辑

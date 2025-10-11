@@ -1,3 +1,7 @@
+// src/modules/intelligent-strategy-system/analyzers/index-fallback/strategies/ElementIndexStrategy.ts
+// module: shared | layer: unknown | role: module-component
+// summary: 模块组件
+
 /**
  * ElementIndexStrategy.ts
  * 元素索引策略

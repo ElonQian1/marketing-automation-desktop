@@ -1,3 +1,7 @@
+// src/modules/precise-acquisition/task-engine/components/TaskGenerationModal.tsx
+// module: ui | layer: ui | role: component
+// summary: UI 组件
+
 /**
  * 任务生成弹窗组件
  * 

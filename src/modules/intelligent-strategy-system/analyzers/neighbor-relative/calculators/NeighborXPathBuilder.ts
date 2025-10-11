@@ -1,3 +1,7 @@
+// src/modules/intelligent-strategy-system/analyzers/neighbor-relative/calculators/NeighborXPathBuilder.ts
+// module: shared | layer: unknown | role: module-component
+// summary: 模块组件
+
 /**
  * NeighborXPathBuilder.ts
  * 基于邻居的XPath构建器

@@ -1,3 +1,7 @@
+// src/modules/contact-import/import-strategies/types.ts
+// module: contact-import | layer: module | role: module-component
+// summary: 模块组件
+
 /**
  * vCard 导入策略类型定义
  * 基于实际测试结果定义的导入方式组合

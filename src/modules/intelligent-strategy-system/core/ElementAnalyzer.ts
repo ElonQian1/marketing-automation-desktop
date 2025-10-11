@@ -1,3 +1,7 @@
+// src/modules/intelligent-strategy-system/core/ElementAnalyzer.ts
+// module: shared | layer: unknown | role: module-component
+// summary: 模块组件
+
 /**
  * 统一元素分析器
  * 整合 ElementFieldAnalyzer、SmartConditionGenerator、StrategyDecisionEngine 的元素分析功能

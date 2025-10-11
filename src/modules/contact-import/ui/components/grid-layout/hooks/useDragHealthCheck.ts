@@ -1,3 +1,7 @@
+// src/modules/contact-import/ui/components/grid-layout/hooks/useDragHealthCheck.ts
+// module: ui | layer: ui | role: component
+// summary: UI 组件
+
 // 拖拽状态检查器 - 快速诊断拖拽功能状态
 // 检查基础拖拽功能是否正常工作
 

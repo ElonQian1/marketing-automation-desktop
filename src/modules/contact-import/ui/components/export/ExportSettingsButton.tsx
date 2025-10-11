@@ -1,3 +1,7 @@
+// src/modules/contact-import/ui/components/export/ExportSettingsButton.tsx
+// module: ui | layer: ui | role: component
+// summary: UI 组件
+
 import React, { useState } from 'react';
 import { Button, Dropdown, Switch, Space } from 'antd';
 import { SettingOutlined } from '@ant-design/icons';

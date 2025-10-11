@@ -1,3 +1,7 @@
+// src/modules/intelligent-strategy-system/scoring/UniquenessValidator.ts
+// module: shared | layer: unknown | role: module-component
+// summary: 模块组件
+
 /**
  * UniquenessValidator.ts (简化版)
  * 策略唯一性校验器

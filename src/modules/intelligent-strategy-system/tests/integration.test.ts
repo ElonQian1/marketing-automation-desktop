@@ -1,3 +1,7 @@
+// src/modules/intelligent-strategy-system/tests/integration.test.ts
+// module: shared | layer: unknown | role: module-component
+// summary: 模块组件
+
 /**
  * 智能策略系统集成测试
  * 验证 scoring 模块与主系统的完整集成

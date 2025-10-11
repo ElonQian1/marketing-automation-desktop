@@ -1,3 +1,7 @@
+// src/modules/contact-import/ui/hooks/useExportOptions.ts
+// module: contact-import | layer: ui | role: module-component
+// summary: 模块组件
+
 import { useLocalStorageState } from './useLocalStorageState';
 import type { ExportOptions } from '../../utils/exportTypes';
 

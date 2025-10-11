@@ -1,3 +1,10 @@
+// src/modules/contact-import/ui/services/exportService.ts
+// module: contact-import | layer: ui | role: module-component
+// summary: 模块组件
+
+// modules/contact-import/ui/services | exportService | 数据导出服务
+// 负责联系人分配数据的导出功能，支持CSV格式导出和自定义文件名模板
+
 import type { BatchExecuteResult } from '../services/batchExecutor';
 import { toCsv, toCsvWithLabels, downloadCsvWithBom } from '../../utils/csv';
 import { buildCsvNameFromTemplate } from '../../utils/filename';

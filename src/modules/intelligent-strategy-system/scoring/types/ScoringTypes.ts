@@ -1,3 +1,7 @@
+// src/modules/intelligent-strategy-system/scoring/types/ScoringTypes.ts
+// module: shared | layer: unknown | role: module-component
+// summary: 模块组件
+
 /**
  * ScoringTypes.ts
  * 评分系统核心类型定义

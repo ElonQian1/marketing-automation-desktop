@@ -1,3 +1,7 @@
+// src/modules/contact-import/ui/components/txt-import/hooks/useTxtImportActions.tsx
+// module: ui | layer: ui | role: component
+// summary: UI 组件
+
 ﻿import React from 'react';
 import { message } from 'antd';
 import { TxtImportRecordDto, bulkDeleteTxtImportRecords, deleteTxtImportRecord } from '../../../services/txtImportRecordService';

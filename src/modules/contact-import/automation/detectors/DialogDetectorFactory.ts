@@ -1,3 +1,7 @@
+// src/modules/contact-import/automation/detectors/DialogDetectorFactory.ts
+// module: contact-import | layer: module | role: module-component
+// summary: 模块组件
+
 import { DialogDetectionConfig } from '../types/DialogTypes';
 import { AppSelectorDetector } from './AppSelectorDetector';
 import { VCardConfirmDetector } from './VCardConfirmDetector';

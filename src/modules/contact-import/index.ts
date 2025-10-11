@@ -1,3 +1,7 @@
+// src/modules/contact-import/index.ts
+// module: contact-import | layer: module | role: module-component
+// summary: 模块组件
+
 // contact-import/index | ContactImportModule | 联系人导入模块公开API
 // 提供DDD架构的联系人导入系统对外统一接口，确保向后兼容性
 

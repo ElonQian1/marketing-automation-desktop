@@ -1,3 +1,7 @@
+// src/modules/contact-import/ui/components/columns/useColumnSettings.ts
+// module: ui | layer: ui | role: component
+// summary: UI 组件
+
 import { useMemo, useState, useEffect } from 'react';
 
 export interface ColumnSettingItem {

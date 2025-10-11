@@ -1,3 +1,7 @@
+// src/modules/parent-backend-compatibility/ParentBackendCompatibilityHandler.ts
+// module: shared | layer: unknown | role: module-component
+// summary: 模块组件
+
 /**
  * 父节点后端兼容性处理器
  * 

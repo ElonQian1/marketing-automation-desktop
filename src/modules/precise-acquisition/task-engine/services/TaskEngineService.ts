@@ -1,3 +1,7 @@
+// src/modules/precise-acquisition/task-engine/services/TaskEngineService.ts
+// module: prospecting | layer: application | role: module-component
+// summary: 模块组件
+
 /**
  * 任务引擎服务 - 统一门面
  * 

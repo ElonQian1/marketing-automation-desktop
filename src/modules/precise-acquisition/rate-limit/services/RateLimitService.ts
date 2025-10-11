@@ -1,3 +1,7 @@
+// src/modules/precise-acquisition/rate-limit/services/RateLimitService.ts
+// module: prospecting | layer: application | role: module-component
+// summary: 模块组件
+
 /**
  * 查重频控服务 - 统一门面
  * 

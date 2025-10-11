@@ -1,3 +1,7 @@
+// src/modules/contact-import/ui/components/grid-layout/hooks/useGridDragGuards.ts
+// module: ui | layer: ui | role: component
+// summary: UI 组件
+
 // 拖拽防护守卫 Hook - 防止表格列宽拖拽与全局拖拽冲突
 // 专为联系人导入工作台优化，不重构现有代码
 

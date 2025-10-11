@@ -1,3 +1,7 @@
+// src/modules/contact-import/ui/components/export/ExportColumnVisibilityModal.tsx
+// module: ui | layer: ui | role: component
+// summary: UI 组件
+
 import React, { useMemo, useState } from 'react';
 import { Modal, Checkbox, Space, Button } from 'antd';
 import type { ExportOptions } from '../../../utils/exportTypes';

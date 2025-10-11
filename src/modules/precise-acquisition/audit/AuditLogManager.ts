@@ -1,3 +1,7 @@
+// src/modules/precise-acquisition/audit/AuditLogManager.ts
+// module: prospecting | layer: application | role: module-component
+// summary: 模块组件
+
 /**
  * 精准获客系统 - 审计日志系统
  * 

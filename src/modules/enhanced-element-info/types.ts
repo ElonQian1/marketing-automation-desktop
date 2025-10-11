@@ -1,3 +1,7 @@
+// src/modules/enhanced-element-info/types.ts
+// module: shared | layer: unknown | role: module-component
+// summary: 模块组件
+
 /**
  * 增强元素信息类型定义
  * 包含完整的XML上下文和节点详情信息

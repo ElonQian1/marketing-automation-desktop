@@ -1,3 +1,7 @@
+// src/modules/precise-acquisition/shared/utils/validation/csvValidation.ts
+// module: prospecting | layer: application | role: module-component
+// summary: 模块组件
+
 /**
  * CSV导入校验工具
  * 

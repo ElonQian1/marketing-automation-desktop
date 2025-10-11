@@ -1,3 +1,7 @@
+// src/modules/contact-import/ui/components/columns/ColumnSettingsModal.tsx
+// module: ui | layer: ui | role: component
+// summary: UI 组件
+
 import React, { useEffect, useMemo, useState } from 'react';
 import { Modal, Space, Checkbox, InputNumber, Tooltip, Divider, theme } from 'antd';
 import { MenuOutlined } from '@ant-design/icons';

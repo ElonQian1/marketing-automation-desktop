@@ -1,3 +1,7 @@
+// src/modules/contact-import/ui/steps/StepProgress.tsx
+// module: contact-import | layer: ui | role: module-component
+// summary: 模块组件
+
 import React from 'react';
 import { Alert, Button, Card, Progress, Space, Typography } from 'antd';
 import { ImportPhase, ImportProgress, ImportResult } from '../../types';

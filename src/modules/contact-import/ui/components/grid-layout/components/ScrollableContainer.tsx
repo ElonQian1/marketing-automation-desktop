@@ -1,3 +1,7 @@
+// src/modules/contact-import/ui/components/grid-layout/components/ScrollableContainer.tsx
+// module: ui | layer: ui | role: component
+// summary: UI 组件
+
 import React, { ReactNode, useRef, useEffect } from 'react';
 import { useViewportHeight } from '../hooks/useViewportHeight';
 import '../styles/scrollable.css';

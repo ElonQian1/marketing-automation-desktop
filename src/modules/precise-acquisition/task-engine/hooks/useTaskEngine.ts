@@ -1,8 +1,9 @@
-/**
- * 任务引擎 React Hook
- * 
- * 提供任务生成、管理和监控的React接口
- */
+// src/modules/precise-acquisition/task-engine/hooks/useTaskEngine.ts
+// module: prospecting | layer: application | role: module-component
+// summary: 模块组件
+
+// modules/precise-acquisition/task-engine/hooks | useTaskEngine | 任务引擎React Hook
+// 提供任务生成、管理和监控的完整React接口，封装任务引擎的状态管理和业务逻辑
 
 import { useState, useEffect, useCallback } from 'react';
 import { 

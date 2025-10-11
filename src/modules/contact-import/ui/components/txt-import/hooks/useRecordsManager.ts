@@ -1,3 +1,7 @@
+// src/modules/contact-import/ui/components/txt-import/hooks/useRecordsManager.ts
+// module: ui | layer: ui | role: component
+// summary: UI 组件
+
 ﻿import { useState, useEffect } from "react";
 import { message } from "antd";
 import {

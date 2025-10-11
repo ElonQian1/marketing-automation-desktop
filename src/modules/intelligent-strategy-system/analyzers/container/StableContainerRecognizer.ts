@@ -1,3 +1,7 @@
+// src/modules/intelligent-strategy-system/analyzers/container/StableContainerRecognizer.ts
+// module: shared | layer: unknown | role: module-component
+// summary: 模块组件
+
 /**
  * 稳定容器识别器
  * 

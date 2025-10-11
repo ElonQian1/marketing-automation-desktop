@@ -1,3 +1,7 @@
+// src/services/EnhancedXmlCacheService.ts
+// module: shared | layer: unknown | role: component
+// summary: EnhancedXmlCacheService.ts 文件
+
 /**
  * 增强的XML页面缓存服务
  * 支持保存和加载完整的视图数据，避免重复计算

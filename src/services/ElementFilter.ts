@@ -1,3 +1,7 @@
+// src/services/ElementFilter.ts
+// module: shared | layer: unknown | role: component
+// summary: ElementFilter.ts 文件
+
 /**
  * 独立的元素过滤器模块
  * 

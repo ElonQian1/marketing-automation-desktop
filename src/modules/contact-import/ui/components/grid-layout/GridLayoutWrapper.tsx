@@ -1,3 +1,7 @@
+// src/modules/contact-import/ui/components/grid-layout/GridLayoutWrapper.tsx
+// module: ui | layer: ui | role: component
+// summary: UI 组件
+
 import React, { useState, useCallback, useMemo, useEffect } from 'react';
 import GridLayout, { Layout, Responsive, WidthProvider } from 'react-grid-layout';
 import { Button } from 'antd';

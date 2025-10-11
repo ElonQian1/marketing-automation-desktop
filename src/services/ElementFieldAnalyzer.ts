@@ -1,3 +1,7 @@
+// src/services/ElementFieldAnalyzer.ts
+// module: shared | layer: unknown | role: component
+// summary: ElementFieldAnalyzer.ts 文件
+
 /**
  * @deprecated 已迁移到 intelligent-strategy-system/ElementAnalyzer
  * 此文件保留作为向后兼容适配器，建议迁移到新的统一接口

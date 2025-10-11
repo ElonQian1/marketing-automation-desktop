@@ -1,3 +1,7 @@
+// src/modules/contact-import/ui/batch-manager/components/table-cells/IndustryTagCell.tsx
+// module: ui | layer: ui | role: component
+// summary: UI 组件
+
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { AutoComplete, Button, Input, Space, Tag, Tooltip } from 'antd';
 import type { InputRef } from 'antd';

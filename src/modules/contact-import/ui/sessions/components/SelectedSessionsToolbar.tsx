@@ -1,3 +1,7 @@
+// src/modules/contact-import/ui/sessions/components/SelectedSessionsToolbar.tsx
+// module: ui | layer: ui | role: component
+// summary: UI 组件
+
 import React from 'react';
 import { Space, Button, Tag, Tooltip } from 'antd';
 import { QuestionCircleOutlined } from '@ant-design/icons';

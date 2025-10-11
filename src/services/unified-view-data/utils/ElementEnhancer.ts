@@ -1,3 +1,7 @@
+// src/services/unified-view-data/utils/ElementEnhancer.ts
+// module: shared | layer: utils | role: utility
+// summary: 工具函数
+
 /**
  * 元素增强处理器
  * 将基础UI元素转换为增强的UI元素

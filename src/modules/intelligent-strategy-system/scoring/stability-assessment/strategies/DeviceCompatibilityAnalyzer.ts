@@ -1,3 +1,7 @@
+// src/modules/intelligent-strategy-system/scoring/stability-assessment/strategies/DeviceCompatibilityAnalyzer.ts
+// module: shared | layer: unknown | role: module-component
+// summary: 模块组件
+
 /**
  * 设备兼容性分析策略
  * 

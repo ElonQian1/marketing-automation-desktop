@@ -1,3 +1,7 @@
+// src/modules/adb/application/types/index.ts
+// module: adb | layer: application | role: application-logic
+// summary: 应用逻辑
+
 // modules/adb/application/types | index | 应用层类型定义
 // 定义ADB应用层使用的类型，包括DTO、命令、查询等
 

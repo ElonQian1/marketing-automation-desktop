@@ -1,3 +1,7 @@
+// src/modules/contact-import/ui/components/resizable-layout/index.ts
+// module: ui | layer: ui | role: component
+// summary: UI 组件
+
 // 导出可拖拽布局系统的所有组件和工具
 export { useResizableLayout } from "./useResizableLayout";
 export type { PanelConfig, LayoutState } from "./useResizableLayout";

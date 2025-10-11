@@ -1,3 +1,7 @@
+// src/modules/vcf-sessions/services/vcfSessionService.ts
+// module: shared | layer: unknown | role: module-component
+// summary: 模块组件
+
 import { invoke } from '@tauri-apps/api/core';
 import type { ContactNumberList } from '../../contact-import/ui/services/contactNumberService';
 

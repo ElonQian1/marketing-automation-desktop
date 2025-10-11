@@ -1,3 +1,7 @@
+// src/modules/contact-import/ui/components/grid-layout/hooks/useDragRestore.ts
+// module: ui | layer: ui | role: component
+// summary: UI 组件
+
 // 拖拽恢复器 - 修复过度修复导致的基础功能丢失
 // 当拖拽修复过度时，恢复基础拖拽功能
 

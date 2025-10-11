@@ -1,3 +1,7 @@
+// src/modules/intelligent-strategy-system/core/StrategyDecisionEngine.ts
+// module: shared | layer: unknown | role: module-component
+// summary: 模块组件
+
 /**
  * StrategyDecisionEngine.ts
  * 智能策略决策引擎 - 核心决策逻辑

@@ -1,3 +1,7 @@
+// src/modules/contact-import/application/types/ImportProgress.ts
+// module: contact-import | layer: application | role: application-logic
+// summary: 应用逻辑
+
 // contact-import/application/types | ImportProgress | 导入进度类型定义
 // 包含导入操作的进度跟踪、状态监控等应用层关注的数据结构
 

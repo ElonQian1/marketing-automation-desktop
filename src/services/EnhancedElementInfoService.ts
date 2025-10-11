@@ -1,3 +1,7 @@
+// src/services/EnhancedElementInfoService.ts
+// module: shared | layer: unknown | role: component
+// summary: EnhancedElementInfoService.ts 文件
+
 /**
  * 增强元素信息服务
  * 提供创建和管理增强UI元素的功能

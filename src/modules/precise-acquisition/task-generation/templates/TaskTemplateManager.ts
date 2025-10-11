@@ -1,3 +1,7 @@
+// src/modules/precise-acquisition/task-generation/templates/TaskTemplateManager.ts
+// module: prospecting | layer: application | role: module-component
+// summary: 模块组件
+
 /**
  * 精准获客系统 - 任务模板系统
  * 

@@ -1,3 +1,7 @@
+// src/modules/contact-import/ui/components/grid-layout/components/DragDiagnosticPanel.tsx
+// module: ui | layer: ui | role: component
+// summary: UI 组件
+
 // 拖拽诊断面板 - 实时显示拖拽健康状态和快速修复
 // 帮助开发者快速定位和修复拖拽问题
 

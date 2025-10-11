@@ -1,3 +1,10 @@
+// src/modules/contact-import/ui/services/vcfBatchRegistrationService.ts
+// module: contact-import | layer: ui | role: module-component
+// summary: 模块组件
+
+// modules/contact-import/ui/services | vcfBatchRegistrationService | VCF批次注册服务
+// 负责VCF批次的创建、注册和设备绑定，管理生成的联系人批次与设备的关联关系
+
 import { createVcfBatchWithNumbers } from '../../../vcf-sessions/services/vcfSessionService';
 import { bindBatchToDevice } from './deviceBatchBinding';
 import { createImportSessionRecord } from './contactNumberService';

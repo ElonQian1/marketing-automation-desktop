@@ -1,3 +1,7 @@
+// src/modules/contact-import/ui/components/ConflictNavigator.tsx
+// module: ui | layer: ui | role: component
+// summary: UI 组件
+
 import React from 'react';
 import { Button, Space, Typography } from 'antd';
 

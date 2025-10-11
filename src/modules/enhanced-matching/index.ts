@@ -1,3 +1,7 @@
+// src/modules/enhanced-matching/index.ts
+// module: shared | layer: unknown | role: module-component
+// summary: 模块组件
+
 /**
  * enhanced-matching/index.ts
  * 增强匹配系统导出文件 - 提供统一的对外接口

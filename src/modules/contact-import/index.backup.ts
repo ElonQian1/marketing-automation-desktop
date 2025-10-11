@@ -1,3 +1,7 @@
+// src/modules/contact-import/index.backup.ts
+// module: contact-import | layer: module | role: module-component
+// summary: 模块组件
+
 /**
  * 联系人导入模块入口文件
  * 高内聚、低耦合的模块化联系人导入系统

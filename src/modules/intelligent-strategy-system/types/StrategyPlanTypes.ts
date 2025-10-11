@@ -1,3 +1,7 @@
+// src/modules/intelligent-strategy-system/types/StrategyPlanTypes.ts
+// module: shared | layer: unknown | role: module-component
+// summary: 模块组件
+
 /**
  * StrategyPlanTypes.ts
  * 策略计划相关类型定义

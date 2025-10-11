@@ -1,3 +1,7 @@
+// src/modules/contact-import/ui/steps/StepUpload.tsx
+// module: contact-import | layer: ui | role: module-component
+// summary: 模块组件
+
 import React, { useCallback } from 'react';
 import { Card, Table, Typography, Upload } from 'antd';
 import { InboxOutlined } from '@ant-design/icons';

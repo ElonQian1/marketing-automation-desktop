@@ -1,3 +1,7 @@
+// src/modules/contact-import/ui/components/DeviceAssignmentGrid/DeviceAssignmentGrid.tsx
+// module: ui | layer: ui | role: component
+// summary: UI 组件
+
 import React, { useEffect, useMemo, useState } from 'react';
 import { Row, Col, Space, App, Typography } from 'antd';
 import styles from '../DeviceAssignmentGrid.module.css';

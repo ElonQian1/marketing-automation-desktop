@@ -1,3 +1,7 @@
+// src/modules/precise-acquisition/template-management/index.ts
+// module: prospecting | layer: application | role: module-component
+// summary: 模块组件
+
 /**
  * 话术模板管理模块导出
  * 

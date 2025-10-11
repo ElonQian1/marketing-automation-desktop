@@ -1,3 +1,7 @@
+// src/modules/intelligent-strategy-system/scoring/uniqueness/core/ConflictDetector.ts
+// module: shared | layer: unknown | role: module-component
+// summary: 模块组件
+
 /**
  * 冲突检测器 - 策略冲突识别和解决方案提供
  * 提取自重复的 UniquenessValidator 实现，统一冲突检测逻辑

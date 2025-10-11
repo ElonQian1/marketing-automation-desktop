@@ -1,3 +1,7 @@
+// src/modules/precise-acquisition/task-engine/components/TaskDeviceConsole.tsx
+// module: ui | layer: ui | role: component
+// summary: UI 组件
+
 /**
  * 任务设备管理控制台组件
  * 

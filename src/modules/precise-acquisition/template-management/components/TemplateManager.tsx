@@ -1,3 +1,7 @@
+// src/modules/precise-acquisition/template-management/components/TemplateManager.tsx
+// module: ui | layer: ui | role: component
+// summary: UI 组件
+
 /**
  * 话术模板管理器组件
  * 

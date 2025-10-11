@@ -1,3 +1,7 @@
+// src/modules/contact-import/ui/components/export/ExportPreviewModal.tsx
+// module: ui | layer: ui | role: component
+// summary: UI 组件
+
 import React, { useMemo } from 'react';
 import { Modal, Table, Space, Button, Typography, message } from 'antd';
 import type { BatchExecuteResult } from '../../services/batchExecutor';

@@ -1,3 +1,7 @@
+// src/modules/contact-import/ui/hooks/useReasonGroups.ts
+// module: contact-import | layer: ui | role: module-component
+// summary: 模块组件
+
 import { useMemo } from 'react';
 import type { BatchExecuteResult } from '../services/batchExecutor';
 

@@ -1,3 +1,7 @@
+// src/modules/intelligent-strategy-system/analyzers/index.ts
+// module: shared | layer: unknown | role: module-component
+// summary: 模块组件
+
 /**
  * index.ts
  * 分析器模块统一导出

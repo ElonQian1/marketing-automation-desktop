@@ -1,3 +1,7 @@
+// src/modules/precise-acquisition/demo/index.ts
+// module: prospecting | layer: application | role: module-component
+// summary: 模块组件
+
 /**
  * 精准获客系统 - 演示模块导出
  * 

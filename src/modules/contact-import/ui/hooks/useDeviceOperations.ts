@@ -1,3 +1,7 @@
+// src/modules/contact-import/ui/hooks/useDeviceOperations.ts
+// module: contact-import | layer: ui | role: module-component
+// summary: 模块组件
+
 import { useCallback } from 'react';
 import { message } from 'antd';
 import { Device } from '../../../../domain/adb/entities/Device';

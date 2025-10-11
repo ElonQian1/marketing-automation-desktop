@@ -1,3 +1,7 @@
+// src/modules/self-contained/StepParamSelfContained.ts
+// module: shared | layer: unknown | role: module-component
+// summary: 模块组件
+
 import type { XmlSnapshot, SelfContainedStepParameters, ElementLocator } from '../../types/selfContainedScript';
 import { createXmlSnapshot } from '../../types/selfContainedScript';
 

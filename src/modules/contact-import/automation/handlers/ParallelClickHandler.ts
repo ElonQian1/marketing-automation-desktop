@@ -1,3 +1,7 @@
+// src/modules/contact-import/automation/handlers/ParallelClickHandler.ts
+// module: contact-import | layer: module | role: module-component
+// summary: 模块组件
+
 import { DialogType, ClickResult, ElementMatch } from '../types/DialogTypes';
 
 /**

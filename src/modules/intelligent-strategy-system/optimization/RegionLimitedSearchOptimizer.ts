@@ -1,3 +1,7 @@
+// src/modules/intelligent-strategy-system/optimization/RegionLimitedSearchOptimizer.ts
+// module: shared | layer: unknown | role: module-component
+// summary: 模块组件
+
 /**
  * 区域限制搜索优化系统
  * 

@@ -1,3 +1,7 @@
+// src/modules/contact-import/types/index.ts
+// module: contact-import | layer: module | role: module-component
+// summary: 模块组件
+
 /**
  * 联系人导入模块 - 核心类型定义
  * 高内聚、低耦合的类型系统

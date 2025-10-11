@@ -1,3 +1,7 @@
+// src/modules/intelligent-strategy-system/scoring/uniqueness/core/SimilarityAnalyzer.ts
+// module: shared | layer: unknown | role: module-component
+// summary: 模块组件
+
 /**
  * 相似性分析器 - 统一的策略相似度计算核心
  * 提取自重复的 UniquenessValidator 实现，消除代码重复

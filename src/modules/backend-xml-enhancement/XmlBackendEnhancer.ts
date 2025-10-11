@@ -1,3 +1,7 @@
+// src/modules/backend-xml-enhancement/XmlBackendEnhancer.ts
+// module: shared | layer: unknown | role: module-component
+// summary: 模块组件
+
 /**
  * 后端XML子节点字段扩展
  * 

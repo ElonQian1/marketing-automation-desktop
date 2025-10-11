@@ -1,3 +1,7 @@
+// src/modules/contact-import/ui/services/sourcePathsStorage.ts
+// module: contact-import | layer: ui | role: module-component
+// summary: 模块组件
+
 // 负责持久化联系人导入的“源文件夹路径”列表（使用 localStorage）
 
 const STORAGE_KEY = 'contactImport.sourceFolders';

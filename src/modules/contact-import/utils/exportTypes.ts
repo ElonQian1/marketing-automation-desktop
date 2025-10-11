@@ -1,3 +1,7 @@
+// src/modules/contact-import/utils/exportTypes.ts
+// module: contact-import | layer: module | role: module-component
+// summary: 模块组件
+
 export interface ExportOptions {
   includeAssignmentColumns?: boolean; // 是否包含行业与区间列
   useChineseHeaders?: boolean;        // 是否使用中文列名

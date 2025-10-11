@@ -1,3 +1,7 @@
+// src/modules/precise-acquisition/task-generation/state/TaskStateManager.ts
+// module: prospecting | layer: application | role: module-component
+// summary: 模块组件
+
 /**
  * 精准获客系统 - 任务状态管理
  * 

@@ -1,3 +1,7 @@
+// src/services/RealXMLAnalysisService.ts
+// module: shared | layer: unknown | role: component
+// summary: RealXMLAnalysisService.ts 文件
+
 /**
  * 基于真实XML数据的智能UI元素分析服务
  * 专门用于增强步骤描述的准确性和可读性

@@ -1,3 +1,7 @@
+// src/modules/precise-acquisition/task-engine/components/TaskExecutor.tsx
+// module: ui | layer: ui | role: component
+// summary: UI 组件
+
 /**
  * 任务执行器React组件
  * 

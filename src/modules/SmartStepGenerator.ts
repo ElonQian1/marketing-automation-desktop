@@ -1,3 +1,7 @@
+// src/modules/SmartStepGenerator.ts
+// module: shared | layer: unknown | role: module-component
+// summary: 模块组件
+
 /**
  * 智能步骤生成器模块
  * 根据元素分析结果生成合理的步骤名称和描述

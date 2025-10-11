@@ -1,3 +1,7 @@
+// src/modules/intelligent-strategy-system/scoring/stability-assessment/strategies/ResolutionAdaptabilityAnalyzer.ts
+// module: shared | layer: unknown | role: module-component
+// summary: 模块组件
+
 /**
  * 分辨率适应性分析策略
  * 

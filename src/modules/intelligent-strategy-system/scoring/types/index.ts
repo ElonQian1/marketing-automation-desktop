@@ -1,3 +1,7 @@
+// src/modules/intelligent-strategy-system/scoring/types/index.ts
+// module: shared | layer: unknown | role: module-component
+// summary: 模块组件
+
 /**
  * scoring/types/index.ts
  * 评分系统类型统一导出

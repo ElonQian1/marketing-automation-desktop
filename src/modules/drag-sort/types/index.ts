@@ -1,3 +1,7 @@
+// src/modules/drag-sort/types/index.ts
+// module: shared | layer: unknown | role: module-component
+// summary: 模块组件
+
 // 拖拽排序模块 - 类型定义
 
 import { ExtendedSmartScriptStep } from '../../loop-control/types';

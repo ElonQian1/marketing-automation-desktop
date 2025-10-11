@@ -1,3 +1,7 @@
+// src/modules/parent-xml-enhancement/ParentXmlEnhancementService.ts
+// module: shared | layer: unknown | role: module-component
+// summary: 模块组件
+
 /**
  * 父节点 XML 增强服务
  * 

@@ -1,3 +1,7 @@
+// src/modules/precise-acquisition/task-engine/components/TaskStatsCards.tsx
+// module: ui | layer: ui | role: component
+// summary: UI 组件
+
 /**
  * 任务统计卡片组件
  * 

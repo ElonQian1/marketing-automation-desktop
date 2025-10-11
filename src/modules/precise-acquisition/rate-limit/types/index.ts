@@ -1,3 +1,7 @@
+// src/modules/precise-acquisition/rate-limit/types/index.ts
+// module: prospecting | layer: application | role: module-component
+// summary: 模块组件
+
 /**
  * 查重频控 - 类型定义
  */

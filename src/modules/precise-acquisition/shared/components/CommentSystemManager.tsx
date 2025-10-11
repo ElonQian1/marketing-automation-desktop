@@ -1,3 +1,7 @@
+// src/modules/precise-acquisition/shared/components/CommentSystemManager.tsx
+// module: ui | layer: ui | role: component
+// summary: UI 组件
+
 /**
  * 评论系统管理组件
  * 

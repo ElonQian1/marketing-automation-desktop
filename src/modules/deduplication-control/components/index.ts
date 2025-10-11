@@ -1,3 +1,7 @@
+// src/modules/deduplication-control/components/index.ts
+// module: ui | layer: ui | role: component
+// summary: UI 组件
+
 /**
  * 组件统一导出
  */

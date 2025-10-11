@@ -1,3 +1,7 @@
+// src/services/unified-view-data/types.ts
+// module: shared | layer: unknown | role: component
+// summary: types.ts 文件
+
 /**
  * 统一视图数据管理器 - 类型定义
  * 包含所有统一视图系统的接口和类型

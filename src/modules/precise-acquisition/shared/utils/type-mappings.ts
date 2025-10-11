@@ -1,3 +1,7 @@
+// src/modules/precise-acquisition/shared/utils/type-mappings.ts
+// module: prospecting | layer: application | role: module-component
+// summary: 模块组件
+
 import { ExecutorMode } from '../../../../constants/precise-acquisition-enums';
 
 /**

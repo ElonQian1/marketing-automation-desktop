@@ -1,3 +1,7 @@
+// src/modules/adb/application/services/DiagnosticManagementService.ts
+// module: adb | layer: application | role: app-service
+// summary: 应用服务
+
 // modules/adb/application/services | DiagnosticManagementService | 诊断管理专门服务
 // 负责诊断检查、健康监控和自动修复，从巨型AdbApplicationService中拆分出来
 

@@ -1,3 +1,7 @@
+// src/modules/enhanced-matching/types.ts
+// module: shared | layer: unknown | role: module-component
+// summary: 模块组件
+
 /**
  * enhanced-matching/types.ts
  * 增强匹配系统的类型定义

@@ -1,3 +1,7 @@
+// src/services/customMatchingEngine.ts
+// module: shared | layer: unknown | role: component
+// summary: customMatchingEngine.ts 文件
+
 /**
  * 自定义匹配引擎 - 核心实现
  * 支持通配符、正则表达式、位置范围等多种匹配模式

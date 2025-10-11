@@ -1,7 +1,10 @@
-/**
- * 示例：设备状态卡片组件
- * 演示如何使用统一的ContactImportProvider
- */
+// src/modules/contact-import/ui/components/DeviceStatusCard.tsx
+// module: ui | layer: ui | role: component
+// summary: UI 组件
+
+// modules/contact-import/ui/components | DeviceStatusCard | 设备状态卡片组件
+// 展示设备连接状态、设备信息和操作控制，为设备管理提供可视化界面
+
 import React from 'react';
 import { Card, Button, Tag, Space } from 'antd';
 import { useContactImportContext } from '../providers';

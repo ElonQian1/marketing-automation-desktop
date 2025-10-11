@@ -1,3 +1,7 @@
+// src/modules/contact-import/ui/components/VcfImportButton.tsx
+// module: ui | layer: ui | role: component
+// summary: UI 组件
+
 import React, { useState } from 'react';
 import { Button, Space, Tooltip } from 'antd';
 import { ExperimentOutlined, ImportOutlined, InfoCircleOutlined } from '@ant-design/icons';

@@ -1,3 +1,7 @@
+// src/modules/contact-import/ui/components/resizable-layout/DeviceAssignmentPanel.tsx
+// module: ui | layer: ui | role: component
+// summary: UI 组件
+
 import React from 'react';
 import { Card, Space, Button, Divider, Typography, Alert } from 'antd';
 import { DatabaseOutlined, FileTextOutlined, FolderOpenOutlined, FileDoneOutlined } from '@ant-design/icons';

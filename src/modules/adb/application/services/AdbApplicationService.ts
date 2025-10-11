@@ -1,3 +1,7 @@
+// src/modules/adb/application/services/AdbApplicationService.ts
+// module: adb | layer: application | role: app-service
+// summary: 应用服务
+
 // modules/adb/application/services | AdbApplicationService | ADB应用服务协调器（重构版）
 // 作为Facade模式实现，协调各个专门服务，为UI层提供简化的业务导向API接口
 

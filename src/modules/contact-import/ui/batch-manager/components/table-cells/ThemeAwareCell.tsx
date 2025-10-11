@@ -1,3 +1,7 @@
+// src/modules/contact-import/ui/batch-manager/components/table-cells/ThemeAwareCell.tsx
+// module: ui | layer: ui | role: component
+// summary: UI 组件
+
 /**
  * 主题感知的表格单元格基础组件
  * 

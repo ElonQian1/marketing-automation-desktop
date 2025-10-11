@@ -1,3 +1,7 @@
+// src/modules/contact-import/ui/components/number-pool-table/NumberPoolFieldRenderers.tsx
+// module: ui | layer: ui | role: component
+// summary: UI 组件
+
 import React from 'react';
 import { Tag, Tooltip, Typography } from 'antd';
 import { CheckCircleOutlined, CloseCircleOutlined, MinusCircleOutlined, MobileOutlined } from '@ant-design/icons';

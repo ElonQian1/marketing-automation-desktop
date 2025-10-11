@@ -1,3 +1,7 @@
+// src/modules/parent-node-extractor/ParentNodeExtractor.ts
+// module: shared | layer: unknown | role: module-component
+// summary: 模块组件
+
 /**
  * 父节点信息提取器
  * 

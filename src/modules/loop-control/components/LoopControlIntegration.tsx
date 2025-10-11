@@ -1,3 +1,7 @@
+// src/modules/loop-control/components/LoopControlIntegration.tsx
+// module: ui | layer: ui | role: component
+// summary: UI 组件
+
 // 循环控制和拖拽排序集成示例
 
 import React, { useState, useCallback } from 'react';

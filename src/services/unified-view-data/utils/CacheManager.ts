@@ -1,3 +1,7 @@
+// src/services/unified-view-data/utils/CacheManager.ts
+// module: shared | layer: utils | role: utility
+// summary: 工具函数
+
 /**
  * 缓存管理器
  * 处理统一视图数据的缓存存储和检索

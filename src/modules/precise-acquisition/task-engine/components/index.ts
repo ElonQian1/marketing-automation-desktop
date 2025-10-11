@@ -1,3 +1,7 @@
+// src/modules/precise-acquisition/task-engine/components/index.ts
+// module: ui | layer: ui | role: component
+// summary: UI 组件
+
 /**
  * 任务引擎组件导出
  * 

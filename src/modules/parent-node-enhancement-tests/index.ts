@@ -1,3 +1,7 @@
+// src/modules/parent-node-enhancement-tests/index.ts
+// module: shared | layer: unknown | role: module-component
+// summary: 模块组件
+
 /**
  * 父节点增强功能测试套件
  * 

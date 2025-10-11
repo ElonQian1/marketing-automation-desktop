@@ -1,3 +1,7 @@
+// src/modules/contact-import/utils/assignmentValidation.ts
+// module: contact-import | layer: module | role: module-component
+// summary: 模块组件
+
 export interface RangeCfg { idStart?: number; idEnd?: number }
 export interface RangeConflict {
   deviceA: string; rangeA: { start: number; end: number };

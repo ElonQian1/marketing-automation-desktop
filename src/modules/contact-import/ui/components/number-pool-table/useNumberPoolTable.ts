@@ -1,3 +1,7 @@
+// src/modules/contact-import/ui/components/number-pool-table/useNumberPoolTable.ts
+// module: ui | layer: ui | role: component
+// summary: UI 组件
+
 import { useState, useMemo, useCallback } from 'react';
 import { COLUMN_CONFIGS, createNumberPoolColumns, NumberPoolColumnConfig } from './NumberPoolTableColumns';
 import { createNumberPoolRenderers } from './NumberPoolFieldRenderers';

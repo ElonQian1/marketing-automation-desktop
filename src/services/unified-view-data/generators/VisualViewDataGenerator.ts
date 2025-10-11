@@ -1,3 +1,7 @@
+// src/services/unified-view-data/generators/VisualViewDataGenerator.ts
+// module: shared | layer: unknown | role: component
+// summary: VisualViewDataGenerator.ts 文件
+
 /**
  * 可视化视图数据生成器
  * 为可视化视图生成叠加层和交互区域数据

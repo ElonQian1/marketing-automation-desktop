@@ -1,3 +1,7 @@
+// src/modules/contact-import/ui/components/result/FailReasonChips.tsx
+// module: ui | layer: ui | role: component
+// summary: UI 组件
+
 import React, { useMemo, useState } from 'react';
 import { Button, Input, Space, Tag, Tooltip } from 'antd';
 import type { ReasonGroup } from '../../hooks/useReasonGroups';

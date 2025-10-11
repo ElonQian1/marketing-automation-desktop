@@ -1,3 +1,7 @@
+// src/modules/deduplication-control/components/SafetyMonitorPanel.tsx
+// module: ui | layer: ui | role: component
+// summary: UI 组件
+
 /**
  * 安全监控面板
  * 

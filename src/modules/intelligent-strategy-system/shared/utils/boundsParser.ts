@@ -1,3 +1,7 @@
+// src/modules/intelligent-strategy-system/shared/utils/boundsParser.ts
+// module: shared | layer: unknown | role: module-component
+// summary: 模块组件
+
 /**
  * 统一的边界解析工具
  * 

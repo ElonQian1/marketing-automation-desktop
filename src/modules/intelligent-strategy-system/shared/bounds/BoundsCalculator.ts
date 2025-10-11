@@ -1,3 +1,7 @@
+// src/modules/intelligent-strategy-system/shared/bounds/BoundsCalculator.ts
+// module: shared | layer: unknown | role: module-component
+// summary: 模块组件
+
 /**
  * BoundsCalculator.ts
  * 统一的边界计算工具

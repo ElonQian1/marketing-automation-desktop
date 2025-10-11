@@ -1,3 +1,7 @@
+// src/modules/precise-acquisition/task-engine/components/TaskTable.tsx
+// module: ui | layer: ui | role: component
+// summary: UI 组件
+
 /**
  * 任务表格组件
  * 

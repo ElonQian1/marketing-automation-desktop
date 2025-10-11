@@ -1,3 +1,7 @@
+// src/modules/deduplication-control/index.ts
+// module: shared | layer: unknown | role: module-component
+// summary: 模块组件
+
 /**
  * 查重频控模块统一导出
  * 

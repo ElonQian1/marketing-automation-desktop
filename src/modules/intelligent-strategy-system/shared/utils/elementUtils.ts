@@ -1,3 +1,7 @@
+// src/modules/intelligent-strategy-system/shared/utils/elementUtils.ts
+// module: shared | layer: unknown | role: module-component
+// summary: 模块组件
+
 /**
  * 元素验证与操作工具
  * 

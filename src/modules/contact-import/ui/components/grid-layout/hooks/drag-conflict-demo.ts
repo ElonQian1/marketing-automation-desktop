@@ -1,3 +1,7 @@
+// src/modules/contact-import/ui/components/grid-layout/hooks/drag-conflict-demo.ts
+// module: ui | layer: ui | role: component
+// summary: UI 组件
+
 // 拖拽冲突解决演示 - 运行时效果展示
 // 此文件展示了拖拽冲突解决器的实际工作效果
 

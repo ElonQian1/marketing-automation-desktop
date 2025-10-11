@@ -1,7 +1,10 @@
-/**
- * @fileoverview Contact Import Session Test Suites
- * @description Unit tests for session import service functionality
- */
+// src/modules/contact-import/__tests__/sessionImportService.spec.ts
+// module: contact-import | layer: module | role: module-component
+// summary: 模块组件
+
+// modules/contact-import/__tests__ | sessionImportService.spec | 会话导入服务测试套件
+// 对会话导入服务的功能进行单元测试，验证会话管理和状态更新逻辑
+
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { reimportSelectedSessionsWithDeps, type ReimportDeps } from '../ui/services/sessionImportService';
 

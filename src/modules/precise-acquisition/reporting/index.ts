@@ -1,3 +1,7 @@
+// src/modules/precise-acquisition/reporting/index.ts
+// module: prospecting | layer: application | role: module-component
+// summary: 模块组件
+
 /**
  * 日报系统模块导出文件
  */

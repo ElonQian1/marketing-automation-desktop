@@ -1,3 +1,7 @@
+// src/modules/contact-import/ui/components/BatchResultModal.tsx
+// module: ui | layer: ui | role: component
+// summary: UI 组件
+
 import React, { useMemo, useState } from 'react';
 import { Modal, Table, Tag, Space, Button, Segmented, Tooltip, message } from 'antd';
 import type { BatchExecuteResult } from '../services/batchExecutor';

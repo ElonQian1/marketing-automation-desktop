@@ -1,3 +1,7 @@
+// src/modules/distributed-script-quality/DistributedScriptQualityPanel.tsx
+// module: shared | layer: unknown | role: module-component
+// summary: 模块组件
+
 /**
  * 分布式脚本质量检查面板
  * 在脚本构建器中集成质量检查功能

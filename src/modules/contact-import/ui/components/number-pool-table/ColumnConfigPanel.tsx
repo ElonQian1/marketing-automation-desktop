@@ -1,3 +1,7 @@
+// src/modules/contact-import/ui/components/number-pool-table/ColumnConfigPanel.tsx
+// module: ui | layer: ui | role: component
+// summary: UI 组件
+
 import React from 'react';
 import { Checkbox, Space, Button, Popover, Typography, Divider } from 'antd';
 import { SettingOutlined, ReloadOutlined } from '@ant-design/icons';

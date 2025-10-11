@@ -1,3 +1,7 @@
+// src/modules/contact-import/ui/components/grid-layout/hooks/performance/DragBehaviorOptimizer.ts
+// module: ui | layer: ui | role: component
+// summary: UI 组件
+
 /**
  * 拖拽行为优化工具 - Employee D 架构适配
  * 用于精确控制拖拽区域和事件传播，零覆盖原则

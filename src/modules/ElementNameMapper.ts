@@ -1,3 +1,7 @@
+// src/modules/ElementNameMapper.ts
+// module: shared | layer: unknown | role: module-component
+// summary: 模块组件
+
 /**
  * 元素名称映射服务
  * 用于管理用户自定义的元素名称映射和匹配规则

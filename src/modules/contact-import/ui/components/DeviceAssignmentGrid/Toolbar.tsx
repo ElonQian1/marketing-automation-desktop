@@ -1,3 +1,7 @@
+// src/modules/contact-import/ui/components/DeviceAssignmentGrid/Toolbar.tsx
+// module: ui | layer: ui | role: component
+// summary: UI 组件
+
 import React from 'react';
 import { Button, Checkbox, Space, Typography, InputNumber, App } from 'antd';
 import { SyncOutlined, ReloadOutlined } from '@ant-design/icons';

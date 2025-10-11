@@ -1,3 +1,7 @@
+// src/modules/enhanced-matching/components/HierarchyFieldDisplay.tsx
+// module: ui | layer: ui | role: component
+// summary: UI 组件
+
 /**
  * enhanced-matching/components/HierarchyFieldDisplay.tsx
  * 字段层级显示组件 - 为用户展示清晰的字段层级关系

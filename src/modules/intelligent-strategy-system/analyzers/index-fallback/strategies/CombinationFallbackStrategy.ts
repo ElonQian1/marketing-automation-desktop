@@ -1,3 +1,7 @@
+// src/modules/intelligent-strategy-system/analyzers/index-fallback/strategies/CombinationFallbackStrategy.ts
+// module: shared | layer: unknown | role: module-component
+// summary: 模块组件
+
 /**
  * CombinationFallbackStrategy.ts
  * 组合回退策略 - 最后的兜底方案

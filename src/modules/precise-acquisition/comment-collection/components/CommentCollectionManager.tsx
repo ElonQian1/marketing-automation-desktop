@@ -1,3 +1,7 @@
+// src/modules/precise-acquisition/comment-collection/components/CommentCollectionManager.tsx
+// module: ui | layer: ui | role: component
+// summary: UI 组件
+
 /**
  * 评论采集管理界面
  * 

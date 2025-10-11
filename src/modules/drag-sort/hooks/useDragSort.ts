@@ -1,3 +1,7 @@
+// src/modules/drag-sort/hooks/useDragSort.ts
+// module: shared | layer: unknown | role: module-component
+// summary: 模块组件
+
 // 拖拽排序Hook - 管理拖拽状态和逻辑
 
 import { useState, useCallback, useMemo } from 'react';

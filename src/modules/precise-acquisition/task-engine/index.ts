@@ -1,3 +1,7 @@
+// src/modules/precise-acquisition/task-engine/index.ts
+// module: prospecting | layer: application | role: module-component
+// summary: 模块组件
+
 /**
  * 任务引擎模块主入口
  * 

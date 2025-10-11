@@ -1,3 +1,7 @@
+// src/modules/adb/domain/index.ts
+// module: adb | layer: domain | role: domain-logic
+// summary: 领域逻辑定义
+
 // modules/adb/domain | index | 领域层统一导出
 // 集中导出ADB领域层的所有组件，包括实体、仓储接口、值对象等
 

@@ -1,3 +1,7 @@
+// src/modules/precise-acquisition/rate-control/components/RateControlManager.tsx
+// module: ui | layer: ui | role: component
+// summary: UI 组件
+
 /**
  * 频控和去重管理React组件
  * 

@@ -1,3 +1,7 @@
+// src/modules/contact-import/ui/components/grid-layout/components/toolbar-actions/ToolbarActionManager.ts
+// module: ui | layer: ui | role: component
+// summary: UI 组件
+
 /**
  * 工具栏动作管理器
  * 统一管理工具栏的所有功能实现，保持代码模块化

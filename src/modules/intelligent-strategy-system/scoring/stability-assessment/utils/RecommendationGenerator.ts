@@ -1,3 +1,7 @@
+// src/modules/intelligent-strategy-system/scoring/stability-assessment/utils/RecommendationGenerator.ts
+// module: shared | layer: unknown | role: module-component
+// summary: 模块组件
+
 /**
  * 建议生成器
  * 

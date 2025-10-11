@@ -1,3 +1,7 @@
+// src/modules/intelligent-strategy-system/analyzers/BaseAnalyzer.ts
+// module: shared | layer: unknown | role: module-component
+// summary: 模块组件
+
 /**
  * BaseAnalyzer.ts
  * 分析器基类和通用接口定义

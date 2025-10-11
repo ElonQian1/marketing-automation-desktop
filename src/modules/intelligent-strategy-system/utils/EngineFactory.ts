@@ -1,3 +1,7 @@
+// src/modules/intelligent-strategy-system/utils/EngineFactory.ts
+// module: shared | layer: unknown | role: module-component
+// summary: 模块组件
+
 /**
  * 引擎工厂 - 提供便捷的创建方法
  */

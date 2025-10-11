@@ -1,3 +1,7 @@
+// src/modules/contact-import/parsers/IContactParser.ts
+// module: contact-import | layer: module | role: module-component
+// summary: 模块组件
+
 /**
  * 联系人解析器接口
  * 负责将不同格式的联系人文件解析为标准Contact对象

@@ -1,3 +1,7 @@
+// src/modules/contact-import/ui/components/grid-layout/hooks/performance/DragThreshold.ts
+// module: ui | layer: ui | role: component
+// summary: UI 组件
+
 /**
  * 拖拽阈值工具
  * 用于区分点击和拖拽意图

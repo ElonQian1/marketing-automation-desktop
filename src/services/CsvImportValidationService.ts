@@ -1,3 +1,7 @@
+// src/services/CsvImportValidationService.ts
+// module: shared | layer: unknown | role: component
+// summary: CsvImportValidationService.ts 文件
+
 /**
  * CSV导入验证服务
  * 

@@ -1,3 +1,7 @@
+// src/modules/contact-import/ui/batch-manager/components/table-cells/LatestImportTimeCell.tsx
+// module: ui | layer: ui | role: component
+// summary: UI 组件
+
 import React, { useEffect, useMemo, useState } from 'react';
 import { Select, Spin, Space, Typography } from 'antd';
 import { listImportSessionEvents, type ImportSessionEventDto } from '../../../services/contactNumberService';

@@ -1,13 +1,10 @@
-/**
- * 联系人导入工作台主组件 (重构版)
- * Employee D架构 - 单一职责：工作台布局与状态编排
- * 文件大小：≤500行，符合Employee D约束
- * 
- * 职责：
- * - 工作台整体布局（网格/传统）
- * - 状态编排（通过hooks）
- * - 组件组合和数据流
- */
+// src/modules/contact-import/ui/ContactImportWorkbench.tsx
+// module: contact-import | layer: ui | role: module-component
+// summary: 模块组件
+
+// modules/contact-import/ui | ContactImportWorkbench.tsx | 联系人导入工作台主组件
+// Employee D架构：工作台布局与状态编排，网格/传统布局切换，组件组合和数据流
+// 职责：工作台整体布局、状态编排（通过hooks）、组件组合和数据流，≤500行约束
 
 import React, { useMemo, useState } from 'react';
 import { 

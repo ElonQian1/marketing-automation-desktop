@@ -1,7 +1,9 @@
-/**
- * 联系人导入策略接口和实现
- * 负责将联系人合理分配到不同设备
- */
+// src/modules/contact-import/strategies/ImportStrategies.ts
+// module: contact-import | layer: module | role: module-component
+// summary: 模块组件
+
+// modules/contact-import/strategies | ImportStrategies | 联系人导入策略集合
+// 提供多种联系人导入策略的接口定义和具体实现，负责将联系人合理分配到不同设备并优化导入效率
 
 import { Contact, ContactDeviceGroup, Device, ImportStatus } from "../types";
 

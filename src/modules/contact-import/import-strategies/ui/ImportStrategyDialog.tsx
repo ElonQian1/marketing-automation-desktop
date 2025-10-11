@@ -1,3 +1,7 @@
+// src/modules/contact-import/import-strategies/ui/ImportStrategyDialog.tsx
+// module: contact-import | layer: ui | role: module-component
+// summary: 模块组件
+
 import React, { useState, useEffect } from 'react';
 import { Modal, Steps, Button, Space, message, Spin, Switch, Input, Form } from 'antd';
 import { ImportStrategySelector } from './ImportStrategySelector';

@@ -1,3 +1,7 @@
+// src/modules/precise-acquisition/reporting/DailyReportGenerator.ts
+// module: prospecting | layer: application | role: module-component
+// summary: 模块组件
+
 /**
  * 精准获客系统 - 日报生成系统
  * 

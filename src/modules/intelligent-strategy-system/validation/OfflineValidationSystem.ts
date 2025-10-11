@@ -1,3 +1,7 @@
+// src/modules/intelligent-strategy-system/validation/OfflineValidationSystem.ts
+// module: shared | layer: unknown | role: module-component
+// summary: 模块组件
+
 /**
  * 离线验证系统 - Step 0-6 本地XML验证实现
  * 

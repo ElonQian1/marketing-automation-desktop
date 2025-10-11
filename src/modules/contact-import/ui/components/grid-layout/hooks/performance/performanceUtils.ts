@@ -1,3 +1,7 @@
+// src/modules/contact-import/ui/components/grid-layout/hooks/performance/performanceUtils.ts
+// module: ui | layer: ui | role: component
+// summary: UI 组件
+
 /**
  * 性能优化工具模块
  * 提供节流、防抖、RAF 等性能优化工具

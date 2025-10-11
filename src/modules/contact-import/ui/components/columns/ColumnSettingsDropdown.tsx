@@ -1,3 +1,7 @@
+// src/modules/contact-import/ui/components/columns/ColumnSettingsDropdown.tsx
+// module: ui | layer: ui | role: component
+// summary: UI 组件
+
 import React, { useRef, useState } from 'react';
 import { Dropdown, Button, Space, Checkbox, InputNumber, Divider, Tooltip } from 'antd';
 import { SettingOutlined, RedoOutlined } from '@ant-design/icons';

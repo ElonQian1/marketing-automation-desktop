@@ -1,3 +1,7 @@
+// src/modules/adb/application/services/DeviceManagementService.ts
+// module: adb | layer: application | role: app-service
+// summary: 应用服务
+
 // modules/adb/application/services | DeviceManagementService | 设备管理专门服务
 // 负责设备的增删改查、连接断开和状态管理，从巨型AdbApplicationService中拆分出来
 

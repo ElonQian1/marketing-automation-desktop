@@ -1,3 +1,7 @@
+// src/modules/contact-import/ui/components/number-pool-table/NumberPoolTableColumns.ts
+// module: ui | layer: ui | role: component
+// summary: UI 组件
+
 import type { ColumnType } from 'antd/es/table';
 import { ContactNumberDto } from '../../services/contactNumberService';
 import { Device } from '../../../../../domain/adb/entities/Device';

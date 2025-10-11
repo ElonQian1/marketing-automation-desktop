@@ -1,3 +1,7 @@
+// src/modules/loop-control/types/index.ts
+// module: shared | layer: unknown | role: module-component
+// summary: 模块组件
+
 // 循环控制模块 - 类型定义
 
 // 由于类型路径问题，先定义基础SmartScriptStep类型

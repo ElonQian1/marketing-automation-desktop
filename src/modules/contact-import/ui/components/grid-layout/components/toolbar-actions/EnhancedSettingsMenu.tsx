@@ -1,3 +1,7 @@
+// src/modules/contact-import/ui/components/grid-layout/components/toolbar-actions/EnhancedSettingsMenu.tsx
+// module: ui | layer: ui | role: component
+// summary: UI 组件
+
 /**
  * 增强的工具栏设置菜单配置
  * 模块化管理工具栏的各种设置选项

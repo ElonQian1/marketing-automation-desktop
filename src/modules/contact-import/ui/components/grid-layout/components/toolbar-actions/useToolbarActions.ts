@@ -1,3 +1,7 @@
+// src/modules/contact-import/ui/components/grid-layout/components/toolbar-actions/useToolbarActions.ts
+// module: ui | layer: ui | role: component
+// summary: UI 组件
+
 /**
  * 工具栏操作Hook
  * 封装工具栏的所有操作逻辑，提供统一的接口

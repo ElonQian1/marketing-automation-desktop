@@ -1,3 +1,7 @@
+// src/modules/intelligent-strategy-system/shared/types/constants.ts
+// module: shared | layer: unknown | role: module-component
+// summary: 模块组件
+
 /**
  * 统一的常量定义
  * 

@@ -1,3 +1,7 @@
+// src/modules/contact-import/automation/engines/AutomationEngine.ts
+// module: contact-import | layer: module | role: module-component
+// summary: 模块组件
+
 import { 
   DialogDetectionConfig, 
   DialogDetectionResult, 

@@ -1,3 +1,7 @@
+// src/modules/intelligent-strategy-system/analyzers/ParentClickableAnalyzer.ts
+// module: shared | layer: unknown | role: module-component
+// summary: 模块组件
+
 /**
  * ParentClickableAnalyzer.ts
  * Step 3: 父可点击分析器

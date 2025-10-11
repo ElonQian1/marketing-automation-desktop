@@ -1,3 +1,7 @@
+// src/modules/contact-import/ui/components/txt-import/components/ErrorDetailModal.tsx
+// module: ui | layer: ui | role: component
+// summary: UI 组件
+
 ﻿import React from 'react';
 import { Modal, Typography, Space, Button, message } from 'antd';
 import { TxtImportRecordDto } from '../../../services/txtImportRecordService';

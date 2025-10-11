@@ -1,3 +1,7 @@
+// src/modules/intelligent-strategy-system/shared/types/index.ts
+// module: shared | layer: unknown | role: module-component
+// summary: 模块组件
+
 /**
  * 统一的共享类型导出
  * 

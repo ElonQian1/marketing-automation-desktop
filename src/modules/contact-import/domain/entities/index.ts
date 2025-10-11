@@ -1,3 +1,7 @@
+// src/modules/contact-import/domain/entities/index.ts
+// module: contact-import | layer: domain | role: entity
+// summary: 实体定义
+
 // contact-import/domain/entities | index | 领域实体统一导出
 // 提供所有核心业务实体的统一访问入口
 

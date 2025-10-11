@@ -1,3 +1,7 @@
+// src/modules/deduplication-control/components/DeduplicationControlManager.tsx
+// module: ui | layer: ui | role: component
+// summary: UI 组件
+
 /**
  * 查重频控管理主界面
  * 

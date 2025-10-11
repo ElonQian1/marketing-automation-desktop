@@ -1,3 +1,7 @@
+// src/modules/contact-import/automation/permissionDialogHook.ts
+// module: contact-import | layer: module | role: module-component
+// summary: 模块组件
+
 import type { ImportOutcome, ImportOptions } from '../../../application/services/contact-import/VcfImportApplicationService';
 
 /**

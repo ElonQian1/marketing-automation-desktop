@@ -1,3 +1,7 @@
+// src/modules/intelligent-strategy-system/scoring/StrategyScorer.ts
+// module: shared | layer: unknown | role: module-component
+// summary: 模块组件
+
 /**
  * StrategyScorer.ts
  * 策略综合评分器

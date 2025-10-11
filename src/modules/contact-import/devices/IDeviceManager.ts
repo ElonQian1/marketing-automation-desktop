@@ -1,7 +1,9 @@
-/**
- * 设备管理器接口
- * 负责设备检测、连接和管理
- */
+// src/modules/contact-import/devices/IDeviceManager.ts
+// module: contact-import | layer: module | role: module-component
+// summary: 模块组件
+
+// modules/contact-import/devices | IDeviceManager | 设备管理器接口定义
+// 负责设备检测、连接和管理，提供跨平台设备操作的抽象层
 
 import {
   Device,

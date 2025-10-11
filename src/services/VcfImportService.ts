@@ -1,3 +1,7 @@
+// src/services/VcfImportService.ts
+// module: shared | layer: unknown | role: component
+// summary: VcfImportService.ts 文件
+
 import { invoke } from "@tauri-apps/api/core";
 import { VcfImportResult } from "../types";
 

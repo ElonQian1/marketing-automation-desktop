@@ -1,3 +1,7 @@
+// src/modules/intelligent-strategy-system/analyzers/region-scoped/strategies/RegionContainerAnalyzer.ts
+// module: shared | layer: unknown | role: module-component
+// summary: 模块组件
+
 /**
  * 区域容器策略分析器
  * 提取自 RegionScopedAnalyzer，专门负责基于区域容器的策略分析

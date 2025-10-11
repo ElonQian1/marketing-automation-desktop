@@ -1,3 +1,7 @@
+// src/modules/contact-import/ui/components/txt-import/TxtImportRecordsModal.tsx
+// module: ui | layer: ui | role: component
+// summary: UI 组件
+
 import React from 'react';
 import { Modal, Space, Button, Alert, Typography } from 'antd';
 import { FileTextOutlined, ReloadOutlined, InboxOutlined } from '@ant-design/icons';

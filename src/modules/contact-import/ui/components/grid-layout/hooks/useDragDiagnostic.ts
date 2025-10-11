@@ -1,3 +1,7 @@
+// src/modules/contact-import/ui/components/grid-layout/hooks/useDragDiagnostic.ts
+// module: ui | layer: ui | role: component
+// summary: UI 组件
+
 // 拖拽诊断工具 - 实时诊断拖拽冲突和问题
 // 帮助开发者快速定位拖拽问题的根本原因
 

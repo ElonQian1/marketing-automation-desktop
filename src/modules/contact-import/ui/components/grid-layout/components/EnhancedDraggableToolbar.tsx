@@ -1,3 +1,7 @@
+// src/modules/contact-import/ui/components/grid-layout/components/EnhancedDraggableToolbar.tsx
+// module: ui | layer: ui | role: component
+// summary: UI 组件
+
 import React, { memo, useMemo } from 'react';
 import { Button, Tooltip, Space, Dropdown, Typography, message } from 'antd';
 import { 

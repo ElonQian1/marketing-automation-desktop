@@ -1,3 +1,7 @@
+// src/modules/contact-import/ui/components/grid-layout/components/EnhancedResizablePanel.tsx
+// module: ui | layer: ui | role: component
+// summary: UI 组件
+
 import React, { ReactNode, useRef, useEffect, useState } from 'react';
 import { Card, Button, Space } from 'antd';
 import { CloseOutlined, MinusOutlined, DragOutlined, FullscreenOutlined } from '@ant-design/icons';

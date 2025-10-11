@@ -1,3 +1,7 @@
+// src/modules/contact-automation/utils/vcfGenerator.ts
+// module: shared | layer: unknown | role: module-component
+// summary: 模块组件
+
 /**
  * VCF文件生成工具
  */

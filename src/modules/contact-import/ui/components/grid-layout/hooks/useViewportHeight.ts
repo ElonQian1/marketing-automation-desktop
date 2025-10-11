@@ -1,3 +1,7 @@
+// src/modules/contact-import/ui/components/grid-layout/hooks/useViewportHeight.ts
+// module: ui | layer: ui | role: component
+// summary: UI 组件
+
 import { useState, useEffect, useCallback, useRef } from 'react';
 
 export interface ViewportDimensions {

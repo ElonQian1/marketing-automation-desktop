@@ -1,3 +1,7 @@
+// src/modules/contact-import/ui/hooks/useLocalStorageState.ts
+// module: contact-import | layer: ui | role: module-component
+// summary: 模块组件
+
 import { useEffect, useMemo, useState } from 'react';
 
 // A lightweight, type-safe localStorage-backed state hook.

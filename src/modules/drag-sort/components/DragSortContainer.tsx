@@ -1,3 +1,7 @@
+// src/modules/drag-sort/components/DragSortContainer.tsx
+// module: ui | layer: ui | role: component
+// summary: UI 组件
+
 // 拖拽排序容器组件 - 使用 @dnd-kit (现代拖拽库，支持 React 19)
 
 import React, { useState, useCallback } from 'react';

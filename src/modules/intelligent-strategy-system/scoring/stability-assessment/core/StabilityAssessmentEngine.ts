@@ -1,3 +1,7 @@
+// src/modules/intelligent-strategy-system/scoring/stability-assessment/core/StabilityAssessmentEngine.ts
+// module: shared | layer: unknown | role: module-component
+// summary: 模块组件
+
 /**
  * 稳定性评估核心引擎
  * 

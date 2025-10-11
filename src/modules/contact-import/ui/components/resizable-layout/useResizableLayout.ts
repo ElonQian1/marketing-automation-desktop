@@ -1,3 +1,7 @@
+// src/modules/contact-import/ui/components/resizable-layout/useResizableLayout.ts
+// module: ui | layer: ui | role: component
+// summary: UI 组件
+
 import { useState, useCallback, useEffect } from 'react';
 
 export interface PanelConfig {

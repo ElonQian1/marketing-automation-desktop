@@ -1,3 +1,7 @@
+// src/modules/contact-import/ui/components/resizable-layout/NumberPoolPanel.tsx
+// module: ui | layer: ui | role: component
+// summary: UI 组件
+
 import React, { useState } from 'react';
 import { Space, Divider, Typography, Button, message } from 'antd';
 import { Table, Input, Pagination } from 'antd';

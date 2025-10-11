@@ -1,3 +1,7 @@
+// src/modules/intelligent-strategy-system/types/index.ts
+// module: shared | layer: unknown | role: module-component
+// summary: 模块组件
+
 /**
  * types/index.ts
  * 智能策略系统类型统一导出

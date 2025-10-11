@@ -1,3 +1,7 @@
+// src/modules/enhanced-step-card/EnhancedStepCard.tsx
+// module: shared | layer: unknown | role: module-component
+// summary: 模块组件
+
 /**
  * 增强步骤卡片组件
  * 包含完整的元素信息和XML检查器功能

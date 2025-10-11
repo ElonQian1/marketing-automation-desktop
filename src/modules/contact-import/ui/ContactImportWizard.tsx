@@ -1,7 +1,10 @@
-/**
- * 联系人导入向导组件
- * 展示如何使用新的模块化架构
- */
+// src/modules/contact-import/ui/ContactImportWizard.tsx
+// module: contact-import | layer: ui | role: module-component
+// summary: 模块组件
+
+// modules/contact-import/ui | ContactImportWizard.tsx | 联系人导入向导主界面
+// 提供完整的联系人导入流程：设备检测 → 文件上传 → 配置设置 → 执行导入 → 进度监控
+// 统一通过 useAdb() 架构管理设备状态，支持VCF文件导入和导入策略配置
 
 import { CheckCircleOutlined, FileTextOutlined, MobileOutlined, InboxOutlined, FolderOpenOutlined } from '@ant-design/icons';
 import { Alert, Space, Steps, Typography, message } from 'antd';

@@ -1,3 +1,7 @@
+// src/modules/contact-import/ui/components/grid-layout/useGridLayout.ts
+// module: ui | layer: ui | role: component
+// summary: UI 组件
+
 import { useState, useCallback, useEffect } from 'react';
 import { Layout } from 'react-grid-layout';
 import { PanelConfig } from './GridLayoutWrapper';

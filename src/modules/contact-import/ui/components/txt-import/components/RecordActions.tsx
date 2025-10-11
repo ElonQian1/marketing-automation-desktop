@@ -1,3 +1,7 @@
+// src/modules/contact-import/ui/components/txt-import/components/RecordActions.tsx
+// module: ui | layer: ui | role: component
+// summary: UI 组件
+
 ﻿import React from 'react';
 import { Button, Space, Tooltip } from 'antd';
 import { EyeOutlined, DeleteOutlined, InboxOutlined } from '@ant-design/icons';

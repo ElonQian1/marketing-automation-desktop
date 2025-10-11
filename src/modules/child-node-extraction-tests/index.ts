@@ -1,3 +1,7 @@
+// src/modules/child-node-extraction-tests/index.ts
+// module: shared | layer: unknown | role: module-component
+// summary: 模块组件
+
 /**
  * 子节点信息提取测试套件
  * 

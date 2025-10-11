@@ -1,3 +1,7 @@
+// src/modules/precise-acquisition/shared/types/core.ts
+// module: prospecting | layer: application | role: module-component
+// summary: 模块组件
+
 /**
  * 精准获客核心类型定义
  * 

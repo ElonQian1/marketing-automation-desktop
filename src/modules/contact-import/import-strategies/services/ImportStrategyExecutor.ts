@@ -1,3 +1,7 @@
+// src/modules/contact-import/import-strategies/services/ImportStrategyExecutor.ts
+// module: contact-import | layer: application | role: module-component
+// summary: 模块组件
+
 import { invoke } from '@tauri-apps/api/core';
 import invokeCompat from '../../../../api/core/tauriInvoke';
 import type { ImportStrategy, ImportResult, ImportStrategySelection } from '../types';

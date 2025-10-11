@@ -1,3 +1,7 @@
+// src/modules/intelligent-strategy-system/analyzers/IndexFallbackAnalyzer.ts
+// module: shared | layer: unknown | role: module-component
+// summary: 模块组件
+
 /**
  * IndexFallbackAnalyzer.ts
  * Step 6: 索引兜底分析器

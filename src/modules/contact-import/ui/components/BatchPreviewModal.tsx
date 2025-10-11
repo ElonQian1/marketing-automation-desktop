@@ -1,3 +1,10 @@
+// src/modules/contact-import/ui/components/BatchPreviewModal.tsx
+// module: ui | layer: ui | role: component
+// summary: UI 组件
+
+// modules/contact-import/ui/components | BatchPreviewModal | 批量预览模态框组件
+// 展示批量导入数据的预览界面，允许用户确认或编辑即将导入的联系人信息
+
 import React, { useMemo, useState } from 'react';
 import { Modal, Table, Typography, Space, Button, Checkbox, message } from 'antd';
 import type { ColumnsType } from 'antd/es/table';

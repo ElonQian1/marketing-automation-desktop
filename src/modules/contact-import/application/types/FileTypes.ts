@@ -1,3 +1,7 @@
+// src/modules/contact-import/application/types/FileTypes.ts
+// module: contact-import | layer: application | role: application-logic
+// summary: 应用逻辑
+
 // contact-import/application/types | FileTypes | 文件处理相关类型定义
 // 包含文件信息、解析配置等应用层关注的类型结构
 

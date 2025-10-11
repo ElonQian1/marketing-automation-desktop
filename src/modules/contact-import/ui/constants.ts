@@ -1,3 +1,7 @@
+// src/modules/contact-import/ui/constants.ts
+// module: contact-import | layer: ui | role: module-component
+// summary: 模块组件
+
 /**
  * 联系人导入 - UI 常量与工具
  * 仅包含表现层相关的常量/映射，避免与业务核心重复。

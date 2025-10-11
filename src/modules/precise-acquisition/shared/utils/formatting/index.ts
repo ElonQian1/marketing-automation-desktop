@@ -1,3 +1,7 @@
+// src/modules/precise-acquisition/shared/utils/formatting/index.ts
+// module: prospecting | layer: application | role: module-component
+// summary: 模块组件
+
 /**
  * 数据格式化工具
  * 

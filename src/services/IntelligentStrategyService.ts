@@ -1,3 +1,7 @@
+// src/services/IntelligentStrategyService.ts
+// module: shared | layer: unknown | role: component
+// summary: IntelligentStrategyService.ts 文件
+
 /**
  * IntelligentStrategyService.ts
  * 智能策略推荐服务 - 统一服务入口

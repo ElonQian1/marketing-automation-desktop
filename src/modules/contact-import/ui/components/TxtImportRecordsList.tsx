@@ -1,3 +1,7 @@
+// src/modules/contact-import/ui/components/TxtImportRecordsList.tsx
+// module: ui | layer: ui | role: component
+// summary: UI 组件
+
 import React, { useEffect, useState } from 'react';
 import { Card, List, Tag, Space, Button, Popconfirm, Typography, message, Tooltip } from 'antd';
 import { FileTextOutlined, DeleteOutlined, ReloadOutlined, CheckCircleOutlined, CloseCircleOutlined, ExclamationCircleOutlined } from '@ant-design/icons';

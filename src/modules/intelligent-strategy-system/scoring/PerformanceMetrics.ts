@@ -1,3 +1,7 @@
+// src/modules/intelligent-strategy-system/scoring/PerformanceMetrics.ts
+// module: shared | layer: unknown | role: module-component
+// summary: 模块组件
+
 /**
  * PerformanceMetrics.ts
  * 性能指标评估模块

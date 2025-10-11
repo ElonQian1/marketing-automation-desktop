@@ -1,3 +1,7 @@
+// src/modules/intelligent-strategy-system/analyzers/region-scoped/types.ts
+// module: shared | layer: unknown | role: module-component
+// summary: 模块组件
+
 /**
  * RegionScoped 模块类型定义
  * 区域范围分析相关的类型和接口

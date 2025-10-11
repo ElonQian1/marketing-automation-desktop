@@ -1,3 +1,7 @@
+// src/modules/contact-import/ui/shared/industryOptions.ts
+// module: contact-import | layer: ui | role: module-component
+// summary: 模块组件
+
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { getDistinctIndustries } from '../services/contactNumberService';
 

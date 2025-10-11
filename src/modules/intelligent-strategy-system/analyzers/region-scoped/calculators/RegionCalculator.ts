@@ -1,3 +1,7 @@
+// src/modules/intelligent-strategy-system/analyzers/region-scoped/calculators/RegionCalculator.ts
+// module: shared | layer: unknown | role: module-component
+// summary: 模块组件
+
 /**
  * 区域计算器 - 区域识别和计算核心功能
  * 提取自 RegionScopedAnalyzer.ts，负责区域相关的计算逻辑

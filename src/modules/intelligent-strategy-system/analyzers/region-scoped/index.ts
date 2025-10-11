@@ -1,3 +1,7 @@
+// src/modules/intelligent-strategy-system/analyzers/region-scoped/index.ts
+// module: shared | layer: unknown | role: module-component
+// summary: 模块组件
+
 /**
  * 模块化重构后的 RegionScopedAnalyzer 
  * 整合各个子模块，保持与原始接口的兼容性

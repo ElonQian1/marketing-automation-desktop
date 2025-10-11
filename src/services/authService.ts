@@ -1,3 +1,7 @@
+// src/services/authService.ts
+// module: shared | layer: unknown | role: component
+// summary: authService.ts 文件
+
 import { invoke } from '@tauri-apps/api/core';
 import { Employee, LoginCredentials, LoginResponse } from '../types';
 

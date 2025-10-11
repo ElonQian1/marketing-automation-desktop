@@ -1,3 +1,7 @@
+// src/modules/contact-import/ui/components/grid-layout/components/DragStatusPanel.tsx
+// module: ui | layer: ui | role: component
+// summary: UI 组件
+
 // 拖拽状态面板 - 可视化显示拖拽状态和诊断信息
 // 提供实时的拖拽问题监控和一键修复功能
 

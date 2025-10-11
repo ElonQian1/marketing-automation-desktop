@@ -1,3 +1,7 @@
+// src/modules/contact-import/ui/steps/StepConfigure.tsx
+// module: contact-import | layer: ui | role: module-component
+// summary: 模块组件
+
 import React from 'react';
 import { Button, Card, Select, Space, Typography } from 'antd';
 import { ImportStrategyFactory } from '../../strategies/ImportStrategies';

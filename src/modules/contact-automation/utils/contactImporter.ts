@@ -1,3 +1,7 @@
+// src/modules/contact-automation/utils/contactImporter.ts
+// module: shared | layer: unknown | role: module-component
+// summary: 模块组件
+
 /**
  * 联系人导入工具（Legacy Adapter）
  *

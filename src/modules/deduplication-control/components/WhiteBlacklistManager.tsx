@@ -1,3 +1,7 @@
+// src/modules/deduplication-control/components/WhiteBlacklistManager.tsx
+// module: ui | layer: ui | role: component
+// summary: UI 组件
+
 /**
  * 白名单/黑名单管理组件
  * 

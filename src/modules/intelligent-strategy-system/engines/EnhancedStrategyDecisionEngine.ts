@@ -1,3 +1,7 @@
+// src/modules/intelligent-strategy-system/engines/EnhancedStrategyDecisionEngine.ts
+// module: shared | layer: unknown | role: module-component
+// summary: 模块组件
+
 /**
  * 增强的策略决策引擎 - 集成离线验证、受控回退、区域优化
  * 

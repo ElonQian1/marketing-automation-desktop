@@ -1,3 +1,7 @@
+// src/modules/intelligent-strategy-system/core/ConfidenceCalculator.ts
+// module: shared | layer: unknown | role: module-component
+// summary: 模块组件
+
 /**
  * ConfidenceCalculator.ts
  * 置信度计算器

@@ -1,3 +1,7 @@
+// src/modules/intelligent-strategy-system/i18n/index.ts
+// module: shared | layer: unknown | role: module-component
+// summary: 模块组件
+
 /**
  * i18n模块统一导出
  * 

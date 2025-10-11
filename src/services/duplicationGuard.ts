@@ -1,3 +1,7 @@
+// src/services/duplicationGuard.ts
+// module: shared | layer: unknown | role: component
+// summary: duplicationGuard.ts 文件
+
 import { invoke } from '@tauri-apps/api/core';
 
 export type DupAction = 'follow' | 'reply' | 'like' | 'share';

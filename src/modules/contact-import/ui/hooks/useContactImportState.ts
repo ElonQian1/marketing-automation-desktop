@@ -1,3 +1,10 @@
+// src/modules/contact-import/ui/hooks/useContactImportState.ts
+// module: contact-import | layer: ui | role: module-component
+// summary: 模块组件
+
+// modules/contact-import/ui/hooks | useContactImportState | 联系人导入状态管理Hook
+// 负责联系人导入过程中的状态管理，包括设备状态、导入进度、错误处理和用户交互反馈
+
 import { useState, useCallback, useEffect, useMemo } from 'react';
 import { message } from 'antd';
 import ServiceFactory from '../../../../application/services/ServiceFactory';

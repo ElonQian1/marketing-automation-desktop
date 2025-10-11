@@ -1,3 +1,7 @@
+// src/modules/contact-automation/components/ContactWorkflowSelector.tsx
+// module: ui | layer: ui | role: component
+// summary: UI 组件
+
 /**
  * 通讯录导入工作流选择器组件
  */

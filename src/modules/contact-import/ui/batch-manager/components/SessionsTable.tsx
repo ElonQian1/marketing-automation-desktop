@@ -1,3 +1,7 @@
+// src/modules/contact-import/ui/batch-manager/components/SessionsTable.tsx
+// module: ui | layer: ui | role: component
+// summary: UI 组件
+
 ﻿import React, { useCallback, useMemo, useState } from 'react';
 import { App } from 'antd';
 import type { ImportSessionList } from '../types';

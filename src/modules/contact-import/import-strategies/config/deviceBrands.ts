@@ -1,3 +1,7 @@
+// src/modules/contact-import/import-strategies/config/deviceBrands.ts
+// module: contact-import | layer: module | role: module-component
+// summary: 模块组件
+
 /**
  * 设备品牌配置模块
  * 统一管理设备品牌的显示名称和内部标识

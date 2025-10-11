@@ -1,3 +1,7 @@
+// src/modules/contact-import/import-strategies/config/honorStrategies.ts
+// module: contact-import | layer: module | role: module-component
+// summary: 模块组件
+
 /**
  * 华为荣耀设备导入策略配置
  * 基于实际测试的华为荣耀设备专用策略

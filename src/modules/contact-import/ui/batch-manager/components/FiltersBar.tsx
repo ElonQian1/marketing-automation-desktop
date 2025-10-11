@@ -1,3 +1,7 @@
+// src/modules/contact-import/ui/batch-manager/components/FiltersBar.tsx
+// module: ui | layer: ui | role: component
+// summary: UI 组件
+
 ﻿import React, { useMemo } from 'react';
 import { Space, Select, Input, Switch, Button } from 'antd';
 import type { BatchFilterState } from '../types';
