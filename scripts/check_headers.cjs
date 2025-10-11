@@ -7,7 +7,7 @@ const path = require("path");
 
 const root = path.resolve(__dirname, "..", "src");
 const HEADER_RE =
-  /^\/\/\s*(?<path>src\/[^\n]+)\n\/\/\s*module:\s*(?<module>[\w-]+)\s*\|\s*layer:\s*(?<layer>[\w-]+)\s*\|\s*role:\s*(?<role>[^\n]+)\n\/\/\s*summary:\s*(?<summary>.+)\n/;
+  /^\/\/\s*(?<path>src\/[^\r\n]+)(?:\r?\n)\/\/\s*module:\s*(?<module>[\w-]+)\s*\|\s*layer:\s*(?<layer>[\w-]+)\s*\|\s*role:\s*(?<role>[^\r\n]+)(?:\r?\n)\/\/\s*summary:\s*(?<summary>[^\r\n]+)(?:\r?\n)/;
 
 function walk(dir) {
   return fs.readdirSync(dir, { withFileTypes: true }).flatMap((ent) => {
