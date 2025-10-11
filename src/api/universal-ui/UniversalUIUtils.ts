@@ -1,3 +1,7 @@
+// src/api/universal-ui/UniversalUIUtils.ts
+// module: api | layer: api | role: universal-ui-utils
+// summary: Universal UI工具函数，提供UI操作的辅助工具
+
 /**
  * Universal UI 工具函数
  * 提供元素操作和分析的实用工具

@@ -1,3 +1,7 @@
+// src/api/index.ts
+// module: api | layer: api | role: api-export-barrel
+// summary: API层导出桶文件，集中导出所有API接口和工具
+
 // 旧的员工API（保留）
 export * from './employeeAPI';
 export { default as EmployeeAPI } from './employeeAPI';

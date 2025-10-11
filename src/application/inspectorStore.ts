@@ -1,3 +1,7 @@
+// src/application/inspectorStore.ts
+// module: application | layer: application | role: application-logic
+// summary: 应用逻辑
+
 import { create } from 'zustand';
 
 interface SessionState {

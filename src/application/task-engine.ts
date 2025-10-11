@@ -1,3 +1,7 @@
+// src/application/task-engine.ts
+// module: application | layer: application | role: application-logic
+// summary: 应用逻辑
+
 /**
  * 统一任务引擎导出入口
  * 

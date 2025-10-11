@@ -1,3 +1,7 @@
+// src/api/universal-ui/UniversalUIAPI.ts
+// module: api | layer: api | role: universal-ui-api
+// summary: Universal UI API实现，提供UI操作和元素查找的接口
+
 /**
  * Universal UI API 核心类
  * 处理页面分析、元素提取和智能匹配

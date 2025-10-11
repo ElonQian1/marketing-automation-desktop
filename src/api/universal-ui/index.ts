@@ -1,3 +1,7 @@
+// src/api/universal-ui/index.ts
+// module: api | layer: api | role: universal-ui-export-barrel
+// summary: Universal UI API模块导出桶文件，统一导出所有UI相关接口
+
 /**
  * Universal UI API 模块导出
  * 统一导出所有 Universal UI 相关的类型、类和工具函数

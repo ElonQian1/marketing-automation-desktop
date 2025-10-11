@@ -1,4 +1,6 @@
-// 文件路径：src/main.tsx
+// src/main.tsx
+// module: shared | layer: application | role: 应用程序启动入口
+// summary: React应用启动配置和全局提供商初始化
 
 import React from 'react';
 // AntD v5 React19 兼容补丁：需在 antd 组件使用前引入

@@ -1,3 +1,7 @@
+// src/api/universal-ui/commands/registry.ts
+// module: api | layer: api | role: universal-ui-commands
+// summary: Universal UI命令注册表，管理UI操作命令的映射
+
 import invokeCompat from '../../core/tauriInvoke';
 
 // 命令常量，集中管理，避免散落硬编码

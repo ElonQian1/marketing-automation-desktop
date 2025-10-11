@@ -1,3 +1,7 @@
+// src/api/employeeAPI.ts
+// module: api | layer: api | role: employee-api-interface
+// summary: 员工API接口层，封装员工数据管理的Tauri命令调用
+
 import { invoke } from '@tauri-apps/api/core';
 import type { EmployeeData, EmployeeFormData } from '../types';
 

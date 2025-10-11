@@ -1,3 +1,7 @@
+// src/env.d.ts
+// module: shared | layer: types | role: 类型声明
+// summary: TypeScript类型定义文件
+
 /// <reference types="vite/client" />
 
 interface ImportMetaEnv {

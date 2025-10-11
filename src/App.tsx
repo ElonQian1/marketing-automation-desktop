@@ -1,4 +1,6 @@
-// 文件路径：src/App.tsx
+// src/App.tsx
+// module: shared | layer: application | role: 应用程序根组件和路由配置
+// summary: 应用主入口，配置路由和全局状态管理
 
 import React, { useEffect, useState } from 'react';
 import { isTauri } from '@tauri-apps/api/core';

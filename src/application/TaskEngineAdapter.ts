@@ -1,3 +1,7 @@
+// src/application/TaskEngineAdapter.ts
+// module: application | layer: application | role: application-logic
+// summary: 应用逻辑
+
 /**
  * 任务引擎适配器
  * 

@@ -1,3 +1,7 @@
+// src/api/universal-ui/UniversalUIService.ts
+// module: api | layer: api | role: universal-ui-service
+// summary: Universal UI服务层，处理UI操作和元素匹配的业务逻辑
+
 /**
  * Universal UI 服务类
  * 提供智能导航和元素操作功能

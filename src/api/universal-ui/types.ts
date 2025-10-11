@@ -1,3 +1,7 @@
+// src/api/universal-ui/types.ts
+// module: api | layer: api | role: universal-ui-types
+// summary: Universal UI API类型定义，包含所有UI相关的接口和类型
+
 /**
  * Universal UI API 类型定义
  * 包含所有 Universal UI 相关的接口和类型

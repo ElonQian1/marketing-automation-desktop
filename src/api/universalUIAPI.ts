@@ -1,3 +1,7 @@
+// src/api/universalUIAPI.ts
+// module: api | layer: api | role: interface
+// summary: Tauri 命令接口
+
 /**
  * Universal UI页面分析器API - 向后兼容导出
  * 

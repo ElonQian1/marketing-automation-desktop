@@ -1,3 +1,7 @@
+// src/api/deviceAPI.ts
+// module: api | layer: api | role: device-api-interface
+// summary: 设备管理API，提供ADB设备检测和操作的接口封装
+
 import { invoke } from '@tauri-apps/api/core';
 import type { Device, Platform } from '../types';
 

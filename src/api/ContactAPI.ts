@@ -1,3 +1,7 @@
+// src/api/ContactAPI.ts
+// module: api | layer: api | role: contact-api-interface
+// summary: 联系人API接口层，提供联系人相关的Tauri命令调用封装
+
 import { invoke } from "@tauri-apps/api/core";
 import {
   AdbOperation,

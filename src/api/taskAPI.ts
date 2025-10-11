@@ -1,3 +1,7 @@
+// src/api/taskAPI.ts
+// module: api | layer: api | role: task-api-interface
+// summary: 任务管理API，提供任务执行和状态管理的接口封装
+
 import { invoke } from '@tauri-apps/api/core';
 import type { Platform, ContactTask, PreciseAcquisitionTask, UserBalance, FollowStatistics } from '../types';
 

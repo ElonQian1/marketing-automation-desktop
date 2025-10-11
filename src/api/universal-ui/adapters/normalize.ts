@@ -1,3 +1,7 @@
+// src/api/universal-ui/adapters/normalize.ts
+// module: api | layer: api | role: universal-ui-adapter
+// summary: Universal UI适配器，标准化不同平台的UI元素
+
 import type { UniversalPageCaptureResult, UniversalPageCaptureResultBackend } from '../types';
 
 export function normalizeUniversalPageCaptureResult(result: UniversalPageCaptureResultBackend): UniversalPageCaptureResult {
