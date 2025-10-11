@@ -17,6 +17,17 @@ import {
 } from 'antd';
 import dayjs from 'dayjs';
 import type { EmployeeData, EmployeeFormData } from '../types';
+import type { Dayjs } from 'dayjs';
+
+interface FormValues {
+  name: string;
+  email: string;
+  department: string;
+  phone?: string;
+  position?: string;
+  salary?: number;
+  hire_date?: Dayjs;
+}
 
 const { Option } = Select;
 
@@ -60,7 +71,7 @@ export const EmployeeForm: React.FC<EmployeeFormProps> = ({
     }
   }, [employee, form]);
 
-  const handleSubmit = (values: any) => {
+  const handleSubmit = (values: FormValues) => {
     const formData: EmployeeFormData = {
       name: values.name,
       email: values.email,
@@ -159,7 +170,7 @@ export const EmployeeForm: React.FC<EmployeeFormProps> = ({
                 formatter={(value) => `¥ ${value}`.replace(/\B(?=(\d{3})+(?!\d))/g, ',')}
                 parser={(value) => {
                   const parsed = value!.replace(/¥\s?|(,*)/g, '');
-                  return parsed as any;
+                  return Number(parsed) || 0;
                 }}
                 precision={2}
                 min={0}

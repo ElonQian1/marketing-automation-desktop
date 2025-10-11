@@ -3,7 +3,7 @@
 // summary: UI 组件
 
 import React from 'react';
-import { Progress, Typography, Space } from 'antd';
+import { Progress, Typography } from 'antd';
 
 const { Text } = Typography;
 

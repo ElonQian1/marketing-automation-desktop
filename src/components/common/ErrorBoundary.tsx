@@ -10,16 +10,16 @@ type Props = {
   children: React.ReactNode;
 };
 
-type State = { hasError: boolean; error?: any };
+type State = { hasError: boolean; error?: Error };
 
 export class ErrorBoundary extends React.Component<Props, State> {
   state: State = { hasError: false };
 
-  static getDerivedStateFromError(error: any) {
+  static getDerivedStateFromError(error: Error) {
     return { hasError: true, error };
   }
 
-  componentDidCatch(error: any, errorInfo: any) {
+  componentDidCatch(error: Error, errorInfo: React.ErrorInfo) {
      
     try { console.error('[ErrorBoundary] caught error:', error, errorInfo); } catch {}
   }

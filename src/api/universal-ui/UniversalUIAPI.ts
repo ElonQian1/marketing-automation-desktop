@@ -86,6 +86,7 @@ export class UniversalUIAPI {
     element: UIElement,
     parent: UIElementContext | undefined,
     siblings: UIElementContext[],
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
     children: UIElementContext[]
   ): ElementContextFingerprint {
     // 🔍 寻找锚点元素（有文本的兄弟元素，通常是用户名等标识信息）

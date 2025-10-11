@@ -150,8 +150,8 @@ export class ContactAPI {
   static async executeVcfImport(
     vcfFilePath: string,
     deviceId: string
-  ): Promise<any> {
-    return await invoke("execute_vcf_import", { vcfFilePath, deviceId });
+  ): Promise<VcfImportResult> {
+    return await invoke<VcfImportResult>("execute_vcf_import", { vcfFilePath, deviceId });
   }
 
   /**

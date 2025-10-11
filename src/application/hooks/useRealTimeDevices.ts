@@ -4,7 +4,6 @@
 
 import { useEffect, useState, useCallback } from 'react';
 import { 
-  RealTimeDeviceTracker, 
   DeviceChangeEvent, 
   TrackedDevice,
   getGlobalDeviceTracker 

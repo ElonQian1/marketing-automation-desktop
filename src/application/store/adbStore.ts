@@ -11,8 +11,7 @@ import {
   DiagnosticResult, 
   DiagnosticSummary,
   AdbConfig,
-  ConnectionStatus,
-  DeviceStatus
+  ConnectionStatus
 } from '../../domain/adb';
 
 /**
@@ -220,12 +219,6 @@ export const useAdbStore = create<AdbState & AdbActions>()(
  */
 // export const useDevices = () => useAdbStore(state => state.devices); // ✅ 废弃：直接使用 useAdbStore
 export const useSelectedDevice = () => useAdbStore(state => state.getSelectedDevice());
-
-// ✅ 修复：创建稳定的选择器，避免无限重渲染
-const selectOnlineDevices = (state: AdbState & AdbActions) => {
-  // 使用缓存结果，只有当设备数组或设备状态真正改变时才重新计算
-  return state.devices.filter(device => device.isOnline());
-};
 
 // 为了彻底解决缓存问题，我们使用useMemo包装的稳定选择器
 export const useOnlineDevices = () => {

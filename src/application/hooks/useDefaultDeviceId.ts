@@ -4,6 +4,7 @@
 
 import { useEffect, useMemo } from 'react';
 import { useAdb } from './useAdb';
+import { Device, DeviceStatus } from '../../domain/adb/entities/Device';
 
 /**
  * 统一的默认设备选择逻辑
@@ -33,7 +34,11 @@ export function useDefaultDeviceId(options: UseDefaultDeviceIdOptions = {}): Use
 
   const { defaultDeviceId, hasDevices, hasOnlineDevices } = useMemo(() => {
     const hasDevices = devices.length > 0;
-    const online = devices.filter((d: any) => typeof d.isOnline === 'function' ? d.isOnline() : (d.status === 'online' || d.status === 1 || d.status === 'ONLINE'));
+    const online = devices.filter((d: Device) => 
+      typeof d.isOnline === 'function' 
+        ? d.isOnline() 
+        : d.status === DeviceStatus.ONLINE
+    );
     const hasOnlineDevices = online.length > 0;
 
     // 选择顺序：selected → first online → first
