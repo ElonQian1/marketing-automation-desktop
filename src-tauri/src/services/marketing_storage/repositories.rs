@@ -616,26 +616,26 @@ pub fn query_audit_logs(
     offset: i64,
 ) -> rusqlite::Result<Vec<serde_json::Value>> {
     let mut sql = "SELECT id, action, task_id, account_id, operator, payload_hash, ts FROM audit_logs WHERE 1=1".to_string();
-    let mut params: Vec<Box<dyn rusqlite::ToSql>> = Vec::new();
+    let mut params: Vec<rusqlite::types::Value> = Vec::new();
 
     if let Some(start) = start_time {
         sql.push_str(" AND ts >= ?");
-        params.push(Box::new(start.to_string()));
+        params.push(rusqlite::types::Value::Text(start.to_string()));
     }
 
     if let Some(end) = end_time {
         sql.push_str(" AND ts <= ?");
-        params.push(Box::new(end.to_string()));
+        params.push(rusqlite::types::Value::Text(end.to_string()));
     }
 
     if let Some(action) = action_filter {
         sql.push_str(" AND action LIKE ?");
-        params.push(Box::new(format!("%{}%", action)));
+        params.push(format!("%{}%", action).into());
     }
 
     sql.push_str(" ORDER BY ts DESC LIMIT ? OFFSET ?");
-    params.push(Box::new(limit));
-    params.push(Box::new(offset));
+    params.push(limit.into());
+    params.push(offset.into());
 
     let mut stmt = conn.prepare(&sql)?;
     let rows = stmt.query_map(rusqlite::params_from_iter(params), |row| {

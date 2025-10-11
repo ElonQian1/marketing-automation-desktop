@@ -20,9 +20,9 @@ export * from './analytics';
 export * from './type-mappings';
 
 // 兼容旧代码的默认导出（逐步淘汰中）
-export { validateUrl, validateIndustryTags, validateRegionTag } from './validation';
+export { validateUrl, validateIndustryTags, validateRegionTag, validateCsvImportData } from './validation';
 export { generateId, formatDateTime, formatTimeRange } from './formatting';
-export { generateDedupKey, csvRowToWatchTarget, detectSensitiveWords } from './data-processing';
+export { generateDedupKey, csvRowToWatchTarget, detectSensitiveWords, checkCompliance } from './data-processing';
 export { calculateSuccessRate, groupTasksByStatus, groupByDate } from './analytics';
 
 

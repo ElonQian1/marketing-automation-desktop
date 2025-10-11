@@ -5,7 +5,7 @@
  * 用于识别UI中的稳定容器祖先，提供可靠的定位锚点
  */
 
-import type { UiNode } from '../../../components/universal-ui/views/grid-view/types';
+import type { UiNode } from '../../../../components/universal-ui/views/grid-view/types';
 
 export interface StableContainer {
   /** 容器节点 */

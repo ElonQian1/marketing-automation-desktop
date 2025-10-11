@@ -412,6 +412,41 @@ export function validateCsvData(content: string): CsvValidationResult {
 }
 
 /**
+ * CSV导入数据校验（外部接口）
+ * 兼容性别名，实际调用 validateCsvData
+ */
+export function validateCsvImportData(csvData: any[]): any {
+  // 如果传入的是已解析的数组，转换为CSV字符串格式
+  if (Array.isArray(csvData) && csvData.length > 0) {
+    // 假设第一个元素包含所有键作为列名
+    const headers = Object.keys(csvData[0]);
+    const csvContent = [
+      headers.join(','),
+      ...csvData.map(row => headers.map(h => row[h] || '').join(','))
+    ].join('\n');
+    
+    return validateCsvData(csvContent);
+  }
+  
+  // 如果是字符串，直接使用
+  if (typeof csvData === 'string') {
+    return validateCsvData(csvData);
+  }
+  
+  // 其他情况返回错误
+  return {
+    summary: {
+      total: 0,
+      valid: 0,
+      invalid: 0,
+      duplicates: 0
+    },
+    results: [],
+    globalErrors: ['无效的输入数据格式']
+  };
+}
+
+/**
  * 生成CSV模板
  */
 export function generateCsvTemplate(): string {

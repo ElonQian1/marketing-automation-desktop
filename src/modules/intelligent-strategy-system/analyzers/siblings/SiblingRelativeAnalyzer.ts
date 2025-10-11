@@ -5,7 +5,7 @@
  * 专门处理动态兄弟元素和导航栏场景的相对定位
  */
 
-import type { UiNode } from '../../../components/universal-ui/views/grid-view/types';
+import type { UiNode } from '../../../../components/universal-ui/views/grid-view/types';
 
 export interface RelativePosition {
   /** 相对方向 */

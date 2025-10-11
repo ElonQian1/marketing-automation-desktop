@@ -105,7 +105,7 @@
 
 import type { UiNode } from '../../types';
 import type { MatchCriteria, MatchStrategy } from './types';
-import { buildXPath } from '../../utils';
+import { buildXPath } from '../../../../../../utils/xpath';
 import { 
   PRESET_FIELDS, 
   inferStrategyFromFields, 

@@ -96,6 +96,46 @@ export const PRESET_FIELDS: Record<Exclude<MatchStrategy, 'custom'> | 'custom', 
     "resource-id", // 资源ID用于筛选
     "text",       // 文本内容用于过滤
     "content-desc" // 描述信息用于过滤
+  ],
+  // 🤖 智能策略系统新增策略
+  'self-anchor': [
+    "resource-id",
+    "content-desc", 
+    "text",
+    "class"
+  ],
+  'child-anchor': [
+    "first_child_text",
+    "first_child_content_desc",
+    "first_child_resource_id",
+    "resource-id",
+    "class"
+  ],
+  'parent-clickable': [
+    "text",
+    "content-desc",
+    "resource-id",
+    "parent_class",
+    "parent_resource_id"
+  ],
+  'region-scoped': [
+    "resource-id",
+    "text",
+    "content-desc",
+    "class",
+    "parent_class"
+  ],
+  'neighbor-relative': [
+    "resource-id",
+    "text", 
+    "content-desc",
+    "class"
+  ],
+  'index-fallback': [
+    "index",
+    "bounds",
+    "class",
+    "text"
   ]
 };
 

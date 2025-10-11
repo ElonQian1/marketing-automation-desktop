@@ -6,7 +6,6 @@
 // 组件导出
 export { ElementTree } from './components/ElementTree';
 export { PropertyPanel } from './components/PropertyPanel';
-export { MatchStrategySelector } from './components/MatchStrategySelector';
 export { PageAnalyzerContainer } from './components/PageAnalyzerContainer';
 
 // Hooks导出
@@ -19,7 +18,6 @@ export type * from './types';
 // 组件Props类型导出
 export type { ElementTreeProps } from './components/ElementTree';
 export type { PropertyPanelProps } from './components/PropertyPanel';
-export type { MatchStrategySelectorProps } from './components/MatchStrategySelector';
 export type { PageAnalyzerContainerProps } from './components/PageAnalyzerContainer';
 
 // 模块信息
