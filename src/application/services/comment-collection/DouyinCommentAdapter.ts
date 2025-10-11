@@ -290,9 +290,31 @@ export class DouyinCommentAdapter implements UnifiedCommentAdapter {
    * 检查API权限scope
    */
   private async checkScope(requiredScopes: string[]): Promise<boolean> {
-    // TODO: 实际验证用户授权的scope
-    // 这里需要调用抖音API获取当前token的权限范围
-    return true; // 临时返回true，实际实现需要验证
+    try {
+      // 调用抖音API获取当前token的权限范围
+      const response = await fetch(`${this.getApiBaseUrl()}/oauth/userinfo/`, {
+        method: 'GET',
+        headers: {
+          'Authorization': `Bearer ${this.config.access_token}`,
+          'Content-Type': 'application/json'
+        }
+      });
+
+      if (!response.ok) {
+        console.error('获取用户权限信息失败:', response.status);
+        return false;
+      }
+
+      const data = await response.json();
+      const grantedScopes = data.data?.scope?.split(',') || [];
+      
+      // 检查是否包含所有必需的权限
+      return requiredScopes.every(scope => grantedScopes.includes(scope));
+      
+    } catch (error) {
+      console.error('检查API权限失败:', error);
+      return false;
+    }
   }
 
   /**
@@ -412,12 +434,41 @@ export class DouyinCommentAdapter implements UnifiedCommentAdapter {
     remaining: number;
     reset_time: Date;
   } | undefined> {
-    // 抖音API的速率限制信息通常在响应头中
-    // 这里返回模拟数据，实际实现需要从API响应中获取
-    return {
-      remaining: 100,
-      reset_time: new Date(Date.now() + 3600 * 1000) // 1小时后重置
-    };
+    try {
+      // 通过HEAD请求获取速率限制信息，避免消耗实际API配额
+      const response = await fetch(`${this.getApiBaseUrl()}/video/list/`, {
+        method: 'HEAD',
+        headers: {
+          'Authorization': `Bearer ${this.config.access_token}`,
+          'Content-Type': 'application/json'
+        }
+      });
+
+      // 从响应头获取速率限制信息
+      const remaining = response.headers.get('X-RateLimit-Remaining');
+      const resetTime = response.headers.get('X-RateLimit-Reset');
+
+      if (remaining && resetTime) {
+        return {
+          remaining: parseInt(remaining, 10),
+          reset_time: new Date(parseInt(resetTime, 10) * 1000)
+        };
+      }
+
+      // 如果API不提供速率限制头，返回保守估计值
+      return {
+        remaining: 80, // 保守估计剩余配额
+        reset_time: new Date(Date.now() + 3600 * 1000) // 1小时后重置
+      };
+
+    } catch (error) {
+      console.error('获取速率限制信息失败:', error);
+      // 返回最保守的估计值
+      return {
+        remaining: 50,
+        reset_time: new Date(Date.now() + 3600 * 1000)
+      };
+    }
   }
 
   /**

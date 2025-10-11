@@ -34,7 +34,7 @@ export { default as ScoringUIDemo } from './ScoringUIDemo';
 
 // 🆕 策略评分类型
 export type { DetailedStrategyRecommendation, DetailedStrategyScore } from './StrategyRecommendationPanel';
-export type { StrategyScoreInfo } from './MatchingStrategySelector';
+export type { StrategyScoreInfo } from '../../../../strategy-selector';
 export type { WeightConfig } from './hooks';
 
 // 🎨 响应式设计类型

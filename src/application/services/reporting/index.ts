@@ -2,26 +2,30 @@
  * 日报和审计系统统一导出
  * 
  * 提供完整的日报生成和审计功能，包括：
- * - 日报生成器和配置管理
+ * - 统一日报服务（合并所有重复实现）
+ * - 关注清单和回复清单导出
  * - 审计日志记录和查询
- * - 多格式报告导出
- * - 数据完整性验证
+ * - 多格式报告导出（CSV/Excel）
+ * - 数据统计和分析
  * - 系统监控和告警
  */
 
 // ==================== 核心服务 ====================
 export {
-  DailyReportGenerator,
-  createDailyReportGenerator,
-  getDefaultReportConfiguration
-} from './DailyReportingAndAuditService';
+  UnifiedDailyReportService,
+  unifiedDailyReportService,
+  createDailyReportService,
+  getDefaultDailyReportConfig
+} from './UnifiedDailyReportService';
 
 // ==================== 类型定义 ====================
 export type {
-  DailyReportData,
-  AuditLogEntry,
-  ReportConfiguration
-} from './DailyReportingAndAuditService';
+  FollowListItem,
+  ReplyListItem,
+  UnifiedDailyReportConfig,
+  UnifiedDailyReportResult,
+  DailyReportStats
+} from './UnifiedDailyReportService';
 
 // ==================== 错误类定义 ====================
 

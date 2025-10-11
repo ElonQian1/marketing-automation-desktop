@@ -21,5 +21,9 @@ pub use commands::{
     list_tasks,
     // 审计日志相关
     insert_audit_log,
+    query_audit_logs,
+    export_audit_logs,
+    cleanup_expired_audit_logs,
+    batch_store_audit_logs,
     check_and_reserve_dedup,
 };
