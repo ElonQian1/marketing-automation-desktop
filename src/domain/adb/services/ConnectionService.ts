@@ -1,3 +1,7 @@
+// src/domain/adb/services/ConnectionService.ts
+// module: adb | layer: domain | role: service
+// summary: 服务定义
+
 import { AdbConnection, AdbConfig, ConnectionStatus } from '../entities/AdbConnection';
 import { IAdbRepository } from '../repositories/IAdbRepository';
 import { DomainEvent, AdbConnectionStatusChangedEvent } from '../events/DomainEvents';

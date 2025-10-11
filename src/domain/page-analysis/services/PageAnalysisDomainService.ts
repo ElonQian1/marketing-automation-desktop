@@ -1,3 +1,7 @@
+// src/domain/page-analysis/services/PageAnalysisDomainService.ts
+// module: domain | layer: domain | role: service
+// summary: 服务定义
+
 /**
  * 页面分析领域服务 - 负责页面分析的核心业务逻辑
  */

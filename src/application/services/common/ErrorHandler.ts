@@ -1,3 +1,7 @@
+// src/application/services/common/ErrorHandler.ts
+// module: application | layer: application | role: app-service
+// summary: 应用服务
+
 /**
  * 标准化错误处理工具
  * 

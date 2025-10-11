@@ -1,3 +1,7 @@
+// src/application/services/shared/SharedInterfaces.ts
+// module: application | layer: application | role: app-service
+// summary: 应用服务
+
 /**
  * 共享接口定义
  * 

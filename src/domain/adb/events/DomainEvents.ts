@@ -1,3 +1,7 @@
+// src/domain/adb/events/DomainEvents.ts
+// module: adb | layer: domain | role: domain-logic
+// summary: 领域逻辑定义
+
 /**
  * 领域事件基类
  */

@@ -1,3 +1,7 @@
+// src/domain/marketing/services/CandidateCsvValidator.ts
+// module: domain | layer: domain | role: service
+// summary: 服务定义
+
 import { createHash } from "crypto";
 import { ITagWhitelistRepository } from "../repositories/ITagWhitelistRepository";
 import { ImportError, ImportSummary } from "../entities/TagWhitelist";

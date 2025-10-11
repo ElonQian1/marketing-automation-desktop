@@ -1,3 +1,7 @@
+// src/application/services/comment-collection/DouyinCommentAdapter.ts
+// module: application | layer: application | role: app-service
+// summary: 应用服务
+
 /**
  * 抖音评论采集适配器
  * 

@@ -1,3 +1,7 @@
+// src/application/store/adbStore.ts
+// module: application | layer: application | role: store
+// summary: 状态管理
+
 import { create } from 'zustand';
 import { subscribeWithSelector } from 'zustand/middleware';
 import { useMemo } from 'react';

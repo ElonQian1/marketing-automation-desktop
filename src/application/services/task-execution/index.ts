@@ -1,3 +1,7 @@
+// src/application/services/task-execution/index.ts
+// module: application | layer: application | role: app-service
+// summary: 应用服务
+
 /**
  * 任务执行系统 - 统一导出
  * 

@@ -1,3 +1,7 @@
+// src/application/services/contact-import/ContactImportApplicationService.ts
+// module: contact-import | layer: application | role: app-service
+// summary: 应用服务
+
 import { fetchContactNumbersByIdRange, fetchContactNumbersByIdRangeUnconsumed, markContactNumbersUsedByIdRange, ContactNumberDto } from '../../../modules/contact-import/ui/services/contactNumberService';
 
 export interface DeviceAssignmentConfig {

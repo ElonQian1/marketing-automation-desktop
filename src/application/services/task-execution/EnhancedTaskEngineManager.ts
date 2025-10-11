@@ -1,3 +1,7 @@
+// src/application/services/task-execution/EnhancedTaskEngineManager.ts
+// module: application | layer: application | role: app-service
+// summary: 应用服务
+
 /**
  * 增强任务引擎管理器
  * 

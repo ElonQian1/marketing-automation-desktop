@@ -1,3 +1,7 @@
+// src/domain/page-analysis/repositories/IUiMatcherRepository.ts
+// module: domain | layer: domain | role: repository
+// summary: 仓储定义
+
 /**
  * UI 元素匹配仓储接口
  */

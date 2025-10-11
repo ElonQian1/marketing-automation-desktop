@@ -1,3 +1,7 @@
+// src/domain/adb/services/DiagnosticService.ts
+// module: adb | layer: domain | role: service
+// summary: 服务定义
+
 import { 
   DiagnosticResult, 
   DiagnosticSummary, 

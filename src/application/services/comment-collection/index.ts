@@ -1,3 +1,7 @@
+// src/application/services/comment-collection/index.ts
+// module: application | layer: application | role: app-service
+// summary: 应用服务
+
 /**
  * 三轨评论采集系统 - 统一导出
  * 

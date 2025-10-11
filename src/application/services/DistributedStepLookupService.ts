@@ -1,3 +1,7 @@
+// src/application/services/DistributedStepLookupService.ts
+// module: application | layer: application | role: app-service
+// summary: 应用服务
+
 import { DistributedStep } from '../../domain/distributed-script';
 import { LocalStepRepository } from '../../infrastructure/inspector/LocalStepRepository';
 import { DistributedScriptManager } from '../../domain/distributed-script/services/DistributedScriptManager';

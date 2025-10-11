@@ -1,3 +1,7 @@
+// src/application/services/ServiceFactory.ts
+// module: application | layer: application | role: app-service
+// summary: 应用服务
+
 import { TauriDeviceRepository } from '../../infrastructure/repositories/TauriDeviceRepository';
 import { RealTimeDeviceRepository } from '../../infrastructure/repositories/RealTimeDeviceRepository';
 import { TauriAdbRepository } from '../../infrastructure/repositories/TauriAdbRepository';

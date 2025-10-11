@@ -1,3 +1,7 @@
+// src/infrastructure/inspector/LocatorService.ts
+// module: shared | layer: infrastructure | role: 基础设施
+// summary: DDD架构基础设施层实现
+
 import { ILocatorService } from '../../domain/inspector/services/ILocatorService';
 import { NodeLocator } from '../../domain/inspector/entities/NodeLocator';
 import { findByXPathRoot, findAllByPredicateXPath, findNearestClickableAncestor } from '../../components/universal-ui/views/grid-view/utils';

@@ -1,3 +1,7 @@
+// src/domain/adb/repositories/IDeviceRepository.ts
+// module: adb | layer: domain | role: repository
+// summary: 仓储定义
+
 import { Device, DeviceQuery } from '../entities/Device';
 
 /**

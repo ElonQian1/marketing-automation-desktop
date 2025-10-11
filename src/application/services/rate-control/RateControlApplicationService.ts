@@ -1,3 +1,7 @@
+// src/application/services/rate-control/RateControlApplicationService.ts
+// module: application | layer: application | role: app-service
+// summary: 应用服务
+
 /**
  * 频控管理应用服务
  * 

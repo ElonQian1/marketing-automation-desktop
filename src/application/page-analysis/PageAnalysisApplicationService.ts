@@ -1,3 +1,7 @@
+// src/application/page-analysis/PageAnalysisApplicationService.ts
+// module: application | layer: application | role: application-logic
+// summary: 应用逻辑
+
 /**
  * 页面分析应用服务
  * 协调领域服务和基础设施，提供统一的业务操作接口

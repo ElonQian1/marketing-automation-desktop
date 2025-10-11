@@ -1,3 +1,7 @@
+// src/application/hooks/useScrcpySessions.ts
+// module: application | layer: application | role: hook
+// summary: React Hook
+
 import { useEffect, useState } from 'react';
 import { listen } from '@tauri-apps/api/event';
 import { scrcpyService } from '../services/ScrcpyApplicationService';

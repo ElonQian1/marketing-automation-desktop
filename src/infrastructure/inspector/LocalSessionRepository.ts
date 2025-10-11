@@ -1,3 +1,7 @@
+// src/infrastructure/inspector/LocalSessionRepository.ts
+// module: shared | layer: infrastructure | role: 基础设施
+// summary: DDD架构基础设施层实现
+
 import { ISessionRepository } from '../../domain/inspector/repositories/ISessionRepository';
 import { AnalysisSession } from '../../domain/inspector/entities/AnalysisSession';
 

@@ -1,3 +1,7 @@
+// src/application/services/device-watching/strategies/DebounceUpdateStrategy.ts
+// module: application | layer: application | role: app-service
+// summary: 应用服务
+
 /**
  * 防抖动更新策略
  * 

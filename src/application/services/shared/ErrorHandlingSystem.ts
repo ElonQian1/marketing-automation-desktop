@@ -1,3 +1,7 @@
+// src/application/services/shared/ErrorHandlingSystem.ts
+// module: application | layer: application | role: app-service
+// summary: 应用服务
+
 /**
  * 统一错误处理系统
  * 

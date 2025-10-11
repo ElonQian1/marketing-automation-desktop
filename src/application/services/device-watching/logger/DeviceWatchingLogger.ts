@@ -1,3 +1,7 @@
+// src/application/services/device-watching/logger/DeviceWatchingLogger.ts
+// module: application | layer: application | role: app-service
+// summary: 应用服务
+
 /**
  * 设备监听日志管理器
  * 提供分级日志记录，生产环境可控制详细程度

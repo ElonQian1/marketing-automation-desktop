@@ -1,3 +1,7 @@
+// src/domain/precise-acquisition/entities/WatchTarget.ts
+// module: domain | layer: domain | role: entity
+// summary: 实体定义
+
 /**
  * 精准获客领域模型 - 候选池实体
  * 

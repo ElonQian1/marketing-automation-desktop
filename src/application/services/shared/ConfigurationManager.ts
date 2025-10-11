@@ -1,3 +1,7 @@
+// src/application/services/shared/ConfigurationManager.ts
+// module: application | layer: application | role: app-service
+// summary: 应用服务
+
 /**
  * 统一配置管理系统
  * 

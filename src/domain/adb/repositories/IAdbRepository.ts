@@ -1,3 +1,7 @@
+// src/domain/adb/repositories/IAdbRepository.ts
+// module: adb | layer: domain | role: repository
+// summary: 仓储定义
+
 import { AdbConnection, AdbConfig } from '../entities/AdbConnection';
 
 /**

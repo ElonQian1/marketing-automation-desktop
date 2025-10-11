@@ -1,3 +1,7 @@
+// src/application/services/device/DeviceMetricsApplicationService.ts
+// module: application | layer: application | role: app-service
+// summary: 应用服务
+
 import type { IDeviceMetricsRepository } from '../../../domain/device/repositories/IDeviceMetricsRepository';
 
 export default class DeviceMetricsApplicationService {

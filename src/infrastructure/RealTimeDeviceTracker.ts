@@ -1,3 +1,7 @@
+// src/infrastructure/RealTimeDeviceTracker.ts
+// module: shared | layer: infrastructure | role: 基础设施
+// summary: DDD架构基础设施层实现
+
 import { invoke } from '@tauri-apps/api/core';
 import { listen, UnlistenFn } from '@tauri-apps/api/event';
 import { EventManager } from './EventManager';

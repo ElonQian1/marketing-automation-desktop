@@ -1,3 +1,7 @@
+// src/application/services/common/StoreOperations.ts
+// module: application | layer: application | role: app-service
+// summary: 应用服务
+
 import { useAdbStore } from '../../store/adbStore';
 import { Device } from '../../../domain/adb/entities/Device';
 

@@ -1,3 +1,7 @@
+// src/domain/adb/repositories/IDiagnosticRepository.ts
+// module: adb | layer: domain | role: repository
+// summary: 仓储定义
+
 import { DiagnosticResult, DiagnosticCategory } from '../entities/DiagnosticResult';
 
 /**

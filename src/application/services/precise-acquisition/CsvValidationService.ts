@@ -1,3 +1,7 @@
+// src/application/services/precise-acquisition/CsvValidationService.ts
+// module: application | layer: application | role: app-service
+// summary: 应用服务
+
 /**
  * CSV数据验证服务
  * 

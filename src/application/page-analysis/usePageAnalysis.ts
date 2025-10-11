@@ -1,3 +1,7 @@
+// src/application/page-analysis/usePageAnalysis.ts
+// module: application | layer: application | role: application-logic
+// summary: 应用逻辑
+
 /**
  * 页面分析 React Hook
  * 提供统一的页面分析功能接口

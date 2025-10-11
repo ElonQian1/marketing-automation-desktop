@@ -1,3 +1,7 @@
+// src/domain/adb/entities/DiagnosticResult.ts
+// module: adb | layer: domain | role: entity
+// summary: 实体定义
+
 /**
  * 诊断结果实体
  * 表示ADB环境诊断的结果

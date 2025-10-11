@@ -1,3 +1,7 @@
+// src/application/services/MarketingApplicationService.ts
+// module: application | layer: application | role: app-service
+// summary: 应用服务
+
 import { CandidateCsvValidator, CandidateCsvRow } from "../../domain/marketing/services/CandidateCsvValidator";
 import { IWatchTargetRepository } from "../../domain/marketing/repositories/IWatchTargetRepository";
 import { ITagWhitelistRepository } from "../../domain/marketing/repositories/ITagWhitelistRepository";

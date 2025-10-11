@@ -1,3 +1,7 @@
+// src/infrastructure/repositories/RealTimeDeviceRepository.ts
+// module: shared | layer: infrastructure | role: 基础设施
+// summary: DDD架构基础设施层实现
+
 import { IDeviceRepository } from '../../domain/adb/repositories/IDeviceRepository';
 import { Device, DeviceQuery, DeviceStatus, DeviceType } from '../../domain/adb/entities/Device';
 import { getGlobalDeviceTracker, TrackedDevice } from '../RealTimeDeviceTracker';

@@ -1,3 +1,7 @@
+// src/application/services/ScrcpyApplicationService.ts
+// module: application | layer: application | role: app-service
+// summary: 应用服务
+
 import { invoke } from '@tauri-apps/api/core';
 
 export type ScrcpyOptions = {

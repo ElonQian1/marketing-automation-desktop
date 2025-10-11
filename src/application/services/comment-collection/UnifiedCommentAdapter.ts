@@ -1,3 +1,7 @@
+// src/application/services/comment-collection/UnifiedCommentAdapter.ts
+// module: application | layer: application | role: app-service
+// summary: 应用服务
+
 /**
  * 统一评论采集适配器接口
  * 

@@ -1,3 +1,7 @@
+// src/application/services/device-watching/strategies/IDeviceUpdateStrategy.ts
+// module: application | layer: application | role: app-service
+// summary: 应用服务
+
 /**
  * 设备更新策略接口
  * 

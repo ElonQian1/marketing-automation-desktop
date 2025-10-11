@@ -1,15 +1,16 @@
+// src/application/services/AdbApplicationService.ts
+// module: application | layer: application | role: app-service
+// summary: 应用服务
+
 import { 
   Device, 
-  AdbConnection, 
   AdbConfig, 
   DiagnosticResult,
-  DiagnosticSummary,
-  DomainEvent
+  DiagnosticSummary
 } from '../../domain/adb';
 import { DeviceManagerService } from '../../domain/adb/services/DeviceManagerService';
 import { ConnectionService } from '../../domain/adb/services/ConnectionService';
 import { DiagnosticService } from '../../domain/adb/services/DiagnosticService';
-import { useAdbStore } from '../store/adbStore';
 import { IUiMatcherRepository, MatchCriteriaDTO, MatchResultDTO } from '../../domain/page-analysis/repositories/IUiMatcherRepository';
 import type { ISmartScriptRepository } from '../../domain/smart-script/repositories/ISmartScriptRepository';
 import type { ExtendedSmartScriptStep } from '../../types/loopScript';
@@ -22,7 +23,7 @@ import { AdbHealthService } from './health/AdbHealthService';
 import { AdbLogBridgeService } from './logging/AdbLogBridgeService';
 
 // 通用抽象层
-import { StoreOperations, ErrorHandler } from './common';
+import { StoreOperations } from './common';
 
 /**
  * ADB 应用服务（重构版）
@@ -56,7 +57,7 @@ export class AdbApplicationService {
     this.logBridgeService = new AdbLogBridgeService();
 
     // 初始化设备监听服务（策略可配置）
-    const strategy = (import.meta as any)?.env?.VITE_DEVICE_WATCH_STRATEGY as ('debounce' | 'immediate' | undefined);
+    const strategy = (import.meta as unknown as { env?: { VITE_DEVICE_WATCH_STRATEGY?: string } })?.env?.VITE_DEVICE_WATCH_STRATEGY as ('debounce' | 'immediate' | undefined);
     this.deviceWatchingService = new DeviceWatchingService(deviceManager, {
       strategyType: strategy || 'debounce',
       enableLogging: true
@@ -99,7 +100,7 @@ export class AdbApplicationService {
       store.setConfig(config || AdbConfig.default());
 
       // 3. 运行初始诊断
-      const diagnosticSummary = await this.diagnosticService.runQuickDiagnostic();
+      await this.diagnosticService.runQuickDiagnostic();
       store.setDiagnosticResults(this.diagnosticService.getLastDiagnosticResults());
 
       // 4. 获取设备列表
@@ -267,7 +268,7 @@ export class AdbApplicationService {
    * 运行完整诊断
    */
   async runFullDiagnostic(): Promise<DiagnosticResult[]> {
-    const results = await this.diagnosticService.runFullDiagnostic();
+    await this.diagnosticService.runFullDiagnostic();
     const store = StoreOperations.getStore();
     
     // runFullDiagnostic 返回 DiagnosticSummary，但我们需要获取实际的结果数组
@@ -370,7 +371,7 @@ export class AdbApplicationService {
   /**
    * 诊断回调链
    */
-  async diagnoseCallbackChain(): Promise<any> {
+  async diagnoseCallbackChain(): Promise<Record<string, unknown>> {
     try {
       // 检查设备监听服务状态
       const watchingStatus = this.isDeviceWatchingActive();
@@ -392,7 +393,7 @@ export class AdbApplicationService {
   /**
    * 批量设备操作
    */
-  async batchDeviceOperation(deviceIds: string[], operation: string, params?: any): Promise<any[]> {
+  async batchDeviceOperation(deviceIds: string[], operation: string): Promise<Record<string, unknown>[]> {
     const results = [];
     
     for (const deviceId of deviceIds) {
@@ -424,7 +425,7 @@ export class AdbApplicationService {
   /**
    * 在多个设备上执行智能脚本
    */
-  async executeSmartScriptOnDevices(deviceIds: string[], steps: ExtendedSmartScriptStep[], config?: any): Promise<Array<{
+  async executeSmartScriptOnDevices(deviceIds: string[], steps: ExtendedSmartScriptStep[]): Promise<Array<{
     deviceId: string;
     success: boolean;
     result?: SmartExecutionResult;
@@ -497,7 +498,6 @@ export class AdbApplicationService {
       StoreOperations.updateDevices(devices);
       
       // 设备断开时取消相关查询
-      const currentDeviceIds = new Set(devices.map(d => d.id));
       // 这里可以添加更多设备变化处理逻辑
     };
     

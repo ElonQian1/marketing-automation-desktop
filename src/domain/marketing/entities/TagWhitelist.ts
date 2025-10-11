@@ -1,3 +1,7 @@
+// src/domain/marketing/entities/TagWhitelist.ts
+// module: domain | layer: domain | role: entity
+// summary: 实体定义
+
 export interface TagWhitelist {
   industry_tags: string[]; // canonical enum values
   region_tags: string[];   // canonical enum values

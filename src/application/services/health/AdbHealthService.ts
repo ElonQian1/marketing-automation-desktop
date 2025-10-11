@@ -1,3 +1,7 @@
+// src/application/services/health/AdbHealthService.ts
+// module: application | layer: application | role: app-service
+// summary: 应用服务
+
 import { DiagnosticService } from '../../../domain/adb/services/DiagnosticService';
 import { DeviceManagerService } from '../../../domain/adb/services/DeviceManagerService';
 import { StoreOperations } from '../common/StoreOperations';

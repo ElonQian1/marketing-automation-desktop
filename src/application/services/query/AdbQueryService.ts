@@ -1,3 +1,7 @@
+// src/application/services/query/AdbQueryService.ts
+// module: application | layer: application | role: app-service
+// summary: 应用服务
+
 import { StoreOperations } from '../common/StoreOperations';
 
 /**

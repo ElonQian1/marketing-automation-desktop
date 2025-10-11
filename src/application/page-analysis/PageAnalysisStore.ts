@@ -1,3 +1,7 @@
+// src/application/page-analysis/PageAnalysisStore.ts
+// module: application | layer: application | role: application-logic
+// summary: 应用逻辑
+
 /**
  * 页面分析状态管理 Store
  * 基于 Zustand 的状态管理，遵循 DDD 架构原则

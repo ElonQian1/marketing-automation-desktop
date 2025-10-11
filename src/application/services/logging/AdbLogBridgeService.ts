@@ -1,3 +1,7 @@
+// src/application/services/logging/AdbLogBridgeService.ts
+// module: application | layer: application | role: app-service
+// summary: 应用服务
+
 import { listen, UnlistenFn } from '@tauri-apps/api/event';
 import { StoreOperations } from '../common/StoreOperations';
 import { DiagnosticResult, DiagnosticCategory, DiagnosticStatus } from '../../../domain/adb';

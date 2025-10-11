@@ -1,3 +1,7 @@
+// src/application/services/device-watching/DeviceWatchingService.ts
+// module: application | layer: application | role: app-service
+// summary: 应用服务
+
 /**
  * 设备监听服务
  * 

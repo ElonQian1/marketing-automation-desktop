@@ -1,3 +1,7 @@
+// src/domain/page-analysis/repositories/IPageAnalysisRepository.ts
+// module: domain | layer: domain | role: repository
+// summary: 仓储定义
+
 /**
  * 页面分析仓储接口定义
  */

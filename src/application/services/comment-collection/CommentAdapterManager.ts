@@ -1,3 +1,7 @@
+// src/application/services/comment-collection/CommentAdapterManager.ts
+// module: application | layer: application | role: app-service
+// summary: 应用服务
+
 /**
  * 评论采集适配器管理器
  * 

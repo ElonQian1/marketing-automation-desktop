@@ -1,3 +1,7 @@
+// src/domain/inspector/entities/Step.ts
+// module: domain | layer: domain | role: entity
+// summary: 实体定义
+
 import { NodeLocator } from './NodeLocator';
 
 export interface Step {

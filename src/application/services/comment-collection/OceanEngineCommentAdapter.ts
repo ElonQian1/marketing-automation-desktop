@@ -1,3 +1,7 @@
+// src/application/services/comment-collection/OceanEngineCommentAdapter.ts
+// module: application | layer: application | role: app-service
+// summary: 应用服务
+
 /**
  * 巨量引擎评论采集适配器
  * 

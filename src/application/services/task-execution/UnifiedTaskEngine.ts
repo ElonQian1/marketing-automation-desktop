@@ -1,3 +1,7 @@
+// src/application/services/task-execution/UnifiedTaskEngine.ts
+// module: application | layer: application | role: app-service
+// summary: 应用服务
+
 /**
  * 统一任务引擎接口
  * 

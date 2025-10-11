@@ -1,3 +1,7 @@
+// src/application/services/SimplifiedCsvValidationService.ts
+// module: application | layer: application | role: app-service
+// summary: 应用服务
+
 /**
  * 简化的CSV导入验证服务
  * 基于精准获客标签体系进行验证

@@ -1,3 +1,7 @@
+// src/domain/page-analysis/entities/PageInfo.ts
+// module: domain | layer: domain | role: entity
+// summary: 实体定义
+
 /**
  * 页面分析领域实体 - 页面信息
  */

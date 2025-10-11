@@ -1,3 +1,7 @@
+// src/domain/inspector/utils/xpath.ts
+// module: domain | layer: domain | role: domain-logic
+// summary: 领域逻辑定义
+
 // 🚫 已废弃：buildXPath 已迁移到统一的 XPath 服务
 // ✅ 新的使用方式: import { buildXPath } from '../../../utils/xpath';
 //

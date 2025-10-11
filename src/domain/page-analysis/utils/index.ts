@@ -1,3 +1,7 @@
+// src/domain/page-analysis/utils/index.ts
+// module: domain | layer: domain | role: domain-logic
+// summary: 领域逻辑定义
+
 /**
  * 页面分析工具函数
  */

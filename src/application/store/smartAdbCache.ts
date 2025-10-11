@@ -1,3 +1,7 @@
+// src/application/store/smartAdbCache.ts
+// module: application | layer: application | role: store
+// summary: 状态管理
+
 /**
  * 智能ADB状态缓存管理
  * 解决ADB命令每次返回新对象导致的无限重渲染问题

@@ -1,3 +1,7 @@
+// src/application/hooks/useUnifiedTaskEngine.ts
+// module: application | layer: application | role: hook
+// summary: React Hook
+
 /**
  * 统一任务引擎Hook
  * 

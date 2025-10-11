@@ -1,3 +1,7 @@
+// src/domain/adb/services/DeviceManagerService.ts
+// module: adb | layer: domain | role: service
+// summary: 服务定义
+
 import { Device, DeviceQuery, DeviceStatus } from '../entities/Device';
 import { IDeviceRepository } from '../repositories/IDeviceRepository';
 import { 

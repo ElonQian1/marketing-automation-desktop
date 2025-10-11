@@ -1,3 +1,7 @@
+// src/domain/contact-automation/repositories/IContactAutomationRepository.ts
+// module: contact-import | layer: domain | role: repository
+// summary: 仓储定义
+
 export interface MultiBrandImportResult {
   success: boolean;
   total_contacts?: number;

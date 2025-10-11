@@ -1,3 +1,7 @@
+// src/application/services/shared/CommonUtils.ts
+// module: application | layer: application | role: app-service
+// summary: 应用服务
+
 /**
  * 统一工具函数库
  * 

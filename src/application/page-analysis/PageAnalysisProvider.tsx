@@ -1,3 +1,7 @@
+// src/application/page-analysis/PageAnalysisProvider.tsx
+// module: application | layer: application | role: application-logic
+// summary: 应用逻辑
+
 /**
  * 页面分析上下文提供者
  */

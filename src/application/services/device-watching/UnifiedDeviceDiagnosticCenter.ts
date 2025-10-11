@@ -1,3 +1,7 @@
+// src/application/services/device-watching/UnifiedDeviceDiagnosticCenter.ts
+// module: application | layer: application | role: app-service
+// summary: 应用服务
+
 /**
  * 统一的设备监听诊断中心
  * 整合所有诊断功能，避免重复代码和工具类泛滥

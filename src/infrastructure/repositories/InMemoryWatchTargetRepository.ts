@@ -1,3 +1,7 @@
+// src/infrastructure/repositories/InMemoryWatchTargetRepository.ts
+// module: shared | layer: infrastructure | role: 基础设施
+// summary: DDD架构基础设施层实现
+
 import { IWatchTargetRepository } from "../../domain/marketing/repositories/IWatchTargetRepository";
 import { WatchTarget } from "../../domain/marketing/entities/WatchTarget";
 

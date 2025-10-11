@@ -1,3 +1,7 @@
+// src/application/services/DistributedInspectorService.ts
+// module: application | layer: application | role: app-service
+// summary: 应用服务
+
 import { useInspectorStore } from '../inspectorStore';
 import { DistributedScriptManager, DistributedStep } from '../../domain/distributed-script';
 import { LocatorService } from '../../infrastructure/inspector/LocatorService';

@@ -1,3 +1,7 @@
+// src/application/services/precise-acquisition/RateLimitService.ts
+// module: application | layer: application | role: app-service
+// summary: 应用服务
+
 /**
  * 精准获客 - 频控服务
  *

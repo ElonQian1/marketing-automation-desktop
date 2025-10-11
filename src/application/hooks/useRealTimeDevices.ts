@@ -1,3 +1,7 @@
+// src/application/hooks/useRealTimeDevices.ts
+// module: application | layer: application | role: hook
+// summary: React Hook
+
 import { useEffect, useState, useCallback } from 'react';
 import { 
   RealTimeDeviceTracker, 

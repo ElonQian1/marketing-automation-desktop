@@ -1,3 +1,7 @@
+// src/application/services/task-execution/TaskScheduler.ts
+// module: application | layer: application | role: app-service
+// summary: 应用服务
+
 /**
  * 任务调度器
  * 

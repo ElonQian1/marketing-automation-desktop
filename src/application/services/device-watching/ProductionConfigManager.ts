@@ -1,3 +1,7 @@
+// src/application/services/device-watching/ProductionConfigManager.ts
+// module: application | layer: application | role: app-service
+// summary: 应用服务
+
 /**
  * 设备监听生产环境配置
  * 通过环境变量和配置项控制日志和诊断级别

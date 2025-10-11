@@ -1,3 +1,7 @@
+// src/domain/distributed-script/services/DistributedScriptManager.ts
+// module: script-builder | layer: domain | role: service
+// summary: 服务定义
+
 import { DistributedScript, DistributedStep, StepXmlSnapshot } from '../index';
 
 /**

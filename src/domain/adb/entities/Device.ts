@@ -1,3 +1,7 @@
+// src/domain/adb/entities/Device.ts
+// module: adb | layer: domain | role: entity
+// summary: 实体定义
+
 /**
  * 设备实体 - 核心领域对象
  * 表示一个Android设备或模拟器

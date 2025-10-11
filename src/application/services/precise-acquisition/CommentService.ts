@@ -1,3 +1,7 @@
+// src/application/services/precise-acquisition/CommentService.ts
+// module: application | layer: application | role: app-service
+// summary: 应用服务
+
 /**
  * 精准获客 - 评论服务
  */

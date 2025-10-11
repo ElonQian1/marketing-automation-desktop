@@ -1,3 +1,7 @@
+// src/domain/distributed-script/entities/DistributedScript.ts
+// module: script-builder | layer: domain | role: entity
+// summary: 实体定义
+
 import { DistributedStep } from './DistributedStep';
 
 export interface DistributedScript {

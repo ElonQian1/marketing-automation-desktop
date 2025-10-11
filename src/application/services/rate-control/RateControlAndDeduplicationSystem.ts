@@ -1,3 +1,7 @@
+// src/application/services/rate-control/RateControlAndDeduplicationSystem.ts
+// module: application | layer: application | role: app-service
+// summary: 应用服务
+
 /**
  * 频控和去重系统
  * 

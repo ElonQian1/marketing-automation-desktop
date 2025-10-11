@@ -1,3 +1,7 @@
+// src/application/services/InspectorApplicationService.ts
+// module: application | layer: application | role: app-service
+// summary: 应用服务
+
 import { LocalSessionRepository } from '../../infrastructure/inspector/LocalSessionRepository';
 import { LocalStepRepository } from '../../infrastructure/inspector/LocalStepRepository';
 import { useInspectorStore } from '../inspectorStore';

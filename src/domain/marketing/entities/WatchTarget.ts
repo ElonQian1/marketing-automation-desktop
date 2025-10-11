@@ -1,3 +1,7 @@
+// src/domain/marketing/entities/WatchTarget.ts
+// module: domain | layer: domain | role: entity
+// summary: 实体定义
+
 export type TargetType = 'video' | 'account';
 export type Platform = 'douyin' | 'oceanengine' | 'public';
 export type SourceTag = 'manual' | 'csv' | 'whitelist' | 'ads';

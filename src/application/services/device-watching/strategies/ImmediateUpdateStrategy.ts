@@ -1,3 +1,7 @@
+// src/application/services/device-watching/strategies/ImmediateUpdateStrategy.ts
+// module: application | layer: application | role: app-service
+// summary: 应用服务
+
 /**
  * 立即更新策略
  * 

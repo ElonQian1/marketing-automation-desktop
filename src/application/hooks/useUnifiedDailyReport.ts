@@ -1,3 +1,7 @@
+// src/application/hooks/useUnifiedDailyReport.ts
+// module: application | layer: application | role: hook
+// summary: React Hook
+
 /**
  * 统一日报服务 Hook
  * 

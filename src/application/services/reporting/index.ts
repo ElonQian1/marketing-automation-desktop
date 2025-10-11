@@ -1,3 +1,7 @@
+// src/application/services/reporting/index.ts
+// module: application | layer: application | role: app-service
+// summary: 应用服务
+
 /**
  * 日报和审计系统统一导出
  * 

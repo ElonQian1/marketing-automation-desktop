@@ -1,3 +1,7 @@
+// src/application/services/precise-acquisition/DeduplicationService.ts
+// module: application | layer: application | role: app-service
+// summary: 应用服务
+
 /**
  * 精准获客 - 查重服务
  *

@@ -1,3 +1,7 @@
+// src/application/services/contact-import/VcfImportApplicationService.ts
+// module: contact-import | layer: application | role: app-service
+// summary: 应用服务
+
 import type { IContactAutomationRepository } from '../../../domain/contact-automation/repositories/IContactAutomationRepository';
 
 export interface ImportOutcome {

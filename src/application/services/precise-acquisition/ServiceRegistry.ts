@@ -1,3 +1,7 @@
+// src/application/services/precise-acquisition/ServiceRegistry.ts
+// module: application | layer: application | role: app-service
+// summary: 应用服务
+
 /**
  * 精准获客系统服务注册和配置
  * 

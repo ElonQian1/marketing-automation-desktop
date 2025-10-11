@@ -1,3 +1,7 @@
+// src/domain/distributed-script/entities/DistributedStep.ts
+// module: script-builder | layer: domain | role: entity
+// summary: 实体定义
+
 import { NodeLocator } from '../../inspector/entities/NodeLocator';
 
 export interface StepXmlSnapshot {

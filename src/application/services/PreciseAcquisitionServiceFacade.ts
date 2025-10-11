@@ -1,3 +1,7 @@
+// src/application/services/PreciseAcquisitionServiceFacade.ts
+// module: application | layer: application | role: app-service
+// summary: 应用服务
+
 /**
  * 精准获客服务委托器
  * 

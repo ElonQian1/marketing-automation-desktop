@@ -1,4 +1,8 @@
-import { useCallback, useEffect, useMemo, useRef } from 'react';
+// src/application/hooks/useAdb.ts
+// module: application | layer: application | role: hook
+// summary: React Hook
+
+import { useCallback, useEffect, useMemo } from 'react';
 import { 
   useAdbStore,
   useSelectedDevice,
@@ -16,8 +20,10 @@ import {
 } from '../store/adbStore';
 import { AdbConfig } from '../../domain/adb';
 import { ServiceFactory } from '../services/ServiceFactory';
+import type { MatchCriteria } from '../../modules/intelligent-strategy-system/types/StrategyTypes';
+import type { SmartScriptStep } from '../../types/smartScript';
 // 统一策略/字段规范化工具（与网格检查器一致）
-import { toBackendStrategy, normalizeFieldsAndValues, normalizeIncludes, normalizeExcludes } from '../../components/universal-ui/views/grid-view/panels/node-detail';
+// import { toBackendStrategy, normalizeFieldsAndValues, normalizeIncludes, normalizeExcludes } from '../../components/universal-ui/views/grid-view/panels/node-detail';
 
 // 全局初始化状态，防止多个 useAdb Hook 同时初始化
 let globalInitPromise: Promise<void> | null = null;
@@ -34,7 +40,6 @@ let isRefreshingDevices = false;
  */
 export const useAdb = () => {
   const applicationService = useMemo(() => ServiceFactory.getAdbApplicationService(), []);
-  const initializeRef = useRef<Promise<void> | null>(null);
 
   // ===== 状态选择器 =====
   
@@ -205,7 +210,7 @@ export const useAdb = () => {
   /**
    * 元素匹配
    */
-  const matchElementByCriteria = useCallback(async (deviceId: string, criteria: any) => {
+  const matchElementByCriteria = useCallback(async (deviceId: string, criteria: MatchCriteria) => {
     return await applicationService.matchElementByCriteria(deviceId, criteria);
   }, [applicationService]);
 
@@ -214,7 +219,7 @@ export const useAdb = () => {
   /**
    * 执行智能脚本
    */
-  const executeSmartScript = useCallback(async (deviceId: string, steps: any[], config?: any) => {
+  const executeSmartScript = useCallback(async (deviceId: string, steps: SmartScriptStep[]) => {
     return await applicationService.executeSmartScript(deviceId, steps);
   }, [applicationService]);
 
@@ -440,7 +445,7 @@ export const useAdb = () => {
   /**
    * 批量设备操作
    */
-  const batchDeviceOperation = useCallback(async (deviceIds: string[], operation: string, params?: any) => {
+  const batchDeviceOperation = useCallback(async (deviceIds: string[], operation: string, params?: Record<string, unknown>) => {
     return await applicationService.batchDeviceOperation(deviceIds, operation, params);
   }, [applicationService]);
 
@@ -449,7 +454,7 @@ export const useAdb = () => {
   /**
    * 在多个设备上执行智能脚本
    */
-  const executeSmartScriptOnDevices = useCallback(async (deviceIds: string[], steps: any[], config?: any) => {
+  const executeSmartScriptOnDevices = useCallback(async (deviceIds: string[], steps: SmartScriptStep[], config?: Record<string, unknown>) => {
     return await applicationService.executeSmartScriptOnDevices(deviceIds, steps, config);
   }, [applicationService]);
 

@@ -1,3 +1,7 @@
+// src/domain/smart-script/repositories/ISmartScriptRepository.ts
+// module: script-builder | layer: domain | role: repository
+// summary: 仓储定义
+
 import type { SmartExecutionResult } from "../../../types/execution";
 import type { ExtendedSmartScriptStep } from "../../../types/loopScript";
 

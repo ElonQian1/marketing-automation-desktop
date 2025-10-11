@@ -1,3 +1,7 @@
+// src/domain/adb/index.ts
+// module: adb | layer: domain | role: domain-logic
+// summary: 领域逻辑定义
+
 // 领域实体和值对象的统一导出
 export * from './entities/Device';
 export * from './entities/AdbConnection';

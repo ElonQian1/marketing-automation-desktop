@@ -1,3 +1,7 @@
+// src/application/services/TypeAdapter.ts
+// module: application | layer: application | role: app-service
+// summary: 应用服务
+
 /**
  * 精准获客类型适配器 v4.0
  * 

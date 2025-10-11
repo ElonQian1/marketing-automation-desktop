@@ -1,3 +1,7 @@
+// src/domain/inspector/entities/NodeLocator.ts
+// module: domain | layer: domain | role: entity
+// summary: 实体定义
+
 export interface NodeLocatorAttributes {
   resourceId?: string;
   text?: string;

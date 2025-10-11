@@ -1,3 +1,7 @@
+// src/application/services/reporting/UnifiedDailyReportService.ts
+// module: application | layer: application | role: app-service
+// summary: 应用服务
+
 /**
  * 统一日报服务
  * 

@@ -1,3 +1,7 @@
+// src/application/hooks/useDefaultDeviceId.ts
+// module: application | layer: application | role: hook
+// summary: React Hook
+
 import { useEffect, useMemo } from 'react';
 import { useAdb } from './useAdb';
 

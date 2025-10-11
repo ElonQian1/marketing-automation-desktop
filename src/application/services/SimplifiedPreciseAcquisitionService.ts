@@ -1,3 +1,7 @@
+// src/application/services/SimplifiedPreciseAcquisitionService.ts
+// module: application | layer: application | role: app-service
+// summary: 应用服务
+
 /**
  * 简化的精准获客统一服务
  * 
