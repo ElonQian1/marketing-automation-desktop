@@ -4,7 +4,7 @@
 
 import { IDeviceManager } from "../../devices/IDeviceManager";
 import { IContactParser } from "../../parsers/IContactParser";
-import { IImportStrategy } from "../../strategies/ImportStrategies";
+import { ContactImportStrategy } from "../../strategies/contact-strategy-import";
 import {
   Contact,
   ContactDeviceGroup,
@@ -22,7 +22,7 @@ import {
 export interface ContactImporterOptions {
   parser: IContactParser;
   deviceManager: IDeviceManager;
-  strategy: IImportStrategy;
+  strategy: ContactImportStrategy;
   configuration: ImportConfiguration;
 }
 
@@ -54,7 +54,7 @@ export interface ContactImporterEventListener {
 export class ContactImporterUseCase {
   private parser: IContactParser;
   private deviceManager: IDeviceManager;
-  private strategy: IImportStrategy;
+  private strategy: ContactImportStrategy;
   private configuration: ImportConfiguration;
   private listeners: ContactImporterEventListener[] = [];
   private currentProgress: ImportProgress;

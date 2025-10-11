@@ -10,7 +10,7 @@ import { useBoundNode } from "./DraggableStepCard/hooks/useBoundNode";
 import LoopConfigModal from "./DraggableStepCard/components/LoopConfigModal";
 import { getStepTypeStyle } from "./DraggableStepCard/styles/stepTypeStyles";
 import { XmlInspectorModal } from "../modules/xml-inspector/XmlInspectorModal";
-import { useCardDraggingStyle } from "./DraggableStepCard/hooks/useCardDraggingStyle";
+
 import { usePrefersReducedMotion } from "./DraggableStepCard/hooks/usePrefersReducedMotion";
 import { DEFAULT_ACTION_CONFIG, SMART_ACTION_CONFIGS } from "./DraggableStepCard/constants/actionConfigs";
 import StepCardHeader from "./DraggableStepCard/components/StepCardHeader";
@@ -78,7 +78,6 @@ const DraggableStepCardInner: React.FC<
 }) => {
   // 拖拽由外层 SortableItem 承担；本组件仅展示。
   const dragging = !!isDragging;
-  const style = {} as React.CSSProperties;
   const reducedMotion = usePrefersReducedMotion();
 
   const handleEdit = () => {
@@ -87,7 +86,6 @@ const DraggableStepCardInner: React.FC<
     return onEdit(step);
   };
   const handleDelete = () => onDelete(step.id);
-  const handleToggle = () => onToggle(step.id);
 
   // 内联编辑：标题与描述
   const [editingName, setEditingName] = useState(false);

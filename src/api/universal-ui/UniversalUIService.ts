@@ -11,8 +11,7 @@ import { invoke } from '@tauri-apps/api/core';
 import type {
   SmartNavigationParams,
   UniversalClickResult,
-  NavigationPresets,
-  UIElement
+  NavigationPresets
 } from './types';
 
 /**
@@ -69,8 +68,7 @@ export class UniversalUIService {
    */
   static async directClick(
     deviceId: string,
-    buttonText: string,
-    positionHint?: string
+    buttonText: string
   ): Promise<UniversalClickResult> {
     try {
       const params: SmartNavigationParams = {

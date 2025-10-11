@@ -7,7 +7,6 @@ import { Card, Button, Typography, Space, Tag, Alert, List, Statistic, Row, Col 
 import { 
   ReloadOutlined, 
   PlayCircleOutlined, 
-  StopOutlined, 
   SettingOutlined,
   MobileOutlined,
   CheckCircleOutlined,
@@ -28,15 +27,12 @@ export const NewAdbManagementExample: React.FC = () => {
     // 状态
     devices,
     selectedDevice,
-    onlineDevices,
-    connection,
     diagnosticSummary,
     
     // 计算属性
     deviceCount,
     onlineDeviceCount,
     isConnected,
-    isReady,
     isHealthy,
     hasErrors,
     adbPath,
@@ -50,7 +46,6 @@ export const NewAdbManagementExample: React.FC = () => {
     refreshDevices,
     connectToEmulators,
     selectDevice,
-    startAdbServer,
     restartAdbServer,
     runQuickDiagnostic,
     executeAutoFix,

@@ -19,7 +19,7 @@
     "noUnusedLocals": false,
     "noUnusedParameters": false,
     "noFallthroughCasesInSwitch": false,
-    "noImplicitAny": false,
+    "noImplicitAny": false
 
     /* Path mapping is defined in tsconfig.app.json */
   },
@@ -34,7 +34,6 @@
     "src/components/unified-view/**",
     "src/components/smart-navigation-finder/**",
     "src/modules/loop-drag-integration/**",
-    "src/pages/adb/auth/**",
     "src/pages/ContactAutomationPage*",
     "src/pages/ContactImportPage*",
     "src/pages/contact-management/**",

@@ -3,7 +3,7 @@
 // summary: UI 组件
 
 import React from 'react';
-import { Button, Space, Switch, Tag, Typography, message } from 'antd';
+import { Button, Space, Switch, Tag, Typography } from 'antd';
 import ConfirmPopover from '../../universal-ui/common-popover/ConfirmPopover';
 import { DragOutlined, EditOutlined, DeleteOutlined, ReloadOutlined, EyeOutlined } from '@ant-design/icons';
 import { InfoBubble } from './InfoBubble';
@@ -75,7 +75,7 @@ export const StepCardHeader: React.FC<StepCardHeaderProps> = ({
   onEdit,
   onDelete,
   currentDeviceId,
-  devices,
+  // devices, // TODO: 未使用的参数，需要确认是否可以删除
   StepTestButton,
   onOpenLoopConfig,
   isInfiniteLoop,

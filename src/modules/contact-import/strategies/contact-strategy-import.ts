@@ -1,13 +1,13 @@
-// src/modules/contact-import/strategies/ImportStrategies.ts
-// module: contact-import | layer: module | role: module-component
-// summary: 模块组件
+// src/modules/contact-import/strategies/contact-strategy-import.ts
+// module: contact-import | layer: strategies | role: strategy
+// summary: 联系人导入策略实现
 
-// modules/contact-import/strategies | ImportStrategies | 联系人导入策略集合
+// modules/contact-import/strategies | ContactStrategyImport | 联系人导入策略集合
 // 提供多种联系人导入策略的接口定义和具体实现，负责将联系人合理分配到不同设备并优化导入效率
 
 import { Contact, ContactDeviceGroup, Device, ImportStatus } from "../types";
 
-export interface IImportStrategy {
+export interface ContactImportStrategy {
   /**
    * 策略名称
    */
@@ -59,7 +59,7 @@ export interface IImportStrategy {
  * 平衡导入策略
  * 尽可能平均地将联系人分配到各个设备
  */
-export class BalancedImportStrategy implements IImportStrategy {
+export class ContactBalancedImportStrategy implements ContactImportStrategy {
   getName(): string {
     return "Balanced Import";
   }
@@ -236,7 +236,7 @@ export class BalancedImportStrategy implements IImportStrategy {
  * 顺序导入策略
  * 按照设备顺序依次填充联系人
  */
-export class SequentialImportStrategy implements IImportStrategy {
+export class ContactSequentialImportStrategy implements ContactImportStrategy {
   getName(): string {
     return "Sequential Import";
   }
@@ -318,8 +318,8 @@ export class SequentialImportStrategy implements IImportStrategy {
     maxContactsPerDevice: number;
     balance: number;
   } {
-    // 使用与BalancedImportStrategy相同的统计计算
-    const strategy = new BalancedImportStrategy();
+    // 使用与ContactBalancedImportStrategy相同的统计计算
+    const strategy = new ContactBalancedImportStrategy();
     return strategy.getDistributionStats(groups);
   }
 
@@ -332,7 +332,7 @@ export class SequentialImportStrategy implements IImportStrategy {
  * 随机导入策略
  * 随机将联系人分配到设备
  */
-export class RandomImportStrategy implements IImportStrategy {
+export class ContactRandomImportStrategy implements ContactImportStrategy {
   getName(): string {
     return "Random Import";
   }
@@ -425,7 +425,7 @@ export class RandomImportStrategy implements IImportStrategy {
     maxContactsPerDevice: number;
     balance: number;
   } {
-    const strategy = new BalancedImportStrategy();
+    const strategy = new ContactBalancedImportStrategy();
     return strategy.getDistributionStats(groups);
   }
 
@@ -437,14 +437,14 @@ export class RandomImportStrategy implements IImportStrategy {
 /**
  * 策略工厂
  */
-export class ImportStrategyFactory {
-  private static readonly strategies = new Map<string, () => IImportStrategy>([
-    ["balanced", () => new BalancedImportStrategy()],
-    ["sequential", () => new SequentialImportStrategy()],
-    ["random", () => new RandomImportStrategy()],
+export class ContactImportStrategyFactory {
+  private static readonly strategies = new Map<string, () => ContactImportStrategy>([
+    ["balanced", () => new ContactBalancedImportStrategy()],
+    ["sequential", () => new ContactSequentialImportStrategy()],
+    ["random", () => new ContactRandomImportStrategy()],
   ]);
 
-  static create(strategyType: string): IImportStrategy {
+  static create(strategyType: string): ContactImportStrategy {
     const factory = this.strategies.get(strategyType.toLowerCase());
     if (!factory) {
       throw new Error(`未知的导入策略: ${strategyType}`);
@@ -467,7 +467,7 @@ export class ImportStrategyFactory {
     });
   }
 
-  static registerStrategy(type: string, factory: () => IImportStrategy): void {
+  static registerStrategy(type: string, factory: () => ContactImportStrategy): void {
     this.strategies.set(type.toLowerCase(), factory);
   }
 }

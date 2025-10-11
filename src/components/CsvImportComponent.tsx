@@ -18,13 +18,10 @@ import {
   Alert,
   Space,
   Typography,
-  Divider,
   Tag,
-  Modal,
   Row,
   Col,
   Statistic,
-  Tooltip,
   message,
 } from 'antd';
 import {
@@ -35,7 +32,7 @@ import {
   CloseCircleOutlined,
   InfoCircleOutlined,
 } from '@ant-design/icons';
-import { useCsvImport, type CsvValidationResult, type ImportStats } from '../hooks/useCsvImport';
+import { useCsvImport, type CsvValidationResult } from '../hooks/useCsvImport';
 
 const { Title, Text, Paragraph } = Typography;
 const { Dragger } = Upload;
@@ -52,12 +49,10 @@ export const CsvImportComponent: React.FC = () => {
     error,
     validateCsv,
     importValidatedData,
-    importCsv,
     reset,
     generateCsvTemplate,
   } = useCsvImport();
 
-  const [csvContent, setCsvContent] = useState<string>('');
   const [showValidationResults, setShowValidationResults] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
@@ -68,7 +63,6 @@ export const CsvImportComponent: React.FC = () => {
     const reader = new FileReader();
     reader.onload = (e) => {
       const content = e.target?.result as string;
-      setCsvContent(content);
       // 自动开始验证
       validateCsv(content).then(() => {
         setShowValidationResults(true);
@@ -116,7 +110,6 @@ export const CsvImportComponent: React.FC = () => {
    */
   const handleReset = () => {
     reset();
-    setCsvContent('');
     setShowValidationResults(false);
     if (fileInputRef.current) {
       fileInputRef.current.value = '';

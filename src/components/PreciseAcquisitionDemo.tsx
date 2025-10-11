@@ -28,11 +28,10 @@ import {
   MessageOutlined,
   CheckCircleOutlined,
   SyncOutlined,
-  FileTextOutlined,
-  DownloadOutlined
+  FileTextOutlined
 } from '@ant-design/icons';
 import { usePreciseAcquisition } from '../hooks/usePreciseAcquisition';
-import type { WatchTargetRow, TaskRow, CommentRow } from '../types/precise-acquisition';
+
 
 const { Title, Text } = Typography;
 
@@ -51,10 +50,6 @@ export const PreciseAcquisitionDemo: React.FC = () => {
     loading,
     
     // 方法
-    getWatchTargets,
-    getComments,
-    getTasks,
-    refreshStats,
     generateDailyReport,
     refreshAll,
     

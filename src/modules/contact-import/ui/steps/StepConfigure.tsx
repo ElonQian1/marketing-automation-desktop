@@ -4,7 +4,7 @@
 
 import React from 'react';
 import { Button, Card, Select, Space, Typography } from 'antd';
-import { ImportStrategyFactory } from '../../strategies/ImportStrategies';
+import { ContactImportStrategyFactory } from '../../strategies/contact-strategy-import';
 import { ImportStrategyType } from '../../types';
 import styles from './StepConfigure.module.css';
 
@@ -27,7 +27,7 @@ export const StepConfigure: React.FC<StepConfigureProps> = ({ selectedStrategy, 
         <div className={styles.strategyRow}>
           <Text strong>选择导入策略:</Text>
           <Select className={styles.strategySelect} value={selectedStrategy} onChange={(v) => onChangeStrategy(v)}>
-            {ImportStrategyFactory.getAvailableStrategies().map((strategy) => (
+            {ContactImportStrategyFactory.getAvailableStrategies().map((strategy) => (
               <Option key={strategy.type} value={strategy.type as ImportStrategyType}>
                 {strategy.name}
               </Option>
@@ -40,7 +40,7 @@ export const StepConfigure: React.FC<StepConfigureProps> = ({ selectedStrategy, 
           <ul>
             <li>联系人总数: {contactsCount}</li>
             <li>目标设备: {selectedDevicesCount} 台</li>
-            <li>导入策略: {ImportStrategyFactory.create(selectedStrategy).getName()}</li>
+            <li>导入策略: {ContactImportStrategyFactory.create(selectedStrategy).getName()}</li>
           </ul>
         </div>
 

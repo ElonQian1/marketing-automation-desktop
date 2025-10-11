@@ -10,7 +10,7 @@ import { CheckCircleOutlined, FileTextOutlined, MobileOutlined, InboxOutlined, F
 import { Alert, Space, Steps, Typography, message } from 'antd';
 import React, { useCallback, useState } from 'react';
 import { useContactImport, useImportStats } from '../hooks/useUnifiedContactImport';
-import { ImportStrategyFactory } from '../strategies/ImportStrategies';
+import { ContactImportStrategyFactory } from '../strategies/contact-strategy-import';
 import { Device, ImportPhase, ImportStrategyType } from '../types';
 import { StepUpload } from './steps/StepUpload';
 import { StepSourceSelect } from './steps/StepSourceSelect';

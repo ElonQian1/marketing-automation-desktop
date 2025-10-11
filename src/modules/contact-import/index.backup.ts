@@ -11,7 +11,7 @@
 import { ContactImporter } from "./core/ContactImporter";
 import { AndroidDeviceManager } from "./devices/IDeviceManager";
 import { VcfParser } from "./parsers/VcfParser";
-import { ImportStrategyFactory } from "./strategies/ImportStrategies";
+import { ContactImportStrategyFactory } from "./strategies/contact-strategy-import";
 import type { Device, ImportResult } from "./types";
 
 // ===== 核心组件导出 =====
@@ -39,12 +39,12 @@ export { UnifiedAdbDeviceManager } from "./adapters/UnifiedAdbDeviceManager";
 
 // ===== 导入策略导出 =====
 export {
-  BalancedImportStrategy,
-  ImportStrategyFactory,
-  RandomImportStrategy,
-  SequentialImportStrategy,
-  type IImportStrategy,
-} from "./strategies/ImportStrategies";
+  ContactBalancedImportStrategy,
+  ContactImportStrategyFactory,
+  ContactRandomImportStrategy,
+  ContactSequentialImportStrategy,
+  type ContactImportStrategy,
+} from "./strategies/contact-strategy-import";
 
 // ===== React Hooks导出 =====
 export {
@@ -111,7 +111,7 @@ export function createContactImporter(
 ): ContactImporter {
   const parser = new VcfParser();
   const deviceManager = new AndroidDeviceManager();
-  const strategy = ImportStrategyFactory.create(strategyType);
+  const strategy = ContactImportStrategyFactory.create(strategyType);
 
   return new ContactImporter({
     parser,
@@ -153,7 +153,7 @@ export function getAvailableImportStrategies(): Array<{
   name: string;
   description: string;
 }> {
-  return ImportStrategyFactory.getAvailableStrategies();
+  return ContactImportStrategyFactory.getAvailableStrategies();
 }
 
 /**

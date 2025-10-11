@@ -9,7 +9,7 @@ import { useState, useRef, useCallback, useEffect } from 'react';
 import { ContactImporter, ContactImporterEventListener } from '../core/ContactImporter';
 import { UnifiedAdbDeviceManager } from '../adapters/UnifiedAdbDeviceManager';
 import { VcfParser } from '../parsers/VcfParser';
-import { ImportStrategyFactory } from '../strategies/ImportStrategies';
+import { ContactImportStrategyFactory } from '../strategies/contact-strategy-import';
 import {
   Contact,
   Device,
@@ -161,7 +161,7 @@ export function useContactImport(options: UseContactImportOptions = {}): UseCont
 
         // 创建导入器 - 使用统一的设备管理器
         const parser = new VcfParser();
-        const strategy = ImportStrategyFactory.create(configuration.strategy);
+        const strategy = ContactImportStrategyFactory.create(configuration.strategy);
 
         const importer = new ContactImporter({
           parser,

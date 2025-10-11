@@ -4,7 +4,11 @@
     "baseUrl": ".",
     "paths": {
       "@/*": ["src/*"],
-      "@adb/*": ["src/domain/adb/*", "src/application/*", "src/infrastructure/repositories/*"],
+      "@adb/*": [
+        "src/domain/adb/*",
+        "src/application/*",
+        "src/infrastructure/repositories/*"
+      ],
       "@contact/*": ["src/modules/contact-import/*"],
       "@prospecting/*": ["src/modules/precise-acquisition/*"],
       "@script/*": ["src/modules/smart-script-management/*"],
@@ -22,9 +26,7 @@
     "noFallthroughCasesInSwitch": false,
     "noImplicitAny": false
   },
-  "include": [
-    "src/**/*"
-  ],
+  "include": ["src/**/*"],
   "exclude": [
     // 显式排除 JSX-capable shim，防止重复实现与冲突
     "src/components/universal-ui/views/visual-view/hooks/useParsedVisualElements.tsx",
@@ -60,22 +62,22 @@
     // 智能导航查找演示
     "src/components/smart-navigation-finder/**",
     "src/pages/SmartNavigationTestPage.tsx",
-  // 联系人自动化旧页面（会隐式引入 contact 组件）
-  "src/pages/ContactAutomationPage*.tsx",
-  // 循环拖拽实验模块（当前未纳入主流程）
+    // 联系人自动化旧页面（会隐式引入 contact 组件）
+    "src/pages/ContactAutomationPage*.tsx",
+    // 循环拖拽实验模块（当前未纳入主流程）
     "src/modules/loop-drag-integration/**",
-  // 智能策略系统（当前未纳入本轮工作，避免类型冲突）
-  "src/modules/intelligent-strategy-system/**",
-  // 排除 txt-import hooks 目录下的所有 .ts（仅编译 .tsx 实现）
-  "src/modules/contact-import/ui/components/txt-import/hooks/**/*.ts",
-  // 排除重复的 .ts 符号占位文件（存在同名 .tsx 实现）
-  "src/modules/contact-import/ui/components/txt-import/logic/confirmBulkDelete.ts",
-  // 排除旧的单体实现（避免与新模块重复导出/类型冲突）
-  "src/modules/contact-import/ui/components/TxtImportRecordsManager.tsx",
+    // 智能策略系统（当前未纳入本轮工作，避免类型冲突）
+    "src/modules/intelligent-strategy-system/**",
+    // 排除 txt-import hooks 目录下的所有 .ts（仅编译 .tsx 实现）
+    "src/modules/contact-import/ui/components/txt-import/hooks/**/*.ts",
+    // 排除重复的 .ts 符号占位文件（存在同名 .tsx 实现）
+    "src/modules/contact-import/ui/components/txt-import/logic/confirmBulkDelete.ts",
+    // 排除旧的单体实现（避免与新模块重复导出/类型冲突）
+    "src/modules/contact-import/ui/components/TxtImportRecordsManager.tsx",
     // 统一视图演示（示例数据，不参与本轮验证）
     "src/components/unified-view/**",
-  // 联系人组件整包（旧模块，当前不纳入本轮类型检查）
-  "src/components/contact/**",
+    // 联系人组件整包（旧模块，当前不纳入本轮类型检查）
+    "src/components/contact/**",
     // ADB 授权向导（未纳入本轮工作）
     "src/pages/adb/auth/**",
     "src/pages/adb/AdbCenterPage.tsx",
@@ -89,14 +91,14 @@
     "src/**/*_ENHANCED.tsx",
     "src/**/*_ENHANCED.ts",
     // 示例与演示入口
-  "src/examples/**",
+    "src/examples/**",
     "src/pages/ComprehensiveAdbPage.tsx",
     // 其他可能的间接入口
     "src/pages/ContactAutomationPage*.tsx",
     // 汇总导出可能引入被排除模块
-  "src/components/index.ts",
-  // 彻底排除联系人旧演示入口，防止间接引入造成类型噪音
-  "src/components/contact/index.ts"
+    "src/components/index.ts",
+    // 彻底排除联系人旧演示入口，防止间接引入造成类型噪音
+    "src/components/contact/index.ts"
   ],
   "references": [{ "path": "./tsconfig.node.json" }]
 }

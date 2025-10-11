@@ -4,11 +4,11 @@
 
 // 可拖拽的步骤列表容器
 
-import React, { useMemo } from 'react';
-import { Card, Typography, Button } from 'antd';
+import React from 'react';
+import { Card } from 'antd';
 import { ActionsToolbar } from './universal-ui/script-builder/components/ActionsToolbar/ActionsToolbar';
 import { closestCenter, DragOverlay, useDndMonitor, type DragEndEvent } from '@dnd-kit/core';
-import { InteractivePointerSensor } from './universal-ui/dnd';
+
 import { arrayMove } from '@dnd-kit/sortable';
 import { SmartStepCardWrapper } from './SmartStepCardWrapper'; // 使用智能步骤卡片包装器
 import { SmartScriptStep } from '../types/smartScript'; // 使用统一的类型定义
@@ -19,7 +19,7 @@ import { SortableItem } from './universal-ui/dnd/SortableItem';
 import { DragOverlayGhost } from './universal-ui/dnd/DragOverlayGhost';
 import { DnDUIConfigProvider, useDnDUIConfig, DnDUIConfigPersistence } from './universal-ui/dnd/DnDUIConfigContext';
 
-const { Title } = Typography;
+
 
 export interface DraggableStepsContainerProps {
   /** 步骤列表 */

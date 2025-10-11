@@ -4,6 +4,7 @@
 
 import React from "react";
 import { Col, Row, Space, theme } from "antd";
+import { XmlSnapshot } from "../components/universal-ui/page-finder-modal/types";
 import {
   PageHeader,
   ControlPanel,
@@ -18,16 +19,7 @@ import { UniversalPageFinderModal } from "../components/universal-ui/UniversalPa
 import { ContactWorkflowSelector } from "../modules/contact-automation";
 import { useSmartScriptBuilder } from "./SmartScriptBuilderPage/hooks/useSmartScriptBuilder";
 
-// 类型适配：将 selfContainedScript 的 XmlSnapshot 转换为 page-finder-modal 期望的格式
-const adaptXmlSnapshot = (snapshot: any) => {
-  return {
-    id: snapshot.xmlHash || Date.now().toString(),
-    xmlContent: snapshot.xmlContent,
-    deviceInfo: snapshot.deviceInfo,
-    pageInfo: snapshot.pageInfo,
-    timestamp: snapshot.timestamp,
-  };
-};
+
 
 /**
  * 智能脚本构建器页面 - 原生 Ant Design 版本
@@ -52,11 +44,11 @@ const SmartScriptBuilderPage: React.FC = () => {
   // 适配 pageFinderProps 的回调函数
   const adaptedPageFinderProps = {
     ...pageFinderProps,
-    onSnapshotCaptured: (snapshot: any) => {
+    onSnapshotCaptured: (snapshot: XmlSnapshot) => {
       // 调用原始的回调函数，传入适配后的快照
       pageFinderProps.onSnapshotCaptured(snapshot);
     },
-    onSnapshotUpdated: (snapshot: any) => {
+    onSnapshotUpdated: (snapshot: XmlSnapshot) => {
       // 调用原始的回调函数，传入适配后的快照
       pageFinderProps.onSnapshotUpdated(snapshot);
     },
