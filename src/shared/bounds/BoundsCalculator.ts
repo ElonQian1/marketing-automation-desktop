@@ -1,3 +1,7 @@
+// src/shared/bounds/BoundsCalculator.ts
+// module: shared | layer: shared | role: 共享工具
+// summary: 跨模块共享的工具和类型
+
 /**
  * BoundsCalculator.ts  
  * 统一的边界计算工具 - 项目级共享版本

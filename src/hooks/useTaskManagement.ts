@@ -1,3 +1,7 @@
+// src/hooks/useTaskManagement.ts
+// module: shared | layer: application | role: 状态钩子
+// summary: React状态管理和业务逻辑封装
+
 /**
  * 任务管理相关的 Hook
  * 

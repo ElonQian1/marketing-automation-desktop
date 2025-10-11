@@ -1,3 +1,7 @@
+// src/utils/toDisplayableImageSrc.ts
+// module: shared | layer: utils | role: utility
+// summary: 工具函数
+
 /**
  * 将本地文件路径转换为可在 WebView 中展示的图片 URL。
  *
@@ -14,7 +18,7 @@ export async function toDisplayableImageSrc(absPath: string | undefined | null):
 
   // 尝试使用 Tauri 提供的 convertFileSrc（v2 在 @tauri-apps/api/core）
   try {
-    // eslint-disable-next-line @typescript-eslint/no-var-requires
+     
     const mod = await import('@tauri-apps/api/core');
     if (typeof mod.convertFileSrc === 'function') {
       const url = mod.convertFileSrc(normalizedForUrl);

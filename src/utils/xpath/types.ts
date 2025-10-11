@@ -1,3 +1,7 @@
+// src/utils/xpath/types.ts
+// module: shared | layer: utils | role: utility
+// summary: 工具函数
+
 /**
  * XPath 验证相关类型定义
  */

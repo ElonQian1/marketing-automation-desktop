@@ -1,3 +1,7 @@
+// src/config/developmentMode.ts
+// module: shared | layer: application | role: 配置管理
+// summary: 应用配置参数定义
+
 /**
  * 开发模式配置
  * 在开发阶段允许无设备情况下查看功能演示

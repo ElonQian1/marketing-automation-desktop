@@ -1,3 +1,7 @@
+// src/types/index.ts
+// module: shared | layer: types | role: 类型定义
+// summary: TypeScript接口和类型声明
+
 export * from './Auth';
 export * from './Contact';
 // 从Employee.ts导出，避免与Auth.ts中的Employee冲突

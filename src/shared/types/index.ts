@@ -1,3 +1,7 @@
+// src/shared/types/index.ts
+// module: shared | layer: shared | role: 共享工具
+// summary: 跨模块共享的工具和类型
+
 /**
  * 统一枚举重新导出
  * 解决多重定义冲突，优先使用 constants/precise-acquisition-enums.ts 中的定义

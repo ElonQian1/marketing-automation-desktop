@@ -1,3 +1,7 @@
+// src/stores/elementSelectionStore.ts
+// module: shared | layer: application | role: 状态存储
+// summary: 全局状态管理存储
+
 /**
  * 元素选择上下文状态管理
  * 用于在"可视化视图"和"批量匹配"之间传递完整的元素信息

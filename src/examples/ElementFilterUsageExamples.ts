@@ -1,3 +1,7 @@
+// src/examples/ElementFilterUsageExamples.ts
+// module: shared | layer: examples | role: 示例代码
+// summary: 功能演示和使用示例
+
 /**
  * ElementFilter 模块使用示例
  * 展示如何在不同的功能模块中使用独立的元素过滤器

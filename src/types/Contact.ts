@@ -1,3 +1,7 @@
+// src/types/Contact.ts
+// module: shared | layer: types | role: 类型定义
+// summary: TypeScript接口和类型声明
+
 /**
  * 通讯录联系相关的类型定义
  */

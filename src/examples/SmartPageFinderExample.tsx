@@ -1,3 +1,7 @@
+// src/examples/SmartPageFinderExample.tsx
+// module: shared | layer: examples | role: 示例代码
+// summary: 功能演示和使用示例
+
 /**
  * Smart Page Finder 智能页面查找器使用示例
  * 展示如何在脚本构建器或其他场景中集成页面分析功能

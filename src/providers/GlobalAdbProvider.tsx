@@ -1,3 +1,7 @@
+// src/providers/GlobalAdbProvider.tsx
+// module: shared | layer: application | role: 上下文提供者
+// summary: React Context状态提供和管理
+
 /**
  * 全局ADB Provider
  * 在应用顶层统一管理ADB状态，避免每个页面重复初始化

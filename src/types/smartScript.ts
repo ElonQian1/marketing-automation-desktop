@@ -1,3 +1,7 @@
+// src/types/smartScript.ts
+// module: shared | layer: types | role: 类型定义
+// summary: TypeScript接口和类型声明
+
 // 智能脚本相关类型定义
 export interface SmartScriptStep {
   id: string;

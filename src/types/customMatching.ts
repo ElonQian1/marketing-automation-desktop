@@ -1,3 +1,7 @@
+// src/types/customMatching.ts
+// module: shared | layer: types | role: 类型定义
+// summary: TypeScript接口和类型声明
+
 /**
  * 自定义UI元素匹配规则系统
  * 支持通配符、正则表达式、位置范围匹配，实现"单条命令针对多个目标"功能

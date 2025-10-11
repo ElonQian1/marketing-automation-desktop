@@ -1,3 +1,7 @@
+// src/constants/precise-acquisition-enums.ts
+// module: shared | layer: application | role: 常量定义
+// summary: 全局常量和枚举值
+
 /**
  * 精准获客系统 - 标签体系与枚举定义
  * 

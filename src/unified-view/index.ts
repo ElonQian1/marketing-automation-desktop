@@ -1,3 +1,7 @@
+// src/unified-view/index.ts
+// module: shared | layer: ui | role: 统一视图
+// summary: 统一视图组件和逻辑
+
 /**
  * 统一视图系统 - 主要导出
  * 提供完整的统一视图解决方案

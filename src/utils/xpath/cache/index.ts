@@ -1,3 +1,7 @@
+// src/utils/xpath/cache/index.ts
+// module: shared | layer: utils | role: utility
+// summary: 工具函数
+
 /**
  * 缓存模块统一导出文件
  * 

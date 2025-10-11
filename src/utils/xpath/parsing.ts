@@ -1,3 +1,7 @@
+// src/utils/xpath/parsing.ts
+// module: shared | layer: utils | role: utility
+// summary: 工具函数
+
 /**
  * XPath 解析工具函数
  * 

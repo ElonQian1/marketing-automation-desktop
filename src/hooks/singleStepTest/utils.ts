@@ -1,3 +1,7 @@
+// src/hooks/singleStepTest/utils.ts
+// module: shared | layer: application | role: 状态钩子
+// summary: React状态管理和业务逻辑封装
+
 import type { MatchCriteriaDTO } from '../../domain/page-analysis/repositories/IUiMatcherRepository';
 import type { SmartScriptStep, SingleStepTestResult } from '../../types/smartScript';
 import { BoundsCalculator } from '../../shared/bounds/BoundsCalculator';

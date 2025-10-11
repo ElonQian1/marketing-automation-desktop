@@ -1,3 +1,7 @@
+// src/types/Auth.ts
+// module: shared | layer: types | role: 类型定义
+// summary: TypeScript接口和类型声明
+
 /**
  * 员工认证相关的类型定义
  */

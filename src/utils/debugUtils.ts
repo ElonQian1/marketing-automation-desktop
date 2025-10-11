@@ -1,3 +1,7 @@
+// src/utils/debugUtils.ts
+// module: shared | layer: utils | role: utility
+// summary: 工具函数
+
 /**
  * 调试工具集 - 统一管理调试日志输出
  */

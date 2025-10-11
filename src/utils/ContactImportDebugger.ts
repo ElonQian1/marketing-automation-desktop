@@ -1,3 +1,7 @@
+// src/utils/ContactImportDebugger.ts
+// module: shared | layer: utils | role: utility
+// summary: 工具函数
+
 /**
  * 联系人导入自动化调试工具
  * 

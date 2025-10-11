@@ -1,3 +1,7 @@
+// src/utils/xpath/cache/XPathPrecompilerCache.ts
+// module: shared | layer: utils | role: utility
+// summary: 工具函数
+
 /**
  * 预编译选择器缓存系统
  * 
@@ -99,7 +103,7 @@ export class XPathPrecompilerCache {
   /**
    * 标准化XPath表达式
    */
-  private normalizeXPath(xpath: String): string {
+  private normalizeXPath(xpath: string): string {
     return xpath
       .trim()
       .replace(/\s+/g, ' ')              // 标准化空格

@@ -1,3 +1,7 @@
+// src/test/CustomMatchingSystemTester.ts
+// module: shared | layer: testing | role: 测试代码
+// summary: 单元测试和集成测试
+
 /**
  * 自定义匹配规则系统测试
  * 使用当前的XML数据验证匹配功能

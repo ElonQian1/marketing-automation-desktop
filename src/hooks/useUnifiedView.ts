@@ -1,3 +1,7 @@
+// src/hooks/useUnifiedView.ts
+// module: shared | layer: application | role: 状态钩子
+// summary: React状态管理和业务逻辑封装
+
 /**
  * 统一视图联动Hook
  * 管理三个视图的数据联动和状态同步

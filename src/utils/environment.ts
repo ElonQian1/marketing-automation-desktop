@@ -1,3 +1,7 @@
+// src/utils/environment.ts
+// module: shared | layer: utils | role: utility
+// summary: 工具函数
+
 /**
  * 前端环境变量访问工具
  * 

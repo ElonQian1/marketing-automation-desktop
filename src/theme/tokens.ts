@@ -1,3 +1,7 @@
+// src/theme/tokens.ts
+// module: shared | layer: ui | role: 主题系统
+// summary: 应用主题配置和切换逻辑
+
 // 统一主题设计令牌（Sindre 风格）
 // 提供 AntD token、CSS 变量映射和通用颜色
 

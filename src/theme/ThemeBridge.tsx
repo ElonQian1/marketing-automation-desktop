@@ -1,3 +1,7 @@
+// src/theme/ThemeBridge.tsx
+// module: shared | layer: ui | role: 主题系统
+// summary: 应用主题配置和切换逻辑
+
 // 文件路径：src/theme/ThemeBridge.tsx
 
 /**

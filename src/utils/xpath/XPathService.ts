@@ -1,3 +1,7 @@
+// src/utils/xpath/XPathService.ts
+// module: shared | layer: utils | role: utility
+// summary: 工具函数
+
 /**
  * XPath 统一服务类
  * 

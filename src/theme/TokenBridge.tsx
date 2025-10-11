@@ -1,3 +1,7 @@
+// src/theme/TokenBridge.tsx
+// module: shared | layer: ui | role: 主题系统
+// summary: 应用主题配置和切换逻辑
+
 import React from 'react';
 import { theme as antdTheme } from 'antd';
 

@@ -1,3 +1,7 @@
+// src/examples/TestUniversalUIClick.tsx
+// module: shared | layer: examples | role: 示例代码
+// summary: 功能演示和使用示例
+
 // 快速测试 execute_universal_ui_click 命令是否正常工作
 // 测试文件：src/examples/TestUniversalUIClick.tsx
 

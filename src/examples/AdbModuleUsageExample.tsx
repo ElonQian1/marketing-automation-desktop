@@ -1,3 +1,7 @@
+// src/examples/AdbModuleUsageExample.tsx
+// module: shared | layer: examples | role: 示例代码
+// summary: 功能演示和使用示例
+
 /**
  * ADB 统一接口使用示例
  * 展示如何在应用中使用统一的 useAdb() 接口

@@ -1,3 +1,7 @@
+// src/utils/xpath/generation.ts
+// module: shared | layer: utils | role: utility
+// summary: 工具函数
+
 /**
  * XPath 生成工具函数
  * 

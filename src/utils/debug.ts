@@ -1,3 +1,7 @@
+// src/utils/debug.ts
+// module: shared | layer: utils | role: utility
+// summary: 工具函数
+
 /**
  * Development logging helpers
  * - DEV gated (Vite: import.meta.env.DEV)

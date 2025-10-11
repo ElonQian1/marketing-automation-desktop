@@ -1,3 +1,7 @@
+// src/types/precise-acquisition.ts
+// module: shared | layer: types | role: 类型定义
+// summary: TypeScript接口和类型声明
+
 /**
  * 精准获客系统 - TypeScript 类型定义
  * 

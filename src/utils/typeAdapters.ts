@@ -1,3 +1,7 @@
+// src/utils/typeAdapters.ts
+// module: shared | layer: utils | role: utility
+// summary: 工具函数
+
 // 为了保持向后兼容性，创建一个类型适配器
 // 统一依赖共享类型定义，避免从组件导入类型导致构建失败
 import type { VcfImportResult } from '../types/Contact';

@@ -1,3 +1,7 @@
+// src/constants/precise-acquisition-whitelist.ts
+// module: shared | layer: application | role: 常量定义
+// summary: 全局常量和枚举值
+
 /**
  * 精准获客系统 - 白名单和枚举映射表
  * 

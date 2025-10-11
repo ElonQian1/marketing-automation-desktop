@@ -1,3 +1,7 @@
+// src/hooks/useIntersectionObserver.ts
+// module: shared | layer: application | role: 状态钩子
+// summary: React状态管理和业务逻辑封装
+
 /**
  * 智能懒加载Hook - 基于Intersection Observer
  */

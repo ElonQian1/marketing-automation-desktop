@@ -1,3 +1,7 @@
+// src/test/SmartStepGeneratorTest.ts
+// module: shared | layer: testing | role: 测试代码
+// summary: 单元测试和集成测试
+
 /**
  * 智能步骤生成器测试文件
  * 用于验证步骤名称和描述的生成效果

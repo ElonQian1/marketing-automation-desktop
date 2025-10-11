@@ -1,3 +1,7 @@
+// src/utils/xpath/cache/XmlReuseManager.ts
+// module: shared | layer: utils | role: utility
+// summary: 工具函数
+
 /**
  * XML重用管理器
  * 

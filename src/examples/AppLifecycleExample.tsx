@@ -1,3 +1,7 @@
+// src/examples/AppLifecycleExample.tsx
+// module: shared | layer: examples | role: 示例代码
+// summary: 功能演示和使用示例
+
 /**
  * AppLifecycleManager 前端集成示例
  * 展示如何从 React/TypeScript 前端调用应用生命周期管理功能

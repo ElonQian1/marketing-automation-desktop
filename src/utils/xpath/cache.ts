@@ -1,3 +1,7 @@
+// src/utils/xpath/cache.ts
+// module: shared | layer: utils | role: utility
+// summary: 工具函数
+
 /**
  * XPath 缓存管理器
  * 为频繁调用的 XPath 操作提供智能缓存，显著提升性能

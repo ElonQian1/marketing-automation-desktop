@@ -1,3 +1,7 @@
+// src/utils/cn.ts
+// module: shared | layer: utils | role: utility
+// summary: 工具函数
+
 // 文件路径：src/utils/cn.ts
 
 /**

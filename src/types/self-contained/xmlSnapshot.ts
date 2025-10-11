@@ -1,3 +1,7 @@
+// src/types/self-contained/xmlSnapshot.ts
+// module: shared | layer: types | role: 类型定义
+// summary: TypeScript接口和类型声明
+
 /**
  * XmlSnapshot 及相关工具（哈希/创建/校验）
  */

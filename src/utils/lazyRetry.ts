@@ -1,3 +1,7 @@
+// src/utils/lazyRetry.ts
+// module: shared | layer: utils | role: utility
+// summary: 工具函数
+
 /**
  * Wrap a dynamic import factory with retry logic to tolerate transient dev server restarts.
  */
@@ -15,7 +19,7 @@ export function lazyRetry<T>(
             reject(err);
             return;
           }
-          // eslint-disable-next-line no-console
+           
           try { console.warn(`[lazyRetry] dynamic import failed, retry in ${intervalMs}ms... (left=${left})`, err); } catch {}
           setTimeout(() => attempt(left - 1), intervalMs);
         });

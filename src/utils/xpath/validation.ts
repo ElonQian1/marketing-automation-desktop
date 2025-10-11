@@ -1,3 +1,7 @@
+// src/utils/xpath/validation.ts
+// module: shared | layer: utils | role: utility
+// summary: 工具函数
+
 /**
  * XPath 验证工具函数
  * 

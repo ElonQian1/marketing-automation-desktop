@@ -1,3 +1,7 @@
+// src/types/StepType.ts
+// module: shared | layer: types | role: 类型定义
+// summary: TypeScript接口和类型声明
+
 export type StepType =
   | 'smart_find_element'
   | 'batch_match'

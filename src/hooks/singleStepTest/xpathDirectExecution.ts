@@ -1,3 +1,7 @@
+// src/hooks/singleStepTest/xpathDirectExecution.ts
+// module: shared | layer: application | role: 状态钩子
+// summary: React状态管理和业务逻辑封装
+
 import { invoke } from '@tauri-apps/api/core';
 import type { SmartScriptStep, SingleStepTestResult } from '../../types/smartScript';
 

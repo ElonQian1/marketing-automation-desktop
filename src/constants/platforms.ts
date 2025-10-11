@@ -1,3 +1,7 @@
+// src/constants/platforms.ts
+// module: shared | layer: application | role: 常量定义
+// summary: 全局常量和枚举值
+
 import { Platform } from './precise-acquisition-enums';
 
 // 平台配置

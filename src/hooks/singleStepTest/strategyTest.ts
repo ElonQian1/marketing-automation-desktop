@@ -1,3 +1,7 @@
+// src/hooks/singleStepTest/strategyTest.ts
+// module: shared | layer: application | role: 状态钩子
+// summary: React状态管理和业务逻辑封装
+
 import type { SmartScriptStep } from '../../types/smartScript';
 import type { MatchCriteriaDTO } from '../../domain/page-analysis/repositories/IUiMatcherRepository';
 import { escapeRegex, sanitizeCriteria } from './utils';

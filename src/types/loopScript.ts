@@ -1,3 +1,7 @@
+// src/types/loopScript.ts
+// module: shared | layer: types | role: 类型定义
+// summary: TypeScript接口和类型声明
+
 // 扩展智能脚本类型以支持循环逻辑
 
 // 扩展步骤类型，添加循环控制类型

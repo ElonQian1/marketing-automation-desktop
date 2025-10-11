@@ -1,3 +1,7 @@
+// src/types/smartComponents.ts
+// module: shared | layer: types | role: 类型定义
+// summary: TypeScript接口和类型声明
+
 // 智能应用管理相关类型定义
 
 export interface AppInfo {

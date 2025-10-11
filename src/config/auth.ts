@@ -1,3 +1,7 @@
+// src/config/auth.ts
+// module: shared | layer: application | role: 配置管理
+// summary: 应用配置参数定义
+
 /**
  * 认证配置
  * 管理与Flow_Farm服务器的连接配置

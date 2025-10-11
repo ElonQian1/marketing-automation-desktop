@@ -1,3 +1,7 @@
+// src/types/navigation.ts
+// module: shared | layer: types | role: 类型定义
+// summary: TypeScript接口和类型声明
+
 // 导航栏检测相关类型定义
 
 export type NavigationBarType = 'Bottom' | 'Top' | 'Side' | 'FloatingAction';

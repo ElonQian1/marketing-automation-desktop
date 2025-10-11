@@ -1,3 +1,7 @@
+// src/shared/types/unified-enums.ts
+// module: shared | layer: shared | role: 共享工具
+// summary: 跨模块共享的工具和类型
+
 /**
  * 统一的枚举类型定义
  * 优先使用 constants/precise-acquisition-enums.ts 中的更完整定义

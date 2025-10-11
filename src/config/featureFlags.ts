@@ -1,3 +1,7 @@
+// src/config/featureFlags.ts
+// module: shared | layer: application | role: 配置管理
+// summary: 应用配置参数定义
+
 // Centralized feature flags for UI toggles
 // Prefer environment variables (Vite) with safe defaults.
 

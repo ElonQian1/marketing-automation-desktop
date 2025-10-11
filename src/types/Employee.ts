@@ -1,3 +1,7 @@
+// src/types/Employee.ts
+// module: shared | layer: types | role: 类型定义
+// summary: TypeScript接口和类型声明
+
 // 设备相关类型
 export interface Device {
   id: number;

@@ -1,3 +1,7 @@
+// src/hooks/useMessage.ts
+// module: shared | layer: application | role: 状态钩子
+// summary: React状态管理和业务逻辑封装
+
 // 消息 API Hook - 统一管理消息通知
 import { App } from 'antd';
 

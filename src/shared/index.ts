@@ -1,3 +1,7 @@
+// src/shared/index.ts
+// module: shared | layer: shared | role: 共享工具
+// summary: 跨模块共享的工具和类型
+
 /**
  * src/shared/index.ts
  * 项目级共享工具统一导出

@@ -1,3 +1,7 @@
+// src/hooks/useContacts.ts
+// module: shared | layer: application | role: 状态钩子
+// summary: React状态管理和业务逻辑封装
+
 import { useCallback, useEffect, useState } from 'react';
 import { ContactAPI } from '../api';
 import {

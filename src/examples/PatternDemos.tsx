@@ -1,3 +1,7 @@
+// src/examples/PatternDemos.tsx
+// module: shared | layer: examples | role: 示例代码
+// summary: 功能演示和使用示例
+
 import React from "react";
 import { Space, Divider, Tag } from "antd";
 import { Heart, Users, Smartphone, TrendingUp, AlertCircle, Wifi } from "lucide-react";

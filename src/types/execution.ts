@@ -1,3 +1,7 @@
+// src/types/execution.ts
+// module: shared | layer: types | role: 类型定义
+// summary: TypeScript接口和类型声明
+
 export interface ExecutorConfig {
   default_timeout_ms: number;
   default_retry_count: number;

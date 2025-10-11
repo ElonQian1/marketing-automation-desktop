@@ -1,3 +1,7 @@
+// src/types/self-contained/parameters.ts
+// module: shared | layer: types | role: 类型定义
+// summary: TypeScript接口和类型声明
+
 import type { XmlSnapshot } from './xmlSnapshot';
 import type { ElementLocator } from './elementLocator';
 import { createXmlSnapshot } from './xmlSnapshot';

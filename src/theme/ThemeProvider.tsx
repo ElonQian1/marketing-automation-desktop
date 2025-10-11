@@ -1,3 +1,7 @@
+// src/theme/ThemeProvider.tsx
+// module: shared | layer: ui | role: 主题系统
+// summary: 应用主题配置和切换逻辑
+
 import React from 'react';
 import { ConfigProvider, theme as antdTheme, App } from 'antd';
 import { ThemeMode, antdTokens, cssVars } from './tokens';

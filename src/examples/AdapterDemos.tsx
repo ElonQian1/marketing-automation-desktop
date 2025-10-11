@@ -1,3 +1,7 @@
+// src/examples/AdapterDemos.tsx
+// module: shared | layer: examples | role: 示例代码
+// summary: 功能演示和使用示例
+
 import React from "react";
 import { Space, Input, Form } from "antd";
 import { Button } from "../components/ui";
