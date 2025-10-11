@@ -14,6 +14,8 @@ import {
   DeviceStatus,
   DeviceType,
   ValidationResult,
+  ValidationError,
+  ValidationWarning,
 } from '../types';
 
 /**
@@ -46,8 +48,8 @@ export class UnifiedAdbDeviceManager implements IDeviceManager {
   }
 
   async validateDevice(device: Device): Promise<ValidationResult> {
-    const errors: any[] = [];
-    const warnings: any[] = [];
+    const errors: ValidationError[] = [];
+    const warnings: ValidationWarning[] = [];
 
     try {
       // 使用统一的 ADB 服务进行设备验证
@@ -275,6 +277,7 @@ export class UnifiedAdbDeviceManager implements IDeviceManager {
     }
   }
 
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   private extractApiLevel(model: string): number {
     // 这里可以根据设备型号推断API级别
     // 返回一个保守的默认值

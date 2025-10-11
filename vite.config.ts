@@ -208,6 +208,11 @@ export default defineConfig(() => ({
   resolve: {
     alias: {
       "@": resolve(__dirname, "src"),
+      "@adb": resolve(__dirname, "src/domain/adb"),
+      "@contact": resolve(__dirname, "src/modules/contact-import"),
+      "@prospecting": resolve(__dirname, "src/modules/precise-acquisition"),
+      "@script": resolve(__dirname, "src/modules/smart-script-management"),
+      "@shared": resolve(__dirname, "src/shared"),
     },
   },
 

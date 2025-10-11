@@ -1,0 +1,4 @@
+# .husky/pre-commit
+# module: root | layer: config | role: git-hook
+# summary: 提交前自动跑 Lint/文件头/依赖检查（失败则阻止提交）
+npx lint-staged

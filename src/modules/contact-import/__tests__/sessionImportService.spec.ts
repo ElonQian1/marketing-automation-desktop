@@ -1,4 +1,7 @@
-/// <reference types="vitest" />
+/**
+ * @fileoverview Contact Import Session Test Suites
+ * @description Unit tests for session import service functionality
+ */
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { reimportSelectedSessionsWithDeps, type ReimportDeps } from '../ui/services/sessionImportService';
 
@@ -65,7 +68,7 @@ describe('reimportSelectedSessionsWithDeps', () => {
 
   it('skips when batch has no vcf path', async () => {
     const deps: ReimportDeps = {
-      getVcfBatchRecord: async () => ({ /* no vcf_file_path */ } as any),
+      getVcfBatchRecord: async () => ({ vcf_file_path: null } as const),
       createImportSessionRecord: async () => 1,
       finishImportSessionRecord: async () => {},
       importToDevice: async () => ({ success: true }),

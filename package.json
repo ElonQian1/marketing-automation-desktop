@@ -22,9 +22,12 @@
     "validate:brand": "node scripts/validate-brand-config.mjs",
     "scan:overrides": "node scripts/scan-style-overrides.mjs",
     "quality:gate": "node scripts/quality-gate.mjs",
-    "lint": "npm run quality:check",
-  "quality:check": "npm run scan:overrides && npm run type-check && npm run check:adapters",
-  "check:adapters": "node scripts/check-adapter-usage.js",
+    "prepare": "husky install",
+    "lint": "eslint --ext .ts,.tsx src",
+    "dep:check": "depcruise --config .dependency-cruiser.cjs src --exclude '^src-tauri'",
+    "headers:check": "node scripts/check_headers.cjs",
+    "quality:check": "npm run scan:overrides && npm run type-check && npm run check:adapters",
+    "check:adapters": "node scripts/check-adapter-usage.js",
     "check:hardcoded": "node scripts/check-hardcoded-styles.js",
     "check:contrast": "node scripts/check-color-contrast.js",
     "setup:scrcpy": "pwsh -ExecutionPolicy Bypass -File scripts/setup-scrcpy.ps1",
@@ -74,14 +77,28 @@
     "@testing-library/react": "^16.0.0",
     "@types/react": "19.1.12",
     "@types/react-dom": "19.1.9",
+    "@typescript-eslint/eslint-plugin": "^8.46.0",
+    "@typescript-eslint/parser": "^8.46.0",
     "@vitejs/plugin-react": "5.0.2",
     "autoprefixer": "^10.4.14",
     "cross-env": "^7.0.3",
+    "dependency-cruiser": "^16.10.4",
+    "eslint": "^9.0.0",
+    "eslint-plugin-boundaries": "^3.4.1",
+    "eslint-plugin-import": "^2.32.0",
+    "husky": "^9.1.7",
     "jsdom": "^24.0.0",
+    "lint-staged": "^15.5.2",
     "postcss": "^8.4.27",
     "tailwindcss": "4.1.13",
     "typescript": "^5.0.2",
     "vite": "7.1.4",
     "vitest": "^2.1.5"
+  },
+  "lint-staged": {
+    "src/**/*.{ts,tsx}": [
+      "eslint --fix",
+      "node scripts/check_headers.cjs"
+    ]
   }
 }
