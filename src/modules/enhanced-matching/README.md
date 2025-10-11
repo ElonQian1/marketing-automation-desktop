@@ -46,18 +46,25 @@
 - ✅ 避免混合不同层级的字段进行匹配
 - ✅ 智能检测文本在深层嵌套中的实际位置
 
-#### 3. 智能条件生成器 (`generator/SmartConditionGenerator.ts`)
-**职责**: 替代DefaultMatchingBuilder中存在问题的逻辑
-- `generateSmartConditions()`: 主入口方法
-- `generateEnhancedFields()`: 生成增强匹配字段
-- `calculateFieldConfidence()`: 计算字段置信度
-- `optimizeFieldSelection()`: 优化字段选择
-- `selectOptimalStrategy()`: 选择最优匹配策略
+#### 3. 智能条件生成器 (已迁移到 intelligent-strategy-system)
 
-**解决问题**:
-- ✅ 生成层级感知的字段名（如`child_0_text`, `parent_clickable`）
-- ✅ 避免父子字段混淆导致的匹配失败
-- ✅ 提供置信度评分和智能策略选择
+**迁移说明**: 
+- ✅ **已完成迁移**: `SmartConditionGenerator` 已被 `StrategyDecisionEngine` 替代
+- ✅ **功能增强**: 新系统提供更强大的策略决策和元素分析能力
+- ✅ **向后兼容**: 通过适配器模式保持接口兼容
+
+**新位置**: `src/modules/intelligent-strategy-system/core/StrategyDecisionEngine.ts`
+
+**迁移指南**: 
+```typescript
+// 旧用法（已废弃）
+// import { SmartConditionGenerator } from '@/modules/enhanced-matching';
+
+// 新用法（推荐）
+import { StrategyDecisionEngine } from '@/modules/intelligent-strategy-system/core/StrategyDecisionEngine';
+const engine = new StrategyDecisionEngine();
+const recommendation = await engine.analyzeAndRecommend(element, xmlDocument, options);
+```
 
 #### 4. UI组件 (`components/HierarchyFieldDisplay.tsx`)
 **职责**: 为用户展示清晰的字段层级关系
@@ -85,11 +92,13 @@ console.log(conditions.strategy); // 'standard'
 console.log(conditions.fields); // ['resource-id', 'child_0_text', 'parent_clickable']
 ```
 
-### 高级配置
+### 高级配置（推荐使用新系统）
 ```typescript
-import { SmartConditionGenerator } from '@/modules/enhanced-matching';
+// 推荐：使用新的智能策略系统
+import { StrategyDecisionEngine } from '@/modules/intelligent-strategy-system/core/StrategyDecisionEngine';
 
-const conditions = SmartConditionGenerator.generateSmartConditions(
+const engine = new StrategyDecisionEngine();
+const recommendation = await engine.analyzeAndRecommend(
   element, 
   xmlDocument, 
   {
