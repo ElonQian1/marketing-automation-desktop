@@ -9,7 +9,7 @@
  */
 
 import { invoke } from '@tauri-apps/api/core';
-import { Task, TaskStatus } from '../../shared/types/core';
+import { Task, TaskStatus, TaskType, Platform, TaskPriority } from '../../shared/types/core';
 import { TaskAssignmentResult, TaskExecutionContext } from '../types';
 
 export class ProspectingTaskManager {
@@ -185,8 +185,8 @@ export class ProspectingTaskManager {
 
   private async getTasksByIds(taskIds: string[]): Promise<Task[]> {
     try {
-      const tasks = await invoke<any[]>('get_tasks_by_ids', { task_ids: taskIds });
-      return tasks.map(this.mapDatabaseRowToTask);
+      const tasks = await invoke<Task[]>('get_tasks_by_ids', { task_ids: taskIds });
+      return tasks;
     } catch (error) {
       console.error('Failed to get tasks by ids:', error);
       return [];
@@ -195,8 +195,8 @@ export class ProspectingTaskManager {
 
   private async getTaskById(taskId: string): Promise<Task | null> {
     try {
-      const taskData = await invoke<any>('get_task_by_id', { task_id: taskId });
-      return taskData ? this.mapDatabaseRowToTask(taskData) : null;
+      const taskData = await invoke<Task>('get_task_by_id', { task_id: taskId });
+      return taskData || null;
     } catch (error) {
       console.error('Failed to get task by id:', error);
       return null;
@@ -245,22 +245,24 @@ export class ProspectingTaskManager {
     }
   }
 
-  private mapDatabaseRowToTask(row: any): Task {
+  private mapDatabaseRowToTask(row: Record<string, unknown>): Task {
     return {
-      id: row.id,
-      task_type: row.task_type,
-      platform: row.platform,
-      status: row.status,
-      priority: row.priority,
-      target_user_id: row.target_user_id,
-      assigned_device_id: row.assigned_device_id,
-      created_at: new Date(row.created_at),
-      updated_at: new Date(row.updated_at),
-      scheduled_time: row.scheduled_time ? new Date(row.scheduled_time) : undefined,
-      completed_at: row.completed_at ? new Date(row.completed_at) : undefined,
-      error_message: row.error_message,
-      retry_count: row.retry_count || 0,
-      metadata: row.metadata ? JSON.parse(row.metadata) : {}
+      id: row.id as string,
+      task_type: row.task_type as TaskType,
+      platform: row.platform as Platform,
+      status: row.status as TaskStatus,
+      priority: row.priority as TaskPriority,
+      target_id: row.target_id as string, // 添加缺失字段
+      target_user_id: row.target_user_id as string,
+      assigned_device_id: row.assigned_device_id as string,
+      max_retries: (row.max_retries as number) || 3, // 添加缺失字段，默认3次
+      created_at: new Date(row.created_at as string),
+      updated_at: new Date(row.updated_at as string),
+      scheduled_time: row.scheduled_time ? new Date(row.scheduled_time as string) : undefined,
+      completed_at: row.completed_at ? new Date(row.completed_at as string) : undefined,
+      error_message: row.error_message as string,
+      retry_count: (row.retry_count as number) || 0,
+      metadata: row.metadata ? JSON.parse(row.metadata as string) : {}
     };
   }
 }

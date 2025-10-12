@@ -1,6 +1,6 @@
-// src/test/SmartStepGeneratorTest.ts
-// module: shared | layer: testing | role: 测试代码
-// summary: 单元测试和集成测试
+// src/test/smart-step-generator-test.ts
+// module: smart-script | layer: testing | role: test
+// summary: smart-step-generator-test.ts 文件
 
 /**
  * 智能步骤生成器测试文件

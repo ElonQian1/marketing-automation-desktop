@@ -8,15 +8,10 @@ import { ClusterOutlined } from '@ant-design/icons';
 import { useAdb } from '../../../application/hooks/useAdb';
 import type { ExtendedSmartScriptStep } from '../../../types/loopScript';
 import type { SmartExecutionResult } from '../../../types/execution';
+import type { Device } from '../../../domain/adb/entities/Device';
 
 interface Props {
   steps: ExtendedSmartScriptStep[];
-  executorConfig: Partial<{
-    continue_on_error: boolean;
-    auto_verification_enabled: boolean;
-    smart_recovery_enabled: boolean;
-    detailed_logging: boolean;
-  }>;
 }
 
 type ResultMap = Record<string, SmartExecutionResult>;
@@ -26,7 +21,7 @@ const ResultsSummary: React.FC<{ results: ResultMap | null }> = ({ results }) =>
   if (!results) return null;
   const entries = Object.entries(results);
   const total = entries.length;
-  const success = entries.filter(([_, r]) => r.success).length;
+  const success = entries.filter(([, r]) => r.success).length;
   const failed = total - success;
   return (
     <Space direction="vertical" style={{ width: '100%' }}>
@@ -51,14 +46,14 @@ const ResultsSummary: React.FC<{ results: ResultMap | null }> = ({ results }) =>
  * 多设备整脚本执行启动器
  * - 模块化独立组件，便于在控制面板或页面其他位置复用
  */
-const MultiDeviceScriptLauncher: React.FC<Props> = ({ steps, executorConfig }) => {
+const MultiDeviceScriptLauncher: React.FC<Props> = ({ steps }) => {
   const { devices, executeSmartScriptOnDevices } = useAdb();
   const [open, setOpen] = useState(false);
   const [selectedIds, setSelectedIds] = useState<string[]>([]);
   const [running, setRunning] = useState(false);
   const [results, setResults] = useState<ResultMap | null>(null);
 
-  const online = useMemo(() => devices.filter((d: any) => d.status === 'online'), [devices]);
+  const online = useMemo(() => devices.filter((d: Device) => d.status === 'online'), [devices]);
 
   const toggle = (id: string) => {
     setSelectedIds((prev) => (prev.includes(id) ? prev.filter((x) => x !== id) : [...prev, id]));
@@ -126,7 +121,7 @@ const MultiDeviceScriptLauncher: React.FC<Props> = ({ steps, executorConfig }) =
           <div>
             <Typography.Text strong>选择在线设备（{online.length}）</Typography.Text>
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: 8, marginTop: 8 }}>
-              {online.map((d: any) => (
+              {online.map((d: Device) => (
                 <Checkbox
                   key={d.id}
                   checked={selectedIds.includes(d.id)}

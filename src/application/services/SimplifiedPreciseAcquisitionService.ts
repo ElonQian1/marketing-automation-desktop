@@ -93,7 +93,7 @@ export class SimplifiedPreciseAcquisitionService {
     industryTags?: string[];
     targetType?: string;
   }) {
-    return this.existingService.getWatchTargets(filters as any);
+    return this.existingService.getWatchTargets(filters as WatchTargetQuery);
   }
 
   /**
@@ -117,7 +117,7 @@ export class SimplifiedPreciseAcquisitionService {
   }) {
     try {
       const tasks = await this.taskEngine.generateTasks({
-        target: config.targetId,  // 修复属性名
+        target: { id: config.targetId } as WatchTarget,  // 修复属性名
         max_tasks: config.maxTasks || 10,
         task_types: config.taskTypes as never || ['reply'],
         device_id: config.deviceId,
@@ -227,8 +227,8 @@ export class SimplifiedPreciseAcquisitionService {
       // 检查限流 - 使用简化的调用方式
       const isAllowed = await this.rateLimitService.checkRateLimit(
         params.deviceId,
-        'XIAOHONGSHU' as any, // Platform 枚举
-        'REPLY' as any, // TaskType 枚举  
+        'XIAOHONGSHU' as Platform, // Platform 枚举
+        'REPLY' as TaskType, // TaskType 枚举  
         {} // 可选配置
       );
 

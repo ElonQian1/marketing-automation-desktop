@@ -328,13 +328,13 @@ export const TaskExecutor: React.FC<TaskExecutorProps> = ({ tasks, onTasksUpdate
     try {
       const context: TaskExecutionContext = {
         task: currentTask,
-        template_id: values.template_id || undefined,
-        custom_message: values.custom_message || undefined,
+        template_id: (values.template_id as string) || undefined,
+        custom_message: (values.custom_message as string) || undefined,
         target_info: {
-          nickname: values.target_nickname || undefined,
-          topic: values.target_topic || undefined,
-          industry: values.target_industry || undefined,
-          region: values.target_region || undefined
+          nickname: (values.target_nickname as string) || undefined,
+          topic: (values.target_topic as string) || undefined,
+          industry: (values.target_industry as string) || undefined,
+          region: (values.target_region as string) || undefined
         }
       };
       

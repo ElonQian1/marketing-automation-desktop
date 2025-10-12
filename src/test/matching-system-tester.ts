@@ -1,6 +1,6 @@
-// src/test/CustomMatchingSystemTester.ts
-// module: shared | layer: testing | role: 测试代码
-// summary: 单元测试和集成测试
+// src/test/matching-system-tester.ts
+// module: matching | layer: testing | role: tester
+// summary: matching-system-tester.ts 文件
 
 /**
  * 自定义匹配规则系统测试

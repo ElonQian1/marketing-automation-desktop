@@ -46,7 +46,7 @@ export interface TaskExecutionResult {
   executed_at: Date;
   execution_mode: ExecutorMode;
   execution_details?: {
-    api_response?: any;
+    api_response?: Record<string, unknown>;
     manual_action_url?: string;
     template_used?: string;
     rendered_content?: string;
@@ -69,13 +69,13 @@ interface APIExecutor {
 class DouyinAPIExecutor implements APIExecutor {
   platform = Platform.DOUYIN;
   
-  async canExecute(task: Task): Promise<boolean> {
+  async canExecute(_task: Task): Promise<boolean> {
     // 检查抖音API权限和可用性
     // TODO: 实际检查access_token和权限scope
     return true; // 临时返回true
   }
   
-  async executeReply(commentId: string, content: string, context: TaskExecutionContext): Promise<boolean> {
+  async executeReply(commentId: string, content: string, _context: TaskExecutionContext): Promise<boolean> {
     try {
       // TODO: 调用抖音评论回复API
       console.log('抖音API回复评论:', { commentId, content });
@@ -90,7 +90,7 @@ class DouyinAPIExecutor implements APIExecutor {
     }
   }
   
-  async executeFollow(userId: string, context: TaskExecutionContext): Promise<boolean> {
+  async executeFollow(userId: string, _context: TaskExecutionContext): Promise<boolean> {
     try {
       // TODO: 调用抖音关注用户API
       console.log('抖音API关注用户:', { userId });
@@ -112,12 +112,12 @@ class DouyinAPIExecutor implements APIExecutor {
 class OceanEngineAPIExecutor implements APIExecutor {
   platform = Platform.OCEANENGINE;
   
-  async canExecute(task: Task): Promise<boolean> {
+  async canExecute(_task: Task): Promise<boolean> {
     // 检查巨量引擎API权限和可用性
     return true; // 临时返回true
   }
   
-  async executeReply(commentId: string, content: string, context: TaskExecutionContext): Promise<boolean> {
+  async executeReply(commentId: string, content: string, _context: TaskExecutionContext): Promise<boolean> {
     try {
       // TODO: 调用巨量引擎评论回复API
       console.log('巨量引擎API回复评论:', { commentId, content });
@@ -130,7 +130,7 @@ class OceanEngineAPIExecutor implements APIExecutor {
     }
   }
   
-  async executeFollow(userId: string, context: TaskExecutionContext): Promise<boolean> {
+  async executeFollow(_userId: string, _context: TaskExecutionContext): Promise<boolean> {
     // 巨量引擎通常不支持关注功能
     console.log('巨量引擎不支持关注功能');
     return false;
@@ -231,7 +231,7 @@ export class ProspectingTaskExecutorService {
     const content = await this.prepareExecutionContent(context);
     
     let success = false;
-    let apiResponse: any = null;
+    let apiResponse: Record<string, unknown> | null = null;
     
     try {
       if (task.task_type === TaskType.REPLY && task.comment_id) {
@@ -335,7 +335,7 @@ export class ProspectingTaskExecutorService {
       const templateContext: TemplateContext = {
         nickname: target_info?.nickname,
         topic: target_info?.topic,
-        industry: target_info?.industry as any,
+        industry: target_info?.industry as string | undefined,
         region: target_info?.region
       };
       

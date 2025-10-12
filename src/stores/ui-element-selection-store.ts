@@ -1,6 +1,6 @@
-// src/stores/elementSelectionStore.ts
-// module: shared | layer: application | role: 状态存储
-// summary: 全局状态管理存储
+// src/stores/ui-element-selection-store.ts
+// module: ui | layer: application | role: store
+// summary: ui-element-selection-store.ts 文件
 
 /**
  * 元素选择上下文状态管理

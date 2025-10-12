@@ -18,6 +18,7 @@
 import { invoke } from '@tauri-apps/api/core';
 import { save } from '@tauri-apps/plugin-dialog';
 import { message } from 'antd';
+import type { Task } from '../../../modules/precise-acquisition/shared/types/core';
 import { 
   Platform, 
   TaskStatus, 
@@ -265,19 +266,19 @@ export class UnifiedDailyReportService {
         result_code: ResultCode.OK,
         created_since: `${dateStr}T00:00:00.000Z`,
         created_until: `${dateStr}T23:59:59.999Z`
-      }) as any[];
+      }) as Task[];
     } catch (error) {
       console.error('获取已完成任务失败:', error);
       return [];
     }
   }
 
-  private async getTasksByDate(dateStr: string): Promise<any[]> {
+  private async getTasksByDate(dateStr: string): Promise<Task[]> {
     try {
       return await invoke('list_tasks', {
         created_since: `${dateStr}T00:00:00.000Z`,
         created_until: `${dateStr}T23:59:59.999Z`
-      }) as any[];
+      }) as Task[];
     } catch (error) {
       console.error('获取任务失败:', error);
       return [];
@@ -285,7 +286,7 @@ export class UnifiedDailyReportService {
   }
 
   private async exportFollowList(
-    followTasks: any[], 
+    followTasks: Task[], 
     dateStr: string, 
     format: 'csv' | 'xlsx',
     outputPath?: string
@@ -306,7 +307,7 @@ export class UnifiedDailyReportService {
   }
 
   private async exportReplyList(
-    replyTasks: any[], 
+    replyTasks: Task[], 
     dateStr: string, 
     format: 'csv' | 'xlsx',
     outputPath?: string
@@ -497,7 +498,7 @@ export class UnifiedDailyReportService {
     }
   }
 
-  private async getCommentInfo(commentId?: string): Promise<any> {
+  private async getCommentInfo(commentId?: string): Promise<Record<string, unknown> | null> {
     if (!commentId) return null;
     
     try {
@@ -508,7 +509,7 @@ export class UnifiedDailyReportService {
     }
   }
 
-  private async getVideoInfo(videoId?: string): Promise<any> {
+  private async getVideoInfo(videoId?: string): Promise<Record<string, unknown> | null> {
     if (!videoId) return null;
     
     try {
@@ -523,7 +524,7 @@ export class UnifiedDailyReportService {
     return date.toISOString().split('T')[0];
   }
 
-  private inferPlatformFromTask(task: any): Platform {
+  private inferPlatformFromTask(): Platform {
     // 根据任务相关信息推断平台
     // 这里是简化实现，实际应该根据任务关联的目标或评论来判断
     return Platform.DOUYIN; // 默认平台

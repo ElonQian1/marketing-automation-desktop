@@ -8,7 +8,7 @@ import type { FormInstance } from "antd";
 import type { ExtendedSmartScriptStep as LoopScriptStep } from "../../../types/loopScript";
 import type { SmartScriptStep } from "../../../types/smartScript";
 import { normalizeStep } from "../helpers";
-import { testSmartStepGenerator, testVariousCases } from "../../../test/SmartStepGeneratorTest";
+import { testSmartStepGenerator, testVariousCases } from "../../../test/smart-step-generator-test";
 
 interface UseWorkflowIntegrationsDeps {
   form: FormInstance;
