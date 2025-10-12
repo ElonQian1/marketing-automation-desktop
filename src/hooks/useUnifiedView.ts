@@ -10,7 +10,7 @@
 import { useState, useEffect, useCallback, useMemo } from 'react';
 import { UnifiedViewData, EnhancedUIElement } from '../services/UnifiedViewDataManager';
 import { EnhancedXmlCacheService, CachedViewData } from '../services/EnhancedXmlCacheService';
-import { CachedXmlPage } from '../services/XmlPageCacheService';
+import { CachedXmlPage } from '../services/xml-page-cache-service';
 import { message } from 'antd';
 
 export interface ViewState {

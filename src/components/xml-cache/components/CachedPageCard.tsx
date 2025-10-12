@@ -1,4 +1,4 @@
-// src/components/xml-cache/components/CachedPageCard.tsx
+// src/comimport type { CachedXmlPage } from '../../../services/xml-page-cache-service';onents/xml-cache/components/CachedPageCard.tsx
 // module: ui | layer: ui | role: component
 // summary: UI 组件
 
@@ -8,7 +8,7 @@ import ConfirmPopover from "@/components/universal-ui/common-popover/ConfirmPopo
 import { DeleteOutlined, EllipsisOutlined } from "@ant-design/icons";
 import { toAssetUrl } from "../utils/fileUrl";
 import Thumbnail from "./Thumbnail";
-import type { CachedXmlPage } from "../../../services/XmlPageCacheService";
+import type { CachedXmlPage } from '../../../services/xml-page-cache-service';
 
 const { Text } = Typography;
 

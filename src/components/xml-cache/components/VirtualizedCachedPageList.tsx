@@ -1,9 +1,9 @@
-// src/components/xml-cache/components/VirtualizedCachedPageList.tsx
+// srimport type { CachedXmlPage } from '../../../services/xml-page-cache-service';/components/xml-cache/components/VirtualizedCachedPageList.tsx
 // module: ui | layer: ui | role: component
 // summary: UI 组件
 
 import React, { useEffect, useMemo } from "react";
-import type { CachedXmlPage } from "../../../services/XmlPageCacheService";
+import type { CachedXmlPage } from '../../../services/xml-page-cache-service';
 import CachedPageCard from "./CachedPageCard";
 
 export interface VirtualizedCachedPageListProps {

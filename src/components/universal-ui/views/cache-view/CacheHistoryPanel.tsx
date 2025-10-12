@@ -5,7 +5,7 @@
 import React from "react";
 import { Card } from "antd";
 import { XmlCachePageSelector } from "../../../xml-cache/XmlCachePageSelector";
-import type { CachedXmlPage } from "../../../../services/XmlPageCacheService";
+import type { CachedXmlPage } from "../../../../services/xml-page-cache-service";
 
 export interface CacheHistoryPanelProps {
   title?: string;

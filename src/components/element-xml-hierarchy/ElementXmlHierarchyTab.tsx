@@ -35,8 +35,8 @@ import {
 
 import type { UIElement } from '../../api/universalUIAPI';
 import type { UIElement as ElementMapperUIElement } from '../../modules/ElementNameMapper';
-import type { CachedXmlPage } from '../../services/XmlPageCacheService';
-import { XmlPageCacheService } from '../../services/XmlPageCacheService';
+import type { CachedXmlPage } from '../../services/xml-page-cache-service';
+import { XmlPageCacheService } from '../../services/xml-page-cache-service';
 import { EnhancedXmlCacheService, type CachedViewData } from '../../services/EnhancedXmlCacheService';
 import type { UnifiedViewData, EnhancedUIElement } from '../../services/UnifiedViewDataManager';
 

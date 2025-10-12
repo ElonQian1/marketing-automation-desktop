@@ -8,7 +8,7 @@
  */
 
 import { invoke } from '@tauri-apps/api/core';
-import { RealXMLAnalysisService } from './RealXMLAnalysisService';
+import { XmlAnalysisService } from './xml-analysis-service';
 import { ElementFilter, ModuleFilterFactory, FilterStrategy } from './ElementFilter';
 import { BoundsCalculator } from '../shared/bounds/BoundsCalculator';
 

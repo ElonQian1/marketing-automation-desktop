@@ -19,8 +19,8 @@ import {
   ElementAnalysisResult,
 } from '../../UniversalElementAnalyzer';
 import {
-  RealXMLAnalysisService,
-} from '../../../../services/RealXMLAnalysisService';
+  XmlAnalysisService,
+} from '../../../../services/xml-analysis-service';
 import { parseXML, analyzeAppAndPageInfo } from '../../xml-parser';
 import { convertVisualToUIElement, createElementContext } from '../../data-transform';
 import { useElementSelectionManager, /* ElementSelectionPopover */ } from '../../element-selection';
@@ -128,7 +128,7 @@ export const VisualPageAnalyzerContent: React.FC<VisualPageAnalyzerContentProps>
     let smartDescription: string;
     try {
       // 使用真实XML分析服务进行增强分析
-      const realAnalysis = RealXMLAnalysisService.analyzeElement(
+      const realAnalysis = XmlAnalysisService.analyzeElement(
         element.text || "",
         element.description || "",
         {
@@ -143,7 +143,7 @@ export const VisualPageAnalyzerContent: React.FC<VisualPageAnalyzerContentProps>
       );
 
       smartDescription =
-        RealXMLAnalysisService.generateEnhancedStepDescription(realAnalysis);
+        XmlAnalysisService.generateEnhancedStepDescription(realAnalysis);
     } catch (error) {
       console.error("可视化元素真实XML分析失败，使用备用方案:", error);
       smartDescription = analysis

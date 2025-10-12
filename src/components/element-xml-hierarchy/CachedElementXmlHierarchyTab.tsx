@@ -11,8 +11,8 @@ import React, { useState, useEffect } from 'react';
 import { Spin, Alert, message } from 'antd';
 import CachedPageSelector from './CachedPageSelector';
 import CachedHierarchyTreeViewer from './CachedHierarchyTreeViewer';
-import type { CachedXmlPage, XmlPageContent } from '../../services/XmlPageCacheService';
-import { XmlPageCacheService } from '../../services/XmlPageCacheService';
+import type { CachedXmlPage, XmlPageContent } from '../../services/xml-page-cache-service';
+import { XmlPageCacheService } from '../../services/xml-page-cache-service';
 import { UIElement } from '../../api/universalUIAPI';
 
 interface ElementXmlHierarchyTabProps {

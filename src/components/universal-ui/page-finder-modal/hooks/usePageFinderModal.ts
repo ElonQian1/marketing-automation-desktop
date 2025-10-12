@@ -299,7 +299,7 @@ export const usePageFinderModal = (props: UsePageFinderModalProps): UsePageFinde
       console.log("🔄 从缓存加载页面:", cachedPage);
       
       // 使用 XmlPageCacheService 加载真实的 XML 内容
-      const { XmlPageCacheService } = await import("../../../../services/XmlPageCacheService");
+      const { XmlPageCacheService } = await import("../../../../services/xml-page-cache-service");
       const pageContent = await XmlPageCacheService.loadPageContent(cachedPage);
       
       console.log("📄 加载的 XML 内容长度:", pageContent.xmlContent.length);

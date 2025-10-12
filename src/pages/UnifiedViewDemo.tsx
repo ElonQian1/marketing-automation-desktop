@@ -12,7 +12,7 @@ import { Card, Button, Space, Divider, Alert, Typography, Table, Tag } from 'ant
 import { FileSearchOutlined, DatabaseOutlined, LinkOutlined } from '@ant-design/icons';
 import UnifiedViewContainer from '../components/UnifiedViewContainer';
 import { useUnifiedView } from '../hooks/useUnifiedView';
-import { CachedXmlPage } from '../services/XmlPageCacheService';
+import { CachedXmlPage } from '../services/xml-page-cache-service';
 
 const { Title, Paragraph, Text } = Typography;
 

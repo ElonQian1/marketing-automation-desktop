@@ -1,6 +1,6 @@
-// src/services/batchMatchingEngine.ts
-// module: shared | layer: unknown | role: component
-// summary: batchMatchingEngine.ts 文件
+// src/services/matching-batch-engine.ts
+// module: matching | layer: service | role: engine
+// summary: matching-batch-engine.ts 文件
 
 /**
  * 批量匹配执行引擎
@@ -8,7 +8,7 @@
  */
 
 import { CustomMatchingRule, MatchingResult, MatchedElement } from '../types/customMatching';
-import { CustomMatchingEngine } from './customMatchingEngine';
+import { MatchingCustomEngine } from './matching-custom-engine';
 
 // ========== 类型定义 ==========
 
@@ -179,8 +179,8 @@ export const MATCHING_TEMPLATES = {
 
 // ========== 主要服务类 ==========
 
-export class BatchMatchingEngine {
-  private matchingEngine: CustomMatchingEngine;
+export class MatchingBatchEngine {
+  private matchingEngine: MatchingCustomEngine;
   private previewCache = new Map<string, MatchPreview>();
   
   constructor() {
@@ -724,4 +724,4 @@ export class BatchMatchingEngine {
   }
 }
 
-export default BatchMatchingEngine;
+export default MatchingBatchEngine;

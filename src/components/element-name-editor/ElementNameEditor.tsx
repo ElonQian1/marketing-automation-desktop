@@ -57,7 +57,7 @@ import { CONSTRAINT_CONFIG } from './logic/constraints';
 import { calculateDisplayMatchScore } from './logic/score';
 import useDisplayNameSuggestions from './hooks/useDisplayNameSuggestions';
 import useElementNameEditorState from './hooks/useElementNameEditorState';
-import { AdbPrecisionStrategy } from '../../services/AdbPrecisionStrategy';
+import { AdbPrecisionStrategy } from '../../services/adb-precision-strategy';
 import BatchRuleConfigPanel from './BatchRuleConfigPanel';
 import ErrorBoundary from '../ErrorBoundary';
 import CachedElementXmlHierarchyTab from '../element-xml-hierarchy/CachedElementXmlHierarchyTab';

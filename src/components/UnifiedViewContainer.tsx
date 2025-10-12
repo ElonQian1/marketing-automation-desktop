@@ -20,7 +20,7 @@ import {
   ClearOutlined
 } from '@ant-design/icons';
 import { useUnifiedView } from '../hooks/useUnifiedView';
-import { CachedXmlPage } from '../services/XmlPageCacheService';
+import { CachedXmlPage } from '../services/xml-page-cache-service';
 
 // 临时的简单组件实现（后续可以拆分为独立文件）
 const ViewFilterPanel: React.FC<any> = ({ filters, onFiltersChange }) => (

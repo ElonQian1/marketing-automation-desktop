@@ -1,6 +1,6 @@
-// src/services/customMatchingEngine.ts
-// module: shared | layer: unknown | role: component
-// summary: customMatchingEngine.ts 文件
+// src/services/matching-custom-engine.ts
+// module: matching | layer: service | role: engine
+// summary: matching-custom-engine.ts 文件
 
 /**
  * 自定义匹配引擎 - 核心实现
@@ -42,14 +42,14 @@ interface RawUIElement {
   [key: string]: string;
 }
 
-export class CustomMatchingEngine {
-  private static instance: CustomMatchingEngine;
+export class MatchingCustomEngine {
+  private static instance: MatchingCustomEngine;
   
-  public static getInstance(): CustomMatchingEngine {
-    if (!CustomMatchingEngine.instance) {
-      CustomMatchingEngine.instance = new CustomMatchingEngine();
+  public static getInstance(): MatchingCustomEngine {
+    if (!MatchingCustomEngine.instance) {
+      MatchingCustomEngine.instance = new MatchingCustomEngine();
     }
-    return CustomMatchingEngine.instance;
+    return MatchingCustomEngine.instance;
   }
   
   /**
@@ -491,7 +491,7 @@ export class CustomMatchingEngine {
 }
 
 // 导出单例实例
-export const customMatchingEngine = CustomMatchingEngine.getInstance();
+export const customMatchingEngine = MatchingCustomEngine.getInstance();
 
 // 导出类型和常量  
 export type { 

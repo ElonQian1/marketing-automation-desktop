@@ -4,7 +4,7 @@
 
 import { useEffect, useMemo, useState } from 'react';
 import { ExtendedUIElement, adaptToAndroidXMLFields } from '../ElementDataAdapter';
-import { AdbPrecisionStrategy } from '../../../services/AdbPrecisionStrategy';
+import { AdbPrecisionStrategy } from '../../../services/adb-precision-strategy';
 import ElementNameMapper, { UIElement } from '../../../modules/ElementNameMapper';
 
 interface UsePrecisionAnalysisResult {

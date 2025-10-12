@@ -48,7 +48,7 @@ export class UniversalUIAPI {
       // 🎯 使用统一的 XmlPageCacheService 进行解析
       try {
         // 动态导入以避免循环依赖
-        const { XmlPageCacheService } = await import('../../services/XmlPageCacheService');
+        const { XmlPageCacheService } = await import('../../services/xml-page-cache-service');
         const elements = await XmlPageCacheService.parseXmlToAllElements(xmlContent);
         console.log('✅ [UniversalUIAPI] XmlPageCacheService 解析成功，返回', elements.length, '个元素');
         return elements;

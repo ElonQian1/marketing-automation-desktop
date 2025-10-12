@@ -17,7 +17,7 @@ import {
   ThunderboltOutlined
 } from '@ant-design/icons';
 
-import type { CachedXmlPage } from '../../services/XmlPageCacheService';
+import type { CachedXmlPage } from '../../services/xml-page-cache-service';
 
 const { Text } = Typography;
 

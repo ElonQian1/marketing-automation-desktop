@@ -10,8 +10,8 @@
 import React, { useState, useEffect } from 'react';
 import { Select, Card, Tag, Typography, Space, Button, message, Empty, Spin } from 'antd';
 import { ReloadOutlined, FileTextOutlined } from '@ant-design/icons';
-import type { CachedXmlPage } from '../../services/XmlPageCacheService';
-import { XmlPageCacheService } from '../../services/XmlPageCacheService';
+import type { CachedXmlPage } from '../../services/xml-page-cache-service';
+import { XmlPageCacheService } from '../../services/xml-page-cache-service';
 
 const { Text } = Typography;
 const { Option } = Select;

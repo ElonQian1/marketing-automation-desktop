@@ -1,6 +1,6 @@
-// src/services/AdbPrecisionStrategy.ts
-// module: shared | layer: unknown | role: component
-// summary: AdbPrecisionStrategy.ts 文件
+// src/services/adb-precision-strategy.ts
+// module: adb | layer: service | role: strategy
+// summary: adb-precision-strategy.ts 文件
 
 /**
  * ADB 精准定位策略服务

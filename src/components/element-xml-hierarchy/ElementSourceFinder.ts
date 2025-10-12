@@ -8,7 +8,7 @@
  */
 
 import type { UIElement } from '../../api/universalUIAPI';
-import type { CachedXmlPage } from '../../services/XmlPageCacheService';
+import type { CachedXmlPage } from '../../services/xml-page-cache-service';
 import { EnhancedXmlCacheService, type CachedViewData } from '../../services/EnhancedXmlCacheService';
 import type { UnifiedViewData, EnhancedUIElement } from '../../services/UnifiedViewDataManager';
 

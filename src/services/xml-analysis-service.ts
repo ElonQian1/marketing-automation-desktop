@@ -1,6 +1,6 @@
-// src/services/RealXMLAnalysisService.ts
-// module: shared | layer: unknown | role: component
-// summary: RealXMLAnalysisService.ts 文件
+// src/services/xml-analysis-service.ts
+// module: xml | layer: service | role: analysis
+// summary: xml-analysis-service.ts 文件
 
 /**
  * 基于真实XML数据的智能UI元素分析服务
@@ -39,7 +39,7 @@ export interface RealElementAnalysis {
  * 真实XML数据分析服务
  * 基于实际抓取的XML数据提供精确的元素识别
  */
-export class RealXMLAnalysisService {
+export class XmlAnalysisService {
   
   // 小红书特定配置（基于真实XML数据）
   private static readonly XIAOHONGSHU_PATTERNS = {
