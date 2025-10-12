@@ -21,6 +21,7 @@ import {
   RegionTag,
   TaskType,
   TaskStatus,
+  TaskPriority,
   ExecutorMode,
   ResultCode
 } from '../../modules/precise-acquisition/shared/types/core';
@@ -77,7 +78,7 @@ export class UnifiedTypeAdapter {
       industry_tags: row.industry_tags ? 
         row.industry_tags.split(';').filter(Boolean) as IndustryTag[] : [],
       region_tag: row.region as RegionTag,
-      last_fetch_at: row.last_fetch_at,
+      // last_fetch_at: row.last_fetch_at, // 字段不存在于WatchTargetRow
       notes: row.notes,
       created_at: new Date(row.created_at),
       updated_at: new Date(row.updated_at)
@@ -112,9 +113,9 @@ export class UnifiedTypeAdapter {
    */
   static newTaskToRow(task: NewTask): TaskRow {
     return {
-      id: parseInt(task.id.replace('tsk_', '')) || 0,
+      id: task.id, // 保持字符串格式
       task_type: task.task_type as any,
-      comment_id: task.comment_id ? parseInt(task.comment_id.replace('cmt_', '')) : undefined,
+      comment_id: task.comment_id, // 保持字符串格式
       target_user_id: task.target_user_id,
       assign_account_id: task.assign_account_id,
       status: task.status as any,
@@ -123,7 +124,9 @@ export class UnifiedTypeAdapter {
       error_message: task.error_message,
       dedup_key: task.dedup_key,
       created_at: task.created_at.toISOString(),
-      executed_at: task.executed_at?.toISOString()
+      executed_at: task.executed_at?.toISOString(),
+      priority: typeof task.priority === 'number' ? task.priority : 1, // 转换为数字
+      attempts: task.retry_count || 0 // 使用retry_count或默认0
     };
   }
 
@@ -131,18 +134,45 @@ export class UnifiedTypeAdapter {
    * 数据库行格式转新Task类型
    */
   static rowToNewTask(row: TaskRow): NewTask {
+    // 将数字优先级转换为TaskPriority枚举
+    const priorityMap: Record<number, TaskPriority> = {
+      1: TaskPriority.LOW,
+      2: TaskPriority.NORMAL,
+      3: TaskPriority.MEDIUM,
+      4: TaskPriority.HIGH,
+      5: TaskPriority.URGENT
+    };
+    
     return {
       id: `tsk_${row.id.toString().padStart(8, '0')}`,
       task_type: row.task_type as TaskType,
+      platform: Platform.XIAOHONGSHU, // 默认平台
+      status: row.status as TaskStatus,
+      priority: priorityMap[row.priority] || TaskPriority.NORMAL,
+      
+      // 任务目标 - 生成默认target_id，因为TaskRow没有这个字段
+      target_id: `target_${row.id}`,
       comment_id: row.comment_id ? `cmt_${row.comment_id.toString().padStart(8, '0')}` : undefined,
       target_user_id: row.target_user_id,
+      
+      // 任务分配
       assign_account_id: row.assign_account_id,
-      status: row.status as TaskStatus,
+      
+      // 执行相关
       executor_mode: row.executor_mode as ExecutorMode,
       result_code: row.result_code as ResultCode,
       error_message: row.error_message,
+      
+      // 重试机制
+      retry_count: row.attempts || 0,
+      max_retries: 3, // 默认重试次数
+      
+      // 去重
       dedup_key: row.dedup_key,
+      
+      // 时间戳 - TaskRow没有updated_at，使用created_at作为默认值
       created_at: new Date(row.created_at),
+      updated_at: new Date(row.created_at), // 使用created_at作为updated_at的默认值
       executed_at: row.executed_at ? new Date(row.executed_at) : undefined
     };
   }
@@ -156,14 +186,14 @@ export class UnifiedTypeAdapter {
     return {
       id: `cmt_${row.id.toString().padStart(8, '0')}`,
       platform: row.platform as Platform,
-      video_id: row.video_id || row.target_id || '',
+      video_id: row.video_id,
       author_id: row.author_id,
       content: row.content,
       like_count: row.like_count || 0,
       publish_time: new Date(row.publish_time),
       region: row.region as RegionTag,
-      source_target_id: row.target_id ? `wt_${row.target_id.toString().padStart(8, '0')}` : '',
-      inserted_at: row.created_at
+      source_target_id: row.source_target_id,
+      inserted_at: new Date(row.inserted_at)
     };
   }
 
@@ -172,17 +202,16 @@ export class UnifiedTypeAdapter {
    */
   static newCommentToRow(comment: NewComment): CommentRow {
     return {
-      id: parseInt(comment.id.replace('cmt_', '')) || 0,
-      platform: comment.platform as any,
+      id: comment.id, // 保持字符串格式
+      platform: comment.platform as Platform,
       video_id: comment.video_id,
-      target_id: comment.source_target_id ? 
-        parseInt(comment.source_target_id.replace('wt_', '')) : undefined,
       author_id: comment.author_id,
       content: comment.content,
       like_count: comment.like_count,
       publish_time: comment.publish_time.toISOString(),
-      region: comment.region as any,
-      created_at: comment.inserted_at
+      region: comment.region,
+      source_target_id: comment.source_target_id,
+      inserted_at: comment.inserted_at.toISOString()
     };
   }
 
@@ -305,8 +334,8 @@ export class ConfigAdapter {
       exclude_keywords: config.exclude_keywords,
       min_like_count: config.min_like_count,
       time_window_hours: config.time_window_hours,
-      max_tasks_per_account: config.max_tasks_per_account,
-      priority_keywords: config.priority_keywords
+      regions: config.regions
+      // max_tasks_per_account 和 priority_keywords 在旧 TaskGenerationConfig 中不存在
     };
   }
   
@@ -319,8 +348,10 @@ export class ConfigAdapter {
       exclude_keywords: config.exclude_keywords,
       min_like_count: config.min_like_count,
       time_window_hours: config.time_window_hours,
-      max_tasks_per_account: config.max_tasks_per_account,
-      priority_keywords: config.priority_keywords,
+      regions: config.regions,
+      // 设置默认值，因为旧配置中不存在这些字段
+      max_tasks_per_account: 50, // 默认值
+      priority_keywords: [], // 默认空数组
       assignment_strategy: 'round_robin', // 默认值
       rate_limit: {
         hour_limit: 20,

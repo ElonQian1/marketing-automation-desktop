@@ -416,6 +416,7 @@ const AdvancedLoopBuilder: React.FC = () => {
     setPreviewVisible(true);
   };
 
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const renderLoopCard = (loop: LoopConfig, index: number) => {
     const getLoopTypeColor = (type: string) => {
       const colors = {

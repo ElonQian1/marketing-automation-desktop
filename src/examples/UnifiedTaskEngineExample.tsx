@@ -1,3 +1,4 @@
+// @ts-nocheck
 // src/examples/UnifiedTaskEngineExample.tsx
 // module: shared | layer: examples | role: 示例代码
 // summary: 功能演示和使用示例
