@@ -30,6 +30,28 @@ import {
   TaskAssignmentStrategy
 } from '../../shared/types/core';
 
+// 表单值类型定义
+interface TaskGenerationFormValues {
+  target_ids: string[];
+  task_types?: TaskType[];
+  priority?: TaskPriority;
+  max_tasks?: number;
+  max_tasks_per_target?: number;
+  assignment_strategy?: TaskAssignmentStrategy | string;
+  schedule_delay_hours?: number;
+  required_device_count?: number;
+  batch_size?: number;
+  distribution_strategy?: string;
+}
+
+interface TaskAssignmentFormValues {
+  task_ids: string[];
+  device_id: string;
+  assignment_strategy?: TaskAssignmentStrategy;
+  max_tasks?: number;
+  task_types?: TaskType[];
+}
+
 // 拆分出的子组件
 import { TaskStatsCards } from './TaskStatsCards';
 import { TaskTable } from './TaskTable';
@@ -51,7 +73,7 @@ export const TaskEngineManager: React.FC<TaskEngineManagerProps> = ({
 }) => {
   const {
     tasks,
-    stats,
+    // stats, // 暂时未使用
     loading,
     generating,
     updating,
@@ -59,7 +81,7 @@ export const TaskEngineManager: React.FC<TaskEngineManagerProps> = ({
     generateTasks,
     batchGenerateTasks,
     refreshTasks,
-    refreshStats,
+    // refreshStats, // 暂时未使用
     assignTasksToDevice,
     cancelTask,
     retryFailedTask,
@@ -85,7 +107,7 @@ export const TaskEngineManager: React.FC<TaskEngineManagerProps> = ({
   });
 
   // 处理任务生成
-  const handleGenerateTasks = async (values: any) => {
+  const handleGenerateTasks = async (values: TaskGenerationFormValues) => {
     if (!values.target_ids || values.target_ids.length === 0) {
       Modal.warning({
         title: '请选择目标',
@@ -103,7 +125,7 @@ export const TaskEngineManager: React.FC<TaskEngineManagerProps> = ({
         max_tasks_per_target: values.max_tasks_per_target,
         task_types: values.task_types,
         priority: values.priority,
-        assignment_strategy: values.assignment_strategy || 'round_robin',
+        assignment_strategy: (values.assignment_strategy as TaskAssignmentStrategy) || TaskAssignmentStrategy.ROUND_ROBIN,
         schedule_delay_hours: values.schedule_delay_hours,
         required_device_count: values.required_device_count
       };
@@ -123,11 +145,11 @@ export const TaskEngineManager: React.FC<TaskEngineManagerProps> = ({
           max_tasks_per_target: values.max_tasks_per_target,
           task_types: values.task_types,
           priority: values.priority,
-          assignment_strategy: values.assignment_strategy || 'round_robin',
+          assignment_strategy: (values.assignment_strategy as TaskAssignmentStrategy) || TaskAssignmentStrategy.ROUND_ROBIN,
         },
         parallel_processing: true,
         batch_size: values.batch_size || 100,
-        distribution_strategy: values.distribution_strategy || 'even'
+        distribution_strategy: (values.distribution_strategy as 'even' | 'weighted' | 'priority_based') || 'even'
       };
 
       const results = await batchGenerateTasks(batchConfig);
@@ -143,7 +165,7 @@ export const TaskEngineManager: React.FC<TaskEngineManagerProps> = ({
   };
 
   // 处理任务分配
-  const handleAssignTasks = async (values: any) => {
+  const handleAssignTasks = async (values: TaskAssignmentFormValues) => {
     const assignedTasks = await assignTasksToDevice(
       values.device_id,
       values.max_tasks,

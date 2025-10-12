@@ -11,8 +11,8 @@
 import React from 'react';
 import { Modal, Form, Select, Row, Col, InputNumber, Space, Tag } from 'antd';
 import { 
-  TaskGenerationConfig,
-  BatchTaskGenerationConfig 
+  TaskGenerationConfig
+  // BatchTaskGenerationConfig  // Temporarily unused
 } from '../services/prospecting-task-engine-service';
 import { 
   TaskType, 
@@ -25,12 +25,25 @@ import { PLATFORM_LABELS } from '../../shared/constants';
 
 const { Option } = Select;
 
+// 表单值类型定义
+export interface TaskGenerationModalFormValues {
+  target_ids: string[];
+  task_types?: TaskType[];
+  priority?: TaskPriority;
+  max_tasks_per_target?: number;
+  assignment_strategy?: TaskAssignmentStrategy;
+  schedule_delay_hours?: number;
+  required_device_count?: number;
+  batch_size?: number;
+  distribution_strategy?: 'even' | 'weighted' | 'priority_based';
+}
+
 export interface TaskGenerationModalProps {
   visible: boolean;
   loading: boolean;
   targets: WatchTarget[];
   initialConfig: Partial<TaskGenerationConfig>;
-  onOk: (values: any) => Promise<void>;
+  onOk: (values: TaskGenerationModalFormValues) => Promise<void>;
   onCancel: () => void;
 }
 
