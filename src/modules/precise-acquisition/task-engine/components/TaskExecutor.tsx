@@ -39,7 +39,7 @@ import {
 } from '@ant-design/icons';
 
 import { Task, TaskStatus, TaskType, ExecutorMode, ResultCode } from '../../shared/types/core';
-import { TaskExecutorService, TaskExecutionContext, TaskExecutionResult } from '../services/TaskExecutorService';
+import { ProspectingTaskExecutorService, TaskExecutionContext, TaskExecutionResult } from '../services/prospecting-task-executor-service';
 import { TemplateManagementService } from '../../template-management';
 import { ReplyTemplate } from '../../shared/types/core';
 
@@ -77,7 +77,7 @@ const ExecutorModeTag: React.FC<{ mode: ExecutorMode }> = ({ mode }) => {
 };
 
 export const TaskExecutor: React.FC<TaskExecutorProps> = ({ tasks, onTasksUpdated }) => {
-  const [executorService] = useState(() => new TaskExecutorService());
+  const [executorService] = useState(() => new ProspectingTaskExecutorService());
   const [templateService] = useState(() => new TemplateManagementService());
   
   const [selectedTasks, setSelectedTasks] = useState<string[]>([]);

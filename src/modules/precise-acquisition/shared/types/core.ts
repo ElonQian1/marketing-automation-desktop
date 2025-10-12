@@ -26,7 +26,9 @@ export enum Platform {
  */
 export enum TargetType {
   VIDEO = 'video',
-  ACCOUNT = 'account'
+  ACCOUNT = 'account',
+  USER = 'user',
+  CONTENT = 'content',
 }
 
 /**
@@ -44,8 +46,11 @@ export enum SourceType {
  */
 export enum IndustryTag {
   ORAL_CARE = '口腔',
+  ORAL_ORTHODONTICS = '口腔正畸',
   MATERNAL_INFANT = '母婴',
   MEDICAL_HEALTH = '医疗健康',
+  TECHNOLOGY_INTERNET = '科技互联网',
+  HEALTH_FITNESS = '健康健身',
   BEAUTY = '美妆',
   EDUCATION = '教育培训',
   FITNESS = '健身',

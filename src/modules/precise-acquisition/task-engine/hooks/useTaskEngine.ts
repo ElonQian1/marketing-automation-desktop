@@ -68,7 +68,7 @@ export const useTaskEngine = (options: UseTaskEngineOptions = {}): UseTaskEngine
   const { autoRefresh = true, refreshInterval = 30000 } = options;
   
   // 服务实例
-  const [service] = useState(() => new TaskEngineService());
+  const [service] = useState(() => new ProspectingTaskEngineService());
   
   // 数据状态
   const [tasks, setTasks] = useState<Task[]>([]);

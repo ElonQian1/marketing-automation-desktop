@@ -9,7 +9,7 @@
  * 支持API优先、半自动兜底、设备选择和负载均衡
  */
 
-import { TaskExecutorService, TaskExecutionContext, TaskExecutionResult } from './TaskExecutorService';
+import { ProspectingTaskExecutorService, TaskExecutionContext, TaskExecutionResult } from './prospecting-task-executor-service';
 import { Task, TaskStatus, ExecutorMode, ResultCode } from '../../shared/types/core';
 import type { Device } from '../../../../domain/adb/entities/Device';
 
@@ -46,7 +46,7 @@ export interface TaskAssignmentResult {
 /**
  * 增强任务执行器服务
  */
-export class EnhancedTaskExecutorService extends TaskExecutorService {
+export class EnhancedTaskExecutorService extends ProspectingTaskExecutorService {
   
   private deviceTaskQueue: Map<string, Task[]> = new Map(); // 设备ID -> 任务队列
   private deviceBusyStatus: Map<string, boolean> = new Map(); // 设备忙碌状态

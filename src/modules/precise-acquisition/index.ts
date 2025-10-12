@@ -1,24 +1,33 @@
 // src/modules/precise-acquisition/index.ts
-// module: prospecting | layer: application | role: module-component
-// summary: 模块组件
+// module: prospecting | layer: public | role: barrel
+// summary: 精准获客模块对外公共出口（契约/用例/Hook）
 
 /**
  * 精准获客系统主导出文件
  * 
- * 整合所有子模块的导出，提供统一的模块接口
+ * 仅导出对外稳定的API，不泄露内部实现细节
  */
 
-// 主服务门面
-export { PreciseAcquisitionService } from './PreciseAcquisitionService';
+// ==================== 核心服务门面 ====================
+export { ProspectingAcquisitionService as PreciseAcquisitionService } from '../../application/services/prospecting-acquisition-service';
+
+// ==================== 任务引擎服务 ====================
+export { ProspectingTaskEngineService as TaskEngineService } from './task-engine/services/prospecting-task-engine-service';
+export { ProspectingTaskExecutorService as TaskExecutorService } from './task-engine/services/prospecting-task-executor-service';
+export { ProspectingTaskManager as TaskManager } from './task-engine/services/prospecting-task-manager';
 
 // ==================== 核心类型 ====================
 export type {
   WatchTarget,
   Comment,
-  Task
+  Task,
+  WatchTargetQueryParams,
+  ImportValidationResult,
+  TaskGenerationConfig,
+  TaskQueryParams
 } from './shared/types/core';
 
-// ==================== 常量导出 ====================
+// ==================== 枚举常量 ====================
 export {
   Platform,
   TaskType,
@@ -33,11 +42,7 @@ export {
   AuditAction
 } from './shared/types/core';
 
-// 审计系统
-export * from './audit-system';
+// ==================== 公共常量 ====================
+export * from './shared/constants';
 
-// 报告系统
-export * from './reporting';
-
-// 演示模块
-export * from './demo';
+// Note: 不导出内部实现细节（如 domain/strategies、内部服务等）

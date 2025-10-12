@@ -122,7 +122,7 @@ export class ProspectingAcquisitionService {
     await this.ensureInitialized();
     
     const target = await this.candidatePoolService.addWatchTarget({
-      target_type: payload.target_type as TargetType,
+      target_type: payload.target_type as any, // 临时转换，待枚举统一后移除
       platform: payload.platform as Platform,
       platform_id_or_url: payload.id_or_url,
       title: payload.title,
