@@ -1,245 +1,121 @@
- GitHub Copilot 开发指导文档
+# Copilot 项目内规（简版，面向 AI 代理）
 
-本文档为 AI 代理开发者提供项目特定的指导和约束，确保代码质量和架构一致性。
+## TL;DR
+- **目标**：保持"模块优先 + 模块内分层"，避免因同名子目录（如 strategies/services/utils/…）误改他模组。
+- **四件套**：命名前缀 · 门牌导出(index.ts) · 路径别名 · 三行文件头。
+- **唯一硬底线**：`domain` 不得 import `ui/services/api/hooks/pages`。
 
-## 🎯 项目概述
+---
 
-本项目是一个基于 Tauri + React + TypeScript 的桌面应用程序，专门用于小红书自动化营销工具，包含员工管理、联系人导入、设备管理、ADB 自动化等功能。
+## 1) 项目结构（模块内分层）
+```
+src/modules/<module>/{domain,application,services,api,stores,hooks,ui,pages}/
+```
+示例模块：`prospecting`（精准获客）、`script-builder`（智能脚本）、`contact-import`、`adb`。
 
-**核心技术栈：**
+---
 
-- 前端：React 18 + TypeScript + Tailwind CSS + Ant Design
-- 后端：Tauri (Rust)
-- 状态管理：Zustand（基于 DDD 架构）
-- 构建工具：Vite + npm
+## 2) 命名前缀（解决"同名子目录"误改）
+**仅对易重名子目录的文件/类型启用前缀**（目录名可不变）：
+- 目录：`domain/strategies`, `services`, `utils`, `validators`, `adapters`, `pipelines`, `mappers`, `repositories` …
+- 模块 → 前缀：
+  - `prospecting` → 文件：`prospecting-…`，类型：`Prospecting…`
+  - `script-builder` → `script-…`，`Script…`
+  - `contact-import` → `contact-…`，`Contact…`
+  - `adb` → `adb-…`，`Adb…`
 
-## 🏗️ 重要架构约束
+**命名模板**  
+- `domain/strategies/weighted.ts` → `prospecting-strategy-weighted.ts`  
+  `StrategyWeighted` → `ProspectingStrategyWeighted`  
 
-### ⚠️ DDD 架构强制要求（重构后生效）
+> 只要是 **策略/服务/工具/校验** 这类容易重名的文件，务必带模块前缀。
 
-**本项目已完成 DDD（领域驱动设计）重构，严格禁止创建新旧两套代码！**
+---
 
-#### ADB 相关功能开发约束：
+## 3) 门牌导出（index.ts 统一出口）
+每个模块根必须有 `index.ts`，**只导出对外稳定 API**：
+```ts
+// src/modules/<module>/index.ts
+export * from './domain/public/**';      // 契约/预设
+export * from './application/**';        // 用例（UseCase）
+export * from './hooks/**';              // 公开 Hook（必要时）
+```
+
+> **不要导出**内部实现（如 `domain/strategies/*`）。需要跨模块使用策略时，只从对方的 **契约(public)** 引用。
+
+---
+
+## 4) 路径别名（统一从"门牌"拿）
+
+在 `tsconfig.json` 使用别名（指向模块根，默认命中 `index.ts`）：
+
+```json
+{
+  "compilerOptions": {
+    "paths": {
+      "@prospecting/*": ["src/modules/prospecting/*"],
+      "@script/*": ["src/modules/script-builder/*"],
+      "@contact/*": ["src/modules/contact-import/*"],
+      "@adb/*": ["src/modules/adb/*"],
+      "@shared/*": ["src/shared/*"]
+    }
+  }
+}
+```
+
+**跨模块导入统一写法**：
+```ts
+import { BuildLeadScoreUseCase } from '@prospecting';
+import { ScriptStrategy } from '@script';
+```
+
+---
+
+## 5) 三行文件头（人/AI 一眼定位）
+
+每个 `ts/tsx` 顶部必须有：
+
+```ts
+// src/modules/<module>/<layer>/path/File.ts
+// module: <module> | layer: <ui|hooks|application|domain|services|api|stores|pages> | role: <简短角色>
+// summary: 一句中文职责摘要
+```
+
+---
+
+## 6) 唯一硬底线
+
+* **禁止**：`src/modules/*/domain/**` 中 `import` 到 `ui/services/api/hooks/pages`，或直接使用 React/axios/tauri 等 IO/界面依赖。
+* **做法**：所有 IO 放 `services/api`，由 `application` 串起来；`domain` 只保留纯规则/实体/算法。
+
+---
+
+## 🎯 特殊功能开发约束
+
+### ADB 相关功能开发约束：
 
 1. **强制使用统一接口**
-
    - ✅ 必须使用：`useAdb()` Hook
-   - ❌ 禁止使用：`useAdbDevices`、`useDevice7. **主动模块化守护**：发现文件超标或结构臃肿时优先建议/实施拆分，而非继续累积
-8. **防重复调用检查**：创建新组件时必须检查是否会导致重复初始化或资源浪费
-9. **样式可读性守护**：创建任何带背景色的组件时必须检查文字对比度和可读性
-10. **颜色变量强制**：禁止硬编码颜色值，必须使用项目统一的 CSS 变量系统、`useAdbDiagnostic` 等旧接口
+   - ❌ 禁止使用：`useAdbDevices`、`useAdbDiagnostic` 等旧接口
    - ❌ 禁止直接调用：`adbService`、`AdbDiagnosticService` 等底层服务
 
-2. **架构分层严格遵守**
-
-   ```
-   src/
-   ├── domain/adb/           # 域层（实体、仓储接口、域服务）
-   ├── infrastructure/       # 基础设施层（Tauri 实现）
-   ├── application/          # 应用层（状态管理、应用服务）
-   └── components/           # 表现层（React 组件）
-   ```
-
-3. **状态管理统一原则**
+2. **状态管理统一原则**
    - ✅ 统一状态存储：`src/application/adbStore.ts`
    - ❌ 禁止创建新的状态管理文件
    - ❌ 禁止在组件中直接管理设备状态
 
-#### 代码质量控制规则：
-
-**重复代码检测与合并：**
-
-- 开发任何功能前，必须检查是否存在相似逻辑
-- 发现重复代码必须立即重构合并，不允许保留多个版本
-- 所有 ADB 相关功能必须通过 `useAdb()` 统一接口实现
-
-**版本控制严格要求：**
-
-- 项目中只允许存在一套代码实现
-- 禁止保留已废弃的代码文件
-- 新功能开发必须基于最新的 DDD 架构
-
-### 📏 大文件 & 模块化强制约束
-
-为防止出现数千行的“巨石”文件，必须保持子目录 / 子文件的可组合、可演进模块化结构。
+### 大文件 & 模块化强制约束
 
 #### 绝对硬性阈值（超过即需拆分 / 拒绝合并）
 
-| 类型                            | 单文件建议上限 | 绝对上限（需立即拆分） | 说明                                        |
-| ------------------------------- | -------------- | ---------------------- | ------------------------------------------- |
-| React 页面级组件 (`/pages/`)    | 400 行         | 600 行                 | 页面负责编排，不承载复杂业务逻辑            |
-| 通用可复用组件 (`/components/`) | 300 行         | 450 行                 | 拆分子组件 / 提取 hooks / utils             |
-| 自定义 Hook                     | 200 行         | 300 行                 | 拆分为多个关注点更单一的 Hook               |
-| 领域服务 / 应用服务             | 300 行         | 400 行                 | 拆分为独立 domain service / helper          |
-| Zustand Store 文件              | 250 行         | 350 行                 | 超出时拆分 selector、actions、types、slices |
-| Rust 单模块业务文件             | 350 行         | 500 行                 | 拆分为 mod + 子模块，或抽公共函数           |
-
-> 说明：统计时不包含纯类型定义、注释与空行，但若类型块 > 200 行也应拆分 `types.ts` / `dto.ts` / `interfaces.ts` 等。
-
-#### 拆分策略指引
-
-1. 单一职责：若文件承担“渲染 + 复杂状态 + 业务流程 + 工具函数”多重角色，必须分解。
-2. 垂直切分优先：按照领域用语 / 业务动作划分，而不是纯“技术层”（例如：`useDeviceFilter.ts`、`useMatchCriteria.ts`）。
-3. 提取结构惯例（React）：
-   ```
-   MyFeature/
-   ├─ index.ts                # 导出聚合
-   ├─ MyFeatureView.tsx       # 纯展示或页面编排
-   ├─ hooks/
-   │   ├─ useSomething.ts
-   │   └─ useAnother.ts
-   ├─ components/
-   │   ├─ PartA.tsx
-   │   └─ PartB.tsx
-   ├─ services/ (可选: 前端适配层)
-   ├─ types.ts
-   ├─ constants.ts
-   └─ utils.ts
-   ```
-4. 领域服务类过大：把算法/规则提取到纯函数 (`/domain/adb/services/strategies/` 等)。
-5. 大量条件分支：优先策略模式 / 表驱动 / handler map，而不是长链 if-else / switch。
-
-#### 允许的少量例外（需在 PR 描述注明理由）
-
-- 自动生成文件（须标注“// AUTO-GENERATED”）
-- 外部协议 / 第三方类型汇总（如 OpenAPI 生成）
-- Barrel 文件（仅 re-export，不含逻辑）
-
-#### 代码评审必查项（新增）
-
-- 是否新增或修改导致文件超过“建议上限”并接近“绝对上限”
-- 是否存在可拆分但被“临时留存”的巨型函数（>80 行）
-- 是否可以用“子组件 + hooks + 业务适配层”替代超大组件
-
-#### AI 代理执行准则
-
-1. 当检测到编辑目标文件估算行数 > 建议上限 80% 时，必须：
-   - 在回复中提出拆分建议结构
-   - 避免继续无节制追加逻辑到同一文件
-2. 对 > 绝对上限文件：除紧急修复外，不直接继续追加；优先拆分提交。
-3. 若用户指令要求继续在巨型文件添加功能：
-   - 先给出“模块化 refactor 方案”
-   - 再在用户明确确认后执行最小增量修改
-4. 拆分时保持对外 API 不变（通过 `index.ts` 桶文件聚合）。
-
-#### 自动检测（建议后续接入 CI）
-
-- 可编写脚本扫描 `src/**/*.{ts,tsx,rs}` 输出行数 > 阈值列表
-- PR 模板加入“文件行数检查”勾选项
-- 触发警告时，要求提供“拆分计划 / 不拆分原因”
-
-#### 快速自检 Checklist
-
-```
-□ 是否新增/修改文件超过类型建议上限？
-□ 是否存在 80+ 行函数？可否拆分语义块？
-□ 是否把 UI 与数据派发/转换混在同一组件内？
-□ 是否存在重复 util/逻辑可抽离？
-□ 是否可以通过 hook 抽离副作用？
-```
-
-> 目标：保持“高内聚、小颗粒、可组合”的代码结构，避免形成维护黑洞。
-
-## 📁 项目结构详解
-
-### 核心目录说明：
-
-- **`src/domain/adb/`**: ADB 领域核心
-
-  - `entities/`: 设备、连接、诊断结果等实体
-  - `repositories/`: 数据访问接口定义
-  - `services/`: 领域业务逻辑
-
-- **`src/application/`**: 应用服务层
-
-  - `adbStore.ts`: 统一状态管理
-  - `AdbApplicationService.ts`: 应用服务门面
-  - `ServiceFactory.ts`: 依赖注入容器
-
-- **`src/infrastructure/`**: 基础设施实现
-  - Tauri 后端调用实现
-  - 外部服务适配器
-
-### 页面分析器（Grid Inspector）子模块补充：
-
-- 位置：`src/components/universal-ui/views/grid-view/panels/node-detail/`
-  - `MatchingStrategySelector.tsx`：策略选择子组件（absolute/strict/relaxed/positionless/standard）
-  - `SelectedFieldsPreview.tsx`：选中字段与值的只读预览子组件
-  - 以上组件仅负责展示与选择，状态由上层 `NodeDetailPanel.tsx` 承载，符合模块化扩展原则
-
-补充说明（模块导出与用法）：
-
-- 新增 `index.ts` 桶文件：集中导出 `MatchPresetsRow`、`MatchingStrategySelector`、`SelectedFieldsPreview`、`SelectedFieldsChips` 与 `types`，便于上层按需导入。
-- 子模块自述文件：`node-detail/README.md` 描述职责边界、属性约束与最佳导入方式，方便团队协作与后续扩展。
-- 推荐导入示例：
-  ```ts
-  import {
-    MatchPresetsRow,
-    MatchingStrategySelector,
-    SelectedFieldsPreview,
-    // types
-    MatchStrategy,
-    MatchCriteria,
-  } from "@/components/universal-ui/views/grid-view/panels/node-detail";
-  ```
-
-### 关键配置文件：
-
-- `package.json`: 依赖管理和构建脚本
-- `src-tauri/tauri.conf.json`: Tauri 应用配置
-- `tailwind.config.js`: 样式配置
-- `vite.config.ts`: 构建配置
-
-## 🛠️ 构建和开发命令
-
-### 环境要求：
-
-- Node.js >= 16
-- Rust (由 Tauri 管理)
-- npm
-
-### 开发命令：
-
-```bash
-# 安装依赖（必须在所有操作前执行）
-npm install
-
-# 启动开发服务器
-npm run tauri dev
-
-# 构建生产版本
-npm run tauri build
-
-# 仅前端开发（无 Tauri 功能）
-npm run dev
-```
-
-### 测试和验证：
-
-```bash
-# 运行测试
-npm test
-
-# 代码格式检查
-npm run lint
-
-# 类型检查
-npm run type-check
-```
-
-## 🎯 开发规范
-
-### TypeScript 严格要求：
-
-- 必须提供完整的类型定义
-- 禁止使用 `any` 类型
-- 所有函数必须明确返回类型
-
-### React 组件规范：
-
-- 优先使用函数组件和 Hooks
-- 组件名称使用 PascalCase
-- Props 接口必须明确定义
+| 类型                            | 单文件建议上限 | 绝对上限（需立即拆分） |
+| ------------------------------- | -------------- | ---------------------- |
+| React 页面级组件 (`/pages/`)    | 400 行         | 600 行                 |
+| 通用可复用组件 (`/components/`) | 300 行         | 450 行                 |
+| 自定义 Hook                     | 200 行         | 300 行                 |
+| 领域服务 / 应用服务             | 300 行         | 400 行                 |
+| Zustand Store 文件              | 250 行         | 350 行                 |
+| Rust 单模块业务文件             | 350 行         | 500 行                 |
 
 ### Hook 使用最佳实践：
 
@@ -247,49 +123,6 @@ npm run type-check
   - 同一页面最多只应在父组件或顶级组件中使用一次
   - 通过 props 向子组件传递需要的数据，而非让每个子组件都调用 `useAdb()`
   - 避免在模态框中的多个子组件同时使用
-  - 如需在多个组件中使用，考虑使用 Context 或状态提升
-
-- **防重复调用规则**：
-  ```typescript
-  // ❌ 错误：多个组件都调用 useAdb()
-  function ParentModal() {
-    return (
-      <Modal>
-        <ComponentA /> {/* 内部调用 useAdb() */}
-        <ComponentB /> {/* 内部调用 useAdb() */}
-        <ComponentC /> {/* 内部调用 useAdb() */}
-      </Modal>
-    );
-  }
-
-  // ✅ 正确：在父组件调用，通过 props 传递
-  function ParentModal() {
-    const { devices, selectedDevice } = useAdb();
-    return (
-      <Modal>
-        <ComponentA devices={devices} />
-        <ComponentB selectedDevice={selectedDevice} />
-        <ComponentC devices={devices} />
-      </Modal>
-    );
-  }
-  ```
-
-### 导入规范：
-
-```typescript
-// 正确的导入方式
-import { useAdb } from "@/application/hooks/useAdb";
-
-// 错误的导入方式（已废弃）
-import { useAdbDevices } from "@/hooks/useAdbDevices";
-```
-
-### CSS 样式约定：
-
-- 使用 Tailwind CSS 实用类
-- 组件样式使用 CSS Modules 或 styled-components
-- 避免内联样式
 
 ### 🎨 样式和颜色强制约束（防止白底白字等可读性问题）：
 
@@ -300,10 +133,6 @@ import { useAdbDevices } from "@/hooks/useAdbDevices";
    /* ✅ 正确：浅色背景 + 深色文字 */
    background: var(--bg-light-base, #ffffff);
    color: var(--text-inverse, #1e293b);
-   
-   /* ❌ 错误：浅色背景 + 浅色文字（不可读） */
-   background: #ffffff;
-   color: #f8fafc; /* 几乎看不见！ */
    ```
 
 2. **深色背景必须配浅色文字**
@@ -311,191 +140,14 @@ import { useAdbDevices } from "@/hooks/useAdbDevices";
    /* ✅ 正确：深色背景 + 浅色文字 */
    background: var(--bg-base, #0f172a);
    color: var(--text-1, #f8fafc);
-   
-   /* ❌ 错误：深色背景 + 深色文字 */
-   background: #1e293b;
-   color: #334155; /* 对比度不足！ */
    ```
 
 #### **强制执行的对比度标准**：
 
 - **最低对比度**: 4.5:1 (WCAG AA标准)
 - **推荐对比度**: 7:1 (WCAG AAA标准)
-- **常用配对表**：
-  ```css
-  /* 白色背景系列 */
-  --bg-white: #ffffff → color: var(--text-inverse, #1e293b)
-  --bg-light-elevated: #f8fafc → color: var(--text-inverse, #1e293b) 
-  --bg-light-secondary: #f1f5f9 → color: var(--text-inverse, #1e293b)
-  
-  /* 深色背景系列 */
-  --bg-base: #0f172a → color: var(--text-1, #f8fafc)
-  --bg-elevated: #1e293b → color: var(--text-1, #f8fafc)
-  --bg-secondary: #334155 → color: var(--text-1, #f8fafc)
-  
-  /* 品牌色背景 */
-  --brand: #6e8bff → color: #ffffff
-  --success: #10b981 → color: #ffffff  
-  --warning: #f59e0b → color: #1e293b (深色文字更清晰)
-  --error: #ef4444 → color: #ffffff
-  ```
 
-#### **Ant Design 组件颜色覆盖强制规范**：
-
-由于 Ant Design 组件会继承全局样式，在浅色背景容器中使用时必须强制覆盖：
-
-```tsx
-// ❌ 问题代码：白底 + 继承的白字 = 不可读
-<div style={{ background: '#ffffff' }}>
-  <Title>看不见的标题</Title>
-  <Text>看不见的文本</Text>
-</div>
-
-// ✅ 解决方案1：逐个组件显式设置
-<div style={{ background: 'var(--bg-light-base)', color: 'var(--text-inverse)' }}>
-  <Title style={{ color: 'var(--text-inverse) !important' }}>清晰标题</Title>
-  <Text style={{ color: 'var(--text-inverse)' }}>清晰文本</Text>
-</div>
-
-// ✅ 解决方案2：CSS类统一覆盖（推荐）
-<div className="light-theme-force" style={{ background: 'var(--bg-light-base)' }}>
-  <Title>自动深色标题</Title>
-  <Text>自动深色文本</Text>
-</div>
-```
-
-**CSS类定义**：
-```css
-/* 在 global.css 或 tokens.css 中定义 */
-.light-theme-force {
-  color: var(--text-inverse, #1e293b) !important;
-}
-
-.light-theme-force .ant-typography,
-.light-theme-force .ant-typography-title,
-.light-theme-force .ant-typography-paragraph {
-  color: var(--text-inverse, #1e293b) !important;
-}
-
-.light-theme-force .ant-typography-secondary {
-  color: var(--text-muted, #94a3b8) !important;
-}
-
-.light-theme-force .ant-tag {
-  color: var(--text-inverse, #1e293b) !important;
-  background: var(--bg-light-secondary, #f1f5f9) !important;
-  border-color: var(--border-muted, #d1d5db) !important;
-}
-```
-
-#### **AI 代理必须遵守的颜色检查清单**：
-
-创建任何包含背景色的组件时，必须检查：
-
-```
-□ 是否为浅色背景设置了深色文字？
-□ 是否为深色背景设置了浅色文字？  
-□ 是否使用了 CSS 变量而非硬编码颜色？
-□ 是否为 Ant Design 组件添加了颜色覆盖？
-□ 是否测试了文字在目标背景上的可读性？
-□ 是否添加了 .light-theme-force 类（浅色背景容器）？
-□ 是否避免了相近颜色的组合（如白底+淡灰文字）？
-```
-
-#### **常见错误模式及修复**：
-
-```tsx
-// ❌ 错误模式1：硬编码白色背景但忘记设置文字颜色
-<Card style={{ background: '#ffffff' }}>
-  <div>内容</div> {/* 继承全局白色文字 = 看不见 */}
-</Card>
-
-// ✅ 修复：使用变量 + 明确文字颜色
-<Card 
-  className="light-theme-force" 
-  style={{ background: 'var(--bg-light-base)' }}
->
-  <div>内容</div>
-</Card>
-
-// ❌ 错误模式2：浅灰背景 + 浅色文字
-<div style={{ background: '#f1f5f9', color: '#cbd5e1' }}>
-  低对比度文本 {/* 对比度不足 */}
-</div>
-
-// ✅ 修复：确保足够对比度
-<div style={{ 
-  background: 'var(--bg-light-secondary)', 
-  color: 'var(--text-inverse)' 
-}}>
-  高对比度文本
-</div>
-
-// ❌ 错误模式3：忘记处理 Ant Design 子组件
-<div className="bg-white">
-  <Tag color="blue">标签</Tag> {/* 可能不可读 */}
-</div>
-
-// ✅ 修复：整体应用主题类
-<div className="light-theme-force bg-white">
-  <Tag>标签</Tag> {/* 自动使用正确颜色 */}
-</div>
-```
-
-## 🚫 严格禁止事项
-
-1. **架构违反**
-
-   - 禁止在表现层直接调用基础设施层
-   - 禁止绕过应用层直接访问领域层
-   - 禁止创建与现有架构冲突的代码
-
-2. **代码重复**
-
-   - 禁止复制粘贴现有功能代码
-   - 发现相似逻辑必须抽象为公共函数
-   - 禁止保留多个版本的相同功能
-
-3. **巨型文件 / 非模块化结构**
-
-   - 禁止新增或继续膨胀超过绝对上限的文件
-   - 拆分缺失将被视为架构债务
-   - 大型组件/服务未拆分且继续新增逻辑的 PR 需驳回
-
-4. **状态管理混乱**
-   - 禁止在多个地方管理相同的状态
-   - 禁止创建新的状态管理解决方案
-   - 必须使用项目统一的状态管理模式
-
-5. **重复调用和性能问题**
-   - 禁止多个组件同时调用相同的初始化函数
-   - 禁止在同一页面多次调用 `useAdb().refreshDevices()`
-   - 必须在 Hook 内部实现防重复调用机制
-   - 避免在短时间内重复执行昂贵的操作（如设备检测、文件操作）
-
-6. **样式和可读性违规**
-   - 禁止创建对比度不足的颜色组合（最低 4.5:1）
-   - 禁止浅色背景使用浅色文字或深色背景使用深色文字
-   - 禁止硬编码颜色值，必须使用 CSS 变量
-   - 禁止在浅色背景容器中使用 Ant Design 组件而不设置文字颜色覆盖
-   - 禁止忽略 `.light-theme-force` 类的使用（浅色背景时）
-
-## 📋 代码审查检查点
-
-开发完成后必须检查：
-
-1. ✅ 是否使用了正确的 `useAdb()` 接口
-2. ✅ 是否遵循了 DDD 分层架构
-3. ✅ 是否存在重复代码需要合并
-4. ✅ TypeScript 类型是否完整
-5. ✅ 是否有未使用的导入或变量
-6. ✅ 组件是否可以正常构建和运行
-7. ✅ 是否存在超过行数阈值但未给出拆分计划的文件
-8. ✅ **新增**：是否存在重复调用初始化函数的风险
-9. ✅ **新增**：多个组件同时使用 `useAdb()` 时是否会造成性能问题
-10. ✅ **样式检查**：是否存在白底白字等可读性问题
-11. ✅ **颜色对比度**：是否满足 WCAG AA 标准（4.5:1）
-12. ✅ **CSS 变量使用**：是否使用了硬编码颜色而非设计令牌
+---
 
 ## 🎯 AI 代理特别指令
 
@@ -532,6 +184,10 @@ background: '#f8fafc'
 
 **🎯 必查场景**: Card、Modal、卡片列表、数据展示、元素详情面板
 
+---
+
+## 🚫 严格禁止事项
+
 **禁止行为：**
 
 - 创建与现有功能重复的代码
@@ -541,16 +197,29 @@ background: '#f8fafc'
 - 创建简单的演示页面或示例代码
 - 构建非业务核心的展示组件
 - 将新增逻辑持续堆叠到已超标的巨型文件中而不提出拆分方案
-- **新增**：在一个页面/模态框中创建多个同时调用 `useAdb()` 的组件
-- **新增**：创建白底白字、深底深字等低对比度的不可读组合
-- **新增**：在浅色背景中使用 Ant Design 组件而不添加 `.light-theme-force` 类
-- **新增**：硬编码颜色值而不使用 CSS 变量系统
+- 在一个页面/模态框中创建多个同时调用 `useAdb()` 的组件
+- 创建白底白字、深底深字等低对比度的不可读组合
+- 在浅色背景中使用 Ant Design 组件而不添加 `.light-theme-force` 类
 
-## 📚 相关文档
 
-- [项目 README](../README.md)
-- [ADB 架构统一报告](../ADB_ARCHITECTURE_UNIFICATION_REPORT.md)
-- [架构检查脚本](../scripts/check-adb-architecture.js)
+---
+
+## 📋 快速检查清单
+
+**开发完成后必须检查：**
+
+1. ✅ 是否使用了正确的 `useAdb()` 接口
+2. ✅ 是否遵循了 DDD 分层架构
+3. ✅ 是否存在重复代码需要合并
+4. ✅ TypeScript 类型是否完整
+5. ✅ 是否有未使用的导入或变量
+6. ✅ 组件是否可以正常构建和运行
+7. ✅ 是否存在超过行数阈值但未给出拆分计划的文件
+8. ✅ 是否存在重复调用初始化函数的风险
+9. ✅ 多个组件同时使用 `useAdb()` 时是否会造成性能问题
+10. ✅ **样式检查**：是否存在白底白字等可读性问题
+11. ✅ **颜色对比度**：是否满足 WCAG AA 标准（4.5:1）
+
 
 ---
 
