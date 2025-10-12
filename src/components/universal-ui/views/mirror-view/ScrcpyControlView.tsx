@@ -4,7 +4,7 @@
 
 import React, { useEffect, useMemo, useState } from 'react';
 import { Button, Card, Select, Space, Tag, Typography, Alert, Divider, Tooltip, Input, InputNumber, Switch, Form, Radio } from 'antd';
-import ConfirmPopover from '@/components/universal-ui/common-popover/ConfirmPopover';
+import ConfirmPopover from '../../common-popover/ConfirmPopover';
 import { scrcpyService, ScrcpyCapabilities } from '../../../../application/services/ScrcpyApplicationService';
 import { useAdb } from '../../../../application/hooks/useAdb';
 import EmbeddedScrcpyPlayer from './EmbeddedScrcpyPlayer';

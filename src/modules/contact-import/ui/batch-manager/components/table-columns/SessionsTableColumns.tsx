@@ -4,7 +4,7 @@
 
 ﻿import type { ColumnsType } from 'antd/es/table';
 import { Tag, Space, Button, Modal } from 'antd';
-import ConfirmPopover from '@/components/universal-ui/common-popover/ConfirmPopover';
+import ConfirmPopover from '../../../../../../components/universal-ui/common-popover/ConfirmPopover';
 import React from 'react';
 import { TimeFormatterCell, BatchIdCell, LatestImportTimeCell, IndustryTagCell } from '../table-cells';
 import { EnhancedSessionImportButton } from '../enhanced-import/EnhancedSessionImportButton';

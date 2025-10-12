@@ -6,7 +6,7 @@ import React, { useState } from 'react';
 import { Space, Divider, Typography, Button, message } from 'antd';
 import { Table, Input, Pagination } from 'antd';
 import { InboxOutlined, DeleteOutlined } from '@ant-design/icons';
-import ConfirmPopover from '@/components/universal-ui/common-popover/ConfirmPopover';
+import ConfirmPopover from '../../../../../components/universal-ui/common-popover/ConfirmPopover';
 import { useNumberPoolTable, ColumnConfigPanel } from '../number-pool-table';
 import { ContactNumberDto, markContactNumbersAsNotImportedBatch, deleteContactNumbersBatch } from '../../services/contactNumberService';
 

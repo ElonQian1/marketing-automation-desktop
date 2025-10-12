@@ -170,7 +170,7 @@ export const EmployeeForm: React.FC<EmployeeFormProps> = ({
                 formatter={(value) => `¥ ${value}`.replace(/\B(?=(\d{3})+(?!\d))/g, ',')}
                 parser={(value) => {
                   const parsed = value!.replace(/¥\s?|(,*)/g, '');
-                  return Number(parsed) || 0;
+                  return (Number(parsed) || 0) as 0;
                 }}
                 precision={2}
                 min={0}

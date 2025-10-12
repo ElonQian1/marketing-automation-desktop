@@ -36,7 +36,7 @@ import {
 import { 
   SettingOutlined,
   MonitorOutlined,
-  ShieldOutlined,
+  SecurityScanOutlined,
   ClockCircleOutlined,
   ExclamationCircleOutlined,
   CheckCircleOutlined,

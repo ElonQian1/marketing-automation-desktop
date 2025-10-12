@@ -5,7 +5,7 @@
 ﻿import React from 'react';
 import { Button, Space, Tooltip } from 'antd';
 import { EyeOutlined, DeleteOutlined, InboxOutlined } from '@ant-design/icons';
-import ConfirmPopover from '@/components/universal-ui/common-popover/ConfirmPopover';
+import ConfirmPopover from '../../../../../../components/universal-ui/common-popover/ConfirmPopover';
 import { TxtImportRecordDto } from '../../../services/txtImportRecordService';
 
 interface RecordActionsProps {

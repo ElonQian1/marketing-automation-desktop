@@ -7,7 +7,7 @@ import {
   Modal, Button, List, Space, Typography, message,
   Input, Form, Tag, Upload, Divider, Tooltip, Badge
 } from 'antd';
-import ConfirmPopover from '@/components/universal-ui/common-popover/ConfirmPopover';
+import ConfirmPopover from '../../../../../../components/universal-ui/common-popover/ConfirmPopover';
 import {
   SaveOutlined, DeleteOutlined, DownloadOutlined, UploadOutlined,
   StarOutlined, StarFilled, EditOutlined, CheckOutlined, CloseOutlined

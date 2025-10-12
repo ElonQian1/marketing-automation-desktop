@@ -4,7 +4,7 @@
 
 import React, { useMemo, useState } from 'react';
 import { Button, Space, Typography, message, Tag, Dropdown } from 'antd';
-import ConfirmPopover from '@/components/universal-ui/common-popover/ConfirmPopover';
+import ConfirmPopover from '../../../../components/universal-ui/common-popover/ConfirmPopover';
 import { InboxOutlined, CheckSquareOutlined, CloseOutlined, DeleteOutlined } from '@ant-design/icons';
 import { markContactNumbersAsNotImportedBatch, deleteContactNumbersBatch } from '../services/contactNumberService';
 import { listAllContactNumberIds } from '../services/numberIdsService';

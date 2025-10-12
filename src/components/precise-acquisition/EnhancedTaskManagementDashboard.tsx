@@ -20,9 +20,9 @@ import {
   Form, 
   Select, 
   Input, 
-  DatePicker, 
+  // DatePicker, // 未使用 
   Statistic, 
-  Progress, 
+  // Progress, // 未使用 
   Drawer,
   Tabs,
   Timeline,
@@ -34,31 +34,31 @@ import {
 import { 
   PlayCircleOutlined,
   PauseCircleOutlined,
-  StopOutlined,
+  // StopOutlined, // 未使用
   ReloadOutlined,
   PlusOutlined,
   EyeOutlined,
-  EditOutlined,
+  // EditOutlined, // 未使用
   DeleteOutlined,
   MonitorOutlined,
-  ClockCircleOutlined,
+  // ClockCircleOutlined, // 未使用
   CheckCircleOutlined,
   ExclamationCircleOutlined
 } from '@ant-design/icons';
 import dayjs from 'dayjs';
 
 // 类型定义
-import { TaskEntity } from '../../domain/precise-acquisition/entities/Task';
+import { Task } from '../../modules/precise-acquisition/shared/types/core';
 import { TaskStatus, TaskType, Platform } from '../../constants/precise-acquisition-enums';
 import { TaskDeviceConsole } from '../../modules/precise-acquisition/task-engine/components/TaskDeviceConsole';
 
 // 服务导入
 import { taskEngineService } from '../../modules/precise-acquisition/task-engine';
-import { enhancedTaskExecutorService } from '../../modules/precise-acquisition/task-engine/services/EnhancedTaskExecutorService';
+// import { enhancedTaskExecutorService } from '../../modules/precise-acquisition/task-engine/services/EnhancedTaskExecutorService';
 
 const { TabPane } = Tabs;
 const { Option } = Select;
-const { RangePicker } = DatePicker;
+// const { RangePicker } = DatePicker; // 未使用
 
 interface TaskManagementStats {
   total: number;
@@ -82,7 +82,7 @@ interface TaskCreationFormData {
 
 export const EnhancedTaskManagementDashboard: React.FC = () => {
   // 状态管理
-  const [tasks, setTasks] = useState<TaskEntity[]>([]);
+  const [tasks, setTasks] = useState<Task[]>([]);
   const [stats, setStats] = useState<TaskManagementStats>({
     total: 0,
     new: 0,
@@ -93,7 +93,7 @@ export const EnhancedTaskManagementDashboard: React.FC = () => {
     success_rate: 0
   });
   const [loading, setLoading] = useState(false);
-  const [selectedTask, setSelectedTask] = useState<TaskEntity | null>(null);
+  const [selectedTask, setSelectedTask] = useState<Task | null>(null);
   const [showCreateModal, setShowCreateModal] = useState(false);
   const [showTaskDetail, setShowTaskDetail] = useState(false);
   const [showDeviceConsole, setShowDeviceConsole] = useState(false);
@@ -199,8 +199,8 @@ export const EnhancedTaskManagementDashboard: React.FC = () => {
     }
   };
 
-  // 批量操作
-  const handleBatchOperation = async (taskIds: string[], operation: 'start' | 'pause' | 'cancel') => {
+  // 批量操作 (暂时未使用)
+  // const handleBatchOperation = async (taskIds: string[], operation: 'start' | 'pause' | 'cancel') => {
     try {
       const promises = taskIds.map(id => {
         switch (operation) {
@@ -349,7 +349,7 @@ export const EnhancedTaskManagementDashboard: React.FC = () => {
       title: '操作',
       key: 'actions',
       width: 200,
-      render: (_, record: TaskEntity) => (
+      render: (_, record: Task) => (
         <Space size="small">
           <Tooltip title="查看详情">
             <Button

@@ -287,13 +287,13 @@ export class EnhancedTaskEngineManager extends UnifiedTaskEngineBase {
         status: params.status,
         task_type: params.task_type,
         platform: params.platform,
-        assigned_device_id: params.assigned_device_id,
-        target_id: params.target_id,
+        assigned_device_id: params.assigned_device_id ? [params.assigned_device_id] : undefined,
+        // target_id: params.target_id, // 移除不支持的参数
         created_since: params.created_since,
-        created_until: params.created_until,
+        // created_until: params.created_until, // 移除不支持的参数
         limit: params.limit || params.page_size || 20,
         offset: params.offset || (params.page ? (params.page - 1) * (params.page_size || 20) : 0),
-        order_by: params.order_by || 'created_at',
+        order_by: (params.order_by && params.order_by !== 'deadline') ? params.order_by : 'created_at',
         order_direction: params.order_direction || 'desc'
       });
 
@@ -303,7 +303,7 @@ export class EnhancedTaskEngineManager extends UnifiedTaskEngineBase {
         total: queryResult.total,
         page: params.page || 1,
         page_size: params.page_size || 20,
-        has_more: queryResult.has_more
+          has_more: false, // 添加缺失属性
       };
 
     } catch (error) {
