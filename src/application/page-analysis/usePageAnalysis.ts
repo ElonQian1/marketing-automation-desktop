@@ -12,9 +12,7 @@ import { PageAnalysisStoreContext } from './PageAnalysisProvider';
 import { 
   UIElementEntity, 
   ElementAction, 
-  PageAnalysisConfig,
 } from '../../domain/page-analysis';
-import { ElementFilterConfig } from './PageAnalysisStore';
 
 /**
  * 页面分析主 Hook
