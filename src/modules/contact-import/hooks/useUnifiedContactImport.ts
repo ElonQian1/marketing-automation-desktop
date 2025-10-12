@@ -17,6 +17,7 @@ import {
   ImportResult,
   ImportPhase,
   ImportStrategyType,
+  ImportFormat,
   ImportProgress,
   ParseOptions,
 } from '../types';
@@ -27,7 +28,7 @@ const defaultConfiguration: ImportConfiguration = {
   batchSize: 50,
   allowDuplicates: false,
   skipInvalidContacts: true,
-  format: 'vcf' as any,
+  format: ImportFormat.VCF,
   options: {
     preserveGroups: true,
     mergeStrategy: 'skip',

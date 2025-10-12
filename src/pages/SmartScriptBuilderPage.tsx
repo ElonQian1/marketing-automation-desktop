@@ -4,7 +4,7 @@
 
 import React from "react";
 import { Col, Row, Space, theme } from "antd";
-import { XmlSnapshot } from "../components/universal-ui/page-finder-modal/types";
+import { XmlSnapshot } from "../types/self-contained/xmlSnapshot";
 import {
   PageHeader,
   ControlPanel,

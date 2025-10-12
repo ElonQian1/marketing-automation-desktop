@@ -7,24 +7,24 @@
 // 统一通过 useAdb() 架构管理设备状态，支持VCF文件导入和导入策略配置
 
 import { CheckCircleOutlined, FileTextOutlined, MobileOutlined, InboxOutlined, FolderOpenOutlined } from '@ant-design/icons';
-import { Alert, Space, Steps, Typography, message } from 'antd';
+import { Alert, Steps, Typography, message } from 'antd';
 import React, { useCallback, useState } from 'react';
 import { useContactImport, useImportStats } from '../hooks/useUnifiedContactImport';
-import { ContactImportStrategyFactory } from '../strategies/contact-strategy-import';
-import { Device, ImportPhase, ImportStrategyType } from '../types';
+
+import { Device, ImportStrategyType, ImportResult } from '../types';
 import { StepUpload } from './steps/StepUpload';
 import { StepSourceSelect } from './steps/StepSourceSelect';
 import { StepDetectDevices } from './steps/StepDetectDevices';
 import { StepConfigure } from './steps/StepConfigure';
 import { StepProgress } from './steps/StepProgress';
-import { PREVIEW_ROWS_COUNT, getPhaseDescription } from './constants';
-import { dedupeDevices, ensureDevicesSelected, ensureFileContent, ValidationError } from './utils/validation';
+import { PREVIEW_ROWS_COUNT } from './constants';
+import { dedupeDevices, ensureDevicesSelected, ensureFileContent } from './utils/validation';
 
 const { Step } = Steps;
-const { Title, Text } = Typography;
+const { Title } = Typography;
 
 interface ContactImportWizardProps {
-  onComplete?: (result: any) => void;
+  onComplete?: (result: ImportResult) => void;
   onCancel?: () => void;
 }
 
@@ -74,8 +74,8 @@ export const ContactImportWizard: React.FC<ContactImportWizardProps> = ({
   const [availableDevices, setAvailableDevices] = useState<Device[]>([]);
   const [selectedStrategy, setSelectedStrategy] = useState<ImportStrategyType>(ImportStrategyType.BALANCED);
 
-  // 统计信息
-  const { stats } = useImportStats();
+  // 统计信息（暂未使用）
+  useImportStats();
 
   // 步骤定义
   const steps = [

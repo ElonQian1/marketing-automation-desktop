@@ -10,6 +10,7 @@
 import { IDeviceManager } from "../devices/IDeviceManager";
 import { IContactParser } from "../parsers/IContactParser";
 import { ContactImportStrategy } from "../strategies/contact-strategy-import";
+import { ImportEventData } from "../application/types/ImportEvent";
 import {
   Contact,
   ContactDeviceGroup,
@@ -43,7 +44,7 @@ export interface ContactImporterEventListener {
     deviceId: string,
     success: boolean
   ): void;
-  onError?(error: Error, context?: any): void;
+  onError?(error: Error, context?: { deviceId?: string; contactId?: string; step?: string }): void;
   onComplete?(result: ImportResult): void;
 }
 
@@ -140,7 +141,13 @@ export class ContactImporter {
       // Phase 1: 初始化
       this.updatePhase(ImportPhase.INITIALIZING);
       this.updateProgress({ status: ImportStatus.PROCESSING });
-      this.emitEvent(ImportEventType.IMPORT_STARTED, { startTime });
+      this.emitEvent(ImportEventType.IMPORT_STARTED, { 
+        taskId: `task_${Date.now()}`,
+        totalContacts: 0,
+        deviceIds: targetDevices.map(d => d.id),
+        configurationId: `config_${Date.now()}`,
+        startTime: new Date(startTime)
+      });
 
       // Phase 2: 解析联系人
       this.updatePhase(ImportPhase.PARSING);
@@ -176,7 +183,7 @@ export class ContactImporter {
 
       // Phase 7: 验证导入结果
       this.updatePhase(ImportPhase.VERIFYING);
-      await this.verifyImportResults(deviceGroups);
+      await this.verifyImportResults();
 
       // 完成
       this.updatePhase(ImportPhase.COMPLETED);
@@ -190,7 +197,14 @@ export class ContactImporter {
         duration: Date.now() - startTime,
       };
 
-      this.emitEvent(ImportEventType.IMPORT_COMPLETED, { result });
+      this.emitEvent(ImportEventType.IMPORT_COMPLETED, {
+        taskId: `task_${startTime}`,
+        duration: Date.now() - startTime,
+        successCount: result.importedContacts,
+        failureCount: result.failedContacts,
+        skippedCount: result.skippedContacts,
+        completedTime: new Date()
+      });
       this.notifyListeners("onComplete", result);
 
       return result;
@@ -209,7 +223,14 @@ export class ContactImporter {
       };
 
       this.updateProgress({ status: ImportStatus.FAILED });
-      this.emitEvent(ImportEventType.IMPORT_FAILED, { error: errorResult });
+      this.emitEvent(ImportEventType.IMPORT_FAILED, {
+        taskId: `task_${startTime}`,
+        reason: error instanceof Error ? error.message : String(error),
+        errorCode: 'IMPORT_ERROR',
+        failedTime: new Date(),
+        processedCount: this.currentProgress.processedContacts,
+        errorDetails: { originalError: error }
+      });
       this.notifyListeners(
         "onError",
         error instanceof Error ? error : new Error(String(error))
@@ -351,8 +372,14 @@ export class ContactImporter {
         group.result = result;
 
         this.emitEvent(ImportEventType.BATCH_COMPLETED, {
+          batchId: `batch_${group.deviceId}_${Date.now()}`,
+          batchIndex: 0,
           deviceId: group.deviceId,
-          result,
+          batchSize: group.contacts.length,
+          successCount: result.importedContacts,
+          failureCount: result.failedContacts,
+          duration: result.duration,
+          completedTime: new Date()
         });
       } catch (error) {
         group.status = ImportStatus.FAILED;
@@ -360,8 +387,12 @@ export class ContactImporter {
 
         console.error(`导入到设备 ${group.deviceName} 失败:`, error);
         this.emitEvent(ImportEventType.ERROR_OCCURRED, {
+          errorCode: 'DEVICE_IMPORT_ERROR',
+          errorMessage: error instanceof Error ? error.message : String(error),
+          severity: 'high' as const,
           deviceId: group.deviceId,
-          error,
+          context: { groupName: group.deviceName },
+          occurredTime: new Date()
         });
       }
 
@@ -490,9 +521,7 @@ export class ContactImporter {
   /**
    * 验证导入结果
    */
-  private async verifyImportResults(
-    deviceGroups: ContactDeviceGroup[]
-  ): Promise<void> {
+  private async verifyImportResults(): Promise<void> {
     // 这里可以实现导入结果的验证逻辑
     // 例如检查设备上是否真的存在导入的联系人
     console.log("验证导入结果...");
@@ -535,7 +564,7 @@ export class ContactImporter {
   /**
    * 发射事件
    */
-  private emitEvent(type: ImportEventType, data: any): void {
+  private emitEvent(type: ImportEventType, data: ImportEventData): void {
     const event: ImportEvent = {
       type,
       timestamp: new Date(),
@@ -557,7 +586,7 @@ export class ContactImporter {
       try {
         const callback = listener[method];
         if (callback) {
-          (callback as any)(...args);
+          callback.apply(listener, args);
         }
       } catch (error) {
         console.error("事件监听器执行失败:", error);

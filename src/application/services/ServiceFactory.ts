@@ -31,7 +31,7 @@ import DeviceMetricsApplicationService from './device/DeviceMetricsApplicationSe
  */
 class ServiceContainer {
   private static instance: ServiceContainer;
-  private services: Map<string, any> = new Map();
+  private services = new Map<string, (() => unknown) | unknown>();
 
   private constructor() {}
 
@@ -59,11 +59,11 @@ class ServiceContainer {
 
     const serviceKey = `${key}_instance`;
     if (!this.services.has(serviceKey)) {
-      const factory = this.services.get(key);
+      const factory = this.services.get(key) as (() => T);
       this.services.set(serviceKey, factory());
     }
 
-    return this.services.get(serviceKey);
+    return this.services.get(serviceKey) as T;
   }
 
   /**

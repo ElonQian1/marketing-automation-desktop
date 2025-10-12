@@ -13,6 +13,15 @@ import { arrayMove } from '@dnd-kit/sortable';
 import { SmartStepCardWrapper } from './SmartStepCardWrapper'; // 使用智能步骤卡片包装器
 import { SmartScriptStep } from '../types/smartScript'; // 使用统一的类型定义
 import { useDefaultDeviceId } from '../application/hooks/useDefaultDeviceId';
+import { DeviceInfo, StepParameters } from './DraggableStepCard';
+
+// 模板类型定义
+interface ActionTemplate {
+  name: string;
+  action: string;
+  description?: string;
+  parameters?: Record<string, unknown>;
+}
 import DragSensorsProvider from './universal-ui/dnd/DragSensorsProvider';
 import { SortableList } from './universal-ui/dnd/SortableList';
 import { SortableItem } from './universal-ui/dnd/SortableItem';
@@ -31,7 +40,7 @@ export interface DraggableStepsContainerProps {
   /** 当前设备ID */
   currentDeviceId?: string;
   /** 设备列表 */
-  devices: any[];
+  devices: DeviceInfo[];
   /** 编辑步骤回调 */
   onEditStep: (step: SmartScriptStep) => void;
   /** 删除步骤回调 */
@@ -43,11 +52,15 @@ export interface DraggableStepsContainerProps {
   /** 修改步骤参数回调 */
   onEditStepParams?: (step: SmartScriptStep) => void;
   /** 测试步骤组件 */
-  StepTestButton?: React.ComponentType<any>;
+  StepTestButton?: React.ComponentType<{
+    step: SmartScriptStep;
+    deviceId?: string;
+    disabled?: boolean;
+  }>;
   /** 容器标题 */
   title?: React.ReactNode;
   /** 更新步骤参数回调 */
-  onUpdateStepParameters?: (stepId: string, parameters: any) => void;
+  onUpdateStepParameters?: (stepId: string, parameters: StepParameters) => void;
   /** 创建循环回调 */
   onCreateLoop?: () => void;
   /** 创建通讯录导入工作流回调 */
@@ -55,9 +68,9 @@ export interface DraggableStepsContainerProps {
   /** 批量匹配操作回调 */
   onBatchMatch?: (stepId: string) => void;
   /** 创建屏幕交互步骤（如滚动/滑动等）回调 */
-  onCreateScreenInteraction?: (template: any | any[]) => void;
+  onCreateScreenInteraction?: (template: ActionTemplate | ActionTemplate[]) => void;
   /** 创建系统按键步骤回调 */
-  onCreateSystemAction?: (template: any) => void;
+  onCreateSystemAction?: (template: ActionTemplate) => void;
 }
 
 // 内部拖拽监听器组件 - 必须在 DndContext 内部使用

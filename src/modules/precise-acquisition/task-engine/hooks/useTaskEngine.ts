@@ -18,9 +18,7 @@ import {
   Task, 
   TaskStatus, 
   TaskType, 
-  Platform,
-  TaskPriority,
-  WatchTarget 
+  Platform
 } from '../../shared/types/core';
 
 export interface UseTaskEngineOptions {
@@ -49,7 +47,7 @@ export interface UseTaskEngineReturn {
   batchGenerateTasks: (config: BatchTaskGenerationConfig) => Promise<TaskGenerationResult[]>;
   refreshTasks: (query?: TaskQuery) => Promise<void>;
   refreshStats: () => Promise<void>;
-  updateTaskStatus: (taskId: string, status: TaskStatus, result?: any, error?: string) => Promise<void>;
+  updateTaskStatus: (taskId: string, status: TaskStatus, result?: Record<string, unknown>, error?: string) => Promise<void>;
   assignTasksToDevice: (deviceId: string, maxTasks?: number, taskTypes?: TaskType[]) => Promise<Task[]>;
   cancelTask: (taskId: string, reason?: string) => Promise<void>;
   retryFailedTask: (taskId: string) => Promise<void>;
@@ -164,7 +162,7 @@ export const useTaskEngine = (options: UseTaskEngineOptions = {}): UseTaskEngine
   const updateTaskStatus = useCallback(async (
     taskId: string, 
     status: TaskStatus, 
-    result?: any, 
+    result?: Record<string, unknown>, 
     error?: string
   ) => {
     setUpdating(true);

@@ -22,18 +22,14 @@ import {
   message,
   Popconfirm,
   Progress,
-  Tooltip,
   Typography,
   Divider,
   Alert
 } from 'antd';
 import {
   PlayCircleOutlined,
-  PauseCircleOutlined,
   RedoOutlined,
   CheckCircleOutlined,
-  CloseCircleOutlined,
-  ExclamationCircleOutlined,
   EyeOutlined,
   EditOutlined
 } from '@ant-design/icons';
@@ -43,7 +39,7 @@ import { ProspectingTaskExecutorService, TaskExecutionContext, TaskExecutionResu
 import { TemplateManagementService } from '../../template-management';
 import { ReplyTemplate } from '../../shared/types/core';
 
-const { Title, Paragraph, Text } = Typography;
+const { Title, Text } = Typography;
 const { TextArea } = Input;
 
 interface TaskExecutorProps {
@@ -185,7 +181,7 @@ export const TaskExecutor: React.FC<TaskExecutorProps> = ({ tasks, onTasksUpdate
       title: '操作',
       key: 'actions',
       width: 200,
-      render: (_: any, record: Task) => {
+      render: (_: unknown, record: Task) => {
         const result = executionResults.get(record.id);
         
         return (
@@ -323,7 +319,7 @@ export const TaskExecutor: React.FC<TaskExecutorProps> = ({ tasks, onTasksUpdate
   /**
    * 执行单个任务（配置后）
    */
-  const handleExecuteWithConfig = async (values: any) => {
+  const handleExecuteWithConfig = async (values: Record<string, unknown>) => {
     if (!currentTask) return;
     
     setConfigModalVisible(false);

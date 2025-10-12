@@ -15,15 +15,77 @@ import { usePrefersReducedMotion } from "./DraggableStepCard/hooks/usePrefersRed
 import { DEFAULT_ACTION_CONFIG, SMART_ACTION_CONFIGS } from "./DraggableStepCard/constants/actionConfigs";
 import StepCardHeader from "./DraggableStepCard/components/StepCardHeader";
 import StepCardBody from "./DraggableStepCard/components/StepCardBody";
- 
+import { SmartActionType } from "../types/smartComponents";
+
+// 设备简化接口
+export interface DeviceInfo {
+  id: string;
+  name: string;
+  status: string;
+}
+
+// 步骤参数的通用接口
+export interface StepParameters {
+  // 基础参数
+  element_selector?: string;
+  bounds?: string;
+  text?: string;
+  timeout?: number;
+  retry_count?: number;
+  
+  // 循环参数
+  loop_count?: number;
+  is_infinite_loop?: boolean;
+  
+  // 智能匹配参数
+  matching?: {
+    strategy?: 'standard' | 'absolute' | 'strict' | 'relaxed' | 'positionless';
+    fields?: string[];
+    values?: Record<string, string>;
+  };
+  
+  // 循环主题和卡片主题
+  loopTheme?: string;
+  cardTheme?: string;
+  cardSurface?: string;
+  
+  // XML快照相关
+  xmlSnapshot?: {
+    xmlContent?: string;
+    xmlCacheId?: string;
+    [key: string]: unknown;
+  };
+  xmlContent?: string;
+  xmlCacheId?: string;
+  
+  // 元素相关字段
+  class_name?: string;
+  resource_id?: string;
+  content_desc?: string;
+  
+  // 其他动态参数
+  [key: string]: unknown;
+}
 
 export interface SmartScriptStep {
   id: string;
   name: string;
-  step_type: string;
+  step_type: SmartActionType | string;
   description: string;
-  parameters: any;
+  parameters: StepParameters;
   enabled: boolean;
+  
+  // 循环相关字段
+  parent_loop_id?: string;
+  parentLoopId?: string;
+  loop_config?: {
+    loopId: string;
+    iterations: number;
+    condition?: string;
+    enabled: boolean;
+    name: string;
+    description?: string;
+  };
 }
 
 export interface DraggableStepCardProps {
@@ -34,7 +96,7 @@ export interface DraggableStepCardProps {
   /** 当前设备ID */
   currentDeviceId?: string;
   /** 设备列表 */
-  devices: any[];
+  devices: DeviceInfo[];
   /** 是否正在拖拽 */
   isDragging?: boolean;
 }
@@ -45,7 +107,7 @@ const DraggableStepCardInner: React.FC<
     onDelete: (id: string) => void;
     onToggle: (id: string) => void;
     onBatchMatch?: (id: string) => void;
-    onUpdateStepParameters?: (id: string, nextParams: any) => void;
+    onUpdateStepParameters?: (id: string, nextParams: StepParameters) => void;
     onUpdateStepMeta?: (
       id: string,
       meta: { name?: string; description?: string }
@@ -141,9 +203,9 @@ const DraggableStepCardInner: React.FC<
   // XML 检查器模态框
   const [xmlInspectorOpen, setXmlInspectorOpen] = useState(false);
   const snapshotAvailable = useMemo(() => {
-    const p: any = step.parameters || {};
+    const p: StepParameters = step.parameters || {};
     const snap = p.xmlSnapshot;
-    const xmlText: string | undefined = snap?.xmlContent || p?.xmlContent;
+    const xmlText: string | undefined = snap?.xmlContent || p.xmlContent;
     return typeof xmlText === "string" && xmlText.trim().length > 0;
   }, [step.parameters]);
 
@@ -168,14 +230,14 @@ const DraggableStepCardInner: React.FC<
 
   // 皮肤主题：当在循环体或循环起止卡片时，支持通过 step.parameters.loopTheme 指定主题
   const isAnchor = step.step_type === 'loop_start' || step.step_type === 'loop_end';
-  const isInLoop = (() => { const s:any = step; return !!(s.parent_loop_id || s.parentLoopId); })();
+  const isInLoop = !!(step.parent_loop_id || step.parentLoopId);
   const loopThemeToken: string | undefined = (() => {
-    const t = (step.parameters as any)?.loopTheme;
+    const t = step.parameters?.loopTheme;
     if (!t || typeof t !== 'string') return undefined;
     return t.trim();
   })();
   const cardThemeToken: string | undefined = (() => {
-    const t = (step.parameters as any)?.cardTheme;
+    const t = step.parameters?.cardTheme;
     if (!t || typeof t !== 'string') return undefined;
     return t.trim();
   })();
@@ -189,7 +251,7 @@ const DraggableStepCardInner: React.FC<
   const nonLoopThemeClass = (!isAnchor && !isInLoop && cardThemeToken) ? `loop-theme-${cardThemeToken}` : '';
   // 非循环卡片表面基线可通过参数一键切换：cardSurface = 'light' | 'dark' | 'inherit'
   const cardSurfacePref: string | undefined = (() => {
-    const s = (step.parameters as any)?.cardSurface;
+    const s = step.parameters?.cardSurface;
     if (typeof s !== 'string') return undefined;
     const v = s.trim().toLowerCase();
     return v === 'light' || v === 'dark' || v === 'inherit' ? v : undefined;
@@ -232,7 +294,7 @@ const DraggableStepCardInner: React.FC<
             // 🔵 独特蓝色主题次优先级
             uniqueBlueClass,
             // 循环体内：添加 loop-surface + in-loop-step 两个类，便于独有样式和更强覆盖
-            (() => { const s:any = step; return (s.parent_loop_id || s.parentLoopId) ? 'loop-surface in-loop-step' : ''; })(),
+            (step.parent_loop_id || step.parentLoopId) ? 'loop-surface in-loop-step' : '',
             // 循环锚点（开始/结束）卡片：同样应用 loop-surface，确保标题区按钮/文本为深色且清晰可读
             (step.step_type === 'loop_start' || step.step_type === 'loop_end') ? 'loop-surface loop-anchor' : '',
             // 循环皮肤主题类（与 loop-surface 同层附加，实现变量化换肤）
@@ -346,21 +408,21 @@ const DraggableStepCardInner: React.FC<
         onClose={() => setXmlInspectorOpen(false)}
         enhancedElement={null}
         xmlContent={(() => {
-          const p: any = step.parameters || {};
+          const p: StepParameters = step.parameters || {};
           return p?.xmlSnapshot?.xmlContent || p?.xmlContent;
         })()}
         xmlCacheId={(() => {
-          const p: any = step.parameters || {};
+          const p: StepParameters = step.parameters || {};
           return (
             p?.xmlSnapshot?.xmlCacheId || p?.xmlCacheId || `xml_${step.id}`
           );
         })()}
         elementInfo={(() => {
-          const p: any = step.parameters || {};
+          const p: StepParameters = step.parameters || {};
           const matching = p?.matching || {};
           const v = matching.values || {};
           const bounds = v["bounds"] || p.bounds;
-          let parsedBounds: any = undefined;
+          let parsedBounds: { left: number; top: number; right: number; bottom: number } | undefined = undefined;
           if (bounds && typeof bounds === "string") {
             const m = bounds.match(/\[(\d+),(\d+)\]\[(\d+),(\d+)\]/);
             if (m) {
@@ -375,11 +437,11 @@ const DraggableStepCardInner: React.FC<
             parsedBounds = bounds;
           }
           return {
-            text: v["text"] || p.text,
-            element_type: v["class"] || p.class_name,
+            text: String(v["text"] || p.text || ''),
+            element_type: String(v["class"] || p.class_name || ''),
             bounds: parsedBounds,
-            resource_id: v["resource-id"] || p.resource_id,
-            content_desc: v["content-desc"] || p.content_desc,
+            resource_id: String(v["resource-id"] || p.resource_id || ''),
+            content_desc: String(v["content-desc"] || p.content_desc || ''),
           };
         })()}
       />

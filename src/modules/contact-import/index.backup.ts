@@ -13,6 +13,7 @@ import { AndroidDeviceManager } from "./devices/IDeviceManager";
 import { VcfParser } from "./parsers/VcfParser";
 import { ContactImportStrategyFactory } from "./strategies/contact-strategy-import";
 import type { Device, ImportResult } from "./types";
+import { ImportStrategyType, ImportFormat } from "./types";
 
 // ===== 核心组件导出 =====
 export { ContactImporter } from "./core/ContactImporter";
@@ -118,11 +119,11 @@ export function createContactImporter(
     deviceManager,
     strategy,
     configuration: {
-      strategy: strategyType as any,
+      strategy: strategyType as ImportStrategyType,
       batchSize: 50,
       allowDuplicates: false,
       skipInvalidContacts: true,
-      format: "vcf" as any,
+      format: ImportFormat.VCF,
       options: {
         preserveGroups: false,
         mergeStrategy: "skip",

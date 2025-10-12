@@ -42,25 +42,52 @@ export enum SourceType {
 }
 
 /**
- * 行业标签枚举
+ * 行业标签枚举 - 与constants/precise-acquisition-enums.ts完全一致
  */
 export enum IndustryTag {
+  // 医疗健康类
   ORAL_CARE = '口腔',
   ORAL_ORTHODONTICS = '口腔正畸',
-  MATERNAL_INFANT = '母婴',
+  MATERNAL_BABY = '母婴',
   MEDICAL_HEALTH = '医疗健康',
-  TECHNOLOGY_INTERNET = '科技互联网',
-  HEALTH_FITNESS = '健康健身',
-  BEAUTY = '美妆',
-  EDUCATION = '教育培训',
   FITNESS = '健身',
+
+  // 美妆生活类
+  BEAUTY = '美妆',
+  SKINCARE = '护肤',
+  HOME_FURNISHING = '家居',
   FOOD_BEVERAGE = '食品饮料',
-  HOME = '家居',
-  ELECTRONICS = '3C',
+
+  // 教育培训类
+  EDUCATION_TRAINING = '教育培训',
+  LANGUAGE_LEARNING = '语言学习',
+  SKILL_TRAINING = '技能培训',
+
+  // 科技数码类
+  DIGITAL_3C = '3C',
+  SOFTWARE_APPS = '软件应用',
+  AI_TECH = 'AI科技',
+
+  // 汽车交通类
   AUTOMOTIVE = '汽车',
+  NEW_ENERGY_VEHICLE = '新能源汽车',
+
+  // 旅游娱乐类
   TRAVEL = '旅游',
+  ENTERTAINMENT = '娱乐',
+  GAMES = '游戏',
+
+  // 宠物服饰类
   PETS = '宠物',
-  FASHION = '服饰'
+  FASHION = '服饰',
+
+  // 金融服务类
+  FINANCE = '金融',
+  INSURANCE = '保险',
+  REAL_ESTATE = '房产',
+
+  // 其他
+  OTHER = '其他'
 }
 
 /**
@@ -242,7 +269,7 @@ export interface Task {
   executor_mode?: ExecutorMode;
   result_code?: ResultCode;
   error_message?: string;
-  action_params?: Record<string, any>; // 动作参数
+  action_params?: Record<string, unknown>; // 动作参数
   estimated_duration_ms?: number;
   dependencies?: string[]; // 依赖的任务ID
   
@@ -350,7 +377,7 @@ export interface ImportValidationResult {
   valid_rows: WatchTarget[];
   invalid_rows: Array<{
     row_index: number;
-    data: any;
+    data: Record<string, unknown>;
     errors: string[];
   }>;
   summary: {

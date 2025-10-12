@@ -1,4 +1,4 @@
-// src/modules/precise-acquisition/template-management/services/TemplateManagementService.ts
+// src/modules/precise-acquisition/template-management/services/prospecting-template-service.ts
 // module: prospecting | layer: application | role: module-component
 // summary: 模块组件
 
@@ -16,7 +16,7 @@ import {
 } from '../../shared/types/core';
 
 // 从枚举常量导入
-import { TemplateChannel } from '../../../../constants/precise-acquisition-enums';
+// import { TemplateChannel } from '../../../../constants/precise-acquisition-enums';
 
 /**
  * 模板变量定义
@@ -297,7 +297,7 @@ export class TemplateManagementService {
       try {
         const result = await this.renderTemplate(templateId, context);
         results.push(result);
-      } catch (error) {
+      } catch {
         results.push({
           content: '',
           variables_used: [],

@@ -14,6 +14,15 @@ import { listen, UnlistenFn } from '@tauri-apps/api/event';
 import { StoreOperations } from '../common/StoreOperations';
 import { DiagnosticResult, DiagnosticCategory, DiagnosticStatus } from '../../../domain/adb';
 
+// 设备事件类型定义
+interface DeviceEvent {
+  type: 'connected' | 'disconnected' | 'status_changed';
+  deviceId: string;
+  deviceName?: string;
+  timestamp: number;
+  metadata?: Record<string, unknown>;
+}
+
 // 后端事件载荷类型（与 Rust 后端保持同步的最小必要字段）
 interface AdbCommandLog {
   command: string;
@@ -74,7 +83,7 @@ export class AdbLogBridgeService {
       this.logUnlisteners.push(backendLogUnlisten);
 
       // 3. 订阅设备事件日志（如果需要）
-      const deviceEventUnlisten = await listen<any>('device-event', (event) => {
+      const deviceEventUnlisten = await listen<DeviceEvent>('device-event', (event) => {
         this.processDeviceEvent(event.payload);
       });
       this.logUnlisteners.push(deviceEventUnlisten);
@@ -141,7 +150,7 @@ export class AdbLogBridgeService {
   /**
    * 处理设备事件
    */
-  private processDeviceEvent(eventData: any): void {
+  private processDeviceEvent(eventData: DeviceEvent): void {
     try {
       console.debug('📱 [AdbLogBridgeService] 收到设备事件:', eventData);
       

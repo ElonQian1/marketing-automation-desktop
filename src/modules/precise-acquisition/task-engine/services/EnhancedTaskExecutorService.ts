@@ -121,7 +121,7 @@ export class EnhancedTaskExecutorService extends ProspectingTaskExecutorService 
    * 增强的任务执行
    */
   async executeTaskWithDevice(context: DeviceTaskExecutionContext): Promise<TaskExecutionResult> {
-    const { task, device, fallback_to_manual = true } = context;
+    const { task, device } = context;
     
     // 如果指定了设备，尝试在该设备上执行
     if (device) {

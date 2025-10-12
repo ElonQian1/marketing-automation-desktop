@@ -28,11 +28,15 @@ import type {
 } from '../modules/precise-acquisition/shared/types/core';
 import {
   Platform,
-  TargetType,
   TaskStatus,
   TaskType,
   RegionTag
 } from '../constants/precise-acquisition-enums';
+
+// CSV数据行类型定义
+interface CsvRow {
+  [key: string]: string | number | undefined;
+}
 
 export interface UsePreciseAcquisitionOptions {
   autoRefresh?: boolean;

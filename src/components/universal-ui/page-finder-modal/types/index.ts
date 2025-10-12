@@ -12,13 +12,24 @@ import { UIElement } from "../../../../api/universalUIAPI";
 // 重新导出 UIElement 类型
 export type { UIElement };
 
-// XML 快照类型
+// XML 快照类型 - 与self-contained/xmlSnapshot.ts保持一致
 export interface XmlSnapshot {
-  id: string;
+  id?: string;  // 可选，保持向后兼容
   xmlContent: string;
-  deviceInfo?: any;
-  pageInfo?: any;
+  xmlHash: string;  // 必需字段，与self-contained版本一致
   timestamp: number;
+  deviceInfo?: {
+    deviceId: string;
+    deviceName: string;
+    appPackage: string;
+    activityName: string;
+  };
+  pageInfo?: {
+    pageTitle: string;
+    pageType: string;
+    elementCount: number;
+    appVersion?: string;
+  };
 }
 
 // 节点定位器类型
@@ -61,8 +72,18 @@ export interface UniversalPageFinderModalProps {
   onSnapshotCaptured?: (snapshot: XmlSnapshot) => void;
   onXmlContentUpdated?: (
     xmlContent: string,
-    deviceInfo?: any,
-    pageInfo?: any
+    deviceInfo?: {
+      deviceId: string;
+      deviceName: string;
+      appPackage: string;
+      activityName: string;
+    },
+    pageInfo?: {
+      pageTitle: string;
+      pageType: string;
+      elementCount: number;
+      appVersion?: string;
+    }
   ) => void;
   
   // 当任意来源加载XML后，统一回调已构建的 XmlSnapshot（保证父级随时可用）
