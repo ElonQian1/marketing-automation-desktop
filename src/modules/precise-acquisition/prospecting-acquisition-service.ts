@@ -1,9 +1,6 @@
-// src/modules/precise-acquisition/PreciseAcquisitionService.ts
-// module: prospecting | layer: application | role: module-component
-// summary: 模块组件
-
-// modules/precise-acquisition | PreciseAcquisitionService | 精准获客系统服务门面（重构版）
-// 重构后的轻量级门面类，通过委托模式协调各个管理器，保持对外API兼容性
+// src/modules/precise-acquisition/prospecting-acquisition-service.ts
+// module: prospecting | layer: application | role: service-facade
+// summary: 精准获客系统服务门面（重构版，前缀化）
 
 import { TemplateManagementService } from './template-management';
 import { EnhancedCommentAdapterManager } from '../../application/services/comment-collection/EnhancedCommentAdapterManager';
@@ -25,10 +22,10 @@ import {
 import { ServiceRegistry } from './application/system/ServiceRegistry';
 
 /**
- * 精准获客系统主服务（重构版）
+ * 精准获客系统主服务（重构版，前缀化）
  * 使用委托模式调用各个专门的管理器
  */
-export class PreciseAcquisitionService {
+export class ProspectingAcquisitionService {
   private configManager: SystemConfigurationManager;
   private lifecycleManager: SystemLifecycleManager;
   private serviceRegistry: ServiceRegistry;

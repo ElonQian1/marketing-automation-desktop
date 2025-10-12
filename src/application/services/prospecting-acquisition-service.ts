@@ -1,4 +1,4 @@
-// src/application/services/PreciseAcquisitionService.ts
+// src/application/services/prospecting-acquisition-service.ts
 // module: application | layer: application | role: app-service
 // summary: 应用服务
 
@@ -62,8 +62,8 @@ import type {
  * 
  * 集成所有已有的精准获客功能，提供统一的业务接口
  */
-export class PreciseAcquisitionService {
-  private static instance: PreciseAcquisitionService | null = null;
+export class ProspectingAcquisitionService {
+  private static instance: ProspectingAcquisitionService | null = null;
   
   // 核心服务实例
   private readonly coreApplicationService: PreciseAcquisitionApplicationService;
@@ -80,11 +80,11 @@ export class PreciseAcquisitionService {
   /**
    * 获取单例实例
    */
-  static getInstance(): PreciseAcquisitionService {
-    if (!PreciseAcquisitionService.instance) {
-      PreciseAcquisitionService.instance = new PreciseAcquisitionService();
+  static getInstance(): ProspectingAcquisitionService {
+    if (!ProspectingAcquisitionService.instance) {
+      ProspectingAcquisitionService.instance = new ProspectingAcquisitionService();
     }
-    return PreciseAcquisitionService.instance;
+    return ProspectingAcquisitionService.instance;
   }
 
   /**
@@ -544,8 +544,8 @@ export class PreciseAcquisitionService {
 }
 
 // 导出单例实例
-export const preciseAcquisitionService = PreciseAcquisitionService.getInstance();
+export const prospectingAcquisitionService = ProspectingAcquisitionService.getInstance();
 
 // 向后兼容的别名导出
-export { PreciseAcquisitionService as PreciseAcquisitionServiceFacade };
-export default PreciseAcquisitionService;
+export { ProspectingAcquisitionService as PreciseAcquisitionServiceFacade };
+export default ProspectingAcquisitionService;

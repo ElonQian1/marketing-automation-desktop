@@ -10,9 +10,9 @@
  */
 
 import { PreciseAcquisitionApplicationService } from './PreciseAcquisitionApplicationService';
-import { 
-  TaskEngineService 
-} from '../../modules/precise-acquisition/task-engine/services/TaskEngineService';
+import {
+  ProspectingTaskEngineService
+} from '../../modules/precise-acquisition/task-engine/services/prospecting-task-engine-service';
 import { 
   RateLimitService 
 } from '../../modules/precise-acquisition/rate-limit/services/RateLimitService';
@@ -24,12 +24,12 @@ import {
  */
 export class PreciseAcquisitionServiceFacade {
   private readonly legacyService: PreciseAcquisitionApplicationService;
-  private readonly newTaskEngine: TaskEngineService;
+  private readonly newTaskEngine: ProspectingTaskEngineService;
   private readonly newRateLimiter: RateLimitService;
 
   private constructor() {
     this.legacyService = PreciseAcquisitionApplicationService.getInstance();
-    this.newTaskEngine = new TaskEngineService();
+    this.newTaskEngine = new ProspectingTaskEngineService();
     this.newRateLimiter = new RateLimitService();
   }
 

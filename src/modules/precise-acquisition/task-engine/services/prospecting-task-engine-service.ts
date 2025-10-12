@@ -1,6 +1,6 @@
-// src/modules/precise-acquisition/task-engine/services/TaskEngineService.ts
-// module: prospecting | layer: application | role: module-component
-// summary: 模块组件
+// src/modules/precise-acquisition/task-engine/services/prospecting-task-engine-service.ts
+// module: prospecting | layer: application | role: task-engine-service
+// summary: 任务引擎服务统一门面（前缀化）
 
 /**
  * 任务引擎服务 - 统一门面
@@ -20,14 +20,14 @@ import {
 } from '../types';
 import { TaskGenerator } from './TaskGenerator';
 import { TaskQueryService } from './TaskQueryService';
-import { TaskManager } from './TaskManager';
-import { TaskExecutorService, TaskExecutionResult } from './TaskExecutorService';
+import { ProspectingTaskManager } from './prospecting-task-manager';
+import { ProspectingTaskExecutorService, TaskExecutionResult } from './prospecting-task-executor-service';
 
-export class TaskEngineService {
+export class ProspectingTaskEngineService {
   private taskGenerator = new TaskGenerator();
   private taskQueryService = new TaskQueryService();
-  private taskManager = new TaskManager();
-  private taskExecutor = new TaskExecutorService();
+  private taskManager = new ProspectingTaskManager();
+  private taskExecutor = new ProspectingTaskExecutorService();
 
   // === 任务生成接口 ===
 
@@ -177,10 +177,10 @@ export class TaskEngineService {
 }
 
 // 导出单例实例
-export const taskEngineService = new TaskEngineService();
+export const taskEngineService = new ProspectingTaskEngineService();
 
 // 导出类型和子服务
 export * from '../types';
 export { TaskGenerator } from './TaskGenerator';
 export { TaskQueryService } from './TaskQueryService';
-export { TaskManager } from './TaskManager';
+export { ProspectingTaskManager as TaskManager } from './prospecting-task-manager';

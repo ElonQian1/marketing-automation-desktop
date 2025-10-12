@@ -8,9 +8,10 @@
  * 导出任务引擎模块的所有公共组件、服务和类型
  */
 
-// 服务层
-export { TaskEngineService } from './services/TaskEngineService';
-export { TaskExecutorService } from './services/TaskExecutorService';
+// 服务层（前缀化）
+export { ProspectingTaskEngineService as TaskEngineService } from './services/prospecting-task-engine-service';
+export { ProspectingTaskExecutorService as TaskExecutorService } from './services/prospecting-task-executor-service';
+export { ProspectingTaskManager as TaskManager } from './services/prospecting-task-manager';
 
 // Hook
 export { useTaskEngine } from './hooks/useTaskEngine';
@@ -26,12 +27,12 @@ export type {
   BatchTaskGenerationConfig,
   TaskExecutionStats,
   TaskQuery
-} from './services/TaskEngineService';
+} from './services/prospecting-task-engine-service';
 
 export type {
   TaskExecutionContext,
   TaskExecutionResult
-} from './services/TaskExecutorService';
+} from './services/prospecting-task-executor-service';
 
 export type {
   UseTaskEngineOptions,

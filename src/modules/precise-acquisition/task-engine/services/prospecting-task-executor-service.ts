@@ -1,6 +1,6 @@
-// src/modules/precise-acquisition/task-engine/services/TaskExecutorService.ts
-// module: prospecting | layer: application | role: module-component
-// summary: 模块组件
+// src/modules/precise-acquisition/task-engine/services/prospecting-task-executor-service.ts
+// module: prospecting | layer: application | role: task-executor-service
+// summary: 任务执行器服务（前缀化）
 
 /**
  * 任务执行器服务
@@ -140,7 +140,7 @@ class OceanEngineAPIExecutor implements APIExecutor {
 /**
  * 任务执行器服务
  */
-export class TaskExecutorService {
+export class ProspectingTaskExecutorService {
   
   private apiExecutors: Map<Platform, APIExecutor> = new Map();
   private templateService = new TemplateManagementService();

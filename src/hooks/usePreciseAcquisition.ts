@@ -11,7 +11,7 @@
 
 import { useState, useEffect, useCallback } from 'react';
 import { message } from 'antd';
-import { preciseAcquisitionService } from '../application/services/PreciseAcquisitionService';
+import { prospectingAcquisitionService } from '../application/services/prospecting-acquisition-service';
 import type {
   WatchTargetPayload,
   WatchTargetRow,
@@ -162,7 +162,7 @@ export const usePreciseAcquisition = (
   useEffect(() => {
     const initService = async () => {
       try {
-        await preciseAcquisitionService.initialize();
+        await prospectingAcquisitionService.initialize();
         console.log('精准获客服务初始化完成');
       } catch (err) {
         console.error('精准获客服务初始化失败:', err);
@@ -188,7 +188,7 @@ export const usePreciseAcquisition = (
   const getWatchTargets = useCallback(async (params?: WatchTargetQueryParams) => {
     setLoading(prev => ({ ...prev, watchTargets: true }));
     try {
-      const targets = await preciseAcquisitionService.getWatchTargets(params);
+      const targets = await prospectingAcquisitionService.getWatchTargets(params);
       // 简化转换，避免类型问题
       const rows = targets.map(target => ({
         id: parseInt(target.id),
@@ -217,7 +217,7 @@ export const usePreciseAcquisition = (
 
   const addWatchTarget = useCallback(async (payload: WatchTargetPayload) => {
     try {
-      await preciseAcquisitionService.addWatchTarget(payload);
+      await prospectingAcquisitionService.addWatchTarget(payload);
       message.success('添加候选目标成功');
       await getWatchTargets(); // 刷新列表
     } catch (err) {
@@ -229,7 +229,7 @@ export const usePreciseAcquisition = (
 
   const updateWatchTarget = useCallback(async (id: string, payload: Partial<WatchTargetPayload>) => {
     try {
-      await preciseAcquisitionService.updateWatchTarget(id, payload);
+      await prospectingAcquisitionService.updateWatchTarget(id, payload);
       message.success('更新候选目标成功');
       await getWatchTargets(); // 刷新列表
     } catch (err) {
@@ -241,7 +241,7 @@ export const usePreciseAcquisition = (
 
   const deleteWatchTarget = useCallback(async (id: string) => {
     try {
-      await preciseAcquisitionService.deleteWatchTarget(id);
+      await prospectingAcquisitionService.deleteWatchTarget(id);
       message.success('删除候选目标成功');
       await getWatchTargets(); // 刷新列表
     } catch (err) {
@@ -253,7 +253,7 @@ export const usePreciseAcquisition = (
 
   const bulkImportWatchTargets = useCallback(async (payloads: WatchTargetPayload[]) => {
     try {
-      const result = await preciseAcquisitionService.bulkImportWatchTargets(payloads);
+      const result = await prospectingAcquisitionService.bulkImportWatchTargets(payloads);
       
       if (result.success_count > 0) {
         message.success(`成功导入 ${result.success_count} 个目标`);
@@ -272,12 +272,12 @@ export const usePreciseAcquisition = (
   }, [getWatchTargets]);
 
   const validateCsvImport = useCallback((csvData: any[]): ImportValidationResult => {
-    return preciseAcquisitionService.validateCsvImport(csvData);
+    return prospectingAcquisitionService.validateCsvImport(csvData);
   }, []);
 
   const exportToCsv = useCallback(async (filters?: WatchTargetQueryParams): Promise<string> => {
     try {
-      return await preciseAcquisitionService.exportToCsv(filters);
+      return await prospectingAcquisitionService.exportToCsv(filters);
     } catch (err) {
       console.error('导出CSV失败:', err);
       message.error('导出CSV失败');
@@ -295,7 +295,7 @@ export const usePreciseAcquisition = (
   }) => {
     setLoading(prev => ({ ...prev, comments: true }));
     try {
-      const commentsList = await preciseAcquisitionService.getComments(params);
+      const commentsList = await prospectingAcquisitionService.getComments(params);
       setComments(commentsList);
       setError(null);
     } catch (err) {
@@ -318,7 +318,7 @@ export const usePreciseAcquisition = (
     source_target_id: string;
   }) => {
     try {
-      await preciseAcquisitionService.addComment(params);
+      await prospectingAcquisitionService.addComment(params);
       message.success('添加评论成功');
       await getComments(); // 刷新列表
     } catch (err) {
@@ -336,7 +336,7 @@ export const usePreciseAcquisition = (
     time_window_hours?: number;
   }): Promise<CommentRow[]> => {
     try {
-      return await preciseAcquisitionService.filterComments(params);
+      return await prospectingAcquisitionService.filterComments(params);
     } catch (err) {
       console.error('筛选评论失败:', err);
       message.error('筛选评论失败');
@@ -354,7 +354,7 @@ export const usePreciseAcquisition = (
   }) => {
     setLoading(prev => ({ ...prev, tasks: true }));
     try {
-      const tasksList = await preciseAcquisitionService.getTasks(params);
+      const tasksList = await prospectingAcquisitionService.getTasks(params);
       setTasks(tasksList);
       setError(null);
     } catch (err) {
@@ -368,7 +368,7 @@ export const usePreciseAcquisition = (
 
   const generateTasks = useCallback(async (config: TaskGenerationConfig) => {
     try {
-      const result = await preciseAcquisitionService.generateTasks(config);
+      const result = await prospectingAcquisitionService.generateTasks(config);
       message.success(`成功生成 ${result.generated_count} 个任务`);
       await getTasks(); // 刷新任务列表
       return result;
@@ -381,7 +381,7 @@ export const usePreciseAcquisition = (
 
   const updateTaskStatus = useCallback(async (update: TaskStatusUpdate) => {
     try {
-      await preciseAcquisitionService.updateTaskStatus(update);
+      await prospectingAcquisitionService.updateTaskStatus(update);
       message.success('更新任务状态成功');
       await getTasks(); // 刷新任务列表
     } catch (err) {
@@ -395,7 +395,7 @@ export const usePreciseAcquisition = (
   const getReplyTemplates = useCallback(async () => {
     setLoading(prev => ({ ...prev, templates: true }));
     try {
-      const templatesList = await preciseAcquisitionService.getReplyTemplates();
+      const templatesList = await prospectingAcquisitionService.getReplyTemplates();
       setTemplates(templatesList);
       setError(null);
     } catch (err) {
@@ -415,7 +415,7 @@ export const usePreciseAcquisition = (
     is_enabled?: boolean;
   }) => {
     try {
-      await preciseAcquisitionService.addReplyTemplate(payload);
+      await prospectingAcquisitionService.addReplyTemplate(payload);
       message.success('添加模板成功');
       await getReplyTemplates(); // 刷新列表
     } catch (err) {
@@ -429,7 +429,7 @@ export const usePreciseAcquisition = (
   const refreshStats = useCallback(async () => {
     setLoading(prev => ({ ...prev, stats: true }));
     try {
-      const statsData = await preciseAcquisitionService.getStats();
+      const statsData = await prospectingAcquisitionService.getStats();
       setStats(statsData);
       setError(null);
     } catch (err) {
@@ -442,7 +442,7 @@ export const usePreciseAcquisition = (
 
   const generateDailyReport = useCallback(async (date?: Date) => {
     try {
-      return await preciseAcquisitionService.generateDailyReport(date);
+      return await prospectingAcquisitionService.generateDailyReport(date);
     } catch (err) {
       console.error('生成日报失败:', err);
       message.error('生成日报失败');

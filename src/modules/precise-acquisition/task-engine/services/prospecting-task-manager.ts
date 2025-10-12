@@ -1,6 +1,6 @@
-// src/modules/precise-acquisition/task-engine/services/TaskManager.ts
-// module: prospecting | layer: application | role: module-component
-// summary: 模块组件
+// src/modules/precise-acquisition/task-engine/services/prospecting-task-manager.ts
+// module: prospecting | layer: application | role: task-manager-service
+// summary: 任务管理器服务（前缀化）
 
 /**
  * 任务管理器
@@ -12,7 +12,7 @@ import { invoke } from '@tauri-apps/api/core';
 import { Task, TaskStatus } from '../../shared/types/core';
 import { TaskAssignmentResult, TaskExecutionContext } from '../types';
 
-export class TaskManager {
+export class ProspectingTaskManager {
   /**
    * 分配任务给设备
    */

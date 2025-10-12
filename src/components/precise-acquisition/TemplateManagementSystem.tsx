@@ -53,7 +53,7 @@ import {
 import dayjs from 'dayjs';
 
 // 类型和服务导入
-import { TemplateManagementService } from '../../modules/precise-acquisition/template-management/services/TemplateManagementService';
+import { TemplateManagementService } from '../../modules/precise-acquisition/template-management/services/prospecting-template-service';
 import { Platform, TaskType } from '../../constants/precise-acquisition-enums';
 
 const { TabPane } = Tabs;

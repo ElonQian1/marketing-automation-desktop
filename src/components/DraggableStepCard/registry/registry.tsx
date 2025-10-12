@@ -3,7 +3,7 @@
 // summary: UI 组件
 
 import React from 'react';
-import type { StepUIExtension, SmartScriptStepLike, StepUIContext, StepMeta } from './types';
+import type { StepUIExtension, SmartScriptStepLike, StepMeta } from './types';
 import { SmartScrollControls } from '../components/SmartScrollControls';
 import { ContactSourceSelector } from '../components/ContactSourceSelector';
 import { ContactDeviceSelector } from '../components/ContactDeviceSelector';

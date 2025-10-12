@@ -526,9 +526,27 @@ export const SENSITIVE_WORDS = [
  */
 export const AUDIT_ACTION_LABELS: Record<AuditAction, string> = {
   [AuditAction.TASK_CREATE]: '创建任务',
-  [AuditAction.TASK_EXECUTE]: '执行任务',
+  [AuditAction.TASK_EXECUTE]: '执行任务',  
   [AuditAction.TASK_FAIL]: '任务失败',
   [AuditAction.EXPORT]: '导出数据',
   [AuditAction.IMPORT]: '导入数据',
   [AuditAction.COMMENT_FETCH]: '拉取评论'
 };
+
+// ==================== 重新导出核心类型 ====================
+
+/**
+ * 重新导出核心枚举类型，确保其他模块可以正确访问
+ */
+export {
+  Platform,
+  TargetType,
+  SourceType,
+  IndustryTag,
+  RegionTag,
+  TaskStatus,
+  TaskType,
+  ExecutorMode,
+  ResultCode,
+  AuditAction
+} from '../types/core';
