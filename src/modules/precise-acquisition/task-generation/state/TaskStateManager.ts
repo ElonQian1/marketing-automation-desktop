@@ -11,12 +11,12 @@
 import { 
   Task,
   WatchTarget,
-  Comment 
+  Comment,
+  TaskPriority,
 } from '../../shared/types/core';
 import { 
   TaskStatus, 
   TaskType, 
-  TaskPriority,
   Platform 
 } from '../../shared/constants';
 
@@ -222,9 +222,12 @@ export class TaskStateMachine {
     this.addTransition({
       from: TaskStatus.FAILED,
       to: TaskStatus.PENDING,
-      condition: (task) => (task.metadata?.retry_count || 0) < 3,
+      condition: (task) => {
+        const retryCount = Number(task.metadata?.retry_count || 0);
+        return retryCount < 3;
+      },
       action: async (task) => {
-        const retryCount = (task.metadata?.retry_count || 0) + 1;
+        const retryCount = Number(task.metadata?.retry_count || 0) + 1;
         task.metadata = { ...task.metadata, retry_count: retryCount };
         task.scheduled_time = this.calculateNextRetryTime(retryCount);
       }

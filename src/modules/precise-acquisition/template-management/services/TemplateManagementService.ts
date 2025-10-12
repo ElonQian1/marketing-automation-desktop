@@ -3,12 +3,53 @@
 // summary: 模板管理服务存根实现
 
 /**
+ * 模板管理相关类型定义
+ */
+export interface TemplateVariable {
+  name: string;
+  type: 'string' | 'number' | 'boolean';
+  description?: string;
+  defaultValue?: unknown;
+}
+
+export interface TemplateCategory {
+  id: string;
+  name: string;
+  description?: string;
+}
+
+export interface SensitiveWordCheckResult {
+  hasSensitiveWords: boolean;
+  sensitiveWords: string[];
+  suggestions?: string[];
+}
+
+export interface TemplateContext {
+  [key: string]: unknown;
+}
+
+export interface TemplateRenderResult {
+  success: boolean;
+  content: string;
+  variables?: Record<string, unknown>;
+  missing_variables?: string[];
+  sensitive_check?: SensitiveWordCheckResult;
+  error?: string;
+}
+
+export interface TemplateFilters {
+  category?: string;
+  platform?: string;
+  active?: boolean;
+}
+
+/**
  * 模板管理服务存根
  * TODO: 需要实现完整的模板管理功能
  */
 export class TemplateManagementService {
-  async getTemplates(): Promise<any[]> {
-    console.warn('TemplateManagementService.getTemplates: 使用存根实现');
+  async getTemplates(filters?: TemplateFilters): Promise<any[]> {
+    console.warn('TemplateManagementService.getTemplates: 使用存根实现', filters);
     return [];
   }
 
@@ -24,6 +65,23 @@ export class TemplateManagementService {
 
   async deleteTemplate(id: string): Promise<void> {
     console.warn('TemplateManagementService.deleteTemplate: 使用存根实现', id);
+  }
+
+  async renderTemplate(templateId: string, context: TemplateContext): Promise<TemplateRenderResult> {
+    console.warn('TemplateManagementService.renderTemplate: 使用存根实现', templateId, context);
+    return {
+      success: true,
+      content: `渲染结果 for ${templateId}`,
+      variables: context
+    };
+  }
+
+  async checkSensitiveWords(content: string): Promise<SensitiveWordCheckResult> {
+    console.warn('TemplateManagementService.checkSensitiveWords: 使用存根实现', content);
+    return {
+      hasSensitiveWords: false,
+      sensitiveWords: []
+    };
   }
 }
 
