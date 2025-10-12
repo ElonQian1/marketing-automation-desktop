@@ -7,13 +7,13 @@
 
 import { useState, useEffect, useCallback } from 'react';
 import { 
-  TaskEngineService,
+  ProspectingTaskEngineService,
   TaskGenerationConfig,
   TaskGenerationResult,
   BatchTaskGenerationConfig,
   TaskExecutionStats,
   TaskQuery
-} from '../services/TaskEngineService';
+} from '../services/prospecting-task-engine-service';
 import { 
   Task, 
   TaskStatus, 
@@ -30,7 +30,7 @@ export interface UseTaskEngineOptions {
 
 export interface UseTaskEngineReturn {
   // 服务实例
-  service: TaskEngineService;
+  service: ProspectingTaskEngineService;
   
   // 数据状态
   tasks: Task[];
