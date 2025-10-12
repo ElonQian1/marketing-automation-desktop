@@ -57,13 +57,41 @@ const { TreeNode } = Tree;
 // 使用 ReplyTemplate 从共享类型
 import { ReplyTemplate } from '../../modules/precise-acquisition/shared/types/core';
 
+// 表单值类型定义
+interface CreateTemplateFormValues {
+  template_name: string;
+  text: string;
+  category?: string;
+  channel: Platform | 'all';
+  variables?: string[];
+}
+
+interface UpdateTemplateFormValues {
+  template_name?: string;
+  text?: string;
+  content?: string;  // 保留用于显示
+  category?: string;
+  channel?: Platform | 'all';
+  platform?: Platform;
+  task_type?: TaskType;
+  tags?: string[];
+  variables?: string[];
+  enabled?: boolean;
+}
+
+interface CreateCategoryFormValues {
+  name: string;
+  description?: string;
+  parent_id?: string;
+}
+
 interface TemplateCategory {
   id: string;
   name: string;
   description: string;
   parent_id?: string;
   children?: TemplateCategory[];
-  template_count: number;
+  template_count?: number; // 改为可选
 }
 
 interface TemplateStats {
@@ -153,7 +181,7 @@ export const TemplateManagementSystem: React.FC = () => {
   }, [loadTemplates]);
 
   // 创建模板
-  const handleCreateTemplate = async (values: any) => {
+  const handleCreateTemplate = async (values: CreateTemplateFormValues) => {
     try {
       await templateService.createTemplate({
         template_name: values.template_name,
@@ -166,7 +194,7 @@ export const TemplateManagementSystem: React.FC = () => {
 
       notification.success({
         message: '模板创建成功',
-        description: `模板 "${values.name}" 已创建`
+        description: `模板 "${values.template_name}" 已创建`
       });
       
       setShowTemplateModal(false);
@@ -181,22 +209,22 @@ export const TemplateManagementSystem: React.FC = () => {
   };
 
   // 更新模板
-  const handleUpdateTemplate = async (values: any) => {
+  const handleUpdateTemplate = async (values: UpdateTemplateFormValues) => {
     if (!editingTemplate) return;
 
     try {
       await templateService.updateTemplate(editingTemplate.id, {
-        name: values.name,
-        content: values.content,
+        template_name: values.template_name,
+        text: values.text || values.content,
         category: values.category,
-        platform: values.platform,
-        task_type: values.task_type,
-        tags: values.tags || []
+        channel: values.platform || values.channel,
+        variables: values.tags || values.variables,
+        enabled: values.enabled
       });
 
       notification.success({
         message: '模板更新成功',
-        description: `模板 "${values.name}" 已更新`
+        description: `模板 "${values.template_name || values.content}" 已更新`
       });
       
       setShowTemplateModal(false);
@@ -252,7 +280,7 @@ export const TemplateManagementSystem: React.FC = () => {
   };
 
   // 创建分类
-  const handleCreateCategory = async (values: any) => {
+  const handleCreateCategory = async (values: CreateCategoryFormValues) => {
     try {
       await templateService.createCategory({
         name: values.name,
