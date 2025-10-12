@@ -13,7 +13,7 @@ import {
   Button,
   Input,
 } from 'antd';
-import ConfirmPopover from '@/components/universal-ui/common-popover/ConfirmPopover';
+import ConfirmPopover from '../universal-ui/common-popover/ConfirmPopover';
 import {
   ReloadOutlined,
   EditOutlined,

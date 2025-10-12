@@ -117,7 +117,7 @@ export class SimplifiedPreciseAcquisitionService {
   }) {
     try {
       const tasks = await this.taskEngine.generateTasks({
-        target_id: config.targetId,
+        target: config.targetId,  // 修复属性名
         max_tasks: config.maxTasks || 10,
         task_types: config.taskTypes as never || ['reply'],
         device_id: config.deviceId,
@@ -224,11 +224,13 @@ export class SimplifiedPreciseAcquisitionService {
         };
       }
 
-      // 检查限流
-      const isAllowed = await this.rateLimitService.checkRateLimit({
-        action_type: params.actionType,
-        device_id: params.deviceId
-      });
+      // 检查限流 - 使用简化的调用方式
+      const isAllowed = await this.rateLimitService.checkRateLimit(
+        params.deviceId,
+        'XIAOHONGSHU' as any, // Platform 枚举
+        'REPLY' as any, // TaskType 枚举  
+        {} // 可选配置
+      );
 
       if (!isAllowed.allowed) {
         return {

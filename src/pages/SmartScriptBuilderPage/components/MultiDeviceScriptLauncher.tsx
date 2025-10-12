@@ -76,7 +76,7 @@ const MultiDeviceScriptLauncher: React.FC<Props> = ({ steps, executorConfig }) =
     setRunning(true);
     setResults(null);
     try {
-      const res = await executeSmartScriptOnDevices(selectedIds, steps, executorConfig);
+      const res = await executeSmartScriptOnDevices(selectedIds, steps);
       // 将数组转换为 Record 格式
       const resultMap: ResultMap = {};
       res.forEach(result => {

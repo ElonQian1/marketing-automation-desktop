@@ -1,4 +1,4 @@
-// src/domain/adb/services/DiagnosticService.ts
+// src/domain/adb/services/adb-diagnostic-service.ts
 // module: adb | layer: domain | role: service
 // summary: 服务定义
 
@@ -15,7 +15,7 @@ import { DomainEvent, DiagnosticCompletedEvent } from '../events/DomainEvents';
  * 诊断服务
  * 负责ADB环境的诊断、问题检测和自动修复
  */
-export class DiagnosticService {
+export class AdbDiagnosticService {
   private eventHandlers: ((event: DomainEvent) => void)[] = [];
   private lastDiagnosticResults: DiagnosticResult[] = [];
 

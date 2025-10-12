@@ -3,7 +3,7 @@
 // summary: React状态管理和业务逻辑封装
 
 import { useCallback, useState } from 'react';
-import AuthService from '../services/authService';
+import EmployeeAuthService from '../services/employee-auth-service';
 import {
     AuthState,
     Employee,
@@ -28,8 +28,8 @@ export const useAuth = () => {
     setAuthState(prev => ({ ...prev, isLoading: true, error: undefined }));
 
     try {
-      // 使用AuthService进行登录
-      const response = await AuthService.login(credentials);
+      // 使用EmployeeAuthService进行登录
+      const response = await EmployeeAuthService.login(credentials);
 
       if (response.success && response.employee && response.token) {
         setAuthState({
@@ -65,8 +65,8 @@ export const useAuth = () => {
   // 登出
   const logout = useCallback(async (): Promise<void> => {
     try {
-      // 调用AuthService进行登出
-      await AuthService.logout(authState.token);
+      // 调用EmployeeAuthService进行登出
+      await EmployeeAuthService.logout(authState.token);
 
       // 清除本地存储
       localStorage.removeItem('authToken');
@@ -94,8 +94,8 @@ export const useAuth = () => {
       try {
         setAuthState(prev => ({ ...prev, isLoading: true }));
 
-        // 使用AuthService验证token是否有效
-        const isValid = await AuthService.verifyToken(token);
+        // 使用EmployeeAuthService验证token是否有效
+        const isValid = await EmployeeAuthService.verifyToken(token);
 
         if (isValid) {
           const employee = JSON.parse(employeeStr) as Employee;
@@ -150,7 +150,7 @@ export const useAuth = () => {
     if (!authState.employee || !authState.token) return;
 
     try {
-      const success = await AuthService.changePassword(
+      const success = await EmployeeAuthService.changePassword(
         authState.token,
         currentPassword,
         newPassword

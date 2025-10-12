@@ -10,7 +10,7 @@ import {
 } from '../../domain/adb';
 import { DeviceManagerService } from '../../domain/adb/services/DeviceManagerService';
 import { ConnectionService } from '../../domain/adb/services/ConnectionService';
-import { DiagnosticService } from '../../domain/adb/services/DiagnosticService';
+import { AdbDiagnosticService } from '../../domain/adb/services/adb-diagnostic-service';
 import { IUiMatcherRepository, MatchCriteriaDTO, MatchResultDTO } from '../../domain/page-analysis/repositories/IUiMatcherRepository';
 import type { ISmartScriptRepository } from '../../domain/smart-script/repositories/ISmartScriptRepository';
 import type { ExtendedSmartScriptStep } from '../../types/loopScript';
@@ -47,7 +47,7 @@ export class AdbApplicationService {
   constructor(
     private deviceManager: DeviceManagerService,
     private connectionService: ConnectionService,
-    private diagnosticService: DiagnosticService,
+    private diagnosticService: AdbDiagnosticService,
     private uiMatcherRepository: IUiMatcherRepository,
     private smartScriptRepository: ISmartScriptRepository
   ) {

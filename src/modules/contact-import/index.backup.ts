@@ -8,7 +8,7 @@
  */
 
 // 内部导入
-import { ContactImporter } from "./core/ContactImporter";
+import { ContactCoreImporter } from "./core/contact-core-importer";
 import { AndroidDeviceManager } from "./devices/IDeviceManager";
 import { VcfParser } from "./parsers/VcfParser";
 import { ContactImportStrategyFactory } from "./strategies/contact-strategy-import";
@@ -16,11 +16,11 @@ import type { Device, ImportResult } from "./types";
 import { ImportStrategyType, ImportFormat } from "./types";
 
 // ===== 核心组件导出 =====
-export { ContactImporter } from "./core/ContactImporter";
+export { ContactCoreImporter } from "./core/contact-core-importer";
 export type {
-  ContactImporterEventListener,
-  ContactImporterOptions,
-} from "./core/ContactImporter";
+  ContactCoreImporterEventListener,
+  ContactCoreImporterOptions,
+} from "./core/contact-core-importer";
 
 // ===== 解析器导出 =====
 export {
@@ -109,12 +109,12 @@ export type {
  */
 export function createContactImporter(
   strategyType: string = "balanced"
-): ContactImporter {
+): ContactCoreImporter {
   const parser = new VcfParser();
   const deviceManager = new AndroidDeviceManager();
   const strategy = ContactImportStrategyFactory.create(strategyType);
 
-  return new ContactImporter({
+  return new ContactCoreImporter({
     parser,
     deviceManager,
     strategy,

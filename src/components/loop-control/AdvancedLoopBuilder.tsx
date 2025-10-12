@@ -19,7 +19,7 @@ import {
   Modal,
   message,
 } from 'antd';
-import ConfirmPopover from '@/components/universal-ui/common-popover/ConfirmPopover';
+import ConfirmPopover from '../universal-ui/common-popover/ConfirmPopover';
 import {
   PlusOutlined,
   DeleteOutlined,

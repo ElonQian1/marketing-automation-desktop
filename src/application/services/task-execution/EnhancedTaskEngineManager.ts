@@ -17,7 +17,7 @@
  */
 
 import {
-  UnifiedTaskEngine,
+  // UnifiedTaskEngine,
   UnifiedTaskEngineBase,
   UnifiedTaskGenerationParams,
   UnifiedTaskGenerationResult,
@@ -53,7 +53,7 @@ export {
   ResultCode
 };
 
-import { Task, WatchTarget } from '../../../modules/precise-acquisition/shared/types/core';
+import { Task } from '../../../modules/precise-acquisition/shared/types/core';
 import { TaskStatus, TaskType } from '../../../constants/precise-acquisition-enums';
 
 // 导入现有实现
@@ -111,7 +111,7 @@ export class EnhancedTaskEngineManager extends UnifiedTaskEngineBase {
       });
 
       // 🔄 如果需要执行策略分配，调用TaskExecutionEngine
-      let assignmentResults: any[] = [];
+      let assignmentResults: TaskAssignmentResult[] = [];
       if (params.execution_strategy && generationResult.generated_tasks.length > 0) {
         try {
           assignmentResults = await this.taskExecutionEngine.assignTasksToDevices(

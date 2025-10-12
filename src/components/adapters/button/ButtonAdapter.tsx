@@ -11,7 +11,7 @@
  */
 
 import * as React from 'react';
-import { Button as UIButton, type ButtonProps as UIButtonProps, type ButtonTone } from '@/components/ui';
+import { Button as UIButton, type ButtonProps as UIButtonProps, type ButtonTone } from '../../ui';
 
 type AntdLegacyType = 'primary' | 'dashed' | 'link' | 'text' | 'default';
 type AntdLegacySize = 'small' | 'middle' | 'large';

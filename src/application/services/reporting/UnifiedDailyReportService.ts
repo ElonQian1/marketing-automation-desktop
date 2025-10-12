@@ -25,12 +25,12 @@ import {
   AuditAction,
   TaskType 
 } from '../../../constants/precise-acquisition-enums';
-import type { 
-  Task as TaskEntity,
-  CommentEntity,
-  WatchTarget,
-  AuditLog
-} from '../../../domain/precise-acquisition/entities';
+// import type { 
+//   CommentEntity,
+//   WatchTarget,
+//   AuditLog
+// } from '../../../domain/precise-acquisition/entities';
+// import type { Task as TaskEntity } from '../../../domain/precise-acquisition/entities/Task';
 
 // ==================== 统一类型定义 ====================
 
@@ -258,7 +258,7 @@ export class UnifiedDailyReportService {
 
   // ==================== 私有方法 ====================
 
-  private async getCompletedTasks(dateStr: string): Promise<any[]> {
+  private async getCompletedTasks(dateStr: string): Promise<Record<string, unknown>[]> {
     try {
       return await invoke('list_tasks', {
         status: TaskStatus.DONE,
@@ -475,7 +475,7 @@ export class UnifiedDailyReportService {
     try {
       return await invoke('insert_audit_log', {
         payload: {
-          action: AuditAction.DATA_EXPORT,
+          action: AuditAction.EXPORT,
           operator: 'system',
           resource_id: this.formatDate(config.date),
           resource_type: 'daily_report',

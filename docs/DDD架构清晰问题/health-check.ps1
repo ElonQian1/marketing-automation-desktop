@@ -69,6 +69,18 @@ function Show-SystemHealth {
     
     Write-Host ""
     
+    # 检查工作站核心文件
+    Write-Host "🚀 工作站文件检查:" -ForegroundColor Cyan
+    $WorkstationDocs = @("00-README.md", "stream_shared.md", "prefix-migration-plan.md", "员工_template.md", "四件套示例.md")
+    foreach ($Doc in $WorkstationDocs) {
+        $DocPath = "$DocsPath\$Doc"
+        if (Test-Path $DocPath) {
+            Write-Host "  ✅ $Doc 存在" -ForegroundColor Green
+        } else {
+            Write-Host "  ❌ $Doc 缺失" -ForegroundColor Red
+        }
+    }
+    
     # 检查架构导航文档
     Write-Host "📚 架构文档检查:" -ForegroundColor Cyan
     $ArchDocs = @("架构导航指南.md", "架构快速参考.md")

@@ -41,7 +41,7 @@ import {
   getTodayReplyListConfig,
   getFullDailyReportConfig,
   type UnifiedDailyReportConfig
-} from '../../hooks/useUnifiedDailyReport';
+} from '../../application/hooks/useUnifiedDailyReport';
 
 const { Title, Text, Paragraph } = Typography;
 const { Option } = Select;

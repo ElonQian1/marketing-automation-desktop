@@ -11,7 +11,7 @@ import { IAdbRepository } from '../../domain/adb/repositories/IAdbRepository';
 import { IDiagnosticRepository } from '../../domain/adb/repositories/IDiagnosticRepository';
 import { DeviceManagerService } from '../../domain/adb/services/DeviceManagerService';
 import { ConnectionService } from '../../domain/adb/services/ConnectionService';
-import { DiagnosticService } from '../../domain/adb/services/DiagnosticService';
+import { AdbDiagnosticService } from '../../domain/adb/services/adb-diagnostic-service';
 import { AdbApplicationService } from './adb-application-service';
 import { IUiMatcherRepository } from '../../domain/page-analysis/repositories/IUiMatcherRepository';
 import { TauriUiMatcherRepository } from '../../infrastructure/repositories/TauriUiMatcherRepository';
@@ -119,14 +119,14 @@ class ServiceContainer {
 
     this.register('diagnosticService', () => {
       const diagnosticRepository = this.get<IDiagnosticRepository>('diagnosticRepository');
-      return new DiagnosticService(diagnosticRepository);
+      return new AdbDiagnosticService(diagnosticRepository);
     });
 
     // 注册Application Service层
     this.register('adbApplicationService', () => {
       const deviceManager = this.get<DeviceManagerService>('deviceManagerService');
       const connectionService = this.get<ConnectionService>('connectionService');
-      const diagnosticService = this.get<DiagnosticService>('diagnosticService');
+      const diagnosticService = this.get<AdbDiagnosticService>('diagnosticService');
       const uiMatcherRepository = this.get<IUiMatcherRepository>('uiMatcherRepository');
       const smartScriptRepository = this.get<ISmartScriptRepository>('smartScriptRepository');
       const svc = new AdbApplicationService(
@@ -213,8 +213,8 @@ export const ServiceFactory = {
   /**
    * 获取诊断服务
    */
-  getDiagnosticService(): DiagnosticService {
-    return container.get<DiagnosticService>('diagnosticService');
+  getDiagnosticService(): AdbDiagnosticService {
+    return container.get<AdbDiagnosticService>('diagnosticService');
   },
 
   /** 获取脚本执行仓储（可选直接使用场景） */

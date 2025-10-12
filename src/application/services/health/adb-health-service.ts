@@ -2,7 +2,7 @@
 // module: adb | layer: application | role: service
 // summary: ADB健康检查服务
 
-import { DiagnosticService } from '../../../domain/adb/services/DiagnosticService';
+import { AdbDiagnosticService } from '../../../domain/adb/services/adb-diagnostic-service';
 import { DeviceManagerService } from '../../../domain/adb/services/DeviceManagerService';
 import { StoreOperations } from '../common/StoreOperations';
 import type { DiagnosticSummary } from '../../../domain/adb';
@@ -18,7 +18,7 @@ export class AdbHealthService {
   private diagnosticsInterval: NodeJS.Timeout | null = null;
 
   constructor(
-    private diagnosticService: DiagnosticService,
+    private diagnosticService: AdbDiagnosticService,
     private deviceManager: DeviceManagerService
   ) {}
 

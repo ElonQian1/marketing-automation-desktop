@@ -6,7 +6,7 @@
 
 import React, { useState } from 'react';
 import { Card, Button, Space, Typography, Tag, Modal, InputNumber, Switch, Divider, message } from 'antd';
-import ConfirmPopover from '@/components/universal-ui/common-popover/ConfirmPopover';
+import ConfirmPopover from './universal-ui/common-popover/ConfirmPopover';
 import { 
   CheckCircleOutlined, 
   DeleteOutlined,

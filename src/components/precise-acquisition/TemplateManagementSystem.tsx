@@ -21,16 +21,12 @@ import {
   Select, 
   Tag, 
   Drawer, 
-  Tabs, 
   Tree, 
-  Upload, 
-  message,
   notification,
   Popconfirm,
   Badge,
   Tooltip,
   Typography,
-  Divider,
   Row,
   Col,
   Statistic,
@@ -42,10 +38,7 @@ import {
   DeleteOutlined,
   CopyOutlined,
   EyeOutlined,
-  UploadOutlined,
-  DownloadOutlined,
   FolderOutlined,
-  FileTextOutlined,
   TagOutlined,
   ReloadOutlined,
   SearchOutlined
@@ -56,27 +49,13 @@ import dayjs from 'dayjs';
 import { TemplateManagementService } from '../../modules/precise-acquisition/template-management/services/prospecting-template-service';
 import { Platform, TaskType } from '../../constants/precise-acquisition-enums';
 
-const { TabPane } = Tabs;
 const { Option } = Select;
 const { TextArea } = Input;
-const { Title, Text, Paragraph } = Typography;
+const { Text, Paragraph } = Typography;
 const { TreeNode } = Tree;
 
-interface Template {
-  id: string;
-  name: string;
-  content: string;
-  category: string;
-  platform: Platform;
-  task_type: TaskType;
-  tags: string[];
-  usage_count: number;
-  success_rate: number;
-  created_at: Date;
-  updated_at: Date;
-  created_by: string;
-  is_active: boolean;
-}
+// 使用 ReplyTemplate 从共享类型
+import { ReplyTemplate } from '../../modules/precise-acquisition/shared/types/core';
 
 interface TemplateCategory {
   id: string;
@@ -97,7 +76,7 @@ interface TemplateStats {
 
 export const TemplateManagementSystem: React.FC = () => {
   // 状态管理
-  const [templates, setTemplates] = useState<Template[]>([]);
+  const [templates, setTemplates] = useState<ReplyTemplate[]>([]);
   const [categories, setCategories] = useState<TemplateCategory[]>([]);
   const [stats, setStats] = useState<TemplateStats>({
     total_templates: 0,
@@ -108,14 +87,14 @@ export const TemplateManagementSystem: React.FC = () => {
   });
   
   const [loading, setLoading] = useState(false);
-  const [selectedTemplate, setSelectedTemplate] = useState<Template | null>(null);
+  const [selectedTemplate, setSelectedTemplate] = useState<ReplyTemplate | null>(null);
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
   const [showTemplateModal, setShowTemplateModal] = useState(false);
   const [showCategoryModal, setShowCategoryModal] = useState(false);
   const [showTemplateDetail, setShowTemplateDetail] = useState(false);
-  const [editingTemplate, setEditingTemplate] = useState<Template | null>(null);
+  const [editingTemplate, setEditingTemplate] = useState<ReplyTemplate | null>(null);
   const [searchText, setSearchText] = useState('');
-  const [activeTab, setActiveTab] = useState('templates');
+
 
   // 表单实例
   const [templateForm] = Form.useForm();
@@ -130,19 +109,17 @@ export const TemplateManagementSystem: React.FC = () => {
     try {
       const result = await templateService.getTemplates({
         category: selectedCategory || undefined,
-        search: searchText || undefined
+        keyword: searchText || undefined
       });
-      setTemplates(result.templates);
+      setTemplates(result);
       
       // 计算统计数据
       const newStats: TemplateStats = {
-        total_templates: result.templates.length,
-        active_templates: result.templates.filter(t => t.is_active).length,
+        total_templates: result.length,
+        active_templates: result.filter(t => t.enabled).length,
         categories_count: categories.length,
-        total_usage: result.templates.reduce((sum, t) => sum + t.usage_count, 0),
-        average_success_rate: result.templates.length > 0 
-          ? Math.round(result.templates.reduce((sum, t) => sum + t.success_rate, 0) / result.templates.length)
-          : 0
+        total_usage: 0, // ReplyTemplate 没有 usage_count 字段
+        average_success_rate: 0 // ReplyTemplate 没有 success_rate 字段
       };
       setStats(newStats);
     } catch (error) {
@@ -160,7 +137,7 @@ export const TemplateManagementSystem: React.FC = () => {
   const loadCategories = useCallback(async () => {
     try {
       const result = await templateService.getCategories();
-      setCategories(result.categories);
+      setCategories(result);
     } catch (error) {
       console.error('Failed to load categories:', error);
     }
@@ -179,12 +156,12 @@ export const TemplateManagementSystem: React.FC = () => {
   const handleCreateTemplate = async (values: any) => {
     try {
       await templateService.createTemplate({
-        name: values.name,
-        content: values.content,
+        template_name: values.template_name,
+        text: values.text,
         category: values.category,
-        platform: values.platform,
-        task_type: values.task_type,
-        tags: values.tags || []
+        channel: values.channel,
+        variables: values.variables || [],
+        enabled: true
       });
 
       notification.success({
@@ -251,15 +228,15 @@ export const TemplateManagementSystem: React.FC = () => {
   };
 
   // 复制模板
-  const handleDuplicateTemplate = async (template: Template) => {
+  const handleDuplicateTemplate = async (template: ReplyTemplate) => {
     try {
       await templateService.createTemplate({
-        name: `${template.name} (副本)`,
-        content: template.content,
+        template_name: `${template.template_name} (副本)`,
+        text: template.text,
         category: template.category,
-        platform: template.platform,
-        task_type: template.task_type,
-        tags: template.tags
+        channel: template.channel,
+        variables: template.variables || [],
+        enabled: template.enabled
       });
 
       notification.success({
@@ -300,15 +277,14 @@ export const TemplateManagementSystem: React.FC = () => {
   };
 
   // 编辑模板
-  const handleEditTemplate = (template: Template) => {
+  const handleEditTemplate = (template: ReplyTemplate) => {
     setEditingTemplate(template);
     templateForm.setFieldsValue({
-      name: template.name,
-      content: template.content,
+      template_name: template.template_name,
+      text: template.text,
       category: template.category,
-      platform: template.platform,
-      task_type: template.task_type,
-      tags: template.tags
+      channel: template.channel,
+      variables: template.variables
     });
     setShowTemplateModal(true);
   };
@@ -317,7 +293,9 @@ export const TemplateManagementSystem: React.FC = () => {
   const getPlatformColor = (platform: Platform): string => {
     const colorMap: Record<Platform, string> = {
       [Platform.XIAOHONGSHU]: 'red',
-      [Platform.DOUYIN]: 'blue'
+      [Platform.DOUYIN]: 'blue',
+      [Platform.OCEANENGINE]: 'purple',
+      [Platform.PUBLIC]: 'green'
     };
     return colorMap[platform] || 'default';
   };
@@ -328,7 +306,9 @@ export const TemplateManagementSystem: React.FC = () => {
       [TaskType.FOLLOW]: 'green',
       [TaskType.LIKE]: 'orange',
       [TaskType.COMMENT]: 'purple',
-      [TaskType.REPLY]: 'cyan'
+      [TaskType.REPLY]: 'cyan',
+      [TaskType.SHARE]: 'blue',
+      [TaskType.VIEW]: 'gray'
     };
     return colorMap[taskType] || 'default';
   };
@@ -340,7 +320,7 @@ export const TemplateManagementSystem: React.FC = () => {
       dataIndex: 'name',
       key: 'name',
       width: 200,
-      render: (name: string, record: Template) => (
+      render: (name: string, record: ReplyTemplate) => (
         <div>
           <div className="font-medium">{name}</div>
           <div className="text-xs text-gray-500">ID: {record.id.slice(-8)}</div>
@@ -372,9 +352,9 @@ export const TemplateManagementSystem: React.FC = () => {
       render: (tags: string[]) => (
         <div>
           {tags.slice(0, 2).map(tag => (
-            <Tag key={tag} size="small" icon={<TagOutlined />}>{tag}</Tag>
+            <Tag key={tag} icon={<TagOutlined />}>{tag}</Tag>
           ))}
-          {tags.length > 2 && <Tag size="small">+{tags.length - 2}</Tag>}
+          {tags.length > 2 && <Tag>+{tags.length - 2}</Tag>}
         </div>
       )
     },
@@ -418,7 +398,7 @@ export const TemplateManagementSystem: React.FC = () => {
       title: '操作',
       key: 'actions',
       width: 200,
-      render: (_, record: Template) => (
+      render: (_, record: ReplyTemplate) => (
         <Space size="small">
           <Tooltip title="查看详情">
             <Button
@@ -814,7 +794,7 @@ export const TemplateManagementSystem: React.FC = () => {
               <div className="space-y-3">
                 <div>
                   <Text strong>模板名称：</Text>
-                  <span>{selectedTemplate.name}</span>
+                  <span>{selectedTemplate.template_name}</span>
                 </div>
                 <div>
                   <Text strong>分类：</Text>

@@ -12,7 +12,7 @@
 import React from 'react';
 import { Row as AntRow, Col as AntCol, Space as AntSpace } from 'antd';
 import type { RowProps as AntRowProps, ColProps as AntColProps, SpaceProps as AntSpaceProps } from 'antd';
-import { cn } from '@/components/ui/utils';
+import { cn } from '../../ui/utils';
 
 // Grid Row 适配器
 interface GridRowProps extends Omit<AntRowProps, 'className'> {

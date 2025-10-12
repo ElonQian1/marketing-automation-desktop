@@ -1,6 +1,6 @@
-// src/modules/contact-import/core/ContactImporter.ts
-// module: contact-import | layer: module | role: module-component
-// summary: 模块组件
+// src/modules/contact-import/core/contact-core-importer.ts
+// module: contact-import | layer: core | role: core-service
+// summary: 联系人导入器核心服务（前缀化后）
 
 /**
  * 联系人导入器核心类
@@ -25,7 +25,7 @@ import {
   ParseOptions,
 } from "../types";
 
-export interface ContactImporterOptions {
+export interface ContactCoreImporterOptions {
   parser: IContactParser;
   deviceManager: IDeviceManager;
   strategy: ContactImportStrategy;
@@ -35,7 +35,7 @@ export interface ContactImporterOptions {
 /**
  * 联系人导入器事件监听器
  */
-export interface ContactImporterEventListener {
+export interface ContactCoreImporterEventListener {
   onProgress?(progress: ImportProgress): void;
   onPhaseChange?(phase: ImportPhase): void;
   onDeviceStatusChange?(device: Device): void;
@@ -57,17 +57,17 @@ export interface ContactImporterEventListener {
  * 3. 提供进度监控
  * 4. 处理错误和异常
  */
-export class ContactImporter {
+export class ContactCoreImporter {
   private parser: IContactParser;
   private deviceManager: IDeviceManager;
   private strategy: ContactImportStrategy;
   private configuration: ImportConfiguration;
-  private listeners: ContactImporterEventListener[] = [];
+  private listeners: ContactCoreImporterEventListener[] = [];
   private currentProgress: ImportProgress;
   private isImporting = false;
   private cancelRequested = false;
 
-  constructor(options: ContactImporterOptions) {
+  constructor(options: ContactCoreImporterOptions) {
     this.parser = options.parser;
     this.deviceManager = options.deviceManager;
     this.strategy = options.strategy;
@@ -87,7 +87,7 @@ export class ContactImporter {
   /**
    * 添加事件监听器
    */
-  addEventListener(listener: ContactImporterEventListener): () => void {
+  addEventListener(listener: ContactCoreImporterEventListener): () => void {
     this.listeners.push(listener);
     return () => {
       const index = this.listeners.indexOf(listener);
@@ -578,9 +578,9 @@ export class ContactImporter {
   /**
    * 通知监听器
    */
-  private notifyListeners<K extends keyof ContactImporterEventListener>(
+  private notifyListeners<K extends keyof ContactCoreImporterEventListener>(
     method: K,
-    ...args: Parameters<NonNullable<ContactImporterEventListener[K]>>
+    ...args: Parameters<NonNullable<ContactCoreImporterEventListener[K]>>
   ): void {
     this.listeners.forEach((listener) => {
       try {

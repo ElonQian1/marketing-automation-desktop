@@ -19,7 +19,7 @@ import {
   InfoCircleOutlined,
   CloseCircleOutlined,
 } from '@ant-design/icons';
-import { cn } from '@/components/ui/utils';
+import { cn } from '../../ui/utils';
 
 // 基础图标Props
 interface IconProps {

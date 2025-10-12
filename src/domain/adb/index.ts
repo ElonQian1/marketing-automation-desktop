@@ -16,5 +16,5 @@ export * from './repositories/IDiagnosticRepository';
 // 领域服务导出
 export * from './services/DeviceManagerService';
 export * from './services/ConnectionService';
-export * from './services/DiagnosticService';
+export * from './services/adb-diagnostic-service';
 

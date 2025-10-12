@@ -38,6 +38,22 @@ interface CsvRow {
   [key: string]: string | number | undefined;
 }
 
+// 日报类型定义
+interface DailyReport {
+  report_date: string;
+  summary: {
+    new_targets: number;
+    new_comments: number;
+    tasks_generated: number;
+    tasks_completed: number;
+    success_rate: number;
+  };
+  details: {
+    follow_tasks: Array<{ target_user: string; status: string; result?: string }>;
+    reply_tasks: Array<{ comment_id: string; reply_content: string; status: string }>;
+  };
+}
+
 export interface UsePreciseAcquisitionOptions {
   autoRefresh?: boolean;
   refreshInterval?: number;
@@ -70,7 +86,7 @@ export interface UsePreciseAcquisitionReturn {
     failed_count: number;
     errors: Array<{ index: number; error: string }>;
   }>;
-  validateCsvImport: (csvData: any[]) => ImportValidationResult;
+  validateCsvImport: (csvData: CsvRow[]) => ImportValidationResult;
   exportToCsv: (filters?: WatchTargetQueryParams) => Promise<string>;
   
   // 评论管理
@@ -125,7 +141,7 @@ export interface UsePreciseAcquisitionReturn {
   
   // 统计和报告
   refreshStats: () => Promise<void>;
-  generateDailyReport: (date?: Date) => Promise<any>;
+    generateDailyReport: (date?: Date) => Promise<DailyReport>;
   
   // 工具方法
   refreshAll: () => Promise<void>;
@@ -197,13 +213,13 @@ export const usePreciseAcquisition = (
       const rows = targets.map(target => ({
         id: parseInt(target.id),
         dedup_key: `${target.platform}_${target.platform_id_or_url}`,
-        target_type: target.target_type as any,
-        platform: target.platform as any,
+        target_type: target.target_type,
+        platform: target.platform as Platform,
         id_or_url: target.platform_id_or_url,
         title: target.title || '',
-        source: target.source as any,
+        source: target.source,
         industry_tags: target.industry_tags?.join(';') || '',
-        region: target.region_tag as any,
+        region: target.region_tag as RegionTag,
         notes: target.notes || '',
         created_at: target.created_at.toISOString(),
         updated_at: target.updated_at.toISOString()
@@ -275,7 +291,7 @@ export const usePreciseAcquisition = (
     }
   }, [getWatchTargets]);
 
-  const validateCsvImport = useCallback((csvData: any[]): ImportValidationResult => {
+  const validateCsvImport = useCallback((csvData: CsvRow[]): ImportValidationResult => {
     return prospectingAcquisitionService.validateCsvImport(csvData);
   }, []);
 

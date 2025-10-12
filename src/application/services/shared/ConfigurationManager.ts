@@ -381,7 +381,11 @@ export class ConfigurationManager {
    * 验证配置完整性
    */
   validateConfig(config: PreciseAcquisitionConfig): { valid: boolean; errors: string[] } {
-    return validateObjectStructure(config, this.validationSchema);
+    const result = validateObjectStructure(config, this.validationSchema);
+    return {
+      valid: result.valid,
+      errors: result.errors.map(e => `${e.field}: ${e.message}`)
+    };
   }
 
   /**

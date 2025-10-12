@@ -1,6 +1,6 @@
-// src/services/authService.ts
+// src/services/employee-auth-service.ts
 // module: shared | layer: unknown | role: component
-// summary: authService.ts 文件
+// summary: employee-auth-service.ts 文件
 
 import { invoke } from '@tauri-apps/api/core';
 import { Employee, LoginCredentials, LoginResponse } from '../types';
@@ -9,7 +9,7 @@ import { Employee, LoginCredentials, LoginResponse } from '../types';
  * 认证服务类
  * 处理与Flow_Farm管理服务器的认证通信
  */
-export class AuthService {
+export class EmployeeAuthService {
   private static readonly SERVER_BASE_URL = 'http://localhost:8000/api/v1';
 
   /**
@@ -283,5 +283,5 @@ export class AuthService {
   }
 }
 
-export default AuthService;
+export default EmployeeAuthService;
 

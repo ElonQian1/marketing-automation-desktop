@@ -18,8 +18,8 @@
 
 import React from 'react';
 import { motion } from 'framer-motion';
-import { FadeIn, SlideIn } from '@/components/ui/motion/MotionSystem';
-import { cn } from '@/utils/cn';
+import { FadeIn, SlideIn } from '../ui/motion/MotionSystem';
+import { cn } from '../ui/utils';
 
 interface PageShellProps {
   /** 页面标题 */

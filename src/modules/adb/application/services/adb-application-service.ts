@@ -17,7 +17,7 @@ import { DiagnosticManagementService } from './DiagnosticManagementService';
 // 外部依赖（暂时保持原始导入路径，后续会迁移）
 import { DeviceManagerService } from '../../../../domain/adb/services/DeviceManagerService';
 import { ConnectionService } from '../../../../domain/adb/services/ConnectionService';
-import { DiagnosticService } from '../../../../domain/adb/services/DiagnosticService';
+import { AdbDiagnosticService } from '../../../../domain/adb/services/adb-diagnostic-service';
 import { StoreOperations } from '../../../../application/services/common';
 
 /**
@@ -40,7 +40,7 @@ export class AdbApplicationService {
   constructor(
     private deviceManager: DeviceManagerService,
     private connectionService: ConnectionService,
-    private diagnosticService: DiagnosticService
+    private diagnosticService: AdbDiagnosticService
   ) {
     // 初始化专门化服务
     this.deviceManagementService = new DeviceManagementService(deviceManager);

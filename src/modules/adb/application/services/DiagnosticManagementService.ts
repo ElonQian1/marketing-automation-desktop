@@ -6,7 +6,7 @@
 // 负责诊断检查、健康监控和自动修复，从巨型AdbApplicationService中拆分出来
 
 import { DiagnosticResult, DiagnosticSummary } from '../../domain/entities/DiagnosticResult';
-import { DiagnosticService } from '../../../../domain/adb/services/DiagnosticService';
+import { AdbDiagnosticService } from '../../../../domain/adb/services/adb-diagnostic-service';
 import { StoreOperations } from '../../../../application/services/common';
 
 /**
@@ -15,7 +15,7 @@ import { StoreOperations } from '../../../../application/services/common';
  */
 export class DiagnosticManagementService {
   constructor(
-    private diagnosticService: DiagnosticService
+    private diagnosticService: AdbDiagnosticService
   ) {}
 
   /**
