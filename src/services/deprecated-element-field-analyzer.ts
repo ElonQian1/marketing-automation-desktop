@@ -1,6 +1,6 @@
-// src/services/ElementFieldAnalyzer.ts
-// module: shared | layer: unknown | role: component
-// summary: ElementFieldAnalyzer.ts 文件
+// src/services/deprecated-element-field-analyzer.ts
+// module: deprecated | layer: service | role: adapter
+// summary: deprecated-element-field-analyzer.ts 文件
 
 /**
  * @deprecated 已迁移到 intelligent-strategy-system/ElementAnalyzer

@@ -9,7 +9,7 @@
 
 import { invoke } from '@tauri-apps/api/core';
 import { XmlAnalysisService } from './xml-analysis-service';
-import { ElementFilter, ModuleFilterFactory, FilterStrategy } from './ElementFilter';
+import { ElementFilter, ModuleFilterFactory, FilterStrategy } from './ui-element-filter';
 import { BoundsCalculator } from '../shared/bounds/BoundsCalculator';
 
 export interface CachedXmlPage {

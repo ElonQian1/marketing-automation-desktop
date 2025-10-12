@@ -11,8 +11,8 @@ import {
   customMatchingEngine, 
   CustomMatchingRule, 
   PREDEFINED_RULES 
-} from '../services/customMatchingEngine';
-import { customMatchingManager } from '../services/customMatchingIntegration';
+} from '../services/matching-custom-engine';
+import { customMatchingManager } from '../services/matching-integration';
 
 // 模拟当前页面的XML数据
 const CURRENT_XML_DATA = `<?xml version='1.0' encoding='UTF-8' standalone='yes' ?>

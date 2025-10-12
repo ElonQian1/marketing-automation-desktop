@@ -4,8 +4,8 @@
 
 // @vitest-environment jsdom
 import React from 'react';
-import { describe, it, expect, vi, beforeEach } from 'vitest';
-import { render, screen, waitFor, fireEvent } from '@testing-library/react';
+import { describe, it, expect, vi, beforeEach, waitFor } from 'vitest';
+import { render, fireEvent, screen } from '@testing-library/react';
 import { Thumbnail } from '../components/Thumbnail';
 
 vi.mock('@tauri-apps/api/core', () => ({

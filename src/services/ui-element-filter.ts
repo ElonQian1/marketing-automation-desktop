@@ -1,6 +1,6 @@
-// src/services/ElementFilter.ts
-// module: shared | layer: unknown | role: component
-// summary: ElementFilter.ts 文件
+// src/services/ui-element-filter.ts
+// module: ui | layer: service | role: filter
+// summary: ui-element-filter.ts 文件
 
 /**
  * 独立的元素过滤器模块

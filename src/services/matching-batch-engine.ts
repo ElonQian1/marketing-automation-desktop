@@ -184,7 +184,7 @@ export class MatchingBatchEngine {
   private previewCache = new Map<string, MatchPreview>();
   
   constructor() {
-    this.matchingEngine = new CustomMatchingEngine();
+    this.matchingEngine = new MatchingCustomEngine();
   }
 
   // ========== 实时预览功能 ==========

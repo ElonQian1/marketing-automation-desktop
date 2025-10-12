@@ -1,6 +1,6 @@
-// src/services/duplicationGuard.ts
-// module: shared | layer: unknown | role: component
-// summary: duplicationGuard.ts 文件
+// src/services/automation-duplication-guard.ts
+// module: automation | layer: service | role: guard
+// summary: automation-duplication-guard.ts 文件
 
 import { invoke } from '@tauri-apps/api/core';
 

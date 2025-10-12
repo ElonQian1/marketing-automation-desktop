@@ -30,7 +30,7 @@ import {
 } from "@ant-design/icons";
 import type { UIElement } from "../types";
 import type { VisualFilterConfig } from "../../types";
-import { FilterAdapter } from "../../../../services/FilterAdapter";
+import { FilterAdapter } from "../../../../services/ui-filter-adapter";
 import { getDisplayText, sortElements } from "../utils/sortElements";
 
 const { Text } = Typography;

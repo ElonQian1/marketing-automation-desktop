@@ -26,7 +26,6 @@ import {
 // 🆕 导入策略评分系统组件
 import { 
   StrategyRecommendationPanel,
-  type StrategyScoreInfo,
   type DetailedStrategyRecommendation,
   strategySystemAdapter
 } from './node-detail';

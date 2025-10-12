@@ -4,7 +4,7 @@
 
 import { useMemo } from 'react';
 import type { VisualUIElement } from '../../../types';
-import { FilterAdapter, type VisualFilterConfig, defaultVisualFilterConfig } from '../../../../../services/FilterAdapter';
+import { FilterAdapter, type VisualFilterConfig, defaultVisualFilterConfig } from '../../../../../services/ui-filter-adapter';
 
 interface Params {
   elements: VisualUIElement[];

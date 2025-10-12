@@ -45,7 +45,7 @@ import {
   InfoCircleOutlined
 } from '@ant-design/icons';
 import type { Device } from '../../../../domain/adb/entities/Device';
-import { checkDuplication } from '../../../../services/duplicationGuard';
+import { checkDuplication } from '../../../../services/automation-duplication-guard';
 
 const { Title, Text } = Typography;
 const { Option } = Select;

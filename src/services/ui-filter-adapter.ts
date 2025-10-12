@@ -1,6 +1,6 @@
-// src/services/FilterAdapter.ts
-// module: shared | layer: unknown | role: component
-// summary: FilterAdapter.ts 文件
+// src/services/ui-filter-adapter.ts
+// module: ui | layer: service | role: adapter
+// summary: ui-filter-adapter.ts 文件
 
 /**
  * 过滤器系统适配器
@@ -10,7 +10,7 @@
  * 新系统: ElementFilter.ts + ModuleFilterFactory + ElementFilterConfig
  */
 
-import { ElementFilter, ModuleFilterFactory, FilterStrategy, ElementFilterConfig } from './ElementFilter';
+import { ElementFilter, ModuleFilterFactory, FilterStrategy, ElementFilterConfig } from './ui-element-filter';
 import type { UIElement } from '../api/universalUIAPI';
 
 // 导入旧系统类型（用于兼容）

@@ -24,7 +24,7 @@ import {
 } from '../index';
 
 import { globalAuditManager } from '../audit/AuditLogManager';
-import { CommentFilterEngine, createCommentFilterEngine } from '../comment-collection/engines/CommentFilterEngine';
+// import { CommentFilterEngine, createCommentFilterEngine } from '../comment-collection/engines/CommentFilterEngine';
 import { TaskGenerationEngine, createTaskGenerationEngine } from '../task-generation/engines/TaskGenerationEngine';
 import { TaskTemplateManager, createTaskTemplateManager } from '../task-generation/templates/TaskTemplateManager';
 import { TaskScheduler, createDefaultTaskScheduler } from '../task-generation/state/TaskStateManager';

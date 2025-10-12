@@ -51,9 +51,9 @@ import { Platform, TaskType } from '../../constants/precise-acquisition-enums';
 import { rateLimitService } from '../../modules/precise-acquisition/rate-limit';
 import type { 
   RateLimitConfig, 
-  DeduplicationConfig,
-  CircuitBreakerConfig 
+  DeduplicationConfig
 } from '../../types/precise-acquisition';
+import type { CircuitBreakerConfig } from '../../modules/deduplication-control/types';
 
 const { TabPane } = Tabs;
 const { Option } = Select;

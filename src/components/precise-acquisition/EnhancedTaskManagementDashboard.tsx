@@ -53,7 +53,10 @@ import { TaskStatus, TaskType, Platform } from '../../constants/precise-acquisit
 import { TaskDeviceConsole } from '../../modules/precise-acquisition/task-engine/components/TaskDeviceConsole';
 
 // 服务导入
-import { taskEngineService } from '../../modules/precise-acquisition/task-engine';
+import { TaskEngineService } from '../../modules/precise-acquisition/task-engine';
+
+// 创建服务实例
+const taskEngineService = new TaskEngineService();
 // import { enhancedTaskExecutorService } from '../../modules/precise-acquisition/task-engine/services/EnhancedTaskExecutorService';
 
 const { TabPane } = Tabs;

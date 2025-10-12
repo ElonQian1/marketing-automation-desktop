@@ -38,8 +38,8 @@ import {
   GridElementView,
   ScrcpyControlView,
 } from "./views";
-import { ElementFilter, ModuleFilterFactory } from "../../services/ElementFilter";
-import { FilterAdapter, type VisualFilterConfig, defaultVisualFilterConfig } from "../../services/FilterAdapter";
+import { ElementFilter, ModuleFilterFactory } from "../../services/ui-element-filter";
+import { FilterAdapter, type VisualFilterConfig, defaultVisualFilterConfig } from "../../services/ui-filter-adapter";
 import { useElementSelectionManager, ZIndexManager, useZIndexManager } from "./element-selection";
 import { convertVisualToUIElement } from "./views/visual-view";
 import type { VisualUIElement } from "./types";

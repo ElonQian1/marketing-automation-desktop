@@ -16,10 +16,9 @@ import {
 import { 
   Platform,
   TaskType,
-  TaskStatus,
-  TaskPriority 
+  TaskStatus
 } from '../../../modules/precise-acquisition/shared/constants';
-import { AuditLogManager, AuditLogLevel, AuditLogCategory } from './AuditLogManager';
+import { AuditLogManager, AuditLogLevel, AuditLogCategory } from '../audit/AuditLogManager';
 
 // ==================== 日报类型定义 ====================
 
