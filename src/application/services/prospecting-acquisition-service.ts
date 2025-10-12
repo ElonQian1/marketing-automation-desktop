@@ -53,8 +53,7 @@ import type {
 import type {
   WatchTarget,
   WatchTargetQueryParams,
-  ImportValidationResult,
-  ComplianceCheckResult
+  ImportValidationResult
 } from '../../modules/precise-acquisition/shared/types/core';
 
 /**
@@ -122,7 +121,7 @@ export class ProspectingAcquisitionService {
     await this.ensureInitialized();
     
     const target = await this.candidatePoolService.addWatchTarget({
-      target_type: payload.target_type as any, // 临时转换，待枚举统一后移除
+      target_type: payload.target_type as TargetType, // 临时转换，待枚举统一后移除
       platform: payload.platform as Platform,
       platform_id_or_url: payload.id_or_url,
       title: payload.title,
@@ -253,7 +252,13 @@ export class ProspectingAcquisitionService {
     await this.ensureInitialized();
     
     const comments = await this.coreApplicationService.getComments(params);
-    return comments.map(comment => comment.toDatabaseRow());
+    return comments.map(comment => {
+      const row = comment.toDatabaseRow();
+      return {
+        ...row,
+        id: row.id || crypto.randomUUID()
+      } as CommentRow;
+    });
   }
 
   /**
@@ -359,7 +364,13 @@ export class ProspectingAcquisitionService {
     const result = await this.coreApplicationService.generateTasks(config);
     return {
       generated_count: result.generated_count,
-      tasks: result.tasks.map(task => task.toDatabaseRow())
+      tasks: result.tasks.map(task => {
+        const row = task.toDatabaseRow();
+        return {
+          ...row,
+          id: row.id || crypto.randomUUID()
+        } as TaskRow;
+      })
     };
   }
 
@@ -376,7 +387,13 @@ export class ProspectingAcquisitionService {
     await this.ensureInitialized();
     
     const tasks = await this.coreApplicationService.getTasks(params);
-    return tasks.map(task => task.toDatabaseRow());
+    return tasks.map(task => {
+      const row = task.toDatabaseRow();
+      return {
+        ...row,
+        id: row.id || crypto.randomUUID()
+      } as TaskRow;
+    });
   }
 
   /**
