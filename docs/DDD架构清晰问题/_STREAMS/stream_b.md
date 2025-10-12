@@ -55,7 +55,57 @@
 ### 策略调整
 优先解决属性名不匹配问题（属性映射统一），然后处理缺失模块。
 
-## Round 9 进度记录 - 2025-01-10 继续错误修复 
+---
+
+## Round 10 执行详情
+
+### Part 1 - 任务和评论属性修正 (已完成)
+- **时间戳**: 2025-01-27 16:45:00
+- **错误减少**: 276 → 239 (-37 个错误)  
+- **Git提交**: 1c35a4c
+- **修复内容**:
+  - `TaskExecutors.ts` 中 `task.type` → `task.task_type`
+  - `task.targetId` → `target_id`
+  - 修复方法位置错误（`isValidForReply` 方法放置）
+
+### Part 2 - 服务路径修正 (已完成)
+- **时间戳**: 2025-01-27 17:20:00
+- **错误减少**: 239 → 229 (-10 个错误)
+- **修复内容**:
+  - `EnhancedXmlCacheService` → `xml-enhanced-cache-service` 路径修正
+  - `UnifiedViewDataManager` → `unified-view-data-manager` 路径修正
+  - `XmlCacheManager` → `xml-cache-manager` 路径修正
+  - 多个组件中的 import 路径更新
+
+### Part 3 - 预计修复内容
+- **属性名称映射**（约60%错误）：
+  - `task.type` → `task.task_type`
+  - `comment.publishTime` → `comment.publish_time`  
+  - `comment.likeCount` → `comment.like_count`
+  - `task.completedAt` → `task.completed_at`
+  - `task.updatedAt` → `task.updated_at`
+  - `task.createdAt` → `task.created_at`
+  - `task.scheduledTime` → `task.scheduled_time`
+  - `task.sourceTargetId` → `task.source_target_id`
+  - `task.startedAt` → `task.started_at`
+  - `comment.authorId` → `comment.author_id`
+
+- **缺失的服务和类型**（约20%错误）：
+  - `CommentFilterEngine` 类型定义
+  - `DailyReportExportService` 服务
+  - `TaskPriority` 枚举导出
+  - `TaskStatus.RUNNING` 枚举值
+  - `ExportResult` 类型定义
+
+- **XPath服务路径**（约15%错误）：
+  - `utils/xpath/XPathService` 模块缺失
+  - XPath缓存相关服务
+
+**当前状态**: 229个编译错误，进入属性名称批量修正阶段
+
+---
+
+# Round 9 修复日志 (已完成) 
 
 ### 错误统计
 - **开始**: 231 errors

@@ -7,7 +7,7 @@ import { Form, Modal, message } from 'antd';
 import type { FormInstance } from 'antd';
 import { SmartActionType } from '../../../types/smartComponents';
 import type { ExtendedSmartScriptStep } from '../../../types/loopScript';
-import XmlCacheManager from '../../../services/XmlCacheManager';
+import XmlCacheManager from '../../../services/xml-cache-manager';
 import { XmlDataValidator } from '../../../modules/distributed-script-quality/XmlDataValidator';
 import {
   XmlSnapshot,

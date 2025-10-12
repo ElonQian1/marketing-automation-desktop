@@ -1,6 +1,6 @@
-// src/utils/xpath/cache/XPathPrecompilerCache.ts
-// module: shared | layer: utils | role: utility
-// summary: 工具函数
+// src/utils/xpath/cache/xpath-precompiler-cache.ts
+// module: xpath | layer: utils | role: cache
+// summary: xpath-precompiler-cache.ts 文件
 
 /**
  * 预编译选择器缓存系统
@@ -37,7 +37,7 @@ export interface CacheConfig {
 /**
  * XPath预编译缓存管理器
  */
-export class XPathPrecompilerCache {
+export class XpathPrecompilerCache {
   private cache = new Map<string, CompiledSelector>();
   private config: CacheConfig;
   
@@ -290,7 +290,7 @@ export class XPathPrecompilerCache {
 /**
  * 全局预编译缓存实例
  */
-export const globalXPathCache = new XPathPrecompilerCache({
+export const globalXPathCache = new XpathPrecompilerCache({
   maxCacheSize: 2000,
   expirationTime: 60 * 60 * 1000, // 1小时
   highFrequencyThreshold: 5,

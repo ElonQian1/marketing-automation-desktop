@@ -158,7 +158,7 @@ export class TaskStateMachine {
       
       // 更新任务状态
       task.status = newStatus;
-      task.updatedAt = new Date();
+      task.updated_at = new Date();
       
       return true;
     } catch (error) {
@@ -186,10 +186,10 @@ export class TaskStateMachine {
     // PENDING -> RUNNING
     this.addTransition({
       from: TaskStatus.PENDING,
-      to: TaskStatus.RUNNING,
-      condition: (task) => task.scheduledTime <= new Date(),
+      to: TaskStatus.EXECUTING,
+      condition: (task) => task.scheduled_time <= new Date(),
       action: async (task) => {
-        task.startedAt = new Date();
+        task.executed_at = new Date();
       }
     });
     
@@ -200,21 +200,21 @@ export class TaskStateMachine {
       allowed_by: ['admin', 'user']
     });
     
-    // RUNNING -> COMPLETED
+    // EXECUTING -> COMPLETED
     this.addTransition({
-      from: TaskStatus.RUNNING,
+      from: TaskStatus.EXECUTING,
       to: TaskStatus.COMPLETED,
       action: async (task) => {
-        task.completedAt = new Date();
+        task.completed_at = new Date();
       }
     });
     
-    // RUNNING -> FAILED
+    // EXECUTING -> FAILED
     this.addTransition({
-      from: TaskStatus.RUNNING,
+      from: TaskStatus.EXECUTING,
       to: TaskStatus.FAILED,
       action: async (task) => {
-        task.completedAt = new Date();
+        task.completed_at = new Date();
       }
     });
     
@@ -226,7 +226,7 @@ export class TaskStateMachine {
       action: async (task) => {
         const retryCount = (task.metadata?.retry_count || 0) + 1;
         task.metadata = { ...task.metadata, retry_count: retryCount };
-        task.scheduledTime = this.calculateNextRetryTime(retryCount);
+        task.scheduled_time = this.calculateNextRetryTime(retryCount);
       }
     });
     
@@ -294,7 +294,7 @@ export class TaskScheduler {
     const queueItem: TaskQueueItem = {
       task,
       priority_score: this.calculatePriorityScore(task),
-      scheduled_for: task.scheduledTime,
+      scheduled_for: task.scheduled_time,
       dependencies,
       retry_count: 0
     };
@@ -456,7 +456,7 @@ export class TaskScheduler {
     
     try {
       // 转换状态为运行中
-      await this.stateMachine.transition(task, TaskStatus.RUNNING);
+      await this.stateMachine.transition(task, TaskStatus.EXECUTING);
       this.runningTasks.set(task.id, task);
       
       // 执行任务
@@ -531,7 +531,7 @@ export class TaskScheduler {
     }
     
     // 时间因子（越早调度分数越高）
-    const delay = task.scheduledTime.getTime() - Date.now();
+    const delay = task.scheduled_time.getTime() - Date.now();
     score -= Math.max(0, delay / (60 * 1000)); // 每分钟延迟减1分
     
     return score;

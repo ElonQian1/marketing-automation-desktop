@@ -8,7 +8,7 @@
  */
 
 // 核心服务
-export { UnifiedViewDataManager } from '../services/UnifiedViewDataManager';
+export { UnifiedViewDataManager } from '../services/unified-view-data-manager';
 export { XmlEnhancedCacheService } from '../services/xml-enhanced-cache-service';
 
 // Hooks
@@ -25,7 +25,7 @@ export type {
   TreeViewData,
   VisualViewData,
   ListViewData
-} from '../services/UnifiedViewDataManager';
+} from '../services/unified-view-data-manager';
 
 export type {
   CachedViewData,

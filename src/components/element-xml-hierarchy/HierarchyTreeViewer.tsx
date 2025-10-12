@@ -22,7 +22,7 @@ import {
 } from '@ant-design/icons';
 
 import type { TreeDataNode } from 'antd';
-import type { UnifiedViewData, EnhancedUIElement } from '../../services/UnifiedViewDataManager';
+import type { UnifiedViewData, EnhancedUIElement } from '../../services/unified-view-data-manager';
 
 const { Text } = Typography;
 const { Search } = Input;

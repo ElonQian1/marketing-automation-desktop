@@ -7,7 +7,7 @@ import UniversalUIAPI from '../../../../api/universalUIAPI';
 import { buildSnapshotIfPossible } from '../../../../modules/self-contained/XmlSnapshotAutoBuilder';
 import { parseXML } from '../../xml-parser';
 import { PageFinderLoadContext } from './loadContext';
-import XmlCacheManager from '../../../../services/XmlCacheManager';
+import XmlCacheManager from '../../../../services/xml-cache-manager';
 
 export async function handleLoadFromStepXmlCache(
   xmlCacheId: string,

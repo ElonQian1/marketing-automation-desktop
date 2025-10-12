@@ -18,7 +18,7 @@ export * from './parsing';
 export * from './types';
 
 // 默认导出统一的 XPath 服务
-export { default as XPathService } from './XPathService';
+export { default as XPathService } from './xpath-service';
 
 // 便捷导出常用函数（向后兼容）
 export { isValidXPath } from './validation';

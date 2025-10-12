@@ -9,8 +9,8 @@
 
 import type { UIElement } from '../../api/universalUIAPI';
 import type { CachedXmlPage } from '../../services/xml-page-cache-service';
-import { EnhancedXmlCacheService, type CachedViewData } from '../../services/EnhancedXmlCacheService';
-import type { UnifiedViewData, EnhancedUIElement } from '../../services/UnifiedViewDataManager';
+import { XmlEnhancedCacheService as EnhancedXmlCacheService, type CachedViewData } from '../../services/xml-enhanced-cache-service';
+import type { UnifiedViewData, EnhancedUIElement } from '../../services/unified-view-data-manager';
 
 interface ElementSourceResult {
   /** 匹配的缓存页面 */

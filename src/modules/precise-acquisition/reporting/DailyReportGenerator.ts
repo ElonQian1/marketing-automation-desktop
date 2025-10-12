@@ -511,8 +511,8 @@ export class DailyReportGenerator {
     summary: any;
   }> {
     const commentsInRange = this.comments.filter(comment =>
-      comment.publishTime >= config.date_range.start_date &&
-      comment.publishTime <= config.date_range.end_date
+      comment.publish_time >= config.date_range.start_date &&
+      comment.publish_time <= config.date_range.end_date
     );
     
     // TODO: 实现详细的评论分析
@@ -653,7 +653,7 @@ export class DailyReportGenerator {
   
   private getTasksInDateRange(startDate: Date, endDate: Date): Task[] {
     return this.tasks.filter(task => {
-      const taskDate = task.completedAt || task.updatedAt || task.createdAt;
+      const taskDate = task.completed_at || task.updated_at || task.created_at;
       return taskDate >= startDate && taskDate <= endDate;
     });
   }
@@ -717,7 +717,7 @@ export class DailyReportGenerator {
   private calculateTaskBreakdownByType(tasks: Task[]): { [type: string]: number } {
     const breakdown: { [type: string]: number } = {};
     for (const task of tasks) {
-      breakdown[task.type] = (breakdown[task.type] || 0) + 1;
+      breakdown[task.task_type] = (breakdown[task.task_type] || 0) + 1;
     }
     return breakdown;
   }
@@ -757,7 +757,7 @@ export class DailyReportGenerator {
   private calculateAverageEngagement(comments: Comment[]): { avg_likes: number; total_engagement: number } {
     if (comments.length === 0) return { avg_likes: 0, total_engagement: 0 };
     
-    const totalLikes = comments.reduce((sum, comment) => sum + comment.likeCount, 0);
+    const totalLikes = comments.reduce((sum, comment) => sum + (comment.like_count || 0), 0);
     return {
       avg_likes: totalLikes / comments.length,
       total_engagement: totalLikes
@@ -800,13 +800,13 @@ export class DailyReportGenerator {
   
   private calculateAverageExecutionTime(tasks: Task[]): number {
     const completedTasks = tasks.filter(task => 
-      task.status === TaskStatus.COMPLETED && task.startedAt && task.completedAt
+      task.status === TaskStatus.COMPLETED && task.executed_at && task.completed_at
     );
     
     if (completedTasks.length === 0) return 0;
     
     const totalTime = completedTasks.reduce((sum, task) => {
-      const duration = task.completedAt!.getTime() - task.startedAt!.getTime();
+      const duration = task.completed_at!.getTime() - task.executed_at!.getTime();
       return sum + duration;
     }, 0);
     
@@ -859,7 +859,7 @@ export class DailyReportGenerator {
   private calculateHourlyDistribution(comments: Comment[]): { [hour: string]: number } {
     const distribution: { [hour: string]: number } = {};
     for (const comment of comments) {
-      const hour = comment.publishTime.getHours().toString().padStart(2, '0');
+      const hour = comment.publish_time.getHours().toString().padStart(2, '0');
       distribution[hour] = (distribution[hour] || 0) + 1;
     }
     return distribution;
@@ -868,7 +868,7 @@ export class DailyReportGenerator {
   private calculateDailyTrends(comments: Comment[]): { [date: string]: number } {
     const trends: { [date: string]: number } = {};
     for (const comment of comments) {
-      const date = comment.publishTime.toISOString().split('T')[0];
+      const date = comment.publish_time.toISOString().split('T')[0];
       trends[date] = (trends[date] || 0) + 1;
     }
     return trends;
@@ -919,8 +919,8 @@ export class DailyReportGenerator {
     const hourCounts: { [hour: string]: number } = {};
     
     for (const task of tasks) {
-      if (task.completedAt) {
-        const hour = task.completedAt.getHours().toString().padStart(2, '0');
+      if (task.completed_at) {
+        const hour = task.completed_at.getHours().toString().padStart(2, '0');
         hourCounts[hour] = (hourCounts[hour] || 0) + 1;
       }
     }
@@ -933,14 +933,14 @@ export class DailyReportGenerator {
   
   private calculateSchedulingAccuracy(tasks: Task[]): number {
     const scheduledTasks = tasks.filter(task => 
-      task.scheduledTime && task.startedAt
+      task.scheduled_time && task.executed_at
     );
     
     if (scheduledTasks.length === 0) return 1;
     
     const accuratelyScheduled = scheduledTasks.filter(task => {
-      const scheduledTime = task.scheduledTime!.getTime();
-      const actualTime = task.startedAt!.getTime();
+      const scheduledTime = task.scheduled_time!.getTime();
+      const actualTime = task.executed_at!.getTime();
       const diff = Math.abs(actualTime - scheduledTime);
       return diff < 60000; // 1分钟内算准确
     }).length;

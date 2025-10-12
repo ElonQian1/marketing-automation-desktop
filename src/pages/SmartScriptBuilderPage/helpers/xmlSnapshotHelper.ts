@@ -2,7 +2,7 @@
 // module: ui | layer: ui | role: page
 // summary: 页面组件
 
-import XmlCacheManager from '../../../services/XmlCacheManager';
+import XmlCacheManager from '../../../services/xml-cache-manager';
 import { createXmlSnapshot, type XmlSnapshot } from '../../../types/selfContainedScript';
 
 type DeviceInfoLike = Partial<XmlSnapshot['deviceInfo']>;

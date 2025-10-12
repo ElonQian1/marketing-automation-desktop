@@ -58,6 +58,10 @@
 | xml | services | EnhancedXmlCacheService.ts | xml-enhanced-cache-service.ts | XmlEnhancedCacheService | ✅ | 员工A |
 | unified-view | services | UnifiedViewDataManager.ts | unified-view-data-manager.ts | UnifiedViewDataManager | ✅ | 员工A |
 | xml | services | XmlCacheManager.ts | xml-cache-manager.ts | XmlCacheManager | ✅ | 员工A |
+| contact | utils | ContactImportDebugger.ts | contact-import-debugger.ts | ContactImportDebugger | ✅ | 员工A |
+| xpath | utils | XPathService.ts | xpath-service.ts | XpathService | ✅ | 员工A |
+| xpath | utils | XPathPrecompilerCache.ts | xpath-precompiler-cache.ts | XpathPrecompilerCache | ✅ | 员工A |
+| employee | types | Employee.ts | employee-types.ts | Employee | ✅ | 员工A |
 | | | | | | | |
 
 ---
@@ -77,9 +81,9 @@
    - 📋 低优先级：工具类和辅助函数
 
 ## 进度统计
-- ✅ 已完成：21项 (prospecting模块5项 + 员工A完成16项)
+- ✅ 已完成：25项 (prospecting模块5项 + 员工A完成20项)
 - ⏳ 待处理：8项  
-- 📊 完成率：72%
+- 📊 完成率：76%
 
 ---
 **更新指南**：完成一项就勾选✅，发现新的需要前缀化的文件就追加到表格底部

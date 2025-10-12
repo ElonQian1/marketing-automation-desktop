@@ -289,14 +289,14 @@ export class TaskGenerationEngine {
     try {
       // 检查是否已关注
       if (this.config.follow_task_config?.avoid_duplicate_follows) {
-        const alreadyFollowed = await this.checkIfAlreadyFollowed(comment.authorId);
+        const alreadyFollowed = await this.checkIfAlreadyFollowed(comment.author_id);
         if (alreadyFollowed) {
           return null;
         }
       }
       
       // 检查粉丝数要求
-      const followerCount = await this.getAuthorFollowerCount(comment.authorId);
+      const followerCount = await this.getAuthorFollowerCount(comment.author_id);
       const minFollowers = this.config.follow_task_config?.min_follower_count || 0;
       
       if (followerCount < minFollowers) {
@@ -311,9 +311,9 @@ export class TaskGenerationEngine {
       // 创建任务
       const task = Task.create({
         type: TaskType.FOLLOW,
-        title: `关注用户: ${comment.authorId}`,
+        title: `关注用户: ${comment.author_id}`,
         content: `关注在 ${watchTarget.name} 下评论的用户`,
-        targetId: comment.authorId,
+        targetId: comment.author_id,
         sourceTargetId: watchTarget.id!,
         platform: comment.platform,
         priority: this.calculateTaskPriority(comment, watchTarget),
@@ -321,7 +321,7 @@ export class TaskGenerationEngine {
         scheduledTime: executionTime,
         metadata: {
           comment_id: comment.id,
-          author_id: comment.authorId,
+          author_id: comment.author_id,
           follower_count: followerCount,
           watch_target_id: watchTarget.id
         }
@@ -348,12 +348,12 @@ export class TaskGenerationEngine {
     }
     
     // 点赞数评分
-    if (comment.likeCount > 0) {
-      score += Math.min(comment.likeCount * 0.05, 0.3);
+    if (comment.like_count > 0) {
+      score += Math.min(comment.like_count * 0.05, 0.3);
     }
     
     // 发布时间评分（越新越好）
-    const daysSincePublish = (Date.now() - comment.publishTime.getTime()) / (1000 * 60 * 60 * 24);
+    const daysSincePublish = (Date.now() - comment.publish_time.getTime()) / (1000 * 60 * 60 * 24);
     if (daysSincePublish < 1) {
       score += 0.2;
     } else if (daysSincePublish < 7) {
@@ -405,7 +405,7 @@ export class TaskGenerationEngine {
     
     // 变量替换
     const variables: { [key: string]: string } = {
-      '{comment_author}': comment.authorId,
+      '{comment_author}': comment.author_id,
       '{comment_content}': comment.content.substring(0, 50),
       '{target_name}': watchTarget.name,
       '{current_time}': new Date().toLocaleString(),
@@ -434,10 +434,10 @@ export class TaskGenerationEngine {
     }
     
     // 基于点赞数的优先级
-    priorityScore += comment.likeCount * 2;
+    priorityScore += comment.like_count * 2;
     
     // 基于时间的优先级（越新优先级越高）
-    const hoursOld = (Date.now() - comment.publishTime.getTime()) / (1000 * 60 * 60);
+    const hoursOld = (Date.now() - comment.publish_time.getTime()) / (1000 * 60 * 60);
     if (hoursOld < 1) priorityScore += 5;
     else if (hoursOld < 24) priorityScore += 3;
     
@@ -476,8 +476,8 @@ export class TaskGenerationEngine {
     const followLimit = this.config.follow_task_config?.max_follows_per_day || 20;
     
     // 统计并限制
-    const replyTasks = limitedTasks.filter(t => t.type === TaskType.REPLY).slice(0, replyLimit);
-    const followTasks = limitedTasks.filter(t => t.type === TaskType.FOLLOW).slice(0, followLimit);
+    const replyTasks = limitedTasks.filter(t => t.task_type === TaskType.REPLY).slice(0, replyLimit);
+    const followTasks = limitedTasks.filter(t => t.task_type === TaskType.FOLLOW).slice(0, followLimit);
     
     return [...replyTasks, ...followTasks];
   }
@@ -494,7 +494,7 @@ export class TaskGenerationEngine {
       if (priorityDiff !== 0) return priorityDiff;
       
       // 然后按计划时间排序
-      return a.scheduledTime.getTime() - b.scheduledTime.getTime();
+      return a.scheduled_time.getTime() - b.scheduled_time.getTime();
     });
   }
   

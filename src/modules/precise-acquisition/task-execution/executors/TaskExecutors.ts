@@ -114,7 +114,11 @@ export class DouyinTaskExecutor extends TaskExecutor {
     if (!this.config.api_credentials?.access_token) return false;
     
     // 检查任务类型支持
-    private isValidForReply(task: Task): boolean {
+    return this.isValidForReply(task);
+  }
+  
+  // 检查任务类型支持
+  private isValidForReply(task: Task): boolean {
     return [TaskType.REPLY, TaskType.FOLLOW].includes(task.task_type);
   }
   

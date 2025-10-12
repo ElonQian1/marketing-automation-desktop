@@ -8,7 +8,7 @@
  */
 
 import { useState, useEffect, useCallback, useMemo } from 'react';
-import { UnifiedViewData, EnhancedUIElement } from '../services/UnifiedViewDataManager';
+import { UnifiedViewData, EnhancedUIElement } from '../services/unified-view-data-manager';
 import { XmlEnhancedCacheService, CachedViewData } from '../services/xml-enhanced-cache-service';
 import { CachedXmlPage } from '../services/xml-page-cache-service';
 import { message } from 'antd';

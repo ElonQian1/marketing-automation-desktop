@@ -430,14 +430,14 @@ export class AuditLogManager {
       target_id: task.id,
       target_type: 'task',
       metadata: {
-        task_type: task.type,
+        task_type: task.task_type,
         task_status: task.status,
         task_priority: task.priority,
-        scheduled_time: task.scheduledTime?.toISOString(),
-        source_target_id: task.sourceTargetId
+        scheduled_time: task.scheduled_time?.toISOString(),
+        source_target_id: task.target_id
       },
       result,
-      compliance_flags: task.type === TaskType.REPLY ? ['content_review'] : ['user_interaction']
+      compliance_flags: task.task_type === TaskType.REPLY ? ['content_review'] : ['user_interaction']
     });
   }
   

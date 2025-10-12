@@ -1,6 +1,6 @@
-// src/utils/xpath/XPathService.ts
-// module: shared | layer: utils | role: utility
-// summary: 工具函数
+// src/utils/xpath/xpath-service.ts
+// module: xpath | layer: utils | role: service
+// summary: xpath-service.ts 文件
 
 /**
  * XPath 统一服务类
@@ -51,7 +51,7 @@ import {
  * XPath 统一服务类
  * 替代分散在各模块中的 XPath 相关功能
  */
-export default class XPathService {
+export default class XpathService {
   
   // ==================== 验证方法 ====================
   

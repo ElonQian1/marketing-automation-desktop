@@ -37,8 +37,8 @@ import type { UIElement } from '../../api/universalUIAPI';
 import type { UIElement as ElementMapperUIElement } from '../../modules/ElementNameMapper';
 import type { CachedXmlPage } from '../../services/xml-page-cache-service';
 import { XmlPageCacheService } from '../../services/xml-page-cache-service';
-import { EnhancedXmlCacheService, type CachedViewData } from '../../services/EnhancedXmlCacheService';
-import type { UnifiedViewData, EnhancedUIElement } from '../../services/UnifiedViewDataManager';
+import { XmlEnhancedCacheService as EnhancedXmlCacheService, type CachedViewData } from '../../services/xml-enhanced-cache-service';
+import type { UnifiedViewData, EnhancedUIElement } from '../../services/unified-view-data-manager';
 
 import { ElementSourceFinder, PageSelector, HierarchyTreeViewer, ElementMatchInfo, EnhancedHierarchyTreeViewer } from './';
 import HierarchyTreeViewerFixed from './HierarchyTreeViewerFixed';

@@ -18,7 +18,7 @@ import {
   parseBoundsString,
   rectToBoundsString,
 } from "../../../components/universal-ui/utils/bounds";
-import XmlCacheManager from "../../../services/XmlCacheManager";
+import XmlCacheManager from "../../../services/xml-cache-manager";
 import { Device } from "../../../domain/adb/entities/Device";
 import {
   buildShortTitleFromCriteria,
