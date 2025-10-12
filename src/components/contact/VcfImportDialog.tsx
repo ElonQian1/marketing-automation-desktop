@@ -26,7 +26,7 @@ import {
     Typography
 } from 'antd';
 import React, { useCallback, useEffect, useState } from 'react';
-import { VcfImportService } from '../../services/VcfImportService';
+import { ContactVcfImportService } from '../../services/contact-vcf-import-service';
 import { Contact, VcfImportResult } from '../../types';
 
 const { Text } = Typography;
@@ -64,12 +64,12 @@ export const VcfImportDialog: React.FC<VcfImportDialogProps> = ({
     setLoading(true);
     try {
       // 检查工具是否可用
-      const available = await VcfImportService.checkToolAvailable();
+      const available = await ContactVcfImportService.checkToolAvailable();
       setToolAvailable(available);
 
       if (available) {
         // 获取设备列表
-        const deviceList = await VcfImportService.getAdbDevices();
+        const deviceList = await ContactVcfImportService.getAdbDevices();
         setDevices(deviceList);
         if (deviceList.length > 0) {
           setSelectedDevice(deviceList[0]);
@@ -93,13 +93,13 @@ export const VcfImportDialog: React.FC<VcfImportDialogProps> = ({
     setLoading(true);
     try {
       // 生成临时VCF文件路径
-      const tempPath = VcfImportService.generateTempVcfPath();
+      const tempPath = ContactVcfImportService.generateTempVcfPath();
       
       // 转换联系人数据为VCF格式
-      const vcfContent = VcfImportService.convertContactsToVcfContent(contacts);
+      const vcfContent = ContactVcfImportService.convertContactsToVcfContent(contacts);
       
       // 写入文件
-      await VcfImportService.writeVcfFile(tempPath, vcfContent);
+      await ContactVcfImportService.writeVcfFile(tempPath, vcfContent);
       
       setVcfFilePath(tempPath);
       setCurrentStep(1);
@@ -127,7 +127,7 @@ export const VcfImportDialog: React.FC<VcfImportDialogProps> = ({
 
     setLoading(true);
     try {
-      const result = await VcfImportService.importVcfFile(vcfFilePath, selectedDevice);
+      const result = await ContactVcfImportService.importVcfFile(vcfFilePath, selectedDevice);
       
       setImportResult(result);
       setCurrentStep(2);
@@ -152,7 +152,7 @@ export const VcfImportDialog: React.FC<VcfImportDialogProps> = ({
   const handleClose = useCallback(async () => {
     if (vcfFilePath) {
       try {
-        await VcfImportService.deleteTempFile(vcfFilePath);
+        await ContactVcfImportService.deleteTempFile(vcfFilePath);
       } catch (error) {
         console.warn('清理临时文件失败:', error);
       }

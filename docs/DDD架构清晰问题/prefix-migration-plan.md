@@ -41,6 +41,12 @@
 | 模块 | 子目录 | from | to | 类型名改为 | 状态 | 负责人 |
 |---|---|---|---|---|---|---|
 | employee | services | authService.ts | employee-auth-service.ts | EmployeeAuthService | ✅ | 员工A |
+| contact | services | VcfImportService.ts | contact-vcf-import-service.ts | ContactVcfImportService | ✅ | 员工A |
+| contact | services | LDPlayerVcfService.ts | contact-ldplayer-vcf-service.ts | ContactLdplayerVcfService | ✅ | 员工A |
+| smart-app | services | smartAppService.ts | smart-app-service.ts | SmartAppService | ✅ | 员工A |
+| strategy | services | IntelligentStrategyService.ts | strategy-intelligent-service.ts | StrategyIntelligentService | ✅ | 员工A |
+| xml | services | XmlPageCacheService.ts | xml-page-cache-service.ts | XmlPageCacheService | 🔄 | 员工A |
+| validation | services | CsvImportValidationService.ts | validation-csv-import-service.ts | ValidationCsvImportService | ✅ | 员工A |
 | | | | | | | |
 
 ---
@@ -60,9 +66,9 @@
    - 📋 低优先级：工具类和辅助函数
 
 ## 进度统计
-- ✅ 已完成：5项
-- ⏳ 待处理：12项  
-- 📊 完成率：29%
+- ✅ 已完成：10项 (prospecting模块5项 + 员工A完成5项)
+- ⏳ 待处理：8项  
+- 📊 完成率：56%
 
 ---
 **更新指南**：完成一项就勾选✅，发现新的需要前缀化的文件就追加到表格底部

@@ -9,8 +9,8 @@
 
 import React, { useCallback, useEffect, useState } from "react";
 import { Typography, App } from "antd";
-import type { CachedXmlPage } from "../../services/XmlPageCacheService";
-import { XmlPageCacheService } from "../../services/XmlPageCacheService";
+import type { CachedXmlPage } from "../../services/xml-page-cache-service";
+import { XmlPageCacheService } from "../../services/xml-page-cache-service";
 import { CacheToolbar } from "./components/CacheToolbar";
 import { CachedPageList } from "./components/CachedPageList";
 

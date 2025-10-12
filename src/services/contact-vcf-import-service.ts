@@ -1,6 +1,6 @@
-// src/services/VcfImportService.ts
+// src/services/contact-vcf-import-service.ts
 // module: shared | layer: unknown | role: component
-// summary: VcfImportService.ts 文件
+// summary: contact-vcf-import-service.ts 文件
 
 import { invoke } from "@tauri-apps/api/core";
 import { VcfImportResult } from "../types";
@@ -9,7 +9,7 @@ import { VcfImportResult } from "../types";
  * VCF通讯录导入服务
  * 负责调用adb_xml_reader工具执行VCF文件导入
  */
-export class VcfImportService {
+export class ContactVcfImportService {
   /**
    * 执行VCF文件导入到指定设备（异步安全版本）
    * @param vcfFilePath VCF文件路径

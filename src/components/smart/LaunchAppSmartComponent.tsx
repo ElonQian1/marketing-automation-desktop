@@ -27,7 +27,7 @@ import {
   ExclamationCircleOutlined
 } from '@ant-design/icons';
 import { SmartAppSelector } from './SmartAppSelector';
-import { smartAppService } from '../../services/smartAppService';
+import { smartAppService } from '../../services/smart-app-service';
 import type { AppInfo, LaunchAppComponentParams } from '../../types/smartComponents';
 import { LAUNCH_APP_COMPONENT } from '../../types/smartComponents';
 

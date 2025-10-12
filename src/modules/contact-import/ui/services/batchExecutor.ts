@@ -3,7 +3,7 @@
 // summary: 模块组件
 
 import { buildVcfFromNumbers } from '../../utils/vcf';
-import { VcfImportService } from '../../../../services/VcfImportService';
+import { ContactVcfImportService } from '../../../../services/contact-vcf-import-service';
 
 export interface BatchItem {
   deviceId: string;
@@ -62,9 +62,9 @@ export async function executeBatches(batches: BatchItem[], options?: BatchExecut
       while (attempt <= perDeviceMaxRetries) {
         try {
           const vcfContent = buildVcfFromNumbers(batch.numbers as any);
-          const tempPath = VcfImportService.generateTempVcfPath();
-          await VcfImportService.writeVcfFile(tempPath, vcfContent);
-          const result = await VcfImportService.importVcfFile(tempPath, batch.deviceId);
+          const tempPath = ContactVcfImportService.generateTempVcfPath();
+          await ContactVcfImportService.writeVcfFile(tempPath, vcfContent);
+          const result = await ContactVcfImportService.importVcfFile(tempPath, batch.deviceId);
           finalSuccess = !!result?.success;
           finalMessage = result?.message;
           importedContacts = (result as any)?.importedContacts;

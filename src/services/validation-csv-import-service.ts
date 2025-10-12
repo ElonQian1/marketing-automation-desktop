@@ -1,6 +1,6 @@
-// src/services/CsvImportValidationService.ts
+// src/services/validation-csv-import-service.ts
 // module: shared | layer: unknown | role: component
-// summary: CsvImportValidationService.ts 文件
+// summary: validation-csv-import-service.ts 文件
 
 /**
  * CSV导入验证服务
@@ -166,7 +166,7 @@ const URL_PATTERNS: Record<Platform, RegExp[]> = {
 /**
  * CSV导入验证服务
  */
-export class CsvImportValidationService {
+export class ValidationCsvImportService {
   private whitelistSources: WhitelistSource[];
   
   constructor(whitelistSources?: WhitelistSource[]) {
@@ -649,4 +649,4 @@ export class CsvImportValidationService {
 
 // ==================== 导出默认实例 ====================
 
-export const csvValidationService = new CsvImportValidationService();
+export const csvValidationService = new ValidationCsvImportService();

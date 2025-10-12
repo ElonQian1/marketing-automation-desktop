@@ -30,7 +30,7 @@ import {
   CloseOutlined
 } from '@ant-design/icons';
 import type { AppInfo } from '../../types/smartComponents';
-import { smartAppService } from '../../services/smartAppService';
+import { smartAppService } from '../../services/smart-app-service';
 import { useOverlayTheme } from '../ui/overlay';
 
 const { Search } = Input;

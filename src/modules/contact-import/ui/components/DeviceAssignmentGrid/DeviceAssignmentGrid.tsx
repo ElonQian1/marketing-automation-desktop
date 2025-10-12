@@ -10,7 +10,7 @@ import { Toolbar } from './Toolbar';
 import { DeviceCard } from './DeviceCard';
 import { getBindings, bindBatchToDevice } from '../../services/deviceBatchBinding';
 import { processPendingSessionsForDevice, processLatestPendingSessionForDevice } from '../../services/sessionImportService';
-import { VcfImportService } from '../../../../../services/VcfImportService';
+import { ContactVcfImportService } from '../../../../../services/contact-vcf-import-service';
 import { buildVcfFromNumbers } from '../../../utils/vcf';
 import { fetchUnclassifiedNumbers } from '../../services/unclassifiedService';
 import { finishImportSessionRecord } from '../../services/contactNumberService';
@@ -141,8 +141,8 @@ export const DeviceAssignmentGrid: React.FC<DeviceAssignmentGridProps> = (props)
         const unclassified = await fetchUnclassifiedNumbers(100, true);
         if (!unclassified.length) { message.warning('没有可用的未分类号码'); return; }
         const vcfContent = buildVcfFromNumbers(unclassified as any);
-        const tempPath = VcfImportService.generateTempVcfPath();
-        await VcfImportService.writeVcfFile(tempPath, vcfContent);
+        const tempPath = ContactVcfImportService.generateTempVcfPath();
+        await ContactVcfImportService.writeVcfFile(tempPath, vcfContent);
         // 记录批次与会话
         const ids = unclassified.map(n => n.id).sort((a, b) => a - b);
         const batchId = `vcf_${deviceId}_${ids[0]}_${ids[ids.length - 1]}_${Date.now()}`;

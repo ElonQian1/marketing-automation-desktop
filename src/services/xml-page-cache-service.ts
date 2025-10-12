@@ -1,6 +1,6 @@
-// src/services/XmlPageCacheService.ts
+// src/services/xml-page-cache-service.ts
 // module: shared | layer: unknown | role: component
-// summary: XmlPageCacheService.ts 文件
+// summary: xml-page-cache-service.ts 文件
 
 /**
  * XML页面缓存管理服务

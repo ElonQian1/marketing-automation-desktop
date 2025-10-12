@@ -9,8 +9,8 @@
  * @description 展示如何将智能策略推荐集成到"确定"按钮点击流程中
  */
 
-import { analyzeElementForStrategy, previewStrategyForElement } from '../../../../../services/IntelligentStrategyService';
-import type { EnhancedRecommendation } from '../../../../../services/IntelligentStrategyService';
+import { analyzeElementForStrategy, previewStrategyForElement } from '../../../../../services/strategy-intelligent-service';
+import type { EnhancedRecommendation } from '../../../../../services/strategy-intelligent-service';
 
 /**
  * 在页面分析器中点击"确定"按钮时的处理逻辑

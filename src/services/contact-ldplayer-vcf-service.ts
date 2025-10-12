@@ -1,6 +1,6 @@
-// src/services/LDPlayerVcfService.ts
+// src/services/contact-ldplayer-vcf-service.ts
 // module: shared | layer: unknown | role: component
-// summary: LDPlayerVcfService.ts 文件
+// summary: contact-ldplayer-vcf-service.ts 文件
 
 import { invoke } from '@tauri-apps/api/core';
 
@@ -15,7 +15,7 @@ export interface VcfOpenResult {
  * 雷电模拟器VCF文件操作服务
  * 专门为雷电模拟器优化的VCF文件传输和打开功能
  */
-export class LDPlayerVcfService {
+export class ContactLdplayerVcfService {
   
   /**
    * 打开已存在的VCF文件（适用于文件已传输到设备的情况）

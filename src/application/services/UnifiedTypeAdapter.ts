@@ -21,10 +21,8 @@ import {
   RegionTag,
   TaskType,
   TaskStatus,
-  TaskPriority,
   ExecutorMode,
-  ResultCode,
-  AuditAction
+  ResultCode
 } from '../../modules/precise-acquisition/shared/types/core';
 
 // 现有系统类型（应用层）
@@ -81,8 +79,8 @@ export class UnifiedTypeAdapter {
       region_tag: row.region as RegionTag,
       last_fetch_at: row.last_fetch_at,
       notes: row.notes,
-      created_at: row.created_at,
-      updated_at: row.updated_at
+      created_at: new Date(row.created_at),
+      updated_at: new Date(row.updated_at)
     };
   }
 
@@ -124,8 +122,8 @@ export class UnifiedTypeAdapter {
       result_code: task.result_code as any,
       error_message: task.error_message,
       dedup_key: task.dedup_key,
-      created_at: task.created_at,
-      executed_at: task.executed_at
+      created_at: task.created_at.toISOString(),
+      executed_at: task.executed_at?.toISOString()
     };
   }
 
@@ -144,8 +142,8 @@ export class UnifiedTypeAdapter {
       result_code: row.result_code as ResultCode,
       error_message: row.error_message,
       dedup_key: row.dedup_key,
-      created_at: row.created_at,
-      executed_at: row.executed_at
+      created_at: new Date(row.created_at),
+      executed_at: row.executed_at ? new Date(row.executed_at) : undefined
     };
   }
 
@@ -162,7 +160,7 @@ export class UnifiedTypeAdapter {
       author_id: row.author_id,
       content: row.content,
       like_count: row.like_count || 0,
-      publish_time: row.publish_time,
+      publish_time: new Date(row.publish_time),
       region: row.region as RegionTag,
       source_target_id: row.target_id ? `wt_${row.target_id.toString().padStart(8, '0')}` : '',
       inserted_at: row.created_at
@@ -182,7 +180,7 @@ export class UnifiedTypeAdapter {
       author_id: comment.author_id,
       content: comment.content,
       like_count: comment.like_count,
-      publish_time: comment.publish_time,
+      publish_time: comment.publish_time.toISOString(),
       region: comment.region as any,
       created_at: comment.inserted_at
     };

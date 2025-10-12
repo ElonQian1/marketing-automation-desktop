@@ -1,9 +1,9 @@
-// src/services/IntelligentStrategyService.ts
+// src/services/strategy-intelligent-service.ts
 // module: shared | layer: unknown | role: component
-// summary: IntelligentStrategyService.ts 文件
+// summary: strategy-intelligent-service.ts 文件
 
 /**
- * IntelligentStrategyService.ts
+ * strategy-intelligent-service.ts
  * 智能策略推荐服务 - 统一服务入口
  * 
  * @description 封装智能策略决策引擎，提供简洁的API接口
@@ -62,9 +62,9 @@ export interface EnhancedRecommendation extends StrategyRecommendation {
  * 2. 生成步骤卡片所需的完整参数
  * 3. 提供批量分析能力
  */
-export class IntelligentStrategyService {
+export class StrategyIntelligentService {
   private readonly decisionEngine: StrategyDecisionEngine;
-  private static instance: IntelligentStrategyService | null = null;
+  private static instance: StrategyIntelligentService | null = null;
 
   constructor(config?: Partial<DecisionEngineConfig>) {
     this.decisionEngine = new StrategyDecisionEngine(config);
@@ -73,9 +73,9 @@ export class IntelligentStrategyService {
   /**
    * 获取单例实例
    */
-  static getInstance(config?: Partial<DecisionEngineConfig>): IntelligentStrategyService {
+  static getInstance(config?: Partial<DecisionEngineConfig>): StrategyIntelligentService {
     if (!this.instance) {
-      this.instance = new IntelligentStrategyService(config);
+      this.instance = new StrategyIntelligentService(config);
     }
     return this.instance;
   }
@@ -309,7 +309,7 @@ export const analyzeElementForStrategy = async (
   element: ElementLike, 
   xmlContent: string
 ): Promise<EnhancedRecommendation> => {
-  const service = IntelligentStrategyService.getInstance();
+  const service = StrategyIntelligentService.getInstance();
   return await service.analyzeElementAndRecommend(element, xmlContent);
 };
 
@@ -321,9 +321,9 @@ export const previewStrategyForElement = async (
   element: ElementLike, 
   xmlContent: string
 ): Promise<StrategyRecommendation> => {
-  const service = IntelligentStrategyService.getInstance();
+  const service = StrategyIntelligentService.getInstance();
   return await service.previewStrategyRecommendation(element, xmlContent);
 };
 
 // 默认导出服务类
-export default IntelligentStrategyService;
+export default StrategyIntelligentService;

@@ -9,7 +9,7 @@ import { DeviceSpecificImportDialog } from './components';
 import { getBindings } from '../../services/deviceBatchBinding';
 import { fetchUnclassifiedNumbers } from '../../services/unclassifiedService';
 import { buildVcfFromNumbers } from '../../../utils/vcf';
-import { VcfImportService } from '../../../../../services/VcfImportService';
+import { ContactVcfImportService } from '../../../../../services/contact-vcf-import-service';
 import styles from '../DeviceAssignmentGrid.module.css';
 import { normalizeIndustry } from '../../shared/industryOptions';
 import { registerGeneratedBatch } from '../../services/vcfBatchRegistrationService';
@@ -91,8 +91,8 @@ export const DeviceCard: React.FC<DeviceCardProps> = (props) => {
     }
     
     const vcfContent = buildVcfFromNumbers(unclassified as any);
-    const tempPath = VcfImportService.generateTempVcfPath();
-    await VcfImportService.writeVcfFile(tempPath, vcfContent);
+    const tempPath = ContactVcfImportService.generateTempVcfPath();
+    await ContactVcfImportService.writeVcfFile(tempPath, vcfContent);
     
     // 创建批次和会话记录
     const ids = unclassified.map(n => n.id).sort((a, b) => a - b);

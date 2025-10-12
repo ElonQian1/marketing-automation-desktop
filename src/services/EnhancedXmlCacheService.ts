@@ -9,7 +9,7 @@
 
 import { invoke } from '@tauri-apps/api/core';
 import { UnifiedViewData, UnifiedViewDataManager } from './UnifiedViewDataManager';
-import { CachedXmlPage } from './XmlPageCacheService';
+import { CachedXmlPage } from './xml-page-cache-service';
 
 export interface EnhancedCachedPage extends CachedXmlPage {
   // 是否已计算完整视图数据

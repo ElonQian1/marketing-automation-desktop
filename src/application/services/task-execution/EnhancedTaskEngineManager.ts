@@ -165,8 +165,20 @@ export class EnhancedTaskEngineManager extends UnifiedTaskEngineBase {
           total_count: 0,
           target_id: param.target.id,
           generation_time: new Date(),
-          tasks_by_type: {},
-          priority_distribution: {}
+          tasks_by_type: {
+            [TaskType.REPLY]: 0,
+            [TaskType.FOLLOW]: 0,
+            [TaskType.LIKE]: 0,
+            [TaskType.COMMENT]: 0,
+            [TaskType.SHARE]: 0,
+            [TaskType.VIEW]: 0
+          },
+          priority_distribution: {
+            'low': 0,
+            'normal': 0,
+            'high': 0,
+            'urgent': 0
+          }
         });
       }
     }
@@ -581,10 +593,38 @@ export class EnhancedTaskEngineManager extends UnifiedTaskEngineBase {
       failed_tasks: 0,
       pending_tasks: 0,
       executing_tasks: 0,
-      by_platform: {},
-      by_type: {},
-      by_status: {},
-      by_priority: {},
+      by_platform: {
+        'douyin': 0,
+        'oceanengine': 0, 
+        'public': 0,
+        'xiaohongshu': 0
+      },
+      by_type: {
+        'reply': 0,
+        'follow': 0,
+        'like': 0,
+        'comment': 0,
+        'share': 0,
+        'view': 0
+      },
+      by_status: {
+        'NEW': 0,
+        'READY': 0,
+        'PENDING': 0,
+        'EXECUTING': 0,
+        'IN_PROGRESS': 0,
+        'DONE': 0,
+        'COMPLETED': 0,
+        'FAILED': 0,
+        'CANCELLED': 0,
+        'RETRY': 0
+      },
+      by_priority: {
+        'low': 0,
+        'normal': 0,
+        'high': 0,
+        'urgent': 0
+      },
       success_rate: 0,
       average_execution_time_ms: 0,
       total_execution_time_ms: 0,

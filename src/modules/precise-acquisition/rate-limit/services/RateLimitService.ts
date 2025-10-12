@@ -242,6 +242,10 @@ export type {
   RateLimitConfig,
   DedupCheckResult,
   RateLimitCheckResult,
-  DedupStats,
+  DedupStats
+} from '../types';
+
+// 导出枚举（值类型）
+export {
   DedupLevel
 } from '../types';

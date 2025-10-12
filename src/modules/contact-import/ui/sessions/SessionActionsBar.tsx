@@ -13,7 +13,7 @@ import { toCsvWithLabels } from '../../utils/csv';
 import { buildCsvNameFromTemplate } from '../../utils/filename';
 import { invoke } from '@tauri-apps/api/core';
 import { fetchUnclassifiedNumbers } from '../services/unclassifiedService';
-import { VcfImportService } from '../../../../services/VcfImportService';
+import { ContactVcfImportService } from '../../../../services/contact-vcf-import-service';
 import { buildVcfFromNumbers } from '../../utils/vcf';
 import { createVcfBatchWithNumbers } from '../../../vcf-sessions/services/vcfSessionService';
 import { bindBatchToDevice, markBatchImportedForDevice } from '../services/deviceBatchBinding';
@@ -187,8 +187,8 @@ const SessionActionsBar: React.FC<Props> = ({ mode, batch, numbers, targetDevice
       }
       // 2) 生成临时VCF
       const vcfContent = buildVcfFromNumbers(unclassified as any);
-      const tempPath = VcfImportService.generateTempVcfPath();
-      await VcfImportService.writeVcfFile(tempPath, vcfContent);
+      const tempPath = ContactVcfImportService.generateTempVcfPath();
+      await ContactVcfImportService.writeVcfFile(tempPath, vcfContent);
       // 3) 批次与映射 + 绑定
       const ids = unclassified.map(n => n.id).sort((a, b) => a - b);
       const startId = ids[0];

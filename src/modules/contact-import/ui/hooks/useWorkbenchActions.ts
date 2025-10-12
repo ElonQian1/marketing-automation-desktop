@@ -23,7 +23,7 @@ import {
   ContactNumberDto,
 } from '../services/contactNumberService';
 import { VcfActions } from '../services/vcfActions';
-import { VcfImportService } from '../../../../services/VcfImportService';
+import { ContactVcfImportService } from '../../../../services/contact-vcf-import-service';
 import { buildVcfFromNumbers } from '../../utils/vcf';
 import { fetchUnclassifiedNumbers } from '../services/unclassifiedService';
 import { registerGeneratedBatch } from '../services/vcfBatchRegistrationService';
@@ -200,8 +200,8 @@ export const useWorkbenchActions = ({
 
       // 写入临时 VCF 文件并导入
       const vcfContent = buildVcfFromNumbers(numbers);
-      const tempPath = VcfImportService.generateTempVcfPath();
-      await VcfImportService.writeVcfFile(tempPath, vcfContent);
+      const tempPath = ContactVcfImportService.generateTempVcfPath();
+      await ContactVcfImportService.writeVcfFile(tempPath, vcfContent);
       const outcome = await VcfActions.importVcfToDevice(tempPath, deviceId);
       
       if (outcome.success) {
@@ -243,9 +243,9 @@ export const useWorkbenchActions = ({
 
       // 写临时文件并导入
       const vcfContent = buildVcfFromNumbers(numbers);
-      const tempPath = VcfImportService.generateTempVcfPath();
-      await VcfImportService.writeVcfFile(tempPath, vcfContent);
-      const result = await VcfImportService.importVcfFile(tempPath, deviceId);
+      const tempPath = ContactVcfImportService.generateTempVcfPath();
+      await ContactVcfImportService.writeVcfFile(tempPath, vcfContent);
+      const result = await ContactVcfImportService.importVcfFile(tempPath, deviceId);
       
       if (result.success) {
         message.success('成功导入 ' + numbers.length + ' 个联系人到设备 ' + deviceId);
