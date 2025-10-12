@@ -32,13 +32,50 @@ import { StrategyConfigurator } from '../../universal-ui/views/grid-view/panels/
  *    解决：检查 onUpdate 回调是否正确更新了步骤参数
  */
 interface StrategyControlsProps {
-  step: any;
-  boundNode: any;
-  onUpdate: (nextParams: any) => void;
+  step: {
+    id: string;
+    parameters?: {
+      matching?: {
+        strategy?: string;
+        fields?: string[];
+        values?: Record<string, string>;
+        includes?: Record<string, string>;
+        excludes?: Record<string, string>;
+        matchMode?: Record<string, string>;
+        regexIncludes?: Record<string, string>;
+        regexExcludes?: Record<string, string>;
+      };
+      [key: string]: unknown;
+    };
+    [key: string]: unknown;
+  };
+  boundNode: unknown;
+  onUpdate: (nextParams: Record<string, unknown>) => void;
 }
 
 export const StrategyControls: React.FC<StrategyControlsProps> = ({ step, boundNode, onUpdate }) => {
-  const matching = step.parameters?.matching as any;
+  const matching = step.parameters?.matching;
+
+  // 🎯 判断策略类型的工具函数
+  const getStrategyInfo = (strategy: string | undefined) => {
+    if (!strategy) return { type: 'unknown', icon: '❓', color: 'default', label: '未配置' };
+    
+    const intelligentStrategies = ['self-anchor', 'child-anchor', 'parent-clickable', 'region-scoped', 'neighbor-relative', 'index-fallback'];
+    const staticStrategies = ['standard', 'strict', 'relaxed', 'absolute', 'positionless'];
+    const xpathStrategies = ['xpath-direct', 'xpath-first-index', 'xpath-all-elements'];
+    
+    if (intelligentStrategies.includes(strategy)) {
+      return { type: 'intelligent', icon: '🧠', color: 'blue', label: '智能策略' };
+    } else if (staticStrategies.includes(strategy)) {
+      return { type: 'static', icon: '⚙️', color: 'green', label: '静态策略' };
+    } else if (xpathStrategies.includes(strategy)) {
+      return { type: 'xpath', icon: '🔗', color: 'gold', label: 'XPath策略' };
+    } else {
+      return { type: 'custom', icon: '🔧', color: 'purple', label: '自定义策略' };
+    }
+  };
+
+  const strategyInfo = getStrategyInfo(step.parameters?.matching?.strategy);
 
   // 🔧 【节点数据构建】- 为策略配置器准备节点数据
   // 优先使用 boundNode（来自XML快照），fallback到步骤参数
@@ -83,13 +120,28 @@ export const StrategyControls: React.FC<StrategyControlsProps> = ({ step, boundN
       ...(matching.matchMode && { matchMode: matching.matchMode }),
       ...(matching.regexIncludes && { regexIncludes: matching.regexIncludes }),
       ...(matching.regexExcludes && { regexExcludes: matching.regexExcludes }),
-    } as MatchCriteria;
+    } as unknown as MatchCriteria;
   })();
 
   return (
     <div className="flex items-center gap-1">
       {/* 🏷️ 策略标签显示：显示当前步骤的匹配策略 */}
       <MatchingStrategyTag strategy={step.parameters?.matching?.strategy} small />
+      
+      {/* 🎯 策略类型指示器 */}
+      {step.parameters?.matching?.strategy && (
+        <span 
+          className="text-xs px-1 rounded" 
+          style={{ 
+            backgroundColor: `var(--ant-color-${strategyInfo.color}-1, #f0f0f0)`,
+            color: `var(--ant-color-${strategyInfo.color}-6, #666)`,
+            border: `1px solid var(--ant-color-${strategyInfo.color}-3, #d9d9d9)`
+          }}
+          title={strategyInfo.label}
+        >
+          {strategyInfo.icon}
+        </span>
+      )}
       
       {/* ⚙️ 策略编辑按钮：点击弹出策略配置器 */}
       <Popover

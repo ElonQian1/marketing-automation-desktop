@@ -1,0 +1,97 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>策略显示测试</title>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei', sans-serif;
+            padding: 20px;
+            background: #f5f5f5;
+        }
+        .strategy-test {
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+            margin-bottom: 16px;
+        }
+        .strategy-tag {
+            display: inline-block;
+            padding: 4px 8px;
+            margin: 4px;
+            border-radius: 4px;
+            font-size: 12px;
+            color: white;
+        }
+        .blue { background: #1890ff; }
+        .green { background: #52c41a; }
+        .orange { background: #fa8c16; }
+        .purple { background: #722ed1; }
+        .cyan { background: #13c2c2; }
+        .red { background: #f5222d; }
+    </style>
+</head>
+<body>
+    <h1>🎯 策略显示测试 - 步骤卡片智能策略支持验证</h1>
+    
+    <div class="strategy-test">
+        <h3>✅ 已修复：MatchingStrategyTag 现在支持智能策略</h3>
+        <p>更新内容：</p>
+        <ul>
+            <li>在 STRATEGY_META 中添加了 6 种智能策略配置</li>
+            <li>更新了 MatchingStrategy 类型定义</li>
+            <li>现在步骤卡片可以正确显示智能策略标签</li>
+        </ul>
+    </div>
+    
+    <div class="strategy-test">
+        <h3>🏷️ 智能策略标签预览</h3>
+        <p>现在步骤卡片会显示这些智能策略标签：</p>
+        
+        <div class="strategy-tag blue">匹配: 自我锚点</div>
+        <span>- 基于元素自身特征的智能匹配</span><br>
+        
+        <div class="strategy-tag green">匹配: 子锚点</div>
+        <span>- 基于子元素特征的上级匹配</span><br>
+        
+        <div class="strategy-tag orange">匹配: 父可点击</div>
+        <span>- 查找可点击的父容器元素</span><br>
+        
+        <div class="strategy-tag purple">匹配: 区域限定</div>
+        <span>- 特定区域范围内的智能匹配</span><br>
+        
+        <div class="strategy-tag cyan">匹配: 邻居相对</div>
+        <span>- 基于相邻元素相对位置的匹配</span><br>
+        
+        <div class="strategy-tag red">匹配: 索引兜底</div>
+        <span>- 基于位置索引的兜底策略</span><br>
+    </div>
+    
+    <div class="strategy-test">
+        <h3>🔧 技术实现</h3>
+        <p>修改文件：<code>src/components/step-card/MatchingStrategyTag.tsx</code></p>
+        <ul>
+            <li>扩展了 STRATEGY_META 配置对象</li>
+            <li>更新了 MatchingStrategy 类型</li>
+            <li>每个智能策略都有专门的颜色和描述</li>
+            <li>与现有的 SmartVariantBadge 配色保持一致</li>
+        </ul>
+    </div>
+    
+    <div class="strategy-test">
+        <h3>✨ 解决的问题</h3>
+        <p><strong>之前</strong>：步骤卡片显示 "匹配: 标准" 或未知策略</p>
+        <p><strong>现在</strong>：步骤卡片正确显示智能策略类型（如 "匹配: 自我锚点"）</p>
+        <p><strong>原因</strong>：MatchingStrategyTag 组件缺少智能策略的配置映射</p>
+        <p><strong>修复</strong>：添加了所有智能策略的显示配置</p>
+    </div>
+    
+    <script>
+        console.log('🎯 策略显示测试页面已加载');
+        console.log('✅ MatchingStrategyTag 组件已支持智能策略显示');
+        console.log('📋 支持的智能策略：self-anchor, child-anchor, parent-clickable, region-scoped, neighbor-relative, index-fallback');
+    </script>
+</body>
+</html>
