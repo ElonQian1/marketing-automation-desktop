@@ -3,7 +3,7 @@
 // summary: 页面组件
 
 import React, { useCallback, useState } from 'react';
-import { Form, Modal, message } from 'antd';
+import { Form, Modal, App } from 'antd';
 import type { FormInstance } from 'antd';
 import { SmartActionType } from '../../../types/smartComponents';
 import type { ExtendedSmartScriptStep } from '../../../types/loopScript';
@@ -47,6 +47,8 @@ export interface UseStepFormDeps {
 }
 
 export function useStepForm(deps: UseStepFormDeps) {
+  const { message } = App.useApp();
+  
   const {
     form: externalForm,
     steps,
@@ -198,12 +200,68 @@ export function useStepForm(deps: UseStepFormDeps) {
           console.log('🚨 [handleSaveStep] XML验证失败，missingXml:', missingXml);
           const triggerAutoFix = () => {
             console.log('🔧 [handleSaveStep] 触发自动修复');
+            
+            // 🆕 检查设备连接
+            if (!devices || devices.length === 0) {
+              console.log('⚠️ [triggerAutoFix] 无可用设备，提示用户选择');
+              Modal.confirm({
+                title: '设备连接问题',
+                content: '未检测到可用设备，无法采集页面快照。是否允许无XML保存此步骤？',
+                okText: '允许保存',
+                cancelText: '取消',
+                onOk: () => {
+                  console.log('✅ [triggerAutoFix] 用户选择允许无XML保存');
+                  setAllowSaveWithoutXmlOnce(true);
+                  // 重新尝试保存
+                  setTimeout(() => handleSaveStep(), 100);
+                },
+                onCancel: () => {
+                  message.info('请检查设备连接后重试');
+                }
+              });
+              return;
+            }
+            
+            console.log('📱 [triggerAutoFix] 设备连接正常，开始快照采集');
             setSnapshotFixMode({ enabled: true, forStepId: stepId });
             setPendingAutoResave(true);
             setIsQuickAnalyzer(false);
             setEditingStepForParams(null);
             setShowPageAnalyzer(true);
-            message.info('正在采集页面快照以修复当前步骤，请稍候…');
+            
+            // 🆕 显示带取消选项的采集提示
+            const hideLoading = message.loading({
+              content: '正在采集页面快照以修复当前步骤，请稍候…',
+              duration: 30, // 30秒后自动消失
+              key: 'snapshot-capture'
+            });
+            
+            // 🆕 添加30秒超时保护
+            const timeoutId = setTimeout(() => {
+              console.log('⏰ [triggerAutoFix] 采集超时，停止等待');
+              hideLoading();
+              setSnapshotFixMode({ enabled: false, forStepId: undefined });
+              setPendingAutoResave(false);
+              setShowPageAnalyzer(false);
+              
+              Modal.confirm({
+                title: '快照采集超时',
+                content: '页面快照采集超时，可能是设备响应缓慢。是否允许无XML保存此步骤？',
+                okText: '允许保存',
+                cancelText: '重试',
+                onOk: () => {
+                  setAllowSaveWithoutXmlOnce(true);
+                  setTimeout(() => handleSaveStep(), 100);
+                },
+                onCancel: () => {
+                  message.info('请检查设备状态后重试');
+                }
+              });
+            }, 30000);
+            
+            // 将timeout ID保存到全局临时位置，供清理使用
+            // NOTE: 这是临时解决方案，正确的方式是通过状态管理传递
+            (window as any).__snapshotCaptureTimeout = timeoutId;
           };
 
           if (missingXml) {

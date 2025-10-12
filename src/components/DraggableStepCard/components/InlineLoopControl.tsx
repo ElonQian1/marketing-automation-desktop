@@ -61,7 +61,7 @@ export const InlineLoopControl: React.FC<Props> = ({ stepId, parameters, onUpdat
         onCancel={handleCancel}
         okText="保存"
         cancelText="取消"
-        destroyOnClose
+        destroyOnHidden
       >
         <div className="space-y-2">
           <div className="text-sm text-gray-600">无需使用“循环开始/结束”包裹，直接让本步骤重复执行。</div>

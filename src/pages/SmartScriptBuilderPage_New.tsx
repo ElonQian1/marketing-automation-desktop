@@ -92,6 +92,7 @@ const SmartScriptBuilderPage: React.FC = () => {
 
   // 🆕 使用模块化Hooks
   const stepFormHook = useStepForm({
+    form, // ✅ 传递form实例
     steps,
     setSteps,
     devices,

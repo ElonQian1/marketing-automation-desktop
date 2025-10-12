@@ -7,6 +7,7 @@ import { Button, Popover } from 'antd';
 import { SettingOutlined } from '@ant-design/icons';
 import { MatchingStrategyTag } from '../../step-card';
 import type { MatchStrategy, MatchCriteria } from '../../universal-ui/views/grid-view/panels/node-detail';
+import type { UiNode } from '../../universal-ui/views/grid-view/types';
 import { StrategyConfigurator } from '../../universal-ui/views/grid-view/panels/node-detail';
 
 /**
@@ -49,7 +50,7 @@ interface StrategyControlsProps {
     };
     [key: string]: unknown;
   };
-  boundNode: unknown;
+  boundNode: UiNode | null;
   onUpdate: (nextParams: Record<string, unknown>) => void;
 }
 
@@ -79,30 +80,36 @@ export const StrategyControls: React.FC<StrategyControlsProps> = ({ step, boundN
 
   // 🔧 【节点数据构建】- 为策略配置器准备节点数据
   // 优先使用 boundNode（来自XML快照），fallback到步骤参数
-  const node = (() => {
+  const node: UiNode = ((): UiNode => {
     if (boundNode) return boundNode;
     const p = step.parameters || {};
     if (matching?.values) {
       return {
-        id: `temp-${step.id}`,
+        tag: 'unknown', // 临时标签名
         attrs: {
-          'resource-id': matching.values['resource-id'] || p.resource_id,
-          'text': matching.values['text'] || p.text,
-          'content-desc': matching.values['content-desc'] || p.content_desc,
-          'class': matching.values['class'] || p.class_name,
-          'bounds': matching.values['bounds'] || p.bounds,
-          'package': matching.values['package'],
-          'checkable': matching.values['checkable'],
-          'clickable': matching.values['clickable'],
-          'enabled': matching.values['enabled'],
-          'focusable': matching.values['focusable'],
-          'scrollable': matching.values['scrollable'],
+          'resource-id': (matching.values['resource-id'] as string) || (p.resource_id as string) || '',
+          'text': (matching.values['text'] as string) || (p.text as string) || '',
+          'content-desc': (matching.values['content-desc'] as string) || (p.content_desc as string) || '',
+          'class': (matching.values['class'] as string) || (p.class_name as string) || '',
+          'bounds': (matching.values['bounds'] as string) || (p.bounds as string) || '',
+          'package': (matching.values['package'] as string) || '',
+          'checkable': (matching.values['checkable'] as string) || 'false',
+          'clickable': (matching.values['clickable'] as string) || 'false',
+          'enabled': (matching.values['enabled'] as string) || 'true',
+          'focusable': (matching.values['focusable'] as string) || 'false',
+          'scrollable': (matching.values['scrollable'] as string) || 'false',
           // 🆕 添加 index 信息，支持 XPath 索引策略
-          'index': matching.values['index'] || p.index,
+          'index': (matching.values['index'] as string) || (p.index as string) || '0',
         },
+        children: [], // UiNode必需的children属性
       };
     }
-    return null;
+    // 如果没有匹配信息，返回一个默认的UiNode
+    return {
+      tag: 'unknown',
+      attrs: {},
+      children: [],
+    };
   })();
 
   // 🎯 【匹配条件构建】- 构建当前步骤的匹配条件对象
@@ -147,7 +154,7 @@ export const StrategyControls: React.FC<StrategyControlsProps> = ({ step, boundN
       <Popover
         trigger={["click"]}
         placement="bottomRight"
-        overlayInnerStyle={{ padding: 8, maxHeight: 440, overflowY: 'auto', width: 420 }}
+        styles={{ body: { padding: 8, maxHeight: 440, overflowY: 'auto', width: 420 } }}
         content={
           <div onClick={(e) => e.stopPropagation()} style={{ minWidth: 360 }}>
             {/* 🎯 策略配置器：提供完整的策略选择和字段配置界面 */}
