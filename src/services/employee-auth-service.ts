@@ -9,22 +9,7 @@
  * 需要手动重构以恢复员工认证功能
  */
 
-export interface Employee {
-  id: string;
-  name: string;
-  email: string;
-  role: string;
-  department: string;
-  isActive: boolean;
-}
-
-export interface Permission {
-  id: string;
-  name: string;
-  description: string;
-  resource: string;
-  actions: string[];
-}
+import type { Employee, Permission } from '../types/Auth';
 
 export interface Role {
   id: string;
@@ -36,6 +21,14 @@ export interface Role {
 export class EmployeeAuthService {
   constructor() {
     console.warn('EmployeeAuthService is temporarily disabled due to encoding corruption');
+  }
+
+  async login(_credentials: unknown): Promise<{ success: boolean; employee?: Employee; token?: string; error?: string }> {
+    console.warn('EmployeeAuthService.login is disabled');
+    return { 
+      success: false, 
+      error: 'Authentication service is temporarily disabled' 
+    };
   }
 
   async authenticateEmployee(): Promise<Employee | null> {
@@ -55,6 +48,16 @@ export class EmployeeAuthService {
 
   async logout(): Promise<void> {
     console.warn('EmployeeAuthService is disabled');
+  }
+
+  async verifyToken(token: string): Promise<{ valid: boolean; employee?: Employee }> {
+    console.warn('EmployeeAuthService.verifyToken is disabled', token);
+    return { valid: false };
+  }
+
+  async changePassword(_oldPassword: string, _newPassword: string): Promise<{ success: boolean; error?: string }> {
+    console.warn('EmployeeAuthService.changePassword is disabled');
+    return { success: false, error: 'Authentication service is temporarily disabled' };
   }
 
   async getRoles(): Promise<Role[]> {

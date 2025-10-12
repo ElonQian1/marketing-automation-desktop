@@ -340,7 +340,7 @@ export const AuditManager: React.FC<AuditManagerProps> = ({ onDataUpdated }) => 
       width: 80,
       render: (platform?: Platform) => (
         platform ? (
-          <Tag color="blue" size="small">
+          <Tag color="blue">
             {platform}
           </Tag>
         ) : null
@@ -451,7 +451,7 @@ export const AuditManager: React.FC<AuditManagerProps> = ({ onDataUpdated }) => 
                   >
                     {Object.values(AuditLogLevel).map(level => (
                       <Option key={level} value={level}>
-                        <Tag color={getLevelColor(level)} size="small">
+                        <Tag color={getLevelColor(level)}>
                           {level.toUpperCase()}
                         </Tag>
                       </Option>

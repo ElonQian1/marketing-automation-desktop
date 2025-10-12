@@ -19,9 +19,9 @@ import {
   IndustryTag,
   RegionTag,
   WatchTarget,
-  Comment,
   Task
 } from '../index';
+import type { Comment } from '../index';
 
 import { globalAuditManager } from '../audit/AuditLogManager';
 // import { CommentFilterEngine, createCommentFilterEngine } from '../comment-collection/engines/CommentFilterEngine';

@@ -20,6 +20,8 @@ import type {
   DeviceInfo,
   AppInfo
 } from '../types/AnalysisTypes';
+import type { BoundsInfo } from '../shared/types/geometry';
+import type { UiNode } from '../../../components/universal-ui/views/grid-view/types';
 import { BoundsCalculator } from '../../../shared';
 import { getTextInfo } from '../i18n/ElementTextDictionary';
 import { StableContainerRecognizer } from '../analyzers/container/StableContainerRecognizer';
@@ -67,14 +69,17 @@ export class ElementContextAnalyzer {
       // 1. 解析XML并构建文档结构
       const document = await this.parseXmlDocument(xmlContent);
       
-      // 2. 定位目标元素节点
-      const targetElement = this.locateTargetElement(element, document);
+      // 2. 定位目标元素节点 - 转换UiNode为ElementNode格式
+      const targetElement = this.locateTargetElement(this.convertUiNodeToElementNode(element), document);
       
       // 3. Step 0增强：多语言文本规范化
       const normalizedTarget = this.normalizeElementText(targetElement);
       
       // 4. Step 0增强：稳定容器识别
-      const stableContainers = this.containerRecognizer.identifyStableContainers(normalizedTarget, document.root);
+      const stableContainers = this.containerRecognizer.identifyStableContainers(
+        this.convertElementNodeToUiNode(normalizedTarget), 
+        this.convertElementNodeToUiNode(document.root)
+      );
       
       // 5. 分析层级关系
       const hierarchy = this.analyzeHierarchy(normalizedTarget, document);
@@ -196,6 +201,94 @@ export class ElementContextAnalyzer {
     }
 
     return nodes;
+  }
+
+  /**
+   * 将ElementNode转换回UiNode格式
+   */
+  private convertElementNodeToUiNode(elementNode: ElementNode): UiNode {
+    return {
+      tag: elementNode.tag,
+      attrs: {
+        ...elementNode.attributes,
+        text: elementNode.text,
+        clickable: elementNode.clickable.toString(),
+        visible: elementNode.visible.toString(),
+        focusable: elementNode.focusable.toString(),
+        enabled: elementNode.uiState.enabled.toString(),
+        selected: elementNode.uiState.selected.toString(),
+        checked: elementNode.uiState.checked?.toString(),
+        password: elementNode.uiState.password?.toString(),
+        bounds: elementNode.bounds ? `[${elementNode.bounds.left},${elementNode.bounds.top}][${elementNode.bounds.right},${elementNode.bounds.bottom}]` : undefined
+      },
+      children: [] // ElementNode 没有children信息，提供空数组
+    };
+  }
+
+  /**
+   * 将UiNode转换为ElementNode格式
+   */
+  private convertUiNodeToElementNode(uiNode: UiNode): ElementNode {
+    return {
+      tag: uiNode.tag,
+      attributes: uiNode.attrs || {},
+      text: uiNode.attrs?.text || '',
+      bounds: uiNode.attrs?.bounds ? this.parseBounds(uiNode.attrs.bounds) : undefined,
+      xpath: this.generateXPathFromUiNode(uiNode),
+      index: 0, // 默认索引
+      clickable: uiNode.attrs?.clickable === 'true',
+      visible: uiNode.attrs?.visible !== 'false',
+      focusable: uiNode.attrs?.focusable === 'true',
+      uiState: {
+        enabled: uiNode.attrs?.enabled !== 'false',
+        selected: uiNode.attrs?.selected === 'true',
+        checked: uiNode.attrs?.checked === 'true',
+        password: uiNode.attrs?.password === 'true'
+      }
+    };
+  }
+
+  /**
+   * 从UiNode生成XPath
+   */
+  private generateXPathFromUiNode(uiNode: UiNode): string {
+    // 简单的XPath生成逻辑
+    if (uiNode.attrs?.['resource-id']) {
+      return `//*[@resource-id="${uiNode.attrs['resource-id']}"]`;
+    }
+    if (uiNode.attrs?.text) {
+      return `//*[@text="${uiNode.attrs.text}"]`;
+    }
+    return `//${uiNode.tag}`;
+  }
+
+  /**
+   * 解析bounds字符串为BoundsInfo对象
+   */
+  private parseBounds(boundsStr: string): BoundsInfo | undefined {
+    try {
+      const match = boundsStr.match(/\[(\d+),(\d+)\]\[(\d+),(\d+)\]/);
+      if (match) {
+        const [, x1, y1, x2, y2] = match.map(Number);
+        const left = x1;
+        const top = y1;
+        const right = x2;
+        const bottom = y2;
+        return {
+          left,
+          top,
+          right,
+          bottom,
+          width: right - left,
+          height: bottom - top,
+          centerX: left + (right - left) / 2,
+          centerY: top + (bottom - top) / 2
+        };
+      }
+    } catch (error) {
+      console.warn('Failed to parse bounds:', boundsStr, error);
+    }
+    return undefined;
   }
 
   /**

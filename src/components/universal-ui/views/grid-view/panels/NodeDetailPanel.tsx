@@ -19,7 +19,6 @@ import { resolveSnapshot, type SnapshotResolveInput } from '../../grid-view';
 import { 
   HierarchyFieldDisplay, 
   generateEnhancedMatching, 
-  analyzeNodeHierarchy,
   SmartMatchingConditions
 } from '../../../../../modules/enhanced-matching';
 
@@ -32,6 +31,113 @@ import {
 
 // 🆕 导入统一策略配置器
 import { UnifiedStrategyConfigurator } from '../../../strategy-selector';
+
+// 🆕 策略置信度指示器组件
+interface StrategyConfidenceIndicatorProps {
+  strategy: MatchCriteria["strategy"];
+  fields: string[];
+  node: UiNode | null;
+  evaluateFunction: (
+    strategy: MatchCriteria["strategy"],
+    fields: string[],
+    node: UiNode
+  ) => Promise<{
+    confidence: number;
+    issues: string[];
+    suggestions: string[];
+  }>;
+}
+
+const StrategyConfidenceIndicator: React.FC<StrategyConfidenceIndicatorProps> = ({
+  strategy,
+  fields,
+  node,
+  evaluateFunction
+}) => {
+  const [confidence, setConfidence] = useState<number>(0.8);
+  const [issues, setIssues] = useState<string[]>([]);
+  const [suggestions, setSuggestions] = useState<string[]>([]);
+  const [isEvaluating, setIsEvaluating] = useState(false);
+
+  useEffect(() => {
+    if (!node) return;
+    
+    const evaluate = async () => {
+      setIsEvaluating(true);
+      try {
+        const result = await evaluateFunction(strategy, fields, node);
+        setConfidence(result.confidence);
+        setIssues(result.issues);
+        setSuggestions(result.suggestions);
+      } catch (error) {
+        console.error('置信度评估失败:', error);
+        setConfidence(0.5);
+        setIssues(['评估失败']);
+        setSuggestions(['请检查策略配置']);
+      } finally {
+        setIsEvaluating(false);
+      }
+    };
+
+    // 防抖评估
+    const debounceTimer = setTimeout(evaluate, 300);
+    return () => clearTimeout(debounceTimer);
+  }, [strategy, fields, node, evaluateFunction]);
+
+  const getConfidenceColor = (conf: number) => {
+    if (conf >= 0.8) return 'text-green-600 bg-green-100';
+    if (conf >= 0.6) return 'text-yellow-600 bg-yellow-100';
+    return 'text-red-600 bg-red-100';
+  };
+
+  const getConfidenceLabel = (conf: number) => {
+    if (conf >= 0.8) return '高';
+    if (conf >= 0.6) return '中';
+    return '低';
+  };
+
+  return (
+    <div className="flex items-center">
+      <div 
+        className={`px-2 py-1 rounded-md text-xs font-medium transition-colors ${
+          isEvaluating ? 'text-gray-500 bg-gray-100' : getConfidenceColor(confidence)
+        }`}
+        title={`置信度: ${(confidence * 100).toFixed(1)}%${issues.length > 0 ? ` | 问题: ${issues.join(', ')}` : ''}`}
+      >
+        {isEvaluating ? '评估中...' : `置信度: ${getConfidenceLabel(confidence)}`}
+      </div>
+      
+      {/* 问题和建议的详细提示 */}
+      {(issues.length > 0 || suggestions.length > 0) && !isEvaluating && (
+        <div className="ml-1 relative group">
+          <span className="text-xs text-amber-500 cursor-help">⚠️</span>
+          <div className="hidden group-hover:block absolute top-6 left-0 z-10 w-64 p-2 bg-white border border-gray-200 rounded-md shadow-lg text-xs">
+            {issues.length > 0 && (
+              <div className="mb-2">
+                <div className="font-medium text-red-600 mb-1">问题:</div>
+                <ul className="list-disc list-inside text-red-500">
+                  {issues.map((issue, i) => (
+                    <li key={i}>{issue}</li>
+                  ))}
+                </ul>
+              </div>
+            )}
+            {suggestions.length > 0 && (
+              <div>
+                <div className="font-medium text-blue-600 mb-1">建议:</div>
+                <ul className="list-disc list-inside text-blue-500">
+                  {suggestions.map((suggestion, i) => (
+                    <li key={i}>{suggestion}</li>
+                  ))}
+                </ul>
+              </div>
+            )}
+          </div>
+        </div>
+      )}
+    </div>
+  );
+};
 
 interface NodeDetailPanelProps {
   node: UiNode | null;
@@ -71,7 +177,6 @@ export const NodeDetailPanel: React.FC<NodeDetailPanelProps> = ({
   
   // 🆕 增强匹配分析状态
   const [enhancedAnalysis, setEnhancedAnalysis] = useState<SmartMatchingConditions | null>(null);
-  const [showEnhancedView, setShowEnhancedView] = useState(false);
 
   // 🆕 策略评分系统状态
   const [strategyRecommendations, setStrategyRecommendations] = useState<DetailedStrategyRecommendation[]>([]);
@@ -80,13 +185,17 @@ export const NodeDetailPanel: React.FC<NodeDetailPanelProps> = ({
   
   // 🆕 模式切换状态
   const [currentMode, setCurrentMode] = useState<'intelligent' | 'static'>('intelligent');
-  const [canSwitchMode, setCanSwitchMode] = useState(true);
+  const [canSwitchMode] = useState(true);
 
   // 🆕 真实策略评分函数（使用智能策略系统适配器）
   const calculateStrategyScores = async (node: UiNode): Promise<DetailedStrategyRecommendation[]> => {
     try {
       setIsLoadingScores(true);
-      console.log('🎯 开始计算策略评分', { node: node.tag, hasXml: !!xmlContent });
+      console.log('🎯 开始计算策略评分', { 
+        node: node.tag, 
+        hasXml: !!xmlContent,
+        mode: currentMode 
+      });
       
       // 🎯 使用模式感知的策略分析
       const recommendations = await strategySystemAdapter.analyzeElementByMode(node, xmlContent);
@@ -94,7 +203,8 @@ export const NodeDetailPanel: React.FC<NodeDetailPanelProps> = ({
       console.log('✅ 策略评分计算完成', { 
         nodeTag: node.tag,
         recommendationsCount: recommendations.length,
-        topStrategy: recommendations[0]?.strategy
+        topStrategy: recommendations[0]?.strategy,
+        mode: currentMode
       });
       
       return recommendations;
@@ -120,6 +230,162 @@ export const NodeDetailPanel: React.FC<NodeDetailPanelProps> = ({
     }
   };
 
+  // 🚀 动态最优策略选择器 - 基于元素特征智能推荐
+  const selectOptimalStrategy = async (
+    node: UiNode,
+    recommendations: DetailedStrategyRecommendation[]
+  ): Promise<{
+    strategy: MatchCriteria["strategy"];
+    confidence: number;
+    reasoning: string;
+  }> => {
+    if (recommendations.length === 0) {
+      return {
+        strategy: "self-anchor", // 默认智能策略
+        confidence: 0.5,
+        reasoning: "无推荐数据，使用智能默认策略"
+      };
+    }
+
+    // 按置信度和综合评分排序
+    const sortedRecommendations = recommendations.sort((a, b) => {
+      const scoreA = a.score.total * 0.6 + a.confidence * 0.4;
+      const scoreB = b.score.total * 0.6 + b.confidence * 0.4;
+      return scoreB - scoreA;
+    });
+
+    const optimal = sortedRecommendations[0];
+    
+    // 检查是否满足最低质量要求
+    const minQualityThreshold = 0.65;
+    const combinedScore = optimal.score.total * 0.6 + optimal.confidence * 0.4;
+    
+    if (combinedScore < minQualityThreshold) {
+      // 低质量推荐，使用智能兜底策略
+      return {
+        strategy: "self-anchor",
+        confidence: Math.max(combinedScore, 0.5),
+        reasoning: `推荐质量不足(${combinedScore.toFixed(2)})，使用智能兜底策略`
+      };
+    }
+
+    return {
+      strategy: optimal.strategy as MatchCriteria["strategy"],
+      confidence: optimal.confidence,
+      reasoning: optimal.reason || "智能分析推荐的最佳策略"
+    };
+  };
+
+  // 🔄 智能策略自动应用函数
+  const applyIntelligentStrategy = async (
+    node: UiNode,
+    forceRefresh = false
+  ) => {
+    if (!node || (isLoadingScores && !forceRefresh)) return;
+
+    try {
+      setIsLoadingScores(true);
+      console.log("🤖 开始智能策略自动应用", { 
+        nodeTag: node.tag, 
+        currentMode,
+        forceRefresh 
+      });
+
+      // 计算策略推荐
+      const recommendations = await calculateStrategyScores(node);
+      setStrategyRecommendations(recommendations);
+
+      // 选择最优策略
+      const { strategy: optimalStrategy, confidence, reasoning } = 
+        await selectOptimalStrategy(node, recommendations);
+
+      console.log("🎯 智能策略选择结果", {
+        strategy: optimalStrategy,
+        confidence,
+        reasoning
+      });
+
+      // 应用最优策略
+      setStrategy(optimalStrategy);
+
+      // 自动应用相应的字段预设
+      const presetFields = PRESET_FIELDS[optimalStrategy as keyof typeof PRESET_FIELDS] || [];
+      if (presetFields.length > 0) {
+        setSelectedFields(presetFields);
+        setValues(buildDefaultValues(node, presetFields));
+        console.log("📋 自动应用智能字段预设", presetFields);
+      }
+
+      // 如果是智能模式，启用实时优化
+      if (currentMode === "intelligent") {
+        // 延迟执行二次优化
+        setTimeout(() => {
+          optimizeStrategyFields(node, optimalStrategy, presetFields);
+        }, 500);
+      }
+
+    } catch (error) {
+      console.error("❌ 智能策略应用失败", error);
+    } finally {
+      setIsLoadingScores(false);
+    }
+  };
+
+  // 🔧 策略字段优化器 - 根据元素特征动态调整字段选择
+  const optimizeStrategyFields = async (
+    node: UiNode,
+    strategy: MatchCriteria["strategy"],
+    baseFields: string[]
+  ) => {
+    const attrs = node.attrs;
+    const optimizedFields = [...baseFields];
+    
+    // 智能字段优化规则
+    const fieldOptimizationRules = {
+      // 文本优化：如果元素有明确文本，优先使用
+      text: () => attrs.text && attrs.text.trim().length > 0 && attrs.text.length < 50,
+      
+      // 资源ID优化：如果有稳定的resource-id，高优先级
+      "resource-id": () => attrs["resource-id"] && !attrs["resource-id"].includes("generated"),
+      
+      // 内容描述优化：辅助性描述字段
+      "content-desc": () => attrs["content-desc"] && attrs["content-desc"].length > 0,
+      
+      // 类名优化：避免过于通用的类名
+      "class": () => {
+        const className = attrs.class || "";
+        return className && !["View", "ViewGroup", "LinearLayout"].includes(className);
+      }
+    };
+
+    // 应用优化规则
+    Object.entries(fieldOptimizationRules).forEach(([field, shouldInclude]) => {
+      if (shouldInclude() && !optimizedFields.includes(field)) {
+        optimizedFields.push(field);
+      } else if (!shouldInclude() && optimizedFields.includes(field)) {
+        const index = optimizedFields.indexOf(field);
+        optimizedFields.splice(index, 1);
+      }
+    });
+
+    // 确保至少有一个可用字段
+    if (optimizedFields.length === 0) {
+      optimizedFields.push("class"); // 兜底字段
+    }
+
+    console.log("🔧 字段智能优化完成", {
+      original: baseFields,
+      optimized: optimizedFields,
+      elementAttrs: Object.keys(attrs)
+    });
+
+    // 应用优化后的字段
+    if (JSON.stringify(optimizedFields) !== JSON.stringify(selectedFields)) {
+      setSelectedFields(optimizedFields);
+      setValues(buildDefaultValues(node, optimizedFields));
+    }
+  };
+
   // 🔄 模式切换处理函数
   const handleModeSwitch = async (newMode: 'intelligent' | 'static') => {
     if (!canSwitchMode) {
@@ -136,17 +402,102 @@ export const NodeDetailPanel: React.FC<NodeDetailPanelProps> = ({
       
       // 如果当前有节点选中，重新分析
       if (node) {
-        setIsLoadingScores(true);
-        try {
-          const newRecommendations = await calculateStrategyScores(node);
-          setStrategyRecommendations(newRecommendations);
-        } catch (error) {
-          console.error('❌ 模式切换后重新分析失败', error);
-        } finally {
-          setIsLoadingScores(false);
+        if (newMode === 'intelligent') {
+          // 切换到智能模式：自动重新分析并应用最佳策略
+          await applyIntelligentStrategy(node, true);
+        } else {
+          // 切换到静态模式：重新计算评分但保持当前选择
+          setIsLoadingScores(true);
+          try {
+            const newRecommendations = await calculateStrategyScores(node);
+            setStrategyRecommendations(newRecommendations);
+          } catch (error) {
+            console.error('❌ 模式切换后重新分析失败', error);
+          } finally {
+            setIsLoadingScores(false);
+          }
         }
       }
     }
+  };
+
+  // 🎯 手动策略选择处理函数（用于静态模式）
+  const handleManualStrategySelect = (newStrategy: MatchCriteria["strategy"]) => {
+    console.log(`📝 手动选择策略: ${strategy} → ${newStrategy}`);
+    
+    setStrategy(newStrategy);
+    
+    // 应用策略对应的预设字段
+    const preset = PRESET_FIELDS[newStrategy as keyof typeof PRESET_FIELDS] || [];
+    const nextFields = newStrategy === "custom" ? selectedFields : preset;
+    setSelectedFields(nextFields);
+    
+    if (node) {
+      setValues(buildDefaultValues(node, nextFields));
+    }
+
+    // 在静态模式下，更新当前策略但不自动重新评分
+    if (currentMode === 'static') {
+      console.log('🔧 静态模式：保持用户选择的策略');
+    }
+  };
+
+  // 🔄 策略置信度实时评估
+  const evaluateCurrentStrategyConfidence = async (
+    currentStrategy: MatchCriteria["strategy"],
+    currentFields: string[],
+    currentNode: UiNode
+  ): Promise<{
+    confidence: number;
+    issues: string[];
+    suggestions: string[];
+  }> => {
+    const issues: string[] = [];
+    const suggestions: string[] = [];
+    let confidence = 0.8; // 基础置信度
+
+    const attrs = currentNode.attrs;
+
+    // 评估字段选择的合理性
+    if (currentFields.includes('text') && (!attrs.text || attrs.text.trim().length === 0)) {
+      issues.push('选择了text字段但元素无文本内容');
+      confidence -= 0.2;
+      suggestions.push('考虑移除text字段或使用其他识别字段');
+    }
+
+    if (currentFields.includes('resource-id') && (!attrs['resource-id'] || attrs['resource-id'].includes('generated'))) {
+      issues.push('resource-id可能不稳定');
+      confidence -= 0.15;
+      suggestions.push('考虑添加其他稳定的识别字段');
+    }
+
+    if (currentFields.length === 0) {
+      issues.push('未选择任何匹配字段');
+      confidence = 0.1;
+      suggestions.push('至少选择一个有效的匹配字段');
+    }
+
+    // 评估策略适用性
+    const strategyApplicability = {
+      'xpath-direct': () => !!attrs.xpath,
+      'strict': () => currentFields.length >= 2,
+      'relaxed': () => currentFields.length >= 1,
+      'self-anchor': () => !!(attrs.text || attrs['resource-id']),
+      'standard': () => true
+    };
+
+    const isApplicable = strategyApplicability[currentStrategy as keyof typeof strategyApplicability];
+    if (isApplicable && !isApplicable()) {
+      issues.push(`当前策略(${currentStrategy})可能不适用于此元素`);
+      confidence -= 0.3;
+      suggestions.push('考虑切换到更适合的策略');
+    }
+
+    return {
+      confidence: Math.max(0.1, Math.min(1.0, confidence)),
+      issues,
+      suggestions
+    };
   };
 
   useEffect(() => { onStrategyChanged?.(strategy); }, [strategy]);
@@ -234,7 +585,7 @@ export const NodeDetailPanel: React.FC<NodeDetailPanelProps> = ({
         }
 
         // 执行增强匹配分析
-        const conditions = generateEnhancedMatching(targetElement, xmlDoc, {
+        const conditions = await generateEnhancedMatching(targetElement, xmlDoc, {
           enableParentContext: true,
           enableChildContext: true,
           enableDescendantSearch: false,
@@ -243,7 +594,26 @@ export const NodeDetailPanel: React.FC<NodeDetailPanelProps> = ({
           excludePositionalFields: true
         });
 
-        setEnhancedAnalysis(conditions);
+        // 转换为SmartMatchingConditions格式
+        const smartConditions: SmartMatchingConditions = {
+          strategy: conditions.strategy,
+          fields: conditions.fields,
+          values: conditions.values,
+          confidence: conditions.confidence,
+          hierarchy: conditions.hierarchy,
+          includes: {},
+          excludes: {},
+          analysis: {
+            self: {},
+            children: [],
+            descendants: [],
+            siblings: [],
+            depth: 0,
+            path: ''
+          }
+        };
+
+        setEnhancedAnalysis(smartConditions);
         
       } catch (error) {
         console.warn('增强匹配分析失败:', error);
@@ -566,6 +936,13 @@ export const NodeDetailPanel: React.FC<NodeDetailPanelProps> = ({
                     静态
                   </button>
                 </div>
+                {/* 🆕 当前策略置信度指示器 */}
+                <StrategyConfidenceIndicator 
+                  strategy={strategy}
+                  fields={selectedFields}
+                  node={node}
+                  evaluateFunction={evaluateCurrentStrategyConfidence}
+                />
               </div>
               <button
                 className="text-xs text-blue-600 hover:text-blue-700 px-2 py-1 rounded border border-blue-200 hover:bg-blue-50"
@@ -575,23 +952,74 @@ export const NodeDetailPanel: React.FC<NodeDetailPanelProps> = ({
               </button>
             </div>
             
+            {/* 🆕 模式说明和快速操作 */}
+            {currentMode === 'intelligent' && (
+              <div className="mb-3 p-2 bg-blue-50 border border-blue-200 rounded-lg text-xs">
+                <div className="flex items-center gap-1 text-blue-700 mb-1">
+                  <span>🎯</span>
+                  <span className="font-medium">智能模式：系统自动选择最优策略</span>
+                </div>
+                <div className="text-blue-600">
+                  系统会根据元素特征、上下文信息和历史成功率动态推荐最佳策略变体。
+                  {strategyRecommendations[0] && (
+                    <span className="ml-1">
+                      当前推荐：<span className="font-medium">{strategyRecommendations[0].strategy}</span>
+                      （置信度 {(strategyRecommendations[0].confidence * 100).toFixed(1)}%）
+                    </span>
+                  )}
+                </div>
+                {currentMode === 'intelligent' && node && (
+                  <button
+                    className="mt-2 text-xs bg-blue-500 text-white px-2 py-1 rounded hover:bg-blue-600 transition-colors"
+                    onClick={() => applyIntelligentStrategy(node, true)}
+                    disabled={isLoadingScores}
+                  >
+                    {isLoadingScores ? '⏳ 重新分析中...' : '🔄 重新智能分析'}
+                  </button>
+                )}
+              </div>
+            )}
+            
+            {currentMode === 'static' && (
+              <div className="mb-3 p-2 bg-gray-50 border border-gray-200 rounded-lg text-xs">
+                <div className="flex items-center gap-1 text-gray-700 mb-1">
+                  <span>⚙️</span>
+                  <span className="font-medium">静态模式：手动选择和调整策略</span>
+                </div>
+                <div className="text-gray-600">
+                  您可以手动选择策略并调整匹配字段。系统仍会提供评分参考，但不会自动更改您的选择。
+                </div>
+              </div>
+            )}
+            
             {/* 紧凑模式的推荐显示 */}
             {!showStrategyScoring && (
               <StrategyRecommendationPanel
                 recommendations={strategyRecommendations}
                 currentStrategy={strategy}
                 onStrategySelect={(newStrategy) => {
-                  setStrategy(newStrategy);
-                  // 应用对应的预设字段
-                  const preset = PRESET_FIELDS[newStrategy as any] || [];
-                  const nextFields = newStrategy === 'custom' ? selectedFields : preset;
-                  setSelectedFields(nextFields);
-                  if (node) {
-                    setValues(buildDefaultValues(node, nextFields));
+                  if (currentMode === 'intelligent') {
+                    // 智能模式：应用选择并触发重新优化
+                    setStrategy(newStrategy);
+                    const preset = PRESET_FIELDS[newStrategy as keyof typeof PRESET_FIELDS] || [];
+                    const nextFields = newStrategy === 'custom' ? selectedFields : preset;
+                    setSelectedFields(nextFields);
+                    if (node) {
+                      setValues(buildDefaultValues(node, nextFields));
+                      // 延迟优化
+                      setTimeout(() => optimizeStrategyFields(node, newStrategy, nextFields), 300);
+                    }
+                  } else {
+                    // 静态模式：直接应用选择
+                    handleManualStrategySelect(newStrategy);
                   }
                 }}
+                onWeightChange={(weights) => {
+                  // TODO: 实时重新计算评分
+                  console.log("权重调整:", weights);
+                }}
                 compact={true}
-                className="bg-blue-50 dark:bg-blue-900/20 rounded-lg p-3"
+                className="border border-blue-200 dark:border-blue-800 rounded-lg p-3"
               />
             )}
             

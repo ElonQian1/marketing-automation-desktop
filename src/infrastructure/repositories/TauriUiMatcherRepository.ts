@@ -3,7 +3,7 @@
 // summary: DDD架构基础设施层实现
 
 import { invoke, isTauri } from '@tauri-apps/api/core';
-import { IUiMatcherRepository, MatchCriteriaDTO, MatchResultDTO, HiddenElementParentConfig } from '../../domain/page-analysis/repositories/IUiMatcherRepository';
+import { IUiMatcherRepository, MatchCriteriaDTO, MatchResultDTO } from '../../domain/page-analysis/repositories/IUiMatcherRepository';
 
 export class TauriUiMatcherRepository implements IUiMatcherRepository {
   /**
@@ -38,12 +38,19 @@ export class TauriUiMatcherRepository implements IUiMatcherRepository {
   /**
    * 转换隐藏元素父容器配置
    */
-  private convertHiddenElementParentConfig(config: HiddenElementParentConfig): any {
+  private convertHiddenElementParentConfig(config: {
+    targetText: string;
+    maxTraversalDepth?: number;
+    clickableIndicators?: string[];
+    excludeIndicators?: string[];
+    confidenceThreshold?: number;
+  }): any {
     return {
-      enable_parent_detection: config.enableParentDetection,
-      max_parent_levels: config.maxParentLevels,
-      expected_parent_types: config.expectedParentTypes,
-      prefer_clickable_parent: config.preferClickableParent
+      target_text: config.targetText,
+      max_traversal_depth: config.maxTraversalDepth,
+      clickable_indicators: config.clickableIndicators,
+      exclude_indicators: config.excludeIndicators,
+      confidence_threshold: config.confidenceThreshold
     };
   }
 

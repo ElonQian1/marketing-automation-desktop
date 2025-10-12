@@ -8,7 +8,7 @@
  */
 import { UIElement } from '../../../api/universalUIAPI';
 import { VisualUIElement } from '../xml-parser/types';
-import { ConversionOptions, ConversionResult } from './types';
+import { ConversionOptions, ConversionResult, ElementContext } from './types';
 
 export class VisualToUIElementConverter {
   
@@ -217,28 +217,25 @@ export class VisualToUIElementConverter {
    * @param visualElement 可视化元素
    * @returns 元素上下文
    */
-  private static createElementContext(visualElement: VisualUIElement) {
+  private static createElementContext(visualElement: VisualUIElement): ElementContext {
     const position = visualElement.position || { x: 0, y: 0, width: 100, height: 50 };
     
     return {
-      text: visualElement.text || '',
-      contentDesc: visualElement.description || '',
-      resourceId: '', // 需要从原始XML数据获取
-      className: visualElement.type || '',
-      bounds: `[${position.x},${position.y}][${position.x + position.width},${position.y + position.height}]`,
-      clickable: visualElement.clickable || false,
-      selected: false,
-      enabled: true,
-      focusable: visualElement.clickable || false,
-      scrollable: this.inferScrollable(visualElement),
-      checkable: this.inferCheckable(visualElement),
-      checked: false,
-      position: position,
-      screenWidth: 1080, // 默认值，应该从外部传入
-      screenHeight: 1920, // 默认值，应该从外部传入
-      parentElements: [],
-      siblingElements: [],
-      childElements: []
+      element: {
+        'resource-id': '', // 需要从原始XML数据获取
+        text: visualElement.text || '',
+        'content-desc': visualElement.description || '',
+        class: visualElement.type || '',
+        clickable: visualElement.clickable || false,
+        enabled: true,
+        bounds: `[${position.x},${position.y}][${position.x + position.width},${position.y + position.height}]`
+      },
+      siblings: [],
+      parent: undefined,
+      children: [],
+      depth: 0,
+      path: '',
+      xmlContent: ''
     };
   }
 }

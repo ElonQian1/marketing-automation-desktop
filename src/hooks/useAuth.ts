@@ -66,7 +66,7 @@ export const useAuth = () => {
   const logout = useCallback(async (): Promise<void> => {
     try {
       // 调用EmployeeAuthService进行登出
-      await EmployeeAuthService.logout(authState.token);
+      await EmployeeAuthService.logout();
 
       // 清除本地存储
       localStorage.removeItem('authToken');
@@ -150,14 +150,13 @@ export const useAuth = () => {
     if (!authState.employee || !authState.token) return;
 
     try {
-      const success = await EmployeeAuthService.changePassword(
-        authState.token,
+      const result = await EmployeeAuthService.changePassword(
         currentPassword,
         newPassword
       );
 
-      if (!success) {
-        throw new Error('修改密码失败');
+      if (!result.success) {
+        throw new Error(result.error || '修改密码失败');
       }
     } catch (error) {
       console.error('Change password error:', error);

@@ -20,7 +20,8 @@ import {
 } from '../../../modules/enhanced-element-info/types';
 import { 
   UniversalElementAnalyzer,
-  ElementAnalysisResult
+  ElementAnalysisResult,
+  ElementContext as AnalyzerElementContext
 } from '../UniversalElementAnalyzer';
 import { ElementContextCreator } from '../data-transform/ElementContextCreator';
 import { cleanXmlContent } from '../xml-parser/cleanXml';
@@ -298,8 +299,27 @@ export class EnhancedElementCreator {
     // 创建元素上下文用于分析
     const context = ElementContextCreator.createContextFromUIElement(element);
     
+    // 转换为分析器需要的格式
+    const analyzerContext: AnalyzerElementContext = {
+      text: context.element.text || '',
+      contentDesc: context.element['content-desc'] || '',
+      resourceId: context.element['resource-id'] || '',
+      className: context.element.class || '',
+      bounds: context.element.bounds || '',
+      clickable: context.element.clickable || false,
+      selected: false,
+      enabled: context.element.enabled !== false,
+      focusable: false,
+      scrollable: false,
+      checkable: false,
+      checked: false,
+      position: { x: 0, y: 0, width: 100, height: 50 },
+      screenWidth: 1080,
+      screenHeight: 1920
+    };
+    
     // 执行智能分析
-    const analysisResult: ElementAnalysisResult = await UniversalElementAnalyzer.analyzeElement(context);
+    const analysisResult: ElementAnalysisResult = await UniversalElementAnalyzer.analyzeElement(analyzerContext);
 
     // 转换为我们的格式
     const smartAnalysis: SmartAnalysisResult = {

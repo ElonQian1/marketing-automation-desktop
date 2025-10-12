@@ -10,6 +10,7 @@
 import { VisualUIElement } from '../xml-parser/types';
 import { UIElement } from '../../../api/universalUIAPI';
 import { ElementContext } from './types';
+import type { ElementLike } from '../../../modules/intelligent-strategy-system/shared/types/element';
 
 export class ElementContextCreator {
   
@@ -30,24 +31,21 @@ export class ElementContextCreator {
     
     // 基本上下文信息
     const context: ElementContext = {
-      text: element.text || '',
-      contentDesc: element.description || '',
-      resourceId: '', // 需要从原始XML获取，这里暂时为空
-      className: element.type || '',
-      bounds: this.formatBounds(position),
-      clickable: element.clickable || false,
-      selected: false, // 默认值，需要从原始XML获取
-      enabled: true, // 默认值
-      focusable: element.clickable || false, // 通常可点击的元素也是可聚焦的
-      scrollable: this.inferScrollable(element),
-      checkable: this.inferCheckable(element),
-      checked: false, // 默认值，需要从原始XML获取
-      position: position,
-      screenWidth: screenSize.width,
-      screenHeight: screenSize.height,
-      parentElements: [],
-      siblingElements: [],
-      childElements: []
+      element: {
+        'resource-id': '', // 需要从原始XML获取
+        text: element.text || '',
+        'content-desc': element.description || '',
+        class: element.type || '',
+        clickable: element.clickable || false,
+        enabled: true,
+        bounds: this.formatBounds(position)
+      },
+      siblings: [], // 稍后填充
+      parent: undefined, // 稍后填充
+      children: [], // 稍后填充
+      depth: 0, // 稍后计算
+      path: '', // 稍后生成
+      xmlContent: '' // 稍后填充
     };
     
     // 如果提供了所有元素，建立关系
@@ -78,28 +76,25 @@ export class ElementContextCreator {
    * @param element 可视化元素
    * @returns 简化的上下文信息
    */
-  static createSimpleContext(element: VisualUIElement): any {
+  static createSimpleContext(element: VisualUIElement): ElementContext {
     const position = element.position || { x: 0, y: 0, width: 100, height: 50 };
     
     return {
-      text: element.text || '',
-      contentDesc: element.description || '',
-      resourceId: '',
-      className: element.type || '',
-      bounds: this.formatBounds(position),
-      clickable: element.clickable || false,
-      selected: false,
-      enabled: true,
-      focusable: element.clickable || false,
-      scrollable: this.inferScrollable(element),
-      checkable: this.inferCheckable(element),
-      checked: false,
-      position: position,
-      screenWidth: 1080,
-      screenHeight: 1920,
-      parentElements: [],
-      siblingElements: [],
-      childElements: []
+      element: {
+        'resource-id': '',
+        text: element.text || '',
+        'content-desc': element.description || '',
+        class: element.type || '',
+        clickable: element.clickable || false,
+        enabled: true,
+        bounds: this.formatBounds(position)
+      },
+      siblings: [],
+      parent: undefined,
+      children: [],
+      depth: 0,
+      path: '',
+      xmlContent: ''
     };
   }
 
@@ -173,16 +168,15 @@ export class ElementContextCreator {
       // 判断是否为父子关系（简化版本：通过包含关系判断）
       if (this.isContainedIn(otherBounds, currentBounds)) {
         // otherElement 可能是 currentElement 的子元素
-        const childContext = this.createSimpleChildContext(otherElement);
-        context.childElements.push(childContext);
+        const childElement = this.convertToElementLike(otherElement);
+        context.children.push(childElement);
       } else if (this.isContainedIn(currentBounds, otherBounds)) {
         // otherElement 可能是 currentElement 的父元素
-        const parentContext = this.createSimpleParentContext(otherElement);
-        context.parentElements.push(parentContext);
+        context.parent = this.convertToElementLike(otherElement);
       } else if (this.areSiblings(currentBounds, otherBounds)) {
         // 可能是兄弟元素（相同层级）
-        const siblingContext = this.createSimpleSiblingContext(otherElement);
-        context.siblingElements.push(siblingContext);
+        const siblingElement = this.convertToElementLike(otherElement);
+        context.siblings.push(siblingElement);
       }
     }
   }
@@ -238,31 +232,28 @@ export class ElementContextCreator {
 
   /**
    * 为子元素创建简化上下文
-   * @param element 子元素
+   * @param element 子元素  
    * @returns 简化上下文
    */
   private static createSimpleChildContext(element: VisualUIElement): ElementContext {
     const position = element.position || { x: 0, y: 0, width: 100, height: 50 };
     
     return {
-      text: element.text || '',
-      contentDesc: element.description || '',
-      resourceId: '',
-      className: element.type || '',
-      bounds: this.formatBounds(position),
-      clickable: element.clickable || false,
-      selected: false,
-      enabled: true,
-      focusable: false,
-      scrollable: false,
-      checkable: false,
-      checked: false,
-      position: position,
-      screenWidth: 1080,
-      screenHeight: 1920,
-      parentElements: [], // 避免循环引用
-      siblingElements: [],
-      childElements: []
+      element: {
+        'resource-id': '',
+        text: element.text || '',
+        'content-desc': element.description || '',
+        class: element.type || '',
+        clickable: element.clickable || false,
+        enabled: true,
+        bounds: this.formatBounds(position)
+      },
+      siblings: [],
+      parent: undefined,
+      children: [],
+      depth: 0,
+      path: '',
+      xmlContent: ''
     };
   }
 
@@ -291,29 +282,37 @@ export class ElementContextCreator {
    */
   static createContextFromUIElement(element: UIElement): ElementContext {
     return {
-      text: element.text || '',
-      contentDesc: element.content_desc || '',
-      resourceId: '', // UIElement通常没有resourceId信息
-      className: element.element_type,
-      bounds: `[${element.bounds.left},${element.bounds.top}][${element.bounds.right},${element.bounds.bottom}]`,
-      clickable: element.is_clickable,
-      selected: element.selected,
-      enabled: element.is_enabled,
-      focusable: false, // 默认值，UIElement通常没有这个信息
-      scrollable: element.is_scrollable,
-      checkable: element.checkable,
-      checked: element.checked,
-      position: {
-        x: element.bounds.left,
-        y: element.bounds.top,
-        width: element.bounds.right - element.bounds.left,
-        height: element.bounds.bottom - element.bounds.top,
+      element: {
+        'resource-id': '', // UIElement通常没有resourceId信息
+        text: element.text || '',
+        'content-desc': element.content_desc || '',
+        class: element.element_type || '',
+        clickable: element.is_clickable || false,
+        enabled: element.is_enabled !== false,
+        bounds: `[${element.bounds.left},${element.bounds.top}][${element.bounds.right},${element.bounds.bottom}]`
       },
-      screenWidth: 1080, // 默认屏幕宽度
-      screenHeight: 1920, // 默认屏幕高度
-      parentElements: [], // UIElement转换时通常没有关系信息
-      siblingElements: [],
-      childElements: [],
+      siblings: [],
+      parent: undefined,
+      children: [],
+      depth: 0,
+      path: '',
+      xmlContent: ''
+    };
+  }
+
+  /**
+   * 将VisualUIElement转换为ElementLike
+   */
+  private static convertToElementLike(element: VisualUIElement): ElementLike {
+    const position = element.position || { x: 0, y: 0, width: 100, height: 50 };
+    return {
+      'resource-id': '', // VisualUIElement没有resource-id
+      text: element.text || '',
+      'content-desc': element.description || '',
+      class: element.type || '',
+      clickable: element.clickable || false,
+      enabled: true,
+      bounds: this.formatBounds(position)
     };
   }
 }

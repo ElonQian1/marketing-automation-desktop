@@ -12,6 +12,7 @@
       "@contact/*": ["src/modules/contact-import/*"],
       "@prospecting/*": ["src/modules/precise-acquisition/*"],
       "@script/*": ["src/modules/smart-script-management/*"],
+      "@universal/*": ["src/modules/universal-ui/*"],
       "@shared/*": ["src/shared/*"]
     },
     "moduleResolution": "bundler",

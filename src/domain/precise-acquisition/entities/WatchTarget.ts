@@ -255,7 +255,7 @@ export class WatchTarget {
     
     if (params.industryTags) {
       const tagsString = formatIndustryTags(params.industryTags);
-      if (!validateIndustryTags(tagsString)) {
+      if (!validateIndustryTags(params.industryTags)) {
         throw new Error(`Invalid industry tags: ${tagsString}`);
       }
     }

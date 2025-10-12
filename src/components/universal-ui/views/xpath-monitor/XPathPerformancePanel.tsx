@@ -19,14 +19,14 @@ export const XPathPerformancePanel: React.FC = () => {
 
   const handleShowReport = () => {
     const performanceReport = XPathService.getPerformanceReport();
-    setReport(performanceReport);
+    setReport(JSON.stringify(performanceReport, null, 2));
     setVisible(true);
   };
 
   const handleClearCache = () => {
     XPathService.clearCache();
     const newReport = XPathService.getPerformanceReport();
-    setReport(newReport);
+    setReport(JSON.stringify(newReport, null, 2));
   };
 
   return (

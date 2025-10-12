@@ -184,11 +184,18 @@ export const usePageFinderModal = (props: UsePageFinderModalProps): UsePageFinde
       const snapshot: XmlSnapshot = {
         id: `snapshot_${Date.now()}`,
         xmlContent,
+        xmlHash: btoa(xmlContent).substring(0, 16),
         deviceInfo: loadFromStepXml?.deviceId ? { 
-          id: loadFromStepXml.deviceId,
-          name: loadFromStepXml.deviceName || "未知设备"
+          deviceId: loadFromStepXml.deviceId,
+          deviceName: loadFromStepXml.deviceName || "未知设备",
+          appPackage: "",
+          activityName: ""
         } : undefined,
-        pageInfo: { source: "step_xml" },
+        pageInfo: { 
+          pageTitle: "步骤XML",
+          pageType: "step_xml",
+          elementCount: 0
+        },
         timestamp: Date.now()
       };
       
@@ -247,8 +254,18 @@ export const usePageFinderModal = (props: UsePageFinderModalProps): UsePageFinde
       const snapshot: XmlSnapshot = {
         id: `snapshot_${Date.now()}`,
         xmlContent,
-        deviceInfo: { id: selectedDevice },
-        pageInfo: { source: "live_capture" },
+        xmlHash: btoa(xmlContent).substring(0, 16),
+        deviceInfo: { 
+          deviceId: selectedDevice,
+          deviceName: "实时设备",
+          appPackage: "",
+          activityName: ""
+        },
+        pageInfo: { 
+          pageTitle: "实时页面",
+          pageType: "live_capture",
+          elementCount: parsedElements.length
+        },
         timestamp: Date.now()
       };
       
@@ -334,11 +351,18 @@ export const usePageFinderModal = (props: UsePageFinderModalProps): UsePageFinde
       const snapshot: XmlSnapshot = {
         id: `cached-${Date.now()}`,
         xmlContent: pageContent.xmlContent,
+        xmlHash: btoa(pageContent.xmlContent).substring(0, 16),
         deviceInfo: pageContent.pageInfo?.deviceId ? {
-          id: pageContent.pageInfo.deviceId,
-          name: "缓存设备"
+          deviceId: pageContent.pageInfo.deviceId,
+          deviceName: "缓存设备",
+          appPackage: "",
+          activityName: ""
         } : undefined,
-        pageInfo: pageContent.pageInfo,
+        pageInfo: {
+          pageTitle: pageContent.pageInfo?.pageTitle || "缓存页面",
+          pageType: "cached",
+          elementCount: 0
+        },
         timestamp: Date.now(),
       };
       
@@ -387,8 +411,13 @@ export const usePageFinderModal = (props: UsePageFinderModalProps): UsePageFinde
     createSnapshot: (xmlContent: string, deviceInfo?: any) => ({
       id: Date.now().toString(),
       xmlContent,
+      xmlHash: btoa(xmlContent).substring(0, 16), // 简单的hash实现
       deviceInfo,
-      pageInfo: {},
+      pageInfo: {
+        pageTitle: '未知页面',
+        pageType: 'unknown',
+        elementCount: 0
+      },
       timestamp: Date.now()
     }),
     setCurrentXmlCacheId,
