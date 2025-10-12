@@ -73,7 +73,7 @@ export class ProspectingAcquisitionService {
   private isInitialized = false;
 
   private constructor() {
-    this.coreApplicationService = new PreciseAcquisitionApplicationService();
+    this.coreApplicationService = PreciseAcquisitionApplicationService.getInstance();
     this.candidatePoolService = new CandidatePoolService();
   }
 
@@ -174,12 +174,13 @@ export class ProspectingAcquisitionService {
     // 执行导入
     const importResult = await this.candidatePoolService.importFromCsv(
       validationResult.valid_rows.map(row => ({
+        id: row.id || crypto.randomUUID(),
         target_type: row.target_type as TargetType,
         platform: row.platform as Platform,
-        platform_id_or_url: row.id_or_url,
+        platform_id_or_url: row.platform_id_or_url,
         title: row.title,
         source: row.source as SourceType,
-        industry_tags: row.industry_tags?.split(';') as IndustryTag[] || [],
+        industry_tags: row.industry_tags || [],
         region_tag: row.region_tag as RegionTag,
         notes: row.notes || '',
         created_at: new Date(),
@@ -225,7 +226,7 @@ export class ProspectingAcquisitionService {
   /**
    * 验证CSV导入数据
    */
-  validateCsvImport(csvData: any[]): ImportValidationResult {
+  validateCsvImport(csvData: Record<string, unknown>[]): ImportValidationResult {
     return this.candidatePoolService.validateCsvImport(csvData);
   }
 
@@ -270,8 +271,21 @@ export class ProspectingAcquisitionService {
   }): Promise<CommentRow> {
     await this.ensureInitialized();
     
-    const comment = await this.coreApplicationService.addComment(params);
-    return comment.toDatabaseRow();
+    const comment = await this.coreApplicationService.addComment({
+      platform: params.platform,
+      videoId: params.video_id,
+      authorId: params.author_id,
+      content: params.content,
+      likeCount: params.like_count,
+      publishTime: params.publish_time,
+      region: params.region,
+      sourceTargetId: params.source_target_id
+    });
+    const row = comment.toDatabaseRow();
+    return {
+      ...row,
+      id: row.id || crypto.randomUUID()
+    } as CommentRow;
   }
 
   /**
@@ -470,7 +484,7 @@ export class ProspectingAcquisitionService {
     
     try {
       const report = await invoke('generate_daily_report', { date: dateStr });
-      return report as any;
+      return report as Record<string, unknown>;
     } catch (error) {
       console.error('生成日报失败:', error);
       return {
