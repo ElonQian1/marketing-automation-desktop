@@ -401,7 +401,12 @@ export class ProspectingAcquisitionService {
    */
   async updateTaskStatus(update: TaskStatusUpdate): Promise<void> {
     await this.ensureInitialized();
-    return this.coreApplicationService.updateTaskStatus(update);
+    return this.coreApplicationService.updateTaskStatus(
+      update.task_id,
+      update.status,
+      update.result_code,
+      update.error_message
+    );
   }
 
   // ==================== 模板管理 ====================
@@ -465,14 +470,13 @@ export class ProspectingAcquisitionService {
           new: 0,
           ready: 0,
           executing: 0,
-          completed: 0,
+          done: 0,
           failed: 0
         },
-        daily_stats: {
-          targets_added: 0,
-          comments_collected: 0,
-          tasks_generated: 0,
-          tasks_completed: 0
+        daily_metrics: {
+          follow_count: 0,
+          reply_count: 0,
+          success_rate: 0
         }
       };
     }
@@ -501,7 +505,20 @@ export class ProspectingAcquisitionService {
     
     try {
       const report = await invoke('generate_daily_report', { date: dateStr });
-      return report as Record<string, unknown>;
+      return report as {
+        report_date: string;
+        summary: {
+          new_targets: number;
+          new_comments: number;
+          tasks_generated: number;
+          tasks_completed: number;
+          success_rate: number;
+        };
+        details: {
+          follow_tasks: Array<{ target_user: string; status: string; result?: string }>;
+          reply_tasks: Array<{ comment_id: string; reply_content: string; status: string }>;
+        };
+      };
     } catch (error) {
       console.error('生成日报失败:', error);
       return {
