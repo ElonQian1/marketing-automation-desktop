@@ -36,6 +36,11 @@ export interface TemplateCategory {
   name: string;
   description: string;
   industry_tags?: IndustryTag[];
+  
+  // UI组件期望的扩展属性
+  parent_id?: string;
+  children?: TemplateCategory[];
+  template_count?: number;
 }
 
 /**
@@ -395,6 +400,47 @@ export class TemplateManagementService {
       valid: errors.length === 0,
       errors
     };
+  }
+
+  /**
+   * 更新模板
+   */
+  async updateTemplate(templateId: string, updates: Partial<Omit<ReplyTemplate, 'id'>>): Promise<ReplyTemplate> {
+    // 这里应该调用后端API，暂时返回模拟数据
+    const updatedTemplate: ReplyTemplate = {
+      id: templateId,
+      template_name: updates.template_name || '默认模板名称',
+      text: updates.text || '默认内容',
+      channel: updates.channel || 'all',
+      category: updates.category || 'general',
+      enabled: updates.enabled ?? true,
+      variables: updates.variables || [],
+      updated_at: new Date()
+    };
+
+    return updatedTemplate;
+  }
+
+  /**
+   * 删除模板
+   */
+  async deleteTemplate(templateId: string): Promise<void> {
+    // 这里应该调用后端API删除模板
+    console.log(`删除模板: ${templateId}`);
+  }
+
+  /**
+   * 创建分类
+   */
+  async createCategory(category: Omit<TemplateCategory, 'id'>): Promise<TemplateCategory> {
+    const newCategory: TemplateCategory = {
+      id: `cat_${Date.now()}`,
+      name: category.name,
+      description: category.description,
+      industry_tags: category.industry_tags
+    };
+
+    return newCategory;
   }
 
   /**
