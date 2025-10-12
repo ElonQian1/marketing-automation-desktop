@@ -286,7 +286,7 @@ export class DailyReportGenerator {
     const followTasks = this.getTasksInDateRange(
       config.date_range.start_date,
       config.date_range.end_date
-    ).filter(task => task.type === TaskType.FOLLOW);
+    ).filter(task => task.task_type === TaskType.FOLLOW);
     
     const followList: FollowListItem[] = [];
     let successCount = 0;
@@ -308,10 +308,10 @@ export class DailyReportGenerator {
       const followItem: FollowListItem = {
         task_id: task.id,
         platform: task.platform,
-        target_user_id: task.targetId,
-        follow_time: task.completedAt || task.updatedAt,
+        target_user_id: task.target_id,
+        follow_time: task.completed_at || task.updated_at,
         source_comment_id: sourceComment?.id,
-        source_video_id: sourceComment?.videoId,
+        source_video_id: sourceComment?.video_id,
         follow_reason: this.generateFollowReason(task, sourceComment),
         status: this.mapTaskStatusToItemStatus(task.status),
         error_message: task.metadata?.error_message
@@ -356,7 +356,7 @@ export class DailyReportGenerator {
     const replyTasks = this.getTasksInDateRange(
       config.date_range.start_date,
       config.date_range.end_date
-    ).filter(task => task.type === TaskType.REPLY);
+    ).filter(task => task.task_type === TaskType.REPLY);
     
     const replyList: ReplyListItem[] = [];
     let successCount = 0;
@@ -373,7 +373,7 @@ export class DailyReportGenerator {
       platformsUsed.add(task.platform);
       
       // 查找原评论
-      const originalComment = this.comments.find(c => c.id === task.targetId);
+      const originalComment = this.comments.find(c => c.id === task.target_id);
       if (!originalComment) continue;
       
       // 查找源视频信息
@@ -382,18 +382,18 @@ export class DailyReportGenerator {
       const replyItem: ReplyListItem = {
         task_id: task.id,
         platform: task.platform,
-        target_comment_id: task.targetId,
+        target_comment_id: task.target_id,
         original_comment: {
           content: originalComment.content,
-          author_id: originalComment.authorId,
-          publish_time: originalComment.publishTime,
-          like_count: originalComment.likeCount,
+          author_id: originalComment.author_id,
+          publish_time: originalComment.publish_time,
+          like_count: originalComment.like_count,
           reply_count: 0 // TODO: 获取回复数
         },
-        reply_content: task.content,
-        reply_time: task.completedAt || task.updatedAt,
+        reply_content: task.metadata?.content as string,
+        reply_time: task.completed_at || task.updated_at,
         template_used: task.metadata?.template_id,
-        source_video_id: originalComment.videoId,
+        source_video_id: originalComment.video_id,
         video_title: sourceTarget?.name,
         status: this.mapTaskStatusToItemStatus(task.status),
         error_message: task.metadata?.error_message
@@ -443,10 +443,10 @@ export class DailyReportGenerator {
     );
     
     const commentsInRange = this.comments.filter(comment =>
-      comment.publishTime >= config.date_range.start_date &&
-      comment.publishTime <= config.date_range.end_date
+      comment.publish_time >= config.date_range.start_date &&
+      comment.publish_time <= config.date_range.end_date
     );
-    
+
     // 获取审计日志统计
     const auditSummary = this.auditManager.getSummary(
       Math.ceil((config.date_range.end_date.getTime() - config.date_range.start_date.getTime()) / (1000 * 60 * 60 * 24))

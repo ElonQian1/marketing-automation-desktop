@@ -8,7 +8,7 @@
  * 管理回复模板、关注话术等，支持变量替换和敏感词检查
  */
 
-import { TaskType, Platform } from '../../../modules/precise-acquisition/shared/constants';
+import { TaskType, Platform } from '../../shared/constants';
 
 // ==================== 模板核心类型 ====================
 

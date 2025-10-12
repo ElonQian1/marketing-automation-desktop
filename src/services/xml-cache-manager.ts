@@ -1,6 +1,6 @@
-// src/services/XmlCacheManager.ts
-// module: shared | layer: unknown | role: component
-// summary: XmlCacheManager.ts 文件
+// src/services/xml-cache-manager.ts
+// module: xml | layer: service | role: manager
+// summary: xml-cache-manager.ts 文件
 
 /**
  * XML缓存管理器

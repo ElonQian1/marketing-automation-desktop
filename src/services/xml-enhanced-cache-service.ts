@@ -1,6 +1,6 @@
-// src/services/EnhancedXmlCacheService.ts
-// module: shared | layer: unknown | role: component
-// summary: EnhancedXmlCacheService.ts 文件
+// src/services/xml-enhanced-cache-service.ts
+// module: xml | layer: service | role: cache
+// summary: xml-enhanced-cache-service.ts 文件
 
 /**
  * 增强的XML页面缓存服务
@@ -8,7 +8,7 @@
  */
 
 import { invoke } from '@tauri-apps/api/core';
-import { UnifiedViewData, UnifiedViewDataManager } from './UnifiedViewDataManager';
+import { UnifiedViewData, UnifiedViewDataManager } from './unified-view-data-manager';
 import { CachedXmlPage } from './xml-page-cache-service';
 
 export interface EnhancedCachedPage extends CachedXmlPage {
@@ -32,7 +32,7 @@ export interface CachedViewData {
 /**
  * 增强的XML页面缓存服务
  */
-export class EnhancedXmlCacheService {
+export class XmlEnhancedCacheService {
   private static readonly ENHANCED_CACHE_DIR = 'enhanced_cache';
   private static readonly DATA_VERSION = '1.0.0';
   private static memoryCache = new Map<string, CachedViewData>();

@@ -9,9 +9,9 @@
  * 实现文档中的"合规三步法"第二步：从评论到任务的转换
  */
 
-import { WatchTarget, Comment, Task } from '../../../modules/precise-acquisition/shared/types/core';
-import { Platform, TaskType, TaskStatus, TaskPriority } from '../../../modules/precise-acquisition/shared/constants';
-import { CommentFilterEngine, CommentFilterResult } from '../comment-collection/engines/CommentFilterEngine';
+import { WatchTarget, Comment, Task } from '../../shared/types/core';
+import { Platform, TaskType, TaskStatus, TaskPriority } from '../../shared/constants';
+// import { CommentFilterEngine, CommentFilterResult } from '../comment-collection/engines/CommentFilterEngine';
 
 // ==================== 任务生成配置 ====================
 

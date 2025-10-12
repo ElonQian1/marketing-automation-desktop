@@ -1,6 +1,6 @@
-// src/services/UnifiedViewDataManager.ts
-// module: shared | layer: unknown | role: component
-// summary: UnifiedViewDataManager.ts 文件
+// src/services/unified-view-data-manager.ts
+// module: unified-view | layer: service | role: manager
+// summary: unified-view-data-manager.ts 文件
 
 /**
  * 统一视图数据管理器 - 向后兼容导出

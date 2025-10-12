@@ -80,7 +80,7 @@ interface TaskCreationFormData {
   priority: 'low' | 'medium' | 'high' | 'urgent';
   assigned_device_id?: string;
   scheduled_at?: Date;
-  metadata?: Record<string, any>;
+  metadata?: Record<string, unknown>;
 }
 
 export const EnhancedTaskManagementDashboard: React.FC = () => {

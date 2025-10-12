@@ -12,13 +12,13 @@ import {
   Task,
   WatchTarget,
   Comment 
-} from '../../../modules/precise-acquisition/shared/types/core';
+} from '../../shared/types/core';
 import { 
   TaskStatus, 
   TaskType, 
   TaskPriority,
   Platform 
-} from '../../../modules/precise-acquisition/shared/constants';
+} from '../../shared/constants';
 
 // ==================== 状态管理类型 ====================
 

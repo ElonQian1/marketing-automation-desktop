@@ -12,12 +12,12 @@ import {
   Task,
   WatchTarget,
   Comment 
-} from '../../../modules/precise-acquisition/shared/types/core';
+} from '../../shared/types/core';
 import { 
   TaskType, 
   TaskStatus, 
   Platform 
-} from '../../../modules/precise-acquisition/shared/constants';
+} from '../../shared/constants';
 
 // ==================== 执行器接口 ====================
 
@@ -114,7 +114,8 @@ export class DouyinTaskExecutor extends TaskExecutor {
     if (!this.config.api_credentials?.access_token) return false;
     
     // 检查任务类型支持
-    return [TaskType.REPLY, TaskType.FOLLOW].includes(task.type);
+    private isValidForReply(task: Task): boolean {
+    return [TaskType.REPLY, TaskType.FOLLOW].includes(task.task_type);
   }
   
   async execute(task: Task): Promise<TaskExecutionResult> {
@@ -144,7 +145,7 @@ export class DouyinTaskExecutor extends TaskExecutor {
       // 根据任务类型执行
       let result: TaskExecutionResult;
       
-      switch (task.type) {
+      switch (task.task_type) {
         case TaskType.REPLY:
           result = await this.executeReplyTask(task, startTime);
           break;
@@ -157,7 +158,7 @@ export class DouyinTaskExecutor extends TaskExecutor {
             success: false,
             executed_at: new Date(),
             execution_time_ms: Date.now() - startTime,
-            error_message: `不支持的任务类型: ${task.type}`,
+            error_message: `不支持的任务类型: ${task.task_type}`,
             retry_suggested: false
           };
       }
@@ -227,8 +228,8 @@ export class DouyinTaskExecutor extends TaskExecutor {
   private async executeReplyTask(task: Task, startTime: number): Promise<TaskExecutionResult> {
     try {
       // 获取评论ID（从任务元数据或目标ID）
-      const commentId = task.metadata?.comment_id || task.targetId;
-      const replyContent = task.content;
+      const commentId = task.metadata?.comment_id || task.target_id;
+      const replyContent = task.metadata?.content as string;
       
       // 调用抖音回复API
       const response = await this.callDouyinAPI('/api/comment/reply/', {
@@ -276,7 +277,7 @@ export class DouyinTaskExecutor extends TaskExecutor {
   
   private async executeFollowTask(task: Task, startTime: number): Promise<TaskExecutionResult> {
     try {
-      const authorId = task.targetId;
+      const authorId = task.target_id;
       
       // 调用抖音关注API
       const response = await this.callDouyinAPI('/api/fans/follow/', {
@@ -349,18 +350,19 @@ export class DouyinTaskExecutor extends TaskExecutor {
   
   private async validateTaskContent(task: Task): Promise<{ valid: boolean; reason?: string }> {
     // 基本内容检查
-    if (!task.content || task.content.trim().length === 0) {
+    const taskContent = task.metadata?.content as string;
+    if (!taskContent || taskContent.trim().length === 0) {
       return { valid: false, reason: '任务内容为空' };
     }
     
-    if (task.content.length > 500) {
+    if (taskContent.length > 500) {
       return { valid: false, reason: '内容长度超限' };
     }
     
     // 敏感词检查
     const sensitiveWords = ['广告', '加微信', '私聊', 'QQ'];
     for (const word of sensitiveWords) {
-      if (task.content.includes(word)) {
+      if (taskContent.includes(word)) {
         return { valid: false, reason: `包含敏感词: ${word}` };
       }
     }
@@ -376,9 +378,9 @@ export class DouyinTaskExecutor extends TaskExecutor {
       execution_time_ms: Date.now() - startTime,
       result_data: {
         dry_run: true,
-        task_type: task.type,
-        content: task.content,
-        target_id: task.targetId
+        task_type: task.task_type,
+        content: task.metadata?.content as string,
+        target_id: task.target_id
       }
     };
   }
@@ -531,23 +533,23 @@ export class SemiAutomaticExecutor extends TaskExecutor {
   }
   
   private generateExecutionInstruction(task: Task): string {
-    switch (task.type) {
+    switch (task.task_type) {
       case TaskType.REPLY:
         return `请在平台上回复评论:\n` +
-               `评论ID: ${task.targetId}\n` +
-               `回复内容: ${task.content}\n` +
+               `评论ID: ${task.target_id}\n` +
+               `回复内容: ${task.metadata?.content}\n` +
                `平台: ${task.platform}`;
       
       case TaskType.FOLLOW:
         return `请在平台上关注用户:\n` +
-               `用户ID: ${task.targetId}\n` +
+               `用户ID: ${task.target_id}\n` +
                `平台: ${task.platform}`;
       
       default:
         return `请执行任务:\n` +
-               `类型: ${task.type}\n` +
-               `内容: ${task.content}\n` +
-               `目标: ${task.targetId}`;
+               `类型: ${task.task_type}\n` +
+               `内容: ${task.metadata?.content}\n` +
+               `目标: ${task.target_id}`;
     }
   }
 }

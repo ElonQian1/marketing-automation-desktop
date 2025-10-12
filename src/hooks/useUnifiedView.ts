@@ -9,7 +9,7 @@
 
 import { useState, useEffect, useCallback, useMemo } from 'react';
 import { UnifiedViewData, EnhancedUIElement } from '../services/UnifiedViewDataManager';
-import { EnhancedXmlCacheService, CachedViewData } from '../services/EnhancedXmlCacheService';
+import { XmlEnhancedCacheService, CachedViewData } from '../services/xml-enhanced-cache-service';
 import { CachedXmlPage } from '../services/xml-page-cache-service';
 import { message } from 'antd';
 
@@ -235,7 +235,7 @@ export const useUnifiedView = (): UseUnifiedViewResult => {
       }
       
       // 使用增强缓存服务加载数据
-      const cachedViewData: CachedViewData = await EnhancedXmlCacheService.loadEnhancedPageData(
+      const cachedViewData: CachedViewData = await XmlEnhancedCacheService.loadEnhancedPageData(
         cachedPage, 
         forceReanalyze
       );
@@ -297,7 +297,7 @@ export const useUnifiedView = (): UseUnifiedViewResult => {
   // 清除所有缓存
   const clearAllCache = useCallback(async () => {
     try {
-      await EnhancedXmlCacheService.clearAllCache();
+      await XmlEnhancedCacheService.clearAllCache();
       message.success('🗑️ 所有缓存已清除');
     } catch (error) {
       console.error('❌ 清除缓存失败:', error);

@@ -7,7 +7,7 @@
  */
 
 // 主管理器类
-export { UnifiedViewDataManager } from './UnifiedViewDataManager';
+export { UnifiedViewDataManager } from './unified-view-manager';
 
 // 类型定义
 export * from './types';

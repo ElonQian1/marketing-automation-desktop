@@ -9,7 +9,7 @@
 
 // 核心服务
 export { UnifiedViewDataManager } from '../services/UnifiedViewDataManager';
-export { EnhancedXmlCacheService } from '../services/EnhancedXmlCacheService';
+export { XmlEnhancedCacheService } from '../services/xml-enhanced-cache-service';
 
 // Hooks
 export { useUnifiedView, useViewState, useViewDataProvider } from '../hooks/useUnifiedView';
@@ -30,7 +30,7 @@ export type {
 export type {
   CachedViewData,
   EnhancedCachedPage
-} from '../services/EnhancedXmlCacheService';
+} from '../services/xml-enhanced-cache-service';
 
 export type {
   ViewState,
@@ -96,7 +96,7 @@ export type {
  * 
  * 4. 架构特点：
  * - UnifiedViewDataManager: 中央化数据处理
- * - EnhancedXmlCacheService: 增强缓存管理
+ * - XmlEnhancedCacheService: 增强缓存管理
  * - useUnifiedView: 统一状态管理Hook
  * - UnifiedViewContainer: 完整UI容器组件
  */
