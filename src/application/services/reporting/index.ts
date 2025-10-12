@@ -40,7 +40,9 @@ export class ReportingError extends Error {
   constructor(
     message: string,
     public readonly code: string,
-    public readonly details?: Record<string, any>
+    // 报告详细信息数据
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  public readonly details?: Record<string, any>
   ) {
     super(message);
     this.name = 'ReportingError';
@@ -55,6 +57,7 @@ export class ReportGenerationError extends ReportingError {
     public readonly report_date: Date,
     public readonly stage: 'data_collection' | 'data_validation' | 'export' | 'storage',
     cause?: Error,
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     details?: Record<string, any>
   ) {
     super(
@@ -73,10 +76,13 @@ export class DataIntegrityError extends ReportingError {
   constructor(
     public readonly validation_failures: Array<{
       field: string;
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       expected: any;
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       actual: any;
       severity: 'warning' | 'error';
     }>,
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     details?: Record<string, any>
   ) {
     super(
@@ -95,6 +101,7 @@ export class AuditLogError extends ReportingError {
   constructor(
     public readonly operation: 'create' | 'search' | 'delete' | 'export',
     cause?: Error,
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     details?: Record<string, any>
   ) {
     super(
@@ -114,6 +121,7 @@ export class ReportExportError extends ReportingError {
     public readonly format: string,
     public readonly report_id: string,
     cause?: Error,
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     details?: Record<string, any>
   ) {
     super(
@@ -130,6 +138,7 @@ export class ReportExportError extends ReportingError {
 /**
  * 验证报告配置
  */
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 export function validateReportConfiguration(config: any): { valid: boolean; errors: string[] } {
   const errors: string[] = [];
 

@@ -214,8 +214,8 @@ export class UnifiedDailyReportService {
     
     // 计算平台分布
     const platformDistribution: Record<Platform, number> = {} as Record<Platform, number>;
-    tasks.forEach(task => {
-      const platform = this.inferPlatformFromTask(task);
+    tasks.forEach(() => {
+      const platform = this.inferPlatformFromTask();
       platformDistribution[platform] = (platformDistribution[platform] || 0) + 1;
     });
     
@@ -259,7 +259,7 @@ export class UnifiedDailyReportService {
 
   // ==================== 私有方法 ====================
 
-  private async getCompletedTasks(dateStr: string): Promise<Record<string, unknown>[]> {
+  private async getCompletedTasks(dateStr: string): Promise<Task[]> {
     try {
       return await invoke('list_tasks', {
         status: TaskStatus.DONE,
@@ -295,7 +295,7 @@ export class UnifiedDailyReportService {
       关注日期: dateStr,
       关注账号ID: task.assign_account_id || 'unknown',
       被关注用户ID: task.target_user_id,
-      平台: this.inferPlatformFromTask(task),
+      平台: this.inferPlatformFromTask(),
       任务ID: task.id
     }));
 
@@ -317,15 +317,15 @@ export class UnifiedDailyReportService {
     for (const task of replyTasks) {
       // 获取相关的评论和视频信息
       const commentInfo = await this.getCommentInfo(task.comment_id);
-      const videoInfo = await this.getVideoInfo(commentInfo?.video_id);
+      const videoInfo = await this.getVideoInfo(String(commentInfo?.video_id || ''));
       
       replyList.push({
         日期: dateStr,
-        视频链接: videoInfo?.url || 'unknown',
-        评论账户ID: commentInfo?.author_id || 'unknown',
-        评论内容: commentInfo?.content || 'unknown',
+        视频链接: String(videoInfo?.url || 'unknown'),
+        评论账户ID: String(commentInfo?.author_id || 'unknown'),
+        评论内容: String(commentInfo?.content || 'unknown'),
         回复账号ID: task.assign_account_id || 'unknown',
-        回复内容: task.reply_content || 'auto_reply',
+        回复内容: (task as Task & { reply_content?: string }).reply_content || 'auto_reply',
         评论ID: task.comment_id,
         任务ID: task.id
       });
