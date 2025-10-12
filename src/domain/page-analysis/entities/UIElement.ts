@@ -6,6 +6,8 @@
  * 页面分析领域实体 - UI元素
  */
 
+import { safeBase64Encode } from '../../../utils/encoding/safeBase64';
+
 export enum ElementType {
   BUTTON = 'button',
   EDIT_TEXT = 'edit_text',
@@ -130,7 +132,7 @@ export class UIElementEntity implements UIElement {
 
   private generateId(params: any): string {
     const key = `${params.className}_${params.text}_${params.bounds.left}_${params.bounds.top}`;
-    return btoa(key).replace(/[^a-zA-Z0-9]/g, '').substring(0, 16);
+    return safeBase64Encode(key).replace(/[^a-zA-Z0-9]/g, '').substring(0, 16);
   }
 
   /**

@@ -8,6 +8,7 @@
  */
 
 import { AndroidXMLFields } from './AndroidXMLFieldAnalyzer';
+import { safeBase64Encode } from '../../utils/encoding/safeBase64';
 
 // 扩展的UI元素接口，包含层级关系
 export interface ExtendedUIElement {
@@ -158,7 +159,7 @@ const generateElementId = (node: any): string => {
   const bounds = node.bounds || node['@bounds'] || '';
   
   const key = `${className}_${resourceId}_${text}_${bounds}`;
-  return btoa(key).replace(/[^a-zA-Z0-9]/g, '').substring(0, 16);
+  return safeBase64Encode(key).replace(/[^a-zA-Z0-9]/g, '').substring(0, 16);
 };
 
 /**

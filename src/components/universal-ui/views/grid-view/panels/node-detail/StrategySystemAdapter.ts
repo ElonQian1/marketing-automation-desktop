@@ -26,6 +26,7 @@ import type {
 import { StrategyDecisionEngine } from '../../../../../../modules/intelligent-strategy-system/core/StrategyDecisionEngine';
 import type { UiNode } from '../../types';
 import type { MatchStrategy } from './types';
+import { generateXmlHash } from '../../../../../../utils/encoding/safeBase64';
 
 // 重新导出以避免混淆
 export type { SystemStrategyRecommendation, SystemStrategyCandidate, SystemMatchStrategy };
@@ -994,7 +995,7 @@ export class StrategySystemAdapter {
       tag: element.tag,
       attrs: element.attrs
     });
-    const contentKey = xmlContent ? btoa(xmlContent).slice(0, 10) : 'no-xml';
+    const contentKey = xmlContent ? generateXmlHash(xmlContent).slice(0, 10) : 'no-xml';
     return `${elementKey}-${contentKey}`;
   }
 

@@ -19,6 +19,7 @@ import {
   ElementAttributes,
   PREDEFINED_RULES
 } from '../types/customMatching';
+import { safeBase64Encode } from '../utils/encoding/safeBase64';
 
 /**
  * UI元素原始数据结构（从XML解析）
@@ -340,7 +341,7 @@ export class MatchingCustomEngine {
    */
   private generateElementId(raw: RawUIElement): string {
     const key = `${raw.class}:${raw.text}:${raw.bounds}:${raw['resource-id']}`;
-    return btoa(key).replace(/[^a-zA-Z0-9]/g, '').substring(0, 16);
+    return safeBase64Encode(key).replace(/[^a-zA-Z0-9]/g, '').substring(0, 16);
   }
   
   /**

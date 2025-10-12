@@ -33,6 +33,7 @@ import {
   FileTextOutlined,
   CheckCircleOutlined,
 } from '@ant-design/icons';
+import { safeBase64Encode } from '../../utils/encoding/safeBase64';
 
 const { Title, Text, Paragraph } = Typography;
 const { TextArea } = Input;
@@ -89,7 +90,7 @@ const TemplateIOManager: React.FC<TemplateIOManagerProps> = ({
 
     // 这里可以集成实际的分享服务，如 GitHub Gist, Pastebin 等
     const encodedData = encodeURIComponent(JSON.stringify(shareData));
-    const mockShareUrl = `https://scriptshare.example.com/template/${btoa(template.id)}?data=${encodedData}`;
+    const mockShareUrl = `https://scriptshare.example.com/template/${safeBase64Encode(template.id)}?data=${encodedData}`;
     
     return mockShareUrl;
   };

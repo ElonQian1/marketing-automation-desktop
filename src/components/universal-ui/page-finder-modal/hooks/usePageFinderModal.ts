@@ -15,6 +15,7 @@ import type { UIElement } from "../../../../api/universal-ui/types";
 import { transformUIElement } from "../../types/index";
 import toDisplayableImageSrc from "../../../../utils/toDisplayableImageSrc";
 import { loadDataUrlWithCache as loadImageDataUrl } from "../../../xml-cache/utils/imageCache";
+import { generateXmlHash } from "../../../../utils/encoding/safeBase64";
 import type {
   XmlSnapshot,
   VisualUIElement,
@@ -184,7 +185,7 @@ export const usePageFinderModal = (props: UsePageFinderModalProps): UsePageFinde
       const snapshot: XmlSnapshot = {
         id: `snapshot_${Date.now()}`,
         xmlContent,
-        xmlHash: btoa(xmlContent).substring(0, 16),
+        xmlHash: generateXmlHash(xmlContent),
         deviceInfo: loadFromStepXml?.deviceId ? { 
           deviceId: loadFromStepXml.deviceId,
           deviceName: loadFromStepXml.deviceName || "未知设备",
@@ -254,7 +255,7 @@ export const usePageFinderModal = (props: UsePageFinderModalProps): UsePageFinde
       const snapshot: XmlSnapshot = {
         id: `snapshot_${Date.now()}`,
         xmlContent,
-        xmlHash: btoa(xmlContent).substring(0, 16),
+        xmlHash: generateXmlHash(xmlContent),
         deviceInfo: { 
           deviceId: selectedDevice,
           deviceName: "实时设备",
@@ -351,7 +352,7 @@ export const usePageFinderModal = (props: UsePageFinderModalProps): UsePageFinde
       const snapshot: XmlSnapshot = {
         id: `cached-${Date.now()}`,
         xmlContent: pageContent.xmlContent,
-        xmlHash: btoa(pageContent.xmlContent).substring(0, 16),
+        xmlHash: generateXmlHash(pageContent.xmlContent),
         deviceInfo: pageContent.pageInfo?.deviceId ? {
           deviceId: pageContent.pageInfo.deviceId,
           deviceName: "缓存设备",
@@ -411,7 +412,7 @@ export const usePageFinderModal = (props: UsePageFinderModalProps): UsePageFinde
     createSnapshot: (xmlContent: string, deviceInfo?: any) => ({
       id: Date.now().toString(),
       xmlContent,
-      xmlHash: btoa(xmlContent).substring(0, 16), // 简单的hash实现
+      xmlHash: generateXmlHash(xmlContent), // 安全的hash实现，支持中文
       deviceInfo,
       pageInfo: {
         pageTitle: '未知页面',
