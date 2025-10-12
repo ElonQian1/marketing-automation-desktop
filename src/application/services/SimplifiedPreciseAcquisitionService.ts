@@ -24,8 +24,8 @@
 
 import { PreciseAcquisitionApplicationService } from './PreciseAcquisitionApplicationService';
 import { 
-  TaskEngineService 
-} from '../../modules/precise-acquisition/task-engine/services/TaskEngineService';
+  ProspectingTaskEngineService 
+} from '../../modules/precise-acquisition/task-engine/services/prospecting-task-engine-service';
 import { 
   RateLimitService 
 } from '../../modules/precise-acquisition/rate-limit/services/RateLimitService';
@@ -49,13 +49,13 @@ import {
  */
 export class SimplifiedPreciseAcquisitionService {
   private readonly existingService: PreciseAcquisitionApplicationService;
-  private readonly taskEngine: TaskEngineService;
+  private readonly taskEngine: ProspectingTaskEngineService;
   private readonly rateLimitService: RateLimitService;
 
   constructor() {
     // 使用单例
     this.existingService = PreciseAcquisitionApplicationService.getInstance();
-    this.taskEngine = new TaskEngineService();
+    this.taskEngine = new ProspectingTaskEngineService();
     this.rateLimitService = new RateLimitService();
   }
 

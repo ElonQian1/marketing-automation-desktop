@@ -13,7 +13,7 @@ import { Modal, Form, Select, Row, Col, InputNumber, Space, Tag } from 'antd';
 import { 
   TaskGenerationConfig,
   BatchTaskGenerationConfig 
-} from '../services/TaskEngineService';
+} from '../services/prospecting-task-engine-service';
 import { 
   TaskType, 
   TaskPriority,

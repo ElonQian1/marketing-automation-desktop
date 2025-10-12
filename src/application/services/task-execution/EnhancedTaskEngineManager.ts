@@ -58,10 +58,10 @@ import { TaskStatus, TaskType } from '../../../constants/precise-acquisition-enu
 
 // 导入现有实现
 import { TaskExecutionEngine } from './TaskExecutionEngine';
-import { TaskEngineService } from '../../../modules/precise-acquisition/task-engine/services/TaskEngineService';
+import { ProspectingTaskEngineService } from '../../../modules/precise-acquisition/task-engine/services/prospecting-task-engine-service';
 import { TaskGenerator } from '../../../modules/precise-acquisition/task-engine/services/TaskGenerator';
 import { TaskQueryService } from '../../../modules/precise-acquisition/task-engine/services/TaskQueryService';
-import { TaskManager } from '../../../modules/precise-acquisition/task-engine/services/TaskManager';
+import { ProspectingTaskManager } from '../../../modules/precise-acquisition/task-engine/services/prospecting-task-manager';
 
 /**
  * 🚀 增强任务引擎管理器
@@ -75,20 +75,20 @@ import { TaskManager } from '../../../modules/precise-acquisition/task-engine/se
  */
 export class EnhancedTaskEngineManager extends UnifiedTaskEngineBase {
   private taskExecutionEngine: TaskExecutionEngine;
-  private taskEngineService: TaskEngineService;
+  private taskEngineService: ProspectingTaskEngineService;
   private taskGenerator: TaskGenerator;
   private taskQueryService: TaskQueryService;
-  private taskManager: TaskManager;
+  private taskManager: ProspectingTaskManager;
 
   constructor() {
     super();
     
     // 🔧 初始化现有组件
     this.taskExecutionEngine = new TaskExecutionEngine();
-    this.taskEngineService = new TaskEngineService();
+    this.taskEngineService = new ProspectingTaskEngineService();
     this.taskGenerator = new TaskGenerator();
     this.taskQueryService = new TaskQueryService();
-    this.taskManager = new TaskManager();
+    this.taskManager = new ProspectingTaskManager();
   }
 
   // ==================== 任务生成 ====================

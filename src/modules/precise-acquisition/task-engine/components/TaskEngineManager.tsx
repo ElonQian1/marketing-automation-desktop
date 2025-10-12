@@ -21,7 +21,7 @@ import {
 } from '@ant-design/icons';
 
 import { useTaskEngine } from '../hooks/useTaskEngine';
-import { TaskGenerationConfig, BatchTaskGenerationConfig } from '../services/TaskEngineService';
+import { TaskGenerationConfig, BatchTaskGenerationConfig } from '../services/prospecting-task-engine-service';
 import { 
   TaskStatus, 
   TaskType, 
