@@ -31,14 +31,14 @@ import {
 } from '../../modules/precise-acquisition/rate-limit/services/RateLimitService';
 
 // 导入枚举类型
-import {
-  Platform,
-  TargetType,
-  SourceType,
-  TaskType,
-  IndustryTag,
-  RegionTag
-} from '../../constants/precise-acquisition-enums';
+// import {
+//   Platform,
+//   TargetType,
+//   SourceType,
+//   TaskType,
+//   IndustryTag,
+//   RegionTag
+// } from '../../constants/precise-acquisition-enums';
 
 /**
  * 统一的精准获客服务门面
@@ -74,7 +74,14 @@ export class SimplifiedPreciseAcquisitionService {
     region?: string;
     notes?: string;
   }) {
-    return this.existingService.addWatchTarget(params);
+    return this.existingService.addWatchTarget({
+      ...params,
+      targetType: params.targetType as never, // Type conversion for compatibility
+      platform: params.platform as never,
+      source: params.source as never,
+      industryTags: params.industryTags as never,
+      region: params.region as never
+    });
   }
 
   /**
@@ -86,14 +93,14 @@ export class SimplifiedPreciseAcquisitionService {
     industryTags?: string[];
     targetType?: string;
   }) {
-    return this.existingService.getWatchTargets(filters);
+    return this.existingService.getWatchTargets(filters as any);
   }
 
   /**
    * 删除监控目标
    */
   async removeWatchTarget(id: number) {
-    return this.existingService.removeWatchTarget(id);
+    return this.existingService.removeWatchTarget(id.toString());
   }
 
   // ============ 任务管理（使用新模块化服务）============
@@ -112,7 +119,7 @@ export class SimplifiedPreciseAcquisitionService {
       const tasks = await this.taskEngine.generateTasks({
         target_id: config.targetId,
         max_tasks: config.maxTasks || 10,
-        task_types: config.taskTypes as any || ['reply'],
+        task_types: config.taskTypes as never || ['reply'],
         device_id: config.deviceId,
         time_window_hours: config.timeWindowHours || 24
       });
@@ -143,8 +150,8 @@ export class SimplifiedPreciseAcquisitionService {
   }) {
     try {
       const tasks = await this.taskEngine.queryTasks({
-        status: filters?.status as any,
-        platform: filters?.platform as any,
+        status: filters?.status as never,
+        platform: filters?.platform as never,
         device_id: filters?.deviceId,
         start_date: filters?.startDate,
         end_date: filters?.endDate

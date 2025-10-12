@@ -283,7 +283,7 @@ export function generateReportSummary(reportData: import('./DailyReportingAndAud
 
   // 生成摘要文本
   const summaryParts = [];
-  summaryParts.push(`系统在${reportData.report_date.toLocaleDateString()}执行了${reportData.execution_summary.total_tasks}个任务`);
+  summaryParts.push(`系统在${reportData.report_date}执行了${reportData.execution_summary.total_tasks}个任务`);
   summaryParts.push(`成功率为${(reportData.execution_summary.success_rate * 100).toFixed(1)}%`);
   summaryParts.push(`采集评论${reportData.comment_collection_stats.comments_collected}条`);
   
@@ -292,7 +292,7 @@ export function generateReportSummary(reportData: import('./DailyReportingAndAud
   }
   
   if (reportData.recommendations.length > 0) {
-    const highPriorityRecs = reportData.recommendations.filter(r => r.priority === 'high' || r.priority === 'critical');
+    const highPriorityRecs = reportData.recommendations.filter(r => r.priority === 'high');
     if (highPriorityRecs.length > 0) {
       summaryParts.push(`有${highPriorityRecs.length}项高优先级建议待处理`);
     }

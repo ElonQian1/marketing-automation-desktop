@@ -6,6 +6,7 @@
  * 日报数据接口
  */
 export interface DailyReportData {
+  report_date: string;
   execution_summary: {
     total_tasks: number;
     success_rate: number;
@@ -15,7 +16,26 @@ export interface DailyReportData {
   };
   error_analysis: {
     total_errors: number;
+    critical_errors: Array<{ message: string; severity: string; timestamp: string }>;
   };
+  compliance_check: {
+    status: 'pass' | 'fail' | 'warning';
+    details: string[];
+    rate_limit_compliance: {
+      compliance_score: number;
+      violations_count: number;
+    };
+  };
+  data_integrity: {
+    status: 'pass' | 'fail' | 'warning';
+    details: string[];
+    data_quality_score: number;
+  };
+  recommendations: Array<{ 
+    priority: 'high' | 'medium' | 'low';
+    message: string;
+    action_required: boolean;
+  }>;
 }
 
 /**
@@ -44,6 +64,7 @@ export class DailyReportingAndAuditService {
 
   async generateDailyReport(): Promise<DailyReportData> {
     return {
+      report_date: new Date().toISOString().split('T')[0],
       execution_summary: {
         total_tasks: 0,
         success_rate: 0
@@ -52,8 +73,23 @@ export class DailyReportingAndAuditService {
         comments_collected: 0
       },
       error_analysis: {
-        total_errors: 0
-      }
+        total_errors: 0,
+        critical_errors: []
+      },
+      compliance_check: {
+        status: 'pass',
+        details: [],
+        rate_limit_compliance: {
+          compliance_score: 1.0,
+          violations_count: 0
+        }
+      },
+      data_integrity: {
+        status: 'pass',
+        details: [],
+        data_quality_score: 1.0
+      },
+      recommendations: []
     };
   }
 }
