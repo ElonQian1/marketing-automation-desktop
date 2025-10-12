@@ -199,8 +199,8 @@ export const EnhancedTaskManagementDashboard: React.FC = () => {
     }
   };
 
-  // 批量操作 (暂时未使用)
-  // const handleBatchOperation = async (taskIds: string[], operation: 'start' | 'pause' | 'cancel') => {
+  // 批量操作
+  const handleBatchOperation = async (taskIds: string[], operation: 'start' | 'pause' | 'cancel') => {
     try {
       const promises = taskIds.map(id => {
         switch (operation) {
