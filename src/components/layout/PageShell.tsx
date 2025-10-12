@@ -17,6 +17,7 @@
  */
 
 import React from 'react';
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
 import { motion } from 'framer-motion';
 import { FadeIn, SlideIn } from '../ui/motion/MotionSystem';
 import { cn } from '../ui/utils';
