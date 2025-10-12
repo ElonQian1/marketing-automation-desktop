@@ -445,8 +445,8 @@ export const useAdb = () => {
   /**
    * 批量设备操作
    */
-  const batchDeviceOperation = useCallback(async (deviceIds: string[], operation: string, params?: Record<string, unknown>) => {
-    return await applicationService.batchDeviceOperation(deviceIds, operation, params);
+  const batchDeviceOperation = useCallback(async (deviceIds: string[], operation: string) => {
+    return await applicationService.batchDeviceOperation(deviceIds, operation);
   }, [applicationService]);
 
   // ===== 智能脚本执行（多设备） =====
@@ -454,8 +454,8 @@ export const useAdb = () => {
   /**
    * 在多个设备上执行智能脚本
    */
-  const executeSmartScriptOnDevices = useCallback(async (deviceIds: string[], steps: SmartScriptStep[], config?: Record<string, unknown>) => {
-    return await applicationService.executeSmartScriptOnDevices(deviceIds, steps, config);
+  const executeSmartScriptOnDevices = useCallback(async (deviceIds: string[], steps: SmartScriptStep[]) => {
+    return await applicationService.executeSmartScriptOnDevices(deviceIds, steps);
   }, [applicationService]);
 
   // ===== 自动初始化 =====
