@@ -4,7 +4,6 @@
 
 import { DistributedStep } from '../../domain/distributed-script';
 import { LocalStepRepository } from '../../infrastructure/inspector/LocalStepRepository';
-import { DistributedScriptManager } from '../../domain/distributed-script/services/DistributedScriptManager';
 
 /**
  * 分布式步骤查找服务

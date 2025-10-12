@@ -6,7 +6,7 @@
 // 将统一的useAdb()接口适配为contact-import模块的IDeviceManager接口，实现设备管理的桥接
 
 import { Device as AdbDevice } from '../../../domain/adb/entities/Device';
-import { AdbApplicationService } from '../../../application/services/AdbApplicationService';
+import { AdbApplicationService } from '../../../application/services/adb-application-service';
 import { ServiceFactory } from '../../../application/services/ServiceFactory';
 import { useAdbStore } from '../../../application/store/adbStore';
 import { IDeviceManager } from '../devices/IDeviceManager';

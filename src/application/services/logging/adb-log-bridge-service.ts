@@ -1,6 +1,14 @@
-// src/application/services/logging/AdbLogBridgeService.ts
-// module: application | layer: application | role: app-service
-// summary: 应用服务
+// src/application/services/logging/adb-log-bridge-service.ts
+// module: adb | layer: application | role: service
+// summary: ADB日志桥接适配器服务
+
+/**
+ * adb-log-bridge-service.ts
+ * @module ADB
+ * @layer application/services/logging
+ * @role ADB日志桥接适配器服务，负责格式化和处理ADB相关的日志消息，连接底层系统日志与应用层日志接口
+ * @architecture DDD应用服务层 - 专门处理ADB模块的日志适配和格式化转换
+ */
 
 import { listen, UnlistenFn } from '@tauri-apps/api/event';
 import { StoreOperations } from '../common/StoreOperations';

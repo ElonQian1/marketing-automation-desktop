@@ -16,7 +16,6 @@ import {
   TaskEntity, 
   AuditLog,
   type EntityCreationParams,
-  type EntityDatabaseRows,
 } from '../../domain/precise-acquisition/entities';
 import {
   Platform,
@@ -26,15 +25,12 @@ import {
   TaskStatus,
   ExecutorMode,
   ResultCode,
-  IndustryTag,
   RegionTag,
-  AuditAction,
 } from '../../constants/precise-acquisition-enums';
 import type {
   WatchTargetRow,
   CommentRow,
   TaskRow,
-  AuditLogRow,
   TaskGenerationConfig,
   RateLimitConfig,
   DeduplicationConfig,
@@ -339,7 +335,7 @@ export class PreciseAcquisitionApplicationService {
             if (reserved && !(await this.isDuplicateTask(task))) {
               generatedTasks.push(task);
             }
-          } catch (e) {
+          } catch (e) { // eslint-disable-line @typescript-eslint/no-unused-vars
             if (!(await this.isDuplicateTask(task))) {
               generatedTasks.push(task);
             }
@@ -372,7 +368,7 @@ export class PreciseAcquisitionApplicationService {
             if (reserved && !(await this.isDuplicateTask(task))) {
               generatedTasks.push(task);
             }
-          } catch (e) {
+          } catch (e) { // eslint-disable-line @typescript-eslint/no-unused-vars
             if (!(await this.isDuplicateTask(task))) {
               generatedTasks.push(task);
             }

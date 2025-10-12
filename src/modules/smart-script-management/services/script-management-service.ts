@@ -1,4 +1,4 @@
-// src/modules/smart-script-management/services/scriptService.ts
+// src/modules/smart-script-management/services/script-management-service.ts
 // module: script-builder | layer: application | role: module-component
 // summary: 模块组件
 

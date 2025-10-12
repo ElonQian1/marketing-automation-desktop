@@ -42,7 +42,7 @@ export async function invokeUniversal<T>(command: keyof typeof UniversalCommands
         } catch (e1) {
           try {
             return await invokeCompat<T>(UniversalCommands[command], camel, { forceCamel: true });
-          } catch (e2) {
+          } catch (e2) { // eslint-disable-line @typescript-eslint/no-unused-vars
             // 抛出更具可读性的错误（保留第一条）
             throw e1;
           }

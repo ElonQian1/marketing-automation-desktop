@@ -2,7 +2,7 @@
 // module: application | layer: application | role: app-service
 // summary: 应用服务
 
-import { TauriDeviceRepository } from '../../infrastructure/repositories/TauriDeviceRepository';
+// import { TauriDeviceRepository } from '../../infrastructure/repositories/TauriDeviceRepository';
 import { RealTimeDeviceRepository } from '../../infrastructure/repositories/RealTimeDeviceRepository';
 import { TauriAdbRepository } from '../../infrastructure/repositories/TauriAdbRepository';
 import { TauriDiagnosticRepository } from '../../infrastructure/repositories/TauriDiagnosticRepository';
@@ -12,11 +12,11 @@ import { IDiagnosticRepository } from '../../domain/adb/repositories/IDiagnostic
 import { DeviceManagerService } from '../../domain/adb/services/DeviceManagerService';
 import { ConnectionService } from '../../domain/adb/services/ConnectionService';
 import { DiagnosticService } from '../../domain/adb/services/DiagnosticService';
-import { AdbApplicationService } from './AdbApplicationService';
+import { AdbApplicationService } from './adb-application-service';
 import { IUiMatcherRepository } from '../../domain/page-analysis/repositories/IUiMatcherRepository';
 import { TauriUiMatcherRepository } from '../../infrastructure/repositories/TauriUiMatcherRepository';
 import { ISmartScriptRepository } from '../../domain/smart-script/repositories/ISmartScriptRepository';
-import { TauriSmartScriptRepository } from '../../infrastructure/repositories/TauriSmartScriptRepository';
+import { ScriptTauriRepository } from '../../infrastructure/repositories/script-tauri-repository';
 import ContactImportApplicationService from './contact-import/ContactImportApplicationService';
 import VcfImportApplicationService from './contact-import/VcfImportApplicationService';
 import { IContactAutomationRepository } from '../../domain/contact-automation/repositories/IContactAutomationRepository';
@@ -83,7 +83,7 @@ class ServiceContainer {
     this.register('adbRepository', () => new TauriAdbRepository());
   this.register('diagnosticRepository', () => new TauriDiagnosticRepository());
   this.register('uiMatcherRepository', () => new TauriUiMatcherRepository());
-  this.register('smartScriptRepository', () => new TauriSmartScriptRepository());
+  this.register('smartScriptRepository', () => new ScriptTauriRepository());
   this.register('contactAutomationRepository', () => new TauriContactAutomationRepository());
   this.register('deviceMetricsRepository', () => new TauriDeviceMetricsRepository());
 
@@ -91,14 +91,17 @@ class ServiceContainer {
     this.register('watchTargetRepository', () => {
       // Prefer Tauri-backed repo when available; fallback to in-memory for web/dev
       try {
+        // eslint-disable-next-line @typescript-eslint/no-require-imports
         const { TauriWatchTargetRepository } = require('../../infrastructure/repositories/TauriWatchTargetRepository');
         return new TauriWatchTargetRepository();
-      } catch (e) {
+      } catch {
+        // eslint-disable-next-line @typescript-eslint/no-require-imports
         const { InMemoryWatchTargetRepository } = require('../../infrastructure/repositories/InMemoryWatchTargetRepository');
         return new InMemoryWatchTargetRepository();
       }
     });
     this.register('tagWhitelistRepository', () => {
+      // eslint-disable-next-line @typescript-eslint/no-require-imports
       const { StaticTagWhitelistRepository } = require('../../infrastructure/repositories/StaticTagWhitelistRepository');
       return new StaticTagWhitelistRepository();
     });
@@ -141,7 +144,9 @@ class ServiceContainer {
       }
       // DEV helper: expose a function to force-start device watching for diagnostics
       try {
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         if ((import.meta as any).env?.MODE !== 'production') {
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
           (globalThis as any).__ensureDeviceWatching = () => svc.ensureDeviceWatchingStarted();
           console.log('🧪 [ServiceFactory] Dev helper registered: window.__ensureDeviceWatching()');
         }
@@ -165,8 +170,11 @@ class ServiceContainer {
 
     // Marketing application service
     this.register('marketingApplicationService', () => {
+      // eslint-disable-next-line @typescript-eslint/no-require-imports
       const { MarketingApplicationService } = require('./MarketingApplicationService');
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       const watchRepo = this.get<any>('watchTargetRepository');
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       const whitelistRepo = this.get<any>('tagWhitelistRepository');
       return new MarketingApplicationService(watchRepo, whitelistRepo);
     });

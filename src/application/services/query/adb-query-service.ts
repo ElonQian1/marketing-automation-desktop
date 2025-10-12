@@ -1,6 +1,6 @@
-// src/application/services/query/AdbQueryService.ts
-// module: application | layer: application | role: app-service
-// summary: 应用服务
+// src/application/services/query/adb-query-service.ts
+// module: adb | layer: application | role: service
+// summary: ADB查询服务
 
 import { StoreOperations } from '../common/StoreOperations';
 
@@ -40,7 +40,6 @@ export class AdbQueryService {
     }
 
     // 创建查询控制器
-    const queryId = `contact-count-${deviceId}-${Date.now()}`;
     const abortController = new AbortController();
     this.activeQueries.set(deviceId, abortController);
 
@@ -75,7 +74,7 @@ export class AdbQueryService {
       }
 
       // 兼容性：同时传递 snake_case 与 camelCase，后端优先取 device_id
-      const payload = { device_id: deviceId, deviceId } as any;
+      const payload = { device_id: deviceId, deviceId } as Record<string, string>;
       try { 
         console.debug('[AdbQueryService.getDeviceContactCount] invoke payload:', payload); 
       } catch {}
@@ -161,7 +160,7 @@ export class AdbQueryService {
     console.log('[AdbQueryService] 清理所有查询资源...');
     
     // 取消所有活跃查询
-    for (const [deviceId, controller] of this.activeQueries) {
+    for (const [, controller] of this.activeQueries) {
       controller.abort();
     }
     this.activeQueries.clear();

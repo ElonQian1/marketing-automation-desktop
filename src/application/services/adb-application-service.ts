@@ -1,6 +1,6 @@
-// src/application/services/AdbApplicationService.ts
-// module: application | layer: application | role: app-service
-// summary: 应用服务
+// src/application/services/adb-application-service.ts
+// module: adb | layer: application | role: service
+// summary: ADB应用服务统一入口
 
 import { 
   Device, 
@@ -18,9 +18,9 @@ import type { SmartExecutionResult } from '../../types/execution';
 import { DeviceWatchingService } from './device-watching';
 
 // 新的模块化服务
-import { AdbQueryService } from './query/AdbQueryService';
-import { AdbHealthService } from './health/AdbHealthService';
-import { AdbLogBridgeService } from './logging/AdbLogBridgeService';
+import { AdbQueryService } from './query/adb-query-service';
+import { AdbHealthService } from './health/adb-health-service';
+import { AdbLogBridgeService } from './logging/adb-log-bridge-service';
 
 // 通用抽象层
 import { StoreOperations } from './common';

@@ -1,5 +1,5 @@
-// src/infrastructure/repositories/TauriSmartScriptRepository.ts
-// module: shared | layer: infrastructure | role: 基础设施
+// src/infrastructure/repositories/script-tauri-repository.ts
+// module: script-builder | layer: infrastructure | role: 基础设施
 // summary: DDD架构基础设施层实现
 
 import { invoke, isTauri } from "@tauri-apps/api/core";
@@ -7,7 +7,7 @@ import type { ISmartScriptRepository } from "../../domain/smart-script/repositor
 import type { SmartExecutionResult } from "../../types/execution";
 import type { ExtendedSmartScriptStep } from "../../types/loopScript";
 
-export class TauriSmartScriptRepository implements ISmartScriptRepository {
+export class ScriptTauriRepository implements ISmartScriptRepository {
   async executeOnDevice(
     deviceId: string,
     steps: ExtendedSmartScriptStep[],
@@ -95,4 +95,4 @@ export class TauriSmartScriptRepository implements ISmartScriptRepository {
   }
 }
 
-export default TauriSmartScriptRepository;
+export default ScriptTauriRepository;

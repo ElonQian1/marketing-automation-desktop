@@ -1,6 +1,6 @@
-// src/application/services/health/AdbHealthService.ts
-// module: application | layer: application | role: app-service
-// summary: 应用服务
+// src/application/services/health/adb-health-service.ts
+// module: adb | layer: application | role: service
+// summary: ADB健康检查服务
 
 import { DiagnosticService } from '../../../domain/adb/services/DiagnosticService';
 import { DeviceManagerService } from '../../../domain/adb/services/DeviceManagerService';
@@ -119,7 +119,7 @@ export class AdbHealthService {
       // 4. 重新运行诊断
       try {
         console.log('🔍 [AdbHealthService] 重新运行诊断...');
-        const diagnosticSummary = await this.diagnosticService.runQuickDiagnostic();
+        await this.diagnosticService.runQuickDiagnostic();
         store.setDiagnosticResults(this.diagnosticService.getLastDiagnosticResults());
       } catch (diagnosticError) {
         console.warn('⚠️ [AdbHealthService] 重新诊断失败:', diagnosticError);

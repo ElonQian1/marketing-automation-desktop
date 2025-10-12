@@ -35,11 +35,8 @@ import {
   SourceType,
   TaskType,
   TaskStatus,
-  ExecutorMode,
-  ResultCode,
   IndustryTag,
   RegionTag,
-  AuditAction
 } from '../../constants/precise-acquisition-enums';
 
 import type {
@@ -49,10 +46,8 @@ import type {
   TaskRow,
   ReplyTemplateRow,
   TaskGenerationConfig,
-  RateLimitConfig,
   PreciseAcquisitionStats,
   TaskStatusUpdate,
-  AuditLogEntry
 } from '../../types/precise-acquisition';
 
 import type {

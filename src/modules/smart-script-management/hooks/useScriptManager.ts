@@ -12,7 +12,7 @@ import {
   ScriptExecutionResult,
   ScriptTemplate 
 } from '../types';
-import { ScriptManagementService, LocalStorageService } from '../services/scriptService';
+import { ScriptManagementService, LocalStorageService } from '../services/script-management-service';
 import { ScriptSerializer } from '../utils/serializer';
 
 /**

@@ -29,8 +29,8 @@ import {
   UnifiedTaskExecutionStats
 } from '../services/task-execution/EnhancedTaskEngineManager';
 
-import { Task, WatchTarget } from '../../modules/precise-acquisition/shared/types/core';
-import { TaskStatus, TaskType } from '../../constants/precise-acquisition-enums';
+import { Task } from '../../modules/precise-acquisition/shared/types/core';
+import { TaskStatus } from '../../constants/precise-acquisition-enums';
 
 // ==================== Hook状态接口 ====================
 
