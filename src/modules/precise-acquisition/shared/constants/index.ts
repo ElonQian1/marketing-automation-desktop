@@ -39,7 +39,9 @@ export const PLATFORM_LABELS: Record<Platform, string> = {
  */
 export const TARGET_TYPE_LABELS: Record<TargetType, string> = {
   [TargetType.VIDEO]: '视频',
-  [TargetType.ACCOUNT]: '账号'
+  [TargetType.ACCOUNT]: '账号',
+  [TargetType.USER]: '用户',
+  [TargetType.CONTENT]: '内容'
 };
 
 /**
@@ -67,7 +69,7 @@ export const INDUSTRY_TAG_CONFIG: Record<IndustryTag, {
     color: '#52c41a',
     description: '口腔医疗、牙科、正畸等'
   },
-  [IndustryTag.MATERNAL_INFANT]: {
+  [IndustryTag.MATERNAL_BABY]: {
     label: '母婴用品',
     color: '#ff7875',
     description: '孕婴用品、儿童教育等'
@@ -82,7 +84,7 @@ export const INDUSTRY_TAG_CONFIG: Record<IndustryTag, {
     color: '#eb2f96',
     description: '化妆品、护肤品、美容服务'
   },
-  [IndustryTag.EDUCATION]: {
+  [IndustryTag.EDUCATION_TRAINING]: {
     label: '教育培训',
     color: '#722ed1',
     description: '在线教育、技能培训等'
@@ -97,12 +99,12 @@ export const INDUSTRY_TAG_CONFIG: Record<IndustryTag, {
     color: '#fa8c16',
     description: '食品、饮料、餐饮服务'
   },
-  [IndustryTag.HOME]: {
+  [IndustryTag.HOME_FURNISHING]: {
     label: '家居生活',
     color: '#a0d911',
     description: '家具、家电、装修等'
   },
-  [IndustryTag.ELECTRONICS]: {
+  [IndustryTag.DIGITAL_3C]: {
     label: '3C数码',
     color: '#13c2c2',
     description: '电脑、手机、数码产品'
@@ -126,6 +128,72 @@ export const INDUSTRY_TAG_CONFIG: Record<IndustryTag, {
     label: '服饰时尚',
     color: '#d48806',
     description: '服装、鞋包、配饰'
+  },
+  // 添加缺失的配置项
+  [IndustryTag.ORAL_ORTHODONTICS]: {
+    label: '口腔正畸',
+    color: '#389e0d',
+    description: '牙齿矫正、正畸治疗等'
+  },
+  [IndustryTag.SKINCARE]: {
+    label: '护肤',
+    color: '#f759ab',
+    description: '护肤品、面膜、精华等'
+  },
+  [IndustryTag.LANGUAGE_LEARNING]: {
+    label: '语言学习',
+    color: '#9254de',
+    description: '外语学习、口语培训等'
+  },
+  [IndustryTag.SKILL_TRAINING]: {
+    label: '技能培训',
+    color: '#b37feb',
+    description: '职业技能、专业培训等'
+  },
+  [IndustryTag.SOFTWARE_APPS]: {
+    label: '软件应用',
+    color: '#36cfc9',
+    description: '手机APP、电脑软件等'
+  },
+  [IndustryTag.AI_TECH]: {
+    label: 'AI科技',
+    color: '#40a9ff',
+    description: '人工智能、机器学习等'
+  },
+  [IndustryTag.NEW_ENERGY_VEHICLE]: {
+    label: '新能源汽车',
+    color: '#52c41a',
+    description: '电动车、混动车等'
+  },
+  [IndustryTag.ENTERTAINMENT]: {
+    label: '娱乐',
+    color: '#ff4d4f',
+    description: '影视、音乐、综艺等'
+  },
+  [IndustryTag.GAMES]: {
+    label: '游戏',
+    color: '#fa541c',
+    description: '手游、端游、游戏设备等'
+  },
+  [IndustryTag.FINANCE]: {
+    label: '金融',
+    color: '#1890ff',
+    description: '银行、投资、理财等'
+  },
+  [IndustryTag.INSURANCE]: {
+    label: '保险',
+    color: '#722ed1',
+    description: '人寿险、财产险等'
+  },
+  [IndustryTag.REAL_ESTATE]: {
+    label: '房产',
+    color: '#eb2f96',
+    description: '房屋买卖、租赁等'
+  },
+  [IndustryTag.OTHER]: {
+    label: '其他',
+    color: '#8c8c8c',
+    description: '其他行业分类'
   }
 };
 

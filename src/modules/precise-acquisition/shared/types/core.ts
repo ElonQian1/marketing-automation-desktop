@@ -306,6 +306,16 @@ export interface ReplyTemplate {
   category?: string;
   enabled: boolean;
   updated_at: Date;
+  
+  // UI组件期望的扩展属性
+  platform?: Platform;
+  task_type?: TaskType;
+  tags?: string[];
+  usage_count?: number;
+  success_rate?: number;
+  content?: string;
+  created_by?: string;
+  created_at?: Date;
 }
 
 /**
