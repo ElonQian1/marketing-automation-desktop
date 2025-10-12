@@ -168,7 +168,7 @@ export const NodeDetailPanel: React.FC<NodeDetailPanelProps> = ({
   const { selectedDevice, matchElementByCriteria } = useAdb();
 
   const [selectedFields, setSelectedFields] = useState<string[]>([]);
-  const [strategy, setStrategy] = useState<MatchCriteria['strategy']>('standard');
+  const [strategy, setStrategy] = useState<MatchCriteria['strategy']>('self-anchor'); // 🔄 默认使用智能策略
   const [values, setValues] = useState<Record<string, string>>({});
   const [includes, setIncludes] = useState<Record<string, string[]>>({});
   const [excludes, setExcludes] = useState<Record<string, string[]>>({});
@@ -510,35 +510,65 @@ export const NodeDetailPanel: React.FC<NodeDetailPanelProps> = ({
       return;
     }
 
-    const performScoring = async () => {
-      setIsLoadingScores(true);
-      try {
-        const recommendations = await calculateStrategyScores(node);
-        setStrategyRecommendations(recommendations);
+    const performIntelligentStrategy = async () => {
+      // 🧠 在智能模式下，自动应用智能策略
+      if (currentMode === 'intelligent') {
+        console.log('🤖 智能模式：自动应用智能策略', { nodeTag: node.tag });
         
-        // 🚀 自动应用智能推荐的最佳策略（如果没有初始预设）
-        if (recommendations.length > 0 && !initialMatching) {
-          const bestStrategy = recommendations[0].strategy as MatchCriteria['strategy'];
-          console.log('🎯 自动应用智能推荐策略:', bestStrategy);
-          setStrategy(bestStrategy);
+        try {
+          setIsLoadingScores(true);
           
-          // 应用推荐策略对应的预设字段
-          const presetFields = PRESET_FIELDS[bestStrategy as any] || [];
-          if (presetFields.length > 0) {
-            setSelectedFields(presetFields);
-            console.log('📋 自动应用推荐字段:', presetFields);
+          // 计算策略推荐
+          const recommendations = await calculateStrategyScores(node);
+          setStrategyRecommendations(recommendations);
+
+          // 选择最优策略
+          if (recommendations.length > 0) {
+            const sortedRecommendations = recommendations.sort((a, b) => {
+              const scoreA = a.score.total * 0.6 + a.confidence * 0.4;
+              const scoreB = b.score.total * 0.6 + b.confidence * 0.4;
+              return scoreB - scoreA;
+            });
+
+            const optimalStrategy = sortedRecommendations[0].strategy as MatchCriteria['strategy'];
+            
+            console.log('🎯 自动应用智能推荐策略:', optimalStrategy);
+            setStrategy(optimalStrategy);
+            
+            // 自动应用相应的字段预设
+            const presetFields = PRESET_FIELDS[optimalStrategy as keyof typeof PRESET_FIELDS] || [];
+            if (presetFields.length > 0) {
+              setSelectedFields(presetFields);
+              setValues(buildDefaultValues(node, presetFields));
+              console.log('📋 自动应用智能字段预设:', presetFields);
+            }
           }
+        } catch (error) {
+          console.error('智能策略应用失败:', error);
+          setStrategyRecommendations([]);
+        } finally {
+          setIsLoadingScores(false);
         }
-      } catch (error) {
-        console.error('策略评分计算失败:', error);
-        setStrategyRecommendations([]);
-      } finally {
-        setIsLoadingScores(false);
+      } else {
+        // 🔧 静态模式：只计算评分，不自动应用
+        console.log('⚙️ 静态模式：仅计算策略评分');
+        setIsLoadingScores(true);
+        try {
+          const recommendations = await calculateStrategyScores(node);
+          setStrategyRecommendations(recommendations);
+        } catch (error) {
+          console.error('策略评分计算失败:', error);
+          setStrategyRecommendations([]);
+        } finally {
+          setIsLoadingScores(false);
+        }
       }
     };
 
-    performScoring();
-  }, [node, initialMatching]);
+    // 延迟执行，确保节点状态稳定
+    const timer = setTimeout(performIntelligentStrategy, 100);
+    return () => clearTimeout(timer);
+  }, [node, currentMode]); // 🔄 依赖于 currentMode
 
   // 🆕 增强匹配分析：当节点或XML上下文变化时触发
   useEffect(() => {
