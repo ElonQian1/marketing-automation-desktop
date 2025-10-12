@@ -39,7 +39,7 @@ export class DeduplicationService {
 
     for (let i = 0; i < buckets.length; i++) {
       const bucketKey = `${comment.platform}:${buckets[i]}`;
-      const reserved = await this.reserveKey(bucketKey, `text_band_${i}`, 2, accountId);
+      const reserved = await this.reserveKey(bucketKey, 'text', 2, accountId);
       if (!reserved) {
         reservedAll = false;
         break;

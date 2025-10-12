@@ -15,6 +15,12 @@ export class ComplianceService {
     const info = watchTarget.getComplianceInfo();
     if (!info.isCompliant) {
       return {
+        passed: false,
+        violations: [info.reason],
+        warnings: [],
+        source_verified: false,
+        whitelist_approved: false,
+        compliant: false,
         is_allowed: false,
         source_type: watchTarget.source || SourceType.MANUAL,
         reason: info.reason,
@@ -24,12 +30,24 @@ export class ComplianceService {
     if (watchTarget.platform === Platform.PUBLIC) {
       // TODO: 接入真实白名单校验
       return {
+        passed: true,
+        violations: [],
+        warnings: [],
+        source_verified: true,
+        whitelist_approved: true,
+        compliant: true,
         is_allowed: true,
         source_type: watchTarget.source || SourceType.MANUAL,
       };
     }
 
     return {
+      passed: true,
+      violations: [],
+      warnings: [],
+      source_verified: true,
+      whitelist_approved: false,
+      compliant: true,
       is_allowed: true,
       source_type: watchTarget.source || SourceType.MANUAL,
     };
