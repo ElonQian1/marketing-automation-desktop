@@ -69,12 +69,14 @@ interface APIExecutor {
 class DouyinAPIExecutor implements APIExecutor {
   platform = Platform.DOUYIN;
   
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   async canExecute(_task: Task): Promise<boolean> {
     // 检查抖音API权限和可用性
     // TODO: 实际检查access_token和权限scope
     return true; // 临时返回true
   }
   
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   async executeReply(commentId: string, content: string, _context: TaskExecutionContext): Promise<boolean> {
     try {
       // TODO: 调用抖音评论回复API
@@ -90,6 +92,7 @@ class DouyinAPIExecutor implements APIExecutor {
     }
   }
   
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   async executeFollow(userId: string, _context: TaskExecutionContext): Promise<boolean> {
     try {
       // TODO: 调用抖音关注用户API
@@ -112,11 +115,13 @@ class DouyinAPIExecutor implements APIExecutor {
 class OceanEngineAPIExecutor implements APIExecutor {
   platform = Platform.OCEANENGINE;
   
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   async canExecute(_task: Task): Promise<boolean> {
     // 检查巨量引擎API权限和可用性
     return true; // 临时返回true
   }
   
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   async executeReply(commentId: string, content: string, _context: TaskExecutionContext): Promise<boolean> {
     try {
       // TODO: 调用巨量引擎评论回复API
@@ -130,6 +135,7 @@ class OceanEngineAPIExecutor implements APIExecutor {
     }
   }
   
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   async executeFollow(_userId: string, _context: TaskExecutionContext): Promise<boolean> {
     // 巨量引擎通常不支持关注功能
     console.log('巨量引擎不支持关注功能');
