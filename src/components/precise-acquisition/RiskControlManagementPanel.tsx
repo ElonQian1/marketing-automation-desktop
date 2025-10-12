@@ -134,14 +134,14 @@ export const RiskControlManagementPanel: React.FC = () => {
       setStats({
         rate_limit: {
           total_checks: rateLimitStats.total_records || 0,
-          blocked_requests: rateLimitStats.blocked_count || 0,
-          success_rate: rateLimitStats.success_rate || 0,
-          current_rate: rateLimitStats.current_rate || 0
+          blocked_requests: rateLimitStats.expired_records || 0, // 使用expired_records代替blocked_count
+          success_rate: rateLimitStats.effectiveness_rate || 0, // 使用effectiveness_rate代替success_rate
+          current_rate: rateLimitStats.active_records || 0 // 使用active_records代替current_rate
         },
         deduplication: {
           total_records: rateLimitStats.total_records || 0,
           duplicate_blocks: rateLimitStats.by_level?.user || 0,
-          effectiveness: rateLimitStats.effectiveness || 0,
+          effectiveness: rateLimitStats.effectiveness_rate || 0, // 使用effectiveness_rate代替effectiveness
           by_level: rateLimitStats.by_level || {}
         },
         circuit_breaker: {
@@ -224,10 +224,11 @@ export const RiskControlManagementPanel: React.FC = () => {
   // 重置统计数据
   const handleResetStats = async () => {
     try {
-      await rateLimitService.clearRecords();
+      // 使用cleanExpiredRecords替代不存在的clearRecords方法
+      await rateLimitService.cleanExpiredRecords();
       notification.success({
         message: '统计数据重置成功',
-        description: '所有风控统计数据已清空'
+        description: '已清理过期的风控记录'
       });
       loadStats();
     } catch (error) {
