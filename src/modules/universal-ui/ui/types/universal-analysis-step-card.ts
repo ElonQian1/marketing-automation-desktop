@@ -1,8 +1,8 @@
-// src/modules/universal-ui/ui/types/AnalysisStepCard.ts
+// src/modules/universal-ui/ui/types/universal-analysis-step-card.ts
 // module: universal-ui | layer: ui | role: types
 // summary: 智能分析步骤卡片相关类型定义
 
-import type { StrategyInfo, AnalysisResult, AnalysisProgress } from '../../element-selection/types/StrategyAnalysis';
+import type { StrategyInfo, AnalysisResult, AnalysisProgress } from '../../../../components/universal-ui/element-selection/types/StrategyAnalysis';
 
 /**
  * 分析状态枚举
@@ -17,7 +17,7 @@ export type AnalysisStepState =
 /**
  * 步骤卡片分析数据
  */
-export interface StepCardAnalysisData {
+export interface UniversalStepCardAnalysisData {
   /** 分析任务ID */
   analysisJobId?: string;
   /** 选择哈希（防串扰） */
@@ -39,7 +39,7 @@ export interface StepCardAnalysisData {
 /**
  * 分析操作回调
  */
-export interface StepCardAnalysisActions {
+export interface UniversalStepCardAnalysisActions {
   /** 重试分析 */
   onRetryAnalysis?: () => Promise<void>;
   /** 取消分析 */
@@ -55,11 +55,11 @@ export interface StepCardAnalysisActions {
 /**
  * 扩展的步骤卡片属性
  */
-export interface AnalysisEnhancedStepCardProps {
+export interface UniversalAnalysisEnhancedStepCardProps {
   /** 分析数据 */
-  analysis?: StepCardAnalysisData;
+  analysis?: UniversalStepCardAnalysisData;
   /** 分析操作 */
-  analysisActions?: StepCardAnalysisActions;
+  analysisActions?: UniversalStepCardAnalysisActions;
   /** 是否启用智能分析功能 */
   enableAnalysis?: boolean;
 }

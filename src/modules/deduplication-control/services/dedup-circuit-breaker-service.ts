@@ -18,7 +18,7 @@ import {
 /**
  * 熔断器存储服务
  */
-export class CircuitBreakerStorageService {
+export class DedupCircuitBreakerStorageService {
   /**
    * 获取熔断器状态
    */
@@ -171,7 +171,7 @@ export class CircuitBreakerStorageService {
 /**
  * 熔断器决策引擎
  */
-export class CircuitBreakerDecisionEngine {
+export class DedupCircuitBreakerDecisionEngine {
   private config: CircuitBreakerConfig;
   
   constructor(config: CircuitBreakerConfig) {
@@ -252,13 +252,13 @@ export class CircuitBreakerDecisionEngine {
 /**
  * 主熔断器服务
  */
-export class CircuitBreakerService {
+export class DedupCircuitBreakerService {
   private config: CircuitBreakerConfig;
-  private decisionEngine: CircuitBreakerDecisionEngine;
+  private decisionEngine: DedupCircuitBreakerDecisionEngine;
   
   constructor(config: CircuitBreakerConfig) {
     this.config = config;
-    this.decisionEngine = new CircuitBreakerDecisionEngine(config);
+    this.decisionEngine = new DedupCircuitBreakerDecisionEngine(config);
   }
   
   /**
@@ -282,7 +282,7 @@ export class CircuitBreakerService {
       };
     }
     
-    const status = await CircuitBreakerStorageService.getCircuitBreakerStatus(
+    const status = await DedupCircuitBreakerStorageService.getCircuitBreakerStatus(
       request.accountId,
       request.taskType
     );
@@ -332,7 +332,7 @@ export class CircuitBreakerService {
     const now = new Date();
     
     // 获取失败统计
-    const stats = await CircuitBreakerStorageService.getFailureStatistics(
+    const stats = await DedupCircuitBreakerStorageService.getFailureStatistics(
       request.accountId,
       request.taskType,
       this.config.timeWindowMinutes
@@ -383,7 +383,7 @@ export class CircuitBreakerService {
     
     // 如果状态发生变化，更新数据库
     if (newState !== currentStatus.state) {
-      await CircuitBreakerStorageService.updateCircuitBreakerState(
+      await DedupCircuitBreakerStorageService.updateCircuitBreakerState(
         request.accountId,
         request.taskType,
         newState,
@@ -411,7 +411,7 @@ export class CircuitBreakerService {
     status: CircuitBreakerStatus
   ): Promise<boolean> {
     // 获取半开状态下的请求计数
-    const recentOperations = await CircuitBreakerStorageService.getFailureStatistics(
+    const recentOperations = await DedupCircuitBreakerStorageService.getFailureStatistics(
       request.accountId,
       request.taskType,
       5 // 最近5分钟
@@ -429,7 +429,7 @@ export class CircuitBreakerService {
       return;
     }
     
-    await CircuitBreakerStorageService.recordOperationResult(
+    await DedupCircuitBreakerStorageService.recordOperationResult(
       request.accountId,
       request.taskType,
       true
@@ -447,7 +447,7 @@ export class CircuitBreakerService {
       return;
     }
     
-    await CircuitBreakerStorageService.recordOperationResult(
+    await DedupCircuitBreakerStorageService.recordOperationResult(
       request.accountId,
       request.taskType,
       false,
@@ -462,7 +462,7 @@ export class CircuitBreakerService {
     accountId: string,
     taskType: 'follow' | 'reply'
   ): Promise<void> {
-    await CircuitBreakerStorageService.resetCircuitBreaker(accountId, taskType);
+    await DedupCircuitBreakerStorageService.resetCircuitBreaker(accountId, taskType);
   }
   
   /**
@@ -472,7 +472,7 @@ export class CircuitBreakerService {
     accountId: string,
     taskType: 'follow' | 'reply'
   ): Promise<number> {
-    const status = await CircuitBreakerStorageService.getCircuitBreakerStatus(
+    const status = await DedupCircuitBreakerStorageService.getCircuitBreakerStatus(
       accountId,
       taskType
     );

@@ -9,22 +9,22 @@
 // 去重服务
 export {
   DedupContentSimilarityService,
-  DeduplicationStorageService,
-  DeduplicationService
+  DedupDeduplicationStorageService,
+  DedupDeduplicationService
 } from './dedup-deduplication-service';
 
 // 频控服务
 export {
-  RateLimitStorageService,
-  TimeUtils,
-  RateLimitService
+  DedupRateLimitStorageService,
+  DedupTimeUtils,
+  DedupRateLimitService
 } from './dedup-rate-limit-service';
 
 // 熔断器服务
 export {
-  CircuitBreakerStorageService,
-  CircuitBreakerDecisionEngine,
-  CircuitBreakerService
+  DedupCircuitBreakerStorageService,
+  DedupCircuitBreakerDecisionEngine,
+  DedupCircuitBreakerService
 } from './dedup-circuit-breaker-service';
 
 // 安全检查服务

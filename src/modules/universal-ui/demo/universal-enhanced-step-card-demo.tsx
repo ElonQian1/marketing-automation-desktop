@@ -1,10 +1,10 @@
-// src/modules/universal-ui/demo/EnhancedStepCardDemo.tsx
+// src/modules/universal-ui/demo/universal-enhanced-step-card-demo.tsx
 // module: universal-ui | layer: demo | role: 增强步骤卡片演示
 // summary: 演示完整的智能分析工作流程，包括策略分类和实时状态更新
 
 import React from 'react';
 import { Card, Space, Typography, Button, Divider, Row, Col } from 'antd';
-import { EnhancedStepCard } from '../ui/components/EnhancedStepCard';
+import { UniversalEnhancedStepCard } from '../ui/components/universal-enhanced-step-card';
 import { useInspectorStore } from '../stores/inspectorStore';
 
 const { Title, Paragraph, Text } = Typography;
@@ -13,7 +13,7 @@ const { Title, Paragraph, Text } = Typography;
  * 增强步骤卡片演示组件
  * 展示增强版步骤卡片的各种功能特性
  */
-export const EnhancedStepCardDemo: React.FC = () => {
+export const UniversalEnhancedStepCardDemo: React.FC = () => {
   const { analysisState } = useInspectorStore();
 
   // 模拟开始分析
@@ -69,7 +69,7 @@ export const EnhancedStepCardDemo: React.FC = () => {
 
         <Col span={24}>
           <Card title="增强步骤卡片">
-            <EnhancedStepCard 
+            <UniversalEnhancedStepCard 
               title="智能分析步骤卡片"
               size="default"
               showSettings
@@ -120,4 +120,4 @@ export const EnhancedStepCardDemo: React.FC = () => {
   );
 };
 
-export default EnhancedStepCardDemo;
+export default UniversalEnhancedStepCardDemo;

@@ -1,4 +1,4 @@
-// src/modules/universal-ui/ui/components/AnalysisStatusSection.tsx
+// src/modules/universal-ui/ui/components/universal-analysis-status-section.tsx
 // module: universal-ui | layer: ui | role: component
 // summary: 步骤卡片中的分析状态展示区域
 
@@ -11,17 +11,17 @@ import {
   ExclamationCircleOutlined,
   TrophyOutlined,
   EyeOutlined,
-  UpgradeOutlined,
+  UpOutlined,
   StopOutlined,
   RedoOutlined
 } from '@ant-design/icons';
-import type { StepCardAnalysisData, StepCardAnalysisActions } from '../types/AnalysisStepCard';
+import type { UniversalStepCardAnalysisData, UniversalStepCardAnalysisActions } from '../types/universal-analysis-step-card';
 
 const { Text } = Typography;
 
-interface AnalysisStatusSectionProps {
-  analysis: StepCardAnalysisData;
-  actions: StepCardAnalysisActions;
+interface UniversalAnalysisStatusSectionProps {
+  analysis: UniversalStepCardAnalysisData;
+  actions: UniversalStepCardAnalysisActions;
   size?: 'small' | 'default';
 }
 
@@ -29,7 +29,7 @@ interface AnalysisStatusSectionProps {
  * 分析状态展示区域
  * 根据不同的分析状态显示对应的UI和操作按钮
  */
-export const AnalysisStatusSection: React.FC<AnalysisStatusSectionProps> = ({
+export const UniversalAnalysisStatusSection: React.FC<UniversalAnalysisStatusSectionProps> = ({
   analysis,
   actions,
   size = 'default'
@@ -77,7 +77,7 @@ export const AnalysisStatusSection: React.FC<AnalysisStatusSectionProps> = ({
                 showInfo={false}
               />
               <Text style={{ fontSize: 12, color: 'var(--text-3, #94a3b8)' }}>
-                {analysisProgress.currentStepName} ({analysisProgress.currentStep}/{analysisProgress.totalSteps})
+                步骤 {analysisProgress.currentStep}/{analysisProgress.totalSteps}
               </Text>
             </>
           )}
@@ -119,7 +119,7 @@ export const AnalysisStatusSection: React.FC<AnalysisStatusSectionProps> = ({
             <Button 
               size={buttonSize}
               type={isHighConfidence ? 'primary' : 'default'}
-              icon={<UpgradeOutlined />}
+              icon={<UpOutlined />}
               onClick={actions.onQuickUpgrade}
             >
               {isHighConfidence ? '一键升级' : '应用策略'}
@@ -176,4 +176,4 @@ export const AnalysisStatusSection: React.FC<AnalysisStatusSectionProps> = ({
   return null;
 };
 
-export default AnalysisStatusSection;
+export default UniversalAnalysisStatusSection;

@@ -18,7 +18,7 @@ import {
 /**
  * 频控存储服务
  */
-export class RateLimitStorageService {
+export class DedupRateLimitStorageService {
   /**
    * 获取指定时间范围内的操作计数
    */
@@ -109,7 +109,7 @@ export class RateLimitStorageService {
 /**
  * 时间工具类
  */
-export class TimeUtils {
+export class DedupTimeUtils {
   /**
    * 检查当前时间是否在指定时间范围内
    */
@@ -168,7 +168,7 @@ export class TimeUtils {
 /**
  * 主频控服务
  */
-export class RateLimitService {
+export class DedupRateLimitService {
   private config: RateLimitConfig;
   
   constructor(config: RateLimitConfig) {
@@ -267,10 +267,10 @@ export class RateLimitService {
   }> {
     try {
       const [hourly, daily, weekly, monthly] = await Promise.all([
-        RateLimitStorageService.getOperationCount(accountId, taskType, 1),
-        RateLimitStorageService.getOperationCount(accountId, taskType, 24),
-        RateLimitStorageService.getOperationCount(accountId, taskType, 168), // 7天
-        RateLimitStorageService.getOperationCount(accountId, taskType, 720)  // 30天
+        DedupRateLimitStorageService.getOperationCount(accountId, taskType, 1),
+        DedupRateLimitStorageService.getOperationCount(accountId, taskType, 24),
+        DedupRateLimitStorageService.getOperationCount(accountId, taskType, 168), // 7天
+        DedupRateLimitStorageService.getOperationCount(accountId, taskType, 720)  // 30天
       ]);
       
       return { hourly, daily, weekly, monthly };
@@ -300,7 +300,7 @@ export class RateLimitService {
     const remainingQuota = Math.max(0, limit - currentUsage);
     
     if (currentUsage >= limit) {
-      const waitTimeSeconds = TimeUtils.getSecondsToNextHour();
+      const waitTimeSeconds = DedupTimeUtils.getSecondsToNextHour();
       const resetTime = new Date();
       resetTime.setHours(resetTime.getHours() + 1, 0, 0, 0);
       
@@ -339,7 +339,7 @@ export class RateLimitService {
     const remainingQuota = Math.max(0, limit - currentUsage);
     
     if (currentUsage >= limit) {
-      const waitTimeSeconds = TimeUtils.getSecondsToNextDay();
+      const waitTimeSeconds = DedupTimeUtils.getSecondsToNextDay();
       const resetTime = new Date();
       resetTime.setDate(resetTime.getDate() + 1);
       resetTime.setHours(0, 0, 0, 0);
@@ -367,7 +367,7 @@ export class RateLimitService {
     waitTimeSeconds?: number;
     reason?: string;
   }> {
-    const lastOperationTime = await RateLimitStorageService.getLastOperationTime(
+    const lastOperationTime = await DedupRateLimitStorageService.getLastOperationTime(
       request.accountId,
       request.taskType
     );
@@ -386,7 +386,7 @@ export class RateLimitService {
       // 如果启用随机化间隔，添加随机延迟
       let actualWaitTime = waitTimeSeconds;
       if (this.config.interval.randomizeInterval) {
-        const randomDelay = TimeUtils.generateRandomWaitTime(
+        const randomDelay = DedupTimeUtils.generateRandomWaitTime(
           this.config.interval.minIntervalSeconds,
           this.config.interval.maxIntervalSeconds
         );
@@ -414,7 +414,7 @@ export class RateLimitService {
     reason?: string;
     adjustedQuota?: { hourly: number; daily: number; weekly: number; monthly: number };
   } {
-    if (!TimeUtils.isInTimeRange(this.config.peakHours.timeRanges)) {
+    if (!DedupTimeUtils.isInTimeRange(this.config.peakHours.timeRanges)) {
       return { allowed: true };
     }
     
@@ -476,7 +476,7 @@ export class RateLimitService {
    */
   async recordSuccessfulOperation(request: SafetyCheckRequest): Promise<void> {
     try {
-      await RateLimitStorageService.recordOperation(
+      await DedupRateLimitStorageService.recordOperation(
         request.accountId,
         request.taskType,
         request.deviceId
@@ -497,7 +497,7 @@ export class RateLimitService {
     // 如果没有明确的等待时间，使用默认间隔
     if (this.config.interval.enabled) {
       return this.config.interval.randomizeInterval
-        ? TimeUtils.generateRandomWaitTime(
+        ? DedupTimeUtils.generateRandomWaitTime(
             this.config.interval.minIntervalSeconds,
             this.config.interval.maxIntervalSeconds
           )

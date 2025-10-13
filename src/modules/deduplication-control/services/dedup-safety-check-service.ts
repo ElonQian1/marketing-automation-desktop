@@ -18,9 +18,9 @@ import {
   BlacklistConfig
 } from '../types';
 
-import { DeduplicationService } from './dedup-deduplication-service';
-import { RateLimitService } from './dedup-rate-limit-service';
-import { CircuitBreakerService } from './dedup-circuit-breaker-service';
+import { DedupDeduplicationService } from './dedup-deduplication-service';
+import { DedupRateLimitService } from './dedup-rate-limit-service';
+import { DedupCircuitBreakerService } from './dedup-circuit-breaker-service';
 
 /**
  * 白名单和黑名单服务
@@ -220,9 +220,9 @@ export class DedupRiskAssessmentService {
  * 主安全检查服务
  */
 export class DedupSafetyCheckService {
-  private deduplicationService: DeduplicationService;
-  private rateLimitService: RateLimitService;
-  private circuitBreakerService: CircuitBreakerService;
+  private deduplicationService: DedupDeduplicationService;
+  private rateLimitService: DedupRateLimitService;
+  private circuitBreakerService: DedupCircuitBreakerService;
   private whitelist?: WhitelistConfig;
   private blacklist?: BlacklistConfig;
   
@@ -233,9 +233,9 @@ export class DedupSafetyCheckService {
     whitelist?: WhitelistConfig,
     blacklist?: BlacklistConfig
   ) {
-    this.deduplicationService = new DeduplicationService(deduplicationConfig);
-    this.rateLimitService = new RateLimitService(rateLimitConfig);
-    this.circuitBreakerService = new CircuitBreakerService(circuitBreakerConfig);
+    this.deduplicationService = new DedupDeduplicationService(deduplicationConfig);
+    this.rateLimitService = new DedupRateLimitService(rateLimitConfig);
+    this.circuitBreakerService = new DedupCircuitBreakerService(circuitBreakerConfig);
     this.whitelist = whitelist;
     this.blacklist = blacklist;
   }

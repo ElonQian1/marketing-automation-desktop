@@ -18,6 +18,15 @@ export {
   useStrategySwitch
 } from './hooks/useStepStrategy';
 
+// === 智能分析工作流导出 ===
+export * from './types/intelligent-analysis-types';
+export * from './utils/selection-hash';
+export * from './hooks/use-intelligent-analysis-workflow';
+export { IntelligentStepCard as IntelligentStepCardComponent } from './components/intelligent-step-card';
+export * from './components/enhanced-element-selection-popover';
+export { default as IntelligentAnalysisDemo } from './pages/intelligent-analysis-demo';
+export * from './services/mock-analysis-backend';
+
 // === Store 导出（仅导出Hook，不直接导出Store） ===
 export { 
   useInspectorStore,
@@ -29,7 +38,12 @@ export {
 // === UI 组件导出 ===
 export { StepCard } from './ui/StepCard';
 export { AnalysisStepCard } from './ui/AnalysisStepCard';
-export { EnhancedStepCard } from './ui/components/EnhancedStepCard';
+export { UniversalEnhancedStepCard } from './ui/components/universal-enhanced-step-card';
+// Components
+export { UniversalAnalysisStatusSection } from './ui/components/universal-analysis-status-section';
+export { UniversalSmartStepCard } from './ui/components/universal-smart-step-card';
+export { UniversalEnhancedElementPopover } from './ui/components/universal-enhanced-element-popover';
+export { UniversalSmartStepDemo } from './ui/components/universal-smart-step-demo';
 export { SmartVariantBadge, SimpleVariantBadge } from './ui/partials/SmartVariantBadge';
 
 // === 类型导出（重新导出常用类型） ===

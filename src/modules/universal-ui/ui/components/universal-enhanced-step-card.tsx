@@ -1,4 +1,4 @@
-// src/modules/universal-ui/ui/components/EnhancedStepCard.tsx
+// src/modules/universal-ui/ui/components/universal-enhanced-step-card.tsx
 // module: universal-ui | layer: ui | role: component  
 // summary: 增强版步骤卡片，支持完整的分析状态和三种策略类型
 
@@ -26,13 +26,13 @@ import {
   SettingOutlined,
   InfoCircleOutlined
 } from '@ant-design/icons';
-import { AnalysisStatusSection } from './AnalysisStatusSection';
+import { UniversalAnalysisStatusSection } from './universal-analysis-status-section';
 import { useInspectorStore } from '../../stores/inspectorStore';
 import type { 
-  StepCardAnalysisData, 
-  StepCardAnalysisActions,
+  UniversalStepCardAnalysisData, 
+  UniversalStepCardAnalysisActions,
   AnalysisStepState
-} from '../types/AnalysisStepCard';
+} from '../types/universal-analysis-step-card';
 import type {
   SmartAnalysisStep,
   UserStaticStrategy
@@ -44,7 +44,7 @@ const { Panel } = Collapse;
 /**
  * 增强版步骤卡片属性
  */
-export interface EnhancedStepCardProps {
+export interface UniversalEnhancedStepCardProps {
   /** 卡片标题 */
   title?: string;
   /** 卡片大小 */
@@ -61,7 +61,7 @@ export interface EnhancedStepCardProps {
  * 增强版步骤卡片组件
  * 支持三种策略类型：智能匹配、智能手动选择、用户自建静态
  */
-export const EnhancedStepCard: React.FC<EnhancedStepCardProps> = ({
+export const UniversalEnhancedStepCard: React.FC<UniversalEnhancedStepCardProps> = ({
   title = "策略配置",
   size = 'default',
   className = '',
@@ -98,21 +98,28 @@ export const EnhancedStepCard: React.FC<EnhancedStepCardProps> = ({
   const [newStrategyModalVisible, setNewStrategyModalVisible] = useState(false);
 
   // 构建分析数据
-  const analysisData: StepCardAnalysisData = {
+  const analysisData: UniversalStepCardAnalysisData = {
     analysisState: analysisState as AnalysisStepState,
-    analysisProgress,
+    analysisProgress: analysisProgress ? {
+      ...analysisProgress,
+      stepName: '分析步骤',
+      stepDescription: '正在进行智能分析'
+    } : undefined,
     recommendedStrategy: smartSteps.find(s => s.key === recommendedStepKey) ? {
-      key: recommendedStepKey!,
       name: smartSteps.find(s => s.key === recommendedStepKey)!.name,
       description: smartSteps.find(s => s.key === recommendedStepKey)!.description,  
       confidence: recommendedConfidence!,
-      strategy: smartSteps.find(s => s.key === recommendedStepKey)!.strategy
+      category: 'self-anchor' as const,
+      performance: { speed: 'fast', stability: 'high', crossDevice: 'excellent' },
+      pros: ['高准确性'],
+      cons: ['可能较慢'],
+      scenarios: ['通用场景']
     } : undefined,
     recommendedConfidence
   };
 
   // 构建操作回调
-  const analysisActions: StepCardAnalysisActions = {
+  const analysisActions: UniversalStepCardAnalysisActions = {
     onCancelAnalysis: cancelAnalysis,
     onRetryAnalysis: retryAnalysis,
     onQuickUpgrade: async () => applyRecommended(),
@@ -208,7 +215,7 @@ export const EnhancedStepCard: React.FC<EnhancedStepCardProps> = ({
       extra={extra}
     >
       {/* 分析状态区域 */}
-      <AnalysisStatusSection 
+      <UniversalAnalysisStatusSection 
         analysis={analysisData}
         actions={analysisActions}
         size={size}
@@ -416,4 +423,4 @@ export const EnhancedStepCard: React.FC<EnhancedStepCardProps> = ({
   );
 };
 
-export default EnhancedStepCard;
+export default UniversalEnhancedStepCard;

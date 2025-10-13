@@ -30,6 +30,12 @@ src/modules/<module>/{domain,application,services,api,stores,hooks,ui,pages}/
 
 > 只要是 **策略/服务/工具/校验** 这类容易重名的文件，务必带模块前缀。
 
+### ⚠️ AI代理常见违规（必查）
+- ❌ `ui/components/EnhancedCard.tsx` → ✅ `ui/components/module-enhanced-card.tsx`
+- ❌ `export const EnhancedCard` → ✅ `export const ModuleEnhancedCard`  
+- ❌ `services/helper.ts` → ✅ `services/module-helper.ts`
+- **检查清单**：文件名有模块前缀？组件名有模块前缀？类型名有模块前缀？
+
 ---
 
 ## 3) 门牌导出（index.ts 统一出口）
@@ -219,6 +225,7 @@ background: '#f8fafc'
 9. ✅ 多个组件同时使用 `useAdb()` 时是否会造成性能问题
 10. ✅ **样式检查**：是否存在白底白字等可读性问题
 11. ✅ **颜色对比度**：是否满足 WCAG AA 标准（4.5:1）
+12. ✅ **命名前缀**：易重名文件和类型是否添加模块前缀
 
 
 ---

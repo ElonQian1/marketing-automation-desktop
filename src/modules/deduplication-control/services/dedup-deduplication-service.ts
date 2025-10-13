@@ -98,7 +98,7 @@ export class DedupContentSimilarityService {
 /**
  * 去重数据库服务
  */
-export class DeduplicationStorageService {
+export class DedupDeduplicationStorageService {
   /**
    * 检查评论级重复
    */
@@ -249,7 +249,7 @@ export class DeduplicationStorageService {
 /**
  * 主去重服务
  */
-export class DeduplicationService {
+export class DedupDeduplicationService {
   private config: DeduplicationConfig;
   
   constructor(config: DeduplicationConfig) {
@@ -356,7 +356,7 @@ export class DeduplicationService {
       return { allowed: true, timeWindow: this.config.commentLevel.timeWindowHours };
     }
     
-    const duplicate = await DeduplicationStorageService.checkCommentDuplicate(
+    const duplicate = await DedupDeduplicationStorageService.checkCommentDuplicate(
       request.targetUserId,
       request.content,
       this.config.commentLevel.timeWindowHours,
@@ -378,7 +378,7 @@ export class DeduplicationService {
     allowed: boolean;
     lastInteraction?: Date;
   }> {
-    const duplicate = await DeduplicationStorageService.checkUserDuplicate(
+    const duplicate = await DedupDeduplicationStorageService.checkUserDuplicate(
       request.targetUserId,
       request.accountId,
       this.config.userLevel.cooldownDays,
@@ -407,7 +407,7 @@ export class DeduplicationService {
       this.config.contentLevel.hashAlgorithm
     );
     
-    const duplicate = await DeduplicationStorageService.checkContentDuplicate(
+    const duplicate = await DedupDeduplicationStorageService.checkContentDuplicate(
       contentHash,
       request.accountId,
       24 // 24小时时间窗口
@@ -436,7 +436,7 @@ export class DeduplicationService {
       this.config.crossDevice.fingerprintStrategy
     );
     
-    const duplicate = await DeduplicationStorageService.checkCrossDeviceDuplicate(
+    const duplicate = await DedupDeduplicationStorageService.checkCrossDeviceDuplicate(
       request.targetUserId,
       this.config.crossDevice.fingerprintStrategy,
       deviceFingerprint,
@@ -502,7 +502,7 @@ export class DeduplicationService {
    */
   async recordSuccessfulInteraction(request: SafetyCheckRequest): Promise<void> {
     try {
-      await DeduplicationStorageService.recordInteraction(
+      await DedupDeduplicationStorageService.recordInteraction(
         request.targetUserId,
         request.accountId,
         request.deviceId || '',
