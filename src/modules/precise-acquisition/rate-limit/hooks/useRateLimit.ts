@@ -16,7 +16,7 @@ import {
   DedupStats,
   RateLimitConfig,
   DedupLevel
-} from '../services/RateLimitService';
+} from '../services/prospecting-rate-limit-service';
 import { 
   Task, 
   Comment, 
@@ -114,7 +114,7 @@ export const useRateLimit = (options: UseRateLimitOptions = {}): UseRateLimitRet
     clearError();
     
     try {
-      const newStats = await service.getDedupStats();
+      const newStats = await service.getStats();
       setStats(newStats);
       setRecentBlocks(newStats.recent_blocks);
     } catch (err) {
@@ -307,7 +307,17 @@ export const useRateLimit = (options: UseRateLimitOptions = {}): UseRateLimitRet
     clearError();
     
     try {
-      await service.recordOperation(task, comment, target);
+      // 使用saveRecord方法记录操作，简化实现
+      await service.saveRecord(
+        'task' as any, // DedupLevel
+        `task_${task.id}`,
+        task.id,
+        Platform.DOUYIN, // 默认平台
+        TaskType.REPLY,  // 默认任务类型  
+        'default_device', // 设备ID
+        undefined, // expiresAt
+        { task_id: task.id, timestamp: Date.now() } // metadata
+      );
       
       // 刷新统计（异步，不阻塞主流程）
       if (autoRefreshStats) {
@@ -324,7 +334,7 @@ export const useRateLimit = (options: UseRateLimitOptions = {}): UseRateLimitRet
     clearError();
     
     try {
-      const deletedCount = await service.cleanupExpiredRecords();
+      const deletedCount = await service.cleanExpiredRecords();
       
       // 刷新统计
       await refreshStats();

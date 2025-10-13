@@ -15,7 +15,6 @@ import {
   Spin,
   Divider,
   Tag,
-  Tooltip,
   Row,
   Col
 } from 'antd';
@@ -66,6 +65,9 @@ export const StepCard: React.FC<StepCardProps> = ({
   size = 'default',
   extra
 }) => {
+  // 转换size为Ant Design兼容的类型
+  const buttonSize = size === 'default' ? 'middle' : size;
+  
   const { state, details, utils } = useStepStrategy();
   const { 
     mode, 
@@ -80,7 +82,13 @@ export const StepCard: React.FC<StepCardProps> = ({
 
   // 编辑状态
   const [isEditing, setIsEditing] = useState(false);
-  const [editForm] = Form.useForm();
+  // 只有在可能需要编辑时才创建 form 实例
+  const [editForm] = (isEditing || editable) ? Form.useForm() : [null];
+  
+  // 调试：记录组件渲染和form创建
+  React.useEffect(() => {
+    console.log('🔍 [StepCard] 渲染 - isEditing:', isEditing, 'editable:', editable, 'editForm created:', !!editForm);
+  }, [isEditing, editable, editForm]);
 
   // 处理模式切换
   const handleModeSwitch = useCallback(async (checked: boolean) => {
@@ -112,7 +120,7 @@ export const StepCard: React.FC<StepCardProps> = ({
 
   // 处理手动策略编辑
   const handleEditManual = useCallback(() => {
-    if (state.current?.kind === 'manual') {
+    if (state.current?.kind === 'manual' && editForm) {
       editForm.setFieldsValue({
         name: state.current.name,
         xpath: state.current.selector.xpath || '',
@@ -125,6 +133,8 @@ export const StepCard: React.FC<StepCardProps> = ({
 
   // 保存手动策略编辑
   const handleSaveEdit = useCallback(async () => {
+    if (!editForm) return;
+    
     try {
       const values = await editForm.validateFields();
       
@@ -151,7 +161,9 @@ export const StepCard: React.FC<StepCardProps> = ({
   // 取消编辑
   const handleCancelEdit = useCallback(() => {
     setIsEditing(false);
-    editForm.resetFields();
+    if (editForm) {
+      editForm.resetFields();
+    }
   }, [editForm]);
 
   // 如果没有元素，显示空状态
@@ -351,7 +363,7 @@ export const StepCard: React.FC<StepCardProps> = ({
                   <Button
                     type="default"
                     icon={<EditOutlined />}
-                    size={size}
+                    size={buttonSize}
                     onClick={handleEditManual}
                   >
                     编辑
@@ -360,7 +372,7 @@ export const StepCard: React.FC<StepCardProps> = ({
                 <Button
                   type="primary"
                   icon={<ThunderboltOutlined />}
-                  size={size}
+                  size={buttonSize}
                   onClick={handleReturnToSmart}
                   disabled={!canSwitch}
                 >
@@ -373,7 +385,7 @@ export const StepCard: React.FC<StepCardProps> = ({
                 <Button
                   type="default"
                   icon={<ReloadOutlined />}
-                  size={size}
+                  size={buttonSize}
                   onClick={handleRefreshSmart}
                   disabled={!canSwitch}
                   loading={isLoading}
@@ -383,7 +395,7 @@ export const StepCard: React.FC<StepCardProps> = ({
                 <Button
                   type="default"
                   icon={<ImportOutlined />}
-                  size={size}
+                  size={buttonSize}
                   onClick={handleAdoptAsManual}
                   disabled={!canSwitch}
                 >
@@ -394,7 +406,7 @@ export const StepCard: React.FC<StepCardProps> = ({
           </div>
 
           {/* 编辑表单（模态） */}
-          {isEditing && (
+          {isEditing && editForm && (
             <>
               <Divider />
               <Form

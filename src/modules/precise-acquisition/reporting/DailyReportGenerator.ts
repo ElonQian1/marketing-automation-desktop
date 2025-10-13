@@ -314,7 +314,7 @@ export class DailyReportGenerator {
         source_video_id: sourceComment?.video_id,
         follow_reason: this.generateFollowReason(task, sourceComment),
         status: this.mapTaskStatusToItemStatus(task.status),
-        error_message: task.metadata?.error_message
+        error_message: task.metadata?.error_message as string || ''
       };
       
       // 添加用户资料信息（如果可用）
@@ -376,8 +376,8 @@ export class DailyReportGenerator {
       const originalComment = this.comments.find(c => c.id === task.target_id);
       if (!originalComment) continue;
       
-      // 查找源视频信息
-      const sourceTarget = this.watchTargets.find(t => t.id === task.sourceTargetId);
+      // 查找源视频信息 - 使用target_id
+      const sourceTarget = this.watchTargets.find(t => t.id === task.target_id);
       
       const replyItem: ReplyListItem = {
         task_id: task.id,
@@ -392,11 +392,11 @@ export class DailyReportGenerator {
         },
         reply_content: task.metadata?.content as string,
         reply_time: task.completed_at || task.updated_at,
-        template_used: task.metadata?.template_id,
+        template_used: task.metadata?.template_id as string,
         source_video_id: originalComment.video_id,
-        video_title: sourceTarget?.name,
+        video_title: sourceTarget?.title || '', // 使用title属性
         status: this.mapTaskStatusToItemStatus(task.status),
-        error_message: task.metadata?.error_message
+        error_message: task.metadata?.error_message as string
       };
       
       // 添加互动结果（如果可用）
@@ -876,7 +876,7 @@ export class DailyReportGenerator {
   
   private calculateRetryRate(tasks: Task[]): number {
     const retriedTasks = tasks.filter(task => 
-      task.metadata?.retry_count && task.metadata.retry_count > 0
+      task.metadata?.retry_count && (task.metadata.retry_count as number) > 0
     ).length;
     return tasks.length > 0 ? retriedTasks / tasks.length : 0;
   }
@@ -885,7 +885,7 @@ export class DailyReportGenerator {
     const performance: { [type: string]: any } = {};
     
     for (const type of Object.values(TaskType)) {
-      const typeTasks = tasks.filter(task => task.type === type);
+      const typeTasks = tasks.filter(task => task.task_type === type);
       if (typeTasks.length > 0) {
         performance[type] = {
           total: typeTasks.length,

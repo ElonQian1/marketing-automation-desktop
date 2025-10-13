@@ -19,7 +19,7 @@ import {
   TaskExecutionContext
 } from '../types';
 import { TaskGenerator } from './TaskGenerator';
-import { TaskQueryService } from './TaskQueryService';
+import { TaskQueryService } from './prospecting-task-query-service';
 import { ProspectingTaskManager } from './prospecting-task-manager';
 import { ProspectingTaskExecutorService, TaskExecutionResult } from './prospecting-task-executor-service';
 
@@ -182,5 +182,5 @@ export const taskEngineService = new ProspectingTaskEngineService();
 // 导出类型和子服务
 export * from '../types';
 export { TaskGenerator } from './TaskGenerator';
-export { TaskQueryService } from './TaskQueryService';
+export { TaskQueryService } from './prospecting-task-query-service';
 export { ProspectingTaskManager as TaskManager } from './prospecting-task-manager';

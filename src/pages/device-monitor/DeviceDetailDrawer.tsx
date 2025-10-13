@@ -37,7 +37,7 @@ export const DeviceDetailDrawer: React.FC<Props> = ({ open, onClose }) => {
   }, [open, load]);
 
   return (
-    <Drawer open={open} onClose={onClose} title="设备详情" width={520} destroyOnClose>
+    <Drawer open={open} onClose={onClose} title="设备详情" width={520} destroyOnHidden>
       {!info || loading ? (
         <Spin />
       ) : (

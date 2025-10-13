@@ -48,7 +48,7 @@ import {
   DeduplicationConfig, 
   RateControlStats,
   RateLimitCheckResult
-} from '../services/RateControlService';
+} from '../services/prospecting-rate-control-service';
 
 const { Title, Text } = Typography;
 const { TabPane } = Tabs;
@@ -523,7 +523,6 @@ export const RateControlManager: React.FC<RateControlManagerProps> = ({ onConfig
                           <Alert
                             message={check.reason}
                             type="warning"
-                            size="small"
                             showIcon
                             style={{ marginBottom: 8 }}
                           />

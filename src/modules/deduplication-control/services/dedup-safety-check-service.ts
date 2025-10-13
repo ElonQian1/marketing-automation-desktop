@@ -18,9 +18,9 @@ import {
   BlacklistConfig
 } from '../types';
 
-import { DeduplicationService } from './DeduplicationService';
-import { RateLimitService } from './RateLimitService';
-import { CircuitBreakerService } from './CircuitBreakerService';
+import { DeduplicationService } from './dedup-deduplication-service';
+import { RateLimitService } from './dedup-rate-limit-service';
+import { CircuitBreakerService } from './dedup-circuit-breaker-service';
 
 /**
  * 白名单和黑名单服务

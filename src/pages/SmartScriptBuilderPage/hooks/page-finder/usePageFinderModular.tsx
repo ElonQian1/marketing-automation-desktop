@@ -3,8 +3,6 @@
 // summary: 页面组件
 
 import React, { useCallback, useMemo, useRef, useState } from 'react';
-import { theme } from 'antd';
-import { useForm } from 'antd/es/form/Form';
 import { SnapshotHandler } from './handlers/SnapshotHandler';
 import { ElementSelectionHandler } from './handlers/ElementSelectionHandler';
 import { 
@@ -20,13 +18,12 @@ import {
  * 将原有的840行代码分解为多个处理器类
  */
 export const usePageFinderModular = (deps: UsePageFinderDeps): UsePageFinderReturn => {
-  const { token } = theme.useToken();
-  const [form] = useForm();
+  // 移除不必要的 form 实例，因为这个 Hook 没有对应的 Form 组件
 
   // 状态管理
   const [isVisible, setIsVisible] = useState(false);
   const [currentXmlContent, setCurrentXmlContent] = useState<string>('');
-  const [selectedElement, setSelectedElement] = useState<any>(null);
+  const [selectedElement, setSelectedElement] = useState<unknown>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [fixMode, setFixMode] = useState<SnapshotFixMode>('none');
   const [analyzerOptions, setAnalyzerOptions] = useState<PageAnalyzerOptions>({
@@ -51,9 +48,13 @@ export const usePageFinderModular = (deps: UsePageFinderDeps): UsePageFinderRetu
   const initializeHandlers = useCallback(() => {
     if (!snapshotHandlerRef.current) {
       snapshotHandlerRef.current = new SnapshotHandler(
-        form,
         currentXmlContent,
-        setCurrentXmlContent
+        setCurrentXmlContent,
+        (snapshot) => {
+          // 处理快照创建事件
+          console.log('快照已创建:', snapshot);
+          deps.onSnapshotUpdate?.(snapshot?.xmlContent || '');
+        }
       );
     }
 
@@ -64,7 +65,7 @@ export const usePageFinderModular = (deps: UsePageFinderDeps): UsePageFinderRetu
         setSelectedElement
       );
     }
-  }, [form, currentXmlContent, deviceInfo]);
+  }, [currentXmlContent, deviceInfo, deps]);
 
   // 确保处理器已初始化
   React.useEffect(() => {
@@ -112,7 +113,7 @@ export const usePageFinderModular = (deps: UsePageFinderDeps): UsePageFinderRetu
   }, [deps]);
 
   // 处理元素选择
-  const handleElementSelect = useCallback(async (element: any) => {
+  const handleElementSelect = useCallback(async (element: unknown) => {
     setSelectedElement(element);
     deps.onElementSelected?.(element);
     

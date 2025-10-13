@@ -11,8 +11,8 @@
 
 import React from 'react';
 import { MobileOutlined } from '@ant-design/icons';
-import { Text } from '@/components/adapters';
-import { Tag } from '@/components/adapters/tag/TagAdapter';
+import { Text } from '../../../../components/adapters';
+import { Tag } from '../../../../components/adapters/tag/TagAdapter';
 
 // 表格列配置默认值
 export const COLUMN_DEFAULTS = [

@@ -26,7 +26,7 @@ import { invoke } from '@tauri-apps/api/core';
 
 // 导入现有服务
 import { PreciseAcquisitionApplicationService } from './PreciseAcquisitionApplicationService';
-import { CandidatePoolService } from '../../modules/precise-acquisition/candidate-pool/services/CandidatePoolService';
+import { CandidatePoolService } from '../../modules/precise-acquisition/candidate-pool/services/prospecting-candidate-pool-service';
 
 // 导入枚举和类型
 import {

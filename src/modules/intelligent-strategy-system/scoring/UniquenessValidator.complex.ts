@@ -311,9 +311,20 @@ export class UniquenessValidator {
     const minIndex = confidenceOrder.indexOf(this.config.minConfidenceLevel);
 
     return recommendations.filter(rec => {
-      const recIndex = confidenceOrder.indexOf(rec.confidence);
+      const recIndex = confidenceOrder.indexOf(this.getConfidenceLevelFromNumber(rec.confidence));
       return recIndex >= minIndex;
     });
+  }
+
+  /**
+   * 将数字置信度转换为ConfidenceLevel
+   */
+  private getConfidenceLevelFromNumber(confidence: number): ConfidenceLevel {
+    if (confidence >= 0.8) return 'very-high';
+    if (confidence >= 0.6) return 'high';
+    if (confidence >= 0.4) return 'medium';
+    if (confidence >= 0.2) return 'low';
+    return 'very-low';
   }
 
   /**
@@ -405,8 +416,8 @@ export class UniquenessValidator {
     strategy1: MatchingStrategy,
     strategy2: MatchingStrategy
   ): number {
-    // 定义策略间的相似度矩阵
-    const similarityMatrix: Record<MatchingStrategy, Record<MatchingStrategy, number>> = {
+    // 定义策略间的相似度矩阵（临时使用部分策略，其他策略返回默认相似度）
+    const similarityMatrix: Partial<Record<MatchingStrategy, Partial<Record<MatchingStrategy, number>>>> = {
       'absolute': {
         'absolute': 1.0,
         'strict': 0.7,
@@ -487,7 +498,7 @@ export class UniquenessValidator {
     strategy2: MatchingStrategy
   ): number {
     // 基于策略的预期匹配准确性和稳定性来计算效果相似度
-    const effectMap: Record<MatchingStrategy, number> = {
+    const effectMap: Partial<Record<MatchingStrategy, number>> = {
       'absolute': 0.9,   // 高准确性，低稳定性
       'strict': 0.85,    // 高准确性，中等稳定性
       'standard': 0.8,   // 中等准确性，高稳定性
@@ -845,15 +856,15 @@ export class UniquenessValidator {
   ): number {
     // 置信度权重
     const confidenceOrder: ConfidenceLevel[] = ['very-low', 'low', 'medium', 'high', 'very-high'];
-    const confidenceA = confidenceOrder.indexOf(a.confidence);
-    const confidenceB = confidenceOrder.indexOf(b.confidence);
+    const confidenceA = confidenceOrder.indexOf(this.getConfidenceLevelFromNumber(a.confidence));
+    const confidenceB = confidenceOrder.indexOf(this.getConfidenceLevelFromNumber(b.confidence));
 
     if (confidenceA !== confidenceB) {
       return confidenceB - confidenceA; // 高置信度优先
     }
 
     // 策略优先级权重
-    const strategyPriority: Record<MatchingStrategy, number> = {
+    const strategyPriority: Partial<Record<MatchingStrategy, number>> = {
       'standard': 5,
       'strict': 4,
       'positionless': 3,

@@ -14,7 +14,7 @@
  */
 
 import { useState, useCallback } from 'react';
-import { useMessage } from '@/components/adapters';
+import { useMessage } from '../../../../components/adapters';
 import { selectFolder, selectTxtFile } from '../utils/dialog';
 import { 
   importNumbersFromFolder, 

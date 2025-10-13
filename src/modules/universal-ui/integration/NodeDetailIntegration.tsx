@@ -182,7 +182,6 @@ export const NodeDetailIntegration: React.FC<NodeDetailIntegrationProps> = ({
                 <Alert 
                   message={state.error} 
                   type="error" 
-                  size="small" 
                 />
               )}
             </Space>

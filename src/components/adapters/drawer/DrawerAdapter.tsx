@@ -16,7 +16,7 @@ export const DrawerAdapter: React.FC<DrawerAdapterProps> = ({
   width = 480,
   placement = "right",
   maskClosable = true,
-  destroyOnClose = true,
+  destroyOnHidden = true,
   ...rest
 }) => {
   return (
@@ -24,7 +24,7 @@ export const DrawerAdapter: React.FC<DrawerAdapterProps> = ({
       width={width}
       placement={placement}
       maskClosable={maskClosable}
-      destroyOnClose={destroyOnClose}
+      destroyOnHidden={destroyOnHidden}
       {...rest}
     />
   );

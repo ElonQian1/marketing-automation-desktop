@@ -7,7 +7,7 @@
  * 用于精确控制拖拽区域和事件传播，零覆盖原则
  */
 
-import { useDragSelector } from '@/components/adapters/drag/DragSelectorAdapter';
+import { useDragSelector } from '../../../../../../../components/adapters/drag/DragSelectorAdapter';
 
 export interface DragBehaviorConfig {
   /** 可拖拽区域选择器 */

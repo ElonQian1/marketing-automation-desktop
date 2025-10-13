@@ -15,7 +15,7 @@ export interface ModalAdapterProps extends ModalProps {
   /** 是否显示关闭按钮，默认 true */
   closable?: boolean;
   /** 关闭时销毁子元素，默认 true */
-  destroyOnClose?: boolean;
+  destroyOnHidden?: boolean;
 }
 
 const getSizeConfig = (size: ModalAdapterProps['size']) => {
@@ -40,7 +40,7 @@ export const ModalAdapter: React.FC<ModalAdapterProps> = ({
   size = "medium",
   maskClosable = true,
   closable = true,
-  destroyOnClose = true,
+  destroyOnHidden = true,
   ...rest 
 }) => {
   const sizeConfig = getSizeConfig(size);
@@ -49,7 +49,7 @@ export const ModalAdapter: React.FC<ModalAdapterProps> = ({
     <Modal
       maskClosable={maskClosable}
       closable={closable}
-      destroyOnClose={destroyOnClose}
+      destroyOnHidden={destroyOnHidden}
       {...sizeConfig}
       {...rest}
     />

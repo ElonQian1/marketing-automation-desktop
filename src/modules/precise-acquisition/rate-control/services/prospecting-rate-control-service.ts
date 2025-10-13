@@ -157,6 +157,56 @@ export class RateControlService {
         min_interval_seconds: 2
       }
     },
+    [Platform.XIAOHONGSHU]: {
+      [TaskType.REPLY]: {
+        platform: Platform.XIAOHONGSHU,
+        task_type: TaskType.REPLY,
+        max_per_minute: 8,
+        max_per_hour: 150,
+        max_per_day: 800,
+        min_interval_seconds: 6
+      },
+      [TaskType.FOLLOW]: {
+        platform: Platform.XIAOHONGSHU,
+        task_type: TaskType.FOLLOW,
+        max_per_minute: 4,
+        max_per_hour: 80,
+        max_per_day: 400,
+        min_interval_seconds: 12
+      },
+      [TaskType.LIKE]: {
+        platform: Platform.XIAOHONGSHU,
+        task_type: TaskType.LIKE,
+        max_per_minute: 12,
+        max_per_hour: 250,
+        max_per_day: 1500,
+        min_interval_seconds: 4
+      },
+      [TaskType.COMMENT]: {
+        platform: Platform.XIAOHONGSHU,
+        task_type: TaskType.COMMENT,
+        max_per_minute: 6,
+        max_per_hour: 120,
+        max_per_day: 600,
+        min_interval_seconds: 8
+      },
+      [TaskType.SHARE]: {
+        platform: Platform.XIAOHONGSHU,
+        task_type: TaskType.SHARE,
+        max_per_minute: 10,
+        max_per_hour: 200,
+        max_per_day: 1000,
+        min_interval_seconds: 5
+      },
+      [TaskType.VIEW]: {
+        platform: Platform.XIAOHONGSHU,
+        task_type: TaskType.VIEW,
+        max_per_minute: 25,
+        max_per_hour: 500,
+        max_per_day: 4000,
+        min_interval_seconds: 2
+      }
+    },
     [Platform.OCEANENGINE]: {
       [TaskType.REPLY]: {
         platform: Platform.OCEANENGINE,
@@ -571,7 +621,7 @@ export class RateControlService {
         sinceDuration: 3600 // 1小时内
       });
       
-      if (crossDeviceOperations && crossDeviceOperations.length > 0) {
+      if (crossDeviceOperations && Array.isArray(crossDeviceOperations) && crossDeviceOperations.length > 0) {
         const recentOp = crossDeviceOperations[0];
         return {
           is_duplicate: true,
@@ -662,10 +712,10 @@ export class RateControlService {
           limit: 1000
         });
         
-        operations = storedOps.map((op: any) => ({
+        operations = Array.isArray(storedOps) ? storedOps.map((op: any) => ({
           ...op,
           timestamp: new Date(op.timestamp)
-        }));
+        })) : [];
         
         this.operationCache.set(cacheKey, operations);
       }
@@ -784,7 +834,7 @@ export class RateControlService {
         sinceDuration: 3600 // 1小时内
       });
       
-      console.log(`同步了 ${remoteOperations?.length || 0} 条远程操作记录`);
+      console.log(`同步了 ${Array.isArray(remoteOperations) ? remoteOperations.length : 0} 条远程操作记录`);
       
     } catch (error) {
       console.warn('跨设备同步失败:', error);
@@ -812,12 +862,12 @@ export class RateControlService {
       });
       
       return {
-        total_operations: stats.totalOperations || 0,
-        blocked_by_rate_limit: stats.blockedByRateLimit || 0,
-        blocked_by_deduplication: stats.blockedByDeduplication || 0,
-        success_rate: stats.successRate || 0,
-        avg_operations_per_hour: stats.avgOperationsPerHour || 0,
-        platform_stats: stats.platformStats || {}
+        total_operations: (stats as any)?.totalOperations || 0,
+        blocked_by_rate_limit: (stats as any)?.blockedByRateLimit || 0,
+        blocked_by_deduplication: (stats as any)?.blockedByDeduplication || 0,
+        success_rate: (stats as any)?.successRate || 0,
+        avg_operations_per_hour: (stats as any)?.avgOperationsPerHour || 0,
+        platform_stats: (stats as any)?.platformStats || {}
       };
       
     } catch (error) {

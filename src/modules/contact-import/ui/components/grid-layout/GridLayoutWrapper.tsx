@@ -15,7 +15,7 @@ import { useViewportHeight } from './hooks/useViewportHeight';
 import { useLayoutVersions } from './hooks/useLayoutVersions';
 import { useLayoutPerformance } from './hooks/useLayoutPerformance';
 import { createDragBehaviorOptimizer, DRAG_CONFIGS } from './hooks/performance/DragBehaviorOptimizer';
-import { useGridLayoutSelector } from '@/components/adapters/grid-layout/GridLayoutSelectorAdapter';
+import { useGridLayoutSelector } from '../../../../../components/adapters/grid-layout/GridLayoutSelectorAdapter';
 import 'react-grid-layout/css/styles.css';
 
 const ResponsiveGridLayout = WidthProvider(Responsive);

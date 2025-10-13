@@ -36,7 +36,7 @@ import {
   BugOutlined,
   BarChartOutlined
 } from '@ant-design/icons';
-import { BackendInterfaceValidationService, BackendTestResult, ValidationReport } from '../services/BackendInterfaceValidationService';
+import { BackendInterfaceValidationService, BackendTestResult, ValidationReport } from '../services/prospecting-backend-validation-service';
 
 const { Title, Text } = Typography;
 const { Panel } = Collapse;

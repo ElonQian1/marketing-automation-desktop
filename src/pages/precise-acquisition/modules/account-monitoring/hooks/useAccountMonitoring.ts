@@ -10,7 +10,12 @@
 import { useState, useCallback, useEffect } from 'react';
 import { message } from 'antd';
 import { monitoringService } from '../../../services/monitoringService';
-import type { MonitoringTask, CommentData } from '../../../services/monitoringService';
+import type { 
+  MonitoringTask, 
+  CommentData,
+  CreateMonitoringTaskConfig
+} from '../../../services/monitoringService';
+import type { MonitoringTaskType } from '../../../shared/types/monitoringTypes';
 
 interface UseAccountMonitoringReturn {
   tasks: MonitoringTask[];
@@ -70,7 +75,17 @@ export const useAccountMonitoring = (): UseAccountMonitoringReturn => {
   // 创建任务
   const createTask = useCallback(async (config: Partial<MonitoringTask>) => {
     try {
-      const newTask = await monitoringService.createTask(config);
+      // 确保必需字段存在
+      const taskConfig: CreateMonitoringTaskConfig = {
+        name: config.name || `账号监控任务-${Date.now()}`,
+        type: 'account' as MonitoringTaskType,
+        keywords: config.keywords,
+        targetAccount: config.targetAccount,
+        targetVideo: config.targetVideo,
+        filters: config.filters,
+        assignedDevices: config.assignedDevices,
+      };
+      const newTask = await monitoringService.createTask(taskConfig);
       setTasks(prev => [...prev, newTask]);
       message.success('监控任务创建成功');
     } catch (error) {

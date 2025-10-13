@@ -12,7 +12,7 @@ import React, { useState, useEffect } from 'react';
 import { Card, Table, Tag, Button, Select, Tooltip, Progress, Space, Alert } from 'antd';
 import { PlayCircleOutlined, PauseCircleOutlined, StopOutlined, AndroidOutlined, DesktopOutlined } from '@ant-design/icons';
 import { useAdb } from '../../../../application/hooks/useAdb';
-import { EnhancedTaskExecutorService, DeviceSelectionStrategy } from '../services/EnhancedTaskExecutorService';
+import { EnhancedTaskExecutorService, DeviceSelectionStrategy } from '../services/prospecting-enhanced-executor-service';
 import { Task, TaskStatus } from '../../shared/types/core';
 import type { Device } from '../../../../domain/adb/entities/Device';
 

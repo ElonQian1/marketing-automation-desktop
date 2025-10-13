@@ -541,9 +541,10 @@ export class PreciseAcquisitionDemo {
     console.log(`    队列状态:`);
     console.log(`      - 待执行: ${status.pending} 个`);
     console.log(`      - 运行中: ${status.running} 个`);
-    if (status.next_execution) {
-      console.log(`      - 下次执行: ${status.next_execution.toLocaleString()}`);
-    }
+    // 注释掉next_execution访问，因为接口中没有此属性
+    // if (status.next_execution) {
+    //   console.log(`      - 下次执行: ${status.next_execution.toLocaleString()}`);
+    // }
   }
   
   /**
@@ -596,34 +597,43 @@ export class PreciseAcquisitionDemo {
     // 生成日常总结报告
     const summaryReport = await this.reportGenerator.generateReport({
       type: ReportType.DAILY_SUMMARY,
+      date: today,
+      data: {},
       date_range: {
         start_date: yesterday,
         end_date: today
-      },
-      include_metadata: true,
-      format: 'json'
+      }
+      // 移除include_metadata，因为接口中没有此属性
+      // include_metadata: true,
+      // format: 'json'
     });
     
     // 生成关注清单
     const followReport = await this.reportGenerator.generateReport({
       type: ReportType.FOLLOW_LIST,
+      date: today,
+      data: {},
       date_range: {
         start_date: yesterday,
         end_date: today
-      },
-      platforms: [Platform.DOUYIN, Platform.XIAOHONGSHU],
-      format: 'json'
+      }
+      // 移除platforms，因为接口中没有此属性
+      // platforms: [Platform.DOUYIN, Platform.XIAOHONGSHU],
+      // format: 'json'
     });
     
     // 生成回复清单
     const replyReport = await this.reportGenerator.generateReport({
       type: ReportType.REPLY_LIST,
+      date: today,
+      data: {},
       date_range: {
         start_date: yesterday,
         end_date: today
-      },
-      platforms: [Platform.DOUYIN, Platform.XIAOHONGSHU],
-      format: 'json'
+      }
+      // 移除platforms，因为接口中没有此属性
+      // platforms: [Platform.DOUYIN, Platform.XIAOHONGSHU],
+      // format: 'json'
     });
     
     console.log(`    报告生成结果:`);
@@ -636,53 +646,30 @@ export class PreciseAcquisitionDemo {
    * 设置示例模板
    */
   private setupTemplates(): void {
-    // 添加回复模板
+    // 添加回复模板，使用正确的属性名
     this.templateManager.addTemplate({
-      id: 'reply_consulting',
-      name: '咨询回复模板',
-      type: TaskType.REPLY,
-      category: '业务咨询',
-      description: '回复业务咨询类评论',
-      content_template: '谢谢您的关注！{random_emoji} 关于您咨询的问题，欢迎私信详细沟通。',
-      variables: [
-        {
-          name: 'random_emoji',
-          display_name: '随机表情',
-          description: '随机表情符号',
-          type: 'custom'
-        }
-      ],
-      conditions: {
-        keywords: ['咨询', '合作', '购买', '联系'],
-        platforms: [Platform.DOUYIN, Platform.XIAOHONGSHU]
-      },
-      weight: 8,
-      is_active: true,
-      created_at: new Date(),
-      updated_at: new Date(),
-      usage_count: 0
+      taskType: TaskType.REPLY,
+      content: '谢谢您的关注！关于您咨询的问题，欢迎私信详细沟通。'
+      // 移除不存在的属性
+      // id: 'reply_consulting',
+      // name: '咨询回复模板',
+      // type: TaskType.REPLY,
+      // category: '业务咨询',
+      // description: '回复业务咨询类评论',
+      // content_template: '谢谢您的关注！{random_emoji} 关于您咨询的问题，欢迎私信详细沟通。',
+      // variables: [...],
+      // conditions: {...},
+      // weight: 8,
+      // is_active: true,
+      // created_at: new Date(),
+      // updated_at: new Date(),
+      // usage_count: 0
     });
     
     this.templateManager.addTemplate({
-      id: 'reply_appreciation',
-      name: '感谢回复模板',
-      type: TaskType.REPLY,
-      category: '友好回复',
-      description: '对正面评论表示感谢',
-      content_template: '感谢支持！{random_emoji} 您的鼓励是我们前进的动力。',
-      variables: [
-        {
-          name: 'random_emoji',
-          display_name: '随机表情',
-          description: '随机表情符号',
-          type: 'custom'
-        }
-      ],
-      weight: 5,
-      is_active: true,
-      created_at: new Date(),
-      updated_at: new Date(),
-      usage_count: 0
+      taskType: TaskType.REPLY,
+      content: '感谢您的支持和关注！'
+      // 移除不存在的属性，只保留必要的taskType和content
     });
   }
   

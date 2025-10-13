@@ -84,10 +84,27 @@
    - ⚡ 中优先级：application层的用例和服务
    - 📋 低优先级：工具类和辅助函数
 
+## 🔄 新发现的待前缀化文件（员工B继续工作发现）
+| 模块 | 子目录 | from | to | 类型名改为 | 状态 | 负责人 |
+|---|---|---|---|---|---|---|
+| precise-acquisition | reporting/services | ReportingService.ts | prospecting-reporting-service.ts | ProspectingReportingService | ✅ | 员工B |
+| precise-acquisition | rate-control/services | RateControlService.ts | prospecting-rate-control-service.ts | ProspectingRateControlService | ✅ | 员工B |
+| precise-acquisition | template-management/services | TemplateManagementService.ts | prospecting-template-service.ts | ProspectingTemplateService | ✅ | 已存在 |
+| precise-acquisition | shared/services | BackendInterfaceValidationService.ts | prospecting-backend-validation-service.ts | ProspectingBackendValidationService | ✅ | 员工B |
+
+## 🔄 第二轮发现的待前缀化文件（员工B深度检查发现）
+| 模块 | 子目录 | from | to | 类型名改为 | 状态 | 负责人 |
+|---|---|---|---|---|---|---|
+| precise-acquisition | task-engine/services | TaskQueryService.ts | prospecting-task-query-service.ts | ProspectingTaskQueryService | ⏳ | 员工B |
+| precise-acquisition | task-engine/services | EnhancedTaskExecutorService.ts | prospecting-enhanced-executor-service.ts | ProspectingEnhancedExecutorService | ⏳ | 员工B |
+| precise-acquisition | audit-system/services | AuditService.ts | prospecting-audit-service.ts | ProspectingAuditService | ⏳ | 员工B |
+| precise-acquisition | candidate-pool/services | CandidatePoolService.ts | prospecting-candidate-pool-service.ts | ProspectingCandidatePoolService | ⏳ | 员工B |
+| precise-acquisition | rate-limit/services | RateLimitService.ts | prospecting-rate-limit-service.ts | ProspectingRateLimitService | ⏳ | 员工B |
+
 ## 进度统计
-- ✅ 已完成：37项 (prospecting模块5项 + 员工A完成32项)
-- ⏳ 待处理：0项  
-- 📊 完成率：100% 🎉
+- ✅ 已完成：40项 (prospecting模块8项 + 员工A完成32项)
+- ⏳ 待处理：5项  
+- 📊 完成率：88.9% (40/45)
 
 ---
 **更新指南**：完成一项就勾选✅，发现新的需要前缀化的文件就追加到表格底部

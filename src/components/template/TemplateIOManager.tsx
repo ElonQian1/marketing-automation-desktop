@@ -36,7 +36,6 @@ import {
 import { safeBase64Encode } from '../../utils/encoding/safeBase64';
 
 const { Title, Text, Paragraph } = Typography;
-const { TextArea } = Input;
 
 // 分享配置
 interface ShareConfig {
@@ -506,7 +505,7 @@ const TemplateIOManager: React.FC<TemplateIOManagerProps> = ({
               
               <List
                 dataSource={importedTemplates}
-                renderItem={(template, index) => (
+                renderItem={(template) => (
                   <List.Item>
                     <List.Item.Meta
                       avatar={<Avatar icon={<CheckCircleOutlined />} style={{ backgroundColor: '#52c41a' }} />}

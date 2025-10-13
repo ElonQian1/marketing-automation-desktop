@@ -141,6 +141,13 @@ export function usePageFinder(deps: UsePageFinderDeps) {
   };
 
   const onSnapshotCaptured = (snapshot: XmlSnapshot) => {
+    // 🆕 清除采集超时定时器
+    if ((window as any).__snapshotCaptureTimeout) {
+      clearTimeout((window as any).__snapshotCaptureTimeout);
+      (window as any).__snapshotCaptureTimeout = null;
+      console.log('✅ [onSnapshotCaptured] 清除采集超时定时器');
+    }
+    
     const apply = () => {
       try { form.setFieldValue("xmlSnapshot", snapshot); } catch {}
     updateCurrentXmlContext(
@@ -165,8 +172,15 @@ export function usePageFinder(deps: UsePageFinderDeps) {
   };
 
   const onSnapshotUpdated = (snapshot: XmlSnapshot) => {
+    // 🆕 清除采集超时定时器
+    if ((window as any).__snapshotCaptureTimeout) {
+      clearTimeout((window as any).__snapshotCaptureTimeout);
+      (window as any).__snapshotCaptureTimeout = null;
+      console.log('✅ [onSnapshotUpdated] 清除采集超时定时器');
+    }
+    
     const apply = () => {
-      try { form.setFieldValue("xmlSnapshot", snapshot); } catch (e) {
+      try { form.setFieldValue("xmlSnapshot", snapshot); } catch {
         // 连接尚未建立时仍可能抛出，延后一次
         setTimeout(() => { try { form.setFieldValue("xmlSnapshot", snapshot); } catch {} }, 0);
       }

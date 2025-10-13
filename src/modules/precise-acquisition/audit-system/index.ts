@@ -7,17 +7,17 @@
  */
 
 // 服务
-export { AuditService } from './services/AuditService';
+export { AuditService } from './services/prospecting-audit-service';
 export { 
   AuditLogLevel,
   AuditEventType
-} from './services/AuditService';
+} from './services/prospecting-audit-service';
 export type { 
   AuditLogEntry,
   AuditQuery,
   AuditStats,
   PerformanceMetrics
-} from './services/AuditService';
+} from './services/prospecting-audit-service';
 
 // 组件
 export { AuditManager } from './components/AuditManager';

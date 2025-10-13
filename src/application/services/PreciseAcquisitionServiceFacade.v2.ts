@@ -21,7 +21,7 @@ import {
 } from '../../modules/precise-acquisition/task-engine/services/TaskEngineService';
 import { 
   RateLimitService 
-} from '../../modules/precise-acquisition/rate-limit/services/RateLimitService';
+} from '../../modules/precise-acquisition/rate-limit/services/prospecting-rate-limit-service';
 import { 
   TemplateManagementService 
 } from '../../modules/precise-acquisition/template-management/services/TemplateManagementService';

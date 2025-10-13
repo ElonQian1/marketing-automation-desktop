@@ -140,7 +140,7 @@ export const SmartPageFinderModal: React.FC<SmartPageFinderModalProps> = ({
       width="90vw"
       style={{ top: 20 }}
       footer={null}
-      destroyOnClose
+      destroyOnHidden
       maskClosable={false}
     >
       <div style={{ height: '85vh', display: 'flex', flexDirection: 'column' }}>

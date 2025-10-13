@@ -12,10 +12,10 @@
 export * from './types';
 
 // 服务类
-export { DeduplicationService } from './services/DeduplicationService';
-export { RateLimitService } from './services/RateLimitService';
-export { CircuitBreakerService } from './services/CircuitBreakerService';
-export { SafetyCheckService } from './services/SafetyCheckService';
+export { DeduplicationService } from './services/dedup-deduplication-service';
+export { RateLimitService } from './services/dedup-rate-limit-service';
+export { CircuitBreakerService } from './services/dedup-circuit-breaker-service';
+export { SafetyCheckService } from './services/dedup-safety-check-service';
 
 // Hooks
 export { useSafetyControl } from './hooks/useSafetyControl';

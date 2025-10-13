@@ -6,13 +6,7 @@ import React, { useState, useEffect, useCallback, useMemo } from "react";
 import { useAdb } from "../application/hooks/useAdb";
 // import { DeviceStatus } from "../domain/adb/entities/Device"; // 已通过 useDefaultDeviceId 统一默认选择，不再直接使用
 import { useDefaultDeviceId } from "../application/hooks/useDefaultDeviceId";
-import {
-  Row,
-  Col,
-  Typography,
-  Form,
-  message,
-} from "antd";
+import { Row, Col, Typography, Form, message } from "antd";
 
 // 🆕 导入模块化组件
 import StepListPanel from "./SmartScriptBuilderPage/components/StepListPanel";
@@ -48,14 +42,22 @@ const { Title, Paragraph } = Typography;
 const SmartScriptBuilderPage: React.FC = () => {
   // ADB Hook 获取设备信息
   const { devices, refreshDevices } = useAdb();
-  const { defaultDeviceId, hasDevices } = useDefaultDeviceId({ preferSelected: true, autoSelectOnMount: false });
+  const { defaultDeviceId, hasDevices } = useDefaultDeviceId({
+    preferSelected: true,
+    autoSelectOnMount: false,
+  });
 
   // 创建页面分析服务实例
   const pageAnalysisService = React.useMemo(() => {
     try {
-      const pageAnalysisRepository = PageAnalysisRepositoryFactory.getPageAnalysisRepository();
-      const deviceUIStateRepository = PageAnalysisRepositoryFactory.getDeviceUIStateRepository();
-      return new PageAnalysisApplicationService(pageAnalysisRepository, deviceUIStateRepository);
+      const pageAnalysisRepository =
+        PageAnalysisRepositoryFactory.getPageAnalysisRepository();
+      const deviceUIStateRepository =
+        PageAnalysisRepositoryFactory.getDeviceUIStateRepository();
+      return new PageAnalysisApplicationService(
+        pageAnalysisRepository,
+        deviceUIStateRepository
+      );
     } catch (error) {
       console.error("创建页面分析服务失败:", error);
       return null;
@@ -67,7 +69,8 @@ const SmartScriptBuilderPage: React.FC = () => {
   const [loopConfigs, setLoopConfigs] = useState<LoopConfig[]>([]);
   const [isModalVisible, setIsModalVisible] = useState(false);
   const [isExecuting, setIsExecuting] = useState(false);
-  const [editingStep, setEditingStep] = useState<ExtendedSmartScriptStep | null>(null);
+  const [editingStep, setEditingStep] =
+    useState<ExtendedSmartScriptStep | null>(null);
   const [currentDeviceId, setCurrentDeviceId] = useState<string>("");
   const [showAppComponent, setShowAppComponent] = useState(false);
   const [showNavigationModal, setShowNavigationModal] = useState(false);
@@ -83,12 +86,15 @@ const SmartScriptBuilderPage: React.FC = () => {
     smart_recovery_enabled: true,
     detailed_logging: true,
   });
-  const [executionResult, setExecutionResult] = useState<SmartExecutionResult | null>(null);
-  const [showContactWorkflowSelector, setShowContactWorkflowSelector] = useState(false);
+  const [executionResult, setExecutionResult] =
+    useState<SmartExecutionResult | null>(null);
+  const [showContactWorkflowSelector, setShowContactWorkflowSelector] =
+    useState(false);
   const [isScriptValid, setIsScriptValid] = useState<boolean>(true);
   const [showQualityPanel, setShowQualityPanel] = useState<boolean>(false);
 
-  const [form] = Form.useForm();
+  // 只有在模态框可见时才创建form实例，避免useForm警告
+  const [form] = isModalVisible ? Form.useForm() : [null];
 
   // 🆕 使用模块化Hooks
   const stepFormHook = useStepForm({
@@ -138,26 +144,39 @@ const SmartScriptBuilderPage: React.FC = () => {
       .map((step) => {
         const p: any = step.parameters || {};
         const embedded = p.xmlSnapshot;
-        const xmlContent: string | undefined = embedded?.xmlContent || p.xmlContent;
+        const xmlContent: string | undefined =
+          embedded?.xmlContent || p.xmlContent;
         if (!xmlContent) return null;
 
         const stepXml = {
           xmlContent,
           xmlHash: embedded?.xmlHash || generateXmlHash(xmlContent),
           timestamp: embedded?.timestamp || Date.now(),
-          deviceInfo: embedded?.deviceInfo || p.deviceInfo || p.deviceId
-            ? {
-                deviceId: embedded?.deviceInfo?.deviceId || p.deviceId || "unknown",
-                deviceName: embedded?.deviceInfo?.deviceName || p.deviceName || "Unknown Device",
-              }
-            : undefined,
-          pageInfo: embedded?.deviceInfo || p.pageInfo
-            ? {
-                appPackage: embedded?.deviceInfo?.appPackage || p.pageInfo?.appPackage || "com.xingin.xhs",
-                activityName: embedded?.deviceInfo?.activityName || p.pageInfo?.activityName,
-                pageTitle: embedded?.pageInfo?.pageTitle || p.pageInfo?.pageTitle,
-              }
-            : undefined,
+          deviceInfo:
+            embedded?.deviceInfo || p.deviceInfo || p.deviceId
+              ? {
+                  deviceId:
+                    embedded?.deviceInfo?.deviceId || p.deviceId || "unknown",
+                  deviceName:
+                    embedded?.deviceInfo?.deviceName ||
+                    p.deviceName ||
+                    "Unknown Device",
+                }
+              : undefined,
+          pageInfo:
+            embedded?.deviceInfo || p.pageInfo
+              ? {
+                  appPackage:
+                    embedded?.deviceInfo?.appPackage ||
+                    p.pageInfo?.appPackage ||
+                    "com.xingin.xhs",
+                  activityName:
+                    embedded?.deviceInfo?.activityName ||
+                    p.pageInfo?.activityName,
+                  pageTitle:
+                    embedded?.pageInfo?.pageTitle || p.pageInfo?.pageTitle,
+                }
+              : undefined,
         } as any;
 
         const locator = p.locator || {
@@ -258,7 +277,10 @@ const SmartScriptBuilderPage: React.FC = () => {
     }
   };
 
-  const handleLoadScriptFromManager = (loadedSteps: ExtendedSmartScriptStep[], config?: ExecutorConfig) => {
+  const handleLoadScriptFromManager = (
+    loadedSteps: ExtendedSmartScriptStep[],
+    config?: ExecutorConfig
+  ) => {
     setSteps(loadedSteps);
     if (config) {
       setExecutorConfig(config);
@@ -318,18 +340,17 @@ const SmartScriptBuilderPage: React.FC = () => {
         onOk={stepFormHook.handleSaveStep}
         onCancel={() => {
           setIsModalVisible(false);
-          form.resetFields();
+          form?.resetFields();
         }}
         form={form}
         currentDeviceId={currentDeviceId}
         editingStep={editingStep}
         onOpenSmartNavigation={() => setShowNavigationModal(true)}
-  onOpenPageAnalyzer={() => pageFinderHook.openQuickPageFinder()}
+        onOpenPageAnalyzer={() => pageFinderHook.openQuickPageFinder()}
       />
 
       {/* 快速应用选择Modal */}
       {/* ... 其他模态框组件 ... */}
-      
     </div>
   );
 };

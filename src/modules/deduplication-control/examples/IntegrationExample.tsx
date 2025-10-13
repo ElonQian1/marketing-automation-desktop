@@ -15,7 +15,7 @@ import { SafetyCertificateOutlined } from '@ant-design/icons';
 import { 
   DeduplicationControlManager,
   useSafetyControl 
-} from '@/modules/deduplication-control';
+} from '../index';
 
 const { Title, Paragraph } = Typography;
 

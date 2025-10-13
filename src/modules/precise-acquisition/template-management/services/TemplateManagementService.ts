@@ -22,6 +22,8 @@ export interface SensitiveWordCheckResult {
   hasSensitiveWords: boolean;
   sensitiveWords: string[];
   suggestions?: string[];
+  passed: boolean;  // 是否通过检查(与hasSensitiveWords相反)
+  blocked_words: string[];  // 被阻止的敏感词
 }
 
 export interface TemplateContext {
@@ -80,7 +82,9 @@ export class TemplateManagementService {
     console.warn('TemplateManagementService.checkSensitiveWords: 使用存根实现', content);
     return {
       hasSensitiveWords: false,
-      sensitiveWords: []
+      sensitiveWords: [],
+      passed: true,
+      blocked_words: []
     };
   }
 }

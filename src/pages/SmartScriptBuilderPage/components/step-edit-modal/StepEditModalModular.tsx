@@ -43,7 +43,7 @@ const StepEditModalModular: React.FC<StepEditModalProps> = ({
       onOk={onOk}
       onCancel={onCancel}
       width={800}
-      destroyOnClose
+      destroyOnHidden
       className={classes.className}
       rootClassName={classes.rootClassName}
       {...popupProps}

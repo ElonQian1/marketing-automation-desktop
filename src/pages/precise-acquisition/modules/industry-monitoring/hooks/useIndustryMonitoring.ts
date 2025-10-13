@@ -10,7 +10,12 @@
 import { useState, useCallback, useEffect } from 'react';
 import { message } from 'antd';
 import { monitoringService } from '../../../services/monitoringService';
-import type { MonitoringTask, CommentData } from '../../../services/monitoringService';
+import type { 
+  MonitoringTask, 
+  CommentData,
+  CreateMonitoringTaskConfig
+} from '../../../services/monitoringService';
+import type { MonitoringTaskType } from '../../../shared/types/monitoringTypes';
 
 interface UseIndustryMonitoringReturn {
   tasks: MonitoringTask[];
@@ -70,10 +75,17 @@ export const useIndustryMonitoring = (): UseIndustryMonitoringReturn => {
   // 创建任务
   const createTask = useCallback(async (config: Partial<MonitoringTask>) => {
     try {
-      const newTask = await monitoringService.createTask({
-        ...config,
-        type: 'industry'
-      });
+      // 确保必需字段存在
+      const taskConfig: CreateMonitoringTaskConfig = {
+        name: config.name || `行业监控任务-${Date.now()}`,
+        type: 'industry' as MonitoringTaskType,
+        keywords: config.keywords,
+        targetAccount: config.targetAccount,
+        targetVideo: config.targetVideo,
+        filters: config.filters,
+        assignedDevices: config.assignedDevices,
+      };
+      const newTask = await monitoringService.createTask(taskConfig);
       setTasks(prev => [...prev, newTask]);
       message.success('任务创建成功');
     } catch (error) {

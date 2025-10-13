@@ -2,25 +2,30 @@
 // module: ui | layer: ui | role: page
 // summary: 页面组件
 
-import type { FormInstance } from 'antd';
+interface SnapshotData {
+  xmlContent: string;
+  deviceInfo: { id: string; name: string };
+  pageInfo: { title: string; url: string };
+  timestamp: number;
+}
 
 /**
  * 快照处理器 - 简化版本
  * 处理XML快照的捕获、更新和修复逻辑
  */
 export class SnapshotHandler {
-  private form: FormInstance;
   private currentXmlContent: string;
   private setCurrentXmlContent: (content: string) => void;
+  private onSnapshotCreated?: (snapshot: SnapshotData | null) => void;
 
   constructor(
-    form: FormInstance,
     currentXmlContent: string,
-    setCurrentXmlContent: (content: string) => void
+    setCurrentXmlContent: (content: string) => void,
+    onSnapshotCreated?: (snapshot: SnapshotData | null) => void
   ) {
-    this.form = form;
     this.currentXmlContent = currentXmlContent;
     this.setCurrentXmlContent = setCurrentXmlContent;
+    this.onSnapshotCreated = onSnapshotCreated;
   }
 
   /**
@@ -45,8 +50,8 @@ export class SnapshotHandler {
         timestamp: Date.now(),
       };
       
-      // 设置表单字段
-      this.form.setFieldValue("xmlSnapshot", snapshot);
+      // 通知快照创建完成
+      this.onSnapshotCreated?.(snapshot);
       
       console.log('快照捕获完成:', snapshot);
     } catch (error) {
@@ -67,7 +72,8 @@ export class SnapshotHandler {
       } else if (mode === 'clear') {
         this.currentXmlContent = '';
         this.setCurrentXmlContent('');
-        this.form.setFieldValue("xmlSnapshot", null);
+        // 通知清除快照
+        this.onSnapshotCreated?.(null);
       }
       
       console.log('快照修复完成');

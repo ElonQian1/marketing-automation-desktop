@@ -218,7 +218,7 @@ export class ReportingService {
         this.collectBasicStats(startTime, endTime),
         this.auditService.getStats(startTime, endTime),
         this.rateControlService.getStats(1), // 1天
-        this.collectTaskStats(startTime, endTime),
+        this.collectBasicStats(startTime, endTime), // 暂时用basicStats替代taskStats
         this.collectPerformanceMetrics(startTime, endTime),
         this.collectComplianceData(startTime, endTime)
       ]);

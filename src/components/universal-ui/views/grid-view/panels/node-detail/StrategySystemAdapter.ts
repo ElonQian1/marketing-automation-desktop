@@ -33,7 +33,7 @@ export type { SystemStrategyRecommendation, SystemStrategyCandidate, SystemMatch
 
 // 导入扩展后的类型定义
 import type { 
-  DetailedStrategyScore,
+  // DetailedStrategyScore,
   DetailedStrategyRecommendation,
   StrategyPlan,
   StrategyMode,

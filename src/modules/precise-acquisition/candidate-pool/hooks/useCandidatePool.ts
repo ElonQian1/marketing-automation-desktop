@@ -18,7 +18,7 @@ import {
   TargetType,
   SourceType
 } from '../../shared/types/core';
-import { CandidatePoolStats } from '../services/CandidatePoolService';
+import { CandidatePoolStats } from '../services/prospecting-candidate-pool-service';
 import { PreciseAcquisitionServiceFacade } from '../../../../application/services/PreciseAcquisitionServiceFacade.v2';
 import type { WatchTargetRow, WatchTargetPayload } from '../../../../types/precise-acquisition';
 
@@ -75,7 +75,9 @@ function convertStatsToLegacy(stats: any): CandidatePoolStats {
     },
     by_type: {
       [TargetType.VIDEO]: stats.targets_count?.by_type?.video || 0,
-      [TargetType.ACCOUNT]: stats.targets_count?.by_type?.account || 0
+      [TargetType.ACCOUNT]: stats.targets_count?.by_type?.account || 0,
+      [TargetType.USER]: stats.targets_count?.by_type?.user || 0,
+      [TargetType.CONTENT]: stats.targets_count?.by_type?.content || 0
     },
     by_source: {
       [SourceType.MANUAL]: stats.targets_count?.by_source?.manual || 0,

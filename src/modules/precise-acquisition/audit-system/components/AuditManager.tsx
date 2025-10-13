@@ -56,7 +56,7 @@ import {
   AuditEventType,
   AuditQuery,
   AuditStats
-} from '../services/AuditService';
+} from '../services/prospecting-audit-service';
 import { Platform, TaskType } from '../../shared/types/core';
 
 const { Title, Text, Paragraph } = Typography;

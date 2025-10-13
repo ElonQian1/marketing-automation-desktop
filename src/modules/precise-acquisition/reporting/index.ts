@@ -7,9 +7,9 @@
  */
 
 // 服务
-export { ReportingService } from './services/ReportingService';
+export { ReportingService } from './services/prospecting-reporting-service';
 export type { 
   DailyReport,
   WeeklyReport,
   ReportGenerationOptions
-} from './services/ReportingService';
+} from './services/prospecting-reporting-service';

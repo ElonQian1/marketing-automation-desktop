@@ -32,7 +32,7 @@ import {
 } from '../../modules/precise-acquisition/task-engine/services/prospecting-task-engine-service';
 import { 
   RateLimitService 
-} from '../../modules/precise-acquisition/rate-limit/services/RateLimitService';
+} from '../../modules/precise-acquisition/rate-limit/services/prospecting-rate-limit-service';
 
 // 导入缺失的类型
 import type { 

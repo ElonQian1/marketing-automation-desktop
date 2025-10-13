@@ -1,32 +1,31 @@
 // src/modules/smart-script-management/index.ts
-// module: script-builder | layer: application | role: module-component
-// summary: 模块组件
+// module: script-builder | layer: public | role: barrel
+// summary: 脚本构建模块对外公共出口（契约/用例/Hook）
 
-// 智能脚本管理模块 - 统一入口
+/**
+ * 智能脚本管理模块主导出文件
+ * 
+ * 仅导出对外稳定的API，不泄露内部实现细节
+ */
 
-// 导出类型定义
-export * from './types';
-
-// 导出服务
-export * from './services/script-management-service';
-
-// 导出工具函数
-export * from './utils/serializer';
-
-// 导出React Hooks
+// ==================== 公共Hooks ====================
 export * from './hooks/useScriptManager';
 
-// 导出UI组件
+// ==================== 主要UI组件 ====================
 export { default as ScriptManager } from './components/ScriptManager';
 
-// 导出主要接口
+// ==================== 核心工具 ====================
+// 导出必要的序列化工具（内部组件需要使用）
+export { ScriptSerializer } from './utils/serializer';
+
+// ==================== 核心类型 ====================
 export type {
   SmartScript,
   SmartScriptStep,
   ScriptListItem,
   ScriptExecutionResult,
   ScriptTemplate,
-  ScriptConfig,
-  StepActionType,
-  StepParams
+  ScriptConfig
 } from './types';
+
+// Note: 保持API稳定性，只导出必要的公共接口

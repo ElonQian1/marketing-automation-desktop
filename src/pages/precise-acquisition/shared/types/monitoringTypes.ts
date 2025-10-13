@@ -21,6 +21,9 @@ export interface MonitoringFilters {
   gender?: 'male' | 'female' | 'any';
   deviceType?: string[];
   activityTime?: string[];
+  // 时间筛选增强属性
+  onlyRecentTrending?: boolean; // 只保留最近且有一定互动量的评论
+  excludeOldReplies?: boolean;  // 排除已经有很多回复的旧评论
 }
 
 // 监控任务状态枚举

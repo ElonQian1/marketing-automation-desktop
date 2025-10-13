@@ -15,7 +15,7 @@ import { invoke } from '@tauri-apps/api/core';
 import { fetchUnclassifiedNumbers } from '../services/unclassifiedService';
 import { ContactVcfImportService } from '../../../../services/contact-vcf-import-service';
 import { buildVcfFromNumbers } from '../../utils/vcf';
-import { createVcfBatchWithNumbers } from '../../../vcf-sessions/services/vcfSessionService';
+import { createVcfBatchWithNumbers } from '../../../vcf-sessions/services/vcf-session-service';
 import { bindBatchToDevice, markBatchImportedForDevice } from '../services/deviceBatchBinding';
 import { queryDeviceContactCount } from '../services/deviceContactMetrics';
 import ServiceFactory from '../../../../application/services/ServiceFactory';

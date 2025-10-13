@@ -11,25 +11,25 @@ export {
   ContentSimilarityService,
   DeduplicationStorageService,
   DeduplicationService
-} from './DeduplicationService';
+} from './dedup-deduplication-service';
 
 // 频控服务
 export {
   RateLimitStorageService,
   TimeUtils,
   RateLimitService
-} from './RateLimitService';
+} from './dedup-rate-limit-service';
 
 // 熔断器服务
 export {
   CircuitBreakerStorageService,
   CircuitBreakerDecisionEngine,
   CircuitBreakerService
-} from './CircuitBreakerService';
+} from './dedup-circuit-breaker-service';
 
 // 安全检查服务
 export {
   ListManagementService,
   RiskAssessmentService,
   SafetyCheckService
-} from './SafetyCheckService';
+} from './dedup-safety-check-service';

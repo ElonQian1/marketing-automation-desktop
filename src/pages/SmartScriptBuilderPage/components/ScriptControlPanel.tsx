@@ -80,7 +80,7 @@ const ScriptControlPanel: React.FC<ScriptControlPanelProps> = ({
           {isExecuting ? "正在执行脚本..." : "执行脚本"}
         </Button>
 
-        <MultiDeviceScriptLauncher steps={steps} executorConfig={executorConfig} />
+        <MultiDeviceScriptLauncher steps={steps} />
 
         <ScriptBuilderIntegration
           steps={steps}

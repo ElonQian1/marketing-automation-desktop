@@ -15,7 +15,7 @@ import {
 } from '../../modules/precise-acquisition/task-engine/services/prospecting-task-engine-service';
 import { 
   RateLimitService 
-} from '../../modules/precise-acquisition/rate-limit/services/RateLimitService';
+} from '../../modules/precise-acquisition/rate-limit/services/prospecting-rate-limit-service';
 
 /**
  * 精准获客服务统一门面

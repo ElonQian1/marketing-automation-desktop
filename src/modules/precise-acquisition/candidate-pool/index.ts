@@ -8,5 +8,5 @@
 
 export * from './components/CandidatePoolManager';
 export * from './hooks/useCandidatePool';
-export * from './services/CandidatePoolService';
+export * from './services/prospecting-candidate-pool-service';
 export * from './types';

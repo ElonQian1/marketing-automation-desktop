@@ -85,8 +85,8 @@ export const usePageFinderModal = (props: UsePageFinderModalProps): UsePageFinde
     snapshotOnlyMode,
     initialViewMode = "visual",
     loadFromStepXml,
-    preselectLocator,
-    initialMatching,
+    // preselectLocator,
+    // initialMatching,
     onSnapshotCaptured,
     onXmlContentUpdated,
     onSnapshotUpdated
@@ -401,7 +401,7 @@ export const usePageFinderModal = (props: UsePageFinderModalProps): UsePageFinde
     setLoading,
     setElements,
     refreshDevices: handleRefreshDevices,
-    captureCurrentPage: async (deviceId: string) => {
+    captureCurrentPage: async () => {
       await handleCaptureCurrentPage();
       return currentXmlContent || null;
     },

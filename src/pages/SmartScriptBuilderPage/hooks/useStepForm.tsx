@@ -70,7 +70,7 @@ export function useStepForm(deps: UseStepFormDeps) {
 
   const [isModalVisible, setIsModalVisible] = useState(false);
   const [editingStep, setEditingStep] = useState<ExtendedSmartScriptStep | null>(null);
-  const [internalForm] = Form.useForm();
+  const [internalForm] = !externalForm ? Form.useForm() : [null];
   const form = externalForm ?? internalForm;
 
   const showAddModal = useCallback(

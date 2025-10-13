@@ -151,7 +151,6 @@ export const UnifiedStrategyConfigurator: React.FC<UnifiedStrategyConfiguratorPr
   onStrategyChange,
   onAutoFill
 }) => {
-  const [form] = Form.useForm();
   const [selectedFields, setSelectedFields] = useState<string[]>(
     matchCriteria?.fields || []
   );
@@ -162,9 +161,17 @@ export const UnifiedStrategyConfigurator: React.FC<UnifiedStrategyConfiguratorPr
   const shouldShowFieldConfig = showFieldConfig && !isSimpleMode;
   const shouldShowValueConfig = showValueConfig && !isSimpleMode;
 
+  // 只在需要Form组件时才创建form实例
+  const [form] = !isSimpleMode ? Form.useForm() : [null];
+  
+  // 调试：记录组件渲染和form创建
+  React.useEffect(() => {
+    console.log('🔍 [UnifiedStrategyConfigurator] 渲染 - isSimpleMode:', isSimpleMode, 'form created:', !!form);
+  }, [isSimpleMode, form]);
+
   // 同步外部数据到表单
   useEffect(() => {
-    if (matchCriteria) {
+    if (matchCriteria && form) {
       const values = {
         strategy: matchCriteria.strategy,
         fields: matchCriteria.fields,
@@ -192,7 +199,7 @@ export const UnifiedStrategyConfigurator: React.FC<UnifiedStrategyConfiguratorPr
 
   // 从参考元素自动填充字段值
   const autoFillFromReference = useCallback(() => {
-    if (!referenceElement) return;
+    if (!referenceElement || !form) return;
 
     const values: Record<string, string> = {};
     const availableFields: string[] = [];
@@ -228,7 +235,9 @@ export const UnifiedStrategyConfigurator: React.FC<UnifiedStrategyConfiguratorPr
 
   // 处理策略变化
   const handleStrategyChange = (strategy: MatchStrategy) => {
-    form.setFieldValue('strategy', strategy);
+    if (form) {
+      form.setFieldValue('strategy', strategy);
+    }
     onStrategyChange?.(strategy);
     
     // 根据策略自动调整字段选择
@@ -245,7 +254,9 @@ export const UnifiedStrategyConfigurator: React.FC<UnifiedStrategyConfiguratorPr
 
     if (strategy !== 'custom') {
       setSelectedFields(finalFields);
-      form.setFieldValue('fields', finalFields);
+      if (form) {
+        form.setFieldValue('fields', finalFields);
+      }
     }
   };
 
@@ -290,6 +301,8 @@ export const UnifiedStrategyConfigurator: React.FC<UnifiedStrategyConfiguratorPr
 
   // 测试匹配
   const handleTestMatch = () => {
+    if (!form) return;
+    
     form.validateFields().then(values => {
       const criteria: MatchCriteria = {
         strategy: values.strategy,
@@ -326,9 +339,9 @@ export const UnifiedStrategyConfigurator: React.FC<UnifiedStrategyConfiguratorPr
     );
   }
 
-  const currentStrategy = getStrategyOption(form.getFieldValue('strategy') || matchCriteria?.strategy || 'standard');
+  const currentStrategy = getStrategyOption(form?.getFieldValue('strategy') || matchCriteria?.strategy || 'standard');
 
-  const formContent = (
+  const formContent = form ? (
     <Form
       form={form}
       layout="vertical"
@@ -487,7 +500,7 @@ export const UnifiedStrategyConfigurator: React.FC<UnifiedStrategyConfiguratorPr
         )}
       </Space>
     </Form>
-  );
+  ) : null;
 
   // 策略说明
   const strategyDescription = showDescription && currentStrategy && (

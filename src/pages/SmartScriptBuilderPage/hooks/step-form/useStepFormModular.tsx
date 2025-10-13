@@ -34,7 +34,7 @@ export const useStepFormModular = (deps: UseStepFormDeps): UseStepFormReturn => 
   // 状态管理
   const [isModalVisible, setIsModalVisible] = useState(false);
   const [editingStep, setEditingStep] = useState<ExtendedSmartScriptStep | null>(null);
-  const [internalForm] = Form.useForm();
+  const [internalForm] = !externalForm ? Form.useForm() : [null];
   const form = externalForm ?? internalForm;
 
   // 处理器实例

@@ -7,14 +7,14 @@
  */
 
 // 服务
-export { RateControlService } from './services/RateControlService';
+export { RateControlService } from './services/prospecting-rate-control-service';
 export type { 
   RateLimitConfig,
   DeduplicationConfig,
   RateLimitCheckResult,
   DeduplicationCheckResult,
   RateControlStats
-} from './services/RateControlService';
+} from './services/prospecting-rate-control-service';
 
 // 组件
 export { RateControlManager } from './components/RateControlManager';
