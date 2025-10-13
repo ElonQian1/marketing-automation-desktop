@@ -1,19 +1,40 @@
-// src/components/universal-ui/element-selection/ElementSelectionPopover.tsx
+// src/components/universal-ui/element-selection/ElementSelectionPopo  const __DEV__ = process.env.NODE_ENV === 'development';
+  const __DEBUG_VISUAL__ = isDevDebugEnabled('debug:visual');
+  const [discoveryModalOpen, setDiscoveryModalOpen] = useState(false);
+  // 避免"同一次点击"引发的立刻关闭：打开后的短暂宽限期内禁用外部点击自动取消
+  const [allowOutsideCancel, setAllowOutsideCancel] = useState(false);
+  const outsideCancelTimerRef = useRef<number | null>(null);
+  
+  // 智能分析相关状态
+  const [strategyAnalysisModalOpen, setStrategyAnalysisModalOpen] = useState(false);
+  const {
+    analysisState,
+    analysisProgress,
+    analysisResult,
+    error: analysisError,
+    startAnalysis,
+    cancelAnalysis,
+    resetAnalysis,
+    isAnalyzing,
+    hasResult
+  } = useStrategyAnalysis();
 // module: ui | layer: ui | role: component
 // summary: UI 组件
 
-// 元素选择气泡组件（稳定版）
-// 说明：提供默认导出与具名导出 ElementSelectionPopover，避免导入歧义
+// 元素选择气泡组件（含智能分析功能）
+// 说明：提供默认导出与具名导出 ElementSelectionPopover，支持智能策略分析
 
 import React, { useState, useEffect, useMemo, useCallback, useRef } from 'react';
 import ConfirmPopover from '../common-popover/ConfirmPopover';
-// icons are handled inside PopoverActionButtons
 import { PopoverActionButtons } from './components/PopoverActionButtons';
 import type { PopoverActionTokens } from './components/tokens';
 import type { UIElement } from '../../../api/universalUIAPI';
 import { useSmartPopoverPosition } from './utils/popoverPositioning';
 import { ElementDiscoveryModal } from './element-discovery';
+import { StrategyAnalysisModal } from './strategy-analysis/StrategyAnalysisModal';
+import { useStrategyAnalysis } from '../../../hooks/universal-ui/useStrategyAnalysis';
 import { isDevDebugEnabled } from '../../../utils/debug';
+import type { StrategyInfo, StrategyAnalysisContext } from './types/StrategyAnalysis';
 
 export interface ElementSelectionState {
   element: UIElement;
@@ -24,10 +45,15 @@ export interface ElementSelectionState {
 export interface ElementSelectionPopoverProps {
   visible: boolean;
   selection: ElementSelectionState | null;
-  xmlContent?: string; // 🆕 新增XML内容支持，用于元素发现模态框
+  xmlContent?: string; // XML内容支持，用于元素发现模态框
   onConfirm: () => void;
   onCancel: () => void; // 取消选择并关闭
   onHide?: () => void;  // 隐藏元素（与业务 hide 行为绑定）
+  
+  // 智能分析功能
+  enableIntelligentAnalysis?: boolean; // 是否启用智能分析功能
+  stepId?: string; // 关联的步骤ID，用于结果回填
+  onStrategySelect?: (strategy: StrategyInfo) => void; // 策略选择回调
   allElements?: UIElement[];
   onElementSelect?: (element: UIElement) => void;
   actionTokens?: Partial<PopoverActionTokens>; // 注入尺寸/间距令牌
@@ -43,10 +69,14 @@ export interface ElementSelectionPopoverProps {
 const ElementSelectionPopoverComponent: React.FC<ElementSelectionPopoverProps> = ({
   visible,
   selection,
-  xmlContent, // 🆕 接收XML内容
+  xmlContent,
   onConfirm,
   onCancel,
   onHide,
+  // 智能分析相关
+  enableIntelligentAnalysis = false,
+  stepId,
+  onStrategySelect,
   allElements = [],
   onElementSelect,
   actionTokens,
@@ -91,6 +121,60 @@ const ElementSelectionPopoverComponent: React.FC<ElementSelectionPopoverProps> =
     setDiscoveryModalOpen(true);
   }, []);
 
+  // 智能分析相关事件处理
+  const handleStartAnalysis = useCallback(async (e?: React.MouseEvent) => {
+    if (e) e.stopPropagation();
+    if (!selection?.element) return;
+    
+    const context: StrategyAnalysisContext = {
+      element: selection.element,
+      stepId,
+      jobId: `analysis_${Date.now()}_${Math.random().toString(36).slice(2)}`,
+    };
+    
+    if (__DEV__) console.log('👆 [用户操作] 点击智能分析按钮', context);
+    await startAnalysis(context);
+  }, [selection?.element, stepId, startAnalysis]);
+
+  const handleCancelAnalysis = useCallback((e?: React.MouseEvent) => {
+    if (e) e.stopPropagation();
+    if (__DEV__) console.log('🚫 [用户操作] 取消智能分析');
+    cancelAnalysis();
+  }, [cancelAnalysis]);
+
+  const handleViewAnalysisDetails = useCallback((e?: React.MouseEvent) => {
+    if (e) e.stopPropagation();
+    if (__DEV__) console.log('🔍 [用户操作] 查看详细分析结果');
+    setStrategyAnalysisModalOpen(true);
+  }, []);
+
+  const handleApplyStrategy = useCallback((strategy: StrategyInfo, e?: React.MouseEvent) => {
+    if (e) e.stopPropagation();
+    if (__DEV__) console.log('✨ [用户操作] 选择策略:', strategy.name);
+    onStrategySelect?.(strategy);
+    // 应用策略后通常也要确认选择
+    onConfirm();
+  }, [onStrategySelect, onConfirm]);
+
+  const handleRetryAnalysis = useCallback(async (e?: React.MouseEvent) => {
+    if (e) e.stopPropagation();
+    if (__DEV__) console.log('🔄 [用户操作] 重试智能分析');
+    resetAnalysis();
+    await handleStartAnalysis(e);
+  }, [resetAnalysis, handleStartAnalysis]);
+
+  const handleStrategyModalClose = useCallback(() => {
+    setStrategyAnalysisModalOpen(false);
+  }, []);
+
+  const handleStrategySelect = useCallback((strategy: StrategyInfo) => {
+    if (__DEV__) console.log('✅ [策略选择] 从模态框选择策略:', strategy.name);
+    setStrategyAnalysisModalOpen(false);
+    onStrategySelect?.(strategy);
+    // 选择策略后也确认元素选择
+    onConfirm();
+  }, [onStrategySelect, onConfirm]);
+
   // 🔧 修复：简化的智能定位，减少重复计算
   const positioning = useSmartPopoverPosition(
     selection?.position || null,
@@ -99,7 +183,7 @@ const ElementSelectionPopoverComponent: React.FC<ElementSelectionPopoverProps> =
       popoverSize: { width: 220, height: 100 },
       margin: 12,
       autoPlacement,
-      autoPlacementMode,
+      autoPlacementMode: autoPlacementMode as 'area' | 'linear',
       snapToAnchor,
       clampRatio,
     }
@@ -210,6 +294,16 @@ const ElementSelectionPopoverComponent: React.FC<ElementSelectionPopoverProps> =
                 }}
                 tokens={actionTokens}
                 autoCompact
+                // 智能分析相关props
+                enableIntelligentAnalysis={enableIntelligentAnalysis}
+                analysisState={analysisState}
+                analysisProgress={analysisProgress}
+                recommendedStrategy={analysisResult?.recommendedStrategy || null}
+                onStartAnalysis={handleStartAnalysis}
+                onCancelAnalysis={handleCancelAnalysis}
+                onViewAnalysisDetails={handleViewAnalysisDetails}
+                onApplyStrategy={handleApplyStrategy}
+                onRetryAnalysis={handleRetryAnalysis}
               />
             </div>
           }
@@ -219,7 +313,7 @@ const ElementSelectionPopoverComponent: React.FC<ElementSelectionPopoverProps> =
             maxHeight: positioning?.suggestedMaxSize?.height,
             overflow: positioning?.clamped ? 'auto' : undefined,
           }}
-          placement={positioning!.placement as any}
+          placement={positioning!.placement}
         >
           {/* 隐藏的触发元素 */}
           <div style={{ width: 1, height: 1, opacity: 0 }} />
@@ -240,8 +334,19 @@ const ElementSelectionPopoverComponent: React.FC<ElementSelectionPopoverProps> =
             setDiscoveryModalOpen(false);
           }}
           // 防止点击冒泡到 Popconfirm 的 outside 区域
-          // @ts-ignore - 组件内部容器需支持 onClick
-          onClick={(e: any) => { e.stopPropagation?.(); }}
+          // @ts-expect-error - 组件内部容器需支持 onClick
+          onClick={(e: React.MouseEvent) => { e.stopPropagation?.(); }}
+        />
+      )}
+      
+      {/* 策略分析模态框 */}
+      {enableIntelligentAnalysis && analysisResult && selection?.element && (
+        <StrategyAnalysisModal
+          open={strategyAnalysisModalOpen}
+          onClose={handleStrategyModalClose}
+          element={selection.element}
+          analysisResult={analysisResult}
+          onStrategySelect={handleStrategySelect}
         />
       )}
     </>

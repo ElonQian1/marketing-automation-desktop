@@ -54,8 +54,9 @@ export interface StepCardProps {
 }
 
 /**
- * 策略步骤卡片组件
+ * 策略配置卡片组件
  * 展示当前策略信息并支持手动/智能策略切换
+ * TODO: 考虑重命名为 StrategyCard 以避免与脚本步骤卡片混淆
  */
 export const StepCard: React.FC<StepCardProps> = ({
   title = "匹配策略",

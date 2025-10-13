@@ -6,9 +6,26 @@
 export { ElementSelectionPopover } from './ElementSelectionPopover';
 export { useElementSelectionManager } from './useElementSelectionManager';
 export { useEnhancedElementSelectionManager } from './useEnhancedElementSelectionManager';
-export type { ElementSelectionState } from './ElementSelectionPopover';
+export type { ElementSelectionState, ElementSelectionPopoverProps } from './ElementSelectionPopover';
 export { useSmartPopoverPosition, PopoverPositionCalculator } from './utils/popoverPositioning';
 export type { Position, PopoverDimensions, PopoverPlacement } from './utils/popoverPositioning';
+
+// 智能分析相关导出
+export { PopoverActionButtons } from './components/PopoverActionButtons';
+export type { PopoverActionButtonsProps } from './components/PopoverActionButtons';
+export { StrategyAnalysisModal } from './strategy-analysis/StrategyAnalysisModal';
+export type { StrategyAnalysisModalProps } from './strategy-analysis/StrategyAnalysisModal';
+export { useStrategyAnalysis } from '../../../hooks/universal-ui/useStrategyAnalysis';
+export type { UseStrategyAnalysisReturn } from '../../../hooks/universal-ui/useStrategyAnalysis';
+export type { 
+  AnalysisState,
+  AnalysisProgress, 
+  StrategyInfo,
+  AnalysisResult,
+  StrategyAnalysisContext,
+  StrategyPerformance,
+  AnalysisMetadata
+} from './types/StrategyAnalysis';
 
 // 🆕 生命周期管理
 export { 

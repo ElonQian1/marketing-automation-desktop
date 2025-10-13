@@ -1,6 +1,6 @@
-// src/modules/deduplication-control/services/RateLimitService.ts
-// module: shared | layer: unknown | role: module-component
-// summary: 模块组件
+// src/modules/deduplication-control/services/dedup-rate-limit-service.ts
+// module: dedup | layer: services | role: rate-limit-controller
+// summary: 频率限制控制服务
 
 /**
  * 频控服务

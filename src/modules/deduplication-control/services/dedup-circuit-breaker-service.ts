@@ -1,6 +1,6 @@
-// src/modules/deduplication-control/services/CircuitBreakerService.ts
-// module: shared | layer: unknown | role: module-component
-// summary: 模块组件
+// src/modules/deduplication-control/services/dedup-circuit-breaker-service.ts
+// module: dedup | layer: services | role: circuit-breaker
+// summary: 熔断器保护服务
 
 /**
  * 熔断器服务

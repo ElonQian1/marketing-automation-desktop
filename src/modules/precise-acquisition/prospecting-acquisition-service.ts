@@ -2,7 +2,7 @@
 // module: prospecting | layer: application | role: service-facade
 // summary: 精准获客系统服务门面（重构版，前缀化）
 
-import { TemplateManagementService } from './template-management';
+import { ProspectingTemplateManagementService } from './template-management';
 import { EnhancedCommentAdapterManager } from '../../application/services/comment-collection/EnhancedCommentAdapterManager';
 import { TaskEngineService, TaskExecutorService } from './task-engine';
 import { RateControlService } from './rate-control';
@@ -88,7 +88,7 @@ export class ProspectingAcquisitionService {
   /**
    * 获取服务实例 - 模板管理
    */
-  getTemplateService(): TemplateManagementService {
+  getTemplateService(): ProspectingTemplateManagementService {
     return this.serviceRegistry.getTemplateService();
   }
   

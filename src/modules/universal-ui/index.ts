@@ -28,6 +28,8 @@ export {
 
 // === UI 组件导出 ===
 export { StepCard } from './ui/StepCard';
+export { AnalysisStepCard } from './ui/AnalysisStepCard';
+export { EnhancedStepCard } from './ui/components/EnhancedStepCard';
 export { SmartVariantBadge, SimpleVariantBadge } from './ui/partials/SmartVariantBadge';
 
 // === 类型导出（重新导出常用类型） ===

@@ -8,7 +8,7 @@
 
 // 去重服务
 export {
-  ContentSimilarityService,
+  DedupContentSimilarityService,
   DeduplicationStorageService,
   DeduplicationService
 } from './dedup-deduplication-service';
@@ -29,7 +29,7 @@ export {
 
 // 安全检查服务
 export {
-  ListManagementService,
-  RiskAssessmentService,
-  SafetyCheckService
+  DedupListManagementService,
+  DedupRiskAssessmentService,
+  DedupSafetyCheckService
 } from './dedup-safety-check-service';

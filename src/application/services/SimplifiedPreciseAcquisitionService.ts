@@ -27,14 +27,16 @@
 // @ts-nocheck
 
 import { PreciseAcquisitionApplicationService } from './PreciseAcquisitionApplicationService';
+// TODO: 回收到 @prospecting 门牌导入
 import { 
   ProspectingTaskEngineService 
 } from '../../modules/precise-acquisition/task-engine/services/prospecting-task-engine-service';
+// TODO: 回收到 @prospecting 门牌导入
 import { 
   RateLimitService 
 } from '../../modules/precise-acquisition/rate-limit/services/prospecting-rate-limit-service';
 
-// 导入缺失的类型
+// TODO: 回收到 @prospecting 门牌导入
 import type { 
   Platform, 
   TaskType, 

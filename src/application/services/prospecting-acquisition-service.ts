@@ -50,9 +50,10 @@ import type {
   TaskStatusUpdate,
 } from '../../types/precise-acquisition';
 
+// TODO: 回收到 @prospecting 门牌导入
 import type {
   WatchTarget,
-  WatchTargetQueryParams,
+  WatchTargetQueryParams,  
   ImportValidationResult
 } from '../../modules/precise-acquisition/shared/types/core';
 

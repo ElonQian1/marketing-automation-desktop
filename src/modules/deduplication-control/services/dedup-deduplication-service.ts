@@ -1,6 +1,6 @@
-// src/modules/deduplication-control/services/DeduplicationService.ts
-// module: shared | layer: unknown | role: module-component
-// summary: 模块组件
+// src/modules/deduplication-control/services/dedup-deduplication-service.ts
+// module: dedup | layer: services | role: deduplication-engine
+// summary: 去重策略引擎服务
 
 /**
  * 去重服务
@@ -18,7 +18,7 @@ import {
 /**
  * 内容相似度计算服务
  */
-export class ContentSimilarityService {
+export class DedupContentSimilarityService {
   /**
    * 计算两个文本的相似度
    * @param text1 文本1
@@ -402,7 +402,7 @@ export class DeduplicationService {
       return { allowed: true };
     }
     
-    const contentHash = ContentSimilarityService.generateContentHash(
+    const contentHash = DedupContentSimilarityService.generateContentHash(
       request.content,
       this.config.contentLevel.hashAlgorithm
     );

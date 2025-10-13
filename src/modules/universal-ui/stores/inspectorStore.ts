@@ -20,6 +20,56 @@ import { LegacyManualAdapter } from '../application/compat/LegacyManualAdapter';
 export type StrategyMode = 'manual' | 'smart';
 
 /**
+ * 分析状态枚举
+ */
+export type AnalysisState = 'idle' | 'pending' | 'completed' | 'failed' | 'cancelled';
+
+/**
+ * 策略类型枚举
+ */
+export type StrategyType = 'intelligent' | 'smart-manual' | 'user-static';
+
+/**
+ * 分析进度信息
+ */
+export interface AnalysisProgress {
+  currentStep: number;
+  totalSteps: number;
+  currentStepName: string;
+  estimatedTimeLeft?: number;
+}
+
+/**
+ * 智能分析步骤
+ */
+export interface SmartAnalysisStep {
+  key: string;
+  name: string;
+  description: string;
+  score: number;
+  isRecommended: boolean;
+  strategy: SmartStrategy;
+}
+
+/**
+ * 用户自建策略
+ */
+export interface UserStaticStrategy {
+  key: string;
+  name: string;
+  description: string;
+  selectorType: 'xpath' | 'css' | 'hybrid';
+  selector: string;
+  validation?: {
+    expectedText?: string;
+    expectedCount?: number;
+    mustBeClickable?: boolean;
+  };
+  createdAt: number;
+  pinned?: boolean;
+}
+
+/**
  * 策略检查器状态接口
  */
 interface InspectorState {
@@ -30,6 +80,30 @@ interface InspectorState {
   mode: StrategyMode;
   /** 当前活跃的策略 */
   current: AnyStrategy | null;
+  
+  // === 新增：分析状态 ===
+  /** 分析状态 */
+  analysisState: AnalysisState;
+  /** 分析进度 */
+  analysisProgress: AnalysisProgress | null;
+  /** 分析任务ID */
+  analysisJobId: string | null;
+  /** 智能分析步骤结果 */
+  smartSteps: SmartAnalysisStep[];
+  /** 推荐的策略键 */
+  recommendedStepKey: string | null;
+  /** 推荐置信度 */
+  recommendedConfidence: number | null;
+  /** 用户自建策略列表 */
+  userStrategies: UserStaticStrategy[];
+  /** 当前激活的策略类型 */
+  activeStrategyType: StrategyType;
+  /** 当前激活的策略键 */
+  activeStrategyKey: string | null;
+  /** 是否为默认/临时策略 */
+  isUsingDefaultStrategy: boolean;
+  /** 是否自动跟随智能推荐 */
+  autoFollowSmart: boolean;
   
   // === 快照状态 ===
   /** 最后一次手动策略快照 */
@@ -61,6 +135,30 @@ interface InspectorActions {
   clear: () => void;
   /** 重置到初始状态 */
   reset: () => void;
+  
+  // === 新增：分析操作 ===
+  /** 开始智能分析 */
+  startAnalysis: (element: ElementDescriptor) => Promise<void>;
+  /** 取消分析 */
+  cancelAnalysis: () => void;
+  /** 重试分析 */
+  retryAnalysis: () => Promise<void>;
+  /** 应用推荐策略 */
+  applyRecommended: () => void;
+  /** 选择智能匹配策略 */
+  selectIntelligentStrategy: () => void;
+  /** 选择智能手动步骤 */
+  selectSmartStep: (stepKey: string) => void;
+  /** 选择用户自建策略 */
+  selectUserStrategy: (strategyKey: string) => void;
+  /** 添加用户自建策略 */
+  addUserStrategy: (strategy: UserStaticStrategy) => void;
+  /** 删除用户自建策略 */
+  removeUserStrategy: (strategyKey: string) => void;
+  /** 切换自动跟随智能推荐 */
+  toggleAutoFollowSmart: () => void;
+  /** 生成默认策略 */
+  generateDefaultStrategy: (element: ElementDescriptor) => ManualStrategy;
   
   // === 手动策略操作 ===
   /** 设置手动策略 */
@@ -96,13 +194,33 @@ type InspectorStore = InspectorState & InspectorActions;
  * 初始状态
  */
 const initialState: InspectorState = {
+  // 核心状态
   element: null,
   mode: 'smart',
   current: null,
+  
+  // 分析状态
+  analysisState: 'idle',
+  analysisProgress: null,
+  analysisJobId: null,
+  smartSteps: [],
+  recommendedStepKey: null,
+  recommendedConfidence: null,
+  userStrategies: [],
+  activeStrategyType: 'intelligent',
+  activeStrategyKey: null,
+  isUsingDefaultStrategy: false,
+  autoFollowSmart: true,
+  
+  // 快照状态
   lastManualSnapshot: null,
   lastSmartSnapshot: null,
+  
+  // 加载状态
   isGenerating: false,
   error: null,
+  
+  // 元数据
   lastUpdated: 0,
   initialized: false
 };
@@ -130,33 +248,25 @@ export const useInspectorStore = create<InspectorStore>()(
     setElement: async (element: ElementDescriptor) => {
       console.log('🎯 设置元素:', element.nodeId);
       
+      // 1. 立即生成默认策略
+      const defaultStrategy = get().generateDefaultStrategy(element);
+      
       set({ 
         element, 
         error: null, 
         lastUpdated: Date.now(),
-        initialized: true
+        initialized: true,
+        current: defaultStrategy,
+        isUsingDefaultStrategy: true,
+        activeStrategyType: 'user-static',
+        activeStrategyKey: 'default',
+        analysisState: 'idle'
       });
 
-      const state = get();
-      
-      // 如果有XPath，自动创建手动策略作为默认
-      if (element.xpath) {
-        const defaultManual = LegacyManualAdapter.createXPathDirectStrategy(
-          element.xpath,
-          `XPath直接 - ${element.nodeId}`
-        );
-        
-        set({ 
-          mode: 'manual',
-          current: defaultManual,
-          lastManualSnapshot: defaultManual
-        });
-        
-        console.log('✅ 自动创建XPath直接策略');
-      } else {
-        // 没有XPath，尝试生成智能策略
-        await get().toSmart();
-      }
+      // 2. 启动后台智能分析
+      setTimeout(() => {
+        get().startAnalysis(element);
+      }, 100);
     },
 
     clear: () => {
@@ -225,6 +335,265 @@ export const useInspectorStore = create<InspectorStore>()(
       } else {
         set({ error: '无法创建手动策略' });
       }
+    },
+
+    // === 分析操作 ===
+    startAnalysis: async (element: ElementDescriptor) => {
+      console.log('🔍 开始智能分析');
+      
+      const analysisJobId = `analysis_${Date.now()}`;
+      
+      set({
+        analysisState: 'pending',
+        analysisJobId,
+        analysisProgress: {
+          currentStep: 1,
+          totalSteps: 6,
+          currentStepName: '分析元素属性',
+          estimatedTimeLeft: 3
+        },
+        error: null
+      });
+
+      try {
+        // 模拟分析过程
+        for (let step = 1; step <= 6; step++) {
+          if (get().analysisState === 'cancelled') {
+            return;
+          }
+
+          const stepNames = [
+            '分析元素属性',
+            '检查自我锚点',
+            '分析子树锚点',
+            '检查区域限定',
+            '分析邻居相对',
+            '生成索引兜底'
+          ];
+
+          set({
+            analysisProgress: {
+              currentStep: step,
+              totalSteps: 6,
+              currentStepName: stepNames[step - 1],
+              estimatedTimeLeft: Math.max(0, 6 - step)
+            }
+          });
+
+          // 模拟处理时间
+          await new Promise(resolve => setTimeout(resolve, 500));
+        }
+
+        // 生成分析结果
+        const smartSteps: SmartAnalysisStep[] = [
+          {
+            key: 'self-anchor',
+            name: 'Step1: 自我锚点',
+            description: '基于元素自身属性定位',
+            score: 95,
+            isRecommended: true,
+            strategy: await get().generateSmartStrategy(element)
+          },
+          {
+            key: 'child-anchor',
+            name: 'Step2: 子树锚点',
+            description: '基于子元素特征定位',
+            score: 87,
+            isRecommended: false,
+            strategy: await get().generateSmartStrategy(element)
+          }
+          // ... 其他步骤
+        ];
+
+        const recommendedStep = smartSteps.find(s => s.isRecommended);
+        
+        set({
+          analysisState: 'completed',
+          analysisProgress: null,
+          smartSteps,
+          recommendedStepKey: recommendedStep?.key || null,
+          recommendedConfidence: recommendedStep?.score || null
+        });
+
+        // 如果开启自动跟随且置信度足够高，自动应用推荐策略
+        const state = get();
+        if (state.autoFollowSmart && (recommendedStep?.score || 0) >= 85) {
+          setTimeout(() => get().applyRecommended(), 500);
+        }
+
+      } catch (error) {
+        console.error('分析失败:', error);
+        set({
+          analysisState: 'failed',
+          analysisProgress: null,
+          error: error instanceof Error ? error.message : '分析失败'
+        });
+      }
+    },
+
+    cancelAnalysis: () => {
+      console.log('⏹️ 取消分析');
+      set({
+        analysisState: 'cancelled',
+        analysisProgress: null,
+        analysisJobId: null
+      });
+    },
+
+    retryAnalysis: async () => {
+      const state = get();
+      if (state.element) {
+        await get().startAnalysis(state.element);
+      }
+    },
+
+    applyRecommended: () => {
+      const state = get();
+      const recommendedStep = state.smartSteps.find(s => s.key === state.recommendedStepKey);
+      
+      if (recommendedStep) {
+        console.log('✅ 应用推荐策略:', recommendedStep.name);
+        set({
+          current: recommendedStep.strategy,
+          activeStrategyType: 'smart-manual',
+          activeStrategyKey: recommendedStep.key,
+          isUsingDefaultStrategy: false,
+          mode: 'smart'
+        });
+      }
+    },
+
+    selectIntelligentStrategy: () => {
+      console.log('🧠 选择智能匹配策略');
+      set({
+        activeStrategyType: 'intelligent',
+        activeStrategyKey: 'intelligent',
+        isUsingDefaultStrategy: false
+      });
+    },
+
+    selectSmartStep: (stepKey: string) => {
+      const state = get();
+      const step = state.smartSteps.find(s => s.key === stepKey);
+      
+      if (step) {
+        console.log('🎯 选择智能步骤:', step.name);
+        set({
+          current: step.strategy,
+          activeStrategyType: 'smart-manual',
+          activeStrategyKey: stepKey,
+          isUsingDefaultStrategy: false,
+          mode: 'smart'
+        });
+      }
+    },
+
+    selectUserStrategy: (strategyKey: string) => {
+      const state = get();
+      const strategy = state.userStrategies.find(s => s.key === strategyKey);
+      
+      if (strategy) {
+        console.log('👤 选择用户策略:', strategy.name);
+        // 转换为ManualStrategy格式
+        const manualStrategy: ManualStrategy = {
+          kind: 'manual',
+          name: strategy.name,
+          type: 'xpath-direct',
+          selector: {
+            xpath: strategy.selectorType === 'xpath' ? strategy.selector : undefined,
+            css: strategy.selectorType === 'css' ? strategy.selector : undefined
+          },
+          notes: strategy.description,
+          createdAt: strategy.createdAt
+        };
+        
+        set({
+          current: manualStrategy,
+          activeStrategyType: 'user-static',
+          activeStrategyKey: strategyKey,
+          isUsingDefaultStrategy: false,
+          mode: 'manual'
+        });
+      }
+    },
+
+    addUserStrategy: (strategy: UserStaticStrategy) => {
+      const state = get();
+      set({
+        userStrategies: [...state.userStrategies, strategy]
+      });
+    },
+
+    removeUserStrategy: (strategyKey: string) => {
+      const state = get();
+      set({
+        userStrategies: state.userStrategies.filter(s => s.key !== strategyKey)
+      });
+    },
+
+    toggleAutoFollowSmart: () => {
+      const state = get();
+      set({
+        autoFollowSmart: !state.autoFollowSmart
+      });
+    },
+
+    generateDefaultStrategy: (element: ElementDescriptor): ManualStrategy => {
+      console.log('🛡️ 生成默认策略');
+      
+      // 优先使用resource-id
+      if (element.resourceId) {
+        return {
+          kind: 'manual',
+          name: '默认策略: Resource ID',
+          type: 'xpath-direct',
+          selector: {
+            xpath: `//*[@resource-id="${element.resourceId}"]`
+          },
+          notes: `基于resource-id生成的默认策略`,
+          createdAt: Date.now()
+        };
+      }
+      
+      // 其次使用text内容
+      if (element.text && element.text.trim()) {
+        return {
+          kind: 'manual',
+          name: '默认策略: 文本内容',
+          type: 'xpath-direct',
+          selector: {
+            xpath: `//*[contains(text(),"${element.text.trim()}")]`
+          },
+          notes: `基于文本内容生成的默认策略`,
+          createdAt: Date.now()
+        };
+      }
+      
+      // 最后使用XPath
+      if (element.xpath) {
+        return {
+          kind: 'manual',
+          name: '默认策略: XPath',
+          type: 'xpath-direct',
+          selector: {
+            xpath: element.xpath
+          },
+          notes: `基于XPath生成的默认策略`,
+          createdAt: Date.now()
+        };
+      }
+      
+      // 兜底策略
+      return {
+        kind: 'manual',
+        name: '默认策略: 通用',
+        type: 'xpath-direct',
+        selector: {
+          xpath: `//*[@bounds="${element.bounds}"]`
+        },
+        notes: `基于位置信息生成的兜底策略`,
+        createdAt: Date.now()
+      };
     },
 
     // === 智能策略操作 ===

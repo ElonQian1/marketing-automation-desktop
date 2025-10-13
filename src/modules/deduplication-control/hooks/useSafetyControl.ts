@@ -23,7 +23,7 @@ import {
   CircuitBreakerState,
   ListType
 } from '../types';
-import { SafetyCheckService } from '../services';
+import { DedupSafetyCheckService } from '../services';
 
 /**
  * 默认配置
@@ -119,7 +119,7 @@ export const useSafetyControl = () => {
   const [error, setError] = useState<string | null>(null);
   const [statistics, setStatistics] = useState<SafetyStatistics | null>(null);
   const [recentChecks, setRecentChecks] = useState<SafetyCheckResult[]>([]);
-  const [safetyService] = useState(() => new SafetyCheckService(
+  const [safetyService] = useState(() => new DedupSafetyCheckService(
     deduplicationConfig,
     rateLimitConfig,
     circuitBreakerConfig

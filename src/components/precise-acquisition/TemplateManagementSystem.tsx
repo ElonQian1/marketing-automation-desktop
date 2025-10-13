@@ -46,7 +46,7 @@ import {
 import dayjs from 'dayjs';
 
 // 类型和服务导入
-import { TemplateManagementService } from '../../modules/precise-acquisition/template-management/services/prospecting-template-service';
+import { ProspectingTemplateManagementService } from '../../modules/precise-acquisition/template-management/services/prospecting-template-service';
 import { Platform, TaskType } from '../../constants/precise-acquisition-enums';
 
 const { Option } = Select;
@@ -129,7 +129,7 @@ export const TemplateManagementSystem: React.FC = () => {
   const [categoryForm] = Form.useForm();
 
   // 服务实例
-  const templateService = new TemplateManagementService();
+  const templateService = new ProspectingTemplateManagementService();
 
   // 加载模板数据
   const loadTemplates = useCallback(async () => {

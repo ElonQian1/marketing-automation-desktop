@@ -1,6 +1,6 @@
-// src/modules/precise-acquisition/rate-limit/services/RateLimitService.ts
-// module: prospecting | layer: application | role: module-component
-// summary: 模块组件
+// src/modules/precise-acquisition/rate-limit/services/prospecting-rate-limit-service.ts
+// module: prospecting | layer: services | role: rate-limit-controller
+// summary: 速率限制控制服务
 
 /**
  * 查重频控服务 - 统一门面

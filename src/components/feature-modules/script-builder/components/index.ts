@@ -7,7 +7,7 @@
  * 统一导出所有脚本构建器组件
  */
 
-export { StepCard } from './StepCard';
+export { ScriptStepCard as StepCard } from './StepCard';
 export { StepList } from './StepList';
 export { default as StepEditor } from './StepEditor';
 export { ExecutionControl } from './ExecutionControl';

@@ -1,6 +1,6 @@
-// src/modules/precise-acquisition/audit-system/services/AuditService.ts
-// module: prospecting | layer: application | role: module-component
-// summary: 模块组件
+// src/modules/precise-acquisition/audit-system/services/prospecting-audit-service.ts
+// module: prospecting | layer: services | role: audit-engine
+// summary: 审计系统服务
 
 /**
  * 审计系统服务

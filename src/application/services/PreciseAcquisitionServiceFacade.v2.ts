@@ -23,8 +23,8 @@ import {
   RateLimitService 
 } from '../../modules/precise-acquisition/rate-limit/services/prospecting-rate-limit-service';
 import { 
-  TemplateManagementService 
-} from '../../modules/precise-acquisition/template-management/services/TemplateManagementService';
+  ProspectingTemplateManagementService 
+} from '../../modules/precise-acquisition/template-management/services/prospecting-template-service';
 import {
   Platform,
   TargetType,
@@ -59,13 +59,13 @@ export class PreciseAcquisitionServiceFacade {
   private readonly coreService: PreciseAcquisitionApplicationService;
   private readonly taskEngine: TaskEngineService;
   private readonly rateLimiter: RateLimitService;
-  private readonly templateService: TemplateManagementService;
+  private readonly templateService: ProspectingTemplateManagementService;
 
   private constructor() {
     this.coreService = PreciseAcquisitionApplicationService.getInstance();
     this.taskEngine = new TaskEngineService();
     this.rateLimiter = new RateLimitService();
-    this.templateService = new TemplateManagementService();
+    this.templateService = new ProspectingTemplateManagementService();
   }
 
   private static instance: PreciseAcquisitionServiceFacade | null = null;

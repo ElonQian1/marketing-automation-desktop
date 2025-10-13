@@ -77,7 +77,7 @@ export interface TemplateRenderResult {
 /**
  * 话术模板管理服务
  */
-export class TemplateManagementService {
+export class ProspectingTemplateManagementService {
   
   // 内置变量定义
   private readonly builtInVariables: TemplateVariable[] = [

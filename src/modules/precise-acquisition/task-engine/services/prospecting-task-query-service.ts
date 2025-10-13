@@ -1,6 +1,6 @@
-// src/modules/precise-acquisition/task-engine/services/TaskQueryService.ts
-// module: prospecting | layer: application | role: module-component
-// summary: 模块组件
+// src/modules/precise-acquisition/task-engine/services/prospecting-task-query-service.ts
+// module: prospecting | layer: services | role: task-query-engine
+// summary: 任务查询引擎服务
 
 /**
  * 任务查询器

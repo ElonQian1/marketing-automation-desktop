@@ -55,7 +55,7 @@
 | 模块 | 子目录 | from(现名) | to(前缀化后) | 类型名改为 | 状态 | 备注 |
 |------|--------|------------|-------------|-----------|------|------|
 | precise-acquisition | (根目录) | PreciseAcquisitionService.ts | prospecting-acquisition-service.ts | ProspectingAcquisitionService | ✅已完成 | 精准获客系统服务门面 |
-| precise-acquisition/template-management | services | TemplateManagementService.ts | prospecting-template-service.ts | ProspectingTemplateService | ✅已完成 | 话术模板管理服务 (已存在) |
+| precise-acquisition/template-management | services | TemplateManagementService.ts | prospecting-template-service.ts | ProspectingTemplateManagementService | ✅已完成 | 话术模板管理服务 (类名已前缀化) |
 | precise-acquisition/task-engine | services | TaskEngineService.ts | prospecting-task-engine-service.ts | ProspectingTaskEngineService | ✅已完成 | 任务引擎服务 |
 | precise-acquisition/task-engine | services | TaskExecutorService.ts | prospecting-task-executor-service.ts | ProspectingTaskExecutorService | ✅已完成 | 任务执行服务 |
 | precise-acquisition/task-engine | services | TaskManager.ts | prospecting-task-manager.ts | ProspectingTaskManager | ✅已完成 | 任务管理器 |

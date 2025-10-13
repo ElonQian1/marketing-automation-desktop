@@ -1,6 +1,6 @@
-// src/modules/precise-acquisition/task-engine/services/EnhancedTaskExecutorService.ts
-// module: prospecting | layer: application | role: module-component
-// summary: 模块组件
+// src/modules/precise-acquisition/task-engine/services/prospecting-enhanced-executor-service.ts
+// module: prospecting | layer: services | role: enhanced-task-executor
+// summary: 增强任务执行器服务
 
 /**
  * 增强任务执行器服务

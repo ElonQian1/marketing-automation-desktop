@@ -16,9 +16,10 @@ import {
   TaskType, 
   ExecutorMode, 
   ResultCode, 
-  Platform 
+  Platform,
+  IndustryTag
 } from '../../shared/types/core';
-import { TemplateManagementService, TemplateContext } from '../../template-management';
+import { ProspectingTemplateManagementService, TemplateContext } from '../../template-management';
 
 /**
  * 任务执行上下文
@@ -149,7 +150,7 @@ class OceanEngineAPIExecutor implements APIExecutor {
 export class ProspectingTaskExecutorService {
   
   private apiExecutors: Map<Platform, APIExecutor> = new Map();
-  private templateService = new TemplateManagementService();
+  private templateService = new ProspectingTemplateManagementService();
   
   constructor() {
     this.initializeExecutors();
@@ -341,7 +342,7 @@ export class ProspectingTaskExecutorService {
       const templateContext: TemplateContext = {
         nickname: target_info?.nickname,
         topic: target_info?.topic,
-        industry: target_info?.industry as string | undefined,
+        industry: target_info?.industry as IndustryTag | undefined,
         region: target_info?.region
       };
       

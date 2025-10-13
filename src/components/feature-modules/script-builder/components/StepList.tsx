@@ -37,7 +37,7 @@ import type {
   StepValidation,
   DragOperation,
 } from '../types';
-import { StepCard } from './StepCard';
+import { ScriptStepCard as StepCard } from './StepCard';
 
 const { Search } = Input;
 

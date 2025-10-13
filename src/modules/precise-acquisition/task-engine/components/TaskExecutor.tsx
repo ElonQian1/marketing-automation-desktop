@@ -36,7 +36,7 @@ import {
 
 import { Task, TaskStatus, TaskType, ExecutorMode, ResultCode } from '../../shared/types/core';
 import { ProspectingTaskExecutorService, TaskExecutionContext, TaskExecutionResult } from '../services/prospecting-task-executor-service';
-import { TemplateManagementService } from '../../template-management';
+import { ProspectingTemplateManagementService } from '../../template-management';
 import { ReplyTemplate } from '../../shared/types/core';
 
 const { Title, Text } = Typography;
@@ -74,7 +74,7 @@ const ExecutorModeTag: React.FC<{ mode: ExecutorMode }> = ({ mode }) => {
 
 export const TaskExecutor: React.FC<TaskExecutorProps> = ({ tasks, onTasksUpdated }) => {
   const [executorService] = useState(() => new ProspectingTaskExecutorService());
-  const [templateService] = useState(() => new TemplateManagementService());
+  const [templateService] = useState(() => new ProspectingTemplateManagementService());
   
   const [selectedTasks, setSelectedTasks] = useState<string[]>([]);
   const [executionResults, setExecutionResults] = useState<Map<string, TaskExecutionResult>>(new Map());

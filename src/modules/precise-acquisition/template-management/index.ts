@@ -10,10 +10,10 @@
 
 export { TemplateManager } from './components/TemplateManager';
 export { 
-  TemplateManagementService,
+  ProspectingTemplateManagementService,
   type TemplateVariable,
   type TemplateCategory,
   type SensitiveWordCheckResult,
   type TemplateContext,
   type TemplateRenderResult
-} from './services/TemplateManagementService';
+} from './services/prospecting-template-service';

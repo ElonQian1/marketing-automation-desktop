@@ -1,6 +1,6 @@
-// src/modules/precise-acquisition/reporting/services/ReportingService.ts
-// module: prospecting | layer: application | role: module-component
-// summary: 模块组件
+// src/modules/precise-acquisition/reporting/services/prospecting-reporting-service.ts
+// module: prospecting | layer: services | role: reporting-engine
+// summary: 报告生成服务
 
 /**
  * 日报生成服务

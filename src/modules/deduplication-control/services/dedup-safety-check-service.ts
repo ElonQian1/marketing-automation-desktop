@@ -1,6 +1,6 @@
-// src/modules/deduplication-control/services/SafetyCheckService.ts
-// module: shared | layer: unknown | role: module-component
-// summary: 模块组件
+// src/modules/deduplication-control/services/dedup-safety-check-service.ts
+// module: dedup | layer: services | role: safety-checker
+// summary: 安全检查服务
 
 /**
  * 安全检查服务
@@ -25,7 +25,7 @@ import { CircuitBreakerService } from './dedup-circuit-breaker-service';
 /**
  * 白名单和黑名单服务
  */
-export class ListManagementService {
+export class DedupListManagementService {
   /**
    * 检查是否在白名单中
    */
@@ -119,7 +119,7 @@ export class ListManagementService {
 /**
  * 风险评估服务
  */
-export class RiskAssessmentService {
+export class DedupRiskAssessmentService {
   /**
    * 计算综合风险评分 (0-100)
    */
@@ -219,7 +219,7 @@ export class RiskAssessmentService {
 /**
  * 主安全检查服务
  */
-export class SafetyCheckService {
+export class DedupSafetyCheckService {
   private deduplicationService: DeduplicationService;
   private rateLimitService: RateLimitService;
   private circuitBreakerService: CircuitBreakerService;
@@ -248,7 +248,7 @@ export class SafetyCheckService {
     
     // 1. 黑名单检查（优先级最高）
     if (this.blacklist) {
-      const blacklistCheck = ListManagementService.checkBlacklist(request, this.blacklist);
+      const blacklistCheck = DedupListManagementService.checkBlacklist(request, this.blacklist);
       if (blacklistCheck.isBlacklisted) {
         return this.createBlockedResult(
           'blacklist',
@@ -260,7 +260,7 @@ export class SafetyCheckService {
     
     // 2. 白名单检查（跳过其他检查）
     if (this.whitelist) {
-      const whitelistCheck = ListManagementService.checkWhitelist(request, this.whitelist);
+      const whitelistCheck = DedupListManagementService.checkWhitelist(request, this.whitelist);
       if (whitelistCheck.isWhitelisted) {
         return this.createAllowedResult(
           whitelistCheck.reason || '在白名单中',
@@ -282,7 +282,7 @@ export class SafetyCheckService {
                    circuitBreakerResult.allowed;
     
     // 5. 计算风险评分
-    const riskScore = RiskAssessmentService.calculateRiskScore(
+    const riskScore = DedupRiskAssessmentService.calculateRiskScore(
       deduplicationResult,
       rateLimitResult,
       circuitBreakerResult.status,
@@ -497,7 +497,7 @@ export class SafetyCheckService {
     }
     
     // 风险评分建议
-    const riskReport = RiskAssessmentService.generateRiskReport(riskScore);
+    const riskReport = DedupRiskAssessmentService.generateRiskReport(riskScore);
     if (riskReport.level === 'high') {
       recommendations.push({
         type: 'manual_review',

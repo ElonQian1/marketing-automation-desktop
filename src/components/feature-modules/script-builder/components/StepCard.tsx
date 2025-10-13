@@ -5,6 +5,7 @@
 /**
  * 脚本步骤卡片组件
  * 显示单个脚本步骤的信息，支持拖拽、编辑、删除等操作
+ * 重命名为 ScriptStepCard 避免与策略卡片 (StrategyCard) 冲突
  */
 
 import React, { useState } from 'react';
@@ -115,9 +116,10 @@ interface StepCardProps {
 }
 
 /**
- * 步骤卡片组件
+ * 脚本步骤卡片组件
+ * TODO: 重命名为 ScriptStepCard 以避免与 universal-ui 的 StrategyCard 混淆
  */
-export const StepCard: React.FC<StepCardProps> = ({
+export const ScriptStepCard: React.FC<StepCardProps> = ({
   step,
   index,
   isSelected = false,

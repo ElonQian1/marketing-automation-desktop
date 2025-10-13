@@ -6,7 +6,7 @@
 // 负责各模块服务实例的创建、注册和获取，实现依赖注入模式和服务生命周期管理
 
 import { 
-  TemplateManagementService
+  ProspectingTemplateManagementService
 } from '../../template-management';
 
 import { 
@@ -40,7 +40,7 @@ import { SystemLifecycleManager, ServiceInitializer } from './SystemLifecycleMan
  */
 export class ServiceRegistry {
   // 各模块服务实例
-  private templateService?: TemplateManagementService;
+  private templateService?: ProspectingTemplateManagementService;
   private commentService?: EnhancedCommentAdapterManager;
   private taskEngineService?: TaskEngineService;
   private taskExecutorService?: TaskExecutorService;
@@ -76,7 +76,7 @@ export class ServiceRegistry {
     }
     
     if (config.modules.template_management) {
-      this.templateService = new TemplateManagementService();
+      this.templateService = new ProspectingTemplateManagementService();
       this.lifecycleManager.registerServiceInitializer('template', this.initializeTemplateService.bind(this));
     }
     
@@ -103,7 +103,7 @@ export class ServiceRegistry {
   /**
    * 获取服务实例 - 模板管理
    */
-  getTemplateService(): TemplateManagementService {
+  getTemplateService(): ProspectingTemplateManagementService {
     if (!this.templateService) {
       throw new Error('模板管理服务未启用');
     }

@@ -38,10 +38,10 @@ import {
   SearchOutlined
 } from '@ant-design/icons';
 import { 
-  TemplateManagementService,
+  ProspectingTemplateManagementService,
   TemplateContext,
   TemplateRenderResult
-} from '../services/TemplateManagementService';
+} from '../services/prospecting-template-service';
 import { ReplyTemplate, Platform, IndustryTag } from '../../shared/types/core';
 
 
@@ -62,7 +62,7 @@ export const TemplateManager: React.FC = () => {
   const [form] = Form.useForm();
   const [previewForm] = Form.useForm();
 
-  const templateService = new TemplateManagementService();
+  const templateService = new ProspectingTemplateManagementService();
 
   // 筛选条件
   const [filters, setFilters] = useState({
