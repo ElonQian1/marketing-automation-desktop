@@ -8,7 +8,7 @@ import { PlayCircleOutlined, ReloadOutlined } from '@ant-design/icons';
 
 import { useIntelligentAnalysisWorkflow } from '../hooks/use-intelligent-analysis-workflow';
 import { EnhancedElementSelectionPopover } from '../components/enhanced-element-selection-popover';
-import { IntelligentStepCard } from '../components/intelligent-step-card';
+import { UnifiedStepCard as IntelligentStepCard } from '../components/unified-step-card';
 
 import type { ElementSelectionContext } from '../types/intelligent-analysis-types';
 

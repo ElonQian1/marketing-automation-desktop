@@ -278,7 +278,7 @@ export const useRateLimit = (options: UseRateLimitOptions = {}): UseRateLimitRet
       
       if (!result.allowed && enableRealTimeChecks) {
         // 添加所有阻止原因到最近阻止列表
-        const blockEntries = result.reasons.map((reason, index) => ({
+        const blockEntries = result.reasons.map((reason) => ({
           timestamp: new Date(),
           level: DedupLevel.COMMENT, // 可以根据reason类型细化
           key: task.id,
@@ -302,16 +302,14 @@ export const useRateLimit = (options: UseRateLimitOptions = {}): UseRateLimitRet
 
   // 记录操作
   const recordOperation = useCallback(async (
-    task: Task,
-    comment?: Comment,
-    target?: WatchTarget
+    task: Task
   ) => {
     clearError();
     
     try {
       // 使用saveRecord方法记录操作，简化实现
       await service.saveRecord(
-        'task' as any, // DedupLevel
+        DedupLevel.USER, // 使用用户级去重
         `task_${task.id}`,
         task.id,
         Platform.DOUYIN, // 默认平台

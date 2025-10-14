@@ -6,7 +6,7 @@ import React, { useState, useCallback } from "react";
 import { Card, Space, Button, Typography, message } from "antd";
 import { PlayCircleOutlined, PlusOutlined } from "@ant-design/icons";
 
-import { IntelligentStepCard } from "../../components/intelligent-step-card";
+import { UnifiedStepCard as IntelligentStepCard } from "../../components/unified-step-card";
 import {
   UniversalEnhancedElementPopover,
   type PopoverState,

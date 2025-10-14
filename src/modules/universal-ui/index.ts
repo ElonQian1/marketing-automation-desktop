@@ -23,7 +23,7 @@ export * from "./types/intelligent-analysis-types";
 export * from "./utils/selection-hash";
 export * from "./hooks/use-intelligent-analysis-workflow";
 export { UnifiedStepCard as IntelligentStepCardComponent } from "./components/unified-step-card";
-export { IntelligentStepCard } from "./components/intelligent-step-card"; // 保持向后兼容
+export { UnifiedStepCard as IntelligentStepCard } from "./components/unified-step-card"; // 向后兼容别名
 export * from "./components/enhanced-element-selection-popover";
 export { FallbackStrategyGenerator } from "./domain/fallback-strategy-generator";
 export * from "./services/mock-analysis-backend";
