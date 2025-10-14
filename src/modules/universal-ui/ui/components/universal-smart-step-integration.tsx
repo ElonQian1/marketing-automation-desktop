@@ -2,21 +2,24 @@
 // module: universal-ui | layer: ui | role: integration-component
 // summary: 智能步骤卡片系统集成组件，管理从元素选择到步骤创建的完整流程
 
-import React, { useState, useCallback, useEffect } from 'react';
-import { Card, Space, Button, Typography, message } from 'antd';
-import { PlayCircleOutlined, PlusOutlined } from '@ant-design/icons';
+import React, { useState, useCallback } from "react";
+import { Card, Space, Button, Typography, message } from "antd";
+import { PlayCircleOutlined, PlusOutlined } from "@ant-design/icons";
 
-import { IntelligentStepCard } from '../../components/intelligent-step-card';
-import { UniversalEnhancedElementPopover, type PopoverState } from './universal-enhanced-element-popover';
-import { 
-  useSmartStepWorkflow, 
-  type ElementSelectionContext, 
-  type SmartStepCard as StepCardAnalysisState
-} from '../hooks/universal-use-smart-step-workflow';
-import type { IntelligentStepCard as IntelligentStepCardData } from '../../types/intelligent-analysis-types';
-import { calculateSelectionHash } from '../../utils/selection-hash';
+import { IntelligentStepCard } from "../../components/intelligent-step-card";
+import {
+  UniversalEnhancedElementPopover,
+  type PopoverState,
+} from "./universal-enhanced-element-popover";
+import {
+  useSmartStepWorkflow,
+  type ElementSelectionContext,
+  type SmartStepCard as StepCardAnalysisState,
+} from "../hooks/universal-use-smart-step-workflow";
+import type { IntelligentStepCard as IntelligentStepCardData } from "../../types/intelligent-analysis-types";
+import { calculateSelectionHash } from "../../utils/selection-hash";
 
-const { Title, Text } = Typography;
+const { Text } = Typography;
 
 /**
  * 智能步骤系统集成属性
@@ -28,7 +31,7 @@ export interface UniversalSmartStepIntegrationProps {
   showDebugInfo?: boolean;
   /** 最大步骤卡片数量 */
   maxSteps?: number;
-  
+
   // 事件回调
   /** 步骤卡片变更 */
   onStepsChange?: (steps: StepCardAnalysisState[]) => void;
@@ -42,58 +45,73 @@ export interface UniversalSmartStepIntegrationProps {
 const createMockElementContext = (index: number): ElementSelectionContext => ({
   snapshotId: `snapshot_${Date.now()}_${index}`,
   elementPath: `//*[@id="contact-list"]/div[${index}]/div[2]/span`,
-  elementType: 'text',
+  elementType: "text",
   elementText: `联系人姓名 ${index}`,
-  elementBounds: `120,${45 + index * 20},200,${65 + index * 20}`
+  elementBounds: `120,${45 + index * 20},200,${65 + index * 20}`,
 });
 
 /**
  * 将SmartStepCard转换为IntelligentStepCard格式
  */
-const adaptStepCardToIntelligent = (smartCard: StepCardAnalysisState): IntelligentStepCardData => {
+const adaptStepCardToIntelligent = (
+  smartCard: StepCardAnalysisState
+): IntelligentStepCardData => {
   return {
     stepId: smartCard.stepId,
     stepName: smartCard.stepName,
     stepType: smartCard.stepType,
     elementContext: smartCard.elementContext || createMockElementContext(1),
-    selectionHash: calculateSelectionHash(smartCard.elementContext || createMockElementContext(1)),
-    analysisState: smartCard.analysisState as any,
+    selectionHash: calculateSelectionHash(
+      smartCard.elementContext || createMockElementContext(1)
+    ),
+    analysisState: smartCard.analysisState as
+      | "idle"
+      | "analyzing"
+      | "analysis_completed"
+      | "analysis_failed",
     analysisJobId: smartCard.analysisJobId,
     analysisProgress: smartCard.analysisProgress,
-    strategyMode: smartCard.strategyMode as any,
+    strategyMode: smartCard.strategyMode as
+      | "intelligent"
+      | "smart_variant"
+      | "static_user",
     smartCandidates: [],
     staticCandidates: [],
-    activeStrategy: smartCard.activeStrategy ? {
-      ...smartCard.activeStrategy,
-      isRecommended: false
-    } : {
-      key: 'fallback',
-      name: '默认策略',
-      confidence: 0.5,
-      description: '基于元素路径的兜底策略',
-      variant: 'index_fallback',
-      enabled: true,
-      isRecommended: false
-    },
-    recommendedStrategy: smartCard.recommendedStrategy ? {
-      ...smartCard.recommendedStrategy,
-      isRecommended: true
-    } : undefined,
+    activeStrategy: smartCard.activeStrategy
+      ? {
+          ...smartCard.activeStrategy,
+          isRecommended: false,
+        }
+      : {
+          key: "fallback",
+          name: "默认策略",
+          confidence: 0.5,
+          description: "基于元素路径的兜底策略",
+          variant: "index_fallback",
+          enabled: true,
+          isRecommended: false,
+        },
+    recommendedStrategy: smartCard.recommendedStrategy
+      ? {
+          ...smartCard.recommendedStrategy,
+          isRecommended: true,
+        }
+      : undefined,
     fallbackStrategy: {
-      key: 'fallback',
-      name: '默认策略', 
+      key: "fallback",
+      name: "默认策略",
       confidence: 0.5,
-      description: '基于元素路径的兜底策略',
-      variant: 'index_fallback',
+      description: "基于元素路径的兜底策略",
+      variant: "index_fallback",
       enabled: true,
-      isRecommended: false
+      isRecommended: false,
     },
     autoFollowSmart: smartCard.autoFollowSmart,
     lockContainer: false,
     smartThreshold: 0.82,
     createdAt: smartCard.createdAt?.getTime() || Date.now(),
     analyzedAt: smartCard.analyzedAt?.getTime(),
-    updatedAt: Date.now()
+    updatedAt: Date.now(),
   };
 };
 
@@ -101,18 +119,21 @@ const adaptStepCardToIntelligent = (smartCard: StepCardAnalysisState): Intellige
  * 智能步骤系统集成组件
  * 演示和测试完整的从元素选择到步骤创建的工作流
  */
-export const UniversalSmartStepIntegration: React.FC<UniversalSmartStepIntegrationProps> = ({
-  title = '智能步骤系统',
-  showDebugInfo = process.env.NODE_ENV === 'development',
+export const UniversalSmartStepIntegration: React.FC<
+  UniversalSmartStepIntegrationProps
+> = ({
+  title = "智能步骤系统",
+  showDebugInfo = process.env.NODE_ENV === "development",
   maxSteps = 10,
   onStepsChange,
-  onExecuteWorkflow
+  onExecuteWorkflow,
 }) => {
   // 状态管理
   const [showPopover, setShowPopover] = useState(false);
-  const [popoverState, setPopoverState] = useState<PopoverState>('idle');
+  const [popoverState, setPopoverState] = useState<PopoverState>("idle");
   const [analysisProgress, setAnalysisProgress] = useState(0);
-  const [currentElementContext, setCurrentElementContext] = useState<ElementSelectionContext>(createMockElementContext(1));
+  const [currentElementContext, setCurrentElementContext] =
+    useState<ElementSelectionContext>(createMockElementContext(1));
 
   // 工作流钩子
   const {
@@ -121,7 +142,7 @@ export const UniversalSmartStepIntegration: React.FC<UniversalSmartStepIntegrati
     startAnalysisFromPopover,
     createStepCardQuick,
     cancelAnalysis,
-    clearAllJobs
+    clearAllJobs,
   } = useSmartStepWorkflow();
 
   /**
@@ -131,43 +152,42 @@ export const UniversalSmartStepIntegration: React.FC<UniversalSmartStepIntegrati
     const newContext: ElementSelectionContext = {
       ...createMockElementContext(workflowStepCards.length + 1),
       elementText: `元素 ${workflowStepCards.length + 1}`,
-      elementPath: `//*[@id="item-${workflowStepCards.length + 1}"]`
+      elementPath: `//*[@id="item-${workflowStepCards.length + 1}"]`,
     };
-    
+
     setCurrentElementContext(newContext);
-    setPopoverState('idle');
+    setPopoverState("idle");
     setAnalysisProgress(0);
     setShowPopover(true);
-    
-    message.info('已选择新元素，气泡已显示');
+
+    message.info("已选择新元素，气泡已显示");
   }, [workflowStepCards.length]);
 
   /**
    * 启动智能分析
    */
   const handleStartAnalysis = useCallback(async () => {
-    setPopoverState('analyzing');
+    setPopoverState("analyzing");
     setAnalysisProgress(0);
-    
+
     try {
       await startAnalysisFromPopover(currentElementContext);
-      
+
       // 模拟进度更新
       const progressInterval = setInterval(() => {
-        setAnalysisProgress(prev => {
+        setAnalysisProgress((prev) => {
           if (prev >= 100) {
             clearInterval(progressInterval);
-            setPopoverState('analyzed');
+            setPopoverState("analyzed");
             return 100;
           }
           return prev + 10;
         });
       }, 200);
-      
     } catch (err) {
-      console.error('Failed to start analysis:', err);
-      setPopoverState('failed');
-      message.error('分析启动失败');
+      console.error("Failed to start analysis:", err);
+      setPopoverState("failed");
+      message.error("分析启动失败");
     }
   }, [currentElementContext, startAnalysisFromPopover]);
 
@@ -177,15 +197,15 @@ export const UniversalSmartStepIntegration: React.FC<UniversalSmartStepIntegrati
   const handleDirectConfirm = useCallback(async () => {
     try {
       await createStepCardQuick(currentElementContext);
-      
+
       // 步骤卡片会通过Hook自动更新到workflowStepCards中
       setShowPopover(false);
-      setPopoverState('idle');
-      
-      message.success('步骤卡片已创建');
+      setPopoverState("idle");
+
+      message.success("步骤卡片已创建");
     } catch (err) {
-      console.error('Failed to create step card:', err);
-      message.error('创建步骤卡片失败');
+      console.error("Failed to create step card:", err);
+      message.error("创建步骤卡片失败");
     }
   }, [currentElementContext, createStepCardQuick, onStepsChange]);
 
@@ -196,9 +216,9 @@ export const UniversalSmartStepIntegration: React.FC<UniversalSmartStepIntegrati
     if (currentJob) {
       cancelAnalysis(currentJob.jobId);
     }
-    
+
     await handleDirectConfirm();
-    message.info('已使用静态策略创建步骤，分析完成后会自动优化');
+    message.info("已使用静态策略创建步骤，分析完成后会自动优化");
   }, [currentJob, cancelAnalysis, handleDirectConfirm]);
 
   /**
@@ -208,9 +228,9 @@ export const UniversalSmartStepIntegration: React.FC<UniversalSmartStepIntegrati
     if (currentJob) {
       cancelAnalysis(currentJob.jobId);
     }
-    
+
     setShowPopover(false);
-    setPopoverState('idle');
+    setPopoverState("idle");
     setAnalysisProgress(0);
   }, [currentJob, cancelAnalysis]);
 
@@ -219,10 +239,10 @@ export const UniversalSmartStepIntegration: React.FC<UniversalSmartStepIntegrati
    */
   const handleExecuteWorkflow = useCallback(() => {
     if (workflowStepCards.length === 0) {
-      message.warning('没有步骤可执行');
+      message.warning("没有步骤可执行");
       return;
     }
-    
+
     onExecuteWorkflow?.(workflowStepCards);
     message.info(`开始执行 ${workflowStepCards.length} 个步骤`);
   }, [workflowStepCards, onExecuteWorkflow]);
@@ -233,27 +253,32 @@ export const UniversalSmartStepIntegration: React.FC<UniversalSmartStepIntegrati
   const handleClearAllSteps = useCallback(() => {
     clearAllJobs();
     onStepsChange?.([]);
-    message.info('已清空所有步骤');
+    message.info("已清空所有步骤");
   }, [clearAllJobs, onStepsChange]);
 
   return (
     <div className="light-theme-force universal-smart-step-integration">
       <Card title={title}>
-        <Space direction="vertical" style={{ width: '100%' }}>
-          
+        <Space direction="vertical" style={{ width: "100%" }}>
           {/* 工具栏 */}
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+          <div
+            style={{
+              display: "flex",
+              justifyContent: "space-between",
+              alignItems: "center",
+            }}
+          >
             <Space>
-              <Button 
-                type="primary" 
+              <Button
+                type="primary"
                 icon={<PlusOutlined />}
                 onClick={handleSimulateElementSelection}
                 disabled={workflowStepCards.length >= maxSteps}
               >
                 模拟选择元素
               </Button>
-              
-              <Button 
+
+              <Button
                 type="default"
                 icon={<PlayCircleOutlined />}
                 onClick={handleExecuteWorkflow}
@@ -262,10 +287,10 @@ export const UniversalSmartStepIntegration: React.FC<UniversalSmartStepIntegrati
                 执行工作流 ({workflowStepCards.length})
               </Button>
             </Space>
-            
+
             <Space>
-              <Button 
-                size="small" 
+              <Button
+                size="small"
                 onClick={handleClearAllSteps}
                 disabled={workflowStepCards.length === 0}
               >
@@ -277,16 +302,20 @@ export const UniversalSmartStepIntegration: React.FC<UniversalSmartStepIntegrati
           {/* 步骤卡片列表 */}
           <div style={{ minHeight: 200 }}>
             {workflowStepCards.length === 0 ? (
-              <div style={{
-                textAlign: 'center',
-                padding: '40px 20px',
-                color: 'var(--text-3, #94a3b8)',
-                fontSize: 14
-              }}>
-                <Text type="secondary">暂无步骤，点击"模拟选择元素"开始创建</Text>
+              <div
+                style={{
+                  textAlign: "center",
+                  padding: "40px 20px",
+                  color: "var(--text-3, #94a3b8)",
+                  fontSize: 14,
+                }}
+              >
+                <Text type="secondary">
+                  暂无步骤，点击"模拟选择元素"开始创建
+                </Text>
               </div>
             ) : (
-              <Space direction="vertical" style={{ width: '100%' }}>
+              <Space direction="vertical" style={{ width: "100%" }}>
                 {workflowStepCards.map((stepCard, index) => (
                   <IntelligentStepCard
                     key={stepCard.stepId}
@@ -300,7 +329,9 @@ export const UniversalSmartStepIntegration: React.FC<UniversalSmartStepIntegrati
                       console.log(`重试分析步骤 ${stepCard.stepId}`);
                     }}
                     onSwitchStrategy={(strategyKey, followSmart) => {
-                      console.log(`切换步骤 ${stepCard.stepId} 的策略到 ${strategyKey}，跟随智能推荐: ${followSmart}`);
+                      console.log(
+                        `切换步骤 ${stepCard.stepId} 的策略到 ${strategyKey}，跟随智能推荐: ${followSmart}`
+                      );
                     }}
                     onViewDetails={() => {
                       console.log(`查看步骤 ${stepCard.stepId} 的详情`);
@@ -316,18 +347,24 @@ export const UniversalSmartStepIntegration: React.FC<UniversalSmartStepIntegrati
 
           {/* 元素选择气泡 */}
           {showPopover && (
-            <div style={{ 
-              position: 'fixed', 
-              top: '50%', 
-              left: '50%', 
-              transform: 'translate(-50%, -50%)',
-              zIndex: 1000 
-            }}>
+            <div
+              style={{
+                position: "fixed",
+                top: "50%",
+                left: "50%",
+                transform: "translate(-50%, -50%)",
+                zIndex: 1000,
+              }}
+            >
               <UniversalEnhancedElementPopover
                 elementContext={currentElementContext}
                 state={popoverState}
                 analysisProgress={analysisProgress}
-                estimatedTimeLeft={popoverState === 'analyzing' ? (100 - analysisProgress) * 50 : 0}
+                estimatedTimeLeft={
+                  popoverState === "analyzing"
+                    ? (100 - analysisProgress) * 50
+                    : 0
+                }
                 visible={showPopover}
                 onStartAnalysis={handleStartAnalysis}
                 onDirectConfirm={handleDirectConfirm}
@@ -341,11 +378,16 @@ export const UniversalSmartStepIntegration: React.FC<UniversalSmartStepIntegrati
           {/* 调试信息 */}
           {showDebugInfo && (
             <Card size="small" title="调试信息">
-              <Space direction="vertical" style={{ width: '100%', fontSize: 12 }}>
+              <Space
+                direction="vertical"
+                style={{ width: "100%", fontSize: 12 }}
+              >
                 <div>气泡状态: {popoverState}</div>
                 <div>分析进度: {analysisProgress}%</div>
-                <div>当前任务: {currentJob?.jobId || '无'}</div>
-                <div>步骤数量: {workflowStepCards.length}/{maxSteps}</div>
+                <div>当前任务: {currentJob?.jobId || "无"}</div>
+                <div>
+                  步骤数量: {workflowStepCards.length}/{maxSteps}
+                </div>
               </Space>
             </Card>
           )}
