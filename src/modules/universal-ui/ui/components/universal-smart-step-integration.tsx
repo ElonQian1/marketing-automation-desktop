@@ -109,8 +109,8 @@ const adaptStepCardToIntelligent = (
     autoFollowSmart: smartCard.autoFollowSmart,
     lockContainer: false,
     smartThreshold: 0.82,
-    createdAt: smartCard.createdAt?.getTime() || Date.now(),
-    analyzedAt: smartCard.analyzedAt?.getTime(),
+    createdAt: smartCard.createdAt || Date.now(),
+    analyzedAt: smartCard.analyzedAt,
     updatedAt: Date.now(),
   };
 };

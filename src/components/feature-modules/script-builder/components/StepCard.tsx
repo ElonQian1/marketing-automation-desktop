@@ -14,7 +14,6 @@ import {
   Tag,
   Button,
   Dropdown,
-  Space,
   Tooltip,
   Progress,
   Typography,
@@ -23,7 +22,6 @@ import {
 } from 'antd';
 import {
   EditOutlined,
-  DeleteOutlined,
   CopyOutlined,
   PlayCircleOutlined,
   PauseCircleOutlined,
@@ -33,7 +31,6 @@ import {
   DragOutlined,
   MoreOutlined,
   EyeOutlined,
-  SettingOutlined,
 } from '@ant-design/icons';
 import type { ScriptStep, StepStatus, StepValidation } from '../types';
 
@@ -205,19 +202,20 @@ export const ScriptStepCard: React.FC<StepCardProps> = ({
         break;
 
       case 'input':
-        const inputParams = parameters as any;
+        const inputParams = parameters as Record<string, unknown>;
         if (inputParams.text) {
+          const text = inputParams.text as string;
           const displayText = inputParams.hidden 
             ? '***' 
-            : inputParams.text.length > 20 
-              ? `${inputParams.text.substring(0, 20)}...` 
-              : inputParams.text;
+            : text.length > 20 
+              ? `${text.substring(0, 20)}...` 
+              : text;
           summary.push(`文本: ${displayText}`);
         }
         break;
 
       case 'swipe':
-        const swipeParams = parameters as any;
+        const swipeParams = parameters as Record<string, unknown>;
         if (swipeParams.direction) {
           summary.push(`方向: ${swipeParams.direction}`);
         }
@@ -227,17 +225,18 @@ export const ScriptStepCard: React.FC<StepCardProps> = ({
         break;
 
       case 'wait':
-        const waitParams = parameters as any;
+        const waitParams = parameters as Record<string, unknown>;
         if (waitParams.duration) {
           summary.push(`时间: ${waitParams.duration}ms`);
         }
         if (waitParams.condition) {
-          summary.push(`条件: ${waitParams.condition.type}`);
+          const condition = waitParams.condition as { type: string };
+          summary.push(`条件: ${condition.type}`);
         }
         break;
 
       case 'loop':
-        const loopParams = parameters as any;
+        const loopParams = parameters as Record<string, unknown>;
         if (loopParams.iterations) {
           summary.push(`次数: ${loopParams.iterations}`);
         }
@@ -354,7 +353,7 @@ export const ScriptStepCard: React.FC<StepCardProps> = ({
               size="small"
               checked={step.enabled}
               onChange={(checked) => onToggleEnabled?.(step.id, checked)}
-              onClick={(e: any) => e?.stopPropagation?.()}
+              onClick={(checked, e) => e?.stopPropagation?.()}
             />
 
             {/* 更多操作 */}
@@ -367,7 +366,7 @@ export const ScriptStepCard: React.FC<StepCardProps> = ({
                 type="text" 
                 size="small" 
                 icon={<MoreOutlined />}
-                onClick={(e: any) => e?.stopPropagation?.()}
+                onClick={(e: React.MouseEvent) => e?.stopPropagation?.()}
               />
             </Dropdown>
           </div>

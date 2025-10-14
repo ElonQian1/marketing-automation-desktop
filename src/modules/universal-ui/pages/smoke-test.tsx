@@ -6,16 +6,14 @@ import React, { useState } from 'react';
 import { Card, Space, Button, Typography, Alert, Steps, message } from 'antd';
 import { 
   PlayCircleOutlined, 
-  PlusOutlined, 
   CheckCircleOutlined,
   ThunderboltOutlined,
   ReloadOutlined
 } from '@ant-design/icons';
 
 import { UniversalSmartStepIntegration } from '../ui/components/universal-smart-step-integration';
-import type { ElementSelectionContext } from '../types/intelligent-analysis-types';
 
-const { Title, Paragraph, Text } = Typography;
+const { Title, Paragraph } = Typography;
 
 /**
  * 测试步骤类型

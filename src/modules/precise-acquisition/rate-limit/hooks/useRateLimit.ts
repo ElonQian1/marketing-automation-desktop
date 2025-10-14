@@ -10,15 +10,13 @@
 
 import { useState, useEffect, useCallback } from 'react';
 import { 
-  ProspectingRateLimitService,
-  RateLimitCheckResult
-} from '../../../../application/services/precise-acquisition/prospecting-rate-limit-service';
-import {
+  RateLimitService as ProspectingRateLimitService,
+  RateLimitCheckResult,
   DedupCheckResult,
   DedupStats,
-  RateLimitConfig,
   DedupLevel
 } from '../services/prospecting-rate-limit-service';
+import { RateLimitConfig } from '../types';
 import { 
   Task, 
   Comment, 

@@ -19,9 +19,19 @@ export {
 } from "./hooks/useStepStrategy";
 
 // === 🎯 统一步骤卡片系统（推荐使用） ===
-// 暂时注释掉，等待完整实现
-// export { StepCardSystem } from "./components/step-card-system";
-// export * from "./components/step-card-system/types/step-card-system-types";
+export { StepCardSystem } from "./components/step-card-system/StepCardSystem";
+export * from "./types/unified-step-card-types";
+export * from "./hooks/use-step-card-actions";
+export * from "./styles/step-card-theme";
+
+// === 改进的包装器（渐进式迁移） ===
+export { 
+  ImprovedSmartStepWrapper,
+  SmartStepCardWrapperV2 
+} from "./components/improved-smart-step-wrapper";
+
+// === 演示页面 ===
+export { StepCardSystemDemo } from "./pages/step-card-system-demo";
 
 // === 智能分析工作流导出 ===
 export * from "./types/intelligent-analysis-types";
