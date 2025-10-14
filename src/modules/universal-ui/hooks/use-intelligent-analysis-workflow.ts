@@ -16,7 +16,6 @@ import type {
   AnalysisJob,
   IntelligentStepCard,
   AnalysisResult,
-  StrategyCandidate,
   AnalysisProgressEvent,
   AnalysisDoneEvent,
   AnalysisErrorEvent
@@ -59,21 +58,7 @@ function generateId(): string {
   return `${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
 }
 
-/**
- * 创建默认的兜底策略
- */
-function createFallbackStrategy(context: ElementSelectionContext): StrategyCandidate {
-  return {
-    key: 'fallback_xpath',
-    name: '绝对XPath（兜底）',
-    confidence: 70,
-    description: '使用绝对XPath路径，稳定但可能受布局变化影响',
-    variant: 'index_fallback',
-    xpath: context.elementPath,
-    enabled: true,
-    isRecommended: false
-  };
-}
+
 
 /**
  * 智能分析工作流管理Hook
@@ -299,7 +284,9 @@ export function useIntelligentAnalysisWorkflow(): UseIntelligentAnalysisWorkflow
   ): Promise<string> => {
     const stepId = generateId();
     const selectionHash = calculateSelectionHash(context);
-    const fallbackStrategy = createFallbackStrategy(context);
+    
+    // 使用增强的兜底策略生成器
+    const fallbackStrategy = (await import('../domain/fallback-strategy-generator')).FallbackStrategyGenerator.generatePrimaryFallback(context);
     
     try {
       // 调用后端创建步骤卡片
@@ -309,20 +296,20 @@ export function useIntelligentAnalysisWorkflow(): UseIntelligentAnalysisWorkflow
         lockContainer
       });
       
-      // 创建步骤卡片
+      // 创建步骤卡片 - 关键：立即可用的默认值
       const stepCard: IntelligentStepCard = {
         stepId,
         stepName: `步骤 ${stepCards.length + 1}`,
-        stepType: context.elementType || 'unknown',
+        stepType: context.elementType || 'tap',
         elementContext: context,
         selectionHash,
-        analysisState: 'idle',
+        analysisState: 'idle', // 初始状态：未分析但可用
         analysisProgress: 0,
-        strategyMode: 'intelligent',
+        strategyMode: 'intelligent', // 默认智能模式
         smartCandidates: [],
         staticCandidates: [],
-        activeStrategy: fallbackStrategy,
-        fallbackStrategy,
+        activeStrategy: fallbackStrategy, // 立即使用兜底策略
+        fallbackStrategy, // 保存兜底策略引用
         autoFollowSmart: true,
         lockContainer,
         smartThreshold: 0.82,
@@ -332,7 +319,7 @@ export function useIntelligentAnalysisWorkflow(): UseIntelligentAnalysisWorkflow
       
       setStepCards(prev => [...prev, stepCard]);
       
-      // 自动启动分析
+      // 自动启动后台分析（不阻塞用户操作）
       const jobId = await startAnalysis(context, stepId);
       
       // 更新步骤卡片的分析状态

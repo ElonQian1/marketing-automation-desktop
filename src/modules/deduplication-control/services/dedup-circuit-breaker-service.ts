@@ -8,9 +8,9 @@
  * 实现熔断器模式，提供系统保护机制
  */
 import { invoke } from '@tauri-apps/api/core';
-import { 
-  CircuitBreakerState,
-  CircuitBreakerConfig,
+import {
+  DedupCircuitBreakerState,
+  DedupCircuitBreakerConfig,
   CircuitBreakerStatus,
   SafetyCheckRequest 
 } from '../types';
@@ -46,7 +46,7 @@ export class DedupCircuitBreakerStorageService {
       });
       
       return {
-        state: status.state as CircuitBreakerState,
+        state: status.state as DedupCircuitBreakerState,
         failureCount: status.failure_count,
         successCount: status.success_count,
         failureRate: status.failure_rate,
@@ -54,7 +54,7 @@ export class DedupCircuitBreakerStorageService {
         lastSuccessTime: status.last_success_time ? new Date(status.last_success_time) : undefined,
         nextCheckTime: status.next_check_time ? new Date(status.next_check_time) : undefined,
         stateHistory: status.state_history.map(item => ({
-          state: item.state as CircuitBreakerState,
+          state: item.state as DedupCircuitBreakerState,
           timestamp: new Date(item.timestamp),
           reason: item.reason
         }))
@@ -63,7 +63,7 @@ export class DedupCircuitBreakerStorageService {
       console.error('获取熔断器状态失败:', error);
       // 返回默认关闭状态
       return {
-        state: CircuitBreakerState.CLOSED,
+        state: DedupCircuitBreakerState.CLOSED,
         failureCount: 0,
         successCount: 0,
         failureRate: 0,
@@ -97,10 +97,10 @@ export class DedupCircuitBreakerStorageService {
   /**
    * 更新熔断器状态
    */
-  static async updateCircuitBreakerState(
+  static async updateDedupCircuitBreakerState(
     accountId: string,
     taskType: 'follow' | 'reply',
-    newState: CircuitBreakerState,
+    newState: DedupCircuitBreakerState,
     reason: string
   ): Promise<void> {
     try {
@@ -172,9 +172,9 @@ export class DedupCircuitBreakerStorageService {
  * 熔断器决策引擎
  */
 export class DedupCircuitBreakerDecisionEngine {
-  private config: CircuitBreakerConfig;
+  private config: DedupCircuitBreakerConfig;
   
-  constructor(config: CircuitBreakerConfig) {
+  constructor(config: DedupCircuitBreakerConfig) {
     this.config = config;
   }
   
@@ -229,18 +229,18 @@ export class DedupCircuitBreakerDecisionEngine {
   /**
    * 计算下次检查时间
    */
-  calculateNextCheckTime(currentState: CircuitBreakerState): Date {
+  calculateNextCheckTime(currentState: DedupCircuitBreakerState): Date {
     const now = new Date();
     const nextCheck = new Date(now);
     
     switch (currentState) {
-      case CircuitBreakerState.OPEN:
+      case DedupCircuitBreakerState.OPEN:
         nextCheck.setMinutes(now.getMinutes() + this.config.openDurationMinutes);
         break;
-      case CircuitBreakerState.HALF_OPEN:
+      case DedupCircuitBreakerState.HALF_OPEN:
         nextCheck.setMinutes(now.getMinutes() + this.config.autoRecovery.checkIntervalMinutes);
         break;
-      case CircuitBreakerState.CLOSED:
+      case DedupCircuitBreakerState.CLOSED:
         nextCheck.setMinutes(now.getMinutes() + this.config.timeWindowMinutes);
         break;
     }
@@ -253,10 +253,10 @@ export class DedupCircuitBreakerDecisionEngine {
  * 主熔断器服务
  */
 export class DedupCircuitBreakerService {
-  private config: CircuitBreakerConfig;
+  private config: DedupCircuitBreakerConfig;
   private decisionEngine: DedupCircuitBreakerDecisionEngine;
   
-  constructor(config: CircuitBreakerConfig) {
+  constructor(config: DedupCircuitBreakerConfig) {
     this.config = config;
     this.decisionEngine = new DedupCircuitBreakerDecisionEngine(config);
   }
@@ -273,7 +273,7 @@ export class DedupCircuitBreakerService {
       return {
         allowed: true,
         status: {
-          state: CircuitBreakerState.CLOSED,
+          state: DedupCircuitBreakerState.CLOSED,
           failureCount: 0,
           successCount: 0,
           failureRate: 0,
@@ -288,23 +288,23 @@ export class DedupCircuitBreakerService {
     );
     
     // 检查是否需要状态转换
-    const updatedStatus = await this.updateCircuitBreakerState(request, status);
+    const updatedStatus = await this.updateDedupCircuitBreakerState(request, status);
     
     switch (updatedStatus.state) {
-      case CircuitBreakerState.CLOSED:
+      case DedupCircuitBreakerState.CLOSED:
         return {
           allowed: true,
           status: updatedStatus
         };
         
-      case CircuitBreakerState.OPEN:
+      case DedupCircuitBreakerState.OPEN:
         return {
           allowed: false,
           status: updatedStatus,
           reason: '熔断器开启状态，系统暂时不可用'
         };
         
-      case CircuitBreakerState.HALF_OPEN:
+      case DedupCircuitBreakerState.HALF_OPEN:
         // 半开状态下，允许少量请求通过
         const shouldAllow = await this.shouldAllowInHalfOpen(request, updatedStatus);
         return {
@@ -325,7 +325,7 @@ export class DedupCircuitBreakerService {
   /**
    * 更新熔断器状态
    */
-  private async updateCircuitBreakerState(
+  private async updateDedupCircuitBreakerState(
     request: SafetyCheckRequest,
     currentStatus: CircuitBreakerStatus
   ): Promise<CircuitBreakerStatus> {
@@ -342,31 +342,31 @@ export class DedupCircuitBreakerService {
     let reason = '';
     
     switch (currentStatus.state) {
-      case CircuitBreakerState.CLOSED:
+      case DedupCircuitBreakerState.CLOSED:
         // 检查是否应该打开熔断器
         if (this.decisionEngine.shouldOpenCircuit(
           stats.failureCount,
           stats.failureRate,
           stats.totalOperations
         )) {
-          newState = CircuitBreakerState.OPEN;
+          newState = DedupCircuitBreakerState.OPEN;
           reason = `失败率过高 (${(stats.failureRate * 100).toFixed(1)}%)，熔断器开启`;
         }
         break;
         
-      case CircuitBreakerState.OPEN:
+      case DedupCircuitBreakerState.OPEN:
         // 检查是否应该进入半开状态
         if (currentStatus.lastFailureTime && 
             this.decisionEngine.shouldEnterHalfOpen(currentStatus.lastFailureTime)) {
-          newState = CircuitBreakerState.HALF_OPEN;
+          newState = DedupCircuitBreakerState.HALF_OPEN;
           reason = '熔断器进入半开状态，开始探测';
         }
         break;
         
-      case CircuitBreakerState.HALF_OPEN:
+      case DedupCircuitBreakerState.HALF_OPEN:
         // 检查是否应该关闭熔断器
         if (this.decisionEngine.shouldCloseCircuit(currentStatus.successCount)) {
-          newState = CircuitBreakerState.CLOSED;
+          newState = DedupCircuitBreakerState.CLOSED;
           reason = '连续成功次数达到阈值，熔断器关闭';
         }
         // 或者检查是否应该重新打开
@@ -375,7 +375,7 @@ export class DedupCircuitBreakerService {
           stats.failureRate,
           stats.totalOperations
         )) {
-          newState = CircuitBreakerState.OPEN;
+          newState = DedupCircuitBreakerState.OPEN;
           reason = '半开状态下仍有失败，重新开启熔断器';
         }
         break;
@@ -383,7 +383,7 @@ export class DedupCircuitBreakerService {
     
     // 如果状态发生变化，更新数据库
     if (newState !== currentStatus.state) {
-      await DedupCircuitBreakerStorageService.updateCircuitBreakerState(
+      await DedupCircuitBreakerStorageService.updateDedupCircuitBreakerState(
         request.accountId,
         request.taskType,
         newState,
@@ -478,15 +478,15 @@ export class DedupCircuitBreakerService {
     );
     
     switch (status.state) {
-      case CircuitBreakerState.CLOSED:
+      case DedupCircuitBreakerState.CLOSED:
         // 基于失败率计算健康度
         return Math.max(0, 100 - (status.failureRate * 100));
         
-      case CircuitBreakerState.HALF_OPEN:
+      case DedupCircuitBreakerState.HALF_OPEN:
         // 半开状态健康度中等
         return 50;
         
-      case CircuitBreakerState.OPEN:
+      case DedupCircuitBreakerState.OPEN:
         // 开启状态健康度最低
         return 0;
         
@@ -502,7 +502,7 @@ export class DedupCircuitBreakerService {
     const recommendations: string[] = [];
     
     switch (status.state) {
-      case CircuitBreakerState.OPEN:
+      case DedupCircuitBreakerState.OPEN:
         recommendations.push('系统已熔断，建议检查网络连接和设备状态');
         recommendations.push('等待自动恢复或手动重置熔断器');
         if (status.nextCheckTime) {
@@ -510,12 +510,12 @@ export class DedupCircuitBreakerService {
         }
         break;
         
-      case CircuitBreakerState.HALF_OPEN:
+      case DedupCircuitBreakerState.HALF_OPEN:
         recommendations.push('系统正在恢复中，请减少操作频率');
         recommendations.push('确保网络稳定后再继续操作');
         break;
         
-      case CircuitBreakerState.CLOSED:
+      case DedupCircuitBreakerState.CLOSED:
         if (status.failureRate > 0.1) { // 失败率超过10%
           recommendations.push('系统运行正常，但失败率较高，建议关注');
           recommendations.push('检查网络质量和设备性能');
@@ -526,3 +526,4 @@ export class DedupCircuitBreakerService {
     return recommendations;
   }
 }
+

@@ -23,10 +23,7 @@ const IntelligentAnalysisDemo: React.FC = () => {
     currentJobs,
     startAnalysis,
     createStepCardQuick,
-    deleteStepCard,
-    retryAnalysis,
-    upgradeStep,
-    switchStrategy
+    deleteStepCard
   } = useIntelligentAnalysisWorkflow();
 
   const [demoStep, setDemoStep] = useState(0);
@@ -212,16 +209,32 @@ const IntelligentAnalysisDemo: React.FC = () => {
         ) : (
           <Space direction="vertical" style={{ width: '100%' }}>
             {stepCards.map((card, index) => (
-              <IntelligentStepCard
+              <IntelligentStepCard 
                 key={card.stepId}
                 stepCard={card}
                 stepIndex={index + 1}
-                onUpgradeStrategy={() => upgradeStep(card.stepId)}
-                onRetryAnalysis={() => retryAnalysis(card.stepId)}
-                onSwitchStrategy={(strategyKey, followSmart) => 
-                  switchStrategy(card.stepId, strategyKey, followSmart)
-                }
-                onDelete={() => deleteStepCard(card.stepId)}
+                showDebugInfo={true}
+                onUpgradeStrategy={() => {
+                  console.log(`升级步骤 ${card.stepId} 的策略`);
+                  // 实际使用中会调用 upgradeStep(card.stepId)
+                }}
+                onRetryAnalysis={() => {
+                  console.log(`重试分析步骤 ${card.stepId}`);
+                  // 实际使用中会调用 retryAnalysis(card.stepId)
+                }}
+                onSwitchStrategy={(strategyKey, followSmart) => {
+                  console.log(`切换步骤 ${card.stepId} 的策略到 ${strategyKey}，跟随智能推荐: ${followSmart}`);
+                  // 实际使用中会调用 switchStrategy(card.stepId, strategyKey, followSmart)
+                }}
+                onViewDetails={() => {
+                  console.log(`查看步骤 ${card.stepId} 的详情`);
+                }}
+                onCancelAnalysis={() => {
+                  console.log(`取消步骤 ${card.stepId} 的分析`);
+                  if (card.analysisJobId) {
+                    // 实际使用中会调用 cancelAnalysis(card.analysisJobId)
+                  }
+                }}
               />
             ))}
           </Space>

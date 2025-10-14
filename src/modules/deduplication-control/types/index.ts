@@ -11,7 +11,7 @@
 /**
  * 去重策略类型
  */
-export enum DeduplicationStrategy {
+export enum DedupDeduplicationStrategy {
   COMMENT_LEVEL = 'comment_level',        // 评论级去重
   USER_LEVEL = 'user_level',              // 用户级去重
   CONTENT_LEVEL = 'content_level',        // 内容级去重
@@ -22,7 +22,7 @@ export enum DeduplicationStrategy {
 /**
  * 频控类型
  */
-export enum RateLimitType {
+export enum DedupRateLimitType {
   HOURLY = 'hourly',                      // 每小时限制
   DAILY = 'daily',                        // 每日限制
   WEEKLY = 'weekly',                      // 每周限制
@@ -33,7 +33,7 @@ export enum RateLimitType {
 /**
  * 熔断状态
  */
-export enum CircuitBreakerState {
+export enum DedupCircuitBreakerState {
   CLOSED = 'closed',                      // 关闭状态（正常）
   OPEN = 'open',                          // 开启状态（熔断）
   HALF_OPEN = 'half_open',               // 半开状态（试探）
@@ -42,9 +42,9 @@ export enum CircuitBreakerState {
 /**
  * 去重配置
  */
-export interface DeduplicationConfig {
+export interface DedupDeduplicationConfig {
   /** 启用的去重策略 */
-  strategies: DeduplicationStrategy[];
+  strategies: DedupDeduplicationStrategy[];
   
   /** 评论级去重配置 */
   commentLevel: {
@@ -84,9 +84,9 @@ export interface DeduplicationConfig {
 /**
  * 频控配置
  */
-export interface RateLimitConfig {
+export interface DedupRateLimitConfig {
   /** 启用的频控类型 */
-  types: RateLimitType[];
+  types: DedupRateLimitType[];
   
   /** 每小时限制 */
   hourly: {
@@ -133,7 +133,7 @@ export interface RateLimitConfig {
 /**
  * 熔断器配置
  */
-export interface CircuitBreakerConfig {
+export interface DedupCircuitBreakerConfig {
   enabled: boolean;
   
   /** 失败阈值 */
@@ -172,11 +172,11 @@ export interface DeduplicationResult {
   allowed: boolean;
   
   /** 触发的去重策略 */
-  triggeredStrategies: DeduplicationStrategy[];
+  triggeredStrategies: DedupDeduplicationStrategy[];
   
   /** 重复项详情 */
   duplicates: Array<{
-    strategy: DeduplicationStrategy;
+    strategy: DedupDeduplicationStrategy;
     reason: string;
     conflictId?: string;
     conflictTime?: Date;
@@ -194,7 +194,7 @@ export interface RateLimitResult {
   allowed: boolean;
   
   /** 触发的频控类型 */
-  triggeredTypes: RateLimitType[];
+  triggeredTypes: DedupRateLimitType[];
   
   /** 当前使用量 */
   currentUsage: {
@@ -227,7 +227,7 @@ export interface RateLimitResult {
  */
 export interface CircuitBreakerStatus {
   /** 当前状态 */
-  state: CircuitBreakerState;
+  state: DedupCircuitBreakerState;
   
   /** 失败计数 */
   failureCount: number;
@@ -249,7 +249,7 @@ export interface CircuitBreakerStatus {
   
   /** 状态变更历史 */
   stateHistory: Array<{
-    state: CircuitBreakerState;
+    state: DedupCircuitBreakerState;
     timestamp: Date;
     reason: string;
   }>;
@@ -284,7 +284,7 @@ export interface SafetyCheckRequest {
   deviceId?: string;
   
   /** 元数据 */
-  metadata?: Record<string, any>;
+  metadata?: Record<string, unknown>;
   
   /** 上下文信息 */
   context?: {
@@ -391,7 +391,7 @@ export interface SafetyRule {
   };
   
   /** 规则配置 */
-  config: DeduplicationConfig | RateLimitConfig | CircuitBreakerConfig | any;
+  config: DedupDeduplicationConfig | DedupRateLimitConfig | DedupCircuitBreakerConfig | Record<string, unknown>;
   
   /** 创建时间 */
   createdAt: Date;
@@ -514,8 +514,28 @@ export type ListAction = 'add' | 'update' | 'delete' | 'batch_import' | 'export'
 /**
  * 安全配置（统一配置接口）
  */
-export interface SafetyConfig {
-  deduplication: DeduplicationConfig;
-  rateLimit: RateLimitConfig;
-  circuitBreaker: CircuitBreakerConfig;
+export interface DedupSafetyConfig {
+  deduplication: DedupDeduplicationConfig;
+  rateLimit: DedupRateLimitConfig;
+  circuitBreaker: DedupCircuitBreakerConfig;
 }
+
+// ========================
+// 临时向后兼容别名（将在后续版本中移除）
+// ========================
+
+/** @deprecated 请使用 DedupDeduplicationStrategy */
+export { DedupDeduplicationStrategy as DeduplicationStrategy };
+/** @deprecated 请使用 DedupRateLimitType */  
+export { DedupRateLimitType as RateLimitType };
+/** @deprecated 请使用 DedupCircuitBreakerState */
+export { DedupCircuitBreakerState as CircuitBreakerState };
+
+/** @deprecated 请使用 DedupDeduplicationConfig */
+export type DeduplicationConfig = DedupDeduplicationConfig;
+/** @deprecated 请使用 DedupRateLimitConfig */
+export type RateLimitConfig = DedupRateLimitConfig;
+/** @deprecated 请使用 DedupCircuitBreakerConfig */
+export type CircuitBreakerConfig = DedupCircuitBreakerConfig;
+/** @deprecated 请使用 DedupSafetyConfig */
+export type SafetyConfig = DedupSafetyConfig;

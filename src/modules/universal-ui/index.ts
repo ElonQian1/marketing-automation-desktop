@@ -1,4 +1,11 @@
-// src/modules/universal-ui/index.ts
+// src/modules/unive// === 智能分析工作流导出 ===
+export * from './types/intelligent-analysis-types';
+export * from './utils/selection-hash';
+export * from './hooks/use-intelligent-analysis-workflow';
+export { IntelligentStepCard as IntelligentStepCardComponent } from './components/intelligent-step-card';
+export * from './components/enhanced-element-selection-popover';
+export { FallbackStrategyGenerator } from './domain/fallback-strategy-generator';
+export * from './services/mock-analysis-backend';
 // module: universal-ui | layer: public | role: barrel
 // summary: 只导出 public 契约 / 用例 / 必要 hooks（不导出内部实现）
 
@@ -22,7 +29,6 @@ export {
 export * from './types/intelligent-analysis-types';
 export * from './utils/selection-hash';
 export * from './hooks/use-intelligent-analysis-workflow';
-export { IntelligentStepCard as IntelligentStepCardComponent } from './components/intelligent-step-card';
 export * from './components/enhanced-element-selection-popover';
 export { default as IntelligentAnalysisDemo } from './pages/intelligent-analysis-demo';
 export * from './services/mock-analysis-backend';
@@ -38,10 +44,8 @@ export {
 // === UI 组件导出 ===
 export { StepCard } from './ui/StepCard';
 export { AnalysisStepCard } from './ui/AnalysisStepCard';
-export { UniversalEnhancedStepCard } from './ui/components/universal-enhanced-step-card';
-// Components
+// Components  
 export { UniversalAnalysisStatusSection } from './ui/components/universal-analysis-status-section';
-export { UniversalSmartStepCard } from './ui/components/universal-smart-step-card';
 export { UniversalEnhancedElementPopover } from './ui/components/universal-enhanced-element-popover';
 export { UniversalSmartStepDemo } from './ui/components/universal-smart-step-demo';
 export { SmartVariantBadge, SimpleVariantBadge } from './ui/partials/SmartVariantBadge';

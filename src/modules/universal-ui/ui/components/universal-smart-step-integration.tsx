@@ -6,13 +6,15 @@ import React, { useState, useCallback, useEffect } from 'react';
 import { Card, Space, Button, Typography, message } from 'antd';
 import { PlayCircleOutlined, PlusOutlined } from '@ant-design/icons';
 
-import { UniversalSmartStepCard } from './universal-smart-step-card';
+import { IntelligentStepCard } from '../../components/intelligent-step-card';
 import { UniversalEnhancedElementPopover, type PopoverState } from './universal-enhanced-element-popover';
 import { 
   useSmartStepWorkflow, 
   type ElementSelectionContext, 
   type SmartStepCard as StepCardAnalysisState
 } from '../hooks/universal-use-smart-step-workflow';
+import type { IntelligentStepCard as IntelligentStepCardData } from '../../types/intelligent-analysis-types';
+import { calculateSelectionHash } from '../../utils/selection-hash';
 
 const { Title, Text } = Typography;
 
@@ -46,6 +48,56 @@ const createMockElementContext = (index: number): ElementSelectionContext => ({
 });
 
 /**
+ * 将SmartStepCard转换为IntelligentStepCard格式
+ */
+const adaptStepCardToIntelligent = (smartCard: StepCardAnalysisState): IntelligentStepCardData => {
+  return {
+    stepId: smartCard.stepId,
+    stepName: smartCard.stepName,
+    stepType: smartCard.stepType,
+    elementContext: smartCard.elementContext || createMockElementContext(1),
+    selectionHash: calculateSelectionHash(smartCard.elementContext || createMockElementContext(1)),
+    analysisState: smartCard.analysisState as any,
+    analysisJobId: smartCard.analysisJobId,
+    analysisProgress: smartCard.analysisProgress,
+    strategyMode: smartCard.strategyMode as any,
+    smartCandidates: [],
+    staticCandidates: [],
+    activeStrategy: smartCard.activeStrategy ? {
+      ...smartCard.activeStrategy,
+      isRecommended: false
+    } : {
+      key: 'fallback',
+      name: '默认策略',
+      confidence: 0.5,
+      description: '基于元素路径的兜底策略',
+      variant: 'index_fallback',
+      enabled: true,
+      isRecommended: false
+    },
+    recommendedStrategy: smartCard.recommendedStrategy ? {
+      ...smartCard.recommendedStrategy,
+      isRecommended: true
+    } : undefined,
+    fallbackStrategy: {
+      key: 'fallback',
+      name: '默认策略', 
+      confidence: 0.5,
+      description: '基于元素路径的兜底策略',
+      variant: 'index_fallback',
+      enabled: true,
+      isRecommended: false
+    },
+    autoFollowSmart: smartCard.autoFollowSmart,
+    lockContainer: false,
+    smartThreshold: 0.82,
+    createdAt: smartCard.createdAt?.getTime() || Date.now(),
+    analyzedAt: smartCard.analyzedAt?.getTime(),
+    updatedAt: Date.now()
+  };
+};
+
+/**
  * 智能步骤系统集成组件
  * 演示和测试完整的从元素选择到步骤创建的工作流
  */
@@ -66,11 +118,9 @@ export const UniversalSmartStepIntegration: React.FC<UniversalSmartStepIntegrati
   const {
     currentJob,
     stepCards: workflowStepCards,
-    isAnalyzing,
     startAnalysisFromPopover,
     createStepCardQuick,
     cancelAnalysis,
-    deleteStep,
     clearAllJobs
   } = useSmartStepWorkflow();
 
@@ -114,7 +164,8 @@ export const UniversalSmartStepIntegration: React.FC<UniversalSmartStepIntegrati
         });
       }, 200);
       
-    } catch (error) {
+    } catch (err) {
+      console.error('Failed to start analysis:', err);
       setPopoverState('failed');
       message.error('分析启动失败');
     }
@@ -125,14 +176,15 @@ export const UniversalSmartStepIntegration: React.FC<UniversalSmartStepIntegrati
    */
   const handleDirectConfirm = useCallback(async () => {
     try {
-      const stepId = await createStepCardQuick(currentElementContext);
+      await createStepCardQuick(currentElementContext);
       
       // 步骤卡片会通过Hook自动更新到workflowStepCards中
       setShowPopover(false);
       setPopoverState('idle');
       
       message.success('步骤卡片已创建');
-    } catch (error) {
+    } catch (err) {
+      console.error('Failed to create step card:', err);
       message.error('创建步骤卡片失败');
     }
   }, [currentElementContext, createStepCardQuick, onStepsChange]);
@@ -235,21 +287,27 @@ export const UniversalSmartStepIntegration: React.FC<UniversalSmartStepIntegrati
               </div>
             ) : (
               <Space direction="vertical" style={{ width: '100%' }}>
-                {workflowStepCards.map((stepCard) => (
-                  <UniversalSmartStepCard
+                {workflowStepCards.map((stepCard, index) => (
+                  <IntelligentStepCard
                     key={stepCard.stepId}
-                    stepId={stepCard.stepId}
-                    stepName={stepCard.stepName}
-                    stepType={stepCard.stepType}
-                    strategyMode={stepCard.strategyMode}
-                    analysisState={stepCard.analysisState}
-                    analysisProgress={stepCard.analysisProgress}
-                    analysisJobId={stepCard.analysisJobId}
-                    recommendedStrategy={stepCard.recommendedStrategy}
-                    recommendedConfidence={stepCard.recommendedConfidence}
-                    strategyCandidates={stepCard.strategyCandidates}
-                    activeStrategy={stepCard.activeStrategy}
-                    autoFollowSmart={stepCard.autoFollowSmart}
+                    stepCard={adaptStepCardToIntelligent(stepCard)}
+                    stepIndex={index + 1}
+                    showDebugInfo={false}
+                    onUpgradeStrategy={() => {
+                      console.log(`升级步骤 ${stepCard.stepId} 的策略`);
+                    }}
+                    onRetryAnalysis={() => {
+                      console.log(`重试分析步骤 ${stepCard.stepId}`);
+                    }}
+                    onSwitchStrategy={(strategyKey, followSmart) => {
+                      console.log(`切换步骤 ${stepCard.stepId} 的策略到 ${strategyKey}，跟随智能推荐: ${followSmart}`);
+                    }}
+                    onViewDetails={() => {
+                      console.log(`查看步骤 ${stepCard.stepId} 的详情`);
+                    }}
+                    onCancelAnalysis={() => {
+                      console.log(`取消步骤 ${stepCard.stepId} 的分析`);
+                    }}
                   />
                 ))}
               </Space>
