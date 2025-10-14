@@ -6,28 +6,17 @@ import React, { useState, useCallback } from "react";
 import {
   Card,
   Space,
-  Button,
   Typography,
   Alert,
   Row,
   Col,
-  Divider,
   Switch,
   Select,
-  Tabs,
   message
 } from "antd";
-import {
-  PlayCircleOutlined,
-  ReloadOutlined,
-  ThunderboltOutlined,
-  CheckCircleOutlined,
-} from "@ant-design/icons";
 
 import { StepCardSystem } from "../components/step-card-system/StepCardSystem";
-import { ImprovedSmartStepWrapper } from "../components/improved-smart-step-wrapper";
 import type { UnifiedStepCardData, StepCardCallbacks } from "../types/unified-step-card-types";
-import type { SmartScriptStep } from "../../../types/smartScript";
 
 const { Title, Paragraph, Text } = Typography;
 
@@ -87,11 +76,7 @@ export const StepCardSystemDemo: React.FC = () => {
       element_selector: "//android.widget.Button[@text='登录']",
       action_data: { text: "Hello World" },
     },
-    analysis: {
-      confidence: 0.85,
-      strategy: "xpath_direct",
-      backup_strategies: ["xpath_index", "text_match"],
-    },
+
     metadata: {
       created_at: new Date().toISOString(),
       updated_at: new Date().toISOString(),
@@ -153,7 +138,7 @@ export const StepCardSystemDemo: React.FC = () => {
         
         <Space direction="vertical" size="middle" style={{ width: "100%" }}>
           <StepCardSystem
-            step={mockUnifiedStep}
+            stepData={mockUnifiedStep}
             callbacks={createCallbacks()}
             systemMode={enableIntelligent ? 'full' : 'interaction-only'}
           />

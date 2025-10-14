@@ -131,17 +131,13 @@ const DraggableStepCardInner: React.FC<
 > = ({
   step,
   index,
-  currentDeviceId,
-  devices,
   isDragging,
   onEdit,
   onDelete,
   onToggle,
-  onBatchMatch,
   onUpdateStepParameters,
   onUpdateStepMeta,
   StepTestButton,
-  ENABLE_BATCH_MATCH = false,
   onEditStepParams,
   onOpenPageAnalyzer,
 }) => {
@@ -150,13 +146,13 @@ const DraggableStepCardInner: React.FC<
   // 构建统一回调接口（适配现有接口）
   const callbacks: StepCardCallbacks = {
     // 基础操作
-    onEdit: (stepId: string) => {
+    onEdit: (_stepId: string) => {
       if (onOpenPageAnalyzer) return onOpenPageAnalyzer();
       if (onEditStepParams) return onEditStepParams(step);
       return onEdit(step);
     },
-    onDelete: (stepId: string) => onDelete(stepId),
-    onToggle: (stepId: string, enabled: boolean) => onToggle(stepId),
+    onDelete: (_stepId: string) => onDelete(_stepId),
+    onToggle: (stepId: string, _enabled: boolean) => onToggle(stepId),
     
     // 数据更新
     onDataChange: (stepId: string, newData: Partial<UnifiedStepCardData>) => {
@@ -172,23 +168,29 @@ const DraggableStepCardInner: React.FC<
     },
     
     // 拖拽相关（这里主要是状态报告，实际拖拽由外层处理）
-    onDragStart: (stepId: string) => {
+    onDragStart: (_stepId: string) => {
       // 拖拽开始时的逻辑（如果需要）
     },
-    onDragEnd: (stepId: string, newPosition: number) => {
+    onDragEnd: (_stepId: string, _newPosition: number) => {
       // 拖拽结束时的逻辑（如果需要）
     },
     
     // 测试功能
-    onTest: StepTestButton ? (stepId: string) => {
+    onTest: StepTestButton ? (_stepId: string) => {
       // 测试功能暂时保留原有逻辑，通过 StepTestButton 组件处理
       // 这里可以添加测试前的准备工作
     } : undefined,
   };
 
+  // 创建适配的步骤数据（添加缺失的属性）
+  const adaptedStepData: UnifiedStepCardData = {
+    ...step,
+    stepType: step.step_type || 'basic', // 使用现有的 step_type 或默认值
+  };
+
   return (
     <StepCardSystem
-      stepData={step}
+      stepData={adaptedStepData}
       stepIndex={index}
       config={{
         // 启用拖拽功能（DraggableStepCard 的核心特性）

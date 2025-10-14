@@ -77,7 +77,7 @@ export interface StepCardCallbacks {
   onEdit: () => void;
   onDelete: () => void;
   onToggle: () => void;
-  onTest?: () => Promise<{ success: boolean; message: string; details?: any }>;
+  onTest?: () => Promise<{ success: boolean; message: string; details?: unknown }>;
 }
 
 export const useStepCardActions = (callbacks: StepCardCallbacks) => {
@@ -120,7 +120,7 @@ export const useStepCardModals = () => {
     success: boolean;
     message: string;
     executionTime?: number;
-    details?: any;
+    details?: unknown;
   } | null>(null);
 
   return {

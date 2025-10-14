@@ -26,13 +26,13 @@ export interface UnifiedStepCardData {
 
   // === 执行参数 (传统格式) ===
   /** 执行参数 */
-  parameters?: Record<string, any>;
+  parameters?: Record<string, unknown>;
   /** 查找条件 */
-  findCondition?: any;
+  findCondition?: unknown;
   /** 验证条件 */
-  verification?: any;
+  verification?: unknown;
   /** 重试配置 */
-  retryConfig?: any;
+  retryConfig?: unknown;
   /** 回退动作 */
   fallbackActions?: UnifiedStepCardData[];
   /** 前置条件 */
@@ -100,9 +100,9 @@ export interface UnifiedStepCardData {
   /** 业务类型 */
   businessType?: 'prospecting' | 'script-builder' | 'contact-import' | 'adb';
   /** 业务特定数据 */
-  businessData?: Record<string, any>;
+  businessData?: Record<string, unknown>;
   /** 元数据 */
-  metadata?: Record<string, any>;
+  metadata?: Record<string, unknown>;
 }
 
 /**
@@ -167,12 +167,12 @@ export interface StepCardCallbacks {
   onRetryAnalysis?: (stepId: string) => void;
   onUpgradeStrategy?: (stepId: string) => void;
   onSwitchStrategy?: (stepId: string, strategyKey: string) => void;
-  onAnalysisComplete?: (stepId: string, result: any) => void;
-  onAnalysisError?: (stepId: string, error: any) => void;
+  onAnalysisComplete?: (stepId: string, result: unknown) => void;
+  onAnalysisError?: (stepId: string, error: unknown) => void;
 
   // === 数据更新 ===
   onDataChange?: (stepId: string, newData: Partial<UnifiedStepCardData>) => void;
-  onParameterChange?: (stepId: string, parameters: Record<string, any>) => void;
+  onParameterChange?: (stepId: string, parameters: Record<string, unknown>) => void;
   onMetaUpdate?: (stepId: string, meta: { name?: string; description?: string }) => void;
 }
 
@@ -303,41 +303,46 @@ export const adaptToIntelligentStepCard: DataAdapter<UnifiedStepCardData, Intell
 /**
  * 检查数据是否为 SmartScriptStep 格式
  */
-export const isSmartScriptStep = (data: any): data is SmartScriptStep => {
-  return data && typeof data.step_type !== 'undefined' && typeof data.parameters !== 'undefined';
+export const isSmartScriptStep = (data: unknown): data is SmartScriptStep => {
+  return data !== null && typeof data === 'object' && 
+    'step_type' in data && 'parameters' in data;
 };
 
 /**
  * 检查数据是否为 IntelligentStepCard 格式
  */
-export const isIntelligentStepCard = (data: any): data is IntelligentStepCard => {
-  return data && typeof data.stepId !== 'undefined' && typeof data.analysisState !== 'undefined';
+export const isIntelligentStepCard = (data: unknown): data is IntelligentStepCard => {
+  return data !== null && typeof data === 'object' && 
+    'stepId' in data && 'analysisState' in data;
 };
 
 /**
  * 智能适配器：自动识别数据格式并转换为统一格式
  */
-export const smartAdapt = (data: any): UnifiedStepCardData => {
+export const smartAdapt = (data: unknown): UnifiedStepCardData => {
   if (isIntelligentStepCard(data)) {
     return adaptFromIntelligentStepCard(data);
   }
   if (isSmartScriptStep(data)) {
     return adaptFromSmartScriptStep(data);
   }
+  // 安全类型断言
+  const anyData = data as Record<string, unknown>;
+  
   // 如果已经是统一格式，直接返回
-  if (data.id && data.name && data.stepType) {
+  if (anyData.id && anyData.name && anyData.stepType) {
     return data as UnifiedStepCardData;
   }
   
   // 最后的兜底处理
   console.warn('[SmartAdapt] Unknown data format, using fallback adaptation:', data);
   return {
-    id: data.id || data.stepId || 'unknown',
-    name: data.name || data.stepName || 'Unknown Step',
-    stepType: data.stepType || data.step_type || 'unknown',
-    description: data.description,
-    enabled: data.enabled ?? true,
-    parameters: data.parameters,
+    id: (anyData.id || anyData.stepId || 'unknown') as string,
+    name: (anyData.name || anyData.stepName || 'Unknown Step') as string,
+    stepType: (anyData.stepType || anyData.step_type || 'unknown') as string,
+    description: anyData.description as string,
+    enabled: (anyData.enabled ?? true) as boolean,
+    parameters: anyData.parameters as Record<string, unknown>,
     analysisState: 'idle',
     analysisProgress: 0,
     autoFollowSmart: true,

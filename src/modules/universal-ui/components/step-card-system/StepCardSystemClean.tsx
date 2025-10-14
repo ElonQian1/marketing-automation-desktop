@@ -11,7 +11,7 @@ import { generateStepCardStyles } from '../../styles/step-card-theme';
 // 统一的系统属性定义
 export interface StepCardSystemProps {
   /** 步骤数据（自动适配各种格式） */
-  stepData: any;
+  stepData: unknown;
   /** 步骤索引 */
   stepIndex?: number;
   /** 功能配置 */

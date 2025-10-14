@@ -41,7 +41,7 @@ export interface UseStepCardActionsReturn {
   /** 更新步骤数据 */
   handleDataChange: (updates: Partial<UnifiedStepCardData>) => void;
   /** 更新参数 */
-  handleParameterChange: (parameters: Record<string, any>) => void;
+  handleParameterChange: (parameters: Record<string, unknown>) => void;
   /** 更新元信息 */
   handleMetaUpdate: (meta: { name?: string; description?: string }) => void;
   /** 检查功能是否可用 */
@@ -96,7 +96,7 @@ export const useStepCardActions = ({
     }
   }, [stepData.id, callbacks.onDataChange]);
 
-  const handleParameterChange = useCallback((parameters: Record<string, any>) => {
+  const handleParameterChange = useCallback((parameters: Record<string, unknown>) => {
     if (callbacks.onParameterChange) {
       callbacks.onParameterChange(stepData.id, parameters);
     }
@@ -220,8 +220,8 @@ export interface UseStepCardIntelligentProps {
     onRetryAnalysis?: (stepId: string) => void;
     onUpgradeStrategy?: (stepId: string) => void;
     onSwitchStrategy?: (stepId: string, strategyKey: string) => void;
-    onAnalysisComplete?: (stepId: string, result: any) => void;
-    onAnalysisError?: (stepId: string, error: any) => void;
+    onAnalysisComplete?: (stepId: string, result: unknown) => void;
+    onAnalysisError?: (stepId: string, error: unknown) => void;
   };
 }
 

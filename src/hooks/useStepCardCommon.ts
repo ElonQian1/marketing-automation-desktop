@@ -54,7 +54,7 @@ export const useStepCardEdit = (initialName: string, initialDescription: string)
     // 名称编辑状态
     editingName,
     nameDraft,
-    setNameDraft: setNameDraft,
+    setNameDraft,
     beginEditName,
     saveName,
     cancelName,
@@ -62,35 +62,10 @@ export const useStepCardEdit = (initialName: string, initialDescription: string)
     // 描述编辑状态
     editingDescription,
     descriptionDraft,
-    setDescriptionDraft: setDescriptionDraft,
+    setDescriptionDraft,
     beginEditDescription,
     saveDescription,
     cancelDescription
-  };
-};
-
-  const cancelDesc = useCallback((currentDesc: string) => {
-    setEditingDesc(false);
-    setDescDraft(currentDesc);
-  }, []);
-
-  return {
-    // 状态
-    editingName,
-    editingDesc,
-    nameDraft,
-    descDraft,
-    
-    // 方法
-    beginEditName,
-    saveName,
-    cancelName,
-    setNameDraft,
-    
-    beginEditDesc,
-    saveDesc,
-    cancelDesc,
-    setDescDraft
   };
 };
 
@@ -105,14 +80,14 @@ export const useStepCardActions = (callbacks: {
   onCopy?: () => void;
   onToggle?: () => void;
   onOpenPageAnalyzer?: () => void;
-  onEditStepParams?: (step: any) => void;
+  onEditStepParams?: (step: unknown) => void;
 }) => {
   const handleEdit = useCallback(() => {
     if (callbacks.onOpenPageAnalyzer) {
       callbacks.onOpenPageAnalyzer();
     } else if (callbacks.onEditStepParams) {
       // 传入具体的 step 参数需要在使用时处理
-      callbacks.onEditStepParams;
+      // callbacks.onEditStepParams 将在具体使用时调用
     } else {
       callbacks.onEdit?.();
     }

@@ -114,19 +114,19 @@ export const ImprovedSmartStepWrapper: React.FC<ImprovedSmartStepWrapperProps> =
   // 构建统一的回调函数
   const callbacks: StepCardCallbacks = {
     // 基础操作（适配现有接口）
-    onEdit: (_stepId: string) => {
+    onEdit: () => {
       onEdit(step);
     },
     onDelete: (stepId: string) => {
       onDelete(stepId);
     },
-    onToggle: (stepId: string, _enabled: boolean) => {
+    onToggle: (stepId: string) => {
       onToggle(stepId);
     },
-    onTest: onTest ? (_stepId: string) => {
+    onTest: onTest ? () => {
       onTest(step);
     } : undefined,
-    onCopy: onCopy ? (_stepId: string) => {
+    onCopy: onCopy ? () => {
       onCopy(step);
     } : undefined,
     
