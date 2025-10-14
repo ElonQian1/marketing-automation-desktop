@@ -37,6 +37,7 @@ export { StepCardSystemDemo } from "./pages/step-card-system-demo";
 export * from "./types/intelligent-analysis-types";
 export * from "./utils/selection-hash";
 export * from "./hooks/use-intelligent-analysis-workflow";
+export * from "./hooks/use-intelligent-analysis-real"; // ✅ 新增: 真实Tauri命令Hook
 // ✅ 智能分析控制器（业务逻辑层）
 export * from "./components/intelligent-analysis-controller";
 export { FallbackStrategyGenerator } from "./domain/fallback-strategy-generator";

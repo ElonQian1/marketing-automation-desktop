@@ -715,6 +715,422 @@
     "solution": {
       "alias": "解决方案",
       "confidence": 1
+    },
+    "loop": {
+      "alias": "循环",
+      "confidence": 1
+    },
+    "skin": {
+      "alias": "皮肤",
+      "confidence": 1
+    },
+    "2b98217f8106db59bab9a2b28dc4c712eeead2": {
+      "alias": "二b九八二一七f八一零六db五九bab九a二b二八dc四c七一二eeead二",
+      "confidence": 1
+    },
+    "3f03794f88d0666ce04c20216c30b9fd08ebb1": {
+      "alias": "3f03794f88d0666ce04c20216c30b9fd08ebb1",
+      "confidence": 1
+    },
+    "501aae876a0cfe9d181e70e44f5f3705966469": {
+      "alias": "501aae876a0cfe9d181e70e44f5f3705966469",
+      "confidence": 1
+    },
+    "66ccfea451f6b8ed4b831ecfef4c67fa22e881": {
+      "alias": "六六ccfea四五一f六b八ed四b八三一ecef四c六七fa二二e八八一",
+      "confidence": 1
+    },
+    "6d8457d118165f11449f5337aaf3e58f842697": {
+      "alias": "六D八四五七五一八一六五一一四四九F五三三七AAF三E五八F八四二六九七",
+      "confidence": 1
+    },
+    "7f3bb3f09e801f53935b0f4b3e3d23b9cb81d8": {
+      "alias": "7f3bb3f09e801f53935b0f4b3e3d23b9cb81d8",
+      "confidence": 1
+    },
+    "final": {
+      "alias": "最终",
+      "confidence": 1
+    },
+    "precise": {
+      "alias": "精确",
+      "confidence": 1
+    },
+    "architecture": {
+      "alias": "架构",
+      "confidence": 1
+    },
+    "887c7e6a8b612ce28074a0375d9da81264270c": {
+      "alias": "八八七c七e六a八b六一二ce二八零七四a零三七五d九da八一二六四二七零c",
+      "confidence": 1
+    },
+    "a892754ca667af8f50e81d923069fd691fd45e": {
+      "alias": "a892754ca667af8f50e81d923069fd691fd45e",
+      "confidence": 1
+    },
+    "b757d46014e93cf4c3f0ed3288d0576d8cab38": {
+      "alias": "b757d46014e93cf4c3f0ed3288d0576d8cab38",
+      "confidence": 1
+    },
+    "d1450362cb66ac868e2035a8c4f51f24bc39df": {
+      "alias": "d1450362cb66ac868e2035a8c4f51f24bc39df",
+      "confidence": 1
+    },
+    "f8657145ac94b18168cd321745f3c6c1f234e3": {
+      "alias": "f8657145ac94b18168cd321745f3c6c1f234e3",
+      "confidence": 1
+    },
+    "6ecb789700ce48262ab6a494e220d33697e57f": {
+      "alias": "六ECB七八九七零零CE四八二六二AB六A四九四E二二零D三三六九七E五七F",
+      "confidence": 1
+    },
+    "8a2d568ad60f731f40cc604ab832b641b96f65": {
+      "alias": "8a2d568ad60f731f40cc604ab832b641b96f65",
+      "confidence": 1
+    },
+    "602db426510b2dcdb62b389a64c6ac9db2a4f4": {
+      "alias": "602db426510b2dcdb62b389a64c6ac9db2a4f4",
+      "confidence": 1
+    },
+    "7cbd5379fe2480f70a28a4fe6ec0db64ef01bd": {
+      "alias": "7cbd5379fe2480f70a28a4fe6ec0db64ef01bd",
+      "confidence": 1
+    },
+    "d4c17db9326991d91b0cb2834095bb74a36414": {
+      "alias": "d4c17db9326991d91b0cb2834095bb74a36414",
+      "confidence": 1
+    },
+    "d662f9f2ab4b98eb085efd41372081f29ff601": {
+      "alias": "d662f9f2ab4b98eb085efd41372081f29ff601",
+      "confidence": 1
+    },
+    "f02f5a00d866b47216ea8c1fdee123194464cb": {
+      "alias": "f02f5a00d866b47216ea8c1fdee123194464cb",
+      "confidence": 1
+    },
+    "fa04ff22f2fd8ae0b048debae3e2ec53a3a7bd": {
+      "alias": "fa04ff22f2fd8ae0b048debae3e2ec53a3a7bd",
+      "confidence": 1
+    },
+    "fd0ad281a022a379331d68b282e5dce4d3bd35": {
+      "alias": "fd0ad281a022a379331d68b282e5dce4d3bd35",
+      "confidence": 1
+    },
+    "45c1d05020f4365a047da45736e991d9cf7984": {
+      "alias": "四十五c一d零五零二零f四三六五四零四七d a四五七三六e九九一d九c f七九八四",
+      "confidence": 1
+    },
+    "61ada3820d01cf7f10d0e58fe00d5e134a7dde": {
+      "alias": "61ada3820d01cf7f10d0e58fe00d5e134a7dde",
+      "confidence": 1
+    },
+    "73c9d530e962ef29847ac9558f6da4ffd50148": {
+      "alias": "73c9d530e962ef29847ac9558f6da4ffd50148",
+      "confidence": 1
+    },
+    "93470fb372bbefd60aadb1eef478c3a8bf1fa3": {
+      "alias": "九三四七零fb三七八二bbeffd六零aad十一eef四七八c三a八bf一fa三",
+      "confidence": 1
+    },
+    "ab9b8eb2623ba9b58d983ca744095d08fa0793": {
+      "alias": "阿布9贝8艾布2623巴9贝58德983卡744095德08发0793",
+      "confidence": 1
+    },
+    "eb4d59a15914e33b17b694a90e91e31c2d47f0": {
+      "alias": "eb4d59a15914e33b17b694a90e91e31c2d47f0",
+      "confidence": 1
+    },
+    "2d8c0abd67519db558ebc8c28f5f7007ca2cd5": {
+      "alias": "2d8c0abd67519db558ebc8c28f5f7007ca2cd5",
+      "confidence": 1
+    },
+    "5eb201eda0338f5a11e3bf5e2d6f3ceaaa34a1": {
+      "alias": "5eb201eda0338f5a11e3bf5e2d6f3ceaaa34a1",
+      "confidence": 1
+    },
+    "9b31c2f236242cbf44fe0d49f6276f3e76a6ac": {
+      "alias": "九b三一c二f二三六二四二c b f四四f e零d四九f六二七六f三e七六a六a c",
+      "confidence": 1
+    },
+    "b59a425fa36ab4232337f12d42594952d7a8e9": {
+      "alias": "b59a425fa36ab4232337f12d42594952d7a8e9",
+      "confidence": 1
+    },
+    "cb766ba28d58dae992c9d37cd7abdcf6053f95": {
+      "alias": "cb766ba28d58dae992c9d37cd7abdcf6053f95",
+      "confidence": 1
+    },
+    "e9735dda6c9d57c527657a86e376fb12de40b3": {
+      "alias": "e9735dda6c9d57c527657a86e376fb12de40b3",
+      "confidence": 1
+    },
+    "14918a18503237b1ec4cfe0403dd01a7a1e452": {
+      "alias": "14918a18503237b1ec4cfe0403dd01a7a1e452",
+      "confidence": 1
+    },
+    "4daf6dbb6b1bbe496e504dff241f403db275bd": {
+      "alias": "四daf 六dbb 六b 一bbe 四九六e 五零四d ff 二四一f 四零三db 二七五bd",
+      "confidence": 1
+    },
+    "5908416ab06a7c6f23b271365a99c2979a201c": {
+      "alias": "5908416ab06a7c6f23b271365a99c2979a201c",
+      "confidence": 1
+    },
+    "acf5cb841cfe9fcc19edfb521fcdca5f87011b": {
+      "alias": "acf5cb841cfe9fcc19edfb521fcdca5f87011b",
+      "confidence": 1
+    },
+    "bc09bba4dd53772d955a32d3b0da9223fc490c": {
+      "alias": "bc09bba4dd53772d955a32d3b0da9223fc490c",
+      "confidence": 1
+    },
+    "933146ef6fc7dc6752103f403f7257232e3577": {
+      "alias": "九三三一四六埃弗六FC七DC六七五一二零三F四零三F七二五七二三二E三五七七",
+      "confidence": 1
+    },
+    "9f3b95b95c0134d0296e76da4e85335d15035e": {
+      "alias": "九f三b九五四c零一三四d零二九六e七六d四e八五三三五四一五零三五e",
+      "confidence": 1
+    },
+    "ea6d860acaff2b11ea2a08fe71d6958fb0556e": {
+      "alias": "ea6d860acaff2b11ea2a08fe71d6958fb0556e",
+      "confidence": 1
+    },
+    "73199f74b1bfc4242088e43af49325b515aea1": {
+      "alias": "73199f74b1bfc4242088e43af49325b515aea1",
+      "confidence": 1
+    },
+    "c813ff24bfd01159882ef7433ea824253e8cb8": {
+      "alias": "c813ff24bfd01159882ef7433ea824253e8cb8",
+      "confidence": 1
+    },
+    "cda25bab4619f00b046401c0a469fca0a34b95": {
+      "alias": "cda25bab4619f00b046401c0a469fca0a34b95",
+      "confidence": 1
+    },
+    "f4a48b163d02c201a38abba50988f0edb8fda5": {
+      "alias": "f4a48b163d02c201a38abba50988f0edb8fda5",
+      "confidence": 1
+    },
+    "2619a8d847702260ba6c7c6f9a6ac3a9e07ecf": {
+      "alias": "2619a8d847702260ba6c7c6f9a6ac3a9e07ecf",
+      "confidence": 1
+    },
+    "5045bc72917adf9478ead2f90a852e5058fa3f": {
+      "alias": "5045bc72917adf9478ead2f90a852e5058fa3f",
+      "confidence": 1
+    },
+    "9657cc929597d1b8b3d47c417f038b4b7513bb": {
+      "alias": "九六五七cc九二九五四一七f零三八b四b七五一三bb",
+      "confidence": 1
+    },
+    "a715d1495ede20db9d1ca327e357e2b83f0e3e": {
+      "alias": "a715d1495ede20db9d1ca327e357e2b83f0e3e",
+      "confidence": 1
+    },
+    "da85150e315244713ef3ebb5d4ff7c430fb0d2": {
+      "alias": "达85150e315244713ef3ebb5d4ff7c430fb0d2",
+      "confidence": 1
+    },
+    "e4fdadd847da03eff9d4b11d7fb500b436759d": {
+      "alias": "e4fdadd847da03eff9d4b11d7fb500b436759d",
+      "confidence": 1
+    },
+    "f9011209df607d1098a20742b4101c20a98740": {
+      "alias": "f9011209df607d1098a20742b4101c20a98740",
+      "confidence": 1
+    },
+    "fd1e6015f0624a7e8457219bb5c524971eb316": {
+      "alias": "fd1e6015f0624a7e8457219bb5c524971eb316",
+      "confidence": 1
+    },
+    "1a": {
+      "alias": "1a",
+      "confidence": 1
+    },
+    "266e6ac418013ea204701801860cf9cb5d2268": {
+      "alias": "266e6ac418013ea204701801860cf9cb5d2268",
+      "confidence": 1
+    },
+    "58b946a37f58ad2fa34fb86528d658d544dfb7": {
+      "alias": "五十八b九四六a三7f五十八a二f a三十四f b八六五二8d658d544d f b七",
+      "confidence": 1
+    },
+    "5caf57226ea0b4da81d88bde60f20600eaf718": {
+      "alias": "5caf57226ea0b4da81d88bde60f20600eaf718",
+      "confidence": 1
+    },
+    "a4695e7e3c8e430f5eaaa5fcec5a5d22543204": {
+      "alias": "a4695e7e3c8e430f5eaaa5fcec5a5d22543204",
+      "confidence": 1
+    },
+    "a8889278f3b45dc1f5517a6b19dc895aa9dffe": {
+      "alias": "a8889278f3b45dc1f5517a6b19dc895aa9dffe",
+      "confidence": 1
+    },
+    "bd07f2b8f1804ffaefc0d22c5f77fbfdcc28cd": {
+      "alias": "bd07f2b8f1804ffaefc0d22c5f77fbfdcc28cd",
+      "confidence": 1
+    },
+    "e312d78a4eb635f539d1c4c12c45aead9c0006": {
+      "alias": "e312d78a4eb635f539d1c4c12c45aead9c0006",
+      "confidence": 1
+    },
+    "1b": {
+      "alias": "1b",
+      "confidence": 1
+    },
+    "718c4d254fbe0264965a78f03370e0687f55ff": {
+      "alias": "718c4d254fbe0264965a78f03370e0687f55ff",
+      "confidence": 1
+    },
+    "794a530420d109d36816a24f5b977067f9734b": {
+      "alias": "794a530420d109d36816a24f5b977067f9734b",
+      "confidence": 1
+    },
+    "7d81270d9ea73bb31210e3c4824214e9072d12": {
+      "alias": "7d81270d9ea73bb31210e3c4824214e9072d12",
+      "confidence": 1
+    },
+    "b522f7d8c6d04ae3b927ae2610ed473d97c9e7": {
+      "alias": "b522f7d8c6d04ae3b927ae2610ed473d97c9e7",
+      "confidence": 1
+    },
+    "bc6cb6f040cbf5f97104c2a32477e62700c628": {
+      "alias": "bc6cb6f040cbf5f97104c2a32477e62700c628",
+      "confidence": 1
+    },
+    "ee9c4508ed2ead8ad269fa4d9bb187f3754401": {
+      "alias": "ee9c4508ed2ead8ad269fa4d9bb187f3754401",
+      "confidence": 1
+    },
+    "1c": {
+      "alias": "1c",
+      "confidence": 1
+    },
+    "0a7817c100e84e0cf32919977642411b23d8ed": {
+      "alias": "零a七八一七c一零零e八四e零c f三二九一九九七七六四二四一一b二三d八e d",
+      "confidence": 1
+    },
+    "26c1c17659e9a8cc85ab792588f7f0504d4ccb": {
+      "alias": "26c1c17659e9a8cc85ab792588f7f0504d4ccb",
+      "confidence": 1
+    },
+    "7eb7c18482b2417cb6d17b192f00a4f8febde3": {
+      "alias": "7eb7c18482b2417cb6d17b192f00a4f8febde3",
+      "confidence": 1
+    },
+    "96e64b8e441c5e8c2518060e6a42d436424f07": {
+      "alias": "九十六e六十四b八e四十四一c五e八c二十五十八零六零e六a四十二d四十三六四十二四f零七",
+      "confidence": 1
+    },
+    "9f2da431f38d93eefc449cbd9e9d6b8aa7782a": {
+      "alias": "九f二da四三一f三八d九三ee fc四四九cb d九e九d六b八aa七七八二a",
+      "confidence": 1
+    },
+    "c87b2a31675f6bfc64d6d29cff4ca15f7594bb": {
+      "alias": "c87b2a31675f6bfc64d6d29cff4ca15f7594bb",
+      "confidence": 1
+    },
+    "fef85f9111da57f2ad0fccfabcf77a4d13e806": {
+      "alias": "fef85f9111da57f2ad0fccfabcf77a4d13e806",
+      "confidence": 1
+    },
+    "1d": {
+      "alias": "一维",
+      "confidence": 1
+    },
+    "150fcd2746d860905e490355f354c078b5c20a": {
+      "alias": "150fcd2746d860905e490355f354c078b5c20a",
+      "confidence": 1
+    },
+    "23e03a715ba28cd7bc96ba831a359a9221f32f": {
+      "alias": "23e03a715ba28cd7bc96ba831a359a9221f32f",
+      "confidence": 1
+    },
+    "3e8f17c45e719815f851279727fd7f7892c6bb": {
+      "alias": "三e八f一七c四五e七一9815f八五一一二797二7fd7f7892c6bb",
+      "confidence": 1
+    },
+    "c527c4d12d7f25a9555d9043267d6e2a68d2f0": {
+      "alias": "c527c4d12d7f25a9555d9043267d6e2a68d2f0",
+      "confidence": 1
+    },
+    "1e": {
+      "alias": "1乘以10的幂",
+      "confidence": 1
+    },
+    "0453cd35289d1bc1de0a98ae851ea43015f2fa": {
+      "alias": "零四五三cd三五四八九五一bc一一de零a九八ae八五一ea四三零一五f二fa",
+      "confidence": 1
+    },
+    "346b08174f88d0b214fa64ebab139e8f1c23e8": {
+      "alias": "346b08174f88d0b214fa64ebab139e8f1c23e8",
+      "confidence": 1
+    },
+    "367ad5bba12e8f33283bc34d4e5728c12b9f35": {
+      "alias": "三六七ad五bb一一二e八f三三二八三四d四e五七二八c一二b九f三五",
+      "confidence": 1
+    },
+    "402b73ac42b4d0967d63eb72b0836cafdaadd2": {
+      "alias": "402b73ac42b4d0967d63eb72b0836cafdaadd2",
+      "confidence": 1
+    },
+    "6477950d0b0d2d310d61d1d16bf7e5655c6091": {
+      "alias": "六四七七九五零d零b零d二d三一零d六一一d一一六b f 七五六五四c六零九一",
+      "confidence": 1
+    },
+    "8cdf3a8ed9e794605a65c872632e323b29000b": {
+      "alias": "八cdf3a8ed9e794605a65c872632e323b29000b",
+      "confidence": 1
+    },
+    "a1a5e34035d740e22daa9675ed0f9bed64a3e7": {
+      "alias": "a1a5e34035d740e22daa9675ed0f9bed64a3e7",
+      "confidence": 1
+    },
+    "a98e61b7402b49d9bcd33b43afd981cde5259a": {
+      "alias": "a98e61b7402b49d9bcd33b43afd981cde5259a",
+      "confidence": 1
+    },
+    "c08053f841fd3078abdf01f0c001c4a3d71bb4": {
+      "alias": "c08053f841fd3078abdf01f0c001c4a3d71bb4",
+      "confidence": 1
+    },
+    "dfe70df8c9ce8460c5491e613003b59dfc6281": {
+      "alias": "dfe70df8c9ce8460c5491e613003b59dfc6281",
+      "confidence": 1
+    },
+    "e90a9dda3021e1d0147993cfb1d55eadac5860": {
+      "alias": "e90a9dda3021e1d0147993cfb1d55eadac5860",
+      "confidence": 1
+    },
+    "1f": {
+      "alias": "1f",
+      "confidence": 1
+    },
+    "512e427aeb20769ebbf0efb1da0b417a516834": {
+      "alias": "512e427aeb20769ebbf0efb1da0b417a516834",
+      "confidence": 1
+    },
+    "5fd1a6f41d71576be29c5c88b83e71146aad44": {
+      "alias": "五fd1a6f41d71576be29c5c88b83e71146aad44",
+      "confidence": 1
+    },
+    "6f3ceb6fa36dea3050cf660753d69e7dd7fae5": {
+      "alias": "六_f3_ce_b6_fa36_de_a3050_cf660753_d69_e7_dd7_fa_e5",
+      "confidence": 1
+    },
+    "86cf926bc54c4cced2733d0d42a865e8045144": {
+      "alias": "八六cf九二六bc五四c四ccd二七三三d零d四二a八六五e八零四五一四四",
+      "confidence": 1
+    },
+    "b010672f17bb444eacedb0cd672d89d9852864": {
+      "alias": "b010672f17bb444eacedb0cd672d89d9852864",
+      "confidence": 1
+    },
+    "402219d0e1982389dba04f3dab55303f4c3354": {
+      "alias": "四零二二一九二零一八二三八九德巴零四F三四五五三零三F四C三三五四",
+      "confidence": 1
     }
   },
   "phrases": {
@@ -748,6 +1164,22 @@
     },
     "debug solution": {
       "alias": "调试_解决方案",
+      "confidence": 1
+    },
+    "loop skin": {
+      "alias": "循环_皮肤",
+      "confidence": 1
+    },
+    "final precise": {
+      "alias": "最终_精确",
+      "confidence": 1
+    },
+    "precise architecture": {
+      "alias": "精确_架构",
+      "confidence": 1
+    },
+    "final architecture": {
+      "alias": "最终_架构",
       "confidence": 1
     }
   }

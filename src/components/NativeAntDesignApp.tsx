@@ -33,6 +33,7 @@ import {
   MenuUnfoldOutlined,
   SyncOutlined,
   AimOutlined,
+  ThunderboltOutlined,
 } from "@ant-design/icons";
 import type { MenuProps } from "antd";
 
@@ -69,6 +70,9 @@ import BusinessComponentsDemo from "../pages/BusinessComponentsDemo";
 // Design Tokens 演示页面
 import { DesignTokensDemo } from "../pages/DesignTokensDemo";
 import ElementDiscoveryTestPage from "../pages/ElementDiscoveryTestPage";
+
+// 智能分析真实演示
+import IntelligentAnalysisRealDemo from "../modules/universal-ui/pages/intelligent-analysis-real-demo";
 
 const { Header, Sider, Content } = Layout;
 const { Title } = Typography;
@@ -162,6 +166,11 @@ const NativeAntDesignApp: React.FC = () => {
       label: "🧪 元素发现调试测试",
     },
     {
+      key: "intelligent-analysis-real-demo",
+      icon: <ThunderboltOutlined />,
+      label: "⚡ 智能分析（真实）",
+    },
+    {
       key: "statistics-native",
       icon: <DashboardOutlined />,
       label: "统计页面（原生）",
@@ -226,6 +235,8 @@ const NativeAntDesignApp: React.FC = () => {
         return <DesignTokensDemo />;
       case "element-discovery-test":
         return <ElementDiscoveryTestPage />;
+      case "intelligent-analysis-real-demo":
+        return <IntelligentAnalysisRealDemo />;
       case "statistics-native":
         return <StatisticsPageNative />;
       case "statistics-optimized":
