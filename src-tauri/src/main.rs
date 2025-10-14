@@ -346,7 +346,9 @@ fn main() {
             // ✅ 智能分析功能
             start_intelligent_analysis,
             cancel_intelligent_analysis,
-            bind_analysis_result_to_step
+            bind_analysis_result_to_step,
+            get_step_strategy,
+            clear_step_strategy
         ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");

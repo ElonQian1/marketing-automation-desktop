@@ -96,6 +96,26 @@ pub struct AnalysisJobResponse {
     pub state: AnalysisJobState,
 }
 
+/// 绑定分析结果请求
+#[derive(Debug, Clone, Serialize, Deserialize)]
+#[serde(rename_all = "camelCase")]
+pub struct BindAnalysisResultRequest {
+    pub step_id: String,
+    pub analysis_result: AnalysisResult,
+    pub selected_strategy_key: String,
+    pub overwrite_existing: bool,
+}
+
+/// 绑定分析结果响应
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct BindAnalysisResultResponse {
+    pub success: bool,
+    pub message: String,
+    pub step_id: String,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub bound_strategy: Option<StrategyCandidate>,
+}
+
 // ============================================
 // 事件载荷 (Event Payloads)
 // ============================================
@@ -418,6 +438,10 @@ fn generate_mock_analysis_result(
 
 lazy_static::lazy_static! {
     static ref ANALYSIS_SERVICE: IntelligentAnalysisService = IntelligentAnalysisService::new();
+    /// 全局步骤策略存储 (内存缓存)
+    /// Key: step_id, Value: (StrategyCandidate, timestamp)
+    static ref STEP_STRATEGY_STORE: Arc<Mutex<HashMap<String, (StrategyCandidate, i64)>>> = 
+        Arc::new(Mutex::new(HashMap::new()));
 }
 
 /// 启动智能分析
@@ -438,14 +462,98 @@ pub async fn cancel_intelligent_analysis(job_id: String) -> Result<(), String> {
 /// 绑定分析结果到步骤卡
 #[tauri::command]
 pub async fn bind_analysis_result_to_step(
-    step_id: String,
-    result: AnalysisResult,
-) -> Result<(), String> {
-    // TODO: 实现将分析结果保存到步骤卡数据
-    tracing::info!(
-        "📌 绑定分析结果到步骤: step_id={}, recommended={}",
+    request: BindAnalysisResultRequest,
+) -> Result<BindAnalysisResultResponse, String> {
+    let BindAnalysisResultRequest {
         step_id,
-        result.recommended_key
+        analysis_result,
+        selected_strategy_key,
+        overwrite_existing,
+    } = request;
+    
+    // 1. 查找选中的策略
+    let selected_strategy = analysis_result
+        .smart_candidates
+        .iter()
+        .chain(analysis_result.static_candidates.iter())
+        .find(|s| s.key == selected_strategy_key)
+        .cloned();
+    
+    let strategy = match selected_strategy {
+        Some(s) => s,
+        None => {
+            return Err(format!(
+                "未找到策略 key={} (available: {:?})",
+                selected_strategy_key,
+                analysis_result
+                    .smart_candidates
+                    .iter()
+                    .map(|s| s.key.as_str())
+                    .collect::<Vec<_>>()
+            ));
+        }
+    };
+    
+    // 2. 检查是否已存在策略
+    let mut store = STEP_STRATEGY_STORE.lock().map_err(|e| {
+        format!("锁定步骤策略存储失败: {}", e)
+    })?;
+    
+    let has_existing = store.contains_key(&step_id);
+    
+    if has_existing && !overwrite_existing {
+        return Ok(BindAnalysisResultResponse {
+            success: false,
+            message: format!("步骤 {} 已存在策略,且未允许覆盖", step_id),
+            step_id: step_id.clone(),
+            bound_strategy: None,
+        });
+    }
+    
+    // 3. 保存策略到存储
+    let timestamp = std::time::SystemTime::now()
+        .duration_since(std::time::UNIX_EPOCH)
+        .unwrap()
+        .as_secs() as i64;
+    
+    store.insert(step_id.clone(), (strategy.clone(), timestamp));
+    
+    tracing::info!(
+        "✅ 绑定策略到步骤: step_id={}, strategy_key={}, confidence={:.1}%, overwrite={}",
+        step_id,
+        strategy.key,
+        strategy.confidence,
+        has_existing
     );
-    Ok(())
+    
+    // 4. 返回成功响应
+    Ok(BindAnalysisResultResponse {
+        success: true,
+        message: format!(
+            "成功绑定策略 '{}' 到步骤 '{}'",
+            strategy.name, step_id
+        ),
+        step_id,
+        bound_strategy: Some(strategy),
+    })
+}
+
+/// 获取步骤绑定的策略 (用于测试和查询)
+#[tauri::command]
+pub async fn get_step_strategy(step_id: String) -> Result<Option<StrategyCandidate>, String> {
+    let store = STEP_STRATEGY_STORE.lock().map_err(|e| {
+        format!("锁定步骤策略存储失败: {}", e)
+    })?;
+    
+    Ok(store.get(&step_id).map(|(strategy, _)| strategy.clone()))
+}
+
+/// 清除步骤策略 (用于测试)
+#[tauri::command]
+pub async fn clear_step_strategy(step_id: String) -> Result<bool, String> {
+    let mut store = STEP_STRATEGY_STORE.lock().map_err(|e| {
+        format!("锁定步骤策略存储失败: {}", e)
+    })?;
+    
+    Ok(store.remove(&step_id).is_some())
 }

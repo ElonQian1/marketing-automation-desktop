@@ -2359,6 +2359,38 @@
     "useform": {
       "alias": "使用表单",
       "confidence": 1
+    },
+    "identify": {
+      "alias": "识别",
+      "confidence": 1
+    },
+    "module": {
+      "alias": "模块",
+      "confidence": 1
+    },
+    "index": {
+      "alias": "索引",
+      "confidence": 1
+    },
+    "lint": {
+      "alias": "绒毛",
+      "confidence": 1
+    },
+    "errors": {
+      "alias": "错误",
+      "confidence": 1
+    },
+    "package": {
+      "alias": "包裹",
+      "confidence": 1
+    },
+    "lock": {
+      "alias": "锁",
+      "confidence": 1
+    },
+    "package-lock": {
+      "alias": "包裹_锁",
+      "confidence": 1
     }
   },
   "phrases": {
@@ -2444,6 +2476,14 @@
     },
     "debug useform": {
       "alias": "调试_使用表单",
+      "confidence": 1
+    },
+    "identify module": {
+      "alias": "识别模块",
+      "confidence": 1
+    },
+    "lint errors": {
+      "alias": "绒毛_错误",
       "confidence": 1
     }
   }
