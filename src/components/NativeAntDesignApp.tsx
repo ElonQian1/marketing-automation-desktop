@@ -73,8 +73,8 @@ import { DesignTokensDemo } from "../pages/DesignTokensDemo";
 import ElementDiscoveryTestPage from "../pages/ElementDiscoveryTestPage";
 
 // 智能分析真实演示
-import IntelligentAnalysisRealDemo from "../modules/universal-ui/pages/intelligent-analysis-real-demo";
-import AutoFillDemo from "../modules/universal-ui/pages/auto-fill-demo";
+import IntelligentAnalysisRealDemo from "../modules/universal-ui/pages/intelligent-analysis-real-demo.tsx";
+import AutoFillDemo from "../modules/universal-ui/pages/auto-fill-demo.tsx";
 
 const { Header, Sider, Content } = Layout;
 const { Title } = Typography;
