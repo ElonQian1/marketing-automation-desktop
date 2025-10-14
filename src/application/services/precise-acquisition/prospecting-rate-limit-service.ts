@@ -1,6 +1,6 @@
-// src/application/services/precise-acquisition/RateLimitService.ts
-// module: application | layer: application | role: app-service
-// summary: 应用服务
+// src/application/services/precise-acquisition/prospecting-rate-limit-service.ts
+// module: precise-acquisition | layer: application | role: rate-limit-service
+// summary: 精准获客频控服务
 
 /**
  * 精准获客 - 频控服务
@@ -25,7 +25,7 @@ export interface RateLimitCheckResult {
   };
 }
 
-export class RateLimitService {
+export class ProspectingRateLimitService {
   /**
    * 默认频控配置
    */
@@ -158,4 +158,4 @@ export class RateLimitService {
   }
 }
 
-export const rateLimitService = new RateLimitService();
+export const prospectingRateLimitService = new ProspectingRateLimitService();

@@ -10,9 +10,11 @@
 
 import { useState, useEffect, useCallback } from 'react';
 import { 
-  RateLimitService,
+  ProspectingRateLimitService,
+  RateLimitCheckResult
+} from '../../../../application/services/precise-acquisition/prospecting-rate-limit-service';
+import {
   DedupCheckResult,
-  RateLimitCheckResult,
   DedupStats,
   RateLimitConfig,
   DedupLevel
@@ -33,7 +35,7 @@ export interface UseRateLimitOptions {
 
 export interface UseRateLimitReturn {
   // 服务实例
-  service: RateLimitService;
+  service: ProspectingRateLimitService;
   
   // 数据状态
   stats: DedupStats | null;
@@ -83,7 +85,7 @@ export const useRateLimit = (options: UseRateLimitOptions = {}): UseRateLimitRet
   } = options;
   
   // 服务实例
-  const [service] = useState(() => new RateLimitService());
+  const [service] = useState(() => new ProspectingRateLimitService());
   
   // 数据状态
   const [stats, setStats] = useState<DedupStats | null>(null);

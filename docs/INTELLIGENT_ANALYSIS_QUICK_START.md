@@ -7,7 +7,8 @@
 ```typescript
 import {
   useIntelligentAnalysisWorkflow,
-  IntelligentStepCardComponent as IntelligentStepCard,
+  UnifiedStepCard,              // 推荐使用统一组件
+  IntelligentStepCard,          // 或使用智能分析专用组件
   EnhancedElementSelectionPopover,
   type ElementSelectionContext
 } from '@/modules/universal-ui';
@@ -51,7 +52,7 @@ const handleElementSelected = async (elementContext: ElementSelectionContext) =>
 return (
   <div>
     {stepCards.map((card, index) => (
-      <IntelligentStepCard
+      <UnifiedStepCard
         key={card.stepId}
         stepCard={card}
         stepIndex={index + 1}
