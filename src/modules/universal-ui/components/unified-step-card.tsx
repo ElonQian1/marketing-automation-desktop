@@ -1,8 +1,32 @@
 // src/modules/universal-ui/components/unified-step-card.tsx
 // module: universal-ui | layer: components | role: unified-component
-// summary: 统一的步骤卡片组件，合并智能分析和通用功能，支持状态驱动渲染
+// summary: 统一的步骤卡片组件，合并智能分析和通用功能，支持状态驱动渲染和拖拽
 
-import React, { useMemo } from "react";
+/**
+ * @deprecated ⚠️ 此组件为内部智能层实现，不建议直接使用
+ * 
+ * 🎯 推荐使用方式：
+ * ```tsx
+ * import { StepCardSystem } from '@/modules/universal-ui/components/step-card-system';
+ * 
+ * // 启用智能分析功能
+ * <StepCardSystem 
+ *   stepData={stepData}
+ *   config={{ 
+ *     enableDrag: false,       // 根据需要启用拖拽功能
+ *     enableIntelligent: true  // 内部会使用 UnifiedStepCard
+ *   }}
+ *   callbacks={{ onUpgradeStrategy: handleUpgrade, onRetryAnalysis: handleRetry }}
+ * />
+ * ```
+ * 
+ * ❌ 避免直接使用：
+ * - 功能不完整：只有智能分析，缺少完整的交互功能
+ * - 架构违规：绕过了系统化的组件协调机制
+ * - 理解困惑：容易与 DraggableStepCard 功能混淆
+ */
+
+import React, { useMemo, forwardRef } from "react";
 import {
   Card,
   Space,
@@ -17,6 +41,8 @@ import {
   Row,
   Col,
   Switch,
+  Dropdown,
+  type MenuProps,
 } from "antd";
 import {
   ThunderboltOutlined,
@@ -28,6 +54,12 @@ import {
   EyeOutlined,
   SettingOutlined,
   StopOutlined,
+  DragOutlined,
+  EditOutlined,
+  DeleteOutlined,
+  PlayCircleOutlined,
+  CopyOutlined,
+  MoreOutlined,
 } from "@ant-design/icons";
 
 import type { IntelligentStepCard as StepCardData } from "../types/intelligent-analysis-types";
@@ -37,6 +69,7 @@ const { Text } = Typography;
 /**
  * 统一步骤卡片属性
  * 根据文档要求：补齐状态与字段，不要新起版本组件
+ * 增强功能：支持拖拽、编辑、测试等传统功能
  */
 export interface UnifiedStepCardProps {
   /** 步骤卡片数据 */
@@ -54,6 +87,14 @@ export interface UnifiedStepCardProps {
   /** 是否显示模式切换开关 */
   showModeSwitch?: boolean;
 
+  // 拖拽相关
+  /** 是否支持拖拽 */
+  draggable?: boolean;
+  /** 是否正在拖拽 */
+  isDragging?: boolean;
+  /** 拖拽句柄引用 */
+  dragHandleProps?: React.HTMLAttributes<HTMLDivElement>;
+
   // 智能分析相关回调
   /** 升级到推荐策略 */
   onUpgradeStrategy?: () => void;
@@ -66,11 +107,21 @@ export interface UnifiedStepCardProps {
   /** 取消分析 */
   onCancelAnalysis?: () => void;
 
-  // 通用功能回调（兼容旧版）
+  // 通用功能回调（兼容旧版DraggableStepCard）
   /** 策略模式变更 */
   onModeChange?: (mode: "intelligent" | "manual") => void;
   /** 手动策略编辑 */
   onManualEdit?: (strategy: string) => void;
+  /** 编辑步骤 */
+  onEdit?: () => void;
+  /** 删除步骤 */
+  onDelete?: () => void;
+  /** 测试步骤 */
+  onTest?: () => void;
+  /** 复制步骤 */
+  onCopy?: () => void;
+  /** 切换启用/禁用 */
+  onToggle?: () => void;
 }
 
 /**
@@ -90,12 +141,20 @@ export const UnifiedStepCard: React.FC<UnifiedStepCardProps> = ({
   className = "",
   showDebugInfo = false,
   showModeSwitch = false,
+  draggable = false,
+  isDragging = false,
+  dragHandleProps,
   onUpgradeStrategy,
   onRetryAnalysis,
   onSwitchStrategy,
   onViewDetails,
   onCancelAnalysis,
   onModeChange,
+  onEdit,
+  onDelete,
+  onTest,
+  onCopy,
+  onToggle,
 }) => {
   /**
    * 获取顶部状态条信息（按文档要求的analysis_state呈现）
@@ -225,8 +284,17 @@ export const UnifiedStepCard: React.FC<UnifiedStepCardProps> = ({
 
   return (
     <Card
-      className={`light-theme-force unified-step-card ${className}`}
+      className={`light-theme-force unified-step-card ${className} ${isDragging ? 'dragging' : ''}`}
       size={size}
+      style={{
+        opacity: isDragging ? 0.5 : 1,
+        transform: isDragging ? 'rotate(2deg)' : 'none',
+        transition: isDragging ? 'none' : 'all 0.2s ease',
+        ...(isDragging && {
+          boxShadow: '0 8px 24px rgba(0,0,0,0.15)',
+          zIndex: 1000,
+        }),
+      }}
       title={
         <Space>
           <Text strong>
@@ -246,6 +314,16 @@ export const UnifiedStepCard: React.FC<UnifiedStepCardProps> = ({
       }
       extra={
         <Space>
+          {/* 拖拽句柄 */}
+          {draggable && (
+            <div
+              {...dragHandleProps}
+              style={{ cursor: isDragging ? 'grabbing' : 'grab' }}
+            >
+              <DragOutlined />
+            </div>
+          )}
+          
           {showModeSwitch && (
             <Tooltip title="智能/手动模式切换">
               <Switch
@@ -259,22 +337,72 @@ export const UnifiedStepCard: React.FC<UnifiedStepCardProps> = ({
               />
             </Tooltip>
           )}
-          <Tooltip title="查看详情">
+          
+          {/* 快速操作按钮 */}
+          {onTest && (
+            <Tooltip title="测试步骤">
+              <Button
+                size="small"
+                type="text"
+                icon={<PlayCircleOutlined />}
+                onClick={onTest}
+              />
+            </Tooltip>
+          )}
+          
+          {onViewDetails && (
+            <Tooltip title="查看详情">
+              <Button
+                size="small"
+                type="text"
+                icon={<EyeOutlined />}
+                onClick={onViewDetails}
+              />
+            </Tooltip>
+          )}
+          
+          {/* 更多操作菜单 */}
+          <Dropdown
+            menu={{
+              items: [
+                onEdit && {
+                  key: 'edit',
+                  icon: <EditOutlined />,
+                  label: '编辑步骤',
+                  onClick: onEdit,
+                },
+                onCopy && {
+                  key: 'copy',
+                  icon: <CopyOutlined />,
+                  label: '复制步骤',
+                  onClick: onCopy,
+                },
+                onToggle && {
+                  key: 'toggle',
+                  icon: <SettingOutlined />,
+                  label: '切换启用状态',
+                  onClick: onToggle,
+                },
+                onDelete && {
+                  type: 'divider',
+                },
+                onDelete && {
+                  key: 'delete',
+                  icon: <DeleteOutlined />,
+                  label: '删除步骤',
+                  onClick: onDelete,
+                  danger: true,
+                },
+              ].filter(Boolean) as MenuProps['items'],
+            }}
+            trigger={['click']}
+          >
             <Button
               size="small"
               type="text"
-              icon={<EyeOutlined />}
-              onClick={onViewDetails}
+              icon={<MoreOutlined />}
             />
-          </Tooltip>
-          <Tooltip title="设置">
-            <Button
-              size="small"
-              type="text"
-              icon={<SettingOutlined />}
-              onClick={onViewDetails}
-            />
-          </Tooltip>
+          </Dropdown>
         </Space>
       }
     >

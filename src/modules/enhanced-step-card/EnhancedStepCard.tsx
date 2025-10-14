@@ -5,6 +5,14 @@
 /**
  * 增强步骤卡片组件
  * 包含完整的元素信息和XML检查器功能
+ * 
+ * @deprecated ⚠️ 此组件功能特殊，建议评估是否可以整合到 StepCardSystem
+ * 
+ * 🤔 使用前请考虑：
+ * - 是否可以通过 StepCardSystem 的配置实现相同功能？
+ * - 是否可以将元素检查器功能作为插件集成？
+ * 
+ * 如果必须使用，请添加注释说明特殊用途原因。
  */
 
 import React, { useState } from 'react';

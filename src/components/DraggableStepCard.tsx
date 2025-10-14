@@ -2,7 +2,31 @@
 // module: ui | layer: ui | role: component
 // summary: UI 组件
 
-// 可拖拽的步骤卡片组件（还原旧版样式逻辑，模块化拼装）
+/**
+ * 可拖拽的步骤卡片组件（还原旧版样式逻辑，模块化拼装）
+ * 
+ * @deprecated ⚠️ 此组件为内部交互层实现，不建议直接使用
+ * 
+ * 🎯 推荐使用方式：
+ * ```tsx
+ * import { StepCardSystem } from '@/modules/universal-ui/components/step-card-system';
+ * 
+ * // 启用拖拽功能
+ * <StepCardSystem 
+ *   stepData={stepData}
+ *   config={{ 
+ *     enableDrag: true,        // 内部会使用 DraggableStepCard
+ *     enableIntelligent: false // 根据需要启用智能功能
+ *   }}
+ *   callbacks={{ onEdit: handleEdit, onDelete: handleDelete }}
+ * />
+ * ```
+ * 
+ * ❌ 避免直接使用：
+ * - 功能不完整：只有拖拽交互，缺少智能分析功能
+ * - 维护困难：直接依赖内部实现，未来可能无法兼容
+ * - 架构违规：绕过了系统化的组件协调机制
+ */
 
 import React, { useMemo, useState } from "react";
 import { Card } from "antd";

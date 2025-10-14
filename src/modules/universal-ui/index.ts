@@ -18,12 +18,18 @@ export {
   useStrategySwitch,
 } from "./hooks/useStepStrategy";
 
+// === 🎯 统一步骤卡片系统（推荐使用） ===
+// 暂时注释掉，等待完整实现
+// export { StepCardSystem } from "./components/step-card-system";
+// export * from "./components/step-card-system/types/step-card-system-types";
+
 // === 智能分析工作流导出 ===
 export * from "./types/intelligent-analysis-types";
 export * from "./utils/selection-hash";
 export * from "./hooks/use-intelligent-analysis-workflow";
-export { UnifiedStepCard as IntelligentStepCardComponent } from "./components/unified-step-card";
-export { UnifiedStepCard as IntelligentStepCard } from "./components/unified-step-card"; // 向后兼容别名
+// ❌ 不再导出内部组件，引导使用 StepCardSystem
+// export { UnifiedStepCard as IntelligentStepCardComponent } from "./components/unified-step-card";
+// export { UnifiedStepCard as IntelligentStepCard } from "./components/unified-step-card";
 export * from "./components/enhanced-element-selection-popover";
 export { FallbackStrategyGenerator } from "./domain/fallback-strategy-generator";
 export * from "./services/mock-analysis-backend";
@@ -46,8 +52,9 @@ export {
 } from "./stores/inspectorStore";
 
 // === UI 组件导出 ===
-export { UnifiedStepCard as StepCard } from "./components/unified-step-card"; // 统一接口
-export { StepCard as LegacyStepCard } from "./ui/StepCard"; // 保持向后兼容
+// ❌ 不再导出内部实现组件，统一使用 StepCardSystem
+// export { UnifiedStepCard as StepCard } from "./components/unified-step-card";
+export { StepCard as LegacyStepCard } from "./ui/StepCard"; // 保持向后兼容（特殊用途）
 // Components
 export { UniversalAnalysisStatusSection } from "./ui/components/universal-analysis-status-section";
 export { UniversalEnhancedElementPopover } from "./ui/components/universal-enhanced-element-popover";
