@@ -1,0 +1,754 @@
+{
+  "words": {
+    "clean": {
+      "alias": "清洁",
+      "confidence": 1
+    },
+    "outdated": {
+      "alias": "过时的",
+      "confidence": 1
+    },
+    "docs": {
+      "alias": "文档",
+      "confidence": 1
+    },
+    "xml": {
+      "alias": "可扩展标记语言",
+      "confidence": 1
+    },
+    "files": {
+      "alias": "文件",
+      "confidence": 1
+    },
+    "navigation": {
+      "alias": "导航",
+      "confidence": 1
+    },
+    "structure": {
+      "alias": "结构",
+      "confidence": 1
+    },
+    "numbers": {
+      "alias": "数字",
+      "confidence": 1
+    },
+    "repo": {
+      "alias": "仓库",
+      "confidence": 1
+    },
+    "fixed": {
+      "alias": "固定的",
+      "confidence": 1
+    },
+    "contact_numbers": {
+      "alias": "联系数字",
+      "confidence": 1
+    },
+    "numbers_repo": {
+      "alias": "数字仓库",
+      "confidence": 1
+    },
+    "contact_numbers_repo": {
+      "alias": "联系数字仓库",
+      "confidence": 1
+    },
+    "contact_numbers_repo_fixed": {
+      "alias": "联系数字仓库固定的",
+      "confidence": 1
+    },
+    "refactored": {
+      "alias": "重构",
+      "confidence": 1
+    },
+    "count": {
+      "alias": "计数",
+      "confidence": 1
+    },
+    "clickable": {
+      "alias": "可点击的",
+      "confidence": 1
+    },
+    "watch": {
+      "alias": "观看",
+      "confidence": 1
+    },
+    "mode": {
+      "alias": "模式",
+      "confidence": 1
+    },
+    "hooks": {
+      "alias": "钩子",
+      "confidence": 1
+    },
+    "applypatch": {
+      "alias": "应用补丁",
+      "confidence": 1
+    },
+    "msg": {
+      "alias": "消息",
+      "confidence": 1
+    },
+    "applypatch-msg": {
+      "alias": "应用补丁_消息",
+      "confidence": 1
+    },
+    "commit": {
+      "alias": "提交",
+      "confidence": 1
+    },
+    "fsmonitor": {
+      "alias": "文件系统监视器",
+      "confidence": 1
+    },
+    "watchman": {
+      "alias": "守望者",
+      "confidence": 1
+    },
+    "fsmonitor-watchman": {
+      "alias": "文件系统监视器_守望者",
+      "confidence": 1
+    },
+    "post": {
+      "alias": "岗位",
+      "confidence": 1
+    },
+    "update": {
+      "alias": "更新",
+      "confidence": 1
+    },
+    "pre": {
+      "alias": "预",
+      "confidence": 1
+    },
+    "pre-applypatch": {
+      "alias": "预应用补丁",
+      "confidence": 1
+    },
+    "merge": {
+      "alias": "合并",
+      "confidence": 1
+    },
+    "pre-merge": {
+      "alias": "预合并",
+      "confidence": 1
+    },
+    "pre-merge-commit": {
+      "alias": "预合并提交",
+      "confidence": 1
+    },
+    "push": {
+      "alias": "推",
+      "confidence": 1
+    },
+    "rebase": {
+      "alias": "重定基",
+      "confidence": 1
+    },
+    "pre-receive": {
+      "alias": "预接收",
+      "confidence": 1
+    },
+    "receive": {
+      "alias": "接收",
+      "confidence": 1
+    },
+    "prepare": {
+      "alias": "准备",
+      "confidence": 1
+    },
+    "to": {
+      "alias": "到",
+      "confidence": 1
+    },
+    "checkout": {
+      "alias": "结账",
+      "confidence": 1
+    },
+    "sendemail": {
+      "alias": "发送邮件",
+      "confidence": 1
+    },
+    "validate": {
+      "alias": "验证",
+      "confidence": 1
+    },
+    "sendemail-validate": {
+      "alias": "发送邮件_验证",
+      "confidence": 1
+    },
+    "exclude": {
+      "alias": "排除",
+      "confidence": 1
+    },
+    "refs": {
+      "alias": "引用",
+      "confidence": 1
+    },
+    "logs": {
+      "alias": "日志",
+      "confidence": 1
+    },
+    "heads": {
+      "alias": "头",
+      "confidence": 1
+    },
+    "main": {
+      "alias": "主要",
+      "confidence": 1
+    },
+    "remotes": {
+      "alias": "远程",
+      "confidence": 1
+    },
+    "origin": {
+      "alias": "起源",
+      "confidence": 1
+    },
+    "stash": {
+      "alias": "藏匿物",
+      "confidence": 1
+    },
+    "objects": {
+      "alias": "物体",
+      "confidence": 1
+    },
+    "32ab58f8f8bf0f5ce0bd01d865c9e0340b461b": {
+      "alias": "三十二阿布五十八F八F八BF零F五CE零BD零一D八六十五C九E零三十四零B四六十一B",
+      "confidence": 1
+    },
+    "690f44d0c8c77928d238e3cdd6aeb337bdc3e5": {
+      "alias": "六九零F四四D零C八C七七九二八D二三八E三CDD六AEB三三7BDC三E5",
+      "confidence": 1
+    },
+    "69eee0a7cfcbe04f53b473fc31db14b5bbfc0f": {
+      "alias": "六九eeee零a七cfcbe零四f五三b四七三fc三一db一四b五四bfc零f",
+      "confidence": 1
+    },
+    "869f3f15d677a0e56e3ecad72c03a78664b437": {
+      "alias": "八六九f三f一五d六七七a零e五6e三e卡达七二c零三a七八六六四b四三7",
+      "confidence": 1
+    },
+    "934e1dd019b7f9145bb01242f197037355448c": {
+      "alias": "九三四e一dd零一九b七f九一四五bb零一二四二f一九七零三7三五五四四八c",
+      "confidence": 1
+    },
+    "a16b1b146fa583d396f7ced32f3e4cd2b10564": {
+      "alias": "a16b1b146fa583d396f7ced32f3e4cd2b10564",
+      "confidence": 1
+    },
+    "ed66c260c49aec645f227f09eb7154e2f3ac0a": {
+      "alias": "埃德66c260c49aec645f227f09eb7154e2f3ac0a",
+      "confidence": 1
+    },
+    "ff02e78bc4499cbeaae707caa2249b7d06b86e": {
+      "alias": "ff02e78bc4499cbeaae707caa2249b7d06b86e",
+      "confidence": 1
+    },
+    "48ec3c03260189e5679a114c6b94b446417f6b": {
+      "alias": "四十八生态三三二六零一九五六七九一一四五六九三四四四六四一七F六B",
+      "confidence": 1
+    },
+    "903cf5eb6c42b454e95c85c0967b2507f97625": {
+      "alias": "九零三c_f5_eb_六四二_b_四五四_e九五_c_八五_c_九六七_b_二五零_七_f九七_六二五",
+      "confidence": 1
+    },
+    "aea49c258d5d2cc820bb99b05160da383a9a30": {
+      "alias": "aea49c258d5d2cc820bb99b05160da383a9a30",
+      "confidence": 1
+    },
+    "c3be755e57cee4483540e0d06331c342443d65": {
+      "alias": "c3be755e57cee4483540e0d06331c342443d65",
+      "confidence": 1
+    },
+    "f2e2afab4ae969ec216671b10071f19a79a2b7": {
+      "alias": "f2e2afab4ae969ec216671b10071f19a79a2b7",
+      "confidence": 1
+    },
+    "331ebb654224ce6f8ee1a8416a705941f2014b": {
+      "alias": "三十三_一_艾布_比_六五四二_二十四_塞_艾夫_八_一一八四_一_六七零_五九四一_福_二零一四_比",
+      "confidence": 1
+    },
+    "384755681d14b8163ca5e9ca7a9a339ebe199e": {
+      "alias": "三八四七五五六八一d一四b八一六三c a五e九c a七a九a三三九e b e一九九e",
+      "confidence": 1
+    },
+    "6046049839e2c937439d1d30fc57495f18b3ff": {
+      "alias": "六零四六零四九八三九 e 二 c 九三七四三九 d 一 d 三零 fc 五七四九五 f 一八 b 三 ff",
+      "confidence": 1
+    },
+    "610e3266cc0fdaf789079088a43c3e1a84ba1d": {
+      "alias": "六一一三二六六厘米零发到夫七八九零七九零八八啊三四三一啊八四吧一德",
+      "confidence": 1
+    },
+    "6387d54f1c5199e2b705738809c714426aa487": {
+      "alias": "六三八七D五四F一C五一九九E二B七零五七三八八零九C七一四四二六AA四八七",
+      "confidence": 1
+    },
+    "907b85d8dfb1b014cd4f5e26c0fd79af5970cc": {
+      "alias": "九零七b八五d八dfb一一零一四cd四f五e二六c零fd七九af五九七零cc",
+      "confidence": 1
+    },
+    "be288567b1de0b1457e0cbfacfd4745319468f": {
+      "alias": "be288567b1de0b1457e0cbfacfd4745319468f",
+      "confidence": 1
+    },
+    "1e00d2e2f2f1269ee9a2928240eae34943842c": {
+      "alias": "一e零零d二e二f二f一六九e e九a二九二八二四零e a e三十四943842c",
+      "confidence": 1
+    },
+    "347e180e1d270d3215b76e2a0db11900c4d817": {
+      "alias": "347e180e1d270d3215b76e2a0db11900c4d817",
+      "confidence": 1
+    },
+    "769eb77c9ffc5c1027bc740292a292bcb6c654": {
+      "alias": "769eb77c9ffc5c1027bc740292a292bcb6c654",
+      "confidence": 1
+    },
+    "d4412d5d1da863751bb661cb25da5b5e4d8f48": {
+      "alias": "d4412d5d1da863751bb661cb25da5b5e4d8f48",
+      "confidence": 1
+    },
+    "101c751ad6011bdac7676bb99c35cf9e665634": {
+      "alias": "101c751ad6011bdac7676bb99c35cf9e665634",
+      "confidence": 1
+    },
+    "2647232d563dbd2e0dd202714568a414b80c0c": {
+      "alias": "2647232d563dbd2e0dd202714568a414b80c0c",
+      "confidence": 1
+    },
+    "6645d521239e9d01b9ac0e7266cbf893f060ba": {
+      "alias": "六六四五D五二一二十三九E九D零一B九AC零E七二六六CBF八九三F零六零B_A",
+      "confidence": 1
+    },
+    "8a53d6917825f860b532e134298bb0062d8c57": {
+      "alias": "8a53d6917825f860b532e134298bb0062d8c57",
+      "confidence": 1
+    },
+    "978366e4b5d2de2968c9fadbcb1e62d7ff2e76": {
+      "alias": "九七八三六六e四b五四二德二九六八c九f阿德bc b一e六二d七ff二e七六",
+      "confidence": 1
+    },
+    "c5ffd76d7e592bc4b53637f0eb5b34a7ff7f17": {
+      "alias": "c5ffd76d7e592bc4b53637f0eb5b34a7ff7f17",
+      "confidence": 1
+    },
+    "e354cf4bfe9b2f70f2c496c71b6c36292c62b2": {
+      "alias": "e354cf4bfe9b2f70f2c496c71b6c36292c62b2",
+      "confidence": 1
+    },
+    "f8e9efd4a7f439eb9549dd3f21498eabff5773": {
+      "alias": "f8e9efd4a7f439eb9549dd3f21498eabff5773",
+      "confidence": 1
+    },
+    "aa4a4ed275dab4c95753aea68f5078483b3d42": {
+      "alias": "aa4a4ed275dab4c95753aea68f5078483b3d42",
+      "confidence": 1
+    },
+    "b839f22c9b87883750cd2a571ede7332dd8da5": {
+      "alias": "b839f22c9b87883750cd2a571ede7332dd8da5",
+      "confidence": 1
+    },
+    "c45582b6b64d537f60d97bfd294a1345ebdda4": {
+      "alias": "c45582b6b64d537f60d97bfd294a1345ebdda4",
+      "confidence": 1
+    },
+    "f0ddfa45924eb7c5eed80d158345e8780950c0": {
+      "alias": "f0ddfa45924eb7c5eed80d158345e8780950c0",
+      "confidence": 1
+    },
+    "f0eabad0abab011e44eb89038b6b5fe59e6297": {
+      "alias": "f0eabad0abab011e44eb89038b6b5fe59e6297",
+      "confidence": 1
+    },
+    "f7ea8d5c72c96fd49bc66896b35a1373bc9fe2": {
+      "alias": "f7ea8d5c72c96fd49bc66896b35a1373bc9fe2",
+      "confidence": 1
+    },
+    "01dc3c640864df8aaf5cff60be1a0a6c58aaed": {
+      "alias": "01dc3c640864df8aaf5cff60be1a0a6c58aaed",
+      "confidence": 1
+    },
+    "15afcf65fb6e505a58f32e157cc70594cd684e": {
+      "alias": "一五阿夫西夫六五四五零五四八八三二一五七西西七零五四九四西迪八四伊",
+      "confidence": 1
+    },
+    "25c068dcae354753f434c7b57c8cf28629e64a": {
+      "alias": "25c068dcae354753f434c7b57c8cf28629e64a",
+      "confidence": 1
+    },
+    "4c25a48a428dcf115482c06ab160b1c5d89c29": {
+      "alias": "4c25a48a428dcf115482c06ab160b1c5d89c29",
+      "confidence": 1
+    },
+    "579d7923c351086d719c600d0ce8798d88fe32": {
+      "alias": "579d7923c351086d719c600d0ce8798d88fe32",
+      "confidence": 1
+    },
+    "5b46d9a070d1ad919ef6c8511e69d4537a3f6c": {
+      "alias": "5b46d9a070d1ad919ef6c8511e69d4537a3f6c",
+      "confidence": 1
+    },
+    "8e19573a3610f85531a58834f8b66520911112": {
+      "alias": "八e一十九五七三a三六一零f八五五四三一a五八八三四f八b六六五一零九一一一一二",
+      "confidence": 1
+    },
+    "9c4e6a7840e5c80e742222531dac90670eec88": {
+      "alias": "九c四e六a七八四零e五c八零e七四二二二五三一d a c九零六七零e e c八八",
+      "confidence": 1
+    },
+    "ba24481c20dc4a657ffa4dab77722a177e9afb": {
+      "alias": "巴24481c20dc4a657ffa4dab77722a177e9afb",
+      "confidence": 1
+    },
+    "f0cc5eb61cd3c1c01dfde94c4c075bf7275970": {
+      "alias": "f0cc5eb61cd3c1c01dfde94c4c075bf7275970",
+      "confidence": 1
+    },
+    "f945a07cdd1e2753ee63297040da992c9a4dbb": {
+      "alias": "f945a07cdd1e2753ee63297040da992c9a4dbb",
+      "confidence": 1
+    },
+    "024db1412bf39a168c4d2d74c905be8894cf61": {
+      "alias": "零二四数据库一二三九一六八三四二七四九零五贝八八九四塞夫六一",
+      "confidence": 1
+    },
+    "05fac2fee58772f061bed2393689497ba2ed1f": {
+      "alias": "零五fac二fee五八七七二f零六一bed二三九三六八九四九七ba二ed一f",
+      "confidence": 1
+    },
+    "7e136534b4f6bf72f8eb8581d362065d0f9c38": {
+      "alias": "7e136534b4f6bf72f8eb8581d362065d0f9c38",
+      "confidence": 1
+    },
+    "afd97e1c7c256e0b443cc15c41fe952679ccb6": {
+      "alias": "阿福迪九七一七二五六零布四四三西西一五四一飞九五二六七九西西布六",
+      "confidence": 1
+    },
+    "c15fc1bc03edb1bd5eb6067852103d0db5f75c": {
+      "alias": "c15fc1bc03edb1bd5eb6067852103d0db5f75c",
+      "confidence": 1
+    },
+    "21418d15713bd6382c1af897f60c3620659b7a": {
+      "alias": "21418d15713bd6382c1af897f60c3620659b7a",
+      "confidence": 1
+    },
+    "3a0eef6608862ddb06b86486a9e2b92eab5300": {
+      "alias": "3a0eef6608862ddb06b86486a9e2b92eab5300",
+      "confidence": 1
+    },
+    "4cdfc6fe5ef460f4e9ea955ba02be400805d5c": {
+      "alias": "4cdfc6fe5ef460f4e9ea955ba02be400805d5c",
+      "confidence": 1
+    },
+    "7b98217048f2a0362d97ca43e8555f0f0e8e5e": {
+      "alias": "7b98217048f2a0362d97ca43e8555f0f0e8e5e",
+      "confidence": 1
+    },
+    "7c09aaaea7377241119edcd66a172159905e65": {
+      "alias": "7c09aaaea7377241119edcd66a172159905e65",
+      "confidence": 1
+    },
+    "8185eb818d6b7ecc67bebf4dda3891c27e858b": {
+      "alias": "八一八五eb八一八d六bec六七北f四d a三八九一c二七 e八五八 b",
+      "confidence": 1
+    },
+    "c9af7a81ffa0b7f3b1e13ad7711d81ae2ae43a": {
+      "alias": "c9af7a81ffa0b7f3b1e13ad7711d81ae2ae43a",
+      "confidence": 1
+    },
+    "ca2ce4bbbb9b1f76f03f159835b1e12de0d0d2": {
+      "alias": "ca2ce4bbbb9b1f76f03f159835b1e12de0d0d2",
+      "confidence": 1
+    },
+    "cdce50476447958474e78c9a7622ee556eaeec": {
+      "alias": "cdce50476447958474e78c9a7622ee556eaeec",
+      "confidence": 1
+    },
+    "fe0db3455a8269865e00eafcaed0dccc578a5d": {
+      "alias": "fe0db3455a8269865e00eafcaed0dccc578a5d",
+      "confidence": 1
+    },
+    "0e87943dcb70c26c122347a9eb027e90188321": {
+      "alias": "零电子八十七九十四三德布克七十C二六C一二二三四七A九EB零二七E九零一八八三二一",
+      "confidence": 1
+    },
+    "9c5402297d3761265ee4f94079ad168f4329bb": {
+      "alias": "九c五十四零二二九七d三七八一二六五ee四f九四零七九ad一六八f四三二九bb",
+      "confidence": 1
+    },
+    "df0aed276677fcf0178c927134d5f10b634c58": {
+      "alias": "df0aed276677fcf0178c927134d5f10b634c58",
+      "confidence": 1
+    },
+    "ec40d5df1018623400b2842c7626fae85fc874": {
+      "alias": "ec40d5df1018623400b2842c7626fae85fc874",
+      "confidence": 1
+    },
+    "fa34f5e209d0a85f27161ad19c7487e8132bd8": {
+      "alias": "fa34f5e209d0a85f27161ad19c7487e8132bd8",
+      "confidence": 1
+    },
+    "0a": {
+      "alias": "零a",
+      "confidence": 1
+    },
+    "030a5b4e62010aeee0780b7d372d04d2dbcb4d": {
+      "alias": "030a5b4e62010aeee0780b7d372d04d2dbcb4d",
+      "confidence": 1
+    },
+    "42aecfa84f8a043ed7cdb2c0f1703043f05588": {
+      "alias": "四二aecfa八四f八a零四三ed七cdb二c零f一七零三零四三f零五五八八",
+      "confidence": 1
+    },
+    "4a4dc6ace94217673b61fa4938d145d0f5766b": {
+      "alias": "4a4dc6ace94217673b61fa4938d145d0f5766b",
+      "confidence": 1
+    },
+    "56fb934a52ca2fb72661abe450a8a5cf0d8853": {
+      "alias": "56fb934a52ca2fb72661abe450a8a5cf0d8853",
+      "confidence": 1
+    },
+    "84c257c90cd15dfdd10efcabaab6de8c9613d9": {
+      "alias": "84c257c90cd15dfdd10efcabaab6de8c9613d9",
+      "confidence": 1
+    },
+    "a9f243ea6e5ab758bcdb0b74f2d9e6e771fbfb": {
+      "alias": "a9f243ea6e5ab758bcdb0b74f2d9e6e771fbfb",
+      "confidence": 1
+    },
+    "e9b4928e68b8881764ebd17f5263314c839a2a": {
+      "alias": "e9b4928e68b8881764ebd17f5263314c839a2a",
+      "confidence": 1
+    },
+    "0b": {
+      "alias": "零b",
+      "confidence": 1
+    },
+    "486eb0438ebd4e18f5eb86679f6ec6c25491dc": {
+      "alias": "四八六 EB 零四三八 EB D 四一八 F 五 EB 八六六七九 F 六 EC 六 C 二五四九一 DC",
+      "confidence": 1
+    },
+    "75fe0e73acf1a20fc304394e34080e61cb8df9": {
+      "alias": "75fe0e73acf1a20fc304394e34080e61cb8df9",
+      "confidence": 1
+    },
+    "864bd904bf696341fcb587eb07f7df3a21677b": {
+      "alias": "八六四bd九零四bf六九六三四一fc b五八七eb零七f七df三a二一六七七b",
+      "confidence": 1
+    },
+    "db609617510637a12691768bdde53b5546e883": {
+      "alias": "db609617510637a12691768bdde53b5546e883",
+      "confidence": 1
+    },
+    "0c": {
+      "alias": "零摄氏度",
+      "confidence": 1
+    },
+    "2113d54e061311e65d96d617ef29fd5cf2d9ac": {
+      "alias": "2113d54e061311e65d96d617ef29fd5cf2d9ac",
+      "confidence": 1
+    },
+    "2fb81bb565f6e2cd79a5eac067cd8118520064": {
+      "alias": "2fb81bb565f6e2cd79a5eac067cd8118520064",
+      "confidence": 1
+    },
+    "38faa0e788301474972103157b341cb3dfeeb4": {
+      "alias": "三十八法爱阿零七十八百八十四千四百九十七百二十一千三百一十五千七百三十四十百一千三百四十三的费额百四",
+      "confidence": 1
+    },
+    "3ddd9b34a2869a3ce6034afed625ae7b674e03": {
+      "alias": "3ddd9b34a2869a3ce6034afed625ae7b674e03",
+      "confidence": 1
+    },
+    "3e90f169a2d9c6029eae33c97fd8d89698517a": {
+      "alias": "三e九零f一六九a二d九c六零二九e一三c九七f d八d八九六九八五一七a",
+      "confidence": 1
+    },
+    "979a5bcf32e8c059966df71f865e51bab2dd11": {
+      "alias": "九七九a五bcf三二e八c零五九九六六df七一f八六五e五一bab二dd一一",
+      "confidence": 1
+    },
+    "ab8f3c287c9af78a252be56a521902fe842bd6": {
+      "alias": "ab8f3c287c9af78a252be56a521902fe842bd6",
+      "confidence": 1
+    },
+    "c5b95ee1c99976ccb1b8b9fb22f6416576c0af": {
+      "alias": "c5b95ee1c99976ccb1b8b9fb22f6416576c0af",
+      "confidence": 1
+    },
+    "c5eb86bcf94e286e826561e656d2b16d3ca439": {
+      "alias": "c5eb86bcf94e286e826561e656d2b16d3ca439",
+      "confidence": 1
+    },
+    "0d": {
+      "alias": "零维",
+      "confidence": 1
+    },
+    "439530d7a9c04150260da1106b7074a8778fe6": {
+      "alias": "四三九五三零d七a九c零四一五零二六零d一一零六b七零七四a八七七八fe六",
+      "confidence": 1
+    },
+    "ab6596ab07ca5d613ae0e647f2e7e7b90f57b6": {
+      "alias": "ab6596ab07ca5d613ae0e647f2e7e7b90f57b6",
+      "confidence": 1
+    },
+    "c8b1c1971a10df951227672abc71f52de1456a": {
+      "alias": "c8b1c1971a10df951227672abc71f52de1456a",
+      "confidence": 1
+    },
+    "e03c7f74d94a0a2d5025a474ec81a442407104": {
+      "alias": "e03c7f74d94a0a2d5025a474ec81a442407104",
+      "confidence": 1
+    },
+    "0e": {
+      "alias": "零e",
+      "confidence": 1
+    },
+    "311509fe757b5fb21e7c756ae5b2ba8d4e1b8c": {
+      "alias": "三一一五零九费七五七 b 五 fb 二一 e 七 c 七五六 a e 五二 ba 八 d 四 e 一 b 八 c",
+      "confidence": 1
+    },
+    "36fef560d701bfe21fe3b45e8dc370524ad4ae": {
+      "alias": "三十六fef560d701bfe21fe3b45e8dc370524ad4ae",
+      "confidence": 1
+    },
+    "633b457c88755f72ae3698584ba9d4564ec8e7": {
+      "alias": "六三三b四五四八八七五四五f七二ae三四九八五八四ba九d四五六四ec八e七",
+      "confidence": 1
+    },
+    "8ac98b0096063b793b6ccf85efbe03ae111bfe": {
+      "alias": "8ac98b0096063b793b6ccf85efbe03ae111bfe",
+      "confidence": 1
+    },
+    "a1462ababde88713ee1c758fd04adbae393c64": {
+      "alias": "a1462ababde88713ee1c758fd04adbae393c64",
+      "confidence": 1
+    },
+    "d193517d6e28d46f1490b5796a1a296730eb68": {
+      "alias": "d193517d6e28d46f1490b5796a1a296730eb68",
+      "confidence": 1
+    },
+    "f283fa049c9ea8aeb00d5a26d4aab31e9b4628": {
+      "alias": "f283fa049c9ea8aeb00d5a26d4aab31e9b4628",
+      "confidence": 1
+    },
+    "f3476f10afcc0143c3e6c32e86872ae379b895": {
+      "alias": "f3476f10afcc0143c3e6c32e86872ae379b895",
+      "confidence": 1
+    },
+    "fa3df72e62cf02c7853e7d07a59ab6a671fe8e": {
+      "alias": "fa3df72e62cf02c7853e7d07a59ab6a671fe8e",
+      "confidence": 1
+    },
+    "0f": {
+      "alias": "零_的",
+      "confidence": 1
+    },
+    "5254dfa47efa7dfec6e23038d74b0d65430b3f": {
+      "alias": "5254dfa47efa7dfec6e23038d74b0d65430b3f",
+      "confidence": 1
+    },
+    "9a69ba54192c96ec3574169cffd130a64b440b": {
+      "alias": "九a六九巴五四一九二c九六ec三五七四一六九cfff d130a64b440b",
+      "confidence": 1
+    },
+    "9eda4ecb785a8a6851aa3b82c89b6510f19b71": {
+      "alias": "九伊达四艾克不思七八五啊八啊六八五一啊三不二艾克不思八九不六五一零不一久七一",
+      "confidence": 1
+    },
+    "e15557e0057fd5a1019fd01901fb641cbaffb0": {
+      "alias": "e15557e0057fd5a1019fd01901fb641cbaffb0",
+      "confidence": 1
+    },
+    "ee0d076e9232655106e2940ee7f38db421a9a5": {
+      "alias": "ee0d076e9232655106e2940ee7f38db421a9a5",
+      "confidence": 1
+    },
+    "1ba60c89b6458e89e60df737925ee082b721df": {
+      "alias": "一芭六零西格玛九吧四五八吧八九一六零的 发七三七八九二五伊 一吧二一地 发",
+      "confidence": 1
+    },
+    "26eab0f6b9cbab6b47c823db8212684b0f8276": {
+      "alias": "二十六_eab0f6b9cbab6b47c823db8212684b0f8276",
+      "confidence": 1
+    },
+    "47dc99582bda13cb1b222dc63482646f2dd571": {
+      "alias": "四十七直流九千九百五十八二BD一十三CB一千二百二十二DC六千三百四十八万二千六百四十六F二DD五百七十一",
+      "confidence": 1
+    },
+    "4b9f72944045e4f87ffe59bed71c9c9ff2de63": {
+      "alias": "四b九f七二九四四零四五四f八七f fe五九b e d七一c九c九ff二d e六三",
+      "confidence": 1
+    },
+    "67ae6012114e2a933e5b9430329b950124b2fc": {
+      "alias": "六十七ae六零一二一一四e二a九三三e五b九四三零三二九b九五零一二四b二fc",
+      "confidence": 1
+    },
+    "6b57acc40712cb7b557becf21763fd7a632807": {
+      "alias": "六_b57_acc4_0712_cb7b_557_becf21763_fd7a632807",
+      "confidence": 1
+    },
+    "71bed0f651b9bdcc3c9d36dc00c74fd6bd31b3": {
+      "alias": "71bed0f651b9bdcc3c9d36dc00c74fd6bd31b3",
+      "confidence": 1
+    },
+    "c8aee07f15e6c7f3322976e2489e8f3fae7ae8": {
+      "alias": "c8aee07f15e6c7f3322976e2489e8f3fae7ae8",
+      "confidence": 1
+    },
+    "001a61e713aaa7233a65ab017ca57815cc8749": {
+      "alias": "零零一啊六一一七一三啊啊阿二三三啊六五啊布零一七卡啊五七八一五啊 see 八七四九",
+      "confidence": 1
+    },
+    "1e439704dfc389ec97969a04e90f96444f3782": {
+      "alias": "一e四三九七零四dfc三八九ec九七九六九a零四e九零f九六四四四f三七八二",
+      "confidence": 1
+    },
+    "2527405ef86d5975c2502f52e7690ff893f565": {
+      "alias": "2527405ef86d5975c2502f52e7690ff893f565",
+      "confidence": 1
+    },
+    "debug": {
+      "alias": "调试",
+      "confidence": 1
+    },
+    "solution": {
+      "alias": "解决方案",
+      "confidence": 1
+    }
+  },
+  "phrases": {
+    "clean outdated docs": {
+      "alias": "清洁过时文档",
+      "confidence": 1
+    },
+    "xml files": {
+      "alias": "可扩展标记语言文件",
+      "confidence": 1
+    },
+    "xml structure": {
+      "alias": "XML_结构",
+      "confidence": 1
+    },
+    "count clickable": {
+      "alias": "计数_可点击的",
+      "confidence": 1
+    },
+    "watch mode": {
+      "alias": "观看_模式",
+      "confidence": 1
+    },
+    "post update": {
+      "alias": "岗位_更新",
+      "confidence": 1
+    },
+    "to checkout": {
+      "alias": "到结账",
+      "confidence": 1
+    },
+    "debug solution": {
+      "alias": "调试_解决方案",
+      "confidence": 1
+    }
+  }
+}

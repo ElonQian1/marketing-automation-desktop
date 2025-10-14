@@ -43,6 +43,7 @@ filetime = "0.2"
 ## Pin transitive windows-core to satisfy iana-time-zone (<=0.62)
 windows-core = "=0.62.0"
 base64 = { version = "0.22", default-features = false, features = ["std"] }
+sha1 = "0.10"
 
 [dev-dependencies]
 tempfile = "3.8"

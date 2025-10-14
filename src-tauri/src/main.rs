@@ -342,7 +342,11 @@ fn main() {
             cleanup_expired_audit_logs,
             batch_store_audit_logs,
             // 去重索引（带TTL）
-            check_and_reserve_dedup
+            check_and_reserve_dedup,
+            // ✅ 智能分析功能
+            start_intelligent_analysis,
+            cancel_intelligent_analysis,
+            bind_analysis_result_to_step
         ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");
