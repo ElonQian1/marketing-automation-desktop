@@ -3,10 +3,8 @@
 
 import { useState, useCallback, useRef } from 'react';
 import type { UIElement } from '../../api/universalUIAPI';
-import type { 
-  StrategyCandidate,
-  StrategyPerformance
-} from '../../modules/universal-ui/types/intelligent-analysis-types';
+import type { StrategyCandidate } from '../../modules/universal-ui/types/intelligent-analysis-types';
+import { generateSelectionHash } from '../../modules/universal-ui/utils/selection-hash';
 
 // 向后兼容的类型定义
 export type AnalysisState = 'idle' | 'analyzing' | 'completed' | 'failed';
@@ -112,19 +110,6 @@ const STRATEGY_TEMPLATES: Record<string, Omit<StrategyCandidate, 'confidence' | 
     cons: ['稳定性最低', '易受页面变化影响', '维护成本高'],
     scenarios: ['临时解决方案', '测试环境', '简单重复结构']
   }
-};
-
-// 生成选择hash用于防串扰
-const generateSelectionHash = (element: UIElement): string => {
-  const keyAttrs = [
-    element.resource_id,
-    element.text,
-    element.class_name,
-    element.content_desc,
-    `${element.bounds?.left}-${element.bounds?.top}`
-  ].filter(Boolean).join('|');
-  
-  return btoa(keyAttrs).slice(0, 12);
 };
 
 // 模拟分析逻辑

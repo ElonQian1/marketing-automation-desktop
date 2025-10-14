@@ -165,3 +165,26 @@ export function debugSelectionHash(context: ElementSelectionContext): {
     components
   };
 }
+
+/**
+ * 简化版本：从 UIElement 生成选择哈希（向后兼容）
+ * 用于在没有完整上下文时快速生成哈希
+ */
+export function generateSelectionHash(element: {
+  resource_id?: string;
+  text?: string;
+  class_name?: string;
+  content_desc?: string;
+  bounds?: { left: number; top: number; right: number; bottom: number };
+}): string {
+  const keyAttrs = [
+    element.resource_id,
+    element.text,
+    element.class_name,
+    element.content_desc,
+    element.bounds ? `${element.bounds.left}-${element.bounds.top}` : undefined
+  ].filter(Boolean).join('|');
+  
+  // 使用相同的哈希算法保持一致性
+  return calculateTextHash(keyAttrs).slice(0, 12);
+}
