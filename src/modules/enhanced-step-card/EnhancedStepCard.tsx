@@ -31,11 +31,9 @@ import {
 import {
   EditOutlined,
   BugOutlined,
-  EyeOutlined,
   InfoCircleOutlined,
   AndroidOutlined,
   BranchesOutlined,
-  SettingOutlined,
   DragOutlined
 } from '@ant-design/icons';
 import { SmartScriptStep } from '../../types/smartScript';
@@ -59,7 +57,6 @@ export const EnhancedStepCard: React.FC<EnhancedStepCardProps> = ({
   step,
   onEdit,
   onTest,
-  onDelete,
   isDragging
 }) => {
   const [showXmlInspector, setShowXmlInspector] = useState(false);
@@ -68,7 +65,7 @@ export const EnhancedStepCard: React.FC<EnhancedStepCardProps> = ({
   // 🔍 获取增强元素信息（兼容多种格式）
   const enhancedElement = step.parameters?.enhancedElement as EnhancedUIElement | undefined;
   const elementSummary = step.parameters?.elementSummary;
-  const xmlSnapshot = step.parameters?.xmlSnapshot as { xmlContent: string; xmlHash?: string; timestamp?: number; deviceInfo?: any } | undefined;
+  const xmlSnapshot = step.parameters?.xmlSnapshot as { xmlContent: string; xmlHash?: string; timestamp?: number; deviceInfo?: Record<string, unknown> } | undefined;
   const elementBinding = step.parameters?.elementBinding as ElementBinding | undefined;
   
   // 检查是否有增强信息（兼容简化格式）
@@ -93,7 +90,7 @@ export const EnhancedStepCard: React.FC<EnhancedStepCardProps> = ({
     }
 
     // 基础 elementInfo
-    let elementInfo: any = {
+    let elementInfo: Record<string, unknown> = {
       text: step.parameters?.text || step.parameters?.element_text || '',
       element_type: step.parameters?.element_type || '',
       bounds: step.parameters?.bounds,
@@ -123,7 +120,7 @@ export const EnhancedStepCard: React.FC<EnhancedStepCardProps> = ({
             content_desc: a['content-desc'] || elementInfo.content_desc,
           };
         }
-      } catch (e) {
+      } catch {
         // 忽略解析失败，保持现有 elementInfo
         // console.warn('resolveBinding failed: ', e);
       }
@@ -186,14 +183,10 @@ export const EnhancedStepCard: React.FC<EnhancedStepCardProps> = ({
             <Descriptions.Item label="位置" span={2}>
               <Text code style={{ fontSize: '11px' }}>
                 {(() => {
-                  const b = step.parameters?.bounds as any;
-                  if (typeof b === 'string') {
-                    const pb = parseBounds(b);
+                  const bounds = step.parameters?.bounds;
+                  if (typeof bounds === 'string') {
+                    const pb = parseBounds(bounds);
                     if (pb) return `(${pb.x1}, ${pb.y1}) ${pb.w}×${pb.h}`;
-                  } else if (b && typeof b === 'object') {
-                    const w = b.right - b.left;
-                    const h = b.bottom - b.top;
-                    return `(${b.left}, ${b.top}) ${w}×${h}`;
                   }
                   return `(${elementSummary?.position?.x || 0}, ${elementSummary?.position?.y || 0}) ${elementSummary?.position?.width}×${elementSummary?.position?.height}`;
                 })()}

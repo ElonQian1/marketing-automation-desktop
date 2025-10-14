@@ -2,7 +2,7 @@
 // module: universal-ui | layer: types | role: system-types
 // summary: 步骤卡片系统类型定义，明确系统组成和接口
 
-import type { IntelligentStepCard } from '../../types/intelligent-analysis-types';
+import type { IntelligentStepCard } from '../../../types/intelligent-analysis-types';
 
 /**
  * 步骤卡片系统交互层配置
@@ -79,9 +79,9 @@ export interface StepCardSystemCallbacks {
   /** 切换策略 */
   onSwitchStrategy?: (stepId: string, strategyKey: string) => void;
   /** 分析完成 */
-  onAnalysisComplete?: (stepId: string, result: any) => void;
+  onAnalysisComplete?: (stepId: string, result: Record<string, unknown>) => void;
   /** 分析失败 */
-  onAnalysisError?: (stepId: string, error: any) => void;
+  onAnalysisError?: (stepId: string, error: Record<string, unknown>) => void;
 }
 
 /**

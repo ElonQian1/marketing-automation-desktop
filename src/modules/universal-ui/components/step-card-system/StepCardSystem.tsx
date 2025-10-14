@@ -40,7 +40,6 @@ export const StepCardSystem: React.FC<StepCardSystemProps> = ({
   intelligentConfig = {},
   callbacks = {},
   systemMode = 'full',
-  enableExperimentalFeatures = false,
 }) => {
   // 临时实现：直接使用 UnifiedStepCard
   const adaptedStepData = useMemo((): IntelligentStepCard => {
@@ -50,22 +49,40 @@ export const StepCardSystem: React.FC<StepCardSystemProps> = ({
     }
     
     // 转换旧格式到新格式
-    const legacyStep = stepData as any;
+    const legacyStep = stepData as Record<string, unknown>;
+    const fallbackStrategy = {
+      key: 'fallback',
+      name: '默认策略',
+      description: '基础XPath定位',
+      confidence: 0.6,
+      xpath: '//unknown',
+      variant: 'index_fallback' as const,
+      enabled: true,
+      isRecommended: false,
+    };
+    
     return {
-      stepId: legacyStep.id || 'unknown',
-      stepName: legacyStep.name || 'Unknown Step',
-      stepType: legacyStep.step_type || 'unknown',
-      analysisState: 'not_started' as const,
-      elementContext: legacyStep.parameters?.element_selector || '',
+      stepId: (legacyStep.id as string) || 'unknown',
+      stepName: (legacyStep.name as string) || 'Unknown Step',
+      stepType: (legacyStep.step_type as string) || 'unknown',
+      analysisState: 'idle' as const,
+      elementContext: {
+        snapshotId: 'temp',
+        elementPath: (legacyStep.parameters as Record<string, unknown>)?.element_selector as string || '',
+        elementType: (legacyStep.step_type as string) || 'unknown',
+        elementBounds: '[0,0][100,100]',
+        keyAttributes: {},
+      },
       selectionHash: 'temp-hash',
       analysisProgress: 0,
       strategyMode: 'intelligent' as const,
-      activeStrategy: null,
-      fallbackStrategy: null,
-      candidateStrategies: [],
-      recommendedStrategy: null,
-      analysisResult: null,
-      lastAnalyzedAt: null,
+      smartCandidates: [],
+      staticCandidates: [],
+      activeStrategy: fallbackStrategy,
+      fallbackStrategy,
+      autoFollowSmart: true,
+      lockContainer: false,
+      smartThreshold: 0.82,
       createdAt: Date.now(),
       updatedAt: Date.now()
     };
@@ -88,16 +105,16 @@ export const StepCardSystem: React.FC<StepCardSystemProps> = ({
         stepIndex={stepIndex}
         showDebugInfo={showDebugInfo}
         draggable={interactionConfig.enableDrag}
-        onEdit={callbacks.onEdit}
-        onDelete={callbacks.onDelete}
-        onTest={callbacks.onTest}
-        onCopy={callbacks.onCopy}
-        onToggle={callbacks.onToggle}
-        onUpgradeStrategy={callbacks.onUpgradeStrategy}
-        onRetryAnalysis={callbacks.onRetryAnalysis}
-        onSwitchStrategy={callbacks.onSwitchStrategy}
-        onViewDetails={callbacks.onViewDetails}
-        onCancelAnalysis={callbacks.onCancelAnalysis}
+        onEdit={callbacks.onEdit ? () => callbacks.onEdit?.(adaptedStepData.stepId) : undefined}
+        onDelete={callbacks.onDelete ? () => callbacks.onDelete?.(adaptedStepData.stepId) : undefined}
+        onTest={callbacks.onTest ? () => callbacks.onTest?.(adaptedStepData.stepId) : undefined}
+        onCopy={callbacks.onCopy ? () => callbacks.onCopy?.(adaptedStepData.stepId) : undefined}
+        onToggle={callbacks.onToggle ? () => callbacks.onToggle?.(adaptedStepData.stepId, true) : undefined}
+        onUpgradeStrategy={callbacks.onUpgradeStrategy ? () => callbacks.onUpgradeStrategy?.(adaptedStepData.stepId) : undefined}
+        onRetryAnalysis={callbacks.onRetryAnalysis ? () => callbacks.onRetryAnalysis?.(adaptedStepData.stepId) : undefined}
+        onSwitchStrategy={callbacks.onSwitchStrategy ? (strategyKey: string) => callbacks.onSwitchStrategy?.(adaptedStepData.stepId, strategyKey) : undefined}
+        onViewDetails={callbacks.onViewDetails ? () => callbacks.onViewDetails?.(adaptedStepData.stepId) : undefined}
+        onCancelAnalysis={callbacks.onCancelAnalysis ? () => callbacks.onCancelAnalysis?.(adaptedStepData.stepId) : undefined}
       />
       
       {showDebugInfo && (

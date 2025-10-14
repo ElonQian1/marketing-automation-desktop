@@ -26,7 +26,7 @@
  * - 理解困惑：容易与 DraggableStepCard 功能混淆
  */
 
-import React, { useMemo, forwardRef } from "react";
+import React, { useMemo } from "react";
 import {
   Card,
   Space,

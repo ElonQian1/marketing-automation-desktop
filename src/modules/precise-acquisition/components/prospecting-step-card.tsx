@@ -5,8 +5,7 @@
 import React, { useMemo } from "react";
 import { Tag, Space, Button, Tooltip } from "antd";
 import { 
-  UnifiedStepCard,
-  type UnifiedStepCardProps 
+  UnifiedStepCard
 } from "../../universal-ui/components/unified-step-card";
 import type { IntelligentStepCard } from "../../universal-ui/types/intelligent-analysis-types";
 import {
