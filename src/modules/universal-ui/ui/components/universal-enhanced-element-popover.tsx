@@ -26,7 +26,8 @@ import {
   CodeOutlined,
   RocketOutlined
 } from '@ant-design/icons';
-import { useSmartStepWorkflow, type ElementSelectionContext } from '../hooks/universal-use-smart-step-workflow';
+import { useIntelligentAnalysisWorkflow } from "../../hooks/use-intelligent-analysis-workflow";
+import type { ElementSelectionContext } from "../../types/intelligent-analysis-types";
 
 const { Text } = Typography;
 
@@ -96,7 +97,10 @@ export const UniversalEnhancedElementPopover: React.FC<UniversalEnhancedElementP
 }) => {
   const [localLockContainer, setLocalLockContainer] = useState(lockContainer);
 
-  const { currentJob, isAnalyzing } = useSmartStepWorkflow();
+  const { currentJobs, isAnalyzing } = useIntelligentAnalysisWorkflow();
+  
+  // 兼容性适配：从Map中获取当前作业
+  const currentJob = Array.from(currentJobs.values())[0] || null;
 
   /**
    * 处理容器锁定切换
@@ -187,11 +191,11 @@ export const UniversalEnhancedElementPopover: React.FC<UniversalEnhancedElementP
           />
         )}
 
-        {state === 'analyzed' && currentJob?.candidates && (
+        {state === 'analyzed' && currentJob?.result?.smartCandidates && (
           <Alert
             type="success"
             message="分析完成"
-            description={`发现 ${currentJob.candidates.length} 个策略候选，推荐置信度 ${currentJob.candidates[0]?.confidence}%`}
+            description={`发现 ${currentJob.result.smartCandidates.length} 个策略候选，推荐置信度 ${Math.round((currentJob.result.smartCandidates[0]?.confidence || 0) * 100)}%`}
             icon={<CheckOutlined />}
             showIcon
           />
@@ -274,7 +278,7 @@ export const UniversalEnhancedElementPopover: React.FC<UniversalEnhancedElementP
           )}
 
           {/* 分析完成的操作 */}
-          {state === 'analyzed' && currentJob?.candidates && (
+          {state === 'analyzed' && currentJob?.result?.smartCandidates && (
             <div>
               <Button 
                 type="primary"

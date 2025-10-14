@@ -11,11 +11,11 @@ import {
   UniversalEnhancedElementPopover,
   type PopoverState,
 } from "./universal-enhanced-element-popover";
-import {
-  useSmartStepWorkflow,
-  type ElementSelectionContext,
-  type SmartStepCard as StepCardAnalysisState,
-} from "../hooks/universal-use-smart-step-workflow";
+import { useIntelligentAnalysisWorkflow } from "../../hooks/use-intelligent-analysis-workflow";
+import type { 
+  ElementSelectionContext,
+  IntelligentStepCard as StepCardAnalysisState
+} from "../../types/intelligent-analysis-types";
 import type { IntelligentStepCard as IntelligentStepCardData } from "../../types/intelligent-analysis-types";
 import { calculateSelectionHash } from "../../utils/selection-hash";
 
@@ -137,13 +137,16 @@ export const UniversalSmartStepIntegration: React.FC<
 
   // 工作流钩子
   const {
-    currentJob,
+    currentJobs,
     stepCards: workflowStepCards,
-    startAnalysisFromPopover,
+    startAnalysis,
     createStepCardQuick,
     cancelAnalysis,
     clearAllJobs,
-  } = useSmartStepWorkflow();
+  } = useIntelligentAnalysisWorkflow();
+  
+  // 兼容性适配：从Map中获取当前作业
+  const currentJob = Array.from(currentJobs.values())[0] || null;
 
   /**
    * 模拟元素选择事件
@@ -171,7 +174,7 @@ export const UniversalSmartStepIntegration: React.FC<
     setAnalysisProgress(0);
 
     try {
-      await startAnalysisFromPopover(currentElementContext);
+      await startAnalysis(currentElementContext);
 
       // 模拟进度更新
       const progressInterval = setInterval(() => {
@@ -189,7 +192,7 @@ export const UniversalSmartStepIntegration: React.FC<
       setPopoverState("failed");
       message.error("分析启动失败");
     }
-  }, [currentElementContext, startAnalysisFromPopover]);
+  }, [currentElementContext, startAnalysis]);
 
   /**
    * 直接确定（创建步骤卡片）
