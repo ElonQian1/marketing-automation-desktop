@@ -12,8 +12,7 @@ import {
   Alert, 
   Divider,
   Tag,
-  Switch,
-  Tooltip
+  Switch
 } from 'antd';
 import {
   ThunderboltOutlined,
@@ -84,7 +83,7 @@ export const UniversalEnhancedElementPopover: React.FC<UniversalEnhancedElementP
   analysisProgress = 0,
   estimatedTimeLeft = 0,
   lockContainer = false,
-  showXPathPreview = false,
+  // showXPathPreview = false,
   visible = true,
   onStartAnalysis,
   onDirectConfirm,
@@ -97,7 +96,7 @@ export const UniversalEnhancedElementPopover: React.FC<UniversalEnhancedElementP
 }) => {
   const [localLockContainer, setLocalLockContainer] = useState(lockContainer);
 
-  const { currentJobs, isAnalyzing } = useIntelligentAnalysisWorkflow();
+  const { currentJobs } = useIntelligentAnalysisWorkflow();
   
   // 兼容性适配：从Map中获取当前作业
   const currentJob = Array.from(currentJobs.values())[0] || null;

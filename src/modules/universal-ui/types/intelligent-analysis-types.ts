@@ -123,11 +123,16 @@ export interface IntelligentStepCard {
   elementContext: ElementSelectionContext;
   selectionHash: SelectionHash;
   
-  // 分析状态
+  // 分析状态（根据文档要求补齐字段）
   analysisState: StepAnalysisState;
   analysisJobId?: string;
   analysisProgress: number;
   analysisError?: string;
+  estimatedTimeLeft?: number; // ETA毫秒
+  
+  // 文档要求的字段
+  pendingAnalysis?: boolean;
+  isAnalyzing?: boolean;
   
   // 策略信息
   strategyMode: StrategyMode;

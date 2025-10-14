@@ -22,7 +22,8 @@ export {
 export * from "./types/intelligent-analysis-types";
 export * from "./utils/selection-hash";
 export * from "./hooks/use-intelligent-analysis-workflow";
-export { IntelligentStepCard as IntelligentStepCardComponent } from "./components/intelligent-step-card";
+export { UnifiedStepCard as IntelligentStepCardComponent } from "./components/unified-step-card";
+export { IntelligentStepCard } from "./components/intelligent-step-card"; // 保持向后兼容
 export * from "./components/enhanced-element-selection-popover";
 export { FallbackStrategyGenerator } from "./domain/fallback-strategy-generator";
 export * from "./services/mock-analysis-backend";
@@ -30,6 +31,8 @@ export * from "./services/mock-analysis-backend";
 // === 页面组件导出 ===
 export { default as IntelligentAnalysisDemo } from "./pages/intelligent-analysis-demo";
 export { default as SmokeTesterPage } from "./pages/smoke-test";
+export { default as SmokeTestCompletePage } from "./pages/smoke-test-complete";
+export { default as UnifiedStepCardDemo } from "./pages/unified-step-card-demo";
 
 // === Store 导出（仅导出Hook，不直接导出Store） ===
 export {
@@ -40,7 +43,8 @@ export {
 } from "./stores/inspectorStore";
 
 // === UI 组件导出 ===
-export { StepCard } from "./ui/StepCard";
+export { UnifiedStepCard as StepCard } from "./components/unified-step-card"; // 统一接口
+export { StepCard as LegacyStepCard } from "./ui/StepCard"; // 保持向后兼容
 // Components
 export { UniversalAnalysisStatusSection } from "./ui/components/universal-analysis-status-section";
 export { UniversalEnhancedElementPopover } from "./ui/components/universal-enhanced-element-popover";
