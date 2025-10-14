@@ -34,6 +34,7 @@ import {
   SyncOutlined,
   AimOutlined,
   ThunderboltOutlined,
+  CheckCircleOutlined,
 } from "@ant-design/icons";
 import type { MenuProps } from "antd";
 
@@ -73,6 +74,7 @@ import ElementDiscoveryTestPage from "../pages/ElementDiscoveryTestPage";
 
 // 智能分析真实演示
 import IntelligentAnalysisRealDemo from "../modules/universal-ui/pages/intelligent-analysis-real-demo";
+import AutoFillDemo from "../modules/universal-ui/pages/auto-fill-demo";
 
 const { Header, Sider, Content } = Layout;
 const { Title } = Typography;
@@ -171,6 +173,11 @@ const NativeAntDesignApp: React.FC = () => {
       label: "⚡ 智能分析（真实）",
     },
     {
+      key: "auto-fill-demo",
+      icon: <CheckCircleOutlined />,
+      label: "🎯 自动回填演示",
+    },
+    {
       key: "statistics-native",
       icon: <DashboardOutlined />,
       label: "统计页面（原生）",
@@ -237,6 +244,8 @@ const NativeAntDesignApp: React.FC = () => {
         return <ElementDiscoveryTestPage />;
       case "intelligent-analysis-real-demo":
         return <IntelligentAnalysisRealDemo />;
+      case "auto-fill-demo":
+        return <AutoFillDemo />;
       case "statistics-native":
         return <StatisticsPageNative />;
       case "statistics-optimized":
