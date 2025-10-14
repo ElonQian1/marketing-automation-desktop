@@ -28,6 +28,9 @@ export * from "./components/enhanced-element-selection-popover";
 export { FallbackStrategyGenerator } from "./domain/fallback-strategy-generator";
 export * from "./services/mock-analysis-backend";
 
+// === 步骤卡片适配器导出 ===
+export * from "./adapters/step-card-adapter";
+
 // === 页面组件导出 ===
 export { default as IntelligentAnalysisDemo } from "./pages/intelligent-analysis-demo";
 export { default as SmokeTesterPage } from "./pages/smoke-test";

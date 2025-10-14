@@ -16,6 +16,10 @@ export { ProspectingTaskEngineService as TaskEngineService } from './task-engine
 export { ProspectingTaskExecutorService as TaskExecutorService } from './task-engine/services/prospecting-task-executor-service';
 export { ProspectingTaskManager as TaskManager } from './task-engine/services/prospecting-task-manager';
 
+// ==================== UI组件 ====================
+export { ProspectingStepCard } from './components/prospecting-step-card';
+export type { ProspectingStepCardProps } from './components/prospecting-step-card';
+
 // ==================== 核心类型 ====================
 export type {
   WatchTarget,

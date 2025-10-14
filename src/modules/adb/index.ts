@@ -8,6 +8,10 @@
  * 仅导出对外稳定的API，不泄露内部实现细节
  */
 
+// ==================== UI组件 ====================
+export { AdbStepCard } from './components/adb-step-card';
+export type { AdbStepCardProps } from './components/adb-step-card';
+
 // ==================== 公共Hooks ====================
 export * from './hooks';
 

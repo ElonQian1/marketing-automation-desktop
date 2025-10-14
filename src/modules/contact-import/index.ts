@@ -5,6 +5,10 @@
 // contact-import/index | ContactImportModule | 联系人导入模块公开API
 // 提供DDD架构的联系人导入系统对外统一接口，确保向后兼容性
 
+// ===== UI组件导出 =====
+export { ContactImportStepCard } from './components/contact-import-step-card';
+export type { ContactImportStepCardProps } from './components/contact-import-step-card';
+
 // ===== 应用层用例导出 =====
 export {
   ContactImporterUseCase,
