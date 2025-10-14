@@ -16,16 +16,17 @@ export type { PopoverActionButtonsProps } from './components/PopoverActionButton
 export { StrategyAnalysisModal } from './strategy-analysis/StrategyAnalysisModal';
 export type { StrategyAnalysisModalProps } from './strategy-analysis/StrategyAnalysisModal';
 export { useStrategyAnalysis } from '../../../hooks/universal-ui/useStrategyAnalysis';
-export type { UseStrategyAnalysisReturn } from '../../../hooks/universal-ui/useStrategyAnalysis';
 export type { 
+  UseStrategyAnalysisReturn, 
   AnalysisState,
-  AnalysisProgress, 
-  StrategyInfo,
+  AnalysisProgress,
   AnalysisResult,
-  StrategyAnalysisContext,
-  StrategyPerformance,
-  AnalysisMetadata
-} from './types/StrategyAnalysis';
+  StrategyAnalysisContext
+} from '../../../hooks/universal-ui/useStrategyAnalysis';
+export type { 
+  StrategyCandidate,
+  StrategyPerformance 
+} from '../../../modules/universal-ui/types/intelligent-analysis-types';
 
 // 🆕 生命周期管理
 export { 

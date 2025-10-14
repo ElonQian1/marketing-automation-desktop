@@ -12,7 +12,8 @@ import { ElementDiscoveryModal } from './element-discovery';
 import { StrategyAnalysisModal } from './strategy-analysis/StrategyAnalysisModal';
 import { useStrategyAnalysis } from '../../../hooks/universal-ui/useStrategyAnalysis';
 import { isDevDebugEnabled } from '../../../utils/debug';
-import type { StrategyInfo, StrategyAnalysisContext } from './types/StrategyAnalysis';
+import type { StrategyCandidate } from '../../../modules/universal-ui/types/intelligent-analysis-types';
+import type { StrategyAnalysisContext } from './types/StrategyAnalysis';
 
 export interface ElementSelectionState {
   element: UIElement;
@@ -31,7 +32,7 @@ export interface ElementSelectionPopoverProps {
   // 智能分析功能
   enableIntelligentAnalysis?: boolean; // 是否启用智能分析功能
   stepId?: string; // 关联的步骤ID，用于结果回填
-  onStrategySelect?: (strategy: StrategyInfo) => void; // 策略选择回调
+  onStrategySelect?: (strategy: StrategyCandidate) => void; // 策略选择回调
   allElements?: UIElement[];
   onElementSelect?: (element: UIElement) => void;
   actionTokens?: Partial<PopoverActionTokens>; // 注入尺寸/间距令牌
@@ -138,7 +139,7 @@ const ElementSelectionPopoverComponent: React.FC<ElementSelectionPopoverProps> =
     setStrategyAnalysisModalOpen(true);
   }, []);
 
-  const handleApplyStrategy = useCallback((strategy: StrategyInfo, e?: React.MouseEvent) => {
+  const handleApplyStrategy = useCallback((strategy: StrategyCandidate, e?: React.MouseEvent) => {
     if (e) e.stopPropagation();
     if (__DEV__) console.log('✨ [用户操作] 选择策略:', strategy.name);
     onStrategySelect?.(strategy);
@@ -157,7 +158,7 @@ const ElementSelectionPopoverComponent: React.FC<ElementSelectionPopoverProps> =
     setStrategyAnalysisModalOpen(false);
   }, []);
 
-  const handleStrategySelect = useCallback((strategy: StrategyInfo) => {
+  const handleStrategySelect = useCallback((strategy: StrategyCandidate) => {
     if (__DEV__) console.log('✅ [策略选择] 从模态框选择策略:', strategy.name);
     setStrategyAnalysisModalOpen(false);
     onStrategySelect?.(strategy);

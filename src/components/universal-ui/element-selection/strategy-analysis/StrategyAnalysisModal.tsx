@@ -12,27 +12,13 @@ import {
   ClockCircleOutlined
 } from '@ant-design/icons';
 import type { UIElement } from '../../../../api/universalUIAPI';
+import type { StrategyCandidate } from '../../../../modules/universal-ui/types/intelligent-analysis-types';
 
 const { Title, Text, Paragraph } = Typography;
 
-export interface StrategyInfo {
-  name: string;
-  confidence: number;
-  description: string;
-  category: 'self-anchor' | 'child-driven' | 'region-scoped' | 'neighbor-relative' | 'index-fallback';
-  performance: {
-    speed: 'fast' | 'medium' | 'slow';
-    stability: 'high' | 'medium' | 'low';
-    crossDevice: 'excellent' | 'good' | 'fair';
-  };
-  pros: string[];
-  cons: string[];
-  scenarios: string[];
-}
-
 export interface AnalysisResult {
-  recommendedStrategy: StrategyInfo;
-  alternatives: StrategyInfo[];
+  recommendedStrategy: StrategyCandidate;
+  alternatives: StrategyCandidate[];
   analysisMetadata: {
     totalTime: number;
     elementComplexity: 'simple' | 'medium' | 'complex';
@@ -46,7 +32,7 @@ export interface StrategyAnalysisModalProps {
   onClose: () => void;
   element: UIElement;
   analysisResult: AnalysisResult;
-  onStrategySelect: (strategy: StrategyInfo) => void;
+  onStrategySelect: (strategy: StrategyCandidate) => void;
 }
 
 export const StrategyAnalysisModal: React.FC<StrategyAnalysisModalProps> = ({
@@ -58,15 +44,15 @@ export const StrategyAnalysisModal: React.FC<StrategyAnalysisModalProps> = ({
 }) => {
   
   // 获取策略类别的显示信息
-  const getCategoryInfo = (category: StrategyInfo['category']) => {
+  const getCategoryInfo = (variant: StrategyCandidate['variant']) => {
     const categoryMap = {
-      'self-anchor': { name: '自我定位', icon: <CheckCircleOutlined />, color: '#52c41a' },
-      'child-driven': { name: '子树锚点', icon: <InfoCircleOutlined />, color: '#1890ff' },
-      'region-scoped': { name: '区域限定', icon: <SafetyOutlined />, color: '#722ed1' },
-      'neighbor-relative': { name: '邻居相对', icon: <ThunderboltOutlined />, color: '#fa8c16' },
-      'index-fallback': { name: '索引兜底', icon: <ClockCircleOutlined />, color: '#8c8c8c' }
+      'self_anchor': { name: '自我定位', icon: <CheckCircleOutlined />, color: '#52c41a' },
+      'child_driven': { name: '子树锚点', icon: <InfoCircleOutlined />, color: '#1890ff' },
+      'region_scoped': { name: '区域限定', icon: <SafetyOutlined />, color: '#722ed1' },
+      'neighbor_relative': { name: '邻居相对', icon: <ThunderboltOutlined />, color: '#fa8c16' },
+      'index_fallback': { name: '索引兜底', icon: <ClockCircleOutlined />, color: '#8c8c8c' }
     };
-    return categoryMap[category] || categoryMap['index-fallback'];
+    return categoryMap[variant] || categoryMap['index_fallback'];
   };
 
   // 获取性能指标的颜色
@@ -80,8 +66,8 @@ export const StrategyAnalysisModal: React.FC<StrategyAnalysisModalProps> = ({
   };
 
   // 渲染策略卡片
-  const renderStrategyCard = (strategy: StrategyInfo, isRecommended: boolean = false) => {
-    const categoryInfo = getCategoryInfo(strategy.category);
+  const renderStrategyCard = (strategy: StrategyCandidate, isRecommended: boolean = false) => {
+    const categoryInfo = getCategoryInfo(strategy.variant);
     
     return (
       <Card
@@ -120,52 +106,60 @@ export const StrategyAnalysisModal: React.FC<StrategyAnalysisModalProps> = ({
         </div>
         
         {/* 性能指标 */}
-        <Row gutter={16} style={{ marginBottom: 12 }}>
-          <Col span={8}>
-            <div style={{ textAlign: 'center' }}>
-              <div style={{ fontSize: '12px', color: '#666' }}>执行速度</div>
-              <Tag color={getPerformanceColor(strategy.performance.speed)}>
-                {strategy.performance.speed}
-              </Tag>
-            </div>
-          </Col>
-          <Col span={8}>
-            <div style={{ textAlign: 'center' }}>
-              <div style={{ fontSize: '12px', color: '#666' }}>稳定性</div>
-              <Tag color={getPerformanceColor(strategy.performance.stability)}>
-                {strategy.performance.stability}
-              </Tag>
-            </div>
-          </Col>
-          <Col span={8}>
-            <div style={{ textAlign: 'center' }}>
-              <div style={{ fontSize: '12px', color: '#666' }}>跨设备</div>
-              <Tag color={getPerformanceColor(strategy.performance.crossDevice)}>
-                {strategy.performance.crossDevice}
-              </Tag>
-            </div>
-          </Col>
-        </Row>
+        {strategy.performance && (
+          <Row gutter={16} style={{ marginBottom: 12 }}>
+            <Col span={8}>
+              <div style={{ textAlign: 'center' }}>
+                <div style={{ fontSize: '12px', color: '#666' }}>执行速度</div>
+                <Tag color={getPerformanceColor(strategy.performance.speed)}>
+                  {strategy.performance.speed}
+                </Tag>
+              </div>
+            </Col>
+            <Col span={8}>
+              <div style={{ textAlign: 'center' }}>
+                <div style={{ fontSize: '12px', color: '#666' }}>稳定性</div>
+                <Tag color={getPerformanceColor(strategy.performance.stability)}>
+                  {strategy.performance.stability}
+                </Tag>
+              </div>
+            </Col>
+            <Col span={8}>
+              <div style={{ textAlign: 'center' }}>
+                <div style={{ fontSize: '12px', color: '#666' }}>跨设备</div>
+                <Tag color={getPerformanceColor(strategy.performance.crossDevice)}>
+                  {strategy.performance.crossDevice}
+                </Tag>
+              </div>
+            </Col>
+          </Row>
+        )}
 
         {/* 优缺点 */}
-        <Row gutter={16}>
-          <Col span={12}>
-            <div style={{ fontSize: '12px', color: '#52c41a', marginBottom: 4 }}>✅ 优势:</div>
-            <ul style={{ fontSize: '11px', color: '#666', margin: 0, paddingLeft: 16 }}>
-              {strategy.pros.map((pro, index) => (
-                <li key={index}>{pro}</li>
-              ))}
-            </ul>
-          </Col>
-          <Col span={12}>
-            <div style={{ fontSize: '12px', color: '#ff4d4f', marginBottom: 4 }}>⚠️ 注意:</div>
-            <ul style={{ fontSize: '11px', color: '#666', margin: 0, paddingLeft: 16 }}>
-              {strategy.cons.map((con, index) => (
-                <li key={index}>{con}</li>
-              ))}
-            </ul>
-          </Col>
-        </Row>
+        {(strategy.pros || strategy.cons) && (
+          <Row gutter={16}>
+            {strategy.pros && strategy.pros.length > 0 && (
+              <Col span={12}>
+                <div style={{ fontSize: '12px', color: '#52c41a', marginBottom: 4 }}>✅ 优势:</div>
+                <ul style={{ fontSize: '11px', color: '#666', margin: 0, paddingLeft: 16 }}>
+                  {strategy.pros.map((pro, index) => (
+                    <li key={index}>{pro}</li>
+                  ))}
+                </ul>
+              </Col>
+            )}
+            {strategy.cons && strategy.cons.length > 0 && (
+              <Col span={12}>
+                <div style={{ fontSize: '12px', color: '#ff4d4f', marginBottom: 4 }}>⚠️ 注意:</div>
+                <ul style={{ fontSize: '11px', color: '#666', margin: 0, paddingLeft: 16 }}>
+                  {strategy.cons.map((con, index) => (
+                    <li key={index}>{con}</li>
+                  ))}
+                </ul>
+              </Col>
+            )}
+          </Row>
+        )}
 
         {/* 适用场景 */}
         <div style={{ marginTop: 12 }}>

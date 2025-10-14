@@ -4,7 +4,9 @@
 export { StrategyAnalysisModal } from './StrategyAnalysisModal';
 
 export type { 
-  StrategyInfo,
   AnalysisResult,
   StrategyAnalysisModalProps 
 } from './StrategyAnalysisModal';
+
+// 重新导出统一的类型
+export type { StrategyCandidate } from '../../../../modules/universal-ui/types/intelligent-analysis-types';

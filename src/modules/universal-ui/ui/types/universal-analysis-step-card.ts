@@ -2,7 +2,8 @@
 // module: universal-ui | layer: ui | role: types
 // summary: 智能分析步骤卡片相关类型定义
 
-import type { StrategyInfo, AnalysisResult, AnalysisProgress } from '../../../../components/universal-ui/element-selection/types/StrategyAnalysis';
+import type { StrategyCandidate, AnalysisProgress } from '../../types/intelligent-analysis-types';
+import type { AnalysisResult } from '../../../../hooks/universal-ui/useStrategyAnalysis';
 
 /**
  * 分析状态枚举
@@ -29,7 +30,7 @@ export interface UniversalStepCardAnalysisData {
   /** 分析结果 */
   analysisResult?: AnalysisResult;
   /** 推荐策略 */
-  recommendedStrategy?: StrategyInfo;
+  recommendedStrategy?: StrategyCandidate;
   /** 推荐置信度 */
   recommendedConfidence?: number;
   /** 是否自动跟随智能策略 */
@@ -45,7 +46,7 @@ export interface UniversalStepCardAnalysisActions {
   /** 取消分析 */
   onCancelAnalysis?: () => void;
   /** 应用推荐策略 */
-  onApplyRecommended?: (strategy: StrategyInfo) => Promise<void>;
+  onApplyRecommended?: (strategy: StrategyCandidate) => Promise<void>;
   /** 查看分析详情 */
   onViewAnalysisDetails?: () => void;
   /** 一键升级 */

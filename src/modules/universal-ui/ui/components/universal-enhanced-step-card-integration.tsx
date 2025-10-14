@@ -87,19 +87,9 @@ export const UniversalEnhancedStepCardIntegration: React.FC<UniversalEnhancedSte
               stepDescription: '智能分析中...'
             } : undefined,
             recommendedStrategy: stepCard.recommendedStrategy ? {
-              name: stepCard.recommendedStrategy.name,
-              confidence: stepCard.recommendedStrategy.confidence,
-              description: stepCard.recommendedStrategy.description,
-              category: stepCard.recommendedStrategy.variant as 'self-anchor' | 'child-driven' | 'region-scoped' | 'neighbor-relative' | 'index-fallback',
-              performance: {
-                speed: 'medium' as const,
-                stability: 'high' as const,
-                crossDevice: 'good' as const
-              },
-              pros: [stepCard.recommendedStrategy.description],
-              cons: [],
-              scenarios: []
-            } : undefined, // 类型适配
+              ...stepCard.recommendedStrategy,
+              // 已经是 StrategyCandidate 类型，直接使用
+            } : undefined,
             recommendedConfidence: stepCard.recommendedStrategy?.confidence,
             autoFollowSmart: stepCard.autoFollowSmart
           }}

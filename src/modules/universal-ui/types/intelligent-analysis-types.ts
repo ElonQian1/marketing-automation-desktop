@@ -39,6 +39,21 @@ export interface ElementSelectionContext {
 export type SelectionHash = string;
 
 /**
+ * 分析状态（向后兼容）
+ */
+export type AnalysisState = 'idle' | 'analyzing' | 'completed' | 'failed';
+
+/**
+ * 分析进度（向后兼容）
+ */
+export interface AnalysisProgress {
+  currentStep: number;
+  totalSteps: number;
+  stepName: string;
+  stepDescription: string;
+}
+
+/**
  * 分析作业状态
  */
 export type AnalysisJobState = 
@@ -65,6 +80,15 @@ export interface AnalysisJob {
 }
 
 /**
+ * 策略性能指标
+ */
+export interface StrategyPerformance {
+  speed: 'fast' | 'medium' | 'slow';
+  stability: 'high' | 'medium' | 'low';
+  crossDevice: 'excellent' | 'good' | 'fair';
+}
+
+/**
  * 策略候选项
  */
 export interface StrategyCandidate {
@@ -76,6 +100,12 @@ export interface StrategyCandidate {
   xpath?: string;
   enabled: boolean;
   isRecommended: boolean;
+  
+  // UI展示增强字段（可选）
+  performance?: StrategyPerformance;
+  pros?: string[];
+  cons?: string[];
+  scenarios?: string[];
 }
 
 /**

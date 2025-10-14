@@ -4,12 +4,38 @@
 import { useState, useCallback, useRef } from 'react';
 import type { UIElement } from '../../api/universalUIAPI';
 import type { 
-  AnalysisState, 
-  AnalysisProgress, 
-  AnalysisResult,
-  StrategyAnalysisContext,
-  StrategyInfo
-} from '../../components/universal-ui/element-selection/types/StrategyAnalysis';
+  StrategyCandidate,
+  StrategyPerformance
+} from '../../modules/universal-ui/types/intelligent-analysis-types';
+
+// 向后兼容的类型定义
+export type AnalysisState = 'idle' | 'analyzing' | 'completed' | 'failed';
+
+export interface AnalysisProgress {
+  currentStep: number;
+  totalSteps: number;
+  stepName: string;
+  stepDescription: string;
+}
+
+export interface AnalysisResult {
+  recommendedStrategy: StrategyCandidate;
+  alternatives: StrategyCandidate[];
+  analysisMetadata: {
+    totalTime: number;
+    elementComplexity: 'simple' | 'medium' | 'complex';
+    containerStability: number;
+    textStability: number;
+    selectionHash?: string;
+  };
+}
+
+export interface StrategyAnalysisContext {
+  element: UIElement;
+  jobId?: string;
+  stepId?: string;
+  selectionHash?: string;
+}
 
 export interface UseStrategyAnalysisReturn {
   // 状态
@@ -40,47 +66,47 @@ const ANALYSIS_STEPS = [
 ];
 
 // 模拟策略库
-const STRATEGY_TEMPLATES: Record<string, Omit<StrategyInfo, 'confidence'>> = {
-  'self-anchor': {
+const STRATEGY_TEMPLATES: Record<string, Omit<StrategyCandidate, 'confidence' | 'key' | 'enabled' | 'isRecommended' | 'xpath'>> = {
+  'self_anchor': {
     name: '自我定位策略',
     description: '基于元素自身的唯一性特征进行定位，如resource-id、unique text等',
-    category: 'self-anchor',
+    variant: 'self_anchor',
     performance: { speed: 'fast', stability: 'high', crossDevice: 'excellent' },
     pros: ['执行速度最快', '跨设备兼容性最好', '不依赖页面结构变化'],
     cons: ['需要元素具备唯一性特征', '对动态生成ID的处理较弱'],
     scenarios: ['按钮操作', '表单输入', '菜单选择']
   },
-  'child-driven': {
+  'child_driven': {
     name: '子树锚点策略',
     description: '通过子元素特征定位父容器，适用于复合组件场景',
-    category: 'child-driven',
+    variant: 'child_driven',
     performance: { speed: 'medium', stability: 'high', crossDevice: 'good' },
     pros: ['对复合组件效果好', '能处理动态结构', '稳定性较高'],
     cons: ['需要遍历子元素', '执行时间稍长'],
     scenarios: ['卡片组件', '列表项操作', '复合按钮']
   },
-  'region-scoped': {
+  'region_scoped': {
     name: '区域限定策略',
     description: '在特定容器区域内定位元素，减少全局查找范围',
-    category: 'region-scoped',
+    variant: 'region_scoped',
     performance: { speed: 'medium', stability: 'medium', crossDevice: 'good' },
     pros: ['减少误匹配', '提高查找精度', '适用于重复结构'],
     cons: ['依赖容器稳定性', '可能受布局变化影响'],
     scenarios: ['表格操作', '重复卡片', '分区内容']
   },
-  'neighbor-relative': {
+  'neighbor_relative': {
     name: '邻居相对策略',
     description: '通过相邻元素的相对位置关系进行定位',
-    category: 'neighbor-relative',
+    variant: 'neighbor_relative',
     performance: { speed: 'medium', stability: 'medium', crossDevice: 'fair' },
     pros: ['处理动态内容较好', '不依赖元素自身特征', '适应结构微调'],
     cons: ['受页面布局影响', '跨设备兼容性一般', '逻辑相对复杂'],
     scenarios: ['表单相邻操作', '动态列表', '响应式布局']
   },
-  'index-fallback': {
+  'index_fallback': {
     name: '索引兜底策略',
     description: '基于元素在同类元素中的索引位置进行定位，最后的保底方案',
-    category: 'index-fallback',
+    variant: 'index_fallback',
     performance: { speed: 'fast', stability: 'low', crossDevice: 'fair' },
     pros: ['执行简单直接', '总是能定位到元素', '计算开销小'],
     cons: ['稳定性最低', '易受页面变化影响', '维护成本高'],
@@ -106,26 +132,29 @@ const analyzeElementStrategy = (context: StrategyAnalysisContext): AnalysisResul
   const { element } = context;
   
   // 基于元素特征决定推荐策略
-  let recommendedStrategyKey = 'index-fallback';
+  let recommendedStrategyKey: keyof typeof STRATEGY_TEMPLATES = 'index_fallback';
   let confidence = 60;
   
   if (element.resource_id && element.resource_id.length > 0) {
-    recommendedStrategyKey = 'self-anchor';
+    recommendedStrategyKey = 'self_anchor';
     confidence = 92 + Math.random() * 6; // 92-98%
   } else if (element.text && element.text.trim().length > 0) {
-    recommendedStrategyKey = 'self-anchor';
+    recommendedStrategyKey = 'self_anchor';
     confidence = 85 + Math.random() * 8; // 85-93%
   } else if (element.children && element.children.length > 0) {
-    recommendedStrategyKey = 'child-driven';
+    recommendedStrategyKey = 'child_driven';
     confidence = 78 + Math.random() * 10; // 78-88%
-  } else if ((element as any).parent_info) {
-    recommendedStrategyKey = 'region-scoped';
+  } else if ('parent_info' in element) {
+    recommendedStrategyKey = 'region_scoped';
     confidence = 70 + Math.random() * 10; // 70-80%
   }
   
-  const recommendedStrategy: StrategyInfo = {
+  const recommendedStrategy: StrategyCandidate = {
     ...STRATEGY_TEMPLATES[recommendedStrategyKey],
-    confidence: Math.round(confidence)
+    key: recommendedStrategyKey,
+    confidence: Math.round(confidence),
+    enabled: true,
+    isRecommended: true
   };
   
   // 生成备选策略
@@ -133,9 +162,12 @@ const analyzeElementStrategy = (context: StrategyAnalysisContext): AnalysisResul
     .filter(([key]) => key !== recommendedStrategyKey)
     .sort(() => Math.random() - 0.5) // 随机排序
     .slice(0, 2)
-    .map(([, template]) => ({
+    .map(([key, template]) => ({
       ...template,
-      confidence: Math.round(confidence - 15 - Math.random() * 20) // 降低备选策略置信度
+      key,
+      confidence: Math.round(confidence - 15 - Math.random() * 20), // 降低备选策略置信度
+      enabled: true,
+      isRecommended: false
     }))
     .sort((a, b) => b.confidence - a.confidence);
   

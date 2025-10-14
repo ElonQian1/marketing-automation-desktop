@@ -20,8 +20,8 @@ import { PopoverActionTokens, defaultPopoverActionTokens } from './tokens';
 import type { 
   AnalysisState, 
   AnalysisProgress, 
-  StrategyInfo 
-} from '../types/StrategyAnalysis';
+  StrategyCandidate 
+} from '../../../../modules/universal-ui/types/intelligent-analysis-types';
 
 const { Text } = Typography;
 
@@ -39,11 +39,11 @@ export interface PopoverActionButtonsProps {
   enableIntelligentAnalysis?: boolean;
   analysisState?: AnalysisState;
   analysisProgress?: AnalysisProgress | null;
-  recommendedStrategy?: StrategyInfo | null;
+  recommendedStrategy?: StrategyCandidate | null;
   onStartAnalysis?: (e?: React.MouseEvent) => void;
   onCancelAnalysis?: (e?: React.MouseEvent) => void;
   onViewAnalysisDetails?: (e?: React.MouseEvent) => void;
-  onApplyStrategy?: (strategy: StrategyInfo, e?: React.MouseEvent) => void;
+  onApplyStrategy?: (strategy: StrategyCandidate, e?: React.MouseEvent) => void;
   onRetryAnalysis?: (e?: React.MouseEvent) => void;
 }
 
