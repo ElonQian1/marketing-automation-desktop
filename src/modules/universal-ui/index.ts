@@ -52,6 +52,7 @@ export { default as IntelligentAnalysisDemo } from "./pages/intelligent-analysis
 export { default as SmokeTesterPage } from "./pages/smoke-test";
 export { default as SmokeTestCompletePage } from "./pages/smoke-test-complete";
 export { default as UnifiedStepCardDemo } from "./pages/unified-step-card-demo";
+export { UniversalAnalysisComponentsDemo } from "./pages/universal-analysis-components-demo";
 
 // === Store 导出（仅导出Hook，不直接导出Store） ===
 export {
@@ -65,8 +66,26 @@ export {
 // ❌ 不再导出内部实现组件，统一使用 StepCardSystem
 // export { UnifiedStepCard as StepCard } from "./components/unified-step-card";
 export { StepCard as LegacyStepCard } from "./ui/StepCard"; // 保持向后兼容（特殊用途）
-// Components
-export { UniversalAnalysisStatusSection } from "./ui/components/universal-analysis-status-section";
+
+// === 🆕 智能分析UI组件导出（新增缺失功能） ===
+export { 
+  UniversalFallbackBadge,
+  UniversalRecommendedBadge,
+  UniversalStrategyCandidatesSection,
+  UniversalStrategyModeSelector,
+  UniversalPublishReadinessModal,
+  UniversalAnalysisStatusSection
+} from "./ui/components";
+export type {
+  UniversalFallbackBadgeProps,
+  UniversalRecommendedBadgeProps,
+  UniversalStrategyCandidatesSectionProps,
+  UniversalStrategyModeSelectorProps,
+  UniversalPublishReadinessModalProps
+} from "./ui/components";
+export { UniversalEnhancedStepCardIntegration } from "./ui/components/universal-enhanced-step-card-integration";
+
+// Components（旧组件保留）
 export { UniversalEnhancedElementPopover } from "./ui/components/universal-enhanced-element-popover";
 export {
   SmartVariantBadge,

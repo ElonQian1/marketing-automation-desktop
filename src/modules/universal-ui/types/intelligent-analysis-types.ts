@@ -113,55 +113,119 @@ export type StrategyMode =
 
 /**
  * 智能步骤卡片数据
+ * 
+ * 🎯 完整字段说明（符合文档7要求）：
+ * - 基础信息：stepId, stepName, stepType
+ * - 元素上下文：elementContext, selectionHash
+ * - 分析状态：analysisState, analysisJobId, analysisProgress等
+ * - 策略信息：strategyMode, smartCandidates, activeStrategy等
+ * - 配置开关：autoFollowSmart, lockContainer, smartThreshold
+ * - 时间戳：createdAt, analyzedAt, updatedAt
+ * - UI状态：isFallbackActive, canUpgrade等
  */
 export interface IntelligentStepCard {
+  // === 基础信息 ===
   stepId: string;
   stepName: string;
   stepType: string;
   
-  // 元素上下文
+  // === 元素上下文 ===
   elementContext: ElementSelectionContext;
   selectionHash: SelectionHash;
   
-  // 分析状态（根据文档要求补齐字段）
+  // === 分析状态（核心字段） ===
+  /** 当前分析状态 */
   analysisState: StepAnalysisState;
+  /** 分析任务ID */
   analysisJobId?: string;
+  /** 分析进度（0-100） */
   analysisProgress: number;
+  /** 分析错误信息 */
   analysisError?: string;
-  estimatedTimeLeft?: number; // ETA毫秒
+  /** 预计剩余时间（毫秒） */
+  estimatedTimeLeft?: number;
   
-  // 文档要求的字段
+  // === 兼容字段（向后兼容） ===
+  /** 是否等待分析（兼容旧代码） */
   pendingAnalysis?: boolean;
+  /** 是否正在分析（兼容旧代码） */
   isAnalyzing?: boolean;
   
-  // 策略信息
+  // === 策略信息 ===
+  /** 策略模式：intelligent | smart_variant | static_user */
   strategyMode: StrategyMode;
+  /** 智能候选策略列表（Step1-Step6） */
   smartCandidates: StrategyCandidate[];
+  /** 静态候选策略列表（兜底策略） */
   staticCandidates: StrategyCandidate[];
+  /** 当前激活的策略 */
   activeStrategy?: StrategyCandidate;
+  /** 推荐策略 */
   recommendedStrategy?: StrategyCandidate;
+  /** 兜底策略（必需，保底可用） */
   fallbackStrategy: StrategyCandidate;
   
-  // 配置
-  autoFollowSmart: boolean;
-  lockContainer: boolean;
-  smartThreshold: number; // 默认0.82
+  // === UI 状态字段（新增，文档要求） ===
+  /** 是否正在使用兜底策略 */
+  isFallbackActive?: boolean;
+  /** 是否可以升级到推荐策略 */
+  canUpgrade?: boolean;
+  /** 是否显示升级按钮 */
+  showUpgradeButton?: boolean;
   
-  // 时间戳
+  // === 配置开关 ===
+  /** 是否自动跟随智能推荐（置信度≥阈值时自动切换） */
+  autoFollowSmart: boolean;
+  /** 是否锁定容器（作为先验传入分析） */
+  lockContainer: boolean;
+  /** 智能推荐阈值（默认0.82） */
+  smartThreshold: number;
+  
+  // === 执行配置（可选） ===
+  /** 是否允许后端受控回退 */
+  allowBackendFallback?: boolean;
+  /** 单次候选时间片（毫秒） */
+  candidateTimeoutMs?: number;
+  /** 总预算时间（毫秒） */
+  totalBudgetMs?: number;
+  
+  // === 时间戳 ===
+  /** 创建时间 */
   createdAt: number;
+  /** 分析完成时间 */
   analyzedAt?: number;
+  /** 最后更新时间 */
   updatedAt: number;
+  
+  // === 执行历史（可选） ===
+  /** 上次执行结果 */
+  lastExecutionResult?: StepExecutionResult;
+  /** 执行历史（最近N次） */
+  executionHistory?: StepExecutionResult[];
 }
 
 /**
  * 步骤执行结果
  */
 export interface StepExecutionResult {
+  /** 执行ID（唯一标识） */
+  executionId: string;
+  /** 是否成功 */
   success: boolean;
+  /** 执行时间戳 */
   executedAt: number;
+  /** 执行耗时（毫秒） */
   duration: number;
+  /** 使用的策略名称 */
   strategy: string;
+  /** 策略类型（智能/兜底/用户自建） */
+  strategyType?: 'smart' | 'fallback' | 'user';
+  /** 执行状态 */
+  status?: 'success' | 'failed' | 'timeout' | 'skipped';
+  /** 错误信息 */
   error?: string;
+  /** 重试次数 */
+  retryCount?: number;
 }
 
 /**

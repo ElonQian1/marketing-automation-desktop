@@ -1,28 +1,6 @@
-// src/components/universal-ui/element-selection/ElementSelectionPopo  const __DEV__ = process.env.NODE_ENV === 'development';
-  const __DEBUG_VISUAL__ = isDevDebugEnabled('debug:visual');
-  const [discoveryModalOpen, setDiscoveryModalOpen] = useState(false);
-  // 避免"同一次点击"引发的立刻关闭：打开后的短暂宽限期内禁用外部点击自动取消
-  const [allowOutsideCancel, setAllowOutsideCancel] = useState(false);
-  const outsideCancelTimerRef = useRef<number | null>(null);
-  
-  // 智能分析相关状态
-  const [strategyAnalysisModalOpen, setStrategyAnalysisModalOpen] = useState(false);
-  const {
-    analysisState,
-    analysisProgress,
-    analysisResult,
-    error: analysisError,
-    startAnalysis,
-    cancelAnalysis,
-    resetAnalysis,
-    isAnalyzing,
-    hasResult
-  } = useStrategyAnalysis();
+// src/components/universal-ui/element-selection/ElementSelectionPopover.tsx
 // module: ui | layer: ui | role: component
-// summary: UI 组件
-
-// 元素选择气泡组件（含智能分析功能）
-// 说明：提供默认导出与具名导出 ElementSelectionPopover，支持智能策略分析
+// summary: 元素选择气泡组件（含智能分析功能）
 
 import React, { useState, useEffect, useMemo, useCallback, useRef } from 'react';
 import ConfirmPopover from '../common-popover/ConfirmPopover';
@@ -88,6 +66,18 @@ const ElementSelectionPopoverComponent: React.FC<ElementSelectionPopoverProps> =
 }) => {
   const __DEV__ = process.env.NODE_ENV === 'development';
   const __DEBUG_VISUAL__ = isDevDebugEnabled('debug:visual');
+  
+  // 智能分析相关状态
+  const [strategyAnalysisModalOpen, setStrategyAnalysisModalOpen] = useState(false);
+  const {
+    analysisState,
+    analysisProgress,
+    analysisResult,
+    startAnalysis,
+    cancelAnalysis,
+    resetAnalysis
+  } = useStrategyAnalysis();
+  
   const [discoveryModalOpen, setDiscoveryModalOpen] = useState(false);
   // 避免“同一次点击”引发的立刻关闭：打开后的短暂宽限期内禁用外部点击自动取消
   const [allowOutsideCancel, setAllowOutsideCancel] = useState(false);
