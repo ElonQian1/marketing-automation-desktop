@@ -7,7 +7,7 @@ import { Card, Space, Button, Typography, Divider, Alert, Steps } from 'antd';
 import { PlayCircleOutlined, ReloadOutlined } from '@ant-design/icons';
 
 import { useIntelligentAnalysisWorkflow } from '../hooks/use-intelligent-analysis-workflow';
-import { EnhancedElementSelectionPopover } from '../components/enhanced-element-selection-popover';
+import { IntelligentAnalysisController } from '../components/intelligent-analysis-controller';
 import { UnifiedStepCard as IntelligentStepCard } from '../components/unified-step-card';
 
 import type { ElementSelectionContext } from '../types/intelligent-analysis-types';
@@ -178,7 +178,7 @@ const IntelligentAnalysisDemo: React.FC = () => {
           <Text>以下组件演示了增强的元素选择弹窗：</Text>
           
           <div className="p-4 border border-dashed border-gray-300 rounded-lg">
-            <EnhancedElementSelectionPopover
+            <IntelligentAnalysisController
               elementContext={mockElementContext}
               state={demoStep >= 2 ? 'analyzing' : 'idle'}
               visible={true}

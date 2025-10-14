@@ -1,6 +1,6 @@
-// src/modules/universal-ui/components/enhanced-element-selection-popover.tsx
-// module: universal-ui | layer: ui | role: component
-// summary: 增强的元素选择气泡，支持主动触发分析、直接确定、不等分析等功能
+// src/modules/universal-ui/components/intelligent-analysis-controller.tsx
+// module: universal-ui | layer: application | role: controller
+// summary: 智能分析控制器 - 负责协调分析流程、管理状态、处理业务逻辑（逻辑层）
 
 import React, { useState, useCallback, useMemo } from 'react';
 import {
@@ -51,9 +51,16 @@ export type PopoverState =
   | 'failed';   // 分析失败
 
 /**
- * 增强元素选择气泡属性
+ * 智能分析控制器组件属性
+ * 
+ * 职责：
+ * - 管理智能分析的完整生命周期
+ * - 协调前端UI和后端Tauri命令
+ * - 处理分析状态转换和事件监听
+ * - 实现防串扰机制（selection_hash校验）
+ * - 控制分析任务的启动、取消、重试
  */
-export interface EnhancedElementSelectionPopoverProps {
+export interface IntelligentAnalysisControllerProps {
   /** 元素选择上下文 */
   elementContext: ElementSelectionContext;
   /** 当前气泡状态 */
@@ -95,9 +102,16 @@ export interface EnhancedElementSelectionPopoverProps {
 }
 
 /**
- * 增强的元素选择气泡组件
+ * 智能分析控制器组件
+ * 
+ * 职责：
+ * - 管理分析工作流状态机（idle → analyzing → completed/failed）
+ * - 调用后端Tauri命令执行真实分析
+ * - 监听分析事件（progress/done/error）
+ * - 实现三重防串扰校验（jobId + selectionHash + stepId）
+ * - 协调UI层（IntelligentAnalysisPopoverUI）的展示
  */
-export const EnhancedElementSelectionPopover: React.FC<EnhancedElementSelectionPopoverProps> = ({
+export const IntelligentAnalysisController: React.FC<IntelligentAnalysisControllerProps> = ({
   elementContext,
   state,
   currentJob,
@@ -534,4 +548,4 @@ export const EnhancedElementSelectionPopover: React.FC<EnhancedElementSelectionP
   );
 };
 
-export default EnhancedElementSelectionPopover;
+export default IntelligentAnalysisController;

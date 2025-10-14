@@ -86,10 +86,8 @@ export type {
 // 🆕 替代元素查找
 export { AlternativeElementFinder } from './alternative-selection/AlternativeElementFinder';
 
-// 🆕 增强气泡组件
-export { EnhancedSelectionPopover } from './enhanced-popover/EnhancedSelectionPopover';
-export { AlternativeElementCard } from './enhanced-popover/AlternativeElementCard';
-export type { 
-  EnhancedElementSelectionState,
-  EnhancedSelectionPopoverProps 
-} from './enhanced-popover/EnhancedSelectionPopover';
+// ✅ 注意：EnhancedSelectionPopover（替代元素功能）已删除
+// 智能分析相关组件请使用 @modules/universal-ui 中的：
+// - IntelligentAnalysisController（业务逻辑层）
+// - IntelligentAnalysisPopoverUI（UI展示层）
+

@@ -1,6 +1,6 @@
-// src/modules/universal-ui/ui/components/universal-enhanced-element-popover.tsx
-// module: universal-ui | layer: ui | role: component
-// summary: 增强的元素选择气泡，支持智能分析工作流
+// src/modules/universal-ui/ui/components/intelligent-analysis-popover-ui.tsx
+// module: universal-ui | layer: ui | role: component  
+// summary: 智能分析气泡UI组件 - 负责展示分析相关的按钮和状态（UI展示层）
 
 import React, { useState, useCallback } from 'react';
 import { 
@@ -36,9 +36,15 @@ const { Text } = Typography;
 export type PopoverState = 'idle' | 'analyzing' | 'analyzed' | 'failed';
 
 /**
- * 增强元素选择气泡属性
+ * 智能分析气泡UI组件属性
+ * 
+ * 职责：
+ * - 展示智能分析相关的按钮（🧠 智能分析、✅ 直接确定等）
+ * - 显示分析进度和状态
+ * - 提供锁定容器、XPath预览等辅助功能的UI
+ * - 纯UI组件，不包含业务逻辑
  */
-export interface UniversalEnhancedElementPopoverProps {
+export interface IntelligentAnalysisPopoverUIProps {
   /** 元素选择上下文 */
   elementContext: ElementSelectionContext;
   /** 气泡状态 */
@@ -74,10 +80,15 @@ export interface UniversalEnhancedElementPopoverProps {
 }
 
 /**
- * 增强的元素选择气泡组件
- * 支持智能分析工作流的完整交互
+ * 智能分析气泡UI组件
+ * 
+ * 职责：
+ * - 展示智能分析工作流的按钮和状态
+ * - 根据分析状态切换UI展示（空闲/分析中/完成/失败）
+ * - 提供用户交互的视觉反馈
+ * - 纯UI组件，业务逻辑由父组件（IntelligentAnalysisController）处理
  */
-export const UniversalEnhancedElementPopover: React.FC<UniversalEnhancedElementPopoverProps> = ({
+export const IntelligentAnalysisPopoverUI: React.FC<IntelligentAnalysisPopoverUIProps> = ({
   elementContext,
   state,
   analysisProgress = 0,
@@ -361,4 +372,4 @@ export const UniversalEnhancedElementPopover: React.FC<UniversalEnhancedElementP
   );
 };
 
-export default UniversalEnhancedElementPopover;
+export default IntelligentAnalysisPopoverUI;

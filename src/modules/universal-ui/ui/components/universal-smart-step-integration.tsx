@@ -8,9 +8,9 @@ import { PlayCircleOutlined, PlusOutlined } from "@ant-design/icons";
 
 import { UnifiedStepCard as IntelligentStepCard } from "../../components/unified-step-card";
 import {
-  UniversalEnhancedElementPopover,
+  IntelligentAnalysisPopoverUI,
   type PopoverState,
-} from "./universal-enhanced-element-popover";
+} from "./intelligent-analysis-popover-ui";
 import { useIntelligentAnalysisWorkflow } from "../../hooks/use-intelligent-analysis-workflow";
 import type { 
   ElementSelectionContext,
@@ -359,7 +359,7 @@ export const UniversalSmartStepIntegration: React.FC<
                 zIndex: 1000,
               }}
             >
-              <UniversalEnhancedElementPopover
+              <IntelligentAnalysisPopoverUI
                 elementContext={currentElementContext}
                 state={popoverState}
                 analysisProgress={analysisProgress}

@@ -37,10 +37,8 @@ export { StepCardSystemDemo } from "./pages/step-card-system-demo";
 export * from "./types/intelligent-analysis-types";
 export * from "./utils/selection-hash";
 export * from "./hooks/use-intelligent-analysis-workflow";
-// ❌ 不再导出内部组件，引导使用 StepCardSystem
-// export { UnifiedStepCard as IntelligentStepCardComponent } from "./components/unified-step-card";
-// export { UnifiedStepCard as IntelligentStepCard } from "./components/unified-step-card";
-export * from "./components/enhanced-element-selection-popover";
+// ✅ 智能分析控制器（业务逻辑层）
+export * from "./components/intelligent-analysis-controller";
 export { FallbackStrategyGenerator } from "./domain/fallback-strategy-generator";
 export * from "./services/mock-analysis-backend";
 
@@ -85,8 +83,10 @@ export type {
 } from "./ui/components";
 export { UniversalEnhancedStepCardIntegration } from "./ui/components/universal-enhanced-step-card-integration";
 
-// Components（旧组件保留）
-export { UniversalEnhancedElementPopover } from "./ui/components/universal-enhanced-element-popover";
+// ✅ 智能分析气泡UI组件（UI展示层）
+export { IntelligentAnalysisPopoverUI } from "./ui/components/intelligent-analysis-popover-ui";
+export type { IntelligentAnalysisPopoverUIProps } from "./ui/components/intelligent-analysis-popover-ui";
+
 export {
   SmartVariantBadge,
   SimpleVariantBadge,
