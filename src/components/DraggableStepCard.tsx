@@ -220,6 +220,29 @@ const STEP_CARD_DESIGN_TOKENS = {
       easeIn: 'cubic-bezier(0.4, 0, 1, 1)',
       easeInOut: 'cubic-bezier(0.4, 0, 0.2, 1)',
     }
+  },
+  
+  // 📱 响应式断点
+  breakpoints: {
+    mobile: '480px',    // 手机
+    tablet: '768px',    // 平板
+    desktop: '1024px',  // 桌面
+  },
+  
+  // 📐 响应式间距
+  responsiveSpacing: {
+    mobile: {
+      cardPadding: '10px',
+      buttonGap: '6px',
+    },
+    tablet: {
+      cardPadding: '12px', 
+      buttonGap: '4px',
+    },
+    desktop: {
+      cardPadding: '16px',
+      buttonGap: '4px',
+    }
   }
 };
 
@@ -404,16 +427,22 @@ const DraggableStepCardInner: React.FC<
       }}>
         
         {/* 头部：步骤编号 + 标题 + 操作 */}
-        <div style={{
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'space-between'
-        }}>
+        <div 
+          className="step-header"
+          style={{
+            display: 'flex',
+            alignItems: 'flex-start',  // 顶部对齐，而非居中
+            justifyContent: 'space-between',
+            gap: STEP_CARD_DESIGN_TOKENS.spacing.sm,
+            flexWrap: 'wrap',  // 允许换行
+            minWidth: 0,  // 防止溢出
+          }}>
           <div style={{
             display: 'flex',
             alignItems: 'center',
-            gap: '12px',
-            flex: 1
+            gap: STEP_CARD_DESIGN_TOKENS.spacing.md,
+            flex: '1 1 0%',  // 更灵活的flex设置
+            minWidth: 0,  // 允许收缩
           }}>
             {/* 步骤编号 */}
             <div style={{
@@ -441,19 +470,27 @@ const DraggableStepCardInner: React.FC<
               fontSize: STEP_CARD_DESIGN_TOKENS.typography.fontSize.lg,
               fontWeight: STEP_CARD_DESIGN_TOKENS.typography.fontWeight.medium,
               color: STEP_CARD_DESIGN_TOKENS.colors.text.primary,
-              flex: 1,
+              flex: '1 1 0%',
               lineHeight: STEP_CARD_DESIGN_TOKENS.typography.lineHeight.tight,
+              minWidth: 0,  // 允许文字收缩
+              wordBreak: 'break-word',  // 长文字可以换行
+              overflowWrap: 'break-word',  // 兼容性更好的换行
             }}>
               {step.description || step.name || `步骤 ${index + 1}`}
             </h4>
           </div>
 
           {/* 操作按钮组 */}
-          <div style={{
-            display: 'flex',
-            alignItems: 'center',
-            gap: '4px'
-          }}>
+          <div 
+            className="button-group"
+            style={{
+              display: 'flex',
+              alignItems: 'center',
+              gap: STEP_CARD_DESIGN_TOKENS.spacing.xs,
+              flexWrap: 'wrap',  // 允许换行
+              justifyContent: 'flex-end',  // 右对齐
+              minWidth: 0,  // 允许收缩
+            }}>
             
             {/* 测试按钮 */}
             {StepTestButton && (

@@ -40,3 +40,34 @@
   border-color: #7A9BFF !important;  /* colors.border.hover */
   box-shadow: 0 0 16px rgba(110, 139, 255, 0.3) !important;  /* shadows.brand */
 }
+
+/* 🏗️ 响应式设计 - 小屏幕优化 */
+@media (max-width: 768px) {
+  .darkThemeCard {
+    padding: 12px !important;  /* 减少内边距 */
+  }
+  
+  /* 按钮在小屏幕上稍微小一点 */
+  .darkThemeCard button {
+    padding: 6px !important;
+    font-size: 12px !important;
+  }
+}
+
+@media (max-width: 480px) {
+  .darkThemeCard {
+    padding: 10px !important;  /* 更小的内边距 */
+  }
+  
+  /* 非常小的屏幕上，按钮组可能需要完全换行 */
+  .darkThemeCard .step-header {
+    flex-direction: column !important;
+    align-items: flex-start !important;
+    gap: 8px !important;
+  }
+  
+  .darkThemeCard .button-group {
+    width: 100% !important;
+    justify-content: flex-start !important;
+  }
+}
