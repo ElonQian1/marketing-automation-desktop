@@ -76,6 +76,8 @@ import ElementDiscoveryTestPage from "../pages/ElementDiscoveryTestPage";
 import IntelligentAnalysisRealDemo from "../modules/universal-ui/pages/intelligent-analysis-real-demo.tsx";
 import AutoFillDemo from "../modules/universal-ui/pages/auto-fill-demo.tsx";
 import { TestRealBackendIntegration } from "./test/TestRealBackendIntegration";
+import StrategyDemo from "../pages/StrategyDemo";
+import StrategyBackendDemo from "../pages/StrategyBackendDemo";
 
 const { Header, Sider, Content } = Layout;
 const { Title } = Typography;
@@ -184,6 +186,16 @@ const NativeAntDesignApp: React.FC = () => {
       label: "🚀 真实后端集成测试",
     },
     {
+      key: "strategy-demo",
+      icon: <RobotOutlined />,
+      label: "🧠 策略选择器演示",
+    },
+    {
+      key: "strategy-backend-demo",
+      icon: <ThunderboltOutlined />,
+      label: "🚀 策略选择器后端集成",
+    },
+    {
       key: "statistics-native",
       icon: <DashboardOutlined />,
       label: "统计页面（原生）",
@@ -256,6 +268,10 @@ const NativeAntDesignApp: React.FC = () => {
         return <TestIntelligentAnalysisAdapter />;
       case "test-real-backend-integration":
         return <TestRealBackendIntegration />;
+      case "strategy-demo":
+        return <StrategyDemo />;
+      case "strategy-backend-demo":
+        return <StrategyBackendDemo />;
       case "statistics-native":
         return <StatisticsPageNative />;
       case "statistics-optimized":

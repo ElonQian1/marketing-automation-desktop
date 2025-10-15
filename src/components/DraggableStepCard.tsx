@@ -28,6 +28,8 @@ import React from "react";
 import { CSS } from '@dnd-kit/utilities';
 import { SmartActionType } from "../types/smartComponents";
 import styles from './DraggableStepCard.module.css';
+import StrategySelector from './strategy-selector/StrategySelector';
+import { StrategySelector as IStrategySelector, StrategyEvents } from '../types/strategySelector';
 
 // 设备简化接口
 export interface DeviceInfo {
@@ -102,6 +104,10 @@ export interface SmartScriptStep {
     name: string;
     description?: string;
   };
+  
+  // 🧠 策略选择器相关字段
+  strategySelector?: IStrategySelector;
+  enableStrategySelector?: boolean;  // 是否启用策略选择器
 }
 
 export interface DraggableStepCardProps {
@@ -297,6 +303,13 @@ const DraggableStepCardInner: React.FC<
     ENABLE_BATCH_MATCH?: boolean;
     onEditStepParams?: (step: SmartScriptStep) => void;
     onOpenPageAnalyzer?: () => void;
+    // 🧠 策略选择器回调
+    onStrategyChange?: (stepId: string, selection: { type: 'smart-auto' | 'smart-single' | 'static'; key?: string; stepName?: string }) => void;
+    onReanalyze?: (stepId: string) => void;
+    onSaveAsStatic?: (stepId: string, candidate: any) => void;
+    onOpenElementInspector?: (stepId: string) => void;
+    onCancelAnalysis?: (stepId: string, jobId: string) => void;
+    onApplyRecommendation?: (stepId: string, key: string) => void;
     // 拖拽相关
     transform?: any;
     transition?: any;
@@ -314,6 +327,13 @@ const DraggableStepCardInner: React.FC<
   StepTestButton,
   onEditStepParams,
   onOpenPageAnalyzer,
+  // 策略选择器回调
+  onStrategyChange,
+  onReanalyze,
+  onSaveAsStatic,
+  onOpenElementInspector,
+  onCancelAnalysis,
+  onApplyRecommendation,
   devices,
   currentDeviceId,
   transform,
@@ -658,6 +678,23 @@ const DraggableStepCardInner: React.FC<
               )}
             </div>
           </div>
+        )}
+
+        {/* 🧠 策略选择器 */}
+        {step.enableStrategySelector && step.strategySelector && (
+          <StrategySelector
+            selector={step.strategySelector}
+            events={{
+              onStrategyChange: (selection) => onStrategyChange?.(step.id, selection),
+              onReanalyze: () => onReanalyze?.(step.id),
+              onSaveAsStatic: (candidate) => onSaveAsStatic?.(step.id, candidate),
+              onOpenElementInspector: () => onOpenElementInspector?.(step.id),
+              onCancelAnalysis: (jobId) => onCancelAnalysis?.(step.id, jobId),
+              onApplyRecommendation: (key) => onApplyRecommendation?.(step.id, key),
+            }}
+            compact={false}
+            disabled={!step.enabled}
+          />
         )}
       </div>
     </div>
