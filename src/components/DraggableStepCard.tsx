@@ -27,6 +27,7 @@
 import React from "react";
 import { CSS } from '@dnd-kit/utilities';
 import { SmartActionType } from "../types/smartComponents";
+import styles from './DraggableStepCard.module.css';
 
 // 设备简化接口
 export interface DeviceInfo {
@@ -121,27 +122,27 @@ const modernStepCardStyles = {
   // 基础卡片样式
   card: {
     position: 'relative' as const,
-    background: 'var(--bg-elevated, #1E293B)',
-    color: 'var(--text-1, #F8FAFC)',
-    border: '1px solid var(--border-primary, #334155)',
-    borderRadius: 'var(--radius, 12px)',
+    background: '#1E293B',  // 强制深色背景
+    color: '#F8FAFC',       // 强制浅色文字
+    border: '1px solid #334155',
+    borderRadius: '12px',
     padding: '16px',
     minHeight: '80px',
-    transition: 'all var(--duration-normal, 180ms) var(--ease-out)',
+    transition: 'all 180ms cubic-bezier(0, 0, 0.2, 1)',  // 硬编码过渡
     cursor: 'grab' as const,
-    boxShadow: 'var(--shadow, 0 1px 3px rgba(0, 0, 0, 0.12))',
+    boxShadow: '0 1px 3px rgba(0, 0, 0, 0.12)',
   },
   
   dragging: {
     cursor: 'grabbing' as const,
     opacity: 0.8,
-    boxShadow: 'var(--shadow-brand-lg, 0 8px 40px rgba(110, 139, 255, 0.25))',
+    boxShadow: '0 8px 40px rgba(110, 139, 255, 0.25)',
     transform: 'rotate(1deg)'
   },
   
   disabled: {
     opacity: 0.6,
-    background: 'var(--bg-secondary, #334155)',
+    background: '#334155',  // 禁用状态的背景色
   }
 };
 
@@ -227,31 +228,35 @@ const DraggableStepCardInner: React.FC<
     }
   };
 
-  // 组合样式
-  const cardStyle = {
+  // 组合样式 - 强制使用正确的深色主题适配
+  const cardStyle: React.CSSProperties = {
     ...modernStepCardStyles.card,
     ...dragStyle,
     ...(isDragging ? modernStepCardStyles.dragging : {}),
-    ...(!step.enabled ? modernStepCardStyles.disabled : {})
+    ...(!step.enabled ? modernStepCardStyles.disabled : {}),
+    // 强制确保正确的深色主题颜色
+    background: '#1E293B',
+    color: '#F8FAFC',
+    border: '1px solid #334155',
   };
 
   return (
     <div
-      className="modern-draggable-step-card light-theme-force"
+      className={`modern-draggable-step-card ${styles.darkThemeCard}`}
       style={cardStyle}
       onMouseEnter={(e) => {
         if (!isDragging) {
           const card = e.currentTarget;
-          card.style.borderColor = 'var(--brand-400, #7A9BFF)';
-          card.style.boxShadow = 'var(--shadow-interactive-hover, 0 0 16px rgba(110, 139, 255, 0.3))';
+          card.style.borderColor = '#7A9BFF';  // 品牌蓝色
+          card.style.boxShadow = '0 0 16px rgba(110, 139, 255, 0.3)';
           card.style.transform = CSS.Transform.toString(transform) + ' translateY(-1px)';
         }
       }}
       onMouseLeave={(e) => {
         if (!isDragging) {
           const card = e.currentTarget;
-          card.style.borderColor = 'var(--border-primary, #334155)';
-          card.style.boxShadow = 'var(--shadow, 0 1px 3px rgba(0, 0, 0, 0.12))';
+          card.style.borderColor = '#334155';  // 默认边框色
+          card.style.boxShadow = '0 1px 3px rgba(0, 0, 0, 0.12)';
           card.style.transform = CSS.Transform.toString(transform);
         }
       }}
@@ -326,7 +331,7 @@ const DraggableStepCardInner: React.FC<
               margin: 0,
               fontSize: '15px',
               fontWeight: '500',
-              color: 'var(--text-1, #F8FAFC)',
+              color: '#F8FAFC', // 强制使用浅色文字
               flex: 1,
               lineHeight: '1.4'
             }}>
@@ -361,17 +366,17 @@ const DraggableStepCardInner: React.FC<
                 cursor: 'pointer',
                 padding: '6px',
                 borderRadius: '6px',
-                color: 'var(--text-2, #E2E8F0)',
+                color: '#E2E8F0', // 强制使用浅色文字
                 fontSize: '14px',
                 transition: 'all var(--duration-fast, 120ms)'
               }}
               onMouseEnter={(e) => {
-                e.currentTarget.style.background = 'var(--bg-secondary, #334155)';
-                e.currentTarget.style.color = 'var(--text-1, #F8FAFC)';
+                e.currentTarget.style.background = '#334155';
+                e.currentTarget.style.color = '#F8FAFC';
               }}
               onMouseLeave={(e) => {
                 e.currentTarget.style.background = 'transparent';
-                e.currentTarget.style.color = 'var(--text-2, #E2E8F0)';
+                e.currentTarget.style.color = '#E2E8F0';
               }}
             >
               ✏️
@@ -389,13 +394,13 @@ const DraggableStepCardInner: React.FC<
                 padding: '6px',
                 borderRadius: '6px',
                 color: step.enabled 
-                  ? 'var(--success, #10B981)' 
-                  : 'var(--text-3, #CBD5E1)',
+                  ? '#10B981'  // 绿色（成功色）
+                  : '#CBD5E1', // 浅灰色
                 fontSize: '14px',
                 transition: 'all var(--duration-fast, 120ms)'
               }}
               onMouseEnter={(e) => {
-                e.currentTarget.style.background = 'var(--bg-secondary, #334155)';
+                e.currentTarget.style.background = '#334155';
               }}
               onMouseLeave={(e) => {
                 e.currentTarget.style.background = 'transparent';
@@ -415,17 +420,17 @@ const DraggableStepCardInner: React.FC<
                 cursor: 'pointer',
                 padding: '6px',
                 borderRadius: '6px',
-                color: 'var(--text-3, #CBD5E1)',
+                color: '#CBD5E1',  // 浅灰色
                 fontSize: '14px',
                 transition: 'all var(--duration-fast, 120ms)'
               }}
               onMouseEnter={(e) => {
                 e.currentTarget.style.background = 'rgba(239, 68, 68, 0.1)';
-                e.currentTarget.style.color = 'var(--error, #EF4444)';
+                e.currentTarget.style.color = '#EF4444';  // 红色（悬停）
               }}
               onMouseLeave={(e) => {
                 e.currentTarget.style.background = 'transparent';
-                e.currentTarget.style.color = 'var(--text-3, #CBD5E1)';
+                e.currentTarget.style.color = '#CBD5E1';  // 浅灰色
               }}
             >
               🗑️
@@ -434,15 +439,17 @@ const DraggableStepCardInner: React.FC<
         </div>
 
         {/* 状态条 */}
-        <div style={{
-          display: 'flex',
-          alignItems: 'center',
-          gap: '8px',
-          padding: '8px 12px',
-          background: statusConfig.bgColor,
-          borderRadius: '6px',
-          fontSize: '12px'
-        }}>
+        <div 
+          className="status-indicator"
+          style={{
+            display: 'flex',
+            alignItems: 'center',
+            gap: '8px',
+            padding: '8px 12px',
+            background: statusConfig.bgColor,
+            borderRadius: '6px',
+            fontSize: '12px'
+          }}>
           <span style={{ 
             color: statusConfig.color,
             fontSize: '10px'
@@ -463,7 +470,7 @@ const DraggableStepCardInner: React.FC<
           alignItems: 'center',
           gap: '12px',
           fontSize: '13px',
-          color: 'var(--text-3, #CBD5E1)'
+          color: '#CBD5E1'  // 浅灰色
         }}>
           <span>类型: {step.step_type}</span>
           
@@ -487,7 +494,7 @@ const DraggableStepCardInner: React.FC<
             background: 'rgba(59, 130, 246, 0.1)',
             borderRadius: '6px',
             fontSize: '12px',
-            color: 'var(--info, #3B82F6)'
+            color: '#3B82F6'  // 蓝色（信息色）
           }}>
             <div style={{ fontWeight: '500', marginBottom: '4px' }}>
               🔄 循环配置:

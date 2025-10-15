@@ -1,0 +1,30 @@
+/* 
+ * DraggableStepCard 深色主题强制样式
+ * 解决全局样式冲突，确保文字在深色背景上可读
+ */
+
+.darkThemeCard {
+  /* 强制深色主题适配 */
+  background: #1E293B !important;
+  color: #F8FAFC !important;
+  border: 1px solid #334155 !important;
+}
+
+/* 强制所有内部文本元素使用正确颜色 */
+.darkThemeCard * {
+  color: #F8FAFC !important;
+}
+
+/* 保持按钮和特殊元素的自定义颜色 */
+.darkThemeCard button {
+  color: initial !important;
+}
+
+/* 状态指示器保持原有颜色 */
+.darkThemeCard .status-indicator {
+  color: initial !important;
+}
+
+.darkThemeCard .status-indicator * {
+  color: initial !important;
+}
