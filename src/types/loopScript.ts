@@ -32,7 +32,7 @@ export interface ExtendedSmartScriptStep {
   step_type: string; // 包含原有类型和循环类型
   name: string;
   description: string;
-  parameters: Record<string, any>;
+  parameters: Record<string, unknown>;
   enabled: boolean;
   order: number;
   
@@ -41,10 +41,14 @@ export interface ExtendedSmartScriptStep {
   parent_loop_id?: string; // 父循环ID，表示该步骤属于哪个循环
   is_in_loop?: boolean; // 是否在循环体内
   
+  // 🧠 策略选择器支持
+  enableStrategySelector?: boolean; // 是否启用策略选择器
+  strategySelector?: unknown; // 策略选择器状态数据
+  
   // 原有扩展字段
-  find_condition?: any;
-  verification?: any;
-  retry_config?: any;
+  find_condition?: unknown;
+  verification?: unknown;
+  retry_config?: unknown;
   fallback_actions?: ExtendedSmartScriptStep[];
   pre_conditions?: string[];
   post_conditions?: string[];

@@ -7,6 +7,9 @@ import { App } from 'antd';
 import { useIntelligentAnalysisWorkflow } from '../../../modules/universal-ui/hooks/use-intelligent-analysis-workflow';
 import type { UIElement } from '../../../api/universalUIAPI';
 import type { ExtendedSmartScriptStep } from '../../../types/loopScript';
+import type { StrategySelector } from '../../../types/strategySelector';
+import XmlCacheManager from '../../../services/xml-cache-manager';
+import { generateXmlHash } from '../../../types/self-contained/xmlSnapshot';
 
 interface ElementSelectionContext {
   snapshotId: string;
@@ -14,6 +17,9 @@ interface ElementSelectionContext {
   elementText?: string;
   elementBounds?: string;
   elementType?: string;
+  // 🎯 新增：完整XML快照信息
+  xmlContent?: string;
+  xmlHash?: string;
   keyAttributes?: Record<string, string>;
 }
 
@@ -40,15 +46,37 @@ export function useIntelligentStepCardIntegration(options: UseIntelligentStepCar
   } = useIntelligentAnalysisWorkflow();
 
   /**
-   * 从UIElement转换为ElementSelectionContext
+   * 从UIElement转换为ElementSelectionContext (增强版 - 包含完整XML信息)
    */
   const convertElementToContext = useCallback((element: UIElement): ElementSelectionContext => {
+    // 尝试获取当前XML内容和哈希
+    let xmlContent = '';
+    let xmlHash = '';
+    let xmlCacheId = '';
+    
+    try {
+      // 如果元素有关联的缓存ID，从缓存管理器获取XML内容
+      xmlCacheId = (element as unknown as { xmlCacheId?: string }).xmlCacheId || '';
+      if (xmlCacheId) {
+        const cacheEntry = XmlCacheManager.getInstance().getCachedXml(xmlCacheId);
+        if (cacheEntry) {
+          xmlContent = cacheEntry.xmlContent;
+          xmlHash = generateXmlHash(xmlContent);
+        }
+      }
+    } catch (error) {
+      console.warn('获取XML内容失败:', error);
+    }
+    
     return {
-      snapshotId: 'current', // 可以从当前XML内容获取
+      snapshotId: xmlCacheId || 'current',
       elementPath: element.xpath || element.id || '',
       elementText: element.text,
       elementBounds: element.bounds ? JSON.stringify(element.bounds) : undefined,
       elementType: element.element_type || 'tap',
+      // 🎯 新增：完整XML快照信息，支持跨设备复现
+      xmlContent,
+      xmlHash,
       keyAttributes: {
         'resource-id': element.resource_id || '',
         'content-desc': element.content_desc || '',
@@ -78,6 +106,26 @@ export function useIntelligentStepCardIntegration(options: UseIntelligentStepCar
         name: `智能${element.element_type === 'tap' ? '点击' : '操作'} ${stepNumber}`,
         step_type: element.element_type === 'tap' ? 'smart_find_element' : (element.element_type || 'tap'),
         description: `智能分析 - ${element.text || element.content_desc || element.resource_id || element.id}`,
+        // 🧠 启用策略选择器
+        enableStrategySelector: true,
+        strategySelector: {
+          activeStrategy: {
+            type: 'smart-auto' as const
+          },
+          analysis: {
+            status: 'analyzing' as const,
+            progress: 0
+          },
+          candidates: {
+            smart: [],
+            static: []
+          },
+          config: {
+            autoFollowSmart: true,
+            confidenceThreshold: 0.82,
+            enableFallback: true
+          }
+        },
         parameters: {
           element_selector: element.xpath || element.id || '',
           text: element.text || '',
@@ -85,10 +133,21 @@ export function useIntelligentStepCardIntegration(options: UseIntelligentStepCar
           resource_id: element.resource_id || '',
           content_desc: element.content_desc || '',
           class_name: element.class_name || '',
-          // 🧠 智能分析相关参数
+          // 🧠 智能分析相关参数 - 完整XML快照信息
           xmlSnapshot: {
             xmlCacheId: context.snapshotId,
-            xmlContent: '', // 可以从当前快照获取
+            xmlContent: context.xmlContent || '', // 保存完整XML内容以支持跨设备复现
+            xmlHash: context.xmlHash || '',
+            timestamp: Date.now(),
+            elementGlobalXPath: element.xpath || '',
+            elementSignature: {
+              class: element.class_name || '',
+              resourceId: element.resource_id || '',
+              text: element.text || null,
+              contentDesc: element.content_desc || null,
+              bounds: element.bounds ? JSON.stringify(element.bounds) : '',
+              indexPath: (element as unknown as { index_path?: number[] }).index_path || [], // 如果有索引路径
+            }
           },
           // 元素匹配策略（初始为智能推荐模式）
           matching: {

@@ -28,7 +28,8 @@ import React from "react";
 import { CSS } from '@dnd-kit/utilities';
 import { SmartActionType } from "../types/smartComponents";
 import styles from './DraggableStepCard.module.css';
-import StrategySelector from './strategy-selector/StrategySelector';
+// import StrategySelector from './strategy-selector/StrategySelector'; // 暂时不用，保留备用
+import CompactStrategyMenu from './strategy-selector/CompactStrategyMenu';
 import { StrategySelector as IStrategySelector, StrategyEvents } from '../types/strategySelector';
 
 // 设备简化接口
@@ -516,6 +517,59 @@ const DraggableStepCardInner: React.FC<
               maxWidth: '100%',
             }}>
             
+            {/* 🧠 紧凑策略菜单 */}
+            {step.enableStrategySelector && step.strategySelector && (
+              <CompactStrategyMenu
+                selector={step.strategySelector}
+                events={{
+                  onStrategyChange: (selection) => onStrategyChange?.(step.id, selection),
+                  onReanalyze: () => onReanalyze?.(step.id),
+                  onSaveAsStatic: (candidate) => onSaveAsStatic?.(step.id, candidate),
+                  onOpenElementInspector: () => onOpenElementInspector?.(step.id),
+                  onCancelAnalysis: (jobId) => onCancelAnalysis?.(step.id, jobId),
+                  onApplyRecommendation: (key) => onApplyRecommendation?.(step.id, key),
+                }}
+                disabled={!step.enabled}
+                compact={true}
+              />
+            )}
+
+            {/* 🧠 XML快照信息胶囊 */}
+            {step.parameters?.xmlSnapshot && (
+              <button
+                type="button"
+                title={`原始XML快照 ${new Date(step.parameters.xmlSnapshot.timestamp || 0).toLocaleString()}`}
+                onClick={() => {
+                  // TODO: 实现重新加载原始XML功能
+                  console.log('重新加载原始XML:', step.parameters?.xmlSnapshot);
+                }}
+                style={{
+                  border: `1px solid ${STEP_CARD_DESIGN_TOKENS.colors.border.default}`,
+                  background: 'rgba(59, 130, 246, 0.1)',
+                  color: '#3B82F6',
+                  cursor: 'pointer',
+                  padding: '2px 6px',
+                  borderRadius: '12px',
+                  fontSize: '10px',
+                  fontFamily: 'monospace',
+                  lineHeight: 1.2,
+                  whiteSpace: 'nowrap',
+                  transition: `all ${STEP_CARD_DESIGN_TOKENS.animations.duration.fast} ${STEP_CARD_DESIGN_TOKENS.animations.easing.easeOut}`
+                }}
+                onMouseEnter={(e) => {
+                  e.currentTarget.style.background = 'rgba(59, 130, 246, 0.2)';
+                  e.currentTarget.style.transform = 'scale(1.05)';
+                }}
+                onMouseLeave={(e) => {
+                  e.currentTarget.style.background = 'rgba(59, 130, 246, 0.1)';
+                  e.currentTarget.style.transform = 'scale(1)';
+                }}
+              >
+                XML {(step.parameters.xmlSnapshot as { xmlHash?: string })?.xmlHash?.slice(7, 14) || 'cache'} • 
+                {new Date((step.parameters.xmlSnapshot as { timestamp?: number })?.timestamp || 0).toLocaleTimeString().slice(0, 5)}
+              </button>
+            )}
+
             {/* 测试按钮 */}
             {StepTestButton && (
               <StepTestButton 
@@ -680,22 +734,8 @@ const DraggableStepCardInner: React.FC<
           </div>
         )}
 
-        {/* 🧠 策略选择器 */}
-        {step.enableStrategySelector && step.strategySelector && (
-          <StrategySelector
-            selector={step.strategySelector}
-            events={{
-              onStrategyChange: (selection) => onStrategyChange?.(step.id, selection),
-              onReanalyze: () => onReanalyze?.(step.id),
-              onSaveAsStatic: (candidate) => onSaveAsStatic?.(step.id, candidate),
-              onOpenElementInspector: () => onOpenElementInspector?.(step.id),
-              onCancelAnalysis: (jobId) => onCancelAnalysis?.(step.id, jobId),
-              onApplyRecommendation: (key) => onApplyRecommendation?.(step.id, key),
-            }}
-            compact={false}
-            disabled={!step.enabled}
-          />
-        )}
+        {/* 🧠 策略选择器 - 已移至标题栏紧凑模式 */}
+        {/* 保留原始策略选择器组件以备需要详细视图时使用 */}
       </div>
     </div>
   );

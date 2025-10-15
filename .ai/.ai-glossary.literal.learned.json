@@ -3555,6 +3555,18 @@
     "aac": {
       "alias": "高级音频编码",
       "confidence": 1
+    },
+    "elements": {
+      "alias": "元素",
+      "confidence": 1
+    },
+    "discovery": {
+      "alias": "发现",
+      "confidence": 1
+    },
+    "data": {
+      "alias": "数据",
+      "confidence": 1
     }
   },
   "phrases": {
@@ -3900,6 +3912,18 @@
     },
     "aef cbec": {
       "alias": "阿埃夫西贝克",
+      "confidence": 1
+    },
+    "clickable elements": {
+      "alias": "可点击元素",
+      "confidence": 1
+    },
+    "debug element": {
+      "alias": "调试元素",
+      "confidence": 1
+    },
+    "element discovery": {
+      "alias": "元素发现",
       "confidence": 1
     }
   }

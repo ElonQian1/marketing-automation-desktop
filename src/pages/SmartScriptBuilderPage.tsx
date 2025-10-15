@@ -19,6 +19,7 @@ import { UniversalPageFinderModal } from "../components/universal-ui/UniversalPa
 import { useIntelligentStepCardIntegration } from "./SmartScriptBuilderPage/hooks/useIntelligentStepCardIntegration";
 import { ContactWorkflowSelector } from "../modules/contact-automation";
 import { useSmartScriptBuilder } from "./SmartScriptBuilderPage/hooks/useSmartScriptBuilder";
+import StepBundleManager from "../components/StepBundleManager";
 
 
 
@@ -73,7 +74,45 @@ const SmartScriptBuilderPage: React.FC = () => {
       overflow: 'auto' 
     }}>
       <Space direction="vertical" size="large" style={{ width: '100%' }}>
-        <PageHeader {...headerProps} />
+        <div>
+          <PageHeader {...headerProps} />
+          
+          {/* 🎯 步骤包管理器 */}
+          <div style={{ 
+            marginTop: token.marginSM, 
+            padding: `${token.paddingSM}px ${token.padding}px`,
+            background: token.colorBgContainer,
+            borderRadius: token.borderRadius,
+            border: `1px solid ${token.colorBorderSecondary}`
+          }}>
+            <div style={{ 
+              display: 'flex', 
+              alignItems: 'center', 
+              justifyContent: 'space-between',
+              marginBottom: token.marginXS
+            }}>
+              <Space>
+                <span style={{ color: token.colorTextSecondary, fontSize: token.fontSizeSM }}>
+                  📦 步骤包管理
+                </span>
+                <span style={{ color: token.colorTextTertiary, fontSize: '12px' }}>
+                  导出脚本和XML快照，支持跨设备分享和复现
+                </span>
+              </Space>
+              <StepBundleManager 
+                steps={stepListProps.steps}
+                onImportSteps={(importedSteps) => {
+                  stepListProps.setSteps(prev => [...prev, ...importedSteps]);
+                }}
+                deviceInfo={{
+                  brand: 'Unknown',
+                  model: 'Unknown', 
+                  size: '1080x2340'
+                }}
+              />
+            </div>
+          </div>
+        </div>
 
         <Row gutter={[12, 16]}>
           <Col xs={24} lg={16}>
