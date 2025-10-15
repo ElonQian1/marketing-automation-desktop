@@ -490,6 +490,10 @@ const DraggableStepCardInner: React.FC<
               flexWrap: 'wrap',  // 允许换行
               justifyContent: 'flex-end',  // 右对齐
               minWidth: 0,  // 允许收缩
+              // 当空间不足时自动换行
+              flexShrink: 1,
+              // 设置最大宽度，超过时换行
+              maxWidth: '100%',
             }}>
             
             {/* 测试按钮 */}

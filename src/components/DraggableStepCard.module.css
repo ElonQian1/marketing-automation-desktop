@@ -52,22 +52,99 @@
     padding: 6px !important;
     font-size: 12px !important;
   }
+  
+  /* 中等屏幕：当空间不足时，按钮组换行 */
+  .darkThemeCard .step-header {
+    gap: 6px !important;
+  }
+  
+  .darkThemeCard .button-group {
+    min-width: 160px;  /* 设置最小宽度，空间不足时会换行 */
+  }
 }
 
-@media (max-width: 480px) {
+@media (max-width: 600px) {
+  /* 更小屏幕：降低按钮组换行阈值 */
+  .darkThemeCard .button-group {
+    min-width: 140px !important;
+  }
+}
+
+@media (max-width: 640px) {
+  /* 中小屏幕：降低换行阈值，更容易触发换行 */
+  .darkThemeCard .step-header > div:first-child {
+    min-width: 160px !important;  /* 标题区域需要更少空间 */
+    flex: 1 1 160px !important;
+  }
+  
+  .darkThemeCard .button-group {
+    min-width: 120px !important;  /* 按钮组最小宽度 */
+  }
+}
+
+@media (max-width: 580px) {
+  /* 更小屏幕：进一步降低阈值 */
+  .darkThemeCard .step-header > div:first-child {
+    min-width: 140px !important;
+    flex: 1 1 140px !important;
+  }
+  
+  .darkThemeCard .button-group {
+    min-width: 110px !important;
+  }
+}
+
+@media (max-width: 520px) {
   .darkThemeCard {
     padding: 10px !important;  /* 更小的内边距 */
   }
   
-  /* 非常小的屏幕上，按钮组可能需要完全换行 */
+  /* 小屏幕：强制左右分成两行 */
   .darkThemeCard .step-header {
     flex-direction: column !important;
     align-items: flex-start !important;
-    gap: 8px !important;
+    gap: 12px !important;  /* 增加行间距 */
   }
   
+  /* 标题区域占满第一行 */
+  .darkThemeCard .step-header > div:first-child {
+    width: 100% !important;
+  }
+  
+  /* 按钮组占满第二行，左对齐 */
   .darkThemeCard .button-group {
     width: 100% !important;
     justify-content: flex-start !important;
+    min-width: auto !important;
   }
+}
+
+/* 🎯 左右分行换行优化 */
+.darkThemeCard .step-header {
+  /* 默认：左右布局 */
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  flex-wrap: wrap;
+}
+
+/* 标题区域：设置最小宽度，小于此宽度时会换行 */
+.darkThemeCard .step-header > div:first-child {
+  /* 标题区域最小需要200px，不足时整体换行 */
+  min-width: 200px;
+  flex: 1 1 200px;
+}
+
+/* 按钮组：设置最小宽度 */
+.darkThemeCard .button-group {
+  /* 按钮组最小需要140px */
+  min-width: 140px;
+  max-width: 100%;
+  flex: 0 1 auto;
+}
+
+/* 确保按钮有合适的最小宽度 */
+.darkThemeCard .button-group button {
+  min-width: 36px;  /* 按钮最小宽度 */
+  white-space: nowrap;  /* 按钮文字不换行 */
 }
