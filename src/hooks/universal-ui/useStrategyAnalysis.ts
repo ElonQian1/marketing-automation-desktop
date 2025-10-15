@@ -1,5 +1,6 @@
-// 智能策略分析Hook
 // src/hooks/universal-ui/useStrategyAnalysis.ts
+// module: universal-ui | layer: hooks | role: 策略分析Hook
+// summary: 智能策略分析和元素匹配的React Hook
 
 import { useState, useCallback, useRef } from 'react';
 import type { UIElement } from '../../api/universalUIAPI';

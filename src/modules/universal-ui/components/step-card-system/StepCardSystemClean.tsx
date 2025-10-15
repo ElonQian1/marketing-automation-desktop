@@ -1,6 +1,6 @@
-// src/modules/universal-ui/components/step-card-system/StepCardSystem.tsx
-// module: universal-ui | layer: components | role: system-main
-// summary: 步骤卡片系统主入口组件（完整实现版本）
+// src/modules/universal-ui/components/step-card-system/StepCardSystemClean.tsx
+// module: universal-ui | layer: components | role: 步骤卡片系统清理版
+// summary: 步骤卡片系统主入口组件（重构清理版本）
 
 import React, { useMemo } from 'react';
 import type { UnifiedStepCardData, StepCardFeatureConfig, StepCardStyleConfig, StepCardCallbacks } from '../../types/unified-step-card-types';

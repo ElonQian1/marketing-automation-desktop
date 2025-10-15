@@ -117,7 +117,7 @@
       "confidence": 1
     },
     "pre": {
-      "alias": "预",
+      "alias": "前",
       "confidence": 1
     },
     "pre-applypatch": {
@@ -2391,6 +2391,58 @@
     "package-lock": {
       "alias": "包裹_锁",
       "confidence": 1
+    },
+    "emergency": {
+      "alias": "紧急",
+      "confidence": 1
+    },
+    "fix": {
+      "alias": "修复",
+      "confidence": 1
+    },
+    "cards": {
+      "alias": "卡片",
+      "confidence": 1
+    },
+    "ids": {
+      "alias": "标识符",
+      "confidence": 1
+    },
+    "hierarchy": {
+      "alias": "层级",
+      "confidence": 1
+    },
+    "issue": {
+      "alias": "问题",
+      "confidence": 1
+    },
+    "backups": {
+      "alias": "备份",
+      "confidence": 1
+    },
+    "husky": {
+      "alias": "哈士奇",
+      "confidence": 1
+    },
+    "pre-commit": {
+      "alias": "前提交",
+      "confidence": 1
+    },
+    "warning": {
+      "alias": "警告",
+      "confidence": 1
+    },
+    "attribution": {
+      "alias": "归因",
+      "confidence": 1
+    },
+    "playwright": {
+      "alias": "剧作家",
+      "confidence": 1
+    },
+    "config": {
+      "alias": "配置",
+      "confidence": 1
     }
   },
   "phrases": {
@@ -2475,7 +2527,7 @@
       "confidence": 1
     },
     "debug useform": {
-      "alias": "调试_使用表单",
+      "alias": "调试使用表单",
       "confidence": 1
     },
     "identify module": {
@@ -2484,6 +2536,38 @@
     },
     "lint errors": {
       "alias": "绒毛_错误",
+      "confidence": 1
+    },
+    "emergency fix": {
+      "alias": "紧急修复",
+      "confidence": 1
+    },
+    "fix loop": {
+      "alias": "修复循环",
+      "confidence": 1
+    },
+    "loop cards": {
+      "alias": "循环卡片",
+      "confidence": 1
+    },
+    "debug element ids": {
+      "alias": "调试元素标识符",
+      "confidence": 1
+    },
+    "diagnose hierarchy issue": {
+      "alias": "诊断层级问题",
+      "confidence": 1
+    },
+    "useform warning": {
+      "alias": "使用表单警告",
+      "confidence": 1
+    },
+    "warning attribution": {
+      "alias": "警告归因",
+      "confidence": 1
+    },
+    "playwright config": {
+      "alias": "剧作家配置",
       "confidence": 1
     }
   }

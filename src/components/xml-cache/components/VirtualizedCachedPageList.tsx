@@ -1,6 +1,6 @@
-// srimport type { CachedXmlPage } from '../../../services/xml-page-cache-service';/components/xml-cache/components/VirtualizedCachedPageList.tsx
-// module: ui | layer: ui | role: component
-// summary: UI 组件
+// src/components/xml-cache/components/VirtualizedCachedPageList.tsx
+// module: xml-cache | layer: ui | role: 虚拟化缓存页面列表
+// summary: 使用虚拟化技术的高性能缓存页面列表组件
 
 import React, { useEffect, useMemo } from "react";
 import type { CachedXmlPage } from '../../../services/xml-page-cache-service';
@@ -141,7 +141,7 @@ export function useDynamicRowHeight(
       }
     });
     return () => ro.disconnect();
-  // eslint-disable-next-line react-hooks/exhaustive-deps
+  // Dependencies explicitly managed
   }, deps);
 }
 

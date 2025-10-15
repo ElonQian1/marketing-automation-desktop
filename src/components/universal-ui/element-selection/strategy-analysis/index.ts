@@ -1,5 +1,6 @@
-// 策略分析相关组件导出
 // src/components/universal-ui/element-selection/strategy-analysis/index.ts
+// module: universal-ui | layer: ui | role: 策略分析组件导出
+// summary: 策略分析相关组件和类型的统一导出
 
 export { StrategyAnalysisModal } from './StrategyAnalysisModal';
 

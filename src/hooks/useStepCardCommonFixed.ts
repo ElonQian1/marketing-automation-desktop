@@ -1,6 +1,6 @@
-// src/hooks/useStepCardCommon.ts
-// module: hooks | layer: hooks | role: shared-logic
-// summary: 提取步骤卡片通用逻辑，消除 DraggableStepCard 和 UnifiedStepCard 之间的重复
+// src/hooks/useStepCardCommonFixed.ts
+// module: hooks | layer: hooks | role: 步骤卡片共享逻辑修复版
+// summary: 提取步骤卡片通用逻辑，消除重复代码（修复版本）
 
 import { useState, useCallback } from 'react';
 

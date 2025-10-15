@@ -7,7 +7,7 @@
  * 移除所有自定义样式，使用纯原生Ant Design组件和样式
  */
 
-import React, { useState, JSX } from "react";
+import React, { useState } from "react";
 import {
   Layout,
   Menu,
@@ -39,7 +39,6 @@ import {
 import type { MenuProps } from "antd";
 
 import { GlobalAdbProvider } from "../providers";
-import { EnhancedThemeProvider } from "../components/feature-modules/theme-system";
 import { featureFlags } from "../config/featureFlags";
 
 // 页面组件导入
@@ -47,11 +46,12 @@ import InspectorPage from "../pages/InspectorPage";
 import PermissionTestPage from "../pages/PermissionTestPage";
 import AdbCenterPage from "../pages/adb/AdbCenterPage";
 import SmartScriptBuilderPageNativeWrapper from "../pages/native-wrappers/SmartScriptBuilderPage.native";
-import RealTimeDeviceMonitorPage from "../pages/device-monitor/RealTimeDeviceMonitorPage";
+// import RealTimeDeviceMonitorPage from "../pages/device-monitor/RealTimeDeviceMonitorPage";
+import { TestIntelligentAnalysisAdapter } from "../components/universal-ui/element-selection/TestIntelligentAnalysisAdapter";
 import SmartVcfImporter from "./SmartVcfImporter";
 import TemplateLibrary from "./template/TemplateLibrary";
 import ContactImportPage from "../pages/contact-import/ContactImportPage";
-import QuickPhoneMirror from "./QuickPhoneMirror";
+// import QuickPhoneMirror from "./QuickPhoneMirror";
 import { PageFinderView } from "./universal-ui/page-finder";
 import { ThemeSettingsPage } from "../pages/ThemeSettingsPage";
 import { NativeAntDashboard } from "./native-dashboard/NativeAntDashboard";
@@ -82,7 +82,6 @@ const { Title } = Typography;
 const NativeAntDesignApp: React.FC = () => {
   const [selectedKey, setSelectedKey] = useState("dashboard");
   const [collapsed, setCollapsed] = useState(false);
-  const [selectedDevice, setSelectedDevice] = useState<string>("");
   const [inspectorOpen, setInspectorOpen] = useState<{
     open: boolean;
     sessionId?: string;
@@ -92,10 +91,6 @@ const NativeAntDesignApp: React.FC = () => {
   const {
     token: { colorBgContainer },
   } = theme.useToken();
-
-  const handleDeviceSelect = (deviceId: string) => {
-    setSelectedDevice(deviceId);
-  };
 
   const menuItems: MenuProps["items"] = [
     {
@@ -178,6 +173,11 @@ const NativeAntDesignApp: React.FC = () => {
       label: "🎯 自动回填演示",
     },
     {
+      key: "test-intelligent-analysis-adapter",
+      icon: <ThunderboltOutlined />,
+      label: "🧪 智能分析适配器测试",
+    },
+    {
       key: "statistics-native",
       icon: <DashboardOutlined />,
       label: "统计页面（原生）",
@@ -246,6 +246,8 @@ const NativeAntDesignApp: React.FC = () => {
         return <IntelligentAnalysisRealDemo />;
       case "auto-fill-demo":
         return <AutoFillDemo />;
+      case "test-intelligent-analysis-adapter":
+        return <TestIntelligentAnalysisAdapter />;
       case "statistics-native":
         return <StatisticsPageNative />;
       case "statistics-optimized":

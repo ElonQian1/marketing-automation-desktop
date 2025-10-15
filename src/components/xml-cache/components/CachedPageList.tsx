@@ -1,6 +1,6 @@
-// srcimport type { CachedXmlPage } from '../../../services/xml-page-cache-service';components/xml-cache/components/CachedPageList.tsx
-// module: ui | layer: ui | role: component
-// summary: UI 组件
+// src/components/xml-cache/components/CachedPageList.tsx
+// module: xml-cache | layer: ui | role: 缓存页面列表组件
+// summary: 显示已缓存XML页面的列表组件
 
 import React from "react";
 import { List, Empty, Skeleton } from "antd";

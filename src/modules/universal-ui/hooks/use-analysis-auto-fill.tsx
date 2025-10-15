@@ -1,5 +1,5 @@
-// src/modules/universal-ui/hooks/use-analysis-auto-fill.ts
-// module: universal-ui | layer: hooks | role: custom-hook
+// src/modules/universal-ui/hooks/use-analysis-auto-fill.tsx
+// module: universal-ui | layer: hooks | role: 智能分析自动填充Hook
 // summary: 智能分析结果自动回填Hook - 将分析结果自动填充到步骤卡
 
 import { useState, useCallback } from 'react';

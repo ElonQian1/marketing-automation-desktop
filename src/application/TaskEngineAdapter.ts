@@ -1,7 +1,8 @@
-// @ts-nocheck
 // src/application/TaskEngineAdapter.ts
-// module: application | layer: application | role: application-logic
-// summary: 应用逻辑
+// module: application | layer: application | role: 任务引擎适配器
+// summary: 任务引擎的应用层适配器（待重构）
+
+// @ts-nocheck
 
 /**
  * TODO: 此文件暂时禁用，因为依赖已删除的 EnhancedTaskEngineManager

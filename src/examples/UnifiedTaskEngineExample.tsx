@@ -1,7 +1,8 @@
-// @ts-nocheck
 // src/examples/UnifiedTaskEngineExample.tsx
-// module: shared | layer: examples | role: 示例代码
-// summary: 功能演示和使用示例
+// module: examples | layer: examples | role: 统一任务引擎示例
+// summary: 统一任务引擎的功能演示和使用示例（已禁用）
+
+// @ts-nocheck
 
 /**
  * 统一任务引擎使用示例

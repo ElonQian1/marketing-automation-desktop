@@ -1,5 +1,6 @@
 // src/test-smart-step-demo.tsx
-// 临时测试页面：智能步骤系统演示
+// module: test | layer: pages | role: 智能步骤演示页面
+// summary: 智能步骤系统的临时测试演示页面
 
 import React from 'react';
 import { UniversalSmartStepDemo } from './modules/universal-ui';

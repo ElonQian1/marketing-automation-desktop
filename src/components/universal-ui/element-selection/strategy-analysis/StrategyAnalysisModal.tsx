@@ -1,5 +1,6 @@
-// 策略分析模态框组件
 // src/components/universal-ui/element-selection/strategy-analysis/StrategyAnalysisModal.tsx
+// module: universal-ui | layer: ui | role: 策略分析模态框
+// summary: 元素选择策略分析结果的可视化展示模态框
 
 import React from 'react';
 import { Modal, Card, Row, Col, Button, Progress, Typography, Tag, Space, Divider } from 'antd';

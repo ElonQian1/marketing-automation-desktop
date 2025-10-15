@@ -1,8 +1,9 @@
+// src/components/universal-ui/views/xpath-monitor/XPathPerformanceMonitor.tsx
+// module: universal-ui | layer: ui | role: XPath性能监控组件
+// summary: XPath查询性能监控和优化建议界面（已禁用，待重构）
+
 // @ts-nocheck
 // 文件已禁用 - XPathService模块不存在，需要重构
-// src/components/universal-ui/views/xpath-monitor/XPathPerformanceMonitor.tsx
-// module: ui | layer: ui | role: component
-// summary: UI 组件
 
 import React, { useState, useEffect } from 'react';
 import { Card, Progress, Button, Typography, Statistic, Row, Col, Space, Tag, Alert } from 'antd';

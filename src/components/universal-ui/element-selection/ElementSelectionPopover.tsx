@@ -10,10 +10,11 @@ import type { UIElement } from '../../../api/universalUIAPI';
 import { useSmartPopoverPosition } from './utils/popoverPositioning';
 import { ElementDiscoveryModal } from './element-discovery';
 import { StrategyAnalysisModal } from './strategy-analysis/StrategyAnalysisModal';
-import { useStrategyAnalysis } from '../../../hooks/universal-ui/useStrategyAnalysis';
+import { useIntelligentAnalysisAdapter } from '../../../hooks/universal-ui/useIntelligentAnalysisAdapter';
+import { getIntelligentAnalysisConfig } from '../../../config/intelligentAnalysisConfig';
 import { isDevDebugEnabled } from '../../../utils/debug';
 import type { StrategyCandidate } from '../../../modules/universal-ui/types/intelligent-analysis-types';
-import type { StrategyAnalysisContext } from './types/StrategyAnalysis';
+import type { UnifiedAnalysisContext } from '../../../hooks/universal-ui/useIntelligentAnalysisAdapter';
 
 export interface ElementSelectionState {
   element: UIElement;
@@ -70,6 +71,7 @@ const ElementSelectionPopoverComponent: React.FC<ElementSelectionPopoverProps> =
   
   // 智能分析相关状态
   const [strategyAnalysisModalOpen, setStrategyAnalysisModalOpen] = useState(false);
+  const analysisConfig = useMemo(() => getIntelligentAnalysisConfig(), []);
   const {
     analysisState,
     analysisProgress,
@@ -77,7 +79,7 @@ const ElementSelectionPopoverComponent: React.FC<ElementSelectionPopoverProps> =
     startAnalysis,
     cancelAnalysis,
     resetAnalysis
-  } = useStrategyAnalysis();
+  } = useIntelligentAnalysisAdapter(analysisConfig);
   
   const [discoveryModalOpen, setDiscoveryModalOpen] = useState(false);
   // 避免“同一次点击”引发的立刻关闭：打开后的短暂宽限期内禁用外部点击自动取消
@@ -117,7 +119,7 @@ const ElementSelectionPopoverComponent: React.FC<ElementSelectionPopoverProps> =
     if (e) e.stopPropagation();
     if (!selection?.element) return;
     
-    const context: StrategyAnalysisContext = {
+    const context: UnifiedAnalysisContext = {
       element: selection.element,
       stepId,
       jobId: `analysis_${Date.now()}_${Math.random().toString(36).slice(2)}`,
@@ -336,7 +338,16 @@ const ElementSelectionPopoverComponent: React.FC<ElementSelectionPopoverProps> =
           open={strategyAnalysisModalOpen}
           onClose={handleStrategyModalClose}
           element={selection.element}
-          analysisResult={analysisResult}
+          analysisResult={{
+            recommendedStrategy: analysisResult.recommendedStrategy,
+            alternatives: analysisResult.alternatives,
+            analysisMetadata: {
+              totalTime: analysisResult.metadata.analysisTime,
+              elementComplexity: 'medium' as const,
+              containerStability: 0.8,
+              textStability: 0.9,
+            },
+          }}
           onStrategySelect={handleStrategySelect}
         />
       )}
