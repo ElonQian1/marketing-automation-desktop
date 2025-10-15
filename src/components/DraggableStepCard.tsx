@@ -118,31 +118,140 @@ export interface DraggableStepCardProps {
 }
 
 // 样式系统
+/**
+ * 🎨 DraggableStepCard 独立设计系统基准
+ * 完全自包含，不依赖任何全局样式变量
+ */
+const STEP_CARD_DESIGN_TOKENS = {
+  // 🎨 颜色系统
+  colors: {
+    // 背景色
+    bg: {
+      primary: '#1E293B',      // 主背景（深蓝灰）
+      secondary: '#334155',    // 次要背景（中灰蓝）
+      disabled: '#475569',     // 禁用背景（浅灰蓝）
+      hover: '#2D3748',        // 悬停背景
+    },
+    // 文字色
+    text: {
+      primary: '#F8FAFC',      // 主文字（纯白）
+      secondary: '#E2E8F0',    // 次要文字（浅灰）
+      muted: '#CBD5E1',        // 弱化文字（灰）
+      inverse: '#1E293B',      // 反色文字（深色）
+    },
+    // 边框色
+    border: {
+      default: '#334155',      // 默认边框
+      hover: '#7A9BFF',        // 悬停边框（品牌蓝）
+      focus: '#6E8BFF',        // 焦点边框
+    },
+    // 状态色
+    status: {
+      success: '#10B981',      // 成功（绿）
+      warning: '#F59E0B',      // 警告（橙）
+      error: '#EF4444',        // 错误（红）
+      info: '#3B82F6',         // 信息（蓝）
+    },
+    // 功能色
+    functional: {
+      brand: '#6E8BFF',        // 品牌色
+      accent: '#8B5CF6',       // 强调色
+    }
+  },
+  
+  // 📏 间距系统
+  spacing: {
+    xs: '4px',
+    sm: '8px', 
+    md: '12px',
+    lg: '16px',
+    xl: '20px',
+    xxl: '24px',
+  },
+  
+  // 📐 圆角系统
+  borderRadius: {
+    sm: '6px',
+    md: '8px',
+    lg: '12px',
+    xl: '16px',
+  },
+  
+  // 🔤 字体系统
+  typography: {
+    fontSize: {
+      xs: '10px',
+      sm: '12px',
+      md: '13px',
+      base: '14px',
+      lg: '16px',
+    },
+    fontWeight: {
+      normal: '400',
+      medium: '500',
+      semibold: '600',
+      bold: '700',
+    },
+    lineHeight: {
+      tight: '1.25',
+      normal: '1.5',
+      relaxed: '1.75',
+    }
+  },
+  
+  // 🌊 阴影系统
+  shadows: {
+    sm: '0 1px 3px rgba(0, 0, 0, 0.12)',
+    md: '0 2px 8px rgba(0, 0, 0, 0.15)',
+    lg: '0 8px 32px rgba(0, 0, 0, 0.2)',
+    brand: '0 0 16px rgba(110, 139, 255, 0.3)',
+    hover: '0 4px 20px rgba(110, 139, 255, 0.15)',
+  },
+  
+  // ⚡ 动画系统
+  animations: {
+    duration: {
+      fast: '120ms',
+      normal: '180ms',
+      slow: '300ms',
+    },
+    easing: {
+      easeOut: 'cubic-bezier(0, 0, 0.2, 1)',
+      easeIn: 'cubic-bezier(0.4, 0, 1, 1)',
+      easeInOut: 'cubic-bezier(0.4, 0, 0.2, 1)',
+    }
+  }
+};
+
 const modernStepCardStyles = {
   // 基础卡片样式
   card: {
     position: 'relative' as const,
-    background: '#1E293B',  // 强制深色背景
-    color: '#F8FAFC',       // 强制浅色文字
-    border: '1px solid #334155',
-    borderRadius: '12px',
-    padding: '16px',
+    background: STEP_CARD_DESIGN_TOKENS.colors.bg.primary,
+    color: STEP_CARD_DESIGN_TOKENS.colors.text.primary,
+    border: `1px solid ${STEP_CARD_DESIGN_TOKENS.colors.border.default}`,
+    borderRadius: STEP_CARD_DESIGN_TOKENS.borderRadius.lg,
+    padding: STEP_CARD_DESIGN_TOKENS.spacing.lg,
     minHeight: '80px',
-    transition: 'all 180ms cubic-bezier(0, 0, 0.2, 1)',  // 硬编码过渡
+    fontSize: STEP_CARD_DESIGN_TOKENS.typography.fontSize.base,
+    fontWeight: STEP_CARD_DESIGN_TOKENS.typography.fontWeight.normal,
+    lineHeight: STEP_CARD_DESIGN_TOKENS.typography.lineHeight.normal,
+    transition: `all ${STEP_CARD_DESIGN_TOKENS.animations.duration.normal} ${STEP_CARD_DESIGN_TOKENS.animations.easing.easeOut}`,
     cursor: 'grab' as const,
-    boxShadow: '0 1px 3px rgba(0, 0, 0, 0.12)',
+    boxShadow: STEP_CARD_DESIGN_TOKENS.shadows.sm,
   },
   
   dragging: {
     cursor: 'grabbing' as const,
     opacity: 0.8,
-    boxShadow: '0 8px 40px rgba(110, 139, 255, 0.25)',
+    boxShadow: STEP_CARD_DESIGN_TOKENS.shadows.brand,
     transform: 'rotate(1deg)'
   },
   
   disabled: {
     opacity: 0.6,
-    background: '#334155',  // 禁用状态的背景色
+    background: STEP_CARD_DESIGN_TOKENS.colors.bg.disabled,
+    color: STEP_CARD_DESIGN_TOKENS.colors.text.muted,
   }
 };
 
@@ -228,16 +337,16 @@ const DraggableStepCardInner: React.FC<
     }
   };
 
-  // 组合样式 - 强制使用正确的深色主题适配
+  // 组合样式 - 使用独立设计基准
   const cardStyle: React.CSSProperties = {
     ...modernStepCardStyles.card,
     ...dragStyle,
     ...(isDragging ? modernStepCardStyles.dragging : {}),
     ...(!step.enabled ? modernStepCardStyles.disabled : {}),
-    // 强制确保正确的深色主题颜色
-    background: '#1E293B',
-    color: '#F8FAFC',
-    border: '1px solid #334155',
+    // 强制确保使用我们的设计基准颜色
+    background: STEP_CARD_DESIGN_TOKENS.colors.bg.primary,
+    color: STEP_CARD_DESIGN_TOKENS.colors.text.primary,
+    border: `1px solid ${STEP_CARD_DESIGN_TOKENS.colors.border.default}`,
   };
 
   return (
@@ -247,16 +356,16 @@ const DraggableStepCardInner: React.FC<
       onMouseEnter={(e) => {
         if (!isDragging) {
           const card = e.currentTarget;
-          card.style.borderColor = '#7A9BFF';  // 品牌蓝色
-          card.style.boxShadow = '0 0 16px rgba(110, 139, 255, 0.3)';
+          card.style.borderColor = STEP_CARD_DESIGN_TOKENS.colors.border.hover;
+          card.style.boxShadow = STEP_CARD_DESIGN_TOKENS.shadows.brand;
           card.style.transform = CSS.Transform.toString(transform) + ' translateY(-1px)';
         }
       }}
       onMouseLeave={(e) => {
         if (!isDragging) {
           const card = e.currentTarget;
-          card.style.borderColor = '#334155';  // 默认边框色
-          card.style.boxShadow = '0 1px 3px rgba(0, 0, 0, 0.12)';
+          card.style.borderColor = STEP_CARD_DESIGN_TOKENS.colors.border.default;
+          card.style.boxShadow = STEP_CARD_DESIGN_TOKENS.shadows.sm;
           card.style.transform = CSS.Transform.toString(transform);
         }
       }}
@@ -329,11 +438,11 @@ const DraggableStepCardInner: React.FC<
             {/* 标题 */}
             <h4 style={{
               margin: 0,
-              fontSize: '15px',
-              fontWeight: '500',
-              color: '#F8FAFC', // 强制使用浅色文字
+              fontSize: STEP_CARD_DESIGN_TOKENS.typography.fontSize.lg,
+              fontWeight: STEP_CARD_DESIGN_TOKENS.typography.fontWeight.medium,
+              color: STEP_CARD_DESIGN_TOKENS.colors.text.primary,
               flex: 1,
-              lineHeight: '1.4'
+              lineHeight: STEP_CARD_DESIGN_TOKENS.typography.lineHeight.tight,
             }}>
               {step.description || step.name || `步骤 ${index + 1}`}
             </h4>
@@ -364,19 +473,19 @@ const DraggableStepCardInner: React.FC<
                 border: 'none',
                 background: 'transparent',
                 cursor: 'pointer',
-                padding: '6px',
-                borderRadius: '6px',
-                color: '#E2E8F0', // 强制使用浅色文字
-                fontSize: '14px',
-                transition: 'all var(--duration-fast, 120ms)'
+                padding: STEP_CARD_DESIGN_TOKENS.spacing.sm,
+                borderRadius: STEP_CARD_DESIGN_TOKENS.borderRadius.sm,
+                color: STEP_CARD_DESIGN_TOKENS.colors.text.secondary,
+                fontSize: STEP_CARD_DESIGN_TOKENS.typography.fontSize.base,
+                transition: `all ${STEP_CARD_DESIGN_TOKENS.animations.duration.fast} ${STEP_CARD_DESIGN_TOKENS.animations.easing.easeOut}`
               }}
               onMouseEnter={(e) => {
-                e.currentTarget.style.background = '#334155';
-                e.currentTarget.style.color = '#F8FAFC';
+                e.currentTarget.style.background = STEP_CARD_DESIGN_TOKENS.colors.bg.secondary;
+                e.currentTarget.style.color = STEP_CARD_DESIGN_TOKENS.colors.text.primary;
               }}
               onMouseLeave={(e) => {
                 e.currentTarget.style.background = 'transparent';
-                e.currentTarget.style.color = '#E2E8F0';
+                e.currentTarget.style.color = STEP_CARD_DESIGN_TOKENS.colors.text.secondary;
               }}
             >
               ✏️
@@ -391,16 +500,16 @@ const DraggableStepCardInner: React.FC<
                 border: 'none',
                 background: 'transparent',
                 cursor: 'pointer',
-                padding: '6px',
-                borderRadius: '6px',
+                padding: STEP_CARD_DESIGN_TOKENS.spacing.sm,
+                borderRadius: STEP_CARD_DESIGN_TOKENS.borderRadius.sm,
                 color: step.enabled 
-                  ? '#10B981'  // 绿色（成功色）
-                  : '#CBD5E1', // 浅灰色
-                fontSize: '14px',
-                transition: 'all var(--duration-fast, 120ms)'
+                  ? STEP_CARD_DESIGN_TOKENS.colors.status.success
+                  : STEP_CARD_DESIGN_TOKENS.colors.text.muted,
+                fontSize: STEP_CARD_DESIGN_TOKENS.typography.fontSize.base,
+                transition: `all ${STEP_CARD_DESIGN_TOKENS.animations.duration.fast} ${STEP_CARD_DESIGN_TOKENS.animations.easing.easeOut}`
               }}
               onMouseEnter={(e) => {
-                e.currentTarget.style.background = '#334155';
+                e.currentTarget.style.background = STEP_CARD_DESIGN_TOKENS.colors.bg.secondary;
               }}
               onMouseLeave={(e) => {
                 e.currentTarget.style.background = 'transparent';
@@ -418,19 +527,19 @@ const DraggableStepCardInner: React.FC<
                 border: 'none',
                 background: 'transparent',
                 cursor: 'pointer',
-                padding: '6px',
-                borderRadius: '6px',
-                color: '#CBD5E1',  // 浅灰色
-                fontSize: '14px',
-                transition: 'all var(--duration-fast, 120ms)'
+                padding: STEP_CARD_DESIGN_TOKENS.spacing.sm,
+                borderRadius: STEP_CARD_DESIGN_TOKENS.borderRadius.sm,
+                color: STEP_CARD_DESIGN_TOKENS.colors.text.muted,
+                fontSize: STEP_CARD_DESIGN_TOKENS.typography.fontSize.base,
+                transition: `all ${STEP_CARD_DESIGN_TOKENS.animations.duration.fast} ${STEP_CARD_DESIGN_TOKENS.animations.easing.easeOut}`
               }}
               onMouseEnter={(e) => {
                 e.currentTarget.style.background = 'rgba(239, 68, 68, 0.1)';
-                e.currentTarget.style.color = '#EF4444';  // 红色（悬停）
+                e.currentTarget.style.color = STEP_CARD_DESIGN_TOKENS.colors.status.error;
               }}
               onMouseLeave={(e) => {
                 e.currentTarget.style.background = 'transparent';
-                e.currentTarget.style.color = '#CBD5E1';  // 浅灰色
+                e.currentTarget.style.color = STEP_CARD_DESIGN_TOKENS.colors.text.muted;
               }}
             >
               🗑️
@@ -468,9 +577,10 @@ const DraggableStepCardInner: React.FC<
         <div style={{
           display: 'flex',
           alignItems: 'center',
-          gap: '12px',
-          fontSize: '13px',
-          color: '#CBD5E1'  // 浅灰色
+          gap: STEP_CARD_DESIGN_TOKENS.spacing.md,
+          fontSize: STEP_CARD_DESIGN_TOKENS.typography.fontSize.md,
+          color: STEP_CARD_DESIGN_TOKENS.colors.text.muted,
+          lineHeight: STEP_CARD_DESIGN_TOKENS.typography.lineHeight.normal,
         }}>
           <span>类型: {step.step_type}</span>
           
@@ -490,11 +600,12 @@ const DraggableStepCardInner: React.FC<
         {/* 循环信息 */}
         {step.loop_config && (
           <div style={{
-            padding: '8px 12px',
+            padding: `${STEP_CARD_DESIGN_TOKENS.spacing.sm} ${STEP_CARD_DESIGN_TOKENS.spacing.md}`,
             background: 'rgba(59, 130, 246, 0.1)',
-            borderRadius: '6px',
-            fontSize: '12px',
-            color: '#3B82F6'  // 蓝色（信息色）
+            borderRadius: STEP_CARD_DESIGN_TOKENS.borderRadius.sm,
+            fontSize: STEP_CARD_DESIGN_TOKENS.typography.fontSize.sm,
+            color: STEP_CARD_DESIGN_TOKENS.colors.status.info,
+            lineHeight: STEP_CARD_DESIGN_TOKENS.typography.lineHeight.normal,
           }}>
             <div style={{ fontWeight: '500', marginBottom: '4px' }}>
               🔄 循环配置:
