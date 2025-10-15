@@ -3,12 +3,12 @@
 // summary: 智能分析工作流管理Hook，处理分析作业生命周期
 
 import { useState, useCallback, useRef, useEffect } from 'react';
-import { message } from 'antd';
 // import { invoke } from '@tauri-apps/api/tauri';
 // import { listen, type UnlistenFn } from '@tauri-apps/api/event';
 
 // 临时使用模拟后端，实际项目中应该使用上面的Tauri API
 import { mockAnalysisBackend } from '../services/mock-analysis-backend';
+import { FallbackStrategyGenerator } from '../domain/fallback-strategy-generator';
 
 import type {
   ElementSelectionContext,
@@ -161,7 +161,8 @@ export function useIntelligentAnalysisWorkflow(): UseIntelligentAnalysisWorkflow
           ));
           
           if (error !== 'canceled') {
-            message.error(`分析失败: ${error}`);
+            console.error(`❌ 分析失败: ${error}`);
+            // message.error(`分析失败: ${error}`); // 注释掉静态调用，避免警告
           }
         });
         
@@ -286,7 +287,7 @@ export function useIntelligentAnalysisWorkflow(): UseIntelligentAnalysisWorkflow
     const selectionHash = calculateSelectionHash(context);
     
     // 使用增强的兜底策略生成器
-    const fallbackStrategy = (await import('../domain/fallback-strategy-generator')).FallbackStrategyGenerator.generatePrimaryFallback(context);
+    const fallbackStrategy = FallbackStrategyGenerator.generatePrimaryFallback(context);
     
     try {
       // 调用后端创建步骤卡片

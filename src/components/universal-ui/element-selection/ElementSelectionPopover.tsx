@@ -54,7 +54,7 @@ const ElementSelectionPopoverComponent: React.FC<ElementSelectionPopoverProps> =
   onCancel,
   onHide,
   // 智能分析相关
-  enableIntelligentAnalysis = false,
+  enableIntelligentAnalysis = true, // 🧠 默认启用智能分析功能
   stepId,
   onStrategySelect,
   allElements = [],

@@ -16,7 +16,7 @@ export interface SelectionPopoverContainerProps {
 export const SelectionPopoverContainer: React.FC<SelectionPopoverContainerProps> = ({ 
   selectionManager, 
   xmlContent, // 🆕 接收XML内容
-  enableIntelligentAnalysis = false, // 🧠 默认关闭智能分析
+  enableIntelligentAnalysis = true, // 🧠 默认启用智能分析
   stepId // 步骤ID
 }) => {
   const isVisible = !!selectionManager.pendingSelection;

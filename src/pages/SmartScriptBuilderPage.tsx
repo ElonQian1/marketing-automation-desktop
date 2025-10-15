@@ -16,6 +16,7 @@ import StepListPanel from "./SmartScriptBuilderPage/components/StepListPanel";
 import ScriptControlPanel from "./SmartScriptBuilderPage/components/ScriptControlPanel";
 import { SmartNavigationModal } from "../components";
 import { UniversalPageFinderModal } from "../components/universal-ui/UniversalPageFinderModal";
+import { useIntelligentStepCardIntegration } from "./SmartScriptBuilderPage/hooks/useIntelligentStepCardIntegration";
 import { ContactWorkflowSelector } from "../modules/contact-automation";
 import { useSmartScriptBuilder } from "./SmartScriptBuilderPage/hooks/useSmartScriptBuilder";
 
@@ -41,7 +42,10 @@ const SmartScriptBuilderPage: React.FC = () => {
     pageFinderProps,
   } = useSmartScriptBuilder();
 
-  // 适配 pageFinderProps 的回调函数
+  // 🧠 智能步骤卡集成
+  const { handleElementSelected, isAnalyzing } = useIntelligentStepCardIntegration();
+
+  // 适配 pageFinderProps 的回调函数，集成智能分析
   const adaptedPageFinderProps = {
     ...pageFinderProps,
     onSnapshotCaptured: (snapshot: XmlSnapshot) => {
@@ -52,6 +56,8 @@ const SmartScriptBuilderPage: React.FC = () => {
       // 调用原始的回调函数，传入适配后的快照
       pageFinderProps.onSnapshotUpdated(snapshot);
     },
+    // 🧠 集成智能分析：元素选择时自动创建智能步骤卡
+    onElementSelected: handleElementSelected,
   };
 
   return (
