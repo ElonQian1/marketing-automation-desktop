@@ -446,6 +446,8 @@ const UniversalPageFinderModal: React.FC<UniversalPageFinderModalProps> = ({
       <SelectionPopoverContainer 
         selectionManager={selectionManager} 
         xmlContent={xmlContent} // 🆕 传递XML内容给元素发现功能
+        enableIntelligentAnalysis={true} // 🧠 启用智能分析功能
+        stepId={`page-finder-${Date.now()}`} // 生成步骤ID
       />
       {/* 🆕 过滤设置抽屉（模块化） */}
       <FilterSettingsPanel
