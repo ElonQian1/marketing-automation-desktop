@@ -233,12 +233,21 @@ const StepCardContent: React.FC<StepCardContentProps> = ({
           : 'default'
         }`} style={{ 
           padding: '8px 12px', 
-          background: intelligent.isAnalyzing ? '#e6f7ff' : stepData.analysisState === 'analysis_completed' ? '#fff7e6' : stepData.analysisState === 'analysis_failed' ? '#fff2f0' : '#f5f5f5',
+          // 🎨 深色主题适配的状态条背景
+          background: intelligent.isAnalyzing ? 'var(--info-bg, #1e3a8a)' 
+                     : stepData.analysisState === 'analysis_completed' ? 'var(--success-bg, #134e4a)' 
+                     : stepData.analysisState === 'analysis_failed' ? 'var(--error-bg, #7f1d1d)'
+                     : 'var(--bg-secondary, #334155)',
           border: '1px solid',
-          borderColor: intelligent.isAnalyzing ? '#91d5ff' : stepData.analysisState === 'analysis_completed' ? '#ffd591' : stepData.analysisState === 'analysis_failed' ? '#ffccc7' : '#d9d9d9',
+          borderColor: intelligent.isAnalyzing ? 'var(--info, #3b82f6)' 
+                      : stepData.analysisState === 'analysis_completed' ? 'var(--success, #10b981)' 
+                      : stepData.analysisState === 'analysis_failed' ? 'var(--error, #ef4444)'
+                      : 'var(--border-secondary, #475569)',
           borderRadius: '4px',
           marginBottom: '8px',
-          fontSize: '12px'
+          fontSize: '12px',
+          // 🎨 确保文字颜色在深色背景下可见
+          color: 'var(--text-1, #F8FAFC)'
         }}>
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
             <span>{intelligent.analysisStatusText}</span>
@@ -305,10 +314,10 @@ const StepCardContent: React.FC<StepCardContentProps> = ({
           {stepIndex !== undefined && (
             <span style={{ 
               fontSize: '12px', 
-              color: '#666', 
+              color: 'var(--text-2, #E2E8F0)', // 🎨 深色主题下的浅色文字
               minWidth: '20px',
               textAlign: 'center',
-              background: '#f0f0f0',
+              background: 'var(--bg-secondary, #334155)', // 🎨 深色主题下的背景
               borderRadius: '10px',
               padding: '2px 6px'
             }}>
@@ -444,13 +453,13 @@ const StepCardContent: React.FC<StepCardContentProps> = ({
       <div className="unified-step-card__content">
         {/* 步骤描述 */}
         {stepData.description && (
-          <p style={{ margin: '0 0 8px 0', fontSize: '12px', color: '#666' }}>
+          <p style={{ margin: '0 0 8px 0', fontSize: '12px', color: 'var(--text-3, #CBD5E1)' }}>
             {stepData.description}
           </p>
         )}
         
         {/* 步骤类型和参数 */}
-        <div style={{ fontSize: '12px', color: '#888' }}>
+        <div style={{ fontSize: '12px', color: 'var(--text-3, #CBD5E1)' }}>
           <span>类型：{stepData.stepType}</span>
           {stepData.parameters && Object.keys(stepData.parameters).length > 0 && (
             <span style={{ marginLeft: 16 }}>
