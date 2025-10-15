@@ -22,6 +22,7 @@
 import React from "react";
 import { StepCardSystem } from "../modules/universal-ui/components/step-card-system/StepCardSystem";
 import type { StepCardCallbacks, UnifiedStepCardData } from "../modules/universal-ui/types/unified-step-card-types";
+import type { StepAnalysisState } from "../modules/universal-ui/types/intelligent-analysis-types";
 import { SmartActionType } from "../types/smartComponents";
 
 // 设备简化接口
@@ -182,10 +183,24 @@ const DraggableStepCardInner: React.FC<
     } : undefined,
   };
 
-  // 创建适配的步骤数据（添加缺失的属性）
+  // 创建适配的步骤数据（添加缺失的属性和智能分析字段）
   const adaptedStepData: UnifiedStepCardData = {
     ...step,
     stepType: step.step_type || 'basic', // 使用现有的 step_type 或默认值
+    
+    // 🧠 智能分析字段（完整功能模式需要）
+    analysisState: 'idle' as StepAnalysisState, // 初始状态为空闲
+    analysisProgress: 0, // 初始进度为0
+    smartCandidates: [], // 智能候选策略（空数组）
+    staticCandidates: [], // 静态候选策略（空数组）
+    
+    // 添加其他可能需要的字段
+    elementContext: step.parameters?.xmlSnapshot ? {
+      snapshotId: step.parameters.xmlCacheId || '',
+      elementPath: step.parameters.element_selector || '',
+      elementText: step.parameters.text || step.description,
+      elementBounds: step.parameters.bounds || '',
+    } : undefined,
   };
 
   return (
@@ -200,8 +215,8 @@ const DraggableStepCardInner: React.FC<
         enableToggle: true,
         enableTest: !!StepTestButton,
         
-        // 禁用智能分析（这是 UnifiedStepCard 的功能）
-        enableIntelligent: false,
+        // 🎯 启用智能分析功能（完整功能模式）
+        enableIntelligent: true,
         
         // 保持其他功能可用
         enableCopy: true,
@@ -214,7 +229,7 @@ const DraggableStepCardInner: React.FC<
       }}
       callbacks={callbacks}
       isDragging={isDragging}
-      systemMode="interaction-only" // 专注于交互功能，不要智能分析
+      systemMode="full" // 🎯 完整功能模式：拖拽 + 智能分析 + 所有操作按钮
       
       // 传递拖拽相关的自定义props（如果需要的话）
       dragHandleProps={{

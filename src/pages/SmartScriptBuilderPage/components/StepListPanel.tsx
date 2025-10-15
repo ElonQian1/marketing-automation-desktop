@@ -39,6 +39,8 @@ const StepListPanel: React.FC<StepListPanelProps> = (props) => {
     handleAddStep,
   } = props;
 
+
+
   // 删除步骤
   const handleDeleteStep = (stepId: string) => {
     setSteps((prev) => prev.filter((s) => s.id !== stepId));

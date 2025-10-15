@@ -42,8 +42,14 @@ const SmartScriptBuilderPage: React.FC = () => {
     pageFinderProps,
   } = useSmartScriptBuilder();
 
-  // 🧠 智能步骤卡集成
-  const { handleElementSelected, isAnalyzing } = useIntelligentStepCardIntegration();
+  // 🧠 智能步骤卡集成 - 传入步骤管理函数和页面查找器控制
+  const { handleElementSelected, isAnalyzing } = useIntelligentStepCardIntegration({
+    steps: stepListProps.steps,
+    setSteps: stepListProps.setSteps,
+    onClosePageFinder: pageFinderProps.onClose // 传入关闭页面查找器的方法
+  });
+
+
 
   // 适配 pageFinderProps 的回调函数，集成智能分析
   const adaptedPageFinderProps = {
