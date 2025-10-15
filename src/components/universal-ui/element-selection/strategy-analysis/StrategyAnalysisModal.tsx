@@ -163,16 +163,18 @@ export const StrategyAnalysisModal: React.FC<StrategyAnalysisModalProps> = ({
         )}
 
         {/* 适用场景 */}
-        <div style={{ marginTop: 12 }}>
-          <div style={{ fontSize: '12px', color: '#1890ff', marginBottom: 4 }}>🎯 适用场景:</div>
-          <div>
-            {strategy.scenarios.map((scenario, index) => (
-              <Tag key={index} style={{ marginBottom: 2, fontSize: '12px' }}>
-                {scenario}
-              </Tag>
-            ))}
+        {strategy.scenarios && strategy.scenarios.length > 0 && (
+          <div style={{ marginTop: 12 }}>
+            <div style={{ fontSize: '12px', color: '#1890ff', marginBottom: 4 }}>🎯 适用场景:</div>
+            <div>
+              {strategy.scenarios.map((scenario, index) => (
+                <Tag key={index} style={{ marginBottom: 2, fontSize: '12px' }}>
+                  {scenario}
+                </Tag>
+              ))}
+            </div>
           </div>
-        </div>
+        )}
       </Card>
     );
   };

@@ -1,5 +1,541 @@
 {
   "words": {
+    "0": {
+      "alias": "零",
+      "confidence": 1
+    },
+    "1": {
+      "alias": "一",
+      "confidence": 1
+    },
+    "2": {
+      "alias": "二",
+      "confidence": 1
+    },
+    "3": {
+      "alias": "三",
+      "confidence": 1
+    },
+    "4": {
+      "alias": "四",
+      "confidence": 1
+    },
+    "5": {
+      "alias": "五",
+      "confidence": 1
+    },
+    "6": {
+      "alias": "六",
+      "confidence": 1
+    },
+    "7": {
+      "alias": "七",
+      "confidence": 1
+    },
+    "8": {
+      "alias": "八",
+      "confidence": 1
+    },
+    "9": {
+      "alias": "九",
+      "confidence": 1
+    },
+    "12": {
+      "alias": "十二",
+      "confidence": 1
+    },
+    "14": {
+      "alias": "十四",
+      "confidence": 1
+    },
+    "17": {
+      "alias": "十七",
+      "confidence": 1
+    },
+    "19": {
+      "alias": "十九",
+      "confidence": 1
+    },
+    "21": {
+      "alias": "二十一",
+      "confidence": 1
+    },
+    "23": {
+      "alias": "二十三",
+      "confidence": 1
+    },
+    "24": {
+      "alias": "二十四",
+      "confidence": 1
+    },
+    "25": {
+      "alias": "二十五",
+      "confidence": 1
+    },
+    "27": {
+      "alias": "二十七",
+      "confidence": 1
+    },
+    "32": {
+      "alias": "三十二",
+      "confidence": 1
+    },
+    "35": {
+      "alias": "三十五",
+      "confidence": 1
+    },
+    "40": {
+      "alias": "四十",
+      "confidence": 1
+    },
+    "42": {
+      "alias": "四十二",
+      "confidence": 1
+    },
+    "44": {
+      "alias": "四十四",
+      "confidence": 1
+    },
+    "53": {
+      "alias": "五十三",
+      "confidence": 1
+    },
+    "55": {
+      "alias": "五十五",
+      "confidence": 1
+    },
+    "56": {
+      "alias": "五十六",
+      "confidence": 1
+    },
+    "57": {
+      "alias": "五十七",
+      "confidence": 1
+    },
+    "59": {
+      "alias": "五十九",
+      "confidence": 1
+    },
+    "61": {
+      "alias": "六十一",
+      "confidence": 1
+    },
+    "62": {
+      "alias": "六十二",
+      "confidence": 1
+    },
+    "66": {
+      "alias": "六十六",
+      "confidence": 1
+    },
+    "69": {
+      "alias": "六十九",
+      "confidence": 1
+    },
+    "71": {
+      "alias": "七十一",
+      "confidence": 1
+    },
+    "72": {
+      "alias": "七二",
+      "confidence": 1
+    },
+    "74": {
+      "alias": "七十四",
+      "confidence": 1
+    },
+    "75": {
+      "alias": "七十五",
+      "confidence": 1
+    },
+    "77": {
+      "alias": "七十七",
+      "confidence": 1
+    },
+    "79": {
+      "alias": "七十九",
+      "confidence": 1
+    },
+    "83": {
+      "alias": "八十三",
+      "confidence": 1
+    },
+    "84": {
+      "alias": "八十四",
+      "confidence": 1
+    },
+    "87": {
+      "alias": "八十七",
+      "confidence": 1
+    },
+    "88": {
+      "alias": "八十八",
+      "confidence": 1
+    },
+    "89": {
+      "alias": "八十九",
+      "confidence": 1
+    },
+    "90": {
+      "alias": "九十",
+      "confidence": 1
+    },
+    "96": {
+      "alias": "九十六",
+      "confidence": 1
+    },
+    "97": {
+      "alias": "九十七",
+      "confidence": 1
+    },
+    "98": {
+      "alias": "九十八",
+      "confidence": 1
+    },
+    "146": {
+      "alias": "一百四十六",
+      "confidence": 1
+    },
+    "184": {
+      "alias": "一百八十四",
+      "confidence": 1
+    },
+    "189": {
+      "alias": "一百八十九",
+      "confidence": 1
+    },
+    "203": {
+      "alias": "二百零三",
+      "confidence": 1
+    },
+    "248": {
+      "alias": "二百四十八",
+      "confidence": 1
+    },
+    "251": {
+      "alias": "二百五十一",
+      "confidence": 1
+    },
+    "357": {
+      "alias": "三百五十七",
+      "confidence": 1
+    },
+    "367": {
+      "alias": "三百六十七",
+      "confidence": 1
+    },
+    "378": {
+      "alias": "三七八",
+      "confidence": 1
+    },
+    "387": {
+      "alias": "三百八十七",
+      "confidence": 1
+    },
+    "394": {
+      "alias": "三百九十四",
+      "confidence": 1
+    },
+    "397": {
+      "alias": "三百九十七",
+      "confidence": 1
+    },
+    "418": {
+      "alias": "四百一十八",
+      "confidence": 1
+    },
+    "427": {
+      "alias": "四百二十七",
+      "confidence": 1
+    },
+    "429": {
+      "alias": "四百二十九",
+      "confidence": 1
+    },
+    "444": {
+      "alias": "四百四十四",
+      "confidence": 1
+    },
+    "450": {
+      "alias": "四百五十",
+      "confidence": 1
+    },
+    "577": {
+      "alias": "五七七",
+      "confidence": 1
+    },
+    "596": {
+      "alias": "五百九十六",
+      "confidence": 1
+    },
+    "616": {
+      "alias": "六百一十六",
+      "confidence": 1
+    },
+    "637": {
+      "alias": "六三七",
+      "confidence": 1
+    },
+    "688": {
+      "alias": "六百八十八",
+      "confidence": 1
+    },
+    "693": {
+      "alias": "六百九十三",
+      "confidence": 1
+    },
+    "718": {
+      "alias": "七一八",
+      "confidence": 1
+    },
+    "764": {
+      "alias": "七百六十四",
+      "confidence": 1
+    },
+    "778": {
+      "alias": "七百七十八",
+      "confidence": 1
+    },
+    "788": {
+      "alias": "七百八十八",
+      "confidence": 1
+    },
+    "826": {
+      "alias": "八百二十六",
+      "confidence": 1
+    },
+    "849": {
+      "alias": "八百四十九",
+      "confidence": 1
+    },
+    "889": {
+      "alias": "八百八十九",
+      "confidence": 1
+    },
+    "902": {
+      "alias": "九百零二",
+      "confidence": 1
+    },
+    "947": {
+      "alias": "九百四十七",
+      "confidence": 1
+    },
+    "972": {
+      "alias": "九百七十二",
+      "confidence": 1
+    },
+    "1972": {
+      "alias": "一九七二",
+      "confidence": 1
+    },
+    "2007": {
+      "alias": "二千零七",
+      "confidence": 1
+    },
+    "3365": {
+      "alias": "三千三百六十五",
+      "confidence": 1
+    },
+    "3435": {
+      "alias": "三千四百三十五",
+      "confidence": 1
+    },
+    "3926": {
+      "alias": "三千九百二十六",
+      "confidence": 1
+    },
+    "4265": {
+      "alias": "四二六五",
+      "confidence": 1
+    },
+    "4338": {
+      "alias": "四千三百三十八",
+      "confidence": 1
+    },
+    "4376": {
+      "alias": "四千三百七十六",
+      "confidence": 1
+    },
+    "5595": {
+      "alias": "五千五百九十五",
+      "confidence": 1
+    },
+    "5839": {
+      "alias": "五千八百三十九",
+      "confidence": 1
+    },
+    "5878": {
+      "alias": "五千八百七十八",
+      "confidence": 1
+    },
+    "6317": {
+      "alias": "六千三百一十七",
+      "confidence": 1
+    },
+    "6798": {
+      "alias": "六千七百九十八",
+      "confidence": 1
+    },
+    "6857": {
+      "alias": "六千八百五十七",
+      "confidence": 1
+    },
+    "7107": {
+      "alias": "七千一百零七",
+      "confidence": 1
+    },
+    "7678": {
+      "alias": "七千六百七十八",
+      "confidence": 1
+    },
+    "8982": {
+      "alias": "八千九百八十二",
+      "confidence": 1
+    },
+    "9142": {
+      "alias": "九千一百四十二",
+      "confidence": 1
+    },
+    "9543": {
+      "alias": "九五四三",
+      "confidence": 1
+    },
+    "46390": {
+      "alias": "四万六千三百九十",
+      "confidence": 1
+    },
+    "60809": {
+      "alias": "六万零八百零九",
+      "confidence": 1
+    },
+    "61604": {
+      "alias": "六万一千六百零四",
+      "confidence": 1
+    },
+    "64270": {
+      "alias": "六万四千二百七十",
+      "confidence": 1
+    },
+    "68579": {
+      "alias": "六万八千五百七十九",
+      "confidence": 1
+    },
+    "69819": {
+      "alias": "六九八一九",
+      "confidence": 1
+    },
+    "74338": {
+      "alias": "七万四千三百三十八",
+      "confidence": 1
+    },
+    "74587": {
+      "alias": "七万四千五百八十七",
+      "confidence": 1
+    },
+    "75922": {
+      "alias": "七万五千九百二十二",
+      "confidence": 1
+    },
+    "77171": {
+      "alias": "七万七千一百七十一",
+      "confidence": 1
+    },
+    "83647": {
+      "alias": "八万三千六百四十七",
+      "confidence": 1
+    },
+    "85264": {
+      "alias": "八万五千二百六十四",
+      "confidence": 1
+    },
+    "86663": {
+      "alias": "八万六千六百六十三",
+      "confidence": 1
+    },
+    "131331": {
+      "alias": "十三万一千三百三十一",
+      "confidence": 1
+    },
+    "263534": {
+      "alias": "二十六万三千五百三十四",
+      "confidence": 1
+    },
+    "273859": {
+      "alias": "二十七万三千八百五十九",
+      "confidence": 1
+    },
+    "530554": {
+      "alias": "五十三万零五百五十四",
+      "confidence": 1
+    },
+    "593323": {
+      "alias": "五十九万三千三百二十三",
+      "confidence": 1
+    },
+    "628496": {
+      "alias": "六十二万八千四百九十六",
+      "confidence": 1
+    },
+    "819763": {
+      "alias": "八十一万九千七百六十三",
+      "confidence": 1
+    },
+    "937746": {
+      "alias": "九十三万七千七百四十六",
+      "confidence": 1
+    },
+    "2404754": {
+      "alias": "二百四十万四千七百五十四",
+      "confidence": 1
+    },
+    "3209494": {
+      "alias": "三百二十万九千四百九十四",
+      "confidence": 1
+    },
+    "6798418": {
+      "alias": "六千七百九十八四百一十八",
+      "confidence": 1
+    },
+    "9023435": {
+      "alias": "九百零二三千四百三十五",
+      "confidence": 1
+    },
+    "29672750": {
+      "alias": "二千九百六十七万二千七百五十",
+      "confidence": 1
+    },
+    "34354338": {
+      "alias": "三千四百三十五四千三百三十八",
+      "confidence": 1
+    },
+    "41563882": {
+      "alias": "四千一百五十六万三千八百八十二",
+      "confidence": 1
+    },
+    "43385595": {
+      "alias": "四千三百三十八五千五百九十五",
+      "confidence": 1
+    },
+    "67691253": {
+      "alias": "六千七百六十九万一千二百五十三",
+      "confidence": 1
+    },
+    "86663596": {
+      "alias": "八万六千六百六十三五百九十六",
+      "confidence": 1
+    },
+    "552902741": {
+      "alias": "五亿五千二百九十万二千七百四十一",
+      "confidence": 1
+    },
+    "937746367": {
+      "alias": "九十三万七千七百四十六三百六十七",
+      "confidence": 1
+    },
+    "1732009349": {
+      "alias": "十七亿三千二百万九千三百四十九",
+      "confidence": 1
+    },
     "clean": {
       "alias": "清洁",
       "confidence": 1
@@ -2443,6 +2979,582 @@
     "config": {
       "alias": "配置",
       "confidence": 1
+    },
+    "fa": {
+      "alias": "法",
+      "confidence": 1
+    },
+    "a": {
+      "alias": "一个",
+      "confidence": 1
+    },
+    "f": {
+      "alias": "F",
+      "confidence": 1
+    },
+    "07": {
+      "alias": "零七",
+      "confidence": 1
+    },
+    "dd": {
+      "alias": "DD",
+      "confidence": 1
+    },
+    "d": {
+      "alias": "D",
+      "confidence": 1
+    },
+    "b": {
+      "alias": "B",
+      "confidence": 1
+    },
+    "ad": {
+      "alias": "广告",
+      "confidence": 1
+    },
+    "c": {
+      "alias": "C",
+      "confidence": 1
+    },
+    "bf": {
+      "alias": "bf",
+      "confidence": 1
+    },
+    "e": {
+      "alias": "E",
+      "confidence": 1
+    },
+    "ff": {
+      "alias": "ff",
+      "confidence": 1
+    },
+    "ed": {
+      "alias": "教育",
+      "confidence": 1
+    },
+    "dda": {
+      "alias": "DDA",
+      "confidence": 1
+    },
+    "bed": {
+      "alias": "床",
+      "confidence": 1
+    },
+    "faef": {
+      "alias": "法埃夫",
+      "confidence": 1
+    },
+    "ec": {
+      "alias": "埃克",
+      "confidence": 1
+    },
+    "ae": {
+      "alias": "艾",
+      "confidence": 1
+    },
+    "ab": {
+      "alias": "阿布",
+      "confidence": 1
+    },
+    "01": {
+      "alias": "零一",
+      "confidence": 1
+    },
+    "cb": {
+      "alias": "厘米波",
+      "confidence": 1
+    },
+    "ded": {
+      "alias": "扣除",
+      "confidence": 1
+    },
+    "dfe": {
+      "alias": "缺陷",
+      "confidence": 1
+    },
+    "03": {
+      "alias": "零三",
+      "confidence": 1
+    },
+    "afac": {
+      "alias": "阿法克",
+      "confidence": 1
+    },
+    "bea": {
+      "alias": "比阿",
+      "confidence": 1
+    },
+    "dbc": {
+      "alias": "德巴克",
+      "confidence": 1
+    },
+    "0024196": {
+      "alias": "零零二四一九六",
+      "confidence": 1
+    },
+    "144030778125": {
+      "alias": "十四万四千零三十万七千七百八十一百二十五",
+      "confidence": 1
+    },
+    "ba": {
+      "alias": "巴",
+      "confidence": 1
+    },
+    "aae": {
+      "alias": "阿爱",
+      "confidence": 1
+    },
+    "bafd": {
+      "alias": "巴夫德",
+      "confidence": 1
+    },
+    "db": {
+      "alias": "数据库",
+      "confidence": 1
+    },
+    "bafd87": {
+      "alias": "巴夫德八十七",
+      "confidence": 1
+    },
+    "db937746": {
+      "alias": "数据库九十三万七千七百四十六",
+      "confidence": 1
+    },
+    "dependency": {
+      "alias": "依赖",
+      "confidence": 1
+    },
+    "cruiser": {
+      "alias": "巡洋舰",
+      "confidence": 1
+    },
+    "ffecb": {
+      "alias": "费费克布",
+      "confidence": 1
+    },
+    "00": {
+      "alias": "零零",
+      "confidence": 1
+    },
+    "bc": {
+      "alias": "公元前",
+      "confidence": 1
+    },
+    "da": {
+      "alias": "达",
+      "confidence": 1
+    },
+    "fdcdcc": {
+      "alias": "fdcdcc",
+      "confidence": 1
+    },
+    "caaf": {
+      "alias": "caaf",
+      "confidence": 1
+    },
+    "074": {
+      "alias": "零七十四",
+      "confidence": 1
+    },
+    "fba": {
+      "alias": "FBA",
+      "confidence": 1
+    },
+    "bbaf": {
+      "alias": "BBAF",
+      "confidence": 1
+    },
+    "edd": {
+      "alias": "EDD",
+      "confidence": 1
+    },
+    "02": {
+      "alias": "零二",
+      "confidence": 1
+    },
+    "ca": {
+      "alias": "CA",
+      "confidence": 1
+    },
+    "08": {
+      "alias": "零八",
+      "confidence": 1
+    },
+    "dbdeab": {
+      "alias": "德布德阿布",
+      "confidence": 1
+    },
+    "de": {
+      "alias": "德",
+      "confidence": 1
+    },
+    "04": {
+      "alias": "零四",
+      "confidence": 1
+    },
+    "cae": {
+      "alias": "凯",
+      "confidence": 1
+    },
+    "dabad": {
+      "alias": "达巴德",
+      "confidence": 1
+    },
+    "ee": {
+      "alias": "电子电气",
+      "confidence": 1
+    },
+    "ccf": {
+      "alias": "中国计算机学会",
+      "confidence": 1
+    },
+    "aa": {
+      "alias": "阿阿",
+      "confidence": 1
+    },
+    "abf": {
+      "alias": "阿布夫",
+      "confidence": 1
+    },
+    "ac": {
+      "alias": "交流",
+      "confidence": 1
+    },
+    "fdebe": {
+      "alias": "费德贝",
+      "confidence": 1
+    },
+    "adda": {
+      "alias": "阿达",
+      "confidence": 1
+    },
+    "ac67691253": {
+      "alias": "交流六千七百六十九万一千二百五十三",
+      "confidence": 1
+    },
+    "fdebe429": {
+      "alias": "费德贝四百二十九",
+      "confidence": 1
+    },
+    "adda44": {
+      "alias": "阿达四十四",
+      "confidence": 1
+    },
+    "fb": {
+      "alias": "反馈",
+      "confidence": 1
+    },
+    "8997115072": {
+      "alias": "八十九亿九千七百一十一万五千零七十二",
+      "confidence": 1
+    },
+    "ef": {
+      "alias": "艾夫",
+      "confidence": 1
+    },
+    "ce": {
+      "alias": "塞",
+      "confidence": 1
+    },
+    "fd": {
+      "alias": "福德",
+      "confidence": 1
+    },
+    "58816085990": {
+      "alias": "五百八十八亿一千六百零八万五千九百九十",
+      "confidence": 1
+    },
+    "bd": {
+      "alias": "bd",
+      "confidence": 1
+    },
+    "cd": {
+      "alias": "cd",
+      "confidence": 1
+    },
+    "dbb": {
+      "alias": "双二进制",
+      "confidence": 1
+    },
+    "cdcc": {
+      "alias": "连续缺陷块计数器",
+      "confidence": 1
+    },
+    "eed": {
+      "alias": "扩展错误检测",
+      "confidence": 1
+    },
+    "cdbc": {
+      "alias": "参见数据库",
+      "confidence": 1
+    },
+    "cf": {
+      "alias": "参见论坛",
+      "confidence": 1
+    },
+    "df": {
+      "alias": "df",
+      "confidence": 1
+    },
+    "df74338": {
+      "alias": "df七万四千三百三十八",
+      "confidence": 1
+    },
+    "62849686663": {
+      "alias": "六十二万八千四百九十六八万六千六百六十三",
+      "confidence": 1
+    },
+    "fc": {
+      "alias": "FC",
+      "confidence": 1
+    },
+    "fc2007": {
+      "alias": "FC二千零七",
+      "confidence": 1
+    },
+    "af": {
+      "alias": "阿夫",
+      "confidence": 1
+    },
+    "fde": {
+      "alias": "夫德",
+      "confidence": 1
+    },
+    "0979": {
+      "alias": "零九百七十九",
+      "confidence": 1
+    },
+    "038": {
+      "alias": "零三十八",
+      "confidence": 1
+    },
+    "aaf": {
+      "alias": "阿阿夫",
+      "confidence": 1
+    },
+    "infrastructure": {
+      "alias": "基础设施",
+      "confidence": 1
+    },
+    "constants": {
+      "alias": "常量",
+      "confidence": 1
+    },
+    "domain": {
+      "alias": "域",
+      "confidence": 1
+    },
+    "bfc": {
+      "alias": "业务功能链",
+      "confidence": 1
+    },
+    "ceca": {
+      "alias": "盲肠",
+      "confidence": 1
+    },
+    "fff": {
+      "alias": "三个f",
+      "confidence": 1
+    },
+    "bfd": {
+      "alias": "b f d",
+      "confidence": 1
+    },
+    "dc": {
+      "alias": "d c",
+      "confidence": 1
+    },
+    "cc": {
+      "alias": "抄送",
+      "confidence": 1
+    },
+    "bb": {
+      "alias": "B B",
+      "confidence": 1
+    },
+    "bad": {
+      "alias": "坏",
+      "confidence": 1
+    },
+    "cab": {
+      "alias": "驾驶室",
+      "confidence": 1
+    },
+    "ebab": {
+      "alias": "埃巴布",
+      "confidence": 1
+    },
+    "bbf": {
+      "alias": "B B F",
+      "confidence": 1
+    },
+    "ebc": {
+      "alias": "E B C",
+      "confidence": 1
+    },
+    "ace": {
+      "alias": "一点",
+      "confidence": 1
+    },
+    "ede": {
+      "alias": "埃德",
+      "confidence": 1
+    },
+    "abae": {
+      "alias": "阿拜",
+      "confidence": 1
+    },
+    "bda": {
+      "alias": "二进制数据数组",
+      "confidence": 1
+    },
+    "f3b0d5b1c44202d53a3ec5705fffdc0cdebfad": {
+      "alias": "f3b0d5b1c44202d53a3ec5705fffdc0cdebfad",
+      "confidence": 1
+    },
+    "fffdc": {
+      "alias": "fffdc",
+      "confidence": 1
+    },
+    "caacb": {
+      "alias": "卡阿克布",
+      "confidence": 1
+    },
+    "ebef": {
+      "alias": "艾贝夫",
+      "confidence": 1
+    },
+    "faa": {
+      "alias": "联邦航空局",
+      "confidence": 1
+    },
+    "acc": {
+      "alias": "账户",
+      "confidence": 1
+    },
+    "ecf": {
+      "alias": "电子通信框架",
+      "confidence": 1
+    },
+    "afe": {
+      "alias": "安费",
+      "confidence": 1
+    },
+    "bfa": {
+      "alias": "博法",
+      "confidence": 1
+    },
+    "dcab": {
+      "alias": "德卡布",
+      "confidence": 1
+    },
+    "edc": {
+      "alias": "电子柴油控制器",
+      "confidence": 1
+    },
+    "be": {
+      "alias": "是",
+      "confidence": 1
+    },
+    "dffb": {
+      "alias": "数字文件位图",
+      "confidence": 1
+    },
+    "eba": {
+      "alias": "欧洲银行管理局",
+      "confidence": 1
+    },
+    "ffabfe": {
+      "alias": "ffabfe",
+      "confidence": 1
+    },
+    "fed": {
+      "alias": "联邦储备系统",
+      "confidence": 1
+    },
+    "bae": {
+      "alias": "基础",
+      "confidence": 1
+    },
+    "dfa": {
+      "alias": "民主党联邦选举委员会",
+      "confidence": 1
+    },
+    "dce": {
+      "alias": "DCE",
+      "confidence": 1
+    },
+    "eeca": {
+      "alias": "ECCA",
+      "confidence": 1
+    },
+    "fe": {
+      "alias": "铁",
+      "confidence": 1
+    },
+    "fcc": {
+      "alias": "联邦通信委员会",
+      "confidence": 1
+    },
+    "adbfd": {
+      "alias": "阿德布夫德",
+      "confidence": 1
+    },
+    "adfe": {
+      "alias": "阿德费",
+      "confidence": 1
+    },
+    "cbbd": {
+      "alias": "查必得",
+      "confidence": 1
+    },
+    "ada": {
+      "alias": "阿达",
+      "confidence": 1
+    },
+    "efc": {
+      "alias": "埃福克",
+      "confidence": 1
+    },
+    "acf": {
+      "alias": "阿克夫",
+      "confidence": 1
+    },
+    "adbc": {
+      "alias": "阿德贝克",
+      "confidence": 1
+    },
+    "afb": {
+      "alias": "阿福布",
+      "confidence": 1
+    },
+    "aec": {
+      "alias": "阿埃克",
+      "confidence": 1
+    },
+    "aef": {
+      "alias": "阿埃夫",
+      "confidence": 1
+    },
+    "cbec": {
+      "alias": "西贝克",
+      "confidence": 1
+    },
+    "fdd": {
+      "alias": "频分双工",
+      "confidence": 1
+    },
+    "ffc": {
+      "alias": "ffc",
+      "confidence": 1
+    },
+    "cff": {
+      "alias": "cff",
+      "confidence": 1
+    },
+    "aac": {
+      "alias": "高级音频编码",
+      "confidence": 1
     }
   },
   "phrases": {
@@ -2568,6 +3680,226 @@
     },
     "playwright config": {
       "alias": "剧作家配置",
+      "confidence": 1
+    },
+    "afac bea": {
+      "alias": "阿法克比阿",
+      "confidence": 1
+    },
+    "bea 83": {
+      "alias": "比阿八十三",
+      "confidence": 1
+    },
+    "83 77": {
+      "alias": "八十三七十七",
+      "confidence": 1
+    },
+    "77 71": {
+      "alias": "七十七七十一",
+      "confidence": 1
+    },
+    "71 dbc": {
+      "alias": "七十一德巴克",
+      "confidence": 1
+    },
+    "dbc 84": {
+      "alias": "德巴克八十四",
+      "confidence": 1
+    },
+    "84 0024196": {
+      "alias": "八十四零零二四一九六",
+      "confidence": 1
+    },
+    "972 144030778125": {
+      "alias": "九百七十二十四万四千零三十万七千七百八十一百二十五",
+      "confidence": 1
+    },
+    "144030778125 75922": {
+      "alias": "十四万四千零三十万七千七百八十一百二十五七万五千九百二十二",
+      "confidence": 1
+    },
+    "75922 ba": {
+      "alias": "七万五千九百二十二巴",
+      "confidence": 1
+    },
+    "ba 75": {
+      "alias": "巴七十五",
+      "confidence": 1
+    },
+    "75 aae": {
+      "alias": "七十五阿爱",
+      "confidence": 1
+    },
+    "dependency cruiser": {
+      "alias": "依赖巡洋舰",
+      "confidence": 1
+    },
+    "5839 203": {
+      "alias": "五千八百三十九二百零三",
+      "confidence": 1
+    },
+    "203 427": {
+      "alias": "二百零三四百二十七",
+      "confidence": 1
+    },
+    "427 251": {
+      "alias": "四百二十七二百五十一",
+      "confidence": 1
+    },
+    "251 90": {
+      "alias": "二百五十一九十",
+      "confidence": 1
+    },
+    "90 caaf": {
+      "alias": "九十caaf",
+      "confidence": 1
+    },
+    "caaf 778": {
+      "alias": "caaf七百七十八",
+      "confidence": 1
+    },
+    "fba 889": {
+      "alias": "FBA八百八十九",
+      "confidence": 1
+    },
+    "bbaf 397": {
+      "alias": "BBAF三百九十七",
+      "confidence": 1
+    },
+    "edd 02": {
+      "alias": "EDD零二",
+      "confidence": 1
+    },
+    "693 97": {
+      "alias": "六百九十三九十七",
+      "confidence": 1
+    },
+    "394 ca": {
+      "alias": "三百九十四CA",
+      "confidence": 1
+    },
+    "dbdeab de": {
+      "alias": "德布德阿布德",
+      "confidence": 1
+    },
+    "de 3209494": {
+      "alias": "德三百二十万九千四百九十四",
+      "confidence": 1
+    },
+    "3209494 04": {
+      "alias": "三百二十万九千四百九十四零四",
+      "confidence": 1
+    },
+    "04 cae": {
+      "alias": "零四凯",
+      "confidence": 1
+    },
+    "cae 8982": {
+      "alias": "凯八千九百八十二",
+      "confidence": 1
+    },
+    "aa abf": {
+      "alias": "阿阿阿布夫",
+      "confidence": 1
+    },
+    "abf 74587": {
+      "alias": "阿布夫七万四千五百八十七",
+      "confidence": 1
+    },
+    "74587 2404754": {
+      "alias": "七万四千五百八十七二百四十万四千七百五十四",
+      "confidence": 1
+    },
+    "2404754 25": {
+      "alias": "二百四十万四千七百五十四二十五",
+      "confidence": 1
+    },
+    "25 6857": {
+      "alias": "二十五六千八百五十七",
+      "confidence": 1
+    },
+    "88 273859": {
+      "alias": "八十八二十七万三千八百五十九",
+      "confidence": 1
+    },
+    "273859 58816085990": {
+      "alias": "二十七万三千八百五十九五百八十八亿一千六百零八万五千九百九十",
+      "confidence": 1
+    },
+    "58816085990 56": {
+      "alias": "五百八十八亿一千六百零八万五千九百九十五十六",
+      "confidence": 1
+    },
+    "56 248": {
+      "alias": "五十六二百四十八",
+      "confidence": 1
+    },
+    "23 7678": {
+      "alias": "二十三 七千六百七十八",
+      "confidence": 1
+    },
+    "7678 0979": {
+      "alias": "七千六百七十八 零九百七十九",
+      "confidence": 1
+    },
+    "0979 038": {
+      "alias": "零九百七十九 零三十八",
+      "confidence": 1
+    },
+    "aaf 1732009349": {
+      "alias": "阿阿夫 十七亿三千二百万九千三百四十九",
+      "confidence": 1
+    },
+    "fff bfd": {
+      "alias": "三个f b f d",
+      "confidence": 1
+    },
+    "bfd dc": {
+      "alias": "b f d d c",
+      "confidence": 1
+    },
+    "fff bfd dc": {
+      "alias": "三个f b f d d c",
+      "confidence": 1
+    },
+    "bb bad": {
+      "alias": "B B 坏",
+      "confidence": 1
+    },
+    "bbf ebc": {
+      "alias": "B B F E B C",
+      "confidence": 1
+    },
+    "ace ede": {
+      "alias": "一点埃德",
+      "confidence": 1
+    },
+    "afe bfa": {
+      "alias": "阿费巴法",
+      "confidence": 1
+    },
+    "bfa dcab": {
+      "alias": "巴法德卡布",
+      "confidence": 1
+    },
+    "dffb eba": {
+      "alias": "数字文件位图欧洲银行管理局",
+      "confidence": 1
+    },
+    "dce eeca": {
+      "alias": "DCE ECCA",
+      "confidence": 1
+    },
+    "acf adbc": {
+      "alias": "阿克夫 阿德贝克",
+      "confidence": 1
+    },
+    "afb aec": {
+      "alias": "阿福布阿埃克",
+      "confidence": 1
+    },
+    "aef cbec": {
+      "alias": "阿埃夫西贝克",
       "confidence": 1
     }
   }

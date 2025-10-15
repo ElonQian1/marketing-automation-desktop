@@ -78,10 +78,12 @@ const isProduction = (): boolean => {
  * 默认配置
  */
 export const defaultIntelligentAnalysisConfig: IntelligentAnalysisConfig = {
-  // 根据环境自动选择后端
-  useRealBackend: isProduction() || 
-                  getEnvVar('REACT_APP_USE_REAL_BACKEND') === 'true' ||
-                  getEnvVar('VITE_USE_REAL_BACKEND') === 'true',
+  // 💡 临时强制启用真实后端进行测试
+  useRealBackend: true,
+  // 原逻辑：根据环境自动选择后端
+  // useRealBackend: isProduction() || 
+  //                 getEnvVar('REACT_APP_USE_REAL_BACKEND') === 'true' ||
+  //                 getEnvVar('VITE_USE_REAL_BACKEND') === 'true',
   
   // 开发环境启用调试
   debug: isDevelopment(),
