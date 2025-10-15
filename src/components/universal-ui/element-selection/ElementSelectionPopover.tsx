@@ -264,10 +264,10 @@ const ElementSelectionPopoverComponent: React.FC<ElementSelectionPopoverProps> =
           autoCancelOnOutsideClick={allowOutsideCancel && !discoveryModalOpen && autoCancelOnOutsideClick}
           title={
             <div style={{ maxWidth: '220px' }}>
-              <div style={{ fontSize: '12px', color: '#666', marginBottom: '4px' }}>
+              <div style={{ fontSize: '12px', color: 'var(--text-2, #e2e8f0)', marginBottom: '4px' }}>
                 选择此元素？
               </div>
-              <div style={{ fontSize: '13px', fontWeight: 'bold', marginBottom: '8px' }}>
+              <div style={{ fontSize: '13px', fontWeight: 'bold', marginBottom: '8px', color: 'var(--text-1, #f8fafc)' }}>
                 {selection.element.text || 
                  selection.element.resource_id || 
                  selection.element.class_name || '未知元素'}

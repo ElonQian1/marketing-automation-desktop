@@ -86,7 +86,7 @@ const ConfirmPopover: React.FC<ConfirmPopoverProps> = (props) => {
     // title is required in PopconfirmProps typings
     title: (props as any).title as React.ReactNode,
     overlayStyle: { pointerEvents: 'auto', ...(overlayStyle || {}) },
-    overlayClassName: overlayClassName ?? 'light-theme-force',
+    overlayClassName: overlayClassName,
   };
 
   if ((props as ConfirmPopoverDefaultModeProps).mode === 'default') {
