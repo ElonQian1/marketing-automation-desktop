@@ -34,6 +34,7 @@ export interface ElementSelectionPopoverProps {
   enableIntelligentAnalysis?: boolean; // 是否启用智能分析功能
   stepId?: string; // 关联的步骤ID，用于结果回填
   onStrategySelect?: (strategy: StrategyCandidate) => void; // 策略选择回调
+  onQuickCreate?: () => Promise<void>; // 🆕 快速创建步骤卡片回调
   allElements?: UIElement[];
   onElementSelect?: (element: UIElement) => void;
   actionTokens?: Partial<PopoverActionTokens>; // 注入尺寸/间距令牌
@@ -57,6 +58,7 @@ const ElementSelectionPopoverComponent: React.FC<ElementSelectionPopoverProps> =
   enableIntelligentAnalysis = true, // 🧠 默认启用智能分析功能
   stepId,
   onStrategySelect,
+  onQuickCreate,
   allElements = [],
   onElementSelect,
   actionTokens,
@@ -155,6 +157,20 @@ const ElementSelectionPopoverComponent: React.FC<ElementSelectionPopoverProps> =
     resetAnalysis();
     await handleStartAnalysis(e);
   }, [resetAnalysis, handleStartAnalysis]);
+
+  // 🆕 快速创建步骤卡片处理
+  const handleQuickCreate = useCallback(async (e?: React.MouseEvent) => {
+    if (e) e.stopPropagation();
+    if (__DEV__) console.log('⚡ [用户操作] 快速创建步骤卡片');
+    
+    if (onQuickCreate) {
+      await onQuickCreate();
+    } else {
+      // 如果没有提供 onQuickCreate 回调，回退到传统的确认行为
+      if (__DEV__) console.warn('⚠️ onQuickCreate 回调未提供，回退到传统确认');
+      onConfirm();
+    }
+  }, [onQuickCreate, onConfirm]);
 
   const handleStrategyModalClose = useCallback(() => {
     setStrategyAnalysisModalOpen(false);
@@ -297,6 +313,8 @@ const ElementSelectionPopoverComponent: React.FC<ElementSelectionPopoverProps> =
                 onViewAnalysisDetails={handleViewAnalysisDetails}
                 onApplyStrategy={handleApplyStrategy}
                 onRetryAnalysis={handleRetryAnalysis}
+                // 🆕 快速创建步骤卡片
+                onQuickCreate={handleQuickCreate}
               />
             </div>
           }

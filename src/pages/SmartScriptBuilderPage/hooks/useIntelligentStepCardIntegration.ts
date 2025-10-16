@@ -7,7 +7,6 @@ import { App } from 'antd';
 import { useIntelligentAnalysisWorkflow } from '../../../modules/universal-ui/hooks/use-intelligent-analysis-workflow';
 import type { UIElement } from '../../../api/universalUIAPI';
 import type { ExtendedSmartScriptStep } from '../../../types/loopScript';
-import type { StrategySelector } from '../../../types/strategySelector';
 import XmlCacheManager from '../../../services/xml-cache-manager';
 import { generateXmlHash } from '../../../types/self-contained/xmlSnapshot';
 
@@ -88,10 +87,11 @@ export function useIntelligentStepCardIntegration(options: UseIntelligentStepCar
 
   /**
    * 处理元素选择 - 自动创建智能步骤卡并同步到主步骤列表
+   * 🆕 分离版本：用于"直接确定"按钮的快速创建流程
    */
-  const handleElementSelected = useCallback(async (element: UIElement) => {
+  const handleQuickCreateStep = useCallback(async (element: UIElement) => {
     try {
-      console.log('🎯 [智能集成] 处理元素选择:', element.id);
+      console.log('⚡ [智能集成] 快速创建步骤:', element.id);
 
       // 转换为分析上下文
       const context = convertElementToContext(element);
@@ -181,14 +181,6 @@ export function useIntelligentStepCardIntegration(options: UseIntelligentStepCar
       
       message.success(`已创建智能步骤卡: 步骤${stepNumber}`);
       
-      // 🎯 自动关闭页面查找器模态框，提升用户体验（稍微延迟让用户看到成功消息）
-      if (onClosePageFinder) {
-        setTimeout(() => {
-          console.log('🔒 [智能集成] 自动关闭页面查找器');
-          onClosePageFinder();
-        }, 800); // 延迟800ms关闭，让用户看到成功提示
-      }
-      
       console.log('✅ [智能集成] 步骤卡创建成功:', {
         stepId,
         elementId: element.id,
@@ -202,10 +194,20 @@ export function useIntelligentStepCardIntegration(options: UseIntelligentStepCar
       console.error('❌ [智能集成] 创建步骤卡失败:', error);
       message.error(`创建步骤卡失败: ${error}`);
     }
-  }, [convertElementToContext, createStepCardQuick, steps, setSteps]);
+  }, [convertElementToContext, createStepCardQuick, steps, setSteps, message, onClosePageFinder]);
+
+  /**
+   * 传统的元素选择处理 - 仅用于表单填充，不自动创建步骤
+   */
+  const handleElementSelected = useCallback(async (element: UIElement) => {
+    // 这个函数现在只用于与旧版本兼容，实际的步骤创建由 handleQuickCreateStep 处理
+    console.log('🎯 [智能集成] 元素选择确认 (传统模式):', element.id);
+    message.info('元素已选择，请通过气泡中的"直接确定"创建智能步骤');
+  }, [message]);
 
   return {
     handleElementSelected,
+    handleQuickCreateStep, // 🆕 导出快速创建函数
     isAnalyzing,
     stepCards
   };

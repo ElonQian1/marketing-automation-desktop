@@ -11,13 +11,15 @@ export interface SelectionPopoverContainerProps {
   xmlContent?: string; // 🆕 新增XML内容支持
   enableIntelligentAnalysis?: boolean; // 🧠 智能分析功能开关
   stepId?: string; // 步骤ID，用于结果回填
+  onQuickCreate?: () => Promise<void>; // 🆕 快速创建步骤卡片回调
 }
 
 export const SelectionPopoverContainer: React.FC<SelectionPopoverContainerProps> = ({ 
   selectionManager, 
   xmlContent, // 🆕 接收XML内容
   enableIntelligentAnalysis = true, // 🧠 默认启用智能分析
-  stepId // 步骤ID
+  stepId, // 步骤ID
+  onQuickCreate // 🆕 快速创建步骤卡片回调
 }) => {
   const isVisible = !!selectionManager.pendingSelection;
   return (
@@ -49,6 +51,8 @@ export const SelectionPopoverContainer: React.FC<SelectionPopoverContainerProps>
         if (isDevDebugEnabled('debug:visual')) console.debug('🧠 [SelectionPopoverContainer] 策略选择:', strategy);
         // 可以添加策略选择的处理逻辑
       }}
+      // 🆕 快速创建步骤卡片
+      onQuickCreate={onQuickCreate}
       // 恢复版本的完整属性支持
       autoCancelOnOutsideClick={true}
       autoPlacement={true}

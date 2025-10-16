@@ -45,6 +45,8 @@ export interface PopoverActionButtonsProps {
   onViewAnalysisDetails?: (e?: React.MouseEvent) => void;
   onApplyStrategy?: (strategy: StrategyCandidate, e?: React.MouseEvent) => void;
   onRetryAnalysis?: (e?: React.MouseEvent) => void;
+  // 🆕 快速创建步骤卡片（文档要求的"直接确定"功能）
+  onQuickCreate?: (e?: React.MouseEvent) => void;
 }
 
 const useIsNarrow = (enabled?: boolean) => {
@@ -86,6 +88,8 @@ export const PopoverActionButtons: React.FC<PopoverActionButtonsProps> = ({
   onViewAnalysisDetails,
   onApplyStrategy,
   onRetryAnalysis,
+  // 🆕 快速创建步骤卡片
+  onQuickCreate,
 }) => {
   const t = { ...defaultPopoverActionTokens, ...(tokens || {}) };
   const isNarrow = useIsNarrow(autoCompact);
@@ -192,7 +196,13 @@ export const PopoverActionButtons: React.FC<PopoverActionButtonsProps> = ({
           >
             智能分析
           </Button>
-          <Button size="small" icon={<CheckOutlined />} onClick={onConfirm} style={btnStyle} disabled={disabled}>
+          <Button 
+            size="small" 
+            icon={<CheckOutlined />} 
+            onClick={onQuickCreate || onConfirm} 
+            style={btnStyle} 
+            disabled={disabled}
+          >
             直接确定
           </Button>
           {onDiscovery && (
@@ -223,7 +233,14 @@ export const PopoverActionButtons: React.FC<PopoverActionButtonsProps> = ({
           </Button>
         </Col>
         <Col span={12}>
-          <Button block size="small" icon={<CheckOutlined />} onClick={onConfirm} style={btnStyle} disabled={disabled}>
+          <Button 
+            block 
+            size="small" 
+            icon={<CheckOutlined />} 
+            onClick={onQuickCreate || onConfirm} 
+            style={btnStyle} 
+            disabled={disabled}
+          >
             直接确定
           </Button>
         </Col>

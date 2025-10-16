@@ -44,7 +44,7 @@ const SmartScriptBuilderPage: React.FC = () => {
   } = useSmartScriptBuilder();
 
   // 🧠 智能步骤卡集成 - 传入步骤管理函数和页面查找器控制
-  const { handleElementSelected, isAnalyzing } = useIntelligentStepCardIntegration({
+  const { handleElementSelected, handleQuickCreateStep, isAnalyzing } = useIntelligentStepCardIntegration({
     steps: stepListProps.steps,
     setSteps: stepListProps.setSteps,
     onClosePageFinder: pageFinderProps.onClose // 传入关闭页面查找器的方法
@@ -65,6 +65,8 @@ const SmartScriptBuilderPage: React.FC = () => {
     },
     // 🧠 集成智能分析：元素选择时自动创建智能步骤卡
     onElementSelected: handleElementSelected,
+    // 🆕 快速创建智能步骤 - 直接调用快速创建流程
+    onQuickCreate: handleQuickCreateStep,
   };
 
   return (

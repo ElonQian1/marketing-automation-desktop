@@ -53,6 +53,7 @@ export interface UniversalPageFinderModalProps {
   visible: boolean;
   onClose: () => void;
   onElementSelected?: (element: UIElement) => void;
+  onQuickCreate?: (element: UIElement) => void; // 🆕 支持快速创建步骤回调
   snapshotOnlyMode?: boolean;
   onSnapshotCaptured?: (snapshot: XmlSnapshot) => void;
   onXmlContentUpdated?: (
@@ -87,6 +88,7 @@ const UniversalPageFinderModal: React.FC<UniversalPageFinderModalProps> = ({
   visible,
   onClose,
   onElementSelected,
+  onQuickCreate, // 🆕 快速创建回调
   snapshotOnlyMode,
   onSnapshotCaptured,
   onXmlContentUpdated,
@@ -448,6 +450,19 @@ const UniversalPageFinderModal: React.FC<UniversalPageFinderModalProps> = ({
         xmlContent={xmlContent} // 🆕 传递XML内容给元素发现功能
         enableIntelligentAnalysis={true} // 🧠 启用智能分析功能
         stepId={`page-finder-${Date.now()}`} // 生成步骤ID
+        // 🆕 快速创建步骤卡片回调 - 连接到智能分析工作流
+        onQuickCreate={async () => {
+          if (selectionManager.pendingSelection?.element) {
+            // 优先使用快速创建回调，如果没有则使用传统的元素选择回调
+            if (onQuickCreate) {
+              onQuickCreate(selectionManager.pendingSelection.element);
+            } else {
+              onElementSelected?.(selectionManager.pendingSelection.element);
+            }
+            // 清理选择状态
+            selectionManager.confirmSelection();
+          }
+        }}
       />
       {/* 🆕 过滤设置抽屉（模块化） */}
       <FilterSettingsPanel
