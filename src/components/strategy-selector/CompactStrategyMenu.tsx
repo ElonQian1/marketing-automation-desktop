@@ -4,7 +4,7 @@
 
 import React, { useState } from 'react';
 import { Dropdown, Button, Menu, Tooltip } from 'antd';
-import { BrainIcon, TargetIcon, PushpinIcon, RefreshCcwIcon, ClipboardListIcon, SearchIcon, MoreHorizontalIcon } from 'lucide-react';
+import { BrainIcon, TargetIcon, RefreshCcwIcon, ClipboardListIcon, SearchIcon, MoreHorizontalIcon } from 'lucide-react';
 import { 
   StrategySelector as IStrategySelector, 
   StrategyEvents, 

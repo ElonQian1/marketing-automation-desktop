@@ -165,7 +165,7 @@ export function useStepCardReanalysis(options: UseStepCardReanalysisOptions) {
     if (!step?.enableStrategySelector) return false;
     
     // 检查是否有必要的XML快照信息
-    const xmlSnapshot = step.parameters?.xmlSnapshot;
+    const xmlSnapshot = step.parameters?.xmlSnapshot as { xmlContent?: string; xmlCacheId?: string };
     return !!(xmlSnapshot && (xmlSnapshot.xmlContent || xmlSnapshot.xmlCacheId));
   }, [steps]);
 
@@ -174,8 +174,7 @@ export function useStepCardReanalysis(options: UseStepCardReanalysisOptions) {
    */
   const getAnalysisStatus = useCallback((stepId: string) => {
     const step = steps.find(s => s.id === stepId);
-    const selector = step?.strategySelector as any;
-    return selector?.analysis?.status || 'idle';
+    return step?.strategySelector?.analysis?.status || 'idle';
   }, [steps]);
 
   return {

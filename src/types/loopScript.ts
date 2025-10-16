@@ -43,7 +43,16 @@ export interface ExtendedSmartScriptStep {
   
   // 🧠 策略选择器支持
   enableStrategySelector?: boolean; // 是否启用策略选择器
-  strategySelector?: unknown; // 策略选择器状态数据
+  strategySelector?: {
+    selectedStrategy: string;
+    selectedStep: string;
+    analysis: {
+      status: 'ready' | 'analyzing' | 'completed' | 'failed';
+      progress: number;
+      result: unknown;
+      error: string | null;
+    };
+  }; // 策略选择器状态数据
   
   // 原有扩展字段
   find_condition?: unknown;
@@ -63,7 +72,7 @@ export interface LoopExecutionResult {
   completed_iterations: number;
   failed_iterations: number;
   duration_ms: number;
-  step_results: any[]; // 每次循环的步骤执行结果
+  step_results: unknown[]; // 每次循环的步骤执行结果
   error_message?: string;
 }
 
@@ -75,9 +84,9 @@ export interface ExtendedSmartExecutionResult {
   failed_steps: number;
   skipped_steps: number;
   duration_ms: number;
-  logs: any[];
+  logs: unknown[];
   final_page_state?: string;
-  extracted_data: Record<string, any>;
+  extracted_data: Record<string, unknown>;
   message: string;
   
   // 循环执行信息

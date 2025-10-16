@@ -16,6 +16,10 @@ export interface ElementSelectionContext {
   elementBounds?: string;
   /** 元素类型 */
   elementType?: string;
+  /** XML内容（用于重新分析） */
+  xmlContent?: string;
+  /** XML哈希（用于验证） */
+  xmlHash?: string;
   /** 关键属性（resource-id, class等） */
   keyAttributes?: Record<string, string>;
   /** 容器信息 */

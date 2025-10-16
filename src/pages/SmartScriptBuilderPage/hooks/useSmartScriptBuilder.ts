@@ -20,7 +20,7 @@ import { usePageFinder } from "./usePageFinder";
 import { useScriptPersistence } from "./useScriptPersistence";
 import { useWorkflowIntegrations } from "./useWorkflowIntegrations";
 import { useStepForm } from "./useStepForm";
-import { useIntelligentAnalysisWorkflow } from "../../../modules/universal-ui/hooks/use-intelligent-analysis-workflow";
+import { useStepCardReanalysis } from "../../../hooks/useStepCardReanalysis";
 import type { ExtendedSmartScriptStep as LoopScriptStep, LoopConfig } from "../../../types/loopScript";
 import type { ExecutorConfig, SmartExecutionResult } from "../../../types/execution";
 
@@ -36,19 +36,6 @@ const DEFAULT_EXECUTOR_CONFIG: ExecutorConfig = {
 export function useSmartScriptBuilder() {
   const { devices, refreshDevices } = useAdb();
   const [form] = Form.useForm();
-  
-  // 🧠 智能分析工作流
-  const { retryAnalysis, isAnalyzing } = useIntelligentAnalysisWorkflow();
-  
-  // 🔄 重新分析处理程序
-  const handleReanalyze = useCallback(async (stepId: string) => {
-    try {
-      console.log('🔄 [重新分析] 触发步骤重新分析:', stepId);
-      await retryAnalysis(stepId);
-    } catch (error) {
-      console.error('重新分析失败:', error);
-    }
-  }, [retryAnalysis]);
 
   // 添加测试数据来验证 UnifiedStepCard 渲染
   const [steps, setSteps] = useState<LoopScriptStep[]>([
@@ -74,7 +61,18 @@ export function useSmartScriptBuilder() {
       retry_config: null,
       fallback_actions: [],
       pre_conditions: [],
-      post_conditions: []
+      post_conditions: [],
+      enableStrategySelector: true,
+      strategySelector: {
+        selectedStrategy: 'smart-auto',
+        selectedStep: 'step3',
+        analysis: {
+          status: 'ready',
+          progress: 0,
+          result: null,
+          error: null
+        }
+      }
     },
     {
       id: 'test-step-2',
@@ -92,9 +90,36 @@ export function useSmartScriptBuilder() {
       retry_config: null,
       fallback_actions: [],
       pre_conditions: [],
-      post_conditions: []
+      post_conditions: [],
+      enableStrategySelector: true,
+      strategySelector: {
+        selectedStrategy: 'smart-single',
+        selectedStep: 'step2',
+        analysis: {
+          status: 'ready',
+          progress: 0,
+          result: null,
+          error: null
+        }
+      }
     }
   ]);
+  
+  // 🔄 步骤卡片重新分析功能
+  const { reanalyzeStepCard, isAnalyzing } = useStepCardReanalysis({
+    steps,
+    setSteps
+  });
+  
+  // 🔄 重新分析处理程序
+  const handleReanalyze = useCallback(async (stepId: string) => {
+    try {
+      console.log('🔄 [重新分析] 触发步骤重新分析:', stepId);
+      await reanalyzeStepCard(stepId);
+    } catch (error) {
+      console.error('重新分析失败:', error);
+    }
+  }, [reanalyzeStepCard]);
   const [loopConfigs, setLoopConfigs] = useState<LoopConfig[]>([]);
   const [currentDeviceId, setCurrentDeviceId] = useState<string>("");
 
@@ -223,9 +248,9 @@ export function useSmartScriptBuilder() {
     setLoopTheme(theme);
     setSteps(prev => prev.map(s => {
       const isAnchor = s.step_type === 'loop_start' || s.step_type === 'loop_end';
-      const isInLoop = !!(s.parent_loop_id || (s as any).parentLoopId);
+      const isInLoop = !!(s.parent_loop_id || (s as unknown as { parentLoopId?: string }).parentLoopId);
       if (isAnchor || isInLoop) {
-        const nextParams = { ...(s.parameters || {}) } as any;
+        const nextParams = { ...(s.parameters || {}) } as Record<string, unknown> & { loopTheme?: string };
         if (theme && theme.trim()) {
           nextParams.loopTheme = theme.trim();
         } else {
@@ -241,9 +266,9 @@ export function useSmartScriptBuilder() {
     setNonLoopTheme(theme);
     setSteps(prev => prev.map(s => {
       const isAnchor = s.step_type === 'loop_start' || s.step_type === 'loop_end';
-      const isInLoop = !!(s.parent_loop_id || (s as any).parentLoopId);
+      const isInLoop = !!(s.parent_loop_id || (s as unknown as { parentLoopId?: string }).parentLoopId);
       if (!isAnchor && !isInLoop) {
-        const nextParams = { ...(s.parameters || {}) } as any;
+        const nextParams = { ...(s.parameters || {}) } as Record<string, unknown> & { cardTheme?: string };
         if (theme && theme.trim()) {
           nextParams.cardTheme = theme.trim();
         } else {
