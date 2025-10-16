@@ -145,6 +145,25 @@ class XmlCacheManager {
   }
 
   /**
+   * 获取最新的XML缓存
+   */
+  getLatestXmlCache(): XmlCacheEntry | null {
+    if (this.cache.size === 0) {
+      return null;
+    }
+    
+    const entries = Array.from(this.cache.values());
+    return entries.sort((a, b) => b.timestamp - a.timestamp)[0];
+  }
+
+  /**
+   * 列出所有缓存ID
+   */
+  listCacheIds(): string[] {
+    return Array.from(this.cache.keys());
+  }
+
+  /**
    * 获取所有缓存信息（用于调试）
    */
   getCacheStats(): { 

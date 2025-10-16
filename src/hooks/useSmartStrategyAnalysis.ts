@@ -123,6 +123,12 @@ export const useSmartStrategyAnalysis = ({
         const completeUnlisten = await backendService.listenToAnalysisComplete(
           (result) => {
             console.log('✅ [StrategyAnalysis] 分析完成:', result);
+            console.log('🔍 [StrategyAnalysis] 当前分析状态:', {
+              currentJobId: currentJobId.current,
+              isAnalyzing,
+              stepId: step.id,
+              resultSelectionHash: result.selectionHash
+            });
             
             // 转换后端结果为策略选择器格式
             const smartCandidates: StrategyCandidate[] = result.smartCandidates.map((candidate, index) => ({
@@ -227,10 +233,20 @@ export const useSmartStrategyAnalysis = ({
       return;
     }
 
-    // 检查是否已经在分析中
+    // 如果已经在分析中，先重置状态再开始新的分析
     if (strategySelector.analysis.status === 'analyzing') {
-      console.warn('⚠️ [StrategyAnalysis] 已在分析中，跳过重复请求', { stepId: step.id });
-      return;
+      console.warn('⚠️ [StrategyAnalysis] 检测到状态卡在analyzing，先重置再重新开始', { stepId: step.id });
+      // 取消当前分析
+      if (currentJobId.current) {
+        try {
+          await backendService.cancelAnalysis(currentJobId.current);
+        } catch (error) {
+          console.error('取消分析失败:', error);
+        }
+      }
+      // 重置状态
+      setIsAnalyzing(false);
+      currentJobId.current = null;
     }
 
     try {

@@ -112,6 +112,7 @@ export function useIntelligentAnalysisWorkflow(): UseIntelligentAnalysisWorkflow
           // 找到对应的任务并更新状态
           setCurrentJobs(prev => {
             const updated = new Map(prev);
+            let foundJob = null;
             // 通过selectionHash匹配对应的任务
             for (const [jobId, job] of updated.entries()) {
               if (job.selectionHash === result.selectionHash && job.state === 'running') {
@@ -122,12 +123,38 @@ export function useIntelligentAnalysisWorkflow(): UseIntelligentAnalysisWorkflow
                   completedAt: Date.now(),
                   result
                 });
-                
-                // 处理结果回填
-                handleAnalysisComplete(jobId, result);
+                foundJob = { jobId, job };
                 break;
               }
             }
+            
+            if (foundJob) {
+              console.log('🔗 [Workflow] 找到匹配的任务，开始绑定结果', foundJob);
+              // 直接在这里更新步骤卡片，避免闭包问题
+              setStepCards(prevCards => {
+                return prevCards.map(card => {
+                  // 通过selectionHash或jobId匹配
+                  if (card.analysisJobId === foundJob.jobId || 
+                      card.selectionHash === result.selectionHash) {
+                    console.log('🎯 [Workflow] 更新步骤卡片状态', { stepId: card.stepId, result });
+                    return {
+                      ...card,
+                      analysisState: 'analysis_completed',
+                      analysisProgress: 100,
+                      smartCandidates: result.smartCandidates,
+                      staticCandidates: result.staticCandidates,
+                      recommendedStrategy: result.smartCandidates.find(c => c.key === result.recommendedKey),
+                      analyzedAt: Date.now(),
+                      updatedAt: Date.now()
+                    };
+                  }
+                  return card;
+                });
+              });
+            } else {
+              console.warn('⚠️ [Workflow] 未找到匹配的分析任务', { selectionHash: result.selectionHash });
+            }
+            
             return updated;
           });
         });
@@ -183,28 +210,6 @@ export function useIntelligentAnalysisWorkflow(): UseIntelligentAnalysisWorkflow
       unlistenFunctions.current.forEach(unlisten => unlisten());
     };
   }, []);
-  
-  /**
-   * 处理分析完成
-   */
-  const handleAnalysisComplete = useCallback(async (jobId: string, result: AnalysisResult) => {
-    const job = currentJobs.get(jobId);
-    if (!job) return;
-    
-    // 查找关联的步骤卡片
-    const relatedStep = stepCards.find(card => 
-      card.analysisJobId === jobId || 
-      card.selectionHash === result.selectionHash
-    );
-    
-    if (relatedStep) {
-      try {
-        await bindAnalysisResult(relatedStep.stepId, result);
-      } catch (error) {
-        console.error('绑定分析结果失败:', error);
-      }
-    }
-  }, [currentJobs, stepCards]);
   
   /**
    * 启动分析

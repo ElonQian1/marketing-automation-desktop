@@ -34,7 +34,12 @@ export function useStepCardReanalysis(options: UseStepCardReanalysisOptions) {
    */
   const reconstructElementContext = useCallback((step: ExtendedSmartScriptStep): ElementSelectionContext | null => {
     try {
-      const xmlSnapshot = step.parameters?.xmlSnapshot as any;
+      const xmlSnapshot = step.parameters?.xmlSnapshot as {
+        xmlContent?: string;
+        xmlCacheId?: string;
+        xmlHash?: string;
+        elementGlobalXPath?: string;
+      } | undefined;
       if (!xmlSnapshot) {
         console.warn('步骤缺少XML快照信息:', step.id);
         return null;
@@ -42,20 +47,48 @@ export function useStepCardReanalysis(options: UseStepCardReanalysisOptions) {
 
       // 尝试从缓存管理器获取XML内容
       let xmlContent = xmlSnapshot.xmlContent;
+      let actualCacheId = xmlSnapshot.xmlCacheId;
+      
+      // 如果XML内容不存在，尝试从缓存获取
       if (!xmlContent && xmlSnapshot.xmlCacheId) {
         const cacheEntry = XmlCacheManager.getInstance().getCachedXml(xmlSnapshot.xmlCacheId);
-        xmlContent = cacheEntry?.xmlContent;
+        if (cacheEntry) {
+          xmlContent = cacheEntry.xmlContent;
+        } else {
+          console.warn(`⚠️ XML缓存已失效: ${xmlSnapshot.xmlCacheId}，尝试查找最新的XML缓存`);
+          
+          // 尝试获取最新的XML缓存作为回退
+          const latestCache = XmlCacheManager.getInstance().getLatestXmlCache();
+          if (latestCache) {
+            console.log('🔄 使用最新的XML缓存作为回退:', latestCache.cacheId);
+            xmlContent = latestCache.xmlContent;
+            actualCacheId = latestCache.cacheId;
+            // 更新步骤的XML快照信息
+            if (step.parameters) {
+              (step.parameters as Record<string, unknown>).xmlSnapshot = {
+                ...xmlSnapshot,
+                xmlCacheId: actualCacheId,
+                xmlContent
+              };
+            }
+          }
+        }
       }
 
       if (!xmlContent) {
-        console.warn('无法获取XML内容:', step.id);
+        console.error('❌ 无法获取XML内容，请重新获取页面快照', {
+          stepId: step.id,
+          xmlCacheId: xmlSnapshot.xmlCacheId,
+          hasXmlSnapshot: !!xmlSnapshot,
+          availableCaches: XmlCacheManager.getInstance().listCacheIds()
+        });
         return null;
       }
 
       // 重新构建元素选择上下文
       const context: ElementSelectionContext = {
-        snapshotId: xmlSnapshot.xmlCacheId || xmlSnapshot.xmlHash || 'current',
-        elementPath: xmlSnapshot.elementGlobalXPath || step.parameters.element_selector || '',
+        snapshotId: actualCacheId || xmlSnapshot.xmlHash || 'current',
+        elementPath: xmlSnapshot.elementGlobalXPath || (step.parameters.element_selector as string) || '',
         elementText: step.parameters.text as string || '',
         elementBounds: step.parameters.bounds as string || '',
         elementType: step.step_type === 'smart_find_element' ? 'tap' : step.step_type,
@@ -98,7 +131,7 @@ export function useStepCardReanalysis(options: UseStepCardReanalysisOptions) {
       // 重新构建元素上下文
       const context = reconstructElementContext(step);
       if (!context) {
-        message.error('无法重新构建元素上下文，请检查XML快照信息');
+        message.error('无法重新构建元素上下文：XML快照信息丢失或已过期，请重新获取页面快照后再试');
         return;
       }
 

@@ -3,12 +3,11 @@
 // summary: 替代大块策略选择器的紧凑下拉菜单，集成到步骤卡片标题栏
 
 import React, { useState } from 'react';
-import { Dropdown, Button, Menu, Tooltip } from 'antd';
-import { BrainIcon, TargetIcon, RefreshCcwIcon, ClipboardListIcon, SearchIcon, MoreHorizontalIcon } from 'lucide-react';
+import { Dropdown, Button, Tooltip } from 'antd';
+import { RefreshCcwIcon, ClipboardListIcon, SearchIcon, MoreHorizontalIcon } from 'lucide-react';
 import { 
   StrategySelector as IStrategySelector, 
   StrategyEvents, 
-  StrategyType,
   SmartStep 
 } from '../../types/strategySelector';
 
@@ -202,11 +201,11 @@ const CompactStrategyMenu: React.FC<CompactStrategyMenuProps> = ({
                 hasSelector: !!selector,
                 timestamp: new Date().toISOString()
               });
-              if (!disabled && selector.analysis.status !== 'analyzing') {
-                events.onReanalyze();
-              }
+              
+              // 无论当前状态如何，都触发重新分析（这会重置状态）
+              events.onReanalyze();
             }}
-            disabled={disabled || selector.analysis.status === 'analyzing'}
+            disabled={disabled}
             style={{
               color: '#64748B',
               border: 'none',
