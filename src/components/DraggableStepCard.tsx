@@ -537,7 +537,32 @@ const DraggableStepCardInner: React.FC<
                   onCancelAnalysis: (jobId) => onCancelAnalysis?.(step.id, jobId),
                   onApplyRecommendation: (key) => onApplyRecommendation?.(step.id, key),
                 }}
-                disabled={false}  // 允许对禁用的步骤进行重新分析，这有助于用户评估是否要启用
+                disabled={(() => {
+                  // 重新分析按钮禁用守卫：检查必需条件
+                  const xmlSnapshot = step.parameters?.xmlSnapshot as {
+                    xmlHash?: string;
+                    xmlCacheId?: string;
+                    elementGlobalXPath?: string;
+                  } | undefined;
+                  
+                  const haveSnapshot = Boolean(xmlSnapshot?.xmlHash || xmlSnapshot?.xmlCacheId);
+                  const haveXPath = Boolean(xmlSnapshot?.elementGlobalXPath || step.parameters?.element_selector);
+                  const analysisStatus = step.strategySelector?.analysis?.status;
+                  const completedAt = step.strategySelector?.analysis?.completedAt;
+                  
+                  // 检查分析是否正在进行且最近活跃（基于completedAt判断是否为新的分析会话）
+                  const isCurrentlyAnalyzing = analysisStatus === 'analyzing';
+                  
+                  // TODO: 添加后端健康检查
+                  const backendHealthy = true; // 暂时假设后端健康
+                  
+                  return (
+                    isCurrentlyAnalyzing ||
+                    !haveSnapshot ||
+                    !haveXPath ||
+                    !backendHealthy
+                  );
+                })()}
                 compact={true}
               />
             )}

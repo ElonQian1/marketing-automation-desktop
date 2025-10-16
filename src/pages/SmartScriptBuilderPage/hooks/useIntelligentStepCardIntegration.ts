@@ -60,7 +60,13 @@ export function useIntelligentStepCardIntegration(options: UseIntelligentStepCar
         const cacheEntry = XmlCacheManager.getInstance().getCachedXml(xmlCacheId);
         if (cacheEntry) {
           xmlContent = cacheEntry.xmlContent;
-          xmlHash = generateXmlHash(xmlContent);
+          xmlHash = cacheEntry.xmlHash || generateXmlHash(xmlContent);
+          
+          // 确保XML也被按hash索引（如果缓存条目没有hash）
+          if (!cacheEntry.xmlHash && xmlHash) {
+            const xmlCacheManager = XmlCacheManager.getInstance();
+            xmlCacheManager.putXml(xmlCacheId, xmlContent, `sha256:${xmlHash}`);
+          }
         }
       }
     } catch (error) {

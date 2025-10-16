@@ -3,6 +3,7 @@
 // summary: 集成真实智能分析后端，为策略选择器提供数据和操作
 
 import { useState, useCallback, useEffect, useRef } from 'react';
+import { message } from 'antd';
 import { useIntelligentAnalysisBackend } from '../services/intelligent-analysis-backend';
 import type { 
   StrategySelector, 
@@ -322,25 +323,44 @@ export const useSmartStrategyAnalysis = ({
   const saveAsStatic = useCallback(async (candidate: StrategyCandidate) => {
     console.log('💾 [StrategyAnalysis] 保存静态策略:', candidate);
     
-    // TODO: 实现保存到用户静态策略库的逻辑
-    // 这里应该调用后端API保存用户自定义策略
-    
-    // 临时将其添加到静态候选列表
-    setStrategySelector(prev => prev ? {
-      ...prev,
-      candidates: {
-        ...prev.candidates,
-        static: [
-          ...prev.candidates.static,
-          {
-            ...candidate,
-            type: 'static',
-            key: `user-${Date.now()}`,
-            name: `用户保存-${candidate.name}`
-          }
-        ]
-      }
-    } : null);
+    try {
+      const { StaticStrategyStore } = await import('../stores/staticStrategies');
+      
+      const savedStrategy = {
+        key: `user-${Date.now()}`,
+        name: `用户保存-${candidate.name || candidate.key}`,
+        locator: {
+          type: 'xpath',
+          value: candidate.selector
+        },
+        createdAt: new Date().toISOString(),
+        description: `从智能分析结果保存: ${candidate.description || '无描述'}`
+      };
+      
+      StaticStrategyStore.save(savedStrategy);
+      
+      // 同时更新当前选择器的静态候选列表（用于即时显示）
+      setStrategySelector(prev => prev ? {
+        ...prev,
+        candidates: {
+          ...prev.candidates,
+          static: [
+            ...prev.candidates.static,
+            {
+              ...candidate,
+              type: 'static',
+              key: savedStrategy.key,
+              name: savedStrategy.name
+            }
+          ]
+        }
+      } : null);
+      
+      message.success(`已保存为静态策略: ${savedStrategy.name}`);
+    } catch (error) {
+      console.error('保存静态策略失败:', error);
+      message.error('保存静态策略失败');
+    }
   }, []);
 
   return {

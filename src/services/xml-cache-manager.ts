@@ -12,6 +12,8 @@ export interface XmlCacheEntry {
   cacheId: string;
   /** XML内容 */
   xmlContent: string;
+  /** XML内容的哈希值 */
+  xmlHash?: string;
   /** 设备ID */
   deviceId: string;
   /** 设备名称 */
@@ -54,6 +56,7 @@ export interface StepXmlContext {
 class XmlCacheManager {
   private static instance: XmlCacheManager;
   private cache: Map<string, XmlCacheEntry> = new Map();
+  private hashIndex: Map<string, XmlCacheEntry> = new Map();
   private stepXmlMapping: Map<string, StepXmlContext> = new Map();
 
   static getInstance(): XmlCacheManager {
@@ -71,13 +74,49 @@ class XmlCacheManager {
     const completeEntry = { ...entry, cacheId };
     
     this.cache.set(cacheId, completeEntry);
+    
+    // 如果有hash，同时更新hash索引
+    if (entry.xmlHash) {
+      this.hashIndex.set(entry.xmlHash, completeEntry);
+    }
+    
     console.log(`📦 XML页面已缓存: ${cacheId}`, {
       deviceId: entry.deviceId,
       elementCount: entry.pageInfo.elementCount,
-      contentLength: entry.xmlContent.length
+      contentLength: entry.xmlContent.length,
+      xmlHash: entry.xmlHash?.substring(0, 16) + '...' || 'none'
     });
     
     return cacheId;
+  }
+
+  /**
+   * 缓存XML数据（支持hash索引）
+   */
+  putXml(id: string, xmlContent: string, xmlHash: string, createdAt = new Date().toISOString()): void {
+    const entry: XmlCacheEntry = {
+      cacheId: id,
+      xmlContent,
+      xmlHash,
+      deviceId: 'unknown',
+      deviceName: 'unknown',
+      timestamp: new Date(createdAt).getTime(),
+      pageInfo: {
+        appPackage: 'unknown',
+        activityName: 'unknown',
+        pageTitle: 'unknown',
+        pageType: 'snapshot',
+        elementCount: 0
+      }
+    };
+    
+    this.cache.set(id, entry);
+    this.hashIndex.set(xmlHash, entry);
+    
+    console.log(`📦 XML快照已缓存: ${id}`, {
+      xmlHash: xmlHash.substring(0, 16) + '...',
+      contentLength: xmlContent.length
+    });
   }
 
   /**
@@ -87,6 +126,18 @@ class XmlCacheManager {
     const entry = this.cache.get(cacheId);
     if (!entry) {
       console.warn(`⚠️ 未找到XML缓存: ${cacheId}`);
+      return null;
+    }
+    return entry;
+  }
+
+  /**
+   * 通过hash获取XML数据
+   */
+  getByHash(xmlHash: string): XmlCacheEntry | null {
+    const entry = this.hashIndex.get(xmlHash);
+    if (!entry) {
+      console.warn(`⚠️ 未找到XML哈希: ${xmlHash}`);
       return null;
     }
     return entry;
@@ -184,6 +235,16 @@ class XmlCacheManager {
           timestamp: entry.timestamp,
           elementCount: entry.pageInfo.elementCount
         }))
+    };
+  }
+
+  /**
+   * 获取所有缓存键（用于调试）
+   */
+  dumpKeys(): { ids: string[]; hashes: string[] } {
+    return {
+      ids: Array.from(this.cache.keys()),
+      hashes: Array.from(this.hashIndex.keys())
     };
   }
 

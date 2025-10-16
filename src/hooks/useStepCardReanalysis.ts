@@ -2,8 +2,8 @@
 // module: hooks | layer: hooks | role: 步骤卡片重新分析集成
 // summary: 连接步骤卡片与智能分析工作流，实现重新分析功能
 
-import { useCallback } from 'react';
-import { message } from 'antd';
+import React, { useCallback } from 'react';
+import { message, Modal } from 'antd';
 import { useIntelligentAnalysisWorkflow } from '../modules/universal-ui/hooks/use-intelligent-analysis-workflow';
 import type { ExtendedSmartScriptStep } from '../types/loopScript';
 import type { ElementSelectionContext } from '../modules/universal-ui/types/intelligent-analysis-types';
@@ -30,6 +30,70 @@ export function useStepCardReanalysis(options: UseStepCardReanalysisOptions) {
   } = useIntelligentAnalysisWorkflow();
 
   /**
+   * 显示缺失快照兜底对话框
+   */
+  const showMissingSnapshotDialog = useCallback((stepId: string) => {
+    const xmlCacheManager = XmlCacheManager.getInstance();
+    const keys = xmlCacheManager.dumpKeys();
+    
+    Modal.confirm({
+      title: '缺少XML快照',
+      content: (
+        <div>
+          <p>未找到步骤的XML快照信息（xmlHash/xmlCacheId 均未命中缓存）。</p>
+          <p>可选择以下操作：</p>
+          <ul>
+            <li><strong>重新抓取</strong>：获取当前页面的XML快照（注意：可能与原快照不同）</li>
+            <li><strong>从历史选择</strong>：使用最新的历史快照（共 {keys.ids.length} 个可用）</li>
+            <li><strong>取消</strong>：放弃本次重新分析</li>
+          </ul>
+        </div>
+      ),
+      okText: '重新抓取当前页面',
+      cancelText: '取消',
+      width: 480,
+      onOk: async () => {
+        // TODO: 触发重新抓取XML的流程
+        // 这里可以调用页面分析模态的XML抓取功能
+        message.info('重新抓取功能待实现，请手动刷新页面快照后重试');
+      },
+      footer: (_, { OkBtn, CancelBtn }) => (
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+          <div>
+            {keys.ids.length > 0 && (
+              <button
+                type="button"
+                onClick={() => {
+                  Modal.destroyAll();
+                  const latest = xmlCacheManager.getLatestXmlCache();
+                  if (latest) {
+                    message.success(`已使用最新历史快照: ${latest.cacheId}`);
+                    // 可以在这里重新触发分析
+                    setTimeout(() => reanalyzeStepCard(stepId), 500);
+                  }
+                }}
+                style={{
+                  background: 'transparent',
+                  border: '1px solid #d9d9d9',
+                  borderRadius: '4px',
+                  padding: '4px 12px',
+                  cursor: 'pointer'
+                }}
+              >
+                使用历史快照
+              </button>
+            )}
+          </div>
+          <div style={{ display: 'flex', gap: '8px' }}>
+            <CancelBtn />
+            <OkBtn />
+          </div>
+        </div>
+      )
+    });
+  }, []);
+
+  /**
    * 从步骤卡片重新构建元素选择上下文
    */
   const reconstructElementContext = useCallback((step: ExtendedSmartScriptStep): ElementSelectionContext | null => {
@@ -45,44 +109,66 @@ export function useStepCardReanalysis(options: UseStepCardReanalysisOptions) {
         return null;
       }
 
-      // 尝试从缓存管理器获取XML内容
+      // 按优先级获取XML内容：hash → cacheId → current
       let xmlContent = xmlSnapshot.xmlContent;
       let actualCacheId = xmlSnapshot.xmlCacheId;
+      const xmlCacheManager = XmlCacheManager.getInstance();
       
-      // 如果XML内容不存在，尝试从缓存获取
-      if (!xmlContent && xmlSnapshot.xmlCacheId) {
-        const cacheEntry = XmlCacheManager.getInstance().getCachedXml(xmlSnapshot.xmlCacheId);
-        if (cacheEntry) {
-          xmlContent = cacheEntry.xmlContent;
-        } else {
-          console.warn(`⚠️ XML缓存已失效: ${xmlSnapshot.xmlCacheId}，尝试查找最新的XML缓存`);
-          
-          // 尝试获取最新的XML缓存作为回退
-          const latestCache = XmlCacheManager.getInstance().getLatestXmlCache();
-          if (latestCache) {
-            console.log('🔄 使用最新的XML缓存作为回退:', latestCache.cacheId);
-            xmlContent = latestCache.xmlContent;
-            actualCacheId = latestCache.cacheId;
-            // 更新步骤的XML快照信息
-            if (step.parameters) {
-              (step.parameters as Record<string, unknown>).xmlSnapshot = {
-                ...xmlSnapshot,
-                xmlCacheId: actualCacheId,
-                xmlContent
-              };
-            }
+      // 如果XML内容不存在，按顺序尝试获取
+      if (!xmlContent) {
+        // 1) 优先通过hash获取（最稳定）
+        if (xmlSnapshot.xmlHash) {
+          const entryByHash = xmlCacheManager.getByHash(xmlSnapshot.xmlHash);
+          if (entryByHash) {
+            console.log('✅ [Reanalyze] 通过xmlHash命中缓存:', xmlSnapshot.xmlHash.substring(0, 16) + '...');
+            xmlContent = entryByHash.xmlContent;
+            actualCacheId = entryByHash.cacheId;
+          } else {
+            console.warn('⚠️ [Reanalyze] xmlHash未命中缓存:', xmlSnapshot.xmlHash);
           }
+        }
+        
+        // 2) 其次通过cacheId获取
+        if (!xmlContent && xmlSnapshot.xmlCacheId) {
+          const entryById = xmlCacheManager.getCachedXml(xmlSnapshot.xmlCacheId);
+          if (entryById) {
+            console.log('✅ [Reanalyze] 通过xmlCacheId命中缓存:', xmlSnapshot.xmlCacheId);
+            xmlContent = entryById.xmlContent;
+            actualCacheId = entryById.cacheId;
+          } else {
+            console.warn('⚠️ [Reanalyze] xmlCacheId未命中缓存:', xmlSnapshot.xmlCacheId);
+          }
+        }
+        
+        // 3) 最后尝试获取'current'缓存（需要用户确认，避免隐式切页）
+        if (!xmlContent) {
+          const currentEntry = xmlCacheManager.getCachedXml('current');
+          if (currentEntry) {
+            console.warn('🔄 [Reanalyze] 使用current缓存作为兜底，可能与原快照不同');
+            xmlContent = currentEntry.xmlContent;
+            actualCacheId = currentEntry.cacheId;
+          }
+        }
+        
+        // 如果成功获取了新的XML内容，更新步骤快照信息
+        if (xmlContent && actualCacheId && step.parameters) {
+          (step.parameters as Record<string, unknown>).xmlSnapshot = {
+            ...xmlSnapshot,
+            xmlCacheId: actualCacheId,
+            xmlContent
+          };
         }
       }
 
       if (!xmlContent) {
-        console.error('❌ 无法获取XML内容，请重新获取页面快照', {
+        console.error('❌ 无法获取XML内容，缺少快照信息', {
           stepId: step.id,
+          xmlHash: xmlSnapshot.xmlHash,
           xmlCacheId: xmlSnapshot.xmlCacheId,
           hasXmlSnapshot: !!xmlSnapshot,
-          availableCaches: XmlCacheManager.getInstance().listCacheIds()
+          availableCaches: xmlCacheManager.dumpKeys()
         });
-        return null;
+        throw new Error('NO_XML_SNAPSHOT');
       }
 
       // 重新构建元素选择上下文
@@ -129,7 +215,18 @@ export function useStepCardReanalysis(options: UseStepCardReanalysisOptions) {
       }
 
       // 重新构建元素上下文
-      const context = reconstructElementContext(step);
+      let context;
+      try {
+        context = reconstructElementContext(step);
+      } catch (error) {
+        if (error instanceof Error && error.message === 'NO_XML_SNAPSHOT') {
+          // 显示缺少快照的兜底对话框
+          showMissingSnapshotDialog(stepId);
+          return;
+        }
+        throw error;
+      }
+      
       if (!context) {
         message.error('无法重新构建元素上下文：XML快照信息丢失或已过期，请重新获取页面快照后再试');
         return;
