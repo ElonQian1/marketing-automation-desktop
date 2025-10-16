@@ -78,9 +78,9 @@ export const SmartStepCardWithBackend: React.FC<SmartStepCardWithBackendProps> =
   };
 
   // 重新分析处理
-  const handleReanalyze = (stepId: string) => {
+  const handleReanalyze = async (stepId: string) => {
     console.log('🔄 [SmartStepCard] 重新分析:', stepId);
-    startAnalysis();
+    await startAnalysis();
   };
 
   // 保存为静态策略处理
@@ -113,8 +113,8 @@ export const SmartStepCardWithBackend: React.FC<SmartStepCardWithBackendProps> =
 
     // 找到推荐的候选策略
     const allCandidates = [
-      ...strategySelector.candidates.smart,
-      ...strategySelector.candidates.static
+      ...(strategySelector.candidates?.smart ?? []),
+      ...(strategySelector.candidates?.static ?? [])
     ];
     
     const recommendedCandidate = allCandidates.find(c => c.key === key);

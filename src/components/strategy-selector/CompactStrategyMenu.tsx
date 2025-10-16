@@ -85,8 +85,8 @@ const CompactStrategyMenu: React.FC<CompactStrategyMenuProps> = ({
         key: 'static',
         icon: <span>📌</span>,
         label: '静态策略',
-        children: selector.candidates.static.length > 0
-          ? selector.candidates.static.map(candidate => ({
+        children: (selector.candidates?.static?.length ?? 0) > 0
+          ? selector.candidates.static!.map(candidate => ({
               key: `static-${candidate.key}`,
               label: candidate.name,
               onClick: () => events.onStrategyChange({ type: 'static', key: candidate.key })
@@ -189,7 +189,7 @@ const CompactStrategyMenu: React.FC<CompactStrategyMenuProps> = ({
           />
         </Tooltip>
 
-        <Tooltip title={`查看候选 (${selector.candidates.smart.length + selector.candidates.static.length})`}>
+        <Tooltip title={`查看候选 (${(selector.candidates?.smart?.length ?? 0) + (selector.candidates?.static?.length ?? 0)})`}>
           <Button
             size="small"
             type="text"
@@ -284,8 +284,8 @@ const CompactStrategyMenu: React.FC<CompactStrategyMenuProps> = ({
 
           {/* 候选策略简要信息 */}
           <div style={{ color: '#CBD5E1' }}>
-            智能候选: {selector.candidates.smart.length} 个 | 
-            静态候选: {selector.candidates.static.length} 个
+            智能候选: {selector.candidates?.smart?.length ?? 0} 个 | 
+            静态候选: {selector.candidates?.static?.length ?? 0} 个
           </div>
         </div>
       )}

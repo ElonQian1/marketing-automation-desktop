@@ -124,7 +124,7 @@ const StrategySelector: React.FC<StrategySelector_Props> = ({
 
   // 获取推荐策略
   const recommendedCandidate = selector.recommended ? 
-    [...selector.candidates.smart, ...selector.candidates.static]
+    [...(selector.candidates?.smart ?? []), ...(selector.candidates?.static ?? [])]
       .find(c => c.key === selector.recommended?.key) : null;
 
   // 处理策略类型切换
@@ -401,7 +401,7 @@ const StrategySelector: React.FC<StrategySelector_Props> = ({
               opacity: disabled ? 0.6 : 1,
             }}
           >
-            📋 查看候选 ({selector.candidates.smart.length + selector.candidates.static.length})
+            📋 查看候选 ({(selector.candidates?.smart?.length ?? 0) + (selector.candidates?.static?.length ?? 0)})
           </button>
         </div>
 
@@ -430,7 +430,7 @@ const StrategySelector: React.FC<StrategySelector_Props> = ({
           borderRadius: STRATEGY_DESIGN_TOKENS.borderRadius.sm,
           background: STRATEGY_DESIGN_TOKENS.colors.bg.primary,
         }}>
-          {[...selector.candidates.smart, ...selector.candidates.static].map(candidate => (
+          {[...(selector.candidates?.smart ?? []), ...(selector.candidates?.static ?? [])].map(candidate => (
             <div
               key={candidate.key}
               onClick={() => handleCandidateSelect(candidate)}

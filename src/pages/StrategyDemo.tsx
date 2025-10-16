@@ -100,7 +100,7 @@ const StrategyDemo: React.FC = () => {
     }));
   };
 
-  const handleReanalyze = (stepId: string) => {
+  const handleReanalyze = async (stepId: string) => {
     console.log('重新分析:', stepId);
     setMockStep(prev => ({
       ...prev,
@@ -170,7 +170,7 @@ const StrategyDemo: React.FC = () => {
 
   const handleApplyRecommendation = (stepId: string, key: string) => {
     console.log('应用推荐策略:', stepId, key);
-    const candidate = [...mockStrategySelector.candidates.smart, ...mockStrategySelector.candidates.static]
+    const candidate = [...(mockStrategySelector.candidates?.smart ?? []), ...(mockStrategySelector.candidates?.static ?? [])]
       .find(c => c.key === key);
     
     if (candidate) {

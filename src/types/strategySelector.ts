@@ -48,7 +48,7 @@ export interface StrategySelector {
   analysis: AnalysisState;
   
   // 候选策略
-  candidates: {
+  candidates?: {
     smart: StrategyCandidate[];   // 智能策略候选
     static: StrategyCandidate[];  // 静态策略候选
   };
