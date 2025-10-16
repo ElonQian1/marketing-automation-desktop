@@ -306,11 +306,13 @@ const DraggableStepCardInner: React.FC<
     onOpenPageAnalyzer?: () => void;
     // 🧠 策略选择器回调
     onStrategyChange?: (stepId: string, selection: { type: 'smart-auto' | 'smart-single' | 'static'; key?: string; stepName?: string }) => void;
-    onReanalyze?: (stepId: string) => void;
+    onReanalyze?: (stepId: string) => Promise<void>;
     onSaveAsStatic?: (stepId: string, candidate: any) => void;
     onOpenElementInspector?: (stepId: string) => void;
     onCancelAnalysis?: (stepId: string, jobId: string) => void;
     onApplyRecommendation?: (stepId: string, key: string) => void;
+    // 🔄 智能分析功能
+    isAnalyzing?: boolean;
     // 拖拽相关
     transform?: any;
     transition?: any;
@@ -335,12 +337,18 @@ const DraggableStepCardInner: React.FC<
   onOpenElementInspector,
   onCancelAnalysis,
   onApplyRecommendation,
+  // 🔄 智能分析功能
+  isAnalyzing,
   devices,
   currentDeviceId,
   transform,
   transition,
   style
 }) => {
+  // Hook for reanalysis functionality - we'll need to get steps context from parent
+  // For now, we'll use the original callback approach
+  // TODO: Integrate with steps context from parent component
+  
   const dragStyle = {
     transform: CSS.Transform.toString(transform),
     transition,
@@ -538,7 +546,7 @@ const DraggableStepCardInner: React.FC<
             {step.parameters?.xmlSnapshot && (
               <button
                 type="button"
-                title={`原始XML快照 ${new Date(step.parameters.xmlSnapshot.timestamp || 0).toLocaleString()}`}
+                title={`原始XML快照 ${new Date((step.parameters.xmlSnapshot.timestamp as number) || 0).toLocaleString()}`}
                 onClick={() => {
                   // TODO: 实现重新加载原始XML功能
                   console.log('重新加载原始XML:', step.parameters?.xmlSnapshot);

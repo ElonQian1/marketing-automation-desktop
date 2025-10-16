@@ -71,6 +71,10 @@ export interface DraggableStepsContainerProps {
   onCreateScreenInteraction?: (template: ActionTemplate | ActionTemplate[]) => void;
   /** 创建系统按键步骤回调 */
   onCreateSystemAction?: (template: ActionTemplate) => void;
+  /** 🔄 重新分析步骤 */
+  onReanalyze?: (stepId: string) => Promise<void>;
+  /** 智能分析状态 */
+  isAnalyzing?: boolean;
 }
 
 // 内部拖拽监听器组件 - 必须在 DndContext 内部使用
@@ -102,6 +106,9 @@ export const DraggableStepsContainer: React.FC<DraggableStepsContainerProps> = (
   onBatchMatch,
   onCreateScreenInteraction,
   onCreateSystemAction,
+  // 🔄 智能分析功能
+  onReanalyze,
+  isAnalyzing,
 }) => {
   // 统一 DnD：距离触发（6px），本地实现排序回调
   const stepIds = React.useMemo(() => steps.map(s => s.id), [steps]);
@@ -195,6 +202,9 @@ export const DraggableStepsContainer: React.FC<DraggableStepsContainerProps> = (
                   onUpdateStepParameters={onUpdateStepParameters}
                   onBatchMatch={onBatchMatch}
                   onUpdateStepMeta={onUpdateStepMeta}
+                  // 🔄 智能分析功能
+                  onReanalyze={onReanalyze}
+                  isAnalyzing={isAnalyzing}
                 />
               </SortableItem>
             ))}

@@ -22,6 +22,9 @@ interface StepListPanelProps {
   openQuickPageFinder: () => void;
   handleEditStepParams: (step: ExtendedSmartScriptStep) => void;
   handleAddStep: () => void;
+  // 🔄 智能分析功能
+  handleReanalyze?: (stepId: string) => Promise<void>;
+  isAnalyzing?: boolean;
 }
 
 const StepListPanel: React.FC<StepListPanelProps> = (props) => {
@@ -37,6 +40,9 @@ const StepListPanel: React.FC<StepListPanelProps> = (props) => {
     openQuickPageFinder,
     handleEditStepParams,
     handleAddStep,
+    // 🔄 智能分析功能
+    handleReanalyze,
+    isAnalyzing,
   } = props;
 
 
@@ -301,6 +307,9 @@ const StepListPanel: React.FC<StepListPanelProps> = (props) => {
         onCreateScreenInteraction={onCreateScreenInteraction}
         onCreateSystemAction={onCreateSystemAction}
         onUpdateStepMeta={handleUpdateStepMeta}
+        // 🔄 智能分析功能
+        onReanalyze={handleReanalyze}
+        isAnalyzing={isAnalyzing}
       />
     </div>
   );

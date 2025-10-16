@@ -20,6 +20,7 @@ import { usePageFinder } from "./usePageFinder";
 import { useScriptPersistence } from "./useScriptPersistence";
 import { useWorkflowIntegrations } from "./useWorkflowIntegrations";
 import { useStepForm } from "./useStepForm";
+import { useIntelligentAnalysisWorkflow } from "../../../modules/universal-ui/hooks/use-intelligent-analysis-workflow";
 import type { ExtendedSmartScriptStep as LoopScriptStep, LoopConfig } from "../../../types/loopScript";
 import type { ExecutorConfig, SmartExecutionResult } from "../../../types/execution";
 
@@ -35,6 +36,19 @@ const DEFAULT_EXECUTOR_CONFIG: ExecutorConfig = {
 export function useSmartScriptBuilder() {
   const { devices, refreshDevices } = useAdb();
   const [form] = Form.useForm();
+  
+  // 🧠 智能分析工作流
+  const { retryAnalysis, isAnalyzing } = useIntelligentAnalysisWorkflow();
+  
+  // 🔄 重新分析处理程序
+  const handleReanalyze = useCallback(async (stepId: string) => {
+    try {
+      console.log('🔄 [重新分析] 触发步骤重新分析:', stepId);
+      await retryAnalysis(stepId);
+    } catch (error) {
+      console.error('重新分析失败:', error);
+    }
+  }, [retryAnalysis]);
 
   // 添加测试数据来验证 UnifiedStepCard 渲染
   const [steps, setSteps] = useState<LoopScriptStep[]>([
@@ -256,10 +270,13 @@ export function useSmartScriptBuilder() {
       setLoopConfigs,
       currentDeviceId,
       devices,
-  handleEditStep: showEditModal,
+      handleEditStep: showEditModal,
       openQuickPageFinder: pageFinder.openQuickPageFinder,
       handleEditStepParams: pageFinder.openPageFinderForStep,
-  handleAddStep: showAddModal,
+      handleAddStep: showAddModal,
+      // 🔄 智能分析功能
+      handleReanalyze,
+      isAnalyzing,
     },
     scriptControlPanelProps: {
       steps,

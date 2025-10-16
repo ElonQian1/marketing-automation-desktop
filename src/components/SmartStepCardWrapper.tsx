@@ -33,6 +33,9 @@ interface SmartStepCardWrapperProps {
   onUpdateStepParameters?: (stepId: string, parameters: Record<string, unknown>) => void;
   onBatchMatch?: (stepId: string) => void;
   ENABLE_BATCH_MATCH?: boolean;
+  // 🔄 智能分析功能
+  onReanalyze?: (stepId: string) => Promise<void>;
+  isAnalyzing?: boolean;
 }
 
 export const SmartStepCardWrapper: React.FC<SmartStepCardWrapperProps> = (props) => {
@@ -51,7 +54,10 @@ export const SmartStepCardWrapper: React.FC<SmartStepCardWrapperProps> = (props)
     onUpdateStepParameters,
     onBatchMatch,
     ENABLE_BATCH_MATCH,
-    onOpenPageAnalyzer
+    onOpenPageAnalyzer,
+    // 🔄 智能分析功能
+    onReanalyze,
+    isAnalyzing
   } = props;
 
   return (
@@ -71,6 +77,9 @@ export const SmartStepCardWrapper: React.FC<SmartStepCardWrapperProps> = (props)
       onBatchMatch={onBatchMatch}
       ENABLE_BATCH_MATCH={ENABLE_BATCH_MATCH}
       onOpenPageAnalyzer={onOpenPageAnalyzer}
+      // 🔄 智能分析功能
+      onReanalyze={onReanalyze}
+      isAnalyzing={isAnalyzing}
     />
   );
 };

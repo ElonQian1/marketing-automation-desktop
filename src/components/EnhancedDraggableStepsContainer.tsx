@@ -56,6 +56,10 @@ export interface EnhancedDraggableStepsContainerProps {
   onCreateSystemAction?: (template: any) => void;
   /** 更新步骤元信息（名称/描述） */
   onUpdateStepMeta?: (stepId: string, meta: { name?: string; description?: string }) => void;
+  /** 🔄 重新分析步骤 */
+  onReanalyze?: (stepId: string) => Promise<void>;
+  /** 智能分析状态 */
+  isAnalyzing?: boolean;
 }
 
 const EnhancedDraggableStepsContainer: React.FC<EnhancedDraggableStepsContainerProps> = ({
@@ -80,6 +84,9 @@ const EnhancedDraggableStepsContainer: React.FC<EnhancedDraggableStepsContainerP
   onCreateScreenInteraction,
   onCreateSystemAction,
   onUpdateStepMeta,
+  // 🔄 智能分析功能
+  onReanalyze,
+  isAnalyzing,
 }) => {
   // 兜底：当未传 currentDeviceId 时，自动选择默认设备
   const { defaultDeviceId } = useDefaultDeviceId({ preferSelected: true });
@@ -166,6 +173,9 @@ const EnhancedDraggableStepsContainer: React.FC<EnhancedDraggableStepsContainerP
         onBatchMatch={onBatchMatch}
         onCreateScreenInteraction={onCreateScreenInteraction}
         onCreateSystemAction={onCreateSystemAction}
+        // 🔄 智能分析功能
+        onReanalyze={onReanalyze}
+        isAnalyzing={isAnalyzing}
       />
     </Card>
   );
