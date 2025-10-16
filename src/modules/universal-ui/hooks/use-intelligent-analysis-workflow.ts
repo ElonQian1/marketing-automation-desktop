@@ -3,11 +3,10 @@
 // summary: 智能分析工作流管理Hook，处理分析作业生命周期
 
 import { useState, useCallback, useRef, useEffect } from 'react';
-// import { invoke } from '@tauri-apps/api/tauri';
-// import { listen, type UnlistenFn } from '@tauri-apps/api/event';
+import { message } from 'antd';
 
-// 临时使用模拟后端，实际项目中应该使用上面的Tauri API
-import { mockAnalysisBackend } from '../services/mock-analysis-backend';
+// 使用真实的后端服务
+import { intelligentAnalysisBackend } from '../../../services/intelligent-analysis-backend';
 import { FallbackStrategyGenerator } from '../domain/fallback-strategy-generator';
 
 import type {
@@ -15,10 +14,7 @@ import type {
   SelectionHash,
   AnalysisJob,
   IntelligentStepCard,
-  AnalysisResult,
-  AnalysisProgressEvent,
-  AnalysisDoneEvent,
-  AnalysisErrorEvent
+  AnalysisResult
 } from '../types/intelligent-analysis-types';
 
 import { calculateSelectionHash } from '../utils/selection-hash';
@@ -80,77 +76,86 @@ export function useIntelligentAnalysisWorkflow(): UseIntelligentAnalysisWorkflow
    * 设置事件监听器
    */
   useEffect(() => {
-    const setupEventListeners = () => {
+    const setupEventListeners = async () => {
       try {
         // 分析进度事件
-        const unlistenProgress = mockAnalysisBackend.listen<AnalysisProgressEvent>('analysis:progress', (payload) => {
-          const { jobId, progress, estimatedTimeLeft } = payload;
-          
+        const unlistenProgress = await intelligentAnalysisBackend.listenToAnalysisProgress((progress, currentStep, estimatedTimeLeft) => {
+          console.log('📊 [Workflow] 收到分析进度', { progress, currentStep, estimatedTimeLeft });
+          // 注意：真实后端事件没有jobId，需要通过其他方式关联
+          // 暂时更新所有运行中的任务的进度
           setCurrentJobs(prev => {
             const updated = new Map(prev);
-            const job = updated.get(jobId);
-            if (job && job.state === 'running') {
-              updated.set(jobId, {
-                ...job,
-                progress,
-                estimatedTimeLeft
-              });
+            for (const [jobId, job] of updated.entries()) {
+              if (job.state === 'running') {
+                updated.set(jobId, {
+                  ...job,
+                  progress,
+                  estimatedTimeLeft
+                });
+              }
             }
             return updated;
           });
           
-          // 更新关联的步骤卡片
+          // 更新关联的步骤卡片（更新所有分析中的卡片）
           setStepCards(prev => prev.map(card => 
-            card.analysisJobId === jobId 
+            card.analysisState === 'analyzing'
               ? { ...card, analysisProgress: progress }
               : card
           ));
         });
         
         // 分析完成事件
-        const unlistenDone = mockAnalysisBackend.listen<AnalysisDoneEvent>('analysis:done', (payload) => {
-          const { jobId, result } = payload;
+        const unlistenDone = await intelligentAnalysisBackend.listenToAnalysisComplete((result) => {
+          console.log('✅ [Workflow] 收到分析完成', result);
           
+          // 找到对应的任务并更新状态
           setCurrentJobs(prev => {
             const updated = new Map(prev);
-            const job = updated.get(jobId);
-            if (job) {
-              updated.set(jobId, {
-                ...job,
-                state: 'completed',
-                progress: 100,
-                completedAt: Date.now(),
-                result
-              });
+            // 通过selectionHash匹配对应的任务
+            for (const [jobId, job] of updated.entries()) {
+              if (job.selectionHash === result.selectionHash && job.state === 'running') {
+                updated.set(jobId, {
+                  ...job,
+                  state: 'completed',
+                  progress: 100,
+                  completedAt: Date.now(),
+                  result
+                });
+                
+                // 处理结果回填
+                handleAnalysisComplete(jobId, result);
+                break;
+              }
             }
             return updated;
           });
-          
-          // 处理结果回填
-          handleAnalysisComplete(jobId, result);
         });
         
         // 分析错误事件
-        const unlistenError = mockAnalysisBackend.listen<AnalysisErrorEvent>('analysis:error', (payload) => {
-          const { jobId, error } = payload;
+        const unlistenError = await intelligentAnalysisBackend.listenToAnalysisError((error) => {
+          console.error('❌ [Workflow] 收到分析错误', error);
           
+          // 找到运行中的任务并标记为失败
           setCurrentJobs(prev => {
             const updated = new Map(prev);
-            const job = updated.get(jobId);
-            if (job) {
-              updated.set(jobId, {
-                ...job,
-                state: 'failed',
-                completedAt: Date.now(),
-                error
-              });
+            for (const [jobId, job] of updated.entries()) {
+              if (job.state === 'running') {
+                updated.set(jobId, {
+                  ...job,
+                  state: 'failed',
+                  completedAt: Date.now(),
+                  error
+                });
+                break; // 假设只有一个运行中的任务
+              }
             }
             return updated;
           });
           
-          // 更新关联的步骤卡片
+          // 更新关联的步骤卡片（更新所有分析中的卡片为失败状态）
           setStepCards(prev => prev.map(card => 
-            card.analysisJobId === jobId 
+            card.analysisState === 'analyzing'
               ? { 
                   ...card, 
                   analysisState: 'analysis_failed',
@@ -229,12 +234,29 @@ export function useIntelligentAnalysisWorkflow(): UseIntelligentAnalysisWorkflow
     }
     
     try {
-      // 调用后端分析命令
-      const jobId = await mockAnalysisBackend.startAnalysis({
-        snapshotId: context.snapshotId,
-        elementCtxJson: JSON.stringify(context),
-        stepId
-      });
+      // 构建UI元素对象
+      const uiElement = {
+        id: context.keyAttributes?.['resource-id'] || context.elementPath || '',
+        xpath: context.elementPath || '',
+        text: context.elementText || '',
+        bounds: context.elementBounds ? JSON.parse(context.elementBounds) : { left: 0, top: 0, right: 0, bottom: 0 },
+        element_type: context.elementType || 'unknown',
+        resource_id: context.keyAttributes?.['resource-id'] || '',
+        content_desc: context.keyAttributes?.['content-desc'] || '',
+        class_name: context.keyAttributes?.class || '',
+        is_clickable: true,
+        is_scrollable: false,
+        is_enabled: true,
+        is_focused: false,
+        checkable: false,
+        checked: false,
+        selected: false,
+        password: false
+      };
+      
+      // 调用真实后端分析命令
+      const response = await intelligentAnalysisBackend.startAnalysis(uiElement, stepId);
+      const jobId = response.job_id;
       
       // 创建分析作业
       const job: AnalysisJob = {
@@ -260,7 +282,7 @@ export function useIntelligentAnalysisWorkflow(): UseIntelligentAnalysisWorkflow
    */
   const cancelAnalysis = useCallback(async (jobId: string): Promise<void> => {
     try {
-      await mockAnalysisBackend.cancelAnalysis(jobId);
+      await intelligentAnalysisBackend.cancelAnalysis(jobId);
       
       setCurrentJobs(prev => {
         const updated = new Map(prev);
@@ -290,12 +312,8 @@ export function useIntelligentAnalysisWorkflow(): UseIntelligentAnalysisWorkflow
     const fallbackStrategy = FallbackStrategyGenerator.generatePrimaryFallback(context);
     
     try {
-      // 调用后端创建步骤卡片
-      await mockAnalysisBackend.createStepCardQuick({
-        snapshotId: context.snapshotId,
-        elementCtxJson: JSON.stringify(context),
-        lockContainer
-      });
+      // 本地创建步骤卡片（不需要后端调用）
+      console.log('🎯 [Workflow] 创建快速步骤卡片', { stepId, context, lockContainer });
       
       // 创建步骤卡片 - 关键：立即可用的默认值
       const stepCard: IntelligentStepCard = {
@@ -349,10 +367,8 @@ export function useIntelligentAnalysisWorkflow(): UseIntelligentAnalysisWorkflow
     result: AnalysisResult
   ): Promise<void> => {
     try {
-      await mockAnalysisBackend.bindAnalysisResultToStep({
-        stepId,
-        resultJson: JSON.stringify(result)
-      });
+      // 本地绑定分析结果（不需要后端调用）
+      console.log('🔗 [Workflow] 绑定分析结果', { stepId, result });
       
       setStepCards(prev => prev.map(card => {
         if (card.stepId !== stepId) return card;
@@ -415,11 +431,8 @@ export function useIntelligentAnalysisWorkflow(): UseIntelligentAnalysisWorkflow
     followSmart: boolean = false
   ): Promise<void> => {
     try {
-      await mockAnalysisBackend.switchActiveStrategy({
-        stepId,
-        strategyKey,
-        followSmart
-      });
+      // 本地切换策略（不需要后端调用）
+      console.log('🔄 [Workflow] 切换活动策略', { stepId, strategyKey, followSmart });
       
       const card = stepCards.find(c => c.stepId === stepId);
       if (!card) return;

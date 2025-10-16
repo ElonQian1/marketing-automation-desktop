@@ -25,6 +25,7 @@ interface UseSmartStrategyAnalysisReturn {
   cancelAnalysis: () => Promise<void>;
   applyStrategy: (strategy: { type: StrategyType; key?: string }) => void;
   saveAsStatic: (candidate: StrategyCandidate) => Promise<void>;
+  resetAnalysisState: () => void;
 }
 
 /**
@@ -63,26 +64,40 @@ export const useSmartStrategyAnalysis = ({
     }
   }, [step.enableStrategySelector]);
 
-  // 添加超时重置机制
+  // 添加超时重置机制 - 改进版本
   useEffect(() => {
     if (strategySelector?.analysis?.status === 'analyzing') {
+      console.log('⏱️ [StrategyAnalysis] 开始15秒超时监控', {
+        stepId: step.id,
+        currentTime: new Date().toISOString(),
+        analysisState: strategySelector.analysis
+      });
+      
       // 设置超时，如果15秒后仍在分析状态，自动重置
       const timeoutId = setTimeout(() => {
-        console.warn('⚠️ [StrategyAnalysis] 分析超时，自动重置状态');
+        console.warn('⚠️ [StrategyAnalysis] 分析超时，强制重置状态', {
+          stepId: step.id,
+          duration: '15s',
+          previousState: strategySelector?.analysis
+        });
+        
         setStrategySelector(prev => prev ? {
           ...prev,
           analysis: {
             status: 'failed',
-            error: '分析超时，请重试'
+            error: '分析超时 - 可能后端服务未响应，请检查后端服务状态'
           }
         } : null);
         setIsAnalyzing(false);
         currentJobId.current = null;
       }, 15000); // 15秒超时
 
-      return () => clearTimeout(timeoutId);
+      return () => {
+        console.log('🧹 [StrategyAnalysis] 清理超时监控', { stepId: step.id });
+        clearTimeout(timeoutId);
+      };
     }
-  }, [strategySelector?.analysis?.status]);
+  }, [strategySelector?.analysis?.status, step.id]);
 
   // 清理函数
   useEffect(() => {
@@ -192,20 +207,46 @@ export const useSmartStrategyAnalysis = ({
     };
   }, [backendService]);
 
-  // 开始分析
+  // 手动重置分析状态
+  const resetAnalysisState = useCallback(() => {
+    console.log('🔄 [StrategyAnalysis] 手动重置分析状态', { stepId: step.id });
+    setStrategySelector(prev => prev ? {
+      ...prev,
+      analysis: {
+        status: 'idle'
+      }
+    } : null);
+    setIsAnalyzing(false);
+    currentJobId.current = null;
+  }, [step.id]);
+
+  // 开始分析 - 改进版本
   const startAnalysis = useCallback(async () => {
     if (!element || !strategySelector) {
       console.warn('⚠️ [StrategyAnalysis] 缺少必要参数:', { element: !!element, strategySelector: !!strategySelector });
       return;
     }
 
+    // 检查是否已经在分析中
+    if (strategySelector.analysis.status === 'analyzing') {
+      console.warn('⚠️ [StrategyAnalysis] 已在分析中，跳过重复请求', { stepId: step.id });
+      return;
+    }
+
     try {
+      console.log('🚀 [StrategyAnalysis] 开始分析', { 
+        stepId: step.id, 
+        element: element.resource_id || element.text,
+        timestamp: new Date().toISOString()
+      });
+
       setIsAnalyzing(true);
       setStrategySelector(prev => prev ? {
         ...prev,
         analysis: {
           status: 'analyzing',
-          progress: 0
+          progress: 0,
+          startTime: Date.now()
         }
       } : null);
 
@@ -217,7 +258,7 @@ export const useSmartStrategyAnalysis = ({
       });
 
       currentJobId.current = response.job_id;
-      console.log('🚀 [StrategyAnalysis] 分析已启动:', response);
+      console.log('✅ [StrategyAnalysis] 分析请求已发送:', response);
 
     } catch (error) {
       console.error('❌ [StrategyAnalysis] 启动分析失败:', error);
@@ -292,6 +333,7 @@ export const useSmartStrategyAnalysis = ({
     startAnalysis,
     cancelAnalysis,
     applyStrategy,
-    saveAsStatic
+    saveAsStatic,
+    resetAnalysisState
   };
 };
