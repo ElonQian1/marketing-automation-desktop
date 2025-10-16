@@ -38,58 +38,30 @@ export function useStepCardReanalysis(options: UseStepCardReanalysisOptions) {
     
     Modal.confirm({
       title: '缺少XML快照',
-      content: (
-        <div>
-          <p>未找到步骤的XML快照信息（xmlHash/xmlCacheId 均未命中缓存）。</p>
-          <p>可选择以下操作：</p>
-          <ul>
-            <li><strong>重新抓取</strong>：获取当前页面的XML快照（注意：可能与原快照不同）</li>
-            <li><strong>从历史选择</strong>：使用最新的历史快照（共 {keys.ids.length} 个可用）</li>
-            <li><strong>取消</strong>：放弃本次重新分析</li>
-          </ul>
-        </div>
-      ),
+      content: `未找到步骤的XML快照信息。可选择：重新抓取当前页面 / 使用历史快照（共 ${keys.ids.length} 个可用）/ 取消分析`,
       okText: '重新抓取当前页面',
       cancelText: '取消',
       width: 480,
       onOk: async () => {
         // TODO: 触发重新抓取XML的流程
-        // 这里可以调用页面分析模态的XML抓取功能
         message.info('重新抓取功能待实现，请手动刷新页面快照后重试');
       },
-      footer: (_, { OkBtn, CancelBtn }) => (
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-          <div>
-            {keys.ids.length > 0 && (
-              <button
-                type="button"
-                onClick={() => {
-                  Modal.destroyAll();
-                  const latest = xmlCacheManager.getLatestXmlCache();
-                  if (latest) {
-                    message.success(`已使用最新历史快照: ${latest.cacheId}`);
-                    // 可以在这里重新触发分析
-                    setTimeout(() => reanalyzeStepCard(stepId), 500);
-                  }
-                }}
-                style={{
-                  background: 'transparent',
-                  border: '1px solid #d9d9d9',
-                  borderRadius: '4px',
-                  padding: '4px 12px',
-                  cursor: 'pointer'
-                }}
-              >
-                使用历史快照
-              </button>
-            )}
-          </div>
-          <div style={{ display: 'flex', gap: '8px' }}>
-            <CancelBtn />
-            <OkBtn />
-          </div>
-        </div>
-      )
+      onCancel: () => {
+        // 如果有历史快照，提供使用选项
+        if (keys.ids.length > 0) {
+          const latest = xmlCacheManager.getLatestXmlCache();
+          if (latest) {
+            Modal.confirm({
+              title: '使用历史快照',
+              content: `找到 ${keys.ids.length} 个历史快照，是否使用最新的快照继续分析？`,
+              onOk: () => {
+                message.success(`已使用最新历史快照: ${latest.cacheId}`);
+                setTimeout(() => reanalyzeStepCard(stepId), 500);
+              }
+            });
+          }
+        }
+      }
     });
   }, []);
 

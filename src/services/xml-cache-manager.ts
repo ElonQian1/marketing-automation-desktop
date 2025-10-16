@@ -29,7 +29,7 @@ export interface XmlCacheEntry {
     elementCount: number;
   };
   /** 解析后的UI元素（缓存） */
-  parsedElements?: any[];
+  parsedElements?: unknown[];
   /** 页面截图绝对路径（可选） */
   screenshotAbsolutePath?: string;
   /** 页面截图相对路径（可选） */
@@ -47,7 +47,7 @@ export interface StepXmlContext {
   elementPath?: string;
   /** 元素选择时的上下文信息 */
   selectionContext?: {
-    selectedBounds: any;
+    selectedBounds: unknown;
     searchCriteria: string;
     confidence: number;
   };

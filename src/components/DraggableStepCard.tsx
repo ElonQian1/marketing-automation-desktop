@@ -30,7 +30,6 @@ import { SmartActionType } from "../types/smartComponents";
 import styles from './DraggableStepCard.module.css';
 // import StrategySelector from './strategy-selector/StrategySelector'; // 暂时不用，保留备用
 import CompactStrategyMenu from './strategy-selector/CompactStrategyMenu';
-import { StrategySelector as IStrategySelector, StrategyEvents } from '../types/strategySelector';
 
 // 设备简化接口
 export interface DeviceInfo {
@@ -107,7 +106,8 @@ export interface SmartScriptStep {
   };
   
   // 🧠 策略选择器相关字段
-  strategySelector?: IStrategySelector;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  strategySelector?: any;
   enableStrategySelector?: boolean;  // 是否启用策略选择器
 }
 
@@ -307,6 +307,7 @@ const DraggableStepCardInner: React.FC<
     // 🧠 策略选择器回调
     onStrategyChange?: (stepId: string, selection: { type: 'smart-auto' | 'smart-single' | 'static'; key?: string; stepName?: string }) => void;
     onReanalyze?: (stepId: string) => Promise<void>;
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     onSaveAsStatic?: (stepId: string, candidate: any) => void;
     onOpenElementInspector?: (stepId: string) => void;
     onCancelAnalysis?: (stepId: string, jobId: string) => void;
@@ -314,7 +315,9 @@ const DraggableStepCardInner: React.FC<
     // 🔄 智能分析功能
     isAnalyzing?: boolean;
     // 拖拽相关
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     transform?: any;
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     transition?: any;
     style?: React.CSSProperties;
   }
@@ -325,8 +328,6 @@ const DraggableStepCardInner: React.FC<
   onEdit,
   onDelete,
   onToggle,
-  onUpdateStepParameters,
-  onUpdateStepMeta,
   StepTestButton,
   onEditStepParams,
   onOpenPageAnalyzer,
@@ -337,8 +338,6 @@ const DraggableStepCardInner: React.FC<
   onOpenElementInspector,
   onCancelAnalysis,
   onApplyRecommendation,
-  // 🔄 智能分析功能
-  isAnalyzing,
   devices,
   currentDeviceId,
   transform,
@@ -548,7 +547,6 @@ const DraggableStepCardInner: React.FC<
                   const haveSnapshot = Boolean(xmlSnapshot?.xmlHash || xmlSnapshot?.xmlCacheId);
                   const haveXPath = Boolean(xmlSnapshot?.elementGlobalXPath || step.parameters?.element_selector);
                   const analysisStatus = step.strategySelector?.analysis?.status;
-                  const completedAt = step.strategySelector?.analysis?.completedAt;
                   
                   // 检查分析是否正在进行且最近活跃（基于completedAt判断是否为新的分析会话）
                   const isCurrentlyAnalyzing = analysisStatus === 'analyzing';
