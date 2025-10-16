@@ -37,73 +37,8 @@ export function useSmartScriptBuilder() {
   const { devices, refreshDevices } = useAdb();
   const [form] = Form.useForm();
 
-  // 添加测试数据来验证 UnifiedStepCard 渲染
-  const [steps, setSteps] = useState<LoopScriptStep[]>([
-    {
-      id: 'test-step-1',
-      name: '测试智能分析步骤',
-      step_type: 'smart_find_element',
-      description: '这是一个测试步骤，用于验证智能分析状态显示',
-      parameters: {
-        element_selector: '//*[@resource-id="test-element"]',
-        text: '测试按钮',
-        bounds: '[100,200][300,400]',
-        matching: {
-          strategy: 'standard',
-          fields: ['resource-id', 'text'],
-          values: { 'resource-id': 'test-element', text: '测试按钮' }
-        }
-      },
-      enabled: true,
-      order: 1,
-      find_condition: null,
-      verification: null,
-      retry_config: null,
-      fallback_actions: [],
-      pre_conditions: [],
-      post_conditions: [],
-      enableStrategySelector: true,
-      strategySelector: {
-        selectedStrategy: 'smart-auto',
-        selectedStep: 'step3',
-        analysis: {
-          status: 'ready',
-          progress: 0,
-          result: null,
-          error: null
-        }
-      }
-    },
-    {
-      id: 'test-step-2',
-      name: '测试点击步骤',
-      step_type: 'tap',
-      description: '另一个测试步骤，展示不同的分析状态',
-      parameters: {
-        bounds: '[200,300][400,500]',
-        text: '确认按钮'
-      },
-      enabled: true,
-      order: 2,
-      find_condition: null,
-      verification: null,
-      retry_config: null,
-      fallback_actions: [],
-      pre_conditions: [],
-      post_conditions: [],
-      enableStrategySelector: true,
-      strategySelector: {
-        selectedStrategy: 'smart-single',
-        selectedStep: 'step2',
-        analysis: {
-          status: 'ready',
-          progress: 0,
-          result: null,
-          error: null
-        }
-      }
-    }
-  ]);
+  // 初始化为空步骤列表，用户可以通过UI添加步骤
+  const [steps, setSteps] = useState<LoopScriptStep[]>([]);
   
   // 🔄 步骤卡片重新分析功能
   const { reanalyzeStepCard, isAnalyzing } = useStepCardReanalysis({

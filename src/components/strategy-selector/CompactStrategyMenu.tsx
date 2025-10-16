@@ -149,6 +149,19 @@ const CompactStrategyMenu: React.FC<CompactStrategyMenuProps> = ({
     return null;
   };
 
+  // 调试：监控状态变化
+  React.useEffect(() => {
+    const debugInfo = {
+      disabled,
+      analysisStatus: selector.analysis.status,
+      activeStrategy: selector.activeStrategy?.type,
+      hasActiveStrategy: !!selector.activeStrategy,
+      timestamp: new Date().toISOString(),
+      isButtonDisabled: disabled || selector.analysis.status === 'analyzing'
+    };
+    console.log('🔍 [CompactStrategyMenu] 状态变化:', debugInfo);
+  }, [disabled, selector.analysis.status, selector.activeStrategy]);
+
   return (
     <div style={{ 
       display: 'flex', 
@@ -181,7 +194,18 @@ const CompactStrategyMenu: React.FC<CompactStrategyMenuProps> = ({
             size="small"
             type="text"
             icon={<RefreshCcwIcon size={12} />}
-            onClick={events.onReanalyze}
+            onClick={() => {
+              console.log('🔄 [CompactStrategyMenu] 重新分析按钮点击:', {
+                disabled,
+                analysisStatus: selector.analysis.status,
+                activeStrategy: selector.activeStrategy,
+                hasSelector: !!selector,
+                timestamp: new Date().toISOString()
+              });
+              if (!disabled && selector.analysis.status !== 'analyzing') {
+                events.onReanalyze();
+              }
+            }}
             disabled={disabled || selector.analysis.status === 'analyzing'}
             style={{
               color: '#64748B',

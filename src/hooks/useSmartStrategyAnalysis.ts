@@ -63,7 +63,28 @@ export const useSmartStrategyAnalysis = ({
     }
   }, [step.enableStrategySelector]);
 
-  // 设置后端事件监听
+  // 添加超时重置机制
+  useEffect(() => {
+    if (strategySelector?.analysis?.status === 'analyzing') {
+      // 设置超时，如果15秒后仍在分析状态，自动重置
+      const timeoutId = setTimeout(() => {
+        console.warn('⚠️ [StrategyAnalysis] 分析超时，自动重置状态');
+        setStrategySelector(prev => prev ? {
+          ...prev,
+          analysis: {
+            status: 'failed',
+            error: '分析超时，请重试'
+          }
+        } : null);
+        setIsAnalyzing(false);
+        currentJobId.current = null;
+      }, 15000); // 15秒超时
+
+      return () => clearTimeout(timeoutId);
+    }
+  }, [strategySelector?.analysis?.status]);
+
+  // 清理函数
   useEffect(() => {
     const setupEventListeners = async () => {
       try {

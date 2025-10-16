@@ -537,7 +537,7 @@ const DraggableStepCardInner: React.FC<
                   onCancelAnalysis: (jobId) => onCancelAnalysis?.(step.id, jobId),
                   onApplyRecommendation: (key) => onApplyRecommendation?.(step.id, key),
                 }}
-                disabled={!step.enabled}
+                disabled={false}  // 允许对禁用的步骤进行重新分析，这有助于用户评估是否要启用
                 compact={true}
               />
             )}

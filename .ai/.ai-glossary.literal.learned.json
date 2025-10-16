@@ -3567,6 +3567,10 @@
     "data": {
       "alias": "数据",
       "confidence": 1
+    },
+    "src": {
+      "alias": "源",
+      "confidence": 1
     }
   },
   "phrases": {
