@@ -266,13 +266,13 @@ const StrategySelector: React.FC<StrategySelector_Props> = ({
             onClick={() => handleStrategyTypeChange(option.type)}
             disabled={disabled}
             style={{
-              background: selector.activeStrategy.type === option.type 
+              background: selector.activeStrategy?.type === option.type 
                 ? option.color 
                 : 'transparent',
-              border: `1px solid ${selector.activeStrategy.type === option.type 
+              border: `1px solid ${selector.activeStrategy?.type === option.type 
                 ? option.color 
                 : STRATEGY_DESIGN_TOKENS.colors.border.default}`,
-              color: selector.activeStrategy.type === option.type 
+              color: selector.activeStrategy?.type === option.type 
                 ? STRATEGY_DESIGN_TOKENS.colors.bg.primary
                 : STRATEGY_DESIGN_TOKENS.colors.text.secondary,
               padding: `${STRATEGY_DESIGN_TOKENS.spacing.xs} ${STRATEGY_DESIGN_TOKENS.spacing.sm}`,
@@ -297,7 +297,7 @@ const StrategySelector: React.FC<StrategySelector_Props> = ({
 
   // 渲染智能单步选择器
   const renderSmartStepSelector = () => {
-    if (selector.activeStrategy.type !== 'smart-single') return null;
+    if (selector.activeStrategy?.type !== 'smart-single') return null;
 
     return (
       <div style={{ 
@@ -323,11 +323,11 @@ const StrategySelector: React.FC<StrategySelector_Props> = ({
               key={step}
               onClick={() => handleSmartStepChange(step)}
               style={{
-                background: selector.activeStrategy.stepName === step 
+                background: selector.activeStrategy?.stepName === step 
                   ? STRATEGY_DESIGN_TOKENS.colors.text.success
                   : 'transparent',
                 border: `1px solid ${STRATEGY_DESIGN_TOKENS.colors.border.default}`,
-                color: selector.activeStrategy.stepName === step 
+                color: selector.activeStrategy?.stepName === step 
                   ? STRATEGY_DESIGN_TOKENS.colors.bg.primary
                   : STRATEGY_DESIGN_TOKENS.colors.text.secondary,
                 padding: `${STRATEGY_DESIGN_TOKENS.spacing.xs} ${STRATEGY_DESIGN_TOKENS.spacing.sm}`,

@@ -50,6 +50,10 @@ const CompactStrategyMenu: React.FC<CompactStrategyMenuProps> = ({
 
   // 获取当前策略的显示信息
   const getCurrentStrategyLabel = () => {
+    if (!selector.activeStrategy) {
+      return '🔄 未选择策略';
+    }
+    
     const { type, stepName } = selector.activeStrategy;
     const icon = STRATEGY_ICONS[type];
     const baseLabel = STRATEGY_LABELS[type];

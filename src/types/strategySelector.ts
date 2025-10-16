@@ -38,7 +38,7 @@ export interface AnalysisState {
 // 策略选择器状态
 export interface StrategySelector {
   // 当前选择的策略
-  activeStrategy: {
+  activeStrategy?: {
     type: StrategyType;
     key?: string;                 // 具体策略的key
     stepName?: SmartStep;         // 智能单步的步骤名
