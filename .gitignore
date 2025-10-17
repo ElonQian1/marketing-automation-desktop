@@ -161,3 +161,19 @@ coverage
 # 忽略临时联系人文件
 temp_contacts_*.vcf
 *.vcf
+
+# 忽略调试和临时文件目录
+debug/
+*.patch.ts
+debug-*.js
+emergency-*.js
+temp-*.js
+analyze_*.cjs
+fix_*.py
+clean-*.ps1
+identify-*.ps1
+diagnose_*.mjs
+
+# Playwright测试报告
+playwright-report/
+test-results/
