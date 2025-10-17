@@ -61,10 +61,11 @@ export const TestIntelligentAnalysisAdapter: React.FC = () => {
     addTestResult('显示元素选择气泡，启用智能分析功能');
   };
 
-  const handleConfirm = () => {
+  const handleConfirm = async () => {
     addTestResult('用户确认选择元素');
     setPopoverVisible(false);
     setSelectionState(null);
+    // 返回 void 表示成功并关闭
   };
 
   const handleCancel = () => {
@@ -143,7 +144,7 @@ export const TestIntelligentAnalysisAdapter: React.FC = () => {
       <ElementSelectionPopover
         visible={popoverVisible}
         selection={selectionState}
-        onConfirm={handleConfirm}
+        onQuickCreate={handleConfirm}
         onCancel={handleCancel}
         enableIntelligentAnalysis={true}
         stepId="test-step-001"

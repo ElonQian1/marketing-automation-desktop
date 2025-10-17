@@ -4,7 +4,7 @@
 
 import { useCallback } from 'react';
 import { App } from 'antd';
-import { useIntelligentAnalysisWorkflow } from '../../../modules/universal-ui/hooks/use-intelligent-analysis-workflow';
+import type { UseIntelligentAnalysisWorkflowReturn } from '../../../modules/universal-ui/hooks/use-intelligent-analysis-workflow';
 import type { UIElement } from '../../../api/universalUIAPI';
 import type { ExtendedSmartScriptStep } from '../../../types/loopScript';
 import XmlCacheManager from '../../../services/xml-cache-manager';
@@ -25,7 +25,8 @@ interface ElementSelectionContext {
 interface UseIntelligentStepCardIntegrationOptions {
   steps: ExtendedSmartScriptStep[];
   setSteps: React.Dispatch<React.SetStateAction<ExtendedSmartScriptStep[]>>;
-  onClosePageFinder?: () => void; // 关闭页面查找器的回调
+  onClosePageFinder?: () => void; // callback when the page finder modal closes
+  analysisWorkflow: UseIntelligentAnalysisWorkflowReturn;
 }
 
 /**
@@ -35,14 +36,14 @@ interface UseIntelligentStepCardIntegrationOptions {
  * 实际使用时需要根据具体的步骤类型进行适配
  */
 export function useIntelligentStepCardIntegration(options: UseIntelligentStepCardIntegrationOptions) {
-  const { steps, setSteps, onClosePageFinder } = options;
+  const { steps, setSteps, onClosePageFinder, analysisWorkflow } = options;
   const { message } = App.useApp();
   
   const {
     createStepCardQuick,
     stepCards,
     isAnalyzing
-  } = useIntelligentAnalysisWorkflow();
+  } = analysisWorkflow;
 
   /**
    * 从UIElement转换为ElementSelectionContext (增强版 - 包含完整XML信息)
@@ -115,21 +116,13 @@ export function useIntelligentStepCardIntegration(options: UseIntelligentStepCar
         // 🧠 启用策略选择器
         enableStrategySelector: true,
         strategySelector: {
-          activeStrategy: {
-            type: 'smart-auto' as const
-          },
+          selectedStrategy: 'smart-auto',
+          selectedStep: 'step1',
           analysis: {
             status: 'analyzing' as const,
-            progress: 0
-          },
-          candidates: {
-            smart: [],
-            static: []
-          },
-          config: {
-            autoFollowSmart: true,
-            confidenceThreshold: 0.82,
-            enableFallback: true
+            progress: 0,
+            result: null,
+            error: null
           }
         },
         parameters: {
@@ -196,6 +189,12 @@ export function useIntelligentStepCardIntegration(options: UseIntelligentStepCar
         modalClosed: !!onClosePageFinder
       });
       
+      // 🔧 关闭页面查找器模态框
+      if (onClosePageFinder) {
+        onClosePageFinder();
+        console.log('🚪 [智能集成] 已关闭页面查找器');
+      }
+      
     } catch (error) {
       console.error('❌ [智能集成] 创建步骤卡失败:', error);
       message.error(`创建步骤卡失败: ${error}`);
@@ -218,3 +217,6 @@ export function useIntelligentStepCardIntegration(options: UseIntelligentStepCar
     stepCards
   };
 }
+
+
+

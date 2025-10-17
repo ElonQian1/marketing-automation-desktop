@@ -20,6 +20,7 @@ import { useIntelligentStepCardIntegration } from "./SmartScriptBuilderPage/hook
 import { ContactWorkflowSelector } from "../modules/contact-automation";
 import { useSmartScriptBuilder } from "./SmartScriptBuilderPage/hooks/useSmartScriptBuilder";
 import StepBundleManager from "../components/StepBundleManager";
+import { useIntelligentAnalysisWorkflow } from "../modules/universal-ui/hooks/use-intelligent-analysis-workflow";
 
 
 
@@ -30,6 +31,8 @@ import StepBundleManager from "../components/StepBundleManager";
 const SmartScriptBuilderPage: React.FC = () => {
   const { token } = theme.useToken();
   
+  const analysisWorkflow = useIntelligentAnalysisWorkflow();
+
   const {
     headerProps,
     stepListProps,
@@ -41,13 +44,14 @@ const SmartScriptBuilderPage: React.FC = () => {
     contactWorkflowProps,
     qualityModalProps,
     pageFinderProps,
-  } = useSmartScriptBuilder();
+  } = useSmartScriptBuilder({ analysisWorkflow });
 
   // 🧠 智能步骤卡集成 - 传入步骤管理函数和页面查找器控制
   const { handleElementSelected, handleQuickCreateStep, isAnalyzing } = useIntelligentStepCardIntegration({
     steps: stepListProps.steps,
     setSteps: stepListProps.setSteps,
-    onClosePageFinder: pageFinderProps.onClose // 传入关闭页面查找器的方法
+    onClosePageFinder: pageFinderProps.onClose, // callback when the page finder modal closes
+    analysisWorkflow
   });
 
 
@@ -140,3 +144,4 @@ const SmartScriptBuilderPage: React.FC = () => {
 };
 
 export default SmartScriptBuilderPage;
+

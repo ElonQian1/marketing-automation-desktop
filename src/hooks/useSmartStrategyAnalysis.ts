@@ -326,8 +326,14 @@ export const useSmartStrategyAnalysis = ({
     try {
       const { StaticStrategyStore } = await import('../stores/staticStrategies');
       
+      // 基于selector生成稳定的key，避免重复保存相同策略
+      const selectorHash = candidate.selector.length > 50 
+        ? candidate.selector.substring(0, 50) + '...' 
+        : candidate.selector;
+      const stableKey = `user-${btoa(selectorHash).replace(/[^a-zA-Z0-9]/g, '')}-${Date.now()}`;
+      
       const savedStrategy = {
-        key: `user-${Date.now()}`,
+        key: stableKey,
         name: `用户保存-${candidate.name || candidate.key}`,
         locator: {
           type: 'xpath',
@@ -339,13 +345,14 @@ export const useSmartStrategyAnalysis = ({
       
       StaticStrategyStore.save(savedStrategy);
       
-      // 同时更新当前选择器的静态候选列表（用于即时显示）
+      // 同时更新当前选择器的静态候选列表（用于即时显示，去重处理）
       setStrategySelector(prev => prev ? {
         ...prev,
         candidates: {
           ...prev.candidates,
           static: [
-            ...prev.candidates.static,
+            // 过滤掉已存在的相同key策略
+            ...prev.candidates.static.filter(existing => existing.key !== savedStrategy.key),
             {
               ...candidate,
               type: 'static',
