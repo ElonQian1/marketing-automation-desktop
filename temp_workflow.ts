@@ -108,71 +108,59 @@ export function useIntelligentAnalysisWorkflow(): UseIntelligentAnalysisWorkflow
           }));
         });
         
-        // 🔒 分析完成事件 - jobId 精确匹配 + 懒绑定防竞态
-        const unlistenDone = await intelligentAnalysisBackend.listenToAnalysisComplete((jobId, result) => {
-          console.log('✅ [Workflow] 收到分析完成', { jobId, result });
+        // REPLACED_MARKER
           
+          // 找到对应的任务并更新状态
           setCurrentJobs(prev => {
             const updated = new Map(prev);
-            const job = updated.get(jobId);
-            
-            if (!job) {
-              // 🔒 懒绑定：完成事件先于启动到达时的兜底
-              console.warn('⚠️ [Workflow] 收到未知任务的完成事件，尝试懒绑定', { jobId });
-              const orphanCard = Array.from(stepCards).find(
-                c => (c.analysisState === 'analyzing' || c.analysisState === 'idle') && !c.analysisJobId
-              );
-              
-              if (orphanCard) {
-                console.log('🔗 [Workflow] 懒绑定孤立完成事件到步骤', { jobId, stepId: orphanCard.stepId });
+            let foundJob = null;
+            // 通过selectionHash匹配对应的任务
+            for (const [jobId, job] of updated.entries()) {
+              if (job.selectionHash === result.selectionHash && job.state === 'running') {
                 updated.set(jobId, {
-                  jobId,
-                  stepId: orphanCard.stepId,
-                  selectionHash: result.selectionHash,
+                  ...job,
                   state: 'completed',
                   progress: 100,
                   completedAt: Date.now(),
-                  result,
-                  startedAt: Date.now()
+                  result
                 });
+                foundJob = { jobId, job };
+                break;
               }
-            } else {
-              // 正常流程：更新已登记的任务
-              updated.set(jobId, {
-                ...job,
-                state: 'completed',
-                progress: 100,
-                completedAt: Date.now(),
-                result
+            }
+            
+            if (foundJob) {
+              console.log('🔗 [Workflow] 找到匹配的任务，开始绑定结果', foundJob);
+              // 直接在这里更新步骤卡片，避免闭包问题
+              setStepCards(prevCards => {
+                return prevCards.map(card => {
+                  // 通过selectionHash或jobId匹配
+                  if (card.analysisJobId === foundJob.jobId || 
+                      card.selectionHash === result.selectionHash) {
+                    console.log('🎯 [Workflow] 更新步骤卡片状态', { stepId: card.stepId, result });
+                    return {
+                      ...card,
+                      analysisState: 'analysis_completed',
+                      analysisProgress: 100,
+                      smartCandidates: result.smartCandidates,
+                      staticCandidates: result.staticCandidates,
+                      recommendedStrategy: result.smartCandidates.find(c => c.key === result.recommendedKey),
+                      analyzedAt: Date.now(),
+                      updatedAt: Date.now()
+                    };
+                  }
+                  return card;
+                });
               });
-              console.log('🔗 [Workflow] 更新任务状态为已完成', { jobId, stepId: job.stepId });
+            } else {
+              console.warn('⚠️ [Workflow] 未找到匹配的分析任务', { selectionHash: result.selectionHash });
             }
             
             return updated;
           });
-          
-          // ✅ 精确匹配并更新步骤卡片，强制清理 Loading
-          setStepCards(prevCards => {
-            return prevCards.map(card => {
-              if (card.analysisJobId === jobId) {
-                console.log('🎯 [Workflow] 更新步骤卡片为完成状态', { stepId: card.stepId, jobId });
-                return {
-                  ...card,
-                  analysisState: 'analysis_completed',
-                  analysisProgress: 100,
-                  analysisJobId: undefined, // ✅ 清除引用防误匹配
-                  smartCandidates: result.smartCandidates,
-                  staticCandidates: result.staticCandidates,
-                  recommendedStrategy: result.smartCandidates.find(c => c.key === result.recommendedKey),
-                  analyzedAt: Date.now(),
-                  updatedAt: Date.now()
-                };
-              }
-              return card;
-            });
-          });
         });
-
+        
+        // 分析错误事件
         const unlistenError = await intelligentAnalysisBackend.listenToAnalysisError((error) => {
           console.error('❌ [Workflow] 收到分析错误', error);
           

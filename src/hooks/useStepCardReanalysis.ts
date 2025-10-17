@@ -218,54 +218,54 @@ export function useStepCardReanalysis(options: UseStepCardReanalysisOptions) {
    * 重新分析步骤卡片
    */
   const reanalyzeStepCard = useCallback(async (stepId: string): Promise<void> => {
+    console.log('🔄 [重新分析] 开始重新分析步骤:', stepId);
+    
+    const step = steps.find(s => s.id === stepId);
+    if (!step) {
+      throw new Error('未找到对应的步骤');
+    }
+
+    if (!step.enableStrategySelector) {
+      throw new Error('此步骤未启用智能分析功能');
+    }
+
+    // 重新构建元素上下文
+    let context;
     try {
-      console.log('🔄 [重新分析] 开始重新分析步骤:', stepId);
-      
-      const step = steps.find(s => s.id === stepId);
-      if (!step) {
-        throw new Error('未找到对应的步骤');
+      context = reconstructElementContext(step);
+    } catch (error) {
+      if (error instanceof Error && error.message === 'NO_XML_SNAPSHOT') {
+        // 显示缺少快照的兜底对话框
+        showMissingSnapshotDialogHandler(stepId);
+        return;
       }
+      throw error;
+    }
+    
+    if (!context) {
+      throw new Error('无法重新构建元素上下文：XML快照信息丢失或已过期，请重新获取页面快照后再试');
+    }
 
-      if (!step.enableStrategySelector) {
-        throw new Error('此步骤未启用智能分析功能');
-      }
-
-      // 重新构建元素上下文
-      let context;
-      try {
-        context = reconstructElementContext(step);
-      } catch (error) {
-        if (error instanceof Error && error.message === 'NO_XML_SNAPSHOT') {
-          // 显示缺少快照的兜底对话框
-          showMissingSnapshotDialogHandler(stepId);
-          // ⚠️ 这里直接 return，不需要状态清理（没有设置 analyzing 状态）
-          return;
-        }
-        throw error;
-      }
-      
-      if (!context) {
-        throw new Error('无法重新构建元素上下文：XML快照信息丢失或已过期，请重新获取页面快照后再试');
-      }
-
-      // 更新步骤状态为分析中
-      setSteps(prev => prev.map(s => {
-        if (s.id === stepId && s.strategySelector) {
-          return {
-            ...s,
-            strategySelector: {
-              ...s.strategySelector,
-              analysis: {
-                ...s.strategySelector.analysis,
-                status: 'analyzing',
-                progress: 0
-              }
+    // 🔒 更新步骤状态为分析中（只更新此步骤）
+    setSteps(prev => prev.map(s => {
+      if (s.id === stepId && s.strategySelector) {
+        console.log('🔄 [状态] 设置步骤为 analyzing:', { stepId, currentStatus: s.strategySelector.analysis.status });
+        return {
+          ...s,
+          strategySelector: {
+            ...s.strategySelector,
+            analysis: {
+              ...s.strategySelector.analysis,
+              status: 'analyzing',
+              progress: 0
             }
-          };
-        }
-        return s;
-      }));
+          }
+        };
+      }
+      return s;
+    }));
 
+    try {
       // 如果已经有对应的智能步骤卡，使用retryAnalysis
       const existingStepCard = getStepCard(stepId);
       if (existingStepCard) {
@@ -274,27 +274,29 @@ export function useStepCardReanalysis(options: UseStepCardReanalysisOptions) {
       } else {
         // 否则启动新的分析（这种情况较少见）
         console.log('📍 [重新分析] 创建新的智能分析任务');
-        // 这里可以调用 startAnalysis 或 createStepCardQuick
-        // 但通常步骤卡片已经存在对应的智能分析实例
+        throw new Error('未找到对应的智能步骤卡，请先创建步骤卡');
       }
 
       message.success('重新分析已启动');
+      // ⚠️ 注意：状态复位由后端事件 + useEffect 状态同步完成
+      // 这里不手动复位，让工作流的事件监听器处理
       
     } catch (error) {
-      console.error('重新分析失败:', error);
+      console.error('🔴 [重新分析失败]:', error);
       const errorMessage = error instanceof Error ? error.message : String(error);
       message.error(errorMessage);
       
-      // ✅ 恢复步骤状态为ready（清除analyzing状态）
+      // ✅ 失败时立即恢复步骤状态为 ready
       setSteps(prev => prev.map(s => {
         if (s.id === stepId && s.strategySelector) {
+          console.log('🔄 [状态] 恢复步骤为 ready:', { stepId });
           return {
             ...s,
             strategySelector: {
               ...s.strategySelector,
               analysis: {
                 ...s.strategySelector.analysis,
-                status: 'ready',  // ✅ 使用 ready 状态（表示可以重新分析）
+                status: 'ready',
                 progress: 0
               }
             }
@@ -302,6 +304,7 @@ export function useStepCardReanalysis(options: UseStepCardReanalysisOptions) {
         }
         return s;
       }));
+      throw error; // 重新抛出错误
     }
   }, [steps, setSteps, reconstructElementContext, retryAnalysis, getStepCard, showMissingSnapshotDialogHandler]);
 

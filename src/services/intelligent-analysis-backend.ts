@@ -150,7 +150,7 @@ export class IntelligentAnalysisBackendService {
    * 监听分析进度事件
    */
   async listenToAnalysisProgress(
-    onProgress: (progress: number, step: string, estimatedTimeLeft?: number) => void
+    onProgress: (jobId: string, progress: number, step: string, estimatedTimeLeft?: number) => void
   ): Promise<UnlistenFn> {
     console.log('🔧 [BackendService] 设置进度事件监听器');
     const unlisten = await listen<TauriAnalysisProgressEvent>(
@@ -158,6 +158,7 @@ export class IntelligentAnalysisBackendService {
       (event) => {
         console.log('📊 [BackendService] 收到分析进度更新', event.payload);
         onProgress(
+          event.payload.job_id,
           event.payload.progress,
           event.payload.current_step,
           event.payload.estimated_time_left
@@ -174,7 +175,7 @@ export class IntelligentAnalysisBackendService {
    * 监听分析完成事件
    */
   async listenToAnalysisComplete(
-    onComplete: (result: AnalysisResult) => void
+    onComplete: (jobId: string, result: AnalysisResult) => void
   ): Promise<UnlistenFn> {
     console.log('🔧 [BackendService] 设置完成事件监听器');
     const unlisten = await listen<TauriAnalysisDoneEvent>(
@@ -203,7 +204,7 @@ export class IntelligentAnalysisBackendService {
         };
         
         console.log('🔄 [BackendService] 转换后的结果', result);
-        onComplete(result);
+        onComplete(event.payload.job_id, result);
       }
     );
 

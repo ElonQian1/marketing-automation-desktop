@@ -342,18 +342,22 @@ async fn execute_analysis_workflow(
     emit_progress(&app_handle, &job_id, 80, "评估策略质量").await;
     tokio::time::sleep(tokio::time::Duration::from_millis(500)).await;
     
-    // Step 5: 完成 (100%)
+    // Step 5: 生成分析报告 (95%)
     emit_progress(&app_handle, &job_id, 95, "生成分析报告").await;
+    tokio::time::sleep(tokio::time::Duration::from_millis(300)).await;
     
     // 生成分析结果 (TODO: 接入真实的策略生成服务)
     let result = generate_mock_analysis_result(&selection_hash, &config);
+    
+    // Step 6: 完成 (100%) - 确保 UI 进度条到 100%
+    emit_progress(&app_handle, &job_id, 100, "分析完成").await;
     
     tracing::info!("✅ 分析完成: job_id={}, 推荐策略={}", job_id, result.recommended_key);
     
     // 发送完成事件
     app_handle.emit("analysis:done", AnalysisDoneEvent {
-        job_id,
-        selection_hash,
+        job_id: job_id.clone(),
+        selection_hash: selection_hash.clone(),
         result,
     }).map_err(|e| e.to_string())?;
     

@@ -97,9 +97,9 @@ export const useIntelligentAnalysisAdapter = (
           });
         });
 
-        // 监听分析完成
-        await backendService.listenToAnalysisComplete((result) => {
-          console.log('🎉 [Adapter] 收到分析完成回调', result);
+        // 监听分析完成 - 使用 jobId 参数
+        await backendService.listenToAnalysisComplete((jobId, result) => {
+          console.log('🎉 [Adapter] 收到分析完成回调', { jobId, result });
           setRealAnalysisState('completed');
           setRealAnalysisResult(result);
           setRealAnalysisProgress(null);

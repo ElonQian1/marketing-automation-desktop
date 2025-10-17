@@ -73,9 +73,12 @@ export function useSmartScriptBuilder(options: UseSmartScriptBuilderOptions) {
       const updated = prevSteps.map(step => {
         if (!step.enableStrategySelector || !step.strategySelector) return step;
 
-        // 查找对应的智能步骤卡
-        const matchingCard = stepCards.find(card => card.stepId === step.id);
-        if (!matchingCard) return step;
+        // 🔒 严格匹配：查找对应的智能步骤卡
+        const matchingCard = stepCards.find(card => String(card.stepId) === String(step.id));
+        if (!matchingCard) {
+          // ❌ 没有匹配的卡片,不要更新此步骤
+          return step;
+        }
 
         // 检查状态是否需要更新
         const currentStatus = step.strategySelector.analysis.status;
@@ -88,13 +91,15 @@ export function useSmartScriptBuilder(options: UseSmartScriptBuilderOptions) {
         const currentProgress = step.strategySelector.analysis.progress || 0;
         // ✅ 完成时强制进度为 100，避免显示 "✅ 0%"
         const newProgress = matchingCard.analysisState === 'analysis_completed' ? 100
-          : matchingCard.analysisProgress || 0;
+          : matchingCard.analysisState === 'analyzing' ? (matchingCard.analysisProgress || 0)
+          : 0; // 非 analyzing 状态时进度归零
 
-        // 只在状态或进度真正变化时更新
+        // 🔒 只在状态或进度真正变化时更新
         if (newStatus !== currentStatus || newProgress !== currentProgress) {
           hasChanges = true;
           console.log('🔄 [状态同步] 更新步骤卡状态:', {
             stepId: step.id,
+            matchingCardId: matchingCard.stepId,
             oldStatus: currentStatus,
             newStatus,
             oldProgress: currentProgress,
@@ -129,7 +134,7 @@ export function useSmartScriptBuilder(options: UseSmartScriptBuilderOptions) {
 
       return hasChanges ? updated : prevSteps;
     });
-  }, [analysisWorkflow.stepCards, setSteps]);
+  }, [analysisWorkflow.stepCards]);
   
   const [loopConfigs, setLoopConfigs] = useState<LoopConfig[]>([]);
   const [currentDeviceId, setCurrentDeviceId] = useState<string>("");
