@@ -1,9 +1,9 @@
 // src/components/universal-ui/element-selection/components/PopoverActionButtons.tsx
 // module: ui | layer: ui | role: component
-// summary: UI 组件
+// summary: UI 组件（加固版 - 防双击/连点，确保单次执行）
 
-import React from 'react';
-import { Space, Button, Row, Col, Typography, Badge } from 'antd';
+import React, { useState, useCallback } from 'react';
+import { Space, Button, Row, Col, Typography, Badge, message } from 'antd';
 import { 
   CheckOutlined, 
   EyeInvisibleOutlined, 
@@ -22,11 +22,11 @@ import type {
   AnalysisProgress, 
   StrategyCandidate 
 } from '../../../../modules/universal-ui/types/intelligent-analysis-types';
+import { useEffectiveConfirm, type ConfirmChannel } from '../../../../types/confirm-channel';
 
 const { Text } = Typography;
 
-export interface PopoverActionButtonsProps {
-  onConfirm: (e?: React.MouseEvent) => void;
+export interface PopoverActionButtonsBaseProps {
   onDiscovery?: (e?: React.MouseEvent) => void;
   onHide?: (e?: React.MouseEvent) => void;
   onCancel: (e?: React.MouseEvent) => void;
@@ -45,9 +45,17 @@ export interface PopoverActionButtonsProps {
   onViewAnalysisDetails?: (e?: React.MouseEvent) => void;
   onApplyStrategy?: (strategy: StrategyCandidate, e?: React.MouseEvent) => void;
   onRetryAnalysis?: (e?: React.MouseEvent) => void;
-  // 🆕 快速创建步骤卡片（文档要求的"直接确定"功能）
-  onQuickCreate?: (e?: React.MouseEvent) => void;
 }
+
+/**
+ * 🔒 PopoverActionButtons Props with XOR Confirm Channel Constraint
+ * 
+ * 强制单一确认通道：
+ * - ✅ 只传 onQuickCreate（快速创建步骤）
+ * - ✅ 只传 onConfirm（传统确认）
+ * - ❌ 同时传入两个会导致 TypeScript 编译错误
+ */
+export type PopoverActionButtonsProps = PopoverActionButtonsBaseProps & ConfirmChannel;
 
 const useIsNarrow = (enabled?: boolean) => {
   const [narrow, setNarrow] = React.useState(false);
@@ -68,32 +76,75 @@ const useIsNarrow = (enabled?: boolean) => {
  * - Supports both traditional workflow and intelligent analysis
  * - Different button layouts based on analysis state
  * - Responsive compact grid layout
+ * - 🔒 XOR Confirm Channel enforcement for single confirmation pathway
  */
-export const PopoverActionButtons: React.FC<PopoverActionButtonsProps> = ({
-  onConfirm,
-  onDiscovery,
-  onHide,
-  onCancel,
-  disabled = false,
-  tokens,
-  compact,
-  autoCompact,
-  // 智能分析相关
-  enableIntelligentAnalysis = false,
-  analysisState = 'idle',
-  analysisProgress,
-  recommendedStrategy,
-  onStartAnalysis,
-  onCancelAnalysis,
-  onViewAnalysisDetails,
-  onApplyStrategy,
-  onRetryAnalysis,
-  // 🆕 快速创建步骤卡片
-  onQuickCreate,
-}) => {
+export const PopoverActionButtons: React.FC<PopoverActionButtonsProps> = (props) => {
+  const {
+    onDiscovery,
+    onHide,
+    onCancel,
+    disabled = false,
+    tokens,
+    compact,
+    autoCompact,
+    // 智能分析相关
+    enableIntelligentAnalysis = false,
+    analysisState = 'idle',
+    analysisProgress,
+    recommendedStrategy,
+    onStartAnalysis,
+    onCancelAnalysis,
+    onViewAnalysisDetails,
+    onApplyStrategy,
+    onRetryAnalysis,
+  } = props;
+  
+  // 🔒 单一确认通道：运行期兜底提取有效回调
+  const effectiveConfirm = useEffectiveConfirm(props);
+  
   const t = { ...defaultPopoverActionTokens, ...(tokens || {}) };
   const isNarrow = useIsNarrow(autoCompact);
   const useCompact = compact || isNarrow;
+
+  // 🔒 并发防抖：防止连点/双击导致重复调用
+  const [submitting, setSubmitting] = useState(false);
+
+  /**
+   * 统一的"确定"操作处理器（加固版 + XOR通道约束）
+   * - 请求飞行中禁止重复点击
+   * - 使用 effectiveConfirm（单一通道）
+   * - 返回 false：成功但保持弹层（需补充信息）
+   * - throw Error：失败不关闭，显示错误
+   * - 成功 (true/void)：由上层控制关闭
+   */
+  const handleQuickConfirm = useCallback(async () => {
+    if (submitting) {
+      console.warn('⚠️ [并发防抖] 操作进行中，忽略重复点击');
+      return;
+    }
+
+    if (!effectiveConfirm) {
+      console.warn('⚠️ [配置错误] 没有提供确认回调');
+      return;
+    }
+
+    setSubmitting(true);
+    try {
+      const result = await effectiveConfirm();
+      // 返回 false 表示成功但需保持弹层（由上层决定是否关闭）
+      if (result === false) {
+        console.log('✅ [部分成功] 操作完成，保持弹层开启');
+      }
+    } catch (error) {
+      console.error('❌ [操作失败] 确定操作失败:', error);
+      // 统一错误提示
+      message.error(error instanceof Error ? error.message : '操作失败，请重试');
+      // 失败时不自动关闭，让用户可以重试或取消
+    } finally {
+      // 确保一定解除禁用状态
+      setSubmitting(false);
+    }
+  }, [submitting, effectiveConfirm]);
 
   // 统一样式
   const btnStyle: React.CSSProperties = {
@@ -126,25 +177,33 @@ export const PopoverActionButtons: React.FC<PopoverActionButtonsProps> = ({
     }
   };
 
-  // 传统按钮布局
+  // 传统按钮布局（使用统一的 handleQuickConfirm）
   const renderTraditionalButtons = () => {
     if (!useCompact) {
       return (
         <Space size={t.gap} wrap={t.rowWrap}>
-          <Button type="primary" size="small" icon={<CheckOutlined />} onClick={onConfirm} style={btnStyle} disabled={disabled}>
+          <Button 
+            type="primary" 
+            size="small" 
+            icon={<CheckOutlined />} 
+            onClick={handleQuickConfirm} 
+            loading={submitting}
+            style={btnStyle} 
+            disabled={disabled || submitting || !effectiveConfirm}
+          >
             确定
           </Button>
           {onDiscovery && (
-            <Button size="small" icon={<SearchOutlined />} onClick={onDiscovery} style={btnStyle} disabled={disabled}>
+            <Button size="small" icon={<SearchOutlined />} onClick={onDiscovery} style={btnStyle} disabled={disabled || submitting}>
               发现元素
             </Button>
           )}
           {onHide && (
-            <Button size="small" icon={<EyeInvisibleOutlined />} onClick={onHide} style={btnStyle} disabled={disabled}>
+            <Button size="small" icon={<EyeInvisibleOutlined />} onClick={onHide} style={btnStyle} disabled={disabled || submitting}>
               隐藏
             </Button>
           )}
-          <Button size="small" icon={<CloseOutlined />} onClick={onCancel} style={btnStyle} ghost disabled={disabled}>
+          <Button size="small" icon={<CloseOutlined />} onClick={onCancel} style={btnStyle} ghost disabled={disabled || submitting}>
             取消
           </Button>
         </Space>
@@ -154,13 +213,22 @@ export const PopoverActionButtons: React.FC<PopoverActionButtonsProps> = ({
     return (
       <Row gutter={[t.gap, t.gap]} style={{ width: 240 }}>
         <Col span={12}>
-          <Button block type="primary" size="small" icon={<CheckOutlined />} onClick={onConfirm} style={btnStyle} disabled={disabled}>
+          <Button 
+            block 
+            type="primary" 
+            size="small" 
+            icon={<CheckOutlined />} 
+            onClick={handleQuickConfirm}
+            loading={submitting}
+            style={btnStyle} 
+            disabled={disabled || submitting || !effectiveConfirm}
+          >
             确定
           </Button>
         </Col>
         <Col span={12}>
           {onDiscovery && (
-            <Button block size="small" icon={<SearchOutlined />} onClick={onDiscovery} style={btnStyle} disabled={disabled}>
+            <Button block size="small" icon={<SearchOutlined />} onClick={onDiscovery} style={btnStyle} disabled={disabled || submitting}>
               发现元素
             </Button>
           )}
@@ -192,25 +260,26 @@ export const PopoverActionButtons: React.FC<PopoverActionButtonsProps> = ({
             icon={<ThunderboltOutlined />} 
             onClick={onStartAnalysis} 
             style={btnStyle} 
-            disabled={disabled}
+            disabled={disabled || submitting}
           >
             智能分析
           </Button>
           <Button 
             size="small" 
             icon={<CheckOutlined />} 
-            onClick={onQuickCreate || onConfirm} 
+            onClick={handleQuickConfirm} 
             style={btnStyle} 
             disabled={disabled}
+            loading={submitting}
           >
             直接确定
           </Button>
           {onDiscovery && (
-            <Button size="small" icon={<SearchOutlined />} onClick={onDiscovery} style={btnStyle} disabled={disabled}>
+            <Button size="small" icon={<SearchOutlined />} onClick={onDiscovery} style={btnStyle} disabled={disabled || submitting}>
               发现元素
             </Button>
           )}
-          <Button size="small" icon={<CloseOutlined />} onClick={onCancel} style={btnStyle} ghost disabled={disabled}>
+          <Button size="small" icon={<CloseOutlined />} onClick={onCancel} style={btnStyle} ghost disabled={disabled || submitting}>
             取消
           </Button>
         </Space>
@@ -227,7 +296,7 @@ export const PopoverActionButtons: React.FC<PopoverActionButtonsProps> = ({
             icon={<ThunderboltOutlined />} 
             onClick={onStartAnalysis} 
             style={btnStyle} 
-            disabled={disabled}
+            disabled={disabled || submitting}
           >
             智能分析
           </Button>
@@ -237,22 +306,23 @@ export const PopoverActionButtons: React.FC<PopoverActionButtonsProps> = ({
             block 
             size="small" 
             icon={<CheckOutlined />} 
-            onClick={onQuickCreate || onConfirm} 
+            onClick={handleQuickConfirm} 
             style={btnStyle} 
             disabled={disabled}
+            loading={submitting}
           >
             直接确定
           </Button>
         </Col>
         <Col span={12}>
           {onDiscovery && (
-            <Button block size="small" icon={<SearchOutlined />} onClick={onDiscovery} style={btnStyle} disabled={disabled}>
+            <Button block size="small" icon={<SearchOutlined />} onClick={onDiscovery} style={btnStyle} disabled={disabled || submitting}>
               发现元素
             </Button>
           )}
         </Col>
         <Col span={12}>
-          <Button block size="small" icon={<CloseOutlined />} onClick={onCancel} style={btnStyle} ghost disabled={disabled}>
+          <Button block size="small" icon={<CloseOutlined />} onClick={onCancel} style={btnStyle} ghost disabled={disabled || submitting}>
             取消
           </Button>
         </Col>
@@ -295,19 +365,26 @@ export const PopoverActionButtons: React.FC<PopoverActionButtonsProps> = ({
               icon={<StopOutlined />} 
               onClick={onCancelAnalysis} 
               style={btnStyle} 
-              disabled={disabled}
+              disabled={disabled || submitting}
             >
               取消分析
             </Button>
-            <Button size="small" icon={<CheckOutlined />} onClick={onConfirm} style={btnStyle} disabled={disabled}>
+            <Button 
+              size="small" 
+              icon={<CheckOutlined />} 
+              onClick={handleQuickConfirm} 
+              style={btnStyle} 
+              disabled={disabled}
+              loading={submitting}
+            >
               直接确定
             </Button>
             {onDiscovery && (
-              <Button size="small" icon={<SearchOutlined />} onClick={onDiscovery} style={btnStyle} disabled={disabled}>
+              <Button size="small" icon={<SearchOutlined />} onClick={onDiscovery} style={btnStyle} disabled={disabled || submitting}>
                 发现元素
               </Button>
             )}
-            <Button size="small" icon={<CloseOutlined />} onClick={onCancel} style={btnStyle} ghost disabled={disabled}>
+            <Button size="small" icon={<CloseOutlined />} onClick={onCancel} style={btnStyle} ghost disabled={disabled || submitting}>
               取消
             </Button>
           </Space>
@@ -326,25 +403,33 @@ export const PopoverActionButtons: React.FC<PopoverActionButtonsProps> = ({
               icon={<StopOutlined />} 
               onClick={onCancelAnalysis} 
               style={btnStyle} 
-              disabled={disabled}
+              disabled={disabled || submitting}
             >
               取消分析
             </Button>
           </Col>
           <Col span={12}>
-            <Button block size="small" icon={<CheckOutlined />} onClick={onConfirm} style={btnStyle} disabled={disabled}>
+            <Button 
+              block 
+              size="small" 
+              icon={<CheckOutlined />} 
+              onClick={handleQuickConfirm} 
+              style={btnStyle} 
+              disabled={disabled}
+              loading={submitting}
+            >
               直接确定
             </Button>
           </Col>
           <Col span={12}>
             {onDiscovery && (
-              <Button block size="small" icon={<SearchOutlined />} onClick={onDiscovery} style={btnStyle} disabled={disabled}>
+              <Button block size="small" icon={<SearchOutlined />} onClick={onDiscovery} style={btnStyle} disabled={disabled || submitting}>
                 发现元素
               </Button>
             )}
           </Col>
           <Col span={12}>
-            <Button block size="small" icon={<CloseOutlined />} onClick={onCancel} style={btnStyle} ghost disabled={disabled}>
+            <Button block size="small" icon={<CloseOutlined />} onClick={onCancel} style={btnStyle} ghost disabled={disabled || submitting}>
               取消
             </Button>
           </Col>
@@ -383,7 +468,7 @@ export const PopoverActionButtons: React.FC<PopoverActionButtonsProps> = ({
               icon={<TrophyOutlined />} 
               onClick={(e) => recommendedStrategy && onApplyStrategy?.(recommendedStrategy, e)} 
               style={btnStyle} 
-              disabled={disabled || !recommendedStrategy}
+              disabled={disabled || !recommendedStrategy || submitting}
             >
               应用推荐
             </Button>
@@ -392,14 +477,21 @@ export const PopoverActionButtons: React.FC<PopoverActionButtonsProps> = ({
               icon={<EyeOutlined />} 
               onClick={onViewAnalysisDetails} 
               style={btnStyle} 
-              disabled={disabled}
+              disabled={disabled || submitting}
             >
               查看详情
             </Button>
-            <Button size="small" icon={<CheckOutlined />} onClick={onConfirm} style={btnStyle} disabled={disabled}>
+            <Button 
+              size="small" 
+              icon={<CheckOutlined />} 
+              onClick={handleQuickConfirm} 
+              style={btnStyle} 
+              disabled={disabled}
+              loading={submitting}
+            >
               直接确定
             </Button>
-            <Button size="small" icon={<CloseOutlined />} onClick={onCancel} style={btnStyle} ghost disabled={disabled}>
+            <Button size="small" icon={<CloseOutlined />} onClick={onCancel} style={btnStyle} ghost disabled={disabled || submitting}>
               取消
             </Button>
           </Space>
@@ -419,7 +511,7 @@ export const PopoverActionButtons: React.FC<PopoverActionButtonsProps> = ({
               icon={<TrophyOutlined />} 
               onClick={(e) => recommendedStrategy && onApplyStrategy?.(recommendedStrategy, e)} 
               style={btnStyle} 
-              disabled={disabled || !recommendedStrategy}
+              disabled={disabled || !recommendedStrategy || submitting}
             >
               应用推荐
             </Button>
@@ -431,18 +523,26 @@ export const PopoverActionButtons: React.FC<PopoverActionButtonsProps> = ({
               icon={<EyeOutlined />} 
               onClick={onViewAnalysisDetails} 
               style={btnStyle} 
-              disabled={disabled}
+              disabled={disabled || submitting}
             >
               查看详情
             </Button>
           </Col>
           <Col span={12}>
-            <Button block size="small" icon={<CheckOutlined />} onClick={onConfirm} style={btnStyle} disabled={disabled}>
+            <Button 
+              block 
+              size="small" 
+              icon={<CheckOutlined />} 
+              onClick={handleQuickConfirm} 
+              style={btnStyle} 
+              disabled={disabled}
+              loading={submitting}
+            >
               直接确定
             </Button>
           </Col>
           <Col span={12}>
-            <Button block size="small" icon={<CloseOutlined />} onClick={onCancel} style={btnStyle} ghost disabled={disabled}>
+            <Button block size="small" icon={<CloseOutlined />} onClick={onCancel} style={btnStyle} ghost disabled={disabled || submitting}>
               取消
             </Button>
           </Col>
@@ -462,19 +562,26 @@ export const PopoverActionButtons: React.FC<PopoverActionButtonsProps> = ({
             icon={<RedoOutlined />} 
             onClick={onRetryAnalysis} 
             style={btnStyle} 
-            disabled={disabled}
+            disabled={disabled || submitting}
           >
             重试分析
           </Button>
-          <Button size="small" icon={<CheckOutlined />} onClick={onConfirm} style={btnStyle} disabled={disabled}>
+          <Button 
+            size="small" 
+            icon={<CheckOutlined />} 
+            onClick={handleQuickConfirm} 
+            style={btnStyle} 
+            disabled={disabled}
+            loading={submitting}
+          >
             直接确定
           </Button>
           {onDiscovery && (
-            <Button size="small" icon={<SearchOutlined />} onClick={onDiscovery} style={btnStyle} disabled={disabled}>
+            <Button size="small" icon={<SearchOutlined />} onClick={onDiscovery} style={btnStyle} disabled={disabled || submitting}>
               发现元素
             </Button>
           )}
-          <Button size="small" icon={<CloseOutlined />} onClick={onCancel} style={btnStyle} ghost disabled={disabled}>
+          <Button size="small" icon={<CloseOutlined />} onClick={onCancel} style={btnStyle} ghost disabled={disabled || submitting}>
             取消
           </Button>
         </Space>
@@ -491,25 +598,33 @@ export const PopoverActionButtons: React.FC<PopoverActionButtonsProps> = ({
             icon={<RedoOutlined />} 
             onClick={onRetryAnalysis} 
             style={btnStyle} 
-            disabled={disabled}
+            disabled={disabled || submitting}
           >
             重试分析
           </Button>
         </Col>
         <Col span={12}>
-          <Button block size="small" icon={<CheckOutlined />} onClick={onConfirm} style={btnStyle} disabled={disabled}>
+          <Button 
+            block 
+            size="small" 
+            icon={<CheckOutlined />} 
+            onClick={handleQuickConfirm} 
+            style={btnStyle} 
+            disabled={disabled}
+            loading={submitting}
+          >
             直接确定
           </Button>
         </Col>
         <Col span={12}>
           {onDiscovery && (
-            <Button block size="small" icon={<SearchOutlined />} onClick={onDiscovery} style={btnStyle} disabled={disabled}>
+            <Button block size="small" icon={<SearchOutlined />} onClick={onDiscovery} style={btnStyle} disabled={disabled || submitting}>
               发现元素
             </Button>
           )}
         </Col>
         <Col span={12}>
-          <Button block size="small" icon={<CloseOutlined />} onClick={onCancel} style={btnStyle} ghost disabled={disabled}>
+          <Button block size="small" icon={<CloseOutlined />} onClick={onCancel} style={btnStyle} ghost disabled={disabled || submitting}>
             取消
           </Button>
         </Col>

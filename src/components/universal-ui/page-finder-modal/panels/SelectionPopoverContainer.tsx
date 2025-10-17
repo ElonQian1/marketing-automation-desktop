@@ -22,15 +22,20 @@ export const SelectionPopoverContainer: React.FC<SelectionPopoverContainerProps>
   onQuickCreate // 🆕 快速创建步骤卡片回调
 }) => {
   const isVisible = !!selectionManager.pendingSelection;
+  
+  // 🔒 单一确认通道：优先使用 onQuickCreate（智能分析路径）
+  const confirmHandler = onQuickCreate || (() => {
+    // 降级到传统确认逻辑
+    if (isDevDebugEnabled('debug:visual')) console.debug('✅ [ElementSelectionPopover] 传统确认');
+    selectionManager.confirmSelection();
+  });
+  
   return (
     <ElementSelectionPopover
       visible={isVisible}
       selection={selectionManager.pendingSelection}
       xmlContent={xmlContent} // 🆕 传递XML内容
-      onConfirm={() => {
-        if (isDevDebugEnabled('debug:visual')) console.debug('✅ [ElementSelectionPopover] onConfirm');
-        selectionManager.confirmSelection();
-      }}
+      onQuickCreate={confirmHandler} // 🔒 单一确认通道
       onCancel={() => {
         if (isDevDebugEnabled('debug:visual')) console.debug('❌ [ElementSelectionPopover] onCancel');
         selectionManager.cancelSelection();
@@ -51,8 +56,6 @@ export const SelectionPopoverContainer: React.FC<SelectionPopoverContainerProps>
         if (isDevDebugEnabled('debug:visual')) console.debug('🧠 [SelectionPopoverContainer] 策略选择:', strategy);
         // 可以添加策略选择的处理逻辑
       }}
-      // 🆕 快速创建步骤卡片
-      onQuickCreate={onQuickCreate}
       // 恢复版本的完整属性支持
       autoCancelOnOutsideClick={true}
       autoPlacement={true}

@@ -15,6 +15,7 @@ import { getIntelligentAnalysisConfig } from '../../../config/intelligentAnalysi
 import { isDevDebugEnabled } from '../../../utils/debug';
 import type { StrategyCandidate } from '../../../modules/universal-ui/types/intelligent-analysis-types';
 import type { UnifiedAnalysisContext } from '../../../hooks/universal-ui/useIntelligentAnalysisAdapter';
+import { useEffectiveConfirm, type ConfirmChannel } from '../../../types/confirm-channel';
 
 export interface ElementSelectionState {
   element: UIElement;
@@ -22,11 +23,10 @@ export interface ElementSelectionState {
   confirmed: boolean;
 }
 
-export interface ElementSelectionPopoverProps {
+export interface ElementSelectionPopoverBaseProps {
   visible: boolean;
   selection: ElementSelectionState | null;
   xmlContent?: string; // XML内容支持，用于元素发现模态框
-  onConfirm: () => void;
   onCancel: () => void; // 取消选择并关闭
   onHide?: () => void;  // 隐藏元素（与业务 hide 行为绑定）
   
@@ -34,7 +34,6 @@ export interface ElementSelectionPopoverProps {
   enableIntelligentAnalysis?: boolean; // 是否启用智能分析功能
   stepId?: string; // 关联的步骤ID，用于结果回填
   onStrategySelect?: (strategy: StrategyCandidate) => void; // 策略选择回调
-  onQuickCreate?: () => Promise<void>; // 🆕 快速创建步骤卡片回调
   allElements?: UIElement[];
   onElementSelect?: (element: UIElement) => void;
   actionTokens?: Partial<PopoverActionTokens>; // 注入尺寸/间距令牌
@@ -47,27 +46,40 @@ export interface ElementSelectionPopoverProps {
   autoCancelOnOutsideClick?: boolean;
 }
 
-const ElementSelectionPopoverComponent: React.FC<ElementSelectionPopoverProps> = ({
-  visible,
-  selection,
-  xmlContent,
-  onConfirm,
-  onCancel,
-  onHide,
-  // 智能分析相关
-  enableIntelligentAnalysis = true, // 🧠 默认启用智能分析功能
-  stepId,
-  onStrategySelect,
-  onQuickCreate,
-  allElements = [],
-  onElementSelect,
-  actionTokens,
-  autoPlacement = true,
-  autoPlacementMode = 'area',
-  snapToAnchor = true,
-  clampRatio = 0.9,
-  autoCancelOnOutsideClick = true
-}) => {
+/**
+ * 🔒 ElementSelectionPopover Props with XOR Confirm Channel Constraint
+ * 
+ * 强制单一确认通道：
+ * - ✅ 只传 onQuickCreate（快速创建步骤）
+ * - ✅ 只传 onConfirm（传统确认）
+ * - ❌ 同时传入两个会导致 TypeScript 编译错误
+ */
+export type ElementSelectionPopoverProps = ElementSelectionPopoverBaseProps & ConfirmChannel;
+
+const ElementSelectionPopoverComponent: React.FC<ElementSelectionPopoverProps> = (props) => {
+  const {
+    visible,
+    selection,
+    xmlContent,
+    onCancel,
+    onHide,
+    // 智能分析相关
+    enableIntelligentAnalysis = true, // 🧠 默认启用智能分析功能
+    stepId,
+    onStrategySelect,
+    allElements = [],
+    onElementSelect,
+    actionTokens,
+    autoPlacement = true,
+    autoPlacementMode = 'area',
+    snapToAnchor = true,
+    clampRatio = 0.9,
+    autoCancelOnOutsideClick = true
+  } = props;
+  
+  // 🔒 单一确认通道：运行期兜底提取有效回调
+  const effectiveConfirm = useEffectiveConfirm(props);
+  
   const __DEV__ = process.env.NODE_ENV === 'development';
   const __DEBUG_VISUAL__ = isDevDebugEnabled('debug:visual');
   
@@ -84,9 +96,17 @@ const ElementSelectionPopoverComponent: React.FC<ElementSelectionPopoverProps> =
   } = useIntelligentAnalysisAdapter(analysisConfig);
   
   const [discoveryModalOpen, setDiscoveryModalOpen] = useState(false);
-  // 避免“同一次点击”引发的立刻关闭：打开后的短暂宽限期内禁用外部点击自动取消
+  // 避免"同一次点击"引发的立刻关闭：打开后的短暂宽限期内禁用外部点击自动取消
   const [allowOutsideCancel, setAllowOutsideCancel] = useState(false);
   const outsideCancelTimerRef = useRef<number | null>(null);
+
+  // 🎯 Point 2: Popover 单向关闭 - 本地可控 open 状态
+  const [open, setOpen] = useState(visible);
+  
+  // 同步 visible prop 到本地 open 状态
+  useEffect(() => {
+    setOpen(visible);
+  }, [visible]);
   
   // 🔧 修复：使用 useMemo 稳定 ID 引用
   const popoverId = useMemo(() => {
@@ -97,8 +117,8 @@ const ElementSelectionPopoverComponent: React.FC<ElementSelectionPopoverProps> =
   const handleConfirm = useCallback((e?: React.MouseEvent) => {
     if (e) e.stopPropagation();
     if (__DEV__ && __DEBUG_VISUAL__) console.debug('🎯 [ElementSelectionPopover] 确认选择');
-    onConfirm();
-  }, [onConfirm]);
+    effectiveConfirm?.();
+  }, [effectiveConfirm, __DEV__, __DEBUG_VISUAL__]);
 
   const handleCancel = useCallback((e?: React.MouseEvent) => {
     if (e) e.stopPropagation();
@@ -148,29 +168,43 @@ const ElementSelectionPopoverComponent: React.FC<ElementSelectionPopoverProps> =
     if (__DEV__) console.log('✨ [用户操作] 选择策略:', strategy.name);
     onStrategySelect?.(strategy);
     // 应用策略后通常也要确认选择
-    onConfirm();
-  }, [onStrategySelect, onConfirm]);
+    effectiveConfirm?.();
+  }, [onStrategySelect, effectiveConfirm, __DEV__]);
 
   const handleRetryAnalysis = useCallback(async (e?: React.MouseEvent) => {
     if (e) e.stopPropagation();
     if (__DEV__) console.log('🔄 [用户操作] 重试智能分析');
     resetAnalysis();
     await handleStartAnalysis(e);
-  }, [resetAnalysis, handleStartAnalysis]);
+  }, [resetAnalysis, handleStartAnalysis, __DEV__]);
 
-  // 🆕 快速创建步骤卡片处理
+  // 🆕 快速创建步骤卡片处理（使用 effectiveConfirm 统一渠道）
   const handleQuickCreate = useCallback(async (e?: React.MouseEvent) => {
     if (e) e.stopPropagation();
     if (__DEV__) console.log('⚡ [用户操作] 快速创建步骤卡片');
     
-    if (onQuickCreate) {
-      await onQuickCreate();
-    } else {
-      // 如果没有提供 onQuickCreate 回调，回退到传统的确认行为
-      if (__DEV__) console.warn('⚠️ onQuickCreate 回调未提供，回退到传统确认');
-      onConfirm();
+    if (!effectiveConfirm) {
+      if (__DEV__) console.warn('⚠️ 没有提供确认回调');
+      return;
     }
-  }, [onQuickCreate, onConfirm]);
+    
+    try {
+      const result = await effectiveConfirm();
+      // 🎯 Point 2: 返回值语义处理
+      if (result === false) {
+        // 成功但需保持弹层（比如需要补充信息）
+        if (__DEV__) console.log('✅ [部分成功] 保持气泡开启，等待补充信息');
+      } else {
+        // true/void/undefined ⇒ 成功并关闭
+        setOpen(false);
+        if (__DEV__) console.log('✅ [Popover关闭] 快速创建成功，已关闭气泡');
+      }
+    } catch (error) {
+      // 失败时不关闭，允许用户重试
+      if (__DEV__) console.error('❌ [快速创建失败] 保持气泡开启以便重试:', error);
+      // 错误提示已在 handleQuickConfirm 中统一处理
+    }
+  }, [effectiveConfirm, __DEV__]);
 
   const handleStrategyModalClose = useCallback(() => {
     setStrategyAnalysisModalOpen(false);
@@ -181,8 +215,8 @@ const ElementSelectionPopoverComponent: React.FC<ElementSelectionPopoverProps> =
     setStrategyAnalysisModalOpen(false);
     onStrategySelect?.(strategy);
     // 选择策略后也确认元素选择
-    onConfirm();
-  }, [onStrategySelect, onConfirm]);
+    effectiveConfirm?.();
+  }, [onStrategySelect, effectiveConfirm, __DEV__]);
 
   // 🔧 修复：简化的智能定位，减少重复计算
   const positioning = useSmartPopoverPosition(
@@ -274,9 +308,9 @@ const ElementSelectionPopoverComponent: React.FC<ElementSelectionPopoverProps> =
         }}
       >
         <ConfirmPopover
-          open={visible}
+          open={open}
           onCancel={() => handleCancel()}
-          // 关键修复：当发现模态框打开时，禁用“外部点击自动取消”
+          // 关键修复：当发现模态框打开时，禁用"外部点击自动取消"
           autoCancelOnOutsideClick={allowOutsideCancel && !discoveryModalOpen && autoCancelOnOutsideClick}
           title={
             <div style={{ maxWidth: '220px' }}>
@@ -290,7 +324,7 @@ const ElementSelectionPopoverComponent: React.FC<ElementSelectionPopoverProps> =
               </div>
               
               <PopoverActionButtons
-                onConfirm={handleConfirm}
+                onQuickCreate={handleQuickCreate}
                 onDiscovery={allElements.length > 0 && onElementSelect ? handleDiscovery : undefined}
                 onHide={onHide ? (e) => {
                   e?.stopPropagation?.();
@@ -313,8 +347,6 @@ const ElementSelectionPopoverComponent: React.FC<ElementSelectionPopoverProps> =
                 onViewAnalysisDetails={handleViewAnalysisDetails}
                 onApplyStrategy={handleApplyStrategy}
                 onRetryAnalysis={handleRetryAnalysis}
-                // 🆕 快速创建步骤卡片
-                onQuickCreate={handleQuickCreate}
               />
             </div>
           }
