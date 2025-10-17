@@ -145,6 +145,9 @@ fn main() {
             }
         })
         .invoke_handler(tauri::generate_handler![
+            // 🏥 后端健康检查
+            backend_ping,
+            // 员工管理
             get_employees,
             add_employee,
             update_employee,
