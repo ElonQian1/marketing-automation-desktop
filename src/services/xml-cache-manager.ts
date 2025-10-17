@@ -28,6 +28,15 @@ export interface XmlCacheEntry {
     pageType: string;
     elementCount: number;
   };
+  /** 🆕 页面元数据（用于智能回退匹配） */
+  metadata?: {
+    packageName?: string;      // 应用包名
+    activity?: string;          // Activity名称
+    resolution?: string;        // 屏幕分辨率 (e.g., "1080x1920")
+    locale?: string;            // 语言环境 (e.g., "zh_CN")
+    deviceModel?: string;       // 设备型号
+    androidVersion?: string;    // Android版本
+  };
   /** 解析后的UI元素（缓存） */
   parsedElements?: unknown[];
   /** 页面截图绝对路径（可选） */
@@ -68,19 +77,35 @@ class XmlCacheManager {
 
   /**
    * 缓存XML页面数据
+   * @deprecated 建议使用 putXml() 方法替代，这个方法将在未来版本中移除
    */
   cacheXmlPage(entry: XmlCacheEntry): string {
-    const cacheId = entry.cacheId || this.generateCacheId();
-    const completeEntry = { ...entry, cacheId };
-    
-    this.cache.set(cacheId, completeEntry);
-    
-    // 如果有hash，同时更新hash索引
-    if (entry.xmlHash) {
-      this.hashIndex.set(entry.xmlHash, completeEntry);
+    // 🚨 废弃警告
+    if (console.warn) {
+      console.warn(
+        '⚠️ [DEPRECATED] cacheXmlPage() 已废弃，请使用 putXml() 方法。',
+        'This method will be removed in a future version.',
+        new Error().stack
+      );
     }
     
-    console.log(`📦 XML页面已缓存: ${cacheId}`, {
+    const cacheId = entry.cacheId || this.generateCacheId();
+    
+    // 内部调用新的 putXml 方法统一处理
+    this.putXml(cacheId, entry.xmlContent, entry.xmlHash || '', entry.timestamp ? new Date(entry.timestamp).toISOString() : undefined);
+    
+    // 保持向后兼容，为完整entry设置额外的页面信息（putXml不处理的部分）
+    const existingEntry = this.cache.get(cacheId);
+    if (existingEntry) {
+      const completeEntry = { 
+        ...existingEntry, 
+        ...entry, 
+        cacheId 
+      };
+      this.cache.set(cacheId, completeEntry);
+    }
+    
+    console.log(`📦 XML页面已缓存 (legacy): ${cacheId}`, {
       deviceId: entry.deviceId,
       elementCount: entry.pageInfo.elementCount,
       contentLength: entry.xmlContent.length,
@@ -196,15 +221,57 @@ class XmlCacheManager {
   }
 
   /**
-   * 获取最新的XML缓存
+   * 获取最新的XML缓存（智能匹配版本）
+   * @param metadata 可选的元数据用于智能匹配，防止跨页面混淆
    */
-  getLatestXmlCache(): XmlCacheEntry | null {
+  getLatestXmlCache(metadata?: Partial<XmlCacheEntry['metadata']>): XmlCacheEntry | null {
     if (this.cache.size === 0) {
       return null;
     }
     
     const entries = Array.from(this.cache.values());
-    return entries.sort((a, b) => b.timestamp - a.timestamp)[0];
+    
+    // 如果提供了元数据，优先匹配相同上下文的缓存
+    if (metadata && Object.keys(metadata).length > 0) {
+      const matchedEntries = entries.filter(entry => {
+        if (!entry.metadata) return false;
+        
+        // 关键字段必须匹配（包名和Activity）
+        if (metadata.packageName && entry.metadata.packageName !== metadata.packageName) {
+          return false;
+        }
+        if (metadata.activity && entry.metadata.activity !== metadata.activity) {
+          return false;
+        }
+        
+        // 次要字段可选匹配（分辨率、语言等）
+        if (metadata.resolution && entry.metadata.resolution !== metadata.resolution) {
+          console.warn(`⚠️ 分辨率不匹配: ${entry.metadata.resolution} vs ${metadata.resolution}`);
+        }
+        
+        return true;
+      });
+      
+      if (matchedEntries.length > 0) {
+        const matched = matchedEntries.sort((a, b) => b.timestamp - a.timestamp)[0];
+        console.log(`✅ 找到匹配的XML缓存:`, {
+          cacheId: matched.cacheId,
+          packageName: matched.metadata?.packageName,
+          activity: matched.metadata?.activity,
+          timestamp: new Date(matched.timestamp).toISOString()
+        });
+        return matched;
+      } else {
+        console.warn(`⚠️ 未找到匹配元数据的缓存，降级到最新缓存`, metadata);
+      }
+    }
+    
+    // 降级到最新缓存（无元数据或没有匹配）
+    const latest = entries.sort((a, b) => b.timestamp - a.timestamp)[0];
+    if (!metadata || Object.keys(metadata).length === 0) {
+      console.log(`📦 返回最新XML缓存 (无元数据匹配): ${latest.cacheId}`);
+    }
+    return latest;
   }
 
   /**
