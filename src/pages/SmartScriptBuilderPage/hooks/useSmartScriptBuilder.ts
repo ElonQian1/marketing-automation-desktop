@@ -21,6 +21,7 @@ import { useScriptPersistence } from "./useScriptPersistence";
 import { useWorkflowIntegrations } from "./useWorkflowIntegrations";
 import { useStepForm } from "./useStepForm";
 import { useStepCardReanalysis } from "../../../hooks/useStepCardReanalysis";
+import type { UseIntelligentAnalysisWorkflowReturn } from "../../../modules/universal-ui/hooks/use-intelligent-analysis-workflow";
 import type { ExtendedSmartScriptStep as LoopScriptStep, LoopConfig } from "../../../types/loopScript";
 import type { ExecutorConfig, SmartExecutionResult } from "../../../types/execution";
 
@@ -33,7 +34,12 @@ const DEFAULT_EXECUTOR_CONFIG: ExecutorConfig = {
   detailed_logging: true,
 };
 
-export function useSmartScriptBuilder() {
+interface UseSmartScriptBuilderOptions {
+  analysisWorkflow: UseIntelligentAnalysisWorkflowReturn;
+}
+
+export function useSmartScriptBuilder(options: UseSmartScriptBuilderOptions) {
+  const { analysisWorkflow } = options;
   const { devices, refreshDevices } = useAdb();
   const [form] = Form.useForm();
 
@@ -43,7 +49,8 @@ export function useSmartScriptBuilder() {
   // 🔄 步骤卡片重新分析功能
   const { reanalyzeStepCard, isAnalyzing } = useStepCardReanalysis({
     steps,
-    setSteps
+    setSteps,
+    analysisWorkflow
   });
   
   // 🔄 重新分析处理程序
@@ -55,6 +62,75 @@ export function useSmartScriptBuilder() {
       console.error('重新分析失败:', error);
     }
   }, [reanalyzeStepCard]);
+
+  // ✅ 同步智能分析工作流的步骤卡状态到脚本步骤
+  useEffect(() => {
+    const { stepCards } = analysisWorkflow;
+    if (stepCards.length === 0) return;
+
+    setSteps(prevSteps => {
+      let hasChanges = false;
+      const updated = prevSteps.map(step => {
+        if (!step.enableStrategySelector || !step.strategySelector) return step;
+
+        // 查找对应的智能步骤卡
+        const matchingCard = stepCards.find(card => card.stepId === step.id);
+        if (!matchingCard) return step;
+
+        // 检查状态是否需要更新
+        const currentStatus = step.strategySelector.analysis.status;
+        const newStatus = matchingCard.analysisState === 'analysis_completed' ? 'completed'
+          : matchingCard.analysisState === 'analysis_failed' ? 'failed'
+          : matchingCard.analysisState === 'analyzing' ? 'analyzing'
+          : matchingCard.analysisState === 'idle' ? 'ready'
+          : currentStatus;
+
+        const currentProgress = step.strategySelector.analysis.progress || 0;
+        // ✅ 完成时强制进度为 100，避免显示 "✅ 0%"
+        const newProgress = matchingCard.analysisState === 'analysis_completed' ? 100
+          : matchingCard.analysisProgress || 0;
+
+        // 只在状态或进度真正变化时更新
+        if (newStatus !== currentStatus || newProgress !== currentProgress) {
+          hasChanges = true;
+          console.log('🔄 [状态同步] 更新步骤卡状态:', {
+            stepId: step.id,
+            oldStatus: currentStatus,
+            newStatus,
+            oldProgress: currentProgress,
+            newProgress,
+            cardState: matchingCard.analysisState,
+            hasCandidates: !!(matchingCard.smartCandidates || matchingCard.staticCandidates)
+          });
+
+          return {
+            ...step,
+            strategySelector: {
+              ...step.strategySelector,
+              analysis: {
+                ...step.strategySelector.analysis,
+                status: newStatus,
+                progress: newProgress,
+                // ✅ 同步分析结果（候选策略列表）
+                result: matchingCard.analysisState === 'analysis_completed' 
+                  ? {
+                      smartCandidates: matchingCard.smartCandidates || [],
+                      staticCandidates: matchingCard.staticCandidates || [],
+                      recommendedKey: matchingCard.recommendedStrategy?.key
+                    }
+                  : step.strategySelector.analysis.result
+              }
+            }
+          };
+        }
+
+        return step;
+      });
+
+      return hasChanges ? updated : prevSteps;
+    });
+  }, [analysisWorkflow.stepCards, setSteps]);
+  
   const [loopConfigs, setLoopConfigs] = useState<LoopConfig[]>([]);
   const [currentDeviceId, setCurrentDeviceId] = useState<string>("");
 

@@ -169,10 +169,15 @@ const CompactStrategyMenu: React.FC<CompactStrategyMenuProps> = ({
       flexWrap: 'wrap'
     }}>
       {/* 主策略选择按钮 */}
-      <Dropdown menu={getStrategyMenu()} trigger={['click']} disabled={disabled}>
+      <Dropdown 
+        menu={getStrategyMenu()} 
+        trigger={['click']} 
+        disabled={disabled && selector.analysis.status === 'analyzing'}
+      >
         <Button
           size="small"
           type="default"
+          loading={selector.analysis.status === 'analyzing'}
           style={{
             background: 'rgba(110, 139, 255, 0.1)',
             border: '1px solid rgba(110, 139, 255, 0.3)',

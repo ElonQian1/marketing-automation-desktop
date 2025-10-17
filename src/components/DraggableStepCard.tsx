@@ -27,6 +27,7 @@
 import React from "react";
 import { CSS } from '@dnd-kit/utilities';
 import { SmartActionType } from "../types/smartComponents";
+import { isBackendHealthy } from '../services/backend-health-check';
 import styles from './DraggableStepCard.module.css';
 // import StrategySelector from './strategy-selector/StrategySelector'; // 暂时不用，保留备用
 import CompactStrategyMenu from './strategy-selector/CompactStrategyMenu';
@@ -67,13 +68,14 @@ export interface StepParameters {
   cardTheme?: string;
   cardSurface?: string;
   
-  // XML快照相关
+  // XML快照相关 - 只保留索引字段，实际内容通过缓存获取
   xmlSnapshot?: {
-    xmlContent?: string;
+    xmlHash?: string;
     xmlCacheId?: string;
+    timestamp?: number;
     [key: string]: unknown;
   };
-  xmlContent?: string;
+  // 保持向后兼容，但建议使用 xmlSnapshot.xmlCacheId
   xmlCacheId?: string;
   
   // 元素相关字段
@@ -527,7 +529,68 @@ const DraggableStepCardInner: React.FC<
             {/* 🧠 紧凑策略菜单 */}
             {step.enableStrategySelector && step.strategySelector && (
               <CompactStrategyMenu
-                selector={step.strategySelector}
+                selector={(() => {
+                  // ✅ 适配器：将简化的 strategySelector 转换为完整的 StrategySelector 接口
+                  const result = step.strategySelector.analysis.result as {
+                    smartCandidates?: Array<{
+                      key: string;
+                      name: string;
+                      confidence: number;
+                      selector: string;
+                      stepName?: string;
+                    }>;
+                    staticCandidates?: Array<{
+                      key: string;
+                      name: string;
+                      selector: string;
+                    }>;
+                    recommendedKey?: string;
+                  } | undefined;
+
+                  // 转换候选策略为完整的 StrategyCandidate 类型
+                  const smartCandidates = (result?.smartCandidates || []).map(c => ({
+                    key: c.key,
+                    type: 'smart' as const,
+                    name: c.name,
+                    confidence: c.confidence || 0.5,
+                    selector: c.selector,
+                    stepName: c.stepName as 'step1' | 'step2' | 'step3' | 'step4' | 'step5' | 'step6' | undefined
+                  }));
+
+                  const staticCandidates = (result?.staticCandidates || []).map(c => ({
+                    key: c.key,
+                    type: 'static' as const,
+                    name: c.name,
+                    confidence: 1.0,
+                    selector: c.selector
+                  }));
+
+                  return {
+                    activeStrategy: step.strategySelector.selectedStrategy 
+                      ? { 
+                          type: step.strategySelector.selectedStrategy as 'smart-auto' | 'smart-single' | 'static',
+                          stepName: step.strategySelector.selectedStep as 'step1' | 'step2' | 'step3' | 'step4' | 'step5' | 'step6' | undefined
+                        }
+                      : undefined,
+                    analysis: step.strategySelector.analysis,
+                    candidates: {
+                      smart: smartCandidates,
+                      static: staticCandidates
+                    },
+                    recommended: result?.recommendedKey 
+                      ? {
+                          key: result.recommendedKey,
+                          confidence: 0.85,
+                          autoApplied: false
+                        }
+                      : undefined,
+                    config: {
+                      autoFollowSmart: false,
+                      confidenceThreshold: 0.82,
+                      enableFallback: true
+                    }
+                  };
+                })()}
                 events={{
                   onStrategyChange: (selection) => onStrategyChange?.(step.id, selection),
                   onReanalyze: () => onReanalyze?.(step.id),
@@ -536,31 +599,7 @@ const DraggableStepCardInner: React.FC<
                   onCancelAnalysis: (jobId) => onCancelAnalysis?.(step.id, jobId),
                   onApplyRecommendation: (key) => onApplyRecommendation?.(step.id, key),
                 }}
-                disabled={(() => {
-                  // 重新分析按钮禁用守卫：检查必需条件
-                  const xmlSnapshot = step.parameters?.xmlSnapshot as {
-                    xmlHash?: string;
-                    xmlCacheId?: string;
-                    elementGlobalXPath?: string;
-                  } | undefined;
-                  
-                  const haveSnapshot = Boolean(xmlSnapshot?.xmlHash || xmlSnapshot?.xmlCacheId);
-                  const haveXPath = Boolean(xmlSnapshot?.elementGlobalXPath || step.parameters?.element_selector);
-                  const analysisStatus = step.strategySelector?.analysis?.status;
-                  
-                  // 检查分析是否正在进行且最近活跃（基于completedAt判断是否为新的分析会话）
-                  const isCurrentlyAnalyzing = analysisStatus === 'analyzing';
-                  
-                  // TODO: 添加后端健康检查
-                  const backendHealthy = true; // 暂时假设后端健康
-                  
-                  return (
-                    isCurrentlyAnalyzing ||
-                    !haveSnapshot ||
-                    !haveXPath ||
-                    !backendHealthy
-                  );
-                })()}
+                disabled={!isBackendHealthy()}
                 compact={true}
               />
             )}
