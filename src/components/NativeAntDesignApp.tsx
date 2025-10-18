@@ -58,6 +58,8 @@ import { NativeAntDashboard } from "./native-dashboard/NativeAntDashboard";
 import EmployeePageNativeWrapper from "../pages/native-wrappers/EmployeePage.native";
 
 // 原生 Ant Design 页面版本导入
+import { UnifiedAnalysisDemo } from "../pages/UnifiedAnalysisDemo";
+import { StrategyBackendDemoFixed } from "../pages/StrategyBackendDemoFixed";
 import { StatisticsPageNative } from "../pages/statistics/StatisticsPageNative";
 import { DeviceManagementPageNative } from "../pages/device-management/DeviceManagementPageNative";
 import { LoginPageNative } from "../pages/auth/LoginPageNative";
@@ -196,6 +198,16 @@ const NativeAntDesignApp: React.FC = () => {
       label: "🚀 策略选择器后端集成",
     },
     {
+      key: "unified-analysis-demo",
+      icon: <SyncOutlined />,
+      label: "🔄 统一分析系统演示",
+    },
+    {
+      key: "strategy-backend-demo-fixed",
+      icon: <CheckCircleOutlined />,
+      label: "✅ 策略选择器修复版",
+    },
+    {
       key: "statistics-native",
       icon: <DashboardOutlined />,
       label: "统计页面（原生）",
@@ -272,6 +284,10 @@ const NativeAntDesignApp: React.FC = () => {
         return <StrategyDemo />;
       case "strategy-backend-demo":
         return <StrategyBackendDemo />;
+      case "unified-analysis-demo":
+        return <UnifiedAnalysisDemo />;
+      case "strategy-backend-demo-fixed":
+        return <StrategyBackendDemoFixed />;
       case "statistics-native":
         return <StatisticsPageNative />;
       case "statistics-optimized":
