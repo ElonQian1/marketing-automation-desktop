@@ -1,0 +1,33 @@
+# .github/workflows/nightly-quality.yml
+name: 夜间巡检（重复/未用/安全）
+
+on:
+  schedule:
+    - cron: "0 19 * * *"   # 北京时间 03:00（UTC 19:00）
+  workflow_dispatch:
+
+jobs:
+  nightly:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with: { node-version: 20, cache: 'npm' }
+      - run: npm ci
+      - name: jscpd 重复率报告
+        run: npx jscpd --min-lines 8 --reporters html,json --output reports/jscpd
+      - name: ts-prune 未用导出
+        run: npx ts-prune > reports/ts-prune.txt
+      - name: 安全审计（Node）
+        run: npm audit --audit-level=high || true
+      - name: Rust 工具链
+        uses: dtolnay/rust-toolchain@stable
+      - name: cargo-audit（Rust）
+        run: |
+          cargo install cargo-audit || true
+          cargo audit || true
+      - name: 上传夜间报告
+        uses: actions/upload-artifact@v4
+        with:
+          name: nightly-reports
+          path: reports/**

@@ -1,0 +1,35 @@
+# .github/workflows/event-evidence.yml
+name: 事件证据包（分析完成闭环）
+
+on:
+  pull_request:
+    paths:
+      - "src/**"
+      - "src-tauri/**"
+      - "tests/e2e/**"
+  workflow_dispatch:
+
+jobs:
+  evidence:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with: { node-version: 20, cache: 'npm' }
+      - run: npm ci
+      - name: 运行 E2E（回放 progress/complete）
+        run: |
+          npx playwright install --with-deps
+          npm run test:e2e
+      - name: 收集后端/前端证据
+        if: always()
+        run: |
+          mkdir -p evidence
+          [ -f debug/flows/backend-events.jsonl ] && cp debug/flows/backend-events.jsonl evidence/ || true
+          [ -d playwright-report ] && cp -r playwright-report evidence/ || true
+      - name: 上传证据包
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: evidence
+          path: evidence/**

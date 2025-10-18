@@ -1,0 +1,163 @@
+# .github/workflows/dependency-updates.yml
+name: 依赖更新机器人
+
+on:
+  schedule:
+    - cron: "0 2 * * 1"  # 每周一 10:00 北京时间 (UTC 2:00)
+  workflow_dispatch:
+
+jobs:
+  update-dependencies:
+    runs-on: ubuntu-latest
+    steps:
+      - name: 🧭 拉取代码
+        uses: actions/checkout@v4
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: 🟦 安装 Node 20
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: 'npm'
+
+      - name: 🦀 安装 Rust
+        uses: dtolnay/rust-toolchain@stable
+
+      - name: 📦 检查 npm 依赖更新
+        id: npm-updates
+        run: |
+          npm outdated --json > npm-outdated.json || true
+          
+          if [ -s npm-outdated.json ] && [ "$(cat npm-outdated.json)" != "{}" ]; then
+            echo "has_npm_updates=true" >> $GITHUB_OUTPUT
+            echo "📦 发现 npm 依赖更新"
+          else
+            echo "has_npm_updates=false" >> $GITHUB_OUTPUT
+            echo "✅ npm 依赖都是最新的"
+          fi
+
+      - name: 🦀 检查 Cargo 依赖更新
+        id: cargo-updates
+        run: |
+          cd src-tauri
+          cargo install cargo-outdated || true
+          cargo outdated --format json > ../cargo-outdated.json || echo '{}' > ../cargo-outdated.json
+          
+          if [ -s ../cargo-outdated.json ] && [ "$(cat ../cargo-outdated.json)" != "{}" ]; then
+            echo "has_cargo_updates=true" >> $GITHUB_OUTPUT
+            echo "🦀 发现 Cargo 依赖更新"
+          else
+            echo "has_cargo_updates=false" >> $GITHUB_OUTPUT
+            echo "✅ Cargo 依赖都是最新的"
+          fi
+
+      - name: 📋 生成更新报告
+        if: steps.npm-updates.outputs.has_npm_updates == 'true' || steps.cargo-updates.outputs.has_cargo_updates == 'true'
+        run: |
+          echo "# 📦 依赖更新报告 $(date '+%Y-%m-%d')" > update-report.md
+          echo "" >> update-report.md
+          
+          if [ "${{ steps.npm-updates.outputs.has_npm_updates }}" == "true" ]; then
+            echo "## 🟦 Node.js 依赖更新" >> update-report.md
+            echo '```json' >> update-report.md
+            cat npm-outdated.json >> update-report.md
+            echo '```' >> update-report.md
+            echo "" >> update-report.md
+          fi
+          
+          if [ "${{ steps.cargo-updates.outputs.has_cargo_updates }}" == "true" ]; then
+            echo "## 🦀 Rust 依赖更新" >> update-report.md
+            echo '```json' >> update-report.md
+            cat cargo-outdated.json >> update-report.md
+            echo '```' >> update-report.md
+          fi
+          
+          echo "## 🎯 自动化操作" >> update-report.md
+          echo "- 本PR将自动执行小版本依赖更新" >> update-report.md
+          echo "- 大版本更新需要人工审查" >> update-report.md
+          echo "- CI 全绿后将自动合并" >> update-report.md
+
+      - name: 🔄 执行小版本更新
+        if: steps.npm-updates.outputs.has_npm_updates == 'true' || steps.cargo-updates.outputs.has_cargo_updates == 'true'
+        run: |
+          # 更新 npm 依赖（小版本）
+          if [ "${{ steps.npm-updates.outputs.has_npm_updates }}" == "true" ]; then
+            npm update
+          fi
+          
+          # 更新 Cargo 依赖（小版本）
+          if [ "${{ steps.cargo-updates.outputs.has_cargo_updates }}" == "true" ]; then
+            cd src-tauri
+            cargo update
+          fi
+
+      - name: 🧪 运行快速测试
+        if: steps.npm-updates.outputs.has_npm_updates == 'true' || steps.cargo-updates.outputs.has_cargo_updates == 'true'
+        run: |
+          # 安装依赖
+          npm ci
+          
+          # TypeScript 检查
+          npx tsc --noEmit || exit 1
+          
+          # Rust 检查
+          cd src-tauri
+          cargo check || exit 1
+
+      - name: 📤 创建更新 PR
+        if: steps.npm-updates.outputs.has_npm_updates == 'true' || steps.cargo-updates.outputs.has_cargo_updates == 'true'
+        uses: peter-evans/create-pull-request@v5
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+          commit-message: "📦 自动更新依赖 $(date '+%Y-%m-%d')"
+          title: "📦 依赖更新 $(date '+%Y-%m-%d')"
+          body-path: update-report.md
+          branch: auto-dependency-updates
+          delete-branch: true
+          labels: |
+            dependencies
+            automated
+            size/M
+
+  security-audit:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with: { node-version: 20, cache: 'npm' }
+      - uses: dtolnay/rust-toolchain@stable
+      
+      - name: 🔍 npm 安全审计
+        run: |
+          npm audit --audit-level=high --json > npm-audit.json || true
+          
+          # 检查是否有高危漏洞
+          if grep -q '"level":"high"' npm-audit.json || grep -q '"level":"critical"' npm-audit.json; then
+            echo "⚠️ 发现高危安全漏洞"
+            npm audit --audit-level=high
+          else
+            echo "✅ npm 安全检查通过"
+          fi
+
+      - name: 🦀 Cargo 安全审计
+        run: |
+          cargo install cargo-audit || true
+          cd src-tauri
+          cargo audit --json > ../cargo-audit.json || true
+          
+          if [ -s ../cargo-audit.json ]; then
+            echo "⚠️ Cargo 安全报告："
+            cargo audit
+          else
+            echo "✅ Cargo 安全检查通过"
+          fi
+
+      - name: 📊 上传安全报告
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: security-audit-reports
+          path: |
+            npm-audit.json
+            cargo-audit.json

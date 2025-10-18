@@ -1,0 +1,265 @@
+# .github/workflows/pr-automation.yml
+name: PR 自动化（标签/大小控制）
+
+on:
+  pull_request:
+    types: [opened, edited, synchronize]
+
+jobs:
+  pr-automation:
+    runs-on: ubuntu-latest
+    steps:
+      - name: 🧭 拉取代码
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: 🏷️ 自动添加PR标签
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const { context, github } = require('@actions/github');
+            const pr = context.payload.pull_request;
+            
+            // 根据文件变化自动添加标签
+            const { data: files } = await github.rest.pulls.listFiles({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              pull_number: pr.number,
+            });
+            
+            const labels = [];
+            
+            // 检查修改的文件类型
+            const hasTypeScript = files.some(f => f.filename.match(/\.(ts|tsx)$/));
+            const hasRust = files.some(f => f.filename.includes('src-tauri/'));
+            const hasTests = files.some(f => f.filename.includes('test') || f.filename.includes('spec'));
+            const hasWorkflows = files.some(f => f.filename.includes('.github/workflows/'));
+            const hasEvents = files.some(f => f.filename.includes('event') || f.filename.includes('analysis'));
+            
+            // 根据PR标题和描述判断类型
+            const title = pr.title.toLowerCase();
+            const body = (pr.body || '').toLowerCase();
+            
+            if (title.includes('fix') || title.includes('修复') || title.includes('🐛')) {
+              labels.push('bug');
+            } else if (title.includes('feat') || title.includes('功能') || title.includes('✨')) {
+              labels.push('enhancement');
+            } else if (title.includes('refactor') || title.includes('重构') || title.includes('♻️')) {
+              labels.push('refactor');
+            } else if (title.includes('docs') || title.includes('文档') || title.includes('📚')) {
+              labels.push('documentation');
+            }
+            
+            // 技术栈标签
+            if (hasTypeScript) labels.push('typescript');
+            if (hasRust) labels.push('rust');
+            if (hasTests) labels.push('tests');
+            if (hasWorkflows) labels.push('ci/cd');
+            if (hasEvents) labels.push('event-system');
+            
+            // 添加标签
+            if (labels.length > 0) {
+              await github.rest.issues.addLabels({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                issue_number: pr.number,
+                labels: labels
+              });
+            }
+
+      - name: 📏 检查PR大小并添加标签
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const { context, github } = require('@actions/github');
+            const pr = context.payload.pull_request;
+            
+            const { data: files } = await github.rest.pulls.listFiles({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              pull_number: pr.number,
+            });
+            
+            // 计算变更统计
+            let additions = 0;
+            let deletions = 0;
+            let changedFiles = files.length;
+            
+            files.forEach(file => {
+              additions += file.additions;
+              deletions += file.deletions;
+            });
+            
+            const totalChanges = additions + deletions;
+            
+            // 根据变更量添加大小标签
+            let sizeLabel = '';
+            if (totalChanges <= 50) {
+              sizeLabel = 'size/XS';
+            } else if (totalChanges <= 200) {
+              sizeLabel = 'size/S';
+            } else if (totalChanges <= 500) {
+              sizeLabel = 'size/M';
+            } else if (totalChanges <= 1000) {
+              sizeLabel = 'size/L';
+            } else {
+              sizeLabel = 'size/XL';
+            }
+            
+            // 移除旧的大小标签
+            const existingLabels = pr.labels.map(label => label.name);
+            const sizeLabels = existingLabels.filter(label => label.startsWith('size/'));
+            
+            for (const label of sizeLabels) {
+              await github.rest.issues.removeLabel({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                issue_number: pr.number,
+                name: label
+              });
+            }
+            
+            // 添加新的大小标签
+            await github.rest.issues.addLabels({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: pr.number,
+              labels: [sizeLabel]
+            });
+            
+            // 如果PR过大，添加评论提醒
+            if (totalChanges > 800) {
+              const comment = `
+            ## 🚨 大型 PR 提醒
+            
+            这个 PR 包含了 **${totalChanges}** 行变更（${changedFiles} 个文件），比较大。
+            
+            **建议**：
+            - 考虑将功能拆分成多个小 PR
+            - 确保有充分的测试覆盖
+            - 详细说明变更内容和测试方法
+            
+            **统计**：
+            - 📁 文件数量: ${changedFiles}
+            - ➕ 新增行数: ${additions}
+            - ➖ 删除行数: ${deletions}
+            - 📊 总变更量: ${totalChanges}
+            `;
+              
+              await github.rest.issues.createComment({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                issue_number: pr.number,
+                body: comment
+              });
+            }
+
+      - name: 🎯 检查关键文件变更
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const { context, github } = require('@actions/github');
+            const pr = context.payload.pull_request;
+            
+            const { data: files } = await github.rest.pulls.listFiles({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              pull_number: pr.number,
+            });
+            
+            // 检查关键文件变更
+            const criticalFiles = files.filter(f => 
+              f.filename.includes('package.json') ||
+              f.filename.includes('Cargo.toml') ||
+              f.filename.includes('src-tauri/tauri.conf.json') ||
+              f.filename.includes('.github/workflows/') ||
+              f.filename.includes('eslint.config') ||
+              f.filename.includes('tsconfig')
+            );
+            
+            if (criticalFiles.length > 0) {
+              await github.rest.issues.addLabels({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                issue_number: pr.number,
+                labels: ['critical-files']
+              });
+              
+              const fileList = criticalFiles.map(f => `- \`${f.filename}\``).join('\n');
+              
+              const comment = `
+            ## ⚠️ 关键文件变更检测
+            
+            此 PR 修改了以下关键文件，请仔细审查：
+            
+            ${fileList}
+            
+            **请确保**：
+            - 配置变更经过充分测试
+            - 依赖升级不会引入breaking changes
+            - CI/CD 工作流变更不会影响现有流程
+            `;
+              
+              await github.rest.issues.createComment({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                issue_number: pr.number,
+                body: comment
+              });
+            }
+
+      - name: 🔍 事件系统变更检测
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const { context, github } = require('@actions/github');
+            const pr = context.payload.pull_request;
+            
+            const { data: files } = await github.rest.pulls.listFiles({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              pull_number: pr.number,
+            });
+            
+            // 检查是否涉及事件系统文件
+            const eventFiles = files.filter(f => 
+              f.filename.includes('event') ||
+              f.filename.includes('analysis') ||
+              f.filename.includes('stepcards') ||
+              f.filename.includes('unified') ||
+              f.filename.includes('hook') && f.filename.includes('analysis')
+            );
+            
+            if (eventFiles.length > 0) {
+              await github.rest.issues.addLabels({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                issue_number: pr.number,
+                labels: ['event-system', 'needs-testing']
+              });
+              
+              const comment = `
+            ## 🔄 事件系统变更检测
+            
+            此 PR 涉及事件系统相关文件，自动触发额外检查：
+            
+            **将执行**：
+            - 🎭 E2E 事件回放测试
+            - 📊 事件证据包收集
+            - 🔍 状态同步验证
+            
+            **请确认**：
+            - [ ] 事件路由逻辑正确
+            - [ ] jobId 绑定机制工作正常
+            - [ ] UI 状态同步无误
+            - [ ] 没有引入事件泄漏
+            `;
+              
+              await github.rest.issues.createComment({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                issue_number: pr.number,
+                body: comment
+              });
+            }

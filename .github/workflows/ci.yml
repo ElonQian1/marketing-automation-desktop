@@ -1,0 +1,78 @@
+# .github/workflows/ci.yml
+name: CI 与质量门
+
+on:
+  pull_request:
+  push:
+    branches: [ main ]
+  workflow_dispatch:
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  web_and_rust_checks:
+    runs-on: ubuntu-latest
+    steps:
+      - name: 🧭 拉取代码
+        uses: actions/checkout@v4
+
+      - name: 🟦 安装 Node 20
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: 'npm'
+
+      - name: 📦 安装前端依赖
+        run: |
+          if [ -f package-lock.json ]; then npm ci; else npm i; fi
+
+      - name: 🔎 TypeScript 类型检查
+        run: npx tsc --noEmit
+
+      - name: 🧹 ESLint 语法与风格
+        run: npx eslint "src/**/*.{ts,tsx,js,jsx}"
+
+      - name: 🧪 前端单元测试（若有）
+        run: npm run test --if-present --silent -- --run
+
+      - name: 🎭 安装 Playwright 依赖（若存在 e2e）
+        if: ${{ hashFiles('tests/e2e/**', 'e2e/**') != '' }}
+        run: npx playwright install --with-deps
+
+      - name: 🎯 E2E 测试（若有）
+        run: npm run test:e2e --if-present
+
+      - name: 🗂 未用导出（ts-prune）
+        run: npx ts-prune --error
+
+      - name: 🧬 重复代码扫描（jscpd ≤1%）
+        run: npx jscpd --min-lines 8 --threshold 1 --reporters html,json --output reports/jscpd
+
+      - name: 🧾 依赖冗余报告（不阻塞）
+        continue-on-error: true
+        run: npx depcheck --json > depcheck-report.json
+
+      - name: 📎 上传质量报告
+        uses: actions/upload-artifact@v4
+        with:
+          name: quality-reports
+          path: |
+            depcheck-report.json
+            reports/jscpd/**
+
+      - name: 🦀 安装 Rust
+        uses: dtolnay/rust-toolchain@stable
+
+      - name: 📚 Rust 缓存
+        uses: Swatinem/rust-cache@v2
+
+      - name: ✨ rustfmt 检查
+        run: cargo fmt --all -- --check
+
+      - name: 🧐 clippy 严格检查
+        run: cargo clippy --all-targets -- -D warnings
+
+      - name: 🧪 Rust 测试
+        run: cargo test --all --all-targets

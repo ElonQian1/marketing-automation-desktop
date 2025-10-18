@@ -1,0 +1,199 @@
+# .github/workflows/release-automation.yml
+name: 自动发布（版本标签触发）
+
+on:
+  push:
+    tags:
+      - 'v*.*.*'
+  workflow_dispatch:
+    inputs:
+      version:
+        description: '发布版本 (例如: 1.2.3)'
+        required: true
+        type: string
+
+jobs:
+  create-release:
+    name: 创建 GitHub Release
+    runs-on: ubuntu-latest
+    outputs:
+      release_id: ${{ steps.create_release.outputs.result }}
+      version: ${{ steps.version.outputs.version }}
+    
+    steps:
+      - name: 🧭 拉取代码
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: 📝 提取版本号
+        id: version
+        run: |
+          if [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
+            VERSION="${{ github.event.inputs.version }}"
+          else
+            VERSION=${GITHUB_REF#refs/tags/v}
+          fi
+          echo "version=$VERSION" >> $GITHUB_OUTPUT
+          echo "📦 发布版本: $VERSION"
+
+      - name: 📋 生成发布日志
+        id: changelog
+        run: |
+          # 获取上一个标签
+          PREVIOUS_TAG=$(git describe --tags --abbrev=0 HEAD^ 2>/dev/null || git rev-list --max-parents=0 HEAD)
+          echo "上一版本: $PREVIOUS_TAG"
+          
+          # 生成更改日志
+          echo "# 🚀 版本 ${{ steps.version.outputs.version }} 发布说明" > CHANGELOG.md
+          echo "" >> CHANGELOG.md
+          echo "## 📅 发布时间" >> CHANGELOG.md
+          echo "$(date '+%Y年%m月%d日 %H:%M:%S')" >> CHANGELOG.md
+          echo "" >> CHANGELOG.md
+          
+          # 提取提交信息
+          echo "## 🔄 主要变更" >> CHANGELOG.md
+          git log --pretty=format:"- %s" $PREVIOUS_TAG..HEAD | grep -E "^- (feat|fix|refactor|perf|docs):" | head -20 >> CHANGELOG.md || true
+          echo "" >> CHANGELOG.md
+          
+          # 分类显示
+          echo "## ✨ 新功能" >> CHANGELOG.md
+          git log --pretty=format:"- %s" $PREVIOUS_TAG..HEAD | grep -E "^- (feat|✨)" | head -10 >> CHANGELOG.md || echo "- 无新功能添加" >> CHANGELOG.md
+          echo "" >> CHANGELOG.md
+          
+          echo "## 🐛 问题修复" >> CHANGELOG.md
+          git log --pretty=format:"- %s" $PREVIOUS_TAG..HEAD | grep -E "^- (fix|🐛)" | head -10 >> CHANGELOG.md || echo "- 无问题修复" >> CHANGELOG.md
+          echo "" >> CHANGELOG.md
+          
+          echo "## 🔧 技术改进" >> CHANGELOG.md
+          git log --pretty=format:"- %s" $PREVIOUS_TAG..HEAD | grep -E "^- (refactor|perf|♻️|⚡)" | head -10 >> CHANGELOG.md || echo "- 无技术改进" >> CHANGELOG.md
+          echo "" >> CHANGELOG.md
+          
+          # 统计信息
+          COMMIT_COUNT=$(git rev-list --count $PREVIOUS_TAG..HEAD)
+          AUTHOR_COUNT=$(git shortlog -sn $PREVIOUS_TAG..HEAD | wc -l)
+          
+          echo "## 📊 统计信息" >> CHANGELOG.md
+          echo "- 🔢 提交数量: $COMMIT_COUNT" >> CHANGELOG.md
+          echo "- 👥 贡献者: $AUTHOR_COUNT" >> CHANGELOG.md
+          echo "- 📦 构建包含: Windows, macOS, Linux" >> CHANGELOG.md
+          echo "" >> CHANGELOG.md
+          
+          echo "## 🔗 相关链接" >> CHANGELOG.md
+          echo "- [完整更改历史](https://github.com/${{ github.repository }}/compare/$PREVIOUS_TAG...v${{ steps.version.outputs.version }})" >> CHANGELOG.md
+          echo "- [问题报告](https://github.com/${{ github.repository }}/issues)" >> CHANGELOG.md
+          echo "- [讨论区](https://github.com/${{ github.repository }}/discussions)" >> CHANGELOG.md
+
+      - name: 🎯 创建 Release
+        id: create_release
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const fs = require('fs');
+            const changelog = fs.readFileSync('CHANGELOG.md', 'utf8');
+            
+            const { data: release } = await github.rest.repos.createRelease({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              tag_name: `v${{ steps.version.outputs.version }}`,
+              name: `🚀 Employee GUI v${{ steps.version.outputs.version }}`,
+              body: changelog,
+              draft: false,
+              prerelease: false,
+            });
+            
+            console.log(`✅ 创建 Release: ${release.html_url}`);
+            return release.id;
+
+  build-and-upload:
+    name: 构建并上传 (${{ matrix.platform }})
+    needs: create-release
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - platform: 'windows-latest'
+            args: '--target x86_64-pc-windows-msvc'
+            name: 'Windows'
+            emoji: '🪟'
+          - platform: 'macos-latest'
+            args: '--target x86_64-apple-darwin'
+            name: 'macOS Intel'
+            emoji: '🍎'
+          - platform: 'macos-latest'
+            args: '--target aarch64-apple-darwin'
+            name: 'macOS Apple Silicon'
+            emoji: '🍎'
+          - platform: 'ubuntu-latest'
+            args: '--target x86_64-unknown-linux-gnu'
+            name: 'Linux'
+            emoji: '🐧'
+
+    runs-on: ${{ matrix.platform }}
+    
+    steps:
+      - name: 🧭 拉取代码
+        uses: actions/checkout@v4
+
+      - name: 🟦 安装 Node 20
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: 'npm'
+
+      - name: 🦀 安装 Rust
+        uses: dtolnay/rust-toolchain@stable
+        with:
+          targets: ${{ matrix.platform == 'macos-latest' && 'aarch64-apple-darwin,x86_64-apple-darwin' || '' }}
+
+      - name: 📚 Rust 缓存
+        uses: Swatinem/rust-cache@v2
+
+      - name: 🐧 安装 Linux 依赖
+        if: matrix.platform == 'ubuntu-latest'
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y libgtk-3-dev libwebkit2gtk-4.0-dev libayatana-appindicator3-dev librsvg2-dev
+
+      - name: 📦 安装前端依赖
+        run: npm ci
+
+      - name: 🏗️ 构建 Tauri 应用
+        run: npm run tauri build -- ${{ matrix.args }}
+        env:
+          TAURI_PRIVATE_KEY: ${{ secrets.TAURI_PRIVATE_KEY }}
+          TAURI_KEY_PASSWORD: ${{ secrets.TAURI_KEY_PASSWORD }}
+
+      - name: 📤 上传构建产物到 Release
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: v${{ needs.create-release.outputs.version }}
+          files: src-tauri/target/*/release/bundle/**/*
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+  notify-completion:
+    name: 发布完成通知
+    needs: [create-release, build-and-upload]
+    runs-on: ubuntu-latest
+    if: always()
+    
+    steps:
+      - name: 🎉 发布成功通知
+        if: needs.build-and-upload.result == 'success'
+        run: |
+          echo "## 🎉 发布成功！" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "### 📦 版本: v${{ needs.create-release.outputs.version }}" >> $GITHUB_STEP_SUMMARY
+          echo "### 🔗 下载地址: [GitHub Releases](https://github.com/${{ github.repository }}/releases/tag/v${{ needs.create-release.outputs.version }})" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "### 📱 支持平台:" >> $GITHUB_STEP_SUMMARY
+          echo "- 🪟 Windows (x64)" >> $GITHUB_STEP_SUMMARY
+          echo "- 🍎 macOS (Intel & Apple Silicon)" >> $GITHUB_STEP_SUMMARY
+          echo "- 🐧 Linux (x64)" >> $GITHUB_STEP_SUMMARY
+
+      - name: ❌ 发布失败通知
+        if: needs.build-and-upload.result == 'failure'
+        run: |
+          echo "## ❌ 发布失败" >> $GITHUB_STEP_SUMMARY
+          echo "请检查构建日志并修复问题后重新发布。" >> $GITHUB_STEP_SUMMARY

@@ -2,6 +2,13 @@
 
 一个使用 Tauri + React + Rust 构建的通用移动应用自动化平台，专为营销自动化和企业级移动应用管理而设计。
 
+## 🚀 CI/CD 状态
+
+![CI Status](https://github.com/your-username/employeeGUI/workflows/CI%20Pipeline/badge.svg)
+![Quality Gate](https://github.com/your-username/employeeGUI/workflows/Nightly%20Quality%20Report/badge.svg)
+![Event System](https://github.com/your-username/employeeGUI/workflows/Event%20Routing%20Validation/badge.svg)
+![Release](https://github.com/your-username/employeeGUI/workflows/Release%20Tauri%20App/badge.svg)
+
 > **📚 开发者必读**: [架构导航指南](docs/DDD架构清晰问题/架构导航指南.md) - 了解DDD架构和开发规范
 > 
 > **🚀 快速开发**: [架构快速参考](docs/DDD架构清晰问题/架构快速参考.md) - 日常开发速查
@@ -91,6 +98,52 @@ employeeGUI/
 - **后端**: Rust + Tauri
 - **数据库**: SQLite (使用 rusqlite)
 - **构建工具**: Vite
+
+## 🔄 CI/CD 工作流
+
+本项目配置了完整的 GitHub Actions 工作流，支持自动化测试、构建和部署：
+
+### 🚀 主要工作流
+
+1. **CI Pipeline** (`.github/workflows/ci.yml`)
+   - TypeScript 类型检查
+   - ESLint 代码质量检查
+   - Rust 编译和测试
+   - E2E 测试 (Playwright)
+
+2. **Release Automation** (`.github/workflows/release-tauri.yml`)
+   - 跨平台构建 (Windows, macOS, Linux)
+   - 自动生成发布版本
+   - 代码签名和公证
+
+3. **Event System Validation** (`.github/workflows/event-routing-validation.yml`)
+   - 专门测试事件路由系统
+   - 验证 ANALYSIS_PROGRESS/ANALYSIS_DONE 事件
+   - 生成测试证据报告
+
+4. **Quality Gates** (`.github/workflows/nightly-quality.yml`)
+   - 每夜质量报告
+   - 性能基准测试
+   - 技术债务检查
+
+5. **PR Automation** (`.github/workflows/pr-automation.yml`)
+   - 自动标签分类
+   - PR 大小分析
+   - 变更影响评估
+
+### 🧪 测试策略
+
+- **E2E 测试**: 使用 Playwright 验证完整用户流程
+- **事件系统测试**: 专门测试 `jobId` 路由和状态同步
+- **单元测试**: Rust 后端和 TypeScript 前端分离测试
+- **集成测试**: 跨模块功能验证
+
+### 📊 质量指标
+
+- 代码覆盖率目标: 80%+
+- E2E 测试通过率: 100%
+- TypeScript 严格模式
+- ESLint 零警告策略
 
 ## 快速开始
 

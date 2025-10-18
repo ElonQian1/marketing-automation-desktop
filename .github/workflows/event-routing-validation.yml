@@ -1,0 +1,148 @@
+# .github/workflows/event-routing-validation.yml
+name: 事件路由修复验证
+
+on:
+  pull_request:
+    paths:
+      - "src/store/**"
+      - "src/services/unified-analysis-events.ts"
+      - "src/hooks/useUnifiedSmartAnalysis.ts"
+      - "src/components/step-cards/**"
+      - "src/components/strategy-selector/**"
+      - "tests/e2e/event-routing-fix.spec.ts"
+  push:
+    branches: [ main ]
+    paths:
+      - "src/store/**"
+      - "src/services/unified-analysis-events.ts"
+      - "src/hooks/useUnifiedSmartAnalysis.ts"
+  workflow_dispatch:
+
+jobs:
+  event-routing-validation:
+    name: 事件路由修复验证
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    
+    steps:
+      - name: 🧭 拉取代码
+        uses: actions/checkout@v4
+
+      - name: 🟦 安装 Node 20
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: 'npm'
+
+      - name: 🦀 安装 Rust
+        uses: dtolnay/rust-toolchain@stable
+
+      - name: 📚 Rust 缓存
+        uses: Swatinem/rust-cache@v2
+
+      - name: 📦 安装依赖
+        run: npm ci
+
+      - name: 🏗️ 构建前端
+        run: npm run build
+
+      - name: 🔧 构建 Rust 后端
+        run: |
+          cd src-tauri
+          cargo build
+
+      - name: 🎭 安装 Playwright
+        run: npx playwright install --with-deps chromium
+
+      - name: 🎯 运行事件路由修复测试
+        run: npx playwright test event-routing-fix.spec.ts --reporter=json,html
+        env:
+          CI: true
+
+      - name: 📊 收集事件证据
+        if: always()
+        run: |
+          mkdir -p evidence/screenshots
+          mkdir -p evidence/logs
+          
+          # 收集 Playwright 报告
+          [ -d playwright-report ] && cp -r playwright-report evidence/ || true
+          
+          # 收集测试结果
+          [ -f test-results.json ] && cp test-results.json evidence/ || true
+          
+          # 收集应用日志（如果有）
+          [ -f debug/flows/backend-events.jsonl ] && cp debug/flows/backend-events.jsonl evidence/logs/ || true
+          
+          # 收集系统信息
+          echo "测试环境信息:" > evidence/system-info.txt
+          echo "Node版本: $(node --version)" >> evidence/system-info.txt
+          echo "npm版本: $(npm --version)" >> evidence/system-info.txt
+          echo "Rust版本: $(rustc --version)" >> evidence/system-info.txt
+          echo "系统: $(uname -a)" >> evidence/system-info.txt
+          echo "时间: $(date)" >> evidence/system-info.txt
+
+      - name: 📈 分析测试结果
+        if: always()
+        run: |
+          if [ -f test-results.json ]; then
+            echo "## 🎯 事件路由测试结果分析" >> $GITHUB_STEP_SUMMARY
+            
+            # 提取关键指标
+            TOTAL_TESTS=$(jq -r '.suites[].specs | length' test-results.json 2>/dev/null || echo "未知")
+            PASSED_TESTS=$(jq -r '[.suites[].specs[].tests[] | select(.status == "passed")] | length' test-results.json 2>/dev/null || echo "0")
+            FAILED_TESTS=$(jq -r '[.suites[].specs[].tests[] | select(.status == "failed")] | length' test-results.json 2>/dev/null || echo "0")
+            
+            echo "- 📊 总测试数: $TOTAL_TESTS" >> $GITHUB_STEP_SUMMARY
+            echo "- ✅ 通过: $PASSED_TESTS" >> $GITHUB_STEP_SUMMARY  
+            echo "- ❌ 失败: $FAILED_TESTS" >> $GITHUB_STEP_SUMMARY
+            
+            if [ "$FAILED_TESTS" = "0" ]; then
+              echo "- 🎉 **所有事件路由测试通过！修复验证成功**" >> $GITHUB_STEP_SUMMARY
+            else
+              echo "- ⚠️ **发现失败测试，需要进一步调试**" >> $GITHUB_STEP_SUMMARY
+            fi
+          else
+            echo "## ❌ 无法找到测试结果文件" >> $GITHUB_STEP_SUMMARY
+          fi
+
+      - name: 📎 上传证据包
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: event-routing-evidence-${{ github.run_number }}
+          path: evidence/
+          retention-days: 7
+
+      - name: 🐛 失败时的调试信息
+        if: failure()
+        run: |
+          echo "## 🔍 调试信息收集" >> $GITHUB_STEP_SUMMARY
+          echo "请查看上传的证据包获取详细信息：" >> $GITHUB_STEP_SUMMARY
+          echo "- playwright-report/ - 详细的测试报告和截图" >> $GITHUB_STEP_SUMMARY
+          echo "- logs/ - 应用和事件日志" >> $GITHUB_STEP_SUMMARY
+          echo "- system-info.txt - 测试环境信息" >> $GITHUB_STEP_SUMMARY
+          
+          # 显示最近的日志片段
+          if [ -f evidence/logs/backend-events.jsonl ]; then
+            echo "### 📋 最近的后端事件:" >> $GITHUB_STEP_SUMMARY
+            echo '```json' >> $GITHUB_STEP_SUMMARY
+            tail -5 evidence/logs/backend-events.jsonl >> $GITHUB_STEP_SUMMARY || true
+            echo '```' >> $GITHUB_STEP_SUMMARY
+          fi
+
+      - name: ✅ 成功时的确认信息
+        if: success()
+        run: |
+          echo "## 🎉 事件路由修复验证成功！" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "### ✅ 验证通过的关键功能:" >> $GITHUB_STEP_SUMMARY
+          echo "- 🔗 jobId 精确绑定机制" >> $GITHUB_STEP_SUMMARY
+          echo "- 🔄 统一事件路由系统" >> $GITHUB_STEP_SUMMARY
+          echo "- 📊 UI 状态同步（analyzing → ready）" >> $GITHUB_STEP_SUMMARY
+          echo "- 🧠 智能分析按钮状态管理" >> $GITHUB_STEP_SUMMARY
+          echo "- 📈 进度更新正确显示" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "### 🚀 修复的核心问题:" >> $GITHUB_STEP_SUMMARY
+          echo "- ❌ 旧版：后端完成但前端按钮卡在 '🧠 智能·自动链 🔄 0%'" >> $GITHUB_STEP_SUMMARY
+          echo "- ✅ 新版：正确的状态转换 '🧠 智能·自动链' → '🧠 智能·自动链 🔄 X%' → '🧠 智能·自动链 ✅'" >> $GITHUB_STEP_SUMMARY

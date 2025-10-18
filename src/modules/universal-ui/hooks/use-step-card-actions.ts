@@ -238,6 +238,10 @@ export interface UseStepCardIntelligentReturn {
   canUpgrade: boolean;
   /** 分析状态文本 */
   analysisStatusText: string;
+  /** 是否应该显示状态栏 */
+  shouldShowStatusBar: boolean;
+  /** 是否显示升级按钮 */
+  showUpgradeButton: boolean;
   /** 开始分析 */
   handleStartAnalysis: () => void;
   /** 取消分析 */
@@ -322,6 +326,8 @@ export const useStepCardIntelligent = ({
     hasRecommendation,
     canUpgrade,
     analysisStatusText: getAnalysisStatusText(),
+    shouldShowStatusBar: enableIntelligent && (isAnalyzing || stepData.analysisState === 'analysis_completed' || stepData.analysisState === 'analysis_failed'),
+    showUpgradeButton: canUpgrade,
     handleStartAnalysis,
     handleCancelAnalysis,
     handleRetryAnalysis,
