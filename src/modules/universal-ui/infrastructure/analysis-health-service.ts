@@ -2,7 +2,7 @@
 // module: universal-ui | layer: infrastructure | role: health-check-service
 // summary: 分析启动前的系统健康检查服务
 
-import { invoke } from '@tauri-apps/api/tauri';
+import { invoke } from '@tauri-apps/api/core';
 import { toast } from 'react-hot-toast';
 
 interface SystemHealthCheck {
