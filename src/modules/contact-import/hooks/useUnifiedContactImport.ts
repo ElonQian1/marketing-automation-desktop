@@ -6,7 +6,7 @@
 // 重构后的联系人导入Hook，使用统一的ADB设备管理器适配器，提供完整的联系人导入流程管理和状态控制
 
 import { useState, useRef, useCallback, useEffect } from 'react';
-import { ContactCoreImporter, ContactCoreImporterEventListener } from '../core/contact-core-importer';
+import { ContactImporterUseCase, ContactImporterEventListener } from '../application/usecases/ContactImporterUseCase';
 import { UnifiedAdbDeviceManager } from '../adapters/UnifiedAdbDeviceManager';
 import { VcfParser } from '../parsers/VcfParser';
 import { ContactImportStrategyFactory } from '../strategies/contact-strategy-import';
@@ -92,7 +92,7 @@ export function useContactImport(options: UseContactImportOptions = {}): UseCont
   }));
 
   // Refs
-  const importerRef = useRef<ContactCoreImporter | null>(null);
+  const importerRef = useRef<ContactImporterUseCase | null>(null);
   const deviceManagerRef = useRef<UnifiedAdbDeviceManager | null>(null);
 
   // 初始化统一设备管理器
@@ -164,7 +164,7 @@ export function useContactImport(options: UseContactImportOptions = {}): UseCont
         const parser = new VcfParser();
         const strategy = ContactImportStrategyFactory.create(configuration.strategy);
 
-        const importer = new ContactCoreImporter({
+        const importer = new ContactImporterUseCase({
           parser,
           deviceManager: deviceManagerRef.current,
           strategy,
@@ -174,7 +174,7 @@ export function useContactImport(options: UseContactImportOptions = {}): UseCont
         importerRef.current = importer;
 
         // 设置事件监听器
-        const eventListener: ContactCoreImporterEventListener = {
+        const eventListener: ContactImporterEventListener = {
           onProgress: (progressData) => {
             setProgress(progressData);
             options.onProgress?.(progressData);

@@ -38,7 +38,7 @@ export interface UniversalEnhancedStepCardIntegrationProps {
  * 3. ✅ 策略模式切换 - UniversalStrategyModeSelector
  * 4. ✅ 候选策略展示 - UniversalStrategyCandidatesSection
  * 
- * 这是一个完整的实现参考，可以直接应用到 StepCardSystemClean.tsx 中
+ * 这是一个完整的实现参考，可以直接应用到 StepCardSystem.tsx 中
  */
 export const UniversalEnhancedStepCardIntegration: React.FC<UniversalEnhancedStepCardIntegrationProps> = ({
   stepCard,

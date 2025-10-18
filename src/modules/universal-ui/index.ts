@@ -25,9 +25,9 @@ export * from "./hooks/use-step-card-actions";
 export * from "./styles/step-card-theme";
 
 // === 改进的包装器（渐进式迁移） ===
-export { 
+export {
   ImprovedSmartStepWrapper,
-  SmartStepCardWrapperV2 
+  SmartStepCardWrapperV2,
 } from "./components/improved-smart-step-wrapper";
 
 // === 演示页面 ===
@@ -68,20 +68,20 @@ export {
 export { StepCard as LegacyStepCard } from "./ui/StepCard"; // 保持向后兼容（特殊用途）
 
 // === 🆕 智能分析UI组件导出（新增缺失功能） ===
-export { 
+export {
   UniversalFallbackBadge,
   UniversalRecommendedBadge,
   UniversalStrategyCandidatesSection,
   UniversalStrategyModeSelector,
   UniversalPublishReadinessModal,
-  UniversalAnalysisStatusSection
+  UniversalAnalysisStatusSection,
 } from "./ui/components";
 export type {
   UniversalFallbackBadgeProps,
   UniversalRecommendedBadgeProps,
   UniversalStrategyCandidatesSectionProps,
   UniversalStrategyModeSelectorProps,
-  UniversalPublishReadinessModalProps
+  UniversalPublishReadinessModalProps,
 } from "./ui/components";
 export { UniversalEnhancedStepCardIntegration } from "./ui/components/universal-enhanced-step-card-integration";
 

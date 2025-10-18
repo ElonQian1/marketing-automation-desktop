@@ -4,15 +4,15 @@
 
 /**
  * 智能分析步骤卡片组件 - 基于统一 StepCardSystem 实现
- * 
+ *
  * 🔄 重构说明：
  * 此组件现在内部使用 StepCardSystem，消除了重复实现，但保持原有接口兼容性
- * 
+ *
  * ✅ 新特性：
  * - 消除重复的编辑、删除、模态框等逻辑
  * - 使用统一的数据格式和样式系统
  * - 保持完整的智能分析功能特性
- * 
+ *
  * 🎯 向后兼容：
  * - 保持相同的 Props 接口
  * - 保持相同的回调方法
@@ -21,7 +21,10 @@
 
 import React from "react";
 import { StepCardSystem } from "./step-card-system/StepCardSystem";
-import type { StepCardCallbacks, UnifiedStepCardData } from "../types/unified-step-card-types";
+import type {
+  StepCardCallbacks,
+  UnifiedStepCardData,
+} from "../types/unified-step-card-types";
 import type { IntelligentStepCard as StepCardData } from "../types/intelligent-analysis-types";
 
 /**
@@ -122,20 +125,24 @@ export const UnifiedStepCard: React.FC<UnifiedStepCardProps> = ({
     onCopy: onCopy ? () => onCopy() : undefined,
     onToggle: onToggle ? () => onToggle() : undefined,
     onViewDetails: onViewDetails ? () => onViewDetails() : undefined,
-    
+
     // 智能分析相关（UnifiedStepCard 的核心功能）
     onStartAnalysis: () => {
       // 触发智能分析逻辑（如果需要）
     },
     onCancelAnalysis: onCancelAnalysis ? () => onCancelAnalysis() : undefined,
     onRetryAnalysis: onRetryAnalysis ? () => onRetryAnalysis() : undefined,
-    onUpgradeStrategy: onUpgradeStrategy ? () => onUpgradeStrategy() : undefined,
-    onSwitchStrategy: onSwitchStrategy ? (strategyKey: string) => onSwitchStrategy(strategyKey, true) : undefined,
-    
+    onUpgradeStrategy: onUpgradeStrategy
+      ? () => onUpgradeStrategy()
+      : undefined,
+    onSwitchStrategy: onSwitchStrategy
+      ? (strategyKey: string) => onSwitchStrategy(strategyKey, true)
+      : undefined,
+
     // 拖拽相关
     onDragStart: draggable ? () => {} : undefined,
     onDragEnd: draggable ? () => {} : undefined,
-    
+
     // 数据更新（保持原有逻辑）
     onDataChange: () => {
       // 数据变更处理逻辑（如果需要的话）
@@ -165,13 +172,13 @@ export const UnifiedStepCard: React.FC<UnifiedStepCardProps> = ({
         enableCopy: !!onCopy,
         enableToggle: !!onToggle,
         enableViewDetails: !!onViewDetails,
-        
+
         // 根据 props 控制拖拽
         enableDrag: draggable,
       }}
       styleConfig={{
         // 保持原有的视觉风格
-        theme: 'default',
+        theme: "default",
         size: size,
         className: `unified-step-card ${className}`,
       }}

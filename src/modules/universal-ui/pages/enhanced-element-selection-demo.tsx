@@ -7,7 +7,7 @@ import { Card, Space, Button, Typography, Alert, List, Tag, message } from 'antd
 import { PlayCircleOutlined, ThunderboltOutlined, ReloadOutlined } from '@ant-design/icons';
 
 import { useIntelligentAnalysisWorkflow } from '../hooks/use-intelligent-analysis-workflow';
-import { StepCardSystem } from '../components/step-card-system/StepCardSystemClean';
+import { StepCardSystem } from '../components/step-card-system/StepCardSystem';
 import { ElementSelectionPopover } from '../../../components/universal-ui/element-selection/ElementSelectionPopover';
 import type { 
   ElementSelectionContext,

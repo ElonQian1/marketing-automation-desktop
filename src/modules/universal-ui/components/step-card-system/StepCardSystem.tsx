@@ -5,13 +5,13 @@
 import React, { useMemo } from 'react';
 import type { UnifiedStepCardData, StepCardFeatureConfig, StepCardStyleConfig, StepCardCallbacks } from '../../types/unified-step-card-types';
 import { smartAdapt } from '../../types/unified-step-card-types';
-import { useStepCardActions } from '../../hooks/use-step-card-actions';
+import { useStepCardActions, useStepCardDrag, useStepCardIntelligent } from '../../hooks/use-step-card-actions';
 import { generateStepCardStyles } from '../../styles/step-card-theme';
 
 // 统一的系统属性定义
 export interface StepCardSystemProps {
   /** 步骤数据（自动适配各种格式） */
-  stepData: UnifiedStepCardData;
+  stepData: unknown;
   /** 步骤索引 */
   stepIndex?: number;
   /** 功能配置 */
@@ -52,16 +52,14 @@ export interface StepCardSystemProps {
  * // 智能分析卡片（替代 UnifiedStepCard）
  * <StepCardSystem
  *   stepData={stepData}
- *   config={{ enableIntelligent: true }}
+ *   config={{ enableIntelligent: true, enableUpgrade: true }}
  *   callbacks={{ onUpgradeStrategy: handleUpgrade }}
  * />
  * 
- * // 完整功能卡片（推荐）
+ * // 完整功能卡片
  * <StepCardSystem
  *   stepData={stepData}
- *   config={{ enableDrag: true, enableIntelligent: true }}
- *   styleConfig={{ theme: 'modern', size: 'default' }}
- *   callbacks={{ onEdit: handleEdit, onUpgradeStrategy: handleUpgrade }}
+ *   config={{ enableDrag: true, enableIntelligent: true, enableEdit: true }}
  * />
  * ```
  */
@@ -71,6 +69,7 @@ export const StepCardSystem: React.FC<StepCardSystemProps> = ({
   config = {},
   styleConfig = {},
   callbacks = {},
+  isDragging = false,
   dragHandleProps,
   systemMode = 'full'
 }) => {
@@ -98,81 +97,101 @@ export const StepCardSystem: React.FC<StepCardSystemProps> = ({
         return {
           enableDrag: true,
           enableEdit: true,
+          enableDelete: true,
+          enableTest: true,
+          enableCopy: true,
           enableIntelligent: false,
           ...baseConfig
         };
       case 'intelligent-only':
         return {
           enableDrag: false,
+          enableEdit: false,
+          enableDelete: false,
+          enableTest: false,
+          enableCopy: false,
           enableIntelligent: true,
           ...baseConfig
         };
       case 'full':
       default:
         return {
-          enableDrag: true,
           enableEdit: true,
           enableDelete: true,
           enableTest: true,
           enableCopy: true,
+          enableDrag: true,
           enableIntelligent: true,
-          enableToggle: true,
-          enableViewDetails: true,
           ...baseConfig
         };
     }
   }, [config, systemMode]);
 
-  // 使用通用 hooks
+  // 提取通用功能
   const actions = useStepCardActions({
     stepData: unifiedStepData,
     callbacks,
-    features: finalConfig
+    features: {
+      enableEdit: finalConfig.enableEdit,
+      enableDelete: finalConfig.enableDelete,
+      enableTest: finalConfig.enableTest,
+      enableCopy: finalConfig.enableCopy,
+      enableToggle: finalConfig.enableToggle,
+      enableViewDetails: finalConfig.enableViewDetails
+    }
   });
 
-  // 📌 拖拽功能层（临时简化）
-  const drag = {
-    isDragEnabled: finalConfig.enableDrag,
-    dragHandleProps: {},
-    isDragging: false,
-  };
+  const drag = useStepCardDrag({
+    stepData: unifiedStepData,
+    stepIndex,
+    enableDrag: finalConfig.enableDrag,
+    isDragging,
+    dragHandleProps,
+    callbacks: {
+      onDragStart: callbacks.onDragStart,
+      onDragEnd: callbacks.onDragEnd
+    }
+  });
 
-  // 📌 智能分析功能层（临时简化）
-  const intelligent = {
-    isIntelligentEnabled: finalConfig.enableIntelligent || false,
-    isAnalyzing: false,
-    analysisProgress: 0,
-    canUpgrade: false,
-    shouldShowStatusBar: true,
-    analysisStatusText: '智能分析就绪',
-    showUpgradeButton: false,
-    handleUpgradeStrategy: () => callbacks.onUpgradeStrategy?.(unifiedStepData.id),
-    handleCancelAnalysis: () => callbacks.onCancelAnalysis?.(unifiedStepData.id),
-    handleRetryAnalysis: () => callbacks.onRetryAnalysis?.(unifiedStepData.id),
-  };
+  const intelligent = useStepCardIntelligent({
+    stepData: unifiedStepData,
+    enableIntelligent: finalConfig.enableIntelligent,
+    callbacks: {
+      onStartAnalysis: callbacks.onStartAnalysis,
+      onCancelAnalysis: callbacks.onCancelAnalysis,
+      onRetryAnalysis: callbacks.onRetryAnalysis,
+      onUpgradeStrategy: callbacks.onUpgradeStrategy,
+      onSwitchStrategy: callbacks.onSwitchStrategy,
+      onAnalysisComplete: callbacks.onAnalysisComplete,
+      onAnalysisError: callbacks.onAnalysisError
+    }
+  });
 
   // 生成统一样式
   const { styles, className } = useMemo(() => {
     return generateStepCardStyles({
       theme: styleConfig.theme || 'default',
       size: styleConfig.size || 'default',
-      state: unifiedStepData.enabled === false ? 'disabled' 
-        : intelligent.isAnalyzing ? 'analyzing'
-        : unifiedStepData.analysisState === 'analysis_completed' ? 'completed'
-        : unifiedStepData.analysisState === 'analysis_failed' ? 'error'
-        : 'idle',
-      dragEffect: styleConfig.theme === 'modern' ? 'shadow' : 'rotate',
-      isDragging: drag.isDragging,
-      customClassName: styleConfig.className,
-      customStyle: styleConfig.style
+      state: isDragging ? 'active' : unifiedStepData.enabled ? 'idle' : 'disabled',
+      isDragging: isDragging,
+      dragEffect: styleConfig.dragEffect || 'rotate'
     });
-  }, [styleConfig, unifiedStepData, intelligent.isAnalyzing, drag.isDragging]);
+  }, [styleConfig, isDragging, unifiedStepData.enabled]);
 
   return (
     <div 
-      className={className}
-      style={styles}
-      {...(drag.isDragEnabled ? dragHandleProps : {})}
+      className={`unified-step-card ${className}`}
+      style={{
+        ...styles.container,
+        ...(isDragging ? styles.dragging : {}),
+        border: '1px solid #e8e8e8',
+        borderRadius: '8px',
+        padding: '12px',
+        background: 'white',
+        boxShadow: isDragging ? '0 4px 12px rgba(0,0,0,0.15)' : '0 1px 3px rgba(0,0,0,0.1)',
+        transform: isDragging ? 'rotate(2deg) scale(1.02)' : 'none',
+        transition: 'all 0.2s ease'
+      }}
     >
       <StepCardContent
         stepData={unifiedStepData}
@@ -195,23 +214,8 @@ interface StepCardContentProps {
   stepIndex?: number;
   config: StepCardFeatureConfig;
   actions: ReturnType<typeof useStepCardActions>;
-  drag: {
-    isDragEnabled: boolean;
-    dragHandleProps: Record<string, unknown>;
-    isDragging: boolean;
-  };
-  intelligent: {
-    isIntelligentEnabled: boolean;
-    isAnalyzing: boolean;
-    analysisProgress: number;
-    canUpgrade: boolean;
-    shouldShowStatusBar: boolean;
-    analysisStatusText: string;
-    showUpgradeButton: boolean;
-    handleUpgradeStrategy: () => void;
-    handleCancelAnalysis: () => void;
-    handleRetryAnalysis: () => void;
-  };
+  drag: ReturnType<typeof useStepCardDrag>;
+  intelligent: ReturnType<typeof useStepCardIntelligent>;
 }
 
 const StepCardContent: React.FC<StepCardContentProps> = ({
@@ -233,21 +237,12 @@ const StepCardContent: React.FC<StepCardContentProps> = ({
           : 'default'
         }`} style={{ 
           padding: '8px 12px', 
-          // 🎨 深色主题适配的状态条背景
-          background: intelligent.isAnalyzing ? 'var(--info-bg, #1e3a8a)' 
-                     : stepData.analysisState === 'analysis_completed' ? 'var(--success-bg, #134e4a)' 
-                     : stepData.analysisState === 'analysis_failed' ? 'var(--error-bg, #7f1d1d)'
-                     : 'var(--bg-secondary, #334155)',
+          background: intelligent.isAnalyzing ? '#e6f7ff' : stepData.analysisState === 'analysis_completed' ? '#fff7e6' : stepData.analysisState === 'analysis_failed' ? '#fff2f0' : '#f5f5f5',
           border: '1px solid',
-          borderColor: intelligent.isAnalyzing ? 'var(--info, #3b82f6)' 
-                      : stepData.analysisState === 'analysis_completed' ? 'var(--success, #10b981)' 
-                      : stepData.analysisState === 'analysis_failed' ? 'var(--error, #ef4444)'
-                      : 'var(--border-secondary, #475569)',
+          borderColor: intelligent.isAnalyzing ? '#91d5ff' : stepData.analysisState === 'analysis_completed' ? '#ffd591' : stepData.analysisState === 'analysis_failed' ? '#ffccc7' : '#d9d9d9',
           borderRadius: '4px',
           marginBottom: '8px',
-          fontSize: '12px',
-          // 🎨 确保文字颜色在深色背景下可见
-          color: 'var(--text-1, #F8FAFC)'
+          fontSize: '12px'
         }}>
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
             <span>{intelligent.analysisStatusText}</span>
@@ -314,10 +309,10 @@ const StepCardContent: React.FC<StepCardContentProps> = ({
           {stepIndex !== undefined && (
             <span style={{ 
               fontSize: '12px', 
-              color: 'var(--text-2, #E2E8F0)', // 🎨 深色主题下的浅色文字
+              color: '#666', 
               minWidth: '20px',
               textAlign: 'center',
-              background: 'var(--bg-secondary, #334155)', // 🎨 深色主题下的背景
+              background: '#f0f0f0',
               borderRadius: '10px',
               padding: '2px 6px'
             }}>
@@ -450,16 +445,16 @@ const StepCardContent: React.FC<StepCardContentProps> = ({
       </div>
 
       {/* 内容区域 */}
-      <div className="unified-step-card__content">
+      <div className="unified-step-card__content" style={{ marginTop: '8px' }}>
         {/* 步骤描述 */}
         {stepData.description && (
-          <p style={{ margin: '0 0 8px 0', fontSize: '12px', color: 'var(--text-3, #CBD5E1)' }}>
+          <p style={{ margin: '0 0 8px 0', fontSize: '12px', color: '#666' }}>
             {stepData.description}
           </p>
         )}
         
         {/* 步骤类型和参数 */}
-        <div style={{ fontSize: '12px', color: 'var(--text-3, #CBD5E1)' }}>
+        <div style={{ fontSize: '12px', color: '#888' }}>
           <span>类型：{stepData.stepType}</span>
           {stepData.parameters && Object.keys(stepData.parameters).length > 0 && (
             <span style={{ marginLeft: 16 }}>
@@ -488,34 +483,24 @@ const StepCardContent: React.FC<StepCardContentProps> = ({
               <div key={index} style={{
                 padding: '4px 8px',
                 margin: '2px 0',
-                background: 'white',
+                background: candidate.key === stepData.recommendedKey ? '#e7f5e7' : 'white',
                 border: '1px solid',
-                borderColor: '#d9d9d9',
+                borderColor: candidate.key === stepData.recommendedKey ? '#52c41a' : '#d9d9d9',
                 borderRadius: '4px',
                 fontSize: '11px',
                 display: 'flex',
                 justifyContent: 'space-between',
                 alignItems: 'center'
               }}>
-                <span>{candidate.description || `策略${index + 1}`}</span>
-                <span style={{ color: '#8c8c8c' }}>
-                  智能策略
+                <span>{candidate.description || candidate.strategy || `策略${index + 1}`}</span>
+                <span style={{ 
+                  color: candidate.score >= 0.8 ? '#52c41a' : candidate.score >= 0.6 ? '#faad14' : '#8c8c8c' 
+                }}>
+                  {Math.round((candidate.score || 0) * 100)}%
                 </span>
               </div>
             ))}
           </div>
-        </div>
-      )}
-
-      {/* 调试信息 */}
-      {config.showDebugInfo && (
-        <div style={{ marginTop: 8, padding: 8, background: '#f5f5f5', fontSize: 11, borderRadius: 4 }}>
-          <strong>🐛 调试信息:</strong>
-          <br />ID: {stepData.id}
-          <br />模式: unified
-          <br />拖拽: {drag.isDragEnabled ? '✅' : '❌'}
-          <br />智能: {intelligent.isIntelligentEnabled ? '✅' : '❌'}
-          <br />状态: {stepData.analysisState || 'idle'}
         </div>
       )}
     </>

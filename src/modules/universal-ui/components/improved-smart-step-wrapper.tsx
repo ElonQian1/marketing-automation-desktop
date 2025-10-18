@@ -5,7 +5,10 @@
 import React from "react";
 import { StepCardSystem } from "./step-card-system/StepCardSystem";
 import type { SmartScriptStep } from "../../../types/smartScript";
-import type { StepCardCallbacks, UnifiedStepCardData } from "../types/unified-step-card-types";
+import type {
+  StepCardCallbacks,
+  UnifiedStepCardData,
+} from "../types/unified-step-card-types";
 
 interface ImprovedSmartStepWrapperProps {
   /** 步骤数据 */
@@ -16,7 +19,7 @@ interface ImprovedSmartStepWrapperProps {
   isDragging?: boolean;
   /** 拖拽句柄属性 */
   dragHandleProps?: React.HTMLAttributes<HTMLElement>;
-  
+
   // === 传统回调函数（兼容现有接口） ===
   /** 编辑步骤 */
   onEdit: (step: SmartScriptStep) => void;
@@ -27,20 +30,23 @@ interface ImprovedSmartStepWrapperProps {
   /** 编辑步骤参数 */
   onEditStepParams?: (step: SmartScriptStep) => void;
   /** 更新步骤元信息 */
-  onUpdateStepMeta?: (stepId: string, meta: { name?: string; description?: string }) => void;
+  onUpdateStepMeta?: (
+    stepId: string,
+    meta: { name?: string; description?: string }
+  ) => void;
   /** 测试步骤 */
   onTest?: (step: SmartScriptStep) => void;
   /** 复制步骤 */
   onCopy?: (step: SmartScriptStep) => void;
   /** 打开页面分析器（可选） */
   onOpenPageAnalyzer?: () => void;
-  
+
   // === 拖拽相关 ===
   /** 拖拽开始 */
   onDragStart?: (stepId: string) => void;
   /** 拖拽结束 */
   onDragEnd?: (stepId: string, newPosition: number) => void;
-  
+
   // === 智能分析相关（可选） ===
   /** 启动智能分析 */
   onStartAnalysis?: (stepId: string) => void;
@@ -48,26 +54,26 @@ interface ImprovedSmartStepWrapperProps {
   onUpgradeStrategy?: (stepId: string) => void;
   /** 重试分析 */
   onRetryAnalysis?: (stepId: string) => void;
-  
+
   // === 配置选项 ===
   /** 是否启用智能分析功能 */
   enableIntelligent?: boolean;
   /** 是否显示调试信息 */
   showDebugInfo?: boolean;
   /** 自定义样式主题 */
-  theme?: 'default' | 'compact' | 'modern';
+  theme?: "default" | "compact" | "modern";
 }
 
 /**
  * 改进的智能步骤卡片包装器
- * 
+ *
  * 🎯 核心优势：
  * 1. 使用统一的 StepCardSystem 替代分散的 DraggableStepCard
  * 2. 自动适配数据格式，无需手动转换
  * 3. 统一的功能配置和样式系统
  * 4. 完整的向后兼容性，现有代码无需修改
  * 5. 可选的智能分析功能集成
- * 
+ *
  * 📋 迁移指南：
  * ```tsx
  * // 旧用法
@@ -77,7 +83,7 @@ interface ImprovedSmartStepWrapperProps {
  *   onDelete={handleDelete}
  *   onToggle={handleToggle}
  * />
- * 
+ *
  * // 新用法（完全兼容）
  * <ImprovedSmartStepWrapper
  *   step={step}
@@ -89,7 +95,9 @@ interface ImprovedSmartStepWrapperProps {
  * />
  * ```
  */
-export const ImprovedSmartStepWrapper: React.FC<ImprovedSmartStepWrapperProps> = ({
+export const ImprovedSmartStepWrapper: React.FC<
+  ImprovedSmartStepWrapperProps
+> = ({
   step,
   stepIndex,
   isDragging = false,
@@ -109,7 +117,7 @@ export const ImprovedSmartStepWrapper: React.FC<ImprovedSmartStepWrapperProps> =
   onRetryAnalysis,
   enableIntelligent = false,
   showDebugInfo = false,
-  theme = 'default'
+  theme = "default",
 }) => {
   // 构建统一的回调函数
   const callbacks: StepCardCallbacks = {
@@ -123,41 +131,51 @@ export const ImprovedSmartStepWrapper: React.FC<ImprovedSmartStepWrapperProps> =
     onToggle: (stepId: string) => {
       onToggle(stepId);
     },
-    onTest: onTest ? () => {
-      onTest(step);
-    } : undefined,
-    onCopy: onCopy ? () => {
-      onCopy(step);
-    } : undefined,
-    
+    onTest: onTest
+      ? () => {
+          onTest(step);
+        }
+      : undefined,
+    onCopy: onCopy
+      ? () => {
+          onCopy(step);
+        }
+      : undefined,
+
     // 数据更新
-    onMetaUpdate: onUpdateStepMeta ? (stepId: string, meta: { name?: string; description?: string }) => {
-      onUpdateStepMeta(stepId, meta);
-    } : undefined,
-    onParameterChange: onEditStepParams ? (_stepId: string, parameters: Record<string, unknown>) => {
-      const updatedStep = { ...step, parameters };
-      onEditStepParams(updatedStep);
-    } : undefined,
-    
+    onMetaUpdate: onUpdateStepMeta
+      ? (stepId: string, meta: { name?: string; description?: string }) => {
+          onUpdateStepMeta(stepId, meta);
+        }
+      : undefined,
+    onParameterChange: onEditStepParams
+      ? (_stepId: string, parameters: Record<string, unknown>) => {
+          const updatedStep = { ...step, parameters };
+          onEditStepParams(updatedStep);
+        }
+      : undefined,
+
     // 拖拽操作
     onDragStart,
     onDragEnd,
-    
+
     // 智能分析操作
     onStartAnalysis,
     onUpgradeStrategy,
     onRetryAnalysis,
-    
+
     // 详情查看（如果有页面分析器）
-    onViewDetails: onOpenPageAnalyzer ? () => {
-      onOpenPageAnalyzer();
-    } : undefined
+    onViewDetails: onOpenPageAnalyzer
+      ? () => {
+          onOpenPageAnalyzer();
+        }
+      : undefined,
   };
 
   // 转换 SmartScriptStep 到 UnifiedStepCardData 格式
   const unifiedStepData: UnifiedStepCardData = {
     ...step,
-    stepType: step.step_type || 'click', // SmartScriptStep 使用 'step_type'，UnifiedStepCardData 使用 'stepType'
+    stepType: step.step_type || "click", // SmartScriptStep 使用 'step_type'，UnifiedStepCardData 使用 'stepType'
   };
 
   return (
@@ -175,15 +193,15 @@ export const ImprovedSmartStepWrapper: React.FC<ImprovedSmartStepWrapperProps> =
         enableToggle: true,
         enableViewDetails: !!onOpenPageAnalyzer,
         enableIntelligent,
-        showDebugInfo
+        showDebugInfo,
       }}
       styleConfig={{
         theme,
-        size: 'default',
-        className: 'improved-smart-step-wrapper'
+        size: "default",
+        className: "improved-smart-step-wrapper",
       }}
       callbacks={callbacks}
-      systemMode={enableIntelligent ? 'full' : 'interaction-only'}
+      systemMode={enableIntelligent ? "full" : "interaction-only"}
     />
   );
 };

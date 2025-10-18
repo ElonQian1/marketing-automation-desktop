@@ -12,11 +12,14 @@ import {
   Col,
   Switch,
   Select,
-  message
+  message,
 } from "antd";
 
 import { StepCardSystem } from "../components/step-card-system/StepCardSystem";
-import type { UnifiedStepCardData, StepCardCallbacks } from "../types/unified-step-card-types";
+import type {
+  UnifiedStepCardData,
+  StepCardCallbacks,
+} from "../types/unified-step-card-types";
 
 const { Title, Paragraph, Text } = Typography;
 
@@ -28,41 +31,44 @@ export const StepCardSystemDemo: React.FC = () => {
   const [selectedTheme, setSelectedTheme] = useState<string>("default");
 
   // 创建统一的回调函数
-  const createCallbacks = useCallback((): StepCardCallbacks => ({
-    onEdit: (stepId: string) => {
-      message.info(`编辑步骤: ${stepId}`);
-    },
-    onDelete: (stepId: string) => {
-      message.warning(`删除步骤: ${stepId}`);
-    },
-    onTest: (stepId: string) => {
-      message.info(`测试步骤: ${stepId}`);
-    },
-    onCopy: (stepId: string) => {
-      message.success(`复制步骤: ${stepId}`);
-    },
-    onToggle: (stepId: string, enabled: boolean) => {
-      message.info(`${enabled ? '启用' : '禁用'}步骤: ${stepId}`);
-    },
-    onViewDetails: (stepId: string) => {
-      message.info(`查看详情: ${stepId}`);
-    },
-    onStartAnalysis: (stepId: string) => {
-      message.info(`开始分析: ${stepId}`);
-    },
-    onUpgradeStrategy: (stepId: string) => {
-      message.success(`升级策略: ${stepId}`);
-    },
-    onRetryAnalysis: (stepId: string) => {
-      message.info(`重试分析: ${stepId}`);
-    },
-    onCancelAnalysis: (stepId: string) => {
-      message.warning(`取消分析: ${stepId}`);
-    },
-    onSwitchStrategy: (stepId: string, strategyKey: string) => {
-      message.info(`切换策略: ${stepId} -> ${strategyKey}`);
-    },
-  }), []);
+  const createCallbacks = useCallback(
+    (): StepCardCallbacks => ({
+      onEdit: (stepId: string) => {
+        message.info(`编辑步骤: ${stepId}`);
+      },
+      onDelete: (stepId: string) => {
+        message.warning(`删除步骤: ${stepId}`);
+      },
+      onTest: (stepId: string) => {
+        message.info(`测试步骤: ${stepId}`);
+      },
+      onCopy: (stepId: string) => {
+        message.success(`复制步骤: ${stepId}`);
+      },
+      onToggle: (stepId: string, enabled: boolean) => {
+        message.info(`${enabled ? "启用" : "禁用"}步骤: ${stepId}`);
+      },
+      onViewDetails: (stepId: string) => {
+        message.info(`查看详情: ${stepId}`);
+      },
+      onStartAnalysis: (stepId: string) => {
+        message.info(`开始分析: ${stepId}`);
+      },
+      onUpgradeStrategy: (stepId: string) => {
+        message.success(`升级策略: ${stepId}`);
+      },
+      onRetryAnalysis: (stepId: string) => {
+        message.info(`重试分析: ${stepId}`);
+      },
+      onCancelAnalysis: (stepId: string) => {
+        message.warning(`取消分析: ${stepId}`);
+      },
+      onSwitchStrategy: (stepId: string, strategyKey: string) => {
+        message.info(`切换策略: ${stepId} -> ${strategyKey}`);
+      },
+    }),
+    []
+  );
 
   // 模拟数据
   const mockUnifiedStep: UnifiedStepCardData = {
@@ -135,17 +141,17 @@ export const StepCardSystemDemo: React.FC = () => {
         <Paragraph>
           直接使用 UnifiedStepCardData 格式的步骤，展示统一系统的完整功能。
         </Paragraph>
-        
+
         <Space direction="vertical" size="middle" style={{ width: "100%" }}>
           <StepCardSystem
             stepData={mockUnifiedStep}
             callbacks={createCallbacks()}
-            systemMode={enableIntelligent ? 'full' : 'interaction-only'}
+            systemMode={enableIntelligent ? "full" : "interaction-only"}
           />
         </Space>
       </Card>
 
-      <div style={{ marginTop: 24, textAlign: 'center' }}>
+      <div style={{ marginTop: 24, textAlign: "center" }}>
         <Text type="secondary">
           ✨ 重构完成！现在所有步骤卡片都使用统一的系统，提供一致的体验。
         </Text>
