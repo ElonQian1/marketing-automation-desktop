@@ -4,7 +4,7 @@
 
 import React from 'react';
 import { CSS } from '@dnd-kit/utilities';
-import type { ExtendedSmartScriptStep } from '../../types/intelligent-analysis-types';
+import type { ExtendedSmartScriptStep } from '../../types/loopScript';
 
 interface ModernStepCardProps {
   step: ExtendedSmartScriptStep;
@@ -210,11 +210,7 @@ export const ModernStepCard: React.FC<ModernStepCardProps> = ({
                 borderRadius: '6px',
                 color: 'var(--text-2)',
                 fontSize: '14px',
-                transition: 'all var(--duration-fast)',
-                ':hover': {
-                  background: 'var(--bg-secondary)',
-                  color: 'var(--text-1)'
-                }
+                transition: 'all var(--duration-fast)'
               }}
               onMouseEnter={(e) => {
                 e.currentTarget.style.background = 'var(--bg-secondary)';
@@ -264,11 +260,7 @@ export const ModernStepCard: React.FC<ModernStepCardProps> = ({
                 borderRadius: '6px',
                 color: 'var(--text-3)',
                 fontSize: '14px',
-                transition: 'all var(--duration-fast)',
-                ':hover': {
-                  background: 'var(--error-bg)',
-                  color: 'var(--error)'
-                }
+                transition: 'all var(--duration-fast)'
               }}
               onMouseEnter={(e) => {
                 e.currentTarget.style.background = 'rgba(239, 68, 68, 0.1)';

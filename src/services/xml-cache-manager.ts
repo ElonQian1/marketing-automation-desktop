@@ -320,4 +320,7 @@ class XmlCacheManager {
   }
 }
 
+// Named export for compatibility
+export const xmlCacheManager = new XmlCacheManager();
+
 export default XmlCacheManager;

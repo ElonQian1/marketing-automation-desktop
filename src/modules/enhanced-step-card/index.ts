@@ -6,4 +6,5 @@
  * 增强步骤卡片模块入口文件
  */
 
-export { default as EnhancedStepCard } from './EnhancedStepCard';
+// Note: EnhancedStepCard has been migrated to universal-ui module
+export { default as EnhancedStepCard } from '../universal-ui/ui/components/universal-enhanced-step-card-integration';

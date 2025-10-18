@@ -94,7 +94,8 @@ impl LogCollector {
 
         // 实时发送到前端
         if let Some(app_handle) = &self.app_handle {
-            let _ = app_handle.emit("log-entry", &log_entry);
+            use crate::infrastructure::events::emit_and_trace;
+            let _ = emit_and_trace(app_handle, "log-entry", &log_entry);
         }
 
         // 同时记录到标准日志
@@ -148,9 +149,10 @@ impl LogCollector {
             logs.push_back(adb_log.clone());
         }
 
-        // 实时发送到前端
+        // 实时发送到前端  
         if let Some(app_handle) = &self.app_handle {
-            let _ = app_handle.emit("adb-command-log", &adb_log);
+            use crate::infrastructure::events::emit_and_trace;
+            let _ = emit_and_trace(app_handle, "adb-command-log", &adb_log);
         }
 
         // 也作为普通日志记录
@@ -180,7 +182,8 @@ impl LogCollector {
         self.adb_command_logs.lock().unwrap().clear();
         
         if let Some(app_handle) = &self.app_handle {
-            let _ = app_handle.emit("logs-cleared", ());
+            use crate::infrastructure::events::emit_and_trace;
+            let _ = emit_and_trace(app_handle, "logs-cleared", &());
         }
     }
 

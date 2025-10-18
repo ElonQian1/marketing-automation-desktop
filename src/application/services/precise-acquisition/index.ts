@@ -6,6 +6,6 @@ export * from './WatchTargetService';
 export * from './CommentService';
 export * from './TaskQueueService';
 export * from './DeduplicationService';
-export * from './RateLimitService';
+export * from './prospecting-rate-limit-service';
 export * from './AuditTrailService';
 export * from './ComplianceService';

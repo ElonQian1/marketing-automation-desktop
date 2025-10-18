@@ -247,7 +247,8 @@ impl AdbDeviceTracker {
 
                         // 发送事件到前端
                         if let Some(handle) = app_handle.lock().await.as_ref() {
-                            if let Err(e) = handle.emit("device-change", &event) {
+                            use crate::infrastructure::events::emit_and_trace;
+                            if let Err(e) = emit_and_trace(handle, "device-change", &event) {
                                 warn!("发送设备变化事件到前端失败: {}", e);
                             }
                         }

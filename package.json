@@ -33,7 +33,10 @@
     "setup:scrcpy": "pwsh -ExecutionPolicy Bypass -File scripts/setup-scrcpy.ps1",
     "verify:scrcpy": "pwsh -ExecutionPolicy Bypass -File scripts/verify-scrcpy.ps1",
     "test": "vitest run",
-    "test:watch": "vitest"
+    "test:watch": "vitest",
+    "test:e2e": "playwright test",
+    "test:e2e:ui": "playwright test --ui",
+    "test:e2e:headed": "playwright test --headed"
   },
   "scriptsExtra": {},
   "cleaners": {},

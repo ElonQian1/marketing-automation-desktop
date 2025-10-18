@@ -25,9 +25,9 @@ export const LoopStartCard: React.FC<LoopStartCardProps> = ({
   const [isEditing, setIsEditing] = useState(false);
   const [tempConfig, setTempConfig] = useState<LoopConfig>(
     loopConfig || {
-      loopId: step.parameters?.loop_id || `loop_${Date.now()}`,
-      name: step.parameters?.loop_name || "新循环",
-      iterations: step.parameters?.iterations || 1,
+      loopId: (step.parameters?.loop_id as string) || `loop_${Date.now()}`,
+      name: (step.parameters?.loop_name as string) || "新循环",
+      iterations: (step.parameters?.iterations as number) || 1,
       enabled: true,
     }
   );
@@ -47,9 +47,9 @@ export const LoopStartCard: React.FC<LoopStartCardProps> = ({
   const handleCancel = () => {
     setTempConfig(
       loopConfig || {
-        loopId: step.parameters?.loop_id || `loop_${Date.now()}`,
-        name: step.parameters?.loop_name || "新循环",
-        iterations: step.parameters?.iterations || 1,
+        loopId: (step.parameters?.loop_id as string) || `loop_${Date.now()}`,
+        name: (step.parameters?.loop_name as string) || "新循环",
+        iterations: (step.parameters?.iterations as number) || 1,
         enabled: true,
       }
     );

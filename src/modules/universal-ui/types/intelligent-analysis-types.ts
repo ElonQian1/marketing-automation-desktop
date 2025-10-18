@@ -35,6 +35,10 @@ export interface ElementSelectionContext {
     pageType: string;
     appVersion: string;
   };
+  /** 设备ID (向后兼容测试) */
+  deviceId?: string;
+  /** 设备名称 (向后兼容测试) */
+  device_id?: string;
 }
 
 /**

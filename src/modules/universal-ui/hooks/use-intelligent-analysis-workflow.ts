@@ -8,6 +8,7 @@ import { message } from 'antd';
 // 使用真实的后端服务
 import { intelligentAnalysisBackend } from '../../../services/intelligent-analysis-backend';
 import { FallbackStrategyGenerator } from '../domain/fallback-strategy-generator';
+import { eventAckService } from '../infrastructure/event-acknowledgment-service';
 
 import type {
   ElementSelectionContext,
@@ -27,6 +28,12 @@ export interface UseIntelligentAnalysisWorkflowReturn {
   currentJobs: Map<string, AnalysisJob>;
   stepCards: IntelligentStepCard[];
   isAnalyzing: boolean;
+  
+  // 向后兼容属性 (for tests)
+  progress?: number;
+  status?: string;
+  error?: string;
+  clearAllSteps?: () => void;
   
   // 核心操作
   startAnalysis: (context: ElementSelectionContext, stepId?: string) => Promise<string>;
@@ -108,9 +115,15 @@ export function useIntelligentAnalysisWorkflow(): UseIntelligentAnalysisWorkflow
           }));
         });
         
-        // 🔒 分析完成事件 - jobId 精确匹配 + 懒绑定防竞态
-        const unlistenDone = await intelligentAnalysisBackend.listenToAnalysisComplete((jobId, result) => {
+        // 🔒 分析完成事件 - jobId 精确匹配 + 懒绑定防竞态 + ACK确认
+        const unlistenDone = await intelligentAnalysisBackend.listenToAnalysisComplete(async (jobId, result) => {
           console.log('✅ [Workflow] 收到分析完成', { jobId, result });
+          
+          // 🔒 XOR确认：检查是否已处理过此完成事件
+          if (eventAckService.isEventAcknowledged('analysis_completed', jobId)) {
+            console.log('🔒 [Workflow] 完成事件已确认处理，跳过重复处理', { jobId });
+            return;
+          }
           
           setCurrentJobs(prev => {
             const updated = new Map(prev);
@@ -171,6 +184,14 @@ export function useIntelligentAnalysisWorkflow(): UseIntelligentAnalysisWorkflow
               return card;
             });
           });
+          
+          // 🔒 确认事件已处理，防止重复处理
+          await eventAckService.acknowledgeEvent('analysis_completed', jobId, {
+            selectionHash: result.selectionHash,
+            processedAt: Date.now()
+          });
+          
+          console.log('✅ [Workflow] 完成事件处理并已确认', { jobId });
         });
 
         const unlistenError = await intelligentAnalysisBackend.listenToAnalysisError((error) => {
