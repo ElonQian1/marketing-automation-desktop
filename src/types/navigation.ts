@@ -76,10 +76,4 @@ export interface NavigationClickStepData {
     };
 }
 
-// 导航栏检测器属性
-export interface NavigationBarDetectorProps {
-    onStepCreate?: (stepData: NavigationClickStepData) => void;
-    deviceId?: string;
-    defaultButtonText?: string;
-    showCreateStep?: boolean;
-}
+// NavigationBarDetectorProps 已移至组件文件内部定义，避免重复

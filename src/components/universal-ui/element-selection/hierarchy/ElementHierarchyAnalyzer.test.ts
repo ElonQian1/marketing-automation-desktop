@@ -84,7 +84,7 @@ function createTestElements(): UIElement[] {
 /**
  * 测试正常情况
  */
-export function testNormalCase(): void {
+function testNormalCase(): void {
   console.log('🧪 测试正常层次结构...');
   
   try {
@@ -104,7 +104,7 @@ export function testNormalCase(): void {
 /**
  * 测试边缘情况：所有元素都相互包含
  */
-export function testEdgeCase(): void {
+function testEdgeCase(): void {
   console.log('🧪 测试边缘情况：循环包含...');
   
   try {
@@ -159,7 +159,7 @@ export function testEdgeCase(): void {
 /**
  * 运行所有测试
  */
-export function runAllTests(): void {
+function runAllTests(): void {
   console.log('🚀 开始ElementHierarchyAnalyzer修复验证...');
   
   testNormalCase();

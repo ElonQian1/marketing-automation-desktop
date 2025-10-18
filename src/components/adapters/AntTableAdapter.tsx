@@ -7,6 +7,5 @@
 
 export {
   TableAdapter as AntTableAdapter,
-  type TableAdapterProps as AntTableAdapterProps,
 } from './table/TableAdapter';
 export { TableAdapter as default } from './table/TableAdapter';

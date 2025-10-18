@@ -7,6 +7,5 @@
 
 export {
   FormAdapter as AntFormAdapter,
-  type FormAdapterProps as AntFormAdapterProps,
 } from './form/FormAdapter';
 export { FormAdapter as default } from './form/FormAdapter';

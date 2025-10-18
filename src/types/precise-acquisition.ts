@@ -404,35 +404,7 @@ export interface PaginatedResponse<T> {
 }
 
 // ==================== 前端组件 Props 类型 ====================
-
-/**
- * 候选池表格组件 Props
- */
-export interface WatchTargetsTableProps {
-  data: WatchTargetRow[];
-  loading?: boolean;
-  onEdit?: (record: WatchTargetRow) => void;
-  onDelete?: (record: WatchTargetRow) => void;
-  onRefresh?: () => void;
-}
-
-/**
- * 任务管理组件 Props
- */
-export interface TaskManagementProps {
-  tasks: TaskRow[];
-  loading?: boolean;
-  onStatusUpdate?: (update: TaskStatusUpdate) => void;
-  onBatchExecute?: (taskIds: string[]) => void;
-}
-
-/**
- * CSV 导入组件 Props
- */
-export interface CsvImportProps {
-  onImportComplete?: (result: CsvImportResult) => void;
-  onValidationFailed?: (errors: CsvImportError[]) => void;
-}
+// 注意：已清理未使用的Props接口 (WatchTargetsTableProps, TaskManagementProps, CsvImportProps)
 
 // ==================== 标签管理相关类型 ====================
 
