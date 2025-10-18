@@ -8,6 +8,7 @@ mod commands;
 mod application;
 mod domain;
 mod infra;
+mod infrastructure;  // 新增: 基础设施模块 (事件追踪等)
 mod screenshot_service;
 mod new_backend;
 mod automation;

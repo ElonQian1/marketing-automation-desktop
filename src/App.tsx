@@ -5,6 +5,7 @@
 import React, { useEffect, useState } from 'react';
 import { isTauri } from '@tauri-apps/api/core';
 import { ThemeBridge, ThemeToggler } from './theme/ThemeBridge';
+import { attachDevTracer } from './application/analysis/devTracer';
 
 function App() {
   const [FullApp, setFullApp] = useState<React.ComponentType | null>(null);
@@ -17,6 +18,11 @@ function App() {
         try {
           const isInTauri = await isTauri();
           console.log('✅ Tauri environment detected:', isInTauri);
+          
+          // 🔧 启动开发期事件追踪器
+          if (isInTauri) {
+            await attachDevTracer();
+          }
         } catch (detectError) {
           console.log('🌐 Running in browser environment', detectError);
         }
