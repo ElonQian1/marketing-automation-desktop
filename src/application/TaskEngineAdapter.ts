@@ -5,8 +5,16 @@
 // @ts-nocheck
 
 /**
- * TODO: 此文件暂时禁用，因为依赖已删除的 EnhancedTaskEngineManager
- * 需要重构以使用替代实现
+ * � DELETE CANDIDATE: TaskEngineAdapter
+ * 
+ * 删除原因：
+ * - 依赖已删除的EnhancedTaskEngineManager
+ * - 无外部导入引用（仅文档引用）  
+ * - 596行代码，32个any类型错误
+ * - 已有替代方案：ProspectingTaskEngineService
+ * 
+ * 决策：将在下个清理周期删除（D6项）
+ * 临时保留@ts-nocheck防止构建中断
  */
 
 /**
@@ -23,18 +31,24 @@
  * - 渐进式迁移：逐步切换到统一接口
  */
 
-import {
-  enhancedTaskEngineManager,
-  UnifiedTaskGenerationParams,
-  UnifiedTaskExecutionParams,
-  UnifiedTaskQueryParams,
-  ExecutionStrategy
-} from './services/task-execution/EnhancedTaskEngineManager';
+import { ProspectingTaskEngineService } from '../modules/precise-acquisition/task-engine/services/prospecting-task-engine-service';
+import { 
+  TaskGenerationConfig, 
+  TaskGenerationResult,
+  BatchTaskGenerationConfig,
+  TaskQuery,
+  TaskExecutionStats,
+  TaskAssignmentResult,
+  TaskExecutionContext
+} from '../modules/precise-acquisition/task-engine/types';
 
 import { Task, WatchTarget } from '../modules/precise-acquisition/shared/types/core';
 import { TaskStatus, TaskType } from '../constants/precise-acquisition-enums';
 
 // ==================== Application层适配器 ====================
+
+// 实例化任务引擎服务
+const taskEngineService = new ProspectingTaskEngineService();
 
 /**
  * 🔄 TaskExecutionEngine兼容适配器

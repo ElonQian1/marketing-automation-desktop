@@ -9,7 +9,7 @@ import { EyeInvisibleOutlined } from '@ant-design/icons';
 import { ResizablePanel } from './ResizablePanel';
 import { ScrollableContainer } from './components/ScrollableContainer';
 import { DraggableHeaderPanel } from './components/DraggableHeaderPanel';
-import { SmartLayoutToolbarOptimized } from './components/SmartLayoutToolbarOptimized';
+import { SmartLayoutToolbarFinal } from './components/SmartLayoutToolbarFinal';
 import { EnhancedDraggableToolbar } from './components/EnhancedDraggableToolbar';
 import { useViewportHeight } from './hooks/useViewportHeight';
 import { useLayoutVersions } from './hooks/useLayoutVersions';
