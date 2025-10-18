@@ -6,6 +6,7 @@ use std::collections::HashMap;
 use std::sync::{Arc, Mutex};
 use tauri::{AppHandle, Manager, Emitter};
 use sha1::{Sha1, Digest};
+use crate::infrastructure::events::emit_and_trace;
 
 // ============================================
 // 类型定义
@@ -286,7 +287,7 @@ impl IntelligentAnalysisService {
             ).await {
                 // 发送错误事件
                 tracing::error!("❌ 分析失败: job_id={}, error={}", job_id_clone, e);
-                let _ = app_handle_clone.emit("analysis:error", AnalysisErrorEvent {
+                let _ = emit_and_trace(&app_handle_clone, "analysis:error", &AnalysisErrorEvent {
                     job_id: job_id_clone.clone(),
                     selection_hash: selection_hash_clone.clone(),
                     error: e,
@@ -326,23 +327,26 @@ async fn execute_analysis_workflow(
 ) -> Result<(), String> {
     tracing::info!("📊 开始分析工作流: job_id={}", job_id);
     
-    // Step 1: 初始化 (10%)
-    emit_progress(&app_handle, &job_id, 10, "初始化分析环境").await;
-    tokio::time::sleep(tokio::time::Duration::from_millis(500)).await;
+    // TODO: 替换为基于真实工作量的进度计算
+    // 当前使用模拟的阶段性进度，应基于实际的分析任务复杂度动态计算
     
-    // Step 2: XML解析 (30%)
-    emit_progress(&app_handle, &job_id, 30, "解析页面结构").await;
+    // Step 1: 初始化分析环境
+    emit_progress(&app_handle, &job_id, 5, "初始化分析环境").await;
+    tokio::time::sleep(tokio::time::Duration::from_millis(200)).await;
+    
+    // Step 2: XML解析与结构分析 (主要工作量)
+    emit_progress(&app_handle, &job_id, 25, "解析页面结构").await;
     tokio::time::sleep(tokio::time::Duration::from_millis(800)).await;
     
-    // Step 3: 智能策略生成 (60%)
-    emit_progress(&app_handle, &job_id, 60, "生成智能策略").await;
+    // Step 3: 智能策略生成 (核心算法)
+    emit_progress(&app_handle, &job_id, 65, "生成智能策略").await;
     tokio::time::sleep(tokio::time::Duration::from_millis(1000)).await;
     
-    // Step 4: 策略评分 (80%)
-    emit_progress(&app_handle, &job_id, 80, "评估策略质量").await;
+    // Step 4: 策略评分与优选
+    emit_progress(&app_handle, &job_id, 85, "评估策略质量").await;
     tokio::time::sleep(tokio::time::Duration::from_millis(500)).await;
     
-    // Step 5: 生成分析报告 (95%)
+    // Step 5: 生成最终分析报告
     emit_progress(&app_handle, &job_id, 95, "生成分析报告").await;
     tokio::time::sleep(tokio::time::Duration::from_millis(300)).await;
     
@@ -355,7 +359,7 @@ async fn execute_analysis_workflow(
     tracing::info!("✅ 分析完成: job_id={}, 推荐策略={}", job_id, result.recommended_key);
     
     // 发送完成事件
-    app_handle.emit("analysis:done", AnalysisDoneEvent {
+    emit_and_trace(&app_handle, "analysis:done", &AnalysisDoneEvent {
         job_id: job_id.clone(),
         selection_hash: selection_hash.clone(),
         result,
@@ -366,7 +370,7 @@ async fn execute_analysis_workflow(
 
 /// 发送进度事件
 async fn emit_progress(app_handle: &AppHandle, job_id: &str, progress: u8, step: &str) {
-    let _ = app_handle.emit("analysis:progress", AnalysisProgressEvent {
+    let _ = emit_and_trace(app_handle, "analysis:progress", &AnalysisProgressEvent {
         job_id: job_id.to_string(),
         progress,
         current_step: step.to_string(),

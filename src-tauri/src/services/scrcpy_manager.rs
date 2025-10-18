@@ -1,7 +1,7 @@
 use std::process::{Command, Stdio, Child};
 use std::collections::HashMap;
 use std::sync::{Mutex, Arc};
-use std::io::Read;
+use crate::infrastructure::events::emit_and_trace;
 
 use anyhow::{anyhow, Result};
 use once_cell::sync::Lazy;
@@ -358,9 +358,10 @@ pub async fn start_device_mirror(app: tauri::AppHandle, device_id: String, optio
     match start_device_mirror_inner(&app, &device_id, options).await {
         Ok(sess) => Ok(sess),
         Err(e) => {
-            let _ = app.emit(
+            let _ = emit_and_trace(
+                &app,
                 "scrcpy://session-error",
-                serde_json::json!({"deviceId": device_id, "error": e.to_string()}),
+                &serde_json::json!({"deviceId": device_id, "error": e.to_string()}),
             );
             Err(e.to_string())
         }
@@ -403,9 +404,10 @@ async fn start_device_mirror_inner(app: &tauri::AppHandle, device_id: &str, opti
     }
 
     // 事件：会话已启动
-    let _ = app.emit(
+    let _ = emit_and_trace(
+        app,
         "scrcpy://session-started",
-        serde_json::json!({"deviceId": device_id, "sessionName": session_name}),
+        &serde_json::json!({"deviceId": device_id, "sessionName": session_name}),
     );
     Ok(session_name)
 }
@@ -430,9 +432,10 @@ pub async fn stop_device_mirror(app: tauri::AppHandle, device_id: String) -> Res
     };
 
     for name in stopped_names {
-        let _ = app.emit(
+        let _ = emit_and_trace(
+            &app,
             "scrcpy://session-stopped",
-            serde_json::json!({"deviceId": device_id, "sessionName": name}),
+            &serde_json::json!({"deviceId": device_id, "sessionName": name}),
         );
     }
     Ok(())
@@ -453,9 +456,10 @@ pub async fn stop_device_mirror_session(app: tauri::AppHandle, device_id: String
         } else { false }
     };
     if existed {
-        let _ = app.emit(
+        let _ = emit_and_trace(
+            &app,
             "scrcpy://session-stopped",
-            serde_json::json!({"deviceId": device_id, "sessionName": session_name}),
+            &serde_json::json!({"deviceId": device_id, "sessionName": session_name}),
         );
     }
     Ok(())

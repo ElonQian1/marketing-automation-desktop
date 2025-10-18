@@ -129,3 +129,20 @@ export function getEventCategory(eventName: EventName): string | null {
 export function isValidEvent(eventName: string): eventName is EventName {
   return Object.values(EVENTS).includes(eventName as EventName);
 }
+
+// === 智能分析状态常量 ===
+/**
+ * 分析状态枚举，用于统一分析状态值
+ */
+export const ANALYSIS_STATES = {
+  /** 空闲状态 */
+  IDLE: 'idle',
+  /** 分析中 */
+  ANALYZING: 'analyzing', 
+  /** 分析完成 */
+  COMPLETED: 'analysis_completed',
+  /** 分析失败 */
+  FAILED: 'analysis_failed'
+} as const;
+
+export type AnalysisState = typeof ANALYSIS_STATES[keyof typeof ANALYSIS_STATES];

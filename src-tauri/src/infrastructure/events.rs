@@ -7,7 +7,7 @@ use std::fs::{OpenOptions, create_dir_all};
 use std::io::Write;
 use std::path::Path;
 use chrono::Utc;
-use tauri::AppHandle;
+use tauri::{AppHandle, Emitter};
 
 #[derive(Serialize)]
 struct EventTrace<'a, T> {
