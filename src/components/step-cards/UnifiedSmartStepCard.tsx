@@ -17,7 +17,7 @@ import {
 } from '@ant-design/icons';
 import { useStepCardStore, type StepCard, type StepCardStatus } from '../../store/stepcards';
 import { useUnifiedAnalysisEvents } from '../../services/unified-analysis-events';
-import { invoke } from '@tauri-apps/api/tauri';
+import { invoke } from '@tauri-apps/api/core';
 
 const { Option } = Select;
 
@@ -116,7 +116,7 @@ export const UnifiedSmartStepCard: React.FC<UnifiedSmartStepCardProps> = ({
       // 调用后端分析接口
       const result = await invoke('start_intelligent_analysis', {
         element: {
-          uid: elementData.uid,
+          uid: mockElement?.uid || card.elementUid,
           xpath: elementData.xpath || '',
           text: elementData.text || '',
           bounds: elementData.bounds || '',
@@ -171,7 +171,7 @@ export const UnifiedSmartStepCard: React.FC<UnifiedSmartStepCardProps> = ({
                     候选元素:
                   </div>
                   {candidates.slice(0, 3).map((candidate, index) => (
-                    <Tag key={index} size="small" style={{ marginBottom: 2 }}>
+                    <Tag key={index} style={{ marginBottom: 2, fontSize: '11px' }}>
                       {candidate.name} ({Math.round(candidate.confidence * 100)}%)
                     </Tag>
                   ))}
@@ -275,7 +275,7 @@ export const UnifiedSmartStepCard: React.FC<UnifiedSmartStepCardProps> = ({
           <span style={{ fontSize: '14px' }}>
             {mockElement?.text || `步骤 ${card.elementUid.slice(-8)}`}
           </span>
-          <Tag color={getStatusColor(card.status)} size="small">
+          <Tag color={getStatusColor(card.status)}>
             {getStatusText(card.status)}
           </Tag>
         </div>
