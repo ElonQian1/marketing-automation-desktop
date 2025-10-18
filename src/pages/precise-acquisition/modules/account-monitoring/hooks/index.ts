@@ -4,6 +4,8 @@
 
 /**
  * 账号监控Hooks导出文件
+ * 
+ * 注：useAccountMonitoring已重构为统一Hook，位于shared/hooks/useMonitoring.ts
  */
 
-export { useAccountMonitoring } from './useAccountMonitoring';
+// export { useAccountMonitoring } from './useAccountMonitoring';  // 已重构

@@ -9,6 +9,7 @@
 import { useState, useCallback, useEffect } from 'react';
 import { invoke } from '@tauri-apps/api/core';
 import { listen } from '@tauri-apps/api/event';
+import { EVENTS } from '../shared/constants/events';
 
 export interface LogEntry {
   id: string;
@@ -129,15 +130,15 @@ export const useLogManager = (): UseLogManagerReturn => {
 
   // 监听实时日志事件
   useEffect(() => {
-    const unlistenLog = listen<LogEntry>('log-entry', (event) => {
+    const unlistenLog = listen<LogEntry>(EVENTS.LOG_ENTRY, (event) => {
       setLogs(prev => [...prev, event.payload]);
     });
 
-    const unlistenAdbLog = listen<AdbCommandLog>('adb-command-log', (event) => {
+    const unlistenAdbLog = listen<AdbCommandLog>(EVENTS.ADB_COMMAND_LOG, (event) => {
       setAdbCommandLogs(prev => [...prev, event.payload]);
     });
 
-    const unlistenClear = listen('logs-cleared', () => {
+    const unlistenClear = listen(EVENTS.LOGS_CLEARED, () => {
       setLogs([]);
       setAdbCommandLogs([]);
     });

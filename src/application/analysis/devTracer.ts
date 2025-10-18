@@ -3,6 +3,7 @@
 // summary: 开发期事件追踪器,记录所有Tauri事件到本地存储
 
 import { listen } from '@tauri-apps/api/event';
+import { EVENTS } from '../../shared/constants/events';
 
 interface EventLog {
   ts: string;
@@ -57,14 +58,14 @@ export async function attachDevTracer() {
   };
 
   // 监听所有 analysis 事件
-  await listen('analysis:progress', (event) =>
-    logEvent('analysis:progress', event.payload)
+  await listen(EVENTS.ANALYSIS_PROGRESS, (event) =>
+    logEvent(EVENTS.ANALYSIS_PROGRESS, event.payload)
   );
-  await listen('analysis:done', (event) =>
-    logEvent('analysis:done', event.payload)
+  await listen(EVENTS.ANALYSIS_DONE, (event) =>
+    logEvent(EVENTS.ANALYSIS_DONE, event.payload)
   );
-  await listen('analysis:error', (event) =>
-    logEvent('analysis:error', event.payload)
+  await listen(EVENTS.ANALYSIS_ERROR, (event) =>
+    logEvent(EVENTS.ANALYSIS_ERROR, event.payload)
   );
 
   // 暴露导出函数到全局

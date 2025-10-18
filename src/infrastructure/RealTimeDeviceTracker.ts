@@ -5,6 +5,7 @@
 import { invoke } from '@tauri-apps/api/core';
 import { listen, UnlistenFn } from '@tauri-apps/api/event';
 import { EventManager } from './EventManager';
+import { EVENTS } from '../shared/constants/events';
 
 /**
  * 设备变化事件类型
@@ -61,7 +62,7 @@ export class RealTimeDeviceTracker {
       await invoke('start_device_tracking');
 
       // 监听设备变化事件，增加错误处理和自动恢复
-      this.unlistenFn = await listen('device-change', (event) => {
+      this.unlistenFn = await listen(EVENTS.DEVICE_CHANGE, (event) => {
         try {
           const deviceEvent = event.payload as DeviceChangeEvent;
           this.handleDeviceChange(deviceEvent);
