@@ -6,6 +6,7 @@ import { useState, useCallback, useEffect, useMemo, useRef } from 'react';
 import { invoke } from '@tauri-apps/api/core';
 import { listen, UnlistenFn } from '@tauri-apps/api/event';
 import { calculateSelectionHash } from '../utils/selection-hash';
+import { EVENTS } from '../../../shared/constants/events';
 import type {
   ElementSelectionContext,
   AnalysisJob,
@@ -235,7 +236,7 @@ export function useIntelligentAnalysisReal(options: UseIntelligentAnalysisRealOp
         
         // 1️⃣ 监听进度事件
         const unlistenProgress = await listen<AnalysisProgressEvent>(
-          'analysis:progress',
+          EVENTS.ANALYSIS_PROGRESS,
           (event) => {
             const { jobId, progress, currentStep, estimatedTimeLeft } = event.payload;
             

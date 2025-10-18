@@ -4,6 +4,7 @@
 
 import { invoke } from '@tauri-apps/api/core';
 import { listen, UnlistenFn } from '@tauri-apps/api/event';
+import { EVENTS } from '../shared/constants/events';
 import type { UIElement } from '../api/universalUIAPI';
 import type { StrategyCandidate, AnalysisResult, StrategyPerformance } from '../modules/universal-ui/types/intelligent-analysis-types';
 
@@ -154,7 +155,7 @@ export class IntelligentAnalysisBackendService {
   ): Promise<UnlistenFn> {
     console.log('🔧 [BackendService] 设置进度事件监听器');
     const unlisten = await listen<TauriAnalysisProgressEvent>(
-      'analysis:progress',
+      EVENTS.ANALYSIS_PROGRESS,
       (event) => {
         console.log('📊 [BackendService] 收到分析进度更新', event.payload);
         onProgress(
@@ -179,7 +180,7 @@ export class IntelligentAnalysisBackendService {
   ): Promise<UnlistenFn> {
     console.log('🔧 [BackendService] 设置完成事件监听器');
     const unlisten = await listen<TauriAnalysisDoneEvent>(
-      'analysis:done',
+      EVENTS.ANALYSIS_DONE,
       (event) => {
         console.log('✅ [BackendService] 收到分析完成事件', event.payload);
         
@@ -220,7 +221,7 @@ export class IntelligentAnalysisBackendService {
     onError: (error: string) => void
   ): Promise<UnlistenFn> {
     const unlisten = await listen<TauriAnalysisErrorEvent>(
-      'analysis:error',
+      EVENTS.ANALYSIS_ERROR,
       (event) => {
         console.error('❌ [BackendService] 分析错误', event.payload);
         onError(event.payload.error);

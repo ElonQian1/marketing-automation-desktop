@@ -13,6 +13,7 @@ import type {
 } from '../types/intelligent-analysis-types';
 
 import { calculateSelectionHash } from '../utils/selection-hash';
+import { EVENTS } from '../../../shared/constants/events';
 
 /**
  * 模拟后端分析服务
@@ -230,7 +231,7 @@ export class MockAnalysisBackend {
         job.completedAt = Date.now();
         job.result = result;
         
-        this.emit<AnalysisDoneEvent>('analysis:done', {
+        this.emit<AnalysisDoneEvent>(EVENTS.ANALYSIS_DONE, {
           jobId,
           result
         });
@@ -242,7 +243,7 @@ export class MockAnalysisBackend {
       job.progress = phase.progress;
       job.estimatedTimeLeft = (phases.length - currentPhase - 1) * 250;
       
-      this.emit<AnalysisProgressEvent>('analysis:progress', {
+      this.emit<AnalysisProgressEvent>(EVENTS.ANALYSIS_PROGRESS, {
         jobId,
         progress: phase.progress,
         message: phase.message,
@@ -266,7 +267,7 @@ export class MockAnalysisBackend {
         job.error = '分析超时';
         job.completedAt = Date.now();
         
-        this.emit<AnalysisErrorEvent>('analysis:error', {
+        this.emit<AnalysisErrorEvent>(EVENTS.ANALYSIS_ERROR, {
           jobId,
           error: '分析超时',
           canRetry: true
@@ -302,7 +303,7 @@ export class MockAnalysisBackend {
       this.jobTimeouts.delete(`${jobId}_total`);
     }
     
-    this.emit<AnalysisErrorEvent>('analysis:error', {
+    this.emit<AnalysisErrorEvent>(EVENTS.ANALYSIS_ERROR, {
       jobId,
       error: 'canceled',
       canRetry: false

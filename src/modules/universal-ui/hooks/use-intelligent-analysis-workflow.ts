@@ -252,6 +252,14 @@ export function useIntelligentAnalysisWorkflow(): UseIntelligentAnalysisWorkflow
     context: ElementSelectionContext, 
     stepId?: string
   ): Promise<string> => {
+    // 🔍 Task 8: 健康检查兜底 - 分析启动前系统状态检查
+    const { analysisHealthService } = await import('../infrastructure/analysis-health-service');
+    const healthOk = await analysisHealthService.checkBeforeAnalysis();
+    
+    if (!healthOk) {
+      throw new Error('系统健康检查失败，无法启动分析');
+    }
+
     const selectionHash = calculateSelectionHash(context);
     
     // 检查是否已有相同选择的分析任务

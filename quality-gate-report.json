@@ -1,8 +1,9 @@
 {
-  "timestamp": "2025-10-18T08:06:31.095Z",
+  "timestamp": "2025-10-18T10:12:27.359Z",
   "passed": false,
   "errors": [
     "TypeScript 类型检查失败",
+    "项目构建失败",
     "包大小超限: 61.1 MB > 5 MB"
   ],
   "warnings": [
@@ -17,8 +18,8 @@
       "error": "Command failed: npm run type-check"
     },
     "buildCheck": {
-      "success": true,
-      "output": "\n> employee-drainage-tool@0.2.0 build\n> vite build\n\n[watch-mode] cache-hit usePolling=false reason=default-native\n[watch-mode] usePolling=false reason=default-native-cached cwd=D:\\rust\\active-projects\\小红书\\employeeGUI\n\u001b[36mvite v7.1.4 \u001b[32mbuilding for production...\u001b[36m\u001b[39m\ntransforming...\n\u001b[32m✓\u001b[39m 7809 modules transformed.\nrendering chunks...\ncomputing gzip size...\n\u001b[2mdist/\u001b[22m\u001b[32mindex.html                                     \u001b[39m\u001b[1m\u001b[2m    0.62 kB\u001b[22m\u001b[1m\u001b[22m\u001b[2m │ gzip:   0.39 kB\u001b[22m\n\u001b[2mdist/\u001b[22m\u001b[35massets/ContactImportWorkbench-TFBAWEp0.css     \u001b[39m\u001b[1m\u001b[2m    7.74 kB\u001b[22m\u001b[1m\u001b[22m\u001b[2m │ gzip:   1.99 kB\u001b[22m\n\u001b[2mdist/\u001b[22m\u001b[35massets/NativeAntDesignApp-CkSsG5ox.css         \u001b[39m\u001b[1m\u001b[2m   12.37 kB\u001b[22m\u001b[1m\u001b[22m\u001b[2m │ gzip:   3.15 kB\u001b[22m\n\u001b[2mdist/\u001b[22m\u001b[35massets/index-CLPe8dMZ.css                      \u001b[39m\u001b[1m\u001b[2m   53.63 kB\u001b[22m\u001b[1m\u001b[22m\u001b[2m │ gzip:   9.55 kB\u001b[22m\n\u001b[2mdist/\u001b[22m\u001b[36massets/staticStrategies-t9i1cQTV.js            \u001b[39m\u001b[1m\u001b[2m    0.72 kB\u001b[22m\u001b[1m\u001b[22m\u001b[2m │ gzip:   0.43 kB\u001b[22m\n\u001b[2mdist/\u001b[22m\u001b[36massets/frontendLoop-5qbh5iOo.js                \u001b[39m\u001b[1m\u001b[2m    1.15 kB\u001b[22m\u001b[1m\u001b[22m\u001b[2m │ gzip:   0.78 kB\u001b[22m\n\u001b[2mdist/\u001b[22m\u001b[36massets/TauriWatchTargetRepository-CttBwej1.js  \u001b[39m\u001b[1m\u001b[2m    1.31 kB\u001b[22m\u001b[1m\u001b[22m\u001b[2m │ gzip:   0.56 kB\u001b[22m\n\u001b[2mdist/\u001b[22m\u001b[36massets/tauri-api-B6Sb0yjb.js                   \u001b[39m\u001b[1m\u001b[2m    3.32 kB\u001b[22m\u001b[1m\u001b[22m\u001b[2m │ gzip:   1.39 kB\u001b[22m\n\u001b[2mdist/\u001b[22m\u001b[36massets/WatchTargetsListPage-Dm7baMMT.js        \u001b[39m\u001b[1m\u001b[2m    3.46 kB\u001b[22m\u001b[1m\u001b[22m\u001b[2m │ gzip:   1.48 kB\u001b[22m\n\u001b[2mdist/\u001b[22m\u001b[36massets/ContactImportWorkbench-BoBP-mbe.js      \u001b[39m\u001b[1m\u001b[2m  258.77 kB\u001b[22m\u001b[1m\u001b[22m\u001b[2m │ gzip:  81.99 kB\u001b[22m\n\u001b[2mdist/\u001b[22m\u001b[36massets/index-CDEmnaKI.js                       \u001b[39m\u001b[1m\u001b[2m  472.33 kB\u001b[22m\u001b[1m\u001b[22m\u001b[2m │ gzip: 153.63 kB\u001b[22m\n\u001b[2mdist/\u001b[22m\u001b[36massets/NativeAntDesignApp-Dcz9AYjd.js          \u001b[39m\u001b[1m\u001b[33m2,766.86 kB\u001b[39m\u001b[22m\u001b[2m │ gzip: 821.63 kB\u001b[22m\n\u001b[32m✓ built in 24.20s\u001b[39m\n"
+      "success": false,
+      "error": "Command failed: npm run build\n<script src=\"/test-universal-ui.js\"> in \"/index.html\" can't be bundled without type=\"module\" attribute\n\u001b[31m✗\u001b[39m Build failed in 12.74s\n\u001b[31merror during build:\n\u001b[31m[vite]: Rollup failed to resolve import \"@tauri-apps/api/tauri\" from \"D:/rust/active-projects/小红书/employeeGUI/src/modules/universal-ui/infrastructure/analysis-health-service.ts\".\nThis is most likely unintended because it can break your application at runtime.\nIf you do want to externalize this module explicitly add it to\n`build.rollupOptions.external`\u001b[31m\n    at viteLog (file:///D:/rust/active-projects/%E5%B0%8F%E7%BA%A2%E4%B9%A6/employeeGUI/node_modules/vite/dist/node/chunks/dep-C6pp_iVS.js:34335:57)\n    at file:///D:/rust/active-projects/%E5%B0%8F%E7%BA%A2%E4%B9%A6/employeeGUI/node_modules/vite/dist/node/chunks/dep-C6pp_iVS.js:34373:73\n    at onwarn (file:///D:/rust/active-projects/%E5%B0%8F%E7%BA%A2%E4%B9%A6/employeeGUI/node_modules/@vitejs/plugin-react/dist/index.js:89:7)\n    at file:///D:/rust/active-projects/%E5%B0%8F%E7%BA%A2%E4%B9%A6/employeeGUI/node_modules/vite/dist/node/chunks/dep-C6pp_iVS.js:34373:28\n    at onRollupLog (file:///D:/rust/active-projects/%E5%B0%8F%E7%BA%A2%E4%B9%A6/employeeGUI/node_modules/vite/dist/node/chunks/dep-C6pp_iVS.js:34368:3)\n    at onLog (file:///D:/rust/active-projects/%E5%B0%8F%E7%BA%A2%E4%B9%A6/employeeGUI/node_modules/vite/dist/node/chunks/dep-C6pp_iVS.js:34164:4)\n    at file:///D:/rust/active-projects/%E5%B0%8F%E7%BA%A2%E4%B9%A6/employeeGUI/node_modules/rollup/dist/es/shared/node-entry.js:20906:32\n    at Object.logger [as onLog] (file:///D:/rust/active-projects/%E5%B0%8F%E7%BA%A2%E4%B9%A6/employeeGUI/node_modules/rollup/dist/es/shared/node-entry.js:22792:9)\n    at ModuleLoader.handleInvalidResolvedId (file:///D:/rust/active-projects/%E5%B0%8F%E7%BA%A2%E4%B9%A6/employeeGUI/node_modules/rollup/dist/es/shared/node-entry.js:21536:26)\n    at file:///D:/rust/active-projects/%E5%B0%8F%E7%BA%A2%E4%B9%A6/employeeGUI/node_modules/rollup/dist/es/shared/node-entry.js:21494:26\u001b[39m\n"
     },
     "performanceCheck": {
       "totalSize": 64035323,
@@ -493,8 +494,8 @@
         },
         {
           "path": "src\\modules\\universal-ui\\hooks\\use-intelligent-analysis-workflow.ts",
-          "lines": 583,
-          "size": 20325
+          "lines": 591,
+          "size": 20682
         },
         {
           "path": "src\\components\\universal-ui\\views\\grid-view\\panels\\node-detail\\ScoringUIDemo.tsx",
@@ -907,6 +908,11 @@
           "size": 13904
         },
         {
+          "path": "src\\__tests__\\event-flow-contracts\\e2e-integration-contract.test.ts",
+          "lines": 456,
+          "size": 15946
+        },
+        {
           "path": "src\\modules\\universal-ui\\pages\\smoke-test-complete.tsx",
           "lines": 455,
           "size": 14240
@@ -1107,6 +1113,11 @@
           "size": 10877
         },
         {
+          "path": "src\\__tests__\\event-flow-contracts\\progress-completion-contract.test.ts",
+          "lines": 419,
+          "size": 14318
+        },
+        {
           "path": "src\\components\\universal-ui\\element-selection\\element-discovery\\services\\PureXmlStructureAnalyzer.ts",
           "lines": 418,
           "size": 13494
@@ -1247,14 +1258,14 @@
           "size": 8849
         },
         {
+          "path": "src\\modules\\universal-ui\\hooks\\use-intelligent-analysis-real.ts",
+          "lines": 394,
+          "size": 11365
+        },
+        {
           "path": "src\\pages\\brand-showcase\\components\\DialogDemo.tsx",
           "lines": 394,
           "size": 14702
-        },
-        {
-          "path": "src\\modules\\universal-ui\\hooks\\use-intelligent-analysis-real.ts",
-          "lines": 393,
-          "size": 11300
         },
         {
           "path": "src\\pages\\SmartScriptBuilderPage\\hooks\\useSmartScriptBuilder.ts",
@@ -1282,6 +1293,11 @@
           "size": 13349
         },
         {
+          "path": "src\\modules\\universal-ui\\services\\mock-analysis-backend.ts",
+          "lines": 389,
+          "size": 11645
+        },
+        {
           "path": "src\\utils\\xpath\\cache\\xpath-precompiler-cache.ts",
           "lines": 389,
           "size": 10289
@@ -1295,11 +1311,6 @@
           "path": "src\\modules\\intelligent-strategy-system\\scoring\\ScoreWeightConfig.ts",
           "lines": 388,
           "size": 10419
-        },
-        {
-          "path": "src\\modules\\universal-ui\\services\\mock-analysis-backend.ts",
-          "lines": 388,
-          "size": 11565
         },
         {
           "path": "src\\components\\universal-ui\\UniversalPageFinderModal-Refactored.tsx",
@@ -1927,14 +1938,19 @@
           "size": 9064
         },
         {
+          "path": "src\\services\\intelligent-analysis-backend.ts",
+          "lines": 312,
+          "size": 10794
+        },
+        {
+          "path": "src\\__tests__\\event-flow-contracts\\job-isolation-contract.test.ts",
+          "lines": 312,
+          "size": 10345
+        },
+        {
           "path": "src\\components\\feature-modules\\theme-system\\hooks\\useThemeManager.ts",
           "lines": 311,
           "size": 9438
-        },
-        {
-          "path": "src\\services\\intelligent-analysis-backend.ts",
-          "lines": 311,
-          "size": 10725
         },
         {
           "path": "src\\components\\element-name-editor\\FieldMatchingController.tsx",

@@ -352,7 +352,10 @@ fn main() {
             cancel_intelligent_analysis,
             bind_analysis_result_to_step,
             get_step_strategy,
-            clear_step_strategy
+            clear_step_strategy,
+            // ✅ 健康检查功能
+            backend_ping,
+            analysis_health_check
         ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");
