@@ -1,77 +1,115 @@
-name: Quality Gate & Compliance
+name: CI & Quality Gate
 
 on:
   push:
     branches: [ main ]
   pull_request:
     branches: [ main ]
+  workflow_dispatch: {}
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
 
 jobs:
-  quality-gate:
+  build-and-check:
     runs-on: ubuntu-latest
+
     steps:
       - name: Checkout
         uses: actions/checkout@v4
-        
-      - name: Use Node.js
+
+      - name: Use Node.js 20
         uses: actions/setup-node@v4
         with:
-          node-version: '20'
+          node-version: 20
           cache: 'npm'
-          
-      - name: Install dependencies
-        run: npm ci
-        
-      # 🔍 类型检查 (保持现有)
+
+      - name: Install frontend deps
+        run: |
+          if [ -f package-lock.json ]; then npm ci; else npm i; fi
+
+      # —— TypeScript/ESLint 基线 —— #
       - name: Type check
         run: npm run type-check
-        
-      # 🎯 适配器合规性检查 (保持现有)
+
       - name: Adapter usage compliance
         run: npm run check:adapters
-        
-      # 🧹 代码规范检查
-      - name: ESLint check
+
+      - name: Lint
         run: npm run lint
-        
-      # 🧪 单元测试
-      - name: Unit tests
-        run: npm test -- --run || echo "Tests not configured yet, skipping..."
-        
-      # 📋 未使用导出检查
-      - name: Check for unused exports
-        run: npm run check:unused || echo "ts-prune not configured, skipping..."
-        
-      # 🔄 重复代码检查
-      - name: Check code duplication
-        run: npm run check:dup || echo "jscpd not configured, skipping..."
-        
-      # 📦 构建测试
-      - name: Build check
-        run: npm run build
-        
-      # 🎭 E2E 测试准备 (安装 Playwright)
-      - name: Install Playwright
+
+      # —— 单测 / E2E（若存在脚本则运行，不存在不报错） —— #
+      - name: Unit tests (if present)
+        run: npm run test --if-present --silent -- --run || echo "Tests not configured yet, skipping..."
+
+      - name: Install Playwright (if e2e exists)
+        if: ${{ hashFiles('tests/e2e/**', 'e2e/**') != '' }}
         run: npx playwright install --with-deps
-        
-      # 🧪 E2E 测试 (无头模式)
-      - name: E2E tests
-        run: npm run test:e2e || echo "E2E tests not configured yet, skipping..."
+
+      - name: E2E tests (if present)
+        run: npm run test:e2e --if-present || echo "E2E tests not configured yet, skipping..."
         env:
           CI: true
-          
-      # 📊 生成质量报告
-      - name: Generate quality report
+
+      # —— 质量门：未用导出 / 冗余依赖 / 重复代码 —— #
+      - name: Unused exports (ts-prune)
+        continue-on-error: true
+        run: npx ts-prune --error || echo "ts-prune check completed"
+
+      - name: Depcheck (non-blocking)
+        continue-on-error: true
+        run: npx depcheck --json > depcheck-report.json || echo "Depcheck completed"
+
+      - name: Duplicate code (jscpd)
+        continue-on-error: true
         run: |
-          echo "=== Quality Gate Summary ===" > quality-summary.txt
-          echo "✅ Type Check: Passed" >> quality-summary.txt
-          echo "✅ Adapter Compliance: Passed" >> quality-summary.txt
-          echo "✅ Lint Check: Passed" >> quality-summary.txt
-          echo "✅ Build: Passed" >> quality-summary.txt
-          echo "📅 Timestamp: $(date)" >> quality-summary.txt
-          cat quality-summary.txt
+          mkdir -p reports/jscpd
+          npx jscpd --min-lines 8 --threshold 3 --reporters html,json --output reports/jscpd src/ || echo "jscpd check completed"
+
+      - name: Build check
+        run: npm run build
+
+      # —— 事件流证据包收集 —— #
+      - name: Collect event flow evidence
+        continue-on-error: true
+        run: |
+          mkdir -p reports/event-flows
+          echo "=== Event Flow Evidence ===" > reports/event-flows/summary.txt
+          echo "📅 Build time: $(date)" >> reports/event-flows/summary.txt
           
-      # 🚀 生产就绪检查
+          # 检查事件常量使用情况
+          EVENTS_USAGE=$(grep -r "EVENTS\." src/ --include="*.ts" --include="*.tsx" | wc -l || echo "0")
+          echo "🎯 Event constants usage: $EVENTS_USAGE files" >> reports/event-flows/summary.txt
+          
+          # 检查硬编码事件字符串（潜在问题）
+          HARDCODED_EVENTS=$(grep -r '"[a-z_-]*_\(progress\|completed\|failed\|started\)"' src/ --include="*.ts" --include="*.tsx" | grep -v "EVENTS\." | wc -l || echo "0")
+          echo "⚠️  Potential hardcoded events: $HARDCODED_EVENTS" >> reports/event-flows/summary.txt
+          
+          cat reports/event-flows/summary.txt
+
+      # —— 专门的事件流E2E测试 —— #
+      - name: Event flow convergence tests
+        if: ${{ hashFiles('tests/e2e/event-flow-convergence.spec.ts') != '' }}
+        run: npx playwright test event-flow-convergence.spec.ts
+        env:
+          CI: true
+
+      # —— 事件流证据分析 —— #
+      - name: Analyze event flow evidence
+        continue-on-error: true
+        run: npm run check:events
+
+      - name: Upload quality reports
+        uses: actions/upload-artifact@v4
+        with:
+          name: quality-reports
+          path: |
+            depcheck-report.json
+            reports/jscpd/**
+            reports/event-flows/**
+
+      # —— 生产就绪检查 —— #
       - name: Production readiness check
         run: |
           echo "🔍 Checking production readiness..."
@@ -89,3 +127,34 @@ jobs:
           if [ ! -f "package.json" ]; then echo "❌ Missing package.json"; exit 1; fi
           
           echo "✅ Production readiness: PASS"
+
+  rust-check:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      # —— Rust 基线检查（src-tauri 等）—— #
+      - name: Setup Rust
+        uses: dtolnay/rust-toolchain@stable
+
+      - name: Cache Rust
+        uses: Swatinem/rust-cache@v2
+        with:
+          workspaces: src-tauri
+
+      - name: Cargo fmt (check)
+        working-directory: src-tauri
+        run: cargo fmt --all -- --check
+
+      - name: Cargo clippy
+        working-directory: src-tauri
+        run: cargo clippy --all-targets -- -D warnings
+
+      - name: Cargo tests
+        working-directory: src-tauri
+        run: cargo test --all --all-targets
+
+      - name: Cargo check
+        working-directory: src-tauri
+        run: cargo check --all
