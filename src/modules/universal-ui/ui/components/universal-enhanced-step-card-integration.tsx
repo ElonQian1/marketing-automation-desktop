@@ -4,6 +4,7 @@
 
 import React, { useState } from 'react';
 import { Card, Space, Divider, Collapse } from 'antd';
+import { ANALYSIS_STATES } from '../../../../shared/constants/events';
 import { 
   UniversalFallbackBadge,
   UniversalStrategyCandidatesSection,
@@ -60,7 +61,7 @@ export const UniversalEnhancedStepCardIntegration: React.FC<UniversalEnhancedSte
       case 'idle': return 'idle';
       case 'pending_analysis':
       case 'analyzing': return 'pending';
-      case 'analysis_completed': return 'completed';
+      case ANALYSIS_STATES.COMPLETED: return 'completed';
       case 'analysis_failed': return 'failed';
       default: return 'idle';
     }
@@ -186,7 +187,7 @@ export const UniversalEnhancedStepCardIntegration: React.FC<UniversalEnhancedSte
               </div>
 
               {/* 4. 候选策略展示区 */}
-              {stepCard.analysisState === 'analysis_completed' && stepCard.smartCandidates.length > 0 && (
+              {stepCard.analysisState === ANALYSIS_STATES.COMPLETED && stepCard.smartCandidates.length > 0 && (
                 <UniversalStrategyCandidatesSection
                   smartCandidates={stepCard.smartCandidates}
                   staticCandidates={stepCard.staticCandidates}

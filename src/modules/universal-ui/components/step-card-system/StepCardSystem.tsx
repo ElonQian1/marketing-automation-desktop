@@ -7,6 +7,7 @@ import type { UnifiedStepCardData, StepCardFeatureConfig, StepCardStyleConfig, S
 import { smartAdapt } from '../../types/unified-step-card-types';
 import { useStepCardActions, useStepCardDrag, useStepCardIntelligent } from '../../hooks/use-step-card-actions';
 import { generateStepCardStyles } from '../../styles/step-card-theme';
+import { ANALYSIS_STATES } from '../../../../shared/constants/events';
 
 // 统一的系统属性定义
 export interface StepCardSystemProps {
@@ -232,14 +233,14 @@ const StepCardContent: React.FC<StepCardContentProps> = ({
       {intelligent.isIntelligentEnabled && intelligent.shouldShowStatusBar && (
         <div className={`unified-step-card__status-bar unified-step-card__status-bar--${
           intelligent.isAnalyzing ? 'analyzing' 
-          : stepData.analysisState === 'analysis_completed' ? 'completed'
+          : stepData.analysisState === ANALYSIS_STATES.COMPLETED ? 'completed'
           : stepData.analysisState === 'analysis_failed' ? 'error'
           : 'default'
         }`} style={{ 
           padding: '8px 12px', 
-          background: intelligent.isAnalyzing ? '#e6f7ff' : stepData.analysisState === 'analysis_completed' ? '#fff7e6' : stepData.analysisState === 'analysis_failed' ? '#fff2f0' : '#f5f5f5',
+          background: intelligent.isAnalyzing ? '#e6f7ff' : stepData.analysisState === ANALYSIS_STATES.COMPLETED ? '#fff7e6' : stepData.analysisState === 'analysis_failed' ? '#fff2f0' : '#f5f5f5',
           border: '1px solid',
-          borderColor: intelligent.isAnalyzing ? '#91d5ff' : stepData.analysisState === 'analysis_completed' ? '#ffd591' : stepData.analysisState === 'analysis_failed' ? '#ffccc7' : '#d9d9d9',
+          borderColor: intelligent.isAnalyzing ? '#91d5ff' : stepData.analysisState === ANALYSIS_STATES.COMPLETED ? '#ffd591' : stepData.analysisState === 'analysis_failed' ? '#ffccc7' : '#d9d9d9',
           borderRadius: '4px',
           marginBottom: '8px',
           fontSize: '12px'
@@ -466,7 +467,7 @@ const StepCardContent: React.FC<StepCardContentProps> = ({
 
       {/* 策略候选展示区域（仅智能模式且分析完成时显示） */}
       {intelligent.isIntelligentEnabled && 
-       stepData.analysisState === 'analysis_completed' && 
+       stepData.analysisState === ANALYSIS_STATES.COMPLETED && 
        stepData.smartCandidates && stepData.smartCandidates.length > 0 && (
         <div className="unified-step-card__candidates" style={{
           marginTop: '12px',

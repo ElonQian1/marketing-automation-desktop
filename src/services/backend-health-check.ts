@@ -8,6 +8,10 @@ interface HealthCheckResult {
   healthy: boolean;
   lastCheckTime: number;
   error?: string;
+  message?: string;
+  responseTime?: number;
+  endpoint?: string;
+  version?: string;
 }
 
 class BackendHealthChecker {

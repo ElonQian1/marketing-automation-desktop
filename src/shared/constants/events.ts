@@ -36,11 +36,11 @@ export const EVENTS = {
   
   // === 智能分析事件 ===
   /** 分析进度更新事件 */
-  ANALYSIS_PROGRESS: 'analysis:progress',
+  ANALYSIS_PROGRESS: 'progress_update',
   /** 分析完成事件 */
-  ANALYSIS_DONE: 'analysis:done',
-  /** 分析错误事件 */
-  ANALYSIS_ERROR: 'analysis:error',
+  ANALYSIS_DONE: 'analysis_completed',
+  /** 分析错误事件 */  
+  ANALYSIS_ERROR: 'analysis_error',
   
   // === 联系人导入事件 (从ContactImporterUseCase中提取) ===
   /** 联系人导入开始 */
@@ -69,6 +69,12 @@ export const EVENTS = {
   TASK_ASSIGNED: 'task:assigned',
   /** 任务完成 */
   TASK_COMPLETED: 'task:completed',
+  
+  // === 健康检查事件 ===
+  /** 健康检查成功 */
+  HEALTH_CHECK_SUCCESS: 'health_check_success',
+  /** 健康检查失败 */
+  HEALTH_CHECK_FAILED: 'health_check_failed',
   
 } as const;
 

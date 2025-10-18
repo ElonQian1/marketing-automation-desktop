@@ -1,6 +1,6 @@
 {
   "statistics": {
-    "detectionDate": "2025-10-18T10:12:46.664Z",
+    "detectionDate": "2025-10-18T10:52:44.621Z",
     "formats": {
       "typescript": {
         "sources": {
@@ -6305,8 +6305,8 @@
             "newClones": 0
           },
           "src/modules/universal-ui/hooks/use-intelligent-analysis-workflow.ts": {
-            "lines": 589,
-            "tokens": 5452,
+            "lines": 590,
+            "tokens": 5477,
             "sources": 1,
             "clones": 0,
             "duplicatedLines": 0,
@@ -10145,8 +10145,8 @@
             "newClones": 0
           },
           "src/shared/constants/events.ts": {
-            "lines": 147,
-            "tokens": 750,
+            "lines": 153,
+            "tokens": 780,
             "sources": 1,
             "clones": 0,
             "duplicatedLines": 0,
@@ -12797,8 +12797,8 @@
             "newClones": 0
           },
           "src/services/backend-health-check.ts": {
-            "lines": 146,
-            "tokens": 1120,
+            "lines": 150,
+            "tokens": 1156,
             "sources": 1,
             "clones": 0,
             "duplicatedLines": 0,
@@ -13386,8 +13386,8 @@
           }
         },
         "total": {
-          "lines": 186205,
-          "tokens": 1532053,
+          "lines": 186216,
+          "tokens": 1532144,
           "sources": 1115,
           "clones": 271,
           "duplicatedLines": 4704,
@@ -15465,8 +15465,8 @@
             "newClones": 0
           },
           "src/modules/universal-ui/ui/components/universal-enhanced-step-card-integration.tsx": {
-            "lines": 240,
-            "tokens": 1831,
+            "lines": 241,
+            "tokens": 1849,
             "sources": 1,
             "clones": 0,
             "duplicatedLines": 0,
@@ -15513,8 +15513,8 @@
             "newClones": 0
           },
           "src/modules/universal-ui/components/step-card-system/StepCardSystem.tsx": {
-            "lines": 509,
-            "tokens": 3680,
+            "lines": 510,
+            "tokens": 3702,
             "sources": 1,
             "clones": 0,
             "duplicatedLines": 0,
@@ -22016,6 +22016,18 @@
             "newDuplicatedLines": 0,
             "newClones": 0
           },
+          "src/pages/HealthCheckDemoPage.tsx": {
+            "lines": 165,
+            "tokens": 1378,
+            "sources": 1,
+            "clones": 0,
+            "duplicatedLines": 0,
+            "duplicatedTokens": 0,
+            "percentage": 0,
+            "percentageTokens": 0,
+            "newDuplicatedLines": 0,
+            "newClones": 0
+          },
           "src/pages/ExecutionMonitorPage.tsx": {
             "lines": 182,
             "tokens": 1402,
@@ -22604,6 +22616,18 @@
             "newDuplicatedLines": 0,
             "newClones": 0
           },
+          "src/components/HealthCheckSystem.tsx": {
+            "lines": 228,
+            "tokens": 2084,
+            "sources": 1,
+            "clones": 0,
+            "duplicatedLines": 0,
+            "duplicatedTokens": 0,
+            "percentage": 0,
+            "percentageTokens": 0,
+            "newDuplicatedLines": 0,
+            "newClones": 0
+          },
           "src/components/ErrorBoundary.tsx": {
             "lines": 95,
             "tokens": 751,
@@ -22726,14 +22750,14 @@
           }
         },
         "total": {
-          "lines": 156936,
-          "tokens": 1370499,
-          "sources": 777,
+          "lines": 157331,
+          "tokens": 1374001,
+          "sources": 779,
           "clones": 274,
           "duplicatedLines": 5622,
           "duplicatedTokens": 55330,
-          "percentage": 3.58,
-          "percentageTokens": 4.04,
+          "percentage": 3.57,
+          "percentageTokens": 4.03,
           "newDuplicatedLines": 0,
           "newClones": 0
         }
@@ -24578,7 +24602,7 @@
           },
           "src/modules/universal-ui/ui/components/universal-enhanced-step-card-integration.tsx": {
             "lines": 145,
-            "tokens": 1146,
+            "tokens": 1148,
             "sources": 1,
             "clones": 0,
             "duplicatedLines": 0,
@@ -24626,13 +24650,13 @@
           },
           "src/modules/universal-ui/components/step-card-system/StepCardSystem.tsx": {
             "lines": 301,
-            "tokens": 2267,
+            "tokens": 2275,
             "sources": 1,
             "clones": 4,
             "duplicatedLines": 88,
             "duplicatedTokens": 540,
             "percentage": 29.24,
-            "percentageTokens": 23.82,
+            "percentageTokens": 23.74,
             "newDuplicatedLines": 0,
             "newClones": 0
           },
@@ -30324,6 +30348,18 @@
             "newDuplicatedLines": 0,
             "newClones": 0
           },
+          "src/pages/HealthCheckDemoPage.tsx": {
+            "lines": 138,
+            "tokens": 1108,
+            "sources": 1,
+            "clones": 0,
+            "duplicatedLines": 0,
+            "duplicatedTokens": 0,
+            "percentage": 0,
+            "percentageTokens": 0,
+            "newDuplicatedLines": 0,
+            "newClones": 0
+          },
           "src/pages/ExecutionMonitorPage.tsx": {
             "lines": 14,
             "tokens": 89,
@@ -30828,6 +30864,18 @@
             "newDuplicatedLines": 0,
             "newClones": 0
           },
+          "src/components/HealthCheckSystem.tsx": {
+            "lines": 78,
+            "tokens": 624,
+            "sources": 1,
+            "clones": 0,
+            "duplicatedLines": 0,
+            "duplicatedTokens": 0,
+            "percentage": 0,
+            "percentageTokens": 0,
+            "newDuplicatedLines": 0,
+            "newClones": 0
+          },
           "src/components/ErrorBoundary.tsx": {
             "lines": 27,
             "tokens": 236,
@@ -30938,14 +30986,14 @@
           }
         },
         "total": {
-          "lines": 77853,
-          "tokens": 688346,
-          "sources": 683,
+          "lines": 78069,
+          "tokens": 690088,
+          "sources": 685,
           "clones": 104,
           "duplicatedLines": 4070,
           "duplicatedTokens": 38989,
-          "percentage": 5.23,
-          "percentageTokens": 5.66,
+          "percentage": 5.21,
+          "percentageTokens": 5.65,
           "newDuplicatedLines": 0,
           "newClones": 0
         }
@@ -32448,14 +32496,14 @@
       }
     },
     "total": {
-      "lines": 435307,
-      "tokens": 3672044,
-      "sources": 2697,
+      "lines": 435929,
+      "tokens": 3677379,
+      "sources": 2701,
       "clones": 650,
       "duplicatedLines": 14419,
       "duplicatedTokens": 139007,
       "percentage": 3.31,
-      "percentageTokens": 3.79,
+      "percentageTokens": 3.78,
       "newDuplicatedLines": 0,
       "newClones": 0
     }
@@ -37076,32 +37124,32 @@
       "tokens": 0,
       "firstFile": {
         "name": "src\\modules\\universal-ui\\components\\step-card-system\\StepCardSystem.tsx",
-        "start": 361,
-        "end": 383,
+        "start": 362,
+        "end": 384,
         "startLoc": {
-          "line": 361,
+          "line": 362,
           "column": 11,
-          "position": 2478
+          "position": 2498
         },
         "endLoc": {
-          "line": 383,
+          "line": 384,
           "column": 11,
-          "position": 2613
+          "position": 2633
         }
       },
       "secondFile": {
         "name": "src\\modules\\universal-ui\\components\\step-card-system\\StepCardSystem.tsx",
-        "start": 339,
-        "end": 361,
+        "start": 340,
+        "end": 362,
         "startLoc": {
-          "line": 339,
+          "line": 340,
           "column": 11,
-          "position": 2342
+          "position": 2362
         },
         "endLoc": {
-          "line": 361,
+          "line": 362,
           "column": 11,
-          "position": 2477
+          "position": 2497
         }
       }
     },
@@ -37112,32 +37160,32 @@
       "tokens": 0,
       "firstFile": {
         "name": "src\\modules\\universal-ui\\components\\step-card-system\\StepCardSystem.tsx",
-        "start": 383,
-        "end": 405,
+        "start": 384,
+        "end": 406,
         "startLoc": {
-          "line": 383,
+          "line": 384,
           "column": 11,
-          "position": 2614
+          "position": 2634
         },
         "endLoc": {
-          "line": 405,
+          "line": 406,
           "column": 13,
-          "position": 2749
+          "position": 2769
         }
       },
       "secondFile": {
         "name": "src\\modules\\universal-ui\\components\\step-card-system\\StepCardSystem.tsx",
-        "start": 339,
-        "end": 361,
+        "start": 340,
+        "end": 362,
         "startLoc": {
-          "line": 339,
+          "line": 340,
           "column": 11,
-          "position": 2342
+          "position": 2362
         },
         "endLoc": {
-          "line": 361,
+          "line": 362,
           "column": 11,
-          "position": 2477
+          "position": 2497
         }
       }
     },

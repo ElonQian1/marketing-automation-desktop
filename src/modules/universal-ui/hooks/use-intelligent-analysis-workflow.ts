@@ -8,6 +8,7 @@ import { message } from 'antd';
 // 使用真实的后端服务
 import { intelligentAnalysisBackend } from '../../../services/intelligent-analysis-backend';
 import { FallbackStrategyGenerator } from '../domain/fallback-strategy-generator';
+import { EVENTS, ANALYSIS_STATES } from '../../../shared/constants/events';
 import { eventAckService } from '../infrastructure/event-acknowledgment-service';
 
 import type {
@@ -120,7 +121,7 @@ export function useIntelligentAnalysisWorkflow(): UseIntelligentAnalysisWorkflow
           console.log('✅ [Workflow] 收到分析完成', { jobId, result });
           
           // 🔒 XOR确认：检查是否已处理过此完成事件
-          if (eventAckService.isEventAcknowledged('analysis_completed', jobId)) {
+          if (eventAckService.isEventAcknowledged(EVENTS.ANALYSIS_DONE, jobId)) {
             console.log('🔒 [Workflow] 完成事件已确认处理，跳过重复处理', { jobId });
             return;
           }
@@ -171,7 +172,7 @@ export function useIntelligentAnalysisWorkflow(): UseIntelligentAnalysisWorkflow
                 console.log('🎯 [Workflow] 更新步骤卡片为完成状态', { stepId: card.stepId, jobId });
                 return {
                   ...card,
-                  analysisState: 'analysis_completed',
+                  analysisState: ANALYSIS_STATES.COMPLETED,
                   analysisProgress: 100,
                   analysisJobId: undefined, // ✅ 清除引用防误匹配
                   smartCandidates: result.smartCandidates,
@@ -186,7 +187,7 @@ export function useIntelligentAnalysisWorkflow(): UseIntelligentAnalysisWorkflow
           });
           
           // 🔒 确认事件已处理，防止重复处理
-          await eventAckService.acknowledgeEvent('analysis_completed', jobId, {
+          await eventAckService.acknowledgeEvent(EVENTS.ANALYSIS_DONE, jobId, {
             selectionHash: result.selectionHash,
             processedAt: Date.now()
           });
@@ -426,7 +427,7 @@ export function useIntelligentAnalysisWorkflow(): UseIntelligentAnalysisWorkflow
         
         return {
           ...card,
-          analysisState: 'analysis_completed',
+          analysisState: ANALYSIS_STATES.COMPLETED,
           analysisProgress: 100,
           smartCandidates: result.smartCandidates,
           staticCandidates: result.staticCandidates,

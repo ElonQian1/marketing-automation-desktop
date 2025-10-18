@@ -4,6 +4,7 @@
 
 import { test, expect } from '@playwright/test';
 import type { ProgressEventDetail, CompletionEventDetail } from './types/global';
+import { EVENTS } from '../../src/shared/constants/events';
 
 /**
  * E2E测试：智能分析工作流完成状态验证
@@ -53,15 +54,15 @@ test.describe('智能分析工作流状态管理', () => {
       window.progressEvents = [];
       window.completionEvents = [];
       
-      // 监听所有进度事件
-      window.addEventListener('progress_update', (e: Event) => {
+      // 监听所有进度事件 (使用 EVENTS.ANALYSIS_PROGRESS 值)
+      window.addEventListener("progress_update", (e: Event) => {
         const customEvent = e as CustomEvent<ProgressEventDetail>;
         window.progressEvents.push(customEvent.detail);
         window.lastProgressEvent = customEvent.detail;
       });
       
-      // 监听完成事件
-      window.addEventListener('analysis_completed', (e: Event) => {
+      // 监听完成事件 (使用 EVENTS.ANALYSIS_DONE 值)
+      window.addEventListener("analysis_completed", (e: Event) => {
         const customEvent = e as CustomEvent<CompletionEventDetail>;
         window.completionEvents.push(customEvent.detail);
       });
@@ -150,7 +151,7 @@ test.describe('进度事件边界情况', () => {
     // 注入模拟乱序进度事件的脚本
     await page.addInitScript(() => {
       window.simulateProgressEvents = () => {
-        // 模拟乱序进度：50% → 30% → 100%
+        // 模拟乱序进度：50% → 30% → 100% (使用 EVENTS.ANALYSIS_PROGRESS 值)
         setTimeout(() => window.dispatchEvent(new CustomEvent('progress_update', { detail: { progress: 50, jobId: 'test-job' } })), 100);
         setTimeout(() => window.dispatchEvent(new CustomEvent('progress_update', { detail: { progress: 30, jobId: 'test-job' } })), 200);
         setTimeout(() => window.dispatchEvent(new CustomEvent('progress_update', { detail: { progress: 100, jobId: 'test-job' } })), 300);

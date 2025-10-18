@@ -177,3 +177,8 @@ diagnose_*.mjs
 # Playwright测试报告
 playwright-report/
 test-results/
+
+# 报告和产物目录
+reports/
+*.report.json
+quality-gate-report.json

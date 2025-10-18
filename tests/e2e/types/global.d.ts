@@ -12,6 +12,38 @@ export interface CompletionEventDetail {
   progress: number;
   jobId: string;
   success: boolean;
+  smartCandidates?: Array<{
+    key: string;
+    description: string;
+    confidence: number;
+    xpath: string;
+  }>;
+  recommendedKey?: string;
+}
+
+export interface TestState {
+  analysisStarted: boolean;
+  analysisCompleted: boolean;
+  progressEvents: ProgressEventDetail[];
+  completionEvents: CompletionEventDetail[];
+  errors: string[];
+}
+
+export interface ConcurrentTestState {
+  jobs: Map<string, {
+    jobId: string;
+    elementSelector: string;
+    receivedEvents: any[];
+    expectedEvents: number;
+    actualEvents: number;
+  }>;
+  allEvents: any[];
+  crossContamination: any[];
+}
+
+export interface XorTestState {
+  completionHandlerCalls: number;
+  duplicateProcessingDetected: boolean;
 }
 
 declare global {
@@ -23,7 +55,15 @@ declare global {
     // 完成事件跟踪
     completionEvents: CompletionEventDetail[];
     
+    // 测试状态管理
+    testState: TestState;
+    concurrentTestState: ConcurrentTestState;
+    xorTestState: XorTestState;
+    
     // 测试辅助方法
     simulateProgressEvents: () => void;
+    simulateNormalConvergence: (jobId: string) => void;
+    simulateConcurrentJobs: (jobA: string, jobB: string) => void;
+    registerJob: (jobId: string, elementSelector: string) => void;
   }
 }

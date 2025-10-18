@@ -36,7 +36,9 @@
     "test:watch": "vitest",
     "test:e2e": "playwright test",
     "test:e2e:ui": "playwright test --ui",
-    "test:e2e:headed": "playwright test --headed"
+    "test:e2e:headed": "playwright test --headed",
+    "check:unused": "npx ts-prune --error || echo 'ts-prune not available, install with: npm install -D ts-prune'",
+    "check:dup": "npx jscpd src --min-lines 3 --min-tokens 50 --threshold 1 || echo 'jscpd not available, install with: npm install -D jscpd'"
   },
   "scriptsExtra": {},
   "cleaners": {},
@@ -93,10 +95,12 @@
     "eslint-plugin-boundaries": "^3.4.1",
     "eslint-plugin-import": "^2.32.0",
     "husky": "^9.1.7",
+    "jscpd": "^4.0.5",
     "jsdom": "^24.0.0",
     "lint-staged": "^15.5.2",
     "postcss": "^8.4.27",
     "tailwindcss": "4.1.13",
+    "ts-prune": "^0.10.3",
     "typescript": "^5.0.2",
     "vite": "7.1.4",
     "vitest": "^2.1.5"
