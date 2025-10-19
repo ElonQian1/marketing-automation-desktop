@@ -84,6 +84,7 @@ import ConfidenceSystemTest from "../pages/ConfidenceSystemTest";
 import { TestRealBackendIntegration } from "./test/TestRealBackendIntegration";
 import StrategyDemo from "../pages/StrategyDemo";
 import StrategyBackendDemo from "../pages/StrategyBackendDemo";
+import { ConfidenceDebugPanel } from "./confidence-debug-panel";
 
 const { Header, Sider, Content } = Layout;
 const { Title } = Typography;
@@ -202,6 +203,11 @@ const NativeAntDesignApp: React.FC = () => {
       label: "🧪 置信度系统完整性测试",
     },
     {
+      key: "confidence-debug-panel",
+      icon: <SyncOutlined />,
+      label: "🔬 置信度调试面板",
+    },
+    {
       key: "test-intelligent-analysis-adapter",
       icon: <ThunderboltOutlined />,
       label: "🧪 智能分析适配器测试",
@@ -308,6 +314,8 @@ const NativeAntDesignApp: React.FC = () => {
         return <CompleteConfidenceDemo />;
       case "confidence-system-test":
         return <ConfidenceSystemTest />;
+      case "confidence-debug-panel":
+        return <ConfidenceDebugPanel />;
       case "test-intelligent-analysis-adapter":
         return <TestIntelligentAnalysisAdapter />;
       case "test-real-backend-integration":

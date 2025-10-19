@@ -10,6 +10,7 @@ import { intelligentAnalysisBackend } from '../../../services/intelligent-analys
 import { FallbackStrategyGenerator } from '../domain/fallback-strategy-generator';
 import { EVENTS, ANALYSIS_STATES } from '../../../shared/constants/events';
 import { eventAckService } from '../infrastructure/event-acknowledgment-service';
+import { analysisHealthService } from '../infrastructure/analysis-health-service';
 
 import type {
   ElementSelectionContext,
@@ -75,6 +76,9 @@ export function useIntelligentAnalysisWorkflow(): UseIntelligentAnalysisWorkflow
   // 事件监听器引用
   const unlistenFunctions = useRef<(() => void)[]>([]);
   
+  // 🔒 幂等性保护：已处理的完成事件
+  const processedJobs = useRef<Set<string>>(new Set());
+  
   // 计算是否正在分析
   const isAnalyzing = Array.from(currentJobs.values()).some(job => 
     job.state === 'queued' || job.state === 'running'
@@ -122,9 +126,17 @@ export function useIntelligentAnalysisWorkflow(): UseIntelligentAnalysisWorkflow
               const unifiedStore = useStepCardStore.getState();
               const cardByJob = unifiedStore.findByJob(jobId);
               if (cardByJob) {
-                unifiedStore.updateStatus(cardByJob, 'analyzing');
+                // ✅ 修正：progress=100 时不要再写 analyzing，静待 DONE 事件
+                if (progress < 100) {
+                  unifiedStore.updateStatus(cardByJob, 'analyzing');
+                }
                 unifiedStore.updateProgress(cardByJob, progress);
-                console.log('🔗 [Bridge] 同步进度到统一store', { cardId: cardByJob, jobId, progress });
+                console.log('🔗 [Bridge] 同步进度到统一store', { 
+                  cardId: cardByJob.slice(-8), 
+                  jobId: jobId.slice(-8), 
+                  progress,
+                  statusUpdate: progress < 100 ? 'analyzing' : 'no-change'
+                });
               }
             } catch (err) {
               console.warn('⚠️ [Bridge] 同步到统一store失败', err);
@@ -134,11 +146,18 @@ export function useIntelligentAnalysisWorkflow(): UseIntelligentAnalysisWorkflow
         
         // 🔒 分析完成事件 - jobId 精确匹配 + 懒绑定防竞态 + ACK确认
         const unlistenDone = await intelligentAnalysisBackend.listenToAnalysisComplete(async (jobId, result) => {
-          console.log('✅ [Workflow] 收到分析完成', { jobId, result });
+          console.log('✅ [Workflow] 收到分析完成', { jobId: jobId.slice(-8), result });
           
-          // 🔒 XOR确认：检查是否已处理过此完成事件
+          // 🔒 幂等性保护：检查是否已处理过此完成事件
+          if (processedJobs.current.has(jobId)) {
+            console.log('🔒 [Workflow] 完成事件已处理，跳过重复处理', { jobId: jobId.slice(-8) });
+            return;
+          }
+          processedJobs.current.add(jobId);
+          
+          // 🔒 XOR确认：检查是否已处理过此完成事件（兼容性）
           if (eventAckService.isEventAcknowledged(EVENTS.ANALYSIS_DONE, jobId)) {
-            console.log('🔒 [Workflow] 完成事件已确认处理，跳过重复处理', { jobId });
+            console.log('🔒 [Workflow] 完成事件已确认处理，跳过重复处理', { jobId: jobId.slice(-8) });
             return;
           }
           
@@ -300,7 +319,6 @@ export function useIntelligentAnalysisWorkflow(): UseIntelligentAnalysisWorkflow
     stepId?: string
   ): Promise<string> => {
     // 🔍 Task 8: 健康检查兜底 - 分析启动前系统状态检查
-    const { analysisHealthService } = await import('../infrastructure/analysis-health-service');
     const healthOk = await analysisHealthService.checkBeforeAnalysis();
     
     if (!healthOk) {

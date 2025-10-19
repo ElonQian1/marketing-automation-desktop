@@ -226,14 +226,28 @@ export const UnifiedSmartStepCard: React.FC<UnifiedSmartStepCardProps> = ({
           <span style={{ flex: 1, fontSize: '13px' }}>
             {mockElement?.text || `元素 ${card.elementUid.slice(-8)}`}
           </span>
-          {/* 紧凑模式置信度标签 */}
-          {card.meta?.singleStepScore && (
-            <ConfidenceTag 
-              score={card.meta.singleStepScore} 
-              size="small"
-              showLabel={false}
-            />
-          )}
+          {/* 紧凑模式置信度标签 - 有分就渲染 */}
+          {(() => {
+            const score = card.meta?.singleStepScore;
+            console.log('🔍 [UnifiedSmartStepCard] 紧凑模式置信度检查', {
+              cardId: card.id.slice(-8),
+              hasScore: !!score,
+              confidence: score?.confidence,
+              confidencePercent: score ? `${Math.round(score.confidence * 100)}%` : 'N/A',
+              shouldShow: !!score,
+              willRender: !!score ? '✅ 将渲染紧凑置信度' : '❌ 不会渲染'
+            });
+            
+            return score ? (
+              <ConfidenceTag 
+                value={score.confidence}
+                evidence={score.evidence}
+                size="small"
+                showLabel={false}
+                compact={true}
+              />
+            ) : null;
+          })()}
           
           {card.status === 'draft' && (
             <Button 
@@ -287,13 +301,27 @@ export const UnifiedSmartStepCard: React.FC<UnifiedSmartStepCardProps> = ({
           <Tag color={getStatusColor(card.status)}>
             {getStatusText(card.status)}
           </Tag>
-          {/* 置信度标签 */}
-          {card.meta?.singleStepScore && (
-            <ConfidenceTag 
-              score={card.meta.singleStepScore} 
-              size="small"
-            />
-          )}
+          {/* 置信度标签 - 有分就渲染，不依赖状态 */}
+          {(() => {
+            const score = card.meta?.singleStepScore;
+            console.log('🔍 [UnifiedSmartStepCard] 检查置信度显示', {
+              cardId: card.id.slice(-8),
+              hasScore: !!score,
+              confidence: score?.confidence,
+              confidencePercent: score ? `${Math.round(score.confidence * 100)}%` : 'N/A',
+              status: card.status,
+              shouldShow: !!score,
+              willRender: !!score ? '✅ 将渲染置信度标签' : '❌ 不会渲染'
+            });
+            
+            return score ? (
+              <ConfidenceTag 
+                value={score.confidence}
+                evidence={score.evidence}
+                size="small"
+              />
+            ) : null;
+          })()}
         </div>
       }
       extra={

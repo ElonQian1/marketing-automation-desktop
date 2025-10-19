@@ -14,6 +14,10 @@ interface ConfidenceTagProps {
   size?: 'small' | 'default' | 'large';
   /** 是否显示文字标签 */
   showLabel?: boolean;
+  /** 紧凑模式（用于菜单等狭小空间） */
+  compact?: boolean;
+  /** 证据数据（用于 tooltip 详情） */
+  evidence?: Record<string, number>;
   /** 自定义样式 */
   style?: React.CSSProperties;
 }
@@ -31,6 +35,8 @@ export function ConfidenceTag({
   score, 
   size = 'default', 
   showLabel = true,
+  compact = false,
+  evidence,
   style 
 }: ConfidenceTagProps) {
   const confidence = score?.confidence ?? value;
@@ -59,35 +65,58 @@ export function ConfidenceTag({
   
   // Tooltip 内容
   const getTooltipContent = () => {
-    if (!score) return `智能·单步可信度：${pct}%`;
+    if (!score && !evidence) return `智能·单步可信度：${pct}%`;
     
     const parts = [`可信度：${pct}%`];
-    if (score.source) {
+    
+    // 优先使用 evidence（朋友建议的格式）
+    const evidenceData = evidence || score?.evidence;
+    if (evidenceData) {
+      Object.entries(evidenceData).forEach(([key, val]) => {
+        const numVal = typeof val === 'number' ? val : 0;
+        const displayValue = Math.round(numVal * 100);
+        parts.push(`${key}: ${displayValue}%`);
+      });
+    }
+    
+    if (score?.source) {
       parts.push(`来源：${score.source}`);
     }
-    if (score.at) {
+    if (score?.at) {
       const time = new Date(score.at).toLocaleTimeString();
       parts.push(`时间：${time}`);
-    }
-    if (score.reasons?.length) {
-      parts.push(`原因：${score.reasons.join('、')}`);
     }
     
     return parts.join('\n');
   };
   
-  const baseStyle: React.CSSProperties = {
-    display: 'inline-flex',
-    alignItems: 'center',
-    border: `1px solid ${color}`,
-    color,
-    backgroundColor: `${color}10`, // 10% opacity
-    fontWeight: 500,
-    cursor: 'help',
-    whiteSpace: 'nowrap',
-    ...sizeStyle,
-    ...style,
-  };
+  const baseStyle: React.CSSProperties = compact
+    ? { 
+        border: `1px solid ${color}`, 
+        color, 
+        borderRadius: 6, 
+        padding: "0 6px", 
+        fontSize: 12, 
+        opacity: 0.95,
+        display: 'inline-flex',
+        alignItems: 'center',
+        fontWeight: 500,
+        cursor: 'help',
+        whiteSpace: 'nowrap',
+        ...style,
+      }
+    : {
+        display: 'inline-flex',
+        alignItems: 'center',
+        border: `1px solid ${color}`,
+        color,
+        backgroundColor: `${color}10`, // 10% opacity
+        fontWeight: 500,
+        cursor: 'help',
+        whiteSpace: 'nowrap',
+        ...sizeStyle,
+        ...style,
+      };
   
   return (
     <span

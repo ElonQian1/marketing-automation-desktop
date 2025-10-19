@@ -158,15 +158,36 @@ export async function wireAnalysisEventsGlobally(): Promise<void> {
       // 填充策略并更新状态
       store.fillStrategyAndReady(targetCardId, strategy);
       
-      // 🆕 专门处理单步置信度（按用户建议的方案）
+      // 🆕 专门处理单步置信度（按朋友建议的优化方案）
+      // 兼容多种置信度格式：0~1 或 0~100
+      let normalizedConfidence = confidence;
+      if (typeof confidence === 'number') {
+        // 如果 >1 说明是百分比格式，需要转换为 0~1
+        normalizedConfidence = confidence > 1 ? confidence / 100 : confidence;
+      }
+      
       const singleStepScore = {
-        confidence,
+        confidence: normalizedConfidence,
         source: origin === 'single' ? 'auto_chain' as const : 'model' as const,
-        reasons: [`定位稳定性: ${(evidence.locator * 100).toFixed(1)}%`, `可见性: ${(evidence.visibility * 100).toFixed(1)}%`],
+        evidence: {
+          locator: evidence.locator,
+          visibility: evidence.visibility,
+          uniqueness: evidence.uniqueness,
+          proximity: evidence.proximity
+        },
         at: new Date().toISOString(),
       };
       
       // 调用专门的setSingleStepConfidence方法
+      const cardExists = !!useStepCardStore.getState().cards[targetCardId];
+      console.log('🔧 [Wire Events] 调用 setSingleStepConfidence', {
+        targetCardId: targetCardId.slice(-8),
+        rawConfidence: confidence,
+        normalizedConfidence,
+        confidence: singleStepScore.confidence,
+        source: singleStepScore.source,
+        cardExists
+      });
       store.setSingleStepConfidence(targetCardId, singleStepScore);
       
       // 仍然保留原有的setConfidence（向后兼容）

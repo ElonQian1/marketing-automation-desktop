@@ -6,7 +6,10 @@ import { create } from 'zustand';
 import { immer } from 'zustand/middleware/immer';
 import type { ConfidenceEvidence, SingleStepScore, StepCardMeta } from '../modules/universal-ui/types/intelligent-analysis-types';
 
-export type StepCardStatus = 'draft' | 'analyzing' | 'ready' | 'failed' | 'blocked';
+export type StepCardStatus = 'draft' | 'analyzing' | 'ready' | 'failed' | 'blocked' | 'completed' | 'done';
+
+// 🛡️ 终态集合：进入这些状态后，禁止被回写成 analyzing
+const FINAL_STATES = new Set<StepCardStatus>(['ready', 'completed', 'done', 'failed']);
 
 export interface StepCard {
   id: string;
@@ -143,11 +146,21 @@ export const useStepCardStore = create<StepCardStore>()(
     updateStatus: (cardId, status) => {
       set((state) => {
         const card = state.cards[cardId];
-        if (card) {
-          card.status = status;
-          card.updatedAt = Date.now();
-          console.log('🔄 [StepCardStore] 更新状态', { cardId, status });
+        if (!card) return;
+        
+        // 🛡️ 保护：终态后不允许退回 analyzing
+        if (FINAL_STATES.has(card.status) && status === 'analyzing') {
+          console.debug('🛡️ [StepCardStore] 忽略终态回写 analyzing', { 
+            cardId: cardId.slice(-8), 
+            currentStatus: card.status, 
+            attemptedStatus: status 
+          });
+          return;
         }
+        
+        card.status = status;
+        card.updatedAt = Date.now();
+        console.log('🔄 [StepCardStore] 更新状态', { cardId: cardId.slice(-8), status });
       });
     },
     
@@ -204,9 +217,18 @@ export const useStepCardStore = create<StepCardStore>()(
         if (!card) return;
         
         card.meta = { ...(card.meta ?? {}), singleStepScore: score };
-        card.status = 'ready';                     // 从 analyzing → ready
+        // 🛡️ 写入置信度即认为"可渲染"→ 至少 ready，但不覆盖已有终态
+        const status = FINAL_STATES.has(card.status) ? card.status : 'ready';
+        card.status = status;
         card.updatedAt = Date.now();
-        console.log('🎯 [StepCardStore] 设置单步置信度', { cardId, score });
+        console.log('🎯 [StepCardStore] 设置单步置信度', { 
+          cardId: cardId.slice(-8), 
+          confidence: score.confidence,
+          confidencePercent: `${Math.round(score.confidence * 100)}%`,
+          source: score.source,
+          finalStatus: status,
+          hasEvidence: !!score.evidence
+        });
       });
     },
 

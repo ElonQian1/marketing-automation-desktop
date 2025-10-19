@@ -302,6 +302,8 @@ export interface SingleStepScore {
   reasons?: string[];
   /** 评分时间 (ISO字符串) */
   at?: string;
+  /** 证据数据 (各项指标的分数) */
+  evidence?: Record<string, number>;
 }
 
 /**
