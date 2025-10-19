@@ -69,6 +69,7 @@ export interface StepCardStore {
   
   // 置信度管理
   setConfidence: (cardId: string, confidence: number, evidence?: ConfidenceEvidence) => void;
+  getStepIdByCard: (cardId: string) => string | undefined;
   
   // 删除操作
   remove: (cardId: string) => void;
@@ -192,6 +193,11 @@ export const useStepCardStore = create<StepCardStore>()(
           console.log('📊 [StepCardStore] 设置置信度', { cardId, confidence, evidence });
         }
       });
+    },
+
+    getStepIdByCard: (cardId) => {
+      const card = get().cards[cardId];
+      return card?.elementUid; // 使用 elementUid 作为 stepId
     },
     
     remove: (cardId) => {

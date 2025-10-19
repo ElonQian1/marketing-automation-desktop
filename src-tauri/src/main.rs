@@ -12,6 +12,7 @@ mod infrastructure;  // 新增: 基础设施模块 (事件追踪等)
 mod screenshot_service;
 mod new_backend;
 mod automation;
+mod engine;  // 新增: 策略引擎模块
 
 // Universal UI Finder 模块桥接
 // 注意：universal-ui-finder模块位于src/modules/，我们通过services层桥接

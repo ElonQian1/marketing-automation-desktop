@@ -138,3 +138,58 @@ export function generateEvidenceDescription(evidence: ConfidenceEvidence): strin
   
   return items.join(' | ');
 }
+
+/**
+ * 生成详细的证据分析文本（专家建议的详细版本）
+ */
+export function generateDetailedEvidenceAnalysis(evidence: ConfidenceEvidence): {
+  summary: string;
+  details: string[];
+} {
+  const details: string[] = [];
+  
+  if (evidence.model !== undefined) {
+    const modelPercent = formatConfidence(evidence.model);
+    const modelDesc = evidence.model >= 0.7 
+      ? '视觉/语义模型理解度高' 
+      : evidence.model >= 0.4 
+        ? '模型理解度中等' 
+        : '模型理解度较低';
+    details.push(`🧠 模型分析: ${modelPercent} - ${modelDesc}`);
+  }
+  
+  if (evidence.locator !== undefined) {
+    const locatorPercent = formatConfidence(evidence.locator);
+    const locatorDesc = evidence.locator >= 0.15 
+      ? '定位策略稳定可靠' 
+      : evidence.locator >= 0.08 
+        ? '定位策略基本可用' 
+        : '定位策略不够稳定';
+    details.push(`📍 定位稳定性: ${locatorPercent} - ${locatorDesc}`);
+  }
+  
+  if (evidence.visibility !== undefined) {
+    const visibilityPercent = formatConfidence(evidence.visibility);
+    const visibilityDesc = evidence.visibility >= 0.08 
+      ? '元素完全可见可点' 
+      : evidence.visibility >= 0.05 
+        ? '元素基本可操作' 
+        : '元素可见性存疑';
+    details.push(`👁️ 可见性: ${visibilityPercent} - ${visibilityDesc}`);
+  }
+  
+  if (evidence.device !== undefined) {
+    const devicePercent = formatConfidence(evidence.device);
+    const deviceDesc = evidence.device >= 0.9 
+      ? '设备连接正常' 
+      : evidence.device >= 0.5 
+        ? '设备状态一般' 
+        : '设备连接异常';
+    details.push(`📱 设备可用性: ${devicePercent} - ${deviceDesc}`);
+  }
+  
+  const total = (evidence.model || 0) + (evidence.locator || 0) + (evidence.visibility || 0) + (evidence.device || 0);
+  const summary = `综合评分: ${formatConfidence(total)} (${details.length}个维度)`;
+  
+  return { summary, details };
+}

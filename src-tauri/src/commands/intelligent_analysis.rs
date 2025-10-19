@@ -7,6 +7,7 @@ use std::sync::{Arc, Mutex};
 use tauri::{AppHandle, Manager, Emitter};
 use sha1::{Sha1, Digest};
 use crate::infrastructure::events::emit_and_trace;
+use crate::engine::{StrategyEngine, AnalysisContext, Evidence, ContainerInfo as EngineContainerInfo};
 
 // ============================================
 // 类型定义
@@ -137,6 +138,17 @@ pub struct AnalysisDoneEvent {
     pub job_id: String,
     pub selection_hash: String,
     pub result: AnalysisResult,
+    /// 整体置信度 (0.0-1.0)
+    pub confidence: f32,
+    /// 置信度证据分项
+    pub evidence: Evidence,
+    /// 分析来源：'single' 或 'chain'
+    pub origin: String,
+    /// 可选的元素ID和卡片ID (前端路由用)
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub element_uid: Option<String>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub card_id: Option<String>,
 }
 
 /// 分析错误事件
@@ -350,19 +362,32 @@ async fn execute_analysis_workflow(
     emit_progress(&app_handle, &job_id, 95, "生成分析报告").await;
     tokio::time::sleep(tokio::time::Duration::from_millis(300)).await;
     
-    // 生成分析结果 (TODO: 接入真实的策略生成服务)
-    let result = generate_mock_analysis_result(&selection_hash, &config);
+    // 🆕 使用共用引擎生成真实的分析结果
+    let engine = StrategyEngine::new();
+    let analysis_context = build_analysis_context(&config.element_context);
+    let step_result = engine.analyze_single_step(&analysis_context);
+    
+    // 转换为旧版AnalysisResult格式 (兼容现有代码)
+    let result = convert_step_result_to_analysis_result(&step_result, &selection_hash, &config);
     
     // Step 6: 完成 (100%) - 确保 UI 进度条到 100%
     emit_progress(&app_handle, &job_id, 100, "分析完成").await;
     
-    tracing::info!("✅ 分析完成: job_id={}, 推荐策略={}", job_id, result.recommended_key);
+    tracing::info!(
+        "✅ 分析完成: job_id={}, 推荐策略={}, 置信度={:.1}%", 
+        job_id, result.recommended_key, step_result.confidence * 100.0
+    );
     
-    // 发送完成事件
+    // 🆕 发送增强的完成事件 (包含置信度和证据)
     emit_and_trace(&app_handle, "analysis:done", &AnalysisDoneEvent {
         job_id: job_id.clone(),
         selection_hash: selection_hash.clone(),
         result,
+        confidence: step_result.confidence,
+        evidence: step_result.evidence,
+        origin: "single".to_string(), // 单步分析
+        element_uid: Some(config.element_context.element_path.clone()),
+        card_id: config.step_id.clone(),
     }).map_err(|e| e.to_string())?;
     
     Ok(())
@@ -380,7 +405,73 @@ async fn emit_progress(app_handle: &AppHandle, job_id: &str, progress: u8, step:
     tracing::debug!("📊 进度更新: job_id={}, progress={}%, step={}", job_id, progress, step);
 }
 
+/// 构建分析上下文 (从ElementSelectionContext转换为AnalysisContext)
+fn build_analysis_context(element_context: &ElementSelectionContext) -> AnalysisContext {
+    AnalysisContext {
+        element_path: element_context.element_path.clone(),
+        element_text: element_context.element_text.clone(),
+        element_type: element_context.element_type.clone(),
+        resource_id: element_context.key_attributes
+            .as_ref()
+            .and_then(|attrs| attrs.get("resource-id"))
+            .cloned(),
+        class_name: element_context.key_attributes
+            .as_ref()
+            .and_then(|attrs| attrs.get("class"))
+            .cloned(),
+        bounds: element_context.element_bounds.clone(),
+        container_info: element_context.container_info.as_ref().map(|ci| EngineContainerInfo {
+            container_type: ci.container_type.clone(),
+            container_path: ci.container_path.clone(),
+            item_index: ci.item_index,
+            total_items: ci.total_items,
+        }),
+    }
+}
+
+/// 转换StepResult为AnalysisResult (兼容现有代码)
+fn convert_step_result_to_analysis_result(
+    step_result: &crate::engine::StepResult,
+    selection_hash: &str,
+    config: &AnalysisJobConfig,
+) -> AnalysisResult {
+    let smart_candidates: Vec<StrategyCandidate> = step_result.candidates.iter().map(|c| {
+        StrategyCandidate {
+            key: c.key.clone(),
+            name: c.name.clone(),
+            confidence: c.confidence * 100.0, // 转换为百分比
+            description: c.description.clone(),
+            variant: c.variant.clone(),
+            xpath: c.xpath.clone(),
+            enabled: true,
+            is_recommended: c.key == step_result.recommended,
+        }
+    }).collect();
+    
+    let fallback = smart_candidates.last().unwrap_or(&StrategyCandidate {
+        key: "emergency_fallback".to_string(),
+        name: "应急兜底策略".to_string(),
+        confidence: 50.0,
+        description: "应急兜底定位".to_string(),
+        variant: "emergency_fallback".to_string(),
+        xpath: Some(config.element_context.element_path.clone()),
+        enabled: true,
+        is_recommended: false,
+    }).clone();
+    
+    AnalysisResult {
+        selection_hash: selection_hash.to_string(),
+        step_id: config.step_id.clone(),
+        smart_candidates,
+        static_candidates: vec![],
+        recommended_key: step_result.recommended.clone(),
+        recommended_confidence: step_result.confidence * 100.0, // 转换为百分比
+        fallback_strategy: fallback,
+    }
+}
+
 /// 生成模拟分析结果 (临时实现,后续接入真实服务)
+/// 🚨 注意：此函数已被上面的共用引擎替代，保留用于向后兼容
 fn generate_mock_analysis_result(
     selection_hash: &str,
     config: &AnalysisJobConfig,

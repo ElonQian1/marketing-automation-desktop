@@ -6,6 +6,7 @@ import React from 'react';
 import { Dropdown, Button, Tooltip, Progress, Space } from 'antd';
 import { RefreshCcwIcon, LightbulbIcon, CheckCircleIcon, XCircleIcon } from 'lucide-react';
 import { useStepCardStore } from '../../store/stepcards';
+import { useStepScoreStore } from '../../stores/step-score-store';
 import { useUnifiedSmartAnalysis } from '../../hooks/useUnifiedSmartAnalysis';
 import { ConfidenceTag } from '../../modules/universal-ui';
 
@@ -42,11 +43,16 @@ export const UnifiedCompactStrategyMenu: React.FC<UnifiedCompactStrategyMenuProp
   } = useUnifiedSmartAnalysis();
   
   const { getCard } = useStepCardStore();
+  const { getByCardId, generateKey, get: getScore } = useStepScoreStore();
   
   const [currentCardId, setCurrentCardId] = React.useState<string | null>(existingCardId || null);
 
   // 当前卡片信息
   const currentCard = currentCardId ? getCard(currentCardId) : null;
+  
+  // 🆕 优先从共享缓存获取置信度（专家建议的核心）
+  const cachedScore = currentCardId ? getByCardId(currentCardId) : null;
+  const elementScore = cachedScore || (elementData.uid ? getScore(generateKey(elementData.uid)) : null);
 
   // 获取显示状态
   const getDisplayStatus = (): { 
@@ -294,11 +300,11 @@ export const UnifiedCompactStrategyMenu: React.FC<UnifiedCompactStrategyMenuProp
         </Button>
       </Dropdown>
 
-      {/* 置信度显示 */}
-      {currentCard?.status === 'ready' && currentCard.confidence !== undefined && (
+      {/* 置信度显示 - 优先使用共享缓存 */}
+      {currentCard?.status === 'ready' && (elementScore?.confidence !== undefined || currentCard.confidence !== undefined) && (
         <ConfidenceTag 
-          confidence={currentCard.confidence}
-          evidence={currentCard.evidence}
+          confidence={elementScore?.confidence ?? currentCard.confidence ?? 0}
+          evidence={elementScore?.evidence ?? currentCard.evidence}
           size="small"
           showLabel={false}
         />

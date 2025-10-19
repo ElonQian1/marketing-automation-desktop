@@ -5,7 +5,7 @@
 import React from 'react';
 import { Tooltip } from 'antd';
 import type { ConfidenceEvidence } from '../types/intelligent-analysis-types';
-import { getConfidenceLevel, formatConfidence, generateEvidenceDescription } from '../utils/confidence-utils';
+import { getConfidenceLevel, formatConfidence, generateDetailedEvidenceAnalysis } from '../utils/confidence-utils';
 
 interface ConfidenceTagProps {
   /** 置信度分数 (0-1) */
@@ -60,17 +60,25 @@ export const ConfidenceTag: React.FC<ConfidenceTagProps> = ({
   
   // 如果有证据详情，显示 Tooltip
   if (evidence) {
-    const evidenceText = generateEvidenceDescription(evidence);
+    const { summary, details } = generateDetailedEvidenceAnalysis(evidence);
     
     return (
       <Tooltip 
         title={
-          <div className="space-y-1">
-            <div className="font-medium">置信度详情</div>
-            <div className="text-xs opacity-90">{evidenceText}</div>
+          <div className="space-y-2 max-w-xs">
+            <div className="font-medium text-white">置信度分析</div>
+            <div className="text-xs text-blue-100">{summary}</div>
+            <div className="space-y-1">
+              {details.map((detail, index) => (
+                <div key={index} className="text-xs text-gray-200">
+                  {detail}
+                </div>
+              ))}
+            </div>
           </div>
         }
         placement="top"
+        overlayStyle={{ maxWidth: '300px' }}
       >
         {tagContent}
       </Tooltip>

@@ -4,8 +4,9 @@
 
 import { listen } from '@tauri-apps/api/event';
 import { useStepCardStore } from '../../store/stepcards';
+import { useStepScoreStore } from '../../stores/step-score-store';
 import { EVENTS } from '../../shared/constants/events';
-import { estimateConfidenceFromEvent } from '../../modules/universal-ui/utils/confidence-utils';
+import type { ConfidenceEvidence } from '../../modules/universal-ui/types/intelligent-analysis-types';
 
 let globalWired = false;
 let globalUnlistenFunctions: (() => void)[] = [];
@@ -91,19 +92,28 @@ export async function wireAnalysisEventsGlobally(): Promise<void> {
           description?: string;
         }>;
       };
-      /** 整体置信度 (0-1) */
-      confidence?: number;
-      /** 置信度证据分项 */
-      evidence?: {
-        model?: number;
-        locator?: number;
-        visibility?: number;
-        device?: number;
+      /** 整体置信度 (0-1) - 现在由后端直接提供 */
+      confidence: number;
+      /** 置信度证据分项 - 现在由后端直接提供 */
+      evidence: {
+        model: number;
+        locator: number;
+        visibility: number;
+        uniqueness: number;
+        proximity: number;
+        screen: number;
+        history: number;
+        penalty_margin: number;
       };
+      /** 分析来源：'single' 或 'chain' */
+      origin: string;
+      /** 可选的元素ID和卡片ID (前端路由用) */
+      element_uid?: string;
+      card_id?: string;
     }>(EVENTS.ANALYSIS_DONE, (event) => {
-      const { job_id, result, confidence, evidence } = event.payload;
+      const { job_id, result, confidence, evidence, origin } = event.payload;
       const { recommended_key, smart_candidates } = result;
-      console.debug('[EVT] ✅ completed', job_id.slice(-8), 'recommended:', recommended_key, 'confidence:', confidence);
+      console.debug('[EVT] ✅ completed', job_id.slice(-8), 'recommended:', recommended_key, 'confidence:', confidence, 'origin:', origin);
       
       const store = useStepCardStore.getState();
       
@@ -148,33 +158,45 @@ export async function wireAnalysisEventsGlobally(): Promise<void> {
       // 填充策略并更新状态
       store.fillStrategyAndReady(targetCardId, strategy);
       
-      // 设置置信度（如果后端提供）
-      if (confidence !== undefined) {
-        store.setConfidence(targetCardId, confidence, evidence);
-        console.debug('[ROUTE] confidence applied', { 
-          cardId: targetCardId.slice(-8), 
-          confidence,
-          evidence
-        });
-      } else {
-        // 使用兜底置信度估算
-        const estimated = estimateConfidenceFromEvent({ 
-          recommendedKey: recommended_key,
-          candidatesCount: smart_candidates?.length || 0,
-          topConfidence: smart_candidates?.[0]?.confidence || 0.85
-        });
-        store.setConfidence(targetCardId, estimated.confidence, estimated.evidence);
-        console.debug('[ROUTE] estimated confidence applied', { 
-          cardId: targetCardId.slice(-8), 
-          estimated
-        });
-      }
+      // 🆕 直接使用后端提供的置信度和证据（不再需要兜底逻辑）
+      const finalConfidence = confidence;
+      const finalEvidence: ConfidenceEvidence = {
+        model: evidence.model,
+        locator: evidence.locator,
+        visibility: evidence.visibility,
+        device: Math.max(0.1, 1.0 - evidence.penalty_margin), // 转换边界惩罚为设备兼容性
+      };
+      
+      store.setConfidence(targetCardId, confidence, finalEvidence);
+      console.debug('[ROUTE] backend confidence applied', { 
+        cardId: targetCardId.slice(-8), 
+        confidence,
+        evidence: finalEvidence,
+        origin,
+        backendEvidence: evidence
+      });
+      
+      // 🆕 写入共享缓存（专家建议的核心）
+      const scoreStore = useStepScoreStore.getState();
+      const cacheKey = scoreStore.generateKey(card?.elementUid || 'unknown');
+      scoreStore.upsert({
+        key: cacheKey,
+        recommended: recommended_key,
+        confidence: finalConfidence,
+        evidence: finalEvidence,
+        origin: origin as 'single' | 'chain', // 现在由后端直接提供
+        jobId: job_id,
+        cardId: targetCardId,
+        elementUid: card?.elementUid,
+        timestamp: Date.now()
+      });
       
       console.debug('[ROUTE] completed strategy applied', { 
         cardId: targetCardId.slice(-8), 
         strategy: strategy.primary,
-        confidence: confidence || strategy.score,
-        elementUid: card?.elementUid?.slice(-6)
+        confidence: finalConfidence,
+        elementUid: card?.elementUid?.slice(-6),
+        cacheKey
       });
     });
 

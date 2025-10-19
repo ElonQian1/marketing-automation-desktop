@@ -78,6 +78,8 @@ import ElementDiscoveryTestPage from "../pages/ElementDiscoveryTestPage";
 import IntelligentAnalysisRealDemo from "../modules/universal-ui/pages/intelligent-analysis-real-demo.tsx";
 import AutoFillDemo from "../modules/universal-ui/pages/auto-fill-demo.tsx";
 import ConfidenceDemo from "../pages/confidence-demo";
+import SharedCacheDemo from "../pages/shared-cache-demo";
+import CompleteConfidenceDemo from "../pages/complete-confidence-demo";
 import { TestRealBackendIntegration } from "./test/TestRealBackendIntegration";
 import StrategyDemo from "../pages/StrategyDemo";
 import StrategyBackendDemo from "../pages/StrategyBackendDemo";
@@ -184,6 +186,16 @@ const NativeAntDesignApp: React.FC = () => {
       label: "📊 置信度显示演示",
     },
     {
+      key: "shared-cache-demo",
+      icon: <SyncOutlined />,
+      label: "🔄 共享缓存机制演示",
+    },
+    {
+      key: "complete-confidence-demo",
+      icon: <CheckCircleOutlined />,
+      label: "🎯 完整置信度系统演示",
+    },
+    {
       key: "test-intelligent-analysis-adapter",
       icon: <ThunderboltOutlined />,
       label: "🧪 智能分析适配器测试",
@@ -284,6 +296,10 @@ const NativeAntDesignApp: React.FC = () => {
         return <AutoFillDemo />;
       case "confidence-demo":
         return <ConfidenceDemo />;
+      case "shared-cache-demo":
+        return <SharedCacheDemo />;
+      case "complete-confidence-demo":
+        return <CompleteConfidenceDemo />;
       case "test-intelligent-analysis-adapter":
         return <TestIntelligentAnalysisAdapter />;
       case "test-real-backend-integration":
