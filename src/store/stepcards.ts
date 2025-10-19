@@ -216,7 +216,11 @@ export const useStepCardStore = create<StepCardStore>()(
         const card = state.cards[cardId];
         if (!card) return;
         
+        // 🔧 关键修复：同时设置 meta 和 confidence 字段
         card.meta = { ...(card.meta ?? {}), singleStepScore: score };
+        card.confidence = score.confidence;  // ✅ 直接设置到卡片的 confidence 字段
+        card.evidence = score.evidence;      // ✅ 设置证据数据
+        
         // 🛡️ 写入置信度即认为"可渲染"→ 至少 ready，但不覆盖已有终态
         const status = FINAL_STATES.has(card.status) ? card.status : 'ready';
         card.status = status;
@@ -227,7 +231,8 @@ export const useStepCardStore = create<StepCardStore>()(
           confidencePercent: `${Math.round(score.confidence * 100)}%`,
           source: score.source,
           finalStatus: status,
-          hasEvidence: !!score.evidence
+          hasEvidence: !!score.evidence,
+          cardConfidenceSet: '✅ card.confidence 已设置'
         });
       });
     },

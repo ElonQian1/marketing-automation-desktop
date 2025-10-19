@@ -6,7 +6,7 @@ import { useState, useEffect } from 'react';
 import { Card, Button, Tabs, Typography, Space, Tag, Alert, Input } from 'antd';
 import { ReloadOutlined, BugOutlined, ExperimentOutlined } from '@ant-design/icons';
 import { useStepCardStore } from '../store/stepcards';
-import { ConfidenceTag } from './step-cards/confidence-tag';
+import { ConfidenceBadge } from './common/ConfidenceBadge';
 
 const { Text, Title } = Typography;
 const { TabPane } = Tabs;
@@ -20,7 +20,7 @@ interface DebugStepCard {
 }
 
 export const ConfidenceDebugPanel = () => {
-  const { stepCards, setSingleStepConfidence } = useStepCardStore();
+  const { cards, setSingleStepConfidence } = useStepCardStore();
   const [refreshKey, setRefreshKey] = useState(0);
   const [testCardId, setTestCardId] = useState('debug-test-card');
 
@@ -32,12 +32,12 @@ export const ConfidenceDebugPanel = () => {
   // 创建测试卡片
   const createTestCard = (confidence: number, evidence?: string) => {
     const testId = `${testCardId}-${Date.now()}`;
-    setSingleStepConfidence(testId, confidence, evidence, 'analyzing');
+    setSingleStepConfidence(testId, confidence, evidence);
     console.log(`Created test card: ${testId} with confidence ${confidence}%`);
   };
 
   // 获取有置信度的卡片
-  const cardsWithConfidence = Object.entries(stepCards)
+  const cardsWithConfidence = Object.entries(cards)
     .filter(([_, card]) => card.confidence !== undefined)
     .map(([id, card]) => ({
       id,
@@ -77,7 +77,7 @@ export const ConfidenceDebugPanel = () => {
               <div className="grid grid-cols-3 gap-4">
                 <div className="text-center">
                   <div className="text-2xl font-bold text-blue-600">
-                    {Object.keys(stepCards).length}
+                    {Object.keys(cards).length}
                   </div>
                   <div className="text-gray-500">总卡片数</div>
                 </div>
@@ -113,9 +113,8 @@ export const ConfidenceDebugPanel = () => {
                           {card.id}
                         </Text>
                         <div className="flex items-center gap-2">
-                          <ConfidenceTag 
-                            confidence={card.confidence}
-                            evidence={card.evidence}
+                          <ConfidenceBadge 
+                            value={card.confidence}
                             compact
                           />
                           <Tag color={card.status === 'completed' ? 'green' : 'blue'}>
@@ -124,11 +123,11 @@ export const ConfidenceDebugPanel = () => {
                         </div>
                       </div>
                       <Text type="secondary" className="text-xs block truncate">
-                        {card.content}
+                        元素 {card.id.slice(-8)}
                       </Text>
                       {card.evidence && (
                         <Text type="secondary" className="text-xs block mt-1">
-                          证据: {card.evidence}
+                          证据: {JSON.stringify(card.evidence)}
                         </Text>
                       )}
                     </div>
@@ -208,19 +207,19 @@ export const ConfidenceDebugPanel = () => {
                 <div className="text-center space-y-2">
                   <Text strong>高置信度 (≥85%)</Text>
                   <div>
-                    <ConfidenceTag confidence={90} evidence="完美匹配" />
+                    <ConfidenceBadge value={0.90} />
                   </div>
                 </div>
                 <div className="text-center space-y-2">
                   <Text strong>中置信度 (≥60%)</Text>
                   <div>
-                    <ConfidenceTag confidence={72} evidence="良好匹配" />
+                    <ConfidenceBadge value={0.72} />
                   </div>
                 </div>
                 <div className="text-center space-y-2">
                   <Text strong>低置信度 (&lt;60%)</Text>
                   <div>
-                    <ConfidenceTag confidence={35} evidence="弱匹配" />
+                    <ConfidenceBadge value={0.35} />
                   </div>
                 </div>
               </div>
@@ -232,16 +231,16 @@ export const ConfidenceDebugPanel = () => {
           <Card title="Store 状态">
             <pre className="bg-gray-100 p-4 rounded text-xs overflow-auto max-h-96">
               {JSON.stringify({ 
-                totalCards: Object.keys(stepCards).length,
+                totalCards: Object.keys(cards).length,
                 cardsWithConfidence: cardsWithConfidence.length,
                 sampleCards: Object.fromEntries(
-                  Object.entries(stepCards)
+                  Object.entries(cards)
                     .slice(0, 3)
                     .map(([id, card]) => [id, {
                       status: card.status,
                       confidence: card.confidence,
                       evidence: card.evidence,
-                      hasContent: !!card.content
+                      hasElementUid: !!card.elementUid
                     }])
                 )
               }, null, 2)}
