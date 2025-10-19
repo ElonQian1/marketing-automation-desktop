@@ -36,11 +36,11 @@ export const EVENTS = {
   
   // === 智能分析事件 ===
   /** 分析进度更新事件 */
-  ANALYSIS_PROGRESS: 'progress_update',
+  ANALYSIS_PROGRESS: 'analysis:progress',
   /** 分析完成事件 */
-  ANALYSIS_DONE: 'analysis_completed',
+  ANALYSIS_DONE: 'analysis:done',
   /** 分析错误事件 */  
-  ANALYSIS_ERROR: 'analysis_error',
+  ANALYSIS_ERROR: 'analysis:error',
   
   // === 联系人导入事件 (从ContactImporterUseCase中提取) ===
   /** 联系人导入开始 */

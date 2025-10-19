@@ -4,6 +4,7 @@
 
 import { listen } from '@tauri-apps/api/event';
 import { useStepCardStore } from '../../store/stepcards';
+import { EVENTS } from '../../shared/constants/events';
 
 let globalWired = false;
 let globalUnlistenFunctions: (() => void)[] = [];
@@ -25,11 +26,11 @@ export async function wireAnalysisEventsGlobally(): Promise<void> {
     const unlistenProgress = await listen<{
       job_id: string;
       progress: number;
-      step?: string;
+      current_step?: string;
       estimated_time_left?: number;
-    }>('analysis_progress', (event) => {
-      const { job_id, progress, step } = event.payload;
-      console.log('📊 [GlobalWire] 收到全局进度事件', { job_id, progress, step });
+    }>(EVENTS.ANALYSIS_PROGRESS, (event) => {
+      const { job_id, progress, current_step } = event.payload;
+      console.log('📊 [GlobalWire] 收到全局进度事件', { job_id, progress, current_step });
 
       const store = useStepCardStore.getState();
       const cardId = store.findByJob(job_id);
@@ -70,51 +71,37 @@ export async function wireAnalysisEventsGlobally(): Promise<void> {
     // 监听分析完成事件
     const unlistenCompleted = await listen<{
       job_id: string;
-      card_id?: string;
-      element_uid?: string;
-      recommended: string;
-      recommended_key?: string;
-      smart_candidates?: Array<{
-        key: string;
-        name: string;
-        confidence: number;
-        xpath?: string;
-        description?: string;
-      }>;
-    }>('analysis_completed', (event) => {
-      const { job_id, card_id, element_uid, recommended, recommended_key, smart_candidates } = event.payload;
-      console.log('✅ [GlobalWire] 收到全局完成事件', { job_id, card_id, element_uid, recommended });
+      selection_hash: string;
+      result: {
+        recommended_key: string;
+        smart_candidates?: Array<{
+          key: string;
+          name: string;
+          confidence: number;
+          xpath?: string;
+          description?: string;
+        }>;
+      };
+    }>(EVENTS.ANALYSIS_DONE, (event) => {
+      const { job_id, result } = event.payload;
+      const { recommended_key, smart_candidates } = result;
+      console.log('✅ [GlobalWire] 收到全局完成事件', { job_id, recommended_key, smart_candidates });
 
       const store = useStepCardStore.getState();
       
-      // 多重查找策略
-      let targetCardId: string | undefined;
+      // 通过job_id查找目标卡片
+      const targetCardId = store.findByJob(job_id);
       
-      if (card_id && store.getCard(card_id)) {
-        targetCardId = card_id;
-        console.log('🎯 [GlobalWire] 通过card_id找到目标卡片', { card_id });
-      } else {
-        targetCardId = store.findByJob(job_id);
-        if (targetCardId) {
-          console.log('🎯 [GlobalWire] 通过job_id找到目标卡片', { job_id, targetCardId });
-        }
-      }
-      
-      if (!targetCardId && element_uid) {
-        targetCardId = store.findByElement(element_uid);
-        if (targetCardId) {
-          console.log('🎯 [GlobalWire] 通过element_uid找到目标卡片', { element_uid, targetCardId });
-        }
-      }
-
       if (!targetCardId) {
-        console.error('❌ [GlobalWire] 未找到对应的卡片', { job_id, card_id, element_uid });
+        console.error('❌ [GlobalWire] 未找到对应的卡片', { job_id });
         return;
       }
+      
+      console.log('🎯 [GlobalWire] 通过job_id找到目标卡片', { job_id, targetCardId });
 
       // 构建策略对象
       const strategy = {
-        primary: recommended_key || recommended || 'completed_strategy',
+        primary: recommended_key || 'completed_strategy',
         backups: smart_candidates?.slice(1).map(c => c.key) || [],
         score: smart_candidates?.[0]?.confidence || 0.85,
         candidates: smart_candidates?.map(c => ({
@@ -124,7 +111,7 @@ export async function wireAnalysisEventsGlobally(): Promise<void> {
           xpath: c.xpath || '',
           description: c.description
         })) || [{
-          key: recommended_key || recommended,
+          key: recommended_key || 'completed_strategy',
           name: '推荐策略',
           confidence: 0.85,
           xpath: ''
@@ -143,17 +130,17 @@ export async function wireAnalysisEventsGlobally(): Promise<void> {
     // 监听分析错误事件
     const unlistenError = await listen<{
       job_id: string;
+      selection_hash: string;
       error: string;
-      details?: string;
-    }>('analysis_error', (event) => {
-      const { job_id, error, details } = event.payload;
-      console.error('❌ [GlobalWire] 收到全局错误事件', { job_id, error, details });
+    }>(EVENTS.ANALYSIS_ERROR, (event) => {
+      const { job_id, error } = event.payload;
+      console.error('❌ [GlobalWire] 收到全局错误事件', { job_id, error });
 
       const store = useStepCardStore.getState();
       const cardId = store.findByJob(job_id);
       
       if (cardId) {
-        store.setError(cardId, `分析失败: ${error}${details ? ` (${details})` : ''}`);
+        store.setError(cardId, `分析失败: ${error}`);
         console.log('🚫 [GlobalWire] 更新卡片错误状态', { cardId, job_id, error });
       }
     });
