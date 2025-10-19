@@ -22,9 +22,20 @@ if (typeof document !== 'undefined') {
   document.documentElement.classList.add('dark');
   document.documentElement.setAttribute('data-density', 'default');
 
-  // 🌐 初始化全局分析事件监听器
-  wireAnalysisEventsGlobally().catch(error => {
-    console.error('❌ 全局事件监听器初始化失败:', error);
+  // 🌐 延迟初始化全局分析事件监听器，等待Tauri完全加载
+  document.addEventListener('DOMContentLoaded', () => {
+    console.log('📄 [main.tsx] DOMContentLoaded 事件触发');
+    // 使用setTimeout确保在Tauri初始化之后
+    setTimeout(() => {
+      console.log('🕒 [main.tsx] 准备初始化全局事件监听器');
+      wireAnalysisEventsGlobally()
+        .then(() => {
+          console.log('✅ [main.tsx] 全局事件监听器初始化成功');
+        })
+        .catch(error => {
+          console.error('❌ [main.tsx] 全局事件监听器初始化失败:', error);
+        });
+    }, 100);
   });
 }
 
