@@ -80,6 +80,7 @@ import AutoFillDemo from "../modules/universal-ui/pages/auto-fill-demo.tsx";
 import ConfidenceDemo from "../pages/confidence-demo";
 import SharedCacheDemo from "../pages/shared-cache-demo";
 import CompleteConfidenceDemo from "../pages/complete-confidence-demo";
+import ConfidenceSystemTest from "../pages/ConfidenceSystemTest";
 import { TestRealBackendIntegration } from "./test/TestRealBackendIntegration";
 import StrategyDemo from "../pages/StrategyDemo";
 import StrategyBackendDemo from "../pages/StrategyBackendDemo";
@@ -196,6 +197,11 @@ const NativeAntDesignApp: React.FC = () => {
       label: "🎯 完整置信度系统演示",
     },
     {
+      key: "confidence-system-test",
+      icon: <ThunderboltOutlined />,
+      label: "🧪 置信度系统完整性测试",
+    },
+    {
       key: "test-intelligent-analysis-adapter",
       icon: <ThunderboltOutlined />,
       label: "🧪 智能分析适配器测试",
@@ -300,6 +306,8 @@ const NativeAntDesignApp: React.FC = () => {
         return <SharedCacheDemo />;
       case "complete-confidence-demo":
         return <CompleteConfidenceDemo />;
+      case "confidence-system-test":
+        return <ConfidenceSystemTest />;
       case "test-intelligent-analysis-adapter":
         return <TestIntelligentAnalysisAdapter />;
       case "test-real-backend-integration":

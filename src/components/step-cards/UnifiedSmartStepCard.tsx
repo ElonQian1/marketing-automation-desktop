@@ -18,6 +18,7 @@ import {
 import { useStepCardStore, type StepCard, type StepCardStatus } from '../../store/stepcards';
 import { useUnifiedAnalysisEvents } from '../../services/unified-analysis-events';
 import { invoke } from '@tauri-apps/api/core';
+import { ConfidenceTag } from '../confidence-tag';
 
 const { Option } = Select;
 
@@ -225,6 +226,14 @@ export const UnifiedSmartStepCard: React.FC<UnifiedSmartStepCardProps> = ({
           <span style={{ flex: 1, fontSize: '13px' }}>
             {mockElement?.text || `元素 ${card.elementUid.slice(-8)}`}
           </span>
+          {/* 紧凑模式置信度标签 */}
+          {card.meta?.singleStepScore && (
+            <ConfidenceTag 
+              score={card.meta.singleStepScore} 
+              size="small"
+              showLabel={false}
+            />
+          )}
           
           {card.status === 'draft' && (
             <Button 
@@ -278,6 +287,13 @@ export const UnifiedSmartStepCard: React.FC<UnifiedSmartStepCardProps> = ({
           <Tag color={getStatusColor(card.status)}>
             {getStatusText(card.status)}
           </Tag>
+          {/* 置信度标签 */}
+          {card.meta?.singleStepScore && (
+            <ConfidenceTag 
+              score={card.meta.singleStepScore} 
+              size="small"
+            />
+          )}
         </div>
       }
       extra={

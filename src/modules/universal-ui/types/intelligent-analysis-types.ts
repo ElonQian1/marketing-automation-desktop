@@ -291,6 +291,28 @@ export interface ConfidenceEvidence {
 }
 
 /**
+ * 单步分析评分结果
+ */
+export interface SingleStepScore {
+  /** 置信度 (0-1) */
+  confidence: number;
+  /** 来源：auto_chain | static | model */
+  source?: 'auto_chain' | 'static' | 'model';
+  /** 评分原因 */
+  reasons?: string[];
+  /** 评分时间 (ISO字符串) */
+  at?: string;
+}
+
+/**
+ * 步骤卡片元数据
+ */
+export interface StepCardMeta {
+  /** 单步分析评分 */
+  singleStepScore?: SingleStepScore;
+}
+
+/**
  * 分析完成事件
  */
 export interface AnalysisDoneEvent {

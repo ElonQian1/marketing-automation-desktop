@@ -4,7 +4,7 @@
 
 import { create } from 'zustand';
 import { immer } from 'zustand/middleware/immer';
-import type { ConfidenceEvidence } from '../modules/universal-ui/types/intelligent-analysis-types';
+import type { ConfidenceEvidence, SingleStepScore, StepCardMeta } from '../modules/universal-ui/types/intelligent-analysis-types';
 
 export type StepCardStatus = 'draft' | 'analyzing' | 'ready' | 'failed' | 'blocked';
 
@@ -38,6 +38,8 @@ export interface StepCard {
   confidence?: number;
   /** 置信度证据分项 */
   evidence?: ConfidenceEvidence;
+  /** 扩展元数据 */
+  meta?: StepCardMeta;
   createdAt: number;
   updatedAt: number;
 }
@@ -69,6 +71,7 @@ export interface StepCardStore {
   
   // 置信度管理
   setConfidence: (cardId: string, confidence: number, evidence?: ConfidenceEvidence) => void;
+  setSingleStepConfidence: (cardId: string, score: SingleStepScore) => void;
   getStepIdByCard: (cardId: string) => string | undefined;
   
   // 删除操作
@@ -192,6 +195,18 @@ export const useStepCardStore = create<StepCardStore>()(
           card.updatedAt = Date.now();
           console.log('📊 [StepCardStore] 设置置信度', { cardId, confidence, evidence });
         }
+      });
+    },
+
+    setSingleStepConfidence: (cardId, score) => {
+      set((state) => {
+        const card = state.cards[cardId];
+        if (!card) return;
+        
+        card.meta = { ...(card.meta ?? {}), singleStepScore: score };
+        card.status = 'ready';                     // 从 analyzing → ready
+        card.updatedAt = Date.now();
+        console.log('🎯 [StepCardStore] 设置单步置信度', { cardId, score });
       });
     },
 

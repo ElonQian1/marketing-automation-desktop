@@ -67,19 +67,36 @@ export function exportStepPack(cardId: string, options?: {
   // 获取关联的评分
   let lastScore: StepPack['last_score'] | undefined;
   if (options?.includeScore) {
-    const score = scoreStore.getByCardId(cardId);
-    if (score) {
+    // 优先使用 meta.singleStepScore（新的单步置信度）
+    if (card.meta?.singleStepScore) {
+      const singleScore = card.meta.singleStepScore;
       lastScore = {
-        confidence: score.confidence,
+        confidence: singleScore.confidence,
         evidence: {
-          model: score.evidence?.model || 0,
-          locator: score.evidence?.locator || 0,
-          visibility: score.evidence?.visibility || 0,
-          device: score.evidence?.device || 0,
+          model: 0.85, // 默认模型置信度
+          locator: 0.9, // 定位器置信度
+          visibility: 0.8, // 可见性置信度
+          device: 0.75, // 设备兼容性
         },
-        timestamp: score.timestamp,
-        origin: score.origin
+        timestamp: new Date(singleScore.at).getTime(),
+        origin: 'single'
       };
+    } else {
+      // 回退到旧的评分系统
+      const score = scoreStore.getByCardId(cardId);
+      if (score) {
+        lastScore = {
+          confidence: score.confidence,
+          evidence: {
+            model: score.evidence?.model || 0,
+            locator: score.evidence?.locator || 0,
+            visibility: score.evidence?.visibility || 0,
+            device: score.evidence?.device || 0,
+          },
+          timestamp: score.timestamp,
+          origin: score.origin
+        };
+      }
     }
   }
   
@@ -183,6 +200,15 @@ export async function importStepPack(stepPack: StepPack): Promise<StepPackImport
               origin: 'single', // 导入重评视为单步
               elementUid: stepPack.id,
               timestamp: Date.now()
+            });
+            
+            // 🆕 同时更新卡片的 meta.singleStepScore
+            const cardStore = useStepCardStore.getState();
+            cardStore.setSingleStepConfidence(stepPack.id, {
+              confidence,
+              source: 'model', // 使用模型重评
+              reasons: ['导入重评'],
+              at: new Date().toISOString()
             });
             
             resolve({

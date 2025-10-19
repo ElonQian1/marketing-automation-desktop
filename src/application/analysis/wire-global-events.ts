@@ -158,20 +158,29 @@ export async function wireAnalysisEventsGlobally(): Promise<void> {
       // 填充策略并更新状态
       store.fillStrategyAndReady(targetCardId, strategy);
       
-      // 🆕 直接使用后端提供的置信度和证据（不再需要兜底逻辑）
-      const finalConfidence = confidence;
+      // 🆕 专门处理单步置信度（按用户建议的方案）
+      const singleStepScore = {
+        confidence,
+        source: origin === 'single' ? 'auto_chain' as const : 'model' as const,
+        reasons: [`定位稳定性: ${(evidence.locator * 100).toFixed(1)}%`, `可见性: ${(evidence.visibility * 100).toFixed(1)}%`],
+        at: new Date().toISOString(),
+      };
+      
+      // 调用专门的setSingleStepConfidence方法
+      store.setSingleStepConfidence(targetCardId, singleStepScore);
+      
+      // 仍然保留原有的setConfidence（向后兼容）
       const finalEvidence: ConfidenceEvidence = {
         model: evidence.model,
         locator: evidence.locator,
         visibility: evidence.visibility,
         device: Math.max(0.1, 1.0 - evidence.penalty_margin), // 转换边界惩罚为设备兼容性
       };
-      
       store.setConfidence(targetCardId, confidence, finalEvidence);
-      console.debug('[ROUTE] backend confidence applied', { 
+      
+      console.debug('[ROUTE] single step confidence applied', { 
         cardId: targetCardId.slice(-8), 
-        confidence,
-        evidence: finalEvidence,
+        singleStepScore,
         origin,
         backendEvidence: evidence
       });
@@ -182,7 +191,7 @@ export async function wireAnalysisEventsGlobally(): Promise<void> {
       scoreStore.upsert({
         key: cacheKey,
         recommended: recommended_key,
-        confidence: finalConfidence,
+        confidence,
         evidence: finalEvidence,
         origin: origin as 'single' | 'chain', // 现在由后端直接提供
         jobId: job_id,
@@ -194,7 +203,7 @@ export async function wireAnalysisEventsGlobally(): Promise<void> {
       console.debug('[ROUTE] completed strategy applied', { 
         cardId: targetCardId.slice(-8), 
         strategy: strategy.primary,
-        confidence: finalConfidence,
+        confidence,
         elementUid: card?.elementUid?.slice(-6),
         cacheKey
       });
