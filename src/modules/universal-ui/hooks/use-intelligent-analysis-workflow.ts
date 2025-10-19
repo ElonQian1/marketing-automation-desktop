@@ -114,6 +114,22 @@ export function useIntelligentAnalysisWorkflow(): UseIntelligentAnalysisWorkflow
             }
             return card;
           }));
+
+          // 🔄 桥接到统一StepCard Store (修复可视化分析页面状态同步)
+          (async () => {
+            try {
+              const { useStepCardStore } = await import('../../../store/stepcards');
+              const unifiedStore = useStepCardStore.getState();
+              const cardByJob = unifiedStore.findByJob(jobId);
+              if (cardByJob) {
+                unifiedStore.updateStatus(cardByJob, 'analyzing');
+                unifiedStore.updateProgress(cardByJob, progress);
+                console.log('🔗 [Bridge] 同步进度到统一store', { cardId: cardByJob, jobId, progress });
+              }
+            } catch (err) {
+              console.warn('⚠️ [Bridge] 同步到统一store失败', err);
+            }
+          })();
         });
         
         // 🔒 分析完成事件 - jobId 精确匹配 + 懒绑定防竞态 + ACK确认
@@ -185,6 +201,36 @@ export function useIntelligentAnalysisWorkflow(): UseIntelligentAnalysisWorkflow
               return card;
             });
           });
+
+          // 🔄 桥接到统一StepCard Store (修复可视化分析页面状态同步)
+          (async () => {
+            try {
+              const { useStepCardStore } = await import('../../../store/stepcards');
+              const unifiedStore = useStepCardStore.getState();
+              const cardByJob = unifiedStore.findByJob(jobId);
+              if (cardByJob) {
+                // 将策略候选转换为统一格式
+                const recommendedStrategy = result.smartCandidates?.find(c => c.key === result.recommendedKey);
+                const strategy = {
+                  primary: result.recommendedKey || 'fallback',
+                  backups: result.smartCandidates?.slice(1).map(c => c.key) || [],
+                  score: recommendedStrategy?.confidence || 0.8,
+                  candidates: result.smartCandidates?.map(c => ({
+                    key: c.key,
+                    name: c.name,
+                    confidence: c.confidence,
+                    xpath: c.xpath || '',
+                    description: c.description
+                  })) || []
+                };
+                
+                unifiedStore.fillStrategyAndReady(cardByJob, strategy);
+                console.log('🔗 [Bridge] 同步完成状态到统一store', { cardId: cardByJob, jobId, strategy });
+              }
+            } catch (err) {
+              console.warn('⚠️ [Bridge] 同步完成状态到统一store失败', err);
+            }
+          })();
           
           // 🔒 确认事件已处理，防止重复处理
           await eventAckService.acknowledgeEvent(EVENTS.ANALYSIS_DONE, jobId, {
@@ -386,6 +432,28 @@ export function useIntelligentAnalysisWorkflow(): UseIntelligentAnalysisWorkflow
       
       setStepCards(prev => [...prev, stepCard]);
       
+      // 🔄 同步创建到统一StepCard Store (桥接机制)
+      (async () => {
+        try {
+          const { useStepCardStore } = await import('../../../store/stepcards');
+          const unifiedStore = useStepCardStore.getState();
+          const unifiedCardId = unifiedStore.create({
+            elementUid: context.elementPath || `element_${stepId}`,
+            elementContext: {
+              xpath: context.elementPath,
+              text: context.elementText,
+              bounds: context.elementBounds,
+              resourceId: context.keyAttributes?.['resource-id'],
+              className: context.keyAttributes?.class
+            },
+            status: 'draft'
+          });
+          console.log('🔗 [Bridge] 在统一store中创建对应卡片', { stepId, unifiedCardId });
+        } catch (err) {
+          console.warn('⚠️ [Bridge] 创建统一store卡片失败', err);
+        }
+      })();
+      
       // 自动启动后台分析（不阻塞用户操作）
       const jobId = await startAnalysis(context, stepId);
       
@@ -399,6 +467,22 @@ export function useIntelligentAnalysisWorkflow(): UseIntelligentAnalysisWorkflow
             }
           : card
       ));
+
+      // 🔄 同步分析状态到统一store
+      (async () => {
+        try {
+          const { useStepCardStore } = await import('../../../store/stepcards');
+          const unifiedStore = useStepCardStore.getState();
+          const cardByElement = unifiedStore.findByElement(context.elementPath || `element_${stepId}`);
+          if (cardByElement) {
+            unifiedStore.attachJob(cardByElement, jobId);
+            unifiedStore.updateStatus(cardByElement, 'analyzing');
+            console.log('🔗 [Bridge] 同步分析状态到统一store', { cardId: cardByElement, jobId });
+          }
+        } catch (err) {
+          console.warn('⚠️ [Bridge] 同步分析状态失败', err);
+        }
+      })();
       
       return stepId;
     } catch (error) {
