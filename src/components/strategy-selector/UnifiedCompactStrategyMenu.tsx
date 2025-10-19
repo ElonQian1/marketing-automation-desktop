@@ -48,11 +48,24 @@ export const UnifiedCompactStrategyMenu: React.FC<UnifiedCompactStrategyMenuProp
   const currentCard = currentCardId ? getCard(currentCardId) : null;
 
   // 获取显示状态
-  const getDisplayStatus = () => {
+  const getDisplayStatus = (): { 
+    text: string; 
+    loading: boolean; 
+    confidence?: number; 
+    confidenceColor?: string;
+  } => {
     if (!currentCard) return { text: '🧠 智能·自动链', loading: false };
     
     const status = currentCard.status;
     const progress = currentCard.progress || 0;
+    
+    // 调试状态变化
+    console.debug('[UnifiedMenu] 🎯 状态更新', {
+      cardId: currentCard.id?.slice(-6),
+      status,
+      progress,
+      jobId: currentCard.jobId?.slice(-6)
+    });
     
     switch (status) {
       case 'analyzing':
@@ -60,11 +73,30 @@ export const UnifiedCompactStrategyMenu: React.FC<UnifiedCompactStrategyMenuProp
           text: `🧠 智能·自动链 🔄 ${progress}%`, 
           loading: true 
         };
-      case 'ready':
-        return { 
-          text: `🧠 智能·自动链 ✅`, 
-          loading: false 
+      case 'ready': {
+        // 显示主策略置信度
+        const primaryCandidate = currentCard.strategy?.candidates?.find(
+          c => c.key === currentCard.strategy?.primary
+        );
+        const confidence = primaryCandidate?.confidence ?? 0;
+        const confidencePercent = Math.round(confidence * 100);
+        
+        // 根据置信度选择图标和颜色
+        const getConfidenceDisplay = () => {
+          if (confidence >= 0.8) return { icon: '🎯', color: '#10B981' }; // 高置信度 - 绿色
+          if (confidence >= 0.6) return { icon: '⚠️', color: '#F59E0B' }; // 中置信度 - 黄色
+          return { icon: '❓', color: '#EF4444' }; // 低置信度 - 红色
         };
+        
+        const { icon, color } = getConfidenceDisplay();
+        
+        return { 
+          text: `🧠 智能·单步 ${icon} ${confidencePercent}%`, 
+          loading: false,
+          confidence,
+          confidenceColor: color
+        };
+      }
       case 'failed':
         return { 
           text: `🧠 智能·自动链 ❌`, 
@@ -139,21 +171,105 @@ export const UnifiedCompactStrategyMenu: React.FC<UnifiedCompactStrategyMenuProp
     }
 
     if (currentCard?.status === 'ready' && currentCard.strategy) {
-      const { primary, backups = [] } = currentCard.strategy;
+      const { primary, backups = [], candidates = [] } = currentCard.strategy;
+      
+      // 查找主策略的置信度
+      const primaryCandidate = candidates.find(c => c.key === primary);
+      const primaryConfidence = primaryCandidate?.confidence ?? 0;
+      const primaryName = primaryCandidate?.name || primary;
       
       items.push({
         key: 'primary',
-        label: `⭐ ${primary} (推荐)`,
+        label: (
+          <div style={{ display: 'flex', flexDirection: 'column', minWidth: '180px', gap: '4px' }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+              <span style={{ fontWeight: '500' }}>⭐ {primaryName}</span>
+              <span style={{ 
+                color: primaryConfidence >= 0.8 ? '#10B981' : primaryConfidence >= 0.6 ? '#F59E0B' : '#EF4444',
+                fontSize: '11px',
+                fontWeight: 'bold'
+              }}>
+                {Math.round(primaryConfidence * 100)}%
+              </span>
+            </div>
+            <div style={{ 
+              width: '100%', 
+              height: '3px', 
+              background: 'rgba(148, 163, 184, 0.2)', 
+              borderRadius: '2px',
+              overflow: 'hidden'
+            }}>
+              <div style={{ 
+                width: `${primaryConfidence * 100}%`, 
+                height: '100%',
+                background: primaryConfidence >= 0.8 ? '#10B981' : primaryConfidence >= 0.6 ? '#F59E0B' : '#EF4444',
+                transition: 'width 0.3s ease'
+              }} />
+            </div>
+          </div>
+        ),
         onClick: () => console.log('执行推荐策略:', primary)
       });
 
+      // 添加备选策略及其置信度
       backups.forEach((backup, index) => {
+        const backupCandidate = candidates.find(c => c.key === backup);
+        const backupConfidence = backupCandidate?.confidence ?? 0;
+        const backupName = backupCandidate?.name || backup;
+        
         items.push({
           key: `backup-${index}`,
-          label: `🔄 ${backup}`,
+          label: (
+            <div style={{ display: 'flex', flexDirection: 'column', minWidth: '180px', gap: '4px' }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                <span>🔄 {backupName}</span>
+                <span style={{ 
+                  color: backupConfidence >= 0.8 ? '#10B981' : backupConfidence >= 0.6 ? '#F59E0B' : '#EF4444',
+                  fontSize: '11px',
+                  fontWeight: 'bold'
+                }}>
+                  {Math.round(backupConfidence * 100)}%
+                </span>
+              </div>
+              <div style={{ 
+                width: '100%', 
+                height: '2px', 
+                background: 'rgba(148, 163, 184, 0.2)', 
+                borderRadius: '1px',
+                overflow: 'hidden'
+              }}>
+                <div style={{ 
+                  width: `${backupConfidence * 100}%`, 
+                  height: '100%',
+                  background: backupConfidence >= 0.8 ? '#10B981' : backupConfidence >= 0.6 ? '#F59E0B' : '#EF4444',
+                  transition: 'width 0.3s ease'
+                }} />
+              </div>
+            </div>
+          ),
           onClick: () => console.log('执行备选策略:', backup)
         });
       });
+      
+      // 添加分隔线和策略详情
+      if (candidates.length > 0) {
+        items.push({ type: 'divider' });
+        
+        items.push({
+          key: 'strategy-info',
+          label: (
+            <div style={{ 
+              fontSize: '11px', 
+              color: '#94A3B8', 
+              padding: '4px 0',
+              borderTop: '1px solid rgba(148, 163, 184, 0.2)'
+            }}>
+              智能分析完成，共找到 {candidates.length} 个策略选项
+            </div>
+          ),
+          disabled: true
+        });
+      }
     }
 
     // 调试信息
@@ -184,11 +300,20 @@ export const UnifiedCompactStrategyMenu: React.FC<UnifiedCompactStrategyMenuProp
           type="default"
           loading={displayStatus.loading}
           style={{
-            background: 'rgba(110, 139, 255, 0.1)',
-            border: '1px solid rgba(110, 139, 255, 0.3)',
-            color: '#F8FAFC',
+            background: displayStatus.confidence !== undefined 
+              ? `rgba(${displayStatus.confidenceColor === '#10B981' ? '16, 185, 129' : 
+                         displayStatus.confidenceColor === '#F59E0B' ? '245, 158, 11' : 
+                         '239, 68, 68'}, 0.1)` 
+              : 'rgba(110, 139, 255, 0.1)',
+            border: displayStatus.confidence !== undefined 
+              ? `1px solid ${displayStatus.confidenceColor}40` 
+              : '1px solid rgba(110, 139, 255, 0.3)',
+            color: displayStatus.confidence !== undefined 
+              ? displayStatus.confidenceColor 
+              : '#F8FAFC',
             fontSize: '12px',
-            minWidth: '120px'
+            minWidth: '140px',
+            transition: 'all 0.2s ease'
           }}
         >
           {displayStatus.text}
