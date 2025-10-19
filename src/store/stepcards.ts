@@ -53,6 +53,7 @@ export interface StepCardStore {
   findByElement: (elementUid: string) => string | undefined;
   getCard: (cardId: string) => StepCard | undefined;
   getAllCards: () => StepCard[];
+  has: (cardId: string) => boolean;
   
   // 更新操作
   attachJob: (cardId: string, jobId: string) => void;
@@ -110,6 +111,10 @@ export const useStepCardStore = create<StepCardStore>()(
     
     getAllCards: () => {
       return Object.values(get().cards).sort((a, b) => a.createdAt - b.createdAt);
+    },
+    
+    has: (cardId: string) => {
+      return cardId in get().cards;
     },
     
     attachJob: (cardId, jobId) => {

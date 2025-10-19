@@ -87,13 +87,13 @@ export const useIntelligentAnalysisAdapter = (
     const setupEventListeners = async () => {
       try {
         // 监听进度更新
-        await backendService.listenToAnalysisProgress((progress, step, estimatedTimeLeft) => {
-          console.log('📊 [Adapter] 收到进度更新', { progress, step, estimatedTimeLeft });
+        await backendService.listenToAnalysisProgress((jobId, progress, step, estimatedTimeLeft) => {
+          console.log('📊 [Adapter] 收到进度更新', { jobId, progress, step, estimatedTimeLeft });
           setRealAnalysisProgress({
             currentStep: Math.round((progress / 100) * 7), // 进度是百分比，转换为步骤数
             totalSteps: 7,
-            stepName: step,
-            stepDescription: `执行${step}`,
+            stepName: step || `步骤 ${Math.round((progress / 100) * 7)}`,
+            stepDescription: `执行${step || '分析'}`,
           });
         });
 
@@ -114,7 +114,13 @@ export const useIntelligentAnalysisAdapter = (
           setCurrentJobId(null);
         });
 
-        cleanup = () => backendService.cleanup();
+        // ⚠️ 重要：不再自动清理全局事件监听器
+        // 因为全局监听器已在 main.tsx 中注册，不应在组件卸载时清理
+        // cleanup = () => backendService.cleanup();
+        cleanup = () => {
+          console.log('🔗 [Adapter] 组件卸载，但保留全局事件监听器');
+          // 只清理组件级的状态，不清理全局监听器
+        };
       } catch (error) {
         console.error('❌ [Adapter] 设置事件监听器失败', error);
       }

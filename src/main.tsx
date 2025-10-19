@@ -14,10 +14,18 @@ import './styles/tokens.css';
 // 引入 Tailwind CSS 基础样式
 import './index.css';
 
+// 🔗 全局事件监听器初始化
+import { wireAnalysisEventsGlobally } from './application/analysis/wire-global-events';
+
 if (typeof document !== 'undefined') {
   document.documentElement.setAttribute('data-theme', 'dark');
   document.documentElement.classList.add('dark');
   document.documentElement.setAttribute('data-density', 'default');
+
+  // 🌐 初始化全局分析事件监听器
+  wireAnalysisEventsGlobally().catch(error => {
+    console.error('❌ 全局事件监听器初始化失败:', error);
+  });
 }
 
 ReactDOM.createRoot(document.getElementById('root') as HTMLElement).render(
