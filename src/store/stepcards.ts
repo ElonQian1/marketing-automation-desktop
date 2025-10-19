@@ -1,9 +1,10 @@
 // src/store/stepcards.ts
 // module: store | layer: store | role: 步骤卡片状态管理
-// summary: 统一的步骤卡片状态管理，支持jobId精确路由
+// summary: 统一的步骤卡片状态管理，支持jobId精确路由和置信度展示
 
 import { create } from 'zustand';
 import { immer } from 'zustand/middleware/immer';
+import type { ConfidenceEvidence } from '../modules/universal-ui/types/intelligent-analysis-types';
 
 export type StepCardStatus = 'draft' | 'analyzing' | 'ready' | 'failed' | 'blocked';
 
@@ -33,6 +34,10 @@ export interface StepCard {
   };
   progress?: number;
   error?: string;
+  /** 整体置信度 (0-1) */
+  confidence?: number;
+  /** 置信度证据分项 */
+  evidence?: ConfidenceEvidence;
   createdAt: number;
   updatedAt: number;
 }
@@ -61,6 +66,9 @@ export interface StepCardStore {
   updateProgress: (cardId: string, progress: number) => void;
   fillStrategyAndReady: (cardId: string, strategy: StepCard['strategy']) => void;
   setError: (cardId: string, error: string) => void;
+  
+  // 置信度管理
+  setConfidence: (cardId: string, confidence: number, evidence?: ConfidenceEvidence) => void;
   
   // 删除操作
   remove: (cardId: string) => void;
@@ -170,6 +178,18 @@ export const useStepCardStore = create<StepCardStore>()(
           card.status = 'failed';
           card.updatedAt = Date.now();
           console.log('❌ [StepCardStore] 设置错误', { cardId, error });
+        }
+      });
+    },
+    
+    setConfidence: (cardId, confidence, evidence) => {
+      set((state) => {
+        const card = state.cards[cardId];
+        if (card) {
+          card.confidence = confidence;
+          card.evidence = evidence;
+          card.updatedAt = Date.now();
+          console.log('📊 [StepCardStore] 设置置信度', { cardId, confidence, evidence });
         }
       });
     },

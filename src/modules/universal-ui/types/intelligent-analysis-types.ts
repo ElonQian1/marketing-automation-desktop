@@ -277,11 +277,35 @@ export interface AnalysisProgressEvent {
 }
 
 /**
+ * 置信度证据分项
+ */
+export interface ConfidenceEvidence {
+  /** 模型置信度分数 (0-1) */
+  model?: number;
+  /** 定位稳定性加分 (0-1) */
+  locator?: number;
+  /** 可见性加分 (0-1) */
+  visibility?: number;
+  /** 设备可用性加分 (0-1) */
+  device?: number;
+}
+
+/**
  * 分析完成事件
  */
 export interface AnalysisDoneEvent {
   jobId: string;
   result: AnalysisResult;
+  /** 整体置信度 (0-1) */
+  confidence?: number;
+  /** 置信度证据分项 */
+  evidence?: ConfidenceEvidence;
+  /** 推荐策略名称（冗余字段，便于事件处理） */
+  recommended?: string;
+  /** 卡片ID（冗余字段，便于事件路由） */
+  card_id?: string;
+  /** 元素UID（冗余字段，便于兜底路由） */
+  element_uid?: string;
 }
 
 /**

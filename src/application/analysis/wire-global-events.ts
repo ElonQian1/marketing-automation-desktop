@@ -5,6 +5,7 @@
 import { listen } from '@tauri-apps/api/event';
 import { useStepCardStore } from '../../store/stepcards';
 import { EVENTS } from '../../shared/constants/events';
+import { estimateConfidenceFromEvent } from '../../modules/universal-ui/utils/confidence-utils';
 
 let globalWired = false;
 let globalUnlistenFunctions: (() => void)[] = [];
@@ -90,10 +91,19 @@ export async function wireAnalysisEventsGlobally(): Promise<void> {
           description?: string;
         }>;
       };
+      /** 整体置信度 (0-1) */
+      confidence?: number;
+      /** 置信度证据分项 */
+      evidence?: {
+        model?: number;
+        locator?: number;
+        visibility?: number;
+        device?: number;
+      };
     }>(EVENTS.ANALYSIS_DONE, (event) => {
-      const { job_id, result } = event.payload;
+      const { job_id, result, confidence, evidence } = event.payload;
       const { recommended_key, smart_candidates } = result;
-      console.debug('[EVT] ✅ completed', job_id.slice(-8), 'recommended:', recommended_key);
+      console.debug('[EVT] ✅ completed', job_id.slice(-8), 'recommended:', recommended_key, 'confidence:', confidence);
       
       const store = useStepCardStore.getState();
       
@@ -135,11 +145,35 @@ export async function wireAnalysisEventsGlobally(): Promise<void> {
         }]
       };
 
+      // 填充策略并更新状态
       store.fillStrategyAndReady(targetCardId, strategy);
+      
+      // 设置置信度（如果后端提供）
+      if (confidence !== undefined) {
+        store.setConfidence(targetCardId, confidence, evidence);
+        console.debug('[ROUTE] confidence applied', { 
+          cardId: targetCardId.slice(-8), 
+          confidence,
+          evidence
+        });
+      } else {
+        // 使用兜底置信度估算
+        const estimated = estimateConfidenceFromEvent({ 
+          recommendedKey: recommended_key,
+          candidatesCount: smart_candidates?.length || 0,
+          topConfidence: smart_candidates?.[0]?.confidence || 0.85
+        });
+        store.setConfidence(targetCardId, estimated.confidence, estimated.evidence);
+        console.debug('[ROUTE] estimated confidence applied', { 
+          cardId: targetCardId.slice(-8), 
+          estimated
+        });
+      }
+      
       console.debug('[ROUTE] completed strategy applied', { 
         cardId: targetCardId.slice(-8), 
         strategy: strategy.primary,
-        confidence: strategy.score,
+        confidence: confidence || strategy.score,
         elementUid: card?.elementUid?.slice(-6)
       });
     });

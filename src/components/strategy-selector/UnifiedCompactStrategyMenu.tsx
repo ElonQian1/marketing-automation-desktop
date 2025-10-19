@@ -7,6 +7,7 @@ import { Dropdown, Button, Tooltip, Progress, Space } from 'antd';
 import { RefreshCcwIcon, LightbulbIcon, CheckCircleIcon, XCircleIcon } from 'lucide-react';
 import { useStepCardStore } from '../../store/stepcards';
 import { useUnifiedSmartAnalysis } from '../../hooks/useUnifiedSmartAnalysis';
+import { ConfidenceTag } from '../../modules/universal-ui';
 
 interface UnifiedCompactStrategyMenuProps {
   elementData: {
@@ -51,8 +52,6 @@ export const UnifiedCompactStrategyMenu: React.FC<UnifiedCompactStrategyMenuProp
   const getDisplayStatus = (): { 
     text: string; 
     loading: boolean; 
-    confidence?: number; 
-    confidenceColor?: string;
   } => {
     if (!currentCard) return { text: '🧠 智能·自动链', loading: false };
     
@@ -74,27 +73,9 @@ export const UnifiedCompactStrategyMenu: React.FC<UnifiedCompactStrategyMenuProp
           loading: true 
         };
       case 'ready': {
-        // 显示主策略置信度
-        const primaryCandidate = currentCard.strategy?.candidates?.find(
-          c => c.key === currentCard.strategy?.primary
-        );
-        const confidence = primaryCandidate?.confidence ?? 0;
-        const confidencePercent = Math.round(confidence * 100);
-        
-        // 根据置信度选择图标和颜色
-        const getConfidenceDisplay = () => {
-          if (confidence >= 0.8) return { icon: '🎯', color: '#10B981' }; // 高置信度 - 绿色
-          if (confidence >= 0.6) return { icon: '⚠️', color: '#F59E0B' }; // 中置信度 - 黄色
-          return { icon: '❓', color: '#EF4444' }; // 低置信度 - 红色
-        };
-        
-        const { icon, color } = getConfidenceDisplay();
-        
         return { 
-          text: `🧠 智能·单步 ${icon} ${confidencePercent}%`, 
-          loading: false,
-          confidence,
-          confidenceColor: color
+          text: `🧠 智能·单步 ✅`, 
+          loading: false
         };
       }
       case 'failed':
@@ -300,17 +281,9 @@ export const UnifiedCompactStrategyMenu: React.FC<UnifiedCompactStrategyMenuProp
           type="default"
           loading={displayStatus.loading}
           style={{
-            background: displayStatus.confidence !== undefined 
-              ? `rgba(${displayStatus.confidenceColor === '#10B981' ? '16, 185, 129' : 
-                         displayStatus.confidenceColor === '#F59E0B' ? '245, 158, 11' : 
-                         '239, 68, 68'}, 0.1)` 
-              : 'rgba(110, 139, 255, 0.1)',
-            border: displayStatus.confidence !== undefined 
-              ? `1px solid ${displayStatus.confidenceColor}40` 
-              : '1px solid rgba(110, 139, 255, 0.3)',
-            color: displayStatus.confidence !== undefined 
-              ? displayStatus.confidenceColor 
-              : '#F8FAFC',
+            background: 'rgba(110, 139, 255, 0.1)',
+            border: '1px solid rgba(110, 139, 255, 0.3)',
+            color: '#F8FAFC',
             fontSize: '12px',
             minWidth: '140px',
             transition: 'all 0.2s ease'
@@ -320,6 +293,16 @@ export const UnifiedCompactStrategyMenu: React.FC<UnifiedCompactStrategyMenuProp
           <span style={{ marginLeft: '4px' }}>▾</span>
         </Button>
       </Dropdown>
+
+      {/* 置信度显示 */}
+      {currentCard?.status === 'ready' && currentCard.confidence !== undefined && (
+        <ConfidenceTag 
+          confidence={currentCard.confidence}
+          evidence={currentCard.evidence}
+          size="small"
+          showLabel={false}
+        />
+      )}
 
       {/* 状态指示器 */}
       {currentCard?.status === 'analyzing' && (

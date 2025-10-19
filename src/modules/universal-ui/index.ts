@@ -36,6 +36,7 @@ export { StepCardSystemDemo } from "./pages/step-card-system-demo";
 // === 智能分析工作流导出 ===
 export * from "./types/intelligent-analysis-types";
 export * from "./utils/selection-hash";
+export * from "./utils/confidence-utils";
 export * from "./hooks/use-intelligent-analysis-workflow";
 export * from "./hooks/use-intelligent-analysis-real";
 export * from "./hooks/use-analysis-auto-fill.tsx"; // ✅ 新增: 真实Tauri命令Hook (包含JSX)
@@ -43,6 +44,9 @@ export * from "./hooks/use-analysis-auto-fill.tsx"; // ✅ 新增: 真实Tauri�
 export * from "./components/intelligent-analysis-controller";
 export { FallbackStrategyGenerator } from "./domain/fallback-strategy-generator";
 export * from "./services/mock-analysis-backend";
+
+// === 置信度显示组件 ===
+export { ConfidenceTag } from "./components/confidence-tag";
 
 // === 步骤卡片适配器导出 ===
 export * from "./adapters/step-card-adapter";

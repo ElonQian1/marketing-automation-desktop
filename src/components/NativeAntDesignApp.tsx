@@ -77,6 +77,7 @@ import ElementDiscoveryTestPage from "../pages/ElementDiscoveryTestPage";
 // 智能分析真实演示
 import IntelligentAnalysisRealDemo from "../modules/universal-ui/pages/intelligent-analysis-real-demo.tsx";
 import AutoFillDemo from "../modules/universal-ui/pages/auto-fill-demo.tsx";
+import ConfidenceDemo from "../pages/confidence-demo";
 import { TestRealBackendIntegration } from "./test/TestRealBackendIntegration";
 import StrategyDemo from "../pages/StrategyDemo";
 import StrategyBackendDemo from "../pages/StrategyBackendDemo";
@@ -178,6 +179,11 @@ const NativeAntDesignApp: React.FC = () => {
       label: "🎯 自动回填演示",
     },
     {
+      key: "confidence-demo",
+      icon: <AimOutlined />,
+      label: "📊 置信度显示演示",
+    },
+    {
       key: "test-intelligent-analysis-adapter",
       icon: <ThunderboltOutlined />,
       label: "🧪 智能分析适配器测试",
@@ -276,6 +282,8 @@ const NativeAntDesignApp: React.FC = () => {
         return <IntelligentAnalysisRealDemo />;
       case "auto-fill-demo":
         return <AutoFillDemo />;
+      case "confidence-demo":
+        return <ConfidenceDemo />;
       case "test-intelligent-analysis-adapter":
         return <TestIntelligentAnalysisAdapter />;
       case "test-real-backend-integration":
