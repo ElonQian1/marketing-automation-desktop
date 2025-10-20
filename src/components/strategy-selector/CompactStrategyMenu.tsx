@@ -129,6 +129,11 @@ const CompactStrategyMenu: React.FC<CompactStrategyMenuProps> = ({
           const isRecommended =
             recommendedKey && keyMap[recommendedKey] === step;
 
+          // 🔧 修复：只有当前活跃步骤才显示置信度，避免所有步骤都显示同一个置信度
+          const isCurrentStep = selector.activeStrategy?.type === "smart-single" && 
+                                selector.activeStrategy?.stepName === step;
+          const shouldShowConfidence = isCurrentStep && confidencePercent > 0;
+
           return {
             key: `smart-single-${step}`,
             label: (
@@ -145,7 +150,7 @@ const CompactStrategyMenu: React.FC<CompactStrategyMenuProps> = ({
                   style={{ display: "flex", alignItems: "center", gap: "4px" }}
                 >
                   {isRecommended && <Badge status="processing" text="荐" />}
-                  {confidencePercent > 0 && (
+                  {shouldShowConfidence && (
                     <Tag color="blue" style={{ fontSize: "10px" }}>
                       {confidencePercent}%
                     </Tag>
