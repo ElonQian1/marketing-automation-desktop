@@ -18,8 +18,9 @@ import {
 import { useStepCardStore, type StepCard, type StepCardStatus } from '../../store/stepcards';
 import { useUnifiedAnalysisEvents } from '../../services/unified-analysis-events';
 import { invoke } from '@tauri-apps/api/core';
-import { ConfidenceBadge } from '../common/ConfidenceBadge';
-import { ConfidenceBreakdown } from '../common/ConfidenceBreakdown';
+// 移除未使用的导入 - 现在直接用简单的 span 渲染徽章
+// import { ConfidenceBadge } from '../common/ConfidenceBadge';
+// import { ConfidenceBreakdown } from '../common/ConfidenceBreakdown';
 
 const { Option } = Select;
 
@@ -227,46 +228,24 @@ export const UnifiedSmartStepCard: React.FC<UnifiedSmartStepCardProps> = ({
           <span style={{ flex: 1, fontSize: '13px' }}>
             {mockElement?.text || `元素 ${card.elementUid.slice(-8)}`}
           </span>
-          {/* 置信度徽标 - 新版本统一设计 */}
-          {(() => {
-            const confidence = card.confidence;
-            const evidence = card.evidence;
-            const recommended = card.strategy?.primary;
-            const source = 'auto_chain'; // 默认来源
-            
-            console.log('🔍 [UnifiedSmartStepCard] 置信度数据检查', {
-              cardId: card.id.slice(-8),
-              hasConfidence: confidence != null,
-              confidence,
-              confidencePercent: confidence ? `${Math.round(confidence * 100)}%` : 'N/A',
-              hasEvidence: !!evidence,
-              recommended,
-              source,
-              willRender: confidence != null ? '✅ 将渲染置信度徽标' : '❌ 不会渲染'
-            });
-            
-            return confidence != null ? (
-              <Popover
-                trigger="hover"
-                placement="bottomRight"
-                content={
-                  <ConfidenceBreakdown
-                    value={confidence}
-                    recommended={recommended}
-                    evidence={evidence ? Object.fromEntries(Object.entries(evidence)) : undefined}
-                    source={source}
-                  />
-                }
-              >
-                <span>
-                  <ConfidenceBadge 
-                    value={confidence}
-                    compact={true}
-                  />
-                </span>
-              </Popover>
-            ) : null;
-          })()}
+          {/* 直接显示置信度徽章 - 简化版本 */}
+          {card.meta?.singleStepScore?.confidence && (card.status === 'ready' || card.status === 'completed') && (
+            <span 
+              className="confidence-badge" 
+              data-testid="confidence-badge"
+              style={{
+                padding: '2px 8px',
+                borderRadius: '999px',
+                background: 'var(--g-badge, #101010)',
+                color: 'var(--g-fg, #f5f5f5)',
+                border: '1px solid var(--g-border, #2d2d2d)',
+                fontSize: '12px',
+                lineHeight: '18px'
+              }}
+            >
+              {`${Math.round(card.meta.singleStepScore.confidence * 100)}%`}
+            </span>
+          )}
           
           {card.status === 'draft' && (
             <Button 
@@ -320,46 +299,25 @@ export const UnifiedSmartStepCard: React.FC<UnifiedSmartStepCardProps> = ({
           <Tag color={getStatusColor(card.status)}>
             {getStatusText(card.status)}
           </Tag>
-          {/* 置信度徽标 - 标准模式完整显示 */}
-          {(() => {
-            const confidence = card.confidence;
-            const evidence = card.evidence;
-            const recommended = card.strategy?.primary;
-            const source = 'auto_chain'; // 默认来源
-            
-            console.log('🔍 [UnifiedSmartStepCard] 标准模式置信度检查', {
-              cardId: card.id.slice(-8),
-              hasConfidence: confidence != null,
-              confidence,
-              confidencePercent: confidence ? `${Math.round(confidence * 100)}%` : 'N/A',
-              status: card.status,
-              hasEvidence: !!evidence,
-              recommended,
-              willRender: confidence != null ? '✅ 将渲染完整置信度徽标' : '❌ 不会渲染'
-            });
-            
-            return confidence != null ? (
-              <Popover
-                trigger="hover"
-                placement="bottomLeft"
-                content={
-                  <ConfidenceBreakdown
-                    value={confidence}
-                    recommended={recommended}
-                    evidence={evidence ? Object.fromEntries(Object.entries(evidence)) : undefined}
-                    source={source}
-                  />
-                }
-              >
-                <span>
-                  <ConfidenceBadge 
-                    value={confidence}
-                    compact={false}
-                  />
-                </span>
-              </Popover>
-            ) : null;
-          })()}
+          {/* 直接显示置信度徽章 - 完整模式 */}
+          {card.meta?.singleStepScore?.confidence && (card.status === 'ready' || card.status === 'completed') && (
+            <span 
+              className="confidence-badge" 
+              data-testid="confidence-badge"
+              style={{
+                padding: '4px 12px',
+                borderRadius: '999px',
+                background: 'var(--g-badge, #101010)',
+                color: 'var(--g-fg, #f5f5f5)',
+                border: '1px solid var(--g-border, #2d2d2d)',
+                fontSize: '13px',
+                fontWeight: 500,
+                lineHeight: '20px'
+              }}
+            >
+              置信度 {`${Math.round(card.meta.singleStepScore.confidence * 100)}%`}
+            </span>
+          )}
         </div>
       }
       extra={
