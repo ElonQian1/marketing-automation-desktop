@@ -49,6 +49,9 @@ export interface StepCard {
 
 export interface StepCardStore {
   cards: Record<string, StepCard>;
+  byStepId: Record<string, string>; // stepId -> cardId 映射
+  byJobId: Record<string, string>;  // jobId -> cardId 映射
+  aliasToCanonical: Record<string, string>; // 任意别名 -> canonical cardId
   
   // 创建操作
   create: (data: {
@@ -67,6 +70,7 @@ export interface StepCardStore {
   
   // 更新操作
   attachJob: (cardId: string, jobId: string) => void;
+  bindJob: (cardAnyId: string, jobId: string) => void; // 新增：支持别名绑定
   updateStatus: (cardId: string, status: StepCardStatus) => void;
   updateProgress: (cardId: string, progress: number) => void;
   fillStrategyAndReady: (cardId: string, strategy: StepCard['strategy']) => void;
@@ -80,15 +84,38 @@ export interface StepCardStore {
   // 删除操作
   remove: (cardId: string) => void;
   clear: () => void;
+  
+  // 清理操作
+  cleanupAliases: (canonicalId: string) => void;
 }
 
 function generateId(): string {
   return `card_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
 }
 
+// ID规范化和别名管理
+const short = (id: string) => (id?.length > 12 ? id.slice(-9) : id);
+
+const resolveCardId = (state: { cards: Record<string, StepCard>; aliasToCanonical: Record<string, string> }, anyId?: string): string | undefined => {
+  if (!anyId) return undefined;
+  if (state.cards[anyId]) return anyId;
+  return state.aliasToCanonical[anyId] || state.aliasToCanonical[short(anyId)];
+};
+
+const registerAliases = (state: { aliasToCanonical: Record<string, string> }, canonical: string, ...aliases: string[]) => {
+  [canonical, ...aliases].forEach(alias => {
+    if (!alias) return;
+    state.aliasToCanonical[alias] = canonical;
+    state.aliasToCanonical[short(alias)] = canonical;
+  });
+};
+
 export const useStepCardStore = create<StepCardStore>()(
   immer((set, get) => ({
     cards: {},
+    byStepId: {},
+    byJobId: {},
+    aliasToCanonical: {},
     
     create: (data) => {
       const cardId = generateId();
@@ -104,15 +131,28 @@ export const useStepCardStore = create<StepCardStore>()(
           createdAt: now,
           updatedAt: now,
         };
+        
+        // 🔑 关键：写入stepId映射
+        state.byStepId[data.elementUid] = cardId;
+        
+        // 🏷️ 注册别名（含短尾）
+        registerAliases(state, cardId);
+        
+        // 如果有jobId，立即绑定
+        if (data.jobId) {
+          state.byJobId[data.jobId] = cardId;
+          state.byJobId[short(data.jobId)] = cardId;
+        }
       });
       
-      console.log('📝 [StepCardStore] 创建步骤卡片', { cardId, data });
+      console.log('📝 [StepCardStore] 创建步骤卡片', { cardId, stepId: data.elementUid, data });
       return cardId;
     },
     
     findByJob: (jobId) => {
-      const cards = get().cards;
-      return Object.values(cards).find(c => c.jobId === jobId)?.id;
+      const state = get();
+      // 🔍 优先从映射表查找（支持长短ID）
+      return state.byJobId[jobId] || state.byJobId[short(jobId)];
     },
     
     findByElement: (elementUid) => {
@@ -143,15 +183,36 @@ export const useStepCardStore = create<StepCardStore>()(
       });
     },
     
-    updateStatus: (cardId, status) => {
+    bindJob: (cardAnyId, jobId) => {
       set((state) => {
-        const card = state.cards[cardId];
+        const canonicalId = resolveCardId(state, cardAnyId) || cardAnyId;
+        registerAliases(state, canonicalId, cardAnyId);
+        state.byJobId[jobId] = canonicalId;
+        state.byJobId[short(jobId)] = canonicalId;
+        
+        // 同时更新卡片的jobId字段
+        const card = state.cards[canonicalId];
+        if (card) {
+          card.jobId = jobId;
+          card.updatedAt = Date.now();
+        }
+        
+        console.log('🔗 [StepCardStore] 绑定Job（支持别名）', { cardAnyId, canonicalId, jobId });
+      });
+    },
+    
+    updateStatus: (cardAnyId, status) => {
+      set((state) => {
+        const canonicalId = resolveCardId(state, cardAnyId);
+        if (!canonicalId) return;
+        
+        const card = state.cards[canonicalId];
         if (!card) return;
         
         // 🛡️ 保护：终态后不允许退回 analyzing
         if (FINAL_STATES.has(card.status) && status === 'analyzing') {
           console.debug('🛡️ [StepCardStore] 忽略终态回写 analyzing', { 
-            cardId: cardId.slice(-8), 
+            cardId: canonicalId.slice(-8), 
             currentStatus: card.status, 
             attemptedStatus: status 
           });
@@ -160,13 +221,16 @@ export const useStepCardStore = create<StepCardStore>()(
         
         card.status = status;
         card.updatedAt = Date.now();
-        console.log('🔄 [StepCardStore] 更新状态', { cardId: cardId.slice(-8), status });
+        console.log('🔄 [StepCardStore] 更新状态', { cardId: canonicalId.slice(-8), status });
       });
     },
     
-    updateProgress: (cardId, progress) => {
+    updateProgress: (cardAnyId, progress) => {
       set((state) => {
-        const card = state.cards[cardId];
+        const canonicalId = resolveCardId(state, cardAnyId);
+        if (!canonicalId) return;
+        
+        const card = state.cards[canonicalId];
         if (card) {
           card.progress = progress;
           card.updatedAt = Date.now();
@@ -174,46 +238,58 @@ export const useStepCardStore = create<StepCardStore>()(
       });
     },
     
-    fillStrategyAndReady: (cardId, strategy) => {
+    fillStrategyAndReady: (cardAnyId, strategy) => {
       set((state) => {
-        const card = state.cards[cardId];
+        const canonicalId = resolveCardId(state, cardAnyId);
+        if (!canonicalId) return;
+        
+        const card = state.cards[canonicalId];
         if (card) {
           card.strategy = strategy;
           card.status = 'ready'; // ← 关键：状态切换
           card.progress = 100;
           card.updatedAt = Date.now();
-          console.log('✅ [StepCardStore] 填充策略并就绪', { cardId, strategy });
+          console.log('✅ [StepCardStore] 填充策略并就绪', { cardId: canonicalId, strategy });
         }
       });
     },
     
-    setError: (cardId, error) => {
+    setError: (cardAnyId, error) => {
       set((state) => {
-        const card = state.cards[cardId];
+        const canonicalId = resolveCardId(state, cardAnyId);
+        if (!canonicalId) return;
+        
+        const card = state.cards[canonicalId];
         if (card) {
           card.error = error;
           card.status = 'failed';
           card.updatedAt = Date.now();
-          console.log('❌ [StepCardStore] 设置错误', { cardId, error });
+          console.log('❌ [StepCardStore] 设置错误', { cardId: canonicalId, error });
         }
       });
     },
     
-    setConfidence: (cardId, confidence, evidence) => {
+    setConfidence: (cardAnyId, confidence, evidence) => {
       set((state) => {
-        const card = state.cards[cardId];
+        const canonicalId = resolveCardId(state, cardAnyId);
+        if (!canonicalId) return;
+        
+        const card = state.cards[canonicalId];
         if (card) {
           card.confidence = confidence;
           card.evidence = evidence;
           card.updatedAt = Date.now();
-          console.log('📊 [StepCardStore] 设置置信度', { cardId, confidence, evidence });
+          console.log('📊 [StepCardStore] 设置置信度', { cardId: canonicalId, confidence, evidence });
         }
       });
     },
 
-    setSingleStepConfidence: (cardId, score) => {
+    setSingleStepConfidence: (cardAnyId, score) => {
       set((state) => {
-        const card = state.cards[cardId];
+        const canonicalId = resolveCardId(state, cardAnyId);
+        if (!canonicalId) return;
+        
+        const card = state.cards[canonicalId];
         if (!card) return;
         
         // 🔧 关键修复：同时设置 meta 和 confidence 字段
@@ -226,7 +302,7 @@ export const useStepCardStore = create<StepCardStore>()(
         card.status = status;
         card.updatedAt = Date.now();
         console.log('🎯 [StepCardStore] 设置单步置信度', { 
-          cardId: cardId.slice(-8), 
+          cardId: canonicalId.slice(-8), 
           confidence: score.confidence,
           confidencePercent: `${Math.round(score.confidence * 100)}%`,
           source: score.source,
@@ -252,7 +328,23 @@ export const useStepCardStore = create<StepCardStore>()(
     clear: () => {
       set((state) => {
         state.cards = {};
-        console.log('🧹 [StepCardStore] 清空所有卡片');
+        state.byStepId = {};
+        state.byJobId = {};
+        state.aliasToCanonical = {};
+        console.log('🧹 [StepCardStore] 清空所有卡片和映射');
+      });
+    },
+    
+    cleanupAliases: (canonicalId) => {
+      set((state) => {
+        const shortId = short(canonicalId);
+        if (state.cards[shortId] && shortId !== canonicalId) {
+          // 合并数据到canonical卡片
+          state.cards[canonicalId] = { ...state.cards[shortId], ...state.cards[canonicalId] };
+          delete state.cards[shortId];
+          state.aliasToCanonical[shortId] = canonicalId;
+          console.log('🧹 [StepCardStore] 清理短ID幽灵卡片', { shortId, canonicalId });
+        }
       });
     },
   }))

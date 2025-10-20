@@ -58,12 +58,10 @@ const CompactStrategyMenu: React.FC<CompactStrategyMenuProps> = ({
   });
   const [showExpandedView, setShowExpandedView] = useState(false);
 
-  // 获取置信度和策略数据
-  const getCard = useStepCardStore((state) => state.getCard);
-  const findByElement = useStepCardStore((state) => state.findByElement);
-  const cardId = stepId ? findByElement(stepId) : null;
-  const card = cardId ? getCard(cardId) : null;
-  const confidence = card?.meta?.singleStepScore?.confidence;
+  // 获取置信度和策略数据 - 🔧 修复：通过stepId查找卡片
+  const cardId = useStepCardStore((state) => stepId ? state.byStepId[stepId] : undefined);
+  const card = useStepCardStore((state) => cardId ? state.cards[cardId] : undefined);
+  const confidence = card?.meta?.singleStepScore?.confidence ?? card?.confidence;
   const confidencePercent = confidence ? Math.round(confidence * 100) : 0;
   const recommendedKey = card?.strategy?.primary;
 
@@ -80,7 +78,8 @@ const CompactStrategyMenu: React.FC<CompactStrategyMenuProps> = ({
         cardStatus: card?.status,
         strategy: card?.strategy ? "exists" : "null",
         mappingResult: cardId ? 'found' : 'not_found',
-        version: "v20251020-fix",
+        version: "v20251020-stepId-fix",
+        byStepIdLookup: '✅ 使用byStepId映射查找'
       });
     }
   }, [stepId, cardId, card, confidence, confidencePercent, recommendedKey]);

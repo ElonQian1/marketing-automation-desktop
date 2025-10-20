@@ -382,6 +382,23 @@ export function useIntelligentAnalysisWorkflow(): UseIntelligentAnalysisWorkflow
       
       setCurrentJobs(prev => new Map(prev).set(jobId, job));
       
+      // 🔧 修复：立即在StepCardStore中注册job映射
+      if (stepId) {
+        (async () => {
+          try {
+            const { useStepCardStore } = await import('../../../store/stepcards');
+            const unifiedStore = useStepCardStore.getState();
+            const cardId = unifiedStore.byStepId[stepId];
+            if (cardId) {
+              unifiedStore.bindJob(cardId, jobId);
+              console.log('🔗 [Bridge] 启动时注册job映射', { stepId, cardId, jobId });
+            }
+          } catch (err) {
+            console.warn('⚠️ [Bridge] 启动时注册job映射失败', err);
+          }
+        })();
+      }
+      
       return jobId;
     } catch (error) {
       console.error('启动分析失败:', error);
@@ -450,13 +467,13 @@ export function useIntelligentAnalysisWorkflow(): UseIntelligentAnalysisWorkflow
       
       setStepCards(prev => [...prev, stepCard]);
       
-      // 🔄 同步创建到统一StepCard Store (桥接机制)
+      // 🔄 同步创建到统一StepCard Store (桥接机制) - 🔧 修复：使用stepId作为elementUid
       (async () => {
         try {
           const { useStepCardStore } = await import('../../../store/stepcards');
           const unifiedStore = useStepCardStore.getState();
           const unifiedCardId = unifiedStore.create({
-            elementUid: context.elementPath || `element_${stepId}`,
+            elementUid: stepId, // 🔑 关键：使用stepId而不是elementPath，确保byStepId映射正确
             elementContext: {
               xpath: context.elementPath,
               text: context.elementText,
@@ -466,7 +483,7 @@ export function useIntelligentAnalysisWorkflow(): UseIntelligentAnalysisWorkflow
             },
             status: 'draft'
           });
-          console.log('🔗 [Bridge] 在统一store中创建对应卡片', { stepId, unifiedCardId });
+          console.log('🔗 [Bridge] 在统一store中创建对应卡片', { stepId, unifiedCardId, elementUid: stepId });
         } catch (err) {
           console.warn('⚠️ [Bridge] 创建统一store卡片失败', err);
         }
@@ -486,16 +503,16 @@ export function useIntelligentAnalysisWorkflow(): UseIntelligentAnalysisWorkflow
           : card
       ));
 
-      // 🔄 同步分析状态到统一store
+      // 🔄 同步分析状态到统一store - 🔧 修复：使用新的bindJob方法
       (async () => {
         try {
           const { useStepCardStore } = await import('../../../store/stepcards');
           const unifiedStore = useStepCardStore.getState();
-          const cardByElement = unifiedStore.findByElement(context.elementPath || `element_${stepId}`);
-          if (cardByElement) {
-            unifiedStore.attachJob(cardByElement, jobId);
-            unifiedStore.updateStatus(cardByElement, 'analyzing');
-            console.log('🔗 [Bridge] 同步分析状态到统一store', { cardId: cardByElement, jobId });
+          const cardId = unifiedStore.byStepId[stepId]; // 直接查找stepId映射
+          if (cardId) {
+            unifiedStore.bindJob(cardId, jobId); // 使用新的bindJob方法
+            unifiedStore.updateStatus(cardId, 'analyzing');
+            console.log('🔗 [Bridge] 同步分析状态到统一store', { cardId, jobId, stepId });
           }
         } catch (err) {
           console.warn('⚠️ [Bridge] 同步分析状态失败', err);
