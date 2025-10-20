@@ -60,6 +60,7 @@ export interface StepCardStore {
     status?: StepCardStatus;
     jobId?: string;
   }) => string;
+  createCard: (stepId: string, cardId: string, data?: Partial<StepCard>) => void;
   
   // 查找操作
   findByJob: (jobId: string) => string | undefined;
@@ -72,8 +73,10 @@ export interface StepCardStore {
   attachJob: (cardId: string, jobId: string) => void;
   bindJob: (cardAnyId: string, jobId: string) => void; // 新增：支持别名绑定
   updateStatus: (cardId: string, status: StepCardStatus) => void;
+  updateCard: (cardAnyId: string, patch: Partial<StepCard>) => void; // 新增：通用更新
   updateProgress: (cardId: string, progress: number) => void;
   fillStrategyAndReady: (cardId: string, strategy: StepCard['strategy']) => void;
+  fillStrategy: (cardAnyId: string, strategy: StepCard['strategy'], confidence?: number) => void;
   setError: (cardId: string, error: string) => void;
   
   // 置信度管理
@@ -94,7 +97,7 @@ function generateId(): string {
 }
 
 // ID规范化和别名管理
-const short = (id: string) => (id?.length > 12 ? id.slice(-9) : id);
+const short = (id?: string) => (id && id.length > 12 ? id.slice(-9) : id || '');
 
 const resolveCardId = (state: { cards: Record<string, StepCard>; aliasToCanonical: Record<string, string> }, anyId?: string): string | undefined => {
   if (!anyId) return undefined;
@@ -102,7 +105,7 @@ const resolveCardId = (state: { cards: Record<string, StepCard>; aliasToCanonica
   return state.aliasToCanonical[anyId] || state.aliasToCanonical[short(anyId)];
 };
 
-const registerAliases = (state: { aliasToCanonical: Record<string, string> }, canonical: string, ...aliases: string[]) => {
+const registerAliases = (state: { aliasToCanonical: Record<string, string> }, canonical: string, ...aliases: (string|undefined)[]) => {
   [canonical, ...aliases].forEach(alias => {
     if (!alias) return;
     state.aliasToCanonical[alias] = canonical;
@@ -147,6 +150,29 @@ export const useStepCardStore = create<StepCardStore>()(
       
       console.log('📝 [StepCardStore] 创建步骤卡片', { cardId, stepId: data.elementUid, data });
       return cardId;
+    },
+    
+    createCard: (stepId, cardId, data = {}) => {
+      const now = Date.now();
+      
+      set((state) => {
+        state.cards[cardId] = {
+          id: cardId,
+          elementUid: stepId,
+          status: 'analyzing',
+          createdAt: now,
+          updatedAt: now,
+          ...data
+        } as StepCard;
+        
+        // 🔑 关键：写入stepId映射
+        state.byStepId[stepId] = cardId;
+        
+        // 🏷️ 注册别名（含短尾）
+        registerAliases(state, cardId);
+      });
+      
+      console.log('📝 [StepCardStore] 创建步骤卡片（新方式）', { stepId, cardId, data });
     },
     
     findByJob: (jobId) => {
@@ -238,6 +264,20 @@ export const useStepCardStore = create<StepCardStore>()(
       });
     },
     
+    updateCard: (cardAnyId, patch) => {
+      set((state) => {
+        const canonicalId = resolveCardId(state, cardAnyId);
+        if (!canonicalId) return;
+        
+        const card = state.cards[canonicalId];
+        if (card) {
+          Object.assign(card, patch);
+          card.updatedAt = Date.now();
+          console.log('🔄 [StepCardStore] 更新卡片', { cardId: canonicalId.slice(-8), patch });
+        }
+      });
+    },
+    
     fillStrategyAndReady: (cardAnyId, strategy) => {
       set((state) => {
         const canonicalId = resolveCardId(state, cardAnyId);
@@ -250,6 +290,22 @@ export const useStepCardStore = create<StepCardStore>()(
           card.progress = 100;
           card.updatedAt = Date.now();
           console.log('✅ [StepCardStore] 填充策略并就绪', { cardId: canonicalId, strategy });
+        }
+      });
+    },
+    
+    fillStrategy: (cardAnyId, strategy, confidence) => {
+      set((state) => {
+        const canonicalId = resolveCardId(state, cardAnyId);
+        if (!canonicalId) return;
+        
+        const card = state.cards[canonicalId];
+        if (card) {
+          card.strategy = strategy;
+          card.confidence = typeof confidence === 'number' ? confidence : card.confidence;
+          card.status = 'ready';
+          card.updatedAt = Date.now();
+          console.log('✅ [StepCardStore] 填充策略', { cardId: canonicalId, strategy, confidence });
         }
       });
     },

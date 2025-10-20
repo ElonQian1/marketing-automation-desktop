@@ -467,13 +467,15 @@ export function useIntelligentAnalysisWorkflow(): UseIntelligentAnalysisWorkflow
       
       setStepCards(prev => [...prev, stepCard]);
       
-      // 🔄 同步创建到统一StepCard Store (桥接机制) - 🔧 修复：使用stepId作为elementUid
+      // 🔄 同步创建到统一StepCard Store (桥接机制) - 🔧 修复：先创建后绑定
       (async () => {
         try {
           const { useStepCardStore } = await import('../../../store/stepcards');
           const unifiedStore = useStepCardStore.getState();
-          const unifiedCardId = unifiedStore.create({
-            elementUid: stepId, // 🔑 关键：使用stepId而不是elementPath，确保byStepId映射正确
+          
+          // 1) 先生成cardId并创建卡片
+          const unifiedCardId = `card_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+          unifiedStore.createCard(stepId, unifiedCardId, {
             elementContext: {
               xpath: context.elementPath,
               text: context.elementText,
@@ -481,43 +483,47 @@ export function useIntelligentAnalysisWorkflow(): UseIntelligentAnalysisWorkflow
               resourceId: context.keyAttributes?.['resource-id'],
               className: context.keyAttributes?.class
             },
-            status: 'draft'
+            status: 'analyzing'
           });
+          
           console.log('🔗 [Bridge] 在统一store中创建对应卡片', { stepId, unifiedCardId, elementUid: stepId });
         } catch (err) {
           console.warn('⚠️ [Bridge] 创建统一store卡片失败', err);
         }
       })();
       
-      // 自动启动后台分析（不阻塞用户操作）
-      const jobId = await startAnalysis(context, stepId);
-      
-      // 更新步骤卡片的分析状态
-      setStepCards(prev => prev.map(card => 
-        card.stepId === stepId 
-          ? { 
-              ...card, 
-              analysisState: 'analyzing',
-              analysisJobId: jobId 
+      // 自动启动后台分析（不阻塞用户操作） - 修改顺序：先启动分析再绑定
+      try {
+        const jobId = await startAnalysis(context, stepId);
+        
+        // 立即绑定job到StepCardStore
+        (async () => {
+          try {
+            const { useStepCardStore } = await import('../../../store/stepcards');
+            const unifiedStore = useStepCardStore.getState();
+            const cardId = unifiedStore.byStepId[stepId];
+            if (cardId) {
+              unifiedStore.bindJob(cardId, jobId);
+              console.log('🔗 [Bridge] 绑定job到卡片', { cardId, jobId, stepId });
             }
-          : card
-      ));
-
-      // 🔄 同步分析状态到统一store - 🔧 修复：使用新的bindJob方法
-      (async () => {
-        try {
-          const { useStepCardStore } = await import('../../../store/stepcards');
-          const unifiedStore = useStepCardStore.getState();
-          const cardId = unifiedStore.byStepId[stepId]; // 直接查找stepId映射
-          if (cardId) {
-            unifiedStore.bindJob(cardId, jobId); // 使用新的bindJob方法
-            unifiedStore.updateStatus(cardId, 'analyzing');
-            console.log('🔗 [Bridge] 同步分析状态到统一store', { cardId, jobId, stepId });
+          } catch (err) {
+            console.warn('⚠️ [Bridge] 绑定job失败', err);
           }
-        } catch (err) {
-          console.warn('⚠️ [Bridge] 同步分析状态失败', err);
-        }
-      })();
+        })();
+        
+        // 更新步骤卡片的分析状态
+        setStepCards(prev => prev.map(card => 
+          card.stepId === stepId 
+            ? { 
+                ...card, 
+                analysisState: 'analyzing',
+                analysisJobId: jobId 
+              }
+            : card
+        ));
+      } catch (analysisError) {
+        console.error('启动分析失败:', analysisError);
+      }
       
       return stepId;
     } catch (error) {
