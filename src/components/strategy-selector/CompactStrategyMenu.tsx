@@ -3,13 +3,14 @@
 // summary: 替代大块策略选择器的紧凑下拉菜单，集成到步骤卡片标题栏
 
 import React, { useState } from 'react';
-import { Dropdown, Button, Tooltip } from 'antd';
+import { Dropdown, Button, Tooltip, Badge, Tag } from 'antd';
 import { RefreshCcwIcon, ClipboardListIcon, SearchIcon, MoreHorizontalIcon } from 'lucide-react';
 import { 
   StrategySelector as IStrategySelector, 
   StrategyEvents, 
   SmartStep 
 } from '../../types/strategySelector';
+import { useStepCardStore } from '../../store/stepcards';
 
 const STRATEGY_ICONS = {
   'smart-auto': '🧠',
@@ -37,15 +38,24 @@ interface CompactStrategyMenuProps {
   events: StrategyEvents;
   disabled?: boolean;
   compact?: boolean;
+  stepId?: string; // 新增：用于获取置信度数据
 }
 
 const CompactStrategyMenu: React.FC<CompactStrategyMenuProps> = ({
   selector,
   events,
   disabled = false,
-  compact = true
+  compact = true,
+  stepId
 }) => {
   const [showExpandedView, setShowExpandedView] = useState(false);
+  
+  // 获取置信度和策略数据
+  const getCard = useStepCardStore(state => state.getCard);
+  const card = stepId ? getCard(stepId) : null;
+  const confidence = card?.meta?.singleStepScore?.confidence;
+  const confidencePercent = confidence ? Math.round(confidence * 100) : 0;
+  const recommendedKey = card?.strategy?.primary;
 
   // 获取当前策略的显示信息
   const getCurrentStrategyLabel = () => {
@@ -78,11 +88,33 @@ const CompactStrategyMenu: React.FC<CompactStrategyMenuProps> = ({
         key: 'smart-single',
         icon: <span>🎯</span>,
         label: '智能·单步',
-        children: SMART_STEPS.map(({ step, label }) => ({
-          key: `smart-single-${step}`,
-          label: label,
-          onClick: () => events.onStrategyChange({ type: 'smart-single', stepName: step })
-        }))
+        children: SMART_STEPS.map(({ step, label }) => {
+          // 映射recommendedKey到Step
+          const keyMap: Record<string, string> = {
+            self_anchor: 'step6',
+            text_semantic: 'step4', 
+            attr_exact: 'step2',
+            struct_path: 'step3',
+            context_nearby: 'step5',
+            basic_locator: 'step1'
+          };
+          
+          const isRecommended = recommendedKey && keyMap[recommendedKey] === step;
+          
+          return {
+            key: `smart-single-${step}`,
+            label: (
+              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', width: '100%' }}>
+                <span>{label}</span>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
+                  {isRecommended && <Badge status="processing" text="荐" />}
+                  {confidencePercent > 0 && <Tag color="blue" size="small">{confidencePercent}%</Tag>}
+                </div>
+              </div>
+            ),
+            onClick: () => events.onStrategyChange({ type: 'smart-single', stepName: step })
+          };
+        })
       },
       {
         key: 'static',

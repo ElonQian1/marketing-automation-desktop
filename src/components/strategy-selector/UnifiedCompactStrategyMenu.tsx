@@ -3,7 +3,7 @@
 // summary: 使用统一状态管理的策略菜单，替代旧版本的多系统状态
 
 import React from 'react';
-import { Dropdown, Button, Tooltip, Progress, Space } from 'antd';
+import { Dropdown, Button, Tooltip, Progress } from 'antd';
 import { RefreshCcwIcon, LightbulbIcon, CheckCircleIcon, XCircleIcon } from 'lucide-react';
 import { useStepCardStore } from '../../store/stepcards';
 import { useStepScoreStore } from '../../stores/step-score-store';
@@ -22,22 +22,19 @@ interface UnifiedCompactStrategyMenuProps {
   disabled?: boolean;
   compact?: boolean;
   cardId?: string; // 如果已有卡片ID
-  onStrategyReady?: (cardId: string, strategy: any) => void;
+  stepId?: string; // 步骤ID，用于显示推荐徽章
+  onStrategyReady?: (cardId: string, strategy: unknown) => void;
 }
 
 export const UnifiedCompactStrategyMenu: React.FC<UnifiedCompactStrategyMenuProps> = ({
   elementData,
   disabled = false,
-  compact = true,
   cardId: existingCardId,
+  stepId,
   onStrategyReady,
 }) => {
   const { 
     createAndAnalyze, 
-    isAnalyzing, 
-    getProgress, 
-    getStatus, 
-    hasStrategy, 
     retry, 
     debug 
   } = useUnifiedSmartAnalysis();
@@ -53,6 +50,22 @@ export const UnifiedCompactStrategyMenu: React.FC<UnifiedCompactStrategyMenuProp
   // 🆕 优先从共享缓存获取置信度（专家建议的核心）
   const cachedScore = currentCardId ? getByCardId(currentCardId) : null;
   const elementScore = cachedScore || (elementData.uid ? getScore(generateKey(elementData.uid)) : null);
+
+  // 推荐映射（根据朋友的建议）
+  const recommendedStrategyKeys = {
+    'step6': 'self_anchor',
+    'step4': 'text_semantic', 
+    'step2': 'attr_exact',
+    'step1': 'ai_flow',
+    'step3': 'hierarchy_search',
+    'step5': 'content_match'
+  };
+
+  // 判断是否为推荐策略
+  const isRecommendedStrategy = (strategyKey: string): boolean => {
+    if (!stepId) return false;
+    return recommendedStrategyKeys[stepId as keyof typeof recommendedStrategyKeys] === strategyKey;
+  };
 
   // 获取显示状态
   const getDisplayStatus = (): { 
@@ -79,8 +92,26 @@ export const UnifiedCompactStrategyMenu: React.FC<UnifiedCompactStrategyMenuProp
           loading: true 
         };
       case 'ready': {
+        // 检查是否有推荐策略和置信度
+        const strategy = currentCard.strategy;
+        const primaryStrategy = strategy?.primary;
+        const isRecommended = primaryStrategy ? isRecommendedStrategy(primaryStrategy) : false;
+        const confidence = currentCard.meta?.singleStepScore?.confidence || 
+                          (strategy?.candidates?.find(c => c.key === primaryStrategy)?.confidence);
+        
+        let displayText = '🧠 智能·单步 ✅';
+        
+        if (isRecommended) {
+          displayText = '🧠 智能·单步 荐';
+        }
+        
+        if (confidence !== undefined) {
+          const confidencePercent = Math.round(confidence * 100);
+          displayText += ` ${confidencePercent}%`;
+        }
+        
         return { 
-          text: `🧠 智能·单步 ✅`, 
+          text: displayText, 
           loading: false
         };
       }
@@ -165,12 +196,29 @@ export const UnifiedCompactStrategyMenu: React.FC<UnifiedCompactStrategyMenuProp
       const primaryConfidence = primaryCandidate?.confidence ?? 0;
       const primaryName = primaryCandidate?.name || primary;
       
+      const isPrimaryRecommended = isRecommendedStrategy(primary);
+      
       items.push({
         key: 'primary',
         label: (
           <div style={{ display: 'flex', flexDirection: 'column', minWidth: '180px', gap: '4px' }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-              <span style={{ fontWeight: '500' }}>⭐ {primaryName}</span>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                <span style={{ fontWeight: '500' }}>⭐ {primaryName}</span>
+                {isPrimaryRecommended && (
+                  <span style={{
+                    background: 'var(--g-badge, rgba(16, 185, 129, 0.15))',
+                    color: 'var(--g-fg, #10B981)',
+                    border: '1px solid var(--g-border, rgba(16, 185, 129, 0.3))',
+                    fontSize: '10px',
+                    padding: '1px 4px',
+                    borderRadius: '3px',
+                    fontWeight: 'bold'
+                  }}>
+                    荐
+                  </span>
+                )}
+              </div>
               <span style={{ 
                 color: primaryConfidence >= 0.8 ? '#10B981' : primaryConfidence >= 0.6 ? '#F59E0B' : '#EF4444',
                 fontSize: '11px',
@@ -203,13 +251,29 @@ export const UnifiedCompactStrategyMenu: React.FC<UnifiedCompactStrategyMenuProp
         const backupCandidate = candidates.find(c => c.key === backup);
         const backupConfidence = backupCandidate?.confidence ?? 0;
         const backupName = backupCandidate?.name || backup;
+        const isBackupRecommended = isRecommendedStrategy(backup);
         
         items.push({
           key: `backup-${index}`,
           label: (
             <div style={{ display: 'flex', flexDirection: 'column', minWidth: '180px', gap: '4px' }}>
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                <span>🔄 {backupName}</span>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                  <span>🔄 {backupName}</span>
+                  {isBackupRecommended && (
+                    <span style={{
+                      background: 'var(--g-badge, rgba(16, 185, 129, 0.15))',
+                      color: 'var(--g-fg, #10B981)',
+                      border: '1px solid var(--g-border, rgba(16, 185, 129, 0.3))',
+                      fontSize: '10px',
+                      padding: '1px 4px',
+                      borderRadius: '3px',
+                      fontWeight: 'bold'
+                    }}>
+                      荐
+                    </span>
+                  )}
+                </div>
                 <span style={{ 
                   color: backupConfidence >= 0.8 ? '#10B981' : backupConfidence >= 0.6 ? '#F59E0B' : '#EF4444',
                   fontSize: '11px',

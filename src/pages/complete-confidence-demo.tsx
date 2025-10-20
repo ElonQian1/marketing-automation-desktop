@@ -321,6 +321,11 @@ const CompleteConfidenceDemo: React.FC = () => {
                     <UnifiedCompactStrategyMenu
                       elementData={element}
                       disabled={loading}
+                      stepId={
+                        element.className === 'android.widget.EditText' ? 'step6' :  // 输入框 -> self_anchor
+                        element.className === 'android.widget.Button' ? 'step4' :    // 按钮 -> text_semantic
+                        'step2' // 默认 -> attr_exact
+                      }
                     />
                     <Divider style={{ margin: '8px 0' }} />
                     <Button 
