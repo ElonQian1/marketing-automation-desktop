@@ -48,6 +48,7 @@ const CompactStrategyMenu: React.FC<CompactStrategyMenuProps> = ({
   compact = true,
   stepId
 }) => {
+  console.log('🚀 [CompactStrategyMenu] 组件已挂载 - v20251020-fix', { stepId });
   const [showExpandedView, setShowExpandedView] = useState(false);
   
   // 获取置信度和策略数据

@@ -527,12 +527,18 @@ const DraggableStepCardInner: React.FC<
             }}>
             
             {/* 🧠 紧凑策略菜单 */}
-            {step.enableStrategySelector && step.strategySelector && (
-              <CompactStrategyMenu
-                data-menu-version="v20251020-fix"
-                selector={(() => {
-                  // ✅ 适配器：将简化的 strategySelector 转换为完整的 StrategySelector 接口
-                  const result = step.strategySelector.analysis.result as {
+            {step.enableStrategySelector && step.strategySelector && (() => {
+              console.log('🎯 [DraggableStepCard] 渲染 CompactStrategyMenu', { 
+                stepId: step.id, 
+                hasSelector: !!step.strategySelector,
+                version: 'v20251020-fix'
+              });
+              return (
+                <CompactStrategyMenu
+                  data-menu-version="v20251020-fix"
+                  selector={(() => {
+                    // ✅ 适配器：将简化的 strategySelector 转换为完整的 StrategySelector 接口
+                    const result = step.strategySelector.analysis.result as {
                     smartCandidates?: Array<{
                       key: string;
                       name: string;
@@ -604,7 +610,8 @@ const DraggableStepCardInner: React.FC<
                 compact={true}
                 stepId={step.id}
               />
-            )}
+              );
+            })()}
 
             {/* 🧠 XML快照信息胶囊 */}
             {step.parameters?.xmlSnapshot && (
