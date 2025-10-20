@@ -124,6 +124,18 @@ const CompactStrategyMenu: React.FC<CompactStrategyMenuProps> = ({
           const candidateScore = stepId ? stepScoreStore.getCandidateScore(stepId, candidateKey) : undefined;
           const displayScore = candidateScore ?? globalScore;  // 简化逻辑：都回退全局分
 
+          // 🔍 调试每一行的数据情况
+          console.debug('[StrategyRow]', {
+            step,
+            stepId: stepId?.slice(-8),
+            candidateKey,
+            isRecommended,
+            candidateScore,
+            globalScore,
+            displayScore,
+            recommendedKey
+          });
+
           // 🎯 智能处理不同格式的置信度值（0-1或0-100）
           let confidencePercent: number | undefined;
           if (typeof displayScore === 'number') {

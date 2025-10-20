@@ -214,6 +214,7 @@ export async function wireAnalysisEventsGlobally(): Promise<void> {
       console.log('📊 [Wire Events] 写入候选项评分', {
         stepId: stepId.slice(-8),
         smartCandidates: smart_candidates?.length || 0,
+        candidateKeys: smart_candidates?.map(c => c.key) || [],
         recommendedKey: recommended_key,
         globalConfidence: normalizedConfidence
       });
@@ -229,6 +230,16 @@ export async function wireAnalysisEventsGlobally(): Promise<void> {
             isPercentRange: candidate.confidence >= 0 && candidate.confidence <= 100,
           });
           scoreStore.setCandidateScore(stepId, candidate.key, candidate.confidence);
+          
+          // 🔍 立刻读回验证是否写入成功
+          const readBack = scoreStore.getCandidateScore(stepId, candidate.key);
+          console.log('✅ [Wire Events] 候选分写入验证', {
+            stepId: stepId.slice(-8),
+            candidateKey: candidate.key,
+            written: candidate.confidence,
+            readBack,
+            success: readBack === candidate.confidence
+          });
         }
       });
       
