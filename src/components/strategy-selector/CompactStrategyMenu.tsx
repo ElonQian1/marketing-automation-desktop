@@ -20,6 +20,17 @@ import { useStepScoreStore } from "../../stores/step-score-store";
 import { useAnalysisState } from "../../stores/analysis-state-store";
 import { isValidScore, toPercentInt01 } from "../../utils/score-utils";
 
+/**
+ * 根据置信度百分比返回对应的颜色
+ */
+function getConfidenceColor(percent: number): string {
+  if (percent >= 85) return "green";        // 高置信度：绿色
+  if (percent >= 70) return "blue";         // 中高置信度：蓝色  
+  if (percent >= 55) return "orange";       // 中等置信度：橙色
+  if (percent >= 40) return "volcano";      // 中低置信度：火山红
+  return "red";                             // 低置信度：红色
+}
+
 const STRATEGY_ICONS = {
   "smart-auto": "🧠",
   "smart-single": "🎯",
@@ -32,13 +43,14 @@ const STRATEGY_LABELS = {
   static: "静态策略",
 };
 
+// 🔧 修复：将后端候选项key映射到UI步骤，支持实际的候选项
 const SMART_STEPS: { step: SmartStep; label: string; candidateKey: string }[] = [
-  { step: "step1", label: "Step1 - 基础识别", candidateKey: "basic_locator" },
-  { step: "step2", label: "Step2 - 属性匹配", candidateKey: "attr_exact" },
-  { step: "step3", label: "Step3 - 结构分析", candidateKey: "struct_path" },
-  { step: "step4", label: "Step4 - 语义理解", candidateKey: "text_semantic" },
-  { step: "step5", label: "Step5 - 上下文推理", candidateKey: "context_nearby" },
-  { step: "step6", label: "Step6 - 全局索引", candidateKey: "self_anchor" },
+  { step: "step1", label: "Step1 - 自锚定策略", candidateKey: "self_anchor" },
+  { step: "step2", label: "Step2 - 子元素驱动", candidateKey: "child_driven" },
+  { step: "step3", label: "Step3 - 区域约束", candidateKey: "region_scoped" },
+  { step: "step4", label: "Step4 - XPath兜底", candidateKey: "xpath_fallback" },
+  { step: "step5", label: "Step5 - 索引兜底", candidateKey: "index_fallback" },
+  { step: "step6", label: "Step6 - 应急兜底", candidateKey: "emergency_fallback" },
 ];
 
 interface CompactStrategyMenuProps {
@@ -169,7 +181,10 @@ const CompactStrategyMenu: React.FC<CompactStrategyMenuProps> = ({
                 >
                   {isRecommended && <Badge status="processing" text="荐" />}
                   {typeof confidencePercent === 'number' && (
-                    <Tag color="blue" style={{ fontSize: "10px" }}>
+                    <Tag 
+                      color={getConfidenceColor(confidencePercent)} 
+                      style={{ fontSize: "10px", fontWeight: "bold" }}
+                    >
                       {confidencePercent}%
                     </Tag>
                   )}

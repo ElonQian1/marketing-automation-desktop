@@ -7,6 +7,48 @@ import { Card, Progress, Tag, Badge, Collapse, Space, Divider, Button, Tooltip }
 import { CheckCircleOutlined, ClockCircleOutlined, LoadingOutlined, ExclamationCircleOutlined } from '@ant-design/icons';
 import { useAnalysisState } from '../../stores/analysis-state-store';
 import { toPercentInt01, isValidScore } from '../../utils/score-utils';
+import { ConfidenceLegend } from './ConfidenceLegend';
+
+/**
+ * 根据置信度返回对应的颜色和样式
+ */
+function getConfidenceStyle(confidence: number) {
+  const percent = confidence * 100;
+  
+  if (percent >= 85) {
+    return {
+      color: 'green',
+      bgColor: 'border-green-200 bg-green-50',
+      level: 'high' as const
+    };
+  }
+  if (percent >= 70) {
+    return {
+      color: 'blue', 
+      bgColor: 'border-blue-200 bg-blue-50',
+      level: 'medium-high' as const
+    };
+  }
+  if (percent >= 55) {
+    return {
+      color: 'orange',
+      bgColor: 'border-orange-200 bg-orange-50', 
+      level: 'medium' as const
+    };
+  }
+  if (percent >= 40) {
+    return {
+      color: 'volcano',
+      bgColor: 'border-red-200 bg-red-50',
+      level: 'medium-low' as const
+    };
+  }
+  return {
+    color: 'red',
+    bgColor: 'border-red-300 bg-red-100',
+    level: 'low' as const
+  };
+}
 
 const { Panel } = Collapse;
 
@@ -25,7 +67,6 @@ interface SmartAnalysisPanelProps {
  * 智能分析面板 - 展示两类产物和两个视图
  */
 export const SmartAnalysisPanel: React.FC<SmartAnalysisPanelProps> = ({
-  stepId,
   showDetails = true,
   onSelectChain,
   onSelectStep
@@ -162,17 +203,14 @@ export const SmartAnalysisPanel: React.FC<SmartAnalysisPanelProps> = ({
           <div className="space-y-2">
             {validSteps.map((step, index) => {
               const confidencePercent = toPercentInt01(step.confidence);
-              const isHighConfidence = step.confidence >= 0.7;
-              const isMediumConfidence = step.confidence >= 0.4;
+              const confidenceStyle = getConfidenceStyle(step.confidence);
               
               return (
                 <div 
                   key={step.stepId}
                   className={`
                     flex items-center justify-between p-2 rounded border
-                    ${isHighConfidence ? 'border-green-200 bg-green-50' : 
-                      isMediumConfidence ? 'border-yellow-200 bg-yellow-50' : 
-                      'border-gray-200 bg-gray-50'}
+                    ${confidenceStyle.bgColor}
                     ${onSelectStep ? 'cursor-pointer hover:shadow-sm' : ''}
                   `}
                   onClick={() => onSelectStep?.(step.stepId)}
@@ -181,8 +219,7 @@ export const SmartAnalysisPanel: React.FC<SmartAnalysisPanelProps> = ({
                     <div className="flex items-center gap-1">
                       <span className="text-xs text-gray-500">#{index + 1}</span>
                       <Tag 
-                        color={step.status === 'final' ? 'green' : 'orange'} 
-                        size="small"
+                        color={step.status === 'final' ? 'green' : 'orange'}
                       >
                         {step.strategy}
                       </Tag>
@@ -199,10 +236,8 @@ export const SmartAnalysisPanel: React.FC<SmartAnalysisPanelProps> = ({
                   
                   <div className="flex items-center gap-2">
                     <Tag 
-                      color={
-                        isHighConfidence ? 'green' : 
-                        isMediumConfidence ? 'orange' : 'red'
-                      }
+                      color={confidenceStyle.color}
+                      style={{ fontWeight: 'bold' }}
                     >
                       {confidencePercent}%
                     </Tag>
@@ -219,7 +254,7 @@ export const SmartAnalysisPanel: React.FC<SmartAnalysisPanelProps> = ({
                           </div>
                         }
                       >
-                        <Tag size="small" className="cursor-help">
+                        <Tag className="cursor-help text-xs">
                           详情
                         </Tag>
                       </Tooltip>
@@ -242,6 +277,11 @@ export const SmartAnalysisPanel: React.FC<SmartAnalysisPanelProps> = ({
           </div>
         )}
       </Card>
+
+      {/* 🎨 置信度颜色图例 */}
+      {validSteps.length > 0 && (
+        <ConfidenceLegend size="small" showDetails={false} />
+      )}
 
       {/* 调试信息（开发模式） */}
       {process.env.NODE_ENV === 'development' && showDetails && (

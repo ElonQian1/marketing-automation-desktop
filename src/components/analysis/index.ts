@@ -3,4 +3,5 @@
 // summary: 统一导出分析相关组件
 
 export { SmartAnalysisPanel } from './SmartAnalysisPanel';
+export { TestAnalysisPanel } from './TestAnalysisPanel';
 export type { default as SmartAnalysisPanelProps } from './SmartAnalysisPanel';

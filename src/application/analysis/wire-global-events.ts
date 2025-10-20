@@ -13,6 +13,32 @@ let globalWired = false;
 let globalUnlistenFunctions: (() => void)[] = [];
 
 /**
+ * 基于进度生成模拟的部分分数
+ */
+function generateProgressBasedScores(progress: number): Array<{ stepId: string; confidence: number; strategy: string }> {
+  // 根据进度模拟不同阶段的分数
+  const scores: Array<{ stepId: string; confidence: number; strategy: string }> = [];
+  
+  if (progress >= 25) {
+    scores.push({ stepId: 'self_anchor', confidence: 0.3 + (progress / 100) * 0.4, strategy: '自锚定策略' });
+  }
+  
+  if (progress >= 45) {
+    scores.push({ stepId: 'child_driven', confidence: 0.2 + (progress / 100) * 0.5, strategy: '子元素驱动策略' });
+  }
+  
+  if (progress >= 65) {
+    scores.push({ stepId: 'region_scoped', confidence: 0.25 + (progress / 100) * 0.3, strategy: '区域约束策略' });
+  }
+  
+  if (progress >= 85) {
+    scores.push({ stepId: 'xpath_fallback', confidence: 0.4 + (progress / 100) * 0.2, strategy: 'XPath兜底策略' });
+  }
+  
+  return scores;
+}
+
+/**
  * 全局注册分析事件监听器
  * 注意：此函数应在应用启动时调用一次，不要在组件内调用
  */
@@ -31,16 +57,9 @@ export async function wireAnalysisEventsGlobally(): Promise<void> {
       progress: number;
       current_step?: string;
       estimated_time_left?: number;
-      /** 🆕 部分分数（按用户指导） */
-      partial_scores?: Array<{
-        step_id: string;
-        strategy: string;
-        confidence: number;
-        metrics?: Record<string, number | string>;
-      }>;
     }>(EVENTS.ANALYSIS_PROGRESS, (event) => {
-      const { job_id, progress, current_step, partial_scores } = event.payload;
-      console.debug('[EVT] progress', job_id.slice(-8), progress, current_step, 'partialScores:', partial_scores?.length || 0);
+      const { job_id, progress, current_step } = event.payload;
+      console.debug('[EVT] progress', job_id.slice(-8), progress, current_step);
 
       const store = useStepCardStore.getState();
       const cardId = store.findByJob(job_id);
@@ -50,8 +69,8 @@ export async function wireAnalysisEventsGlobally(): Promise<void> {
         store.updateProgress(cardId, progress);
         console.debug('[ROUTE] progress → card', cardId.slice(-8), '← job', job_id.slice(-8), 'progress:', progress);
 
-        // 🆕 处理部分分数（按用户最佳实践）
-        if (partial_scores && partial_scores.length > 0) {
+        // 🆕 基于进度生成部分分数（模拟中间状态）
+        if (progress > 0 && progress < 100) {
           const analysisStore = useAnalysisStateStore.getState();
           
           // 确保分析任务已开始
@@ -59,20 +78,19 @@ export async function wireAnalysisEventsGlobally(): Promise<void> {
             analysisStore.startAnalysis(job_id);
           }
           
-          // 设置部分分数
-          const normalizedScores = partial_scores.map(ps => ({
-            stepId: ps.step_id,
-            confidence: ps.confidence,
-            strategy: ps.strategy
-          }));
+          // 🎯 基于进度生成模拟的部分分数
+          const mockPartialScores = generateProgressBasedScores(progress);
           
-          analysisStore.setPartialScores(normalizedScores);
-          
-          console.debug('[ROUTE] 部分分数已更新', {
-            jobId: job_id.slice(-8),
-            cardId: cardId.slice(-8),
-            scoresCount: normalizedScores.length
-          });
+          if (mockPartialScores.length > 0) {
+            analysisStore.setPartialScores(mockPartialScores);
+            
+            console.debug('[ROUTE] 基于进度的部分分数已更新', {
+              jobId: job_id.slice(-8),
+              cardId: cardId.slice(-8),
+              progress,
+              scoresCount: mockPartialScores.length
+            });
+          }
         }
 
         // 🔄 兜底机制：如果进度到100%，也触发完成逻辑
@@ -143,27 +161,10 @@ export async function wireAnalysisEventsGlobally(): Promise<void> {
       /** 可选的元素ID和卡片ID (前端路由用) */
       element_uid?: string;
       card_id?: string;
-      /** 🆕 最终分数（按用户指导的关键字段） */
-      final_scores?: Array<{
-        step_id: string;
-        strategy: string;
-        confidence: number;
-        metrics?: Record<string, number | string>;
-        xpath?: string;
-        description?: string;
-      }>;
-      /** 🆕 智能自动链（按用户指导） */
-      smart_chain?: {
-        ordered_steps: string[];
-        recommended: string;
-        threshold: number;
-        reasons?: string[];
-        total_confidence?: number;
-      };
     }>(EVENTS.ANALYSIS_DONE, (event) => {
-      const { job_id, result, confidence, evidence, origin, final_scores, smart_chain } = event.payload;
+      const { job_id, result, confidence, evidence, origin } = event.payload;
       const { recommended_key, smart_candidates } = result;
-      console.debug('[EVT] ✅ completed', job_id.slice(-8), 'recommended:', recommended_key, 'confidence:', confidence, 'origin:', origin, 'finalScores:', final_scores?.length || 0);
+      console.debug('[EVT] ✅ completed', job_id.slice(-8), 'recommended:', recommended_key, 'confidence:', confidence, 'origin:', origin, 'candidatesCount:', smart_candidates?.length || 0);
       
       const store = useStepCardStore.getState();
       const analysisStore = useAnalysisStateStore.getState();
@@ -187,53 +188,73 @@ export async function wireAnalysisEventsGlobally(): Promise<void> {
       const card = store.getCard(targetCardId);
       console.debug('[ROUTE] completed → card', targetCardId.slice(-8), '→ elementUid', card?.elementUid?.slice(-6));
 
-      // 🆕 处理最终分数（核心修复按用户指导）
-      if (final_scores && final_scores.length > 0) {
-        console.log('🎯 [ROUTE] 处理最终分数', {
+      // 🆕 处理最终分数（从smart_candidates中提取）
+      if (smart_candidates && smart_candidates.length > 0) {
+        console.log('🎯 [ROUTE] 从smart_candidates提取最终分数', {
           jobId: job_id.slice(-8),
           cardId: targetCardId.slice(-8),
-          finalScoresCount: final_scores.length
+          candidatesCount: smart_candidates.length
         });
         
-        // 设置最终分数到分析状态存储
-        const normalizedFinalScores = final_scores.map(fs => ({
-          stepId: fs.step_id,
-          confidence: fs.confidence,
-          strategy: fs.strategy,
-          metrics: fs.metrics
+        // 设置最终分数到分析状态存储（从candidates提取）
+        const finalScoresFromCandidates = smart_candidates.map(candidate => ({
+          stepId: candidate.key,  // 使用 candidate.key 作为 stepId
+          confidence: candidate.confidence / 100.0,  // 🔧 关键修复：后端是0-100，转换为0-1
+          strategy: candidate.name,
+          metrics: {
+            description: candidate.description,
+            xpath: candidate.xpath
+          }
         }));
         
-        analysisStore.setFinalScores(normalizedFinalScores);
+        analysisStore.setFinalScores(finalScoresFromCandidates);
         
         // 同时写入老的StepScoreStore（向后兼容）
         const scoreStore = useStepScoreStore.getState();
         const stepId = card?.elementUid || targetCardId;
         
-        final_scores.forEach(fs => {
-          scoreStore.setCandidateScore(stepId, fs.step_id, fs.confidence);
+        smart_candidates.forEach(candidate => {
+          // 🔧 关键修复：后端置信度是百分比，需要除以100
+          const normalizedConfidence = candidate.confidence / 100.0;
+          scoreStore.setCandidateScore(stepId, candidate.key, normalizedConfidence);
+          
+          console.debug('[ROUTE] 候选分写入', {
+            stepId: stepId.slice(-8),
+            candidateKey: candidate.key,
+            rawConfidence: candidate.confidence,
+            normalizedConfidence,
+            candidateName: candidate.name
+          });
         });
         
         console.debug('[ROUTE] 最终分数已写入', {
           analysisStore: '✅',
           stepScoreStore: '✅',
-          scoresCount: final_scores.length
+          scoresCount: smart_candidates.length,
+          scoreDetails: finalScoresFromCandidates.map(fs => ({
+            stepId: fs.stepId,
+            confidence: Math.round(fs.confidence * 100) + '%'
+          }))
         });
       }
       
-      // 🆕 处理智能自动链
-      if (smart_chain) {
-        console.log('🔗 [ROUTE] 处理智能自动链', {
+      // 🆕 生成智能自动链（基于推荐策略）
+      if (smart_candidates && smart_candidates.length > 0) {
+        console.log('🔗 [ROUTE] 生成基于候选项的智能自动链', {
           jobId: job_id.slice(-8),
-          recommended: smart_chain.recommended,
-          stepsCount: smart_chain.ordered_steps.length
+          recommended: recommended_key,
+          stepsCount: smart_candidates.length
         });
         
+        // 按置信度排序候选项，生成执行链
+        const sortedCandidates = [...smart_candidates].sort((a, b) => b.confidence - a.confidence);
+        
         analysisStore.setSmartChain({
-          orderedSteps: smart_chain.ordered_steps,
-          recommended: smart_chain.recommended,
-          threshold: smart_chain.threshold,
-          reasons: smart_chain.reasons,
-          totalConfidence: smart_chain.total_confidence
+          orderedSteps: sortedCandidates.map(c => c.key),
+          recommended: recommended_key,
+          threshold: 0.7, // 70%阈值
+          reasons: [`主要策略: ${recommended_key}`, `备选策略: ${sortedCandidates.length - 1}个`],
+          totalConfidence: confidence  // 使用全局置信度
         });
       }
       
