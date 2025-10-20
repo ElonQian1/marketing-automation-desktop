@@ -5,6 +5,7 @@
 import { listen } from '@tauri-apps/api/event';
 import { useStepCardStore } from '../../store/stepcards';
 import { useStepScoreStore } from '../../stores/step-score-store';
+import { useAnalysisStateStore } from '../../stores/analysis-state-store';
 import { EVENTS } from '../../shared/constants/events';
 import type { ConfidenceEvidence } from '../../modules/universal-ui/types/intelligent-analysis-types';
 
@@ -30,9 +31,16 @@ export async function wireAnalysisEventsGlobally(): Promise<void> {
       progress: number;
       current_step?: string;
       estimated_time_left?: number;
+      /** 🆕 部分分数（按用户指导） */
+      partial_scores?: Array<{
+        step_id: string;
+        strategy: string;
+        confidence: number;
+        metrics?: Record<string, number | string>;
+      }>;
     }>(EVENTS.ANALYSIS_PROGRESS, (event) => {
-      const { job_id, progress, current_step } = event.payload;
-      console.debug('[EVT] progress', job_id.slice(-8), progress, current_step);
+      const { job_id, progress, current_step, partial_scores } = event.payload;
+      console.debug('[EVT] progress', job_id.slice(-8), progress, current_step, 'partialScores:', partial_scores?.length || 0);
 
       const store = useStepCardStore.getState();
       const cardId = store.findByJob(job_id);
@@ -41,6 +49,31 @@ export async function wireAnalysisEventsGlobally(): Promise<void> {
         store.updateStatus(cardId, 'analyzing');
         store.updateProgress(cardId, progress);
         console.debug('[ROUTE] progress → card', cardId.slice(-8), '← job', job_id.slice(-8), 'progress:', progress);
+
+        // 🆕 处理部分分数（按用户最佳实践）
+        if (partial_scores && partial_scores.length > 0) {
+          const analysisStore = useAnalysisStateStore.getState();
+          
+          // 确保分析任务已开始
+          if (analysisStore.currentJobId !== job_id) {
+            analysisStore.startAnalysis(job_id);
+          }
+          
+          // 设置部分分数
+          const normalizedScores = partial_scores.map(ps => ({
+            stepId: ps.step_id,
+            confidence: ps.confidence,
+            strategy: ps.strategy
+          }));
+          
+          analysisStore.setPartialScores(normalizedScores);
+          
+          console.debug('[ROUTE] 部分分数已更新', {
+            jobId: job_id.slice(-8),
+            cardId: cardId.slice(-8),
+            scoresCount: normalizedScores.length
+          });
+        }
 
         // 🔄 兜底机制：如果进度到100%，也触发完成逻辑
         if (progress >= 100) {
@@ -110,12 +143,30 @@ export async function wireAnalysisEventsGlobally(): Promise<void> {
       /** 可选的元素ID和卡片ID (前端路由用) */
       element_uid?: string;
       card_id?: string;
+      /** 🆕 最终分数（按用户指导的关键字段） */
+      final_scores?: Array<{
+        step_id: string;
+        strategy: string;
+        confidence: number;
+        metrics?: Record<string, number | string>;
+        xpath?: string;
+        description?: string;
+      }>;
+      /** 🆕 智能自动链（按用户指导） */
+      smart_chain?: {
+        ordered_steps: string[];
+        recommended: string;
+        threshold: number;
+        reasons?: string[];
+        total_confidence?: number;
+      };
     }>(EVENTS.ANALYSIS_DONE, (event) => {
-      const { job_id, result, confidence, evidence, origin } = event.payload;
+      const { job_id, result, confidence, evidence, origin, final_scores, smart_chain } = event.payload;
       const { recommended_key, smart_candidates } = result;
-      console.debug('[EVT] ✅ completed', job_id.slice(-8), 'recommended:', recommended_key, 'confidence:', confidence, 'origin:', origin);
+      console.debug('[EVT] ✅ completed', job_id.slice(-8), 'recommended:', recommended_key, 'confidence:', confidence, 'origin:', origin, 'finalScores:', final_scores?.length || 0);
       
       const store = useStepCardStore.getState();
+      const analysisStore = useAnalysisStateStore.getState();
       
       // 通过job_id查找目标卡片
       const targetCardId = store.findByJob(job_id);
@@ -136,7 +187,60 @@ export async function wireAnalysisEventsGlobally(): Promise<void> {
       const card = store.getCard(targetCardId);
       console.debug('[ROUTE] completed → card', targetCardId.slice(-8), '→ elementUid', card?.elementUid?.slice(-6));
 
-      // 构建策略对象
+      // 🆕 处理最终分数（核心修复按用户指导）
+      if (final_scores && final_scores.length > 0) {
+        console.log('🎯 [ROUTE] 处理最终分数', {
+          jobId: job_id.slice(-8),
+          cardId: targetCardId.slice(-8),
+          finalScoresCount: final_scores.length
+        });
+        
+        // 设置最终分数到分析状态存储
+        const normalizedFinalScores = final_scores.map(fs => ({
+          stepId: fs.step_id,
+          confidence: fs.confidence,
+          strategy: fs.strategy,
+          metrics: fs.metrics
+        }));
+        
+        analysisStore.setFinalScores(normalizedFinalScores);
+        
+        // 同时写入老的StepScoreStore（向后兼容）
+        const scoreStore = useStepScoreStore.getState();
+        const stepId = card?.elementUid || targetCardId;
+        
+        final_scores.forEach(fs => {
+          scoreStore.setCandidateScore(stepId, fs.step_id, fs.confidence);
+        });
+        
+        console.debug('[ROUTE] 最终分数已写入', {
+          analysisStore: '✅',
+          stepScoreStore: '✅',
+          scoresCount: final_scores.length
+        });
+      }
+      
+      // 🆕 处理智能自动链
+      if (smart_chain) {
+        console.log('🔗 [ROUTE] 处理智能自动链', {
+          jobId: job_id.slice(-8),
+          recommended: smart_chain.recommended,
+          stepsCount: smart_chain.ordered_steps.length
+        });
+        
+        analysisStore.setSmartChain({
+          orderedSteps: smart_chain.ordered_steps,
+          recommended: smart_chain.recommended,
+          threshold: smart_chain.threshold,
+          reasons: smart_chain.reasons,
+          totalConfidence: smart_chain.total_confidence
+        });
+      }
+      
+      // 完成分析任务
+      analysisStore.completeAnalysis();
+
+      // 构建策略对象（向后兼容现有卡片系统）
       const strategy = {
         primary: recommended_key || 'completed_strategy',
         backups: smart_candidates?.slice(1).map(c => c.key) || [],

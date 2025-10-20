@@ -6,6 +6,7 @@ import React from 'react';
 import { create } from 'zustand';
 import { immer } from 'zustand/middleware/immer';
 import type { ConfidenceEvidence } from '../modules/universal-ui/types/intelligent-analysis-types';
+import { normalizeTo01 } from '../utils/score-utils';
 
 /**
  * 步骤评分数据
@@ -139,32 +140,46 @@ export const useStepScoreStore = create<StepScoreStore>()(
     
     generateKey: generateStandardKey,
     
-    // 🆕 设置全局评分（stepId级别）
+    // 🆕 设置全局评分（stepId级别）- 🔧 修复：归一化存储
     setGlobalScore: (stepId, confidence) => {
+      const normalizedConfidence = normalizeTo01(confidence);
+      if (typeof normalizedConfidence !== 'number') {
+        console.warn('🚨 [StepScoreStore] 无效的全局置信度', { stepId, confidence });
+        return;
+      }
+      
       const key = makeCompositeCacheKey(stepId);
       set((state) => {
         state.scores[key] = {
           key,
           recommended: 'global',
-          confidence,
+          confidence: normalizedConfidence,  // ✅ 存储0~1的number
           origin: 'single',
           timestamp: Date.now(),
           elementUid: stepId
         };
-        console.log('🌐 [StepScoreStore] 设置全局评分', { stepId, confidence: Math.round(confidence * 100) + '%' });
+        console.log('🌐 [StepScoreStore] 设置全局评分', { 
+          stepId, 
+          confidence: Math.round(normalizedConfidence * 100) + '%',
+          rawInput: confidence 
+        });
       });
     },
     
-    // 🆕 设置候选项评分（stepId + candidateKey）
+    // 🆕 设置候选项评分（stepId + candidateKey）- 🔧 修复：归一化存储
     setCandidateScore: (stepId, candidateKey, confidence) => {
-      if (typeof confidence !== 'number') return; // 没分就别写
+      const normalizedConfidence = normalizeTo01(confidence);
+      if (typeof normalizedConfidence !== 'number') {
+        console.warn('🚨 [StepScoreStore] 无效的候选置信度', { stepId, candidateKey, confidence });
+        return;
+      }
       
       const key = makeCompositeCacheKey(stepId, candidateKey);
       set((state) => {
         state.scores[key] = {
           key,
           recommended: candidateKey,
-          confidence,
+          confidence: normalizedConfidence,  // ✅ 存储0~1的number
           origin: 'single',
           timestamp: Date.now(),
           elementUid: stepId
@@ -172,7 +187,8 @@ export const useStepScoreStore = create<StepScoreStore>()(
         console.log('🎯 [StepScoreStore] 设置候选项评分', { 
           stepId, 
           candidateKey, 
-          confidence: Math.round(confidence * 100) + '%' 
+          confidence: Math.round(normalizedConfidence * 100) + '%',
+          rawInput: confidence
         });
       });
     },

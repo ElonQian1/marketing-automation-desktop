@@ -17,6 +17,8 @@ import {
 } from "../../types/strategySelector";
 import { useStepCardStore } from "../../store/stepcards";
 import { useStepScoreStore } from "../../stores/step-score-store";
+import { useAnalysisState } from "../../stores/analysis-state-store";
+import { isValidScore, toPercentInt01 } from "../../utils/score-utils";
 
 const STRATEGY_ICONS = {
   "smart-auto": "🧠",
@@ -120,9 +122,19 @@ const CompactStrategyMenu: React.FC<CompactStrategyMenuProps> = ({
         children: SMART_STEPS.map(({ step, label, candidateKey }) => {
           const isRecommended = candidateKey === recommendedKey;
 
-          // 🔧 修复：优先取候选分，无候选分时回退全局分（所有项都显示置信度）
+          // 🆕 优先从新的分析状态获取置信度
+          const analysisConfidence = useAnalysisState.stepConfidence(candidateKey);
+          
+          // 🔧 回退到旧的评分存储（向后兼容）
           const candidateScore = stepId ? stepScoreStore.getCandidateScore(stepId, candidateKey) : undefined;
-          const displayScore = candidateScore ?? globalScore;  // 简化逻辑：都回退全局分
+          const globalScore = stepId ? stepScoreStore.getGlobalScore(stepId) : undefined;
+          
+          // 🎯 置信度优先级：分析状态 > 候选分 > 推荐项的全局分
+          const displayScore = analysisConfidence !== null 
+            ? analysisConfidence
+            : isValidScore(candidateScore)
+            ? candidateScore
+            : (isRecommended && isValidScore(globalScore) ? globalScore : undefined);
 
           // 🔍 调试每一行的数据情况
           console.debug('[StrategyRow]', {
@@ -130,29 +142,15 @@ const CompactStrategyMenu: React.FC<CompactStrategyMenuProps> = ({
             stepId: stepId?.slice(-8),
             candidateKey,
             isRecommended,
+            analysisConfidence,
             candidateScore,
             globalScore,
             displayScore,
             recommendedKey
           });
 
-          // 🎯 智能处理不同格式的置信度值（0-1或0-100）
-          let confidencePercent: number | undefined;
-          if (typeof displayScore === 'number') {
-            // 如果值在0-1范围，转换为百分比；如果已经是百分比格式就直接使用
-            if (displayScore >= 0 && displayScore <= 1) {
-              confidencePercent = Math.round(displayScore * 100);
-            } else if (displayScore >= 0 && displayScore <= 100) {
-              confidencePercent = Math.round(displayScore);
-            } else {
-              // 异常值，记录日志但不显示
-              console.warn('🚨 [CompactStrategyMenu] 异常的置信度值', {
-                step, candidateKey, displayScore, 
-                candidateScore, globalScore
-              });
-              confidencePercent = undefined;
-            }
-          }
+          // 🎯 只有有效分数才显示百分比标签
+          const confidencePercent = toPercentInt01(displayScore);
 
           return {
             key: `smart-single-${step}`,
