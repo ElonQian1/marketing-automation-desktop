@@ -56,6 +56,18 @@ export interface StepScoreStore {
   /** 生成缓存键 */
   generateKey: (elementUid: string, screenSignature?: string) => string;
   
+  /** 🆕 设置全局评分（stepId级别） */
+  setGlobalScore: (stepId: string, confidence: number) => void;
+  
+  /** 🆕 设置候选项评分（stepId + candidateKey） */
+  setCandidateScore: (stepId: string, candidateKey: string, confidence?: number) => void;
+  
+  /** 🆕 获取候选项评分 */
+  getCandidateScore: (stepId: string, candidateKey: string) => number | undefined;
+  
+  /** 🆕 获取全局评分 */
+  getGlobalScore: (stepId: string) => number | undefined;
+  
   /** 清理过期评分 */
   cleanExpired: (maxAge?: number) => void;
   
@@ -74,6 +86,13 @@ function generateStandardKey(elementUid: string, screenSignature?: string): stri
     return `${screenSignature}:${elementUid}`;
   }
   return `element:${elementUid}`;
+}
+
+/**
+ * 生成候选项维度的缓存键
+ */
+function makeCompositeCacheKey(stepId: string, candidateKey?: string): string {
+  return candidateKey ? `step:${stepId}|cand:${candidateKey}` : `step:${stepId}|global`;
 }
 
 /**
@@ -119,6 +138,56 @@ export const useStepScoreStore = create<StepScoreStore>()(
     },
     
     generateKey: generateStandardKey,
+    
+    // 🆕 设置全局评分（stepId级别）
+    setGlobalScore: (stepId, confidence) => {
+      const key = makeCompositeCacheKey(stepId);
+      set((state) => {
+        state.scores[key] = {
+          key,
+          recommended: 'global',
+          confidence,
+          origin: 'single',
+          timestamp: Date.now(),
+          elementUid: stepId
+        };
+        console.log('🌐 [StepScoreStore] 设置全局评分', { stepId, confidence: Math.round(confidence * 100) + '%' });
+      });
+    },
+    
+    // 🆕 设置候选项评分（stepId + candidateKey）
+    setCandidateScore: (stepId, candidateKey, confidence) => {
+      if (typeof confidence !== 'number') return; // 没分就别写
+      
+      const key = makeCompositeCacheKey(stepId, candidateKey);
+      set((state) => {
+        state.scores[key] = {
+          key,
+          recommended: candidateKey,
+          confidence,
+          origin: 'single',
+          timestamp: Date.now(),
+          elementUid: stepId
+        };
+        console.log('🎯 [StepScoreStore] 设置候选项评分', { 
+          stepId, 
+          candidateKey, 
+          confidence: Math.round(confidence * 100) + '%' 
+        });
+      });
+    },
+    
+    // 🆕 获取候选项评分
+    getCandidateScore: (stepId, candidateKey) => {
+      const key = makeCompositeCacheKey(stepId, candidateKey);
+      return get().scores[key]?.confidence;
+    },
+    
+    // 🆕 获取全局评分
+    getGlobalScore: (stepId) => {
+      const key = makeCompositeCacheKey(stepId);
+      return get().scores[key]?.confidence;
+    },
     
     cleanExpired: (maxAge = 5 * 60 * 1000) => { // 默认5分钟过期
       const now = Date.now();

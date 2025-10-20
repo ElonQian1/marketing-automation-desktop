@@ -206,8 +206,29 @@ export async function wireAnalysisEventsGlobally(): Promise<void> {
         backendEvidence: evidence
       });
       
-      // 🆕 写入共享缓存（专家建议的核心）
+      // 🆕 写入共享缓存（专家建议的核心） - 候选项维度修复
       const scoreStore = useStepScoreStore.getState();
+      const stepId = card?.elementUid || targetCardId;
+      
+      // 🔧 修复：同时写候选分和全局分（按朋友建议）
+      console.log('📊 [Wire Events] 写入候选项评分', {
+        stepId: stepId.slice(-8),
+        smartCandidates: smart_candidates?.length || 0,
+        recommendedKey: recommended_key,
+        globalConfidence: normalizedConfidence
+      });
+      
+      // 1) 写入每个候选项的分数
+      smart_candidates?.forEach(candidate => {
+        if (typeof candidate.confidence === 'number') {
+          scoreStore.setCandidateScore(stepId, candidate.key, candidate.confidence);
+        }
+      });
+      
+      // 2) 写入全局分数（job-level置信度）
+      scoreStore.setGlobalScore(stepId, normalizedConfidence);
+      
+      // 🔄 原有缓存逻辑（向后兼容）
       const cacheKey = scoreStore.generateKey(card?.elementUid || 'unknown');
       scoreStore.upsert({
         key: cacheKey,

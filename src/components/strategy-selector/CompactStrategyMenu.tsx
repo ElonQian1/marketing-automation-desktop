@@ -16,6 +16,7 @@ import {
   SmartStep,
 } from "../../types/strategySelector";
 import { useStepCardStore } from "../../store/stepcards";
+import { useStepScoreStore } from "../../stores/step-score-store";
 
 const STRATEGY_ICONS = {
   "smart-auto": "🧠",
@@ -29,13 +30,13 @@ const STRATEGY_LABELS = {
   static: "静态策略",
 };
 
-const SMART_STEPS: { step: SmartStep; label: string }[] = [
-  { step: "step1", label: "Step1 - 基础识别" },
-  { step: "step2", label: "Step2 - 属性匹配" },
-  { step: "step3", label: "Step3 - 结构分析" },
-  { step: "step4", label: "Step4 - 语义理解" },
-  { step: "step5", label: "Step5 - 上下文推理" },
-  { step: "step6", label: "Step6 - 全局索引" },
+const SMART_STEPS: { step: SmartStep; label: string; candidateKey: string }[] = [
+  { step: "step1", label: "Step1 - 基础识别", candidateKey: "basic_locator" },
+  { step: "step2", label: "Step2 - 属性匹配", candidateKey: "attr_exact" },
+  { step: "step3", label: "Step3 - 结构分析", candidateKey: "struct_path" },
+  { step: "step4", label: "Step4 - 语义理解", candidateKey: "text_semantic" },
+  { step: "step5", label: "Step5 - 上下文推理", candidateKey: "context_nearby" },
+  { step: "step6", label: "Step6 - 全局索引", candidateKey: "self_anchor" },
 ];
 
 interface CompactStrategyMenuProps {
@@ -61,9 +62,11 @@ const CompactStrategyMenu: React.FC<CompactStrategyMenuProps> = ({
   // 获取置信度和策略数据 - 🔧 修复：通过stepId查找卡片
   const cardId = useStepCardStore((state) => stepId ? state.byStepId[stepId] : undefined);
   const card = useStepCardStore((state) => cardId ? state.cards[cardId] : undefined);
-  const confidence = card?.meta?.singleStepScore?.confidence ?? card?.confidence;
-  const confidencePercent = confidence ? Math.round(confidence * 100) : 0;
   const recommendedKey = card?.strategy?.primary;
+  
+  // 🔧 获取评分存储（候选项维度修复）
+  const stepScoreStore = useStepScoreStore();
+  const globalScore = stepId ? stepScoreStore.getGlobalScore(stepId) : undefined;
 
   // 🔍 调试输出置信度和推荐数据
   React.useEffect(() => {
@@ -72,17 +75,16 @@ const CompactStrategyMenu: React.FC<CompactStrategyMenuProps> = ({
         stepId,
         cardId,
         hasCard: !!card,
-        confidence,
-        confidencePercent,
+        globalScore,
         recommendedKey,
         cardStatus: card?.status,
         strategy: card?.strategy ? "exists" : "null",
         mappingResult: cardId ? 'found' : 'not_found',
-        version: "v20251020-stepId-fix",
+        version: "v20251020-candidates-fix",
         byStepIdLookup: '✅ 使用byStepId映射查找'
       });
     }
-  }, [stepId, cardId, card, confidence, confidencePercent, recommendedKey]);
+  }, [stepId, cardId, card, globalScore, recommendedKey]);
 
   // 获取当前策略的显示信息
   const getCurrentStrategyLabel = () => {
@@ -115,24 +117,17 @@ const CompactStrategyMenu: React.FC<CompactStrategyMenuProps> = ({
         key: "smart-single",
         icon: <span>🎯</span>,
         label: "智能·单步",
-        children: SMART_STEPS.map(({ step, label }) => {
-          // 映射recommendedKey到Step
-          const keyMap: Record<string, string> = {
-            self_anchor: "step6",
-            text_semantic: "step4",
-            attr_exact: "step2",
-            struct_path: "step3",
-            context_nearby: "step5",
-            basic_locator: "step1",
-          };
+        children: SMART_STEPS.map(({ step, label, candidateKey }) => {
+          const isRecommended = candidateKey === recommendedKey;
 
-          const isRecommended =
-            recommendedKey && keyMap[recommendedKey] === step;
+          // 🔧 修复：优先取候选分，推荐项可回退全局分（按朋友建议）
+          const candidateScore = stepId ? stepScoreStore.getCandidateScore(stepId, candidateKey) : undefined;
+          const displayScore = (typeof candidateScore === 'number')
+            ? candidateScore
+            : (isRecommended ? globalScore : undefined);
 
-          // 🔧 修复：只有当前活跃步骤才显示置信度，避免所有步骤都显示同一个置信度
-          const isCurrentStep = selector.activeStrategy?.type === "smart-single" && 
-                                selector.activeStrategy?.stepName === step;
-          const shouldShowConfidence = isCurrentStep && confidencePercent > 0;
+          // 🎯 只在有分数时渲染 Tag，避免"全88%"问题
+          const confidencePercent = typeof displayScore === 'number' ? Math.round(displayScore * 100) : undefined;
 
           return {
             key: `smart-single-${step}`,
@@ -150,7 +145,7 @@ const CompactStrategyMenu: React.FC<CompactStrategyMenuProps> = ({
                   style={{ display: "flex", alignItems: "center", gap: "4px" }}
                 >
                   {isRecommended && <Badge status="processing" text="荐" />}
-                  {shouldShowConfidence && (
+                  {typeof confidencePercent === 'number' && (
                     <Tag color="blue" style={{ fontSize: "10px" }}>
                       {confidencePercent}%
                     </Tag>
