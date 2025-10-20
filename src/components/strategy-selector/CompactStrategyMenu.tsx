@@ -126,8 +126,23 @@ const CompactStrategyMenu: React.FC<CompactStrategyMenuProps> = ({
             ? candidateScore
             : (isRecommended ? globalScore : undefined);
 
-          // 🎯 只在有分数时渲染 Tag，避免"全88%"问题
-          const confidencePercent = typeof displayScore === 'number' ? Math.round(displayScore * 100) : undefined;
+          // 🎯 智能处理不同格式的置信度值（0-1或0-100）
+          let confidencePercent: number | undefined;
+          if (typeof displayScore === 'number') {
+            // 如果值在0-1范围，转换为百分比；如果已经是百分比格式就直接使用
+            if (displayScore >= 0 && displayScore <= 1) {
+              confidencePercent = Math.round(displayScore * 100);
+            } else if (displayScore >= 0 && displayScore <= 100) {
+              confidencePercent = Math.round(displayScore);
+            } else {
+              // 异常值，记录日志但不显示
+              console.warn('🚨 [CompactStrategyMenu] 异常的置信度值', {
+                step, candidateKey, displayScore, 
+                candidateScore, globalScore
+              });
+              confidencePercent = undefined;
+            }
+          }
 
           return {
             key: `smart-single-${step}`,

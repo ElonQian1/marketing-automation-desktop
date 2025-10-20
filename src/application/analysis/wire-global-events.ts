@@ -221,6 +221,13 @@ export async function wireAnalysisEventsGlobally(): Promise<void> {
       // 1) 写入每个候选项的分数
       smart_candidates?.forEach(candidate => {
         if (typeof candidate.confidence === 'number') {
+          console.log('🔍 [Wire Events] 候选项原始数据', {
+            candidateKey: candidate.key,
+            rawConfidence: candidate.confidence,
+            confidenceType: typeof candidate.confidence,
+            isNormalRange: candidate.confidence >= 0 && candidate.confidence <= 1,
+            isPercentRange: candidate.confidence >= 0 && candidate.confidence <= 100,
+          });
           scoreStore.setCandidateScore(stepId, candidate.key, candidate.confidence);
         }
       });
