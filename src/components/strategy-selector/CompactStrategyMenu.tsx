@@ -120,11 +120,9 @@ const CompactStrategyMenu: React.FC<CompactStrategyMenuProps> = ({
         children: SMART_STEPS.map(({ step, label, candidateKey }) => {
           const isRecommended = candidateKey === recommendedKey;
 
-          // 🔧 修复：优先取候选分，推荐项可回退全局分（按朋友建议）
+          // 🔧 修复：优先取候选分，无候选分时回退全局分（所有项都显示置信度）
           const candidateScore = stepId ? stepScoreStore.getCandidateScore(stepId, candidateKey) : undefined;
-          const displayScore = (typeof candidateScore === 'number')
-            ? candidateScore
-            : (isRecommended ? globalScore : undefined);
+          const displayScore = candidateScore ?? globalScore;  // 简化逻辑：都回退全局分
 
           // 🎯 智能处理不同格式的置信度值（0-1或0-100）
           let confidencePercent: number | undefined;
