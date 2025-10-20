@@ -529,6 +529,7 @@ const DraggableStepCardInner: React.FC<
             {/* 🧠 紧凑策略菜单 */}
             {step.enableStrategySelector && step.strategySelector && (
               <CompactStrategyMenu
+                data-menu-version="v20251020-fix"
                 selector={(() => {
                   // ✅ 适配器：将简化的 strategySelector 转换为完整的 StrategySelector 接口
                   const result = step.strategySelector.analysis.result as {
@@ -601,6 +602,7 @@ const DraggableStepCardInner: React.FC<
                 }}
                 disabled={!isBackendHealthy()}
                 compact={true}
+                stepId={step.id}
               />
             )}
 

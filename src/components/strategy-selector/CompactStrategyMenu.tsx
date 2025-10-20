@@ -57,6 +57,22 @@ const CompactStrategyMenu: React.FC<CompactStrategyMenuProps> = ({
   const confidencePercent = confidence ? Math.round(confidence * 100) : 0;
   const recommendedKey = card?.strategy?.primary;
 
+  // 🔍 调试输出置信度和推荐数据
+  React.useEffect(() => {
+    if (stepId) {
+      console.log('🎯 [CompactStrategyMenu] 数据检查:', {
+        stepId: stepId.slice(-8),
+        hasCard: !!card,
+        confidence,
+        confidencePercent,
+        recommendedKey,
+        cardStatus: card?.status,
+        strategy: card?.strategy ? 'exists' : 'null',
+        version: 'v20251020-fix'
+      });
+    }
+  }, [stepId, card, confidence, confidencePercent, recommendedKey]);
+
   // 获取当前策略的显示信息
   const getCurrentStrategyLabel = () => {
     if (!selector.activeStrategy) {
@@ -108,7 +124,7 @@ const CompactStrategyMenu: React.FC<CompactStrategyMenuProps> = ({
                 <span>{label}</span>
                 <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
                   {isRecommended && <Badge status="processing" text="荐" />}
-                  {confidencePercent > 0 && <Tag color="blue" size="small">{confidencePercent}%</Tag>}
+                  {confidencePercent > 0 && <Tag color="blue" style={{ fontSize: '10px' }}>{confidencePercent}%</Tag>}
                 </div>
               </div>
             ),
