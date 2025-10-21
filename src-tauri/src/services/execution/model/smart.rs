@@ -28,6 +28,9 @@ pub enum SmartActionType {
     // 通讯录自动化操作
     ContactGenerateVcf,
     ContactImportToDevice,
+    // 🆕 受控兜底：未知动作类型（避免 serde 硬崩）
+    #[serde(other)]
+    Unknown,
 }
 
 /// 前端传入的原始智能脚本步骤结构。

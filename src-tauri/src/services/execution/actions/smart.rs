@@ -201,3 +201,51 @@ pub async fn handle_recognize_page(
         Ok("页面识别测试完成".to_string())
     }
 }
+
+/// 🆕 处理智能导航动作（支持语义标签如 footer_*/header_*/content_*）
+pub async fn handle_smart_navigation(
+    executor: &SmartScriptExecutor,
+    step: &SmartScriptStep,
+    logs: &mut Vec<String>,
+) -> Result<String> {
+    let params: HashMap<String, serde_json::Value> =
+        serde_json::from_value(step.parameters.clone())?;
+
+    // 读取前端传递的语义标签（如 footer_other, header_button 等）
+    let target = params
+        .get("target")
+        .and_then(|v| v.as_str())
+        .unwrap_or("unknown");
+
+    logs.push(format!("🧭 智能导航目标: {}", target));
+
+    // 解析语义标签：region_type 格式
+    let parts: Vec<&str> = target.split('_').collect();
+    if parts.len() >= 2 {
+        let region = parts[0]; // footer/header/content
+        let element_type = parts[1..].join("_"); // button/other/text/image
+
+        logs.push(format!("📍 解析语义: 区域={}, 类型={}", region, element_type));
+
+        // 这里可以根据 region 和 element_type 实施智能定位逻辑
+        // 例如：
+        // 1. footer_* → 在屏幕下方 1/4 区域查找对应类型元素
+        // 2. header_* → 在屏幕上方 1/4 区域查找
+        // 3. content_* → 在中间区域查找
+
+        // 当前实现：回退到通用智能点击逻辑
+        logs.push(format!("🔄 回退到智能匹配模式（目标: {}）", target));
+        
+        // 复用 handle_smart_tap 或 handle_unified_match 的逻辑
+        // 这里简化为调用 unified_match
+        return handle_unified_match(executor, step, logs).await;
+    }
+
+    // 无法解析的目标：返回提示
+    let error_msg = format!(
+        "❌ 无法解析智能导航目标 '{}': 格式不符合 region_type 规范",
+        target
+    );
+    logs.push(error_msg.clone());
+    Err(anyhow::anyhow!(error_msg))
+}
