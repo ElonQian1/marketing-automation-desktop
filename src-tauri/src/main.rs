@@ -15,6 +15,7 @@ mod ai; // AI 模块
 mod config; // 配置模块
 mod engine; // 策略引擎模块
 mod infrastructure; // 基础设施模块
+mod exec; // V3 统一执行协议
 // pub mod xml_judgment_service; // TEMPORARILY DISABLED
 
 // Universal UI Finder 模块桥接
@@ -327,7 +328,12 @@ fn main() {
             ai::commands::save_ai_settings,
             ai::commands::list_models,
             ai::commands::ai_chat,
-            ai::commands::ai_embed
+            ai::commands::ai_embed,
+            // V3 统一执行协议命令
+            exec::v3::execute_single_step_test_v3,
+            exec::v3::execute_chain_test_v3,
+            exec::v3::execute_static_strategy_test_v3,
+            exec::v3::execute_task_v3
         ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");

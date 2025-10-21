@@ -1,4 +1,6 @@
 // src/lib/aiClient.ts
+// module: shared | layer: lib | role: AI客户端通信接口
+// summary: 封装与Tauri后端AI模块的通信接口，提供聊天、工具调用等功能
 import { invoke } from '@tauri-apps/api/core';
 import { listen } from '@tauri-apps/api/event';
 
