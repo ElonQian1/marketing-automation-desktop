@@ -44,6 +44,9 @@ use services::contact_storage::commands::{
     get_contact_number_stats_cmd,
     get_distinct_industries_cmd,
     set_contact_numbers_industry_by_id_range,
+    list_txt_import_records_cmd,
+    delete_txt_import_record_cmd,
+    list_vcf_batch_records_cmd,
 };
 use services::contact_storage::commands::{
     // update_import_session_industry_cmd,  // 暂未实现
@@ -200,6 +203,11 @@ fn main() {
             get_distinct_industries_cmd,
             set_contact_numbers_industry_by_id_range,
             create_vcf_batch_with_numbers_cmd,
+            // TXT 导入记录管理
+            list_txt_import_records_cmd,
+            delete_txt_import_record_cmd,
+            // VCF 批次记录管理
+            list_vcf_batch_records_cmd,
             // list_numbers_for_vcf_batch_cmd,     // 缺失
             // tag_numbers_industry_by_vcf_batch_cmd, // 缺失
             // update_import_session_industry_cmd,    // 缺失
@@ -311,6 +319,8 @@ fn main() {
             ,
             check_scrcpy_available,
             get_scrcpy_capabilities,
+            // 后端健康检查命令
+            backend_ping,
             // AI 模块命令
             ai::commands::get_ai_settings,
             ai::commands::save_ai_settings,
