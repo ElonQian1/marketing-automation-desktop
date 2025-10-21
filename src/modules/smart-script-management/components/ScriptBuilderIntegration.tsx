@@ -5,8 +5,10 @@
 // SmartScriptBuilderPage 的脚本管理集成示例
 
 import React, { useState, useCallback } from 'react';
-import { Card, Button, Space, Modal, Input, message, Alert } from 'antd';
-import { SaveOutlined, FolderOpenOutlined, MenuOutlined } from '@ant-design/icons';
+import { Card, Button, Space, Modal, Input, message, Alert, Form, Select, Row, Col, Tag } from 'antd';
+import { SaveOutlined, FolderOpenOutlined, MenuOutlined, CloudUploadOutlined } from '@ant-design/icons';
+
+const { TextArea } = Input;
 
 // 导入新的模块化脚本管理系统
 import {
@@ -20,6 +22,13 @@ import {
 // 🆕 导入分布式脚本管理
 import { DistributedScriptManager, DistributedScript } from '../../../domain/distributed-script';
 import { invoke } from '@tauri-apps/api/core';
+
+// 🆕 导入模板转换器
+import { 
+  ScriptToTemplateConverter,
+  type PublishToTemplateFormData,
+  type ScriptTemplate 
+} from '../utils/script-to-template-converter';
 
 interface ScriptBuilderIntegrationProps {
   // 原有的SmartScriptBuilderPage状态
@@ -55,6 +64,11 @@ export const ScriptBuilderIntegration: React.FC<ScriptBuilderIntegrationProps> =
   const [distributedScriptName, setDistributedScriptName] = useState('');
   const [distributedScriptDescription, setDistributedScriptDescription] = useState('');
   const [importFile, setImportFile] = useState<string>('');
+
+  // 🆕 发布到模板库相关状态
+  const [publishModalVisible, setPublishModalVisible] = useState(false);
+  const [publishing, setPublishing] = useState(false);
+  const [publishForm] = Form.useForm<PublishToTemplateFormData>();
 
   // 保存脚本到模块化系统
   const handleSaveScript = useCallback(async () => {
@@ -314,6 +328,69 @@ export const ScriptBuilderIntegration: React.FC<ScriptBuilderIntegrationProps> =
     }
   }, [importFile, onUpdateSteps, onUpdateConfig]);
 
+  // 🆕 发布到模板库
+  const handlePublishToTemplate = useCallback(async () => {
+    try {
+      const formData = await publishForm.validateFields();
+      
+      if (!formData.name.trim()) {
+        message.warning('请输入模板名称');
+        return;
+      }
+
+      setPublishing(true);
+
+      // 转换为模板格式
+      const template = ScriptToTemplateConverter.convertToTemplate(
+        steps,
+        executorConfig,
+        formData
+      );
+
+      // 保存到模板库（使用 localStorage，与 TemplateLibrary 组件一致）
+      try {
+        const userTemplates = JSON.parse(localStorage.getItem('userTemplates') || '[]');
+        userTemplates.push(template);
+        localStorage.setItem('userTemplates', JSON.stringify(userTemplates));
+        
+        message.success(`模板 "${template.name}" 已发布到模板库！`);
+        setPublishModalVisible(false);
+        publishForm.resetFields();
+      } catch (error) {
+        console.error('保存模板到本地存储失败:', error);
+        message.error('发布失败，请重试');
+      }
+
+    } catch (error) {
+      console.error('❌ 发布到模板库失败:', error);
+      message.error('发布失败，请检查表单内容');
+    } finally {
+      setPublishing(false);
+    }
+  }, [steps, executorConfig, publishForm]);
+
+  // 🆕 显示发布模态框并预填充推荐信息
+  const showPublishModal = useCallback(() => {
+    if (steps.length === 0) {
+      message.warning('请先添加一些脚本步骤');
+      return;
+    }
+
+    // 生成推荐信息
+    const recommendedInfo = ScriptToTemplateConverter.generateRecommendedInfo(steps);
+    
+    // 预填充表单
+    publishForm.setFieldsValue({
+      category: recommendedInfo.suggestedCategory,
+      targetApp: recommendedInfo.targetApp,
+      difficulty: recommendedInfo.difficulty,
+      estimatedTime: recommendedInfo.estimatedTime,
+      tags: recommendedInfo.suggestedTags
+    });
+
+    setPublishModalVisible(true);
+  }, [steps, publishForm]);
+
   return (
     <Space wrap>
       {/* 保存脚本按钮 */}
@@ -349,6 +426,16 @@ export const ScriptBuilderIntegration: React.FC<ScriptBuilderIntegrationProps> =
         onClick={() => setManagerModalVisible(true)}
       >
         脚本管理器
+      </Button>
+
+      {/* 🆕 发布到模板库按钮 */}
+      <Button
+        type="default"
+        icon={<CloudUploadOutlined />}
+        onClick={showPublishModal}
+        disabled={steps.length === 0}
+      >
+        发布到模板库
       </Button>
 
       {/* 保存脚本对话框 */}
@@ -540,6 +627,141 @@ export const ScriptBuilderIntegration: React.FC<ScriptBuilderIntegrationProps> =
             </Space>
           </Card>
         </Space>
+      </Modal>
+
+      {/* 🆕 发布到模板库对话框 */}
+      <Modal
+        title="发布脚本到模板库"
+        open={publishModalVisible}
+        onOk={handlePublishToTemplate}
+        onCancel={() => {
+          setPublishModalVisible(false);
+          publishForm.resetFields();
+        }}
+        confirmLoading={publishing}
+        width={700}
+        okText="发布到模板库"
+        cancelText="取消"
+      >
+        <Form
+          form={publishForm}
+          layout="vertical"
+          requiredMark={false}
+        >
+          <Alert
+            message="发布说明"
+            description="将当前脚本发布为可复用的模板，其他人可以在模板库中找到并使用您的脚本。"
+            type="info"
+            showIcon
+            style={{ marginBottom: 16 }}
+          />
+
+          <Row gutter={16}>
+            <Col span={12}>
+              <Form.Item
+                name="name"
+                label="模板名称"
+                rules={[{ required: true, message: '请输入模板名称' }]}
+              >
+                <Input placeholder="为您的模板起个好名字" />
+              </Form.Item>
+            </Col>
+            <Col span={12}>
+              <Form.Item
+                name="category"
+                label="模板分类"
+                rules={[{ required: true, message: '请选择模板分类' }]}
+              >
+                <Select placeholder="选择分类">
+                  <Select.Option value="social">社交应用</Select.Option>
+                  <Select.Option value="ecommerce">电商购物</Select.Option>
+                  <Select.Option value="productivity">办公效率</Select.Option>
+                  <Select.Option value="entertainment">娱乐应用</Select.Option>
+                  <Select.Option value="system">系统操作</Select.Option>
+                  <Select.Option value="custom">自定义</Select.Option>
+                </Select>
+              </Form.Item>
+            </Col>
+          </Row>
+
+          <Form.Item
+            name="description"
+            label="模板描述"
+            rules={[{ required: true, message: '请输入模板描述' }]}
+          >
+            <TextArea 
+              rows={3} 
+              placeholder="详细描述模板的功能和使用场景"
+            />
+          </Form.Item>
+
+          <Row gutter={16}>
+            <Col span={8}>
+              <Form.Item
+                name="targetApp"
+                label="目标应用"
+                rules={[{ required: true, message: '请输入目标应用' }]}
+              >
+                <Input placeholder="如：小红书、微信等" />
+              </Form.Item>
+            </Col>
+            <Col span={8}>
+              <Form.Item
+                name="difficulty"
+                label="难度等级"
+                rules={[{ required: true, message: '请选择难度等级' }]}
+              >
+                <Select placeholder="选择难度">
+                  <Select.Option value="beginner">初级</Select.Option>
+                  <Select.Option value="intermediate">中级</Select.Option>
+                  <Select.Option value="advanced">高级</Select.Option>
+                </Select>
+              </Form.Item>
+            </Col>
+            <Col span={8}>
+              <Form.Item
+                name="estimatedTime"
+                label="预计执行时间"
+              >
+                <Input placeholder="如：2-3分钟" />
+              </Form.Item>
+            </Col>
+          </Row>
+
+          <Form.Item
+            name="tags"
+            label="标签"
+          >
+            <Select
+              mode="tags"
+              placeholder="添加标签，按回车确认"
+              style={{ width: '100%' }}
+            />
+          </Form.Item>
+
+          <Card size="small" title="脚本预览" style={{ marginTop: 16 }}>
+            <Space direction="vertical" size="small" style={{ width: '100%' }}>
+              <div>
+                <strong>步骤数量:</strong> {steps.length} 个
+              </div>
+              <div>
+                <strong>启用步骤:</strong> {steps.filter(s => s.enabled !== false).length} 个
+              </div>
+              {steps.length > 0 && (
+                <div>
+                  <strong>包含操作类型:</strong>
+                  <div style={{ marginTop: 4 }}>
+                    {[...new Set(steps.map(s => s.step_type))].map(type => (
+                      <Tag key={type} color="blue" style={{ margin: '2px' }}>
+                        {type}
+                      </Tag>
+                    ))}
+                  </div>
+                </div>
+              )}
+            </Space>
+          </Card>
+        </Form>
       </Modal>
     </Space>
   );
