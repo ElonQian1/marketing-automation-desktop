@@ -8,6 +8,7 @@ use super::models::{
     CommentPayload, CommentRow, ListCommentsQuery,
     TaskPayload, TaskRow, ListTasksQuery,
     AuditLogPayload,
+    ReplyTemplatePayload, ReplyTemplateRow, ListReplyTemplatesQuery,
 };
 
 // ==================== SQL 表创建脚本 ====================
@@ -319,6 +320,46 @@ pub fn list_watch_targets(conn: &Connection, query: &ListWatchTargetsQuery) -> r
     let mut out = Vec::new();
     for r in rows { out.push(r?); }
     Ok(out)
+}
+
+pub fn update_watch_target(
+    conn: &Connection,
+    id: &str,
+    title: Option<&str>,
+    industry_tags: Option<&str>,
+    region: Option<&str>,
+    notes: Option<&str>,
+    last_fetch_at: Option<&str>,
+) -> rusqlite::Result<()> {
+    let mut sql = String::from("UPDATE watch_targets SET updated_at = datetime('now')");
+    let mut params: Vec<Box<dyn rusqlite::ToSql>> = vec![];
+    
+    if let Some(t) = title {
+        sql.push_str(", title = ?");
+        params.push(Box::new(t.to_string()));
+    }
+    if let Some(it) = industry_tags {
+        sql.push_str(", industry_tags = ?");
+        params.push(Box::new(it.to_string()));
+    }
+    if let Some(r) = region {
+        sql.push_str(", region = ?");
+        params.push(Box::new(r.to_string()));
+    }
+    if let Some(n) = notes {
+        sql.push_str(", notes = ?");
+        params.push(Box::new(n.to_string()));
+    }
+    if let Some(lf) = last_fetch_at {
+        sql.push_str(", last_fetch_at = ?");
+        params.push(Box::new(lf.to_string()));
+    }
+    
+    sql.push_str(" WHERE id = ?");
+    params.push(Box::new(id.to_string()));
+    
+    conn.execute(&sql, rusqlite::params_from_iter(params.iter().map(|b| b.as_ref())))?;
+    Ok(())
 }
 
 // ==================== 评论操作函数 ====================
@@ -739,4 +780,163 @@ pub fn batch_store_audit_logs(
 
     tx.commit()?;
     Ok(inserted_count)
+}
+
+// ==================== 回复模板操作函数 ====================
+
+pub fn insert_reply_template(conn: &Connection, payload: &ReplyTemplatePayload) -> rusqlite::Result<String> {
+    let id = format!("tpl_{}", Uuid::new_v4().to_string().replace("-", "")[..16].to_lowercase());
+    let sql = r#"
+INSERT INTO reply_templates (id, template_name, channel, text, variables, category, enabled, created_at, updated_at)
+VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7, datetime('now'), datetime('now'))
+"#;
+    conn.execute(sql, params![
+        id,
+        payload.template_name,
+        payload.channel,
+        payload.text,
+        payload.variables,
+        payload.category,
+        payload.enabled,
+    ])?;
+    Ok(id)
+}
+
+pub fn list_reply_templates(conn: &Connection, query: &ListReplyTemplatesQuery) -> rusqlite::Result<Vec<ReplyTemplateRow>> {
+    let mut sql = String::from("SELECT id, template_name, channel, text, variables, category, enabled, created_at, updated_at FROM reply_templates WHERE 1=1");
+    let mut params: Vec<Box<dyn rusqlite::ToSql>> = vec![];
+    
+    if let Some(channel) = &query.channel {
+        sql.push_str(" AND channel = ?");
+        params.push(Box::new(channel.clone()));
+    }
+    if let Some(enabled) = query.enabled {
+        sql.push_str(" AND enabled = ?");
+        params.push(Box::new(enabled));
+    }
+    
+    sql.push_str(" ORDER BY created_at DESC");
+    if let Some(limit) = query.limit {
+        sql.push_str(" LIMIT ");
+        sql.push_str(&limit.to_string());
+    }
+    if let Some(offset) = query.offset {
+        sql.push_str(" OFFSET ");
+        sql.push_str(&offset.to_string());
+    }
+
+    let mut stmt = conn.prepare(&sql)?;
+    let rows = stmt.query_map(rusqlite::params_from_iter(params.iter().map(|b| b.as_ref())), |row| {
+        Ok(ReplyTemplateRow {
+            id: row.get(0)?,
+            template_name: row.get(1)?,
+            channel: row.get(2)?,
+            text: row.get(3)?,
+            variables: row.get(4)?,
+            category: row.get(5)?,
+            enabled: row.get(6)?,
+            created_at: row.get(7)?,
+            updated_at: row.get(8)?,
+        })
+    })?;
+    let mut out = Vec::new();
+    for r in rows {
+        out.push(r?);
+    }
+    Ok(out)
+}
+
+pub fn update_reply_template(
+    conn: &Connection,
+    id: &str,
+    template_name: Option<&str>,
+    channel: Option<&str>,
+    text: Option<&str>,
+    variables: Option<&str>,
+    category: Option<&str>,
+    enabled: Option<bool>,
+) -> rusqlite::Result<()> {
+    let mut sql = String::from("UPDATE reply_templates SET updated_at = datetime('now')");
+    let mut params: Vec<Box<dyn rusqlite::ToSql>> = vec![];
+    
+    if let Some(tn) = template_name {
+        sql.push_str(", template_name = ?");
+        params.push(Box::new(tn.to_string()));
+    }
+    if let Some(ch) = channel {
+        sql.push_str(", channel = ?");
+        params.push(Box::new(ch.to_string()));
+    }
+    if let Some(t) = text {
+        sql.push_str(", text = ?");
+        params.push(Box::new(t.to_string()));
+    }
+    if let Some(v) = variables {
+        sql.push_str(", variables = ?");
+        params.push(Box::new(v.to_string()));
+    }
+    if let Some(cat) = category {
+        sql.push_str(", category = ?");
+        params.push(Box::new(cat.to_string()));
+    }
+    if let Some(en) = enabled {
+        sql.push_str(", enabled = ?");
+        params.push(Box::new(en));
+    }
+    
+    sql.push_str(" WHERE id = ?");
+    params.push(Box::new(id.to_string()));
+    
+    conn.execute(&sql, rusqlite::params_from_iter(params.iter().map(|b| b.as_ref())))?;
+    Ok(())
+}
+
+// ==================== 统计查询函数 ====================
+
+pub fn get_precise_acquisition_stats(conn: &Connection) -> rusqlite::Result<serde_json::Value> {
+    // 统计候选池数量
+    let watch_targets_count: i64 = conn.query_row(
+        "SELECT COUNT(*) FROM watch_targets",
+        [],
+        |row| row.get(0)
+    )?;
+    
+    // 统计评论数量
+    let comments_count: i64 = conn.query_row(
+        "SELECT COUNT(*) FROM comments",
+        [],
+        |row| row.get(0)
+    )?;
+    
+    // 统计任务数量（按状态分组）
+    let mut tasks_stats = std::collections::HashMap::new();
+    let mut stmt = conn.prepare("SELECT status, COUNT(*) FROM tasks GROUP BY status")?;
+    let rows = stmt.query_map([], |row| {
+        Ok((row.get::<_, String>(0)?, row.get::<_, i64>(1)?))
+    })?;
+    
+    let mut total_tasks = 0i64;
+    for row in rows {
+        let (status, count) = row?;
+        tasks_stats.insert(status, count);
+        total_tasks += count;
+    }
+    
+    // 统计回复模板数量
+    let reply_templates_count: i64 = conn.query_row(
+        "SELECT COUNT(*) FROM reply_templates WHERE enabled = 1",
+        [],
+        |row| row.get(0)
+    )?;
+    
+    // 构建JSON响应
+    Ok(serde_json::json!({
+        "watch_targets_count": watch_targets_count,
+        "comments_count": comments_count,
+        "tasks_count": {
+            "total": total_tasks,
+            "by_status": tasks_stats,
+        },
+        "reply_templates_count": reply_templates_count,
+    }))
 }

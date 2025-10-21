@@ -3,6 +3,7 @@ use super::models::{
     CommentPayload, CommentRow, ListCommentsQuery,
     TaskPayload, TaskRow, ListTasksQuery,
     AuditLogPayload,
+    ReplyTemplatePayload, ReplyTemplateRow, ListReplyTemplatesQuery,
 };
 use super::repositories as repo;
 
@@ -31,6 +32,40 @@ pub fn list_watch_targets(
     let conn = repo::get_connection(&app_handle).map_err(|e| e.to_string())?;
     let q = ListWatchTargetsQuery { limit, offset, platform, target_type };
     repo::list_watch_targets(&conn, &q).map_err(|e| e.to_string())
+}
+
+/// Alias for list_watch_targets (frontend expects get_watch_targets)
+#[tauri::command]
+pub fn get_watch_targets(
+    app_handle: tauri::AppHandle,
+    limit: Option<i64>,
+    offset: Option<i64>,
+    platform: Option<String>,
+    target_type: Option<String>,
+) -> Result<Vec<WatchTargetRow>, String> {
+    list_watch_targets(app_handle, limit, offset, platform, target_type)
+}
+
+#[tauri::command]
+pub fn update_watch_target(
+    app_handle: tauri::AppHandle,
+    id: String,
+    title: Option<String>,
+    industry_tags: Option<String>,
+    region: Option<String>,
+    notes: Option<String>,
+    last_fetch_at: Option<String>,
+) -> Result<(), String> {
+    let conn = repo::get_connection(&app_handle).map_err(|e| e.to_string())?;
+    repo::update_watch_target(
+        &conn,
+        &id,
+        title.as_deref(),
+        industry_tags.as_deref(),
+        region.as_deref(),
+        notes.as_deref(),
+        last_fetch_at.as_deref(),
+    ).map_err(|e| e.to_string())
 }
 
 // ==================== 评论相关命令 ====================
@@ -176,4 +211,70 @@ pub fn batch_store_audit_logs(
 ) -> Result<i64, String> {
     let conn = repo::get_connection(&app_handle).map_err(|e| e.to_string())?;
     repo::batch_store_audit_logs(&conn, &logs).map_err(|e| e.to_string())
+}
+
+// ==================== 回复模板相关命令 ====================
+
+#[tauri::command]
+pub fn insert_reply_template(
+    app_handle: tauri::AppHandle,
+    payload: ReplyTemplatePayload,
+) -> Result<String, String> {
+    let conn = repo::get_connection(&app_handle).map_err(|e| e.to_string())?;
+    repo::insert_reply_template(&conn, &payload).map_err(|e| e.to_string())
+}
+
+#[tauri::command]
+pub fn list_reply_templates(
+    app_handle: tauri::AppHandle,
+    limit: Option<i64>,
+    offset: Option<i64>,
+    channel: Option<String>,
+    enabled: Option<bool>,
+) -> Result<Vec<ReplyTemplateRow>, String> {
+    let conn = repo::get_connection(&app_handle).map_err(|e| e.to_string())?;
+    let q = ListReplyTemplatesQuery { limit, offset, channel, enabled };
+    repo::list_reply_templates(&conn, &q).map_err(|e| e.to_string())
+}
+
+/// Alias for list_reply_templates (frontend expects get_reply_templates with no params)
+#[tauri::command]
+pub fn get_reply_templates(
+    app_handle: tauri::AppHandle,
+) -> Result<Vec<ReplyTemplateRow>, String> {
+    list_reply_templates(app_handle, None, None, None, None)
+}
+
+#[tauri::command]
+pub fn update_reply_template(
+    app_handle: tauri::AppHandle,
+    id: String,
+    template_name: Option<String>,
+    channel: Option<String>,
+    text: Option<String>,
+    variables: Option<String>,
+    category: Option<String>,
+    enabled: Option<bool>,
+) -> Result<(), String> {
+    let conn = repo::get_connection(&app_handle).map_err(|e| e.to_string())?;
+    repo::update_reply_template(
+        &conn,
+        &id,
+        template_name.as_deref(),
+        channel.as_deref(),
+        text.as_deref(),
+        variables.as_deref(),
+        category.as_deref(),
+        enabled,
+    ).map_err(|e| e.to_string())
+}
+
+// ==================== 统计相关命令 ====================
+
+#[tauri::command]
+pub fn get_precise_acquisition_stats(
+    app_handle: tauri::AppHandle,
+) -> Result<serde_json::Value, String> {
+    let conn = repo::get_connection(&app_handle).map_err(|e| e.to_string())?;
+    repo::get_precise_acquisition_stats(&conn).map_err(|e| e.to_string())
 }

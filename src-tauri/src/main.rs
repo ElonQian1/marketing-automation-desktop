@@ -86,6 +86,7 @@ use services::universal_ui_page_analyzer::{
     identify_page_type,
 };
 use services::quick_ui_automation::*; // 新增：快速UI自动化命令
+use services::marketing_storage::commands as marketing_commands; // 营销存储命令
 use tracing_subscriber::{layer::SubscriberExt, util::SubscriberInitExt};
 
 fn main() {
@@ -334,6 +335,30 @@ fn main() {
             prospecting_get_reply_plans_by_ids,
             prospecting_execute_real_reply_plan,
             prospecting_get_statistics,
+            // 营销存储模块命令（用于精准获客数据持久化）
+            marketing_commands::bulk_upsert_watch_targets,
+            marketing_commands::get_watch_target_by_dedup_key,
+            marketing_commands::list_watch_targets,
+            marketing_commands::get_watch_targets,              // 新增：list_watch_targets 的别名
+            marketing_commands::update_watch_target,            // 新增：更新候选目标
+            marketing_commands::insert_comment,
+            marketing_commands::list_comments,
+            marketing_commands::insert_task,
+            marketing_commands::update_task_status,
+            marketing_commands::list_tasks,
+            marketing_commands::lock_next_ready_task,
+            marketing_commands::mark_task_result,
+            marketing_commands::insert_audit_log,
+            marketing_commands::check_and_reserve_dedup,
+            marketing_commands::query_audit_logs,
+            marketing_commands::export_audit_logs,
+            marketing_commands::cleanup_expired_audit_logs,
+            marketing_commands::batch_store_audit_logs,
+            marketing_commands::insert_reply_template,          // 新增：插入回复模板
+            marketing_commands::list_reply_templates,           // 新增：列出回复模板
+            marketing_commands::get_reply_templates,            // 新增：list_reply_templates 的别名
+            marketing_commands::update_reply_template,          // 新增：更新回复模板
+            marketing_commands::get_precise_acquisition_stats,  // 新增：获取统计数据
             // AI 模块命令
             ai::commands::get_ai_settings,
             ai::commands::save_ai_settings,
