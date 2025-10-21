@@ -7,6 +7,9 @@
 /* 导入设计令牌 - 唯一真实来源 */
 @import './styles/tokens.css';
 
+/* 导入表面样式系统 */
+@import './styles/surfaces.css';
+
 /* 导入遗留组件样式（临时保留） */
 @import './components/DraggableStepCard/styles/loopTheme.css';
 

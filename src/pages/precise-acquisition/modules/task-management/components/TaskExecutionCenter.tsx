@@ -395,57 +395,77 @@ export const TaskExecutionCenter: React.FC<TaskExecutionCenterProps> = ({
 
         {/* 任务列表 */}
         <Card title="任务列表">
-          <Tabs activeKey={activeTab} onChange={setActiveTab}>
-            <Tabs.TabPane tab={`全部 (${stats.total})`} key="all">
-              <Table
-                columns={columns}
-                dataSource={getFilteredTasks('all')}
-                rowKey="id"
-                loading={loading}
-                locale={{
-                  emptyText: <Empty description="暂无任务" />
-                }}
-                pagination={{
-                  showSizeChanger: true,
-                  showQuickJumper: true,
-                  showTotal: (total) => `共 ${total} 个任务`
-                }}
-              />
-            </Tabs.TabPane>
-            <Tabs.TabPane tab={`待执行 (${stats.pending})`} key="pending">
-              <Table
-                columns={columns}
-                dataSource={getFilteredTasks('pending')}
-                rowKey="id"
-                loading={loading}
-                locale={{
-                  emptyText: <Empty description="暂无待执行任务" />
-                }}
-              />
-            </Tabs.TabPane>
-            <Tabs.TabPane tab={`执行中 (${stats.executing})`} key="executing">
-              <Table
-                columns={columns}
-                dataSource={getFilteredTasks('executing')}
-                rowKey="id"
-                loading={loading}
-                locale={{
-                  emptyText: <Empty description="暂无执行中任务" />
-                }}
-              />
-            </Tabs.TabPane>
-            <Tabs.TabPane tab={`已完成 (${stats.completed})`} key="completed">
-              <Table
-                columns={columns}
-                dataSource={getFilteredTasks('completed')}
-                rowKey="id"
-                loading={loading}
-                locale={{
-                  emptyText: <Empty description="暂无已完成任务" />
-                }}
-              />
-            </Tabs.TabPane>
-          </Tabs>
+          <Tabs 
+            activeKey={activeTab} 
+            onChange={setActiveTab}
+            items={[
+              {
+                key: 'all',
+                label: `全部 (${stats.total})`,
+                children: (
+                  <Table
+                    columns={columns}
+                    dataSource={getFilteredTasks('all')}
+                    rowKey="id"
+                    loading={loading}
+                    locale={{
+                      emptyText: <Empty description="暂无任务" />
+                    }}
+                    pagination={{
+                      showSizeChanger: true,
+                      showQuickJumper: true,
+                      showTotal: (total) => `共 ${total} 个任务`
+                    }}
+                  />
+                ),
+              },
+              {
+                key: 'pending',
+                label: `待执行 (${stats.pending})`,
+                children: (
+                  <Table
+                    columns={columns}
+                    dataSource={getFilteredTasks('pending')}
+                    rowKey="id"
+                    loading={loading}
+                    locale={{
+                      emptyText: <Empty description="暂无待执行任务" />
+                    }}
+                  />
+                ),
+              },
+              {
+                key: 'executing',
+                label: `执行中 (${stats.executing})`,
+                children: (
+                  <Table
+                    columns={columns}
+                    dataSource={getFilteredTasks('executing')}
+                    rowKey="id"
+                    loading={loading}
+                    locale={{
+                      emptyText: <Empty description="暂无执行中任务" />
+                    }}
+                  />
+                ),
+              },
+              {
+                key: 'completed',
+                label: `已完成 (${stats.completed})`,
+                children: (
+                  <Table
+                    columns={columns}
+                    dataSource={getFilteredTasks('completed')}
+                    rowKey="id"
+                    loading={loading}
+                    locale={{
+                      emptyText: <Empty description="暂无已完成任务" />
+                    }}
+                  />
+                ),
+              },
+            ]}
+          />
         </Card>
       </Space>
 

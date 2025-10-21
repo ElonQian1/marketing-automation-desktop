@@ -21,7 +21,7 @@ const CompleteConfidenceDemo: React.FC = () => {
   const [exportedPacks, setExportedPacks] = useState<StepPack[]>([]);
   
   const { cards, create: createCard, getAllCards } = useStepCardStore();
-  const { scores, clear: clearScores, getAllScores } = useStepScoreStore();
+  const { scores, clear: clearScores, getAll: getAllScores } = useStepScoreStore();
 
   // 测试元素数据
   const testElements = [

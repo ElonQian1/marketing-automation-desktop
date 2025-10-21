@@ -17,6 +17,7 @@ mod ai; // AI 模块
 mod config; // 配置模块
 mod device; // 设备提供者与回放编排器
 mod exec; // V3 统一执行协议模块
+mod db; // 数据库模块
 // pub mod xml_judgment_service; // 新模块化 XML 判断服务 (旧文件已弃用) - 暂时注释，文件不存在
 
 // Universal UI Finder 模块桥接
@@ -112,6 +113,11 @@ fn main() {
     };
     let prospecting_state = commands::prospecting::ProspectingState::new();
     
+    // 🆕 初始化智能 XPath 生成器状态
+    let xpath_generator_state = commands::enhanced_location_commands::XPathGeneratorState::new(
+        services::execution::matching::SmartXPathGenerator::new()
+    );
+    
     // 初始化实时设备跟踪器 (替代旧的轮询系统)
     initialize_device_tracker()
         .expect("Failed to initialize device tracker");
@@ -131,6 +137,12 @@ fn main() {
                     .expect("LOG_COLLECTOR pointer should be valid");
                 collector_mut.set_app_handle(app.handle().clone());
             }
+            
+            // 初始化 Lead Hunt 数据库
+            if let Err(e) = db::initialize(app.handle()) {
+                eprintln!("[DB] Failed to initialize database: {}", e);
+            }
+            
             Ok(())
         })
         .manage(Mutex::new(employee_service))
@@ -138,6 +150,7 @@ fn main() {
         .manage(smart_app_service)
         .manage(ai_state)
         .manage(prospecting_state)
+        .manage(xpath_generator_state) // 🆕 注册 XPath 生成器状态
         // 应用关闭清理外部进程（scrcpy 等）
         .on_window_event(|_window, event| {
             if let tauri::WindowEvent::CloseRequested { .. } = event {
@@ -373,6 +386,12 @@ fn main() {
             prospecting_get_reply_plans_by_ids,
             prospecting_execute_real_reply_plan,
             prospecting_get_statistics,
+            // 🆕 增强定位算法命令
+            match_element_enhanced,
+            generate_xpath_candidates,
+            generate_best_xpath,
+            validate_xpath,
+            update_xpath_strategy_success_rate,
             // 营销存储模块命令（用于精准获客数据持久化）
             marketing_commands::bulk_upsert_watch_targets,
             marketing_commands::get_watch_target_by_dedup_key,
@@ -403,6 +422,10 @@ fn main() {
             commands::lh_import_comments,
             commands::lh_create_replay_plan,
             commands::lh_run_replay_plan,
+            commands::lh_get_stats,
+            commands::lh_analyze_comments,
+            #[cfg(debug_assertions)]
+            commands::lh_seed_database,
             // AI 模块命令
             ai::commands::get_ai_settings,
             ai::commands::save_ai_settings,

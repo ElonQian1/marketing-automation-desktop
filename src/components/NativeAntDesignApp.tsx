@@ -7,7 +7,7 @@
  * 移除所有自定义样式，使用纯原生Ant Design组件和样式
  */
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import {
   Layout,
   Menu,
@@ -40,6 +40,7 @@ import type { MenuProps } from "antd";
 
 import { GlobalAdbProvider } from "../providers";
 import { featureFlags } from "../config/featureFlags";
+import { EnhancedThemeProvider } from "../components/feature-modules/theme-system";
 
 // 页面组件导入
 import InspectorPage from "../pages/InspectorPage";
@@ -51,6 +52,7 @@ import { TestIntelligentAnalysisAdapter } from "../components/universal-ui/eleme
 import SmartVcfImporter from "./SmartVcfImporter";
 import TemplateLibrary from "./template/TemplateLibrary";
 import ContactImportPage from "../pages/contact-import/ContactImportPage";
+import { DatabaseDebugPage } from "../pages/debug/DatabaseDebug";
 // import QuickPhoneMirror from "./QuickPhoneMirror";
 import { PageFinderView } from "./universal-ui/page-finder";
 import { ThemeSettingsPage } from "../pages/ThemeSettingsPage";
@@ -128,6 +130,15 @@ const NativeAntDesignApp: React.FC = () => {
       icon: <AimOutlined />,
       label: "候选池列表（验证）",
     },
+    ...(import.meta.env.DEV
+      ? [
+          {
+            key: "database-debug",
+            icon: <SecurityScanOutlined />,
+            label: "🗄️ 数据库调试",
+          },
+        ]
+      : []),
     ...(featureFlags.SHOW_LEGACY_VCF_IMPORT
       ? [
           {
@@ -285,7 +296,9 @@ const NativeAntDesignApp: React.FC = () => {
       case "precise-acquisition":
         return <PreciseAcquisitionPage />;
       case "watch-targets-list":
-        return (awaitedWatchTargetsListPage)();
+        return WatchTargetsListComp ? <WatchTargetsListComp /> : <div>加载中...</div>;
+      case "database-debug":
+        return <DatabaseDebugPage />;
       case "smart-vcf":
         return <SmartVcfImporter />;
       case "permission-test":
@@ -348,21 +361,15 @@ const NativeAntDesignApp: React.FC = () => {
   };
 
   // 动态导入 WatchTargetsListPage，避免主包体积膨胀
-  const awaitedWatchTargetsListPage = (() => {
-    let Comp: React.ComponentType | null = null;
-    return () => {
-      const [C, setC] = React.useState<React.ComponentType | null>(Comp);
-      React.useEffect(() => {
-        if (!C) {
-          import('../pages/precise-acquisition/WatchTargetsListPage').then(m => {
-            Comp = m.default;
-            setC(() => m.default);
-          });
-        }
-      }, [C]);
-      return C ? <C /> : <div>加载中...</div>;
-    };
-  })();
+  const [WatchTargetsListComp, setWatchTargetsListComp] = useState<React.ComponentType | null>(null);
+  
+  useEffect(() => {
+    if (selectedKey === 'watch-targets' && !WatchTargetsListComp) {
+      import('../pages/precise-acquisition/WatchTargetsListPage').then(m => {
+        setWatchTargetsListComp(() => m.default);
+      });
+    }
+  }, [selectedKey, WatchTargetsListComp]);
 
   return (
     <AntApp 
@@ -505,8 +512,10 @@ const NativeAntDesignApp: React.FC = () => {
 export const NativeAntDesignIntegration: React.FC = () => {
   // 顶层已有 ThemeBridge/ConfigProvider，这里仅保留业务 Provider，避免重复主题包裹
   return (
-    <GlobalAdbProvider>
-      <NativeAntDesignApp />
-    </GlobalAdbProvider>
+    <EnhancedThemeProvider>
+      <GlobalAdbProvider>
+        <NativeAntDesignApp />
+      </GlobalAdbProvider>
+    </EnhancedThemeProvider>
   );
 };

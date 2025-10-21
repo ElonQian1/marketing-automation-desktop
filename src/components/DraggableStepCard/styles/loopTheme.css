@@ -1,0 +1,28 @@
+/* 循环主题样式 - 向后兼容 */
+/* src/components/DraggableStepCard/styles/loopTheme.css */
+
+/* 
+ * 注意：这个文件现在主要用于向后兼容
+ * 新的循环卡片样式基准线位于 src/styles/surfaces/loop.css
+ * 建议逐步迁移到新的样式系统
+ */
+
+/* 基础循环主题 - 最小化样式 */
+.loop-theme {
+  /* 预留给未来的循环主题扩展 */
+  position: relative;
+}
+
+/* 向后兼容：基础循环样式 */
+.loop-container {
+  border-radius: 8px;
+  transition: all 0.3s ease;
+}
+
+/* 与新样式系统保持一致 */
+.loop-card-compat {
+  /* 兼容模式：使用新的设计令牌 */
+  background: var(--bg-light-base, #ffffff);
+  color: var(--text-inverse, #111827);
+  border: 1px solid var(--border-2, #e5e7eb);
+}

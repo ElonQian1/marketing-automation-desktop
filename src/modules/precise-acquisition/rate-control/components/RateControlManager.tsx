@@ -51,7 +51,7 @@ import {
 } from '../services/prospecting-rate-control-service';
 
 const { Title, Text } = Typography;
-const { TabPane } = Tabs;
+// TabPane is deprecated, using items instead
 
 interface RateControlManagerProps {
   onConfigUpdated?: () => void;
@@ -389,169 +389,185 @@ export const RateControlManager: React.FC<RateControlManagerProps> = ({ onConfig
           </Space>
         }
       >
-        <Tabs defaultActiveKey="stats">
-          <TabPane tab="统计概览" key="stats" icon={<BarChartOutlined />}>
-            {stats && (
-              <div>
-                <Row gutter={[16, 16]} style={{ marginBottom: 24 }}>
-                  <Col span={6}>
-                    <Card size="small" style={{ background: 'var(--bg-light-elevated)' }}>
-                      <Statistic
-                        title="总操作数"
-                        value={stats.total_operations}
-                        prefix={<ClockCircleOutlined />}
-                      />
-                    </Card>
-                  </Col>
-                  <Col span={6}>
-                    <Card size="small" style={{ background: 'var(--bg-light-elevated)' }}>
-                      <Statistic
-                        title="频控拦截"
-                        value={stats.blocked_by_rate_limit}
-                        valueStyle={{ color: '#ff4d4f' }}
-                        prefix={<ClockCircleOutlined />}
-                      />
-                    </Card>
-                  </Col>
-                  <Col span={6}>
-                    <Card size="small" style={{ background: 'var(--bg-light-elevated)' }}>
-                      <Statistic
-                        title="去重拦截"
-                        value={stats.blocked_by_deduplication}
-                        valueStyle={{ color: '#fa8c16' }}
-                        prefix={<UserDeleteOutlined />}
-                      />
-                    </Card>
-                  </Col>
-                  <Col span={6}>
-                    <Card size="small" style={{ background: 'var(--bg-light-elevated)' }}>
-                      <Statistic
-                        title="成功率"
-                        value={stats.success_rate}
-                        precision={1}
-                        suffix="%"
-                        valueStyle={{ color: '#52c41a' }}
-                      />
-                    </Card>
-                  </Col>
-                </Row>
-
-                <Card size="small" title="各平台统计" style={{ background: 'var(--bg-light-elevated)' }}>
-                  <Row gutter={[16, 16]}>
-                    {Object.entries(stats.platform_stats).map(([platform, platformStats]) => (
-                      <Col span={8} key={platform}>
-                        <div style={{ textAlign: 'center' }}>
-                          <Tag color={getPlatformColor(platform as Platform)} style={{ marginBottom: 8 }}>
-                            {platform === Platform.DOUYIN && '抖音'}
-                            {platform === Platform.OCEANENGINE && '巨量引擎'}
-                            {platform === Platform.PUBLIC && '公开平台'}
-                          </Tag>
-                          <div>
-                            <Text strong>操作数: </Text>
-                            <Text>{platformStats.operations}</Text>
-                          </div>
-                          <div>
-                            <Text strong>拦截数: </Text>
-                            <Text>{platformStats.blocked}</Text>
-                          </div>
-                          <div>
-                            <Text strong>成功率: </Text>
-                            <Text>{platformStats.success_rate.toFixed(1)}%</Text>
-                          </div>
-                        </div>
-                      </Col>
-                    ))}
+        <Tabs 
+          defaultActiveKey="stats"
+          items={[
+            {
+              key: 'stats',
+              label: '统计概览',
+              icon: <BarChartOutlined />,
+              children: stats && (
+                <div>
+                  <Row gutter={[16, 16]} style={{ marginBottom: 24 }}>
+                    <Col span={6}>
+                      <Card size="small" style={{ background: 'var(--bg-light-elevated)' }}>
+                        <Statistic
+                          title="总操作数"
+                          value={stats.total_operations}
+                          prefix={<ClockCircleOutlined />}
+                        />
+                      </Card>
+                    </Col>
+                    <Col span={6}>
+                      <Card size="small" style={{ background: 'var(--bg-light-elevated)' }}>
+                        <Statistic
+                          title="频控拦截"
+                          value={stats.blocked_by_rate_limit}
+                          valueStyle={{ color: '#ff4d4f' }}
+                          prefix={<ClockCircleOutlined />}
+                        />
+                      </Card>
+                    </Col>
+                    <Col span={6}>
+                      <Card size="small" style={{ background: 'var(--bg-light-elevated)' }}>
+                        <Statistic
+                          title="去重拦截"
+                          value={stats.blocked_by_deduplication}
+                          valueStyle={{ color: '#fa8c16' }}
+                          prefix={<UserDeleteOutlined />}
+                        />
+                      </Card>
+                    </Col>
+                    <Col span={6}>
+                      <Card size="small" style={{ background: 'var(--bg-light-elevated)' }}>
+                        <Statistic
+                          title="成功率"
+                          value={stats.success_rate}
+                          precision={1}
+                          suffix="%"
+                          valueStyle={{ color: '#52c41a' }}
+                        />
+                      </Card>
+                    </Col>
                   </Row>
-                </Card>
-              </div>
-            )}
-          </TabPane>
 
-          <TabPane tab="频控配置" key="rateLimit" icon={<ClockCircleOutlined />}>
-            <Table
-              columns={rateLimitColumns}
-              dataSource={getRateLimitData()}
-              rowKey={(record) => `${record.platform}_${record.taskType}`}
-              size="small"
-              pagination={false}
-              loading={loading}
-            />
-          </TabPane>
-
-          <TabPane tab="实时监控" key="monitor" icon={<SyncOutlined />}>
-            <Alert
-              message="实时频控监控"
-              description="显示各平台和操作类型的实时频控状态，每30秒自动刷新"
-              type="info"
-              showIcon
-              style={{ marginBottom: 16 }}
-            />
-            
-            <Row gutter={[16, 16]}>
-              {Array.from(rateLimitChecks.entries()).map(([key, check]) => {
-                const [platform, taskType] = key.split('_');
-                
-                return (
-                  <Col span={12} key={key}>
-                    <Card 
-                      size="small" 
-                      title={
-                        <Space>
-                          <Tag color={getPlatformColor(platform as Platform)}>
-                            {platform === Platform.DOUYIN && '抖音'}
-                            {platform === Platform.OCEANENGINE && '巨量引擎'}
-                            {platform === Platform.PUBLIC && '公开平台'}
-                          </Tag>
-                          <TaskTypeTag type={taskType as TaskType} />
-                        </Space>
-                      }
-                      style={{ background: 'var(--bg-light-elevated)' }}
-                    >
-                      <div>
-                        <div style={{ marginBottom: 8 }}>
-                          <Tag color={check.allowed ? 'success' : 'error'}>
-                            {check.allowed ? '✓ 允许操作' : '✗ 操作受限'}
-                          </Tag>
-                          {!check.allowed && check.retry_after_seconds && (
-                            <Text type="secondary">
-                              ({Math.ceil(check.retry_after_seconds)}s后可用)
-                            </Text>
-                          )}
-                        </div>
-                        
-                        {!check.allowed && check.reason && (
-                          <Alert
-                            message={check.reason}
-                            type="warning"
-                            showIcon
-                            style={{ marginBottom: 8 }}
-                          />
-                        )}
-                        
-                        <Descriptions size="small" column={1}>
-                          <Descriptions.Item label="分钟内操作">
-                            {check.current_stats.minute_count}
-                          </Descriptions.Item>
-                          <Descriptions.Item label="小时内操作">
-                            {check.current_stats.hour_count}
-                          </Descriptions.Item>
-                          <Descriptions.Item label="今日操作">
-                            {check.current_stats.day_count}
-                          </Descriptions.Item>
-                          {check.current_stats.last_operation_time && (
-                            <Descriptions.Item label="最后操作">
-                              {new Date(check.current_stats.last_operation_time).toLocaleString()}
-                            </Descriptions.Item>
-                          )}
-                        </Descriptions>
-                      </div>
-                    </Card>
-                  </Col>
-                );
-              })}
-            </Row>
-          </TabPane>
-        </Tabs>
+                  <Card size="small" title="各平台统计" style={{ background: 'var(--bg-light-elevated)' }}>
+                    <Row gutter={[16, 16]}>
+                      {Object.entries(stats.platform_stats).map(([platform, platformStats]) => (
+                        <Col span={8} key={platform}>
+                          <div style={{ textAlign: 'center' }}>
+                            <Tag color={getPlatformColor(platform as Platform)} style={{ marginBottom: 8 }}>
+                              {platform === Platform.DOUYIN && '抖音'}
+                              {platform === Platform.OCEANENGINE && '巨量引擎'}
+                              {platform === Platform.PUBLIC && '公开平台'}
+                            </Tag>
+                            <div>
+                              <Text strong>操作数: </Text>
+                              <Text>{platformStats.operations}</Text>
+                            </div>
+                            <div>
+                              <Text strong>拦截数: </Text>
+                              <Text>{platformStats.blocked}</Text>
+                            </div>
+                            <div>
+                              <Text strong>成功率: </Text>
+                              <Text>{platformStats.success_rate.toFixed(1)}%</Text>
+                            </div>
+                          </div>
+                        </Col>
+                      ))}
+                    </Row>
+                  </Card>
+                </div>
+              ),
+            },
+            {
+              key: 'rateLimit',
+              label: '频控配置',
+              icon: <ClockCircleOutlined />,
+              children: (
+                <Table
+                  columns={rateLimitColumns}
+                  dataSource={getRateLimitData()}
+                  rowKey={(record) => `${record.platform}_${record.taskType}`}
+                  size="small"
+                  pagination={false}
+                  loading={loading}
+                />
+              ),
+            },
+            {
+              key: 'monitor',
+              label: '实时监控',
+              icon: <SyncOutlined />,
+              children: (
+                <div>
+                  <Alert
+                    message="实时频控监控"
+                    description="显示各平台和操作类型的实时频控状态，每30秒自动刷新"
+                    type="info"
+                    showIcon
+                    style={{ marginBottom: 16 }}
+                  />
+                  
+                  <Row gutter={[16, 16]}>
+                    {Array.from(rateLimitChecks.entries()).map(([key, check]) => {
+                      const [platform, taskType] = key.split('_');
+                      
+                      return (
+                        <Col span={12} key={key}>
+                          <Card 
+                            size="small" 
+                            title={
+                              <Space>
+                                <Tag color={getPlatformColor(platform as Platform)}>
+                                  {platform === Platform.DOUYIN && '抖音'}
+                                  {platform === Platform.OCEANENGINE && '巨量引擎'}
+                                  {platform === Platform.PUBLIC && '公开平台'}
+                                </Tag>
+                                <TaskTypeTag type={taskType as TaskType} />
+                              </Space>
+                            }
+                            style={{ background: 'var(--bg-light-elevated)' }}
+                          >
+                            <div>
+                              <div style={{ marginBottom: 8 }}>
+                                <Tag color={check.allowed ? 'success' : 'error'}>
+                                  {check.allowed ? '✓ 允许操作' : '✗ 操作受限'}
+                                </Tag>
+                                {!check.allowed && check.retry_after_seconds && (
+                                  <Text type="secondary">
+                                    ({Math.ceil(check.retry_after_seconds)}s后可用)
+                                  </Text>
+                                )}
+                              </div>
+                              
+                              {!check.allowed && check.reason && (
+                                <Alert
+                                  message={check.reason}
+                                  type="warning"
+                                  showIcon
+                                  style={{ marginBottom: 8 }}
+                                />
+                              )}
+                              
+                              <Descriptions size="small" column={1}>
+                                <Descriptions.Item label="分钟内操作">
+                                  {check.current_stats.minute_count}
+                                </Descriptions.Item>
+                                <Descriptions.Item label="小时内操作">
+                                  {check.current_stats.hour_count}
+                                </Descriptions.Item>
+                                <Descriptions.Item label="今日操作">
+                                  {check.current_stats.day_count}
+                                </Descriptions.Item>
+                                {check.current_stats.last_operation_time && (
+                                  <Descriptions.Item label="最后操作">
+                                    {new Date(check.current_stats.last_operation_time).toLocaleString()}
+                                  </Descriptions.Item>
+                                )}
+                              </Descriptions>
+                            </div>
+                          </Card>
+                        </Col>
+                      );
+                    })}
+                  </Row>
+                </div>
+              ),
+            },
+          ]}
+        />
       </Card>
 
       {/* 频控配置弹窗 */}

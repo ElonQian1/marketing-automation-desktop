@@ -1,0 +1,8 @@
+/* 工具栏表面样式 */
+/* src/styles/surfaces/toolbar.css */
+
+/* 工具栏相关的表面样式将在这里定义 */
+.toolbar-surface {
+  background: var(--bg-light-base, #ffffff);
+  color: var(--text-inverse, #111827);
+}

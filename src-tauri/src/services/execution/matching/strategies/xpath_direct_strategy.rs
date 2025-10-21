@@ -9,6 +9,7 @@
 use crate::services::execution::matching::strategies::{
     StrategyProcessor, MatchingContext, StrategyResult, ProcessingError
 };
+use crate::services::execution::matching::{SmartXPathGenerator, ElementAttributes};
 use async_trait::async_trait;
 use anyhow::Result;
 use tracing::{info, warn};
@@ -18,47 +19,67 @@ use tracing::{info, warn};
 /// 特点：
 /// - 最快的匹配速度：O(1) 直接定位
 /// - 依赖 XPath 路径直接访问元素
-/// - 跨设备兼容性较差，但性能最优
+/// - 🆕 集成智能 XPath 生成：多候选策略 + 容错机制
+/// - 🆕 自适应优化：根据历史成功率调整策略权重
 /// - 适用于需要极速定位的场景
-pub struct XPathDirectStrategyProcessor;
+pub struct XPathDirectStrategyProcessor {
+    /// 智能 XPath 生成器
+    xpath_generator: SmartXPathGenerator,
+}
 
 impl XPathDirectStrategyProcessor {
     pub fn new() -> Self {
-        Self
+        Self {
+            xpath_generator: SmartXPathGenerator::new(),
+        }
     }
 
-    /// 验证 XPath 参数有效性
+    /// 验证并优化 XPath 参数
     fn validate_xpath_parameters(&self, context: &MatchingContext) -> Result<String, ProcessingError> {
         // 优先从 values 中获取 xpath
         if let Some(xpath) = context.values.get("xpath") {
-            if !xpath.trim().is_empty() {
+            if !xpath.trim().is_empty() && self.xpath_generator.validate_xpath(xpath.trim()) {
                 return Ok(xpath.clone());
             }
         }
         
+        // 🆕 智能 XPath 生成：基于其他属性生成最佳 XPath
+        warn!("🧠 未提供有效 XPath，启动智能生成...");
+        
+        // 构建元素属性映射
+        let mut attributes = ElementAttributes::new();
+        for (key, value) in &context.values {
+            if !value.is_empty() {
+                attributes.insert(key.clone(), value.clone());
+            }
+        }
+        
+        // 使用智能生成器生成候选 XPath
+        if let Some(best_candidate) = self.xpath_generator.generate_best_xpath(&attributes) {
+            warn!("✨ 智能生成最佳 XPath: {} (置信度: {:.2})", 
+                  best_candidate.xpath, best_candidate.confidence);
+            return Ok(best_candidate.xpath);
+        }
+
         // 🆕 调试输出，帮助诊断参数传递问题
         warn!("🔍 XPath 直接策略参数调试:");
         warn!("  - context.values: {:?}", context.values);
         warn!("  - context.fields: {:?}", context.fields);
         warn!("  - 策略: {}", context.strategy);
 
-        // 如果没有 xpath，尝试从 bounds + 其他信息构建简单路径
+        // 传统 fallback 方案
         if let Some(bounds) = context.values.get("bounds") {
             if !bounds.is_empty() && bounds != "[0,0][0,0]" {
-                // 可以基于 bounds 和其他属性构建一个基础路径
-                // 尝试提取类名用于 fallback XPath
                 let class_name = context.values.get("class").map(|s| s.as_str()).unwrap_or("android.view.View");
-                
-                // 生成一个基于坐标的简单 XPath（作为后备方案）
                 let fallback_xpath = format!("//*[@class='{}' and @bounds='{}']", class_name, bounds);
-                warn!("📍 未提供 xpath 参数，使用坐标后备方案: {}", fallback_xpath);
+                warn!("📍 使用传统坐标后备方案: {}", fallback_xpath);
                 return Ok(fallback_xpath);
             }
         }
 
         Err(ProcessingError::InvalidParameters(
             format!(
-                "XPath 直接索引策略需要 'xpath' 参数或有效的 'bounds' 信息。当前参数: values={:?}, fields={:?}", 
+                "XPath 直接索引策略需要 'xpath' 参数或足够的元素属性信息进行智能生成。当前参数: values={:?}, fields={:?}", 
                 context.values, 
                 context.fields
             )
@@ -89,7 +110,7 @@ impl XPathDirectStrategyProcessor {
             }
         };
         
-        // 🆕 真正的 XPath 查询逻辑
+        // 🆕 智能容错 XPath 查询逻辑
         match self.apply_xpath_to_xml(&xml_content, xpath, logs).await {
             Ok((x, y)) => {
                 logs.push(format!("✅ XPath 查询成功，找到元素坐标: ({}, {})", x, y));
@@ -99,10 +120,21 @@ impl XPathDirectStrategyProcessor {
                 ))
             }
             Err(e) => {
-                logs.push(format!("❌ XPath 查询失败: {}", e));
-                Err(ProcessingError::MatchingFailed(
-                    format!("XPath 查询失败: {}", e)
-                ))
+                logs.push(format!("⚠️ 主要 XPath 查询失败: {}", e));
+                
+                // 🆕 智能容错机制：尝试其他候选 XPath
+                match self.try_fallback_xpaths(context, &xml_content, logs).await {
+                    Ok(result) => {
+                        logs.push("🎯 容错机制成功找到元素".to_string());
+                        Ok(result)
+                    }
+                    Err(fallback_e) => {
+                        logs.push(format!("❌ 所有 XPath 候选都失败: {}", fallback_e));
+                        Err(ProcessingError::MatchingFailed(
+                            format!("XPath 查询失败: 主要策略 - {}, 容错策略 - {}", e, fallback_e)
+                        ))
+                    }
+                }
             }
         }
     }
@@ -165,6 +197,49 @@ impl XPathDirectStrategyProcessor {
         
         // 🆕 简化的 XML 元素查找（基于正则，未来替换为真正的 XPath 引擎）
         self.simple_xpath_search(xml_content, xpath, logs)
+    }
+
+    /// 🆕 智能容错机制：尝试其他候选 XPath
+    async fn try_fallback_xpaths(
+        &self, 
+        context: &MatchingContext,
+        xml_content: &str,
+        logs: &mut Vec<String>
+    ) -> Result<StrategyResult, String> {
+        logs.push("🔄 启动智能容错机制，生成候选 XPath...".to_string());
+        
+        // 构建元素属性映射
+        let mut attributes = ElementAttributes::new();
+        for (key, value) in &context.values {
+            if !value.is_empty() {
+                attributes.insert(key.clone(), value.clone());
+            }
+        }
+        
+        // 生成所有候选 XPath
+        let candidates = self.xpath_generator.generate_candidates(&attributes);
+        logs.push(format!("🎯 生成了 {} 个候选 XPath", candidates.len()));
+        
+        // 逐个尝试候选 XPath
+        for (idx, candidate) in candidates.iter().enumerate().take(5) { // 最多尝试前5个
+            logs.push(format!("🔄 尝试候选 {} (置信度: {:.2}): {}", 
+                              idx + 1, candidate.confidence, candidate.xpath));
+            
+            match self.apply_xpath_to_xml(xml_content, &candidate.xpath, logs).await {
+                Ok((x, y)) => {
+                    logs.push(format!("✅ 候选 XPath 成功，坐标: ({}, {})", x, y));
+                    return Ok(StrategyResult::success(
+                        format!("智能容错成功 (策略: {:?}): {}", candidate.strategy, candidate.xpath),
+                        (x, y)
+                    ));
+                }
+                Err(e) => {
+                    logs.push(format!("❌ 候选 {} 失败: {}", idx + 1, e));
+                }
+            }
+        }
+        
+        Err("所有候选 XPath 都无法匹配元素".to_string())
     }
 
     /// 简化的 XPath 搜索实现

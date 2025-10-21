@@ -1,0 +1,8 @@
+/* 卡片表面样式 */
+/* src/styles/surfaces/cards.css */
+
+/* 通用卡片样式将在这里定义 */
+.card-surface {
+  background: var(--bg-light-base, #ffffff);
+  color: var(--text-inverse, #111827);
+}

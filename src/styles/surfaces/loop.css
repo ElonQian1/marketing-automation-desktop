@@ -1,0 +1,321 @@
+/* 循环卡片独立样式基准线 */
+/* src/styles/surfaces/loop.css */
+
+/* ===== 循环卡片核心样式基准 ===== */
+
+.loop-step-card {
+  /* 基础容器样式 - 使用设计令牌 */
+  --loop-card-bg: var(--bg-light-base, #ffffff);
+  --loop-card-border: var(--border-2, #e5e7eb);
+  --loop-card-border-active: var(--accent-9, #1890ff);
+  --loop-card-shadow: var(--shadow-1, 0 2px 4px rgba(0, 0, 0, 0.1));
+  --loop-card-shadow-active: var(--shadow-2, 0 4px 12px rgba(24, 144, 255, 0.15));
+  --loop-card-radius: var(--radius-2, 8px);
+  
+  /* 文本颜色 - 强制黑色文字 */
+  --loop-card-text-primary: var(--text-inverse, #111827);
+  --loop-card-text-secondary: var(--text-3, #6b7280);
+  
+  /* 头部样式 */
+  --loop-header-bg: var(--bg-3, #f8fafc);
+  --loop-header-text: var(--text-inverse, #111827);
+  
+  /* 循环体样式 */
+  --loop-body-bg: #f6ffed;
+  --loop-body-border: #b7eb8f;
+  --loop-body-text: var(--text-inverse, #1f2937);
+  
+  /* 间距基准 */
+  --loop-spacing-xs: var(--space-1, 4px);
+  --loop-spacing-sm: var(--space-2, 8px);
+  --loop-spacing-md: var(--space-3, 12px);
+  --loop-spacing-lg: var(--space-4, 16px);
+  --loop-spacing-xl: var(--space-6, 24px);
+  
+  /* 图标颜色 */
+  --loop-icon-primary: var(--accent-9, #1890ff);
+  --loop-icon-secondary: var(--text-3, #6b7280);
+}
+
+/* ===== 循环卡片基础结构 ===== */
+
+.loop-step-card {
+  background: var(--loop-card-bg) !important;
+  border: 1px solid var(--loop-card-border) !important;
+  border-radius: var(--loop-card-radius) !important;
+  box-shadow: var(--loop-card-shadow) !important;
+  margin-bottom: var(--loop-spacing-lg) !important;
+  transition: all 0.3s ease !important;
+  
+  /* 强制白底黑字主题 */
+  color: var(--loop-card-text-primary) !important;
+}
+
+/* 循环卡片头部 */
+.loop-step-card .ant-card-head {
+  background: var(--loop-header-bg) !important;
+  border-bottom: 1px solid var(--loop-card-border) !important;
+  color: var(--loop-header-text) !important;
+}
+
+.loop-step-card .ant-card-head-title {
+  color: var(--loop-header-text) !important;
+}
+
+/* 循环卡片图标样式 */
+.loop-step-card .anticon {
+  color: var(--loop-icon-primary) !important;
+}
+
+.loop-step-card .ant-card-head .anticon-redo {
+  color: var(--loop-icon-primary) !important;
+}
+
+/* 循环卡片主体 */
+.loop-step-card .ant-card-body {
+  background: var(--loop-card-bg) !important;
+  color: var(--loop-card-text-primary) !important;
+  padding: var(--loop-spacing-lg) !important;
+}
+
+/* ===== 执行状态样式 ===== */
+
+.loop-step-card.executing {
+  border: 2px solid var(--loop-card-border-active) !important;
+  box-shadow: var(--loop-card-shadow-active) !important;
+  
+  /* 执行时的脉冲动画 */
+  animation: loop-executing-pulse 2s infinite;
+}
+
+@keyframes loop-executing-pulse {
+  0% {
+    box-shadow: var(--loop-card-shadow-active);
+  }
+  50% {
+    box-shadow: 0 4px 16px rgba(24, 144, 255, 0.25);
+  }
+  100% {
+    box-shadow: var(--loop-card-shadow-active);
+  }
+}
+
+/* ===== 折叠状态样式 ===== */
+
+.loop-step-card.collapsed {
+  margin-bottom: var(--loop-spacing-sm) !important;
+}
+
+.loop-step-card.collapsed .ant-card-body {
+  padding: var(--loop-spacing-sm) var(--loop-spacing-lg) !important;
+}
+
+/* ===== 循环配置区域 ===== */
+
+.loop-config-area {
+  background: var(--bg-2, #f9fafb);
+  border: 1px solid var(--border-1, #f3f4f6);
+  border-radius: var(--radius-1, 6px);
+  padding: var(--loop-spacing-md);
+  margin-bottom: var(--loop-spacing-md);
+  color: var(--loop-card-text-primary) !important;
+}
+
+.loop-config-area label {
+  color: var(--loop-card-text-secondary) !important;
+  font-weight: 500;
+  margin-right: var(--loop-spacing-sm);
+}
+
+.loop-config-area .ant-typography {
+  color: var(--loop-card-text-secondary) !important;
+}
+
+/* ===== 循环体容器 ===== */
+
+.loop-body-area {
+  margin-top: var(--loop-spacing-md);
+}
+
+.loop-body-container {
+  background: var(--loop-body-bg) !important;
+  border: 2px dashed var(--loop-body-border) !important;
+  border-radius: var(--loop-card-radius) !important;
+  padding: var(--loop-spacing-lg) !important;
+  color: var(--loop-body-text) !important;
+  min-height: 100px;
+  transition: all 0.3s ease;
+}
+
+.loop-body-container:hover {
+  background: #f0f9e8 !important;
+  border-color: #95de64 !important;
+}
+
+.loop-body-header {
+  margin-bottom: var(--loop-spacing-md);
+  font-weight: 600;
+  color: var(--loop-body-text) !important;
+}
+
+.loop-body-content {
+  color: var(--loop-body-text) !important;
+}
+
+/* ===== 空循环体状态 ===== */
+
+.empty-loop-body {
+  text-align: center !important;
+  padding: var(--loop-spacing-xl) 0 !important;
+  color: var(--text-3, #9ca3af) !important;
+  font-style: italic;
+  border: 2px dashed transparent;
+  border-radius: var(--radius-1, 6px);
+  transition: all 0.3s ease;
+}
+
+.empty-loop-body:hover {
+  color: var(--accent-8, #1677ff) !important;
+  background: rgba(24, 144, 255, 0.05) !important;
+  border-color: rgba(24, 144, 255, 0.2) !important;
+}
+
+/* ===== 循环内步骤样式 ===== */
+
+.loop-inner-step {
+  background: var(--bg-light-base, #ffffff);
+  border: 1px solid var(--border-1, #f3f4f6);
+  border-radius: var(--radius-1, 6px);
+  padding: var(--loop-spacing-sm) var(--loop-spacing-md);
+  margin-bottom: var(--loop-spacing-sm);
+  color: var(--loop-card-text-primary) !important;
+  position: relative;
+  
+  /* 左侧循环指示条 */
+  border-left: 3px solid var(--accent-6, #69c0ff);
+}
+
+.loop-inner-step:last-child {
+  margin-bottom: 0;
+}
+
+.loop-inner-step .ant-typography {
+  color: var(--loop-card-text-primary) !important;
+  margin: 0;
+}
+
+/* ===== 循环状态标签 ===== */
+
+.loop-step-card .ant-tag {
+  border: 1px solid;
+  font-weight: 500;
+}
+
+.loop-step-card .ant-tag.ant-tag-processing {
+  background: #e6f7ff !important;
+  border-color: #91d5ff !important;
+  color: #1890ff !important;
+}
+
+.loop-step-card .ant-tag.ant-tag-default {
+  background: #f5f5f5 !important;
+  border-color: #d9d9d9 !important;
+  color: #666666 !important;
+}
+
+/* ===== 工具栏按钮样式 ===== */
+
+.loop-step-card .ant-card-extra .ant-btn {
+  border: none !important;
+  box-shadow: none !important;
+  color: var(--loop-card-text-secondary) !important;
+}
+
+.loop-step-card .ant-card-extra .ant-btn:hover {
+  background: var(--bg-2, #f5f5f5) !important;
+  color: var(--loop-card-text-primary) !important;
+}
+
+.loop-step-card .ant-card-extra .ant-btn.ant-btn-dangerous {
+  color: var(--red-6, #f5222d) !important;
+}
+
+.loop-step-card .ant-card-extra .ant-btn.ant-btn-dangerous:hover {
+  background: var(--red-1, #fff2f0) !important;
+  color: var(--red-7, #cf1322) !important;
+}
+
+/* ===== 表单控件样式重写 ===== */
+
+.loop-step-card .ant-select,
+.loop-step-card .ant-input-number {
+  color: var(--loop-card-text-primary) !important;
+}
+
+.loop-step-card .ant-select-selector {
+  background: var(--bg-light-base, #ffffff) !important;
+  border-color: var(--loop-card-border) !important;
+  color: var(--loop-card-text-primary) !important;
+}
+
+.loop-step-card .ant-input-number {
+  background: var(--bg-light-base, #ffffff) !important;
+  border-color: var(--loop-card-border) !important;
+  color: var(--loop-card-text-primary) !important;
+}
+
+/* ===== 响应式设计 ===== */
+
+@media (max-width: 768px) {
+  .loop-step-card {
+    margin-bottom: var(--loop-spacing-md) !important;
+  }
+  
+  .loop-body-container {
+    padding: var(--loop-spacing-md) !important;
+  }
+  
+  .loop-config-area {
+    padding: var(--loop-spacing-sm) !important;
+  }
+}
+
+/* ===== 深色主题兼容 ===== */
+
+.dark .loop-step-card {
+  --loop-card-bg: var(--bg-2, #1f2937);
+  --loop-card-border: var(--border-2, #374151);
+  --loop-card-text-primary: var(--text-1, #f9fafb);
+  --loop-card-text-secondary: var(--text-2, #d1d5db);
+  --loop-header-bg: var(--bg-3, #111827);
+  --loop-header-text: var(--text-1, #f9fafb);
+  --loop-body-bg: rgba(34, 197, 94, 0.1);
+  --loop-body-border: rgba(34, 197, 94, 0.3);
+  --loop-body-text: var(--text-1, #f9fafb);
+}
+
+/* ===== 无障碍支持 ===== */
+
+.loop-step-card:focus-within {
+  outline: 2px solid var(--accent-6, #69c0ff);
+  outline-offset: 2px;
+}
+
+.loop-step-card [role="button"]:focus {
+  outline: 2px solid var(--accent-6, #69c0ff);
+  outline-offset: 1px;
+}
+
+/* ===== 打印样式 ===== */
+
+@media print {
+  .loop-step-card {
+    break-inside: avoid;
+    box-shadow: none !important;
+    border: 1px solid #000 !important;
+  }
+  
+  .loop-step-card.executing {
+    border: 2px solid #000 !important;
+  }
+}

@@ -1,0 +1,8 @@
+/* 按钮表面样式 */
+/* src/styles/surfaces/buttons.css */
+
+/* 按钮表面样式将在这里定义 */
+.button-surface {
+  background: var(--bg-light-base, #ffffff);
+  color: var(--text-inverse, #111827);
+}
