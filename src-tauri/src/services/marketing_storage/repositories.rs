@@ -127,13 +127,15 @@ CREATE INDEX IF NOT EXISTS idx_reports_date ON daily_reports(date);
 "#;
 
 pub fn get_connection(app: &AppHandle) -> rusqlite::Result<Connection> {
-    // Reuse contact storage DB to keep a single database file
-    let conn = contact_db::DatabaseRepository::init_db()?;
-    contact_db::DatabaseRepository::init_db_schema(&conn)?; // ensure base tables too
-    // ensure our tables
+    // 使用新的统一数据库连接获取方式
+    let conn = crate::services::contact_storage::repositories::common::database::get_connection(app)?;
+    
+    // 确保 marketing_storage 相关的表存在
     conn.execute_batch(CREATE_TABLES_SQL)?;
-    // best-effort schema migrations for tasks table (new columns if missing)
+    
+    // 执行 marketing storage 特定的模式迁移
     apply_task_schema_migrations(&conn)?;
+    
     Ok(conn)
 }
 

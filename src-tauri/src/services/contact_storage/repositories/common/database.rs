@@ -25,7 +25,7 @@ pub fn get_connection(app_handle: &AppHandle) -> SqliteResult<Connection> {
     
     std::fs::create_dir_all(&db_dir).expect("failed to create data dir");
     
-    let db_path = db_dir.join("contacts.db");
+    let db_path = db_dir.join("employees.db");
     
     tracing::debug!("尝试连接数据库: {:?}", db_path);
     

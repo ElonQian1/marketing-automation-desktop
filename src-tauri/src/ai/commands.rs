@@ -1,9 +1,9 @@
 // src-tauri/src/ai/commands.rs
-use crate::ai::{config, router::AIRouter, types::*};
+use crate::ai::{config, router::AIRouter, types::*, provider::ChatChunk};
 use crate::config::AISettings;
 use anyhow::Result;
 use serde_json::Value;
-use tauri::{AppHandle, State};
+use tauri::{AppHandle, Emitter, State};
 
 pub struct AppState {
     pub settings: parking_lot::RwLock<AISettings>,
@@ -93,14 +93,14 @@ pub async fn ai_chat(
     if stream.unwrap_or(false) {
         let app2 = app.clone();
         let out = router
-            .chat(req, Some(move |chunk| {
+            .chat(req, Some(move |chunk: ChatChunk| {
                 let _ = app2.emit("ai://stream", &chunk.delta);
             }))
             .await
             .map_err(err)?;
         Ok(out)
     } else {
-        router.chat(req, None).await.map_err(err)
+        router.chat::<fn(ChatChunk)>(req, None).await.map_err(err)
     }
 }
 

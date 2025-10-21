@@ -46,4 +46,8 @@ pub use commands::{
     list_contact_numbers_without_batch,
     tag_contact_numbers_industry_by_vcf_batch,
     allocate_contact_numbers_to_device,
+    
+    // TXT导入记录管理
+    list_txt_import_records_cmd,
+    delete_txt_import_record_cmd,
 };

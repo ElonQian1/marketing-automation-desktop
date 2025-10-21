@@ -35,6 +35,9 @@ pub fn init_contact_storage_tables(conn: &Connection) -> SqliteResult<()> {
     
     // 创建TXT文件导入记录表
     create_txt_import_records_table(conn)?;
+    
+    // 执行数据库迁移
+    migrate_contact_numbers_table(conn)?;
 
     tracing::info!("✅ 数据库表初始化完成");
     Ok(())
@@ -387,7 +390,7 @@ mod tests {
         conn.execute(
             "INSERT INTO txt_import_records (file_path, file_name, status, total_lines) 
              VALUES (?1, ?2, ?3, ?4)",
-            ["C:/test.txt", "test.txt", "empty", 0],
+            rusqlite::params!["C:/test.txt", "test.txt", "empty", 0],
         ).unwrap();
         
         let count: i64 = conn.query_row(
@@ -397,4 +400,143 @@ mod tests {
         ).unwrap();
         assert_eq!(count, 1);
     }
+}
+
+/// 数据库迁移函数
+/// 
+/// 检查并添加缺失的列，确保旧数据库兼容新结构
+fn migrate_contact_numbers_table(conn: &Connection) -> SqliteResult<()> {
+    tracing::info!("🔄 开始数据库迁移检查...");
+    
+    // 使用更可靠的方法检查列是否存在
+    let column_exists = check_column_exists(conn, "contact_numbers", "assigned_batch_id")?;
+    
+    if !column_exists {
+        tracing::info!("📦 添加 assigned_batch_id 列到 contact_numbers 表");
+        conn.execute(
+            "ALTER TABLE contact_numbers ADD COLUMN assigned_batch_id TEXT",
+            [],
+        )?;
+    }
+    
+    // 检查 assigned_at 列是否存在
+    let assigned_at_exists = check_column_exists(conn, "contact_numbers", "assigned_at")?;
+    
+    if !assigned_at_exists {
+        tracing::info!("📦 添加 assigned_at 列到 contact_numbers 表");
+        conn.execute(
+            "ALTER TABLE contact_numbers ADD COLUMN assigned_at TEXT",
+            [],
+        )?;
+    }
+    
+    // 检查 txt_import_id 列是否存在
+    let txt_import_id_exists = check_column_exists(conn, "contact_numbers", "txt_import_id")?;
+    
+    if !txt_import_id_exists {
+        tracing::info!("📦 添加 txt_import_id 列到 contact_numbers 表");
+        conn.execute(
+            "ALTER TABLE contact_numbers ADD COLUMN txt_import_id INTEGER",
+            [],
+        )?;
+    }
+    
+    // 检查并修正 phone 列名（旧版本可能叫 phone_number）
+    let phone_exists = check_column_exists(conn, "contact_numbers", "phone")?;
+    let phone_number_exists = check_column_exists(conn, "contact_numbers", "phone_number")?;
+    
+    if !phone_exists && phone_number_exists {
+        tracing::info!("📦 重命名 phone_number 列为 phone");
+        // SQLite 不支持直接重命名列，需要重建表
+        conn.execute_batch("
+            BEGIN TRANSACTION;
+            
+            -- 创建新表结构
+            CREATE TABLE contact_numbers_new (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                phone TEXT NOT NULL,
+                name TEXT NOT NULL DEFAULT '',
+                source_file TEXT NOT NULL,
+                txt_import_id INTEGER,
+                created_at TEXT NOT NULL DEFAULT (datetime('now')),
+                status TEXT NOT NULL DEFAULT 'available',
+                industry TEXT,
+                assigned_batch_id TEXT,
+                assigned_at TEXT,
+                imported_device_id TEXT,
+                imported_session_id INTEGER,
+                imported_at TEXT,
+                UNIQUE(phone, source_file)
+            );
+            
+            -- 复制数据（映射旧列名到新列名）
+            INSERT INTO contact_numbers_new (
+                id, phone, name, source_file, created_at, status, 
+                industry, imported_device_id, imported_session_id, imported_at
+            )
+            SELECT 
+                id, phone_number, COALESCE(name, ''), source_file, 
+                COALESCE(created_at, datetime('now')), 
+                CASE 
+                    WHEN status = 'not_imported' THEN 'available'
+                    WHEN status = 'imported' THEN 'imported' 
+                    ELSE COALESCE(status, 'available')
+                END,
+                industry, imported_device_id, imported_session_id, imported_at
+            FROM contact_numbers;
+            
+            -- 删除旧表
+            DROP TABLE contact_numbers;
+            
+            -- 重命名新表
+            ALTER TABLE contact_numbers_new RENAME TO contact_numbers;
+            
+            COMMIT;
+        ")?;
+        
+        // 重新创建索引
+        conn.execute(
+            "CREATE INDEX IF NOT EXISTS idx_contact_numbers_status ON contact_numbers(status)",
+            [],
+        )?;
+        conn.execute(
+            "CREATE INDEX IF NOT EXISTS idx_contact_numbers_phone ON contact_numbers(phone)",
+            [],
+        )?;
+        conn.execute(
+            "CREATE INDEX IF NOT EXISTS idx_contact_numbers_batch ON contact_numbers(assigned_batch_id)",
+            [],
+        )?;
+        conn.execute(
+            "CREATE INDEX IF NOT EXISTS idx_contact_numbers_industry ON contact_numbers(industry)",
+            [],
+        )?;
+    } else {
+        // 如果没有重建表，确保索引存在
+        conn.execute(
+            "CREATE INDEX IF NOT EXISTS idx_contact_numbers_batch ON contact_numbers(assigned_batch_id)",
+            [],
+        )?;
+    }
+    
+    tracing::info!("✅ 数据库迁移完成");
+    Ok(())
+}
+
+/// 检查表中列是否存在的辅助函数
+fn check_column_exists(conn: &Connection, table_name: &str, column_name: &str) -> SqliteResult<bool> {
+    let mut stmt = conn.prepare(&format!("PRAGMA table_info({})", table_name))?;
+    let column_iter = stmt.query_map([], |row| {
+        let name: String = row.get(1)?;
+        Ok(name)
+    })?;
+    
+    for column_result in column_iter {
+        if let Ok(name) = column_result {
+            if name == column_name {
+                return Ok(true);
+            }
+        }
+    }
+    Ok(false)
 }

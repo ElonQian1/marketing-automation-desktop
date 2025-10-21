@@ -9,9 +9,9 @@ use super::super::repository_facade::ContactStorageFacade;
 /// 初始化联系人存储数据库
 #[command]
 pub async fn init_contact_storage_cmd(app_handle: AppHandle) -> Result<String, String> {
-    // 直接使用DatabaseRepository的静态方法
-    use super::super::repositories::DatabaseRepository;
-    DatabaseRepository::init_db().map_err(|e| format!("数据库初始化失败: {}", e))?;
+    // 使用新的统一数据库连接方式
+    use super::super::repositories::common::database;
+    database::get_connection(&app_handle).map_err(|e| format!("数据库初始化失败: {}", e))?;
     Ok("联系人存储数据库初始化成功".to_string())
 }
 
