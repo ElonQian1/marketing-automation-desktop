@@ -276,7 +276,7 @@ fn main() {
             // find_xml_ui_elements,    // 查找XML UI元素
             // wait_for_ui_element,     // 等待元素出现
             // check_device_page_state, // 检查页面状态
-            // match_element_by_criteria, // 按匹配条件查找元素
+            match_element_by_criteria, // 按匹配条件查找元素 - 已修复
             // 智能应用管理功能
             get_device_apps,         // 获取设备应用列表
             get_device_apps_paged,   // 分页获取设备应用列表

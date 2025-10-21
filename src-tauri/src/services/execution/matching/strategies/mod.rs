@@ -43,9 +43,34 @@ pub fn create_strategy_processor(strategy: &str) -> Box<dyn StrategyProcessor + 
         "strict" => Box::new(StandardStrategyProcessor::new()), // 复用 standard
         "relaxed" => Box::new(StandardStrategyProcessor::new()), // 复用 standard
         "positionless" => Box::new(StandardStrategyProcessor::new()), // 复用 standard
+        
+        // 🆕 智能匹配策略 - 使用 Custom 策略并禁用 absolute 依赖
+        "intelligent" => {
+            tracing::info!("🧠 使用智能匹配策略，基于 Custom 策略实现多字段匹配");
+            Box::new(CustomStrategyProcessor::new())
+        },
+        
+        // 🆕 无障碍匹配策略 - 专注文本和描述字段
+        "a11y" => {
+            tracing::info!("♿ 使用无障碍匹配策略，专注文本和内容描述");
+            Box::new(CustomStrategyProcessor::new())
+        },
+        
+        // 🆕 邻域匹配策略 - 基于坐标范围
+        "bounds_near" => {
+            tracing::info!("📍 使用邻域匹配策略，基于坐标范围查找");
+            Box::new(CustomStrategyProcessor::new())
+        },
+        
+        // 🆕 XPath 模糊匹配策略
+        "xpath_fuzzy" => {
+            tracing::info!("🔍 使用XPath模糊匹配策略");
+            Box::new(XPathDirectStrategyProcessor::new()) // 复用 xpath-direct 实现
+        },
+        
         _ => {
-            tracing::warn!("🤖 未知匹配策略: {}, 使用 standard 策略", strategy);
-            Box::new(StandardStrategyProcessor::new())
+            tracing::warn!("🤖 未知匹配策略: {}, 使用 custom 策略", strategy);
+            Box::new(CustomStrategyProcessor::new()) // 修改默认策略为Custom
         }
     }
 }

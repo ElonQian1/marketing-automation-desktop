@@ -44,6 +44,19 @@ pub struct MatchCriteriaDTO {
     pub regex_excludes: HashMap<String, Vec<String>>,
     #[serde(default)]
     pub hidden_element_parent_config: Option<HiddenElementParentConfig>,
+    #[serde(default)]
+    pub options: Option<MatchOptionsDTO>,
+}
+
+/// 匹配选项DTO - 从前端接收的选项参数
+#[derive(Debug, Clone, Deserialize)]
+pub struct MatchOptionsDTO {
+    pub allow_absolute: Option<bool>,
+    pub fields: Option<Vec<String>>,
+    pub inflate: Option<i32>,
+    pub timeout: Option<u64>,
+    pub max_candidates: Option<usize>,
+    pub confidence_threshold: Option<f64>,
 }
 
 /// 隐藏元素父容器配置
@@ -81,12 +94,23 @@ pub async fn match_element_by_criteria(
 
     info!("🎯 策略匹配开始: 设备={} 策略={}", device_id, criteria.strategy);
     
-    // 🆕 受控回退机制：设置时间预算（默认5秒，复杂策略10秒）
-    let time_budget = match criteria.strategy.as_str() {
+    // 🆕 处理 options 参数
+    if let Some(ref options) = criteria.options {
+        info!("📋 匹配选项: allow_absolute={:?}, timeout={:?}, confidence_threshold={:?}", 
+              options.allow_absolute, options.timeout, options.confidence_threshold);
+    }
+    
+    // 🆕 受控回退机制：设置时间预算（支持 options 中的 timeout）
+    let default_timeout = match criteria.strategy.as_str() {
         "xpath-direct" | "xpath-first-index" | "xpath-all-elements" => Duration::from_secs(10),
         "hidden-element-parent" => Duration::from_secs(8),
         _ => Duration::from_secs(5),
     };
+    
+    let time_budget = criteria.options
+        .as_ref()
+        .and_then(|opts| opts.timeout.map(Duration::from_secs))
+        .unwrap_or(default_timeout);
 
     let start_time = Instant::now();
     info!("⏱️ 时间预算: {:?} (策略: {})", time_budget, criteria.strategy);
@@ -218,6 +242,7 @@ pub async fn match_hidden_element_by_text(
         regex_includes: HashMap::new(),
         regex_excludes: HashMap::new(),
         hidden_element_parent_config: Some(config),
+        options: None, // 测试用例不使用 options
     };
 
     // 调用通用策略匹配

@@ -38,6 +38,20 @@ export interface MatchResultDTO {
   total?: number;
   matchedIndex?: number;
   preview?: MatchPreview;
+  explain?: {
+    usedStrategy?: string;
+    tryOrder?: number;
+    totalStrategies?: number;
+    triedStrategies?: string[];
+    failureReason?: string;
+    candidates?: Array<{
+      node_id: number;
+      scores: Record<string, number>;
+      normalized: Record<string, string>;
+      reasons_not_selected?: string[];
+    }>;
+    thresholds?: Record<string, number>;
+  };
 }
 
 export interface IUiMatcherRepository {

@@ -6,8 +6,8 @@ import type { SmartScriptStep } from '../../types/smartScript';
 import type { MatchCriteriaDTO } from '../../domain/page-analysis/repositories/IUiMatcherRepository';
 import { escapeRegex, sanitizeCriteria } from './utils';
 import type { StrategyTestResult } from './types';
-// 🆕 导入离线验证系统
-import { OfflineValidationSystem } from '../../modules/intelligent-strategy-system/validation/OfflineValidationSystem';
+// 🆕 导入智能匹配链回退系统
+import { TauriUiMatcherRepository } from '../../infrastructure/repositories/TauriUiMatcherRepository';
 
 export function buildCriteriaFromStep(step: SmartScriptStep): MatchCriteriaDTO | null {
   const params = step.parameters as any;
@@ -176,66 +176,79 @@ export async function executeStrategyTestImpl(
     return { success: false, output: '❌ 无法从步骤参数构建匹配条件，步骤类型不支持或缺少必要参数', error: '不支持的步骤类型或参数不足' };
   }
 
-  // 🆕 Step 0-6: 离线预验证（根据XPath文档要求）
-  // 目前暂时注释，需要与XML内容管理系统集成后启用
-  // TODO: 集成XML缓存系统，获取当前设备的XML内容进行离线验证
-  /*
+  // 🆕 优先使用智能匹配链回退系统
   try {
-    const offlineValidator = new OfflineValidationSystem({ enableDetailedLogging: true });
-    // 需要从某处获取当前设备的XML内容
-    const xmlContent = getCurrentDeviceXML(deviceId); // 待实现
-    if (xmlContent) {
-      console.log('🔍 执行离线预验证...');
-      const validationResult = await offlineValidator.validateCandidate({
-        strategy: criteria.strategy as any,
-        fields: criteria.fields,
-        values: criteria.values,
-        includes: criteria.includes,
-        excludes: criteria.excludes
-      }, {}, xmlContent);
+    console.log('🚀 启动智能匹配链回退系统测试...');
+    const uiMatcher = new TauriUiMatcherRepository();
+    
+    // 🎯 构建智能匹配的 payload，优先使用 text 字段
+    const matchPayload = {
+      text: criteria.values.text || criteria.values['element_text'] || '',
+      content_desc: criteria.values['content-desc'] || criteria.values.content_desc || '',
+      resource_id: criteria.values['resource-id'] || criteria.values.resource_id || '',
+      class_name: criteria.values.class || criteria.values['element_type'] || criteria.values.className || '',
+      bounds: criteria.values.bounds || '',
+      element_selector: criteria.values.xpath || criteria.values.element_path || ''
+    };
 
-      console.log('📋 离线验证结果:', {
-        isValid: validationResult.isValid,
-        confidence: validationResult.confidence,
-        matchCount: validationResult.details.matchCount,
-        estimatedSpeed: validationResult.performance.estimatedSpeed
-      });
-
-      // 如果离线验证失败且置信度很低，提前警告但不阻止后端测试
-      if (!validationResult.isValid && validationResult.confidence < 0.3) {
-        console.warn('⚠️ 离线验证预警: 策略可能无效，但继续尝试后端验证');
-      }
+    console.log('🎯 智能匹配载荷:', matchPayload);
+    
+    const intelligentResult = await uiMatcher.intelligentMatch(deviceId, matchPayload);
+    
+    if (intelligentResult.ok) {
+      const output = `✅ 智能匹配链成功: ${intelligentResult.message}\n` +
+        `🔗 策略链回退: intelligent → a11y → bounds_near → xpath_fuzzy\n` +
+        `📋 实际使用策略: ${intelligentResult.explain?.usedStrategy || 'unknown'}\n` +
+        `� 尝试顺序: ${intelligentResult.explain?.tryOrder || 0}/${intelligentResult.explain?.totalStrategies || 4}\n` +
+        `� 优先字段: text > content-desc > class > bounds (跳过混淆resource-id)\n` +
+        `📊 总元素数: ${intelligentResult.total || 0}\n` +
+        `🎯 匹配索引: ${intelligentResult.matchedIndex !== undefined ? intelligentResult.matchedIndex : '无'}\n` +
+        (intelligentResult.explain ? `💡 解释: ${JSON.stringify(intelligentResult.explain, null, 2)}\n` : '') +
+        (intelligentResult.preview ? `📝 预览: ${JSON.stringify(intelligentResult.preview, null, 2)}` : '无预览数据');
+      
+      return { 
+        success: true, 
+        output, 
+        matchResult: intelligentResult, 
+        criteria: { ...criteria, strategy: 'intelligent' }
+      };
+    } else {
+      console.log('🔄 智能匹配链失败，降级到原有匹配逻辑...');
+      console.log('🔍 智能匹配失败详情:', intelligentResult);
+      // 继续使用原有的匹配逻辑作为最终回退
     }
-  } catch (offlineError) {
-    console.warn('⚠️ 离线验证执行失败，继续后端验证:', offlineError);
+  } catch (intelligentError) {
+    console.warn('⚠️ 智能匹配链执行失败，降级到原有匹配逻辑:', intelligentError);
+    // 继续使用原有的匹配逻辑作为最终回退
   }
-  */
 
+  // 🔧 原有匹配逻辑作为最终回退
   try {
-    console.log('🎯 使用策略匹配测试:', criteria);
+    console.log('🎯 使用原有策略匹配测试:', criteria);
     const matchResult = await matchElementByCriteria(deviceId, criteria);
     const success = !!matchResult.ok;
     let output = success
-      ? `✅ 策略匹配成功: ${matchResult.message}\n` +
+      ? `✅ 原有策略匹配成功: ${matchResult.message}\n` +
         `📋 匹配策略: ${criteria.strategy}\n` +
         `🔍 匹配字段: ${criteria.fields.join(', ')}\n` +
         `📊 总元素数: ${matchResult.total || 0}\n` +
         `🎯 匹配索引: ${matchResult.matchedIndex !== undefined ? matchResult.matchedIndex : '无'}\n` +
         (matchResult.preview ? `📝 预览: ${JSON.stringify(matchResult.preview, null, 2)}` : '无预览数据')
-      : `❌ 策略匹配失败: ${matchResult.message}\n` +
+      : `❌ 原有策略匹配失败: ${matchResult.message}\n` +
         `📋 匹配策略: ${criteria.strategy}\n` +
         `🔍 匹配字段: ${criteria.fields.join(', ')}\n` +
         `📊 总元素数: ${matchResult.total || 0}`;
-    // 回退策略：若首次失败，移除层级/位置等非语义字段，仅保留标准语义字段再试一次
+    
+    // 语义字段回退策略：若首次失败，移除层级/位置等非语义字段，仅保留标准语义字段再试一次
     if (!success) {
       const semanticFields = new Set(['resource-id', 'text', 'content-desc', 'class', 'package', 'checkable']);
       const relaxedFields = (criteria.fields || []).filter((f) => semanticFields.has(f));
 
       // 若没有可保留字段，则直接返回
       if (relaxedFields.length > 0 && relaxedFields.length < (criteria.fields || []).length) {
-        const pick = (obj: Record<string, any> | undefined, keys: string[]) => {
+        const pick = (obj: Record<string, string> | Record<string, string[]> | undefined, keys: string[]) => {
           if (!obj) return undefined;
-          const out: Record<string, any> = {};
+          const out: Record<string, string | string[]> = {};
           for (const k of keys) {
             if (obj[k] !== undefined) out[k] = obj[k];
           }
@@ -245,33 +258,33 @@ export async function executeStrategyTestImpl(
         const relaxedCriteria: MatchCriteriaDTO = {
           strategy: 'standard',
           fields: relaxedFields,
-          values: pick(criteria.values as any, relaxedFields) || {},
+          values: pick(criteria.values, relaxedFields) as Record<string, string> || {},
           // 过滤 includes/excludes 到保留字段；regex* 在轻量后端中不参与匹配，直接省略以避免过度收紧
-          ...(pick(criteria.includes as any, relaxedFields) ? { includes: pick(criteria.includes as any, relaxedFields)! } : {}),
-          ...(pick(criteria.excludes as any, relaxedFields) ? { excludes: pick(criteria.excludes as any, relaxedFields)! } : {}),
+          ...(pick(criteria.includes, relaxedFields) ? { includes: pick(criteria.includes, relaxedFields)! as Record<string, string[]> } : {}),
+          ...(pick(criteria.excludes, relaxedFields) ? { excludes: pick(criteria.excludes, relaxedFields)! as Record<string, string[]> } : {}),
         };
 
-        console.log('🧪 首次匹配失败，尝试回退为语义字段匹配:', relaxedCriteria);
+        console.log('🧪 原有策略失败，尝试语义字段回退匹配:', relaxedCriteria);
         try {
           const second = await matchElementByCriteria(deviceId, relaxedCriteria);
           if (second?.ok) {
-            output += `\n\n🟡 触发回退匹配：已移除非语义字段后成功。\n` +
+            output += `\n\n🟡 触发语义字段回退：已移除非语义字段后成功。\n` +
               `🔍 回退字段: ${relaxedCriteria.fields.join(', ')}\n` +
               `📊 总元素数: ${second.total || 0}\n` +
               `🎯 匹配索引: ${second.matchedIndex !== undefined ? second.matchedIndex : '无'}\n` +
               (second.preview ? `📝 预览: ${JSON.stringify(second.preview, null, 2)}` : '无预览数据');
             return { success: true, output, matchResult: second, criteria: relaxedCriteria };
           } else {
-            output += `\n\n🔁 回退匹配仍未命中（仅保留语义字段）。`;
+            output += `\n\n🔁 语义字段回退仍未命中。`;
           }
         } catch (e) {
-          console.warn('回退匹配调用失败:', e);
+          console.warn('语义字段回退匹配调用失败:', e);
         }
       }
     }
     return { success, output, matchResult, criteria };
   } catch (error) {
     console.error('策略匹配测试失败:', error);
-    return { success: false, output: `❌ 策略匹配测试出错: ${error}`, criteria: criteria as any, error: String(error) };
+    return { success: false, output: `❌ 策略匹配测试出错: ${error}`, criteria, error: String(error) };
   }
 }

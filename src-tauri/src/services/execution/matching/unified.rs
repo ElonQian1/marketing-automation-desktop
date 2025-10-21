@@ -121,6 +121,7 @@ where
             regex_includes: HashMap::new(),
             regex_excludes: HashMap::new(), 
             hidden_element_parent_config: None,
+            options: None, // 统一匹配不使用 options
         };
 
         let strategy_name = strategy.clone();

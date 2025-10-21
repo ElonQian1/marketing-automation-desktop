@@ -25,6 +25,10 @@ export type MatchStrategy =
   | 'xpath-first-index'     // XPath第一个索引匹配
   | 'xpath-all-elements'    // XPath全部元素匹配
   | 'hidden-element-parent' // 隐藏元素父容器查找
+  | 'intelligent'           // 智能匹配（多策略级联）
+  | 'a11y'                  // 无障碍匹配（文本和描述）
+  | 'bounds_near'           // 邻域匹配（坐标范围）
+  | 'xpath_fuzzy'           // XPath模糊匹配
   | 'self-anchor'           // 自我锚点匹配（新增）
   | 'child-anchor'          // 子节点锚点匹配（新增）
   | 'parent-clickable'      // 父节点可点击匹配（新增）
@@ -44,6 +48,16 @@ export interface MatchCriteria {
   matchMode?: Record<string, 'equals' | 'contains' | 'regex'>;
   regexIncludes?: Record<string, string[]>;
   regexExcludes?: Record<string, string[]>;
+  
+  // 策略特定选项
+  options?: {
+    allowAbsolute?: boolean;     // 是否允许使用 absolute 策略
+    fields?: string[];           // 优先使用的字段
+    inflate?: number;            // 邻域匹配的扩展像素
+    timeout?: number;            // 超时时间（毫秒）
+    maxCandidates?: number;      // 最大候选数量
+    confidenceThreshold?: number; // 置信度阈值
+  };
   
   // 隐藏元素父查找策略特定配置
   hiddenElementParentConfig?: {

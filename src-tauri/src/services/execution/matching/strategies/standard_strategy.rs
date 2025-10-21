@@ -7,6 +7,7 @@ use super::{StrategyProcessor, MatchingContext, StrategyResult, ProcessingError}
 use async_trait::async_trait;
 use anyhow::Result;
 use tracing::{info, debug};
+use std::collections::HashSet;
 
 /// Standard 策略处理器
 /// 
@@ -70,6 +71,196 @@ impl StandardStrategyProcessor {
             .map(|(k, v)| (k.clone(), v.clone()))
             .collect()
     }
+
+    /// 执行 Standard 策略的实际匹配逻辑
+    async fn perform_standard_matching(
+        &self,
+        context: &MatchingContext,
+        semantic_fields: &[String],
+        semantic_values: &std::collections::HashMap<String, String>,
+        logs: &mut Vec<String>,
+    ) -> Result<StrategyResult, ProcessingError> {
+        use crate::services::ui_reader_service::{read_device_ui_state, UIElement, DeviceUIState};
+        
+        logs.push("🎯 开始 Standard 策略实际匹配".to_string());
+        
+        // 1. 获取设备UI状态
+        let ui_state = match read_device_ui_state(context.device_id.clone()).await {
+            Ok(state) => {
+                logs.push(format!("✅ 获取到 {} 个UI元素", state.elements.len()));
+                state
+            }
+            Err(e) => {
+                logs.push(format!("❌ 获取UI状态失败: {}", e));
+                return Ok(StrategyResult::failure(format!("获取UI状态失败: {}", e)));
+            }
+        };
+
+        if ui_state.elements.is_empty() {
+            logs.push("⚠️ 未找到任何UI元素".to_string());
+            return Ok(StrategyResult::failure("未找到任何UI元素".to_string()));
+        }
+
+        // 2. 遍历所有元素进行匹配
+        let mut best_match: Option<(f64, &UIElement)> = None;
+        
+        for element in &ui_state.elements {
+            let mut score = 0.0;
+            let mut match_reasons = Vec::new();
+            
+            // 对每个语义值进行匹配
+            for (field, target_value) in semantic_values {
+                if target_value.trim().is_empty() {
+                    continue;
+                }
+                
+                let field_score = match field.as_str() {
+                    "text" => {
+                        if !element.text.is_empty() {
+                            let similarity = self.calculate_text_similarity(&element.text, target_value);
+                            if similarity > 0.0 {
+                                match_reasons.push(format!("text匹配: '{}' vs '{}' (相似度: {:.2})", element.text, target_value, similarity));
+                                similarity * 0.5 // text权重最高
+                            } else {
+                                0.0
+                            }
+                        } else {
+                            0.0
+                        }
+                    }
+                    "content-desc" => {
+                        if !element.content_desc.is_empty() {
+                            let similarity = self.calculate_text_similarity(&element.content_desc, target_value);
+                            if similarity > 0.0 {
+                                match_reasons.push(format!("content-desc匹配: '{}' vs '{}' (相似度: {:.2})", element.content_desc, target_value, similarity));
+                                similarity * 0.3 // content-desc权重次高
+                            } else {
+                                0.0
+                            }
+                        } else {
+                            0.0
+                        }
+                    }
+                    "class" => {
+                        if !element.class.is_empty() {
+                            if element.class.contains(target_value) || target_value.contains(&element.class) {
+                                match_reasons.push(format!("class匹配: '{}' vs '{}'", element.class, target_value));
+                                0.15 // class权重较低
+                            } else {
+                                0.0
+                            }
+                        } else {
+                            0.0
+                        }
+                    }
+                    _ => 0.0
+                };
+                
+                score += field_score;
+            }
+            
+            // 如果有匹配且分数更高，更新最佳匹配
+            if score > 0.0 {
+                logs.push(format!("🎯 元素匹配 [{}]: 分数={:.3}, 原因: {:?}", 
+                    &element.class, score, match_reasons));
+                
+                if best_match.is_none() || score > best_match.as_ref().unwrap().0 {
+                    best_match = Some((score, element));
+                }
+            }
+        }
+
+        // 3. 返回匹配结果
+        if let Some((score, element)) = best_match {
+            logs.push(format!("✅ 找到最佳匹配元素，分数: {:.3}", score));
+            
+            // 提取点击坐标
+            let (x, y) = if !element.bounds.is_empty() {
+                match self.parse_bounds_to_center_coordinates(&element.bounds) {
+                    Ok(coords) => coords,
+                    Err(_) => {
+                        logs.push("⚠️ 解析bounds失败，使用默认坐标".to_string());
+                        (0, 0)
+                    }
+                }
+            } else {
+                logs.push("⚠️ 元素没有bounds信息，使用默认坐标".to_string());
+                (0, 0)
+            };
+            
+            Ok(StrategyResult::success_with_bounds(
+                format!("Standard策略匹配成功，分数: {:.3}", score),
+                (x, y),
+                element.bounds.clone()
+            ))
+        } else {
+            logs.push("❌ 未找到匹配的元素".to_string());
+            Ok(StrategyResult::failure("未找到匹配的UI元素".to_string()))
+        }
+    }
+
+    /// 计算文本相似度
+    fn calculate_text_similarity(&self, text1: &str, text2: &str) -> f64 {
+        let text1_clean = text1.trim().to_lowercase();
+        let text2_clean = text2.trim().to_lowercase();
+        
+        if text1_clean.is_empty() || text2_clean.is_empty() {
+            return 0.0;
+        }
+        
+        // 完全匹配
+        if text1_clean == text2_clean {
+            return 1.0;
+        }
+        
+        // 包含匹配
+        if text1_clean.contains(&text2_clean) || text2_clean.contains(&text1_clean) {
+            return 0.8;
+        }
+        
+        // 简单的词汇重叠度计算
+        let words1: HashSet<&str> = text1_clean.split_whitespace().collect();
+        let words2: HashSet<&str> = text2_clean.split_whitespace().collect();
+        
+        if words1.is_empty() && words2.is_empty() {
+            return 1.0;
+        }
+        
+        let intersection = words1.intersection(&words2).count();
+        let union = words1.union(&words2).count();
+        
+        if union == 0 {
+            0.0
+        } else {
+            intersection as f64 / union as f64
+        }
+    }
+
+    /// 解析bounds字符串到中心坐标
+    fn parse_bounds_to_center_coordinates(&self, bounds_str: &str) -> Result<(i32, i32), anyhow::Error> {
+        // bounds格式通常是 "[left,top][right,bottom]"
+        if bounds_str.is_empty() || bounds_str == "[0,0][0,0]" {
+            return Err(anyhow::anyhow!("无效的bounds: {}", bounds_str));
+        }
+        
+        // 使用正则表达式解析
+        use regex::Regex;
+        let re = Regex::new(r"\[(\d+),(\d+)\]\[(\d+),(\d+)\]")?;
+        
+        if let Some(caps) = re.captures(bounds_str) {
+            let left: i32 = caps[1].parse()?;
+            let top: i32 = caps[2].parse()?;
+            let right: i32 = caps[3].parse()?;
+            let bottom: i32 = caps[4].parse()?;
+            
+            let center_x = (left + right) / 2;
+            let center_y = (top + bottom) / 2;
+            
+            return Ok((center_x, center_y));
+        }
+        
+        Err(anyhow::anyhow!("无法解析bounds格式: {}", bounds_str))
+    }
 }
 
 #[async_trait]
@@ -117,10 +308,10 @@ impl StrategyProcessor for StandardStrategyProcessor {
         logs.push("�🚀 调用后端匹配引擎进行 Standard 匹配".to_string());
         info!("🎯 Standard 策略执行匹配 - 设备: {}", context.device_id);
         
-        // 临时禁用：等待重构为使用 universal_ui_page_analyzer
-        logs.push("⚠️ Standard 策略暂时不可用，正在重构为使用统一解析器".to_string());
+        // 执行实际的 Standard 策略匹配
+        logs.push("🎯 Standard 策略开始执行实际匹配".to_string());
         
-        Ok(StrategyResult::failure("Standard 策略暂时不可用".to_string()))
+        self.perform_standard_matching(context, &semantic_fields, &semantic_values, logs).await
     }
     
     fn validate_parameters(&self, context: &MatchingContext) -> Result<(), ProcessingError> {
