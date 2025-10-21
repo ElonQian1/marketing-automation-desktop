@@ -108,10 +108,33 @@ export function useIntelligentStepCardIntegration(options: UseIntelligentStepCar
       
       // 🔄 同步创建常规步骤到主列表（含智能分析状态）
       const stepNumber = steps.length + 1;
+      
+      // 🎯 标准化元素类型：将后端的增强类型映射回标准Tauri命令类型
+      const normalizeStepType = (elementType: string): string => {
+        // 移除区域前缀（header_/footer_/content_）
+        const withoutRegion = elementType.replace(/^(header|footer|content)_/, '');
+        
+        // 映射到标准类型
+        const typeMap: Record<string, string> = {
+          'tap': 'smart_find_element',
+          'button': 'smart_find_element',
+          'click': 'smart_find_element',
+          'other': 'smart_find_element',
+          'text': 'smart_find_element',
+          'image': 'smart_find_element',
+          'input': 'input',
+          'edit_text': 'input',
+          'swipe': 'swipe',
+          'scroll': 'swipe',
+        };
+        
+        return typeMap[withoutRegion] || 'smart_find_element';
+      };
+      
       const newStep: ExtendedSmartScriptStep = {
         id: stepId,
         name: `智能${element.element_type === 'tap' ? '点击' : '操作'} ${stepNumber}`,
-        step_type: element.element_type === 'tap' ? 'smart_find_element' : (element.element_type || 'tap'),
+        step_type: normalizeStepType(element.element_type || 'tap'),
         description: `智能分析 - ${element.text || element.content_desc || element.resource_id || element.id}`,
         // 🧠 启用策略选择器
         enableStrategySelector: true,
