@@ -3,8 +3,9 @@
 
 // mod commands;
 mod application; // expose new application module (normalizer, device_metrics)
-mod domain;      // expose domain DSL (actions, coords, direction)
+mod domain;      // expose domain modules
 mod infra;       // expose infra (adb injector, device metrics provider)
+mod infrastructure; // expose infrastructure (events, etc.)
 mod screenshot_service;
 mod services;
 mod commands; // 新增：集中管理 Tauri 命令
@@ -14,8 +15,7 @@ mod utils;
 mod ai; // AI 模块
 mod config; // 配置模块
 mod engine; // 策略引擎模块
-mod infrastructure; // 基础设施模块
-// pub mod xml_judgment_service; // TEMPORARILY DISABLED
+// XML judgment service 通过 services 模块引入
 
 // Universal UI Finder 模块桥接
 // 注意：universal-ui-finder模块位于src/modules/，我们通过services层桥接
@@ -31,6 +31,8 @@ use std::sync::Mutex; // 为 .manage 使用
 
 use screenshot_service::*;
 use commands::*; // 引入拆分后的命令（所有 #[tauri::command] 均集中）
+use commands::prospecting::ProspectingState;
+use tauri::Manager;
 use tracing::info; // 引入info!宏
 // use commands::app_lifecycle_commands::*;
 use services::adb_device_tracker::*;
@@ -45,12 +47,11 @@ use services::contact_storage::commands::{
     get_distinct_industries_cmd,
     set_contact_numbers_industry_by_id_range,
 };
-// TEMPORARILY DISABLED - these commands are not yet implemented
-// use services::contact_storage::commands::{
-//     update_import_session_industry_cmd,
-//     revert_import_session_to_failed_cmd,
-//     delete_import_session_cmd,
-// };
+use services::contact_storage::commands::{
+    // update_import_session_industry_cmd,  // 暂未实现
+    // revert_import_session_to_failed_cmd, // 暂未实现
+    // delete_import_session_cmd,           // 暂未实现
+};
 use services::crash_debugger::*;
 use services::employee_service::EmployeeService;
 use services::log_bridge::LOG_COLLECTOR; // 仅用于设置 app handle
@@ -62,19 +63,12 @@ use services::script_executor::*;
 use services::script_manager::*;  // 新增：脚本管理服务
 use services::smart_app_service::*;
 use services::smart_element_finder_service::{smart_element_finder, click_detected_element};
-use services::commands::{
-    execute_single_step_test, 
-    execute_smart_automation_script, 
-    execute_smart_automation_script_multi,
-    execute_chain_test, // 🆕 智能自动链测试
-    execute_static_strategy_test, // 🆕 静态策略测试
-};
+use services::commands::{execute_single_step_test, execute_smart_automation_script, execute_smart_automation_script_multi};
 use services::scrcpy_manager::{start_device_mirror, stop_device_mirror, stop_device_mirror_session, list_device_mirror_sessions, cleanup_all, check_scrcpy_available, get_scrcpy_capabilities};
 // 直接使用的其他命令函数（未在 commands::* re-export 中覆盖的服务命令）
 use services::ui_reader_service::read_device_ui_state;
 use services::smart_vcf_opener::smart_vcf_opener;
 // 注意: write_file, delete_file, reveal_in_file_manager 已在 commands/files.rs 中定义
-// TEMPORARILY DISABLED
 // use xml_judgment_service::{
 //     get_device_ui_xml,
 //     find_xml_ui_elements,
@@ -113,6 +107,9 @@ fn main() {
         settings: parking_lot::RwLock::new(ai::config::load_settings()),
     };
     
+    // 初始化精准获客状态
+    let prospecting_state = ProspectingState::new();
+    
     // 初始化实时设备跟踪器 (替代旧的轮询系统)
     initialize_device_tracker()
         .expect("Failed to initialize device tracker");
@@ -132,12 +129,25 @@ fn main() {
                     .expect("LOG_COLLECTOR pointer should be valid");
                 collector_mut.set_app_handle(app.handle().clone());
             }
+            
+            // 初始化精准获客存储
+            let data_dir = app.path().app_data_dir()
+                .expect("Failed to get app data dir")
+                .join("prospecting");
+            std::fs::create_dir_all(&data_dir).ok();
+            
+            let prospecting_state = app.state::<ProspectingState>();
+            if let Err(e) = prospecting_state.init_storage(data_dir) {
+                eprintln!("Failed to initialize prospecting storage: {}", e);
+            }
+            
             Ok(())
         })
         .manage(Mutex::new(employee_service))
         .manage(Mutex::new(adb_service))
         .manage(smart_app_service)
         .manage(ai_state)
+        .manage(prospecting_state)
         // 应用关闭清理外部进程（scrcpy 等）
         .on_window_event(|_window, event| {
             if let tauri::WindowEvent::CloseRequested { .. } = event {
@@ -195,31 +205,28 @@ fn main() {
             // 批量将号码回滚为“未导入到任何手机”
             mark_contact_numbers_as_not_imported,
             // 号码批次与导入追踪
-            // create_vcf_batch_record,  // TEMPORARILY DISABLED
-            // list_vcf_batch_records,   // TEMPORARILY DISABLED 
-            // get_vcf_batch_record,     // TEMPORARILY DISABLED
-            // create_import_session_record, // TEMPORARILY DISABLED
-            // finish_import_session_record, // TEMPORARILY DISABLED
-            // list_import_session_records,  // TEMPORARILY DISABLED
-            // list_numbers_by_vcf_batch,         // TEMPORARILY DISABLED
-            // list_numbers_by_vcf_batch_filtered, // TEMPORARILY DISABLED  
-            // list_numbers_without_vcf_batch,     // TEMPORARILY DISABLED
+            create_vcf_batch_cmd,
+            list_vcf_batches_cmd,
+            get_vcf_batch_cmd,
+            // create_import_session_record,      // 未实现
+            // finish_import_session_record,      // 未实现
+            // list_import_session_records,       // 未实现
+            // list_numbers_by_vcf_batch,          // 已重命名为下面的命令
+            list_contact_numbers_by_batch_filtered,
+            list_contact_numbers_without_batch,
             get_contact_number_stats_cmd,
             get_distinct_industries_cmd,
             set_contact_numbers_industry_by_id_range,
             create_vcf_batch_with_numbers_cmd,
-            // list_numbers_for_vcf_batch_cmd,      // TEMPORARILY DISABLED
-            // tag_numbers_industry_by_vcf_batch_cmd, // TEMPORARILY DISABLED
-            // update_import_session_industry_cmd,   // TEMPORARILY DISABLED
-            // revert_import_session_to_failed_cmd,  // TEMPORARILY DISABLED
-            // delete_import_session_cmd,            // TEMPORARILY DISABLED
-            // list_import_session_events_cmd,       // TEMPORARILY DISABLED
-                // allocate_numbers_to_device_cmd, // TEMPORARILY DISABLED
+            // list_numbers_for_vcf_batch_cmd,     // 命令名称待确认
+            tag_contact_numbers_industry_by_vcf_batch, // 修正命令名称
+            // update_import_session_industry_cmd,  // 暂未实现
+            // revert_import_session_to_failed_cmd, // 暂未实现
+            // delete_import_session_cmd,           // 暂未实现
+            // list_import_session_events_cmd,      // 暂未实现
+            // allocate_numbers_to_device_cmd,      // 暂未实现
             // 号码ID查询（全量按筛选）
             list_all_contact_number_ids,
-            // TXT导入记录管理
-            list_txt_import_records_cmd,
-            delete_txt_import_record_cmd,
             // 新增的VCF导入和小红书自动关注功能
             generate_vcf_file,
             import_vcf_contacts_multi_brand,    // 多品牌批量尝试导入
@@ -255,8 +262,6 @@ fn main() {
             execute_single_step_test,        // 执行单步测试
             execute_smart_automation_script, // 执行智能脚本批量操作
             execute_smart_automation_script_multi, // 多设备执行智能脚本
-            execute_chain_test,              // 🆕 执行智能自动链测试
-            execute_static_strategy_test,    // 🆕 执行静态策略测试
             // 脚本管理功能
             save_smart_script,            // 保存智能脚本
             load_smart_script,            // 加载智能脚本
@@ -269,11 +274,11 @@ fn main() {
             // 截图服务功能
             capture_device_screenshot,    // 捕获设备截图
             get_device_screen_resolution, // 获取设备分辨率
-            // XML判断服务功能
-            // get_device_ui_xml,       // TEMPORARILY DISABLED
-            // find_xml_ui_elements,    // TEMPORARILY DISABLED  
-            // wait_for_ui_element,     // TEMPORARILY DISABLED
-            // check_device_page_state, // TEMPORARILY DISABLED
+            // XML判断服务功能（通过其他模块提供）
+            // get_device_ui_xml,       // 获取UI XML结构 - 已在 xml_cache 模块中
+            // find_xml_ui_elements,    // 查找XML UI元素 - 已在 ui_reader_service 中
+            // wait_for_ui_element,     // 等待元素出现 - 未实现
+            // check_device_page_state, // 检查页面状态 - 未实现
             match_element_by_criteria, // 按匹配条件查找元素
             // 智能应用管理功能
             get_device_apps,         // 获取设备应用列表
@@ -328,6 +333,16 @@ fn main() {
             ai::commands::list_models,
             ai::commands::ai_chat,
             ai::commands::ai_embed
+            // 精准获客模块命令（暂时注释，等模块设置完成后启用）
+            // prospecting_save_comment,
+            // prospecting_get_comments,
+            // prospecting_get_comments_by_ids,
+            // prospecting_save_analysis,
+            // prospecting_save_reply_plan,
+            // prospecting_get_reply_plans,
+            // prospecting_get_reply_plans_by_ids,
+            // prospecting_execute_real_reply_plan,
+            // prospecting_get_statistics
         ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");

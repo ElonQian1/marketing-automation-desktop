@@ -11,7 +11,7 @@
       ],
       "@ai/*": ["src/modules/ai/*"],
       "@contact/*": ["src/modules/contact-import/*"],
-      "@prospecting/*": ["src/modules/precise-acquisition/*"],
+      "@prospecting/*": ["src/modules/prospecting/*"],
       "@script/*": ["src/modules/smart-script-management/*"],
       "@universal/*": ["src/modules/universal-ui/*"],
       "@shared/*": ["src/shared/*"]
