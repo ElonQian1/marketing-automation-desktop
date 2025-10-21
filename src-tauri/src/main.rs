@@ -4,7 +4,6 @@
 // mod commands;
 mod application; // expose new application module (normalizer, device_metrics)
 mod domain;      // expose domain modules
-mod infra;       // expose infra (adb injector, device metrics provider)
 mod infrastructure; // expose infrastructure (events, etc.)
 mod screenshot_service;
 mod services;
@@ -15,6 +14,7 @@ mod utils;
 mod ai; // AI 模块
 mod config; // 配置模块
 mod engine; // 策略引擎模块
+mod exec; // V3 统一执行协议
 // XML judgment service 通过 services 模块引入
 
 // Universal UI Finder 模块桥接
@@ -332,7 +332,7 @@ fn main() {
             ai::commands::save_ai_settings,
             ai::commands::list_models,
             ai::commands::ai_chat,
-            ai::commands::ai_embed
+            ai::commands::ai_embed,
             // 精准获客模块命令（暂时注释，等模块设置完成后启用）
             // prospecting_save_comment,
             // prospecting_get_comments,
@@ -342,7 +342,12 @@ fn main() {
             // prospecting_get_reply_plans,
             // prospecting_get_reply_plans_by_ids,
             // prospecting_execute_real_reply_plan,
-            // prospecting_get_statistics
+            // prospecting_get_statistics,
+            // V3 统一执行协议命令
+            exec::v3::execute_single_step_test_v3,
+            exec::v3::execute_chain_test_v3,
+            exec::v3::execute_static_strategy_test_v3,
+            exec::v3::execute_task_v3
         ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");
