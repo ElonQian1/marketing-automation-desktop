@@ -64,19 +64,21 @@ export const LoopStartCard: React.FC<LoopStartCardProps> = ({
   return (
     <Card
       {...noDragProps}
-      className="loop-start-card"
+      className="loop-start-card light-theme-force"
+      size="small"
       style={{
         width: '100%',
-        marginBottom: 16,
-        border: '3px solid #3b82f6',
-        borderRadius: 12,
+        marginBottom: 8, // 🎯 与普通卡片一致的间距
+        border: '2px solid #0ea5e9', // 🎯 更细的边框，与普通卡片保持一致的视觉权重
+        borderRadius: 8, // 🎯 与普通卡片一致的圆角
         boxShadow: isDragging 
-          ? '0 8px 32px rgba(59, 130, 246, 0.3)' 
-          : '0 4px 16px rgba(59, 130, 246, 0.15)',
+          ? '0 4px 16px rgba(14, 165, 233, 0.25)' 
+          : '0 2px 8px rgba(14, 165, 233, 0.15)', // 🎯 更轻的阴影
         position: 'relative',
-        background: 'linear-gradient(135deg, #ffffff 0%, #f8fafc 100%)',
+        background: 'linear-gradient(135deg, #f0f9ff 0%, #f8fafc 100%)', // 🎯 更浅的背景
+        minHeight: 'auto', // 🎯 允许自然高度，不强制最小高度
         ...(isDragging ? { 
-          transform: 'rotate(2deg)', 
+          transform: 'rotate(1deg)', // 🎯 更小的旋转角度
           zIndex: 1000 
         } : {}),
       }}
@@ -93,11 +95,9 @@ export const LoopStartCard: React.FC<LoopStartCardProps> = ({
         />
       }
     >
-      {/* 装饰性元素 */}
-      <div className="loop-top-accent"></div>
-      <div className="loop-left-accent"></div>
-
-      {/* 配置表单 */}
+      {/* 🎯 移除装饰性元素，减少视觉复杂度 */}
+      
+      {/* 配置表单 - 简化显示 */}
       <LoopConfigForm
         tempConfig={tempConfig}
         isEditing={isEditing}

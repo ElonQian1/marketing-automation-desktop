@@ -1,40 +1,138 @@
 /* 循环卡片独立样式基准线 */
 /* src/styles/surfaces/loop.css */
 
-/* ===== 循环卡片核心样式基准 ===== */
+/* ===== 循环卡片简化样式基准 - 颜色区分设计 ===== */
 
 .loop-step-card {
-  /* 基础容器样式 - 使用设计令牌 */
-  --loop-card-bg: var(--bg-light-base, #ffffff);
-  --loop-card-border: var(--border-2, #e5e7eb);
-  --loop-card-border-active: var(--accent-9, #1890ff);
-  --loop-card-shadow: var(--shadow-1, 0 2px 4px rgba(0, 0, 0, 0.1));
-  --loop-card-shadow-active: var(--shadow-2, 0 4px 12px rgba(24, 144, 255, 0.15));
-  --loop-card-radius: var(--radius-2, 8px);
+  /* 循环卡片专用颜色主题 - 绿色系 */
+  --loop-card-bg: #065f46;           /* 深绿色背景 */
+  --loop-card-border: #047857;       /* 绿色边框 */
+  --loop-card-text: #ecfdf5;         /* 浅绿色文字 */
+  --loop-card-text-secondary: #a7f3d0; /* 次要文字 */
   
-  /* 文本颜色 - 强制黑色文字 */
-  --loop-card-text-primary: var(--text-inverse, #111827);
-  --loop-card-text-secondary: var(--text-3, #6b7280);
+  /* 布局变量 */
+  --loop-card-radius: 12px;
+  --loop-card-padding: 16px;
+  --loop-spacing-sm: 8px;
+  --loop-spacing-md: 12px;
   
-  /* 头部样式 */
-  --loop-header-bg: var(--bg-3, #f8fafc);
-  --loop-header-text: var(--text-inverse, #111827);
+  /* 基础样式 */
+  background: var(--loop-card-bg) !important;
+  color: var(--loop-card-text) !important;
+  border: 1px solid var(--loop-card-border) !important;
+  border-radius: var(--loop-card-radius);
+  padding: var(--loop-card-padding);
+  margin-bottom: var(--loop-spacing-md);
+  min-height: 80px;
+  font-size: 14px;
+  font-weight: 400;
+  line-height: 1.5;
+  cursor: grab;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.12);
+  transition: all 0.2s ease;
+  position: relative;
   
-  /* 循环体样式 */
-  --loop-body-bg: #f6ffed;
-  --loop-body-border: #b7eb8f;
-  --loop-body-text: var(--text-inverse, #1f2937);
-  
-  /* 间距基准 */
-  --loop-spacing-xs: var(--space-1, 4px);
-  --loop-spacing-sm: var(--space-2, 8px);
-  --loop-spacing-md: var(--space-3, 12px);
-  --loop-spacing-lg: var(--space-4, 16px);
-  --loop-spacing-xl: var(--space-6, 24px);
-  
-  /* 图标颜色 */
-  --loop-icon-primary: var(--accent-9, #1890ff);
-  --loop-icon-secondary: var(--text-3, #6b7280);
+  /* 拖拽指示器 */
+  &::before {
+    content: '';
+    position: absolute;
+    left: 6px;
+    top: 50%;
+    transform: translateY(-50%);
+    width: 4px;
+    height: 20px;
+    background: var(--loop-card-text-secondary);
+    border-radius: 2px;
+    opacity: 0.5;
+  }
+}
+
+/* 悬停效果 */
+.loop-step-card:hover {
+  background: #047857 !important;
+  border-color: #059669 !important;
+  box-shadow: 0 2px 8px rgba(5, 150, 105, 0.3);
+}
+
+/* 执行状态 */
+.loop-step-card.executing {
+  border: 2px solid #10b981 !important;
+  box-shadow: 0 0 16px rgba(16, 185, 129, 0.4);
+  animation: loop-executing-pulse 2s infinite;
+}
+
+@keyframes loop-executing-pulse {
+  0%, 100% { box-shadow: 0 0 16px rgba(16, 185, 129, 0.4); }
+  50% { box-shadow: 0 0 20px rgba(16, 185, 129, 0.6); }
+}
+
+/* 循环开始卡片 */
+.loop-step-card.loop-start {
+  border-left: 4px solid #10b981;
+}
+
+/* 循环结束卡片 */
+.loop-step-card.loop-end {
+  border-left: 4px solid #f59e0b;
+}
+
+/* 禁用所有复杂的Ant Design样式 */
+.loop-step-card .ant-card-head,
+.loop-step-card .ant-card-body,
+.loop-step-card .ant-card-extra {
+  background: transparent !important;
+  border: none !important;
+  padding: 0 !important;
+}
+
+/* 文字颜色统一 */
+.loop-step-card,
+.loop-step-card * {
+  color: var(--loop-card-text) !important;
+}
+
+/* 次要文字 */
+.loop-step-card .text-secondary {
+  color: var(--loop-card-text-secondary) !important;
+}
+
+/* 按钮样式简化 */
+.loop-step-card .ant-btn {
+  background: rgba(255, 255, 255, 0.1) !important;
+  border-color: rgba(255, 255, 255, 0.2) !important;
+  color: var(--loop-card-text) !important;
+}
+
+.loop-step-card .ant-btn:hover {
+  background: rgba(255, 255, 255, 0.2) !important;
+  border-color: rgba(255, 255, 255, 0.3) !important;
+}
+
+/* 标签样式 */
+.loop-step-card .ant-tag {
+  background: rgba(16, 185, 129, 0.2) !important;
+  border-color: rgba(16, 185, 129, 0.4) !important;
+  color: #ecfdf5 !important;
+}
+
+/* 循环对指示器 */
+.loop-pair-indicator {
+  position: absolute;
+  right: 8px;
+  top: 8px;
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: #10b981;
+  opacity: 0.8;
+}
+
+.loop-step-card.loop-start .loop-pair-indicator {
+  background: #10b981; /* 开始：绿色 */
+}
+
+.loop-step-card.loop-end .loop-pair-indicator {
+  background: #f59e0b; /* 结束：橙色 */
 }
 
 /* ===== 循环卡片基础结构 ===== */

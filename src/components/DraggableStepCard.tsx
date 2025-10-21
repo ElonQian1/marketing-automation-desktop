@@ -387,6 +387,11 @@ const DraggableStepCardInner: React.FC<
   // 获取当前设备信息
   const currentDevice = devices.find((d) => d.id === currentDeviceId);
 
+  // 🔄 检测是否为循环步骤
+  const isLoopStep = step.step_type === 'loop_start' || step.step_type === 'loop_end';
+  const isLoopStart = step.step_type === 'loop_start';
+  const isLoopEnd = step.step_type === 'loop_end';
+
   const handleEdit = () => {
     if (onOpenPageAnalyzer) {
       onOpenPageAnalyzer();
@@ -397,27 +402,63 @@ const DraggableStepCardInner: React.FC<
     }
   };
 
-  // 组合样式 - 使用独立设计基准
+  // 🎨 循环步骤的独立样式基准线 - 统一蓝色配对
+  const getLoopStepStyle = (): React.CSSProperties => {
+    if (isLoopStart) {
+      return {
+        background: 'linear-gradient(135deg, #e0f2fe 0%, #f0f9ff 100%)', // 浅蓝渐变
+        border: '2px solid #0ea5e9', // 蓝色边框
+        color: '#0c4a6e', // 深蓝文字
+        boxShadow: '0 4px 16px rgba(14, 165, 233, 0.15)',
+      };
+    }
+    if (isLoopEnd) {
+      return {
+        background: 'linear-gradient(135deg, #e0f2fe 0%, #f0f9ff 100%)', // 相同浅蓝渐变
+        border: '2px solid #0ea5e9', // 相同蓝色边框
+        color: '#0c4a6e', // 相同深蓝文字
+        boxShadow: '0 4px 16px rgba(14, 165, 233, 0.15)',
+      };
+    }
+    return {};
+  };
+
+  // 组合样式 - 循环步骤使用独立样式，普通步骤使用原有样式
   const cardStyle: React.CSSProperties = {
     ...modernStepCardStyles.card,
     ...dragStyle,
     ...(isDragging ? modernStepCardStyles.dragging : {}),
     ...(!step.enabled ? modernStepCardStyles.disabled : {}),
-    // 强制确保使用我们的设计基准颜色
-    background: STEP_CARD_DESIGN_TOKENS.colors.bg.primary,
-    color: STEP_CARD_DESIGN_TOKENS.colors.text.primary,
-    border: `1px solid ${STEP_CARD_DESIGN_TOKENS.colors.border.default}`,
+    // 根据步骤类型应用不同样式
+    ...(isLoopStep ? getLoopStepStyle() : {
+      // 普通步骤：使用深色主题
+      background: STEP_CARD_DESIGN_TOKENS.colors.bg.primary,
+      color: STEP_CARD_DESIGN_TOKENS.colors.text.primary,
+      border: `1px solid ${STEP_CARD_DESIGN_TOKENS.colors.border.default}`,
+    }),
   };
 
   return (
     <div
-      className={`modern-draggable-step-card ${styles.darkThemeCard}`}
+      className={`modern-draggable-step-card ${styles.darkThemeCard} ${isLoopStep ? 'loop-step-card' : ''}`}
       style={cardStyle}
       onMouseEnter={(e) => {
         if (!isDragging) {
           const card = e.currentTarget;
-          card.style.borderColor = STEP_CARD_DESIGN_TOKENS.colors.border.hover;
-          card.style.boxShadow = STEP_CARD_DESIGN_TOKENS.shadows.brand;
+          if (isLoopStep) {
+            // 循环步骤悬停效果 - 统一蓝色
+            if (isLoopStart) {
+              card.style.borderColor = '#0284c7';
+              card.style.boxShadow = '0 8px 24px rgba(14, 165, 233, 0.25)';
+            } else if (isLoopEnd) {
+              card.style.borderColor = '#0284c7'; // 相同的蓝色悬停
+              card.style.boxShadow = '0 8px 24px rgba(14, 165, 233, 0.25)'; // 相同的蓝色阴影
+            }
+          } else {
+            // 普通步骤悬停效果
+            card.style.borderColor = STEP_CARD_DESIGN_TOKENS.colors.border.hover;
+            card.style.boxShadow = STEP_CARD_DESIGN_TOKENS.shadows.brand;
+          }
           card.style.transform =
             CSS.Transform.toString(transform) + " translateY(-1px)";
         }
@@ -425,9 +466,21 @@ const DraggableStepCardInner: React.FC<
       onMouseLeave={(e) => {
         if (!isDragging) {
           const card = e.currentTarget;
-          card.style.borderColor =
-            STEP_CARD_DESIGN_TOKENS.colors.border.default;
-          card.style.boxShadow = STEP_CARD_DESIGN_TOKENS.shadows.sm;
+          if (isLoopStep) {
+            // 恢复循环步骤原始样式 - 统一蓝色
+            if (isLoopStart) {
+              card.style.borderColor = '#0ea5e9';
+              card.style.boxShadow = '0 4px 16px rgba(14, 165, 233, 0.15)';
+            } else if (isLoopEnd) {
+              card.style.borderColor = '#0ea5e9'; // 相同的蓝色边框
+              card.style.boxShadow = '0 4px 16px rgba(14, 165, 233, 0.15)'; // 相同的蓝色阴影
+            }
+          } else {
+            // 恢复普通步骤原始样式
+            card.style.borderColor =
+              STEP_CARD_DESIGN_TOKENS.colors.border.default;
+            card.style.boxShadow = STEP_CARD_DESIGN_TOKENS.shadows.sm;
+          }
           card.style.transform = CSS.Transform.toString(transform);
         }
       }}
@@ -493,22 +546,30 @@ const DraggableStepCardInner: React.FC<
                 width: "28px",
                 height: "28px",
                 borderRadius: "50%",
-                background: step.enabled
-                  ? "var(--brand-gradient-primary, linear-gradient(135deg, #6E8BFF 0%, #8B5CF6 100%))"
-                  : "var(--bg-secondary, #334155)",
+                background: isLoopStep
+                  ? (isLoopStart 
+                      ? "linear-gradient(135deg, #0ea5e9 0%, #0284c7 100%)" // 蓝色渐变
+                      : "linear-gradient(135deg, #22c55e 0%, #16a34a 100%)") // 绿色渐变
+                  : (step.enabled
+                      ? "var(--brand-gradient-primary, linear-gradient(135deg, #6E8BFF 0%, #8B5CF6 100%))"
+                      : "var(--bg-secondary, #334155)"),
                 display: "flex",
                 alignItems: "center",
                 justifyContent: "center",
-                color: step.enabled ? "#fff" : "var(--text-3, #CBD5E1)",
-                fontSize: "13px",
+                color: isLoopStep ? "#fff" : (step.enabled ? "#fff" : "var(--text-3, #CBD5E1)"),
+                fontSize: isLoopStep ? "12px" : "13px",
                 fontWeight: "600",
                 flexShrink: 0,
-                boxShadow: step.enabled
-                  ? "0 2px 8px rgba(110, 139, 255, 0.3)"
-                  : "none",
+                boxShadow: isLoopStep
+                  ? (isLoopStart 
+                      ? "0 2px 8px rgba(14, 165, 233, 0.3)"
+                      : "0 2px 8px rgba(34, 197, 94, 0.3)")
+                  : (step.enabled
+                      ? "0 2px 8px rgba(110, 139, 255, 0.3)"
+                      : "none"),
               }}
             >
-              {index + 1}
+              {isLoopStep ? (isLoopStart ? "🔄" : "✓") : (index + 1)}
             </div>
 
             {/* 标题 */}
@@ -518,7 +579,9 @@ const DraggableStepCardInner: React.FC<
                 fontSize: STEP_CARD_DESIGN_TOKENS.typography.fontSize.lg,
                 fontWeight:
                   STEP_CARD_DESIGN_TOKENS.typography.fontWeight.medium,
-                color: STEP_CARD_DESIGN_TOKENS.colors.text.primary,
+                color: isLoopStep 
+                  ? (isLoopStart ? '#0c4a6e' : '#14532d')  // 循环步骤使用对应颜色
+                  : STEP_CARD_DESIGN_TOKENS.colors.text.primary,
                 flex: "1 1 0%",
                 lineHeight: STEP_CARD_DESIGN_TOKENS.typography.lineHeight.tight,
                 minWidth: 0, // 允许文字收缩
@@ -526,7 +589,9 @@ const DraggableStepCardInner: React.FC<
                 overflowWrap: "break-word", // 兼容性更好的换行
               }}
             >
-              {step.description || step.name || `步骤 ${index + 1}`}
+              {isLoopStep 
+                ? (isLoopStart ? "🔄 循环开始" : "✅ 循环结束")
+                : (step.description || step.name || `步骤 ${index + 1}`)}
             </h4>
           </div>
 
@@ -808,61 +873,98 @@ const DraggableStepCardInner: React.FC<
           </div>
         </div>
 
-        {/* 状态条 */}
+        {/* 状态条 - 循环步骤简化显示 */}
         <div
           className="status-indicator"
           style={{
             display: "flex",
             alignItems: "center",
             gap: "8px",
-            padding: "8px 12px",
-            background: statusConfig.bgColor,
+            padding: isLoopStep ? "6px 10px" : "8px 12px", // 循环步骤稍微小一点
+            background: isLoopStep 
+              ? (isLoopStart ? "rgba(14, 165, 233, 0.1)" : "rgba(34, 197, 94, 0.1)")
+              : statusConfig.bgColor,
             borderRadius: "6px",
-            fontSize: "12px",
+            fontSize: isLoopStep ? "11px" : "12px",
           }}
         >
           <span
             style={{
-              color: statusConfig.color,
-              fontSize: "10px",
+              color: isLoopStep 
+                ? (isLoopStart ? "#0ea5e9" : "#22c55e")
+                : statusConfig.color,
+              fontSize: "12px",
             }}
           >
-            {statusConfig.icon}
+            {isLoopStep 
+              ? (isLoopStart ? "🔄" : "🏁")
+              : statusConfig.icon}
           </span>
           <span
             style={{
-              color: statusConfig.color,
+              color: isLoopStep 
+                ? "#0ea5e9" // 统一使用蓝色
+                : statusConfig.color,
               fontWeight: "500",
             }}
           >
-            {statusConfig.text}
+            {isLoopStep 
+              ? (isLoopStart ? "循环开始" : "循环结束")
+              : statusConfig.text}
           </span>
         </div>
 
-        {/* 步骤详情 */}
-        <div
-          style={{
-            display: "flex",
-            alignItems: "center",
-            gap: STEP_CARD_DESIGN_TOKENS.spacing.md,
-            fontSize: STEP_CARD_DESIGN_TOKENS.typography.fontSize.md,
-            color: STEP_CARD_DESIGN_TOKENS.colors.text.muted,
-            lineHeight: STEP_CARD_DESIGN_TOKENS.typography.lineHeight.normal,
-          }}
-        >
-          <span>类型: {step.step_type}</span>
+        {/* 步骤详情 - 循环步骤简化显示 */}
+        {!isLoopStep && (
+          <div
+            style={{
+              display: "flex",
+              alignItems: "center",
+              gap: STEP_CARD_DESIGN_TOKENS.spacing.md,
+              fontSize: STEP_CARD_DESIGN_TOKENS.typography.fontSize.md,
+              color: STEP_CARD_DESIGN_TOKENS.colors.text.muted,
+              lineHeight: STEP_CARD_DESIGN_TOKENS.typography.lineHeight.normal,
+            }}
+          >
+            <span>类型: {step.step_type}</span>
 
-          {step.parameters?.element_selector && (
+            {step.parameters?.element_selector && (
+              <span>
+                选择器:{" "}
+                {step.parameters.element_selector.length > 30
+                  ? step.parameters.element_selector.substring(0, 30) + "..."
+                  : step.parameters.element_selector}
+              </span>
+            )}
+
+            {currentDevice && <span>设备: {currentDevice.name}</span>}
+          </div>
+        )}
+
+        {/* 循环步骤的简化信息 - 统一蓝色配对样式 */}
+        {isLoopStep && (
+          <div
+            style={{
+              display: "flex",
+              alignItems: "center",
+              gap: STEP_CARD_DESIGN_TOKENS.spacing.sm,
+              fontSize: "11px",
+              color: "#0c4a6e", // 统一使用深蓝色
+              lineHeight: 1.3,
+              fontWeight: "500",
+              background: "rgba(14, 165, 233, 0.1)", // 统一使用蓝色背景
+              padding: "4px 8px",
+              borderRadius: "4px",
+              border: "1px solid rgba(14, 165, 233, 0.2)", // 统一使用蓝色边框
+            }}
+          >
             <span>
-              选择器:{" "}
-              {step.parameters.element_selector.length > 30
-                ? step.parameters.element_selector.substring(0, 30) + "..."
-                : step.parameters.element_selector}
+              {isLoopStart 
+                ? `🔄 循环类型: ${step.parameters?.loop_type || 'for'} 次数: ${step.parameters?.iterations || '3'} ✓ 已启用`
+                : `🏁 循环结束 类型: ${step.parameters?.loop_type || 'for'} ✓ 已启用`}
             </span>
-          )}
-
-          {currentDevice && <span>设备: {currentDevice.name}</span>}
-        </div>
+          </div>
+        )}
 
         {/* 循环信息 */}
         {step.loop_config && (
