@@ -431,7 +431,7 @@ fn build_analysis_context(element_context: &ElementSelectionContext) -> Analysis
 
 /// 转换StepResult为AnalysisResult (兼容现有代码)
 fn convert_step_result_to_analysis_result(
-    step_result: &crate::engine::StepResult,
+    step_result: &crate::engine::strategy_engine::StepResult,
     selection_hash: &str,
     config: &AnalysisJobConfig,
 ) -> AnalysisResult {
