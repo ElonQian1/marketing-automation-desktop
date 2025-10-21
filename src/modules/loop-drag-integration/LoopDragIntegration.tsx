@@ -7,7 +7,7 @@
 import React, { useMemo, useCallback } from "react";
 import { Card, Typography, Space } from "antd";
 import { DragSortContainer } from "../drag-sort/components/DragSortContainer";
-import { LoopStepCard } from "../loop-control/components/LoopStepCard";
+import { DraggableStepCard } from "../../components/DraggableStepCard";
 import { useDragSort } from "../drag-sort/hooks/useDragSort";
 import { useLoopControl } from "../loop-control/hooks/useLoopControl";
 
@@ -47,7 +47,7 @@ export const LoopDragIntegration: React.FC<LoopDragIntegrationProps> = ({
   const draggableItems: DraggableItem[] = useMemo(() => {
     return steps.map((step, index) => ({
       id: step.id,
-      type: step.actionType,
+      type: step.step_type,
       containerId: step.parentLoopId || "main",
       position: index,
       data: step,
@@ -68,10 +68,10 @@ export const LoopDragIntegration: React.FC<LoopDragIntegrationProps> = ({
 
     // 为每个循环开始步骤创建循环体区域
     steps.forEach((step) => {
-      if (step.actionType === "LOOP_START") {
+      if (step.step_type === "loop_start") {
         areas.push({
           id: `loop-${step.id}`,
-          title: `循环体 - ${step.actionName || "未命名循环"}`,
+          title: `循环体 - ${step.name || "未命名循环"}`,
           type: "loop",
           emptyText: "拖拽步骤到循环体内",
           backgroundColor: "#f0f8ff",
@@ -84,11 +84,7 @@ export const LoopDragIntegration: React.FC<LoopDragIntegrationProps> = ({
   }, [steps]);
 
   // 循环控制Hook
-  const loopControl = useLoopControl({
-    steps,
-    onStepsChange,
-    onConfigChange: onLoopConfigChange,
-  });
+  const loopControl = useLoopControl({});
 
   // 拖拽排序Hook
   const dragSort = useDragSort({
@@ -131,7 +127,7 @@ export const LoopDragIntegration: React.FC<LoopDragIntegrationProps> = ({
     // 循环开始/结束步骤不能拖入循环体
     if (
       targetContainer.startsWith("loop-") &&
-      (step.actionType === "LOOP_START" || step.actionType === "LOOP_END")
+      (step.step_type === "loop_start" || step.step_type === "loop_end")
     ) {
       return false;
     }
@@ -147,15 +143,16 @@ export const LoopDragIntegration: React.FC<LoopDragIntegrationProps> = ({
   // 默认步骤渲染函数
   const defaultRenderStep = useCallback(
     (step: ExtendedSmartScriptStep, isDragging = false) => {
-      if (step.actionType === "LOOP_START" || step.actionType === "LOOP_END") {
+      if (step.step_type === "loop_start" || step.step_type === "loop_end") {
         return (
-          <LoopStepCard
+          <DraggableStepCard
             step={step}
-            loopConfig={loopControl.getLoopConfig(step.id)}
-            onConfigChange={(config) =>
-              loopControl.updateLoopConfig(step.id, config)
-            }
-            onRemove={() => loopControl.removeLoop(step.id)}
+            index={0}
+            isDragging={isDragging}
+            devices={[]}
+            onEdit={() => {}}
+            onDelete={() => {}}
+            onToggle={() => {}}
             style={{
               opacity: isDragging ? 0.5 : 1,
               transform: isDragging ? "rotate(5deg)" : undefined,
@@ -167,34 +164,21 @@ export const LoopDragIntegration: React.FC<LoopDragIntegrationProps> = ({
 
       // 普通步骤卡片
       return (
-        <Card
-          size="small"
+        <DraggableStepCard
+          step={step}
+          index={0}
+          isDragging={isDragging}
+          devices={[]}
+          onEdit={() => {}}
+          onDelete={() => {}}
+          onToggle={() => {}}
           style={{
             marginBottom: 8,
             opacity: isDragging ? 0.5 : 1,
             transform: isDragging ? "rotate(5deg)" : undefined,
             cursor: isDragging ? "grabbing" : "grab",
-            border: step.parentLoopId
-              ? "2px solid #1890ff"
-              : "1px solid #d9d9d9",
           }}
-        >
-          <Space direction="vertical" size={4} style={{ width: "100%" }}>
-            <div style={{ fontWeight: 500, fontSize: "14px" }}>
-              {step.actionName || step.actionType}
-            </div>
-            {step.actionData && (
-              <div style={{ fontSize: "12px", color: "#666" }}>
-                {JSON.stringify(step.actionData, null, 2)}
-              </div>
-            )}
-            {step.parentLoopId && (
-              <div style={{ fontSize: "10px", color: "#1890ff" }}>
-                属于循环: {step.parentLoopId}
-              </div>
-            )}
-          </Space>
-        </Card>
+        />
       );
     },
     [loopControl]
@@ -236,12 +220,9 @@ export const LoopDragIntegration: React.FC<LoopDragIntegrationProps> = ({
         <Card>
           <Space style={{ marginBottom: 16 }}>
             <button
-              onClick={() =>
-                loopControl.addLoop({
-                  condition: "true",
-                  maxIterations: 10,
-                })
-              }
+              onClick={() => {
+                console.log("添加循环功能暂不可用");
+              }}
               style={{
                 padding: "6px 12px",
                 backgroundColor: "#1890ff",

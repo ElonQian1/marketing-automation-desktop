@@ -9,6 +9,7 @@ export * from './types';
 
 // 组件导出
 export { default as LoopStepCard } from './components/LoopStepCard';
+export { default as SimpleLoopCard } from './components/SimpleLoopCard'; // 新增简化循环卡片
 
 // Hook导出
 export { default as useLoopControl } from './hooks/useLoopControl';
