@@ -74,3 +74,15 @@ pub fn write_replay_plan(app_handle: &AppHandle, plan: ReplayPlan) -> anyhow::Re
     fs::write(file, serde_json::to_vec_pretty(&arr)?)?;
     Ok(())
 }
+
+pub fn get_replay_plan(app_handle: &AppHandle, plan_id: &str) -> anyhow::Result<ReplayPlan> {
+    let outbox = data_dir(app_handle)?.join("../../debug/outbox");
+    let file = outbox.join("replay_plans.json");
+    if !file.exists() {
+        anyhow::bail!("回放计划文件不存在");
+    }
+    let arr: Vec<ReplayPlan> = serde_json::from_slice(&fs::read(&file)?)?;
+    arr.into_iter()
+        .find(|p| p.id == plan_id)
+        .ok_or_else(|| anyhow::anyhow!("找不到计划: {}", plan_id))
+}

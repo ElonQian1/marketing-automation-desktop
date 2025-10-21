@@ -15,6 +15,7 @@ mod types;
 mod utils;
 mod ai; // AI 模块
 mod config; // 配置模块
+mod device; // 设备提供者与回放编排器
 // pub mod xml_judgment_service; // 新模块化 XML 判断服务 (旧文件已弃用) - 暂时注释，文件不存在
 
 // Universal UI Finder 模块桥接
@@ -364,6 +365,7 @@ fn main() {
             commands::lh_list_comments,
             commands::lh_import_comments,
             commands::lh_create_replay_plan,
+            commands::lh_run_replay_plan,
             // AI 模块命令
             ai::commands::get_ai_settings,
             ai::commands::save_ai_settings,

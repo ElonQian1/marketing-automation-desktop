@@ -4,7 +4,8 @@
 
 import { useEffect, useState } from "react";
 import { invoke } from "@tauri-apps/api/core";
-import { Card, Table, Button, Space, Tag, message, Tooltip, Select, Progress } from "antd";
+import { listen } from "@tauri-apps/api/event";
+import { Card, Table, Button, Space, Tag, message, Tooltip, Select, Progress, List } from "antd";
 import { 
   ReloadOutlined, 
   ImportOutlined, 
@@ -34,6 +35,8 @@ export default function LeadHunt() {
   const [analyzing, setAnalyzing] = useState(false);
   const [analysisProgress, setAnalysisProgress] = useState(0);
   const [filter, setFilter] = useState<string>("全部");
+  const [executionLogs, setExecutionLogs] = useState<string[]>([]);
+  const [executing, setExecuting] = useState(false);
 
   const refresh = async () => {
     try {
@@ -50,6 +53,29 @@ export default function LeadHunt() {
 
   useEffect(() => {
     refresh();
+
+    // 监听执行状态事件
+    const unlisten = listen<{
+      planId: string;
+      currentStep: number;
+      totalSteps: number;
+      stepName: string;
+      stepDescription: string;
+      status: string;
+      error?: string;
+    }>("orchestrator://status", (event) => {
+      const { currentStep, totalSteps, stepName, stepDescription, status, error } = event.payload;
+      const log = `[${currentStep}/${totalSteps}] ${stepName} - ${stepDescription} [${status}]${error ? ` 错误: ${error}` : ''}`;
+      setExecutionLogs((prev) => [...prev, log]);
+
+      if (status === "error" || currentStep === totalSteps) {
+        setExecuting(false);
+      }
+    });
+
+    return () => {
+      unlisten.then(fn => fn());
+    };
   }, []);
 
   const importMock = async () => {
@@ -118,6 +144,19 @@ export default function LeadHunt() {
       message.info("查看文件: debug/outbox/replay_plans.json");
     } catch (error) {
       message.error(`生成计划失败: ${error}`);
+    }
+  };
+
+  const runReplay = async (row: Row) => {
+    try {
+      setExecuting(true);
+      setExecutionLogs([`开始执行回放计划: ${row.id}`]);
+      
+      await invoke("lh_run_replay_plan", { planId: row.id });
+      message.success("回放计划已启动，请查看执行日志");
+    } catch (error) {
+      message.error(`启动回放失败: ${error}`);
+      setExecuting(false);
     }
   };
 
@@ -217,11 +256,13 @@ export default function LeadHunt() {
           >
             生成计划
           </Button>
-          <Tooltip title="执行模拟（PR-3 后可用）">
+          <Tooltip title={!record.analysis ? "请先进行AI分析" : "执行模拟回复"}>
             <Button
               size="small"
               icon={<PlayCircleOutlined />}
-              disabled
+              onClick={() => runReplay(record)}
+              disabled={!record.analysis || executing}
+              loading={executing}
             >
               执行模拟
             </Button>
@@ -305,12 +346,28 @@ export default function LeadHunt() {
 
         <div className="mb-4">
           <Space>
-            <Tag color="green">状态: PR-2 AI意图识别完成</Tag>
-            <Tag color="orange">待完成: PR-3 执行模拟</Tag>
+            <Tag color="blue">状态: PR-3 回放模拟完成</Tag>
             <Tag>共 {rows.length} 条评论</Tag>
             <Tag>已分析 {rows.filter(r => r.analysis).length} 条</Tag>
+            {executing && <Tag color="orange">执行中...</Tag>}
           </Space>
         </div>
+
+        {executionLogs.length > 0 && (
+          <Card title="执行日志" size="small" className="mb-4">
+            <List
+              size="small"
+              bordered
+              dataSource={executionLogs}
+              renderItem={(log, index) => (
+                <List.Item key={index}>
+                  <div style={{ fontFamily: "monospace", fontSize: "12px" }}>{log}</div>
+                </List.Item>
+              )}
+              style={{ maxHeight: "200px", overflowY: "auto" }}
+            />
+          </Card>
+        )}
 
         <Table
           columns={columns}
