@@ -5,8 +5,7 @@
 // 循环结束卡片组件
 
 import React, { useState } from 'react';
-import { Card, Button, Space, Typography, Tag, Modal, InputNumber, Switch, Divider, message } from 'antd';
-import ConfirmPopover from './universal-ui/common-popover/ConfirmPopover';
+import { Card, Button, Space, Typography, Tag, Modal, InputNumber, Switch, Divider, Popconfirm, message } from 'antd';
 import { 
   CheckCircleOutlined, 
   DeleteOutlined,
@@ -166,13 +165,19 @@ export const LoopEndCard: React.FC<LoopEndCardProps> = ({
               </Button>
 
               {/* 🗑️ 删除循环按钮 - 添加确认对话框 */}
-              <ConfirmPopover
-                mode="default"
+              <Popconfirm
                 title="确认删除循环"
                 description="删除循环将同时删除循环内的所有步骤，此操作不可撤销"
-                onConfirm={() => handleDeleteLoop()}
+                onConfirm={(e) => {
+                  e?.stopPropagation();
+                  handleDeleteLoop();
+                }}
+                onCancel={(e) => {
+                  e?.stopPropagation();
+                }}
                 okText="删除"
                 cancelText="取消"
+                okType="danger"
                 placement="topRight"
               >
                 <Button
@@ -183,10 +188,11 @@ export const LoopEndCard: React.FC<LoopEndCardProps> = ({
                   icon={<DeleteOutlined />}
                   onClick={(e) => {
                     e.stopPropagation();
+                    // Popconfirm 会处理确认逻辑
                   }}
                   title="删除整个循环"
                 />
-              </ConfirmPopover>
+              </Popconfirm>
             </Space>
           </div>
         }
