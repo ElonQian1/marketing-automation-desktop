@@ -4,24 +4,19 @@
 
 import { useEffect, useState } from "react";
 import { invoke } from "@tauri-apps/api/core";
-import { Card, Table, Button, Space, Tag, message, Tooltip } from "antd";
+import { Card, Table, Button, Space, Tag, message, Tooltip, Select, Progress } from "antd";
 import { 
   ReloadOutlined, 
   ImportOutlined, 
   ThunderboltOutlined,
-  PlayCircleOutlined 
+  PlayCircleOutlined,
+  RobotOutlined
 } from "@ant-design/icons";
 import type { ColumnsType } from "antd/es/table";
+import { analyzeBatchWithProgress, type RawComment } from "@/features/leadHunt/analyzeLead";
+import type { LeadAnalysis } from "@/ai/schemas/leadIntent.schema";
 
-type RawComment = {
-  id: string;
-  platform: "douyin" | "xhs";
-  videoUrl?: string;
-  author: string;
-  content: string;
-  ts?: number;
-  analysis?: any;
-};
+type Row = RawComment & { analysis?: LeadAnalysis };
 
 type ReplayPlan = {
   id: string;
@@ -33,9 +28,12 @@ type ReplayPlan = {
 };
 
 export default function LeadHunt() {
-  const [rows, setRows] = useState<RawComment[]>([]);
+  const [rows, setRows] = useState<Row[]>([]);
   const [loading, setLoading] = useState(false);
   const [importing, setImporting] = useState(false);
+  const [analyzing, setAnalyzing] = useState(false);
+  const [analysisProgress, setAnalysisProgress] = useState(0);
+  const [filter, setFilter] = useState<string>("全部");
 
   const refresh = async () => {
     try {
@@ -67,7 +65,44 @@ export default function LeadHunt() {
     }
   };
 
-  const createPlan = async (row: RawComment) => {
+  const runAnalysis = async () => {
+    if (rows.length === 0) {
+      message.warning("没有可分析的评论");
+      return;
+    }
+
+    try {
+      setAnalyzing(true);
+      setAnalysisProgress(0);
+
+      const result = await analyzeBatchWithProgress(
+        rows,
+        (current, total) => {
+          const percent = Math.round((current / total) * 100);
+          setAnalysisProgress(percent);
+        },
+        4 // 并发数
+      );
+
+      // 将分析结果合并到rows中
+      const analysisMap = new Map(result.map((r) => [r.id, r]));
+      setRows((prev) =>
+        prev.map((row) => ({
+          ...row,
+          analysis: analysisMap.get(row.id),
+        }))
+      );
+
+      message.success(`成功分析 ${result.length} 条评论`);
+    } catch (error) {
+      message.error(`批量分析失败: ${error}`);
+    } finally {
+      setAnalyzing(false);
+      setAnalysisProgress(0);
+    }
+  };
+
+  const createPlan = async (row: Row) => {
     try {
       const plan: ReplayPlan = {
         id: row.id,
@@ -86,7 +121,7 @@ export default function LeadHunt() {
     }
   };
 
-  const columns: ColumnsType<RawComment> = [
+  const columns: ColumnsType<Row> = [
     {
       title: "平台",
       dataIndex: "platform",
@@ -118,6 +153,39 @@ export default function LeadHunt() {
       ),
     },
     {
+      title: "意图/置信度",
+      key: "intent",
+      width: 150,
+      render: (_: any, record: Row) => {
+        if (!record.analysis) return <Tag>未分析</Tag>;
+        
+        const { intent, confidence } = record.analysis;
+        const color = 
+          intent === "询价" ? "blue" :
+          intent === "询地址" ? "green" :
+          intent === "售后" ? "red" :
+          intent === "咨询" ? "cyan" :
+          "default";
+        
+        return (
+          <Space direction="vertical" size={0}>
+            <Tag color={color}>{intent}</Tag>
+            <span className="text-xs text-gray-500">
+              {Math.round(confidence * 100)}%
+            </span>
+          </Space>
+        );
+      },
+    },
+    {
+      title: "建议回复",
+      dataIndex: ["analysis", "reply_suggestion"],
+      key: "reply",
+      width: 200,
+      ellipsis: true,
+      render: (reply?: string) => reply || "-",
+    },
+    {
       title: "视频链接",
       dataIndex: "videoUrl",
       key: "videoUrl",
@@ -139,7 +207,7 @@ export default function LeadHunt() {
       title: "操作",
       key: "action",
       width: 200,
-      render: (_: any, record: RawComment) => (
+      render: (_: any, record: Row) => (
         <Space>
           <Button
             type="primary"
@@ -163,6 +231,13 @@ export default function LeadHunt() {
     },
   ];
 
+  // 筛选后的数据
+  const filteredRows = rows.filter((row) => {
+    if (filter === "全部") return true;
+    if (filter === "未分析") return !row.analysis;
+    return row.analysis?.intent === filter;
+  });
+
   return (
     <div className="p-6">
       <Card
@@ -179,6 +254,15 @@ export default function LeadHunt() {
                 导入评论（Mock）
               </Button>
               <Button
+                type="primary"
+                icon={<RobotOutlined />}
+                onClick={runAnalysis}
+                loading={analyzing}
+                disabled={rows.length === 0}
+              >
+                AI 批量分析
+              </Button>
+              <Button
                 icon={<ReloadOutlined />}
                 onClick={refresh}
                 loading={loading}
@@ -191,15 +275,46 @@ export default function LeadHunt() {
       >
         <div className="mb-4">
           <Space>
-            <Tag>状态: PR-1 数据初始化完成</Tag>
-            <Tag color="orange">待完成: PR-2 AI意图识别</Tag>
-            <Tag color="red">待完成: PR-3 执行模拟</Tag>
+            <span>意图筛选：</span>
+            <Select
+              value={filter}
+              onChange={setFilter}
+              style={{ width: 120 }}
+              options={[
+                { value: "全部", label: "全部" },
+                { value: "未分析", label: "未分析" },
+                { value: "询价", label: "询价" },
+                { value: "询地址", label: "询地址" },
+                { value: "售后", label: "售后" },
+                { value: "咨询", label: "咨询" },
+                { value: "无效", label: "无效" },
+              ]}
+            />
+            {analyzing && (
+              <>
+                <span>分析进度：</span>
+                <Progress
+                  percent={analysisProgress}
+                  style={{ width: 200 }}
+                  size="small"
+                />
+              </>
+            )}
+          </Space>
+        </div>
+
+        <div className="mb-4">
+          <Space>
+            <Tag color="green">状态: PR-2 AI意图识别完成</Tag>
+            <Tag color="orange">待完成: PR-3 执行模拟</Tag>
+            <Tag>共 {rows.length} 条评论</Tag>
+            <Tag>已分析 {rows.filter(r => r.analysis).length} 条</Tag>
           </Space>
         </div>
 
         <Table
           columns={columns}
-          dataSource={rows}
+          dataSource={filteredRows}
           rowKey="id"
           loading={loading}
           pagination={{
@@ -207,7 +322,7 @@ export default function LeadHunt() {
             showSizeChanger: true,
             showTotal: (total) => `共 ${total} 条评论`,
           }}
-          scroll={{ x: 1000 }}
+          scroll={{ x: 1200 }}
         />
       </Card>
     </div>
