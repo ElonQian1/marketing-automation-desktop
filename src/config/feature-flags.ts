@@ -78,10 +78,27 @@ export const DEFAULT_FEATURE_FLAGS: FeatureFlags = {
 };
 
 /**
+ * 调试接口类型定义
+ */
+interface V2V3MigrationDebug {
+  getFlags: () => FeatureFlags;
+  enableV3: () => void;
+  disableV3: () => void;
+  testV3: (deviceId: string) => Promise<boolean>;
+  reset: () => void;
+  setUserRatio: (ratio: number) => void;
+  rollbackToV2: () => void;
+  setFlag: <K extends keyof FeatureFlags>(flag: K, value: FeatureFlags[K]) => void;
+}
+
+/**
  * 运行时特性开关管理
  */
 class FeatureFlagManager {
   private flags: FeatureFlags;
+  private v3HealthStatus: boolean | undefined = undefined;
+  private v3LastHealthCheck: number = 0;
+  private v3HealthCheckInterval: number = 5 * 60 * 1000; // 5分钟
   
   constructor() {
     this.flags = { ...DEFAULT_FEATURE_FLAGS };
@@ -144,6 +161,71 @@ class FeatureFlagManager {
     this.flags = { ...DEFAULT_FEATURE_FLAGS };
     this.saveToLocalStorage();
     console.log('🔄 特性开关已重置为默认配置');
+  }
+
+  /**
+   * 检查V3系统健康状态
+   */
+  async checkV3Health(deviceId: string): Promise<boolean> {
+    const now = Date.now();
+    
+    // 如果最近已经检查过，返回缓存结果
+    if (now - this.v3LastHealthCheck < this.v3HealthCheckInterval && this.v3HealthStatus !== undefined) {
+      return this.v3HealthStatus;
+    }
+
+    try {
+      // 动态导入V3服务以避免循环依赖
+      const { IntelligentAnalysisBackendV3 } = await import('../services/intelligent-analysis-backend-v3');
+      
+      this.v3HealthStatus = await IntelligentAnalysisBackendV3.healthCheckV3(deviceId);
+      this.v3LastHealthCheck = now;
+      
+      console.log('✅ V3健康检查完成:', this.v3HealthStatus ? '健康' : '不可用');
+      return this.v3HealthStatus;
+      
+    } catch (error) {
+      console.warn('⚠️ V3健康检查失败:', error);
+      this.v3HealthStatus = false;
+      this.v3LastHealthCheck = now;
+      return false;
+    }
+  }
+
+  /**
+   * 智能选择执行版本
+   * 基于V3健康状态和用户配置自动选择
+   */
+  async getSmartExecutionVersion(deviceId: string, userId?: string): Promise<'v2' | 'v3'> {
+    // 如果V3未启用，直接返回V2
+    if (!this.isEnabled('USE_V3_EXECUTION')) {
+      return 'v2';
+    }
+
+    // 检查V3健康状态
+    const v3IsHealthy = await this.checkV3Health(deviceId);
+    if (!v3IsHealthy) {
+      console.log('🔄 V3不可用，自动回退到V2');
+      return 'v2';
+    }
+
+    // 基于用户比例决定
+    const ratio = this.flags.V3_USER_RATIO;
+    if (userId) {
+      const hash = userId.split('').reduce((a, b) => a + b.charCodeAt(0), 0);
+      return (hash % 100) < (ratio * 100) ? 'v3' : 'v2';
+    }
+
+    // 随机分配
+    return Math.random() < ratio ? 'v3' : 'v2';
+  }
+
+  /**
+   * 强制刷新V3健康状态
+   */
+  async refreshV3Health(deviceId: string): Promise<boolean> {
+    this.v3LastHealthCheck = 0; // 强制重新检查
+    return await this.checkV3Health(deviceId);
   }
 }
 
@@ -220,12 +302,16 @@ export function rollbackToV2() {
 
 // 在控制台暴露调试函数
 if (typeof window !== 'undefined') {
-  (window as any).v2v3Migration = {
+  (window as Window & { v2v3Migration?: V2V3MigrationDebug }).v2v3Migration = {
     enableV3: enableV3ForDevelopment,
+    disableV3: rollbackToV2,
+    testV3: async (deviceId: string) => await featureFlagManager.checkV3Health(deviceId),
     rollbackToV2,
     getFlags: () => featureFlagManager.getAllFlags(),
     setFlag: <K extends keyof FeatureFlags>(flag: K, value: FeatureFlags[K]) => 
       featureFlagManager.setFlag(flag, value),
+    setUserRatio: (ratio: number) => 
+      featureFlagManager.setFlag('V3_USER_RATIO', Math.max(0, Math.min(1, ratio))),
     reset: () => featureFlagManager.reset()
   };
   

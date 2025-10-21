@@ -89,20 +89,20 @@ async fn execute_step_by_ref(
     };
     
     // 5. 开始匹配
-    emit_match_started(app, Some(analysis_id.to_string()), Some(step_id.to_string()))?;
+    emit_match_started(app, Some(analysis_id.to_string()), step_id.to_string())?;
     
     // TODO: 从 step_spec 读取 action/params/quality/constraints
     // 这里先用模拟置信度
     let confidence = 0.85_f32;
     
     // 6. 发射匹配成功事件
-    emit_matched(app, Some(analysis_id.to_string()), Some(step_id.to_string()), confidence)?;
+    emit_matched(app, Some(analysis_id.to_string()), step_id.to_string(), confidence)?;
     
     // 7. TODO: 验证后置条件
-    emit_validated(app, Some(analysis_id.to_string()), Some(step_id.to_string()))?;
+    emit_validated(app, Some(analysis_id.to_string()), step_id.to_string())?;
     
     // 8. TODO: 执行动作
-    emit_executed(app, Some(analysis_id.to_string()), Some(step_id.to_string()))?;
+    emit_executed(app, Some(analysis_id.to_string()), step_id.to_string())?;
     
     // 9. 发射完成事件
     let elapsed_ms = start_time.elapsed().as_millis() as u64;
@@ -160,7 +160,7 @@ async fn execute_step_by_inline(
     emit_snapshot_ready(app, analysis_id.clone(), screen_hash_now.clone())?;
     
     // 3. 开始匹配
-    emit_match_started(app, analysis_id.clone(), Some(step_id.to_string()))?;
+    emit_match_started(app, analysis_id.clone(), step_id.to_string())?;
     tracing::info!("🎯 开始 FastPath 匹配: action={:?}", action);
     
     // TODO: 根据 action 类型调用对应的旧实现
@@ -191,13 +191,13 @@ async fn execute_step_by_inline(
     };
     
     // 4. 发射匹配成功事件
-    emit_matched(app, analysis_id.clone(), Some(step_id.to_string()), confidence)?;
+    emit_matched(app, analysis_id.clone(), step_id.to_string(), confidence)?;
     
     // 5. TODO: 验证后置条件
-    emit_validated(app, analysis_id.clone(), Some(step_id.to_string()))?;
+    emit_validated(app, analysis_id.clone(), step_id.to_string())?;
     
     // 6. TODO: 执行动作
-    emit_executed(app, analysis_id.clone(), Some(step_id.to_string()))?;
+    emit_executed(app, analysis_id.clone(), step_id.to_string())?;
     
     // 7. 发射完成事件
     let elapsed_ms = start_time.elapsed().as_millis() as u64;

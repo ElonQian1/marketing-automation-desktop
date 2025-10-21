@@ -8,7 +8,7 @@ use tauri::{AppHandle, State};
 
 use super::types::*;
 use super::single_step::execute_single_step_internal;
-// use super::chain_engine::execute_chain; // 暂时禁用，等待重构
+use super::chain_engine::execute_chain; // 启用 V3 智能链执行引擎
 use super::static_exec::execute_static;
 
 /// 执行智能单步测试（V3）
@@ -31,8 +31,7 @@ pub async fn execute_single_step_test_v3(
 }
 
 /// 执行智能自动链测试（V3）
-/// 暂时禁用，等待 chain_engine 重构完成
-/*
+/// 🚀 V3核心功能：智能短路 + 失败回退 + 90%数据精简
 #[tauri::command]
 pub async fn execute_chain_test_v3(
     app: AppHandle,
@@ -62,7 +61,6 @@ pub async fn execute_chain_test_v3(
     
     serde_json::to_value(&result).map_err(|e| e.to_string())
 }
-*/
 
 /// 执行静态策略测试（V3）
 #[tauri::command]
