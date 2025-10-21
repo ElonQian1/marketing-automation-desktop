@@ -280,7 +280,7 @@ fn calculate_center(element: &MockElement) -> (i32, i32) {
 
 // ====== TODO: 实现的辅助函数 ======
 
-/// TODO 7: 根据定位器查找元素
+// TODO 7: 根据定位器查找元素
 // async fn find_elements_by_locators(
 //     xml_cache_id: &str,
 //     locators: &StaticLocators,
@@ -291,7 +291,7 @@ fn calculate_center(element: &MockElement) -> (i32, i32) {
 //     todo!("集成现有静态定位逻辑")
 // }
 
-/// TODO 8: 等待元素消失
+// TODO 8: 等待元素消失
 // async fn wait_for_node_disappear(
 //     device_id: &str,
 //     locators: &StaticLocators,
@@ -301,21 +301,21 @@ fn calculate_center(element: &MockElement) -> (i32, i32) {
 //     todo!("实现等待元素消失逻辑")
 // }
 
-/// TODO 9: 等待 Activity 切换
+// TODO 9: 等待 Activity 切换
+// 检测当前 Activity 是否与之前不同
 // async fn wait_for_activity_change(
 //     device_id: &str,
 //     timeout_ms: Option<u64>,
 // ) -> Result<()> {
-//     // 检测当前 Activity 是否与之前不同
 //     todo!("实现等待 Activity 切换逻辑")
 // }
 
-/// TODO 10: 等待文本出现
+// TODO 10: 等待文本出现
+// 轮询检查指定文本是否出现在屏幕上
 // async fn wait_for_text(
 //     device_id: &str,
 //     text: &str,
 //     timeout_ms: Option<u64>,
 // ) -> Result<()> {
-//     // 轮询检查指定文本是否出现在屏幕上
 //     todo!("实现等待文本出现逻辑")
 // }

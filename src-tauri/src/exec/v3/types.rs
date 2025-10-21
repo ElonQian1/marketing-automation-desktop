@@ -262,6 +262,40 @@ pub enum ClickPointPolicy {
     Custom,
 }
 
+// ========== 执行结果 ==========
+
+/// V3 执行结果
+#[derive(Debug, Clone, Serialize, Deserialize)]
+#[serde(rename_all = "camelCase")]
+pub struct ExecutionResult {
+    pub success: bool,
+    pub step_id: Option<String>,
+    pub elapsed_ms: u64,
+    pub error: Option<String>,
+    pub coords: Option<Point>,
+    pub confidence: Option<Confidence>,
+    pub screen_hash: Option<String>,
+    pub validation: Option<ValidationResult>,
+}
+
+/// 执行摘要
+#[derive(Debug, Clone, Serialize, Deserialize)]
+#[serde(rename_all = "camelCase")]
+pub struct ExecutionSummary {
+    pub total_steps: usize,
+    pub completed_steps: usize,
+    pub failed_steps: usize,
+    pub elapsed_ms: u64,
+    pub success_rate: f32,
+    pub final_result: Option<ExecutionResult>,
+}
+
+/// 执行事件 V3 (别名)
+pub type ExecutionEventV3 = ExecEventV3;
+
+/// 进度阶段 (别名)
+pub type ProgressPhase = Phase;
+
 // ========== 事件协议 ==========
 
 #[derive(Debug, Clone, Serialize, Deserialize)]

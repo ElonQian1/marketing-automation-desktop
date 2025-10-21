@@ -6,7 +6,7 @@ pub mod types;
 pub mod events;
 pub mod commands;
 pub mod single_step;
-pub mod chain_engine;
+// pub mod chain_engine; // 暂时禁用，待重构
 pub mod static_exec;
 
 // 重新导出常用类型

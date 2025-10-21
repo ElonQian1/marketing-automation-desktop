@@ -8,7 +8,7 @@ use tauri::{AppHandle, State};
 
 use super::types::*;
 use super::single_step::execute_single_step_internal;
-use super::chain_engine::execute_chain;
+// use super::chain_engine::execute_chain; // 暂时禁用，等待重构
 use super::static_exec::execute_static;
 
 /// 执行智能单步测试（V3）
@@ -27,6 +27,8 @@ pub async fn execute_single_step_test_v3(
 }
 
 /// 执行智能自动链测试（V3）
+/// 暂时禁用，等待 chain_engine 重构完成
+/*
 #[tauri::command]
 pub async fn execute_chain_test_v3(
     app: AppHandle,
@@ -45,6 +47,7 @@ pub async fn execute_chain_test_v3(
     
     serde_json::to_value(&result).map_err(|e| e.to_string())
 }
+*/
 
 /// 执行静态策略测试（V3）
 #[tauri::command]
@@ -78,8 +81,8 @@ pub async fn execute_task_v3(
             execute_single_step_test_v3(app, envelope, step).await
         }
         TaskV3::Chain { spec } => {
-            tracing::info!("📍 [V3] 任务路由 → 智能自动链");
-            execute_chain_test_v3(app, envelope, spec).await
+            tracing::info!("📍 [V3] 任务路由 → 智能自动链 (暂时禁用)");
+            Err("Chain execution temporarily disabled for refactoring".to_string())
         }
         TaskV3::Static { spec } => {
             tracing::info!("📍 [V3] 任务路由 → 静态策略");

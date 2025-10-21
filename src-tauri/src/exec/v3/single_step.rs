@@ -9,6 +9,11 @@ use tauri::AppHandle;
 use super::types::*;
 use super::events::*;
 
+/// 辅助函数：将String错误转换为anyhow错误
+fn string_to_anyhow<T>(result: Result<T, String>) -> Result<T> {
+    result.map_err(|e| anyhow::anyhow!(e))
+}
+
 /// 智能单步执行（内部实现）
 pub async fn execute_single_step_internal(
     app: &AppHandle,
@@ -18,13 +23,13 @@ pub async fn execute_single_step_internal(
     let analysis_id = step.context.snapshot.analysis_id.clone();
     
     // 1. 发射设备就绪事件
-    emit_device_ready(app, analysis_id.clone())?;
+    string_to_anyhow(emit_device_ready(app, analysis_id.clone()))?;
     
     // 2. 获取当前屏幕快照
     tracing::info!("📸 获取当前屏幕快照: device={}", step.context.device_id);
     // TODO: 调用现有的 get_current_snapshot(&device_id) 函数
     let screen_hash_now = Some("current-hash-placeholder".to_string());
-    emit_snapshot_ready(app, analysis_id.clone(), screen_hash_now.clone())?;
+    string_to_anyhow(emit_snapshot_ready(app, analysis_id.clone(), screen_hash_now.clone()))?;
     
     // 3. 决定是否需要重评
     let should_reevaluate = match step.context.execution_mode {
@@ -47,7 +52,7 @@ pub async fn execute_single_step_internal(
     };
     
     // 4. 开始匹配
-    emit_match_started(app, analysis_id.clone(), step.step_id.clone())?;
+    string_to_anyhow(emit_match_started(app, analysis_id.clone(), step.step_id.clone()))?;
     
     // 5. 执行 FastPath 匹配与评分
     tracing::info!("🎯 开始 FastPath 匹配: action={:?}", step.action);
@@ -89,7 +94,7 @@ pub async fn execute_single_step_internal(
     };
     
     // 6. 发射匹配成功事件
-    emit_matched(app, analysis_id.clone(), step.step_id.clone(), confidence)?;
+    string_to_anyhow(emit_matched(app, analysis_id.clone(), step.step_id.clone(), confidence))?;
     
     // 7. 验证后置条件（如果配置了）
     if let Some(post_action) = &step.validation.post_action {
@@ -98,17 +103,17 @@ pub async fn execute_single_step_internal(
         // - NodeGone: 等待节点消失
         // - NewActivity: 等待新 Activity
         // - TextAppears: 等待文本出现
-        emit_validated(app, analysis_id.clone(), step.step_id.clone())?;
+        string_to_anyhow(emit_validated(app, analysis_id.clone(), step.step_id.clone()))?;
     }
     
     // 8. 执行动作（非 dryrun 模式）
     tracing::info!("▶️ 执行动作");
     // TODO: 实际执行点击/输入等动作
-    emit_executed(app, analysis_id.clone(), step.step_id.clone())?;
+    string_to_anyhow(emit_executed(app, analysis_id.clone(), step.step_id.clone()))?;
     
     // 9. 发射完成事件
     let elapsed_ms = start_time.elapsed().as_millis() as u64;
-    emit_complete(
+    string_to_anyhow(emit_complete(
         app,
         analysis_id.clone(),
         Some(Summary {
@@ -130,7 +135,7 @@ pub async fn execute_single_step_internal(
                 reason: None,
             }),
         }),
-    )?;
+    ))?;
     
     Ok(json!({
         "ok": true,

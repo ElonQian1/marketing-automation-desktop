@@ -10,7 +10,7 @@ use tauri::{AppHandle, State};
 
 use crate::services::prospecting::{
     ProspectingStorage,
-    types::{Comment, CommentFilter, AnalysisResult, ReplyPlan, Statistics},
+    types::{Comment, RawComment, CommentFilter, AnalysisResult, ReplyPlan, Statistics},
 };
 
 /// 精准获客模块的全局状态
@@ -51,11 +51,13 @@ impl ProspectingState {
 #[tauri::command]
 pub async fn prospecting_save_comment(
     state: State<'_, ProspectingState>,
-    comment: Comment,
-) -> Result<String, String> {
+    comment: RawComment, // 改为RawComment类型
+) -> Result<(), String> {
     state.with_storage(|storage| {
         storage.save_comment(&comment)
-    }).map_err(|e| e.to_string())
+    }).map_err(|e| e.to_string())?;
+
+    Ok(()) // 只返回成功状态
 }
 
 /// 获取评论列表
@@ -87,8 +89,10 @@ pub async fn prospecting_save_analysis(
     analysis: AnalysisResult,
 ) -> Result<(), String> {
     state.with_storage(|storage| {
-        storage.save_analysis_result(&analysis)
-    }).map_err(|e| e.to_string())
+        storage.save_analysis(&analysis)
+    }).map_err(|e| e.to_string())?;
+
+    Ok(()) // 只返回成功状态
 }
 
 /// 保存回复计划
@@ -96,10 +100,12 @@ pub async fn prospecting_save_analysis(
 pub async fn prospecting_save_reply_plan(
     state: State<'_, ProspectingState>,
     plan: ReplyPlan,
-) -> Result<String, String> {
+) -> Result<(), String> {
     state.with_storage(|storage| {
         storage.save_reply_plan(&plan)
-    }).map_err(|e| e.to_string())
+    }).map_err(|e| e.to_string())?;
+
+    Ok(()) // 只返回成功状态
 }
 
 /// 获取回复计划列表

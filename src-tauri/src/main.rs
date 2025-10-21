@@ -4,6 +4,7 @@
 // mod commands;
 mod application; // expose new application module (normalizer, device_metrics)
 mod domain;      // expose domain modules
+mod infra;       // expose infra (adb injector, device metrics provider)
 mod infrastructure; // expose infrastructure (events, etc.)
 mod screenshot_service;
 mod services;
@@ -343,11 +344,11 @@ fn main() {
             // prospecting_get_reply_plans_by_ids,
             // prospecting_execute_real_reply_plan,
             // prospecting_get_statistics,
-            // V3 统一执行协议命令
-            exec::v3::execute_single_step_test_v3,
-            exec::v3::execute_chain_test_v3,
-            exec::v3::execute_static_strategy_test_v3,
-            exec::v3::execute_task_v3
+            // V3 统一执行协议命令 - 暂时禁用，等待重构
+            // exec::v3::execute_single_step_test_v3,
+            // exec::v3::execute_chain_test_v3,
+            // exec::v3::execute_static_strategy_test_v3,
+            // exec::v3::execute_task_v3
         ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");

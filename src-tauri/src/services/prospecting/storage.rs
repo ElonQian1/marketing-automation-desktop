@@ -22,7 +22,7 @@ impl ProspectingStorage {
     }
 
     /// 初始化数据库表结构
-    fn init_database(&self) -> Result<()> {
+    pub fn init_database(&self) -> Result<()> {
         let conn = Connection::open(&self.db_path)?;
         
         // 创建评论表
@@ -472,5 +472,83 @@ impl ProspectingStorage {
                 pending: pending_plans,
             },
         })
+    }
+
+    /// 根据评论ID列表获取回复计划
+    pub fn get_reply_plans(&self, comment_ids: &[String]) -> Result<Vec<ReplyPlan>> {
+        if comment_ids.is_empty() {
+            return Ok(vec![]);
+        }
+
+        let conn = Connection::open(&self.db_path)?;
+        let placeholders = comment_ids.iter().map(|_| "?").collect::<Vec<_>>().join(",");
+        let sql = format!("SELECT * FROM reply_plans WHERE comment_id IN ({})", placeholders);
+        
+        let mut stmt = conn.prepare(&sql)?;
+        let params: Vec<&dyn rusqlite::ToSql> = comment_ids.iter().map(|s| s as &dyn rusqlite::ToSql).collect();
+        
+        let plan_iter = stmt.query_map(&params[..], |row| {
+            let steps_json: String = row.get(9)?;
+            let steps: Vec<ReplyStep> = serde_json::from_str(&steps_json).unwrap_or_default();
+            
+            Ok(ReplyPlan {
+                id: row.get(0)?,
+                comment_id: row.get(1)?,
+                platform: serde_json::from_str(&row.get::<_, String>(2)?).unwrap(),
+                video_url: row.get(3)?,
+                target_author: row.get(4)?,
+                target_comment: row.get(5)?,
+                reply_content: row.get(6)?,
+                steps,
+                status: serde_json::from_str(&row.get::<_, String>(7)?).unwrap(),
+                created_at: row.get(8)?,
+                updated_at: row.get(10)?,
+                executed_at: row.get(11)?,
+                completed_at: row.get(12)?,
+                error: row.get(13)?,
+                is_simulation: row.get(14)?,
+            })
+        })?;
+
+        plan_iter.collect::<Result<Vec<_>, _>>().map_err(|e| anyhow::anyhow!(e))
+    }
+
+    /// 根据计划ID列表获取回复计划
+    pub fn get_reply_plans_by_ids(&self, ids: &[String]) -> Result<Vec<ReplyPlan>> {
+        if ids.is_empty() {
+            return Ok(vec![]);
+        }
+
+        let conn = Connection::open(&self.db_path)?;
+        let placeholders = ids.iter().map(|_| "?").collect::<Vec<_>>().join(",");
+        let sql = format!("SELECT * FROM reply_plans WHERE id IN ({})", placeholders);
+        
+        let mut stmt = conn.prepare(&sql)?;
+        let params: Vec<&dyn rusqlite::ToSql> = ids.iter().map(|s| s as &dyn rusqlite::ToSql).collect();
+        
+        let plan_iter = stmt.query_map(&params[..], |row| {
+            let steps_json: String = row.get(9)?;
+            let steps: Vec<ReplyStep> = serde_json::from_str(&steps_json).unwrap_or_default();
+            
+            Ok(ReplyPlan {
+                id: row.get(0)?,
+                comment_id: row.get(1)?,
+                platform: serde_json::from_str(&row.get::<_, String>(2)?).unwrap(),
+                video_url: row.get(3)?,
+                target_author: row.get(4)?,
+                target_comment: row.get(5)?,
+                reply_content: row.get(6)?,
+                steps,
+                status: serde_json::from_str(&row.get::<_, String>(7)?).unwrap(),
+                created_at: row.get(8)?,
+                updated_at: row.get(10)?,
+                executed_at: row.get(11)?,
+                completed_at: row.get(12)?,
+                error: row.get(13)?,
+                is_simulation: row.get(14)?,
+            })
+        })?;
+
+        plan_iter.collect::<Result<Vec<_>, _>>().map_err(|e| anyhow::anyhow!(e))
     }
 }
