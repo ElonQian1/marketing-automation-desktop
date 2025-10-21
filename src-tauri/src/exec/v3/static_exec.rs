@@ -205,7 +205,30 @@ async fn execute_static_by_inline(
         )?;
     }
 
-    // ====== Phase 8: complete ======
+    // ====== Phase 8: 发送 100% 进度（关键修复！） ======
+    // 🔧 修复说明：在发送 complete 事件前必须先发送 100% 进度事件
+    // 这样前端 UI 才能正确显示完整的进度序列，避免卡在最后一个进度值
+    emit_progress(
+        app,
+        analysis_id.clone(),
+        Some(step_id.to_string()),
+        Phase::Executed,
+        Some(1.0),  // 100% = 1.0
+        Some("执行完成".to_string()),
+        None,
+    )?;
+
+    tracing::info!(
+        "✅ 静态策略执行完成: analysisId={:?}, stepId={}, elapsed={}ms",
+        analysis_id,
+        step_id,
+        start_time.elapsed().as_millis()
+    );
+
+    // 短暂延迟确保前端接收到 100% 进度事件（参考 V2 修复方案）
+    tokio::time::sleep(tokio::time::Duration::from_millis(300)).await;
+
+    // ====== Phase 9: 发送 complete 事件 ======
     let elapsed_ms = start_time.elapsed().as_millis() as u64;
     
     emit_complete(
