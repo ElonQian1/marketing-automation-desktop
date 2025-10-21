@@ -9,6 +9,7 @@
         "src/application/*",
         "src/infrastructure/repositories/*"
       ],
+      "@ai/*": ["src/modules/ai/*"],
       "@contact/*": ["src/modules/contact-import/*"],
       "@prospecting/*": ["src/modules/precise-acquisition/*"],
       "@script/*": ["src/modules/smart-script-management/*"],
