@@ -18,10 +18,14 @@ pub async fn execute_single_step_test_v3(
     envelope: ContextEnvelope,
     step: SingleStepSpecV3,
 ) -> Result<Value, String> {
-    tracing::info!("🧪 [V3] 收到智能单步测试请求: stepId={}", step.step_id);
+    let step_id = match &step {
+        SingleStepSpecV3::ByRef { step_id, .. } => step_id.clone(),
+        SingleStepSpecV3::ByInline { step_id, .. } => step_id.clone(),
+    };
     
-    // TODO: 将 envelope 的内容合并到 step 中,目前先直接传递 step
-    execute_single_step_internal(&app, step)
+    tracing::info!("🧪 [V3] 收到智能单步测试请求: stepId={}", step_id);
+    
+    execute_single_step_internal(&app, &envelope, step)
         .await
         .map_err(|e| e.to_string())
 }
@@ -33,10 +37,21 @@ pub async fn execute_chain_test_v3(
     envelope: ContextEnvelope,
     spec: ChainSpecV3,
 ) -> Result<Value, String> {
+    let (analysis_id, threshold) = match &spec {
+        ChainSpecV3::ByRef { analysis_id, threshold, .. } => (Some(analysis_id.clone()), *threshold),
+        ChainSpecV3::ByInline { chain_id, threshold, ordered_steps, .. } => {
+            (chain_id.clone(), *threshold)
+        }
+    };
+    
+    let steps_count = match &spec {
+        ChainSpecV3::ByRef { .. } => "from-cache",
+        ChainSpecV3::ByInline { ordered_steps, .. } => &ordered_steps.len().to_string(),
+    };
+    
     tracing::info!(
-        "🔗 [V3] 收到智能自动链测试请求: 步骤数={}, 阈值={}",
-        spec.ordered_steps.len(),
-        spec.threshold
+        "🔗 [V3] 收到智能自动链测试请求: analysisId={:?}, 步骤数={}, 阈值={}",
+        analysis_id, steps_count, threshold
     );
     
     let result = execute_chain(&app, &envelope, &spec)
@@ -53,10 +68,16 @@ pub async fn execute_static_strategy_test_v3(
     envelope: ContextEnvelope,
     spec: StaticSpecV3,
 ) -> Result<Value, String> {
-    tracing::info!(
-        "🎯 [V3] 收到静态策略测试请求: strategyId={:?}",
-        spec.strategy_id
-    );
+    let strategy_info = match &spec {
+        StaticSpecV3::ByRef { script_id, static_step_id, .. } => {
+            format!("scriptId={}, stepId={}", script_id, static_step_id)
+        }
+        StaticSpecV3::ByInline { strategy_id, .. } => {
+            format!("strategyId={:?} (inline)", strategy_id)
+        }
+    };
+    
+    tracing::info!("🎯 [V3] 收到静态策略测试请求: {}", strategy_info);
     
     let result = execute_static(&app, &envelope, &spec)
         .await

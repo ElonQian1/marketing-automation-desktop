@@ -121,21 +121,31 @@ pub enum WaitFor {
 
 // ========== 智能单步 ==========
 
+/// 智能单步规格（支持 by-ref 和 by-inline 两种形态）
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
-pub struct SingleStepSpecV3 {
-    pub step_id: String,
-    #[serde(flatten)]
-    pub action: SingleStepAction,
-    #[serde(default)]
-    pub params: Value,
-    pub context: ContextEnvelope,
-    #[serde(default)]
-    pub quality: QualitySettings,
-    #[serde(default)]
-    pub constraints: ConstraintSettings,
-    #[serde(default)]
-    pub validation: ValidationSettings,
+#[serde(untagged)]
+pub enum SingleStepSpecV3 {
+    /// 引用式：前端只传 analysisId + stepId，后端从缓存读取 StepSpec
+    /// 这是推荐方式，避免前后端类型不匹配（如 footer_other）
+    ByRef {
+        analysis_id: String,
+        step_id: String,
+    },
+    /// 内联式：前端传完整动作（仅用于调试，不推荐）
+    ByInline {
+        step_id: String,
+        #[serde(flatten)]
+        action: SingleStepAction,
+        #[serde(default)]
+        params: Value,
+        #[serde(default)]
+        quality: QualitySettings,
+        #[serde(default)]
+        constraints: ConstraintSettings,
+        #[serde(default)]
+        validation: ValidationSettings,
+    },
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -164,20 +174,40 @@ pub enum SingleStepAction {
 
 // ========== 智能自动链 ==========
 
+/// 智能自动链规格（支持 by-ref 和 by-inline 两种形态）
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
-pub struct ChainSpecV3 {
-    pub chain_id: Option<String>,
-    pub ordered_steps: Vec<StepRefOrInline>,
-    pub threshold: Confidence,
-    pub mode: ChainMode,
-    pub context: ContextEnvelope,
-    #[serde(default)]
-    pub quality: QualitySettings,
-    #[serde(default)]
-    pub constraints: ConstraintSettings,
-    #[serde(default)]
-    pub validation: ValidationSettings,
+#[serde(untagged)]
+pub enum ChainSpecV3 {
+    /// 引用式：前端只传 analysisId，后端从缓存读取 ChainResult
+    ByRef {
+        analysis_id: String,
+        #[serde(default = "default_threshold")]
+        threshold: Confidence,
+        #[serde(default = "default_chain_mode")]
+        mode: ChainMode,
+    },
+    /// 内联式：前端传完整步骤（兼容旧代码，不推荐）
+    ByInline {
+        chain_id: Option<String>,
+        ordered_steps: Vec<StepRefOrInline>,
+        threshold: Confidence,
+        mode: ChainMode,
+        #[serde(default)]
+        quality: QualitySettings,
+        #[serde(default)]
+        constraints: ConstraintSettings,
+        #[serde(default)]
+        validation: ValidationSettings,
+    },
+}
+
+fn default_threshold() -> Confidence {
+    0.7
+}
+
+fn default_chain_mode() -> ChainMode {
+    ChainMode::Execute
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -206,22 +236,34 @@ pub struct InlineStep {
 
 // ========== 静态策略 ==========
 
+/// 静态策略规格（支持 by-ref 和 by-inline 两种形态）
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
-pub struct StaticSpecV3 {
-    pub strategy_id: Option<String>,
-    pub action: StaticAction,
-    pub locator: Locator,
-    pub input_text: Option<String>,
-    pub click_point_policy: Option<ClickPointPolicy>,
-    pub dryrun: Option<bool>,
-    pub context: ContextEnvelope,
-    #[serde(default)]
-    pub quality: QualitySettings,
-    #[serde(default)]
-    pub constraints: ConstraintSettings,
-    #[serde(default)]
-    pub validation: ValidationSettings,
+#[serde(untagged)]
+pub enum StaticSpecV3 {
+    /// 引用式：从脚本库读取定位器
+    ByRef {
+        script_id: String,
+        static_step_id: String,
+        #[serde(default)]
+        dryrun: bool,
+    },
+    /// 内联式：直接传定位器（用于调试）
+    ByInline {
+        strategy_id: Option<String>,
+        action: StaticAction,
+        locator: Locator,
+        input_text: Option<String>,
+        click_point_policy: Option<ClickPointPolicy>,
+        #[serde(default)]
+        dryrun: bool,
+        #[serde(default)]
+        quality: QualitySettings,
+        #[serde(default)]
+        constraints: ConstraintSettings,
+        #[serde(default)]
+        validation: ValidationSettings,
+    },
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
