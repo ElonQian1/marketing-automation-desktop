@@ -11,6 +11,7 @@ pub struct AISettings {
     pub temperature: f32,
     pub stream: bool,
     pub max_retries: u32,
+    pub concurrency: u32, // AI批量请求并发数
     pub base_url_openai: Option<String>,
     pub base_url_hunyuan: Option<String>,
     #[serde(skip)]
@@ -28,6 +29,7 @@ impl Default for AISettings {
             temperature: 0.2,
             stream: true,
             max_retries: 3,
+            concurrency: 4, // 默认4并发
             base_url_openai: None,
             base_url_hunyuan: None,
             openai_api_key: String::new(),

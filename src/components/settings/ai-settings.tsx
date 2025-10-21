@@ -22,6 +22,7 @@ interface AISettings {
   temperature: number;
   stream: boolean;
   maxRetries: number;
+  concurrency: number; // AI批量请求并发数
   baseUrlOpenAI?: string;
   baseUrlHunyuan?: string;
 }
@@ -40,6 +41,7 @@ export function AISettingsComponent() {
     temperature: 0.2,
     stream: true,
     maxRetries: 3,
+    concurrency: 4, // 默认4并发
   });
   const [openaiKey, setOpenaiKey] = useState('');
   const [hunyuanKey, setHunyuanKey] = useState('');
@@ -231,7 +233,7 @@ export function AISettingsComponent() {
         <Divider>推理参数</Divider>
 
         {/* 参数配置 */}
-        <div className="grid grid-cols-3 gap-4">
+        <div className="grid grid-cols-2 gap-4">
           <Form.Item
             label="温度 (Temperature)"
             name="temperature"
@@ -247,9 +249,20 @@ export function AISettingsComponent() {
           </Form.Item>
 
           <Form.Item
+            label="启用流式输出"
+            name="stream"
+            valuePropName="checked"
+          >
+            <Switch />
+          </Form.Item>
+        </div>
+
+        <div className="grid grid-cols-2 gap-4">
+          <Form.Item
             label="最大重试次数"
             name="maxRetries"
             rules={[{ required: true }, { type: 'number', min: 0, max: 10 }]}
+            tooltip="API 调用失败时的最大重试次数"
           >
             <InputNumber
               min={0}
@@ -259,11 +272,16 @@ export function AISettingsComponent() {
           </Form.Item>
 
           <Form.Item
-            label="启用流式输出"
-            name="stream"
-            valuePropName="checked"
+            label="AI 并发数"
+            name="concurrency"
+            rules={[{ required: true }, { type: 'number', min: 1, max: 20 }]}
+            tooltip="批量AI分析时的并发请求数，建议 2-8 之间"
           >
-            <Switch />
+            <InputNumber
+              min={1}
+              max={20}
+              style={{ width: '100%' }}
+            />
           </Form.Item>
         </div>
 

@@ -2,8 +2,22 @@
 // module: lead-hunt | layer: features | role: AI意图分析服务
 // summary: 批量调用AI识别评论意图，提取实体，生成建议回复
 
+import { invoke } from "@tauri-apps/api/core";
 import { aiChat } from "@/lib/aiClient";
 import { LeadIntentTool, type LeadAnalysis } from "@/ai/schemas/leadIntent.schema";
+
+/**
+ * 获取AI设置中的并发数
+ */
+async function getConcurrency(): Promise<number> {
+  try {
+    const settings = await invoke<{ concurrency: number }>("get_ai_settings");
+    return settings.concurrency || 4;
+  } catch (error) {
+    console.warn("获取AI并发设置失败，使用默认值4:", error);
+    return 4;
+  }
+}
 
 export type RawComment = {
   id: string;
@@ -139,12 +153,17 @@ export async function analyzeBatch(
 
 /**
  * 带进度回调的批量分析
+ * @param items 评论列表
+ * @param onProgress 进度回调
+ * @param concurrency 并发数（可选，默认从AI设置读取）
  */
 export async function analyzeBatchWithProgress(
   items: RawComment[],
   onProgress: (current: number, total: number) => void,
-  concurrency = 4
+  concurrency?: number
 ): Promise<LeadAnalysis[]> {
+  // 如果没有指定并发数，从AI设置中读取
+  const actualConcurrency = concurrency ?? await getConcurrency();
   const results: LeadAnalysis[] = [];
   let completed = 0;
   let index = 0;
@@ -175,7 +194,7 @@ export async function analyzeBatchWithProgress(
     }
   }
 
-  const workers = Array.from({ length: Math.min(concurrency, items.length) }, () =>
+  const workers = Array.from({ length: Math.min(actualConcurrency, items.length) }, () =>
     worker()
   );
 
