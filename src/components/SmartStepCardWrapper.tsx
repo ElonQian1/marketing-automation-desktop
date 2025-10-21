@@ -4,13 +4,17 @@
 
 /**
  * 智能步骤卡片包装器
- * - 切换到现代化 DraggableStepCard 以解决白底白字问题
+ * - 根据步骤类型自动选择合适的卡片组件
+ * - 循环步骤使用专门的 LoopStepCard
+ * - 普通步骤使用现代化 DraggableStepCard
  * - 保持完整的向后兼容性
- * - 提供更好的视觉体验和交互反馈
  */
 
 import React from "react";
 import { DraggableStepCard } from "./DraggableStepCard";
+import { LoopStepCard } from "../modules/loop-control/components/LoopStepCard";
+import { LoopStartCard } from "./LoopStartCard";
+import { LoopEndCard } from "./LoopEndCard";
 import { SmartScriptStep } from "../types/smartScript"; // 使用统一的类型定义
 
 interface SmartStepCardWrapperProps {
@@ -60,6 +64,64 @@ export const SmartStepCardWrapper: React.FC<SmartStepCardWrapperProps> = (props)
     isAnalyzing
   } = props;
 
+  // 🎯 智能路由：根据步骤类型选择合适的卡片组件
+  
+  // 循环开始步骤 - 使用专门的循环开始卡片
+  if (step.step_type === 'loop_start') {
+    return (
+      <LoopStartCard
+        step={step}
+        index={index}
+        isDragging={isDragging}
+        onEdit={onEdit}
+        onDelete={onDelete}
+        onToggle={onToggle}
+        // 循环卡片特定属性
+        loopConfig={step.parameters?.loop_config || {
+          loopId: step.parameters?.loop_id as string || `loop_${step.id}`,
+          name: step.parameters?.loop_name as string || step.name,
+          iterations: step.parameters?.loop_count as number || 1,
+          enabled: step.enabled
+        }}
+        onLoopConfigUpdate={(config) => {
+          // 更新循环配置
+          if (onUpdateStepParameters) {
+            onUpdateStepParameters(step.id, {
+              ...step.parameters,
+              loop_config: config,
+              loop_id: config.loopId,
+              loop_name: config.name,
+              loop_count: config.iterations
+            });
+          }
+        }}
+        onDeleteLoop={() => onDelete(step.id)}
+      />
+    );
+  }
+
+  // 循环结束步骤 - 使用专门的循环结束卡片
+  if (step.step_type === 'loop_end') {
+    return (
+      <LoopEndCard
+        step={step}
+        index={index}
+        isDragging={isDragging}
+        onEdit={onEdit}
+        onDelete={onDelete}
+        onToggle={onToggle}
+        // 循环卡片特定属性
+        loopConfig={step.parameters?.loop_config || {
+          loopId: step.parameters?.loop_id as string || `loop_${step.id}`,
+          name: step.parameters?.loop_name as string || step.name,
+          iterations: step.parameters?.loop_count as number || 1,
+          enabled: step.enabled
+        }}
+      />
+    );
+  }
+
+  // 普通步骤 - 使用现代化拖拽卡片
   return (
     <DraggableStepCard
       step={step}

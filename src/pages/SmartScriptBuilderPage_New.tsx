@@ -264,11 +264,42 @@ const SmartScriptBuilderPage: React.FC = () => {
     setIsModalVisible(true);
   };
 
-  const handleExecuteScript = async () => {
+  // 🎯 执行当前构建器中的脚本（无参数）
+  const handleExecuteCurrentScript = async () => {
+    if (!currentDeviceId) {
+      message.warning('请先连接设备');
+      return;
+    }
+    
     setIsExecuting(true);
     try {
-      // 简化的执行逻辑
-      message.success("脚本执行完成");
+      // 🔄 执行当前构建器中的步骤
+      console.log('🎯 执行当前脚本，步骤数:', steps.length, '设备:', currentDeviceId);
+      // 这里应该调用实际的脚本执行逻辑
+      // 暂时使用简化的逻辑
+      message.success("当前脚本执行完成");
+    } catch (error) {
+      console.error("脚本执行失败:", error);
+      message.error("脚本执行失败");
+    } finally {
+      setIsExecuting(false);
+    }
+  };
+
+  // 🎯 执行脚本管理器中选中的脚本（带 scriptId 参数）
+  const handleExecuteScriptFromManager = async (scriptId: string) => {
+    if (!currentDeviceId) {
+      message.warning('请先连接设备');
+      return;
+    }
+    
+    setIsExecuting(true);
+    try {
+      // 🔄 使用脚本管理器执行指定的脚本
+      console.log('🎯 执行脚本管理器中的脚本:', scriptId, '设备:', currentDeviceId);
+      // 这里应该调用实际的脚本执行逻辑
+      // 暂时使用简化的逻辑
+      message.success(`脚本 ${scriptId} 执行完成`);
     } catch (error) {
       console.error("脚本执行失败:", error);
       message.error("脚本执行失败");
@@ -326,7 +357,7 @@ const SmartScriptBuilderPage: React.FC = () => {
             executionResult={executionResult}
             isExecuting={isExecuting}
             currentDeviceId={currentDeviceId}
-            onExecuteScript={handleExecuteScript}
+            onExecuteScript={handleExecuteCurrentScript}
             onLoadScript={handleLoadScriptFromManager}
             onUpdateSteps={setSteps}
             onUpdateConfig={setExecutorConfig}

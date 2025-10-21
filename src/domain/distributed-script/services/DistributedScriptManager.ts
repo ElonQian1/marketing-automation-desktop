@@ -188,11 +188,21 @@ export class DistributedScriptManager {
     }
 
     for (const step of script.steps || []) {
-      if (!step.xmlSnapshot || !step.xmlSnapshot.xmlContent) {
-        errors.push(`步骤 ${step.name} 缺少 XML 快照`);
+      // 对于需要UI交互的步骤类型，检查XML快照
+      const requiresXmlSnapshot = ['click', 'input', 'swipe', 'scroll', 'wait_for_element'].includes(step.actionType);
+      
+      if (requiresXmlSnapshot) {
+        if (!step.xmlSnapshot || !step.xmlSnapshot.xmlContent) {
+          errors.push(`步骤 ${step.name} (${step.actionType}) 需要 XML 快照`);
+        }
+        if (!step.locator) {
+          errors.push(`步骤 ${step.name} 缺少节点定位器`);
+        }
       }
-      if (!step.locator) {
-        errors.push(`步骤 ${step.name} 缺少节点定位器`);
+      
+      // 基本字段验证
+      if (!step.id || !step.name || !step.actionType) {
+        errors.push(`步骤 ${step.name || step.id} 缺少必要字段 (id/name/actionType)`);
       }
     }
 
