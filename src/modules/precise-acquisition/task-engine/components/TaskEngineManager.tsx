@@ -58,7 +58,7 @@ import { TaskTable } from './TaskTable';
 import { TaskGenerationModal } from './TaskGenerationModal';
 import { TaskAssignmentModal } from './TaskAssignmentModal';
 
-const { TabPane } = Tabs;
+// TabPane is deprecated, using items instead
 
 export interface TaskEngineManagerProps {
   className?: string;
@@ -249,13 +249,32 @@ export const TaskEngineManager: React.FC<TaskEngineManagerProps> = ({
           </Space>
         }
       >
-        <Tabs activeKey={currentTab} onChange={setCurrentTab}>
-          <TabPane tab={`全部 (${tasks.length})`} key="all" />
-          <TabPane tab={`待处理 (${getPendingTasksCount()})`} key="pending" />
-          <TabPane tab={`执行中 (${getExecutingTasksCount()})`} key="executing" />
-          <TabPane tab={`已完成 (${getCompletedTasksCount()})`} key="completed" />
-          <TabPane tab={`失败 (${getFailedTasksCount()})`} key="failed" />
-        </Tabs>
+        <Tabs 
+          activeKey={currentTab} 
+          onChange={setCurrentTab}
+          items={[
+            {
+              key: 'all',
+              label: `全部 (${tasks.length})`,
+            },
+            {
+              key: 'pending',
+              label: `待处理 (${getPendingTasksCount()})`,
+            },
+            {
+              key: 'executing',
+              label: `执行中 (${getExecutingTasksCount()})`,
+            },
+            {
+              key: 'completed',
+              label: `已完成 (${getCompletedTasksCount()})`,
+            },
+            {
+              key: 'failed',
+              label: `失败 (${getFailedTasksCount()})`,
+            },
+          ]}
+        />
 
         <TaskTable
           tasks={getFilteredTasks()}

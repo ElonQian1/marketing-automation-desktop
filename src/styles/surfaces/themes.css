@@ -1,0 +1,8 @@
+/* 主题表面样式 */
+/* src/styles/surfaces/themes.css */
+
+/* 主题相关的表面样式将在这里定义 */
+.theme-surface {
+  background: var(--bg-light-base, #ffffff);
+  color: var(--text-inverse, #111827);
+}

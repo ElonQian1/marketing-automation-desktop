@@ -31,7 +31,7 @@ import {
 } from '@ant-design/icons';
 import { EnhancedUIElement, XmlInspectorData } from '../enhanced-element-info/types';
 
-const { TabPane } = Tabs;
+// TabPane is deprecated, using items instead
 const { Text, Title, Paragraph } = Typography;
 const { TextArea } = Input;
 const { Search } = Input;
@@ -585,61 +585,64 @@ export const XmlInspectorModal: React.FC<XmlInspectorProps> = ({
       style={{ top: 20 }}
     >
       <div style={{ height: 700 }}>
-        <Tabs defaultActiveKey="tree" style={{ height: '100%' }}>
-          <TabPane 
-            tab={
-              <Space>
-                <BranchesOutlined />
-                节点树视图
-              </Space>
-            } 
-            key="tree"
-          >
-            <div style={{ display: 'flex', height: 650 }}>
-              {/* 左侧：节点树 */}
-              <div style={{ flex: '1 1 50%', paddingRight: 12, borderRight: '1px solid #f0f0f0' }}>
-                <Title level={5}>XML节点树</Title>
-                <Tree
-                  treeData={treeData}
-                  selectedKeys={[selectedNodeKey]}
-                  expandedKeys={expandedKeys}
-                  onSelect={(keys) => {
-                    setSelectedNodeKey(keys[0] as string);
-                  }}
-                  onExpand={(keys) => {
-                    setExpandedKeys(keys as string[]);
-                  }}
-                  style={{ 
-                    backgroundColor: '#f9f9f9',
-                    padding: 8,
-                    height: 600,
-                    overflow: 'auto'
-                  }}
-                />
-              </div>
-              
-              {/* 右侧：节点详情 */}
-              <div style={{ flex: '1 1 50%', paddingLeft: 12 }}>
-                <Title level={5}>节点详情</Title>
-                <div style={{ height: 600, overflow: 'auto' }}>
-                  {renderNodeDetails()}
+        <Tabs 
+          defaultActiveKey="tree" 
+          style={{ height: '100%' }}
+          items={[
+            {
+              key: 'tree',
+              label: (
+                <Space>
+                  <BranchesOutlined />
+                  节点树视图
+                </Space>
+              ),
+              children: (
+                <div style={{ display: 'flex', height: 650 }}>
+                  {/* 左侧：节点树 */}
+                  <div style={{ flex: '1 1 50%', paddingRight: 12, borderRight: '1px solid #f0f0f0' }}>
+                    <Title level={5}>XML节点树</Title>
+                    <Tree
+                      treeData={treeData}
+                      selectedKeys={[selectedNodeKey]}
+                      expandedKeys={expandedKeys}
+                      onSelect={(keys) => {
+                        setSelectedNodeKey(keys[0] as string);
+                      }}
+                      onExpand={(keys) => {
+                        setExpandedKeys(keys as string[]);
+                      }}
+                      style={{ 
+                        backgroundColor: '#f9f9f9',
+                        padding: 8,
+                        height: 600,
+                        overflow: 'auto'
+                      }}
+                    />
+                  </div>
+                  
+                  {/* 右侧：节点详情 */}
+                  <div style={{ flex: '1 1 50%', paddingLeft: 12 }}>
+                    <Title level={5}>节点详情</Title>
+                    <div style={{ height: 600, overflow: 'auto' }}>
+                      {renderNodeDetails()}
+                    </div>
+                  </div>
                 </div>
-              </div>
-            </div>
-          </TabPane>
-          
-          <TabPane 
-            tab={
-              <Space>
-                <FileTextOutlined />
-                XML源码
-              </Space>
-            } 
-            key="source"
-          >
-            {renderXmlSource()}
-          </TabPane>
-        </Tabs>
+              ),
+            },
+            {
+              key: 'source',
+              label: (
+                <Space>
+                  <FileTextOutlined />
+                  XML源码
+                </Space>
+              ),
+              children: renderXmlSource(),
+            },
+          ]}
+        />
       </div>
     </Modal>
   );

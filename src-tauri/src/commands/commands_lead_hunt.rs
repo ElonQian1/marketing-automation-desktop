@@ -51,3 +51,87 @@ pub async fn lh_run_replay_plan(app_handle: AppHandle, plan_id: String) -> Resul
 
     Ok(())
 }
+
+/// 调试命令：填充测试数据到数据库
+#[cfg(debug_assertions)]
+#[tauri::command]
+pub async fn lh_seed_database(app_handle: AppHandle) -> Result<(), String> {
+    use crate::db;
+    
+    let conn = db::get_connection(&app_handle)
+        .map_err(|e| format!("Failed to get DB connection: {}", e))?;
+    
+    db::seed::run_all(&conn)
+        .map_err(|e| format!("Failed to seed database: {}", e))?;
+    
+    Ok(())
+}
+
+/// 批量分析评论 (后端处理)
+#[tauri::command]
+pub async fn lh_analyze_comments(
+    app_handle: AppHandle,
+    comment_ids: Vec<String>,
+    batch_id: String,
+    concurrency: Option<u32>,
+    max_retries: Option<u32>,
+) -> Result<(), String> {
+    use crate::services::batch_analysis::{BatchAnalysisService, BatchAnalysisRequest};
+    
+    let service = BatchAnalysisService::new(app_handle);
+    let request = BatchAnalysisRequest {
+        comment_ids,
+        batch_id,
+        concurrency,
+        max_retries,
+    };
+    
+    service.start_batch_analysis(request).await
+        .map_err(|e| format!("批量分析启动失败: {}", e))
+}
+
+/// 获取数据库统计信息
+#[tauri::command]
+pub async fn lh_get_stats(app_handle: AppHandle) -> Result<serde_json::Value, String> {
+    use crate::db;
+    use serde_json::json;
+    
+    let conn = db::get_connection(&app_handle)
+        .map_err(|e| format!("Failed to get DB connection: {}", e))?;
+    
+    let comments_count = db::lead_comments::count(&conn)
+        .map_err(|e| format!("Failed to count comments: {}", e))?;
+    
+    let analyses_count = db::lead_analyses::list_all(&conn)
+        .map_err(|e| format!("Failed to count analyses: {}", e))?
+        .len();
+    
+    let intent_stats = db::lead_analyses::count_by_intent(&conn)
+        .map_err(|e| format!("Failed to get intent stats: {}", e))?;
+    
+    let pending_plans = db::replay_plans::list_pending(&conn, None)
+        .map_err(|e| format!("Failed to count pending plans: {}", e))?
+        .len();
+    
+    let all_plans = db::replay_plans::list_all(&conn)
+        .map_err(|e| format!("Failed to count all plans: {}", e))?
+        .len();
+    
+    let status_stats = db::replay_plans::count_by_status(&conn)
+        .map_err(|e| format!("Failed to get status stats: {}", e))?;
+    
+    Ok(json!({
+        "comments": {
+            "total": comments_count
+        },
+        "analyses": {
+            "total": analyses_count,
+            "by_intent": intent_stats
+        },
+        "replay_plans": {
+            "total": all_plans,
+            "pending": pending_plans,
+            "by_status": status_stats
+        }
+    }))
+}

@@ -11,6 +11,7 @@ mod hidden_element_parent_strategy;
 pub mod xpath_direct_strategy;
 mod xpath_first_index_strategy;
 mod xpath_all_elements_strategy;
+mod enhanced_strategy; // 🆕 增强型匹配策略
 
 pub use strategy_processor::{
     StrategyProcessor,
@@ -26,6 +27,7 @@ pub use hidden_element_parent_strategy::HiddenElementParentStrategyProcessor;
 pub use xpath_direct_strategy::XPathDirectStrategyProcessor;
 pub use xpath_first_index_strategy::XPathFirstIndexStrategyProcessor;
 pub use xpath_all_elements_strategy::XPathAllElementsStrategyProcessor;
+pub use enhanced_strategy::EnhancedStrategyProcessor; // 🆕 增强型策略处理器
 
 use std::collections::HashMap;
 use serde_json::Value;
@@ -36,6 +38,7 @@ pub fn create_strategy_processor(strategy: &str) -> Box<dyn StrategyProcessor + 
         "xpath-direct" => Box::new(XPathDirectStrategyProcessor::new()), // 🆕 XPath 直接索引策略
         "xpath-first-index" => Box::new(XPathFirstIndexStrategyProcessor::new()), // 🆕 XPath 使用[1]索引策略
         "xpath-all-elements" => Box::new(XPathAllElementsStrategyProcessor::new()), // 🆕 XPath 返回所有元素策略
+        "enhanced" => Box::new(EnhancedStrategyProcessor::new()), // 🆕 增强型匹配策略
         "standard" => Box::new(StandardStrategyProcessor::new()),
         "absolute" => Box::new(AbsoluteStrategyProcessor::new()),
         "custom" => Box::new(CustomStrategyProcessor::new()),
@@ -69,8 +72,8 @@ pub fn create_strategy_processor(strategy: &str) -> Box<dyn StrategyProcessor + 
         },
         
         _ => {
-            tracing::warn!("🤖 未知匹配策略: {}, 使用 custom 策略", strategy);
-            Box::new(CustomStrategyProcessor::new()) // 修改默认策略为Custom
+            tracing::warn!("🤖 未知匹配策略: {}, 使用 enhanced 策略作为智能后备", strategy);
+            Box::new(EnhancedStrategyProcessor::new()) // 🆕 使用增强策略作为默认后备
         }
     }
 }

@@ -18,8 +18,10 @@ import {
   ClockCircleOutlined
 } from "@ant-design/icons";
 import type { ColumnsType } from "antd/es/table";
-import { analyzeBatchWithProgress, type RawComment } from "@/features/leadHunt/analyzeLead";
-import type { LeadAnalysis } from "@/ai/schemas/leadIntent.schema";
+import { analyzeBatchWithProgress, type RawComment } from "../../features/leadHunt/analyzeLead";
+import { analyzeCommentsOnBackend, cancelProgressListener } from "../../features/leadHunt/backendAnalysis";
+import type { BatchAnalysisProgress } from "../../services/batchAnalysisService";
+import type { LeadAnalysis } from "../../ai/schemas/leadIntent.schema";
 
 type Row = RawComment & { analysis?: LeadAnalysis };
 
@@ -48,6 +50,9 @@ export default function LeadHunt() {
   const [importing, setImporting] = useState(false);
   const [analyzing, setAnalyzing] = useState(false);
   const [analysisProgress, setAnalysisProgress] = useState(0);
+  const [analysisMode, setAnalysisMode] = useState<'frontend' | 'backend'>('backend');
+  const [backendBatchId, setBackendBatchId] = useState<string>('');
+  const [backendProgress, setBackendProgress] = useState<BatchAnalysisProgress | null>(null);
   const [filter, setFilter] = useState<string>("全部");
   const [executionSteps, setExecutionSteps] = useState<ExecutionStepStatus[]>([]);
   const [executing, setExecuting] = useState(false);
@@ -136,6 +141,14 @@ export default function LeadHunt() {
       return;
     }
 
+    if (analysisMode === 'backend') {
+      return runBackendAnalysis();
+    } else {
+      return runFrontendAnalysis();
+    }
+  };
+
+  const runFrontendAnalysis = async () => {
     try {
       setAnalyzing(true);
       setAnalysisProgress(0);
@@ -146,7 +159,6 @@ export default function LeadHunt() {
           const percent = Math.round((current / total) * 100);
           setAnalysisProgress(percent);
         }
-        // 并发数从AI设置中读取
       );
 
       // 将分析结果合并到rows中
@@ -158,12 +170,52 @@ export default function LeadHunt() {
         }))
       );
 
-      message.success(`成功分析 ${result.length} 条评论`);
+      message.success(`前端分析完成：${result.length} 条评论`);
     } catch (error) {
-      message.error(`批量分析失败: ${error}`);
+      message.error(`前端分析失败: ${error}`);
     } finally {
       setAnalyzing(false);
       setAnalysisProgress(0);
+    }
+  };
+
+  const runBackendAnalysis = async () => {
+    try {
+      setAnalyzing(true);
+      setBackendProgress(null);
+      
+      const commentIds = rows.map(row => row.id);
+      const batchId = await analyzeCommentsOnBackend(commentIds, {
+        onProgress: (progress: BatchAnalysisProgress) => {
+          setBackendProgress(progress);
+          const percent = Math.round((progress.processed / progress.total) * 100);
+          setAnalysisProgress(percent);
+          
+          // 当分析完成时刷新数据
+          if (progress.status === 'completed' || progress.status === 'partial') {
+            setTimeout(() => {
+              refresh();
+              message.success(`后端分析完成：成功 ${progress.successful} 条，失败 ${progress.failed} 条`);
+            }, 1000);
+          }
+        }
+      });
+      
+      setBackendBatchId(batchId);
+      message.info(`后端分析已启动，批次ID: ${batchId}`);
+    } catch (error) {
+      message.error(`后端分析启动失败: ${error}`);
+      setAnalyzing(false);
+    }
+  };
+
+  const cancelBackendAnalysis = () => {
+    if (backendBatchId) {
+      cancelProgressListener(backendBatchId);
+      setAnalyzing(false);
+      setBackendProgress(null);
+      setAnalysisProgress(0);
+      message.info('已取消后端分析监听');
     }
   };
 
@@ -334,6 +386,15 @@ export default function LeadHunt() {
               >
                 导入评论（Mock）
               </Button>
+              <Select
+                value={analysisMode}
+                onChange={setAnalysisMode}
+                style={{ width: 120 }}
+                size="middle"
+              >
+                <Select.Option value="backend">后端分析</Select.Option>
+                <Select.Option value="frontend">前端分析</Select.Option>
+              </Select>
               <Button
                 type="primary"
                 icon={<RobotOutlined />}
@@ -341,8 +402,17 @@ export default function LeadHunt() {
                 loading={analyzing}
                 disabled={rows.length === 0}
               >
-                AI 批量分析
+                {analysisMode === 'backend' ? '后端' : '前端'}分析
               </Button>
+              {analyzing && analysisMode === 'backend' && (
+                <Button
+                  size="small"
+                  icon={<CloseCircleOutlined />}
+                  onClick={cancelBackendAnalysis}
+                >
+                  取消监听
+                </Button>
+              )}
               <Button
                 icon={<ReloadOutlined />}
                 onClick={refresh}
@@ -373,12 +443,25 @@ export default function LeadHunt() {
             />
             {analyzing && (
               <>
-                <span>分析进度：</span>
+                <span>{analysisMode === 'backend' ? '后端' : '前端'}分析进度：</span>
                 <Progress
                   percent={analysisProgress}
                   style={{ width: 200 }}
                   size="small"
                 />
+                {analysisMode === 'backend' && backendProgress && (
+                  <Space>
+                    <span>当前：</span>
+                    <Tag color="blue">{backendProgress.processed}/{backendProgress.total}</Tag>
+                    <Tag color="green">成功 {backendProgress.successful}</Tag>
+                    <Tag color="red">失败 {backendProgress.failed}</Tag>
+                    {backendProgress.currentComment && (
+                      <Tooltip title={backendProgress.currentComment}>
+                        <Tag color="orange">处理中</Tag>
+                      </Tooltip>
+                    )}
+                  </Space>
+                )}
               </>
             )}
           </Space>

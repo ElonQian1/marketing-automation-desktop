@@ -1,0 +1,8 @@
+/* 覆盖层表面样式 */
+/* src/styles/surfaces/overlays.css */
+
+/* 模态框、弹出层等覆盖层样式将在这里定义 */
+.overlay-surface {
+  background: var(--bg-light-base, #ffffff);
+  color: var(--text-inverse, #111827);
+}

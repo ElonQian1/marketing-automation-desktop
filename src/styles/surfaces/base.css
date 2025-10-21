@@ -1,0 +1,8 @@
+/* 基础表面样式 */
+/* src/styles/surfaces/base.css */
+
+/* 基础容器和表面样式将在这里定义 */
+.surface-base {
+  background: var(--bg-light-base, #ffffff);
+  color: var(--text-inverse, #111827);
+}

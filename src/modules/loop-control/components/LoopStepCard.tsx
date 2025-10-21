@@ -194,10 +194,10 @@ export const LoopStepCard: React.FC<LoopStepCardProps> = ({
   return (
     <Card
       size="small"
-      className={`loop-step-card loop-surface ${executing ? 'executing' : ''} ${collapsed ? 'collapsed' : ''}`}
+      className={`loop-step-card ${executing ? 'executing' : ''} ${collapsed ? 'collapsed' : ''}`}
       title={
         <Space>
-          <RedoOutlined style={{ color: '#1890ff' }} />
+          <RedoOutlined />
           <span>{startStep.name || '循环步骤'}</span>
           {getStatusTag()}
         </Space>
@@ -242,14 +242,6 @@ export const LoopStepCard: React.FC<LoopStepCardProps> = ({
           )}
         </Space>
       }
-      style={{
-        marginBottom: 16,
-        border: executing ? '2px solid #1890ff' : '1px solid #d9d9d9',
-        boxShadow: executing ? '0 2px 8px rgba(24, 144, 255, 0.2)' : undefined,
-        backgroundColor: '#ffffff'
-      }}
-      headStyle={{ backgroundColor: '#f8fafc', color: '#111827' }}
-      bodyStyle={{ color: '#111827' }}
     >
       <Space direction="vertical" style={{ width: '100%' }} size="middle">
         {/* 循环配置区域 */}
@@ -260,17 +252,7 @@ export const LoopStepCard: React.FC<LoopStepCardProps> = ({
         {/* 循环体步骤区域 */}
         {!collapsed && (
           <div className="loop-body-area">
-            <div 
-              className="loop-body-container"
-              style={{
-                border: '2px dashed #1890ff',
-                borderRadius: 8,
-                padding: 16,
-                backgroundColor: '#f6ffed',
-                color: '#1f2937',
-                minHeight: innerSteps.length === 0 ? 100 : 'auto'
-              }}
-            >
+            <div className="loop-body-container">
               <div className="loop-body-header">
                 <Text type="secondary">
                   🔄 循环体 ({innerSteps.length} 个步骤)
@@ -279,14 +261,7 @@ export const LoopStepCard: React.FC<LoopStepCardProps> = ({
               
               <div className="loop-body-content">
                 {innerSteps.length === 0 ? (
-                  <div 
-                    className="empty-loop-body"
-                    style={{
-                      textAlign: 'center',
-                      padding: '24px 0',
-                      color: '#6b7280'
-                    }}
-                  >
+                  <div className="empty-loop-body">
                     拖拽步骤到此处添加到循环中
                   </div>
                 ) : (

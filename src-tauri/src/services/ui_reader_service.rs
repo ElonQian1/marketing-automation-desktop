@@ -1,5 +1,6 @@
 use serde::{Deserialize, Serialize};
 use tokio::process::Command as AsyncCommand;
+use crate::utils::adb_utils::get_adb_path;
 
 #[derive(Debug, Serialize, Deserialize)]
 pub struct UIElement {
@@ -86,8 +87,11 @@ pub async fn read_device_ui_state(device_id: String) -> Result<DeviceUIState, St
 pub async fn get_ui_dump(device_id: &str) -> Result<String, String> {
     println!("📱 正在获取设备 {} 的UI dump...", device_id);
     
+    // 获取正确的ADB路径
+    let adb_path = get_adb_path();
+    
     // 先尝试刷新UI dump
-    let mut refresh_cmd = AsyncCommand::new("adb");
+    let mut refresh_cmd = AsyncCommand::new(&adb_path);
     refresh_cmd.args(&["-s", device_id, "shell", "uiautomator", "dump"]);
     
     #[cfg(windows)]
@@ -114,7 +118,7 @@ pub async fn get_ui_dump(device_id: &str) -> Result<String, String> {
     tokio::time::sleep(tokio::time::Duration::from_millis(1000)).await;
     
     // 读取UI dump文件
-    let mut read_cmd = AsyncCommand::new("adb");
+    let mut read_cmd = AsyncCommand::new(&adb_path);
     read_cmd.args(&["-s", device_id, "shell", "cat", "/sdcard/window_dump.xml"]);
     
     #[cfg(windows)]

@@ -78,7 +78,7 @@ export const ConfidenceTag: React.FC<ConfidenceTagProps> = ({
           </div>
         }
         placement="top"
-        overlayStyle={{ maxWidth: '300px' }}
+        styles={{ root: { maxWidth: '300px' } }}
       >
         {tagContent}
       </Tooltip>
