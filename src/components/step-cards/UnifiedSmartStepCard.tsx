@@ -18,9 +18,7 @@ import {
 import { useStepCardStore, type StepCard, type StepCardStatus } from '../../store/stepcards';
 import { useUnifiedAnalysisEvents } from '../../services/unified-analysis-events';
 import { invoke } from '@tauri-apps/api/core';
-// 移除未使用的导入 - 现在直接用简单的 span 渲染徽章
-// import { ConfidenceBadge } from '../common/ConfidenceBadge';
-// import { ConfidenceBreakdown } from '../common/ConfidenceBreakdown';
+import { ConfidenceTag } from '../confidence-tag';
 
 const { Option } = Select;
 
@@ -228,23 +226,13 @@ export const UnifiedSmartStepCard: React.FC<UnifiedSmartStepCardProps> = ({
           <span style={{ flex: 1, fontSize: '13px' }}>
             {mockElement?.text || `元素 ${card.elementUid.slice(-8)}`}
           </span>
-          {/* 直接显示置信度徽章 - 简化版本 */}
-          {card.meta?.singleStepScore?.confidence && (card.status === 'ready' || card.status === 'completed') && (
-            <span 
-              className="confidence-badge" 
-              data-testid="confidence-badge"
-              style={{
-                padding: '2px 8px',
-                borderRadius: '999px',
-                background: 'var(--g-badge, #101010)',
-                color: 'var(--g-fg, #f5f5f5)',
-                border: '1px solid var(--g-border, #2d2d2d)',
-                fontSize: '12px',
-                lineHeight: '18px'
-              }}
-            >
-              {`${Math.round(card.meta.singleStepScore.confidence * 100)}%`}
-            </span>
+          {/* 置信度标签 - 使用 ConfidenceTag 组件 */}
+          {card.meta?.singleStepScore && (card.status === 'ready' || card.status === 'completed') && (
+            <ConfidenceTag 
+              score={card.meta.singleStepScore}
+              size="small"
+              compact
+            />
           )}
           
           {card.status === 'draft' && (
@@ -299,24 +287,12 @@ export const UnifiedSmartStepCard: React.FC<UnifiedSmartStepCardProps> = ({
           <Tag color={getStatusColor(card.status)}>
             {getStatusText(card.status)}
           </Tag>
-          {/* 直接显示置信度徽章 - 完整模式 */}
-          {card.meta?.singleStepScore?.confidence && (card.status === 'ready' || card.status === 'completed') && (
-            <span 
-              className="confidence-badge" 
-              data-testid="confidence-badge"
-              style={{
-                padding: '4px 12px',
-                borderRadius: '999px',
-                background: 'var(--g-badge, #101010)',
-                color: 'var(--g-fg, #f5f5f5)',
-                border: '1px solid var(--g-border, #2d2d2d)',
-                fontSize: '13px',
-                fontWeight: 500,
-                lineHeight: '20px'
-              }}
-            >
-              置信度 {`${Math.round(card.meta.singleStepScore.confidence * 100)}%`}
-            </span>
+          {/* 置信度标签 - 使用 ConfidenceTag 组件 */}
+          {card.meta?.singleStepScore && (card.status === 'ready' || card.status === 'completed') && (
+            <ConfidenceTag 
+              score={card.meta.singleStepScore}
+              size="default"
+            />
           )}
         </div>
       }
