@@ -8,6 +8,11 @@ pub struct FileFilter {
     pub extensions: Vec<String>,
 }
 
+#[tauri::command]
+pub async fn read_file_content(file_path: String) -> Result<String, String> {
+    std::fs::read_to_string(&file_path).map_err(|e| format!("读取文件失败: {}", e))
+}
+
 /// 保存文件对话框 - 通过前端处理的简化版本
 /// 前端将调用保存对话框选择路径，然后调用此函数保存内容
 #[tauri::command]

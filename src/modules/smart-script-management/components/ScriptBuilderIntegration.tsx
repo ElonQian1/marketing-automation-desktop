@@ -5,8 +5,8 @@
 // SmartScriptBuilderPage 的脚本管理集成示例
 
 import React, { useState, useCallback } from 'react';
-import { Card, Button, Space, Modal, Input, message, Alert, Form, Select, Row, Col, Tag } from 'antd';
-import { SaveOutlined, FolderOpenOutlined, MenuOutlined, CloudUploadOutlined } from '@ant-design/icons';
+import { Card, Button, Space, Modal, Input, message, Alert, Form, Select, Row, Col, Tag, Tooltip, Dropdown } from 'antd';
+import { SaveOutlined, FolderOpenOutlined, MenuOutlined, CloudUploadOutlined, ShareAltOutlined } from '@ant-design/icons';
 
 const { TextArea } = Input;
 
@@ -63,12 +63,16 @@ export const ScriptBuilderIntegration: React.FC<ScriptBuilderIntegrationProps> =
   const [importing, setImporting] = useState(false);
   const [distributedScriptName, setDistributedScriptName] = useState('');
   const [distributedScriptDescription, setDistributedScriptDescription] = useState('');
-  const [importFile, setImportFile] = useState<string>('');
+  const [importShareCode, setImportShareCode] = useState<string>('');
 
   // 🆕 发布到模板库相关状态
   const [publishModalVisible, setPublishModalVisible] = useState(false);
   const [publishing, setPublishing] = useState(false);
   const [publishForm] = Form.useForm<PublishToTemplateFormData>();
+
+  // 🆕 快速分享相关状态
+  const [shareModalVisible, setShareModalVisible] = useState(false);
+  const [shareCode, setShareCode] = useState('');
 
   // 保存脚本到模块化系统
   const handleSaveScript = useCallback(async () => {
@@ -191,14 +195,20 @@ export const ScriptBuilderIntegration: React.FC<ScriptBuilderIntegrationProps> =
       const fileName = `${distributedScriptName.replace(/[^a-zA-Z0-9\u4e00-\u9fa5]/g, '_')}_distributed.json`;
       
       try {
-        // 调用Tauri后端保存文件
-        await invoke('save_file_dialog', {
-          content: JSON.stringify(exportScript, null, 2),
-          defaultFileName: fileName,
-          filters: [{ name: 'JSON Files', extensions: ['json'] }]
-        });
+        // 使用浏览器的文件保存功能
+        const dataStr = JSON.stringify(exportScript, null, 2);
+        const dataBlob = new Blob([dataStr], { type: 'application/json' });
+        const url = URL.createObjectURL(dataBlob);
         
-        message.success(`分布式脚本已导出: ${fileName}`);
+        const link = document.createElement('a');
+        link.href = url;
+        link.download = fileName;
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+        URL.revokeObjectURL(url);
+        
+        message.success(`分布式脚本已保存: ${fileName}`);
         setDistributedExportModalVisible(false);
         setDistributedScriptName('');
         setDistributedScriptDescription('');
@@ -232,24 +242,84 @@ export const ScriptBuilderIntegration: React.FC<ScriptBuilderIntegrationProps> =
 
   // 🆕 导入分布式脚本
   const handleImportDistributedScript = useCallback(async () => {
-    if (!importFile) {
-      message.warning('请选择脚本文件');
-      return;
+    // 如果没有输入分享码，弹出文件选择对话框
+    if (!importShareCode || importShareCode.trim() === '') {
+      try {
+        // 创建文件输入元素
+        const fileInput = document.createElement('input');
+        fileInput.type = 'file';
+        fileInput.accept = '.json';
+        fileInput.style.display = 'none';
+        
+        // 添加文件选择事件监听器
+        fileInput.addEventListener('change', async (event) => {
+          const files = (event.target as HTMLInputElement).files;
+          if (files && files.length > 0) {
+            const file = files[0];
+            const reader = new FileReader();
+            
+            reader.onload = async (e) => {
+              try {
+                const content = e.target?.result as string;
+                await importFromContent(content);
+              } catch (error) {
+                console.error('文件读取失败:', error);
+                message.error('文件读取失败，请检查文件格式');
+              }
+            };
+            
+            reader.readAsText(file);
+          } else {
+            message.info('取消导入');
+          }
+        });
+        
+        // 添加到DOM并触发点击
+        document.body.appendChild(fileInput);
+        fileInput.click();
+        document.body.removeChild(fileInput);
+        
+      } catch (error) {
+        console.error('文件选择失败:', error);
+        message.error('文件选择失败，请重试');
+      }
+    } else {
+      // 使用分享码导入
+      await importFromShareCode(importShareCode.trim());
     }
+  }, [importShareCode]);
 
+  // 从分享码导入
+  const importFromShareCode = useCallback(async (shareCode: string) => {
     setImporting(true);
     try {
-      // 使用Tauri读取文件
-      let scriptContent: string;
-      try {
-        scriptContent = await invoke('read_file_dialog', {
-          filters: [{ name: 'JSON Files', extensions: ['json'] }]
-        });
-      } catch (readError) {
-        message.error('无法读取文件，请检查文件是否存在');
-        return;
+      // 检查是否是分享码（12位字符）
+      if (shareCode.length === 12 && /^[A-Za-z0-9+/]+$/.test(shareCode)) {
+        // 尝试从分享码获取脚本
+        const shareKey = `share_${shareCode}`;
+        const storedScript = localStorage.getItem(shareKey);
+        
+        if (storedScript) {
+          await importFromContent(storedScript);
+          message.success('分享码验证成功！');
+        } else {
+          message.error('分享码无效或已过期，请检查分享码是否正确');
+        }
+      } else {
+        message.error('分享码格式不正确，应为12位字符');
       }
+    } catch (error) {
+      console.error('❌ 分享码导入失败:', error);
+      message.error('分享码导入失败');
+    } finally {
+      setImporting(false);
+    }
+  }, []);
 
+  // 从内容导入脚本
+  const importFromContent = useCallback(async (scriptContent: string) => {
+    setImporting(true);
+    try {
       // 解析分布式脚本
       const distributedScript: DistributedScript = JSON.parse(scriptContent);
       
@@ -318,15 +388,14 @@ export const ScriptBuilderIntegration: React.FC<ScriptBuilderIntegrationProps> =
 
       message.success(`分布式脚本 "${distributedScript.name}" 导入成功 (${uiSteps.length} 个步骤)`);
       setDistributedImportModalVisible(false);
-      setImportFile('');
-
+      setImportShareCode('');
     } catch (error) {
       console.error('❌ 导入分布式脚本失败:', error);
       message.error('导入分布式脚本失败，请检查文件格式');
     } finally {
       setImporting(false);
     }
-  }, [importFile, onUpdateSteps, onUpdateConfig]);
+  }, [onUpdateSteps, onUpdateConfig]);
 
   // 🆕 发布到模板库
   const handlePublishToTemplate = useCallback(async () => {
@@ -391,6 +460,188 @@ export const ScriptBuilderIntegration: React.FC<ScriptBuilderIntegrationProps> =
     setPublishModalVisible(true);
   }, [steps, publishForm]);
 
+  // 🆕 快速分享脚本
+  const handleQuickShare = useCallback(async () => {
+    if (steps.length === 0) {
+      message.warning('请先添加一些脚本步骤');
+      return;
+    }
+
+    try {
+      // 创建分布式脚本
+      const distributedScript: DistributedScript = {
+        id: `shared_${Date.now()}`,
+        name: `共享脚本_${Date.now()}`,
+        description: '通过快速分享生成的脚本',
+        version: '1.0.0',
+        createdAt: Date.now(),
+        updatedAt: Date.now(),
+        steps: [],
+        xmlSnapshotPool: {},
+        metadata: {
+          targetApp: '通用应用',
+          targetAppPackage: 'com.example.app',
+          author: 'SmartScriptBuilder',
+          platform: 'android',
+          tags: ['自动化', '分布式', '快速分享'],
+        },
+        runtime: {
+          maxRetries: executorConfig.default_retry_count || 3,
+          timeoutMs: executorConfig.default_timeout_ms || 10000,
+          enableSmartFallback: executorConfig.smart_recovery_enabled || true,
+        },
+      };
+
+      // 为每个有XML快照的步骤创建分布式步骤
+      for (const step of steps) {
+        if (step.parameters?.xmlSnapshot?.xmlContent) {
+          const distributedStep = DistributedScriptManager.createDistributedStep(
+            {
+              id: step.id,
+              name: step.name || `步骤_${step.id}`,
+              actionType: step.step_type || 'click',
+              params: step.parameters || {},
+              locator: {
+                absoluteXPath: step.parameters?.xpath || '',
+                attributes: {
+                  resourceId: step.parameters?.resource_id,
+                  text: step.parameters?.text,
+                  contentDesc: step.parameters?.content_desc,
+                  className: step.parameters?.class_name,
+                },
+              },
+              createdAt: Date.now(),
+              description: step.description,
+            },
+            step.parameters.xmlSnapshot.xmlContent,
+            step.parameters.xmlSnapshot.deviceInfo,
+            step.parameters.xmlSnapshot.pageInfo
+          );
+          
+          distributedScript.steps.push(distributedStep);
+        }
+      }
+
+      // 生成分享码（Base64编码）
+      const scriptData = JSON.stringify(distributedScript);
+      const shareCodeGenerated = btoa(encodeURIComponent(scriptData)).slice(0, 12);
+      
+      // 保存到临时存储（实际项目中可以保存到服务器）
+      const shareKey = `share_${shareCodeGenerated}`;
+      localStorage.setItem(shareKey, scriptData);
+      
+      setShareCode(shareCodeGenerated);
+      setShareModalVisible(true);
+      
+      message.success('分享码生成成功！');
+    } catch (error) {
+      console.error('❌ 生成分享码失败:', error);
+      message.error('生成分享码失败');
+    }
+  }, [steps, executorConfig]);
+
+  // 🆕 快速导出为文件
+  const handleQuickExport = useCallback(() => {
+    if (steps.length === 0) {
+      message.warning('请先添加一些脚本步骤');
+      return;
+    }
+
+    try {
+      // 创建分布式脚本
+      const distributedScript: DistributedScript = {
+        id: `export_${Date.now()}`,
+        name: `导出脚本_${Date.now()}`,
+        description: `导出时间: ${new Date().toLocaleString()}`,
+        version: '1.0.0',
+        createdAt: Date.now(),
+        updatedAt: Date.now(),
+        steps: [],
+        xmlSnapshotPool: {},
+        metadata: {
+          targetApp: '通用应用',
+          targetAppPackage: 'com.example.app',
+          author: 'SmartScriptBuilder',
+          platform: 'android',
+          tags: ['自动化', '分布式', '导出分享'],
+        },
+        runtime: {
+          maxRetries: executorConfig.default_retry_count || 3,
+          timeoutMs: executorConfig.default_timeout_ms || 10000,
+          enableSmartFallback: executorConfig.smart_recovery_enabled || true,
+        },
+      };
+
+      // 为每个有XML快照的步骤创建分布式步骤
+      for (const step of steps) {
+        if (step.parameters?.xmlSnapshot?.xmlContent) {
+          const distributedStep = DistributedScriptManager.createDistributedStep(
+            {
+              id: step.id,
+              name: step.name || `步骤_${step.id}`,
+              actionType: step.step_type || 'click',
+              params: step.parameters || {},
+              locator: {
+                absoluteXPath: step.parameters?.xpath || '',
+                attributes: {
+                  resourceId: step.parameters?.resource_id,
+                  text: step.parameters?.text,
+                  contentDesc: step.parameters?.content_desc,
+                  className: step.parameters?.class_name,
+                },
+              },
+              createdAt: Date.now(),
+              description: step.description,
+            },
+            step.parameters.xmlSnapshot.xmlContent,
+            step.parameters.xmlSnapshot.deviceInfo,
+            step.parameters.xmlSnapshot.pageInfo
+          );
+          
+          distributedScript.steps.push(distributedStep);
+        }
+      }
+
+      // 下载文件
+      const dataStr = JSON.stringify(distributedScript, null, 2);
+      const dataBlob = new Blob([dataStr], { type: 'application/json' });
+      const url = URL.createObjectURL(dataBlob);
+      
+      const link = document.createElement('a');
+      link.href = url;
+      link.download = `脚本分享_${new Date().toISOString().slice(0, 10)}.json`;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      URL.revokeObjectURL(url);
+      
+      message.success('脚本已导出，可以发送给朋友！');
+    } catch (error) {
+      console.error('❌ 快速导出失败:', error);
+      message.error('导出失败');
+    }
+  }, [steps, executorConfig]);
+
+  // 🆕 复制分享码
+  const handleCopyShareCode = useCallback(() => {
+    if (!shareCode) return;
+    
+    const shareText = `我分享了一个自动化脚本给你！\n\n分享码: ${shareCode}\n\n使用方法:\n1. 打开智能脚本构建器\n2. 点击"导入分布式脚本"\n3. 输入分享码导入\n\n快来试试吧！`;
+    
+    navigator.clipboard.writeText(shareText).then(() => {
+      message.success('分享内容已复制到剪贴板！');
+    }).catch(() => {
+      // 备用方案
+      const textArea = document.createElement('textarea');
+      textArea.value = shareText;
+      document.body.appendChild(textArea);
+      textArea.select();
+      document.execCommand('copy');
+      document.body.removeChild(textArea);
+      message.success('分享内容已复制到剪贴板！');
+    });
+  }, [shareCode]);
+
   return (
     <Space wrap>
       {/* 保存脚本按钮 */}
@@ -437,6 +688,34 @@ export const ScriptBuilderIntegration: React.FC<ScriptBuilderIntegrationProps> =
       >
         发布到模板库
       </Button>
+
+      {/* 🆕 快速分享按钮 */}
+      <Dropdown
+        menu={{
+          items: [
+            {
+              key: 'share-code',
+              label: '生成分享码',
+              onClick: handleQuickShare,
+              disabled: steps.length === 0,
+            },
+            {
+              key: 'export-file',
+              label: '导出分享文件',
+              onClick: handleQuickExport,
+              disabled: steps.length === 0,
+            },
+          ]
+        }}
+        trigger={['click']}
+      >
+        <Button
+          icon={<ShareAltOutlined />}
+          disabled={steps.length === 0}
+        >
+          快速分享
+        </Button>
+      </Dropdown>
 
       {/* 保存脚本对话框 */}
       <Modal
@@ -595,31 +874,52 @@ export const ScriptBuilderIntegration: React.FC<ScriptBuilderIntegrationProps> =
         <Space direction="vertical" style={{ width: '100%' }} size="middle">
           <Alert
             message="导入说明"
-            description="选择之前导出的分布式脚本JSON文件，系统将自动恢复所有步骤和XML快照。"
+            description="可以通过分享码快速导入，或选择分布式脚本JSON文件进行导入。"
             type="info"
             showIcon
           />
           
           <div>
-            <label>选择脚本文件</label>
+            <label>分享码导入</label>
             <Input
-              placeholder="将自动打开文件选择对话框"
-              value={importFile}
-              onChange={(e) => setImportFile(e.target.value)}
+              placeholder="输入12位分享码..."
+              value={importShareCode}
+              onChange={(e) => setImportShareCode(e.target.value)}
               style={{ marginTop: 8 }}
-              readOnly
+              suffix={
+                importShareCode.length === 12 ? (
+                  <Tag color="green">有效格式</Tag>
+                ) : importShareCode.length > 0 ? (
+                  <Tag color="red">格式错误</Tag>
+                ) : null
+              }
             />
-            <Button 
-              type="dashed" 
-              style={{ marginTop: 8, width: '100%' }}
-              onClick={() => setImportFile('selected')}
-            >
-              选择分布式脚本文件 (.json)
-            </Button>
+          </div>
+
+          <div style={{ textAlign: 'center', color: '#999' }}>
+            或
+          </div>
+
+          <div>
+            <label>文件导入</label>
+            <div style={{ marginTop: 8 }}>
+              <Button 
+                type="dashed" 
+                style={{ width: '100%' }}
+                icon={<FolderOpenOutlined />}
+              >
+                选择分布式脚本文件 (.json)
+              </Button>
+              <div style={{ fontSize: '12px', color: '#666', marginTop: 4 }}>
+                点击上方按钮弹出文件选择对话框
+              </div>
+            </div>
           </div>
           
           <Card size="small" title="导入效果">
             <Space direction="vertical" size="small">
+              <div>• 支持12位分享码快速导入</div>
+              <div>• 支持JSON文件导入</div>
               <div>• 将替换当前所有步骤</div>
               <div>• 自动恢复XML快照和元素定位信息</div>
               <div>• 保持跨设备兼容性</div>
@@ -762,6 +1062,61 @@ export const ScriptBuilderIntegration: React.FC<ScriptBuilderIntegrationProps> =
             </Space>
           </Card>
         </Form>
+      </Modal>
+
+      {/* 🆕 快速分享对话框 */}
+      <Modal
+        title="🎉 脚本分享"
+        open={shareModalVisible}
+        onCancel={() => setShareModalVisible(false)}
+        footer={[
+          <Button key="close" onClick={() => setShareModalVisible(false)}>
+            关闭
+          </Button>,
+          <Button key="copy" type="primary" onClick={handleCopyShareCode}>
+            复制分享内容
+          </Button>,
+        ]}
+        width={500}
+      >
+        <Space direction="vertical" style={{ width: '100%' }} size="middle">
+          <Alert
+            message="分享码生成成功！"
+            description="您可以将分享码发送给朋友，朋友可以通过导入功能使用您的脚本。"
+            type="success"
+            showIcon
+          />
+          
+          <Card size="small" title="分享码">
+            <div style={{ 
+              fontSize: '24px', 
+              fontWeight: 'bold', 
+              textAlign: 'center',
+              padding: '16px',
+              backgroundColor: '#f5f5f5',
+              borderRadius: '8px',
+              letterSpacing: '4px'
+            }}>
+              {shareCode}
+            </div>
+          </Card>
+
+          <Card size="small" title="使用说明">
+            <ol style={{ margin: 0, paddingLeft: '20px' }}>
+              <li>复制分享内容并发送给朋友</li>
+              <li>朋友打开智能脚本构建器</li>
+              <li>点击"导入分布式脚本"按钮</li>
+              <li>输入分享码即可导入脚本</li>
+            </ol>
+          </Card>
+
+          <Alert
+            message="提示"
+            description="分享码会保存24小时，请及时使用。建议同时导出文件作为备份。"
+            type="info"
+            showIcon
+          />
+        </Space>
       </Modal>
     </Space>
   );

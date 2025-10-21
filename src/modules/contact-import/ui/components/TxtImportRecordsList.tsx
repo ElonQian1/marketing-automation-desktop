@@ -3,7 +3,7 @@
 // summary: UI 组件
 
 import React, { useEffect, useState } from 'react';
-import { Card, List, Tag, Space, Button, Popconfirm, Typography, message, Tooltip } from 'antd';
+import { Card, List, Tag, Space, Button, Popconfirm, Typography, App, Tooltip } from 'antd';
 import { FileTextOutlined, DeleteOutlined, ReloadOutlined, CheckCircleOutlined, CloseCircleOutlined, ExclamationCircleOutlined } from '@ant-design/icons';
 import { listTxtImportRecords, deleteTxtImportRecord, type TxtImportRecordDto } from '../services/txtImportRecordService';
 
@@ -18,6 +18,7 @@ interface TxtImportRecordsListProps {
  * 以文件图标形式展示每个导入的 TXT 文件的统计信息
  */
 export const TxtImportRecordsList: React.FC<TxtImportRecordsListProps> = ({ refresh }) => {
+  const { message } = App.useApp();
   const [loading, setLoading] = useState(false);
   const [records, setRecords] = useState<TxtImportRecordDto[]>([]);
 
