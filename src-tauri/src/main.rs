@@ -359,6 +359,11 @@ fn main() {
             marketing_commands::get_reply_templates,            // 新增：list_reply_templates 的别名
             marketing_commands::update_reply_template,          // 新增：更新回复模板
             marketing_commands::get_precise_acquisition_stats,  // 新增：获取统计数据
+            // Lead Hunt 模块命令（精准获客）
+            commands::lh_save_comments,
+            commands::lh_list_comments,
+            commands::lh_import_comments,
+            commands::lh_create_replay_plan,
             // AI 模块命令
             ai::commands::get_ai_settings,
             ai::commands::save_ai_settings,

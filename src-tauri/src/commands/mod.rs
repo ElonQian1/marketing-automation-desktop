@@ -14,6 +14,7 @@ pub mod xpath_execution; // 新增XPath直接执行命令
 pub mod intelligent_analysis; // ✅ 新增智能分析命令
 pub mod health_check; // ✅ 新增后端健康检查命令
 pub mod prospecting; // ✅ 新增精准获客命令
+pub mod commands_lead_hunt; // ✅ 新增精准获客Lead Hunt命令
 
 // 可选：统一 re-export，方便 main.rs 引入
 pub use employees::*;
@@ -28,3 +29,4 @@ pub use strategy_matching::*;
 pub use intelligent_analysis::*; // ✅ 新增导出
 pub use health_check::*; // ✅ 导出健康检查命令
 pub use prospecting::*; // ✅ 导出精准获客命令
+pub use commands_lead_hunt::*; // ✅ 导出Lead Hunt命令

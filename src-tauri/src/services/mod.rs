@@ -13,6 +13,7 @@ pub mod error_handling; // 新增：错误处理模块
 pub mod navigation_bar_detector; // 新增：通用导航栏检测器
 pub mod page_analyzer_service; // 新增：页面分析服务
 pub mod prospecting; // 新增：精准获客模块
+pub mod lead_hunt; // 新增：精准获客Lead Hunt服务
 pub mod universal_ui_page_analyzer; // 新增：Universal UI 页面分析器
                                     // pub mod simple_xml_parser;  // 已删除：简化XML解析器，统一使用智能解析器
 pub mod commands; // Tauri 命令封装

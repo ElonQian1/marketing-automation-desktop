@@ -1,0 +1,42 @@
+[
+  {
+    "id": "dy_1001",
+    "platform": "douyin",
+    "videoUrl": "https://v.douyin.com/xxxx",
+    "author": "小王",
+    "content": "多少钱一套？支持到广州吗",
+    "ts": 1729497600000
+  },
+  {
+    "id": "xhs_2001",
+    "platform": "xhs",
+    "videoUrl": "https://www.xiaohongshu.com/explore/xxxx",
+    "author": "Lynn",
+    "content": "地址在哪？线下能看样吗",
+    "ts": 1729484000000
+  },
+  {
+    "id": "dy_1002",
+    "platform": "douyin",
+    "videoUrl": "https://v.douyin.com/yyyy",
+    "author": "老张",
+    "content": "售后怎么联系？我这边装不上",
+    "ts": 1729470400000
+  },
+  {
+    "id": "xhs_2002",
+    "platform": "xhs",
+    "videoUrl": "https://www.xiaohongshu.com/explore/yyyy",
+    "author": "小美",
+    "content": "质量怎么样？用了半年会不会坏",
+    "ts": 1729456800000
+  },
+  {
+    "id": "dy_1003",
+    "platform": "douyin",
+    "videoUrl": "https://v.douyin.com/zzzz",
+    "author": "阿强",
+    "content": "有现货吗？什么时候能发货",
+    "ts": 1729443200000
+  }
+]
