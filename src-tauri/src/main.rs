@@ -325,6 +325,11 @@ fn main() {
             get_scrcpy_capabilities,
             // 后端健康检查命令
             backend_ping,
+            analysis_health_check,
+            // 智能分析命令
+            start_intelligent_analysis,
+            cancel_intelligent_analysis,
+            bind_analysis_result_to_step,
             // 精准获客模块命令
             init_precise_acquisition_storage,
             prospecting_save_comment,
