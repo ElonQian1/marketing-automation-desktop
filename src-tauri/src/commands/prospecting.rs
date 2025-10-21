@@ -6,7 +6,7 @@ use anyhow::Result;
 use parking_lot::Mutex;
 use std::sync::Arc;
 use std::path::PathBuf;
-use tauri::{AppHandle, State};
+use tauri::{AppHandle, State, Manager};
 
 use crate::services::prospecting::{
     ProspectingStorage,
@@ -45,6 +45,20 @@ impl ProspectingState {
             None => Err(anyhow::anyhow!("Prospecting storage not initialized")),
         }
     }
+}
+
+/// 初始化精准获客存储
+#[tauri::command]
+pub async fn init_precise_acquisition_storage(
+    app: AppHandle,
+    state: State<'_, ProspectingState>,
+) -> Result<(), String> {
+    let data_dir = app.path()
+        .app_data_dir()
+        .map_err(|e| format!("Failed to get app data dir: {}", e))?;
+    
+    state.init_storage(data_dir)
+        .map_err(|e| format!("Failed to initialize storage: {}", e))
 }
 
 /// 保存评论

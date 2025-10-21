@@ -107,6 +107,7 @@ fn main() {
     let ai_state = ai::commands::AppState {
         settings: parking_lot::RwLock::new(ai::config::load_settings()),
     };
+    let prospecting_state = commands::prospecting::ProspectingState::new();
     
     // 初始化实时设备跟踪器 (替代旧的轮询系统)
     initialize_device_tracker()
@@ -133,6 +134,7 @@ fn main() {
         .manage(Mutex::new(adb_service))
         .manage(smart_app_service)
         .manage(ai_state)
+        .manage(prospecting_state)
         // 应用关闭清理外部进程（scrcpy 等）
         .on_window_event(|_window, event| {
             if let tauri::WindowEvent::CloseRequested { .. } = event {
@@ -321,6 +323,17 @@ fn main() {
             get_scrcpy_capabilities,
             // 后端健康检查命令
             backend_ping,
+            // 精准获客模块命令
+            init_precise_acquisition_storage,
+            prospecting_save_comment,
+            prospecting_get_comments,
+            prospecting_get_comments_by_ids,
+            prospecting_save_analysis,
+            prospecting_save_reply_plan,
+            prospecting_get_reply_plans,
+            prospecting_get_reply_plans_by_ids,
+            prospecting_execute_real_reply_plan,
+            prospecting_get_statistics,
             // AI 模块命令
             ai::commands::get_ai_settings,
             ai::commands::save_ai_settings,
