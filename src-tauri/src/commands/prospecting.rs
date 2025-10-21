@@ -26,9 +26,9 @@ impl ProspectingState {
     }
     
     pub fn init_storage(&self, data_dir: PathBuf) -> Result<()> {
-        let db_path = data_dir.join("prospecting.db");
-        let storage = ProspectingStorage::new(db_path)?;
-        storage.init_database()?;
+        // ProspectingStorage::new() 内部会自动添加 "prospecting.db"
+        // 所以这里直接传递 data_dir 即可
+        let storage = ProspectingStorage::new(data_dir)?;
         
         let mut guard = self.storage.lock();
         *guard = Some(storage);
