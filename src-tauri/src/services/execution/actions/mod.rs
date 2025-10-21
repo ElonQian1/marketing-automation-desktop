@@ -39,8 +39,7 @@ impl<'a> SmartActionDispatcher<'a> {
                 Ok("提取元素模拟".to_string())
             }
             SmartActionType::SmartNavigation => {
-                logs.push("🧭 智能导航".to_string());
-                Ok("智能导航模拟".to_string())
+                smart::handle_smart_navigation(self.executor, step, logs).await
             }
             SmartActionType::LoopStart => {
                 logs.push("🔄 循环开始标记".to_string());
@@ -52,6 +51,15 @@ impl<'a> SmartActionDispatcher<'a> {
             }
             SmartActionType::ContactGenerateVcf => run_generate_vcf_step(step, logs).await,
             SmartActionType::ContactImportToDevice => run_import_contacts_step(step, logs).await,
+            // 🆕 受控兜底：未知动作类型返回友好错误
+            SmartActionType::Unknown => {
+                let error_msg = format!(
+                    "❌ 未知动作类型：步骤 '{}' 的类型无法识别。\n提示：请检查前端是否使用了正确的类型映射层。",
+                    step.name
+                );
+                logs.push(error_msg.clone());
+                Err(anyhow::anyhow!(error_msg))
+            }
         }
     }
 }

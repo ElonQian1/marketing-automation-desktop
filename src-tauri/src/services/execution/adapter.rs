@@ -16,6 +16,8 @@ pub fn map_action_kind(action: &SmartActionType) -> ExecStepKind {
         SmartNavigation => ExecStepKind::Action,
         LoopStart | LoopEnd => ExecStepKind::ControlFlow,
         ContactGenerateVcf | ContactImportToDevice => ExecStepKind::Action,
+        // 🆕 受控兜底：未知动作类型归为 Action（安全处理）
+        Unknown => ExecStepKind::Action,
     }
 }
 
