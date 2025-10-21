@@ -14,6 +14,9 @@ export * from './hooks/useScriptManager';
 // ==================== 主要UI组件 ====================
 export { default as ScriptManager } from './components/ScriptManager';
 
+// ==================== 核心服务 ====================
+export { ScriptFileService } from './services/script-file-service';
+
 // ==================== 核心工具 ====================
 // 导出必要的序列化工具（内部组件需要使用）
 export { ScriptSerializer } from './utils/serializer';

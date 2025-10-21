@@ -297,6 +297,7 @@ export interface ScriptListItem {
   last_executed_at?: string;
   execution_count: number;
   success_rate: number;
+  metadata?: Record<string, any>; // 🆕 添加元数据字段支持模板标识
 }
 
 /**

@@ -33,7 +33,8 @@ import {
   ImportOutlined,
   FileTextOutlined,
   ClockCircleOutlined,
-  CheckCircleOutlined
+  CheckCircleOutlined,
+  AppstoreOutlined  // 🆕 新增：模板图标
 } from '@ant-design/icons';
 import type { ColumnsType } from 'antd/es/table';
 import { useScriptManager, useScriptEditor, useScriptExecutor } from '../hooks/useScriptManager';
@@ -70,7 +71,8 @@ export const ScriptManager: React.FC<ScriptManagerProps> = ({
 
   // 过滤脚本列表
   const filteredScripts = scripts.filter(script => {
-    const matchesCategory = filterCategory === 'all' || script.category === filterCategory;
+    const matchesCategory = filterCategory === 'all' || 
+      (filterCategory === 'template' ? script.metadata?.isTemplate : script.category === filterCategory);
     const matchesSearch = !searchText || 
       script.name.toLowerCase().includes(searchText.toLowerCase()) ||
       script.description.toLowerCase().includes(searchText.toLowerCase());
@@ -175,7 +177,15 @@ export const ScriptManager: React.FC<ScriptManagerProps> = ({
       ellipsis: true,
       render: (text, record) => (
         <Space direction="vertical" size={0}>
-          <Text strong>{text}</Text>
+          <Space size="small">
+            {/* 🆕 模板导入标识图标 */}
+            {record.metadata?.isTemplate && (
+              <Tooltip title="此脚本来自模板库">
+                <AppstoreOutlined style={{ color: '#fa8c16' }} />
+              </Tooltip>
+            )}
+            <Text strong>{text}</Text>
+          </Space>
           <Text type="secondary" style={{ fontSize: '12px' }}>
             {record.description}
           </Text>
@@ -187,8 +197,16 @@ export const ScriptManager: React.FC<ScriptManagerProps> = ({
       dataIndex: 'category',
       key: 'category',
       width: 100,
-      render: (category) => (
-        <Tag color="blue">{category}</Tag>
+      render: (category, record) => (
+        <Space direction="vertical" size={0}>
+          <Tag color="blue">{category}</Tag>
+          {/* 🆕 显示模板来源标识 */}
+          {record.metadata?.isTemplate && (
+            <Tag color="orange" style={{ fontSize: '10px' }}>
+              模板导入
+            </Tag>
+          )}
+        </Space>
       )
     },
     {
@@ -333,6 +351,7 @@ export const ScriptManager: React.FC<ScriptManagerProps> = ({
               placeholder="选择分类"
             >
               <Option value="all">所有分类</Option>
+              <Option value="template">🎯 模板导入</Option>
               {categories.map(category => (
                 <Option key={category} value={category}>{category}</Option>
               ))}

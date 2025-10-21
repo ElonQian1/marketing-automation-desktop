@@ -4,7 +4,7 @@
 
 // SmartScriptBuilderPage 的脚本管理集成示例
 
-import React, { useState, useCallback } from 'react';
+import React, { useState, useCallback, useEffect } from 'react';
 import { Card, Button, Space, Modal, Input, message, Alert, Form, Select, Row, Col, Tag, Tooltip, Dropdown } from 'antd';
 import { SaveOutlined, FolderOpenOutlined, MenuOutlined, CloudUploadOutlined, ShareAltOutlined } from '@ant-design/icons';
 
@@ -16,11 +16,13 @@ import {
   useScriptManager,
   ScriptSerializer,
   SmartScript,
-  ScriptManager
+  ScriptManager,
+  ScriptFileService  // 🆕 新增：导入文件服务
 } from '../index';
 
 // 🆕 导入分布式脚本管理
 import { DistributedScriptManager, DistributedScript } from '../../../domain/distributed-script';
+import { DistributedStep } from '../../../domain/distributed-script/entities/DistributedStep';
 import { invoke } from '@tauri-apps/api/core';
 
 // 🆕 导入模板转换器
@@ -73,6 +75,78 @@ export const ScriptBuilderIntegration: React.FC<ScriptBuilderIntegrationProps> =
   // 🆕 快速分享相关状态
   const [shareModalVisible, setShareModalVisible] = useState(false);
   const [shareCode, setShareCode] = useState('');
+
+  // 🔄 初始化时检查是否有选中的模板
+  useEffect(() => {
+    const checkForSelectedTemplate = async () => {
+      try {
+        const selectedTemplateData = localStorage.getItem('selectedTemplate');
+        if (selectedTemplateData) {
+          const template = JSON.parse(selectedTemplateData);
+          console.log('🎯 发现选中的模板:', template);
+          
+          // 检查模板数据格式
+          if (template.steps && Array.isArray(template.steps)) {
+            try {
+              // 🎯 将模板永久保存到脚本管理器
+              const templateScript = await saveFromUIState(
+                `[模板] ${template.name}`,
+                template.metadata?.description || template.description || `从模板库导入的${template.name}模板`,
+                template.steps,
+                {
+                  continue_on_error: true,
+                  auto_verification_enabled: true,
+                  smart_recovery_enabled: true,
+                  detailed_logging: true,
+                  default_timeout_ms: template.metadata?.estimatedTime ? parseInt(template.metadata.estimatedTime) * 1000 : 10000,
+                  default_retry_count: 3,
+                  page_recognition_enabled: true,
+                },
+                {
+                  category: template.metadata?.category || '模板导入',
+                  tags: ['模板导入', ...(template.tags || []), ...(template.metadata?.tags || [])],
+                  source: 'template_library',
+                  originalTemplateId: template.id,
+                  difficulty: template.metadata?.difficulty,
+                  targetApp: template.metadata?.targetApp,
+                  isTemplate: true
+                }
+              );
+              
+              // 🔄 同时加载到当前脚本构建器（临时编辑）
+              onUpdateSteps(template.steps);
+              
+              message.success(`模板 "${template.name}" 已保存到脚本管理器并加载到构建器`, 5);
+              
+              // 清除 localStorage 中的模板数据，避免重复加载
+              localStorage.removeItem('selectedTemplate');
+              
+              console.log('✅ 模板已永久保存到脚本管理器:', templateScript);
+              
+            } catch (saveError) {
+              console.error('❌ 保存模板到脚本管理器失败:', saveError);
+              // 如果保存失败，至少临时加载到构建器
+              onUpdateSteps(template.steps);
+              message.warning(`模板 "${template.name}" 加载到构建器成功，但保存到脚本管理器失败`);
+              localStorage.removeItem('selectedTemplate');
+            }
+            
+          } else {
+            console.warn('⚠️ 模板数据格式不正确:', template);
+            message.warning('模板数据格式不正确，无法加载');
+            localStorage.removeItem('selectedTemplate');
+          }
+        }
+      } catch (error) {
+        console.error('❌ 加载选中模板失败:', error);
+        localStorage.removeItem('selectedTemplate');
+        message.error('加载模板失败，请重试');
+      }
+    };
+
+    // 组件挂载后检查模板
+    checkForSelectedTemplate();
+  }, [onUpdateSteps, saveFromUIState]); // 依赖必要的函数
 
   // 保存脚本到模块化系统
   const handleSaveScript = useCallback(async () => {
@@ -134,6 +208,15 @@ export const ScriptBuilderIntegration: React.FC<ScriptBuilderIntegrationProps> =
 
     setExporting(true);
     try {
+      // 🐛 调试：检查原始步骤
+      console.log('🔍 导出前的原始步骤:', steps.map(s => ({
+        id: s.id,
+        name: s.name,
+        step_type: s.step_type,
+        hasXmlContent: !!s.parameters?.xmlContent,
+        parameters: Object.keys(s.parameters || {})
+      })));
+
       // 创建分布式脚本
       const distributedScript: DistributedScript = {
         id: `distributed_${Date.now()}`,
@@ -158,10 +241,13 @@ export const ScriptBuilderIntegration: React.FC<ScriptBuilderIntegrationProps> =
         },
       };
 
-      // 为每个有XML快照的步骤创建分布式步骤
+      // 为每个步骤创建分布式步骤
       for (const step of steps) {
+        let distributedStep: DistributedStep;
+        
         if (step.parameters?.xmlContent) {
-          const distributedStep = DistributedScriptManager.createDistributedStep(
+          // 有XML内容的步骤，正常创建
+          distributedStep = DistributedScriptManager.createDistributedStep(
             {
               id: step.id,
               name: step.name || `步骤_${step.id}`,
@@ -183,53 +269,88 @@ export const ScriptBuilderIntegration: React.FC<ScriptBuilderIntegrationProps> =
             step.parameters.deviceInfo,
             step.parameters.pageInfo
           );
-          
-          distributedScript.steps.push(distributedStep);
+        } else {
+          // 没有XML内容的步骤，创建带默认XML快照的步骤
+          distributedStep = {
+            id: step.id,
+            name: step.name || `步骤_${step.id}`,
+            actionType: step.step_type || 'click',
+            params: step.parameters || {},
+            locator: step.parameters?.locator || {
+              absoluteXPath: step.parameters?.xpath || '',
+              attributes: {
+                resourceId: step.parameters?.resource_id,
+                text: step.parameters?.text,
+                contentDesc: step.parameters?.content_desc,
+                className: step.parameters?.class_name,
+              },
+            },
+            createdAt: Date.now(),
+            description: step.description,
+            xmlSnapshot: {
+              xmlContent: '<hierarchy></hierarchy>', // 默认空XML
+              xmlHash: 'empty',
+              timestamp: Date.now(),
+              deviceInfo: step.parameters?.deviceInfo,
+              pageInfo: step.parameters?.pageInfo
+            }
+          };
         }
+        
+        distributedScript.steps.push(distributedStep);
       }
+
+      // 🐛 如果没有步骤，创建一个示例步骤以便测试
+      if (distributedScript.steps.length === 0) {
+        console.warn('⚠️ 没有找到任何步骤，创建示例步骤用于测试');
+        distributedScript.steps.push({
+          id: 'sample-step-1',
+          name: '示例步骤',
+          actionType: 'click',
+          params: {},
+          locator: {
+            absoluteXPath: '//android.widget.Button[@text="确定"]',
+            attributes: {
+              text: '确定',
+              className: 'android.widget.Button'
+            },
+          },
+          createdAt: Date.now(),
+          description: '这是一个示例步骤，用于测试导入功能',
+          xmlSnapshot: {
+            xmlContent: '<hierarchy><android.widget.Button text="确定" /></hierarchy>',
+            xmlHash: 'sample',
+            timestamp: Date.now()
+          }
+        });
+      }
+
+      // 🐛 调试：检查最终的分布式脚本
+      console.log('🔍 导出的分布式脚本:', {
+        name: distributedScript.name,
+        totalSteps: distributedScript.steps.length,
+        steps: distributedScript.steps.map(s => ({
+          id: s.id,
+          name: s.name,
+          actionType: s.actionType,
+          hasXmlSnapshot: !!s.xmlSnapshot,
+          xmlSnapshotLength: s.xmlSnapshot?.xmlContent?.length || 0
+        }))
+      });
 
       // 导出脚本（无需优化，直接导出）
       const exportScript = distributedScript;
 
-      // 使用Tauri保存文件
-      const fileName = `${distributedScriptName.replace(/[^a-zA-Z0-9\u4e00-\u9fa5]/g, '_')}_distributed.json`;
+      // 使用服务导出脚本
+      const savedPath = await ScriptFileService.exportDistributedScript(exportScript);
       
-      try {
-        // 使用浏览器的文件保存功能
-        const dataStr = JSON.stringify(exportScript, null, 2);
-        const dataBlob = new Blob([dataStr], { type: 'application/json' });
-        const url = URL.createObjectURL(dataBlob);
-        
-        const link = document.createElement('a');
-        link.href = url;
-        link.download = fileName;
-        document.body.appendChild(link);
-        link.click();
-        document.body.removeChild(link);
-        URL.revokeObjectURL(url);
-        
-        message.success(`分布式脚本已保存: ${fileName}`);
+      if (savedPath) {
+        message.success(`分布式脚本已保存到: ${savedPath}`);
         setDistributedExportModalVisible(false);
         setDistributedScriptName('');
         setDistributedScriptDescription('');
-      } catch (saveError) {
-        // 如果Tauri保存失败，尝试下载方式
-        console.warn('Tauri保存失败，使用浏览器下载:', saveError);
-        
-        const blob = new Blob([JSON.stringify(exportScript, null, 2)], { type: 'application/json' });
-        const url = URL.createObjectURL(blob);
-        const a = document.createElement('a');
-        a.href = url;
-        a.download = fileName;
-        document.body.appendChild(a);
-        a.click();
-        document.body.removeChild(a);
-        URL.revokeObjectURL(url);
-        
-        message.success(`分布式脚本已下载: ${fileName}`);
-        setDistributedExportModalVisible(false);
-        setDistributedScriptName('');
-        setDistributedScriptDescription('');
+      } else {
+        message.info('取消保存');
       }
 
     } catch (error) {
@@ -240,52 +361,36 @@ export const ScriptBuilderIntegration: React.FC<ScriptBuilderIntegrationProps> =
     }
   }, [distributedScriptName, distributedScriptDescription, steps, executorConfig]);
 
-  // 🆕 导入分布式脚本
-  const handleImportDistributedScript = useCallback(async () => {
-    // 如果没有输入分享码，弹出文件选择对话框
-    if (!importShareCode || importShareCode.trim() === '') {
-      try {
-        // 创建文件输入元素
-        const fileInput = document.createElement('input');
-        fileInput.type = 'file';
-        fileInput.accept = '.json';
-        fileInput.style.display = 'none';
-        
-        // 添加文件选择事件监听器
-        fileInput.addEventListener('change', async (event) => {
-          const files = (event.target as HTMLInputElement).files;
-          if (files && files.length > 0) {
-            const file = files[0];
-            const reader = new FileReader();
-            
-            reader.onload = async (e) => {
-              try {
-                const content = e.target?.result as string;
-                await importFromContent(content);
-              } catch (error) {
-                console.error('文件读取失败:', error);
-                message.error('文件读取失败，请检查文件格式');
-              }
-            };
-            
-            reader.readAsText(file);
-          } else {
-            message.info('取消导入');
-          }
-        });
-        
-        // 添加到DOM并触发点击
-        document.body.appendChild(fileInput);
-        fileInput.click();
-        document.body.removeChild(fileInput);
-        
-      } catch (error) {
-        console.error('文件选择失败:', error);
-        message.error('文件选择失败，请重试');
+  // 🆕 专门处理文件选择的函数
+  const handleSelectDistributedScriptFile = useCallback(async () => {
+    setImporting(true);
+    try {
+      // 使用服务导入脚本
+      const importedScript = await ScriptFileService.importDistributedScript();
+      
+      if (importedScript) {
+        await importFromContent(JSON.stringify(importedScript));
+        // 成功导入后关闭模态框
+        setDistributedImportModalVisible(false);
+        setImportShareCode('');
+      } else {
+        message.info('取消导入');
       }
-    } else {
-      // 使用分享码导入
+    } catch (error) {
+      console.error('文件选择失败:', error);
+      message.error('文件选择失败，请重试');
+    } finally {
+      setImporting(false);
+    }
+  }, []);
+
+  // 🆕 导入分布式脚本 (处理分享码逻辑)
+  const handleImportDistributedScript = useCallback(async () => {
+    // 如果有分享码，使用分享码导入
+    if (importShareCode && importShareCode.trim() !== '') {
       await importFromShareCode(importShareCode.trim());
+    } else {
+      message.warning('请输入分享码或使用文件导入按钮选择文件');
     }
   }, [importShareCode]);
 
@@ -323,9 +428,22 @@ export const ScriptBuilderIntegration: React.FC<ScriptBuilderIntegrationProps> =
       // 解析分布式脚本
       const distributedScript: DistributedScript = JSON.parse(scriptContent);
       
+      // 🐛 调试：打印导入的脚本结构
+      console.log('🔍 导入的脚本结构:', {
+        name: distributedScript.name,
+        stepsCount: distributedScript.steps?.length || 0,
+        steps: distributedScript.steps?.map(s => ({
+          id: s.id,
+          name: s.name,
+          hasXmlSnapshot: !!s.xmlSnapshot,
+          hasLocator: !!s.locator
+        })) || []
+      });
+      
       // 验证脚本格式
       const validationResult = DistributedScriptManager.validateScript(distributedScript);
       if (!validationResult.valid) {
+        console.error('❌ 脚本验证失败:', validationResult.errors);
         message.error(`脚本格式无效: ${validationResult.errors.join(', ')}`);
         return;
       }
@@ -907,6 +1025,8 @@ export const ScriptBuilderIntegration: React.FC<ScriptBuilderIntegrationProps> =
                 type="dashed" 
                 style={{ width: '100%' }}
                 icon={<FolderOpenOutlined />}
+                onClick={handleSelectDistributedScriptFile}
+                loading={importing}
               >
                 选择分布式脚本文件 (.json)
               </Button>
