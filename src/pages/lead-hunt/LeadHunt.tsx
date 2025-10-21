@@ -5,19 +5,33 @@
 import { useEffect, useState } from "react";
 import { invoke } from "@tauri-apps/api/core";
 import { listen } from "@tauri-apps/api/event";
-import { Card, Table, Button, Space, Tag, message, Tooltip, Select, Progress, List } from "antd";
+import { Card, Table, Button, Space, Tag, message, Tooltip, Select, Progress, Timeline, Steps } from "antd";
 import { 
   ReloadOutlined, 
   ImportOutlined, 
   ThunderboltOutlined,
   PlayCircleOutlined,
-  RobotOutlined
+  RobotOutlined,
+  CheckCircleOutlined,
+  CloseCircleOutlined,
+  SyncOutlined,
+  ClockCircleOutlined
 } from "@ant-design/icons";
 import type { ColumnsType } from "antd/es/table";
 import { analyzeBatchWithProgress, type RawComment } from "@/features/leadHunt/analyzeLead";
 import type { LeadAnalysis } from "@/ai/schemas/leadIntent.schema";
 
 type Row = RawComment & { analysis?: LeadAnalysis };
+
+// 执行步骤状态
+type ExecutionStepStatus = {
+  stepName: string;
+  stepDescription: string;
+  status: "running" | "success" | "error" | "pending";
+  error?: string;
+  startTime?: number;
+  endTime?: number;
+};
 
 type ReplayPlan = {
   id: string;
@@ -35,8 +49,9 @@ export default function LeadHunt() {
   const [analyzing, setAnalyzing] = useState(false);
   const [analysisProgress, setAnalysisProgress] = useState(0);
   const [filter, setFilter] = useState<string>("全部");
-  const [executionLogs, setExecutionLogs] = useState<string[]>([]);
+  const [executionSteps, setExecutionSteps] = useState<ExecutionStepStatus[]>([]);
   const [executing, setExecuting] = useState(false);
+  const [currentPlanId, setCurrentPlanId] = useState<string>("");
 
   const refresh = async () => {
     try {
@@ -64,9 +79,33 @@ export default function LeadHunt() {
       status: string;
       error?: string;
     }>("orchestrator://status", (event) => {
-      const { currentStep, totalSteps, stepName, stepDescription, status, error } = event.payload;
-      const log = `[${currentStep}/${totalSteps}] ${stepName} - ${stepDescription} [${status}]${error ? ` 错误: ${error}` : ''}`;
-      setExecutionLogs((prev) => [...prev, log]);
+      const { currentStep, stepName, stepDescription, status, error, totalSteps } = event.payload;
+
+      setExecutionSteps((prev) => {
+        const stepIndex = currentStep - 1;
+        const newSteps = [...prev];
+        
+        // 确保步骤数组长度足够
+        while (newSteps.length < totalSteps) {
+          newSteps.push({
+            stepName: "",
+            stepDescription: "",
+            status: "pending",
+          });
+        }
+
+        // 更新当前步骤
+        newSteps[stepIndex] = {
+          stepName,
+          stepDescription,
+          status: status as "running" | "success" | "error",
+          error,
+          startTime: newSteps[stepIndex]?.startTime || Date.now(),
+          endTime: status !== "running" ? Date.now() : undefined,
+        };
+
+        return newSteps;
+      });
 
       if (status === "error" || currentStep === totalSteps) {
         setExecuting(false);
@@ -150,10 +189,11 @@ export default function LeadHunt() {
   const runReplay = async (row: Row) => {
     try {
       setExecuting(true);
-      setExecutionLogs([`开始执行回放计划: ${row.id}`]);
+      setCurrentPlanId(row.id);
+      setExecutionSteps([]); // 清空之前的步骤
       
       await invoke("lh_run_replay_plan", { planId: row.id });
-      message.success("回放计划已启动，请查看执行日志");
+      message.success("回放计划已启动，请查看执行步骤");
     } catch (error) {
       message.error(`启动回放失败: ${error}`);
       setExecuting(false);
@@ -353,19 +393,79 @@ export default function LeadHunt() {
           </Space>
         </div>
 
-        {executionLogs.length > 0 && (
-          <Card title="执行日志" size="small" className="mb-4">
-            <List
-              size="small"
-              bordered
-              dataSource={executionLogs}
-              renderItem={(log, index) => (
-                <List.Item key={index}>
-                  <div style={{ fontFamily: "monospace", fontSize: "12px" }}>{log}</div>
-                </List.Item>
-              )}
-              style={{ maxHeight: "200px", overflowY: "auto" }}
+        {executionSteps.length > 0 && (
+          <Card 
+            title={
+              <Space>
+                <span>执行步骤时间线</span>
+                {currentPlanId && <Tag color="blue">计划ID: {currentPlanId}</Tag>}
+                {executing && <Tag color="processing" icon={<SyncOutlined spin />}>执行中</Tag>}
+              </Space>
+            } 
+            size="small" 
+            className="mb-4"
+          >
+            <Timeline
+              items={executionSteps.map((step, index) => {
+                const duration = step.startTime && step.endTime 
+                  ? `${((step.endTime - step.startTime) / 1000).toFixed(2)}s` 
+                  : "";
+
+                let color = "gray";
+                let icon = <ClockCircleOutlined />;
+                
+                if (step.status === "running") {
+                  color = "blue";
+                  icon = <SyncOutlined spin />;
+                } else if (step.status === "success") {
+                  color = "green";
+                  icon = <CheckCircleOutlined />;
+                } else if (step.status === "error") {
+                  color = "red";
+                  icon = <CloseCircleOutlined />;
+                }
+
+                return {
+                  color,
+                  dot: icon,
+                  children: (
+                    <div>
+                      <div style={{ fontWeight: 500 }}>
+                        步骤 {index + 1}: {step.stepName}
+                        {duration && <span style={{ marginLeft: 8, color: "#999", fontSize: 12 }}>({duration})</span>}
+                      </div>
+                      <div style={{ color: "#666", fontSize: 13, marginTop: 4 }}>
+                        {step.stepDescription}
+                      </div>
+                      {step.error && (
+                        <div style={{ color: "#ff4d4f", fontSize: 12, marginTop: 4 }}>
+                          错误: {step.error}
+                        </div>
+                      )}
+                    </div>
+                  ),
+                };
+              })}
             />
+            
+            {/* 进度统计 */}
+            <div style={{ marginTop: 16, padding: "8px 12px", background: "#f5f5f5", borderRadius: 4 }}>
+              <Space>
+                <span>进度:</span>
+                <Tag color="green">
+                  成功 {executionSteps.filter(s => s.status === "success").length}
+                </Tag>
+                <Tag color="blue">
+                  执行中 {executionSteps.filter(s => s.status === "running").length}
+                </Tag>
+                <Tag color="red">
+                  失败 {executionSteps.filter(s => s.status === "error").length}
+                </Tag>
+                <Tag>
+                  待执行 {executionSteps.filter(s => s.status === "pending").length}
+                </Tag>
+              </Space>
+            </div>
           </Card>
         )}
 
