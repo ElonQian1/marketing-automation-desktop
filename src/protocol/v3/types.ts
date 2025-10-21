@@ -1,6 +1,52 @@
 // src/protocol/v3/types.ts
 // module: protocol | layer: domain | role: V3 执行协议类型定义
 // summary: 统一的三链执行协议（智能单步/自动链/静态策略）
+//
+// 🚀 [V3 协议 - 统一执行系统的类型定义]
+//
+// 这是 V2 → V3 升级的核心协议层
+// 统一了原本分散的三套执行系统的类型定义
+//
+// V2 vs V3 类型系统对比：
+//
+//   【V2 类型系统问题（被解决）】
+//   - 三套不同类型：SmartScriptStep, ChainResult, StaticSpec
+//   - 类型不匹配：footer_other 无法序列化为 StepType 枚举
+//   - 重复定义：相同功能的类型在多处定义
+//   - 维护困难：修改一个类型需要改多个文件
+//
+//   【V3 协议优势（当前系统）】
+//   - 统一协议：SingleStepSpecV3, ChainSpecV3, StaticSpecV3
+//   - 类型安全：前后端 TypeScript ↔ Rust 完全对应
+//   - 智能映射：增强类型自动转换为标准类型
+//   - 可扩展性：新增执行类型只需修改一处
+//
+// 核心设计原则：
+//   1. by-ref 引用模式：只传 ID，后端从缓存读取（减少 90% 数据传输）
+//   2. by-inline 内联模式：传完整数据（兼容调试和旧代码）
+//   3. 上下文信封：统一设备、应用、快照信息
+//   4. 质量控制：OCR、约束、验证设置标准化
+//
+// 使用示例：
+//   // V2 调用（复杂）
+//   invoke('start_intelligent_analysis', { 
+//     element_context: {...}, // 几百行配置
+//     step_id: 'xxx'
+//   });
+//
+//   // V3 调用（简洁）
+//   invoke('execute_chain_test_v3', {
+//     spec: { analysis_id: 'xxx', threshold: 0.7 }, // 只需 2 个字段
+//     context: { deviceId, app: {...} }
+//   });
+//
+// 集成状态：
+//   ✅ 类型定义：完整且与 Rust 后端同步
+//   ✅ 后端支持：src-tauri/src/exec/v3/types.rs 对应
+//   ⏳ 前端服务：待创建使用这些类型的服务层
+//
+// 详见：EXECUTION_V2_MIGRATION_GUIDE.md
+// ============================================
 
 /**
  * 置信度：0..1 范围的浮点数

@@ -1,6 +1,30 @@
 // src/services/intelligent-analysis-backend.ts
 // module: services | layer: services | role: backend-service
 // summary: 智能分析后端服务，调用Tauri命令与Rust后端通信
+//
+// 🔄 [V2 系统 - 计划升级到 V3]
+// 
+// 当前状态：V2 系统，正常使用中
+// V3 升级路径：
+//   - V3 服务层：src/services/intelligent-analysis-backend-v3.ts (待创建)
+//   - V3 执行协议：src/protocol/v3/types.ts (已定义)
+//   - V3 后端引擎：src-tauri/src/exec/v3/ (已实现)
+//
+// V2 vs V3 关键差异：
+//   V2: startAnalysis() → start_intelligent_analysis (后端命令)
+//   V3: executeChainByRef() → execute_chain_test_v3 (by-ref 高效模式)
+//
+//   V2: 传完整步骤数据（几百KB）
+//   V3: 只传 analysisId（几KB），后端从缓存读取
+//
+//   V2: 简单顺序执行
+//   V3: 智能短路+回退算法
+//
+// 迁移计划：阶段性并行共存，特性开关控制
+// 详见：EXECUTION_V2_MIGRATION_GUIDE.md
+// 预计时间：2-3个月渐进式迁移
+//
+// ============================================
 
 import { invoke } from '@tauri-apps/api/core';
 import { listen, UnlistenFn } from '@tauri-apps/api/event';

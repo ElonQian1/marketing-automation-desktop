@@ -326,10 +326,27 @@ fn main() {
             // 后端健康检查命令
             backend_ping,
             analysis_health_check,
-            // 智能分析命令
-            start_intelligent_analysis,
-            cancel_intelligent_analysis,
-            bind_analysis_result_to_step,
+            
+            // ========== 智能分析命令 (V2) ==========
+            // 🔄 [V2→V3 迁移计划]
+            // 这些是 V2 系统的命令，当前正常使用中
+            // V3 升级路径：参见 src-tauri/src/exec/v3/ 目录
+            // 
+            // V2 命令列表：
+            start_intelligent_analysis,      // V3 对应: execute_chain_test_v3 (by-ref 模式)
+            cancel_intelligent_analysis,     // V3 对应: 统一到 execute_task_v3
+            bind_analysis_result_to_step,    // V3 对应: 自动缓存，无需显式绑定
+            
+            // V3 命令（已实现，待前端集成）：
+            // execute_single_step_test_v3   - 智能单步执行
+            // execute_chain_test_v3         - 智能自动链（短路+回退）
+            // execute_static_strategy_test_v3 - 静态策略执行
+            // execute_task_v3               - 统一执行入口
+            //
+            // 迁移策略：阶段性并行共存，特性开关控制
+            // 详见：EXECUTION_V2_MIGRATION_GUIDE.md
+            // ========================================
+            
             // 精准获客模块命令
             init_precise_acquisition_storage,
             prospecting_save_comment,

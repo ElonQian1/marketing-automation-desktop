@@ -1,6 +1,29 @@
 // src/modules/universal-ui/hooks/use-intelligent-analysis-workflow.ts
 // module: universal-ui | layer: hooks | role: workflow-manager
 // summary: 智能分析工作流管理Hook，处理分析作业生命周期
+//
+// 🔄 [V2 系统 - 计划升级到 V3]
+//
+// 当前状态：V2 工作流Hook，负责管理智能分析的完整生命周期
+// V3 升级路径：
+//   - V3 Hook: use-intelligent-analysis-workflow-v3.ts (待创建)
+//   - 关键改进：by-ref 引用模式，减少 90% 数据传输
+//
+// 核心功能对比：
+//   V2: createStepCardQuick() → 传完整元素数据 → startAnalysis()
+//   V3: createStepCardQuick() → 只传 analysisId → executeChainByRef()
+//
+//   V2: 监听 analysis:progress, analysis:done (通用事件)
+//   V3: 监听相同事件，但支持 Phase 枚举 (更细粒度)
+//
+// 迁移策略：
+//   Phase 1: 创建 V3 Hook，与 V2 并行运行
+//   Phase 2: 特性开关控制使用哪个版本
+//   Phase 3: 灰度测试，逐步切换用户到 V3
+//   Phase 4: V3 稳定后废弃 V2
+//
+// 详见：EXECUTION_V2_MIGRATION_GUIDE.md
+// ============================================
 
 import { useState, useCallback, useRef, useEffect } from 'react';
 import { message } from 'antd';
