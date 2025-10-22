@@ -73,7 +73,7 @@ export class TauriStepExecutionRepository {
     console.log('🚀 TauriStepExecutionRepository.runStep:', request);
     
     try {
-      const result = await invoke<StepExecutionResult>('run_step', request);
+      const result = await invoke<StepExecutionResult>('run_step', { request });
       console.log('✅ 步骤执行结果:', result);
       return result;
     } catch (error) {

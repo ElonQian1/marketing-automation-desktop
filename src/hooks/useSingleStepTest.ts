@@ -73,21 +73,32 @@ export const useSingleStepTest = () => {
     
     try {
       // 构建请求
+      const inferredStrategy = stepExecutionRepo.inferStrategy(step.parameters || {});
+      console.log('🔍 推断策略:', inferredStrategy, '来自参数:', step.parameters);
+      
+      const selector = stepExecutionRepo.convertParametersToSelector(step.parameters || {});
+      console.log('🔍 生成的选择器:', selector);
+      
+      const action = step.action 
+        ? stepExecutionRepo.convertActionToDto(step.action)
+        : { type: 'Click' };
+      console.log('🔍 生成的动作:', action);
+      
       const request: StepExecutionRequest = {
         device_id: deviceId,
         mode: actualMode,
         step: {
           id: step.id || 'test-step',
           name: step.step_type || 'unknown',
-          selector: stepExecutionRepo.convertParametersToSelector(step.parameters || {}),
-          action: step.action 
-            ? stepExecutionRepo.convertActionToDto(step.action)
-            : { type: 'Click' }, // 默认动作
-          strategy: stepExecutionRepo.inferStrategy(step.parameters || {})
+          selector: selector,
+          action: action,
+          strategy: inferredStrategy
         }
       };
 
       console.log('📋 执行请求:', request);
+      console.log('📋 请求中的 step.strategy:', request.step.strategy);
+      console.log('🔍 完整JSON序列化:', JSON.stringify(request, null, 2));
 
       // 调用统一执行命令
       const result: StepExecutionResult = await stepExecutionRepo.runStep(request);
