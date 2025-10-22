@@ -22,6 +22,8 @@ export interface DeviceImportFileSelectorProps {
   onClose: () => void;
   /** 导入成功回调 */
   onImportSuccess?: (result: { deviceId: string; totalCount: number; successCount: number; failCount: number }) => void;
+  /** 默认选中的文件路径列表 */
+  defaultSelectedFiles?: string[];
 }
 
 /**
@@ -37,12 +39,20 @@ export const DeviceImportFileSelectorDialog: React.FC<DeviceImportFileSelectorPr
   open,
   onClose,
   onImportSuccess,
+  defaultSelectedFiles = [],
 }) => {
   const { devices, selectedDevice, selectDevice } = useAdb();
-  const [selectedFiles, setSelectedFiles] = useState<string[]>([]);
+  const [selectedFiles, setSelectedFiles] = useState<string[]>(defaultSelectedFiles);
   const [importing, setImporting] = useState(false);
   const [previewLoading, setPreviewLoading] = useState(false);
   const [contactCount, setContactCount] = useState<number>(0);
+
+  // 当对话框打开时，初始化选中的文件
+  React.useEffect(() => {
+    if (open && defaultSelectedFiles.length > 0) {
+      setSelectedFiles(defaultSelectedFiles);
+    }
+  }, [open, defaultSelectedFiles]);
 
   // 当选择的文件变化时，预览联系人数量
   React.useEffect(() => {
