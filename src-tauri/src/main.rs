@@ -1,4 +1,4 @@
-// Prevents additional console window on Windows in release, DO NOT REMOVE!!
+﻿// Prevents additional console window on Windows in release, DO NOT REMOVE!!
 #![cfg_attr(not(debug_assertions), windows_subsystem = "windows")]
 
 // mod commands;
@@ -207,6 +207,7 @@ fn main() {
             mark_contact_numbers_used_by_id_range,
             // 批量将号码回滚为“未导入到任何手机”
             mark_contact_numbers_as_not_imported,
+            delete_contact_numbers,
             // 号码批次与导入追踪 (暂时注释，避免编译错误)
             // create_vcf_batch_record,         // 缺失
             // list_vcf_batch_records,          // 缺失
