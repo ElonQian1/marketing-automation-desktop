@@ -51,6 +51,16 @@ export const NumberPoolPanel: React.FC<NumberPoolPanelProps> = ({
 
   const totalSelected = selectedRowKeys.length;
 
+  // 🔍 调试：检查数据
+  React.useEffect(() => {
+    if (items.length > 0) {
+      console.log('📊 号码池数据示例：', items[0]);
+      console.log('  - phone:', items[0]?.phone);
+      console.log('  - name:', items[0]?.name);
+      console.log('  - source_file:', items[0]?.source_file);
+    }
+  }, [items]);
+
   const handleArchive = async () => {
     if (totalSelected === 0) return;
     try {
