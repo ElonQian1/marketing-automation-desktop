@@ -24,10 +24,14 @@ export { createActionType, validateActionParams, ACTION_CONFIGS } from '../../ty
 // 便捷类型别名
 export type {
   ActionType,
-  ActionTypeId,
+  ActionTypeId
+} from '../../types/action-types';
+
+// API层类型
+export type {
   ActionResult,
   ActionRecommendation,
-  ActionExecutionResult,
-} from '../../types/action-types';
+  ActionExecutionResult
+} from '../../api/action-execution';
 
 export type { ActionExecutionResult as ExecutionResult } from '../../api/action-execution';

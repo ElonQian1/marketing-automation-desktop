@@ -5,19 +5,22 @@
 import React, { useState, useCallback } from 'react';
 import { Card, Button, Space, Alert, Descriptions, Typography, Divider, message, Spin } from 'antd';
 import { PlayCircleOutlined, SearchOutlined } from '@ant-design/icons';
-import { useSingleStepTest, type TestExecutionMode } from '../../hooks/useSingleStepTest';
+import { useSingleStepTest } from '../../hooks/useSingleStepTest';
 import { ActionSelector } from '../../components/action-system/ActionSelector';
 import { ExecutionModeToggle } from '../../components/step-card/ExecutionModeToggle';
-import type { SmartScriptStep, ActionType } from '../../types/smartScript';
+import type { SmartScriptStep } from '../../types/smartScript';
+import type { ActionType } from '../../types/action-types';
+import type { SingleStepTestResult } from '../../hooks/useSingleStepTest';
 import { useAdb } from '../../application/hooks/useAdb';
 
 const { Title, Text } = Typography;
 
 export const TestUnifiedExecution: React.FC = () => {
   const [currentAction, setCurrentAction] = useState<ActionType>({
-    type: 'Click'
+    type: 'click',
+    params: {}
   });
-  const [testResult, setTestResult] = useState<any>(null);
+  const [testResult, setTestResult] = useState<SingleStepTestResult | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   
   const { 
@@ -27,15 +30,17 @@ export const TestUnifiedExecution: React.FC = () => {
     setExecutionMode 
   } = useSingleStepTest();
   
-  const { getSelectedDevice } = useAdb();
-  const selectedDevice = getSelectedDevice();
+  const { selectedDevice } = useAdb();
 
   // 创建测试步骤
   const createTestStep = useCallback((): SmartScriptStep => {
     return {
       id: 'test-unified-step',
       name: '测试统一执行',
+      description: '统一执行测试步骤',
       step_type: 'smart_find_element',
+      enabled: true,
+      order: 1,
       parameters: {
         matching: {
           strategy: 'enhanced',
@@ -47,7 +52,7 @@ export const TestUnifiedExecution: React.FC = () => {
       action: currentAction,
       confidence: 0,
       timestamp: Date.now()
-    } as SmartScriptStep;
+    };
   }, [currentAction]);
 
   // 测试统一执行管道

@@ -1,0 +1,30 @@
+# CODEOWNERS文件 - 仓库保护规则
+# 保护V1核心代码不被意外修改，强制人工审阅
+
+# V1核心执行系统（强制审阅）
+/src/hooks/useSingleStepTest.ts @ElonQian1
+/src/infrastructure/repositories/TauriStepExecutionRepository.ts @ElonQian1
+
+# V1相关服务和工具
+/src/services/v1/ @ElonQian1
+/src/utils/v1/ @ElonQian1
+
+# 后端V1命令系统
+/src-tauri/src/commands/run_step.rs @ElonQian1
+/src-tauri/src/services/step_execution/ @ElonQian1
+
+# 关键配置文件
+/.github/ @ElonQian1
+/package.json @ElonQian1
+/tsconfig.json @ElonQian1
+/eslint.config.cjs @ElonQian1
+
+# 架构文档
+/ARCHITECTURE_REFACTOR_PLAN.md @ElonQian1
+/AGENTS.md @ElonQian1
+/.github/copilot-instructions.md @ElonQian1
+
+# 新增：网关和适配器系统（可由AI代理修改）
+/src/infrastructure/gateways/ 
+/src/types/stepActions.ts
+/src/types/runStepV2.ts

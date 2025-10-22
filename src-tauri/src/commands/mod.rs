@@ -3,6 +3,7 @@
 
 pub mod action_execution; // 新增操作执行命令
 pub mod step_execution; // 新增统一步骤执行命令
+pub mod run_step_v2; // 🚀 新增 V2 统一步骤执行命令
 pub mod app_lifecycle_commands; // 现有（保留）
 pub mod employees;
 pub mod adb;
@@ -30,6 +31,7 @@ pub use xml_cache::*;
 // pub use xpath_execution::*; // XPath执行命令（暂时注释）
 pub use metrics::*;
 pub use strategy_matching::*;
+pub use run_step_v2::*; // 🚀 导出 V2 步骤执行命令
 pub use intelligent_analysis::*; // ✅ 新增导出
 pub use health_check::*; // ✅ 导出健康检查命令
 pub use enhanced_location_commands::*; // 🆕 导出增强定位命令

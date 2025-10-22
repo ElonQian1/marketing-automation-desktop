@@ -28,8 +28,6 @@ import {
   ActionSelector, 
   ActionParamsPanel, 
   ActionPreview,
-  DEFAULT_ACTION,
-  createActionType,
   validateActionParams,
   type ActionType
 } from '../action-system';
@@ -71,7 +69,7 @@ export const EnhancedStepCard: React.FC<EnhancedStepCardProps> = ({
   }, [stepCard.id, updateActionType]);
 
   // 处理参数变更
-  const handleParamsChange = useCallback((params: any) => {
+  const handleParamsChange = useCallback((params: Record<string, unknown>) => {
     const newAction = {
       ...currentAction,
       params: { ...currentAction.params, ...params }

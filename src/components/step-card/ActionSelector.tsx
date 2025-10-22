@@ -27,7 +27,7 @@ export const ActionSelector: React.FC<ActionSelectorProps> = ({
     onChange(newAction);
   };
 
-  const handleParamChange = (key: string, value: any) => {
+  const handleParamChange = (key: string, value: unknown) => {
     const newAction: StepAction = {
       ...action,
       params: {

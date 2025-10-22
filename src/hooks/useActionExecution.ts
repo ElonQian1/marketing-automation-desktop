@@ -4,7 +4,7 @@
 
 import { useState, useCallback } from 'react';
 import { executeAction, validateActionParams, type ActionExecutionResult } from '../api/action-execution';
-import type { ActionType, createActionType } from '../types/action-types';
+import type { ActionType } from '../types/action-types';
 
 interface UseActionExecutionOptions {
   /** 执行前的回调 */
@@ -80,7 +80,7 @@ export const useActionExecution = (options: UseActionExecutionOptions = {}) => {
       }
 
       // 执行操作
-      const result = await executeAction(action, selectedDevice.id);
+      const result = await executeAction(selectedDevice.id, action);
 
       // 更新状态
       setState(prev => ({

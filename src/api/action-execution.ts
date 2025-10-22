@@ -2,7 +2,7 @@
 // module: api | layer: api | role: 操作执行API
 // summary: 前端调用后端操作执行的API封装
 
-import { invoke } from '@tauri-apps/api/tauri';
+import { invoke } from '@tauri-apps/api/core';
 import type { ActionType } from '../types/action-types';
 
 // 操作执行结果
@@ -10,7 +10,7 @@ export interface ActionResult {
   success: boolean;
   message: string;
   duration: number;
-  data?: any;
+  data?: Record<string, unknown>;
 }
 
 // 导出执行结果类型别名

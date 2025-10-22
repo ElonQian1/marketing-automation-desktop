@@ -1,9 +1,16 @@
 // src/infrastructure/repositories/TauriStepExecutionRepository.ts
 // module: infrastructure | layer: repositories | role: 步骤执行接口
 // summary: 统一步骤执行的前后端接口
+//
+// ⚠️  === V1 旧版 Repository - 已废弃 === 
+// 问题：此Repository设计过时，存在类型不匹配和接口复杂性问题
+// 替代方案：使用新的 StepExecutionGateway + V2适配器系统
+// V2系统优势：统一接口、类型安全、支持多引擎切换
+// 废弃时间：2025年10月22日起，不再维护此文件
+// ⚠️  请直接使用: src/infrastructure/gateways/StepExecutionGateway.ts
 
 import { invoke } from '@tauri-apps/api/core';
-import type { ActionKind, StepAction } from '../../types/smartScript';
+// import type { ActionKind, StepAction } from '../../types/smartScript';
 
 export interface StepExecutionRequest {
   device_id: string;
@@ -82,8 +89,8 @@ export class TauriStepExecutionRepository {
     }
   }
 
-  // 工具函数：从 StepAction 转换为后端 ActionTypeDto
-  convertActionToDto(action: StepAction): ActionTypeDto {
+  // 工具函数：从 Action 转换为后端 ActionTypeDto
+  convertActionToDto(action: { kind: string; params?: Record<string, unknown> }): ActionTypeDto {
     const { kind, params = {} } = action;
     
     switch (kind) {
@@ -106,9 +113,10 @@ export class TauriStepExecutionRepository {
         };
         
       case 'swipe':
-        const swipeDirection = params.swipe?.direction || 'up';
-        const distance = params.swipe?.distancePx || 200;
-        const duration = params.swipe?.durationMs || 300;
+        const swipeInfo = params.swipe as { direction?: string; distancePx?: number; durationMs?: number } || {};
+        const swipeDirection = swipeInfo.direction || 'up';
+        const distance = swipeInfo.distancePx || 200;
+        const duration = swipeInfo.durationMs || 300;
         
         return {
           type: `Swipe${swipeDirection.charAt(0).toUpperCase() + swipeDirection.slice(1)}`,

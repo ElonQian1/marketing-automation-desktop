@@ -7,7 +7,7 @@
  */
 
 // 导入统一的策略类型定义
-import type { MatchStrategy, MatchCriteria } from '../../../modules/intelligent-strategy-system/types/StrategyTypes';
+import type { MatchCriteria } from '../../../modules/intelligent-strategy-system/types/StrategyTypes';
 
 export interface HiddenElementParentConfig {
   /** 是否启用隐藏元素的父容器策略 */

@@ -2,7 +2,7 @@
 // module: hooks | layer: hooks | role: 操作推荐Hook
 // summary: 基于元素特征自动推荐操作类型的Hook
 
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useCallback } from 'react';
 import { recommendAction, batchRecommendActions, type ActionRecommendation } from '../api/action-execution';
 import type { ActionType } from '../types/action-types';
 import { DEFAULT_ACTION } from '../types/action-types';
@@ -32,7 +32,7 @@ interface ActionRecommendationState {
 }
 
 export const useActionRecommendation = (options: UseActionRecommendationOptions = {}) => {
-  const { autoRecommend = true, onError, onRecommended } = options;
+  const { onError, onRecommended } = options;
 
   const [state, setState] = useState<ActionRecommendationState>({
     recommendedAction: DEFAULT_ACTION,

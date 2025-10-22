@@ -3,7 +3,7 @@
 // summary: 操作类型下拉选择器组件
 
 import React, { useState } from 'react';
-import { Button, Dropdown, Menu, Space, Tag } from 'antd';
+import { Button, Dropdown, Menu, Space } from 'antd';
 import { DownOutlined, CheckOutlined } from '@ant-design/icons';
 import type { ActionTypeId, ActionType } from '../../types/action-types';
 import { ACTION_CONFIGS, getActionConfig } from '../../types/action-types';

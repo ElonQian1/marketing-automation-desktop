@@ -1,0 +1,204 @@
+// src/types/stepActions.ts
+// module: types | layer: domain | role: 步骤动作系统类型定义
+// summary: 步骤卡片动作切换系统的核心类型定义
+
+export type ActionType = 
+  | 'tap'
+  | 'doubleTap' 
+  | 'longPress'
+  | 'swipe'
+  | 'type'
+  | 'wait'
+  | 'back';
+
+export type SwipeDirection = 'up' | 'down' | 'left' | 'right';
+
+export type ExecutionMode = 'matchOnly' | 'matchAndExecute';
+
+export type StepStatus = 
+  | 'idle' 
+  | 'matching' 
+  | 'ready' 
+  | 'executing' 
+  | 'verifying' 
+  | 'success' 
+  | 'failed';
+
+// 通用执行参数
+export interface StepActionCommon {
+  useSelector: boolean;               // 选择器优先
+  allowAbsolute: boolean;            // 允许坐标兜底
+  confidenceThreshold: number;       // 0~1, 默认0.8
+  retries: number;                   // 兜底重试次数
+  retryBackoffMs: number;            // 兜底退避
+  verifyAfter: boolean;              // 执行后验证
+  postDelayMs?: number;              // 执行后延时
+}
+
+// 点击类动作参数
+export interface TapLikeParams {
+  x?: number; 
+  y?: number;                        // 绝对坐标兜底
+  offsetX?: number; 
+  offsetY?: number;                  // 相对元素偏移
+  pressDurationMs?: number;          // longPress专用
+}
+
+// 滑动动作参数
+export interface SwipeParams {
+  direction: SwipeDirection;
+  distance: number;                  // 0~1 (屏占比) 或 px
+  durationMs: number;                // 50~1000ms
+  startFrom: 'element' | 'screenCenter' | 'custom';
+  customStart?: { x: number; y: number };
+}
+
+// 输入动作参数
+export interface TypeParams {
+  text: string;
+  secure?: boolean;                  // 密码场景遮掩日志
+  clearBefore?: boolean;
+  keyboardEnter?: boolean;
+}
+
+// 等待动作参数
+export interface WaitParams { 
+  waitMs: number; 
+}
+
+// 返回动作参数（无额外参数）
+export interface BackParams {}
+
+// 动作参数联合类型
+export type StepActionParams =
+  | { type: 'tap'; params: TapLikeParams }
+  | { type: 'doubleTap'; params: TapLikeParams }
+  | { type: 'longPress'; params: TapLikeParams }
+  | { type: 'swipe'; params: SwipeParams }
+  | { type: 'type'; params: TypeParams }
+  | { type: 'wait'; params: WaitParams }
+  | { type: 'back'; params: BackParams };
+
+// 匹配结果
+export interface MatchResult {
+  score: number;
+  confidence: number;
+  summary: string;
+  elementRect?: { x: number; y: number; width: number; height: number };
+}
+
+// 增强的步骤卡片模型
+export interface StepCardModel {
+  id: string;
+  name: string;
+  selectorId: string;                // element_element_64...
+  currentAction: StepActionParams;
+  common: StepActionCommon;
+  lastMatch?: MatchResult;
+  status: StepStatus;
+  version: string;                   // 便于后续迁移
+}
+
+// 默认值常量
+export const DEFAULT_ACTION_COMMON: StepActionCommon = {
+  useSelector: true,
+  allowAbsolute: true,
+  confidenceThreshold: 0.8,
+  retries: 1,
+  retryBackoffMs: 250,
+  verifyAfter: false,
+  postDelayMs: 0,
+};
+
+export const DEFAULT_TAP_PARAMS: TapLikeParams = {
+  x: undefined,
+  y: undefined,
+  offsetX: 0,
+  offsetY: 0,
+};
+
+export const DEFAULT_LONGPRESS_PARAMS: TapLikeParams = {
+  ...DEFAULT_TAP_PARAMS,
+  pressDurationMs: 450,
+};
+
+export const DEFAULT_SWIPE_PARAMS: SwipeParams = {
+  direction: 'down',
+  distance: 0.6,
+  durationMs: 250,
+  startFrom: 'element',
+};
+
+export const DEFAULT_TYPE_PARAMS: TypeParams = {
+  text: '',
+  secure: false,
+  clearBefore: false,
+  keyboardEnter: false,
+};
+
+export const DEFAULT_WAIT_PARAMS: WaitParams = {
+  waitMs: 500,
+};
+
+export const DEFAULT_BACK_PARAMS: BackParams = {};
+
+// 动作类型标签映射
+export const ACTION_LABELS: Record<ActionType, string> = {
+  tap: '点选 Tap',
+  doubleTap: '双击 Double Tap', 
+  longPress: '长按 Long Press',
+  swipe: '滑动 Swipe',
+  type: '输入 Type',
+  wait: '等待 Wait',
+  back: '返回 Back',
+};
+
+// 获取默认动作参数
+export function getDefaultActionParams(actionType: ActionType): StepActionParams {
+  switch (actionType) {
+    case 'tap':
+      return { type: 'tap', params: DEFAULT_TAP_PARAMS };
+    case 'doubleTap':
+      return { type: 'doubleTap', params: DEFAULT_TAP_PARAMS };
+    case 'longPress':
+      return { type: 'longPress', params: DEFAULT_LONGPRESS_PARAMS };
+    case 'swipe':
+      return { type: 'swipe', params: DEFAULT_SWIPE_PARAMS };
+    case 'type':
+      return { type: 'type', params: DEFAULT_TYPE_PARAMS };
+    case 'wait':
+      return { type: 'wait', params: DEFAULT_WAIT_PARAMS };
+    case 'back':
+      return { type: 'back', params: DEFAULT_BACK_PARAMS };
+    default:
+      return { type: 'tap', params: DEFAULT_TAP_PARAMS };
+  }
+}
+
+// 校验动作参数
+export function validateActionParams(actionParams: StepActionParams): { valid: boolean; message?: string } {
+  switch (actionParams.type) {
+    case 'type':
+      if (!actionParams.params.text?.trim()) {
+        return { valid: false, message: '请输入要发送的文本' };
+      }
+      break;
+    case 'wait':
+      if (actionParams.params.waitMs < 100) {
+        return { valid: false, message: '等待时间不能少于100ms' };
+      }
+      break;
+    case 'swipe':
+      if (actionParams.params.distance <= 0 || actionParams.params.distance > 1) {
+        return { valid: false, message: '滑动距离必须在0-1之间' };
+      }
+      break;
+    case 'tap':
+    case 'doubleTap':
+    case 'longPress':
+      // 点击类动作在useSelector=false且无坐标时需要校验
+      // 这里先返回valid，具体校验留给组件处理
+      break;
+  }
+  return { valid: true };
+}
