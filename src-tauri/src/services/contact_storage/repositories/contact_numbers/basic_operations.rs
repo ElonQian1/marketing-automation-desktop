@@ -1,7 +1,21 @@
 use rusqlite::{Connection, Result as SqlResult, params};
 use super::super::super::models::*;
+use std::path::Path;
 
 /// 基础CRUD操作：插入、查询、获取单个号码等
+
+/// 从文件路径中提取文件名
+fn extract_file_name(file_path: &str) -> String {
+    if file_path.is_empty() {
+        return String::from("未知来源");
+    }
+    
+    Path::new(file_path)
+        .file_name()
+        .and_then(|name| name.to_str())
+        .map(|s| s.to_string())
+        .unwrap_or_else(|| String::from("未知来源"))
+}
 
 /// 插入联系人号码到数据库
 pub fn insert_numbers(
@@ -9,6 +23,9 @@ pub fn insert_numbers(
     numbers: &[(String, String)],
     source_file: &str,
 ) -> SqlResult<(i64, i64, Vec<String>)> {
+    // 提取文件名而不是存储完整路径
+    let file_name = extract_file_name(source_file);
+    
     let mut inserted_count = 0;
     let mut duplicate_count = 0;
     let mut errors = Vec::new();
@@ -16,7 +33,7 @@ pub fn insert_numbers(
     for (phone, name) in numbers {
         match conn.execute(
             "INSERT INTO contact_numbers (phone, name, source_file, created_at) VALUES (?1, ?2, ?3, datetime('now'))",
-            params![phone, name, source_file],
+            params![phone, name, &file_name],
         ) {
             Ok(_) => inserted_count += 1,
             Err(rusqlite::Error::SqliteFailure(err, _)) if err.code == rusqlite::ErrorCode::ConstraintViolation => {
