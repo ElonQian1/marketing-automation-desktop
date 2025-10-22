@@ -50,6 +50,18 @@ pub struct ContactNumberStatsDto {
     pub per_industry: Vec<IndustryCountDto>,
 }
 
+/// 文件信息DTO
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct FileInfoDto {
+    pub source_file: String,
+    pub file_name: String,
+    pub total_count: i64,
+    pub available_count: i64,
+    pub imported_count: i64,
+    pub first_import_at: Option<String>,
+    pub last_import_at: Option<String>,
+}
+
 /// 数据库原始统计数据结构（用于 repository 层）
 #[derive(Debug, Clone)]
 pub struct ContactNumberStatsRaw {

@@ -415,3 +415,45 @@ pub async fn tag_contact_numbers_industry_by_vcf_batch(
     let facade = ContactStorageFacade::new(&app_handle);
     facade.tag_numbers_industry_by_vcf_batch(&batch_id, &industry)
 }
+
+// ========== 文件相关命令 ==========
+
+/// 获取所有已导入的文件列表
+#[command]
+pub async fn get_imported_file_list(
+    app_handle: AppHandle,
+) -> Result<Vec<models::FileInfoDto>, String> {
+    let facade = ContactStorageFacade::new(&app_handle);
+    facade.get_imported_file_list()
+}
+
+/// 根据文件路径列表获取号码
+#[command]
+pub async fn get_numbers_by_files(
+    app_handle: AppHandle,
+    file_paths: Vec<String>,
+    only_available: Option<bool>,
+) -> Result<Vec<models::ContactNumberDto>, String> {
+    let facade = ContactStorageFacade::new(&app_handle);
+    facade.get_numbers_by_files(&file_paths, only_available.unwrap_or(true))
+}
+
+/// 检查文件是否已导入
+#[command]
+pub async fn check_file_imported(
+    app_handle: AppHandle,
+    file_path: String,
+) -> Result<bool, String> {
+    let facade = ContactStorageFacade::new(&app_handle);
+    facade.check_file_imported(&file_path)
+}
+
+/// 获取指定文件的统计信息
+#[command]
+pub async fn get_file_stats(
+    app_handle: AppHandle,
+    file_path: String,
+) -> Result<Option<models::FileInfoDto>, String> {
+    let facade = ContactStorageFacade::new(&app_handle);
+    facade.get_file_stats(&file_path)
+}

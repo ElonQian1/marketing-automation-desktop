@@ -34,3 +34,5 @@ export {
   BatchRenderer,
   FilePathRenderer,
 } from './NumberPoolFieldRenderers';
+
+export { ContactNumberTreeTable } from './contact-number-tree-table';

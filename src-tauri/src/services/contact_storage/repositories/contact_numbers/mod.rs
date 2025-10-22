@@ -17,4 +17,7 @@ pub mod status_management;
 // 复杂查询和过滤
 pub mod advanced_queries;
 
+// 文件相关查询
+pub mod file_queries;
+
 // 对外统一接口（保持向后兼容）

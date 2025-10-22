@@ -480,4 +480,26 @@ impl ContactStorageFacade {
     pub fn restore_database(&self, backup_path: &str) -> Result<String, String> {
         DatabaseFacade::restore_database(&self.app_handle, backup_path)
     }
+
+    // ========== 文件相关方法 ==========
+
+    /// 获取所有已导入的文件列表
+    pub fn get_imported_file_list(&self) -> Result<Vec<super::models::FileInfoDto>, String> {
+        ContactNumbersFacade::get_imported_file_list(&self.app_handle)
+    }
+
+    /// 根据文件路径列表获取号码
+    pub fn get_numbers_by_files(&self, file_paths: &[String], only_available: bool) -> Result<Vec<ContactNumberDto>, String> {
+        ContactNumbersFacade::get_numbers_by_files(&self.app_handle, file_paths, only_available)
+    }
+
+    /// 检查文件是否已导入
+    pub fn check_file_imported(&self, file_path: &str) -> Result<bool, String> {
+        ContactNumbersFacade::check_file_imported(&self.app_handle, file_path)
+    }
+
+    /// 获取指定文件的统计信息
+    pub fn get_file_stats(&self, file_path: &str) -> Result<Option<super::models::FileInfoDto>, String> {
+        ContactNumbersFacade::get_file_stats(&self.app_handle, file_path)
+    }
 }

@@ -289,4 +289,44 @@ impl ContactNumbersFacade {
             ContactNumberRepository::tag_numbers_industry_by_vcf_batch(conn, batch_id, industry)
         })
     }
+
+    /// 获取已导入的文件列表及统计信息
+    pub fn get_imported_file_list(
+        app_handle: &AppHandle,
+    ) -> Result<Vec<super::super::models::FileInfoDto>, String> {
+        with_db_connection(app_handle, |conn| {
+            ContactNumberRepository::get_imported_file_list(conn)
+        })
+    }
+
+    /// 根据文件路径列表获取联系人号码
+    pub fn get_numbers_by_files(
+        app_handle: &AppHandle,
+        file_paths: &[String],
+        only_available: bool,
+    ) -> Result<Vec<ContactNumberDto>, String> {
+        with_db_connection(app_handle, |conn| {
+            ContactNumberRepository::get_numbers_by_files(conn, file_paths, only_available)
+        })
+    }
+
+    /// 检查文件是否已导入
+    pub fn check_file_imported(
+        app_handle: &AppHandle,
+        file_path: &str,
+    ) -> Result<bool, String> {
+        with_db_connection(app_handle, |conn| {
+            ContactNumberRepository::check_file_imported(conn, file_path)
+        })
+    }
+
+    /// 获取指定文件的统计信息
+    pub fn get_file_stats(
+        app_handle: &AppHandle,
+        file_path: &str,
+    ) -> Result<Option<super::super::models::FileInfoDto>, String> {
+        Self::with_db_connection(app_handle, |conn| {
+            ContactNumberRepository::get_file_stats(conn, file_path)
+        })
+    }
 }

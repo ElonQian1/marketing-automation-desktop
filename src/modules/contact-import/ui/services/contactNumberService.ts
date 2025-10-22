@@ -370,3 +370,61 @@ export async function bulkDeleteImportSessions(sessionIds: number[], options: { 
 
   return summary;
 }
+
+// ========== 文件相关查询API（新增） ==========
+
+/**
+ * 文件信息DTO
+ */
+export interface FileInfoDto {
+  source_file: string;        // 完整文件路径
+  file_name: string;          // 提取的文件名
+  total_count: number;        // 总号码数
+  available_count: number;    // 可用号码数
+  imported_count: number;     // 已导入号码数
+  first_import_at?: string | null;  // 首次导入时间
+  last_import_at?: string | null;   // 最后导入时间
+}
+
+/**
+ * 获取所有已导入的文件列表及统计信息
+ */
+export async function getImportedFileList(): Promise<FileInfoDto[]> {
+  return invoke<FileInfoDto[]>('get_imported_file_list');
+}
+
+/**
+ * 根据文件路径列表获取联系人号码
+ * @param filePaths 文件路径数组
+ * @param onlyAvailable 是否只获取可用号码（未分配、未导入）
+ */
+export async function getNumbersByFiles(filePaths: string[], onlyAvailable: boolean = false): Promise<ContactNumberDto[]> {
+  return invoke<ContactNumberDto[]>('get_numbers_by_files', {
+    file_paths: filePaths,
+    filePaths,
+    only_available: onlyAvailable,
+    onlyAvailable,
+  } as any);
+}
+
+/**
+ * 检查文件是否已导入
+ * @param filePath 文件路径
+ */
+export async function checkFileImported(filePath: string): Promise<boolean> {
+  return invoke<boolean>('check_file_imported', {
+    file_path: filePath,
+    filePath,
+  } as any);
+}
+
+/**
+ * 获取指定文件的统计信息
+ * @param filePath 文件路径
+ */
+export async function getFileStats(filePath: string): Promise<FileInfoDto | null> {
+  return invoke<FileInfoDto | null>('get_file_stats', {
+    file_path: filePath,
+    filePath,
+  } as any);
+}

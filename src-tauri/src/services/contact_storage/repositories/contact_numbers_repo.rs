@@ -469,4 +469,38 @@ impl ContactNumberRepository {
         // 委托给batch_management子模块
         batch_management::list_numbers_for_vcf_batch(conn, batch_id, limit, offset)
     }
+
+    // ===== 文件相关查询 =====
+
+    /// 获取所有已导入的文件列表
+    pub fn get_imported_file_list(
+        conn: &Connection,
+    ) -> SqliteResult<Vec<super::super::models::FileInfoDto>> {
+        super::contact_numbers::file_queries::get_imported_file_list(conn)
+    }
+
+    /// 根据文件路径列表获取号码
+    pub fn get_numbers_by_files(
+        conn: &Connection,
+        file_paths: &[String],
+        only_available: bool,
+    ) -> SqliteResult<Vec<ContactNumberDto>> {
+        super::contact_numbers::file_queries::get_numbers_by_files(conn, file_paths, only_available)
+    }
+
+    /// 检查文件是否已导入
+    pub fn check_file_imported(
+        conn: &Connection,
+        file_path: &str,
+    ) -> SqliteResult<bool> {
+        super::contact_numbers::file_queries::check_file_imported(conn, file_path)
+    }
+
+    /// 获取指定文件的统计信息
+    pub fn get_file_stats(
+        conn: &Connection,
+        file_path: &str,
+    ) -> SqliteResult<Option<super::super::models::FileInfoDto>> {
+        super::contact_numbers::file_queries::get_file_stats(conn, file_path)
+    }
 }
