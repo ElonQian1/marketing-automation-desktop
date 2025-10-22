@@ -1,3 +1,5 @@
+pub mod action_executor; // 新增：统一操作执行器
+pub mod action_recommender; // 新增：操作推荐引擎
 pub mod adb_activity; // 新增：ADB Activity 管理
 pub mod adb_device_tracker;
 pub mod adb_service; // 现在是模块化的文件夹结构

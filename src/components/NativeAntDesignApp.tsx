@@ -52,7 +52,7 @@ import { TestIntelligentAnalysisAdapter } from "../components/universal-ui/eleme
 import SmartVcfImporter from "./SmartVcfImporter";
 import TemplateLibrary from "./template/TemplateLibrary";
 import ContactImportPage from "../pages/contact-import/ContactImportPage";
-import { DatabaseDebugPage } from "../pages/debug/DatabaseDebug";
+import DatabaseDebugPage from "../pages/debug/DatabaseDebug";
 // import QuickPhoneMirror from "./QuickPhoneMirror";
 import { PageFinderView } from "./universal-ui/page-finder";
 import { ThemeSettingsPage } from "../pages/ThemeSettingsPage";
@@ -75,6 +75,9 @@ import BusinessComponentsDemo from "../pages/BusinessComponentsDemo";
 // Design Tokens 演示页面
 import { DesignTokensDemo } from "../pages/DesignTokensDemo";
 import ElementDiscoveryTestPage from "../pages/ElementDiscoveryTestPage";
+
+// 统一执行管道测试
+import TestUnifiedExecution from "../pages/test-unified-execution";
 
 // 智能分析真实演示
 import IntelligentAnalysisRealDemo from "../modules/universal-ui/pages/intelligent-analysis-real-demo.tsx";
@@ -249,6 +252,11 @@ const NativeAntDesignApp: React.FC = () => {
       label: "✅ 策略选择器修复版",
     },
     {
+      key: "test-unified-execution",
+      icon: <ThunderboltOutlined />,
+      label: "⚡ 统一执行管道测试",
+    },
+    {
       key: "statistics-native",
       icon: <DashboardOutlined />,
       label: "统计页面（原生）",
@@ -341,6 +349,8 @@ const NativeAntDesignApp: React.FC = () => {
         return <UnifiedAnalysisDemo />;
       case "strategy-backend-demo-fixed":
         return <StrategyBackendDemoFixed />;
+      case "test-unified-execution":
+        return <TestUnifiedExecution />;
       case "statistics-native":
         return <StatisticsPageNative />;
       case "statistics-optimized":

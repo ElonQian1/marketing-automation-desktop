@@ -172,8 +172,18 @@ async fn execute_step_by_inline(
         }
         SingleStepAction::Tap => {
             tracing::info!("👆 执行点击");
-            // TODO: 调用 handle_tap
-            0.95
+            
+            // 调用新的操作执行系统
+            match execute_action_unified(envelope, &params).await {
+                Ok(confidence) => {
+                    tracing::info!("✅ 操作执行成功，置信度: {:.2}", confidence);
+                    confidence
+                }
+                Err(e) => {
+                    tracing::error!("❌ 操作执行失败: {}", e);
+                    return Err(format!("操作执行失败: {}", e));
+                }
+            }
         }
         SingleStepAction::Unknown => {
             let err_msg = format!(
@@ -230,4 +240,100 @@ async fn execute_step_by_inline(
         "confidence": confidence,
         "elapsedMs": elapsed_ms
     }))
+}
+
+/// 执行统一操作动作
+async fn execute_action_unified(
+    envelope: &ContextEnvelope,
+    params: &Value,
+) -> Result<f32, String> {
+    use std::collections::HashMap;
+    use crate::services::action_executor::ActionExecutor;
+    use crate::types::action_types::*;
+    use crate::commands::strategy_matching::{match_element_by_criteria, MatchCriteriaDTO};
+    
+    tracing::info!("🎯 开始执行统一操作");
+    
+    // 1. 解析操作类型，默认为点击
+    let action = params.get("action_type")
+        .and_then(|v| serde_json::from_value(v.clone()).ok())
+        .unwrap_or(ActionType::Click);
+        
+    tracing::info!("📋 操作类型: {}", action.type_id());
+    
+    // 2. 进行策略匹配，获取目标元素信息
+    let mut values = HashMap::new();
+    if let Some(text) = params.get("text").and_then(|v| v.as_str()) {
+        values.insert("text".to_string(), text.to_string());
+    }
+    if let Some(resource_id) = params.get("resource_id").and_then(|v| v.as_str()) {
+        values.insert("resource-id".to_string(), resource_id.to_string());
+    }
+    
+    let criteria = MatchCriteriaDTO {
+        strategy: "intelligent".to_string(),
+        fields: vec!["text".to_string(), "resource-id".to_string()],
+        values,
+        excludes: HashMap::new(),
+        includes: HashMap::new(),
+        match_mode: HashMap::new(),
+        regex_includes: HashMap::new(),
+        regex_excludes: HashMap::new(),
+        hidden_element_parent_config: None,
+        options: None,
+    };
+    
+    let match_result = match_element_by_criteria(
+        envelope.device_id.clone(),
+        criteria,
+    ).await?;
+    
+    if !match_result.ok {
+        return Err(format!("策略匹配失败: {}", match_result.message));
+    }
+    
+    // 3. 从匹配结果中提取坐标和边界信息
+    let target_bounds = if let Some(matched_elements) = match_result.matched_elements.first() {
+        if let Some(coords_str) = matched_elements.get("coordinates").and_then(|v| v.as_str()) {
+            // 解析坐标 "(x, y)"
+            if let Some(captures) = regex::Regex::new(r"\((\d+),\s*(\d+)\)").unwrap().captures(coords_str) {
+                let x: i32 = captures[1].parse().map_err(|_| "无效的X坐标")?;
+                let y: i32 = captures[2].parse().map_err(|_| "无效的Y坐标")?;
+                
+                // 创建一个小区域的边界（以点击坐标为中心）
+                Some(ElementBounds::new(x - 10, y - 10, x + 10, y + 10))
+            } else {
+                None
+            }
+        } else {
+            None
+        }
+    } else {
+        None
+    };
+    
+    if target_bounds.is_none() {
+        return Err("无法从匹配结果中获取有效坐标".to_string());
+    }
+    
+    // 4. 创建执行上下文
+    let context = ActionContext {
+        device_id: envelope.device_id.clone(),
+        target_bounds,
+        timeout: Some(10000), // 10秒超时
+        verify_with_screenshot: Some(false),
+    };
+    
+    // 5. 执行操作
+    let executor = ActionExecutor::new();
+    let result = executor.execute_action(&action, &context).await
+        .map_err(|e| format!("操作执行器错误: {}", e))?;
+    
+    if result.success {
+        tracing::info!("✅ 操作执行成功: {}", result.message);
+        Ok(match_result.confidence_score as f32)
+    } else {
+        tracing::error!("❌ 操作执行失败: {}", result.message);
+        Err(result.message)
+    }
 }

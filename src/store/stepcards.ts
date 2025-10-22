@@ -5,6 +5,8 @@
 import { create } from 'zustand';
 import { immer } from 'zustand/middleware/immer';
 import type { ConfidenceEvidence, SingleStepScore, StepCardMeta } from '../modules/universal-ui/types/intelligent-analysis-types';
+import type { ActionType } from '../types/action-types';
+import { DEFAULT_ACTION } from '../types/action-types';
 
 export type StepCardStatus = 'draft' | 'analyzing' | 'ready' | 'failed' | 'blocked' | 'completed' | 'done';
 
@@ -43,6 +45,10 @@ export interface StepCard {
   evidence?: ConfidenceEvidence;
   /** 扩展元数据 */
   meta?: StepCardMeta;
+  /** 操作类型配置 */
+  actionType?: ActionType;
+  /** 推荐的操作类型 */
+  recommendedAction?: ActionType;
   createdAt: number;
   updatedAt: number;
 }
@@ -83,6 +89,11 @@ export interface StepCardStore {
   setConfidence: (cardId: string, confidence: number, evidence?: ConfidenceEvidence) => void;
   setSingleStepConfidence: (cardId: string, score: SingleStepScore) => void;
   getStepIdByCard: (cardId: string) => string | undefined;
+  
+  // 操作类型管理
+  updateActionType: (cardId: string, action: ActionType) => void;
+  setRecommendedAction: (cardId: string, action: ActionType) => void;
+  getActionType: (cardId: string) => ActionType | undefined;
   
   // 删除操作
   remove: (cardId: string) => void;
@@ -402,6 +413,52 @@ export const useStepCardStore = create<StepCardStore>()(
           console.log('🧹 [StepCardStore] 清理短ID幽灵卡片', { shortId, canonicalId });
         }
       });
+    },
+    
+    // 操作类型管理方法
+    updateActionType: (cardId, action) => {
+      set((state) => {
+        const canonicalId = resolveCardId(state, cardId);
+        if (!canonicalId) return;
+        
+        const card = state.cards[canonicalId];
+        if (card) {
+          card.actionType = action;
+          card.updatedAt = Date.now();
+          console.log('🎯 [StepCardStore] 更新操作类型', { 
+            cardId: canonicalId.slice(-8), 
+            actionType: action.type,
+            params: action.params 
+          });
+        }
+      });
+    },
+    
+    setRecommendedAction: (cardId, action) => {
+      set((state) => {
+        const canonicalId = resolveCardId(state, cardId);
+        if (!canonicalId) return;
+        
+        const card = state.cards[canonicalId];
+        if (card) {
+          card.recommendedAction = action;
+          // 如果没有设置过操作类型，使用推荐的
+          if (!card.actionType) {
+            card.actionType = action;
+          }
+          card.updatedAt = Date.now();
+          console.log('💡 [StepCardStore] 设置推荐操作', { 
+            cardId: canonicalId.slice(-8), 
+            recommendedAction: action.type,
+            applied: !card.actionType 
+          });
+        }
+      });
+    },
+    
+    getActionType: (cardId) => {
+      const card = get().cards[cardId];
+      return card?.actionType || DEFAULT_ACTION;
     },
   }))
 );

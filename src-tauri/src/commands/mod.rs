@@ -1,6 +1,8 @@
 // Centralized Tauri command module
 // 分领域子模块：确保 main.rs 精简
 
+pub mod action_execution; // 新增操作执行命令
+pub mod step_execution; // 新增统一步骤执行命令
 pub mod app_lifecycle_commands; // 现有（保留）
 pub mod employees;
 pub mod adb;
@@ -18,17 +20,19 @@ pub mod commands_lead_hunt; // ✅ 新增精准获客Lead Hunt命令
 pub mod enhanced_location_commands; // 🆕 新增增强定位算法命令
 
 // 可选：统一 re-export，方便 main.rs 引入
+// pub use action_execution::*; // 操作执行命令（暂时注释）
 pub use employees::*;
 pub use adb::*;
 pub use files::*;
 pub use page_analysis::*;
 pub use logging::*;
 pub use xml_cache::*;
-pub use xpath_execution::*;
+// pub use xpath_execution::*; // XPath执行命令（暂时注释）
 pub use metrics::*;
 pub use strategy_matching::*;
 pub use intelligent_analysis::*; // ✅ 新增导出
 pub use health_check::*; // ✅ 导出健康检查命令
 pub use enhanced_location_commands::*; // 🆕 导出增强定位命令
+pub use step_execution::*; // 🆕 导出统一步骤执行命令
 pub use prospecting::*; // ✅ 导出精准获客命令
 pub use commands_lead_hunt::*; // ✅ 导出Lead Hunt命令

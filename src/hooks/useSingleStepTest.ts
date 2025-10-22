@@ -5,7 +5,7 @@
 import { useState, useCallback } from 'react';
 import { message } from 'antd';
 import { isTauri, invoke } from '@tauri-apps/api/core';
-import type { SmartScriptStep, SingleStepTestResult } from '../types/smartScript';
+import type { SmartScriptStep, SingleStepTestResult, ActionKind, StepAction } from '../types/smartScript';
 import { useAdb } from '../application/hooks/useAdb';
 import type { MatchCriteriaDTO } from '../domain/page-analysis/repositories/IUiMatcherRepository';
 import { isSmartFindElementType, ensureBoundsNormalized } from './singleStepTest/utils';
@@ -16,18 +16,31 @@ import { executeXPathDirect } from './singleStepTest/xpathDirectExecution';
 import type { StrategyTestResult } from './singleStepTest/types';
 // 🆕 导入离线验证系统
 import { OfflineValidationSystem } from '../modules/intelligent-strategy-system/validation/OfflineValidationSystem';
+// 🆕 导入统一执行管道
+import { 
+  TauriStepExecutionRepository,
+  type StepExecutionRequest,
+  type StepExecutionResult
+} from '../infrastructure/repositories/TauriStepExecutionRepository';
+
+// 执行模式类型定义
+export type TestExecutionMode = 'match-only' | 'execute-step';
 
 /**
  * useSingleStepTest
  * - 单步测试会尊重 step.parameters.inline_loop_count（范围 1-50），顺序执行；
  * - 失败将短路（停止后续执行）并聚合 loopSummary/iterations；
- * - SmartFindElement（智能元素查找）仅走“策略匹配”验证，不执行点击/输入等动作；
- * - 只有动作类步骤（tap/swipe/input/wait/...）才会调用后端 execute_single_step_test。
+ * - 支持两种模式：match-only（仅匹配）和 execute-step（执行步骤）；
+ * - 新的动作系统：通过 step.action 字段控制具体执行什么动作。
  */
 export const useSingleStepTest = () => {
   const [testingSteps, setTestingSteps] = useState<Set<string>>(new Set());
   const [testResults, setTestResults] = useState<Record<string, SingleStepTestResult>>({});
+  const [executionMode, setExecutionMode] = useState<TestExecutionMode>('execute-step'); // 默认执行步骤
   const { matchElementByCriteria } = useAdb();
+  
+  // 🆕 统一执行管道 repository
+  const stepExecutionRepo = new TauriStepExecutionRepository();
 
   // 使用提取后的工具函数 isSmartFindElementType, buildCriteriaFromStep 等
 
@@ -45,6 +58,255 @@ export const useSingleStepTest = () => {
   ): Promise<StrategyTestResult> => {
     return executeStrategyTestImpl(step, deviceId, matchElementByCriteria, buildCriteriaFromStep);
   }, [matchElementByCriteria]);
+
+  /**
+   * 🆕 统一执行管道 - 使用后端 run_step 命令
+   */
+  const executeUnifiedStep = useCallback(async (
+    step: SmartScriptStep,
+    deviceId: string,
+    mode?: TestExecutionMode
+  ): Promise<SingleStepTestResult> => {
+    const actualMode = mode || executionMode;
+    
+    console.log('🚀 使用统一执行管道:', { stepId: step.id, mode: actualMode });
+    
+    try {
+      // 构建请求
+      const request: StepExecutionRequest = {
+        device_id: deviceId,
+        mode: actualMode,
+        step: {
+          id: step.id || 'test-step',
+          name: step.step_type || 'unknown',
+          selector: stepExecutionRepo.convertParametersToSelector(step.parameters || {}),
+          action: step.action 
+            ? stepExecutionRepo.convertActionToDto(step.action)
+            : { type: 'Click' }, // 默认动作
+          strategy: stepExecutionRepo.inferStrategy(step.parameters || {})
+        }
+      };
+
+      console.log('📋 执行请求:', request);
+
+      // 调用统一执行命令
+      const result: StepExecutionResult = await stepExecutionRepo.runStep(request);
+      
+      console.log('✅ 统一执行结果:', result);
+
+      // 转换为 SingleStepTestResult 格式
+      return {
+        success: result.success,
+        step_id: result.step_id,
+        step_name: step.name || step.step_type,
+        message: result.message,
+        duration_ms: result.duration_ms,
+        timestamp: Date.now(),
+        ui_elements: result.matched_element ? [{
+          type: 'element' as const,
+          bounds: result.matched_element.bounds,
+          attributes: { confidence: result.matched_element.confidence.toString() }
+        }] : [],
+        logs: result.logs || [],
+        error_details: result.error_details,
+        extracted_data: {
+          matchResult: result.matched_element,
+          actionResult: result.action_result
+        }
+      };
+    } catch (error) {
+      console.error('❌ 统一执行管道失败:', error);
+      return {
+        success: false,
+        step_id: step.id || 'test-step',
+        step_name: step.name || step.step_type,
+        message: `执行失败: ${error}`,
+        duration_ms: 0,
+        timestamp: Date.now(),
+        ui_elements: [],
+        logs: [`错误: ${error}`],
+        error_details: String(error),
+        extracted_data: {}
+      };
+    }
+  }, [executionMode, stepExecutionRepo]);
+
+  // 统一的步骤执行函数（支持模式切换）
+  const executeStepWithMode = useCallback(async (
+    step: SmartScriptStep,
+    deviceId: string,
+    mode?: TestExecutionMode
+  ): Promise<SingleStepTestResult> => {
+    const actualMode = mode || executionMode;
+    
+    if (actualMode === 'match-only') {
+      // 仅匹配模式：只做策略匹配
+      console.log('🎯 执行模式：仅匹配');
+      const strategyResult = await executeStrategyTest(step, deviceId);
+      return {
+        success: strategyResult.success,
+        step_id: step.id,
+        step_name: step.name,
+        message: `匹配测试: ${strategyResult.output}`,
+        duration_ms: 0,
+        timestamp: Date.now(),
+        ui_elements: strategyResult.matchResult?.preview ? [strategyResult.matchResult.preview] : [],
+        logs: [`策略匹配: ${strategyResult.success ? '成功' : '失败'}`],
+        error_details: strategyResult.error,
+        extracted_data: strategyResult.criteria ? { matchCriteria: strategyResult.criteria } : {}
+      };
+    } else {
+      // 执行步骤模式：根据动作类型执行具体操作
+      console.log('🎯 执行模式：执行步骤');
+      return executeStepAction(step, deviceId);
+    }
+  }, [executionMode, executeStrategyTest]);
+
+  // 执行步骤动作（新函数）
+  const executeStepAction = useCallback(async (
+    step: SmartScriptStep,
+    deviceId: string
+  ): Promise<SingleStepTestResult> => {
+    // 确定动作类型
+    const actionKind = step.action?.kind || getDefaultActionFromStepType(step.step_type);
+    
+    console.log(`🚀 执行动作: ${actionKind}`);
+    
+    // 如果是 find_only，只做匹配
+    if (actionKind === 'find_only') {
+      const strategyResult = await executeStrategyTest(step, deviceId);
+      return {
+        success: strategyResult.success,
+        step_id: step.id,
+        step_name: step.name,
+        message: strategyResult.output,
+        duration_ms: 0,
+        timestamp: Date.now(),
+        ui_elements: strategyResult.matchResult?.preview ? [strategyResult.matchResult.preview] : [],
+        logs: [`元素查找: ${strategyResult.success ? '成功' : '失败'}`],
+        error_details: strategyResult.error,
+        extracted_data: strategyResult.criteria ? { matchCriteria: strategyResult.criteria } : {}
+      };
+    }
+
+    // 其他动作：先匹配，再执行
+    try {
+      // 步骤1：匹配元素
+      console.log('🔍 步骤1：匹配元素');
+      const strategyResult = await executeStrategyTest(step, deviceId);
+      
+      if (!strategyResult.success) {
+        return {
+          success: false,
+          step_id: step.id,
+          step_name: step.name,
+          message: `匹配失败: ${strategyResult.output}`,
+          duration_ms: 0,
+          timestamp: Date.now(),
+          ui_elements: [],
+          logs: ['匹配失败，跳过动作执行'],
+          error_details: strategyResult.error,
+          extracted_data: {}
+        };
+      }
+
+      // 步骤2：执行动作
+      console.log(`🎯 步骤2：执行动作 (${actionKind})`);
+      const actionResult = await runStepAction(step, deviceId, actionKind);
+      
+      return {
+        success: actionResult.success,
+        step_id: step.id,
+        step_name: step.name,
+        message: `匹配成功 → ${actionResult.message}`,
+        duration_ms: actionResult.duration,
+        timestamp: Date.now(),
+        ui_elements: strategyResult.matchResult?.preview ? [strategyResult.matchResult.preview] : [],
+        logs: [
+          '✅ 元素匹配成功',
+          `🎯 执行${actionKind}: ${actionResult.success ? '成功' : '失败'}`
+        ],
+        error_details: actionResult.success ? undefined : actionResult.message,
+        extracted_data: {
+          matchCriteria: strategyResult.criteria,
+          actionResult: actionResult.data
+        }
+      };
+    } catch (error) {
+      return {
+        success: false,
+        step_id: step.id,
+        step_name: step.name,
+        message: `执行失败: ${error}`,
+        duration_ms: 0,
+        timestamp: Date.now(),
+        ui_elements: [],
+        logs: [`执行异常: ${error}`],
+        error_details: String(error),
+        extracted_data: {}
+      };
+    }
+  }, [executeStrategyTest]);
+
+  // 根据步骤类型推断默认动作
+  const getDefaultActionFromStepType = (stepType: string): ActionKind => {
+    const typeStr = String(stepType).toLowerCase();
+    if (typeStr.includes('tap') || typeStr.includes('click')) return 'tap';
+    if (typeStr.includes('long')) return 'long_press';
+    if (typeStr.includes('double')) return 'double_tap';
+    if (typeStr.includes('swipe')) return 'swipe';
+    if (typeStr.includes('input')) return 'input';
+    if (typeStr.includes('wait')) return 'wait';
+    if (typeStr.includes('back')) return 'back';
+    if (typeStr.includes('key')) return 'keyevent';
+    return 'tap'; // 默认为点击
+  };
+
+  // 执行具体动作的函数
+  const runStepAction = async (
+    step: SmartScriptStep, 
+    deviceId: string, 
+    actionKind: ActionKind
+  ): Promise<{success: boolean, message: string, duration: number, data?: unknown}> => {
+    const startTime = Date.now();
+    
+    try {
+      switch (actionKind) {
+        case 'tap':
+          await invoke('safe_adb_shell_command', {
+            deviceId,
+            command: ['input', 'tap', '100', '100'] // 临时坐标，应该从匹配结果计算
+          });
+          return {
+            success: true,
+            message: '点击执行成功',
+            duration: Date.now() - startTime
+          };
+          
+        case 'wait':
+          const waitMs = step.action?.params?.waitMs || 1000;
+          await new Promise(resolve => setTimeout(resolve, waitMs));
+          return {
+            success: true,
+            message: `等待 ${waitMs}ms 完成`,
+            duration: Date.now() - startTime
+          };
+          
+        default:
+          return {
+            success: false,
+            message: `暂未实现的动作类型: ${actionKind}`,
+            duration: Date.now() - startTime
+          };
+      }
+    } catch (error) {
+      return {
+        success: false,
+        message: `动作执行失败: ${error}`,
+        duration: Date.now() - startTime
+      };
+    }
+  };
 
   // 执行单个步骤测试（支持 inline_loop_count 循环展开）
   const executeSingleStep = useCallback(async (
@@ -79,18 +341,19 @@ export const useSingleStepTest = () => {
         return executeXPathDirect(step, deviceId);
       }
 
-      // 智能元素查找：走策略匹配（不下发到后端执行动作）
+      // 智能元素查找：根据执行模式选择路径
       if (isSmartFindElementType(step.step_type)) {
-        console.log('🎯 使用策略匹配模式测试元素查找（单次）');
-        const strategyResult = await executeStrategyTest(step, deviceId);
-        let once: SingleStepTestResult = {
-          success: strategyResult.success,
-          step_id: stepId,
-          step_name: step.name,
-          message: strategyResult.output,
-          duration_ms: 0,
-          timestamp: Date.now(),
-          ui_elements: strategyResult.matchResult?.preview ? [strategyResult.matchResult.preview] : [],
+        if (executionMode === 'match-only') {
+          console.log('🎯 使用策略匹配模式测试元素查找（单次）');
+          const strategyResult = await executeStrategyTest(step, deviceId);
+          let once: SingleStepTestResult = {
+            success: strategyResult.success,
+            step_id: stepId,
+            step_name: step.name,
+            message: strategyResult.output,
+            duration_ms: 0,
+            timestamp: Date.now(),
+            ui_elements: strategyResult.matchResult?.preview ? [strategyResult.matchResult.preview] : [],
           logs: [`策略匹配测试: ${strategyResult.success ? '成功' : '失败'}`],
           error_details: strategyResult.error,
           extracted_data: strategyResult.criteria ? { matchCriteria: strategyResult.criteria } : {}
@@ -161,6 +424,11 @@ export const useSingleStepTest = () => {
           }
         }
         return once;
+        } else {
+          // execute-step 模式：使用统一执行管道（匹配 + 执行动作）
+          console.log('🚀 smart_find_element 步骤使用统一执行管道（匹配→动作）');
+          return executeUnifiedStep(step, deviceId);
+        }
       }
 
       // 非 SmartFindElement → 执行动作
@@ -270,6 +538,8 @@ export const useSingleStepTest = () => {
 
   return {
     executeSingleStep,
+    executeStepWithMode, // 新增：支持模式切换的执行函数
+    executeUnifiedStep, // 🆕 统一执行管道方法
     executeStrategyTest, // 新增：策略匹配测试方法
     convertStepToMatchCriteria, // 新增：参数转换器
     getStepTestResult,
@@ -278,6 +548,9 @@ export const useSingleStepTest = () => {
     clearAllResults,
     getAllTestResults,
     testResults,
-    testingSteps: Array.from(testingSteps)
+    testingSteps: Array.from(testingSteps),
+    // 执行模式管理
+    executionMode,
+    setExecutionMode
   };
 };

@@ -27,7 +27,7 @@ pub struct ElementPreview {
 }
 
 /// 匹配条件DTO - 从前端接收的匹配参数
-#[derive(Debug, Clone, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct MatchCriteriaDTO {
     pub strategy: String,
     pub fields: Vec<String>,
@@ -49,7 +49,7 @@ pub struct MatchCriteriaDTO {
 }
 
 /// 匹配选项DTO - 从前端接收的选项参数
-#[derive(Debug, Clone, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct MatchOptionsDTO {
     pub allow_absolute: Option<bool>,
     pub fields: Option<Vec<String>>,
@@ -60,7 +60,7 @@ pub struct MatchOptionsDTO {
 }
 
 /// 隐藏元素父容器配置
-#[derive(Debug, Clone, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct HiddenElementParentConfig {
     pub target_text: String,
     #[serde(default = "default_max_traversal_depth")]

@@ -290,6 +290,7 @@ fn main() {
             // wait_for_ui_element,     // 等待元素出现
             // check_device_page_state, // 检查页面状态
             match_element_by_criteria, // 按匹配条件查找元素 - 已修复
+            run_step, // 🆕 统一步骤执行命令（匹配+动作）
             // 智能应用管理功能
             get_device_apps,         // 获取设备应用列表
             get_device_apps_paged,   // 分页获取设备应用列表
@@ -431,7 +432,12 @@ fn main() {
             ai::commands::save_ai_settings,
             ai::commands::list_models,
             ai::commands::ai_chat,
-            ai::commands::ai_embed
+            ai::commands::ai_embed,
+            // 操作执行系统命令
+            commands::action_execution::execute_action_command,
+            commands::action_execution::recommend_action_command,
+            commands::action_execution::batch_recommend_actions_command,
+            commands::action_execution::validate_action_params_command
         ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");

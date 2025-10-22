@@ -149,18 +149,41 @@ pub async fn get_ui_dump(device_id: &str) -> Result<String, String> {
 pub fn parse_ui_elements(xml_content: &str) -> Result<Vec<UIElement>, String> {
     let mut elements = Vec::new();
     
-    // 使用字符串匹配解析元素
-    let lines: Vec<&str> = xml_content.lines().collect();
+    // 检查是否是压缩的XML（单行或少数行）
+    let expanded_content = if xml_content.lines().count() <= 3 {
+        println!("⚠️ 检测到压缩的XML格式，正在展开以便解析...");
+        expand_compressed_xml(xml_content)
+    } else {
+        xml_content.to_string()
+    };
     
-    for line in lines {
-        if line.contains("<node") && line.contains("bounds=") {
-            if let Ok(element) = parse_node_element(line) {
-                elements.push(element);
+    // 使用正则表达式匹配所有node标签（处理压缩的XML）
+    let mut start_pos = 0;
+    while let Some(node_start) = expanded_content[start_pos..].find("<node") {
+        let absolute_start = start_pos + node_start;
+        
+        // 找到对应的结束位置（自闭合标签或开标签）
+        if let Some(tag_end) = expanded_content[absolute_start..].find('>') {
+            let tag_content = &expanded_content[absolute_start..absolute_start + tag_end + 1];
+            
+            // 只处理包含bounds属性的节点
+            if tag_content.contains("bounds=") {
+                if let Ok(element) = parse_node_element(tag_content) {
+                    elements.push(element);
+                }
             }
+            
+            start_pos = absolute_start + tag_end + 1;
+        } else {
+            break;
         }
     }
     
     println!("🔍 解析到 {} 个UI元素", elements.len());
+    if elements.len() == 1 && xml_content.len() > 1000 {
+        println!("⚠️ 只解析到1个元素但XML内容很长({}字符)，可能存在解析问题", xml_content.len());
+        println!("📄 XML前200字符: {}", &xml_content.chars().take(200).collect::<String>());
+    }
     Ok(elements)
 }
 
@@ -297,4 +320,30 @@ pub async fn find_ui_elements(
     
     println!("🔍 找到 {} 个匹配的UI元素", matching_elements.len());
     Ok(matching_elements)
+}
+
+/// 展开压缩的XML内容
+fn expand_compressed_xml(compressed_xml: &str) -> String {
+    // 在关键标签前后添加换行符，使XML更易解析
+    let mut expanded = compressed_xml.to_string();
+    
+    // 在标签开始前添加换行
+    let patterns = [
+        r"<node",
+        r"</node>",
+        r"<hierarchy",
+        r"</hierarchy>",
+    ];
+    
+    for pattern in &patterns {
+        expanded = expanded.replace(pattern, &format!("\n{}", pattern));
+    }
+    
+    // 在属性间添加空格，确保解析正确
+    expanded = expanded.replace("\" ", "\" ");
+    expanded = expanded.replace("\"><", "\">\n<");
+    
+    println!("✅ XML展开完成，从 {} 字符扩展到 {} 字符", compressed_xml.len(), expanded.len());
+    
+    expanded
 }
