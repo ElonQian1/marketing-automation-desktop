@@ -1,5 +1,6 @@
 use rusqlite::{Connection, Result as SqliteResult};
 use tauri::AppHandle;
+use std::path::Path;
 
 use super::super::repositories::txt_import_records_repo;
 use super::super::models::{TxtImportRecordDto, TxtImportRecordList};
@@ -11,6 +12,19 @@ use super::common::db_connector::with_db_connection;
 pub struct TxtImportFacade;
 
 impl TxtImportFacade {
+    
+    /// 从文件路径中提取文件名
+    fn extract_file_name(file_path: &str) -> String {
+        if file_path.is_empty() {
+            return String::from("未知文件");
+        }
+        
+        Path::new(file_path)
+            .file_name()
+            .and_then(|name| name.to_str())
+            .map(|s| s.to_string())
+            .unwrap_or_else(|| String::from("未知文件"))
+    }
     
     /// 数据库连接辅助方法
     fn with_db_connection<T, F>(app_handle: &AppHandle, func: F) -> Result<T, String>
@@ -29,12 +43,15 @@ impl TxtImportFacade {
         source_info: Option<&str>,
         batch_id: Option<&str>,
     ) -> Result<TxtImportRecordDto, String> {
+        // 提取文件名
+        let file_name = Self::extract_file_name(file_path);
+        
         with_db_connection(app_handle, |conn| {
             // 转换为所需的类型
             let record_id = txt_import_records_repo::create_txt_import_record(
                 conn, 
                 file_path, 
-                "unknown_file", // file_name 参数
+                &file_name, // 使用提取的文件名
                 total_lines, 
                 valid_numbers, 
                 0, // imported_numbers
@@ -47,7 +64,7 @@ impl TxtImportFacade {
             Ok(super::super::models::TxtImportRecordDto {
                 id: record_id,
                 file_path: file_path.to_string(),
-                file_name: "unknown_file".to_string(),
+                file_name, // 使用提取的文件名
                 file_size: None,
                 total_lines,
                 valid_numbers,

@@ -8,13 +8,14 @@ use super::super::super::models::FileInfoDto;
 pub fn get_imported_file_list(conn: &Connection) -> SqliteResult<Vec<FileInfoDto>> {
     let query = r#"
         SELECT 
-            source_file,
+            COALESCE(source_file, '') as source_file,
             COUNT(*) as total_count,
             SUM(CASE WHEN status = 'available' OR status IS NULL THEN 1 ELSE 0 END) as available_count,
             SUM(CASE WHEN status = 'imported' THEN 1 ELSE 0 END) as imported_count,
             MIN(created_at) as first_import_at,
             MAX(created_at) as last_import_at
         FROM contact_numbers
+        WHERE source_file IS NOT NULL AND source_file != ''
         GROUP BY source_file
         ORDER BY last_import_at DESC
     "#;
@@ -144,10 +145,30 @@ pub fn get_file_stats(conn: &Connection, file_path: &str) -> SqliteResult<Option
 
 /// 从完整路径中提取文件名
 fn extract_file_name(path: &str) -> String {
-    path.split(['/', '\\'])
+    // 处理空字符串
+    if path.is_empty() {
+        return String::from("未知文件");
+    }
+    
+    // 去除首尾空白
+    let trimmed = path.trim();
+    if trimmed.is_empty() {
+        return String::from("未知文件");
+    }
+    
+    // 尝试从路径中提取文件名
+    let file_name = trimmed
+        .split(['/', '\\'])
+        .filter(|s| !s.is_empty())  // 过滤空字符串（处理尾部斜杠的情况）
         .last()
-        .unwrap_or(path)
-        .to_string()
+        .unwrap_or(trimmed);
+    
+    // 如果提取结果为空，返回默认值
+    if file_name.is_empty() {
+        String::from("未知文件")
+    } else {
+        file_name.to_string()
+    }
 }
 
 /// 映射数据库行到 ContactNumberDto
@@ -173,8 +194,20 @@ mod tests {
 
     #[test]
     fn test_extract_file_name() {
+        // 正常路径
         assert_eq!(extract_file_name("/path/to/file.txt"), "file.txt");
         assert_eq!(extract_file_name("C:\\Windows\\file.txt"), "file.txt");
         assert_eq!(extract_file_name("file.txt"), "file.txt");
+        
+        // 边界情况
+        assert_eq!(extract_file_name(""), "未知文件");
+        assert_eq!(extract_file_name("   "), "未知文件");
+        assert_eq!(extract_file_name("/"), "未知文件");
+        assert_eq!(extract_file_name("\\"), "未知文件");
+        assert_eq!(extract_file_name("/path/to/"), "to");
+        assert_eq!(extract_file_name("C:\\folder\\"), "folder");
+        
+        // 混合路径分隔符
+        assert_eq!(extract_file_name("/path\\to/file.txt"), "file.txt");
     }
 }
