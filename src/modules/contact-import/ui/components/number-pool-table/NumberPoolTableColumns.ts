@@ -99,7 +99,7 @@ export const COLUMN_CONFIGS: NumberPoolColumnConfig[] = [
     id: 'source_file',
     title: '来源文件',
     dataIndex: 'source_file',
-    defaultVisible: false,
+    defaultVisible: true,
     ellipsis: true,
   },
   {

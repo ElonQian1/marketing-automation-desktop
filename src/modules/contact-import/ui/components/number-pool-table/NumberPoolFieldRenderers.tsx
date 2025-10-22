@@ -12,6 +12,32 @@ import { ColumnRenderers } from './NumberPoolTableColumns';
 const { Text } = Typography;
 
 /**
+ * 电话号码渲染器
+ */
+export const PhoneRenderer: React.FC<{ phone?: string | null }> = ({ phone }) => {
+  if (!phone) {
+    return <Text type="secondary">-</Text>;
+  }
+
+  return (
+    <Text strong copyable style={{ fontFamily: 'monospace' }}>
+      {phone}
+    </Text>
+  );
+};
+
+/**
+ * 姓名渲染器
+ */
+export const NameRenderer: React.FC<{ name?: string | null }> = ({ name }) => {
+  if (!name || name.trim() === '') {
+    return <Text type="secondary">-</Text>;
+  }
+
+  return <Text>{name}</Text>;
+};
+
+/**
  * 状态标签渲染器
  */
 export const StatusRenderer: React.FC<{ status?: ContactNumberDto['status'] }> = ({ status }) => {
@@ -154,6 +180,8 @@ export const FilePathRenderer: React.FC<{ path?: string | null }> = ({ path }) =
  */
 export function createNumberPoolRenderers(devices?: Device[]): ColumnRenderers {
   return {
+    phone: (value: any) => <PhoneRenderer phone={value} />,
+    name: (value: any) => <NameRenderer name={value} />,
     status: (value: any) => <StatusRenderer status={value} />,
     used: (value: any) => <UsedRenderer used={value} />,
     imported_device_id: (value: any) => <DeviceRenderer deviceId={value} devices={devices} />,
