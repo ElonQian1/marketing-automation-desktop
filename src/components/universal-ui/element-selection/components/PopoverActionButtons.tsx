@@ -211,7 +211,7 @@ export const PopoverActionButtons: React.FC<PopoverActionButtonsProps> = (props)
     }
 
     return (
-      <Row gutter={[t.gap, t.gap]} style={{ width: 240 }}>
+      <Row gutter={[t.gap, t.gap]} style={{ width: '100%' }}>
         <Col span={12}>
           <Button 
             block 
@@ -292,7 +292,7 @@ export const PopoverActionButtons: React.FC<PopoverActionButtonsProps> = (props)
     }
 
     return (
-      <Row gutter={[t.gap, t.gap]} style={{ width: 240 }}>
+      <Row gutter={[t.gap, t.gap]} style={{ width: '100%' }}>
         <Col span={12}>
           <Button 
             block 
@@ -412,7 +412,7 @@ export const PopoverActionButtons: React.FC<PopoverActionButtonsProps> = (props)
     return (
       <div>
         {progressElement}
-        <Row gutter={[t.gap, t.gap]} style={{ width: 240 }}>
+        <Row gutter={[t.gap, t.gap]} style={{ width: '100%' }}>
           <Col span={12}>
             <Button 
               block 
@@ -536,7 +536,7 @@ export const PopoverActionButtons: React.FC<PopoverActionButtonsProps> = (props)
     return (
       <div>
         {strategyElement}
-        <Row gutter={[t.gap, t.gap]} style={{ width: 240 }}>
+        <Row gutter={[t.gap, t.gap]} style={{ width: '100%' }}>
           <Col span={12}>
             <Button 
               block 
@@ -642,7 +642,7 @@ export const PopoverActionButtons: React.FC<PopoverActionButtonsProps> = (props)
     }
 
     return (
-      <Row gutter={[t.gap, t.gap]} style={{ width: 240 }}>
+      <Row gutter={[t.gap, t.gap]} style={{ width: '100%' }}>
         <Col span={12}>
           <Button 
             block 

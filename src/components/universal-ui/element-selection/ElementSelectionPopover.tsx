@@ -313,11 +313,18 @@ const ElementSelectionPopoverComponent: React.FC<ElementSelectionPopoverProps> =
           // 关键修复：当发现模态框打开时，禁用"外部点击自动取消"
           autoCancelOnOutsideClick={allowOutsideCancel && !discoveryModalOpen && autoCancelOnOutsideClick}
           title={
-            <div style={{ maxWidth: '220px' }}>
+            <div style={{ minWidth: '240px', maxWidth: '320px' }}>
               <div style={{ fontSize: '12px', color: 'var(--text-2, #e2e8f0)', marginBottom: '4px' }}>
                 选择此元素？
               </div>
-              <div style={{ fontSize: '13px', fontWeight: 'bold', marginBottom: '8px', color: 'var(--text-1, #f8fafc)' }}>
+              <div style={{ 
+                fontSize: '13px', 
+                fontWeight: 'bold', 
+                marginBottom: '8px', 
+                color: 'var(--text-1, #f8fafc)',
+                wordBreak: 'break-word',
+                overflowWrap: 'break-word'
+              }}>
                 {selection.element.text || 
                  selection.element.resource_id || 
                  selection.element.class_name || '未知元素'}
