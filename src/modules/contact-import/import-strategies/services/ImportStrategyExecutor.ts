@@ -39,6 +39,93 @@ export class ImportStrategyExecutor {
     console.log(`📱 设备ID: ${deviceId}`);
 
     try {
+      // 🎯 优先使用多品牌智能导入器（Android 11+ 适配，6级兜底）
+      console.log('🚀 尝试使用多品牌智能导入器（优先策略）...');
+      
+      try {
+        const multiBrandResult = await invoke<{
+          success: boolean;
+          used_strategy: string | null;
+          used_method: string | null;
+          total_contacts: number;
+          imported_contacts: number;
+          failed_contacts: number;
+          attempts: Array<{
+            strategy_name: string;
+            method_name: string;
+            success: boolean;
+            error_message: string | null;
+            duration_seconds: number;
+          }>;
+          message: string;
+          duration_seconds: number;
+        }>('import_vcf_contacts_multi_brand', {
+          deviceId,
+          vcfFilePath
+        });
+
+        if (multiBrandResult.success) {
+          console.log(`✅ 多品牌导入器成功！使用策略: ${multiBrandResult.used_strategy} - ${multiBrandResult.used_method}`);
+          console.log(`📊 导入结果: ${multiBrandResult.imported_contacts}/${multiBrandResult.total_contacts} 个联系人`);
+          
+          // 可选验证（如果用户启用）
+          let verificationDetails;
+          if (enableVerification && selection.verificationPhones) {
+            try {
+              const phones = Array.isArray(selection.verificationPhones)
+                ? selection.verificationPhones
+                : selection.verificationPhones.split(',').map(p => p.trim()).filter(p => p.length > 0);
+              
+              if (phones.length > 0) {
+                const verifyResult = await invoke<{
+                  success: boolean;
+                  totalExpected: number;
+                  sampledCount: number;
+                  foundCount: number;
+                  successRate: number;
+                  estimatedImported: number;
+                  method: string;
+                  verifiedPhones: string[];
+                }>('verify_contacts_fast', {
+                  deviceId,
+                  phoneNumbers: phones
+                });
+                
+                // 转换为符合 ImportResult.verificationDetails 的格式
+                verificationDetails = {
+                  sampledContacts: verifyResult.verifiedPhones.map((phone, index) => ({
+                    id: `verified_${index}`,
+                    displayName: `联系人${index + 1}`,
+                    phoneNumber: phone
+                  })),
+                  totalFound: verifyResult.foundCount
+                };
+              }
+            } catch (error) {
+              console.warn('⚠️ 验证失败（但不影响导入流程）:', error);
+            }
+          }
+          
+          return {
+            success: true,
+            importedCount: verificationDetails?.totalFound || multiBrandResult.imported_contacts,
+            failedCount: multiBrandResult.failed_contacts,
+            strategy: selectedStrategy,
+            verificationDetails
+          };
+        } else {
+          console.warn(`⚠️ 多品牌导入器失败: ${multiBrandResult.message}`);
+          console.warn(`📋 尝试记录: ${multiBrandResult.attempts.length} 次失败`);
+          // 不直接返回，继续尝试旧方法
+        }
+      } catch (multiBrandError) {
+        console.warn('⚠️ 多品牌导入器调用失败，回退到传统方法:', multiBrandError);
+        // 继续执行旧方法作为兜底
+      }
+
+      // 🔄 回退到传统导入方法（保持兼容性）
+      console.log('🔄 使用传统导入方法（兜底策略）...');
+      
       // 1. 推送VCF文件到设备
       const deviceVcfPath = await this.pushVcfToDevice(vcfFilePath, deviceId);
       

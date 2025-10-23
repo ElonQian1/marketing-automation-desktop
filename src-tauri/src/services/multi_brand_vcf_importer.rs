@@ -425,10 +425,13 @@ impl MultiBrandVcfImporter {
         ]);
         push_targets.push("/sdcard/Android/data/com.android.contacts/files/contacts_import.vcf".to_string());
         
-        // 策略3: sdcard 根目录（Android 10- 兼容）
+        // 策略3: ADB shell 专属目录（100% 可写，万能兜底）
+        push_targets.push("/data/local/tmp/contacts_import.vcf".to_string());
+        
+        // 策略4: sdcard 根目录（Android 10- 兼容）
         push_targets.push("/sdcard/contacts_import.vcf".to_string());
         
-        // 策略4: Download 目录（旧版本兼容，Android 11+ 可能失败）
+        // 策略5: Download 目录（旧版本兼容，Android 11+ 可能失败）
         push_targets.push("/sdcard/Download/contacts_import.vcf".to_string());
         push_targets.push("/storage/emulated/0/Download/contacts_import.vcf".to_string());
 
@@ -447,8 +450,9 @@ impl MultiBrandVcfImporter {
                 info!("   策略: {}", match idx {
                     0 => "包专属目录（最佳）",
                     1 => "通用联系人目录",
-                    2 => "sdcard 根目录",
-                    3 | 4 => "Download 目录（旧版兼容）",
+                    2 => "ADB shell 专属目录（万能兜底）",
+                    3 => "sdcard 根目录",
+                    4 | 5 => "Download 目录（旧版兼容）",
                     _ => "未知策略"
                 });
                 break;
@@ -457,7 +461,7 @@ impl MultiBrandVcfImporter {
             }
         }
         
-        let device_vcf = pushed_path.ok_or_else(|| anyhow::anyhow!("VCF 文件推送到所有目标路径均失败"))?;
+        let device_vcf = pushed_path.clone().ok_or_else(|| anyhow::anyhow!("VCF 文件推送到所有目标路径均失败"))?;
 
         // 4) 通过 Intent 直接打开 VCF（触发系统导入对话框）
         let file_uri = format!("file://{}", device_vcf);
@@ -475,7 +479,9 @@ impl MultiBrandVcfImporter {
         let stderr = String::from_utf8_lossy(&output.stderr);
         
         if stdout.contains("Error") || stderr.contains("Error") {
-            warn!("⚠️  Intent 启动可能失败: stdout={}, stderr={}", stdout.trim(), stderr.trim());
+            warn!("⚠️ Intent 启动失败，尝试直接写入数据库...");
+            // 🚨 兜底点4: Intent 被拦截时，直接通过 content provider 写入
+            return self.direct_database_import(&device_vcf, vcf_file_path).await;
         } else {
             info!("✅ Intent 已发送，等待系统响应...");
         }
@@ -629,6 +635,103 @@ impl MultiBrandVcfImporter {
         let _ = self.execute_adb_command(&["-s", &self.device_id, "shell", "cmd", "appops", "set", "com.android.contacts", "READ_CONTACTS", "allow"]);
         let _ = self.execute_adb_command(&["-s", &self.device_id, "shell", "cmd", "appops", "set", "com.android.contacts", "WRITE_CONTACTS", "allow"]);
         sleep(Duration::from_secs(1)).await;
+        Ok(())
+    }
+
+    /// 🚨 终极兜底：直接通过 content provider 写入联系人数据库
+    async fn direct_database_import(&self, _device_vcf_path: &str, local_vcf_path: &str) -> Result<()> {
+        info!("🔧 启动直接数据库导入模式（兜底策略）");
+        
+        // 读取本地 VCF 文件内容
+        let vcf_content = std::fs::read_to_string(local_vcf_path)
+            .context("读取 VCF 文件失败")?;
+        
+        // 简单解析 VCF（只处理基础字段）
+        let mut imported_count = 0;
+        let lines: Vec<&str> = vcf_content.lines().collect();
+        let mut i = 0;
+        
+        while i < lines.len() {
+            if lines[i].starts_with("BEGIN:VCARD") {
+                let mut name = String::new();
+                let mut phone = String::new();
+                
+                // 查找同一个 VCARD 块的信息
+                while i < lines.len() && !lines[i].starts_with("END:VCARD") {
+                    let line = lines[i];
+                    if line.starts_with("FN:") {
+                        name = line[3..].trim().to_string();
+                    } else if line.starts_with("TEL") {
+                        if let Some(colon_pos) = line.find(':') {
+                            phone = line[colon_pos + 1..].trim().replace(" ", "").to_string();
+                        }
+                    }
+                    i += 1;
+                }
+                
+                // 通过 content insert 插入联系人
+                if !name.is_empty() && !phone.is_empty() {
+                    match self.insert_contact_via_content(&name, &phone).await {
+                        Ok(_) => {
+                            info!("✅ 直接写入联系人: {} - {}", name, phone);
+                            imported_count += 1;
+                        }
+                        Err(e) => {
+                            warn!("⚠️ 写入失败: {} - {}, 错误: {}", name, phone, e);
+                        }
+                    }
+                }
+            }
+            i += 1;
+        }
+        
+        if imported_count > 0 {
+            info!("✅ 直接数据库导入完成：成功 {} 个联系人", imported_count);
+            Ok(())
+        } else {
+            Err(anyhow::anyhow!("直接数据库导入失败：未成功导入任何联系人"))
+        }
+    }
+    
+    /// 通过 content provider 插入单个联系人
+    async fn insert_contact_via_content(&self, name: &str, phone: &str) -> Result<()> {
+        // 1. 插入 raw_contact
+        let raw_contact_output = self.execute_adb_command(&[
+            "-s", &self.device_id,
+            "shell", "content", "insert",
+            "--uri", "content://com.android.contacts/raw_contacts",
+            "--bind", "account_type:n:",
+            "--bind", "account_name:n:",
+        ])?;
+        
+        let raw_contact_uri = String::from_utf8_lossy(&raw_contact_output.stdout);
+        let raw_contact_id = raw_contact_uri
+            .trim()
+            .rsplit('/')
+            .next()
+            .ok_or_else(|| anyhow::anyhow!("获取 raw_contact_id 失败"))?;
+        
+        // 2. 插入姓名
+        self.execute_adb_command(&[
+            "-s", &self.device_id,
+            "shell", "content", "insert",
+            "--uri", "content://com.android.contacts/data",
+            "--bind", &format!("raw_contact_id:i:{}", raw_contact_id),
+            "--bind", "mimetype:s:vnd.android.cursor.item/name",
+            "--bind", &format!("data1:s:{}", name),
+        ])?;
+        
+        // 3. 插入电话
+        self.execute_adb_command(&[
+            "-s", &self.device_id,
+            "shell", "content", "insert",
+            "--uri", "content://com.android.contacts/data",
+            "--bind", &format!("raw_contact_id:i:{}", raw_contact_id),
+            "--bind", "mimetype:s:vnd.android.cursor.item/phone_v2",
+            "--bind", &format!("data1:s:{}", phone),
+            "--bind", "data2:i:2", // TYPE_MOBILE
+        ])?;
+        
         Ok(())
     }
 

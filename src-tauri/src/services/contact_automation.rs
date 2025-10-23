@@ -8,7 +8,17 @@ use crate::services::multi_brand_vcf_importer::MultiBrandVcfImporter;
 use crate::services::multi_brand_vcf_types::MultiBrandImportResult;
 use crate::services::huawei_enhanced_importer::{HuaweiEmuiEnhancedStrategy, ImportExecutionResult};
 use crate::services::vcf_importer::{Contact, VcfImporter};
+use serde::{Deserialize, Serialize};
 use tracing::{error, info, warn};
+
+/// 前端兼容结构：VcfOpenResult
+#[derive(Debug, Serialize, Deserialize)]
+pub struct VcfOpenResult {
+    pub success: bool,
+    pub message: String,
+    pub details: Option<String>,
+    pub steps_completed: Vec<String>,
+}
 
 /// 从联系人列表生成 VCF 文件
 #[tauri::command]
@@ -139,10 +149,70 @@ pub async fn import_vcf_contacts_huawei_enhanced(
             }
             Err(e) => {
                 error!("❌ 华为导入方法执行异常: {} | 异常: {}", method.name, e);
-                continue;
             }
         }
     }
 
-    Err("所有华为增强导入方法都失败了".to_string())
+    Err("所有华为导入方法都失败了".to_string())
+}
+
+/// 🎯 前端兼容命令：import_and_open_vcf_ldplayer
+/// 内部调用新的多品牌导入器，返回前端期望的 VcfOpenResult 格式
+#[tauri::command]
+pub async fn import_and_open_vcf_ldplayer(
+    device_id: String,
+    contacts_file_path: String,
+) -> Result<VcfOpenResult, String> {
+    info!(
+        "🔄 [兼容模式] import_and_open_vcf_ldplayer 调用，重定向到多品牌导入器"
+    );
+    info!("   设备: {}, 文件: {}", device_id, contacts_file_path);
+
+    // 调用新的多品牌导入器
+    let mut importer = MultiBrandVcfImporter::new(device_id);
+
+    match importer.import_vcf_contacts_multi_brand(&contacts_file_path).await {
+        Ok(result) => {
+            // 将 MultiBrandImportResult 转换为 VcfOpenResult
+            let steps = vec![
+                if result.used_strategy.is_some() {
+                    format!("使用策略: {}", result.used_strategy.unwrap())
+                } else {
+                    "策略选择".to_string()
+                },
+                if result.used_method.is_some() {
+                    format!("使用方法: {}", result.used_method.unwrap())
+                } else {
+                    "方法选择".to_string()
+                },
+                if result.success {
+                    format!("成功导入 {} 个联系人", result.imported_contacts)
+                } else {
+                    "导入失败".to_string()
+                },
+            ];
+
+            Ok(VcfOpenResult {
+                success: result.success,
+                message: result.message.clone(),
+                details: Some(format!(
+                    "总联系人: {}, 导入成功: {}, 失败: {}, 耗时: {}秒",
+                    result.total_contacts,
+                    result.imported_contacts,
+                    result.failed_contacts,
+                    result.duration_seconds
+                )),
+                steps_completed: steps,
+            })
+        }
+        Err(e) => {
+            error!("❌ 多品牌导入器执行失败: {}", e);
+            Ok(VcfOpenResult {
+                success: false,
+                message: format!("导入失败: {}", e),
+                details: None,
+                steps_completed: vec!["导入失败".to_string()],
+            })
+        }
+    }
 }

@@ -239,6 +239,7 @@ fn main() {
             generate_vcf_file,
             import_vcf_contacts_multi_brand,    // 多品牌批量尝试导入
             import_vcf_contacts_huawei_enhanced, // 华为增强导入（基于Python成功经验）
+            import_and_open_vcf_ldplayer,        // 🎯 前端兼容命令（内部调用多品牌导入器）
             debug_vcf_import_with_crash_detection, // 详细崩溃调试命令
             // 通用文件操作
             write_file,
