@@ -253,10 +253,14 @@ export const usePageFinderModal = (props: UsePageFinderModalProps): UsePageFinde
       }
       
       const parsedElements = await UniversalUIAPI.extractPageElements(xmlContent);
+      console.log('🔍 [handleCaptureCurrentPage] 解析完成，元素数量:', parsedElements.length);
+      console.log('🔍 [handleCaptureCurrentPage] 前3个元素:', parsedElements.slice(0, 3));
       setUIElements(parsedElements);
       
       // 转换为可视化元素并设置给 VisualElementView
       const visualElements = parsedElements.map(transformUIElement);
+      console.log('🔍 [handleCaptureCurrentPage] 转换后可视化元素数量:', visualElements.length);
+      console.log('🔍 [handleCaptureCurrentPage] 前3个可视化元素:', visualElements.slice(0, 3).map(e => ({ id: e.id, text: e.text })));
       setElements(visualElements);
       
       // 创建快照
@@ -352,10 +356,14 @@ export const usePageFinderModal = (props: UsePageFinderModalProps): UsePageFinde
       }
       
       // 直接使用已解析的元素，无需重新解析
+      console.log('🔍 [handleLoadFromCache] 加载元素数量:', pageContent.elements.length);
+      console.log('🔍 [handleLoadFromCache] 前3个元素:', pageContent.elements.slice(0, 3));
       setUIElements(pageContent.elements);
       
       // 转换为可视化元素并设置给 VisualElementView
       const visualElements = pageContent.elements.map(transformUIElement);
+      console.log('🔍 [handleLoadFromCache] 转换后可视化元素数量:', visualElements.length);
+      console.log('🔍 [handleLoadFromCache] 前3个可视化元素:', visualElements.slice(0, 3).map(e => ({ id: e.id, text: e.text })));
       setElements(visualElements);
       
       // 创建快照

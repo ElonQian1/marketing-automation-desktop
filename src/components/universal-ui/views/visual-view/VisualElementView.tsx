@@ -484,14 +484,24 @@ export const VisualElementView: React.FC<VisualElementViewProps> = ({
   useEffect(() => {
     console.log('📊 [VisualElementView] 数据更新:');
     console.log('  - xmlContent 长度:', xmlContent?.length || 0);
+    console.log('  - xmlContent 前100字符:', xmlContent?.substring(0, 100));
     console.log('  - elements (props):', elements.length);
+    console.log('  - elements 示例:', elements.slice(0, 2).map(e => ({ id: e.id, text: e.text })));
     console.log('  - parsedElements (Hook):', parsedElements.length);
-    console.log('  - 将使用:', parsedElements.length > 0 ? 'parsedElements' : 'elements');
+    console.log('  - parsedElements 示例:', parsedElements.slice(0, 2).map(e => ({ id: e.id, text: e.text })));
+    console.log('  - 将使用:', elements.length > 0 ? 'elements (props)' : 'parsedElements (Hook)');
   }, [xmlContent, elements, parsedElements]);
 
   // 🔥 关键修复：优先使用 props 传入的 elements（已经在 usePageFinderModal 中解析过）
   // 只有当 props elements 为空且有 xmlContent 时，才使用 Hook 内部解析的 parsedElements
   const finalElements = elements.length > 0 ? elements : parsedElements;
+  
+  // 🐛 额外调试：输出最终使用的元素
+  useEffect(() => {
+    console.log('✅ [VisualElementView] 最终使用元素:');
+    console.log('  - finalElements 数量:', finalElements.length);
+    console.log('  - finalElements 前3个:', finalElements.slice(0, 3).map(e => ({ id: e.id, text: e.text, desc: e.description })));
+  }, [finalElements]);
 
   // 🔥 修复隐藏逻辑：不要完全过滤掉隐藏元素，而是显示它们但用视觉效果区分
   const filteredElements = useFilteredVisualElements({
