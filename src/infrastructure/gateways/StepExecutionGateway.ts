@@ -217,15 +217,15 @@ export class StepExecutionGateway {
       console.log('[StepExecGateway] V2后端结果:', result);
       
       // 转换为统一响应格式
-      const success = Boolean(result.success);
+      const success = Boolean(result.ok);
       return {
         success,
         message: String(result.message || 'V2执行完成'),
         engine: 'v2',
-        matched: this.parseV2MatchResult(result.match_result),
+        matched: this.parseV2MatchResult(result.matched),
         executedAction: request.mode === 'execute-step' ? request.actionParams.type : undefined,
-        verifyPassed: Boolean(result.verification_passed),
-        logs: Array.isArray(result.logs) ? result.logs.map(String) : [`V2执行: ${success ? '成功' : '失败'}`],
+        verifyPassed: Boolean(result.verify_passed),
+        logs: Array.isArray(result.raw_logs) ? result.raw_logs.map(String) : [`V2执行: ${success ? '成功' : '失败'}`],
         errorCode: success ? undefined : 'V2_EXECUTION_FAILED',
       };
     } catch (error) {

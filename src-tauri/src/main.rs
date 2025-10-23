@@ -326,7 +326,6 @@ fn main() {
             get_xml_file_absolute_path, // 获取XML文件绝对路径
             delete_xml_cache_artifacts, // 删除XML及关联截图
             parse_cached_xml_to_elements, // 解析缓存XML为UI元素
-                                        ,
                                         // 设备镜像（scrcpy）
             start_device_mirror,
             stop_device_mirror,
