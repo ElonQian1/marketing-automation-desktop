@@ -130,7 +130,8 @@ export function useParsedVisualElements(
 
   // 🐛 修复：强制重新解析 - 基于 XML 标识符而非字符串相等性
   useEffect(() => {
-    if (!xmlContent) {
+    // 🔥 修复：处理空值、空字符串、undefined 等情况
+    if (!xmlContent || xmlContent.trim() === '') {
       console.log('⚠️ [useParsedVisualElements] xmlContent 为空，清空数据');
       setParsedElements([]);
       setCategories([]);
@@ -141,15 +142,19 @@ export function useParsedVisualElements(
     // 🔥 关键修复：生成当前 XML 的唯一标识符
     const currentXmlId = generateXmlIdentifier(xmlContent);
     
+    console.log('� [useParsedVisualElements] XML 标识符检查:');
+    console.log('  - 当前长度:', xmlContent.length);
+    console.log('  - 当前 ID:', currentXmlId.substring(0, 80));
+    console.log('  - 上次 ID:', lastXmlIdRef.current.substring(0, 80));
+    
     // 检查是否与上次解析的 XML 不同
     if (currentXmlId !== lastXmlIdRef.current) {
-      console.log('🔄 [useParsedVisualElements] 检测到新的 XML 数据');
-      console.log('  上次 ID:', lastXmlIdRef.current.substring(0, 50) + '...');
-      console.log('  本次 ID:', currentXmlId.substring(0, 50) + '...');
+      console.log('🔄 [useParsedVisualElements] 检测到新的 XML 数据，开始解析');
       lastXmlIdRef.current = currentXmlId;
       parseXML(xmlContent);
     } else {
       console.log('⏭️ [useParsedVisualElements] XML 标识符相同，跳过重复解析');
+      console.log('  ⚠️ 注意：这可能导致显示旧数据！');
     }
   }, [xmlContent, parseXML]);
 
