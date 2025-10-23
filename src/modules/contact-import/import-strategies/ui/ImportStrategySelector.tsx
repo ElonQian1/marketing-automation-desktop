@@ -29,13 +29,18 @@ export const ImportStrategySelector: React.FC<ImportStrategySelectorProps> = ({
 }) => {
   const [expandedCategories, setExpandedCategories] = useState<string[]>(['recommended']);
 
-  const { recommendedStrategies, allStrategies } = useMemo(() => {
+  const { recommendedStrategies, allStrategies, otherStrategies } = useMemo(() => {
     const recommended = deviceInfo ? getRecommendedStrategies(deviceInfo) : [];
     const all = IMPORT_STRATEGIES;
     
+    // 从所有策略中排除已推荐的策略，避免重复
+    const recommendedIds = new Set(recommended.map(s => s.id));
+    const others = all.filter(s => !recommendedIds.has(s.id));
+    
     return {
       recommendedStrategies: recommended,
-      allStrategies: all
+      allStrategies: all,
+      otherStrategies: others
     };
   }, [deviceInfo]);
 
@@ -174,18 +179,18 @@ export const ImportStrategySelector: React.FC<ImportStrategySelectorProps> = ({
               label: (
                 <Space>
                   <InfoCircleOutlined />
-                  所有可用策略 ({allStrategies.length})
+                  其他可用策略 ({otherStrategies.length})
                 </Space>
               ),
               children: (
                 <>
                   <Alert
-                    message="包含所有预设策略，包括实验性和已知失败的方式"
+                    message="包含其他预设策略，包括实验性和已知失败的方式"
                     type="warning"
                     showIcon
                     style={{ marginBottom: 16 }}
                   />
-                  {allStrategies.map(strategy => 
+                  {otherStrategies.map(strategy => 
                     renderStrategyCard(strategy)
                   )}
                 </>

@@ -325,24 +325,13 @@ fn main() {
             // ensure_app_running,              // 确保应用运行（独立模块）
             // detect_app_state                 // 检测应用状态（独立模块）
             // XML缓存管理功能
-<<<<<<< HEAD
-            list_xml_cache_files,       // 列出所有XML缓存文件
-            read_xml_cache_file,        // 读取XML缓存文件内容
-            get_xml_file_size,          // 获取XML文件大小
-            get_xml_file_absolute_path, // 获取XML文件绝对路径
-            delete_xml_cache_artifacts, // 删除XML及关联截图
-            parse_cached_xml_to_elements, // 解析缓存XML为UI元素
-                                        // 设备镜像（scrcpy）
-=======
             list_xml_cache_files,        // 列出所有XML缓存文件
             read_xml_cache_file,         // 读取XML缓存文件内容
             get_xml_file_size,           // 获取XML文件大小
             get_xml_file_absolute_path,  // 获取XML文件绝对路径
             delete_xml_cache_artifacts,  // 删除XML及关联截图
-            parse_cached_xml_to_elements // 解析缓存XML为UI元素
-            ,
+            parse_cached_xml_to_elements, // 解析缓存XML为UI元素
             // 设备镜像（scrcpy）
->>>>>>> b98940a141c29555eb22dafa6cde6e528d923ffc
             start_device_mirror,
             stop_device_mirror,
             stop_device_mirror_session,

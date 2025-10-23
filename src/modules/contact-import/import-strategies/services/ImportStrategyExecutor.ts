@@ -60,8 +60,8 @@ export class ImportStrategyExecutor {
           message: string;
           duration_seconds: number;
         }>('import_vcf_contacts_multi_brand', {
-          deviceId,
-          vcfFilePath
+          device_id: deviceId,
+          contacts_file_path: vcfFilePath
         });
 
         if (multiBrandResult.success) {

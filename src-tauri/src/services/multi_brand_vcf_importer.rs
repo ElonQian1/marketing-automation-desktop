@@ -39,21 +39,21 @@ impl MultiBrandVcfImporter {
 
     /// 自动检测ADB路径
     fn detect_adb_path() -> String {
-        // 检查常见的ADB路径
+        // 检查常见的ADB路径（优先使用项目内的 platform-tools）
         let common_paths = vec![
-            "D:\\leidian\\LDPlayer9\\adb.exe",
-            "D:\\rust\\active-projects\\小红书\\employeeGUI\\platform-tools\\adb.exe",
-            "adb", // 系统PATH中的adb
+            "platform-tools/adb.exe",           // 项目根目录的 platform-tools
+            "D:\\leidian\\LDPlayer9\\adb.exe",  // 雷电模拟器
+            "adb",                               // 系统PATH中的adb
         ];
         
         for path in common_paths {
             if std::path::Path::new(path).exists() {
-                info!("检测到ADB路径: {}", path);
+                info!("✅ 检测到ADB路径: {}", path);
                 return path.to_string();
             }
         }
         
-        warn!("未检测到ADB路径，使用默认路径");
+        warn!("⚠️ 未检测到ADB路径，使用默认路径 'adb'");
         "adb".to_string()
     }
 
