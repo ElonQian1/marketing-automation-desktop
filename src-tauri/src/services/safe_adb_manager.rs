@@ -185,7 +185,13 @@ impl SafeAdbManager {
 
         if output.status.success() {
             let result = String::from_utf8_lossy(&output.stdout).to_string();
-            info!("✅ ADB命令成功: {}", result.trim());
+            // 🎯 优化日志：如果输出过长（如UI dump），只显示摘要
+            let log_msg = if result.len() > 500 {
+                format!("({} 字节输出)", result.len())
+            } else {
+                result.trim().to_string()
+            };
+            info!("✅ ADB命令成功: {}", log_msg);
             Ok(result)
         } else {
             let error = String::from_utf8_lossy(&output.stderr).to_string();
@@ -219,7 +225,13 @@ impl SafeAdbManager {
 
         if output.status.success() {
             let result = String::from_utf8_lossy(&output.stdout).to_string();
-            info!("✅ 异步ADB命令成功: {}", result.trim());
+            // 🎯 优化日志：如果输出过长（如UI dump），只显示摘要
+            let log_msg = if result.len() > 500 {
+                format!("({} 字节输出)", result.len())
+            } else {
+                result.trim().to_string()
+            };
+            info!("✅ 异步ADB命令成功: {}", log_msg);
             Ok(result)
         } else {
             let error = String::from_utf8_lossy(&output.stderr).to_string();

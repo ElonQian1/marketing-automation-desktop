@@ -425,8 +425,10 @@ impl MultiBrandVcfImporter {
         ]);
         push_targets.push("/sdcard/Android/data/com.android.contacts/files/contacts_import.vcf".to_string());
         
-        // 策略3: ADB shell 专属目录（100% 可写，万能兜底）
-        push_targets.push("/data/local/tmp/contacts_import.vcf".to_string());
+        // 策略3: 应用缓存目录（可能存在，Android 11+ 兼容）
+        if let Some(package) = &detected_package {
+            push_targets.push(format!("/sdcard/Android/data/{}/cache/contacts_import.vcf", package));
+        }
         
         // 策略4: sdcard 根目录（Android 10- 兼容）
         push_targets.push("/sdcard/contacts_import.vcf".to_string());
@@ -448,10 +450,10 @@ impl MultiBrandVcfImporter {
                 pushed_path = Some(tgt.clone());
                 info!("✅ VCF 文件成功推送到: {}", tgt);
                 info!("   策略: {}", match idx {
-                    0 => "包专属目录（最佳）",
-                    1 => "通用联系人目录",
-                    2 => "ADB shell 专属目录（万能兜底）",
-                    3 => "sdcard 根目录",
+                    0 => "包专属目录（最佳，Android 11+ 推荐）",
+                    1 => "通用联系人目录（兜底）",
+                    2 => "应用缓存目录",
+                    3 => "sdcard 根目录（Android 10- 兼容）",
                     4 | 5 => "Download 目录（旧版兼容）",
                     _ => "未知策略"
                 });
@@ -478,9 +480,14 @@ impl MultiBrandVcfImporter {
         let stdout = String::from_utf8_lossy(&output.stdout);
         let stderr = String::from_utf8_lossy(&output.stderr);
         
-        if stdout.contains("Error") || stderr.contains("Error") {
-            warn!("⚠️ Intent 启动失败，尝试直接写入数据库...");
-            // 🚨 兜底点4: Intent 被拦截时，直接通过 content provider 写入
+        if stdout.contains("Error") || stderr.contains("Error") || 
+           stdout.contains("Exception") || stderr.contains("FATAL") {
+            warn!("⚠️ Intent 启动失败");
+            warn!("   stdout: {}", stdout.trim());
+            warn!("   stderr: {}", stderr.trim());
+            warn!("   尝试直接数据库导入（注意：Android 11+ 可能因权限失败）");
+            // 注意：direct_database_import 在 Android 11+ 也需要 WRITE_CONTACTS 权限
+            // 这是最后的兜底尝试，可能会失败
             return self.direct_database_import(&device_vcf, vcf_file_path).await;
         } else {
             info!("✅ Intent 已发送，等待系统响应...");
@@ -694,6 +701,10 @@ impl MultiBrandVcfImporter {
     }
     
     /// 通过 content provider 插入单个联系人
+    /// 
+    /// ⚠️ 警告：此方法在 Android 11+ 需要 WRITE_CONTACTS 权限
+    /// ADB shell (uid=2000) 在分区存储模式下无此权限，导入会失败
+    /// 保留此代码仅作为理论兜底，实际可能无法工作
     async fn insert_contact_via_content(&self, name: &str, phone: &str) -> Result<()> {
         // 1. 插入 raw_contact
         let raw_contact_output = self.execute_adb_command(&[
