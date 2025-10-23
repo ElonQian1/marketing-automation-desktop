@@ -43,7 +43,7 @@ export class ImportStrategyExecutor {
       console.log('🚀 尝试使用多品牌智能导入器（优先策略）...');
       
       try {
-        const multiBrandResult = await invoke<{
+        const multiBrandResult = await invokeCompat<{
           success: boolean;
           used_strategy: string | null;
           used_method: string | null;
@@ -77,7 +77,7 @@ export class ImportStrategyExecutor {
                 : selection.verificationPhones.split(',').map(p => p.trim()).filter(p => p.length > 0);
               
               if (phones.length > 0) {
-                const verifyResult = await invoke<{
+                const verifyResult = await invokeCompat<{
                   success: boolean;
                   totalExpected: number;
                   sampledCount: number;
@@ -87,8 +87,8 @@ export class ImportStrategyExecutor {
                   method: string;
                   verifiedPhones: string[];
                 }>('verify_contacts_fast', {
-                  deviceId,
-                  phoneNumbers: phones
+                  device_id: deviceId,
+                  phone_numbers: phones
                 });
                 
                 // 转换为符合 ImportResult.verificationDetails 的格式
