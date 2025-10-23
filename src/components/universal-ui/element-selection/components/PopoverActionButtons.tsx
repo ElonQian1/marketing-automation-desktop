@@ -279,6 +279,11 @@ export const PopoverActionButtons: React.FC<PopoverActionButtonsProps> = (props)
               发现元素
             </Button>
           )}
+          {onHide && (
+            <Button size="small" icon={<EyeInvisibleOutlined />} onClick={onHide} style={btnStyle} disabled={disabled || submitting}>
+              隐藏
+            </Button>
+          )}
           <Button size="small" icon={<CloseOutlined />} onClick={onCancel} style={btnStyle} ghost disabled={disabled || submitting}>
             取消
           </Button>
@@ -314,13 +319,20 @@ export const PopoverActionButtons: React.FC<PopoverActionButtonsProps> = (props)
             直接确定
           </Button>
         </Col>
-        <Col span={12}>
-          {onDiscovery && (
+        {onDiscovery && (
+          <Col span={12}>
             <Button block size="small" icon={<SearchOutlined />} onClick={onDiscovery} style={btnStyle} disabled={disabled || submitting}>
               发现元素
             </Button>
-          )}
-        </Col>
+          </Col>
+        )}
+        {onHide && (
+          <Col span={12}>
+            <Button block size="small" icon={<EyeInvisibleOutlined />} onClick={onHide} style={btnStyle} disabled={disabled || submitting}>
+              隐藏
+            </Button>
+          </Col>
+        )}
         <Col span={12}>
           <Button block size="small" icon={<CloseOutlined />} onClick={onCancel} style={btnStyle} ghost disabled={disabled || submitting}>
             取消
@@ -384,6 +396,11 @@ export const PopoverActionButtons: React.FC<PopoverActionButtonsProps> = (props)
                 发现元素
               </Button>
             )}
+            {onHide && (
+              <Button size="small" icon={<EyeInvisibleOutlined />} onClick={onHide} style={btnStyle} disabled={disabled || submitting}>
+                隐藏
+              </Button>
+            )}
             <Button size="small" icon={<CloseOutlined />} onClick={onCancel} style={btnStyle} ghost disabled={disabled || submitting}>
               取消
             </Button>
@@ -421,13 +438,20 @@ export const PopoverActionButtons: React.FC<PopoverActionButtonsProps> = (props)
               直接确定
             </Button>
           </Col>
-          <Col span={12}>
-            {onDiscovery && (
+          {onDiscovery && (
+            <Col span={12}>
               <Button block size="small" icon={<SearchOutlined />} onClick={onDiscovery} style={btnStyle} disabled={disabled || submitting}>
                 发现元素
               </Button>
-            )}
-          </Col>
+            </Col>
+          )}
+          {onHide && (
+            <Col span={12}>
+              <Button block size="small" icon={<EyeInvisibleOutlined />} onClick={onHide} style={btnStyle} disabled={disabled || submitting}>
+                隐藏
+              </Button>
+            </Col>
+          )}
           <Col span={12}>
             <Button block size="small" icon={<CloseOutlined />} onClick={onCancel} style={btnStyle} ghost disabled={disabled || submitting}>
               取消
@@ -491,6 +515,16 @@ export const PopoverActionButtons: React.FC<PopoverActionButtonsProps> = (props)
             >
               直接确定
             </Button>
+            {onDiscovery && (
+              <Button size="small" icon={<SearchOutlined />} onClick={onDiscovery} style={btnStyle} disabled={disabled || submitting}>
+                发现元素
+              </Button>
+            )}
+            {onHide && (
+              <Button size="small" icon={<EyeInvisibleOutlined />} onClick={onHide} style={btnStyle} disabled={disabled || submitting}>
+                隐藏
+              </Button>
+            )}
             <Button size="small" icon={<CloseOutlined />} onClick={onCancel} style={btnStyle} ghost disabled={disabled || submitting}>
               取消
             </Button>
@@ -541,6 +575,20 @@ export const PopoverActionButtons: React.FC<PopoverActionButtonsProps> = (props)
               直接确定
             </Button>
           </Col>
+          {onDiscovery && (
+            <Col span={12}>
+              <Button block size="small" icon={<SearchOutlined />} onClick={onDiscovery} style={btnStyle} disabled={disabled || submitting}>
+                发现元素
+              </Button>
+            </Col>
+          )}
+          {onHide && (
+            <Col span={12}>
+              <Button block size="small" icon={<EyeInvisibleOutlined />} onClick={onHide} style={btnStyle} disabled={disabled || submitting}>
+                隐藏
+              </Button>
+            </Col>
+          )}
           <Col span={12}>
             <Button block size="small" icon={<CloseOutlined />} onClick={onCancel} style={btnStyle} ghost disabled={disabled || submitting}>
               取消
@@ -581,6 +629,11 @@ export const PopoverActionButtons: React.FC<PopoverActionButtonsProps> = (props)
               发现元素
             </Button>
           )}
+          {onHide && (
+            <Button size="small" icon={<EyeInvisibleOutlined />} onClick={onHide} style={btnStyle} disabled={disabled || submitting}>
+              隐藏
+            </Button>
+          )}
           <Button size="small" icon={<CloseOutlined />} onClick={onCancel} style={btnStyle} ghost disabled={disabled || submitting}>
             取消
           </Button>
@@ -616,13 +669,20 @@ export const PopoverActionButtons: React.FC<PopoverActionButtonsProps> = (props)
             直接确定
           </Button>
         </Col>
-        <Col span={12}>
-          {onDiscovery && (
+        {onDiscovery && (
+          <Col span={12}>
             <Button block size="small" icon={<SearchOutlined />} onClick={onDiscovery} style={btnStyle} disabled={disabled || submitting}>
               发现元素
             </Button>
-          )}
-        </Col>
+          </Col>
+        )}
+        {onHide && (
+          <Col span={12}>
+            <Button block size="small" icon={<EyeInvisibleOutlined />} onClick={onHide} style={btnStyle} disabled={disabled || submitting}>
+              隐藏
+            </Button>
+          </Col>
+        )}
         <Col span={12}>
           <Button block size="small" icon={<CloseOutlined />} onClick={onCancel} style={btnStyle} ghost disabled={disabled || submitting}>
             取消
