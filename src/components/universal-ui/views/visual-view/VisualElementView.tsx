@@ -111,6 +111,21 @@ export const VisualElementView: React.FC<VisualElementViewProps> = ({
     img.onerror = () => setScreenshotSize({w:0,h:0});
     img.src = screenshotUrl;
   }, [screenshotUrl]);
+
+  // 🐛 修复：当 XML 或截图变化时，重置可视化调整状态，避免旧数据残留
+  useEffect(() => {
+    console.log('🔄 [VisualElementView] 检测到新的 XML/截图，重置可视化状态');
+    // 重置缩放和偏移
+    setPreviewZoom(1.0);
+    setOverlayScale(1.0);
+    setOverlayScaleX(undefined);
+    setOverlayScaleY(undefined);
+    setOffsetX(0);
+    setOffsetY(0);
+    // 重置对齐方式
+    setVerticalAlign('center');
+    // 保留用户的显示偏好设置（如 showScreenshot, showGrid 等）
+  }, [xmlContent, screenshotUrl]);
   
   // 🆕 使用统一的偏好管理 Hook（方案 B+C）
   const preferences = useVisualViewPreferences(
