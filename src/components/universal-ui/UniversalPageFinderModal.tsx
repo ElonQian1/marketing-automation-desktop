@@ -14,7 +14,7 @@ import { CheckOutlined } from "@ant-design/icons";
 // 导入模块化组件
 import { ElementList, usePageFinderModal } from "./page-finder-modal";
 import LeftControlPanel from "./page-finder-modal/panels/LeftControlPanel";
-import { FilterSettingsPanel } from "./page-finder-modal";
+import { FilterSettingsPanel, CompactViewSwitcher } from "./page-finder-modal";
 import type { ElementWithHierarchy } from "./views/tree-view/types";
 import type {
   ViewMode,
@@ -407,7 +407,19 @@ const UniversalPageFinderModal: React.FC<UniversalPageFinderModalProps> = ({
 
   return (
     <Modal
-      title="Universal UI 智能页面查找器"
+      title={
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+          <span>Universal UI 智能页面查找器</span>
+          {/* 视图切换器放在标题栏右侧 */}
+          <CompactViewSwitcher
+            viewMode={viewMode}
+            onViewModeChange={setViewMode}
+            elementCount={elements.length || uiElements.length}
+            loading={loading}
+            style={{ position: 'static', boxShadow: 'none', padding: 0 }}
+          />
+        </div>
+      }
       open={visible}
       onCancel={onClose}
       width="90%"
@@ -443,9 +455,6 @@ const UniversalPageFinderModal: React.FC<UniversalPageFinderModalProps> = ({
           <MainViewContainer 
             loading={loading} 
             content={renderViewContent()} 
-            viewMode={viewMode}
-            onViewModeChange={setViewMode}
-            elementCount={elements.length || uiElements.length}
           />
         </Col>
       </Row>
