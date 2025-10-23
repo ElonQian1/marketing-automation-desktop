@@ -67,7 +67,7 @@ export const VisualElementView: React.FC<VisualElementViewProps> = ({
   const STATS_FIXED_WIDTH = 360; // px，可按需调整
   const [searchText, setSearchText] = useState("");
   const [selectedCategory, setSelectedCategory] = useState<string>("all");
-  const [showOnlyClickable, setShowOnlyClickable] = useState(false); // 🔧 强制修复：禁用可点击过滤，显示所有元素
+  const [showOnlyClickable, setShowOnlyClickable] = useState(true); // ✅ 默认勾选：只显示可点击元素
   const [hideCompletely, setHideCompletely] = useState(false); // 🎯 默认不勾选：使用半透明显示模式
   // 🆕 显示截图背景（默认开启）
   const [showScreenshot, setShowScreenshot] = useState(true);

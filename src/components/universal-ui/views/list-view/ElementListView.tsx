@@ -99,7 +99,7 @@ export const ElementListView: React.FC<{
   // 本地状态管理
   const [searchText, setSearchText] = useState('');
   const [selectedCategory, setSelectedCategory] = useState('all');
-  const [showOnlyClickable, setShowOnlyClickable] = useState(false);
+  const [showOnlyClickable, setShowOnlyClickable] = useState(true); // ✅ 默认勾选：只显示可点击元素
   const [currentPage, setCurrentPage] = useState(1);
   const [selectedTab, setSelectedTab] = useState('all');
   const [sortBy, setSortBy] = useState('name');

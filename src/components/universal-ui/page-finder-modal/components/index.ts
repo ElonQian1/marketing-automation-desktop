@@ -12,6 +12,9 @@ export type { DeviceSelectorProps } from "./DeviceSelector";
 export { ViewModeSelector } from "./ViewModeSelector";
 export type { ViewModeSelectorProps } from "./ViewModeSelector";
 
+export { CompactViewSwitcher } from "./CompactViewSwitcher";
+export type { CompactViewSwitcherProps } from "./CompactViewSwitcher";
+
 export { ElementList } from "./ElementList";
 export type { ElementListProps } from "./ElementList";
 

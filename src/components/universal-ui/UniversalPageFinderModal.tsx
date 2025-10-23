@@ -440,7 +440,13 @@ const UniversalPageFinderModal: React.FC<UniversalPageFinderModalProps> = ({
 
         {/* 右侧主要内容区域 */}
         <Col xs={24} md={16} lg={17} xl={18}>
-          <MainViewContainer loading={loading} content={renderViewContent()} />
+          <MainViewContainer 
+            loading={loading} 
+            content={renderViewContent()} 
+            viewMode={viewMode}
+            onViewModeChange={setViewMode}
+            elementCount={elements.length || uiElements.length}
+          />
         </Col>
       </Row>
 

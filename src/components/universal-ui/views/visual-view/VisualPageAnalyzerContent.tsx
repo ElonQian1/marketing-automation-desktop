@@ -43,7 +43,7 @@ export const VisualPageAnalyzerContent: React.FC<VisualPageAnalyzerContentProps>
   const [selectedCategory, setSelectedCategory] = useState<string>("all");
 
   // 🆕 使用新模块化的XML解析功能
-  const [showOnlyClickable, setShowOnlyClickable] = useState(false);
+  const [showOnlyClickable, setShowOnlyClickable] = useState(true); // ✅ 默认勾选：只显示可点击元素
   const [elements, setElements] = useState<VisualUIElement[]>([]);
   const [categories, setCategories] = useState<VisualElementCategory[]>([]);
 

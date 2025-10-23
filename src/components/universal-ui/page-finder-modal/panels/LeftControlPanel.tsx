@@ -4,7 +4,7 @@
 
 import React from 'react';
 import { Button, Card, Col, Divider, Row, Space, Spin, Typography } from 'antd';
-import { DeviceSelector, ViewModeSelector, AnalysisPanel } from "..";
+import { DeviceSelector, AnalysisPanel } from "..";
 import type { ViewMode } from "../types";
 import { CacheHistoryPanel } from "../../views/cache-view";
 
@@ -19,7 +19,7 @@ export interface LeftControlPanelProps {
   onCaptureCurrentPage: () => Promise<void> | void;
   loading: boolean;
 
-  // 视图选择
+  // 视图选择 (现在已移到右上角浮动控制器，这些 props 保留用于传递)
   viewMode: ViewMode;
   onViewModeChange: (m: ViewMode) => void;
   elementCount: number;
@@ -74,13 +74,7 @@ export const LeftControlPanel: React.FC<LeftControlPanelProps> = ({
         loading={loading}
       />
 
-      {/* 视图模式选择器 */}
-      <ViewModeSelector
-        viewMode={viewMode as any}
-        onViewModeChange={onViewModeChange}
-        elementCount={elementCount}
-        loading={loading}
-      />
+      {/* 视图模式选择器已移至右上角浮动位置 - 见 MainViewContainer */}
 
       {/* 过滤设置 */}
       <Space>
