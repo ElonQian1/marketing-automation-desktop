@@ -370,6 +370,17 @@ impl ContactStorageFacade {
         TxtImportFacade::update_txt_import_stats(&self.app_handle, record_id, processed_lines, valid_numbers, error_count, status)
     }
 
+    /// 更新TXT导入记录统计（imported_numbers, duplicate_numbers, status）
+    pub fn update_txt_import_record_stats(
+        &self,
+        record_id: i64,
+        imported_numbers: i64,
+        duplicate_numbers: i64,
+        status: &str,
+    ) -> Result<(), String> {
+        TxtImportFacade::update_txt_import_record_stats(&self.app_handle, record_id, imported_numbers, duplicate_numbers, status)
+    }
+
     /// 获取TXT导入统计信息
     pub fn get_txt_import_stats(&self) -> Result<serde_json::Value, String> {
         TxtImportFacade::get_txt_import_stats(&self.app_handle)

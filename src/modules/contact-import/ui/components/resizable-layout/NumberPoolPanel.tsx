@@ -56,8 +56,12 @@ export const NumberPoolPanel: React.FC<NumberPoolPanelProps> = ({
     if (items.length > 0) {
       console.log('📊 号码池数据示例：', items[0]);
       console.log('  - phone:', items[0]?.phone);
+      console.log('  - phone类型:', typeof items[0]?.phone);
+      console.log('  - phone长度:', items[0]?.phone?.length);
+      console.log('  - phone是否为空:', items[0]?.phone === '');
       console.log('  - name:', items[0]?.name);
       console.log('  - source_file:', items[0]?.source_file);
+      console.log('📊 完整JSON:', JSON.stringify(items[0], null, 2));
     }
   }, [items]);
 

@@ -84,13 +84,56 @@ export class ImportStrategyExecutor {
       // 3. 等待导入完成
       await this.waitForImportCompletion();
 
-      // 4. 验证导入结果（可选）
+      // 4. 验证导入结果（可选 - 智能采样验证）
       let verificationDetails;
       if (enableVerification && selection.verificationPhones) {
-        verificationDetails = await this.verifyImportResults(
-          selection.verificationPhones,
-          deviceId
-        );
+        console.log('🔍 开始验证导入结果（智能采样模式）');
+        
+        try {
+          // verificationPhones 可能是 string[] 或 string
+          const phones = Array.isArray(selection.verificationPhones)
+            ? selection.verificationPhones
+            : selection.verificationPhones
+                .split(',')
+                .map(p => p.trim())
+                .filter(p => p.length > 0);
+          
+          if (phones.length > 0) {
+            // 调用新的快速验证命令
+            const result = await invoke<{
+              success: boolean;
+              totalExpected: number;
+              sampledCount: number;
+              foundCount: number;
+              successRate: number;
+              estimatedImported: number;
+              method: string;
+              verifiedPhones: string[];
+            }>('verify_contacts_fast', {
+              deviceId,
+              phoneNumbers: phones
+            });
+            
+            console.log(`✅ 验证完成: ${result.foundCount}/${result.sampledCount} 样本成功`);
+            console.log(`📊 推断导入: ${result.estimatedImported}/${result.totalExpected} 个号码`);
+            console.log(`🎯 验证方法: ${result.method}`);
+            
+            verificationDetails = {
+              totalExpected: result.totalExpected,
+              sampledCount: result.sampledCount,
+              totalFound: result.foundCount,
+              successRate: result.successRate,
+              estimatedImported: result.estimatedImported,
+              method: result.method,
+              verifiedPhones: result.verifiedPhones
+            };
+          }
+        } catch (error) {
+          console.warn('⚠️ 验证失败（但不影响导入流程）:', error);
+          // 验证失败不影响整体流程，继续执行
+        }
+      } else {
+        console.log('ℹ️ 用户选择跳过验证');
       }
 
       return {

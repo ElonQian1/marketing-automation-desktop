@@ -33,6 +33,8 @@ export async function registerGeneratedBatch({
   sourceEndId,
 }: RegisterGeneratedBatchParams): Promise<RegisterGeneratedBatchResult> {
   let mappingOk = true;
+  
+  // 步骤1：创建VCF批次并关联号码
   try {
     await createVcfBatchWithNumbers({
       batchId,
@@ -41,17 +43,28 @@ export async function registerGeneratedBatch({
       sourceEndId,
       numberIds,
     });
-    bindBatchToDevice(deviceId, batchId);
+    
+    // 步骤2：绑定批次到设备（可选）
+    try {
+      bindBatchToDevice(deviceId, batchId);
+    } catch (bindError) {
+      console.warn('[vcf] registerGeneratedBatch: device binding failed (non-critical)', bindError);
+      // 绑定失败不影响主流程
+    }
   } catch (error) {
     mappingOk = false;
-    console.warn('[vcf] registerGeneratedBatch: bind batch failed', error);
+    console.error('[vcf] registerGeneratedBatch: batch creation failed', error);
+    throw error; // 批次创建失败应该抛出错误
   }
 
+  // 步骤3：创建导入会话记录（可选，命令暂时禁用）
   let sessionId: number | null = null;
   try {
     sessionId = await createImportSessionRecord(batchId, deviceId);
   } catch (error) {
-    console.warn('[vcf] registerGeneratedBatch: create session record failed', error);
+    // 导入会话命令已被禁用，这是预期的错误
+    console.info('[vcf] registerGeneratedBatch: session creation skipped (command disabled)', error);
+    // 不影响主流程，继续
   }
 
   return {

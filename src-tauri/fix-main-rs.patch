@@ -1,0 +1,20 @@
+--- a/src-tauri/src/main.rs
++++ b/src-tauri/src/main.rs
+@@ -48,7 +48,7 @@ use services::contact_automation::*;
+ use services::contact_service::*;
+ use services::contact_storage::commands::{
+     delete_txt_import_record_cmd, get_contact_number_stats_cmd, get_distinct_industries_cmd,
+-    list_txt_import_records_cmd, list_vcf_batch_records_cmd,
++    get_numbers_by_files, list_txt_import_records_cmd, list_vcf_batch_records_cmd,
+     set_contact_numbers_industry_by_id_range,
+ };
+ use services::contact_storage::*; // 导入号码存储命令（现在使用模块化版本）
+@@ -205,6 +205,8 @@ fn main() {
+             // 批量将号码回滚为"未导入到任何手机"
+             mark_contact_numbers_as_not_imported,
+             delete_contact_numbers,
++            // 根据文件路径获取联系人号码
++            get_numbers_by_files,
+             // 号码批次与导入追踪 (暂时注释，避免编译错误)
+             // create_vcf_batch_record,         // 缺失
+             // list_vcf_batch_records,          // 缺失

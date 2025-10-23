@@ -89,5 +89,5 @@ export interface ImportStrategySelection {
   /** 是否执行导入后验证 */
   enableVerification: boolean;
   /** 验证时使用的号码样本 */
-  verificationPhones?: string[];
+  verificationPhones?: string[] | string;
 }

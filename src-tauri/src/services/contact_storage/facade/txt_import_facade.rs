@@ -137,6 +137,25 @@ impl TxtImportFacade {
         })
     }
 
+    /// 更新TXT导入记录的导入统计（imported_numbers, duplicate_numbers, status）
+    pub fn update_txt_import_record_stats(
+        app_handle: &AppHandle,
+        record_id: i64,
+        imported_numbers: i64,
+        duplicate_numbers: i64,
+        status: &str,
+    ) -> Result<(), String> {
+        Self::with_db_connection(app_handle, |conn| {
+            conn.execute(
+                "UPDATE txt_import_records 
+                 SET imported_numbers = ?1, duplicate_numbers = ?2, status = ?3, imported_at = datetime('now')
+                 WHERE id = ?4",
+                rusqlite::params![imported_numbers, duplicate_numbers, status, record_id],
+            )?;
+            Ok(())
+        })
+    }
+
     /// 获取TXT导入统计信息
     pub fn get_txt_import_stats(
         app_handle: &AppHandle,

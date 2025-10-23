@@ -24,7 +24,7 @@ impl VcfBatchRepository {
         source_end_id: Option<i64>,
     ) -> SqliteResult<()> {
         // 计算批次中的号码数量
-        let total_numbers = if let (Some(start), Some(end)) = (source_start_id, source_end_id) {
+        let contact_count = if let (Some(start), Some(end)) = (source_start_id, source_end_id) {
             conn.query_row(
                 "SELECT COUNT(*) FROM contact_numbers WHERE id >= ?1 AND id <= ?2",
                 params![start, end],
@@ -34,11 +34,11 @@ impl VcfBatchRepository {
             0
         };
 
-        // 插入VCF批次记录
+        // 插入VCF批次记录（使用 contact_count 而非 total_numbers）
         conn.execute(
-            "INSERT INTO vcf_batches (batch_id, vcf_file_path, total_numbers, used_numbers)
-             VALUES (?1, ?2, ?3, 0)",
-            params![batch_id, vcf_file_path, total_numbers],
+            "INSERT INTO vcf_batches (batch_id, batch_name, vcf_file_path, contact_count, status, source_type, created_at)
+             VALUES (?1, ?2, ?3, ?4, 'pending', 'auto', datetime('now'))",
+            params![batch_id, batch_id, vcf_file_path, contact_count],
         )?;
 
         // 如果指定了来源ID范围，创建批次号码映射
@@ -113,10 +113,11 @@ impl VcfBatchRepository {
         batch_id: &str,
     ) -> SqliteResult<Option<VcfBatchDto>> {
         let result = conn.query_row(
-            "SELECT batch_id, '' as batch_name, 'contact_numbers' as source_type, 
-             'range_selection' as generation_method, '' as description, 
-             created_at, vcf_file_path, 1 as is_completed, 
-             total_numbers as source_start_id, used_numbers as source_end_id
+            "SELECT batch_id, batch_name, source_type, 
+             'range_selection' as generation_method, description, 
+             created_at, vcf_file_path, 
+             CASE WHEN status = 'completed' THEN 1 ELSE 0 END as is_completed, 
+             0 as source_start_id, contact_count as source_end_id
              FROM vcf_batches 
              WHERE batch_id = ?1",
             [batch_id],
@@ -213,20 +214,6 @@ impl VcfBatchRepository {
         })
     }
 
-    /// 更新批次的使用号码数量
-    pub fn update_batch_used_numbers(
-        conn: &Connection,
-        batch_id: &str,
-        used_count: i64,
-    ) -> SqliteResult<()> {
-        conn.execute(
-            "UPDATE vcf_batches SET used_numbers = ?1 WHERE batch_id = ?2",
-            params![used_count, batch_id],
-        )?;
-
-        Ok(())
-    }
-
     /// 删除VCF批次及其关联的号码映射
     pub fn delete_vcf_batch(
         conn: &Connection,
@@ -252,12 +239,19 @@ impl VcfBatchRepository {
         conn: &Connection,
         batch_id: &str,
     ) -> SqliteResult<(i64, i64, i64)> {
-        // 获取总号码数、已使用数、可用数
-        let (total, used): (i64, i64) = conn.query_row(
-            "SELECT total_numbers, used_numbers FROM vcf_batches WHERE batch_id = ?1",
+        // 获取总号码数（contact_count）和已使用数（从映射表统计）
+        let total: i64 = conn.query_row(
+            "SELECT contact_count FROM vcf_batches WHERE batch_id = ?1",
             [batch_id],
-            |row| Ok((row.get(0)?, row.get(1)?)),
+            |row| row.get(0),
         )?;
+
+        // 统计实际使用的号码数（从映射表）
+        let used: i64 = conn.query_row(
+            "SELECT COUNT(*) FROM vcf_batch_numbers WHERE batch_id = ?1",
+            [batch_id],
+            |row| row.get(0),
+        ).unwrap_or(0);
 
         let available = total - used;
         Ok((total, used, available))
@@ -497,7 +491,7 @@ impl VcfBatchRepository {
         batch_id: &str,
     ) -> SqliteResult<i64> {
         let count: i64 = conn.query_row(
-            "SELECT total_numbers FROM vcf_batches WHERE batch_id = ?1",
+            "SELECT contact_count FROM vcf_batches WHERE batch_id = ?1",
             params![batch_id],
             |row| row.get(0),
         ).unwrap_or(0);
