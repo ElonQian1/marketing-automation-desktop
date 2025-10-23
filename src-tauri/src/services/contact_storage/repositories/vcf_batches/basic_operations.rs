@@ -18,7 +18,7 @@ impl BasicOperations {
         source_end_id: Option<i64>,
     ) -> SqliteResult<()> {
         // 计算批次中的号码数量
-        let total_numbers = if let (Some(start), Some(end)) = (source_start_id, source_end_id) {
+        let contact_count = if let (Some(start), Some(end)) = (source_start_id, source_end_id) {
             conn.query_row(
                 "SELECT COUNT(*) FROM contact_numbers WHERE id >= ?1 AND id <= ?2",
                 params![start, end],
@@ -28,11 +28,11 @@ impl BasicOperations {
             0
         };
 
-        // 插入VCF批次记录
+        // 插入VCF批次记录（使用正确的表结构）
         conn.execute(
-            "INSERT INTO vcf_batches (batch_id, vcf_file_path, total_numbers, used_numbers)
-             VALUES (?1, ?2, ?3, 0)",
-            params![batch_id, vcf_file_path, total_numbers],
+            "INSERT INTO vcf_batches (batch_id, batch_name, vcf_file_path, contact_count, status, source_type, created_at)
+             VALUES (?1, ?2, ?3, ?4, 'pending', 'auto', datetime('now'))",
+            params![batch_id, batch_id, vcf_file_path, contact_count],
         )?;
 
         Ok(())

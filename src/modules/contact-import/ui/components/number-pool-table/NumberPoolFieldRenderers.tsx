@@ -15,6 +15,11 @@ const { Text } = Typography;
  * 电话号码渲染器
  */
 export const PhoneRenderer: React.FC<{ phone?: string | null }> = ({ phone }) => {
+  // 🔍 调试：输出phone值
+  if (!phone) {
+    console.warn('📞 PhoneRenderer: phone 值为空', { phone });
+  }
+
   if (!phone) {
     return <Text type="secondary">-</Text>;
   }

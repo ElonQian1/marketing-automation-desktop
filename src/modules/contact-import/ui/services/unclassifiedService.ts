@@ -6,7 +6,8 @@ import { invoke } from '@tauri-apps/api/core';
 import type { ContactNumberDto } from './contactNumberService';
 
 export async function fetchUnclassifiedNumbers(count: number, onlyUnconsumed = true): Promise<ContactNumberDto[]> {
-  return invoke<ContactNumberDto[]>('fetch_unclassified_contact_numbers', { count, only_unconsumed: onlyUnconsumed });
+  // Tauri 2.0 使用驼峰命名序列化参数
+  return invoke<ContactNumberDto[]>('fetch_unclassified_contact_numbers', { count, onlyUnconsumed });
 }
 
 export function pickFirstNIds(items: ContactNumberDto[], n: number): number[] {

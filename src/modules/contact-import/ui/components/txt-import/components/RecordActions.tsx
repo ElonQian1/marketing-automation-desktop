@@ -4,7 +4,7 @@
 
 ﻿import React from 'react';
 import { Button, Space, Tooltip } from 'antd';
-import { EyeOutlined, DeleteOutlined, InboxOutlined } from '@ant-design/icons';
+import { EyeOutlined, DeleteOutlined, InboxOutlined, SendOutlined } from '@ant-design/icons';
 import ConfirmPopover from '../../../../../../components/universal-ui/common-popover/ConfirmPopover';
 import { TxtImportRecordDto } from '../../../services/txtImportRecordService';
 
@@ -13,11 +13,25 @@ interface RecordActionsProps {
   onDelete: (record: TxtImportRecordDto) => void;
   onArchive: (record: TxtImportRecordDto) => void;
   onViewError?: (record: TxtImportRecordDto) => void;
+  onImportToDevice?: (record: TxtImportRecordDto) => void;
 }
 
-export const RecordActions: React.FC<RecordActionsProps> = ({ record, onDelete, onArchive, onViewError }) => {
+export const RecordActions: React.FC<RecordActionsProps> = ({ record, onDelete, onArchive, onViewError, onImportToDevice }) => {
   return (
     <Space size="small">
+      {/* 导入到设备按钮 */}
+      <Tooltip title="导入到设备">
+        <Button 
+          size="small" 
+          type="primary"
+          icon={<SendOutlined />} 
+          onClick={(e) => {
+            e.stopPropagation();
+            onImportToDevice?.(record);
+          }} 
+        />
+      </Tooltip>
+      
       {record.errorMessage && (
         <Tooltip title={record.errorMessage}>
           <Button size="small" icon={<EyeOutlined />} onClick={(e) => {

@@ -13,29 +13,19 @@ export async function createVcfBatchWithNumbers(params: {
   numberIds: number[];
 }): Promise<number> {
   const { batchId, vcfFilePath, sourceStartId, sourceEndId, numberIds } = params;
-  // 直接一次性包含两种命名风格，最大化兼容性
+  
+  // Tauri 2.0 使用驼峰命名
+  // 后端参数: batch_name, source_type, generation_method, description, number_ids
   const payload = {
-    batch_id: batchId,
-    batchId,
-    vcf_file_path: vcfFilePath,
-    vcfFilePath,
-    source_start_id: sourceStartId,
-    sourceStartId,
-    source_end_id: sourceEndId,
-    sourceEndId,
-    number_ids: numberIds,
-    numberIds,
-  } as const;
-  console.debug('[vcfSession] createVcfBatchWithNumbers payload (mixed):', {
-    batch_id: payload.batch_id,
-    batchId: payload.batchId,
-    source_start_id: payload.source_start_id,
-    sourceStartId: payload.sourceStartId,
-    source_end_id: payload.source_end_id,
-    sourceEndId: payload.sourceEndId,
-    number_ids_len: payload.number_ids.length,
-  });
-  return invoke<number>('create_vcf_batch_with_numbers_cmd', payload as any);
+    batchName: batchId,           // 使用 batchId 作为 batch_name
+    sourceType: 'auto',           // 自动生成类型
+    generationMethod: 'quick',    // 快速生成方法
+    description: `VCF file: ${vcfFilePath}`,  // 描述包含文件路径
+    numberIds,                    // 号码ID列表
+  };
+  
+  console.debug('[vcfSession] createVcfBatchWithNumbers payload:', payload);
+  return invoke<number>('create_vcf_batch_with_numbers_cmd', payload);
 }
 
 export async function listNumbersForVcfBatch(batchId: string, params: { limit?: number; offset?: number } = {}): Promise<ContactNumberList> {

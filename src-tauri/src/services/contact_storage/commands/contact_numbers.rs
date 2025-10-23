@@ -55,17 +55,30 @@ pub async fn import_contact_numbers_from_file(
     };
     
     // 记录导入结果到 txt_import_records 表（使用 UPSERT 避免重复文件冲突）
-    if let Err(e) = facade.create_txt_import_record(
+    // 先创建记录，然后更新统计信息
+    let record_result = facade.create_txt_import_record(
         &file_path,
         total_lines,
         numbers.len() as i64,
         error_message.as_deref(),
         None, // batch_id
-    ) {
+    );
+    
+    if let Ok(record) = record_result {
+        // 更新导入统计（包括重复号码数）
+        if let Err(e) = facade.update_txt_import_record_stats(
+            record.id,
+            inserted,
+            duplicates,
+            status,
+        ) {
+            tracing::warn!("⚠️  更新TXT导入统计失败: {}", e);
+        } else {
+            tracing::info!("✅ 成功记录TXT导入: {} (导入{}/重复{})", file_name, inserted, duplicates);
+        }
+    } else if let Err(e) = record_result {
         tracing::warn!("⚠️  创建/更新TXT导入记录失败: {}", e);
         eprintln!("⚠️  创建/更新TXT导入记录失败: {}", e);
-    } else {
-        tracing::info!("✅ 成功记录TXT导入: {} (导入{}/重复{})", file_name, inserted, duplicates);
     }
     
     Ok(models::ImportNumbersResult {
@@ -125,20 +138,38 @@ pub async fn import_contact_numbers_from_folder(
                             all_errors.append(&mut errors);
                             
                             // 记录导入结果
-                            let status = if errors.is_empty() { "success" } else { "partial" };
+                            let status = if errors.is_empty() { 
+                                if numbers.is_empty() {
+                                    "empty"
+                                } else if inserted == 0 && duplicates > 0 {
+                                    "all_duplicates"
+                                } else {
+                                    "success"
+                                }
+                            } else { 
+                                "partial" 
+                            };
                             let error_message = if errors.is_empty() { 
                                 None 
                             } else { 
                                 Some(errors.join("; ")) 
                             };
                             
-                            let _ = facade.create_txt_import_record(
+                            // 创建记录并更新统计
+                            if let Ok(record) = facade.create_txt_import_record(
                                 &file_path_str,
                                 total_lines,
                                 numbers.len() as i64, // valid_numbers
                                 error_message.as_deref(),
                                 None, // batch_id
-                            );
+                            ) {
+                                let _ = facade.update_txt_import_record_stats(
+                                    record.id,
+                                    inserted,
+                                    duplicates,
+                                    status,
+                                );
+                            }
                         }
                         Err(e) => {
                             let err_msg = format!("读取文件失败 {}: {}", path.to_string_lossy(), e);
@@ -434,8 +465,15 @@ pub async fn get_numbers_by_files(
     file_paths: Vec<String>,
     only_available: Option<bool>,
 ) -> Result<Vec<models::ContactNumberDto>, String> {
+    let only_available_value = only_available.unwrap_or(true);
+    println!("[Backend] get_numbers_by_files - only_available: {:?} (resolved: {})", only_available, only_available_value);
+    println!("[Backend] get_numbers_by_files - file_paths: {:?}", file_paths);
+    
     let facade = ContactStorageFacade::new(&app_handle);
-    facade.get_numbers_by_files(&file_paths, only_available.unwrap_or(true))
+    let result = facade.get_numbers_by_files(&file_paths, only_available_value)?;
+    
+    println!("[Backend] get_numbers_by_files - result count: {}", result.len());
+    Ok(result)
 }
 
 /// 检查文件是否已导入

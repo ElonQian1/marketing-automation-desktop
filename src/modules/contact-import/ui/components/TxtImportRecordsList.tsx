@@ -3,9 +3,10 @@
 // summary: UI 组件
 
 import React, { useEffect, useState } from 'react';
-import { Card, List, Tag, Space, Button, Popconfirm, Typography, App, Tooltip } from 'antd';
-import { FileTextOutlined, DeleteOutlined, ReloadOutlined, CheckCircleOutlined, CloseCircleOutlined, ExclamationCircleOutlined } from '@ant-design/icons';
+import { Card, List, Tag, Space, Button, Popconfirm, Typography, App, Tooltip, Modal } from 'antd';
+import { FileTextOutlined, DeleteOutlined, ReloadOutlined, CheckCircleOutlined, CloseCircleOutlined, ExclamationCircleOutlined, SendOutlined, ExclamationCircleFilled } from '@ant-design/icons';
 import { listTxtImportRecords, deleteTxtImportRecord, type TxtImportRecordDto } from '../services/txtImportRecordService';
+import { DeviceImportFileSelectorDialog } from './device-import-file-selector-dialog';
 
 const { Text } = Typography;
 
@@ -21,6 +22,11 @@ export const TxtImportRecordsList: React.FC<TxtImportRecordsListProps> = ({ refr
   const { message } = App.useApp();
   const [loading, setLoading] = useState(false);
   const [records, setRecords] = useState<TxtImportRecordDto[]>([]);
+  
+  // 导入到设备相关状态
+  const [importDialogOpen, setImportDialogOpen] = useState(false);
+  const [selectedFileForImport, setSelectedFileForImport] = useState<string | null>(null);
+  const [isReimportMode, setIsReimportMode] = useState(false); // 是否为重新导入模式
 
   const loadRecords = async () => {
     try {
@@ -46,6 +52,41 @@ export const TxtImportRecordsList: React.FC<TxtImportRecordsListProps> = ({ refr
       loadRecords();
     } catch (error: any) {
       message.error(`删除失败: ${error?.message || error}`);
+    }
+  };
+
+  // 处理导入到设备
+  const handleImportToDevice = (record: TxtImportRecordDto) => {
+    // 智能判断：如果全是重复号码（没有新增号码），给出提示
+    if (record.importedNumbers === 0 && record.duplicateNumbers > 0) {
+      Modal.confirm({
+        title: '全部号码已导入',
+        icon: <ExclamationCircleFilled style={{ color: '#faad14' }} />,
+        content: (
+          <div>
+            <p>此文件的所有 {record.duplicateNumbers} 个号码均已导入到号码池中。</p>
+            <p>是否仍要将这些号码重新导入到设备？</p>
+            <p style={{ color: '#999', fontSize: '12px', marginTop: 8 }}>
+              💡 提示：重新导入会包含所有号码（包括已导入过的）
+            </p>
+          </div>
+        ),
+        okText: '重新导入',
+        cancelText: '取消',
+        onOk: () => {
+          setSelectedFileForImport(record.filePath);
+          setIsReimportMode(true); // 标记为重新导入模式
+          setImportDialogOpen(true);
+        },
+      });
+    } else if (record.importedNumbers === 0 && record.duplicateNumbers === 0) {
+      // 没有任何有效号码
+      message.warning('此文件没有可导入的号码');
+    } else {
+      // 有新增号码，直接打开导入对话框（只导入可用号码）
+      setSelectedFileForImport(record.filePath);
+      setIsReimportMode(false); // 标记为正常导入模式
+      setImportDialogOpen(true);
     }
   };
 
@@ -120,6 +161,16 @@ export const TxtImportRecordsList: React.FC<TxtImportRecordsListProps> = ({ refr
               hoverable
               styles={{ body: { padding: '12px' } }}
               actions={[
+                <Tooltip key="import" title="导入到设备">
+                  <Button
+                    type="link"
+                    icon={<SendOutlined />}
+                    size="small"
+                    onClick={() => handleImportToDevice(record)}
+                  >
+                    导入到设备
+                  </Button>
+                </Tooltip>,
                 <Popconfirm
                   key="delete"
                   title="删除记录"
@@ -162,7 +213,7 @@ export const TxtImportRecordsList: React.FC<TxtImportRecordsListProps> = ({ refr
                     总号码: <Text strong>{record.validNumbers}</Text>
                   </Text>
                   <Text type="secondary" style={{ fontSize: '12px' }}>
-                    成功导入: <Text strong style={{ color: '#52c41a' }}>{record.importedNumbers}</Text>
+                    无重复新增号码: <Text strong style={{ color: '#52c41a' }}>{record.importedNumbers}</Text>
                   </Text>
                   <Text type="secondary" style={{ fontSize: '12px' }}>
                     重复号码: <Text strong style={{ color: '#faad14' }}>{record.duplicateNumbers}</Text>
@@ -193,6 +244,19 @@ export const TxtImportRecordsList: React.FC<TxtImportRecordsListProps> = ({ refr
             </Card>
           </List.Item>
         )}
+      />
+
+      {/* 设备导入对话框 */}
+      <DeviceImportFileSelectorDialog
+        open={importDialogOpen}
+        onClose={() => {
+          setImportDialogOpen(false);
+          setSelectedFileForImport(null);
+          setIsReimportMode(false); // 关闭时重置模式
+        }}
+        onImportSuccess={loadRecords}
+        defaultSelectedFiles={selectedFileForImport ? [selectedFileForImport] : []}
+        includeImported={isReimportMode} // 传递重新导入模式标志
       />
     </Card>
   );

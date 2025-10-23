@@ -22,6 +22,7 @@ pub mod universal_ui_page_analyzer; // 新增：Universal UI 页面分析器
 pub mod commands; // Tauri 命令封装
 pub mod contact_service;
 pub mod contact_storage; // 新增：联系人号码存储（TXT导入到SQLite）
+pub mod contact_verification; // 新增：快速号码验证服务
 pub mod crash_debugger;
 pub mod device_contact_metrics;
 pub mod duplication_guard; // 新增：查重防护服务（内存态）

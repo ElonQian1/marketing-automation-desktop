@@ -28,6 +28,7 @@ interface RecordsTableProps {
   onDelete: (record: TxtImportRecordDto) => void;
   onArchive: (record: TxtImportRecordDto) => void;
   onViewError?: (record: TxtImportRecordDto) => void;
+  onImportToDevice?: (record: TxtImportRecordDto) => void;
 }
 
 export const RecordsTable: React.FC<RecordsTableProps> = ({
@@ -40,6 +41,7 @@ export const RecordsTable: React.FC<RecordsTableProps> = ({
   onDelete,
   onArchive,
   onViewError,
+  onImportToDevice,
 }) => {
   const allColumns = ['fileName','validNumbers','importedNumbers','duplicateNumbers','status','createdAt','actions'] as const;
   type ColKey = typeof allColumns[number];
@@ -162,10 +164,11 @@ export const RecordsTable: React.FC<RecordsTableProps> = ({
           onDelete={onDelete}
           onArchive={onArchive}
           onViewError={onViewError}
+          onImportToDevice={onImportToDevice}
         />
       ),
     },
-  ], [onDelete, onArchive, onViewError, titleMap]);
+  ], [onDelete, onArchive, onViewError, onImportToDevice, titleMap]);
 
   const filteredColumns = useMemo(() => columns.filter((c) => visibleCols[(c.key as ColKey) ?? 'actions'] !== false), [columns, visibleCols]);
 

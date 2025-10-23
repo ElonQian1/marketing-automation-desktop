@@ -72,18 +72,68 @@ impl DatabaseRepository {
             [],
         )?;
 
-        // 创建VCF批次表
+        // 创建VCF批次表（新schema）
         conn.execute(
             "CREATE TABLE IF NOT EXISTS vcf_batches (
                 id INTEGER PRIMARY KEY AUTOINCREMENT,
                 batch_id TEXT UNIQUE NOT NULL,
+                batch_name TEXT NOT NULL DEFAULT '',
                 vcf_file_path TEXT NOT NULL,
-                created_at TEXT DEFAULT (datetime('now')),
-                total_numbers INTEGER DEFAULT 0,
-                used_numbers INTEGER DEFAULT 0
+                source_type TEXT NOT NULL DEFAULT 'auto',
+                contact_count INTEGER NOT NULL DEFAULT 0,
+                status TEXT NOT NULL DEFAULT 'pending' CHECK (status IN ('pending', 'completed', 'failed')),
+                industry TEXT,
+                description TEXT,
+                notes TEXT,
+                created_at TEXT DEFAULT (datetime('now'))
             )",
             [],
         )?;
+        
+        // 迁移旧表结构（如果存在total_numbers列）
+        let has_old_columns = conn.query_row(
+            "SELECT COUNT(*) FROM pragma_table_info('vcf_batches') WHERE name IN ('total_numbers', 'used_numbers')",
+            [],
+            |row| row.get::<_, i32>(0)
+        ).unwrap_or(0) > 0;
+        
+        if has_old_columns {
+            // 备份旧数据
+            let _ = conn.execute(
+                "CREATE TABLE IF NOT EXISTS vcf_batches_backup AS SELECT * FROM vcf_batches",
+                []
+            );
+            
+            // 删除旧表
+            let _ = conn.execute("DROP TABLE IF EXISTS vcf_batches", []);
+            
+            // 创建新表
+            conn.execute(
+                "CREATE TABLE vcf_batches (
+                    id INTEGER PRIMARY KEY AUTOINCREMENT,
+                    batch_id TEXT UNIQUE NOT NULL,
+                    batch_name TEXT NOT NULL DEFAULT '',
+                    vcf_file_path TEXT NOT NULL,
+                    source_type TEXT NOT NULL DEFAULT 'auto',
+                    contact_count INTEGER NOT NULL DEFAULT 0,
+                    status TEXT NOT NULL DEFAULT 'pending' CHECK (status IN ('pending', 'completed', 'failed')),
+                    industry TEXT,
+                    description TEXT,
+                    notes TEXT,
+                    created_at TEXT DEFAULT (datetime('now'))
+                )",
+                []
+            )?;
+            
+            // 迁移数据（如果备份表存在）
+            let _ = conn.execute(
+                "INSERT INTO vcf_batches (batch_id, batch_name, vcf_file_path, source_type, contact_count, status, created_at)
+                 SELECT batch_id, batch_id as batch_name, vcf_file_path, 'auto' as source_type, 
+                        COALESCE(total_numbers, 0) as contact_count, 'completed' as status, created_at
+                 FROM vcf_batches_backup",
+                []
+            );
+        }
 
         // 创建VCF批次号码映射表
         conn.execute(

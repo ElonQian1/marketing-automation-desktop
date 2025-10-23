@@ -8,6 +8,7 @@ import { FileTextOutlined, ReloadOutlined, InboxOutlined } from '@ant-design/ico
 import { TxtImportRecordDto } from '../../services/txtImportRecordService';
 import { useTxtImportRecords, useTxtImportActions } from './hooks';
 import { RecordsTable, ErrorDetailModal } from './components';
+import { DeviceImportFileSelectorDialog } from '../device-import-file-selector-dialog';
 
 const { Text } = Typography;
 
@@ -24,6 +25,11 @@ export const TxtImportRecordsManager: React.FC<TxtImportRecordsManagerProps> = (
 }) => {
   const [errorModalOpen, setErrorModalOpen] = React.useState(false);
   const [errorRecord, setErrorRecord] = React.useState<TxtImportRecordDto | null>(null);
+  
+  // 导入到设备相关状态
+  const [importDialogOpen, setImportDialogOpen] = React.useState(false);
+  const [selectedFileForImport, setSelectedFileForImport] = React.useState<string | null>(null);
+  
   const {
     records,
     total,
@@ -45,6 +51,20 @@ export const TxtImportRecordsManager: React.FC<TxtImportRecordsManagerProps> = (
     onDataRefresh,
     setBulkDeleting,
   });
+
+  // 处理导入到设备按钮点击
+  const handleImportToDevice = (record: TxtImportRecordDto) => {
+    setSelectedFileForImport(record.filePath);
+    setImportDialogOpen(true);
+  };
+
+  // 导入成功回调
+  const handleImportSuccess = () => {
+    loadRecords();
+    if (onDataRefresh) {
+      onDataRefresh();
+    }
+  };
 
   return (
     <Modal
@@ -139,6 +159,7 @@ export const TxtImportRecordsManager: React.FC<TxtImportRecordsManagerProps> = (
             setErrorRecord(record);
             setErrorModalOpen(true);
           }}
+          onImportToDevice={handleImportToDevice}
         />
 
         <ErrorDetailModal
@@ -147,6 +168,17 @@ export const TxtImportRecordsManager: React.FC<TxtImportRecordsManagerProps> = (
           onClose={() => setErrorModalOpen(false)}
         />
       </Space>
+
+      {/* 设备导入对话框 */}
+      <DeviceImportFileSelectorDialog
+        open={importDialogOpen}
+        onClose={() => {
+          setImportDialogOpen(false);
+          setSelectedFileForImport(null);
+        }}
+        onImportSuccess={handleImportSuccess}
+        defaultSelectedFiles={selectedFileForImport ? [selectedFileForImport] : []}
+      />
     </Modal>
   );
 };
