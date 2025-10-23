@@ -46,17 +46,14 @@ use services::contact_storage::*; // 导入号码存储命令（现在使用模�
 use services::contact_storage::commands::{
     get_contact_number_stats_cmd,
     get_distinct_industries_cmd,
+    get_numbers_by_files,
     set_contact_numbers_industry_by_id_range,
     list_txt_import_records_cmd,
     delete_txt_import_record_cmd,
     list_vcf_batch_records_cmd,
+    create_vcf_batch_with_numbers_cmd,
 };
 use services::contact_verification::verify_contacts_fast; // 新增：快速验证服务
-use services::contact_storage::commands::{
-    // update_import_session_industry_cmd,  // 暂未实现
-    // revert_import_session_to_failed_cmd, // 暂未实现
-    // delete_import_session_cmd,           // 暂未实现
-};
 use services::crash_debugger::*;
 use services::employee_service::EmployeeService;
 use services::log_bridge::LOG_COLLECTOR; // 仅用于设置 app handle
@@ -208,6 +205,8 @@ fn main() {
             mark_contact_numbers_used_by_id_range,
             // 批量将号码回滚为“未导入到任何手机”
             mark_contact_numbers_as_not_imported,
+            delete_contact_numbers,
+            get_numbers_by_files,
             // 号码批次与导入追踪 (暂时注释，避免编译错误)
             // create_vcf_batch_record,         // 缺失
             // list_vcf_batch_records,          // 缺失
