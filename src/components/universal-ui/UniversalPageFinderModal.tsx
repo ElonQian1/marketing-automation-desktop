@@ -328,6 +328,8 @@ const UniversalPageFinderModal: React.FC<UniversalPageFinderModalProps> = ({
         return (
           <ErrorBoundary>
             <VisualElementView
+              key={`visual-${screenshotUrl || xmlContent.substring(0, 100)}-${elements.length}`}
+              xmlContent={xmlContent}
               elements={elements as any}
               selectedElementId={selectedElementId}
               onElementSelect={handleVisualElementSelect}
