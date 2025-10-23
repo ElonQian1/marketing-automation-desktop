@@ -14,6 +14,8 @@ import {
 } from '../types';
 import { ScriptManagementService, LocalStorageService } from '../services/script-management-service';
 import { ScriptSerializer } from '../utils/serializer';
+import { ScriptFileService } from '../services/script-file-service';
+import type { DistributedScript } from '../../../domain/distributed-script';
 
 /**
  * 脚本管理Hook
@@ -82,6 +84,185 @@ export function useScriptManager() {
     }
   }, [loadScriptList]);
 
+  // 导入脚本（从文件）
+  const importScript = useCallback(async () => {
+    try {
+      // 使用服务导入分布式脚本文件
+      const distributedScript = await ScriptFileService.importDistributedScript();
+      
+      if (!distributedScript) {
+        message.info('取消导入');
+        return null;
+      }
+
+      // 将分布式脚本转换为 SmartScript 格式
+      const smartScript: SmartScript = {
+        id: `imported_${Date.now()}`,
+        name: distributedScript.name,
+        description: distributedScript.description || '',
+        version: distributedScript.version,
+        created_at: new Date(distributedScript.createdAt).toISOString(),
+        updated_at: new Date(distributedScript.updatedAt).toISOString(),
+        author: distributedScript.metadata?.author || '导入用户',
+        category: '导入脚本',
+        tags: distributedScript.metadata?.tags || ['导入'],
+        steps: distributedScript.steps.map((step, index) => ({
+          id: step.id,
+          order: index,
+          step_type: step.actionType as any,  // 转换为 StepActionType
+          name: step.name,
+          description: step.description || '',
+          enabled: true,  // 新增：默认启用
+          parameters: {
+            ...step.params,
+            xpath: step.locator.absoluteXPath,
+            resource_id: step.locator.attributes?.resourceId,
+            text: step.locator.attributes?.text,
+            content_desc: step.locator.attributes?.contentDesc,
+            class_name: step.locator.attributes?.className,
+            xmlContent: step.xmlSnapshot?.xmlContent,
+            deviceInfo: step.xmlSnapshot?.deviceInfo,
+            pageInfo: step.xmlSnapshot?.pageInfo,
+            locator: step.locator
+          } as any,  // 使用 any 避免类型冲突
+          retry_count: 0,
+          timeout_ms: distributedScript.runtime?.timeoutMs || 10000,
+          continue_on_error: false,
+          verification: null
+        })),
+        config: {
+          continue_on_error: true,
+          auto_verification_enabled: true,
+          smart_recovery_enabled: distributedScript.runtime?.enableSmartFallback ?? true,
+          detailed_logging: true,
+          default_timeout_ms: distributedScript.runtime?.timeoutMs || 10000,
+          default_retry_count: distributedScript.runtime?.maxRetries || 3,
+          page_recognition_enabled: true,
+          screenshot_on_error: true
+        },
+        metadata: {
+          execution_count: 0,
+          success_rate: 0,
+          average_duration_ms: 0,
+          dependencies: [],
+          isTemplate: true  // 标记为从模板导入
+        }
+      };
+
+      // 保存到数据库
+      const savedScript = await ScriptManagementService.saveScript(smartScript);
+      message.success(`脚本 "${savedScript.name}" 导入成功`);
+      
+      // 刷新列表
+      await loadScriptList();
+      
+      return savedScript;
+    } catch (err) {
+      const errorMsg = err instanceof Error ? err.message : '导入脚本失败';
+      message.error(errorMsg);
+      throw err;
+    }
+  }, [loadScriptList]);
+
+  // 导出脚本（到文件）
+  const exportScript = useCallback(async (scriptId: string) => {
+    try {
+      // 加载完整脚本
+      const fullScript = await ScriptManagementService.loadScript(scriptId);
+      
+      // 将 SmartScript 转换为 DistributedScript 格式
+      const distributedScript: DistributedScript = {
+        id: fullScript.id,
+        name: fullScript.name,
+        description: fullScript.description,
+        version: fullScript.version,
+        createdAt: new Date(fullScript.created_at).getTime(),
+        updatedAt: new Date(fullScript.updated_at).getTime(),
+        steps: fullScript.steps.map(step => {
+          const params = step.parameters as any;  // 使用 any 避免类型检查
+          return {
+            id: step.id,
+            name: step.name,
+            actionType: step.step_type,
+            params: params || {},
+            locator: params?.locator || {
+              absoluteXPath: params?.xpath || '',
+              attributes: {
+                resourceId: params?.resource_id,
+                text: params?.text,
+                contentDesc: params?.content_desc,
+                className: params?.class_name,
+              },
+            },
+            createdAt: new Date(fullScript.created_at).getTime(),
+            description: step.description,
+            xmlSnapshot: params?.xmlContent ? {
+              xmlContent: params.xmlContent,
+              xmlHash: `hash_${step.id}`,
+              timestamp: Date.now(),
+              deviceInfo: params.deviceInfo,
+              pageInfo: params.pageInfo
+            } : undefined
+          };
+        }),
+        xmlSnapshotPool: {},
+        metadata: {
+          targetApp: '小红书',
+          targetAppPackage: 'com.xingin.xhs',
+          author: fullScript.author,
+          platform: 'android',
+          tags: fullScript.tags,
+        },
+        runtime: {
+          maxRetries: fullScript.config.default_retry_count || 3,
+          timeoutMs: fullScript.config.default_timeout_ms || 10000,
+          enableSmartFallback: fullScript.config.smart_recovery_enabled ?? true,
+        },
+      };
+
+      // 使用服务导出脚本
+      const savedPath = await ScriptFileService.exportDistributedScript(
+        distributedScript,
+        `${fullScript.name.replace(/[^a-zA-Z0-9\u4e00-\u9fa5]/g, '_')}_distributed.json`
+      );
+      
+      if (savedPath) {
+        message.success(`脚本已导出到: ${savedPath}`);
+        return savedPath;
+      } else {
+        message.info('取消导出');
+        return null;
+      }
+    } catch (err) {
+      const errorMsg = err instanceof Error ? err.message : '导出脚本失败';
+      message.error(errorMsg);
+      throw err;
+    }
+  }, []);
+
+  // 批量导出脚本
+  const exportScripts = useCallback(async (scriptIds: string[]) => {
+    try {
+      const results = [];
+      for (const scriptId of scriptIds) {
+        const result = await exportScript(scriptId);
+        if (result) {
+          results.push(result);
+        }
+      }
+      
+      if (results.length > 0) {
+        message.success(`成功导出 ${results.length} 个脚本`);
+      }
+      
+      return results;
+    } catch (err) {
+      const errorMsg = err instanceof Error ? err.message : '批量导出失败';
+      message.error(errorMsg);
+      throw err;
+    }
+  }, [exportScript]);
+
   // 初始化时加载
   useEffect(() => {
     loadScriptList();
@@ -93,7 +274,10 @@ export function useScriptManager() {
     error,
     loadScriptList,
     deleteScript,
-    duplicateScript
+    duplicateScript,
+    importScript,
+    exportScript,
+    exportScripts
   };
 }
 

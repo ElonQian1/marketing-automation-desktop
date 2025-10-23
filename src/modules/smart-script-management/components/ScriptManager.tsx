@@ -57,7 +57,7 @@ export const ScriptManager: React.FC<ScriptManagerProps> = ({
   onExecuteScript,
   selectedDeviceId
 }) => {
-  const { scripts, loading, loadScriptList, deleteScript, duplicateScript } = useScriptManager();
+  const { scripts, loading, loadScriptList, deleteScript, duplicateScript, importScript, exportScript, exportScripts } = useScriptManager();
   const { loadScript } = useScriptEditor();
   const { executeScript, executing } = useScriptExecutor();
 
@@ -168,6 +168,38 @@ export const ScriptManager: React.FC<ScriptManagerProps> = ({
     }
   };
 
+  // 导入脚本
+  const handleImport = async () => {
+    try {
+      await importScript();
+    } catch (error) {
+      // 错误已在Hook中处理
+    }
+  };
+
+  // 导出单个脚本
+  const handleExportSingle = async (scriptId: string) => {
+    try {
+      await exportScript(scriptId);
+    } catch (error) {
+      // 错误已在Hook中处理
+    }
+  };
+
+  // 批量导出
+  const handleBatchExport = async () => {
+    if (selectedRowKeys.length === 0) {
+      message.warning('请先选择要导出的脚本');
+      return;
+    }
+    
+    try {
+      await exportScripts(selectedRowKeys);
+    } catch (error) {
+      // 错误已在Hook中处理
+    }
+  };
+
   // 表格列定义
   const columns: ColumnsType<ScriptListItem> = [
     {
@@ -256,7 +288,7 @@ export const ScriptManager: React.FC<ScriptManagerProps> = ({
     {
       title: '操作',
       key: 'action',
-      width: 200,
+      width: 250,
       render: (_, record) => (
         <Space size="small">
           <Tooltip title="执行脚本">
@@ -273,6 +305,13 @@ export const ScriptManager: React.FC<ScriptManagerProps> = ({
               icon={<EditOutlined />}
               size="small"
               onClick={() => handleEdit(record)}
+            />
+          </Tooltip>
+          <Tooltip title="导出脚本">
+            <Button
+              icon={<ExportOutlined />}
+              size="small"
+              onClick={() => handleExportSingle(record.id)}
             />
           </Tooltip>
           <Tooltip title="复制脚本">
@@ -319,10 +358,23 @@ export const ScriptManager: React.FC<ScriptManagerProps> = ({
               <Text type="secondary">共 {scripts.length} 个脚本</Text>
             </Space>
             <Space>
-              <Button icon={<ImportOutlined />}>导入</Button>
-              <Button icon={<ExportOutlined />} disabled={selectedRowKeys.length === 0}>
-                导出 ({selectedRowKeys.length})
-              </Button>
+              <Tooltip title="从文件导入分布式脚本">
+                <Button 
+                  icon={<ImportOutlined />}
+                  onClick={handleImport}
+                >
+                  导入
+                </Button>
+              </Tooltip>
+              <Tooltip title="导出选中的脚本到文件">
+                <Button 
+                  icon={<ExportOutlined />} 
+                  disabled={selectedRowKeys.length === 0}
+                  onClick={handleBatchExport}
+                >
+                  导出 ({selectedRowKeys.length})
+                </Button>
+              </Tooltip>
               <Button 
                 danger 
                 disabled={selectedRowKeys.length === 0}
