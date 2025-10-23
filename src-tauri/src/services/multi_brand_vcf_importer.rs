@@ -375,33 +375,110 @@ impl MultiBrandVcfImporter {
     async fn select_vcf_file(&self, vcf_file_path: &str) -> Result<()> {
         info!("选择VCF文件: {}", vcf_file_path);
 
-        // 1) 将本地生成的 VCF 推送到设备常见可读位置
-        let push_targets = vec![
-            "/sdcard/Download/contacts_import.vcf",
-            "/storage/emulated/0/Download/contacts_import.vcf",
+        // 1) 智能检测设备实际使用的联系人应用包名
+        let contact_packages = vec![
+            "com.android.contacts",          // 最通用（大部分品牌）
+            "com.miui.contacts",             // 小米
+            "com.huawei.contacts",           // 华为
+            "com.hihonor.contacts",          // 荣耀
+            "com.oppo.contacts",             // OPPO
+            "com.coloros.contacts",          // ColorOS
+            "com.vivo.contacts",             // VIVO
+            "com.samsung.android.contacts",  // 三星
+            "com.google.android.contacts",   // Google
         ];
+        
+        let mut detected_package: Option<String> = None;
+        for package in &contact_packages {
+            if let Ok(output) = self.execute_adb_command(&["-s", &self.device_id, "shell", "pm", "path", package]) {
+                let stdout = String::from_utf8_lossy(&output.stdout);
+                if stdout.contains("package:") {
+                    detected_package = Some(package.to_string());
+                    info!("✅ 检测到联系人应用包名: {}", package);
+                    break;
+                }
+            }
+        }
+        
+        // 2) 构建推送目标路径（多重兜底策略）
+        let mut push_targets = Vec::new();
+        
+        // 策略1: 如果检测到包名，使用专属目录（Android 11+ 最可靠）
+        if let Some(package) = &detected_package {
+            let app_specific_dir = format!("/sdcard/Android/data/{}/files", package);
+            let app_specific_path = format!("{}/contacts_import.vcf", app_specific_dir);
+            
+            // 先创建专属目录
+            let _ = self.execute_adb_command(&[
+                "-s", &self.device_id,
+                "shell", "mkdir", "-p", &app_specific_dir
+            ]);
+            
+            push_targets.push(app_specific_path);
+            info!("📁 添加包专属路径: /sdcard/Android/data/{}/files/", package);
+        }
+        
+        // 策略2: 通用联系人应用专属目录（兜底）
+        let _ = self.execute_adb_command(&[
+            "-s", &self.device_id,
+            "shell", "mkdir", "-p", "/sdcard/Android/data/com.android.contacts/files"
+        ]);
+        push_targets.push("/sdcard/Android/data/com.android.contacts/files/contacts_import.vcf".to_string());
+        
+        // 策略3: sdcard 根目录（Android 10- 兼容）
+        push_targets.push("/sdcard/contacts_import.vcf".to_string());
+        
+        // 策略4: Download 目录（旧版本兼容，Android 11+ 可能失败）
+        push_targets.push("/sdcard/Download/contacts_import.vcf".to_string());
+        push_targets.push("/storage/emulated/0/Download/contacts_import.vcf".to_string());
 
-        let mut pushed_path: Option<&str> = None;
-        for tgt in &push_targets {
+        // 3) 智能推送：逐个尝试，找到第一个成功的路径
+        let mut pushed_path: Option<String> = None;
+        for (idx, tgt) in push_targets.iter().enumerate() {
+            info!("📤 尝试推送到路径 {}/{}: {}", idx + 1, push_targets.len(), tgt);
+            
             let out = self.execute_adb_command(&["-s", &self.device_id, "push", vcf_file_path, tgt])?;
             let sout = String::from_utf8_lossy(&out.stdout);
             let serr = String::from_utf8_lossy(&out.stderr);
+            
             if serr.is_empty() && (sout.contains("file pushed") || sout.contains("bytes in")) {
-                pushed_path = Some(*tgt);
+                pushed_path = Some(tgt.clone());
+                info!("✅ VCF 文件成功推送到: {}", tgt);
+                info!("   策略: {}", match idx {
+                    0 => "包专属目录（最佳）",
+                    1 => "通用联系人目录",
+                    2 => "sdcard 根目录",
+                    3 | 4 => "Download 目录（旧版兼容）",
+                    _ => "未知策略"
+                });
                 break;
+            } else {
+                warn!("⚠️  推送失败 (路径 {}): {}", tgt, if serr.is_empty() { "无错误信息" } else { serr.trim() });
             }
         }
-        let device_vcf = pushed_path.ok_or_else(|| anyhow::anyhow!("VCF 文件推送到设备失败"))?;
+        
+        let device_vcf = pushed_path.ok_or_else(|| anyhow::anyhow!("VCF 文件推送到所有目标路径均失败"))?;
 
-        // 2) 通过 Intent 直接打开 VCF（触发系统选择/导入）
+        // 4) 通过 Intent 直接打开 VCF（触发系统导入对话框）
         let file_uri = format!("file://{}", device_vcf);
-        let _ = self.execute_adb_command(&[
+        info!("🚀 触发 VCF 导入 Intent: {}", file_uri);
+        
+        let output = self.execute_adb_command(&[
             "-s", &self.device_id,
             "shell", "am", "start",
             "-a", "android.intent.action.VIEW",
             "-d", &file_uri,
             "-t", "text/x-vcard",
         ])?;
+        
+        let stdout = String::from_utf8_lossy(&output.stdout);
+        let stderr = String::from_utf8_lossy(&output.stderr);
+        
+        if stdout.contains("Error") || stderr.contains("Error") {
+            warn!("⚠️  Intent 启动可能失败: stdout={}, stderr={}", stdout.trim(), stderr.trim());
+        } else {
+            info!("✅ Intent 已发送，等待系统响应...");
+        }
 
         // 等待 UI 响应
         sleep(Duration::from_secs(2)).await;
