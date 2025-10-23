@@ -474,11 +474,15 @@ export class XmlPageCacheService {
   static async loadPageContent(cachedPage: CachedXmlPage): Promise<XmlPageContent> {
     try {
       console.log(`🔄 加载缓存页面: ${cachedPage.pageTitle}`);
+      console.log(`📁 文件名: ${cachedPage.fileName}`);
+      console.log(`📅 时间戳: ${cachedPage.timestamp}`);
       
       // 读取XML内容
       const xmlContent: string = await invoke('read_xml_cache_file', { 
         fileName: cachedPage.fileName 
       });
+      
+      console.log(`📄 读取到XML内容: 长度=${xmlContent.length}, 前200字符=${xmlContent.substring(0, 200)}`);
       
       // ✅ 使用非过滤模式解析，获取所有元素（包括完整的可点击元素）
       const elements = await this.parseXmlToElements(xmlContent, false);
