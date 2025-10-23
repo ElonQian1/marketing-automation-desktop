@@ -203,7 +203,7 @@ export const PopoverActionButtons: React.FC<PopoverActionButtonsProps> = (props)
               隐藏
             </Button>
           )}
-          <Button size="small" icon={<CloseOutlined />} onClick={onCancel} style={btnStyle} ghost disabled={disabled || submitting}>
+          <Button size="small" icon={<CloseOutlined />} onClick={onCancel} style={btnStyle} disabled={disabled || submitting}>
             取消
           </Button>
         </Space>
@@ -241,7 +241,7 @@ export const PopoverActionButtons: React.FC<PopoverActionButtonsProps> = (props)
           </Col>
         )}
         <Col span={12}>
-          <Button block size="small" icon={<CloseOutlined />} onClick={onCancel} style={btnStyle} ghost disabled={disabled}>
+          <Button block size="small" icon={<CloseOutlined />} onClick={onCancel} style={btnStyle} disabled={disabled}>
             取消
           </Button>
         </Col>
@@ -284,7 +284,7 @@ export const PopoverActionButtons: React.FC<PopoverActionButtonsProps> = (props)
               隐藏
             </Button>
           )}
-          <Button size="small" icon={<CloseOutlined />} onClick={onCancel} style={btnStyle} ghost disabled={disabled || submitting}>
+          <Button size="small" icon={<CloseOutlined />} onClick={onCancel} style={btnStyle} disabled={disabled || submitting}>
             取消
           </Button>
         </Space>
@@ -334,7 +334,7 @@ export const PopoverActionButtons: React.FC<PopoverActionButtonsProps> = (props)
           </Col>
         )}
         <Col span={12}>
-          <Button block size="small" icon={<CloseOutlined />} onClick={onCancel} style={btnStyle} ghost disabled={disabled || submitting}>
+          <Button block size="small" icon={<CloseOutlined />} onClick={onCancel} style={btnStyle} disabled={disabled || submitting}>
             取消
           </Button>
         </Col>
@@ -401,7 +401,7 @@ export const PopoverActionButtons: React.FC<PopoverActionButtonsProps> = (props)
                 隐藏
               </Button>
             )}
-            <Button size="small" icon={<CloseOutlined />} onClick={onCancel} style={btnStyle} ghost disabled={disabled || submitting}>
+            <Button size="small" icon={<CloseOutlined />} onClick={onCancel} style={btnStyle} disabled={disabled || submitting}>
               取消
             </Button>
           </Space>
@@ -453,7 +453,7 @@ export const PopoverActionButtons: React.FC<PopoverActionButtonsProps> = (props)
             </Col>
           )}
           <Col span={12}>
-            <Button block size="small" icon={<CloseOutlined />} onClick={onCancel} style={btnStyle} ghost disabled={disabled || submitting}>
+            <Button block size="small" icon={<CloseOutlined />} onClick={onCancel} style={btnStyle} disabled={disabled || submitting}>
               取消
             </Button>
           </Col>
@@ -525,7 +525,7 @@ export const PopoverActionButtons: React.FC<PopoverActionButtonsProps> = (props)
                 隐藏
               </Button>
             )}
-            <Button size="small" icon={<CloseOutlined />} onClick={onCancel} style={btnStyle} ghost disabled={disabled || submitting}>
+            <Button size="small" icon={<CloseOutlined />} onClick={onCancel} style={btnStyle} disabled={disabled || submitting}>
               取消
             </Button>
           </Space>
@@ -590,7 +590,7 @@ export const PopoverActionButtons: React.FC<PopoverActionButtonsProps> = (props)
             </Col>
           )}
           <Col span={12}>
-            <Button block size="small" icon={<CloseOutlined />} onClick={onCancel} style={btnStyle} ghost disabled={disabled || submitting}>
+            <Button block size="small" icon={<CloseOutlined />} onClick={onCancel} style={btnStyle} disabled={disabled || submitting}>
               取消
             </Button>
           </Col>
@@ -634,7 +634,7 @@ export const PopoverActionButtons: React.FC<PopoverActionButtonsProps> = (props)
               隐藏
             </Button>
           )}
-          <Button size="small" icon={<CloseOutlined />} onClick={onCancel} style={btnStyle} ghost disabled={disabled || submitting}>
+          <Button size="small" icon={<CloseOutlined />} onClick={onCancel} style={btnStyle} disabled={disabled || submitting}>
             取消
           </Button>
         </Space>
@@ -684,7 +684,7 @@ export const PopoverActionButtons: React.FC<PopoverActionButtonsProps> = (props)
           </Col>
         )}
         <Col span={12}>
-          <Button block size="small" icon={<CloseOutlined />} onClick={onCancel} style={btnStyle} ghost disabled={disabled || submitting}>
+          <Button block size="small" icon={<CloseOutlined />} onClick={onCancel} style={btnStyle} disabled={disabled || submitting}>
             取消
           </Button>
         </Col>
