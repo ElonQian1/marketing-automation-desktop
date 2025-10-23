@@ -49,6 +49,7 @@ export interface UsePageFinderModalReturn {
   xmlContent: string;
   setXmlContent: (content: string) => void;
   currentXmlCacheId: string;
+  xmlVersion: number; // 🆕 XML 版本号
   viewMode: ViewMode;
   uiElements: UIElement[];
   elements: VisualUIElement[];
@@ -100,6 +101,7 @@ export const usePageFinderModal = (props: UsePageFinderModalProps): UsePageFinde
   const [loading, setLoading] = useState(false);
   const [currentXmlContent, setCurrentXmlContent] = useState<string>("");
   const [currentXmlCacheId, setCurrentXmlCacheId] = useState<string>("");
+  const [xmlVersion, setXmlVersion] = useState<number>(0); // 🆕 XML 版本号，每次更新递增
   const [viewMode, setViewMode] = useState<ViewMode>(initialViewMode);
   const [uiElements, setUIElements] = useState<UIElement[]>([]);
   const [elements, setElements] = useState<VisualUIElement[]>([]);
@@ -154,6 +156,9 @@ export const usePageFinderModal = (props: UsePageFinderModalProps): UsePageFinde
     try {
       setLoading(true);
       setCurrentXmlContent(xmlContent);
+      setXmlVersion(prev => prev + 1); // 🆕 递增 XML 版本号
+      console.log('🔄 [usePageFinderModal] 加载XML内容，版本号递增');
+      
       // 当从缓存或外部加载 XML 时，优先通过后端读文件为 data:URL（避免 asset.localhost 拒绝），失败再尝试 convertFileSrc
       if (opts?.screenshotAbsolutePath) {
         try {
@@ -225,6 +230,9 @@ export const usePageFinderModal = (props: UsePageFinderModalProps): UsePageFinde
       const result = await UniversalUIAPI.analyzeUniversalUIPage(selectedDevice);
       const xmlContent = result.xmlContent;
       setCurrentXmlContent(xmlContent);
+      setXmlVersion(prev => prev + 1); // 🆕 递增 XML 版本号
+      console.log('🔄 [usePageFinderModal] 采集当前页面，版本号递增');
+      
       // 🆕 解析截图路径为 URL：优先 absolutePath。先尝试 data:URL，再回退 convertFileSrc
       try {
         const path = result.screenshotAbsolutePath || result.screenshotRelativePath;
@@ -327,6 +335,8 @@ export const usePageFinderModal = (props: UsePageFinderModalProps): UsePageFinde
       
       // 🔧 直接使用已解析的元素，避免重复解析
       setCurrentXmlContent(pageContent.xmlContent);
+      setXmlVersion(prev => prev + 1); // 🆕 递增 XML 版本号
+      console.log('🔄 [usePageFinderModal] 从缓存加载页面，版本号递增');
       
       // 处理截图
       if (cachedPage.screenshotAbsolutePath) {
@@ -387,6 +397,7 @@ export const usePageFinderModal = (props: UsePageFinderModalProps): UsePageFinde
     xmlContent: currentXmlContent,
     setXmlContent: setCurrentXmlContent,
     currentXmlCacheId,
+    xmlVersion, // 🆕 导出 XML 版本号
     viewMode,
     uiElements,
     elements,
@@ -394,7 +405,7 @@ export const usePageFinderModal = (props: UsePageFinderModalProps): UsePageFinde
     setDeviceInfo: () => {},
     snapshots: [],
     devices,
-  screenshotUrl,
+    screenshotUrl,
     
     // 状态设置方法
     setSelectedDevice,

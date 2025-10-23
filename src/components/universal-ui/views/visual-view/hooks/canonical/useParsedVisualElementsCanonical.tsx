@@ -3,10 +3,19 @@
 // summary: UI 组件
 
 // Canonical parser hook for visual-view kept in a dedicated file to avoid accidental duplication
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useRef } from "react";
 import type { VisualUIElement, VisualElementCategory } from "../../../../types";
 import { parseBounds } from "../../utils/elementTransform";
 import { categorizeElement, getUserFriendlyName } from "../../utils/categorization";
+
+// 🆕 生成 XML 的唯一标识符（用于检测变化）
+function generateXmlIdentifier(xml: string): string {
+  if (!xml) return '';
+  // 使用长度 + 前 100 字符 + 后 100 字符的哈希
+  const prefix = xml.substring(0, 100);
+  const suffix = xml.substring(Math.max(0, xml.length - 100));
+  return `${xml.length}-${prefix}-${suffix}`;
+}
 
 export interface UseParsedVisualElementsResult {
   parsedElements: VisualUIElement[];
@@ -20,9 +29,24 @@ export function useParsedVisualElements(
 ): UseParsedVisualElementsResult {
   const [parsedElements, setParsedElements] = useState<VisualUIElement[]>([]);
   const [categories, setCategories] = useState<VisualElementCategory[]>([]);
+  
+  // 🐛 修复：使用 ref 跟踪上一次解析的 XML 标识符
+  const lastXmlIdRef = useRef<string>('');
+  const parseCountRef = useRef<number>(0);
 
   const parseXML = useCallback((xmlString: string) => {
-    if (!xmlString) return;
+    if (!xmlString) {
+      // 🐛 修复：清空旧数据
+      console.log('⚠️ [useParsedVisualElements] xmlString 为空，清空数据');
+      setParsedElements([]);
+      setCategories([]);
+      return;
+    }
+    
+    parseCountRef.current += 1;
+    const parseId = parseCountRef.current;
+    console.log(`🔄 [useParsedVisualElements #${parseId}] 开始解析 XML，长度: ${xmlString.length}`);
+    
     try {
       const parser = new DOMParser();
       const xmlDoc = parser.parseFromString(xmlString, "text/xml");
@@ -94,14 +118,39 @@ export function useParsedVisualElements(
       setCategories(
         Object.values(catMap).filter((c) => (c as any).elements.length > 0) as any
       );
+      
+      console.log(`✅ [useParsedVisualElements #${parseId}] 解析完成，提取元素: ${extracted.length}`);
     } catch (err) {
        
-      console.error("XML解析失败:", err);
+      console.error(`❌ [useParsedVisualElements #${parseId}] XML解析失败:`, err);
+      setParsedElements([]);
+      setCategories([]);
     }
   }, []);
 
+  // 🐛 修复：强制重新解析 - 基于 XML 标识符而非字符串相等性
   useEffect(() => {
-    if (xmlContent) parseXML(xmlContent);
+    if (!xmlContent) {
+      console.log('⚠️ [useParsedVisualElements] xmlContent 为空，清空数据');
+      setParsedElements([]);
+      setCategories([]);
+      lastXmlIdRef.current = '';
+      return;
+    }
+    
+    // 🔥 关键修复：生成当前 XML 的唯一标识符
+    const currentXmlId = generateXmlIdentifier(xmlContent);
+    
+    // 检查是否与上次解析的 XML 不同
+    if (currentXmlId !== lastXmlIdRef.current) {
+      console.log('🔄 [useParsedVisualElements] 检测到新的 XML 数据');
+      console.log('  上次 ID:', lastXmlIdRef.current.substring(0, 50) + '...');
+      console.log('  本次 ID:', currentXmlId.substring(0, 50) + '...');
+      lastXmlIdRef.current = currentXmlId;
+      parseXML(xmlContent);
+    } else {
+      console.log('⏭️ [useParsedVisualElements] XML 标识符相同，跳过重复解析');
+    }
   }, [xmlContent, parseXML]);
 
   return { parsedElements, categories, parseXML };
