@@ -132,12 +132,19 @@ export const ImportStrategyDialog: React.FC<ImportStrategyDialogProps> = ({
       if (result.success) {
         message.success('导入完成！');
         onSuccess?.(result);
+        
+        // ✅ 成功后2秒自动关闭模态框
+        setTimeout(() => {
+          onClose();
+        }, 2000);
       } else {
         message.error('导入失败');
       }
 
-      // 清理临时文件
-      await executor.cleanup(effectiveDevice.id);
+      // 清理临时文件（后台执行，不阻塞UI）
+      executor.cleanup(effectiveDevice.id).catch(err => {
+        console.warn('后台清理临时文件失败:', err);
+      });
 
     } catch (error) {
       console.error('导入过程出错:', error);

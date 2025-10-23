@@ -60,8 +60,8 @@ export class ImportStrategyExecutor {
           message: string;
           duration_seconds: number;
         }>('import_vcf_contacts_multi_brand', {
-          device_id: deviceId,
-          contacts_file_path: vcfFilePath
+          deviceId: deviceId,  // 修复：使用驼峰式（Tauri 默认）
+          contactsFilePath: vcfFilePath  // 修复：使用驼峰式
         });
 
         if (multiBrandResult.success) {
@@ -260,13 +260,26 @@ export class ImportStrategyExecutor {
 
   /**
    * 推送VCF文件到设备
+   * 修复：使用 Android 11+ 兼容路径（联系人应用专属目录）
    */
   private async pushVcfToDevice(localVcfPath: string, deviceId: string): Promise<string> {
-    const devicePath = '/sdcard/temp_import.vcf';
+    // 优先路径：联系人应用专属目录（避免 Android 11+ 权限问题）
+    const devicePath = '/sdcard/Android/data/com.android.contacts/files/temp_import.vcf';
     
-    console.log(`📤 推送VCF到设备: ${localVcfPath} -> ${devicePath}`);
+    console.log(`📤 推送VCF到设备 (Android 11+ 兼容路径): ${localVcfPath} -> ${devicePath}`);
     
     try {
+      // 先创建目录（如果不存在）
+      try {
+        await invokeCompat('execute_shell_command', {
+          deviceId,
+          shellCommand: 'mkdir -p /sdcard/Android/data/com.android.contacts/files'
+        });
+        console.log('✅ 确保专属目录存在');
+      } catch (mkdirError) {
+        console.warn('⚠️ 创建目录失败（可能已存在）:', mkdirError);
+      }
+
       const result = await invokeCompat('safe_adb_push', {
         deviceId,
         localPath: localVcfPath,
@@ -276,16 +289,29 @@ export class ImportStrategyExecutor {
       console.log(`✅ 文件推送成功: ${result}`);
       return devicePath;
     } catch (error) {
-      const importError = ImportErrorHandler.parseError(error, {
-        deviceId,
-        operation: '文件推送'
-      });
+      // 兜底：尝试 sdcard 根目录
+      console.warn('⚠️ 推送到专属目录失败，尝试 sdcard 根目录');
+      const fallbackPath = '/sdcard/temp_import.vcf';
       
-      console.error('❌ 文件推送失败:', importError.message);
-      throw new Error(importError.userMessage);
+      try {
+        const result = await invokeCompat('safe_adb_push', {
+          deviceId,
+          localPath: localVcfPath,
+          remotePath: fallbackPath
+        });
+        
+        console.log(`✅ 文件推送成功（备用路径）: ${result}`);
+        return fallbackPath;
+      } catch (fallbackError) {
+        const importError = ImportErrorHandler.parseError(fallbackError, {
+          deviceId,
+          operation: '文件推送'
+        });
+        
+        console.error('❌ 所有路径推送失败:', importError.message);
+        throw new Error(importError.userMessage);
+      }
     }
-
-    return devicePath;
   }
 
   /**
@@ -413,9 +439,10 @@ export class ImportStrategyExecutor {
    */
   async cleanup(deviceId: string): Promise<void> {
     try {
+      // 清理两个可能的路径
       await invokeCompat('safe_adb_shell_command', {
         deviceId,
-        shellCommand: 'rm -f /sdcard/temp_import.vcf'
+        shellCommand: 'rm -f /sdcard/Android/data/com.android.contacts/files/temp_import.vcf /sdcard/temp_import.vcf'
       });
       
       console.log('🧹 清理临时文件完成');

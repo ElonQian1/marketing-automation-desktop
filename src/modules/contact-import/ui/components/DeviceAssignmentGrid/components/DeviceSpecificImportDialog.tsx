@@ -154,12 +154,19 @@ const DeviceSpecificImportDialogContent: React.FC<DeviceSpecificImportDialogProp
       if (result.success) {
         message.success(`导入到设备 ${deviceContext?.deviceName || targetDevice.getDisplayName()} 完成！`);
         onSuccess?.(result);
+        
+        // ✅ 成功后2秒自动关闭模态框
+        setTimeout(() => {
+          onClose();
+        }, 2000);
       } else {
         message.error('导入失败');
       }
 
-      // 清理临时文件
-      await executor.cleanup(targetDeviceId);
+      // 清理临时文件（后台执行，不阻塞UI）
+      executor.cleanup(targetDeviceId).catch(err => {
+        console.warn('后台清理临时文件失败:', err);
+      });
 
     } catch (error) {
       console.error('导入过程出错:', error);

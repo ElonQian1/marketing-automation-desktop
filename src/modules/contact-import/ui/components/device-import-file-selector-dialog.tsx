@@ -53,6 +53,7 @@ export const DeviceImportFileSelectorDialog: React.FC<DeviceImportFileSelectorPr
   // 导入策略对话框状态
   const [strategyDialogOpen, setStrategyDialogOpen] = useState(false);
   const [vcfFilePath, setVcfFilePath] = useState<string>('');
+  const [currentDeviceId, setCurrentDeviceId] = useState<string>(''); // 保存当前导入的设备ID
 
   // 当对话框打开时，初始化选中的文件
   React.useEffect(() => {
@@ -124,6 +125,9 @@ export const DeviceImportFileSelectorDialog: React.FC<DeviceImportFileSelectorPr
     try {
       const deviceId = typeof selectedDevice === 'string' ? selectedDevice : selectedDevice.id;
       
+      // 保存设备ID到状态中，供策略对话框使用
+      setCurrentDeviceId(deviceId);
+      
       // 1. 获取选中文件的号码
       message.loading({ content: '正在获取联系人数据...', key: 'import', duration: 0 });
       const onlyAvailable = !includeImported;
@@ -172,10 +176,6 @@ export const DeviceImportFileSelectorDialog: React.FC<DeviceImportFileSelectorPr
     return selectedDevice && selectedFiles.length > 0 && contactCount > 0 && !importing;
   }, [selectedDevice, selectedFiles, contactCount, importing]);
 
-  const selectedDeviceId = useMemo(() => {
-    return selectedDevice ? (typeof selectedDevice === 'string' ? selectedDevice : selectedDevice.id) : null;
-  }, [selectedDevice]);
-
   return (
     <>
       <Modal
@@ -213,7 +213,7 @@ export const DeviceImportFileSelectorDialog: React.FC<DeviceImportFileSelectorPr
           <Select
             style={{ width: '100%' }}
             placeholder="请选择要导入到的设备"
-            value={selectedDeviceId || undefined}
+            value={selectedDevice ? (typeof selectedDevice === 'string' ? selectedDevice : selectedDevice.id) : undefined}
             onChange={selectDevice}
             disabled={importing}
             showSearch
@@ -301,7 +301,7 @@ export const DeviceImportFileSelectorDialog: React.FC<DeviceImportFileSelectorPr
                   {' '}个联系人
                 </Text>
                 <Text>
-                  到设备 <Text strong>{selectedDeviceId || '(未选择)'}</Text>
+                  到设备 <Text strong>{selectedDevice ? (typeof selectedDevice === 'string' ? selectedDevice : selectedDevice.name || selectedDevice.id) : '(未选择)'}</Text>
                 </Text>
               </Space>
             }
@@ -316,13 +316,14 @@ export const DeviceImportFileSelectorDialog: React.FC<DeviceImportFileSelectorPr
     <DeviceSpecificImportDialog
       visible={strategyDialogOpen}
       vcfFilePath={vcfFilePath}
-      targetDeviceId={selectedDeviceId || ''}
+      targetDeviceId={currentDeviceId}
       deviceContext={{
-        deviceName: devices.find(d => d.id === selectedDeviceId)?.name || selectedDeviceId || '',
+        deviceName: devices.find(d => d.id === currentDeviceId)?.name || currentDeviceId || '',
       }}
       onClose={() => {
         setStrategyDialogOpen(false);
         setVcfFilePath('');
+        setCurrentDeviceId('');
         setImporting(false);
       }}
       onSuccess={(result) => {
@@ -330,7 +331,7 @@ export const DeviceImportFileSelectorDialog: React.FC<DeviceImportFileSelectorPr
         message.success(`成功导入 ${result.importedCount} 个联系人到设备`);
         
         const importResult = {
-          deviceId: selectedDeviceId || '',
+          deviceId: currentDeviceId,
           totalCount: contactCount,
           successCount: result.importedCount,
           failCount: result.failedCount || 0,
