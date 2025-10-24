@@ -1,0 +1,206 @@
+.contextual-selector-demo {
+  padding: 24px;
+  background: #f5f5f5;
+  min-height: 100vh;
+}
+
+.demo-header {
+  background: white;
+  padding: 24px;
+  border-radius: 8px;
+  margin-bottom: 24px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+}
+
+.demo-header h2 {
+  margin-bottom: 8px;
+  color: #1890ff;
+}
+
+/* 模拟界面样式 */
+.mock-interface {
+  border: 1px solid #d9d9d9;
+  border-radius: 6px;
+  background: #fafafa;
+  padding: 16px;
+  max-height: 400px;
+  overflow-y: auto;
+}
+
+.mock-header {
+  margin-bottom: 16px;
+  padding-bottom: 8px;
+  border-bottom: 1px solid #f0f0f0;
+}
+
+.mock-user-card {
+  display: flex;
+  align-items: center;
+  padding: 12px;
+  margin-bottom: 8px;
+  background: white;
+  border: 1px solid #f0f0f0;
+  border-radius: 6px;
+  transition: all 0.2s ease;
+}
+
+.mock-user-card:hover {
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+.mock-user-card.selected {
+  border-color: #1890ff;
+  background: #f6ffed;
+  box-shadow: 0 2px 8px rgba(24, 144, 255, 0.2);
+  transform: scale(1.02);
+}
+
+.user-avatar {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  background: #f0f0f0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-right: 12px;
+  font-size: 18px;
+}
+
+.user-info {
+  flex: 1;
+}
+
+.user-name {
+  font-weight: 500;
+  margin-bottom: 4px;
+  color: #262626;
+}
+
+.user-desc {
+  font-size: 12px;
+  color: #8c8c8c;
+}
+
+.follow-btn {
+  border-radius: 4px;
+  font-size: 12px;
+  height: 28px;
+  padding: 0 12px;
+}
+
+/* 调试日志样式 */
+.debug-logs {
+  font-size: 11px;
+  line-height: 1.4;
+  max-height: 200px;
+  overflow-y: auto;
+  background: #f6f6f6;
+  border: 1px solid #d9d9d9;
+  border-radius: 4px;
+  padding: 8px;
+  font-family: 'SF Mono', Monaco, 'Cascadia Code', 'Roboto Mono', Consolas, 'Courier New', monospace;
+}
+
+.debug-logs::-webkit-scrollbar {
+  width: 6px;
+}
+
+.debug-logs::-webkit-scrollbar-track {
+  background: #f1f1f1;
+  border-radius: 3px;
+}
+
+.debug-logs::-webkit-scrollbar-thumb {
+  background: #c1c1c1;
+  border-radius: 3px;
+}
+
+/* 使用场景卡片 */
+.usage-scenarios .ant-card-small .ant-card-body {
+  padding: 12px;
+}
+
+.usage-scenarios .ant-card-small .ant-card-head-title {
+  font-size: 14px;
+}
+
+/* 测试结果样式 */
+.ant-card .ant-space-vertical {
+  width: 100%;
+}
+
+/* 响应式设计 */
+@media (max-width: 1200px) {
+  .contextual-selector-demo .ant-col {
+    margin-bottom: 16px;
+  }
+}
+
+@media (max-width: 768px) {
+  .contextual-selector-demo {
+    padding: 12px;
+  }
+
+  .demo-header {
+    padding: 16px;
+    margin-bottom: 16px;
+  }
+
+  .mock-user-card {
+    padding: 8px;
+  }
+
+  .user-info {
+    font-size: 13px;
+  }
+
+  .follow-btn {
+    font-size: 11px;
+    height: 24px;
+    padding: 0 8px;
+  }
+}
+
+/* 加载状态 */
+.contextual-selector-demo .ant-spin-container {
+  text-align: center;
+  padding: 40px 20px;
+}
+
+/* 按钮组样式 */
+.contextual-selector-demo .ant-space-item .ant-btn {
+  border-radius: 6px;
+}
+
+.contextual-selector-demo .ant-btn-primary {
+  background: linear-gradient(135deg, #1890ff 0%, #096dd9 100%);
+  border: none;
+  box-shadow: 0 2px 8px rgba(24, 144, 255, 0.3);
+}
+
+.contextual-selector-demo .ant-btn-primary:hover {
+  background: linear-gradient(135deg, #40a9ff 0%, #1890ff 100%);
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(24, 144, 255, 0.4);
+}
+
+/* 成功状态样式 */
+.mock-user-card.selected .follow-btn {
+  background: linear-gradient(135deg, #52c41a 0%, #389e0d 100%);
+  border: none;
+  color: white;
+  animation: pulse 0.6s ease-in-out;
+}
+
+@keyframes pulse {
+  0% {
+    transform: scale(1);
+  }
+  50% {
+    transform: scale(1.05);
+  }
+  100% {
+    transform: scale(1);
+  }
+}

@@ -116,6 +116,9 @@ fn main() {
         services::execution::matching::SmartXPathGenerator::new()
     );
     
+    // 🆕 智能选择系统状态
+    let smart_selection_state = commands::smart_selection::SmartSelectionState::new();
+    
     // 初始化实时设备跟踪器 (替代旧的轮询系统)
     initialize_device_tracker()
         .expect("Failed to initialize device tracker");
@@ -149,6 +152,7 @@ fn main() {
         .manage(ai_state)
         .manage(prospecting_state)
         .manage(xpath_generator_state) // 🆕 注册 XPath 生成器状态
+        .manage(smart_selection_state) // 🆕 注册智能选择系统状态
         // 应用关闭清理外部进程（scrcpy 等）
         .on_window_event(|_window, event| {
             if let tauri::WindowEvent::CloseRequested { .. } = event {
@@ -376,6 +380,13 @@ fn main() {
             // V2→V3 切换：feature-flags.ts 控制
             // 详见：EXECUTION_V2_MIGRATION_GUIDE.md
             // ========================================
+            
+            // 🆕 智能选择系统命令 (Phase 2 集成)
+            execute_smart_selection,
+            validate_smart_selection_protocol,
+            get_smart_selection_stats,
+            test_smart_selection_connectivity,
+            preview_smart_selection_candidates,
             
             // 精准获客模块命令
             init_precise_acquisition_storage,
