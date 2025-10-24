@@ -182,4 +182,9 @@ test-results/
 reports/
 *.report.json
 quality-gate-report.json
-analysis/.ai/cache.jsonl
+
+# AI 相关缓存和临时文件
+analysis/.ai/
+.ai/
+*.ai-cache
+ai-cache.json*
