@@ -240,8 +240,26 @@ npm run tauri dev
 - ✅ 数据持久化 (SQLite)
 - ✅ 响应式UI设计
 - ✅ 类型安全 (TypeScript)
-- ✅ ADB 页面元素查找支持“标准匹配”策略（跨设备、分辨率无关）
-- ✅ 新增“镜像视图（scrcpy）”：支持参数化启动、会话管理，渲染模式可在“外部窗口/嵌入式占位”切换，支持窗口标志（置顶/无边框）
+- ✅ ADB 页面元素查找支持"标准匹配"策略（跨设备、分辨率无关）
+- ✅ 新增"镜像视图（scrcpy）"：支持参数化启动、会话管理，渲染模式可在"外部窗口/嵌入式占位"切换，支持窗口标志（置顶/无边框）
+
+### ⚠️ 华为/荣耀设备特别说明
+
+如果使用华为（HUAWEI）或荣耀（HONOR）设备，在使用智能脚本功能前需要额外配置：
+
+**问题现象**: 出现 `ERROR: could not get idle state` 错误
+
+**快速解决**:
+1. 双击运行项目根目录的 `setup_ui_automator.bat`
+2. 或手动执行以下命令：
+   ```bash
+   adb shell settings put secure enabled_accessibility_services com.android.shell/com.android.commands.uiautomator.Launcher
+   adb shell settings put secure accessibility_enabled 1
+   ```
+
+**详细说明**: 请参考 [华为/荣耀设备配置指南](docs/HUAWEI_HONOR_DEVICE_SETUP.md)
+
+> 📝 **注意**: 这是华为/荣耀定制系统（EMUI/MagicUI）的安全限制，小米（MIUI）部分设备也可能需要类似配置。Android 模拟器和原生系统无需此配置。
 
 ### 联系人导入（新）
 - 新入口：主界面左侧菜单 → “联系人导入向导”。
