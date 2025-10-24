@@ -4,6 +4,7 @@
 
 use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
+use crate::types::page_analysis::ElementBounds;
 
 /// 元素指纹 - Rust版本
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -48,6 +49,66 @@ pub struct BoundsSignature {
     pub height: f32,   // 高度比例 (0-1)
 }
 
+/// 🆕 候选集合定义 - 实现职责分离
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct CandidateSet {
+    /// 候选元素列表
+    pub candidates: Vec<CandidateElement>,
+    /// 生成策略（由哪条执行链产生）
+    pub source_strategy: CandidateSource,
+    /// 容器限域信息
+    pub container_bounds: Option<ElementBounds>,
+    /// 排序基线（确保随机可复现）
+    pub sort_baseline: SortBaseline,
+    /// 生成耗时
+    pub generation_time_ms: u64,
+}
+
+/// 候选元素定义
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct CandidateElement {
+    /// 元素边界
+    pub bounds: ElementBounds,
+    /// 元素指纹
+    pub fingerprint: ElementFingerprint,
+    /// 匹配置信度
+    pub confidence: f32,
+    /// 轻校验状态
+    pub validation_state: ValidationState,
+    /// 稳定排序键（用于可复现随机）
+    pub sort_key: String,
+}
+
+/// 候选来源（哪条执行链产生）
+#[derive(Debug, Clone, Serialize, Deserialize)]
+#[serde(rename_all = "snake_case")]
+pub enum CandidateSource {
+    IntelligentChain { container_xpath: String },
+    SingleStep { method: String },
+    StaticStrategy { xpath: String },
+}
+
+/// 排序基线（确保随机可复现）
+#[derive(Debug, Clone, Serialize, Deserialize)]
+#[serde(rename_all = "snake_case")]
+pub enum SortBaseline {
+    /// 按视觉位置排序 (y, x)
+    VisualPosition,
+    /// 按DOM顺序排序
+    DomOrder,
+    /// 按置信度排序
+    Confidence,
+}
+
+/// 轻校验状态
+#[derive(Debug, Clone, Serialize, Deserialize)]
+#[serde(rename_all = "snake_case")]
+pub enum ValidationState {
+    Valid,
+    Invalid { reason: String },
+    Skipped,
+}
+
 /// 匹配上下文
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct MatchingContext {
@@ -78,15 +139,29 @@ pub struct LightAssertions {
     pub exclude_text: Option<Vec<String>>,
 }
 
-/// 选择策略模式
-#[derive(Debug, Clone, Copy, Serialize, Deserialize)]
-#[serde(rename_all = "kebab-case")]
+/// 🔥 改进版选择模式 - 支持可复现随机和批量安全
+#[derive(Debug, Clone, Serialize, Deserialize)]
+#[serde(tag = "type")]
 pub enum SelectionMode {
-    MatchOriginal,  // 精确匹配原选择的元素
-    First,          // 选择第一个
-    Last,           // 选择最后一个
-    Random,         // 随机选择一个
-    All,            // 选择全部（批量操作）
+    /// 精确匹配原选择的元素（需要fingerprint）
+    MatchOriginal {
+        min_confidence: f32,
+        fallback_to_first: bool,
+    },
+    /// 选择第一个（按sort_baseline排序后的第一个）
+    First,
+    /// 选择最后一个（按sort_baseline排序后的最后一个）
+    Last,
+    /// 随机选择一个（可复现：基于sort_baseline + seed）
+    Random {
+        seed: u64,
+        /// 确保排序基线一致性
+        ensure_stable_sort: bool,
+    },
+    /// 批量选择全部（增强版批量安全）
+    All {
+        batch_config: BatchConfigV2,
+    },
 }
 
 /// 选择配置
@@ -116,7 +191,44 @@ pub enum SortOrder {
     VisualXy,  // 视觉X→Y
 }
 
-/// 批量操作配置
+/// 🔥 增强版批量操作配置 - 支持反封禁和UI变化处理
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct BatchConfigV2 {
+    /// 基础间隔时间
+    pub interval_ms: u64,
+    /// 随机抖动范围 (防机器检测)
+    pub jitter_ms: u64,
+    /// 单次会话最大数量
+    pub max_per_session: u32,
+    /// 会话冷却时间
+    pub cooldown_ms: u64,
+    /// 出错时是否继续
+    pub continue_on_error: bool,
+    /// 显示进度
+    pub show_progress: bool,
+    /// 🆕 UI变化应对策略
+    pub refresh_policy: RefreshPolicy,
+    /// 🆕 指纹重查找（当UI变化时）
+    pub requery_by_fingerprint: bool,
+    /// 🆕 轻校验强制开启
+    pub force_light_validation: bool,
+}
+
+/// UI刷新策略
+#[derive(Debug, Clone, Serialize, Deserialize)]
+#[serde(rename_all = "snake_case")]
+pub enum RefreshPolicy {
+    /// 从不重新dump（最快但风险高）
+    Never,
+    /// 当轻校验失败或bounds漂移时重新dump
+    OnMutation,
+    /// 每K次点击后重新dump
+    EveryK { k: u32 },
+    /// 每次点击都重新dump（最安全但慢）
+    Always,
+}
+
+/// 兼容版批量操作配置（保持向后兼容）
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct BatchConfig {
     pub interval_ms: u64,
@@ -211,7 +323,78 @@ pub struct FallbackConfig {
     pub allow_fallback: bool,
 }
 
-/// 智能选择结果
+/// 🔥 统一执行结果结构（三条链通用）
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct UnifiedExecutionResult {
+    pub success: bool,
+    
+    /// 🆕 使用的执行链
+    pub used_chain: ExecutionChain,
+    /// 🆕 使用的选择模式
+    pub used_selection_mode: String,
+    /// 🆕 使用的策略变体
+    pub used_variant: Option<String>,
+    
+    /// 🆕 每步匹配数量
+    pub match_count_each_step: Vec<u32>,
+    /// 🆕 点击边界和坐标
+    pub bounds: Vec<ElementBounds>,
+    pub tap_xy: Vec<TapCoordinate>,
+    
+    /// 🆕 性能指标
+    pub timings: ExecutionTimings,
+    
+    /// 🆕 截图路径（可选）
+    pub screenshots: Vec<String>,
+    
+    /// 错误码（失败时）
+    pub error_code: Option<ExecutionErrorCode>,
+    pub error_message: Option<String>,
+}
+
+/// 执行链标识
+#[derive(Debug, Clone, Serialize, Deserialize)]
+#[serde(rename_all = "snake_case")]
+pub enum ExecutionChain {
+    IntelligentChain,
+    SingleStep,
+    StaticStrategy,
+}
+
+/// 点击坐标（增强版）
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct TapCoordinate {
+    pub x: i32,
+    pub y: i32,
+    /// 🆕 点击时的置信度
+    pub confidence: f32,
+    /// 🆕 是否通过轻校验
+    pub validated: bool,
+}
+
+/// 性能计时
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct ExecutionTimings {
+    pub dump_time_ms: u64,
+    pub match_time_ms: u64,
+    pub click_time_ms: u64,
+    pub total_time_ms: u64,
+}
+
+/// 🆕 统一错误码
+#[derive(Debug, Clone, Serialize, Deserialize)]
+#[serde(rename_all = "SCREAMING_SNAKE_CASE")]
+pub enum ExecutionErrorCode {
+    NoMatch,
+    MultiMatch,
+    AssertFail,
+    MutationDetected,
+    TimeBudgetExceeded,
+    DeviceError,
+    ProtocolError,
+}
+
+/// 兼容版智能选择结果（保持向后兼容）
 #[derive(Debug, Clone, Serialize)]
 pub struct SmartSelectionResult {
     pub success: bool,
@@ -420,7 +603,10 @@ pub struct PerformanceInfo {
 
 impl Default for SelectionMode {
     fn default() -> Self {
-        SelectionMode::MatchOriginal
+        SelectionMode::MatchOriginal {
+            min_confidence: 0.8,
+            fallback_to_first: true,
+        }
     }
 }
 

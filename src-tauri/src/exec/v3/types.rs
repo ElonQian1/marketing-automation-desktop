@@ -163,6 +163,7 @@ pub enum SingleStepAction {
     WaitForPageState,
     ExtractElement,
     SmartNavigation,
+    SmartSelection,  // 🆕 智能选择动作 - 多元素智能匹配
     LoopStart,
     LoopEnd,
     ContactGenerateVcf,
@@ -273,6 +274,7 @@ pub enum StaticAction {
     Input,
     Wait,
     Swipe,
+    SmartSelection,  // 🆕 静态策略也支持智能选择
     VerifyAction,
     ExtractElement,
 }

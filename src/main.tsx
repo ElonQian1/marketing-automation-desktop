@@ -17,6 +17,9 @@ import './index.css';
 // 🔗 全局事件监听器初始化
 import { wireAnalysisEventsGlobally } from './application/analysis/wire-global-events';
 
+// 🚨 紧急修复工具：智能分析100%卡住问题
+import './hotfix/analysis-completion-force-fix';
+
 if (typeof document !== 'undefined') {
   document.documentElement.setAttribute('data-theme', 'dark');
   document.documentElement.classList.add('dark');

@@ -295,7 +295,7 @@ const CompactStrategyMenu: React.FC<CompactStrategyMenuProps> = ({
         flexWrap: "wrap",
       }}
     >
-      {/* 主策略选择按钮 */}
+      {/* 第一个：执行链选择按钮（原主策略选择） */}
       <Dropdown
         menu={getStrategyMenu()}
         trigger={["click"]}
@@ -314,6 +314,111 @@ const CompactStrategyMenu: React.FC<CompactStrategyMenuProps> = ({
         >
           {getCurrentStrategyLabel()}
           {getAnalysisStatus()}
+          <span style={{ marginLeft: "4px" }}>▾</span>
+        </Button>
+      </Dropdown>
+
+      {/* 第二个：选择模式按钮 */}
+      <Dropdown
+        menu={{
+          items: [
+            {
+              key: 'first',
+              label: '🎯 第一个',
+              onClick: () => console.log('选择第一个模式')
+            },
+            {
+              key: 'last', 
+              label: '🎯 最后一个',
+              onClick: () => console.log('选择最后一个模式')
+            },
+            {
+              key: 'match-original',
+              label: '🔍 精确匹配', 
+              onClick: () => console.log('选择精确匹配模式')
+            },
+            {
+              key: 'random',
+              label: '🎲 随机选择',
+              onClick: () => console.log('选择随机模式')
+            },
+            {
+              key: 'all',
+              label: '📋 批量全部',
+              onClick: () => console.log('选择批量模式')
+            }
+          ]
+        }}
+        trigger={["click"]}
+        disabled={disabled}
+      >
+        <Button
+          size="small"
+          type="default"
+          style={{
+            background: "rgba(110, 139, 255, 0.1)",
+            border: "1px solid rgba(110, 139, 255, 0.3)",
+            color: "#F8FAFC",
+            fontSize: "12px",
+          }}
+        >
+          🎯 第一个
+          <span style={{ color: "rgb(16, 185, 129)", fontSize: "12px", marginLeft: "4px" }}>✅</span>
+          <span style={{ marginLeft: "4px" }}>▾</span>
+        </Button>
+      </Dropdown>
+
+      {/* 第三个：操作方式按钮 */}
+      <Dropdown
+        menu={{
+          items: [
+            {
+              key: 'tap',
+              label: '👆 点击',
+              onClick: () => console.log('选择点击操作')
+            },
+            {
+              key: 'long_press',
+              label: '⏸️ 长按',
+              onClick: () => console.log('选择长按操作')
+            },
+            {
+              key: 'double_tap',
+              label: '👆👆 双击',
+              onClick: () => console.log('选择双击操作')
+            },
+            {
+              key: 'swipe',
+              label: '👉 滑动',
+              onClick: () => console.log('选择滑动操作')
+            },
+            {
+              key: 'input',
+              label: '⌨️ 输入',
+              onClick: () => console.log('选择输入操作')
+            },
+            {
+              key: 'wait',
+              label: '⏳ 等待',
+              onClick: () => console.log('选择等待操作')
+            }
+          ]
+        }}
+        trigger={["click"]}
+        disabled={disabled}
+      >
+        <Button
+          size="small"
+          type="default"
+          style={{
+            background: "rgba(110, 139, 255, 0.1)",
+            border: "1px solid rgba(110, 139, 255, 0.3)",
+            color: "#F8FAFC",
+            fontSize: "12px",
+          }}
+        >
+          👆 点击
+          <span style={{ color: "rgb(16, 185, 129)", fontSize: "12px", marginLeft: "4px" }}>✅</span>
           <span style={{ marginLeft: "4px" }}>▾</span>
         </Button>
       </Dropdown>

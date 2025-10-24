@@ -104,6 +104,15 @@ export class XmlParser {
     // 解析边界信息
     const position = BoundsParser.parseBounds(bounds);
 
+    // 🔍 菜单元素调试：检查是否为菜单元素
+    if (text === '菜单' || contentDesc === '菜单' || bounds === '[39,143][102,206]') {
+      console.log('🎯 [XmlParser] 菜单元素解析过程:', {
+        原始XML属性: { bounds, text, contentDesc, className, clickable, resourceId },
+        解析后position: position,
+        elementId: `element-${index}`
+      });
+    }
+
     // 基本有效性检查
     if (
       !this.isValidElement(
@@ -115,6 +124,12 @@ export class XmlParser {
         options
       )
     ) {
+      // 🔍 菜单元素调试：如果菜单元素被过滤
+      if (text === '菜单' || contentDesc === '菜单' || bounds === '[39,143][102,206]') {
+        console.warn('❌ [XmlParser] 菜单元素未通过有效性检查!', {
+          bounds, text, contentDesc, clickable, position, options
+        });
+      }
       return null;
     }
 

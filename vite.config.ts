@@ -204,6 +204,9 @@ export default defineConfig(() => ({
   // 设置基础路径为相对路径，确保在Tauri中正常工作
   base: "./",
 
+  // 控制日志输出级别
+  logLevel: process.env.VITE_LOG_LEVEL as 'info' | 'warn' | 'error' | 'silent' || 'warn',
+
   // 路径别名配置
   resolve: {
     alias: {
@@ -231,6 +234,9 @@ export default defineConfig(() => ({
       ignored: ["**/src-tauri/**"],
       // 根据动态决策是否启用轮询
       usePolling: watchDecision.usePolling,
+      // 添加防抖延迟，减少频繁的文件变更触发
+      interval: 300, // 轮询间隔 (ms)
+      binaryInterval: 300, // 二进制文件轮询间隔
     },
     // 网络共享 / 映射盘路径 (UNC -> 映射) 上原生 fs.watch 可能抛出 UNKNOWN 错误，
     // 这里强制使用轮询以提升稳定性（代价：CPU 更高）。如本地路径再改回 disablePolling。
@@ -241,6 +247,8 @@ export default defineConfig(() => ({
     // 兼容写法：设置环境变量 CHOKIDAR_USEPOLLING=1 也可，这里直接在配置中声明。
     hmr: {
       overlay: true,
+      // 减少HMR更新日志输出
+      clientPort: undefined, // 使用默认端口
     },
   },
 

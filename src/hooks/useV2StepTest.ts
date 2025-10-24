@@ -5,6 +5,7 @@
 import { useState, useCallback } from 'react';
 import { getStepExecutionGateway, type StepExecutionRequest, type StepExecutionResponse } from '../infrastructure/gateways/StepExecutionGateway';
 import type { SmartScriptStep } from '../types/smartScript';
+import { debugBoundsConversion, validateMenuBounds } from '../debug/bounds-debugging';
 
 // V2测试结果接口
 export interface V2StepTestResult {
@@ -247,8 +248,13 @@ function convertSmartStepToV2Request(
     case 'smart_find_element':
     case 'click':
       actionParams = {
-        type: 'click',
-        xpath: params.element_selector || generateXPathFromParams(params),
+        type: 'tap', // 修复：使用正确的StepActionParams类型
+        params: {
+          x: undefined,
+          y: undefined,
+          offsetX: 0,
+          offsetY: 0,
+        },
       };
       break;
 
@@ -257,7 +263,7 @@ function convertSmartStepToV2Request(
       actionParams = {
         type: 'type',
         params: {
-          text: params.text || '',
+          text: params.text as string || '',
           clearBefore: params.clear_before !== false,
           keyboardEnter: params.keyboard_enter === true,
         },
@@ -269,9 +275,10 @@ function convertSmartStepToV2Request(
       actionParams = {
         type: 'swipe',
         params: {
-          direction: params.direction || 'up',
-          distance: params.distance || 500,
-          duration: params.duration || 300,
+          direction: (params.direction as 'up' | 'down' | 'left' | 'right') || 'up',
+          distance: Number(params.distance) || 500,
+          durationMs: Number(params.duration) || 300, // 修复：使用正确的字段名
+          startFrom: 'element' as const,
         },
       };
       break;
@@ -280,16 +287,21 @@ function convertSmartStepToV2Request(
       actionParams = {
         type: 'wait',
         params: {
-          duration: params.duration || 1000,
+          waitMs: Number(params.duration) || 1000, // 修复：使用正确的字段名
         },
       };
       break;
 
     default:
-      // 默认点击动作
+      // 默认点击动作，修复：使用tap代替click
       actionParams = {
-        type: 'click',
-        xpath: params.element_selector || generateXPathFromParams(params),
+        type: 'tap',
+        params: {
+          x: undefined,
+          y: undefined,
+          offsetX: 0,
+          offsetY: 0,
+        },
       };
   }
 
@@ -346,17 +358,70 @@ function generateXPathFromParams(params: Record<string, unknown>): string {
  * 解析边界坐标
  */
 function parseBoundsFromParams(params: Record<string, unknown>): StepExecutionRequest['bounds'] {
-  if (!params.bounds || typeof params.bounds !== 'string') return undefined;
+  if (!params.bounds) return undefined;
 
   try {
-    const bounds = JSON.parse(params.bounds);
+    let bounds: { left: number; top: number; right: number; bottom: number };
+    const originalBounds = params.bounds;
+    
+    if (typeof params.bounds === 'string') {
+      // 🔧 修复：支持 [left,top][right,bottom] 格式
+      const bracketFormat = params.bounds.match(/^\[(\d+),(\d+)\]\[(\d+),(\d+)\]$/);
+      if (bracketFormat) {
+        bounds = {
+          left: parseInt(bracketFormat[1]),
+          top: parseInt(bracketFormat[2]),
+          right: parseInt(bracketFormat[3]),
+          bottom: parseInt(bracketFormat[4]),
+        };
+      } else {
+        // 尝试JSON解析
+        bounds = JSON.parse(params.bounds);
+      }
+    } else if (typeof params.bounds === 'object') {
+      bounds = params.bounds as { left: number; top: number; right: number; bottom: number };
+    } else {
+      return undefined;
+    }
+    
+    // 🔍 调试：验证菜单元素的bounds是否正确
+    const elementId = params.element_selector as string || params.id as string || 'unknown';
+    const elementText = params.text as string || params.content_desc as string;
+    
+    // 验证菜单元素bounds
+    if (elementText === '菜单' || elementId.includes('menu') || originalBounds === '[39,143][102,206]') {
+      validateMenuBounds(elementId, elementText, bounds);
+      
+      // 记录bounds转换过程
+      const expectedBounds = '[39,143][102,206]';
+      const actualBounds = `[${bounds.left},${bounds.top}][${bounds.right},${bounds.bottom}]`;
+      
+      if (actualBounds !== expectedBounds && elementText === '菜单') {
+        console.warn('⚠️ [菜单元素警告] 检测到菜单元素使用了不符合预期的bounds:', {
+          elementId,
+          elementText,
+          expected: expectedBounds,
+          actual: actualBounds,
+          originalInput: originalBounds
+        });
+      }
+    }
+    
+    console.log('🔧 [parseBoundsFromParams] 解析bounds:', {
+      original: originalBounds,
+      parsed: bounds,
+      elementId: elementId.length > 15 ? `...${elementId.slice(-12)}` : elementId,
+      elementText
+    });
+
     return {
       x: bounds.left || 0,
       y: bounds.top || 0,
       width: (bounds.right || 100) - (bounds.left || 0),
       height: (bounds.bottom || 50) - (bounds.top || 0),
     };
-  } catch {
+  } catch (error) {
+    console.error('❌ [parseBoundsFromParams] bounds解析失败:', error, params.bounds);
     return undefined;
   }
 }

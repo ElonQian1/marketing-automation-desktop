@@ -12,7 +12,8 @@ export type ActionKind =
   | 'wait'
   | 'back'
   | 'keyevent'
-  | 'find_only'; // 仅查找，不执行动作
+  | 'find_only' // 仅查找，不执行动作
+  | 'smart_selection'; // 智能选择
 
 // 步骤动作配置
 export interface StepAction {
@@ -39,6 +40,40 @@ export interface StepAction {
 
     // keyevent
     keyCode?: number;
+
+    // smart_selection - 🔥 增强版智能选择参数
+    smartSelection?: {
+      mode: 'match-original' | 'first' | 'last' | 'random' | 'all';
+      targetText?: string;
+      resourceId?: string;
+      
+      // 🆕 必填字段（按用户要求）
+      containerXPath: string;  // 容器限域 - 必填
+      fingerprint?: ElementFingerprint;  // 指纹（match-original模式必需）
+      i18nAliases: string[];  // 国际化别名 - 必填
+      plan: FallbackPlan[];   // 回退计划 - 必填（至少2条）
+      
+      // 增强配置
+      minConfidence?: number;
+      batchConfigV2?: {
+        intervalMs: number;
+        jitterMs: number;        // 🆕 抖动
+        maxPerSession: number;   // 🆕 单次会话上限
+        cooldownMs: number;      // 🆕 冷却时间
+        continueOnError?: boolean;
+        showProgress?: boolean;
+        refreshPolicy?: 'never' | 'on_mutation' | 'every_k' | 'always';  // 🆕 UI刷新策略
+        requeryByFingerprint?: boolean;  // 🆕 指纹重查找
+        forceLightValidation?: boolean;  // 🆕 强制轻校验
+      };
+      
+      // 随机模式配置
+      randomSeed?: number;
+      ensureStableSort?: boolean;  // 🆕 确保可复现随机
+      
+      // match-original模式配置
+      fallbackToFirst?: boolean;  // 🆕 指纹失败时降级到first
+    };
   };
 
   postCheck?: {
@@ -67,6 +102,61 @@ export interface SmartScriptStep {
   post_conditions?: string[];
   // 新增：动作配置
   action?: StepAction;
+}
+
+// 🆕 元素指纹类型（前端版本）
+export interface ElementFingerprint {
+  textContent?: string;
+  textHash?: string;
+  classChain?: string[];
+  resourceId?: string;
+  resourceIdSuffix?: string;
+  boundsSignature?: {
+    x: number;        // 中心X坐标比例 (0-1)
+    y: number;        // 中心Y坐标比例 (0-1)
+    width: number;    // 宽度比例 (0-1)
+    height: number;   // 高度比例 (0-1)
+  };
+  parentClass?: string;
+  siblingCount?: number;
+  childCount?: number;
+  depthLevel?: number;
+  relativeIndex?: number;
+  clickable?: boolean;
+  enabled?: boolean;
+  selected?: boolean;
+  contentDesc?: string;
+  packageName?: string;
+}
+
+// 🆕 回退计划类型
+export interface FallbackPlan {
+  id: string;
+  strategy: 'self_id' | 'region_text_to_parent' | 'region_local_index' | 'neighbor_relative' | 'global_index' | 'absolute_xpath';
+  description: string;
+  timeBudgetMs: number;  // 该策略的时间预算
+  priority: number;      // 优先级（数字越小优先级越高）
+  params?: Record<string, any>;
+}
+
+// 🆕 统一执行结果类型（前端版本）
+export interface UnifiedExecutionResult {
+  success: boolean;
+  usedChain: 'intelligent_chain' | 'single_step' | 'static_strategy';
+  usedSelectionMode: string;
+  usedVariant?: string;
+  matchCountEachStep: number[];
+  bounds: Array<{left: number; top: number; right: number; bottom: number}>;
+  tapXy: Array<{x: number; y: number; confidence: number; validated: boolean}>;
+  timings: {
+    dumpTimeMs: number;
+    matchTimeMs: number;
+    clickTimeMs: number;
+    totalTimeMs: number;
+  };
+  screenshots: string[];
+  errorCode?: 'NO_MATCH' | 'MULTI_MATCH' | 'ASSERT_FAIL' | 'MUTATION_DETECTED' | 'TIME_BUDGET_EXCEEDED' | 'DEVICE_ERROR' | 'PROTOCOL_ERROR';
+  errorMessage?: string;
 }
 
 export interface SingleStepTestResult {

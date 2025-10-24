@@ -69,13 +69,13 @@ pub async fn validate_smart_selection_protocol(
     }
     
     // 验证选择模式特定配置
-    match protocol.selection.mode {
-        SelectionMode::All => {
+    match &protocol.selection.mode {
+        SelectionMode::All { batch_config } => {
             if protocol.selection.batch_config.is_none() {
                 warnings.push("批量模式建议配置批量参数".to_string());
             }
         }
-        SelectionMode::Random => {
+        SelectionMode::Random { seed, ensure_stable_sort } => {
             if protocol.selection.random_seed.is_none() {
                 warnings.push("随机模式建议设置种子确保可复现".to_string());
             }
@@ -324,13 +324,13 @@ pub async fn preview_smart_selection_candidates(
         total_found: candidate_count as u32,
         candidates: candidate_summaries.clone(),
         selection_preview: SelectionPreview {
-            mode: protocol.selection.mode,
-            would_select_count: match protocol.selection.mode {
-                SelectionMode::All => candidate_count as u32,
+            mode: protocol.selection.mode.clone(),
+            would_select_count: match &protocol.selection.mode {
+                SelectionMode::All { .. } => candidate_count as u32,
                 _ => if is_empty { 0 } else { 1 },
             },
-            estimated_execution_time_ms: match protocol.selection.mode {
-                SelectionMode::All => {
+            estimated_execution_time_ms: match &protocol.selection.mode {
+                SelectionMode::All { .. } => {
                     let interval = protocol.selection.batch_config
                         .as_ref()
                         .map(|bc| bc.interval_ms)
