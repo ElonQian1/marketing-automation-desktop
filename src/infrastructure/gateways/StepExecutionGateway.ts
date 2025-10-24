@@ -4,6 +4,7 @@
 
 import type { StepActionParams } from '../../types/stepActions';
 import { getCurrentExecutionEngine } from '../config/ExecutionEngineConfig';
+import { convertToV2Request } from './adapters/v2Adapter';
 
 // 执行引擎类型
 export type ExecutionEngine = 'v1' | 'v2' | 'shadow';
@@ -189,8 +190,7 @@ export class StepExecutionGateway {
     console.log('[StepExecGateway] V2 execution - 使用真实V2后端');
     
     try {
-      // 动态导入V2适配器函数
-      const { convertToV2Request } = await import('./adapters/v2Adapter');
+      // 静态导入V2适配器函数
       const { invoke } = await import('@tauri-apps/api/core');
       
       // 转换为V2后端格式

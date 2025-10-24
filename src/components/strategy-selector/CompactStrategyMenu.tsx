@@ -19,6 +19,8 @@ import { useStepCardStore } from "../../store/stepcards";
 import { useStepScoreStore } from "../../stores/step-score-store";
 import { useAnalysisState } from "../../stores/analysis-state-store";
 import { isValidScore, toPercentInt01 } from "../../utils/score-utils";
+import type { SelectionMode } from '../../types/smartSelection';
+import type { ActionKind } from '../../types/smartScript';
 
 /**
  * 根据置信度百分比返回对应的颜色
@@ -72,6 +74,10 @@ const CompactStrategyMenu: React.FC<CompactStrategyMenuProps> = ({
     stepId,
   });
   const [showExpandedView, setShowExpandedView] = useState(false);
+  
+  // 🎯 新增：智能选择状态管理
+  const [selectionMode, setSelectionMode] = useState<SelectionMode>('first');
+  const [operationType, setOperationType] = useState<ActionKind>('tap');
 
   // 获取置信度和策略数据 - 🔧 修复：通过stepId查找卡片
   const cardId = useStepCardStore((state) => stepId ? state.byStepId[stepId] : undefined);
@@ -286,6 +292,141 @@ const CompactStrategyMenu: React.FC<CompactStrategyMenuProps> = ({
     console.log("🔍 [CompactStrategyMenu] 状态变化:", debugInfo);
   }, [disabled, selector.analysis.status, selector.activeStrategy]);
 
+  // 🎯 新增：选择模式相关函数
+  const getSelectionModeLabel = () => {
+    switch (selectionMode) {
+      case 'first': return '🎯 第一个';
+      case 'last': return '🎯 最后一个';
+      case 'match-original': return '🔍 精确匹配';
+      case 'random': return '🎲 随机选择';
+      case 'all': return '📋 批量全部';
+      default: return '🎯 第一个';
+    }
+  };
+
+  const handleSelectionModeClick = ({ key }: { key: string }) => {
+    console.log('🎯 选择模式菜单项被点击:', key);
+    switch (key) {
+      case 'first':
+        setSelectionMode('first');
+        console.log('选择第一个模式');
+        break;
+      case 'last':
+        setSelectionMode('last');
+        console.log('选择最后一个模式');
+        break;
+      case 'match-original':
+        setSelectionMode('match-original');
+        console.log('选择精确匹配模式');
+        break;
+      case 'random':
+        setSelectionMode('random');
+        console.log('选择随机模式');
+        break;
+      case 'all':
+        setSelectionMode('all');
+        console.log('选择批量模式');
+        break;
+      default:
+        console.warn('未知的选择模式:', key);
+    }
+  };
+
+  const getSelectionModeMenu = () => ({
+    onClick: handleSelectionModeClick,
+    items: [
+      {
+        key: 'first',
+        label: '🎯 第一个',
+      },
+      {
+        key: 'last', 
+        label: '🎯 最后一个',
+      },
+      {
+        key: 'match-original',
+        label: '🔍 精确匹配', 
+      },
+      {
+        key: 'random',
+        label: '🎲 随机选择',
+      },
+      {
+        key: 'all',
+        label: '📋 批量全部',
+      }
+    ]
+  });
+
+  // 👆 操作类型相关函数
+  const getOperationTypeLabel = () => {
+    switch (operationType) {
+      case 'tap': return '👆 点击';
+      case 'long_press': return '⏸️ 长按';
+      case 'double_tap': return '👆👆 双击';
+      case 'swipe': return '👉 滑动';
+      case 'input': return '⌨️ 输入';
+      case 'wait': return '⏳ 等待';
+      default: return '👆 点击';
+    }
+  };
+
+  const handleOperationTypeClick = ({ key }: { key: string }) => {
+    console.log('👆 操作类型菜单项被点击:', key);
+    switch (key) {
+      case 'tap':
+        setOperationType('tap');
+        break;
+      case 'long_press':
+        setOperationType('long_press');
+        break;
+      case 'double_tap':
+        setOperationType('double_tap');
+        break;
+      case 'swipe':
+        setOperationType('swipe');
+        break;
+      case 'input':
+        setOperationType('input');
+        break;
+      case 'wait':
+        setOperationType('wait');
+        break;
+      default:
+        console.warn('未知的操作类型:', key);
+    }
+  };
+
+  const getOperationTypeMenu = () => ({
+    onClick: handleOperationTypeClick,
+    items: [
+      {
+        key: 'tap',
+        label: '👆 点击',
+      },
+      {
+        key: 'long_press',
+        label: '⏸️ 长按',
+      },
+      {
+        key: 'double_tap',
+        label: '👆👆 双击',
+      },
+      {
+        key: 'swipe',
+        label: '👉 滑动',
+      },
+      {
+        key: 'input',
+        label: '⌨️ 输入',
+      },
+      {
+        key: 'wait',
+        label: '⏳ 等待',
+      }
+    ]
+  });
+
   return (
     <div
       style={{
@@ -320,35 +461,7 @@ const CompactStrategyMenu: React.FC<CompactStrategyMenuProps> = ({
 
       {/* 第二个：选择模式按钮 */}
       <Dropdown
-        menu={{
-          items: [
-            {
-              key: 'first',
-              label: '🎯 第一个',
-              onClick: () => console.log('选择第一个模式')
-            },
-            {
-              key: 'last', 
-              label: '🎯 最后一个',
-              onClick: () => console.log('选择最后一个模式')
-            },
-            {
-              key: 'match-original',
-              label: '🔍 精确匹配', 
-              onClick: () => console.log('选择精确匹配模式')
-            },
-            {
-              key: 'random',
-              label: '🎲 随机选择',
-              onClick: () => console.log('选择随机模式')
-            },
-            {
-              key: 'all',
-              label: '📋 批量全部',
-              onClick: () => console.log('选择批量模式')
-            }
-          ]
-        }}
+        menu={getSelectionModeMenu()}
         trigger={["click"]}
         disabled={disabled}
       >
@@ -362,7 +475,7 @@ const CompactStrategyMenu: React.FC<CompactStrategyMenuProps> = ({
             fontSize: "12px",
           }}
         >
-          🎯 第一个
+          {getSelectionModeLabel()}
           <span style={{ color: "rgb(16, 185, 129)", fontSize: "12px", marginLeft: "4px" }}>✅</span>
           <span style={{ marginLeft: "4px" }}>▾</span>
         </Button>
@@ -370,40 +483,7 @@ const CompactStrategyMenu: React.FC<CompactStrategyMenuProps> = ({
 
       {/* 第三个：操作方式按钮 */}
       <Dropdown
-        menu={{
-          items: [
-            {
-              key: 'tap',
-              label: '👆 点击',
-              onClick: () => console.log('选择点击操作')
-            },
-            {
-              key: 'long_press',
-              label: '⏸️ 长按',
-              onClick: () => console.log('选择长按操作')
-            },
-            {
-              key: 'double_tap',
-              label: '👆👆 双击',
-              onClick: () => console.log('选择双击操作')
-            },
-            {
-              key: 'swipe',
-              label: '👉 滑动',
-              onClick: () => console.log('选择滑动操作')
-            },
-            {
-              key: 'input',
-              label: '⌨️ 输入',
-              onClick: () => console.log('选择输入操作')
-            },
-            {
-              key: 'wait',
-              label: '⏳ 等待',
-              onClick: () => console.log('选择等待操作')
-            }
-          ]
-        }}
+        menu={getOperationTypeMenu()}
         trigger={["click"]}
         disabled={disabled}
       >
@@ -417,7 +497,7 @@ const CompactStrategyMenu: React.FC<CompactStrategyMenuProps> = ({
             fontSize: "12px",
           }}
         >
-          👆 点击
+          {getOperationTypeLabel()}
           <span style={{ color: "rgb(16, 185, 129)", fontSize: "12px", marginLeft: "4px" }}>✅</span>
           <span style={{ marginLeft: "4px" }}>▾</span>
         </Button>

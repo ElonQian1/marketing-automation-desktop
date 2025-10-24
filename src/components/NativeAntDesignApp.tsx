@@ -92,6 +92,7 @@ import AutoFillDemo from "../modules/universal-ui/pages/auto-fill-demo.tsx";
 import ConfidenceDemo from "../pages/confidence-demo";
 import SharedCacheDemo from "../pages/shared-cache-demo";
 import CompleteConfidenceDemo from "../pages/complete-confidence-demo";
+import SmartSelectionTestPage from "../pages/smart-selection-test";
 import ConfidenceSystemTest from "../pages/ConfidenceSystemTest";
 import { TestRealBackendIntegration } from "./test/TestRealBackendIntegration";
 import StrategyDemo from "../pages/StrategyDemo";
@@ -233,6 +234,11 @@ const NativeAntDesignApp: React.FC = () => {
       label: "🔬 置信度调试面板",
     },
     {
+      key: "smart-selection-test",
+      icon: <AimOutlined />,
+      label: "🎯 智能选择功能测试",
+    },
+    {
       key: "test-intelligent-analysis-adapter",
       icon: <ThunderboltOutlined />,
       label: "🧪 智能分析适配器测试",
@@ -353,6 +359,8 @@ const NativeAntDesignApp: React.FC = () => {
         return <ConfidenceSystemTest />;
       case "confidence-debug-panel":
         return <ConfidenceDebugPanel />;
+      case "smart-selection-test":
+        return <SmartSelectionTestPage />;
       case "test-intelligent-analysis-adapter":
         return <TestIntelligentAnalysisAdapter />;
       case "test-real-backend-integration":
