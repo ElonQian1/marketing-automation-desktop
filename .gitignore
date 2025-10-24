@@ -182,3 +182,4 @@ test-results/
 reports/
 *.report.json
 quality-gate-report.json
+analysis/.ai/cache.jsonl
