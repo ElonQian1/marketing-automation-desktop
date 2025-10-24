@@ -9,6 +9,8 @@ import { useStepCardStore } from '../../store/stepcards';
 import { useStepScoreStore } from '../../stores/step-score-store';
 import { useUnifiedSmartAnalysis } from '../../hooks/useUnifiedSmartAnalysis';
 import { ConfidenceTag } from '../../modules/universal-ui';
+import type { SelectionMode } from '../../types/smartSelection';
+import type { ActionKind } from '../../types/smartScript';
 
 interface UnifiedCompactStrategyMenuProps {
   elementData: {
@@ -43,6 +45,103 @@ export const UnifiedCompactStrategyMenu: React.FC<UnifiedCompactStrategyMenuProp
   const { getByCardId, generateKey, get: getScore } = useStepScoreStore();
   
   const [currentCardId, setCurrentCardId] = React.useState<string | null>(existingCardId || null);
+  
+  // 🎯 新增：选择模式和操作方式的状态管理
+  const [selectionMode, setSelectionMode] = React.useState<SelectionMode>('first');
+  const [operationType, setOperationType] = React.useState<ActionKind>('tap');
+
+  // 🔍 调试输出状态变化
+  React.useEffect(() => {
+    console.log('🎯 [UnifiedCompactStrategyMenu] 选择设置更新:', {
+      selectionMode,
+      operationType,
+      elementUid: elementData.uid,
+      timestamp: new Date().toISOString()
+    });
+  }, [selectionMode, operationType, elementData.uid]);
+
+  // 🧪 测试执行智能选择
+  const testExecuteSmartSelection = async () => {
+    console.log('🚀 [UnifiedCompactStrategyMenu] 测试执行智能选择', {
+      selectionMode,
+      operationType,
+      elementData
+    });
+
+    try {
+      // 导入智能选择服务
+      const { SmartSelectionService } = await import('../../services/smartSelectionService');
+      
+      // 构建智能选择协议
+      const protocol: import('../../types/smartSelection').SmartSelectionProtocol = {
+        anchor: {
+          container_xpath: undefined,
+          clickable_parent_xpath: undefined,
+          fingerprint: {
+            text_content: elementData.text,
+            resource_id: elementData.resourceId,
+            class_chain: elementData.className ? [elementData.className] : undefined,
+            bounds_signature: undefined,
+            parent_class: undefined,
+            sibling_count: undefined,
+            child_count: undefined,
+            depth_level: undefined,
+            relative_index: undefined,
+            clickable: undefined,
+            enabled: undefined,
+            selected: undefined,
+            content_desc: undefined,
+            package_name: undefined,
+            text_hash: undefined,
+            resource_id_suffix: undefined,
+          }
+        },
+        selection: {
+          mode: selectionMode, // 🎯 使用当前选择的模式
+          order: 'visual-yx',
+          random_seed: undefined,
+          batch_config: selectionMode === 'all' ? {
+            interval_ms: 2000,
+            max_count: 10,
+            jitter_ms: 500,
+            continue_on_error: true,
+            show_progress: true
+          } : undefined,
+          filters: {
+            min_confidence: 0.7
+          }
+        },
+        matching_context: undefined,
+        strategy_plan: undefined,
+        limits: {
+          allow_backend_fallback: true,
+          time_budget_ms: 5000,
+          per_candidate_budget_ms: 1000,
+          strict_mode: false,
+          max_retry_count: 3
+        },
+        fallback: {
+          absolute_xpath: elementData.xpath,
+          allow_fallback: true
+        }
+      };
+
+      // 执行智能选择
+      const result = await SmartSelectionService.executeSmartSelection('默认设备', protocol);
+      
+      console.log('✅ [UnifiedCompactStrategyMenu] 智能选择执行完成', result);
+      
+      // 可以添加成功提示
+      if (result.success) {
+        console.log(`🎯 智能选择成功! 选择模式: ${selectionMode}, 操作类型: ${operationType}`);
+      } else {
+        console.warn(`⚠️ 智能选择部分失败: ${result.message}`);
+      }
+      
+    } catch (error) {
+      console.error('❌ [UnifiedCompactStrategyMenu] 智能选择执行失败', error);
+    }
+  };
 
   // 当前卡片信息
   const currentCard = currentCardId ? getCard(currentCardId) : null;
@@ -338,6 +437,102 @@ export const UnifiedCompactStrategyMenu: React.FC<UnifiedCompactStrategyMenuProp
     return { items };
   };
 
+  // 🎯 选择模式菜单
+  const getSelectionModeMenu = () => {
+    const items = [
+      {
+        key: 'first',
+        label: '🎯 第一个',
+        onClick: () => setSelectionMode('first')
+      },
+      {
+        key: 'last', 
+        label: '🎯 最后一个',
+        onClick: () => setSelectionMode('last')
+      },
+      {
+        key: 'match-original',
+        label: '🔍 精确匹配', 
+        onClick: () => setSelectionMode('match-original')
+      },
+      {
+        key: 'random',
+        label: '🎲 随机选择',
+        onClick: () => setSelectionMode('random')
+      },
+      {
+        key: 'all',
+        label: '📋 批量全部',
+        onClick: () => setSelectionMode('all')
+      }
+    ];
+
+    return { items };
+  };
+
+  // 🎯 选择模式标签
+  const getSelectionModeLabel = () => {
+    switch (selectionMode) {
+      case 'first': return '🎯 第一个';
+      case 'last': return '🎯 最后一个';
+      case 'match-original': return '🔍 精确匹配';
+      case 'random': return '🎲 随机选择';
+      case 'all': return '📋 批量全部';
+      default: return '🎯 第一个';
+    }
+  };
+
+  // 🎯 操作方式菜单
+  const getOperationTypeMenu = () => {
+    const items = [
+      {
+        key: 'tap',
+        label: '👆 点击',
+        onClick: () => setOperationType('tap')
+      },
+      {
+        key: 'long_press',
+        label: '⏸️ 长按',
+        onClick: () => setOperationType('long_press')
+      },
+      {
+        key: 'double_tap',
+        label: '👆👆 双击',
+        onClick: () => setOperationType('double_tap')
+      },
+      {
+        key: 'swipe',
+        label: '👉 滑动',
+        onClick: () => setOperationType('swipe')
+      },
+      {
+        key: 'input',
+        label: '⌨️ 输入',
+        onClick: () => setOperationType('input')
+      },
+      {
+        key: 'wait',
+        label: '⏳ 等待',
+        onClick: () => setOperationType('wait')
+      }
+    ];
+
+    return { items };
+  };
+
+  // 🎯 操作方式标签
+  const getOperationTypeLabel = () => {
+    switch (operationType) {
+      case 'tap': return '👆 点击';
+      case 'long_press': return '⏸️ 长按';
+      case 'double_tap': return '👆👆 双击';
+      case 'swipe': return '👉 滑动';
+      case 'input': return '⌨️ 输入';
+      case 'wait': return '⏳ 等待';
+      default: return '👆 点击';
+    }
+  };
+
   return (
     <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
       {/* 主按钮 */}
@@ -360,6 +555,52 @@ export const UnifiedCompactStrategyMenu: React.FC<UnifiedCompactStrategyMenuProp
           }}
         >
           {displayStatus.text}
+          <span style={{ marginLeft: '4px' }}>▾</span>
+        </Button>
+      </Dropdown>
+
+      {/* 选择模式按钮 */}
+      <Dropdown 
+        menu={getSelectionModeMenu()} 
+        trigger={['click']}
+        disabled={disabled}
+      >
+        <Button
+          size="small" 
+          type="default"
+          style={{
+            background: 'rgba(110, 139, 255, 0.1)',
+            border: '1px solid rgba(110, 139, 255, 0.3)',
+            color: '#F8FAFC',
+            fontSize: '12px',
+            minWidth: '120px'
+          }}
+        >
+          {getSelectionModeLabel()}
+          <span style={{ color: 'rgb(16, 185, 129)', fontSize: '12px', marginLeft: '4px' }}>✅</span>
+          <span style={{ marginLeft: '4px' }}>▾</span>
+        </Button>
+      </Dropdown>
+
+      {/* 操作方式按钮 */}
+      <Dropdown 
+        menu={getOperationTypeMenu()} 
+        trigger={['click']}
+        disabled={disabled}
+      >
+        <Button
+          size="small" 
+          type="default"
+          style={{
+            background: 'rgba(110, 139, 255, 0.1)',
+            border: '1px solid rgba(110, 139, 255, 0.3)',
+            color: '#F8FAFC',
+            fontSize: '12px',
+            minWidth: '100px'
+          }}
+        >
+          {getOperationTypeLabel()}
+          <span style={{ color: 'rgb(16, 185, 129)', fontSize: '12px', marginLeft: '4px' }}>✅</span>
           <span style={{ marginLeft: '4px' }}>▾</span>
         </Button>
       </Dropdown>
@@ -390,6 +631,26 @@ export const UnifiedCompactStrategyMenu: React.FC<UnifiedCompactStrategyMenuProp
       {currentCard?.status === 'ready' && (
         <Tooltip title="策略已就绪">
           <CheckCircleIcon size={16} style={{ color: '#10B981' }} />
+        </Tooltip>
+      )}
+
+      {/* 🧪 测试执行按钮 */}
+      {process.env.NODE_ENV === 'development' && (
+        <Tooltip title="测试执行智能选择">
+          <Button
+            size="small"
+            type="text"
+            onClick={testExecuteSmartSelection}
+            style={{
+              color: '#F59E0B',
+              border: 'none',
+              padding: '2px 4px',
+              minWidth: '24px',
+              height: '24px'
+            }}
+          >
+            🧪
+          </Button>
         </Tooltip>
       )}
 
