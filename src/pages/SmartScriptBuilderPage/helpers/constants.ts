@@ -153,6 +153,71 @@ export const SMART_ACTION_CONFIGS = {
     ],
   },
 
+  [SmartActionType.SMART_SELECTION]: {
+    name: "智能选择",
+    description: "在多个相似元素中智能选择目标元素",
+    icon: "🧠",
+    color: "blue",
+    category: "smart",
+    parameters: [
+      {
+        key: "target_text",
+        label: "目标文本",
+        type: "text",
+        required: true,
+        default: "关注",
+      },
+      {
+        key: "selection_mode", 
+        label: "选择模式",
+        type: "select",
+        required: true,
+        options: ["first", "last", "random", "all"],
+        default: "first",
+      },
+      {
+        key: "batch_interval_ms",
+        label: "批量间隔(ms)",
+        type: "number",
+        default: 2000,
+      },
+      {
+        key: "batch_max_count", 
+        label: "批量最大数量",
+        type: "number",
+        default: 10,
+      },
+    ],
+    advanced: [
+      {
+        key: "min_confidence",
+        label: "最小置信度",
+        type: "slider",
+        min: 0.1,
+        max: 1.0,
+        default: 0.8,
+      },
+      {
+        key: "resource_id",
+        label: "资源ID过滤",
+        type: "text",
+        default: "",
+      },
+      {
+        key: "continue_on_error",
+        label: "出错时继续",
+        type: "boolean",
+        default: true,
+      },
+      {
+        key: "show_progress",
+        label: "显示进度",
+        type: "boolean", 
+        default: true,
+      },
+    ],
+  },
+
   [SmartActionType.RECOGNIZE_PAGE]: {
     name: "页面识别",
     description: "智能识别当前页面状态",

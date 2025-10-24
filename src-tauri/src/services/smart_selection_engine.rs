@@ -97,8 +97,8 @@ impl SmartSelectionEngine {
         }
         
         // 3. 根据选择模式执行策略
-        let selected_elements = match protocol.selection.mode {
-            SelectionMode::MatchOriginal => {
+        let selected_elements = match &protocol.selection.mode {
+            SelectionMode::MatchOriginal { min_confidence, fallback_to_first } => {
                 Self::execute_match_original_strategy(&candidates, &protocol.anchor.fingerprint, &mut debug_logs)?
             }
             SelectionMode::First => {
@@ -108,10 +108,10 @@ impl SmartSelectionEngine {
                 let last_index = candidates.len().saturating_sub(1);
                 Self::execute_positional_strategy(&candidates, last_index, &mut debug_logs)?
             }
-            SelectionMode::Random => {
-                Self::execute_random_strategy(&candidates, protocol.selection.random_seed, &mut debug_logs)?
+            SelectionMode::Random { seed, ensure_stable_sort } => {
+                Self::execute_random_strategy(&candidates, Some(*seed), &mut debug_logs)?
             }
-            SelectionMode::All => {
+            SelectionMode::All { batch_config } => {
                 Self::execute_batch_strategy(&candidates, &mut debug_logs)?
             }
         };

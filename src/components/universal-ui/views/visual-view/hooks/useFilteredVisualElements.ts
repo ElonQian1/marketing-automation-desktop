@@ -18,6 +18,8 @@ interface Params {
 
 export function useFilteredVisualElements({ elements, searchText, selectedCategory, showOnlyClickable, hideCompletely, selectionManager, filterConfig }: Params) {
   return useMemo(() => {
+
+
     // 首先处理隐藏元素
     let filtered = elements;
     if (hideCompletely) {

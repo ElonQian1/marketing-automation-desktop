@@ -36,6 +36,13 @@ export function categorizeElement(node: any): string {
 
   if (contentDesc.includes('搜索') || className.includes('search')) return 'search';
 
+  // 🆕 添加菜单元素识别
+  if (
+    contentDesc.includes('菜单') || contentDesc.includes('menu') || contentDesc.includes('设置') ||
+    contentDesc.includes('更多') || contentDesc.includes('选项') || text.includes('菜单') ||
+    text.includes('设置') || text.includes('更多')
+  ) return 'menu';
+
   if (contentDesc.includes('笔记') || contentDesc.includes('视频') || (node.clickable === 'true' && contentDesc.includes('来自'))) return 'content';
 
   if (className.includes('Button') || node.clickable === 'true') return 'buttons';

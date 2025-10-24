@@ -7,6 +7,8 @@ use tauri::AppHandle;
 
 use super::types::*;
 use super::events::*;
+use crate::services::smart_selection_engine::SmartSelectionEngine;
+use crate::types::smart_selection::*;
 
 /// 智能单步执行（内部实现）
 pub async fn execute_single_step_internal(
@@ -185,6 +187,35 @@ async fn execute_step_by_inline(
                 }
             }
         }
+        SingleStepAction::SmartSelection => {
+            tracing::info!("🧠 执行智能选择: stepId={}", step_id);
+            
+            // 从params中提取智能选择协议
+            let protocol = match extract_smart_selection_protocol(&params) {
+                Ok(protocol) => protocol,
+                Err(e) => {
+                    tracing::error!("❌ 智能选择参数解析失败: {}", e);
+                    return Err(format!("智能选择参数解析失败: {}", e));
+                }
+            };
+            
+            tracing::info!("🎯 智能选择配置: mode={:?}, target={:?}", 
+                protocol.selection.mode, protocol.anchor.fingerprint.text_content);
+            
+            // 执行智能选择
+            match SmartSelectionEngine::execute_smart_selection(&envelope.device_id, &protocol).await {
+                Ok(result) => {
+                    tracing::info!("✅ 智能选择执行成功: 选中 {} 个元素", 
+                        result.matched_elements.selected_count
+                    );
+                    result.matched_elements.confidence_scores.get(0).copied().unwrap_or(0.8)
+                }
+                Err(e) => {
+                    tracing::error!("❌ 智能选择执行失败: {}", e);
+                    return Err(format!("智能选择执行失败: {}", e));
+                }
+            }
+        }
         SingleStepAction::Unknown => {
             let err_msg = format!(
                 "❌ 未知动作类型：步骤 '{}' 的类型无法识别。请检查前端类型映射。",
@@ -336,4 +367,118 @@ async fn execute_action_unified(
         tracing::error!("❌ 操作执行失败: {}", result.message);
         Err(result.message)
     }
+}
+
+/// 从V3参数中提取智能选择协议
+fn extract_smart_selection_protocol(params: &Value) -> Result<SmartSelectionProtocol, String> {
+    tracing::debug!("🔧 提取智能选择协议: params={:?}", params);
+    
+    // 从params.smartSelection中提取配置
+    let smart_selection = params.get("smartSelection")
+        .ok_or_else(|| "缺少 smartSelection 参数".to_string())?;
+    
+    // 提取基础参数
+    let mode = smart_selection.get("mode")
+        .and_then(|v| v.as_str())
+        .ok_or_else(|| "缺少 selection mode".to_string())?;
+        
+    let target_text = smart_selection.get("targetText")
+        .and_then(|v| v.as_str())
+        .unwrap_or("关注");
+        
+    let min_confidence = smart_selection.get("minConfidence")
+        .and_then(|v| v.as_f64())
+        .unwrap_or(0.8) as f32;
+    
+    // 构建选择模式
+    let selection_mode = match mode {
+        "first" => SelectionMode::First,
+        "last" => SelectionMode::Last, 
+        "random" => {
+            let seed = smart_selection.get("randomSeed")
+                .and_then(|v| v.as_u64())
+                .unwrap_or(12345);
+            SelectionMode::Random { seed, ensure_stable_sort: true }
+        }
+        "all" => {
+            // 提取批量配置
+            let batch_config = smart_selection.get("batchConfig");
+            let interval_ms = batch_config
+                .and_then(|b| b.get("intervalMs"))
+                .and_then(|v| v.as_u64())
+                .unwrap_or(2000);
+            let max_count = batch_config
+                .and_then(|b| b.get("maxCount"))
+                .and_then(|v| v.as_u64())
+                .unwrap_or(10) as u32;
+            let continue_on_error = batch_config
+                .and_then(|b| b.get("continueOnError"))
+                .and_then(|v| v.as_bool())
+                .unwrap_or(true);
+            let show_progress = batch_config
+                .and_then(|b| b.get("showProgress"))
+                .and_then(|v| v.as_bool())
+                .unwrap_or(true);
+                
+            SelectionMode::All {
+                batch_config: BatchConfigV2 {
+                    interval_ms,
+                    jitter_ms: 500,
+                    max_per_session: max_count,
+                    cooldown_ms: 5000,
+                    continue_on_error,
+                    show_progress,
+                    refresh_policy: RefreshPolicy::OnMutation,
+                    requery_by_fingerprint: true,
+                    force_light_validation: true,
+                }
+            }
+        }
+        _ => return Err(format!("不支持的选择模式: {}", mode)),
+    };
+    
+    // 构建锚点指纹（简化版本）
+    let fingerprint = ElementFingerprint {
+        text_content: Some(target_text.to_string()),
+        text_hash: None,
+        class_chain: None,
+        resource_id: None,
+        resource_id_suffix: None,
+        bounds_signature: None,
+        parent_class: None,
+        sibling_count: None,
+        child_count: None,
+        depth_level: None,
+        relative_index: None,
+        clickable: None,
+        enabled: None,
+        selected: None,
+        content_desc: None,
+        package_name: None,
+    };
+    
+    // 构建智能选择协议
+    let protocol = SmartSelectionProtocol {
+        anchor: AnchorInfo {
+            container_xpath: None,
+            clickable_parent_xpath: None,
+            fingerprint,
+        },
+        selection: SelectionConfig {
+            mode: selection_mode,
+            order: None,
+            random_seed: None,
+            batch_config: None,
+            filters: None,
+        },
+        matching_context: None,
+        strategy_plan: None,
+        limits: None,
+        fallback: None,
+    };
+    
+    tracing::info!("✅ 智能选择协议构建完成: mode={:?}, target={}, confidence={}", 
+        mode, target_text, min_confidence);
+    
+    Ok(protocol)
 }

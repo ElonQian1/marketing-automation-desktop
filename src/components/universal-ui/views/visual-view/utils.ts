@@ -121,6 +121,13 @@ export const categorizeElement = (element: UIElement | any): string => {
     return 'search';
   }
   
+  // 🆕 添加菜单元素识别
+  if (contentDesc.includes('菜单') || contentDesc.includes('menu') || contentDesc.includes('设置') ||
+      contentDesc.includes('更多') || contentDesc.includes('选项') || text.includes('菜单') ||
+      text.includes('设置') || text.includes('更多')) {
+    return 'menu';
+  }
+  
   if (contentDesc.includes('笔记') || contentDesc.includes('视频') || 
       (element.is_clickable && contentDesc.includes('来自'))) {
     return 'content';
@@ -170,6 +177,7 @@ export const createDefaultCategories = (elements: VisualUIElement[]): VisualElem
     navigation: { name: '导航功能', icon: '🧭', color: '#1890ff', description: '主要导航和菜单', elements: [] },
     tabs: { name: '标签页', icon: '📑', color: '#722ed1', description: '页面标签和切换', elements: [] },
     search: { name: '搜索功能', icon: '🔍', color: '#13c2c2', description: '搜索相关功能', elements: [] },
+    menu: { name: '菜单按钮', icon: '📋', color: '#f759ab', description: '菜单、设置等功能按钮', elements: [] },
     content: { name: '内容卡片', icon: '📄', color: '#52c41a', description: '主要内容区域', elements: [] },
     buttons: { name: '按钮控件', icon: '🔘', color: '#fa8c16', description: '可点击的按钮', elements: [] },
     text: { name: '文本内容', icon: '📝', color: '#eb2f96', description: '文本信息显示', elements: [] },
