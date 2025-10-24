@@ -91,9 +91,47 @@ pub async fn get_ui_dump(device_id: &str) -> Result<String, String> {
     // 获取正确的ADB路径
     let adb_path = get_adb_path();
     
-    // 先尝试刷新UI dump
+    // 🔒 第一步：检查设备授权状态
+    println!("🔍 检查设备授权状态...");
+    let mut check_cmd = AsyncCommand::new(&adb_path);
+    check_cmd.args(&["devices"]);
+    
+    #[cfg(windows)]
+    {
+        check_cmd.creation_flags(0x08000000);
+    }
+    
+    match check_cmd.output().await {
+        Ok(output) => {
+            let devices_output = String::from_utf8_lossy(&output.stdout);
+            println!("📋 设备列表:\n{}", devices_output);
+            
+            // 检查设备是否为 unauthorized 状态
+            if devices_output.contains(device_id) {
+                if devices_output.contains("unauthorized") {
+                    return Err(format!(
+                        "设备未授权：请在设备上允许USB调试授权。\n\
+                        步骤：\n\
+                        1. 查看设备屏幕是否有授权弹窗\n\
+                        2. 勾选'始终允许此计算机调试'\n\
+                        3. 点击'允许'按钮"
+                    ));
+                } else if devices_output.contains("offline") {
+                    return Err("设备离线，请检查USB连接并重新插拔设备".to_string());
+                }
+                println!("✅ 设备已授权");
+            } else {
+                return Err(format!("未找到设备 {}，请检查连接", device_id));
+            }
+        }
+        Err(e) => {
+            println!("⚠️ 无法检查设备状态: {}", e);
+        }
+    }
+    
+    // 先尝试刷新UI dump（显式指定输出文件路径）
     let mut refresh_cmd = AsyncCommand::new(&adb_path);
-    refresh_cmd.args(&["-s", device_id, "shell", "uiautomator", "dump"]);
+    refresh_cmd.args(&["-s", device_id, "shell", "uiautomator", "dump", "/sdcard/window_dump.xml"]);
     
     #[cfg(windows)]
     {
@@ -108,15 +146,17 @@ pub async fn get_ui_dump(device_id: &str) -> Result<String, String> {
         }
         Ok(output) => {
             let error = String::from_utf8_lossy(&output.stderr);
-            println!("⚠️ UI dump刷新警告: {}", error);
+            let stdout = String::from_utf8_lossy(&output.stdout);
+            println!("⚠️ UI dump刷新警告: stderr={}, stdout={}", error, stdout);
+            // 即使有警告，只要输出了文件就继续
         }
         Err(e) => {
             println!("⚠️ UI dump刷新失败: {}", e);
         }
     }
     
-    // 等待一下让UI dump生成
-    tokio::time::sleep(tokio::time::Duration::from_millis(1000)).await;
+    // 等待一下让UI dump生成（增加等待时间以确保文件写入完成）
+    tokio::time::sleep(tokio::time::Duration::from_millis(1500)).await;
     
     // 读取UI dump文件
     let mut read_cmd = AsyncCommand::new(&adb_path);
@@ -133,16 +173,121 @@ pub async fn get_ui_dump(device_id: &str) -> Result<String, String> {
         Ok(output) if output.status.success() => {
             let xml_content = String::from_utf8_lossy(&output.stdout).to_string();
             if xml_content.trim().is_empty() {
-                return Err("UI dump文件为空".to_string());
+                println!("⚠️ 第一次读取为空，尝试备用方法...");
+                // 尝试备用方法：一条命令同时 dump 和 cat
+                return try_alternative_dump(device_id, &adb_path).await;
             }
             println!("📄 成功读取UI dump，大小: {} 字符", xml_content.len());
             Ok(xml_content)
         }
         Ok(output) => {
             let error = String::from_utf8_lossy(&output.stderr);
-            Err(format!("读取UI dump失败: {}", error))
+            println!("⚠️ 第一次读取失败: {}, 尝试备用方法...", error);
+            // 尝试备用方法
+            try_alternative_dump(device_id, &adb_path).await
         }
-        Err(e) => Err(format!("执行adb命令失败: {}", e)),
+        Err(e) => {
+            println!("⚠️ 执行adb命令失败: {}, 尝试备用方法...", e);
+            try_alternative_dump(device_id, &adb_path).await
+        }
+    }
+}
+
+/// 备用方法：使用一条命令同时 dump 和输出
+async fn try_alternative_dump(device_id: &str, adb_path: &str) -> Result<String, String> {
+    println!("🔄 尝试备用 dump 方法（一体化命令）...");
+    
+    let mut cmd = AsyncCommand::new(adb_path);
+    cmd.args(&[
+        "-s", device_id, 
+        "shell", 
+        "uiautomator dump /sdcard/window_dump.xml && cat /sdcard/window_dump.xml"
+    ]);
+    
+    #[cfg(windows)]
+    {
+        cmd.creation_flags(0x08000000);
+    }
+    
+    let result = cmd.output().await;
+    
+    match result {
+        Ok(output) if output.status.success() => {
+            let xml_content = String::from_utf8_lossy(&output.stdout).to_string();
+            if xml_content.trim().is_empty() {
+                return Err("备用方法：UI dump文件为空".to_string());
+            }
+            println!("✅ 备用方法成功，大小: {} 字符", xml_content.len());
+            Ok(xml_content)
+        }
+        Ok(output) => {
+            let error = String::from_utf8_lossy(&output.stderr);
+            
+            // 🔍 分析具体错误类型并给出友好提示
+            if error.contains("could not get idle state") {
+                return Err(format!(
+                    "❌ UI Automator 无法访问设备界面\n\
+                    \n\
+                    【错误原因】\n\
+                    Android 系统的 UI Automator 服务未能获取界面空闲状态。\n\
+                    这通常发生在华为/荣耀（EMUI/MagicUI）、小米（MIUI）等定制系统上。\n\
+                    \n\
+                    【常见原因】\n\
+                    1. ⚠️ 辅助功能服务未启用（最常见）\n\
+                    2. ⚠️ USB调试权限不足\n\
+                    3. ⚠️ 设备屏幕已锁定\n\
+                    4. ⚠️ 开发者选项中的安全设置未开启\n\
+                    \n\
+                    【解决方案】\n\
+                    \n\
+                    ✅ 方案1：自动启用辅助功能（推荐）\n\
+                    在电脑上执行以下命令：\n\
+                    \n\
+                    1. 启用辅助功能服务：\n\
+                    adb shell settings put secure enabled_accessibility_services com.android.shell/com.android.commands.uiautomator.Launcher\n\
+                    \n\
+                    2. 启用辅助功能总开关：\n\
+                    adb shell settings put secure accessibility_enabled 1\n\
+                    \n\
+                    3. 重新测试：\n\
+                    adb shell uiautomator dump /sdcard/test.xml\n\
+                    \n\
+                    ✅ 方案2：手动设置（备选）\n\
+                    在设备上手动操作：\n\
+                    1. 进入「设置」→「辅助功能」\n\
+                    2. 查找「已安装的服务」或「无障碍」\n\
+                    3. 找到「Shell」或「UI Automator」服务并启用\n\
+                    \n\
+                    ✅ 方案3：其他检查项\n\
+                    • 确保设备屏幕已解锁（在主屏幕或任意应用界面）\n\
+                    • 重新拔插USB线并允许USB调试授权\n\
+                    • 小米设备：开发者选项 → 开启「USB调试（安全设置）」\n\
+                    • 华为设备：开发者选项 → 开启「仅充电模式下允许ADB调试」\n\
+                    \n\
+                    【原始错误信息】\n\
+                    {}", error
+                ));
+            } else if error.contains("No such file or directory") {
+                return Err(format!(
+                    "UI dump 文件未生成\n\
+                    \n\
+                    可能原因：\n\
+                    1. /sdcard 目录无写入权限\n\
+                    2. 存储空间不足\n\
+                    3. uiautomator 服务未正常启动\n\
+                    \n\
+                    解决方法：\n\
+                    1. 检查存储空间: adb shell df /sdcard\n\
+                    2. 检查目录权限: adb shell ls -ld /sdcard\n\
+                    3. 手动测试: adb shell uiautomator dump /sdcard/test.xml\n\
+                    \n\
+                    原始错误: {}", error
+                ));
+            }
+            
+            Err(format!("备用方法失败: {}", error))
+        }
+        Err(e) => Err(format!("备用方法执行失败: {}", e)),
     }
 }
 
