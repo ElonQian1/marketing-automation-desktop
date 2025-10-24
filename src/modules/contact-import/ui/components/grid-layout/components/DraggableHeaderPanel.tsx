@@ -19,6 +19,7 @@ export interface DraggableHeaderPanelProps {
   className?: string;
   enableAutoScroll?: boolean;
   maxContentHeight?: number;
+  autoHeight?: boolean; // 新增：是否启用自适应高度
 }
 
 /**
@@ -41,6 +42,7 @@ export const DraggableHeaderPanel: React.FC<DraggableHeaderPanelProps> = ({
   className = '',
   enableAutoScroll = true,
   maxContentHeight,
+  autoHeight = false, // 新增参数
 }) => {
   const contentRef = useRef<HTMLDivElement>(null);
   const [contentHeight, setContentHeight] = useState<number | undefined>(undefined);
@@ -59,12 +61,18 @@ export const DraggableHeaderPanel: React.FC<DraggableHeaderPanelProps> = ({
         const cardHeader = container.previousElementSibling as HTMLElement;
         const headerHeight = cardHeader ? cardHeader.offsetHeight : 48;
         
+        // 使用更灵活的高度计算，允许内容自然撑开
         const availableHeight = parentRect.height - headerHeight - 24;
         const finalHeight = maxContentHeight 
           ? Math.min(availableHeight, maxContentHeight)
           : availableHeight;
         
-        setContentHeight(Math.max(200, finalHeight));
+        // 只在确实需要限制高度时设置，否则让内容自然撑开
+        if (maxContentHeight || availableHeight < 500) {
+          setContentHeight(Math.max(200, finalHeight));
+        } else {
+          setContentHeight(undefined); // 让内容自然撑开
+        }
       }
     };
 
@@ -144,12 +152,12 @@ export const DraggableHeaderPanel: React.FC<DraggableHeaderPanelProps> = ({
 
   return (
     <Card
-      className={`draggable-header-panel ${className}`}
+      className={`draggable-header-panel ${autoHeight ? 'auto-height-panel' : ''} ${className}`}
       title={draggableTitle}
       extra={headerControls}
       size="small"
       style={{
-        height: '100%',
+        height: autoHeight ? 'auto' : '100%',
         display: 'flex',
         flexDirection: 'column',
         margin: 0,
@@ -164,10 +172,11 @@ export const DraggableHeaderPanel: React.FC<DraggableHeaderPanelProps> = ({
           userSelect: 'none'
         },
         body: {
-          flex: 1,
+          flex: autoHeight ? 'none' : 1,
           padding: 0,
-          overflow: 'hidden',
-          height: contentHeight ? `${contentHeight}px` : 'auto',
+          overflow: autoHeight ? 'visible' : 'hidden',
+          minHeight: autoHeight ? 'auto' : (contentHeight ? `${contentHeight}px` : 'auto'),
+          height: autoHeight ? 'auto' : 'auto',
           cursor: 'default'  // 内容区域使用默认光标
         }
       }}
@@ -176,8 +185,9 @@ export const DraggableHeaderPanel: React.FC<DraggableHeaderPanelProps> = ({
         ref={contentRef}
         className="panel-content-area"
         style={{
-          height: '100%',
-          overflowY: 'auto',
+          minHeight: autoHeight ? 'auto' : '100%',
+          height: 'auto',
+          overflowY: autoHeight ? 'visible' : 'auto',
           overflowX: 'hidden',
           padding: '16px',
           cursor: 'default'  // 确保内容区域不显示移动光标

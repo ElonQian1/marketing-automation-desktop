@@ -52,6 +52,20 @@ export const LoginPageNative: React.FC = () => {
   const { token: themeToken } = theme.useToken();
   const { login } = useAuthStore();
 
+  // 组件挂载时，从 localStorage 读取保存的用户名和密码
+  React.useEffect(() => {
+    const savedUsername = localStorage.getItem('remembered-username');
+    const savedPassword = localStorage.getItem('remembered-password');
+    
+    if (savedUsername && savedPassword) {
+      form.setFieldsValue({
+        username: savedUsername,
+        password: savedPassword,
+        remember: true
+      });
+    }
+  }, [form]);
+
   const handleSubmit = async (values: LoginCredentials) => {
     setLoading(true);
     setError(null);
@@ -61,6 +75,15 @@ export const LoginPageNative: React.FC = () => {
       
       if (!result.success) {
         setError(result.error || '登录失败');
+      } else {
+        // 登录成功后，根据"记住我"选项保存或清除凭据
+        if (values.remember) {
+          localStorage.setItem('remembered-username', values.username);
+          localStorage.setItem('remembered-password', values.password);
+        } else {
+          localStorage.removeItem('remembered-username');
+          localStorage.removeItem('remembered-password');
+        }
       }
       // 登录成功后，AuthGuard 会自动切换到主应用
     } catch (err) {

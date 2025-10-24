@@ -60,6 +60,24 @@
   padding: 16px;
 }
 
+/* 自适应高度面板 */
+.auto-height-panel {
+  height: auto !important;
+  min-height: 200px;
+}
+
+.auto-height-panel .panel-content-area {
+  height: auto !important;
+  min-height: auto;
+  max-height: none;
+}
+
+.auto-height-panel .ant-card-body {
+  height: auto !important;
+  min-height: auto;
+  overflow: visible !important;
+}
+
 /* 虚拟滚动优化 */
 .virtual-scroll {
   position: relative;
