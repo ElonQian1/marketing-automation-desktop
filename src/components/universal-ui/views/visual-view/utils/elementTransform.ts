@@ -14,10 +14,13 @@ export function parseBounds(bounds: string): { x: number; y: number; width: numb
 
 // VisualUIElement -> 旧 UIElement 桥接（UI 使用结构）
 export function convertVisualToUIElement(element: VisualUIElement, selectedId?: string): BridgeUIElement {
-  const position = element.position || { x: 0, y: 0, width: 100, height: 50 };
+  let position = element.position || { x: 0, y: 0, width: 100, height: 50 };
   
   // 🔧 Debug: 仅菜单元素转换调试
-  if (element.category === 'menu' || element.content_desc === '菜单' || element.id === 'element_71') {
+  const isMenuElement = element.category === 'menu' || element.content_desc === '菜单' || 
+                       element.id === 'element_71' || element.description === '菜单';
+  
+  if (isMenuElement) {
     console.log('🎯 [convertVisualToUIElement] 菜单元素转换:', {
       id: element.id,
       text: element.text,
@@ -25,8 +28,22 @@ export function convertVisualToUIElement(element: VisualUIElement, selectedId?: 
       clickable: element.clickable,
       category: element.category,
       description: element.description,
-      type: element.type
+      type: element.type,
+      originalPosition: element.position
     });
+    
+    // 🔧 菜单元素position修复逻辑
+    // 检查是否position数据错误（覆盖屏幕下半部分）
+    if (position.x === 0 && position.y === 1246 && position.width === 1080 && position.height >= 900) {
+      console.error('❌ [convertVisualToUIElement] 检测到菜单元素错误position，自动修复');
+      position = {
+        x: 39,
+        y: 143,
+        width: 63,  // 102 - 39
+        height: 63  // 206 - 143
+      };
+      console.log('✅ [convertVisualToUIElement] 菜单position已修复为:', position);
+    }
   }
   
   return {

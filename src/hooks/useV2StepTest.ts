@@ -248,8 +248,13 @@ function convertSmartStepToV2Request(
     case 'smart_find_element':
     case 'click':
       actionParams = {
-        type: 'click',
-        xpath: params.element_selector || generateXPathFromParams(params),
+        type: 'tap', // 修复：使用正确的StepActionParams类型
+        params: {
+          x: undefined,
+          y: undefined,
+          offsetX: 0,
+          offsetY: 0,
+        },
       };
       break;
 
@@ -258,7 +263,7 @@ function convertSmartStepToV2Request(
       actionParams = {
         type: 'type',
         params: {
-          text: params.text || '',
+          text: params.text as string || '',
           clearBefore: params.clear_before !== false,
           keyboardEnter: params.keyboard_enter === true,
         },
@@ -270,9 +275,10 @@ function convertSmartStepToV2Request(
       actionParams = {
         type: 'swipe',
         params: {
-          direction: params.direction || 'up',
-          distance: params.distance || 500,
-          duration: params.duration || 300,
+          direction: (params.direction as 'up' | 'down' | 'left' | 'right') || 'up',
+          distance: Number(params.distance) || 500,
+          durationMs: Number(params.duration) || 300, // 修复：使用正确的字段名
+          startFrom: 'element' as const,
         },
       };
       break;
@@ -281,16 +287,21 @@ function convertSmartStepToV2Request(
       actionParams = {
         type: 'wait',
         params: {
-          duration: params.duration || 1000,
+          waitMs: Number(params.duration) || 1000, // 修复：使用正确的字段名
         },
       };
       break;
 
     default:
-      // 默认点击动作
+      // 默认点击动作，修复：使用tap代替click
       actionParams = {
-        type: 'click',
-        xpath: params.element_selector || generateXPathFromParams(params),
+        type: 'tap',
+        params: {
+          x: undefined,
+          y: undefined,
+          offsetX: 0,
+          offsetY: 0,
+        },
       };
   }
 

@@ -18,9 +18,15 @@ export async function testV2BackendConnection(deviceId: string = 'e0d909c3'): Pr
       deviceId,
       mode: 'match-only' as const,
       actionParams: {
-        type: 'click' as const,
-        xpath: '//*[@content-desc="我"]'
-      }
+        type: 'tap' as const,
+        params: {
+          x: undefined,
+          y: undefined,
+          offsetX: 0,
+          offsetY: 0,
+        },
+      },
+      selectorId: '//*[@content-desc="我"]',
     };
     
     console.log('📋 测试请求:', testRequest);

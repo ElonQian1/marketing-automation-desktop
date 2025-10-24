@@ -208,13 +208,25 @@ export const EnhancedElementSelectionDemo: React.FC = () => {
 
         {/* 模拟界面元素 */}
         <Card title="模拟应用界面" extra={
-          <Button 
-            icon={<ReloadOutlined />} 
-            onClick={clearAllSteps}
-            disabled={stepCards.length === 0}
-          >
-            清空步骤
-          </Button>
+          <Space>
+            <Button 
+              icon={<BugOutlined />} 
+              onClick={() => {
+                console.log('🧪 [手动测试] 运行菜单bounds测试...');
+                runMenuBoundsTest();
+                message.success('菜单bounds测试已运行，请查看控制台');
+              }}
+            >
+              测试菜单bounds
+            </Button>
+            <Button 
+              icon={<ReloadOutlined />} 
+              onClick={clearAllSteps}
+              disabled={stepCards.length === 0}
+            >
+              清空步骤
+            </Button>
+          </Space>
         }>
           <div style={{ 
             background: '#f5f5f5', 

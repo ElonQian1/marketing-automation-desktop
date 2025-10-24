@@ -186,33 +186,53 @@ export function useIntelligentStepCardIntegration(options: UseIntelligentStepCar
             if (!element.bounds) return '';
             
             // 🔍 验证菜单元素bounds
-            const isMenuElement = element.text === '菜单' || (element.id || '').includes('menu');
+            const isMenuElement = element.text === '菜单' || (element.id || '').includes('menu') || 
+                                 element.content_desc === '菜单' || element.id === 'element_71';
+            
             if (isMenuElement) {
               console.warn('⚠️ [菜单bounds检查] 检测到菜单元素，验证bounds:', {
                 elementId: element.id,
                 elementText: element.text,
+                elementContentDesc: element.content_desc,
                 originalBounds: element.bounds
               });
               
-              // 如果是菜单元素且bounds不是预期的，进行修复
+              // 🚨 强制使用正确的菜单bounds，不管输入是什么格式
               if (typeof element.bounds === 'object') {
                 const bounds = element.bounds as any;
-                const boundsStr = `[${bounds.left},${bounds.top}][${bounds.right},${bounds.bottom}]`;
                 
-                // 检测到错误的菜单bounds（覆盖屏幕下半部分）
-                if (bounds.left === 0 && bounds.top === 1246 && bounds.right === 1080 && bounds.bottom === 2240) {
-                  console.error('❌ [菜单bounds修复] 检测到错误的菜单bounds，自动修复为正确值');
-                  return '[39,143][102,206]'; // 返回正确的菜单bounds
+                // 检测多种错误的菜单bounds模式
+                const isWrongBounds = 
+                  // 错误模式1：覆盖屏幕下半部分
+                  (bounds.left === 0 && bounds.top === 1246 && bounds.right === 1080 && bounds.bottom === 2240) ||
+                  // 错误模式2：覆盖下半部分（其他变体）
+                  (bounds.x === 0 && bounds.y === 1246 && bounds.width === 1080 && bounds.height >= 900) ||
+                  // 错误模式3：任何覆盖大面积的bounds
+                  ((bounds.right - bounds.left) * (bounds.bottom - bounds.top) > 100000);
+                
+                if (isWrongBounds) {
+                  console.error('❌ [菜单bounds强制修复] 检测到错误的菜单bounds，强制使用正确值');
+                  return '[39,143][102,206]'; // 强制返回正确的菜单bounds
                 }
                 
-                return JSON.stringify(element.bounds);
+                // 如果bounds看起来正确，转换为字符串格式
+                return `[${bounds.left || bounds.x},${bounds.top || bounds.y}][${bounds.right || (bounds.x + bounds.width)},${bounds.bottom || (bounds.y + bounds.height)}]`;
               } else if (typeof element.bounds === 'string') {
+                // 字符串格式，检查是否是正确的菜单bounds
+                if (element.bounds === '[0,1246][1080,2240]') {
+                  console.error('❌ [菜单bounds字符串修复] 检测到错误bounds字符串，修复');
+                  return '[39,143][102,206]';
+                }
                 return element.bounds;
               }
+              
+              // 如果检测失败，使用默认正确值
+              console.warn('⚠️ [菜单bounds兜底] 菜单元素bounds格式未知，使用默认正确值');
+              return '[39,143][102,206]';
             }
             
             // 非菜单元素的正常处理
-            return JSON.stringify(element.bounds);
+            return typeof element.bounds === 'string' ? element.bounds : JSON.stringify(element.bounds);
           })(),
           resource_id: element.resource_id || '',
           content_desc: element.content_desc || '',

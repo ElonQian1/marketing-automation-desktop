@@ -32,6 +32,15 @@ export class BoundsParser {
     const x2 = parseInt(x2Str, 10);
     const y2 = parseInt(y2Str, 10);
 
+    // 🔍 菜单元素调试：检查是否为菜单元素bounds
+    if (bounds === '[39,143][102,206]') {
+      console.log('🎯 [BoundsParser] 检测到菜单元素bounds解析:', {
+        原始bounds: bounds,
+        解析坐标: { x1, y1, x2, y2 },
+        计算结果: { x: x1, y: y1, width: x2 - x1, height: y2 - y1 }
+      });
+    }
+
     // 验证坐标有效性
     if (isNaN(x1) || isNaN(y1) || isNaN(x2) || isNaN(y2)) {
       console.warn(`边界坐标包含非数字值: ${bounds}`);
