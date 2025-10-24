@@ -43,10 +43,12 @@ interface VisualElementViewProps {
   screenshotUrl?: string;
   // 🆕 方案 C：设备 ID（用于持久化设备特定校准）
   deviceId?: string;
-  // 🆕 方案 C：应用包名（用于持久化应用特定校准）
+  // 🆕 应用包名（用于持久化应用特定校准）
   packageName?: string;
   // 🆕 过滤配置（从上层传入）
   filterConfig?: VisualFilterConfig;
+  // 🆕 强制刷新 key：用于绕过 XML 缓存，即使内容相同也重新解析
+  xmlVersion?: number;
 }
 
 export const VisualElementView: React.FC<VisualElementViewProps> = ({
@@ -60,6 +62,7 @@ export const VisualElementView: React.FC<VisualElementViewProps> = ({
   deviceId,
   packageName,
   filterConfig,
+  xmlVersion,  // 🆕 接收 xmlVersion
 }) => {
   // 设备外框（bezel）内边距，让设备看起来比页面更大，但不改变页面坐标/缩放
   const DEVICE_FRAME_PADDING = 24; // px，可调
@@ -477,7 +480,8 @@ export const VisualElementView: React.FC<VisualElementViewProps> = ({
 
   const { parsedElements, categories } = useParsedVisualElements(
     xmlContent,
-    elements
+    elements,
+    xmlVersion  // 🆕 传递 xmlVersion 作为 forceRefreshKey
   );
 
   // 🐛 调试：输出元素数量，帮助追踪数据流

@@ -18,6 +18,8 @@ import {
   Badge,
   App as AntApp,
   theme,
+  Dropdown,
+  Tag,
 } from "antd";
 import {
   DashboardOutlined,
@@ -35,12 +37,16 @@ import {
   AimOutlined,
   ThunderboltOutlined,
   CheckCircleOutlined,
+  UserOutlined,
+  LogoutOutlined,
+  ClockCircleOutlined,
 } from "@ant-design/icons";
 import type { MenuProps } from "antd";
 
 import { GlobalAdbProvider } from "../providers";
 import { featureFlags } from "../config/featureFlags";
 import { EnhancedThemeProvider } from "../components/feature-modules/theme-system";
+import { useAuthStore } from "../stores/authStore";
 
 // 页面组件导入
 import InspectorPage from "../pages/InspectorPage";
@@ -103,6 +109,10 @@ const NativeAntDesignApp: React.FC = () => {
     sessionId?: string;
     stepId?: string;
   }>({ open: false });
+
+  // 🆕 认证相关
+  const { user, logout, getTrialDaysRemaining } = useAuthStore();
+  const trialDaysRemaining = user?.role === 'trial' ? getTrialDaysRemaining() : -1;
 
   const {
     token: { colorBgContainer },
@@ -470,7 +480,63 @@ const NativeAntDesignApp: React.FC = () => {
                     刷新设备
                   </Button>
                 </Badge>
-                <Avatar style={{ backgroundColor: "#1677ff" }}>U</Avatar>
+
+                {/* 🆕 用户信息下拉菜单 */}
+                <Dropdown
+                  menu={{
+                    items: [
+                      {
+                        key: 'user-info',
+                        label: (
+                          <Space direction="vertical" size="small" style={{ padding: '8px 0' }}>
+                            <div>
+                              <strong>{user?.username}</strong>
+                              {user?.role === 'admin' && (
+                                <Tag color="blue" style={{ marginLeft: 8 }}>管理员</Tag>
+                              )}
+                              {user?.role === 'trial' && (
+                                <Tag color="orange" style={{ marginLeft: 8 }}>试用</Tag>
+                              )}
+                            </div>
+                            {user?.email && (
+                              <div style={{ fontSize: 12, color: '#999' }}>{user.email}</div>
+                            )}
+                            {trialDaysRemaining >= 0 && (
+                              <div style={{ fontSize: 12 }}>
+                                <ClockCircleOutlined style={{ marginRight: 4 }} />
+                                试用期剩余 <strong style={{ color: trialDaysRemaining <= 3 ? '#ff4d4f' : '#faad14' }}>
+                                  {trialDaysRemaining}
+                                </strong> 天
+                              </div>
+                            )}
+                          </Space>
+                        ),
+                        disabled: true
+                      },
+                      {
+                        type: 'divider'
+                      },
+                      {
+                        key: 'logout',
+                        icon: <LogoutOutlined />,
+                        label: '退出登录',
+                        onClick: () => {
+                          logout();
+                        }
+                      }
+                    ]
+                  }}
+                  placement="bottomRight"
+                >
+                  <Space style={{ cursor: 'pointer' }}>
+                    <Avatar 
+                      style={{ backgroundColor: user?.role === 'admin' ? '#1677ff' : '#faad14' }}
+                      icon={<UserOutlined />}
+                    >
+                      {user?.username?.[0]?.toUpperCase() || 'U'}
+                    </Avatar>
+                  </Space>
+                </Dropdown>
               </Space>
             </Space>
           </Header>

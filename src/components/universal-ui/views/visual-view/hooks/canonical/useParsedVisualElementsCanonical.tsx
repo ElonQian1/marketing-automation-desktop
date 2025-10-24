@@ -25,7 +25,8 @@ export interface UseParsedVisualElementsResult {
 
 export function useParsedVisualElements(
   xmlContent: string | undefined,
-  _fallbackElements: VisualUIElement[]
+  _fallbackElements: VisualUIElement[],
+  forceRefreshKey?: number | string  // 🆕 强制刷新的 key，用于绕过 XML 标识符缓存
 ): UseParsedVisualElementsResult {
   const [parsedElements, setParsedElements] = useState<VisualUIElement[]>([]);
   const [categories, setCategories] = useState<VisualElementCategory[]>([]);
@@ -142,21 +143,26 @@ export function useParsedVisualElements(
     // 🔥 关键修复：生成当前 XML 的唯一标识符
     const currentXmlId = generateXmlIdentifier(xmlContent);
     
-    console.log('� [useParsedVisualElements] XML 标识符检查:');
+    console.log('🔍 [useParsedVisualElements] XML 标识符检查:');
     console.log('  - 当前长度:', xmlContent.length);
     console.log('  - 当前 ID:', currentXmlId.substring(0, 80));
     console.log('  - 上次 ID:', lastXmlIdRef.current.substring(0, 80));
+    console.log('  - forceRefreshKey:', forceRefreshKey);
     
-    // 检查是否与上次解析的 XML 不同
-    if (currentXmlId !== lastXmlIdRef.current) {
-      console.log('🔄 [useParsedVisualElements] 检测到新的 XML 数据，开始解析');
-      lastXmlIdRef.current = currentXmlId;
+    // 🆕 检查是否与上次解析的 XML 不同，或者 forceRefreshKey 变化（强制刷新）
+    // forceRefreshKey 变化时，即使 XML 内容相同也需要重新解析
+    const shouldRefresh = currentXmlId !== lastXmlIdRef.current || 
+                          (forceRefreshKey !== undefined && String(forceRefreshKey) !== lastXmlIdRef.current);
+    
+    if (shouldRefresh) {
+      console.log('🔄 [useParsedVisualElements] 检测到新的 XML 数据或强制刷新，开始解析');
+      console.log('  - 原因:', currentXmlId !== lastXmlIdRef.current ? 'XML内容变化' : 'forceRefreshKey 变化');
+      lastXmlIdRef.current = forceRefreshKey !== undefined ? String(forceRefreshKey) : currentXmlId;
       parseXML(xmlContent);
     } else {
-      console.log('⏭️ [useParsedVisualElements] XML 标识符相同，跳过重复解析');
-      console.log('  ⚠️ 注意：这可能导致显示旧数据！');
+      console.log('⏭️ [useParsedVisualElements] XML 标识符相同且无强制刷新，跳过重复解析');
     }
-  }, [xmlContent, parseXML]);
+  }, [xmlContent, parseXML, forceRefreshKey]);
 
   return { parsedElements, categories, parseXML };
 }

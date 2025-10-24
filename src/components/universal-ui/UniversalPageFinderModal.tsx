@@ -331,6 +331,7 @@ const UniversalPageFinderModal: React.FC<UniversalPageFinderModalProps> = ({
             <VisualElementView
               key={`visual-v${xmlVersion}-${elements.length}`}
               xmlContent={xmlContent}
+              xmlVersion={xmlVersion}  // 🆕 传递 xmlVersion 给 VisualElementView
               elements={elements as any}
               selectedElementId={selectedElementId}
               onElementSelect={handleVisualElementSelect}

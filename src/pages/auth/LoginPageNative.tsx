@@ -5,6 +5,7 @@
 /**
  * 登录页面（原生 Ant Design 版本）
  * 使用纯原生 Ant Design 组件和样式
+ * 支持本地认证和试用期管理
  */
 
 import React, { useState } from 'react';
@@ -19,22 +20,26 @@ import {
   Space,
   Alert,
   Avatar,
-  theme
+  theme,
+  Divider,
+  Tag
 } from 'antd';
 import { 
   UserOutlined, 
   LockOutlined, 
   EyeInvisibleOutlined, 
-  EyeTwoTone 
+  EyeTwoTone,
+  InfoCircleOutlined
 } from '@ant-design/icons';
+import { useAuthStore } from '../../stores/authStore';
 
 const { Content } = Layout;
-const { Title, Paragraph } = Typography;
+const { Title, Paragraph, Text } = Typography;
 
 interface LoginCredentials {
   username: string;
   password: string;
-  rememberMe: boolean;
+  remember: boolean;
 }
 
 /**
@@ -44,23 +49,20 @@ export const LoginPageNative: React.FC = () => {
   const [form] = Form.useForm();
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const { token } = theme.useToken();
+  const { token: themeToken } = theme.useToken();
+  const { login } = useAuthStore();
 
   const handleSubmit = async (values: LoginCredentials) => {
     setLoading(true);
     setError(null);
 
     try {
-      // 模拟登录 API 调用
-      await new Promise(resolve => setTimeout(resolve, 1000));
+      const result = await login(values.username, values.password);
       
-      // 模拟登录验证
-      if (values.username === 'admin' && values.password === 'password') {
-        console.log('登录成功:', values);
-        // 这里可以添加路由跳转逻辑
-      } else {
-        setError('用户名或密码错误');
+      if (!result.success) {
+        setError(result.error || '登录失败');
       }
+      // 登录成功后，AuthGuard 会自动切换到主应用
     } catch (err) {
       setError('登录失败，请重试');
     } finally {
@@ -75,29 +77,29 @@ export const LoginPageNative: React.FC = () => {
           display: 'flex',
           alignItems: 'center',
           justifyContent: 'center',
-          padding: token.paddingLG,
-          background: `linear-gradient(135deg, ${token.colorPrimary}15 0%, ${token.colorSuccess}15 100%)`
+          padding: themeToken.paddingLG,
+          background: `linear-gradient(135deg, ${themeToken.colorPrimary}15 0%, ${themeToken.colorSuccess}15 100%)`
         }}
       >
         <Card
           style={{
             width: '100%',
-            maxWidth: 400,
-            boxShadow: token.boxShadowTertiary
+            maxWidth: 460,
+            boxShadow: themeToken.boxShadowTertiary
           }}
-          bodyStyle={{ padding: token.paddingXL }}
+          bodyStyle={{ padding: themeToken.paddingXL }}
         >
           {/* 头部 */}
           <Space 
             direction="vertical" 
             align="center" 
-            style={{ width: '100%', marginBottom: token.marginLG }}
+            style={{ width: '100%', marginBottom: themeToken.marginLG }}
           >
             <Avatar 
               size={64} 
               icon={<UserOutlined />}
               style={{ 
-                backgroundColor: token.colorPrimary,
+                backgroundColor: themeToken.colorPrimary,
                 fontSize: 24
               }}
             />
@@ -119,9 +121,27 @@ export const LoginPageNative: React.FC = () => {
               type="error"
               closable
               onClose={() => setError(null)}
-              style={{ marginBottom: token.marginMD }}
+              style={{ marginBottom: themeToken.marginMD }}
             />
           )}
+
+          {/* 测试账户提示 */}
+          <Alert
+            message="测试账户"
+            description={
+              <div>
+                <Text strong>试用账户：</Text>
+                <Tag color="orange" style={{ marginLeft: 8 }}>test / test123</Tag>
+                <Text type="secondary" style={{ fontSize: 12, marginLeft: 8 }}>
+                  (15天试用期)
+                </Text>
+              </div>
+            }
+            type="info"
+            icon={<InfoCircleOutlined />}
+            showIcon
+            style={{ marginBottom: themeToken.marginLG }}
+          />
 
           {/* 登录表单 */}
           <Form
@@ -129,6 +149,7 @@ export const LoginPageNative: React.FC = () => {
             layout="vertical"
             onFinish={handleSubmit}
             autoComplete="off"
+            initialValues={{ remember: false }}
           >
             <Form.Item
               name="username"
@@ -138,9 +159,10 @@ export const LoginPageNative: React.FC = () => {
               ]}
             >
               <Input
-                prefix={<UserOutlined style={{ color: token.colorTextTertiary }} />}
+                prefix={<UserOutlined style={{ color: themeToken.colorTextTertiary }} />}
                 placeholder="请输入用户名"
                 size="large"
+                autoComplete="username"
               />
             </Form.Item>
 
@@ -152,9 +174,10 @@ export const LoginPageNative: React.FC = () => {
               ]}
             >
               <Input.Password
-                prefix={<LockOutlined style={{ color: token.colorTextTertiary }} />}
+                prefix={<LockOutlined style={{ color: themeToken.colorTextTertiary }} />}
                 placeholder="请输入密码"
                 size="large"
+                autoComplete="current-password"
                 iconRender={(visible) => (visible ? <EyeTwoTone /> : <EyeInvisibleOutlined />)}
               />
             </Form.Item>
@@ -165,10 +188,10 @@ export const LoginPageNative: React.FC = () => {
                 justifyContent: 'space-between', 
                 alignItems: 'center' 
               }}>
-                <Form.Item name="rememberMe" valuePropName="checked" noStyle>
+                <Form.Item name="remember" valuePropName="checked" noStyle>
                   <Checkbox>记住我</Checkbox>
                 </Form.Item>
-                <Button type="link" style={{ padding: 0 }}>
+                <Button type="link" style={{ padding: 0 }} disabled>
                   忘记密码？
                 </Button>
               </div>
@@ -188,17 +211,16 @@ export const LoginPageNative: React.FC = () => {
           </Form>
 
           {/* 底部提示 */}
-          <div style={{ 
-            textAlign: 'center', 
-            marginTop: token.marginLG,
-            padding: token.paddingMD,
-            borderTop: `1px solid ${token.colorBorder}`
-          }}>
+          <Divider style={{ marginTop: themeToken.marginLG, marginBottom: themeToken.marginMD }} />
+          <div style={{ textAlign: 'center' }}>
             <Paragraph type="secondary" style={{ margin: 0, fontSize: 12 }}>
               还没有账号？ 
-              <Button type="link" style={{ padding: 0, fontSize: 12 }}>
+              <Button type="link" style={{ padding: 0, fontSize: 12 }} disabled>
                 联系管理员注册
               </Button>
+            </Paragraph>
+            <Paragraph type="secondary" style={{ margin: '8px 0 0', fontSize: 11 }}>
+              版权所有 © {new Date().getFullYear()} 社交平台自动化操作系统
             </Paragraph>
           </div>
         </Card>

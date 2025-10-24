@@ -1,10 +1,14 @@
 // src/components/auth/AuthGuard.tsx
 // module: ui | layer: ui | role: component
-// summary: UI 组件
+// summary: 认证守卫组件 - 支持试用期管理
 
-import React, { useEffect } from 'react';
-import { useAuth } from '../../hooks/useAuth';
-import { LoginPage } from '../../pages/auth/LoginPage';
+import React, { useEffect, useState } from 'react';
+import { useAuthStore } from '../../stores/authStore';
+import { LoginPageNative } from '../../pages/auth/LoginPageNative';
+import { Modal, Button, Typography, Space, Progress, Spin } from 'antd';
+import { WarningOutlined, ClockCircleOutlined } from '@ant-design/icons';
+
+const { Title, Text, Paragraph } = Typography;
 
 interface AuthGuardProps {
   children: React.ReactNode;
@@ -12,47 +16,157 @@ interface AuthGuardProps {
 
 /**
  * 认证守护组件
- * 检查用户是否已登录，未登录则显示登录页面
+ * - 检查用户是否已登录
+ * - 检查试用期是否过期
+ * - 显示试用期警告
  */
 export const AuthGuard: React.FC<AuthGuardProps> = ({ children }) => {
-  const {
-    isAuthenticated,
-    isLoading,
-    login,
-    checkAuthStatus,
-    error
-  } = useAuth();
+  const { 
+    isAuthenticated, 
+    user, 
+    checkTrialExpiry, 
+    getTrialDaysRemaining,
+    logout,
+    isTrialExpired
+  } = useAuthStore();
 
-  // 组件挂载时检查认证状态
+  const [showTrialWarning, setShowTrialWarning] = useState(false);
+  const [trialDaysRemaining, setTrialDaysRemaining] = useState(0);
+  const [isChecking, setIsChecking] = useState(true);
+
   useEffect(() => {
-    checkAuthStatus();
-  }, [checkAuthStatus]);
+    // 检查试用期
+    if (isAuthenticated && user) {
+      if (user.role === 'trial') {
+        const isExpired = checkTrialExpiry();
+        const daysRemaining = getTrialDaysRemaining();
+        setTrialDaysRemaining(daysRemaining);
 
-  // 如果正在加载认证状态，显示加载界面
-  if (isLoading) {
+        // 如果试用期已过期，强制登出
+        if (isExpired) {
+          Modal.error({
+            title: '试用期已过期',
+            content: '您的试用期已结束，请联系管理员升级账户。',
+            okText: '返回登录',
+            onOk: () => {
+              logout();
+            }
+          });
+        } else if (daysRemaining <= 3 && daysRemaining > 0) {
+          // 如果剩余天数 <= 3 天，显示警告
+          setShowTrialWarning(true);
+        }
+      }
+      setIsChecking(false);
+    } else {
+      setIsChecking(false);
+    }
+  }, [isAuthenticated, user, checkTrialExpiry, getTrialDaysRemaining, logout]);
+
+  // 正在检查认证状态
+  if (isChecking) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-gray-50">
-        <div className="text-center">
-          <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-indigo-600 mx-auto mb-4"></div>
-          <h2 className="text-xl font-semibold text-gray-700 mb-2">正在验证身份...</h2>
-          <p className="text-gray-500">请稍候</p>
+      <div style={{ 
+        display: 'flex', 
+        justifyContent: 'center', 
+        alignItems: 'center', 
+        minHeight: '100vh' 
+      }}>
+        <Space direction="vertical" align="center" size="large">
+          <Spin size="large" />
+          <Text type="secondary">正在验证身份...</Text>
+        </Space>
+      </div>
+    );
+  }
+
+  // 未登录，显示登录页面
+  if (!isAuthenticated || !user) {
+    return <LoginPageNative />;
+  }
+
+  // 试用期已过期
+  if (isTrialExpired) {
+    return (
+      <div style={{ 
+        display: 'flex', 
+        justifyContent: 'center', 
+        alignItems: 'center', 
+        minHeight: '100vh',
+        background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)'
+      }}>
+        <div style={{ 
+          background: 'white', 
+          padding: 48, 
+          borderRadius: 16,
+          maxWidth: 500,
+          textAlign: 'center',
+          boxShadow: '0 20px 60px rgba(0,0,0,0.3)'
+        }}>
+          <WarningOutlined style={{ fontSize: 64, color: '#ff4d4f', marginBottom: 24 }} />
+          <Title level={2}>试用期已过期</Title>
+          <Paragraph type="secondary" style={{ fontSize: 16 }}>
+            您的试用期已结束。如需继续使用，请联系管理员升级账户。
+          </Paragraph>
+          <Button 
+            type="primary" 
+            size="large"
+            onClick={logout}
+            style={{ marginTop: 24 }}
+          >
+            返回登录
+          </Button>
         </div>
       </div>
     );
   }
 
-  // 如果未认证，显示登录页面
-  if (!isAuthenticated) {
-    return (
-      <LoginPage
-        onLogin={login}
-        isLoading={isLoading}
-        error={error}
-      />
-    );
-  }
+  // 试用期警告弹窗
+  const trialWarningModal = showTrialWarning && user?.role === 'trial' && (
+    <Modal
+      open={showTrialWarning}
+      onCancel={() => setShowTrialWarning(false)}
+      footer={[
+        <Button key="ok" type="primary" onClick={() => setShowTrialWarning(false)}>
+          我知道了
+        </Button>
+      ]}
+      width={480}
+    >
+      <Space direction="vertical" size="large" style={{ width: '100%' }}>
+        <Space align="center">
+          <ClockCircleOutlined style={{ fontSize: 40, color: '#faad14' }} />
+          <Title level={3} style={{ margin: 0 }}>试用期即将到期</Title>
+        </Space>
+        
+        <div>
+          <Text style={{ fontSize: 16 }}>
+            您的试用期还剩 <Text strong style={{ fontSize: 20, color: '#faad14' }}>{trialDaysRemaining}</Text> 天
+          </Text>
+          <Progress 
+            percent={((15 - trialDaysRemaining) / 15) * 100} 
+            status="active"
+            strokeColor={{
+              '0%': '#108ee9',
+              '100%': '#ff4d4f',
+            }}
+            style={{ marginTop: 16 }}
+          />
+        </div>
+
+        <Paragraph type="secondary">
+          试用期结束后，您将无法继续使用本系统。请及时联系管理员升级账户。
+        </Paragraph>
+      </Space>
+    </Modal>
+  );
 
   // 已认证，显示子组件
-  return <>{children}</>;
+  return (
+    <>
+      {children}
+      {trialWarningModal}
+    </>
+  );
 };
 

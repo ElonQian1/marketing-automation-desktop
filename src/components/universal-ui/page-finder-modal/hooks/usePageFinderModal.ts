@@ -261,6 +261,8 @@ export const usePageFinderModal = (props: UsePageFinderModalProps): UsePageFinde
       const visualElements = parsedElements.map(transformUIElement);
       console.log('🔍 [handleCaptureCurrentPage] 转换后可视化元素数量:', visualElements.length);
       console.log('🔍 [handleCaptureCurrentPage] 前3个可视化元素:', visualElements.slice(0, 3).map(e => ({ id: e.id, text: e.text })));
+      console.log('🔍 [handleCaptureCurrentPage] ⚠️ 关键调试：即将调用 setElements，当前元素数组是否与之前相同？');
+      console.log('🔍 [handleCaptureCurrentPage] ⚠️ 新元素ID列表:', visualElements.map(e => e.id).join(', '));
       setElements(visualElements);
       
       // 创建快照

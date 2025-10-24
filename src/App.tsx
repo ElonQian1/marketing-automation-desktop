@@ -6,6 +6,7 @@ import React, { useEffect, useState } from 'react';
 import { isTauri } from '@tauri-apps/api/core';
 import { ThemeBridge, ThemeToggler } from './theme/ThemeBridge';
 import { attachDevTracer } from './application/analysis/devTracer';
+import { AuthGuard } from './components/auth/AuthGuard';
 
 function App() {
   const [FullApp, setFullApp] = useState<React.ComponentType | null>(null);
@@ -75,10 +76,12 @@ function App() {
 
   return (
     <ThemeBridge>
-      <div className="app-container">
-        <FullApp />
-        {process.env.NODE_ENV === 'development' && <ThemeToggler />}
-      </div>
+      <AuthGuard>
+        <div className="app-container">
+          <FullApp />
+          {process.env.NODE_ENV === 'development' && <ThemeToggler />}
+        </div>
+      </AuthGuard>
     </ThemeBridge>
   );
 }

@@ -18,7 +18,7 @@ pub async fn tap_injector_first(adb_path: &str, serial: &str, x: i32, y: i32, lo
             Ok(())
         }
         Err(e) => {
-            warn!("🪄 injector-v1.0: 注入器 tap 失败，将回退旧命令。错误: {}", e);
+            warn!("🪄 injector-v1.1: 注入器 tap 失败，将回退旧命令。错误: {}", e);
             let mut cmd = std::process::Command::new(adb_path);
             cmd.args(&["-s", serial, "shell", "input"]);
             if let Some(d) = long_press_ms {
@@ -26,11 +26,17 @@ pub async fn tap_injector_first(adb_path: &str, serial: &str, x: i32, y: i32, lo
             } else {
                 cmd.args(&["tap", &x.to_string(), &y.to_string()]);
             }
+            info!("🔄 执行 fallback 命令: adb -s {} shell input tap {} {}", serial, x, y);
             let out = cmd.output().context("fallback tap execution failed")?;
             if !out.status.success() {
                 let err = String::from_utf8_lossy(&out.stderr);
+                warn!("❌ Fallback 命令也失败了: {}", err);
+                if err.contains("INJECT_EVENTS") {
+                    anyhow::bail!("设备缺少 INJECT_EVENTS 权限。\n\n解决方案：\n1. 使用 Root 设备\n2. 使用 Android 模拟器（推荐）\n3. 刷入开发版 ROM\n\n原始错误: {}", err);
+                }
                 anyhow::bail!(format!("tap fallback failed: {}", err));
             }
+            info!("✅ Fallback 命令成功执行");
             Ok(())
         }
     }
@@ -45,15 +51,21 @@ pub async fn swipe_injector_first(adb_path: &str, serial: &str, x1: i32, y1: i32
             Ok(())
         }
         Err(e) => {
-            warn!("🪄 injector-v1.0: 注入器 swipe 失败，将回退旧命令。错误: {}", e);
+            warn!("🪄 injector-v1.1: 注入器 swipe 失败，将回退旧命令。错误: {}", e);
+            info!("🔄 执行 fallback 命令: adb -s {} shell input swipe {} {} {} {} {}", serial, x1, y1, x2, y2, duration_ms);
             let out = std::process::Command::new(adb_path)
                 .args(&["-s", serial, "shell", "input", "swipe", &x1.to_string(), &y1.to_string(), &x2.to_string(), &y2.to_string(), &duration_ms.to_string()])
                 .output()
                 .context("fallback swipe execution failed")?;
             if !out.status.success() {
                 let err = String::from_utf8_lossy(&out.stderr);
+                warn!("❌ Fallback swipe 命令也失败了: {}", err);
+                if err.contains("INJECT_EVENTS") {
+                    anyhow::bail!("设备缺少 INJECT_EVENTS 权限。\n\n解决方案：\n1. 使用 Root 设备\n2. 使用 Android 模拟器（推荐）\n3. 刷入开发版 ROM\n\n原始错误: {}", err);
+                }
                 anyhow::bail!(format!("swipe fallback failed: {}", err));
             }
+            info!("✅ Fallback swipe 命令成功执行");
             Ok(())
         }
     }
