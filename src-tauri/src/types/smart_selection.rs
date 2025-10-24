@@ -160,7 +160,7 @@ pub enum SelectionMode {
     },
     /// 批量选择全部（增强版批量安全）
     All {
-        batch_config: BatchConfigV2,
+        batch_config: Option<BatchConfigV2>,
     },
 }
 

@@ -112,6 +112,8 @@ impl SmartSelectionEngine {
                 Self::execute_random_strategy(&candidates, Some(*seed), &mut debug_logs)?
             }
             SelectionMode::All { batch_config } => {
+                // 🔧 处理可选的batch_config，提供默认值
+                debug_logs.push(format!("批量模式，配置: {:?}", batch_config));
                 Self::execute_batch_strategy(&candidates, &mut debug_logs)?
             }
         };
@@ -352,26 +354,34 @@ impl SmartSelectionEngine {
             
             // 如果不是最后一个元素，等待间隔时间
             if index < elements.len() - 1 {
+                // 🔧 提供默认的批量配置
+                let default_interval = Duration::from_millis(2000); // 默认2秒间隔
+                let default_jitter = Duration::from_millis(500);    // 默认500ms抖动
+                
                 if let Some(batch_config) = &selection_config.batch_config {
                     let interval = Duration::from_millis(batch_config.interval_ms);
-                    
-                    // 添加抖动
                     let jitter = if let Some(jitter_ms) = batch_config.jitter_ms {
-                        Duration::from_millis(jitter_ms / 2) // 简化的抖动实现
+                        Duration::from_millis(jitter_ms / 2)
                     } else {
                         Duration::from_millis(0)
                     };
-                    
                     tokio::time::sleep(interval + jitter).await;
+                } else {
+                    // 没有配置时使用默认值
+                    tokio::time::sleep(default_interval + default_jitter).await;
                 }
             }
             
             // 检查是否需要在错误时停止
             if !click_success {
-                if let Some(batch_config) = &selection_config.batch_config {
-                    if !batch_config.continue_on_error {
-                        break;
-                    }
+                let continue_on_error = if let Some(batch_config) = &selection_config.batch_config {
+                    batch_config.continue_on_error
+                } else {
+                    true // 默认遇错继续
+                };
+                
+                if !continue_on_error {
+                    break;
                 }
             }
         }

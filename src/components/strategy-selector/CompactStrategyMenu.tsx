@@ -22,6 +22,15 @@ import { isValidScore, toPercentInt01 } from "../../utils/score-utils";
 import type { SelectionMode } from '../../types/smartSelection';
 import type { ActionKind } from '../../types/smartScript';
 
+// 批量配置接口
+interface BatchConfig {
+  interval_ms: number;
+  max_count?: number;
+  jitter_ms?: number;
+  continue_on_error: boolean;
+  show_progress: boolean;
+}
+
 /**
  * 根据置信度百分比返回对应的颜色
  */
@@ -78,6 +87,13 @@ const CompactStrategyMenu: React.FC<CompactStrategyMenuProps> = ({
   // 🎯 新增：智能选择状态管理
   const [selectionMode, setSelectionMode] = useState<SelectionMode>('first');
   const [operationType, setOperationType] = useState<ActionKind>('tap');
+  const [batchConfig, setBatchConfig] = useState<BatchConfig>({
+    interval_ms: 2000,
+    max_count: 10,
+    jitter_ms: 500,
+    continue_on_error: true,
+    show_progress: true,
+  });
 
   // 获取置信度和策略数据 - 🔧 修复：通过stepId查找卡片
   const cardId = useStepCardStore((state) => stepId ? state.byStepId[stepId] : undefined);
@@ -325,7 +341,17 @@ const CompactStrategyMenu: React.FC<CompactStrategyMenuProps> = ({
         break;
       case 'all':
         setSelectionMode('all');
-        console.log('选择批量模式');
+        console.log('选择批量模式', { batchConfig });
+        // 🔧 批量模式下确保配置有效
+        if (!batchConfig || batchConfig.interval_ms <= 0) {
+          setBatchConfig({
+            interval_ms: 2000,
+            max_count: 10,
+            jitter_ms: 500,
+            continue_on_error: true,
+            show_progress: true,
+          });
+        }
         break;
       default:
         console.warn('未知的选择模式:', key);
@@ -427,6 +453,54 @@ const CompactStrategyMenu: React.FC<CompactStrategyMenuProps> = ({
     ]
   });
 
+  // 🚀 生成智能选择协议
+  const createSmartSelectionProtocol = () => {
+    // 从现有的selector获取元素信息
+    const elementText = selector.activeStrategy?.type === 'smart-single' ? '关注' : '关注';
+    const resourceId = undefined; // 暂时没有resource_id信息
+
+    return {
+      anchor: {
+        fingerprint: {
+          text_content: elementText,
+          resource_id: resourceId,
+        },
+      },
+      selection: {
+        mode: selectionMode,
+        batch_config: selectionMode === 'all' ? {
+          interval_ms: batchConfig.interval_ms,
+          max_count: batchConfig.max_count,
+          jitter_ms: batchConfig.jitter_ms,
+          continue_on_error: batchConfig.continue_on_error,
+          show_progress: batchConfig.show_progress,
+        } : undefined,
+      },
+    };
+  };
+
+  // 🎯 执行智能选择（调试用）
+  const executeSmartSelection = async () => {
+    try {
+      const { SmartSelectionService } = await import('../../services/smartSelectionService');
+      const protocol = createSmartSelectionProtocol();
+      
+      console.log('🚀 [CompactStrategyMenu] 执行智能选择', {
+        stepId,
+        selectionMode,
+        batchConfig: selectionMode === 'all' ? batchConfig : null,
+        protocol
+      });
+
+      // 这里需要设备ID，在实际使用中应该从某个地方获取
+      // const result = await SmartSelectionService.executeSmartSelection('device_id', protocol);
+      console.log('智能选择协议已准备就绪:', protocol);
+      
+    } catch (error) {
+      console.error('❌ 执行智能选择失败:', error);
+    }
+  };
+
   return (
     <div
       style={{
@@ -502,6 +576,124 @@ const CompactStrategyMenu: React.FC<CompactStrategyMenuProps> = ({
           <span style={{ marginLeft: "4px" }}>▾</span>
         </Button>
       </Dropdown>
+
+      {/* 🎯 批量配置面板 */}
+      {selectionMode === 'all' && (
+        <div style={{
+          display: "flex",
+          flexDirection: "column",
+          gap: "8px",
+          padding: "12px",
+          background: "rgba(110, 139, 255, 0.05)",
+          border: "1px solid rgba(110, 139, 255, 0.2)",
+          borderRadius: "6px",
+          width: "100%",
+          marginTop: "8px"
+        }}>
+          <div style={{
+            fontSize: "12px",
+            fontWeight: "600",
+            color: "#F8FAFC",
+            marginBottom: "4px"
+          }}>
+            📋 批量执行配置
+          </div>
+          
+          <div style={{ display: "flex", gap: "12px", flexWrap: "wrap" }}>
+            {/* 间隔时间 */}
+            <div style={{ display: "flex", alignItems: "center", gap: "6px" }}>
+              <span style={{ fontSize: "11px", color: "#94A3B8" }}>间隔:</span>
+              <input
+                type="number"
+                value={batchConfig.interval_ms}
+                onChange={(e) => setBatchConfig({
+                  ...batchConfig,
+                  interval_ms: Math.max(1000, parseInt(e.target.value) || 2000)
+                })}
+                style={{
+                  width: "60px",
+                  height: "24px",
+                  fontSize: "11px",
+                  padding: "2px 4px",
+                  border: "1px solid rgba(110, 139, 255, 0.3)",
+                  borderRadius: "3px",
+                  background: "rgba(0, 0, 0, 0.2)",
+                  color: "#F8FAFC"
+                }}
+              />
+              <span style={{ fontSize: "11px", color: "#94A3B8" }}>ms</span>
+            </div>
+
+            {/* 最大数量 */}
+            <div style={{ display: "flex", alignItems: "center", gap: "6px" }}>
+              <span style={{ fontSize: "11px", color: "#94A3B8" }}>最大:</span>
+              <input
+                type="number"
+                value={batchConfig.max_count || 10}
+                onChange={(e) => setBatchConfig({
+                  ...batchConfig,
+                  max_count: Math.max(1, parseInt(e.target.value) || 10)
+                })}
+                style={{
+                  width: "50px",
+                  height: "24px",
+                  fontSize: "11px",
+                  padding: "2px 4px",
+                  border: "1px solid rgba(110, 139, 255, 0.3)",
+                  borderRadius: "3px",
+                  background: "rgba(0, 0, 0, 0.2)",
+                  color: "#F8FAFC"
+                }}
+              />
+            </div>
+
+            {/* 错误处理 */}
+            <div style={{ display: "flex", alignItems: "center", gap: "6px" }}>
+              <input
+                type="checkbox"
+                checked={batchConfig.continue_on_error}
+                onChange={(e) => setBatchConfig({
+                  ...batchConfig,
+                  continue_on_error: e.target.checked
+                })}
+                style={{ margin: 0 }}
+              />
+              <span style={{ fontSize: "11px", color: "#94A3B8" }}>遇错继续</span>
+            </div>
+
+            {/* 显示进度 */}
+            <div style={{ display: "flex", alignItems: "center", gap: "6px" }}>
+              <input
+                type="checkbox"
+                checked={batchConfig.show_progress}
+                onChange={(e) => setBatchConfig({
+                  ...batchConfig,
+                  show_progress: e.target.checked
+                })}
+                style={{ margin: 0 }}
+              />
+              <span style={{ fontSize: "11px", color: "#94A3B8" }}>显示进度</span>
+            </div>
+          </div>
+          
+          {/* 测试按钮 */}
+          <div style={{ marginTop: "8px", display: "flex", justifyContent: "center" }}>
+            <Button
+              size="small"
+              type="primary"
+              onClick={executeSmartSelection}
+              style={{
+                fontSize: "11px",
+                height: "28px",
+                background: "rgba(16, 185, 129, 0.8)",
+                borderColor: "rgba(16, 185, 129, 0.9)"
+              }}
+            >
+              🧪 测试批量执行
+            </Button>
+          </div>
+        </div>
+      )}
 
       {/* 工具按钮组 */}
       <div style={{ display: "flex", gap: "2px" }}>
