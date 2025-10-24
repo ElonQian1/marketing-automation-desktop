@@ -2,7 +2,7 @@
 // module: ai | layer: services | role: Tauri 客户端实现
 // summary: 基于 Tauri invoke 的 AI 客户端，支持流式响应和事件监听
 
-import { invoke } from '@tauri-apps/api/tauri';
+import { invoke } from '@tauri-apps/api/core';
 import { listen, type UnlistenFn } from '@tauri-apps/api/event';
 import type {
   IAIClient,

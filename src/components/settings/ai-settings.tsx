@@ -5,7 +5,7 @@
 import { useState, useEffect } from 'react';
 import { Card, Select, Input, Button, Form, InputNumber, Switch, Space, message, Divider } from 'antd';
 import { SyncOutlined, SaveOutlined, ApiOutlined } from '@ant-design/icons';
-import { invoke } from '@tauri-apps/api/tauri';
+import { invoke } from '@tauri-apps/api/core';
 
 /**
  * AI Provider 类型

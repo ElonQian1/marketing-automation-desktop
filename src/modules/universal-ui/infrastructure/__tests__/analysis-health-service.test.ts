@@ -5,7 +5,7 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 
 // Mock Tauri invoke
-vi.mock('@tauri-apps/api/tauri', () => ({
+vi.mock('@tauri-apps/api/core', () => ({
   invoke: vi.fn()
 }));
 
@@ -20,7 +20,7 @@ vi.mock('react-hot-toast', () => ({
 }));
 
 import { analysisHealthService } from '../analysis-health-service';
-import { invoke } from '@tauri-apps/api/tauri';
+import { invoke } from '@tauri-apps/api/core';
 import { toast } from 'react-hot-toast';
 
 const mockInvoke = vi.mocked(invoke);

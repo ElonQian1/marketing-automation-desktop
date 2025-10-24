@@ -6,7 +6,7 @@
 // 测试文件：src/examples/TestUniversalUIClick.tsx
 
 import React, { useState } from 'react';
-import { invoke } from '@tauri-apps/api/tauri';
+import { invoke } from '@tauri-apps/api/core';
 
 interface SmartNavigationParams {
   navigation_type?: string;
