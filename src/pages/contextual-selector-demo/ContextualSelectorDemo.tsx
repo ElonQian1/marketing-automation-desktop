@@ -2,14 +2,13 @@
 // module: contextual-selector | layer: pages | role: 多元素选择器演示页面
 // summary: 展示和测试多元素智能选择功能的演示界面
 
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { Card, Button, Space, Alert, Typography, Divider, Row, Col, message, Spin } from 'antd';
 import { PlayCircleOutlined, BugOutlined, CheckCircleOutlined, ExclamationCircleOutlined } from '@ant-design/icons';
 import ContextualSelectorConfig, { ContextualSelectorConfig as ConfigType } from '../../components/contextual-selector/ContextualSelectorConfig';
-import { invoke } from '@tauri-apps/api/tauri';
 import './ContextualSelectorDemo.css';
 
-const { Title, Paragraph, Text, Pre } = Typography;
+const { Title, Paragraph, Text } = Typography;
 
 interface TestResult {
   success: boolean;
@@ -71,7 +70,6 @@ const ContextualSelectorDemo: React.FC = () => {
 
   const [testResult, setTestResult] = useState<TestResult | null>(null);
   const [isLoading, setIsLoading] = useState(false);
-  const [selectedDeviceId, setSelectedDeviceId] = useState<string>('demo');
 
   // 预设配置示例
   const presetConfigs = [
@@ -294,9 +292,9 @@ const ContextualSelectorDemo: React.FC = () => {
           </Col>
           <Col span={12}>
             <Card size="small" title="执行日志">
-              <Pre className="debug-logs">
+              <pre className="debug-logs">
                 {testResult.debug_logs.join('\n')}
-              </Pre>
+              </pre>
             </Card>
           </Col>
         </Row>
@@ -314,7 +312,7 @@ const ContextualSelectorDemo: React.FC = () => {
         
         <Alert
           message="演示说明"
-          description="这个演示展示了如何在有多个相同"关注"按钮的界面中，通过不同的策略选择特定的按钮。您可以调整配置参数，观察选择结果的变化。"
+          description="这个演示展示了如何在有多个相同关注按钮的界面中，通过不同的策略选择特定的按钮。您可以调整配置参数，观察选择结果的变化。"
           type="info"
           showIcon
           style={{ marginBottom: 24 }}
