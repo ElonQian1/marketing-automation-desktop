@@ -5,7 +5,6 @@
 import { useState, useCallback } from 'react';
 import { getStepExecutionGateway, type StepExecutionRequest, type StepExecutionResponse } from '../infrastructure/gateways/StepExecutionGateway';
 import type { SmartScriptStep } from '../types/smartScript';
-import { debugBoundsConversion, validateMenuBounds } from '../debug/bounds-debugging';
 
 // V2测试结果接口
 export interface V2StepTestResult {
@@ -390,7 +389,13 @@ function parseBoundsFromParams(params: Record<string, unknown>): StepExecutionRe
     
     // 验证菜单元素bounds
     if (elementText === '菜单' || elementId.includes('menu') || originalBounds === '[39,143][102,206]') {
-      validateMenuBounds(elementId, elementText, bounds);
+      // 简单的调试日志，替代validateMenuBounds函数
+      console.log('🔍 [菜单元素调试] 检测到菜单元素:', {
+        elementId,
+        elementText,
+        bounds,
+        originalBounds
+      });
       
       // 记录bounds转换过程
       const expectedBounds = '[39,143][102,206]';

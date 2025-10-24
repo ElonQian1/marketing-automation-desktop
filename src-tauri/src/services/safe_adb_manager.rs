@@ -185,6 +185,16 @@ impl SafeAdbManager {
 
         if output.status.success() {
             let result = String::from_utf8_lossy(&output.stdout).to_string();
+            
+            // 🔥 检测UI自动化相关的错误信息（即使退出码为0）
+            if result.contains("ERROR: could not get idle state") ||
+               result.contains("Timeout") ||
+               result.contains("Permission denied") ||
+               result.contains("Killed") {
+                error!("❌ ADB命令包含错误信息: {}", result.trim());
+                return Err(anyhow::anyhow!("ADB命令包含错误: {}", result.trim()));
+            }
+            
             // 🎯 优化日志：如果输出过长（如UI dump），只显示摘要
             let log_msg = if result.len() > 500 {
                 format!("({} 字节输出)", result.len())
@@ -225,6 +235,16 @@ impl SafeAdbManager {
 
         if output.status.success() {
             let result = String::from_utf8_lossy(&output.stdout).to_string();
+            
+            // 🔥 检测UI自动化相关的错误信息（即使退出码为0）
+            if result.contains("ERROR: could not get idle state") ||
+               result.contains("Timeout") ||
+               result.contains("Permission denied") ||
+               result.contains("Killed") {
+                error!("❌ 异步ADB命令包含错误信息: {}", result.trim());
+                return Err(anyhow::anyhow!("异步ADB命令包含错误: {}", result.trim()));
+            }
+            
             // 🎯 优化日志：如果输出过长（如UI dump），只显示摘要
             let log_msg = if result.len() > 500 {
                 format!("({} 字节输出)", result.len())

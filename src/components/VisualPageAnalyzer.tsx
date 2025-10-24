@@ -263,10 +263,57 @@ const VisualPageAnalyzer: React.FC<VisualPageAnalyzerProps> = ({
   };
 
   // 解析XML并提取元素
+  // 检测XML内容是否有效或包含错误信息
+  const isXmlContentValid = () => {
+    if (!xmlContent || xmlContent.trim() === '') {
+      return { valid: false, message: 'XML内容为空，请先采集页面内容' };
+    }
+    
+    // 检测是否包含错误信息（来自后端的错误处理）
+    if (xmlContent.includes('UI dump failed due to app protection') ||
+        xmlContent.includes('ERROR: could not get idle state') ||
+        xmlContent.includes('Permission denied') ||
+        xmlContent.includes('Timeout')) {
+      return { 
+        valid: false, 
+        message: '当前应用有反自动化保护（如抖音等），无法获取页面结构。请尝试切换到其他应用。' 
+      };
+    }
+    
+    // 检测是否为有效的XML格式
+    if (!xmlContent.trim().startsWith('<?xml')) {
+      return { 
+        valid: false, 
+        message: '页面内容格式错误，可能是应用保护机制导致。请重新采集或切换应用。' 
+      };
+    }
+    
+    return { valid: true, message: '' };
+  };
+
   const parseXML = (xmlString: string) => {
+    // 首先验证XML内容
+    const validation = isXmlContentValid();
+    if (!validation.valid) {
+      console.warn('XML内容验证失败:', validation.message);
+      setElements([]);
+      setCategories([]);
+      return;
+    }
+    
     try {
       const parser = new DOMParser();
       const xmlDoc = parser.parseFromString(xmlString, 'text/xml');
+      
+      // 检查XML解析是否成功
+      const parserError = xmlDoc.querySelector('parsererror');
+      if (parserError) {
+        console.error('XML解析错误:', parserError.textContent);
+        setElements([]);
+        setCategories([]);
+        return;
+      }
+      
       const allNodes = xmlDoc.querySelectorAll('node');
       
       const extractedElements: UIElement[] = [];
@@ -413,6 +460,23 @@ const VisualPageAnalyzer: React.FC<VisualPageAnalyzerProps> = ({
         {/* 左侧控制面板 */}
         <div style={{ width: 300, borderRight: '1px solid #f0f0f0', paddingRight: 16 }}>
           <Space direction="vertical" style={{ width: '100%' }} size={16}>
+            {/* 错误提示 */}
+            {(() => {
+              const validation = isXmlContentValid();
+              if (!validation.valid) {
+                return (
+                  <Alert
+                    message="页面分析失败"
+                    description={validation.message}
+                    type="warning"
+                    showIcon
+                    style={{ marginBottom: 8 }}
+                  />
+                );
+              }
+              return null;
+            })()}
+            
             {/* 搜索框 */}
             <Input
               placeholder="搜索元素..."

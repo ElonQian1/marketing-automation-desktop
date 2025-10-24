@@ -63,10 +63,24 @@ pub async fn adb_dump_ui_xml(device_id: String) -> Result<String, String> {
     match safe_adb.execute_adb_command(&dump_args) {
         Ok(output) => {
             let elapsed = start_time.elapsed().as_millis();
-            info!("✅ UI XML抓取完成: {}ms", elapsed);
             
-            // 清理输出（移除可能的提示信息）
+            // 检测反自动化保护错误
+            if output.contains("ERROR: could not get idle state") || 
+               output.contains("Timeout") ||
+               output.contains("Permission denied") ||
+               output.contains("Killed") {
+                error!("❌ UI抓取被应用保护机制阻止: {}", output.trim());
+                return Err(format!("应用有反自动化保护（如抖音等），无法获取页面结构：{}", output.trim()));
+            }
+            
+            // 验证XML格式
             let cleaned_xml = clean_ui_dump_output(&output);
+            if cleaned_xml.trim().is_empty() || !cleaned_xml.trim_start().starts_with("<?xml") {
+                error!("❌ 获取的内容不是有效的XML格式");
+                return Err("获取的页面内容无效，可能是应用保护机制导致".to_string());
+            }
+            
+            info!("✅ UI XML抓取完成: {}ms", elapsed);
             Ok(cleaned_xml)
         }
         Err(e) => {
@@ -99,7 +113,21 @@ pub async fn adb_click_element(
     ];
 
     let xml_content = match safe_adb.execute_adb_command(&dump_args) {
-        Ok(output) => clean_ui_dump_output(&output),
+        Ok(output) => {
+            // 检测反自动化保护错误
+            if output.contains("ERROR: could not get idle state") || 
+               output.contains("Timeout") ||
+               output.contains("Permission denied") ||
+               output.contains("Killed") {
+                return Err(format!("应用有反自动化保护，无法获取页面结构：{}", output.trim()));
+            }
+            
+            let cleaned = clean_ui_dump_output(&output);
+            if cleaned.trim().is_empty() || !cleaned.trim_start().starts_with("<?xml") {
+                return Err("获取的页面内容无效，可能是应用保护机制导致".to_string());
+            }
+            cleaned
+        }
         Err(e) => {
             return Err(format!("获取UI内容失败: {}", e));
         }
