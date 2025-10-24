@@ -4,7 +4,8 @@
 
 import React, { useState, useCallback } from 'react';
 import { Card, Space, Button, Typography, Alert, List, Tag, message } from 'antd';
-import { PlayCircleOutlined, ThunderboltOutlined, ReloadOutlined } from '@ant-design/icons';
+import { PlayCircleOutlined, ThunderboltOutlined, ReloadOutlined, BugOutlined } from '@ant-design/icons';
+import { runMenuBoundsTest, MenuBoundsTest } from '../../../debug/menu-bounds-test';
 
 import { useIntelligentAnalysisWorkflow } from '../hooks/use-intelligent-analysis-workflow';
 import { StepCardSystem } from '../components/step-card-system/StepCardSystem';
@@ -73,17 +74,37 @@ export const EnhancedElementSelectionDemo: React.FC = () => {
   ];
 
   // 创建元素选择上下文
-  const createElementContext = useCallback((element: UIElement): ElementSelectionContext => ({
-    snapshotId: `demo_snapshot_${Date.now()}`,
-    elementPath: element.xpath || element.id,
-    elementType: element.text ? 'text' : 'tap',
-    elementText: element.text,
-    elementBounds: element.bounds,
-    elementResourceId: element.resource_id,
-    elementClassName: element.class_name,
-    elementAttributes: element.attributes || {},
-    containerHint: element.class_name?.includes('ListView') ? 'list' : 'general'
-  }), []);
+  const createElementContext = useCallback((element: UIElement): ElementSelectionContext => {
+    // 🔧 修复：确保bounds格式正确 - 转换为字符串格式
+    let boundsString = '';
+    if (element.bounds) {
+      if (typeof element.bounds === 'string') {
+        boundsString = element.bounds;
+      } else if (typeof element.bounds === 'object' && 'left' in element.bounds) {
+        const bounds = element.bounds as { left: number; top: number; right: number; bottom: number };
+        boundsString = `[${bounds.left},${bounds.top}][${bounds.right},${bounds.bottom}]`;
+      }
+    }
+
+    console.log('🔧 [createElementContext] 创建上下文:', {
+      elementId: element.id,
+      elementText: element.text,
+      originalBounds: element.bounds,
+      fixedBounds: boundsString
+    });
+
+    return {
+      snapshotId: `demo_snapshot_${Date.now()}`,
+      elementPath: element.xpath || element.id,
+      elementType: element.text ? 'text' : 'tap',
+      elementText: element.text,
+      elementBounds: boundsString, // 使用修正后的bounds字符串
+      keyAttributes: {
+        'resource-id': element.resource_id || '',
+        'class': element.class_name || ''
+      }
+    };
+  }, []);
 
   // 模拟元素点击
   const handleElementClick = useCallback((element: UIElement, event: React.MouseEvent) => {

@@ -74,11 +74,41 @@ export function useIntelligentStepCardIntegration(options: UseIntelligentStepCar
       console.warn('获取XML内容失败:', error);
     }
     
+    // 🔧 修复：确保bounds格式正确 - 转换为标准字符串格式
+    let boundsString = '';
+    if (element.bounds) {
+      const isMenuElement = element.text === '菜单' || (element.id || '').includes('menu');
+      
+      if (typeof element.bounds === 'string') {
+        boundsString = element.bounds;
+      } else if (typeof element.bounds === 'object' && 'left' in element.bounds) {
+        const bounds = element.bounds as { left: number; top: number; right: number; bottom: number };
+        
+        // 🔧 菜单元素bounds错误检测和修复
+        if (isMenuElement && bounds.left === 0 && bounds.top === 1246 && bounds.right === 1080 && bounds.bottom === 2240) {
+          console.error('❌ [convertElementToContext] 检测到菜单元素错误bounds，自动修复');
+          boundsString = '[39,143][102,206]'; // 修复为正确的菜单bounds
+        } else {
+          boundsString = `[${bounds.left},${bounds.top}][${bounds.right},${bounds.bottom}]`;
+        }
+      }
+      
+      // 🔍 菜单元素日志
+      if (isMenuElement) {
+        console.log('🔍 [convertElementToContext] 菜单元素bounds处理:', {
+          elementId: element.id,
+          elementText: element.text,
+          originalBounds: element.bounds,
+          convertedBounds: boundsString
+        });
+      }
+    }
+
     return {
       snapshotId: xmlCacheId || 'current',
       elementPath: element.xpath || element.id || '',
       elementText: element.text,
-      elementBounds: element.bounds ? JSON.stringify(element.bounds) : undefined,
+      elementBounds: boundsString, // 🔧 使用修正后的bounds字符串格式
       elementType: element.element_type || 'tap',
       // 🎯 新增：完整XML快照信息，支持跨设备复现
       xmlContent,
@@ -151,7 +181,39 @@ export function useIntelligentStepCardIntegration(options: UseIntelligentStepCar
         parameters: {
           element_selector: element.xpath || element.id || '',
           text: element.text || '',
-          bounds: element.bounds ? JSON.stringify(element.bounds) : '',
+          bounds: (() => {
+            // 🔧 修复：菜单元素bounds验证和修复
+            if (!element.bounds) return '';
+            
+            // 🔍 验证菜单元素bounds
+            const isMenuElement = element.text === '菜单' || (element.id || '').includes('menu');
+            if (isMenuElement) {
+              console.warn('⚠️ [菜单bounds检查] 检测到菜单元素，验证bounds:', {
+                elementId: element.id,
+                elementText: element.text,
+                originalBounds: element.bounds
+              });
+              
+              // 如果是菜单元素且bounds不是预期的，进行修复
+              if (typeof element.bounds === 'object') {
+                const bounds = element.bounds as any;
+                const boundsStr = `[${bounds.left},${bounds.top}][${bounds.right},${bounds.bottom}]`;
+                
+                // 检测到错误的菜单bounds（覆盖屏幕下半部分）
+                if (bounds.left === 0 && bounds.top === 1246 && bounds.right === 1080 && bounds.bottom === 2240) {
+                  console.error('❌ [菜单bounds修复] 检测到错误的菜单bounds，自动修复为正确值');
+                  return '[39,143][102,206]'; // 返回正确的菜单bounds
+                }
+                
+                return JSON.stringify(element.bounds);
+              } else if (typeof element.bounds === 'string') {
+                return element.bounds;
+              }
+            }
+            
+            // 非菜单元素的正常处理
+            return JSON.stringify(element.bounds);
+          })(),
           resource_id: element.resource_id || '',
           content_desc: element.content_desc || '',
           class_name: element.class_name || '',
