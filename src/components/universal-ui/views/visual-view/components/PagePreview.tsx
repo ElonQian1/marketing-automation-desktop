@@ -307,7 +307,8 @@ export const PagePreview: React.FC<PagePreviewProps> = ({
                     borderRadius: Math.min(elementWidth, elementHeight) > 10 ? 2 : 1,
                     cursor: !hideCompletely && displayState.isHidden ? 'default' : element.clickable ? 'pointer' : 'default',
                     transition: 'all .2s ease',
-                    zIndex: 10 + (displayState.isPending ? 40 : displayState.isHovered ? 20 : hasSemanticInfo ? 10 : element.clickable ? 5 : 0),
+                    zIndex: (element.id === 'element_71' || element.category === 'menu') ? 50 : 
+                            10 + (displayState.isPending ? 40 : displayState.isHovered ? 20 : hasSemanticInfo ? 10 : element.clickable ? 5 : 0),
                     transform: displayState.isPending ? 'scale(1.1)' : displayState.isHovered ? 'scale(1.05)' : 'scale(1)',
                     boxShadow: displayState.isPending
                       ? '0 4px 16px rgba(82,196,26,0.4)'
@@ -319,8 +320,21 @@ export const PagePreview: React.FC<PagePreviewProps> = ({
                     filter: !hideCompletely && displayState.isHidden ? 'grayscale(100%) blur(1px)' : 'none',
                   }}
                   onClick={(e) => {
-                    if (!element.clickable || (!hideCompletely && displayState.isHidden)) return;
+                    // 🔧 修复：允许所有元素点击弹出气泡，不再限制只有可点击元素
+                    if (!hideCompletely && displayState.isHidden) return;
                     e.stopPropagation();
+                    
+                    // 🎯 Debug: 所有点击调试 - 查看层级遮挡
+                    console.log('🎯 [PagePreview] 元素点击:', {
+                      elementId: element.id,
+                      category: element.category,
+                      description: element.description,
+                      position: element.position,
+                      clickable: element.clickable,
+                      zIndex: 10 + (displayState.isPending ? 40 : displayState.isHovered ? 20 : hasSemanticInfo ? 10 : element.clickable ? 5 : 0),
+                      isMenuElement: element.id === 'element_71' || element.category === 'menu' || element.description?.includes('菜单')
+                    });
+                    
                     let uiElement: UIElement;
                     if (originalElement) {
                       uiElement = originalElement;

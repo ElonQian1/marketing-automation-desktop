@@ -304,8 +304,8 @@ export const LeftControlPanel: React.FC<LeftControlPanelProps> = ({
             <Button type={selectedCategory==='all'?'primary':'default'} size="small" onClick={()=>setSelectedCategory('all')} style={{textAlign:'left',fontSize:11,height:28,padding:'0 6px'}}>
               <AppstoreOutlined/> 全部 ({finalElements.length})
             </Button>
-            {categories.map(category => (
-              <Button key={category.name} type={selectedCategory===category.name?'primary':'default'} size="small" onClick={()=>setSelectedCategory(category.name)} style={{textAlign:'left',fontSize:11,height:28,padding:'0 6px',borderColor:category.color,backgroundColor: selectedCategory===category.name?category.color:undefined}} title={`${category.name} (${category.elements.length})`}>
+            {categories.map((category, index) => (
+              <Button key={`${category.name}-${index}`} type={selectedCategory===category.name?'primary':'default'} size="small" onClick={()=>setSelectedCategory(category.name)} style={{textAlign:'left',fontSize:11,height:28,padding:'0 6px',borderColor:category.color,backgroundColor: selectedCategory===category.name?category.color:undefined}} title={`${category.name} (${category.elements.length})`}>
                 {category.icon} {category.name.length>4? category.name.substring(0,4)+'...':category.name} ({category.elements.length})
               </Button>
             ))}

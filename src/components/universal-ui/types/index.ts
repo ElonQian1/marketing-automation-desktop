@@ -224,15 +224,66 @@ export type ElementCategorizer = (element: UIElement) => string;
  * UIElement转换为VisualUIElement的工具函数
  */
 export const transformUIElement = (element: UIElement): VisualUIElement => {
-  // 🔧 修复：更严格的clickable判断，确保XML中真正可点击的元素不会被过滤
-  const isClickable = element.is_clickable === true || element.class_name?.includes('Button');
+  // 🔧 DEBUG: 检查所有元素的可点击属性，重点关注菜单
+  if (element.content_desc === '菜单' || element.text?.includes('菜单') || JSON.stringify(element).includes('菜单')) {
+    console.log('🔍 [transformUIElement] 菜单相关元素:', {
+      id: element.id,
+      text: element.text,
+      content_desc: element.content_desc,
+      is_clickable: element.is_clickable,
+      class_name: element.class_name,
+      element_type: element.element_type,
+      bounds: element.bounds,
+      '完整对象': element
+    });
+  }
   
-  return {
+  // 🔧 修复：兼容多种clickable字段名，确保XML中真正可点击的元素不会被过滤
+  const isClickable = element.is_clickable === true || 
+                      (element as any).clickable === true ||
+                      element.class_name?.includes('Button');
+  
+  // 🔧 修复：使用新的分类逻辑，确保菜单按钮被正确识别
+  let categoryKey = 'others'; // 默认分类
+  
+  // 检查菜单按钮 - 兼容多种字段
+  const contentDesc = element.content_desc || (element as any).contentDesc || '';
+  const text = element.text || '';
+  
+  if (contentDesc === '菜单' || contentDesc === '设置' || contentDesc === '更多' ||
+      text === '菜单' || text === '设置' || text === '更多') {
+    categoryKey = 'menu';
+  }
+  // 检查导航元素
+  else if (element.content_desc?.includes('导航') || 
+           element.content_desc?.includes('返回') || 
+           element.content_desc?.includes('后退')) {
+    categoryKey = 'navigation';
+  }
+  // 检查按钮
+  else if (isClickable) {
+    categoryKey = 'buttons';
+  }
+  // 检查文本
+  else if (element.text && element.text.trim()) {
+    categoryKey = 'text';
+  }
+  // 检查输入框
+  else if (element.element_type?.toLowerCase().includes('edit') || 
+           element.class_name?.toLowerCase().includes('edit')) {
+    categoryKey = 'inputs';
+  }
+  // 检查图片
+  else if (element.element_type?.toLowerCase().includes('image')) {
+    categoryKey = 'images';
+  }
+  
+  const result = {
     id: element.id,
     text: element.text || '',
     description: element.content_desc || element.resource_id || element.class_name || '',
     type: element.element_type || element.class_name || 'Unknown',
-    category: categorizeElement(element),
+    category: categoryKey,
     position: {
       x: element.bounds.left,
       y: element.bounds.top,
@@ -241,7 +292,7 @@ export const transformUIElement = (element: UIElement): VisualUIElement => {
     },
     clickable: isClickable,
     scrollable: element.is_scrollable === true,
-    importance: isClickable ? 'high' : element.text ? 'medium' : 'low',
+    importance: (isClickable ? 'high' : element.text ? 'medium' : 'low') as 'high' | 'medium' | 'low',
     userFriendlyName: element.text || element.content_desc || element.resource_id || '未命名元素',
     enabled: element.is_enabled !== false,
     selected: element.selected === true,
@@ -249,16 +300,21 @@ export const transformUIElement = (element: UIElement): VisualUIElement => {
     is_clickable: element.is_clickable,
     content_desc: element.content_desc
   };
+
+  // 🔧 DEBUG: 输出转换结果，特别关注菜单元素
+  if (contentDesc === '菜单' || text === '菜单') {
+    console.log('✅ [transformUIElement] 菜单元素转换完成:', {
+      原始clickable字段: {
+        is_clickable: element.is_clickable,
+        clickable: (element as any).clickable
+      },
+      最终clickable: result.clickable,
+      category: result.category,
+      description: result.description
+    });
+  }
+
+  return result;
 };
 
-/**
- * 元素分类函数
- */
-export const categorizeElement = (element: UIElement): string => {
-  // 🔧 修复：优先识别Button类型或真正可点击的元素
-  if (element.is_clickable === true || element.class_name?.includes('Button')) return 'interactive';
-  if (element.text && element.text.trim()) return 'text';
-  if (element.element_type?.toLowerCase().includes('image')) return 'image';
-  if (element.is_scrollable === true) return 'scrollable';
-  return 'container';
-};
+// 🔧 旧的categorizeElement函数已移除，统一使用transformUIElement中的新分类逻辑

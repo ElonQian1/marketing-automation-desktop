@@ -72,8 +72,37 @@ export function useParsedVisualElements(
         const className = node.getAttribute("class") || "";
         const clickable = node.getAttribute("clickable") === "true";
 
+        // 🐛 DEBUG: 特殊检查菜单按钮
+        if (contentDesc === "菜单") {
+          console.log(`🔍 [DEBUG] 发现菜单按钮 #${index}:`, {
+            bounds, text, contentDesc, className, clickable,
+            boundsCheck: !bounds || bounds === "[0,0][0,0]",
+            contentCheck: !text && !contentDesc && !clickable
+          });
+        }
+
         if (!bounds || bounds === "[0,0][0,0]") return;
-        if (!text && !contentDesc && !clickable) return;
+        
+        // 🐛 修复：添加debug信息来追踪菜单按钮是否被过滤
+        const hasText = !!text;
+        const hasContentDesc = !!contentDesc;
+        const isClickable = clickable;
+        const shouldFilter = !hasText && !hasContentDesc && !isClickable;
+        
+        if (contentDesc === "菜单") {
+          console.log(`🔍 [DEBUG] 菜单按钮过滤检查:`, {
+            text: `"${text}"`,
+            contentDesc: `"${contentDesc}"`,
+            clickable,
+            hasText,
+            hasContentDesc,
+            isClickable,
+            shouldFilter,
+            willBeFiltered: shouldFilter
+          });
+        }
+        
+        if (shouldFilter) return;
 
         const position = parseBounds(bounds);
         if (position.width <= 0 || position.height <= 0) return;

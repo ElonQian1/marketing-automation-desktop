@@ -496,9 +496,42 @@ export const VisualElementView: React.FC<VisualElementViewProps> = ({
     console.log('  - 将使用:', elements.length > 0 ? 'elements (props)' : 'parsedElements (Hook)');
   }, [xmlContent, elements, parsedElements]);
 
-  // 🔥 关键修复：优先使用 props 传入的 elements（已经在 usePageFinderModal 中解析过）
-  // 只有当 props elements 为空且有 xmlContent 时，才使用 Hook 内部解析的 parsedElements
-  const finalElements = elements.length > 0 ? elements : parsedElements;
+  // 🔥 修复：智能选择数据源，优先使用包含菜单分类的数据源
+  let finalElements: VisualUIElement[];
+  
+  // 检查哪个数据源包含菜单元素
+  const propsHasMenu = elements.some(e => 
+    e.category === 'menu' || 
+    e.description?.includes('菜单') || 
+    e.text?.includes('菜单')
+  );
+  const hookHasMenu = parsedElements.some(e => 
+    e.category === 'menu' || 
+    e.description?.includes('菜单') || 
+    e.text?.includes('菜单')
+  );
+  
+  // 智能选择策略：
+  // 1. 如果Hook解析出了菜单但props没有，优先用Hook
+  // 2. 如果都有或都没有，优先用props (保持向后兼容)
+  // 3. 如果props为空，使用Hook
+  if (elements.length === 0) {
+    finalElements = parsedElements;
+  } else if (hookHasMenu && !propsHasMenu && parsedElements.length > 0) {
+    console.log('🔄 [VisualElementView] 检测到Hook包含菜单元素，props不包含，优先使用Hook数据');
+    finalElements = parsedElements;
+  } else {
+    finalElements = elements;
+  }
+  
+  console.log('📊 [VisualElementView] 数据源选择结果:', {
+    propsCount: elements.length,
+    hookCount: parsedElements.length,
+    propsHasMenu,
+    hookHasMenu,
+    finalCount: finalElements.length,
+    source: finalElements === elements ? 'props' : 'hook'
+  });
   
   // 🐛 额外调试：输出最终使用的元素
   useEffect(() => {
