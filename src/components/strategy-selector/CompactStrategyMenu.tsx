@@ -3,7 +3,7 @@
 // summary: 替代大块策略选择器的紧凑下拉菜单，集成到步骤卡片标题栏
 
 import React, { useState } from "react";
-import { Dropdown, Button, Tooltip, Badge, Tag } from "antd";
+import { Dropdown, Button, Tooltip, Badge, Tag, message } from "antd";
 import {
   RefreshCcwIcon,
   ClipboardListIcon,
@@ -18,6 +18,7 @@ import {
 import { useStepCardStore } from "../../store/stepcards";
 import { useStepScoreStore } from "../../stores/step-score-store";
 import { useAnalysisState } from "../../stores/analysis-state-store";
+import { useAdb } from "../../application/hooks/useAdb";
 import { isValidScore, toPercentInt01 } from "../../utils/score-utils";
 import type { SelectionMode } from '../../types/smartSelection';
 import type { ActionKind } from '../../types/smartScript';
@@ -94,6 +95,10 @@ const CompactStrategyMenu: React.FC<CompactStrategyMenuProps> = ({
     continue_on_error: true,
     show_progress: true,
   });
+
+  // 🎯 新增：执行状态管理和ADB设备管理
+  const [executing, setExecuting] = useState(false);
+  const { selectedDevice } = useAdb();
 
   // 获取置信度和策略数据 - 🔧 修复：通过stepId查找卡片
   const cardId = useStepCardStore((state) => stepId ? state.byStepId[stepId] : undefined);
@@ -481,23 +486,49 @@ const CompactStrategyMenu: React.FC<CompactStrategyMenuProps> = ({
 
   // 🎯 执行智能选择（调试用）
   const executeSmartSelection = async () => {
+    // 防重复点击
+    if (executing) return;
+
+    // 设备ID验证
+    const deviceId = selectedDevice?.id;
+    if (!deviceId) {
+      message.warning('请先连接并选择ADB设备');
+      return;
+    }
+
+    setExecuting(true);
+    
     try {
       const { SmartSelectionService } = await import('../../services/smartSelectionService');
       const protocol = createSmartSelectionProtocol();
       
       console.log('🚀 [CompactStrategyMenu] 执行智能选择', {
+        deviceId,
         stepId,
         selectionMode,
         batchConfig: selectionMode === 'all' ? batchConfig : null,
         protocol
       });
 
-      // 这里需要设备ID，在实际使用中应该从某个地方获取
-      // const result = await SmartSelectionService.executeSmartSelection('device_id', protocol);
-      console.log('智能选择协议已准备就绪:', protocol);
+      // ✅ 恢复实际执行调用
+      const result = await SmartSelectionService.executeSmartSelection(deviceId, protocol);
+      
+      // ✅ 用户可见的成功反馈
+      const selectedCount = result.matched_elements?.selected_count || 1;
+      message.success(
+        `测试执行完成！${selectionMode === 'all' ? '批量' : '单次'}选择成功 - 操作了 ${selectedCount} 个元素`
+      );
+      
+      console.log('✅ 智能选择执行成功:', result);
       
     } catch (error) {
       console.error('❌ 执行智能选择失败:', error);
+      
+      // ✅ 用户可见的错误反馈
+      message.error(`测试执行失败: ${error instanceof Error ? error.message : '未知错误'}`);
+      
+    } finally {
+      setExecuting(false);
     }
   };
 
@@ -681,15 +712,17 @@ const CompactStrategyMenu: React.FC<CompactStrategyMenuProps> = ({
             <Button
               size="small"
               type="primary"
+              loading={executing}
+              disabled={!selectedDevice || executing}
               onClick={executeSmartSelection}
               style={{
                 fontSize: "11px",
                 height: "28px",
-                background: "rgba(16, 185, 129, 0.8)",
-                borderColor: "rgba(16, 185, 129, 0.9)"
+                background: executing ? "#94A3B8" : (!selectedDevice ? "#6B7280" : "rgba(16, 185, 129, 0.8)"),
+                borderColor: executing ? "#94A3B8" : (!selectedDevice ? "#6B7280" : "rgba(16, 185, 129, 0.9)")
               }}
             >
-              🧪 测试批量执行
+              {executing ? "🔄 执行中..." : (!selectedDevice ? "⚠️ 需要ADB设备" : "🧪 测试批量执行")}
             </Button>
           </div>
         </div>
