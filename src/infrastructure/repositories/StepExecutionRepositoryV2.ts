@@ -9,6 +9,7 @@ import type {
   StepRunMode
 } from '../../types/runStepV2';
 import type { StepCardModel } from '../../types/stepActions';
+import { buildStructuredSelector, getElementFromSelectorId } from '../../utils/structuredSelectorBuilder';
 
 export class StepExecutionRepositoryV2 {
   /**
@@ -23,12 +24,30 @@ export class StepExecutionRepositoryV2 {
     console.log(`🚀 [StepExec V2] 开始执行: ${stepCard.name}, 模式: ${mode}`);
     
     try {
+      // 🆕 尝试构建结构化选择器
+      let structuredSelector = undefined;
+      try {
+        // 从selectorId获取元素信息构建结构化选择器
+        const element = getElementFromSelectorId(stepCard.selectorId);
+        if (element) {
+          structuredSelector = buildStructuredSelector(element, stepCard);
+          console.log('🔗 [StepExec V2] 构建了结构化选择器:', structuredSelector);
+        } else {
+          console.log('⚠️ [StepExec V2] 无法从selectorId获取元素信息，使用传统模式:', stepCard.selectorId);
+        }
+      } catch (error) {
+        console.warn('⚠️ [StepExec V2] 构建结构化选择器失败，回退到传统模式:', error);
+      }
+      
       // 转换为 V2 请求协议
       const { convertToV2Request } = await import('../../types/runStepV2');
-      const request: RunStepRequestV2 = convertToV2Request(deviceId, mode, stepCard);
+      const request: RunStepRequestV2 = convertToV2Request(deviceId, mode, stepCard, structuredSelector);
       
       console.log(`📋 [StepExec V2] 请求数据:`, request);
       console.log(`🔍 [StepExec V2] 策略: ${request.strategy}, 动作: ${request.step.action}`);
+      if (structuredSelector) {
+        console.log(`🎯 [StepExec V2] 结构化选择器: ${JSON.stringify(structuredSelector.selectors)}`);
+      }
 
       // 调用 Tauri V2 命令
       const result = await invoke<RunStepResponseV2>('run_step_v2', { request });

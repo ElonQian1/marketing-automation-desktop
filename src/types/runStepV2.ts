@@ -3,6 +3,7 @@
 // summary: 前后端统一的 RunStep V2 请求响应协议，解决策略字段和动作参数问题
 
 import type { StepActionParams } from './stepActions';
+import type { StructuredSelector } from './structuredSelector';
 
 export type ActionType = 
   | 'tap' 
@@ -41,10 +42,16 @@ export interface VerifySpec {
 
 export interface BaseStep {
   step_id: string;
-  selector?: string;                 // element_element_63 / XPath 等
+  selector?: string;                 // element_element_63 / XPath 等（兼容旧版）
+  structured_selector?: StructuredSelector; // 🆕 结构化选择器对象
   selector_preferred?: boolean;      // 选择器优先
   bounds?: Bounds;                   // 兜底坐标
   fallback_to_bounds?: boolean;      // 打开才会用坐标兜底
+  // 🛡️ 安全与质量控制
+  require_uniqueness?: boolean;      // 强制唯一性约束
+  min_confidence?: number;           // 最低置信度阈值 (0.0-1.0)
+  forbid_fullscreen_or_container?: boolean; // 禁止整屏/容器节点
+  revalidate?: "device_required" | "cache_ok" | "auto"; // 缓存策略
   retry?: RetryPolicy;
   verify_after?: VerifySpec;         // 执行后验证（可选）
 }
@@ -98,16 +105,23 @@ export const ERROR_CODES = {
 export function convertToV2Request(
   deviceId: string,
   mode: StepRunMode,
-  stepCard: import('./stepActions').StepCardModel
+  stepCard: import('./stepActions').StepCardModel,
+  structuredSelector?: StructuredSelector
 ): RunStepRequestV2 {
   const { currentAction, common, selectorId } = stepCard;
   
   // 基础步骤信息
   const baseStep: BaseStep = {
     step_id: stepCard.id,
-    selector: selectorId,
+    selector: selectorId, // 兼容旧版内部ID
+    structured_selector: structuredSelector, // 🆕 结构化选择器对象
     selector_preferred: common.useSelector,
     fallback_to_bounds: common.allowAbsolute,
+    // 🛡️ 安全配置（按严格标准）
+    require_uniqueness: true, // 强制唯一性
+    min_confidence: 0.70, // 最低置信度阈值（提升到0.70）
+    forbid_fullscreen_or_container: true, // 禁止整屏/容器节点
+    revalidate: "device_required", // 要求设备重新验证
     retry: common.retries > 0 ? {
       max: common.retries,
       interval_ms: common.retryBackoffMs

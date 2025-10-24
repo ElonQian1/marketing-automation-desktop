@@ -116,10 +116,10 @@ impl StandardStrategyProcessor {
                 
                 let field_score = match field.as_str() {
                     "text" => {
-                        if !element.text.is_empty() {
-                            let similarity = self.calculate_text_similarity(&element.text, target_value);
+                        if element.text.as_ref().map_or(false, |text| !text.is_empty()) {
+                            let similarity = element.text.as_ref().map_or(0.0, |text| self.calculate_text_similarity(text, target_value));
                             if similarity > 0.0 {
-                                match_reasons.push(format!("text匹配: '{}' vs '{}' (相似度: {:.2})", element.text, target_value, similarity));
+                                match_reasons.push(format!("text匹配: '{}' vs '{}' (相似度: {:.2})", element.text.as_deref().unwrap_or(""), target_value, similarity));
                                 similarity * 0.5 // text权重最高
                             } else {
                                 0.0
@@ -129,10 +129,10 @@ impl StandardStrategyProcessor {
                         }
                     }
                     "content-desc" => {
-                        if !element.content_desc.is_empty() {
-                            let similarity = self.calculate_text_similarity(&element.content_desc, target_value);
+                        if element.content_desc.as_ref().map_or(false, |s| !s.is_empty()) {
+                            let similarity = self.calculate_text_similarity(element.content_desc.as_deref().unwrap_or(""), target_value);
                             if similarity > 0.0 {
-                                match_reasons.push(format!("content-desc匹配: '{}' vs '{}' (相似度: {:.2})", element.content_desc, target_value, similarity));
+                                match_reasons.push(format!("content-desc匹配: '{}' vs '{}' (相似度: {:.2})", element.content_desc.as_deref().unwrap_or(""), target_value, similarity));
                                 similarity * 0.3 // content-desc权重次高
                             } else {
                                 0.0
@@ -142,9 +142,9 @@ impl StandardStrategyProcessor {
                         }
                     }
                     "class" => {
-                        if !element.class.is_empty() {
-                            if element.class.contains(target_value) || target_value.contains(&element.class) {
-                                match_reasons.push(format!("class匹配: '{}' vs '{}'", element.class, target_value));
+                        if element.class.as_ref().map_or(false, |s| !s.is_empty()) {
+                            if element.class.as_ref().map_or(false, |s| s.contains(target_value) || target_value.contains(s)) {
+                                match_reasons.push(format!("class匹配: '{}' vs '{}'", element.class.as_deref().unwrap_or(""), target_value));
                                 0.15 // class权重较低
                             } else {
                                 0.0
@@ -162,7 +162,7 @@ impl StandardStrategyProcessor {
             // 如果有匹配且分数更高，更新最佳匹配
             if score > 0.0 {
                 logs.push(format!("🎯 元素匹配 [{}]: 分数={:.3}, 原因: {:?}", 
-                    &element.class, score, match_reasons));
+                    element.class.as_deref().unwrap_or(""), score, match_reasons));
                 
                 if best_match.is_none() || score > best_match.as_ref().unwrap().0 {
                     best_match = Some((score, element));
@@ -175,8 +175,8 @@ impl StandardStrategyProcessor {
             logs.push(format!("✅ 找到最佳匹配元素，分数: {:.3}", score));
             
             // 提取点击坐标
-            let (x, y) = if !element.bounds.is_empty() {
-                match self.parse_bounds_to_center_coordinates(&element.bounds) {
+            let (x, y) = if element.bounds.as_ref().map_or(false, |s| !s.is_empty()) {
+                match self.parse_bounds_to_center_coordinates(element.bounds.as_deref().unwrap_or("")) {
                     Ok(coords) => coords,
                     Err(_) => {
                         logs.push("⚠️ 解析bounds失败，使用默认坐标".to_string());
@@ -191,7 +191,7 @@ impl StandardStrategyProcessor {
             Ok(StrategyResult::success_with_bounds(
                 format!("Standard策略匹配成功，分数: {:.3}", score),
                 (x, y),
-                element.bounds.clone()
+                element.bounds.clone().unwrap_or_default()
             ))
         } else {
             logs.push("❌ 未找到匹配的元素".to_string());

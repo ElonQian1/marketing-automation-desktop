@@ -9,9 +9,12 @@ use crate::application::device_metrics::DeviceMetricsProvider;
 /// 注入器优先的点击；支持可选长按（通过 swipe 同点实现）
 pub async fn tap_injector_first(adb_path: &str, serial: &str, x: i32, y: i32, long_press_ms: Option<u32>) -> Result<()> {
     let injector = SafeInputInjector::from_env(AdbShellInputInjector::new(adb_path.to_string()));
-    match injector.tap(serial, x as u32, y as u32, long_press_ms).await {
+    let x_u32 = x as u32;
+    let y_u32 = y as u32;
+    info!("🐛 DEBUG: tap_injector_first调用 - 原始坐标 x={}, y={}, 转换后 x_u32={}, y_u32={}", x, y, x_u32, y_u32);
+    match injector.tap(serial, x_u32, y_u32, long_press_ms).await {
         Ok(()) => {
-            info!("🪄 injector-v1.0: tap 已通过统一注入器执行 x={}, y={}, longPress={:?}", x, y, long_press_ms);
+            info!("🪄 injector-v1.0: tap 已通过统一注入器执行 x={}, y={} (原始i32), x_u32={}, y_u32={}, longPress={:?}", x, y, x_u32, y_u32, long_press_ms);
             Ok(())
         }
         Err(e) => {

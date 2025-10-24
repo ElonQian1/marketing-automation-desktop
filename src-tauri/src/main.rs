@@ -6,7 +6,7 @@ mod application; // expose new application module (normalizer, device_metrics)
 mod domain;      // expose domain DSL (actions, coords, direction)
 mod infra;       // expose infra (adb injector, device metrics provider)
 mod infrastructure; // 事件系统
-mod engine;      // 策略引擎
+mod engine;      // 策略引擎：插件化决策链系统
 mod screenshot_service;
 mod services;
 mod commands; // 新增：集中管理 Tauri 命令
@@ -418,6 +418,8 @@ fn main() {
             marketing_commands::get_reply_templates,            // 新增：list_reply_templates 的别名
             marketing_commands::update_reply_template,          // 新增：更新回复模板
             marketing_commands::get_precise_acquisition_stats,  // 新增：获取统计数据
+            // V2执行链命令 (新增)
+            run_step_v2,                                        // V2统一步骤执行命令
             // Lead Hunt 模块命令（精准获客）
             commands::lh_save_comments,
             commands::lh_list_comments,

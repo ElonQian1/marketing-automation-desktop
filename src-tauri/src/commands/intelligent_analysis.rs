@@ -43,7 +43,7 @@
 use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
 use std::sync::{Arc, Mutex};
-use tauri::{AppHandle, Manager, Emitter};
+use tauri::AppHandle;
 use sha1::{Sha1, Digest};
 use crate::infrastructure::events::emit_and_trace;
 use crate::engine::{StrategyEngine, AnalysisContext, Evidence, ContainerInfo as EngineContainerInfo};
@@ -110,8 +110,19 @@ pub struct StrategyCandidate {
     pub confidence: f32,
     pub description: String,
     pub variant: String,
+    
+    // 完整的SelectorStack信息
     #[serde(skip_serializing_if = "Option::is_none")]
     pub xpath: Option<String>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub text: Option<String>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub resource_id: Option<String>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub class_name: Option<String>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub content_desc: Option<String>,
+    
     pub enabled: bool,
     pub is_recommended: bool,
 }
@@ -482,6 +493,17 @@ fn convert_step_result_to_analysis_result(
             description: c.description.clone(),
             variant: c.variant.clone(),
             xpath: c.xpath.clone(),
+            // 从AnalysisContext提取完整选择器信息
+            text: config.element_context.element_text.clone(),
+            resource_id: config.element_context.key_attributes.as_ref()
+                .and_then(|attrs| attrs.get("resource-id"))
+                .cloned(),
+            class_name: config.element_context.key_attributes.as_ref()
+                .and_then(|attrs| attrs.get("class"))
+                .cloned(),
+            content_desc: config.element_context.key_attributes.as_ref()
+                .and_then(|attrs| attrs.get("content-desc"))
+                .cloned(),
             enabled: true,
             is_recommended: c.key == step_result.recommended,
         }
@@ -494,6 +516,16 @@ fn convert_step_result_to_analysis_result(
         description: "应急兜底定位".to_string(),
         variant: "emergency_fallback".to_string(),
         xpath: Some(config.element_context.element_path.clone()),
+        text: config.element_context.element_text.clone(),
+        resource_id: config.element_context.key_attributes.as_ref()
+            .and_then(|attrs| attrs.get("resource-id"))
+            .cloned(),
+        class_name: config.element_context.key_attributes.as_ref()
+            .and_then(|attrs| attrs.get("class"))
+            .cloned(),
+        content_desc: config.element_context.key_attributes.as_ref()
+            .and_then(|attrs| attrs.get("content-desc"))
+            .cloned(),
         enabled: true,
         is_recommended: false,
     }).clone();
@@ -523,6 +555,10 @@ fn generate_mock_analysis_result(
             description: "基于 resource-id 直接定位".to_string(),
             variant: "self_anchor".to_string(),
             xpath: Some("//*[@resource-id='com.example:id/button']".to_string()),
+            text: config.element_context.element_text.clone(),
+            resource_id: Some("com.example:id/button".to_string()),
+            class_name: None,
+            content_desc: None,
             enabled: true,
             is_recommended: true,
         },
@@ -533,6 +569,10 @@ fn generate_mock_analysis_result(
             description: "通过子元素特征定位".to_string(),
             variant: "child_driven".to_string(),
             xpath: Some("//*[contains(@text,'确定')]".to_string()),
+            text: Some("确定".to_string()),
+            resource_id: None,
+            class_name: None,
+            content_desc: None,
             enabled: true,
             is_recommended: false,
         },
@@ -543,6 +583,10 @@ fn generate_mock_analysis_result(
             description: "限定在特定容器区域内".to_string(),
             variant: "region_scoped".to_string(),
             xpath: Some("//*[@class='Container']//*[@class='Button']".to_string()),
+            text: None,
+            resource_id: None,
+            class_name: Some("Button".to_string()),
+            content_desc: None,
             enabled: true,
             is_recommended: false,
         },
@@ -555,6 +599,10 @@ fn generate_mock_analysis_result(
         description: "基于位置索引定位".to_string(),
         variant: "index_fallback".to_string(),
         xpath: Some("(//*[@class='Button'])[3]".to_string()),
+        text: None,
+        resource_id: None,
+        class_name: Some("Button".to_string()),
+        content_desc: None,
         enabled: true,
         is_recommended: false,
     };

@@ -1,0 +1,359 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "Decision Chain Plan Contract v2",
+  "description": "同构决策链契约：前后端统一的Plan数据结构",
+  "type": "object",
+  "properties": {
+    "version": {
+      "type": "string",
+      "enum": ["v2"],
+      "description": "契约版本号，升级时+1"
+    },
+    "strategy": {
+      "$ref": "#/definitions/StrategyConfig"
+    },
+    "context": {
+      "$ref": "#/definitions/StaticAnalysisContext"
+    },
+    "child_anchors": {
+      "type": "array",
+      "items": {
+        "$ref": "#/definitions/ChildAnchor"
+      }
+    },
+    "structural_signatures": {
+      "$ref": "#/definitions/StructuralSignatures"
+    },
+    "plan": {
+      "type": "array",
+      "items": {
+        "$ref": "#/definitions/StrategyVariant"
+      },
+      "minItems": 1,
+      "description": "从强到弱排序的策略候选链"
+    }
+  },
+  "required": ["version", "strategy", "context", "plan"],
+  "definitions": {
+    "StrategyConfig": {
+      "type": "object",
+      "properties": {
+        "selected": {
+          "type": "string",
+          "description": "当前要执行的Variant ID"
+        },
+        "allow_backend_fallback": {
+          "type": "boolean",
+          "default": true
+        },
+        "time_budget_ms": {
+          "type": "integer",
+          "minimum": 100,
+          "maximum": 5000,
+          "default": 1200
+        },
+        "per_candidate_budget_ms": {
+          "type": "integer",
+          "minimum": 50,
+          "maximum": 1000,
+          "default": 180
+        },
+        "require_uniqueness": {
+          "type": "boolean",
+          "default": true
+        },
+        "min_confidence": {
+          "type": "number",
+          "minimum": 0.0,
+          "maximum": 1.0,
+          "default": 0.70
+        },
+        "forbid_containers": {
+          "type": "boolean",
+          "default": true
+        },
+        "post_assertions": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        }
+      },
+      "required": ["selected"]
+    },
+    "StaticAnalysisContext": {
+      "type": "object",
+      "properties": {
+        "package": {"type": "string"},
+        "activity": {"type": "string"},
+        "screen": {
+          "$ref": "#/definitions/ScreenInfo"
+        },
+        "absolute_xpath": {"type": "string"},
+        "xml_hash": {"type": "string"},
+        "node_fingerprint": {"type": "string"},
+        "container_anchor": {
+          "$ref": "#/definitions/ContainerAnchor"
+        },
+        "clickable_parent_hint": {
+          "$ref": "#/definitions/ClickableParentHint"
+        }
+      }
+    },
+    "ScreenInfo": {
+      "type": "object",
+      "properties": {
+        "width": {"type": "integer"},
+        "height": {"type": "integer"},
+        "dpi": {"type": "integer"},
+        "orientation": {
+          "type": "string",
+          "enum": ["portrait", "landscape"]
+        }
+      },
+      "required": ["width", "height", "dpi", "orientation"]
+    },
+    "ContainerAnchor": {
+      "type": "object",
+      "properties": {
+        "by": {
+          "type": "string",
+          "enum": ["id", "xpath", "class_structure"]
+        },
+        "value": {"type": "string"},
+        "fallback_xpath": {"type": "string"}
+      },
+      "required": ["by", "value"]
+    },
+    "ClickableParentHint": {
+      "type": "object",
+      "properties": {
+        "up_levels": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 10
+        },
+        "must_be_clickable": {"type": "boolean"},
+        "must_be_enabled": {"type": "boolean"}
+      },
+      "required": ["up_levels"]
+    },
+    "ChildAnchor": {
+      "type": "object",
+      "properties": {
+        "anchor_type": {
+          "type": "string",
+          "enum": ["text", "resource_id", "content_desc", "icon_id"]
+        },
+        "equals": {"type": "string"},
+        "contains": {"type": "string"},
+        "regex": {"type": "string"},
+        "i18n_alias": {
+          "type": "array",
+          "items": {"type": "string"},
+          "description": "多语言变体: ['收藏','Favorites','Starred']"
+        }
+      },
+      "required": ["anchor_type"]
+    },
+    "StrategyVariant": {
+      "type": "object",
+      "properties": {
+        "id": {"type": "string"},
+        "kind": {
+          "type": "string",
+          "enum": [
+            "SelfId",
+            "SelfDesc", 
+            "ChildToParent",
+            "RegionTextToParent",
+            "RegionLocalIndexWithCheck",
+            "NeighborRelative",
+            "GlobalIndexWithStrongChecks",
+            "BoundsTap"
+          ]
+        },
+        "scope": {
+          "type": "string",
+          "enum": ["regional", "global"]
+        },
+        "container_xpath": {"type": "string"},
+        "selectors": {
+          "$ref": "#/definitions/VariantSelectors"
+        },
+        "structure": {
+          "$ref": "#/definitions/StructureHint"
+        },
+        "index": {
+          "$ref": "#/definitions/IndexHint"
+        },
+        "checks": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/LightCheck"
+          }
+        },
+        "static_score": {
+          "type": "number",
+          "minimum": 0.0,
+          "maximum": 1.0
+        },
+        "explain": {"type": "string"},
+        "risk": {"type": "string"}
+      },
+      "required": ["id", "kind", "scope", "selectors", "static_score", "explain"]
+    },
+    "VariantSelectors": {
+      "type": "object",
+      "properties": {
+        "parent": {
+          "$ref": "#/definitions/ParentSelector"
+        },
+        "child": {
+          "$ref": "#/definitions/ChildSelector"
+        },
+        "self": {
+          "$ref": "#/definitions/SelfSelector"
+        }
+      }
+    },
+    "ParentSelector": {
+      "type": "object",
+      "properties": {
+        "class": {"type": "string"},
+        "clickable": {"type": "boolean"},
+        "enabled": {"type": "boolean"},
+        "resource_id": {"type": "string"}
+      }
+    },
+    "ChildSelector": {
+      "type": "object",
+      "properties": {
+        "class": {"type": "string"},
+        "resource_id": {"type": "string"},
+        "text": {
+          "$ref": "#/definitions/TextMatcher"
+        },
+        "content_desc": {"type": "string"}
+      }
+    },
+    "SelfSelector": {
+      "type": "object",
+      "properties": {
+        "class": {"type": "string"},
+        "resource_id": {"type": "string"},
+        "text": {
+          "$ref": "#/definitions/TextMatcher"
+        },
+        "content_desc": {"type": "string"},
+        "clickable": {"type": "boolean"},
+        "enabled": {"type": "boolean"}
+      }
+    },
+    "TextMatcher": {
+      "type": "object",
+      "properties": {
+        "equals": {"type": "string"},
+        "contains": {"type": "string"},
+        "in_list": {
+          "type": "array",
+          "items": {"type": "string"},
+          "description": "I18N别名集合"
+        }
+      }
+    },
+    "StructureHint": {
+      "type": "object",
+      "properties": {
+        "relation": {
+          "type": "string",
+          "enum": ["parent_child", "ancestor_descendant", "sibling"]
+        },
+        "direction": {
+          "type": "string",
+          "enum": ["up", "down", "next", "prev"]
+        },
+        "levels": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 10
+        }
+      },
+      "required": ["relation"]
+    },
+    "IndexHint": {
+      "type": "object",
+      "properties": {
+        "local_index": {
+          "type": "integer",
+          "minimum": 1,
+          "description": "容器内第n个（从1开始）"
+        },
+        "global_index": {
+          "type": "integer",
+          "minimum": 1,
+          "description": "全局第n个（尽量避免）"
+        }
+      }
+    },
+    "LightCheck": {
+      "type": "object",
+      "properties": {
+        "check_type": {
+          "type": "string",
+          "enum": [
+            "child_text_contains",
+            "child_text_contains_any",
+            "clickable",
+            "enabled"
+          ]
+        },
+        "value": {"type": "string"},
+        "values": {
+          "type": "array",
+          "items": {"type": "string"}
+        }
+      },
+      "required": ["check_type"]
+    },
+    "StructuralSignatures": {
+      "type": "object",
+      "properties": {
+        "ancestor_class_chain": {
+          "type": "array",
+          "items": {"type": "string"}
+        },
+        "sibling_signature": {"type": "string"},
+        "bounds_signature": {
+          "$ref": "#/definitions/BoundsSignature"
+        }
+      }
+    },
+    "BoundsSignature": {
+      "type": "object",
+      "properties": {
+        "width_ratio": {
+          "type": "number",
+          "minimum": 0.0,
+          "maximum": 1.0
+        },
+        "height_ratio": {
+          "type": "number",
+          "minimum": 0.0,
+          "maximum": 1.0
+        },
+        "center_x_ratio": {
+          "type": "number",
+          "minimum": 0.0,
+          "maximum": 1.0
+        },
+        "center_y_ratio": {
+          "type": "number",
+          "minimum": 0.0,
+          "maximum": 1.0
+        }
+      },
+      "required": ["width_ratio", "height_ratio", "center_x_ratio", "center_y_ratio"]
+    }
+  }
+}

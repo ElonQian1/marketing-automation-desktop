@@ -194,8 +194,11 @@ impl ScriptExecutor {
 
         info!("👆 点击坐标: ({}, {})", x, y);
         // 优先通过统一注入器执行（injector-v1.0），失败则回退到原始命令
-    let injector = SafeInputInjector::from_env(AdbShellInputInjector::new(self.adb_path.clone()));
-        if let Err(e) = injector.tap(&self.device_id, x as u32, y as u32, None).await {
+        let injector = SafeInputInjector::from_env(AdbShellInputInjector::new(self.adb_path.clone()));
+        let x_u32 = x as u32;
+        let y_u32 = y as u32;
+        info!("🐛 DEBUG: script_executor tap调用 - 原始坐标 x={}, y={}, 转换后 x_u32={}, y_u32={}", x, y, x_u32, y_u32);
+        if let Err(e) = injector.tap(&self.device_id, x_u32, y_u32, None).await {
             warn!("🪄 injector-v1.0: 注入器点击失败，将回退旧命令。错误: {}", e);
             let output = Command::new(&self.adb_path)
                 .args(&[
@@ -211,7 +214,7 @@ impl ScriptExecutor {
                 return Err(anyhow::anyhow!("点击命令执行失败: {}", error_msg));
             }
         } else {
-            info!("🪄 injector-v1.0: tap 已通过统一注入器执行");
+            info!("🪄 injector-v1.0: tap 已通过统一注入器执行 x={}, y={}, longPress=None", x, y);
         }
 
         // 等待指定时间

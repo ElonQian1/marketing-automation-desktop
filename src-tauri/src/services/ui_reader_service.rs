@@ -2,15 +2,16 @@ use serde::{Deserialize, Serialize};
 use tokio::process::Command as AsyncCommand;
 use crate::utils::adb_utils::get_adb_path;
 
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
 pub struct UIElement {
-    pub text: String,
-    pub resource_id: String,
-    pub class: String,
-    pub package: String,
-    pub content_desc: String,
-    pub clickable: bool,
-    pub bounds: String,
+    pub text: Option<String>,
+    pub resource_id: Option<String>,
+    pub class: Option<String>,
+    pub package: Option<String>,
+    pub content_desc: Option<String>,
+    pub clickable: Option<bool>,
+    pub enabled: Option<bool>, // 新增enabled字段
+    pub bounds: Option<String>,
 }
 
 #[derive(Debug, Serialize, Deserialize)]
@@ -201,13 +202,14 @@ fn parse_node_element(line: &str) -> Result<UIElement, String> {
         .unwrap_or("false".to_string()) == "true";
     
     Ok(UIElement {
-        text,
-        resource_id,
-        class,
-        package,
-        content_desc,
-        clickable,
-        bounds,
+        text: Some(text),
+        resource_id: Some(resource_id),
+        class: Some(class),
+        package: Some(package),
+        content_desc: Some(content_desc),
+        clickable: Some(clickable),
+        enabled: Some(true), // 添加默认值
+        bounds: Some(bounds),
     })
 }
 
@@ -231,22 +233,22 @@ fn analyze_ui_state(elements: &[UIElement]) -> UIPageType {
     
     // 检查当前应用包名
     if let Some(first_element) = elements.first() {
-        println!("🧠 分析UI状态，package: {}", first_element.package);
+        println!("🧠 分析UI状态，package: {:?}", first_element.package);
         
-        match first_element.package.as_str() {
-            "com.android.documentsui" => {
-                if elements.iter().any(|e| e.text.contains("无任何文件") || e.text.contains("No items")) {
+        match first_element.package.as_ref().map(|s| s.as_str()) {
+            Some("com.android.documentsui") => {
+                if elements.iter().any(|e| e.text.as_ref().map_or(false, |text| text.contains("无任何文件") || text.contains("No items"))) {
                     UIPageType::FileManagerEmpty
-                } else if elements.iter().any(|e| e.text.contains("contacts_import.vcf") || e.text.contains(".vcf")) {
+                } else if elements.iter().any(|e| e.text.as_ref().map_or(false, |text| text.contains("contacts_import.vcf") || text.contains(".vcf"))) {
                     UIPageType::FileManagerWithVcf
                 } else {
                     UIPageType::FileManagerBrowsing
                 }
             }
-            "com.android.contacts" => UIPageType::ContactsApp,
-            "com.android.packageinstaller" => UIPageType::PermissionDialog,
-            package if package.contains("launcher") => UIPageType::Desktop,
-            _ => UIPageType::Unknown(first_element.package.clone()),
+            Some("com.android.contacts") => UIPageType::ContactsApp,
+            Some("com.android.packageinstaller") => UIPageType::PermissionDialog,
+            Some(package) if package.contains("launcher") => UIPageType::Desktop,
+            _ => UIPageType::Unknown(first_element.package.clone().unwrap_or_else(|| "unknown".to_string())),
         }
     } else {
         UIPageType::Unknown("no_elements".to_string())
@@ -259,7 +261,7 @@ fn suggest_next_action(page_type: &UIPageType, elements: &[UIElement]) -> NextAc
         UIPageType::Desktop => NextAction::OpenFileManager,
         UIPageType::FileManagerEmpty => {
             // 检查是否在下载目录
-            if elements.iter().any(|e| e.text.contains("最近") || e.text.contains("Download") || e.text.contains("下载")) {
+            if elements.iter().any(|e| e.text.as_ref().map_or(false, |text| text.contains("最近") || text.contains("Download") || text.contains("下载"))) {
                 NextAction::CheckDownloadFolder
             } else {
                 NextAction::NavigateToDownloads
@@ -308,11 +310,11 @@ pub async fn find_ui_elements(
         .into_iter()
         .filter(|element| {
             match element_type.as_str() {
-                "clickable" => element.clickable,
-                "text" => element.text.contains(&search_value),
-                "resource_id" => element.resource_id.contains(&search_value),
-                "content_desc" => element.content_desc.contains(&search_value),
-                "class" => element.class.contains(&search_value),
+                "clickable" => element.clickable.unwrap_or(false),
+                "text" => element.text.as_ref().map_or(false, |text| text.contains(&search_value)),
+                "resource_id" => element.resource_id.as_ref().map_or(false, |id| id.contains(&search_value)),
+                "content_desc" => element.content_desc.as_ref().map_or(false, |desc| desc.contains(&search_value)),
+                "class" => element.class.as_ref().map_or(false, |class| class.contains(&search_value)),
                 _ => false,
             }
         })

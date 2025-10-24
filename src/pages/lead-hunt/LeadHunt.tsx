@@ -159,6 +159,7 @@ export default function LeadHunt() {
           const percent = Math.round((current / total) * 100);
           setAnalysisProgress(percent);
         }
+        // 并发数从AI设置中读取
       );
 
       // 将分析结果合并到rows中

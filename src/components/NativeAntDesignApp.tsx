@@ -66,6 +66,7 @@ import { StatisticsPageNative } from "../pages/statistics/StatisticsPageNative";
 import { DeviceManagementPageNative } from "../pages/device-management/DeviceManagementPageNative";
 import { LoginPageNative } from "../pages/auth/LoginPageNative";
 import { PreciseAcquisitionPage } from "../pages/precise-acquisition/PreciseAcquisitionPage";
+import V2TestPage from "../pages/v2-test";
 
 // 优化后的商业化页面
 import { StatisticsPageOptimized } from "../pages/statistics/StatisticsPageOptimized";
@@ -227,6 +228,11 @@ const NativeAntDesignApp: React.FC = () => {
       label: "🧪 智能分析适配器测试",
     },
     {
+      key: "v2-test",
+      icon: <RobotOutlined />,
+      label: "🚀 V2执行链测试",
+    },
+    {
       key: "test-real-backend-integration",
       icon: <SyncOutlined />,
       label: "🚀 真实后端集成测试",
@@ -351,6 +357,8 @@ const NativeAntDesignApp: React.FC = () => {
         return <StrategyBackendDemoFixed />;
       case "test-unified-execution":
         return <TestUnifiedExecution />;
+      case "v2-test":
+        return <V2TestPage />;
       case "statistics-native":
         return <StatisticsPageNative />;
       case "statistics-optimized":
