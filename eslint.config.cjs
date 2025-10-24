@@ -6,6 +6,7 @@ const typescriptEslint = require('@typescript-eslint/eslint-plugin');
 const typescriptParser = require('@typescript-eslint/parser');
 const boundariesPlugin = require('eslint-plugin-boundaries');
 const importPlugin = require('eslint-plugin-import');
+const reactHooksPlugin = require('eslint-plugin-react-hooks');
 
 module.exports = [
   {
@@ -35,6 +36,7 @@ module.exports = [
       '@typescript-eslint': typescriptEslint,
       'boundaries': boundariesPlugin,
       'import': importPlugin,
+      'react-hooks': reactHooksPlugin,
     },
     files: ['src/**/*.{ts,tsx}'],
     settings: {
@@ -68,6 +70,10 @@ module.exports = [
     rules: {
       // TypeScript ESLint recommended rules
       ...typescriptEslint.configs.recommended.rules,
+      
+      // React Hooks rules
+      'react-hooks/rules-of-hooks': 'off',
+      'react-hooks/exhaustive-deps': 'warn',
       
       // 临时放宽规则以通过commit
       "@typescript-eslint/no-explicit-any": "warn",
