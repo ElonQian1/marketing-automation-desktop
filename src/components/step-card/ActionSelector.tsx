@@ -20,11 +20,11 @@ export const ActionSelector: React.FC<ActionSelectorProps> = ({
 }) => {
   // 🎯 智能操作配置状态
   type ExecutionChain = 'intelligent_chain' | 'single_step' | 'static_strategy';
-  type SelectionMode = 'first' | 'last' | 'match-original' | 'random' | 'all';
+  type SelectionMode = 'auto' | 'first' | 'last' | 'match-original' | 'random' | 'all';
   
   const [smartConfig, setSmartConfig] = useState({
     executionChain: 'intelligent_chain' as ExecutionChain,
-    selectionMode: 'first' as SelectionMode,
+    selectionMode: 'auto' as SelectionMode,
     operationType: 'tap' as ActionKind
   });
 
@@ -413,6 +413,7 @@ export const ActionSelector: React.FC<ActionSelectorProps> = ({
   // 🎯 选择模式菜单
   const getSelectionModeMenu = () => {
     const selectionModes = [
+      { key: 'auto', label: '智能自适应', icon: '🎯', desc: '1个→精确匹配，多个→批量处理' },
       { key: 'first', label: '第一个', icon: '🎯', desc: '选择第一个匹配元素' },
       { key: 'last', label: '最后一个', icon: '🎯', desc: '选择最后一个匹配元素' },
       { key: 'match-original', label: '精确匹配', icon: '🔍', desc: '基于指纹精确匹配' },
@@ -551,13 +552,30 @@ export const ActionSelector: React.FC<ActionSelectorProps> = ({
             }}
           >
             <span>
-              {smartConfig.selectionMode === 'first' ? '🎯 第一个' :
+              {smartConfig.selectionMode === 'auto' ? '🎯 智能自适应' :
+               smartConfig.selectionMode === 'first' ? '🎯 第一个' :
                smartConfig.selectionMode === 'last' ? '🎯 最后一个' :
                smartConfig.selectionMode === 'match-original' ? '🔍 精确匹配' :
                smartConfig.selectionMode === 'random' ? '🎲 随机选择' :
-               '📋 批量全部'}
+               smartConfig.selectionMode === 'all' ? '📋 批量全部' :
+               '🔍 智能选择'}
             </span>
-            <span style={{ color: 'rgb(16, 185, 129)', fontSize: '12px' }}>✅</span>
+            {/* 模式特殊标识 */}
+            {smartConfig.selectionMode === 'auto' ? (
+              <span style={{ 
+                color: 'rgb(34, 197, 94)', 
+                fontSize: '10px',
+                fontWeight: 'bold'
+              }}>AUTO</span>
+            ) : smartConfig.selectionMode === 'all' ? (
+              <span style={{ 
+                color: 'rgb(245, 158, 11)', 
+                fontSize: '10px',
+                fontWeight: 'bold'
+              }}>BATCH</span>
+            ) : (
+              <span style={{ color: 'rgb(16, 185, 129)', fontSize: '12px' }}>✅</span>
+            )}
             <DownOutlined style={{ fontSize: '10px' }} />
           </Button>
         </Dropdown>

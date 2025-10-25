@@ -98,6 +98,25 @@ impl SmartSelectionEngine {
         
         // 3. 根据选择模式执行策略
         let selected_elements = match &protocol.selection.mode {
+            SelectionMode::Auto { single_min_confidence, batch_config, fallback_to_first } => {
+                // 🎯 Auto模式：根据候选数量智能选择策略
+                let candidate_count = candidates.len();
+                debug_logs.push(format!("Auto模式检测到 {} 个候选元素", candidate_count));
+                
+                if candidate_count <= 1 {
+                    // 单个或无候选：使用MatchOriginal策略
+                    debug_logs.push("Auto模式 → 单个策略".to_string());
+                    Self::execute_match_original_strategy(
+                        &candidates, 
+                        &protocol.anchor.fingerprint, 
+                        &mut debug_logs
+                    )?
+                } else {
+                    // 多个候选：使用批量策略
+                    debug_logs.push("Auto模式 → 批量策略".to_string());
+                    Self::execute_batch_strategy(&candidates, &mut debug_logs)?
+                }
+            }
             SelectionMode::MatchOriginal { min_confidence, fallback_to_first } => {
                 Self::execute_match_original_strategy(&candidates, &protocol.anchor.fingerprint, &mut debug_logs)?
             }

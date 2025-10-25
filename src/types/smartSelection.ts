@@ -78,7 +78,8 @@ export interface MatchingContext {
  * 选择策略模式
  */
 export type SelectionMode = 
-  | 'match-original'    // 精确匹配原选择的元素
+  | 'auto'             // 自动模式：根据候选数量智能选择（零侵入兼容）
+  | 'match-original'   // 精确匹配原选择的元素
   | 'first'            // 选择第一个
   | 'last'             // 选择最后一个  
   | 'random'           // 随机选择一个

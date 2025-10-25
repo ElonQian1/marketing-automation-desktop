@@ -143,6 +143,17 @@ pub struct LightAssertions {
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[serde(tag = "type")]
 pub enum SelectionMode {
+    /// 自动模式：根据匹配数量智能选择（零侵入兼容）
+    /// match_count=1 → 使用MatchOriginal策略
+    /// match_count>1 → 使用All策略  
+    Auto {
+        /// 单个模式的最小置信度
+        single_min_confidence: Option<f32>,
+        /// 批量模式的配置
+        batch_config: Option<BatchConfigV2>,
+        /// 单个匹配失败时是否回退到第一个
+        fallback_to_first: Option<bool>,
+    },
     /// 精确匹配原选择的元素（需要fingerprint）
     MatchOriginal {
         min_confidence: f32,
