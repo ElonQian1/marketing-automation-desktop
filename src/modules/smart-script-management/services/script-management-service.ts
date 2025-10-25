@@ -93,21 +93,34 @@ export class ScriptManagementService {
     options?: { config?: any }
   ): Promise<ScriptExecutionResult> {
     try {
+      console.log('🔄 [ScriptManagementService] 开始执行脚本:', { scriptId, deviceId, options });
+      
       // 先加载脚本
       const script = await this.loadScript(scriptId);
+      console.log('📋 [ScriptManagementService] 脚本加载成功:', { 
+        stepsCount: script.steps.length, 
+        config: script.config 
+      });
       
-      // 执行脚本
-      const result = await invoke('execute_smart_automation_script', {
+      // 准备参数
+      const invokeParams = {
         deviceId: deviceId,
         steps: script.steps,
         config: script.config,
         ...options
-      }) as ScriptExecutionResult;
+      };
+      console.log('📤 [ScriptManagementService] 准备调用 Tauri 命令:', { 
+        command: 'execute_smart_automation_script',
+        params: invokeParams 
+      });
       
-      console.log('✅ 脚本执行完成:', result.success);
+      // 执行脚本
+      const result = await invoke('execute_smart_automation_script', invokeParams) as ScriptExecutionResult;
+      
+      console.log('✅ [ScriptManagementService] 脚本执行完成:', result);
       return result;
     } catch (error) {
-      console.error('❌ 脚本执行失败:', error);
+      console.error('❌ [ScriptManagementService] 脚本执行失败:', error);
       throw new Error(`脚本执行失败: ${error}`);
     }
   }

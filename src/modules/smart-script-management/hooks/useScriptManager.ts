@@ -498,10 +498,18 @@ export function useScriptExecutor() {
     config: any,
     deviceId: string
   ) => {
+    console.log('🚀 [executeFromUIState] 开始执行UI状态脚本:', { 
+      stepsCount: steps.length, 
+      deviceId, 
+      config 
+    });
+    
     setExecuting(true);
     setExecutionResult(null);
     
     try {
+      console.log('📋 [executeFromUIState] 创建临时脚本对象...');
+      
       // 创建临时脚本对象
       const tempScript = ScriptSerializer.serializeScript(
         '临时脚本',
@@ -509,12 +517,19 @@ export function useScriptExecutor() {
         steps,
         config
       );
+      
+      console.log('💾 [executeFromUIState] 临时脚本创建完成:', tempScript);
 
       // 先保存临时脚本
+      console.log('💾 [executeFromUIState] 保存临时脚本...');
       const savedScript = await ScriptManagementService.saveScript(tempScript);
+      console.log('✅ [executeFromUIState] 临时脚本保存成功:', savedScript);
       
       // 执行脚本
+      console.log('🎯 [executeFromUIState] 开始执行脚本...');
       const result = await ScriptManagementService.executeScript(savedScript.id, deviceId);
+      console.log('✅ [executeFromUIState] 脚本执行完成:', result);
+      
       setExecutionResult(result);
       
       if (result.success) {

@@ -19,6 +19,7 @@ import { useStepForm } from "./SmartScriptBuilderPage/hooks/useStepForm";
 import { usePageFinder } from "./SmartScriptBuilderPage/hooks/usePageFinder";
 import { useLoopManagement } from "./SmartScriptBuilderPage/components/loop-management";
 import { useContactImport } from "./SmartScriptBuilderPage/components/contact-import";
+import { useScriptExecutor } from "../modules/smart-script-management/hooks/useScriptManager";
 
 // 🆕 导入类型和服务
 import type { ExtendedSmartScriptStep, LoopConfig } from "../types/loopScript";
@@ -137,6 +138,9 @@ const SmartScriptBuilderPage: React.FC = () => {
 
   // 适配新签名：useContactImport(steps, setSteps)
   const contactImportHook = useContactImport(steps, setSteps);
+
+  // 🚀 使用脚本执行器
+  const { executeFromUIState, executing } = useScriptExecutor();
 
   // 🆕 当步骤变化时，同步到分布式步骤查找服务
   useEffect(() => {
@@ -271,17 +275,30 @@ const SmartScriptBuilderPage: React.FC = () => {
       return;
     }
     
+    if (steps.length === 0) {
+      message.warning('请先添加步骤');
+      return;
+    }
+    
+    console.log('🚀 [handleExecuteCurrentScript] 开始执行脚本');
+    console.log('📋 步骤数:', steps.length);
+    console.log('📱 设备ID:', currentDeviceId);
+    console.log('⚙️ 执行器配置:', executorConfig);
+    
     setIsExecuting(true);
     try {
-      // 🔄 执行当前构建器中的步骤
       console.log('🎯 执行当前脚本，步骤数:', steps.length, '设备:', currentDeviceId);
-      // 这里应该调用实际的脚本执行逻辑
-      // 暂时使用简化的逻辑
-      message.success("当前脚本执行完成");
+      
+      // 🚀 使用真实的脚本执行器
+      console.log('🔄 调用 executeFromUIState...');
+      const result = await executeFromUIState(steps, executorConfig, currentDeviceId);
+      console.log('✅ executeFromUIState 执行完成:', result);
+      
     } catch (error) {
-      console.error("脚本执行失败:", error);
-      message.error("脚本执行失败");
+      console.error("❌ 脚本执行失败:", error);
+      message.error(`脚本执行失败: ${error instanceof Error ? error.message : String(error)}`);
     } finally {
+      console.log('🏁 [handleExecuteCurrentScript] 执行完成，重置状态');
       setIsExecuting(false);
     }
   };
@@ -355,7 +372,7 @@ const SmartScriptBuilderPage: React.FC = () => {
             executorConfig={executorConfig}
             setExecutorConfig={setExecutorConfig}
             executionResult={executionResult}
-            isExecuting={isExecuting}
+            isExecuting={isExecuting || executing}
             currentDeviceId={currentDeviceId}
             onExecuteScript={handleExecuteCurrentScript}
             onLoadScript={handleLoadScriptFromManager}
