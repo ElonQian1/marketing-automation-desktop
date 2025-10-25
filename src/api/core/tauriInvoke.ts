@@ -71,14 +71,24 @@ export async function invokeCompat<T = unknown>(
     );
     if (missingCamel) {
       console.warn(`[invokeCompat] snake_case 调用失败，尝试 camelCase…`, msg);
-      return await invoke<T>(command, camelParams);
+      try {
+        return await invoke<T>(command, camelParams);
+      } catch (e2) {
+        console.error(`[invokeCompat] camelCase 调用也失败:`, String(e2));
+        throw e2; // 抛出第二次调用的错误
+      }
     }
     // 即便不匹配上述模式，也做一次回退尝试，增强鲁棒性
     console.warn(
       `[invokeCompat] snake_case 调用失败，保守回退 camelCase…`,
       msg
     );
-    return await invoke<T>(command, camelParams);
+    try {
+      return await invoke<T>(command, camelParams);
+    } catch (e2) {
+      console.error(`[invokeCompat] 保守回退也失败:`, String(e2));
+      throw e2; // 抛出第二次调用的错误
+    }
   }
 }
 

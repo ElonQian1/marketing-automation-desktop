@@ -60,9 +60,9 @@ export class ImportStrategyExecutor {
           message: string;
           duration_seconds: number;
         }>('import_vcf_contacts_multi_brand', {
-          deviceId: deviceId,  // 修复：使用驼峰式（Tauri 默认）
-          contactsFilePath: vcfFilePath  // 修复：使用驼峰式
-        });
+          deviceId: deviceId,
+          contactsFilePath: vcfFilePath
+        }, { forceCamel: true });
 
         if (multiBrandResult.success) {
           console.log(`✅ 多品牌导入器成功！使用策略: ${multiBrandResult.used_strategy} - ${multiBrandResult.used_method}`);
@@ -271,10 +271,10 @@ export class ImportStrategyExecutor {
     try {
       // 先创建目录（如果不存在）
       try {
-        await invokeCompat('execute_shell_command', {
+        await invokeCompat('safe_adb_shell_command', {
           deviceId,
           shellCommand: 'mkdir -p /sdcard/Android/data/com.android.contacts/files'
-        });
+        }, { forceCamel: true });
         console.log('✅ 确保专属目录存在');
       } catch (mkdirError) {
         console.warn('⚠️ 创建目录失败（可能已存在）:', mkdirError);
@@ -284,7 +284,7 @@ export class ImportStrategyExecutor {
         deviceId,
         localPath: localVcfPath,
         remotePath: devicePath
-      });
+      }, { forceCamel: true });
 
       console.log(`✅ 文件推送成功: ${result}`);
       return devicePath;
@@ -298,7 +298,7 @@ export class ImportStrategyExecutor {
           deviceId,
           localPath: localVcfPath,
           remotePath: fallbackPath
-        });
+        }, { forceCamel: true });
         
         console.log(`✅ 文件推送成功（备用路径）: ${result}`);
         return fallbackPath;
@@ -361,7 +361,7 @@ export class ImportStrategyExecutor {
       dataUri: `file://${vcfPath}`,
       mimeType: mimeType,
       component: null
-    });
+    }, { forceCamel: true });
 
     return (result as any).success;
   }
@@ -383,7 +383,7 @@ export class ImportStrategyExecutor {
       dataUri: `file://${vcfPath}`,
       mimeType: mimeType,
       component
-    });
+    }, { forceCamel: true });
 
     return (result as any).success;
   }
@@ -443,7 +443,7 @@ export class ImportStrategyExecutor {
       await invokeCompat('safe_adb_shell_command', {
         deviceId,
         shellCommand: 'rm -f /sdcard/Android/data/com.android.contacts/files/temp_import.vcf /sdcard/temp_import.vcf'
-      });
+      }, { forceCamel: true });
       
       console.log('🧹 清理临时文件完成');
     } catch (error) {

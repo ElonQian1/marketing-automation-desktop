@@ -8,7 +8,7 @@ import styles from '../DeviceAssignmentGrid.module.css';
 import { useDeviceAssignmentState, type DeviceAssignmentRow } from './useDeviceAssignmentState';
 import { Toolbar } from './Toolbar';
 import { DeviceCard } from './DeviceCard';
-import { getBindings, bindBatchToDevice } from '../../services/deviceBatchBinding';
+import { getBindings, getBindingStats, bindBatchToDevice } from '../../services/deviceBatchBinding';
 import { processPendingSessionsForDevice, processLatestPendingSessionForDevice } from '../../services/sessionImportService';
 import { ContactVcfImportService } from '../../../../../services/contact-vcf-import-service';
 import { buildVcfFromNumbers } from '../../../utils/vcf';
@@ -239,7 +239,7 @@ export const DeviceAssignmentGrid: React.FC<DeviceAssignmentGridProps> = (props)
       <Row gutter={[12, 12]}>
         {data.map((row) => {
           const isSelected = !!selected[row.deviceId];
-          const bindings = getBindings(row.deviceId);
+          const bindings = getBindingStats(row.deviceId);
           return (
             <Col key={row.deviceId} xs={24} sm={12} md={8} lg={6} xl={6} xxl={4}>
               <DeviceCard
@@ -260,7 +260,7 @@ export const DeviceAssignmentGrid: React.FC<DeviceAssignmentGridProps> = (props)
                 importing={!!importingIds[row.deviceId]}
                 allocating={!!allocatingIds[row.deviceId]}
                 generating={!!generatingIds[row.deviceId]}
-                bindings={{ pending: bindings.pending.length, imported: bindings.imported.length }}
+                bindings={bindings}
                 onOpenSessions={(status) => props.onOpenSessions?.({ deviceId: row.deviceId, status })}
                 onIncludeIndustryOption={includeIndustryOption}
                 onRequestIndustries={refreshIndustryOptions}
