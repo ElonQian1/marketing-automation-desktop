@@ -1,0 +1,221 @@
+/* src/components/LoopStartCard/styles.css */
+/* 循环卡片独立样式基准线 - 简化设计 */
+
+/* ===== 循环卡片基础样式 ===== */
+.loop-card {
+  position: relative;
+  width: 100%;
+  margin-bottom: 8px;
+  background: #ffffff !important;
+  border: 2px solid #10b981 !important;
+  border-radius: 8px !important;
+  box-shadow: 0 2px 4px rgba(16, 185, 129, 0.1) !important;
+  transition: all 0.2s ease !important;
+  cursor: grab;
+  overflow: visible;
+}
+
+.loop-card:hover {
+  box-shadow: 0 4px 12px rgba(16, 185, 129, 0.2) !important;
+  border-color: #059669 !important;
+}
+
+.loop-card.dragging {
+  box-shadow: 0 8px 24px rgba(16, 185, 129, 0.3) !important;
+  transform: rotate(2deg);
+  cursor: grabbing;
+  z-index: 1000;
+}
+
+/* ===== 循环开始卡片特定样式 ===== */
+.loop-start-card {
+  border-color: #10b981 !important; /* 绿色 - 开始 */
+}
+
+.loop-start-card:hover {
+  border-color: #059669 !important;
+}
+
+/* ===== 循环结束卡片特定样式 ===== */
+.loop-end-card {
+  border-color: #f59e0b !important; /* 橙色 - 结束 */
+}
+
+.loop-end-card:hover {
+  border-color: #d97706 !important;
+}
+
+/* ===== 左侧循环指示器 ===== */
+.loop-indicator {
+  position: absolute;
+  left: 0;
+  top: 0;
+  bottom: 0;
+  width: 4px;
+  border-radius: 8px 0 0 8px;
+}
+
+.loop-start-indicator {
+  background: linear-gradient(180deg, #10b981 0%, #059669 100%);
+}
+
+.loop-end-indicator {
+  background: linear-gradient(180deg, #f59e0b 0%, #d97706 100%);
+}
+
+/* ===== 循环卡片头部 ===== */
+.loop-card-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 12px 16px;
+  border-bottom: 1px solid #f3f4f6;
+}
+
+.loop-icon {
+  font-size: 16px;
+  color: #10b981;
+}
+
+.loop-end-card .loop-icon {
+  color: #f59e0b;
+}
+
+.loop-title {
+  font-size: 14px;
+  color: #111827 !important;
+  margin: 0;
+}
+
+.loop-badge {
+  font-size: 12px;
+  padding: 2px 8px;
+  background: #ecfdf5;
+  color: #059669 !important;
+  border-radius: 12px;
+}
+
+.loop-end-card .loop-badge {
+  background: #fffbeb;
+  color: #d97706 !important;
+}
+
+.loop-action-btn {
+  color: #6b7280 !important;
+}
+
+.loop-action-btn:hover {
+  color: #111827 !important;
+  background: #f3f4f6 !important;
+}
+
+/* ===== 循环卡片主体 ===== */
+.loop-card-body {
+  padding: 12px 16px;
+}
+
+.loop-card-body .ant-typography {
+  color: #6b7280 !important;
+}
+
+.loop-card-body .ant-typography-secondary {
+  color: #9ca3af !important;
+}
+
+/* ===== 循环卡片底部 ===== */
+.loop-card-footer {
+  padding: 8px 16px;
+  background: #f9fafb;
+  border-top: 1px solid #f3f4f6;
+  text-align: center;
+  border-radius: 0 0 6px 6px;
+}
+
+.loop-card-footer .ant-typography {
+  margin: 0;
+  color: #9ca3af !important;
+}
+
+/* ===== 表单控件样式 ===== */
+.loop-card .ant-input-number {
+  border-color: #d1d5db !important;
+}
+
+.loop-card .ant-input-number:hover {
+  border-color: #10b981 !important;
+}
+
+.loop-card .ant-input-number:focus,
+.loop-card .ant-input-number-focused {
+  border-color: #10b981 !important;
+  box-shadow: 0 0 0 2px rgba(16, 185, 129, 0.1) !important;
+}
+
+.loop-card .ant-btn-primary {
+  background: #10b981 !important;
+  border-color: #10b981 !important;
+}
+
+.loop-card .ant-btn-primary:hover {
+  background: #059669 !important;
+  border-color: #059669 !important;
+}
+
+/* ===== 响应式 ===== */
+@media (max-width: 768px) {
+  .loop-card-header {
+    padding: 10px 12px;
+  }
+  
+  .loop-card-body {
+    padding: 10px 12px;
+  }
+  
+  .loop-title {
+    font-size: 13px;
+  }
+}
+
+/* ===== 无障碍支持 ===== */
+.loop-card:focus-within {
+  outline: 2px solid #10b981;
+  outline-offset: 2px;
+}
+
+/* ===== Ant Design Card 样式重置 ===== */
+.loop-card.ant-card {
+  background: #ffffff !important;
+}
+
+.loop-card .ant-card-head {
+  padding: 0 !important;
+  border: none !important;
+  min-height: auto !important;
+  background: transparent !important;
+}
+
+.loop-card .ant-card-head-title {
+  padding: 0 !important;
+}
+
+.loop-card .ant-card-body {
+  padding: 0 !important;
+}
+
+/* ===== 强制文字颜色 ===== */
+.loop-card.light-theme-force,
+.loop-card.light-theme-force * {
+  color: #111827 !important;
+}
+
+.loop-card.light-theme-force .ant-typography-secondary {
+  color: #6b7280 !important;
+}
+
+.loop-card.light-theme-force .loop-badge {
+  color: #059669 !important;
+}
+
+.loop-end-card.light-theme-force .loop-badge {
+  color: #d97706 !important;
+}
