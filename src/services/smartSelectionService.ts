@@ -2,7 +2,7 @@
 // module: services | layer: application | role: 智能选择系统前端服务层
 // summary: 为前端提供智能选择系统的服务接口，包装Tauri命令调用
 
-import { invoke } from '@tauri-apps/api/tauri';
+import { invoke } from '@tauri-apps/api/core';
 import type { 
   SmartSelectionProtocol, 
   SmartSelectionResult,

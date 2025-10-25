@@ -8,7 +8,7 @@
  */
 
 import React, { useState } from 'react';
-import { invoke } from '@tauri-apps/api/tauri';
+import { invoke } from '@tauri-apps/api/core';
 
 // 类型定义
 interface FrontendAppLaunchConfig {

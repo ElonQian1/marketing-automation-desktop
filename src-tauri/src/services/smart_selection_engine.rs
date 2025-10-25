@@ -98,6 +98,25 @@ impl SmartSelectionEngine {
         
         // 3. 根据选择模式执行策略
         let selected_elements = match &protocol.selection.mode {
+            SelectionMode::Auto { single_min_confidence, batch_config, fallback_to_first } => {
+                // 🎯 Auto模式：根据候选数量智能选择策略
+                let candidate_count = candidates.len();
+                debug_logs.push(format!("Auto模式检测到 {} 个候选元素", candidate_count));
+                
+                if candidate_count <= 1 {
+                    // 单个或无候选：使用MatchOriginal策略
+                    debug_logs.push("Auto模式 → 单个策略".to_string());
+                    Self::execute_match_original_strategy(
+                        &candidates, 
+                        &protocol.anchor.fingerprint, 
+                        &mut debug_logs
+                    )?
+                } else {
+                    // 多个候选：使用批量策略
+                    debug_logs.push("Auto模式 → 批量策略".to_string());
+                    Self::execute_batch_strategy(&candidates, &mut debug_logs)?
+                }
+            }
             SelectionMode::MatchOriginal { min_confidence, fallback_to_first } => {
                 Self::execute_match_original_strategy(&candidates, &protocol.anchor.fingerprint, &mut debug_logs)?
             }
@@ -112,6 +131,8 @@ impl SmartSelectionEngine {
                 Self::execute_random_strategy(&candidates, Some(*seed), &mut debug_logs)?
             }
             SelectionMode::All { batch_config } => {
+                // 🔧 处理可选的batch_config，提供默认值
+                debug_logs.push(format!("批量模式，配置: {:?}", batch_config));
                 Self::execute_batch_strategy(&candidates, &mut debug_logs)?
             }
         };
@@ -352,26 +373,34 @@ impl SmartSelectionEngine {
             
             // 如果不是最后一个元素，等待间隔时间
             if index < elements.len() - 1 {
+                // 🔧 提供默认的批量配置
+                let default_interval = Duration::from_millis(2000); // 默认2秒间隔
+                let default_jitter = Duration::from_millis(500);    // 默认500ms抖动
+                
                 if let Some(batch_config) = &selection_config.batch_config {
                     let interval = Duration::from_millis(batch_config.interval_ms);
-                    
-                    // 添加抖动
                     let jitter = if let Some(jitter_ms) = batch_config.jitter_ms {
-                        Duration::from_millis(jitter_ms / 2) // 简化的抖动实现
+                        Duration::from_millis(jitter_ms / 2)
                     } else {
                         Duration::from_millis(0)
                     };
-                    
                     tokio::time::sleep(interval + jitter).await;
+                } else {
+                    // 没有配置时使用默认值
+                    tokio::time::sleep(default_interval + default_jitter).await;
                 }
             }
             
             // 检查是否需要在错误时停止
             if !click_success {
-                if let Some(batch_config) = &selection_config.batch_config {
-                    if !batch_config.continue_on_error {
-                        break;
-                    }
+                let continue_on_error = if let Some(batch_config) = &selection_config.batch_config {
+                    batch_config.continue_on_error
+                } else {
+                    true // 默认遇错继续
+                };
+                
+                if !continue_on_error {
+                    break;
                 }
             }
         }

@@ -421,7 +421,7 @@ fn extract_smart_selection_protocol(params: &Value) -> Result<SmartSelectionProt
                 .unwrap_or(true);
                 
             SelectionMode::All {
-                batch_config: BatchConfigV2 {
+                batch_config: Some(BatchConfigV2 {
                     interval_ms,
                     jitter_ms: 500,
                     max_per_session: max_count,
@@ -431,7 +431,7 @@ fn extract_smart_selection_protocol(params: &Value) -> Result<SmartSelectionProt
                     refresh_policy: RefreshPolicy::OnMutation,
                     requery_by_fingerprint: true,
                     force_light_validation: true,
-                }
+                })
             }
         }
         _ => return Err(format!("不支持的选择模式: {}", mode)),

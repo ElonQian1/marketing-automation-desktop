@@ -3,7 +3,7 @@
 // summary: 替代大块策略选择器的紧凑下拉菜单，集成到步骤卡片标题栏
 
 import React, { useState } from "react";
-import { Dropdown, Button, Tooltip, Badge, Tag } from "antd";
+import { Dropdown, Button, Tooltip, Badge, Tag, message } from "antd";
 import {
   RefreshCcwIcon,
   ClipboardListIcon,
@@ -18,7 +18,19 @@ import {
 import { useStepCardStore } from "../../store/stepcards";
 import { useStepScoreStore } from "../../stores/step-score-store";
 import { useAnalysisState } from "../../stores/analysis-state-store";
+import { useAdb } from "../../application/hooks/useAdb";
 import { isValidScore, toPercentInt01 } from "../../utils/score-utils";
+import type { SelectionMode } from '../../types/smartSelection';
+import type { ActionKind } from '../../types/smartScript';
+
+// 批量配置接口
+interface BatchConfig {
+  interval_ms: number;
+  max_count?: number;
+  jitter_ms?: number;
+  continue_on_error: boolean;
+  show_progress: boolean;
+}
 
 /**
  * 根据置信度百分比返回对应的颜色
@@ -72,6 +84,21 @@ const CompactStrategyMenu: React.FC<CompactStrategyMenuProps> = ({
     stepId,
   });
   const [showExpandedView, setShowExpandedView] = useState(false);
+  
+  // 🎯 新增：智能选择状态管理
+  const [selectionMode, setSelectionMode] = useState<SelectionMode>('first');
+  const [operationType, setOperationType] = useState<ActionKind>('tap');
+  const [batchConfig, setBatchConfig] = useState<BatchConfig>({
+    interval_ms: 2000,
+    max_count: 10,
+    jitter_ms: 500,
+    continue_on_error: true,
+    show_progress: true,
+  });
+
+  // 🎯 新增：执行状态管理和ADB设备管理
+  const [executing, setExecuting] = useState(false);
+  const { selectedDevice } = useAdb();
 
   // 获取置信度和策略数据 - 🔧 修复：通过stepId查找卡片
   const cardId = useStepCardStore((state) => stepId ? state.byStepId[stepId] : undefined);
@@ -286,6 +313,225 @@ const CompactStrategyMenu: React.FC<CompactStrategyMenuProps> = ({
     console.log("🔍 [CompactStrategyMenu] 状态变化:", debugInfo);
   }, [disabled, selector.analysis.status, selector.activeStrategy]);
 
+  // 🎯 新增：选择模式相关函数
+  const getSelectionModeLabel = () => {
+    switch (selectionMode) {
+      case 'first': return '🎯 第一个';
+      case 'last': return '🎯 最后一个';
+      case 'match-original': return '🔍 精确匹配';
+      case 'random': return '🎲 随机选择';
+      case 'all': return '📋 批量全部';
+      default: return '🎯 第一个';
+    }
+  };
+
+  const handleSelectionModeClick = ({ key }: { key: string }) => {
+    console.log('🎯 选择模式菜单项被点击:', key);
+    switch (key) {
+      case 'first':
+        setSelectionMode('first');
+        console.log('选择第一个模式');
+        break;
+      case 'last':
+        setSelectionMode('last');
+        console.log('选择最后一个模式');
+        break;
+      case 'match-original':
+        setSelectionMode('match-original');
+        console.log('选择精确匹配模式');
+        break;
+      case 'random':
+        setSelectionMode('random');
+        console.log('选择随机模式');
+        break;
+      case 'all':
+        setSelectionMode('all');
+        console.log('选择批量模式', { batchConfig });
+        // 🔧 批量模式下确保配置有效
+        if (!batchConfig || batchConfig.interval_ms <= 0) {
+          setBatchConfig({
+            interval_ms: 2000,
+            max_count: 10,
+            jitter_ms: 500,
+            continue_on_error: true,
+            show_progress: true,
+          });
+        }
+        break;
+      default:
+        console.warn('未知的选择模式:', key);
+    }
+  };
+
+  const getSelectionModeMenu = () => ({
+    onClick: handleSelectionModeClick,
+    items: [
+      {
+        key: 'first',
+        label: '🎯 第一个',
+      },
+      {
+        key: 'last', 
+        label: '🎯 最后一个',
+      },
+      {
+        key: 'match-original',
+        label: '🔍 精确匹配', 
+      },
+      {
+        key: 'random',
+        label: '🎲 随机选择',
+      },
+      {
+        key: 'all',
+        label: '📋 批量全部',
+      }
+    ]
+  });
+
+  // 👆 操作类型相关函数
+  const getOperationTypeLabel = () => {
+    switch (operationType) {
+      case 'tap': return '👆 点击';
+      case 'long_press': return '⏸️ 长按';
+      case 'double_tap': return '👆👆 双击';
+      case 'swipe': return '👉 滑动';
+      case 'input': return '⌨️ 输入';
+      case 'wait': return '⏳ 等待';
+      default: return '👆 点击';
+    }
+  };
+
+  const handleOperationTypeClick = ({ key }: { key: string }) => {
+    console.log('👆 操作类型菜单项被点击:', key);
+    switch (key) {
+      case 'tap':
+        setOperationType('tap');
+        break;
+      case 'long_press':
+        setOperationType('long_press');
+        break;
+      case 'double_tap':
+        setOperationType('double_tap');
+        break;
+      case 'swipe':
+        setOperationType('swipe');
+        break;
+      case 'input':
+        setOperationType('input');
+        break;
+      case 'wait':
+        setOperationType('wait');
+        break;
+      default:
+        console.warn('未知的操作类型:', key);
+    }
+  };
+
+  const getOperationTypeMenu = () => ({
+    onClick: handleOperationTypeClick,
+    items: [
+      {
+        key: 'tap',
+        label: '👆 点击',
+      },
+      {
+        key: 'long_press',
+        label: '⏸️ 长按',
+      },
+      {
+        key: 'double_tap',
+        label: '👆👆 双击',
+      },
+      {
+        key: 'swipe',
+        label: '👉 滑动',
+      },
+      {
+        key: 'input',
+        label: '⌨️ 输入',
+      },
+      {
+        key: 'wait',
+        label: '⏳ 等待',
+      }
+    ]
+  });
+
+  // 🚀 生成智能选择协议
+  const createSmartSelectionProtocol = () => {
+    // 从现有的selector获取元素信息
+    const elementText = selector.activeStrategy?.type === 'smart-single' ? '关注' : '关注';
+    const resourceId = undefined; // 暂时没有resource_id信息
+
+    return {
+      anchor: {
+        fingerprint: {
+          text_content: elementText,
+          resource_id: resourceId,
+        },
+      },
+      selection: {
+        mode: selectionMode,
+        batch_config: selectionMode === 'all' ? {
+          interval_ms: batchConfig.interval_ms,
+          max_count: batchConfig.max_count,
+          jitter_ms: batchConfig.jitter_ms,
+          continue_on_error: batchConfig.continue_on_error,
+          show_progress: batchConfig.show_progress,
+        } : undefined,
+      },
+    };
+  };
+
+  // 🎯 执行智能选择（调试用）
+  const executeSmartSelection = async () => {
+    // 防重复点击
+    if (executing) return;
+
+    // 设备ID验证
+    const deviceId = selectedDevice?.id;
+    if (!deviceId) {
+      message.warning('请先连接并选择ADB设备');
+      return;
+    }
+
+    setExecuting(true);
+    
+    try {
+      const { SmartSelectionService } = await import('../../services/smartSelectionService');
+      const protocol = createSmartSelectionProtocol();
+      
+      console.log('🚀 [CompactStrategyMenu] 执行智能选择', {
+        deviceId,
+        stepId,
+        selectionMode,
+        batchConfig: selectionMode === 'all' ? batchConfig : null,
+        protocol
+      });
+
+      // ✅ 恢复实际执行调用
+      const result = await SmartSelectionService.executeSmartSelection(deviceId, protocol);
+      
+      // ✅ 用户可见的成功反馈
+      const selectedCount = result.matched_elements?.selected_count || 1;
+      message.success(
+        `测试执行完成！${selectionMode === 'all' ? '批量' : '单次'}选择成功 - 操作了 ${selectedCount} 个元素`
+      );
+      
+      console.log('✅ 智能选择执行成功:', result);
+      
+    } catch (error) {
+      console.error('❌ 执行智能选择失败:', error);
+      
+      // ✅ 用户可见的错误反馈
+      message.error(`测试执行失败: ${error instanceof Error ? error.message : '未知错误'}`);
+      
+    } finally {
+      setExecuting(false);
+    }
+  };
+
   return (
     <div
       style={{
@@ -320,35 +566,7 @@ const CompactStrategyMenu: React.FC<CompactStrategyMenuProps> = ({
 
       {/* 第二个：选择模式按钮 */}
       <Dropdown
-        menu={{
-          items: [
-            {
-              key: 'first',
-              label: '🎯 第一个',
-              onClick: () => console.log('选择第一个模式')
-            },
-            {
-              key: 'last', 
-              label: '🎯 最后一个',
-              onClick: () => console.log('选择最后一个模式')
-            },
-            {
-              key: 'match-original',
-              label: '🔍 精确匹配', 
-              onClick: () => console.log('选择精确匹配模式')
-            },
-            {
-              key: 'random',
-              label: '🎲 随机选择',
-              onClick: () => console.log('选择随机模式')
-            },
-            {
-              key: 'all',
-              label: '📋 批量全部',
-              onClick: () => console.log('选择批量模式')
-            }
-          ]
-        }}
+        menu={getSelectionModeMenu()}
         trigger={["click"]}
         disabled={disabled}
       >
@@ -362,7 +580,7 @@ const CompactStrategyMenu: React.FC<CompactStrategyMenuProps> = ({
             fontSize: "12px",
           }}
         >
-          🎯 第一个
+          {getSelectionModeLabel()}
           <span style={{ color: "rgb(16, 185, 129)", fontSize: "12px", marginLeft: "4px" }}>✅</span>
           <span style={{ marginLeft: "4px" }}>▾</span>
         </Button>
@@ -370,40 +588,7 @@ const CompactStrategyMenu: React.FC<CompactStrategyMenuProps> = ({
 
       {/* 第三个：操作方式按钮 */}
       <Dropdown
-        menu={{
-          items: [
-            {
-              key: 'tap',
-              label: '👆 点击',
-              onClick: () => console.log('选择点击操作')
-            },
-            {
-              key: 'long_press',
-              label: '⏸️ 长按',
-              onClick: () => console.log('选择长按操作')
-            },
-            {
-              key: 'double_tap',
-              label: '👆👆 双击',
-              onClick: () => console.log('选择双击操作')
-            },
-            {
-              key: 'swipe',
-              label: '👉 滑动',
-              onClick: () => console.log('选择滑动操作')
-            },
-            {
-              key: 'input',
-              label: '⌨️ 输入',
-              onClick: () => console.log('选择输入操作')
-            },
-            {
-              key: 'wait',
-              label: '⏳ 等待',
-              onClick: () => console.log('选择等待操作')
-            }
-          ]
-        }}
+        menu={getOperationTypeMenu()}
         trigger={["click"]}
         disabled={disabled}
       >
@@ -417,11 +602,131 @@ const CompactStrategyMenu: React.FC<CompactStrategyMenuProps> = ({
             fontSize: "12px",
           }}
         >
-          👆 点击
+          {getOperationTypeLabel()}
           <span style={{ color: "rgb(16, 185, 129)", fontSize: "12px", marginLeft: "4px" }}>✅</span>
           <span style={{ marginLeft: "4px" }}>▾</span>
         </Button>
       </Dropdown>
+
+      {/* 🎯 批量配置面板 */}
+      {selectionMode === 'all' && (
+        <div style={{
+          display: "flex",
+          flexDirection: "column",
+          gap: "8px",
+          padding: "12px",
+          background: "rgba(110, 139, 255, 0.05)",
+          border: "1px solid rgba(110, 139, 255, 0.2)",
+          borderRadius: "6px",
+          width: "100%",
+          marginTop: "8px"
+        }}>
+          <div style={{
+            fontSize: "12px",
+            fontWeight: "600",
+            color: "#F8FAFC",
+            marginBottom: "4px"
+          }}>
+            📋 批量执行配置
+          </div>
+          
+          <div style={{ display: "flex", gap: "12px", flexWrap: "wrap" }}>
+            {/* 间隔时间 */}
+            <div style={{ display: "flex", alignItems: "center", gap: "6px" }}>
+              <span style={{ fontSize: "11px", color: "#94A3B8" }}>间隔:</span>
+              <input
+                type="number"
+                value={batchConfig.interval_ms}
+                onChange={(e) => setBatchConfig({
+                  ...batchConfig,
+                  interval_ms: Math.max(1000, parseInt(e.target.value) || 2000)
+                })}
+                style={{
+                  width: "60px",
+                  height: "24px",
+                  fontSize: "11px",
+                  padding: "2px 4px",
+                  border: "1px solid rgba(110, 139, 255, 0.3)",
+                  borderRadius: "3px",
+                  background: "rgba(0, 0, 0, 0.2)",
+                  color: "#F8FAFC"
+                }}
+              />
+              <span style={{ fontSize: "11px", color: "#94A3B8" }}>ms</span>
+            </div>
+
+            {/* 最大数量 */}
+            <div style={{ display: "flex", alignItems: "center", gap: "6px" }}>
+              <span style={{ fontSize: "11px", color: "#94A3B8" }}>最大:</span>
+              <input
+                type="number"
+                value={batchConfig.max_count || 10}
+                onChange={(e) => setBatchConfig({
+                  ...batchConfig,
+                  max_count: Math.max(1, parseInt(e.target.value) || 10)
+                })}
+                style={{
+                  width: "50px",
+                  height: "24px",
+                  fontSize: "11px",
+                  padding: "2px 4px",
+                  border: "1px solid rgba(110, 139, 255, 0.3)",
+                  borderRadius: "3px",
+                  background: "rgba(0, 0, 0, 0.2)",
+                  color: "#F8FAFC"
+                }}
+              />
+            </div>
+
+            {/* 错误处理 */}
+            <div style={{ display: "flex", alignItems: "center", gap: "6px" }}>
+              <input
+                type="checkbox"
+                checked={batchConfig.continue_on_error}
+                onChange={(e) => setBatchConfig({
+                  ...batchConfig,
+                  continue_on_error: e.target.checked
+                })}
+                style={{ margin: 0 }}
+              />
+              <span style={{ fontSize: "11px", color: "#94A3B8" }}>遇错继续</span>
+            </div>
+
+            {/* 显示进度 */}
+            <div style={{ display: "flex", alignItems: "center", gap: "6px" }}>
+              <input
+                type="checkbox"
+                checked={batchConfig.show_progress}
+                onChange={(e) => setBatchConfig({
+                  ...batchConfig,
+                  show_progress: e.target.checked
+                })}
+                style={{ margin: 0 }}
+              />
+              <span style={{ fontSize: "11px", color: "#94A3B8" }}>显示进度</span>
+            </div>
+          </div>
+          
+          {/* 测试按钮 */}
+          <div style={{ marginTop: "8px", display: "flex", justifyContent: "center" }}>
+            <Button
+              size="small"
+              type="primary"
+              loading={executing}
+              disabled={!selectedDevice || executing}
+              onClick={executeSmartSelection}
+              style={{
+                fontSize: "11px",
+                height: "28px",
+                background: executing ? "#94A3B8" : (!selectedDevice ? "#6B7280" : "rgba(16, 185, 129, 0.8)"),
+                borderColor: executing ? "#94A3B8" : (!selectedDevice ? "#6B7280" : "rgba(16, 185, 129, 0.9)")
+              }}
+            >
+              {executing ? "🔄 执行中..." : (!selectedDevice ? "⚠️ 需要ADB设备" : "🧪 测试批量执行")}
+            </Button>
+          </div>
+        </div>
+      )}
 
       {/* 工具按钮组 */}
       <div style={{ display: "flex", gap: "2px" }}>

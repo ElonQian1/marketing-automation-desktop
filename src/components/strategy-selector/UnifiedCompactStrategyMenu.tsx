@@ -438,36 +438,57 @@ export const UnifiedCompactStrategyMenu: React.FC<UnifiedCompactStrategyMenuProp
   };
 
   // 🎯 选择模式菜单
+  const handleSelectionModeClick = ({ key }: { key: string }) => {
+    console.log('🎯 选择模式菜单项被点击:', key);
+    switch (key) {
+      case 'first':
+        setSelectionMode('first');
+        break;
+      case 'last':
+        setSelectionMode('last');
+        break;
+      case 'match-original':
+        setSelectionMode('match-original');
+        break;
+      case 'random':
+        setSelectionMode('random');
+        break;
+      case 'all':
+        setSelectionMode('all');
+        break;
+      default:
+        console.warn('未知的选择模式:', key);
+    }
+  };
+
   const getSelectionModeMenu = () => {
     const items = [
       {
         key: 'first',
         label: '🎯 第一个',
-        onClick: () => setSelectionMode('first')
       },
       {
         key: 'last', 
         label: '🎯 最后一个',
-        onClick: () => setSelectionMode('last')
       },
       {
         key: 'match-original',
         label: '🔍 精确匹配', 
-        onClick: () => setSelectionMode('match-original')
       },
       {
         key: 'random',
         label: '🎲 随机选择',
-        onClick: () => setSelectionMode('random')
       },
       {
         key: 'all',
         label: '📋 批量全部',
-        onClick: () => setSelectionMode('all')
       }
     ];
 
-    return { items };
+    return { 
+      items,
+      onClick: handleSelectionModeClick
+    };
   };
 
   // 🎯 选择模式标签
@@ -483,41 +504,64 @@ export const UnifiedCompactStrategyMenu: React.FC<UnifiedCompactStrategyMenuProp
   };
 
   // 🎯 操作方式菜单
+  const handleOperationTypeClick = ({ key }: { key: string }) => {
+    console.log('👆 操作方式菜单项被点击:', key);
+    switch (key) {
+      case 'tap':
+        setOperationType('tap');
+        break;
+      case 'long_press':
+        setOperationType('long_press');
+        break;
+      case 'double_tap':
+        setOperationType('double_tap');
+        break;
+      case 'swipe':
+        setOperationType('swipe');
+        break;
+      case 'input':
+        setOperationType('input');
+        break;
+      case 'wait':
+        setOperationType('wait');
+        break;
+      default:
+        console.warn('未知的操作方式:', key);
+    }
+  };
+
   const getOperationTypeMenu = () => {
     const items = [
       {
         key: 'tap',
         label: '👆 点击',
-        onClick: () => setOperationType('tap')
       },
       {
         key: 'long_press',
         label: '⏸️ 长按',
-        onClick: () => setOperationType('long_press')
       },
       {
         key: 'double_tap',
         label: '👆👆 双击',
-        onClick: () => setOperationType('double_tap')
       },
       {
         key: 'swipe',
         label: '👉 滑动',
-        onClick: () => setOperationType('swipe')
       },
       {
         key: 'input',
         label: '⌨️ 输入',
-        onClick: () => setOperationType('input')
       },
       {
         key: 'wait',
         label: '⏳ 等待',
-        onClick: () => setOperationType('wait')
       }
     ];
 
-    return { items };
+    return { 
+      items,
+      onClick: handleOperationTypeClick
+    };
   };
 
   // 🎯 操作方式标签
@@ -564,6 +608,9 @@ export const UnifiedCompactStrategyMenu: React.FC<UnifiedCompactStrategyMenuProp
         menu={getSelectionModeMenu()} 
         trigger={['click']}
         disabled={disabled}
+        onOpenChange={(open) => {
+          console.log('🎯 选择模式下拉菜单状态:', open);
+        }}
       >
         <Button
           size="small" 
@@ -587,6 +634,9 @@ export const UnifiedCompactStrategyMenu: React.FC<UnifiedCompactStrategyMenuProp
         menu={getOperationTypeMenu()} 
         trigger={['click']}
         disabled={disabled}
+        onOpenChange={(open) => {
+          console.log('👆 操作方式下拉菜单状态:', open);
+        }}
       >
         <Button
           size="small" 
