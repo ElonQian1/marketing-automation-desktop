@@ -125,6 +125,12 @@ pub struct StrategyCandidate {
     
     pub enabled: bool,
     pub is_recommended: bool,
+    
+    // 🆕 智能选择配置 (用于批量模式)
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub selection_mode: Option<String>, // "first" | "last" | "match-original" | "random" | "all"
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub batch_config: Option<serde_json::Value>, // 批量执行配置
 }
 
 /// 分析结果
@@ -506,6 +512,8 @@ fn convert_step_result_to_analysis_result(
                 .cloned(),
             enabled: true,
             is_recommended: c.key == step_result.recommended,
+            selection_mode: None,  // 智能分析结果不带选择模式
+            batch_config: None,
         }
     }).collect();
     
@@ -528,6 +536,8 @@ fn convert_step_result_to_analysis_result(
             .cloned(),
         enabled: true,
         is_recommended: false,
+        selection_mode: None,
+        batch_config: None,
     }).clone();
     
     AnalysisResult {
@@ -561,6 +571,8 @@ fn generate_mock_analysis_result(
             content_desc: None,
             enabled: true,
             is_recommended: true,
+            selection_mode: None,
+            batch_config: None,
         },
         StrategyCandidate {
             key: "child_driven".to_string(),
@@ -575,6 +587,8 @@ fn generate_mock_analysis_result(
             content_desc: None,
             enabled: true,
             is_recommended: false,
+            selection_mode: None,
+            batch_config: None,
         },
         StrategyCandidate {
             key: "region_scoped".to_string(),
@@ -589,6 +603,8 @@ fn generate_mock_analysis_result(
             content_desc: None,
             enabled: true,
             is_recommended: false,
+            selection_mode: None,
+            batch_config: None,
         },
     ];
     
@@ -598,15 +614,17 @@ fn generate_mock_analysis_result(
         confidence: 60.0,
         description: "基于位置索引定位".to_string(),
         variant: "index_fallback".to_string(),
-        xpath: Some("(//*[@class='Button'])[3]".to_string()),
+        xpath: Some("//*[@class='Button'][3]".to_string()),
         text: None,
         resource_id: None,
         class_name: Some("Button".to_string()),
         content_desc: None,
         enabled: true,
         is_recommended: false,
+        selection_mode: None,
+        batch_config: None,
     };
-    
+
     AnalysisResult {
         selection_hash: selection_hash.to_string(),
         step_id: config.step_id.clone(),
@@ -742,4 +760,68 @@ pub async fn clear_step_strategy(step_id: String) -> Result<bool, String> {
     })?;
     
     Ok(store.remove(&step_id).is_some())
+}
+
+/// 直接保存智能选择配置到Store (简化版本，无需完整AnalysisResult)
+/// 专门用于 CompactStrategyMenu 的智能选择配置保存
+#[tauri::command]
+pub async fn save_smart_selection_config(
+    step_id: String,
+    selection_mode: String,
+    batch_config: Option<serde_json::Value>,
+) -> Result<bool, String> {
+    tracing::info!(
+        "📥 [save_smart_selection_config] 收到保存请求: step_id={}, mode={}, batch_config={:?}",
+        step_id,
+        selection_mode,
+        batch_config
+    );
+
+    // 构建简化的策略对象
+    let description = if let Some(ref config) = batch_config {
+        format!("智能选择-{} (批量配置: {:?})", selection_mode, config)
+    } else {
+        format!("智能选择-{}", selection_mode)
+    };
+
+    let strategy = StrategyCandidate {
+        key: format!("smart_selection_{}", step_id),
+        name: format!("智能选择-{}", selection_mode),
+        confidence: 85.0,
+        description,
+        variant: "smart-selection".to_string(),
+        xpath: Some("//android.widget.TextView[@text='关注']".to_string()), // 默认XPath
+        text: Some("关注".to_string()),
+        resource_id: None,
+        class_name: None,
+        content_desc: None,
+        enabled: true,
+        is_recommended: true,
+        selection_mode: Some(selection_mode.clone()),  // ✅ 保存选择模式
+        batch_config: batch_config.clone(),  // ✅ 保存批量配置
+    };
+
+    // 保存到Store
+    let timestamp = std::time::SystemTime::now()
+        .duration_since(std::time::UNIX_EPOCH)
+        .unwrap()
+        .as_secs() as i64;
+
+    let mut store = STEP_STRATEGY_STORE.lock().map_err(|e| {
+        let err_msg = format!("锁定步骤策略存储失败: {}", e);
+        tracing::error!("❌ {}", err_msg);
+        err_msg
+    })?;
+
+    store.insert(step_id.clone(), (strategy.clone(), timestamp));
+
+    tracing::info!(
+        "✅ 保存智能选择配置成功: step_id={}, mode={}, batch_config={:?}, store_size={}",
+        step_id,
+        selection_mode,
+        batch_config,
+        store.len()
+    );
+
+    Ok(true)
 }

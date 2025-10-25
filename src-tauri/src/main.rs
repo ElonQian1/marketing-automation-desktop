@@ -358,6 +358,9 @@ fn main() {
             start_intelligent_analysis,      // V2: 传统智能分析入口
             cancel_intelligent_analysis,     // V2: 取消分析操作  
             bind_analysis_result_to_step,    // V2: 手动绑定分析结果
+            save_smart_selection_config,     // 智能选择配置保存
+            get_step_strategy,               // 查询步骤绑定的策略
+            clear_step_strategy,             // 清除步骤策略
             
             // 🚀 [V3 统一执行协议 - 新启用] 
             // V3 系统优势：

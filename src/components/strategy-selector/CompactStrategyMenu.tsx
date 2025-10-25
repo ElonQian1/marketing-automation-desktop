@@ -4,6 +4,7 @@
 
 import React, { useState } from "react";
 import { Dropdown, Button, Tooltip, Badge, Tag, message, Collapse } from "antd";
+import { invoke } from '@tauri-apps/api/core';
 import {
   RefreshCcwIcon,
   ClipboardListIcon,
@@ -373,38 +374,124 @@ const CompactStrategyMenu: React.FC<CompactStrategyMenuProps> = ({
     }
   };
 
-  const handleSelectionModeClick = ({ key }: { key: string }) => {
+  // ✅ 自动保存智能选择配置到Store
+  const autoSaveConfig = async (mode: string) => {
+    console.log('🔍 [CompactStrategyMenu] autoSaveConfig 调用:', {
+      stepId,
+      mode,
+      hasStepId: !!stepId,
+      batchConfig
+    });
+
+    if (!stepId) {
+      console.warn('⚠️ [CompactStrategyMenu] 无stepId，跳过保存');
+      return;
+    }
+
+    try {
+      const batchConfigToSave = mode === 'all' ? batchConfig : null;
+      
+      console.log('📤 [CompactStrategyMenu] 准备调用后端保存:', {
+        stepId,
+        selectionMode: mode,
+        batchConfig: batchConfigToSave
+      });
+
+      // ✅ 用 stepId 保存配置
+      await invoke('save_smart_selection_config', {
+        stepId: stepId,
+        selectionMode: mode,
+        batchConfig: batchConfigToSave
+      });
+
+      console.log('✅ [CompactStrategyMenu] 自动保存配置成功:', {
+        stepId,
+        mode,
+        batchConfig: batchConfigToSave
+      });
+
+      // 🆕 同时用 selectorId 保存一份（兜底，支持跨步骤复用）
+      const state = useStepCardStore.getState();
+      const canonicalId = state.aliasToCanonical[stepId];
+      const card = canonicalId ? state.cards[canonicalId] : undefined;
+      
+      console.log('🔍 [CompactStrategyMenu] 查找elementUid详情:', {
+        stepId,
+        canonicalId,
+        hasCard: !!card,
+        cardKeys: card ? Object.keys(card) : [],
+        elementUid: card?.elementUid,
+        // 显示 aliasToCanonical 的所有key
+        aliasKeys: Object.keys(state.aliasToCanonical).slice(0, 5)
+      });
+      
+      if (card?.elementUid) {
+        const selectorId = card.elementUid;  // 已经是完整的 elementUid
+        console.log('🔄 [CompactStrategyMenu] 同时用selectorId保存兜底配置:', { selectorId });
+        
+        await invoke('save_smart_selection_config', {
+          stepId: selectorId,  // 复用相同接口，但用 selectorId 作为key
+          selectionMode: mode,
+          batchConfig: batchConfigToSave
+        });
+        
+        console.log('✅ [CompactStrategyMenu] selectorId配置保存成功');
+      } else {
+        console.log('⚠️ [CompactStrategyMenu] 未找到卡片或elementUid，跳过selectorId保存', {
+          hasCanonicalId: !!canonicalId,
+          hasCard: !!card,
+          hasElementUid: !!card?.elementUid
+        });
+      }
+
+      // ✅ 用户可见的保存成功提示
+      message.success(`已保存智能选择配置: ${mode}`);
+    } catch (error) {
+      console.error('❌ [CompactStrategyMenu] 保存配置失败:', error);
+      message.error(`保存配置失败: ${error}`);
+    }
+  };
+
+  const handleSelectionModeClick = async ({ key }: { key: string }) => {
     console.log('🎯 选择模式菜单项被点击:', key);
     switch (key) {
       case 'first':
         setSelectionMode('first');
         console.log('选择第一个模式');
+        await autoSaveConfig('first');
         break;
       case 'last':
         setSelectionMode('last');
         console.log('选择最后一个模式');
+        await autoSaveConfig('last');
         break;
       case 'match-original':
         setSelectionMode('match-original');
         console.log('选择精确匹配模式');
+        await autoSaveConfig('match-original');
         break;
       case 'random':
         setSelectionMode('random');
         console.log('选择随机模式');
+        await autoSaveConfig('random');
         break;
       case 'all':
         setSelectionMode('all');
         console.log('选择批量模式', { batchConfig });
         // 🔧 批量模式下确保配置有效
+        const newBatchConfig = !batchConfig || batchConfig.interval_ms <= 0 ? {
+          interval_ms: 2000,
+          max_count: 10,
+          jitter_ms: 500,
+          continue_on_error: true,
+          show_progress: true,
+        } : batchConfig;
+        
         if (!batchConfig || batchConfig.interval_ms <= 0) {
-          setBatchConfig({
-            interval_ms: 2000,
-            max_count: 10,
-            jitter_ms: 500,
-            continue_on_error: true,
-            show_progress: true,
-          });
+          setBatchConfig(newBatchConfig);
         }
+        
+        await autoSaveConfig('all');
         break;
       default:
         console.warn('未知的选择模式:', key);

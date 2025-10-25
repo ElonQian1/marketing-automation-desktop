@@ -309,6 +309,7 @@ function convertSmartStepToV2Request(
     mode,
     actionParams,
     selectorId: params.element_selector || step.id,
+    stepId: step.id,  // ✅ 传递stepId用于Store查询
     bounds: parseBoundsFromParams(params),
   };
 }

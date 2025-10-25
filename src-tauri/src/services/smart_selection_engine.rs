@@ -125,15 +125,23 @@ impl SmartSelectionEngine {
                     debug_logs.push("Auto模式 → 单个策略（仅1个候选）".to_string());
                     Self::execute_positional_strategy(&candidates, 0, &mut debug_logs)?
                 } else {
-                    // 🔥 多个候选 → 检查指纹置信度
+                    // 🔥 多个候选 → 检查是否配置了批量模式
                     let min_confidence = single_min_confidence.unwrap_or(0.85);
-                    if let Some(best_match) = Self::find_high_confidence_match(
+                    
+                    // ✅ 修复：如果配置了 batch_config，强制使用批量策略
+                    if batch_config.is_some() {
+                        debug_logs.push(format!(
+                            "Auto模式 → 批量策略（batch_config已配置，候选数: {}）",
+                            candidate_count
+                        ));
+                        Self::execute_batch_strategy(&candidates, &mut debug_logs)?
+                    } else if let Some(best_match) = Self::find_high_confidence_match(
                         &candidates,
                         &protocol.anchor.fingerprint,
                         min_confidence,
                         &mut debug_logs,
                     ) {
-                        // 有高置信度匹配 → 仍使用单个策略
+                        // 有高置信度匹配 → 使用单个策略
                         debug_logs.push(format!(
                             "Auto模式 → 单个策略（多候选但高置信度 {:.2} ≥ {:.2}）",
                             best_match.confidence, min_confidence

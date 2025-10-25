@@ -11,6 +11,7 @@ export interface V2ExecutionRequest {
   mode: "match-only" | "execute-step";
   actionParams: StepActionParams;
   selectorId?: string;
+  stepId?: string;  // ✅ 新增：步骤ID，用于Store查询
   bounds?: { x: number; y: number; width: number; height: number };
   verify?: {
     type: "exists" | "text" | "gone";
@@ -29,12 +30,12 @@ export interface V2ExecutionRequest {
 export function convertToV2Request(
   request: V2ExecutionRequest
 ): RunStepRequestV2 {
-  const { deviceId, mode, actionParams, selectorId, bounds, verify, retry } =
+  const { deviceId, mode, actionParams, selectorId, stepId, bounds, verify, retry } =
     request;
 
   // 根据动作类型构造不同的StepPayload
   const baseStep = {
-    step_id: `step_${Date.now()}`,
+    step_id: stepId || `step_${Date.now()}`,  // ✅ 优先使用传入的stepId
     selector: selectorId,
     selector_preferred: true,
     bounds: bounds

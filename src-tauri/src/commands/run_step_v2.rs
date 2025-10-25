@@ -606,19 +606,47 @@ pub async fn run_step_v2(app_handle: AppHandle, request: RunStepRequestV2) -> Re
 
 // V2 步骤执行（匹配前端数据结构）
 async fn execute_v2_step(app_handle: AppHandle, req: &RunStepRequestV2) -> Result<StepResponseV2, String> {
+    // 🔍 第一步：查询 selection_mode 和 batch_config
+    let selector_id = req.step.get("step_id").and_then(|v| v.as_str())
+        .or_else(|| req.step.get("selector").and_then(|v| v.as_str()));
+    
+    let (selection_mode, batch_config) = if let Some(id) = selector_id {
+        let mut strategy_opt = crate::commands::intelligent_analysis::get_step_strategy(id.to_string()).await.ok().flatten();
+        
+        // 尝试用 selector 查询（兜底）
+        if strategy_opt.is_none() {
+            if let Some(selector) = req.step.get("selector").and_then(|v| v.as_str()) {
+                if selector != id {
+                    strategy_opt = crate::commands::intelligent_analysis::get_step_strategy(selector.to_string()).await.ok().flatten();
+                }
+            }
+        }
+        
+        match strategy_opt {
+            Some(strategy) => {
+                tracing::info!("🎯 从Store获取执行模式: selection_mode={:?}, has_batch_config={}", 
+                              strategy.selection_mode, strategy.batch_config.is_some());
+                (strategy.selection_mode.clone(), strategy.batch_config.clone())
+            }
+            None => (None, None)
+        }
+    } else {
+        (None, None)
+    };
+    
     // 获取真实的UI dump
     tracing::info!("🔍 开始获取设备UI dump...");
     let ui_dump_result = get_ui_dump(&req.device_id).await;
     
-    let (match_info, match_candidate) = match ui_dump_result {
+    let (match_info, candidates) = match ui_dump_result {
         Ok(ui_xml) => {
             tracing::info!("✅ UI dump获取成功，大小: {} 字符", ui_xml.len());
             
-            // 进行真实的元素匹配
-            match find_element_in_ui(&ui_xml, req).await {
-                Ok((info, candidate)) => {
-                    tracing::info!("matched: uniq={} conf={:.2}", info.uniqueness, info.confidence);
-                    (info, candidate)
+            // 进行真实的元素匹配，传递 selection_mode
+            match find_element_in_ui(&ui_xml, req, selection_mode.clone()).await {
+                Ok((info, cands)) => {
+                    tracing::info!("matched: uniq={} conf={:.2} candidates={}", info.uniqueness, info.confidence, cands.len());
+                    (info, cands)
                 },
                 Err(e) => {
                     tracing::error!("❌ 元素匹配失败: {}", e);
@@ -647,9 +675,94 @@ async fn execute_v2_step(app_handle: AppHandle, req: &RunStepRequestV2) -> Resul
             });
         }
     };
+    
+    // 检查是否有候选
+    if candidates.is_empty() {
+        return Ok(StepResponseV2 {
+            ok: false,
+            message: "未找到匹配的元素".to_string(),
+            matched: None,
+            executed_action: None,
+            verify_passed: Some(false),
+            error_code: Some("NO_MATCH".to_string()),
+            raw_logs: Some(vec!["未找到匹配元素".to_string()]),
+        });
+    }
+    
+    // 🎯 根据 selection_mode 决定执行策略
+    let is_batch_mode = selection_mode.as_deref() == Some("all");
+    
+    if is_batch_mode {
+        tracing::info!("� 批量执行模式：将依次点击 {} 个元素", candidates.len());
+        
+        // 获取批量配置
+        let interval_ms = batch_config.as_ref()
+            .and_then(|cfg| cfg.get("interval_ms"))
+            .and_then(|v| v.as_u64())
+            .unwrap_or(500);
+        
+        let mut success_count = 0;
+        let mut failed_count = 0;
+        let mut logs = Vec::new();
+        
+        // 获取 ADB 路径
+        let adb_path = if std::path::Path::new("platform-tools/adb.exe").exists() {
+            "platform-tools/adb.exe"
+        } else if std::path::Path::new("D:\\leidian\\LDPlayer9\\adb.exe").exists() {
+            "D:\\leidian\\LDPlayer9\\adb.exe"
+        } else {
+            "adb"
+        };
+        
+        for (index, candidate) in candidates.iter().enumerate() {
+            tracing::info!("📍 批量执行 {}/{}: bounds=({},{},{},{})", 
+                          index + 1, candidates.len(),
+                          candidate.bounds.left, candidate.bounds.top,
+                          candidate.bounds.right, candidate.bounds.bottom);
+            
+            // 计算点击坐标（元素中心点）
+            let x = (candidate.bounds.left + candidate.bounds.right) / 2;
+            let y = (candidate.bounds.top + candidate.bounds.bottom) / 2;
+            
+            tracing::info!("🎯 批量点击坐标: ({}, {})", x, y);
+            
+            // 执行点击
+            let tap_result = tap_injector_first(adb_path, &req.device_id, x, y, None).await;
+            
+            match tap_result {
+                Ok(_) => {
+                    success_count += 1;
+                    logs.push(format!("✅ 第{}个元素点击成功 ({}, {})", index + 1, x, y));
+                }
+                Err(e) => {
+                    failed_count += 1;
+                    logs.push(format!("❌ 第{}个元素点击失败: {}", index + 1, e));
+                    tracing::warn!("❌ 批量执行失败: {}", e);
+                }
+            }
+            
+            // 间隔延迟
+            if index < candidates.len() - 1 {
+                tokio::time::sleep(tokio::time::Duration::from_millis(interval_ms)).await;
+            }
+        }
+        
+        return Ok(StepResponseV2 {
+            ok: success_count > 0,
+            message: format!("批量执行完成：成功 {}/{}，失败 {}", success_count, candidates.len(), failed_count),
+            matched: candidates.first().cloned(),
+            executed_action: Some("batch_tap".to_string()),
+            verify_passed: Some(success_count == candidates.len()),
+            error_code: if failed_count > 0 { Some("PARTIAL_FAILURE".to_string()) } else { None },
+            raw_logs: Some(logs),
+        });
+    }
+    
+    // 非批量模式：使用第一个候选
+    let match_candidate = candidates.into_iter().next().unwrap();
 
 
-    // 🛡️ 三道安全闸门检查
+    // �🛡️ 三道安全闸门检查（仅非批量模式）
     
     // 1️⃣ 唯一性闸门：只有唯一匹配才能执行
     if match_info.uniqueness != 1 {
@@ -885,7 +998,10 @@ enum SelectorSource {
 }
 
 // 在UI dump中查找匹配的元素
-async fn find_element_in_ui(ui_xml: &str, req: &RunStepRequestV2) -> Result<(MatchInfo, MatchCandidate), String> {
+async fn find_element_in_ui(ui_xml: &str, req: &RunStepRequestV2, selection_mode: Option<String>) -> Result<(MatchInfo, Vec<MatchCandidate>), String> {
+    // 🔥 关键调试：输出接收到的selection_mode
+    tracing::info!("🔥 [find_element_in_ui] 接收到 selection_mode: {:?}", selection_mode);
+    
     // 解析步骤中的匹配条件
     // 输出完整的步骤参数用于调试
     tracing::info!("🔍 V2引擎收到的完整步骤参数: {:?}", req.step);
@@ -925,7 +1041,7 @@ async fn find_element_in_ui(ui_xml: &str, req: &RunStepRequestV2) -> Result<(Mat
                     confidence: candidate.confidence as f32,
                     elements_found: 1,
                 };
-                return Ok((match_info, candidate));
+                return Ok((match_info, vec![candidate])); // 返回Vec而不是单个
             }
             Err(e) => {
                 return Err(format!("坐标兜底失败: {}", e));
@@ -1256,19 +1372,47 @@ async fn find_element_in_ui(ui_xml: &str, req: &RunStepRequestV2) -> Result<(Mat
                           candidate.class_name, candidate.bounds.left, candidate.bounds.top, candidate.bounds.right, candidate.bounds.bottom);
         }
         
-        // �🔍 检查唯一性约束
+        // 🔍 检查唯一性约束（批量模式除外）
         let require_uniqueness = req.step.get("require_uniqueness")
             .and_then(|v| v.as_bool())
             .unwrap_or(true);
+        
+        let is_batch_mode = selection_mode.as_deref() == Some("all");
+        
+        tracing::info!("🔥 [唯一性检查] selection_mode={:?}, is_batch_mode={}, require_uniqueness={}, uniqueness={}", 
+                      selection_mode, is_batch_mode, require_uniqueness, uniqueness);
             
-        if require_uniqueness && uniqueness > 1 {
+        if require_uniqueness && !is_batch_mode && uniqueness > 1 {
             // 生成解歧建议
             let disambiguation_suggestions = generate_disambiguation_suggestions(&matching_candidates, req);
             tracing::warn!("⚠️ 匹配到{}个元素，违反唯一性约束。建议: {:?}", uniqueness, disambiguation_suggestions);
             return Err(format!("NON_UNIQUE: 匹配到{}个元素。建议添加: {}", uniqueness, disambiguation_suggestions.join(", ")));
         }
         
-        Ok((match_info, candidate))
+        if is_batch_mode {
+            tracing::info!("🔄 批量模式：返回所有 {} 个高质量候选", matching_candidates.len());
+            // 返回所有高质量候选（置信度 >= 0.70）
+            let high_quality_candidates: Vec<MatchCandidate> = matching_candidates.into_iter()
+                .filter(|c| c.confidence >= 0.70)
+                .collect();
+            
+            let match_info = MatchInfo {
+                uniqueness: high_quality_candidates.len() as i32,
+                confidence: high_quality_candidates.get(0).map(|c| c.confidence as f32).unwrap_or(0.0),
+                elements_found,
+            };
+            
+            return Ok((match_info, high_quality_candidates));
+        }
+        
+        // 非批量模式：返回最佳匹配
+        let match_info = MatchInfo {
+            uniqueness,
+            confidence: best_score as f32,
+            elements_found,
+        };
+        
+        Ok((match_info, vec![candidate]))
     } else {
         // 检查是否没有提供匹配条件
         if target_text.is_none() && target_xpath.is_none() && target_resource_id.is_none() && 
@@ -1398,9 +1542,23 @@ async fn resolve_selector_with_priority(req: &RunStepRequestV2) -> Result<(Selec
     if let Some(id) = selector_id {
         tracing::info!("🔍 通过Store查询选择器: {}", id);
         
-        match crate::commands::intelligent_analysis::get_step_strategy(id.to_string()).await {
-            Ok(Some(strategy)) => {
-                tracing::info!("✅ Store命中策略候选");
+        // 首先尝试用 step_id 查询
+        let mut strategy_opt = crate::commands::intelligent_analysis::get_step_strategy(id.to_string()).await.ok().flatten();
+        
+        // 如果 step_id 查不到，尝试用 selector 查询（兜底）
+        if strategy_opt.is_none() {
+            if let Some(selector) = req.step.get("selector").and_then(|v| v.as_str()) {
+                if selector != id {  // 避免重复查询
+                    tracing::info!("🔄 step_id未命中，尝试用selector查询: {}", selector);
+                    strategy_opt = crate::commands::intelligent_analysis::get_step_strategy(selector.to_string()).await.ok().flatten();
+                }
+            }
+        }
+        
+        match strategy_opt {
+            Some(strategy) => {
+                tracing::info!("✅ Store命中策略候选: mode={:?}, batch={:?}", 
+                              strategy.selection_mode, strategy.batch_config.is_some());
                 return Ok((
                     SelectorSource::Store,
                     strategy.text.clone(),
@@ -1410,11 +1568,8 @@ async fn resolve_selector_with_priority(req: &RunStepRequestV2) -> Result<(Selec
                     None // content_desc暂时不支持
                 ));
             }
-            Ok(None) => {
-                tracing::warn!("⚠️ Store未找到策略: {}", id);
-            }
-            Err(e) => {
-                tracing::error!("❌ Store查询失败: {}", e);
+            None => {
+                tracing::warn!("⚠️ Store未找到策略: step_id={}, selector可能也未配置", id);
             }
         }
     }

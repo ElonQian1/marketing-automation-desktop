@@ -16,6 +16,7 @@ export interface StepExecutionRequest {
   mode: ExecutionMode;
   actionParams: StepActionParams;
   selectorId?: string; // 元素选择器ID
+  stepId?: string; // ✅ 新增：步骤ID，用于Store查询智能选择配置
   bounds?: { x: number; y: number; width: number; height: number }; // 兜底坐标
   engineOverride?: ExecutionEngine; // 每步覆盖全局引擎设置
 }
@@ -199,6 +200,7 @@ export class StepExecutionGateway {
         mode: request.mode,
         actionParams: request.actionParams,
         selectorId: request.selectorId,
+        stepId: request.stepId,  // ✅ 传递stepId用于Store查询
         bounds: request.bounds,
       });
       
