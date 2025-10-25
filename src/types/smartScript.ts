@@ -43,7 +43,7 @@ export interface StepAction {
 
     // smart_selection - 🔥 增强版智能选择参数
     smartSelection?: {
-      mode: 'match-original' | 'first' | 'last' | 'random' | 'all';
+      mode: 'match-original' | 'first' | 'last' | 'random' | 'all' | 'auto';  // 🔥 新增 auto
       targetText?: string;
       resourceId?: string;
       
@@ -52,6 +52,12 @@ export interface StepAction {
       fingerprint?: ElementFingerprint;  // 指纹（match-original模式必需）
       i18nAliases: string[];  // 国际化别名 - 必填
       plan: FallbackPlan[];   // 回退计划 - 必填（至少2条）
+      
+      // 🔥 新增高级功能字段
+      autoExcludeEnabled?: boolean;  // 🆕 启用自动排除别名，默认true
+      excludeText?: string[];  // 🆕 排除文本模式（防止误点"已关注"等）
+      dedupeTolerance?: number;  // 🆕 去重容差（px），默认10
+      enableLightValidation?: boolean;  // 🆕 启用轻校验，默认true
       
       // 增强配置
       minConfidence?: number;

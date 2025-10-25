@@ -185,6 +185,143 @@ export const ScriptStepCard: React.FC<StepCardProps> = ({
 
   const validationStatus = getValidationStatus();
 
+  // 渲染智能选择流水线（候选→排除→去重→结果）
+  const renderSmartSelectionPipeline = () => {
+    const smartParams = step.parameters.smartSelection as Record<string, unknown> | undefined;
+    if (!smartParams) return null;
+
+    const autoExcludeEnabled = smartParams.autoExcludeEnabled as boolean | undefined;
+    const excludeText = smartParams.excludeText as string[] | undefined;
+    const dedupeTolerance = smartParams.dedupeTolerance as number | undefined;
+    const enableLightValidation = smartParams.enableLightValidation as boolean | undefined;
+
+    const hasAutoExclude = autoExcludeEnabled !== false;  // 默认开启
+    const hasManualExclude = excludeText && excludeText.length > 0;
+    const hasDedupe = dedupeTolerance !== undefined && dedupeTolerance !== 10;
+    const hasLightValidation = enableLightValidation === false;
+
+    if (!hasAutoExclude && !hasManualExclude && !hasDedupe && !hasLightValidation) return null;
+
+    return (
+      <div style={{
+        marginTop: 8,
+        padding: '8px 12px',
+        background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+        borderRadius: 6,
+        border: '1px solid rgba(102, 126, 234, 0.3)',
+      }}>
+        {/* 流水线标题 */}
+        <div style={{
+          fontSize: '11px',
+          fontWeight: 600,
+          color: '#fff',
+          marginBottom: 6,
+          display: 'flex',
+          alignItems: 'center',
+          gap: 4,
+        }}>
+          <span>⚡</span>
+          <span>智能筛选流水线</span>
+        </div>
+
+        {/* 流程图 */}
+        <div style={{
+          display: 'flex',
+          alignItems: 'center',
+          gap: 6,
+          fontSize: '11px',
+          color: '#fff',
+          flexWrap: 'wrap',
+        }}>
+          <div style={{
+            padding: '2px 8px',
+            background: 'rgba(255, 255, 255, 0.2)',
+            borderRadius: 4,
+            fontWeight: 500,
+          }}>
+            📋 候选
+          </div>
+          
+          {hasAutoExclude && (
+            <>
+              <span style={{ opacity: 0.7 }}>→</span>
+              <div style={{
+                padding: '2px 8px',
+                background: 'rgba(72, 209, 204, 0.3)',
+                borderRadius: 4,
+                fontWeight: 500,
+              }}>
+                🤖 自动排除
+              </div>
+            </>
+          )}
+          
+          {hasManualExclude && (
+            <>
+              <span style={{ opacity: 0.7 }}>→</span>
+              <div style={{
+                padding: '2px 8px',
+                background: 'rgba(255, 99, 71, 0.3)',
+                borderRadius: 4,
+                fontWeight: 500,
+              }}>
+                🚫 手动排除: {excludeText!.join('|')}
+              </div>
+            </>
+          )}
+          
+          {hasDedupe && (
+            <>
+              <span style={{ opacity: 0.7 }}>→</span>
+              <div style={{
+                padding: '2px 8px',
+                background: 'rgba(72, 209, 204, 0.3)',
+                borderRadius: 4,
+                fontWeight: 500,
+              }}>
+                🔄 去重: {dedupeTolerance}px
+              </div>
+            </>
+          )}
+          
+          {hasLightValidation && (
+            <>
+              <span style={{ opacity: 0.7 }}>→</span>
+              <div style={{
+                padding: '2px 8px',
+                background: 'rgba(255, 215, 0, 0.3)',
+                borderRadius: 4,
+                fontWeight: 500,
+              }}>
+                ⚠️ 轻校验关闭
+              </div>
+            </>
+          )}
+          
+          <span style={{ opacity: 0.7 }}>→</span>
+          <div style={{
+            padding: '2px 8px',
+            background: 'rgba(50, 205, 50, 0.3)',
+            borderRadius: 4,
+            fontWeight: 500,
+          }}>
+            ✅ 执行
+          </div>
+        </div>
+
+        {/* 提示文字 */}
+        <div style={{
+          marginTop: 6,
+          fontSize: '10px',
+          color: 'rgba(255, 255, 255, 0.7)',
+          fontStyle: 'italic',
+        }}>
+          💡 {hasAutoExclude ? '自动排除已关注/互关' : ''}{hasManualExclude ? ' · 自定义规则' : ''}{hasDedupe ? ' · 防重复点击' : ''}{hasLightValidation ? ' · 跳过状态验证' : ''}
+        </div>
+      </div>
+    );
+  };
+
   // 渲染步骤参数摘要
   const renderParameterSummary = () => {
     const { parameters } = step;
@@ -241,6 +378,47 @@ export const ScriptStepCard: React.FC<StepCardProps> = ({
           summary.push(`次数: ${loopParams.iterations}`);
         }
         break;
+    }
+
+    // 🔥 特殊处理：smartSelection 参数（不在 StepType 中，但在 parameters 里）
+    if (parameters.smartSelection) {
+      const smartParams = parameters.smartSelection as Record<string, unknown>;
+      
+      // 显示模式
+      if (smartParams.mode) {
+        const modeText = {
+          'manual': '手动',
+          'auto': '自动',
+          'skip': '跳过',
+          'first': '第一个',
+          'last': '最后一个',
+          'match-original': '匹配原始',
+          'random': '随机',
+          'all': '全部'
+        }[smartParams.mode as string] || smartParams.mode;
+        summary.push(`模式: ${modeText}`);
+      }
+      
+      // 🔥 显示高级功能
+      const excludeText = smartParams.excludeText as string[] | undefined;
+      if (excludeText && excludeText.length > 0) {
+        summary.push(`🚫 排除: ${excludeText.join('|')}`);
+      }
+      
+      const dedupeTolerance = smartParams.dedupeTolerance as number | undefined;
+      if (dedupeTolerance !== undefined && dedupeTolerance !== 10) {
+        summary.push(`🔄 去重: ${dedupeTolerance}px`);
+      }
+      
+      const enableLightValidation = smartParams.enableLightValidation as boolean | undefined;
+      if (enableLightValidation === false) {
+        summary.push(`✅ 轻校验: 关闭`);
+      }
+      
+      // 显示目标文本
+      if (smartParams.targetText) {
+        summary.push(`目标: ${smartParams.targetText}`);
+      }
     }
 
     if (parameters.delay) {
@@ -386,6 +564,9 @@ export const ScriptStepCard: React.FC<StepCardProps> = ({
             {step.description}
           </Paragraph>
         )}
+
+        {/* 🔥 智能选择流水线 */}
+        {renderSmartSelectionPipeline()}
 
         {/* 参数摘要 */}
         {showDetails && (

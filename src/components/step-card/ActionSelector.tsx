@@ -3,9 +3,14 @@
 // summary: 步骤卡片中的动作类型选择组件
 
 import React, { useState } from 'react';
-import { Segmented, Space, InputNumber, Input, Select, Dropdown, Button } from 'antd';
+import { Segmented, Space, InputNumber, Input, Select, Dropdown, Button, Switch, Tooltip, Collapse, Modal } from 'antd';
 import { PlayCircleOutlined, CaretRightOutlined, EditOutlined, BulbOutlined, DownOutlined } from '@ant-design/icons';
 import type { ActionKind, StepAction } from '../../types/smartScript';
+import { ExcludeRuleEditor, type ExcludeRule } from '../smart-selection/ExcludeRuleEditor';
+import { CandidatePreview } from '../smart-selection/CandidatePreview';
+import { ExplanationGenerator } from '../smart-selection/ExplanationGenerator';
+
+const { Panel } = Collapse;
 
 export interface ActionSelectorProps {
   action?: StepAction;
@@ -27,6 +32,10 @@ export const ActionSelector: React.FC<ActionSelectorProps> = ({
     selectionMode: 'auto' as SelectionMode,
     operationType: 'tap' as ActionKind
   });
+
+  // 🔧 高级规则编辑器状态
+  const [advancedExpanded, setAdvancedExpanded] = useState(false);
+  const [previewVisible, setPreviewVisible] = useState(false);
 
   const handleKindChange = (kind: ActionKind) => {
     const newAction: StepAction = {
@@ -305,6 +314,92 @@ export const ActionSelector: React.FC<ActionSelectorProps> = ({
               />
             </Space>
 
+            {/* 🔥 新功能配置区 */}
+            <div style={{
+              marginTop: '8px',
+              padding: '8px',
+              background: 'rgba(110, 139, 255, 0.05)',
+              borderRadius: '4px',
+              border: '1px dashed rgba(110, 139, 255, 0.3)'
+            }}>
+              <div style={{ fontSize: '12px', fontWeight: 'bold', marginBottom: '6px', color: '#6E8BFF' }}>
+                🔥 高级功能（新）
+              </div>
+              
+              {/* 🆕 自动排除开关 */}
+              <Space size="small" wrap style={{ marginBottom: '8px', padding: '6px', background: '#f0f7ff', borderRadius: '4px' }}>
+                <span style={{ fontSize: '11px', color: '#1890ff', fontWeight: 600 }}>🤖 自动排除：</span>
+                <Switch
+                  checked={params.smartSelection?.autoExcludeEnabled !== false}
+                  onChange={(checked) => handleParamChange('smartSelection', {
+                    ...params.smartSelection,
+                    autoExcludeEnabled: checked
+                  })}
+                  size="small"
+                />
+                <span style={{ fontSize: '10px', color: '#1890ff' }}>
+                  {params.smartSelection?.autoExcludeEnabled !== false ? '✅ 已启用' : '❌ 已关闭'}
+                </span>
+                <Tooltip title='自动排除"已关注/Following/互相关注"等常见状态，零配置覆盖80%场景'>
+                  <span style={{ fontSize: '10px', color: '#999', cursor: 'help' }}>（已关注/Following/互关...）</span>
+                </Tooltip>
+              </Space>
+              
+              {/* 手动排除 */}
+              <Space size="small" wrap style={{ marginBottom: '6px' }}>
+                <span style={{ fontSize: '11px', color: '#666' }}>🚫 手动排除：</span>
+                <Input
+                  value={params.smartSelection?.excludeText?.join('|') || ''}
+                  onChange={(e) => handleParamChange('smartSelection', {
+                    ...params.smartSelection,
+                    excludeText: e.target.value.split('|').filter(Boolean)
+                  })}
+                  size="small"
+                  style={{ width: 200 }}
+                  placeholder="特殊文案（可选）"
+                />
+                <span style={{ fontSize: '10px', color: '#999' }}>（补充自定义规则）</span>
+              </Space>
+              
+              {/* 去重开关 */}
+              <Space size="small" wrap style={{ marginBottom: '6px' }}>
+                <span style={{ fontSize: '11px', color: '#666' }}>🔄 去重：</span>
+                <InputNumber
+                  value={params.smartSelection?.dedupeTolerance || 10}
+                  onChange={(val) => handleParamChange('smartSelection', {
+                    ...params.smartSelection,
+                    dedupeTolerance: val
+                  })}
+                  size="small"
+                  style={{ width: 80 }}
+                  placeholder="容差"
+                  addonAfter="px"
+                  min={5}
+                  max={50}
+                />
+                <span style={{ fontSize: '10px', color: '#999' }}>（位置容差）</span>
+              </Space>
+              
+              {/* 轻校验开关 */}
+              <Space size="small" wrap>
+                <span style={{ fontSize: '11px', color: '#666' }}>✅ 轻校验：</span>
+                <Select
+                  value={params.smartSelection?.enableLightValidation !== false}
+                  onChange={(val) => handleParamChange('smartSelection', {
+                    ...params.smartSelection,
+                    enableLightValidation: val
+                  })}
+                  size="small"
+                  style={{ width: 80 }}
+                  options={[
+                    { value: true, label: '开启' },
+                    { value: false, label: '关闭' }
+                  ]}
+                />
+                <span style={{ fontSize: '10px', color: '#999' }}>（点击后验证状态变化）</span>
+              </Space>
+            </div>
+
             {/* 🎯 智能推荐提示 */}
             <div style={{ 
               fontSize: '12px', 
@@ -316,6 +411,89 @@ export const ActionSelector: React.FC<ActionSelectorProps> = ({
             }}>
               💡 {getModeRecommendationText(params.smartSelection?.mode)}
             </div>
+
+            {/* 🔧 高级规则编辑器（折叠面板） */}
+            <Collapse 
+              activeKey={advancedExpanded ? ['1'] : []}
+              onChange={(keys) => setAdvancedExpanded(keys.includes('1'))}
+              style={{ marginTop: '8px' }}
+              size="small"
+            >
+              <Panel 
+                header={
+                  <Space size="small">
+                    <span style={{ fontSize: '12px', fontWeight: 500 }}>🔧 高级规则编辑器</span>
+                    <span style={{ fontSize: '10px', color: '#999' }}>（可视化规则管理 + 预览）</span>
+                  </Space>
+                }
+                key="1"
+              >
+                <Space direction="vertical" size="middle" style={{ width: '100%' }}>
+                  {/* 规则编辑器 */}
+                  <ExcludeRuleEditor
+                    rules={parseExcludeTextToRules(params.smartSelection?.excludeText || '')}
+                    onChange={(rules) => {
+                      handleParamChange('smartSelection', {
+                        ...params.smartSelection,
+                        excludeText: formatRulesToExcludeText(rules)
+                      });
+                    }}
+                    onTest={async (rule) => {
+                      // TODO: 实现测试功能，调用 Tauri 后端预览
+                      console.log('测试规则:', rule);
+                      return 0; // 暂时返回 0 个匹配
+                    }}
+                  />
+
+                  {/* 预览和说明 */}
+                  <Space size="small" style={{ width: '100%', justifyContent: 'space-between' }}>
+                    <Button 
+                      size="small" 
+                      type="primary"
+                      onClick={() => setPreviewVisible(true)}
+                    >
+                      📋 预览候选元素
+                    </Button>
+                    
+                    <ExplanationGenerator
+                      config={{
+                        mode: normalizeMode(params.smartSelection?.mode),
+                        autoExcludeEnabled: params.smartSelection?.autoExcludeEnabled !== false,
+                        excludeRules: parseExcludeTextToRules(params.smartSelection?.excludeText),
+                        dedupeTolerance: params.smartSelection?.dedupeTolerance,
+                        enableLightValidation: params.smartSelection?.enableLightValidation !== false
+                      }}
+                      compact={true}
+                    />
+                  </Space>
+
+                  {/* 完整说明（可选展开） */}
+                  <ExplanationGenerator
+                    config={{
+                      mode: normalizeMode(params.smartSelection?.mode),
+                      autoExcludeEnabled: params.smartSelection?.autoExcludeEnabled !== false,
+                      excludeRules: parseExcludeTextToRules(params.smartSelection?.excludeText),
+                      dedupeTolerance: params.smartSelection?.dedupeTolerance,
+                      enableLightValidation: params.smartSelection?.enableLightValidation !== false
+                    }}
+                    compact={false}
+                  />
+                </Space>
+              </Panel>
+            </Collapse>
+
+            {/* 预览模态框 */}
+            <Modal
+              title="📋 候选元素预览"
+              open={previewVisible}
+              onCancel={() => setPreviewVisible(false)}
+              width={900}
+              footer={null}
+            >
+              <CandidatePreview
+                candidates={[]} // TODO: 从 Tauri 后端获取真实数据
+              />
+            </Modal>
           </Space>
         );
 
@@ -345,6 +523,51 @@ export const ActionSelector: React.FC<ActionSelectorProps> = ({
         break;
     }
     handleParamChange('tapOffset', newOffset);
+  };
+
+  // 🔧 规则转换辅助函数
+  const parseExcludeTextToRules = (excludeText: string | string[] | undefined): ExcludeRule[] => {
+    if (!excludeText) return [];
+    const textArray = Array.isArray(excludeText) ? excludeText : [excludeText];
+    
+    return textArray.map((text, index) => {
+      // 简单解析：假设格式为 "属性:操作:值"
+      const parts = text.split(':');
+      if (parts.length === 3) {
+        return {
+          id: `rule-${index}`,
+          attr: parts[0] as 'text' | 'content-desc' | 'resource-id' | 'class',
+          op: parts[1] as 'equals' | 'contains' | 'regex',
+          value: parts[2],
+          enabled: true
+        };
+      }
+      // 默认为文本包含
+      return {
+        id: `rule-${index}`,
+        attr: 'text',
+        op: 'contains',
+        value: text,
+        enabled: true
+      };
+    });
+  };
+
+  const formatRulesToExcludeText = (rules: ExcludeRule[]): string[] => {
+    return rules
+      .filter(r => r.enabled !== false)
+      .map(r => `${r.attr}:${r.op}:${r.value}`);
+  };
+
+  // 🔄 规范化 mode 类型
+  const normalizeMode = (mode?: string): 'manual' | 'auto' | 'first' | 'last' | 'all' => {
+    // 将 'match-original' 和 'random' 映射到合法类型
+    if (mode === 'match-original') return 'first'; // 匹配原始元素视为 first
+    if (mode === 'random') return 'auto'; // 随机模式视为 auto
+    if (mode === 'manual' || mode === 'auto' || mode === 'first' || mode === 'last' || mode === 'all') {
+      return mode;
+    }
+    return 'auto'; // 默认 auto
   };
 
 

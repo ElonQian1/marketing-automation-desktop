@@ -3571,6 +3571,14 @@
     "src": {
       "alias": "源",
       "confidence": 1
+    },
+    "balance": {
+      "alias": "平衡",
+      "confidence": 1
+    },
+    "display": {
+      "alias": "显示",
+      "confidence": 1
     }
   },
   "phrases": {
@@ -3928,6 +3936,10 @@
     },
     "element discovery": {
       "alias": "元素发现",
+      "confidence": 1
+    },
+    "balance display": {
+      "alias": "平衡显示",
       "confidence": 1
     }
   }

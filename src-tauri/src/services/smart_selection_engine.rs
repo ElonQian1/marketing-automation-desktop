@@ -4,7 +4,7 @@
 
 use std::time::{Duration, Instant};
 use anyhow::{Result, anyhow};
-use tracing::{info, debug, warn, error};
+use tracing::{info, debug, warn};
 use crate::types::smart_selection::*;
 use crate::services::ui_reader_service::{get_ui_dump, UIElement};
 use crate::infra::adb::input_helper::tap_injector_first;
@@ -99,22 +99,53 @@ impl SmartSelectionEngine {
         // 3. 根据选择模式执行策略
         let selected_elements = match &protocol.selection.mode {
             SelectionMode::Auto { single_min_confidence, batch_config, fallback_to_first } => {
-                // 🎯 Auto模式：根据候选数量智能选择策略
+                // 🎯 Auto模式：智能决策
                 let candidate_count = candidates.len();
                 debug_logs.push(format!("Auto模式检测到 {} 个候选元素", candidate_count));
                 
-                if candidate_count <= 1 {
-                    // 单个或无候选：使用MatchOriginal策略
-                    debug_logs.push("Auto模式 → 单个策略".to_string());
-                    Self::execute_match_original_strategy(
-                        &candidates, 
-                        &protocol.anchor.fingerprint, 
-                        &mut debug_logs
-                    )?
+                if candidate_count == 0 {
+                    return Ok(SmartSelectionResult {
+                        success: false,
+                        message: "Auto模式：无候选元素".to_string(),
+                        matched_elements: MatchedElementsInfo {
+                            total_found: 0,
+                            filtered_count: 0,
+                            selected_count: 0,
+                            confidence_scores: Vec::new(),
+                        },
+                        execution_info: None,
+                        debug_info: Some(DebugInfo {
+                            candidate_analysis: debug_logs,
+                            strategy_attempts: Vec::new(),
+                            error_details: Some("无候选元素".to_string()),
+                        }),
+                    });
+                } else if candidate_count == 1 {
+                    // 单个候选 → 直接使用
+                    debug_logs.push("Auto模式 → 单个策略（仅1个候选）".to_string());
+                    Self::execute_positional_strategy(&candidates, 0, &mut debug_logs)?
                 } else {
-                    // 多个候选：使用批量策略
-                    debug_logs.push("Auto模式 → 批量策略".to_string());
-                    Self::execute_batch_strategy(&candidates, &mut debug_logs)?
+                    // 🔥 多个候选 → 检查指纹置信度
+                    let min_confidence = single_min_confidence.unwrap_or(0.85);
+                    if let Some(best_match) = Self::find_high_confidence_match(
+                        &candidates,
+                        &protocol.anchor.fingerprint,
+                        min_confidence,
+                        &mut debug_logs,
+                    ) {
+                        // 有高置信度匹配 → 仍使用单个策略
+                        debug_logs.push(format!(
+                            "Auto模式 → 单个策略（多候选但高置信度 {:.2} ≥ {:.2}）",
+                            best_match.confidence, min_confidence
+                        ));
+                        vec![best_match]
+                    } else {
+                        // 无高置信度匹配 → 批量策略
+                        debug_logs.push(format!(
+                            "Auto模式 → 批量策略（多候选且无高置信度匹配）"
+                        ));
+                        Self::execute_batch_strategy(&candidates, &mut debug_logs)?
+                    }
                 }
             }
             SelectionMode::MatchOriginal { min_confidence, fallback_to_first } => {
@@ -194,6 +225,11 @@ impl SmartSelectionEngine {
         // 应用文本过滤并构建候选元素
         for element in search_elements {
             if Self::matches_text_criteria(&element, protocol) {
+                // 🔥 应用排除层过滤
+                if Self::should_exclude(&element, protocol) {
+                    continue;
+                }
+                
                 let confidence = Self::calculate_element_confidence(&element, &protocol.anchor.fingerprint);
                 candidates.push(CandidateElement {
                     element,
@@ -202,6 +238,9 @@ impl SmartSelectionEngine {
                 });
             }
         }
+        
+        // 🔥 应用去重逻辑
+        let mut candidates = Self::deduplicate_candidates(candidates, 10); // 10px 容差
         
         // 按视觉位置排序（Y轴优先，然后X轴）
         candidates.sort_by(|a, b| {
@@ -319,6 +358,46 @@ impl SmartSelectionEngine {
         Ok(candidates.to_vec())
     }
     
+    /// 🔥 在多个候选中查找高置信度匹配
+    fn find_high_confidence_match(
+        candidates: &[CandidateElement],
+        target_fingerprint: &ElementFingerprint,
+        min_confidence: f32,
+        debug_logs: &mut Vec<String>,
+    ) -> Option<CandidateElement> {
+        let mut best_match: Option<CandidateElement> = None;
+        let mut best_similarity = 0.0f32;
+        
+        for candidate in candidates {
+            let similarity = Self::calculate_fingerprint_similarity(&candidate.element, target_fingerprint);
+            
+            debug_logs.push(format!(
+                "  候选相似度: {:.2}, 文本: {:?}",
+                similarity,
+                candidate.element.text
+            ));
+            
+            if similarity > best_similarity {
+                best_similarity = similarity;
+                best_match = Some(candidate.clone());
+            }
+        }
+        
+        if best_similarity >= min_confidence {
+            debug_logs.push(format!(
+                "✅ 找到高置信度匹配: {:.2} ≥ {:.2}",
+                best_similarity, min_confidence
+            ));
+            best_match
+        } else {
+            debug_logs.push(format!(
+                "⚠️ 最佳相似度 {:.2} < 最小要求 {:.2}",
+                best_similarity, min_confidence
+            ));
+            None
+        }
+    }
+    
     /// 执行点击操作
     async fn execute_clicks(
         device_id: &str,
@@ -345,7 +424,7 @@ impl SmartSelectionEngine {
             };
             
             // 执行点击
-            let click_success = match tap_injector_first(
+            let tap_success = match tap_injector_first(
                 &crate::utils::adb_utils::get_adb_path(),
                 device_id, 
                 x, 
@@ -362,12 +441,33 @@ impl SmartSelectionEngine {
                 }
             };
             
+            // 🔥 点击后轻校验
+            let (click_success, error_msg) = if tap_success {
+                match Self::verify_click_success(device_id, &element.element).await {
+                    Ok(true) => {
+                        info!("✅ 轻校验通过：元素 {} 状态已变化", index);
+                        (true, None)
+                    }
+                    Ok(false) => {
+                        warn!("⚠️ 轻校验失败：元素 {} 状态未变化", index);
+                        (false, Some("轻校验失败：状态未变化".to_string()))
+                    }
+                    Err(e) => {
+                        warn!("⚠️ 轻校验错误：{}", e);
+                        // 校验失败时仍认为点击成功（容错）
+                        (true, None)
+                    }
+                }
+            } else {
+                (false, Some("点击失败".to_string()))
+            };
+            
             let click_time = click_start.elapsed();
             click_results.push(ClickResult {
                 index: index as u32,
                 success: click_success,
                 coordinates: ClickCoordinate { x, y },
-                error_message: if click_success { None } else { Some(format!("点击失败")) },
+                error_message: error_msg,
                 time_ms: click_time.as_millis() as u64,
             });
             
@@ -515,6 +615,207 @@ impl SmartSelectionEngine {
         } else {
             0.0
         }
+    }
+    
+    /// 🔥 排除层过滤：检查元素是否应该被排除
+    fn should_exclude(element: &UIElement, protocol: &SmartSelectionProtocol) -> bool {
+        // 🆕 获取自动排除开关（默认启用）
+        let auto_exclude_enabled = protocol.matching_context
+            .as_ref()
+            .and_then(|ctx| ctx.light_assertions.as_ref())
+            .and_then(|assertions| assertions.auto_exclude_enabled)
+            .unwrap_or(true);  // 默认开启
+        
+        // 🆕 内置自动排除别名库
+        const AUTO_EXCLUDE_ALIASES: &[&str] = &[
+            "已关注", "Following", "Followed",
+            "互相关注", "Mutual", "Follow Back",
+            "已互关",
+            "已赞", "Liked",
+            "已收藏", "Favorited",
+            "已分享", "Shared",
+            "已完成", "Completed",
+            "已处理", "Processed",
+        ];
+        
+        // 🆕 检查自动排除别名
+        if auto_exclude_enabled {
+            if let Some(element_text) = &element.text {
+                for alias in AUTO_EXCLUDE_ALIASES {
+                    if element_text.contains(alias) {
+                        debug!(
+                            "🤖 自动排除：文本 '{}' 匹配内置别名 '{}'",
+                            element_text, alias
+                        );
+                        return true;
+                    }
+                }
+            }
+            
+            if let Some(desc) = &element.content_desc {
+                for alias in AUTO_EXCLUDE_ALIASES {
+                    if desc.contains(alias) {
+                        debug!(
+                            "🤖 自动排除：描述 '{}' 匹配内置别名 '{}'",
+                            desc, alias
+                        );
+                        return true;
+                    }
+                }
+            }
+        }
+        
+        // 获取手动排除规则
+        let exclude_patterns = protocol.matching_context
+            .as_ref()
+            .and_then(|ctx| ctx.light_assertions.as_ref())
+            .and_then(|assertions| assertions.exclude_text.as_ref());
+        
+        if let Some(patterns) = exclude_patterns {
+            if let Some(element_text) = &element.text {
+                // 检查是否匹配任何手动排除模式
+                for pattern in patterns {
+                    if element_text.contains(pattern) {
+                        debug!(
+                            "🚫 手动排除：文本 '{}' 匹配规则 '{}'",
+                            element_text, pattern
+                        );
+                        return true;
+                    }
+                }
+            }
+            
+            // 检查 content_desc
+            if let Some(desc) = &element.content_desc {
+                for pattern in patterns {
+                    if desc.contains(pattern) {
+                        debug!(
+                            "🚫 手动排除：描述 '{}' 匹配规则 '{}'",
+                            desc, pattern
+                        );
+                        return true;
+                    }
+                }
+            }
+        }
+        
+        false
+    }
+    
+    /// 🔥 去重逻辑：基于位置+文本的去重
+    fn deduplicate_candidates(
+        candidates: Vec<CandidateElement>,
+        tolerance: i32,
+    ) -> Vec<CandidateElement> {
+        use std::collections::HashSet;
+        
+        let original_count = candidates.len();
+        let mut seen = HashSet::new();
+        let mut deduplicated = Vec::new();
+        
+        for candidate in candidates {
+            let dedupe_key = Self::generate_dedupe_key(&candidate.element, tolerance);
+            
+            if seen.insert(dedupe_key.clone()) {
+                deduplicated.push(candidate);
+            } else {
+                debug!("🔄 去重：跳过重复元素 (key: {})", dedupe_key);
+            }
+        }
+        
+        info!(
+            "✅ 去重完成：{} → {} 个候选元素",
+            original_count,
+            deduplicated.len()
+        );
+        
+        deduplicated
+    }
+    
+    /// 🔥 生成去重键：基于位置分桶 + 文本
+    fn generate_dedupe_key(element: &UIElement, tolerance: i32) -> String {
+        let bounds = element.bounds.as_ref()
+            .and_then(|b| ElementBounds::from_bounds_string(b));
+        
+        if let Some(b) = bounds {
+            // 计算中心点Y坐标并按容差分桶
+            let center_y = (b.top + b.bottom) / 2;
+            let y_bucket = center_y / tolerance;
+            
+            // 组合位置和文本作为去重键
+            let text_key = element.text.as_deref().unwrap_or("");
+            format!("y{}_t{}", y_bucket, text_key)
+        } else {
+            // 没有边界信息时仅使用文本
+            element.text.clone().unwrap_or_else(|| "no_text".to_string())
+        }
+    }
+    
+    /// 🔥 点击后轻校验：检查元素状态是否变化
+    async fn verify_click_success(
+        device_id: &str,
+        original_element: &UIElement,
+    ) -> Result<bool> {
+        // 等待 200ms 让 UI 响应
+        tokio::time::sleep(Duration::from_millis(200)).await;
+        
+        // 重新获取 UI dump
+        let ui_xml = get_ui_dump(device_id).await
+            .map_err(|e| anyhow!("轻校验：获取UI dump失败: {}", e))?;
+        
+        let elements = Self::parse_ui_elements(&ui_xml)?;
+        
+        // 如果原元素有边界信息，在相同位置查找
+        if let Some(original_bounds_str) = &original_element.bounds {
+            if let Some(original_bounds) = ElementBounds::from_bounds_string(original_bounds_str) {
+                // 在原位置附近查找元素（容差±50px）
+                for elem in elements {
+                    if let Some(elem_bounds_str) = &elem.bounds {
+                        if let Some(elem_bounds) = ElementBounds::from_bounds_string(elem_bounds_str) {
+                            // 检查位置是否接近
+                            let center_x_diff = ((original_bounds.left + original_bounds.right) / 2
+                                - (elem_bounds.left + elem_bounds.right) / 2).abs();
+                            let center_y_diff = ((original_bounds.top + original_bounds.bottom) / 2
+                                - (elem_bounds.top + elem_bounds.bottom) / 2).abs();
+                            
+                            if center_x_diff < 50 && center_y_diff < 50 {
+                                // 位置接近，检查文本是否变化
+                                if let (Some(original_text), Some(current_text)) = 
+                                    (&original_element.text, &elem.text) {
+                                    // 常见的状态变化模式
+                                    let state_changed = 
+                                        (original_text.contains("关注") && current_text.contains("已关注")) ||
+                                        (original_text.contains("Follow") && current_text.contains("Following")) ||
+                                        (original_text.contains("+") && !current_text.contains("+")) ||
+                                        (original_text != current_text); // 任何文本变化
+                                    
+                                    if state_changed {
+                                        debug!(
+                                            "✅ 检测到状态变化: '{}' → '{}'",
+                                            original_text, current_text
+                                        );
+                                        return Ok(true);
+                                    }
+                                }
+                                
+                                // 检查 clickable 属性变化
+                                if original_element.clickable != elem.clickable {
+                                    debug!("✅ 检测到可点击状态变化");
+                                    return Ok(true);
+                                }
+                            }
+                        }
+                    }
+                }
+                
+                // 元素在原位置消失也算成功（可能是弹窗关闭等）
+                debug!("✅ 原位置元素消失，视为成功");
+                return Ok(true);
+            }
+        }
+        
+        // 无边界信息或无法验证时，返回不确定（视为成功）
+        Ok(true)
     }
 }
 

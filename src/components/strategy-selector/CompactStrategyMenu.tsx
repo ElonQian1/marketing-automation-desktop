@@ -3,7 +3,7 @@
 // summary: 替代大块策略选择器的紧凑下拉菜单，集成到步骤卡片标题栏
 
 import React, { useState } from "react";
-import { Dropdown, Button, Tooltip, Badge, Tag, message } from "antd";
+import { Dropdown, Button, Tooltip, Badge, Tag, message, Collapse } from "antd";
 import {
   RefreshCcwIcon,
   ClipboardListIcon,
@@ -22,6 +22,10 @@ import { useAdb } from "../../application/hooks/useAdb";
 import { isValidScore, toPercentInt01 } from "../../utils/score-utils";
 import type { SelectionMode } from '../../types/smartSelection';
 import type { ActionKind } from '../../types/smartScript';
+import { ExcludeRuleEditor, type ExcludeRule } from '../smart-selection/ExcludeRuleEditor';
+import { ExplanationGenerator } from '../smart-selection/ExplanationGenerator';
+
+const { Panel } = Collapse;
 
 // 批量配置接口
 interface BatchConfig {
@@ -99,6 +103,50 @@ const CompactStrategyMenu: React.FC<CompactStrategyMenuProps> = ({
   // 🎯 新增：执行状态管理和ADB设备管理
   const [executing, setExecuting] = useState(false);
   const { selectedDevice } = useAdb();
+
+  // 🔧 高级规则面板状态
+  const [advancedRulesExpanded, setAdvancedRulesExpanded] = useState(false);
+
+  // 🔧 规则转换辅助函数
+  const parseExcludeTextToRules = (excludeText: string | string[] | undefined): ExcludeRule[] => {
+    if (!excludeText) return [];
+    const textArray = Array.isArray(excludeText) ? excludeText : [excludeText];
+    
+    return textArray.map((text, index) => {
+      const parts = text.split(':');
+      if (parts.length === 3) {
+        return {
+          id: `rule-${index}`,
+          attr: parts[0] as 'text' | 'content-desc' | 'resource-id' | 'class',
+          op: parts[1] as 'equals' | 'contains' | 'regex',
+          value: parts[2],
+          enabled: true
+        };
+      }
+      return {
+        id: `rule-${index}`,
+        attr: 'text',
+        op: 'contains',
+        value: text,
+        enabled: true
+      };
+    });
+  };
+
+  const formatRulesToExcludeText = (rules: ExcludeRule[]): string[] => {
+    return rules
+      .filter(r => r.enabled !== false)
+      .map(r => `${r.attr}:${r.op}:${r.value}`);
+  };
+
+  // 🔧 临时智能选择配置（TODO: 从 selector 或 card 中获取）
+  const smartSelectionConfig = {
+    mode: selectionMode,
+    excludeText: [] as string[],
+    autoExcludeEnabled: true,
+    dedupeTolerance: 20,
+    enableLightValidation: true
+  };
 
   // 获取置信度和策略数据 - 🔧 修复：通过stepId查找卡片
   const cardId = useStepCardStore((state) => stepId ? state.byStepId[stepId] : undefined);
@@ -724,6 +772,69 @@ const CompactStrategyMenu: React.FC<CompactStrategyMenuProps> = ({
             >
               {executing ? "🔄 执行中..." : (!selectedDevice ? "⚠️ 需要ADB设备" : "🧪 测试批量执行")}
             </Button>
+          </div>
+
+          {/* 🔧 高级排除规则（紧凑版） */}
+          <div style={{ 
+            marginTop: "12px",
+            paddingTop: "12px",
+            borderTop: "1px solid rgba(110, 139, 255, 0.2)"
+          }}>
+            <Collapse 
+              activeKey={advancedRulesExpanded ? ['advanced-rules'] : []}
+              onChange={(keys) => {
+                setAdvancedRulesExpanded(keys.includes('advanced-rules'));
+                console.log('🔧 高级规则面板状态:', keys.includes('advanced-rules') ? '展开' : '折叠');
+              }}
+              size="small"
+              style={{ 
+                background: "transparent",
+                border: "1px solid rgba(110, 139, 255, 0.3)",
+                borderRadius: "4px"
+              }}
+            >
+              <Panel 
+                header={
+                  <div style={{ fontSize: "11px", color: "#94A3B8" }}>
+                    🔧 高级排除规则 <span style={{ fontSize: "10px", opacity: 0.7 }}>(可选)</span>
+                  </div>
+                }
+                key="advanced-rules"
+              >
+                <div style={{ padding: "8px 0" }}>
+                  {/* 规则编辑器 */}
+                  <ExcludeRuleEditor
+                    rules={parseExcludeTextToRules(smartSelectionConfig.excludeText)}
+                    onChange={(rules) => {
+                      const excludeText = formatRulesToExcludeText(rules);
+                      // TODO: 更新到状态管理
+                      smartSelectionConfig.excludeText = excludeText;
+                      console.log('规则更新:', excludeText);
+                    }}
+                    onTest={async (rule) => {
+                      // TODO: 调用 Tauri 后端测试
+                      message.info(`测试规则: ${rule.attr} ${rule.op} ${rule.value}`);
+                      return 0;
+                    }}
+                    compact={true}
+                  />
+
+                  {/* 紧凑说明 */}
+                  <div style={{ marginTop: "8px" }}>
+                    <ExplanationGenerator
+                      config={{
+                        mode: smartSelectionConfig.mode as 'auto' | 'first' | 'last' | 'all' | 'manual',
+                        autoExcludeEnabled: smartSelectionConfig.autoExcludeEnabled,
+                        excludeRules: parseExcludeTextToRules(smartSelectionConfig.excludeText),
+                        dedupeTolerance: smartSelectionConfig.dedupeTolerance,
+                        enableLightValidation: smartSelectionConfig.enableLightValidation
+                      }}
+                      compact={true}
+                    />
+                  </div>
+                </div>
+              </Panel>
+            </Collapse>
           </div>
         </div>
       )}

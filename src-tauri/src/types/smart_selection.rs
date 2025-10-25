@@ -136,6 +136,7 @@ pub struct LightAssertions {
     pub must_contain_text: Option<Vec<String>>,
     pub must_be_clickable: Option<bool>,
     pub must_be_visible: Option<bool>,
+    pub auto_exclude_enabled: Option<bool>,  // 🆕 启用自动排除别名（默认true）
     pub exclude_text: Option<Vec<String>>,
 }
 
