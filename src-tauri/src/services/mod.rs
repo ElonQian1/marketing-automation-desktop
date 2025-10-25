@@ -24,6 +24,7 @@ pub mod contact_service;
 pub mod contact_storage; // 新增：联系人号码存储（TXT导入到SQLite）
 pub mod contact_verification; // 新增：快速号码验证服务
 pub mod crash_debugger;
+pub mod diagnostic_service; // 新增：系统诊断服务
 pub mod device_contact_metrics;
 pub mod duplication_guard; // 新增：查重防护服务（内存态）
 pub mod employee_service;
