@@ -1,6 +1,16 @@
-// src/test/button-recognition-fix-test.tsx
-// module: test | layer: ui | role: 按钮识别修复测试
-// summary: 验证"已关注"vs"关注"按钮识别修复是否生效
+// src/test/button-recognition-fix-test.tsx  
+// module: test | layer: ui | role: ⚠️ 【核心修复验证】"已关注"vs"关注"按钮识别歧义测试
+// summary: 🎯 专门测试V3智能分析系统是否能区分"已关注"和"关注"按钮，防止生成错误步骤卡片
+//
+// 🚨 重要提醒：此测试验证的是BUTTON TYPE CONFUSION问题
+// ❌ 问题描述：用户选择"已关注"按钮 → 系统错误生成"关注"步骤卡片  
+// ✅ 修复验证：V3智能分析 + 排除规则 → 正确生成对应类型步骤卡片
+// 
+// 📋 文件作用：
+// 1. 测试按钮类型语义识别准确性
+// 2. 验证互斥排除规则有效性  
+// 3. 确保批量操作不会类型混淆
+// 4. 提供调试信息追踪按钮识别流程
 
 import React, { useState } from 'react';
 import { Card, Button, Space, Typography, Alert, Divider, Row, Col } from 'antd';
@@ -19,12 +29,33 @@ interface ButtonTestCase {
   description: string;
 }
 
-export const ButtonRecognitionFixTest: React.FC = () => {
+interface TestDebugInfo {
+  buttonType?: string;
+  targetText?: string;
+  excludeText?: string[];
+  smartMatching?: Record<string, unknown>;
+  error?: string;
+}
+
+/**
+ * ⚠️ 【专用测试】按钮类型语义识别修复验证组件
+ * 
+ * 🎯 测试目的：验证"已关注" vs "关注"按钮的准确识别
+ * ❌ 修复前：选择"已关注"按钮 → 错误生成"关注"步骤卡片  
+ * ✅ 修复后：选择"已关注"按钮 → 正确生成"已关注"步骤卡片
+ * 
+ * 🧩 测试原理：
+ * 1. 模拟用户选择不同类型按钮
+ * 2. 调用智能分析转换函数
+ * 3. 验证按钮类型识别准确性
+ * 4. 检查排除规则是否生效
+ */
+export const ButtonTypeSemanticRecognitionTest: React.FC = () => {
   const [testResults, setTestResults] = useState<Record<string, {
     success: boolean;
     actualType: string;
     expectedType: string;
-    debugInfo?: any;
+    debugInfo?: TestDebugInfo;
   }>>({});
 
   // 初始化智能分析系统
@@ -35,13 +66,13 @@ export const ButtonRecognitionFixTest: React.FC = () => {
     analysisWorkflow
   });
 
-  // 测试用例：基于真实XML中的按钮数据
-  const testCases: ButtonTestCase[] = [
+  // 🧪 测试用例：基于真实XML中的按钮数据，防止"已关注"vs"关注"类型混淆
+  const buttonTypeConfusionTestCases: ButtonTestCase[] = [
     {
-      id: 'followed_button_1',
-      name: '已关注按钮测试 - 胖嘟嘟',
-      expectedType: '已关注按钮',
-      description: '用户胖嘟嘟的已关注按钮，应该识别为已关注类型',
+      id: 'already_following_button_semantic_test_1',
+      name: '🟢 【语义测试】"已关注"按钮识别 - 胖嘟嘟',
+      expectedType: '已关注按钮', 
+      description: '🎯 核心测试：用户胖嘟嘟的"已关注"按钮，必须识别为already-following类型，不能误识别为follow类型',
       element: {
         id: 'element_followed_1',
         xpath: '//android.view.ViewGroup[@content-desc="已关注"]',
@@ -159,6 +190,9 @@ export const ButtonRecognitionFixTest: React.FC = () => {
     }
   ];
 
+  // 保持原名称用于组件内部引用（避免大范围重构）
+  const testCases = buttonTypeConfusionTestCases;
+
   // 执行单个测试用例
   const runTest = async (testCase: ButtonTestCase) => {
     try {
@@ -166,7 +200,7 @@ export const ButtonRecognitionFixTest: React.FC = () => {
       
       // 捕获转换过程中的调试输出
       const originalLog = console.log;
-      let capturedDebugInfo: any = null;
+      let capturedDebugInfo: TestDebugInfo | null = null;
       
       console.log = (...args) => {
         if (args[0] && args[0].includes('convertElementToContext') && args[1]?.smartMatching) {
@@ -283,7 +317,6 @@ export const ButtonRecognitionFixTest: React.FC = () => {
       <Row gutter={[16, 16]}>
         {testCases.map((testCase) => {
           const result = testResults[testCase.id];
-          const status = !result ? 'default' : result.success ? 'success' : 'error';
           
           return (
             <Col xs={24} lg={12} key={testCase.id}>
@@ -382,4 +415,6 @@ export const ButtonRecognitionFixTest: React.FC = () => {
   );
 };
 
-export default ButtonRecognitionFixTest;
+// 导出别名保持向后兼容
+export const ButtonRecognitionFixTest = ButtonTypeSemanticRecognitionTest;
+export default ButtonTypeSemanticRecognitionTest;

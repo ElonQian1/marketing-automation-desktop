@@ -46,7 +46,7 @@ pub mod smart_app; // 新增：智能应用服务
 pub mod smart_app_manager;
 pub mod smart_app_service;
 pub mod smart_element_finder_service; // 新增：智能元素查找服务
-pub mod smart_selection_engine; // 新增：智能选择引擎
+pub mod legacy_simple_selection_engine; // 已弃用：简化选择引擎（使用V3智能策略）
 pub mod smart_script_executor;
 pub mod smart_script_executor_actions; // 公开基础操作实现（点击/滑动/输入/等待等）
 pub mod smart_vcf_opener;

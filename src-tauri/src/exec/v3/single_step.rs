@@ -7,7 +7,7 @@ use tauri::AppHandle;
 
 use super::types::*;
 use super::events::*;
-use crate::services::smart_selection_engine::SmartSelectionEngine;
+use crate::services::legacy_simple_selection_engine::SmartSelectionEngine;
 use crate::types::smart_selection::*;
 
 /// 智能单步执行（内部实现）

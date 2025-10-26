@@ -7,7 +7,7 @@ use serde::{Deserialize, Serialize};
 use tauri::State;
 use tracing::{info, error, debug};
 use crate::types::smart_selection::*;
-use crate::services::smart_selection_engine::SmartSelectionEngine;
+use crate::services::legacy_simple_selection_engine::SmartSelectionEngine;
 use crate::services::adb_service::AdbService;
 use std::sync::Mutex;
 
@@ -290,7 +290,7 @@ pub async fn preview_smart_selection_candidates(
         .map(|(index, candidate)| {
             // 解析元素边界坐标
             let bounds = if let Some(bounds_str) = &candidate.element.bounds {
-                if let Some(parsed_bounds) = crate::services::smart_selection_engine::ElementBounds::from_bounds_string(bounds_str) {
+                if let Some(parsed_bounds) = crate::services::legacy_simple_selection_engine::ElementBounds::from_bounds_string(bounds_str) {
                     ElementBounds {
                         left: parsed_bounds.left,
                         top: parsed_bounds.top,
