@@ -5,9 +5,10 @@
 import React from 'react';
 import { Card, Steps, Space, Typography, Row, Col, Button, Checkbox } from 'antd';
 import { SafetyOutlined, SettingOutlined } from '@ant-design/icons';
-import { AuthStep, AuthStatus } from './types';
+import { AuthStep, AuthStatus, type AuthError, type AdbPathConfig } from './types';
 import { useAdb } from '../../../application/hooks/useAdb';
 import { StatusIndicator, ErrorList } from './components/StatusComponents';
+import { AdbPathDetection } from './components/AdbPathDetection';
 import { SettingsForm } from './components/FormComponents';
 import { ActionLogPanel } from './ActionLogPanel';
 
@@ -25,6 +26,7 @@ interface SimpleAuthState {
   rememberSettings: boolean;
   autoSkipCompleted: boolean;
   errors: Array<{ code: string; message: string; timestamp: number }>;
+  adbPathConfig: AdbPathConfig;
 }
 
 type SimpleAuthAction =
@@ -36,19 +38,30 @@ type SimpleAuthAction =
   | { type: 'CLEAR_LOGS' }
   | { type: 'SET_USB_CONFIRMED'; value: boolean }
   | { type: 'SET_SETTINGS'; rememberSettings: boolean; autoSkipCompleted: boolean }
-  | { type: 'ADD_ERROR'; error: { code: string; message: string } };
+  | { type: 'ADD_ERROR'; error: { code: string; message: string } }
+  | { type: 'SET_ADB_PATH_DETECTING'; isDetecting: boolean }
+  | { type: 'SET_ADB_PATH_DETECTED'; path: string | null }
+  | { type: 'SET_ADB_PATH_CUSTOM'; path: string; isCustom: boolean }
+  | { type: 'SET_ADB_PATH_VALID'; isValid: boolean };
 
 const initialState: SimpleAuthState = {
-  step: AuthStep.PREREQUISITES,
+  step: AuthStep.ADB_PATH,
   busy: false,
   logs: [],
   userConfirmedUsbAllow: false,
   rememberSettings: true,
   autoSkipCompleted: false,
   errors: [],
+  adbPathConfig: {
+    detectedPath: '',
+    isDetecting: false,
+    isCustomPath: false,
+    customPath: '',
+    isPathValid: false,
+  },
 };
 
-const steps = [AuthStep.PREREQUISITES, AuthStep.USB_TRUST, AuthStep.WIRELESS, AuthStep.VERIFY, AuthStep.DONE];
+const steps = [AuthStep.ADB_PATH, AuthStep.PREREQUISITES, AuthStep.USB_TRUST, AuthStep.WIRELESS, AuthStep.VERIFY, AuthStep.DONE];
 
 function simpleReducer(state: SimpleAuthState, action: SimpleAuthAction): SimpleAuthState {
   switch (action.type) {
@@ -82,6 +95,35 @@ function simpleReducer(state: SimpleAuthState, action: SimpleAuthAction): Simple
       return { 
         ...state, 
         errors: [...state.errors, { ...action.error, timestamp: Date.now() }].slice(-5) 
+      };
+    case 'SET_ADB_PATH_DETECTING':
+      return {
+        ...state,
+        adbPathConfig: { ...state.adbPathConfig, isDetecting: action.isDetecting }
+      };
+    case 'SET_ADB_PATH_DETECTED':
+      return {
+        ...state,
+        adbPathConfig: { 
+          ...state.adbPathConfig, 
+          detectedPath: action.path || '',
+          isDetecting: false,
+          isPathValid: !!action.path
+        }
+      };
+    case 'SET_ADB_PATH_CUSTOM':
+      return {
+        ...state,
+        adbPathConfig: { 
+          ...state.adbPathConfig, 
+          customPath: action.path,
+          isCustomPath: action.isCustom
+        }
+      };
+    case 'SET_ADB_PATH_VALID':
+      return {
+        ...state,
+        adbPathConfig: { ...state.adbPathConfig, isPathValid: action.isValid }
       };
     default:
       return state;
@@ -133,6 +175,22 @@ const EnhancedADBAuthWizard: React.FC = () => {
     };
 
     switch (state.step) {
+      case AuthStep.ADB_PATH:
+        return (
+          <AdbPathDetection
+            config={state.adbPathConfig}
+            onDetecting={(isDetecting) => dispatch({ type: 'SET_ADB_PATH_DETECTING', isDetecting })}
+            onPathDetected={(path) => dispatch({ type: 'SET_ADB_PATH_DETECTED', path })}
+            onCustomPathChange={(path, isCustom) => dispatch({ type: 'SET_ADB_PATH_CUSTOM', path, isCustom })}
+            onPathValidChange={(isValid) => dispatch({ type: 'SET_ADB_PATH_VALID', isValid })}
+            onNext={() => dispatch({ type: 'NEXT' })}
+            busy={state.busy}
+            adb={adb}
+            log={log}
+            addError={(error) => addError(error.code, error.message)}
+          />
+        );
+        
       case AuthStep.PREREQUISITES:
         return (
           <Space direction="vertical">

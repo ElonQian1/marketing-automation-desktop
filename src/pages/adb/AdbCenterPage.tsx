@@ -9,7 +9,6 @@ import { MobileOutlined } from '@ant-design/icons';
 import { useAdb } from '../../application/hooks/useAdb';
 import RealTimeDeviceMonitorPage from '../device-monitor/RealTimeDeviceMonitorPage';
 import EnhancedADBAuthWizard from './auth/EnhancedADBAuthWizard';
-import AdbPathTestPage from '../AdbPathTestPage';
 import HeaderToolbar from './HeaderToolbar';
 import LogConsole from './LogConsole';
 
@@ -29,11 +28,6 @@ export const AdbCenterPage: React.FC = () => {
       key: 'auth',
       label: 'ADB 授权向导',
       children: <EnhancedADBAuthWizard />,
-    },
-    {
-      key: 'path',
-      label: 'ADB 路径检测',
-      children: <AdbPathTestPage />,
     },
     {
       key: 'logs',

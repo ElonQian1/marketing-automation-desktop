@@ -8,7 +8,6 @@ import type { FormInstance } from "antd";
 import type { ExtendedSmartScriptStep as LoopScriptStep } from "../../../types/loopScript";
 import type { SmartScriptStep } from "../../../types/smartScript";
 import { normalizeStep } from "../helpers";
-import { testSmartStepGenerator, testVariousCases } from "../../../test/smart-step-generator-test";
 
 interface UseWorkflowIntegrationsDeps {
   form: FormInstance;
@@ -36,9 +35,8 @@ export function useWorkflowIntegrations({
   }, []);
 
   const handleTestSmartStepGenerator = useCallback(() => {
-    testSmartStepGenerator();
-    testVariousCases();
-    message.success("已触发智能步骤生成器测试，结果请查看控制台。");
+    // 智能步骤生成器功能已集成到SmartScriptBuilderPage中，可通过UI界面直接使用
+    message.info("智能步骤生成器功能已集成到当前页面，请通过页面分析功能使用。");
   }, []);
 
   const lastNavigationConfigRef = useRef<{ app_name?: string; navigation_type?: string } | null>(null);

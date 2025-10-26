@@ -4,6 +4,7 @@
 
 export enum AuthStep {
   PREREQUISITES = 'prereq',
+  ADB_PATH = 'adb_path',
   USB_TRUST = 'usb',
   WIRELESS = 'wireless',
   VERIFY = 'verify',
@@ -39,6 +40,14 @@ export interface DeviceInfo {
   apiLevel?: number;
 }
 
+export interface AdbPathConfig {
+  detectedPath: string | null;
+  isDetecting: boolean;
+  isCustomPath: boolean;
+  customPath: string | null;
+  isPathValid: boolean;
+}
+
 export interface WirelessConfig {
   ip: string;
   port: number;
@@ -54,6 +63,9 @@ export interface AuthState {
   logs: string[];
   errors: AuthError[];
   progress: AuthProgress | null;
+  
+  // ADB路径检测状态
+  adbPathConfig: AdbPathConfig;
   
   // USB 授权状态
   userConfirmedUsbAllow: boolean;
@@ -84,6 +96,10 @@ export type AuthAction =
   | { type: 'ADD_ERROR'; error: Omit<AuthError, 'timestamp'> }
   | { type: 'CLEAR_ERRORS' }
   | { type: 'SET_PROGRESS'; progress: AuthProgress | null }
+  | { type: 'SET_ADB_PATH_DETECTING'; isDetecting: boolean }
+  | { type: 'SET_ADB_PATH_DETECTED'; path: string | null }
+  | { type: 'SET_ADB_PATH_CUSTOM'; path: string; isCustom: boolean }
+  | { type: 'SET_ADB_PATH_VALID'; isValid: boolean }
   | { type: 'SET_USB_CONFIRMED'; value: boolean }
   | { type: 'SET_USB_DIALOG_SHOWN'; value: boolean }
   | { type: 'SET_WIRELESS_CONFIG'; config: WirelessConfig | null }
@@ -100,6 +116,13 @@ export const initialAuthState: AuthState = {
   logs: [],
   errors: [],
   progress: null,
+  adbPathConfig: {
+    detectedPath: null,
+    isDetecting: false,
+    isCustomPath: false,
+    customPath: null,
+    isPathValid: false,
+  },
   userConfirmedUsbAllow: false,
   hasShownUsbDialog: false,
   wirelessConfig: null,

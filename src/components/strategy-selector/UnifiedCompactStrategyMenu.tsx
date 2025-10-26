@@ -60,86 +60,91 @@ export const UnifiedCompactStrategyMenu: React.FC<UnifiedCompactStrategyMenuProp
     });
   }, [selectionMode, operationType, elementData.uid]);
 
-  // 🧪 测试执行智能选择
-  const testExecuteSmartSelection = async () => {
-    console.log('🚀 [UnifiedCompactStrategyMenu] 测试执行智能选择', {
+  // 🧪 测试执行V3智能策略
+  const testExecuteV3Strategy = async () => {
+    console.log('🚀 [UnifiedCompactStrategyMenu] 测试执行V3智能策略', {
       selectionMode,
       operationType,
-      elementData
+      elementData,
+      currentCard: currentCard?.id
     });
 
+    if (!currentCard || currentCard.status !== 'ready' || !currentCard.strategy) {
+      console.warn('❌ 当前无可用策略，请先启动分析');
+      return;
+    }
+
     try {
-      // 导入智能选择服务
-      const { SmartSelectionService } = await import('../../services/smartSelectionService');
+      // 使用invoke直接调用V3执行系统
+      const { invoke } = await import('@tauri-apps/api/core');
       
-      // 构建智能选择协议
-      const protocol: import('../../types/smartSelection').SmartSelectionProtocol = {
-        anchor: {
-          container_xpath: undefined,
-          clickable_parent_xpath: undefined,
-          fingerprint: {
-            text_content: elementData.text,
-            resource_id: elementData.resourceId,
-            class_chain: elementData.className ? [elementData.className] : undefined,
-            bounds_signature: undefined,
-            parent_class: undefined,
-            sibling_count: undefined,
-            child_count: undefined,
-            depth_level: undefined,
-            relative_index: undefined,
-            clickable: undefined,
-            enabled: undefined,
-            selected: undefined,
-            content_desc: undefined,
-            package_name: undefined,
-            text_hash: undefined,
-            resource_id_suffix: undefined,
+      // 构建V3执行配置，使用当前策略结果
+      const executionConfig = {
+        element_context: {
+          snapshot_id: currentCard.id,
+          element_path: elementData.xpath || '',
+          element_text: elementData.text,
+          element_bounds: elementData.bounds,
+          element_type: elementData.className,
+          key_attributes: {
+            'resource-id': elementData.resourceId || '',
+            'class': elementData.className || '',
+            'text': elementData.text || ''
           }
         },
-        selection: {
-          mode: selectionMode, // 🎯 使用当前选择的模式
-          order: 'visual-yx',
-          random_seed: undefined,
+        step_id: currentCard.id,
+        // 🎯 关键：使用已分析好的策略进行实际执行
+        preferred_strategy: currentCard.strategy.primary,
+        backup_strategies: currentCard.strategy.backups,
+        // 🎯 使用当前选择的模式和操作方式
+        execution_mode: {
+          selection_mode: selectionMode,
+          operation_type: operationType,
           batch_config: selectionMode === 'all' ? {
             interval_ms: 2000,
             max_count: 10,
             jitter_ms: 500,
             continue_on_error: true,
             show_progress: true
-          } : undefined,
-          filters: {
-            min_confidence: 0.7
-          }
+          } : undefined
         },
-        matching_context: undefined,
-        strategy_plan: undefined,
-        limits: {
-          allow_backend_fallback: true,
-          time_budget_ms: 5000,
-          per_candidate_budget_ms: 1000,
-          strict_mode: false,
-          max_retry_count: 3
-        },
-        fallback: {
-          absolute_xpath: elementData.xpath,
-          allow_fallback: true
-        }
+        lock_container: false,
+        enable_fallback: true
       };
 
-      // 执行智能选择
-      const result = await SmartSelectionService.executeSmartSelection('默认设备', protocol);
+      // 🚀 调用V3执行命令（不是分析，而是执行）
+      const jobId = await invoke<string>('execute_chain_test_v3', {
+        analysisId: `execution_test_${currentCard.id}`,
+        deviceId: elementData.uid,
+        chainId: 'strategy_execution_test',
+        steps: [{
+          step_id: `exec_${currentCard.id}`,
+          action: 'execute', // 🎯 关键：执行而不是分析
+          params: executionConfig
+        }],
+        threshold: 0.5,
+        mode: 'sequential',
+        dryrun: false, // 🎯 真实执行
+        enableFallback: true,
+        timeoutMs: 15000
+      });
       
-      console.log('✅ [UnifiedCompactStrategyMenu] 智能选择执行完成', result);
+      console.log('✅ [UnifiedCompactStrategyMenu] V3策略执行已启动', { 
+        jobId, 
+        strategy: currentCard.strategy.primary,
+        selectionMode, 
+        operationType 
+      });
       
-      // 可以添加成功提示
-      if (result.success) {
-        console.log(`🎯 智能选择成功! 选择模式: ${selectionMode}, 操作类型: ${operationType}`);
-      } else {
-        console.warn(`⚠️ 智能选择部分失败: ${result.message}`);
-      }
+      // 可以添加成功提示或状态更新
+      console.log(`🎯 V3策略执行启动成功! 
+        策略: ${currentCard.strategy.primary}
+        选择模式: ${selectionMode}
+        操作方式: ${operationType}
+        任务ID: ${jobId.slice(-6)}`);
       
     } catch (error) {
-      console.error('❌ [UnifiedCompactStrategyMenu] 智能选择执行失败', error);
+      console.error('❌ [UnifiedCompactStrategyMenu] V3策略执行失败', error);
     }
   };
 
@@ -684,13 +689,13 @@ export const UnifiedCompactStrategyMenu: React.FC<UnifiedCompactStrategyMenuProp
         </Tooltip>
       )}
 
-      {/* 🧪 测试执行按钮 */}
-      {process.env.NODE_ENV === 'development' && (
-        <Tooltip title="测试执行智能选择">
+      {/* 🧪 测试执行按钮 - 修正为V3策略执行 */}
+      {process.env.NODE_ENV === 'development' && currentCard?.status === 'ready' && (
+        <Tooltip title="测试执行V3智能策略">
           <Button
             size="small"
             type="text"
-            onClick={testExecuteSmartSelection}
+            onClick={testExecuteV3Strategy}
             style={{
               color: '#F59E0B',
               border: 'none',
