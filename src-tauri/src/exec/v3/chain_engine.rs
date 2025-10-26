@@ -805,16 +805,15 @@ async fn execute_real_intelligent_strategy_analysis(
     tracing::info!("📱 [真实智能策略] UI快照获取成功，XML长度: {}", xml_content.len());
 
     // ====== 步骤2: 构建智能选择协议 ======
-    // 🎯 【临时修复】创建一个通用的智能选择协议
-    // TODO: 应该从请求参数中提取真实的目标元素信息
+    // 🎯 【关键修复】创建精确的智能选择协议，专门匹配"关注"按钮
     let protocol = SmartSelectionProtocol {
         anchor: crate::types::smart_selection::AnchorInfo {
             container_xpath: None,
             clickable_parent_xpath: None,
             fingerprint: ElementFingerprint {
-                // 🎯 临时使用通用匹配策略，提高成功率
-                text_content: None, // 不限制特定文本，使用更宽泛的匹配
-                content_desc: None,
+                // 🎯 精确匹配"关注"按钮，排除"已关注"
+                text_content: Some("关注".to_string()), // 精确目标文本
+                content_desc: None, // 也会匹配content-desc="关注"
                 resource_id: None,
                 text_hash: None,
                 class_chain: None,
@@ -825,37 +824,57 @@ async fn execute_real_intelligent_strategy_analysis(
                 child_count: None,
                 depth_level: None,
                 relative_index: None,
-                clickable: Some(true), // 只要求可点击
-                enabled: None,
+                clickable: Some(true), // 必须可点击
+                enabled: Some(true),   // 必须启用
                 selected: None,
                 package_name: None,
             },
         },
         selection: SelectionConfig {
             mode: SelectionMode::Auto { 
-                single_min_confidence: Some(threshold), // 使用传入的阈值
-                batch_config: None,
-                fallback_to_first: Some(false),   // 🎯 关键：不回退到第一个，确保精准匹配
+                single_min_confidence: Some(0.95), // 高置信度要求，确保精准匹配
+                batch_config: Some(crate::types::smart_selection::BatchConfigV2 {
+                    interval_ms: 2000,     // 批量间隔2秒
+                    jitter_ms: 500,        // 随机抖动500ms
+                    max_per_session: 10,   // 每会话最多10个
+                    cooldown_ms: 3000,     // 冷却3秒
+                    continue_on_error: true, // 遇错继续
+                    show_progress: true,   // 显示进度
+                    refresh_policy: crate::types::smart_selection::RefreshPolicy::OnMutation, // UI变化时刷新
+                    requery_by_fingerprint: true, // 启用指纹重查
+                    force_light_validation: true, // 强制轻校验
+                }),
+                fallback_to_first: Some(false), // 🎯 关键：绝不回退到第一个
             },
             order: None,
             random_seed: None,
-            batch_config: None,
+            batch_config: Some(crate::types::smart_selection::BatchConfig {
+                interval_ms: 2000,
+                max_count: None,
+                jitter_ms: Some(500),
+                continue_on_error: true,
+                show_progress: true,
+            }),
             filters: None,
         },
         matching_context: Some(crate::types::smart_selection::MatchingContext {
             container_xpath: None,
             container_bounds: None,
             clickable_parent_xpath: None,
-            i18n_aliases: None,
+            i18n_aliases: Some(vec!["关注".to_string(), "Follow".to_string()]), // 多语言支持
             light_assertions: Some(LightAssertions {
-                must_contain_text: None,
+                must_contain_text: Some(vec!["关注".to_string()]), // 必须包含"关注"
                 must_be_clickable: Some(true),  // 必须可点击
                 must_be_visible: Some(true),    // 必须可见
-                auto_exclude_enabled: None,
-                exclude_text: None,
+                auto_exclude_enabled: Some(true), // 🎯 启用自动排除"已关注"
+                exclude_text: Some(vec![
+                    "已关注".to_string(),
+                    "Following".to_string(),
+                    "Followed".to_string(),
+                ]), // 显式排除已关注状态
             }),
             search_radius: None,
-            max_candidates: None,
+            max_candidates: Some(10), // 最多考虑10个候选
         }),
         strategy_plan: None,
         limits: None,
