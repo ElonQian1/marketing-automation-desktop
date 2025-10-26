@@ -403,10 +403,33 @@ export class StepExecutionGateway {
       };
 
       // 🎯 使用 ChainSpecV3::ByRef 格式 - 尝试snake_case字段名
+      // 🎯 获取用户选择模式
+      const userSelectionMode = (() => {
+        // 尝试从localStorage获取用户之前的选择
+        const savedMode = localStorage.getItem('userSelectionMode');
+        if (savedMode) {
+          console.log('🎯 [StepExecGateway] 从localStorage获取选择模式:', savedMode);
+          return savedMode;
+        }
+        
+        // 尝试从URL参数获取选择模式
+        const urlParams = new URLSearchParams(window.location.search);
+        const modeParam = urlParams.get('selectionMode');
+        if (modeParam) {
+          console.log('🎯 [StepExecGateway] 从URL获取选择模式:', modeParam);
+          return modeParam;
+        }
+        
+        // 默认使用first模式（而不是auto）
+        console.log('🎯 [StepExecGateway] 使用默认选择模式: first');
+        return 'first';
+      })();
+
       const spec = {
         analysis_id: `step_execution_${request.stepId}`,  // 必需：String（snake_case）
         threshold: 0.5,                                   // 可选：f32，降低阈值以适应V3智能分析
-        mode: request.mode === 'match-only' ? 'dryrun' : 'execute' as 'dryrun' | 'execute'  // 可选：ChainMode
+        mode: request.mode === 'match-only' ? 'dryrun' : 'execute' as 'dryrun' | 'execute',  // 可选：ChainMode
+        selection_mode: userSelectionMode                 // 🎯 关键修复：传递用户选择模式
       };
 
       // 调用V3执行命令，使用正确的参数格式

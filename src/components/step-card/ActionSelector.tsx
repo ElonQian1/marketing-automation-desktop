@@ -668,7 +668,12 @@ export const ActionSelector: React.FC<ActionSelectorProps> = ({
             </span>
           </div>
         ),
-        onClick: () => setSmartConfig(prev => ({ ...prev, selectionMode: mode.key as SelectionMode }))
+        onClick: () => {
+          // 🎯 关键修复：将选择模式保存到 localStorage，供 StepExecutionGateway 使用
+          localStorage.setItem('userSelectionMode', mode.key);
+          console.log('🎯 [ActionSelector] 已保存选择模式到 localStorage:', mode.key);
+          setSmartConfig(prev => ({ ...prev, selectionMode: mode.key as SelectionMode }));
+        }
       }))
     };
   };

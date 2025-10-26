@@ -454,6 +454,11 @@ const CompactStrategyMenu: React.FC<CompactStrategyMenuProps> = ({
 
   const handleSelectionModeClick = async ({ key }: { key: string }) => {
     console.log('🎯 选择模式菜单项被点击:', key);
+    
+    // 🎯 关键修复：将选择模式保存到 localStorage，供 StepExecutionGateway 使用
+    localStorage.setItem('userSelectionMode', key);
+    console.log('🎯 [CompactStrategyMenu] 已保存选择模式到 localStorage:', key);
+    
     switch (key) {
       case 'first':
         setSelectionMode('first');
