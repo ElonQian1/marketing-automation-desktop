@@ -1,6 +1,9 @@
 # Copilot 项目内规（简版，面向 AI 代理）
 
+项目通常都会 npm run tauri dev 热重载启动着，编译好代码后不要重新启动，只需要执行 cargo check 这样的命令检查 Rust 代码即可。
+
 ## TL;DR
+
 - **目标**：保持"模块优先 + 模块内分层"，避免因同名子目录（如 strategies/services/utils/…）误改他模组。
 - **四件套**：命名前缀 · 门牌导出(index.ts) · 路径别名 · 三行文件头。
 - **唯一硬底线**：`domain` 不得 import `ui/services/api/hooks/pages`。
@@ -8,15 +11,19 @@
 ---
 
 ## 1) 项目结构（模块内分层）
+
 ```
 src/modules/<module>/{domain,application,services,api,stores,hooks,ui,pages}/
 ```
+
 示例模块：`prospecting`（精准获客）、`script-builder`（智能脚本）、`contact-import`、`adb`。
 
 ---
 
 ## 2) 命名前缀（解决"同名子目录"误改）
+
 **仅对易重名子目录的文件/类型启用前缀**（目录名可不变）：
+
 - 目录：`domain/strategies`, `services`, `utils`, `validators`, `adapters`, `pipelines`, `mappers`, `repositories` …
 - 模块 → 前缀：
   - `prospecting` → 文件：`prospecting-…`，类型：`Prospecting…`
@@ -24,27 +31,31 @@ src/modules/<module>/{domain,application,services,api,stores,hooks,ui,pages}/
   - `contact-import` → `contact-…`，`Contact…`
   - `adb` → `adb-…`，`Adb…`
 
-**命名模板**  
+**命名模板**
+
 - `domain/strategies/weighted.ts` → `prospecting-strategy-weighted.ts`  
-  `StrategyWeighted` → `ProspectingStrategyWeighted`  
+  `StrategyWeighted` → `ProspectingStrategyWeighted`
 
 > 只要是 **策略/服务/工具/校验** 这类容易重名的文件，务必带模块前缀。
 
-### ⚠️ AI代理常见违规（必查）
+### ⚠️ AI 代理常见违规（必查）
+
 - ❌ `ui/components/EnhancedCard.tsx` → ✅ `ui/components/module-enhanced-card.tsx`
-- ❌ `export const EnhancedCard` → ✅ `export const ModuleEnhancedCard`  
+- ❌ `export const EnhancedCard` → ✅ `export const ModuleEnhancedCard`
 - ❌ `services/helper.ts` → ✅ `services/module-helper.ts`
 - **检查清单**：文件名有模块前缀？组件名有模块前缀？类型名有模块前缀？
 
 ---
 
 ## 3) 门牌导出（index.ts 统一出口）
+
 每个模块根必须有 `index.ts`，**只导出对外稳定 API**：
+
 ```ts
 // src/modules/<module>/index.ts
-export * from './domain/public/**';      // 契约/预设
-export * from './application/**';        // 用例（UseCase）
-export * from './hooks/**';              // 公开 Hook（必要时）
+export * from "./domain/public/**"; // 契约/预设
+export * from "./application/**"; // 用例（UseCase）
+export * from "./hooks/**"; // 公开 Hook（必要时）
 ```
 
 > **不要导出**内部实现（如 `domain/strategies/*`）。需要跨模块使用策略时，只从对方的 **契约(public)** 引用。
@@ -70,9 +81,10 @@ export * from './hooks/**';              // 公开 Hook（必要时）
 ```
 
 **跨模块导入统一写法**：
+
 ```ts
-import { BuildLeadScoreUseCase } from '@prospecting';
-import { ScriptStrategy } from '@script';
+import { BuildLeadScoreUseCase } from "@prospecting";
+import { ScriptStrategy } from "@script";
 ```
 
 ---
@@ -91,8 +103,8 @@ import { ScriptStrategy } from '@script';
 
 ## 6) 唯一硬底线
 
-* **禁止**：`src/modules/*/domain/**` 中 `import` 到 `ui/services/api/hooks/pages`，或直接使用 React/axios/tauri 等 IO/界面依赖。
-* **做法**：所有 IO 放 `services/api`，由 `application` 串起来；`domain` 只保留纯规则/实体/算法。
+- **禁止**：`src/modules/*/domain/**` 中 `import` 到 `ui/services/api/hooks/pages`，或直接使用 React/axios/tauri 等 IO/界面依赖。
+- **做法**：所有 IO 放 `services/api`，由 `application` 串起来；`domain` 只保留纯规则/实体/算法。
 
 ---
 
@@ -101,6 +113,7 @@ import { ScriptStrategy } from '@script';
 ### ADB 相关功能开发约束：
 
 1. **强制使用统一接口**
+
    - ✅ 必须使用：`useAdb()` Hook
    - ❌ 禁止使用：`useAdbDevices`、`useAdbDiagnostic` 等旧接口
    - ❌ 禁止直接调用：`adbService`、`AdbDiagnosticService` 等底层服务
@@ -135,6 +148,7 @@ import { ScriptStrategy } from '@script';
 #### **颜色配对强制规则**：
 
 1. **浅色背景必须配深色文字**
+
    ```css
    /* ✅ 正确：浅色背景 + 深色文字 */
    background: var(--bg-light-base, #ffffff);
@@ -150,8 +164,8 @@ import { ScriptStrategy } from '@script';
 
 #### **强制执行的对比度标准**：
 
-- **最低对比度**: 4.5:1 (WCAG AA标准)
-- **推荐对比度**: 7:1 (WCAG AAA标准)
+- **最低对比度**: 4.5:1 (WCAG AA 标准)
+- **推荐对比度**: 7:1 (WCAG AAA 标准)
 
 ---
 
@@ -175,10 +189,11 @@ import { ScriptStrategy } from '@script';
 **项目特殊情况**: 全局深色主题 (`color: rgba(255,255,255,0.85)`) + 局部浅色组件
 
 **⚡ 写代码时立即检查：**
+
 ```tsx
 // 看到这些立即添加 className="light-theme-force"
 background: '#fff'
-background: 'white' 
+background: 'white'
 background: rgb(255,255,255)
 background: '#f8fafc'
 
@@ -207,7 +222,6 @@ background: '#f8fafc'
 - 创建白底白字、深底深字等低对比度的不可读组合
 - 在浅色背景中使用 Ant Design 组件而不添加 `.light-theme-force` 类
 
-
 ---
 
 ## 📋 快速检查清单
@@ -226,7 +240,6 @@ background: '#f8fafc'
 10. ✅ **样式检查**：是否存在白底白字等可读性问题
 11. ✅ **颜色对比度**：是否满足 WCAG AA 标准（4.5:1）
 12. ✅ **命名前缀**：易重名文件和类型是否添加模块前缀
-
 
 ---
 

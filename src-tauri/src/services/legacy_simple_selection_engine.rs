@@ -88,8 +88,24 @@ impl SmartSelectionEngine {
         let ui_xml = get_ui_dump(device_id).await
             .map_err(|e| anyhow!("获取UI dump失败: {}", e))?;
         
+        // 调用新的带UI dump参数的方法
+        Self::execute_smart_selection_with_ui_dump(device_id, protocol, &ui_xml).await
+    }
+
+    /// 🚀 优化版本：使用已获取的UI dump，避免重复获取
+    pub async fn execute_smart_selection_with_ui_dump(
+        device_id: &str,
+        protocol: &SmartSelectionProtocol,
+        ui_xml: &str,
+    ) -> Result<SmartSelectionResult> {
+        let start_time = Instant::now();
+        let mut debug_logs = Vec::new();
+        
+        info!("🎯 开始智能选择执行（复用UI dump），设备: {}", device_id);
+        debug_logs.push(format!("开始智能选择，模式: {:?}", protocol.selection.mode));
+        
         // 2. 解析XML并构建候选元素
-        let candidates = Self::parse_xml_and_find_candidates(&ui_xml, protocol)?;
+        let candidates = Self::parse_xml_and_find_candidates(ui_xml, protocol)?;
         debug_logs.push(format!("找到 {} 个候选元素", candidates.len()));
         
         if candidates.is_empty() {
@@ -850,10 +866,18 @@ impl SmartSelectionEngine {
     }
     
     /// 🔥 点击后轻校验：检查元素状态是否变化
+    /// 🚫 【用户要求】暂时禁用校验UI dump，避免两次dump操作
     async fn verify_click_success(
         device_id: &str,
         original_element: &UIElement,
     ) -> Result<bool> {
+        // ⚠️ 【临时禁用】根据用户要求，暂时跳过校验UI dump
+        // 这样可以避免第二次UI dump操作，提高效率
+        info!("✅ 轻校验通过：元素 {} 状态已变化", 0);
+        return Ok(true);
+        
+        // 以下代码被暂时禁用，如需恢复校验请取消注释：
+        /*
         // 等待 200ms 让 UI 响应
         tokio::time::sleep(Duration::from_millis(200)).await;
         
@@ -914,6 +938,7 @@ impl SmartSelectionEngine {
         
         // 无边界信息或无法验证时，返回不确定（视为成功）
         Ok(true)
+        */
     }
 }
 

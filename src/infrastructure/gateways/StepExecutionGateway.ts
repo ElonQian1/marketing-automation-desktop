@@ -405,7 +405,7 @@ export class StepExecutionGateway {
       // 🎯 使用 ChainSpecV3::ByRef 格式 - 尝试snake_case字段名
       const spec = {
         analysis_id: `step_execution_${request.stepId}`,  // 必需：String（snake_case）
-        threshold: 0.7,                                   // 可选：f32，默认0.7
+        threshold: 0.5,                                   // 可选：f32，降低阈值以适应V3智能分析
         mode: request.mode === 'match-only' ? 'dryrun' : 'execute' as 'dryrun' | 'execute'  // 可选：ChainMode
       };
 
