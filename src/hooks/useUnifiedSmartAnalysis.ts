@@ -67,7 +67,7 @@ export interface UseUnifiedSmartAnalysisReturn {
  * 3. 状态机：draft → analyzing → ready/failed （C：步骤卡片状态机）
  * 4. 一个Hook管理所有分析任务
  */
-export function useUnifiedSmartAnalysis(options: UseUnifiedSmartAnalysisOptions = {}): UseUnifiedSmartAnalysisReturn {
+export function useUnifiedSmartAnalysis(_options: UseUnifiedSmartAnalysisOptions = {}): UseUnifiedSmartAnalysisReturn {
   const { 
     create, 
     attachJob, 

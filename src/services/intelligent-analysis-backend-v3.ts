@@ -3,7 +3,27 @@
 // summary: V3统一执行协议后端接口，提供链式执行、单步执行和静态策略测试
 
 import { invoke } from '@tauri-apps/api/core';
-import { ExecutionResult, SingleStepTestResult, StaticStrategyTestResult } from '../types/tauri-types';
+import type { ExecutionResult } from './matching-batch-engine';
+
+// V3 特定结果类型
+export interface SingleStepTestResult {
+  success: boolean;
+  elementId?: string;
+  confidence?: number;
+  strategy?: string;
+  error?: string;
+}
+
+export interface StaticStrategyTestResult {
+  success: boolean;
+  elements: Array<{
+    elementId: string;
+    confidence: number;
+    strategy: string;
+  }>;
+  totalFound: number;
+  error?: string;
+}
 
 export interface V3ExecutionConfig {
   analysis_id: string;
@@ -24,7 +44,7 @@ export interface V3ChainSpec {
 export interface V3StepSpec {
   step_id: string;
   action: V3ActionType;
-  params: Record<string, any>;
+  params: Record<string, unknown>;
   quality?: V3QualitySettings;
   constraints?: V3ConstraintSettings;
   validation?: V3ValidationSettings;
@@ -137,17 +157,54 @@ export class IntelligentAnalysisBackendV3 {
     chainSpec: V3ChainSpec
   ): Promise<ExecutionResult> {
     try {
-      const result = await invoke<ExecutionResult>('execute_chain_test_v3', {
-        analysisId: config.analysis_id,
+      // 🎯 使用正确的V3调用格式：envelope + spec
+      const envelope = {
         deviceId: config.device_id,
+        app: {
+          package: 'com.xingin.xhs',
+          activity: null
+        },
+        snapshot: {
+          analysisId: config.analysis_id,
+          screenHash: null,
+          xmlCacheId: null
+        },
+        executionMode: 'relaxed'
+      };
+
+      const spec = {
         chainId: chainSpec.chain_id,
-        steps: chainSpec.steps,
+        orderedSteps: chainSpec.steps.map(step => ({
+          ref: null,
+          inline: {
+            stepId: step.step_id,
+            elementContext: step.params?.elementContext || step.params || {},
+            action: step.action,
+            selectionMode: 'match-original',
+            batchConfig: null
+          }
+        })),
         threshold: chainSpec.threshold || 0.8,
-        mode: chainSpec.mode || 'sequential',
-        timeoutMs: config.timeout_ms || 60000,
-        maxRetries: config.max_retries || 2,
-        dryrun: config.dryrun || false,
-        enableFallback: config.enable_fallback !== false
+        mode: config.dryrun ? 'dryrun' : 'execute',
+        quality: {
+          enableOfflineValidation: true,
+          enableControlledFallback: config.enable_fallback !== false,
+          enableRegionOptimization: true
+        },
+        constraints: {
+          maxAnalysisTime: config.timeout_ms || 60000,
+          maxExecutionTime: (config.timeout_ms || 60000) / 2,
+          allowFallback: config.enable_fallback !== false
+        },
+        validation: {
+          requireUniqueness: true,
+          minConfidence: chainSpec.threshold || 0.8
+        }
+      };
+
+      const result = await invoke<ExecutionResult>('execute_chain_test_v3', {
+        envelope,
+        spec
       });
       
       console.log(`✅ V3链式执行成功 - Chain: ${chainSpec.chain_id}, Steps: ${chainSpec.steps.length}`);
@@ -246,7 +303,7 @@ export class IntelligentAnalysisBackendV3 {
   static createStandardStep(
     stepId: string,
     action: V3ActionType,
-    params: Record<string, any>,
+    params: Record<string, unknown>,
     options?: {
       quality?: Partial<V3QualitySettings>;
       constraints?: Partial<V3ConstraintSettings>;

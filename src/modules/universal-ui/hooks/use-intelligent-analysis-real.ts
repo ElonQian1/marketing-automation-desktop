@@ -159,22 +159,59 @@ export function useIntelligentAnalysisReal(options: UseIntelligentAnalysisRealOp
       // 🎯 【修正】调用 V3 智能自动链进行 Step 0-6 策略分析
       // ✅ 正确路径：execute_chain_test_v3 → 完整智能策略分析
       // ❌ 旧路径：start_intelligent_analysis → 绕过策略分析
+      // 🎯 使用正确的V3调用格式：envelope + spec
+      const envelope = {
+        deviceId: elementContext.snapshotId || 'default',
+        app: {
+          package: 'com.xingin.xhs',
+          activity: null
+        },
+        snapshot: {
+          analysisId: stepId,
+          screenHash: null,
+          xmlCacheId: null
+        },
+        executionMode: 'relaxed'
+      };
+
+      const spec = {
+        chainId: `real_analysis_${stepId}`,
+        orderedSteps: [{
+          ref: null,
+          inline: {
+            stepId: stepId,
+            elementContext: config.elementContext,
+            action: {
+              type: 'analyze',
+              params: {}
+            },
+            selectionMode: 'match-original',
+            batchConfig: null
+          }
+        }],
+        threshold: 0.5,
+        mode: 'dryrun', // 分析模式
+        quality: {
+          enableOfflineValidation: true,
+          enableControlledFallback: true,
+          enableRegionOptimization: true
+        },
+        constraints: {
+          maxAnalysisTime: 15000,
+          maxExecutionTime: 5000,
+          allowFallback: true
+        },
+        validation: {
+          requireUniqueness: false,
+          minConfidence: 0.3
+        }
+      };
+
       const response = await invoke<AnalysisJobResponse>(
         'execute_chain_test_v3',
         {
-          analysisId: `real_analysis_${stepId}`,
-          deviceId: elementContext.snapshotId || 'default',
-          chainId: 'intelligent_analysis_real',
-          steps: [{
-            step_id: stepId,
-            action: 'analyze',
-            params: config
-          }],
-          threshold: 0.5,
-          mode: 'sequential', 
-          dryrun: true,
-          enableFallback: true,
-          timeoutMs: 15000
+          envelope,
+          spec
         }
       );
       

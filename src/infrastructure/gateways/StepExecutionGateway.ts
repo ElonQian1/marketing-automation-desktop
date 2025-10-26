@@ -21,9 +21,9 @@ import { invoke } from '@tauri-apps/api/core';
 // 📖 详细说明：查看 docs/V3_INTELLIGENT_STRATEGY_ARCHITECTURE.md
 // ⚠️ 修改前请阅读：V3_STRATEGY_WARNING.md
 // 
-// 🐛 临时禁用V3，因为参数格式问题需要解决
-// TODO: 修复V3命令的参数格式匹配问题
-const USE_V3_INTELLIGENT_STRATEGY = false; // � 临时禁用，待修复V3参数格式
+// ✅ V3参数格式问题已修复，重新启用V3智能策略系统
+// 修复内容：envelope + spec 结构，ContextEnvelope 和 ChainSpecV3 类型匹配
+const USE_V3_INTELLIGENT_STRATEGY = true; // ✅ 启用V3智能策略，避免坐标兜底
 
 // 执行引擎类型
 export type ExecutionEngine = 'v1' | 'v2' | 'shadow';

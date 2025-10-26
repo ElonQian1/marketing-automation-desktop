@@ -22,7 +22,7 @@ export interface StepPack {
   locator_bundle: {
     primary: string;
     fallbacks: string[];
-    constraints: Record<string, any>;
+    constraints: Record<string, unknown>;
   };
   screen_signature: {
     app: string;
@@ -181,25 +181,57 @@ export async function importStepPack(stepPack: StepPack): Promise<StepPackImport
     // 🚨 重要说明：此调用确保"已关注"按钮被正确识别为"已关注"，而不是"关注"
     //             空文本元素会通过智能策略分析，而不是直接坐标兜底
     console.log('🔄 开始V3智能策略重评步骤包（Step 0-6 完整分析）...', stepPack.id);
-    await invoke('execute_chain_test_v3', {
-      analysisId: `step_pack_analysis_${stepPack.id}`,
-      deviceId: config.element_context.snapshot_id || 'default', // 使用快照ID作为设备ID
-      chainId: 'step_pack_reanalysis',
-      steps: [{
-        step_id: stepPack.id,
-        action: 'analyze', // 分析模式，不实际执行
-        params: {
-          element_context: config.element_context,
-          lock_container: config.lock_container,
-          enable_smart_candidates: config.enable_smart_candidates,
-          enable_static_candidates: config.enable_static_candidates
+    // 🎯 使用正确的V3调用格式：envelope + spec
+    const envelope = {
+      deviceId: config.element_context.snapshot_id || 'default',
+      app: {
+        package: 'com.xingin.xhs',
+        activity: null
+      },
+      snapshot: {
+        analysisId: stepPack.id,
+        screenHash: null,
+        xmlCacheId: null
+      },
+      executionMode: 'relaxed'
+    };
+
+    const spec = {
+      chainId: `step_pack_analysis_${stepPack.id}`,
+      orderedSteps: [{
+        ref: null,
+        inline: {
+          stepId: stepPack.id,
+          elementContext: config.element_context,
+          action: {
+            type: 'analyze',
+            params: {}
+          },
+          selectionMode: 'match-original',
+          batchConfig: null
         }
       }],
       threshold: 0.5, // 较低阈值，获取更多策略选项
-      mode: 'sequential',
-      timeoutMs: 10000,
-      dryrun: true, // 只分析不执行
-      enableFallback: true
+      mode: 'dryrun', // 只分析不执行
+      quality: {
+        enableOfflineValidation: true,
+        enableControlledFallback: true,
+        enableRegionOptimization: true
+      },
+      constraints: {
+        maxAnalysisTime: 10000,
+        maxExecutionTime: 5000,
+        allowFallback: true
+      },
+      validation: {
+        requireUniqueness: false,
+        minConfidence: 0.3
+      }
+    };
+
+    await invoke('execute_chain_test_v3', {
+      envelope,
+      spec
     });
     
     // 监听分析完成事件
