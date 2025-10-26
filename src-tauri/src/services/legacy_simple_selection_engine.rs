@@ -208,6 +208,7 @@ impl SmartSelectionEngine {
                             y: center_y,
                             confidence: 0.8,
                             xpath: None, // UIElement没有xpath字段
+                            clickable: elem.clickable.unwrap_or(false), // 🆕 包含clickable信息
                         })
                     } else {
                         None

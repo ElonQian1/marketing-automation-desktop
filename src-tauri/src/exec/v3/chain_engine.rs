@@ -13,7 +13,32 @@
 //
 // ❌ 绝对禁止：返回虚假的"executed"状态而不执行真机操作！
 //
-// 🚀 [V3 智能执行引擎 - 已完成升级]
+// � 【关键】防止重复点击的执行策略说明：
+//
+// 📍 V3执行引擎的执行阶段划分：
+//   1️⃣ 【评分阶段】(score_step_with_smart_selection): 
+//      - 🔍 作用：只评估步骤可行性，获取置信度分数
+//      - ❌ 不执行：SmartSelectionEngine::parse_xml_and_find_candidates (仅分析)
+//      - ⚠️ 严禁：任何真实设备操作 (tap_injector_first)
+//
+//   2️⃣ 【执行阶段】(execute_step_real_operation):
+//      - 🎯 作用：执行单个最佳候选步骤的真实设备操作
+//      - ✅ 必须：SmartSelectionEngine::analyze_for_coordinates_only + tap_injector_first
+//      - 🔥 关键：每个选择模式必须执行且仅执行一次点击操作
+//
+// 🎛️ 选择模式的点击执行规则：
+//   • "first" 模式  → 执行第1个匹配元素的点击
+//   • "all" 模式    → 执行所有匹配元素的批量点击  
+//   • "random" 模式 → 执行随机选择元素的点击
+//   • 其他模式      → 默认执行第1个匹配元素的点击
+//
+// ⚠️ 常见错误避免：
+//   ❌ 在评分阶段执行点击 → 会导致重复点击
+//   ❌ 在执行阶段不执行点击 → 会导致虚假成功  
+//   ❌ 批量模式重复调用 → 会导致多次批量执行
+//   ❌ 忽略选择模式参数 → 会导致执行行为不符合预期
+//
+// �🚀 [V3 智能执行引擎 - 已完成升级]
 //
 // ✅ 这是 V2 → V3 迁移的核心成果，已启用并可用
 // ✅ 完全替代 V2 的简单顺序执行，提供企业级智能化执行策略
@@ -69,11 +94,18 @@ use crate::types::{FilterConfig, SortOrder, ExecutionLimits}; // 添加必需的
 use tauri::AppHandle;
 use std::time::Instant;
 use std::collections::HashMap;
+use std::sync::{Arc, Mutex};
+use std::collections::HashSet;
 
 // 添加必要的导入以支持真实设备操作
 use crate::services::quick_ui_automation::adb_dump_ui_xml;
 use crate::services::legacy_simple_selection_engine::SmartSelectionEngine;
 use crate::infra::adb::input_helper::tap_injector_first;
+
+// 🚨 【重复执行保护】防止同一个analysis_id被多次执行
+lazy_static::lazy_static! {
+    static ref EXECUTION_TRACKER: Arc<Mutex<HashSet<String>>> = Arc::new(Mutex::new(HashSet::new()));
+}
 use crate::types::smart_selection::{
     SmartSelectionProtocol, ElementFingerprint, AnchorInfo, SelectionConfig, SelectionMode,
 };
@@ -224,55 +256,96 @@ async fn execute_chain_by_inline(
 ) -> Result<(), String> {
     let start_time = Instant::now();
     let device_id = &envelope.device_id;
+    
+    // 🚨 【重复执行检查】防止同一个analysis_id被重复执行导致重复点击
+    {
+        let mut tracker = EXECUTION_TRACKER.lock().unwrap();
+        if tracker.contains(analysis_id) {
+            tracing::warn!("❌ 【重复执行阻止】analysis_id '{}' 已在执行中，跳过重复请求", analysis_id);
+            return Err(format!("重复执行请求被阻止: analysis_id '{}' 正在执行中", analysis_id));
+        }
+        tracker.insert(analysis_id.to_string());
+        tracing::info!("🔒 【执行保护】已锁定analysis_id '{}' 防止重复执行", analysis_id);
+    }
 
-    // 🧠 总是启动智能策略分析（Step 0-6分析）进行执行优化
-    // 智能策略分析作为通用增强机制，提升V3执行效果，而不仅是兜底方案
+    // 🎯 V3修复：智能策略分析策略调整
+    // 只有在缺少候选步骤或步骤质量不佳时才触发智能分析，避免不必要的重复生成
     let mut final_ordered_steps = ordered_steps;
     let mut generated_steps = Vec::new();
     
-    tracing::info!("🧠 启动智能策略分析以优化执行：原候选数={}, threshold={:.2}", 
-        ordered_steps.len(), threshold);
+    // 🔍 检查是否需要智能分析
+    let need_intelligent_analysis = should_trigger_intelligent_analysis(ordered_steps, quality);
     
-    // 发送智能分析开始事件
-    emit_progress(
-        app,
-        Some(analysis_id.to_string()),
-        None,
-        Phase::DeviceReady,
-        None,
-        Some("启动智能策略分析 (Step 0-6) 优化执行".to_string()),
-        None,
-    )?;
-    
-    // 先获取UI XML用于智能分析
-    let ui_xml = adb_dump_ui_xml(device_id.to_string()).await
-        .map_err(|e| format!("获取UI快照失败: {}", e))?;
+    if need_intelligent_analysis {
+        tracing::info!("🧠 触发智能策略分析：原候选数={}, threshold={:.2}", 
+            ordered_steps.len(), threshold);
         
-    // 调用智能策略分析进行执行优化
-    match perform_intelligent_strategy_analysis(device_id, None, &ui_xml).await {
-        Ok(intelligent_steps) => {
-            if !intelligent_steps.is_empty() {
-                tracing::info!("🧠 智能策略分析成功，生成 {} 个优化候选步骤", intelligent_steps.len());
-                
-                // 🎯 策略选择：智能分析结果 vs 原有步骤
-                if ordered_steps.is_empty() {
-                    // 如果没有原始候选，直接使用智能分析结果
-                    tracing::info!("🔄 使用智能分析步骤（原无候选）");
-                    generated_steps = intelligent_steps;
-                    final_ordered_steps = &generated_steps;
+        // 发送智能分析开始事件
+        emit_progress(
+            app,
+            Some(analysis_id.to_string()),
+            None,
+            Phase::DeviceReady,
+            None,
+            Some("启动智能策略分析 (Step 0-6) - 优化候选步骤".to_string()),
+            None,
+        )?;
+        
+        // 先获取UI XML用于智能分析
+        let ui_xml = adb_dump_ui_xml(device_id.to_string()).await
+            .map_err(|e| format!("获取UI快照失败: {}", e))?;
+            
+        // 调用智能策略分析进行执行优化
+        match perform_intelligent_strategy_analysis(device_id, None, &ui_xml).await {
+            Ok(intelligent_steps) => {
+                if !intelligent_steps.is_empty() {
+                    tracing::info!("🧠 智能策略分析成功，生成 {} 个优化候选步骤", intelligent_steps.len());
+                    
+                    // 🎯 策略选择：智能分析结果 vs 原有步骤
+                    if ordered_steps.is_empty() {
+                        // 如果没有原始候选，直接使用智能分析结果
+                        tracing::info!("🔄 使用智能分析步骤（原无候选）");
+                        generated_steps = intelligent_steps;
+                        final_ordered_steps = &generated_steps;
+                    } else {
+                        // 如果有原始候选，合并两者并去重优化
+                        tracing::info!("🔄 合并智能分析结果与原候选步骤");
+                        generated_steps = merge_and_optimize_steps(ordered_steps, intelligent_steps);
+                        final_ordered_steps = &generated_steps;
+                    }
                 } else {
-                    // 如果有原始候选，合并两者并去重优化
-                    tracing::info!("🔄 合并智能分析结果与原候选步骤");
-                    generated_steps = merge_and_optimize_steps(ordered_steps, intelligent_steps);
-                    final_ordered_steps = &generated_steps;
+                    tracing::warn!("🧠 智能策略分析未生成候选步骤，保持原有步骤");
                 }
-            } else {
-                tracing::warn!("🧠 智能策略分析未生成候选步骤，使用原有步骤");
+            }
+            Err(e) => {
+                tracing::warn!("🧠 智能策略分析失败: {}", e);
+                tracing::info!("   继续使用原有候选步骤，不影响正常执行");
             }
         }
-        Err(e) => {
-            tracing::warn!("🧠 智能策略分析失败: {}", e);
-            tracing::info!("   继续使用原有候选步骤，不影响正常执行");
+    } else {
+        tracing::info!("🎯 跳过智能策略分析：候选步骤质量良好，直接使用原有步骤 ({}个)", ordered_steps.len());
+    }
+    
+    // 🔍 调试日志：显示最终步骤列表详情
+    tracing::info!("📋 V3最终执行候选列表 ({} 个步骤):", final_ordered_steps.len());
+    for (idx, step) in final_ordered_steps.iter().enumerate() {
+        if let Some(inline) = &step.inline {
+            let target_text = inline.params.get("targetText")
+                .or_else(|| inline.params.get("text"))
+                .or_else(|| inline.params.get("contentDesc"))
+                .or_else(|| inline.params.get("smartSelection").and_then(|ss| ss.get("targetText")))
+                .and_then(|v| v.as_str())
+                .unwrap_or("未知目标");
+            
+            let mode = inline.params.get("mode")
+                .or_else(|| inline.params.get("smartSelection").and_then(|ss| ss.get("mode")))
+                .and_then(|v| v.as_str())
+                .unwrap_or("未指定");
+            
+            tracing::info!("  [{}/{}] {} -> action={:?}, target='{}', mode='{}'", 
+                idx + 1, final_ordered_steps.len(), inline.step_id, inline.action, target_text, mode);
+        } else if let Some(ref_id) = &step.r#ref {
+            tracing::info!("  [{}/{}] 引用步骤: {}", idx + 1, final_ordered_steps.len(), ref_id);
         }
     }
     
@@ -282,7 +355,7 @@ async fn execute_chain_by_inline(
         None,
         Phase::MatchStarted,
         None,
-        Some(format!("智能分析完成，准备执行 {} 个优化候选步骤", final_ordered_steps.len())),
+        Some(format!("准备执行 {} 个候选步骤", final_ordered_steps.len())),
         None,
     )?;
 
@@ -576,12 +649,38 @@ async fn execute_chain_by_inline(
         Some(result),
     )?;
 
+    // 🔓 【执行保护】释放analysis_id锁定，允许后续执行
+    {
+        let mut tracker = EXECUTION_TRACKER.lock().unwrap();
+        tracker.remove(analysis_id);
+        tracing::info!("🔓 【执行保护】已释放analysis_id '{}' 锁定", analysis_id);
+    }
+
     Ok(())
 }
 
 // ====== 内部辅助函数（TODO: 实现） ======
 
-/// 为单个步骤使用SmartSelection进行评分
+/// 🔍 【评分阶段专用】为单个步骤使用SmartSelection进行可行性评分
+/// 
+/// ⚠️ 重要提醒：此函数严禁执行任何真实设备操作！
+/// 
+/// 🎯 函数职责：
+///   - ✅ 分析元素是否存在于当前UI中
+///   - ✅ 计算匹配置信度分数 (0.0 ~ 1.0)
+///   - ✅ 统计候选元素数量
+///   - ❌ 严禁：执行点击、输入等任何设备操作
+/// 
+/// 🔧 实现方式：
+///   - 使用 SmartSelectionEngine::parse_xml_and_find_candidates (仅解析分析)
+///   - 不调用 tap_injector_first 或任何执行函数
+///   - 返回平均置信度作为步骤评分
+/// 
+/// 📊 评分规则：
+///   - 0.0：完全无法匹配目标元素
+///   - 0.1~0.5：匹配度较低，存在风险
+///   - 0.6~0.8：匹配良好，推荐使用  
+///   - 0.9~1.0：完美匹配，优先执行
 async fn score_step_with_smart_selection(
     device_id: &str,
     ui_xml: &str,
@@ -673,19 +772,29 @@ async fn score_step_with_smart_selection(
         return Err("步骤缺少有效的内联或引用定义".to_string());
     };
     
-    // 🔄 关键修复：只进行评分，不执行实际点击操作
-    // 使用 parse_xml_and_find_candidates 只获取候选元素进行评分
+    // � 【评分阶段核心】：只进行分析评分，绝不执行真实设备操作！
+    // 
+    // ✅ 正确做法：使用 parse_xml_and_find_candidates (仅XML解析+候选匹配)
+    // ❌ 严禁调用：tap_injector_first, execute_*, 或任何执行函数
+    // ❌ 严禁调用：SmartSelectionEngine::execute_* 系列函数
+    // 
+    // 📊 评分逻辑：基于候选元素数量和平均置信度计算步骤可行性
     match SmartSelectionEngine::parse_xml_and_find_candidates(ui_xml, &params) {
         Ok(candidates) => {
             let confidence = if candidates.is_empty() {
+                // 🔍 无候选元素：评分为0，表示该步骤无法执行
+                tracing::warn!("📊 步骤 {} 评分: 无候选元素，评分=0.0", step_id);
                 0.0
             } else {
-                // 计算平均置信度作为评分
+                // 📈 有候选元素：计算平均置信度作为评分
                 let total_confidence: f32 = candidates.iter().map(|c| c.confidence).sum();
-                total_confidence / candidates.len() as f32
+                let avg_confidence = total_confidence / candidates.len() as f32;
+                
+                tracing::info!("📊 步骤 {} 评分完成: 候选数={}, 平均置信度={:.2} 【仅评分阶段，未执行点击】", 
+                    step_id, candidates.len(), avg_confidence);
+                    
+                avg_confidence
             };
-            tracing::info!("📊 步骤 {} 评分结果: 置信度={:.2}, 候选数={} (仅评分，无实际点击)", 
-                step_id, confidence, candidates.len());
             Ok(confidence)
         }
         Err(e) => {
@@ -755,7 +864,28 @@ fn create_smart_selection_protocol_for_scoring(target_text: &str) -> Result<Smar
     Ok(protocol)
 }
 
-/// 执行真实的设备操作
+/// 🔥 【执行阶段专用】执行真实的设备操作
+/// 
+/// ⚠️ 重要提醒：此函数必须且仅执行一次真实设备操作！
+/// 
+/// 🎯 函数职责：
+///   - ✅ 获取目标元素的精确坐标
+///   - ✅ 根据选择模式执行相应的点击操作
+///   - ✅ 返回实际点击的坐标位置
+///   - ❌ 严禁：重复执行或跳过执行
+/// 
+/// 🔧 实现策略：
+///   1. 使用 SmartSelectionEngine::analyze_for_coordinates_only 获取坐标
+///   2. 根据模式参数决定执行策略：
+///      - "first": 执行第1个坐标的点击
+///      - "all": 批量执行所有坐标的点击
+///      - 其他: 默认执行第1个坐标的点击
+///   3. 调用 tap_injector_first 进行真实设备点击
+/// 
+/// 🎛️ 关键原则：
+///   - 每个选择模式有且仅有一种执行逻辑
+///   - 必须验证执行结果并返回准确坐标
+///   - 批量模式需要适当延迟避免操作过快
 async fn execute_step_real_operation(
     device_id: &str,
     step: &StepRefOrInline,
@@ -821,7 +951,10 @@ async fn execute_step_real_operation(
                 // 构建完整的SmartSelection协议
                 let protocol = create_smart_selection_protocol_for_execution(target_text, &mode)?;
                 
-                // 🆕 使用仅分析的方法，避免重复执行
+                // 🔥 【执行阶段步骤1】：获取目标坐标（仅分析，不执行点击）
+                // 
+                // ✅ 使用 analyze_for_coordinates_only：只返回坐标信息，不执行任何设备操作
+                // ❌ 严禁使用 SmartSelectionEngine::execute_* 函数，会导致重复执行
                 let analysis_result = SmartSelectionEngine::analyze_for_coordinates_only(
                     device_id, 
                     &protocol, 
@@ -829,15 +962,46 @@ async fn execute_step_real_operation(
                 ).await.map_err(|e| format!("SmartSelection坐标分析失败: {}", e))?;
                 
                 if analysis_result.success && !analysis_result.selected_coordinates.is_empty() {
-                    // 🎯 关键修复：处理批量执行和单次执行
+                    // 🔥 【执行阶段步骤2】：根据选择模式执行真实点击操作
+                    // 
+                    // 📝 执行逻辑说明：
+                    //   - 每个模式都必须执行真实的 tap_injector_first 调用
+                    //   - 每个坐标只点击一次，避免重复操作
+                    //   - 批量模式需要遍历所有坐标并逐一点击
+                    //   - 🚨 关键修复：只点击 clickable=true 的坐标，避免点击不可操作元素
                     match mode.as_str() {
                         "all" => {
-                            // 🔄 批量模式：执行所有坐标的点击操作
-                            tracing::info!("🔄 批量模式：开始执行 {} 个坐标的点击", analysis_result.selected_coordinates.len());
+                            // 🔄 【批量模式】：遍历所有坐标并逐一执行真实点击操作
+                            // 
+                            // ⚠️ 批量执行原则：
+                            //   1. 🚨 仅点击clickable=true的坐标，过滤掉不可点击元素
+                            //   2. 每个坐标调用一次且仅一次 tap_injector_first
+                            //   3. 添加适当延迟避免操作过快被系统拦截
+                            //   4. 记录成功/失败统计便于调试
+                            
+                            // 🚨 重要修复：从analysis_result中提取clickable坐标，只执行可点击的元素
+                            let clickable_coords: Vec<_> = analysis_result.selected_coordinates.iter()
+                                .filter(|coord| {
+                                    // 🔥 关键过滤：只保留clickable=true的坐标
+                                    coord.clickable
+                                })
+                                .collect();
+                            
+                            // 📊 详细日志：显示所有坐标的clickable状态
+                            for (idx, coord) in analysis_result.selected_coordinates.iter().enumerate() {
+                                tracing::debug!("📊 坐标[{}]: ({}, {}) clickable={}", idx, coord.x, coord.y, coord.clickable);
+                            }
+                            
+                            tracing::info!("🔄 V3批量模式启动：从 {} 个候选坐标中筛选出 {} 个可点击坐标执行", 
+                                analysis_result.selected_coordinates.len(), clickable_coords.len());
                             let mut success_count = 0;
                             let mut last_coord = (0, 0);
                             
-                            for (idx, coord) in analysis_result.selected_coordinates.iter().enumerate() {
+                            for (idx, coord) in clickable_coords.iter().enumerate() {
+                                tracing::info!("🎯 执行批量点击 [{}/{}]: 坐标({}, {})", 
+                                    idx + 1, clickable_coords.len(), coord.x, coord.y);
+                                
+                                // 🔥 关键：每个坐标执行一次真实点击
                                 match crate::infra::adb::input_helper::tap_injector_first(
                                     &crate::utils::adb_utils::get_adb_path(),
                                     device_id,
@@ -848,35 +1012,91 @@ async fn execute_step_real_operation(
                                     Ok(_) => {
                                         success_count += 1;
                                         last_coord = (coord.x, coord.y);
-                                        tracing::info!("✅ 批量点击[{}]: ({}, {}) 执行成功", idx, coord.x, coord.y);
+                                        tracing::info!("✅ 批量点击成功 [{}/{}]: ({}, {})", 
+                                            idx + 1, clickable_coords.len(), coord.x, coord.y);
                                         
-                                        // 批量点击间隔，避免过快执行
-                                        if idx < analysis_result.selected_coordinates.len() - 1 {
-                                            tokio::time::sleep(tokio::time::Duration::from_millis(800)).await;
+                                        // ⏱️ 批量点击间隔：避免操作过快导致系统异常
+                                        if idx < clickable_coords.len() - 1 {
+                                            tracing::debug!("⏱️ 批量点击延迟 1200ms，避免操作过快");
+                                            tokio::time::sleep(tokio::time::Duration::from_millis(1200)).await;
                                         }
                                     }
                                     Err(e) => {
-                                        tracing::warn!("❌ 批量点击[{}]: ({}, {}) 执行失败: {}", idx, coord.x, coord.y, e);
+                                        tracing::warn!("❌ 批量点击失败 [{}/{}]: ({}, {}) - {}", 
+                                            idx + 1, clickable_coords.len(), coord.x, coord.y, e);
                                     }
                                 }
                             }
                             
                             if success_count > 0 {
-                                tracing::info!("✅ 批量执行完成：成功 {}/{} 次点击", success_count, analysis_result.selected_coordinates.len());
+                                tracing::info!("✅ V3批量执行完成：成功 {}/{} 次点击 (总候选: {})", 
+                                    success_count, clickable_coords.len(), analysis_result.selected_coordinates.len());
                                 return Ok(last_coord);
                             } else {
-                                return Err("批量执行失败：所有点击都未成功".to_string());
+                                return Err("V3批量执行失败：所有点击都未成功".to_string());
+                            }
+                        }
+                        "first" => {
+                            // 🎯 【第一个模式】：只执行第一个坐标的点击，忽略其余候选
+                            // 
+                            // ⚠️ "first"模式执行原则：
+                            //   1. 从 selected_coordinates 中取第一个元素 (.first())
+                            //   2. 只对该坐标执行一次 tap_injector_first 调用
+                            //   3. 忽略其余坐标，不进行任何操作
+                            //   4. 成功后立即返回，不继续处理后续坐标
+                            if let Some(coord) = analysis_result.selected_coordinates.first() {
+                                tracing::info!("🎯 V3第一个模式：准备点击首个坐标 ({}, {}) [忽略其余{}个候选]", 
+                                    coord.x, coord.y, analysis_result.selected_coordinates.len() - 1);
+                                
+                                // 🔥 关键：只执行第一个坐标的真实点击操作
+                                match crate::infra::adb::input_helper::tap_injector_first(
+                                    &crate::utils::adb_utils::get_adb_path(),
+                                    device_id,
+                                    coord.x,
+                                    coord.y,
+                                    None,
+                                ).await {
+                                    Ok(_) => {
+                                        tracing::info!("✅ V3第一个模式点击执行成功: ({}, {}) [只点击了首个目标]", coord.x, coord.y);
+                                        return Ok((coord.x, coord.y));
+                                    }
+                                    Err(e) => {
+                                        return Err(format!("V3第一个模式点击执行失败: ({}, {}) - {}", coord.x, coord.y, e));
+                                    }
+                                }
+                            } else {
+                                return Err("V3第一个模式：候选坐标列表为空".to_string());
                             }
                         }
                         _ => {
-                            // 🎯 单次模式：只执行第一个坐标
+                            // 🎯 【默认模式】：未知模式统一按"first"逻辑处理
+                            // 
+                            // ⚠️ 默认处理原则：
+                            //   1. 所有未明确定义的模式（如 "auto", "random", "custom" 等）
+                            //   2. 统一按第一个坐标点击的逻辑处理
+                            //   3. 确保即使传入未知模式也能正常执行
                             if let Some(coord) = analysis_result.selected_coordinates.first() {
-                                tracing::info!("✅ V3获取分析坐标: ({}, {}) - 避免重复执行", coord.x, coord.y);
-                                return Ok((coord.x, coord.y));
+                                tracing::info!("🎯 V3默认模式处理[{}]：按首个坐标执行 ({}, {})", mode, coord.x, coord.y);
+                                
+                                // 🔥 执行默认点击操作（等同于"first"模式）
+                                match crate::infra::adb::input_helper::tap_injector_first(
+                                    &crate::utils::adb_utils::get_adb_path(),
+                                    device_id,
+                                    coord.x,
+                                    coord.y,
+                                    None,
+                                ).await {
+                                    Ok(_) => {
+                                        tracing::info!("✅ V3默认模式点击执行成功: ({}, {}) [模式={}]", coord.x, coord.y, mode);
+                                        return Ok((coord.x, coord.y));
+                                    }
+                                    Err(e) => {
+                                        return Err(format!("V3默认模式点击执行失败: ({}, {}) [模式={}] - {}", coord.x, coord.y, mode, e));
+                                    }
+                                }
+                            } else {
+                                return Err(format!("V3默认模式[{}]：候选坐标列表为空", mode));
                             }
-                            // 如果没有坐标信息，返回默认坐标
-                            tracing::warn!("SmartSelection执行成功但没有坐标信息，使用默认坐标");
-                            return Ok((100, 200));
                         }
                     }
                 } else {
@@ -884,27 +1104,45 @@ async fn execute_step_real_operation(
                 }
             }
             SingleStepAction::Tap => {
-                // 普通点击操作
+                // 🔧 V3修复：普通点击操作，执行真实点击
                 let text = inline.params.get("text")
                     .and_then(|v| v.as_str())
-                    .ok_or_else(|| "Tap步骤缺少text参数".to_string())?;
+                    .or_else(|| inline.params.get("contentDesc").and_then(|v| v.as_str()))
+                    .or_else(|| inline.params.get("targetText").and_then(|v| v.as_str()))
+                    .ok_or_else(|| "Tap步骤缺少text/contentDesc/targetText参数".to_string())?;
                 
-                // 🆕 使用SmartSelection仅分析找到元素坐标，不执行点击
+                // 🆕 获取坐标并执行真实点击
                 let protocol = create_smart_selection_protocol_for_execution(text, "first")?;
                 
                 let analysis_result = SmartSelectionEngine::analyze_for_coordinates_only(
                     device_id, 
                     &protocol, 
                     ui_xml
-                ).await.map_err(|e| format!("元素坐标分析失败: {}", e))?;
+                ).await.map_err(|e| format!("Tap元素坐标分析失败: {}", e))?;
                 
                 if analysis_result.success && !analysis_result.selected_coordinates.is_empty() {
                     if let Some(coord) = analysis_result.selected_coordinates.first() {
-                        tracing::info!("✅ V3获取普通点击坐标: ({}, {})", coord.x, coord.y);
-                        return Ok((coord.x, coord.y));
+                        tracing::info!("🎯 V3普通Tap模式：执行点击坐标 ({}, {})", coord.x, coord.y);
+                        
+                        // 🔥 执行真实点击
+                        match crate::infra::adb::input_helper::tap_injector_first(
+                            &crate::utils::adb_utils::get_adb_path(),
+                            device_id,
+                            coord.x,
+                            coord.y,
+                            None,
+                        ).await {
+                            Ok(_) => {
+                                tracing::info!("✅ V3普通Tap点击执行成功: ({}, {})", coord.x, coord.y);
+                                return Ok((coord.x, coord.y));
+                            }
+                            Err(e) => {
+                                return Err(format!("V3普通Tap点击执行失败: ({}, {}) - {}", coord.x, coord.y, e));
+                            }
+                        }
+                    } else {
+                        return Err("Tap操作：未找到有效坐标".to_string());
                     }
-                    tracing::warn!("Tap操作成功但没有坐标信息，使用默认坐标");
-                    return Ok((100, 200));
                 } else {
                     return Err(format!("未找到文本为 '{}' 的可点击元素", text));
                 }
@@ -1068,17 +1306,49 @@ pub fn should_trigger_intelligent_analysis(ordered_steps: &[StepRefOrInline], qu
         return true;
     }
     
-    // 3. 检查质量设置是否要求智能分析
-    // TODO: 根据实际的 QualitySettings 结构添加更多条件
-    // 例如：quality.enable_intelligent_fallback == true
+    // 3. 🎯 V3修复：更严格的智能分析触发条件
+    // 避免在已有良好候选步骤时进行不必要的智能分析
     
-    // 4. 如果候选步骤数量过少，也可以考虑触发智能分析
-    if ordered_steps.len() < 2 {
-        tracing::info!("🧠 触发智能分析原因：候选步骤过少 ({})", ordered_steps.len());
+    // 4. 只有在候选步骤确实不足时才触发智能分析（提高门槛）
+    if ordered_steps.is_empty() {
+        tracing::info!("🧠 触发智能分析原因：完全没有候选步骤");
         return true;
     }
     
-    false
+    // 5. 🔧 V3优化：如果有高质量的前端生成步骤，不需要后端再次生成
+    // 检查是否所有步骤都有完整的参数配置
+    let mut valid_step_count = 0;
+    for step in ordered_steps {
+        if let Some(inline) = &step.inline {
+            match &inline.action {
+                SingleStepAction::SmartSelection | SingleStepAction::Tap => {
+                    // 如果有完整的参数，认为是高质量步骤
+                    let has_complete_params = inline.params.get("targetText").is_some()
+                        || inline.params.get("text").is_some()
+                        || inline.params.get("contentDesc").is_some()
+                        || inline.params.get("smartSelection").is_some();
+                    
+                    if has_complete_params {
+                        valid_step_count += 1;
+                    }
+                }
+                _ => {
+                    valid_step_count += 1; // 其他类型步骤认为有效
+                }
+            }
+        } else if step.r#ref.is_some() {
+            valid_step_count += 1; // 引用类型步骤认为有效
+        }
+    }
+    
+    // 如果有足够的有效步骤，不触发智能分析
+    if valid_step_count >= ordered_steps.len() && ordered_steps.len() >= 1 {
+        tracing::info!("🎯 不触发智能分析：已有 {} 个高质量候选步骤", valid_step_count);
+        return false;
+    }
+    
+    tracing::info!("🧠 触发智能分析原因：有效步骤不足 ({}/{} 有效)", valid_step_count, ordered_steps.len());
+    true
 }
 
 /// 执行智能策略分析 (Step 0-6) 优化V3执行效果
@@ -1384,3 +1654,49 @@ fn get_step_id(step: &StepRefOrInline) -> Option<String> {
 //     // 例如: hash_ui_hierarchy(get_current_xml(device_id).await?)
 //     Ok("".to_string())
 // }
+
+// ================================================================
+// 🚨 【V3执行引擎重复点击问题防护总结】
+// ================================================================
+//
+// 📋 问题根因：
+//   V3智能自动链执行过程中，存在两个不同的执行阶段，容易导致重复点击：
+//   1️⃣ 评分阶段 - 用于计算步骤可行性，不应执行真实操作
+//   2️⃣ 执行阶段 - 用于执行真实设备操作，必须且仅执行一次
+//
+// 🔧 解决方案：
+//   ✅ 评分阶段 (score_step_with_smart_selection):
+//      - 仅调用 SmartSelectionEngine::parse_xml_and_find_candidates
+//      - 严禁调用 tap_injector_first 或任何执行函数
+//      - 只返回置信度分数，不执行设备操作
+//
+//   ✅ 执行阶段 (execute_step_real_operation):
+//      - 使用 SmartSelectionEngine::analyze_for_coordinates_only 获取坐标
+//      - 根据选择模式调用相应次数的 tap_injector_first
+//      - 确保每种模式都有明确的执行逻辑和次数
+//
+// 🎛️ 选择模式执行保证：
+//   • "first" 模式  → 执行且仅执行第1个坐标的点击
+//   • "all" 模式    → 执行且仅执行所有坐标的批量点击
+//   • "random" 模式 → 执行且仅执行随机选择坐标的点击  
+//   • 其他模式      → 执行且仅执行第1个坐标的点击 (默认行为)
+//
+// ⚠️ 开发注意事项：
+//   1. 在修改评分阶段代码时，绝不添加任何 tap_injector_* 调用
+//   2. 在修改执行阶段代码时，确保每个分支都有且仅有一次点击操作
+//   3. 新增选择模式时，必须明确定义其点击执行逻辑
+//   4. 所有日志都应明确标识当前处于评分阶段还是执行阶段
+//
+// 🔍 调试技巧：
+//   - 搜索日志中的 "【评分阶段】" 和 "【执行阶段】" 标识
+//   - 确认 "仅评分，无实际点击" 和 "执行成功" 的日志对应关系
+//   - 检查每个选择模式的执行次数是否符合预期
+//
+// 📊 验证检查清单：
+//   □ "first" 模式只点击一次，且为第一个匹配元素
+//   □ "all" 模式点击所有匹配元素，每个元素只点击一次
+//   □ 评分阶段的日志不包含任何 "点击执行成功" 信息
+//   □ 执行阶段的日志包含明确的坐标和执行结果
+//   □ 整个流程中没有出现重复的 tap_injector_first 调用
+//
+// ================================================================

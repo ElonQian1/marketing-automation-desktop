@@ -449,6 +449,8 @@ pub struct CoordinateInfo {
     pub y: i32,
     pub confidence: f32,
     pub xpath: Option<String>,
+    /// 🆕 元素是否可点击（V3引擎用于过滤不可点击的坐标）
+    pub clickable: bool,
 }
 
 /// 匹配元素信息
