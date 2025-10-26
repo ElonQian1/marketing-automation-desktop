@@ -865,7 +865,42 @@ fn create_smart_selection_protocol_for_execution(target_text: &str, mode: &str) 
         "first" => SelectionMode::First,
         "last" => SelectionMode::Last,
         "random" => SelectionMode::Random { seed: 12345, ensure_stable_sort: true },
-        _ => SelectionMode::First,
+        "all" => SelectionMode::All { 
+            batch_config: Some(crate::types::smart_selection::BatchConfigV2 {
+                interval_ms: 1000,
+                jitter_ms: 200,
+                max_per_session: 50,
+                cooldown_ms: 5000,
+                continue_on_error: true,
+                show_progress: true,
+                refresh_policy: crate::types::smart_selection::RefreshPolicy::OnMutation,
+                requery_by_fingerprint: true,
+                force_light_validation: true,
+            })
+        },
+        "match-original" => SelectionMode::MatchOriginal {
+            min_confidence: 0.8,
+            fallback_to_first: true,
+        },
+        "auto" => SelectionMode::Auto {
+            single_min_confidence: Some(0.8),
+            batch_config: Some(crate::types::smart_selection::BatchConfigV2 {
+                interval_ms: 1000,
+                jitter_ms: 200,
+                max_per_session: 50,
+                cooldown_ms: 5000,
+                continue_on_error: true,
+                show_progress: true,
+                refresh_policy: crate::types::smart_selection::RefreshPolicy::OnMutation,
+                requery_by_fingerprint: true,
+                force_light_validation: true,
+            }),
+            fallback_to_first: Some(true),
+        },
+        _ => {
+            tracing::warn!("⚠️ 未知的选择模式: {}, 默认使用 First", mode);
+            SelectionMode::First
+        },
     };
     
     // 🔧 修复：设置更严格的元素筛选条件，优先选择可点击的按钮
