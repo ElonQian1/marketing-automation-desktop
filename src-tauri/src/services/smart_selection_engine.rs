@@ -128,31 +128,34 @@ impl SmartSelectionEngine {
                     // 🔥 多个候选 → 检查是否配置了批量模式
                     let min_confidence = single_min_confidence.unwrap_or(0.85);
                     
-                    // ✅ 修复：如果配置了 batch_config，强制使用批量策略
-                    if batch_config.is_some() {
+                    // 🆕 优化：区分精确匹配 vs 批量模式的优先级
+                    if let Some(batch_config) = batch_config {
+                        // 🎯 批量模式：强制返回所有候选，不进行单一匹配
                         debug_logs.push(format!(
-                            "Auto模式 → 批量策略（batch_config已配置，候选数: {}）",
+                            "Auto模式 → 批量策略（batch_config配置，强制批量处理 {} 个候选）",
                             candidate_count
                         ));
                         Self::execute_batch_strategy(&candidates, &mut debug_logs)?
-                    } else if let Some(best_match) = Self::find_high_confidence_match(
-                        &candidates,
-                        &protocol.anchor.fingerprint,
-                        min_confidence,
-                        &mut debug_logs,
-                    ) {
-                        // 有高置信度匹配 → 使用单个策略
-                        debug_logs.push(format!(
-                            "Auto模式 → 单个策略（多候选但高置信度 {:.2} ≥ {:.2}）",
-                            best_match.confidence, min_confidence
-                        ));
-                        vec![best_match]
                     } else {
-                        // 无高置信度匹配 → 批量策略
-                        debug_logs.push(format!(
-                            "Auto模式 → 批量策略（多候选且无高置信度匹配）"
-                        ));
-                        Self::execute_batch_strategy(&candidates, &mut debug_logs)?
+                        // 🎯 精确匹配模式：尝试找到最佳单一匹配
+                        if let Some(best_match) = Self::find_high_confidence_match(
+                            &candidates,
+                            &protocol.anchor.fingerprint,
+                            min_confidence,
+                            &mut debug_logs,
+                        ) {
+                            debug_logs.push(format!(
+                                "Auto模式 → 精确策略（高置信度匹配 {:.2} ≥ {:.2}）",
+                                best_match.confidence, min_confidence
+                            ));
+                            vec![best_match]
+                        } else {
+                            // 无高置信度匹配 → 回退到第一个
+                            debug_logs.push(format!(
+                                "Auto模式 → 回退策略（无高置信度匹配，选择第一个）"
+                            ));
+                            Self::execute_positional_strategy(&candidates, 0, &mut debug_logs)?
+                        }
                     }
                 }
             }
@@ -357,16 +360,34 @@ impl SmartSelectionEngine {
         Ok(vec![candidates[index].clone()])
     }
     
-    /// 批量策略执行
+    /// 🆕 批量策略执行 - 支持智能过滤
     fn execute_batch_strategy(
         candidates: &[CandidateElement],
         debug_logs: &mut Vec<String>,
     ) -> Result<Vec<CandidateElement>> {
-        debug_logs.push(format!("执行批量策略，目标数量: {}", candidates.len()));
-        Ok(candidates.to_vec())
+        debug_logs.push(format!("执行批量策略，原始候选数: {}", candidates.len()));
+        
+        // 🎯 智能过滤：基于精确匹配原则，不进行任何模糊匹配
+        // 在批量模式下，我们不应该过滤掉任何元素，而应该精确匹配用户选择的元素类型
+        
+        debug_logs.push(format!(
+            "批量策略：保持所有候选元素，不进行智能过滤 (精确匹配原则)"
+        ));
+        
+        // 返回所有候选，让XPath生成器负责精确匹配
+        let filtered_candidates = candidates.to_vec();
+        
+        debug_logs.push(format!(
+            "批量过滤完成：{} → {} 个有效候选",
+            candidates.len(),
+            filtered_candidates.len()
+        ));
+        
+        Ok(filtered_candidates)
     }
     
     /// 🔥 在多个候选中查找高置信度匹配
+    /// 🆕 新增精确文本匹配优先级，避免"已关注"被识别为"关注"
     fn find_high_confidence_match(
         candidates: &[CandidateElement],
         target_fingerprint: &ElementFingerprint,
@@ -376,6 +397,60 @@ impl SmartSelectionEngine {
         let mut best_match: Option<CandidateElement> = None;
         let mut best_similarity = 0.0f32;
         
+        // 🎯 步骤1：严格精确匹配（文本 + content-desc + resource-id）
+        
+        // 1.1 精确文本匹配
+        if let Some(target_text) = &target_fingerprint.text {
+            for candidate in candidates {
+                if let Some(candidate_text) = &candidate.element.text {
+                    // 严格相等匹配，区分大小写，去除首尾空格
+                    if candidate_text.trim() == target_text.trim() {
+                        debug_logs.push(format!(
+                            "🎯 精确文本匹配成功: \"{}\" (跳过所有模糊匹配)",
+                            target_text
+                        ));
+                        return Some(candidate.clone());
+                    }
+                }
+            }
+        }
+        
+        // 1.2 精确content-desc匹配
+        if let Some(target_desc) = &target_fingerprint.content_desc {
+            for candidate in candidates {
+                if let Some(candidate_desc) = &candidate.element.content_desc {
+                    if candidate_desc.trim() == target_desc.trim() {
+                        debug_logs.push(format!(
+                            "🎯 精确content-desc匹配成功: \"{}\" (跳过所有模糊匹配)",
+                            target_desc
+                        ));
+                        return Some(candidate.clone());
+                    }
+                }
+            }
+        }
+        
+        // 1.3 精确resource-id匹配
+        if let Some(target_resource_id) = &target_fingerprint.resource_id {
+            for candidate in candidates {
+                if let Some(candidate_resource_id) = &candidate.element.resource_id {
+                    if candidate_resource_id == target_resource_id {
+                        debug_logs.push(format!(
+                            "🎯 精确resource-id匹配成功: \"{}\" (跳过所有模糊匹配)",
+                            target_resource_id
+                        ));
+                        return Some(candidate.clone());
+                    }
+                }
+            }
+        }
+        
+        debug_logs.push(format!(
+            "⚠️ 未找到任何精确匹配，继续模糊匹配 (text: {:?}, desc: {:?}, resource_id: {:?})",
+            target_fingerprint.text, target_fingerprint.content_desc, target_fingerprint.resource_id
+        ));
+        
+        // 🔍 步骤2：模糊相似度匹配
         for candidate in candidates {
             let similarity = Self::calculate_fingerprint_similarity(&candidate.element, target_fingerprint);
             
