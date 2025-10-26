@@ -387,29 +387,6 @@ export class StepExecutionGateway {
 
     try {
       // 构建V3执行配置
-      const executionConfig = {
-        element_context: {
-          snapshot_id: request.stepId || `step_${Date.now()}`,
-          element_path: '', // 由V3智能分析获得
-          element_text: request.actionParams.type,
-          element_bounds: request.bounds ? 
-            `[${request.bounds.x},${request.bounds.y}][${request.bounds.x + request.bounds.width},${request.bounds.y + request.bounds.height}]` : '',
-          element_type: request.actionParams.type,
-          key_attributes: {
-            'selector-id': request.selectorId || '',
-            'action-type': request.actionParams.type
-          }
-        },
-        step_id: request.stepId || `step_${Date.now()}`,
-        execution_mode: {
-          selection_mode: 'match-original', // 步骤卡片使用精确匹配
-          operation_type: request.actionParams.type,
-          batch_config: undefined // 步骤卡片不使用批量模式
-        },
-        lock_container: false,
-        enable_fallback: true
-      };
-
       // 🎯 使用正确的V3调用格式：envelope + spec
       const envelope = {
         deviceId: request.deviceId || 'default_device',
@@ -425,30 +402,20 @@ export class StepExecutionGateway {
         executionMode: 'relaxed' // 使用宽松模式
       };
 
-      // 🎯 使用 ChainSpecV3::ByInline 格式，匹配 Rust 后端类型定义
+      // 🎯 使用 ChainSpecV3::ByRef 格式 - 尝试snake_case字段名
       const spec = {
-        // ByInline 变体的必需字段（camelCase for ChainSpecV3）
-        chainId: `step_execution_${request.stepId}`,
-        orderedSteps: [{
-          ref: null,
-          inline: {
-            stepId: request.stepId || `step_${Date.now()}`,
-            action: 'smart_tap', // tagged enum action field (snake_case value)
-            params: {
-              element_context: executionConfig.element_context,
-              execution_mode: executionConfig.execution_mode
-            }
-          }
-        }],
-        threshold: 0.7,
-        mode: request.mode === 'match-only' ? 'dryrun' : 'execute',
-        // 可选配置保持默认值，让 Rust 后端处理
-        quality: {},
-        constraints: {},
-        validation: {}
+        analysis_id: `step_execution_${request.stepId}`,  // 必需：String（snake_case）
+        threshold: 0.7,                                   // 可选：f32，默认0.7
+        mode: request.mode === 'match-only' ? 'dryrun' : 'execute' as 'dryrun' | 'execute'  // 可选：ChainMode
       };
 
       // 调用V3执行命令，使用正确的参数格式
+      console.log('🔍 [DEBUG] V3调用参数详情:', { 
+        envelope, 
+        spec, 
+        specType: 'ChainSpecV3::ByRef',
+        specFields: Object.keys(spec)
+      });
       const result = await invoke('execute_chain_test_v3', {
         envelope,
         spec

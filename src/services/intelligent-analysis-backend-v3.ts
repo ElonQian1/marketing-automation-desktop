@@ -125,18 +125,30 @@ export class IntelligentAnalysisBackendV3 {
     stepSpec: V3StepSpec
   ): Promise<SingleStepTestResult> {
     try {
-      const result = await invoke<SingleStepTestResult>('execute_single_step_test_v3', {
-        analysisId: config.analysis_id,
+      // 🎯 使用正确的V3调用格式：envelope + spec
+      const envelope = {
         deviceId: config.device_id,
-        stepId: stepSpec.step_id,
-        action: stepSpec.action,
-        params: stepSpec.params,
-        quality: stepSpec.quality || {},
-        constraints: stepSpec.constraints || {},
-        validation: stepSpec.validation || {},
-        timeoutMs: config.timeout_ms || 30000,
-        maxRetries: config.max_retries || 3,
-        dryrun: config.dryrun || false
+        app: {
+          package: 'com.xingin.xhs',
+          activity: null
+        },
+        snapshot: {
+          analysisId: config.analysis_id,
+          screenHash: null,
+          xmlCacheId: null
+        },
+        executionMode: 'relaxed'
+      };
+
+      // 🎯 使用 SingleStepSpecV3::ByRef 格式（简化，只传 analysis_id + step_id）
+      const step = {
+        analysisId: config.analysis_id,
+        stepId: stepSpec.step_id
+      };
+
+      const result = await invoke<SingleStepTestResult>('execute_single_step_test_v3', {
+        envelope,
+        step
       });
       
       console.log(`✅ V3单步执行成功 - Step: ${stepSpec.step_id}, Action: ${stepSpec.action}`);
@@ -243,21 +255,27 @@ export class IntelligentAnalysisBackendV3 {
    */
   static async healthCheckV3(deviceId: string): Promise<boolean> {
     try {
-      const testConfig: V3ExecutionConfig = {
-        analysis_id: `health_check_${Date.now()}`,
-        device_id: deviceId,
-        timeout_ms: 5000,
-        dryrun: true
+      const analysisId = `health_check_${Date.now()}`;
+      
+      // 直接构造 ContextEnvelope + SingleStepSpecV3::ByRef 格式
+      const envelope = {
+        deviceId,
+        sessionId: `session_${Date.now()}`,
+        timeoutMs: 5000,
+        maxRetries: 1,
+        executionMode: 'relaxed'
       };
 
-      const testStep: V3StepSpec = {
-        step_id: 'health_check',
-        action: 'validate_ui',
-        params: {},
-        quality: { confidence_threshold: 0.1 }
+      const step = {
+        analysisId,
+        stepId: 'health_check'
       };
 
-      await this.executeSingleStepV3(testConfig, testStep);
+      await invoke<SingleStepTestResult>('execute_single_step_test_v3', {
+        envelope,
+        step
+      });
+      
       console.log('✅ V3健康检查通过');
       return true;
       

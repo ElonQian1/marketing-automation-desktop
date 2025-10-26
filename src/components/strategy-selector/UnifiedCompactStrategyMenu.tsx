@@ -87,39 +87,7 @@ export const UnifiedCompactStrategyMenu: React.FC<UnifiedCompactStrategyMenuProp
       // 使用invoke直接调用V3执行系统
       const { invoke } = await import('@tauri-apps/api/core');
       
-      // 构建V3执行配置，使用当前策略结果
-      const executionConfig = {
-        element_context: {
-          snapshot_id: currentCard.id,
-          element_path: elementData.xpath || '',
-          element_text: elementData.text,
-          element_bounds: elementData.bounds,
-          element_type: elementData.className,
-          key_attributes: {
-            'resource-id': elementData.resourceId || '',
-            'class': elementData.className || '',
-            'text': elementData.text || ''
-          }
-        },
-        step_id: currentCard.id,
-        // 🎯 关键：使用已分析好的策略进行实际执行
-        preferred_strategy: currentCard.strategy.primary,
-        backup_strategies: currentCard.strategy.backups,
-        // 🎯 使用当前选择的模式和操作方式
-        execution_mode: {
-          selection_mode: selectionMode,
-          operation_type: operationType,
-          batch_config: selectionMode === 'all' ? {
-            interval_ms: 2000,
-            max_count: 10,
-            jitter_ms: 500,
-            continue_on_error: true,
-            show_progress: true
-          } : undefined
-        },
-        lock_container: false,
-        enable_fallback: true
-      };
+
 
       // 🚀 调用V3执行命令（不是分析，而是执行）- 使用正确的envelope + spec格式
       const envelope = {
@@ -136,27 +104,12 @@ export const UnifiedCompactStrategyMenu: React.FC<UnifiedCompactStrategyMenuProp
         executionMode: 'relaxed'
       };
 
-      // 🎯 使用 ChainSpecV3::ByInline 格式，匹配 Rust 后端类型定义（camelCase）
+      // 🎯 使用 ChainSpecV3::ByRef 格式（简化版本），匹配 Rust 后端类型定义（camelCase）
       const spec = {
-        // ByInline 变体的必需字段（camelCase for ChainSpecV3）
-        chainId: 'strategy_execution_test',
-        orderedSteps: [{
-          ref: null,
-          inline: {
-            stepId: `exec_${currentCard.id}`,
-            action: 'smart_tap', // tagged enum action field (snake_case value)
-            params: {
-              element_context: executionConfig.element_context || {},
-              execution_mode: executionConfig.execution_mode || 'relaxed'
-            }
-          }
-        }],
+        // ByRef 变体的必需字段（camelCase for ChainSpecV3）
+        analysisId: `execution_test_${currentCard.id}`,
         threshold: 0.5,
-        mode: 'execute', // ChainMode::Execute (snake_case value)
-        // 可选配置保持默认值
-        quality: {},
-        constraints: {},
-        validation: {}
+        mode: 'execute' // ChainMode::Execute (snake_case value)
       };
 
       const jobId = await invoke<string>('execute_chain_test_v3', {

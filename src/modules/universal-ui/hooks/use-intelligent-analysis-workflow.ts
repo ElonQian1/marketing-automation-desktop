@@ -443,7 +443,14 @@ export function useIntelligentAnalysisWorkflow(): UseIntelligentAnalysisWorkflow
         id: context.keyAttributes?.['resource-id'] || context.elementPath || '',
         xpath: context.elementPath || '',
         text: context.elementText || '',
-        bounds: context.elementBounds ? JSON.parse(context.elementBounds) : { left: 0, top: 0, right: 0, bottom: 0 },
+        bounds: context.elementBounds ? (() => {
+          try {
+            return JSON.parse(context.elementBounds);
+          } catch (e) {
+            console.warn('⚠️ elementBounds JSON解析失败，使用默认值:', context.elementBounds, e);
+            return { left: 0, top: 0, right: 0, bottom: 0 };
+          }
+        })() : { left: 0, top: 0, right: 0, bottom: 0 },
         element_type: context.elementType || 'unknown',
         resource_id: context.keyAttributes?.['resource-id'] || '',
         content_desc: context.keyAttributes?.['content-desc'] || '',

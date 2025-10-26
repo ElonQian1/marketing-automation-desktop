@@ -72,7 +72,7 @@ export const DEFAULT_FEATURE_FLAGS: FeatureFlags = {
   SHOW_VERSION_COMPARISON: true, // 显示对比信息
   
   // 测试和监控
-  V3_USER_RATIO: 0.0,         // 0% 用户使用 V3（Phase 1）
+  V3_USER_RATIO: 1.0,         // 100% 用户使用 V3（启用完整测试）
   V3_AUTO_ROLLBACK_THRESHOLD: 0.8, // 成功率 < 80% 自动回退
   ENABLE_EXECUTION_COMPARISON: true, // 启用对比日志
 };
