@@ -39,6 +39,8 @@ export interface V3ChainSpec {
   steps: V3StepSpec[];
   threshold?: number;
   mode?: 'sequential' | 'parallel' | 'conditional';
+  /** 用户选择模式：控制智能选择行为（第一个、精确匹配、批量全部等） */
+  selection_mode?: 'first' | 'last' | 'match-original' | 'random' | 'all' | 'auto';
 }
 
 export interface V3StepSpec {
@@ -197,6 +199,7 @@ export class IntelligentAnalysisBackendV3 {
         })),
         threshold: chainSpec.threshold || 0.8,
         mode: config.dryrun ? 'dryrun' : 'execute',
+        selection_mode: chainSpec.selection_mode || 'auto', // 🎯 修复字段名：selectionMode → selection_mode
         // 可选配置保持默认值
         quality: {},
         constraints: {},

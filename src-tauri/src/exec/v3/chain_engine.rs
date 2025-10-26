@@ -85,19 +85,19 @@ pub async fn execute_chain(
 
     // 根据 by-ref 或 by-inline 处理
     match chain_spec {
-        ChainSpecV3::ByRef { analysis_id, threshold, mode } => {
-            tracing::info!("🔗 [by-ref] 从缓存读取链式结果: analysisId={}", analysis_id);
+        ChainSpecV3::ByRef { analysis_id, threshold, mode, selection_mode } => {
+            tracing::info!("🔗 [by-ref] 从缓存读取链式结果: analysisId={}, 选择模式={:?}", analysis_id, selection_mode);
             
             // TODO: 从缓存读取 ChainResult(analysis_id)
             // let chain_result = CACHE.get_chain_result(analysis_id)
             //     .ok_or_else(|| format!("❌ 分析结果未找到: {}", analysis_id))?;
             // let ordered_steps = chain_result.ordered_steps;
             
-            execute_chain_by_ref(app, envelope, analysis_id, *threshold, mode).await
+            execute_chain_by_ref(app, envelope, analysis_id, *threshold, mode, selection_mode.as_deref()).await
         }
-        ChainSpecV3::ByInline { chain_id, ordered_steps, threshold, mode, quality, constraints, validation } => {
+        ChainSpecV3::ByInline { chain_id, ordered_steps, threshold, mode, selection_mode, quality, constraints, validation } => {
             let analysis_id = chain_id.as_deref().unwrap_or("inline-chain");
-            tracing::info!("🔗 [by-inline] 直接执行内联链: chainId={:?}, 步骤数={}", chain_id, ordered_steps.len());
+            tracing::info!("🔗 [by-inline] 直接执行内联链: chainId={:?}, 步骤数={}, 选择模式={:?}", chain_id, ordered_steps.len(), selection_mode);
             
             execute_chain_by_inline(
                 app,
@@ -106,6 +106,7 @@ pub async fn execute_chain(
                 ordered_steps,
                 *threshold,
                 mode,
+                selection_mode.as_deref(),
                 quality,
                 constraints,
                 validation,
@@ -121,6 +122,7 @@ async fn execute_chain_by_ref(
     analysis_id: &str,
     threshold: f32,
     mode: &ChainMode,
+    selection_mode: Option<&str>,
 ) -> Result<ExecutionResult, String> {
     let start_time = Instant::now();
     let device_id = &envelope.device_id;
@@ -147,7 +149,7 @@ async fn execute_chain_by_ref(
     //     .ok_or_else(|| format!("❌ 分析结果未找到: {}", analysis_id))?;
     
     // 🚀 【关键修复】调用智能策略分析系统
-    match execute_intelligent_strategy_analysis(app, envelope, analysis_id, threshold, mode).await {
+    match execute_intelligent_strategy_analysis(app, envelope, analysis_id, threshold, mode, selection_mode).await {
         Ok(result) => {
             tracing::info!("✅ 智能策略分析执行成功: analysisId={}", analysis_id);
             Ok(result)
@@ -187,6 +189,7 @@ async fn execute_chain_by_inline(
     ordered_steps: &[StepRefOrInline],
     threshold: f32,
     mode: &ChainMode,
+    selection_mode: Option<&str>,
     quality: &QualitySettings,
     constraints: &ConstraintSettings,
     validation: &ValidationSettings,
@@ -384,7 +387,8 @@ async fn execute_chain_by_inline(
         analysis_id,
         &envelope.device_id,
         threshold,
-        mode
+        mode,
+        selection_mode
     ).await {
         Ok(strategy_result) => {
             adopted_step_id = Some(strategy_result.adopted_step_id.clone());
@@ -543,6 +547,7 @@ async fn execute_intelligent_strategy_analysis(
     analysis_id: &str,
     threshold: f32,
     mode: &ChainMode,
+    selection_mode: Option<&str>,
 ) -> Result<crate::exec::v3::types::ExecutionResult, String> {
     let start_time = Instant::now();
     let device_id = &envelope.device_id;
@@ -584,7 +589,8 @@ async fn execute_intelligent_strategy_analysis(
         analysis_id,
         device_id,
         threshold,
-        mode
+        mode,
+        selection_mode
     ).await {
         Ok(result) => result,
         Err(err) => {
@@ -782,6 +788,7 @@ async fn execute_real_intelligent_strategy_analysis(
     device_id: &str,
     threshold: f32,
     mode: &ChainMode,
+    selection_mode: Option<&str>,
 ) -> Result<IntelligentAnalysisResult, String> {
     use crate::services::legacy_simple_selection_engine::SmartSelectionEngine;
     use crate::types::smart_selection::{SmartSelectionProtocol, SelectionMode, ElementFingerprint, LightAssertions, SelectionConfig};
@@ -831,21 +838,7 @@ async fn execute_real_intelligent_strategy_analysis(
             },
         },
         selection: SelectionConfig {
-            mode: SelectionMode::Auto { 
-                single_min_confidence: Some(0.95), // 高置信度要求，确保精准匹配
-                batch_config: Some(crate::types::smart_selection::BatchConfigV2 {
-                    interval_ms: 2000,     // 批量间隔2秒
-                    jitter_ms: 500,        // 随机抖动500ms
-                    max_per_session: 10,   // 每会话最多10个
-                    cooldown_ms: 3000,     // 冷却3秒
-                    continue_on_error: true, // 遇错继续
-                    show_progress: true,   // 显示进度
-                    refresh_policy: crate::types::smart_selection::RefreshPolicy::OnMutation, // UI变化时刷新
-                    requery_by_fingerprint: true, // 启用指纹重查
-                    force_light_validation: true, // 强制轻校验
-                }),
-                fallback_to_first: Some(false), // 🎯 关键：绝不回退到第一个
-            },
+            mode: create_selection_mode_from_user_choice(selection_mode),
             order: None,
             random_seed: None,
             batch_config: Some(crate::types::smart_selection::BatchConfig {
@@ -962,5 +955,76 @@ async fn execute_real_intelligent_strategy_analysis(
         tracing::error!("❌ [真实智能策略] 智能匹配失败: {}", selection_result.message);
         
         Err(format!("智能策略分析失败: 未找到匹配元素 - {}", selection_result.message))
+    }
+}
+
+/// 🎯 根据用户选择模式创建相应的SelectionMode
+/// 
+/// 前端传递的选择模式：
+/// - "first": 第一个
+/// - "match-original": 精确匹配  
+/// - "all": 批量全部
+/// - None/其他: 智能自动模式
+fn create_selection_mode_from_user_choice(selection_mode: Option<&str>) -> crate::types::smart_selection::SelectionMode {
+    use crate::types::smart_selection::{SelectionMode, BatchConfigV2, RefreshPolicy};
+    
+    match selection_mode {
+        Some("first") => {
+            tracing::info!("🎯 [选择模式] 用户选择: 第一个");
+            SelectionMode::First
+        }
+        Some("last") => {
+            tracing::info!("🎯 [选择模式] 用户选择: 最后一个");
+            SelectionMode::Last
+        }
+        Some("match-original") => {
+            tracing::info!("🎯 [选择模式] 用户选择: 精确匹配");
+            SelectionMode::MatchOriginal {
+                min_confidence: 0.8, // 精确匹配需要高置信度
+                fallback_to_first: true, // 失败时回退到第一个
+            }
+        }
+        Some("random") => {
+            tracing::info!("🎯 [选择模式] 用户选择: 随机选择");
+            SelectionMode::Random { 
+                seed: 12345, 
+                ensure_stable_sort: true 
+            }
+        }
+        Some("all") => {
+            tracing::info!("🎯 [选择模式] 用户选择: 批量全部");
+            SelectionMode::All {
+                batch_config: Some(BatchConfigV2 {
+                    interval_ms: 2000,     // 批量间隔2秒
+                    jitter_ms: 500,        // 随机抖动500ms
+                    max_per_session: 10,   // 每会话最多10个
+                    cooldown_ms: 3000,     // 冷却3秒
+                    continue_on_error: true, // 遇错继续
+                    show_progress: true,   // 显示进度
+                    refresh_policy: RefreshPolicy::OnMutation, // UI变化时刷新
+                    requery_by_fingerprint: true, // 启用指纹重查
+                    force_light_validation: true, // 强制轻校验
+                })
+            }
+        }
+        _ => {
+            tracing::info!("🎯 [选择模式] 默认: 智能自动模式");
+            // 默认使用Auto模式，智能决策
+            SelectionMode::Auto { 
+                single_min_confidence: Some(0.95), // 高置信度要求，确保精准匹配
+                batch_config: Some(BatchConfigV2 {
+                    interval_ms: 2000,     // 批量间隔2秒
+                    jitter_ms: 500,        // 随机抖动500ms
+                    max_per_session: 10,   // 每会话最多10个
+                    cooldown_ms: 3000,     // 冷却3秒
+                    continue_on_error: true, // 遇错继续
+                    show_progress: true,   // 显示进度
+                    refresh_policy: RefreshPolicy::OnMutation, // UI变化时刷新
+                    requery_by_fingerprint: true, // 启用指纹重查
+                    force_light_validation: true, // 强制轻校验
+                }),
+                fallback_to_first: Some(false), // 🎯 关键：绝不回退到第一个
+            }
+        }
     }
 }

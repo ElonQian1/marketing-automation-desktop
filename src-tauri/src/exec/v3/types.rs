@@ -187,6 +187,9 @@ pub enum ChainSpecV3 {
         threshold: Confidence,
         #[serde(default = "default_chain_mode")]
         mode: ChainMode,
+        /// 用户选择模式：控制智能选择行为（第一个、精确匹配、批量全部等）
+        #[serde(default = "default_user_selection_mode")]
+        selection_mode: Option<String>,
     },
     /// 内联式：前端传完整步骤（兼容旧代码，不推荐）
     ByInline {
@@ -194,6 +197,9 @@ pub enum ChainSpecV3 {
         ordered_steps: Vec<StepRefOrInline>,
         threshold: Confidence,
         mode: ChainMode,
+        /// 用户选择模式：控制智能选择行为（第一个、精确匹配、批量全部等）
+        #[serde(default = "default_user_selection_mode")]
+        selection_mode: Option<String>,
         #[serde(default)]
         quality: QualitySettings,
         #[serde(default)]
@@ -209,6 +215,10 @@ fn default_threshold() -> Confidence {
 
 fn default_chain_mode() -> ChainMode {
     ChainMode::Execute
+}
+
+fn default_user_selection_mode() -> Option<String> {
+    None // 默认为None，表示使用智能策略的默认行为
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]

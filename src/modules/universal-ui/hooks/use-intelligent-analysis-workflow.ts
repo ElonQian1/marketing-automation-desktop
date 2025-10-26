@@ -84,7 +84,7 @@ export interface UseIntelligentAnalysisWorkflowReturn {
   clearAllSteps?: () => void;
   
   // ========== 核心操作（V2/V3统一接口）==========
-  startAnalysis: (context: ElementSelectionContext, stepId?: string) => Promise<string>;
+  startAnalysis: (context: ElementSelectionContext, stepId?: string, userSelectionMode?: string) => Promise<string>;
   cancelAnalysis: (jobId: string) => Promise<void>;
   createStepCardQuick: (context: ElementSelectionContext, lockContainer?: boolean) => Promise<string>;
   bindAnalysisResult: (stepId: string, result: AnalysisResult) => Promise<void>;
@@ -408,8 +408,33 @@ export function useIntelligentAnalysisWorkflow(): UseIntelligentAnalysisWorkflow
    */
   const startAnalysis = useCallback(async (
     context: ElementSelectionContext, 
-    stepId?: string
+    stepId?: string,
+    userSelectionMode?: string
   ): Promise<string> => {
+    // 🎯 [临时修复] 获取当前用户的选择模式
+    // TODO: 这应该从ActionSelector组件或全局状态中获取
+    const currentSelectionMode = userSelectionMode || (() => {
+      // 尝试从URL参数获取选择模式（临时方案）
+      const urlParams = new URLSearchParams(window.location.search);
+      const modeParam = urlParams.get('selectionMode');
+      if (modeParam) {
+        console.log('🔍 [临时] 从URL获取选择模式:', modeParam);
+        return modeParam;
+      }
+      
+      // 尝试从localStorage获取用户之前的选择（临时方案）
+      const savedMode = localStorage.getItem('userSelectionMode');
+      if (savedMode) {
+        console.log('🔍 [临时] 从localStorage获取选择模式:', savedMode);
+        return savedMode;
+      }
+      
+      console.log('🔍 [临时] 使用默认选择模式: auto');
+      return 'auto';
+    })();
+    
+    console.log('🎯 [Selection Mode] 当前用户选择模式:', currentSelectionMode);
+
     // 🔍 Task 8: 健康检查兜底 - 分析启动前系统状态检查
     const healthOk = await analysisHealthService.checkBeforeAnalysis();
     
@@ -493,6 +518,7 @@ export function useIntelligentAnalysisWorkflow(): UseIntelligentAnalysisWorkflow
             chain_id: `chain_${analysisId}`,     // 链标识，支持并发执行追踪
             threshold: 0.7,                      // 全局置信度阈值：低于此值触发智能短路
             mode: 'sequential' as const,         // 序列执行：保证步骤依赖关系
+            selection_mode: (currentSelectionMode as 'auto' | 'first' | 'last' | 'match-original' | 'random' | 'all'),  // 🎯 用户选择模式
             steps: [{
               step_id: stepId || `step_${Date.now()}`,
               action: 'smart_navigation' as const,  // V3智能导航：融合OCR+CV+规则引擎
@@ -579,7 +605,7 @@ export function useIntelligentAnalysisWorkflow(): UseIntelligentAnalysisWorkflow
       console.error('启动分析失败:', error);
       throw new Error(`启动分析失败: ${error}`);
     }
-  }, [currentJobs]);
+  }, [currentJobs, currentExecutionVersion]);
   
   /**
    * 取消分析

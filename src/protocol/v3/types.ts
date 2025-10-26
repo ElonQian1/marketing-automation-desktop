@@ -189,6 +189,8 @@ export interface ChainSpecV3 {
   threshold: Confidence;
   /** 执行模式 */
   mode: 'dryrun' | 'execute';
+  /** 用户选择模式：控制智能选择行为（第一个、精确匹配、批量全部等） */
+  selectionMode?: 'first' | 'last' | 'match-original' | 'random' | 'all' | 'auto';
   context: ContextEnvelope;
   quality?: QualitySettings;
   constraints?: ConstraintSettings;
