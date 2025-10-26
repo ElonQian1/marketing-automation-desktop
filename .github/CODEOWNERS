@@ -3,7 +3,9 @@
 
 # V1核心执行系统（强制审阅）
 /src/hooks/useSingleStepTest.ts @ElonQian1
-/src/infrastructure/repositories/TauriStepExecutionRepository.ts @ElonQian1
+# Infrastructure - Execution
+/src/infrastructure/gateways/ @ElonQian1
+/src/infrastructure/repositories/ @ElonQian1
 
 # V1相关服务和工具
 /src/services/v1/ @ElonQian1

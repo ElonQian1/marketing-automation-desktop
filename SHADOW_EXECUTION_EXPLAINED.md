@@ -124,7 +124,7 @@ engineConfig.updateConfig({
    // 替代方案：直接使用 V2 动作切换系统 + StepExecutionGateway
    ```
 
-2. **TauriStepExecutionRepository.ts** - 已添加废弃警告
+2. **已删除废弃的 V1 执行仓储** - V1 代码已完全清理
    ```typescript
    // ⚠️  === V1 旧版 Repository - 已废弃 ===
    // 问题：此Repository设计过时，存在类型不匹配和接口复杂性问题
@@ -135,7 +135,8 @@ engineConfig.updateConfig({
    ```ini
    # V1核心执行系统（强制审阅）
    /src/hooks/useSingleStepTest.ts @ElonQian1
-   /src/infrastructure/repositories/TauriStepExecutionRepository.ts @ElonQian1
+   # V1 执行仓储已删除，现在统一使用 V2 StepExecutionGateway
+   /src/infrastructure/gateways/ @ElonQian1
    ```
 
 ## 🚀 V2使用示例
