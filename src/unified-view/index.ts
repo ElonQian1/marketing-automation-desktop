@@ -16,7 +16,6 @@ export { useUnifiedView, useViewState, useViewDataProvider } from '../hooks/useU
 
 // 组件
 export { default as UnifiedViewContainer } from '../components/UnifiedViewContainer';
-export { default as UnifiedViewDemo } from '../pages/UnifiedViewDemo';
 
 // 类型定义
 export type {
