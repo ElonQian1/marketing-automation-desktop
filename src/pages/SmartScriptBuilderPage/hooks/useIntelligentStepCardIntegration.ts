@@ -127,6 +127,31 @@ export function useIntelligentStepCardIntegration(options: UseIntelligentStepCar
       }
     }
 
+    // 🎯 智能文本分析：识别"已关注"vs"关注"的区别
+    const elementText = element.text || element.content_desc || '';
+    const isFollowedButton = elementText.includes('已关注') || elementText.includes('已关注');
+    const isFollowButton = elementText.includes('关注') && !isFollowedButton;
+    
+    // 🚀 构建智能匹配上下文：解决按钮混淆问题的核心逻辑
+    const smartMatchingConfig = {
+      // 基础文本规则：精确匹配当前选择的文本
+      targetText: elementText,
+      
+      // 🔥 关键修复：互斥排除规则，防止按钮类型混淆
+      exclusionRules: isFollowedButton 
+        ? ['关注', '+关注', 'Follow', '关注中']  // 选择"已关注"时，排除其他关注按钮
+        : isFollowButton 
+        ? ['已关注', '取消关注', 'Following', 'Unfollow'] // 选择"关注"时，排除已关注按钮
+        : [], // 其他类型按钮不设置排除规则
+        
+      // 多语言同义词支持
+      aliases: isFollowedButton 
+        ? ['已关注', '已关注', 'Following'] 
+        : isFollowButton 
+        ? ['关注', '+关注', 'Follow']
+        : [elementText].filter(Boolean)
+    };
+
     const context: ElementSelectionContext = {
       snapshotId: xmlCacheId || 'current',
       elementPath: element.xpath || element.id || '',
@@ -141,6 +166,10 @@ export function useIntelligentStepCardIntegration(options: UseIntelligentStepCar
         'content-desc': element.content_desc || '',
         'text': element.text || '',
         'class': element.class_name || '',
+        // 🚀 新增：智能匹配配置，解决按钮识别混淆
+        'smart-matching-target': smartMatchingConfig.targetText,
+        'smart-matching-exclude': JSON.stringify(smartMatchingConfig.exclusionRules),
+        'smart-matching-aliases': JSON.stringify(smartMatchingConfig.aliases),
       }
     };
     
@@ -149,7 +178,14 @@ export function useIntelligentStepCardIntegration(options: UseIntelligentStepCar
       elementText: context.elementText,
       contentDesc: context.keyAttributes?.['content-desc'],
       textAttr: context.keyAttributes?.['text'],
-      resourceId: context.keyAttributes?.['resource-id']
+      resourceId: context.keyAttributes?.['resource-id'],
+      // 🚀 新增：智能匹配调试信息
+      smartMatching: {
+        target: smartMatchingConfig.targetText,
+        exclude: smartMatchingConfig.exclusionRules,
+        aliases: smartMatchingConfig.aliases,
+        buttonType: isFollowedButton ? '已关注按钮' : isFollowButton ? '关注按钮' : '其他按钮'
+      }
     });
     
     return context;

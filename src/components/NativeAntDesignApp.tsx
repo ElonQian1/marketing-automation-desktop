@@ -37,6 +37,7 @@ import {
   AimOutlined,
   ThunderboltOutlined,
   CheckCircleOutlined,
+  BugOutlined,
   UserOutlined,
   LogoutOutlined,
   ClockCircleOutlined,
@@ -60,6 +61,7 @@ import { PageFinderView } from "./universal-ui/page-finder";
 import { ThemeSettingsPage } from "../pages/ThemeSettingsPage";
 import { NativeAntDashboard } from "./native-dashboard/NativeAntDashboard";
 import EmployeePageNativeWrapper from "../pages/native-wrappers/EmployeePage.native";
+import ButtonFixValidationPage from "../pages/button-fix-validation";
 
 // 业务页面导入
 import { StatisticsPageNative } from "../pages/statistics/StatisticsPageNative";
@@ -123,6 +125,11 @@ const NativeAntDesignApp: React.FC = () => {
             key: "database-debug",
             icon: <SecurityScanOutlined />,
             label: "🗄️ 数据库调试",
+          },
+          {
+            key: "button-fix-validation",
+            icon: <BugOutlined />,
+            label: "🔧 按钮识别修复验证",
           },
         ]
       : []),
@@ -201,6 +208,8 @@ const NativeAntDesignApp: React.FC = () => {
         return WatchTargetsListComp ? <WatchTargetsListComp /> : <div>加载中...</div>;
       case "database-debug":
         return <DatabaseDebugPage />;
+      case "button-fix-validation":
+        return <ButtonFixValidationPage />;
       case "smart-vcf":
         return <SmartVcfImporter />;
       case "smart-script-builder":

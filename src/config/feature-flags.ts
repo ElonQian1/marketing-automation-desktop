@@ -57,14 +57,14 @@ export interface FeatureFlags {
 /**
  * 默认特性开关配置
  * 
- * 当前阶段：Phase 1 - V2 稳定运行，V3 准备就绪
+ * 当前阶段：Phase 2 - V3 智能分析已启用，解决"已关注"vs"关注"混淆问题
  */
 export const DEFAULT_FEATURE_FLAGS: FeatureFlags = {
-  // V3 执行系统（默认关闭，确保稳定性）
-  USE_V3_EXECUTION: false,
-  USE_V3_SINGLE_STEP: false,
-  USE_V3_CHAIN: false,
-  USE_V3_STATIC: false,
+  // V3 执行系统（已启用，解决按钮识别问题）
+  USE_V3_EXECUTION: true,
+  USE_V3_SINGLE_STEP: true,
+  USE_V3_CHAIN: true,      // 🎯 关键修复：启用智能自动链，解决语义识别问题
+  USE_V3_STATIC: true,
   
   // UI 显示（开发模式开启，便于测试）
   SHOW_V3_BUTTONS: true,      // 开发者可以看到 V3 按钮
