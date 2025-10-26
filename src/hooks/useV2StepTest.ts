@@ -311,6 +311,10 @@ function convertSmartStepToV2Request(
     selectorId: params.element_selector || step.id,
     stepId: step.id,  // ✅ 传递stepId用于Store查询
     bounds: parseBoundsFromParams(params),
+    // 🎯 新增：传递目标文本信息，解决"已关注"vs"关注"问题
+    targetText: params.text as string || '', // 从步骤参数中提取目标文本
+    contentDesc: params.content_desc as string || '',
+    resourceId: params.resource_id as string || '',
   };
 }
 

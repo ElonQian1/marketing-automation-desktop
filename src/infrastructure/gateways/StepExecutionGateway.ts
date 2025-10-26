@@ -38,6 +38,10 @@ export interface StepExecutionRequest {
   stepId?: string; // ✅ 新增：步骤ID，用于Store查询智能选择配置
   bounds?: { x: number; y: number; width: number; height: number }; // 兜底坐标
   engineOverride?: ExecutionEngine; // 每步覆盖全局引擎设置
+  // 🎯 新增：目标文本信息，解决"已关注"vs"关注"混淆问题
+  targetText?: string; // 用户选择的元素文本
+  contentDesc?: string; // 元素的content-desc
+  resourceId?: string; // 元素的resource-id
 }
 
 // 统一响应接口
@@ -425,19 +429,56 @@ export class StepExecutionGateway {
         return 'first';
       })();
 
+      // 🎯 修复：改用ByInline格式直接传递目标文本，绕过缓存问题
+      // 🚨 不再使用硬编码默认值，确保用户明确选择
+      const targetText = request.targetText || request.contentDesc;
+      if (!targetText) {
+        throw new Error('目标文本缺失：需要明确指定 targetText 或 contentDesc');
+      }
+      console.log('🎯 [V3目标文本] 提取的目标文本:', { 
+        targetText: request.targetText, 
+        contentDesc: request.contentDesc,
+        resourceId: request.resourceId,
+        final: targetText 
+      });
+
+      // 🎯 修复：构建正确的 ChainSpecV3::ByInline 格式（使用snake_case字段名）
       const spec = {
-        analysis_id: `step_execution_${request.stepId}`,  // 必需：String（snake_case）
-        threshold: 0.5,                                   // 可选：f32，降低阈值以适应V3智能分析
-        mode: request.mode === 'match-only' ? 'dryrun' : 'execute' as 'dryrun' | 'execute',  // 可选：ChainMode
-        selection_mode: userSelectionMode                 // 🎯 关键修复：传递用户选择模式
+        chain_id: `step_execution_${request.stepId}`,  // 修正：snake_case
+        ordered_steps: [{  // 修正：snake_case
+          ref: null,  // ByInline模式不使用ref
+          inline: {
+            stepId: `step_${request.stepId}`,  // camelCase (InlineStep使用camelCase)
+            action: 'smart_selection',  // 🎯 正确的字段名和值 (SingleStepAction使用snake_case)
+            params: {
+              smartSelection: {  // camelCase (params内部使用camelCase)
+                mode: userSelectionMode,
+                targetText: targetText,  // camelCase
+                minConfidence: 0.8,  // camelCase
+                batchConfig: userSelectionMode === 'all' ? {  // camelCase
+                  intervalMs: 2000,  // camelCase
+                  maxCount: 10,  // camelCase
+                  continueOnError: true,  // camelCase
+                  showProgress: true  // camelCase
+                } : undefined
+              }
+            }
+          }
+        }],
+        threshold: 0.5,
+        mode: request.mode === 'match-only' ? 'dryrun' : 'execute',
+        quality: {},
+        constraints: {},
+        validation: {}
       };
 
       // 调用V3执行命令，使用正确的参数格式
       console.log('🔍 [DEBUG] V3调用参数详情:', { 
         envelope, 
         spec, 
-        specType: 'ChainSpecV3::ByRef',
-        specFields: Object.keys(spec)
+        specType: 'ChainSpecV3::ByInline',  // 修正类型标识
+        specFields: Object.keys(spec),
+        targetTextInfo: { targetText, contentDesc: request.contentDesc }
       });
       const result = await invoke('execute_chain_test_v3', {
         envelope,

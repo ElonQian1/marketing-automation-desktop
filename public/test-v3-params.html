@@ -1,0 +1,291 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>V3 参数提取测试</title>
+    <style>
+        body { 
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            margin: 20px; 
+            background-color: #f5f5f5; 
+        }
+        .container { 
+            max-width: 800px; 
+            margin: 0 auto; 
+            background: white; 
+            padding: 20px; 
+            border-radius: 8px; 
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1); 
+        }
+        .test-section { 
+            border: 1px solid #ddd; 
+            padding: 15px; 
+            margin: 10px 0; 
+            border-radius: 5px; 
+        }
+        .success { border-left: 4px solid #4CAF50; }
+        .error { border-left: 4px solid #f44336; }
+        .info { border-left: 4px solid #2196F3; }
+        button { 
+            background: #2196F3; 
+            color: white; 
+            border: none; 
+            padding: 10px 20px; 
+            border-radius: 4px; 
+            cursor: pointer; 
+            margin: 5px; 
+        }
+        button:hover { background: #1976D2; }
+        pre { 
+            background: #f8f9fa; 
+            padding: 10px; 
+            border-radius: 4px; 
+            overflow-x: auto; 
+        }
+        .status { font-weight: bold; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🧪 V3 参数提取修复测试</h1>
+        
+        <div class="test-section info">
+            <h3>测试目标</h3>
+            <p>验证 V3 系统是否能正确提取嵌套的 smartSelection 参数结构：</p>
+            <pre>params: { smartSelection: { targetText: "已关注" } }</pre>
+        </div>
+
+        <div class="test-section">
+            <h3>测试控制</h3>
+            <button onclick="testBasicParameterExtraction()">测试基本参数提取</button>
+            <button onclick="testNestedSmartSelection()">测试嵌套 smartSelection</button>
+            <button onclick="testParameterFallback()">测试参数回退链</button>
+            <button onclick="clearResults()">清除结果</button>
+        </div>
+
+        <div id="results" class="test-section">
+            <h3>测试结果</h3>
+            <div id="output">点击上方按钮开始测试...</div>
+        </div>
+    </div>
+
+    <script>
+        let outputDiv;
+        
+        window.addEventListener('DOMContentLoaded', () => {
+            outputDiv = document.getElementById('output');
+        });
+
+        function addResult(message, type = 'info') {
+            const timestamp = new Date().toLocaleTimeString();
+            const statusClass = type === 'success' ? 'success' : type === 'error' ? 'error' : 'info';
+            
+            const resultDiv = document.createElement('div');
+            resultDiv.className = `test-section ${statusClass}`;
+            resultDiv.innerHTML = `
+                <div class="status">[${timestamp}] ${message}</div>
+            `;
+            
+            if (outputDiv.firstChild && outputDiv.firstChild.textContent.includes('点击上方按钮')) {
+                outputDiv.innerHTML = '';
+            }
+            
+            outputDiv.appendChild(resultDiv);
+            outputDiv.scrollTop = outputDiv.scrollHeight;
+        }
+
+        function clearResults() {
+            outputDiv.innerHTML = '结果已清除...';
+        }
+
+        async function testBasicParameterExtraction() {
+            addResult('🧪 测试基本参数提取...');
+            
+            try {
+                // 直接 targetText 参数格式
+                const basicSpec = {
+                    steps: [{
+                        stepId: `test-basic-${Date.now()}`,
+                        stepType: "SmartSelection",
+                        stepName: "基本参数测试",
+                        params: {
+                            targetText: "已关注"
+                        }
+                    }],
+                    mode: "intelligent",
+                    threshold: 0.7,
+                    orderedSteps: []
+                };
+
+                const envelope = {
+                    deviceId: "test-device",
+                    sessionId: `test-${Date.now()}`,
+                    spec: basicSpec,
+                    constraints: {
+                        timeoutMs: 10000,
+                        maxRetries: 1,
+                        screenChangeRequired: false
+                    }
+                };
+
+                addResult('📤 发送基本参数测试请求...');
+                
+                if (typeof window.__TAURI__ === 'undefined') {
+                    throw new Error('Tauri API 不可用，请确保应用在 Tauri 环境中运行');
+                }
+
+                const { invoke } = window.__TAURI__.core;
+                const result = await invoke('execute_chain_by_inline_v3', { envelope });
+                
+                addResult(`✅ 基本参数提取成功: ${result.status}`, 'success');
+                addResult(`结果详情: ${JSON.stringify(result, null, 2)}`);
+                
+            } catch (error) {
+                addResult(`❌ 基本参数提取失败: ${error.message}`, 'error');
+            }
+        }
+
+        async function testNestedSmartSelection() {
+            addResult('🧪 测试嵌套 smartSelection 参数提取...');
+            
+            try {
+                // 嵌套 smartSelection 参数格式（前端 V3 格式）
+                const nestedSpec = {
+                    steps: [{
+                        stepId: `test-nested-${Date.now()}`,
+                        stepType: "SmartSelection",
+                        stepName: "嵌套参数测试",
+                        params: {
+                            smartSelection: {
+                                targetText: "已关注",
+                                mode: "text",
+                                minConfidence: 0.6,
+                                batchConfig: null
+                            }
+                        }
+                    }],
+                    mode: "intelligent", 
+                    threshold: 0.7,
+                    orderedSteps: []
+                };
+
+                const envelope = {
+                    deviceId: "test-device",
+                    sessionId: `test-${Date.now()}`,
+                    spec: nestedSpec,
+                    constraints: {
+                        timeoutMs: 10000,
+                        maxRetries: 1,
+                        screenChangeRequired: false
+                    }
+                };
+
+                addResult('📤 发送嵌套参数测试请求...');
+                addResult(`参数结构: ${JSON.stringify(nestedSpec.steps[0].params, null, 2)}`);
+                
+                if (typeof window.__TAURI__ === 'undefined') {
+                    throw new Error('Tauri API 不可用，请确保应用在 Tauri 环境中运行');
+                }
+
+                const { invoke } = window.__TAURI__.core;
+                const result = await invoke('execute_chain_by_inline_v3', { envelope });
+                
+                addResult(`✅ 嵌套参数提取成功: ${result.status}`, 'success');
+                
+                if (result.status === 'executed') {
+                    addResult('🎉 参数提取修复成功！V3 系统正确处理了嵌套的 smartSelection 结构', 'success');
+                } else {
+                    addResult(`⚠️ 执行状态: ${result.status}, 消息: ${result.message || '无消息'}`);
+                }
+                
+                addResult(`结果详情: ${JSON.stringify(result, null, 2)}`);
+                
+            } catch (error) {
+                addResult(`❌ 嵌套参数提取失败: ${error.message}`, 'error');
+                
+                if (error.message?.includes('SmartSelection步骤缺少targetText参数')) {
+                    addResult('🔍 参数提取仍有问题，需要进一步调试', 'error');
+                }
+            }
+        }
+
+        async function testParameterFallback() {
+            addResult('🧪 测试参数提取回退链...');
+            
+            const testCases = [
+                {
+                    name: "使用 contentDesc 回退",
+                    params: { smartSelection: { contentDesc: "已关注" } }
+                },
+                {
+                    name: "使用 text 回退",
+                    params: { smartSelection: { text: "已关注" } }
+                },
+                {
+                    name: "混合参数",
+                    params: { 
+                        smartSelection: { 
+                            targetText: "已关注",
+                            contentDesc: "关注按钮",
+                            mode: "text"
+                        } 
+                    }
+                }
+            ];
+
+            for (const testCase of testCases) {
+                try {
+                    addResult(`📋 测试: ${testCase.name}`);
+                    
+                    const spec = {
+                        steps: [{
+                            stepId: `test-fallback-${Date.now()}`,
+                            stepType: "SmartSelection",
+                            stepName: testCase.name,
+                            params: testCase.params
+                        }],
+                        mode: "intelligent",
+                        threshold: 0.7,
+                        orderedSteps: []
+                    };
+
+                    const envelope = {
+                        deviceId: "test-device",
+                        sessionId: `test-${Date.now()}`,
+                        spec: spec,
+                        constraints: {
+                            timeoutMs: 5000,
+                            maxRetries: 1,
+                            screenChangeRequired: false
+                        }
+                    };
+
+                    if (typeof window.__TAURI__ === 'undefined') {
+                        throw new Error('Tauri API 不可用');
+                    }
+
+                    const { invoke } = window.__TAURI__.core;
+                    const result = await invoke('execute_chain_by_inline_v3', { envelope });
+                    
+                    addResult(`   ✅ ${testCase.name}: ${result.status}`, 'success');
+                    
+                } catch (error) {
+                    addResult(`   ❌ ${testCase.name}: ${error.message}`, 'error');
+                }
+            }
+            
+            addResult('🏁 参数回退链测试完成');
+        }
+
+        // 在页面加载完成后显示状态
+        window.addEventListener('DOMContentLoaded', () => {
+            if (typeof window.__TAURI__ !== 'undefined') {
+                addResult('✅ Tauri 环境已准备就绪', 'success');
+            } else {
+                addResult('⚠️ 未检测到 Tauri 环境，某些功能可能无法使用', 'error');
+            }
+        });
+    </script>
+</body>
+</html>

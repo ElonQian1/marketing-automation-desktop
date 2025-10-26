@@ -384,7 +384,7 @@ fn extract_smart_selection_protocol(params: &Value) -> Result<SmartSelectionProt
         
     let target_text = smart_selection.get("targetText")
         .and_then(|v| v.as_str())
-        .unwrap_or("关注");
+        .ok_or_else(|| "❌ 缺少目标文本：智能选择必须指定 targetText".to_string())?;
         
     let min_confidence = smart_selection.get("minConfidence")
         .and_then(|v| v.as_f64())
