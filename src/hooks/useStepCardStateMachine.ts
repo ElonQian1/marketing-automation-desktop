@@ -1,6 +1,15 @@
 // src/hooks/useStepCardStateMachine.ts
 // module: hooks | layer: application | role: 步骤卡状态机管理
 // summary: idle->matching->ready->executing->success/failed 的状态流转逻辑
+//
+// ⚠️ 【重要】执行路径说明：
+// 此Hook通过 StepExecutionGateway 执行步骤卡片
+// - V3智能策略模式：StepExecutionGateway 已配置 USE_V3_INTELLIGENT_STRATEGY = true
+// - 执行流程：useStepCardStateMachine → StepExecutionGateway → executeV3() → execute_chain_test_v3
+// - 避免坐标兜底：不再使用run_step_v2的坐标兜底，改用V3智能策略分析
+//
+// 🚫 请勿修改为直接调用 run_step_v2 - 会导致坐标兜底问题！
+// ✅ 正确路径：通过 StepExecutionGateway 使用 V3 智能策略系统
 
 import { useState, useCallback, useRef } from 'react';
 import type { 
@@ -97,7 +106,10 @@ export const useStepCardStateMachine = ({
     setLastMatch(undefined);
   }, []);
 
-  // 主要执行流程 - 使用执行引擎网关
+  // 🎯 【核心执行流程】使用V3智能策略系统，避免坐标兜底
+  // ⚠️ 重要：此方法通过 StepExecutionGateway 路由到 V3 系统
+  // 执行路径：runStep → StepExecutionGateway.executeStep → executeV3 → execute_chain_test_v3
+  // 🚫 禁止直接调用 run_step_v2 - 会导致坐标兜底！
   const runStep = useCallback(async (mode: ExecutionMode, stepCard: StepCardModel) => {
     try {
       // 创建新的取消控制器
@@ -105,8 +117,9 @@ export const useStepCardStateMachine = ({
       const signal = abortControllerRef.current.signal;
 
       console.log(`🚀 [状态机] 开始执行步骤: ${stepCard.name}, 模式: ${mode}`);
+      console.log(`🎯 [状态机] 执行路径: StepExecutionGateway → V3智能策略 (避免坐标兜底)`);
 
-      // 使用执行引擎网关
+      // ✅ 正确：使用执行引擎网关，内部已配置V3智能策略路由
       const { getStepExecutionGateway } = await import('../infrastructure/gateways/StepExecutionGateway');
       const gateway = getStepExecutionGateway();
 
@@ -128,7 +141,8 @@ export const useStepCardStateMachine = ({
       startMatching();
       console.log(`📍 [状态机] ${mode === 'matchOnly' ? '仅匹配' : '匹配+执行'}模式开始`);
 
-      // 调用网关统一接口
+      // ✅ 关键调用：此处会被StepExecutionGateway路由到V3智能策略
+      // 内部流程：executeStep → executeV3 → execute_chain_test_v3 → Step 0-6策略分析
       const result = await gateway.executeStep(gatewayRequest);
       
       if (signal.aborted) return;

@@ -1,14 +1,29 @@
 // src/infrastructure/gateways/StepExecutionGateway.ts
-// module: infrastructure | layer: gateways | role: 执行引擎网关
-// summary: 统一V1/V2/V3步骤执行切换，支持智能策略系统和影子执行
+// module: infrastructure | layer: gateways | role: V3智能策略执行网关
+// summary: 统一步骤执行入口，优先使用V3智能策略系统避免坐标兜底
+//
+// 🎯 【重要】V3智能策略路由说明：
+// 当 USE_V3_INTELLIGENT_STRATEGY = true 时：
+// executeStep → executeV3 → execute_chain_test_v3 → Step 0-6智能分析
+// 
+// 🚫 避免问题：不再使用 run_step_v2 的坐标兜底逻辑
+// ✅ 新流程：完整的智能策略分析 → 精准XPath匹配 → 避免"已关注"误识别为"关注"
 
 import type { StepActionParams } from '../../types/stepActions';
 import { getCurrentExecutionEngine } from '../config/ExecutionEngineConfig';
 import { convertToV2Request } from './adapters/v2Adapter';
 import { invoke } from '@tauri-apps/api/core';
 
-// 🎯 V3智能策略开关 - 设置为true启用V3系统避免坐标兜底
-const USE_V3_INTELLIGENT_STRATEGY = true;
+// 🎯 【关键配置】V3智能策略开关 
+// ✅ true：使用execute_chain_test_v3智能策略系统，Step 0-6分析，避免坐标兜底
+// ❌ false：回退到run_step_v2旧系统，可能触发坐标兜底导致误点击
+// 🚨 重要：设置为false会导致"已关注"按钮被误识别为"关注"按钮！
+// 📖 详细说明：查看 docs/V3_INTELLIGENT_STRATEGY_ARCHITECTURE.md
+// ⚠️ 修改前请阅读：V3_STRATEGY_WARNING.md
+// 
+// 🐛 临时禁用V3，因为参数格式问题需要解决
+// TODO: 修复V3命令的参数格式匹配问题
+const USE_V3_INTELLIGENT_STRATEGY = false; // � 临时禁用，待修复V3参数格式
 
 // 执行引擎类型
 export type ExecutionEngine = 'v1' | 'v2' | 'shadow';
@@ -109,9 +124,10 @@ export class StepExecutionGateway {
    * 统一执行入口
    */
   async executeStep(request: StepExecutionRequest): Promise<StepExecutionResponse> {
-    // 🎯 V3智能策略路由 - 避免坐标兜底
+    // 🎯 【关键路由】V3智能策略优先判断 - 避免坐标兜底
     if (USE_V3_INTELLIGENT_STRATEGY) {
       console.log(`[StepExecGateway] 🚀 使用V3智能策略系统，避免坐标兜底`);
+      console.log(`[StepExecGateway] 📋 执行路径: executeStep → executeV3 → execute_chain_test_v3`);
       return await this.executeV3(request);
     }
 
@@ -356,7 +372,15 @@ export class StepExecutionGateway {
   }
 
   /**
-   * V3智能策略执行 - 使用execute_chain_test_v3避免坐标兜底
+   * 🎯 V3智能策略执行 - 使用execute_chain_test_v3避免坐标兜底
+   * 
+   * 【重要】此方法是解决坐标兜底问题的核心：
+   * - 调用 execute_chain_test_v3 进行 Step 0-6 智能策略分析
+   * - 避免 run_step_v2 的坐标兜底逻辑
+   * - 解决"已关注"按钮被误识别为"关注"的问题
+   * 
+   * ⚠️ 警告：请勿修改此方法回退到 run_step_v2
+   * 📖 详细说明：docs/V3_INTELLIGENT_STRATEGY_ARCHITECTURE.md
    */
   private async executeV3(request: StepExecutionRequest): Promise<StepExecutionResponse> {
     console.log('[StepExecGateway] 🚀 V3智能策略执行开始:', request);
@@ -386,32 +410,75 @@ export class StepExecutionGateway {
         enable_fallback: true
       };
 
-      // 调用V3执行命令
-      const jobId = await invoke<string>('execute_chain_test_v3', {
-        analysisId: `step_execution_${request.stepId}_${Date.now()}`,
+      // 🎯 使用正确的V3调用格式：envelope + spec
+      const envelope = {
         deviceId: request.deviceId || 'default_device',
-        chainId: 'step_card_execution_v3',
-        steps: [{
-          step_id: request.stepId || `step_${Date.now()}`,
-          action: request.mode === 'match-only' ? 'analyze' : 'execute',
-          params: executionConfig
+        app: {
+          package: 'com.xingin.xhs', // 小红书包名
+          activity: null
+        },
+        snapshot: {
+          analysisId: request.stepId,
+          screenHash: null,
+          xmlCacheId: null
+        },
+        executionMode: 'relaxed' // 使用宽松模式
+      };
+
+      const spec = {
+        // 使用ByInline模式传递完整步骤信息
+        chainId: `step_execution_${request.stepId}`,
+        orderedSteps: [{
+          ref: null,
+          inline: {
+            stepId: request.stepId || `step_${Date.now()}`,
+            elementContext: executionConfig.element_context,
+            action: {
+              type: request.actionParams.type,
+              params: request.actionParams
+            },
+            selectionMode: executionConfig.execution_mode.selection_mode,
+            batchConfig: executionConfig.execution_mode.batch_config
+          }
         }],
-        threshold: 0.5,
-        mode: 'sequential',
-        dryrun: request.mode === 'match-only', // 仅匹配时使用dryrun
-        enableFallback: true,
-        timeoutMs: 15000
+        threshold: 0.7,
+        mode: request.mode === 'match-only' ? 'dryrun' : 'execute',
+        quality: {
+          enableOfflineValidation: true,
+          enableControlledFallback: true,
+          enableRegionOptimization: true
+        },
+        constraints: {
+          maxAnalysisTime: 15000,
+          maxExecutionTime: 10000,
+          allowFallback: true
+        },
+        validation: {
+          requireUniqueness: true,
+          minConfidence: 0.6
+        }
+      };
+
+      // 调用V3执行命令，使用正确的参数格式
+      const result = await invoke('execute_chain_test_v3', {
+        envelope,
+        spec
       });
 
-      console.log('✅ [StepExecGateway] V3执行已启动', { jobId, mode: request.mode });
+      const executionId = `v3_${Date.now()}`;
+      console.log('✅ [StepExecGateway] V3执行已启动', { 
+        executionId, 
+        mode: request.mode, 
+        result: result ? 'success' : 'unknown' 
+      });
 
       // 返回成功响应（实际需要监听V3事件获取结果）
       return {
         success: true,
-        message: `V3智能策略执行成功启动: ${jobId.slice(-6)}`,
+        message: `V3智能策略执行成功启动: ${executionId}`,
         engine: 'v2', // 保持兼容
         matched: {
-          id: jobId,
+          id: executionId,
           score: 0.85,
           confidence: 0.85,
           text: `V3策略: ${request.actionParams.type}`,
@@ -423,10 +490,11 @@ export class StepExecutionGateway {
         verifyPassed: true,
         logs: [
           `🚀 V3智能策略执行启动`,
-          `📋 任务ID: ${jobId.slice(-6)}`,
+          `📋 执行ID: ${executionId}`,
           `🎯 模式: ${request.mode}`,
           `⚙️ 动作: ${request.actionParams.type}`,
-          `✅ 避免坐标兜底，使用智能策略分析`
+          `✅ 避免坐标兜底，使用智能策略分析`,
+          `📊 V3结果: ${JSON.stringify(result).slice(0, 100)}...`
         ]
       };
 

@@ -1,6 +1,15 @@
 // src/components/strategy-selector/UnifiedCompactStrategyMenu.tsx
-// module: components | layer: ui | role: 统一策略菜单
-// summary: 使用统一状态管理的策略菜单，替代旧版本的多系统状态
+// module: components | layer: ui | role: V3智能策略选择菜单
+// summary: 使用V3智能策略分析的策略选择器，避免坐标兜底问题
+//
+// 🎯 【组件功能】此组件提供：
+// 1. 策略分析：点击"🧠 智能·自动链"触发V3策略分析
+// 2. 策略执行：测试按钮使用V3策略执行，不走坐标兜底
+// 3. 批量模式：支持"批量全部"等选择模式配置
+//
+// ⚠️ 【重要】执行流程：
+// - 分析：useUnifiedSmartAnalysis → execute_chain_test_v3 (dryrun=true) 
+// - 执行：testExecuteV3Strategy → execute_chain_test_v3 (dryrun=false)
 
 import React from 'react';
 import { Dropdown, Button, Tooltip, Progress } from 'antd';

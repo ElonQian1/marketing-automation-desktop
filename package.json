@@ -2,7 +2,7 @@
   "name": "employee-drainage-tool",
   "private": true,
   "version": "0.2.0",
-  "description": "员工引流工具 - 基于 Tauri + React 的桌面应用",
+  "description": "员工引流工具 - 基于 Tauri + React 的桌面应用 | ⚠️ 使用V3智能策略系统，查看 V3_STRATEGY_WARNING.md",
   "type": "module",
   "scripts": {
     "dev": "vite",

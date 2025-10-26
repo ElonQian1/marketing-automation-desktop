@@ -1,6 +1,14 @@
 // src/hooks/useUnifiedSmartAnalysis.ts
-// module: hooks | layer: hooks | role: ✅ 统一智能分析Hook（V3智能策略分析）
+// module: hooks | layer: hooks | role: ✅ V3智能策略分析Hook（仅用于分析，不执行）
 // summary: 基于V3智能自动链的统一智能分析Hook，使用Step 0-6策略分析替代简化系统
+//
+// 🎯 【功能说明】此Hook仅用于元素分析，生成步骤卡片
+// - 分析流程：createAndAnalyze → execute_chain_test_v3 (dryrun=true) → 策略推荐
+// - 执行流程：由 useStepCardStateMachine → StepExecutionGateway → V3执行
+// 
+// ⚠️ 【重要区别】
+// - 此Hook：分析元素，生成策略推荐，创建步骤卡片
+// - useStepCardStateMachine：执行步骤卡片，使用分析结果进行实际操作
 //
 // 🎯 【重要】此Hook已升级到 V3 智能策略分析系统：
 // ✅ 正确路径：execute_chain_test_v3 → V3智能自动链 → Step 0-6策略分析
@@ -121,41 +129,75 @@ export function useUnifiedSmartAnalysis(options: UseUnifiedSmartAnalysisOptions 
       // ✅ 正确路径：execute_chain_test_v3 → 完整智能策略分析
       // ❌ 旧路径：start_intelligent_analysis → 绕过策略分析
       
-      // 构建V3分析配置
-      const analysisConfig = {
-        element_context: {
-          snapshot_id: cardId,
-          element_path: elementData.xpath || '',
-          element_text: elementData.text,
-          element_bounds: elementData.bounds,
-          element_type: elementData.className,
-          key_attributes: {
-            'resource-id': elementData.resourceId || '',
-            'class': elementData.className || '',
-            'text': elementData.text || ''
-          }
+
+
+      // 🎯 使用正确的V3调用格式：envelope + spec
+      const envelope = {
+        deviceId: elementData.uid,
+        app: {
+          package: 'com.xingin.xhs', // 小红书包名
+          activity: null
         },
-        step_id: cardId,
-        lock_container: false,
-        enable_smart_candidates: true,
-        enable_static_candidates: true
+        snapshot: {
+          analysisId: cardId,
+          screenHash: null,
+          xmlCacheId: null
+        },
+        executionMode: 'relaxed' // 使用宽松模式进行分析
       };
 
-      const jobId = await invoke<string>('execute_chain_test_v3', {
-        analysisId: `unified_analysis_${cardId}`,
-        deviceId: elementData.uid,
-        chainId: 'unified_smart_analysis',
-        steps: [{
-          step_id: cardId,
-          action: 'analyze',
-          params: analysisConfig
+      const spec = {
+        // 使用ByInline模式传递完整分析信息
+        chainId: `unified_analysis_${cardId}`,
+        orderedSteps: [{
+          ref: null,
+          inline: {
+            stepId: cardId,
+            elementContext: {
+              snapshotId: cardId,
+              elementPath: elementData.xpath || '',
+              elementText: elementData.text,
+              elementBounds: elementData.bounds,
+              elementType: elementData.className,
+              keyAttributes: {
+                'resource-id': elementData.resourceId || '',
+                'class': elementData.className || '',
+                'text': elementData.text || ''
+              }
+            },
+            action: {
+              type: 'analyze',
+              params: {}
+            },
+            selectionMode: 'match-original',
+            batchConfig: null
+          }
         }],
         threshold: 0.5, // 较低阈值获取更多策略
-        mode: 'sequential',
-        dryrun: true, // 只分析不执行
-        enableFallback: true,
-        timeoutMs: 15000
+        mode: 'dryrun', // 只分析不执行
+        quality: {
+          enableOfflineValidation: true,
+          enableControlledFallback: true,
+          enableRegionOptimization: true
+        },
+        constraints: {
+          maxAnalysisTime: 15000,
+          maxExecutionTime: 10000,
+          allowFallback: true
+        },
+        validation: {
+          requireUniqueness: false, // 分析时允许多个候选
+          minConfidence: 0.3 // 分析时使用更低的置信度阈值
+        }
+      };
+
+      const result = await invoke<Record<string, unknown>>('execute_chain_test_v3', {
+        envelope,
+        spec
       });
+
+      // V3返回的是完整结果，不是jobId，我们需要适配
+      const jobId = String(result?.analysisId || `analysis_${cardId}_${Date.now()}`);
 
       console.log('✅ [UnifiedSmartAnalysis] 后端分析已启动', { cardId, jobId });
 
