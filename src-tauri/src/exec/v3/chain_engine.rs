@@ -1,6 +1,14 @@
 // src-tauri/src/exec/v3/chain_engine.rs
-// module: exec | layer: v3 | role: V3智能自动链执行引擎
+// module: exec | layer: v3 | role: ✅ V3智能自动链执行引擎（Step 0-6 完整策略分析入口）
 // summary: V3核心算法：智能评分+阈值短路+失败回退，完全替代V2顺序执行
+//
+// 🎯 【这是正确的智能策略分析入口】
+// ✅ 前端应调用：execute_chain_test_v3 → 此文件 → strategy_engine.rs → Step 0-6 分析
+// ❌ 前端禁止调用：execute_smart_selection → legacy_simple_selection_engine.rs（绕过策略分析）
+//
+// 🔄 完整执行流程：
+// execute_chain_test_v3 → chain_engine.rs → strategy_engine.rs → strategy_plugin.rs
+//                      → Step 0-6 分析 → 精准匹配执行
 //
 // 🚀 [V3 智能执行引擎 - 已完成升级]
 //

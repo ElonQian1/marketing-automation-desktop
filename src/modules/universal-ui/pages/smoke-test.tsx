@@ -11,7 +11,7 @@ import {
   ReloadOutlined
 } from '@ant-design/icons';
 
-import { UniversalSmartStepIntegration } from '../ui/components/universal-smart-step-integration';
+import { UniversalSmartStepIntegration } from '../ui/components/universal-smart-step-DEMO-ONLY';
 
 const { Title, Paragraph } = Typography;
 

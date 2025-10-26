@@ -1,6 +1,17 @@
-// src-tauri/src/engine/strategy_plugin_v3.rs
-// module: engine | layer: engine | role: enum-based strategy executor system  
-// summary: V3枚举策略执行器，完全避免async trait object问题
+// src-tauri/src/engine/strategy_plugin.rs
+// module: engine | layer: engine | role: ✅ Step 0-6 策略执行器系统 (enum-based)
+// summary: V3枚举策略执行器，实现 Step 0-6 智能策略的具体执行逻辑
+//
+// 🎯 Step 0-6 策略执行器映射：
+// Step 1: SelfId/SelfDesc → 自我可定位性检查 (SelfAnchorStrategy)
+// Step 2: ChildToParent → 子树找锚点 (ChildAnchorStrategy)  
+// Step 3: RegionTextToParent → 上溯到可点父 (ParentClickableStrategy)
+// Step 4: RegionLocalIndexWithCheck → 锚定局部容器 (RegionScopedStrategy)
+// Step 5: NeighborRelative → 邻居锚点 (NeighborRelativeStrategy)
+// Step 6: GlobalIndexWithStrongChecks → 索引兜底 (XPathDirectStrategy)
+// Fallback: BoundsTap → 坐标兜底
+//
+// 🔄 调用路径: strategy_engine.rs → 此文件执行器 → 实际UI操作
 
 use serde::{Deserialize, Serialize};
 use crate::commands::run_step_v2::{StrategyVariant, StaticEvidence, StepExecutionResult, MatchCandidate, Bounds};

@@ -3,9 +3,15 @@
 // summary: 智能分析工作流的核心类型定义
 
 /**
- * 元素选择上下文
+ * 🎯 智能分析专用的元素选择上下文
+ * 
+ * ⚠️ 注意：这与 ui-element-selection-store.ts 中的 ElementSelectionContext 不同！
+ * - 本接口：用于智能分析工作流，简化版本，只包含分析必需的字段
+ * - Store版本：用于UI元素选择管理，包含完整UIElement和层级关系
+ * 
+ * 🔄 数据流：UIElement → convertElementToContext() → IntelligentElementSelectionContext → V3分析
  */
-export interface ElementSelectionContext {
+export interface IntelligentElementSelectionContext {
   /** XML快照ID */
   snapshotId: string;
   /** 元素路径（node_index_chain） */
@@ -40,6 +46,12 @@ export interface ElementSelectionContext {
   /** 设备名称 (向后兼容测试) */
   device_id?: string;
 }
+
+/**
+ * 🔄 向后兼容别名
+ * @deprecated 请使用 IntelligentElementSelectionContext，此别名将在下个版本移除
+ */
+export type ElementSelectionContext = IntelligentElementSelectionContext;
 
 /**
  * 选择哈希（防串扰）
@@ -168,7 +180,7 @@ export interface IntelligentStepCard {
   stepType: string;
   
   // === 元素上下文 ===
-  elementContext: ElementSelectionContext;
+  elementContext: IntelligentElementSelectionContext;
   selectionHash: SelectionHash;
   
   // === 分析状态（核心字段） ===

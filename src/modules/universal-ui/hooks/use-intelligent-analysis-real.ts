@@ -1,6 +1,15 @@
 // src/modules/universal-ui/hooks/use-intelligent-analysis-real.ts
-// module: universal-ui | layer: hooks | role: custom-hook
-// summary: 真实智能分析Hook - 调用Tauri后端命令,实现三重校验
+// module: universal-ui | layer: hooks | role: ✅ V3智能分析Hook（正确执行路径）
+// summary: 基于V3智能自动链的真实智能分析Hook，使用Step 0-6策略分析，替代简化系统
+//
+// 🎯 【重要】此Hook已升级到 V3 智能策略分析系统：
+// ✅ 正确命令：execute_chain_test_v3 → V3智能自动链 → Step 0-6策略分析
+// ❌ 旧命令：start_intelligent_analysis → V2简化分析（已弃用）
+//
+// 🔧 修复历史：
+// - 2025-10-26: 修正Tauri命令调用，确保使用完整的智能策略分析
+// - 解决"已关注"vs"关注"按钮识别错误问题
+// - 确保空文本元素通过智能策略而不是坐标兜底
 
 import { useState, useCallback, useEffect, useMemo, useRef } from 'react';
 import { invoke } from '@tauri-apps/api/core';
@@ -147,10 +156,26 @@ export function useIntelligentAnalysisReal(options: UseIntelligentAnalysisRealOp
         enableStaticCandidates,
       };
       
-      // 🔥 调用 Tauri 命令
+      // 🎯 【修正】调用 V3 智能自动链进行 Step 0-6 策略分析
+      // ✅ 正确路径：execute_chain_test_v3 → 完整智能策略分析
+      // ❌ 旧路径：start_intelligent_analysis → 绕过策略分析
       const response = await invoke<AnalysisJobResponse>(
-        'start_intelligent_analysis',
-        { config }
+        'execute_chain_test_v3',
+        {
+          analysisId: `real_analysis_${stepId}`,
+          deviceId: elementContext.snapshotId || 'default',
+          chainId: 'intelligent_analysis_real',
+          steps: [{
+            step_id: stepId,
+            action: 'analyze',
+            params: config
+          }],
+          threshold: 0.5,
+          mode: 'sequential', 
+          dryrun: true,
+          enableFallback: true,
+          timeoutMs: 15000
+        }
       );
       
       console.log('✅ [真实调用] 分析任务已启动', response);

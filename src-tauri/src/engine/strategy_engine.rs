@@ -1,5 +1,16 @@
 // src-tauri/src/engine/strategy_engine.rs
-// 智能策略共用引擎 - 统一评分逻辑，避免重复计算
+// ✅ Step 0-6 智能策略分析核心引擎 - 统一评分逻辑，避免重复计算
+//
+// 🎯 Step 0-6 策略映射：
+// Step 0: AnalysisContext - 规范化输入
+// Step 1: self_anchor - 自我可定位性检查 (SelfAnchorStrategy)
+// Step 2: child_driven - 子树找锚点 (ChildAnchorStrategy)  
+// Step 3: [通过strategy_plugin.rs] - 上溯到可点父 (ParentClickableStrategy)
+// Step 4: region_scoped - 锚定局部容器 (RegionScopedStrategy)
+// Step 5: [通过strategy_plugin.rs] - 邻居锚点 (NeighborRelativeStrategy)  
+// Step 6: xpath_fallback - 索引兜底 (XPathDirectStrategy)
+//
+// 🔄 调用路径: V3 chain_engine.rs → 此文件 → strategy_plugin.rs 执行器
 
 use serde::{Deserialize, Serialize};
 use std::collections::HashMap;

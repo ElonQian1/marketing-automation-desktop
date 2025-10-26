@@ -1,6 +1,15 @@
 // src/services/step-pack-service.ts
-// module: services | layer: services | role: 脚本包导出导入服务
-// summary: 实现步骤包的导出和导入功能，支持本地重评机制
+// module: services | layer: services | role: ✅ 脚本包导出导入服务（已升级V3智能策略分析）
+// summary: 实现步骤包的导出和导入功能，使用V3智能自动链进行Step 0-6策略分析的本地重评
+//
+// 🎯 【重要】此服务已升级到 V3 智能策略分析系统：
+// ✅ 正确路径：execute_chain_test_v3 → V3智能自动链 → Step 0-6策略分析 → 精准匹配
+// ❌ 旧路径：start_intelligent_analysis → V2简化分析 → 绕过策略分析 → 不准确匹配
+//
+// 🔄 修复历史：
+// - 2025-10-26: 修正执行路径，从V2升级到V3智能策略分析
+// - 解决"已关注"vs"关注"混淆问题：现在会精确识别用户选择的文本
+// - 确保空文本元素不会直接坐标兜底，而是通过智能策略分析
 
 import { invoke } from '@tauri-apps/api/core';
 import { useStepScoreStore } from '../stores/step-score-store';
@@ -165,9 +174,33 @@ export async function importStepPack(stepPack: StepPack): Promise<StepPackImport
       enable_static_candidates: true
     };
     
-    // 🆕 调用后端的共用引擎重评
-    console.log('🔄 开始本地重评步骤包...', stepPack.id);
-    await invoke('start_intelligent_analysis', { config });
+    // 🎯 【关键执行路径 - 请勿修改】
+    // ✅ 正确：execute_chain_test_v3 → V3智能自动链 → Step 0-6策略分析
+    // ❌ 错误：start_intelligent_analysis → V2简化分析（已弃用，会导致文本匹配不准确）
+    // 
+    // 🚨 重要说明：此调用确保"已关注"按钮被正确识别为"已关注"，而不是"关注"
+    //             空文本元素会通过智能策略分析，而不是直接坐标兜底
+    console.log('🔄 开始V3智能策略重评步骤包（Step 0-6 完整分析）...', stepPack.id);
+    await invoke('execute_chain_test_v3', {
+      analysisId: `step_pack_analysis_${stepPack.id}`,
+      deviceId: config.element_context.snapshot_id || 'default', // 使用快照ID作为设备ID
+      chainId: 'step_pack_reanalysis',
+      steps: [{
+        step_id: stepPack.id,
+        action: 'analyze', // 分析模式，不实际执行
+        params: {
+          element_context: config.element_context,
+          lock_container: config.lock_container,
+          enable_smart_candidates: config.enable_smart_candidates,
+          enable_static_candidates: config.enable_static_candidates
+        }
+      }],
+      threshold: 0.5, // 较低阈值，获取更多策略选项
+      mode: 'sequential',
+      timeoutMs: 10000,
+      dryrun: true, // 只分析不执行
+      enableFallback: true
+    });
     
     // 监听分析完成事件
     return new Promise((resolve, reject) => {

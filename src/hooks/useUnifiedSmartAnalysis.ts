@@ -1,6 +1,15 @@
 // src/hooks/useUnifiedSmartAnalysis.ts
-// module: hooks | layer: hooks | role: 统一智能分析Hook
-// summary: 集成统一状态管理和事件路由的智能分析Hook，替代分离的系统
+// module: hooks | layer: hooks | role: ✅ 统一智能分析Hook（V3智能策略分析）
+// summary: 基于V3智能自动链的统一智能分析Hook，使用Step 0-6策略分析替代简化系统
+//
+// 🎯 【重要】此Hook已升级到 V3 智能策略分析系统：
+// ✅ 正确路径：execute_chain_test_v3 → V3智能自动链 → Step 0-6策略分析
+// ❌ 旧路径：start_intelligent_analysis → V2简化分析（已弃用）
+//
+// 🔄 修复历史：
+// - 2025-10-26: 修正执行路径，确保步骤卡片生成使用完整的智能策略分析
+// - 解决选择"已关注"按钮时错误识别为"关注"的问题
+// - 确保空文本元素通过智能策略而不是坐标兜底
 
 import React from 'react';
 import { useStepCardStore } from '../store/stepcards';
@@ -108,15 +117,44 @@ export function useUnifiedSmartAnalysis(options: UseUnifiedSmartAnalysisOptions 
       updateStatus(cardId, 'analyzing');
 
       // 3. 调用后端分析接口
-      const jobId = await invoke<string>('start_intelligent_analysis', {
-        element: {
-          uid: elementData.uid,
-          xpath: elementData.xpath || '',
-          text: elementData.text || '',
-          bounds: elementData.bounds || '',
-          resource_id: elementData.resourceId || '',
-          class_name: elementData.className || '',
-        }
+      // 🎯 【修正】使用 V3 智能自动链进行 Step 0-6 策略分析  
+      // ✅ 正确路径：execute_chain_test_v3 → 完整智能策略分析
+      // ❌ 旧路径：start_intelligent_analysis → 绕过策略分析
+      
+      // 构建V3分析配置
+      const analysisConfig = {
+        element_context: {
+          snapshot_id: cardId,
+          element_path: elementData.xpath || '',
+          element_text: elementData.text,
+          element_bounds: elementData.bounds,
+          element_type: elementData.className,
+          key_attributes: {
+            'resource-id': elementData.resourceId || '',
+            'class': elementData.className || '',
+            'text': elementData.text || ''
+          }
+        },
+        step_id: cardId,
+        lock_container: false,
+        enable_smart_candidates: true,
+        enable_static_candidates: true
+      };
+
+      const jobId = await invoke<string>('execute_chain_test_v3', {
+        analysisId: `unified_analysis_${cardId}`,
+        deviceId: elementData.uid,
+        chainId: 'unified_smart_analysis',
+        steps: [{
+          step_id: cardId,
+          action: 'analyze',
+          params: analysisConfig
+        }],
+        threshold: 0.5, // 较低阈值获取更多策略
+        mode: 'sequential',
+        dryrun: true, // 只分析不执行
+        enableFallback: true,
+        timeoutMs: 15000
       });
 
       console.log('✅ [UnifiedSmartAnalysis] 后端分析已启动', { cardId, jobId });

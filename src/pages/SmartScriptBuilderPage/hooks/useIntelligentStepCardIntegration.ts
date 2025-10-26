@@ -46,9 +46,32 @@ export function useIntelligentStepCardIntegration(options: UseIntelligentStepCar
   } = analysisWorkflow;
 
   /**
-   * 从UIElement转换为ElementSelectionContext (增强版 - 包含完整XML信息)
+   * 🔄 关键数据转换函数：UIElement → IntelligentElementSelectionContext
+   * 
+   * 📍 此函数是真实元素选择到智能分析的桥梁！
+   * 
+   * 输入：来自XML可视化选择的真实UIElement（包含content-desc="已关注"等真实属性）
+   * 输出：智能分析系统需要的ElementSelectionContext格式
+   * 
+   * ⚠️ 重要：如果步骤卡片显示内容不正确，请重点检查此函数！
+   * - element.text 应该包含用户选择的真实文本（如"已关注"）
+   * - element.content_desc 应该包含真实的内容描述
+   * - keyAttributes 应该保存所有关键属性用于后续分析
+   * 
+   * 🐛 调试提示：在此函数开头添加 console.log(element) 查看真实元素数据
    */
   const convertElementToContext = useCallback((element: UIElement): ElementSelectionContext => {
+    // 🐛 调试日志：检查传入的真实元素数据
+    console.log('🔄 [convertElementToContext] 接收到的真实UIElement:', {
+      id: element.id,
+      text: element.text,
+      content_desc: element.content_desc,
+      resource_id: element.resource_id,
+      class_name: element.class_name,
+      bounds: element.bounds,
+      element_type: element.element_type
+    });
+    
     // 尝试获取当前XML内容和哈希
     let xmlContent = '';
     let xmlHash = '';
@@ -104,7 +127,7 @@ export function useIntelligentStepCardIntegration(options: UseIntelligentStepCar
       }
     }
 
-    return {
+    const context: ElementSelectionContext = {
       snapshotId: xmlCacheId || 'current',
       elementPath: element.xpath || element.id || '',
       elementText: element.text,
@@ -120,6 +143,16 @@ export function useIntelligentStepCardIntegration(options: UseIntelligentStepCar
         'class': element.class_name || '',
       }
     };
+    
+    // 🐛 调试日志：确认转换后的上下文数据
+    console.log('🔄 [convertElementToContext] 转换后的ElementSelectionContext:', {
+      elementText: context.elementText,
+      contentDesc: context.keyAttributes?.['content-desc'],
+      textAttr: context.keyAttributes?.['text'],
+      resourceId: context.keyAttributes?.['resource-id']
+    });
+    
+    return context;
   }, []);
 
   /**
@@ -199,7 +232,7 @@ export function useIntelligentStepCardIntegration(options: UseIntelligentStepCar
               
               // 🚨 强制使用正确的菜单bounds，不管输入是什么格式
               if (typeof element.bounds === 'object') {
-                const bounds = element.bounds as any;
+                const bounds = element.bounds as unknown as Record<string, number>;
                 
                 // 检测多种错误的菜单bounds模式
                 const isWrongBounds = 

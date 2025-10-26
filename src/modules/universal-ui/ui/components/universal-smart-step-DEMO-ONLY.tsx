@@ -1,4 +1,4 @@
-// src/modules/universal-ui/ui/components/universal-smart-step-integration.tsx
+// src/modules/universal-ui/ui/components/universal-smart-step-DEMO-ONLY.tsx
 // module: universal-ui | layer: ui | role: integration-component
 // summary: 智能步骤卡片系统集成组件，管理从元素选择到步骤创建的完整流程
 
@@ -40,9 +40,16 @@ export interface UniversalSmartStepIntegrationProps {
 }
 
 /**
- * 模拟元素选择上下文（实际项目中应该从实际选择获取）
+ * 🧪 仅用于演示和测试的模拟元素上下文生成器
+ * 
+ * ⚠️ 重要提醒：
+ * - 此函数生成的是假数据，仅用于组件演示！
+ * - 真实的元素选择流程在：ElementSelectionPopover → convertElementToContext()
+ * - 生产环境中步骤卡片应通过真实XML元素选择创建
+ * 
+ * 🎯 如果您看到步骤卡片内容不正确，请检查是否误用了此模拟函数！
  */
-const createMockElementContext = (index: number): ElementSelectionContext => ({
+const createMockElementContext_FOR_DEMO_ONLY = (index: number): ElementSelectionContext => ({
   snapshotId: `snapshot_${Date.now()}_${index}`,
   elementPath: `//*[@id="contact-list"]/div[${index}]/div[2]/span`,
   elementType: "text",
@@ -60,9 +67,9 @@ const adaptStepCardToIntelligent = (
     stepId: smartCard.stepId,
     stepName: smartCard.stepName,
     stepType: smartCard.stepType,
-    elementContext: smartCard.elementContext || createMockElementContext(1),
+    elementContext: smartCard.elementContext || createMockElementContext_FOR_DEMO_ONLY(1),
     selectionHash: calculateSelectionHash(
-      smartCard.elementContext || createMockElementContext(1)
+      smartCard.elementContext || createMockElementContext_FOR_DEMO_ONLY(1)
     ),
     analysisState: smartCard.analysisState as
       | "idle"
@@ -133,7 +140,7 @@ export const UniversalSmartStepIntegration: React.FC<
   const [popoverState, setPopoverState] = useState<PopoverState>("idle");
   const [analysisProgress, setAnalysisProgress] = useState(0);
   const [currentElementContext, setCurrentElementContext] =
-    useState<ElementSelectionContext>(createMockElementContext(1));
+    useState<ElementSelectionContext>(createMockElementContext_FOR_DEMO_ONLY(1));
 
   // 工作流钩子
   const {
@@ -153,7 +160,7 @@ export const UniversalSmartStepIntegration: React.FC<
    */
   const handleSimulateElementSelection = useCallback(() => {
     const newContext: ElementSelectionContext = {
-      ...createMockElementContext(workflowStepCards.length + 1),
+      ...createMockElementContext_FOR_DEMO_ONLY(workflowStepCards.length + 1),
       elementText: `元素 ${workflowStepCards.length + 1}`,
       elementPath: `//*[@id="item-${workflowStepCards.length + 1}"]`,
     };

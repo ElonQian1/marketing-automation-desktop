@@ -375,10 +375,13 @@ fn main() {
             // - 自动回退：V3失败时无缝降级到V2
             // - 统一接口：单一执行入口，支持多种策略
             // 
-            // V3 命令映射：
+            // V3 命令映射 (Step 0-6 智能策略分析系统)：
             exec::v3::commands::execute_single_step_test_v3,    // 单步智能执行 (替代手动步骤)
-            exec::v3::commands::execute_chain_test_v3,          // 智能自动链 (替代 start_intelligent_analysis)
+            exec::v3::commands::execute_chain_test_v3,          // ✅ 智能自动链 + Step 0-6 策略分析 (替代 start_intelligent_analysis)
             exec::v3::commands::execute_static_strategy_test_v3, // 静态策略执行 (新功能)
+            
+            // ⚠️ 重要：前端应使用 execute_chain_test_v3 获取完整的 Step 0-6 策略分析
+            // ❌ 禁止使用：execute_smart_selection (简化引擎，绕过策略分析)
             
             // 📋 [迁移路径 - 渐进式过渡]
             // 1. V2/V3 并存阶段：特性开关控制 (src/config/feature-flags.ts)

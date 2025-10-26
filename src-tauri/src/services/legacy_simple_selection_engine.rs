@@ -1,6 +1,21 @@
-// src-tauri/src/services/smart_selection_engine.rs
-// module: services | layer: application | role: 智能选择引擎核心实现
-// summary: 实现智能选择系统的核心算法，包括指纹匹配、策略执行等
+// src-tauri/src/services/legacy_simple_selection_engine.rs  
+// module: services | layer: application | role: ⚠️ 【已弃用】简化选择引擎（不包含Step 0-6智能策略分析）
+// summary: ❌ 此引擎绕过了完整的智能策略分析，仅用于向后兼容，新功能禁止使用
+//
+// 🚨 重要警告：
+// ❌ 此文件是简化版选择引擎，NOT Step 0-6 智能策略分析系统
+// ❌ 不要在新功能中使用 execute_smart_selection 命令
+// ✅ 新功能应使用 V3 智能自动链：execute_chain_test_v3
+// ✅ V3 路径包含完整 Step 0-6 策略分析：
+//    - src-tauri/src/exec/v3/chain_engine.rs (V3智能自动链)
+//    - src-tauri/src/engine/strategy_engine.rs (Step 0-6策略分析) 
+//    - src-tauri/src/engine/strategy_plugin.rs (策略执行器)
+//
+// 📋 迁移路径：
+// 旧: execute_smart_selection → legacy_simple_selection_engine.rs
+// 新: execute_chain_test_v3 → v3/chain_engine.rs → strategy_engine.rs → Step 0-6
+//
+// 🗑️ 此文件将在 V3 完全稳定后移除
 
 use std::time::{Duration, Instant};
 use anyhow::{Result, anyhow};
