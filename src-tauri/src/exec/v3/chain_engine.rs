@@ -73,6 +73,7 @@ use std::collections::HashMap;
 // 添加必要的导入以支持真实设备操作
 use crate::services::quick_ui_automation::adb_dump_ui_xml;
 use crate::services::legacy_simple_selection_engine::SmartSelectionEngine;
+use crate::infra::adb::input_helper::tap_injector_first;
 use crate::types::smart_selection::{
     SmartSelectionProtocol, ElementFingerprint, AnchorInfo, SelectionConfig, SelectionMode,
 };
@@ -672,13 +673,19 @@ async fn score_step_with_smart_selection(
         return Err("步骤缺少有效的内联或引用定义".to_string());
     };
     
-    // 🔄 关键修复：使用SmartSelectionEngine进行真实设备操作 (不仅仅是评分!)
-    // ⚠️ 这里调用execute_smart_selection_with_ui_dump会执行实际的元素匹配和点击操作
-    match SmartSelectionEngine::execute_smart_selection_with_ui_dump(device_id, &params, ui_xml).await {
-        Ok(result) => {
-            let confidence = result.matched_elements.confidence_scores.get(0).copied().unwrap_or(0.0);
-            tracing::info!("📊 步骤 {} 评分结果: 置信度={:.2}, 匹配数={}", 
-                step_id, confidence, result.matched_elements.selected_count);
+    // 🔄 关键修复：只进行评分，不执行实际点击操作
+    // 使用 parse_xml_and_find_candidates 只获取候选元素进行评分
+    match SmartSelectionEngine::parse_xml_and_find_candidates(ui_xml, &params) {
+        Ok(candidates) => {
+            let confidence = if candidates.is_empty() {
+                0.0
+            } else {
+                // 计算平均置信度作为评分
+                let total_confidence: f32 = candidates.iter().map(|c| c.confidence).sum();
+                total_confidence / candidates.len() as f32
+            };
+            tracing::info!("📊 步骤 {} 评分结果: 置信度={:.2}, 候选数={} (仅评分，无实际点击)", 
+                step_id, confidence, candidates.len());
             Ok(confidence)
         }
         Err(e) => {
@@ -783,39 +790,95 @@ async fn execute_step_real_operation(
                     })
                     .ok_or_else(|| "SmartSelection步骤缺少targetText参数".to_string())?;
                 
-                let mode = inline.params.get("mode")
-                    .and_then(|v| v.as_str())
-                    .or_else(|| {
-                        inline.params.get("smartSelection")
-                            .and_then(|ss| ss.get("mode"))
+                // 🔥 修复：优先从STEP_STRATEGY_STORE获取保存的智能选择配置
+                let mode = {
+                    // 首先尝试从保存的策略配置中获取
+                    let step_id = &inline.step_id;
+                    let stored_mode = crate::commands::intelligent_analysis::get_stored_selection_mode(step_id).await
+                        .unwrap_or(None);
+                    
+                    if let Some(stored) = stored_mode {
+                        tracing::info!("🎯 [配置获取] 从STEP_STRATEGY_STORE获取保存的选择模式: step_id={}, mode={}", 
+                            step_id, stored);
+                        stored
+                    } else {
+                        // 回退到参数中的模式
+                        let param_mode = inline.params.get("mode")
                             .and_then(|v| v.as_str())
-                    })
-                    .unwrap_or("first");
+                            .or_else(|| {
+                                inline.params.get("smartSelection")
+                                    .and_then(|ss| ss.get("mode"))
+                                    .and_then(|v| v.as_str())
+                            })
+                            .unwrap_or("first");
+                        
+                        tracing::info!("🎯 [配置获取] 未找到保存的配置，使用参数模式: step_id={}, mode={}", 
+                            step_id, param_mode);
+                        param_mode.to_string()
+                    }
+                };
                 
                 // 构建完整的SmartSelection协议
-                let protocol = create_smart_selection_protocol_for_execution(target_text, mode)?;
+                let protocol = create_smart_selection_protocol_for_execution(target_text, &mode)?;
                 
-                // 执行SmartSelection
-                let result = SmartSelectionEngine::execute_smart_selection_with_ui_dump(
+                // 🆕 使用仅分析的方法，避免重复执行
+                let analysis_result = SmartSelectionEngine::analyze_for_coordinates_only(
                     device_id, 
                     &protocol, 
                     ui_xml
-                ).await.map_err(|e| format!("SmartSelection执行失败: {}", e))?;
+                ).await.map_err(|e| format!("SmartSelection坐标分析失败: {}", e))?;
                 
-                if result.matched_elements.selected_count > 0 {
-                    // 🎯 关键修复：从SmartSelectionEngine的真实执行结果中提取坐标
-                    // 这些坐标来自实际的设备操作，不是模拟生成的
-                    if let Some(execution_info) = &result.execution_info {
-                        if let Some(coordinates) = &execution_info.click_coordinates {
-                            if let Some(coord) = coordinates.first() {
-                                tracing::info!("✅ 获取真机点击坐标: ({}, {})", coord.x, coord.y);
-                                return Ok((coord.x, coord.y));
+                if analysis_result.success && !analysis_result.selected_coordinates.is_empty() {
+                    // 🎯 关键修复：处理批量执行和单次执行
+                    match mode.as_str() {
+                        "all" => {
+                            // 🔄 批量模式：执行所有坐标的点击操作
+                            tracing::info!("🔄 批量模式：开始执行 {} 个坐标的点击", analysis_result.selected_coordinates.len());
+                            let mut success_count = 0;
+                            let mut last_coord = (0, 0);
+                            
+                            for (idx, coord) in analysis_result.selected_coordinates.iter().enumerate() {
+                                match crate::infra::adb::input_helper::tap_injector_first(
+                                    &crate::utils::adb_utils::get_adb_path(),
+                                    device_id,
+                                    coord.x,
+                                    coord.y,
+                                    None,
+                                ).await {
+                                    Ok(_) => {
+                                        success_count += 1;
+                                        last_coord = (coord.x, coord.y);
+                                        tracing::info!("✅ 批量点击[{}]: ({}, {}) 执行成功", idx, coord.x, coord.y);
+                                        
+                                        // 批量点击间隔，避免过快执行
+                                        if idx < analysis_result.selected_coordinates.len() - 1 {
+                                            tokio::time::sleep(tokio::time::Duration::from_millis(800)).await;
+                                        }
+                                    }
+                                    Err(e) => {
+                                        tracing::warn!("❌ 批量点击[{}]: ({}, {}) 执行失败: {}", idx, coord.x, coord.y, e);
+                                    }
+                                }
+                            }
+                            
+                            if success_count > 0 {
+                                tracing::info!("✅ 批量执行完成：成功 {}/{} 次点击", success_count, analysis_result.selected_coordinates.len());
+                                return Ok(last_coord);
+                            } else {
+                                return Err("批量执行失败：所有点击都未成功".to_string());
                             }
                         }
+                        _ => {
+                            // 🎯 单次模式：只执行第一个坐标
+                            if let Some(coord) = analysis_result.selected_coordinates.first() {
+                                tracing::info!("✅ V3获取分析坐标: ({}, {}) - 避免重复执行", coord.x, coord.y);
+                                return Ok((coord.x, coord.y));
+                            }
+                            // 如果没有坐标信息，返回默认坐标
+                            tracing::warn!("SmartSelection执行成功但没有坐标信息，使用默认坐标");
+                            return Ok((100, 200));
+                        }
                     }
-                    // 如果没有坐标信息，返回默认坐标
-                    tracing::warn!("SmartSelection执行成功但没有坐标信息，使用默认坐标");
-                    return Ok((100, 200));
                 } else {
                     return Err("SmartSelection未找到匹配元素".to_string());
                 }
@@ -826,22 +889,19 @@ async fn execute_step_real_operation(
                     .and_then(|v| v.as_str())
                     .ok_or_else(|| "Tap步骤缺少text参数".to_string())?;
                 
-                // 使用SmartSelection找到元素并点击
+                // 🆕 使用SmartSelection仅分析找到元素坐标，不执行点击
                 let protocol = create_smart_selection_protocol_for_execution(text, "first")?;
                 
-                let result = SmartSelectionEngine::execute_smart_selection_with_ui_dump(
+                let analysis_result = SmartSelectionEngine::analyze_for_coordinates_only(
                     device_id, 
                     &protocol, 
                     ui_xml
-                ).await.map_err(|e| format!("元素查找失败: {}", e))?;
+                ).await.map_err(|e| format!("元素坐标分析失败: {}", e))?;
                 
-                if result.matched_elements.selected_count > 0 {
-                    if let Some(execution_info) = &result.execution_info {
-                        if let Some(coordinates) = &execution_info.click_coordinates {
-                            if let Some(coord) = coordinates.first() {
-                                return Ok((coord.x, coord.y));
-                            }
-                        }
+                if analysis_result.success && !analysis_result.selected_coordinates.is_empty() {
+                    if let Some(coord) = analysis_result.selected_coordinates.first() {
+                        tracing::info!("✅ V3获取普通点击坐标: ({}, {})", coord.x, coord.y);
+                        return Ok((coord.x, coord.y));
                     }
                     tracing::warn!("Tap操作成功但没有坐标信息，使用默认坐标");
                     return Ok((100, 200));
@@ -884,17 +944,7 @@ fn create_smart_selection_protocol_for_execution(target_text: &str, mode: &str) 
         },
         "auto" => SelectionMode::Auto {
             single_min_confidence: Some(0.8),
-            batch_config: Some(crate::types::smart_selection::BatchConfigV2 {
-                interval_ms: 1000,
-                jitter_ms: 200,
-                max_per_session: 50,
-                cooldown_ms: 5000,
-                continue_on_error: true,
-                show_progress: true,
-                refresh_policy: crate::types::smart_selection::RefreshPolicy::OnMutation,
-                requery_by_fingerprint: true,
-                force_light_validation: true,
-            }),
+            batch_config: None, // 🔧 修复：auto模式默认不使用批量配置，避免单个执行变成批量
             fallback_to_first: Some(true),
         },
         _ => {

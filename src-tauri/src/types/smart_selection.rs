@@ -422,6 +422,35 @@ pub struct SmartSelectionResult {
     pub debug_info: Option<DebugInfo>,
 }
 
+/// 🆕 智能选择分析结果（仅分析不执行）
+/// 用于V3引擎获取选择策略和元素信息，避免重复执行
+#[derive(Debug, Clone, Serialize)]
+pub struct SmartSelectionAnalysisResult {
+    pub success: bool,
+    pub message: String,
+    
+    // 选择的坐标信息（简化版，只包含V3需要的坐标）
+    pub selected_coordinates: Vec<CoordinateInfo>,
+    
+    // 匹配信息
+    pub matched_elements: MatchedElementsInfo,
+    
+    // 调试信息
+    pub debug_info: Option<DebugInfo>,
+    
+    // 分析时间
+    pub analysis_time_ms: u64,
+}
+
+/// V3引擎需要的简化坐标信息
+#[derive(Debug, Clone, Serialize)]
+pub struct CoordinateInfo {
+    pub x: i32,
+    pub y: i32,
+    pub confidence: f32,
+    pub xpath: Option<String>,
+}
+
 /// 匹配元素信息
 #[derive(Debug, Clone, Serialize)]
 pub struct MatchedElementsInfo {

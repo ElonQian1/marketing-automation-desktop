@@ -762,6 +762,25 @@ pub async fn clear_step_strategy(step_id: String) -> Result<bool, String> {
     Ok(store.remove(&step_id).is_some())
 }
 
+/// 获取存储的智能选择配置模式
+/// 专门用于V3引擎获取保存的选择模式
+pub async fn get_stored_selection_mode(step_id: &str) -> Result<Option<String>, String> {
+    let store = STEP_STRATEGY_STORE.lock().map_err(|e| {
+        let err_msg = format!("锁定步骤策略存储失败: {}", e);
+        tracing::error!("❌ {}", err_msg);
+        err_msg
+    })?;
+
+    if let Some((strategy, _timestamp)) = store.get(step_id) {
+        tracing::debug!("🔍 [get_stored_selection_mode] 找到存储的策略: step_id={}, selection_mode={:?}", 
+            step_id, strategy.selection_mode);
+        Ok(strategy.selection_mode.clone())
+    } else {
+        tracing::debug!("🔍 [get_stored_selection_mode] 未找到存储的策略: step_id={}", step_id);
+        Ok(None)
+    }
+}
+
 /// 直接保存智能选择配置到Store (简化版本，无需完整AnalysisResult)
 /// 专门用于 CompactStrategyMenu 的智能选择配置保存
 #[tauri::command]

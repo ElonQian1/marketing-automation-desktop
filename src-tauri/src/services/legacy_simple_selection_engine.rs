@@ -117,6 +117,131 @@ impl SmartSelectionEngine {
         Self::execute_smart_selection_with_ui_dump(device_id, protocol, &ui_xml).await
     }
 
+    /// 🆕 V3引擎专用：仅分析获取坐标，不执行点击
+    /// 解决重复执行问题：提供坐标信息给V3引擎，避免重复点击
+    pub async fn analyze_for_coordinates_only(
+        _device_id: &str,
+        protocol: &SmartSelectionProtocol,
+        ui_xml: &str,
+    ) -> Result<SmartSelectionAnalysisResult> {
+        let start_time = std::time::Instant::now();
+        
+        info!("🔍 V3引擎坐标分析开始");
+        
+        // 🔥 关键修复：使用完整的智能匹配逻辑，确保与评分系统一致
+        let candidates = Self::parse_xml_and_find_candidates(ui_xml, protocol)?;
+        
+        if candidates.is_empty() {
+            return Ok(SmartSelectionAnalysisResult {
+                success: false,
+                message: format!("未找到匹配目标 '{}' 的元素", 
+                    protocol.anchor.fingerprint.text_content.as_deref()
+                        .or(protocol.anchor.fingerprint.content_desc.as_deref())
+                        .unwrap_or("未知目标")),
+                selected_coordinates: Vec::new(),
+                matched_elements: MatchedElementsInfo {
+                    total_found: 0,
+                    filtered_count: 0,
+                    selected_count: 0,
+                    confidence_scores: Vec::new(),
+                },
+                debug_info: Some(DebugInfo {
+                    candidate_analysis: vec!["使用完整匹配逻辑，但未找到候选元素".to_string()],
+                    strategy_attempts: Vec::new(),
+                    error_details: Some("无匹配元素".to_string()),
+                }),
+                analysis_time_ms: start_time.elapsed().as_millis() as u64,
+            });
+        }
+
+        // 🔥 使用与评分系统一致的候选元素，已经过完整排序
+        // candidates 现在已经包含了智能排序的结果（可点击优先、面积小的优先等）
+
+        // 🎯 根据选择模式选取元素
+        let selected_elements: Vec<&UIElement> = match &protocol.selection.mode {
+            SelectionMode::First => {
+                if let Some(first) = candidates.first() {
+                    info!("🎯 第一个模式：选择最优元素 (clickable={}, 置信度={:.2})", 
+                        first.element.clickable.unwrap_or(false), first.confidence);
+                    vec![&first.element]
+                } else {
+                    vec![]
+                }
+            }
+            SelectionMode::All { .. } => {
+                info!("🔄 批量模式：返回所有 {} 个匹配元素的坐标", candidates.len());
+                // 返回所有经过智能排序的候选元素
+                let all_elements: Vec<&UIElement> = candidates
+                    .iter()
+                    .map(|candidate| &candidate.element)
+                    .collect();
+                info!("🔄 批量模式：包含 {} 个排序后的元素", all_elements.len());
+                all_elements
+            }
+            _ => {
+                // 其他模式默认选择最优元素
+                if let Some(first) = candidates.first() {
+                    info!("🎯 其他模式：选择最优元素 (clickable={}, 置信度={:.2})", 
+                        first.element.clickable.unwrap_or(false), first.confidence);
+                    vec![&first.element]
+                } else {
+                    vec![]
+                }
+            }
+        };
+
+        // 🔄 转换为V3需要的坐标信息
+        let coordinates: Vec<CoordinateInfo> = selected_elements
+            .iter()
+            .enumerate()
+            .filter_map(|(idx, elem)| {
+                // 解析bounds字符串获取坐标 (格式: "[left,top][right,bottom]")
+                if let Some(bounds_str) = &elem.bounds {
+                    if let Some(bounds) = ElementBounds::from_bounds_string(bounds_str) {
+                        let center_x = (bounds.left + bounds.right) / 2;
+                        let center_y = (bounds.top + bounds.bottom) / 2;
+                        info!("📍 坐标[{}]: ({}, {}) - clickable={}, text={:?}, desc={:?}", 
+                            idx, center_x, center_y, elem.clickable.unwrap_or(false),
+                            elem.text.as_deref().unwrap_or(""), elem.content_desc.as_deref().unwrap_or(""));
+                        Some(CoordinateInfo {
+                            x: center_x,
+                            y: center_y,
+                            confidence: 0.8,
+                            xpath: None, // UIElement没有xpath字段
+                        })
+                    } else {
+                        None
+                    }
+                } else {
+                    None
+                }
+            })
+            .collect();
+
+        let total_time = start_time.elapsed();
+        let target_text = protocol.anchor.fingerprint.text_content.as_deref().unwrap_or("");
+        let target_desc = protocol.anchor.fingerprint.content_desc.as_deref().unwrap_or("");
+        info!("✅ V3坐标分析完成，匹配目标 '{}' 或 '{}' 找到 {} 个坐标", target_text, target_desc, coordinates.len());
+
+        Ok(SmartSelectionAnalysisResult {
+            success: true,
+            message: format!("坐标分析完成，匹配目标 '{}' 或 '{}' 提供 {} 个坐标", target_text, target_desc, coordinates.len()),
+            selected_coordinates: coordinates,
+            matched_elements: MatchedElementsInfo {
+                total_found: candidates.len() as u32,
+                filtered_count: candidates.len() as u32,
+                selected_count: selected_elements.len() as u32,
+                confidence_scores: candidates.iter().map(|c| c.confidence).collect(),
+            },
+            debug_info: Some(DebugInfo {
+                candidate_analysis: vec![format!("V3智能匹配，目标文本: '{}', 目标描述: '{}', 模式: {:?}", target_text, target_desc, protocol.selection.mode)],
+                strategy_attempts: Vec::new(),
+                error_details: None,
+            }),
+            analysis_time_ms: total_time.as_millis() as u64,
+        })
+    }
+
     /// 🚀 优化版本：使用已获取的UI dump，避免重复获取
     pub async fn execute_smart_selection_with_ui_dump(
         device_id: &str,
@@ -288,7 +413,7 @@ impl SmartSelectionEngine {
     pub fn parse_xml_and_find_candidates(
         xml_content: &str,
         protocol: &SmartSelectionProtocol,
-    ) -> Result<Vec<CandidateElement>> {
+    ) -> Result<Vec<LegacyCandidateElement>> {
         let mut candidates = Vec::new();
 
         // 简化的XML解析 - 在实际实现中应该使用更完善的XML解析器
@@ -329,7 +454,7 @@ impl SmartSelectionEngine {
 
                 let confidence =
                     Self::calculate_element_confidence(&element, &protocol.anchor.fingerprint);
-                candidates.push(CandidateElement {
+                candidates.push(LegacyCandidateElement {
                     element,
                     confidence,
                     fingerprint_match: None, // 将在后续填充
@@ -487,13 +612,13 @@ impl SmartSelectionEngine {
 
     /// match-original策略执行
     fn execute_match_original_strategy(
-        candidates: &[CandidateElement],
+        candidates: &[LegacyCandidateElement],
         target_fingerprint: &ElementFingerprint,
         debug_logs: &mut Vec<String>,
-    ) -> Result<Vec<CandidateElement>> {
+    ) -> Result<Vec<LegacyCandidateElement>> {
         debug_logs.push("执行match-original策略".to_string());
 
-        let mut best_match: Option<CandidateElement> = None;
+        let mut best_match: Option<LegacyCandidateElement> = None;
         let mut best_similarity = 0.0f32;
 
         for candidate in candidates {
@@ -527,10 +652,10 @@ impl SmartSelectionEngine {
 
     /// 位置策略执行（first/last）
     fn execute_positional_strategy(
-        candidates: &[CandidateElement],
+        candidates: &[LegacyCandidateElement],
         index: usize,
         debug_logs: &mut Vec<String>,
-    ) -> Result<Vec<CandidateElement>> {
+    ) -> Result<Vec<LegacyCandidateElement>> {
         debug_logs.push(format!("执行位置策略，索引: {}", index));
 
         if index < candidates.len() {
@@ -542,10 +667,10 @@ impl SmartSelectionEngine {
 
     /// 随机策略执行
     fn execute_random_strategy(
-        candidates: &[CandidateElement],
+        candidates: &[LegacyCandidateElement],
         seed: Option<u64>,
         debug_logs: &mut Vec<String>,
-    ) -> Result<Vec<CandidateElement>> {
+    ) -> Result<Vec<LegacyCandidateElement>> {
         debug_logs.push(format!("执行随机策略，种子: {:?}", seed));
 
         if candidates.is_empty() {
@@ -570,9 +695,9 @@ impl SmartSelectionEngine {
 
     /// 🆕 批量策略执行 - 支持智能过滤
     fn execute_batch_strategy(
-        candidates: &[CandidateElement],
+        candidates: &[LegacyCandidateElement],
         debug_logs: &mut Vec<String>,
-    ) -> Result<Vec<CandidateElement>> {
+    ) -> Result<Vec<LegacyCandidateElement>> {
         debug_logs.push(format!("执行批量策略，原始候选数: {}", candidates.len()));
 
         // 🎯 智能过滤：基于精确匹配原则，不进行任何模糊匹配
@@ -597,12 +722,12 @@ impl SmartSelectionEngine {
     /// 🔥 在多个候选中查找高置信度匹配
     /// 🆕 新增精确文本匹配优先级，避免"已关注"被识别为"关注"
     fn find_high_confidence_match(
-        candidates: &[CandidateElement],
+        candidates: &[LegacyCandidateElement],
         target_fingerprint: &ElementFingerprint,
         min_confidence: f32,
         debug_logs: &mut Vec<String>,
-    ) -> Option<CandidateElement> {
-        let mut best_match: Option<CandidateElement> = None;
+    ) -> Option<LegacyCandidateElement> {
+        let mut best_match: Option<LegacyCandidateElement> = None;
         let mut best_similarity = 0.0f32;
 
         // 🎯 步骤1：严格精确匹配（文本 + content-desc + resource-id）
@@ -694,7 +819,7 @@ impl SmartSelectionEngine {
     /// 执行点击操作
     async fn execute_clicks(
         device_id: &str,
-        elements: &[CandidateElement],
+        elements: &[LegacyCandidateElement],
         selection_config: &SelectionConfig,
     ) -> Result<BatchExecutionResult> {
         let mut click_results = Vec::new();
@@ -1145,9 +1270,9 @@ impl SmartSelectionEngine {
 
     /// 🔥 去重逻辑：基于位置+文本的去重
     fn deduplicate_candidates(
-        candidates: Vec<CandidateElement>,
+        candidates: Vec<LegacyCandidateElement>,
         tolerance: i32,
-    ) -> Vec<CandidateElement> {
+    ) -> Vec<LegacyCandidateElement> {
         use std::collections::HashSet;
 
         let original_count = candidates.len();
@@ -1271,9 +1396,9 @@ impl SmartSelectionEngine {
     }
 }
 
-/// 候选元素结构
+/// Legacy候选元素结构（与types::smart_selection::CandidateElement不同）
 #[derive(Debug, Clone)]
-pub struct CandidateElement {
+pub struct LegacyCandidateElement {
     pub element: UIElement,
     pub confidence: f32,
     pub fingerprint_match: Option<FingerprintMatchResult>,
