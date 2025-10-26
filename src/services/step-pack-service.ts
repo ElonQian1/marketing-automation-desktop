@@ -196,37 +196,23 @@ export async function importStepPack(stepPack: StepPack): Promise<StepPackImport
       executionMode: 'relaxed'
     };
 
+    // 🎯 使用 ChainSpecV3::ByInline 格式，匹配 Rust 后端类型定义
     const spec = {
-      chainId: `step_pack_analysis_${stepPack.id}`,
-      orderedSteps: [{
+      chain_id: `step_pack_analysis_${stepPack.id}`,
+      ordered_steps: [{
         ref: null,
         inline: {
-          stepId: stepPack.id,
-          elementContext: config.element_context,
-          action: {
-            type: 'analyze',
-            params: {}
-          },
-          selectionMode: 'match-original',
-          batchConfig: null
+          step_id: stepPack.id,
+          action: 'smart_selection', // 使用 Rust 枚举中的有效动作
+          params: config.element_context
         }
       }],
       threshold: 0.5, // 较低阈值，获取更多策略选项
       mode: 'dryrun', // 只分析不执行
-      quality: {
-        enableOfflineValidation: true,
-        enableControlledFallback: true,
-        enableRegionOptimization: true
-      },
-      constraints: {
-        maxAnalysisTime: 10000,
-        maxExecutionTime: 5000,
-        allowFallback: true
-      },
-      validation: {
-        requireUniqueness: false,
-        minConfidence: 0.3
-      }
+      // 可选配置保持默认值
+      quality: {},
+      constraints: {},
+      validation: {}
     };
 
     await invoke('execute_chain_test_v3', {

@@ -121,21 +121,47 @@ export const UnifiedCompactStrategyMenu: React.FC<UnifiedCompactStrategyMenuProp
         enable_fallback: true
       };
 
-      // 🚀 调用V3执行命令（不是分析，而是执行）
-      const jobId = await invoke<string>('execute_chain_test_v3', {
-        analysisId: `execution_test_${currentCard.id}`,
+      // 🚀 调用V3执行命令（不是分析，而是执行）- 使用正确的envelope + spec格式
+      const envelope = {
         deviceId: elementData.uid,
-        chainId: 'strategy_execution_test',
-        steps: [{
-          step_id: `exec_${currentCard.id}`,
-          action: 'execute', // 🎯 关键：执行而不是分析
-          params: executionConfig
+        app: {
+          package: 'com.xingin.xhs',
+          activity: null
+        },
+        snapshot: {
+          analysis_id: `execution_test_${currentCard.id}`,
+          screen_hash: null,
+          xml_cache_id: null
+        },
+        executionMode: 'relaxed'
+      };
+
+      // 🎯 使用 ChainSpecV3::ByInline 格式，匹配 Rust 后端类型定义（snake_case）
+      const spec = {
+        // ByInline 变体的必需字段（snake_case）
+        chain_id: 'strategy_execution_test',
+        ordered_steps: [{
+          ref: null,
+          inline: {
+            step_id: `exec_${currentCard.id}`,
+            action: 'smart_tap', // 使用 Rust 枚举中的有效动作
+            params: {
+              element_context: executionConfig.element_context || {},
+              execution_mode: executionConfig.execution_mode || 'relaxed'
+            }
+          }
         }],
         threshold: 0.5,
-        mode: 'sequential',
-        dryrun: false, // 🎯 真实执行
-        enableFallback: true,
-        timeoutMs: 15000
+        mode: 'execute', // 真实执行模式
+        // 可选配置保持默认值
+        quality: {},
+        constraints: {},
+        validation: {}
+      };
+
+      const jobId = await invoke<string>('execute_chain_test_v3', {
+        envelope,
+        spec
       });
       
       console.log('✅ [UnifiedCompactStrategyMenu] V3策略执行已启动', { 

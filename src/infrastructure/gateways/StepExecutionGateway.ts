@@ -425,38 +425,27 @@ export class StepExecutionGateway {
         executionMode: 'relaxed' // 使用宽松模式
       };
 
+      // 🎯 使用 ChainSpecV3::ByInline 格式，匹配 Rust 后端类型定义
       const spec = {
-        // 使用ByInline模式传递完整步骤信息
-        chainId: `step_execution_${request.stepId}`,
-        orderedSteps: [{
+        // ByInline 变体的必需字段（snake_case）
+        chain_id: `step_execution_${request.stepId}`,
+        ordered_steps: [{
           ref: null,
           inline: {
-            stepId: request.stepId || `step_${Date.now()}`,
-            elementContext: executionConfig.element_context,
-            action: {
-              type: request.actionParams.type,
-              params: request.actionParams
-            },
-            selectionMode: executionConfig.execution_mode.selection_mode,
-            batchConfig: executionConfig.execution_mode.batch_config
+            step_id: request.stepId || `step_${Date.now()}`,
+            action: 'smart_tap', // 使用 Rust 枚举中的有效动作
+            params: {
+              element_context: executionConfig.element_context,
+              execution_mode: executionConfig.execution_mode
+            }
           }
         }],
         threshold: 0.7,
         mode: request.mode === 'match-only' ? 'dryrun' : 'execute',
-        quality: {
-          enableOfflineValidation: true,
-          enableControlledFallback: true,
-          enableRegionOptimization: true
-        },
-        constraints: {
-          maxAnalysisTime: 15000,
-          maxExecutionTime: 10000,
-          allowFallback: true
-        },
-        validation: {
-          requireUniqueness: true,
-          minConfidence: 0.6
-        }
+        // 可选配置保持默认值，让 Rust 后端处理
+        quality: {},
+        constraints: {},
+        validation: {}
       };
 
       // 调用V3执行命令，使用正确的参数格式

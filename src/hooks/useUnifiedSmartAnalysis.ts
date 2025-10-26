@@ -147,48 +147,35 @@ export function useUnifiedSmartAnalysis(_options: UseUnifiedSmartAnalysisOptions
       };
 
       const spec = {
-        // 使用ByInline模式传递完整分析信息
-        chainId: `unified_analysis_${cardId}`,
-        orderedSteps: [{
+        // 🎯 使用 ChainSpecV3::ByInline 格式，匹配 Rust 后端类型定义
+        chain_id: `unified_analysis_${cardId}`,
+        ordered_steps: [{
           ref: null,
           inline: {
-            stepId: cardId,
-            elementContext: {
-              snapshotId: cardId,
-              elementPath: elementData.xpath || '',
-              elementText: elementData.text,
-              elementBounds: elementData.bounds,
-              elementType: elementData.className,
-              keyAttributes: {
-                'resource-id': elementData.resourceId || '',
-                'class': elementData.className || '',
-                'text': elementData.text || ''
+            step_id: cardId,
+            action: 'smart_find_element', // 使用 Rust 枚举中的有效动作
+            params: {
+              element_context: {
+                snapshot_id: cardId,
+                element_path: elementData.xpath || '',
+                element_text: elementData.text,
+                element_bounds: elementData.bounds,
+                element_type: elementData.className,
+                key_attributes: {
+                  'resource-id': elementData.resourceId || '',
+                  'class': elementData.className || '',
+                  'text': elementData.text || ''
+                }
               }
-            },
-            action: {
-              type: 'analyze',
-              params: {}
-            },
-            selectionMode: 'match-original',
-            batchConfig: null
+            }
           }
         }],
         threshold: 0.5, // 较低阈值获取更多策略
         mode: 'dryrun', // 只分析不执行
-        quality: {
-          enableOfflineValidation: true,
-          enableControlledFallback: true,
-          enableRegionOptimization: true
-        },
-        constraints: {
-          maxAnalysisTime: 15000,
-          maxExecutionTime: 10000,
-          allowFallback: true
-        },
-        validation: {
-          requireUniqueness: false, // 分析时允许多个候选
-          minConfidence: 0.3 // 分析时使用更低的置信度阈值
-        }
+        // 可选配置保持默认值
+        quality: {},
+        constraints: {},
+        validation: {}
       };
 
       const result = await invoke<Record<string, unknown>>('execute_chain_test_v3', {

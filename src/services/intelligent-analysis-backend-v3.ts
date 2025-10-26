@@ -172,34 +172,23 @@ export class IntelligentAnalysisBackendV3 {
         executionMode: 'relaxed'
       };
 
+      // 🎯 使用 ChainSpecV3::ByInline 格式，匹配 Rust 后端类型定义
       const spec = {
-        chainId: chainSpec.chain_id,
-        orderedSteps: chainSpec.steps.map(step => ({
+        chain_id: chainSpec.chain_id,
+        ordered_steps: chainSpec.steps.map(step => ({
           ref: null,
           inline: {
-            stepId: step.step_id,
-            elementContext: step.params?.elementContext || step.params || {},
-            action: step.action,
-            selectionMode: 'match-original',
-            batchConfig: null
+            step_id: step.step_id,
+            action: step.action === 'tap' ? 'smart_tap' : 'smart_find_element', // 映射到 Rust 枚举
+            params: step.params?.elementContext || step.params || {}
           }
         })),
         threshold: chainSpec.threshold || 0.8,
         mode: config.dryrun ? 'dryrun' : 'execute',
-        quality: {
-          enableOfflineValidation: true,
-          enableControlledFallback: config.enable_fallback !== false,
-          enableRegionOptimization: true
-        },
-        constraints: {
-          maxAnalysisTime: config.timeout_ms || 60000,
-          maxExecutionTime: (config.timeout_ms || 60000) / 2,
-          allowFallback: config.enable_fallback !== false
-        },
-        validation: {
-          requireUniqueness: true,
-          minConfidence: chainSpec.threshold || 0.8
-        }
+        // 可选配置保持默认值
+        quality: {},
+        constraints: {},
+        validation: {}
       };
 
       const result = await invoke<ExecutionResult>('execute_chain_test_v3', {

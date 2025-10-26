@@ -176,35 +176,20 @@ export function useIntelligentAnalysisReal(options: UseIntelligentAnalysisRealOp
 
       const spec = {
         chainId: `real_analysis_${stepId}`,
-        orderedSteps: [{
+        ordered_steps: [{
           ref: null,
           inline: {
-            stepId: stepId,
-            elementContext: config.elementContext,
-            action: {
-              type: 'analyze',
-              params: {}
-            },
-            selectionMode: 'match-original',
-            batchConfig: null
+            step_id: stepId,
+            action: 'smart_find_element', // 使用 Rust 枚举中的有效动作
+            params: config.elementContext
           }
         }],
         threshold: 0.5,
         mode: 'dryrun', // 分析模式
-        quality: {
-          enableOfflineValidation: true,
-          enableControlledFallback: true,
-          enableRegionOptimization: true
-        },
-        constraints: {
-          maxAnalysisTime: 15000,
-          maxExecutionTime: 5000,
-          allowFallback: true
-        },
-        validation: {
-          requireUniqueness: false,
-          minConfidence: 0.3
-        }
+        // 可选配置保持默认值
+        quality: {},
+        constraints: {},
+        validation: {}
       };
 
       const response = await invoke<AnalysisJobResponse>(
