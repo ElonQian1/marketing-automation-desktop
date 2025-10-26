@@ -129,22 +129,22 @@ export const UnifiedCompactStrategyMenu: React.FC<UnifiedCompactStrategyMenuProp
           activity: null
         },
         snapshot: {
-          analysis_id: `execution_test_${currentCard.id}`,
-          screen_hash: null,
-          xml_cache_id: null
+          analysisId: `execution_test_${currentCard.id}`,
+          screenHash: null,
+          xmlCacheId: null
         },
         executionMode: 'relaxed'
       };
 
-      // 🎯 使用 ChainSpecV3::ByInline 格式，匹配 Rust 后端类型定义（snake_case）
+      // 🎯 使用 ChainSpecV3::ByInline 格式，匹配 Rust 后端类型定义（camelCase）
       const spec = {
-        // ByInline 变体的必需字段（snake_case）
-        chain_id: 'strategy_execution_test',
-        ordered_steps: [{
+        // ByInline 变体的必需字段（camelCase for ChainSpecV3）
+        chainId: 'strategy_execution_test',
+        orderedSteps: [{
           ref: null,
           inline: {
-            step_id: `exec_${currentCard.id}`,
-            action: 'smart_tap', // 使用 Rust 枚举中的有效动作
+            stepId: `exec_${currentCard.id}`,
+            action: 'smart_tap', // tagged enum action field (snake_case value)
             params: {
               element_context: executionConfig.element_context || {},
               execution_mode: executionConfig.execution_mode || 'relaxed'
@@ -152,7 +152,7 @@ export const UnifiedCompactStrategyMenu: React.FC<UnifiedCompactStrategyMenuProp
           }
         }],
         threshold: 0.5,
-        mode: 'execute', // 真实执行模式
+        mode: 'execute', // ChainMode::Execute (snake_case value)
         // 可选配置保持默认值
         quality: {},
         constraints: {},

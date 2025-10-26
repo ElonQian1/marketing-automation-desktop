@@ -140,6 +140,35 @@ export const PRESET_FIELDS: Record<Exclude<MatchStrategy, 'custom'> | 'custom', 
     "bounds",
     "class",
     "text"
+  ],
+  // 🧠 智能策略系统核心策略
+  'intelligent': [
+    "resource-id",
+    "text",
+    "content-desc",
+    "class",
+    "package",
+    "first_child_text",
+    "parent_class"
+  ],
+  'a11y': [
+    "text",
+    "content-desc",
+    "resource-id",
+    "accessible_text"
+  ],
+  'bounds_near': [
+    "bounds",
+    "class",
+    "text",
+    "resource-id"
+  ],
+  'xpath_fuzzy': [
+    "xpath",
+    "class",
+    "text",
+    "content-desc",
+    "resource-id"
   ]
 };
 

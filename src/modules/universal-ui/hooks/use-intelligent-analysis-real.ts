@@ -176,11 +176,11 @@ export function useIntelligentAnalysisReal(options: UseIntelligentAnalysisRealOp
 
       const spec = {
         chainId: `real_analysis_${stepId}`,
-        ordered_steps: [{
+        orderedSteps: [{
           ref: null,
           inline: {
-            step_id: stepId,
-            action: 'smart_find_element', // 使用 Rust 枚举中的有效动作
+            stepId: stepId,
+            action: 'smart_find_element', // tagged enum action field (snake_case value)
             params: config.elementContext
           }
         }],

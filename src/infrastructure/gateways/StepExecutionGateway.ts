@@ -427,13 +427,13 @@ export class StepExecutionGateway {
 
       // 🎯 使用 ChainSpecV3::ByInline 格式，匹配 Rust 后端类型定义
       const spec = {
-        // ByInline 变体的必需字段（snake_case）
-        chain_id: `step_execution_${request.stepId}`,
-        ordered_steps: [{
+        // ByInline 变体的必需字段（camelCase for ChainSpecV3）
+        chainId: `step_execution_${request.stepId}`,
+        orderedSteps: [{
           ref: null,
           inline: {
-            step_id: request.stepId || `step_${Date.now()}`,
-            action: 'smart_tap', // 使用 Rust 枚举中的有效动作
+            stepId: request.stepId || `step_${Date.now()}`,
+            action: 'smart_tap', // tagged enum action field (snake_case value)
             params: {
               element_context: executionConfig.element_context,
               execution_mode: executionConfig.execution_mode

@@ -24,6 +24,11 @@ export type MatchStrategy =
   // 特殊策略组
   | 'hidden-element-parent'
   | 'custom'
+  // 智能策略系统核心
+  | 'intelligent'           // 智能匹配（多策略级联）
+  | 'a11y'                  // 无障碍匹配（文本和描述）
+  | 'bounds_near'           // 邻域匹配（坐标范围）
+  | 'xpath_fuzzy'           // XPath模糊匹配
   // 智能策略系统新增
   | 'self-anchor'
   | 'child-anchor'

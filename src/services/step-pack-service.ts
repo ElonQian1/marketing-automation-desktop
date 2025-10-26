@@ -198,12 +198,12 @@ export async function importStepPack(stepPack: StepPack): Promise<StepPackImport
 
     // 🎯 使用 ChainSpecV3::ByInline 格式，匹配 Rust 后端类型定义
     const spec = {
-      chain_id: `step_pack_analysis_${stepPack.id}`,
-      ordered_steps: [{
+      chainId: `step_pack_analysis_${stepPack.id}`,
+      orderedSteps: [{
         ref: null,
         inline: {
-          step_id: stepPack.id,
-          action: 'smart_selection', // 使用 Rust 枚举中的有效动作
+          stepId: stepPack.id,
+          action: 'smart_selection', // tagged enum action field (snake_case value)
           params: config.element_context
         }
       }],

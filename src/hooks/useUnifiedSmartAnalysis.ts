@@ -148,12 +148,12 @@ export function useUnifiedSmartAnalysis(_options: UseUnifiedSmartAnalysisOptions
 
       const spec = {
         // 🎯 使用 ChainSpecV3::ByInline 格式，匹配 Rust 后端类型定义
-        chain_id: `unified_analysis_${cardId}`,
-        ordered_steps: [{
+        chainId: `unified_analysis_${cardId}`,
+        orderedSteps: [{
           ref: null,
           inline: {
-            step_id: cardId,
-            action: 'smart_find_element', // 使用 Rust 枚举中的有效动作
+            stepId: cardId,
+            action: 'smart_find_element', // tagged enum action field (snake_case value)
             params: {
               element_context: {
                 snapshot_id: cardId,

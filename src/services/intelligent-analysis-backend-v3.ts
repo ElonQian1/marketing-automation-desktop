@@ -174,12 +174,12 @@ export class IntelligentAnalysisBackendV3 {
 
       // 🎯 使用 ChainSpecV3::ByInline 格式，匹配 Rust 后端类型定义
       const spec = {
-        chain_id: chainSpec.chain_id,
-        ordered_steps: chainSpec.steps.map(step => ({
+        chainId: chainSpec.chain_id,
+        orderedSteps: chainSpec.steps.map(step => ({
           ref: null,
           inline: {
-            step_id: step.step_id,
-            action: step.action === 'tap' ? 'smart_tap' : 'smart_find_element', // 映射到 Rust 枚举
+            stepId: step.step_id,
+            action: step.action === 'tap' ? 'smart_tap' : 'smart_find_element', // tagged enum action field
             params: step.params?.elementContext || step.params || {}
           }
         })),

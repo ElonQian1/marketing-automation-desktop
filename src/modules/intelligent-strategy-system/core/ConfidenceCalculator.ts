@@ -116,6 +116,10 @@ export class ConfidenceCalculator {
       'xpath-first-index': 55,  // XPath索引：较好的平衡
       'xpath-all-elements': 45, // XPath全部：批量但复杂
       'hidden-element-parent': 50, // 隐藏元素：特殊场景
+      'intelligent': 80,        // 智能匹配：多策略级联，最智能
+      'a11y': 65,              // 无障碍匹配：文本描述稳定
+      'bounds_near': 55,       // 邻域匹配：坐标范围中等稳定
+      'xpath_fuzzy': 60,       // XPath模糊：较为灵活
       'self-anchor': 75,        // 自我锚点：最稳定
       'child-anchor': 70,       // 子锚点：很稳定
       'parent-clickable': 65,   // 父可点击：稳定
