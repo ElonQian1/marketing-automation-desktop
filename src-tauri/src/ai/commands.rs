@@ -1,6 +1,5 @@
 // src-tauri/src/ai/commands.rs
-use crate::ai::{config, router::AIRouter, types::*, provider::ChatChunk};
-use crate::config::AISettings;
+use crate::ai::{config::{self, AISettings}, router::AIRouter, types::*, provider::ChatChunk};
 use anyhow::Result;
 use serde_json::Value;
 use tauri::{AppHandle, Emitter, State};

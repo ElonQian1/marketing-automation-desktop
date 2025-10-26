@@ -63,11 +63,12 @@ use super::events::{emit_progress, emit_complete};
 use super::types::{
     ChainSpecV3, ChainMode, ContextEnvelope, Phase, StepScore, Summary, ResultPayload, Point,
     StepRefOrInline, QualitySettings, ConstraintSettings, ValidationSettings, ExecutionMode,
-    SingleStepAction,
+    SingleStepAction, InlineStep,
 };
 use crate::types::{FilterConfig, SortOrder, ExecutionLimits}; // 添加必需的类型导入
 use tauri::AppHandle;
 use std::time::Instant;
+use std::collections::HashMap;
 
 // 添加必要的导入以支持真实设备操作
 use crate::services::quick_ui_automation::adb_dump_ui_xml;
@@ -150,19 +151,44 @@ async fn execute_chain_by_ref(
 
     tracing::warn!("⚠️ TODO: 从缓存读取 ChainResult，当前使用空步骤列表");
     
+    // 🧠 由于没有从缓存读取到有效的候选步骤，触发智能策略分析
+    tracing::info!("🧠 触发智能策略分析：缓存中无有效候选步骤");
+    
+    emit_progress(
+        app,
+        Some(analysis_id.to_string()),
+        None,
+        Phase::DeviceReady,
+        None,
+        Some("缓存无候选步骤，启动智能策略分析 (Step 0-6)".to_string()),
+        None,
+    )?;
+    
     // TODO: 实现从缓存读取 ordered_steps 和策略详情
-    // 暂时返回成功
+    // TODO: 如果缓存为空或无效，调用智能策略系统生成候选策略
+    //
+    // 集成步骤：
+    // 1. 尝试从缓存读取 ChainResult
+    // 2. 如果缓存无效或为空，获取目标元素信息
+    // 3. 调用 StrategyDecisionEngine 进行 Step 0-6 分析
+    // 4. 将分析结果转换为 ordered_steps 并执行
+    
+    tracing::warn!("🚧 缓存读取和智能分析集成待实现");
+    tracing::warn!("   TODO: 实现缓存读取逻辑");
+    tracing::warn!("   TODO: 集成 src/modules/intelligent-strategy-system/core/StrategyDecisionEngine");
+    
+    // 暂时返回失败，提示需要智能分析
     emit_complete(
         app,
         Some(analysis_id.to_string()),
         Some(Summary {
             adopted_step_id: None,
             elapsed_ms: Some(start_time.elapsed().as_millis() as u64),
-            reason: Some("TODO: 实现缓存读取逻辑".to_string()),
+            reason: Some("缓存无候选步骤，需要智能策略分析".to_string()),
         }),
         None,
         Some(ResultPayload {
-            ok: true,
+            ok: false,  // 标记为失败，提示需要重新分析
             coords: None,
             candidate_count: Some(0),
             screen_hash_now: None,
@@ -197,6 +223,67 @@ async fn execute_chain_by_inline(
 ) -> Result<(), String> {
     let start_time = Instant::now();
     let device_id = &envelope.device_id;
+
+    // 🧠 总是启动智能策略分析（Step 0-6分析）进行执行优化
+    // 智能策略分析作为通用增强机制，提升V3执行效果，而不仅是兜底方案
+    let mut final_ordered_steps = ordered_steps;
+    let mut generated_steps = Vec::new();
+    
+    tracing::info!("🧠 启动智能策略分析以优化执行：原候选数={}, threshold={:.2}", 
+        ordered_steps.len(), threshold);
+    
+    // 发送智能分析开始事件
+    emit_progress(
+        app,
+        Some(analysis_id.to_string()),
+        None,
+        Phase::DeviceReady,
+        None,
+        Some("启动智能策略分析 (Step 0-6) 优化执行".to_string()),
+        None,
+    )?;
+    
+    // 先获取UI XML用于智能分析
+    let ui_xml = adb_dump_ui_xml(device_id.to_string()).await
+        .map_err(|e| format!("获取UI快照失败: {}", e))?;
+        
+    // 调用智能策略分析进行执行优化
+    match perform_intelligent_strategy_analysis(device_id, None, &ui_xml).await {
+        Ok(intelligent_steps) => {
+            if !intelligent_steps.is_empty() {
+                tracing::info!("🧠 智能策略分析成功，生成 {} 个优化候选步骤", intelligent_steps.len());
+                
+                // 🎯 策略选择：智能分析结果 vs 原有步骤
+                if ordered_steps.is_empty() {
+                    // 如果没有原始候选，直接使用智能分析结果
+                    tracing::info!("🔄 使用智能分析步骤（原无候选）");
+                    generated_steps = intelligent_steps;
+                    final_ordered_steps = &generated_steps;
+                } else {
+                    // 如果有原始候选，合并两者并去重优化
+                    tracing::info!("🔄 合并智能分析结果与原候选步骤");
+                    generated_steps = merge_and_optimize_steps(ordered_steps, intelligent_steps);
+                    final_ordered_steps = &generated_steps;
+                }
+            } else {
+                tracing::warn!("🧠 智能策略分析未生成候选步骤，使用原有步骤");
+            }
+        }
+        Err(e) => {
+            tracing::warn!("🧠 智能策略分析失败: {}", e);
+            tracing::info!("   继续使用原有候选步骤，不影响正常执行");
+        }
+    }
+    
+    emit_progress(
+        app,
+        Some(analysis_id.to_string()),
+        None,
+        Phase::MatchStarted,
+        None,
+        Some(format!("智能分析完成，准备执行 {} 个优化候选步骤", final_ordered_steps.len())),
+        None,
+    )?;
 
     // ====== Phase 1: device_ready ======
     emit_progress(
@@ -241,15 +328,18 @@ async fn execute_chain_by_inline(
     tracing::info!("✅ 获取UI快照成功，hash: {}", &screen_hash[..8]);
 
     // ====== Phase 3: match_started ======
-    emit_progress(
-        app,
-        Some(analysis_id.to_string()),
-        None,
-        Phase::MatchStarted,
-        None,
-        Some(format!("开始评分 {} 个链式步骤", ordered_steps.len())),
-        None,
-    )?;
+    if final_ordered_steps.as_ptr() == ordered_steps.as_ptr() {
+        // 没有进行智能分析，正常发送match_started事件
+        emit_progress(
+            app,
+            Some(analysis_id.to_string()),
+            None,
+            Phase::MatchStarted,
+            None,
+            Some(format!("开始评分 {} 个链式步骤", final_ordered_steps.len())),
+            None,
+        )?;
+    }
 
     // ====== Phase 4: 决定是否重新评分（Strict vs Relaxed） ======
     let mut step_scores: Vec<StepScore> = Vec::new();
@@ -260,7 +350,7 @@ async fn execute_chain_by_inline(
     match envelope.execution_mode {
         ExecutionMode::Strict => {
             tracing::info!("🔍 严格模式：总是重新评分所有步骤");
-            for (idx, step) in ordered_steps.iter().enumerate() {
+            for (idx, step) in final_ordered_steps.iter().enumerate() {
                 let step_id = if let Some(ref_id) = &step.r#ref {
                     ref_id.clone()
                 } else if let Some(inline) = &step.inline {
@@ -304,7 +394,7 @@ async fn execute_chain_by_inline(
             }
             
             // 当前实现：即使在宽松模式下也进行重新评分以确保准确性
-            for (idx, step) in ordered_steps.iter().enumerate() {
+            for (idx, step) in final_ordered_steps.iter().enumerate() {
                 let step_id = if let Some(ref_id) = &step.r#ref {
                     ref_id.clone()
                 } else if let Some(inline) = &step.inline {
@@ -368,7 +458,7 @@ async fn execute_chain_by_inline(
         }
         
         // 找到对应的步骤定义
-        let step = ordered_steps.iter()
+        let step = final_ordered_steps.iter()
             .find(|s| {
                 let step_id = if let Some(ref_id) = &s.r#ref {
                     ref_id.as_str()
@@ -835,6 +925,341 @@ fn create_smart_selection_protocol_for_execution(target_text: &str, mode: &str) 
     
     tracing::info!("🎯 [执行协议] 目标文本: '{}', 模式: {}, clickable=true, enabled=true, min_confidence=0.7", target_text, mode);
     Ok(protocol)
+}
+
+/// 判断是否需要触发智能策略分析（Step 0-6分析）
+/// 
+/// 触发条件：
+/// 1. 没有候选步骤（ordered_steps为空）
+/// 2. 候选步骤质量不足（缺少关键参数）
+/// 3. 质量设置要求进行智能分析
+pub fn should_trigger_intelligent_analysis(ordered_steps: &[StepRefOrInline], quality: &QualitySettings) -> bool {
+    // 1. 如果没有候选步骤，必须进行智能分析
+    if ordered_steps.is_empty() {
+        tracing::info!("🧠 触发智能分析原因：无候选步骤");
+        return true;
+    }
+    
+    // 2. 检查步骤质量：是否存在缺少关键参数的步骤
+    let mut has_invalid_steps = false;
+    for (idx, step) in ordered_steps.iter().enumerate() {
+        if let Some(inline) = &step.inline {
+            // 检查SmartSelection步骤是否有有效的目标文本参数
+            match &inline.action {
+                SingleStepAction::SmartSelection => {
+                    let has_target_text = inline.params.get("targetText").and_then(|v| v.as_str()).is_some()
+                        || inline.params.get("contentDesc").and_then(|v| v.as_str()).is_some()
+                        || inline.params.get("text").and_then(|v| v.as_str()).is_some()
+                        || inline.params.get("smartSelection").and_then(|ss| {
+                            ss.get("targetText").and_then(|v| v.as_str())
+                                .or_else(|| ss.get("contentDesc").and_then(|v| v.as_str()))
+                                .or_else(|| ss.get("text").and_then(|v| v.as_str()))
+                        }).is_some();
+                    
+                    if !has_target_text {
+                        tracing::warn!("🧠 步骤 {} SmartSelection缺少目标文本参数", idx);
+                        has_invalid_steps = true;
+                    }
+                }
+                SingleStepAction::Tap => {
+                    let has_target_text = inline.params.get("text").and_then(|v| v.as_str()).is_some()
+                        || inline.params.get("contentDesc").and_then(|v| v.as_str()).is_some()
+                        || inline.params.get("targetText").and_then(|v| v.as_str()).is_some();
+                    
+                    if !has_target_text {
+                        tracing::warn!("🧠 步骤 {} Tap缺少目标文本参数", idx);
+                        has_invalid_steps = true;
+                    }
+                }
+                _ => {
+                    // 其他类型的步骤暂时认为有效
+                }
+            }
+        }
+    }
+    
+    if has_invalid_steps {
+        tracing::info!("🧠 触发智能分析原因：存在参数不完整的步骤");
+        return true;
+    }
+    
+    // 3. 检查质量设置是否要求智能分析
+    // TODO: 根据实际的 QualitySettings 结构添加更多条件
+    // 例如：quality.enable_intelligent_fallback == true
+    
+    // 4. 如果候选步骤数量过少，也可以考虑触发智能分析
+    if ordered_steps.len() < 2 {
+        tracing::info!("🧠 触发智能分析原因：候选步骤过少 ({})", ordered_steps.len());
+        return true;
+    }
+    
+    false
+}
+
+/// 执行智能策略分析 (Step 0-6) 优化V3执行效果
+/// 
+/// 🎯 新定位：通用执行增强机制，总是运行以提升V3执行质量
+/// - 不仅是缺少候选步骤时的兜底方案
+/// - 作为常规优化流程，提供更智能的执行策略
+/// - 与原有步骤合并，形成最优执行方案
+/// 
+/// 集成路径：
+/// - 前端：src/modules/intelligent-strategy-system/core/StrategyDecisionEngine
+/// - 后端：当前函数作为桥梁，调用前端分析并优化结果
+pub async fn perform_intelligent_strategy_analysis(
+    device_id: &str,
+    target_element_info: Option<&str>, // 目标元素的信息，如XPath或属性
+    ui_xml: &str,
+) -> Result<Vec<StepRefOrInline>, String> {
+    tracing::info!("🧠 开始智能策略分析 (Step 0-6)");
+    
+    // 集成现有的智能策略系统
+    // 
+    // 实现步骤：
+    // 1. 解析目标元素信息，提取元素属性
+    // 2. 调用前端的 StrategyDecisionEngine::analyzeAndRecommend()
+    // 3. 将返回的策略候选转换为 StepRefOrInline 格式
+    // 4. 按置信度排序，返回候选步骤列表
+    
+    // Step 1: 准备元素信息
+    let element_context = if let Some(info) = target_element_info {
+        info.to_string()
+    } else {
+        tracing::warn!("🧠 缺少目标元素信息，尝试从XML智能提取");
+        extract_intelligent_targets_from_xml(ui_xml)
+    };
+    
+    // Step 2: 调用前端智能策略系统
+    match call_frontend_intelligent_analysis(&element_context, ui_xml, device_id).await {
+        Ok(steps) => {
+            tracing::info!("✅ 智能策略分析完成，生成 {} 个候选步骤", steps.len());
+            return Ok(steps);
+        }
+        Err(e) => {
+            tracing::warn!("⚠️ 智能策略分析失败，使用回退策略: {}", e);
+        }
+    }
+    
+    // Step 3: 回退策略 - 返回基础候选步骤
+    // 
+    // 返回格式应该类似：
+    // vec![
+    //     StepRefOrInline {
+    //         r#ref: None,
+    //         inline: Some(SingleStepSpecV3 {
+    //             step_id: "智能生成-self-anchor".to_string(),
+    //             action: SingleStepAction::SmartSelection,
+    //             params: json!({
+    //                 "smartSelection": {
+    //                     "targetText": "从分析中提取的目标文本",
+    //                     "strategy": "self-anchor"
+    //                 }
+    //             }),
+    //             fingerprint: None,
+    //         })
+    //     },
+    //     // ... 更多候选策略
+    // ]
+    
+    tracing::info!("🔄 使用回退策略");
+    Ok(generate_fallback_strategy_steps())
+}
+
+/// 调用前端智能策略分析系统
+async fn call_frontend_intelligent_analysis(
+    element_context: &str,
+    ui_xml: &str,
+    device_id: &str,
+) -> Result<Vec<StepRefOrInline>, anyhow::Error> {
+    use crate::services::intelligent_analysis_service::IntelligentAnalysisRequest;
+    
+    tracing::info!("🔗 调用前端智能策略分析系统");
+    
+    // 构建分析请求
+    let request = IntelligentAnalysisRequest {
+        analysis_id: format!("v3_intelligent_{}", chrono::Utc::now().timestamp_millis()),
+        device_id: device_id.to_string(),
+        ui_xml_content: ui_xml.to_string(),
+        target_element_hint: Some(element_context.to_string()),
+        analysis_mode: "step0_to_6".to_string(),
+        max_candidates: 5,
+        min_confidence: 0.6,
+    };
+    
+    // 调用智能分析服务（目前使用模拟版本，后续集成真实的前端调用）
+    let analysis_result = crate::services::intelligent_analysis_service::mock_intelligent_analysis(request).await?;
+    
+    // 转换结果为 V3 格式
+    let steps = convert_analysis_result_to_v3_steps(analysis_result)?;
+    
+    tracing::info!("✅ 前端智能分析完成，转换为 {} 个 V3 步骤", steps.len());
+    Ok(steps)
+}
+
+/// 从 XML 中智能提取目标元素
+fn extract_intelligent_targets_from_xml(ui_xml: &str) -> String {
+    // 简单实现：查找常见的可交互元素
+    let common_targets = [
+        "关注", "收藏", "点赞", "评论", "分享", "播放", "暂停", "下载", "购买", "加入购物车",
+        "登录", "注册", "提交", "确认", "取消", "返回", "搜索", "筛选", "排序", "刷新"
+    ];
+    
+    for target in &common_targets {
+        if ui_xml.contains(target) {
+            tracing::info!("🎯 在XML中发现目标: {}", target);
+            return target.to_string();
+        }
+    }
+    
+    tracing::warn!("❓ 未在XML中识别出明确目标，使用通用分析");
+    "通用交互元素".to_string()
+}
+
+/// 生成回退策略步骤
+fn generate_fallback_strategy_steps() -> Vec<StepRefOrInline> {
+    vec![
+        StepRefOrInline {
+            r#ref: None,
+            inline: Some(InlineStep {
+                step_id: "fallback_smart_tap".to_string(),
+                action: SingleStepAction::SmartTap,
+                params: serde_json::json!({
+                    "strategy": "fallback",
+                    "confidence": 0.5,
+                    "description": "回退策略：基础智能点击"
+                }),
+            }),
+        },
+    ]
+}
+
+/// 转换智能分析结果为 V3 步骤格式
+fn convert_analysis_result_to_v3_steps(
+    analysis_result: crate::services::intelligent_analysis_service::IntelligentAnalysisResult
+) -> Result<Vec<StepRefOrInline>, anyhow::Error> {
+    let mut steps = Vec::new();
+    
+    for (index, candidate) in analysis_result.candidates.iter().enumerate() {
+        let step = StepRefOrInline {
+            r#ref: None,
+            inline: Some(InlineStep {
+                step_id: format!("intelligent_step_{}", index + 1),
+                action: match candidate.strategy.as_str() {
+                    "tap" | "click" | "self_anchor" => SingleStepAction::SmartTap,
+                    "find" | "locate" => SingleStepAction::SmartFindElement,
+                    _ => SingleStepAction::SmartTap,
+                },
+                params: serde_json::json!({
+                    "strategy": candidate.strategy.clone(),
+                    "confidence": candidate.confidence,
+                    "reasoning": candidate.reasoning.clone(),
+                    "element_info": candidate.element_info
+                }),
+            }),
+        };
+        
+        steps.push(step);
+    }
+    
+    tracing::info!("🔄 转换了 {} 个智能分析候选为 V3 步骤", steps.len());
+    Ok(steps)
+}
+
+/// 合并并优化原始步骤与智能分析步骤
+/// 
+/// 策略：
+/// 1. 智能分析步骤优先（通常质量更高）
+/// 2. 去重相似功能的步骤
+/// 3. 保留多样性，避免步骤过于单一
+fn merge_and_optimize_steps(
+    original_steps: &[StepRefOrInline],
+    intelligent_steps: Vec<StepRefOrInline>
+) -> Vec<StepRefOrInline> {
+    let mut merged_steps = Vec::new();
+    
+    // 🎯 策略1: 优先添加智能分析生成的步骤（通常质量更高）
+    tracing::info!("🔄 优先合并 {} 个智能分析步骤", intelligent_steps.len());
+    for step in intelligent_steps {
+        merged_steps.push(step);
+    }
+    
+    // 🎯 策略2: 添加原始步骤，但避免功能重复
+    tracing::info!("🔄 合并 {} 个原始步骤（去重处理）", original_steps.len());
+    for original_step in original_steps {
+        let is_duplicate = check_if_step_duplicate(&merged_steps, original_step);
+        if !is_duplicate {
+            merged_steps.push(original_step.clone());
+        } else {
+            if let Some(step_id) = get_step_id(original_step) {
+                tracing::debug!("🔄 跳过重复步骤: {}", step_id);
+            }
+        }
+    }
+    
+    // 🎯 策略3: 限制总步骤数量，避免执行时间过长
+    const MAX_MERGED_STEPS: usize = 8;
+    if merged_steps.len() > MAX_MERGED_STEPS {
+        tracing::info!("🔄 限制步骤数量从 {} 到 {}", merged_steps.len(), MAX_MERGED_STEPS);
+        merged_steps.truncate(MAX_MERGED_STEPS);
+    }
+    
+    tracing::info!("✅ 步骤合并完成：智能分析 + 原始步骤 = {} 个优化候选", merged_steps.len());
+    merged_steps
+}
+
+/// 检查步骤是否与已有步骤功能重复
+fn check_if_step_duplicate(existing_steps: &[StepRefOrInline], new_step: &StepRefOrInline) -> bool {
+    let new_step_target = extract_step_target_text(new_step);
+    if new_step_target.is_none() {
+        return false; // 无法提取目标文本的步骤不认为重复
+    }
+    
+    let new_target = new_step_target.unwrap();
+    
+    // 检查是否有相同目标文本的步骤
+    for existing_step in existing_steps {
+        if let Some(existing_target) = extract_step_target_text(existing_step) {
+            // 简单的文本相似性检查
+            if new_target == existing_target || 
+               new_target.contains(&existing_target) || 
+               existing_target.contains(&new_target) {
+                return true;
+            }
+        }
+    }
+    
+    false
+}
+
+/// 提取步骤的目标文本用于重复检查
+fn extract_step_target_text(step: &StepRefOrInline) -> Option<String> {
+    if let Some(inline) = &step.inline {
+        // 尝试从多个可能的参数字段提取目标文本
+        let target_text = inline.params.get("targetText")
+            .and_then(|v| v.as_str())
+            .or_else(|| inline.params.get("text").and_then(|v| v.as_str()))
+            .or_else(|| inline.params.get("contentDesc").and_then(|v| v.as_str()))
+            .or_else(|| {
+                inline.params.get("smartSelection")
+                    .and_then(|ss| ss.get("targetText"))
+                    .and_then(|v| v.as_str())
+            });
+        
+        target_text.map(|s| s.to_string())
+    } else {
+        None
+    }
+}
+
+/// 获取步骤ID用于日志
+fn get_step_id(step: &StepRefOrInline) -> Option<String> {
+    if let Some(inline) = &step.inline {
+        Some(inline.step_id.clone())
+    } else if let Some(ref_id) = &step.r#ref {
+        Some(ref_id.clone())
+    } else {
+        None
+    }
 }
 
 // TODO 6: 获取缓存的步骤分数

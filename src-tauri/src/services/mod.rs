@@ -17,6 +17,7 @@ pub mod page_analyzer_service; // 新增：页面分析服务
 pub mod prospecting; // 新增：精准获客模块
 pub mod lead_hunt; // 新增：精准获客Lead Hunt服务
 pub mod batch_analysis; // 新增：批量AI分析服务
+pub mod intelligent_analysis_service; // V3智能分析服务
 pub mod universal_ui_page_analyzer; // 新增：Universal UI 页面分析器
                                     // pub mod simple_xml_parser;  // 已删除：简化XML解析器，统一使用智能解析器
 pub mod commands; // Tauri 命令封装

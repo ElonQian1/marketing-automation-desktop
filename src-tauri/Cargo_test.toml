@@ -1,0 +1,13 @@
+[package]
+name = "intelligence_test_manual"
+version = "0.1.0"
+edition = "2021"
+
+[[bin]]
+name = "intelligence_test_manual"
+path = "test_intelligence_manual.rs"
+
+[dependencies]
+employee-gui = { path = "." }
+tokio = { version = "1.0", features = ["full"] }
+serde_json = "1.0"

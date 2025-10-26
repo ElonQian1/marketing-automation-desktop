@@ -2,6 +2,8 @@
 
 项目通常都会 npm run tauri dev 热重载启动着，编译好代码后不要重新启动，只需要执行 cargo check 这样的命令检查 Rust 代码即可。
 
+没事不要执行 cargo clean
+
 ## TL;DR
 
 - **目标**：保持"模块优先 + 模块内分层"，避免因同名子目录（如 strategies/services/utils/…）误改他模组。

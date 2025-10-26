@@ -309,7 +309,21 @@ impl SmartSelectionEngine {
         for element in search_elements {
             if Self::matches_text_criteria(&element, protocol) {
                 // 🔥 应用排除层过滤
-                if Self::should_exclude(&element, protocol) {
+                let should_be_excluded = Self::should_exclude(&element, protocol);
+                
+                // 🔍 调试：检查负面积元素是否被排除
+                if let Some(bounds_str) = &element.bounds {
+                    if let Some(bounds) = ElementBounds::from_bounds_string(bounds_str) {
+                        let width = bounds.right - bounds.left;
+                        let height = bounds.bottom - bounds.top;
+                        if width <= 0 || height <= 0 {
+                            info!("🔍 [负面积检查] 发现负面积元素: bounds_str='{}', width={}, height={}, 是否被排除={}", 
+                                bounds_str, width, height, should_be_excluded);
+                        }
+                    }
+                }
+                
+                if should_be_excluded {
                     continue;
                 }
 
@@ -326,33 +340,147 @@ impl SmartSelectionEngine {
         // 🔥 应用去重逻辑
         let mut candidates = Self::deduplicate_candidates(candidates, 10); // 10px 容差
 
-        // 按视觉位置排序（Y轴优先，然后X轴）
-        candidates.sort_by(|a, b| {
-            let a_bounds = a
-                .element
-                .bounds
-                .as_ref()
-                .and_then(|b| ElementBounds::from_bounds_string(b));
-            let b_bounds = b
-                .element
-                .bounds
-                .as_ref()
-                .and_then(|b| ElementBounds::from_bounds_string(b));
+        // 🔍 排序前调试：显示所有候选元素信息
+        info!("🔍 [调试] 排序前候选元素详情:");
+        for (i, candidate) in candidates.iter().enumerate() {
+            let bounds_info = if let Some(bounds_str) = &candidate.element.bounds {
+                if let Some(bounds) = ElementBounds::from_bounds_string(bounds_str) {
+                    // 🔧 修复：确保面积计算正确处理异常边界
+                    let width = (bounds.right - bounds.left).abs();
+                    let height = (bounds.bottom - bounds.top).abs();
+                    let area = width * height;
+                    let center_x = (bounds.left + bounds.right) / 2;
+                    let center_y = (bounds.top + bounds.bottom) / 2;
+                    
+                    // 🚨 检测并标记异常边界
+                    let boundary_status = if (bounds.right - bounds.left) <= 0 || (bounds.bottom - bounds.top) <= 0 {
+                        " [异常边界!]"
+                    } else {
+                        ""
+                    };
+                    
+                    format!("bounds=[{},{},{},{}], area={}, center=({},{}){}", 
+                        bounds.left, bounds.top, bounds.right, bounds.bottom, area, center_x, center_y, boundary_status)
+                } else {
+                    format!("bounds='{}' (解析失败)", bounds_str)
+                }
+            } else {
+                "bounds=None".to_string()
+            };
+            
+            let text = candidate.element.text.as_deref().unwrap_or("");
+            let desc = candidate.element.content_desc.as_deref().unwrap_or("");
+            let clickable = candidate.element.clickable.unwrap_or(false);
+            
+            info!("🔍   候选[{}]: text='{}', desc='{}', clickable={}, confidence={:.3}, {}", 
+                i, text, desc, clickable, candidate.confidence, bounds_info);
+        }
 
+        // 智能排序：优先考虑可点击性、文本匹配度和元素质量，而不是简单的Y坐标
+        candidates.sort_by(|a, b| {
+            // 1. 优先选择可点击的元素
+            let a_clickable = a.element.clickable.unwrap_or(false);
+            let b_clickable = b.element.clickable.unwrap_or(false);
+            if a_clickable != b_clickable {
+                return b_clickable.cmp(&a_clickable);
+            }
+
+            // 2. 优先选择有文本或content-desc的元素（避免选择SVG图标等装饰元素）
+            let a_has_text = !a.element.text.as_ref().unwrap_or(&String::new()).trim().is_empty() 
+                || !a.element.content_desc.as_ref().unwrap_or(&String::new()).trim().is_empty();
+            let b_has_text = !b.element.text.as_ref().unwrap_or(&String::new()).trim().is_empty() 
+                || !b.element.content_desc.as_ref().unwrap_or(&String::new()).trim().is_empty();
+            if a_has_text != b_has_text {
+                return b_has_text.cmp(&a_has_text);
+            }
+
+            // 3. 优先选择置信度高的元素
+            let confidence_cmp = b.confidence.partial_cmp(&a.confidence).unwrap_or(std::cmp::Ordering::Equal);
+            if confidence_cmp != std::cmp::Ordering::Equal {
+                return confidence_cmp;
+            }
+
+            // 4. 优先选择更具体的元素（面积更小）而不是大容器，避免选择整个用户条目容器
+            let a_bounds = a.element.bounds.as_ref().and_then(|b| ElementBounds::from_bounds_string(b));
+            let b_bounds = b.element.bounds.as_ref().and_then(|b| ElementBounds::from_bounds_string(b));
             match (a_bounds, b_bounds) {
                 (Some(a_bounds), Some(b_bounds)) => {
-                    let a_y = (a_bounds.top + a_bounds.bottom) / 2;
-                    let b_y = (b_bounds.top + b_bounds.bottom) / 2;
-                    let a_x = (a_bounds.left + a_bounds.right) / 2;
-                    let b_x = (b_bounds.left + b_bounds.right) / 2;
-
-                    a_y.cmp(&b_y).then(a_x.cmp(&b_x))
+                    // 计算元素面积，优先选择面积更小的元素（更具体的按钮而不是大容器）
+                    // 🔧 修复：确保面积计算为正值，处理边界异常情况
+                    let a_width = (a_bounds.right - a_bounds.left).abs();
+                    let a_height = (a_bounds.bottom - a_bounds.top).abs();
+                    let a_area = a_width * a_height;
+                    
+                    let b_width = (b_bounds.right - b_bounds.left).abs();
+                    let b_height = (b_bounds.bottom - b_bounds.top).abs(); 
+                    let b_area = b_width * b_height;
+                    
+                    // 🚨 检测异常边界并报告
+                    if (a_bounds.right - a_bounds.left) <= 0 || (a_bounds.bottom - a_bounds.top) <= 0 {
+                        debug!("🚨 [异常边界] A: left={}, right={}, top={}, bottom={} -> width={}, height={}", 
+                            a_bounds.left, a_bounds.right, a_bounds.top, a_bounds.bottom,
+                            a_bounds.right - a_bounds.left, a_bounds.bottom - a_bounds.top);
+                    }
+                    if (b_bounds.right - b_bounds.left) <= 0 || (b_bounds.bottom - b_bounds.top) <= 0 {
+                        debug!("🚨 [异常边界] B: left={}, right={}, top={}, bottom={} -> width={}, height={}", 
+                            b_bounds.left, b_bounds.right, b_bounds.top, b_bounds.bottom,
+                            b_bounds.right - b_bounds.left, b_bounds.bottom - b_bounds.top);
+                    }
+                    
+                    // 🔍 调试：显示面积比较过程
+                    let a_center_x = (a_bounds.left + a_bounds.right) / 2;
+                    let b_center_x = (b_bounds.left + b_bounds.right) / 2;
+                    let a_center_y = (a_bounds.top + a_bounds.bottom) / 2;
+                    let b_center_y = (b_bounds.top + b_bounds.bottom) / 2;
+                    
+                    debug!("🔍 [排序比较] A: area={}, center=({},{}), B: area={}, center=({},{})", 
+                        a_area, a_center_x, a_center_y, b_area, b_center_x, b_center_y);
+                    
+                    // 面积小的优先（具体按钮优先于容器）
+                    let area_cmp = a_area.cmp(&b_area);
+                    if area_cmp != std::cmp::Ordering::Equal {
+                        debug!("🔍 [排序结果] 按面积排序: {:?}", area_cmp);
+                        return area_cmp;
+                    }
+                    
+                    // 如果面积相同，再考虑距离屏幕中心的距离
+                    let screen_center_x = 540;
+                    let a_distance_from_center = (a_center_x - screen_center_x).abs();
+                    let b_distance_from_center = (b_center_x - screen_center_x).abs();
+                    
+                    let center_cmp = a_distance_from_center.cmp(&b_distance_from_center);
+                    debug!("🔍 [排序结果] 按屏幕中心距离排序: {:?}", center_cmp);
+                    center_cmp
                 }
                 (Some(_), None) => std::cmp::Ordering::Less,
                 (None, Some(_)) => std::cmp::Ordering::Greater,
                 (None, None) => std::cmp::Ordering::Equal,
             }
         });
+
+        // 🔍 排序后调试：显示最终排序结果
+        info!("🔍 [调试] 排序后候选元素顺序:");
+        for (i, candidate) in candidates.iter().take(5).enumerate() { // 只显示前5个
+            let bounds_info = if let Some(bounds_str) = &candidate.element.bounds {
+                if let Some(bounds) = ElementBounds::from_bounds_string(bounds_str) {
+                    let area = (bounds.right - bounds.left) * (bounds.bottom - bounds.top);
+                    let center_x = (bounds.left + bounds.right) / 2;
+                    let center_y = (bounds.top + bounds.bottom) / 2;
+                    format!("area={}, center=({},{})", area, center_x, center_y)
+                } else {
+                    "bounds解析失败".to_string()
+                }
+            } else {
+                "无bounds".to_string()
+            };
+            
+            let text = candidate.element.text.as_deref().unwrap_or("");
+            let desc = candidate.element.content_desc.as_deref().unwrap_or("");
+            let clickable = candidate.element.clickable.unwrap_or(false);
+            
+            info!("🔍   排序后[{}]: text='{}', desc='{}', clickable={}, confidence={:.3}, {}", 
+                i, text, desc, clickable, candidate.confidence, bounds_info);
+        }
 
         Ok(candidates)
     }
@@ -733,21 +861,57 @@ impl SmartSelectionEngine {
     fn matches_text_criteria(element: &UIElement, protocol: &SmartSelectionProtocol) -> bool {
         // 🎯 精确文本匹配：优先匹配目标文本
         if let Some(fingerprint) = &protocol.anchor.fingerprint.text_content {
+            debug!("🎯 保留目标按钮：检查元素 text='{}', desc='{}' 是否匹配目标 '{}'", 
+                element.text.as_deref().unwrap_or(""), 
+                element.content_desc.as_deref().unwrap_or(""),
+                fingerprint);
+            
             // 检查text属性
             if let Some(element_text) = &element.text {
                 if element_text.trim() == fingerprint.trim() {
+                    debug!("🎯 保留目标按钮：文本 '{}' 匹配目标 '{}' 的别名 '{}'", element_text, fingerprint, fingerprint);
                     return true;
                 }
             }
             // 检查content-desc属性
             if let Some(element_desc) = &element.content_desc {
                 if element_desc.trim() == fingerprint.trim() {
+                    debug!("🎯 保留目标按钮：描述 '{}' 匹配目标 '{}' 的别名 '{}'", element_desc, fingerprint, fingerprint);
                     return true;
                 }
             }
+            
+            // 🔍 检查多语言别名
+            if let Some(context) = &protocol.matching_context {
+                if let Some(aliases) = &context.i18n_aliases {
+                    if let Some(element_text) = &element.text {
+                        for alias in aliases {
+                            if element_text.contains(alias) {
+                                debug!("🎯 保留目标按钮：文本 '{}' 包含别名 '{}'", element_text, alias);
+                                return true;
+                            }
+                        }
+                    }
+                    if let Some(element_desc) = &element.content_desc {
+                        for alias in aliases {
+                            if element_desc.contains(alias) {
+                                debug!("🎯 保留目标按钮：描述 '{}' 包含别名 '{}'", element_desc, alias);
+                                return true;
+                            }
+                        }
+                    }
+                }
+            }
+            
+            // ❌ 如果有目标文本但不匹配，则拒绝此元素
+            debug!("❌ 排除不匹配元素：text='{}', desc='{}' 不匹配目标 '{}'", 
+                element.text.as_deref().unwrap_or(""), 
+                element.content_desc.as_deref().unwrap_or(""),
+                fingerprint);
+            return false;
         }
 
-        // 🔍 检查多语言别名
+        // 🔍 检查多语言别名（当没有目标文本时）
         if let Some(context) = &protocol.matching_context {
             if let Some(aliases) = &context.i18n_aliases {
                 if let Some(element_text) = &element.text {
@@ -759,8 +923,14 @@ impl SmartSelectionEngine {
             }
         }
 
-        // 🎯 如果没有指定目标文本，则匹配可点击元素
-        element.clickable.unwrap_or(false)
+        // ⚠️ 如果没有任何目标文本或别名，只能匹配可点击元素（这可能导致噪音）
+        let is_clickable = element.clickable.unwrap_or(false);
+        if is_clickable {
+            debug!("⚠️ 回退匹配：无目标文本，接受可点击元素 text='{}', desc='{}'", 
+                element.text.as_deref().unwrap_or(""), 
+                element.content_desc.as_deref().unwrap_or(""));
+        }
+        is_clickable
     }
 
     /// 计算元素置信度
@@ -843,6 +1013,27 @@ impl SmartSelectionEngine {
 
     /// 🔥 排除层过滤：检查元素是否应该被排除
     fn should_exclude(element: &UIElement, protocol: &SmartSelectionProtocol) -> bool {
+        // 🚨 首先排除异常边界的元素（负面积或无效尺寸）
+        if let Some(bounds_str) = &element.bounds {
+            if let Some(bounds) = ElementBounds::from_bounds_string(bounds_str) {
+                let width = bounds.right - bounds.left;
+                let height = bounds.bottom - bounds.top;
+                let area = width * height;
+                
+                // 排除边界异常的元素（负宽度或负高度）
+                if width <= 0 || height <= 0 {
+                    info!("🚨 [异常边界排除] 成功排除负面积元素: bounds_str='{}', parsed=[{},{},{},{}], width={}, height={}, area={}, class='{}', text='{}'", 
+                        bounds_str,
+                        bounds.left, bounds.top, bounds.right, bounds.bottom, 
+                        width, height, area,
+                        element.class.as_deref().unwrap_or("N/A"),
+                        element.text.as_deref().unwrap_or("N/A")
+                    );
+                    return true; // 排除此元素
+                }
+            }
+        }
+
         // 🆕 获取自动排除开关（默认启用）
         let auto_exclude_enabled = protocol
             .matching_context

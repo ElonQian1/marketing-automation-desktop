@@ -1,10 +1,10 @@
 // src-tauri/src/ai/router.rs
 use crate::ai::{
+    config::AISettings,
     provider::AIProvider,
     providers::{hunyuan::HunyuanProvider, openai::OpenAIProvider},
     types::*,
 };
-use crate::config::AISettings;
 use anyhow::Result;
 use serde_json::Value;
 use std::sync::Arc;
