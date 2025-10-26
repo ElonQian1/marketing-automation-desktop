@@ -54,6 +54,19 @@ pub fn parse_bounds_value(v: &Value) -> Result<Rect> {
     // 字符串格式
     if let Some(s) = v.as_str() {
         debug!("🔧 尝试字符串格式解析");
+        
+        // 首先尝试解析为JSON对象（如果字符串包含JSON）
+        if s.trim().starts_with('{') && s.trim().ends_with('}') {
+            debug!("🔧 字符串看起来像JSON，尝试解析为JSON对象");
+            if let Ok(json_obj) = serde_json::from_str::<Value>(s) {
+                if let Some(obj) = json_obj.as_object() {
+                    debug!("✅ 成功将字符串解析为JSON对象");
+                    return parse_bounds_object(obj);
+                }
+            }
+        }
+        
+        // 如果不是JSON格式，尝试传统的字符串格式
         return parse_bounds_str(s);
     }
     

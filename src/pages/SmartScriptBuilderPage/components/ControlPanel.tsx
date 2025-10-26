@@ -76,7 +76,12 @@ const ControlPanel: React.FC<ControlPanelProps> = ({
             icon={<ThunderboltOutlined />}
             loading={isExecuting}
             disabled={steps.length === 0}
-            onClick={onExecuteScript}
+            onClick={() => {
+              console.log('🔴 [ControlPanel] 执行智能脚本按钮被点击!');
+              console.log('📋 当前步骤数:', steps.length);
+              console.log('⚡ 正在执行状态:', isExecuting);
+              onExecuteScript();
+            }}
           >
             {isExecuting ? "智能执行中..." : "执行智能脚本"}
           </Button>

@@ -2,16 +2,17 @@
 // module: ui | layer: ui | role: component
 // summary: UI 组件
 
-// 循环开始卡片主组件 - 模块化版本
+// 循环开始卡片 - 简化设计，支持拖拽
 
 import React, { useState } from "react";
-import { Card, message } from "antd";
-import { noDragProps } from '../universal-ui/dnd/noDrag';
-import { LoopHeader } from './LoopHeader';
-import { LoopConfigForm } from './LoopConfigForm';
+import { Card, Space, Typography, InputNumber, Button, Tooltip, message } from "antd";
+import { RedoOutlined, SettingOutlined, DeleteOutlined, PlayCircleOutlined } from "@ant-design/icons";
+import ConfirmPopover from '../universal-ui/common-popover/ConfirmPopover';
 import type { LoopStartCardProps } from './types';
 import type { LoopConfig } from "../../types/loopScript";
-import "../DraggableStepCard/styles/loopTheme.css";
+import "./styles.css";
+
+const { Text } = Typography;
 
 export const LoopStartCard: React.FC<LoopStartCardProps> = ({
   step,
@@ -23,21 +24,22 @@ export const LoopStartCard: React.FC<LoopStartCardProps> = ({
   onToggle,
 }) => {
   const [isEditing, setIsEditing] = useState(false);
-  const [tempConfig, setTempConfig] = useState<LoopConfig>(
-    loopConfig || {
-      loopId: (step.parameters?.loop_id as string) || `loop_${Date.now()}`,
-      name: (step.parameters?.loop_name as string) || "新循环",
-      iterations: (step.parameters?.iterations as number) || 1,
-      enabled: true,
-    }
+  const [tempIterations, setTempIterations] = useState<number>(
+    loopConfig?.iterations || (step.parameters?.loop_count as number) || 1
   );
 
   // 保存配置
   const handleSave = () => {
     try {
-      onLoopConfigUpdate(tempConfig);
+      const updatedConfig: LoopConfig = {
+        loopId: loopConfig?.loopId || (step.parameters?.loop_id as string) || `loop_${Date.now()}`,
+        name: loopConfig?.name || (step.parameters?.loop_name as string) || "新循环",
+        iterations: tempIterations,
+        enabled: loopConfig?.enabled ?? true,
+      };
+      onLoopConfigUpdate(updatedConfig);
       setIsEditing(false);
-      message.success("循环配置已保存");
+      message.success("循环次数已更新");
     } catch (error) {
       message.error("保存失败，请重试");
     }
@@ -45,64 +47,105 @@ export const LoopStartCard: React.FC<LoopStartCardProps> = ({
 
   // 取消编辑
   const handleCancel = () => {
-    setTempConfig(
-      loopConfig || {
-        loopId: (step.parameters?.loop_id as string) || `loop_${Date.now()}`,
-        name: (step.parameters?.loop_name as string) || "新循环",
-        iterations: (step.parameters?.iterations as number) || 1,
-        enabled: true,
-      }
-    );
+    setTempIterations(loopConfig?.iterations || (step.parameters?.loop_count as number) || 1);
     setIsEditing(false);
   };
 
-  // 临时配置更新
-  const handleTempConfigChange = (updates: Partial<LoopConfig>) => {
-    setTempConfig((prev) => ({ ...prev, ...updates }));
-  };
+  const currentIterations = loopConfig?.iterations || (step.parameters?.loop_count as number) || 1;
+  const loopName = loopConfig?.name || (step.parameters?.loop_name as string) || step.name || "循环";
 
   return (
     <Card
-      {...noDragProps}
-      className="loop-start-card light-theme-force"
+      className={`loop-card loop-start-card light-theme-force ${isDragging ? 'dragging' : ''}`}
       size="small"
-      style={{
-        width: '100%',
-        marginBottom: 8, // 🎯 与普通卡片一致的间距
-        border: '2px solid #0ea5e9', // 🎯 更细的边框，与普通卡片保持一致的视觉权重
-        borderRadius: 8, // 🎯 与普通卡片一致的圆角
-        boxShadow: isDragging 
-          ? '0 4px 16px rgba(14, 165, 233, 0.25)' 
-          : '0 2px 8px rgba(14, 165, 233, 0.15)', // 🎯 更轻的阴影
-        position: 'relative',
-        background: 'linear-gradient(135deg, #f0f9ff 0%, #f8fafc 100%)', // 🎯 更浅的背景
-        minHeight: 'auto', // 🎯 允许自然高度，不强制最小高度
-        ...(isDragging ? { 
-          transform: 'rotate(1deg)', // 🎯 更小的旋转角度
-          zIndex: 1000 
-        } : {}),
-      }}
       bordered={false}
-      title={
-        <LoopHeader
-          tempConfig={tempConfig}
-          isEditing={isEditing}
-          onEditStart={() => setIsEditing(true)}
-          onEditSave={handleSave}
-          onEditCancel={handleCancel}
-          onTempConfigChange={handleTempConfigChange}
-          onDeleteLoop={onDeleteLoop}
-        />
-      }
     >
-      {/* 🎯 移除装饰性元素，减少视觉复杂度 */}
+      {/* 左侧循环指示器 */}
+      <div className="loop-indicator loop-start-indicator" />
       
-      {/* 配置表单 - 简化显示 */}
-      <LoopConfigForm
-        tempConfig={tempConfig}
-        isEditing={isEditing}
-        onTempConfigChange={handleTempConfigChange}
-      />
+      {/* 顶部标题栏 */}
+      <div className="loop-card-header">
+        <Space size="small">
+          <RedoOutlined className="loop-icon" />
+          <Text strong className="loop-title">{loopName}</Text>
+          <Text type="secondary" className="loop-badge">循环开始</Text>
+        </Space>
+        
+        <Space size={4}>
+          <Tooltip title="编辑循环次数">
+            <Button
+              type="text"
+              size="small"
+              icon={<SettingOutlined />}
+              onClick={() => setIsEditing(!isEditing)}
+              className="loop-action-btn"
+            />
+          </Tooltip>
+          <Tooltip title="删除循环">
+            <ConfirmPopover
+              mode="default"
+              title="确认删除循环"
+              description="将删除循环开始和结束标记，循环内的步骤会保留"
+              onConfirm={() => {
+                const loopId = loopConfig?.loopId || (step.parameters?.loop_id as string);
+                if (loopId) {
+                  onDeleteLoop(loopId);
+                }
+              }}
+              okText="删除"
+              cancelText="取消"
+            >
+              <Button
+                type="text"
+                size="small"
+                danger
+                icon={<DeleteOutlined />}
+                className="loop-action-btn"
+              />
+            </ConfirmPopover>
+          </Tooltip>
+        </Space>
+      </div>
+
+      {/* 循环配置区域 */}
+      <div className="loop-card-body">
+        {isEditing ? (
+          <Space direction="vertical" size="small" style={{ width: '100%' }}>
+            <Space size="small">
+              <Text type="secondary">循环次数:</Text>
+              <InputNumber
+                min={1}
+                max={999}
+                value={tempIterations}
+                onChange={(val) => setTempIterations(val || 1)}
+                size="small"
+                style={{ width: 80 }}
+              />
+              <Button type="primary" size="small" onClick={handleSave}>
+                保存
+              </Button>
+              <Button size="small" onClick={handleCancel}>
+                取消
+              </Button>
+            </Space>
+          </Space>
+        ) : (
+          <Space size="middle">
+            <Space size="small">
+              <PlayCircleOutlined style={{ color: '#1890ff' }} />
+              <Text type="secondary">执行次数:</Text>
+              <Text strong style={{ fontSize: 16 }}>{currentIterations}</Text>
+            </Space>
+          </Space>
+        )}
+      </div>
+      
+      {/* 底部提示 */}
+      <div className="loop-card-footer">
+        <Text type="secondary" style={{ fontSize: 12 }}>
+          👇 将步骤拖拽到此循环内
+        </Text>
+      </div>
     </Card>
   );
 };

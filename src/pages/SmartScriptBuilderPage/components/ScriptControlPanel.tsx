@@ -72,7 +72,13 @@ const ScriptControlPanel: React.FC<ScriptControlPanelProps> = ({
         <Button
           type="primary"
           icon={<PlayCircleOutlined />}
-          onClick={onExecuteScript}
+          onClick={() => {
+            console.log('🔴 [ScriptControlPanel] 执行脚本按钮被点击!');
+            console.log('📋 当前步骤数:', steps.length);
+            console.log('📱 当前设备ID:', currentDeviceId);
+            console.log('⚡ 正在执行状态:', isExecuting);
+            onExecuteScript();
+          }}
           loading={isExecuting}
           disabled={!currentDeviceId || steps.length === 0}
           block

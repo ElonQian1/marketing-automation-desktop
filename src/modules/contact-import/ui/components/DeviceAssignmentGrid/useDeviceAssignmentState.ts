@@ -82,7 +82,7 @@ export function useDeviceAssignmentState(value?: Record<string, Omit<DeviceAssig
     setRowState(prev => { const next = { ...prev, [deviceId]: { ...prev[deviceId], ...patch } }; onChange?.(next); return next; });
   };
 
-  const refreshCount = async (deviceId: string) => {
+  const refreshCount = useCallback(async (deviceId: string) => {
     // 检查设备是否仍在列表中且在线
     const device = devices?.find(d => d.id === deviceId);
     if (!device) {
@@ -99,9 +99,9 @@ export function useDeviceAssignmentState(value?: Record<string, Omit<DeviceAssig
     setLoadingIds(prev => ({ ...prev, [deviceId]: true }));
     try { const c = await getDeviceContactCount(deviceId); setCounts(prev => ({ ...prev, [deviceId]: c })); }
     finally { setLoadingIds(prev => ({ ...prev, [deviceId]: false })); }
-  };
+  }, [devices, getDeviceContactCount]);
 
-  const refreshAllCounts = async () => {
+  const refreshAllCounts = useCallback(async () => {
     const list = devices || [];
     // 仅对在线设备查询
     const onlineDevices = list.filter(d => d.isOnline());
@@ -109,7 +109,7 @@ export function useDeviceAssignmentState(value?: Record<string, Omit<DeviceAssig
     
     const queue = [...onlineDevices.map(d => d.id)];
     while (queue.length) { const id = queue.shift(); if (!id) break; await refreshCount(id); }
-  };
+  }, [devices, refreshCount]);
 
   useEffect(() => {
     let canceled = false;
@@ -135,11 +135,12 @@ export function useDeviceAssignmentState(value?: Record<string, Omit<DeviceAssig
         setCounts({});
         console.log('🧹 [DeviceAssignment] 设备为空，清空联系人计数');
       } else {
-        void refreshAllCounts();
+        // 异步调用，避免在渲染期间更新状态
+        setTimeout(() => refreshAllCounts(), 0);
       }
     }, 250);
     return () => clearTimeout(timer);
-  }, [devices]);
+  }, [devices, refreshAllCounts]);
 
   const autoAssignRange = useCallback((deviceId: string, count: number) => {
     const n = Math.max(1, Math.floor(count || 0));

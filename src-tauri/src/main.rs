@@ -55,6 +55,7 @@ use services::contact_storage::commands::{
 };
 use services::contact_verification::verify_contacts_fast; // 新增：快速验证服务
 use services::crash_debugger::*;
+use services::diagnostic_service::{get_adb_path_cmd, get_environment_info, test_device_responsiveness, run_full_diagnostic}; // 新增：诊断服务
 use services::employee_service::EmployeeService;
 use services::log_bridge::LOG_COLLECTOR; // 仅用于设置 app handle
 use services::navigation_bar_detector::{detect_navigation_bar, click_navigation_button, get_navigation_configs};
@@ -346,6 +347,11 @@ fn main() {
             // 后端健康检查命令
             backend_ping,
             analysis_health_check,
+            // 系统诊断命令
+            get_adb_path_cmd,
+            get_environment_info,
+            test_device_responsiveness,
+            run_full_diagnostic,
             
             // ========== 智能分析命令 (V2 → V3 迁移文档) ==========
             // 
