@@ -415,7 +415,7 @@ impl SmartSelectionEngine {
         // 🎯 步骤1：严格精确匹配（文本 + content-desc + resource-id）
         
         // 1.1 精确文本匹配
-        if let Some(target_text) = &target_fingerprint.text {
+        if let Some(target_text) = &target_fingerprint.text_content {
             for candidate in candidates {
                 if let Some(candidate_text) = &candidate.element.text {
                     // 严格相等匹配，区分大小写，去除首尾空格
@@ -462,7 +462,7 @@ impl SmartSelectionEngine {
         
         debug_logs.push(format!(
             "⚠️ 未找到任何精确匹配，继续模糊匹配 (text: {:?}, desc: {:?}, resource_id: {:?})",
-            target_fingerprint.text, target_fingerprint.content_desc, target_fingerprint.resource_id
+            target_fingerprint.text_content, target_fingerprint.content_desc, target_fingerprint.resource_id
         ));
         
         // 🔍 步骤2：模糊相似度匹配

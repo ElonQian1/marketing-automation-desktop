@@ -50,54 +50,26 @@ import { useAuthStore } from "../stores/authStore";
 
 // 页面组件导入
 import InspectorPage from "../pages/InspectorPage";
-import PermissionTestPage from "../pages/PermissionTestPage";
 import AdbCenterPage from "../pages/adb/AdbCenterPage";
 import SmartScriptBuilderPageNativeWrapper from "../pages/native-wrappers/SmartScriptBuilderPage.native";
-// import RealTimeDeviceMonitorPage from "../pages/device-monitor/RealTimeDeviceMonitorPage";
-import { TestIntelligentAnalysisAdapter } from "../components/universal-ui/element-selection/TestIntelligentAnalysisAdapter";
 import SmartVcfImporter from "./SmartVcfImporter";
 import TemplateLibrary from "./template/TemplateLibrary";
 import ContactImportPage from "../pages/contact-import/ContactImportPage";
 import DatabaseDebugPage from "../pages/debug/DatabaseDebug";
-// import QuickPhoneMirror from "./QuickPhoneMirror";
 import { PageFinderView } from "./universal-ui/page-finder";
 import { ThemeSettingsPage } from "../pages/ThemeSettingsPage";
 import { NativeAntDashboard } from "./native-dashboard/NativeAntDashboard";
 import EmployeePageNativeWrapper from "../pages/native-wrappers/EmployeePage.native";
 
-// 原生 Ant Design 页面版本导入
-import { UnifiedAnalysisDemo } from "../pages/UnifiedAnalysisDemo";
-import { StrategyBackendDemoFixed } from "../pages/StrategyBackendDemoFixed";
+// 业务页面导入
 import { StatisticsPageNative } from "../pages/statistics/StatisticsPageNative";
 import { DeviceManagementPageNative } from "../pages/device-management/DeviceManagementPageNative";
 import { LoginPageNative } from "../pages/auth/LoginPageNative";
 import { PreciseAcquisitionPage } from "../pages/precise-acquisition/PreciseAcquisitionPage";
-import V2TestPage from "../pages/v2-test";
 
 // 优化后的商业化页面
 import { StatisticsPageOptimized } from "../pages/statistics/StatisticsPageOptimized";
 import { DeviceManagementPageOptimized } from "../pages/device-management/DeviceManagementPageOptimized";
-import BusinessComponentsDemo from "../pages/BusinessComponentsDemo";
-
-// Design Tokens 演示页面
-import { DesignTokensDemo } from "../pages/DesignTokensDemo";
-import ElementDiscoveryTestPage from "../pages/ElementDiscoveryTestPage";
-
-// 统一执行管道测试
-import TestUnifiedExecution from "../pages/test-unified-execution";
-
-// 智能分析真实演示
-import IntelligentAnalysisRealDemo from "../modules/universal-ui/pages/intelligent-analysis-real-demo.tsx";
-import AutoFillDemo from "../modules/universal-ui/pages/auto-fill-demo.tsx";
-import ConfidenceDemo from "../pages/confidence-demo";
-import SharedCacheDemo from "../pages/shared-cache-demo";
-import CompleteConfidenceDemo from "../pages/complete-confidence-demo";
-import SmartSelectionTestPage from "../pages/smart-selection-test";
-import ConfidenceSystemTest from "../pages/ConfidenceSystemTest";
-import { TestRealBackendIntegration } from "./test/TestRealBackendIntegration";
-import StrategyDemo from "../pages/StrategyDemo";
-import StrategyBackendDemo from "../pages/StrategyBackendDemo";
-import { ConfidenceDebugPanel } from "./confidence-debug-panel";
 
 const { Header, Sider, Content } = Layout;
 const { Title } = Typography;
@@ -164,11 +136,6 @@ const NativeAntDesignApp: React.FC = () => {
         ]
       : []),
     {
-      key: "permission-test",
-      icon: <SecurityScanOutlined />,
-      label: "权限测试",
-    },
-    {
       key: "smart-script-builder",
       icon: <RobotOutlined />,
       label: "智能脚本构建器",
@@ -189,96 +156,6 @@ const NativeAntDesignApp: React.FC = () => {
       label: "主题设置",
     },
     {
-      key: "design-tokens-demo",
-      icon: <BgColorsOutlined />,
-      label: "🎨 Design Tokens 演示",
-    },
-    {
-      key: "element-discovery-test",
-      icon: <EyeOutlined />,
-      label: "🧪 元素发现调试测试",
-    },
-    {
-      key: "intelligent-analysis-real-demo",
-      icon: <ThunderboltOutlined />,
-      label: "⚡ 智能分析（真实）",
-    },
-    {
-      key: "auto-fill-demo",
-      icon: <CheckCircleOutlined />,
-      label: "🎯 自动回填演示",
-    },
-    {
-      key: "confidence-demo",
-      icon: <AimOutlined />,
-      label: "📊 置信度显示演示",
-    },
-    {
-      key: "shared-cache-demo",
-      icon: <SyncOutlined />,
-      label: "🔄 共享缓存机制演示",
-    },
-    {
-      key: "complete-confidence-demo",
-      icon: <CheckCircleOutlined />,
-      label: "🎯 完整置信度系统演示",
-    },
-    {
-      key: "confidence-system-test",
-      icon: <ThunderboltOutlined />,
-      label: "🧪 置信度系统完整性测试",
-    },
-    {
-      key: "confidence-debug-panel",
-      icon: <SyncOutlined />,
-      label: "🔬 置信度调试面板",
-    },
-    {
-      key: "smart-selection-test",
-      icon: <AimOutlined />,
-      label: "🎯 智能选择功能测试",
-    },
-    {
-      key: "test-intelligent-analysis-adapter",
-      icon: <ThunderboltOutlined />,
-      label: "🧪 智能分析适配器测试",
-    },
-    {
-      key: "v2-test",
-      icon: <RobotOutlined />,
-      label: "🚀 V2执行链测试",
-    },
-    {
-      key: "test-real-backend-integration",
-      icon: <SyncOutlined />,
-      label: "🚀 真实后端集成测试",
-    },
-    {
-      key: "strategy-demo",
-      icon: <RobotOutlined />,
-      label: "🧠 策略选择器演示",
-    },
-    {
-      key: "strategy-backend-demo",
-      icon: <ThunderboltOutlined />,
-      label: "🚀 策略选择器后端集成",
-    },
-    {
-      key: "unified-analysis-demo",
-      icon: <SyncOutlined />,
-      label: "🔄 统一分析系统演示",
-    },
-    {
-      key: "strategy-backend-demo-fixed",
-      icon: <CheckCircleOutlined />,
-      label: "✅ 策略选择器修复版",
-    },
-    {
-      key: "test-unified-execution",
-      icon: <ThunderboltOutlined />,
-      label: "⚡ 统一执行管道测试",
-    },
-    {
       key: "statistics-native",
       icon: <DashboardOutlined />,
       label: "统计页面（原生）",
@@ -297,11 +174,6 @@ const NativeAntDesignApp: React.FC = () => {
       key: "device-management-optimized",
       icon: <MobileOutlined />,
       label: "📱 设备中心（商业版）",
-    },
-    {
-      key: "business-demo",
-      icon: <BgColorsOutlined />,
-      label: "🎨 商业组件演示",
     },
     {
       key: "login-native",
@@ -331,8 +203,6 @@ const NativeAntDesignApp: React.FC = () => {
         return <DatabaseDebugPage />;
       case "smart-vcf":
         return <SmartVcfImporter />;
-      case "permission-test":
-        return <PermissionTestPage />;
       case "smart-script-builder":
         return <SmartScriptBuilderPageNativeWrapper />;
       case "template-library":
@@ -341,42 +211,6 @@ const NativeAntDesignApp: React.FC = () => {
         return <PageFinderView />;
       case "theme-settings":
         return <ThemeSettingsPage />;
-      case "design-tokens-demo":
-        return <DesignTokensDemo />;
-      case "element-discovery-test":
-        return <ElementDiscoveryTestPage />;
-      case "intelligent-analysis-real-demo":
-        return <IntelligentAnalysisRealDemo />;
-      case "auto-fill-demo":
-        return <AutoFillDemo />;
-      case "confidence-demo":
-        return <ConfidenceDemo />;
-      case "shared-cache-demo":
-        return <SharedCacheDemo />;
-      case "complete-confidence-demo":
-        return <CompleteConfidenceDemo />;
-      case "confidence-system-test":
-        return <ConfidenceSystemTest />;
-      case "confidence-debug-panel":
-        return <ConfidenceDebugPanel />;
-      case "smart-selection-test":
-        return <SmartSelectionTestPage />;
-      case "test-intelligent-analysis-adapter":
-        return <TestIntelligentAnalysisAdapter />;
-      case "test-real-backend-integration":
-        return <TestRealBackendIntegration />;
-      case "strategy-demo":
-        return <StrategyDemo />;
-      case "strategy-backend-demo":
-        return <StrategyBackendDemo />;
-      case "unified-analysis-demo":
-        return <UnifiedAnalysisDemo />;
-      case "strategy-backend-demo-fixed":
-        return <StrategyBackendDemoFixed />;
-      case "test-unified-execution":
-        return <TestUnifiedExecution />;
-      case "v2-test":
-        return <V2TestPage />;
       case "statistics-native":
         return <StatisticsPageNative />;
       case "statistics-optimized":
@@ -385,8 +219,6 @@ const NativeAntDesignApp: React.FC = () => {
         return <DeviceManagementPageNative />;
       case "device-management-optimized":
         return <DeviceManagementPageOptimized />;
-      case "business-demo":
-        return <BusinessComponentsDemo />;
       case "login-native":
         return <LoginPageNative />;
       case "employee-native":
