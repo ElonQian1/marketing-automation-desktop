@@ -39,6 +39,10 @@ export interface ActionParams {
   // 点击操作参数
   click_type?: 'single' | 'double';
   double_click_interval?: number;
+  
+  // 输入操作高级参数
+  input_speed?: 'instant' | 'fast' | 'normal' | 'slow';
+  simulate_human?: boolean;
 }
 
 export interface ActionType {
@@ -70,7 +74,11 @@ export const ACTION_CONFIGS: Record<ActionTypeId, ActionConfig> = {
     color: '#fa8c16',
     description: '长按元素',
     hasParams: true,
-    defaultParams: { duration: 2000 },
+    defaultParams: { 
+      duration: 2000, 
+      repeat_count: 1, 
+      wait_between: false 
+    },
   },
   input: {
     icon: '✏️',
@@ -78,7 +86,12 @@ export const ACTION_CONFIGS: Record<ActionTypeId, ActionConfig> = {
     color: '#52c41a',
     description: '输入文本内容',
     hasParams: true,
-    defaultParams: { text: '', clear_before: false },
+    defaultParams: { 
+      text: '', 
+      clear_before: false, 
+      input_speed: 'normal', 
+      simulate_human: true 
+    },
   },
   swipe_up: {
     icon: '⬆️',
@@ -192,23 +205,42 @@ export const formatActionDescription = (action: ActionType): string => {
   const config = ACTION_CONFIGS[type];
   
   switch (type) {
+    case 'click':
+      const clickType = params?.click_type === 'double' ? '双击' : '单击';
+      const repeatText = (params?.repeat_count || 1) > 1 ? ` ${params?.repeat_count}次` : '';
+      return `${clickType}元素${repeatText}`;
+      
     case 'long_press':
-      return `长按元素${(params?.duration || 2000) / 1000}秒`;
+      const longPressRepeat = (params?.repeat_count || 1) > 1 ? ` ${params?.repeat_count}次` : '';
+      return `长按元素${(params?.duration || 2000) / 1000}秒${longPressRepeat}`;
+      
     case 'input':
       const clearText = params?.clear_before ? '清空后' : '';
-      return `${clearText}输入: ${params?.text || ''}`;
+      const speedText = params?.input_speed && params.input_speed !== 'normal' ? `(${params.input_speed})` : '';
+      return `${clearText}输入${speedText}: ${params?.text || ''}`;
+      
     case 'swipe_up':
-      return `向上滑动${params?.distance || 200}像素`;
+      const upRepeat = (params?.repeat_count || 1) > 1 ? ` ${params?.repeat_count}次` : '';
+      return `向上滑动${params?.distance || 200}像素${upRepeat}`;
+      
     case 'swipe_down':
-      return `向下滑动${params?.distance || 200}像素`;
+      const downRepeat = (params?.repeat_count || 1) > 1 ? ` ${params?.repeat_count}次` : '';
+      return `向下滑动${params?.distance || 200}像素${downRepeat}`;
+      
     case 'swipe_left':
-      return `向左滑动${params?.distance || 200}像素`;
+      const leftRepeat = (params?.repeat_count || 1) > 1 ? ` ${params?.repeat_count}次` : '';
+      return `向左滑动${params?.distance || 200}像素${leftRepeat}`;
+      
     case 'swipe_right':
-      return `向右滑动${params?.distance || 200}像素`;
+      const rightRepeat = (params?.repeat_count || 1) > 1 ? ` ${params?.repeat_count}次` : '';
+      return `向右滑动${params?.distance || 200}像素${rightRepeat}`;
+      
     case 'scroll':
       return `滚动到位置 (${params?.target_x || 0}, ${params?.target_y || 0})`;
+      
     case 'wait':
       return `等待${(params?.duration || 1000) / 1000}秒`;
+      
     default:
       return config.description;
   }

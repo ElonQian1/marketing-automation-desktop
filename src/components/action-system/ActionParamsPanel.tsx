@@ -11,7 +11,8 @@ import {
   Checkbox, 
   Space, 
   Card,
-  Typography 
+  Typography,
+  Select 
 } from 'antd';
 import { SettingOutlined } from '@ant-design/icons';
 import type { ActionType, ActionParams } from '../../types/action-types';
@@ -53,15 +54,43 @@ export const ActionParamsPanel: React.FC<ActionParamsPanelProps> = ({
               value={params.text || ''}
               onChange={(e) => updateParams({ text: e.target.value })}
               placeholder="请输入要输入的文本内容"
-              rows={2}
+              rows={3}
               size={size}
+              maxLength={500}
+              showCount
             />
+            
             <Checkbox
               checked={params.clear_before || false}
               onChange={(e) => updateParams({ clear_before: e.target.checked })}
             >
               输入前清空现有内容
             </Checkbox>
+            
+            <div style={{ marginTop: 12 }}>
+              <Text strong style={{ fontSize: 13 }}>输入速度</Text>
+            </div>
+            <Select
+              value={params.input_speed || 'normal'}
+              onChange={(value) => updateParams({ input_speed: value })}
+              style={{ width: '100%' }}
+              size={size}
+              options={[
+                { label: '极快 (无延迟)', value: 'instant' },
+                { label: '快速 (50ms延迟)', value: 'fast' },
+                { label: '正常 (100ms延迟)', value: 'normal' },
+                { label: '慢速 (200ms延迟)', value: 'slow' },
+              ]}
+            />
+            
+            <div style={{ marginTop: 8 }}>
+              <Checkbox
+                checked={params.simulate_human !== false}
+                onChange={(e) => updateParams({ simulate_human: e.target.checked })}
+              >
+                模拟人类输入节奏
+              </Checkbox>
+            </div>
           </Space>
         );
 
@@ -212,17 +241,65 @@ export const ActionParamsPanel: React.FC<ActionParamsPanelProps> = ({
             <div>
               <Text strong style={{ fontSize: 13 }}>长按时长 (毫秒)</Text>
             </div>
-            <Slider
+            <InputNumber
               value={params.duration || 2000}
               min={500}
-              max={5000}
+              max={10000}
               step={100}
-              onChange={(value) => updateParams({ duration: value })}
-              marks={{ 500: '0.5s', 2000: '2s', 5000: '5s' }}
+              onChange={(value) => updateParams({ duration: value || 2000 })}
+              placeholder="长按时长"
+              size={size}
+              style={{ width: '100%' }}
+              addonAfter="ms"
             />
             <Text type="secondary" style={{ fontSize: 12 }}>
-              当前: {((params.duration || 2000) / 1000).toFixed(1)}秒
+              建议: 0.5-3秒适合大多数场景，超过5秒可能触发系统手势
             </Text>
+            
+            <div style={{ marginTop: 12 }}>
+              <Text strong style={{ fontSize: 13 }}>执行次数</Text>
+            </div>
+            <InputNumber
+              value={params.repeat_count || 1}
+              min={1}
+              max={10}
+              step={1}
+              onChange={(value) => updateParams({ repeat_count: value || 1 })}
+              placeholder="执行次数"
+              size={size}
+              style={{ width: '100%' }}
+              addonAfter="次"
+            />
+            
+            {(params.repeat_count || 1) > 1 && (
+              <>
+                <div style={{ marginTop: 12 }}>
+                  <Checkbox
+                    checked={params.wait_between || false}
+                    onChange={(e) => updateParams({ wait_between: e.target.checked })}
+                  >
+                    长按之间等待间隔
+                  </Checkbox>
+                </div>
+                
+                {params.wait_between && (
+                  <div>
+                    <Text strong style={{ fontSize: 13 }}>间隔时长 (毫秒)</Text>
+                    <InputNumber
+                      value={params.wait_duration || 1000}
+                      min={100}
+                      max={5000}
+                      step={100}
+                      onChange={(value) => updateParams({ wait_duration: value || 1000 })}
+                      placeholder="间隔时长"
+                      size={size}
+                      style={{ width: '100%', marginTop: 4 }}
+                      addonAfter="ms"
+                    />
+                  </div>
+                )}
+              </>
+            )}
           </Space>
         );
 
@@ -271,16 +348,51 @@ export const ActionParamsPanel: React.FC<ActionParamsPanelProps> = ({
             <div>
               <Text strong style={{ fontSize: 13 }}>等待时长 (毫秒)</Text>
             </div>
-            <Slider
+            <InputNumber
               value={params.duration || 1000}
               min={100}
-              max={10000}
+              max={30000}
               step={100}
-              onChange={(value) => updateParams({ duration: value })}
-              marks={{ 100: '0.1s', 1000: '1s', 5000: '5s', 10000: '10s' }}
+              onChange={(value) => updateParams({ duration: value || 1000 })}
+              placeholder="等待时长"
+              size={size}
+              style={{ width: '100%' }}
+              addonAfter="ms"
             />
-            <Text type="secondary" style={{ fontSize: 12 }}>
-              当前: {((params.duration || 1000) / 1000).toFixed(1)}秒
+            
+            <div style={{ marginTop: 12 }}>
+              <Text strong style={{ fontSize: 13 }}>快速选择</Text>
+            </div>
+            <Space wrap>
+              {[
+                { label: '0.5秒', value: 500 },
+                { label: '1秒', value: 1000 },
+                { label: '2秒', value: 2000 },
+                { label: '3秒', value: 3000 },
+                { label: '5秒', value: 5000 },
+                { label: '10秒', value: 10000 },
+              ].map(({ label, value }) => (
+                <button
+                  key={value}
+                  onClick={() => updateParams({ duration: value })}
+                  style={{
+                    padding: '4px 8px',
+                    border: '1px solid #d9d9d9',
+                    borderRadius: '4px',
+                    background: (params.duration === value) ? '#1890ff' : '#fff',
+                    color: (params.duration === value) ? '#fff' : '#000',
+                    cursor: 'pointer',
+                    fontSize: '12px'
+                  }}
+                >
+                  {label}
+                </button>
+              ))}
+            </Space>
+            
+            <Text type="secondary" style={{ fontSize: 12, marginTop: 8 }}>
+              当前: {((params.duration || 1000) / 1000).toFixed(1)}秒 
+              {params.duration && params.duration >= 5000 && ' ⚠️ 长时间等待可能影响用户体验'}
             </Text>
           </Space>
         );
