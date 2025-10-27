@@ -123,7 +123,12 @@ export const useStepCardStateMachine = ({
       const { getStepExecutionGateway } = await import('../infrastructure/gateways/StepExecutionGateway');
       const gateway = getStepExecutionGateway();
 
-      // 准备网关请求参数
+      // 🎯 获取用户选择的元素信息 - 解决"我"按钮文本传递问题
+      const { useElementSelectionStore } = await import('../stores/ui-element-selection-store');
+      const selectionStore = useElementSelectionStore.getState();
+      const selectedElement = selectionStore.context.selectedElement;
+
+      // 准备网关请求参数 - 包含实际的目标文本
       const gatewayRequest = {
         deviceId: 'default_device', // TODO: 从实际设备状态获取
         mode: mode === 'matchOnly' ? 'match-only' as const : 'execute-step' as const,
@@ -135,6 +140,10 @@ export const useStepCardStateMachine = ({
           width: stepCard.lastMatch.elementRect.width,
           height: stepCard.lastMatch.elementRect.height,
         } : undefined,
+        // 🎯 修复：传递实际的目标文本信息
+        targetText: selectedElement?.text || '', // 从选择的元素获取文本
+        contentDesc: selectedElement?.content_desc || '', // 传递content_desc
+        resourceId: selectedElement?.resource_id || '', // 传递resource_id
       };
       
       // 1. 匹配阶段
@@ -215,10 +224,7 @@ export const useStepCardStateMachine = ({
     startMatching, 
     setMatchResult, 
     setMatchFailed, 
-    startExecuting, 
-    setExecuteResult,
-    startVerifying,
-    setVerifyResult
+    setExecuteResult
   ]);
 
   return {

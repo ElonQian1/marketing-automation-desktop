@@ -56,7 +56,7 @@ export class ElementValidator {
   }
 
   /**
-   * 检查元素是否有有意义的文本
+   * 检查元素是否有有意义的文本内容
    */
   static hasMeaningfulText(element: ElementLike): boolean {
     const text = element.text;
@@ -67,9 +67,13 @@ export class ElementValidator {
     const trimmed = text.trim();
     if (trimmed.length === 0) return false;
     
-    // 排除纯数字、单字符、纯空格
+    // 排除纯数字（但保留单字符中文）
     if (/^\d+$/.test(trimmed)) return false;
-    if (trimmed.length === 1) return false;
+    
+    // 单字符：只接受中文字符（如"我"、"你"等），排除英文单字符
+    if (trimmed.length === 1) {
+      return /[\u4e00-\u9fff]/.test(trimmed);
+    }
     
     // 至少包含一个字母或中文字符
     return /[a-zA-Z\u4e00-\u9fff]/.test(trimmed);

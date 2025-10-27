@@ -987,22 +987,31 @@ impl SmartSelectionEngine {
     fn matches_text_criteria(element: &UIElement, protocol: &SmartSelectionProtocol) -> bool {
         // 🎯 精确文本匹配：优先匹配目标文本
         if let Some(fingerprint) = &protocol.anchor.fingerprint.text_content {
+            // 🚨 关键修复：防止空文本导致过度宽泛匹配
+            let target_text = fingerprint.trim();
+            if target_text.is_empty() {
+                debug!("⚠️ 目标文本为空，回退到可点击元素匹配");
+                return element.clickable.unwrap_or(false);
+            }
+            
             debug!("🎯 保留目标按钮：检查元素 text='{}', desc='{}' 是否匹配目标 '{}'", 
                 element.text.as_deref().unwrap_or(""), 
                 element.content_desc.as_deref().unwrap_or(""),
-                fingerprint);
+                target_text);
             
-            // 检查text属性
+            // 🎯 完全保留原文匹配：不做任何文本处理，直接比较原文
+            // 检查text属性（原文匹配）
             if let Some(element_text) = &element.text {
-                if element_text.trim() == fingerprint.trim() {
-                    debug!("🎯 保留目标按钮：文本 '{}' 匹配目标 '{}' 的别名 '{}'", element_text, fingerprint, fingerprint);
+                if element_text == target_text {
+                    debug!("🎯 保留目标按钮：文本原文 '{}' 完全匹配目标 '{}'", element_text, target_text);
                     return true;
                 }
             }
-            // 检查content-desc属性
+            
+            // 检查content-desc属性（原文匹配）  
             if let Some(element_desc) = &element.content_desc {
-                if element_desc.trim() == fingerprint.trim() {
-                    debug!("🎯 保留目标按钮：描述 '{}' 匹配目标 '{}' 的别名 '{}'", element_desc, fingerprint, fingerprint);
+                if element_desc == target_text {
+                    debug!("🎯 保留目标按钮：描述原文 '{}' 完全匹配目标 '{}'", element_desc, target_text);
                     return true;
                 }
             }
@@ -1049,14 +1058,11 @@ impl SmartSelectionEngine {
             }
         }
 
-        // ⚠️ 如果没有任何目标文本或别名，只能匹配可点击元素（这可能导致噪音）
-        let is_clickable = element.clickable.unwrap_or(false);
-        if is_clickable {
-            debug!("⚠️ 回退匹配：无目标文本，接受可点击元素 text='{}', desc='{}'", 
-                element.text.as_deref().unwrap_or(""), 
-                element.content_desc.as_deref().unwrap_or(""));
-        }
-        is_clickable
+        // ❌ 修复：如果没有任何目标文本或别名，拒绝匹配（避免大量噪音）
+        debug!("❌ 拒绝无目标匹配：没有目标文本和别名的元素 text='{}', desc='{}' 被拒绝", 
+            element.text.as_deref().unwrap_or(""), 
+            element.content_desc.as_deref().unwrap_or(""));
+        false
     }
 
     /// 计算元素置信度

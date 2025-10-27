@@ -1,6 +1,6 @@
 // src-tauri/src/engine/strategy_plugin_v2.rs
 // module: decision-chain | layer: engine | role: 策略执行器枚举系统
-// summary: 实现基于枚举的可插拔策略系统，避免异步trait对象问题
+// summary: 实现基于枚举的可插拔策略系统，避免异步trait对象问题，还有其他
 
 use anyhow::Result;
 use crate::commands::run_step_v2::{StrategyVariant, StaticEvidence, ExecutionResult, MatchCandidate, MatchSet};

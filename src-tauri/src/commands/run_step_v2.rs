@@ -600,9 +600,10 @@ pub async fn run_step_v2(app_handle: AppHandle, request: RunStepRequestV2) -> Re
     );
     tracing::info!("bridge=ADB shadow=false dump_source=Device");
     
-    // 简化处理：当前只实现 step 执行链
+    // 简化处理：当前只实现 step 执行链.
     execute_v2_step(app_handle, &request).await
 }
+ 
 
 // V2 步骤执行（匹配前端数据结构）
 async fn execute_v2_step(app_handle: AppHandle, req: &RunStepRequestV2) -> Result<StepResponseV2, String> {

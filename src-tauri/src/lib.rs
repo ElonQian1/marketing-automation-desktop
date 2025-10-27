@@ -20,7 +20,7 @@ pub mod screenshot_service;
 // 重新导出常用类型
 pub use exec::v3::{
     types::{StepRefOrInline, InlineStep, SingleStepAction},
-    chain_engine::{should_trigger_intelligent_analysis, perform_intelligent_strategy_analysis}
+    chain_engine::{should_trigger_intelligent_analysis, perform_intelligent_strategy_analysis_from_raw}
 };
 
 pub use services::intelligent_analysis_service::{

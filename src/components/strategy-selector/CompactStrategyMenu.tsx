@@ -25,6 +25,7 @@ import type { SelectionMode } from '../../types/smartSelection';
 import type { ActionKind } from '../../types/smartScript';
 import { ExcludeRuleEditor, type ExcludeRule } from '../smart-selection/ExcludeRuleEditor';
 import { ExplanationGenerator } from '../smart-selection/ExplanationGenerator';
+import { useElementSelectionStore } from '../../stores/ui-element-selection-store';
 
 const { Panel } = Collapse;
 
@@ -100,6 +101,9 @@ const CompactStrategyMenu: React.FC<CompactStrategyMenuProps> = ({
     continue_on_error: true,
     show_progress: true,
   });
+  
+  // 🎯 获取用户实际选择的UI元素
+  const { context: selectionContext } = useElementSelectionStore();
 
   // 🎯 新增：执行状态管理和ADB设备管理
   const [executing, setExecuting] = useState(false);
@@ -600,9 +604,37 @@ const CompactStrategyMenu: React.FC<CompactStrategyMenuProps> = ({
 
   // 🚀 生成智能选择协议
   const createSmartSelectionProtocol = () => {
-    // 从现有的selector获取元素信息
-    const elementText = selector.activeStrategy?.type === 'smart-single' ? '关注' : '关注';
-    const resourceId = undefined; // 暂时没有resource_id信息
+    // ✅ 修复：使用用户实际选择的元素信息，避免硬编码回退值
+    const selectedElement = selectionContext.selectedElement;
+    
+    // 优先使用有效的文本，避免空值导致硬编码回退
+    let elementText = '';
+    if (selectedElement?.text?.trim()) {
+      elementText = selectedElement.text.trim();
+    } else if (selectedElement?.content_desc?.trim()) {
+      elementText = selectedElement.content_desc.trim();
+    } else if (selectedElement?.resource_id?.trim()) {
+      elementText = selectedElement.resource_id.trim();
+    } else {
+      elementText = '未知元素'; // 避免使用"智能操作 1"这样的误导性文本
+    }
+    
+    const resourceId = selectedElement?.resource_id;
+    
+    console.log('🎯 [createSmartSelectionProtocol] 使用实际选择的元素:', {
+      elementText,
+      resourceId,
+      hasValidText: !!selectedElement?.text?.trim(),
+      hasValidDesc: !!selectedElement?.content_desc?.trim(),
+      hasValidResourceId: !!selectedElement?.resource_id?.trim(),
+      selectedElement: selectedElement ? {
+        id: selectedElement.id,
+        text: selectedElement.text,
+        content_desc: selectedElement.content_desc,
+        resource_id: selectedElement.resource_id,
+        bounds: selectedElement.bounds
+      } : null
+    });
 
     return {
       anchor: {

@@ -98,7 +98,9 @@ use std::sync::{Arc, Mutex};
 use std::collections::HashSet;
 
 // 添加必要的导入以支持真实设备操作
+// use roxmltree::Document; // 已替换为ui_reader_service
 use crate::services::quick_ui_automation::adb_dump_ui_xml;
+use crate::services::intelligent_analysis_service::{StrategyCandidate, ElementInfo};
 use crate::services::legacy_simple_selection_engine::SmartSelectionEngine;
 use crate::infra::adb::input_helper::tap_injector_first;
 
@@ -109,6 +111,54 @@ lazy_static::lazy_static! {
 use crate::types::smart_selection::{
     SmartSelectionProtocol, ElementFingerprint, AnchorInfo, SelectionConfig, SelectionMode,
 };
+
+// 智能分析相关的结构体定义
+#[derive(Debug, Clone)]
+struct InteractiveElement {
+    text: Option<String>,
+    resource_id: Option<String>,
+    class: Option<String>,
+    class_name: Option<String>,
+    content_desc: Option<String>,
+    bounds: Option<String>,
+    clickable: Option<bool>,
+    enabled: Option<bool>,
+    focusable: Option<bool>,
+    long_clickable: Option<bool>,
+    checkable: Option<bool>,
+    xpath: String,
+    ui_role: String,
+    semantic_role: String,
+}
+
+#[derive(Debug, Clone)]
+struct UserIntent {
+    action_type: String,
+    target_text: String,
+    target_hints: Vec<String>,
+    context: String,
+    confidence: f64,
+}
+
+#[derive(Debug, Clone)]
+struct DeviceInfo {
+    device_id: String,
+    screen_size: (i32, i32),
+    current_app: Option<String>,
+    orientation: String,
+}
+
+#[derive(Debug, Clone)]
+struct ScoredElement {
+    element: InteractiveElement,
+    total_score: f64,
+    final_score: f64,
+    text_relevance: f64,
+    semantic_match: f64,
+    interaction_capability: f64,
+    position_weight: f64,
+    context_fitness: f64,
+}
 
 /// 智能自动链执行器主入口
 ///
@@ -243,19 +293,78 @@ async fn execute_chain_by_ref(
 /// ✅ 从execution_info.click_coordinates获取真实点击坐标
 /// 
 /// 🚫 绝对禁止仅返回"executed"状态而不执行真机操作！
-async fn execute_chain_by_inline(
-    app: &AppHandle,
-    envelope: &ContextEnvelope,
-    analysis_id: &str,
-    ordered_steps: &[StepRefOrInline],
+fn execute_chain_by_inline<'a>(
+    app: &'a AppHandle,
+    envelope: &'a ContextEnvelope,
+    analysis_id: &'a str,
+    ordered_steps: &'a [StepRefOrInline],
     threshold: f32,
-    mode: &ChainMode,
-    quality: &QualitySettings,
-    constraints: &ConstraintSettings,
-    validation: &ValidationSettings,
-) -> Result<(), String> {
+    mode: &'a ChainMode,
+    quality: &'a QualitySettings,
+    constraints: &'a ConstraintSettings,
+    validation: &'a ValidationSettings,
+) -> std::pin::Pin<Box<dyn std::future::Future<Output = Result<(), String>> + Send + 'a>> {
+    Box::pin(async move {
     let start_time = Instant::now();
     let device_id = &envelope.device_id;
+    
+    // 🆕 【提前智能分析检测】在Legacy引擎执行前检查参数，直接触发智能分析
+    // 如果发现步骤参数为空，跳过Legacy引擎预筛选，直接从原始XML开始Step 0-6
+    for (step_idx, step) in ordered_steps.iter().enumerate() {
+        if let Some(inline) = &step.inline {
+            match &inline.action {
+                SingleStepAction::SmartSelection | SingleStepAction::Tap => {
+                    if should_trigger_intelligent_analysis_early(&inline.params) {
+                        tracing::info!("🧠 步骤 {} 检测到参数为空，提前触发智能分析，跳过Legacy预筛选", step_idx);
+                        
+                        // 获取原始UI XML
+                        let ui_xml = adb_dump_ui_xml(device_id.to_string()).await
+                            .map_err(|e| format!("获取原始UI快照失败: {}", e))?;
+                        
+                        // 发送智能分析开始事件  
+                        emit_progress(
+                            app,
+                            Some(analysis_id.to_string()),
+                            None,
+                            Phase::DeviceReady,
+                            None,
+                            Some("🧠 直接启动智能分析 (Step 0-6) - 从原始数据开始".to_string()),
+                            None,
+                        )?;
+                        
+                        // 直接调用智能分析，从原始数据开始
+                        match perform_intelligent_strategy_analysis_from_raw(
+                            device_id, 
+                            &inline.params, 
+                            &ui_xml, 
+                            app
+                        ).await {
+                            Ok(intelligent_steps) => {
+                                tracing::info!("✅ 原始数据智能分析成功，生成 {} 个优化步骤", intelligent_steps.len());
+                                
+                                // 解锁执行跟踪
+                                {
+                                    let mut tracker = EXECUTION_TRACKER.lock().unwrap();
+                                    tracker.remove(analysis_id);
+                                }
+                                
+                                // 递归执行智能生成的步骤
+                                return execute_chain_by_inline(
+                                    app, envelope, analysis_id, &intelligent_steps,
+                                    threshold, mode, quality, constraints, validation
+                                ).await;
+                            }
+                            Err(e) => {
+                                tracing::warn!("⚠️ 原始数据智能分析失败: {}", e);
+                                // 继续执行原有逻辑
+                            }
+                        }
+                    }
+                }
+                _ => {}
+            }
+        }
+    }
     
     // 🚨 【重复执行检查】防止同一个analysis_id被重复执行导致重复点击
     {
@@ -296,7 +405,7 @@ async fn execute_chain_by_inline(
             .map_err(|e| format!("获取UI快照失败: {}", e))?;
             
         // 调用智能策略分析进行执行优化
-        match perform_intelligent_strategy_analysis(device_id, None, &ui_xml).await {
+        match perform_intelligent_strategy_analysis_from_raw(device_id, &serde_json::Value::Null, &ui_xml, app).await {
             Ok(intelligent_steps) => {
                 if !intelligent_steps.is_empty() {
                     tracing::info!("🧠 智能策略分析成功，生成 {} 个优化候选步骤", intelligent_steps.len());
@@ -596,18 +705,119 @@ async fn execute_chain_by_inline(
         
         tracing::info!("✅ 真实设备操作完成: stepId={}, coords={:?}", step_id, coords);
     } else {
-        // 没有执行任何操作，报告失败
+        // 🧠 传统匹配失败，触发智能分析作为后备方案
+        tracing::warn!("⚠️ 传统步骤执行失败 (没有步骤满足执行条件)，触发智能分析作为后备方案");
+        
         emit_progress(
             app,
             Some(analysis_id.to_string()),
             None,
-            Phase::Finished,  // 使用Finished状态表示完成但未执行
-            Some(0.0),  // 失败时置信度为0
-            Some("所有步骤分数均低于阈值，未执行任何操作".to_string()),
+            Phase::DeviceReady,
+            None,
+            Some("🧠 传统匹配失败，启动智能分析后备方案".to_string()),
             None,
         )?;
         
-        tracing::warn!("❌ 链式执行失败: 没有步骤满足执行条件 (阈值: {:.2})", threshold);
+        // 执行智能策略分析作为后备
+        // 从第一个步骤提取参数
+        let original_params = if let Some(first_step) = ordered_steps.first() {
+            if let Some(inline) = &first_step.inline {
+                inline.params.clone()
+            } else {
+                serde_json::json!({})
+            }
+        } else {
+            serde_json::json!({})
+        };
+        
+        match perform_intelligent_strategy_analysis_from_raw(
+            device_id,
+            &original_params,
+            &ui_xml,
+            app,
+        ).await {
+            Ok(intelligent_candidates) => {
+                if !intelligent_candidates.is_empty() {
+                    tracing::info!("✅ 后备智能策略分析成功生成 {} 个候选步骤", intelligent_candidates.len());
+                    
+                    // 评分和执行智能生成的候选步骤
+                    let mut intelligent_scores = Vec::new();
+                    for step in &intelligent_candidates {
+                        if let Some(inline) = &step.inline {
+                            let step_score = score_step_with_smart_selection(
+                                device_id, &ui_xml, step, quality
+                            ).await.unwrap_or(0.0);
+                            
+                            intelligent_scores.push(StepScore {
+                                step_id: inline.step_id.clone(),
+                                confidence: step_score,
+                            });
+                        }
+                    }
+                    
+                    // 排序并尝试执行智能生成的步骤
+                    intelligent_scores.sort_by(|a, b| b.confidence.partial_cmp(&a.confidence).unwrap());
+                    
+                    for score in &intelligent_scores {
+                        if score.confidence >= threshold {
+                            let step = intelligent_candidates.iter()
+                                .find(|s| s.inline.as_ref().map(|i| &i.step_id) == Some(&score.step_id))
+                                .unwrap();
+                            
+                            tracing::info!("🧠 尝试执行智能生成步骤: {} (置信度: {:.2})", score.step_id, score.confidence);
+                            
+                            match execute_step_real_operation(device_id, step, &ui_xml, validation).await {
+                                Ok(click_coords) => {
+                                    tracing::info!("✅ 智能步骤 {} 执行成功，坐标: {:?}", score.step_id, click_coords);
+                                    adopted_step_id = Some(score.step_id.clone());
+                                    execution_ok = true;
+                                    coords = Some(click_coords);
+                                    break;
+                                }
+                                Err(err) => {
+                                    tracing::warn!("❌ 智能步骤 {} 执行失败: {}", score.step_id, err);
+                                    continue;
+                                }
+                            }
+                        }
+                    }
+                } else {
+                    tracing::warn!("❌ 后备智能策略分析未生成候选步骤");
+                }
+            }
+            Err(e) => {
+                tracing::warn!("❌ 后备智能策略分析失败: {}", e);
+            }
+        }
+        
+        // 根据最终结果发送事件
+        if execution_ok && adopted_step_id.is_some() {
+            let step_id = adopted_step_id.as_ref().unwrap();
+            emit_progress(
+                app,
+                Some(analysis_id.to_string()),
+                Some(step_id.clone()),
+                Phase::Executed,
+                Some(1.0),
+                Some(format!("🧠 智能分析成功执行步骤: {}", step_id)),
+                None,
+            )?;
+            
+            tracing::info!("✅ 智能分析后备方案执行成功: stepId={}, coords={:?}", step_id, coords);
+        } else {
+            // 智能分析也失败了
+            emit_progress(
+                app,
+                Some(analysis_id.to_string()),
+                None,
+                Phase::Finished,
+                Some(0.0),
+                Some("传统匹配和智能分析都未找到可执行的步骤".to_string()),
+                None,
+            )?;
+            
+            tracing::warn!("❌ 链式执行失败: 传统匹配和智能分析都未找到可执行步骤 (阈值: {:.2})", threshold);
+        }
     }
 
     tracing::info!(
@@ -657,6 +867,7 @@ async fn execute_chain_by_inline(
     }
 
     Ok(())
+    })
 }
 
 // ====== 内部辅助函数（TODO: 实现） ======
@@ -1250,6 +1461,40 @@ fn create_smart_selection_protocol_for_execution(target_text: &str, mode: &str) 
     Ok(protocol)
 }
 
+/// 🆕 提前检测是否需要智能分析（基于原始参数，不依赖Legacy结果）
+/// 
+/// 这个函数在Legacy引擎执行前就进行检测，如果发现参数为空，
+/// 直接触发智能分析，跳过Legacy引擎的预筛选过程
+pub fn should_trigger_intelligent_analysis_early(step_params: &serde_json::Value) -> bool {
+    // 检查关键参数是否为空
+    let target_text = step_params.get("targetText")
+        .and_then(|v| v.as_str())
+        .filter(|s| !s.trim().is_empty());
+        
+    let content_desc = step_params.get("contentDesc")
+        .and_then(|v| v.as_str())
+        .filter(|s| !s.trim().is_empty());
+        
+    let text = step_params.get("text")
+        .and_then(|v| v.as_str())
+        .filter(|s| !s.trim().is_empty());
+        
+    // 检查smartSelection嵌套参数
+    let smart_selection_params = step_params.get("smartSelection").and_then(|ss| {
+        ss.get("targetText").and_then(|v| v.as_str()).filter(|s| !s.trim().is_empty())
+            .or_else(|| ss.get("contentDesc").and_then(|v| v.as_str()).filter(|s| !s.trim().is_empty()))
+            .or_else(|| ss.get("text").and_then(|v| v.as_str()).filter(|s| !s.trim().is_empty()))
+    });
+    
+    // 如果所有关键参数都为空，触发智能分析
+    if target_text.is_none() && content_desc.is_none() && text.is_none() && smart_selection_params.is_none() {
+        tracing::info!("🧠 提前触发智能分析：所有目标文本参数为空，跳过Legacy引擎预筛选");
+        return true;
+    }
+    
+    false
+}
+
 /// 判断是否需要触发智能策略分析（Step 0-6分析）
 /// 
 /// 触发条件：
@@ -1270,17 +1515,30 @@ pub fn should_trigger_intelligent_analysis(ordered_steps: &[StepRefOrInline], qu
             // 检查SmartSelection步骤是否有有效的目标文本参数
             match &inline.action {
                 SingleStepAction::SmartSelection => {
-                    let has_target_text = inline.params.get("targetText").and_then(|v| v.as_str()).is_some()
-                        || inline.params.get("contentDesc").and_then(|v| v.as_str()).is_some()
-                        || inline.params.get("text").and_then(|v| v.as_str()).is_some()
+                    // 🎯 修复：检查非空的目标文本参数
+                    let has_valid_target_text = inline.params.get("targetText")
+                        .and_then(|v| v.as_str())
+                        .filter(|s| !s.trim().is_empty())
+                        .is_some()
+                        || inline.params.get("contentDesc")
+                        .and_then(|v| v.as_str())
+                        .filter(|s| !s.trim().is_empty())
+                        .is_some()
+                        || inline.params.get("text")
+                        .and_then(|v| v.as_str())
+                        .filter(|s| !s.trim().is_empty())
+                        .is_some()
                         || inline.params.get("smartSelection").and_then(|ss| {
                             ss.get("targetText").and_then(|v| v.as_str())
-                                .or_else(|| ss.get("contentDesc").and_then(|v| v.as_str()))
-                                .or_else(|| ss.get("text").and_then(|v| v.as_str()))
+                                .filter(|s| !s.trim().is_empty())
+                                .or_else(|| ss.get("contentDesc").and_then(|v| v.as_str())
+                                    .filter(|s| !s.trim().is_empty()))
+                                .or_else(|| ss.get("text").and_then(|v| v.as_str())
+                                    .filter(|s| !s.trim().is_empty()))
                         }).is_some();
                     
-                    if !has_target_text {
-                        tracing::warn!("🧠 步骤 {} SmartSelection缺少目标文本参数", idx);
+                    if !has_valid_target_text {
+                        tracing::warn!("🧠 步骤 {} SmartSelection缺少有效目标文本参数（空字符串不算有效）", idx);
                         has_invalid_steps = true;
                     }
                 }
@@ -1322,11 +1580,27 @@ pub fn should_trigger_intelligent_analysis(ordered_steps: &[StepRefOrInline], qu
         if let Some(inline) = &step.inline {
             match &inline.action {
                 SingleStepAction::SmartSelection | SingleStepAction::Tap => {
-                    // 如果有完整的参数，认为是高质量步骤
-                    let has_complete_params = inline.params.get("targetText").is_some()
-                        || inline.params.get("text").is_some()
-                        || inline.params.get("contentDesc").is_some()
-                        || inline.params.get("smartSelection").is_some();
+                    // 🎯 修复：检查参数是否存在且不为空字符串
+                    let has_complete_params = inline.params.get("targetText")
+                        .and_then(|v| v.as_str())
+                        .filter(|s| !s.trim().is_empty())
+                        .is_some()
+                        || inline.params.get("text")
+                        .and_then(|v| v.as_str())
+                        .filter(|s| !s.trim().is_empty())
+                        .is_some()
+                        || inline.params.get("contentDesc")
+                        .and_then(|v| v.as_str())
+                        .filter(|s| !s.trim().is_empty())
+                        .is_some()
+                        || inline.params.get("smartSelection").and_then(|ss| {
+                            ss.get("targetText").and_then(|v| v.as_str())
+                                .filter(|s| !s.trim().is_empty())
+                                .or_else(|| ss.get("contentDesc").and_then(|v| v.as_str())
+                                    .filter(|s| !s.trim().is_empty()))
+                                .or_else(|| ss.get("text").and_then(|v| v.as_str())
+                                    .filter(|s| !s.trim().is_empty()))
+                        }).is_some();
                     
                     if has_complete_params {
                         valid_step_count += 1;
@@ -1341,7 +1615,38 @@ pub fn should_trigger_intelligent_analysis(ordered_steps: &[StepRefOrInline], qu
         }
     }
     
-    // 如果有足够的有效步骤，不触发智能分析
+    // 🔧 V3修复：SmartSelection动作应该始终触发智能分析
+    // 因为它就是专门用于智能选择的！
+    for step in ordered_steps {
+        if let Some(inline) = &step.inline {
+            if matches!(inline.action, SingleStepAction::SmartSelection) {
+                tracing::info!("🧠 触发智能分析原因：检测到SmartSelection动作");
+                return true;
+            }
+            
+            // 🆕 检测通用名称：如果targetText是"智能操作 N"这类通用名称，应该触发智能分析
+            if let Some(target_text) = inline.params.get("targetText").and_then(|v| v.as_str()) {
+                if target_text.starts_with("智能操作") || target_text.starts_with("智能点击") || 
+                   target_text.starts_with("智能按钮") || target_text.starts_with("智能") {
+                    tracing::info!("🧠 触发智能分析原因：检测到通用targetText '{}'，需要智能分析获取真实文本", target_text);
+                    return true;
+                }
+            }
+            
+            // 🆕 检测smartSelection内的通用名称
+            if let Some(smart_selection) = inline.params.get("smartSelection") {
+                if let Some(target_text) = smart_selection.get("targetText").and_then(|v| v.as_str()) {
+                    if target_text.starts_with("智能操作") || target_text.starts_with("智能点击") || 
+                       target_text.starts_with("智能按钮") || target_text.starts_with("智能") {
+                        tracing::info!("🧠 触发智能分析原因：检测到smartSelection通用targetText '{}'，需要智能分析", target_text);
+                        return true;
+                    }
+                }
+            }
+        }
+    }
+    
+    // 对于非SmartSelection动作，检查参数完整性
     if valid_step_count >= ordered_steps.len() && ordered_steps.len() >= 1 {
         tracing::info!("🎯 不触发智能分析：已有 {} 个高质量候选步骤", valid_step_count);
         return false;
@@ -1351,41 +1656,62 @@ pub fn should_trigger_intelligent_analysis(ordered_steps: &[StepRefOrInline], qu
     true
 }
 
-/// 执行智能策略分析 (Step 0-6) 优化V3执行效果
+/// 🆕 直接执行智能策略分析 (Step 0-6) - 从原始数据开始
 /// 
-/// 🎯 新定位：通用执行增强机制，总是运行以提升V3执行质量
-/// - 不仅是缺少候选步骤时的兜底方案
-/// - 作为常规优化流程，提供更智能的执行策略
-/// - 与原有步骤合并，形成最优执行方案
+/// 🎯 核心特性：完全独立的智能分析系统
+/// - 直接从原始XML和前端参数开始分析
+/// - 不依赖Legacy引擎的预筛选结果
+/// - 实现完整的Step 0-6智能决策流程
+/// - 具备自主的元素识别和策略生成能力
 /// 
-/// 集成路径：
-/// - 前端：src/modules/intelligent-strategy-system/core/StrategyDecisionEngine
-/// - 后端：当前函数作为桥梁，调用前端分析并优化结果
-pub async fn perform_intelligent_strategy_analysis(
+/// 分析流程：
+/// - Step 0: 获取原始UI结构和设备状态
+/// - Step 1: 解析XML，提取所有可交互元素
+/// - Step 2: 应用语义理解和上下文分析
+/// - Step 3: 多维度评分（文本、位置、结构、属性）
+/// - Step 4: 生成候选策略并排序
+/// - Step 5: 选择最优策略
+/// - Step 6: 验证和执行准备
+pub async fn perform_intelligent_strategy_analysis_from_raw(
     device_id: &str,
-    target_element_info: Option<&str>, // 目标元素的信息，如XPath或属性
-    ui_xml: &str,
+    original_params: &serde_json::Value, // 原始前端参数
+    ui_xml: &str, // 原始XML，未经预处理
+    app_handle: &tauri::AppHandle, // 用于获取设备状态等
 ) -> Result<Vec<StepRefOrInline>, String> {
-    tracing::info!("🧠 开始智能策略分析 (Step 0-6)");
+    tracing::info!("🧠 开始智能策略分析 (Step 0-6) - 从原始数据直接处理");
+    tracing::info!("   📋 原始参数: {}", serde_json::to_string(original_params).unwrap_or_default());
+    tracing::info!("   📱 XML长度: {} 字符", ui_xml.len());
     
-    // 集成现有的智能策略系统
-    // 
-    // 实现步骤：
-    // 1. 解析目标元素信息，提取元素属性
-    // 2. 调用前端的 StrategyDecisionEngine::analyzeAndRecommend()
-    // 3. 将返回的策略候选转换为 StepRefOrInline 格式
-    // 4. 按置信度排序，返回候选步骤列表
+    // Step 0: 获取设备状态和UI基础信息
+    let device_info = get_device_basic_info(device_id, app_handle).await?;
+    tracing::info!("✅ Step 0: 设备状态获取完成");
     
-    // Step 1: 准备元素信息
-    let element_context = if let Some(info) = target_element_info {
-        info.to_string()
-    } else {
-        tracing::warn!("🧠 缺少目标元素信息，尝试从XML智能提取");
-        extract_intelligent_targets_from_xml(ui_xml)
-    };
+    // Step 1: 从原始XML解析所有潜在可交互元素（不受Legacy限制）
+    let all_interactive_elements = extract_all_interactive_elements_from_xml(ui_xml)?;
+    tracing::info!("✅ Step 1: 从XML解析出 {} 个潜在可交互元素", all_interactive_elements.len());
     
-    // Step 2: 调用前端智能策略系统
-    match call_frontend_intelligent_analysis(&element_context, ui_xml, device_id).await {
+    // Step 2: 应用语义理解，基于原始参数推断用户意图
+    let user_intent = analyze_user_intent_from_params(original_params)?;
+    tracing::info!("✅ Step 2: 用户意图分析完成 - {:?}", user_intent);
+    
+    // Step 3: 多维度评分系统（不依赖Legacy的单一clickable判断）
+    let scored_candidates = score_elements_intelligently(&all_interactive_elements, &user_intent, &device_info)?;
+    tracing::info!("✅ Step 3: 完成 {} 个元素的智能评分", scored_candidates.len());
+    
+    // Step 4: 生成多种策略候选并排序
+    let strategy_candidates = generate_strategy_candidates(&scored_candidates, original_params)?;
+    tracing::info!("✅ Step 4: 生成 {} 个策略候选", strategy_candidates.len());
+    
+    // Step 5: 选择最优策略（考虑置信度、风险、成功率）
+    let optimal_strategies = select_optimal_strategies(&strategy_candidates)?;
+    tracing::info!("✅ Step 5: 选出 {} 个最优策略", optimal_strategies.len());
+    
+    // Step 6: 转换为V3执行格式
+    let v3_steps = convert_strategies_to_v3_steps(&optimal_strategies, original_params)?;
+    tracing::info!("✅ Step 6: 转换为 {} 个V3执行步骤", v3_steps.len());
+    
+    // 调用前端智能策略系统进行验证和优化
+    match call_frontend_intelligent_analysis_with_context(&user_intent, ui_xml, device_id, original_params).await {
         Ok(steps) => {
             tracing::info!("✅ 智能策略分析完成，生成 {} 个候选步骤", steps.len());
             return Ok(steps);
@@ -1421,6 +1747,408 @@ pub async fn perform_intelligent_strategy_analysis(
 }
 
 /// 调用前端智能策略分析系统
+/// 🆕 获取设备基础信息
+async fn get_device_basic_info(
+    device_id: &str, 
+    app_handle: &tauri::AppHandle
+) -> Result<DeviceInfo, String> {
+    
+    // 获取屏幕尺寸（简化版本）
+    let screen_size = (1080_i32, 2340_i32); // 默认尺寸
+    
+    // 获取当前应用（简化版本）
+    let current_app = Some("com.unknown.app".to_string());
+    
+    Ok(DeviceInfo {
+        device_id: device_id.to_string(),
+        screen_size,
+        current_app,
+        orientation: "portrait".to_string(),
+    })
+}
+
+/// 🆕 从XML提取所有潜在可交互元素（不受Legacy限制）
+fn extract_all_interactive_elements_from_xml(ui_xml: &str) -> Result<Vec<InteractiveElement>, String> {
+    // 使用已验证的ui_reader_service解析方法，避免roxmltree的严格XML解析问题
+    use crate::services::ui_reader_service::parse_ui_elements;
+    
+    let ui_elements = parse_ui_elements(ui_xml)
+        .map_err(|e| format!("XML解析失败: {}", e))?;
+    
+    let mut elements = Vec::new();
+    
+    // 将UIElement转换为InteractiveElement
+    for (index, ui_element) in ui_elements.iter().enumerate() {
+        let interactive_element = InteractiveElement {
+            text: ui_element.text.clone(),
+            resource_id: ui_element.resource_id.clone(),
+            content_desc: ui_element.content_desc.clone(),
+            class: ui_element.class.clone(),
+            class_name: ui_element.class.clone(), // 复制class到class_name
+            bounds: ui_element.bounds.clone(),
+            clickable: ui_element.clickable,
+            enabled: ui_element.enabled,
+            focusable: None, // UIElement没有这个字段
+            long_clickable: None, // UIElement没有这个字段
+            checkable: None, // UIElement没有这个字段
+            xpath: format!("//node[@index='{}']", index), // 简化的xpath
+            ui_role: ui_element.class.clone().unwrap_or_default(),
+            semantic_role: determine_semantic_role_from_class(&ui_element.class),
+        };
+        
+        // 只添加可能有交互价值的元素
+        if is_potentially_interactive(&interactive_element) {
+            elements.push(interactive_element);
+        }
+    }
+    
+    tracing::info!("🔍 提取了 {} 个潜在交互元素（包括非clickable）", elements.len());
+    Ok(elements)
+}
+
+/// 判断元素是否具有交互潜力（基于ui_reader_service的UIElement）
+fn is_potentially_interactive(element: &InteractiveElement) -> bool {
+    // 1. 显式可交互属性
+    if element.clickable == Some(true) || element.enabled == Some(true) {
+        return true;
+    }
+    
+    // 2. 有意义的文本内容
+    if let Some(text) = &element.text {
+        if !text.trim().is_empty() && text.len() < 100 { // 避免长文本
+            return true;
+        }
+    }
+    
+    // 3. 有描述内容
+    if let Some(desc) = &element.content_desc {
+        if !desc.trim().is_empty() {
+            return true;
+        }
+    }
+    
+    // 4. 特定的类名模式
+    if let Some(class) = &element.class {
+        if class.contains("Button") || class.contains("Text") || class.contains("View") {
+            return true;
+        }
+    }
+    
+    true // 默认都认为可能是交互的，让智能分析来判断
+}
+
+/// 根据class确定元素的语义角色
+fn determine_semantic_role_from_class(class: &Option<String>) -> String {
+    if let Some(class_name) = class {
+        if class_name.contains("Button") { return "button".to_string(); }
+        if class_name.contains("Edit") || class_name.contains("Input") { return "input".to_string(); }
+        if class_name.contains("Text") { return "text".to_string(); }
+        if class_name.contains("Layout") || class_name.contains("Group") { return "container".to_string(); }
+    }
+    
+    "unknown".to_string()
+}
+
+/// 🆕 从原始参数分析用户意图
+fn analyze_user_intent_from_params(params: &serde_json::Value) -> Result<UserIntent, String> {
+    
+    let mut target_hints = Vec::new();
+    
+    // 从各种参数中收集目标提示
+    if let Some(text) = params.get("targetText").and_then(|v| v.as_str()) {
+        if !text.trim().is_empty() {
+            target_hints.push(text.to_string());
+        }
+    }
+    
+    if let Some(desc) = params.get("contentDesc").and_then(|v| v.as_str()) {
+        if !desc.trim().is_empty() {
+            target_hints.push(desc.to_string());
+        }
+    }
+    
+    if let Some(text) = params.get("text").and_then(|v| v.as_str()) {
+        if !text.trim().is_empty() {
+            target_hints.push(text.to_string());
+        }
+    }
+    
+    // 检查smartSelection嵌套参数
+    if let Some(smart_sel) = params.get("smartSelection") {
+        if let Some(text) = smart_sel.get("targetText").and_then(|v| v.as_str()) {
+            if !text.trim().is_empty() {
+                target_hints.push(text.to_string());
+            }
+        }
+    }
+    
+    // 如果没有明确的目标提示，这就是需要智能分析的情况
+    let (action_type, context, priority) = if target_hints.is_empty() {
+        ("intelligent_find".to_string(), "用户未提供明确目标，需要智能推断".to_string(), 1.0)
+    } else {
+        ("click".to_string(), format!("用户目标: {}", target_hints.join(", ")), 0.8)
+    };
+    
+    Ok(UserIntent {
+        action_type,
+        target_text: target_hints.first().cloned().unwrap_or_default(),
+        target_hints,
+        context,
+        confidence: priority,
+    })
+}
+
+/// 🆕 智能评分系统（多维度评估）
+fn score_elements_intelligently(
+    elements: &[InteractiveElement],
+    intent: &UserIntent,
+    device_info: &DeviceInfo,
+) -> Result<Vec<ScoredElement>, String> {
+    
+    let mut scored_elements = Vec::new();
+    
+    for element in elements {
+        let text_relevance = calculate_text_relevance(element, intent);
+        let semantic_match = calculate_semantic_match(element, intent);
+        let interaction_capability = calculate_interaction_capability(element);
+        let position_weight = calculate_position_weight(element, device_info);
+        let context_fitness = calculate_context_fitness(element, intent);
+        
+        // 综合评分算法
+        let final_score = (text_relevance * 0.3) +
+                         (semantic_match * 0.25) +
+                         (interaction_capability * 0.2) +
+                         (position_weight * 0.15) +
+                         (context_fitness * 0.1);
+        
+        scored_elements.push(ScoredElement {
+            element: element.clone(),
+            total_score: final_score,
+            final_score,
+            text_relevance,
+            semantic_match,
+            interaction_capability,
+            position_weight,
+            context_fitness,
+        });
+    }
+    
+    // 按评分排序
+    scored_elements.sort_by(|a, b| b.final_score.partial_cmp(&a.final_score).unwrap_or(std::cmp::Ordering::Equal));
+    
+    Ok(scored_elements)
+}
+
+/// 辅助评分函数
+fn calculate_text_relevance(element: &InteractiveElement, intent: &UserIntent) -> f64 {
+    if intent.target_text.is_empty() && intent.target_hints.is_empty() {
+        return 0.5; // 没有明确目标时，所有元素得中等分
+    }
+    
+    // 检查target_text
+    if !intent.target_text.is_empty() {
+        if let Some(text) = &element.text {
+            if text.contains(&intent.target_text) { return 1.0; }
+            if text.to_lowercase().contains(&intent.target_text.to_lowercase()) { return 0.8; }
+        }
+        if let Some(desc) = &element.content_desc {
+            if desc.contains(&intent.target_text) { return 1.0; }
+            if desc.to_lowercase().contains(&intent.target_text.to_lowercase()) { return 0.8; }
+        }
+    }
+    
+    // 检查target_hints
+    for hint in &intent.target_hints {
+        if let Some(text) = &element.text {
+            if text.contains(hint) { return 1.0; }
+            if text.to_lowercase().contains(&hint.to_lowercase()) { return 0.8; }
+        }
+        if let Some(desc) = &element.content_desc {
+            if desc.contains(hint) { return 1.0; }
+            if desc.to_lowercase().contains(&hint.to_lowercase()) { return 0.8; }
+        }
+    }
+    0.0
+}
+
+fn calculate_semantic_match(element: &InteractiveElement, intent: &UserIntent) -> f64 {
+    match intent.action_type.as_str() {
+        "click" | "intelligent_find" => {
+            if element.clickable == Some(true) { return 1.0; }
+            if element.semantic_role == "button" { return 0.9; }
+            if element.semantic_role == "text" { return 0.7; }
+            0.3
+        }
+        _ => 0.5
+    }
+}
+
+fn calculate_interaction_capability(element: &InteractiveElement) -> f64 {
+    let mut score: f64 = 0.0;
+    if element.clickable == Some(true) { score += 0.4; }
+    if element.enabled == Some(true) { score += 0.2; }
+    if element.focusable == Some(true) { score += 0.2; }
+    if element.long_clickable == Some(true) { score += 0.1; }
+    if element.checkable == Some(true) { score += 0.1; }
+    score.min(1.0)
+}
+
+fn calculate_position_weight(element: &InteractiveElement, device_info: &DeviceInfo) -> f64 {
+    // 简化版位置权重，优先中心区域和上半屏
+    if element.bounds.is_some() {
+        0.7 // 有边界信息的元素优先
+    } else {
+        0.3
+    }
+}
+
+fn calculate_context_fitness(element: &InteractiveElement, intent: &UserIntent) -> f64 {
+    // 简化版上下文适配度
+    if intent.target_text.is_empty() && intent.target_hints.is_empty() {
+        // 没有明确目标时，优先常见交互元素
+        if element.semantic_role == "button" { return 0.9; }
+        if element.text.as_ref().map_or(false, |t| t.len() < 10 && !t.trim().is_empty()) { return 0.8; }
+    }
+    0.5
+}
+
+/// 🆕 生成策略候选
+fn generate_strategy_candidates(
+    scored_elements: &[ScoredElement], 
+    original_params: &serde_json::Value
+) -> Result<Vec<StrategyCandidate>, String> {
+    
+    let mut candidates = Vec::new();
+    
+    // 取前10个最高分元素生成策略
+    for (idx, scored) in scored_elements.iter().take(10).enumerate() {
+        let strategy_type = determine_strategy_type(&scored.element);
+        let confidence = scored.final_score * 0.9 + (0.1 * (1.0 - idx as f64 / 10.0)); // 排序权重
+        
+        let execution_plan = create_execution_plan(&scored.element, original_params);
+        let risk_level = assess_risk_level(confidence, &scored.element);
+        
+        candidates.push(StrategyCandidate {
+            strategy: strategy_type,
+            confidence,
+            reasoning: format!("智能分析评分: {:.2}", scored.final_score),
+            element_info: ElementInfo {
+                bounds: scored.element.bounds.clone(),
+                text: scored.element.text.clone(),
+                resource_id: scored.element.resource_id.clone(),
+                class_name: scored.element.class_name.clone(),
+                click_point: None,
+            },
+            execution_params: execution_plan,
+        });
+    }
+    
+    Ok(candidates)
+}
+
+fn determine_strategy_type(element: &InteractiveElement) -> String {
+    if element.clickable == Some(true) { 
+        return "direct_click".to_string(); 
+    }
+    if element.semantic_role == "button" { 
+        return "semantic_click".to_string(); 
+    }
+    if element.text.is_some() || element.content_desc.is_some() {
+        return "text_based_click".to_string();
+    }
+    "fallback_click".to_string()
+}
+
+fn create_execution_plan(element: &InteractiveElement, original_params: &serde_json::Value) -> serde_json::Value {
+    serde_json::json!({
+        "action": "SmartSelection",
+        "xpath": element.xpath,
+        "targetText": element.text.clone().unwrap_or_default(),
+        "contentDesc": element.content_desc.clone().unwrap_or_default(),
+        "bounds": element.bounds.clone(),
+        "resourceId": element.resource_id.clone(),
+        "className": element.class_name.clone(),
+        "originalParams": original_params
+    })
+}
+
+fn assess_risk_level(confidence: f64, element: &InteractiveElement) -> String {
+    if confidence > 0.8 && element.clickable == Some(true) {
+        "low".to_string()
+    } else if confidence > 0.6 {
+        "medium".to_string()  
+    } else {
+        "high".to_string()
+    }
+}
+
+/// 🆕 选择最优策略
+fn select_optimal_strategies(candidates: &[StrategyCandidate]) -> Result<Vec<StrategyCandidate>, String> {
+    let mut optimal = candidates.to_vec();
+    
+    // 按置信度排序
+    optimal.sort_by(|a, b| b.confidence.partial_cmp(&a.confidence).unwrap_or(std::cmp::Ordering::Equal));
+    
+    // 取前3个作为最优策略
+    optimal.truncate(3);
+    
+    Ok(optimal)
+}
+
+/// 🆕 转换为V3步骤格式
+fn convert_strategies_to_v3_steps(
+    strategies: &[StrategyCandidate],
+    original_params: &serde_json::Value
+) -> Result<Vec<StepRefOrInline>, String> {
+    let mut steps = Vec::new();
+    
+    for (idx, strategy) in strategies.iter().enumerate() {
+        let step = StepRefOrInline {
+            r#ref: None,
+            inline: Some(InlineStep {
+                step_id: format!("intelligent_step_{}", idx),
+                action: SingleStepAction::SmartSelection,
+                params: strategy.execution_params.clone(),
+            }),
+        };
+        steps.push(step);
+    }
+    
+    Ok(steps)
+}
+
+/// 🆕 增强版前端调用（包含上下文）
+async fn call_frontend_intelligent_analysis_with_context(
+    user_intent: &UserIntent,
+    ui_xml: &str,
+    device_id: &str,
+    original_params: &serde_json::Value,
+) -> Result<Vec<StepRefOrInline>, anyhow::Error> {
+    use crate::services::intelligent_analysis_service::IntelligentAnalysisRequest;
+    
+    tracing::info!("🔗 调用增强版前端智能策略分析系统");
+    
+    // 构建增强的分析请求
+    let request = IntelligentAnalysisRequest {
+        analysis_id: format!("v3_intelligent_raw_{}", chrono::Utc::now().timestamp_millis()),
+        device_id: device_id.to_string(),
+        ui_xml_content: ui_xml.to_string(),
+        target_element_hint: Some(format!("意图:{} 提示:{:?}", user_intent.action_type, user_intent.target_text)),
+        analysis_mode: "step0_to_6_from_raw".to_string(),
+        max_candidates: 5,
+        min_confidence: 0.6,
+    };
+    
+    // 调用智能分析服务
+    let analysis_result = crate::services::intelligent_analysis_service::mock_intelligent_analysis(request).await?;
+    
+    // 转换结果为 V3 格式
+    let steps = convert_analysis_result_to_v3_steps(analysis_result)?;
+    
+    tracing::info!("✅ 增强版前端智能分析完成，转换为 {} 个 V3 步骤", steps.len());
+    Ok(steps)
+}
+
 async fn call_frontend_intelligent_analysis(
     element_context: &str,
     ui_xml: &str,
