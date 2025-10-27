@@ -49,9 +49,10 @@ export const LoopEndCard: React.FC<LoopEndCardProps> = ({
   onUpdateStepParameters
 }) => {
   const [isConfigVisible, setIsConfigVisible] = useState(false);
-  const [loopCount, setLoopCount] = useState<number>(
-    (step.parameters?.loop_count as number) || loopConfig?.iterations || 1
-  );
+  
+  // 统一数据源：优先从 step.parameters 读取，确保与 LoopStartCard 同步
+  const currentIterations = (step.parameters?.loop_count as number) || loopConfig?.iterations || 1;
+  const [loopCount, setLoopCount] = useState<number>(currentIterations);
   const [isInfiniteLoop, setIsInfiniteLoop] = useState<boolean>(
     (step.parameters?.is_infinite_loop as boolean) || false
   );
@@ -65,25 +66,30 @@ export const LoopEndCard: React.FC<LoopEndCardProps> = ({
 
   const handleSaveConfig = () => {
     if (onUpdateStepParameters) {
+      const newLoopCount = isInfiniteLoop ? -1 : loopCount;
       const parameters = {
         ...step.parameters,
-        loop_count: isInfiniteLoop ? -1 : loopCount,
-        is_infinite_loop: isInfiniteLoop
+        loop_count: newLoopCount,
+        is_infinite_loop: isInfiniteLoop,
+        loop_config: {
+          ...loopConfig,
+          iterations: newLoopCount
+        }
       };
       onUpdateStepParameters(step.id, parameters);
-      message.success("循环配置已更新");
+      message.success(`循环配置已更新为 ${isInfiniteLoop ? '无限循环' : `${loopCount}次`}，已同步到关联步骤`);
     }
     setIsConfigVisible(false);
   };
 
   const handleCancelConfig = () => {
-    setLoopCount((step.parameters?.loop_count as number) || loopConfig?.iterations || 1);
+    setLoopCount(currentIterations);
     setIsInfiniteLoop((step.parameters?.is_infinite_loop as boolean) || false);
     setIsConfigVisible(false);
   };
 
-  const loopName = loopConfig?.name || (step.parameters?.loop_name as string) || step.name || "循环";
-  const currentIterations = isInfiniteLoop ? '∞' : loopCount;
+  const loopName = loopConfig?.name || (step.parameters?.loop_name as string) || step.name || "新循环";
+  const displayIterations = isInfiniteLoop ? '∞' : currentIterations;
 
   return (
     <>
@@ -145,7 +151,7 @@ export const LoopEndCard: React.FC<LoopEndCardProps> = ({
             <Space size="small">
               <ReloadOutlined style={{ color: '#f59e0b' }} />
               <Text type="secondary">完成次数:</Text>
-              <Text strong style={{ fontSize: 16, color: '#f59e0b' }}>{currentIterations}</Text>
+              <Text strong style={{ fontSize: 16, color: '#f59e0b' }}>{displayIterations}</Text>
             </Space>
           </Space>
         </div>

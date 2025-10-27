@@ -38,6 +38,7 @@ export const ActionParamsPanel: React.FC<ActionParamsPanelProps> = ({
   const params = action.params || {};
 
   const updateParams = (newParams: Partial<ActionParams>) => {
+    console.log('🎛️ updateParams called:', { newParams, currentParams: params });
     onChange({ ...params, ...newParams });
   };
 
@@ -47,7 +48,7 @@ export const ActionParamsPanel: React.FC<ActionParamsPanelProps> = ({
         return (
           <Space direction="vertical" style={{ width: '100%' }} size="small">
             <div>
-              <Text strong style={{ fontSize: 13 }}>输入内容</Text>
+              <Text strong style={{ fontSize: 13, color: 'var(--text-1, #F8FAFC)' }}>输入内容</Text>
               <Text type="danger"> *</Text>
             </div>
             <TextArea
@@ -63,12 +64,13 @@ export const ActionParamsPanel: React.FC<ActionParamsPanelProps> = ({
             <Checkbox
               checked={params.clear_before || false}
               onChange={(e) => updateParams({ clear_before: e.target.checked })}
+              style={{ color: 'var(--text-1, #F8FAFC)' }}
             >
-              输入前清空现有内容
+              <span style={{ color: 'var(--text-1, #F8FAFC)' }}>输入前清空现有内容</span>
             </Checkbox>
             
             <div style={{ marginTop: 12 }}>
-              <Text strong style={{ fontSize: 13 }}>输入速度</Text>
+              <Text strong style={{ fontSize: 13, color: 'var(--text-1, #F8FAFC)' }}>输入速度</Text>
             </div>
             <Select
               value={params.input_speed || 'normal'}
@@ -101,33 +103,45 @@ export const ActionParamsPanel: React.FC<ActionParamsPanelProps> = ({
         return (
           <Space direction="vertical" style={{ width: '100%' }} size="small">
             <div>
-              <Text strong style={{ fontSize: 13 }}>滑动方向</Text>
+              <Text strong style={{ fontSize: 13, color: 'var(--text-1, #F8FAFC)' }}>滑动方向</Text>
             </div>
             <Space.Compact style={{ width: '100%' }}>
               <Input.Group compact>
                 <Space>
                   <button
-                    onClick={() => updateParams({ direction: 'up' })}
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      console.log('🔥 Direction UP button clicked');
+                      updateParams({ direction: 'up' });
+                    }}
                     style={{
                       padding: '4px 12px',
-                      border: '1px solid #d9d9d9',
+                      border: '1px solid var(--border-primary, #334155)',
                       borderRadius: '6px',
-                      background: (params.direction === 'up' || action.type === 'swipe_up') ? '#1890ff' : '#fff',
-                      color: (params.direction === 'up' || action.type === 'swipe_up') ? '#fff' : '#000',
-                      cursor: 'pointer'
+                      background: (params.direction === 'up' || action.type === 'swipe_up') ? '#1890ff' : 'var(--bg-elevated, #1E293B)',
+                      color: (params.direction === 'up' || action.type === 'swipe_up') ? '#fff' : 'var(--text-1, #F8FAFC)',
+                      cursor: 'pointer',
+                      transition: 'all 0.2s ease',
+                      pointerEvents: 'auto'
                     }}
                   >
                     ↑ 向上
                   </button>
                   <button
-                    onClick={() => updateParams({ direction: 'down' })}
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      console.log('🔥 Direction DOWN button clicked');
+                      updateParams({ direction: 'down' });
+                    }}
                     style={{
                       padding: '4px 12px',
-                      border: '1px solid #d9d9d9',
+                      border: '1px solid var(--border-primary, #334155)',
                       borderRadius: '6px',
-                      background: (params.direction === 'down' || action.type === 'swipe_down') ? '#1890ff' : '#fff',
-                      color: (params.direction === 'down' || action.type === 'swipe_down') ? '#fff' : '#000',
-                      cursor: 'pointer'
+                      background: (params.direction === 'down' || action.type === 'swipe_down') ? '#1890ff' : 'var(--bg-elevated, #1E293B)',
+                      color: (params.direction === 'down' || action.type === 'swipe_down') ? '#fff' : 'var(--text-1, #F8FAFC)',
+                      cursor: 'pointer',
+                      transition: 'all 0.2s ease',
+                      pointerEvents: 'auto'
                     }}
                   >
                     ↓ 向下
@@ -136,11 +150,12 @@ export const ActionParamsPanel: React.FC<ActionParamsPanelProps> = ({
                     onClick={() => updateParams({ direction: 'left' })}
                     style={{
                       padding: '4px 12px',
-                      border: '1px solid #d9d9d9',
+                      border: '1px solid var(--border-primary, #334155)',
                       borderRadius: '6px',
-                      background: (params.direction === 'left' || action.type === 'swipe_left') ? '#1890ff' : '#fff',
-                      color: (params.direction === 'left' || action.type === 'swipe_left') ? '#fff' : '#000',
-                      cursor: 'pointer'
+                      background: (params.direction === 'left' || action.type === 'swipe_left') ? '#1890ff' : 'var(--bg-elevated, #1E293B)',
+                      color: (params.direction === 'left' || action.type === 'swipe_left') ? '#fff' : 'var(--text-1, #F8FAFC)',
+                      cursor: 'pointer',
+                      transition: 'all 0.2s ease'
                     }}
                   >
                     ← 向左
@@ -149,11 +164,12 @@ export const ActionParamsPanel: React.FC<ActionParamsPanelProps> = ({
                     onClick={() => updateParams({ direction: 'right' })}
                     style={{
                       padding: '4px 12px',
-                      border: '1px solid #d9d9d9',
+                      border: '1px solid var(--border-primary, #334155)',
                       borderRadius: '6px',
-                      background: (params.direction === 'right' || action.type === 'swipe_right') ? '#1890ff' : '#fff',
-                      color: (params.direction === 'right' || action.type === 'swipe_right') ? '#fff' : '#000',
-                      cursor: 'pointer'
+                      background: (params.direction === 'right' || action.type === 'swipe_right') ? '#1890ff' : 'var(--bg-elevated, #1E293B)',
+                      color: (params.direction === 'right' || action.type === 'swipe_right') ? '#fff' : 'var(--text-1, #F8FAFC)',
+                      cursor: 'pointer',
+                      transition: 'all 0.2s ease'
                     }}
                   >
                     → 向右
@@ -163,7 +179,7 @@ export const ActionParamsPanel: React.FC<ActionParamsPanelProps> = ({
             </Space.Compact>
             
             <div style={{ marginTop: 12 }}>
-              <Text strong style={{ fontSize: 13 }}>滑动距离 (像素)</Text>
+              <Text strong style={{ fontSize: 13, color: 'var(--text-1, #F8FAFC)' }}>滑动距离 (像素)</Text>
             </div>
             <InputNumber
               value={params.distance || 200}
@@ -178,7 +194,7 @@ export const ActionParamsPanel: React.FC<ActionParamsPanelProps> = ({
             />
             
             <div style={{ marginTop: 12 }}>
-              <Text strong style={{ fontSize: 13 }}>滑动时长 (毫秒)</Text>
+              <Text strong style={{ fontSize: 13, color: 'var(--text-1, #F8FAFC)' }}>滑动时长 (毫秒)</Text>
             </div>
             <InputNumber
               value={params.duration || 300}
@@ -193,7 +209,7 @@ export const ActionParamsPanel: React.FC<ActionParamsPanelProps> = ({
             />
             
             <div style={{ marginTop: 12 }}>
-              <Text strong style={{ fontSize: 13 }}>执行次数</Text>
+              <Text strong style={{ fontSize: 13, color: 'var(--text-1, #F8FAFC)' }}>执行次数</Text>
             </div>
             <InputNumber
               value={params.repeat_count || 1}
@@ -212,13 +228,13 @@ export const ActionParamsPanel: React.FC<ActionParamsPanelProps> = ({
                 checked={params.wait_between || false}
                 onChange={(e) => updateParams({ wait_between: e.target.checked })}
               >
-                每次执行间隔等待
+                <span style={{ color: 'var(--text-1, #F8FAFC)' }}>每次执行间隔等待</span>
               </Checkbox>
             </div>
             
             {params.wait_between && (
               <div>
-                <Text strong style={{ fontSize: 13 }}>间隔时长 (毫秒)</Text>
+                <Text strong style={{ fontSize: 13, color: 'var(--text-1, #F8FAFC)' }}>间隔时长 (毫秒)</Text>
                 <InputNumber
                   value={params.wait_duration || 500}
                   min={100}
@@ -377,12 +393,13 @@ export const ActionParamsPanel: React.FC<ActionParamsPanelProps> = ({
                   onClick={() => updateParams({ duration: value })}
                   style={{
                     padding: '4px 8px',
-                    border: '1px solid #d9d9d9',
+                    border: '1px solid var(--border-primary, #334155)',
                     borderRadius: '4px',
-                    background: (params.duration === value) ? '#1890ff' : '#fff',
-                    color: (params.duration === value) ? '#fff' : '#000',
+                    background: (params.duration === value) ? '#1890ff' : 'var(--bg-elevated, #1E293B)',
+                    color: (params.duration === value) ? '#fff' : 'var(--text-1, #F8FAFC)',
                     cursor: 'pointer',
-                    fontSize: '12px'
+                    fontSize: '12px',
+                    transition: 'all 0.2s ease'
                   }}
                 >
                   {label}
@@ -405,27 +422,39 @@ export const ActionParamsPanel: React.FC<ActionParamsPanelProps> = ({
             </div>
             <Space>
               <button
-                onClick={() => updateParams({ click_type: 'single' })}
+                onClick={(e) => {
+                  e.stopPropagation();
+                  console.log('🔥 Click type SINGLE button clicked');
+                  updateParams({ click_type: 'single' });
+                }}
                 style={{
                   padding: '4px 12px',
-                  border: '1px solid #d9d9d9',
+                  border: '1px solid var(--border-primary, #334155)',
                   borderRadius: '6px',
-                  background: (params.click_type === 'single' || !params.click_type) ? '#1890ff' : '#fff',
-                  color: (params.click_type === 'single' || !params.click_type) ? '#fff' : '#000',
-                  cursor: 'pointer'
+                  background: (params.click_type === 'single' || !params.click_type) ? '#1890ff' : 'var(--bg-elevated, #1E293B)',
+                  color: (params.click_type === 'single' || !params.click_type) ? '#fff' : 'var(--text-1, #F8FAFC)',
+                  cursor: 'pointer',
+                  transition: 'all 0.2s ease',
+                  pointerEvents: 'auto'
                 }}
               >
                 单击
               </button>
               <button
-                onClick={() => updateParams({ click_type: 'double' })}
+                onClick={(e) => {
+                  e.stopPropagation();
+                  console.log('🔥 Click type DOUBLE button clicked');
+                  updateParams({ click_type: 'double' });
+                }}
                 style={{
                   padding: '4px 12px',
-                  border: '1px solid #d9d9d9',
+                  border: '1px solid var(--border-primary, #334155)',
                   borderRadius: '6px',
-                  background: params.click_type === 'double' ? '#1890ff' : '#fff',
-                  color: params.click_type === 'double' ? '#fff' : '#000',
-                  cursor: 'pointer'
+                  background: params.click_type === 'double' ? '#1890ff' : 'var(--bg-elevated, #1E293B)',
+                  color: params.click_type === 'double' ? '#fff' : 'var(--text-1, #F8FAFC)',
+                  cursor: 'pointer',
+                  transition: 'all 0.2s ease',
+                  pointerEvents: 'auto'
                 }}
               >
                 双击
@@ -513,19 +542,62 @@ export const ActionParamsPanel: React.FC<ActionParamsPanelProps> = ({
   }
 
   return (
-    <Card 
-      size="small" 
-      className="light-theme-force action-params-panel"
-      title={
-        <Space>
-          <SettingOutlined style={{ color: config.color }} />
-          <span style={{ color: config.color }}>{title}</span>
-        </Space>
-      }
-      bodyStyle={{ padding: '12px' }}
-    >
-      {renderParamsContent()}
-    </Card>
+    <>
+      <style>
+        {`
+          .action-params-panel .ant-typography,
+          .action-params-panel .ant-checkbox-wrapper .ant-checkbox + span,
+          .action-params-panel .dark-theme-text-override .ant-typography {
+            color: var(--text-1, #F8FAFC) !important;
+          }
+          .action-params-panel .ant-typography[type="secondary"] {
+            color: var(--text-3, #CBD5E1) !important;
+          }
+          .action-params-panel .ant-card-head-title,
+          .action-params-panel .ant-card-head-title *,
+          .action-params-panel .ant-card-head .ant-space-item span,
+          .action-params-panel .ant-card-head-wrapper span {
+            color: var(--text-1, #F8FAFC) !important;
+          }
+          .action-params-panel.light-theme-force .ant-card-head-title {
+            color: var(--text-1, #F8FAFC) !important;
+          }
+          .action-params-panel .ant-input-number,
+          .action-params-panel .ant-input,
+          .action-params-panel .ant-select,
+          .action-params-panel .ant-checkbox,
+          .action-params-panel button {
+            pointer-events: auto !important;
+          }
+        `}
+      </style>
+      <Card 
+        size="small" 
+        className="light-theme-force action-params-panel"
+        title={
+          <Space style={{ color: 'var(--text-1, #F8FAFC)' }}>
+            <SettingOutlined style={{ color: config.color }} />
+            <span style={{ color: 'var(--text-1, #F8FAFC) !important' }}>{title}</span>
+          </Space>
+        }
+        bodyStyle={{ 
+          padding: '12px',
+          color: 'var(--text-1, #F8FAFC) !important'
+        }}
+        style={{
+          color: 'var(--text-1, #F8FAFC) !important'
+        }}
+      >
+        <div 
+          className="dark-theme-text-override"
+          style={{ 
+            color: 'var(--text-1, #F8FAFC)'
+          }}
+        >
+          {renderParamsContent()}
+        </div>
+      </Card>
+    </>
   );
 };
 

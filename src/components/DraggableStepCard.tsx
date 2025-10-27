@@ -395,6 +395,7 @@ const DraggableStepCardInner: React.FC<
 
   // 🎛️ 参数更新处理函数 
   const handleParametersChange = (params: ActionParams) => {
+    console.log('🔄 handleParametersChange called:', { stepId: step.id, params });
     if (onParametersChange) {
       onParametersChange(step.id, params);
     }
@@ -1080,12 +1081,16 @@ const DraggableStepCardInner: React.FC<
               background: "rgba(30, 41, 59, 0.8)",
               borderRadius: STEP_CARD_DESIGN_TOKENS.borderRadius.md,
               border: "1px solid rgba(59, 130, 246, 0.2)",
+              pointerEvents: 'auto',
+              cursor: 'default'
             }}
           >
             <div 
               className="dark-theme-params-panel"
               style={{ 
                 color: 'var(--text-1, #F8FAFC)',
+                pointerEvents: 'auto',
+                cursor: 'default'
               }}
             >
               <ActionParamsPanel

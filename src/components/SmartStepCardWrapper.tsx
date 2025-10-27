@@ -40,6 +40,8 @@ interface SmartStepCardWrapperProps {
   // 🔄 智能分析功能
   onReanalyze?: (stepId: string) => Promise<void>;
   isAnalyzing?: boolean;
+  // 🔄 循环卡片同步支持
+  allSteps?: SmartScriptStep[]; // 所有步骤（用于找到关联的循环步骤）
 }
 
 export const SmartStepCardWrapper: React.FC<SmartStepCardWrapperProps> = (props) => {
@@ -61,7 +63,9 @@ export const SmartStepCardWrapper: React.FC<SmartStepCardWrapperProps> = (props)
     onOpenPageAnalyzer,
     // 🔄 智能分析功能
     onReanalyze,
-    isAnalyzing
+    isAnalyzing,
+    // 🔄 循环卡片同步支持
+    allSteps = []
   } = props;
 
   // 🎯 智能路由：根据步骤类型选择合适的卡片组件
@@ -71,11 +75,7 @@ export const SmartStepCardWrapper: React.FC<SmartStepCardWrapperProps> = (props)
     return (
       <LoopStartCard
         step={step}
-        index={index}
         isDragging={isDragging}
-        onEdit={onEdit}
-        onDelete={onDelete}
-        onToggle={onToggle}
         // 循环卡片特定属性
         loopConfig={step.parameters?.loop_config || {
           loopId: step.parameters?.loop_id as string || `loop_${step.id}`,
@@ -84,15 +84,34 @@ export const SmartStepCardWrapper: React.FC<SmartStepCardWrapperProps> = (props)
           enabled: step.enabled
         }}
         onLoopConfigUpdate={(config) => {
-          // 更新循环配置
-          if (onUpdateStepParameters) {
-            onUpdateStepParameters(step.id, {
-              ...step.parameters,
+          // 更新循环配置并同步到关联步骤
+          if (onUpdateStepParameters && allSteps) {
+            const loopParameters = {
               loop_config: config,
               loop_id: config.loopId,
               loop_name: config.name,
               loop_count: config.iterations
+            };
+            
+            // 更新当前步骤
+            onUpdateStepParameters(step.id, {
+              ...step.parameters,
+              ...loopParameters,
             });
+            
+            // 🔄 查找并同步关联的循环步骤
+            const associatedType = step.step_type === 'loop_start' ? 'loop_end' : 'loop_start';
+            const associatedStep = allSteps.find(s => 
+              s.step_type === associatedType && 
+              s.parameters?.loop_id === config.loopId
+            );
+            
+            if (associatedStep) {
+              onUpdateStepParameters(associatedStep.id, {
+                ...associatedStep.parameters,
+                ...loopParameters,
+              });
+            }
           }
         }}
         onDeleteLoop={() => onDelete(step.id)}
@@ -117,6 +136,8 @@ export const SmartStepCardWrapper: React.FC<SmartStepCardWrapperProps> = (props)
           iterations: step.parameters?.loop_count as number || 1,
           enabled: step.enabled
         }}
+        onDeleteLoop={() => onDelete(step.id)}
+        onUpdateStepParameters={onUpdateStepParameters}
       />
     );
   }

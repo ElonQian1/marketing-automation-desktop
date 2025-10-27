@@ -162,10 +162,8 @@ coverage
 temp_contacts_*.vcf
 *.vcf
 
-# 忽略调试和临时文件目录（保护源代码目录不被忽略）
-# 只忽略根目录的debug文件夹，不影响src/pages/debug等源代码目录
-/debug/
-# 忽略临时调试脚本和补丁文件
+# 忽略调试和临时文件目录
+debug/
 *.patch.ts
 debug-*.js
 emergency-*.js
@@ -175,16 +173,6 @@ fix_*.py
 clean-*.ps1
 identify-*.ps1
 diagnose_*.mjs
-
-# 确保重要的源代码目录不被忽略
-!src/**/debug/
-!src/pages/debug/
-!src/components/debug/
-!src-tauri/src/debug/
-
-# 但是忽略运行时调试数据
-src-tauri/debug/flows/
-*.jsonl
 
 # Playwright测试报告
 playwright-report/

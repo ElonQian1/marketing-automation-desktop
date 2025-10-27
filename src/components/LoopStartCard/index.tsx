@@ -1,13 +1,12 @@
 // src/components/LoopStartCard/index.tsx
 // module: ui | layer: ui | role: component
-// summary: UI 组件
+// summary: 循环开始卡片 - 支持与结束卡片数据同步
 
-// 循环开始卡片 - 简化设计，支持拖拽
-
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { Card, Space, Typography, InputNumber, Button, Tooltip, message } from "antd";
 import { RedoOutlined, SettingOutlined, DeleteOutlined, PlayCircleOutlined } from "@ant-design/icons";
 import ConfirmPopover from '../universal-ui/common-popover/ConfirmPopover';
+import useLoopSync from '../LoopCards/useLoopSync';
 import type { LoopStartCardProps } from './types';
 import type { LoopConfig } from "../../types/loopScript";
 import "./styles.css";
@@ -16,19 +15,18 @@ const { Text } = Typography;
 
 export const LoopStartCard: React.FC<LoopStartCardProps> = ({
   step,
-  index,
   loopConfig,
   isDragging,
   onLoopConfigUpdate,
   onDeleteLoop,
-  onToggle,
 }) => {
   const [isEditing, setIsEditing] = useState(false);
-  const [tempIterations, setTempIterations] = useState<number>(
-    loopConfig?.iterations || (step.parameters?.loop_count as number) || 1
-  );
+  
+  // 统一数据源：优先从 step.parameters 读取，确保与 LoopEndCard 同步
+  const currentIterations = (step.parameters?.loop_count as number) || loopConfig?.iterations || 1;
+  const [tempIterations, setTempIterations] = useState<number>(currentIterations);
 
-  // 保存配置
+  // 保存配置 - 统一更新到 step.parameters
   const handleSave = () => {
     try {
       const updatedConfig: LoopConfig = {
@@ -39,20 +37,19 @@ export const LoopStartCard: React.FC<LoopStartCardProps> = ({
       };
       onLoopConfigUpdate(updatedConfig);
       setIsEditing(false);
-      message.success("循环次数已更新");
-    } catch (error) {
+      message.success(`循环次数已更新为 ${tempIterations} 次`);
+    } catch {
       message.error("保存失败，请重试");
     }
   };
 
   // 取消编辑
   const handleCancel = () => {
-    setTempIterations(loopConfig?.iterations || (step.parameters?.loop_count as number) || 1);
+    setTempIterations(currentIterations);
     setIsEditing(false);
   };
 
-  const currentIterations = loopConfig?.iterations || (step.parameters?.loop_count as number) || 1;
-  const loopName = loopConfig?.name || (step.parameters?.loop_name as string) || step.name || "循环";
+  const loopName = loopConfig?.name || (step.parameters?.loop_name as string) || step.name || "新循环";
 
   return (
     <Card

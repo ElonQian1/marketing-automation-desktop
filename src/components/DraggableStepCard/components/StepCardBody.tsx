@@ -4,7 +4,6 @@
 
 import React from 'react';
 import { DescriptionEditor } from './DescriptionEditor';
-import { InlineLoopControl } from './InlineLoopControl';
 import type { StepTypeStyle } from '../styles/stepTypeStyles';
 import AccentBars from './body/AccentBars';
 import StrategyArea from './body/StrategyArea';
@@ -68,11 +67,7 @@ export const StepCardBody: React.FC<StepCardBodyProps> = ({
           />
 
           <div className="flex items-center gap-2 shrink-0" {...noDragProps}>
-            <InlineLoopControl
-              stepId={step.id}
-              parameters={step.parameters}
-              onUpdateStepParameters={onUpdateStepParameters}
-            />
+            {/* 🔄 原 InlineLoopControl 已删除，现使用后端循环系统 */}
 
             <StrategyArea
               step={step}

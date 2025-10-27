@@ -72,26 +72,12 @@ export function normalizeStepForBackend(step: ExtendedSmartScriptStep): Extended
   return step;
 }
 
-// 展开 inline 循环（parameters.inline_loop_count）
-export function expandInlineLoops(steps: ExtendedSmartScriptStep[]): ExtendedSmartScriptStep[] {
-  const expanded: ExtendedSmartScriptStep[] = [];
-  for (const s of steps) {
-    const countRaw = (s.parameters as any)?.inline_loop_count;
-    const count = Math.max(1, Math.min(50, Number(countRaw ?? 1)));
-    if (count <= 1) {
-      expanded.push(s);
-    } else {
-      for (let i = 0; i < count; i++) {
-        expanded.push({ ...s }); // 浅拷贝，避免共享引用
-      }
-    }
-  }
-  return expanded;
-}
+// 🚫 原有的 expandInlineLoops 函数已删除
+// 现在使用新的后端循环系统，不再需要前端展开循环
 
-// 一站式：过滤启用步骤 → 标准化 → 展开循环
+// 🔄 新的后端循环系统：只过滤和标准化，不再展开循环
+// 循环处理完全由后端 loop_handler 模块负责
 export function normalizeScriptStepsForBackend(allSteps: ExtendedSmartScriptStep[]): ExtendedSmartScriptStep[] {
   const enabled = (allSteps || []).filter((s) => s.enabled);
-  const normalized = enabled.map(normalizeStepForBackend);
-  return expandInlineLoops(normalized);
+  return enabled.map(normalizeStepForBackend);
 }
