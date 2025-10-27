@@ -231,6 +231,45 @@ export function useV2StepTest(): UseV2StepTestState & UseV2StepTestActions {
 }
 
 /**
+ * 提取目标文本 - 完全保留原文，不做任何处理
+ */
+function extractTargetTextFromStep(step: SmartScriptStep, params: Record<string, unknown>): string {
+  // 1. 优先使用params中明确的文本（原文不变）
+  if (params.text && typeof params.text === 'string' && params.text.trim()) {
+    console.log('🎯 使用params.text原文:', params.text);
+    return params.text; // 保留原文，包括空格等
+  }
+  
+  // 2. 使用content_desc原文（完全不处理）
+  if (params.content_desc && typeof params.content_desc === 'string' && params.content_desc.trim()) {
+    console.log('🎯 使用content_desc原文:', params.content_desc);
+    return params.content_desc; // 完全保留原文
+  }
+  
+  // 3. 从element_selector xpath提取文本条件（保留原文）
+  if (params.element_selector && typeof params.element_selector === 'string') {
+    const textMatch = params.element_selector.match(/@text\s*=\s*[""']([^""']+)[""']/);
+    if (textMatch && textMatch[1]) {
+      console.log('🎯 从XPath提取原文文本:', textMatch[1]);
+      return textMatch[1]; // XPath中的文本通常就是原文
+    }
+  }
+  
+  // 4. ⚠️ 重要修复：不再使用step.name作为targetText
+  // 当元素没有明确文本时，应该返回空字符串让后端进行智能分析
+  // 而不是传递硬编码的步骤名称（如"智能操作 1"）
+  console.log('🎯 元素无明确文本，返回空字符串触发后端智能分析:', {
+    stepName: step.name,
+    stepType: step.step_type,
+    paramsText: params.text,
+    contentDesc: params.content_desc,
+    reason: '避免硬编码步骤名称误导后端匹配逻辑'
+  });
+  
+  return '';
+}
+
+/**
  * 转换SmartScriptStep到V2请求格式
  */
 function convertSmartStepToV2Request(
@@ -375,8 +414,8 @@ function convertSmartStepToV2Request(
     selectorId: coordinateParams ? undefined : (params.element_selector || step.id), // 🎯 有坐标时不需要选择器
     stepId: step.id,  // ✅ 传递stepId用于Store查询
     bounds: parseBoundsFromParams(params),
-    // 🎯 新增：传递目标文本信息，解决"已关注"vs"关注"问题
-    targetText: params.text as string || '', // 从步骤参数中提取目标文本
+    // 🎯 修复：智能提取目标文本信息，解决空文本匹配过度宽泛的问题
+    targetText: extractTargetTextFromStep(step, params),
     contentDesc: params.content_desc as string || '',
     resourceId: params.resource_id as string || '',
     // 🎯 【关键修复】传递屏幕交互坐标参数
@@ -384,45 +423,7 @@ function convertSmartStepToV2Request(
   };
 }
 
-/**
- * 从参数生成XPath选择器
- */
-function generateXPathFromParams(params: Record<string, unknown>): string {
-  // 优先使用existing selector
-  if (params.element_selector && typeof params.element_selector === 'string') {
-    return params.element_selector;
-  }
 
-  // 使用resource_id
-  if (params.resource_id && typeof params.resource_id === 'string') {
-    return `//*[@resource-id="${params.resource_id}"]`;
-  }
-
-  // 使用content_desc
-  if (params.content_desc && typeof params.content_desc === 'string') {
-    return `//*[@content-desc="${params.content_desc}"]`;
-  }
-
-  // 使用text
-  if (params.text && typeof params.text === 'string') {
-    return `//*[@text="${params.text}"]`;
-  }
-
-  // 最后使用bounds坐标（兜底方案）
-  if (params.bounds && typeof params.bounds === 'string') {
-    try {
-      const bounds = JSON.parse(params.bounds);
-      const centerX = Math.round((bounds.left + bounds.right) / 2);
-      const centerY = Math.round((bounds.top + bounds.bottom) / 2);
-      return `//*[contains(@bounds,"${centerX},${centerY}")]`;
-    } catch {
-      // bounds解析失败，使用通用选择器
-    }
-  }
-
-  // 兜底选择器
-  return '//*';
-}
 
 /**
  * 解析边界坐标
