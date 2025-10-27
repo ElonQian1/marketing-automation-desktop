@@ -21,10 +21,13 @@
 }
 
 .loop-card.dragging {
-  box-shadow: 0 8px 24px rgba(16, 185, 129, 0.3) !important;
-  transform: rotate(2deg);
+  /* 与普通步骤卡片保持一致的拖拽效果 */
+  box-shadow: 0 8px 24px rgba(16, 185, 129, 0.15) !important;
+  transform: rotate(2deg) scale(0.98);
+  opacity: 0.7;
   cursor: grabbing;
   z-index: 1000;
+  transition: none !important;
 }
 
 /* ===== 循环开始卡片特定样式 ===== */

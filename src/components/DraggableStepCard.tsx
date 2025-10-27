@@ -24,7 +24,7 @@
  * - 保持相同的导出类型
  */
 
-import React, { useState } from "react";
+import React, { useState, useMemo } from "react";
 import { CSS } from "@dnd-kit/utilities";
 import { SmartActionType } from "../types/smartComponents";
 import { isBackendHealthy } from "../services/backend-health-check";
@@ -128,6 +128,8 @@ export interface DraggableStepCardProps {
   isDragging?: boolean;
   /** 参数更新回调 */
   onParametersChange?: (stepId: string, params: ActionParams) => void;
+  /** 步骤参数更新回调 */
+  onUpdateStepParameters?: (stepId: string, parameters: Record<string, unknown>) => void;
 }
 
 // 样式系统
@@ -354,6 +356,7 @@ const DraggableStepCardInner: React.FC<
   devices,
   currentDeviceId,
   onParametersChange,
+  onUpdateStepParameters,
   transform,
   transition,
   style,
@@ -366,7 +369,7 @@ const DraggableStepCardInner: React.FC<
   const [showParams, setShowParams] = useState(false);
 
   // 🔄 将步骤类型转换为ActionType
-  const convertToActionType = (stepType: string): ActionType | null => {
+  const actionType = useMemo(() => {
     const typeMapping: Record<string, ActionType['type']> = {
       'tap': 'click',
       'click': 'click',
@@ -381,23 +384,26 @@ const DraggableStepCardInner: React.FC<
       'smart_scroll': 'swipe_down' // 智能滚动映射为下滑
     };
 
-    const mappedType = typeMapping[stepType];
+    const mappedType = typeMapping[step.step_type];
     if (mappedType) {
       return {
         type: mappedType,
-        params: step.parameters as ActionParams
+        params: {} as ActionParams // 🔥 关键修复：使用空参数对象，避免循环依赖
       };
     }
     return null;
-  };
-
-  const actionType = convertToActionType(step.step_type);
+  }, [step.step_type]);
 
   // 🎛️ 参数更新处理函数 
   const handleParametersChange = (params: ActionParams) => {
-    console.log('🔄 handleParametersChange called:', { stepId: step.id, params });
+    // 🔄 同时调用两个回调确保参数更新生效
     if (onParametersChange) {
       onParametersChange(step.id, params);
+    }
+    
+    // 🔑 关键：更新step的实际parameters
+    if (onUpdateStepParameters) {
+      onUpdateStepParameters(step.id, params as Record<string, unknown>);
     }
   };
 
@@ -1095,6 +1101,7 @@ const DraggableStepCardInner: React.FC<
             >
               <ActionParamsPanel
                 action={actionType}
+                initialParams={step.parameters as ActionParams}
                 onChange={handleParametersChange}
                 size="small"
                 title="操作参数配置"

@@ -2,7 +2,7 @@
 // module: action-system | layer: ui | role: 操作参数配置面板
 // summary: 不同操作类型的参数配置面板
 
-import React from 'react';
+import React, { useState } from 'react';
 import { 
  
   Input, 
@@ -23,23 +23,36 @@ const { TextArea } = Input;
 
 interface ActionParamsPanelProps {
   action: ActionType;
+  initialParams?: ActionParams; // 🔥 新增：外部传入的初始参数
   onChange: (params: ActionParams) => void;
-  size?: 'small' | 'middle';
+  size?: 'small' | 'middle' | 'large';
   title?: string;
 }
 
 export const ActionParamsPanel: React.FC<ActionParamsPanelProps> = ({
   action,
+  initialParams,
   onChange,
   size = 'middle',
   title = '操作参数'
 }) => {
   const config = getActionConfig(action.type);
-  const params = action.params || {};
+  
+  // 🔥 使用 useState 管理内部参数状态，避免外部循环依赖
+  const [params, setParams] = useState<ActionParams>(() => {
+    return initialParams || action.params || {};
+  });
+
+  // 🔄 同步外部参数变化到内部状态
+  React.useEffect(() => {
+    const externalParams = initialParams || action.params || {};
+    setParams(externalParams);
+  }, [initialParams, action.params]);
 
   const updateParams = (newParams: Partial<ActionParams>) => {
-    console.log('🎛️ updateParams called:', { newParams, currentParams: params });
-    onChange({ ...params, ...newParams });
+    const updatedParams = { ...params, ...newParams };
+    setParams(updatedParams); // 更新内部状态
+    onChange(updatedParams);   // 通知外部
   };
 
   const renderParamsContent = () => {
@@ -111,15 +124,14 @@ export const ActionParamsPanel: React.FC<ActionParamsPanelProps> = ({
                   <button
                     onClick={(e) => {
                       e.stopPropagation();
-                      console.log('🔥 Direction UP button clicked');
                       updateParams({ direction: 'up' });
                     }}
                     style={{
                       padding: '4px 12px',
                       border: '1px solid var(--border-primary, #334155)',
                       borderRadius: '6px',
-                      background: (params.direction === 'up' || action.type === 'swipe_up') ? '#1890ff' : 'var(--bg-elevated, #1E293B)',
-                      color: (params.direction === 'up' || action.type === 'swipe_up') ? '#fff' : 'var(--text-1, #F8FAFC)',
+                      background: (params.direction === 'up') ? '#1890ff' : 'var(--bg-elevated, #1E293B)',
+                      color: (params.direction === 'up') ? '#fff' : 'var(--text-1, #F8FAFC)',
                       cursor: 'pointer',
                       transition: 'all 0.2s ease',
                       pointerEvents: 'auto'
@@ -130,15 +142,14 @@ export const ActionParamsPanel: React.FC<ActionParamsPanelProps> = ({
                   <button
                     onClick={(e) => {
                       e.stopPropagation();
-                      console.log('🔥 Direction DOWN button clicked');
                       updateParams({ direction: 'down' });
                     }}
                     style={{
                       padding: '4px 12px',
                       border: '1px solid var(--border-primary, #334155)',
                       borderRadius: '6px',
-                      background: (params.direction === 'down' || action.type === 'swipe_down') ? '#1890ff' : 'var(--bg-elevated, #1E293B)',
-                      color: (params.direction === 'down' || action.type === 'swipe_down') ? '#fff' : 'var(--text-1, #F8FAFC)',
+                      background: (params.direction === 'down') ? '#1890ff' : 'var(--bg-elevated, #1E293B)',
+                      color: (params.direction === 'down') ? '#fff' : 'var(--text-1, #F8FAFC)',
                       cursor: 'pointer',
                       transition: 'all 0.2s ease',
                       pointerEvents: 'auto'
@@ -152,8 +163,8 @@ export const ActionParamsPanel: React.FC<ActionParamsPanelProps> = ({
                       padding: '4px 12px',
                       border: '1px solid var(--border-primary, #334155)',
                       borderRadius: '6px',
-                      background: (params.direction === 'left' || action.type === 'swipe_left') ? '#1890ff' : 'var(--bg-elevated, #1E293B)',
-                      color: (params.direction === 'left' || action.type === 'swipe_left') ? '#fff' : 'var(--text-1, #F8FAFC)',
+                      background: (params.direction === 'left') ? '#1890ff' : 'var(--bg-elevated, #1E293B)',
+                      color: (params.direction === 'left') ? '#fff' : 'var(--text-1, #F8FAFC)',
                       cursor: 'pointer',
                       transition: 'all 0.2s ease'
                     }}
@@ -166,8 +177,8 @@ export const ActionParamsPanel: React.FC<ActionParamsPanelProps> = ({
                       padding: '4px 12px',
                       border: '1px solid var(--border-primary, #334155)',
                       borderRadius: '6px',
-                      background: (params.direction === 'right' || action.type === 'swipe_right') ? '#1890ff' : 'var(--bg-elevated, #1E293B)',
-                      color: (params.direction === 'right' || action.type === 'swipe_right') ? '#fff' : 'var(--text-1, #F8FAFC)',
+                      background: (params.direction === 'right') ? '#1890ff' : 'var(--bg-elevated, #1E293B)',
+                      color: (params.direction === 'right') ? '#fff' : 'var(--text-1, #F8FAFC)',
                       cursor: 'pointer',
                       transition: 'all 0.2s ease'
                     }}
@@ -424,7 +435,6 @@ export const ActionParamsPanel: React.FC<ActionParamsPanelProps> = ({
               <button
                 onClick={(e) => {
                   e.stopPropagation();
-                  console.log('🔥 Click type SINGLE button clicked');
                   updateParams({ click_type: 'single' });
                 }}
                 style={{
@@ -443,7 +453,6 @@ export const ActionParamsPanel: React.FC<ActionParamsPanelProps> = ({
               <button
                 onClick={(e) => {
                   e.stopPropagation();
-                  console.log('🔥 Click type DOUBLE button clicked');
                   updateParams({ click_type: 'double' });
                 }}
                 style={{
