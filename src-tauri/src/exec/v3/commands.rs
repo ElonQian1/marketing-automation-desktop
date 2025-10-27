@@ -36,16 +36,31 @@ pub async fn execute_single_step_test_v3(
 pub async fn execute_chain_test_v3(
     app: AppHandle,
     envelope: ContextEnvelope,
-    spec: ChainSpecV3,
+    spec: serde_json::Value, // 🔍 临时使用Value来调试原始JSON
 ) -> Result<Value, String> {
-    let (analysis_id, threshold) = match &spec {
+    // 🔍 调试：打印收到的原始JSON
+    tracing::warn!("🔍 [DEBUG] 收到的原始spec JSON: {}", serde_json::to_string_pretty(&spec).unwrap_or_default());
+    
+    // 🔍 尝试反序列化为ChainSpecV3
+    let parsed_spec: ChainSpecV3 = match serde_json::from_value(spec.clone()) {
+        Ok(s) => {
+            tracing::info!("✅ [DEBUG] ChainSpecV3反序列化成功");
+            s
+        },
+        Err(e) => {
+            tracing::error!("❌ [DEBUG] ChainSpecV3反序列化失败: {:?}", e);
+            tracing::error!("❌ [DEBUG] 失败的JSON数据: {}", serde_json::to_string_pretty(&spec).unwrap_or_default());
+            return Err(format!("ChainSpecV3反序列化失败: {}", e));
+        }
+    };
+    let (analysis_id, threshold) = match &parsed_spec {
         ChainSpecV3::ByRef { analysis_id, threshold, .. } => (Some(analysis_id.clone()), *threshold),
         ChainSpecV3::ByInline { chain_id, threshold, ordered_steps, .. } => {
             (chain_id.clone(), *threshold)
         }
     };
     
-    let steps_count = match &spec {
+    let steps_count = match &parsed_spec {
         ChainSpecV3::ByRef { .. } => "from-cache",
         ChainSpecV3::ByInline { ordered_steps, .. } => &ordered_steps.len().to_string(),
     };
@@ -55,7 +70,7 @@ pub async fn execute_chain_test_v3(
         analysis_id, steps_count, threshold
     );
     
-    let result = execute_chain(&app, &envelope, &spec)
+    let result = execute_chain(&app, &envelope, &parsed_spec)
         .await
         .map_err(|e| e.to_string())?;
     

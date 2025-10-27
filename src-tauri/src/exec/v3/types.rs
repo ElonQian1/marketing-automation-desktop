@@ -177,11 +177,12 @@ pub enum SingleStepAction {
 
 /// 智能自动链规格（支持 by-ref 和 by-inline 两种形态）
 #[derive(Debug, Clone, Serialize, Deserialize)]
-#[serde(rename_all = "camelCase")]
 #[serde(untagged)]
 pub enum ChainSpecV3 {
     /// 引用式：前端只传 analysisId，后端从缓存读取 ChainResult
+    /// 注意：必须放在第一位，优先匹配简单格式
     ByRef {
+        #[serde(rename = "analysisId")]
         analysis_id: String,
         #[serde(default = "default_threshold")]
         threshold: Confidence,
@@ -189,8 +190,11 @@ pub enum ChainSpecV3 {
         mode: ChainMode,
     },
     /// 内联式：前端传完整步骤（兼容旧代码，不推荐）
+    /// 注意：字段名使用 camelCase 匹配前端 JSON
     ByInline {
+        #[serde(rename = "chainId")]
         chain_id: Option<String>,
+        #[serde(rename = "orderedSteps")]
         ordered_steps: Vec<StepRefOrInline>,
         threshold: Confidence,
         mode: ChainMode,
