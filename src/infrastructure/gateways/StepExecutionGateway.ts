@@ -42,6 +42,14 @@ export interface StepExecutionRequest {
   targetText?: string; // 用户选择的元素文本
   contentDesc?: string; // 元素的content-desc
   resourceId?: string; // 元素的resource-id
+  // 🎯 【关键修复】屏幕交互坐标参数，用于滑动等操作
+  coordinateParams?: {
+    start_x?: number;
+    start_y?: number;
+    end_x?: number;
+    end_y?: number;
+    duration?: number;
+  };
 }
 
 // 统一响应接口
@@ -128,8 +136,8 @@ export class StepExecutionGateway {
    * 统一执行入口
    */
   async executeStep(request: StepExecutionRequest): Promise<StepExecutionResponse> {
-    // 🎯 【关键路由】V3智能策略优先判断 - 避免坐标兜底
-    if (USE_V3_INTELLIGENT_STRATEGY) {
+    // 🎯 【关键路由】V3智能策略优先判断 - 只处理需要元素选择的操作
+    if (USE_V3_INTELLIGENT_STRATEGY && this.shouldUseV3Strategy(request)) {
       console.log(`[StepExecGateway] 🚀 使用V3智能策略系统，避免坐标兜底`);
       console.log(`[StepExecGateway] 📋 执行路径: executeStep → executeV3 → execute_chain_test_v3`);
       return await this.executeV3(request);
@@ -137,7 +145,9 @@ export class StepExecutionGateway {
 
     const engine = this.resolveEngine(request);
     
-    console.log(`[StepExecGateway] Using engine: ${engine}, mode: ${request.mode}`);
+    // 📋 【传统路由】非选择类操作使用原有引擎系统
+    console.log(`[StepExecGateway] 🛠️ 使用传统执行引擎: ${engine}, action=${request.actionParams.type}, mode=${request.mode}`);
+    console.log(`[StepExecGateway] 📋 执行路径: executeStep → execute${engine.toUpperCase()} → 原有系统`);
 
     try {
       switch (engine) {
@@ -159,6 +169,35 @@ export class StepExecutionGateway {
         errorCode: 'EXECUTION_ERROR',
       };
     }
+  }
+
+  /**
+   * 判断是否应该使用V3智能策略系统
+   * V3只处理需要元素选择的操作，非选择类操作（如滚动、等待等）使用原有系统
+   */
+  private shouldUseV3Strategy(request: StepExecutionRequest): boolean {
+    const { actionParams, targetText, contentDesc } = request;
+    
+    // 🎯 【核心判断】只有需要元素选择的操作才使用V3系统
+    const needsElementSelection = Boolean(
+      targetText || contentDesc || // 有目标文本/描述的操作
+      (actionParams.type === 'tap' && request.selectorId) || // 有选择器的点击操作
+      actionParams.type === 'type' || // 输入操作（通常需要找到输入框）
+      actionParams.type === 'doubleTap' ||
+      actionParams.type === 'longPress'
+    );
+    
+    // 🚫 【排除操作】这些操作不需要元素选择，直接使用原有系统
+    const isNonSelectionAction = (
+      actionParams.type === 'swipe' ||  // 滑动操作（smart_scroll转换后）
+      actionParams.type === 'wait' ||   // 等待操作  
+      actionParams.type === 'back'      // 返回操作
+    );
+    
+    // 📝 记录路由决策
+    console.log(`🔍 [StepExecGateway] V3路由决策: action=${actionParams.type}, needsElement=${needsElementSelection}, isNonSelection=${isNonSelectionAction}, targetText="${targetText||''}", result=${needsElementSelection && !isNonSelectionAction}`);
+    
+    return needsElementSelection && !isNonSelectionAction;
   }
 
   /**
@@ -232,6 +271,7 @@ export class StepExecutionGateway {
         selectorId: request.selectorId,
         stepId: request.stepId,  // ✅ 传递stepId用于Store查询
         bounds: request.bounds,
+        coordinateParams: request.coordinateParams, // 🎯 【关键修复】传递坐标参数
       });
       
       console.log('[StepExecGateway] V2请求:', v2StepRequest);

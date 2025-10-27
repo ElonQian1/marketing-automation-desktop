@@ -7,7 +7,7 @@ use anyhow::Result;
 use regex;
 
 use crate::services::ui_reader_service::{get_ui_dump, UIElement};
-use crate::infra::adb::input_helper::{tap_injector_first, input_text_injector_first};
+use crate::infra::adb::input_helper::{tap_injector_first, input_text_injector_first, swipe_injector_first};
 use crate::infra::adb::keyevent_helper::keyevent_code_injector_first;
 use crate::engine::{
     FallbackController, XmlIndexer, 
@@ -606,16 +606,95 @@ pub async fn run_step_v2(app_handle: AppHandle, request: RunStepRequestV2) -> Re
 
 // V2 步骤执行（匹配前端数据结构）
 async fn execute_v2_step(app_handle: AppHandle, req: &RunStepRequestV2) -> Result<StepResponseV2, String> {
-    // 🔍 第一步：查询 selection_mode 和 batch_config
-    let selector_id = req.step.get("step_id").and_then(|v| v.as_str())
-        .or_else(|| req.step.get("selector").and_then(|v| v.as_str()));
+    // 🎯 【关键修复】处理coordinateParams参数展开
+    let mut step_with_coords = req.step.clone();
     
+    // 如果前端发送了coordinateParams，展开到step对象中
+    if let Some(coord_params) = req.step.get("coordinateParams") {
+        if let Some(obj) = coord_params.as_object() {
+            tracing::info!("🔧 展开coordinateParams到step对象: {:?}", obj);
+            for (key, value) in obj {
+                step_with_coords[key] = value.clone();
+            }
+        }
+    }
+    
+    // 🎯 【关键优化】对于坐标滑动操作，跳过元素匹配直接执行
+    let has_coordinates = step_with_coords.get("start_x").is_some() && 
+                          step_with_coords.get("start_y").is_some() && 
+                          step_with_coords.get("end_x").is_some() && 
+                          step_with_coords.get("end_y").is_some();
+    
+    let action_type = step_with_coords.get("action").and_then(|v| v.as_str()).unwrap_or("tap");
+    
+    tracing::info!("🔍 坐标检测: has_coordinates={}, action_type={}", has_coordinates, action_type);
+    
+    if has_coordinates && action_type == "swipe" {
+        tracing::info!("🎯 检测到坐标滑动操作，跳过元素匹配直接执行");
+        tracing::info!("📐 坐标参数: start_x={:?}, start_y={:?}, end_x={:?}, end_y={:?}", 
+                      step_with_coords.get("start_x"), 
+                      step_with_coords.get("start_y"),
+                      step_with_coords.get("end_x"), 
+                      step_with_coords.get("end_y"));
+        
+        // 创建虚拟匹配结果（不需要真实元素匹配）
+        let dummy_candidate = MatchCandidate {
+            id: "coord_mode".to_string(),
+            score: 1.0,
+            confidence: 0.0, // 标记为坐标模式
+            bounds: Bounds { left: 0, top: 0, right: 0, bottom: 0 },
+            text: Some("坐标滑动模式".to_string()),
+            class_name: None,
+            package_name: None,
+        };
+        
+        // 直接执行坐标操作
+        match execute_v2_action_with_coords(&step_with_coords, &req.device_id, &dummy_candidate).await {
+            Ok(exec_info) => {
+                tracing::info!("✅ 坐标滑动执行成功: {}", exec_info.action);
+                return Ok(StepResponseV2 {
+                    ok: true,
+                    message: exec_info.action,
+                    matched: Some(dummy_candidate),
+                    executed_action: Some("swipe".to_string()),
+                    verify_passed: Some(true),
+                    error_code: None,
+                    raw_logs: Some(vec!["坐标滑动执行成功".to_string()]),
+                });
+            },
+            Err(e) => {
+                tracing::error!("❌ 坐标滑动执行失败: {}", e);
+                return Ok(StepResponseV2 {
+                    ok: false,
+                    message: format!("坐标滑动执行失败: {}", e),
+                    matched: None,
+                    executed_action: None,
+                    verify_passed: Some(false),
+                    error_code: Some("COORD_EXEC_FAILED".to_string()),
+                    raw_logs: Some(vec![format!("坐标滑动失败: {}", e)]),
+                });
+            }
+        }
+    }
+    
+    // � 创建使用修改后步骤的请求对象，用于后续函数调用
+    let req_with_coords = RunStepRequestV2 {
+        device_id: req.device_id.clone(),
+        mode: req.mode.clone(), 
+        strategy: req.strategy.clone(),
+        step: step_with_coords,
+    };
+    
+    // �🔍 第一步：查询 selection_mode 和 batch_config
+    let selector_id = req_with_coords.step.get("step_id").and_then(|v| v.as_str())
+        .or_else(|| req_with_coords.step.get("selector").and_then(|v| v.as_str()));
+
     let (selection_mode, batch_config) = if let Some(id) = selector_id {
         let mut strategy_opt = crate::commands::intelligent_analysis::get_step_strategy(id.to_string()).await.ok().flatten();
         
         // 尝试用 selector 查询（兜底）
         if strategy_opt.is_none() {
-            if let Some(selector) = req.step.get("selector").and_then(|v| v.as_str()) {
+            if let Some(selector) = req_with_coords.step.get("selector").and_then(|v| v.as_str()) {
                 if selector != id {
                     strategy_opt = crate::commands::intelligent_analysis::get_step_strategy(selector.to_string()).await.ok().flatten();
                 }
@@ -643,7 +722,7 @@ async fn execute_v2_step(app_handle: AppHandle, req: &RunStepRequestV2) -> Resul
             tracing::info!("✅ UI dump获取成功，大小: {} 字符", ui_xml.len());
             
             // 进行真实的元素匹配，传递 selection_mode
-            match find_element_in_ui(&ui_xml, req, selection_mode.clone()).await {
+            match find_element_in_ui(&ui_xml, &req_with_coords, selection_mode.clone()).await {
                 Ok((info, cands)) => {
                     tracing::info!("matched: uniq={} conf={:.2} candidates={}", info.uniqueness, info.confidence, cands.len());
                     (info, cands)
@@ -829,8 +908,8 @@ async fn execute_v2_step(app_handle: AppHandle, req: &RunStepRequestV2) -> Resul
     }
     
     // 执行操作
-    let exec_result = execute_v2_action_with_coords(&req.step, &req.device_id, &match_candidate).await?;
-    let action_type = req.step.get("action").and_then(|v| v.as_str()).unwrap_or("unknown");
+    let exec_result = execute_v2_action_with_coords(&req_with_coords.step, &req_with_coords.device_id, &match_candidate).await?;
+    let action_type = req_with_coords.step.get("action").and_then(|v| v.as_str()).unwrap_or("unknown");
     
     Ok(StepResponseV2 {
         ok: exec_result.ok,
@@ -918,8 +997,18 @@ async fn execute_v2_action_with_coords(step: &serde_json::Value, device_id: &str
             format!("等待{}ms完成", duration_ms)
         },
         "swipe" => {
-            // 简化的滑动实现
-            format!("滑动操作执行成功")
+            // 🎯 【关键修复】实现坐标式滑动逻辑
+            let start_x = step.get("start_x").and_then(|v| v.as_i64()).unwrap_or(540) as i32;
+            let start_y = step.get("start_y").and_then(|v| v.as_i64()).unwrap_or(1200) as i32;
+            let end_x = step.get("end_x").and_then(|v| v.as_i64()).unwrap_or(540) as i32;
+            let end_y = step.get("end_y").and_then(|v| v.as_i64()).unwrap_or(600) as i32;
+            let duration = step.get("duration").and_then(|v| v.as_u64()).unwrap_or(300) as u32;
+            
+            tracing::info!("🎯 执行坐标滑动: ({},{}) → ({},{}) 时长:{}ms", start_x, start_y, end_x, end_y, duration);
+            
+            swipe_injector_first(adb_path, device_id, start_x, start_y, end_x, end_y, duration).await
+                .map_err(|e| format!("真机滑动失败: {}", e))?;
+            format!("真机滑动执行成功: ({},{})→({},{})", start_x, start_y, end_x, end_y)
         },
         _ => format!("执行了 {} 操作", action_type)
     };

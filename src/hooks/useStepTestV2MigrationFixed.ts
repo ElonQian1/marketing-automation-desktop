@@ -4,6 +4,7 @@
 
 import { useState, useCallback } from "react";
 import { useV2StepTest } from "./useV2StepTest";
+import { normalizeStepForExecution } from "./singleStepTest/utils";
 import type { SmartScriptStep } from "../types/smartScript";
 
 // 保持V1接口兼容性的结果类型
@@ -70,12 +71,16 @@ export function useStepTestV2Migration() {
       console.log(`🔄 V1→V2迁移: ${completeStep.name} (设备: ${deviceId})`);
       console.log(`📋 使用V2引擎，解决"missing field strategy"问题`);
 
+      // 🎯 【关键修复】标准化屏幕交互步骤，确保坐标计算正确
+      const normalizedStep = normalizeStepForExecution(completeStep);
+      console.log(`📐 屏幕交互标准化: ${normalizedStep.step_type}`, normalizedStep.parameters);
+
       // 标记测试中状态
       setTestingSteps((prev) => new Set(prev).add(stepId));
 
       try {
-        // 🚀 使用V2引擎执行，无V1兼容性问题
-        const v2Result = await executeStep(completeStep, deviceId, actualMode);
+        // 🚀 使用V2引擎执行标准化后的步骤
+        const v2Result = await executeStep(normalizedStep, deviceId, actualMode);
 
         // 转换V2结果为V1兼容格式
         const v1CompatResult: SingleStepTestResult = {

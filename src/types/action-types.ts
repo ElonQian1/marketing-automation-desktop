@@ -25,6 +25,20 @@ export interface ActionParams {
   // 滚动操作参数
   target_x?: number;
   target_y?: number;
+  
+  // 新增参数：滑动方向控制
+  direction?: 'up' | 'down' | 'left' | 'right';
+  
+  // 新增参数：执行次数
+  repeat_count?: number;
+  
+  // 新增参数：间隔控制
+  wait_between?: boolean;
+  wait_duration?: number;
+  
+  // 点击操作参数
+  click_type?: 'single' | 'double';
+  double_click_interval?: number;
 }
 
 export interface ActionType {
@@ -47,7 +61,8 @@ export const ACTION_CONFIGS: Record<ActionTypeId, ActionConfig> = {
     label: '点击',
     color: '#1890ff',
     description: '单击元素',
-    hasParams: false,
+    hasParams: true,
+    defaultParams: { click_type: 'single', repeat_count: 1, wait_between: false },
   },
   long_press: {
     icon: '🔥',
@@ -71,7 +86,7 @@ export const ACTION_CONFIGS: Record<ActionTypeId, ActionConfig> = {
     color: '#722ed1',
     description: '向上滑动手势',
     hasParams: true,
-    defaultParams: { distance: 200, duration: 300 },
+    defaultParams: { distance: 200, duration: 300, direction: 'up', repeat_count: 1, wait_between: false },
   },
   swipe_down: {
     icon: '⬇️',
@@ -79,7 +94,7 @@ export const ACTION_CONFIGS: Record<ActionTypeId, ActionConfig> = {
     color: '#722ed1',
     description: '向下滑动手势',
     hasParams: true,
-    defaultParams: { distance: 200, duration: 300 },
+    defaultParams: { distance: 200, duration: 300, direction: 'down', repeat_count: 1, wait_between: false },
   },
   swipe_left: {
     icon: '⬅️',
@@ -87,7 +102,7 @@ export const ACTION_CONFIGS: Record<ActionTypeId, ActionConfig> = {
     color: '#722ed1',
     description: '向左滑动手势',
     hasParams: true,
-    defaultParams: { distance: 200, duration: 300 },
+    defaultParams: { distance: 200, duration: 300, direction: 'left', repeat_count: 1, wait_between: false },
   },
   swipe_right: {
     icon: '➡️',
@@ -95,7 +110,7 @@ export const ACTION_CONFIGS: Record<ActionTypeId, ActionConfig> = {
     color: '#722ed1',
     description: '向右滑动手势',
     hasParams: true,
-    defaultParams: { distance: 200, duration: 300 },
+    defaultParams: { distance: 200, duration: 300, direction: 'right', repeat_count: 1, wait_between: false },
   },
   scroll: {
     icon: '🔄',

@@ -245,7 +245,9 @@ function convertSmartStepToV2Request(
 
   switch (step.step_type) {
     case 'smart_find_element':
+    case 'smart_tap':
     case 'click':
+    case 'tap':
       actionParams = {
         type: 'tap', // 修复：使用正确的StepActionParams类型
         params: {
@@ -257,8 +259,36 @@ function convertSmartStepToV2Request(
       };
       break;
 
+    case 'doubleTap':
+    case 'double_tap':
+      actionParams = {
+        type: 'doubleTap',
+        params: {
+          x: undefined,
+          y: undefined,
+          offsetX: 0,
+          offsetY: 0,
+        },
+      };
+      break;
+
+    case 'longPress':
+    case 'long_press':
+      actionParams = {
+        type: 'longPress',
+        params: {
+          x: undefined,
+          y: undefined,
+          offsetX: 0,
+          offsetY: 0,
+          pressDurationMs: Number(params.hold_duration || params.duration) || 800,
+        },
+      };
+      break;
+
     case 'smart_input':
     case 'type':
+    case 'input':
       actionParams = {
         type: 'type',
         params: {
@@ -282,12 +312,32 @@ function convertSmartStepToV2Request(
       };
       break;
 
+    case 'smart_scroll':
+      // 🎯 智能滚动转换为滑动操作
+      actionParams = {
+        type: 'swipe',
+        params: {
+          direction: (params.direction as 'up' | 'down' | 'left' | 'right') || 'down',
+          distance: Number(params.distance) || 600,
+          durationMs: Number(params.speed_ms || params.duration) || 300,
+          startFrom: 'element' as const,
+        },
+      };
+      break;
+
     case 'wait':
       actionParams = {
         type: 'wait',
         params: {
-          waitMs: Number(params.duration) || 1000, // 修复：使用正确的字段名
+          waitMs: Number(params.duration || params.waitMs) || 1000, // 修复：使用正确的字段名
         },
+      };
+      break;
+
+    case 'back':
+      actionParams = {
+        type: 'back',
+        params: {},
       };
       break;
 
@@ -304,17 +354,33 @@ function convertSmartStepToV2Request(
       };
   }
 
+  // 🎯 【关键修复】提取屏幕交互坐标参数
+  const coordinateParams = (
+    typeof params.start_x === 'number' &&
+    typeof params.start_y === 'number' &&
+    typeof params.end_x === 'number' &&
+    typeof params.end_y === 'number'
+  ) ? {
+    start_x: params.start_x as number,
+    start_y: params.start_y as number,
+    end_x: params.end_x as number,
+    end_y: params.end_y as number,
+    duration: (params.duration || params.speed_ms) as number || 300,
+  } : undefined;
+
   return {
     deviceId,
     mode,
     actionParams,
-    selectorId: params.element_selector || step.id,
+    selectorId: coordinateParams ? undefined : (params.element_selector || step.id), // 🎯 有坐标时不需要选择器
     stepId: step.id,  // ✅ 传递stepId用于Store查询
     bounds: parseBoundsFromParams(params),
     // 🎯 新增：传递目标文本信息，解决"已关注"vs"关注"问题
     targetText: params.text as string || '', // 从步骤参数中提取目标文本
     contentDesc: params.content_desc as string || '',
     resourceId: params.resource_id as string || '',
+    // 🎯 【关键修复】传递屏幕交互坐标参数
+    coordinateParams,
   };
 }
 

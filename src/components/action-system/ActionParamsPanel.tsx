@@ -72,34 +72,137 @@ export const ActionParamsPanel: React.FC<ActionParamsPanelProps> = ({
         return (
           <Space direction="vertical" style={{ width: '100%' }} size="small">
             <div>
+              <Text strong style={{ fontSize: 13 }}>滑动方向</Text>
+            </div>
+            <Space.Compact style={{ width: '100%' }}>
+              <Input.Group compact>
+                <Space>
+                  <button
+                    onClick={() => updateParams({ direction: 'up' })}
+                    style={{
+                      padding: '4px 12px',
+                      border: '1px solid #d9d9d9',
+                      borderRadius: '6px',
+                      background: (params.direction === 'up' || action.type === 'swipe_up') ? '#1890ff' : '#fff',
+                      color: (params.direction === 'up' || action.type === 'swipe_up') ? '#fff' : '#000',
+                      cursor: 'pointer'
+                    }}
+                  >
+                    ↑ 向上
+                  </button>
+                  <button
+                    onClick={() => updateParams({ direction: 'down' })}
+                    style={{
+                      padding: '4px 12px',
+                      border: '1px solid #d9d9d9',
+                      borderRadius: '6px',
+                      background: (params.direction === 'down' || action.type === 'swipe_down') ? '#1890ff' : '#fff',
+                      color: (params.direction === 'down' || action.type === 'swipe_down') ? '#fff' : '#000',
+                      cursor: 'pointer'
+                    }}
+                  >
+                    ↓ 向下
+                  </button>
+                  <button
+                    onClick={() => updateParams({ direction: 'left' })}
+                    style={{
+                      padding: '4px 12px',
+                      border: '1px solid #d9d9d9',
+                      borderRadius: '6px',
+                      background: (params.direction === 'left' || action.type === 'swipe_left') ? '#1890ff' : '#fff',
+                      color: (params.direction === 'left' || action.type === 'swipe_left') ? '#fff' : '#000',
+                      cursor: 'pointer'
+                    }}
+                  >
+                    ← 向左
+                  </button>
+                  <button
+                    onClick={() => updateParams({ direction: 'right' })}
+                    style={{
+                      padding: '4px 12px',
+                      border: '1px solid #d9d9d9',
+                      borderRadius: '6px',
+                      background: (params.direction === 'right' || action.type === 'swipe_right') ? '#1890ff' : '#fff',
+                      color: (params.direction === 'right' || action.type === 'swipe_right') ? '#fff' : '#000',
+                      cursor: 'pointer'
+                    }}
+                  >
+                    → 向右
+                  </button>
+                </Space>
+              </Input.Group>
+            </Space.Compact>
+            
+            <div style={{ marginTop: 12 }}>
               <Text strong style={{ fontSize: 13 }}>滑动距离 (像素)</Text>
             </div>
-            <Slider
+            <InputNumber
               value={params.distance || 200}
-              min={50}
-              max={500}
+              min={10}
+              max={2000}
               step={10}
-              onChange={(value) => updateParams({ distance: value })}
-              marks={{ 50: '50px', 200: '200px', 500: '500px' }}
+              onChange={(value) => updateParams({ distance: value || 200 })}
+              placeholder="滑动距离"
+              size={size}
+              style={{ width: '100%' }}
+              addonAfter="px"
             />
-            <Text type="secondary" style={{ fontSize: 12 }}>
-              当前: {params.distance || 200}px
-            </Text>
             
-            <div>
+            <div style={{ marginTop: 12 }}>
               <Text strong style={{ fontSize: 13 }}>滑动时长 (毫秒)</Text>
             </div>
-            <Slider
+            <InputNumber
               value={params.duration || 300}
-              min={100}
-              max={1000}
+              min={50}
+              max={3000}
               step={50}
-              onChange={(value) => updateParams({ duration: value })}
-              marks={{ 100: '快', 300: '中', 1000: '慢' }}
+              onChange={(value) => updateParams({ duration: value || 300 })}
+              placeholder="滑动时长"
+              size={size}
+              style={{ width: '100%' }}
+              addonAfter="ms"
             />
-            <Text type="secondary" style={{ fontSize: 12 }}>
-              当前: {params.duration || 300}ms
-            </Text>
+            
+            <div style={{ marginTop: 12 }}>
+              <Text strong style={{ fontSize: 13 }}>执行次数</Text>
+            </div>
+            <InputNumber
+              value={params.repeat_count || 1}
+              min={1}
+              max={20}
+              step={1}
+              onChange={(value) => updateParams({ repeat_count: value || 1 })}
+              placeholder="执行次数"
+              size={size}
+              style={{ width: '100%' }}
+              addonAfter="次"
+            />
+            
+            <div style={{ marginTop: 12 }}>
+              <Checkbox
+                checked={params.wait_between || false}
+                onChange={(e) => updateParams({ wait_between: e.target.checked })}
+              >
+                每次执行间隔等待
+              </Checkbox>
+            </div>
+            
+            {params.wait_between && (
+              <div>
+                <Text strong style={{ fontSize: 13 }}>间隔时长 (毫秒)</Text>
+                <InputNumber
+                  value={params.wait_duration || 500}
+                  min={100}
+                  max={5000}
+                  step={100}
+                  onChange={(value) => updateParams({ wait_duration: value || 500 })}
+                  placeholder="间隔时长"
+                  size={size}
+                  style={{ width: '100%', marginTop: 4 }}
+                  addonAfter="ms"
+                />
+              </div>
+            )}
           </Space>
         );
 
@@ -179,6 +282,103 @@ export const ActionParamsPanel: React.FC<ActionParamsPanelProps> = ({
             <Text type="secondary" style={{ fontSize: 12 }}>
               当前: {((params.duration || 1000) / 1000).toFixed(1)}秒
             </Text>
+          </Space>
+        );
+
+      case 'click':
+        return (
+          <Space direction="vertical" style={{ width: '100%' }} size="small">
+            <div>
+              <Text strong style={{ fontSize: 13 }}>点击类型</Text>
+            </div>
+            <Space>
+              <button
+                onClick={() => updateParams({ click_type: 'single' })}
+                style={{
+                  padding: '4px 12px',
+                  border: '1px solid #d9d9d9',
+                  borderRadius: '6px',
+                  background: (params.click_type === 'single' || !params.click_type) ? '#1890ff' : '#fff',
+                  color: (params.click_type === 'single' || !params.click_type) ? '#fff' : '#000',
+                  cursor: 'pointer'
+                }}
+              >
+                单击
+              </button>
+              <button
+                onClick={() => updateParams({ click_type: 'double' })}
+                style={{
+                  padding: '4px 12px',
+                  border: '1px solid #d9d9d9',
+                  borderRadius: '6px',
+                  background: params.click_type === 'double' ? '#1890ff' : '#fff',
+                  color: params.click_type === 'double' ? '#fff' : '#000',
+                  cursor: 'pointer'
+                }}
+              >
+                双击
+              </button>
+            </Space>
+            
+            {params.click_type === 'double' && (
+              <div>
+                <div style={{ marginTop: 12 }}>
+                  <Text strong style={{ fontSize: 13 }}>双击间隔 (毫秒)</Text>
+                </div>
+                <InputNumber
+                  value={params.double_click_interval || 150}
+                  min={50}
+                  max={500}
+                  step={10}
+                  onChange={(value) => updateParams({ double_click_interval: value || 150 })}
+                  placeholder="双击间隔"
+                  size={size}
+                  style={{ width: '100%' }}
+                  addonAfter="ms"
+                />
+              </div>
+            )}
+            
+            <div style={{ marginTop: 12 }}>
+              <Text strong style={{ fontSize: 13 }}>执行次数</Text>
+            </div>
+            <InputNumber
+              value={params.repeat_count || 1}
+              min={1}
+              max={20}
+              step={1}
+              onChange={(value) => updateParams({ repeat_count: value || 1 })}
+              placeholder="执行次数"
+              size={size}
+              style={{ width: '100%' }}
+              addonAfter="次"
+            />
+            
+            <div style={{ marginTop: 12 }}>
+              <Checkbox
+                checked={params.wait_between || false}
+                onChange={(e) => updateParams({ wait_between: e.target.checked })}
+              >
+                每次点击间隔等待
+              </Checkbox>
+            </div>
+            
+            {params.wait_between && (
+              <div>
+                <Text strong style={{ fontSize: 13 }}>间隔时长 (毫秒)</Text>
+                <InputNumber
+                  value={params.wait_duration || 500}
+                  min={100}
+                  max={5000}
+                  step={100}
+                  onChange={(value) => updateParams({ wait_duration: value || 500 })}
+                  placeholder="间隔时长"
+                  size={size}
+                  style={{ width: '100%', marginTop: 4 }}
+                  addonAfter="ms"
+                />
+              </div>
+            )}
           </Space>
         );
 

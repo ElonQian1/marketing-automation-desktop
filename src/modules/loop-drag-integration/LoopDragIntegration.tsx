@@ -30,6 +30,8 @@ export interface LoopDragIntegrationProps {
   onStepsChange: (steps: ExtendedSmartScriptStep[]) => void;
   /** 循环配置更新回调 */
   onLoopConfigChange?: (stepId: string, config: LoopConfig) => void;
+  /** 参数变更回调 */
+  onParametersChange?: (stepId: string, params: any) => void;
   /** 自定义步骤渲染函数 */
   renderStep?: (
     step: ExtendedSmartScriptStep,
@@ -41,6 +43,7 @@ export const LoopDragIntegration: React.FC<LoopDragIntegrationProps> = ({
   steps,
   onStepsChange,
   onLoopConfigChange,
+  onParametersChange,
   renderStep,
 }) => {
   // 转换步骤为拖拽项目
@@ -153,6 +156,7 @@ export const LoopDragIntegration: React.FC<LoopDragIntegrationProps> = ({
             onEdit={() => {}}
             onDelete={() => {}}
             onToggle={() => {}}
+            onParametersChange={onParametersChange ? (stepId, params) => onParametersChange(stepId, params) : undefined}
             style={{
               opacity: isDragging ? 0.5 : 1,
               transform: isDragging ? "rotate(5deg)" : undefined,
@@ -172,6 +176,7 @@ export const LoopDragIntegration: React.FC<LoopDragIntegrationProps> = ({
           onEdit={() => {}}
           onDelete={() => {}}
           onToggle={() => {}}
+          onParametersChange={onParametersChange ? (stepId, params) => onParametersChange(stepId, params) : undefined}
           style={{
             marginBottom: 8,
             opacity: isDragging ? 0.5 : 1,

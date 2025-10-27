@@ -5,6 +5,7 @@
 import React from 'react';
 import DraggableStepCard from './DraggableStepCard';
 import type { SmartScriptStep, DeviceInfo } from './DraggableStepCard';
+import type { ActionParams } from '../types/action-types';
 import { useSmartStrategyAnalysis } from '../hooks/useSmartStrategyAnalysis';
 import type { UIElement } from '../api/universalUIAPI';
 import type { StrategyCandidate } from '../types/strategySelector';
@@ -19,6 +20,7 @@ interface SmartStepCardWithBackendProps {
   onDelete: (id: string) => void;
   onToggle: (id: string) => void;
   onStepUpdate?: (step: SmartScriptStep) => void;
+  onParametersChange?: (stepId: string, params: ActionParams) => void;
 }
 
 /**
@@ -39,7 +41,8 @@ export const SmartStepCardWithBackend: React.FC<SmartStepCardWithBackendProps> =
   onEdit,
   onDelete,
   onToggle,
-  onStepUpdate
+  onStepUpdate,
+  onParametersChange
 }) => {
   // 使用智能策略分析Hook
   const {
@@ -151,6 +154,7 @@ export const SmartStepCardWithBackend: React.FC<SmartStepCardWithBackendProps> =
       onEdit={onEdit}
       onDelete={onDelete}
       onToggle={onToggle}
+      onParametersChange={onParametersChange}
       onStrategyChange={handleStrategyChange}
       onReanalyze={handleReanalyze}
       onSaveAsStatic={handleSaveAsStatic}

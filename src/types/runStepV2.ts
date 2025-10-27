@@ -59,6 +59,7 @@ export interface BaseStep {
 export type ActionPayload =
   | { action: 'tap' | 'doubleTap' | 'longPress'; press_ms?: number; offset?: Offset }
   | { action: 'swipe'; direction: 'up'|'down'|'left'|'right'; distance_dp?: number; duration_ms?: number; start?: 'center'|'edge'|'custom'; start_offset?: Offset }
+  | { action: 'swipe'; start_x: number; start_y: number; end_x: number; end_y: number; duration: number } // 🎯 【关键修复】坐标滑动
   | { action: 'type'; text: string; secure?: boolean; clear?: boolean; submit?: boolean }
   | { action: 'wait'; duration_ms: number }
   | { action: 'back' };

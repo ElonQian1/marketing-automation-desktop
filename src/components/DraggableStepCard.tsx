@@ -24,13 +24,15 @@
  * - 保持相同的导出类型
  */
 
-import React from "react";
+import React, { useState } from "react";
 import { CSS } from "@dnd-kit/utilities";
 import { SmartActionType } from "../types/smartComponents";
 import { isBackendHealthy } from "../services/backend-health-check";
 import styles from "./DraggableStepCard.module.css";
 // import StrategySelector from './strategy-selector/StrategySelector'; // 暂时不用，保留备用
 import CompactStrategyMenu from "./strategy-selector/CompactStrategyMenu";
+import { ActionParamsPanel } from "./action-system/ActionParamsPanel";
+import type { ActionType, ActionParams } from "../types/action-types";
 
 // 设备简化接口
 export interface DeviceInfo {
@@ -124,6 +126,8 @@ export interface DraggableStepCardProps {
   devices: DeviceInfo[];
   /** 是否正在拖拽 */
   isDragging?: boolean;
+  /** 参数更新回调 */
+  onParametersChange?: (stepId: string, params: ActionParams) => void;
 }
 
 // 样式系统
@@ -349,6 +353,7 @@ const DraggableStepCardInner: React.FC<
   onApplyRecommendation,
   devices,
   currentDeviceId,
+  onParametersChange,
   transform,
   transition,
   style,
@@ -356,6 +361,44 @@ const DraggableStepCardInner: React.FC<
   // Hook for reanalysis functionality - we'll need to get steps context from parent
   // For now, we'll use the original callback approach
   // TODO: Integrate with steps context from parent component
+
+  // 🎛️ 参数面板状态管理
+  const [showParams, setShowParams] = useState(false);
+
+  // 🔄 将步骤类型转换为ActionType
+  const convertToActionType = (stepType: string): ActionType | null => {
+    const typeMapping: Record<string, ActionType['type']> = {
+      'tap': 'click',
+      'click': 'click',
+      'input': 'input', 
+      'swipe_up': 'swipe_up',
+      'swipe_down': 'swipe_down',
+      'swipe_left': 'swipe_left', 
+      'swipe_right': 'swipe_right',
+      'long_press': 'long_press',
+      'scroll': 'scroll',
+      'wait': 'wait',
+      'smart_scroll': 'swipe_down' // 智能滚动映射为下滑
+    };
+
+    const mappedType = typeMapping[stepType];
+    if (mappedType) {
+      return {
+        type: mappedType,
+        params: step.parameters as ActionParams
+      };
+    }
+    return null;
+  };
+
+  const actionType = convertToActionType(step.step_type);
+
+  // 🎛️ 参数更新处理函数 
+  const handleParametersChange = (params: ActionParams) => {
+    if (onParametersChange) {
+      onParametersChange(step.id, params);
+    }
+  };
 
   const dragStyle = {
     transform: CSS.Transform.toString(transform),
@@ -814,6 +857,44 @@ const DraggableStepCardInner: React.FC<
               ✏️
             </button>
 
+            {/* 🎛️ 参数设置按钮 */}
+            {actionType && (
+              <button
+                type="button"
+                onClick={() => setShowParams(!showParams)}
+                title={showParams ? "隐藏参数面板" : "显示参数面板"}
+                style={{
+                  border: "none",
+                  background: showParams ? "rgba(59, 130, 246, 0.2)" : "transparent",
+                  cursor: "pointer",
+                  padding: STEP_CARD_DESIGN_TOKENS.spacing.sm,
+                  borderRadius: STEP_CARD_DESIGN_TOKENS.borderRadius.sm,
+                  color: showParams 
+                    ? STEP_CARD_DESIGN_TOKENS.colors.status.info
+                    : STEP_CARD_DESIGN_TOKENS.colors.text.secondary,
+                  fontSize: STEP_CARD_DESIGN_TOKENS.typography.fontSize.base,
+                  transition: `all ${STEP_CARD_DESIGN_TOKENS.animations.duration.fast} ${STEP_CARD_DESIGN_TOKENS.animations.easing.easeOut}`,
+                }}
+                onMouseEnter={(e) => {
+                  if (!showParams) {
+                    e.currentTarget.style.background =
+                      STEP_CARD_DESIGN_TOKENS.colors.bg.secondary;
+                    e.currentTarget.style.color =
+                      STEP_CARD_DESIGN_TOKENS.colors.text.primary;
+                  }
+                }}
+                onMouseLeave={(e) => {
+                  if (!showParams) {
+                    e.currentTarget.style.background = "transparent";
+                    e.currentTarget.style.color =
+                      STEP_CARD_DESIGN_TOKENS.colors.text.secondary;
+                  }
+                }}
+              >
+                ⚙️
+              </button>
+            )}
+
             {/* 启用/禁用切换 */}
             <button
               type="button"
@@ -986,6 +1067,33 @@ const DraggableStepCardInner: React.FC<
               {step.loop_config.condition && (
                 <div>• 条件: {step.loop_config.condition}</div>
               )}
+            </div>
+          </div>
+        )}
+
+        {/* 🎛️ 参数配置面板 */}
+        {showParams && actionType && (
+          <div
+            style={{
+              marginTop: STEP_CARD_DESIGN_TOKENS.spacing.md,
+              padding: STEP_CARD_DESIGN_TOKENS.spacing.md,
+              background: "rgba(30, 41, 59, 0.8)",
+              borderRadius: STEP_CARD_DESIGN_TOKENS.borderRadius.md,
+              border: "1px solid rgba(59, 130, 246, 0.2)",
+            }}
+          >
+            <div 
+              className="dark-theme-params-panel"
+              style={{ 
+                color: 'var(--text-1, #F8FAFC)',
+              }}
+            >
+              <ActionParamsPanel
+                action={actionType}
+                onChange={handleParametersChange}
+                size="small"
+                title="操作参数配置"
+              />
             </div>
           </div>
         )}

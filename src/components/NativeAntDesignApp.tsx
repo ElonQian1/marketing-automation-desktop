@@ -62,6 +62,7 @@ import { ThemeSettingsPage } from "../pages/ThemeSettingsPage";
 import { NativeAntDashboard } from "./native-dashboard/NativeAntDashboard";
 import EmployeePageNativeWrapper from "../pages/native-wrappers/EmployeePage.native";
 import ButtonFixValidationPage from "../pages/button-fix-validation";
+import ParameterTestPage from "./ParameterTestPage";
 
 // 业务页面导入
 import { StatisticsPageNative } from "../pages/statistics/StatisticsPageNative";
@@ -130,6 +131,11 @@ const NativeAntDesignApp: React.FC = () => {
             key: "button-fix-validation",
             icon: <BugOutlined />,
             label: "🔧 按钮识别修复验证",
+          },
+          {
+            key: "parameter-test",
+            icon: <ThunderboltOutlined />,
+            label: "⚙️ 参数面板集成测试",
           },
         ]
       : []),
@@ -210,6 +216,8 @@ const NativeAntDesignApp: React.FC = () => {
         return <DatabaseDebugPage />;
       case "button-fix-validation":
         return <ButtonFixValidationPage />;
+      case "parameter-test":
+        return <ParameterTestPage />;
       case "smart-vcf":
         return <SmartVcfImporter />;
       case "smart-script-builder":

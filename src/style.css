@@ -146,6 +146,22 @@ code {
   transition: all var(--duration-normal) var(--ease-out);
 }
 
+/* 深色主题参数面板样式覆盖 */
+.dark-theme-params-panel .light-theme-force,
+.dark-theme-params-panel .ant-typography,
+.dark-theme-params-panel .ant-typography-title,
+.dark-theme-params-panel .ant-typography-paragraph {
+  color: var(--text-1, #F8FAFC) !important;
+}
+
+.dark-theme-params-panel .ant-typography-secondary {
+  color: var(--text-2, #E2E8F0) !important;
+}
+
+.dark-theme-params-panel .ant-card-head-title {
+  color: var(--text-1, #F8FAFC) !important;
+}
+
 /* 响应式文本 */
 @media (max-width: 768px) {
   body {
