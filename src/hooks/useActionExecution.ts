@@ -4,6 +4,7 @@
 
 import { useState, useCallback } from 'react';
 import { executeAction, validateActionParams, type ActionExecutionResult } from '../api/action-execution';
+import { useAdb } from '../application/hooks/useAdb';
 import type { ActionType } from '../types/action-types';
 
 interface UseActionExecutionOptions {
@@ -36,8 +37,9 @@ interface ExecutionState {
 
 export const useActionExecution = (options: UseActionExecutionOptions = {}) => {
   const { onBeforeExecute, onSuccess, onError, enableLogging = true } = options;
-  // TODO: 替换为实际的设备状态管理
-  const selectedDevice = { id: 'default-device' };
+  
+  // 使用统一的ADB设备管理
+  const { selectedDevice } = useAdb();
 
   const [state, setState] = useState<ExecutionState>({
     isExecuting: false,
@@ -46,6 +48,89 @@ export const useActionExecution = (options: UseActionExecutionOptions = {}) => {
     lastAction: null,
     history: [],
   });
+
+  /**
+   * 执行带坐标的操作
+   */
+  const executeWithCoordinates = useCallback(async (
+    action: ActionType, 
+    elementBounds: [number, number, number, number]
+  ): Promise<ActionExecutionResult> => {
+    // 检查设备连接
+    if (!selectedDevice) {
+      throw new Error('未选择设备');
+    }
+
+    // 验证参数
+    try {
+      await validateActionParams(action);
+    } catch (error) {
+      const message = error instanceof Error ? error.message : '参数验证失败';
+      throw new Error(`参数无效: ${message}`);
+    }
+
+    setState(prev => ({
+      ...prev,
+      isExecuting: true,
+      error: null,
+    }));
+
+    try {
+      // 执行前回调
+      await onBeforeExecute?.(action);
+
+      // 记录开始执行
+      if (enableLogging) {
+        console.log('[ActionExecution] 开始执行坐标操作:', { action, elementBounds });
+      }
+
+      // 执行操作
+      const result = await executeAction(selectedDevice.id, action, elementBounds);
+
+      // 更新状态
+      setState(prev => ({
+        ...prev,
+        isExecuting: false,
+        result,
+        lastAction: action,
+        history: enableLogging ? [
+          ...prev.history.slice(-9), // 保留最近10条记录
+          {
+            action,
+            result,
+            timestamp: Date.now(),
+          },
+        ] : prev.history,
+      }));
+
+      // 成功回调
+      onSuccess?.(result);
+
+      if (enableLogging) {
+        console.log('[ActionExecution] 坐标操作执行成功:', result);
+      }
+
+      return result;
+    } catch (error) {
+      const errorMessage = error instanceof Error ? error.message : '执行失败';
+      
+      setState(prev => ({
+        ...prev,
+        isExecuting: false,
+        error: errorMessage,
+        lastAction: action,
+      }));
+
+      // 错误回调
+      onError?.(error instanceof Error ? error : new Error(errorMessage));
+
+      if (enableLogging) {
+        console.error('[ActionExecution] 坐标操作执行失败:', error);
+      }
+
+      throw error;
+    }
+  }, [selectedDevice, onBeforeExecute, onSuccess, onError, enableLogging]);
 
   /**
    * 执行操作
@@ -129,36 +214,59 @@ export const useActionExecution = (options: UseActionExecutionOptions = {}) => {
 
   /**
    * 快捷执行点击操作
+   * @param x 点击x坐标
+   * @param y 点击y坐标
+   * @param elementBounds 可选的元素边界 [left, top, right, bottom]
    */
-  const click = useCallback(async (x: number, y: number) => {
-    return execute({
+  const click = useCallback(async (x: number, y: number, elementBounds?: [number, number, number, number]) => {
+    return executeWithCoordinates({
       type: 'click',
-      params: { x, y },
-    });
-  }, [execute]);
+      params: { click_type: 'single' },
+    }, elementBounds || [x, y, x, y]);
+  }, [executeWithCoordinates]);
 
   /**
    * 快捷执行长按操作
+   * @param x 长按x坐标
+   * @param y 长按y坐标
+   * @param duration 长按持续时间（毫秒）
+   * @param elementBounds 可选的元素边界
    */
-  const longPress = useCallback(async (x: number, y: number, duration: number = 1000) => {
-    return execute({
+  const longPress = useCallback(async (x: number, y: number, duration: number = 1000, elementBounds?: [number, number, number, number]) => {
+    return executeWithCoordinates({
       type: 'long_press',
-      params: { x, y, duration },
-    });
-  }, [execute]);
+      params: { duration },
+    }, elementBounds || [x, y, x, y]);
+  }, [executeWithCoordinates]);
 
   /**
    * 快捷执行输入操作
+   * @param text 要输入的文本
+   * @param x 可选的点击x坐标（先点击后输入）
+   * @param y 可选的点击y坐标（先点击后输入）
+   * @param elementBounds 可选的元素边界
    */
-  const input = useCallback(async (text: string, x?: number, y?: number) => {
-    return execute({
-      type: 'input',
-      params: { text, x, y },
-    });
-  }, [execute]);
+  const input = useCallback(async (text: string, x?: number, y?: number, elementBounds?: [number, number, number, number]) => {
+    if (x !== undefined && y !== undefined) {
+      return executeWithCoordinates({
+        type: 'input',
+        params: { text, clear_before: false },
+      }, elementBounds || [x, y, x, y]);
+    } else {
+      return execute({
+        type: 'input',
+        params: { text, clear_before: false },
+      });
+    }
+  }, [execute, executeWithCoordinates]);
 
   /**
    * 快捷执行滑动操作
+   * @param fromX 起始x坐标
+   * @param fromY 起始y坐标
+   * @param toX 结束x坐标
+   * @param toY 结束y坐标
+   * @param duration 滑动持续时间（毫秒）
    */
   const swipe = useCallback(async (
     fromX: number,
@@ -167,11 +275,25 @@ export const useActionExecution = (options: UseActionExecutionOptions = {}) => {
     toY: number,
     duration: number = 500
   ) => {
-    return execute({
-      type: 'swipe_up', // 使用有效的操作类型
-      params: { from_x: fromX, from_y: fromY, to_x: toX, to_y: toY, duration },
-    });
-  }, [execute]);
+    // 根据滑动方向自动选择操作类型
+    const deltaX = toX - fromX;
+    const deltaY = toY - fromY;
+    let swipeType: 'swipe_up' | 'swipe_down' | 'swipe_left' | 'swipe_right' = 'swipe_up';
+    
+    if (Math.abs(deltaX) > Math.abs(deltaY)) {
+      swipeType = deltaX > 0 ? 'swipe_right' : 'swipe_left';
+    } else {
+      swipeType = deltaY > 0 ? 'swipe_down' : 'swipe_up';
+    }
+    
+    return executeWithCoordinates({
+      type: swipeType,
+      params: { 
+        distance: Math.sqrt(deltaX * deltaX + deltaY * deltaY),
+        duration 
+      },
+    }, [fromX, fromY, toX, toY]);
+  }, [executeWithCoordinates]);
 
   /**
    * 快捷执行等待操作

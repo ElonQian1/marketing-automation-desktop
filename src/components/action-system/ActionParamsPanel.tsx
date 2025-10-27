@@ -249,7 +249,6 @@ export const ActionParamsPanel: React.FC<ActionParamsPanelProps> = ({
                 <InputNumber
                   value={params.wait_duration || 500}
                   min={100}
-                  max={5000}
                   step={100}
                   onChange={(value) => updateParams({ wait_duration: value || 500 })}
                   placeholder="间隔时长"
@@ -315,7 +314,6 @@ export const ActionParamsPanel: React.FC<ActionParamsPanelProps> = ({
                     <InputNumber
                       value={params.wait_duration || 1000}
                       min={100}
-                      max={5000}
                       step={100}
                       onChange={(value) => updateParams({ wait_duration: value || 1000 })}
                       placeholder="间隔时长"
@@ -378,7 +376,6 @@ export const ActionParamsPanel: React.FC<ActionParamsPanelProps> = ({
             <InputNumber
               value={params.duration || 1000}
               min={100}
-              max={30000}
               step={100}
               onChange={(value) => updateParams({ duration: value || 1000 })}
               placeholder="等待时长"
@@ -398,6 +395,10 @@ export const ActionParamsPanel: React.FC<ActionParamsPanelProps> = ({
                 { label: '3秒', value: 3000 },
                 { label: '5秒', value: 5000 },
                 { label: '10秒', value: 10000 },
+                { label: '30秒', value: 30000 },
+                { label: '1分钟', value: 60000 },
+                { label: '2分钟', value: 120000 },
+                { label: '5分钟', value: 300000 },
               ].map(({ label, value }) => (
                 <button
                   key={value}
@@ -519,7 +520,6 @@ export const ActionParamsPanel: React.FC<ActionParamsPanelProps> = ({
                 <InputNumber
                   value={params.wait_duration || 500}
                   min={100}
-                  max={5000}
                   step={100}
                   onChange={(value) => updateParams({ wait_duration: value || 500 })}
                   placeholder="间隔时长"
@@ -554,29 +554,126 @@ export const ActionParamsPanel: React.FC<ActionParamsPanelProps> = ({
     <>
       <style>
         {`
+          /* ===== 基础文本颜色控制 - 确保所有文字在深色背景下可见 ===== */
+          .action-params-panel,
+          .action-params-panel *,
           .action-params-panel .ant-typography,
-          .action-params-panel .ant-checkbox-wrapper .ant-checkbox + span,
-          .action-params-panel .dark-theme-text-override .ant-typography {
+          .action-params-panel .ant-typography *,
+          .action-params-panel .ant-checkbox-wrapper,
+          .action-params-panel .ant-checkbox-wrapper span,
+          .action-params-panel .ant-space-item,
+          .action-params-panel .ant-space-item *,
+          .action-params-panel .dark-theme-text-override,
+          .action-params-panel .dark-theme-text-override * {
             color: var(--text-1, #F8FAFC) !important;
           }
-          .action-params-panel .ant-typography[type="secondary"] {
-            color: var(--text-3, #CBD5E1) !important;
+
+          /* ===== 输入组件文字颜色 - 确保输入框内文字可见 ===== */
+          .action-params-panel .ant-input-number .ant-input-number-input,
+          .action-params-panel .ant-input,
+          .action-params-panel .ant-textarea,
+          .action-params-panel .ant-select .ant-select-selector,
+          .action-params-panel .ant-select-selection-item,
+          .action-params-panel .ant-select-selection-placeholder {
+            color: var(--text-1, #F8FAFC) !important;
           }
+
+          /* ===== 输入组件背景和边框 - 深色主题样式 ===== */
+          .action-params-panel .ant-input-number,
+          .action-params-panel .ant-input,
+          .action-params-panel .ant-textarea,
+          .action-params-panel .ant-select .ant-select-selector {
+            background-color: var(--bg-elevated, #1E293B) !important;
+            border-color: var(--border-primary, #334155) !important;
+          }
+
+          /* ===== 输入组件交互状态 ===== */
+          .action-params-panel .ant-input-number:hover,
+          .action-params-panel .ant-input:hover,
+          .action-params-panel .ant-textarea:hover,
+          .action-params-panel .ant-select:hover .ant-select-selector {
+            border-color: var(--brand, #4A5FD1) !important;
+          }
+
+          .action-params-panel .ant-input-number-focused,
+          .action-params-panel .ant-input:focus,
+          .action-params-panel .ant-textarea:focus,
+          .action-params-panel .ant-select-focused .ant-select-selector {
+            border-color: var(--brand, #4A5FD1) !important;
+            box-shadow: 0 0 0 2px rgba(74, 95, 209, 0.2) !important;
+          }
+
+          /* ===== 输入框后缀/前缀样式 ===== */
+          .action-params-panel .ant-input-number-group-addon,
+          .action-params-panel .ant-input-group-addon {
+            background-color: var(--bg-secondary, #334155) !important;
+            border-color: var(--border-primary, #334155) !important;
+            color: var(--text-2, #E2E8F0) !important;
+          }
+
+          /* ===== 复选框样式 ===== */
+          .action-params-panel .ant-checkbox-wrapper .ant-checkbox + span,
+          .action-params-panel .ant-checkbox-wrapper span {
+            color: var(--text-1, #F8FAFC) !important;
+          }
+
+          .action-params-panel .ant-checkbox {
+            border-color: var(--border-primary, #334155) !important;
+          }
+
+          .action-params-panel .ant-checkbox-checked .ant-checkbox-inner {
+            background-color: var(--brand, #4A5FD1) !important;
+            border-color: var(--brand, #4A5FD1) !important;
+          }
+
+          /* ===== 卡片标题样式 ===== */
           .action-params-panel .ant-card-head-title,
           .action-params-panel .ant-card-head-title *,
           .action-params-panel .ant-card-head .ant-space-item span,
           .action-params-panel .ant-card-head-wrapper span {
             color: var(--text-1, #F8FAFC) !important;
           }
+
           .action-params-panel.light-theme-force .ant-card-head-title {
             color: var(--text-1, #F8FAFC) !important;
           }
+
+          /* ===== 次要文本样式 ===== */
+          .action-params-panel .ant-typography[type="secondary"] {
+            color: var(--text-3, #CBD5E1) !important;
+          }
+
+          /* ===== 交互元素可点击性 ===== */
           .action-params-panel .ant-input-number,
           .action-params-panel .ant-input,
           .action-params-panel .ant-select,
           .action-params-panel .ant-checkbox,
-          .action-params-panel button {
+          .action-params-panel button,
+          .action-params-panel .ant-textarea {
             pointer-events: auto !important;
+          }
+
+          /* ===== 自定义按钮样式 ===== */
+          .action-params-panel button {
+            color: inherit !important;
+          }
+
+          /* ===== 禁用状态样式 ===== */
+          .action-params-panel .ant-input-number-disabled,
+          .action-params-panel .ant-input[disabled],
+          .action-params-panel .ant-textarea[disabled] {
+            background-color: var(--bg-base, #0F172A) !important;
+            color: var(--text-3, #CBD5E1) !important;
+            opacity: 0.6;
+          }
+
+          /* ===== 占位符文字颜色 ===== */
+          .action-params-panel .ant-input::placeholder,
+          .action-params-panel .ant-textarea::placeholder,
+          .action-params-panel .ant-input-number input::placeholder,
+          .action-params-panel .ant-select-selection-placeholder {
+            color: var(--text-3, #CBD5E1) !important;
+            opacity: 0.7;
           }
         `}
       </style>

@@ -469,27 +469,26 @@ export class StepExecutionGateway {
         return 'first';
       })();
 
-      // 🎯 修复：改用ByInline格式直接传递目标文本，绕过缓存问题
-      // 🚨 不再使用硬编码默认值，确保用户明确选择
-      const targetText = request.targetText || request.contentDesc;
-      if (!targetText) {
-        throw new Error('目标文本缺失：需要明确指定 targetText 或 contentDesc');
-      }
-      console.log('🎯 [V3目标文本] 提取的目标文本:', { 
+      // 🎯 V3智能自动链：支持多种定位方式（文本/坐标/ID等）
+      // ✅ 智能策略不强制依赖文本，可通过bounds、resourceId等定位
+      const targetText = request.targetText || request.contentDesc || '';
+      
+      console.log('🎯 [V3智能目标定位] 定位参数:', { 
         targetText: request.targetText, 
         contentDesc: request.contentDesc,
         resourceId: request.resourceId,
-        final: targetText 
+        bounds: request.bounds,
+        final: targetText || '智能坐标定位'
       });
 
-      // 🎯 修复：构建正确的 ChainSpecV3::ByInline 格式（使用snake_case字段名）
+      // 🎯 修复：构建正确的 ChainSpecV3::ByInline 格式（使用camelCase字段名）
       const spec = {
-        chain_id: `step_execution_${request.stepId}`,  // 修正：snake_case
-        ordered_steps: [{  // 修正：snake_case
+        chainId: `step_execution_${request.stepId}`,  // ✅ camelCase
+        orderedSteps: [{  // ✅ camelCase
           ref: null,  // ByInline模式不使用ref
           inline: {
-            stepId: `step_${request.stepId}`,  // camelCase (InlineStep使用camelCase)
-            action: 'smart_selection',  // 🎯 正确的字段名和值 (SingleStepAction使用snake_case)
+            stepId: `step_${request.stepId}`,  // ✅ InlineStep使用camelCase (serde会转换)
+            action: 'smart_selection',  // ✅ SingleStepAction的tag字段 (snake_case)
             params: {
               smartSelection: {  // camelCase (params内部使用camelCase)
                 mode: userSelectionMode,
@@ -515,7 +514,7 @@ export class StepExecutionGateway {
       // 调用V3执行命令，使用正确的参数格式
       console.log('🔍 [DEBUG] V3调用参数详情:', { 
         envelope, 
-        spec, 
+        spec: JSON.stringify(spec, null, 2), // 完整的JSON格式
         specType: 'ChainSpecV3::ByInline',  // 修正类型标识
         specFields: Object.keys(spec),
         targetTextInfo: { targetText, contentDesc: request.contentDesc }

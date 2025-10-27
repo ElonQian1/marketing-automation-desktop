@@ -7,9 +7,8 @@
  * XPath直接定位策略
  */
 
-import type { ElementAnalysisContext } from '../../../types/AnalysisTypes';
 import type { StrategyCandidate } from '../../../types/StrategyTypes';
-import { SharedUtils } from '../../../shared';
+import type { ElementLike } from '../../../shared/types/element';
 
 export class XPathDirectStrategy {
   readonly name = 'XPathDirectStrategy';
@@ -17,14 +16,14 @@ export class XPathDirectStrategy {
   /**
    * 检查策略是否适用
    */
-  isApplicable(element: any, context: ElementAnalysisContext): boolean {
+  isApplicable(element: ElementLike & { xpath?: string }): boolean {
     return !!element.xpath;
   }
 
   /**
    * 分析XPath直接定位策略
    */
-  async analyze(element: any, context: ElementAnalysisContext): Promise<StrategyCandidate[]> {
+  async analyze(element: ElementLike & { xpath?: string }): Promise<StrategyCandidate[]> {
     const candidates: StrategyCandidate[] = [];
     
     if (!element.xpath) return candidates;

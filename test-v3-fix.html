@@ -1,0 +1,113 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>V3 ChainSpecV3 修复测试</title>
+    <meta charset="UTF-8">
+</head>
+<body>
+    <h1>V3 ChainSpecV3 字段名修复测试</h1>
+    <div id="log" style="white-space: pre-wrap; font-family: monospace; background: #f0f0f0; padding: 10px; margin: 10px 0;"></div>
+    <button onclick="runTest()">测试修复</button>
+
+    <script type="module">
+        // 简单的V3执行测试
+        async function testV3Fix() {
+            console.log('🧪 开始测试V3 ChainSpecV3字段名修复...');
+            
+            try {
+                const { invoke } = await import('@tauri-apps/api/core');
+                
+                // 构建测试参数 - 使用camelCase字段名（应该与修复后的Rust代码匹配）
+                const envelope = {
+                    deviceId: 'test_device',
+                    app: {
+                        package: 'com.xingin.xhs',
+                        activity: null
+                    },
+                    snapshot: {
+                        analysisId: 'test_analysis',
+                        screenHash: null,
+                        xmlCacheId: null
+                    },
+                    executionMode: 'relaxed'
+                };
+
+                // 测试 ChainSpecV3::ByRef 格式（camelCase）
+                const spec = {
+                    analysisId: 'step_execution_test_123',  // camelCase
+                    threshold: 0.7,
+                    mode: 'dryrun'  // snake_case值
+                };
+
+                console.log('📋 发送修复后的参数格式:', { 
+                    envelope, 
+                    spec, 
+                    note: 'analysisId使用camelCase，应该与Rust #[serde(rename)]匹配'
+                });
+
+                // 调用V3执行命令
+                const result = await invoke('execute_chain_test_v3', {
+                    envelope,
+                    spec
+                });
+
+                console.log('✅ 修复测试成功！ChainSpecV3反序列化正常');
+                console.log('📋 执行结果:', result);
+                return { success: true, result };
+                
+            } catch (error) {
+                console.error('❌ 修复测试失败:', error);
+                
+                // 分析错误
+                if (error && typeof error === 'string') {
+                    if (error.includes('data did not match any variant')) {
+                        console.log('🔍 仍然存在枚举变体匹配问题');
+                        console.log('可能需要检查Rust代码中的字段重命名是否正确');
+                    } else if (error.includes('ChainSpecV3反序列化失败')) {
+                        console.log('🔍 反序列化失败，字段名可能仍有问题');
+                    } else {
+                        console.log('🔍 执行阶段错误，反序列化可能已成功');
+                    }
+                }
+                
+                return { success: false, error };
+            }
+        }
+
+        // 挂载测试函数到全局
+        window.runTest = async function() {
+            const logDiv = document.getElementById('log');
+            const originalLog = console.log;
+            const originalError = console.error;
+
+            // 重定向控制台输出到页面
+            console.log = (...args) => {
+                logDiv.textContent += args.join(' ') + '\n';
+                originalLog(...args);
+            };
+            console.error = (...args) => {
+                logDiv.textContent += '❌ ' + args.join(' ') + '\n';
+                originalError(...args);
+            };
+
+            try {
+                logDiv.textContent = '';
+                const result = await testV3Fix();
+                if (result.success) {
+                    logDiv.textContent += '\n🎉 测试成功！字段名修复有效！\n';
+                } else {
+                    logDiv.textContent += '\n💔 测试失败，需要进一步检查\n';
+                }
+            } catch (error) {
+                logDiv.textContent += '\n💥 测试异常: ' + error + '\n';
+            }
+
+            // 恢复控制台
+            console.log = originalLog;
+            console.error = originalError;
+        };
+
+        console.log('📋 V3修复测试页面已加载，点击按钮开始测试');
+    </script>
+</body>
+</html>

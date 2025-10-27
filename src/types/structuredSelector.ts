@@ -92,14 +92,13 @@ export interface ActionSpec {
     // swipe
     direction?: 'up' | 'down' | 'left' | 'right';
     distance_dp?: number;
-    duration_ms?: number;
     
     // type
     text?: string;
     clear?: boolean;
     submit?: boolean;
     
-    // wait
+    // wait/swipe duration (通用持续时间参数)
     duration_ms?: number;
   };
 }
@@ -169,10 +168,12 @@ export const DEFAULT_VALIDATION_CONFIG: Required<ValidationAndFallback> = {
   allow_backend_fallback: true,
 };
 
+import type { UIElement } from '../api/universal-ui/types';
+
 /**
  * 从UIElement提取ElementSelectors的工具函数
  */
-export function extractSelectorsFromElement(element: any): ElementSelectors {
+export function extractSelectorsFromElement(element: UIElement): ElementSelectors {
   return {
     absolute_xpath: element.xpath || undefined,
     resource_id: element.resource_id || undefined,

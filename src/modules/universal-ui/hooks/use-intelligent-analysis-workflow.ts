@@ -470,9 +470,19 @@ export function useIntelligentAnalysisWorkflow(): UseIntelligentAnalysisWorkflow
         text: context.elementText || '',
         bounds: context.elementBounds ? (() => {
           try {
-            return JSON.parse(context.elementBounds);
+            // 检查是否是JSON格式
+            if (context.elementBounds.startsWith('{')) {
+              return JSON.parse(context.elementBounds);
+            }
+            // 解析 "[864,2230][1080,2358]" 格式
+            const match = context.elementBounds.match(/\[(\d+),(\d+)\]\[(\d+),(\d+)\]/);
+            if (match) {
+              const [, left, top, right, bottom] = match.map(Number);
+              return { left, top, right, bottom };
+            }
+            throw new Error('无法识别的bounds格式');
           } catch (e) {
-            console.warn('⚠️ elementBounds JSON解析失败，使用默认值:', context.elementBounds, e);
+            console.warn('⚠️ elementBounds 解析失败，使用默认值:', context.elementBounds, e);
             return { left: 0, top: 0, right: 0, bottom: 0 };
           }
         })() : { left: 0, top: 0, right: 0, bottom: 0 },

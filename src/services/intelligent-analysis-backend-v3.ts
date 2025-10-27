@@ -193,14 +193,13 @@ export class IntelligentAnalysisBackendV3 {
           ref: null,
           inline: {
             stepId: step.step_id,
-            action: step.action === 'tap' ? 'smart_tap' : 'smart_find_element', // tagged enum action field
+            action: 'smart_selection', // ✅ 统一使用智能选择，匹配SingleStepAction枚举
             params: step.params?.elementContext || step.params || {}
           }
         })),
         threshold: chainSpec.threshold || 0.8,
         mode: config.dryrun ? 'dryrun' : 'execute',
-        selection_mode: chainSpec.selection_mode || 'auto', // 🎯 修复字段名：selectionMode → selection_mode
-        // 可选配置保持默认值
+        // 可选配置保持默认值 (移除不存在的selection_mode字段)
         quality: {},
         constraints: {},
         validation: {}
