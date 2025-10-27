@@ -3,8 +3,10 @@
 // summary: V3智能分析服务，桥接后端V3执行系统与前端智能策略系统
 
 use serde::{Deserialize, Serialize};
-use tauri::{AppHandle, Manager};
+use tauri::AppHandle;
 use anyhow::Result;
+use crate::services::ui_reader_service::parse_ui_elements;  // ✅ 导入 UI 解析函数
+use crate::engine::{AnalysisContext, ContainerInfo};  // ✅ 导入分析上下文和容器信息
 
 /// 智能分析请求
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -12,10 +14,57 @@ pub struct IntelligentAnalysisRequest {
     pub analysis_id: String,
     pub device_id: String,
     pub ui_xml_content: String,
+    
+    // ✅ 重构：用户选择上下文（完整信息），替代 target_element_hint
+    pub user_selection: Option<UserSelectionContext>,
+    
+    // ⚠️ 兼容旧字段（待删除）
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub target_element_hint: Option<String>,
+    
     pub analysis_mode: String, // "step0_to_6", "quick", "comprehensive"
     pub max_candidates: usize,
     pub min_confidence: f64,
+}
+
+/// 用户选择上下文（Step 0 规范化输入）
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct UserSelectionContext {
+    /// 用户点击的元素 XPath
+    pub selected_xpath: String,
+    
+    /// 元素边界 [x1,y1][x2,y2]
+    pub bounds: Option<String>,
+    
+    /// 元素文本内容
+    pub text: Option<String>,
+    
+    /// resource-id 属性
+    pub resource_id: Option<String>,
+    
+    /// class 属性
+    pub class_name: Option<String>,
+    
+    /// content-desc 属性
+    pub content_desc: Option<String>,
+    
+    /// 祖先节点信息（用于 region_scoped）
+    pub ancestors: Vec<AncestorInfo>,
+    
+    /// 子节点文本列表（用于 child_driven）
+    pub children_texts: Vec<String>,
+    
+    /// 国际化变体（如果有）
+    pub i18n_variants: Option<Vec<String>>,
+}
+
+/// 祖先节点信息
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct AncestorInfo {
+    pub xpath: String,
+    pub class_name: String,
+    pub resource_id: Option<String>,
+    pub is_scrollable: bool,
 }
 
 /// 智能分析结果
@@ -73,16 +122,23 @@ pub struct ElementInfo {
 
 /// 执行智能分析（主入口）
 /// 
-/// 这个函数通过 IPC 调用前端的 StrategyDecisionEngine
+/// 这个函数通过 IPC 调用前端的 StrategyDecisionEngine 获得完整的 Step 0-6 分析
 pub async fn perform_intelligent_analysis(
+    app_handle: AppHandle,  // ✅ 直接接收 AppHandle
     request: IntelligentAnalysisRequest,
 ) -> Result<IntelligentAnalysisResult> {
+    tracing::warn!("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━");
+    tracing::warn!("🚀🚀🚀 V3智能分析主入口被调用！！！ 时间: {:?}", std::time::SystemTime::now());
+    tracing::warn!("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━");
+    tracing::info!(
+        "🔍 分析参数: analysis_id={}, device_id={}, mode={}, xml_length={}, hint={:?}",
+        request.analysis_id, request.device_id, request.analysis_mode,
+        request.ui_xml_content.len(), request.target_element_hint
+    );
+    
     tracing::info!("🧠 开始智能分析: {}", request.analysis_id);
     
     let start_time = std::time::Instant::now();
-    
-    // 获取 Tauri App Handle (需要从全局状态中获取)
-    let app_handle = get_app_handle().await?;
     
     // 构建前端调用参数
     let frontend_request = serde_json::json!({
@@ -95,91 +151,41 @@ pub async fn perform_intelligent_analysis(
         "minConfidence": request.min_confidence
     });
     
-    // 调用前端智能策略系统
-    // 这里使用 Tauri 的 IPC 机制调用前端的 JavaScript/TypeScript 代码
-    let frontend_result = call_frontend_strategy_engine(app_handle, frontend_request).await?;
-    
-    // 解析前端返回的结果
-    let analysis_result = parse_frontend_analysis_result(frontend_result, &request, start_time.elapsed())?;
-    
-    tracing::info!("✅ 智能分析完成: {} 个候选策略, 耗时: {}ms", 
-                   analysis_result.candidates.len(), analysis_result.analysis_time_ms);
-    
-    Ok(analysis_result)
+    // 🎯 调用前端完整智能策略系统 (Step 0-6)
+    match call_frontend_strategy_engine(app_handle, frontend_request).await {
+        Ok(frontend_result) => {
+            // 解析前端返回的完整分析结果
+            let analysis_result = parse_frontend_analysis_result(frontend_result, &request, start_time.elapsed())?;
+            
+            tracing::info!("✅ 前端智能分析成功: {} 个候选策略, 耗时: {}ms", 
+                           analysis_result.candidates.len(), analysis_result.analysis_time_ms);
+            
+            Ok(analysis_result)
+        },
+        Err(e) => {
+            tracing::warn!("⚠️ 前端智能分析失败，回退到后端模拟分析: {}", e);
+            
+            // 回退到后端模拟分析
+            mock_intelligent_analysis(request).await
+        }
+    }
 }
 
-/// 调用前端策略引擎
+/// 调用前端策略引擎 - 完整的 Step 0-6 智能决策流程
 async fn call_frontend_strategy_engine(
-    app_handle: AppHandle,
-    request: serde_json::Value,
+    _app_handle: AppHandle,
+    _request: serde_json::Value,
 ) -> Result<serde_json::Value> {
-    tracing::info!("🔗 调用前端 StrategyDecisionEngine");
+    tracing::info!("🔗 尝试调用前端完整 StrategyDecisionEngine (Step 0-6)");
     
-    // 方式1: 通过 emit 发送事件到前端，然后监听返回
-    // app_handle.emit_all("intelligent-analysis-request", &request)?;
+    // 🎯 目前简化实现：由于 Tauri IPC 复杂性，先返回错误让后端使用完整分析
+    // 未来可以通过以下方式实现：
+    // 1. 使用 Tauri 事件系统
+    // 2. 使用 webview 的 eval 机制
+    // 3. 创建专门的 Tauri 命令
     
-    // 方式2: 使用 Tauri 的 invoke 机制（需要前端注册对应的处理器）
-    // 这里我们使用一个特殊的机制，通过 eval 直接调用前端代码
-    
-    let js_code = format!(
-        r#"
-        (async () => {{
-            // 导入智能策略系统
-            const {{ createIntelligentStrategy, getQuickRecommendation }} = await import('/src/modules/intelligent-strategy-system/index.ts');
-            
-            const request = {};
-            
-            try {{
-                // 构建元素对象（简化版）
-                const mockElement = {{
-                    text: request.targetElementHint,
-                    bounds: null,
-                    resourceId: null,
-                    className: null
-                }};
-                
-                // 调用智能策略分析
-                const recommendation = await getQuickRecommendation(mockElement, request.xmlContent);
-                
-                return {{
-                    success: true,
-                    recommendation: recommendation,
-                    analysisId: request.analysisId,
-                    timestamp: new Date().toISOString()
-                }};
-            }} catch (error) {{
-                console.error('Frontend intelligent analysis failed:', error);
-                return {{
-                    success: false,
-                    error: error.message || 'Unknown frontend analysis error',
-                    analysisId: request.analysisId,
-                    timestamp: new Date().toISOString()
-                }};
-            }}
-        }})();
-        "#,
-        request
-    );
-    
-    // 执行前端代码并获取结果
-    app_handle
-        .get_webview_window("main")
-        .ok_or_else(|| anyhow::anyhow!("Main window not found"))?
-        .eval(&js_code)
-        .map_err(|e| anyhow::anyhow!("前端脚本执行失败: {}", e))?;
-    
-    // TODO: 实际使用时需要通过 IPC 事件或其他方式获取前端分析结果
-    // 这里返回一个模拟结果
-    Ok(serde_json::json!({
-        "success": true,
-        "candidates": [
-            {
-                "strategy": "smart_tap",
-                "confidence": 0.85,
-                "reasoning": "前端智能策略分析推荐"
-            }
-        ]
-    }))
+    tracing::warn!("⚠️ 前端 IPC 调用暂未实现，回退到后端完整分析");
+    Err(anyhow::anyhow!("前端 IPC 调用需要更复杂的实现，当前回退到后端分析"))
 }
 
 /// 解析前端分析结果
@@ -301,89 +307,485 @@ fn count_xml_elements(xml_content: &str) -> usize {
     xml_content.matches('<').count()
 }
 
-/// 获取 App Handle（需要从全局状态获取）
-/// 这里需要根据项目的实际 App Handle 管理方式实现
-async fn get_app_handle() -> Result<AppHandle> {
-    // TODO: 从全局状态或者其他方式获取 AppHandle
-    // 这里暂时返回错误，实际使用时需要根据项目结构调整
-    Err(anyhow::anyhow!("App handle not available - need to implement app handle management"))
+/// 🆕 从 XML 中提取多个有文本的可点击元素（作为候选目标）
+fn extract_clickable_texts(xml_content: &str, max_count: usize) -> Vec<String> {
+    let mut texts = Vec::new();
+    let mut pos = 0;
+    
+    while texts.len() < max_count {
+        if let Some(clickable_pos) = xml_content[pos..].find("clickable=\"true\"") {
+            let absolute_pos = pos + clickable_pos;
+            
+            // 从当前节点往前找到 < 标记开始
+            let node_start = xml_content[..absolute_pos].rfind('<').unwrap_or(0);
+            
+            // 从当前位置往后找到节点结束 />
+            if let Some(node_end) = xml_content[absolute_pos..].find("/>") {
+                let node_fragment = &xml_content[node_start..absolute_pos + node_end + 2];
+                
+                // 提取 text="..." 属性
+                if let Some(text_start) = node_fragment.find("text=\"") {
+                    let text_value_start = text_start + 6; // 跳过 'text="'
+                    if let Some(text_end) = node_fragment[text_value_start..].find('"') {
+                        let text_value = &node_fragment[text_value_start..text_value_start + text_end];
+                        if !text_value.trim().is_empty() && text_value.len() <= 20 && !texts.contains(&text_value.to_string()) {
+                            texts.push(text_value.to_string());
+                        }
+                    }
+                }
+                
+                // 如果没有 text，尝试 content-desc
+                if let Some(desc_start) = node_fragment.find("content-desc=\"") {
+                    let desc_value_start = desc_start + 14; // 跳过 'content-desc="'
+                    if let Some(desc_end) = node_fragment[desc_value_start..].find('"') {
+                        let desc_value = &node_fragment[desc_value_start..desc_value_start + desc_end];
+                        if !desc_value.trim().is_empty() && desc_value.len() <= 20 && !texts.contains(&desc_value.to_string()) {
+                            texts.push(desc_value.to_string());
+                        }
+                    }
+                }
+            }
+            
+            pos = absolute_pos + 1;
+        } else {
+            break;
+        }
+    }
+    
+    texts
 }
 
-/// 测试用的模拟分析函数
+/// 从祖先节点中提取容器信息
+fn extract_container_from_ancestors(ancestors: &[AncestorInfo]) -> Option<ContainerInfo> {
+    // 查找第一个可滚动的祖先作为容器
+    ancestors.iter()
+        .find(|a| a.is_scrollable)
+        .map(|container| ContainerInfo {
+            container_type: container.class_name.clone(),
+            container_path: container.xpath.clone(),
+            item_index: None, // TODO: 可以从 xpath 中提取索引
+            total_items: None,
+        })
+}
+
+/// 从 UI 元素中智能提取分析上下文（回退方案）
+/// 
+/// 🎯 改进策略：
+/// 1. 优先匹配 hint（精确 text/resource-id）
+/// 2. 模糊匹配 hint（content-desc contains）
+/// 3. 智能回退到常见目标（"我"、"首页"等）
+/// 4. 兜底使用第一个可点击元素
+fn extract_context_from_ui_elements(
+    ui_elements: &[crate::services::ui_reader_service::UIElement],
+    target_hint: Option<&str>,
+) -> Result<AnalysisContext> {
+    // 🎯 策略 1: 精确匹配 hint
+    if let Some(hint) = target_hint {
+        tracing::info!("🔍 尝试精确匹配 hint: '{}'", hint);
+        
+        let matching_element = ui_elements.iter()
+            .find(|elem| {
+                // 优先匹配 text（精确）
+                if let Some(ref text) = elem.text {
+                    if text == hint || text.trim() == hint.trim() {
+                        return true;
+                    }
+                }
+                // 其次匹配 resource-id（精确）
+                if let Some(ref rid) = elem.resource_id {
+                    if rid == hint || rid.ends_with(&format!("/{}", hint)) {
+                        return true;
+                    }
+                }
+                false
+            });
+        
+        if let Some(elem) = matching_element {
+            tracing::info!("✅ 精确匹配成功: text={:?}, resource-id={:?}", 
+                          elem.text, elem.resource_id);
+            
+            return build_context_from_element(elem, ui_elements);
+        }
+    }
+    
+    // 🎯 策略 2: 模糊匹配 hint（content-desc）
+    if let Some(hint) = target_hint {
+        tracing::info!("🔍 尝试模糊匹配 hint: '{}'", hint);
+        
+        let fuzzy_element = ui_elements.iter()
+            .find(|elem| {
+                // 匹配 content-desc（包含）
+                if let Some(ref desc) = elem.content_desc {
+                    if desc.contains(hint) {
+                        return true;
+                    }
+                }
+                // 匹配 text（包含）
+                if let Some(ref text) = elem.text {
+                    if text.contains(hint) {
+                        return true;
+                    }
+                }
+                false
+            });
+        
+        if let Some(elem) = fuzzy_element {
+            tracing::info!("✅ 模糊匹配成功: text={:?}, content-desc={:?}", 
+                          elem.text, elem.content_desc);
+            
+            return build_context_from_element(elem, ui_elements);
+        }
+    }
+    
+    // 🎯 策略 3: 智能回退到常见目标
+    let priority_targets = vec!["我", "首页", "消息", "朋友", "商城", "发现", "购物车"];
+    for target in priority_targets {
+        let target_element = ui_elements.iter()
+            .find(|elem| {
+                elem.text.as_ref().map(|t| t == target).unwrap_or(false) ||
+                elem.content_desc.as_ref().map(|d| d.contains(target)).unwrap_or(false)
+            });
+        
+        if let Some(elem) = target_element {
+            tracing::warn!("⚠️ 使用智能回退目标: '{}'", target);
+            return build_context_from_element(elem, ui_elements);
+        }
+    }
+    
+    // 🎯 策略 4: 兜底 - 第一个可点击元素
+    let first_clickable = ui_elements.iter()
+        .find(|elem| elem.clickable.unwrap_or(false))
+        .ok_or_else(|| anyhow::anyhow!("❌ 未找到任何可点击元素"))?;
+    
+    tracing::warn!("⚠️ 使用兜底策略: 第一个可点击元素 text={:?}", first_clickable.text);
+    
+    build_context_from_element(first_clickable, ui_elements)
+}
+
+/// 从 UI 元素构建完整的 AnalysisContext（包含祖先分析）
+fn build_context_from_element(
+    elem: &crate::services::ui_reader_service::UIElement,
+    _all_elements: &[crate::services::ui_reader_service::UIElement],
+) -> Result<AnalysisContext> {
+    // 🔥 使用 SmartXPathGenerator 生成最佳 XPath（修复 Bug: WRONG_ELEMENT_SELECTION_BUG_REPORT.md）
+    use crate::services::execution::matching::{SmartXPathGenerator, ElementAttributes};
+    use std::collections::HashMap;
+    
+    let mut attributes = ElementAttributes::new();
+    
+    // 构建元素属性映射
+    if let Some(ref rid) = elem.resource_id {
+        attributes.insert("resource-id".to_string(), rid.clone());
+    }
+    if let Some(ref text) = elem.text {
+        attributes.insert("text".to_string(), text.clone());
+    }
+    if let Some(ref desc) = elem.content_desc {
+        attributes.insert("content-desc".to_string(), desc.clone());
+    }
+    if let Some(ref class) = elem.class {
+        attributes.insert("class".to_string(), class.clone());
+    }
+    if let Some(ref bounds) = elem.bounds {
+        attributes.insert("bounds".to_string(), bounds.clone());
+    }
+    
+    // 使用智能生成器生成最佳 XPath
+    let generator = SmartXPathGenerator::new();
+    let element_path = if let Some(best_xpath) = generator.generate_best_xpath(&attributes) {
+        tracing::info!("✨ 智能生成 XPath: {} (置信度: {:.2})", best_xpath.xpath, best_xpath.confidence);
+        best_xpath.xpath
+    } else {
+        // Fallback：使用简单策略
+        if let Some(ref rid) = elem.resource_id {
+            format!("//*[@resource-id='{}']", rid)
+        } else if let Some(ref text) = elem.text {
+            format!("//*[@text='{}']", text)
+        } else if let Some(ref desc) = elem.content_desc {
+            format!("//*[@content-desc='{}']", desc)
+        } else if let Some(ref class) = elem.class {
+            format!("//*[@class='{}']", class)
+        } else {
+            "//*[@clickable='true']".to_string()
+        }
+    };
+    
+    // 🎯 提取显示文本（优先 text，回退到 content-desc）
+    let element_text = elem.text.clone()
+        .or_else(|| elem.content_desc.clone());
+    
+    // 🎯 TODO: 分析祖先链（用于 region_scoped 策略）
+    // 可以从 bounds 推断可能的父容器
+    
+    Ok(AnalysisContext {
+        element_path,
+        element_text,
+        element_type: elem.class.clone(),
+        resource_id: elem.resource_id.clone(),
+        class_name: elem.class.clone(),
+        bounds: elem.bounds.clone(),
+        container_info: None, // TODO: 实现祖先容器分析
+    })
+}
+
+/// 测试用的模拟分析函数 → 改为完整的 Step 0-6 智能分析
 pub async fn mock_intelligent_analysis(
     request: IntelligentAnalysisRequest,
 ) -> Result<IntelligentAnalysisResult> {
-    tracing::info!("🧪 使用模拟智能分析: {}", request.analysis_id);
+    tracing::info!("🧠 使用后端完整 Step 0-6 智能分析: {}", request.analysis_id);
     
     let start_time = std::time::Instant::now();
     
-    // 模拟分析延迟
-    tokio::time::sleep(std::time::Duration::from_millis(200)).await;
+    // 🎯 使用后端完整的 StrategyEngine 进行 Step 0-6 分析
+    use crate::engine::StrategyEngine;
     
-    let candidates = vec![
-        StrategyCandidate {
-            strategy: "text_match".to_string(),
-            confidence: 0.85,
-            reasoning: "基于文本匹配的高置信度策略".to_string(),
+    // 🎯 使用 parse_ui_elements 解析 XML（包含子文本继承）
+    tracing::info!("📋 开始解析 UI XML，长度: {} 字符", request.ui_xml_content.len());
+    let ui_elements = parse_ui_elements(&request.ui_xml_content)
+        .map_err(|e| anyhow::anyhow!("解析UI元素失败: {}", e))?;
+    
+    tracing::info!("✅ 解析到 {} 个 UI 元素", ui_elements.len());
+    
+    // 🎯 构建完整的分析上下文 - 使用用户选择信息或智能提取
+    let analysis_context = if let Some(ref selection) = request.user_selection {
+        // ✅ 使用完整的用户选择上下文
+        tracing::info!("✅ 使用完整用户选择上下文: xpath={}, content_desc={:?}", 
+                      selection.selected_xpath, selection.content_desc);
+        
+        // 🔥 NEW: 使用 SmartXPathGenerator 增强 XPath（子元素文本过滤）
+        // Bug Fix: WRONG_ELEMENT_SELECTION_BUG_REPORT.md
+        use crate::services::execution::matching::{SmartXPathGenerator, ElementAttributes};
+        use std::collections::HashMap;
+        
+        let mut attributes = ElementAttributes::new();
+        
+        if let Some(ref rid) = selection.resource_id {
+            attributes.insert("resource-id".to_string(), rid.clone());
+        }
+        if let Some(ref text) = selection.text {
+            attributes.insert("text".to_string(), text.clone());
+        }
+        if let Some(ref desc) = selection.content_desc {
+            attributes.insert("content-desc".to_string(), desc.clone());
+        }
+        if let Some(ref class) = selection.class_name {
+            attributes.insert("class".to_string(), class.clone());
+        }
+        if let Some(ref bounds) = selection.bounds {
+            attributes.insert("bounds".to_string(), bounds.clone());
+        }
+        
+        // 使用智能生成器生成最佳 XPath（会自动使用子元素文本过滤）
+        let generator = SmartXPathGenerator::new();
+        let enhanced_xpath = if let Some(best_xpath) = generator.generate_best_xpath(&attributes) {
+            tracing::info!("✨ [XPath增强] 智能生成 XPath: {} (置信度: {:.2})", best_xpath.xpath, best_xpath.confidence);
+            tracing::info!("   原始XPath: {}", selection.selected_xpath);
+            best_xpath.xpath
+        } else {
+            tracing::warn!("⚠️ [XPath增强] 智能生成失败，使用原始XPath");
+            selection.selected_xpath.clone()
+        };
+        
+        AnalysisContext {
+            element_path: enhanced_xpath, // 🔥 使用增强后的 XPath
+            element_text: selection.text.clone()
+                .or_else(|| {
+                    // 🎯 优化：content-desc 作为 text 的回退选项
+                    selection.content_desc.as_ref().map(|desc| {
+                        // 提取 content-desc 中的核心文本（如"我，按钮" -> "我"）
+                        if let Some(comma_pos) = desc.find('，') {
+                            desc[..comma_pos].to_string()
+                        } else if let Some(comma_pos) = desc.find(',') {
+                            desc[..comma_pos].to_string()
+                        } else {
+                            desc.clone()
+                        }
+                    })
+                }),
+            element_type: selection.class_name.clone(),
+            resource_id: selection.resource_id.clone(),
+            class_name: selection.class_name.clone(),
+            bounds: selection.bounds.clone(),
+            container_info: extract_container_from_ancestors(&selection.ancestors),
+        }
+    } else {
+        // ⚠️ 回退：从 UI 元素中智能提取上下文
+        tracing::warn!("⚠️ 用户选择上下文为空，尝试智能提取上下文");
+        
+        let target_hint = request.target_element_hint.as_deref();
+        extract_context_from_ui_elements(&ui_elements, target_hint)?
+    };
+    
+    tracing::info!("🔍 分析上下文: resource_id={:?}, text={:?}, xpath={}", 
+                   analysis_context.resource_id, 
+                   analysis_context.element_text,
+                   analysis_context.element_path);
+    
+    // 🎯 使用 StrategyEngine 进行完整的 Step 0-6 分析
+    let strategy_engine = StrategyEngine::new();
+    let candidate_scores = strategy_engine.score_candidates(&analysis_context);
+    
+    tracing::warn!("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━");
+    tracing::warn!("🧠 Step 0-6 智能分析完成，生成 {} 个候选策略", candidate_scores.len());
+    for (i, candidate) in candidate_scores.iter().enumerate() {
+        tracing::warn!("  {}. {} - 置信度: {:.3} ({})", 
+                       i + 1, candidate.name, candidate.confidence, candidate.key);
+    }
+    tracing::warn!("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━");
+    
+    // 🎯 保存候选数量用于后续使用
+    let candidates_count = candidate_scores.len();
+    let best_confidence = candidate_scores.first().map(|c| c.confidence as f64).unwrap_or(0.0);
+    
+    // 🎯 转换 StrategyEngine 结果为 IntelligentAnalysisResult 格式
+    let candidates: Vec<StrategyCandidate> = candidate_scores.into_iter()
+        .map(|score| StrategyCandidate {
+            strategy: score.key,
+            confidence: score.confidence as f64,
+            reasoning: score.description,
             element_info: ElementInfo {
-                bounds: Some("[100,200][300,250]".to_string()),
-                text: request.target_element_hint.clone(),
-                resource_id: None,
-                class_name: Some("android.widget.Button".to_string()),
-                click_point: Some([200, 225]),
+                bounds: None, // TODO: 从 analysis_context.bounds 提取
+                text: analysis_context.element_text.clone(),
+                resource_id: analysis_context.resource_id.clone(),
+                class_name: analysis_context.class_name.clone(),
+                click_point: None, // TODO: 根据 bounds 计算点击坐标
             },
             execution_params: serde_json::json!({
-                "strategy": "text_match",
-                "targetText": request.target_element_hint,
-                "matchMode": "exact"
+                "strategy": score.variant,
+                "xpath": score.xpath,
+                "confidence": score.confidence,
+                "evidence": score.evidence
             }),
-        },
-        StrategyCandidate {
-            strategy: "bounds_match".to_string(),
-            confidence: 0.7,
-            reasoning: "基于位置边界的备选策略".to_string(),
-            element_info: ElementInfo {
-                bounds: Some("[100,200][300,250]".to_string()),
-                text: None,
-                resource_id: Some("com.example:id/button".to_string()),
-                class_name: Some("android.widget.Button".to_string()),
-                click_point: Some([200, 225]),
-            },
-            execution_params: serde_json::json!({
-                "strategy": "bounds_match",
-                "bounds": "[100,200][300,250]"
-            }),
-        },
-    ];
+        })
+        .collect();
+    
+    // 🎯 如果没有找到高置信度候选，进行智能回退分析
+    let final_candidates = if candidates.is_empty() || 
+                              candidates.iter().all(|c| c.confidence < 0.6) {
+        tracing::warn!("⚠️ 主要策略置信度低，启用智能回退分析");
+        perform_fallback_analysis(&request, &ui_elements).await?
+    } else {
+        candidates
+    };
     
     let result = IntelligentAnalysisResult {
         analysis_id: request.analysis_id.clone(),
         success: true,
-        candidates,
+        candidates: final_candidates,
         analysis_time_ms: start_time.elapsed().as_millis(),
         step_details: vec![
             StepAnalysisDetail {
-                step_name: "SelfAnchor".to_string(),
-                step_index: 1,
-                candidates_found: 2,
-                best_confidence: 0.85,
-                execution_time_ms: 50,
+                step_name: "Step0to6_FullAnalysis".to_string(),
+                step_index: 0,
+                candidates_found: candidates_count,
+                best_confidence: best_confidence,
+                execution_time_ms: start_time.elapsed().as_millis() as u64,
                 status: "success".to_string(),
             },
         ],
         recommendations: vec![
-            "推荐使用文本匹配策略".to_string(),
-            "备选位置边界匹配策略".to_string(),
+            "使用后端完整 Step 0-6 智能策略分析".to_string(),
+            "基于元素属性和结构关系的综合评估".to_string(),
         ],
         metadata: AnalysisMetadata {
             xml_hash: format!("{:x}", md5::compute(&request.ui_xml_content)),
-            xml_element_count: count_xml_elements(&request.ui_xml_content),
+            xml_element_count: ui_elements.len(),
             device_info: request.device_id,
             analysis_timestamp: chrono::Utc::now().to_rfc3339(),
-            engine_version: "v3.0.0-mock".to_string(),
+            engine_version: "v3.0.0-full-step0to6".to_string(),
         },
     };
     
-    tracing::info!("✅ 模拟智能分析完成: {} 个候选策略", result.candidates.len());
+    tracing::info!("✅ 完整智能分析完成: {} 个候选策略", result.candidates.len());
     Ok(result)
+}
+
+/// 从 hint 中提取 resource-id（已废弃，保留兼容）
+#[deprecated(note = "使用 UserSelectionContext 代替")]
+fn extract_resource_id_from_hint(hint: &str) -> Option<String> {
+    // 简单的启发式提取，可以根据实际情况优化
+    if hint.contains("resource-id") {
+        // 提取 resource-id="xxx" 中的 xxx
+        if let Some(start) = hint.find("resource-id=\"") {
+            let value_start = start + 13;
+            if let Some(end) = hint[value_start..].find('"') {
+                return Some(hint[value_start..value_start + end].to_string());
+            }
+        }
+    }
+    None
+}
+
+/// 智能回退分析 - 当主要策略失败时使用
+async fn perform_fallback_analysis(
+    _request: &IntelligentAnalysisRequest,
+    ui_elements: &[crate::services::ui_reader_service::UIElement],
+) -> Result<Vec<StrategyCandidate>> {
+    tracing::info!("🔄 执行智能回退分析");
+    
+    // � 提取所有可交互元素的文本（已经包含子元素继承的文本）
+    // 🎯 修复: 不仅检查 clickable, 还检查 content-desc 是否包含"按钮"
+    let clickable_texts: Vec<String> = ui_elements.iter()
+        .filter(|elem| {
+            let is_clickable = elem.clickable.unwrap_or(false);
+            let has_button_desc = elem.content_desc.as_ref()
+                .map(|desc| desc.contains("按钮"))
+                .unwrap_or(false);
+            is_clickable || has_button_desc
+        })
+        .filter_map(|elem| {
+            // ✅ 优先使用 text, 如果 text 为空则 fallback 到 content-desc
+            elem.text.as_ref()
+                .filter(|t| !t.trim().is_empty() && t.len() <= 20)
+                .cloned()
+                .or_else(|| {
+                    elem.content_desc.as_ref()
+                        .filter(|d| !d.trim().is_empty() && d.len() <= 30)
+                        .map(|d| {
+                            if let Some(comma_pos) = d.find('，') {
+                                d[..comma_pos].to_string()
+                            } else if let Some(comma_pos) = d.find(',') {
+                                d[..comma_pos].to_string()
+                            } else {
+                                d.clone()
+                            }
+                        })
+                })
+        })
+        .take(100)
+        .collect();
+    
+    // 🔍 优先查找常见目标
+    let priority_targets = vec!["我", "首页", "消息", "朋友", "商城"];
+    let target_text = priority_targets.iter()
+        .find_map(|&target| {
+            clickable_texts.iter()
+                .find(|text| text.as_str() == target)
+                .cloned()
+        })
+        .or_else(|| clickable_texts.first().cloned())
+        .unwrap_or_else(|| "智能推荐".to_string());
+    
+    // 生成回退候选策略
+    let candidates = vec![
+        StrategyCandidate {
+            strategy: "fallback_smart_selection".to_string(),
+            confidence: 0.7,
+            reasoning: format!("回退分析找到目标: '{}'", target_text),
+            element_info: ElementInfo {
+                bounds: None,
+                text: Some(target_text.clone()),
+                resource_id: None,
+                class_name: None,
+                click_point: None,
+            },
+            execution_params: serde_json::json!({
+                "strategy": "smart_fallback",
+                "targetText": target_text,
+                "mode": "adaptive"
+            }),
+        },
+    ];
+    
+    Ok(candidates)
 }

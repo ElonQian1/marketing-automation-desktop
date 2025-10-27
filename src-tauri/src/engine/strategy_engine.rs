@@ -212,22 +212,38 @@ impl StrategyEngine {
         let mut candidates = Vec::new();
         
         // 1. 自锚定策略 (基于resource-id/class直接定位)
+        // 🔥 关键修复：优先使用 context.element_path 中的增强XPath（包含子元素过滤）
+        // Bug Fix: XPATH_DATA_LOSS_BUG_FIX.md - 避免丢失智能分析生成的子元素过滤条件
         if let Some(ref resource_id) = context.resource_id {
             let evidence = Evidence::for_strategy("self_anchor");
             let confidence = self.calculate_confidence(&evidence);
+            
+            // ✅ 优先使用完整的 element_path（智能分析生成的增强XPath）
+            // 只有当 element_path 明显不包含 resource-id 时才回退到简单生成
+            let xpath = if context.element_path.contains(resource_id) {
+                // 使用智能分析生成的完整XPath（可能包含子元素过滤等条件）
+                tracing::info!("✅ [自锚定策略] 使用智能分析的增强XPath: {}", context.element_path);
+                context.element_path.clone()
+            } else {
+                // 回退：生成简单的 resource-id XPath
+                tracing::warn!("⚠️ [自锚定策略] element_path='{}' 不包含 resource_id='{}', 使用简化XPath", 
+                              context.element_path, resource_id);
+                format!("//*[@resource-id='{}']", resource_id)
+            };
             
             candidates.push(CandidateScore {
                 key: "self_anchor".to_string(),
                 name: "自锚定策略".to_string(),
                 confidence,
                 evidence,
-                xpath: Some(format!("//*[@resource-id='{}']", resource_id)),
-                description: "基于 resource-id 直接定位，稳定性最高".to_string(),
+                xpath: Some(xpath),
+                description: "基于 resource-id 直接定位，保留完整过滤条件".to_string(),
                 variant: "self_anchor".to_string(),
             });
         }
         
         // 2. 子元素驱动策略 (基于文本内容)
+        // 🔥 关键修复：如果 element_path 已包含文本过滤，优先使用它
         if let Some(ref text) = context.element_text {
             if !text.trim().is_empty() && text.len() < 50 { // 文本不能太长
                 let mut evidence = Evidence::for_strategy("child_driven");
@@ -242,13 +258,26 @@ impl StrategyEngine {
                 
                 let confidence = self.calculate_confidence(&evidence);
                 
+                // ✅ 优先使用智能分析生成的XPath（可能包含子元素文本过滤）
+                let xpath = if context.element_path.contains(&format!("@text='{}'", text.trim())) ||
+                              context.element_path.contains(&format!("text()='{}'", text.trim())) ||
+                              context.element_path.contains(&format!("[.//*[@text='{}']", text.trim())) {
+                    // 智能分析已生成包含文本过滤的XPath
+                    tracing::info!("✅ [子元素策略] 使用智能分析的文本过滤XPath: {}", context.element_path);
+                    context.element_path.clone()
+                } else {
+                    // 回退：生成简单的文本contains查询
+                    tracing::warn!("⚠️ [子元素策略] element_path不包含文本过滤，使用简化XPath");
+                    format!("//*[contains(@text,'{}')]", text.trim())
+                };
+                
                 candidates.push(CandidateScore {
                     key: "child_driven".to_string(),
                     name: "子元素驱动策略".to_string(),
                     confidence,
                     evidence,
-                    xpath: Some(format!("//*[contains(@text,'{}')]", text.trim())),
-                    description: format!("通过文本 '{}' 定位", text.trim()),
+                    xpath: Some(xpath),
+                    description: format!("通过文本 '{}' 定位，保留完整过滤条件", text.trim()),
                     variant: "child_driven".to_string(),
                 });
             }

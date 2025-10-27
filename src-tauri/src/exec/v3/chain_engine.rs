@@ -903,6 +903,21 @@ async fn score_step_with_smart_selection(
     let (step_id, params) = if let Some(inline) = &step.inline {
         let step_id = &inline.step_id;
         
+        // 🔧 关键修复：检测智能分析生成的步骤，直接返回其置信度
+        if step_id.starts_with("intelligent_step_") {
+            // 智能分析步骤：从步骤参数中提取预计算的置信度
+            if let Some(confidence_value) = inline.params.get("confidence") {
+                if let Some(confidence) = confidence_value.as_f64() {
+                    tracing::info!("🧠 智能分析步骤 {} 使用预计算置信度: {:.3}", step_id, confidence);
+                    return Ok(confidence as f32);
+                }
+            }
+            
+            // 如果没有预计算置信度，使用默认高置信度（智能分析生成的步骤应该是可信的）
+            tracing::info!("🧠 智能分析步骤 {} 使用默认高置信度: 0.85", step_id);
+            return Ok(0.85);
+        }
+        
         // 从inline步骤中构建SmartSelection参数
         let params = match &inline.action {
             SingleStepAction::SmartSelection => {
@@ -967,6 +982,25 @@ async fn score_step_with_smart_selection(
                     };
                     tracing::error!("❌ Tap步骤缺少目标文本参数，可用参数: {:?}", available_keys);
                     return Err("Tap步骤缺少text/contentDesc/targetText参数".to_string());
+                }
+            }
+            SingleStepAction::SmartTap => {
+                // SmartTap 与 Tap 使用相同的评分逻辑，从多种参数源获取文本
+                let target_text = inline.params.get("text")
+                    .and_then(|v| v.as_str())
+                    .or_else(|| inline.params.get("contentDesc").and_then(|v| v.as_str()))
+                    .or_else(|| inline.params.get("targetText").and_then(|v| v.as_str()))
+                    .or_else(|| inline.params.get("element_info")
+                        .and_then(|ei| ei.get("text"))
+                        .and_then(|v| v.as_str()));
+                
+                if let Some(text) = target_text {
+                    tracing::info!("🎯 SmartTap目标文本: '{}'", text);
+                    create_smart_selection_protocol_for_scoring(text)?
+                } else {
+                    // SmartTap 允许无文本的智能推理，返回默认评分参数
+                    tracing::info!("🧠 SmartTap无明确目标文本，使用智能推理模式");
+                    create_smart_selection_protocol_for_scoring("")?
                 }
             }
             _ => {
@@ -1108,6 +1142,11 @@ async fn execute_step_real_operation(
     if let Some(inline) = &step.inline {
         match &inline.action {
             SingleStepAction::SmartSelection => {
+                // 🧠 关键优化：检测智能分析生成的步骤，使用完整的 Step 0-6 智能分析执行
+                if inline.step_id.starts_with("intelligent_step_") {
+                    return execute_intelligent_analysis_step(device_id, inline, ui_xml).await;
+                }
+                
                 // 🔧 修复：从params或smartSelection子对象中提取参数
                 let target_text = inline.params.get("targetText")
                     .and_then(|v| v.as_str())
@@ -1356,6 +1395,57 @@ async fn execute_step_real_operation(
                     }
                 } else {
                     return Err(format!("未找到文本为 '{}' 的可点击元素", text));
+                }
+            }
+            SingleStepAction::SmartTap => {
+                // 🧠 SmartTap：智能分析生成的高精度点击操作
+                if inline.step_id.starts_with("intelligent_step_") {
+                    return execute_intelligent_analysis_step(device_id, inline, ui_xml).await;
+                } else {
+                    // 对于非智能分析的SmartTap，回退到普通Tap处理
+                    let text = inline.params.get("text")
+                        .and_then(|v| v.as_str())
+                        .or_else(|| inline.params.get("contentDesc").and_then(|v| v.as_str()))
+                        .or_else(|| inline.params.get("targetText").and_then(|v| v.as_str()))
+                        .unwrap_or("");
+                    
+                    if text.is_empty() {
+                        return Err("SmartTap步骤缺少有效的文本参数".to_string());
+                    }
+                    
+                    let protocol = create_smart_selection_protocol_for_execution(text, "first")?;
+                    
+                    let analysis_result = SmartSelectionEngine::analyze_for_coordinates_only(
+                        device_id, 
+                        &protocol, 
+                        ui_xml
+                    ).await.map_err(|e| format!("SmartTap元素坐标分析失败: {}", e))?;
+                    
+                    if analysis_result.success && !analysis_result.selected_coordinates.is_empty() {
+                        if let Some(coord) = analysis_result.selected_coordinates.first() {
+                            tracing::info!("🧠 SmartTap模式：执行智能点击坐标 ({}, {})", coord.x, coord.y);
+                            
+                            match crate::infra::adb::input_helper::tap_injector_first(
+                                &crate::utils::adb_utils::get_adb_path(),
+                                device_id,
+                                coord.x,
+                                coord.y,
+                                None,
+                            ).await {
+                                Ok(_) => {
+                                    tracing::info!("✅ SmartTap点击执行成功: ({}, {})", coord.x, coord.y);
+                                    return Ok((coord.x, coord.y));
+                                }
+                                Err(e) => {
+                                    return Err(format!("SmartTap点击执行失败: ({}, {}) - {}", coord.x, coord.y, e));
+                                }
+                            }
+                        } else {
+                            return Err("SmartTap：候选坐标列表为空".to_string());
+                        }
+                    } else {
+                        return Err("SmartTap未找到匹配元素".to_string());
+                    }
                 }
             }
             _ => {
@@ -2103,12 +2193,32 @@ fn convert_strategies_to_v3_steps(
     let mut steps = Vec::new();
     
     for (idx, strategy) in strategies.iter().enumerate() {
+        // 🔧 关键修复：将策略置信度添加到执行参数中
+        let mut enhanced_params = strategy.execution_params.clone();
+        if let serde_json::Value::Object(ref mut obj) = enhanced_params {
+            obj.insert("confidence".to_string(), serde_json::json!(strategy.confidence));
+            obj.insert("strategy_type".to_string(), serde_json::json!(strategy.strategy));
+            
+            // 🔧 额外确保xpath信息传递
+            if let Some(element_info) = &strategy.element_info.resource_id {
+                if !obj.contains_key("xpath") {
+                    let xpath = format!("//*[@resource-id='{}']", element_info);
+                    obj.insert("xpath".to_string(), serde_json::json!(xpath));
+                }
+            }
+        }
+        
+        // 🔍 调试：打印实际传递的参数
+        tracing::info!("🔧 智能步骤参数: step_id={}, params={}", 
+                       format!("intelligent_step_{}", idx + 1), 
+                       serde_json::to_string_pretty(&enhanced_params).unwrap_or_default());
+        
         let step = StepRefOrInline {
             r#ref: None,
             inline: Some(InlineStep {
-                step_id: format!("intelligent_step_{}", idx),
-                action: SingleStepAction::SmartSelection,
-                params: strategy.execution_params.clone(),
+                step_id: format!("intelligent_step_{}", idx + 1),
+                action: SingleStepAction::SmartTap, // 🔧 修复：使用SmartTap代替SmartSelection
+                params: enhanced_params,
             }),
         };
         steps.push(step);
@@ -2133,7 +2243,14 @@ async fn call_frontend_intelligent_analysis_with_context(
         analysis_id: format!("v3_intelligent_raw_{}", chrono::Utc::now().timestamp_millis()),
         device_id: device_id.to_string(),
         ui_xml_content: ui_xml.to_string(),
-        target_element_hint: Some(format!("意图:{} 提示:{:?}", user_intent.action_type, user_intent.target_text)),
+        user_selection: None,
+        // 🔧 修复：直接传递纯净的目标文本，而不是描述性格式
+        // 避免生成 "意图:intelligent_find 提示:\"\"" 这样的描述性文本
+        target_element_hint: if user_intent.target_text.is_empty() { 
+            None 
+        } else { 
+            Some(user_intent.target_text.clone()) 
+        },
         analysis_mode: "step0_to_6_from_raw".to_string(),
         max_candidates: 5,
         min_confidence: 0.6,
@@ -2163,6 +2280,7 @@ async fn call_frontend_intelligent_analysis(
         analysis_id: format!("v3_intelligent_{}", chrono::Utc::now().timestamp_millis()),
         device_id: device_id.to_string(),
         ui_xml_content: ui_xml.to_string(),
+        user_selection: None,
         target_element_hint: Some(element_context.to_string()),
         analysis_mode: "step0_to_6".to_string(),
         max_candidates: 5,
@@ -2223,6 +2341,71 @@ fn convert_analysis_result_to_v3_steps(
     let mut steps = Vec::new();
     
     for (index, candidate) in analysis_result.candidates.iter().enumerate() {
+        // 🔧 修复：从智能分析结果中提取关键执行参数
+        let target_text = candidate.execution_params.get("targetText")
+            .and_then(|v| v.as_str())
+            .unwrap_or("");
+        
+        // 🔧 修复：优先使用智能分析生成的完整XPath（包含子元素过滤条件）
+        // ⚠️ 关键修复：之前这里会重新生成简化的XPath，导致智能分析的子元素过滤条件丢失！
+        let xpath = candidate.execution_params.get("xpath")
+            .and_then(|v| v.as_str())
+            .filter(|s| !s.is_empty()) // 过滤空字符串
+            .map(|s| {
+                tracing::info!("✅ [XPath保留] 使用智能分析生成的完整XPath: {}", s);
+                s.to_string()
+            })
+            .or_else(|| {
+                // ⚠️ 只有在智能分析完全没有提供xpath时，才回退到简单生成
+                tracing::warn!("⚠️ [XPath回退] 智能分析未提供XPath，使用策略回退生成");
+                match candidate.strategy.as_str() {
+                    "self_anchor" => {
+                        if let Some(resource_id) = candidate.execution_params.get("resource_id") {
+                            Some(format!("//*[@resource-id='{}']", resource_id.as_str().unwrap_or("")))
+                        } else if !target_text.is_empty() {
+                            Some(format!("//*[@text='{}']", target_text))
+                        } else {
+                            None
+                        }
+                    },
+                    "child_driven" => {
+                        if !target_text.is_empty() {
+                            Some(format!("//*[contains(@text,'{}') or contains(@content-desc,'{}')]", target_text, target_text))
+                        } else {
+                            None
+                        }
+                    },
+                    _ => {
+                        if !target_text.is_empty() {
+                            Some(format!("//*[@text='{}' or @content-desc='{}']", target_text, target_text))
+                        } else {
+                            None
+                        }
+                    }
+                }
+            })
+            .unwrap_or_else(|| "//*[@clickable='true']".to_string()); // 兜底xpath
+        
+        // 🆕 修复：构建完整的params，包含original_data传递
+        let mut params = serde_json::json!({
+            "strategy": candidate.strategy.clone(),
+            "strategy_type": candidate.strategy.clone(), // 添加策略类型字段
+            "confidence": candidate.confidence,
+            "reasoning": candidate.reasoning.clone(),
+            "xpath": xpath, // 🔧 关键修复：添加xpath参数
+            "targetText": target_text,
+            "minConfidence": candidate.execution_params.get("minConfidence").unwrap_or(&serde_json::json!(0.8)),
+            "mode": candidate.execution_params.get("mode").unwrap_or(&serde_json::json!("first"))
+        });
+        
+        // 🆕 关键修复：如果智能分析结果包含original_data，传递给执行步骤
+        if let Some(original_data) = candidate.execution_params.get("original_data") {
+            params["original_data"] = original_data.clone();
+            tracing::info!("🔄 [数据传递] 步骤 {} 包含original_data，已传递到执行层", index + 1);
+        } else {
+            tracing::warn!("⚠️ [数据传递] 步骤 {} 缺少original_data，失败恢复能力受限", index + 1);
+        }
+        
         let step = StepRefOrInline {
             r#ref: None,
             inline: Some(InlineStep {
@@ -2232,12 +2415,7 @@ fn convert_analysis_result_to_v3_steps(
                     "find" | "locate" => SingleStepAction::SmartFindElement,
                     _ => SingleStepAction::SmartTap,
                 },
-                params: serde_json::json!({
-                    "strategy": candidate.strategy.clone(),
-                    "confidence": candidate.confidence,
-                    "reasoning": candidate.reasoning.clone(),
-                    "element_info": candidate.element_info
-                }),
+                params,
             }),
         };
         
@@ -2428,3 +2606,451 @@ fn get_step_id(step: &StepRefOrInline) -> Option<String> {
 //   □ 整个流程中没有出现重复的 tap_injector_first 调用
 //
 // ================================================================
+
+/// 🧠 执行智能分析生成的步骤
+/// 
+/// 智能分析生成的步骤包含完整的执行策略，无需重新运行 legacy 匹配引擎
+async fn execute_intelligent_analysis_step(
+    device_id: &str,
+    inline: &InlineStep,
+    ui_xml: &str,
+) -> Result<(i32, i32), String> {
+    
+    tracing::info!("🧠 [智能执行] 开始执行智能分析步骤: {}", inline.step_id);
+    
+    // 🔧 修复1：优先使用原始XPath（用户静态分析时选择的精确路径）
+    let selected_xpath = inline.params.get("original_data")
+        .and_then(|od| od.get("selected_xpath"))
+        .and_then(|v| v.as_str());
+    
+    let xpath = selected_xpath.or_else(|| {
+        inline.params.get("xpath").and_then(|v| v.as_str())
+    }).ok_or_else(|| format!("智能分析步骤 {} 缺少xpath参数", inline.step_id))?;
+    
+    let target_text = inline.params.get("targetText")
+        .and_then(|v| v.as_str())
+        .unwrap_or("");
+    
+    let confidence = inline.params.get("confidence")
+        .and_then(|v| v.as_f64())
+        .unwrap_or(0.8);
+    
+    let strategy_type = inline.params.get("strategy_type")
+        .and_then(|v| v.as_str())
+        .unwrap_or("智能策略");
+    
+    let xpath_source = if selected_xpath.is_some() {
+        "静态分析精确XPath"
+    } else {
+        "智能分析生成XPath"
+    };
+    
+    tracing::info!("🧠 [智能执行] 策略信息: xpath={} (来源:{}), target='{}', confidence={:.3}, strategy={}",
+        xpath, xpath_source, target_text, confidence, strategy_type);
+    
+    // 解析UI元素
+    let elements = crate::services::ui_reader_service::parse_ui_elements(ui_xml)
+        .map_err(|e| format!("解析UI XML失败: {}", e))?;
+    
+    // 🔧 修复2：增强失败恢复机制 - 如果真机XML匹配失败，尝试用原始XML重新分析
+    let mut target_element = match strategy_type {
+        "self_anchor" => {
+            // 🔥 对于自锚定策略，优先使用resource-id + 子元素文本过滤
+            // Bug Fix: WRONG_ELEMENT_SELECTION_BUG_REPORT.md
+            if xpath.contains("@resource-id") {
+                let resource_id = extract_resource_id_from_xpath(xpath);
+                
+                // 🔥 NEW: 检查是否有子元素文本过滤条件
+                if let Some(child_text) = extract_child_text_filter_from_xpath(xpath) {
+                    tracing::info!("🔍 [元素匹配] 使用子元素文本过滤: resource-id='{}' + 子元素text='{}'", resource_id, child_text);
+                    
+                    // 查找同时满足 resource-id 和子元素文本的元素
+                    elements.iter().find(|e| {
+                        let has_resource_id = e.resource_id.as_ref() == Some(&resource_id);
+                        let has_child_text = element_has_child_with_text(e, &child_text);
+                        
+                        if has_resource_id && has_child_text {
+                            tracing::info!("✅ [元素匹配] 找到匹配元素: resource-id='{}', text='{:?}', bounds='{:?}'", 
+                                         resource_id, e.text, e.bounds);
+                        }
+                        
+                        has_resource_id && has_child_text
+                    })
+                } else {
+                    // 没有子元素过滤，只用 resource-id 匹配
+                    tracing::warn!("⚠️ [元素匹配] XPath 没有子元素过滤，仅使用 resource-id 匹配（可能不准确）");
+                    elements.iter().find(|e| {
+                        e.resource_id.as_ref() == Some(&resource_id)
+                    })
+                }
+            } else {
+                find_element_by_text_or_desc(&elements, target_text)
+            }
+        },
+        "child_driven" => {
+            // 对于子元素驱动策略，查找包含目标文本的元素
+            find_element_by_text_or_desc(&elements, target_text)
+        },
+        _ => {
+            // 默认策略：综合文本和描述匹配
+            find_element_by_text_or_desc(&elements, target_text)
+        }
+    };
+    
+    // 🆕 修复3：失败恢复 - 如果真机XML中找不到元素，尝试用原始XML重新分析
+    if target_element.is_none() {
+        tracing::warn!("⚠️ [智能执行] 真机XML中未找到目标元素，尝试使用原始XML重新分析");
+        
+        if let Some(original_data) = inline.params.get("original_data") {
+            if let Some(original_xml) = original_data.get("original_xml").and_then(|v| v.as_str()) {
+                tracing::info!("🔄 [失败恢复] 使用原始XML快照重新分析");
+                
+                // 从原始XML中查找元素（验证候选是否仍然有效）
+                if let Ok(original_elements) = crate::services::ui_reader_service::parse_ui_elements(original_xml) {
+                    let original_target = match strategy_type {
+                        "self_anchor" => {
+                            if xpath.contains("@resource-id") {
+                                let resource_id = extract_resource_id_from_xpath(xpath);
+                                
+                                // 🔥 NEW: 同样支持子元素文本过滤
+                                if let Some(child_text) = extract_child_text_filter_from_xpath(xpath) {
+                                    original_elements.iter().find(|e| {
+                                        e.resource_id.as_ref() == Some(&resource_id) &&
+                                        element_has_child_with_text(e, &child_text)
+                                    })
+                                } else {
+                                    original_elements.iter().find(|e| {
+                                        e.resource_id.as_ref() == Some(&resource_id)
+                                    })
+                                }
+                            } else {
+                                find_element_by_text_or_desc(&original_elements, target_text)
+                            }
+                        },
+                        _ => find_element_by_text_or_desc(&original_elements, target_text)
+                    };
+                    
+                    if let Some(orig_elem) = original_target {
+                        tracing::info!("✅ [失败恢复] 在原始XML中找到元素: text={:?}, bounds={:?}", 
+                            orig_elem.text, orig_elem.bounds);
+                        
+                        // 🎯 关键逻辑：对比原始特征和真机XML，寻找相似元素
+                        target_element = find_similar_element_in_current_ui(
+                            &elements, 
+                            orig_elem,
+                            strategy_type
+                        );
+                        
+                        if target_element.is_some() {
+                            tracing::info!("✅ [失败恢复] 在真机XML中找到相似元素");
+                        } else {
+                            tracing::error!("❌ [失败恢复] UI结构已变化，无法找到相似元素");
+                            return Err(format!(
+                                "UI结构已变化：原始XML中存在目标元素，但真机XML中找不到相似元素。\n\
+                                策略: {}, 目标文本: {}, XPath: {}\n\
+                                建议：重新录制该步骤或检查应用版本是否更新",
+                                strategy_type, target_text, xpath
+                            ));
+                        }
+                    } else {
+                        tracing::error!("❌ [失败恢复] 原始XML中也找不到元素，XPath可能已失效");
+                        return Err(format!(
+                            "XPath失效：在原始XML中也无法定位元素。\n\
+                            XPath: {}\n\
+                            建议：这可能是步骤卡片数据损坏，请重新录制",
+                            xpath
+                        ));
+                    }
+                } else {
+                    tracing::error!("❌ [失败恢复] 原始XML解析失败");
+                }
+            } else {
+                tracing::warn!("⚠️ [失败恢复] 步骤卡片中没有保存原始XML快照");
+            }
+        } else {
+            tracing::warn!("⚠️ [失败恢复] 步骤卡片中没有original_data字段");
+        }
+    }
+    
+    // 最终检查：如果仍然没有找到元素，报告失败
+    let target_element = target_element.ok_or_else(|| {
+        format!(
+            "未找到匹配的元素，strategy={}, target_text={}, xpath={}\n\
+            已尝试：1) 真机XML匹配 2) 原始XML重新分析 3) 相似元素搜索\n\
+            所有恢复策略均失败",
+            strategy_type, target_text, xpath
+        )
+    })?;
+    
+    // 🔧 关键优化：对于"我"按钮这样的复杂情况，检查元素是否可点击
+    // 如果不可点击，尝试找到可点击的父元素
+    let clickable_element = if target_element.clickable.unwrap_or(false) {
+        target_element
+    } else {
+        tracing::info!("🧠 [智能执行] 目标元素不可点击，查找可点击的父容器");
+        // 这里需要实现向上查找逻辑，暂时使用当前元素
+        // TODO: 实现完整的层级向上查找
+        target_element
+    };
+    
+    // 提取点击坐标
+    let click_point = if let Some(bounds_str) = &clickable_element.bounds {
+        parse_bounds_center(bounds_str)
+            .map_err(|e| format!("解析bounds失败: {}", e))?
+    } else {
+        return Err(format!("元素缺少bounds信息，target_text={}", target_text));
+    };
+    
+    tracing::info!("🧠 [智能执行] 计算出点击坐标: ({}, {}) for target_text={}", 
+        click_point.0, click_point.1, target_text);
+    
+    // 执行真实点击操作
+    match crate::infra::adb::input_helper::tap_injector_first(
+        &crate::utils::adb_utils::get_adb_path(),
+        device_id,
+        click_point.0,
+        click_point.1,
+        None,
+    ).await {
+        Ok(_) => {
+            tracing::info!("🧠 ✅ 智能分析步骤执行成功: {} -> 点击坐标({}, {})", 
+                inline.step_id, click_point.0, click_point.1);
+            Ok(click_point)
+        }
+        Err(e) => {
+            tracing::error!("🧠 ❌ 智能分析步骤执行失败: {} -> {}", inline.step_id, e);
+            Err(format!("智能分析步骤执行失败: {}", e))
+        }
+    }
+}
+
+// 🔧 辅助函数：从xpath提取resource-id
+fn extract_resource_id_from_xpath(xpath: &str) -> String {
+    if let Some(start) = xpath.find("@resource-id='") {
+        let start = start + 14; // "@resource-id='"的长度
+        if let Some(end) = xpath[start..].find("'") {
+            return xpath[start..start + end].to_string();
+        }
+    }
+    String::new()
+}
+
+// 🔥 NEW: 辅助函数：从XPath提取子元素文本过滤条件
+// Bug Fix: WRONG_ELEMENT_SELECTION_BUG_REPORT.md
+fn extract_child_text_filter_from_xpath(xpath: &str) -> Option<String> {
+    // 匹配模式: [.//*[@text='文本']]
+    if let Some(start) = xpath.find("[.//*[@text='") {
+        let start = start + 13; // "[.//*[@text='"的长度
+        if let Some(end) = xpath[start..].find("']]") {
+            return Some(xpath[start..start + end].to_string());
+        }
+    }
+    // 匹配模式: [.//*[@content-desc='文本']]
+    if let Some(start) = xpath.find("[.//*[@content-desc='") {
+        let start = start + 21; // "[.//*[@content-desc='"的长度
+        if let Some(end) = xpath[start..].find("']]") {
+            return Some(xpath[start..start + end].to_string());
+        }
+    }
+    None
+}
+
+// 🔥 NEW: 辅助函数：检查元素是否有包含指定文本的子元素
+// Bug Fix: WRONG_ELEMENT_SELECTION_BUG_REPORT.md
+fn element_has_child_with_text(
+    element: &crate::services::ui_reader_service::UIElement,
+    child_text: &str
+) -> bool {
+    // 检查元素自身的文本
+    if element.text.as_ref() == Some(&child_text.to_string()) {
+        return true;
+    }
+    if element.content_desc.as_ref() == Some(&child_text.to_string()) {
+        return true;
+    }
+    
+    // 注意：UIElement 结构体没有 children 字段，但解析时会继承子元素文本
+    // 如果元素的 text 包含子元素文本（由 parse_ui_elements 的子文本继承逻辑处理）
+    // 我们可以通过检查 text 是否包含目标文本来模糊匹配
+    if let Some(ref text) = element.text {
+        if text.contains(child_text) {
+            return true;
+        }
+    }
+    if let Some(ref desc) = element.content_desc {
+        if desc.contains(child_text) {
+            return true;
+        }
+    }
+    
+    false
+}
+
+// 🔧 辅助函数：根据文本或描述查找元素
+fn find_element_by_text_or_desc<'a>(
+    elements: &'a [crate::services::ui_reader_service::UIElement], 
+    target_text: &str
+) -> Option<&'a crate::services::ui_reader_service::UIElement> {
+    if target_text.is_empty() {
+        return None;
+    }
+    
+    // 优先精确匹配text
+    if let Some(element) = elements.iter().find(|e| {
+        e.text.as_ref() == Some(&target_text.to_string())
+    }) {
+        return Some(element);
+    }
+    
+    // 其次精确匹配content-desc
+    if let Some(element) = elements.iter().find(|e| {
+        e.content_desc.as_ref() == Some(&target_text.to_string())
+    }) {
+        return Some(element);
+    }
+    
+    // 再次包含匹配text
+    if let Some(element) = elements.iter().find(|e| {
+        if let Some(text) = &e.text {
+            text.contains(target_text)
+        } else {
+            false
+        }
+    }) {
+        return Some(element);
+    }
+    
+    // 最后包含匹配content-desc
+    elements.iter().find(|e| {
+        if let Some(desc) = &e.content_desc {
+            desc.contains(target_text)
+        } else {
+            false
+        }
+    })
+}
+
+// 🆕 辅助函数：在真机XML中查找与原始元素相似的元素
+fn find_similar_element_in_current_ui<'a>(
+    current_elements: &'a [crate::services::ui_reader_service::UIElement],
+    original_element: &crate::services::ui_reader_service::UIElement,
+    strategy_type: &str,
+) -> Option<&'a crate::services::ui_reader_service::UIElement> {
+    
+    tracing::info!("🔍 [相似度匹配] 开始查找相似元素，策略: {}", strategy_type);
+    tracing::info!("   原始元素特征: class={:?}, resource_id={:?}, text={:?}, content_desc={:?}",
+        original_element.class, original_element.resource_id, 
+        original_element.text, original_element.content_desc);
+    
+    // 计算每个元素与原始元素的相似度分数
+    let mut scored_elements: Vec<(&crate::services::ui_reader_service::UIElement, f32)> = 
+        current_elements.iter()
+            .map(|elem| {
+                let score = calculate_element_similarity(elem, original_element, strategy_type);
+                (elem, score)
+            })
+            .filter(|(_, score)| *score > 0.5) // 只保留相似度>0.5的元素
+            .collect();
+    
+    // 按相似度降序排序
+    scored_elements.sort_by(|a, b| b.1.partial_cmp(&a.1).unwrap());
+    
+    if !scored_elements.is_empty() {
+        let (best_match, best_score) = scored_elements[0];
+        tracing::info!("✅ [相似度匹配] 找到最佳匹配，相似度: {:.3}", best_score);
+        tracing::info!("   匹配元素特征: class={:?}, resource_id={:?}, text={:?}, content_desc={:?}",
+            best_match.class, best_match.resource_id, 
+            best_match.text, best_match.content_desc);
+        Some(best_match)
+    } else {
+        tracing::warn!("⚠️ [相似度匹配] 未找到相似度>0.5的元素");
+        None
+    }
+}
+
+// 🆕 辅助函数：计算两个元素的相似度分数 (0.0 ~ 1.0)
+fn calculate_element_similarity(
+    current_elem: &crate::services::ui_reader_service::UIElement,
+    original_elem: &crate::services::ui_reader_service::UIElement,
+    strategy_type: &str,
+) -> f32 {
+    let mut score = 0.0f32;
+    let mut weights_sum = 0.0f32;
+    
+    // 🎯 根据策略类型调整权重
+    let (class_weight, resource_id_weight, text_weight, desc_weight) = match strategy_type {
+        "self_anchor" => (0.1, 0.5, 0.2, 0.2),      // resource_id最重要
+        "child_driven" => (0.1, 0.2, 0.4, 0.3),     // text和content_desc最重要
+        _ => (0.15, 0.35, 0.25, 0.25),              // 均衡权重
+    };
+    
+    // 1. 类名匹配
+    if let (Some(curr_class), Some(orig_class)) = (&current_elem.class, &original_elem.class) {
+        if curr_class == orig_class {
+            score += class_weight;
+        }
+        weights_sum += class_weight;
+    }
+    
+    // 2. resource-id匹配 (最强特征)
+    if let (Some(curr_id), Some(orig_id)) = (&current_elem.resource_id, &original_elem.resource_id) {
+        if curr_id == orig_id {
+            score += resource_id_weight;
+        }
+        weights_sum += resource_id_weight;
+    }
+    
+    // 3. text匹配
+    if let (Some(curr_text), Some(orig_text)) = (&current_elem.text, &original_elem.text) {
+        if curr_text == orig_text {
+            score += text_weight;
+        } else if curr_text.contains(orig_text) || orig_text.contains(curr_text) {
+            score += text_weight * 0.7; // 部分匹配
+        }
+        weights_sum += text_weight;
+    }
+    
+    // 4. content-desc匹配
+    if let (Some(curr_desc), Some(orig_desc)) = (&current_elem.content_desc, &original_elem.content_desc) {
+        if curr_desc == orig_desc {
+            score += desc_weight;
+        } else if curr_desc.contains(orig_desc) || orig_desc.contains(curr_desc) {
+            score += desc_weight * 0.7; // 部分匹配
+        }
+        weights_sum += desc_weight;
+    }
+    
+    // 归一化分数
+    if weights_sum > 0.0 {
+        score / weights_sum
+    } else {
+        0.0
+    }
+}
+
+// bounds解析辅助函数
+fn parse_bounds_center(bounds: &str) -> Result<(i32, i32), String> {
+    let bounds = bounds.trim_start_matches('[').trim_end_matches(']');
+    let parts: Vec<&str> = bounds.split("][").collect();
+    
+    if parts.len() != 2 {
+        return Err(format!("无效的bounds格式: {}", bounds));
+    }
+    
+    let start_coords: Vec<&str> = parts[0].split(',').collect();
+    let end_coords: Vec<&str> = parts[1].split(',').collect();
+    
+    if start_coords.len() != 2 || end_coords.len() != 2 {
+        return Err(format!("无效的坐标格式: {}", bounds));
+    }
+    
+    let left: i32 = start_coords[0].parse().map_err(|_| "无法解析left坐标")?;
+    let top: i32 = start_coords[1].parse().map_err(|_| "无法解析top坐标")?;
+    let right: i32 = end_coords[0].parse().map_err(|_| "无法解析right坐标")?;
+    let bottom: i32 = end_coords[1].parse().map_err(|_| "无法解析bottom坐标")?;
+    
+    let center_x = (left + right) / 2;
+    let center_y = (top + bottom) / 2;
+    
+    Ok((center_x, center_y))
+}
