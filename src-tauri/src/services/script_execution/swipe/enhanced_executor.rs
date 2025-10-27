@@ -80,6 +80,13 @@ impl EnhancedSwipeExecutor {
             error!("❌ 滑动执行失败 (总耗时: {}ms)", total_duration.as_millis());
         }
         
+        // 🕒 滑动后等待逻辑
+        if validated_params.wait_between {
+            info!("⏰ 滑动后等待 {}ms", validated_params.wait_duration);
+            tokio::time::sleep(tokio::time::Duration::from_millis(validated_params.wait_duration)).await;
+            info!("✅ 滑动后等待完成");
+        }
+        
         Ok(result)
     }
 

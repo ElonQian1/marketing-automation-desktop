@@ -52,8 +52,16 @@ impl SwipeValidator {
             warn!("⚠️ 滑动距离过小: {:.1}px，可能无法触发滑动", distance);
         }
         
-        info!("✅ 滑动参数验证通过: ({},{}) → ({},{}) 距离={:.1}px 时长={}ms", 
-              start_x, start_y, end_x, end_y, distance, duration);
+        // 解析等待参数
+        let wait_between = params.get("wait_between")
+            .and_then(|v| v.as_bool())
+            .unwrap_or(false);
+        let wait_duration = params.get("wait_duration")
+            .and_then(|v| v.as_u64())
+            .unwrap_or(1000);
+
+        info!("✅ 滑动参数验证通过: ({},{}) → ({},{}) 距离={:.1}px 时长={}ms 等待={}({}ms)", 
+              start_x, start_y, end_x, end_y, distance, duration, wait_between, wait_duration);
 
         Ok(ValidatedSwipeParams {
             start_x,
@@ -63,6 +71,8 @@ impl SwipeValidator {
             duration,
             distance: distance as u32,
             direction: self.detect_direction(start_x, start_y, end_x, end_y),
+            wait_between,
+            wait_duration,
         })
     }
 
@@ -89,6 +99,8 @@ pub struct ValidatedSwipeParams {
     pub duration: u32,
     pub distance: u32,
     pub direction: SwipeDirection,
+    pub wait_between: bool,      // 是否在滑动后等待
+    pub wait_duration: u64,      // 等待时长(毫秒)
 }
 
 /// 滑动方向

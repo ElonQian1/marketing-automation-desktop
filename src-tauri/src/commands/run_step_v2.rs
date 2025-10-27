@@ -614,7 +614,12 @@ async fn execute_v2_step(app_handle: AppHandle, req: &RunStepRequestV2) -> Resul
         if let Some(obj) = coord_params.as_object() {
             tracing::info!("🔧 展开coordinateParams到step对象: {:?}", obj);
             for (key, value) in obj {
-                step_with_coords[key] = value.clone();
+                // 🔧 参数名称映射：处理前后端参数名不匹配问题
+                let mapped_key = match key.as_str() {
+                    "duration" => "duration_ms",  // 延时参数映射
+                    _ => key
+                };
+                step_with_coords[mapped_key] = value.clone();
             }
         }
     }
