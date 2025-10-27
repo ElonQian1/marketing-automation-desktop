@@ -3,7 +3,7 @@
 // summary: ADB调试步骤卡片，专门处理设备调试相关的步骤展示
 
 import React from 'react';
-import { Tag, Space, Badge } from 'antd';
+import { Space } from 'antd';
 import { AndroidOutlined, WifiOutlined, UsbOutlined } from '@ant-design/icons';
 import { UnifiedStepCard } from '../../universal-ui/components/unified-step-card';
 import type { IntelligentStepCard } from '../../universal-ui/types/intelligent-analysis-types';
@@ -115,29 +115,14 @@ export const AdbStepCard: React.FC<AdbStepCardProps> = ({
   ].filter(Boolean).join(' ');
   
   // 自定义标题
-  const customTitle = (
-    <Space>
-      <AndroidOutlined />
-      <span>{stepCard.stepName}</span>
-      {showDeviceInfo && deviceId && (
-        <Badge 
-          status={statusConfig.badgeStatus}
-          text={
-            <Tag color={statusConfig.color} icon={statusConfig.icon}>
-              {deviceName || deviceId.slice(-8)} - {statusConfig.label}
-            </Tag>
-          }
-        />
-      )}
-    </Space>
-  );
+
   
   return (
     <div className={combinedClassName}>
       <UnifiedStepCard
         stepCard={{
           ...stepCard,
-          stepName: customTitle
+          stepName: `${stepCard.stepName}${deviceId ? ` (${deviceName || deviceId.slice(-8)})` : ''}`
         }}
         stepIndex={stepIndex}
         className="adb-unified"
@@ -217,7 +202,7 @@ export const AdbStepCard: React.FC<AdbStepCardProps> = ({
         </div>
       </div>
       
-      <style jsx>{`
+      <style>{`
         .adb-step-card {
           margin: 12px 0;
           border-radius: 8px;

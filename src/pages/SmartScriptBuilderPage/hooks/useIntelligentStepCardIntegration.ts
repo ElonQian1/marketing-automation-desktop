@@ -230,9 +230,92 @@ export function useIntelligentStepCardIntegration(options: UseIntelligentStepCar
         return typeMap[withoutRegion] || 'smart_find_element';
       };
       
+      // 🎯 智能命名：基于元素内容生成更有意义的名称（增强版：支持子元素文本提取）
+      const generateSmartName = () => {
+        const elementText = element.text || element.content_desc || '';
+        const elementId = element.resource_id || element.id || '';
+        
+        // 🆕 子元素文本提取函数
+        const findChildElementText = (element: Record<string, unknown>): string | null => {
+          // 检查是否有children属性（来自XML解析）
+          if (element.children && Array.isArray(element.children)) {
+            for (const child of element.children) {
+              // 检查子元素的文本属性
+              if (child.text && child.text.trim()) {
+                return child.text.trim();
+              }
+              if (child.content_desc && child.content_desc.trim()) {
+                return child.content_desc.trim();
+              }
+              // 递归查找孙子元素
+              const grandChildText = findChildElementText(child);
+              if (grandChildText) {
+                return grandChildText;
+              }
+            }
+          }
+          
+          // 如果没有children属性，尝试从其他可能的嵌套结构中查找
+          for (const key of Object.keys(element)) {
+            const value = element[key];
+            if (Array.isArray(value)) {
+              for (const item of value) {
+                if (typeof item === 'object' && item !== null) {
+                  if (item.text && item.text.trim()) {
+                    return item.text.trim();
+                  }
+                  if (item.content_desc && item.content_desc.trim()) {
+                    return item.content_desc.trim();
+                  }
+                }
+              }
+            }
+          }
+          return null;
+        };
+        
+        // 1. 优先使用父元素自身的文本
+        if (elementText && elementText.trim()) {
+          return `点击"${elementText.slice(0, 10)}${elementText.length > 10 ? '...' : ''}"`;
+        }
+        
+        // 🆕 2. 如果父元素没有文本，智能查找子元素文本
+        const childText = findChildElementText(element as unknown as Record<string, unknown>);
+        if (childText) {
+          console.log('🎯 [智能命名] 从子元素发现文本:', childText, 'for element:', element.id);
+          return `点击"${childText.slice(0, 10)}${childText.length > 10 ? '...' : ''}"`;
+        }
+        
+        // 3. 如果有资源ID，尝试语义化
+        if (elementId.includes('button')) {
+          return `点击按钮 ${stepNumber}`;
+        } else if (elementId.includes('menu')) {
+          return `打开菜单 ${stepNumber}`;
+        } else if (elementId.includes('tab')) {
+          return `切换标签 ${stepNumber}`;
+        } else if (elementId.includes('search')) {
+          return `搜索操作 ${stepNumber}`;
+        }
+        
+        // 4. 基于元素类型（最后回退）
+        const actionMap: Record<string, string> = {
+          'tap': '点击',
+          'click': '点击',
+          'button': '点击按钮',
+          'input': '输入',
+          'swipe': '滑动',
+          'scroll': '滚动'
+        };
+        
+        const actionName = actionMap[element.element_type || 'tap'] || '操作';
+        // 🎯 注意：如果走到这里，说明没有找到任何文本，应该触发后端智能分析
+        console.warn('⚠️ [智能命名] 无法找到元素文本，使用通用名称，应触发后端智能分析:', element.id);
+        return `智能${actionName} ${stepNumber}`;
+      };
+
       const newStep: ExtendedSmartScriptStep = {
         id: stepId,
-        name: `智能${element.element_type === 'tap' ? '点击' : '操作'} ${stepNumber}`,
+        name: generateSmartName(),
         step_type: normalizeStepType(element.element_type || 'tap'),
         description: `智能分析 - ${element.text || element.content_desc || element.resource_id || element.id}`,
         // 🧠 启用策略选择器
