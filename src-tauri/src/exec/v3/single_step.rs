@@ -403,22 +403,37 @@ fn extract_smart_selection_protocol(params: &Value) -> Result<SmartSelectionProt
         "all" => {
             // 提取批量配置
             let batch_config = smart_selection.get("batchConfig");
+            
+            // 🔥 兼容蛇形和驼峰命名（优先蛇形）
             let interval_ms = batch_config
-                .and_then(|b| b.get("intervalMs"))
+                .and_then(|b| b.get("interval_ms")  // 优先蛇形命名
+                    .or_else(|| b.get("intervalMs")))  // 兼容旧的驼峰命名
                 .and_then(|v| v.as_u64())
                 .unwrap_or(2000);
+                
             let max_count = batch_config
-                .and_then(|b| b.get("maxCount"))
+                .and_then(|b| b.get("max_count")  // 优先蛇形命名
+                    .or_else(|| b.get("maxCount")))  // 兼容旧的驼峰命名
                 .and_then(|v| v.as_u64())
                 .unwrap_or(10) as u32;
+                
             let continue_on_error = batch_config
-                .and_then(|b| b.get("continueOnError"))
+                .and_then(|b| b.get("continue_on_error")  // 优先蛇形命名
+                    .or_else(|| b.get("continueOnError")))  // 兼容旧的驼峰命名
                 .and_then(|v| v.as_bool())
                 .unwrap_or(true);
+                
             let show_progress = batch_config
-                .and_then(|b| b.get("showProgress"))
+                .and_then(|b| b.get("show_progress")  // 优先蛇形命名
+                    .or_else(|| b.get("showProgress")))  // 兼容旧的驼峰命名
                 .and_then(|v| v.as_bool())
                 .unwrap_or(true);
+                
+            // 🔧 添加调试日志，验证配置读取
+            tracing::info!(
+                "📋 [批量配置解析] max_count={}, interval_ms={}ms, continue_on_error={}, show_progress={}",
+                max_count, interval_ms, continue_on_error, show_progress
+            );
                 
             SelectionMode::All {
                 batch_config: Some(BatchConfigV2 {

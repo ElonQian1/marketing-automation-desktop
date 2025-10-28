@@ -666,7 +666,7 @@ lazy_static::lazy_static! {
     static ref ANALYSIS_SERVICE: IntelligentAnalysisService = IntelligentAnalysisService::new();
     /// 全局步骤策略存储 (内存缓存)
     /// Key: step_id, Value: (StrategyCandidate, timestamp)
-    static ref STEP_STRATEGY_STORE: Arc<Mutex<HashMap<String, (StrategyCandidate, i64)>>> = 
+    pub(crate) static ref STEP_STRATEGY_STORE: Arc<Mutex<HashMap<String, (StrategyCandidate, i64)>>> = 
         Arc::new(Mutex::new(HashMap::new()));
 }
 

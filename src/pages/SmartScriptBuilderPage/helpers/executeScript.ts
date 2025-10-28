@@ -6,8 +6,12 @@ import { invoke } from "@tauri-apps/api/core";
 import { message } from "antd";
 import { normalizeScriptStepsForBackend } from "../helpers/normalizeSteps";
 import type { ExtendedSmartScriptStep } from "../../../types/loopScript";
-import { ScriptExecutionDiagnostics } from "../../../utils/script-execution-diagnostics";
-import { executeScrollStep, DIRECTION_ARROWS, DIRECTION_NAMES } from "./scroll-executor";
+import { 
+  routeAndExecuteStep, 
+  identifyStepType,
+  STEP_TYPE_NAMES,
+  STEP_TYPE_ICONS
+} from "./step-type-router";
 
 // 轻量设备类型，满足本模块使用
 interface SimpleDevice {
@@ -24,9 +28,9 @@ interface SmartExecutionResult {
   failed_steps: number;
   skipped_steps: number;
   duration_ms: number;
-  logs: any[];
+  logs: string[];
   final_page_state?: string;
-  extracted_data: Record<string, any>;
+  extracted_data: Record<string, unknown>;
   message: string;
 }
 
@@ -76,7 +80,10 @@ export function createHandleExecuteScript(ctx: Ctx) {
     
     const selectedDevice = currentDeviceId || 
       devices.find((d) => d.status === "online")?.id || 
-      devices.find((d) => (d as any).isOnline && (d as any).isOnline())?.id ||
+      devices.find((d) => {
+        const deviceWithOnline = d as { isOnline?: () => boolean };
+        return deviceWithOnline.isOnline && deviceWithOnline.isOnline();
+      })?.id ||
       devices[0]?.id || 
       "e0d909c3"; // 使用你的实际设备ID作为默认值
     
@@ -101,102 +108,82 @@ export function createHandleExecuteScript(ctx: Ctx) {
       
       for (let i = 0; i < expandedSteps.length; i++) {
         const step = expandedSteps[i];
-        console.log(`\n🔄 [批量执行] 执行步骤 ${i + 1}/${totalSteps}: ${step.name}, step_type=${step.step_type}`);
+        const stepType = identifyStepType(step);
+        const stepIcon = STEP_TYPE_ICONS[stepType] || "📍";
+        const stepTypeName = STEP_TYPE_NAMES[stepType] || "未知";
+        
+        console.log(`\n${stepIcon} [批量执行] 步骤 ${i + 1}/${totalSteps}: ${step.name}`);
+        console.log(`   类型: ${stepTypeName} (step_type=${step.step_type})`);
         
         try {
-          // 🎯 识别滚动步骤 - 使用V2引擎
-          const isScrollStep = step.step_type === "smart_scroll" || 
-                              step.step_type === "swipe" || 
-                              step.name?.includes("滚动");
-          
-          if (isScrollStep) {
-            // 🔄 滚动步骤使用V2引擎（完整参数支持：方向、距离、次数、间隔）
-            console.log(`📜 [V2滚动] 检测到滚动步骤，使用V2引擎执行`);
-            
-            // 获取滚动方向和参数信息用于日志
-            const direction = step.parameters?.direction || "down";
-            const repeatCount = step.parameters?.repeat_count || 1;
-            const arrow = DIRECTION_ARROWS[direction as keyof typeof DIRECTION_ARROWS] || "↓";
-            const dirName = DIRECTION_NAMES[direction as keyof typeof DIRECTION_NAMES] || "向下";
-            
-            console.log(`📜 [V2滚动] ${arrow} ${dirName}滚动 × ${repeatCount}次`);
-            
-            // 使用模块化滚动执行器
-            const scrollResult = await executeScrollStep(
-              selectedDevice,
-              step,
-              { width: 1080, height: 2340 } // TODO: 从设备信息动态获取
-            );
-            
-            if (scrollResult.success) {
-              console.log(`✅ [V2滚动] 步骤 ${i + 1} 执行成功:`, scrollResult.message);
-              successCount++;
-            } else {
-              throw new Error(scrollResult.message);
-            }
-            
-          } else {
-            // 🎯 点击步骤使用V3引擎
-            console.log(`🎯 [V3点击] 检测到点击步骤，使用V3引擎执行`);
-            
-            const params = {
-              element_path: step.parameters?.selected_xpath || step.parameters?.xpath || "",
-              targetText: step.parameters?.targetText || step.parameters?.text || "",
-              target_content_desc: step.parameters?.target_content_desc || "",
-              original_data: step.parameters?.original_data || {},
-              smartSelection: {
-                mode: "first",
-                minConfidence: 0.8,
-                targetText: step.parameters?.targetText || step.parameters?.text || "",
-                batchConfig: {
-                  maxCount: 1,
-                  intervalMs: 1000,
-                  continueOnError: false,
-                  showProgress: true
+          // 🎯 使用统一路由器执行步骤
+          const result = await routeAndExecuteStep(
+            selectedDevice,
+            step,
+            // V3点击引擎执行函数
+            async (clickStep: ExtendedSmartScriptStep) => {
+              const params = {
+                element_path: clickStep.parameters?.selected_xpath || clickStep.parameters?.xpath || "",
+                targetText: clickStep.parameters?.targetText || clickStep.parameters?.text || "",
+                target_content_desc: clickStep.parameters?.target_content_desc || "",
+                original_data: clickStep.parameters?.original_data || {},
+                smartSelection: {
+                  mode: "first",
+                  minConfidence: 0.8,
+                  targetText: clickStep.parameters?.targetText || clickStep.parameters?.text || "",
+                  batchConfig: {
+                    maxCount: 1,
+                    intervalMs: 1000,
+                    continueOnError: false,
+                    showProgress: true
+                  }
                 }
-              }
-            };
-            
-            // 🎯 构建V3 ChainSpec
-            const chainSpec = {
-              chainId: `step_execution_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
-              orderedSteps: [{
-                inline: {
-                  stepId: step.id,
-                  action: "smart_selection",
-                  params: params
-                },
-                ref: null
-              }],
-              mode: "execute",
-              threshold: 0.5,
-              constraints: {},
-              quality: {},
-              validation: {}
-            };
+              };
+              
+              const chainSpec = {
+                chainId: `step_execution_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
+                orderedSteps: [{
+                  inline: {
+                    stepId: clickStep.id,
+                    action: "smart_selection",
+                    params: params
+                  },
+                  ref: null
+                }],
+                mode: "execute",
+                threshold: 0.5,
+                constraints: {},
+                quality: {},
+                validation: {}
+              };
 
-            console.log("📤 [V3点击] 发送ChainSpec:", JSON.stringify(chainSpec, null, 2));
+              console.log("📤 [V3点击] 发送ChainSpec:", JSON.stringify(chainSpec, null, 2));
 
-            // 调用V3执行接口
-            const result = await invoke("execute_chain_test_v3", {
-              envelope: {
-                deviceId: selectedDevice,
-                app: {
-                  package: "com.ss.android.ugc.aweme", // 抖音包名
-                  activity: null
+              return await invoke("execute_chain_test_v3", {
+                envelope: {
+                  deviceId: selectedDevice,
+                  app: {
+                    package: "com.ss.android.ugc.aweme",
+                    activity: null
+                  },
+                  snapshot: {
+                    analysisId: null,
+                    screenHash: null,
+                    xmlCacheId: null
+                  },
+                  executionMode: "relaxed"
                 },
-                snapshot: {
-                  analysisId: null,
-                  screenHash: null,
-                  xmlCacheId: null
-                },
-                executionMode: "relaxed"
-              },
-              spec: chainSpec
-            });
-
-            console.log(`✅ [V3点击] 步骤 ${i + 1} 执行成功:`, result);
+                spec: chainSpec
+              });
+            },
+            { width: 1080, height: 2340 } // TODO: 从设备信息动态获取
+          );
+          
+          if (result.success) {
+            console.log(`✅ [${result.executorType}] 步骤 ${i + 1} 执行成功:`, result.message);
             successCount++;
+          } else {
+            throw new Error(result.message);
           }
           
           // 等待间隔

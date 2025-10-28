@@ -47,23 +47,81 @@ pub async fn execute_intelligent_analysis_step(
     
     tracing::info!("🧠 [智能执行] 开始执行智能分析步骤: {}", inline.step_id);
     
+    // 🔥 关键修复：从 STEP_STRATEGY_STORE 读取保存的配置
+    let saved_config = {
+        use crate::commands::intelligent_analysis::STEP_STRATEGY_STORE;
+        
+        if let Ok(store) = STEP_STRATEGY_STORE.lock() {
+            if let Some((strategy, _timestamp)) = store.get(&inline.step_id) {
+                tracing::info!("📖 [配置读取] 从 Store 读取到保存的配置: step_id={}", inline.step_id);
+                tracing::info!("   selection_mode={:?}, batch_config={:?}", 
+                    strategy.selection_mode, strategy.batch_config);
+                
+                Some((strategy.selection_mode.clone(), strategy.batch_config.clone()))
+            } else {
+                tracing::warn!("⚠️ [配置读取] Store 中没有找到 step_id={} 的配置，使用参数中的配置", inline.step_id);
+                None
+            }
+        } else {
+            tracing::error!("❌ [配置读取] 无法锁定 STEP_STRATEGY_STORE");
+            None
+        }
+    };
+    
+    // 🔥 合并保存的配置到执行参数
+    let mut merged_params = inline.params.clone();
+    if let Some((selection_mode, batch_config)) = saved_config {
+        if let Some(mode) = selection_mode {
+            tracing::info!("🔧 [配置合并] 使用保存的 selection_mode: {}", mode);
+            
+            // 更新 smartSelection.mode
+            if let Some(smart_sel) = merged_params.get_mut("smartSelection") {
+                if let Some(obj) = smart_sel.as_object_mut() {
+                    obj.insert("mode".to_string(), serde_json::json!(mode));
+                    
+                    // 如果是批量模式，同时更新 batchConfig
+                    if mode == "all" {
+                        if let Some(config) = batch_config {
+                            tracing::info!("🔧 [配置合并] 使用保存的 batchConfig: {:?}", config);
+                            obj.insert("batchConfig".to_string(), config);
+                        }
+                    }
+                }
+            } else {
+                // 如果没有 smartSelection，创建一个
+                merged_params.as_object_mut().map(|obj| {
+                    let mut smart_sel = serde_json::Map::new();
+                    smart_sel.insert("mode".to_string(), serde_json::json!(mode));
+                    
+                    if mode == "all" {
+                        if let Some(config) = batch_config {
+                            smart_sel.insert("batchConfig".to_string(), config);
+                        }
+                    }
+                    
+                    obj.insert("smartSelection".to_string(), serde_json::json!(smart_sel));
+                });
+            }
+        }
+    }
+    
     // 🔧 修复1：优先使用原始XPath（用户静态分析时选择的精确路径）
-    let selected_xpath = inline.params.get("original_data")
+    let selected_xpath = merged_params.get("original_data")
         .and_then(|od| od.get("selected_xpath"))
         .and_then(|v| v.as_str());
     
     let xpath = selected_xpath.or_else(|| {
-        inline.params.get("xpath").and_then(|v| v.as_str())
+        merged_params.get("xpath").and_then(|v| v.as_str())
     }).ok_or_else(|| format!("智能分析步骤 {} 缺少xpath参数", inline.step_id))?;
     
     // 🔥 P0修复: 正确提取 targetText（支持多层嵌套）
-    let target_text = extract_target_text_from_params(&inline.params);
+    let target_text = extract_target_text_from_params(&merged_params);
     
-    let confidence = inline.params.get("confidence")
+    let confidence = merged_params.get("confidence")
         .and_then(|v| v.as_f64())
         .unwrap_or(0.8);
     
-    let strategy_type = inline.params.get("strategy_type")
+    let strategy_type = merged_params.get("strategy_type")
         .and_then(|v| v.as_str())
         .unwrap_or("智能策略");
     
@@ -81,7 +139,7 @@ pub async fn execute_intelligent_analysis_step(
         .map_err(|e| format!("解析UI XML失败: {}", e))?;
     
     // � 提取 original_bounds（用于候选预过滤）
-    let original_bounds = inline.params.get("original_data")
+    let original_bounds = merged_params.get("original_data")
         .and_then(|od| od.get("element_bounds"))
         .and_then(|v| v.as_str())
         .map(|s| s.to_string());
@@ -93,7 +151,7 @@ pub async fn execute_intelligent_analysis_step(
         xpath, 
         &target_text, 
         original_bounds.as_deref(),
-        &inline.params  // 🔥 传递完整参数
+        &merged_params  // 🔥 传递完整参数
     );
     
     tracing::info!("🎯 [候选收集] 找到 {} 个匹配的候选元素", candidate_elements.len());
@@ -113,7 +171,7 @@ pub async fn execute_intelligent_analysis_step(
     }
     
     // 🔍 数据完整性检查（关键诊断信息）
-    if let Some(original_data) = inline.params.get("original_data") {
+    if let Some(original_data) = merged_params.get("original_data") {
         tracing::info!("✅ [数据完整性] original_data 存在");
         
         if let Some(original_xml) = original_data.get("original_xml") {
@@ -147,11 +205,11 @@ pub async fn execute_intelligent_analysis_step(
     
     // 🔥 P0修复：添加详细的批量模式检测日志
     tracing::info!("🔍 [批量检测-DEBUG] 开始检测批量模式");
-    tracing::info!("🔍 [批量检测-DEBUG] inline.params keys: {:?}", 
-        inline.params.as_object().map(|obj| obj.keys().collect::<Vec<_>>()));
+    tracing::info!("🔍 [批量检测-DEBUG] merged_params keys: {:?}", 
+        merged_params.as_object().map(|obj| obj.keys().collect::<Vec<_>>()));
     
     // 检查顶层 smartSelection
-    if let Some(smart_sel) = inline.params.get("smartSelection") {
+    if let Some(smart_sel) = merged_params.get("smartSelection") {
         tracing::info!("🔍 [批量检测-DEBUG] 找到顶层 smartSelection: {:?}", smart_sel);
         if let Some(mode) = smart_sel.get("mode") {
             tracing::info!("🔍 [批量检测-DEBUG] 顶层 mode: {:?}", mode);
@@ -163,7 +221,7 @@ pub async fn execute_intelligent_analysis_step(
     }
     
     // 检查 originalParams
-    if let Some(orig_params) = inline.params.get("originalParams") {
+    if let Some(orig_params) = merged_params.get("originalParams") {
         tracing::info!("🔍 [批量检测-DEBUG] 找到 originalParams");
         if let Some(smart_sel) = orig_params.get("smartSelection") {
             tracing::info!("🔍 [批量检测-DEBUG] originalParams 中的 smartSelection: {:?}", smart_sel);
@@ -178,13 +236,13 @@ pub async fn execute_intelligent_analysis_step(
     }
     
     // 🔥 检测批量模式（增强版：支持多路径检测）
-    let batch_mode = inline.params
+    let batch_mode = merged_params
         .get("smartSelection")
         .and_then(|v| v.get("mode"))
         .and_then(|v| v.as_str())
         .or_else(|| {
             // 兜底：从 originalParams 提取
-            inline.params
+            merged_params
                 .get("originalParams")
                 .and_then(|v| v.get("smartSelection"))
                 .and_then(|v| v.get("mode"))
@@ -203,7 +261,7 @@ pub async fn execute_intelligent_analysis_step(
         return execute_batch_mode_with_first_strategy(
             device_id,
             candidate_elements,
-            &inline.params,
+            &merged_params,
             &target_text,
             &inline.step_id,
             ui_xml,
@@ -217,11 +275,11 @@ pub async fn execute_intelligent_analysis_step(
     // 🎯 单次模式：找到最佳候选并点击一次
     tracing::info!("🎯 [单次模式] 将从 {} 个候选中选择最佳匹配", candidate_elements.len());
 
-    let mut target_element = evaluate_best_candidate(candidate_elements, &inline.params, ui_xml)?;
+    let mut target_element = evaluate_best_candidate(candidate_elements, &merged_params, ui_xml)?;
     
     // 🆕 修复：失败恢复机制
     if target_element.is_none() {
-        target_element = attempt_element_recovery(&inline.params, &elements)?;
+        target_element = attempt_element_recovery(&merged_params, &elements)?;
     }
     
     // 最终检查：如果仍然没有找到元素，报告失败
