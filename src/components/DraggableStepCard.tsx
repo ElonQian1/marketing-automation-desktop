@@ -388,11 +388,11 @@ const DraggableStepCardInner: React.FC<
     if (mappedType) {
       return {
         type: mappedType,
-        params: {} as ActionParams // 🔥 关键修复：使用空参数对象，避免循环依赖
+        params: step.parameters as ActionParams // � 关键修复：使用实际参数，确保参数配置面板能获取到当前值
       };
     }
     return null;
-  }, [step.step_type]);
+  }, [step.step_type, step.parameters]); // 🔑 添加step.parameters依赖，确保参数变化时重新计算
 
   // 🎛️ 参数更新处理函数 
   const handleParametersChange = (params: ActionParams) => {

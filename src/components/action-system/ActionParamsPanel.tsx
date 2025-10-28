@@ -43,14 +43,35 @@ export const ActionParamsPanel: React.FC<ActionParamsPanelProps> = ({
     return initialParams || action.params || {};
   });
 
-  // 🔄 同步外部参数变化到内部状态
+  // 🔄 使用 useRef 来跟踪上次的外部参数，避免不必要的更新
+  const lastExternalParamsRef = React.useRef<ActionParams>({});
+
+  // 🔄 同步外部参数变化到内部状态（优化：避免循环依赖）
   React.useEffect(() => {
     const externalParams = initialParams || action.params || {};
-    setParams(externalParams);
-  }, [initialParams, action.params]);
+    const lastParams = lastExternalParamsRef.current;
+    
+    // 只有当外部参数真正发生变化时才更新内部状态
+    const hasRealChange = JSON.stringify(externalParams) !== JSON.stringify(lastParams);
+    if (hasRealChange) {
+      console.log('🔄 [ActionParamsPanel] 外部参数变化，同步到内部状态:', {
+        action: action.type,
+        oldParams: lastParams,
+        newParams: externalParams
+      });
+      setParams(externalParams);
+      lastExternalParamsRef.current = externalParams;
+    }
+  }, [initialParams, action.params, action.type]);
 
   const updateParams = (newParams: Partial<ActionParams>) => {
     const updatedParams = { ...params, ...newParams };
+    console.log('🔄 [ActionParamsPanel] 参数更新:', {
+      action: action.type,
+      oldParams: params,
+      newParams,
+      updatedParams
+    });
     setParams(updatedParams); // 更新内部状态
     onChange(updatedParams);   // 通知外部
   };

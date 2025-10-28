@@ -65,6 +65,12 @@ const StepListPanel: React.FC<StepListPanelProps> = (props) => {
     setSteps(prev => prev.map(s => (s.id === stepId ? { ...s, ...meta } : s)));
   };
 
+  // 🔑 关键修复：更新步骤参数
+  const handleUpdateStepParameters = (stepId: string, parameters: Record<string, unknown>) => {
+    console.log('🔄 [StepListPanel] 更新步骤参数:', { stepId, parameters });
+    setSteps(prev => prev.map(s => (s.id === stepId ? { ...s, parameters } : s)));
+  };
+
     // 处理批量匹配操作
   const handleBatchMatch = (stepId: string) => {
     setSteps((prev) =>
@@ -307,6 +313,7 @@ const StepListPanel: React.FC<StepListPanelProps> = (props) => {
         onCreateScreenInteraction={onCreateScreenInteraction}
         onCreateSystemAction={onCreateSystemAction}
         onUpdateStepMeta={handleUpdateStepMeta}
+        onUpdateStepParameters={handleUpdateStepParameters}  // 🔑 关键修复：传递参数更新回调
         // 🔄 智能分析功能
         onReanalyze={handleReanalyze}
         isAnalyzing={isAnalyzing}

@@ -60,6 +60,8 @@ export interface EnhancedDraggableStepsContainerProps {
   onReanalyze?: (stepId: string) => Promise<void>;
   /** 智能分析状态 */
   isAnalyzing?: boolean;
+  /** 🔑 步骤参数更新回调 */
+  onUpdateStepParameters?: (stepId: string, parameters: Record<string, unknown>) => void;
 }
 
 const EnhancedDraggableStepsContainer: React.FC<EnhancedDraggableStepsContainerProps> = ({
@@ -87,6 +89,8 @@ const EnhancedDraggableStepsContainer: React.FC<EnhancedDraggableStepsContainerP
   // 🔄 智能分析功能
   onReanalyze,
   isAnalyzing,
+  // 🔑 参数更新功能
+  onUpdateStepParameters,
 }) => {
   // 兜底：当未传 currentDeviceId 时，自动选择默认设备
   const { defaultDeviceId } = useDefaultDeviceId({ preferSelected: true });
@@ -108,6 +112,15 @@ const EnhancedDraggableStepsContainer: React.FC<EnhancedDraggableStepsContainerP
 
   // 处理步骤参数更新
   const handleUpdateStepParameters = (stepId: string, parameters: any) => {
+    console.log('🔄 [EnhancedContainer] 处理步骤参数更新:', { stepId, parameters });
+    
+    // 优先使用外部传入的回调
+    if (onUpdateStepParameters) {
+      onUpdateStepParameters(stepId, parameters);
+      return;
+    }
+
+    // 兜底：内部处理逻辑
     // 判断是否使用自动命名：若当前名称等于基于旧参数计算的自动名，则更新后同步重算
     const prevStep = (steps as any as ExtendedSmartScriptStep[]).find(s => s.id === stepId);
     const wasAutoNamed = prevStep ? (prevStep.name || '') === buildAutoName(prevStep as any) : false;
