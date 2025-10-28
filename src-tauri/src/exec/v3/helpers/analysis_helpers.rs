@@ -491,8 +491,11 @@ async fn call_frontend_intelligent_analysis_with_context(
     // 调用智能分析服务
     let analysis_result = crate::services::intelligent_analysis_service::mock_intelligent_analysis(request).await?;
     
-    // 转换结果为 V3 格式
-    let steps = convert_analysis_result_to_v3_steps(analysis_result)?;
+    // 🔥 【批量模式修复】转换结果为 V3 格式，同时保留原始的 smartSelection 配置
+    let steps = super::strategy_generation::convert_analysis_result_to_v3_steps_with_config(
+        analysis_result,
+        Some(original_params) // ✅ 传入原始参数，保留 smartSelection 和 originalParams
+    )?;
     
     tracing::info!("✅ 增强版前端智能分析完成，转换为 {} 个 V3 步骤", steps.len());
     Ok(steps)

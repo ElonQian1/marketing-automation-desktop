@@ -171,6 +171,16 @@ pub fn generate_fallback_strategy_steps() -> Vec<StepRefOrInline> {
 pub fn convert_analysis_result_to_v3_steps(
     analysis_result: crate::services::intelligent_analysis_service::IntelligentAnalysisResult
 ) -> Result<Vec<StepRefOrInline>, anyhow::Error> {
+    convert_analysis_result_to_v3_steps_with_config(analysis_result, None)
+}
+
+/// 转换智能分析结果为V3步骤（带配置保留）
+///
+/// 🔥 关键修复：支持保留原始的 smartSelection 和 originalParams 配置
+pub fn convert_analysis_result_to_v3_steps_with_config(
+    analysis_result: crate::services::intelligent_analysis_service::IntelligentAnalysisResult,
+    preserved_config: Option<&serde_json::Value>, // 🆕 传入需要保留的配置
+) -> Result<Vec<StepRefOrInline>, anyhow::Error> {
     let mut steps = Vec::new();
     
     for (index, candidate) in analysis_result.candidates.iter().enumerate() {
@@ -237,6 +247,27 @@ pub fn convert_analysis_result_to_v3_steps(
             tracing::info!("🔄 [数据传递] 步骤 {} 包含original_data，已传递到执行层", index + 1);
         } else {
             tracing::warn!("⚠️ [数据传递] 步骤 {} 缺少original_data，失败恢复能力受限", index + 1);
+        }
+        
+        // 🔥 【批量模式修复】保留原始的 smartSelection 和 originalParams 配置
+        if let Some(config) = preserved_config {
+            // 1. 保留 smartSelection（批量模式配置）
+            if let Some(smart_selection) = config.get("smartSelection") {
+                params["smartSelection"] = smart_selection.clone();
+                tracing::info!("✅ [批量配置保留] 步骤 {} 已继承 smartSelection: mode={:?}", 
+                    index + 1, 
+                    smart_selection.get("mode"));
+            }
+            
+            // 2. 保留 originalParams（完整的原始参数）
+            if let Some(original_params) = config.get("originalParams") {
+                params["originalParams"] = original_params.clone();
+                tracing::info!("✅ [原始参数保留] 步骤 {} 已继承 originalParams", index + 1);
+            } else if config.get("original_data").is_some() {
+                // 兜底：如果没有 originalParams，但有 original_data，也保存一份
+                params["originalParams"] = config.clone();
+                tracing::info!("✅ [原始参数保留] 步骤 {} 已使用 config 作为 originalParams", index + 1);
+            }
         }
         
         let step = StepRefOrInline {

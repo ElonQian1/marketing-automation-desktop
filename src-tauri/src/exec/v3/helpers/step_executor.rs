@@ -145,6 +145,38 @@ pub async fn execute_intelligent_analysis_step(
         tracing::error!("❌ [数据完整性] original_data 完全缺失！失败恢复能力严重受限！");
     }
     
+    // 🔥 P0修复：添加详细的批量模式检测日志
+    tracing::info!("🔍 [批量检测-DEBUG] 开始检测批量模式");
+    tracing::info!("🔍 [批量检测-DEBUG] inline.params keys: {:?}", 
+        inline.params.as_object().map(|obj| obj.keys().collect::<Vec<_>>()));
+    
+    // 检查顶层 smartSelection
+    if let Some(smart_sel) = inline.params.get("smartSelection") {
+        tracing::info!("🔍 [批量检测-DEBUG] 找到顶层 smartSelection: {:?}", smart_sel);
+        if let Some(mode) = smart_sel.get("mode") {
+            tracing::info!("🔍 [批量检测-DEBUG] 顶层 mode: {:?}", mode);
+        } else {
+            tracing::warn!("⚠️ [批量检测-DEBUG] 顶层 smartSelection 没有 mode 字段！");
+        }
+    } else {
+        tracing::warn!("⚠️ [批量检测-DEBUG] 顶层没有 smartSelection 字段！");
+    }
+    
+    // 检查 originalParams
+    if let Some(orig_params) = inline.params.get("originalParams") {
+        tracing::info!("🔍 [批量检测-DEBUG] 找到 originalParams");
+        if let Some(smart_sel) = orig_params.get("smartSelection") {
+            tracing::info!("🔍 [批量检测-DEBUG] originalParams 中的 smartSelection: {:?}", smart_sel);
+            if let Some(mode) = smart_sel.get("mode") {
+                tracing::info!("🔍 [批量检测-DEBUG] originalParams mode: {:?}", mode);
+            }
+        } else {
+            tracing::warn!("⚠️ [批量检测-DEBUG] originalParams 没有 smartSelection！");
+        }
+    } else {
+        tracing::warn!("⚠️ [批量检测-DEBUG] 没有 originalParams 字段！");
+    }
+    
     // 🔥 检测批量模式（增强版：支持多路径检测）
     let batch_mode = inline.params
         .get("smartSelection")
