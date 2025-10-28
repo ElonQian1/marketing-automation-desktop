@@ -91,7 +91,7 @@ export function createHandleExecuteScript(ctx: Ctx) {
     
     ctx.setIsExecuting(true);
     try {
-      console.log("� [V3批量执行] 准备调用V3批量执行API...");
+      console.log("🎯 [V3批量执行] 准备调用V3批量执行API...");
       
       // 🔥 使用V3批量执行：为每个步骤创建ChainSpec并顺序执行
       let successCount = 0;
@@ -100,33 +100,52 @@ export function createHandleExecuteScript(ctx: Ctx) {
       
       for (let i = 0; i < expandedSteps.length; i++) {
         const step = expandedSteps[i];
-        console.log(`\n🔄 [V3批量执行] 执行步骤 ${i + 1}/${totalSteps}: ${step.name}`);
+        console.log(`\n🔄 [V3批量执行] 执行步骤 ${i + 1}/${totalSteps}: ${step.name}, step_type=${step.step_type}`);
         
         try {
-          // � 构建V3 ChainSpec（模拟测试按钮的流程）
+          // 🎯 根据步骤类型确定action和params
+          let action: string;
+          let params: any;
+          
+          // 🔍 识别滚动类型步骤
+          if (step.step_type === "smart_scroll" || step.step_type === "swipe" || step.name?.includes("滚动")) {
+            action = "scroll";
+            params = {
+              direction: step.parameters?.direction || "down",
+              distance: step.parameters?.distance || 500,
+              duration: step.parameters?.duration || 300
+            };
+            console.log(`📜 [滚动步骤] 检测到滚动操作: direction=${params.direction}, distance=${params.distance}`);
+          } else {
+            // 点击步骤
+            action = "smart_selection";
+            params = {
+              element_path: step.parameters?.selected_xpath || step.parameters?.xpath || "",
+              targetText: step.parameters?.targetText || step.parameters?.text || "",
+              target_content_desc: step.parameters?.target_content_desc || "",
+              original_data: step.parameters?.original_data || {},
+              smartSelection: {
+                mode: "first",
+                minConfidence: 0.8,
+                targetText: step.parameters?.targetText || step.parameters?.text || "",
+                batchConfig: {
+                  maxCount: 1,
+                  intervalMs: 1000,
+                  continueOnError: false,
+                  showProgress: true
+                }
+              }
+            };
+          }
+          
+          // 🎯 构建V3 ChainSpec
           const chainSpec = {
             chainId: `step_execution_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
             orderedSteps: [{
               inline: {
                 stepId: step.id,
-                action: "smart_selection",
-                params: {
-                  element_path: step.parameters?.selected_xpath || step.parameters?.xpath || "",
-                  targetText: step.parameters?.targetText || step.parameters?.text || "",
-                  target_content_desc: step.parameters?.target_content_desc || "",
-                  original_data: step.parameters?.original_data || {},
-                  smartSelection: {
-                    mode: "first", // 单个执行模式
-                    minConfidence: 0.8,
-                    targetText: step.parameters?.targetText || step.parameters?.text || "",
-                    batchConfig: {
-                      maxCount: 1,
-                      intervalMs: 1000,
-                      continueOnError: false,
-                      showProgress: true
-                    }
-                  }
-                }
+                action: action,
+                params: params
               },
               ref: null
             }],
