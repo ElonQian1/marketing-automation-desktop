@@ -271,6 +271,10 @@ fn execute_chain_by_inline<'a>(
     let start_time = Instant::now();
     let device_id = &envelope.device_id;
     
+    // 🔒 【统一锁定入口】使用 RAII 守卫确保所有路径都能正确释放
+    // 这会在函数开始时锁定，在函数结束时（无论成功/失败）自动释放
+    let _execution_guard = execution_tracker::lock_with_guard(analysis_id)?;
+    
     // 🆕 【提前智能分析检测】在Legacy引擎执行前检查参数，直接触发智能分析
     if let Some(intelligent_steps) = check_and_trigger_early_analysis(
         app, 
@@ -278,19 +282,14 @@ fn execute_chain_by_inline<'a>(
         device_id, 
         ordered_steps
     ).await? {
-        // 解锁执行跟踪
-        execution_tracker::unlock(analysis_id)?;
+        // ✅ 显式释放当前锁（让守卫析构）
+        drop(_execution_guard);
         
-        // 递归执行智能生成的步骤
+        // 递归执行智能生成的步骤（递归调用时会重新锁定）
         return execute_chain_by_inline(
             app, envelope, analysis_id, &intelligent_steps,
             threshold, mode, quality, constraints, validation
         ).await;
-    }
-    
-    // 🚨 【重复执行检查】防止同一个analysis_id被重复执行导致重复点击
-    if !execution_tracker::try_lock(analysis_id)? {
-        return Err(format!("重复执行请求被阻止: analysis_id '{}' 正在执行中", analysis_id));
     }
 
     // 🎯 V3修复：智能策略分析策略调整
@@ -527,12 +526,12 @@ fn execute_chain_by_inline<'a>(
         Some(result),
     )?;
 
-    // 🔓 【执行保护】释放analysis_id锁定，允许后续执行
-    execution_tracker::unlock(analysis_id)?;
+    // 🔓 【执行保护】RAII 守卫会在函数结束时自动释放锁
+    // 不再需要手动 unlock，由 _execution_guard 的 Drop 实现自动管理
 
     Ok(())
-    })
-}
+    })  // <- 对应 Box::pin(async move {
+}      // <- 对应函数定义
 
 // ====== 内部辅助函数（TODO: 实现） ======
 

@@ -96,6 +96,95 @@ pub fn count() -> usize {
     tracker.len()
 }
 
+/// 🛡️ RAII 执行锁守卫
+/// 
+/// 自动管理执行锁的生命周期：
+/// - 创建时自动锁定
+/// - 析构时自动释放
+/// - 异常退出时也能确保释放
+/// 
+/// # 使用示例
+/// 
+/// ```rust
+/// // 方式1: 使用 ? 操作符，自动传播错误
+/// let _guard = ExecutionLockGuard::try_new(analysis_id)?;
+/// // ... 执行逻辑
+/// // guard 在作用域结束时自动释放
+/// 
+/// // 方式2: 手动检查
+/// let guard = match ExecutionLockGuard::try_new(analysis_id) {
+///     Some(g) => g,
+///     None => return Err("已在执行中".to_string()),
+/// };
+/// 
+/// // 方式3: 提前释放
+/// let guard = ExecutionLockGuard::try_new(analysis_id)?;
+/// // ... 执行逻辑
+/// drop(guard);  // 显式释放，后续代码不持有锁
+/// ```
+pub struct ExecutionLockGuard {
+    analysis_id: String,
+    released: bool,
+}
+
+impl ExecutionLockGuard {
+    /// 创建新的锁守卫（如果锁定失败会 panic）
+    /// 
+    /// ⚠️ 仅在确信能成功锁定时使用
+    #[allow(dead_code)]
+    pub fn new(analysis_id: &str) -> Self {
+        force_lock(analysis_id).expect("获取执行锁失败");
+        Self {
+            analysis_id: analysis_id.to_string(),
+            released: false,
+        }
+    }
+    
+    /// 尝试创建锁守卫（如果锁定失败返回 None）
+    /// 
+    /// 这是推荐的使用方式
+    pub fn try_new(analysis_id: &str) -> Option<Self> {
+        if try_lock(analysis_id).ok()? {
+            Some(Self {
+                analysis_id: analysis_id.to_string(),
+                released: false,
+            })
+        } else {
+            None
+        }
+    }
+    
+    /// 手动释放锁（提前释放，不等析构）
+    pub fn release(mut self) {
+        if !self.released {
+            if let Err(e) = unlock(&self.analysis_id) {
+                tracing::error!("❌ 手动释放执行锁失败: {}", e);
+            }
+            self.released = true;
+        }
+    }
+}
+
+impl Drop for ExecutionLockGuard {
+    fn drop(&mut self) {
+        if !self.released {
+            if let Err(e) = unlock(&self.analysis_id) {
+                tracing::error!("❌ 析构时释放执行锁失败: {}", e);
+            } else {
+                tracing::debug!("🔓 【RAII】守卫析构时自动释放锁: {}", self.analysis_id);
+            }
+        }
+    }
+}
+
+/// 便捷函数：带守卫的锁定
+/// 
+/// 这是最推荐的使用方式，配合 ? 操作符使用
+pub fn lock_with_guard(analysis_id: &str) -> Result<ExecutionLockGuard, String> {
+    ExecutionLockGuard::try_new(analysis_id)
+        .ok_or_else(|| format!("重复执行请求被阻止: analysis_id '{}' 正在执行中", analysis_id))
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -138,4 +227,64 @@ mod tests {
         clear_all().unwrap();
         assert_eq!(count(), 0);
     }
+    
+    #[test]
+    fn test_guard_auto_release() {
+        clear_all().unwrap();
+        
+        let analysis_id = "test_guard_id";
+        
+        {
+            let _guard = ExecutionLockGuard::try_new(analysis_id).unwrap();
+            assert!(is_executing(analysis_id));
+            // 作用域结束时 guard 自动释放
+        }
+        
+        assert!(!is_executing(analysis_id));
+    }
+    
+    #[test]
+    fn test_guard_manual_release() {
+        clear_all().unwrap();
+        
+        let analysis_id = "test_manual_release";
+        
+        let guard = ExecutionLockGuard::try_new(analysis_id).unwrap();
+        assert!(is_executing(analysis_id));
+        
+        // 手动释放
+        guard.release();
+        assert!(!is_executing(analysis_id));
+    }
+    
+    #[test]
+    fn test_guard_prevents_duplicate() {
+        clear_all().unwrap();
+        
+        let analysis_id = "test_duplicate";
+        
+        let _guard1 = ExecutionLockGuard::try_new(analysis_id).unwrap();
+        
+        // 第二次尝试应该失败
+        let guard2 = ExecutionLockGuard::try_new(analysis_id);
+        assert!(guard2.is_none());
+    }
+    
+    #[test]
+    fn test_lock_with_guard_function() {
+        clear_all().unwrap();
+        
+        let analysis_id = "test_guard_fn";
+        
+        // 测试成功情况
+        let result = lock_with_guard(analysis_id);
+        assert!(result.is_ok());
+        assert!(is_executing(analysis_id));
+        
+        // 测试失败情况
+        let result2 = lock_with_guard(analysis_id);
+        assert!(result2.is_err());
+        assert!(result2.unwrap_err().contains("重复执行"));
+    }
 }
+
