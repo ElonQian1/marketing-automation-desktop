@@ -12,7 +12,6 @@
 
 import React from "react";
 import { DraggableStepCard } from "./DraggableStepCard";
-import { LoopStepCard } from "../modules/loop-control/components/LoopStepCard";
 import { LoopStartCard } from "./LoopStartCard";
 import { LoopEndCard } from "./LoopEndCard";
 import { SmartScriptStep } from "../types/smartScript"; // 使用统一的类型定义
@@ -135,6 +134,38 @@ export const SmartStepCardWrapper: React.FC<SmartStepCardWrapperProps> = (props)
           name: step.parameters?.loop_name as string || step.name,
           iterations: step.parameters?.loop_count as number || 1,
           enabled: step.enabled
+        }}
+        // 🎯 修复：添加与 LoopStartCard 相同的 onLoopConfigUpdate 回调
+        onLoopConfigUpdate={(config) => {
+          // 更新循环配置并同步到关联步骤
+          if (onUpdateStepParameters && allSteps) {
+            const loopParameters = {
+              loop_config: config,
+              loop_id: config.loopId,
+              loop_name: config.name,
+              loop_count: config.iterations
+            };
+            
+            // 更新当前步骤
+            onUpdateStepParameters(step.id, {
+              ...step.parameters,
+              ...loopParameters,
+            });
+            
+            // 🔄 查找并同步关联的循环步骤
+            const associatedType = step.step_type === 'loop_end' ? 'loop_start' : 'loop_end';
+            const associatedStep = allSteps.find(s => 
+              s.step_type === associatedType && 
+              s.parameters?.loop_id === config.loopId
+            );
+            
+            if (associatedStep) {
+              onUpdateStepParameters(associatedStep.id, {
+                ...associatedStep.parameters,
+                ...loopParameters,
+              });
+            }
+          }
         }}
         onDeleteLoop={() => onDelete(step.id)}
         onUpdateStepParameters={onUpdateStepParameters}

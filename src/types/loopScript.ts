@@ -14,8 +14,10 @@ export enum LoopActionType {
 export interface LoopConfig {
   /** 循环ID，用于匹配开始和结束 */
   loopId: string;
-  /** 循环次数 */
+  /** 循环次数（-1 表示无限循环） */
   iterations: number;
+  /** 是否无限循环 */
+  isInfinite?: boolean;
   /** 循环条件（可选，用于更复杂的循环逻辑） */
   condition?: string;
   /** 是否启用循环 */

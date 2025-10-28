@@ -16,7 +16,7 @@ export interface LoopStartCardProps {
   /** 循环配置更新回调 */
   onLoopConfigUpdate: (updates: LoopConfig) => void;
   /** 删除循环回调 */
-  onDeleteLoop: () => void;
+  onDeleteLoop: (loopId: string) => void;
 }
 
 export interface LoopHeaderProps {

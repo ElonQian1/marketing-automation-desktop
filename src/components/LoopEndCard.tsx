@@ -5,7 +5,7 @@
 // 循环结束卡片 - 简化设计，支持拖拽
 
 import React, { useState } from 'react';
-import { Card, Button, Space, Typography, Modal, InputNumber, Switch, Tooltip, message } from 'antd';
+import { Card, Button, Space, Typography, Tooltip, message } from 'antd';
 import { 
   CheckCircleOutlined, 
   DeleteOutlined,
@@ -13,6 +13,7 @@ import {
   SettingOutlined
 } from '@ant-design/icons';
 import ConfirmPopover from './universal-ui/common-popover/ConfirmPopover';
+import { LoopConfigModal } from './LoopCards/LoopConfigModal';
 import type { LoopConfig, ExtendedSmartScriptStep } from '../types/loopScript';
 import './LoopStartCard/styles.css';
 
@@ -29,10 +30,12 @@ export interface LoopEndCardProps {
   isDragging?: boolean;
   /** 删除循环回调 */
   onDeleteLoop: (loopId: string) => void;
+  /** 🎯 新增：更新循环配置回调（与开始卡片统一） */
+  onLoopConfigUpdate: (config: LoopConfig) => void;
   /** 切换启用状态回调 */
-  onToggle: (stepId: string) => void;
+  onToggle?: (stepId: string) => void;
   /** 更新步骤参数回调 */
-  onUpdateStepParameters?: (stepId: string, parameters: Record<string, any>) => void;
+  onUpdateStepParameters?: (stepId: string, parameters: Record<string, unknown>) => void;
   /** 编辑步骤回调 */
   onEdit?: (step: ExtendedSmartScriptStep) => void;
   /** 删除步骤回调 */
@@ -41,55 +44,30 @@ export interface LoopEndCardProps {
 
 export const LoopEndCard: React.FC<LoopEndCardProps> = ({
   step,
-  index,
   loopConfig,
   isDragging,
   onDeleteLoop,
-  onToggle,
-  onUpdateStepParameters
+  onLoopConfigUpdate,
 }) => {
   const [isConfigVisible, setIsConfigVisible] = useState(false);
   
   // 统一数据源：优先从 step.parameters 读取，确保与 LoopStartCard 同步
   const currentIterations = (step.parameters?.loop_count as number) || loopConfig?.iterations || 1;
-  const [loopCount, setLoopCount] = useState<number>(currentIterations);
-  const [isInfiniteLoop, setIsInfiniteLoop] = useState<boolean>(
-    (step.parameters?.is_infinite_loop as boolean) || false
-  );
+  const isInfinite = currentIterations === -1;
 
-  const handleDeleteLoop = () => {
-    if (loopConfig) {
-      onDeleteLoop(loopConfig.loopId);
-      message.success(`已删除循环: ${loopConfig.name || '未命名循环'}`);
-    }
-  };
-
-  const handleSaveConfig = () => {
-    if (onUpdateStepParameters) {
-      const newLoopCount = isInfiniteLoop ? -1 : loopCount;
-      const parameters = {
-        ...step.parameters,
-        loop_count: newLoopCount,
-        is_infinite_loop: isInfiniteLoop,
-        loop_config: {
-          ...loopConfig,
-          iterations: newLoopCount
-        }
-      };
-      onUpdateStepParameters(step.id, parameters);
-      message.success(`循环配置已更新为 ${isInfiniteLoop ? '无限循环' : `${loopCount}次`}，已同步到关联步骤`);
-    }
+  // 🎯 使用统一的保存逻辑
+  const handleSaveConfig = (updatedConfig: LoopConfig) => {
+    onLoopConfigUpdate(updatedConfig);
     setIsConfigVisible(false);
-  };
-
-  const handleCancelConfig = () => {
-    setLoopCount(currentIterations);
-    setIsInfiniteLoop((step.parameters?.is_infinite_loop as boolean) || false);
-    setIsConfigVisible(false);
+    message.success(
+      updatedConfig.iterations === -1 
+        ? '已设置为无限循环 ∞' 
+        : `循环次数已更新为 ${updatedConfig.iterations} 次`
+    );
   };
 
   const loopName = loopConfig?.name || (step.parameters?.loop_name as string) || step.name || "新循环";
-  const displayIterations = isInfiniteLoop ? '∞' : currentIterations;
+  const displayIterations = isInfinite ? '∞' : currentIterations;
 
   return (
     <>
@@ -164,69 +142,13 @@ export const LoopEndCard: React.FC<LoopEndCardProps> = ({
         </div>
       </Card>
 
-      {/* 循环配置模态框 */}
-      <Modal
-        title="循环结束配置"
+      {/* 🎯 共享的循环配置模态框 */}
+      <LoopConfigModal
         open={isConfigVisible}
-        onOk={handleSaveConfig}
-        onCancel={handleCancelConfig}
-        okText="保存"
-        cancelText="取消"
-        width={480}
-      >
-        <Space direction="vertical" size="large" style={{ width: '100%', padding: '20px 0' }}>
-          {/* 无限循环开关 */}
-          <div>
-            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 12 }}>
-              <Space>
-                <Text strong>无限循环模式</Text>
-                <span style={{ fontSize: 16 }}>∞</span>
-              </Space>
-              <Switch
-                checked={isInfiniteLoop}
-                onChange={setIsInfiniteLoop}
-                checkedChildren="开启"
-                unCheckedChildren="关闭"
-              />
-            </div>
-            {isInfiniteLoop && (
-              <div style={{ padding: 12, background: '#fff7ed', borderRadius: 6, border: '1px solid #fed7aa' }}>
-                <Text type="warning" style={{ fontSize: 12 }}>
-                  ⚠️ 警告：无限循环将持续执行直到手动停止，请谨慎使用！
-                </Text>
-              </div>
-            )}
-          </div>
-
-          {/* 循环次数设置 */}
-          <div>
-            <Text strong style={{ display: 'block', marginBottom: 12 }}>循环执行次数</Text>
-            <Space>
-              <InputNumber
-                min={1}
-                max={999}
-                value={loopCount}
-                onChange={(val) => setLoopCount(val || 1)}
-                disabled={isInfiniteLoop}
-                style={{ width: 120 }}
-                addonAfter="次"
-              />
-              <Text type="secondary">
-                {isInfiniteLoop ? '已启用无限循环 ∞' : `执行 ${loopCount} 次后结束`}
-              </Text>
-            </Space>
-          </div>
-          
-          <div style={{ padding: 12, background: '#f0f9ff', borderRadius: 6, border: '1px solid #bae6fd' }}>
-            <Text type="secondary" style={{ fontSize: 12 }}>
-              💡 {isInfiniteLoop 
-                ? '无限循环模式下，循环体内的步骤将不断重复执行。' 
-                : '达到设定次数后，将跳出循环继续执行后续步骤。'
-              }
-            </Text>
-          </div>
-        </Space>
-      </Modal>
+        loopConfig={loopConfig}
+        onSave={handleSaveConfig}
+        onCancel={() => setIsConfigVisible(false)}
+      />
     </>
   );
 };

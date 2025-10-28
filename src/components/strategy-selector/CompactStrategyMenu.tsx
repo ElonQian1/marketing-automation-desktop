@@ -26,18 +26,19 @@ import type { ActionKind } from '../../types/smartScript';
 import { ExcludeRuleEditor, type ExcludeRule } from '../smart-selection/ExcludeRuleEditor';
 import { ExplanationGenerator } from '../smart-selection/ExplanationGenerator';
 import { useElementSelectionStore } from '../../stores/ui-element-selection-store';
+import { RandomConfigPanel } from './panels/RandomConfigPanel';
+import { convertSelectionModeToBackend } from './utils/selection-mode-converter';
+import { saveSelectionConfigWithFeedback } from './utils/selection-config-saver';
+import type { 
+  BatchConfig, 
+  RandomConfig 
+} from './types/selection-config';
+import { 
+  DEFAULT_BATCH_CONFIG, 
+  DEFAULT_RANDOM_CONFIG 
+} from './types/selection-config';
 
 const { Panel } = Collapse;
-
-// 批量配置接口
-interface BatchConfig {
-  interval_ms: number;
-  max_count?: number;
-  jitter_ms?: number;
-  continue_on_error: boolean;
-  show_progress: boolean;
-  match_direction?: 'forward' | 'backward';  // 🆕 匹配方向：forward(正向) | backward(反向)
-}
 
 /**
  * 根据置信度百分比返回对应的颜色
@@ -94,14 +95,10 @@ const CompactStrategyMenu: React.FC<CompactStrategyMenuProps> = ({
   // 🎯 新增：智能选择状态管理
   const [selectionMode, setSelectionMode] = useState<SelectionMode>('first');
   const [operationType, setOperationType] = useState<ActionKind>('tap');
-  const [batchConfig, setBatchConfig] = useState<BatchConfig>({
-    interval_ms: 2000,
-    max_count: 10,
-    jitter_ms: 500,
-    continue_on_error: true,
-    show_progress: true,
-    match_direction: 'forward',  // 🆕 默认正向执行
-  });
+  const [batchConfig, setBatchConfig] = useState<BatchConfig>(DEFAULT_BATCH_CONFIG);
+  
+  // 🆕 随机选择配置
+  const [randomConfig, setRandomConfig] = useState<RandomConfig>(DEFAULT_RANDOM_CONFIG);
   
   // 🎯 获取用户实际选择的UI元素
   const { context: selectionContext } = useElementSelectionStore();
@@ -527,8 +524,26 @@ const CompactStrategyMenu: React.FC<CompactStrategyMenuProps> = ({
         break;
       case 'random':
         setSelectionMode('random');
-        console.log('选择随机模式');
-        await saveConfigDirectly('random', null);
+        console.log('选择随机模式', { randomConfig });
+        // 🎲 确保随机配置有效
+        const newRandomConfig: RandomConfig = !randomConfig || randomConfig.seed === undefined ? {
+          seed: null,  // null 表示自动生成
+          ensure_stable_sort: true,
+          custom_seed_enabled: false,  // 默认使用自动种子
+        } : randomConfig;
+        
+        if (!randomConfig || randomConfig.seed === undefined) {
+          setRandomConfig(newRandomConfig);
+        }
+        
+        // ✅ 使用工具函数保存配置
+        await saveSelectionConfigWithFeedback({
+          stepId: stepId!,
+          selectorId: stepId,  // 使用 stepId 作为 selectorId（兜底逻辑会自动处理）
+          mode: 'random',
+          randomConfig: newRandomConfig,
+          message
+        });
         break;
       case 'all':
         setSelectionMode('all');
@@ -684,50 +699,8 @@ const CompactStrategyMenu: React.FC<CompactStrategyMenuProps> = ({
       } : null
     });
 
-    // 🔥 将前端 SelectionMode 字符串转换为后端期望的枚举对象格式
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const convertSelectionMode = (mode: SelectionMode): any => {
-      switch (mode) {
-        case 'first':
-          return { type: 'First' };
-        case 'last':
-          return { type: 'Last' };
-        case 'all':
-          return {
-            type: 'All',
-            batch_config: {
-              interval_ms: batchConfig.interval_ms,
-              max_per_session: batchConfig.max_count || 10,
-              jitter_ms: batchConfig.jitter_ms || 500,
-              cooldown_ms: 0,
-              continue_on_error: batchConfig.continue_on_error,
-              show_progress: batchConfig.show_progress,
-              refresh_policy: { type: 'Never' },
-              requery_by_fingerprint: false,
-            }
-          };
-        case 'match-original':
-          return {
-            type: 'MatchOriginal',
-            min_confidence: 0.7,
-            fallback_to_first: true
-          };
-        case 'random':
-          return {
-            type: 'Random',
-            seed: Date.now(),
-            ensure_stable_sort: true
-          };
-        case 'auto':
-        default:
-          return {
-            type: 'Auto',
-            single_min_confidence: 0.6,
-            batch_config: null,
-            fallback_to_first: true
-          };
-      }
-    };
+    // 🔥 使用统一的类型转换函数
+    const convertedMode = convertSelectionModeToBackend(selectionMode, batchConfig, randomConfig);
 
     return {
       anchor: {
@@ -737,7 +710,7 @@ const CompactStrategyMenu: React.FC<CompactStrategyMenuProps> = ({
         },
       },
       selection: {
-        mode: convertSelectionMode(selectionMode),
+        mode: convertedMode,
       },
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     } as any;
@@ -1131,6 +1104,26 @@ const CompactStrategyMenu: React.FC<CompactStrategyMenuProps> = ({
             </Collapse>
           </div>
         </div>
+      )}
+
+      {/* 🎲 随机配置面板 */}
+      {selectionMode === 'random' && (
+        <RandomConfigPanel
+          config={randomConfig}
+          onChange={(newConfig) => {
+            setRandomConfig(newConfig);
+            // 🔥 实时保存配置
+            if (stepId) {
+              saveSelectionConfigWithFeedback({
+                stepId,
+                selectorId: stepId,  // 使用 stepId 作为 selectorId（兜底逻辑会自动处理）
+                mode: 'random',
+                randomConfig: newConfig,
+                message
+              }).catch(console.error);
+            }
+          }}
+        />
       )}
 
       {/* 工具按钮组 */}
