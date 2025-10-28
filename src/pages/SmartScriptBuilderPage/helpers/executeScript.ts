@@ -143,8 +143,16 @@ export function createHandleExecuteScript(ctx: Ctx) {
           const result = await invoke("execute_chain_test_v3", {
             envelope: {
               deviceId: selectedDevice,
-              appId: null,
-              currentPage: null
+              app: {
+                package: "com.ss.android.ugc.aweme", // 抖音包名
+                activity: null
+              },
+              snapshot: {
+                analysisId: null,
+                screenHash: null,
+                xmlCacheId: null
+              },
+              executionMode: "relaxed"
             },
             spec: chainSpec
           });
