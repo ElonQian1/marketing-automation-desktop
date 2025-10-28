@@ -13,7 +13,7 @@ import { useAdb } from '../application/hooks/useAdb';
 type UseAdbReturnType = ReturnType<typeof useAdb>;
 
 // 全局ADB上下文类型定义 - 直接使用useAdb的返回类型
-export interface GlobalAdbContextValue extends UseAdbReturnType {}
+export type GlobalAdbContextValue = UseAdbReturnType
 
 // 创建全局Context
 const GlobalAdbContext = createContext<GlobalAdbContextValue | null>(null);

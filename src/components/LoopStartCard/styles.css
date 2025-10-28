@@ -206,8 +206,15 @@
 }
 
 /* ===== 强制文字颜色 ===== */
-.loop-card.light-theme-force,
-.loop-card.light-theme-force * {
+.loop-card.light-theme-force {
+  color: #111827 !important;
+}
+
+/* 普通文本元素使用深色文字 */
+.loop-card.light-theme-force span,
+.loop-card.light-theme-force p,
+.loop-card.light-theme-force div,
+.loop-card.light-theme-force .ant-typography {
   color: #111827 !important;
 }
 
@@ -221,4 +228,38 @@
 
 .loop-end-card.light-theme-force .loop-badge {
   color: #d97706 !important;
+}
+
+/* 🎯 关键修复：表单输入框使用深色文字 + 白色背景 */
+.loop-card.light-theme-force .ant-input,
+.loop-card.light-theme-force .ant-input-number,
+.loop-card.light-theme-force .ant-input-number-input,
+.loop-card.light-theme-force .ant-select-selector {
+  color: #111827 !important;
+  background: #ffffff !important;
+}
+
+/* InputNumber 增减按钮样式 */
+.loop-card.light-theme-force .ant-input-number-handler-wrap {
+  background: #f9fafb !important;
+  border-left: 1px solid #d1d5db !important;
+}
+
+.loop-card.light-theme-force .ant-input-number-handler {
+  color: #111827 !important;
+  border-color: #d1d5db !important;
+}
+
+.loop-card.light-theme-force .ant-input-number-handler:hover:not(.ant-input-number-handler-down-disabled) {
+  color: #10b981 !important;
+  background: #ecfdf5 !important;
+}
+
+.loop-card.light-theme-force .ant-input-number-handler-down-disabled {
+  color: #d1d5db !important;
+  cursor: not-allowed !important;
+}
+
+.loop-card.light-theme-force .ant-input-number-handler .anticon {
+  color: inherit !important;
 }

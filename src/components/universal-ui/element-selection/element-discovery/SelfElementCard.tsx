@@ -10,9 +10,7 @@ import styles from './LightThemeCard.module.css';
 
 const { Text, Title } = Typography;
 
-interface SelfElementCardProps extends ElementCardProps {
-  // 继承 ElementCardProps，可以添加 self 特有的属性
-}
+type SelfElementCardProps = ElementCardProps
 
 /**
  * 自己元素展示卡片 - 用于显示当前选中的元素信息

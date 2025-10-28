@@ -20,7 +20,7 @@ import { Toolbar } from "./components/Toolbar";
 import { MainLayout } from "./components/MainLayout";
 
 // 视图组件属性接口
-interface GridElementViewProps extends UseGridElementViewProps {}
+type GridElementViewProps = UseGridElementViewProps
 
 // 兼容遗留调用：在模块级声明可变引用，供组件内赋值
 let setPanelHighlightNode: (node: UiNode | null) => void;

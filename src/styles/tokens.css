@@ -367,9 +367,30 @@
 
 /* Input 组件颜色覆盖 */
 .light-theme-force .ant-input,
-.light-theme-force .ant-select-selector {
+.light-theme-force .ant-select-selector,
+.light-theme-force .ant-input-number,
+.light-theme-force .ant-input-number-input {
   color: var(--text-inverse, #1e293b) !important;
   background: var(--bg-light-base, #ffffff) !important;
+}
+
+/* InputNumber 增减按钮颜色 */
+.light-theme-force .ant-input-number-handler-wrap {
+  background: var(--bg-light-elevated, #f8fafc) !important;
+}
+
+.light-theme-force .ant-input-number-handler {
+  color: var(--text-inverse, #1e293b) !important;
+  border-color: var(--border-muted, #d1d5db) !important;
+}
+
+.light-theme-force .ant-input-number-handler:hover {
+  color: var(--brand, #4a5fd1) !important;
+}
+
+.light-theme-force .ant-input-number-handler-down-disabled {
+  color: var(--text-muted, #94a3b8) !important;
+  cursor: not-allowed !important;
 }
 
 /* Form 组件颜色覆盖 */

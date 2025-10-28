@@ -359,7 +359,37 @@
 .loop-step-card .ant-input-number {
   background: var(--bg-light-base, #ffffff) !important;
   border-color: var(--loop-card-border) !important;
+}
+
+/* 🎯 关键修复：InputNumber 内部输入框文字颜色 */
+.loop-step-card .ant-input-number-input {
   color: var(--loop-card-text-primary) !important;
+  background: var(--bg-light-base, #ffffff) !important;
+}
+
+/* InputNumber 增减按钮样式 */
+.loop-step-card .ant-input-number-handler-wrap {
+  background: var(--bg-light-elevated, #f8fafc) !important;
+  border-left: 1px solid var(--loop-card-border) !important;
+}
+
+.loop-step-card .ant-input-number-handler {
+  color: var(--loop-card-text-primary) !important;
+  border-color: var(--loop-card-border) !important;
+}
+
+.loop-step-card .ant-input-number-handler:hover:not(.ant-input-number-handler-down-disabled) {
+  color: var(--loop-card-border-active, #10b981) !important;
+  background: rgba(16, 185, 129, 0.1) !important;
+}
+
+.loop-step-card .ant-input-number-handler-down-disabled {
+  color: var(--text-muted, #94a3b8) !important;
+  cursor: not-allowed !important;
+}
+
+.loop-step-card .ant-input-number-handler .anticon {
+  color: inherit !important;
 }
 
 /* ===== 响应式设计 ===== */

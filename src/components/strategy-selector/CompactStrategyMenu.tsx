@@ -631,6 +631,51 @@ const CompactStrategyMenu: React.FC<CompactStrategyMenuProps> = ({
       } : null
     });
 
+    // 🔥 将前端 SelectionMode 字符串转换为后端期望的枚举对象格式
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const convertSelectionMode = (mode: SelectionMode): any => {
+      switch (mode) {
+        case 'first':
+          return { type: 'First' };
+        case 'last':
+          return { type: 'Last' };
+        case 'all':
+          return {
+            type: 'All',
+            batch_config: {
+              interval_ms: batchConfig.interval_ms,
+              max_per_session: batchConfig.max_count || 10,
+              jitter_ms: batchConfig.jitter_ms || 500,
+              cooldown_ms: 0,
+              continue_on_error: batchConfig.continue_on_error,
+              show_progress: batchConfig.show_progress,
+              refresh_policy: { type: 'Never' },
+              requery_by_fingerprint: false,
+            }
+          };
+        case 'match-original':
+          return {
+            type: 'MatchOriginal',
+            min_confidence: 0.7,
+            fallback_to_first: true
+          };
+        case 'random':
+          return {
+            type: 'Random',
+            seed: Date.now(),
+            ensure_stable_sort: true
+          };
+        case 'auto':
+        default:
+          return {
+            type: 'Auto',
+            single_min_confidence: 0.6,
+            batch_config: null,
+            fallback_to_first: true
+          };
+      }
+    };
+
     return {
       anchor: {
         fingerprint: {
@@ -639,16 +684,10 @@ const CompactStrategyMenu: React.FC<CompactStrategyMenuProps> = ({
         },
       },
       selection: {
-        mode: selectionMode,
-        batch_config: selectionMode === 'all' ? {
-          interval_ms: batchConfig.interval_ms,
-          max_count: batchConfig.max_count,
-          jitter_ms: batchConfig.jitter_ms,
-          continue_on_error: batchConfig.continue_on_error,
-          show_progress: batchConfig.show_progress,
-        } : undefined,
+        mode: convertSelectionMode(selectionMode),
       },
-    };
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    } as any;
   };
 
   // 🎯 执行智能选择（调试用）
