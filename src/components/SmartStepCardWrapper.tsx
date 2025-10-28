@@ -82,6 +82,9 @@ export const SmartStepCardWrapper: React.FC<SmartStepCardWrapperProps> = (props)
           iterations: step.parameters?.loop_count as number || 1,
           enabled: step.enabled
         }}
+        // 🎯 循环测试需要的参数
+        allSteps={allSteps}
+        deviceId={currentDeviceId}
         onLoopConfigUpdate={(config) => {
           // 更新循环配置并同步到关联步骤
           if (onUpdateStepParameters && allSteps) {

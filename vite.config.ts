@@ -213,6 +213,7 @@ export default defineConfig(() => ({
       "@": resolve(__dirname, "src"),
       "@adb": resolve(__dirname, "src/domain/adb"),
       "@contact": resolve(__dirname, "src/modules/contact-import"),
+      "@loop-control": resolve(__dirname, "src/modules/loop-control"),
       "@prospecting": resolve(__dirname, "src/modules/precise-acquisition"),
       "@script": resolve(__dirname, "src/modules/smart-script-management"),
       "@shared": resolve(__dirname, "src/shared"),

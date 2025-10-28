@@ -7,6 +7,8 @@ import { Card, Space, Typography, Button, Tooltip, message, InputNumber, Switch 
 import { RedoOutlined, SettingOutlined, DeleteOutlined, PlayCircleOutlined, ReloadOutlined } from "@ant-design/icons";
 import ConfirmPopover from '../universal-ui/common-popover/ConfirmPopover';
 import { LoopConfigModal } from '../LoopCards/LoopConfigModal';
+import { useLoopTestExecution } from '../../modules/loop-control/application/use-loop-test-execution';
+import { CompactLoopTestButton } from '../../modules/loop-control/ui/loop-test-button';
 import type { LoopStartCardProps } from './types';
 import type { LoopConfig } from "../../types/loopScript";
 import "./styles.css";
@@ -19,6 +21,8 @@ export const LoopStartCard: React.FC<LoopStartCardProps> = ({
   isDragging,
   onLoopConfigUpdate,
   onDeleteLoop,
+  allSteps,
+  deviceId,
 }) => {
   const [isConfigVisible, setIsConfigVisible] = useState(false);
   const [isEditingIterations, setIsEditingIterations] = useState(false);
@@ -27,6 +31,42 @@ export const LoopStartCard: React.FC<LoopStartCardProps> = ({
   // 统一数据源：优先从 step.parameters 读取，确保与 LoopEndCard 同步
   const currentIterations = (step.parameters?.loop_count as number) || loopConfig?.iterations || 1;
   const isInfinite = currentIterations === -1;
+  const currentLoopId = loopConfig?.loopId || (step.parameters?.loop_id as string) || `loop_${step.id}`;
+
+  // 🐛 调试日志
+  console.log('🔍 LoopStartCard 渲染:', {
+    currentLoopId,
+    hasAllSteps: !!allSteps,
+    stepsLength: allSteps?.length || 0,
+    hasDeviceId: !!deviceId,
+    deviceId,
+    testState: testState.status,
+  });
+
+  // 🎯 循环测试执行 Hook
+  const {
+    state: testState,
+    canStart: canStartTest,
+    canStop: canStopTest,
+    startTest,
+    stopTest,
+    getDuration,
+  } = useLoopTestExecution({
+    steps: allSteps || [],
+    deviceId: deviceId || '',
+    onComplete: (success) => {
+      if (success) {
+        const duration = getDuration();
+        message.success(`✅ 循环测试完成 (${(duration / 1000).toFixed(1)}秒)`);
+      }
+    },
+    onError: (error) => {
+      message.error(`❌ 循环测试失败: ${error}`);
+    },
+    onProgress: (progress) => {
+      console.log(`循环测试进度: ${progress}%`);
+    },
+  });
 
   // 保存配置 - 使用共享的 LoopConfigModal
   const handleSaveConfig = (updatedConfig: LoopConfig) => {
@@ -97,6 +137,17 @@ export const LoopStartCard: React.FC<LoopStartCardProps> = ({
           </Space>
           
           <Space size={4}>
+            {/* 🎯 循环测试按钮 - 放在设置按钮左边（始终显示，条件不满足时禁用） */}
+            <CompactLoopTestButton
+              loopId={currentLoopId}
+              state={testState}
+              canStart={canStartTest && !!allSteps && allSteps.length > 0 && !!deviceId}
+              canStop={canStopTest}
+              onStart={startTest}
+              onStop={stopTest}
+              size="small"
+            />
+            
             <Tooltip title="循环配置">
               <Button
                 type="text"

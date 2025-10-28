@@ -17,6 +17,10 @@ export interface LoopStartCardProps {
   onLoopConfigUpdate: (updates: LoopConfig) => void;
   /** 删除循环回调 */
   onDeleteLoop: (loopId: string) => void;
+  /** 所有步骤（用于循环测试） */
+  allSteps?: ExtendedSmartScriptStep[];
+  /** 设备 ID（用于循环测试） */
+  deviceId?: string;
 }
 
 export interface LoopHeaderProps {

@@ -11,6 +11,7 @@
       ],
       "@ai/*": ["src/modules/ai/*"],
       "@contact/*": ["src/modules/contact-import/*"],
+      "@loop-control/*": ["src/modules/loop-control/*"],
       "@prospecting/*": ["src/modules/prospecting/*"],
       "@script/*": ["src/modules/smart-script-management/*"],
       "@universal/*": ["src/modules/universal-ui/*"],
