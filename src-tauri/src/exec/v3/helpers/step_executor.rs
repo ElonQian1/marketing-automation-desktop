@@ -47,21 +47,55 @@ pub async fn execute_intelligent_analysis_step(
     
     tracing::info!("🧠 [智能执行] 开始执行智能分析步骤: {}", inline.step_id);
     
-    // 🔥 关键修复：从 STEP_STRATEGY_STORE 读取保存的配置
+    // 🔥 关键修复：从 STEP_STRATEGY_STORE 读取保存的配置（支持多key回退查找）
     let saved_config = {
         use crate::commands::intelligent_analysis::STEP_STRATEGY_STORE;
         
         if let Ok(store) = STEP_STRATEGY_STORE.lock() {
-            if let Some((strategy, _timestamp)) = store.get(&inline.step_id) {
-                tracing::info!("📖 [配置读取] 从 Store 读取到保存的配置: step_id={}", inline.step_id);
-                tracing::info!("   selection_mode={:?}, batch_config={:?}", 
-                    strategy.selection_mode, strategy.batch_config);
-                
-                Some((strategy.selection_mode.clone(), strategy.batch_config.clone()))
-            } else {
-                tracing::warn!("⚠️ [配置读取] Store 中没有找到 step_id={} 的配置，使用参数中的配置", inline.step_id);
-                None
+            // 🎯 策略1: 尝试用当前 step_id (intelligent_step_X) 查找
+            let mut found_config = store.get(&inline.step_id)
+                .map(|(strategy, _timestamp)| {
+                    tracing::info!("📖 [配置读取] 用 step_id={} 找到配置", inline.step_id);
+                    (strategy.selection_mode.clone(), strategy.batch_config.clone())
+                });
+            
+            // 🎯 策略2: 如果没找到，尝试从 originalParams 中提取原始 stepId 再查找
+            if found_config.is_none() {
+                if let Some(orig_params) = inline.params.get("originalParams") {
+                    // 尝试从不同位置提取原始 step_id
+                    let possible_keys = vec![
+                        orig_params.get("stepId").and_then(|v| v.as_str()),
+                        orig_params.get("step_id").and_then(|v| v.as_str()),
+                        // 从父级 original_data 提取
+                        inline.params.get("original_data")
+                            .and_then(|od| od.get("step_id"))
+                            .and_then(|v| v.as_str()),
+                    ];
+                    
+                    for possible_key in possible_keys.into_iter().flatten() {
+                        if let Some((strategy, _timestamp)) = store.get(possible_key) {
+                            tracing::info!("✅ [配置读取-回退] 用原始 step_id={} 找到配置", possible_key);
+                            tracing::info!("   selection_mode={:?}, batch_config={:?}", 
+                                strategy.selection_mode, strategy.batch_config);
+                            found_config = Some((strategy.selection_mode.clone(), strategy.batch_config.clone()));
+                            break;
+                        }
+                    }
+                }
             }
+            
+            if found_config.is_none() {
+                tracing::warn!("⚠️ [配置读取] Store 中没有找到配置，尝试了以下keys:");
+                tracing::warn!("   1. 当前step_id: {}", inline.step_id);
+                if let Some(orig_params) = inline.params.get("originalParams") {
+                    if let Some(orig_id) = orig_params.get("stepId").or_else(|| orig_params.get("step_id")) {
+                        tracing::warn!("   2. 原始step_id: {:?}", orig_id);
+                    }
+                }
+                tracing::warn!("   将使用参数中的默认配置");
+            }
+            
+            found_config
         } else {
             tracing::error!("❌ [配置读取] 无法锁定 STEP_STRATEGY_STORE");
             None

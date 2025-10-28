@@ -380,6 +380,17 @@ function convertSmartStepToV2Request(
       };
       break;
 
+    case 'keyevent':
+    case 'system_key':
+      // 🎯 系统按键步骤
+      actionParams = {
+        type: 'keyevent',
+        params: {
+          keyCode: Number(params.key_code || params.keyCode) || 4, // 默认返回键
+        },
+      };
+      break;
+
     default:
       // 默认点击动作，修复：使用tap代替click
       actionParams = {

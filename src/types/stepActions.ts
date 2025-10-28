@@ -9,7 +9,8 @@ export type ActionType =
   | 'swipe'
   | 'type'
   | 'wait'
-  | 'back';
+  | 'back'
+  | 'keyevent';
 
 export type SwipeDirection = 'up' | 'down' | 'left' | 'right';
 
@@ -69,6 +70,11 @@ export interface WaitParams {
 // 返回动作参数（无额外参数）
 export interface BackParams {}
 
+// 系统按键动作参数
+export interface KeyEventParams {
+  keyCode: number; // Android KeyEvent code
+}
+
 // 动作参数联合类型
 export type StepActionParams =
   | { type: 'tap'; params: TapLikeParams }
@@ -77,7 +83,8 @@ export type StepActionParams =
   | { type: 'swipe'; params: SwipeParams }
   | { type: 'type'; params: TypeParams }
   | { type: 'wait'; params: WaitParams }
-  | { type: 'back'; params: BackParams };
+  | { type: 'back'; params: BackParams }
+  | { type: 'keyevent'; params: KeyEventParams };
 
 // 匹配结果
 export interface MatchResult {
@@ -142,6 +149,10 @@ export const DEFAULT_WAIT_PARAMS: WaitParams = {
 
 export const DEFAULT_BACK_PARAMS: BackParams = {};
 
+export const DEFAULT_KEYEVENT_PARAMS: KeyEventParams = {
+  keyCode: 4, // 默认返回键
+};
+
 // 动作类型标签映射
 export const ACTION_LABELS: Record<ActionType, string> = {
   tap: '点选 Tap',
@@ -151,6 +162,7 @@ export const ACTION_LABELS: Record<ActionType, string> = {
   type: '输入 Type',
   wait: '等待 Wait',
   back: '返回 Back',
+  keyevent: '按键 KeyEvent',
 };
 
 // 获取默认动作参数
@@ -170,6 +182,8 @@ export function getDefaultActionParams(actionType: ActionType): StepActionParams
       return { type: 'wait', params: DEFAULT_WAIT_PARAMS };
     case 'back':
       return { type: 'back', params: DEFAULT_BACK_PARAMS };
+    case 'keyevent':
+      return { type: 'keyevent', params: DEFAULT_KEYEVENT_PARAMS };
     default:
       return { type: 'tap', params: DEFAULT_TAP_PARAMS };
   }

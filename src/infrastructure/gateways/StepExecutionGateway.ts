@@ -206,9 +206,10 @@ export class StepExecutionGateway {
     
     // 🚫 【排除操作】这些操作不需要元素选择，直接使用原有系统
     const isNonSelectionAction = (
-      actionParams.type === 'swipe' ||  // 滑动操作（smart_scroll转换后）
-      actionParams.type === 'wait' ||   // 等待操作  
-      actionParams.type === 'back'      // 返回操作
+      actionParams.type === 'swipe' ||    // 滑动操作（smart_scroll转换后）
+      actionParams.type === 'wait' ||     // 等待操作  
+      actionParams.type === 'back' ||     // 返回操作
+      actionParams.type === 'keyevent'    // 🎯 系统按键操作（不需要元素选择）
     );
     
     // 📝 记录路由决策
@@ -498,6 +499,28 @@ export class StepExecutionGateway {
         final: targetText || '智能坐标定位'
       });
 
+      // 🔥 NEW: 尝试从后端Store读取用户保存的配置
+      let savedBatchConfig = null;
+      try {
+        const stepStrategy = await invoke('get_step_strategy', { 
+          stepId: request.stepId 
+        });
+        
+        if (stepStrategy && typeof stepStrategy === 'object') {
+          const strategy = stepStrategy as any;
+          if (strategy.batch_config) {
+            savedBatchConfig = strategy.batch_config;
+            console.log('✅ [StepExecGateway] 从Store读取到批量配置:', savedBatchConfig);
+          }
+          // 如果Store有保存的选择模式，优先使用
+          if (strategy.selection_mode) {
+            console.log('✅ [StepExecGateway] 从Store读取到选择模式:', strategy.selection_mode);
+          }
+        }
+      } catch (e) {
+        console.warn('⚠️ [StepExecGateway] 读取Store配置失败，使用默认值:', e);
+      }
+
       // 🎯 修复：构建正确的 ChainSpecV3::ByInline 格式（使用camelCase字段名）
       const spec = {
         chainId: `step_execution_${request.stepId}`,  // ✅ camelCase
@@ -512,12 +535,13 @@ export class StepExecutionGateway {
                 mode: userSelectionMode,
                 targetText: targetText,  // camelCase
                 minConfidence: 0.8,  // camelCase
-                batchConfig: userSelectionMode === 'all' ? {  // camelCase
-                  intervalMs: 2000,  // camelCase
-                  maxCount: 10,  // camelCase
-                  continueOnError: true,  // camelCase
-                  showProgress: true  // camelCase
-                } : undefined
+                // 🔥 FIX: 优先使用Store中保存的配置，否则使用默认值
+                batchConfig: savedBatchConfig || (userSelectionMode === 'all' ? {  // camelCase
+                  intervalMs: 2000,  // 默认值
+                  maxCount: 10,  // 默认值
+                  continueOnError: true,
+                  showProgress: true
+                } : undefined)
               },
               // 🔥 NEW: 传递 XPath 和 hint（核心修复）
               element_path: request.elementPath || request.xpath || '',  // 用户选择的 XPath

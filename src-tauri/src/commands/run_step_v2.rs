@@ -635,6 +635,52 @@ async fn execute_v2_step(app_handle: AppHandle, req: &RunStepRequestV2) -> Resul
     
     tracing::info!("🔍 坐标检测: has_coordinates={}, action_type={}", has_coordinates, action_type);
     
+    // 🎯 【新增】检测无需选择器的操作类型（系统按键、输入等）
+    let needs_no_selector = matches!(action_type, "keyevent" | "input" | "long_press");
+    
+    if needs_no_selector {
+        tracing::info!("🎯 检测到无选择器操作: {}, 跳过元素匹配直接执行", action_type);
+        
+        // 创建虚拟匹配结果（不需要真实元素匹配）
+        let dummy_candidate = MatchCandidate {
+            id: format!("{}_mode", action_type),
+            score: 1.0,
+            confidence: 0.0, // 标记为无选择器模式
+            bounds: Bounds { left: 0, top: 0, right: 0, bottom: 0 },
+            text: Some(format!("{}操作模式", action_type)),
+            class_name: None,
+            package_name: None,
+        };
+        
+        // 直接执行操作
+        match execute_v2_action_with_coords(&step_with_coords, &req.device_id, &dummy_candidate).await {
+            Ok(exec_info) => {
+                tracing::info!("✅ {}执行成功: {}", action_type, exec_info.action);
+                return Ok(StepResponseV2 {
+                    ok: true,
+                    message: exec_info.action,
+                    matched: Some(dummy_candidate),
+                    executed_action: Some(action_type.to_string()),
+                    verify_passed: Some(true),
+                    error_code: None,
+                    raw_logs: Some(vec![format!("{}执行成功", action_type)]),
+                });
+            },
+            Err(e) => {
+                tracing::error!("❌ {}执行失败: {}", action_type, e);
+                return Ok(StepResponseV2 {
+                    ok: false,
+                    message: format!("{}执行失败: {}", action_type, e),
+                    matched: None,
+                    executed_action: None,
+                    verify_passed: Some(false),
+                    error_code: Some(format!("{}_EXEC_FAILED", action_type.to_uppercase())),
+                    raw_logs: Some(vec![format!("{}失败: {}", action_type, e)]),
+                });
+            }
+        }
+    }
+    
     if has_coordinates && action_type == "swipe" {
         tracing::info!("🎯 检测到坐标滑动操作，跳过元素匹配直接执行");
         tracing::info!("📐 坐标参数: start_x={:?}, start_y={:?}, end_x={:?}, end_y={:?}", 
@@ -980,6 +1026,56 @@ async fn execute_v2_action_with_coords(step: &serde_json::Value, device_id: &str
             tap_injector_first(adb_path, device_id, x, y, None).await
                 .map_err(|e| format!("真机{}失败: {}", action_type, e))?;
             format!("真机{}执行成功 ({}, {})", action_type, x, y)
+        },
+        "keyevent" => {
+            // 🎯 【新增】系统按键支持
+            let key_code = step.get("key_code")
+                .or_else(|| step.get("keyCode"))
+                .and_then(|v| v.as_i64())
+                .unwrap_or(4) as i32; // 默认返回键
+            
+            tracing::info!("🎯 执行系统按键: keycode={}", key_code);
+            
+            keyevent_code_injector_first(adb_path, device_id, key_code).await
+                .map_err(|e| format!("真机按键失败: {}", e))?;
+            format!("真机按键执行成功 (keycode={})", key_code)
+        },
+        "input" => {
+            // 🎯 【新增】文本输入支持
+            if let Some(text) = step.get("text")
+                .or_else(|| step.get("input_text"))
+                .and_then(|v| v.as_str()) {
+                tracing::info!("🎯 执行文本输入: text={}", text);
+                
+                input_text_injector_first(adb_path, device_id, text).await
+                    .map_err(|e| format!("真机文本输入失败: {}", e))?;
+                format!("真机文本输入成功: {}", text)
+            } else {
+                return Err("文本输入操作缺少内容".to_string());
+            }
+        },
+        "long_press" => {
+            // 🎯 【新增】长按支持
+            let (x, y) = if match_candidate.confidence > 0.0 {
+                let bounds = &match_candidate.bounds;
+                ((bounds.left + bounds.right) / 2, (bounds.top + bounds.bottom) / 2)
+            } else if let Some(x_val) = step.get("x").and_then(|v| v.as_i64()) {
+                let y_val = step.get("y").and_then(|v| v.as_i64()).unwrap_or(100) as i32;
+                (x_val as i32, y_val)
+            } else {
+                (100, 100)
+            };
+            
+            let duration = step.get("duration")
+                .and_then(|v| v.as_u64())
+                .unwrap_or(2000);
+            
+            tracing::info!("🎯 执行长按: ({}, {}) 时长:{}ms", x, y, duration);
+            
+            // 使用 swipe 模拟长按（起止点相同）
+            swipe_injector_first(adb_path, device_id, x, y, x, y, duration as u32).await
+                .map_err(|e| format!("真机长按失败: {}", e))?;
+            format!("真机长按执行成功 ({}, {}) {}ms", x, y, duration)
         },
         "back" => {
             keyevent_code_injector_first(adb_path, device_id, 4).await
