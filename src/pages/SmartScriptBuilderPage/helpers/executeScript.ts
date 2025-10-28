@@ -7,6 +7,7 @@ import { message } from "antd";
 import { normalizeScriptStepsForBackend } from "../helpers/normalizeSteps";
 import type { ExtendedSmartScriptStep } from "../../../types/loopScript";
 import { ScriptExecutionDiagnostics } from "../../../utils/script-execution-diagnostics";
+import { executeScrollStep, DIRECTION_ARROWS, DIRECTION_NAMES } from "./scroll-executor";
 
 // 轻量设备类型，满足本模块使用
 interface SimpleDevice {
@@ -109,54 +110,30 @@ export function createHandleExecuteScript(ctx: Ctx) {
                               step.name?.includes("滚动");
           
           if (isScrollStep) {
-            // 🔄 滚动步骤使用V2引擎（已验证可用）
+            // 🔄 滚动步骤使用V2引擎（完整参数支持：方向、距离、次数、间隔）
             console.log(`📜 [V2滚动] 检测到滚动步骤，使用V2引擎执行`);
             
+            // 获取滚动方向和参数信息用于日志
             const direction = step.parameters?.direction || "down";
-            const duration = step.parameters?.duration || 300;
+            const repeatCount = step.parameters?.repeat_count || 1;
+            const arrow = DIRECTION_ARROWS[direction as keyof typeof DIRECTION_ARROWS] || "↓";
+            const dirName = DIRECTION_NAMES[direction as keyof typeof DIRECTION_NAMES] || "向下";
             
-            // 计算滚动坐标（屏幕中央垂直滑动）
-            const screenWidth = 1080; // 可以从设备信息获取
-            const screenHeight = 2340;
-            const centerX = screenWidth / 2;
+            console.log(`📜 [V2滚动] ${arrow} ${dirName}滚动 × ${repeatCount}次`);
             
-            let startY: number, endY: number;
-            if (direction === "down") {
-              // 向下滚动：从下往上滑
-              startY = screenHeight * 0.7;
-              endY = screenHeight * 0.3;
-            } else if (direction === "up") {
-              // 向上滚动：从上往下滑
-              startY = screenHeight * 0.3;
-              endY = screenHeight * 0.7;
+            // 使用模块化滚动执行器
+            const scrollResult = await executeScrollStep(
+              selectedDevice,
+              step,
+              { width: 1080, height: 2340 } // TODO: 从设备信息动态获取
+            );
+            
+            if (scrollResult.success) {
+              console.log(`✅ [V2滚动] 步骤 ${i + 1} 执行成功:`, scrollResult.message);
+              successCount++;
             } else {
-              startY = screenHeight * 0.7;
-              endY = screenHeight * 0.3;
+              throw new Error(scrollResult.message);
             }
-            
-            console.log(`📜 [V2滚动] 滚动参数: (${centerX},${startY}) → (${centerX},${endY}), 时长:${duration}ms`);
-            
-            // 调用V2的run_step_v2执行滑动（注意：所有参数必须包裹在request对象中）
-            const v2Result = await invoke("run_step_v2", {
-              request: {
-                device_id: selectedDevice,
-                mode: "execute-step",     // ← kebab-case: "execute-step"
-                strategy: "intelligent",
-                step: {
-                  step_id: step.id,
-                  step_name: step.name,
-                  action: "swipe",
-                  start_x: centerX,
-                  start_y: startY,
-                  end_x: centerX,
-                  end_y: endY,
-                  duration_ms: duration
-                }
-              }
-            });
-            
-            console.log(`✅ [V2滚动] 步骤 ${i + 1} 执行成功:`, v2Result);
-            successCount++;
             
           } else {
             // 🎯 点击步骤使用V3引擎
