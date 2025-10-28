@@ -140,7 +140,7 @@ export function createHandleExecuteScript(ctx: Ctx) {
             const v2Result = await invoke("run_step_v2", {
               request: {
                 device_id: selectedDevice,
-                mode: "execute_step",
+                mode: "execute-step",     // ← kebab-case: "execute-step"
                 strategy: "intelligent",
                 step: {
                   step_id: step.id,
