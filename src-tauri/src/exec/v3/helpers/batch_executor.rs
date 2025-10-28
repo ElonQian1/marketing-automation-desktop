@@ -18,6 +18,8 @@ pub struct BatchExecutionConfig {
     pub continue_on_error: bool,
     /// 是否显示进度
     pub show_progress: bool,
+    /// 匹配方向：forward(正向/从上到下) 或 backward(反向/从下到上)
+    pub match_direction: String,
     /// 目标文本（用于日志）
     pub target_text: String,
     /// 步骤ID（用于日志）
@@ -57,6 +59,13 @@ impl BatchExecutionConfig {
             .and_then(|v| v.as_bool())
             .unwrap_or(true);
 
+        let match_direction = batch_config
+            .get("match_direction")  // ✅ 蛇形命名
+            .or_else(|| batch_config.get("matchDirection"))  // 兼容旧的驼峰命名
+            .and_then(|v| v.as_str())
+            .unwrap_or("forward")  // 默认正向（从第一个开始）
+            .to_string();
+
         let target_text = params
             .get("smartSelection")
             .and_then(|v| v.get("targetText"))
@@ -66,11 +75,12 @@ impl BatchExecutionConfig {
 
         // 🔍 DEBUG: 输出解析后的配置
         tracing::info!(
-            "📋 [批量配置解析] max_count={}, interval_ms={}ms, continue_on_error={}, show_progress={}",
+            "📋 [批量配置解析] max_count={}, interval_ms={}ms, continue_on_error={}, show_progress={}, match_direction={}",
             max_count,
             interval_ms,
             continue_on_error,
-            show_progress
+            show_progress,
+            match_direction
         );
 
         Ok(Self {
@@ -78,6 +88,7 @@ impl BatchExecutionConfig {
             interval_ms,
             continue_on_error,
             show_progress,
+            match_direction,
             target_text,
             step_id: step_id.to_string(),
         })

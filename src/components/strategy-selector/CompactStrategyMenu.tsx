@@ -36,6 +36,7 @@ interface BatchConfig {
   jitter_ms?: number;
   continue_on_error: boolean;
   show_progress: boolean;
+  match_direction?: 'forward' | 'backward';  // 🆕 匹配方向：forward(正向) | backward(反向)
 }
 
 /**
@@ -99,6 +100,7 @@ const CompactStrategyMenu: React.FC<CompactStrategyMenuProps> = ({
     jitter_ms: 500,
     continue_on_error: true,
     show_progress: true,
+    match_direction: 'forward',  // 🆕 默认正向执行
   });
   
   // 🎯 获取用户实际选择的UI元素
@@ -486,6 +488,7 @@ const CompactStrategyMenu: React.FC<CompactStrategyMenuProps> = ({
           jitter_ms: 500,
           continue_on_error: true,
           show_progress: true,
+          match_direction: 'forward' as const,  // 🆕 默认正向
         } : batchConfig;
         
         if (!batchConfig || batchConfig.interval_ms <= 0) {
@@ -902,6 +905,42 @@ const CompactStrategyMenu: React.FC<CompactStrategyMenuProps> = ({
                 style={{ margin: 0 }}
               />
               <span style={{ fontSize: "11px", color: "#94A3B8" }}>显示进度</span>
+            </div>
+
+            {/* 🆕 匹配方向 */}
+            <div style={{ display: "flex", alignItems: "center", gap: "6px" }}>
+              <span style={{ fontSize: "11px", color: "#94A3B8" }}>方向:</span>
+              <select
+                value={batchConfig.match_direction || 'forward'}
+                onChange={async (e) => {
+                  const newDirection = e.target.value as 'forward' | 'backward';
+                  setBatchConfig({
+                    ...batchConfig,
+                    match_direction: newDirection
+                  });
+                  // 🔥 立即保存配置
+                  if (selectionMode === 'all') {
+                    console.log('🔧 [匹配方向修改] 保存配置:', newDirection);
+                    await autoSaveConfig('all');
+                  }
+                }}
+                style={{
+                  height: "24px",
+                  fontSize: "11px",
+                  padding: "0 4px",
+                  border: "1px solid rgba(110, 139, 255, 0.3)",
+                  borderRadius: "3px",
+                  background: "rgba(0, 0, 0, 0.2)",
+                  color: "#F8FAFC",
+                  cursor: "pointer"
+                }}
+              >
+                <option value="forward">↓ 正向</option>
+                <option value="backward">↑ 反向</option>
+              </select>
+              <Tooltip title="正向:从上到下执行 | 反向:从下到上执行" placement="top">
+                <span style={{ fontSize: "11px", color: "#6E8BFF", cursor: "help" }}>?</span>
+              </Tooltip>
             </div>
           </div>
           

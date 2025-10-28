@@ -383,10 +383,21 @@ function convertSmartStepToV2Request(
     case 'keyevent':
     case 'system_key':
       // 🎯 系统按键步骤
+      // 兼容多种参数名：code（新模板）、key_code、keyCode（旧版本）
+      const keyCode = Number(params.code || params.key_code || params.keyCode) || 4;
+      console.log('🔍 [useV2StepTest] keyevent参数提取:', {
+        step_type: step.step_type,
+        step_name: step.name,
+        params_code: params.code,
+        params_key_code: params.key_code,
+        params_keyCode: params.keyCode,
+        extracted_keyCode: keyCode,
+        all_params: params
+      });
       actionParams = {
         type: 'keyevent',
         params: {
-          keyCode: Number(params.key_code || params.keyCode) || 4, // 默认返回键
+          keyCode: keyCode,
         },
       };
       break;

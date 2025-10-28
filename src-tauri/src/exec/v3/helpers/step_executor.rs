@@ -309,7 +309,7 @@ pub async fn execute_intelligent_analysis_step(
     // 🎯 单次模式：找到最佳候选并点击一次
     tracing::info!("🎯 [单次模式] 将从 {} 个候选中选择最佳匹配", candidate_elements.len());
 
-    let mut target_element = evaluate_best_candidate(candidate_elements, &merged_params, ui_xml)?;
+    let mut target_element = evaluate_best_candidate(candidate_elements, &merged_params, ui_xml, None)?;  // match_direction = None（单步模式）
     
     // 🆕 修复：失败恢复机制
     if target_element.is_none() {
@@ -378,11 +378,12 @@ async fn execute_batch_mode_with_first_strategy<'a>(
             tracing::info!("🔄 [批量执行 {}/{}] 开始寻找目标元素", index, config.max_count);
         }
 
-        // ✅ 复用"第一个"的完整匹配逻辑
+        // ✅ 复用"第一个"的完整匹配逻辑，使用用户配置的匹配方向
         let mut target_element = evaluate_best_candidate(
             candidate_elements.clone(),
             params,
-            ui_xml
+            ui_xml,
+            Some(&config.match_direction)  // 传递用户配置的匹配方向
         )?;
         
         // 如果没找到，尝试失败恢复
@@ -852,6 +853,7 @@ fn evaluate_best_candidate<'a>(
     candidate_elements: Vec<&'a UIElement>,
     params: &serde_json::Value,
     ui_xml: &str,  // 🔥 新增：当前XML内容，用于子元素文本提取
+    match_direction: Option<&str>,  // 🆕 匹配方向："forward" | "backward" | None(单步模式)
 ) -> Result<Option<&'a UIElement>, String> {
     if candidate_elements.len() > 1 {
         tracing::info!("🔍 [多候选评估] 启动模块化评估器（{} 个候选）", candidate_elements.len());
@@ -972,7 +974,15 @@ fn evaluate_best_candidate<'a>(
             original_bounds,
             original_resource_id,
             children_texts,
-            prefer_last: true, // 用户需求：优先选择最后一个（避免选择列表第一项）
+            // 🔥 根据匹配方向决定 prefer_last
+            // - None（单步模式）: prefer_last = true（避免选择列表标题）
+            // - "forward"（正向）: prefer_last = false（从第一个开始）
+            // - "backward"（反向）: prefer_last = true（从最后一个开始）
+            prefer_last: match match_direction {
+                Some("forward") => false,   // 正向：从第一个开始
+                Some("backward") => true,   // 反向：从最后一个开始
+                _ => true,                  // 单步模式：优先选择最后一个（避免列表标题）
+            },
             selected_xpath, // 🔥 传递用户选择的XPath（最高优先级匹配依据）
             xml_content: Some(ui_xml.to_string()), // 🔥 传递当前XML，用于子元素文本提取
             matching_strategy, // 🆕 NEW: 匹配策略标记

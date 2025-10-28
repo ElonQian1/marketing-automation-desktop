@@ -12,7 +12,8 @@ export type ActionType =
   | 'swipe' 
   | 'type' 
   | 'wait' 
-  | 'back';
+  | 'back'
+  | 'keyevent';
 
 export type StrategyKind = 'intelligent' | 'standard' | 'absolute' | 'custom';
 export type StepRunMode = 'match-only' | 'execute-step';
@@ -62,7 +63,8 @@ export type ActionPayload =
   | { action: 'swipe'; start_x: number; start_y: number; end_x: number; end_y: number; duration: number } // 🎯 【关键修复】坐标滑动
   | { action: 'type'; text: string; secure?: boolean; clear?: boolean; submit?: boolean }
   | { action: 'wait'; duration_ms: number }
-  | { action: 'back' };
+  | { action: 'back' }
+  | { action: 'keyevent'; key_code: number };
 
 export type StepPayload = BaseStep & ActionPayload;
 
@@ -182,6 +184,13 @@ export function convertToV2Request(
     case 'back':
       actionPayload = {
         action: 'back'
+      };
+      break;
+      
+    case 'keyevent':
+      actionPayload = {
+        action: 'keyevent',
+        key_code: currentAction.params.keyCode || 4 // 默认返回键
       };
       break;
       

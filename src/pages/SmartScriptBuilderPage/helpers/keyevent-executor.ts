@@ -74,12 +74,17 @@ interface V2ExecutionResult {
 export function extractKeyEventCode(step: ExtendedSmartScriptStep): number {
   const params = step.parameters || {};
   
-  // 优先使用 key_code
+  // 🎯 优先使用 code（新系统按键模板使用的参数名）
+  if (params.code !== undefined) {
+    return params.code as number;
+  }
+  
+  // 其次使用 key_code
   if (params.key_code !== undefined) {
     return params.key_code as number;
   }
   
-  // 其次使用 keyCode
+  // 再使用 keyCode
   if (params.keyCode !== undefined) {
     return params.keyCode as number;
   }

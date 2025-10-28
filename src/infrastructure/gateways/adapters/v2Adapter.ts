@@ -159,6 +159,15 @@ export function convertToV2Request(
       };
       break;
 
+    case "keyevent":
+      // 🎯 系统按键操作
+      stepPayload = {
+        ...baseStep,
+        action: "keyevent",
+        key_code: actionParams.params.keyCode || 4, // 默认返回键
+      };
+      break;
+
     default:
       console.warn(
         `[V2Adapter] Unknown action type: ${
