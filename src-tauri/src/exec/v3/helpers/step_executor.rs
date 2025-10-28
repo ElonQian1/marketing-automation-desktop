@@ -194,25 +194,32 @@ pub async fn execute_intelligent_analysis_step(
 
     tracing::info!("🔍 [批量检测] mode={}, 候选数={}", batch_mode, candidate_elements.len());
 
+    // 🔥 根据模式决定执行方式
     if batch_mode == "all" {
-        tracing::info!("🔄 [批量模式] 检测到批量全部模式，准备循环点击 {} 个候选", candidate_elements.len());
-        // ✅ 批量模式：使用专门的批量执行器
-        return execute_batch_mode(
+        tracing::info!("🔄 [批量模式] 检测到批量全部模式");
+        tracing::info!("   策略：复用'第一个'的匹配逻辑，循环找到所有符合条件的目标并点击");
+        
+        // ✅ 批量模式：循环执行"第一个"的完整匹配逻辑
+        return execute_batch_mode_with_first_strategy(
             device_id,
             candidate_elements,
             &inline.params,
             &target_text,
             &inline.step_id,
+            ui_xml,
+            &elements,
+            strategy_type,
+            xpath,
         )
         .await;
     }
     
+    // 🎯 单次模式：找到最佳候选并点击一次
     tracing::info!("🎯 [单次模式] 将从 {} 个候选中选择最佳匹配", candidate_elements.len());
 
-    // 🔥 单次模式：现有逻辑
     let mut target_element = evaluate_best_candidate(candidate_elements, &inline.params, ui_xml)?;
     
-    // 🆕 修复3：失败恢复机制
+    // 🆕 修复：失败恢复机制
     if target_element.is_none() {
         target_element = attempt_element_recovery(&inline.params, &elements)?;
     }
@@ -230,11 +237,185 @@ pub async fn execute_intelligent_analysis_step(
     // 🔧 检查元素可点击性
     let clickable_element = ensure_clickable_element(target_element);
     
-    // 执行点击操作
+    // 执行单次点击
     execute_click_action(device_id, clickable_element, &target_text, &inline.step_id).await
 }
 
-/// 🔄 批量模式执行（模块化）
+/// 🔄 批量模式执行（复用"第一个"的匹配策略）
+/// 
+/// 核心理念：
+/// - 一次 UI dump
+/// - 循环 N 次，每次都用"第一个"的完整匹配逻辑找到最佳目标
+/// - 点击后元素状态变化（如"关注"→"已关注"），自动排除已操作的元素
+async fn execute_batch_mode_with_first_strategy<'a>(
+    device_id: &str,
+    mut candidate_elements: Vec<&'a UIElement>,
+    params: &serde_json::Value,
+    target_text: &str,
+    step_id: &str,
+    ui_xml: &str,
+    all_elements: &'a [UIElement],
+    strategy_type: &str,
+    xpath: &str,
+) -> Result<(i32, i32), String> {
+    // 解析批量配置
+    let config = BatchExecutionConfig::from_params(params, step_id)?;
+
+    tracing::info!(
+        "🔄 [批量模式] 开始批量执行（复用'第一个'策略）"
+    );
+    tracing::info!(
+        "📋 [批量配置] maxCount={}, intervalMs={}ms, continueOnError={}",
+        config.max_count,
+        config.interval_ms,
+        config.continue_on_error
+    );
+    tracing::info!(
+        "📊 [初始候选] 从 UI dump 中找到 {} 个初始候选元素",
+        candidate_elements.len()
+    );
+
+    let mut success_count = 0;
+    let mut last_coords = (0, 0);
+
+    // 🔥 循环执行：每次都用"第一个"的逻辑找到当前最佳目标
+    for i in 0..config.max_count {
+        let index = i + 1;
+
+        if config.show_progress {
+            tracing::info!("🔄 [批量执行 {}/{}] 开始寻找目标元素", index, config.max_count);
+        }
+
+        // ✅ 复用"第一个"的完整匹配逻辑
+        let mut target_element = evaluate_best_candidate(
+            candidate_elements.clone(),
+            params,
+            ui_xml
+        )?;
+        
+        // 如果没找到，尝试失败恢复
+        if target_element.is_none() {
+            target_element = attempt_element_recovery(params, all_elements)?;
+        }
+        
+        // 如果仍然没找到，根据配置决定是否继续
+        let target_element = match target_element {
+            Some(elem) => elem,
+            None => {
+                tracing::warn!(
+                    "⚠️ [批量执行 {}/{}] 未找到符合条件的目标元素",
+                    index,
+                    config.max_count
+                );
+                
+                if config.continue_on_error {
+                    tracing::info!("   continueOnError=true，尝试下一个");
+                    continue;
+                } else {
+                    tracing::warn!("   continueOnError=false，提前终止");
+                    break;
+                }
+            }
+        };
+        
+        // 🔧 检查元素可点击性
+        let clickable_element = ensure_clickable_element(target_element);
+        
+        // 生成元素信息（用于日志）
+        let element_info = format!(
+            "text={:?}, bounds={:?}, resource_id={:?}",
+            clickable_element.text,
+            clickable_element.bounds,
+            clickable_element.resource_id
+        );
+
+        if config.show_progress {
+            tracing::info!("🎯 [批量执行 {}/{}] 找到目标: {}", index, config.max_count, element_info);
+        }
+
+        // 执行点击
+        match execute_click_action(device_id, clickable_element, target_text, step_id).await {
+            Ok((x, y)) => {
+                success_count += 1;
+                last_coords = (x, y);
+                
+                if config.show_progress {
+                    tracing::info!(
+                        "✅ [批量执行 {}/{}] 点击成功: ({}, {}) | {}",
+                        index,
+                        config.max_count,
+                        x,
+                        y,
+                        element_info
+                    );
+                }
+                
+                // 🔥 关键优化：从候选列表中移除已点击的元素
+                // 这样下次循环会自动找到下一个符合条件的目标
+                candidate_elements.retain(|e| {
+                    // 通过 bounds 判断是否是同一个元素
+                    e.bounds != clickable_element.bounds
+                });
+                
+                if config.show_progress {
+                    tracing::info!(
+                        "📊 [候选更新] 移除已点击元素，剩余 {} 个候选",
+                        candidate_elements.len()
+                    );
+                }
+            }
+            Err(e) => {
+                tracing::warn!(
+                    "❌ [批量执行 {}/{}] 点击失败: {} | {}",
+                    index,
+                    config.max_count,
+                    e,
+                    element_info
+                );
+
+                // 检查是否需要提前终止
+                if !config.continue_on_error {
+                    tracing::warn!("⚠️ [批量执行] continueOnError=false，提前终止");
+                    break;
+                }
+            }
+        }
+
+        // 添加间隔（最后一个不需要）
+        if index < config.max_count {
+            if config.show_progress {
+                tracing::info!("⏱️ [批量执行] 等待 {}ms 后继续", config.interval_ms);
+            }
+            tokio::time::sleep(tokio::time::Duration::from_millis(config.interval_ms)).await;
+        }
+        
+        // 🔥 提前终止条件：候选列表为空
+        if candidate_elements.is_empty() {
+            tracing::info!(
+                "✅ [批量执行] 所有符合条件的目标已点击完毕（{} 个成功）",
+                success_count
+            );
+            break;
+        }
+    }
+
+    tracing::info!(
+        "✅ [批量模式] 执行完成，成功 {} 个点击",
+        success_count
+    );
+
+    // 根据结果返回
+    if success_count > 0 {
+        Ok(last_coords) // 返回最后一次点击的坐标
+    } else {
+        Err("批量模式执行失败，0 个点击成功".to_string())
+    }
+}
+
+/// 🔄 批量模式执行（旧版：逐一点击所有候选）
+/// 
+/// ⚠️ 已废弃：不应该使用此函数，改用 execute_batch_mode_with_first_strategy
+#[allow(dead_code)]
 async fn execute_batch_mode<'a>(
     device_id: &str,
     candidates: Vec<&'a UIElement>,
@@ -497,11 +678,35 @@ fn collect_candidate_elements<'a>(
     // 🔥 P0修复：根据 mode 决定是否使用 Bounds 精确过滤
     if let Some(user_bounds) = original_bounds {
         if batch_mode == "all" {
-            // 🎯 批量模式：不过滤，只排序（按 Bounds 相似度）
-            tracing::info!("🔄 [批量模式] 保留所有 {} 个候选，按 Bounds 相似度排序", candidates.len());
-            tracing::info!("   用户选择bounds='{}' 将用于相似度排序（不过滤）", user_bounds);
-            // TODO: 实现 Bounds 相似度排序
-            return candidates;
+            // 🎯 批量模式：优先过滤可点击元素
+            tracing::info!("🔄 [批量模式] 开始过滤 {} 个候选", candidates.len());
+            
+            // 1️⃣ 优先选择可点击的元素
+            let clickable_candidates: Vec<_> = candidates.iter()
+                .filter(|e| {
+                    // clickable 是 Option<bool>，直接判断
+                    e.clickable.unwrap_or(false)
+                })
+                .copied()
+                .collect();
+            
+            if !clickable_candidates.is_empty() {
+                tracing::info!(
+                    "✅ [批量模式-可点击过滤] 从 {} 个候选中筛选出 {} 个可点击元素",
+                    candidates.len(),
+                    clickable_candidates.len()
+                );
+                tracing::info!("   用户选择bounds='{}' 将用于相似度排序", user_bounds);
+                // TODO: 实现 Bounds 相似度排序
+                return clickable_candidates;
+            } else {
+                // 2️⃣ 如果没有可点击元素，保留所有候选（兜底）
+                tracing::warn!(
+                    "⚠️ [批量模式-可点击过滤] 未找到可点击元素，保留全部 {} 个候选",
+                    candidates.len()
+                );
+                return candidates;
+            }
         } else {
             // 🎯 单次模式：使用 Bounds 精确过滤
             let exact_match: Vec<_> = candidates.iter()
