@@ -108,7 +108,14 @@ export const VisualPageAnalyzerContent: React.FC<VisualPageAnalyzerContentProps>
       id: element.id,
       text: element.text,
       element_type: element.type,
-      xpath: "",
+      // 🔧 优化：生成精确XPath
+      xpath: element.resourceId 
+        ? `//node[@resource-id='${element.resourceId}']`
+        : element.contentDesc
+        ? `//node[@content-desc='${element.contentDesc}']`
+        : element.text
+        ? `//node[@text='${element.text}']`
+        : "", // 如果都没有则置空，后续依赖bounds
       bounds: {
         left: position.x,
         top: position.y,
@@ -124,7 +131,7 @@ export const VisualPageAnalyzerContent: React.FC<VisualPageAnalyzerContentProps>
       selected: false,
       password: false,
   // 不将友好描述写入 content_desc，保持其为真实 XML 值（此处未知则置空）
-      content_desc: "",
+      content_desc: element.contentDesc || "",
     };
 
     // 执行智能分析

@@ -6,6 +6,71 @@ use crate::exec::v3::{StepRefOrInline, SingleStepSpecV3};
 use crate::services::intelligent_analysis_service::{IntelligentAnalysisRequest, UserSelectionContext};
 
 // ================================================================
+// 📝 日志辅助函数
+// ================================================================
+
+/// 📝 辅助函数：简化JSON中的XML字段显示（仅显示长度而非完整内容）
+/// 
+/// 🔧 修复：
+/// - 增强递归处理，确保深度嵌套的XML也能被截断
+/// - 增加更多XML字段名称的识别（xml, raw_xml等）
+/// - 对超过1000字符的字符串字段也进行截断（防止其他大字段）
+pub fn truncate_xml_in_json(json_value: &serde_json::Value) -> serde_json::Value {
+    match json_value {
+        serde_json::Value::Object(map) => {
+            let mut new_map = serde_json::Map::new();
+            for (key, value) in map {
+                // 🔧 扩展XML字段识别
+                let is_xml_field = key == "original_xml" 
+                    || key == "xmlContent" 
+                    || key == "xml_content" 
+                    || key == "xml"
+                    || key == "raw_xml"
+                    || key == "ui_xml"
+                    || key == "snapshot_xml";
+                
+                if is_xml_field {
+                    // 如果是XML字段，只显示长度
+                    if let Some(xml_str) = value.as_str() {
+                        new_map.insert(
+                            key.clone(),
+                            serde_json::json!(format!("<XML:{} bytes>", xml_str.len()))
+                        );
+                    } else {
+                        new_map.insert(key.clone(), value.clone());
+                    }
+                } else if value.is_object() {
+                    // 🔧 关键修复：对所有嵌套对象都递归处理，不限于特定键名
+                    new_map.insert(key.clone(), truncate_xml_in_json(value));
+                } else if value.is_array() {
+                    // 递归处理数组
+                    new_map.insert(key.clone(), truncate_xml_in_json(value));
+                } else if let Some(str_value) = value.as_str() {
+                    // 🆕 对超长字符串也进行截断（可能是其他大文本字段）
+                    if str_value.len() > 1000 {
+                        new_map.insert(
+                            key.clone(),
+                            serde_json::json!(format!("<LONG_TEXT:{} bytes>", str_value.len()))
+                        );
+                    } else {
+                        new_map.insert(key.clone(), value.clone());
+                    }
+                } else {
+                    new_map.insert(key.clone(), value.clone());
+                }
+            }
+            serde_json::Value::Object(new_map)
+        }
+        serde_json::Value::Array(arr) => {
+            serde_json::Value::Array(
+                arr.iter().map(|v| truncate_xml_in_json(v)).collect()
+            )
+        }
+        _ => json_value.clone(),
+    }
+}
+
+// ================================================================
 // 🧠 智能分析触发判断函数
 // ================================================================
 
@@ -259,7 +324,10 @@ pub async fn perform_intelligent_strategy_analysis_from_raw(
     use super::strategy_generation::*;
     
     tracing::info!("🧠 开始智能策略分析 (Step 0-6) - 从原始数据直接处理");
-    tracing::info!("   📋 原始参数: {}", serde_json::to_string(original_params).unwrap_or_default());
+    
+    // 📝 使用简化版日志（XML字段只显示长度）
+    let truncated_params = truncate_xml_in_json(original_params);
+    tracing::info!("   📋 原始参数: {}", serde_json::to_string(&truncated_params).unwrap_or_default());
     tracing::info!("   📱 XML长度: {} 字符", ui_xml.len());
     
     // Step 0: 获取设备状态和UI基础信息
@@ -329,8 +397,11 @@ async fn call_frontend_intelligent_analysis_with_context(
     
     tracing::info!("🔗 调用增强版前端智能策略分析系统");
     
-    // 🔥 【调试】打印完整的 original_params
-    tracing::info!("🔍 [DEBUG] original_params 内容: {}", serde_json::to_string_pretty(original_params).unwrap_or_else(|_| "无法序列化".to_string()));
+    // 🔥 【调试】打印简化版的 original_params（XML字段只显示长度）
+    let truncated_params = truncate_xml_in_json(original_params);
+    tracing::info!("🔍 [DEBUG] original_params 内容: {}", 
+        serde_json::to_string_pretty(&truncated_params).unwrap_or_else(|_| "无法序列化".to_string())
+    );
     
     // 🔥 【核心修复】从 original_params 提取用户选择上下文
     let user_selection = if let Some(original_data) = original_params.get("original_data") {

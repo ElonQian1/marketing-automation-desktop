@@ -54,6 +54,11 @@ export interface VisualUIElement {
   is_clickable?: boolean;
   /** 内容描述 (兼容性) */
   content_desc?: string;
+  /** 🔧 新增：Android XML关键属性 */
+  resourceId?: string;
+  contentDesc?: string;
+  className?: string;
+  bounds?: string; // 原始bounds字符串
 }
 
 /**

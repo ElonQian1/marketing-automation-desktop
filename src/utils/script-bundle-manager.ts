@@ -77,11 +77,12 @@ export async function exportScriptBundle(
 
   if (includeXmlCache) {
     for (const hash of xmlHashSet) {
-      const cacheEntry = xmlCacheManager.getXml(hash);
+      // 🔥 修复：使用 getCachedXml() 而不是 getXml()
+      const cacheEntry = await xmlCacheManager.getCachedXml(hash);
       if (cacheEntry) {
         xmlCache[hash] = {
-          content: cacheEntry.content,
-          metadata: cacheEntry.metadata, // 包含设备信息、页面上下文等
+          content: cacheEntry.xmlContent,  // 🔥 字段名是 xmlContent
+          metadata: cacheEntry.metadata,
         };
       } else {
         console.warn(`⚠️ XML cache not found for hash: ${hash}`);
@@ -157,12 +158,14 @@ export async function importScriptBundle(
   let importedCacheCount = 0;
   if (bundle.xmlCache) {
     for (const [hash, entry] of Object.entries(bundle.xmlCache)) {
-      // 检查是否已存在
-      if (!xmlCacheManager.getXml(hash)) {
+      // 🔥 修复：使用 getCachedXml() 检查是否存在
+      const existing = await xmlCacheManager.getCachedXml(hash);
+      if (!existing) {
+        // 🔥 修复：putXml(id, xmlContent, xmlHash)
         xmlCacheManager.putXml(
-          entry.content,
-          hash,
-          entry.metadata || {}
+          hash,           // id
+          entry.content,  // xmlContent
+          hash            // xmlHash
         );
         importedCacheCount++;
       } else {

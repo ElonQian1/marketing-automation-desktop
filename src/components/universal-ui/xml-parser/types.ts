@@ -17,6 +17,11 @@ export interface VisualUIElement {
   clickable: boolean;
   importance: 'high' | 'medium' | 'low';
   userFriendlyName: string;
+  // 🔧 新增：resource-id等关键属性
+  resourceId?: string;
+  contentDesc?: string;
+  className?: string;
+  bounds?: string; // 原始bounds字符串，如"[45,1059][249,1263]"
 }
 
 // 增强的UI元素接口

@@ -177,11 +177,19 @@ impl MultiCandidateEvaluator {
                 let child_text_match = Self::check_child_text_match(elem, target_text, &criteria.xml_content);
                 
                 if child_text_match.is_complete {
-                    score += 1.0;  // ✅✅✅ 提升到1.0 - Android核心UI模式，最高优先级！
-                    reasons.push(format!("✅✅✅✅✅✅ 子元素文本完全匹配: '{}' (父容器+子文本模式 - Android核心架构)", target_text));
+                    score += 1.0;  // ✅ 提升到1.0 - Android核心UI模式，最高优先级！
+                    reasons.push(format!(
+                        "✅✅✅✅✅✅ 子元素文本完全匹配: '{}' (父容器+子文本模式 - Android核心架构, 来源: {:?})",
+                        target_text,
+                        child_text_match.match_source
+                    ));
                 } else if child_text_match.is_partial {
                     score += 0.5;  // ✅ 提升到0.5
-                    reasons.push(format!("🟡🟡🟡 子元素文本部分匹配: '{}'", target_text));
+                    reasons.push(format!(
+                        "🟡🟡🟡 子元素文本部分匹配: '{}' (来源: {:?})",
+                        target_text,
+                        child_text_match.match_source
+                    ));
                 } else {
                     reasons.push(format!("⚠️ 子元素中未找到目标文本: '{}'", target_text));
                 }
@@ -257,12 +265,12 @@ impl MultiCandidateEvaluator {
         (score, reasons)
     }
     
-    /// 🔥 检查子元素文本匹配（核心架构特征）
+    /// 🔥 检查子元素文本匹配（核心架构特征 - 增强版）
     /// 
     /// Android UI常见模式：父容器可点击 + 子元素包含文本/描述
     /// 例如：
     /// ```xml
-    /// <node resource-id="com.ss.android.ugc.aweme:id/iwk" clickable="true">
+    /// <node resource-id="com.ss.android.ugc.aweme:id/iwk" clickable="true" content-desc="通讯录，">
     ///   <node resource-id="icon" class="ImageView" />
     ///   <node text="通讯录" class="TextView" clickable="false" />
     /// </node>
@@ -272,70 +280,173 @@ impl MultiCandidateEvaluator {
         target_text: &str,
         xml_content: &Option<String>,
     ) -> ChildTextMatchResult {
-        // 策略1: 检查元素自身的text属性
-        if let Some(ref elem_text) = elem.text {
-            if elem_text == target_text {
+        // 策略0（新增）: 检查父元素的content-desc（可能包含子元素文本的聚合）
+        // 例如: content-desc="通讯录，" 包含目标文本 "通讯录"
+        if let Some(ref elem_desc) = elem.content_desc {
+            // 完全匹配
+            if elem_desc == target_text {
+                // 🔕 临时禁用：测试时噪音过大
+                // tracing::debug!("✅ [子元素匹配] 策略0成功: 父元素content-desc完全匹配 '{}'", target_text);
                 return ChildTextMatchResult {
                     is_complete: true,
                     is_partial: false,
-                    matched_text: Some(elem_text.clone()),
+                    matched_text: Some(elem_desc.clone()),
+                    match_source: MatchSource::ParentContentDesc,
                 };
-            } else if elem_text.contains(target_text) {
+            }
+            
+            // 🔥 关键逻辑：检查是否以目标文本开头（可能后面跟着标点符号）
+            // "通讯录，" 以 "通讯录" 开头
+            if elem_desc.starts_with(target_text) {
+                // 检查后面是否是标点符号或空白
+                let after_text = &elem_desc[target_text.len()..];
+                if after_text.is_empty() || after_text.chars().next().map_or(false, |c| {
+                    c.is_whitespace() || "，。、；：！？,. ;:!?".contains(c)
+                }) {
+                    // 🔕 临时禁用：测试时噪音过大
+                    // tracing::debug!("✅ [子元素匹配] 策略0成功: 父元素content-desc以目标文本开头 '{}'", elem_desc);
+                    return ChildTextMatchResult {
+                        is_complete: true,
+                        is_partial: false,
+                        matched_text: Some(elem_desc.clone()),
+                        match_source: MatchSource::ParentContentDesc,
+                    };
+                }
+            }
+            
+            // 部分包含
+            if elem_desc.contains(target_text) {
+                // 🔕 临时禁用：测试时噪音过大
+                // tracing::debug!("🟡 [子元素匹配] 策略0部分成功: 父元素content-desc包含目标文本 '{}'", target_text);
                 return ChildTextMatchResult {
                     is_complete: false,
                     is_partial: true,
-                    matched_text: Some(elem_text.clone()),
+                    matched_text: Some(elem_desc.clone()),
+                    match_source: MatchSource::ParentContentDesc,
                 };
             }
         }
         
-        // 策略2: 检查元素的content-desc属性（也可能包含目标文本）
+        // 策略1: 检查元素自身的text属性
+        if let Some(ref elem_text) = elem.text {
+            if elem_text == target_text {
+                // 🔕 临时禁用：测试时噪音过大
+                // tracing::debug!("✅ [子元素匹配] 策略1成功: 元素自身text完全匹配 '{}'", target_text);
+                return ChildTextMatchResult {
+                    is_complete: true,
+                    is_partial: false,
+                    matched_text: Some(elem_text.clone()),
+                    match_source: MatchSource::SelfText,
+                };
+            } else if elem_text.contains(target_text) {
+                // 🔕 临时禁用：测试时噪音过大
+                // tracing::debug!("🟡 [子元素匹配] 策略1部分成功: 元素自身text包含目标文本 '{}'", target_text);
+                return ChildTextMatchResult {
+                    is_complete: false,
+                    is_partial: true,
+                    matched_text: Some(elem_text.clone()),
+                    match_source: MatchSource::SelfText,
+                };
+            }
+        }
+        
+        // 策略2: 检查元素自身的content-desc属性（注意：这里是检查精确匹配，与策略0不同）
         if let Some(ref elem_desc) = elem.content_desc {
             if elem_desc == target_text {
+                // 🔕 临时禁用：测试时噪音过大
+                // tracing::debug!("✅ [子元素匹配] 策略2成功: 元素自身content-desc完全匹配 '{}'", target_text);
                 return ChildTextMatchResult {
                     is_complete: true,
                     is_partial: false,
                     matched_text: Some(elem_desc.clone()),
+                    match_source: MatchSource::SelfContentDesc,
                 };
             } else if elem_desc.contains(target_text) {
+                // 🔕 临时禁用：测试时噪音过大
+                // tracing::debug!("🟡 [子元素匹配] 策略2部分成功: 元素自身content-desc包含目标文本 '{}'", target_text);
                 return ChildTextMatchResult {
                     is_complete: false,
                     is_partial: true,
                     matched_text: Some(elem_desc.clone()),
+                    match_source: MatchSource::SelfContentDesc,
                 };
             }
         }
         
         // 策略3: 从XML中提取子元素文本（🔥 完整实现）
         if let (Some(xml), Some(elem_bounds)) = (xml_content, &elem.bounds) {
+            // 🔕 临时禁用：测试时噪音过大
+            // tracing::debug!("🔍 [子元素匹配] 策略3: 从XML提取子元素文本, bounds={}", elem_bounds);
+            
             // 1. 在XML中定位该元素（通过bounds精确匹配）
             if let Some(element_fragment) = Self::extract_element_fragment_by_bounds(xml, elem_bounds) {
                 // 2. 提取该元素的所有子孙节点文本
                 let child_texts = Self::extract_all_child_texts(&element_fragment);
                 
+                // 🔕 临时禁用：测试时噪音过大
+                // tracing::debug!("  找到 {} 个子元素文本: {:?}", child_texts.len(), child_texts);
+                
                 // 3. 检查是否包含目标文本
                 for child_text in child_texts {
                     if child_text == target_text {
+                        // ✅ 保留：这是成功匹配的关键日志
+                        tracing::info!("✅✅ [子元素匹配] 策略3成功: XML子元素文本完全匹配 '{}'", target_text);
                         return ChildTextMatchResult {
                             is_complete: true,
                             is_partial: false,
                             matched_text: Some(child_text),
+                            match_source: MatchSource::ChildXmlText,
                         };
                     } else if child_text.contains(target_text) {
+                        // 🔕 临时禁用：测试时噪音过大
+                        // tracing::debug!("🟡 [子元素匹配] 策略3部分成功: XML子元素文本包含目标文本 '{}'", target_text);
                         return ChildTextMatchResult {
                             is_complete: false,
                             is_partial: true,
                             matched_text: Some(child_text),
+                            match_source: MatchSource::ChildXmlText,
                         };
+                    }
+                }
+            } else {
+                tracing::warn!("⚠️ [子元素匹配] 策略3失败: 无法在XML中找到bounds={} 的元素", elem_bounds);
+            }
+        } else {
+            if xml_content.is_none() {
+                tracing::warn!("⚠️ [子元素匹配] 策略3跳过: xml_content为None，无法提取子元素文本");
+            }
+        }
+        
+        // 策略4（新增）：如果没有XML，尝试通过resource-id和content-desc推断
+        if xml_content.is_none() {
+            // 检查是否是常见的容器resource-id模式
+            let container_patterns = ["iwk", "container", "wrapper", "item", "layout", "holder"];
+            if let Some(ref rid) = elem.resource_id {
+                if container_patterns.iter().any(|p| rid.to_lowercase().contains(p)) {
+                    tracing::warn!("⚠️ [子元素匹配] 策略4: 疑似父容器元素(resource-id={}), 但缺少XML无法验证子元素文本", rid);
+                    
+                    // 如果父元素的content-desc包含目标文本的一部分，给予部分分数
+                    if let Some(ref desc) = elem.content_desc {
+                        if desc.contains(target_text) {
+                            return ChildTextMatchResult {
+                                is_complete: false,
+                                is_partial: true,
+                                matched_text: Some(desc.clone()),
+                                match_source: MatchSource::Heuristic,
+                            };
+                        }
                     }
                 }
             }
         }
         
+        // 🔕 临时禁用：测试时噪音过大
+        // tracing::debug!("❌ [子元素匹配] 所有策略失败: 未找到目标文本 '{}'", target_text);
         ChildTextMatchResult {
             is_complete: false,
             is_partial: false,
             matched_text: None,
+            match_source: MatchSource::None,
         }
     }
     
@@ -525,7 +636,7 @@ impl MultiCandidateEvaluator {
     }
 }
 
-/// 子元素文本匹配结果
+/// 子元素文本匹配结果（增强版）
 #[derive(Debug, Clone)]
 struct ChildTextMatchResult {
     /// 完全匹配（文本完全相同）
@@ -534,6 +645,38 @@ struct ChildTextMatchResult {
     is_partial: bool,
     /// 匹配到的文本内容
     matched_text: Option<String>,
+    /// 🆕 匹配来源（用于调试和日志）
+    match_source: MatchSource,
+}
+
+impl Default for ChildTextMatchResult {
+    fn default() -> Self {
+        Self {
+            is_complete: false,
+            is_partial: false,
+            matched_text: None,
+            match_source: MatchSource::None,
+        }
+    }
+}
+
+/// 匹配来源类型
+#[derive(Debug, Clone)]
+enum MatchSource {
+    /// 元素自身text属性
+    SelfText,
+    /// 元素自身content-desc属性
+    SelfContentDesc,
+    /// 父元素的content-desc（可能包含子元素文本聚合）
+    ParentContentDesc,
+    /// 从XML提取的子元素text
+    ChildXmlText,
+    /// 从XML提取的子元素content-desc
+    ChildXmlDesc,
+    /// 启发式推断
+    Heuristic,
+    /// 未匹配
+    None,
 }
 
 #[cfg(test)]
@@ -563,6 +706,50 @@ mod tests {
         let result = MultiCandidateEvaluator::evaluate_candidates(candidates, &criteria);
         assert!(result.is_some());
         assert_eq!(result.unwrap().score, 1.0);
+    }
+    
+    #[test]
+    fn test_parent_clickable_child_text_pattern() {
+        // 测试"父可点击+子文本"的Android核心模式
+        let parent_elem = UIElement {
+            text: None,
+            content_desc: Some("通讯录，".to_string()),  // 父元素content-desc包含子元素文本的聚合
+            resource_id: Some("com.ss.android.ugc.aweme:id/iwk".to_string()),
+            bounds: Some("[45,1059][249,1263]".to_string()),
+            clickable: Some(true),
+            ..Default::default()
+        };
+        
+        let xml_content = Some(r#"
+<node resource-id="com.ss.android.ugc.aweme:id/iwk" clickable="true" bounds="[45,1059][249,1263]">
+  <node resource-id="icon" class="ImageView" bounds="[110,1093][184,1167]" />
+  <node text="通讯录" resource-id="title" class="TextView" bounds="[99,1196][195,1240]" />
+</node>
+        "#.to_string());
+        
+        let candidates = vec![&parent_elem];
+        let criteria = EvaluationCriteria {
+            target_text: Some("通讯录".to_string()),
+            target_content_desc: None,
+            original_bounds: Some("[45,1059][249,1263]".to_string()),
+            original_resource_id: Some("com.ss.android.ugc.aweme:id/iwk".to_string()),
+            children_texts: vec![],
+            prefer_last: false,
+            selected_xpath: None,
+            xml_content,
+        };
+        
+        let result = MultiCandidateEvaluator::evaluate_candidates(candidates, &criteria);
+        assert!(result.is_some());
+        
+        let match_result = result.unwrap();
+        // 期望评分：子元素文本完全匹配(1.0) + Bounds完全匹配(0.7) + 可点击(0.15) + Resource-id匹配(0.1) = 1.95
+        assert!(match_result.score >= 1.9, "评分应该至少1.9分, 实际: {}", match_result.score);
+        
+        // 验证原因中包含子元素文本匹配的说明
+        let reasons_str = match_result.reasons.join(" ");
+        assert!(reasons_str.contains("子元素文本") || reasons_str.contains("content-desc"), 
+                "评分原因应该包含子元素文本匹配的说明, 实际: {:?}", match_result.reasons);
     }
     
     #[test]

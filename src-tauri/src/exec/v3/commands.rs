@@ -10,6 +10,7 @@ use super::types::*;
 use super::single_step::execute_single_step_internal;
 use super::chain_engine::execute_chain; // 启用 V3 智能链执行引擎
 use super::static_exec::execute_static;
+use super::helpers::analysis_helpers::truncate_xml_in_json;
 
 /// 执行智能单步测试（V3）
 #[tauri::command]
@@ -38,8 +39,9 @@ pub async fn execute_chain_test_v3(
     envelope: ContextEnvelope,
     spec: serde_json::Value, // 🔍 临时使用Value来调试原始JSON
 ) -> Result<Value, String> {
-    // 🔍 调试：打印收到的原始JSON
-    tracing::warn!("🔍 [DEBUG] 收到的原始spec JSON: {}", serde_json::to_string_pretty(&spec).unwrap_or_default());
+    // 🔍 调试：打印收到的原始JSON（XML字段简化显示）
+    let truncated_spec = truncate_xml_in_json(&spec);
+    tracing::warn!("🔍 [DEBUG] 收到的原始spec JSON: {}", serde_json::to_string_pretty(&truncated_spec).unwrap_or_default());
     
     // 🔍 尝试反序列化为ChainSpecV3
     let parsed_spec: ChainSpecV3 = match serde_json::from_value(spec.clone()) {
@@ -49,7 +51,8 @@ pub async fn execute_chain_test_v3(
         },
         Err(e) => {
             tracing::error!("❌ [DEBUG] ChainSpecV3反序列化失败: {:?}", e);
-            tracing::error!("❌ [DEBUG] 失败的JSON数据: {}", serde_json::to_string_pretty(&spec).unwrap_or_default());
+            let truncated_spec = truncate_xml_in_json(&spec);
+            tracing::error!("❌ [DEBUG] 失败的JSON数据: {}", serde_json::to_string_pretty(&truncated_spec).unwrap_or_default());
             return Err(format!("ChainSpecV3反序列化失败: {}", e));
         }
     };

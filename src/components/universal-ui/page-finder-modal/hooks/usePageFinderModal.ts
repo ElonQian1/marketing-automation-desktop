@@ -365,7 +365,20 @@ export const usePageFinderModal = (props: UsePageFinderModalProps): UsePageFinde
       console.log("📄 加载的 XML 内容长度:", pageContent.xmlContent.length);
       console.log("🎯 提取的 UI 元素数量:", pageContent.elements.length);
       
-      setCurrentXmlCacheId(cachedPage.fileName || cachedPage.id);
+      // 🔥🔥🔥 使用文件名作为缓存 ID（与采集页面保持一致）
+      const xmlCacheId = cachedPage.fileName || cachedPage.id;
+      setCurrentXmlCacheId(xmlCacheId);
+      
+      // 🔥🔥🔥 [关键修复] 保存 XML 到 XmlCacheManager（从缓存加载时也要保存！）
+      const cacheManager = XmlCacheManager.getInstance();
+      const xmlHash = generateXmlHash(pageContent.xmlContent);
+      cacheManager.putXml(xmlCacheId, pageContent.xmlContent, `sha256:${xmlHash}`);
+      
+      console.log('✅ [usePageFinderModal] 从缓存加载并保存到XmlCacheManager:', {
+        xmlCacheId,
+        xmlContentLength: pageContent.xmlContent.length,
+        xmlHash: xmlHash.substring(0, 16) + '...'
+      });
       
       // 🔧 直接使用已解析的元素，避免重复解析
       setCurrentXmlContent(pageContent.xmlContent);

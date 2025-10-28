@@ -49,10 +49,37 @@ export class XmlParser {
       const extractedElements: VisualUIElement[] = [];
       const elementCategories = ElementCategorizer.createDefaultCategories();
 
+      // 🔧 修复：防止父子元素重复热区
+      // 策略：当子元素不可点击时，如果父元素可点击，优先选择父元素
+      const processedNodes = new Set<Element>();
+
       allNodes.forEach((node, index) => {
+        // 跳过已处理的节点
+        if (processedNodes.has(node)) {
+          return;
+        }
+
+        // 检查是否为不可点击的子元素，且父元素可点击
+        const isClickable = node.getAttribute("clickable") === "true";
+        const parentNode = node.parentElement;
+        const isParentClickable = parentNode?.getAttribute("clickable") === "true";
+
+        // 🎯 关键修复：如果当前元素不可点击，但父元素可点击，跳过子元素
+        if (!isClickable && isParentClickable && parentNode?.tagName === "node") {
+          console.log(`⏭️ [XmlParser] 跳过不可点击子元素，父元素可点击:`, {
+            子元素text: node.getAttribute("text"),
+            子元素bounds: node.getAttribute("bounds"),
+            父元素contentDesc: parentNode.getAttribute("content-desc"),
+            父元素bounds: parentNode.getAttribute("bounds"),
+          });
+          processedNodes.add(node);
+          return;
+        }
+
         const element = XmlParser.parseNodeToElement(node, index, options);
         if (element) {
           extractedElements.push(element);
+          processedNodes.add(node);
 
           // 将元素添加到相应类别
           const category = elementCategories[element.category];
@@ -149,6 +176,11 @@ export class XmlParser {
       clickable,
       importance,
       userFriendlyName,
+      // 🔧 新增：保存resource-id等关键属性
+      resourceId: resourceId || undefined,
+      contentDesc: contentDesc || undefined,
+      className: className || undefined,
+      bounds: bounds || undefined,
     };
   }
 

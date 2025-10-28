@@ -159,10 +159,11 @@ pub fn analyze_spatial_relation(
     
     // 1. 检查完全包含 (候选完全在用户区域内)
     if c_left >= u_left && c_top >= u_top && c_right <= u_right && c_bottom <= u_bottom {
-        tracing::debug!(
-            "✅ 候选完全包含: candidate={}, user={}",
-            candidate_bounds, user_bounds
-        );
+        // 🔕 临时禁用：测试时噪音过大
+        // tracing::debug!(
+        //     "✅ 候选完全包含: candidate={}, user={}",
+        //     candidate_bounds, user_bounds
+        // );
         return ElementRelation {
             spatial_relation: SpatialRelation::FullyContained,
             score: 1.0,
@@ -176,10 +177,11 @@ pub fn analyze_spatial_relation(
     if overlap_ratio > 0.0 {
         // 重叠比例映射到得分: 0.5-0.99
         let score = 0.5 + (overlap_ratio * 0.49);
-        tracing::debug!(
-            "🔗 候选部分重叠: overlap_ratio={:.3}, score={:.3}, candidate={}, user={}",
-            overlap_ratio, score, candidate_bounds, user_bounds
-        );
+        // 🔕 临时禁用：测试时噪音过大
+        // tracing::debug!(
+        //     "🔗 候选部分重叠: overlap_ratio={:.3}, score={:.3}, candidate={}, user={}",
+        //     overlap_ratio, score, candidate_bounds, user_bounds
+        // );
         return ElementRelation {
             spatial_relation: SpatialRelation::PartialOverlap { overlap_ratio },
             score,
@@ -193,10 +195,11 @@ pub fn analyze_spatial_relation(
     if distance < 2000.0 {
         // 距离映射到得分: 0.1-0.49
         let score = 0.49 - (distance / 2000.0 * 0.39).min(0.39);
-        tracing::debug!(
-            "📍 候选附近: distance={:.1}px, score={:.3}, candidate={}, user={}",
-            distance, score, candidate_bounds, user_bounds
-        );
+        // 🔕 临时禁用：测试时噪音过大
+        // tracing::debug!(
+        //     "📍 候选附近: distance={:.1}px, score={:.3}, candidate={}, user={}",
+        //     distance, score, candidate_bounds, user_bounds
+        // );
         return ElementRelation {
             spatial_relation: SpatialRelation::Nearby { distance },
             score,
@@ -206,10 +209,11 @@ pub fn analyze_spatial_relation(
     }
     
     // 4. 太远
-    tracing::debug!(
-        "🚫 候选远离: distance={:.1}px, candidate={}, user={}",
-        distance, candidate_bounds, user_bounds
-    );
+    // 🔕 临时禁用：测试时噪音过大
+    // tracing::debug!(
+    //     "🚫 候选远离: distance={:.1}px, candidate={}, user={}",
+    //     distance, candidate_bounds, user_bounds
+    // );
     ElementRelation {
         spatial_relation: SpatialRelation::Far,
         score: 0.0,

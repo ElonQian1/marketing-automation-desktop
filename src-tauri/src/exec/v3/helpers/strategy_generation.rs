@@ -3,6 +3,7 @@
 // summary: 提供智能策略候选生成、优化选择、步骤转换等功能
 
 use super::intelligent_analysis::{InteractiveElement, ScoredElement};
+use super::analysis_helpers::truncate_xml_in_json;
 use crate::services::intelligent_analysis_service::{StrategyCandidate, ElementInfo};
 use super::super::types::{StepRefOrInline, InlineStep, SingleStepAction};
 
@@ -117,10 +118,11 @@ pub fn convert_strategies_to_v3_steps(
             }
         }
         
-        // 🔍 调试：打印实际传递的参数
+        // 🔍 调试：打印实际传递的参数（XML字段简化显示）
+        let truncated_params = truncate_xml_in_json(&enhanced_params);
         tracing::info!("🔧 智能步骤参数: step_id={}, params={}", 
                        format!("intelligent_step_{}", idx + 1), 
-                       serde_json::to_string_pretty(&enhanced_params).unwrap_or_default());
+                       serde_json::to_string_pretty(&truncated_params).unwrap_or_default());
         
         let step = StepRefOrInline {
             r#ref: None,
@@ -370,12 +372,13 @@ pub fn rerank_candidates_by_bounds(
                 None => 0.0,
             };
             
-            tracing::debug!(
-                "  候选: bounds={:?}, 原始置信度={:.3}, bounds匹配得分={:.3}",
-                candidate.element_info.bounds,
-                candidate.confidence,
-                bounds_score
-            );
+            // 🔕 临时禁用：测试时噪音过大
+            // tracing::debug!(
+            //     "  候选: bounds={:?}, 原始置信度={:.3}, bounds匹配得分={:.3}",
+            //     candidate.element_info.bounds,
+            //     candidate.confidence,
+            //     bounds_score
+            // );
             
             (candidate, bounds_score)
         })
