@@ -15,6 +15,7 @@ pub mod step_scoring;
 pub mod phase_handlers;
 pub mod intelligent_preprocessing;
 pub mod element_hierarchy_analyzer;
+pub mod batch_executor;  // 🆕 批量执行引擎
 
 // 统一导出常用类型和函数
 pub use element_matching::*;
@@ -30,5 +31,6 @@ pub use step_scoring::*;
 pub use phase_handlers::*;
 pub use intelligent_preprocessing::*;
 pub use element_hierarchy_analyzer::*;
+pub use batch_executor::*;  // 🆕 批量执行引擎
 
 

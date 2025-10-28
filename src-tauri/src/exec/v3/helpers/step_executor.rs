@@ -15,6 +15,12 @@ use super::element_matching::{  // 从helpers/element_matching导入工具函数
     find_all_elements_by_text_or_desc as helper_find_all_elements,
     parse_bounds_center as helper_parse_bounds,
 };
+use super::batch_executor::{  // 🆕 导入批量执行模块
+    BatchExecutor,
+    BatchExecutionConfig,
+    should_use_batch_mode,
+    validate_batch_prerequisites,
+};
 // ⚠️ 暂时禁用 recovery_manager（编译错误待修复）
 // use super::super::recovery_manager::{RecoveryContext, attempt_recovery};
 
@@ -139,7 +145,20 @@ pub async fn execute_intelligent_analysis_step(
         tracing::error!("❌ [数据完整性] original_data 完全缺失！失败恢复能力严重受限！");
     }
     
-    // 🆕 多候选评估：使用模块化评估系统（传递 ui_xml）
+    // 🔥 检测批量模式
+    if should_use_batch_mode(&inline.params) {
+        // ✅ 批量模式：使用专门的批量执行器
+        return execute_batch_mode(
+            device_id,
+            candidate_elements,
+            &inline.params,
+            &target_text,
+            &inline.step_id,
+        )
+        .await;
+    }
+
+    // 🔥 单次模式：现有逻辑
     let mut target_element = evaluate_best_candidate(candidate_elements, &inline.params, ui_xml)?;
     
     // 🆕 修复3：失败恢复机制
@@ -162,6 +181,109 @@ pub async fn execute_intelligent_analysis_step(
     
     // 执行点击操作
     execute_click_action(device_id, clickable_element, &target_text, &inline.step_id).await
+}
+
+/// 🔄 批量模式执行（模块化）
+async fn execute_batch_mode<'a>(
+    device_id: &str,
+    candidates: Vec<&'a UIElement>,
+    params: &serde_json::Value,
+    target_text: &str,
+    step_id: &str,
+) -> Result<(i32, i32), String> {
+    // 验证前置条件
+    validate_batch_prerequisites(&candidates, params)?;
+
+    // 解析批量配置
+    let config = BatchExecutionConfig::from_params(params, step_id)?;
+
+    tracing::info!(
+        "🔄 [批量模式] 开始批量执行，共 {} 个候选（最多执行 {} 个）",
+        candidates.len(),
+        config.max_count
+    );
+
+    tracing::info!(
+        "📋 [批量配置] maxCount={}, intervalMs={}ms, continueOnError={}",
+        config.max_count,
+        config.interval_ms,
+        config.continue_on_error
+    );
+
+    let mut success_count = 0;
+    let total = candidates.len().min(config.max_count);
+
+    // 直接循环执行，不使用复杂的闭包
+    for (i, candidate) in candidates.iter().take(config.max_count).enumerate() {
+        let index = i + 1;
+
+        if config.show_progress {
+            tracing::info!("🔄 [批量执行] 点击第 {}/{} 个候选", index, total);
+        }
+
+        // 检查元素可点击性
+        let clickable = ensure_clickable_element(candidate);
+
+        // 生成元素信息（用于日志）
+        let element_info = format!(
+            "text={:?}, bounds={:?}, resource_id={:?}",
+            clickable.text, clickable.bounds, clickable.resource_id
+        );
+
+        // 执行点击
+        match execute_click_action(device_id, clickable, target_text, step_id).await {
+            Ok((x, y)) => {
+                success_count += 1;
+                if config.show_progress {
+                    tracing::info!(
+                        "✅ [批量执行] 第 {} 个点击成功: ({}, {}) | {}",
+                        index,
+                        x,
+                        y,
+                        element_info
+                    );
+                }
+            }
+            Err(e) => {
+                tracing::warn!(
+                    "❌ [批量执行] 第 {} 个点击失败: {} | {}",
+                    index,
+                    e,
+                    element_info
+                );
+
+                // 检查是否需要提前终止
+                if !config.continue_on_error {
+                    tracing::warn!("⚠️ [批量执行] continueOnError=false，提前终止");
+                    break;
+                }
+            }
+        }
+
+        // 添加间隔（最后一个不需要）
+        if index < total {
+            if config.show_progress {
+                tracing::info!("⏱️ [批量执行] 等待 {}ms 后继续", config.interval_ms);
+            }
+            tokio::time::sleep(tokio::time::Duration::from_millis(config.interval_ms)).await;
+        }
+    }
+
+    tracing::info!(
+        "✅ [批量模式] 执行完成，成功 {}/{} 个点击",
+        success_count,
+        total
+    );
+
+    // 根据结果返回
+    if success_count > 0 {
+        Ok((0, 0)) // 批量模式返回虚拟坐标
+    } else {
+        Err(format!(
+            "批量模式执行失败，0/{} 个点击成功",
+            total
+        ))
+    }
 }
 
 /// 提取目标文本（支持多层嵌套）
@@ -315,25 +437,40 @@ fn collect_candidate_elements<'a>(
         }
     };
     
-    // 🔥 P0修复：如果有 original_bounds，优先过滤完全匹配 bounds 的元素
+    // 🔥 批量模式检测：从 params 中提取 mode
+    let batch_mode = params.get("smartSelection")
+        .and_then(|v| v.get("mode"))
+        .and_then(|v| v.as_str())
+        .unwrap_or("first");
+    
+    // 🔥 P0修复：根据 mode 决定是否使用 Bounds 精确过滤
     if let Some(user_bounds) = original_bounds {
-        let exact_match: Vec<_> = candidates.iter()
-            .filter(|e| {
-                e.bounds.as_ref().map(|b| {
-                    let normalize = |s: &str| s.replace(" ", "");
-                    normalize(b) == normalize(user_bounds)
-                }).unwrap_or(false)
-            })
-            .copied()
-            .collect();
-        
-        if !exact_match.is_empty() {
-            tracing::info!("✅ [Bounds过滤] 找到 {} 个完全匹配用户选择bounds的元素 (从 {} 个候选中过滤)", 
-                         exact_match.len(), candidates.len());
-            return exact_match;
+        if batch_mode == "all" {
+            // 🎯 批量模式：不过滤，只排序（按 Bounds 相似度）
+            tracing::info!("🔄 [批量模式] 保留所有 {} 个候选，按 Bounds 相似度排序", candidates.len());
+            tracing::info!("   用户选择bounds='{}' 将用于相似度排序（不过滤）", user_bounds);
+            // TODO: 实现 Bounds 相似度排序
+            return candidates;
         } else {
-            tracing::warn!("⚠️ [Bounds过滤] 未找到完全匹配用户bounds='{}' 的元素，使用全部 {} 个候选", 
-                         user_bounds, candidates.len());
+            // 🎯 单次模式：使用 Bounds 精确过滤
+            let exact_match: Vec<_> = candidates.iter()
+                .filter(|e| {
+                    e.bounds.as_ref().map(|b| {
+                        let normalize = |s: &str| s.replace(" ", "");
+                        normalize(b) == normalize(user_bounds)
+                    }).unwrap_or(false)
+                })
+                .copied()
+                .collect();
+            
+            if !exact_match.is_empty() {
+                tracing::info!("✅ [Bounds过滤] 找到 {} 个完全匹配用户选择bounds的元素 (从 {} 个候选中过滤)", 
+                             exact_match.len(), candidates.len());
+                return exact_match;
+            } else {
+                tracing::warn!("⚠️ [Bounds过滤] 未找到完全匹配用户bounds='{}' 的元素，使用全部 {} 个候选", 
+                             user_bounds, candidates.len());
+            }
         }
     }
     

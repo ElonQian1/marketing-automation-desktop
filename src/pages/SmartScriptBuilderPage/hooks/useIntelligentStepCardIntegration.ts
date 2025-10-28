@@ -587,16 +587,32 @@ export function useIntelligentStepCardIntegration(options: UseIntelligentStepCar
         const enrichedContentDesc = context.keyAttributes?.['content-desc'] || '';
         const elementId = element.resource_id || element.id || '';
         
-        // 1. 优先使用已增强的文本（可能来自子元素）
+        // 🔍 调试日志：检查命名数据来源
+        console.log('🏷️ [智能命名] 生成步骤名称:', {
+          原始element_text: element.text,
+          增强enrichedText: enrichedText,
+          原始element_content_desc: element.content_desc,
+          增强enrichedContentDesc: enrichedContentDesc,
+          是否中层容器: !element.text && enrichedText,
+          子元素文本: context._enrichment?.allChildTexts,
+          兄弟元素文本: context._enrichment?.siblingTexts,
+          父元素content_desc: context._enrichment?.parentElement?.content_desc
+        });
+        
+        // 1. 优先使用已增强的文本（可能来自兄弟/子元素）
         if (enrichedText && enrichedText.trim()) {
-          return `点击"${enrichedText.slice(0, 10)}${enrichedText.length > 10 ? '...' : ''}"`;
+          const finalName = `点击"${enrichedText.slice(0, 10)}${enrichedText.length > 10 ? '...' : ''}"`;
+          console.log('✅ [智能命名] 使用增强文本生成名称:', finalName);
+          return finalName;
         }
         
         // 2. 使用已增强的 content-desc（可能来自父元素）
         if (enrichedContentDesc && enrichedContentDesc.trim()) {
           // 去除尾部标点符号
           const cleanDesc = enrichedContentDesc.replace(/[，。、：；！？]+$/, '');
-          return `点击"${cleanDesc.slice(0, 10)}${cleanDesc.length > 10 ? '...' : ''}"`;
+          const finalName = `点击"${cleanDesc.slice(0, 10)}${cleanDesc.length > 10 ? '...' : ''}"`;
+          console.log('✅ [智能命名] 使用增强content-desc生成名称:', finalName);
+          return finalName;
         }
         
         // 3. 如果有资源ID，尝试语义化
