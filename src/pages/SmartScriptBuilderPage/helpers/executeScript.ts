@@ -136,25 +136,23 @@ export function createHandleExecuteScript(ctx: Ctx) {
             
             console.log(`📜 [V2滚动] 滚动参数: (${centerX},${startY}) → (${centerX},${endY}), 时长:${duration}ms`);
             
-            // 调用V2的run_step_v2执行滑动
+            // 调用V2的run_step_v2执行滑动（注意：所有参数必须包裹在request对象中）
             const v2Result = await invoke("run_step_v2", {
-              deviceId: selectedDevice,
-              stepData: {
-                step_id: step.id,
-                step_name: step.name,
-                action_type: "swipe", // V2引擎使用swipe
-                parameters: {
+              request: {
+                device_id: selectedDevice,
+                mode: "execute_step",
+                strategy: "intelligent",
+                step: {
+                  step_id: step.id,
+                  step_name: step.name,
+                  action: "swipe",
                   start_x: centerX,
                   start_y: startY,
                   end_x: centerX,
                   end_y: endY,
-                  duration: duration
-                },
-                validation: {},
-                ui_hints: []
-              },
-              engineMode: "v2",
-              strategy: "intelligent"
+                  duration_ms: duration
+                }
+              }
             });
             
             console.log(`✅ [V2滚动] 步骤 ${i + 1} 执行成功:`, v2Result);
