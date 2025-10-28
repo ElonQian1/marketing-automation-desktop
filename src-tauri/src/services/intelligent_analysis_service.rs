@@ -437,29 +437,154 @@ fn extract_context_from_ui_elements(
         }
     }
     
-    // 🎯 策略 3: 智能回退到常见目标
-    let priority_targets = vec!["我", "首页", "消息", "朋友", "商城", "发现", "购物车"];
-    for target in priority_targets {
-        let target_element = ui_elements.iter()
-            .find(|elem| {
-                elem.text.as_ref().map(|t| t == target).unwrap_or(false) ||
-                elem.content_desc.as_ref().map(|d| d.contains(target)).unwrap_or(false)
-            });
+    // 🎯 策略 3: 智能模糊搜索 - 基于 hint 对所有元素评分
+    // 🔥 P0修复: 即使精确/模糊匹配失败，也要基于 hint 进行相关性评分
+    if let Some(hint) = target_hint {
+        tracing::warn!("⚠️ 精确/模糊匹配失败，尝试基于 hint='{}' 的智能相关性评分", hint);
         
-        if let Some(elem) = target_element {
-            tracing::warn!("⚠️ 使用智能回退目标: '{}'", target);
-            return build_context_from_element(elem, ui_elements);
+        let mut scored_elements: Vec<(f32, &crate::services::ui_reader_service::UIElement)> = ui_elements.iter()
+            .filter(|elem| {
+                // 可交互元素
+                elem.clickable.unwrap_or(false) || elem.content_desc.is_some()
+            })
+            .map(|elem| {
+                let mut score = 0.0f32;
+                
+                // 🔥 最高优先级：与 hint 的相关性（0-0.6分）
+                let hint_lower = hint.to_lowercase();
+                
+                // text 相关性
+                if let Some(ref text) = elem.text {
+                    let text_lower = text.to_lowercase();
+                    if text_lower.contains(&hint_lower) {
+                        score += 0.4; // 包含完整 hint
+                    } else if hint_lower.contains(&text_lower) {
+                        score += 0.3; // hint 包含 text
+                    } else {
+                        // 计算字符相似度
+                        let similarity = calculate_string_similarity(&hint_lower, &text_lower);
+                        score += similarity * 0.2;
+                    }
+                }
+                
+                // content-desc 相关性
+                if let Some(ref desc) = elem.content_desc {
+                    let desc_lower = desc.to_lowercase();
+                    if desc_lower.contains(&hint_lower) {
+                        score += 0.5; // content-desc 匹配权重最高
+                    } else if hint_lower.contains(&desc_lower) {
+                        score += 0.4;
+                    } else {
+                        let similarity = calculate_string_similarity(&hint_lower, &desc_lower);
+                        score += similarity * 0.25;
+                    }
+                }
+                
+                // 基础特征加分（0-0.4分）
+                if elem.resource_id.is_some() && !elem.resource_id.as_ref().unwrap().is_empty() {
+                    score += 0.15;
+                }
+                if elem.clickable.unwrap_or(false) {
+                    score += 0.15;
+                }
+                if elem.text.as_ref().map(|t| !t.trim().is_empty() && t.len() < 20).unwrap_or(false) {
+                    score += 0.1;
+                }
+                
+                (score, elem)
+            })
+            .filter(|(score, _)| *score > 0.2) // 必须有最低相关性
+            .collect();
+        
+        // 按评分降序排列
+        scored_elements.sort_by(|a, b| b.0.partial_cmp(&a.0).unwrap());
+        
+        if let Some((score, best_elem)) = scored_elements.first() {
+            tracing::warn!(
+                "✅ 基于 hint='{}' 选择最佳匹配元素 (相关性评分: {:.2}): text={:?}, content-desc={:?}, resource-id={:?}",
+                hint, score,
+                best_elem.text,
+                best_elem.content_desc,
+                best_elem.resource_id
+            );
+            return build_context_from_element(best_elem, ui_elements);
+        } else {
+            tracing::error!("❌ 没有找到与 hint='{}' 相关的元素（所有元素相关性评分 < 0.2）", hint);
         }
     }
     
-    // 🎯 策略 4: 兜底 - 第一个可点击元素
-    let first_clickable = ui_elements.iter()
-        .find(|elem| elem.clickable.unwrap_or(false))
-        .ok_or_else(|| anyhow::anyhow!("❌ 未找到任何可点击元素"))?;
+    // 🎯 策略 4: 通用智能选择（无 hint 时的兜底）- 评分所有元素，选择最佳候选
+    tracing::warn!("⚠️ 无 hint 提供，尝试通用智能元素评分选择最佳候选");
     
-    tracing::warn!("⚠️ 使用兜底策略: 第一个可点击元素 text={:?}", first_clickable.text);
+    // 对所有可交互元素进行评分
+    let mut scored_elements: Vec<(f32, &crate::services::ui_reader_service::UIElement)> = ui_elements.iter()
+        .filter(|elem| {
+            // 可点击或有content-desc的元素
+            elem.clickable.unwrap_or(false) || elem.content_desc.is_some()
+        })
+        .map(|elem| {
+            let mut score = 0.0f32;
+            
+            // 有resource-id：+0.3
+            if elem.resource_id.is_some() && !elem.resource_id.as_ref().unwrap().is_empty() {
+                score += 0.3;
+            }
+            
+            // 有text：+0.2
+            if let Some(ref text) = elem.text {
+                if !text.trim().is_empty() && text.len() < 20 {
+                    score += 0.2;
+                    // 短文本更好：+0.1
+                    if text.len() <= 6 {
+                        score += 0.1;
+                    }
+                }
+            }
+            
+            // 有content-desc：+0.2
+            if let Some(ref desc) = elem.content_desc {
+                if !desc.trim().is_empty() && desc.len() < 30 {
+                    score += 0.2;
+                    // 包含"按钮"等关键词：+0.1
+                    if desc.contains("按钮") || desc.contains("button") {
+                        score += 0.1;
+                    }
+                }
+            }
+            
+            // 可点击：+0.2
+            if elem.clickable.unwrap_or(false) {
+                score += 0.2;
+            }
+            
+            (score, elem)
+        })
+        .filter(|(score, _)| *score > 0.3) // 至少要有基本特征
+        .collect();
     
-    build_context_from_element(first_clickable, ui_elements)
+    // 按评分降序排列
+    scored_elements.sort_by(|a, b| b.0.partial_cmp(&a.0).unwrap());
+    
+    if let Some((score, best_elem)) = scored_elements.first() {
+        tracing::warn!(
+            "⚠️ 智能选择最佳候选元素 (评分: {:.2}): text={:?}, content-desc={:?}, resource-id={:?}",
+            score,
+            best_elem.text,
+            best_elem.content_desc,
+            best_elem.resource_id
+        );
+        return build_context_from_element(best_elem, ui_elements);
+    }
+    
+    // 🎯 策略 5: 终极兜底 - 返回错误提示需要更多信息
+    Err(anyhow::anyhow!(
+        "❌ 无法自动选择目标元素。请提供以下任一信息：\n\
+         1. 明确的 target_element_hint (text 或 content-desc)\n\
+         2. 完整的 user_selection 上下文\n\
+         3. 具体的 resource-id\n\
+         当前可交互元素数: {}",
+        ui_elements.iter().filter(|e| e.clickable.unwrap_or(false)).count()
+    ))
 }
 
 /// 从 UI 元素构建完整的 AnalysisContext（包含祖先分析）
@@ -524,6 +649,7 @@ fn build_context_from_element(
         resource_id: elem.resource_id.clone(),
         class_name: elem.class.clone(),
         bounds: elem.bounds.clone(),
+        content_desc: elem.content_desc.clone(),  // 🆕 传递 content-desc
         container_info: None, // TODO: 实现祖先容器分析
     })
 }
@@ -606,6 +732,7 @@ pub async fn mock_intelligent_analysis(
             resource_id: selection.resource_id.clone(),
             class_name: selection.class_name.clone(),
             bounds: selection.bounds.clone(),
+            content_desc: selection.content_desc.clone(),  // 🆕 传递 content-desc
             container_info: extract_container_from_ancestors(&selection.ancestors),
         }
     } else {
@@ -616,9 +743,10 @@ pub async fn mock_intelligent_analysis(
         extract_context_from_ui_elements(&ui_elements, target_hint)?
     };
     
-    tracing::info!("🔍 分析上下文: resource_id={:?}, text={:?}, xpath={}", 
+    tracing::info!("🔍 分析上下文: resource_id={:?}, text={:?}, content-desc={:?}, xpath={}", 
                    analysis_context.resource_id, 
                    analysis_context.element_text,
+                   analysis_context.content_desc,
                    analysis_context.element_path);
     
     // 🎯 使用 StrategyEngine 进行完整的 Step 0-6 分析
@@ -788,4 +916,29 @@ async fn perform_fallback_analysis(
     ];
     
     Ok(candidates)
+}
+
+/// 🔧 计算两个字符串的相似度（简单实现：基于最长公共子序列）
+/// 返回值范围 0.0-1.0，1.0表示完全相同
+fn calculate_string_similarity(s1: &str, s2: &str) -> f32 {
+    if s1.is_empty() || s2.is_empty() {
+        return 0.0;
+    }
+    
+    if s1 == s2 {
+        return 1.0;
+    }
+    
+    // 使用 Levenshtein 距离的简化版本
+    let len1 = s1.chars().count();
+    let len2 = s2.chars().count();
+    let max_len = len1.max(len2) as f32;
+    
+    // 计算公共字符数
+    let common_chars: usize = s1.chars()
+        .filter(|c| s2.contains(*c))
+        .count();
+    
+    // 相似度 = 公共字符数 / 较长字符串长度
+    common_chars as f32 / max_len
 }

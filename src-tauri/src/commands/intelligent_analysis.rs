@@ -476,6 +476,10 @@ fn build_analysis_context(element_context: &ElementSelectionContext) -> Analysis
             .and_then(|attrs| attrs.get("class"))
             .cloned(),
         bounds: element_context.element_bounds.clone(),
+        content_desc: element_context.key_attributes  // 🆕 提取 content-desc
+            .as_ref()
+            .and_then(|attrs| attrs.get("content-desc"))
+            .cloned(),
         container_info: element_context.container_info.as_ref().map(|ci| EngineContainerInfo {
             container_type: ci.container_type.clone(),
             container_path: ci.container_path.clone(),

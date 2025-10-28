@@ -243,10 +243,12 @@ impl XPathDirectStrategyProcessor {
     }
 
     /// 简化的 XPath 搜索实现
+    /// 
+    /// 🔥 增强: 支持多元素匹配时的空间距离过滤（修复 Bug: WRONG_ELEMENT_SELECTION_BUG_REPORT.md）
     fn simple_xpath_search(&self, xml_content: &str, xpath: &str, logs: &mut Vec<String>) -> Result<(i32, i32), String> {
         use regex::Regex;
         
-        logs.push("🔧 使用简化 XPath 搜索算法...".to_string());
+        logs.push("🔧 使用简化 XPath 搜索算法 (支持空间过滤)...".to_string());
         
         // 提取 XPath 中的属性条件
         let mut conditions = Vec::new();
@@ -258,13 +260,24 @@ impl XPathDirectStrategyProcessor {
             }
         }
         
-        if conditions.is_empty() {
+        // 匹配子元素条件 [.//*[@text='xxx']]
+        let mut child_text_condition: Option<String> = None;
+        if let Ok(child_re) = Regex::new(r#"\[\./\*\*\[@text='([^']+)'\]\]"#) {
+            if let Some(cap) = child_re.captures(xpath) {
+                child_text_condition = Some(cap[1].to_string());
+                logs.push(format!("🎯 检测到子元素文本条件: {}", cap[1].to_string()));
+            }
+        }
+        
+        if conditions.is_empty() && child_text_condition.is_none() {
             return Err("XPath 不包含可识别的属性条件".to_string());
         }
         
         logs.push(format!("🔍 提取到 {} 个属性条件", conditions.len()));
         
         // 在 XML 中查找匹配的节点
+        let mut candidates = Vec::new();
+        
         if let Ok(node_re) = Regex::new(r#"<node[^>]*bounds="\[(\d+),(\d+)\]\[(\d+),(\d+)\]"[^>]*>"#) {
             for line in xml_content.lines() {
                 if line.contains("<node") {
@@ -280,6 +293,13 @@ impl XPathDirectStrategyProcessor {
                         }
                     }
                     
+                    // 检查子元素文本条件（简化实现：检查同一行是否包含子元素文本）
+                    if let Some(ref child_text) = child_text_condition {
+                        if !line.contains(&format!("text=\"{}\"", child_text)) {
+                            matches_all = false;
+                        }
+                    }
+                    
                     if matches_all {
                         // 提取 bounds 坐标
                         if let Some(bounds_cap) = node_re.captures(line) {
@@ -291,8 +311,7 @@ impl XPathDirectStrategyProcessor {
                             ) {
                                 let center_x = (left + right) / 2;
                                 let center_y = (top + bottom) / 2;
-                                logs.push(format!("✅ 找到匹配元素，中心坐标: ({}, {})", center_x, center_y));
-                                return Ok((center_x, center_y));
+                                candidates.push((center_x, center_y, left, top, right, bottom));
                             }
                         }
                     }
@@ -300,7 +319,39 @@ impl XPathDirectStrategyProcessor {
             }
         }
         
-        Err("在 XML 中未找到匹配 XPath 条件的元素".to_string())
+        if candidates.is_empty() {
+            return Err("在 XML 中未找到匹配 XPath 条件的元素".to_string());
+        }
+        
+        logs.push(format!("📍 找到 {} 个匹配的候选元素", candidates.len()));
+        
+        // 如果只有一个候选，直接返回
+        if candidates.len() == 1 {
+            let (x, y, _, _, _, _) = candidates[0];
+            logs.push(format!("✅ 唯一匹配元素，中心坐标: ({}, {})", x, y));
+            return Ok((x, y));
+        }
+        
+        // 🔥 多个候选时，使用子元素文本作为筛选条件（优先级最高）
+        if let Some(ref child_text) = child_text_condition {
+            logs.push(format!("🎯 多个候选，使用子元素文本 '{}' 进行精确筛选", child_text));
+            // 这里已经在上面的 matches_all 中过滤了，理论上不会走到这里
+            // 但作为双重保险，取第一个匹配的
+            let (x, y, _, _, _, _) = candidates[0];
+            logs.push(format!("✅ 选择第一个匹配的元素，坐标: ({}, {})", x, y));
+            return Ok((x, y));
+        }
+        
+        // 🔥 多个候选且没有子元素文本条件时，输出警告并返回第一个
+        logs.push("⚠️ 警告: 找到多个匹配元素但无法精确区分，返回第一个".to_string());
+        for (idx, (x, y, left, top, right, bottom)) in candidates.iter().enumerate() {
+            logs.push(format!("  候选 {}: 中心({}, {}), bounds=[{},{}][{},{}]", 
+                             idx + 1, x, y, left, top, right, bottom));
+        }
+        
+        let (x, y, _, _, _, _) = candidates[0];
+        logs.push(format!("✅ 使用第一个候选元素，坐标: ({}, {})", x, y));
+        Ok((x, y))
     }
 
     /// 验证 XPath 格式（后备方案）

@@ -149,7 +149,7 @@ pub enum SingleStepSpecV3 {
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
-#[serde(tag = "action", rename_all = "snake_case")]
+#[serde(rename_all = "snake_case")]
 pub enum SingleStepAction {
     Tap,
     Input,
@@ -232,8 +232,8 @@ pub struct StepRefOrInline {
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub struct InlineStep {
+    #[serde(rename = "stepId")]
     pub step_id: String,
-    #[serde(flatten)]
     pub action: SingleStepAction,
     #[serde(default)]
     pub params: Value,

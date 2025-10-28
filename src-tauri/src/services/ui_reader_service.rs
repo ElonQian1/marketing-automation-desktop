@@ -314,7 +314,13 @@ pub fn parse_ui_elements(xml_content: &str) -> Result<Vec<UIElement>, String> {
             
             // 只处理包含bounds属性的节点
             if tag_content.contains("bounds=") {
-                if let Ok(element) = parse_node_element(tag_content) {
+                if let Ok(mut element) = parse_node_element(tag_content) {
+                    // 🆕 增强功能：如果父元素没有 text 但有 bounds，尝试从后续子元素中提取文本
+                    if element.text.as_ref().map_or(true, |t| t.trim().is_empty()) && element.bounds.is_some() {
+                        if let Some(child_text) = extract_child_text(&expanded_content[absolute_start..]) {
+                            element.text = Some(child_text);
+                        }
+                    }
                     elements.push(element);
                 }
             }
@@ -325,12 +331,62 @@ pub fn parse_ui_elements(xml_content: &str) -> Result<Vec<UIElement>, String> {
         }
     }
     
-    println!("🔍 解析到 {} 个UI元素", elements.len());
+    println!("🔍 解析到 {} 个UI元素（含子文本继承）", elements.len());
     if elements.len() == 1 && xml_content.len() > 1000 {
         println!("⚠️ 只解析到1个元素但XML内容很长({}字符)，可能存在解析问题", xml_content.len());
         println!("📄 XML前200字符: {}", &xml_content.chars().take(200).collect::<String>());
     }
     Ok(elements)
+}
+
+/// 🆕 从子元素中提取文本（用于父元素text为空的情况）
+/// 递归查找嵌套子节点中的 text 或 content-desc 属性
+fn extract_child_text(xml_fragment: &str) -> Option<String> {
+    let mut texts = Vec::new();
+    
+    // ✅ 使用字符迭代器安全地限制搜索范围，避免字节索引导致的 UTF-8 panic
+    // 取前 1500 个字符（而非字节），对于中文也安全
+    let search_fragment: String = xml_fragment.chars().take(1500).collect();
+    let search_fragment = search_fragment.as_str();
+    
+    // 🔍 优先查找 text="..." 属性
+    let mut pos = 0;
+    while let Some(text_start) = search_fragment[pos..].find("text=\"") {
+        let absolute_start = pos + text_start + 6; // 跳过 'text="'
+        if let Some(text_end) = search_fragment[absolute_start..].find('"') {
+            let text_value = &search_fragment[absolute_start..absolute_start + text_end];
+            // 只收集非空且较短的文本（避免长描述性文字）
+            if !text_value.trim().is_empty() && text_value.len() <= 20 {
+                texts.push(text_value.to_string());
+                break; // 找到第一个有效 text 就返回
+            }
+            pos = absolute_start + text_end + 1;
+        } else {
+            break;
+        }
+    }
+    
+    // 如果 text 没找到，再尝试查找 content-desc="..." 属性
+    if texts.is_empty() {
+        let mut pos = 0;
+        while let Some(desc_start) = search_fragment[pos..].find("content-desc=\"") {
+            let absolute_start = pos + desc_start + 14; // 跳过 'content-desc="'
+            if let Some(desc_end) = search_fragment[absolute_start..].find('"') {
+                let desc_value = &search_fragment[absolute_start..absolute_start + desc_end];
+                // 只收集非空且较短的描述文本
+                if !desc_value.trim().is_empty() && desc_value.len() <= 30 {
+                    texts.push(desc_value.to_string());
+                    break; // 找到第一个有效 content-desc 就返回
+                }
+                pos = absolute_start + desc_end + 1;
+            } else {
+                break;
+            }
+        }
+    }
+    
+    // 返回第一个找到的文本
+    texts.first().cloned()
 }
 
 /// 解析单个node元素

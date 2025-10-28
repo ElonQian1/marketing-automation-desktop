@@ -288,8 +288,14 @@ impl UniversalUIPageAnalyzer {
         // 智能分类元素类型
         let element_type = self.classify_element_type(&class_name, &text, is_clickable, &content_desc);
 
-        // 生成 xpath （简化版，使用 element_id）
-        let xpath = format!("element_{}", element_id);
+        // 🔥 生成真正的 XPath（用于跨设备元素定位）
+        let xpath = self.generate_smart_xpath(
+            &resource_id,
+            &text,
+            &content_desc,
+            &class_name,
+            element_id
+        );
         
         Ok(UIElement {
             id: element_id.to_string(),
@@ -383,6 +389,74 @@ impl UniversalUIPageAnalyzer {
         }
 
         base_type.to_string()
+    }
+
+    /// 🔥 生成智能 XPath（用于跨设备元素定位）
+    /// 
+    /// 优先级策略：
+    /// 1. content-desc（描述性强，通常稳定）
+    /// 2. resource-id + text（组合定位，准确度高）
+    /// 3. resource-id（包名可能变化，需谨慎）
+    /// 4. text（文字稳定时可用）
+    /// 5. 兜底：element_id（仅限同设备同 XML）
+    fn generate_smart_xpath(
+        &self,
+        resource_id: &Option<String>,
+        text: &str,
+        content_desc: &str,
+        class_name: &str,
+        element_id: &str,
+    ) -> String {
+        let mut conditions = Vec::new();
+        
+        // 优先级 1: content-desc（如果有意义且非空）
+        if !content_desc.is_empty() && content_desc.len() > 1 {
+            let escaped = content_desc.replace('\'', "&apos;").replace('"', "&quot;");
+            return format!("//*[@content-desc='{}']", escaped);
+        }
+        
+        // 优先级 2: resource-id + text 组合（提高准确度）
+        if let Some(ref rid) = resource_id {
+            if !rid.is_empty() && !text.is_empty() && text.len() > 1 {
+                let escaped_rid = rid.replace('\'', "&apos;");
+                let escaped_text = text.replace('\'', "&apos;").replace('"', "&quot;");
+                return format!(
+                    "//*[@resource-id='{}' and @text='{}']",
+                    escaped_rid, escaped_text
+                );
+            }
+        }
+        
+        // 优先级 3: resource-id（单独使用）
+        if let Some(ref rid) = resource_id {
+            if !rid.is_empty() {
+                let escaped = rid.replace('\'', "&apos;");
+                conditions.push(format!("@resource-id='{}'", escaped));
+            }
+        }
+        
+        // 优先级 4: text（如果有意义）
+        if !text.is_empty() && text.len() > 1 {
+            let escaped = text.replace('\'', "&apos;").replace('"', "&quot;");
+            conditions.push(format!("@text='{}'", escaped));
+        }
+        
+        // 优先级 5: class（作为辅助条件）
+        if !class_name.is_empty() {
+            let short_class = class_name.split('.').last().unwrap_or(class_name);
+            if !short_class.is_empty() {
+                let escaped = short_class.replace('\'', "&apos;");
+                conditions.push(format!("contains(@class, '{}')", escaped));
+            }
+        }
+        
+        // 如果有任何条件，生成组合 XPath
+        if !conditions.is_empty() {
+            return format!("//*[{}]", conditions.join(" and "));
+        }
+        
+        // 兜底：使用 element_id（仅限同设备同 XML）
+        format!("element_{}", element_id)
     }
 
     /// 应用智能分类（基于SmartElementFinderService的区域和内容分析）

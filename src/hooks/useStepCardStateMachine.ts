@@ -25,6 +25,8 @@ export interface UseStepCardStateMachineProps {
   initialAction: StepActionParams;
   onMatch?: (result: MatchResult) => void;
   onExecute?: (success: boolean, message: string) => void;
+  // 🔥 NEW: 步骤的完整参数数据（包含 xmlSnapshot）
+  stepParameters?: Record<string, unknown>; // 步骤的 parameters 字段
 }
 
 export interface UseStepCardStateMachineReturn {
@@ -51,6 +53,7 @@ export const useStepCardStateMachine = ({
   // initialAction,
   onMatch,
   onExecute,
+  stepParameters, // 🔥 NEW: 接收步骤的完整参数
 }: UseStepCardStateMachineProps): UseStepCardStateMachineReturn => {
   const [status, setStatus] = useState<StepStatus>('idle');
   const [lastMatch, setLastMatch] = useState<MatchResult | undefined>();
@@ -123,27 +126,80 @@ export const useStepCardStateMachine = ({
       const { getStepExecutionGateway } = await import('../infrastructure/gateways/StepExecutionGateway');
       const gateway = getStepExecutionGateway();
 
-      // 🎯 获取用户选择的元素信息 - 解决"我"按钮文本传递问题
-      const { useElementSelectionStore } = await import('../stores/ui-element-selection-store');
-      const selectionStore = useElementSelectionStore.getState();
-      const selectedElement = selectionStore.context.selectedElement;
+      // 🎯 【核心修复】从步骤保存的参数中获取 XPath 和 xmlSnapshot
+      // 问题：之前从 selectedElement 获取（选择模式），但执行时不在选择模式，所以为空
+      // 修复：从步骤保存时的 parameters.xmlSnapshot.elementGlobalXPath 获取
+      const xmlSnapshot = stepParameters?.xmlSnapshot as {
+        xmlContent?: string;
+        xmlHash?: string;
+        elementGlobalXPath?: string;
+        elementSignature?: {
+          resourceId?: string;
+          text?: string;
+          contentDesc?: string;
+          class?: string;
+          childrenTexts?: string[];
+        };
+      } | undefined;
 
-      // 准备网关请求参数 - 包含实际的目标文本
+      // 🎯 优先使用步骤保存的 XPath，其次使用旧参数格式
+      const savedXPath = xmlSnapshot?.elementGlobalXPath 
+        || stepParameters?.element_selector as string | undefined
+        || stepParameters?.xpath as string | undefined
+        || '';
+
+      // 🎯 获取目标文本（优先使用保存的数据）
+      const targetText = xmlSnapshot?.elementSignature?.text 
+        || stepParameters?.text as string | undefined
+        || stepParameters?.targetText as string | undefined
+        || '';
+
+      const contentDesc = xmlSnapshot?.elementSignature?.contentDesc
+        || stepParameters?.content_desc as string | undefined
+        || '';
+
+      const resourceId = xmlSnapshot?.elementSignature?.resourceId
+        || stepParameters?.resource_id as string | undefined
+        || '';
+
+      console.log('🔥 [修复验证] XPath数据来源:', {
+        from: 'stepParameters.xmlSnapshot',
+        savedXPath,
+        targetText,
+        contentDesc,
+        hasXmlSnapshot: !!xmlSnapshot,
+        xmlSnapshotKeys: xmlSnapshot ? Object.keys(xmlSnapshot) : []
+      });
+
+      // 准备网关请求参数 - 使用步骤保存的数据
       const gatewayRequest = {
         deviceId: 'default_device', // TODO: 从实际设备状态获取
         mode: mode === 'matchOnly' ? 'match-only' as const : 'execute-step' as const,
         actionParams: stepCard.currentAction,
         selectorId: stepCard.selectorId,
+        stepId: stepCard.id, // 🔥 传递步骤 ID
         bounds: stepCard.lastMatch?.elementRect ? {
           x: stepCard.lastMatch.elementRect.x,
           y: stepCard.lastMatch.elementRect.y,
           width: stepCard.lastMatch.elementRect.width,
           height: stepCard.lastMatch.elementRect.height,
         } : undefined,
-        // 🎯 修复：传递实际的目标文本信息
-        targetText: selectedElement?.text || '', // 从选择的元素获取文本
-        contentDesc: selectedElement?.content_desc || '', // 传递content_desc
-        resourceId: selectedElement?.resource_id || '', // 传递resource_id
+        // 🔥 【核心修复】使用步骤保存的数据
+        targetText,
+        contentDesc,
+        resourceId,
+        // 🔥 XPath 传递（修复"添加朋友"按钮找不到问题）
+        elementPath: savedXPath,
+        xpath: savedXPath,
+        text: targetText,
+        className: xmlSnapshot?.elementSignature?.class || '',
+        // 🔥 xmlSnapshot 完整传递
+        xmlSnapshot: xmlSnapshot ? {
+          xmlContent: xmlSnapshot.xmlContent,
+          xmlHash: xmlSnapshot.xmlHash,
+          elementGlobalXPath: xmlSnapshot.elementGlobalXPath,
+          elementSignature: xmlSnapshot.elementSignature,
+        } : undefined,
       };
       
       // 1. 匹配阶段
@@ -224,7 +280,8 @@ export const useStepCardStateMachine = ({
     startMatching, 
     setMatchResult, 
     setMatchFailed, 
-    setExecuteResult
+    setExecuteResult,
+    stepParameters // 🔥 添加 stepParameters 依赖
   ]);
 
   return {

@@ -170,21 +170,65 @@ export const normalizeStepForExecution = (step: SmartScriptStep): SmartScriptSte
   return step;
 };
 
-export const buildBackendPayloadStep = (step: SmartScriptStep) => ({
-  id: step.id,
-  step_type: step.step_type,
-  name: step.name,
-  description: step.description ?? '',
-  parameters: ensureBoundsNormalized(step.parameters ?? {}),
-  enabled: true,
-  order: typeof (step as any).order === 'number' ? (step as any).order : 0,
-  find_condition: (step as any).find_condition,
-  verification: (step as any).verification,
-  retry_config: (step as any).retry_config,
-  fallback_actions: (step as any).fallback_actions,
-  pre_conditions: (step as any).pre_conditions,
-  post_conditions: (step as any).post_conditions,
-});
+export const buildBackendPayloadStep = (step: SmartScriptStep) => {
+  const baseParams = ensureBoundsNormalized(step.parameters ?? {});
+  
+  // 🎯 增强参数：构造 original_data 用于后端失败恢复
+  const enhancedParams = {
+    ...baseParams,
+    // 确保 original_data 存在（用于后端失败恢复机制）
+    original_data: {
+      // 优先从 xmlSnapshot 获取原始XML
+      original_xml: baseParams.xmlSnapshot?.xmlContent 
+        || baseParams.xmlContent  // 兼容旧字段
+        || undefined,
+      
+      // 多重回退获取用户选择的精确XPath
+      selected_xpath: baseParams.elementLocator?.elementPath
+        || baseParams.elementLocator?.additionalInfo?.xpath
+        || baseParams.xpath
+        || baseParams.element_path
+        || undefined,
+      
+      // 分析时间戳（用于判断数据新鲜度）
+      analysis_timestamp: baseParams.xmlSnapshot?.timestamp 
+        || baseParams.xmlTimestamp
+        || undefined,
+      
+      // 元素特征（用于相似度匹配）
+      element_features: baseParams.elementLocator?.additionalInfo ? {
+        resourceId: baseParams.elementLocator.additionalInfo.resourceId,
+        text: baseParams.elementLocator.additionalInfo.text,
+        contentDesc: baseParams.elementLocator.additionalInfo.contentDesc,
+        className: baseParams.elementLocator.additionalInfo.className,
+        bounds: baseParams.elementLocator.additionalInfo.bounds,
+      } : {
+        // 兼容旧格式
+        resourceId: baseParams.resource_id,
+        text: baseParams.text || baseParams.element_text,
+        contentDesc: baseParams.content_desc,
+        className: baseParams.class_name,
+        bounds: baseParams.bounds,
+      },
+    },
+  };
+  
+  return {
+    id: step.id,
+    step_type: step.step_type,
+    name: step.name,
+    description: step.description ?? '',
+    parameters: enhancedParams,
+    enabled: true,
+    order: typeof (step as any).order === 'number' ? (step as any).order : 0,
+    find_condition: (step as any).find_condition,
+    verification: (step as any).verification,
+    retry_config: (step as any).retry_config,
+    fallback_actions: (step as any).fallback_actions,
+    pre_conditions: (step as any).pre_conditions,
+    post_conditions: (step as any).post_conditions,
+  };
+};
 
 export const createMockResult = (step: SmartScriptStep): SingleStepTestResult => {
   const baseResult: Omit<SingleStepTestResult, 'message' | 'page_state' | 'error_details'> = {

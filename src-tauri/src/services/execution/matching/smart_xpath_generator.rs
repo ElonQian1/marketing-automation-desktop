@@ -120,6 +120,9 @@ impl SmartXPathGenerator {
     }
 
     /// 基于 resource-id 生成候选项
+    /// 
+    /// 修复: 增加子元素文本过滤，解决多个相同 resource-id 元素的歧义问题
+    /// Bug Report: WRONG_ELEMENT_SELECTION_BUG_REPORT.md
     fn generate_resource_id_candidates(&self, resource_id: &str) -> Vec<XPathCandidate> {
         let base_confidence = self.strategy_success_rates.get(&XPathStrategy::ResourceId).copied().unwrap_or(0.9);
         
@@ -127,13 +130,13 @@ impl SmartXPathGenerator {
             XPathCandidate {
                 xpath: format!("//*[@resource-id='{}']", resource_id),
                 strategy: XPathStrategy::ResourceId,
-                confidence: base_confidence,
+                confidence: base_confidence * 0.7, // 降低单纯 resource-id 的置信度
                 description: format!("基于 resource-id 的精确匹配: {}", resource_id),
             },
             XPathCandidate {
                 xpath: format!("(//*[@resource-id='{}'])[1]", resource_id),
                 strategy: XPathStrategy::ResourceId,
-                confidence: base_confidence * 0.95,
+                confidence: base_confidence * 0.65,
                 description: format!("基于 resource-id 的首个元素匹配: {}", resource_id),
             },
         ]
@@ -226,9 +229,37 @@ impl SmartXPathGenerator {
     }
 
     /// 基于组合属性生成候选项
+    /// 
+    /// 增强: 添加 resource-id + 子元素文本的组合策略（最高优先级）
+    /// 解决底部导航栏等共享 resource-id 场景的歧义问题
     fn generate_composite_candidates(&self, attributes: &ElementAttributes) -> Vec<XPathCandidate> {
         let base_confidence = self.strategy_success_rates.get(&XPathStrategy::Composite).copied().unwrap_or(0.8);
         let mut candidates = Vec::new();
+
+        // 🔥 组合 0: resource-id + 子元素文本 (NEW - 最高优先级)
+        // 适用场景: 父元素无文本，子元素有文本（如底部导航栏）
+        if let (Some(resource_id), Some(text)) = (attributes.get("resource-id"), attributes.get("text")) {
+            if !resource_id.is_empty() && !text.is_empty() {
+                candidates.push(XPathCandidate {
+                    xpath: format!("//*[@resource-id='{}'][.//*[@text='{}']]", resource_id, text),
+                    strategy: XPathStrategy::Composite,
+                    confidence: base_confidence * 1.1, // 高于基准置信度
+                    description: format!("组合匹配(高优先级): resource-id='{}' + 子元素text='{}'", resource_id, text),
+                });
+            }
+        }
+
+        // 组合 0.5: resource-id + content-desc (子元素)
+        if let (Some(resource_id), Some(content_desc)) = (attributes.get("resource-id"), attributes.get("content-desc")) {
+            if !resource_id.is_empty() && !content_desc.is_empty() {
+                candidates.push(XPathCandidate {
+                    xpath: format!("//*[@resource-id='{}'][.//*[@content-desc='{}']]", resource_id, content_desc),
+                    strategy: XPathStrategy::Composite,
+                    confidence: base_confidence * 1.05,
+                    description: format!("组合匹配(高优先级): resource-id='{}' + 子元素content-desc='{}'", resource_id, content_desc),
+                });
+            }
+        }
 
         // 组合 1: resource-id + class
         if let (Some(resource_id), Some(class_name)) = (attributes.get("resource-id"), attributes.get("class")) {

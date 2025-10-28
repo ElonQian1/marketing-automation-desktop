@@ -153,6 +153,20 @@ impl StandardStrategyProcessor {
                             0.0
                         }
                     }
+                    "resource-id" => {
+                        if element.resource_id.as_ref().map_or(false, |s| !s.is_empty()) {
+                            // resource-id 需要精确匹配或包含匹配
+                            let element_id = element.resource_id.as_deref().unwrap_or("");
+                            if element_id == target_value || element_id.contains(target_value) || target_value.contains(element_id) {
+                                match_reasons.push(format!("resource-id匹配: '{}' vs '{}'", element_id, target_value));
+                                0.6 // resource-id权重很高，仅次于text
+                            } else {
+                                0.0
+                            }
+                        } else {
+                            0.0
+                        }
+                    }
                     _ => 0.0
                 };
                 

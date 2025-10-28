@@ -133,6 +133,7 @@ pub struct AnalysisContext {
     pub resource_id: Option<String>,
     pub class_name: Option<String>,
     pub bounds: Option<String>,
+    pub content_desc: Option<String>,  // 🆕 支持 content-desc
     pub container_info: Option<ContainerInfo>,
 }
 
@@ -283,7 +284,46 @@ impl StrategyEngine {
             }
         }
         
-        // 3. 区域约束策略 (基于容器)
+        // 3. Content-Desc 策略（新增 - 支持无 resource-id 但有 content-desc 的元素）
+        // 🆕 Bug Fix: 支持"添加朋友"等只有 content-desc 的按钮
+        if let Some(ref desc) = context.content_desc {
+            if !desc.trim().is_empty() && desc.len() < 50 {
+                let mut evidence = Evidence::for_strategy("content_desc");
+                
+                // content-desc 通常比 text 更稳定
+                evidence.locator += 0.05;
+                evidence.uniqueness += 0.05;
+                
+                // 短描述更好
+                if desc.len() < 15 {
+                    evidence.uniqueness += 0.05;
+                }
+                
+                let confidence = self.calculate_confidence(&evidence);
+                
+                // ✅ 优先使用智能分析生成的XPath
+                let xpath = if context.element_path.contains(&format!("@content-desc='{}'", desc.trim())) ||
+                              context.element_path.contains(&format!("[.//*[@content-desc='{}']", desc.trim())) {
+                    tracing::info!("✅ [Content-Desc策略] 使用智能分析的XPath: {}", context.element_path);
+                    context.element_path.clone()
+                } else {
+                    tracing::warn!("⚠️ [Content-Desc策略] 生成简化XPath");
+                    format!("//*[@content-desc='{}']", desc.trim())
+                };
+                
+                candidates.push(CandidateScore {
+                    key: "content_desc".to_string(),
+                    name: "Content-Desc策略".to_string(),
+                    confidence,
+                    evidence,
+                    xpath: Some(xpath),
+                    description: format!("通过 content-desc '{}' 定位", desc.trim()),
+                    variant: "content_desc".to_string(),
+                });
+            }
+        }
+        
+        // 4. 区域约束策略 (基于容器)
         if let Some(ref container) = context.container_info {
             let evidence = Evidence::for_strategy("region_scoped");
             let confidence = self.calculate_confidence(&evidence);
@@ -302,7 +342,7 @@ impl StrategyEngine {
             });
         }
         
-        // 4. XPath兜底策略
+        // 5. XPath兜底策略
         let fallback_evidence = Evidence {
             model: 0.6,
             locator: 0.55,
@@ -380,6 +420,7 @@ mod tests {
             resource_id: Some("com.example:id/confirm".to_string()),
             class_name: Some("Button".to_string()),
             bounds: Some("[100,200][300,250]".to_string()),
+            content_desc: None,  // 🆕
             container_info: None,
         };
         

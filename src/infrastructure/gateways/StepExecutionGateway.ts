@@ -50,6 +50,23 @@ export interface StepExecutionRequest {
     end_y?: number;
     duration?: number;
   };
+  // 🔥 NEW: XPath 和完整数据传递（修复"添加朋友"按钮找不到的问题）
+  elementPath?: string; // 用户选择的 XPath
+  xpath?: string; // 备用 XPath 字段
+  text?: string; // 元素文本
+  className?: string; // 元素类名
+  xmlSnapshot?: {  // XML 快照数据（用于失败恢复）
+    xmlContent?: string;
+    xmlHash?: string;
+    elementGlobalXPath?: string;
+    elementSignature?: {
+      childrenTexts?: string[];
+      resourceId?: string;
+      text?: string;
+      contentDesc?: string;
+      bounds?: string;
+    };
+  };
 }
 
 // 统一响应接口
@@ -490,6 +507,7 @@ export class StepExecutionGateway {
             stepId: `step_${request.stepId}`,  // ✅ InlineStep使用camelCase (serde会转换)
             action: 'smart_selection',  // ✅ SingleStepAction的tag字段 (snake_case)
             params: {
+              // 🔥 FIX: 传递完整的智能分析数据（XPath + original_data）
               smartSelection: {  // camelCase (params内部使用camelCase)
                 mode: userSelectionMode,
                 targetText: targetText,  // camelCase
@@ -500,7 +518,35 @@ export class StepExecutionGateway {
                   continueOnError: true,  // camelCase
                   showProgress: true  // camelCase
                 } : undefined
-              }
+              },
+              // 🔥 NEW: 传递 XPath 和 hint（核心修复）
+              element_path: request.elementPath || request.xpath || '',  // 用户选择的 XPath
+              targetText: targetText,  // 目标文本提示
+              target_content_desc: request.contentDesc || '',  // 目标描述提示
+              // 🔥 NEW: 传递 original_data（失败恢复关键数据）
+              original_data: request.xmlSnapshot ? {
+                original_xml: request.xmlSnapshot.xmlContent || '',
+                xml_hash: request.xmlSnapshot.xmlHash || '',
+                selected_xpath: request.xmlSnapshot.elementGlobalXPath || request.elementPath || '',
+                element_text: request.text || '',
+                element_bounds: request.bounds ? `[${request.bounds.x},${request.bounds.y}][${request.bounds.x + request.bounds.width},${request.bounds.y + request.bounds.height}]` : '',
+                key_attributes: {
+                  'resource-id': request.resourceId || '',
+                  'content-desc': request.contentDesc || '',
+                  'text': request.text || '',
+                  'class': request.className || ''
+                },
+                children_texts: request.xmlSnapshot.elementSignature?.childrenTexts || [],
+                strategy_type: 'intelligent',
+                confidence: 0.8,
+                data_integrity: {
+                  has_original_xml: !!(request.xmlSnapshot?.xmlContent),
+                  has_user_xpath: !!(request.xmlSnapshot?.elementGlobalXPath || request.elementPath),
+                  has_strategy_info: true,
+                  has_children_texts: !!(request.xmlSnapshot.elementSignature?.childrenTexts?.length),
+                  extraction_timestamp: Date.now()
+                }
+              } : undefined
             }
           }
         }],

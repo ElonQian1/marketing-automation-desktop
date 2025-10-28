@@ -43,9 +43,12 @@ export interface NewStepCardProps {
   stepName: string;
   selectorId: string;
   
-  // 可选的初始动作
+  // 初始动作配置
   initialAction?: ActionType;
   initialCommon?: Partial<StepActionCommon>;
+  
+  // 🔥 NEW: 步骤完整参数（包含xmlSnapshot）
+  parameters?: Record<string, unknown>;
   
   // 事件回调
   onStatusChange?: (status: StepStatus) => void;
@@ -58,6 +61,7 @@ export const NewStepCard: React.FC<NewStepCardProps> = ({
   selectorId,
   initialAction = 'tap',
   initialCommon = {},
+  parameters, // 🔥 NEW: 接收步骤参数
   onStatusChange,
   onActionChange,
 }) => {
@@ -70,6 +74,9 @@ export const NewStepCard: React.FC<NewStepCardProps> = ({
     ...initialCommon,
   });
 
+  // 🔥 FIX: 使用传入的步骤参数（包含xmlSnapshot）
+  const stepParameters = parameters;
+
   // 状态机
   const {
     status,
@@ -80,6 +87,7 @@ export const NewStepCard: React.FC<NewStepCardProps> = ({
   } = useStepCardStateMachine({
     stepId,
     initialAction: currentAction,
+    stepParameters, // 🔥 FIX: 传递步骤参数（包含xmlSnapshot）
     onMatch: (result) => {
       console.log(`📍 [${stepName}] 匹配结果:`, result);
     },
