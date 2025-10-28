@@ -4,86 +4,61 @@
 //
 // � 详细架构文档: docs/architecture/V3_CHAIN_ENGINE_ARCHITECTURE.md
 
-use super::events::{emit_progress, emit_complete};
+use super::events::{emit_complete, emit_progress};
 use super::types::{
-    ChainSpecV3, ChainMode, ContextEnvelope, Phase, StepScore, Summary, ResultPayload, Point,
-    StepRefOrInline, QualitySettings, ConstraintSettings, ValidationSettings, ExecutionMode,
-    SingleStepAction, InlineStep,
+    ChainMode, ChainSpecV3, ConstraintSettings, ContextEnvelope, ExecutionMode, InlineStep, Phase,
+    Point, QualitySettings, ResultPayload, SingleStepAction, StepRefOrInline, StepScore, Summary,
+    ValidationSettings,
 };
-use tauri::AppHandle;
 use std::time::Instant;
+use tauri::AppHandle;
 
 // 添加必要的导入以支持真实设备操作
-use crate::services::intelligent_analysis_service::{StrategyCandidate, ElementInfo};
+use crate::services::intelligent_analysis_service::{ElementInfo, StrategyCandidate};
 use crate::services::legacy_simple_selection_engine::SmartSelectionEngine;
 use crate::services::ui_reader_service::UIElement; // 添加 UIElement 导入
 
 // 🆕 V3 新模块：多候选评估和失败恢复
 use super::element_matching::{
-    MultiCandidateEvaluator, 
-    EvaluationCriteria, 
-    XPathMatcher,
-    TextComparator,
-    calculate_distance
+    calculate_distance, EvaluationCriteria, MultiCandidateEvaluator, TextComparator, XPathMatcher,
 };
 // ⚠️ 暂时禁用 recovery_manager（编译错误待修复）
 // use super::recovery_manager::{RecoveryContext, attempt_recovery};
 
 // 🆕 导入helpers模块中的辅助函数（避免代码重复）
 use super::helpers::element_matching::{
-    extract_resource_id_from_xpath,
-    extract_child_text_filter_from_xpath,
-    element_has_child_with_text,
-    find_element_by_text_or_desc as helper_find_element,
-    find_all_elements_by_text_or_desc as helper_find_all_elements,
-    parse_bounds_center as helper_parse_bounds,
-    convert_uielement_to_candidate as helper_convert_candidate,
+    convert_uielement_to_candidate as helper_convert_candidate, element_has_child_with_text,
+    extract_child_text_filter_from_xpath, extract_resource_id_from_xpath,
     extract_target_features_from_params as helper_extract_features,
+    find_all_elements_by_text_or_desc as helper_find_all_elements,
+    find_element_by_text_or_desc as helper_find_element,
+    parse_bounds_center as helper_parse_bounds,
 };
 
 // 🆕 导入helpers模块中的智能分析功能（避免代码重复）
 use super::helpers::intelligent_analysis::{
-    InteractiveElement,
-    UserIntent,
-    DeviceInfo,
-    ScoredElement,
-    extract_all_interactive_elements_from_xml,
-    is_potentially_interactive,
-    determine_semantic_role_from_class,
-    analyze_user_intent_from_params,
-    score_elements_intelligently,
-    calculate_text_relevance,
-    calculate_semantic_match,
-    calculate_interaction_capability,
-    calculate_position_weight,
-    calculate_context_fitness,
-    extract_intelligent_targets_from_xml,
+    analyze_user_intent_from_params, calculate_context_fitness, calculate_interaction_capability,
+    calculate_position_weight, calculate_semantic_match, calculate_text_relevance,
+    determine_semantic_role_from_class, extract_all_interactive_elements_from_xml,
+    extract_intelligent_targets_from_xml, is_potentially_interactive, score_elements_intelligently,
+    DeviceInfo, InteractiveElement, ScoredElement, UserIntent,
 };
 
 // 🆕 导入helpers模块中的协议构建功能（避免代码重复）
 use super::helpers::protocol_builders::{
-    create_smart_selection_protocol_for_scoring,
-    create_smart_selection_protocol_for_execution,
+    create_smart_selection_protocol_for_execution, create_smart_selection_protocol_for_scoring,
 };
 
 // 🆕 导入helpers模块中的策略生成功能（避免代码重复）
 use super::helpers::strategy_generation::{
-    generate_strategy_candidates,
-    determine_strategy_type,
-    create_execution_plan,
-    assess_risk_level,
-    select_optimal_strategies,
-    convert_strategies_to_v3_steps,
-    generate_fallback_strategy_steps,
-    convert_analysis_result_to_v3_steps,
+    assess_risk_level, convert_analysis_result_to_v3_steps, convert_strategies_to_v3_steps,
+    create_execution_plan, determine_strategy_type, generate_fallback_strategy_steps,
+    generate_strategy_candidates, select_optimal_strategies,
 };
 
 // 🆕 导入helpers模块中的步骤优化功能（避免代码重复）
 use super::helpers::step_optimization::{
-    merge_and_optimize_steps,
-    check_if_step_duplicate,
-    extract_step_target_text,
-    get_step_id,
+    check_if_step_duplicate, extract_step_target_text, get_step_id, merge_and_optimize_steps,
 };
 
 // 🆕 导入helpers模块中的执行追踪功能（避免代码重复）
@@ -97,30 +72,23 @@ use super::helpers::step_executor;
 
 // 🆕 导入helpers模块中的智能分析辅助功能（避免代码重复）
 use super::helpers::analysis_helpers::{
-    should_trigger_intelligent_analysis_early,
-    should_trigger_intelligent_analysis,
-    perform_intelligent_strategy_analysis_from_raw,
-    call_frontend_intelligent_analysis,
+    call_frontend_intelligent_analysis, perform_intelligent_strategy_analysis_from_raw,
+    should_trigger_intelligent_analysis, should_trigger_intelligent_analysis_early,
 };
 
 // 🆕 导入helpers模块中的步骤评分功能（避免代码重复）
 use super::helpers::step_scoring::score_step_with_smart_selection;
 
 // 🆕 导入helpers模块中的Phase处理功能（避免代码重复）
-use super::helpers::phase_handlers::{
-    score_steps_by_mode,
-    handle_intelligent_fallback,
-};
+use super::helpers::phase_handlers::{handle_intelligent_fallback, score_steps_by_mode};
 
 // 🆕 导入helpers模块中的智能预处理功能（避免代码重复）
 use super::helpers::intelligent_preprocessing::{
-    check_and_trigger_early_analysis,
-    optimize_steps_with_intelligent_analysis,
-    log_final_steps,
+    check_and_trigger_early_analysis, log_final_steps, optimize_steps_with_intelligent_analysis,
 };
 
 use crate::types::smart_selection::{
-    SmartSelectionProtocol, ElementFingerprint, AnchorInfo, SelectionConfig, SelectionMode,
+    AnchorInfo, ElementFingerprint, SelectionConfig, SelectionMode, SmartSelectionProtocol,
 };
 
 /// 智能自动链执行器主入口
@@ -144,20 +112,36 @@ pub async fn execute_chain(
 
     // 根据 by-ref 或 by-inline 处理
     match chain_spec {
-        ChainSpecV3::ByRef { analysis_id, threshold, mode } => {
+        ChainSpecV3::ByRef {
+            analysis_id,
+            threshold,
+            mode,
+        } => {
             tracing::info!("🔗 [by-ref] 从缓存读取链式结果: analysisId={}", analysis_id);
-            
+
             // TODO: 从缓存读取 ChainResult(analysis_id)
             // let chain_result = CACHE.get_chain_result(analysis_id)
             //     .ok_or_else(|| format!("❌ 分析结果未找到: {}", analysis_id))?;
             // let ordered_steps = chain_result.ordered_steps;
-            
+
             execute_chain_by_ref(app, envelope, analysis_id, *threshold, mode).await
         }
-        ChainSpecV3::ByInline { chain_id, ordered_steps, threshold, mode, quality, constraints, validation } => {
+        ChainSpecV3::ByInline {
+            chain_id,
+            ordered_steps,
+            threshold,
+            mode,
+            quality,
+            constraints,
+            validation,
+        } => {
             let analysis_id = chain_id.as_deref().unwrap_or("inline-chain");
-            tracing::info!("🔗 [by-inline] 直接执行内联链: chainId={:?}, 步骤数={}", chain_id, ordered_steps.len());
-            
+            tracing::info!(
+                "🔗 [by-inline] 直接执行内联链: chainId={:?}, 步骤数={}",
+                chain_id,
+                ordered_steps.len()
+            );
+
             execute_chain_by_inline(
                 app,
                 envelope,
@@ -168,7 +152,8 @@ pub async fn execute_chain(
                 quality,
                 constraints,
                 validation,
-            ).await
+            )
+            .await
         }
     }
 }
@@ -196,10 +181,10 @@ async fn execute_chain_by_ref(
     )?;
 
     tracing::warn!("⚠️ TODO: 从缓存读取 ChainResult，当前使用空步骤列表");
-    
+
     // 🧠 由于没有从缓存读取到有效的候选步骤，触发智能策略分析
     tracing::info!("🧠 触发智能策略分析：缓存中无有效候选步骤");
-    
+
     emit_progress(
         app,
         Some(analysis_id.to_string()),
@@ -209,7 +194,7 @@ async fn execute_chain_by_ref(
         Some("缓存无候选步骤，启动智能策略分析 (Step 0-6)".to_string()),
         None,
     )?;
-    
+
     // TODO: 实现从缓存读取 ordered_steps 和策略详情
     // TODO: 如果缓存为空或无效，调用智能策略系统生成候选策略
     //
@@ -218,11 +203,13 @@ async fn execute_chain_by_ref(
     // 2. 如果缓存无效或为空，获取目标元素信息
     // 3. 调用 StrategyDecisionEngine 进行 Step 0-6 分析
     // 4. 将分析结果转换为 ordered_steps 并执行
-    
+
     tracing::warn!("🚧 缓存读取和智能分析集成待实现");
     tracing::warn!("   TODO: 实现缓存读取逻辑");
-    tracing::warn!("   TODO: 集成 src/modules/intelligent-strategy-system/core/StrategyDecisionEngine");
-    
+    tracing::warn!(
+        "   TODO: 集成 src/modules/intelligent-strategy-system/core/StrategyDecisionEngine"
+    );
+
     // 暂时返回失败，提示需要智能分析
     emit_complete(
         app,
@@ -234,27 +221,27 @@ async fn execute_chain_by_ref(
         }),
         None,
         Some(ResultPayload {
-            ok: false,  // 标记为失败，提示需要重新分析
+            ok: false, // 标记为失败，提示需要重新分析
             coords: None,
             candidate_count: Some(0),
             screen_hash_now: None,
             validation: None,
         }),
     )?;
-    
+
     Ok(())
 }
 
 /// 🚨 V3链式执行核心函数 - 必须包含真机设备操作
-/// 
+///
 /// ⚠️ 重要历史警告：此函数曾经只执行模拟分析，不执行真机操作！
-/// 
+///
 /// 真机操作验证清单：
 /// ✅ 设备连接检查 (简化版避免复杂依赖)
-/// ✅ 真实UI XML dumping (adb_dump_ui_xml) 
+/// ✅ 真实UI XML dumping (adb_dump_ui_xml)
 /// ✅ SmartSelectionEngine执行 (实际元素匹配和点击)
 /// ✅ 从execution_info.click_coordinates获取真实点击坐标
-/// 
+///
 /// 🚫 绝对禁止仅返回"executed"状态而不执行真机操作！
 fn execute_chain_by_inline<'a>(
     app: &'a AppHandle,
@@ -268,270 +255,301 @@ fn execute_chain_by_inline<'a>(
     validation: &'a ValidationSettings,
 ) -> std::pin::Pin<Box<dyn std::future::Future<Output = Result<(), String>> + Send + 'a>> {
     Box::pin(async move {
-    let start_time = Instant::now();
-    let device_id = &envelope.device_id;
-    
-    // 🔒 【统一锁定入口】使用 RAII 守卫确保所有路径都能正确释放
-    // 这会在函数开始时锁定，在函数结束时（无论成功/失败）自动释放
-    let _execution_guard = execution_tracker::lock_with_guard(analysis_id)?;
-    
-    // 🆕 【提前智能分析检测】在Legacy引擎执行前检查参数，直接触发智能分析
-    if let Some(intelligent_steps) = check_and_trigger_early_analysis(
-        app, 
-        analysis_id, 
-        device_id, 
-        ordered_steps
-    ).await? {
-        // ✅ 显式释放当前锁（让守卫析构）
-        drop(_execution_guard);
-        
-        // 递归执行智能生成的步骤（递归调用时会重新锁定）
-        return execute_chain_by_inline(
-            app, envelope, analysis_id, &intelligent_steps,
-            threshold, mode, quality, constraints, validation
-        ).await;
-    }
+        let start_time = Instant::now();
+        let device_id = &envelope.device_id;
 
-    // 🎯 V3修复：智能策略分析策略调整
-    // 只有在缺少候选步骤或步骤质量不佳时才触发智能分析，避免不必要的重复生成
-    let generated_steps = optimize_steps_with_intelligent_analysis(
-        app,
-        analysis_id,
-        device_id,
-        ordered_steps,
-        quality,
-        threshold,
-    ).await?;
-    
-    let final_ordered_steps = &generated_steps;
-    
-    // 🔍 调试日志：显示最终步骤列表详情
-    log_final_steps(final_ordered_steps);
-    
-    emit_progress(
-        app,
-        Some(analysis_id.to_string()),
-        None,
-        Phase::MatchStarted,
-        None,
-        Some(format!("准备执行 {} 个候选步骤", final_ordered_steps.len())),
-        None,
-    )?;
+        // 🔒 【统一锁定入口】使用 RAII 守卫确保所有路径都能正确释放
+        // 这会在函数开始时锁定，在函数结束时（无论成功/失败）自动释放
+        let _execution_guard = execution_tracker::lock_with_guard(analysis_id)?;
 
-    // ====== Phase 1: device_ready ======
-    emit_progress(
-        app,
-        Some(analysis_id.to_string()),
-        None,
-        Phase::DeviceReady,
-        None,
-        Some(format!("设备准备完成: {}", device_id)),
-        None,
-    )?;
+        // 🆕 【提前智能分析检测】在Legacy引擎执行前检查参数，直接触发智能分析
+        if let Some(intelligent_steps) =
+            check_and_trigger_early_analysis(app, analysis_id, device_id, ordered_steps).await?
+        {
+            // ✅ 显式释放当前锁（让守卫析构）
+            drop(_execution_guard);
 
-    // 1. 校验设备连接状态 - 简化版本（暂时跳过，避免复杂的依赖）
-    // 注意：在生产环境中应该进行设备连接检查
-    device_manager::check_device_connection(device_id).await?;
+            // 递归执行智能生成的步骤（递归调用时会重新锁定）
+            return execute_chain_by_inline(
+                app,
+                envelope,
+                analysis_id,
+                &intelligent_steps,
+                threshold,
+                mode,
+                quality,
+                constraints,
+                validation,
+            )
+            .await;
+        }
 
-    // ====== Phase 2: snapshot_ready ======
-    emit_progress(
-        app,
-        Some(analysis_id.to_string()),
-        None,
-        Phase::SnapshotReady,
-        None,
-        Some("快照准备完成".to_string()),
-        None,
-    )?;
+        // 🎯 V3修复：智能策略分析策略调整
+        // 只有在缺少候选步骤或步骤质量不佳时才触发智能分析，避免不必要的重复生成
+        let generated_steps = optimize_steps_with_intelligent_analysis(
+            app,
+            analysis_id,
+            device_id,
+            ordered_steps,
+            quality,
+            threshold,
+        )
+        .await?;
 
-    // 2. 获取当前快照（XML + screenshot + analysisId）- 实际设备操作
-    // 关键修复：V3系统必须获取真实UI dump，否则无法进行准确的元素匹配和点击
-    let (ui_xml, screen_hash) = device_manager::get_snapshot_with_hash(device_id).await?;
+        let final_ordered_steps = &generated_steps;
 
-    // ====== Phase 3: match_started ======
-    if final_ordered_steps.as_ptr() == ordered_steps.as_ptr() {
-        // 没有进行智能分析，正常发送match_started事件
+        // 🔍 调试日志：显示最终步骤列表详情
+        log_final_steps(final_ordered_steps);
+
         emit_progress(
             app,
             Some(analysis_id.to_string()),
             None,
             Phase::MatchStarted,
             None,
-            Some(format!("开始评分 {} 个链式步骤", final_ordered_steps.len())),
+            Some(format!("准备执行 {} 个候选步骤", final_ordered_steps.len())),
             None,
         )?;
-    }
 
-    // ====== Phase 4: 决定是否重新评分（Strict vs Relaxed） ======
-    let mut step_scores = score_steps_by_mode(
-        device_id,
-        &ui_xml,
-        &final_ordered_steps,
-        quality,
-        &envelope.execution_mode,
-        &screen_hash,
-        envelope.snapshot.screen_hash.as_deref(),
-    ).await?;
-
-    // ====== Phase 5: matched (发送所有评分结果) ======
-    emit_progress(
-        app,
-        Some(analysis_id.to_string()),
-        None,
-        Phase::Matched,
-        None,
-        Some(format!("评分完成，共 {} 个候选步骤", step_scores.len())),
-        Some(serde_json::json!({ "scores": step_scores.clone() })),
-    )?;
-
-    // ====== Phase 6: 按分数排序，执行短路逻辑 ======
-    // 按 confidence 降序排序
-    step_scores.sort_by(|a, b| b.confidence.partial_cmp(&a.confidence).unwrap());
-
-    let mut adopted_step_id: Option<String> = None;
-    let mut execution_ok = false;
-    let mut coords: Option<(i32, i32)> = None;
-
-    // 4. 按置信度排序，尝试执行分数 ≥ threshold 的步骤 - 真实设备操作
-    // 关键修复：必须进行真实的设备点击操作，而不仅仅是分析
-    for score in &step_scores {
-        if score.confidence < threshold {
-            tracing::info!("⏭️ 跳过低分步骤 {} (置信度: {:.2} < 阈值: {:.2})", 
-                score.step_id, score.confidence, threshold);
-            continue;
-        }
-        
-        // 找到对应的步骤定义
-        let step = final_ordered_steps.iter()
-            .find(|s| {
-                let step_id = if let Some(ref_id) = &s.r#ref {
-                    ref_id.as_str()
-                } else if let Some(inline) = &s.inline {
-                    inline.step_id.as_str()
-                } else {
-                    ""
-                };
-                step_id == score.step_id
-            })
-            .ok_or_else(|| format!("步骤 {} 在orderedSteps中未找到", score.step_id))?;
-        
-        // 发射验证开始事件
+        // ====== Phase 1: device_ready ======
         emit_progress(
             app,
             Some(analysis_id.to_string()),
-            Some(score.step_id.clone()),
-            Phase::Validated,
-            Some(score.confidence),
-            Some(format!("尝试执行步骤: {} (置信度: {:.2})", score.step_id, score.confidence)),
+            None,
+            Phase::DeviceReady,
+            None,
+            Some(format!("设备准备完成: {}", device_id)),
             None,
         )?;
-        
-        // 提取 inline 步骤
-        let inline_step = step.inline.as_ref()
-            .ok_or_else(|| format!("步骤 {} 没有inline定义", score.step_id))?;
-        
-        // 尝试执行真实的设备操作
-        match step_executor::execute_step_real_operation(device_id, inline_step, &ui_xml, validation).await {
-            Ok(click_coords) => {
-                // 执行成功，短路返回
-                tracing::info!("✅ 步骤 {} 执行成功，坐标: {:?}", score.step_id, click_coords);
-                adopted_step_id = Some(score.step_id.clone());
-                execution_ok = true;
-                coords = Some(click_coords);
-                break;
-            }
-            Err(err) => {
-                // 执行失败，记录日志并尝试下一个
-                tracing::warn!(
-                    "❌ 步骤 {} 执行失败: {}，尝试下一个候选步骤",
+
+        // 1. 校验设备连接状态 - 简化版本（暂时跳过，避免复杂的依赖）
+        // 注意：在生产环境中应该进行设备连接检查
+        device_manager::check_device_connection(device_id).await?;
+
+        // ====== Phase 2: snapshot_ready ======
+        emit_progress(
+            app,
+            Some(analysis_id.to_string()),
+            None,
+            Phase::SnapshotReady,
+            None,
+            Some("快照准备完成".to_string()),
+            None,
+        )?;
+
+        // 2. 获取当前快照（XML + screenshot + analysisId）- 实际设备操作
+        // 关键修复：V3系统必须获取真实UI dump，否则无法进行准确的元素匹配和点击
+        let (ui_xml, screen_hash) = device_manager::get_snapshot_with_hash(device_id).await?;
+
+        // ====== Phase 3: match_started ======
+        if final_ordered_steps.as_ptr() == ordered_steps.as_ptr() {
+            // 没有进行智能分析，正常发送match_started事件
+            emit_progress(
+                app,
+                Some(analysis_id.to_string()),
+                None,
+                Phase::MatchStarted,
+                None,
+                Some(format!("开始评分 {} 个链式步骤", final_ordered_steps.len())),
+                None,
+            )?;
+        }
+
+        // ====== Phase 4: 决定是否重新评分（Strict vs Relaxed） ======
+        let mut step_scores = score_steps_by_mode(
+            device_id,
+            &ui_xml,
+            &final_ordered_steps,
+            quality,
+            &envelope.execution_mode,
+            &screen_hash,
+            envelope.snapshot.screen_hash.as_deref(),
+        )
+        .await?;
+
+        // ====== Phase 5: matched (发送所有评分结果) ======
+        emit_progress(
+            app,
+            Some(analysis_id.to_string()),
+            None,
+            Phase::Matched,
+            None,
+            Some(format!("评分完成，共 {} 个候选步骤", step_scores.len())),
+            Some(serde_json::json!({ "scores": step_scores.clone() })),
+        )?;
+
+        // ====== Phase 6: 按分数排序，执行短路逻辑 ======
+        // 按 confidence 降序排序
+        step_scores.sort_by(|a, b| b.confidence.partial_cmp(&a.confidence).unwrap());
+
+        let mut adopted_step_id: Option<String> = None;
+        let mut execution_ok = false;
+        let mut coords: Option<(i32, i32)> = None;
+
+        // 4. 按置信度排序，尝试执行分数 ≥ threshold 的步骤 - 真实设备操作
+        // 关键修复：必须进行真实的设备点击操作，而不仅仅是分析
+        for score in &step_scores {
+            if score.confidence < threshold {
+                tracing::info!(
+                    "⏭️ 跳过低分步骤 {} (置信度: {:.2} < 阈值: {:.2})",
                     score.step_id,
-                    err
+                    score.confidence,
+                    threshold
                 );
                 continue;
             }
+
+            // 找到对应的步骤定义
+            let step = final_ordered_steps
+                .iter()
+                .find(|s| {
+                    let step_id = if let Some(ref_id) = &s.r#ref {
+                        ref_id.as_str()
+                    } else if let Some(inline) = &s.inline {
+                        inline.step_id.as_str()
+                    } else {
+                        ""
+                    };
+                    step_id == score.step_id
+                })
+                .ok_or_else(|| format!("步骤 {} 在orderedSteps中未找到", score.step_id))?;
+
+            // 发射验证开始事件
+            emit_progress(
+                app,
+                Some(analysis_id.to_string()),
+                Some(score.step_id.clone()),
+                Phase::Validated,
+                Some(score.confidence),
+                Some(format!(
+                    "尝试执行步骤: {} (置信度: {:.2})",
+                    score.step_id, score.confidence
+                )),
+                None,
+            )?;
+
+            // 提取 inline 步骤
+            let inline_step = step
+                .inline
+                .as_ref()
+                .ok_or_else(|| format!("步骤 {} 没有inline定义", score.step_id))?;
+
+            // 尝试执行真实的设备操作
+            match step_executor::execute_step_real_operation(
+                device_id,
+                inline_step,
+                &ui_xml,
+                validation,
+            )
+            .await
+            {
+                Ok(click_coords) => {
+                    // 执行成功，短路返回
+                    tracing::info!(
+                        "✅ 步骤 {} 执行成功，坐标: {:?}",
+                        score.step_id,
+                        click_coords
+                    );
+                    adopted_step_id = Some(score.step_id.clone());
+                    execution_ok = true;
+                    coords = Some(click_coords);
+                    break;
+                }
+                Err(err) => {
+                    // 执行失败，记录日志并尝试下一个
+                    tracing::warn!(
+                        "❌ 步骤 {} 执行失败: {}，尝试下一个候选步骤",
+                        score.step_id,
+                        err
+                    );
+                    continue;
+                }
+            }
         }
-    }
 
+        // ====== Phase 7: executed ======
+        // 🚨 关键修复：只有在真正执行了操作时才发送executed事件，避免误报成功
+        if execution_ok && adopted_step_id.is_some() {
+            let step_id = adopted_step_id.as_ref().unwrap();
+            emit_progress(
+                app,
+                Some(analysis_id.to_string()),
+                Some(step_id.clone()),
+                Phase::Executed,
+                Some(1.0), // 真正执行成功时才设置100%置信度
+                Some(format!("成功执行步骤: {}", step_id)),
+                None,
+            )?;
 
+            tracing::info!(
+                "✅ 真实设备操作完成: stepId={}, coords={:?}",
+                step_id,
+                coords
+            );
+        } else {
+            // 🧠 传统匹配失败，触发智能分析作为后备方案
+            let fallback_result = handle_intelligent_fallback(
+                app,
+                analysis_id,
+                device_id,
+                ordered_steps,
+                &ui_xml,
+                quality,
+                validation,
+                threshold,
+            )
+            .await?;
 
-    // ====== Phase 7: executed ======
-    // 🚨 关键修复：只有在真正执行了操作时才发送executed事件，避免误报成功
-    if execution_ok && adopted_step_id.is_some() {
-        let step_id = adopted_step_id.as_ref().unwrap();
-        emit_progress(
+            adopted_step_id = fallback_result.0;
+            coords = fallback_result.1;
+            execution_ok = fallback_result.2;
+        }
+
+        tracing::info!(
+            "✅ 智能自动链执行完成: analysisId={}, adoptedStepId={:?}, elapsed={}ms",
+            analysis_id,
+            adopted_step_id,
+            start_time.elapsed().as_millis()
+        );
+
+        // 短暂延迟确保前端接收到 100% 进度事件（参考 V2 修复方案）
+        tokio::time::sleep(tokio::time::Duration::from_millis(300)).await;
+
+        // ====== Phase 9: 发送 complete 事件 ======
+        let elapsed_ms = start_time.elapsed().as_millis() as u64;
+
+        let summary = Summary {
+            adopted_step_id: adopted_step_id.clone(),
+            elapsed_ms: Some(elapsed_ms),
+            reason: Some(if execution_ok {
+                "短路执行成功".to_string()
+            } else {
+                "所有步骤分数均低于阈值或执行失败".to_string()
+            }),
+        };
+
+        let result = ResultPayload {
+            ok: execution_ok,
+            coords: coords.map(|(x, y)| Point { x, y }),
+            candidate_count: Some(step_scores.len() as u32),
+            screen_hash_now: None,
+            validation: None,
+        };
+
+        emit_complete(
             app,
             Some(analysis_id.to_string()),
-            Some(step_id.clone()),
-            Phase::Executed,
-            Some(1.0),  // 真正执行成功时才设置100%置信度
-            Some(format!("成功执行步骤: {}", step_id)),
-            None,
+            Some(summary),
+            Some(step_scores),
+            Some(result),
         )?;
-        
-        tracing::info!("✅ 真实设备操作完成: stepId={}, coords={:?}", step_id, coords);
-    } else {
-        // 🧠 传统匹配失败，触发智能分析作为后备方案
-        let fallback_result = handle_intelligent_fallback(
-            app,
-            analysis_id,
-            device_id,
-            ordered_steps,
-            &ui_xml,
-            quality,
-            validation,
-            threshold,
-        ).await?;
-        
-        adopted_step_id = fallback_result.0;
-        coords = fallback_result.1;
-        execution_ok = fallback_result.2;
-    }
 
-    tracing::info!(
-        "✅ 智能自动链执行完成: analysisId={}, adoptedStepId={:?}, elapsed={}ms",
-        analysis_id,
-        adopted_step_id,
-        start_time.elapsed().as_millis()
-    );
+        // 🔓 【执行保护】RAII 守卫会在函数结束时自动释放锁
+        // 不再需要手动 unlock，由 _execution_guard 的 Drop 实现自动管理
 
-    // 短暂延迟确保前端接收到 100% 进度事件（参考 V2 修复方案）
-    tokio::time::sleep(tokio::time::Duration::from_millis(300)).await;
-
-    // ====== Phase 9: 发送 complete 事件 ======
-    let elapsed_ms = start_time.elapsed().as_millis() as u64;
-    
-    let summary = Summary {
-        adopted_step_id: adopted_step_id.clone(),
-        elapsed_ms: Some(elapsed_ms),
-        reason: Some(if execution_ok {
-            "短路执行成功".to_string()
-        } else {
-            "所有步骤分数均低于阈值或执行失败".to_string()
-        }),
-    };
-
-    let result = ResultPayload {
-        ok: execution_ok,
-        coords: coords.map(|(x, y)| Point { x, y }),
-        candidate_count: Some(step_scores.len() as u32),
-        screen_hash_now: None,
-        validation: None,
-    };
-
-    emit_complete(
-        app,
-        Some(analysis_id.to_string()),
-        Some(summary),
-        Some(step_scores),
-        Some(result),
-    )?;
-
-    // 🔓 【执行保护】RAII 守卫会在函数结束时自动释放锁
-    // 不再需要手动 unlock，由 _execution_guard 的 Drop 实现自动管理
-
-    Ok(())
-    })  // <- 对应 Box::pin(async move {
-}      // <- 对应函数定义
+        Ok(())
+    })
+}
 
 // ====== 内部辅助函数（TODO: 实现） ======
 
@@ -539,7 +557,6 @@ fn execute_chain_by_inline<'a>(
 // - score_step_with_smart_selection - 基于SmartSelection引擎的智能评分
 
 // 🔧 [已迁移] 协议构建函数已迁移到 helpers/protocol_builders.rs
-
 
 // 🔧 [已迁移] 协议构建函数已迁移到 helpers/protocol_builders.rs
 // - create_smart_selection_protocol_for_scoring
@@ -652,7 +669,7 @@ fn execute_chain_by_inline<'a>(
 // 🎛️ 选择模式执行保证：
 //   • "first" 模式  → 执行且仅执行第1个坐标的点击
 //   • "all" 模式    → 执行且仅执行所有坐标的批量点击
-//   • "random" 模式 → 执行且仅执行随机选择坐标的点击  
+//   • "random" 模式 → 执行且仅执行随机选择坐标的点击
 //   • 其他模式      → 执行且仅执行第1个坐标的点击 (默认行为)
 //
 // ⚠️ 开发注意事项：
@@ -697,4 +714,3 @@ fn execute_chain_by_inline<'a>(
 //   - helper_convert_candidate (原 convert_uielement_to_candidate)
 //   - helper_extract_features (原 extract_target_features_from_params)
 // ============================================
-
