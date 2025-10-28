@@ -914,14 +914,27 @@ const CompactStrategyMenu: React.FC<CompactStrategyMenuProps> = ({
                 value={batchConfig.match_direction || 'forward'}
                 onChange={async (e) => {
                   const newDirection = e.target.value as 'forward' | 'backward';
-                  setBatchConfig({
+                  const newBatchConfig = {
                     ...batchConfig,
                     match_direction: newDirection
-                  });
-                  // 🔥 立即保存配置
-                  if (selectionMode === 'all') {
+                  };
+                  setBatchConfig(newBatchConfig);
+                  
+                  // 🔥 立即保存配置（使用新配置）
+                  if (selectionMode === 'all' && stepId) {
                     console.log('🔧 [匹配方向修改] 保存配置:', newDirection);
-                    await autoSaveConfig('all');
+                    try {
+                      await invoke('save_smart_selection_config', {
+                        stepId: stepId,
+                        selectionMode: 'all',
+                        batchConfig: newBatchConfig  // ✅ 使用最新配置
+                      });
+                      message.success(`匹配方向已更新为: ${newDirection === 'forward' ? '正向↓' : '反向↑'}`);
+                      console.log('✅ [匹配方向] 配置保存成功:', newBatchConfig);
+                    } catch (error) {
+                      console.error('❌ [匹配方向] 保存失败:', error);
+                      message.error(`保存失败: ${error}`);
+                    }
                   }
                 }}
                 style={{
