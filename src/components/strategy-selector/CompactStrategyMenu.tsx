@@ -457,26 +457,78 @@ const CompactStrategyMenu: React.FC<CompactStrategyMenuProps> = ({
     localStorage.setItem('userSelectionMode', key);
     console.log('🎯 [CompactStrategyMenu] 已保存选择模式到 localStorage:', key);
     
+    if (!stepId) {
+      console.warn('⚠️ [CompactStrategyMenu] 无stepId，跳过保存');
+      return;
+    }
+
+    // 🔥 修复：直接使用最新的模式值保存，避免闭包陷阱
+    const saveConfigDirectly = async (mode: SelectionMode, batchCfg: BatchConfig | null) => {
+      try {
+        console.log('📤 [CompactStrategyMenu] 直接保存配置:', {
+          stepId,
+          mode,
+          batchConfig: batchCfg
+        });
+
+        await invoke('save_smart_selection_config', {
+          stepId: stepId,
+          selectionMode: mode,
+          batchConfig: batchCfg
+        });
+
+        // 同时用 selectorId 保存一份（兜底）
+        const state = useStepCardStore.getState();
+        const canonicalId = state.aliasToCanonical[stepId];
+        const card = canonicalId ? state.cards[canonicalId] : undefined;
+        
+        if (card?.elementUid) {
+          await invoke('save_smart_selection_config', {
+            stepId: card.elementUid,
+            selectionMode: mode,
+            batchConfig: batchCfg
+          });
+        }
+
+        message.success(`已切换到: ${getModeLabel(mode)}`);
+        console.log('✅ [模式切换] 配置保存成功:', { mode, batchConfig: batchCfg });
+      } catch (error) {
+        console.error('❌ [模式切换] 保存配置失败:', error);
+        message.error(`保存失败: ${error}`);
+      }
+    };
+
+    const getModeLabel = (mode: SelectionMode) => {
+      switch (mode) {
+        case 'first': return '🎯 第一个';
+        case 'last': return '🎯 最后一个';
+        case 'all': return '📋 批量全部';
+        case 'match-original': return '🎯 精确匹配';
+        case 'random': return '🎲 随机选择';
+        default: return mode;
+      }
+    };
+    
     switch (key) {
       case 'first':
         setSelectionMode('first');
         console.log('选择第一个模式');
-        await autoSaveConfig('first');
+        await saveConfigDirectly('first', null);
         break;
       case 'last':
         setSelectionMode('last');
         console.log('选择最后一个模式');
-        await autoSaveConfig('last');
+        await saveConfigDirectly('last', null);
         break;
       case 'match-original':
         setSelectionMode('match-original');
         console.log('选择精确匹配模式');
-        await autoSaveConfig('match-original');
+        await saveConfigDirectly('match-original', null);
         break;
       case 'random':
         setSelectionMode('random');
         console.log('选择随机模式');
-        await autoSaveConfig('random');
+        await saveConfigDirectly('random', null);
         break;
       case 'all':
         setSelectionMode('all');
@@ -495,7 +547,8 @@ const CompactStrategyMenu: React.FC<CompactStrategyMenuProps> = ({
           setBatchConfig(newBatchConfig);
         }
         
-        await autoSaveConfig('all');
+        // ✅ 使用计算出的最新配置
+        await saveConfigDirectly('all', newBatchConfig);
         break;
       default:
         console.warn('未知的选择模式:', key);
