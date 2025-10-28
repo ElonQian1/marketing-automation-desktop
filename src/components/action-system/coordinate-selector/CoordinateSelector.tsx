@@ -14,6 +14,7 @@ import {
 } from 'antd';
 import { AimOutlined, ReloadOutlined } from '@ant-design/icons';
 import type { ActionParams } from '../../../types/action-types';
+import styles from './CoordinateSelector.module.css';
 
 const { Text } = Typography;
 
@@ -190,249 +191,35 @@ export const CoordinateSelector: React.FC<CoordinateSelectorProps> = ({
   const currentCoords = getCurrentCoordinates();
 
   return (
-    <>
-      {/* 🛡️ 坐标选择器样式隔离 - 强制深色主题基准线 */}
-      <style>
-        {`
-          /* ===== 🛡️ 坐标选择器样式隔离基准线 ===== */
-          .coordinate-selector-container {
-            /* 重置基础样式，防止被外部影响 */
-            all: unset !important;
-            display: block !important;
-            position: relative !important;
-            box-sizing: border-box !important;
-            
-            /* 强制深色主题基准 */
-            background-color: var(--bg-elevated, #1E293B) !important;
-            color: var(--text-1, #F8FAFC) !important;
-            border-radius: 8px !important;
-            
-            /* 防止全局样式污染 */
-            font-family: -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,"Helvetica Neue",Arial,sans-serif !important;
-            font-size: 14px !important;
-            line-height: 1.5 !important;
-          }
-
-          /* ===== 卡片容器强制深色样式 ===== */
-          .coordinate-selector-container .ant-card,
-          .coordinate-selector-container .ant-card-head,
-          .coordinate-selector-container .ant-card-body {
-            background-color: var(--bg-elevated, #1E293B) !important;
-            background: var(--bg-elevated, #1E293B) !important;
-            border-color: var(--border-primary, #334155) !important;
-            color: var(--text-1, #F8FAFC) !important;
-          }
-
-          /* ===== 文本颜色强制控制 ===== */
-          .coordinate-selector-container,
-          .coordinate-selector-container *,
-          .coordinate-selector-container .ant-typography,
-          .coordinate-selector-container .ant-typography *,
-          .coordinate-selector-container .ant-card-head-title,
-          .coordinate-selector-container .ant-card-head-title *,
-          .coordinate-selector-container .ant-space-item,
-          .coordinate-selector-container .ant-space-item *,
-          .coordinate-selector-container span,
-          .coordinate-selector-container div {
-            color: var(--text-1, #F8FAFC) !important;
-          }
-
-          /* ===== 🔧 按钮强制深色样式 - 解决白底白字问题 ===== */
-          .coordinate-selector-container .ant-btn,
-          .coordinate-selector-container .ant-btn *,
-          .coordinate-selector-container .ant-btn-default,
-          .coordinate-selector-container .ant-btn-primary,
-          .coordinate-selector-container button,
-          .coordinate-selector-container button * {
-            background-color: var(--bg-elevated, #1E293B) !important;
-            background: var(--bg-elevated, #1E293B) !important;
-            border-color: var(--border-primary, #334155) !important;
-            color: var(--text-1, #F8FAFC) !important;
-            
-            /* 防止被全局白色背景覆盖 */
-            background-image: none !important;
-          }
-
-          /* ===== 按钮主题色状态 ===== */
-          .coordinate-selector-container .ant-btn-primary {
-            background-color: var(--brand, #4A5FD1) !important;
-            background: var(--brand, #4A5FD1) !important;
-            border-color: var(--brand, #4A5FD1) !important;
-            color: #ffffff !important;
-          }
-
-          /* ===== 按钮交互状态 ===== */
-          .coordinate-selector-container .ant-btn:hover,
-          .coordinate-selector-container .ant-btn-default:hover,
-          .coordinate-selector-container button:hover {
-            background-color: var(--bg-secondary, #334155) !important;
-            background: var(--bg-secondary, #334155) !important;
-            border-color: var(--brand, #4A5FD1) !important;
-            color: var(--text-1, #F8FAFC) !important;
-          }
-
-          .coordinate-selector-container .ant-btn-primary:hover {
-            background-color: var(--brand-600, #5B73E8) !important;
-            background: var(--brand-600, #5B73E8) !important;
-            border-color: var(--brand-600, #5B73E8) !important;
-            color: #ffffff !important;
-          }
-
-          /* ===== 输入框强制深色样式 ===== */
-          .coordinate-selector-container .ant-input-number,
-          .coordinate-selector-container .ant-input-number *,
-          .coordinate-selector-container .ant-input-number-input,
-          .coordinate-selector-container .ant-input-number .ant-input-number-input,
-          .coordinate-selector-container .ant-input,
-          .coordinate-selector-container .ant-input *,
-          .coordinate-selector-container input,
-          .coordinate-selector-container input[type="text"],
-          .coordinate-selector-container input[type="number"] {
-            background-color: var(--bg-elevated, #1E293B) !important;
-            background: var(--bg-elevated, #1E293B) !important;
-            border-color: var(--border-primary, #334155) !important;
-            color: var(--text-1, #F8FAFC) !important;
-            
-            /* 防止被全局白色背景覆盖 */
-            background-image: none !important;
-          }
-
-          /* ===== 输入框容器样式 ===== */
-          .coordinate-selector-container .ant-input-number-wrapper,
-          .coordinate-selector-container .ant-input-number-group-wrapper,
-          .coordinate-selector-container .ant-input-number-group {
-            background-color: transparent !important;
-          }
-
-          /* ===== 输入框前缀/后缀样式 ===== */
-          .coordinate-selector-container .ant-input-number-group-addon,
-          .coordinate-selector-container .ant-input-group-addon {
-            background-color: var(--bg-secondary, #334155) !important;
-            border-color: var(--border-primary, #334155) !important;
-            color: var(--text-2, #E2E8F0) !important;
-          }
-
-          /* ===== 输入框交互状态 ===== */
-          .coordinate-selector-container .ant-input-number:hover,
-          .coordinate-selector-container .ant-input:hover {
-            border-color: var(--brand, #4A5FD1) !important;
-            background-color: var(--bg-elevated, #1E293B) !important;
-          }
-
-          .coordinate-selector-container .ant-input-number-focused,
-          .coordinate-selector-container .ant-input-number:focus,
-          .coordinate-selector-container .ant-input-number:focus-within,
-          .coordinate-selector-container .ant-input:focus {
-            border-color: var(--brand, #4A5FD1) !important;
-            box-shadow: 0 0 0 2px rgba(74, 95, 209, 0.2) !important;
-            background-color: var(--bg-elevated, #1E293B) !important;
-            outline: none !important;
-          }
-
-          /* ===== 数字输入框控制按钮 ===== */
-          .coordinate-selector-container .ant-input-number-handler-wrap {
-            background-color: var(--bg-elevated, #1E293B) !important;
-          }
-          
-          .coordinate-selector-container .ant-input-number-handler {
-            color: var(--text-2, #E2E8F0) !important;
-            border-color: var(--border-primary, #334155) !important;
-          }
-          
-          .coordinate-selector-container .ant-input-number-handler:hover {
-            color: var(--brand, #4A5FD1) !important;
-          }
-
-          /* ===== 信息显示区域样式 ===== */
-          .coordinate-selector-container .coordinate-info-display {
-            background-color: var(--bg-secondary, #334155) !important;
-            background: var(--bg-secondary, #334155) !important;
-            border-radius: 6px !important;
-            color: var(--text-2, #E2E8F0) !important;
-          }
-
-          /* ===== 分割线样式 ===== */
-          .coordinate-selector-container .ant-divider {
-            border-color: var(--border-primary, #334155) !important;
-          }
-
-          /* ===== Tooltip 样式 ===== */
-          .coordinate-selector-container .ant-tooltip-inner {
-            background-color: var(--bg-base, #0F172A) !important;
-            color: var(--text-1, #F8FAFC) !important;
-          }
-
-          /* ===== 占位符文字颜色 ===== */
-          .coordinate-selector-container .ant-input::placeholder,
-          .coordinate-selector-container .ant-input-number input::placeholder,
-          .coordinate-selector-container input::placeholder {
-            color: var(--text-3, #CBD5E1) !important;
-            opacity: 0.7;
-          }
-
-          /* ===== 🚨 强制覆盖任何可能的白色背景 ===== */
-          .coordinate-selector-container [style*="background: white"],
-          .coordinate-selector-container [style*="background: #fff"],
-          .coordinate-selector-container [style*="background: #ffffff"],
-          .coordinate-selector-container [style*="background-color: white"],
-          .coordinate-selector-container [style*="background-color: #fff"],
-          .coordinate-selector-container [style*="background-color: #ffffff"] {
-            background: var(--bg-elevated, #1E293B) !important;
-            background-color: var(--bg-elevated, #1E293B) !important;
-          }
-
-          /* ===== 防止全局样式污染的最后防线 ===== */
-          .coordinate-selector-container *[class*="ant-"] {
-            background-color: var(--bg-elevated, #1E293B) !important;
-            color: var(--text-1, #F8FAFC) !important;
-          }
-
-          /* ===== 确保所有文字都可见 ===== */
-          .coordinate-selector-container .ant-typography-caption,
-          .coordinate-selector-container .ant-typography,
-          .coordinate-selector-container .coordinate-info-text {
-            color: var(--text-1, #F8FAFC) !important;
-          }
-        `}
-      </style>
-
-      <div className="coordinate-selector-container">
-        <Card 
-          size="small" 
-          title={
-            <Space>
-              <AimOutlined style={{ color: '#722ed1' }} />
-              <span>{title}</span>
-            </Space>
-          }
-          bodyStyle={{ padding: '12px' }}
-        >
+    <div className={styles.coordinateSelector}>
+      <Card 
+        size="small" 
+        title={
+          <Space>
+            <AimOutlined style={{ color: '#722ed1' }} />
+            <span>{title}</span>
+          </Space>
+        }
+        bodyStyle={{ padding: '12px' }}
+      >
       <Space direction="vertical" style={{ width: '100%' }} size="small">
         
         {/* 模式切换 */}
         <Space style={{ width: '100%', justifyContent: 'space-between' }}>
-          <Text strong style={{ fontSize: 13 }}>坐标模式</Text>
+          <Text strong className={styles.coordinateInfoText}>坐标模式</Text>
           <Button
             size="small"
             type={isCustomMode ? 'primary' : 'default'}
             onClick={toggleCustomMode}
             icon={<AimOutlined />}
+            className={isCustomMode ? styles.activeButton : styles.defaultButton}
           >
             {isCustomMode ? '自定义坐标' : '自动计算'}
           </Button>
         </Space>
 
         {/* 当前坐标显示 */}
-        <div 
-          className="coordinate-info-display"
-          style={{ 
-            padding: '8px 12px', 
-            background: 'var(--bg-secondary, #334155)', 
-            borderRadius: '6px',
-            fontSize: '12px',
-            color: 'var(--text-2, #E2E8F0)'
-          }}
-        >
+        <div className={styles.coordinateInfo}>
           <Space direction="vertical" size={2}>
             <div>起始: ({currentCoords.start_x}, {currentCoords.start_y})</div>
             <div>结束: ({currentCoords.end_x}, {currentCoords.end_y})</div>
@@ -449,22 +236,42 @@ export const CoordinateSelector: React.FC<CoordinateSelectorProps> = ({
             
             {/* 预设位置快捷按钮 */}
             <div>
-              <Text strong style={{ fontSize: 13 }}>快捷预设</Text>
+              <Text strong className={styles.coordinateInfoText}>快捷预设</Text>
             </div>
             <Space wrap>
-              <Button size="small" onClick={() => applyPreset('center')}>
+              <Button 
+                size="small" 
+                onClick={() => applyPreset('center')}
+                className={styles.defaultButton}
+              >
                 屏幕中心
               </Button>
-              <Button size="small" onClick={() => applyPreset('top')}>
+              <Button 
+                size="small" 
+                onClick={() => applyPreset('top')}
+                className={styles.defaultButton}
+              >
                 顶部区域
               </Button>
-              <Button size="small" onClick={() => applyPreset('bottom')}>
+              <Button 
+                size="small" 
+                onClick={() => applyPreset('bottom')}
+                className={styles.defaultButton}
+              >
                 底部区域
               </Button>
-              <Button size="small" onClick={() => applyPreset('left')}>
+              <Button 
+                size="small" 
+                onClick={() => applyPreset('left')}
+                className={styles.defaultButton}
+              >
                 左侧区域
               </Button>
-              <Button size="small" onClick={() => applyPreset('right')}>
+              <Button 
+                size="small" 
+                onClick={() => applyPreset('right')}
+                className={styles.defaultButton}
+              >
                 右侧区域
               </Button>
             </Space>
@@ -473,7 +280,7 @@ export const CoordinateSelector: React.FC<CoordinateSelectorProps> = ({
 
             {/* 起始坐标配置 */}
             <div>
-              <Text strong style={{ fontSize: 13 }}>起始坐标</Text>
+              <Text strong className={styles.coordinateInfoText}>起始坐标</Text>
             </div>
             <Space>
               <Tooltip title="X坐标 (0-1080)">
@@ -487,6 +294,7 @@ export const CoordinateSelector: React.FC<CoordinateSelectorProps> = ({
                   onChange={(value) => updateCoordinates({ start_x: value || 0 })}
                   style={{ width: '80px' }}
                   addonBefore="X"
+                  className={styles.coordinateInput}
                 />
               </Tooltip>
               <Tooltip title="Y坐标 (0-1920)">
@@ -500,13 +308,14 @@ export const CoordinateSelector: React.FC<CoordinateSelectorProps> = ({
                   onChange={(value) => updateCoordinates({ start_y: value || 0 })}
                   style={{ width: '80px' }}
                   addonBefore="Y"
+                  className={styles.coordinateInput}
                 />
               </Tooltip>
             </Space>
 
             {/* 结束坐标配置 */}
             <div>
-              <Text strong style={{ fontSize: 13 }}>结束坐标</Text>
+              <Text strong className={styles.coordinateInfoText}>结束坐标</Text>
             </div>
             <Space>
               <Tooltip title="X坐标 (0-1080)">
@@ -520,6 +329,7 @@ export const CoordinateSelector: React.FC<CoordinateSelectorProps> = ({
                   onChange={(value) => updateCoordinates({ end_x: value || 0 })}
                   style={{ width: '80px' }}
                   addonBefore="X"
+                  className={styles.coordinateInput}
                 />
               </Tooltip>
               <Tooltip title="Y坐标 (0-1920)">
@@ -533,6 +343,7 @@ export const CoordinateSelector: React.FC<CoordinateSelectorProps> = ({
                   onChange={(value) => updateCoordinates({ end_y: value || 0 })}
                   style={{ width: '80px' }}
                   addonBefore="Y"
+                  className={styles.coordinateInput}
                 />
               </Tooltip>
             </Space>
@@ -543,6 +354,7 @@ export const CoordinateSelector: React.FC<CoordinateSelectorProps> = ({
                 size="small"
                 icon={<ReloadOutlined />}
                 onClick={resetToDefault}
+                className={styles.defaultButton}
               >
                 重置默认
               </Button>
@@ -553,11 +365,7 @@ export const CoordinateSelector: React.FC<CoordinateSelectorProps> = ({
         {/* 提示信息 */}
         <Text 
           type="secondary" 
-          style={{ 
-            fontSize: '11px', 
-            lineHeight: '1.4',
-            color: 'var(--text-3, #CBD5E1)'
-          }}
+          className={styles.coordinateInfoText}
         >
           {isCustomMode 
             ? '💡 自定义模式：可精确设置滑动起始和结束坐标' 
@@ -567,7 +375,6 @@ export const CoordinateSelector: React.FC<CoordinateSelectorProps> = ({
       </Space>
         </Card>
       </div>
-    </>
   );
 };
 

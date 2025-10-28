@@ -1,0 +1,200 @@
+// src/components/action-system/coordinate-selector/CoordinateSelector.module.css
+/* 🛡️ 坐标选择器模块化样式 - 防止全局样式污染 */
+
+/* ===== 🛡️ 容器样式基准线 ===== */
+.coordinateSelector {
+  /* 重置基础样式，防止被外部影响 */
+  all: unset !important;
+  display: block !important;
+  position: relative !important;
+  box-sizing: border-box !important;
+  
+  /* 强制深色主题基准 */
+  background-color: var(--bg-elevated, #1E293B) !important;
+  color: var(--text-1, #F8FAFC) !important;
+  border-radius: 8px !important;
+  
+  /* 防止全局样式污染 */
+  font-family: -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,"Helvetica Neue",Arial,sans-serif !important;
+  font-size: 14px !important;
+  line-height: 1.5 !important;
+}
+
+/* ===== 卡片容器强制深色样式 ===== */
+.coordinateSelector :global(.ant-card),
+.coordinateSelector :global(.ant-card-head),
+.coordinateSelector :global(.ant-card-body) {
+  background-color: var(--bg-elevated, #1E293B) !important;
+  background: var(--bg-elevated, #1E293B) !important;
+  border-color: var(--border-primary, #334155) !important;
+  color: var(--text-1, #F8FAFC) !important;
+}
+
+/* ===== 文本颜色强制控制 ===== */
+.coordinateSelector,
+.coordinateSelector *,
+.coordinateSelector :global(.ant-typography),
+.coordinateSelector :global(.ant-typography) *,
+.coordinateSelector :global(.ant-card-head-title),
+.coordinateSelector :global(.ant-card-head-title) *,
+.coordinateSelector :global(.ant-space-item),
+.coordinateSelector :global(.ant-space-item) *,
+.coordinateSelector span,
+.coordinateSelector div {
+  color: var(--text-1, #F8FAFC) !important;
+}
+
+/* ===== 🔧 按钮强制深色样式 ===== */
+.coordinateSelector :global(.ant-btn),
+.coordinateSelector :global(.ant-btn) *,
+.coordinateSelector :global(.ant-btn-default),
+.coordinateSelector :global(.ant-btn-primary),
+.coordinateSelector button,
+.coordinateSelector button * {
+  background-color: var(--bg-elevated, #1E293B) !important;
+  background: var(--bg-elevated, #1E293B) !important;
+  border-color: var(--border-primary, #334155) !important;
+  color: var(--text-1, #F8FAFC) !important;
+  background-image: none !important;
+}
+
+/* ===== 按钮主题色状态 ===== */
+.coordinateSelector :global(.ant-btn-primary) {
+  background-color: var(--brand, #4A5FD1) !important;
+  background: var(--brand, #4A5FD1) !important;
+  border-color: var(--brand, #4A5FD1) !important;
+  color: #ffffff !important;
+}
+
+/* ===== 按钮交互状态 ===== */
+.coordinateSelector :global(.ant-btn):hover,
+.coordinateSelector :global(.ant-btn-default):hover,
+.coordinateSelector button:hover {
+  background-color: var(--bg-secondary, #334155) !important;
+  background: var(--bg-secondary, #334155) !important;
+  border-color: var(--brand, #4A5FD1) !important;
+  color: var(--text-1, #F8FAFC) !important;
+}
+
+.coordinateSelector :global(.ant-btn-primary):hover {
+  background-color: var(--brand-600, #5B73E8) !important;
+  background: var(--brand-600, #5B73E8) !important;
+  border-color: var(--brand-600, #5B73E8) !important;
+  color: #ffffff !important;
+}
+
+/* ===== 输入框强制深色样式 ===== */
+.coordinateSelector :global(.ant-input-number),
+.coordinateSelector :global(.ant-input-number) *,
+.coordinateSelector :global(.ant-input-number-input),
+.coordinateSelector :global(.ant-input-number) :global(.ant-input-number-input),
+.coordinateSelector :global(.ant-input),
+.coordinateSelector :global(.ant-input) *,
+.coordinateSelector input,
+.coordinateSelector input[type="text"],
+.coordinateSelector input[type="number"] {
+  background-color: var(--bg-elevated, #1E293B) !important;
+  background: var(--bg-elevated, #1E293B) !important;
+  border-color: var(--border-primary, #334155) !important;
+  color: var(--text-1, #F8FAFC) !important;
+  background-image: none !important;
+}
+
+/* ===== 输入框容器样式 ===== */
+.coordinateSelector :global(.ant-input-number-wrapper),
+.coordinateSelector :global(.ant-input-number-group-wrapper),
+.coordinateSelector :global(.ant-input-number-group) {
+  background-color: transparent !important;
+}
+
+/* ===== 输入框前缀/后缀样式 ===== */
+.coordinateSelector :global(.ant-input-number-group-addon),
+.coordinateSelector :global(.ant-input-group-addon) {
+  background-color: var(--bg-secondary, #334155) !important;
+  border-color: var(--border-primary, #334155) !important;
+  color: var(--text-2, #E2E8F0) !important;
+}
+
+/* ===== 输入框交互状态 ===== */
+.coordinateSelector :global(.ant-input-number):hover,
+.coordinateSelector :global(.ant-input):hover {
+  border-color: var(--brand, #4A5FD1) !important;
+  background-color: var(--bg-elevated, #1E293B) !important;
+}
+
+.coordinateSelector :global(.ant-input-number-focused),
+.coordinateSelector :global(.ant-input-number):focus,
+.coordinateSelector :global(.ant-input-number):focus-within,
+.coordinateSelector :global(.ant-input):focus {
+  border-color: var(--brand, #4A5FD1) !important;
+  box-shadow: 0 0 0 2px rgba(74, 95, 209, 0.2) !important;
+  background-color: var(--bg-elevated, #1E293B) !important;
+  outline: none !important;
+}
+
+/* ===== 数字输入框控制按钮 ===== */
+.coordinateSelector :global(.ant-input-number-handler-wrap) {
+  background-color: var(--bg-elevated, #1E293B) !important;
+}
+
+.coordinateSelector :global(.ant-input-number-handler) {
+  color: var(--text-2, #E2E8F0) !important;
+  border-color: var(--border-primary, #334155) !important;
+}
+
+.coordinateSelector :global(.ant-input-number-handler):hover {
+  color: var(--brand, #4A5FD1) !important;
+}
+
+/* ===== 信息显示区域样式 ===== */
+.coordinateInfo {
+  background-color: var(--bg-secondary, #334155) !important;
+  background: var(--bg-secondary, #334155) !important;
+  border-radius: 6px !important;
+  color: var(--text-2, #E2E8F0) !important;
+  padding: 8px 12px !important;
+  font-size: 12px !important;
+}
+
+/* ===== 分割线样式 ===== */
+.coordinateSelector :global(.ant-divider) {
+  border-color: var(--border-primary, #334155) !important;
+}
+
+/* ===== Tooltip 样式 ===== */
+.coordinateSelector :global(.ant-tooltip-inner) {
+  background-color: var(--bg-base, #0F172A) !important;
+  color: var(--text-1, #F8FAFC) !important;
+}
+
+/* ===== 占位符文字颜色 ===== */
+.coordinateSelector :global(.ant-input)::placeholder,
+.coordinateSelector :global(.ant-input-number) input::placeholder,
+.coordinateSelector input::placeholder {
+  color: var(--text-3, #CBD5E1) !important;
+  opacity: 0.7;
+}
+
+/* ===== 🚨 强制覆盖任何可能的白色背景 ===== */
+.coordinateSelector [style*="background: white"],
+.coordinateSelector [style*="background: #fff"],
+.coordinateSelector [style*="background: #ffffff"],
+.coordinateSelector [style*="background-color: white"],
+.coordinateSelector [style*="background-color: #fff"],
+.coordinateSelector [style*="background-color: #ffffff"] {
+  background: var(--bg-elevated, #1E293B) !important;
+  background-color: var(--bg-elevated, #1E293B) !important;
+}
+
+/* ===== 防止全局样式污染的最后防线 ===== */
+.coordinateSelector *[class*="ant-"] {
+  background-color: var(--bg-elevated, #1E293B) !important;
+  color: var(--text-1, #F8FAFC) !important;
+}
+
+/* ===== 确保所有文字都可见 ===== */
+.coordinateSelector :global(.ant-typography-caption),
+.coordinateSelector :global(.ant-typography),
+.tipText {
+  color: var(--text-1, #F8FAFC) !important;
+}
