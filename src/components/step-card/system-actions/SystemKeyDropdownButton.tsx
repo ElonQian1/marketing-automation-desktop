@@ -32,6 +32,12 @@ export const SystemKeyDropdownButton: React.FC<SystemKeyDropdownButtonProps> = (
       { key: 'edgeBackRight', label: '➡️ 右边缘 → 左滑（返回）', onClick: () => onSelectTemplate(ScreenActionTemplates.backGestureFromRight()) },
       { key: 'edgeCustom', label: '🛠️ 自定义边缘返回…', onClick: () => setOpenEdgeCustom(true) },
     ]},
+    { type: 'group', label: '基础操作', children: [
+      { key: 'wait500', label: '⏱️ 等待 0.5秒', onClick: () => onSelectTemplate(SystemKeyTemplates.wait(500)) },
+      { key: 'wait1000', label: '⏱️ 等待 1秒', onClick: () => onSelectTemplate(SystemKeyTemplates.wait(1000)) },
+      { key: 'wait2000', label: '⏱️ 等待 2秒', onClick: () => onSelectTemplate(SystemKeyTemplates.wait(2000)) },
+      { key: 'wait3000', label: '⏱️ 等待 3秒', onClick: () => onSelectTemplate(SystemKeyTemplates.wait(3000)) },
+    ]},
   ];
 
   return (

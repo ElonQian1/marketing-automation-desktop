@@ -975,13 +975,13 @@ fn evaluate_best_candidate<'a>(
             original_resource_id,
             children_texts,
             // 🔥 根据匹配方向决定 prefer_last
-            // - None（单步模式）: prefer_last = true（避免选择列表标题）
+            // - None（单步模式）: prefer_last = false（信任智能匹配，不跳过第一个）
             // - "forward"（正向）: prefer_last = false（从第一个开始）
             // - "backward"（反向）: prefer_last = true（从最后一个开始）
             prefer_last: match match_direction {
                 Some("forward") => false,   // 正向：从第一个开始
                 Some("backward") => true,   // 反向：从最后一个开始
-                _ => true,                  // 单步模式：优先选择最后一个（避免列表标题）
+                _ => false,                 // ✅ 单步模式：信任智能匹配系统，从第一个开始
             },
             selected_xpath, // 🔥 传递用户选择的XPath（最高优先级匹配依据）
             xml_content: Some(ui_xml.to_string()), // 🔥 传递当前XML，用于子元素文本提取
