@@ -17,6 +17,8 @@ import {
 import { SettingOutlined } from '@ant-design/icons';
 import type { ActionType, ActionParams } from '../../types/action-types';
 import { getActionConfig } from '../../types/action-types';
+import { CoordinateSelector } from './coordinate-selector';
+import type { CoordinateConfig } from './coordinate-selector';
 
 const { Text } = Typography;
 const { TextArea } = Input;
@@ -279,6 +281,17 @@ export const ActionParamsPanel: React.FC<ActionParamsPanelProps> = ({
                 />
               </div>
             )}
+
+            {/* 🎯 智能坐标配置模块 */}
+            <div style={{ marginTop: 16 }}>
+              <CoordinateSelector
+                params={params as ActionParams & CoordinateConfig}
+                onChange={(newCoords) => updateParams(newCoords)}
+                size={size}
+                direction={params.direction || 'down'}
+                screenSize={{ width: 1080, height: 1920 }}
+              />
+            </div>
           </Space>
         );
 
@@ -575,6 +588,25 @@ export const ActionParamsPanel: React.FC<ActionParamsPanelProps> = ({
     <>
       <style>
         {`
+          /* ===== 🛡️ 样式隔离基准线 - 防止外部样式干扰 ===== */
+          .action-params-panel {
+            /* 重置所有可能被外部影响的属性 */
+            all: unset !important;
+            display: block !important;
+            position: relative !important;
+            box-sizing: border-box !important;
+            
+            /* 强制深色主题基准 */
+            background-color: var(--bg-elevated, #1E293B) !important;
+            color: var(--text-1, #F8FAFC) !important;
+            border-radius: 8px !important;
+            
+            /* 防止被全局样式覆盖的保护属性 */
+            font-family: -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,"Helvetica Neue",Arial,sans-serif !important;
+            font-size: 14px !important;
+            line-height: 1.5 !important;
+          }
+
           /* ===== 基础文本颜色控制 - 确保所有文字在深色背景下可见 ===== */
           .action-params-panel,
           .action-params-panel *,
@@ -589,23 +621,46 @@ export const ActionParamsPanel: React.FC<ActionParamsPanelProps> = ({
             color: var(--text-1, #F8FAFC) !important;
           }
 
-          /* ===== 输入组件文字颜色 - 确保输入框内文字可见 ===== */
+          /* ===== 🔧 输入组件强制深色样式 - 解决白底白字问题 ===== */
+          .action-params-panel .ant-input-number,
+          .action-params-panel .ant-input-number *,
+          .action-params-panel .ant-input-number-input,
           .action-params-panel .ant-input-number .ant-input-number-input,
           .action-params-panel .ant-input,
+          .action-params-panel .ant-input *,
           .action-params-panel .ant-textarea,
+          .action-params-panel .ant-textarea *,
+          .action-params-panel .ant-select,
+          .action-params-panel .ant-select *,
           .action-params-panel .ant-select .ant-select-selector,
           .action-params-panel .ant-select-selection-item,
           .action-params-panel .ant-select-selection-placeholder {
-            color: var(--text-1, #F8FAFC) !important;
-          }
-
-          /* ===== 输入组件背景和边框 - 深色主题样式 ===== */
-          .action-params-panel .ant-input-number,
-          .action-params-panel .ant-input,
-          .action-params-panel .ant-textarea,
-          .action-params-panel .ant-select .ant-select-selector {
             background-color: var(--bg-elevated, #1E293B) !important;
             border-color: var(--border-primary, #334155) !important;
+            color: var(--text-1, #F8FAFC) !important;
+            
+            /* 🚨 防止被全局白色背景覆盖 */
+            background: var(--bg-elevated, #1E293B) !important;
+            background-image: none !important;
+          }
+
+          /* ===== InputNumber 输入框特殊处理 ===== */
+          .action-params-panel .ant-input-number-input-wrap,
+          .action-params-panel .ant-input-number-input-wrap input,
+          .action-params-panel .ant-input-number-input-wrap input[type="text"],
+          .action-params-panel .ant-input-number-input-wrap .ant-input-number-input {
+            background-color: var(--bg-elevated, #1E293B) !important;
+            background: var(--bg-elevated, #1E293B) !important;
+            color: var(--text-1, #F8FAFC) !important;
+            border: none !important;
+            outline: none !important;
+          }
+
+          /* ===== 输入组件 wrapper 容器 ===== */
+          .action-params-panel .ant-input-number-wrapper,
+          .action-params-panel .ant-input-number-group-wrapper,
+          .action-params-panel .ant-input-number-group {
+            background-color: transparent !important;
           }
 
           /* ===== 输入组件交互状态 ===== */
@@ -614,14 +669,19 @@ export const ActionParamsPanel: React.FC<ActionParamsPanelProps> = ({
           .action-params-panel .ant-textarea:hover,
           .action-params-panel .ant-select:hover .ant-select-selector {
             border-color: var(--brand, #4A5FD1) !important;
+            background-color: var(--bg-elevated, #1E293B) !important;
           }
 
           .action-params-panel .ant-input-number-focused,
+          .action-params-panel .ant-input-number:focus,
+          .action-params-panel .ant-input-number:focus-within,
           .action-params-panel .ant-input:focus,
           .action-params-panel .ant-textarea:focus,
           .action-params-panel .ant-select-focused .ant-select-selector {
             border-color: var(--brand, #4A5FD1) !important;
             box-shadow: 0 0 0 2px rgba(74, 95, 209, 0.2) !important;
+            background-color: var(--bg-elevated, #1E293B) !important;
+            outline: none !important;
           }
 
           /* ===== 输入框后缀/前缀样式 ===== */
@@ -630,6 +690,20 @@ export const ActionParamsPanel: React.FC<ActionParamsPanelProps> = ({
             background-color: var(--bg-secondary, #334155) !important;
             border-color: var(--border-primary, #334155) !important;
             color: var(--text-2, #E2E8F0) !important;
+          }
+
+          /* ===== 数字输入框控制按钮样式 ===== */
+          .action-params-panel .ant-input-number-handler-wrap {
+            background-color: var(--bg-elevated, #1E293B) !important;
+          }
+          
+          .action-params-panel .ant-input-number-handler {
+            color: var(--text-2, #E2E8F0) !important;
+            border-color: var(--border-primary, #334155) !important;
+          }
+          
+          .action-params-panel .ant-input-number-handler:hover {
+            color: var(--brand, #4A5FD1) !important;
           }
 
           /* ===== 复选框样式 ===== */
@@ -648,14 +722,23 @@ export const ActionParamsPanel: React.FC<ActionParamsPanelProps> = ({
           }
 
           /* ===== 卡片标题样式 ===== */
+          .action-params-panel .ant-card-head,
+          .action-params-panel .ant-card-head-wrapper,
           .action-params-panel .ant-card-head-title,
           .action-params-panel .ant-card-head-title *,
           .action-params-panel .ant-card-head .ant-space-item span,
           .action-params-panel .ant-card-head-wrapper span {
+            background-color: transparent !important;
             color: var(--text-1, #F8FAFC) !important;
           }
 
           .action-params-panel.light-theme-force .ant-card-head-title {
+            color: var(--text-1, #F8FAFC) !important;
+          }
+
+          /* ===== 卡片主体样式 ===== */
+          .action-params-panel .ant-card-body {
+            background-color: transparent !important;
             color: var(--text-1, #F8FAFC) !important;
           }
 
@@ -692,9 +775,31 @@ export const ActionParamsPanel: React.FC<ActionParamsPanelProps> = ({
           .action-params-panel .ant-input::placeholder,
           .action-params-panel .ant-textarea::placeholder,
           .action-params-panel .ant-input-number input::placeholder,
+          .action-params-panel .ant-input-number-input::placeholder,
           .action-params-panel .ant-select-selection-placeholder {
             color: var(--text-3, #CBD5E1) !important;
             opacity: 0.7;
+          }
+
+          /* ===== 🚨 强制覆盖任何可能的白色背景 ===== */
+          .action-params-panel input,
+          .action-params-panel input[type="text"],
+          .action-params-panel input[type="number"],
+          .action-params-panel textarea {
+            background-color: var(--bg-elevated, #1E293B) !important;
+            background: var(--bg-elevated, #1E293B) !important;
+            color: var(--text-1, #F8FAFC) !important;
+          }
+
+          /* ===== 防止全局样式污染的最后防线 ===== */
+          .action-params-panel [style*="background: white"],
+          .action-params-panel [style*="background: #fff"],
+          .action-params-panel [style*="background: #ffffff"],
+          .action-params-panel [style*="background-color: white"],
+          .action-params-panel [style*="background-color: #fff"],
+          .action-params-panel [style*="background-color: #ffffff"] {
+            background: var(--bg-elevated, #1E293B) !important;
+            background-color: var(--bg-elevated, #1E293B) !important;
           }
         `}
       </style>

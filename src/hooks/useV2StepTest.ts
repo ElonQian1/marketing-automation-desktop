@@ -82,40 +82,89 @@ export function useV2StepTest(): UseV2StepTestState & UseV2StepTestActions {
     try {
       const startTime = Date.now();
 
+      // 🔑 获取重复执行参数
+      const params = step.parameters || {};
+      const repeatCount = Number(params.repeat_count) || 1;
+      const waitBetween = params.wait_between === true;
+      const waitDuration = Number(params.wait_duration) || 500;
+
+      console.log('🔄 [V2测试] 重复执行配置:', {
+        repeatCount,
+        waitBetween,
+        waitDuration,
+        stepType: step.step_type
+      });
+
       // 转换SmartScriptStep到V2请求格式
       const request: StepExecutionRequest = convertSmartStepToV2Request(step, deviceId, mode);
       
       console.log('📋 V2请求参数:', JSON.stringify(request, null, 2));
 
-      // 执行V2步骤
       const gateway = getStepExecutionGateway();
-      const response = await gateway.executeStep(request);
+      let lastResponse: any = null;
+      const executionLogs: string[] = [];
+
+      // 🔄 重复执行逻辑
+      for (let i = 0; i < repeatCount; i++) {
+        console.log(`🔄 [V2测试] 执行第 ${i + 1}/${repeatCount} 次`);
+        executionLogs.push(`执行第 ${i + 1}/${repeatCount} 次`);
+
+        // 执行步骤
+        const response = await gateway.executeStep(request);
+        lastResponse = response;
+
+        if (!response.success) {
+          console.warn(`⚠️ [V2测试] 第 ${i + 1} 次执行失败:`, response.message);
+          executionLogs.push(`第 ${i + 1} 次执行失败: ${response.message}`);
+          // 如果某次执行失败，继续执行剩余次数（可以根据需要调整策略）
+        } else {
+          console.log(`✅ [V2测试] 第 ${i + 1} 次执行成功`);
+          executionLogs.push(`第 ${i + 1} 次执行成功`);
+        }
+
+        // 如果需要间隔等待且不是最后一次
+        if (waitBetween && i < repeatCount - 1) {
+          console.log(`⏳ [V2测试] 等待 ${waitDuration}ms 后继续下一次执行`);
+          executionLogs.push(`等待 ${waitDuration}ms`);
+          await new Promise(resolve => setTimeout(resolve, waitDuration));
+        }
+      }
       
       const endTime = Date.now();
       const durationMs = endTime - startTime;
 
+      // 使用最后一次执行的结果（如果没有则表示全部失败）
+      const finalResponse = lastResponse;
+      if (!finalResponse) {
+        throw new Error('所有执行尝试都失败了');
+      }
+
       console.log('✅ V2执行完成:', {
-        success: response.success,
-        message: response.message,
-        engine: response.engine,
+        success: finalResponse.success,
+        message: finalResponse.message,
+        engine: finalResponse.engine,
         durationMs,
+        repeatCount,
+        executionLogs
       });
 
       // 转换响应为测试结果
       const result: V2StepTestResult = {
-        success: response.success,
+        success: finalResponse.success,
         stepId: step.id || 'unknown',
         stepName: step.name || step.step_type || 'unknown',
-        message: response.message,
+        message: repeatCount > 1 
+          ? `重复执行 ${repeatCount} 次完成: ${finalResponse.message}`
+          : finalResponse.message,
         durationMs,
         timestamp: endTime,
-        engine: response.engine as 'v2' | 'shadow',
-        matched: response.matched,
-        executedAction: response.executedAction,
-        verifyPassed: response.verifyPassed,
-        errorCode: response.errorCode,
-        logs: response.logs,
-        rawResponse: response,
+        engine: finalResponse.engine as 'v2' | 'shadow',
+        matched: finalResponse.matched,
+        executedAction: finalResponse.executedAction,
+        verifyPassed: finalResponse.verifyPassed,
+        errorCode: finalResponse.errorCode,
+        logs: [...(finalResponse.logs || []), ...executionLogs], // 合并执行日志
+        rawResponse: finalResponse,
       };
 
       setState(prev => ({

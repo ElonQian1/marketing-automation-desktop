@@ -24,7 +24,7 @@
  * - 保持相同的导出类型
  */
 
-import React, { useState, useMemo } from "react";
+import React, { useState, useMemo, useEffect } from "react";
 import { CSS } from "@dnd-kit/utilities";
 import { SmartActionType } from "../types/smartComponents";
 import { isBackendHealthy } from "../services/backend-health-check";
@@ -367,6 +367,20 @@ const DraggableStepCardInner: React.FC<
 
   // 🎛️ 参数面板状态管理
   const [showParams, setShowParams] = useState(false);
+  
+  // 🔑 实时参数状态 - 确保测试按钮使用最新参数
+  const [currentParameters, setCurrentParameters] = useState(step.parameters || {});
+
+  // 🔄 同步step.parameters变化到本地状态
+  useEffect(() => {
+    setCurrentParameters(step.parameters || {});
+  }, [step.parameters]);
+
+  // 🔄 合并后的step对象 - 确保测试按钮获得最新参数
+  const currentStep = useMemo(() => ({
+    ...step,
+    parameters: currentParameters
+  }), [step, currentParameters]);
 
   // 🔄 将步骤类型转换为ActionType
   const actionType = useMemo(() => {
@@ -396,7 +410,10 @@ const DraggableStepCardInner: React.FC<
 
   // 🎛️ 参数更新处理函数 
   const handleParametersChange = (params: ActionParams) => {
-    // 🔄 同时调用两个回调确保参数更新生效
+    // � 关键修复：立即更新本地参数状态，确保测试按钮使用最新参数
+    setCurrentParameters(params as Record<string, unknown>);
+    
+    // �🔄 同时调用两个回调确保参数更新生效
     if (onParametersChange) {
       onParametersChange(step.id, params);
     }
@@ -825,7 +842,7 @@ const DraggableStepCardInner: React.FC<
             {/* 测试按钮 */}
             {StepTestButton && (
               <StepTestButton
-                step={step}
+                step={currentStep}
                 deviceId={currentDeviceId}
                 disabled={!step.enabled}
               />

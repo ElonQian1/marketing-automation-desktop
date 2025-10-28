@@ -110,30 +110,53 @@ export const normalizeStepForExecution = (step: SmartScriptStep): SmartScriptSte
       const speed = Number(p.speed_ms ?? 300);
       const screen = { width: 1080, height: 1920 };
 
-      const cx = Math.floor(screen.width / 2);
-      const cy = Math.floor(screen.height / 2);
-      const delta = Math.max(100, Math.min(distance, Math.floor(screen.height * 0.8)));
-      let start_x = cx, start_y = cy, end_x = cx, end_y = cy;
-      switch (direction) {
-        case 'up':
-          start_y = cy - Math.floor(delta / 2);
-          end_y = cy + Math.floor(delta / 2);
-          break;
-        case 'down':
-          start_y = cy + Math.floor(delta / 2);
-          end_y = cy - Math.floor(delta / 2);
-          break;
-        case 'left':
-          start_x = cx - Math.floor(delta / 2);
-          end_x = cx + Math.floor(delta / 2);
-          break;
-        case 'right':
-          start_x = cx + Math.floor(delta / 2);
-          end_x = cx - Math.floor(delta / 2);
-          break;
-        default:
-          start_y = cy + Math.floor(delta / 2);
-          end_y = cy - Math.floor(delta / 2);
+      let start_x: number, start_y: number, end_x: number, end_y: number;
+
+      // 🎯 检查是否使用自定义坐标
+      if (p.use_custom_coordinates && 
+          p.start_x !== undefined && p.start_y !== undefined && 
+          p.end_x !== undefined && p.end_y !== undefined) {
+        // 使用用户自定义的坐标
+        start_x = Number(p.start_x);
+        start_y = Number(p.start_y);
+        end_x = Number(p.end_x);
+        end_y = Number(p.end_y);
+        
+        console.log(`🎯 使用自定义坐标: (${start_x},${start_y}) → (${end_x},${end_y})`);
+      } else {
+        // 使用原来的自动计算逻辑
+        const cx = Math.floor(screen.width / 2);
+        const cy = Math.floor(screen.height / 2);
+        const delta = Math.max(100, Math.min(distance, Math.floor(screen.height * 0.8)));
+        
+        start_x = cx;
+        start_y = cy;
+        end_x = cx;
+        end_y = cy;
+        
+        switch (direction) {
+          case 'up':
+            start_y = cy - Math.floor(delta / 2);
+            end_y = cy + Math.floor(delta / 2);
+            break;
+          case 'down':
+            start_y = cy + Math.floor(delta / 2);
+            end_y = cy - Math.floor(delta / 2);
+            break;
+          case 'left':
+            start_x = cx - Math.floor(delta / 2);
+            end_x = cx + Math.floor(delta / 2);
+            break;
+          case 'right':
+            start_x = cx + Math.floor(delta / 2);
+            end_x = cx - Math.floor(delta / 2);
+            break;
+          default:
+            start_y = cy + Math.floor(delta / 2);
+            end_y = cy - Math.floor(delta / 2);
+        }
+        
+        console.log(`🤖 使用自动计算坐标: (${start_x},${start_y}) → (${end_x},${end_y})`);
       }
 
       return {
@@ -142,9 +165,13 @@ export const normalizeStepForExecution = (step: SmartScriptStep): SmartScriptSte
         name: step.name || '滑动',
         description: step.description || `标准化滚动映射为滑动(${direction})`,
         parameters: {
-          ...p,
+          ...p, // 🔑 关键修复：保留所有原始参数
           start_x, start_y, end_x, end_y,
           duration: speed > 0 ? speed : 300,
+          // 🔑 确保重要参数被保留
+          repeat_count: p.repeat_count || 1,
+          wait_between: p.wait_between || false,
+          wait_duration: p.wait_duration || 500,
         },
       } as SmartScriptStep;
     }

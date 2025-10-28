@@ -43,6 +43,13 @@ export interface ActionParams {
   // 输入操作高级参数
   input_speed?: 'instant' | 'fast' | 'normal' | 'slow';
   simulate_human?: boolean;
+
+  // 🎯 新增：自定义坐标参数
+  start_x?: number;
+  start_y?: number;
+  end_x?: number;
+  end_y?: number;
+  use_custom_coordinates?: boolean;
 }
 
 export interface ActionType {
