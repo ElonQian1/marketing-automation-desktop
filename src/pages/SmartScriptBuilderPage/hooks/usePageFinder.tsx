@@ -916,13 +916,10 @@ export function usePageFinder(deps: UsePageFinderDeps) {
     onElementSelected,
   };
 
-  console.log('📋 [usePageFinder] pageFinderProps 配置:', {
-    visible: pageFinderProps.visible,
-    initialViewMode: pageFinderProps.initialViewMode,
-    preselectLocator: pageFinderProps.preselectLocator,
-    initialMatching: pageFinderProps.initialMatching,
-    editingStepId: editingStepForParams?.id
-  });  return {
+  // 🔇 日志优化：移除频繁的配置日志
+  // console.log('📋 [usePageFinder] pageFinderProps 配置:', { visible, initialViewMode, ... });
+
+  return {
     pageFinderProps,
     openPageFinderForStep,
     openQuickPageFinder,

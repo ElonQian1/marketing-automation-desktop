@@ -765,36 +765,161 @@ pub async fn mock_intelligent_analysis(
     let candidates_count = candidate_scores.len();
     let best_confidence = candidate_scores.first().map(|c| c.confidence as f64).unwrap_or(0.0);
     
+    // 🔥 修复：从请求中构建 original_data（用于失败恢复）
+    let original_data_from_request = request.user_selection.as_ref()
+        .map(|us| {
+            serde_json::json!({
+                // 🔥 关键：保存原始XML快照（失败恢复时重新分析用）
+                "original_xml": request.ui_xml_content.clone(),
+                "xml_hash": "", // 前端计算的哈希（如果需要可以添加）
+                
+                // 用户选择的精确XPath（静态分析结果）
+                "selected_xpath": us.selected_xpath.clone(),
+                
+                // 元素特征信息
+                "element_text": us.text.clone().unwrap_or_default(),
+                "element_bounds": us.bounds.clone(),
+                "key_attributes": {
+                    "resource-id": us.resource_id.clone(),
+                    "class": us.class_name.clone(),
+                    "content-desc": us.content_desc.clone(),
+                },
+                
+                // 🔥 子元素文本列表（解决父容器+子文本模式）
+                "children_texts": us.children_texts.clone(),
+                
+                // 数据完整性标记
+                "data_integrity": {
+                    "has_original_xml": !request.ui_xml_content.is_empty(),
+                    "has_user_xpath": !us.selected_xpath.is_empty(),
+                    "has_children_texts": !us.children_texts.is_empty(),
+                    "extraction_timestamp": chrono::Utc::now().timestamp_millis()
+                }
+            })
+        });
+    
+    tracing::info!(
+        "🔍 [数据保留] original_data 构建完成: has_user_selection={}, xml_size={} bytes",
+        original_data_from_request.is_some(),
+        request.ui_xml_content.len()
+    );
+    
     // 🎯 转换 StrategyEngine 结果为 IntelligentAnalysisResult 格式
-    let candidates: Vec<StrategyCandidate> = candidate_scores.into_iter()
-        .map(|score| StrategyCandidate {
-            strategy: score.key,
-            confidence: score.confidence as f64,
-            reasoning: score.description,
-            element_info: ElementInfo {
-                bounds: None, // TODO: 从 analysis_context.bounds 提取
-                text: analysis_context.element_text.clone(),
-                resource_id: analysis_context.resource_id.clone(),
-                class_name: analysis_context.class_name.clone(),
-                click_point: None, // TODO: 根据 bounds 计算点击坐标
-            },
-            execution_params: serde_json::json!({
+    let mut candidates: Vec<StrategyCandidate> = candidate_scores.into_iter()
+        .map(|score| {
+            // 🔥 构建 execution_params，包含 original_data
+            let mut exec_params = serde_json::json!({
                 "strategy": score.variant,
                 "xpath": score.xpath,
                 "confidence": score.confidence,
                 "evidence": score.evidence
-            }),
+            });
+            
+            // 🔥 关键修复：添加 original_data 到每个候选
+            if let Some(ref original_data) = original_data_from_request {
+                exec_params["original_data"] = original_data.clone();
+                tracing::debug!(
+                    "✅ [候选生成] 候选 {}: 已包含 original_data (xml_size={} bytes)",
+                    score.name,
+                    request.ui_xml_content.len()
+                );
+            } else {
+                tracing::warn!(
+                    "⚠️ [候选生成] 候选 {}: 缺少 user_selection，无法构建 original_data",
+                    score.name
+                );
+            }
+            
+            StrategyCandidate {
+                strategy: score.key,
+                confidence: score.confidence as f64,
+                reasoning: score.description,
+                element_info: ElementInfo {
+                    bounds: None, // 稍后从XML中提取
+                    text: analysis_context.element_text.clone(),
+                    resource_id: analysis_context.resource_id.clone(),
+                    class_name: analysis_context.class_name.clone(),
+                    click_point: None, // 根据 bounds 计算
+                },
+                execution_params: exec_params,
+            }
         })
         .collect();
     
+    // 🎯 填充候选的 bounds 信息（从 XML 中根据 xpath 提取）
+    tracing::info!("🔍 [Bounds提取] 开始从 {} 个候选的 xpath 中提取 bounds", candidates.len());
+    for (idx, candidate) in candidates.iter_mut().enumerate() {
+        if let Some(xpath) = candidate.execution_params.get("xpath")
+            .and_then(|v| v.as_str()) 
+        {
+            // 尝试根据 xpath 在 ui_elements 中找到匹配的元素
+            if let Some(bounds) = find_element_bounds_by_xpath(&ui_elements, xpath) {
+                candidate.element_info.bounds = Some(bounds.clone());
+                tracing::debug!(
+                    "✅ [Bounds提取] 候选 #{}: xpath={} -> bounds={}",
+                    idx + 1, xpath, bounds
+                );
+            } else {
+                tracing::warn!(
+                    "⚠️ [Bounds提取] 候选 #{}: xpath={} -> 未找到匹配元素",
+                    idx + 1, xpath
+                );
+            }
+        }
+    }
+    
     // 🎯 如果没有找到高置信度候选，进行智能回退分析
-    let final_candidates = if candidates.is_empty() || 
+    let mut final_candidates = if candidates.is_empty() || 
                               candidates.iter().all(|c| c.confidence < 0.6) {
         tracing::warn!("⚠️ 主要策略置信度低，启用智能回退分析");
         perform_fallback_analysis(&request, &ui_elements).await?
     } else {
         candidates
     };
+    
+    // 🎯 根据用户选择的 bounds 重新排序候选（Bug #4 修复）
+    if let Some(user_selection) = &request.user_selection {
+        if let Some(user_bounds) = user_selection.bounds.as_deref() {
+            tracing::info!(
+                "🎯 [Bounds过滤] 检测到用户选择bounds，开始智能分析: user_bounds={}",
+                user_bounds
+            );
+            
+            // 🆕 先检查用户选择的区域内是否有可点击的子元素
+            let clickable_children = crate::exec::v3::helpers::element_hierarchy_analyzer::find_clickable_children_in_bounds(
+                &ui_elements,
+                user_bounds
+            );
+            
+            if !clickable_children.is_empty() {
+                tracing::warn!(
+                    "⚠️ [智能修正] 用户选择的区域 {} 包含 {} 个可点击子元素，但生成的候选可能不在此区域内!",
+                    user_bounds, clickable_children.len()
+                );
+                tracing::warn!(
+                    "💡 [建议] 用户可能误选了容器而不是具体按钮，建议前端优化可视化选择"
+                );
+                
+                // 打印可点击子元素供调试
+                for (idx, child) in clickable_children.iter().take(5).enumerate() {
+                    if let (Some(text), Some(bounds)) = (&child.text, &child.bounds) {
+                        tracing::info!(
+                            "  可点击子元素 #{}: text='{}', bounds={}, resource_id={:?}",
+                            idx + 1, text, bounds, child.resource_id
+                        );
+                    }
+                }
+            }
+            
+            // 使用原有的bounds重排序逻辑
+            final_candidates = crate::exec::v3::helpers::strategy_generation::rerank_candidates_by_bounds(
+                final_candidates,
+                Some(user_bounds)
+            );
+            tracing::info!("✅ [Bounds过滤] 候选重排序完成，最佳候选: {:?}", 
+                final_candidates.first().map(|c| &c.element_info.text));
+        }
+    }
     
     let result = IntelligentAnalysisResult {
         analysis_id: request.analysis_id.clone(),
@@ -846,7 +971,7 @@ fn extract_resource_id_from_hint(hint: &str) -> Option<String> {
 
 /// 智能回退分析 - 当主要策略失败时使用
 async fn perform_fallback_analysis(
-    _request: &IntelligentAnalysisRequest,
+    request: &IntelligentAnalysisRequest, // 🔥 修复：需要 request 来构建 original_data
     ui_elements: &[crate::services::ui_reader_service::UIElement],
 ) -> Result<Vec<StrategyCandidate>> {
     tracing::info!("🔄 执行智能回退分析");
@@ -894,7 +1019,63 @@ async fn perform_fallback_analysis(
         .or_else(|| clickable_texts.first().cloned())
         .unwrap_or_else(|| "智能推荐".to_string());
     
+    // 🔥 修复：构建 original_data（即使在回退分析中也需要保留）
+    let original_data_from_request = request.user_selection.as_ref()
+        .map(|us| {
+            serde_json::json!({
+                // 🔥 关键：保存原始XML快照（失败恢复时重新分析用）
+                "original_xml": request.ui_xml_content.clone(),
+                "xml_hash": "", // 前端计算的哈希
+                
+                // 用户选择的精确XPath（静态分析结果）
+                "selected_xpath": us.selected_xpath.clone(),
+                
+                // 元素特征信息
+                "element_text": us.text.clone().unwrap_or_default(),
+                "element_bounds": us.bounds.clone(),
+                "key_attributes": {
+                    "resource-id": us.resource_id.clone(),
+                    "class": us.class_name.clone(),
+                    "content-desc": us.content_desc.clone(),
+                },
+                
+                // 🔥 子元素文本列表（解决父容器+子文本模式）
+                "children_texts": us.children_texts.clone(),
+                
+                // 数据完整性标记
+                "data_integrity": {
+                    "has_original_xml": !request.ui_xml_content.is_empty(),
+                    "has_user_xpath": !us.selected_xpath.is_empty(),
+                    "has_children_texts": !us.children_texts.is_empty(),
+                    "extraction_timestamp": chrono::Utc::now().timestamp_millis()
+                }
+            })
+        });
+    
+    tracing::info!(
+        "🔍 [回退分析] original_data 构建完成: has_user_selection={}, xml_size={} bytes",
+        original_data_from_request.is_some(),
+        request.ui_xml_content.len()
+    );
+    
     // 生成回退候选策略
+    let mut execution_params = serde_json::json!({
+        "strategy": "smart_fallback",
+        "targetText": target_text,
+        "mode": "adaptive"
+    });
+    
+    // 🔥 关键修复：添加 original_data 到回退候选
+    if let Some(ref original_data) = original_data_from_request {
+        execution_params["original_data"] = original_data.clone();
+        tracing::info!(
+            "✅ [回退分析] 回退候选已包含 original_data (xml_size={} bytes)",
+            request.ui_xml_content.len()
+        );
+    } else {
+        tracing::warn!("⚠️ [回退分析] 缺少 user_selection，无法构建 original_data");
+    }
+    
     let candidates = vec![
         StrategyCandidate {
             strategy: "fallback_smart_selection".to_string(),
@@ -907,11 +1088,7 @@ async fn perform_fallback_analysis(
                 class_name: None,
                 click_point: None,
             },
-            execution_params: serde_json::json!({
-                "strategy": "smart_fallback",
-                "targetText": target_text,
-                "mode": "adaptive"
-            }),
+            execution_params,
         },
     ];
     
@@ -942,3 +1119,145 @@ fn calculate_string_similarity(s1: &str, s2: &str) -> f32 {
     // 相似度 = 公共字符数 / 较长字符串长度
     common_chars as f32 / max_len
 }
+
+/// 🔍 根据 XPath 在 UIElement 列表中查找元素的 bounds
+/// 
+/// 支持常见的 XPath 格式:
+/// - //*[@resource-id='xxx']
+/// - //*[@content-desc='xxx']
+/// - //*[@text='xxx']
+/// - //node[@index='N']
+/// - //*[@class='xxx' and @bounds='[...]']
+fn find_element_bounds_by_xpath(
+    elements: &[crate::services::ui_reader_service::UIElement],
+    xpath: &str,
+) -> Option<String> {
+    // 🔧 特殊处理: //node[@index='N'] 格式
+    if xpath.contains("//node[@index='") {
+        let start = xpath.find("[@index='")? + 9;
+        let end = xpath[start..].find('\'')?;
+        let index_str = &xpath[start..start + end];
+        if let Ok(target_index) = index_str.parse::<usize>() {
+            tracing::debug!("🔍 [XPath匹配] 按index查找: {}", target_index);
+            // 按index查找元素
+            for (idx, element) in elements.iter().enumerate() {
+                if idx == target_index {
+                    if let Some(ref bounds) = element.bounds {
+                        tracing::debug!(
+                            "✅ [XPath匹配] 找到元素: index={} -> bounds={}",
+                            target_index, bounds
+                        );
+                        return Some(bounds.clone());
+                    }
+                }
+            }
+        }
+        return None;
+    }
+    
+    // 🔧 特殊处理: @class='xxx' and @bounds='[...]' 格式
+    if xpath.contains("@class=") && xpath.contains("and @bounds=") {
+        let class_start = xpath.find("@class='")? + 8;
+        let class_end = xpath[class_start..].find('\'')?;
+        let target_class = &xpath[class_start..class_start + class_end];
+        
+        let bounds_start = xpath.find("@bounds='")? + 9;
+        let bounds_end = xpath[bounds_start..].find('\'')?;
+        let target_bounds = &xpath[bounds_start..bounds_start + bounds_end];
+        
+        tracing::debug!(
+            "🔍 [XPath匹配] 按class+bounds查找: class='{}', bounds='{}'",
+            target_class, target_bounds
+        );
+        
+        for element in elements {
+            let class_match = element.class.as_deref() == Some(target_class);
+            let bounds_match = element.bounds.as_deref() == Some(target_bounds);
+            
+            if class_match && bounds_match {
+                tracing::debug!(
+                    "✅ [XPath匹配] 找到元素: class='{}', bounds='{}'",
+                    target_class, target_bounds
+                );
+                return Some(target_bounds.to_string());
+            }
+        }
+        
+        tracing::debug!(
+            "⚠️ [XPath匹配] 未找到: class='{}', bounds='{}'",
+            target_class, target_bounds
+        );
+        return None;
+    }
+    
+    // 提取 XPath 中的属性和值
+    let (attr_name, attr_value) = if xpath.contains("@resource-id") {
+        let start = xpath.find("@resource-id='")? + 14;
+        let end = xpath[start..].find('\'')?;
+        ("resource-id", &xpath[start..start + end])
+    } else if xpath.contains("@content-desc") {
+        let start = xpath.find("@content-desc='")? + 15;
+        let end = xpath[start..].find('\'')?;
+        ("content-desc", &xpath[start..start + end])
+    } else if xpath.contains("@text") {
+        let start = xpath.find("@text='")? + 7;
+        let end = xpath[start..].find('\'')?;
+        ("text", &xpath[start..start + end])
+    } else {
+        tracing::warn!("⚠️ [XPath解析] 不支持的 XPath 格式: {}", xpath);
+        return None;
+    };
+    
+    // 在元素列表中查找匹配的元素
+    for element in elements {
+        let matches = match attr_name {
+            "resource-id" => element.resource_id.as_deref() == Some(attr_value),
+            "content-desc" => element.content_desc.as_deref() == Some(attr_value),
+            "text" => {
+                // 支持子元素文本匹配: //*[@resource-id='xxx']//*[@text='yyy']
+                if xpath.contains("]//*[@text") {
+                    // 这是一个子元素过滤条件，需要检查 resource-id 和 子元素文本
+                    if let Some(parent_rid_start) = xpath.find("@resource-id='") {
+                        let rid_start = parent_rid_start + 14;
+                        if let Some(rid_end) = xpath[rid_start..].find('\'') {
+                            let parent_rid = &xpath[rid_start..rid_start + rid_end];
+                            
+                            // 检查父元素 resource-id 是否匹配
+                            if element.resource_id.as_deref() != Some(parent_rid) {
+                                continue;
+                            }
+                            
+                            // 检查是否有子元素包含目标文本
+                            // 简化版本：检查元素自身text或children_texts
+                            element.text.as_deref() == Some(attr_value)
+                        } else {
+                            false
+                        }
+                    } else {
+                        element.text.as_deref() == Some(attr_value)
+                    }
+                } else {
+                    element.text.as_deref() == Some(attr_value)
+                }
+            },
+            _ => false,
+        };
+        
+        if matches {
+            if let Some(ref bounds) = element.bounds {
+                tracing::debug!(
+                    "✅ [XPath匹配] 找到元素: {}='{}' -> bounds={}",
+                    attr_name, attr_value, bounds
+                );
+                return Some(bounds.clone());
+            }
+        }
+    }
+    
+    tracing::debug!(
+        "⚠️ [XPath匹配] 未找到匹配元素: {}='{}'",
+        attr_name, attr_value
+    );
+    None
+}
+

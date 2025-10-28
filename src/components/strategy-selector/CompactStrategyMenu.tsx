@@ -86,9 +86,8 @@ const CompactStrategyMenu: React.FC<CompactStrategyMenuProps> = ({
   compact = true,
   stepId,
 }) => {
-  console.log("🚀 [CompactStrategyMenu] 组件已挂载 - v20251020-fix", {
-    stepId,
-  });
+  // 🔇 日志优化：移除组件挂载日志（过于频繁）
+  // console.log("🚀 [CompactStrategyMenu] 组件已挂载", { stepId });
   const [showExpandedView, setShowExpandedView] = useState(false);
   
   // 🎯 新增：智能选择状态管理
@@ -353,18 +352,11 @@ const CompactStrategyMenu: React.FC<CompactStrategyMenuProps> = ({
     return null;
   };
 
-  // 调试：监控状态变化
-  React.useEffect(() => {
-    const debugInfo = {
-      disabled,
-      analysisStatus: selector.analysis.status,
-      activeStrategy: selector.activeStrategy?.type,
-      hasActiveStrategy: !!selector.activeStrategy,
-      timestamp: new Date().toISOString(),
-      isButtonDisabled: disabled || selector.analysis.status === "analyzing",
-    };
-    console.log("🔍 [CompactStrategyMenu] 状态变化:", debugInfo);
-  }, [disabled, selector.analysis.status, selector.activeStrategy]);
+  // 🔇 日志优化：完全移除频繁的状态变化日志
+  // React.useEffect(() => {
+  //   const debugInfo = { disabled, analysisStatus: selector.analysis.status, ... };
+  //   console.log("🔍 [CompactStrategyMenu] 状态变化:", debugInfo);
+  // }, [disabled, selector.analysis.status, selector.activeStrategy]);
 
   // 🎯 新增：选择模式相关函数
   const getSelectionModeLabel = () => {

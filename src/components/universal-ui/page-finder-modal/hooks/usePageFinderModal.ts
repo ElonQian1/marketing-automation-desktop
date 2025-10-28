@@ -16,6 +16,7 @@ import { transformUIElement } from "../../types/index";
 import toDisplayableImageSrc from "../../../../utils/toDisplayableImageSrc";
 import { loadDataUrlWithCache as loadImageDataUrl } from "../../../xml-cache/utils/imageCache";
 import { generateXmlHash } from "../../../../utils/encoding/safeBase64";
+import { XmlCacheManager } from "../../../../services/xml-cache-manager"; // 🔥 修复：导入 XML 缓存管理器
 import type {
   XmlSnapshot,
   VisualUIElement,
@@ -283,6 +284,33 @@ export const usePageFinderModal = (props: UsePageFinderModalProps): UsePageFinde
         },
         timestamp: Date.now()
       };
+      
+      // 🔥🔥🔥 关键修复：使用后端返回的文件名作为缓存 ID
+      const xmlCacheId = result.xmlFileName || `xml_${snapshot.xmlHash.substring(0, 16)}_${Date.now()}`;
+      
+      // 🔥🔥🔥 [DEBUG] 后端返回数据检查
+      console.log('🔥 [usePageFinderModal] 后端返回数据:', {
+        hasXmlFileName: !!result.xmlFileName,
+        xmlFileName: result.xmlFileName,
+        xmlFileNameType: typeof result.xmlFileName,
+        xmlFileNameLength: result.xmlFileName?.length,
+        fallbackUsed: !result.xmlFileName,
+        actualCacheId: xmlCacheId,
+        expected: 'ui_dump_xxx.xml 格式'
+      });
+      
+      setCurrentXmlCacheId(xmlCacheId);
+      
+      // 🔥🔥🔥 保存 XML 到缓存管理器（使用后端文件名作为 key）
+      const cacheManager = XmlCacheManager.getInstance();
+      cacheManager.putXml(xmlCacheId, xmlContent, `sha256:${snapshot.xmlHash}`);
+      
+      console.log('✅ [usePageFinderModal] XML已保存到缓存:', {
+        xmlCacheId,
+        xmlFileName: result.xmlFileName,
+        xmlContentLength: xmlContent.length,
+        xmlHash: snapshot.xmlHash.substring(0, 16) + '...'
+      });
       
       // 仅快照模式直接返回快照
       if (snapshotOnlyMode) {

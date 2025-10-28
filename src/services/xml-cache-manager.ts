@@ -2,9 +2,17 @@
 // module: xml | layer: service | role: manager
 // summary: xml-cache-manager.ts 文件
 
+import { getPersistentStorage, XmlPersistentStorage } from './storage/xml-persistent-storage';
+
 /**
  * XML缓存管理器
- * 统一管理XML页面的缓存、关联和加载
+ * 
+ * 功能增强（v2.0）：
+ * 1. 内存缓存：快速访问（Map）
+ * 2. 持久化存储：IndexedDB存储，避免页面刷新丢失
+ * 3. 自动同步：内存 ↔ IndexedDB双向同步
+ * 4. 自动清理：过期数据和超量数据自动清理
+ * 5. 智能恢复：页面刷新后自动从IndexedDB恢复
  */
 
 export interface XmlCacheEntry {
@@ -67,12 +75,91 @@ class XmlCacheManager {
   private cache: Map<string, XmlCacheEntry> = new Map();
   private hashIndex: Map<string, XmlCacheEntry> = new Map();
   private stepXmlMapping: Map<string, StepXmlContext> = new Map();
+  private persistentStorage: XmlPersistentStorage | null = null;
+  private isRestoring = false;
+
+  private constructor() {
+    // 初始化持久化存储
+    this.initializePersistentStorage();
+  }
 
   static getInstance(): XmlCacheManager {
     if (!this.instance) {
       this.instance = new XmlCacheManager();
     }
     return this.instance;
+  }
+
+  /**
+   * 初始化持久化存储
+   */
+  private async initializePersistentStorage(): Promise<void> {
+    try {
+      this.persistentStorage = getPersistentStorage({
+        maxEntries: 500,
+        maxAgeDays: 30,
+        autoCleanup: true,
+        cleanupIntervalMs: 60 * 60 * 1000, // 1小时清理一次
+      });
+
+      await this.persistentStorage.initialize();
+      console.log('✅ 持久化存储已初始化');
+
+      // 自动从IndexedDB恢复缓存
+      await this.restoreFromPersistentStorage();
+    } catch (error) {
+      console.error('❌ 持久化存储初始化失败:', error);
+      // 不影响内存缓存的正常使用
+    }
+  }
+
+  /**
+   * 从持久化存储恢复缓存到内存
+   */
+  private async restoreFromPersistentStorage(): Promise<void> {
+    if (!this.persistentStorage || this.isRestoring) {
+      return;
+    }
+
+    this.isRestoring = true;
+
+    try {
+      const entries = await this.persistentStorage.getAll();
+      
+      if (entries.length === 0) {
+        console.log('📦 持久化存储为空，无需恢复');
+        return;
+      }
+
+      for (const entry of entries) {
+        this.cache.set(entry.cacheId, entry);
+        if (entry.xmlHash) {
+          this.hashIndex.set(entry.xmlHash, entry);
+        }
+      }
+
+      console.log(`✅ 从持久化存储恢复了 ${entries.length} 个XML缓存`);
+    } catch (error) {
+      console.error('❌ 恢复缓存失败:', error);
+    } finally {
+      this.isRestoring = false;
+    }
+  }
+
+  /**
+   * 同步内存缓存到持久化存储
+   */
+  private async syncToPersistentStorage(entry: XmlCacheEntry): Promise<void> {
+    if (!this.persistentStorage) {
+      return;
+    }
+
+    try {
+      await this.persistentStorage.put(entry);
+    } catch (error) {
+      console.error('❌ 同步到持久化存储失败:', error);
+      // 不影响内存缓存的正常使用
+    }
   }
 
   /**
@@ -117,6 +204,8 @@ class XmlCacheManager {
 
   /**
    * 缓存XML数据（支持hash索引）
+   * 
+   * 🆕 自动同步到持久化存储（IndexedDB）
    */
   putXml(id: string, xmlContent: string, xmlHash: string, createdAt = new Date().toISOString()): void {
     const entry: XmlCacheEntry = {
@@ -135,8 +224,14 @@ class XmlCacheManager {
       }
     };
     
+    // 内存缓存
     this.cache.set(id, entry);
     this.hashIndex.set(xmlHash, entry);
+    
+    // 🔥 异步同步到持久化存储
+    this.syncToPersistentStorage(entry).catch(err => {
+      console.error('❌ 同步XML到持久化存储失败:', err);
+    });
     
     console.log(`📦 XML快照已缓存: ${id}`, {
       xmlHash: xmlHash.substring(0, 16) + '...',
@@ -146,26 +241,68 @@ class XmlCacheManager {
 
   /**
    * 获取缓存的XML数据
+   * 
+   * 🆕 如果内存中不存在，尝试从持久化存储加载
    */
-  getCachedXml(cacheId: string): XmlCacheEntry | null {
-    const entry = this.cache.get(cacheId);
-    if (!entry) {
-      console.warn(`⚠️ 未找到XML缓存: ${cacheId}`);
-      return null;
+  async getCachedXml(cacheId: string): Promise<XmlCacheEntry | null> {
+    // 1. 先从内存缓存获取
+    let entry = this.cache.get(cacheId);
+    if (entry) {
+      return entry;
     }
-    return entry;
+
+    // 2. 从持久化存储获取
+    if (this.persistentStorage) {
+      try {
+        entry = await this.persistentStorage.get(cacheId);
+        if (entry) {
+          // 恢复到内存缓存
+          this.cache.set(entry.cacheId, entry);
+          if (entry.xmlHash) {
+            this.hashIndex.set(entry.xmlHash, entry);
+          }
+          console.log(`✅ 从持久化存储恢复缓存: ${cacheId}`);
+          return entry;
+        }
+      } catch (error) {
+        console.error('❌ 从持久化存储读取失败:', error);
+      }
+    }
+
+    console.warn(`⚠️ 未找到XML缓存: ${cacheId}`);
+    return null;
   }
 
   /**
    * 通过hash获取XML数据
+   * 
+   * 🆕 如果内存中不存在，尝试从持久化存储加载
    */
-  getByHash(xmlHash: string): XmlCacheEntry | null {
-    const entry = this.hashIndex.get(xmlHash);
-    if (!entry) {
-      console.warn(`⚠️ 未找到XML哈希: ${xmlHash}`);
-      return null;
+  async getByHash(xmlHash: string): Promise<XmlCacheEntry | null> {
+    // 1. 先从内存索引获取
+    let entry = this.hashIndex.get(xmlHash);
+    if (entry) {
+      return entry;
     }
-    return entry;
+
+    // 2. 从持久化存储获取
+    if (this.persistentStorage) {
+      try {
+        entry = await this.persistentStorage.getByHash(xmlHash);
+        if (entry) {
+          // 恢复到内存缓存
+          this.cache.set(entry.cacheId, entry);
+          this.hashIndex.set(xmlHash, entry);
+          console.log(`✅ 从持久化存储恢复缓存（hash）: ${xmlHash.substring(0, 16)}...`);
+          return entry;
+        }
+      } catch (error) {
+        console.error('❌ 从持久化存储读取失败（hash）:', error);
+      }
+    }
+
+    console.warn(`⚠️ 未找到XML哈希: ${xmlHash}`);
+    return null;
   }
 
   /**
@@ -184,15 +321,17 @@ class XmlCacheManager {
 
   /**
    * 获取步骤关联的XML数据
+   * 
+   * 🆕 异步方法，支持从持久化存储加载
    */
-  getStepXmlContext(stepId: string): { xmlData: XmlCacheEntry; context: StepXmlContext } | null {
+  async getStepXmlContext(stepId: string): Promise<{ xmlData: XmlCacheEntry; context: StepXmlContext } | null> {
     const stepContext = this.stepXmlMapping.get(stepId);
     if (!stepContext) {
       console.warn(`⚠️ 步骤未关联XML源: ${stepId}`);
       return null;
     }
 
-    const xmlData = this.getCachedXml(stepContext.xmlCacheId);
+    const xmlData = await this.getCachedXml(stepContext.xmlCacheId);
     if (!xmlData) {
       console.warn(`⚠️ 步骤关联的XML缓存不存在: ${stepContext.xmlCacheId}`);
       return null;
@@ -203,20 +342,94 @@ class XmlCacheManager {
 
   /**
    * 清理过期缓存
+   * 
+   * 🆕 同时清理内存和持久化存储
    */
-  cleanupExpiredCache(maxAgeMs: number = 24 * 60 * 60 * 1000): void {
+  async cleanupExpiredCache(maxAgeMs: number = 30 * 24 * 60 * 60 * 1000): Promise<void> {
     const now = Date.now();
-    let cleanedCount = 0;
+    let memoryCleanedCount = 0;
 
+    // 清理内存缓存
     for (const [cacheId, entry] of this.cache.entries()) {
       if (now - entry.timestamp > maxAgeMs) {
         this.cache.delete(cacheId);
-        cleanedCount++;
+        if (entry.xmlHash) {
+          this.hashIndex.delete(entry.xmlHash);
+        }
+        memoryCleanedCount++;
       }
     }
 
-    if (cleanedCount > 0) {
-      console.log(`🧹 已清理 ${cleanedCount} 个过期XML缓存`);
+    // 清理持久化存储
+    let persistentCleanedCount = 0;
+    if (this.persistentStorage) {
+      try {
+        const maxAgeDays = Math.ceil(maxAgeMs / (24 * 60 * 60 * 1000));
+        persistentCleanedCount = await this.persistentStorage.cleanupExpired(maxAgeDays);
+      } catch (error) {
+        console.error('❌ 清理持久化存储失败:', error);
+      }
+    }
+
+    if (memoryCleanedCount > 0 || persistentCleanedCount > 0) {
+      console.log(`🧹 清理完成: 内存${memoryCleanedCount}条, 持久化${persistentCleanedCount}条`);
+    }
+  }
+
+  /**
+   * 获取存储统计信息
+   * 
+   * 🆕 包含持久化存储统计
+   */
+  async getStorageStats(): Promise<{
+    memory: { count: number; cacheIds: string[] };
+    persistent: { count: number; totalSizeBytes: number; avgSizeBytes: number };
+  }> {
+    const memory = {
+      count: this.cache.size,
+      cacheIds: Array.from(this.cache.keys()),
+    };
+
+    let persistent = {
+      count: 0,
+      totalSizeBytes: 0,
+      avgSizeBytes: 0,
+    };
+
+    if (this.persistentStorage) {
+      try {
+        const stats = await this.persistentStorage.getStats();
+        persistent = {
+          count: stats.totalEntries,
+          totalSizeBytes: stats.totalSizeBytes,
+          avgSizeBytes: stats.avgEntrySizeBytes,
+        };
+      } catch (error) {
+        console.error('❌ 获取持久化存储统计失败:', error);
+      }
+    }
+
+    return { memory, persistent };
+  }
+
+  /**
+   * 手动触发清理（过期 + 超量）
+   */
+  async manualCleanup(): Promise<void> {
+    if (!this.persistentStorage) {
+      await this.cleanupExpiredCache();
+      return;
+    }
+
+    try {
+      // 1. 清理过期数据
+      await this.cleanupExpiredCache();
+
+      // 2. 清理超量数据
+      const { expired, oldest } = await this.persistentStorage.cleanup();
+      console.log(`✅ 手动清理完成: 过期${expired}条, 超量${oldest}条`);
+    } catch (error) {
+      console.error('❌ 手动清理失败:', error);
     }
   }
 
@@ -320,7 +533,10 @@ class XmlCacheManager {
   }
 }
 
-// Named export for compatibility
-export const xmlCacheManager = new XmlCacheManager();
+// 🔥 修复：导出类本身，供其他模块使用
+export { XmlCacheManager };
+
+// Named export for compatibility (使用getInstance而不是直接new)
+export const xmlCacheManager = XmlCacheManager.getInstance();
 
 export default XmlCacheManager;

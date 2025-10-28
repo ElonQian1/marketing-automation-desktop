@@ -97,16 +97,16 @@ export function useSmartScriptBuilder(options: UseSmartScriptBuilderOptions) {
         // 🔒 只在状态或进度真正变化时更新
         if (newStatus !== currentStatus || newProgress !== currentProgress) {
           hasChanges = true;
-          console.log('🔄 [状态同步] 更新步骤卡状态:', {
-            stepId: step.id,
-            matchingCardId: matchingCard.stepId,
-            oldStatus: currentStatus,
-            newStatus,
-            oldProgress: currentProgress,
-            newProgress,
-            cardState: matchingCard.analysisState,
-            hasCandidates: !!(matchingCard.smartCandidates || matchingCard.staticCandidates)
-          });
+          // 🔇 日志优化：只在关键状态变化时打印
+          if (newStatus !== currentStatus || Math.abs(newProgress - currentProgress) >= 25) {
+            console.log('🔄 [状态同步] 更新步骤卡状态:', {
+              stepId: step.id,
+              matchingCardId: matchingCard.stepId,
+              oldStatus: currentStatus,
+              newStatus,
+              progressChange: `${currentProgress}% → ${newProgress}%`,
+            });
+          }
 
           return {
             ...step,

@@ -111,6 +111,7 @@ const UniversalPageFinderModal: React.FC<UniversalPageFinderModalProps> = ({
     xmlContent,
     setXmlContent,
     xmlVersion, // 🆕 获取 XML 版本号
+    currentXmlCacheId, // 🔥 修复：导出当前 XML 缓存 ID
     elements,
     setElements,
     uiElements,
@@ -472,11 +473,22 @@ const UniversalPageFinderModal: React.FC<UniversalPageFinderModalProps> = ({
         // 🆕 快速创建步骤卡片回调 - 连接到智能分析工作流
         onQuickCreate={async () => {
           if (selectionManager.pendingSelection?.element) {
+            // 🔥 修复：附加 xmlCacheId 到元素对象
+            const enhancedElement = {
+              ...selectionManager.pendingSelection.element,
+              xmlCacheId: currentXmlCacheId || `xml_${Date.now()}`, // 确保有有效的缓存 ID
+            };
+            
+            console.log('✅ [UniversalPageFinderModal] 附加xmlCacheId到元素:', {
+              elementId: enhancedElement.id,
+              xmlCacheId: enhancedElement.xmlCacheId,
+            });
+            
             // 优先使用快速创建回调，如果没有则使用传统的元素选择回调
             if (onQuickCreate) {
-              onQuickCreate(selectionManager.pendingSelection.element);
+              onQuickCreate(enhancedElement);
             } else {
-              onElementSelected?.(selectionManager.pendingSelection.element);
+              onElementSelected?.(enhancedElement);
             }
             // 清理选择状态
             selectionManager.confirmSelection();

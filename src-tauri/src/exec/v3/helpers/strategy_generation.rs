@@ -245,3 +245,163 @@ pub fn convert_analysis_result_to_v3_steps(
     tracing::info!("🔄 转换了 {} 个智能分析候选为 V3 步骤", steps.len());
     Ok(steps)
 }
+
+/// 解析bounds字符串为坐标元组
+/// 
+/// 格式: "[left,top][right,bottom]"  
+/// 例如: "[45,1059][249,1263]" -> (45, 1059, 249, 1263)
+fn parse_bounds(bounds_str: &str) -> Option<(i32, i32, i32, i32)> {
+    let bounds_str = bounds_str.trim();
+    
+    // 匹配格式: [left,top][right,bottom]
+    let parts: Vec<&str> = bounds_str
+        .trim_matches(&['[', ']'][..])
+        .split("][")
+        .collect();
+    
+    if parts.len() != 2 {
+        return None;
+    }
+    
+    let left_top: Vec<i32> = parts[0].split(',')
+        .filter_map(|s| s.trim().parse::<i32>().ok())
+        .collect();
+    
+    let right_bottom: Vec<i32> = parts[1].split(',')
+        .filter_map(|s| s.trim().parse::<i32>().ok())
+        .collect();
+    
+    if left_top.len() == 2 && right_bottom.len() == 2 {
+        Some((left_top[0], left_top[1], right_bottom[0], right_bottom[1]))
+    } else {
+        None
+    }
+}
+
+/// 计算候选元素的bounds与用户选择bounds的匹配度
+/// 
+/// 返回值越大表示匹配度越高:
+/// - 如果候选完全在用户选择区域内: 返回 1.0
+/// - 如果有部分重叠: 返回 0.5 ~ 0.99
+/// - 如果距离很近: 返回 0.1 ~ 0.49
+/// - 如果距离很远: 返回 0.0
+fn calculate_bounds_match_score(
+    candidate_bounds: &str,
+    user_selected_bounds: &str,
+) -> f64 {
+    let candidate = match parse_bounds(candidate_bounds) {
+        Some(b) => b,
+        None => return 0.0,
+    };
+    
+    let user_bounds = match parse_bounds(user_selected_bounds) {
+        Some(b) => b,
+        None => return 0.0,
+    };
+    
+    let (c_left, c_top, c_right, c_bottom) = candidate;
+    let (u_left, u_top, u_right, u_bottom) = user_bounds;
+    
+    // 1. 检查候选是否完全在用户选择区域内
+    if c_left >= u_left && c_top >= u_top && c_right <= u_right && c_bottom <= u_bottom {
+        // 完全包含,返回高分
+        return 1.0;
+    }
+    
+    // 2. 检查是否有重叠
+    let has_overlap = !(c_right < u_left || c_left > u_right || c_bottom < u_top || c_top > u_bottom);
+    
+    if has_overlap {
+        // 计算重叠面积
+        let overlap_left = c_left.max(u_left);
+        let overlap_top = c_top.max(u_top);
+        let overlap_right = c_right.min(u_right);
+        let overlap_bottom = c_bottom.min(u_bottom);
+        
+        let overlap_area = ((overlap_right - overlap_left) * (overlap_bottom - overlap_top)) as f64;
+        let candidate_area = ((c_right - c_left) * (c_bottom - c_top)) as f64;
+        
+        // 重叠比例作为得分
+        if candidate_area > 0.0 {
+            return 0.5 + (overlap_area / candidate_area) * 0.49;
+        } else {
+            return 0.5;
+        }
+    }
+    
+    // 3. 计算中心点距离
+    let c_center_x = (c_left + c_right) / 2;
+    let c_center_y = (c_top + c_bottom) / 2;
+    let u_center_x = (u_left + u_right) / 2;
+    let u_center_y = (u_top + u_bottom) / 2;
+    
+    let distance = (((c_center_x - u_center_x).pow(2) + (c_center_y - u_center_y).pow(2)) as f64).sqrt();
+    
+    // 距离越近得分越高,最大距离2000像素
+    let max_distance = 2000.0;
+    if distance < max_distance {
+        return 0.1 * (1.0 - distance / max_distance) * 0.39;
+    }
+    
+    0.0
+}
+
+/// 根据用户选择的bounds重新排序候选
+/// 
+/// 将最接近用户选择区域的候选排在前面
+pub fn rerank_candidates_by_bounds(
+    mut candidates: Vec<crate::services::intelligent_analysis_service::StrategyCandidate>,
+    user_selected_bounds: Option<&str>,
+) -> Vec<crate::services::intelligent_analysis_service::StrategyCandidate> {
+    // 如果没有用户选择的bounds,直接返回原候选
+    let user_bounds = match user_selected_bounds {
+        Some(b) if !b.is_empty() => b,
+        _ => return candidates,
+    };
+    
+    tracing::info!("🎯 [Bounds匹配] 开始根据用户选择bounds重新排序候选: user_bounds={}", user_bounds);
+    
+    // 计算每个候选的bounds匹配得分
+    let mut scored_candidates: Vec<(crate::services::intelligent_analysis_service::StrategyCandidate, f64)> = candidates
+        .into_iter()
+        .map(|candidate| {
+            let bounds_score = match &candidate.element_info.bounds {
+                Some(bounds_str) => calculate_bounds_match_score(bounds_str, user_bounds),
+                None => 0.0,
+            };
+            
+            tracing::debug!(
+                "  候选: bounds={:?}, 原始置信度={:.3}, bounds匹配得分={:.3}",
+                candidate.element_info.bounds,
+                candidate.confidence,
+                bounds_score
+            );
+            
+            (candidate, bounds_score)
+        })
+        .collect();
+    
+    // 按bounds匹配得分降序排序
+    scored_candidates.sort_by(|a, b| b.1.partial_cmp(&a.1).unwrap_or(std::cmp::Ordering::Equal));
+    
+    // 提取排序后的候选
+    let reranked: Vec<_> = scored_candidates
+        .into_iter()
+        .enumerate()
+        .inspect(|(index, (candidate, bounds_score))| {
+            tracing::info!(
+                "  [{}] bounds={:?}, text={:?}, 原始置信度={:.3}, bounds匹配得分={:.3}",
+                index + 1,
+                candidate.element_info.bounds,
+                candidate.element_info.text,
+                candidate.confidence,
+                bounds_score
+            );
+        })
+        .map(|(_, (candidate, _))| candidate)
+        .collect();
+    
+    tracing::info!("✅ [Bounds匹配] 候选重排序完成，共 {} 个候选", reranked.len());
+    
+    reranked
+}

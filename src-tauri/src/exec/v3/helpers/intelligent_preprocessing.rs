@@ -116,15 +116,31 @@ pub async fn optimize_steps_with_intelligent_analysis<'a>(
         None,
     )?;
     
-    // 先获取UI XML用于智能分析
-    let ui_xml = device_manager::get_ui_snapshot(device_id).await?;
-    
     // 🔥 【核心修复】提取第一个步骤的 params（包含 original_data）
     let original_params = ordered_steps
         .first()
         .and_then(|step| step.inline.as_ref())
         .map(|inline| inline.params.clone())
         .unwrap_or(serde_json::Value::Null);
+    
+    // ✅ FIX: 优先使用步骤保存的 original_xml，避免重新dump导致页面变化
+    let ui_xml = if let Some(original_data) = original_params.get("original_data") {
+        if let Some(original_xml) = original_data.get("original_xml").and_then(|v| v.as_str()) {
+            if !original_xml.is_empty() {
+                tracing::info!("✅ [XML来源] 使用步骤保存的 original_xml ({} 字符)", original_xml.len());
+                original_xml.to_string()
+            } else {
+                tracing::warn!("⚠️ [XML来源] original_xml为空，重新dump设备XML");
+                device_manager::get_ui_snapshot(device_id).await?
+            }
+        } else {
+            tracing::warn!("⚠️ [XML来源] original_xml字段不存在或类型错误，重新dump设备XML");
+            device_manager::get_ui_snapshot(device_id).await?
+        }
+    } else {
+        tracing::warn!("⚠️ [XML来源] 缺少original_data，重新dump设备XML");
+        device_manager::get_ui_snapshot(device_id).await?
+    };
     
     tracing::info!("🔍 [数据传递] 提取原始步骤参数传递给智能分析: {}", 
         if original_params.is_null() { "null (无原始数据)" } 

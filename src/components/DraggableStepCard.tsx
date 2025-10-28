@@ -665,11 +665,8 @@ const DraggableStepCardInner: React.FC<
             {step.enableStrategySelector &&
               step.strategySelector &&
               (() => {
-                console.log("🎯 [DraggableStepCard] 渲染 CompactStrategyMenu", {
-                  stepId: step.id,
-                  hasSelector: !!step.strategySelector,
-                  version: "v20251020-fix",
-                });
+                // 🔇 日志优化：移除频繁的渲染日志
+                // console.log("🎯 [DraggableStepCard] 渲染 CompactStrategyMenu", { stepId: step.id });
                 return (
                   <CompactStrategyMenu
                     data-menu-version="v20251020-fix"

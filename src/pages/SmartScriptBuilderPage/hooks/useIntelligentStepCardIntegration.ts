@@ -9,6 +9,7 @@ import type { UIElement } from '../../../api/universalUIAPI';
 import type { ExtendedSmartScriptStep } from '../../../types/loopScript';
 import XmlCacheManager from '../../../services/xml-cache-manager';
 import { generateXmlHash } from '../../../types/self-contained/xmlSnapshot';
+import { buildXPath } from '../../../utils/xpath'; // 🔥 导入XPath生成工具
 
 interface ElementSelectionContext {
   snapshotId: string;
@@ -59,8 +60,9 @@ export function useIntelligentStepCardIntegration(options: UseIntelligentStepCar
    * - keyAttributes 应该保存所有关键属性用于后续分析
    * 
    * 🐛 调试提示：在此函数开头添加 console.log(element) 查看真实元素数据
+   * 🔥 关键修复：此函数现在是异步的，因为需要 await XmlCacheManager.getCachedXml()
    */
-  const convertElementToContext = useCallback((element: UIElement): ElementSelectionContext => {
+  const convertElementToContext = useCallback(async (element: UIElement): Promise<ElementSelectionContext> => {
     // 🐛 调试日志：检查传入的真实元素数据
     console.log('🔄 [convertElementToContext] 接收到的真实UIElement:', {
       id: element.id,
@@ -72,16 +74,18 @@ export function useIntelligentStepCardIntegration(options: UseIntelligentStepCar
       element_type: element.element_type
     });
     
-    // 尝试获取当前XML内容和哈希
+    // 🔥 关键修复：获取当前XML内容和哈希
     let xmlContent = '';
     let xmlHash = '';
     let xmlCacheId = '';
     
     try {
-      // 如果元素有关联的缓存ID，从缓存管理器获取XML内容
+      // 优先从元素的xmlCacheId获取
       xmlCacheId = (element as unknown as { xmlCacheId?: string }).xmlCacheId || '';
+      
       if (xmlCacheId) {
-        const cacheEntry = XmlCacheManager.getInstance().getCachedXml(xmlCacheId);
+        // 🔥🔥🔥 关键修复：使用 await 调用异步方法
+        const cacheEntry = await XmlCacheManager.getInstance().getCachedXml(xmlCacheId);
         if (cacheEntry) {
           xmlContent = cacheEntry.xmlContent;
           xmlHash = cacheEntry.xmlHash || generateXmlHash(xmlContent);
@@ -91,10 +95,30 @@ export function useIntelligentStepCardIntegration(options: UseIntelligentStepCar
             const xmlCacheManager = XmlCacheManager.getInstance();
             xmlCacheManager.putXml(xmlCacheId, xmlContent, `sha256:${xmlHash}`);
           }
+          
+          console.log('✅ [convertElementToContext] 从缓存获取XML成功:', {
+            xmlCacheId,
+            xmlContentLength: xmlContent.length,
+            xmlHash: xmlHash.substring(0, 16) + '...',
+          });
+        } else {
+          console.warn('⚠️ [convertElementToContext] 缓存中未找到XML:', xmlCacheId);
         }
+      } else {
+        console.warn('⚠️ [convertElementToContext] 元素没有xmlCacheId，XML内容将为空');
       }
     } catch (error) {
-      console.warn('获取XML内容失败:', error);
+      console.error('❌ [convertElementToContext] 获取XML内容失败:', error);
+    }
+    
+    // 🚨 严重警告：如果XML内容为空，后端将无法进行失败恢复！
+    if (!xmlContent || xmlContent.length < 100) {
+      console.error('❌ [关键数据缺失] XML内容为空或过短！', {
+        elementId: element.id,
+        xmlContentLength: xmlContent.length,
+        xmlCacheId,
+        warning: '这将导致后端无法进行失败恢复和智能分析！'
+      });
     }
     
     // 🔧 修复：确保bounds格式正确 - 转换为标准字符串格式
@@ -152,9 +176,77 @@ export function useIntelligentStepCardIntegration(options: UseIntelligentStepCar
         : [elementText].filter(Boolean)
     };
 
+    // 🔥 关键修复：生成正确的绝对全局XPath
+    // 问题：element.xpath可能不准确或者是相对路径
+    // 解决：优先使用element自带的xpath，如果无效则根据属性生成
+    let absoluteXPath = '';
+    try {
+      if (element.xpath && element.xpath.trim()) {
+        // 如果元素已有xpath且是绝对路径（以//或/开头），直接使用
+        if (element.xpath.startsWith('/') || element.xpath.startsWith('//')) {
+          absoluteXPath = element.xpath;
+          console.log('✅ [XPath] 使用元素自带的绝对XPath:', absoluteXPath);
+        } else {
+          // 相对路径，转换为绝对路径
+          absoluteXPath = '//' + element.xpath;
+          console.warn('⚠️ [XPath] 元素XPath是相对路径，转换为绝对路径:', absoluteXPath);
+        }
+      } else {
+        // 如果没有xpath，使用buildXPath生成
+        console.warn('⚠️ [XPath] 元素没有xpath，尝试生成...');
+        
+        // 使用buildXPath生成（传入element和options）
+        const generatedXPath = buildXPath(element, {
+          useAttributes: true,
+          useText: true,
+          useIndex: false,
+          preferredAttributes: ['resource-id', 'content-desc', 'text', 'class']
+        });
+        
+        if (generatedXPath) {
+          absoluteXPath = generatedXPath;
+          console.log('🔧 [XPath] 生成的绝对XPath:', absoluteXPath);
+        } else {
+          // buildXPath失败，手动构建回退XPath
+          if (element.resource_id) {
+            absoluteXPath = `//*[@resource-id='${element.resource_id}']`;
+          } else if (element.text) {
+            absoluteXPath = `//*[@text='${element.text}']`;
+          } else if (element.content_desc) {
+            absoluteXPath = `//*[@content-desc='${element.content_desc}']`;
+          } else {
+            absoluteXPath = `//*[@class='${element.class_name || 'android.view.View'}']`;
+          }
+          console.warn('⚠️ [XPath] buildXPath失败，使用回退XPath:', absoluteXPath);
+        }
+      }
+    } catch (error) {
+      console.error('❌ [XPath] 生成XPath失败:', error);
+      // 回退：使用元素ID或其他属性构建简单XPath
+      if (element.resource_id) {
+        absoluteXPath = `//*[@resource-id='${element.resource_id}']`;
+      } else if (element.text) {
+        absoluteXPath = `//*[@text='${element.text}']`;
+      } else if (element.content_desc) {
+        absoluteXPath = `//*[@content-desc='${element.content_desc}']`;
+      } else {
+        absoluteXPath = `//*[@class='${element.class_name || 'android.view.View'}']`;
+      }
+      console.warn('⚠️ [XPath] 异常，使用回退XPath:', absoluteXPath);
+    }
+    
+    // 🚨 严重警告：如果XPath无效，后端将无法定位元素！
+    if (!absoluteXPath || absoluteXPath.length < 5) {
+      console.error('❌ [关键数据缺失] XPath为空或无效！', {
+        elementId: element.id,
+        xpath: absoluteXPath,
+        warning: '这将导致后端无法定位和执行元素操作！'
+      });
+    }
+
     const context: ElementSelectionContext = {
       snapshotId: xmlCacheId || 'current',
-      elementPath: element.xpath || element.id || '',
+      elementPath: absoluteXPath, // 🔥 使用生成的绝对全局XPath
       elementText: element.text,
       elementBounds: boundsString, // 🔧 使用修正后的bounds字符串格式
       elementType: element.element_type || 'tap',
@@ -199,8 +291,8 @@ export function useIntelligentStepCardIntegration(options: UseIntelligentStepCar
     try {
       console.log('⚡ [智能集成] 快速创建步骤:', element.id);
 
-      // 转换为分析上下文
-      const context = convertElementToContext(element);
+      // 🔥🔥🔥 关键修复：使用 await 调用异步函数
+      const context = await convertElementToContext(element);
       
       // 创建智能步骤卡 (会自动启动后台分析)
       const stepId = await createStepCardQuick(context, false);
@@ -395,7 +487,7 @@ export function useIntelligentStepCardIntegration(options: UseIntelligentStepCar
             xmlContent: context.xmlContent || '', // 保存完整XML内容以支持跨设备复现
             xmlHash: context.xmlHash || '',
             timestamp: Date.now(),
-            elementGlobalXPath: element.xpath || '',
+            elementGlobalXPath: context.elementPath || element.xpath || '', // 🔥 使用convertElementToContext生成的绝对全局XPath
             elementSignature: {
               class: element.class_name || '',
               resourceId: element.resource_id || '',

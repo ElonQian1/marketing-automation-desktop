@@ -4,9 +4,11 @@
 
 use crate::services::ui_reader_service::UIElement;
 use super::super::types::{InlineStep, ValidationSettings};
-use super::element_matching::{
-    // MultiCandidateEvaluator,  // 🔧 暂时注释：等待重构完成
-    // EvaluationCriteria,  // 🔧 暂时注释：等待重构完成
+use super::super::element_matching::{  // 🔥 修正路径：从v3/element_matching导入
+    MultiCandidateEvaluator,  // ✅ 启用多候选评估器
+    EvaluationCriteria,  // ✅ 启用评估标准
+};
+use super::element_matching::{  // 从helpers/element_matching导入工具函数
     extract_resource_id_from_xpath,
     extract_child_text_filter_from_xpath,
     element_has_child_with_text,
@@ -76,8 +78,41 @@ pub async fn execute_intelligent_analysis_step(
     
     tracing::info!("🎯 [候选收集] 找到 {} 个匹配的候选元素", candidate_elements.len());
     
-    // 🆕 多候选评估：使用模块化评估系统
-    let mut target_element = evaluate_best_candidate(candidate_elements, &inline.params)?;
+    // 🔍 数据完整性检查（关键诊断信息）
+    if let Some(original_data) = inline.params.get("original_data") {
+        tracing::info!("✅ [数据完整性] original_data 存在");
+        
+        if let Some(original_xml) = original_data.get("original_xml") {
+            if let Some(xml_str) = original_xml.as_str() {
+                if xml_str.is_empty() {
+                    tracing::warn!("⚠️ [数据完整性] original_xml 为空字符串！");
+                } else {
+                    tracing::info!("✅ [数据完整性] original_xml 长度: {} bytes", xml_str.len());
+                }
+            } else {
+                tracing::warn!("⚠️ [数据完整性] original_xml 不是字符串类型！");
+            }
+        } else {
+            tracing::warn!("⚠️ [数据完整性] original_data 缺少 original_xml 字段！");
+        }
+        
+        if let Some(selected_xpath) = original_data.get("selected_xpath") {
+            tracing::info!("✅ [数据完整性] selected_xpath: {:?}", selected_xpath);
+        } else {
+            tracing::warn!("⚠️ [数据完整性] original_data 缺少 selected_xpath 字段！");
+        }
+        
+        if let Some(children_texts) = original_data.get("children_texts") {
+            if let Some(arr) = children_texts.as_array() {
+                tracing::info!("✅ [数据完整性] children_texts: {} 个子元素文本", arr.len());
+            }
+        }
+    } else {
+        tracing::error!("❌ [数据完整性] original_data 完全缺失！失败恢复能力严重受限！");
+    }
+    
+    // 🆕 多候选评估：使用模块化评估系统（传递 ui_xml）
+    let mut target_element = evaluate_best_candidate(candidate_elements, &inline.params, ui_xml)?;
     
     // 🆕 修复3：失败恢复机制
     if target_element.is_none() {
@@ -257,6 +292,7 @@ fn extract_content_desc_from_xpath(xpath: &str) -> String {
 fn evaluate_best_candidate<'a>(
     candidate_elements: Vec<&'a UIElement>,
     params: &serde_json::Value,
+    ui_xml: &str,  // 🔥 新增：当前XML内容，用于子元素文本提取
 ) -> Result<Option<&'a UIElement>, String> {
     if candidate_elements.len() > 1 {
         tracing::info!("🔍 [多候选评估] 启动模块化评估器（{} 个候选）", candidate_elements.len());
@@ -303,35 +339,43 @@ fn evaluate_best_candidate<'a>(
             .and_then(|v| v.as_str())
             .map(|s| s.to_string());
         
-        // 🔧 TODO: 重构完成后恢复多候选评估逻辑
-        // 构建评估准则
-        // let criteria = EvaluationCriteria {
-        //     target_text: target_text_option,
-        //     target_content_desc,
-        //     original_bounds,
-        //     original_resource_id,
-        //     children_texts,
-        //     prefer_last: true, // 用户需求：优先选择最后一个（避免选择列表第一项）
-        // };
+        // � 提取 selected_xpath（用户精确选择的绝对全局XPath）
+        let selected_xpath = original_data
+            .and_then(|od| od.get("selected_xpath"))
+            .and_then(|v| v.as_str())
+            .map(|s| s.to_string());
         
-        // 使用 MultiCandidateEvaluator 进行综合评估
-        // if let Some(best_candidate) = MultiCandidateEvaluator::evaluate_candidates(candidate_elements.clone(), &criteria) {
-        //     tracing::info!("✅ [多候选评估] 最佳匹配: score={:.3}, reasons={}", 
-        //                  best_candidate.score, best_candidate.reasons.join(", "));
-        //     tracing::info!("   📍 详情: text={:?}, content-desc={:?}, bounds={:?}", 
-        //                  best_candidate.element.text, 
-        //                  best_candidate.element.content_desc,
-        //                  best_candidate.element.bounds);
-        //     
-        //     Ok(Some(best_candidate.element))
-        // } else {
-        //     tracing::warn!("⚠️ [多候选评估] 评估失败，使用第一个候选");
-        //     Ok(candidate_elements.first().copied())
-        // }
+        // ✅ 构建评估准则（完整版）
+        let criteria = EvaluationCriteria {
+            target_text: target_text_option,
+            target_content_desc,
+            original_bounds,
+            original_resource_id,
+            children_texts,
+            prefer_last: true, // 用户需求：优先选择最后一个（避免选择列表第一项）
+            selected_xpath, // 🔥 传递用户选择的XPath（最高优先级匹配依据）
+            xml_content: Some(ui_xml.to_string()), // 🔥 传递当前XML，用于子元素文本提取
+        };
         
-        // 临时降级逻辑：直接使用第一个候选
-        tracing::warn!("🔧 [临时降级] 多候选评估模块重构中，使用第一个候选元素");
-        Ok(candidate_elements.first().copied())
+        // ✅ 使用 MultiCandidateEvaluator 进行综合评估
+        tracing::info!("🧠 [多候选评估] 开始综合评分，criteria.selected_xpath={:?}", criteria.selected_xpath);
+        
+        if let Some(best_candidate) = MultiCandidateEvaluator::evaluate_candidates(candidate_elements.clone(), &criteria) {
+            tracing::info!("✅ [多候选评估] 最佳匹配: score={:.3}", best_candidate.score);
+            tracing::info!("   📍 详情: text={:?}, content-desc={:?}, bounds={:?}", 
+                         best_candidate.element.text, 
+                         best_candidate.element.content_desc,
+                         best_candidate.element.bounds);
+            tracing::info!("   🔍 评分原因:");
+            for reason in &best_candidate.reasons {
+                tracing::info!("      └─ {}", reason);
+            }
+            
+            return Ok(Some(best_candidate.element));
+        } else {
+            tracing::warn!("⚠️ [多候选评估] 评估失败，使用第一个候选");
+            return Ok(candidate_elements.first().copied());
+        }
     } else {
         // 只有一个或零个候选，直接使用
         Ok(candidate_elements.first().copied())
@@ -385,36 +429,35 @@ fn attempt_element_recovery<'a>(
                         recovery_ctx.resource_id.clone()
                     };
                     
-                    // 🔧 TODO: 重构完成后恢复多候选评估逻辑
-                    // let criteria = EvaluationCriteria {
-                    //     target_text,
-                    //     target_content_desc,
-                    //     original_bounds,
-                    //     original_resource_id,
-                    //     children_texts: vec![],
-                    //     prefer_last: false, // 恢复场景不需要优先最后一个
-                    // };
+                    // ✅ 启用多候选评估器
+                    let criteria = EvaluationCriteria {
+                        target_text,
+                        target_content_desc,
+                        original_bounds,
+                        original_resource_id,
+                        children_texts: vec![],
+                        prefer_last: false, // 恢复场景不需要优先最后一个
+                        selected_xpath: Some(recovery_ctx.selected_xpath.clone()), // 🔥 传递用户选择的XPath
+                        xml_content: None, // 🔥 真机XML已经在当前上下文中
+                    };
                     
                     // 将候选转换为引用列表
-                    // let candidate_refs: Vec<&UIElement> = recovery_result.candidates.iter().collect();
+                    let candidate_refs: Vec<&UIElement> = recovery_result.candidates.iter().collect();
                     
                     // 使用新的多候选评估器
-                    // if let Some(best_candidate) = MultiCandidateEvaluator::evaluate_candidates(candidate_refs, &criteria) {
-                    //     tracing::info!("✅ [失败恢复] 多候选评估完成，最佳候选评分: {:.3}", best_candidate.score);
-                    //     tracing::info!("   📍 选中元素: text={:?}, bounds={:?}", 
-                    //                  best_candidate.element.text, best_candidate.element.bounds);
-                    //     
-                    //     // 在 elements 中找到匹配的元素（使用真机XML的元素）
-                    //     let matched = elements.iter()
-                    //         .find(|e| e.bounds == best_candidate.element.bounds && e.text == best_candidate.element.text);
-                    //     
-                    //     return Ok(matched);
-                    // } else {
-                    //     tracing::error!("❌ [失败恢复] 多候选评估失败：没有合适的候选");
-                    // }
-                    
-                    // 临时降级逻辑：直接使用第一个候选
-                    tracing::warn!("🔧 [临时降级] 多候选评估模块重构中，使用第一个恢复候选");
+                    if let Some(best_candidate) = MultiCandidateEvaluator::evaluate_candidates(candidate_refs, &criteria) {
+                        tracing::info!("✅ [失败恢复] 多候选评估完成，最佳候选评分: {:.3}", best_candidate.score);
+                        tracing::info!("   📍 选中元素: text={:?}, bounds={:?}", 
+                                     best_candidate.element.text, best_candidate.element.bounds);
+                        
+                        // 在 elements 中找到匹配的元素（使用真机XML的元素）
+                        let matched = elements.iter()
+                            .find(|e| e.bounds == best_candidate.element.bounds && e.text == best_candidate.element.text);
+                        
+                        return Ok(matched);
+                    } else {
+                        tracing::error!("❌ [失败恢复] 多候选评估失败：没有合适的候选");
+                    }
                     
                     // 从 elements 中找到匹配的元素（返回引用）
                     if let Some(first_candidate) = recovery_result.candidates.first() {

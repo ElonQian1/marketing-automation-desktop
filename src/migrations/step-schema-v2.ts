@@ -64,6 +64,7 @@ export function migrateStep(step: ExtendedSmartScriptStep): {
   }
   
   // 2. 迁移 xmlContent -> xmlHash/xmlCacheId
+  // 🔥 FIX: 保留完整xmlContent用于跨设备/导出场景 (WRONG_ELEMENT_SELECTION_ROOT_CAUSE_ANALYSIS.md)
   if (params.xmlContent || params.xmlSnapshot?.xmlContent) {
     const xmlContent = params.xmlContent || params.xmlSnapshot?.xmlContent;
     
@@ -72,24 +73,22 @@ export function migrateStep(step: ExtendedSmartScriptStep): {
       const xmlHash = generateXmlHash(xmlContent);
       const cacheId = params.xmlSnapshot?.xmlCacheId || `migrated-${step.id}-${Date.now()}`;
       
-      // 写入缓存
+      // 写入缓存（用于本地快速访问）
       xmlCacheManager.putXml(cacheId, xmlContent, xmlHash);
       
-      // 更新步骤参数
+      // ✅ 更新步骤参数（保留完整XML）
       params.xmlSnapshot = {
         xmlCacheId: cacheId,
         xmlHash: xmlHash,
+        xmlContent: xmlContent,  // ✅ 保留完整XML用于跨设备/导出场景
         timestamp: params.xmlSnapshot?.timestamp || Date.now()
       };
       
-      // 清理旧字段
+      // ✅ 清理旧的顶级xmlContent字段（但保留xmlSnapshot.xmlContent）
       delete params.xmlContent;
-      if (params.xmlSnapshot) {
-        delete (params.xmlSnapshot as LegacyStepParameters['xmlSnapshot'])?.xmlContent;
-      }
       
       migrated = true;
-      warnings.push(`步骤 ${step.id}: 已迁移 xmlContent -> 缓存 (hash: ${xmlHash.substring(0, 16)}...)`);
+      warnings.push(`步骤 ${step.id}: 已迁移 xmlContent -> 缓存 (hash: ${xmlHash.substring(0, 16)}..., 保留完整XML)`);
     }
   }
   
@@ -160,9 +159,11 @@ export function validateStepSchema(step: ExtendedSmartScriptStep): {
     errors.push('步骤参数不应包含 elementGlobalXPath 字段');
   }
   
-  if (params.xmlSnapshot?.xmlContent) {
-    errors.push('xmlSnapshot 不应包含 xmlContent 字段');
-  }
+  // ✅ 允许xmlContent字段（用于跨设备/导出场景）
+  // Note: xmlContent是必要的，不应该报错
+  // if (params.xmlSnapshot?.xmlContent) {
+  //   errors.push('xmlSnapshot 不应包含 xmlContent 字段');
+  // }
   
   // 必须包含必要字段
   if (!params.element_selector && step.step_type !== 'loop_start' && step.step_type !== 'loop_end') {

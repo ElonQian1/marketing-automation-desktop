@@ -38,6 +38,7 @@
 
 import { useState, useCallback, useRef, useEffect } from 'react';
 import { message } from 'antd';
+import { LOG_LEVELS, logOnce, logProgress } from '../../../utils/logger-config';
 
 // ========== V2/V3 智能分析后端服务 ==========
 // 🔄 [V2/V3 动态切换] 根据特性开关选择执行版本
@@ -184,7 +185,8 @@ export function useIntelligentAnalysisWorkflow(): UseIntelligentAnalysisWorkflow
       try {
         // 分析进度事件 - ✅ 现在包含 jobId，可以精准匹配！
         const unlistenProgress = await intelligentAnalysisBackend.listenToAnalysisProgress((jobId, progress, currentStep, estimatedTimeLeft) => {
-          console.log('📊 [Workflow] 收到分析进度', { jobId, progress, currentStep, estimatedTimeLeft });
+          // 🔇 日志优化：使用防抖日志，避免重复打印
+          logProgress(jobId, progress, '📊 [Workflow] 收到分析进度', { jobId, currentStep, estimatedTimeLeft });
           
           // ✅ 精准更新对应的任务
           setCurrentJobs(prev => {
@@ -197,7 +199,8 @@ export function useIntelligentAnalysisWorkflow(): UseIntelligentAnalysisWorkflow
                 estimatedTimeLeft
               });
             } else {
-              console.warn('⚠️ [Workflow] 收到未知任务的进度更新', { jobId, currentJobs: Array.from(updated.keys()) });
+              // 🔇 日志优化：使用 logOnce 避免重复警告
+              logOnce(`unknown-job-${jobId}`, `⚠️ [Workflow] 收到未知任务的进度更新: ${jobId}`, { jobId, currentJobs: Array.from(updated.keys()) });
             }
             return updated;
           });
@@ -205,7 +208,10 @@ export function useIntelligentAnalysisWorkflow(): UseIntelligentAnalysisWorkflow
           // ✅ 只更新匹配 jobId 的步骤卡片！
           setStepCards(prev => prev.map(card => {
             if (card.analysisJobId === jobId && card.analysisState === 'analyzing') {
-              console.log('🎯 [Workflow] 更新步骤卡片进度', { stepId: card.stepId, jobId, progress });
+              // 🔇 日志优化：只在进度有大幅变化时打印
+              if (progress % 25 === 0 || progress === 100) {
+                console.log('🎯 [Workflow] 更新步骤卡片进度', { stepId: card.stepId, jobId, progress });
+              }
               return { ...card, analysisProgress: progress, estimatedTimeLeft };
             }
             return card;

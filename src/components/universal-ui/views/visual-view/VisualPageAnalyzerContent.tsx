@@ -25,6 +25,8 @@ import { parseXML, analyzeAppAndPageInfo } from '../../xml-parser';
 import { convertVisualToUIElement, createElementContext } from '../../data-transform';
 import { useElementSelectionManager, /* ElementSelectionPopover */ } from '../../element-selection';
 import { VisualPagePreview } from './VisualPagePreview';
+import XmlCacheManager from '../../../../services/xml-cache-manager'; // 🔥 导入XML缓存管理器
+import { generateXmlHash } from '../../../../types/self-contained/xmlSnapshot'; // 🔥 导入哈希生成函数
 
 const { Text, Title } = Typography;
 const { Search } = Input;
@@ -46,6 +48,10 @@ export const VisualPageAnalyzerContent: React.FC<VisualPageAnalyzerContentProps>
   const [showOnlyClickable, setShowOnlyClickable] = useState(true); // ✅ 默认勾选：只显示可点击元素
   const [elements, setElements] = useState<VisualUIElement[]>([]);
   const [categories, setCategories] = useState<VisualElementCategory[]>([]);
+  
+  // 🔥 新增：保存当前XML的缓存ID（用于所有元素共享）
+  const [currentXmlCacheId, setCurrentXmlCacheId] = useState<string>('');
+  const [currentXmlHash, setCurrentXmlHash] = useState<string>('');
 
   // 创建完整的ElementContext的辅助函数
   const createElementContextHelper = (element: VisualUIElement): any => {
@@ -154,16 +160,45 @@ export const VisualPageAnalyzerContent: React.FC<VisualPageAnalyzerContentProps>
         : `点击 ${element.text || element.type} 元素`;
     }
 
+    // 🔥 关键修复：正确保存XML内容和缓存ID
+    let xmlCacheId = '';
+    let xmlHash = '';
+    
+    try {
+      // 1. 生成XML哈希
+      if (xmlContent && xmlContent.length > 100) {
+        xmlHash = generateXmlHash(xmlContent);
+        
+        // 2. 使用哈希作为缓存ID（确保唯一性）
+        xmlCacheId = `xml_${xmlHash.substring(0, 16)}_${Date.now()}`;
+        
+        // 3. 保存到缓存管理器
+        const xmlCacheManager = XmlCacheManager.getInstance();
+        xmlCacheManager.putXml(xmlCacheId, xmlContent, `sha256:${xmlHash}`);
+        
+        console.log('✅ [VisualPageAnalyzer] XML内容已保存到缓存:', {
+          xmlCacheId,
+          xmlContentLength: xmlContent.length,
+          xmlHash: xmlHash.substring(0, 16) + '...'
+        });
+      } else {
+        console.error('❌ [VisualPageAnalyzer] XML内容为空或过短，无法保存！');
+      }
+    } catch (error) {
+      console.error('❌ [VisualPageAnalyzer] 保存XML内容失败:', error);
+    }
+
     // 🆕 使用简化的增强信息传递方案
     // 直接在UIElement上添加增强信息，保持向后兼容
     const enhancedUIElement = {
       ...uiElement,
       // 增强标识
       isEnhanced: true,
-      // XML上下文信息（临时简化方案）
-      xmlCacheId: "current_analysis",
-      xmlContent: "", // 这里需要从外部传入
+      // 🔥 修复：使用真实的XML缓存ID和内容
+      xmlCacheId: xmlCacheId || "unknown", // 使用生成的缓存ID
+      xmlContent: xmlContent || "", // 保存完整XML内容
       xmlTimestamp: Date.now(),
+      xmlHash: xmlHash, // 🆕 添加XML哈希
       // 智能分析结果
       smartAnalysis: analysis,
       smartDescription: smartDescription,
@@ -173,10 +208,20 @@ export const VisualPageAnalyzerContent: React.FC<VisualPageAnalyzerContentProps>
       isEnhanced: enhancedUIElement.isEnhanced,
       xmlCacheId: enhancedUIElement.xmlCacheId,
       hasXmlContent: !!enhancedUIElement.xmlContent,
+      xmlContentLength: enhancedUIElement.xmlContent?.length || 0,
+      xmlHash: xmlHash.substring(0, 16) + '...',
       enhancedUIElement,
     });
 
-    onElementSelected(enhancedUIElement as any);
+    onElementSelected(enhancedUIElement as UIElement & {
+      isEnhanced: boolean;
+      xmlCacheId: string;
+      xmlContent: string;
+      xmlTimestamp: number;
+      xmlHash: string;
+      smartAnalysis: ElementAnalysisResult | null;
+      smartDescription: string;
+    });
 
     // 显示智能分析结果
     if (analysis) {
@@ -222,7 +267,9 @@ export const VisualPageAnalyzerContent: React.FC<VisualPageAnalyzerContentProps>
       password: false,
       // 不写入友好描述
       content_desc: "",
-    };
+      // 🔥 关键修复：携带xmlCacheId，确保元素可以访问XML内容
+      xmlCacheId: currentXmlCacheId || undefined,
+    } as UIElement & { xmlCacheId?: string };
   };
 
   const uiElements = elements.map(convertVisualToUIElementLocal);
@@ -247,6 +294,24 @@ export const VisualPageAnalyzerContent: React.FC<VisualPageAnalyzerContentProps>
     if (!xmlString) return;
     
     try {
+      // 🔥 关键修复：解析XML时生成并保存缓存ID
+      const xmlHash = generateXmlHash(xmlString);
+      const xmlCacheId = `xml_${xmlHash.substring(0, 16)}_${Date.now()}`;
+      
+      // 保存到缓存管理器
+      const xmlCacheManager = XmlCacheManager.getInstance();
+      xmlCacheManager.putXml(xmlCacheId, xmlString, `sha256:${xmlHash}`);
+      
+      // 保存到state，供convertVisualToUIElementLocal使用
+      setCurrentXmlCacheId(xmlCacheId);
+      setCurrentXmlHash(xmlHash);
+      
+      console.log('✅ [VisualPageAnalyzer] XML解析时保存缓存:', {
+        xmlCacheId,
+        xmlContentLength: xmlString.length,
+        xmlHash: xmlHash.substring(0, 16) + '...'
+      });
+      
       // 使用新的模块化解析器
       const parseResult = parseXML(xmlString);
       
@@ -256,13 +321,16 @@ export const VisualPageAnalyzerContent: React.FC<VisualPageAnalyzerContentProps>
       console.log('🚀 新模块化XML解析完成:', {
         elementsCount: parseResult.elements.length,
         categoriesCount: parseResult.categories.length,
-        appInfo: parseResult.appInfo
+        appInfo: parseResult.appInfo,
+        xmlCacheId // 输出缓存ID供调试
       });
       
     } catch (error) {
       console.error('🚨 XML解析失败:', error);
       setElements([]);
       setCategories([]);
+      setCurrentXmlCacheId('');
+      setCurrentXmlHash('');
     }
   };
 
