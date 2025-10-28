@@ -801,10 +801,20 @@ const CompactStrategyMenu: React.FC<CompactStrategyMenuProps> = ({
               <input
                 type="number"
                 value={batchConfig.interval_ms}
-                onChange={(e) => setBatchConfig({
-                  ...batchConfig,
-                  interval_ms: Math.max(1000, parseInt(e.target.value) || 2000)
-                })}
+                onChange={(e) => {
+                  const newInterval = Math.max(1000, parseInt(e.target.value) || 2000);
+                  setBatchConfig({
+                    ...batchConfig,
+                    interval_ms: newInterval
+                  });
+                }}
+                onBlur={async () => {
+                  // 🔥 修复：失去焦点时保存配置
+                  if (selectionMode === 'all') {
+                    console.log('🔧 [间隔修改] 保存配置:', batchConfig);
+                    await autoSaveConfig('all');
+                  }
+                }}
                 style={{
                   width: "60px",
                   height: "24px",
@@ -825,10 +835,20 @@ const CompactStrategyMenu: React.FC<CompactStrategyMenuProps> = ({
               <input
                 type="number"
                 value={batchConfig.max_count || 10}
-                onChange={(e) => setBatchConfig({
-                  ...batchConfig,
-                  max_count: Math.max(1, parseInt(e.target.value) || 10)
-                })}
+                onChange={(e) => {
+                  const newMaxCount = Math.max(1, parseInt(e.target.value) || 10);
+                  setBatchConfig({
+                    ...batchConfig,
+                    max_count: newMaxCount
+                  });
+                }}
+                onBlur={async () => {
+                  // 🔥 修复：失去焦点时保存配置
+                  if (selectionMode === 'all') {
+                    console.log('🔧 [数量修改] 保存配置:', batchConfig);
+                    await autoSaveConfig('all');
+                  }
+                }}
                 style={{
                   width: "50px",
                   height: "24px",
@@ -847,10 +867,17 @@ const CompactStrategyMenu: React.FC<CompactStrategyMenuProps> = ({
               <input
                 type="checkbox"
                 checked={batchConfig.continue_on_error}
-                onChange={(e) => setBatchConfig({
-                  ...batchConfig,
-                  continue_on_error: e.target.checked
-                })}
+                onChange={async (e) => {
+                  setBatchConfig({
+                    ...batchConfig,
+                    continue_on_error: e.target.checked
+                  });
+                  // 🔥 修复：立即保存配置
+                  if (selectionMode === 'all') {
+                    console.log('🔧 [遇错继续修改] 保存配置');
+                    await autoSaveConfig('all');
+                  }
+                }}
                 style={{ margin: 0 }}
               />
               <span style={{ fontSize: "11px", color: "#94A3B8" }}>遇错继续</span>
@@ -861,10 +888,17 @@ const CompactStrategyMenu: React.FC<CompactStrategyMenuProps> = ({
               <input
                 type="checkbox"
                 checked={batchConfig.show_progress}
-                onChange={(e) => setBatchConfig({
-                  ...batchConfig,
-                  show_progress: e.target.checked
-                })}
+                onChange={async (e) => {
+                  setBatchConfig({
+                    ...batchConfig,
+                    show_progress: e.target.checked
+                  });
+                  // 🔥 修复：立即保存配置
+                  if (selectionMode === 'all') {
+                    console.log('🔧 [显示进度修改] 保存配置');
+                    await autoSaveConfig('all');
+                  }
+                }}
                 style={{ margin: 0 }}
               />
               <span style={{ fontSize: "11px", color: "#94A3B8" }}>显示进度</span>
