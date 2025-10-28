@@ -145,8 +145,25 @@ pub async fn execute_intelligent_analysis_step(
         tracing::error!("❌ [数据完整性] original_data 完全缺失！失败恢复能力严重受限！");
     }
     
-    // 🔥 检测批量模式
-    if should_use_batch_mode(&inline.params) {
+    // 🔥 检测批量模式（增强版：支持多路径检测）
+    let batch_mode = inline.params
+        .get("smartSelection")
+        .and_then(|v| v.get("mode"))
+        .and_then(|v| v.as_str())
+        .or_else(|| {
+            // 兜底：从 originalParams 提取
+            inline.params
+                .get("originalParams")
+                .and_then(|v| v.get("smartSelection"))
+                .and_then(|v| v.get("mode"))
+                .and_then(|v| v.as_str())
+        })
+        .unwrap_or("first");
+
+    tracing::info!("🔍 [批量检测] mode={}, 候选数={}", batch_mode, candidate_elements.len());
+
+    if batch_mode == "all" {
+        tracing::info!("🔄 [批量模式] 检测到批量全部模式，准备循环点击 {} 个候选", candidate_elements.len());
         // ✅ 批量模式：使用专门的批量执行器
         return execute_batch_mode(
             device_id,
@@ -157,6 +174,8 @@ pub async fn execute_intelligent_analysis_step(
         )
         .await;
     }
+    
+    tracing::info!("🎯 [单次模式] 将从 {} 个候选中选择最佳匹配", candidate_elements.len());
 
     // 🔥 单次模式：现有逻辑
     let mut target_element = evaluate_best_candidate(candidate_elements, &inline.params, ui_xml)?;

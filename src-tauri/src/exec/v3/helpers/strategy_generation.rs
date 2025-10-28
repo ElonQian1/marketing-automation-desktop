@@ -57,7 +57,7 @@ pub fn determine_strategy_type(element: &InteractiveElement) -> String {
 
 /// 创建执行计划
 pub fn create_execution_plan(element: &InteractiveElement, original_params: &serde_json::Value) -> serde_json::Value {
-    serde_json::json!({
+    let mut plan = serde_json::json!({
         "action": "SmartSelection",
         "xpath": element.xpath,
         "targetText": element.text.clone().unwrap_or_default(),
@@ -66,7 +66,18 @@ pub fn create_execution_plan(element: &InteractiveElement, original_params: &ser
         "resourceId": element.resource_id.clone(),
         "className": element.class_name.clone(),
         "originalParams": original_params
-    })
+    });
+
+    // 🔥 关键修复：继承原始参数中的 smartSelection 配置（包含批量模式）
+    if let Some(smart_selection) = original_params.get("smartSelection") {
+        if let serde_json::Value::Object(ref mut obj) = plan {
+            obj.insert("smartSelection".to_string(), smart_selection.clone());
+            tracing::info!("✅ [批量模式继承] 已将 smartSelection 配置传递到执行计划: mode={:?}", 
+                smart_selection.get("mode"));
+        }
+    }
+
+    plan
 }
 
 /// 评估策略风险等级
