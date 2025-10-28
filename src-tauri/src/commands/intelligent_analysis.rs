@@ -67,6 +67,24 @@ pub struct ElementSelectionContext {
     pub key_attributes: Option<HashMap<String, String>>,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub container_info: Option<ContainerInfo>,
+    // 🔥 关系锚点策略增强字段
+    #[serde(skip_serializing_if = "Option::is_none")]
+    #[serde(rename = "siblingTexts")]
+    pub sibling_texts: Option<Vec<String>>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    #[serde(rename = "parentElement")]
+    pub parent_element: Option<ParentElementInfo>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    #[serde(rename = "childrenTexts")]
+    pub children_texts: Option<Vec<String>>,
+}
+
+/// 父元素信息（用于关系锚点策略）
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct ParentElementInfo {
+    pub content_desc: String,
+    pub text: String,
+    pub resource_id: String,
 }
 
 /// 容器信息

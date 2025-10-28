@@ -3,8 +3,12 @@
 // summary: 当真机XML匹配失败时，使用原始XML快照进行重新分析和恢复
 
 use crate::services::ui_reader_service::{UIElement, parse_ui_elements};
+use crate::services::execution::matching::strategies::{
+    create_strategy_processor, StrategyProcessor, MatchingContext
+};
 use serde_json::Value;
 use anyhow::Result;
+use std::collections::HashMap;
 
 /// 失败恢复上下文
 #[derive(Debug, Clone)]
@@ -23,6 +27,14 @@ pub struct RecoveryContext {
     pub content_desc: Option<String>,
     /// 策略类型
     pub strategy_type: String,
+    /// 🎯 NEW: 匹配策略标记（用于路由到正确的策略处理器）
+    pub matching_strategy: Option<String>,
+    /// 🎯 NEW: 子元素文本列表
+    pub children_texts: Vec<String>,
+    /// 🎯 NEW: 兄弟元素文本列表
+    pub sibling_texts: Vec<String>,
+    /// 🎯 NEW: 父元素信息
+    pub parent_info: Option<Value>,
 }
 
 /// 失败恢复结果 - 包含多个候选元素
@@ -85,10 +97,51 @@ impl RecoveryContext {
             .map(|s| s.to_string())
             .unwrap_or_else(|| "unknown".to_string());
         
+        // 🎯 NEW: 提取匹配策略标记
+        let matching_strategy = original_data
+            .get("matching_strategy")
+            .or_else(|| params.get("matching_strategy"))
+            .and_then(|v| v.as_str())
+            .map(|s| s.to_string());
+        
+        // 🎯 NEW: 提取子元素文本列表
+        let children_texts: Vec<String> = original_data
+            .get("children_texts")
+            .and_then(|v| v.as_array())
+            .map(|arr| {
+                arr.iter()
+                    .filter_map(|v| v.as_str().map(|s| s.to_string()))
+                    .collect()
+            })
+            .unwrap_or_default();
+        
+        // 🎯 NEW: 提取兄弟元素文本列表
+        let sibling_texts: Vec<String> = original_data
+            .get("sibling_texts")
+            .and_then(|v| v.as_array())
+            .map(|arr| {
+                arr.iter()
+                    .filter_map(|v| v.as_str().map(|s| s.to_string()))
+                    .collect()
+            })
+            .unwrap_or_default();
+        
+        // 🎯 NEW: 提取父元素信息
+        let parent_info = original_data
+            .get("parent_info")
+            .cloned();
+        
         tracing::info!(
-            "✅ [恢复上下文] 成功构建: xpath={}, text={:?}, strategy={}",
-            selected_xpath, element_text, strategy_type
+            "✅ [恢复上下文] 成功构建: xpath={}, text={:?}, strategy={}, matching_strategy={:?}",
+            selected_xpath, element_text, strategy_type, matching_strategy
         );
+        
+        if !children_texts.is_empty() || !sibling_texts.is_empty() || parent_info.is_some() {
+            tracing::info!(
+                "🎯 [关系数据] 提取成功: children_texts={}, sibling_texts={}, has_parent_info={}",
+                children_texts.len(), sibling_texts.len(), parent_info.is_some()
+            );
+        }
         
         Some(Self {
             original_xml,
@@ -98,6 +151,10 @@ impl RecoveryContext {
             resource_id,
             content_desc,
             strategy_type,
+            matching_strategy,
+            children_texts,
+            sibling_texts,
+            parent_info,
         })
     }
 }
@@ -105,6 +162,7 @@ impl RecoveryContext {
 /// 🔧 核心功能：失败恢复 - 当真机XML匹配失败时尝试恢复
 /// 
 /// 恢复流程：
+/// 0. 🎯 NEW: 如果有 matching_strategy 标记，优先使用策略路由器
 /// 1. 解析原始XML，找到目标元素
 /// 2. 提取目标元素的完整特征
 /// 3. 在真机XML中搜索相似元素（返回多个候选）
@@ -115,6 +173,26 @@ pub fn attempt_recovery(
 ) -> Result<RecoveryResult> {
     
     tracing::info!("🔧 [失败恢复] 开始恢复流程");
+    
+    // 🎯 Step 0: 优先检查是否有明确的匹配策略标记
+    if let Some(ref strategy_tag) = recovery_ctx.matching_strategy {
+        // 检查是否是关系锚点策略
+        if strategy_tag.starts_with("anchor_by_") {
+            tracing::info!("🎯 [策略路由] 检测到关系锚点策略: {}", strategy_tag);
+            
+            // 尝试使用策略路由器进行匹配
+            match try_strategy_router(recovery_ctx, current_elements, strategy_tag) {
+                Ok(result) => {
+                    tracing::info!("✅ [策略路由] 匹配成功，返回结果");
+                    return Ok(result);
+                }
+                Err(e) => {
+                    tracing::warn!("⚠️ [策略路由] 匹配失败: {:?}，回退到传统恢复流程", e);
+                    // 继续执行下面的传统恢复流程
+                }
+            }
+        }
+    }
     
     // Step 1: 解析原始XML
     let original_elements = parse_ui_elements(&recovery_ctx.original_xml)
@@ -329,4 +407,111 @@ fn calculate_distance(p1: (f32, f32), p2: (f32, f32)) -> f32 {
     let dx = p1.0 - p2.0;
     let dy = p1.1 - p2.1;
     (dx * dx + dy * dy).sqrt()
+}
+
+/// 🎯 NEW: 使用策略路由器进行匹配（关系锚点策略专用）
+fn try_strategy_router(
+    recovery_ctx: &RecoveryContext,
+    current_elements: &[UIElement],
+    strategy_tag: &str,
+) -> Result<RecoveryResult> {
+    tracing::info!("🎯 [策略路由器] 开始使用策略: {}", strategy_tag);
+    
+    // 构建策略上下文
+    let mut values = HashMap::new();
+    
+    // 转换 UIElement 为 HashMap<String, String> 格式
+    let elements_map: Vec<HashMap<String, String>> = current_elements
+        .iter()
+        .map(|elem| {
+            let mut map = HashMap::new();
+            
+            if let Some(ref text) = elem.text {
+                map.insert("text".to_string(), text.clone());
+            }
+            if let Some(ref rid) = elem.resource_id {
+                map.insert("resource-id".to_string(), rid.clone());
+            }
+            if let Some(ref desc) = elem.content_desc {
+                map.insert("content-desc".to_string(), desc.clone());
+            }
+            if let Some(ref bounds) = elem.bounds {
+                map.insert("bounds".to_string(), bounds.clone());
+            }
+            if let Some(ref clickable) = elem.clickable {
+                map.insert("clickable".to_string(), clickable.to_string());
+            }
+            if let Some(ref class) = elem.class {
+                map.insert("class".to_string(), class.clone());
+            }
+            
+            map
+        })
+        .collect();
+    
+    // 构建 MatchingContext
+    let context = MatchingContext {
+        strategy: strategy_tag.to_string(),
+        fields: vec![],
+        values,
+        includes: HashMap::new(),
+        excludes: HashMap::new(),
+        match_mode: HashMap::new(),
+        regex_includes: HashMap::new(),
+        regex_excludes: HashMap::new(),
+        fallback_bounds: recovery_ctx.element_bounds.as_ref().map(|b| {
+            serde_json::json!(b)
+        }),
+        device_id: String::new(),
+        original_xml: Some(recovery_ctx.original_xml.clone()),
+    };
+    
+    // 创建策略处理器
+    let processor = create_strategy_processor(strategy_tag);
+    
+    // 异步执行策略（这里需要在异步上下文中调用）
+    // 由于 attempt_recovery 是同步的，我们需要创建一个运行时
+    let runtime = tokio::runtime::Runtime::new()
+        .map_err(|e| anyhow::anyhow!("创建运行时失败: {}", e))?;
+    
+    let mut logs = Vec::new();
+    let mut matching_context = context.clone();
+    
+    let strategy_result = runtime.block_on(async {
+        processor.process(&mut matching_context, &mut logs).await
+    }).map_err(|e| anyhow::anyhow!("策略执行失败: {:?}", e))?;
+    
+    // 打印日志
+    for log in logs {
+        tracing::info!("{}", log);
+    }
+    
+    if !strategy_result.success {
+        return Err(anyhow::anyhow!("策略执行失败: {}", strategy_result.message));
+    }
+    
+    tracing::info!(
+        "✅ [策略路由器] 策略执行成功:\n  - Bounds: {:?}\n  - 坐标: {:?}\n  - 消息: {}",
+        strategy_result.bounds,
+        strategy_result.coordinates,
+        strategy_result.message
+    );
+    
+    // 构建简单的 UIElement（只包含必要字段）
+    let ui_element = UIElement {
+        text: None,
+        resource_id: None,
+        content_desc: None,
+        bounds: strategy_result.bounds.clone(),
+        clickable: Some(true),
+        enabled: Some(true),
+        class: None,
+        package: None,
+    };
+    
+    Ok(RecoveryResult {
+        candidates: vec![ui_element],
+        recovery_strategy: format!("strategy_router_{}", strategy_tag),
+        original_target: None,
+    })
 }

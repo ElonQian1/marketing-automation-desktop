@@ -15,6 +15,17 @@ pub struct MatchCandidate<'a> {
     pub reasons: Vec<String>,
 }
 
+/// 父元素信息（用于安全模式检测）
+#[derive(Debug, Clone)]
+pub struct ParentInfo {
+    /// 父元素的content-desc
+    pub content_desc: String,
+    /// 父元素的text
+    pub text: String,
+    /// 父元素的resource-id
+    pub resource_id: String,
+}
+
 /// 评估标准
 #[derive(Debug, Clone)]
 pub struct EvaluationCriteria {
@@ -28,6 +39,12 @@ pub struct EvaluationCriteria {
     pub original_resource_id: Option<String>,
     /// 🔥 子元素文本列表（从原始XML提取的所有子孙文本）
     pub children_texts: Vec<String>,
+    /// 🔥 兄弟元素文本列表（用于安全模式检测）
+    pub sibling_texts: Vec<String>,
+    /// 🆕 父元素信息（用于安全模式检测）
+    pub parent_info: Option<ParentInfo>,
+    /// 🆕 匹配策略标记（如"middleLayerContainer"）
+    pub matching_strategy: Option<String>,
     /// 是否优先选择最后一个候选（防止选错第一个）
     pub prefer_last: bool,
     /// 🆕 用户选择的绝对全局XPath（最重要的匹配依据）
@@ -154,6 +171,92 @@ impl MultiCandidateEvaluator {
     ) -> (f32, Vec<String>) {
         let mut score = 0.0f32;
         let mut reasons = Vec::new();
+        
+        // 🔥🔥🔥🔥🔥 XPath安全模式检测：防止无文本锚点时乱点
+        // 检查是否应该使用XPath安全模式（无子/兄弟/父元素文本时）
+        use super::xpath_similarity_matcher::XPathSimilarityMatcher;
+        let should_use_xpath_mode = XPathSimilarityMatcher::should_use_xpath_mode(
+            &criteria.children_texts,
+            &criteria.sibling_texts,
+            &criteria.parent_info,
+        );
+        
+        if should_use_xpath_mode {
+            reasons.push("⚠️ [安全模式] 无文本锚点，启用Bounds严格匹配（防止乱点）".to_string());
+            
+            // 🔥 Bounds严格匹配（XPath安全模式下的主要策略）
+            if let (Some(ref original_bounds), Some(ref elem_bounds)) = 
+                (&criteria.original_bounds, &elem.bounds) {
+                use super::bounds_matcher::BoundsMatcher;
+                let bounds_match = BoundsMatcher::match_bounds(original_bounds, elem_bounds);
+                
+                if bounds_match.is_exact {
+                    // Bounds完全匹配，高分
+                    score += 3.0;
+                    reasons.push(format!("✅✅✅✅✅ Bounds完全匹配 (+3.0, 安全模式)"));
+                } else if bounds_match.match_quality > 0.9 {
+                    // Bounds高度相似（IOU > 0.9 或包含关系），中高分
+                    let bounds_score = 2.5 * bounds_match.match_quality;
+                    score += bounds_score;
+                    reasons.push(format!(
+                        "✅✅✅✅ Bounds高质量匹配: quality={:.2}, IOU={:.2} (+{:.2}, 安全模式)",
+                        bounds_match.match_quality, bounds_match.iou, bounds_score
+                    ));
+                } else if bounds_match.match_quality > 0.8 {
+                    // Bounds中高相似度
+                    let bounds_score = 2.0 * bounds_match.match_quality;
+                    score += bounds_score;
+                    reasons.push(format!(
+                        "✅✅✅ Bounds中高匹配: quality={:.2}, IOU={:.2} (+{:.2}, 安全模式)",
+                        bounds_match.match_quality, bounds_match.iou, bounds_score
+                    ));
+                } else if bounds_match.match_quality > 0.7 {
+                    // Bounds中等相似度
+                    let bounds_score = 1.5 * bounds_match.match_quality;
+                    score += bounds_score;
+                    reasons.push(format!(
+                        "🟡🟡 Bounds中等匹配: quality={:.2}, IOU={:.2} (+{:.2}, 安全模式)",
+                        bounds_match.match_quality, bounds_match.iou, bounds_score
+                    ));
+                } else {
+                    // Bounds相似度太低
+                    let bounds_score = 0.5 * bounds_match.match_quality;
+                    score += bounds_score;
+                    reasons.push(format!(
+                        "⚠️ Bounds低相似度: quality={:.2}, IOU={:.2} (+{:.2}, 可能不是目标元素)",
+                        bounds_match.match_quality, bounds_match.iou, bounds_score
+                    ));
+                }
+                
+                // 🔥 安全检查：Resource-id辅助验证
+                if let (Some(ref target_resource_id), Some(ref elem_resource_id)) = 
+                    (&criteria.original_resource_id, &elem.resource_id) {
+                    if !target_resource_id.is_empty() && target_resource_id == elem_resource_id {
+                        score += 0.5;
+                        reasons.push(format!("✅ Resource-id匹配 (+0.5, 安全模式加成)"));
+                    } else if !target_resource_id.is_empty() && target_resource_id != elem_resource_id {
+                        // Resource-id不匹配，严重扣分
+                        score -= 0.5;
+                        reasons.push(format!(
+                            "⚠️ Resource-id不匹配: '{}' vs '{}' (-0.5, 安全模式惩罚)",
+                            elem_resource_id,
+                            target_resource_id
+                        ));
+                    }
+                }
+                
+                // 安全模式总结
+                reasons.push(format!("🔒 [安全模式总结] 基于Bounds严格匹配，总分: {:.2}", score));
+                
+            } else {
+                // 没有Bounds信息，无法安全匹配
+                reasons.push("❌ [安全模式失败] 缺少Bounds信息，无法安全匹配".to_string());
+                return (0.0, reasons); // 返回0分，防止乱点
+            }
+            
+            // 提前返回，不再评估其他项（防止乱点）
+            return (score, reasons);
+        }
         
         // 🔥🔥🔥🔥 评分项0: Bounds完全匹配（0-0.7分）用户精确选择，次高优先级
         if let (Some(ref original_bounds), Some(ref elem_bounds)) = 

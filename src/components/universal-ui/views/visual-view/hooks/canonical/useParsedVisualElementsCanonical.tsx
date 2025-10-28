@@ -7,6 +7,7 @@ import { useState, useEffect, useCallback, useRef } from "react";
 import type { VisualUIElement, VisualElementCategory } from "../../../../types";
 import { parseBounds } from "../../utils/elementTransform";
 import { categorizeElement, getUserFriendlyName } from "../../utils/categorization";
+import { parseXML as parseXMLFromXmlParser } from "../../../../xml-parser";
 
 // 🆕 生成 XML 的唯一标识符（用于检测变化）
 function generateXmlIdentifier(xml: string): string {
@@ -47,101 +48,50 @@ export function useParsedVisualElements(
     parseCountRef.current += 1;
     const parseId = parseCountRef.current;
     console.log(`🔄 [useParsedVisualElements #${parseId}] 开始解析 XML，长度: ${xmlString.length}`);
+    console.log(`🔧 [useParsedVisualElements] 使用修复后的 XmlParser.parseXML (包含策略2)`);
     
     try {
-      const parser = new DOMParser();
-      const xmlDoc = parser.parseFromString(xmlString, "text/xml");
-      const nodes = xmlDoc.querySelectorAll("node");
+      // ✅ 使用修复后的 XmlParser.parseXML，包含策略2（跳过不可点击的父容器）
+      const parseResult = parseXMLFromXmlParser(xmlString);
+      
+      // 转换为旧格式以兼容现有代码
+      const extracted: VisualUIElement[] = parseResult.elements.map((el, index) => ({
+        id: `element_${index}`,
+        text: el.text || "",
+        description: el.contentDesc || `${el.text || el.className}${el.clickable ? "（可点击）" : ""}`,
+        type: el.className.split(".").pop() || "Unknown",
+        category: (categorizeElement({
+          "content-desc": el.contentDesc,
+          text: el.text,
+          class: el.className,
+          clickable: el.clickable ? "true" : "false",
+        } as any) as unknown) as string,
+        position: parseBounds(el.bounds),
+        clickable: el.clickable,
+        importance: "low" as any,
+        userFriendlyName: getUserFriendlyName({
+          "content-desc": el.contentDesc,
+          text: el.text,
+          class: el.className,
+          clickable: el.clickable ? "true" : "false",
+        } as any),
+      }));
 
-      const extracted: VisualUIElement[] = [];
-      const catMap: Record<string, VisualElementCategory & { elements: VisualUIElement[] }>
-        = Object.create(null);
-
-      const ensureCat = (
-        key: string,
-        base: Omit<VisualElementCategory, "elements">
-      ) => {
-        if (!catMap[key]) catMap[key] = { ...base, elements: [] } as any;
-        return catMap[key];
-      };
-
-      nodes.forEach((node, index) => {
-        const bounds = node.getAttribute("bounds") || "";
-        const text = node.getAttribute("text") || "";
-        const contentDesc = node.getAttribute("content-desc") || "";
-        const className = node.getAttribute("class") || "";
-        const clickable = node.getAttribute("clickable") === "true";
-
-        // 🐛 DEBUG: 特殊检查菜单按钮
-        if (contentDesc === "菜单") {
-          console.log(`🔍 [DEBUG] 发现菜单按钮 #${index}:`, {
-            bounds, text, contentDesc, className, clickable,
-            boundsCheck: !bounds || bounds === "[0,0][0,0]",
-            contentCheck: !text && !contentDesc && !clickable
-          });
+      // 构建分类映射
+      const catMap: Record<string, VisualElementCategory & { elements: VisualUIElement[] }> = Object.create(null);
+      
+      extracted.forEach((element) => {
+        const categoryKey = element.category || "others";
+        if (!catMap[categoryKey]) {
+          catMap[categoryKey] = {
+            name: "其他元素",
+            icon: undefined as any,
+            color: "#8c8c8c",
+            description: "其他UI元素",
+            elements: [],
+          } as any;
         }
-
-        if (!bounds || bounds === "[0,0][0,0]") return;
-        
-        // 🐛 修复：添加debug信息来追踪菜单按钮是否被过滤
-        const hasText = !!text;
-        const hasContentDesc = !!contentDesc;
-        const isClickable = clickable;
-        const shouldFilter = !hasText && !hasContentDesc && !isClickable;
-        
-        if (contentDesc === "菜单") {
-          console.log(`🔍 [DEBUG] 菜单按钮过滤检查:`, {
-            text: `"${text}"`,
-            contentDesc: `"${contentDesc}"`,
-            clickable,
-            hasText,
-            hasContentDesc,
-            isClickable,
-            shouldFilter,
-            willBeFiltered: shouldFilter
-          });
-        }
-        
-        if (shouldFilter) return;
-
-        const position = parseBounds(bounds);
-        if (position.width <= 0 || position.height <= 0) return;
-
-        const categoryKey = (categorizeElement({
-          "content-desc": contentDesc,
-          text,
-          class: className,
-          clickable: clickable ? "true" : "false",
-        } as any) as unknown) as string;
-
-        const userFriendlyName = getUserFriendlyName({
-          "content-desc": contentDesc,
-          text,
-          class: className,
-          clickable: clickable ? "true" : "false",
-        } as any);
-
-        const element: VisualUIElement = {
-          id: `element_${index}`,
-          text,
-          description:
-            contentDesc || `${userFriendlyName}${clickable ? "（可点击）" : ""}`,
-          type: className.split(".").pop() || "Unknown",
-          category: (categoryKey || "others") as any,
-          position,
-          clickable,
-          importance: "low" as any,
-          userFriendlyName,
-        };
-        extracted.push(element);
-
-        const cat = ensureCat(categoryKey || "others", {
-          name: "其他元素",
-          icon: undefined as any,
-          color: "#8c8c8c",
-          description: "其他UI元素",
-        });
-        (cat.elements as VisualUIElement[]).push(element);
+        (catMap[categoryKey].elements as VisualUIElement[]).push(element);
       });
 
       setParsedElements(extracted);
@@ -150,6 +100,7 @@ export function useParsedVisualElements(
       );
       
       console.log(`✅ [useParsedVisualElements #${parseId}] 解析完成，提取元素: ${extracted.length}`);
+      console.log(`✅ [已禁用所有过滤] 保留所有有效bounds的元素，包括父容器、子元素、不可点击元素`);
     } catch (err) {
        
       console.error(`❌ [useParsedVisualElements #${parseId}] XML解析失败:`, err);

@@ -26,7 +26,8 @@ use super::element_matching::{
     TextComparator,
     calculate_distance
 };
-use super::recovery_manager::{RecoveryContext, attempt_recovery};
+// ⚠️ 暂时禁用 recovery_manager（编译错误待修复）
+// use super::recovery_manager::{RecoveryContext, attempt_recovery};
 
 // 🆕 导入helpers模块中的辅助函数（避免代码重复）
 use super::helpers::element_matching::{

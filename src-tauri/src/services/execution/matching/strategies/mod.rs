@@ -12,6 +12,8 @@ pub mod xpath_direct_strategy;
 mod xpath_first_index_strategy;
 mod xpath_all_elements_strategy;
 mod enhanced_strategy; // 🆕 增强型匹配策略
+mod anchor_by_relation_strategy; // 🎯 关系锚点匹配策略（用于中层无文本容器）
+mod candidate_scorer; // 🎯 候选元素评分系统
 
 pub use strategy_processor::{
     StrategyProcessor,
@@ -28,6 +30,8 @@ pub use xpath_direct_strategy::XPathDirectStrategyProcessor;
 pub use xpath_first_index_strategy::XPathFirstIndexStrategyProcessor;
 pub use xpath_all_elements_strategy::XPathAllElementsStrategyProcessor;
 pub use enhanced_strategy::EnhancedStrategyProcessor; // 🆕 增强型策略处理器
+pub use anchor_by_relation_strategy::AnchorByRelationStrategyProcessor; // 🎯 关系锚点策略处理器
+pub use candidate_scorer::{CandidateScorer, CandidateScore, ScoringConfig}; // 🎯 评分系统
 
 use std::collections::HashMap;
 use serde_json::Value;
@@ -35,6 +39,16 @@ use serde_json::Value;
 /// 策略工厂 - 根据策略名称创建对应的处理器
 pub fn create_strategy_processor(strategy: &str) -> Box<dyn StrategyProcessor + Send + Sync> {
     match strategy {
+        // 🎯 关系锚点策略（中层无文本容器专用）
+        "anchor_by_child_text" | 
+        "anchor_by_sibling_text" | 
+        "anchor_by_parent_text" | 
+        "anchor_by_child_or_parent_text" |
+        "anchor_by_relation" => {
+            tracing::info!("🎯 使用关系锚点匹配策略: {}", strategy);
+            Box::new(AnchorByRelationStrategyProcessor::new())
+        },
+        
         "xpath-direct" => Box::new(XPathDirectStrategyProcessor::new()), // 🆕 XPath 直接索引策略
         "xpath-first-index" => Box::new(XPathFirstIndexStrategyProcessor::new()), // 🆕 XPath 使用[1]索引策略
         "xpath-all-elements" => Box::new(XPathAllElementsStrategyProcessor::new()), // 🆕 XPath 返回所有元素策略

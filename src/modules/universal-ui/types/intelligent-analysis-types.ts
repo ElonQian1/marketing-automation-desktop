@@ -45,6 +45,16 @@ export interface IntelligentElementSelectionContext {
   deviceId?: string;
   /** 设备名称 (向后兼容测试) */
   device_id?: string;
+  /** 🔥 XPath安全模式增强字段 - 用于"关系锚点策略" */
+  siblingTexts?: string[];
+  /** 🔥 父元素信息 - 用于"关系锚点策略" */
+  parentElement?: {
+    content_desc: string;
+    text: string;
+    resource_id: string;
+  };
+  /** 🔥 子元素文本列表 - 用于"关系锚点策略" */
+  childrenTexts?: string[];
 }
 
 /**

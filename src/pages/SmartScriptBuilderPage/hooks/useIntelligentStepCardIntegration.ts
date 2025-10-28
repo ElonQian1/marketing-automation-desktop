@@ -21,6 +21,27 @@ interface ElementSelectionContext {
   xmlContent?: string;
   xmlHash?: string;
   keyAttributes?: Record<string, string>;
+  // 🔥🔥🔥 关键修复：关系锚点数据提升到顶层，传递给后端
+  siblingTexts?: string[];
+  parentElement?: {
+    content_desc: string;
+    text: string;
+    resource_id: string;
+  };
+  childrenTexts?: string[];
+  // 🎯 新增：父子元素提取增强数据（内部使用，不传递给后端）
+  _enrichment?: {
+    parentContentDesc: string;
+    childText: string | null;
+    allChildTexts: string[];
+    // 🔥 XPath安全模式增强字段（第二轮需求）
+    siblingTexts?: string[];
+    parentElement?: {
+      content_desc: string;
+      text: string;
+      resource_id: string;
+    };
+  };
 }
 
 interface UseIntelligentStepCardIntegrationOptions {
@@ -47,7 +68,37 @@ export function useIntelligentStepCardIntegration(options: UseIntelligentStepCar
   } = analysisWorkflow;
 
   /**
-   * 🔄 关键数据转换函数：UIElement → IntelligentElementSelectionContext
+   * � 提取元素的子元素文本列表（递归）
+   * 用于解决"父容器可点击+子元素包含文本"的Android UI模式
+   */
+  const extractChildrenTexts = useCallback((element: UIElement | Record<string, unknown>): string[] => {
+    const texts: string[] = [];
+    
+    if (!element || typeof element !== 'object') {
+      return texts;
+    }
+    
+    // 提取子元素文本
+    if (element.children && Array.isArray(element.children)) {
+      for (const child of element.children) {
+        // 直接子元素的文本
+        if (child.text && typeof child.text === 'string' && child.text.trim()) {
+          texts.push(child.text.trim());
+        }
+        if (child.content_desc && typeof child.content_desc === 'string' && child.content_desc.trim()) {
+          texts.push(child.content_desc.trim());
+        }
+        // 递归提取孙子元素文本
+        const grandChildTexts = extractChildrenTexts(child);
+        texts.push(...grandChildTexts);
+      }
+    }
+    
+    return texts;
+  }, []);
+
+  /**
+   * �🔄 关键数据转换函数：UIElement → IntelligentElementSelectionContext
    * 
    * 📍 此函数是真实元素选择到智能分析的桥梁！
    * 
@@ -244,24 +295,231 @@ export function useIntelligentStepCardIntegration(options: UseIntelligentStepCar
       });
     }
 
+    // 🔥🔥🔥 关键修复：提取父元素content-desc和子元素text
+    // 解决"通讯录"按钮问题：中层可点击但无文本，需要父元素描述+子元素文本
+    let parentContentDesc = '';
+    let parentText = '';
+    let parentResourceId = '';
+    let childTexts: string[] = [];
+    
+    // 🚀 优先方案：从 UIElement.child_elements 直接提取（已解析的结构化数据）
+    if (element.child_elements && element.child_elements.length > 0) {
+      childTexts = element.child_elements
+        .map(child => child.text)
+        .filter(t => t && t.trim().length > 0 && t.trim().length < 50);
+      
+      if (childTexts.length > 0) {
+        console.log('✅ [子元素提取-方案1] 从 element.child_elements 提取:', childTexts);
+      }
+    }
+    
+    // 🔄 回退方案：从 XML 字符串正则提取（当 child_elements 不可用时）
+    if (childTexts.length === 0 && xmlContent && boundsString) {
+      console.log('🔄 [子元素提取-方案2] child_elements 不可用，尝试从 XML 正则提取');
+      try {
+        // 提取父元素的 content-desc
+        const boundsPattern = boundsString.replace(/[[\]]/g, '\\$&');
+        const boundsRegex = new RegExp(`bounds="${boundsPattern}"`);
+        const boundsMatch = xmlContent.match(boundsRegex);
+        
+        if (boundsMatch) {
+          const matchIndex = boundsMatch.index || 0;
+          // 向前查找最近的两个<node标签（当前元素和父元素）
+          const beforeBounds = xmlContent.substring(0, matchIndex);
+          const nodeMatches = [...beforeBounds.matchAll(/<node[^>]*>/g)];
+          
+          // 倒数第二个node是父元素
+          if (nodeMatches.length >= 2) {
+            const parentNodeMatch = nodeMatches[nodeMatches.length - 2][0];
+            const contentDescMatch = parentNodeMatch.match(/content-desc="([^"]*)"/);
+            if (contentDescMatch && contentDescMatch[1]) {
+              parentContentDesc = contentDescMatch[1];
+              console.log('✅ [父元素提取] 找到父元素content-desc:', parentContentDesc);
+            }
+            // 🔥 提取父元素的text和resource-id（XPath安全模式需要）
+            const textMatch = parentNodeMatch.match(/text="([^"]*)"/);
+            if (textMatch && textMatch[1]) {
+              parentText = textMatch[1];
+            }
+            const resourceIdMatch = parentNodeMatch.match(/resource-id="([^"]*)"/);
+            if (resourceIdMatch && resourceIdMatch[1]) {
+              parentResourceId = resourceIdMatch[1];
+            }
+          }
+          
+          // 向后查找子元素的text属性
+          const afterBounds = xmlContent.substring(matchIndex);
+          const closingTagMatch = afterBounds.match(/<\/node>/);
+          if (closingTagMatch) {
+            const elementFragment = afterBounds.substring(0, closingTagMatch.index);
+            const textMatches = [...elementFragment.matchAll(/text="([^"]*)"/g)];
+            childTexts = textMatches
+              .map(m => m[1])
+              .filter(t => t && t.trim().length > 0 && t.trim().length < 50);
+            
+            if (childTexts.length > 0) {
+              console.log('✅ [子元素提取-方案2] 从 XML 正则提取成功:', childTexts);
+            }
+          }
+        }
+      } catch (error) {
+        console.warn('⚠️ [XML解析] 提取父子元素信息失败:', error);
+      }
+    }
+    
+    // 🚨 最终结果检查
+    if (childTexts.length === 0) {
+      console.warn('⚠️ [子元素提取] 两种方案都未提取到子元素文本', {
+        hasChildElements: !!(element.child_elements && element.child_elements.length > 0),
+        hasXmlContent: !!(xmlContent && xmlContent.length > 0),
+        hasBoundsString: !!boundsString,
+        elementId: element.id
+      });
+    }
+    
+    // 🔥🔥🔥 智能修正：检测是否点击了三层结构的中层（无文本/无描述但有子元素文本）
+    let needsCorrection = false;
+    let siblingTexts: string[] = []; // 🆕 同层兄弟元素的文本
+    
+    // 🆕 提取同层兄弟元素的文本（用于"通讯录"这种场景）
+    if (xmlContent && boundsString) {
+      try {
+        const boundsPattern = boundsString.replace(/[[\]]/g, '\\$&');
+        const boundsRegex = new RegExp(`bounds="${boundsPattern}"`);
+        const boundsMatch = xmlContent.match(boundsRegex);
+        
+        if (boundsMatch) {
+          const matchIndex = boundsMatch.index || 0;
+          const beforeBounds = xmlContent.substring(0, matchIndex);
+          
+          // 🔍 向前查找父元素的完整范围
+          const parentNodeMatches = [...beforeBounds.matchAll(/<node[^>]*>/g)];
+          if (parentNodeMatches.length >= 1) {
+            // 找到最近的父元素
+            const lastParentMatch = parentNodeMatches[parentNodeMatches.length - 1];
+            const parentStartIndex = lastParentMatch.index || 0;
+            
+            // 提取父元素的完整XML片段（从父元素开始到下一个父元素关闭标签）
+            const afterParent = xmlContent.substring(parentStartIndex);
+            const parentClosingMatch = afterParent.match(/<\/node>/);
+            if (parentClosingMatch) {
+              const parentFragment = afterParent.substring(0, (parentClosingMatch.index || 0) + 7);
+              
+              // 🔍 在父元素的子节点中查找所有兄弟元素的text和content-desc
+              const siblingTextMatches = [...parentFragment.matchAll(/text="([^"]*)"/g)];
+              const siblingDescMatches = [...parentFragment.matchAll(/content-desc="([^"]*)"/g)];
+              
+              siblingTexts = [
+                ...siblingTextMatches.map(m => m[1]),
+                ...siblingDescMatches.map(m => m[1])
+              ].filter(t => t && t.trim().length > 0 && t.trim().length < 50);
+              
+              if (siblingTexts.length > 0) {
+                console.log('✅ [兄弟元素提取] 找到同层兄弟元素的文本/描述:', siblingTexts);
+              }
+            }
+          }
+        }
+      } catch (error) {
+        console.warn('⚠️ [兄弟元素提取] 提取失败:', error);
+      }
+    }
+    
+    // 判断条件：用户点击的元素本身无文本无描述，但找到了子元素文本或兄弟元素文本
+    if ((!element.text || element.text.trim() === '') && 
+        (!element.content_desc || element.content_desc.trim() === '') &&
+        (childTexts.length > 0 || siblingTexts.length > 0)) {
+      
+      needsCorrection = true;
+      console.warn('⚠️ [智能修正] 检测到三层结构：用户点击了中层可点击元素（无文本），需要提取子元素或兄弟元素文本');
+      console.log('   用户点击的中层bounds:', boundsString);
+      console.log('   用户点击的中层resource-id:', element.resource_id);
+      console.log('   向上找到的父元素content-desc:', parentContentDesc);
+      console.log('   向下找到的子元素text:', childTexts);
+      console.log('   🆕 同层找到的兄弟元素text/desc:', siblingTexts);
+    }
+
+    // 🔥 智能合并：使用三层元素的最佳信息
+    // 🆕 优先级：兄弟元素text > 父元素content-desc > 子元素text > 元素自身
+    // - bounds/resource-id: 来自用户点击的中层（可点击层）
+    // - text: 优先来自兄弟元素（如"通讯录"），否则来自子元素（如"为你推荐"）
+    // - content-desc: 来自父元素（外层）或中层本身
+    
+    const finalContentDesc = parentContentDesc || element.content_desc || '';  // 父元素的content-desc
+    
+    // 🆕 修复："通讯录"问题 - 优先使用兄弟元素的文本（包含"通讯录"）
+    let finalText = element.text || '';
+    if (!finalText || finalText.trim() === '') {
+      // 第一优先级：兄弟元素的text/desc（"通讯录"在这里）
+      if (siblingTexts.length > 0) {
+        finalText = siblingTexts[0];
+        console.log('🎯 [智能选择] 使用兄弟元素文本:', finalText);
+      }
+      // 第二优先级：子元素的text（"为你推荐"在这里）
+      else if (childTexts.length > 0) {
+        finalText = childTexts[0];
+        console.log('🎯 [智能选择] 使用子元素文本:', finalText);
+      }
+    }
+    
+    const finalBounds = boundsString;  // 🔥 保持用户点击的中层bounds，不要修改！
+    const finalResourceId = element.resource_id || '';  // 🔥 保持用户点击的中层resource-id，不要修改！
+    
+    console.log('🔍 [数据增强] 最终使用的属性（三层合并）:', {
+      层级说明: '外层父元素(content-desc) + 中层可点击(bounds/id) + 同层兄弟(text) + 内层子元素(text)',
+      中层_原始text: element.text,
+      同层_兄弟元素text: siblingTexts,
+      内层_子元素text: childTexts,
+      最终text: finalText,
+      外层_父元素contentDesc: parentContentDesc,
+      中层_原始contentDesc: element.content_desc,
+      最终contentDesc: finalContentDesc,
+      中层_bounds: boundsString,
+      最终bounds: finalBounds,
+      中层_resourceId: element.resource_id,
+      最终resourceId: finalResourceId,
+      是否检测到三层结构: needsCorrection
+    });
+
     const context: ElementSelectionContext = {
       snapshotId: xmlCacheId || 'current',
       elementPath: absoluteXPath, // 🔥 使用生成的绝对全局XPath
-      elementText: element.text,
-      elementBounds: boundsString, // 🔧 使用修正后的bounds字符串格式
+      elementText: finalText, // 🔥 使用增强后的文本（优先子元素text）
+      elementBounds: finalBounds, // 🔥 使用修正后的bounds（如果检测到容器点击）
       elementType: element.element_type || 'tap',
       // 🎯 新增：完整XML快照信息，支持跨设备复现
       xmlContent,
       xmlHash,
       keyAttributes: {
-        'resource-id': element.resource_id || '',
-        'content-desc': element.content_desc || '',
-        'text': element.text || '',
+        'resource-id': finalResourceId, // 🔥 使用修正后的resource-id
+        'content-desc': finalContentDesc, // 🔥 使用增强后的content-desc（优先父元素）
+        'text': finalText, // 🔥 使用增强后的文本
         'class': element.class_name || '',
         // 🚀 新增：智能匹配配置，解决按钮识别混淆
         'smart-matching-target': smartMatchingConfig.targetText,
         'smart-matching-exclude': JSON.stringify(smartMatchingConfig.exclusionRules),
         'smart-matching-aliases': JSON.stringify(smartMatchingConfig.aliases),
+      },
+      // 🔥🔥🔥 关键修复：将关系锚点数据提升到顶层，确保传递给后端
+      siblingTexts: siblingTexts,
+      parentElement: (parentContentDesc || parentText || parentResourceId) ? {
+        content_desc: parentContentDesc,
+        text: parentText,
+        resource_id: parentResourceId
+      } : undefined,
+      childrenTexts: childTexts,
+      // 🎯 附加：父子元素提取结果，供命名等后续使用（避免重复提取）
+      _enrichment: {
+        parentContentDesc,
+        childText: childTexts.length > 0 ? childTexts[0] : null,
+        allChildTexts: childTexts,
+        // 🔥 XPath安全模式增强字段（第二轮需求）
+        siblingTexts: siblingTexts,
+        parentElement: (parentContentDesc || parentText || parentResourceId) ? {
+          content_desc: parentContentDesc,
+          text: parentText,
+          resource_id: parentResourceId
+        } : undefined
       }
     };
     
@@ -322,60 +580,23 @@ export function useIntelligentStepCardIntegration(options: UseIntelligentStepCar
         return typeMap[withoutRegion] || 'smart_find_element';
       };
       
-      // 🎯 智能命名：基于元素内容生成更有意义的名称（增强版：支持子元素文本提取）
+      // 🎯 智能命名：基于元素内容生成更有意义的名称（使用已提取的增强数据）
       const generateSmartName = () => {
-        const elementText = element.text || element.content_desc || '';
+        // 🔥 优先使用 context 中已提取的增强文本（避免重复提取）
+        const enrichedText = context.elementText || '';
+        const enrichedContentDesc = context.keyAttributes?.['content-desc'] || '';
         const elementId = element.resource_id || element.id || '';
         
-        // 🆕 子元素文本提取函数
-        const findChildElementText = (element: Record<string, unknown>): string | null => {
-          // 检查是否有children属性（来自XML解析）
-          if (element.children && Array.isArray(element.children)) {
-            for (const child of element.children) {
-              // 检查子元素的文本属性
-              if (child.text && child.text.trim()) {
-                return child.text.trim();
-              }
-              if (child.content_desc && child.content_desc.trim()) {
-                return child.content_desc.trim();
-              }
-              // 递归查找孙子元素
-              const grandChildText = findChildElementText(child);
-              if (grandChildText) {
-                return grandChildText;
-              }
-            }
-          }
-          
-          // 如果没有children属性，尝试从其他可能的嵌套结构中查找
-          for (const key of Object.keys(element)) {
-            const value = element[key];
-            if (Array.isArray(value)) {
-              for (const item of value) {
-                if (typeof item === 'object' && item !== null) {
-                  if (item.text && item.text.trim()) {
-                    return item.text.trim();
-                  }
-                  if (item.content_desc && item.content_desc.trim()) {
-                    return item.content_desc.trim();
-                  }
-                }
-              }
-            }
-          }
-          return null;
-        };
-        
-        // 1. 优先使用父元素自身的文本
-        if (elementText && elementText.trim()) {
-          return `点击"${elementText.slice(0, 10)}${elementText.length > 10 ? '...' : ''}"`;
+        // 1. 优先使用已增强的文本（可能来自子元素）
+        if (enrichedText && enrichedText.trim()) {
+          return `点击"${enrichedText.slice(0, 10)}${enrichedText.length > 10 ? '...' : ''}"`;
         }
         
-        // 🆕 2. 如果父元素没有文本，智能查找子元素文本
-        const childText = findChildElementText(element as unknown as Record<string, unknown>);
-        if (childText) {
-          console.log('🎯 [智能命名] 从子元素发现文本:', childText, 'for element:', element.id);
-          return `点击"${childText.slice(0, 10)}${childText.length > 10 ? '...' : ''}"`;
+        // 2. 使用已增强的 content-desc（可能来自父元素）
+        if (enrichedContentDesc && enrichedContentDesc.trim()) {
+          // 去除尾部标点符号
+          const cleanDesc = enrichedContentDesc.replace(/[，。、：；！？]+$/, '');
+          return `点击"${cleanDesc.slice(0, 10)}${cleanDesc.length > 10 ? '...' : ''}"`;
         }
         
         // 3. 如果有资源ID，尝试语义化
@@ -405,6 +626,24 @@ export function useIntelligentStepCardIntegration(options: UseIntelligentStepCar
         return `智能${actionName} ${stepNumber}`;
       };
 
+      // 🎯 智能检测：判断是否为"中层无文本容器"模式
+      const isMiddleLayerContainer = !element.text && context.elementText;
+      const matchingStrategy = isMiddleLayerContainer 
+        ? 'anchor_by_child_or_parent_text'  // 使用子/父元素文本作为锚点
+        : 'direct_match';                    // 直接文本匹配
+
+      // 🔍 验证日志：确认增强后的文本正确传递
+      console.log('✅ [步骤创建] 验证增强后的数据传递:', {
+        原始_element_text: element.text,
+        增强_context_elementText: context.elementText,
+        原始_element_content_desc: element.content_desc,
+        增强_context_content_desc: context.keyAttributes?.['content-desc'],
+        最终使用_text: context.elementText || element.text || '',
+        最终使用_content_desc: context.keyAttributes?.['content-desc'] || element.content_desc || '',
+        匹配策略: matchingStrategy,
+        是否中层容器: isMiddleLayerContainer
+      });
+
       const newStep: ExtendedSmartScriptStep = {
         id: stepId,
         name: generateSmartName(),
@@ -424,7 +663,8 @@ export function useIntelligentStepCardIntegration(options: UseIntelligentStepCar
         },
         parameters: {
           element_selector: element.xpath || element.id || '',
-          text: element.text || '',
+          // 🔥 关键修复：使用增强后的文本（来自兄弟/子元素提取），而不是原始 element.text
+          text: context.elementText || element.text || '',
           bounds: (() => {
             // 🔧 修复：菜单元素bounds验证和修复
             if (!element.bounds) return '';
@@ -479,7 +719,8 @@ export function useIntelligentStepCardIntegration(options: UseIntelligentStepCar
             return typeof element.bounds === 'string' ? element.bounds : JSON.stringify(element.bounds);
           })(),
           resource_id: element.resource_id || '',
-          content_desc: element.content_desc || '',
+          // 🔥 关键修复：使用增强后的 content_desc（来自父元素提取）
+          content_desc: context.keyAttributes?.['content-desc'] || element.content_desc || '',
           class_name: element.class_name || '',
           // 🧠 智能分析相关参数 - 完整XML快照信息
           xmlSnapshot: {
@@ -491,21 +732,45 @@ export function useIntelligentStepCardIntegration(options: UseIntelligentStepCar
             elementSignature: {
               class: element.class_name || '',
               resourceId: element.resource_id || '',
-              text: element.text || null,
-              contentDesc: element.content_desc || null,
+              // 🔥 关键修复：使用增强后的文本（来自兄弟/子元素提取）
+              text: context.elementText || element.text || null,
+              // 🔥 关键修复：使用增强后的 content_desc（来自父元素提取）
+              contentDesc: context.keyAttributes?.['content-desc'] || element.content_desc || null,
               bounds: element.bounds ? JSON.stringify(element.bounds) : '',
               indexPath: (element as unknown as { index_path?: number[] }).index_path || [], // 如果有索引路径
+              // 🔥 提取子元素文本列表（解决"父容器+子文本"模式识别问题）
+              // 从 context._enrichment.allChildTexts 获取（已在 convertElementToContext 中提取）
+              childrenTexts: context._enrichment?.allChildTexts || [],
+              // 🎯 NEW: 匹配策略指示
+              matchingStrategy: matchingStrategy,
+              // 🔥 提取兄弟元素文本（用于精确定位）
+              siblingTexts: context._enrichment?.siblingTexts || [],
+              // 🔥 提取父元素信息（用于上下文匹配）
+              parentInfo: context._enrichment?.parentElement ? {
+                contentDesc: context._enrichment.parentElement.content_desc,
+                text: context._enrichment.parentElement.text,
+                resourceId: context._enrichment.parentElement.resource_id
+              } : null
             }
           },
           // 元素匹配策略（初始为智能推荐模式）
           matching: {
             strategy: 'intelligent' as const,
-            fields: ['resource-id', 'text', 'content-desc'],
+            // 🎯 根据元素类型选择匹配字段优先级
+            fields: isMiddleLayerContainer 
+              ? ['children_texts', 'sibling_texts', 'resource-id', 'parent_content_desc']  // 中层容器：子/兄弟元素优先
+              : ['resource-id', 'text', 'content-desc'],                                   // 普通元素：直接匹配
             values: {
               'resource-id': element.resource_id || '',
               'text': element.text || '',
-              'content-desc': element.content_desc || ''
-            }
+              'content-desc': element.content_desc || '',
+              // 🔥 NEW: 增强字段
+              'children_texts': context._enrichment?.allChildTexts || [],
+              'sibling_texts': context._enrichment?.siblingTexts || [],
+              'parent_content_desc': context._enrichment?.parentElement?.content_desc || ''
+            },
+            // 🎯 匹配策略标记
+            preferredStrategy: matchingStrategy
           }
         },
         enabled: true,

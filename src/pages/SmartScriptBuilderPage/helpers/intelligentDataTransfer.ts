@@ -41,6 +41,36 @@ export interface IntelligentStepDataPackage {
   // Bug Fix: WRONG_ELEMENT_SELECTION_BUG_REPORT.md
   childrenTexts: string[];
   
+  // 🔥 NEW: 兄弟元素文本列表（精确定位中层容器）
+  siblingTexts: string[];
+  
+  // 🔥 NEW: 父元素信息（上下文匹配）
+  parentInfo: {
+    contentDesc?: string;
+    text?: string;
+    resourceId?: string;
+  } | null;
+  
+  // 🔥 NEW: 匹配策略标记（告诉后端如何匹配）
+  /**
+   * 🎯 匹配策略类型：
+   * - direct_match: 直接文本/属性匹配（元素自身有text/content-desc）
+   * - anchor_by_child_text: 用子元素文本作为锚点（向下找文本，向上找可点击父）
+   * - anchor_by_sibling_text: 用兄弟元素文本作为锚点（同层找文本+容器）
+   * - anchor_by_parent_text: 用父元素文本作为锚点（向上找文本容器）
+   * - anchor_by_child_or_parent_text: 灵活锚点（子或父，后端决策）
+   * - region_scoped_index: 区域限定+局部索引（优先于全局索引）
+   * - global_index_fallback: 全局索引兜底（最后手段）
+   */
+  matchingStrategy: 
+    | 'direct_match'
+    | 'anchor_by_child_text'
+    | 'anchor_by_sibling_text'
+    | 'anchor_by_parent_text'
+    | 'anchor_by_child_or_parent_text'
+    | 'region_scoped_index'
+    | 'global_index_fallback';
+  
   // 策略信息
   selectedStrategy: string;
   strategyConfidence: number;
@@ -56,7 +86,7 @@ export interface IntelligentStepDataPackage {
  * 🔥 提取元素的子元素文本列表（递归）
  * Bug Fix: WRONG_ELEMENT_SELECTION_BUG_REPORT.md - 解决resource-id歧义问题
  */
-function extractChildrenTexts(element: any): string[] {
+function extractChildrenTexts(element: Record<string, unknown>): string[] {
   const texts: string[] = [];
   
   if (!element || typeof element !== 'object') {
@@ -64,17 +94,19 @@ function extractChildrenTexts(element: any): string[] {
   }
   
   // 提取子元素文本
-  if (element.children && Array.isArray(element.children)) {
-    for (const child of element.children) {
+  const children = element.children;
+  if (children && Array.isArray(children)) {
+    for (const child of children) {
+      const childObj = child as Record<string, unknown>;
       // 直接子元素的文本
-      if (child.text && typeof child.text === 'string' && child.text.trim()) {
-        texts.push(child.text.trim());
+      if (childObj.text && typeof childObj.text === 'string' && childObj.text.trim()) {
+        texts.push(childObj.text.trim());
       }
-      if (child.content_desc && typeof child.content_desc === 'string' && child.content_desc.trim()) {
-        texts.push(child.content_desc.trim());
+      if (childObj.content_desc && typeof childObj.content_desc === 'string' && childObj.content_desc.trim()) {
+        texts.push(childObj.content_desc.trim());
       }
       // 递归提取孙子元素文本
-      const grandChildTexts = extractChildrenTexts(child);
+      const grandChildTexts = extractChildrenTexts(childObj);
       texts.push(...grandChildTexts);
     }
   }
@@ -109,8 +141,23 @@ export function extractIntelligentStepData(step: ExtendedSmartScriptStep): Intel
   };
   
   // 🔥 NEW: 提取子元素文本（用于解决底部导航栏等resource-id歧义场景）
-  const childrenTexts = extractChildrenTexts(snapshot?.element || params.element || {});
+  // 优先从 elementSignature 中读取（已保存的数据），否则从 element 中提取
+  const childrenTexts = snapshot?.elementSignature?.childrenTexts || 
+                        extractChildrenTexts(snapshot?.element || params.element || {});
   console.log('🔍 [子元素提取] 发现子元素文本:', childrenTexts.length, '个:', childrenTexts);
+  
+  // 🔥 NEW: 提取兄弟元素文本（用于精确定位中层容器）
+  const siblingTexts = snapshot?.elementSignature?.siblingTexts || [];
+  console.log('🔍 [兄弟元素提取] 发现兄弟元素文本:', siblingTexts.length, '个:', siblingTexts);
+  
+  // 🔥 NEW: 提取父元素信息（用于上下文匹配）
+  const parentInfo = snapshot?.elementSignature?.parentInfo || null;
+  
+  // 🔥 NEW: 匹配策略标记
+  const matchingStrategy = snapshot?.elementSignature?.matchingStrategy || 
+                          (params.matching as any)?.preferredStrategy || 
+                          'direct_match';
+  console.log('🎯 [匹配策略] 使用策略:', matchingStrategy);
   
   // 🎯 第三数据源：智能分析结果中的策略信息
   let strategyConfidence = 0.8;
@@ -146,6 +193,12 @@ export function extractIntelligentStepData(step: ExtendedSmartScriptStep): Intel
     
     // 🔥 NEW: 子元素文本列表
     childrenTexts,
+    // 🔥 NEW: 兄弟元素文本列表
+    siblingTexts,
+    // 🔥 NEW: 父元素信息
+    parentInfo,
+    // 🔥 NEW: 匹配策略标记
+    matchingStrategy,
     
     selectedStrategy,
     strategyConfidence,
@@ -206,6 +259,15 @@ export function buildBackendParameters(
     // Bug Fix: WRONG_ELEMENT_SELECTION_BUG_REPORT.md
     children_texts: dataPackage.childrenTexts,
     
+    // 🔥 NEW: 兄弟元素文本列表（精确定位中层容器）
+    sibling_texts: dataPackage.siblingTexts,
+    
+    // 🔥 NEW: 父元素信息（上下文匹配）
+    parent_info: dataPackage.parentInfo,
+    
+    // 🔥 NEW: 匹配策略标记（告诉后端如何匹配）
+    matching_strategy: dataPackage.matchingStrategy,
+    
     // 策略信息
     strategy_type: dataPackage.strategyType,
     confidence: dataPackage.strategyConfidence,
@@ -216,6 +278,8 @@ export function buildBackendParameters(
       has_user_xpath: dataPackage.hasUserXPath,
       has_strategy_info: dataPackage.hasStrategyInfo,
       has_children_texts: dataPackage.childrenTexts.length > 0,
+      has_sibling_texts: dataPackage.siblingTexts.length > 0,
+      has_parent_info: !!dataPackage.parentInfo,
       extraction_timestamp: Date.now()
     }
   };
@@ -237,6 +301,7 @@ export function buildBackendParameters(
     // 🔄 直接访问字段（后端兼容性）
     xpath: dataPackage.userSelectedXPath,
     targetText: dataPackage.elementText,
+    target_content_desc: dataPackage.keyAttributes['content-desc'] || '', // 🔥 FIX: 传递 content-desc
     target_element_hint: dataPackage.elementText, // 🔥 NEW: 后端回退逻辑需要此字段
     confidence: dataPackage.strategyConfidence,
     strategy_type: dataPackage.strategyType,

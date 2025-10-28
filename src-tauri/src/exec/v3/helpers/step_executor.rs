@@ -15,7 +15,8 @@ use super::element_matching::{  // 从helpers/element_matching导入工具函数
     find_all_elements_by_text_or_desc as helper_find_all_elements,
     parse_bounds_center as helper_parse_bounds,
 };
-use super::super::recovery_manager::{RecoveryContext, attempt_recovery};
+// ⚠️ 暂时禁用 recovery_manager（编译错误待修复）
+// use super::super::recovery_manager::{RecoveryContext, attempt_recovery};
 
 /// 🔧 执行真实设备操作（包装函数）
 /// 
@@ -73,10 +74,37 @@ pub async fn execute_intelligent_analysis_step(
     let elements = crate::services::ui_reader_service::parse_ui_elements(ui_xml)
         .map_err(|e| format!("解析UI XML失败: {}", e))?;
     
+    // � 提取 original_bounds（用于候选预过滤）
+    let original_bounds = inline.params.get("original_data")
+        .and_then(|od| od.get("element_bounds"))
+        .and_then(|v| v.as_str())
+        .map(|s| s.to_string());
+    
     // 🔧 修复2：收集候选元素
-    let candidate_elements = collect_candidate_elements(&elements, strategy_type, xpath, &target_text);
+    let candidate_elements = collect_candidate_elements(
+        &elements, 
+        strategy_type, 
+        xpath, 
+        &target_text, 
+        original_bounds.as_deref(),
+        &inline.params  // 🔥 传递完整参数
+    );
     
     tracing::info!("🎯 [候选收集] 找到 {} 个匹配的候选元素", candidate_elements.len());
+    
+    // 🔍 详细输出匹配到的元素信息（调试用）
+    if !candidate_elements.is_empty() {
+        tracing::info!("📋 [候选详情] 匹配到的元素信息:");
+        for (i, elem) in candidate_elements.iter().enumerate() {
+            tracing::info!("  [{}] bounds={:?}, text={:?}, resource_id={:?}, clickable={:?}", 
+                i + 1, 
+                elem.bounds, 
+                elem.text, 
+                elem.resource_id,
+                elem.clickable
+            );
+        }
+    }
     
     // 🔍 数据完整性检查（关键诊断信息）
     if let Some(original_data) = inline.params.get("original_data") {
@@ -161,8 +189,11 @@ fn collect_candidate_elements<'a>(
     strategy_type: &str,
     xpath: &str,
     target_text: &str,
+    original_bounds: Option<&str>,  // 🔥 新增：用户选择的 bounds
+    params: &serde_json::Value,     // 🔥 新增：完整参数，用于提取 children_texts
 ) -> Vec<&'a UIElement> {
-    match strategy_type {
+    // 🔥 P0修复：先按 XPath 或 class 收集初步候选
+    let mut candidates: Vec<&UIElement> = match strategy_type {
         "self_anchor" => {
             // 🔥 对于自锚定策略，优先使用resource-id + 子元素文本过滤
             if xpath.contains("@resource-id") {
@@ -196,8 +227,27 @@ fn collect_candidate_elements<'a>(
             }
         },
         "child_driven" => {
-            // 对于子元素驱动策略，查找所有包含目标文本的元素
-            helper_find_all_elements(elements, target_text)
+            // 🔥 对于子元素驱动策略，优先使用 children_texts，如果为空则回退到 targetText
+            let search_text = params.get("original_data")
+                .and_then(|od| od.get("children_texts"))
+                .and_then(|ct| ct.as_array())
+                .and_then(|arr| arr.first())
+                .and_then(|v| v.as_str())
+                .filter(|s| !s.trim().is_empty())
+                .unwrap_or(target_text);
+            
+            if search_text.is_empty() {
+                tracing::warn!("⚠️ [child_driven策略] 无可用文本，尝试使用element_text");
+                let element_text = params.get("original_data")
+                    .and_then(|od| od.get("element_text"))
+                    .and_then(|v| v.as_str())
+                    .filter(|s| !s.trim().is_empty())
+                    .unwrap_or("");
+                helper_find_all_elements(elements, element_text)
+            } else {
+                tracing::info!("🔍 [child_driven策略] 使用子元素文本搜索: '{}'", search_text);
+                helper_find_all_elements(elements, search_text)
+            }
         },
         "content_desc" => {
             // 🔥 P0修复：为 content-desc 策略添加专门处理
@@ -263,7 +313,31 @@ fn collect_candidate_elements<'a>(
             // 默认策略：综合文本和描述匹配所有候选
             helper_find_all_elements(elements, target_text)
         }
+    };
+    
+    // 🔥 P0修复：如果有 original_bounds，优先过滤完全匹配 bounds 的元素
+    if let Some(user_bounds) = original_bounds {
+        let exact_match: Vec<_> = candidates.iter()
+            .filter(|e| {
+                e.bounds.as_ref().map(|b| {
+                    let normalize = |s: &str| s.replace(" ", "");
+                    normalize(b) == normalize(user_bounds)
+                }).unwrap_or(false)
+            })
+            .copied()
+            .collect();
+        
+        if !exact_match.is_empty() {
+            tracing::info!("✅ [Bounds过滤] 找到 {} 个完全匹配用户选择bounds的元素 (从 {} 个候选中过滤)", 
+                         exact_match.len(), candidates.len());
+            return exact_match;
+        } else {
+            tracing::warn!("⚠️ [Bounds过滤] 未找到完全匹配用户bounds='{}' 的元素，使用全部 {} 个候选", 
+                         user_bounds, candidates.len());
+        }
     }
+    
+    candidates
 }
 
 /// 从 XPath 提取 content-desc 的值
@@ -300,13 +374,25 @@ fn evaluate_best_candidate<'a>(
         // 从 original_data 提取评估准则
         let original_data = params.get("original_data");
         
+        // 🔥 修复：优先使用 element_text，如果为空则回退到 children_texts[0]
         let target_text_option = original_data
             .and_then(|od| od.get("element_text"))
             .and_then(|v| v.as_str())
+            .filter(|s| !s.is_empty())  // 🔥 过滤空字符串
             .or_else(|| {
                 params.get("smartSelection")
                     .and_then(|v| v.get("targetText"))
                     .and_then(|v| v.as_str())
+                    .filter(|s| !s.is_empty())  // 🔥 过滤空字符串
+            })
+            .or_else(|| {
+                // 🔥 回退：使用 children_texts 的第一个元素（父容器+子文本模式）
+                original_data
+                    .and_then(|od| od.get("children_texts"))
+                    .and_then(|v| v.as_array())
+                    .and_then(|arr| arr.first())
+                    .and_then(|v| v.as_str())
+                    .filter(|s| !s.is_empty())
             })
             .map(|s| s.to_string());
         
@@ -333,17 +419,66 @@ fn evaluate_best_candidate<'a>(
             })
             .unwrap_or_default();
         
+        // 🔍 DEBUG: 输出目标文本来源
+        tracing::info!("🔍 [目标文本提取] target_text={:?}, children_texts={:?}", target_text_option, children_texts);
+        
         let original_resource_id = original_data
             .and_then(|od| od.get("key_attributes"))
             .and_then(|ka| ka.get("resource-id"))
             .and_then(|v| v.as_str())
             .map(|s| s.to_string());
         
-        // � 提取 selected_xpath（用户精确选择的绝对全局XPath）
+        // 🔥 提取 selected_xpath（用户精确选择的绝对全局XPath）
         let selected_xpath = original_data
             .and_then(|od| od.get("selected_xpath"))
             .and_then(|v| v.as_str())
             .map(|s| s.to_string());
+        
+        // 🆕 NEW: 提取匹配策略标记
+        let matching_strategy = original_data
+            .and_then(|od| od.get("matching_strategy"))
+            .and_then(|v| v.as_str())
+            .map(|s| s.to_string());
+        
+        // 🆕 NEW: 提取兄弟元素文本
+        let sibling_texts = original_data
+            .and_then(|od| od.get("sibling_texts"))
+            .and_then(|v| v.as_array())
+            .map(|arr| {
+                arr.iter()
+                    .filter_map(|v| v.as_str())
+                    .map(|s| s.to_string())
+                    .collect::<Vec<_>>()
+            })
+            .unwrap_or_default();
+        
+        // 🆕 NEW: 提取父元素信息
+        let parent_info = original_data
+            .and_then(|od| od.get("parent_info"))
+            .and_then(|v| v.as_object())
+            .map(|obj| {
+                use crate::exec::v3::element_matching::multi_candidate_evaluator::ParentInfo;
+                ParentInfo {
+                    content_desc: obj.get("contentDesc")
+                        .and_then(|v| v.as_str())
+                        .unwrap_or("")
+                        .to_string(),
+                    text: obj.get("text")
+                        .and_then(|v| v.as_str())
+                        .unwrap_or("")
+                        .to_string(),
+                    resource_id: obj.get("resourceId")
+                        .and_then(|v| v.as_str())
+                        .unwrap_or("")
+                        .to_string(),
+                }
+            });
+        
+        // 🔍 DEBUG: 输出新提取的策略信息
+        if matching_strategy.is_some() || !sibling_texts.is_empty() || parent_info.is_some() {
+            tracing::info!("🔥 [策略标记提取] matching_strategy={:?}, sibling_texts={:?}, parent_info={:?}", 
+                         matching_strategy, sibling_texts, parent_info);
+        }
         
         // ✅ 构建评估准则（完整版）
         let criteria = EvaluationCriteria {
@@ -355,6 +490,9 @@ fn evaluate_best_candidate<'a>(
             prefer_last: true, // 用户需求：优先选择最后一个（避免选择列表第一项）
             selected_xpath, // 🔥 传递用户选择的XPath（最高优先级匹配依据）
             xml_content: Some(ui_xml.to_string()), // 🔥 传递当前XML，用于子元素文本提取
+            matching_strategy, // 🆕 NEW: 匹配策略标记
+            sibling_texts, // 🆕 NEW: 兄弟元素文本
+            parent_info, // 🆕 NEW: 父元素信息
         };
         
         // ✅ 使用 MultiCandidateEvaluator 进行综合评估
@@ -389,6 +527,9 @@ fn attempt_element_recovery<'a>(
 ) -> Result<Option<&'a UIElement>, String> {
     tracing::warn!("⚠️ [智能执行] 真机XML中未找到目标元素，启动失败恢复机制");
     
+    // ⚠️ 暂时禁用失败恢复逻辑（RecoveryContext 编译错误待修复）
+    // TODO: 修复 RecoveryContext 和 attempt_recovery 的导入问题
+    /*
     // 尝试构建恢复上下文
     if let Some(recovery_ctx) = RecoveryContext::from_params(params) {
         tracing::info!("🔧 [失败恢复] 恢复上下文构建成功，开始恢复流程");
@@ -439,6 +580,9 @@ fn attempt_element_recovery<'a>(
                         prefer_last: false, // 恢复场景不需要优先最后一个
                         selected_xpath: Some(recovery_ctx.selected_xpath.clone()), // 🔥 传递用户选择的XPath
                         xml_content: None, // 🔥 真机XML已经在当前上下文中
+                        matching_strategy: None, // 恢复场景不使用策略标记
+                        sibling_texts: vec![],
+                        parent_info: None,
                     };
                     
                     // 将候选转换为引用列表
@@ -479,7 +623,10 @@ fn attempt_element_recovery<'a>(
         tracing::warn!("⚠️ [失败恢复] 无法构建恢复上下文（缺少 original_data）");
         tracing::warn!("   💡 提示：确保前端传递了完整的 original_data 字段");
     }
+    */
     
+    // 暂时直接返回 None
+    tracing::warn!("⚠️ 失败恢复逻辑已禁用，返回 None");
     Ok(None)
 }
 
@@ -503,14 +650,19 @@ async fn execute_click_action(
 ) -> Result<(i32, i32), String> {
     // 提取点击坐标
     let click_point = if let Some(bounds_str) = &element.bounds {
-        helper_parse_bounds(bounds_str)
-            .map_err(|e| format!("解析bounds失败: {}", e))?
+        tracing::info!("🔍 [坐标计算] 原始bounds字符串: '{}'", bounds_str);
+        let point = helper_parse_bounds(bounds_str)
+            .map_err(|e| format!("解析bounds失败: {}", e))?;
+        tracing::info!("✅ [坐标计算] 解析结果: center=({}, {})", point.0, point.1);
+        point
     } else {
         return Err(format!("元素缺少bounds信息，target_text={}", target_text));
     };
     
-    tracing::info!("🧠 [智能执行] 计算出点击坐标: ({}, {}) for target_text={}", 
+    tracing::info!("🧠 [智能执行] 准备点击坐标: ({}, {}) for target_text={}", 
         click_point.0, click_point.1, target_text);
+    tracing::info!("🔍 [元素信息] class={:?}, resource_id={:?}, clickable={:?}", 
+        element.class, element.resource_id, element.clickable);
     
     // 执行真实点击操作
     match crate::infra::adb::input_helper::tap_injector_first(

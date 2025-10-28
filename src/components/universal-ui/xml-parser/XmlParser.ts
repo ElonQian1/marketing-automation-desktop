@@ -49,37 +49,12 @@ export class XmlParser {
       const extractedElements: VisualUIElement[] = [];
       const elementCategories = ElementCategorizer.createDefaultCategories();
 
-      // 🔧 修复：防止父子元素重复热区
-      // 策略：当子元素不可点击时，如果父元素可点击，优先选择父元素
-      const processedNodes = new Set<Element>();
-
+      // 🔥 禁用所有过滤规则 - 保留所有元素，让用户可以点击任何元素
+      // 不再进行策略1、策略2或任何父子关系过滤
       allNodes.forEach((node, index) => {
-        // 跳过已处理的节点
-        if (processedNodes.has(node)) {
-          return;
-        }
-
-        // 检查是否为不可点击的子元素，且父元素可点击
-        const isClickable = node.getAttribute("clickable") === "true";
-        const parentNode = node.parentElement;
-        const isParentClickable = parentNode?.getAttribute("clickable") === "true";
-
-        // 🎯 关键修复：如果当前元素不可点击，但父元素可点击，跳过子元素
-        if (!isClickable && isParentClickable && parentNode?.tagName === "node") {
-          console.log(`⏭️ [XmlParser] 跳过不可点击子元素，父元素可点击:`, {
-            子元素text: node.getAttribute("text"),
-            子元素bounds: node.getAttribute("bounds"),
-            父元素contentDesc: parentNode.getAttribute("content-desc"),
-            父元素bounds: parentNode.getAttribute("bounds"),
-          });
-          processedNodes.add(node);
-          return;
-        }
-
         const element = XmlParser.parseNodeToElement(node, index, options);
         if (element) {
           extractedElements.push(element);
-          processedNodes.add(node);
 
           // 将元素添加到相应类别
           const category = elementCategories[element.category];
@@ -89,7 +64,34 @@ export class XmlParser {
         }
       });
 
-      // 分析应用和页面信息
+      // 🔍 调试：检查是否解析出"通讯录"元素
+      const contactsElements = extractedElements.filter(el => 
+        el.text?.includes('通讯录') ||
+        el.contentDesc?.includes('通讯录') ||
+        el.description?.includes('通讯录')
+      );
+      if (contactsElements.length > 0) {
+        console.log('✅ [XmlParser] 找到"通讯录"元素:');
+        console.table(contactsElements.map(el => ({
+          id: el.id,
+          text: el.text || '(无)',
+          contentDesc: el.contentDesc || '(无)',
+          bounds: `[${el.position.x},${el.position.y}][${el.position.x + el.position.width},${el.position.y + el.position.height}]`,
+          clickable: el.clickable ? '✓' : '✗'
+        })));
+      } else {
+        console.warn('⚠️ [XmlParser] 未找到"通讯录"元素，总共解析了', extractedElements.length, '个元素');
+        // 输出所有可点击元素的文本
+        const clickableElements = extractedElements.filter(el => el.clickable);
+        console.log('📋 [XmlParser] 所有可点击元素（前20个）:');
+        console.table(clickableElements.slice(0, 20).map(el => ({
+          id: el.id,
+          text: el.text || '(无)',
+          contentDesc: el.contentDesc || '(无)',
+          bounds: `[${el.position.x},${el.position.y}][${el.position.x + el.position.width},${el.position.y + el.position.height}]`,
+          clickable: '✓'
+        })));
+      }      // 分析应用和页面信息
   const appInfo = AppPageAnalyzer.getSimpleAppAndPageInfo(content);
 
       // 过滤掉空的类别
@@ -147,8 +149,7 @@ export class XmlParser {
         text,
         contentDesc,
         clickable,
-        position,
-        options
+        position
       )
     ) {
       // 🔍 菜单元素调试：如果菜单元素被过滤
@@ -165,8 +166,13 @@ export class XmlParser {
     const userFriendlyName = ElementCategorizer.getUserFriendlyName(node);
     const importance = ElementCategorizer.getElementImportance(node);
 
+    // 🔧 修复：使用原始 XML index 作为 ID，确保前后端一致
+    // 注意：不使用过滤后的 index，而是使用 XML 中的原始顺序
+    // 这样 element-41 在前端和后端都指向同一个 XML 节点
+    const elementId = `element-${index}`;
+    
     return {
-      id: `element-${index}`,
+      id: elementId,
       text: text,
       description:
         contentDesc || `${userFriendlyName}${clickable ? "（可点击）" : ""}`,
@@ -176,7 +182,8 @@ export class XmlParser {
       clickable,
       importance,
       userFriendlyName,
-      // 🔧 新增：保存resource-id等关键属性
+      // 🔧 新增：保存原始 XML index 和 bounds 用于精确匹配
+      xmlIndex: index,  // 原始 XML 索引
       resourceId: resourceId || undefined,
       contentDesc: contentDesc || undefined,
       className: className || undefined,
@@ -199,9 +206,10 @@ export class XmlParser {
     text: string,
     contentDesc: string,
     clickable: boolean,
-    position: { width: number; height: number },
-    options: ElementCategorizerOptions
+    position: { width: number; height: number }
   ): boolean {
+    // 🔥 禁用所有过滤 - 只检查最基本的边界和尺寸有效性
+    
     // 边界有效性检查
     if (!bounds || bounds === "[0,0][0,0]") {
       return false;
@@ -212,20 +220,7 @@ export class XmlParser {
       return false;
     }
 
-    // 内容有效性检查
-    const hasContent = Boolean(text.trim() || contentDesc.trim());
-    const isInteractive = clickable;
-
-    if (options.strictFiltering) {
-      // 严格模式：必须有内容或可交互
-      return hasContent || isInteractive;
-    }
-
-    // 宽松模式：有内容、可点击、或允许非可点击元素
-    if (!hasContent && !isInteractive) {
-      return options.includeNonClickable === true;
-    }
-
+    // ✅ 不再检查内容和可点击性 - 保留所有有效bounds的元素
     return true;
   }
 

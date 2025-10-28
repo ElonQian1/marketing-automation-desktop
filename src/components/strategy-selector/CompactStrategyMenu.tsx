@@ -161,23 +161,23 @@ const CompactStrategyMenu: React.FC<CompactStrategyMenuProps> = ({
   const stepScoreStore = useStepScoreStore();
   const globalScore = stepId ? stepScoreStore.getGlobalScore(stepId) : undefined;
 
-  // 🔍 调试输出置信度和推荐数据
-  React.useEffect(() => {
-    if (stepId) {
-      console.log("🎯 [CompactStrategyMenu] 数据检查:", {
-        stepId,
-        cardId,
-        hasCard: !!card,
-        globalScore,
-        recommendedKey,
-        cardStatus: card?.status,
-        strategy: card?.strategy ? "exists" : "null",
-        mappingResult: cardId ? 'found' : 'not_found',
-        version: "v20251020-candidates-fix",
-        byStepIdLookup: '✅ 使用byStepId映射查找'
-      });
-    }
-  }, [stepId, cardId, card, globalScore, recommendedKey]);
+  // 🔍 调试输出置信度和推荐数据（已禁用：频繁渲染导致刷屏）
+  // React.useEffect(() => {
+  //   if (stepId) {
+  //     console.log("🎯 [CompactStrategyMenu] 数据检查:", {
+  //       stepId,
+  //       cardId,
+  //       hasCard: !!card,
+  //       globalScore,
+  //       recommendedKey,
+  //       cardStatus: card?.status,
+  //       strategy: card?.strategy ? "exists" : "null",
+  //       mappingResult: cardId ? 'found' : 'not_found',
+  //       version: "v20251020-candidates-fix",
+  //       byStepIdLookup: '✅ 使用byStepId映射查找'
+  //     });
+  //   }
+  // }, [stepId, cardId, card, globalScore, recommendedKey]);
 
   // 获取当前策略的显示信息
   const getCurrentStrategyLabel = () => {

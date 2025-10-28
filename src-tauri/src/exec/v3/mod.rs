@@ -9,7 +9,7 @@ pub mod single_step;
 pub mod chain_engine; // 已完成重构，支持 by-ref 模式
 pub mod static_exec;
 pub mod xpath_evaluator; // XPath 多候选评估模块（保留向后兼容）
-pub mod recovery_manager; // 失败恢复管理器
+// pub mod recovery_manager; // ⚠️ 暂时禁用：19个编译错误，待修复（旧代码，未被使用）
 pub mod element_matching; // 🆕 模块化元素匹配系统
 pub mod helpers; // 🆕 chain_engine辅助函数模块
 

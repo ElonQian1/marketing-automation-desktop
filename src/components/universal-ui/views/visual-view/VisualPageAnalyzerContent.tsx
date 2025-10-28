@@ -130,8 +130,10 @@ export const VisualPageAnalyzerContent: React.FC<VisualPageAnalyzerContentProps>
       checked: false,
       selected: false,
       password: false,
-  // 不将友好描述写入 content_desc，保持其为真实 XML 值（此处未知则置空）
+      // 🔥 关键修复：传递真实的 XML 属性
       content_desc: element.contentDesc || "",
+      resource_id: element.resourceId || "",
+      class_name: element.className || "",
     };
 
     // 执行智能分析
@@ -272,8 +274,10 @@ export const VisualPageAnalyzerContent: React.FC<VisualPageAnalyzerContentProps>
       checked: false,
       selected: false,
       password: false,
-      // 不写入友好描述
-      content_desc: "",
+      // 🔥 关键修复：传递真实的 content_desc、resource_id、class_name
+      content_desc: visualElement.contentDesc || "",
+      resource_id: visualElement.resourceId || "",
+      class_name: visualElement.className || "",
       // 🔥 关键修复：携带xmlCacheId，确保元素可以访问XML内容
       xmlCacheId: currentXmlCacheId || undefined,
     } as UIElement & { xmlCacheId?: string };

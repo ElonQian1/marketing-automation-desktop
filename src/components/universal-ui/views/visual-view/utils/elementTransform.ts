@@ -16,9 +16,43 @@ export function parseBounds(bounds: string): { x: number; y: number; width: numb
 export function convertVisualToUIElement(element: VisualUIElement, selectedId?: string): BridgeUIElement {
   let position = element.position || { x: 0, y: 0, width: 100, height: 50 };
   
+  // 🔧 修复：前端使用 element-N，后端使用 element_N
+  // 需要统一为后端格式（下划线）
+  const backendId = element.id.replace('element-', 'element_');
+  
+  // 🔧 保留原始 bounds、resource_id、class_name 等关键信息
+  const bounds = {
+    left: position.x,
+    top: position.y,
+    right: position.x + position.width,
+    bottom: position.y + position.height,
+  };
+  
   // 🔧 Debug: 仅菜单元素转换调试
   const isMenuElement = element.category === 'menu' || element.content_desc === '菜单' || 
                        element.id === 'element_71' || element.description === '菜单';
+  
+  // 🔧 Debug: "通讯录"元素转换调试
+  const isContactElement = element.text?.includes('通讯录') || element.contentDesc?.includes('通讯录') ||
+                          element.description?.includes('通讯录');
+  
+  if (isMenuElement || isContactElement) {
+    console.log(`🎯 [convertVisualToUIElement] ${isContactElement ? '通讯录' : '菜单'}元素转换:`, {
+      原始id: element.id,
+      转换后id: backendId,
+      text: element.text,
+      content_desc: element.content_desc || element.contentDesc,
+      clickable: element.clickable,
+      category: element.category,
+      description: element.description,
+      type: element.type,
+      originalPosition: element.position,
+      resourceId: element.resourceId,
+      className: element.className,
+      bounds对象: bounds,
+      bounds字符串: element.bounds
+    });
+  }
   
   if (isMenuElement) {
     console.log('🎯 [convertVisualToUIElement] 菜单元素转换:', {
@@ -47,18 +81,13 @@ export function convertVisualToUIElement(element: VisualUIElement, selectedId?: 
   }
   
   return {
-    id: element.id,
+    id: backendId,  // 🔧 使用后端格式的 ID (element_N)
     element_type: element.element_type || element.type || '',
     text: element.text || '',
-    bounds: {
-      left: position.x,
-      top: position.y,
-      right: position.x + position.width,
-      bottom: position.y + position.height,
-    },
-    xpath: element.id,
-    resource_id: '',
-    class_name: '',
+    bounds: bounds,  // 🔧 使用计算好的 bounds 对象
+    xpath: backendId,  // 🔧 XPath 也使用后端格式
+    resource_id: element.resourceId || '',  // 🔧 保留 resource_id
+    class_name: element.className || '',  // 🔧 保留 class_name
     is_clickable: element.is_clickable || element.clickable || false,
     is_scrollable: element.scrollable || false,
     is_enabled: element.enabled !== false,
@@ -67,6 +96,6 @@ export function convertVisualToUIElement(element: VisualUIElement, selectedId?: 
     checked: false,
     selected: element.selected || element.id === selectedId,
     password: false,
-    content_desc: element.content_desc || '', // 🔧 保留 content_desc
+    content_desc: element.content_desc || element.contentDesc || '', // 🔧 保留 content_desc
   };
 }

@@ -22,6 +22,19 @@ export interface XmlSnapshot {
     elementCount: number;
     appVersion?: string;
   };
+  // 🔥 元素签名（包含用户选择的目标元素信息）
+  elementSignature?: {
+    text?: string;
+    contentDesc?: string;
+    resourceId?: string;
+    class?: string;
+    bounds?: string;
+    clickable?: boolean;
+    // 🔥 子元素文本列表（解决"父容器+子文本"模式识别问题）
+    childrenTexts?: string[];
+  };
+  // 🔥 用户选择的元素全局 XPath
+  elementGlobalXPath?: string;
 }
 
 // 工具函数：生成XML哈希（保持现有实现与行为不变）
@@ -40,7 +53,9 @@ export const generateXmlHash = (xmlContent: string): string => {
 export const createXmlSnapshot = (
   xmlContent: string,
   deviceInfo: XmlSnapshot['deviceInfo'],
-  pageInfo: XmlSnapshot['pageInfo']
+  pageInfo: XmlSnapshot['pageInfo'],
+  elementSignature?: XmlSnapshot['elementSignature'],
+  elementGlobalXPath?: string
 ): XmlSnapshot => {
   return {
     xmlContent,
@@ -48,6 +63,8 @@ export const createXmlSnapshot = (
     timestamp: Date.now(),
     deviceInfo,
     pageInfo,
+    elementSignature,
+    elementGlobalXPath,
   };
 };
 

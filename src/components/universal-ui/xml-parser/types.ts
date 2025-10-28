@@ -22,6 +22,7 @@ export interface VisualUIElement {
   contentDesc?: string;
   className?: string;
   bounds?: string; // 原始bounds字符串，如"[45,1059][249,1263]"
+  xmlIndex?: number; // 🔧 新增：原始 XML 节点索引（用于精确追踪）
 }
 
 // 增强的UI元素接口

@@ -22,7 +22,20 @@
 
 ## 📚 你的Step 0-6智能策略系统完整架构
 
-### 🎯 核心文件位置
+### � 重大更新：关系锚点匹配策略（v2.0）
+
+**新增功能**：解决"中层无文本容器"匹配问题
+
+- **问题**：用户选择的中层容器没有文本，但包含子元素文本（如"通讯录"）
+- **解决方案**：使用子/兄弟/父元素文本作为锚点进行匹配
+- **策略标记**：`anchor_by_child_or_parent_text`
+- **评分系统**：文本完全匹配(40分) + Bounds位置(30分) + 可点击(20分) + 尺寸合理(10分)
+
+📖 **详细文档**：[关系锚点匹配策略完整架构.md](./关系锚点匹配策略完整架构.md)
+
+---
+
+### �🎯 核心文件位置
 
 ```
 src-tauri/src/
@@ -30,10 +43,16 @@ src-tauri/src/
 │   └── strategy_engine.rs          ⭐ Step 0-6 核心引擎
 │
 ├── services/
-│   └── intelligent_analysis_service.rs  ⭐ 调用Step 0-6 + Bounds过滤
+│   ├── intelligent_analysis_service.rs  ⭐ 调用Step 0-6 + Bounds过滤
+│   └── execution/
+│       └── matching/
+│           └── strategies/
+│               ├── anchor_by_relation_strategy.rs  🆕 关系锚点策略
+│               └── candidate_scorer.rs             🆕 评分系统
 │
 ├── exec/v3/
 │   ├── chain_engine.rs              → 执行链入口
+│   ├── recovery_manager.rs          🆕 集成策略路由器
 │   ├── helpers/
 │   │   ├── analysis_helpers.rs      → 智能分析辅助
 │   │   ├── intelligent_preprocessing.rs → 预处理
@@ -44,7 +63,7 @@ src-tauri/src/
 └── ui_reader_service.rs             → XML解析 + 子文本继承
 ```
 
-### 🔄 完整执行流程
+### 🔄 完整执行流程（v2.0 更新）
 
 ```rust
 1. 前端调用: execute_chain_test_v3()
@@ -53,28 +72,44 @@ src-tauri/src/
    ↓
 3. intelligent_preprocessing.rs: 检测空参数
    ↓
-4. analysis_helpers.rs: 调用智能分析
+4. 🆕 检查 matching_strategy 标记
+   ├─ "anchor_by_child_or_parent_text" → 策略路由器 🎯
+   └─ 其他 → 传统分析流程
    ↓
-5. intelligent_analysis_service.rs: 
+5a. 🎯 策略路由器路径（新增）:
+   recovery_manager.rs: try_strategy_router()
+   ↓
+   anchor_by_relation_strategy.rs:
+   - 提取锚点配置 (children_texts/sibling_texts/parent_info)
+   - 在XML中查找包含锚点文本的元素
+   - 使用评分系统选择最佳候选
+   ↓
+   成功 → 跳转到 Step 9
+   失败 → 继续 Step 5b
+   ↓
+5b. 传统分析流程:
+   analysis_helpers.rs: 调用智能分析
+   ↓
+6. intelligent_analysis_service.rs: 
    - 构建 AnalysisContext (Step 0)
    - 调用 StrategyEngine::score_candidates()
    ↓
-6. strategy_engine.rs: 执行 Step 1-6
+7. strategy_engine.rs: 执行 Step 1-6
    Step 1: self_anchor     - resource-id直接定位
-   Step 2: child_driven    - 文本内容定位
+   Step 2: child_driven    - 文本内容定位 🎯 关系锚点策略优化
    Step 3: content_desc    - content-desc定位
    Step 4: region_scoped   - 容器约束
    Step 5: (通过插件)      - 邻居相对定位
    Step 6: xpath_fallback  - 索引兜底
    ↓
-7. intelligent_analysis_service.rs:
+8. intelligent_analysis_service.rs:
    - 从XML提取每个候选的bounds
-   - 🆕 根据用户bounds重排序候选
-   - 🆕 检测可点击子元素
+   - 根据用户bounds重排序候选
+   - 检测可点击子元素
    ↓
-8. strategy_generation.rs: 转换为V3步骤
+9. strategy_generation.rs: 转换为V3步骤
    ↓
-9. step_executor.rs: 执行点击
+10. step_executor.rs: 执行点击
 ```
 
 ### ✅ 你的代码已经有的功能

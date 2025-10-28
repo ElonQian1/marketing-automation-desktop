@@ -500,38 +500,35 @@ export const VisualElementView: React.FC<VisualElementViewProps> = ({
   let finalElements: VisualUIElement[];
   
   // 检查哪个数据源包含菜单元素
-  const propsHasMenu = elements.some(e => 
-    e.category === 'menu' || 
-    e.description?.includes('菜单') || 
-    e.text?.includes('菜单')
-  );
-  const hookHasMenu = parsedElements.some(e => 
-    e.category === 'menu' || 
-    e.description?.includes('菜单') || 
-    e.text?.includes('菜单')
-  );
-  
-  // 智能选择策略：
-  // 1. 如果Hook解析出了菜单但props没有，优先用Hook
-  // 2. 如果都有或都没有，优先用props (保持向后兼容)
-  // 3. 如果props为空，使用Hook
-  if (elements.length === 0) {
+  // 🔧 修复：强制使用Hook解析的完整元素列表
+  // Hook会保留所有元素（包括不可点击的"通讯录"等），而props只有可点击元素
+  // 优先级：Hook解析 > props传入
+  if (parsedElements.length > 0) {
     finalElements = parsedElements;
-  } else if (hookHasMenu && !propsHasMenu && parsedElements.length > 0) {
-    console.log('🔄 [VisualElementView] 检测到Hook包含菜单元素，props不包含，优先使用Hook数据');
-    finalElements = parsedElements;
-  } else {
+    console.log('✅ [VisualElementView] 使用Hook解析的完整元素:', {
+      hookCount: parsedElements.length,
+      propsCount: elements.length,
+      reason: 'Hook包含所有元素（含不可点击）'
+    });
+  } else if (elements.length > 0) {
     finalElements = elements;
+    console.log('⚠️ [VisualElementView] Hook解析失败，回退到props:', {
+      propsCount: elements.length
+    });
+  } else {
+    finalElements = [];
+    console.warn('❌ [VisualElementView] 无可用元素数据');
   }
   
-  console.log('📊 [VisualElementView] 数据源选择结果:', {
-    propsCount: elements.length,
-    hookCount: parsedElements.length,
-    propsHasMenu,
-    hookHasMenu,
-    finalCount: finalElements.length,
-    source: finalElements === elements ? 'props' : 'hook'
-  });
+  // 禁用：每次渲染都打印，日志刷屏
+  // console.log('📊 [VisualElementView] 数据源选择结果:', {
+  //   propsCount: elements.length,
+  //   hookCount: parsedElements.length,
+  //   propsHasMenu,
+  //   hookHasMenu,
+  //   finalCount: finalElements.length,
+  //   source: finalElements === elements ? 'props' : 'hook'
+  // });
   
   // 🐛 额外调试：输出最终使用的元素
   useEffect(() => {

@@ -122,24 +122,21 @@ export const PagePreview: React.FC<PagePreviewProps> = ({
     const { diagnostics } = transform;
     const scaleDiff = Math.abs(diagnostics.scaleRatio.y - 1.0);
     
-    console.group('🔍 PagePreview 坐标系诊断（v2）');
-    console.log('XML 视口尺寸:', diagnostics.xmlViewport.w, 'x', diagnostics.xmlViewport.h);
-    console.log('截图实际尺寸:', diagnostics.screenshot.w, 'x', diagnostics.screenshot.h);
-    console.log('X 轴比例:', diagnostics.scaleRatio.x.toFixed(4), '| Y 轴比例:', diagnostics.scaleRatio.y.toFixed(4));
-    console.log('校准已应用:', diagnostics.calibrationApplied);
-    if (diagnostics.calibration) {
-      console.log('校准参数:', diagnostics.calibration);
-    }
+    // 禁用：频繁重渲染导致日志刷屏，只在有问题时打印
     if (scaleDiff > 0.05 && !diagnostics.calibrationApplied) {
+      console.group('🔍 PagePreview 坐标系诊断（v2）');
+      console.log('XML 视口尺寸:', diagnostics.xmlViewport.w, 'x', diagnostics.xmlViewport.h);
+      console.log('截图实际尺寸:', diagnostics.screenshot.w, 'x', diagnostics.screenshot.h);
+      console.log('X 轴比例:', diagnostics.scaleRatio.x.toFixed(4), '| Y 轴比例:', diagnostics.scaleRatio.y.toFixed(4));
+      console.log('校准已应用:', diagnostics.calibrationApplied);
+      if (diagnostics.calibration) {
+        console.log('校准参数:', diagnostics.calibration);
+      }
       const suggested = parseFloat(diagnostics.scaleRatio.y.toFixed(3));
       console.warn('⚠️ 检测到显著差异 (>5%)，建议 overlayScale:', suggested);
+      console.groupEnd();
       onCalibrationSuggested?.(suggested);
-    } else if (diagnostics.calibrationApplied) {
-      console.log('✅ 统一坐标系已激活（方案 B）');
-    } else {
-      console.log('✅ 视口与截图尺寸一致');
     }
-    console.groupEnd();
   }, [imgNatural, xmlContent, calibration, overlayScale, offsetX, offsetY, verticalAlign, deviceFramePadding, onCalibrationSuggested]);
   if (finalElements.length === 0) {
     return (
@@ -291,6 +288,30 @@ export const PagePreview: React.FC<PagePreviewProps> = ({
                 ? `${element.userFriendlyName}: ${element.description} | 语义: ${originalElement?.content_desc || originalElement?.resource_id || '有标识'}`
                 : `${element.userFriendlyName}: ${element.description}`;
 
+              // 🎯 智能 z-index：小元素（子元素）永远在大元素（父容器）上面
+              // 通过元素面积来判断层级：面积越小，z-index 越高
+              const elementArea = elementWidth * elementHeight;
+              const areaBonus = Math.max(0, 30 - Math.floor(elementArea / 10000)); // 面积越小，bonus越高（最高30）
+
+              // 🔍 调试：检测"通讯录"元素
+              const isContactElement = 
+                element.text?.includes('通讯录') || 
+                element.description?.includes('通讯录') ||
+                originalElement?.text?.includes('通讯录') ||
+                originalElement?.content_desc?.includes('通讯录');
+              
+              if (isContactElement) {
+                console.log('🔴 [PagePreview] 渲染"通讯录"元素:', {
+                  id: element.id,
+                  text: element.text || '(无)',
+                  description: element.description || '(无)',
+                  clickable: element.clickable,
+                  bounds: `[${element.position.x},${element.position.y}][${element.position.x + element.position.width},${element.position.y + element.position.height}]`,
+                  area: elementArea,
+                  calculatedZIndex: 10 + areaBonus + (hasSemanticInfo ? 10 : 0) + (element.clickable ? 5 : 0)
+                });
+              }
+
               return (
                 <div
                   key={element.id}
@@ -301,14 +322,18 @@ export const PagePreview: React.FC<PagePreviewProps> = ({
                     top: elementTop,
                     width: elementWidth,
                     height: elementHeight,
-                    backgroundColor: category?.color || '#8b5cf6',
-                    opacity: (!hideCompletely && displayState.isHidden) ? 0.12 : overlayOpacity,
-                    border: displayState.isPending ? '2px solid #52c41a' : displayState.isHovered ? '2px solid #faad14' : semanticBorder,
+                    backgroundColor: isContactElement ? 'rgba(255, 0, 0, 0.6)' : category?.color || '#8b5cf6',
+                    opacity: (!hideCompletely && displayState.isHidden) ? 0.12 : (isContactElement ? 0.7 : overlayOpacity),
+                    border: isContactElement ? '4px solid red' : (displayState.isPending ? '2px solid #52c41a' : displayState.isHovered ? '2px solid #faad14' : semanticBorder),
                     borderRadius: Math.min(elementWidth, elementHeight) > 10 ? 2 : 1,
                     cursor: !hideCompletely && displayState.isHidden ? 'default' : element.clickable ? 'pointer' : 'default',
                     transition: 'all .2s ease',
-                    zIndex: (element.id === 'element_71' || element.category === 'menu') ? 50 : 
-                            10 + (displayState.isPending ? 40 : displayState.isHovered ? 20 : hasSemanticInfo ? 10 : element.clickable ? 5 : 0),
+                    // 🎯 新的 z-index 计算：
+                    // 基础层(10) + 面积bonus(0-30，越小越高) + 状态bonus(pending 40 / hovered 20) + 语义bonus(10) + 可点击bonus(5)
+                    // 🔴 "通讯录"元素强制最高层
+                    zIndex: isContactElement ? 9999 : 
+                            (element.id === 'element_71' || element.category === 'menu') ? 50 : 
+                            10 + areaBonus + (displayState.isPending ? 40 : displayState.isHovered ? 20 : 0) + (hasSemanticInfo ? 10 : 0) + (element.clickable ? 5 : 0),
                     transform: displayState.isPending ? 'scale(1.1)' : displayState.isHovered ? 'scale(1.05)' : 'scale(1)',
                     boxShadow: displayState.isPending
                       ? '0 4px 16px rgba(82,196,26,0.4)'
@@ -324,23 +349,39 @@ export const PagePreview: React.FC<PagePreviewProps> = ({
                     if (!hideCompletely && displayState.isHidden) return;
                     e.stopPropagation();
                     
-                    // 🎯 Debug: 所有点击调试 - 查看层级遮挡
-                    console.log('🎯 [PagePreview] 元素点击:', {
-                      elementId: element.id,
-                      category: element.category,
-                      description: element.description,
-                      position: element.position,
-                      clickable: element.clickable,
-                      zIndex: 10 + (displayState.isPending ? 40 : displayState.isHovered ? 20 : hasSemanticInfo ? 10 : element.clickable ? 5 : 0),
-                      isMenuElement: element.id === 'element_71' || element.category === 'menu' || element.description?.includes('菜单')
-                    });
+                    // 🎯 增强点击调试 - 显示完整元素信息
+                    console.group('🎯 [PagePreview] 元素点击详情');
+                    console.log('📍 元素ID:', element.id);
+                    console.log('📝 文本:', element.text || '(无)');
+                    console.log('📝 描述:', element.description || '(无)');
+                    console.log('🎨 类别:', element.category);
+                    console.log('📐 显示Bounds:', `[${element.position.x},${element.position.y}][${element.position.x + element.position.width},${element.position.y + element.position.height}]`);
+                    console.log('👆 可点击:', element.clickable ? '✓' : '✗');
+                    console.log('📏 面积:', elementWidth * elementHeight, 'px²');
+                    console.log('🎚️ Z-Index:', isContactElement ? 9999 : 10 + areaBonus + (displayState.isPending ? 40 : displayState.isHovered ? 20 : 0) + (hasSemanticInfo ? 10 : 0) + (element.clickable ? 5 : 0));
+                    console.log('⚠️ 是否为"通讯录":', isContactElement ? '是！' : '否');
                     
-                    let uiElement: UIElement;
                     if (originalElement) {
-                      uiElement = originalElement;
+                      console.log('🔍 原始UIElement数据:');
+                      console.table({
+                        id: originalElement.id,
+                        text: originalElement.text || '(无)',
+                        content_desc: originalElement.content_desc || '(无)',
+                        resource_id: originalElement.resource_id || '(无)',
+                        class_name: originalElement.class_name,
+                        bounds: originalElement.bounds
+                      });
                     } else {
-                      uiElement = convertVisualToUIElement(element, selectedElementId) as unknown as UIElement;
+                      console.warn('⚠️ 未找到对应的原始UIElement');
                     }
+                    console.groupEnd();
+                    
+                    // 🔧 修复：强制使用 Hook 的 element 数据（160个完整元素）
+                    // 不使用 Props 的 originalElement（105个过滤后元素）
+                    // 原因：Hook 和 Props 使用不同的索引系统，导致 ID 映射错误
+                    let uiElement: UIElement;
+                    uiElement = convertVisualToUIElement(element, selectedElementId) as unknown as UIElement;
+                    
                     selectionManager.handleElementClick(uiElement, { x: e.clientX, y: e.clientY });
                   }}
                   onMouseEnter={() => {

@@ -236,6 +236,10 @@ export const VisualPagePreview: React.FC<VisualPagePreviewProps> = ({
                     const relativeX = e.clientX - containerRect.left;
                     const relativeY = e.clientY - containerRect.top;
 
+                    // 将点击位置转换回设备坐标（反向缩放）
+                    const deviceX = relativeX / scale;
+                    const deviceY = relativeY / scale;
+
                     // 获取点击位置（相对于页面的绝对位置，用于定位气泡）
                     const clickPosition = {
                       x: e.clientX, // 使用页面绝对坐标来定位气泡
@@ -248,23 +252,89 @@ export const VisualPagePreview: React.FC<VisualPagePreviewProps> = ({
                       e.clientY,
                       "相对容器:",
                       relativeX,
-                      relativeY
+                      relativeY,
+                      "设备坐标:",
+                      deviceX.toFixed(0),
+                      deviceY.toFixed(0)
                     );
 
-                    // 使用选择管理器处理点击
-                    const uiElement = convertVisualToUIElement(element);
+                    // 🔥 智能容器检测：如果点击的是容器元素，尝试找到最匹配的子元素
+                    let targetElement = element;
+                    
+                    // 检查是否为容器类型（FrameLayout, LinearLayout, RelativeLayout等）
+                    const isContainerClass = /Layout|Container|ViewGroup/i.test(element.className || '');
+                    const hasNoText = !element.text || element.text.trim() === '';
+                    const hasNoContentDesc = !element.contentDesc || element.contentDesc.trim() === '';
+                    
+                    if (isContainerClass && hasNoText && hasNoContentDesc) {
+                      console.warn('⚠️ [智能检测] 检测到可能点击了容器元素，尝试查找匹配的子元素', {
+                        容器className: element.className,
+                        容器bounds: `[${element.position?.x},${element.position?.y}][${element.position?.x + element.position?.width},${element.position?.y + element.position?.height}]`,
+                        点击位置: `(${deviceX.toFixed(0)}, ${deviceY.toFixed(0)})`
+                      });
+                      
+                      // 🔥 关键修复: 从 **所有元素** 中查找子元素,而不仅仅是 filteredElements
+                      // 这样可以找到被策略2过滤掉的中层可点击元素
+                      const clickableChildren = elements.filter(child => {
+                        if (!child.clickable || child.id === element.id) return false;
+                        
+                        const childPos = child.position;
+                        if (!childPos) return false;
+                        
+                        // ✅ 新增: 检查子元素是否在容器内
+                        const containerPos = element.position;
+                        if (!containerPos) return false;
+                        
+                        const isInContainer = 
+                          childPos.x >= containerPos.x &&
+                          childPos.y >= containerPos.y &&
+                          (childPos.x + childPos.width) <= (containerPos.x + containerPos.width) &&
+                          (childPos.y + childPos.height) <= (containerPos.y + containerPos.height);
+                        
+                        // 检查是否在点击位置
+                        const inClickPosition = 
+                          deviceX >= childPos.x && 
+                          deviceX <= childPos.x + childPos.width &&
+                          deviceY >= childPos.y && 
+                          deviceY <= childPos.y + childPos.height;
+                        
+                        return isInContainer && inClickPosition;
+                      });
+                      
+                      if (clickableChildren.length > 0) {
+                        // 找到最小的匹配元素（最具体的）
+                        targetElement = clickableChildren.reduce((smallest, current) => {
+                          const smallestArea = (smallest.position?.width || 0) * (smallest.position?.height || 0);
+                          const currentArea = (current.position?.width || 0) * (current.position?.height || 0);
+                          return currentArea < smallestArea ? current : smallest;
+                        });
+                        
+                        console.log('✅ [智能检测] 找到更精确的子元素:', {
+                          原容器: element.id,
+                          新元素: targetElement.id,
+                          新元素text: targetElement.text,
+                          新元素resourceId: targetElement.resourceId,
+                          新元素bounds: `[${targetElement.position?.x},${targetElement.position?.y}][${targetElement.position?.x + targetElement.position?.width},${targetElement.position?.y + targetElement.position?.height}]`
+                        });
+                      } else {
+                        console.warn('⚠️ [智能检测] 未找到匹配的子元素，使用原容器');
+                      }
+                    }
+
+                    // 使用选择管理器处理点击（使用智能检测后的目标元素）
+                    const uiElement = convertVisualToUIElement(targetElement);
                     selectionManager.handleElementClick(
                       uiElement,
                       clickPosition
                     );
                   }}
-                  onMouseEnter={(e) => {
+                  onMouseEnter={() => {
                     if (displayState.isHidden) return;
 
                     // 通知选择管理器悬停状态
                     selectionManager.handleElementHover(element.id);
                   }}
-                  onMouseLeave={(e) => {
+                  onMouseLeave={() => {
                     // 清除悬停状态
                     selectionManager.handleElementHover(null);
                   }}
