@@ -2,7 +2,12 @@
 // module: ui | layer: utils | role: 选择模式转换器
 // summary: 将前端选择模式转换为后端期望的枚举对象格式
 
-import type { SelectionMode, BatchConfig, RandomConfig } from '../types/selection-config';
+import type { 
+  SelectionMode, 
+  BatchConfig, 
+  RandomConfig,
+  MatchOriginalConfig 
+} from '../types/selection-config';
 
 /**
  * 将前端 SelectionMode 字符串转换为后端期望的枚举对象格式
@@ -13,7 +18,8 @@ import type { SelectionMode, BatchConfig, RandomConfig } from '../types/selectio
 export function convertSelectionModeToBackend(
   mode: SelectionMode,
   batchConfig?: BatchConfig,
-  randomConfig?: RandomConfig
+  randomConfig?: RandomConfig,
+  matchOriginalConfig?: MatchOriginalConfig
 ): any {
   switch (mode) {
     case 'first':
@@ -41,10 +47,22 @@ export function convertSelectionModeToBackend(
       };
 
     case 'match-original':
+      if (!matchOriginalConfig) {
+        // 使用默认配置
+        return {
+          type: 'MatchOriginal',
+          min_confidence: 0.85,
+          fallback_to_first: true,
+          strict_mode: true,
+          match_attributes: ['text', 'resource_id', 'content_desc'],
+        };
+      }
       return {
         type: 'MatchOriginal',
-        min_confidence: 0.7,
-        fallback_to_first: true
+        min_confidence: matchOriginalConfig.min_confidence,
+        fallback_to_first: matchOriginalConfig.fallback_to_first,
+        strict_mode: matchOriginalConfig.strict_mode,
+        match_attributes: matchOriginalConfig.match_attributes,
       };
 
     case 'random':
@@ -81,7 +99,8 @@ export function convertSelectionModeToBackend(
 export function validateConfig(
   mode: SelectionMode,
   batchConfig?: BatchConfig,
-  randomConfig?: RandomConfig
+  randomConfig?: RandomConfig,
+  matchOriginalConfig?: MatchOriginalConfig
 ): { valid: boolean; error?: string } {
   switch (mode) {
     case 'all':
@@ -96,6 +115,17 @@ export function validateConfig(
     case 'random':
       if (randomConfig?.custom_seed_enabled && !randomConfig.seed) {
         return { valid: false, error: '启用自定义种子时必须设置种子值' };
+      }
+      break;
+
+    case 'match-original':
+      if (matchOriginalConfig) {
+        if (matchOriginalConfig.min_confidence < 0.5 || matchOriginalConfig.min_confidence > 1) {
+          return { valid: false, error: '置信度必须在50%-100%之间' };
+        }
+        if (matchOriginalConfig.match_attributes.length === 0) {
+          return { valid: false, error: '至少需要选择一个匹配属性' };
+        }
       }
       break;
   }

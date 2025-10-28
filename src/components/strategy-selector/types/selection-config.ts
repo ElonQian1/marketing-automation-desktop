@@ -24,6 +24,16 @@ export interface RandomConfig {
 }
 
 /**
+ * 精准匹配配置
+ */
+export interface MatchOriginalConfig {
+  min_confidence: number;  // 最小置信度阈值 (0.7-1.0)
+  fallback_to_first: boolean;  // 匹配失败时是否回退到第一个
+  strict_mode: boolean;  // 严格模式（要求更多属性匹配）
+  match_attributes: Array<'text' | 'resource_id' | 'content_desc' | 'bounds' | 'class_name'>;  // 需要匹配的属性
+}
+
+/**
  * 选择模式类型
  */
 export type SelectionMode = 
@@ -65,4 +75,14 @@ export const DEFAULT_RANDOM_CONFIG: RandomConfig = {
   seed: undefined,
   ensure_stable_sort: true,
   custom_seed_enabled: false,
+};
+
+/**
+ * 默认精准匹配配置
+ */
+export const DEFAULT_MATCH_ORIGINAL_CONFIG: MatchOriginalConfig = {
+  min_confidence: 0.85,  // 默认85%置信度（比较严格）
+  fallback_to_first: true,
+  strict_mode: true,  // 默认开启严格模式
+  match_attributes: ['text', 'resource_id', 'content_desc'],  // 默认匹配三个核心属性
 };

@@ -5,18 +5,21 @@
 // 组件
 export { default as CompactStrategyMenu } from './CompactStrategyMenu';
 export { RandomConfigPanel } from './panels/RandomConfigPanel';
+export { MatchOriginalConfigPanel } from './panels/MatchOriginalConfigPanel';
 
 // 类型
 export type {
   SelectionMode,
   BatchConfig,
   RandomConfig,
+  MatchOriginalConfig,
 } from './types/selection-config';
 
 export {
   MODE_LABELS,
   DEFAULT_BATCH_CONFIG,
   DEFAULT_RANDOM_CONFIG,
+  DEFAULT_MATCH_ORIGINAL_CONFIG,
 } from './types/selection-config';
 
 // 工具函数
@@ -26,6 +29,6 @@ export {
 } from './utils/selection-mode-converter';
 
 export {
-  saveSelectionConfig,
   saveSelectionConfigWithFeedback,
+  type SaveConfigParams,
 } from './utils/selection-config-saver';

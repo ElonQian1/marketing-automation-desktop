@@ -4,7 +4,12 @@
 
 import { invoke } from '@tauri-apps/api/core';
 import { useStepCardStore } from '../../../store/stepcards';
-import type { SelectionMode, BatchConfig, RandomConfig } from '../types/selection-config';
+import type { 
+  SelectionMode, 
+  BatchConfig, 
+  RandomConfig,
+  MatchOriginalConfig 
+} from '../types/selection-config';
 import type { MessageInstance } from 'antd/es/message/interface';
 
 export interface SaveConfigParams {
@@ -13,6 +18,7 @@ export interface SaveConfigParams {
   mode: SelectionMode;
   batchConfig?: BatchConfig | null;
   randomConfig?: RandomConfig;
+  matchOriginalConfig?: MatchOriginalConfig;
   message: MessageInstance;
 }
 
@@ -20,7 +26,7 @@ export interface SaveConfigParams {
  * 保存智能选择配置到后端（统一接口）
  */
 export async function saveSelectionConfigWithFeedback(params: SaveConfigParams): Promise<boolean> {
-  const { stepId, selectorId, mode, batchConfig, randomConfig, message } = params;
+  const { stepId, selectorId, mode, batchConfig, randomConfig, matchOriginalConfig, message } = params;
 
   if (!stepId) {
     console.warn('⚠️ [saveSelectionConfig] 无stepId，跳过保存');
@@ -34,6 +40,7 @@ export async function saveSelectionConfigWithFeedback(params: SaveConfigParams):
       mode,
       batchConfig,
       randomConfig,
+      matchOriginalConfig,
     });
 
     // 准备保存参数
@@ -47,6 +54,8 @@ export async function saveSelectionConfigWithFeedback(params: SaveConfigParams):
       saveParams.batchConfig = batchConfig;
     } else if (mode === 'random' && randomConfig) {
       saveParams.randomConfig = randomConfig;
+    } else if (mode === 'match-original' && matchOriginalConfig) {
+      saveParams.matchOriginalConfig = matchOriginalConfig;
     }
 
     // 保存到主步骤ID

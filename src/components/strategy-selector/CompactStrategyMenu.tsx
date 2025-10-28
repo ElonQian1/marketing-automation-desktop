@@ -27,15 +27,18 @@ import { ExcludeRuleEditor, type ExcludeRule } from '../smart-selection/ExcludeR
 import { ExplanationGenerator } from '../smart-selection/ExplanationGenerator';
 import { useElementSelectionStore } from '../../stores/ui-element-selection-store';
 import { RandomConfigPanel } from './panels/RandomConfigPanel';
+import { MatchOriginalConfigPanel } from './panels/MatchOriginalConfigPanel';
 import { convertSelectionModeToBackend } from './utils/selection-mode-converter';
 import { saveSelectionConfigWithFeedback } from './utils/selection-config-saver';
 import type { 
   BatchConfig, 
-  RandomConfig 
+  RandomConfig,
+  MatchOriginalConfig 
 } from './types/selection-config';
 import { 
   DEFAULT_BATCH_CONFIG, 
-  DEFAULT_RANDOM_CONFIG 
+  DEFAULT_RANDOM_CONFIG,
+  DEFAULT_MATCH_ORIGINAL_CONFIG 
 } from './types/selection-config';
 
 const { Panel } = Collapse;
@@ -99,6 +102,9 @@ const CompactStrategyMenu: React.FC<CompactStrategyMenuProps> = ({
   
   // 🆕 随机选择配置
   const [randomConfig, setRandomConfig] = useState<RandomConfig>(DEFAULT_RANDOM_CONFIG);
+  
+  // 🎯 精准匹配配置
+  const [matchOriginalConfig, setMatchOriginalConfig] = useState<MatchOriginalConfig>(DEFAULT_MATCH_ORIGINAL_CONFIG);
   
   // 🎯 获取用户实际选择的UI元素
   const { context: selectionContext } = useElementSelectionStore();
@@ -519,8 +525,27 @@ const CompactStrategyMenu: React.FC<CompactStrategyMenuProps> = ({
         break;
       case 'match-original':
         setSelectionMode('match-original');
-        console.log('选择精确匹配模式');
-        await saveConfigDirectly('match-original', null);
+        console.log('选择精确匹配模式', { matchOriginalConfig });
+        // 🎯 确保精准匹配配置有效
+        const newMatchOriginalConfig: MatchOriginalConfig = !matchOriginalConfig || matchOriginalConfig.min_confidence === undefined ? {
+          min_confidence: 0.85,
+          fallback_to_first: true,
+          strict_mode: true,
+          match_attributes: ['text', 'resource_id', 'content_desc'],
+        } : matchOriginalConfig;
+        
+        if (!matchOriginalConfig || matchOriginalConfig.min_confidence === undefined) {
+          setMatchOriginalConfig(newMatchOriginalConfig);
+        }
+        
+        // ✅ 使用工具函数保存配置
+        await saveSelectionConfigWithFeedback({
+          stepId: stepId!,
+          selectorId: stepId,
+          mode: 'match-original',
+          matchOriginalConfig: newMatchOriginalConfig,
+          message
+        });
         break;
       case 'random':
         setSelectionMode('random');
@@ -700,7 +725,12 @@ const CompactStrategyMenu: React.FC<CompactStrategyMenuProps> = ({
     });
 
     // 🔥 使用统一的类型转换函数
-    const convertedMode = convertSelectionModeToBackend(selectionMode, batchConfig, randomConfig);
+    const convertedMode = convertSelectionModeToBackend(
+      selectionMode, 
+      batchConfig, 
+      randomConfig,
+      matchOriginalConfig
+    );
 
     return {
       anchor: {
@@ -1119,6 +1149,26 @@ const CompactStrategyMenu: React.FC<CompactStrategyMenuProps> = ({
                 selectorId: stepId,  // 使用 stepId 作为 selectorId（兜底逻辑会自动处理）
                 mode: 'random',
                 randomConfig: newConfig,
+                message
+              }).catch(console.error);
+            }
+          }}
+        />
+      )}
+
+      {/* 🎯 精准匹配配置面板 */}
+      {selectionMode === 'match-original' && (
+        <MatchOriginalConfigPanel
+          config={matchOriginalConfig}
+          onChange={(newConfig) => {
+            setMatchOriginalConfig(newConfig);
+            // 🔥 实时保存配置
+            if (stepId) {
+              saveSelectionConfigWithFeedback({
+                stepId,
+                selectorId: stepId,
+                mode: 'match-original',
+                matchOriginalConfig: newConfig,
                 message
               }).catch(console.error);
             }
