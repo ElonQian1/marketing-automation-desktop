@@ -32,23 +32,28 @@ impl BatchExecutionConfig {
             .and_then(|v| v.get("batchConfig"))
             .ok_or_else(|| "缺少 smartSelection.batchConfig".to_string())?;
 
+        // 🔥 修复：支持前端的蛇形命名（interval_ms, max_count）
         let max_count = batch_config
-            .get("maxCount")
+            .get("max_count")  // ✅ 蛇形命名
+            .or_else(|| batch_config.get("maxCount"))  // 兼容旧的驼峰命名
             .and_then(|v| v.as_u64())
             .unwrap_or(10) as usize;
 
         let interval_ms = batch_config
-            .get("intervalMs")
+            .get("interval_ms")  // ✅ 蛇形命名
+            .or_else(|| batch_config.get("intervalMs"))  // 兼容旧的驼峰命名
             .and_then(|v| v.as_u64())
             .unwrap_or(2000);
 
         let continue_on_error = batch_config
-            .get("continueOnError")
+            .get("continue_on_error")  // ✅ 蛇形命名
+            .or_else(|| batch_config.get("continueOnError"))  // 兼容旧的驼峰命名
             .and_then(|v| v.as_bool())
             .unwrap_or(true);
 
         let show_progress = batch_config
-            .get("showProgress")
+            .get("show_progress")  // ✅ 蛇形命名
+            .or_else(|| batch_config.get("showProgress"))  // 兼容旧的驼峰命名
             .and_then(|v| v.as_bool())
             .unwrap_or(true);
 
@@ -58,6 +63,15 @@ impl BatchExecutionConfig {
             .and_then(|v| v.as_str())
             .unwrap_or("")
             .to_string();
+
+        // 🔍 DEBUG: 输出解析后的配置
+        tracing::info!(
+            "📋 [批量配置解析] max_count={}, interval_ms={}ms, continue_on_error={}, show_progress={}",
+            max_count,
+            interval_ms,
+            continue_on_error,
+            show_progress
+        );
 
         Ok(Self {
             max_count,
