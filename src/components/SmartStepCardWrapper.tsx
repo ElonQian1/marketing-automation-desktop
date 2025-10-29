@@ -14,7 +14,9 @@ import React from "react";
 import { DraggableStepCard } from "./DraggableStepCard";
 import { LoopStartCard } from "./LoopStartCard";
 import { LoopEndCard } from "./LoopEndCard";
+import { useLoopTestManager } from "../modules/loop-control/application/use-loop-test-manager";
 import { SmartScriptStep } from "../types/smartScript"; // 使用统一的类型定义
+import { message } from "antd";
 
 interface SmartStepCardWrapperProps {
   step: SmartScriptStep; // 使用统一的SmartScriptStep类型
@@ -67,24 +69,50 @@ export const SmartStepCardWrapper: React.FC<SmartStepCardWrapperProps> = (props)
     allSteps = []
   } = props;
 
+  // 🎯 循环测试状态管理器 - 支持多个循环同时存在
+  const loopTestManager = useLoopTestManager({
+    onComplete: (success, loopId) => {
+      if (success) {
+        const duration = loopTestManager.getDuration(loopId);
+        message.success(`✅ 循环测试完成 ${loopId} (${(duration / 1000).toFixed(1)}秒)`);
+      }
+    },
+    onError: (error, loopId) => {
+      message.error(`❌ 循环测试失败 ${loopId}: ${error}`);
+    },
+    onProgress: (progress, loopId) => {
+      console.log(`循环测试进度 ${loopId}: ${progress}%`);
+    },
+  });
+
   // 🎯 智能路由：根据步骤类型选择合适的卡片组件
   
   // 循环开始步骤 - 使用专门的循环开始卡片
   if (step.step_type === 'loop_start') {
+    const currentLoopId = step.parameters?.loop_id as string || `loop_${step.id}`;
+    const loopTestState = loopTestManager.getLoopState(currentLoopId);
+    
     return (
       <LoopStartCard
         step={step}
         isDragging={isDragging}
         // 循环卡片特定属性
         loopConfig={step.parameters?.loop_config || {
-          loopId: step.parameters?.loop_id as string || `loop_${step.id}`,
+          loopId: currentLoopId,
           name: step.parameters?.loop_name as string || step.name,
           iterations: step.parameters?.loop_count as number || 1,
           enabled: step.enabled
         }}
-        // 🎯 循环测试需要的参数
-        allSteps={allSteps}
-        deviceId={currentDeviceId}
+        // 🎯 循环测试联动 - 通过状态管理器提供
+        loopTestState={loopTestState}
+        canStartTest={loopTestManager.canStart(currentLoopId)}
+        canStopTest={loopTestManager.canStop(currentLoopId)}
+        onStartTest={async () => {
+          await loopTestManager.startTest(currentLoopId, allSteps, currentDeviceId || '');
+        }}
+        onStopTest={async () => {
+          await loopTestManager.stopTest(currentLoopId);
+        }}
         onLoopConfigUpdate={(config) => {
           // 更新循环配置并同步到关联步骤
           if (onUpdateStepParameters && allSteps) {
@@ -123,6 +151,9 @@ export const SmartStepCardWrapper: React.FC<SmartStepCardWrapperProps> = (props)
 
   // 循环结束步骤 - 使用专门的循环结束卡片
   if (step.step_type === 'loop_end') {
+    const currentLoopId = step.parameters?.loop_id as string || `loop_${step.id}`;
+    const loopTestState = loopTestManager.getLoopState(currentLoopId);
+    
     return (
       <LoopEndCard
         step={step}
@@ -133,12 +164,17 @@ export const SmartStepCardWrapper: React.FC<SmartStepCardWrapperProps> = (props)
         onToggle={onToggle}
         // 循环卡片特定属性
         loopConfig={step.parameters?.loop_config || {
-          loopId: step.parameters?.loop_id as string || `loop_${step.id}`,
+          loopId: currentLoopId,
           name: step.parameters?.loop_name as string || step.name,
           iterations: step.parameters?.loop_count as number || 1,
           enabled: step.enabled
         }}
-        // 🎯 修复：添加与 LoopStartCard 相同的 onLoopConfigUpdate 回调
+        // 🎯 循环测试联动 - 通过状态管理器提供
+        loopTestState={loopTestState}
+        canStopTest={loopTestManager.canStop(currentLoopId)}
+        onStopTest={async () => {
+          await loopTestManager.stopTest(currentLoopId);
+        }}
         onLoopConfigUpdate={(config) => {
           // 更新循环配置并同步到关联步骤
           if (onUpdateStepParameters && allSteps) {

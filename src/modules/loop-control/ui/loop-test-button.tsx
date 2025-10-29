@@ -10,7 +10,7 @@ import {
   CheckCircleOutlined,
   CloseCircleOutlined 
 } from '@ant-design/icons';
-import type { LoopTestState } from '../application/use-loop-test-execution';
+import type { LoopTestState } from '../application/use-loop-test-manager';
 
 const { Text } = Typography;
 
@@ -24,9 +24,9 @@ export interface LoopTestButtonProps {
   /** 是否可以停止 */
   canStop: boolean;
   /** 开始测试回调 */
-  onStart: (loopId: string) => void;
+  onStart: () => Promise<void>;
   /** 停止测试回调 */
-  onStop: () => void;
+  onStop: () => Promise<void>;
   /** 按钮大小 */
   size?: 'small' | 'middle' | 'large';
   /** 是否显示进度条 */
@@ -78,7 +78,7 @@ export const LoopTestButton: React.FC<LoopTestButtonProps> = ({
               type="text"
               size={size}
               icon={<PlayCircleOutlined />}
-              onClick={() => onStart(loopId)}
+              onClick={() => onStart()}
               disabled={!canStart}
               style={{ color: '#10b981' }}
             >
@@ -110,7 +110,7 @@ export const LoopTestButton: React.FC<LoopTestButtonProps> = ({
               type="text"
               size={size}
               icon={<CheckCircleOutlined />}
-              onClick={() => onStart(loopId)}
+              onClick={() => onStart()}
               disabled={!canStart}
               style={{ color: '#10b981' }}
             >
@@ -126,7 +126,7 @@ export const LoopTestButton: React.FC<LoopTestButtonProps> = ({
               type="text"
               size={size}
               icon={<CloseCircleOutlined />}
-              onClick={() => onStart(loopId)}
+              onClick={() => onStart()}
               disabled={!canStart}
               danger
             >

@@ -5,16 +5,18 @@
 // 循环结束卡片 - 简化设计，支持拖拽
 
 import React, { useState } from 'react';
-import { Card, Button, Space, Typography, Tooltip, message, InputNumber, Switch } from 'antd';
+import { Card, Button, Space, Typography, Tooltip, message, InputNumber, Switch, Progress } from 'antd';
 import { 
   CheckCircleOutlined, 
   DeleteOutlined,
   ReloadOutlined,
-  SettingOutlined
+  SettingOutlined,
+  StopOutlined
 } from '@ant-design/icons';
 import ConfirmPopover from './universal-ui/common-popover/ConfirmPopover';
 import { LoopConfigModal } from './LoopCards/LoopConfigModal';
 import type { LoopConfig, ExtendedSmartScriptStep } from '../types/loopScript';
+import type { LoopTestState } from '../modules/loop-control/application/use-loop-test-manager';
 import './LoopStartCard/styles.css';
 
 const { Text } = Typography;
@@ -40,6 +42,14 @@ export interface LoopEndCardProps {
   onEdit?: (step: ExtendedSmartScriptStep) => void;
   /** 删除步骤回调 */
   onDelete?: (stepId: string) => void;
+  
+  // 🎯 循环测试联动支持
+  /** 循环测试状态 */
+  loopTestState?: LoopTestState;
+  /** 是否可以停止测试 */
+  canStopTest?: boolean;
+  /** 停止测试回调 */
+  onStopTest?: () => Promise<void>;
 }
 
 export const LoopEndCard: React.FC<LoopEndCardProps> = ({
@@ -48,6 +58,10 @@ export const LoopEndCard: React.FC<LoopEndCardProps> = ({
   isDragging,
   onDeleteLoop,
   onLoopConfigUpdate,
+  // 🎯 循环测试联动支持
+  loopTestState,
+  canStopTest = false,
+  onStopTest,
 }) => {
   const [isConfigVisible, setIsConfigVisible] = useState(false);
   const [isEditingIterations, setIsEditingIterations] = useState(false);
@@ -121,12 +135,50 @@ export const LoopEndCard: React.FC<LoopEndCardProps> = ({
         {/* 顶部标题栏 */}
         <div className="loop-card-header">
           <Space size="small">
-            <CheckCircleOutlined className="loop-icon" />
+            <CheckCircleOutlined 
+              className="loop-icon" 
+              style={{ 
+                color: loopTestState?.status === 'running' ? '#1890ff' : 
+                       loopTestState?.status === 'completed' ? '#52c41a' :
+                       loopTestState?.status === 'error' ? '#ff4d4f' : '#52c41a'
+              }} 
+            />
             <Text strong className="loop-title">{loopName}</Text>
-            <Text type="secondary" className="loop-badge">循环结束</Text>
+            <Text 
+              type="secondary" 
+              className="loop-badge"
+              style={{
+                color: loopTestState?.status === 'running' ? '#1890ff' : undefined
+              }}
+            >
+              {loopTestState?.status === 'running' ? '执行中...' : 
+               loopTestState?.status === 'completed' ? '已完成' : 
+               loopTestState?.status === 'error' ? '执行失败' : '循环结束'}
+            </Text>
+            
+            {/* 🎯 执行进度显示 */}
+            {loopTestState?.status === 'running' && (
+              <Text type="secondary" style={{ fontSize: 12 }}>
+                ({loopTestState.currentIteration}/{loopTestState.totalIterations === Infinity ? '∞' : loopTestState.totalIterations})
+              </Text>
+            )}
           </Space>
           
           <Space size={4}>
+            {/* 🎯 停止按钮 - 仅在执行中时显示 */}
+            {loopTestState?.status === 'running' && canStopTest && onStopTest && (
+              <Tooltip title="停止执行">
+                <Button
+                  type="text"
+                  size="small"
+                  icon={<StopOutlined />}
+                  onClick={onStopTest}
+                  className="loop-action-btn"
+                  style={{ color: '#ff4d4f' }}
+                />
+              </Tooltip>
+            )}
+            
             <Tooltip title="循环配置">
               <Button
                 type="text"
@@ -168,9 +220,22 @@ export const LoopEndCard: React.FC<LoopEndCardProps> = ({
             {/* 左侧：循环次数（支持双击编辑） */}
             <Space size="small">
               <ReloadOutlined style={{ color: '#f59e0b' }} />
-              <Text type="secondary">完成次数:</Text>
+              <Text type="secondary">
+                {loopTestState?.status === 'running' ? '当前轮次:' : '完成次数:'}
+              </Text>
               
-              {isEditingIterations && !isInfinite ? (
+              {/* 🎯 执行状态显示 */}
+              {loopTestState?.status === 'running' ? (
+                <Text 
+                  strong 
+                  style={{ 
+                    fontSize: 16, 
+                    color: '#1890ff',
+                  }}
+                >
+                  {loopTestState.currentIteration}/{loopTestState.totalIterations === Infinity ? '∞' : loopTestState.totalIterations}
+                </Text>
+              ) : isEditingIterations && !isInfinite ? (
                 <InputNumber
                   size="small"
                   min={1}
@@ -188,7 +253,7 @@ export const LoopEndCard: React.FC<LoopEndCardProps> = ({
                     strong 
                     style={{ 
                       fontSize: 16, 
-                      color: '#f59e0b',
+                      color: loopTestState?.status === 'completed' ? '#52c41a' : '#f59e0b',
                       cursor: isInfinite ? 'default' : 'pointer',
                       userSelect: 'none'
                     }}
@@ -216,10 +281,34 @@ export const LoopEndCard: React.FC<LoopEndCardProps> = ({
           </Space>
         </div>
         
+        {/* 🎯 执行进度条 - 仅在运行时显示 */}
+        {loopTestState?.status === 'running' && (
+          <div style={{ padding: '8px 16px' }}>
+            <Progress 
+              percent={loopTestState.progress} 
+              size="small" 
+              status="active"
+              showInfo={false}
+              strokeColor="#1890ff"
+            />
+            <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: 4 }}>
+              <Text type="secondary" style={{ fontSize: 11 }}>
+                步骤 {loopTestState.currentStep}/{loopTestState.totalSteps}
+              </Text>
+              <Text type="secondary" style={{ fontSize: 11 }}>
+                {loopTestState.progress.toFixed(1)}%
+              </Text>
+            </div>
+          </div>
+        )}
+        
         {/* 底部提示 */}
         <div className="loop-card-footer">
           <Text type="secondary" style={{ fontSize: 12 }}>
-            🔄 执行完成后返回循环开始
+            {loopTestState?.status === 'running' ? '🔄 正在执行循环...' : 
+             loopTestState?.status === 'completed' ? '✅ 循环执行完成' : 
+             loopTestState?.status === 'error' ? '❌ 循环执行失败' : 
+             '🔄 执行完成后返回循环开始'}
           </Text>
         </div>
       </Card>
