@@ -864,6 +864,22 @@ export function useIntelligentStepCardIntegration(
             element_selector: element.xpath || element.id || "",
             // 🔥 关键修复：使用增强后的文本（来自兄弟/子元素提取），而不是原始 element.text
             text: context.elementText || element.text || "",
+            // 🔥 【关键修复】添加完整的 smartSelection 默认配置
+            // 防止保存到脚本管理器后重新加载时丢失必要字段
+            smartSelection: {
+              mode: 'first',
+              targetText: context.elementText || element.text || "",
+              textMatchingMode: 'exact',
+              antonymCheckEnabled: false,
+              semanticAnalysisEnabled: false,
+              minConfidence: 0.8,
+              batchConfig: {
+                intervalMs: 1000,
+                maxCount: 1,
+                continueOnError: false,
+                showProgress: true,
+              },
+            },
             bounds: (() => {
               // 🔧 修复：菜单元素bounds验证和修复
               if (!element.bounds) return "";

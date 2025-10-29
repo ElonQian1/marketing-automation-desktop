@@ -447,8 +447,8 @@ const CompactStrategyMenu: React.FC<CompactStrategyMenuProps> = ({
         });
       }
 
-      // 🔑 【关键修复】同时更新步骤的 params.smartSelection.mode
-      // 确保测试按钮执行时使用最新的模式配置
+      // 🔑 【关键修复】同步更新步骤的 params.smartSelection
+      // 确保测试按钮执行时使用最新的模式配置 + 必要的默认字段
       if (onUpdateStepParameters && stepId) {
         console.log('🔄 [CompactStrategyMenu] 同步更新步骤参数:', {
           stepId,
@@ -456,19 +456,29 @@ const CompactStrategyMenu: React.FC<CompactStrategyMenuProps> = ({
           batchConfigToSave
         });
         
-        // 🎯 使用部分更新模式，只更新 smartSelection 字段
-        // 这需要调用方支持深度合并
+        // 🎯 使用部分更新模式，补充必要的默认字段
+        // ⚠️ 关键修复：保存到脚本后重新加载时，这些字段必须存在
         onUpdateStepParameters(stepId, {
           smartSelection: {
             mode: mode,
             batchConfig: batchConfigToSave,
+            // 🔥 补充默认字段，防止保存后丢失
+            textMatchingMode: 'exact',
+            antonymCheckEnabled: false,
+            semanticAnalysisEnabled: false,
+            minConfidence: 0.8,
           }
         } as Record<string, unknown>); // 类型断言为通用对象
         
-        console.log('✅ [CompactStrategyMenu] 步骤参数同步请求已发送:', {
+        console.log('✅ [CompactStrategyMenu] 步骤参数同步请求已发送（含默认字段）:', {
           stepId,
           mode,
-          batchConfig: batchConfigToSave
+          batchConfig: batchConfigToSave,
+          defaults: {
+            textMatchingMode: 'exact',
+            antonymCheckEnabled: false,
+            semanticAnalysisEnabled: false
+          }
         });
       } else {
         if (!onUpdateStepParameters) {
