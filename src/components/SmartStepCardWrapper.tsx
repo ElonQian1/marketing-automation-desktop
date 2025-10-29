@@ -86,7 +86,44 @@ export const SmartStepCardWrapper: React.FC<SmartStepCardWrapperProps> = (props)
   });
 
   // 🎯 智能路由：根据步骤类型选择合适的卡片组件
-  
+
+  // 🔗 联动删除函数 - 删除循环卡片时同时删除配对卡片
+  const handleLoopCardDelete = React.useCallback((stepId: string, stepType: 'loop_start' | 'loop_end') => {
+    const currentStep = allSteps?.find(s => s.id === stepId);
+    if (!currentStep || !allSteps) {
+      onDelete(stepId);
+      return;
+    }
+
+    const currentLoopId = currentStep.parameters?.loop_id as string || `loop_${stepId}`;
+    
+    // 找到配对的循环卡片
+    const pairedType = stepType === 'loop_start' ? 'loop_end' : 'loop_start';
+    const pairedStep = allSteps.find(s => 
+      s.step_type === pairedType && 
+      (s.parameters?.loop_id === currentLoopId || `loop_${s.id}` === currentLoopId)
+    );
+
+    console.log('🔗 联动删除循环卡片', {
+      currentStepId: stepId,
+      currentStepType: stepType,
+      currentLoopId,
+      pairedStepId: pairedStep?.id,
+      pairedStepType: pairedType
+    });
+
+    // 删除当前卡片
+    onDelete(stepId);
+    
+    // 删除配对卡片
+    if (pairedStep) {
+      onDelete(pairedStep.id);
+      message.success(`已删除循环${stepType === 'loop_start' ? '开始' : '结束'}卡片及其配对卡片`);
+    } else {
+      message.warning(`已删除循环${stepType === 'loop_start' ? '开始' : '结束'}卡片，但未找到配对卡片`);
+    }
+  }, [allSteps, onDelete]);
+
   // 循环开始步骤 - 使用专门的循环开始卡片
   if (step.step_type === 'loop_start') {
     const currentLoopId = step.parameters?.loop_id as string || `loop_${step.id}`;
@@ -144,7 +181,7 @@ export const SmartStepCardWrapper: React.FC<SmartStepCardWrapperProps> = (props)
             }
           }
         }}
-        onDeleteLoop={() => onDelete(step.id)}
+        onDeleteLoop={() => handleLoopCardDelete(step.id, 'loop_start')}
       />
     );
   }
@@ -206,7 +243,7 @@ export const SmartStepCardWrapper: React.FC<SmartStepCardWrapperProps> = (props)
             }
           }
         }}
-        onDeleteLoop={() => onDelete(step.id)}
+        onDeleteLoop={() => handleLoopCardDelete(step.id, 'loop_end')}
         onUpdateStepParameters={onUpdateStepParameters}
       />
     );
