@@ -198,8 +198,8 @@ export class LoopExecutionEngine {
     logs?: string[];
   }> {
     try {
-      // 调用后端执行单个步骤 - 使用现有的单步测试API
-      const result = await invoke('execute_single_step_test', {
+      // 🔒 强制使用V3智能执行引擎 - 封死传统路径
+      const result = await invoke('execute_single_step_test_v3', {
         deviceId: deviceId,
         step: step
       }) as SingleStepTestResult;

@@ -291,9 +291,9 @@ export const TextMatchingConfigPanel: React.FC<TextMatchingConfigPanelProps> = (
             // 重置为默认配置
             const defaultConfig: TextMatchingConfig = {
               enabled: true,
-              mode: 'partial',
-              antonymCheckEnabled: true,
-              semanticAnalysisEnabled: true,
+              mode: 'exact',
+              antonymCheckEnabled: false,
+              semanticAnalysisEnabled: false,
               partialMatchThreshold: 0.8
             };
             handleConfigChange(defaultConfig);
@@ -309,9 +309,9 @@ export const TextMatchingConfigPanel: React.FC<TextMatchingConfigPanelProps> = (
 // 默认配置
 export const defaultTextMatchingConfig: TextMatchingConfig = {
   enabled: true,
-  mode: 'partial',
-  antonymCheckEnabled: true,
-  semanticAnalysisEnabled: true,
+  mode: 'exact',
+  antonymCheckEnabled: false,
+  semanticAnalysisEnabled: false,
   partialMatchThreshold: 0.8
 };
 
