@@ -126,6 +126,29 @@ function enhanceTraditionalStepWithSnapshot(step: ExtendedSmartScriptStep): Exte
   const rawBounds = additionalInfo?.bounds || params.bounds || '';
   const normalizedBounds = normalizeBoundsFormat(rawBounds);
   
+  // 🔥 NEW: 提取 elementSignature 数据（从 snapshot 中获取）
+  const elementSignature = snapshot?.elementSignature as Record<string, unknown> | undefined;
+  
+  // 🔥 NEW: 提取子元素文本列表（关键字段！）
+  const childrenTexts = elementSignature?.childrenTexts as string[] | undefined || [];
+  console.log('🔍 [传统步骤增强] 提取子元素文本:', childrenTexts.length, '个:', childrenTexts);
+  
+  // 🔥 NEW: 提取子元素 content-desc 列表
+  const childrenContentDescs = elementSignature?.childrenContentDescs as string[] | undefined || [];
+  console.log('🔍 [传统步骤增强] 提取子元素content-desc:', childrenContentDescs.length, '个:', childrenContentDescs);
+  
+  // 🔥 NEW: 提取兄弟元素文本列表
+  const siblingTexts = elementSignature?.siblingTexts as string[] | undefined || [];
+  console.log('🔍 [传统步骤增强] 提取兄弟元素文本:', siblingTexts.length, '个:', siblingTexts);
+  
+  // 🔥 NEW: 提取父元素信息
+  const parentInfo = elementSignature?.parentInfo as Record<string, unknown> | null || null;
+  console.log('🔍 [传统步骤增强] 提取父元素信息:', parentInfo ? 'Yes' : 'No');
+  
+  // 🔥 NEW: 提取匹配策略
+  const matchingStrategy = elementSignature?.matchingStrategy as string | undefined || 'direct_match';
+  console.log('🎯 [传统步骤增强] 匹配策略:', matchingStrategy);
+  
   // 构建传统步骤的 original_data，模仿智能步骤的数据结构
   const originalData = {
     // 优先从 xmlSnapshot 获取原始XML
@@ -178,6 +201,21 @@ function enhanceTraditionalStepWithSnapshot(step: ExtendedSmartScriptStep): Exte
       'class': additionalInfo?.className || params.class_name || '',
     },
     
+    // 🔥 NEW: 添加子元素文本列表（关键修复！）
+    children_texts: childrenTexts,
+    
+    // 🔥 NEW: 添加子元素 content-desc 列表
+    children_content_descs: childrenContentDescs,
+    
+    // 🔥 NEW: 添加兄弟元素文本列表
+    sibling_texts: siblingTexts,
+    
+    // 🔥 NEW: 添加父元素信息
+    parent_info: parentInfo,
+    
+    // 🔥 NEW: 添加匹配策略
+    matching_strategy: matchingStrategy,
+    
     // 标记为传统步骤
     step_type: 'traditional_with_snapshot'
   };
@@ -195,6 +233,12 @@ function enhanceTraditionalStepWithSnapshot(step: ExtendedSmartScriptStep): Exte
     hasXml: !!(originalData.original_xml as string)?.length,
     hasXPath: !!(originalData.selected_xpath as string)?.length,
     hasElementFeatures: !!(originalData.element_features.resourceId || originalData.element_features.text),
+    // 🔥 NEW: 添加新字段的统计信息
+    hasChildrenTexts: (originalData.children_texts as string[]).length > 0,
+    hasChildrenContentDescs: (originalData.children_content_descs as string[]).length > 0,
+    hasSiblingTexts: (originalData.sibling_texts as string[]).length > 0,
+    hasParentInfo: !!originalData.parent_info,
+    matchingStrategy: originalData.matching_strategy,
     stepType: step.step_type,
     dataSource: snapshot ? 'xmlSnapshot' : elementLocator ? 'elementLocator' : 'legacy'
   });
