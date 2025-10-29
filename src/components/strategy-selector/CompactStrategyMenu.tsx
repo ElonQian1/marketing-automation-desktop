@@ -83,6 +83,12 @@ interface CompactStrategyMenuProps {
   compact?: boolean;
   stepId?: string; // 新增：用于获取置信度数据
   onUpdateStepParameters?: (stepId: string, params: Record<string, unknown>) => void; // 🔑 新增：步骤参数更新回调
+  // 🆕 初始配置（用于从步骤参数恢复状态）
+  initialSelectionMode?: SelectionMode;
+  initialOperationType?: ActionKind;
+  initialBatchConfig?: BatchConfig;
+  initialRandomConfig?: RandomConfig;
+  initialMatchOriginalConfig?: MatchOriginalConfig;
 }
 
 const CompactStrategyMenu: React.FC<CompactStrategyMenuProps> = ({
@@ -92,21 +98,27 @@ const CompactStrategyMenu: React.FC<CompactStrategyMenuProps> = ({
   compact = true,
   stepId,
   onUpdateStepParameters, // 🔑 接收步骤参数更新回调
+  // 🆕 接收初始配置
+  initialSelectionMode = 'first',
+  initialOperationType = 'tap',
+  initialBatchConfig = DEFAULT_BATCH_CONFIG,
+  initialRandomConfig = DEFAULT_RANDOM_CONFIG,
+  initialMatchOriginalConfig = DEFAULT_MATCH_ORIGINAL_CONFIG,
 }) => {
   // 🔇 日志优化：移除组件挂载日志（过于频繁）
   // console.log("🚀 [CompactStrategyMenu] 组件已挂载", { stepId });
   const [showExpandedView, setShowExpandedView] = useState(false);
   
-  // 🎯 新增：智能选择状态管理
-  const [selectionMode, setSelectionMode] = useState<SelectionMode>('first');
-  const [operationType, setOperationType] = useState<ActionKind>('tap');
-  const [batchConfig, setBatchConfig] = useState<BatchConfig>(DEFAULT_BATCH_CONFIG);
+  // 🎯 新增：智能选择状态管理（使用初始配置）
+  const [selectionMode, setSelectionMode] = useState<SelectionMode>(initialSelectionMode);
+  const [operationType, setOperationType] = useState<ActionKind>(initialOperationType);
+  const [batchConfig, setBatchConfig] = useState<BatchConfig>(initialBatchConfig);
   
-  // 🆕 随机选择配置
-  const [randomConfig, setRandomConfig] = useState<RandomConfig>(DEFAULT_RANDOM_CONFIG);
+  // 🆕 随机选择配置（使用初始配置）
+  const [randomConfig, setRandomConfig] = useState<RandomConfig>(initialRandomConfig);
   
-  // 🎯 精准匹配配置
-  const [matchOriginalConfig, setMatchOriginalConfig] = useState<MatchOriginalConfig>(DEFAULT_MATCH_ORIGINAL_CONFIG);
+  // 🎯 精准匹配配置（使用初始配置）
+  const [matchOriginalConfig, setMatchOriginalConfig] = useState<MatchOriginalConfig>(initialMatchOriginalConfig);
   
   // 🎯 获取用户实际选择的UI元素
   const { context: selectionContext } = useElementSelectionStore();
@@ -117,6 +129,39 @@ const CompactStrategyMenu: React.FC<CompactStrategyMenuProps> = ({
 
   // 🔧 高级规则面板状态
   const [advancedRulesExpanded, setAdvancedRulesExpanded] = useState(false);
+
+  // 🔑 新增：更新步骤参数中的决策链配置
+  const updateDecisionChainConfig = React.useCallback((
+    mode: SelectionMode,
+    opType: ActionKind,
+    batchCfg?: BatchConfig | null,
+    randomCfg?: RandomConfig | null,
+    matchCfg?: MatchOriginalConfig | null
+  ) => {
+    if (!stepId || !onUpdateStepParameters) return;
+    
+    const decisionChain: Record<string, any> = {
+      executionChain: 'intelligent_chain',
+      selectionMode: mode,
+      operationType: opType,
+    };
+    
+    // 根据模式添加相应的配置
+    if (mode === 'all' && batchCfg) {
+      decisionChain.batchConfig = batchCfg;
+    } else if (mode === 'random' && randomCfg) {
+      decisionChain.randomConfig = randomCfg;
+    } else if (mode === 'match-original' && matchCfg) {
+      decisionChain.matchOriginalConfig = matchCfg;
+    }
+    
+    console.log('🔄 [CompactStrategyMenu] 更新决策链配置到步骤参数:', {
+      stepId,
+      decisionChain
+    });
+    
+    onUpdateStepParameters(stepId, { decisionChain });
+  }, [stepId, onUpdateStepParameters]);
 
   // 🔧 规则转换辅助函数
   const parseExcludeTextToRules = (excludeText: string | string[] | undefined): ExcludeRule[] => {
@@ -561,11 +606,15 @@ const CompactStrategyMenu: React.FC<CompactStrategyMenuProps> = ({
         setSelectionMode('first');
         console.log('选择第一个模式');
         await saveConfigDirectly('first', null);
+        // ✅ 同时更新步骤参数
+        updateDecisionChainConfig('first', operationType, null, null, null);
         break;
       case 'last':
         setSelectionMode('last');
         console.log('选择最后一个模式');
         await saveConfigDirectly('last', null);
+        // ✅ 同时更新步骤参数
+        updateDecisionChainConfig('last', operationType, null, null, null);
         break;
       case 'match-original':
         setSelectionMode('match-original');
@@ -590,6 +639,8 @@ const CompactStrategyMenu: React.FC<CompactStrategyMenuProps> = ({
           matchOriginalConfig: newMatchOriginalConfig,
           message
         });
+        // ✅ 同时更新步骤参数
+        updateDecisionChainConfig('match-original', operationType, null, null, newMatchOriginalConfig);
         break;
       case 'random':
         setSelectionMode('random');
@@ -613,6 +664,8 @@ const CompactStrategyMenu: React.FC<CompactStrategyMenuProps> = ({
           randomConfig: newRandomConfig,
           message
         });
+        // ✅ 同时更新步骤参数
+        updateDecisionChainConfig('random', operationType, null, newRandomConfig, null);
         break;
       case 'all':
         setSelectionMode('all');

@@ -221,8 +221,9 @@ function enhanceTraditionalStepWithSnapshot(step: ExtendedSmartScriptStep): Exte
   };
   
   // 🔥 NEW: 确保 smartSelection 配置被保留（关键修复！）
-  // 如果原参数中没有 smartSelection，添加默认配置
-  const smartSelection = params.smartSelection || {
+  // 使用合并策略：默认值 + 已保存的配置，确保所有必要字段都存在
+  const smartSelection = {
+    // 1. 先设置默认值（确保所有必要字段都有值）
     mode: 'first',
     targetText: originalData.element_text,
     textMatchingMode: 'exact',
@@ -235,7 +236,13 @@ function enhanceTraditionalStepWithSnapshot(step: ExtendedSmartScriptStep): Exte
       continueOnError: false,
       showProgress: true,
     },
+    
+    // 2. 再用已保存的配置覆盖（保留用户自定义的值）
+    ...(params.smartSelection as Record<string, unknown> || {}),
   };
+  
+  console.log('🔍 [smartSelection 配置] 原始:', params.smartSelection);
+  console.log('🔍 [smartSelection 配置] 合并后:', smartSelection);
   
   const enhancedParameters = {
     ...params,
