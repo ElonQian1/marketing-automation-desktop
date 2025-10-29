@@ -220,9 +220,27 @@ function enhanceTraditionalStepWithSnapshot(step: ExtendedSmartScriptStep): Exte
     step_type: 'traditional_with_snapshot'
   };
   
+  // 🔥 NEW: 确保 smartSelection 配置被保留（关键修复！）
+  // 如果原参数中没有 smartSelection，添加默认配置
+  const smartSelection = params.smartSelection || {
+    mode: 'first',
+    targetText: originalData.element_text,
+    textMatchingMode: 'exact',
+    antonymCheckEnabled: false,  // ✅ 禁用反义词检查
+    semanticAnalysisEnabled: false,  // ✅ 禁用语义分析
+    minConfidence: 0.8,
+    batchConfig: {
+      intervalMs: 1000,
+      maxCount: 1,
+      continueOnError: false,
+      showProgress: true,
+    },
+  };
+  
   const enhancedParameters = {
     ...params,
     original_data: originalData,
+    smartSelection,  // 🔥 确保 smartSelection 配置存在
     // 确保基础字段存在（向后兼容）
     xpath: originalData.selected_xpath,
     targetText: originalData.element_text,
