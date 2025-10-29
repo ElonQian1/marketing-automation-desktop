@@ -19,7 +19,11 @@ import { useStepForm } from "./SmartScriptBuilderPage/hooks/useStepForm";
 import { usePageFinder } from "./SmartScriptBuilderPage/hooks/usePageFinder";
 import { useLoopManagement } from "./SmartScriptBuilderPage/components/loop-management";
 import { useContactImport } from "./SmartScriptBuilderPage/components/contact-import";
-import { useScriptExecutor } from "../modules/smart-script-management/hooks/useScriptManager";
+
+// 🎯 导入与单步测试相同的基础设施
+import { getStepExecutionGateway } from "../infrastructure/gateways/StepExecutionGateway";
+import { convertSmartStepToV2Request } from "../hooks/useV2StepTest";
+import { normalizeScriptStepsForBackend } from "./SmartScriptBuilderPage/helpers/normalizeSteps";
 
 // 🆕 导入类型和服务
 import type { ExtendedSmartScriptStep, LoopConfig } from "../types/loopScript";
@@ -268,8 +272,8 @@ const SmartScriptBuilderPage: React.FC = () => {
     setIsModalVisible(true);
   };
 
-  // 🎯 执行当前构建器中的脚本（无参数）
-  const handleExecuteCurrentScript = async () => {
+  // 🎯 统一脚本执行函数 - 使用与单步测试相同的路径
+  const executeScriptWithUnifiedPath = useCallback(async () => {
     if (!currentDeviceId) {
       message.warning('请先连接设备');
       return;
@@ -279,28 +283,97 @@ const SmartScriptBuilderPage: React.FC = () => {
       message.warning('请先添加步骤');
       return;
     }
-    
-    console.log('🚀 [handleExecuteCurrentScript] 开始执行脚本');
+
+    console.log('🎯 [executeScriptWithUnifiedPath] 开始使用统一路径执行脚本');
     console.log('📋 步骤数:', steps.length);
     console.log('📱 设备ID:', currentDeviceId);
-    console.log('⚙️ 执行器配置:', executorConfig);
     
     setIsExecuting(true);
+    const startTime = Date.now();
+    let executedSteps = 0;
+    let failedSteps = 0;
+    
     try {
-      console.log('🎯 执行当前脚本，步骤数:', steps.length, '设备:', currentDeviceId);
+      // 1. 标准化步骤（与正式执行脚本使用相同的处理）
+      const normalizedSteps = normalizeScriptStepsForBackend(steps);
+      console.log('📋 [executeScriptWithUnifiedPath] 标准化后的步骤:', normalizedSteps.length);
       
-      // 🚀 使用真实的脚本执行器
-      console.log('🔄 调用 executeFromUIState...');
-      const result = await executeFromUIState(steps, executorConfig, currentDeviceId);
-      console.log('✅ executeFromUIState 执行完成:', result);
+      // 2. 获取执行网关（与单步测试相同）
+      const gateway = getStepExecutionGateway();
+      
+      // 3. 逐步执行每个步骤（与循环执行引擎相同的模式）
+      for (let i = 0; i < normalizedSteps.length; i++) {
+        const step = normalizedSteps[i];
+        
+        console.log(`📝 [executeScriptWithUnifiedPath] 执行步骤 ${i + 1}/${normalizedSteps.length}: ${step.name} (${step.step_type})`);
+        
+        try {
+          // 标准化步骤（和useStepTestV2MigrationFixed相同）
+          const normalizedStep = {
+            ...step,
+            description: step.description || "",
+            enabled: step.enabled ?? true,
+            order: step.order ?? i,
+          };
+
+          // 转换为V2请求格式（和useV2StepTest相同）
+          const v2Request = convertSmartStepToV2Request(normalizedStep, currentDeviceId, 'execute-step');
+          
+          console.log(`📋 [executeScriptWithUnifiedPath] V2请求参数:`, v2Request);
+          
+          // 使用StepExecutionGateway执行（和单步测试完全相同）
+          const v2Result = await gateway.executeStep(v2Request);
+          
+          console.log(`✅ [executeScriptWithUnifiedPath] 步骤执行结果:`, v2Result);
+          
+          if (v2Result.success) {
+            executedSteps++;
+            message.success(`✅ 步骤 "${step.name}" 执行成功`);
+          } else {
+            failedSteps++;
+            message.error(`❌ 步骤 "${step.name}" 执行失败: ${v2Result.message}`);
+            console.error(`❌ 步骤执行失败:`, v2Result);
+          }
+          
+        } catch (stepError) {
+          failedSteps++;
+          console.error(`💥 [executeScriptWithUnifiedPath] 步骤执行异常:`, stepError);
+          message.error(`💥 步骤 "${step.name}" 执行异常: ${stepError}`);
+        }
+      }
+      
+      // 4. 执行完成统计
+      const duration = Date.now() - startTime;
+      const successRate = ((executedSteps / normalizedSteps.length) * 100).toFixed(1);
+      
+      console.log('🏁 [executeScriptWithUnifiedPath] 脚本执行完成:', {
+        totalSteps: normalizedSteps.length,
+        executedSteps,
+        failedSteps,
+        duration,
+        successRate
+      });
+      
+      if (failedSteps === 0) {
+        message.success(`🎉 脚本执行完成！成功执行 ${executedSteps} 个步骤，耗时 ${(duration / 1000).toFixed(1)} 秒`);
+      } else {
+        message.warning(`⚠️ 脚本执行完成，成功率 ${successRate}%，成功 ${executedSteps} 个，失败 ${failedSteps} 个`);
+      }
       
     } catch (error) {
-      console.error("❌ 脚本执行失败:", error);
+      console.error("💥 [executeScriptWithUnifiedPath] 脚本执行失败:", error);
       message.error(`脚本执行失败: ${error instanceof Error ? error.message : String(error)}`);
     } finally {
-      console.log('🏁 [handleExecuteCurrentScript] 执行完成，重置状态');
       setIsExecuting(false);
+      console.log('🏁 [executeScriptWithUnifiedPath] 执行状态重置完成');
     }
+  }, [steps, currentDeviceId]);
+
+  // 🎯 执行当前构建器中的脚本（无参数）- 使用统一路径
+  const handleExecuteCurrentScript = async () => {
+    // 🎯 使用与单步测试相同的统一执行路径
+    console.log('� [handleExecuteCurrentScript] 使用统一路径执行脚本');
+    await executeScriptWithUnifiedPath();
   };
 
   // 🎯 执行脚本管理器中选中的脚本（带 scriptId 参数）
