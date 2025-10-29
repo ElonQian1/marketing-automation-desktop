@@ -5,7 +5,7 @@
 import { useCallback } from "react";
 import { message } from "antd";
 import { invoke } from "@tauri-apps/api/core";
-import { ScriptSerializer } from "../../../modules/smart-script-management/utils/serializer";
+import { StepSerializer, ScriptSerializer } from "../../../modules/smart-script-management/utils/serializer";
 import type { ExtendedSmartScriptStep as LoopScriptStep } from "../../../types/loopScript";
 import type { ExecutorConfig } from "../../../types/execution";
 
@@ -38,15 +38,8 @@ export function useScriptPersistence({
         author: defaultAuthor,
         category: defaultCategory,
         tags: ["智能脚本", "自动化"],
-        steps: steps.map((step, index) => ({
-          id: step.id || `step_${index + 1}`,
-          step_type: step.step_type,
-          name: step.name || step.description,
-          description: step.description,
-          parameters: step.parameters || {},
-          enabled: step.enabled !== false,
-          order: index,
-        })),
+        // 🔥 关键修复：使用 StepSerializer 确保完整保存所有步骤数据
+        steps: StepSerializer.serializeSteps(steps),
         config: {
           continue_on_error: executorConfig.smart_recovery_enabled,
           auto_verification_enabled: executorConfig.auto_verification_enabled,

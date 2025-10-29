@@ -68,6 +68,21 @@ export interface StepExecutionRequest {
       bounds?: string;
     };
   };
+  // 🔥 【关键修复】智能选择配置参数
+  smartSelection?: {
+    mode?: string; // 'first' | 'all' | 'random' | 'match-original'
+    targetText?: string;
+    textMatchingMode?: string; // 'exact' | 'partial' | 'fuzzy'
+    antonymCheckEnabled?: boolean;
+    semanticAnalysisEnabled?: boolean;
+    minConfidence?: number;
+    batchConfig?: {
+      intervalMs?: number;
+      maxCount?: number;
+      continueOnError?: boolean;
+      showProgress?: boolean;
+    };
+  };
 }
 
 // 统一响应接口
@@ -291,6 +306,16 @@ export class StepExecutionGateway {
         stepId: request.stepId,  // ✅ 传递stepId用于Store查询
         bounds: request.bounds,
         coordinateParams: request.coordinateParams, // 🎯 【关键修复】传递坐标参数
+        // 🔥 【关键修复】传递智能选择配置
+        smartSelection: request.smartSelection,
+        targetText: request.targetText,
+        contentDesc: request.contentDesc,
+        resourceId: request.resourceId,
+        elementPath: request.elementPath,
+        xpath: request.xpath,
+        text: request.text,
+        className: request.className,
+        xmlSnapshot: request.xmlSnapshot,
       });
       
       console.log('[StepExecGateway] V2请求:', v2StepRequest);

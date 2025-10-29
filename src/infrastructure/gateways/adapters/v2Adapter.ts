@@ -21,6 +21,41 @@ export interface V2ExecutionRequest {
     end_y?: number;
     duration?: number;
   };
+  // 🔥 【关键修复】智能选择配置参数
+  smartSelection?: {
+    mode?: string; // 'first' | 'all' | 'random' | 'match-original'
+    targetText?: string;
+    textMatchingMode?: string; // 'exact' | 'partial' | 'fuzzy'
+    antonymCheckEnabled?: boolean;
+    semanticAnalysisEnabled?: boolean;
+    minConfidence?: number;
+    batchConfig?: {
+      intervalMs?: number;
+      maxCount?: number;
+      continueOnError?: boolean;
+      showProgress?: boolean;
+    };
+  };
+  // 🔥 【关键修复】其他必要参数
+  targetText?: string; // 用户选择的元素文本
+  contentDesc?: string; // 元素的content-desc
+  resourceId?: string; // 元素的resource-id
+  elementPath?: string; // 用户选择的 XPath
+  xpath?: string; // 备用 XPath 字段
+  text?: string; // 元素文本
+  className?: string; // 元素类名
+  xmlSnapshot?: {  // XML 快照数据
+    xmlContent?: string;
+    xmlHash?: string;
+    elementGlobalXPath?: string;
+    elementSignature?: {
+      childrenTexts?: string[];
+      resourceId?: string;
+      text?: string;
+      contentDesc?: string;
+      bounds?: string;
+    };
+  };
   verify?: {
     type: "exists" | "text" | "gone";
     timeoutMs?: number;
@@ -38,8 +73,36 @@ export interface V2ExecutionRequest {
 export function convertToV2Request(
   request: V2ExecutionRequest
 ): RunStepRequestV2 {
-  const { deviceId, mode, actionParams, selectorId, stepId, bounds, coordinateParams, verify, retry } =
-    request;
+  const { 
+    deviceId, 
+    mode, 
+    actionParams, 
+    selectorId, 
+    stepId, 
+    bounds, 
+    coordinateParams, 
+    verify, 
+    retry,
+    // 🔥 【关键修复】提取智能选择和其他参数
+    smartSelection,
+    targetText,
+    contentDesc,
+    resourceId,
+    elementPath,
+    xpath,
+    text,
+    className,
+    xmlSnapshot
+  } = request;
+
+  console.log('🔍 [V2Adapter] 转换请求参数:', {
+    stepId,
+    hasSmartSelection: !!smartSelection,
+    smartSelectionMode: smartSelection?.mode,
+    targetText,
+    contentDesc,
+    elementPath,
+  });
 
   // 根据动作类型构造不同的StepPayload
   const baseStep = {
@@ -68,6 +131,16 @@ export function convertToV2Request(
           expected_text: verify.expectedText,
         }
       : undefined,
+    // 🔥 【关键修复】添加智能选择和其他参数
+    smartSelection,
+    targetText,
+    contentDesc,
+    resourceId,
+    elementPath,
+    xpath,
+    text,
+    className,
+    xmlSnapshot,
   };
 
   let stepPayload: StepPayload;

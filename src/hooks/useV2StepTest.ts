@@ -505,6 +505,30 @@ export function convertSmartStepToV2Request(
     xmlSnapshotKeys: xmlSnapshot ? Object.keys(xmlSnapshot) : [],
   });
 
+  // 🔥 【关键修复】提取智能选择配置
+  const smartSelection = params.smartSelection as {
+    mode?: string;
+    targetText?: string;
+    textMatchingMode?: string;
+    antonymCheckEnabled?: boolean;
+    semanticAnalysisEnabled?: boolean;
+    minConfidence?: number;
+    batchConfig?: {
+      intervalMs?: number;
+      maxCount?: number;
+      continueOnError?: boolean;
+      showProgress?: boolean;
+    };
+  } | undefined;
+
+  console.log('🎯 [V2转换] smartSelection配置检查:', {
+    hasSmartSelection: !!smartSelection,
+    mode: smartSelection?.mode || '(无)',
+    targetText: smartSelection?.targetText || '(无)',
+    textMatchingMode: smartSelection?.textMatchingMode || '(无)',
+    batchConfig: smartSelection?.batchConfig || '(无)',
+  });
+
   return {
     deviceId,
     mode,
@@ -529,6 +553,8 @@ export function convertSmartStepToV2Request(
     } : undefined,
     // 🎯 【关键修复】传递屏幕交互坐标参数
     coordinateParams,
+    // 🔥 【关键修复】传递智能选择配置
+    smartSelection,
   };
 }
 

@@ -55,6 +55,41 @@ export interface BaseStep {
   revalidate?: "device_required" | "cache_ok" | "auto"; // 缓存策略
   retry?: RetryPolicy;
   verify_after?: VerifySpec;         // 执行后验证（可选）
+  // 🔥 【关键修复】智能选择配置参数
+  smartSelection?: {
+    mode?: string; // 'first' | 'all' | 'random' | 'match-original'
+    targetText?: string;
+    textMatchingMode?: string; // 'exact' | 'partial' | 'fuzzy'
+    antonymCheckEnabled?: boolean;
+    semanticAnalysisEnabled?: boolean;
+    minConfidence?: number;
+    batchConfig?: {
+      intervalMs?: number;
+      maxCount?: number;
+      continueOnError?: boolean;
+      showProgress?: boolean;
+    };
+  };
+  // 🔥 【关键修复】其他必要参数
+  targetText?: string; // 用户选择的元素文本
+  contentDesc?: string; // 元素的content-desc
+  resourceId?: string; // 元素的resource-id
+  elementPath?: string; // 用户选择的 XPath
+  xpath?: string; // 备用 XPath 字段
+  text?: string; // 元素文本
+  className?: string; // 元素类名
+  xmlSnapshot?: {  // XML 快照数据
+    xmlContent?: string;
+    xmlHash?: string;
+    elementGlobalXPath?: string;
+    elementSignature?: {
+      childrenTexts?: string[];
+      resourceId?: string;
+      text?: string;
+      contentDesc?: string;
+      bounds?: string;
+    };
+  };
 }
 
 export type ActionPayload =
