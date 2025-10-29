@@ -339,31 +339,60 @@ impl MultiCandidateEvaluator {
         // 🔥🔥🔥 评分项2: 自身文本匹配（0-0.5分）
         if let Some(ref target_text) = criteria.target_text {
             if let Some(ref elem_text) = elem.text {
-                // 🚨 使用语义分析器检查匹配
-                let (should_match, score_adjustment, reason) = Self::analyze_semantic_match(
-                    target_text,
-                    elem_text,
-                    criteria.semantic_analyzer.as_ref(),
-                );
-
-                if !should_match {
-                    score += score_adjustment; // 通常是负分
-                    reasons.push(format!(
-                        "🚨🚨🚨 自身文本语义检查: 目标='{}' vs 元素='{}' ({:.1}分, {})",
-                        target_text, elem_text, score_adjustment, reason
-                    ));
-                } else {
-                    let text_score = TextComparator::calculate_similarity(target_text, elem_text);
-                    
-                    if text_score >= 0.95 {
-                        score += 0.5;  // ✅ 提升到0.5
-                        reasons.push(format!("✅✅✅ 自身文本完全匹配: '{}'", elem_text));
-                    } else if text_score >= 0.7 {
-                        let partial_score = 0.5 * text_score;  // ✅ 基于0.5计算
-                        score += partial_score;
-                        reasons.push(format!("🟡🟡 自身文本部分匹配: '{}' (相似度: {:.2})", elem_text, text_score));
+                // � 修复：如果content-desc与target完全匹配，则跳过text的严格检查
+                // 这是Android常见模式：父容器的content-desc聚合了子元素信息
+                let has_matching_content_desc = if let Some(ref target_desc) = criteria.target_content_desc {
+                    if let Some(ref elem_desc) = elem.content_desc {
+                        elem_desc == target_desc || target_desc == target_text
                     } else {
-                        reasons.push(format!("❌ 自身文本不匹配: '{}' vs '{}'", elem_text, target_text));
+                        false
+                    }
+                } else {
+                    false
+                };
+
+                if has_matching_content_desc {
+                    // 有content-desc完全匹配，不因text不匹配而严重降分
+                    let text_score = TextComparator::calculate_similarity(target_text, elem_text);
+                    if text_score >= 0.95 {
+                        score += 0.5;
+                        reasons.push(format!("✅✅✅ 自身文本完全匹配: '{}'", elem_text));
+                    } else if text_score >= 0.3 {
+                        // 文本部分匹配，但有content-desc保底，给予少量加分
+                        let partial_score = 0.2 * text_score;
+                        score += partial_score;
+                        reasons.push(format!("🟡 自身文本部分匹配: '{}' (相似度: {:.2}, 有content-desc保底)", elem_text, text_score));
+                    } else {
+                        // 文本不匹配，但content-desc匹配，这是正常情况（如"我" vs "我，按钮"）
+                        reasons.push(format!("ℹ️ 自身text='{}' 不同于target='{}', 但content-desc已匹配（父容器+子文本模式）", elem_text, target_text));
+                    }
+                } else {
+                    // 没有content-desc匹配，正常进行语义检查
+                    let (should_match, score_adjustment, reason) = Self::analyze_semantic_match(
+                        target_text,
+                        elem_text,
+                        criteria.semantic_analyzer.as_ref(),
+                    );
+
+                    if !should_match {
+                        score += score_adjustment; // 通常是负分
+                        reasons.push(format!(
+                            "🚨🚨🚨 自身文本语义检查: 目标='{}' vs 元素='{}' ({:.1}分, {})",
+                            target_text, elem_text, score_adjustment, reason
+                        ));
+                    } else {
+                        let text_score = TextComparator::calculate_similarity(target_text, elem_text);
+                        
+                        if text_score >= 0.95 {
+                            score += 0.5;  // ✅ 提升到0.5
+                            reasons.push(format!("✅✅✅ 自身文本完全匹配: '{}'", elem_text));
+                        } else if text_score >= 0.7 {
+                            let partial_score = 0.5 * text_score;  // ✅ 基于0.5计算
+                            score += partial_score;
+                            reasons.push(format!("🟡🟡 自身文本部分匹配: '{}' (相似度: {:.2})", elem_text, text_score));
+                        } else {
+                            reasons.push(format!("❌ 自身文本不匹配: '{}' vs '{}'", elem_text, target_text));
+                        }
                     }
                 }
             } else {
