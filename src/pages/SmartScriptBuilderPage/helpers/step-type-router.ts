@@ -27,64 +27,69 @@ export interface DeviceScreen {
 
 /**
  * 识别步骤类型
+ * 🔧 修复：优先使用 step_type 精确匹配，避免被名称误导
  */
 export function identifyStepType(step: ExtendedSmartScriptStep): string {
   const stepType = step.step_type?.toLowerCase();
   const stepName = step.name?.toLowerCase() || "";
   
+  // ✅ 优先级1：严格匹配 step_type（最可靠）
   // 1. 滚动类型
-  if (
-    stepType === "smart_scroll" ||
-    stepType === "swipe" ||
-    stepName.includes("滚动") ||
-    stepName.includes("滑动")
-  ) {
+  if (stepType === "smart_scroll" || stepType === "swipe") {
     return "scroll";
   }
   
   // 2. 系统按键类型
-  if (
-    stepType === "keyevent" ||
-    stepType === "system_key" ||
-    stepName.includes("返回键") ||
-    stepName.includes("首页键") ||
-    stepName.includes("系统按键") ||
-    stepName.includes("按键") ||
-    stepName.includes("边缘") ||
-    step.parameters?.key_code !== undefined ||
-    step.parameters?.keyCode !== undefined ||
-    step.parameters?.gesture_type !== undefined
-  ) {
+  if (stepType === "keyevent" || stepType === "system_key") {
     return "keyevent";
   }
   
   // 3. 长按类型
-  if (
-    stepType === "long_press" ||
-    stepType === "longpress" ||
-    stepName.includes("长按")
-  ) {
+  if (stepType === "long_press" || stepType === "longpress") {
     return "long_press";
   }
   
   // 4. 输入文本类型
-  if (
-    stepType === "input" ||
-    stepType === "type" ||
-    stepName.includes("输入") ||
-    stepName.includes("填写") ||
-    step.parameters?.input_text !== undefined
-  ) {
+  if (stepType === "input" || stepType === "type") {
     return "input";
   }
   
   // 5. 等待类型
-  if (
-    stepType === "wait" ||
-    stepType === "delay" ||
-    stepName.includes("等待") ||
-    stepName.includes("延时")
-  ) {
+  if (stepType === "wait" || stepType === "delay") {
+    return "wait";
+  }
+  
+  // ✅ 优先级2：参数特征判断（参数比名称更可靠）
+  if (step.parameters?.key_code !== undefined || 
+      step.parameters?.keyCode !== undefined || 
+      step.parameters?.gesture_type !== undefined) {
+    return "keyevent";
+  }
+  
+  if (step.parameters?.input_text !== undefined) {
+    return "input";
+  }
+  
+  // ✅ 优先级3：名称辅助判断（最后手段）
+  if (stepName.includes("滚动") || stepName.includes("滑动")) {
+    return "scroll";
+  }
+  
+  if (stepName.includes("返回键") || stepName.includes("首页键") || 
+      stepName.includes("系统按键") || stepName.includes("按键") || 
+      stepName.includes("边缘")) {
+    return "keyevent";
+  }
+  
+  if (stepName.includes("长按")) {
+    return "long_press";
+  }
+  
+  if (stepName.includes("输入") || stepName.includes("填写")) {
+    return "input";
+  }
+  
+  if (stepName.includes("等待") || stepName.includes("延时")) {
     return "wait";
   }
   

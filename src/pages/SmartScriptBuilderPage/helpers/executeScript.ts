@@ -113,7 +113,14 @@ export function createHandleExecuteScript(ctx: Ctx) {
         const stepTypeName = STEP_TYPE_NAMES[stepType] || "未知";
         
         console.log(`\n${stepIcon} [批量执行] 步骤 ${i + 1}/${totalSteps}: ${step.name}`);
-        console.log(`   类型: ${stepTypeName} (step_type=${step.step_type})`);
+        console.log(`   原始类型: ${step.step_type}`);
+        console.log(`   识别类型: ${stepTypeName} (${stepType})`);
+        console.log(`   参数预览:`, {
+          hasXPath: !!step.parameters?.xpath,
+          hasInput: !!step.parameters?.input_text,
+          hasKeyCode: !!step.parameters?.key_code,
+          hasDirection: !!step.parameters?.direction
+        });
         
         try {
           // 🎯 使用统一路由器执行步骤

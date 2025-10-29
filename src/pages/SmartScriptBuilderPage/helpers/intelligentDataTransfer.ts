@@ -339,9 +339,11 @@ export function enhanceIntelligentStepForBackend(step: ExtendedSmartScriptStep):
   const enhancedParameters = buildBackendParameters(dataPackage, step.parameters || {});
   
   // 返回增强的步骤
+  // 🔧 修复：保留原始步骤类型，不要强制改成 smart_tap
+  // 这样可以确保滚动、输入、按键等不同类型的步骤能被正确识别和执行
   return {
     ...step,
-    step_type: 'smart_tap', // 🔧 强制使用智能执行路径
+    step_type: step.step_type, // ✅ 保留原始类型
     parameters: enhancedParameters
   };
 }

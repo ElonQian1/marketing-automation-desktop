@@ -11,11 +11,18 @@ import {
 // 🔧 智能分析步骤优先处理 + 传统步骤兼容处理
 export function normalizeStepForBackend(step: ExtendedSmartScriptStep): ExtendedSmartScriptStep {
   try {
+    console.log('🔍 [步骤标准化] 开始处理:', {
+      stepId: step.id,
+      stepType: step.step_type,
+      stepName: step.name,
+      hasStrategySelector: !!step.enableStrategySelector
+    });
+    
     // 🧠 第一优先级：智能分析步骤（包含策略选择器）
     if (step.enableStrategySelector) {
       console.log('🧠 [智能步骤] 检测到智能分析步骤，使用专用处理器:', step.id);
       
-      // � 数据完整性诊断
+      // 📊 数据完整性诊断
       const diagnosis = diagnoseStepDataIntegrity(step);
       if (!diagnosis.isValid) {
         console.warn('⚠️ [数据完整性] 智能步骤数据不完整:', {
@@ -26,7 +33,14 @@ export function normalizeStepForBackend(step: ExtendedSmartScriptStep): Extended
       }
       
       // 使用专用的智能分析数据传递模块
-      return enhanceIntelligentStepForBackend(step);
+      const enhanced = enhanceIntelligentStepForBackend(step);
+      console.log('✅ [智能步骤] 增强完成，保留原始类型:', {
+        stepId: enhanced.id,
+        originalType: step.step_type,
+        enhancedType: enhanced.step_type,
+        typePreserved: step.step_type === enhanced.step_type
+      });
+      return enhanced;
     }
     
     // 📦 第二优先级：包含XML快照的传统步骤（确保失败恢复能力）
