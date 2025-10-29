@@ -8,6 +8,50 @@ import {
   diagnoseStepDataIntegrity 
 } from "./intelligentDataTransfer";
 
+/**
+ * 🔧 统一bounds格式为字符串：[left,top][right,bottom]
+ * 
+ * 解决问题：
+ * - 测试按钮：boundsString直接传递 → "[754,2047][943,2121]" ✅
+ * - 执行脚本：序列化后变成 {"left":754,"top":2047,"right":943,"bottom":2121} ❌
+ * 
+ * 修复：检测对象格式并转换为 Rust 后端能解析的字符串格式
+ */
+function normalizeBoundsFormat(bounds: unknown): string {
+  if (!bounds) {
+    return '';
+  }
+  
+  // 情况1：已经是正确的字符串格式 "[left,top][right,bottom]"
+  if (typeof bounds === 'string') {
+    // 检查是否是 JSON 字符串（脚本保存后可能被序列化）
+    if (bounds.startsWith('{') && bounds.includes('"left"')) {
+      try {
+        const parsed = JSON.parse(bounds) as { left: number; top: number; right: number; bottom: number };
+        return `[${parsed.left},${parsed.top}][${parsed.right},${parsed.bottom}]`;
+      } catch {
+        console.warn('⚠️ [Bounds格式] 无法解析JSON字符串:', bounds);
+        return bounds; // 返回原始值
+      }
+    }
+    // 已经是正确格式，直接返回
+    return bounds;
+  }
+  
+  // 情况2：是对象格式 { left, top, right, bottom }
+  if (typeof bounds === 'object' && bounds !== null) {
+    const b = bounds as { left?: number; top?: number; right?: number; bottom?: number };
+    if (b.left !== undefined && b.top !== undefined && b.right !== undefined && b.bottom !== undefined) {
+      const formatted = `[${b.left},${b.top}][${b.right},${b.bottom}]`;
+      console.log('✅ [Bounds格式] 对象 → 字符串:', { 原始: bounds, 转换后: formatted });
+      return formatted;
+    }
+  }
+  
+  console.warn('⚠️ [Bounds格式] 无法识别的bounds格式:', bounds);
+  return String(bounds);
+}
+
 // 🔧 智能分析步骤优先处理 + 传统步骤兼容处理
 export function normalizeStepForBackend(step: ExtendedSmartScriptStep): ExtendedSmartScriptStep {
   try {
@@ -78,6 +122,10 @@ function enhanceTraditionalStepWithSnapshot(step: ExtendedSmartScriptStep): Exte
   const elementLocator = params.elementLocator as Record<string, unknown> | undefined;
   const additionalInfo = elementLocator?.additionalInfo as Record<string, unknown> | undefined;
   
+  // 🔥 统一 bounds 格式（修复执行脚本失败问题）
+  const rawBounds = additionalInfo?.bounds || params.bounds || '';
+  const normalizedBounds = normalizeBoundsFormat(rawBounds);
+  
   // 构建传统步骤的 original_data，模仿智能步骤的数据结构
   const originalData = {
     // 优先从 xmlSnapshot 获取原始XML
@@ -111,9 +159,7 @@ function enhanceTraditionalStepWithSnapshot(step: ExtendedSmartScriptStep): Exte
       || params.text 
       || params.element_text
       || '',
-    element_bounds: additionalInfo?.bounds
-      || params.bounds 
-      || '',
+    element_bounds: normalizedBounds,  // 🔥 使用标准化后的bounds格式
     
     // 元素特征（用于相似度匹配）
     element_features: {
@@ -121,7 +167,7 @@ function enhanceTraditionalStepWithSnapshot(step: ExtendedSmartScriptStep): Exte
       text: additionalInfo?.text || params.text || '',
       contentDesc: additionalInfo?.contentDesc || params.content_desc || '',
       className: additionalInfo?.className || params.class_name || '',
-      bounds: additionalInfo?.bounds || params.bounds || '',
+      bounds: normalizedBounds,  // 🔥 同样使用标准化后的bounds
     },
     
     // 关键属性（向后兼容）
