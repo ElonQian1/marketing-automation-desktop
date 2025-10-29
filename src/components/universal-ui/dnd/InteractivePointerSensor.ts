@@ -8,6 +8,7 @@ import { PointerSensor } from '@dnd-kit/core';
 // 1) data-dnd-ignore 标记
 // 2) data-resize-handle 或 role=separator（列宽拖拽手柄）
 // 3) 交互控件（input/textarea/select/button/a[href] 等）与常见 antd 控件
+// 4) 模态框内的所有元素
 function shouldIgnoreDrag(target: EventTarget | null): boolean {
   const el = (target as HTMLElement) ?? null;
   if (!el) return false;
@@ -18,6 +19,17 @@ function shouldIgnoreDrag(target: EventTarget | null): boolean {
   if (closest('[data-dnd-ignore]')) return true;
   if (closest('[data-resize-handle]')) return true;
   if (closest('[role="separator"]')) return true;
+
+  // 🔧 模态框内的所有元素都应该忽略拖拽
+  if (closest('.ant-modal')) return true;
+  if (closest('.ant-modal-content')) return true;
+  if (closest('.ant-modal-body')) return true;
+  if (closest('[role="dialog"]')) return true;
+  
+  // 🔧 其他浮层元素也应该忽略
+  if (closest('.ant-drawer')) return true;
+  if (closest('.ant-popover')) return true;
+  if (closest('.ant-dropdown')) return true;
 
   // 基础交互元素
   const tag = el.tagName?.toLowerCase();

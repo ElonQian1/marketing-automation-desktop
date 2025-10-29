@@ -77,7 +77,27 @@ export const LoopConfigModal: React.FC<LoopConfigModalProps> = ({
       width={500}
       className="light-theme-force"
     >
-      <Space direction="vertical" size="large" style={{ width: '100%', padding: '20px 0' }}>
+      {/* 🔧 阻止拖拽事件传导到父组件 */}
+      <div 
+        onMouseDown={(e) => e.stopPropagation()}
+        onMouseMove={(e) => e.stopPropagation()}
+        onMouseUp={(e) => e.stopPropagation()}
+        onTouchStart={(e) => e.stopPropagation()}
+        onTouchMove={(e) => e.stopPropagation()}
+        onTouchEnd={(e) => e.stopPropagation()}
+        onDragStart={(e) => e.preventDefault()}
+        onDrag={(e) => e.preventDefault()}
+        onDragEnd={(e) => e.preventDefault()}
+        onPointerDown={(e) => e.stopPropagation()}
+        onPointerMove={(e) => e.stopPropagation()}
+        onPointerUp={(e) => e.stopPropagation()}
+        data-dnd-ignore="true"
+        style={{ 
+          pointerEvents: 'auto',
+          userSelect: 'text'
+        }}
+      >
+        <Space direction="vertical" size="large" style={{ width: '100%', padding: '20px 0' }}>
         {/* 循环名称 */}
         <div>
           <Text strong style={{ display: 'block', marginBottom: 8 }}>循环名称</Text>
@@ -168,6 +188,7 @@ export const LoopConfigModal: React.FC<LoopConfigModalProps> = ({
           style={{ fontSize: 12 }}
         />
       </Space>
+      </div>
     </Modal>
   );
 };

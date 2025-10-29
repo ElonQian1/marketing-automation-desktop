@@ -20,6 +20,7 @@ pub mod prospecting; // ✅ 新增精准获客命令
 pub mod commands_lead_hunt; // ✅ 新增精准获客Lead Hunt命令
 pub mod enhanced_location_commands; // 🆕 新增增强定位算法命令
 pub mod smart_selection; // 🆕 新增智能选择系统命令
+pub mod semantic_analyzer_config; // 🆕 新增语义分析器配置命令
 
 // 可选：统一 re-export，方便 main.rs 引入
 // pub use action_execution::*; // 操作执行命令（暂时注释）
@@ -40,3 +41,4 @@ pub use step_execution::*; // 🆕 导出统一步骤执行命令
 pub use prospecting::*; // ✅ 导出精准获客命令
 pub use commands_lead_hunt::*; // ✅ 导出Lead Hunt命令
 pub use smart_selection::*; // 🆕 导出智能选择命令
+pub use semantic_analyzer_config::*; // 🆕 导出语义分析器配置命令

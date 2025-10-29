@@ -458,7 +458,18 @@ fn main() {
             ai::commands::save_ai_settings,
             ai::commands::list_models,
             ai::commands::ai_chat,
-            ai::commands::ai_embed
+            ai::commands::ai_embed,
+            // 语义分析器配置命令
+            commands::semantic_analyzer_config::load_semantic_analyzer_config,
+            commands::semantic_analyzer_config::save_semantic_analyzer_config,
+            commands::semantic_analyzer_config::reset_semantic_analyzer_config,
+            commands::semantic_analyzer_config::test_antonym_detection,
+            commands::semantic_analyzer_config::add_antonym_pair,
+            commands::semantic_analyzer_config::update_antonym_pair,
+            commands::semantic_analyzer_config::delete_antonym_pair,
+            commands::semantic_analyzer_config::toggle_antonym_pair,
+            commands::semantic_analyzer_config::export_semantic_analyzer_config,
+            commands::semantic_analyzer_config::import_semantic_analyzer_config
         ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");

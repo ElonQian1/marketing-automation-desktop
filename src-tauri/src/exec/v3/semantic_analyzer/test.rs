@@ -11,14 +11,19 @@ mod tests {
 
     #[test]
     fn test_antonym_detection_absolute_mode() {
-        // 测试绝对匹配模式：应禁用反义词检测
+        // 测试绝对匹配模式：应禁用反义词检测，但仍需文本匹配
         let mut analyzer = SemanticAnalyzer::new();
         analyzer.set_text_matching_mode(TextMatchingMode::Exact);
         
-        // 即使添加反义词对，绝对匹配模式也不应检测反义词
-        let result = analyzer.analyze_text_match("关注", "已关注");
-        assert!(result.should_match);
-        assert!(result.antonym_result.is_none()); // 绝对匹配模式不检测反义词
+        // 完全相同的文本在绝对匹配模式下应该匹配
+        let result1 = analyzer.analyze_text_match("关注", "关注");
+        assert!(result1.should_match);
+        assert!(result1.antonym_result.is_none()); // 绝对匹配模式不检测反义词
+        
+        // 不同文本在绝对匹配模式下不应匹配，即使不是反义词
+        let result2 = analyzer.analyze_text_match("关注", "已关注");
+        assert!(!result2.should_match); // 绝对匹配模式下文本不同就不匹配
+        assert!(result2.antonym_result.is_none()); // 绝对匹配模式不检测反义词
     }
 
     #[test]

@@ -50,7 +50,27 @@ export const LoopConfigModal: React.FC<LoopConfigModalProps> = ({
       cancelText="取消"
       width={400}
     >
-      <div style={{ padding: '20px 0' }}>
+      {/* 🔧 阻止拖拽事件传导到父组件 */}
+      <div 
+        onMouseDown={(e) => e.stopPropagation()}
+        onMouseMove={(e) => e.stopPropagation()}
+        onMouseUp={(e) => e.stopPropagation()}
+        onTouchStart={(e) => e.stopPropagation()}
+        onTouchMove={(e) => e.stopPropagation()}
+        onTouchEnd={(e) => e.stopPropagation()}
+        onDragStart={(e) => e.preventDefault()}
+        onDrag={(e) => e.preventDefault()}
+        onDragEnd={(e) => e.preventDefault()}
+        onPointerDown={(e) => e.stopPropagation()}
+        onPointerMove={(e) => e.stopPropagation()}
+        onPointerUp={(e) => e.stopPropagation()}
+        data-dnd-ignore="true"
+        style={{ 
+          pointerEvents: 'auto',
+          userSelect: 'text'
+        }}
+      >
+        <div style={{ padding: '20px 0' }}>
         <div style={{ marginBottom: 20 }}>
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 12 }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
@@ -105,6 +125,7 @@ export const LoopConfigModal: React.FC<LoopConfigModalProps> = ({
               : '循环体内的所有步骤将重复执行指定次数。'}
           </Text>
         </div>
+      </div>
       </div>
     </Modal>
   );

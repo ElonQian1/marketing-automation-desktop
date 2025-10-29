@@ -41,6 +41,7 @@ import {
   UserOutlined,
   LogoutOutlined,
   ClockCircleOutlined,
+  SettingOutlined,
 } from "@ant-design/icons";
 import type { MenuProps } from "antd";
 
@@ -64,6 +65,7 @@ import EmployeePageNativeWrapper from "../pages/native-wrappers/EmployeePage.nat
 import ButtonFixValidationPage from "../pages/button-fix-validation";
 import ParameterTestPage from "./ParameterTestPage";
 import { LoopDragTest } from "../debug/loop-drag-test";
+import { SemanticAnalyzerSettingsPage } from "../pages/SemanticAnalyzerSettingsPage";
 
 // 业务页面导入
 import { StatisticsPageNative } from "../pages/statistics/StatisticsPageNative";
@@ -175,6 +177,11 @@ const NativeAntDesignApp: React.FC = () => {
       label: "主题设置",
     },
     {
+      key: "semantic-analyzer-settings",
+      icon: <SettingOutlined />,
+      label: "🧠 语义分析器设置",
+    },
+    {
       key: "statistics-native",
       icon: <DashboardOutlined />,
       label: "统计页面（原生）",
@@ -236,6 +243,8 @@ const NativeAntDesignApp: React.FC = () => {
         return <PageFinderView />;
       case "theme-settings":
         return <ThemeSettingsPage />;
+      case "semantic-analyzer-settings":
+        return <SemanticAnalyzerSettingsPage />;
       case "statistics-native":
         return <StatisticsPageNative />;
       case "statistics-optimized":
