@@ -789,6 +789,31 @@ const DraggableStepCardInner: React.FC<
                     disabled={!isBackendHealthy()}
                     compact={true}
                     stepId={step.id}
+                    onUpdateStepParameters={(stepId, partialParams) => {
+                      // 🔑 深度合并参数，支持部分更新
+                      if (onUpdateStepParameters) {
+                        const currentParams = step.parameters || {};
+                        const currentSmartSelection = (currentParams.smartSelection as Record<string, unknown>) || {};
+                        const partialSmartSelection = (partialParams.smartSelection as Record<string, unknown>) || {};
+                        
+                        const mergedParams = {
+                          ...currentParams,
+                          ...partialParams,
+                          // 特殊处理 smartSelection：深度合并
+                          smartSelection: {
+                            ...currentSmartSelection,
+                            ...partialSmartSelection,
+                          }
+                        };
+                        console.log('🔄 [DraggableStepCard] 深度合并参数后更新:', {
+                          stepId,
+                          currentParams,
+                          partialParams,
+                          mergedParams
+                        });
+                        onUpdateStepParameters(stepId, mergedParams);
+                      }
+                    }}
                   />
                 );
               })()}

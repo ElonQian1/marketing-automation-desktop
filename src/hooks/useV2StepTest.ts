@@ -527,6 +527,8 @@ export function convertSmartStepToV2Request(
     targetText: smartSelection?.targetText || '(无)',
     textMatchingMode: smartSelection?.textMatchingMode || '(无)',
     batchConfig: smartSelection?.batchConfig || '(无)',
+    stepId: step.id,
+    paramsKeys: Object.keys(params),
   });
 
   return {

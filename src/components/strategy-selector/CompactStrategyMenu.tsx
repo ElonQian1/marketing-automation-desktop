@@ -82,6 +82,7 @@ interface CompactStrategyMenuProps {
   disabled?: boolean;
   compact?: boolean;
   stepId?: string; // 新增：用于获取置信度数据
+  onUpdateStepParameters?: (stepId: string, params: Record<string, unknown>) => void; // 🔑 新增：步骤参数更新回调
 }
 
 const CompactStrategyMenu: React.FC<CompactStrategyMenuProps> = ({
@@ -90,6 +91,7 @@ const CompactStrategyMenu: React.FC<CompactStrategyMenuProps> = ({
   disabled = false,
   compact = true,
   stepId,
+  onUpdateStepParameters, // 🔑 接收步骤参数更新回调
 }) => {
   // 🔇 日志优化：移除组件挂载日志（过于频繁）
   // console.log("🚀 [CompactStrategyMenu] 组件已挂载", { stepId });
@@ -443,6 +445,38 @@ const CompactStrategyMenu: React.FC<CompactStrategyMenuProps> = ({
           hasCard: !!card,
           hasElementUid: !!card?.elementUid
         });
+      }
+
+      // 🔑 【关键修复】同时更新步骤的 params.smartSelection.mode
+      // 确保测试按钮执行时使用最新的模式配置
+      if (onUpdateStepParameters && stepId) {
+        console.log('🔄 [CompactStrategyMenu] 同步更新步骤参数:', {
+          stepId,
+          mode,
+          batchConfigToSave
+        });
+        
+        // 🎯 使用部分更新模式，只更新 smartSelection 字段
+        // 这需要调用方支持深度合并
+        onUpdateStepParameters(stepId, {
+          smartSelection: {
+            mode: mode,
+            batchConfig: batchConfigToSave,
+          }
+        } as Record<string, unknown>); // 类型断言为通用对象
+        
+        console.log('✅ [CompactStrategyMenu] 步骤参数同步请求已发送:', {
+          stepId,
+          mode,
+          batchConfig: batchConfigToSave
+        });
+      } else {
+        if (!onUpdateStepParameters) {
+          console.warn('⚠️ [CompactStrategyMenu] onUpdateStepParameters 回调不存在，无法同步步骤参数');
+        }
+        if (!stepId) {
+          console.warn('⚠️ [CompactStrategyMenu] stepId 不存在，无法同步步骤参数');
+        }
       }
 
       // ✅ 用户可见的保存成功提示
