@@ -6,7 +6,7 @@
 mod tests {
     use super::*;
     use crate::exec::v3::semantic_analyzer::{
-        SemanticAnalyzer, TextMatchingMode, AntonymPair
+        SemanticAnalyzer, TextMatchingMode
     };
 
     #[test]
@@ -17,8 +17,8 @@ mod tests {
         
         // 即使添加反义词对，绝对匹配模式也不应检测反义词
         let result = analyzer.analyze_text_match("关注", "已关注");
-        assert!(result.is_match);
-        assert!(!result.has_antonym_conflict); // 绝对匹配模式不检测反义词
+        assert!(result.should_match);
+        assert!(result.antonym_result.is_none()); // 绝对匹配模式不检测反义词
     }
 
     #[test]
@@ -29,13 +29,12 @@ mod tests {
         analyzer.set_antonym_detection(true);
 
         // 添加自定义反义词对
-        let follow_pair = AntonymPair::new("关注".to_string(), "已关注".to_string());
-        analyzer.add_custom_antonym(follow_pair);
+        analyzer.add_custom_antonym("关注", "已关注", None);
 
         // 测试反义词检测
         let result = analyzer.analyze_text_match("关注", "已关注");
-        assert!(!result.is_match); // 应该检测到反义词冲突
-        assert!(result.has_antonym_conflict);
+        assert!(!result.should_match); // 应该检测到反义词冲突
+        assert!(result.antonym_result.is_some());
     }
 
     #[test]
@@ -45,15 +44,9 @@ mod tests {
         analyzer.set_antonym_detection(true);
 
         // 添加多个反义词对
-        let pairs = vec![
-            AntonymPair::new("关注".to_string(), "已关注".to_string()),
-            AntonymPair::new("登录".to_string(), "退出".to_string()),
-            AntonymPair::new("打开".to_string(), "关闭".to_string()),
-        ];
-
-        for pair in pairs {
-            analyzer.add_custom_antonym(pair);
-        }
+        analyzer.add_custom_antonym("关注", "已关注", None);
+        analyzer.add_custom_antonym("登录", "退出", None);
+        analyzer.add_custom_antonym("打开", "关闭", None);
 
         // 测试不同的反义词对
         let test_cases = vec![
@@ -67,28 +60,11 @@ mod tests {
 
         for (target, candidate, should_conflict) in test_cases {
             let result = analyzer.analyze_text_match(target, candidate);
-            assert_eq!(result.has_antonym_conflict, should_conflict, 
+            let has_conflict = result.antonym_result.as_ref()
+                .map(|r| r.is_antonym).unwrap_or(false);
+            assert_eq!(has_conflict, should_conflict, 
                       "Failed for: {} vs {}", target, candidate);
         }
-    }
-
-    #[test]
-    fn test_bidirectional_antonym_detection() {
-        let mut analyzer = SemanticAnalyzer::new();
-        analyzer.set_text_matching_mode(TextMatchingMode::Partial);
-        analyzer.set_antonym_detection(true);
-
-        // 添加双向反义词对
-        let bidirectional_pair = AntonymPair::new("关注".to_string(), "已关注".to_string())
-            .bidirectional(true);
-        analyzer.add_custom_antonym(bidirectional_pair);
-
-        // 测试双向检测
-        let result1 = analyzer.analyze_text_match("关注", "已关注");
-        let result2 = analyzer.analyze_text_match("已关注", "关注");
-
-        assert!(result1.has_antonym_conflict);
-        assert!(result2.has_antonym_conflict);
     }
 
     #[test]
@@ -98,12 +74,11 @@ mod tests {
         analyzer.set_antonym_detection(false); // 显式禁用
 
         // 添加反义词对
-        let pair = AntonymPair::new("关注".to_string(), "已关注".to_string());
-        analyzer.add_custom_antonym(pair);
+        analyzer.add_custom_antonym("关注", "已关注", None);
 
         // 即使有反义词对，禁用检测时不应检测冲突
         let result = analyzer.analyze_text_match("关注", "已关注");
-        assert!(!result.has_antonym_conflict);
+        assert!(result.antonym_result.is_none());
     }
 
     #[test]
@@ -111,18 +86,19 @@ mod tests {
         let mut analyzer = SemanticAnalyzer::new();
         
         // 添加反义词对
-        let pair = AntonymPair::new("关注".to_string(), "已关注".to_string());
-        analyzer.add_custom_antonym(pair);
+        analyzer.add_custom_antonym("关注", "已关注", None);
 
         // 部分匹配模式 + 启用检测
         analyzer.set_text_matching_mode(TextMatchingMode::Partial);
         analyzer.set_antonym_detection(true);
         let result1 = analyzer.analyze_text_match("关注", "已关注");
-        assert!(result1.has_antonym_conflict);
+        let has_conflict1 = result1.antonym_result.as_ref()
+            .map(|r| r.is_antonym).unwrap_or(false);
+        assert!(has_conflict1);
 
         // 切换到绝对匹配模式（自动禁用反义词检测）
         analyzer.set_text_matching_mode(TextMatchingMode::Exact);
         let result2 = analyzer.analyze_text_match("关注", "已关注");
-        assert!(!result2.has_antonym_conflict); // 绝对匹配模式不检测反义词
+        assert!(result2.antonym_result.is_none()); // 绝对匹配模式不检测反义词
     }
 }

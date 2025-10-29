@@ -2,7 +2,7 @@ use serde::{Deserialize, Serialize};
 use tokio::process::Command as AsyncCommand;
 use crate::utils::adb_utils::get_adb_path;
 
-#[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
+#[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Default)]
 pub struct UIElement {
     pub text: Option<String>,
     pub resource_id: Option<String>,

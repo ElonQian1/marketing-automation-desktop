@@ -8,18 +8,13 @@ import React from 'react';
 import {
   Typography,
   Tag,
-  Tooltip,
-  Space,
   Button,
   Input,
 } from 'antd';
 import ConfirmPopover from '../universal-ui/common-popover/ConfirmPopover';
 import {
-  ReloadOutlined,
   EditOutlined,
   DeleteOutlined,
-  DragOutlined,
-  PlayCircleOutlined,
 } from '@ant-design/icons';
 import type { LoopHeaderProps } from './types';
 
@@ -44,7 +39,13 @@ export const LoopHeader: React.FC<LoopHeaderProps> = ({
         color: '#0ea5e9',
         fontSize: '16px'
       }}>
-        <ReloadOutlined style={{ marginRight: 4 }} />
+        <span style={{ 
+          marginRight: 4, 
+          fontSize: '16px', 
+          fontWeight: 'bold' 
+        }}>
+          ∞
+        </span>
       </div>
 
       {/* 标题编辑 - 紧凑版 */}

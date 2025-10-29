@@ -122,6 +122,7 @@ pub fn count() -> usize {
 /// // ... 执行逻辑
 /// drop(guard);  // 显式释放，后续代码不持有锁
 /// ```
+#[derive(Debug)]
 pub struct ExecutionLockGuard {
     analysis_id: String,
     released: bool,

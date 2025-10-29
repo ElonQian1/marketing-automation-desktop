@@ -9,7 +9,6 @@ import { Card, Button, Space, Typography, Tooltip, message, InputNumber, Switch,
 import { 
   CheckCircleOutlined, 
   DeleteOutlined,
-  ReloadOutlined,
   SettingOutlined,
   StopOutlined
 } from '@ant-design/icons';
@@ -219,7 +218,13 @@ export const LoopEndCard: React.FC<LoopEndCardProps> = ({
           <Space size="middle" style={{ width: '100%', justifyContent: 'space-between' }}>
             {/* 左侧：循环次数（支持双击编辑） */}
             <Space size="small">
-              <ReloadOutlined style={{ color: '#f59e0b' }} />
+              <span style={{ 
+                color: '#f59e0b', 
+                fontSize: '16px',
+                fontWeight: 'bold'
+              }}>
+                ∞
+              </span>
               <Text type="secondary">
                 {loopTestState?.status === 'running' ? '当前轮次:' : '完成次数:'}
               </Text>
@@ -268,7 +273,13 @@ export const LoopEndCard: React.FC<LoopEndCardProps> = ({
             {/* 右侧：无限循环开关 */}
             <Space size="small">
               <Tooltip title="无限循环">
-                <ReloadOutlined style={{ color: isInfinite ? '#10b981' : '#94a3b8' }} />
+                <span style={{ 
+                  color: isInfinite ? '#10b981' : '#94a3b8', 
+                  fontSize: '16px',
+                  fontWeight: 'bold'
+                }}>
+                  ∞
+                </span>
               </Tooltip>
               <Switch
                 size="small"

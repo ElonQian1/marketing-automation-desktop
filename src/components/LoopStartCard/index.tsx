@@ -4,7 +4,7 @@
 
 import React, { useState } from "react";
 import { Card, Space, Typography, Button, Tooltip, message, InputNumber, Switch } from "antd";
-import { RedoOutlined, SettingOutlined, DeleteOutlined, PlayCircleOutlined, ReloadOutlined } from "@ant-design/icons";
+import { RedoOutlined, SettingOutlined, DeleteOutlined, PlayCircleOutlined } from "@ant-design/icons";
 import ConfirmPopover from '../universal-ui/common-popover/ConfirmPopover';
 import { LoopConfigModal } from '../LoopCards/LoopConfigModal';
 import { CompactLoopTestButton } from '../../modules/loop-control/ui/loop-test-button';
@@ -200,7 +200,13 @@ export const LoopStartCard: React.FC<LoopStartCardProps> = ({
             {/* 右侧：无限循环开关 */}
             <Space size="small">
               <Tooltip title="无限循环">
-                <ReloadOutlined style={{ color: isInfinite ? '#f59e0b' : '#94a3b8' }} />
+                <span style={{ 
+                  color: isInfinite ? '#f59e0b' : '#94a3b8', 
+                  fontSize: '16px',
+                  fontWeight: 'bold'
+                }}>
+                  ∞
+                </span>
               </Tooltip>
               <Switch
                 size="small"
