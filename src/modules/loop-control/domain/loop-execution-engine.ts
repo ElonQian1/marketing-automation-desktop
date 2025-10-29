@@ -198,8 +198,9 @@ export class LoopExecutionEngine {
     logs?: string[];
   }> {
     try {
-      // 🔒 强制使用V3智能执行引擎 - 封死传统路径
-      const result = await invoke('execute_single_step_test_v3', {
+      // 🎯 使用与单步测试按钮完全相同的路径
+      // 走 useSingleStepTest → useV2StepTest → StepExecutionGateway 的路径
+      const result = await invoke('execute_single_step_test', {
         deviceId: deviceId,
         step: step
       }) as SingleStepTestResult;

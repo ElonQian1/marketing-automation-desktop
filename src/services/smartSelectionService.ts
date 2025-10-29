@@ -168,6 +168,12 @@ export class SmartSelectionService {
     containerXPath?: string;
     batchInterval?: number;
     minConfidence?: number;
+    textMatchingConfig?: {
+      mode: 'exact' | 'partial';
+      antonymCheckEnabled: boolean;
+      semanticAnalysisEnabled: boolean;
+      partialMatchThreshold?: number;
+    };
   }): SmartSelectionProtocol {
     return {
       anchor: {
@@ -190,6 +196,18 @@ export class SmartSelectionService {
       matching_context: options.containerXPath ? {
         container_xpath: options.containerXPath,
       } : undefined,
+      // 🆕 添加文本匹配配置
+      text_matching: options.textMatchingConfig ? {
+        mode: options.textMatchingConfig.mode,
+        antonym_check_enabled: options.textMatchingConfig.antonymCheckEnabled,
+        semantic_analysis_enabled: options.textMatchingConfig.semanticAnalysisEnabled,
+        partial_threshold: options.textMatchingConfig.partialMatchThreshold,
+      } : {
+        // 默认使用绝对匹配（安全默认值）
+        mode: 'exact',
+        antonym_check_enabled: false,
+        semantic_analysis_enabled: false,
+      },
     };
   }
 
@@ -201,6 +219,11 @@ export class SmartSelectionService {
     containerXPath?: string;
     interval?: number;
     maxCount?: number;
+    textMatchingConfig?: {
+      mode: 'exact' | 'partial';
+      antonymCheckEnabled: boolean;
+      semanticAnalysisEnabled: boolean;
+    };
   } = {}): SmartSelectionProtocol {
     return {
       anchor: {
@@ -231,6 +254,17 @@ export class SmartSelectionService {
           exclude_text: ['已关注', '关注中', '取消关注'],
         },
       },
+      // 🆕 添加文本匹配配置
+      text_matching: options.textMatchingConfig ? {
+        mode: options.textMatchingConfig.mode,
+        antonym_check_enabled: options.textMatchingConfig.antonymCheckEnabled,
+        semantic_analysis_enabled: options.textMatchingConfig.semanticAnalysisEnabled,
+      } : {
+        // 批量关注默认使用精确匹配，防止误操作
+        mode: 'exact',
+        antonym_check_enabled: false,
+        semantic_analysis_enabled: false,
+      },
     };
   }
 
@@ -242,6 +276,11 @@ export class SmartSelectionService {
     resourceId?: string;
     containerXPath?: string;
     minConfidence?: number;
+    textMatchingConfig?: {
+      mode: 'exact' | 'partial';
+      antonymCheckEnabled: boolean;
+      semanticAnalysisEnabled: boolean;
+    };
   }): SmartSelectionProtocol {
     return {
       anchor: {
@@ -262,6 +301,17 @@ export class SmartSelectionService {
           must_be_clickable: true,
           must_be_visible: true,
         },
+      },
+      // 🆕 添加文本匹配配置
+      text_matching: options.textMatchingConfig ? {
+        mode: options.textMatchingConfig.mode,
+        antonym_check_enabled: options.textMatchingConfig.antonymCheckEnabled,
+        semantic_analysis_enabled: options.textMatchingConfig.semanticAnalysisEnabled,
+      } : {
+        // 精确匹配默认使用绝对匹配
+        mode: 'exact',
+        antonym_check_enabled: false,
+        semantic_analysis_enabled: false,
       },
     };
   }

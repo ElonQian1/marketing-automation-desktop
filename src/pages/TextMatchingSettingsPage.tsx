@@ -58,10 +58,10 @@ export const TextMatchingSettingsPage: React.FC = () => {
             message="文本匹配模式配置"
             description={
               <div>
-                <p>配置系统如何在UI界面中匹配文本内容：</p>
+                <p>配置系统如何在UI界面中匹配文本内容（默认使用绝对匹配模式）：</p>
                 <ul style={{ margin: 0, paddingLeft: 20 }}>
-                  <li><strong>绝对匹配</strong>：只匹配完全相同的文本，精确但不灵活</li>
-                  <li><strong>部分匹配</strong>：启用智能算法，包括反义词检测、语义分析等</li>
+                  <li><strong>绝对匹配（推荐默认）</strong>：只匹配完全相同的文本，精确且可靠</li>
+                  <li><strong>部分匹配（高级功能）</strong>：启用智能算法，包括反义词检测、语义分析等</li>
                 </ul>
               </div>
             }
@@ -81,14 +81,15 @@ export const TextMatchingSettingsPage: React.FC = () => {
                   size="small" 
                   title={
                     <Space>
-                      <SafetyOutlined style={{ color: 'var(--warning, #f59e0b)' }} />
-                      <span>绝对匹配模式</span>
+                      <SafetyOutlined style={{ color: 'var(--success, #10b981)' }} />
+                      <span>绝对匹配模式（推荐默认）</span>
                     </Space>
                   }
                   className="light-theme-force"
                 >
                   <Paragraph style={{ fontSize: 12, color: 'var(--text-2, #4b5563)' }}>
-                    <strong>适用场景：</strong>
+                    <strong>适用场景（推荐大多数用户）：</strong>
+                    <br />• 自动化脚本的稳定运行
                     <br />• 金融、医疗等高精度要求的应用
                     <br />• 系统设置、安全操作等关键功能
                     <br />• 需要严格按照UI文本执行的场景
@@ -98,6 +99,7 @@ export const TextMatchingSettingsPage: React.FC = () => {
                     <br />• 零误差，高可靠性
                     <br />• 不会误触相似元素
                     <br />• 适合稳定不变的UI界面
+                    <br />• 🔒 默认安全选择
                   </Paragraph>
                 </Card>
               </Col>
@@ -107,7 +109,7 @@ export const TextMatchingSettingsPage: React.FC = () => {
                   title={
                     <Space>
                       <ThunderboltOutlined style={{ color: 'var(--primary, #3b82f6)' }} />
-                      <span>部分匹配模式</span>
+                      <span>部分匹配模式（高级功能）</span>
                     </Space>
                   }
                   className="light-theme-force"

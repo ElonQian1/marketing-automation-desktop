@@ -13,6 +13,7 @@ import type { StepActionParams } from '../../types/stepActions';
 import { getCurrentExecutionEngine } from '../config/ExecutionEngineConfig';
 import { convertToV2Request } from './adapters/v2Adapter';
 import { invoke } from '@tauri-apps/api/core';
+import { defaultTextMatchingConfig } from '../../components/text-matching';
 
 // 🎯 【关键配置】V3智能策略开关 
 // ✅ true：使用execute_chain_test_v3智能策略系统，Step 0-6分析，避免坐标兜底
@@ -535,6 +536,10 @@ export class StepExecutionGateway {
                 mode: userSelectionMode,
                 targetText: targetText,  // camelCase
                 minConfidence: 0.8,  // camelCase
+                // 🆕 文本匹配配置：确保与前端文本匹配模块一致
+                textMatchingMode: defaultTextMatchingConfig.mode, // 从文本匹配配置获取
+                antonymCheckEnabled: defaultTextMatchingConfig.antonymCheckEnabled,
+                semanticAnalysisEnabled: defaultTextMatchingConfig.semanticAnalysisEnabled,
                 // 🔥 FIX: 优先使用Store中保存的配置，否则使用默认值
                 batchConfig: savedBatchConfig || (userSelectionMode === 'all' ? {  // camelCase
                   intervalMs: 2000,  // 默认值

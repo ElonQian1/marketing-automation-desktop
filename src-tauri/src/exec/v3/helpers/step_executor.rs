@@ -972,9 +972,46 @@ fn evaluate_best_candidate<'a>(
         use crate::exec::v3::semantic_analyzer::config::TextMatchingMode;
         
         let mut semantic_analyzer = SemanticAnalyzer::new();
-        // 根据用户设置决定匹配模式（这里先用部分匹配，后续可以从配置获取）
-        semantic_analyzer.set_text_matching_mode(TextMatchingMode::Partial);
-        semantic_analyzer.set_antonym_detection(true);
+        
+        // 🔥 从前端配置读取文本匹配模式，优先级：smartSelection > originalParams
+        let (text_matching_mode, antonym_detection_enabled) = {
+            // 尝试从smartSelection配置中获取
+            let smart_selection_config = params
+                .get("smartSelection")
+                .and_then(|v| v.as_object())
+                .or_else(|| {
+                    params
+                        .get("originalParams")
+                        .and_then(|v| v.as_object())
+                        .and_then(|obj| obj.get("smartSelection"))
+                        .and_then(|v| v.as_object())
+                });
+            
+            if let Some(config) = smart_selection_config {
+                let mode = config
+                    .get("textMatchingMode")
+                    .and_then(|v| v.as_str())
+                    .unwrap_or("exact"); // 默认绝对匹配
+                
+                let antonym_enabled = config
+                    .get("antonymCheckEnabled")
+                    .and_then(|v| v.as_bool())
+                    .unwrap_or(false); // 默认禁用反义词检测
+                
+                tracing::info!("🧠 [文本匹配配置] 从前端获取: mode={}, antonym_enabled={}", mode, antonym_enabled);
+                
+                match mode {
+                    "partial" => (TextMatchingMode::Partial, antonym_enabled),
+                    _ => (TextMatchingMode::Exact, false), // 绝对匹配强制禁用反义词检测
+                }
+            } else {
+                tracing::warn!("⚠️ [文本匹配配置] 未找到前端配置，使用默认值: mode=exact, antonym_enabled=false");
+                (TextMatchingMode::Exact, false) // 默认使用绝对匹配
+            }
+        };
+        
+        semantic_analyzer.set_text_matching_mode(text_matching_mode);
+        semantic_analyzer.set_antonym_detection(antonym_detection_enabled);
 
         // ✅ 构建评估准则（完整版）
         let criteria = EvaluationCriteria {

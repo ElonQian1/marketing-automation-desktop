@@ -189,6 +189,14 @@ export interface SmartSelectionProtocol {
   // 执行限制
   limits?: ExecutionLimits;
 
+  // 🆕 文本匹配配置
+  text_matching?: {
+    mode: 'exact' | 'partial'; // 文本匹配模式：绝对匹配 | 部分匹配
+    antonym_check_enabled: boolean; // 是否启用反义词检测
+    semantic_analysis_enabled: boolean; // 是否启用语义分析
+    partial_threshold?: number; // 部分匹配阈值（0.0-1.0）
+  };
+
   // 兼容性字段
   fallback?: {
     absolute_xpath?: string; // 保留原有XPath兜底
