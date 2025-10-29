@@ -129,20 +129,24 @@ export function useLoopTestManager(callbacks?: LoopTestCallbacks): LoopTestManag
       });
 
       // 构建执行序列
-      const executionSequence = LoopExecutionService.buildExecutionSequence(loopSteps, totalIterations);
+      const executionSequence = LoopExecutionService.buildExecutionSequence(allSteps, loopId, totalIterations);
+      if (!executionSequence) {
+        throw new Error(`无法构建循环 ${loopId} 的执行序列`);
+      }
       
       console.log(`🎯 开始循环测试: ${loopId}`, {
         loopSteps: loopSteps.length,
         totalIterations: isInfinite ? '∞' : totalIterations,
-        executionSequence: executionSequence.length,
+        executionSteps: executionSequence.steps.length,
         deviceId,
       });
 
       // 启动进度模拟（后端实现前的临时方案）
       let stepIndex = 0;
+      const totalSteps = executionSequence.steps.length;
       const timer = setInterval(() => {
         stepIndex++;
-        const progress = Math.min((stepIndex / executionSequence.length) * 100, 100);
+        const progress = Math.min((stepIndex / totalSteps) * 100, 100);
         const currentIteration = Math.floor(stepIndex / loopSteps.length);
         
         updateLoopState(loopId, {
@@ -154,7 +158,7 @@ export function useLoopTestManager(callbacks?: LoopTestCallbacks): LoopTestManag
         callbacks?.onProgress?.(progress, loopId);
 
         // 完成测试
-        if (stepIndex >= executionSequence.length) {
+        if (stepIndex >= totalSteps) {
           clearInterval(timer);
           progressTimersRef.current.delete(loopId);
           

@@ -169,6 +169,7 @@ const EnhancedDraggableStepsContainer: React.FC<EnhancedDraggableStepsContainerP
       {/* 使用基础的拖拽容器 */}
       <DraggableStepsContainer
         steps={steps}
+        allSteps={steps}
         onStepsChange={handleStepsChange}
         onUpdateStepMeta={onUpdateStepMeta}
         currentDeviceId={effectiveDeviceId}

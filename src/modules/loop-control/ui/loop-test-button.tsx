@@ -158,7 +158,7 @@ export const LoopTestButton: React.FC<LoopTestButtonProps> = ({
         />
         <Text type="secondary" style={{ fontSize: 11 }}>
           循环 {state.currentIteration}/{state.totalIterations}
-          {state.status === 'running' && ` - 步骤 ${state.currentStepIndex + 1}/${state.totalSteps}`}
+          {state.status === 'running' && ` - 步骤 ${state.currentStep + 1}/${state.totalSteps}`}
         </Text>
       </Space>
     );

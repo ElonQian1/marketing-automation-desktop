@@ -967,9 +967,18 @@ fn evaluate_best_candidate<'a>(
                          matching_strategy, sibling_texts, parent_info);
         }
         
+        // ✅ 创建语义分析器实例
+        use crate::exec::v3::semantic_analyzer::analyzer::SemanticAnalyzer;
+        use crate::exec::v3::semantic_analyzer::config::TextMatchingMode;
+        
+        let mut semantic_analyzer = SemanticAnalyzer::new();
+        // 根据用户设置决定匹配模式（这里先用部分匹配，后续可以从配置获取）
+        semantic_analyzer.set_text_matching_mode(TextMatchingMode::Partial);
+        semantic_analyzer.set_antonym_detection(true);
+
         // ✅ 构建评估准则（完整版）
         let criteria = EvaluationCriteria {
-            target_text: target_text_option,
+            target_text: target_text_option.clone(), // 克隆避免move
             target_content_desc,
             original_bounds,
             original_resource_id,
@@ -988,12 +997,44 @@ fn evaluate_best_candidate<'a>(
             matching_strategy, // 🆕 NEW: 匹配策略标记
             sibling_texts, // 🆕 NEW: 兄弟元素文本
             parent_info, // 🆕 NEW: 父元素信息
+            semantic_analyzer: Some(semantic_analyzer), // 🆕 NEW: 语义分析器
         };
         
         // ✅ 使用 MultiCandidateEvaluator 进行综合评估
         tracing::info!("🧠 [多候选评估] 开始综合评分，criteria.selected_xpath={:?}", criteria.selected_xpath);
         
         if let Some(best_candidate) = MultiCandidateEvaluator::evaluate_candidates(candidate_elements.clone(), &criteria) {
+            // 🚨 检查分数是否达到最低有效阈值
+            const MIN_VALID_SCORE: f32 = 0.3; // 设置最低有效分数
+            
+            if best_candidate.score < MIN_VALID_SCORE {
+                tracing::error!("🚨 [目标不存在] 最佳候选分数过低 ({:.3} < {:.1})，当前页面可能不存在真正的目标元素", 
+                               best_candidate.score, MIN_VALID_SCORE);
+                tracing::error!("   📍 最佳候选详情: text={:?}, content-desc={:?}, bounds={:?}", 
+                               best_candidate.element.text, 
+                               best_candidate.element.content_desc,
+                               best_candidate.element.bounds);
+                tracing::error!("   🔍 评分原因:");
+                for reason in &best_candidate.reasons {
+                    tracing::error!("      └─ {}", reason);
+                }
+                
+                // 特殊检查：如果是反义词情况，给出更明确的错误信息
+                if best_candidate.reasons.iter().any(|r| r.contains("反义词") || r.contains("语义相反")) {
+                    if let Some(ref target_text) = criteria.target_text {
+                        return Err(format!(
+                            "当前页面不存在可点击的'{}' 按钮，所有找到的按钮都是相反状态（如'已{}'）。\n建议：请检查页面状态，或者更新页面后重试。",
+                            target_text, target_text
+                        ));
+                    }
+                }
+                
+                return Err(format!(
+                    "当前页面不存在符合条件的目标元素（最高分仅{:.3}），请检查页面状态或目标选择是否正确。",
+                    best_candidate.score
+                ));
+            }
+            
             tracing::info!("✅ [多候选评估] 最佳匹配: score={:.3}", best_candidate.score);
             tracing::info!("   📍 详情: text={:?}, content-desc={:?}, bounds={:?}", 
                          best_candidate.element.text, 
@@ -1066,6 +1107,10 @@ fn attempt_element_recovery<'a>(
                     };
                     
                     // ✅ 启用多候选评估器
+                    let mut semantic_analyzer = SemanticAnalyzer::new();
+                    semantic_analyzer.set_text_matching_mode(TextMatchingMode::Partial);
+                    semantic_analyzer.set_antonym_detection(true);
+                    
                     let criteria = EvaluationCriteria {
                         target_text,
                         target_content_desc,
@@ -1078,6 +1123,7 @@ fn attempt_element_recovery<'a>(
                         matching_strategy: None, // 恢复场景不使用策略标记
                         sibling_texts: vec![],
                         parent_info: None,
+                        semantic_analyzer: Some(semantic_analyzer), // 🆕 NEW: 语义分析器
                     };
                     
                     // 将候选转换为引用列表

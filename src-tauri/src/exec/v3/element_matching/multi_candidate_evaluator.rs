@@ -5,6 +5,7 @@
 use crate::services::ui_reader_service::UIElement;
 use super::spatial_distance::calculate_distance;
 use super::text_comparator::TextComparator;
+use super::super::semantic_analyzer::{SemanticAnalyzer, TextMatchingMode};
 
 /// 匹配候选
 #[derive(Debug, Clone)]
@@ -51,12 +52,35 @@ pub struct EvaluationCriteria {
     pub selected_xpath: Option<String>,
     /// 🆕 完整的XML内容（用于提取候选元素的子元素文本）
     pub xml_content: Option<String>,
+    /// 🆕 语义分析器（可选，用于配置化的反义词检测）
+    pub semantic_analyzer: Option<SemanticAnalyzer>,
 }
 
 /// 多候选评估器
 pub struct MultiCandidateEvaluator;
 
 impl MultiCandidateEvaluator {
+    /// 使用语义分析器检查文本匹配
+    fn analyze_semantic_match(
+        target_text: &str,
+        candidate_text: &str,
+        semantic_analyzer: Option<&SemanticAnalyzer>,
+    ) -> (bool, f32, String) {
+        // 如果没有语义分析器，默认允许匹配
+        let Some(analyzer) = semantic_analyzer else {
+            return (true, 0.0, "无语义分析器，允许匹配".to_string());
+        };
+
+        let result = analyzer.analyze_text_match(target_text, candidate_text);
+        
+        if result.should_match {
+            (true, result.score_adjustment, result.reason)
+        } else {
+            // 反义词或不匹配的情况
+            (false, result.score_adjustment, result.reason)
+        }
+    }
+
     /// 从多个匹配元素中选择最佳候选
     /// 
     /// # 评分规则（总分 > 2.0 - 完善版v3 - 强化"父容器+子文本"模式）
@@ -277,9 +301,22 @@ impl MultiCandidateEvaluator {
         if let Some(ref target_text) = criteria.target_text {
             if !target_text.is_empty() {
                 // 检查候选元素的子孙节点中是否包含目标文本
-                let child_text_match = Self::check_child_text_match(elem, target_text, &criteria.xml_content);
+                let child_text_match = Self::check_child_text_match(
+                    elem, 
+                    target_text, 
+                    &criteria.xml_content,
+                    criteria.semantic_analyzer.as_ref(),
+                );
                 
-                if child_text_match.is_complete {
+                // 🚨 特殊处理：如果检测到语义相反，严重降分
+                if matches!(child_text_match.match_source, MatchSource::SemanticOpposite) {
+                    score -= 2.0; // 严重降分，确保反义词不会被选中
+                    reasons.push(format!(
+                        "🚨🚨🚨 检测到语义相反状态: 目标='{}' vs 候选='{}' (-2.0, 反义词惩罚)",
+                        target_text,
+                        child_text_match.matched_text.unwrap_or_default()
+                    ));
+                } else if child_text_match.is_complete {
                     score += 1.0;  // ✅ 提升到1.0 - Android核心UI模式，最高优先级！
                     reasons.push(format!(
                         "✅✅✅✅✅✅ 子元素文本完全匹配: '{}' (父容器+子文本模式 - Android核心架构, 来源: {:?})",
@@ -302,17 +339,32 @@ impl MultiCandidateEvaluator {
         // 🔥🔥🔥 评分项2: 自身文本匹配（0-0.5分）
         if let Some(ref target_text) = criteria.target_text {
             if let Some(ref elem_text) = elem.text {
-                let text_score = TextComparator::calculate_similarity(target_text, elem_text);
-                
-                if text_score >= 0.95 {
-                    score += 0.5;  // ✅ 提升到0.5
-                    reasons.push(format!("✅✅✅ 自身文本完全匹配: '{}'", elem_text));
-                } else if text_score >= 0.7 {
-                    let partial_score = 0.5 * text_score;  // ✅ 基于0.5计算
-                    score += partial_score;
-                    reasons.push(format!("🟡🟡 自身文本部分匹配: '{}' (相似度: {:.2})", elem_text, text_score));
+                // 🚨 使用语义分析器检查匹配
+                let (should_match, score_adjustment, reason) = Self::analyze_semantic_match(
+                    target_text,
+                    elem_text,
+                    criteria.semantic_analyzer.as_ref(),
+                );
+
+                if !should_match {
+                    score += score_adjustment; // 通常是负分
+                    reasons.push(format!(
+                        "🚨🚨🚨 自身文本语义检查: 目标='{}' vs 元素='{}' ({:.1}分, {})",
+                        target_text, elem_text, score_adjustment, reason
+                    ));
                 } else {
-                    reasons.push(format!("❌ 自身文本不匹配: '{}' vs '{}'", elem_text, target_text));
+                    let text_score = TextComparator::calculate_similarity(target_text, elem_text);
+                    
+                    if text_score >= 0.95 {
+                        score += 0.5;  // ✅ 提升到0.5
+                        reasons.push(format!("✅✅✅ 自身文本完全匹配: '{}'", elem_text));
+                    } else if text_score >= 0.7 {
+                        let partial_score = 0.5 * text_score;  // ✅ 基于0.5计算
+                        score += partial_score;
+                        reasons.push(format!("🟡🟡 自身文本部分匹配: '{}' (相似度: {:.2})", elem_text, text_score));
+                    } else {
+                        reasons.push(format!("❌ 自身文本不匹配: '{}' vs '{}'", elem_text, target_text));
+                    }
                 }
             } else {
                 reasons.push("⚠️ 元素无text属性".to_string());
@@ -382,10 +434,29 @@ impl MultiCandidateEvaluator {
         elem: &UIElement,
         target_text: &str,
         xml_content: &Option<String>,
+        semantic_analyzer: Option<&SemanticAnalyzer>,
     ) -> ChildTextMatchResult {
         // 策略0（新增）: 检查父元素的content-desc（可能包含子元素文本的聚合）
         // 例如: content-desc="通讯录，" 包含目标文本 "通讯录"
         if let Some(ref elem_desc) = elem.content_desc {
+            // 🚨【语义分析】首先检查是否是语义相反的状态
+            let (should_match, _score_adjustment, reason) = Self::analyze_semantic_match(
+                target_text,
+                elem_desc,
+                semantic_analyzer,
+            );
+
+            if !should_match {
+                tracing::warn!("🚨 [语义分析] 检测到不匹配状态: 目标='{}', 候选='{}', 原因: {}", 
+                              target_text, elem_desc, reason);
+                return ChildTextMatchResult {
+                    is_complete: false,
+                    is_partial: false,
+                    matched_text: Some(elem_desc.clone()),
+                    match_source: MatchSource::SemanticOpposite,
+                };
+            }
+            
             // 完全匹配
             if elem_desc == target_text {
                 // 🔕 临时禁用：测试时噪音过大
@@ -417,7 +488,7 @@ impl MultiCandidateEvaluator {
                 }
             }
             
-            // 部分包含
+            // 部分包含（但要排除反义词情况）
             if elem_desc.contains(target_text) {
                 // 🔕 临时禁用：测试时噪音过大
                 // tracing::debug!("🟡 [子元素匹配] 策略0部分成功: 父元素content-desc包含目标文本 '{}'", target_text);
@@ -432,6 +503,24 @@ impl MultiCandidateEvaluator {
         
         // 策略1: 检查元素自身的text属性
         if let Some(ref elem_text) = elem.text {
+            // 🚨【语义分析】首先检查是否是语义相反的状态
+            let (should_match, _score_adjustment, reason) = Self::analyze_semantic_match(
+                target_text,
+                elem_text,
+                semantic_analyzer,
+            );
+
+            if !should_match {
+                tracing::warn!("🚨 [语义分析] 检测到不匹配状态: 目标='{}', 候选='{}', 原因: {}", 
+                              target_text, elem_text, reason);
+                return ChildTextMatchResult {
+                    is_complete: false,
+                    is_partial: false,
+                    matched_text: Some(elem_text.clone()),
+                    match_source: MatchSource::SemanticOpposite,
+                };
+            }
+            
             if elem_text == target_text {
                 // 🔕 临时禁用：测试时噪音过大
                 // tracing::debug!("✅ [子元素匹配] 策略1成功: 元素自身text完全匹配 '{}'", target_text);
@@ -778,6 +867,8 @@ enum MatchSource {
     ChildXmlDesc,
     /// 启发式推断
     Heuristic,
+    /// 🚨 语义相反（反义词）
+    SemanticOpposite,
     /// 未匹配
     None,
 }
@@ -801,9 +892,13 @@ mod tests {
             original_bounds: None,
             original_resource_id: None,
             children_texts: vec![],
+            sibling_texts: vec![],
+            parent_info: None,
+            matching_strategy: None,
             prefer_last: false,
             selected_xpath: None,
             xml_content: None,
+            semantic_analyzer: None,
         };
         
         let result = MultiCandidateEvaluator::evaluate_candidates(candidates, &criteria);
@@ -837,9 +932,13 @@ mod tests {
             original_bounds: Some("[45,1059][249,1263]".to_string()),
             original_resource_id: Some("com.ss.android.ugc.aweme:id/iwk".to_string()),
             children_texts: vec![],
+            sibling_texts: vec![],
+            parent_info: None,
+            matching_strategy: None,
             prefer_last: false,
             selected_xpath: None,
             xml_content,
+            semantic_analyzer: None,
         };
         
         let result = MultiCandidateEvaluator::evaluate_candidates(candidates, &criteria);

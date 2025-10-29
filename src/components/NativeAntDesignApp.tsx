@@ -63,6 +63,7 @@ import { NativeAntDashboard } from "./native-dashboard/NativeAntDashboard";
 import EmployeePageNativeWrapper from "../pages/native-wrappers/EmployeePage.native";
 import ButtonFixValidationPage from "../pages/button-fix-validation";
 import ParameterTestPage from "./ParameterTestPage";
+import { LoopDragTest } from "../debug/loop-drag-test";
 
 // 业务页面导入
 import { StatisticsPageNative } from "../pages/statistics/StatisticsPageNative";
@@ -136,6 +137,11 @@ const NativeAntDesignApp: React.FC = () => {
             key: "parameter-test",
             icon: <ThunderboltOutlined />,
             label: "⚙️ 参数面板集成测试",
+          },
+          {
+            key: "loop-drag-test",
+            icon: <SyncOutlined />,
+            label: "🔄 循环卡片拖拽测试",
           },
         ]
       : []),
@@ -218,6 +224,8 @@ const NativeAntDesignApp: React.FC = () => {
         return <ButtonFixValidationPage />;
       case "parameter-test":
         return <ParameterTestPage />;
+      case "loop-drag-test":
+        return <LoopDragTest />;
       case "smart-vcf":
         return <SmartVcfImporter />;
       case "smart-script-builder":
