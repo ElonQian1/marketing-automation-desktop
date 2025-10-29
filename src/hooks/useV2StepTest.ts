@@ -320,8 +320,9 @@ function extractTargetTextFromStep(step: SmartScriptStep, params: Record<string,
 
 /**
  * 转换SmartScriptStep到V2请求格式
+ * 导出供循环执行引擎使用，确保路径一致
  */
-function convertSmartStepToV2Request(
+export function convertSmartStepToV2Request(
   step: SmartScriptStep,
   deviceId: string,
   mode: 'match-only' | 'execute-step'

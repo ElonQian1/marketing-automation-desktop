@@ -348,7 +348,7 @@ async fn execute_batch_mode_with_first_strategy<'a>(
     ui_xml: &str,
     all_elements: &'a [UIElement],
     strategy_type: &str,
-    xpath: &str,
+    _xpath: &str,
 ) -> Result<(i32, i32), String> {
     // 解析批量配置
     let config = BatchExecutionConfig::from_params(params, step_id)?;

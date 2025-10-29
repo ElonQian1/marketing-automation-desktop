@@ -1,22 +1,11 @@
 // src/modules/loop-control/domain/loop-execution-engine.ts
 // module: loop-control | layer: domain | role: service
-// summary: 循环组真实执行引擎 - 调用后端API执行循环内的步骤
+// summary: 循环组真实执行引擎 - 使用与单步测试按钮相同的执行路径
 
-import { invoke } from "@tauri-apps/api/core";
-import { message } from "antd";
 import type { SmartScriptStep } from '../../../types/smartScript';
 import { normalizeScriptStepsForBackend } from '../../../pages/SmartScriptBuilderPage/helpers/normalizeSteps';
-
-/**
- * 单步测试结果
- */
-interface SingleStepTestResult {
-  step_name: string;
-  success: boolean;
-  duration_ms: number;
-  message?: string;
-  error?: string;
-}
+import { getStepExecutionGateway } from '../../../infrastructure/gateways/StepExecutionGateway';
+import { convertSmartStepToV2Request } from '../../../hooks/useV2StepTest';
 
 /**
  * 循环执行结果
@@ -190,7 +179,7 @@ export class LoopExecutionEngine {
   }
 
   /**
-   * 执行单个步骤
+   * 执行单个步骤 - 使用与单步测试按钮完全相同的路径
    */
   private async executeSingleStep(step: SmartScriptStep, deviceId: string): Promise<{
     success: boolean;
@@ -199,17 +188,31 @@ export class LoopExecutionEngine {
   }> {
     try {
       // 🎯 使用与单步测试按钮完全相同的路径
-      // 走 useSingleStepTest → useV2StepTest → StepExecutionGateway 的路径
-      const result = await invoke('execute_single_step_test', {
-        deviceId: deviceId,
-        step: step
-      }) as SingleStepTestResult;
+      // StepTestButton → useSingleStepTest → useV2StepTest → StepExecutionGateway → run_step_v2
+      console.log(`🔄 [LoopExecutionEngine] 执行步骤: ${step.name} (使用单步测试路径)`);
+      
+      // 1. 标准化步骤（和useStepTestV2MigrationFixed相同）
+      const normalizedStep = {
+        ...step,
+        description: step.description || "",
+        enabled: step.enabled ?? true,
+        order: step.order ?? 0,
+      };
 
-      console.log(`✅ [LoopExecutionEngine] 步骤执行成功:`, result);
+      // 2. 转换为V2请求格式（和useV2StepTest相同）
+      const gateway = getStepExecutionGateway();
+      const v2Request = convertSmartStepToV2Request(normalizedStep, deviceId, 'execute-step');
+      
+      console.log(`📋 [LoopExecutionEngine] V2请求参数:`, v2Request);
+      
+      // 3. 使用StepExecutionGateway执行（和单步测试完全相同）
+      const v2Result = await gateway.executeStep(v2Request);
+      
+      console.log(`✅ [LoopExecutionEngine] V2执行结果:`, v2Result);
       
       return {
-        success: true,
-        logs: [`步骤 "${step.name}" 执行成功 (耗时: ${result.duration_ms}ms)`]
+        success: v2Result.success,
+        logs: v2Result.logs || [`步骤 "${step.name}" ${v2Result.success ? '成功' : '失败'}: ${v2Result.message}`]
       };
 
     } catch (error) {
