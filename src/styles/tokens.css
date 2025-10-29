@@ -466,3 +466,111 @@
 .light-theme-force .ant-switch-inner {
   color: var(--bg-light-base, #ffffff) !important;
 }
+
+/* 🌙 深色主题模态框样式 */
+.dark-theme-modal.ant-modal .ant-modal-content,
+.dark-theme-modal .ant-modal-content {
+  background: var(--bg-elevated, #1e293b) !important;
+  color: var(--text-1, #f8fafc) !important;
+  border: 1px solid var(--border-primary, #334155) !important;
+}
+
+.dark-theme-modal .ant-modal-header {
+  background: var(--bg-secondary, #334155) !important;
+  border-color: var(--border-secondary, #475569) !important;
+}
+
+.dark-theme-modal .ant-modal-title {
+  color: var(--text-1, #f8fafc) !important;
+}
+
+.dark-theme-modal .ant-modal-body {
+  background: var(--bg-elevated, #1e293b) !important;
+  color: var(--text-1, #f8fafc) !important;
+}
+
+.dark-theme-modal .ant-modal-footer {
+  background: var(--bg-secondary, #334155) !important;
+  border-color: var(--border-secondary, #475569) !important;
+}
+
+/* 深色模态框内的所有文本元素 */
+.dark-theme-modal .ant-modal-content span,
+.dark-theme-modal .ant-modal-content p,
+.dark-theme-modal .ant-modal-content div,
+.dark-theme-modal .ant-modal-content strong,
+.dark-theme-modal .ant-modal-content label {
+  color: var(--text-1, #f8fafc) !important;
+}
+
+/* 深色模态框中的 Typography 组件 */
+.dark-theme-modal .ant-typography,
+.dark-theme-modal .ant-typography-title,
+.dark-theme-modal .ant-typography-paragraph,
+.dark-theme-modal .ant-typography-text {
+  color: var(--text-1, #f8fafc) !important;
+}
+
+.dark-theme-modal .ant-typography-secondary {
+  color: var(--text-2, #e2e8f0) !important;
+}
+
+/* 深色模态框中的输入组件 */
+.dark-theme-modal .ant-input,
+.dark-theme-modal .ant-input-number,
+.dark-theme-modal .ant-input-number-input {
+  background: var(--bg-base, #0f172a) !important;
+  color: var(--text-1, #f8fafc) !important;
+  border-color: var(--border-primary, #334155) !important;
+}
+
+.dark-theme-modal .ant-input:focus,
+.dark-theme-modal .ant-input-number:focus,
+.dark-theme-modal .ant-input-number-focused {
+  border-color: var(--brand, #4a5fd1) !important;
+  box-shadow: 0 0 0 2px rgba(74, 95, 209, 0.2) !important;
+}
+
+/* 深色模态框中的按钮 */
+.dark-theme-modal .ant-btn-default {
+  background: var(--bg-secondary, #334155) !important;
+  color: var(--text-1, #f8fafc) !important;
+  border-color: var(--border-primary, #334155) !important;
+}
+
+.dark-theme-modal .ant-btn-default:hover {
+  background: var(--bg-tertiary, #475569) !important;
+  border-color: var(--border-secondary, #475569) !important;
+}
+
+.dark-theme-modal .ant-btn-primary {
+  background: var(--brand, #4a5fd1) !important;
+  border-color: var(--brand, #4a5fd1) !important;
+}
+
+/* 深色模态框中的 Alert 组件 */
+.dark-theme-modal .ant-alert {
+  background: var(--bg-base, #0f172a) !important;
+  border-color: var(--border-primary, #334155) !important;
+}
+
+.dark-theme-modal .ant-alert-message {
+  color: var(--text-1, #f8fafc) !important;
+}
+
+.dark-theme-modal .ant-alert-icon {
+  color: var(--info, #3b82f6) !important;
+}
+
+/* 深色模态框中的 Switch 组件 */
+.dark-theme-modal .ant-switch {
+  background: var(--bg-muted, #64748b) !important;
+}
+
+.dark-theme-modal .ant-switch-checked {
+  background: var(--brand, #4a5fd1) !important;
+}
+
+.dark-theme-modal .ant-switch-inner {
+  color: var(--text-1, #f8fafc) !important;
+}

@@ -36,7 +36,6 @@ import {
   SyncOutlined,
   AimOutlined,
   ThunderboltOutlined,
-  CheckCircleOutlined,
   BugOutlined,
   UserOutlined,
   LogoutOutlined,

@@ -9,8 +9,6 @@ import {
   Space,
   Typography,
   Card,
-  Button,
-  Divider,
   Alert,
   Tabs
 } from 'antd';
@@ -26,6 +24,7 @@ import {
   useTextMatchingConfig,
   type TextMatchingConfig 
 } from '../components/text-matching';
+import { TextMatchingDemo } from '../components/text-matching/TextMatchingDemo';
 import { SemanticAnalyzerSettingsPage } from './SemanticAnalyzerSettingsPage';
 
 const { Title, Paragraph } = Typography;
@@ -130,6 +129,16 @@ export const TextMatchingSettingsPage: React.FC = () => {
           </Card>
         </Space>
       )
+    },
+    {
+      key: 'demo',
+      label: (
+        <Space>
+          <ExperimentOutlined />
+          <span>功能演示</span>
+        </Space>
+      ),
+      children: <TextMatchingDemo />
     },
     {
       key: 'advanced',

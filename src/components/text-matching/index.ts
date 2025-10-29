@@ -8,8 +8,12 @@ export {
   useTextMatchingConfig 
 } from './TextMatchingConfigPanel';
 
+export { TextMatchingInlineControl } from './components/TextMatchingInlineControl';
+
 export type { 
   TextMatchingMode,
   TextMatchingConfig,
   TextMatchingConfigPanelProps 
 } from './TextMatchingConfigPanel';
+
+export type { TextMatchingInlineControlProps } from './components/TextMatchingInlineControl';

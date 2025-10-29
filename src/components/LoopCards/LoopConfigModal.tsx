@@ -75,7 +75,7 @@ export const LoopConfigModal: React.FC<LoopConfigModalProps> = ({
       okText="保存"
       cancelText="取消"
       width={500}
-      className="light-theme-force"
+      className="dark-theme-modal"
     >
       {/* 🔧 阻止拖拽事件传导到父组件 */}
       <div 
