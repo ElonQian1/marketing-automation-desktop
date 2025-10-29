@@ -397,3 +397,72 @@
 .light-theme-force .ant-form-item-label > label {
   color: var(--text-inverse, #1e293b) !important;
 }
+
+/* 🔧 Modal 模态框组件颜色覆盖 */
+.ant-modal.light-theme-force,
+.ant-modal.light-theme-force .ant-modal-content,
+.light-theme-force.ant-modal-content,
+.light-theme-force .ant-modal-content {
+  background: var(--bg-light-base, #ffffff) !important;
+  color: var(--text-inverse, #1e293b) !important;
+}
+
+.ant-modal.light-theme-force .ant-modal-header,
+.light-theme-force .ant-modal-header {
+  background: var(--bg-light-elevated, #f8fafc) !important;
+  border-color: var(--border-muted, #e2e8f0) !important;
+}
+
+.ant-modal.light-theme-force .ant-modal-title,
+.light-theme-force .ant-modal-title {
+  color: var(--text-inverse, #1e293b) !important;
+}
+
+.ant-modal.light-theme-force .ant-modal-body,
+.light-theme-force .ant-modal-body {
+  background: var(--bg-light-base, #ffffff) !important;
+  color: var(--text-inverse, #1e293b) !important;
+}
+
+.ant-modal.light-theme-force .ant-modal-footer,
+.light-theme-force .ant-modal-footer {
+  background: var(--bg-light-elevated, #f8fafc) !important;
+  border-color: var(--border-muted, #e2e8f0) !important;
+}
+
+/* Modal 内的所有文本元素 - 更高优先级 */
+.ant-modal.light-theme-force .ant-modal-content span,
+.ant-modal.light-theme-force .ant-modal-content p,
+.ant-modal.light-theme-force .ant-modal-content div,
+.ant-modal.light-theme-force .ant-modal-content strong,
+.ant-modal.light-theme-force .ant-modal-content label,
+.light-theme-force .ant-modal-content span,
+.light-theme-force .ant-modal-content p,
+.light-theme-force .ant-modal-content div,
+.light-theme-force .ant-modal-content strong,
+.light-theme-force .ant-modal-content label {
+  color: var(--text-inverse, #1e293b) !important;
+}
+
+/* Alert 组件在模态框中的颜色覆盖 */
+.ant-modal.light-theme-force .ant-alert,
+.light-theme-force .ant-alert {
+  background: var(--bg-light-secondary, #f1f5f9) !important;
+  border-color: var(--border-muted, #e2e8f0) !important;
+}
+
+.ant-modal.light-theme-force .ant-alert-message,
+.light-theme-force .ant-alert-message {
+  color: var(--text-inverse, #1e293b) !important;
+}
+
+.ant-modal.light-theme-force .ant-alert-icon,
+.light-theme-force .ant-alert-icon {
+  color: var(--info, #3b82f6) !important;
+}
+
+/* Switch 组件在模态框中的颜色覆盖 */
+.ant-modal.light-theme-force .ant-switch-inner,
+.light-theme-force .ant-switch-inner {
+  color: var(--bg-light-base, #ffffff) !important;
+}
