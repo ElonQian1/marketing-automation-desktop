@@ -5,6 +5,7 @@
 import { useState, useCallback, useRef } from 'react';
 import { LoopExecutionService } from '../domain/loop-execution-service';
 import type { SmartScriptStep } from '../../../types/smartScript';
+import { loopExecutionEngine, type LoopExecutionProgress } from '../domain/loop-execution-engine';
 
 export interface LoopTestState {
   status: 'idle' | 'running' | 'completed' | 'error';
@@ -141,42 +142,48 @@ export function useLoopTestManager(callbacks?: LoopTestCallbacks): LoopTestManag
         deviceId,
       });
 
-      // 启动进度模拟（后端实现前的临时方案）
-      let stepIndex = 0;
-      const totalSteps = executionSequence.steps.length;
-      const timer = setInterval(() => {
-        stepIndex++;
-        const progress = Math.min((stepIndex / totalSteps) * 100, 100);
-        const currentIteration = Math.floor(stepIndex / loopSteps.length);
-        
+      // 🔥 使用真实的循环执行引擎
+      try {
+        const result = await loopExecutionEngine.executeLoopTest(
+          loopSteps,
+          isInfinite ? 999 : totalIterations, // 无限循环暂时限制为999次
+          deviceId,
+          // 进度回调
+          (progress: LoopExecutionProgress) => {
+            const progressPercentage = progress.progress_percentage;
+            updateLoopState(loopId, {
+              progress: progressPercentage,
+              currentStep: progress.step,
+              currentIteration: progress.iteration,
+            });
+            callbacks?.onProgress?.(progressPercentage, loopId);
+          },
+          // 步骤完成回调
+          (stepName: string, success: boolean) => {
+            console.log(`📝 步骤完成: ${stepName} - ${success ? '成功' : '失败'}`);
+          }
+        );
+
+        // 执行完成
         updateLoopState(loopId, {
-          progress,
-          currentStep: (stepIndex - 1) % loopSteps.length + 1,
-          currentIteration: currentIteration + 1,
+          status: result.success ? 'completed' : 'error',
+          progress: 100,
+          endTime: Date.now(),
+          error: result.error_message,
         });
 
-        callbacks?.onProgress?.(progress, loopId);
+        console.log(`🏁 循环测试完成: ${loopId}`, result);
+        callbacks?.onComplete?.(result.success, loopId);
 
-        // 完成测试
-        if (stepIndex >= totalSteps) {
-          clearInterval(timer);
-          progressTimersRef.current.delete(loopId);
-          
-          updateLoopState(loopId, {
-            status: 'completed',
-            progress: 100,
-            endTime: Date.now(),
-          });
-
-          callbacks?.onComplete?.(true, loopId);
-        }
-      }, 500); // 每500ms更新一次进度
-
-      progressTimersRef.current.set(loopId, timer);
-
-      // TODO: 调用后端 Tauri 命令
-      // await invoke('execute_loop_test', {
-      //   loopId,
+      } catch (error) {
+        console.error(`💥 循环测试执行失败: ${loopId}`, error);
+        updateLoopState(loopId, {
+          status: 'error',
+          endTime: Date.now(),
+          error: String(error),
+        });
+        callbacks?.onComplete?.(false, loopId);
+      }
       //   steps: executionSequence,
       //   deviceId,
       //   config: { iterations: totalIterations }
@@ -201,7 +208,12 @@ export function useLoopTestManager(callbacks?: LoopTestCallbacks): LoopTestManag
     }
 
     try {
-      // 清理进度定时器
+      console.log(`🛑 停止循环测试: ${loopId}`);
+      
+      // 🔥 停止真实的循环执行引擎
+      loopExecutionEngine.stop();
+
+      // 清理进度定时器（如果有）
       const timer = progressTimersRef.current.get(loopId);
       if (timer) {
         clearInterval(timer);

@@ -22,6 +22,7 @@ import {
 import { 
   TextMatchingConfigPanel, 
   useTextMatchingConfig,
+  AntonymManager,
   type TextMatchingConfig 
 } from '../components/text-matching';
 import { TextMatchingDemo } from '../components/text-matching/TextMatchingDemo';
@@ -156,7 +157,16 @@ export const TextMatchingSettingsPage: React.FC = () => {
             message="高级语义分析配置"
             description="以下设置仅在'部分文本匹配模式'下生效，可以精细控制反义词检测和语义分析算法。"
           />
-          <SemanticAnalyzerSettingsPage />
+          
+          {/* 反义词管理 */}
+          <Card title="反义词管理" className="light-theme-force">
+            <AntonymManager />
+          </Card>
+          
+          {/* 语义分析器设置 */}
+          <Card title="语义分析器设置" className="light-theme-force">
+            <SemanticAnalyzerSettingsPage />
+          </Card>
         </Space>
       ) : (
         <Alert

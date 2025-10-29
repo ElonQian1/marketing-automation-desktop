@@ -31,6 +31,7 @@ import { isBackendHealthy } from "../services/backend-health-check";
 import styles from "./DraggableStepCard.module.css";
 // import StrategySelector from './strategy-selector/StrategySelector'; // 暂时不用，保留备用
 import CompactStrategyMenu from "./strategy-selector/CompactStrategyMenu";
+import { TextMatchingInlineControl } from "./text-matching";
 import { ActionParamsPanel } from "./action-system/ActionParamsPanel";
 import type { ActionType, ActionParams } from "../types/action-types";
 
@@ -1015,6 +1016,20 @@ const DraggableStepCardInner: React.FC<
               : statusConfig.text}
           </span>
         </div>
+
+        {/* 文本匹配控制 - 仅在非循环步骤中显示 */}
+        {!isLoopStep && (
+          <TextMatchingInlineControl
+            compact
+            style={{
+              marginTop: "8px",
+              padding: "6px 8px",
+              background: "rgba(59, 130, 246, 0.05)",
+              borderRadius: "6px",
+              border: "1px solid rgba(59, 130, 246, 0.1)"
+            }}
+          />
+        )}
 
         {/* 步骤详情 - 循环步骤简化显示 */}
         {!isLoopStep && (

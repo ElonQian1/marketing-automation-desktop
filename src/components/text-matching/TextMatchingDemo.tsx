@@ -2,7 +2,7 @@
 // module: text-matching | layer: ui | role: demo component
 // summary: 文本匹配功能演示组件，展示不同模式的匹配效果
 
-import React, { useState } from 'react';
+import React, { useState, useMemo } from 'react';
 import {
   Card,
   Input,
@@ -22,83 +22,30 @@ import {
 } from '@ant-design/icons';
 
 import { TextMatchingConfigPanel, useTextMatchingConfig } from './index';
+import { useAntonymManager } from './hooks/useAntonymManager';
+import { TextMatchingEngine } from './core/TextMatchingEngine';
+import type { MatchResult } from './core/TextMatchingEngine';
 
 const { Text } = Typography;
 const { TextArea } = Input;
 
-interface MatchResult {
-  matched: boolean;
-  confidence: number;
-  method: string;
-  reason: string;
-}
-
 export const TextMatchingDemo: React.FC = () => {
   const { config, updateConfig } = useTextMatchingConfig();
+  const { antonymPairs } = useAntonymManager();
   const [targetText, setTargetText] = useState('关注');
   const [candidates, setCandidates] = useState('关注\n取消关注\n已关注\n关注他\n点击关注\n关注好友');
   const [results, setResults] = useState<MatchResult[]>([]);
 
-  // 模拟文本匹配逻辑
+  // 创建文本匹配引擎实例
+  const engine = useMemo(() => {
+    return new TextMatchingEngine(config, antonymPairs);
+  }, [config, antonymPairs]);
+
+  // 执行文本匹配
   const performMatching = () => {
     const candidateList = candidates.split('\n').filter(c => c.trim());
-    const newResults: MatchResult[] = [];
-
-    candidateList.forEach(candidate => {
-      if (config.mode === 'exact') {
-        // 绝对匹配：完全相同才算匹配
-        const matched = candidate.trim() === targetText.trim();
-        newResults.push({
-          matched,
-          confidence: matched ? 1.0 : 0.0,
-          method: '绝对匹配',
-          reason: matched ? '文本完全相同' : '文本不相同'
-        });
-      } else {
-        // 部分匹配：包含目标文本或相关语义
-        const includes = candidate.includes(targetText);
-        let confidence = 0;
-        let reason = '';
-        let method = '';
-
-        if (includes) {
-          confidence = 0.9;
-          method = '部分文本匹配';
-          reason = `包含目标文本 "${targetText}"`;
-        } else if (config.antonymCheckEnabled) {
-          // 模拟反义词检测
-          const antonyms = ['取消关注', '不关注', '拒绝关注'];
-          const isAntonym = antonyms.some(ant => candidate.includes(ant.replace('不', '').replace('取消', '').replace('拒绝', '')));
-          if (isAntonym) {
-            confidence = 0.2;
-            method = '反义词检测';
-            reason = '检测到反义词或相反操作';
-          }
-        }
-
-        if (confidence === 0 && config.semanticAnalysisEnabled) {
-          // 模拟语义分析
-          const semanticKeywords = ['关注', '订阅', '追踪', '跟随'];
-          const hasSemanticMatch = semanticKeywords.some(keyword => 
-            candidate.includes(keyword) || targetText.includes(keyword)
-          );
-          if (hasSemanticMatch) {
-            confidence = 0.7;
-            method = '语义分析';
-            reason = '语义相关性匹配';
-          }
-        }
-
-        newResults.push({
-          matched: confidence > 0.5,
-          confidence,
-          method: method || '无匹配',
-          reason: reason || '无相关性'
-        });
-      }
-    });
-
-    setResults(newResults);
+    const matchResults = engine.batchMatch(targetText, candidateList);
+    setResults(matchResults);
   };
 
   const getConfidenceColor = (confidence: number) => {
