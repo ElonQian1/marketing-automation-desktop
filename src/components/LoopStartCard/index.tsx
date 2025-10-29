@@ -33,16 +33,6 @@ export const LoopStartCard: React.FC<LoopStartCardProps> = ({
   const isInfinite = currentIterations === -1;
   const currentLoopId = loopConfig?.loopId || (step.parameters?.loop_id as string) || `loop_${step.id}`;
 
-  // 🐛 调试日志
-  console.log('🔍 LoopStartCard 渲染:', {
-    currentLoopId,
-    hasAllSteps: !!allSteps,
-    stepsLength: allSteps?.length || 0,
-    hasDeviceId: !!deviceId,
-    deviceId,
-    testState: testState.status,
-  });
-
   // 🎯 循环测试执行 Hook
   const {
     state: testState,
@@ -66,6 +56,16 @@ export const LoopStartCard: React.FC<LoopStartCardProps> = ({
     onProgress: (progress) => {
       console.log(`循环测试进度: ${progress}%`);
     },
+  });
+
+  // 🐛 调试日志（移到 Hook 定义之后）
+  console.log('🔍 LoopStartCard 渲染:', {
+    currentLoopId,
+    hasAllSteps: !!allSteps,
+    stepsLength: allSteps?.length || 0,
+    hasDeviceId: !!deviceId,
+    deviceId,
+    testState: testState.status,
   });
 
   // 保存配置 - 使用共享的 LoopConfigModal
