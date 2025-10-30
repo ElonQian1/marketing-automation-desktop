@@ -26,6 +26,15 @@ export class DataTransformer {
       parameters: { ...step.parameters, ...step.params }
     };
 
+    // 🔥 【关键修复】将 strategySelector 相关字段保存到 parameters 中
+    // 确保这些字段在序列化后能够被正确保存和恢复
+    if (step.enableStrategySelector !== undefined) {
+      stepData.parameters._enableStrategySelector = step.enableStrategySelector;
+    }
+    if (step.strategySelector !== undefined) {
+      stepData.parameters._strategySelector = step.strategySelector;
+    }
+
     // 转换循环数据
     if (this.hasLoopData(step)) {
       stepData.loopData = {
@@ -144,6 +153,32 @@ export class DataTransformer {
     // 恢复扩展字段
     if (stepData.extensions) {
       Object.assign(step, stepData.extensions);
+      
+      // 🔍 调试日志：检查 strategySelector 和 enableStrategySelector 是否被恢复
+      if ('strategySelector' in stepData.extensions || 'enableStrategySelector' in stepData.extensions) {
+        console.log('📋 [DataTransformer] 恢复扩展字段（包含决策链相关）:', {
+          hasStrategySelector: 'strategySelector' in stepData.extensions,
+          hasEnableStrategySelector: 'enableStrategySelector' in stepData.extensions,
+          strategySelector: stepData.extensions.strategySelector,
+          enableStrategySelector: stepData.extensions.enableStrategySelector,
+          stepId: step.id,
+          stepName: step.name
+        });
+      }
+    }
+
+    // 🔥 【关键修复】从 parameters 中恢复 strategySelector 相关字段
+    // 这些字段在序列化时被保存到了 parameters 中（使用 _ 前缀）
+    if (stepData.parameters._enableStrategySelector !== undefined) {
+      step.enableStrategySelector = stepData.parameters._enableStrategySelector;
+      console.log('✅ [DataTransformer] 从 parameters 恢复 enableStrategySelector:', step.enableStrategySelector);
+    }
+    if (stepData.parameters._strategySelector !== undefined) {
+      step.strategySelector = stepData.parameters._strategySelector;
+      console.log('✅ [DataTransformer] 从 parameters 恢复 strategySelector:', {
+        hasData: !!step.strategySelector,
+        selectedStrategy: step.strategySelector?.selectedStrategy
+      });
     }
 
     return step;
@@ -203,6 +238,17 @@ export class DataTransformer {
       if (!knownFields.has(key)) {
         extensions[key] = value;
       }
+    }
+
+    // 🔍 调试日志：检查 strategySelector 和 enableStrategySelector 是否被提取
+    if ('strategySelector' in step || 'enableStrategySelector' in step) {
+      console.log('📋 [DataTransformer] 提取扩展字段（包含决策链相关）:', {
+        hasStrategySelector: 'strategySelector' in step,
+        hasEnableStrategySelector: 'enableStrategySelector' in step,
+        strategySelector: step.strategySelector,
+        enableStrategySelector: step.enableStrategySelector,
+        extensionsKeys: Object.keys(extensions)
+      });
     }
 
     return extensions;

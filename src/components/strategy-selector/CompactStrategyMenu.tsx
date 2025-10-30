@@ -140,7 +140,7 @@ const CompactStrategyMenu: React.FC<CompactStrategyMenuProps> = ({
   ) => {
     if (!stepId || !onUpdateStepParameters) return;
     
-    const decisionChain: Record<string, any> = {
+    const decisionChain: Record<string, unknown> = {
       executionChain: 'intelligent_chain',
       selectionMode: mode,
       operationType: opType,
@@ -686,6 +686,8 @@ const CompactStrategyMenu: React.FC<CompactStrategyMenuProps> = ({
         
         // ✅ 使用计算出的最新配置
         await saveConfigDirectly('all', newBatchConfig);
+        // ✅ 同时更新步骤参数
+        updateDecisionChainConfig('all', operationType, newBatchConfig, null, null);
         break;
       default:
         console.warn('未知的选择模式:', key);
@@ -733,6 +735,8 @@ const CompactStrategyMenu: React.FC<CompactStrategyMenuProps> = ({
 
   const handleOperationTypeClick = ({ key }: { key: string }) => {
     console.log('👆 操作类型菜单项被点击:', key);
+    const newOperationType = key as ActionKind;
+    
     switch (key) {
       case 'tap':
         setOperationType('tap');
@@ -754,7 +758,17 @@ const CompactStrategyMenu: React.FC<CompactStrategyMenuProps> = ({
         break;
       default:
         console.warn('未知的操作类型:', key);
+        return;
     }
+    
+    // ✅ 同时更新步骤参数
+    updateDecisionChainConfig(
+      selectionMode, 
+      newOperationType,
+      selectionMode === 'all' ? batchConfig : null,
+      selectionMode === 'random' ? randomConfig : null,
+      selectionMode === 'match-original' ? matchOriginalConfig : null
+    );
   };
 
   const getOperationTypeMenu = () => ({

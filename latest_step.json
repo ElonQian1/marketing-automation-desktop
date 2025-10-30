@@ -1,0 +1,19 @@
+{
+  "id": "step_scroll_1761818831155_387",
+  "step_type": "unknown",
+  "name": "屏幕交互 - 智能滚动",
+  "description": "向下滚动屏幕（可在卡片中调整方向/距离/速度）",
+  "parameters": {
+    "direction": "down",
+    "distance": 600,
+    "repeat_count": 2,
+    "retry_count": 3,
+    "screenshot_on_error": true,
+    "speed_ms": 300,
+    "timeout_ms": 10000,
+    "wait_between": true,
+    "wait_duration": 2000
+  },
+  "enabled": true,
+  "order": 1
+}

@@ -20,6 +20,14 @@ export class StepSerializer {
    */
   static serializeStep(step: any, index: number): SmartScriptStep {
     // 🔥 关键修复：严格保持原始 step_type，绝不转换
+    console.log("🔍 [StepSerializer] 输入步骤原始数据:", {
+      stepId: step.id,
+      stepName: step.name,
+      rawStepType: step.step_type,
+      rawType: step.type,
+      hasParameters: !!step.parameters,
+    });
+
     const originalStepType = step.step_type || step.type;
 
     console.log("📝 [StepSerializer] 序列化步骤:", {

@@ -11,6 +11,8 @@ pub fn map_action_kind(action: &SmartActionType) -> ExecStepKind {
     use SmartActionType::*;
     match action {
         Tap | Input | Wait | Swipe | SmartTap => ExecStepKind::Action,
+        // 🔥 新增类型映射
+        KeyEvent | LongPress | SmartScroll => ExecStepKind::Action,
         SmartFindElement | BatchMatch | ExtractElement => ExecStepKind::Match,
         RecognizePage | VerifyAction | WaitForPageState => ExecStepKind::Match, // 归为匹配/判定类
         SmartNavigation => ExecStepKind::Action,

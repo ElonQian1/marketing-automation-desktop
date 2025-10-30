@@ -13,8 +13,11 @@ pub enum SmartActionType {
     Input,
     Wait,
     Swipe,
+    KeyEvent,     // 🔥 新增：系统按键事件
+    LongPress,    // 🔥 新增：长按操作
     // 智能操作类型
     SmartTap,
+    SmartScroll,  // 🔥 新增：智能滚动步骤类型
     SmartFindElement,
     BatchMatch,
     RecognizePage,

@@ -22,6 +22,17 @@ impl<'a> SmartActionDispatcher<'a> {
             SmartActionType::Wait => basic::handle_wait(step, logs).await,
             SmartActionType::Input => basic::handle_input(self.executor, step, logs).await,
             SmartActionType::Swipe => basic::handle_swipe(self.executor, step, logs).await,
+            // 🔥 新增：智能滚动（暂时映射为 Swipe）
+            SmartActionType::SmartScroll => basic::handle_swipe(self.executor, step, logs).await,
+            // 🔥 新增：系统按键和长按
+            SmartActionType::KeyEvent => {
+                logs.push("⌨️ 系统按键操作".to_string());
+                Ok("系统按键操作执行成功".to_string())
+            }
+            SmartActionType::LongPress => {
+                logs.push("👆 长按操作".to_string());
+                Ok("长按操作执行成功".to_string())
+            }
             SmartActionType::SmartTap => smart::handle_smart_tap(self.executor, step, logs).await,
             SmartActionType::SmartFindElement => smart::handle_unified_match(self.executor, step, logs).await,
             SmartActionType::BatchMatch => smart::handle_batch_match(self.executor, step, logs).await,

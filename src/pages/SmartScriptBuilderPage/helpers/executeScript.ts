@@ -147,12 +147,15 @@ export function createHandleExecuteScript(ctx: Ctx) {
                 }
               };
               
+              // 🔥 修复：从步骤类型动态获取action，而不是硬编码
+              const action = clickStep.step_type || "smart_selection";
+              
               const chainSpec = {
                 chainId: `step_execution_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
                 orderedSteps: [{
                   inline: {
                     stepId: clickStep.id,
-                    action: "smart_selection",
+                    action: action,  // ✅ 使用步骤实际类型
                     params: params
                   },
                   ref: null

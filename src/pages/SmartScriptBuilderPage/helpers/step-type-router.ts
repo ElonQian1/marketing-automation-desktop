@@ -34,6 +34,11 @@ export function identifyStepType(step: ExtendedSmartScriptStep): string {
   const stepName = step.name?.toLowerCase() || "";
   
   // ✅ 优先级1：严格匹配 step_type（最可靠）
+  // 0. 循环控制类型（最高优先级 - 应该被后端预处理器处理，前端直接跳过）
+  if (stepType === "loop_start" || stepType === "loop_end") {
+    return "loop_control";
+  }
+  
   // 1. 滚动类型
   if (stepType === "smart_scroll" || stepType === "swipe") {
     return "scroll";
@@ -117,6 +122,20 @@ async function executeWait(step: ExtendedSmartScriptStep): Promise<StepExecution
 }
 
 /**
+ * 处理循环控制步骤（loop_start/loop_end）
+ * 这些步骤应该被后端预处理器展开，前端直接跳过即可
+ */
+async function executeLoopControl(step: ExtendedSmartScriptStep): Promise<StepExecutionResult> {
+  console.log(`🔄 [循环控制] 步骤 ${step.step_type} 已被后端预处理器展开，前端跳过`);
+  
+  return {
+    success: true,
+    message: `✅ 循环控制标记 ${step.step_type} 已处理（后端展开）`,
+    executorType: "loop_control",
+  };
+}
+
+/**
  * 执行点击步骤（使用V3引擎）
  */
 async function executeClick(
@@ -166,6 +185,10 @@ export async function routeAndExecuteStep(
   
   // 根据类型路由到对应执行器
   switch (stepType) {
+    case "loop_control": {
+      return await executeLoopControl(step);
+    }
+    
     case "scroll": {
       const result = await executeScrollStep(deviceId, step, screen);
       return {
@@ -217,6 +240,7 @@ export async function routeAndExecuteStep(
  * 步骤类型中文名映射
  */
 export const STEP_TYPE_NAMES: Record<string, string> = {
+  loop_control: "循环控制",
   scroll: "滚动",
   keyevent: "系统按键",
   long_press: "长按",
@@ -229,6 +253,7 @@ export const STEP_TYPE_NAMES: Record<string, string> = {
  * 步骤类型图标映射
  */
 export const STEP_TYPE_ICONS: Record<string, string> = {
+  loop_control: "🔄",
   scroll: "📜",
   keyevent: "🔑",
   long_press: "👆",

@@ -35,29 +35,31 @@ export interface DecisionChainConfig {
  * @param config 要验证的配置对象
  * @returns 有效的配置对象，如果无效则返回 null
  */
-export function validateDecisionChainConfig(config: any): DecisionChainConfig | null {
+export function validateDecisionChainConfig(config: unknown): DecisionChainConfig | null {
   if (!config || typeof config !== 'object') {
     return null;
   }
   
+  const cfg = config as Record<string, unknown>;
+  
   // 提供默认值
   const validated: DecisionChainConfig = {
-    executionChain: config.executionChain || 'intelligent_chain',
-    selectionMode: config.selectionMode || 'first',
-    operationType: config.operationType || 'tap',
+    executionChain: (cfg.executionChain as 'intelligent_chain' | 'single_step' | 'static_strategy') || 'intelligent_chain',
+    selectionMode: (cfg.selectionMode as SelectionMode) || 'first',
+    operationType: (cfg.operationType as ActionKind) || 'tap',
   };
   
   // 保留高级配置
-  if (config.batchConfig && config.selectionMode === 'all') {
-    validated.batchConfig = config.batchConfig;
+  if (cfg.batchConfig && cfg.selectionMode === 'all') {
+    validated.batchConfig = cfg.batchConfig as BatchConfig;
   }
   
-  if (config.randomConfig && config.selectionMode === 'random') {
-    validated.randomConfig = config.randomConfig;
+  if (cfg.randomConfig && cfg.selectionMode === 'random') {
+    validated.randomConfig = cfg.randomConfig as RandomConfig;
   }
   
-  if (config.matchOriginalConfig && config.selectionMode === 'match-original') {
-    validated.matchOriginalConfig = config.matchOriginalConfig;
+  if (cfg.matchOriginalConfig && cfg.selectionMode === 'match-original') {
+    validated.matchOriginalConfig = cfg.matchOriginalConfig as MatchOriginalConfig;
   }
   
   return validated;

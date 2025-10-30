@@ -239,6 +239,8 @@ const StepListPanel: React.FC<StepListPanelProps> = (props) => {
   };
 
   const onCreateScreenInteraction = (tpl: any | any[]) => {
+    console.log('🔍 [StepListPanel] 收到屏幕交互模板:', tpl);
+    
     const baseOrder = steps.length;
     const now = Date.now();
     const ensureStep = (s: any, idx: number): ExtendedSmartScriptStep => {
@@ -252,11 +254,21 @@ const StepListPanel: React.FC<StepListPanelProps> = (props) => {
           speed_ms: 300,
         } as any;
       step.order = baseOrder + idx + 1;
+      
+      console.log('✅ [StepListPanel] 步骤准备完成:', {
+        stepId: step.id,
+        stepType: step.step_type,
+        stepName: step.name,
+      });
+      
       return step;
     };
     const list = Array.isArray(tpl)
       ? tpl.map(ensureStep)
       : [ensureStep(tpl, 0)];
+    
+    console.log('📝 [StepListPanel] 即将添加步骤:', list.length, '个:', list.map(s => ({ id: s.id, step_type: s.step_type })));
+    
     setSteps((prev) => [...prev, ...list]);
     if (list.length === 1) {
       const dir = (list[0].parameters as any)?.direction || 'down';

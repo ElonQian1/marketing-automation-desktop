@@ -685,6 +685,17 @@ const DraggableStepCardInner: React.FC<
               (() => {
                 // 🔇 日志优化：移除频繁的渲染日志
                 // console.log("🎯 [DraggableStepCard] 渲染 CompactStrategyMenu", { stepId: step.id });
+                
+                // 🆕 从步骤参数中读取决策链配置
+                const decisionChain = step.parameters?.decisionChain as {
+                  executionChain?: string;
+                  selectionMode?: import('../types/smartSelection').SelectionMode;
+                  operationType?: import('../types/smartScript').ActionKind;
+                  batchConfig?: unknown;
+                  randomConfig?: unknown;
+                  matchOriginalConfig?: unknown;
+                } | undefined;
+                
                 return (
                   <CompactStrategyMenu
                     data-menu-version="v20251020-fix"
@@ -789,6 +800,12 @@ const DraggableStepCardInner: React.FC<
                     disabled={!isBackendHealthy()}
                     compact={true}
                     stepId={step.id}
+                    // 🆕 传递初始配置（从步骤参数恢复）
+                    initialSelectionMode={decisionChain?.selectionMode || 'first'}
+                    initialOperationType={decisionChain?.operationType || 'tap'}
+                    initialBatchConfig={decisionChain?.batchConfig as import('../components/strategy-selector/types/selection-config').BatchConfig | undefined}
+                    initialRandomConfig={decisionChain?.randomConfig as import('../components/strategy-selector/types/selection-config').RandomConfig | undefined}
+                    initialMatchOriginalConfig={decisionChain?.matchOriginalConfig as import('../components/strategy-selector/types/selection-config').MatchOriginalConfig | undefined}
                     onUpdateStepParameters={(stepId, partialParams) => {
                       // 🔑 深度合并参数，支持部分更新
                       if (onUpdateStepParameters) {
