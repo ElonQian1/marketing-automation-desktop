@@ -72,6 +72,9 @@ export class StepSerializer {
       "loop_name",
       "loop_count",
       "loop_enabled",
+      // 🎯 决策链关键字段
+      "enableStrategySelector",
+      "strategySelector",
     ];
 
     preserveFields.forEach((field) => {
@@ -79,6 +82,16 @@ export class StepSerializer {
         (baseStep as any)[field] = step[field];
       }
     });
+
+    // 🎯 额外保存决策链字段到 parameters（双重保险）
+    if (step.enableStrategySelector !== undefined) {
+      originalParameters._enableStrategySelector = step.enableStrategySelector;
+      console.log("🎯 [序列化] 保存 enableStrategySelector 到 parameters:", step.enableStrategySelector);
+    }
+    if (step.strategySelector !== undefined) {
+      originalParameters._strategySelector = step.strategySelector;
+      console.log("🎯 [序列化] 保存 strategySelector 到 parameters:", step.strategySelector);
+    }
 
     // 保存UI状态
     if (step.ui_state) {
@@ -111,6 +124,17 @@ export class StepSerializer {
   static deserializeStep(step: SmartScriptStep): any {
     const params = step.parameters as any; // 使用 any 类型以访问额外属性
 
+    // 🎯 从顶级字段或 parameters 恢复决策链字段
+    const enableStrategySelector = (step as any).enableStrategySelector ?? params?._enableStrategySelector;
+    const strategySelector = (step as any).strategySelector ?? params?._strategySelector;
+
+    if (enableStrategySelector !== undefined) {
+      console.log("🎯 [反序列化] 恢复 enableStrategySelector:", enableStrategySelector);
+    }
+    if (strategySelector !== undefined) {
+      console.log("🎯 [反序列化] 恢复 strategySelector:", strategySelector);
+    }
+
     return {
       id: step.id,
       step_type: step.step_type,
@@ -125,6 +149,10 @@ export class StepSerializer {
       conditions: step.conditions,
       error_handling: step.error_handling,
       ui_state: step.ui_state || { collapsed: false },
+
+      // 🎯 恢复决策链字段
+      enableStrategySelector,
+      strategySelector,
 
       // ✅ 确保所有参数都被正确传递，特别是智能分析数据
       ...params,
