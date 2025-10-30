@@ -36,13 +36,6 @@ import { TextMatchingInlineControl } from "./text-matching";
 import { ActionParamsPanel } from "./action-system/ActionParamsPanel";
 import type { ActionType, ActionParams } from "../types/action-types";
 // 🎯 执行流控制功能导入
-import { 
-  extractFailureConfigFromStep, 
-  applyFailureConfigToStep
-} from '../modules/execution-flow-control/utils/step-type-adapter';
-import type { 
-  ExecutionFailureHandlingConfig
-} from '../modules/execution-flow-control/domain/failure-handling-strategy';
 import { ExecutionFailureStrategy } from '../modules/execution-flow-control/domain/failure-handling-strategy';
 
 // 设备简化接口
@@ -842,21 +835,63 @@ const DraggableStepCardInner: React.FC<
                       }
                     }}
                     extraButtons={(() => {
-                      // 失败处理按钮逻辑
-                      const extendedStep = {
-                        ...step,
-                        order: index + 1,
-                        parent_loop_id: step.parameters?.parent_loop_id
-                      } as import('../types/loopScript').ExtendedSmartScriptStep;
-                      
-                      const currentFailureConfig = extractFailureConfigFromStep(extendedStep);
+                      // 🔧 修复失败处理按钮逻辑 - 直接从step.parameters中读取失败配置
+                      const currentFailureHandling = step.parameters?.failureHandling as {
+                        strategy?: 'STOP_SCRIPT' | 'CONTINUE_NEXT' | 'JUMP_TO_STEP' | 'RETRY_CURRENT' | 'SKIP_CURRENT';
+                        jumpTarget?: string;
+                        retryCount?: number;
+                        retryDelay?: number;
+                        enabled?: boolean;
+                      } | undefined;
 
-                      const handleFailureConfigUpdate = (config: ExecutionFailureHandlingConfig | undefined) => {
-                        const updatedStep = applyFailureConfigToStep(extendedStep, config);
-                        onUpdateStepParameters?.(step.id, updatedStep.parameters || {});
+                      // 🔄 转换为ExecutionFailureStrategy格式进行显示
+                      const getCurrentStrategy = (): ExecutionFailureStrategy => {
+                        if (!currentFailureHandling?.enabled || !currentFailureHandling?.strategy) {
+                          return ExecutionFailureStrategy.STOP_SCRIPT; // 默认策略
+                        }
+                        
+                        switch (currentFailureHandling.strategy) {
+                          case 'STOP_SCRIPT':
+                            return ExecutionFailureStrategy.STOP_SCRIPT;
+                          case 'CONTINUE_NEXT':
+                            return ExecutionFailureStrategy.CONTINUE_NEXT;
+                          case 'RETRY_CURRENT':
+                            return ExecutionFailureStrategy.RETRY_CURRENT;
+                          case 'JUMP_TO_STEP':
+                            return ExecutionFailureStrategy.JUMP_TO_STEP;
+                          case 'SKIP_CURRENT':
+                            return ExecutionFailureStrategy.SKIP_CURRENT;
+                          default:
+                            return ExecutionFailureStrategy.STOP_SCRIPT;
+                        }
                       };
 
-                      const getFailureStrategyText = (strategy?: ExecutionFailureStrategy) => {
+                      // 📝 更新失败配置的处理函数
+                      const handleFailureConfigUpdate = (strategy: 'STOP_SCRIPT' | 'CONTINUE_NEXT' | 'JUMP_TO_STEP' | 'RETRY_CURRENT' | 'SKIP_CURRENT') => {
+                        console.log('🔄 [DraggableStepCard] 更新失败处理策略:', { stepId: step.id, strategy });
+                        
+                        const newFailureHandling = {
+                          strategy,
+                          enabled: true,
+                          ...(strategy === 'JUMP_TO_STEP' && { jumpTarget: 'step-1' }),
+                          ...(strategy === 'RETRY_CURRENT' && { retryCount: 3, retryDelay: 1000 })
+                        };
+
+                        const updatedParameters = {
+                          ...step.parameters,
+                          failureHandling: newFailureHandling
+                        };
+
+                        console.log('📝 [DraggableStepCard] 保存新的参数:', { 
+                          stepId: step.id, 
+                          oldParams: step.parameters,
+                          newParams: updatedParameters 
+                        });
+
+                        onUpdateStepParameters?.(step.id, updatedParameters);
+                      };
+
+                      const getFailureStrategyText = (strategy: ExecutionFailureStrategy) => {
                         switch (strategy) {
                           case ExecutionFailureStrategy.STOP_SCRIPT:
                             return '失败时🛑 终止';
@@ -866,55 +901,40 @@ const DraggableStepCardInner: React.FC<
                             return '失败时🔄 重试';
                           case ExecutionFailureStrategy.JUMP_TO_STEP:
                             return '失败时🎯 跳转';
+                          case ExecutionFailureStrategy.SKIP_CURRENT:
+                            return '失败时⏸️ 跳过';
                           default:
                             return '失败时🛑 终止';
                         }
                       };
 
+                      const currentStrategy = getCurrentStrategy();
+
                       const failureStrategyMenuItems = [
                         {
                           key: 'STOP_SCRIPT',
-                          label: '🛑 终止整个脚本',
-                          onClick: () => handleFailureConfigUpdate({
-                            strategy: ExecutionFailureStrategy.STOP_SCRIPT,
-                            targetStepId: undefined,
-                            retryCount: undefined,
-                            retryIntervalMs: undefined,
-                            enableDetailedLogging: true
-                          })
+                          label: '� 终止整个脚本',
+                          onClick: () => handleFailureConfigUpdate('STOP_SCRIPT')
                         },
                         {
                           key: 'CONTINUE_NEXT', 
                           label: '⏭️ 继续下一步',
-                          onClick: () => handleFailureConfigUpdate({
-                            strategy: ExecutionFailureStrategy.CONTINUE_NEXT,
-                            targetStepId: undefined,
-                            retryCount: undefined,
-                            retryIntervalMs: undefined,
-                            enableDetailedLogging: true
-                          })
+                          onClick: () => handleFailureConfigUpdate('CONTINUE_NEXT')
                         },
                         {
                           key: 'RETRY_CURRENT',
                           label: '🔄 重试当前步骤',
-                          onClick: () => handleFailureConfigUpdate({
-                            strategy: ExecutionFailureStrategy.RETRY_CURRENT,
-                            targetStepId: undefined,
-                            retryCount: 3,
-                            retryIntervalMs: 1000,
-                            enableDetailedLogging: true
-                          })
+                          onClick: () => handleFailureConfigUpdate('RETRY_CURRENT')
                         },
                         {
                           key: 'JUMP_TO_STEP',
                           label: '🎯 跳转到指定步骤',
-                          onClick: () => handleFailureConfigUpdate({
-                            strategy: ExecutionFailureStrategy.JUMP_TO_STEP,
-                            targetStepId: 'step-1',
-                            retryCount: undefined,
-                            retryIntervalMs: undefined,
-                            enableDetailedLogging: true
-                          })
+                          onClick: () => handleFailureConfigUpdate('JUMP_TO_STEP')
+                        },
+                        {
+                          key: 'SKIP_CURRENT',
+                          label: '⏸️ 跳过当前步骤',
+                          onClick: () => handleFailureConfigUpdate('SKIP_CURRENT')
                         }
                       ];
 
@@ -935,7 +955,7 @@ const DraggableStepCardInner: React.FC<
                               fontSize: "12px",
                             }}
                           >
-                            {getFailureStrategyText(currentFailureConfig?.strategy)}
+                            {getFailureStrategyText(currentStrategy)}
                             <span style={{ marginLeft: "4px" }}>▾</span>
                           </Button>
                         </Dropdown>
