@@ -41,6 +41,11 @@ export class LoopExecutionEngine {
 
   /**
    * 执行循环测试
+   * @param loopSteps 循环内的步骤列表
+   * @param iterations 循环次数
+   * @param deviceId 设备ID
+   * @param onProgress 进度回调
+   * @param onStepComplete 步骤完成回调
    */
   async executeLoopTest(
     loopSteps: SmartScriptStep[],
@@ -179,7 +184,7 @@ export class LoopExecutionEngine {
   }
 
   /**
-   * 执行单个步骤 - 使用与单步测试按钮完全相同的路径
+   * 执行单个步骤 - 使用与单步测试按钮完全相同的路径（包括repeat逻辑）
    */
   private async executeSingleStep(step: SmartScriptStep, deviceId: string): Promise<{
     success: boolean;
@@ -199,20 +204,72 @@ export class LoopExecutionEngine {
         order: step.order ?? 0,
       };
 
+      // 🔑 获取重复执行参数（与useV2StepTest完全相同）
+      const params = step.parameters || {};
+      const repeatCount = Number(params.repeat_count) || 1;
+      const waitBetween = params.wait_between === true;
+      const waitDuration = Number(params.wait_duration) || 500;
+
+      console.log('🔄 [LoopExecutionEngine] 重复执行配置:', {
+        stepName: step.name,
+        repeatCount,
+        waitBetween,
+        waitDuration,
+        stepType: step.step_type
+      });
+
       // 2. 转换为V2请求格式（和useV2StepTest相同）
       const gateway = getStepExecutionGateway();
       const v2Request = convertSmartStepToV2Request(normalizedStep, deviceId, 'execute-step');
       
       console.log(`📋 [LoopExecutionEngine] V2请求参数:`, v2Request);
       
-      // 3. 使用StepExecutionGateway执行（和单步测试完全相同）
-      const v2Result = await gateway.executeStep(v2Request);
+      // 🔄 重复执行逻辑（与useV2StepTest完全相同）
+      let lastResponse: Awaited<ReturnType<typeof gateway.executeStep>> | null = null;
+      const executionLogs: string[] = [];
+
+      for (let i = 0; i < repeatCount; i++) {
+        console.log(`🔄 [LoopExecutionEngine] 执行第 ${i + 1}/${repeatCount} 次: ${step.name}`);
+        executionLogs.push(`执行第 ${i + 1}/${repeatCount} 次`);
+
+        // 3. 使用StepExecutionGateway执行（和单步测试完全相同）
+        const v2Result = await gateway.executeStep(v2Request);
+        lastResponse = v2Result;
+
+        if (!v2Result.success) {
+          console.warn(`⚠️ [LoopExecutionEngine] 第 ${i + 1} 次执行失败:`, v2Result.message);
+          executionLogs.push(`第 ${i + 1} 次执行失败: ${v2Result.message}`);
+          // 如果某次执行失败，继续执行剩余次数（与useV2StepTest相同策略）
+        } else {
+          console.log(`✅ [LoopExecutionEngine] 第 ${i + 1} 次执行成功`);
+          executionLogs.push(`第 ${i + 1} 次执行成功`);
+        }
+
+        // 🔥 修复：循环场景下每次执行后都需要等待（包括最后一次）
+        // 原因：防止当前轮最后一次执行与下一轮第一次执行重叠
+        if (waitBetween) {
+          console.log(`⏳ [LoopExecutionEngine] 等待 ${waitDuration}ms 让动画完成`);
+          executionLogs.push(`等待 ${waitDuration}ms`);
+          await new Promise(resolve => setTimeout(resolve, waitDuration));
+        }
+      }
+
+      // 使用最后一次执行的结果
+      const finalResponse = lastResponse;
+      if (!finalResponse) {
+        throw new Error('所有执行尝试都失败了');
+      }
       
-      console.log(`✅ [LoopExecutionEngine] V2执行结果:`, v2Result);
+      console.log(`✅ [LoopExecutionEngine] 步骤执行完成:`, {
+        stepName: step.name,
+        success: finalResponse.success,
+        repeatCount,
+        executionLogs
+      });
       
       return {
-        success: v2Result.success,
-        logs: v2Result.logs || [`步骤 "${step.name}" ${v2Result.success ? '成功' : '失败'}: ${v2Result.message}`]
+        success: finalResponse.success,
+        logs: [...(finalResponse.logs || []), ...executionLogs] // 合并执行日志
       };
 
     } catch (error) {
