@@ -271,6 +271,15 @@ export const useStepCardStore = create<StepCardStore>()(
         if (card) {
           card.progress = progress;
           card.updatedAt = Date.now();
+          
+          // 🔧 修复：当进度达到100%时，自动将状态从analyzing改为ready
+          if (progress >= 100 && card.status === 'analyzing') {
+            card.status = 'ready';
+            console.log('✅ [StepCardStore] 分析完成，状态自动切换为ready', { 
+              cardId: canonicalId.slice(-8), 
+              progress 
+            });
+          }
         }
       });
     },
