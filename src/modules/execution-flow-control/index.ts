@@ -48,9 +48,34 @@ export {
   StepFailureConfigPanel
 } from './ui/step-failure-config-panel';
 
+// 🆕 高级配置组件导出
+export {
+  JumpTargetSelector
+} from './ui/components/jump-target-selector';
+
+export {
+  RetryConfigPanel
+} from './ui/components/retry-config-panel';
+
+export {
+  AdvancedFailureConfigModal
+} from './ui/components/advanced-failure-config-modal';
+
 export type {
   ExecutionFailureConfigProps
 } from './ui/execution-failure-config';
+
+export type {
+  JumpTargetStep
+} from './ui/components/jump-target-selector';
+
+export type {
+  RetryConfig
+} from './ui/components/retry-config-panel';
+
+export type {
+  AdvancedFailureConfig
+} from './ui/components/advanced-failure-config-modal';
 
 // Hook导出
 export {

@@ -220,7 +220,6 @@ const CompactStrategyMenu: React.FC<CompactStrategyMenuProps> = ({
   
   // 🔧 获取评分存储（候选项维度修复）
   const stepScoreStore = useStepScoreStore();
-  const globalScore = stepId ? stepScoreStore.getGlobalScore(stepId) : undefined;
 
   // 🔍 调试输出置信度和推荐数据（已禁用：频繁渲染导致刷屏）
   // React.useEffect(() => {
@@ -246,13 +245,18 @@ const CompactStrategyMenu: React.FC<CompactStrategyMenuProps> = ({
       return "🔄 未选择策略";
     }
 
-    const { type, stepName } = selector.activeStrategy;
+    const { type, stepName, key } = selector.activeStrategy;
     const icon = STRATEGY_ICONS[type];
     const baseLabel = STRATEGY_LABELS[type];
 
     if (type === "smart-single" && stepName) {
       const step = SMART_STEPS.find((s) => s.step === stepName);
       return `${icon} ${step?.label || stepName}`;
+    }
+
+    // 🏗️ 如果是静态策略且key为structural_matching，显示"结构匹配"
+    if (type === "static" && key === "structural_matching") {
+      return "🏗️ 结构匹配";
     }
 
     return `${icon} ${baseLabel}`;
@@ -265,7 +269,9 @@ const CompactStrategyMenu: React.FC<CompactStrategyMenuProps> = ({
         key: "smart-auto",
         icon: <span>🧠</span>,
         label: "智能·自动链",
-        onClick: () => events.onStrategyChange({ type: "smart-auto" }),
+        onClick: () => {
+          events.onStrategyChange({ type: "smart-auto" });
+        },
       },
       {
         key: "smart-single",
@@ -331,8 +337,9 @@ const CompactStrategyMenu: React.FC<CompactStrategyMenuProps> = ({
                 </div>
               </div>
             ),
-            onClick: () =>
-              events.onStrategyChange({ type: "smart-single", stepName: step }),
+            onClick: () => {
+              events.onStrategyChange({ type: "smart-single", stepName: step });
+            },
           };
         }),
       },
@@ -347,7 +354,10 @@ const CompactStrategyMenu: React.FC<CompactStrategyMenuProps> = ({
             icon: <span>🏗️</span>,
             label: "结构匹配",
             onClick: () => {
-              console.log('📌 [CompactStrategyMenu] 打开结构匹配配置');
+              console.log('📌 [CompactStrategyMenu] 切换到结构匹配策略');
+              // 更新策略状态为静态策略，使用特殊key标识结构匹配
+              events.onStrategyChange({ type: "static", key: "structural_matching" });
+              // 打开配置模态框
               setStructuralMatchingVisible(true);
             }
           },
@@ -365,11 +375,12 @@ const CompactStrategyMenu: React.FC<CompactStrategyMenuProps> = ({
             ? selector.candidates.static!.map((candidate) => ({
                 key: `static-${candidate.key}`,
                 label: candidate.name,
-                onClick: () =>
+                onClick: () => {
                   events.onStrategyChange({
                     type: "static",
                     key: candidate.key,
-                  }),
+                  });
+                },
               }))
             : [
                 {

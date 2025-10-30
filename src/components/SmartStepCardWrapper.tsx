@@ -17,6 +17,8 @@ import { LoopEndCard } from "./LoopEndCard";
 import { useLoopTestManager } from "../modules/loop-control/application/use-loop-test-manager";
 import { SmartScriptStep } from "../types/smartScript"; // 使用统一的类型定义
 import { message } from "antd";
+import { useSmartStrategyAnalysis } from "../hooks/useSmartStrategyAnalysis";
+import type { StrategyCandidate } from "../types/strategySelector";
 
 interface SmartStepCardWrapperProps {
   step: SmartScriptStep; // 使用统一的SmartScriptStep类型
@@ -84,6 +86,78 @@ export const SmartStepCardWrapper: React.FC<SmartStepCardWrapperProps> = (props)
       console.log(`循环测试进度 ${loopId}: ${progress}%`);
     },
   });
+
+  // 🧠 智能策略分析管理（仅对需要策略选择的步骤启用）
+  const {
+    strategySelector,
+    startAnalysis,
+    cancelAnalysis,
+    applyStrategy,
+    saveAsStatic
+  } = useSmartStrategyAnalysis({
+    step,
+    element: undefined // 暂时不传element，依赖步骤已保存的上下文
+  });
+
+  // 🎯 策略变更处理
+  const handleStrategyChange = React.useCallback((_stepId: string, selection: { type: 'smart-auto' | 'smart-single' | 'static'; key?: string; stepName?: string }) => {
+    console.log('🎯 [SmartStepCardWrapper] 策略变更:', { stepId: step.id, selection });
+    applyStrategy(selection);
+    
+    // 通知父组件更新步骤参数
+    if (onUpdateStepParameters) {
+      onUpdateStepParameters(step.id, {
+        strategy: selection.type,
+        strategyKey: selection.key,
+        strategyStepName: selection.stepName
+      });
+    }
+  }, [step.id, applyStrategy, onUpdateStepParameters]);
+
+  // 🔄 重新分析处理
+  const handleReanalyze = React.useCallback(async () => {
+    console.log('🔄 [SmartStepCardWrapper] 重新分析:', step.id);
+    await startAnalysis();
+    // 也调用父组件的onReanalyze（如果有）
+    if (onReanalyze) {
+      await onReanalyze(step.id);
+    }
+  }, [step.id, startAnalysis, onReanalyze]);
+
+  // 💾 保存为静态策略处理
+  const handleSaveAsStatic = React.useCallback((_stepId: string, candidate: StrategyCandidate) => {
+    console.log('💾 [SmartStepCardWrapper] 保存静态策略:', { stepId: step.id, candidate });
+    saveAsStatic(candidate);
+  }, [step.id, saveAsStatic]);
+
+  // 🔍 打开元素检查器处理
+  const handleOpenElementInspector = React.useCallback(() => {
+    console.log('🔍 [SmartStepCardWrapper] 打开元素检查器:', step.id);
+    // TODO: 实现元素检查器
+  }, [step.id]);
+
+  // ⏹️ 取消分析处理
+  const handleCancelAnalysis = React.useCallback((_stepId: string, jobId: string) => {
+    console.log('⏹️ [SmartStepCardWrapper] 取消分析:', { stepId: step.id, jobId });
+    cancelAnalysis();
+  }, [step.id, cancelAnalysis]);
+
+  // ✨ 应用推荐策略处理
+  const handleApplyRecommendation = React.useCallback((_stepId: string, key: string) => {
+    console.log('✨ [SmartStepCardWrapper] 应用推荐策略:', { stepId: step.id, key });
+    // 找到推荐的候选策略并应用
+    if (strategySelector?.recommended) {
+      const allCandidates = [
+        ...(strategySelector.candidates?.smart ?? []),
+        ...(strategySelector.candidates?.static ?? [])
+      ];
+      const recommendedCandidate = allCandidates.find(c => c.key === key);
+      if (recommendedCandidate) {
+        const strategyType = recommendedCandidate.type === 'smart' ? 'smart-auto' : 'static';
+        applyStrategy({ type: strategyType, key: recommendedCandidate.key });
+      }
+    }
+  }, [step.id, strategySelector, applyStrategy]);
 
   // 🎯 智能路由：根据步骤类型选择合适的卡片组件
 
@@ -252,7 +326,10 @@ export const SmartStepCardWrapper: React.FC<SmartStepCardWrapperProps> = (props)
   // 普通步骤 - 使用现代化拖拽卡片
   return (
     <DraggableStepCard
-      step={step}
+      step={{
+        ...step,
+        strategySelector: strategySelector || undefined
+      }}
       index={index}
       isDragging={isDragging}
       currentDeviceId={currentDeviceId}
@@ -267,8 +344,14 @@ export const SmartStepCardWrapper: React.FC<SmartStepCardWrapperProps> = (props)
       onBatchMatch={onBatchMatch}
       ENABLE_BATCH_MATCH={ENABLE_BATCH_MATCH}
       onOpenPageAnalyzer={onOpenPageAnalyzer}
+      // 🧠 策略选择器回调
+      onStrategyChange={handleStrategyChange}
+      onReanalyze={handleReanalyze}
+      onSaveAsStatic={handleSaveAsStatic}
+      onOpenElementInspector={handleOpenElementInspector}
+      onCancelAnalysis={handleCancelAnalysis}
+      onApplyRecommendation={handleApplyRecommendation}
       // 🔄 智能分析功能
-      onReanalyze={onReanalyze}
       isAnalyzing={isAnalyzing}
     />
   );

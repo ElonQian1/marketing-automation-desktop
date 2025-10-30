@@ -36,7 +36,12 @@ import { TextMatchingInlineControl } from "./text-matching";
 import { ActionParamsPanel } from "./action-system/ActionParamsPanel";
 import type { ActionType, ActionParams } from "../types/action-types";
 // 🎯 执行流控制功能导入
-import { ExecutionFailureStrategy } from '../modules/execution-flow-control/domain/failure-handling-strategy';
+import { 
+  ExecutionFailureStrategy,
+  AdvancedFailureConfigModal,
+  type JumpTargetStep,
+  type AdvancedFailureConfig
+} from '../modules/execution-flow-control';
 
 // 设备简化接口
 export interface DeviceInfo {
@@ -372,7 +377,10 @@ const DraggableStepCardInner: React.FC<
   // 🎛️ 参数面板状态管理
   const [showParams, setShowParams] = useState(false);
   
-  // 🔑 实时参数状态 - 确保测试按钮使用最新参数
+  // � 高级失败处理配置状态
+  const [showAdvancedFailureConfig, setShowAdvancedFailureConfig] = useState(false);
+  
+  // �🔑 实时参数状态 - 确保测试按钮使用最新参数
   const [currentParameters, setCurrentParameters] = useState(step.parameters || {});
 
   // 🔄 同步step.parameters变化到本地状态
@@ -385,6 +393,69 @@ const DraggableStepCardInner: React.FC<
     ...step,
     parameters: currentParameters
   }), [step, currentParameters]);
+
+  // 🔧 当前失败处理配置
+  const currentFailureHandling = useMemo(() => {
+    return step.parameters?.failureHandling as {
+      strategy?: 'STOP_SCRIPT' | 'CONTINUE_NEXT' | 'JUMP_TO_STEP' | 'RETRY_CURRENT' | 'SKIP_CURRENT';
+      jumpTarget?: string;
+      retryCount?: number;
+      retryDelay?: number;
+      enabled?: boolean;
+    } | undefined;
+  }, [step.parameters?.failureHandling]);
+
+  // 📝 更新失败配置的处理函数
+  const handleFailureConfigUpdate = (strategy: 'STOP_SCRIPT' | 'CONTINUE_NEXT' | 'JUMP_TO_STEP' | 'RETRY_CURRENT' | 'SKIP_CURRENT') => {
+    console.log('🔄 [DraggableStepCard] 更新失败处理策略:', { stepId: step.id, strategy });
+    
+    // 🎯 对于需要高级配置的策略，打开配置弹窗
+    if (strategy === 'JUMP_TO_STEP' || strategy === 'RETRY_CURRENT') {
+      setShowAdvancedFailureConfig(true);
+      return;
+    }
+    
+    // 📝 对于简单策略，直接保存配置
+    const newFailureHandling = {
+      strategy,
+      enabled: true
+    };
+
+    const updatedParameters = {
+      ...step.parameters,
+      failureHandling: newFailureHandling
+    };
+
+    console.log('📝 [DraggableStepCard] 保存新的参数:', { 
+      stepId: step.id, 
+      oldParams: step.parameters,
+      newParams: updatedParameters 
+    });
+
+    onUpdateStepParameters?.(step.id, updatedParameters);
+  };
+
+  // 🔧 处理高级配置确认
+  const handleAdvancedConfigConfirm = (config: AdvancedFailureConfig) => {
+    console.log('🔧 [DraggableStepCard] 确认高级配置:', { stepId: step.id, config });
+    
+    const newFailureHandling = {
+      strategy: config.strategy,
+      enabled: true,
+      ...(config.strategy === 'JUMP_TO_STEP' && { jumpTarget: config.jumpTarget }),
+      ...(config.strategy === 'RETRY_CURRENT' && { 
+        retryCount: config.retryConfig?.retryCount || 3, 
+        retryDelay: config.retryConfig?.retryDelay || 1000 
+      })
+    };
+
+    const updatedParameters = {
+      ...step.parameters,
+      failureHandling: newFailureHandling
+    };
+
+    onUpdateStepParameters?.(step.id, updatedParameters);
+  };
 
   // 🔄 将步骤类型转换为ActionType
   const actionType = useMemo(() => {
@@ -752,13 +823,14 @@ const DraggableStepCardInner: React.FC<
                       }));
 
                       return {
-                        activeStrategy: step.strategySelector.selectedStrategy
+                        activeStrategy: step.strategySelector.activeStrategy
                           ? {
-                              type: step.strategySelector.selectedStrategy as
+                              type: step.strategySelector.activeStrategy.type as
                                 | "smart-auto"
                                 | "smart-single"
                                 | "static",
-                              stepName: step.strategySelector.selectedStep as
+                              key: step.strategySelector.activeStrategy.key,
+                              stepName: step.strategySelector.activeStrategy.stepName as
                                 | "step1"
                                 | "step2"
                                 | "step3"
@@ -835,16 +907,7 @@ const DraggableStepCardInner: React.FC<
                       }
                     }}
                     extraButtons={(() => {
-                      // 🔧 修复失败处理按钮逻辑 - 直接从step.parameters中读取失败配置
-                      const currentFailureHandling = step.parameters?.failureHandling as {
-                        strategy?: 'STOP_SCRIPT' | 'CONTINUE_NEXT' | 'JUMP_TO_STEP' | 'RETRY_CURRENT' | 'SKIP_CURRENT';
-                        jumpTarget?: string;
-                        retryCount?: number;
-                        retryDelay?: number;
-                        enabled?: boolean;
-                      } | undefined;
-
-                      // 🔄 转换为ExecutionFailureStrategy格式进行显示
+                      //  转换为ExecutionFailureStrategy格式进行显示
                       const getCurrentStrategy = (): ExecutionFailureStrategy => {
                         if (!currentFailureHandling?.enabled || !currentFailureHandling?.strategy) {
                           return ExecutionFailureStrategy.STOP_SCRIPT; // 默认策略
@@ -864,31 +927,6 @@ const DraggableStepCardInner: React.FC<
                           default:
                             return ExecutionFailureStrategy.STOP_SCRIPT;
                         }
-                      };
-
-                      // 📝 更新失败配置的处理函数
-                      const handleFailureConfigUpdate = (strategy: 'STOP_SCRIPT' | 'CONTINUE_NEXT' | 'JUMP_TO_STEP' | 'RETRY_CURRENT' | 'SKIP_CURRENT') => {
-                        console.log('🔄 [DraggableStepCard] 更新失败处理策略:', { stepId: step.id, strategy });
-                        
-                        const newFailureHandling = {
-                          strategy,
-                          enabled: true,
-                          ...(strategy === 'JUMP_TO_STEP' && { jumpTarget: 'step-1' }),
-                          ...(strategy === 'RETRY_CURRENT' && { retryCount: 3, retryDelay: 1000 })
-                        };
-
-                        const updatedParameters = {
-                          ...step.parameters,
-                          failureHandling: newFailureHandling
-                        };
-
-                        console.log('📝 [DraggableStepCard] 保存新的参数:', { 
-                          stepId: step.id, 
-                          oldParams: step.parameters,
-                          newParams: updatedParameters 
-                        });
-
-                        onUpdateStepParameters?.(step.id, updatedParameters);
                       };
 
                       const getFailureStrategyText = (strategy: ExecutionFailureStrategy) => {
@@ -1314,6 +1352,44 @@ const DraggableStepCardInner: React.FC<
         {/* 🧠 策略选择器 - 已移至标题栏紧凑模式 */}
         {/* 保留原始策略选择器组件以备需要详细视图时使用 */}
       </div>
+
+      {/* 🔧 高级失败处理配置弹窗 */}
+      <AdvancedFailureConfigModal
+        visible={showAdvancedFailureConfig}
+        currentStepId={step.id}
+        config={(() => {
+          const failureHandling = currentFailureHandling;
+          if (!failureHandling?.strategy) return undefined;
+          
+          if (failureHandling.strategy === 'JUMP_TO_STEP') {
+            return {
+              strategy: 'JUMP_TO_STEP',
+              jumpTarget: failureHandling.jumpTarget
+            };
+          } else if (failureHandling.strategy === 'RETRY_CURRENT') {
+            return {
+              strategy: 'RETRY_CURRENT',
+              retryConfig: {
+                retryCount: failureHandling.retryCount || 3,
+                retryDelay: failureHandling.retryDelay || 1000
+              }
+            };
+          }
+          return undefined;
+        })()}
+        availableSteps={(() => {
+          // 📋 构造可用步骤列表 - 这里需要从父组件获取，暂时使用模拟数据
+          const mockSteps: JumpTargetStep[] = [
+            { id: 'step-1', index: 0, name: '步骤 1', enabled: true },
+            { id: 'step-2', index: 1, name: '步骤 2', enabled: true },
+            { id: 'step-3', index: 2, name: '步骤 3', enabled: false },
+          ];
+          return mockSteps.filter(s => s.id !== step.id); // 排除当前步骤
+        })()}
+        onClose={() => setShowAdvancedFailureConfig(false)}
+        onConfirm={handleAdvancedConfigConfirm}
+        title="失败处理高级配置"
+      />
     </div>
   );
 };
