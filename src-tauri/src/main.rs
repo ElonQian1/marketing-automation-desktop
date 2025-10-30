@@ -469,7 +469,11 @@ fn main() {
             commands::semantic_analyzer_config::delete_antonym_pair,
             commands::semantic_analyzer_config::toggle_antonym_pair,
             commands::semantic_analyzer_config::export_semantic_analyzer_config,
-            commands::semantic_analyzer_config::import_semantic_analyzer_config
+            commands::semantic_analyzer_config::import_semantic_analyzer_config,
+            // 结构匹配命令
+            commands::structural_matching::evaluate_structural_match,
+            commands::structural_matching::evaluate_structural_match_batch,
+            commands::structural_matching::get_matched_elements
         ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");

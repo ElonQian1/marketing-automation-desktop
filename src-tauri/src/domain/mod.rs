@@ -2,3 +2,4 @@
 pub mod coords;
 pub mod direction;
 pub mod actions;
+pub mod structural_matching;

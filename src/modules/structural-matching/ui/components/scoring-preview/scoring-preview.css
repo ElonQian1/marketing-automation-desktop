@@ -1,0 +1,62 @@
+/* src/modules/structural-matching/ui/components/scoring-preview/scoring-preview.css */
+/* module: structural-matching | layer: ui | role: 预览样式 */
+/* summary: 评分预览组件的样式定义 */
+
+.structural-scoring-preview.light-theme-force {
+  color: var(--text-inverse, #1e293b);
+}
+
+.structural-scoring-preview .preview-card {
+  background: var(--bg-light-base, #ffffff);
+  border: 1px solid var(--border-light, #e2e8f0);
+}
+
+.structural-scoring-preview .score-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.structural-scoring-preview .score-progress {
+  padding: 0 8px;
+}
+
+.structural-scoring-preview .score-details {
+  display: flex;
+  justify-content: space-between;
+  margin-top: 12px;
+  padding: 8px;
+  background: var(--bg-light-secondary, #f8fafc);
+  border-radius: 6px;
+}
+
+.structural-scoring-preview .field-result-item {
+  padding: 12px 0 !important;
+  border-bottom: 1px solid var(--border-light, #e2e8f0);
+}
+
+.structural-scoring-preview .field-result-item:last-child {
+  border-bottom: none;
+}
+
+.structural-scoring-preview .field-result-content {
+  width: 100%;
+}
+
+.structural-scoring-preview .field-result-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 8px;
+}
+
+/* 确保所有文本和组件在浅色背景下可读 */
+.structural-scoring-preview.light-theme-force .ant-card,
+.structural-scoring-preview.light-theme-force .ant-typography,
+.structural-scoring-preview.light-theme-force .ant-progress {
+  color: var(--text-inverse, #1e293b);
+}
+
+.structural-scoring-preview.light-theme-force .ant-list-item {
+  color: var(--text-inverse, #1e293b);
+}

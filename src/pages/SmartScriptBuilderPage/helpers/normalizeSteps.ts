@@ -361,33 +361,77 @@ function expandLoopsForExecution(steps: ExtendedSmartScriptStep[]): ExtendedSmar
   while (i < steps.length) {
     const step = steps[i];
     
-    // 🔧 修复：禁用循环展开，让循环步骤直接传递到 step-type-router
-    // 这样可以确保"执行脚本"和循环卡片播放按钮使用相同的后端API
+    // 检测循环开始
     if (step.step_type === 'loop_start') {
-      console.log('🔄 [循环处理] 保持循环开始步骤不变，交给统一路由器处理:', {
+      console.log('🔄 [循环展开] 检测到循环开始:', {
         stepId: step.id,
-        stepType: step.step_type,
-        loopId: step.parameters?.loop_id
+        loopId: step.loopId
       });
       
-      // 直接添加循环开始步骤，不展开
-      result.push({
-        ...step,
-        enabled: true,
+      // 查找对应的循环结束
+      const loopId = step.loopId;
+      let endIndex = -1;
+      
+      for (let j = i + 1; j < steps.length; j++) {
+        if (steps[j].step_type === 'loop_end' && steps[j].loopId === loopId) {
+          endIndex = j;
+          break;
+        }
+      }
+      
+      if (endIndex === -1) {
+        console.warn('⚠️ [循环展开] 找不到对应的循环结束标记:', loopId);
+        i++;
+        continue;
+      }
+      
+      // 提取循环内的步骤
+      const innerSteps = steps.slice(i + 1, endIndex);
+      
+      // 获取循环次数（从 loopConfig 或默认值）
+      const loopConfig = step.loopConfig || step.parameters?.loopConfig;
+      const iterations = loopConfig?.maxIterations || loopConfig?.iterations || 1;
+      
+      console.log('🔄 [循环展开] 循环参数:', {
+        loopId,
+        innerStepsCount: innerSteps.length,
+        iterations,
+        config: loopConfig
       });
-      i++;
+      
+      // 展开循环：重复执行内部步骤
+      for (let iteration = 0; iteration < iterations; iteration++) {
+        console.log(`🔄 [循环展开] 第 ${iteration + 1}/${iterations} 轮`);
+        
+        // 复制内部步骤并添加迭代标记
+        innerSteps.forEach((innerStep, index) => {
+          const expandedStep: ExtendedSmartScriptStep = {
+            ...innerStep,
+            id: `${innerStep.id}__loop_${iteration + 1}`,
+            name: `${innerStep.name} (第${iteration + 1}轮)`,
+            parameters: {
+              ...innerStep.parameters,
+              __loop_iteration: iteration + 1,
+              __loop_total: iterations,
+              __loop_id: loopId,
+            },
+          };
+          result.push(expandedStep);
+        });
+      }
+      
+      console.log('✅ [循环展开] 循环展开完成:', {
+        loopId,
+        originalSteps: innerSteps.length,
+        expandedSteps: innerSteps.length * iterations,
+        iterations
+      });
+      
+      // 跳过整个循环结构（包括 loop_start, 内部步骤, loop_end）
+      i = endIndex + 1;
     } else if (step.step_type === 'loop_end') {
-      console.log('🔄 [循环处理] 保持循环结束步骤不变，交给统一路由器处理:', {
-        stepId: step.id,
-        stepType: step.step_type,
-        loopId: step.parameters?.loop_id
-      });
-      
-      // 直接添加循环结束步骤
-      result.push({
-        ...step,
-        enabled: true,
-      });
+      // 独立的 loop_end（没有匹配的 loop_start），跳过
+      console.warn('⚠️ [循环展开] 发现孤立的循环结束标记:', step.loopId);
       i++;
     } else {
       // 非循环步骤，直接添加

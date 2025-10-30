@@ -12,6 +12,10 @@ import {
   STEP_TYPE_NAMES,
   STEP_TYPE_ICONS
 } from "./step-type-router";
+import { ExecutionFlowController } from "../../../modules/execution-flow-control/application/execution-flow-use-case";
+import { ExecutionFailureStrategy } from "../../../modules/execution-flow-control/domain/failure-handling-strategy";
+import { extractFailureConfigFromStep } from "../../../modules/execution-flow-control/utils/step-type-adapter";
+import { ExecutionAbortService } from "../../../modules/execution-control/services/execution-abort-service";
 
 // 轻量设备类型，满足本模块使用
 interface SimpleDevice {
@@ -94,9 +98,23 @@ export function createHandleExecuteScript(ctx: Ctx) {
       return;
     }
 
-    // 显示开始执行的消息
-    const hideStartMessage = message.loading('开始执行智能脚本（混合模式：V2滚动+V3点击）...', 0);
+    // 🔥 创建执行控制和流程控制
+    const abortService = ExecutionAbortService.getInstance();
+    const flowController = new ExecutionFlowController(expandedSteps, {
+      onStepResult: (result) => {
+        console.log('📊 [执行流程] 步骤结果:', result);
+      },
+      onStateChange: (state) => {
+        console.log('🔄 [执行流程] 状态变化:', state);
+      }
+    });
+    const executionId = `script_exec_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
     
+    // 注册执行
+    abortService.startExecution(executionId);
+
+    const hideStartMessage = message.loading("🚀 正在执行智能脚本...", 0);
+
     ctx.setIsExecuting(true);
     try {
       console.log("🎯 [批量执行] 准备开始混合模式执行...");
@@ -105,14 +123,22 @@ export function createHandleExecuteScript(ctx: Ctx) {
       let successCount = 0;
       let failCount = 0;
       const totalSteps = expandedSteps.length;
+      let currentStepIndex = 0;
       
-      for (let i = 0; i < expandedSteps.length; i++) {
-        const step = expandedSteps[i];
+      while (currentStepIndex < expandedSteps.length) {
+        // 🚫 检查是否被中止
+        if (abortService.isAborted()) {
+          console.log("🛑 [批量执行] 检测到中止信号，停止执行");
+          message.warning("🛑 脚本执行已被中止", 3);
+          break;
+        }
+
+        const step = expandedSteps[currentStepIndex];
         const stepType = identifyStepType(step);
         const stepIcon = STEP_TYPE_ICONS[stepType] || "📍";
         const stepTypeName = STEP_TYPE_NAMES[stepType] || "未知";
         
-        console.log(`\n${stepIcon} [批量执行] 步骤 ${i + 1}/${totalSteps}: ${step.name}`);
+        console.log(`\\n${stepIcon} [批量执行] 步骤 ${currentStepIndex + 1}/${totalSteps}: ${step.name}`);
         console.log(`   原始类型: ${step.step_type}`);
         console.log(`   识别类型: ${stepTypeName} (${stepType})`);
         console.log(`   参数预览:`, {
@@ -121,6 +147,12 @@ export function createHandleExecuteScript(ctx: Ctx) {
           hasKeyCode: !!step.parameters?.key_code,
           hasDirection: !!step.parameters?.direction
         });
+
+        // 检查是否配置了失败处理
+        const failureConfig = extractFailureConfigFromStep(step);
+        if (failureConfig) {
+          console.log(`⚙️ [失败处理] 步骤配置了失败策略: ${failureConfig.strategy}`, failureConfig);
+        }
         
         try {
           // 🎯 使用统一路由器执行步骤
@@ -189,144 +221,106 @@ export function createHandleExecuteScript(ctx: Ctx) {
             { width: 1080, height: 2340 } // TODO: 从设备信息动态获取
           );
           
-          // 🔧 新增：检查是否需要循环执行
-          if (result.needsLoopExecution && result.loopId) {
-            console.log(`🔄 [循环处理] 检测到循环开始，执行前端循环逻辑`);
-            
-            // 前端循环展开：重复执行循环内的步骤
-            const loopIterations = result.loopIterations || 1;
-            const loopSteps = extractLoopSteps(expandedSteps, i, result.loopId);
-            
-            if (loopSteps.length > 0) {
-              console.log(`🔄 [循环处理] 找到 ${loopSteps.length} 个循环内步骤，将执行 ${loopIterations} 次`);
-              
-              for (let iteration = 1; iteration <= loopIterations; iteration++) {
-                console.log(`\n🔄 [循环执行] 第 ${iteration}/${loopIterations} 次循环开始`);
-                
-                for (let loopStepIndex = 0; loopStepIndex < loopSteps.length; loopStepIndex++) {
-                  const loopStep = loopSteps[loopStepIndex];
-                  console.log(`📜 [循环执行] 循环 ${iteration} - 步骤 ${loopStepIndex + 1}/${loopSteps.length}: ${loopStep.name}`);
-                  
-                  // 执行循环内的单个步骤
-                  const loopStepResult = await routeAndExecuteStep(
-                    selectedDevice,
-                    loopStep,
-                    // V3点击引擎执行函数（复用上面的逻辑）
-                    async (clickStep: ExtendedSmartScriptStep) => {
-                      const params = {
-                        element_path: clickStep.parameters?.selected_xpath || clickStep.parameters?.xpath || "",
-                        targetText: clickStep.parameters?.targetText || clickStep.parameters?.text || "",
-                        target_content_desc: clickStep.parameters?.target_content_desc || "",
-                        original_data: clickStep.parameters?.original_data || {},
-                        smartSelection: {
-                          mode: "first",
-                          minConfidence: 0.8,
-                          targetText: clickStep.parameters?.targetText || clickStep.parameters?.text || "",
-                          batchConfig: {
-                            maxCount: 1,
-                            intervalMs: 1000,
-                            continueOnError: false,
-                            showProgress: true
-                          }
-                        }
-                      };
-                      
-                      const action = clickStep.step_type || "smart_selection";
-                      
-                      const chainSpec = {
-                        chainId: `loop_execution_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
-                        orderedSteps: [{
-                          inline: {
-                            stepId: clickStep.id,
-                            action: action,
-                            params: params
-                          },
-                          ref: null
-                        }],
-                        mode: "execute",
-                        threshold: 0.5,
-                        constraints: {},
-                        quality: {},
-                        validation: {}
-                      };
-
-                      return await invoke("execute_chain_test_v3", {
-                        envelope: {
-                          deviceId: selectedDevice,
-                          app: {
-                            package: "com.ss.android.ugc.aweme",
-                            activity: null
-                          },
-                          snapshot: {
-                            analysisId: null,
-                            screenHash: null,
-                            xmlCacheId: null
-                          },
-                          executionMode: "relaxed"
-                        },
-                        spec: chainSpec
-                      });
-                    },
-                    { width: 1080, height: 2340 }
-                  );
-                  
-                  if (!loopStepResult.success) {
-                    throw new Error(`循环第 ${iteration} 次，步骤 ${loopStepIndex + 1} 失败: ${loopStepResult.message}`);
-                  }
-                  
-                  console.log(`✅ [循环执行] 循环 ${iteration} - 步骤 ${loopStepIndex + 1} 成功`);
-                  
-                  // 步骤间等待
-                  if (loopStepIndex < loopSteps.length - 1) {
-                    await new Promise(resolve => setTimeout(resolve, 500));
-                  }
-                }
-                
-                console.log(`✅ [循环执行] 第 ${iteration}/${loopIterations} 次循环完成`);
-                
-                // 循环间等待（如果不是最后一次循环）
-                if (iteration < loopIterations) {
-                  console.log(`⏱️ [循环执行] 循环间隔等待 1 秒...`);
-                  await new Promise(resolve => setTimeout(resolve, 1000));
-                }
-              }
-              
-              console.log(`🎉 [循环处理] 所有 ${loopIterations} 次循环执行完成`);
-            }
-            
-            // 跳过循环内的所有步骤，直到loop_end
-            const loopEndIndex = findLoopEndIndex(expandedSteps, i, result.loopId);
-            if (loopEndIndex !== -1) {
-              i = loopEndIndex; // 跳转到loop_end位置
-              console.log(`✅ [循环处理] 跳转到步骤 ${i + 1} (loop_end)`);
-            }
-            
-            successCount++;
-            continue;
-          }
-          
           if (result.success) {
-            console.log(`✅ [${result.executorType}] 步骤 ${i + 1} 执行成功:`, result.message);
+            console.log(`✅ [${result.executorType}] 步骤 ${currentStepIndex + 1} 执行成功:`, result.message);
             successCount++;
+            currentStepIndex++;
           } else {
             throw new Error(result.message);
           }
           
-          // 等待间隔
-          if (i < expandedSteps.length - 1) {
+          // 等待间隔 (检查中止信号)
+          if (currentStepIndex < expandedSteps.length) {
             console.log("⏱️ [批量执行] 等待1秒后继续...");
             await new Promise(resolve => setTimeout(resolve, 1000));
+            
+            // 再次检查中止信号
+            if (abortService.isAborted()) {
+              console.log("🛑 [批量执行] 等待期间检测到中止信号");
+              break;
+            }
           }
           
         } catch (stepError) {
-          console.error(`❌ [批量执行] 步骤 ${i + 1} 执行失败:`, stepError);
-          failCount++;
+          console.error(`❌ [批量执行] 步骤 ${currentStepIndex + 1} 执行失败:`, stepError);
           
-          // 是否继续执行
-          const executorConfig = ctx.getExecutorConfig();
-          if (!executorConfig.smart_recovery_enabled) {
-            console.warn("⚠️ [批量执行] smart_recovery_enabled=false，提前终止");
-            break;
+          // 🔥 新增：失败处理逻辑
+          if (failureConfig) {
+            console.log(`🔧 [失败处理] 处理步骤失败，策略: ${failureConfig.strategy}`);
+            
+            switch (failureConfig.strategy) {
+              case ExecutionFailureStrategy.STOP_SCRIPT:
+                console.log(`🛑 [失败处理] 终止脚本执行`);
+                message.error(`🛑 脚本已终止: 步骤${currentStepIndex + 1}失败`, 8);
+                throw new Error(`脚本已终止: 步骤${currentStepIndex + 1}失败`);
+
+              case ExecutionFailureStrategy.CONTINUE_NEXT:
+                console.log(`⏭️ [失败处理] 跳过当前步骤，继续下一步`);
+                message.warning(`⏭️ 跳过步骤 ${currentStepIndex + 1}，继续执行`, 3);
+                failCount++;
+                currentStepIndex++;
+                break;
+
+              case ExecutionFailureStrategy.JUMP_TO_STEP:
+                if (failureConfig.jumpToStepId) {
+                  const targetIndex = expandedSteps.findIndex(s => s.id === failureConfig.jumpToStepId);
+                  if (targetIndex !== -1) {
+                    console.log(`🎯 [失败处理] 跳转到步骤 ${targetIndex + 1}`);
+                    message.info(`🎯 跳转到步骤 ${targetIndex + 1}`, 3);
+                    failCount++;
+                    currentStepIndex = targetIndex;
+                  } else {
+                    console.warn(`⚠️ [失败处理] 未找到目标步骤，继续下一步`);
+                    message.warning(`⚠️ 未找到目标步骤，继续下一步`, 3);
+                    failCount++;
+                    currentStepIndex++;
+                  }
+                } else {
+                  console.warn(`⚠️ [失败处理] 跳转策略但未指定目标步骤，继续下一步`);
+                  failCount++;
+                  currentStepIndex++;
+                }
+                break;
+
+              case ExecutionFailureStrategy.RETRY_CURRENT:
+                const maxRetries = failureConfig.maxRetries || 3;
+                const currentRetries = (step as any)._retryCount || 0;
+                if (currentRetries < maxRetries) {
+                  console.log(`🔄 [失败处理] 重试当前步骤 (${currentRetries + 1}/${maxRetries})`);
+                  message.info(`🔄 重试步骤 ${currentStepIndex + 1} (${currentRetries + 1}/${maxRetries})`, 3);
+                  (step as any)._retryCount = currentRetries + 1;
+                  // currentStepIndex 不变，重新执行当前步骤
+                } else {
+                  console.log(`❌ [失败处理] 重试次数已达上限，跳过步骤`);
+                  message.warning(`❌ 步骤 ${currentStepIndex + 1} 重试次数已达上限，跳过`, 3);
+                  failCount++;
+                  currentStepIndex++;
+                }
+                break;
+
+              case ExecutionFailureStrategy.SKIP_CURRENT:
+                console.log(`⏭️ [失败处理] 跳过当前步骤`);
+                message.warning(`⏭️ 跳过步骤 ${currentStepIndex + 1}`, 3);
+                failCount++;
+                currentStepIndex++;
+                break;
+
+              default:
+                console.log(`❓ [失败处理] 未知策略，使用默认处理`);
+                failCount++;
+                currentStepIndex++;
+            }
+          } else {
+            // 没有配置失败处理，使用原有逻辑
+            failCount++;
+            
+            // 是否继续执行
+            const executorConfig = ctx.getExecutorConfig();
+            if (!executorConfig.smart_recovery_enabled) {
+              console.warn("⚠️ [批量执行] smart_recovery_enabled=false，提前终止");
+              break;
+            }
+            currentStepIndex++;
           }
         }
       }
@@ -390,6 +384,9 @@ export function createHandleExecuteScript(ctx: Ctx) {
 
       ctx.setExecutionResult(failedResult);
     } finally {
+      // 🔥 清理执行控制状态
+      abortService.finishExecution();
+      
       ctx.setIsExecuting(false);
       try {
         hideStartMessage();
@@ -399,54 +396,4 @@ export function createHandleExecuteScript(ctx: Ctx) {
       console.log("🏁 [批量执行] 智能脚本执行流程结束");
     }
   };
-}
-
-/**
- * 🔧 新增：提取循环内的步骤
- */
-function extractLoopSteps(
-  allSteps: ExtendedSmartScriptStep[],
-  loopStartIndex: number,
-  loopId: string
-): ExtendedSmartScriptStep[] {
-  const loopSteps: ExtendedSmartScriptStep[] = [];
-  
-  for (let i = loopStartIndex + 1; i < allSteps.length; i++) {
-    const step = allSteps[i];
-    
-    // 遇到对应的 loop_end 就停止
-    if (step.step_type === 'loop_end' && step.parameters?.loop_id === loopId) {
-      break;
-    }
-    
-    // 跳过嵌套的循环控制步骤（暂不支持嵌套循环）
-    if (step.step_type === 'loop_start' || step.step_type === 'loop_end') {
-      console.warn(`⚠️ [循环处理] 跳过嵌套循环控制步骤: ${step.step_type}`);
-      continue;
-    }
-    
-    loopSteps.push(step);
-  }
-  
-  console.log(`🔍 [循环处理] 提取到 ${loopSteps.length} 个循环内步骤`, loopSteps.map(s => s.name));
-  return loopSteps;
-}
-
-/**
- * 🔧 新增：查找循环结束的位置
- */
-function findLoopEndIndex(
-  steps: ExtendedSmartScriptStep[], 
-  loopStartIndex: number, 
-  loopId: string
-): number {
-  for (let i = loopStartIndex + 1; i < steps.length; i++) {
-    const step = steps[i];
-    if (step.step_type === 'loop_end' && step.parameters?.loop_id === loopId) {
-      return i;
-    }
-  }
-  
-  console.warn(`⚠️ [循环处理] 未找到对应的loop_end: loopId=${loopId}`);
-  return -1;
 }

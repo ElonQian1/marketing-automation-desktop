@@ -56,6 +56,15 @@ export interface ExtendedSmartScriptStep {
     };
   }; // 策略选择器状态数据
   
+  // ⚡ 执行流程控制支持
+  failureHandling?: {
+    strategy: 'STOP_SCRIPT' | 'CONTINUE_NEXT' | 'JUMP_TO_STEP' | 'RETRY_CURRENT' | 'SKIP_CURRENT';
+    jumpTarget?: string; // 跳转目标步骤ID
+    retryCount?: number; // 重试次数
+    retryDelay?: number; // 重试间隔(ms)
+    enabled: boolean; // 是否启用失败处理
+  }; // 失败处理配置
+  
   // 原有扩展字段
   find_condition?: unknown;
   verification?: unknown;

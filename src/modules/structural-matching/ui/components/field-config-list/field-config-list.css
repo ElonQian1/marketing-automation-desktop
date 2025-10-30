@@ -1,0 +1,56 @@
+/* src/modules/structural-matching/ui/components/field-config-list/field-config-list.css */
+/* module: structural-matching | layer: ui | role: 字段列表样式 */
+/* summary: 字段配置列表的样式定义 */
+
+.structural-field-config-list.light-theme-force {
+  color: var(--text-inverse, #1e293b);
+  background: var(--bg-light-base, #ffffff);
+}
+
+.structural-field-config-list .field-config-item {
+  padding: 16px !important;
+  border-bottom: 1px solid var(--border-light, #e2e8f0);
+}
+
+.structural-field-config-list .field-config-content {
+  width: 100%;
+}
+
+.structural-field-config-list .field-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 12px;
+}
+
+.structural-field-config-list .field-controls {
+  padding: 12px;
+  background: var(--bg-light-secondary, #f8fafc);
+  border-radius: 6px;
+  margin-top: 8px;
+}
+
+.structural-field-config-list .control-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.structural-field-config-list .scoring-rules-preview {
+  margin-top: 4px;
+  padding: 4px 8px;
+  background: var(--bg-light-base, #ffffff);
+  border-radius: 4px;
+  border: 1px solid var(--border-light, #e2e8f0);
+}
+
+/* 确保所有文本在浅色背景下可读 */
+.structural-field-config-list.light-theme-force .ant-typography,
+.structural-field-config-list.light-theme-force .ant-select,
+.structural-field-config-list.light-theme-force .ant-slider {
+  color: var(--text-inverse, #1e293b);
+}
+
+.structural-field-config-list.light-theme-force .ant-list-item {
+  color: var(--text-inverse, #1e293b);
+}
