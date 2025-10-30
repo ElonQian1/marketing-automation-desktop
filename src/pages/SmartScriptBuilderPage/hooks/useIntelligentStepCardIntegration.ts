@@ -483,6 +483,7 @@ export function useIntelligentStepCardIntegration(
       let siblingTexts: string[] = []; // 🆕 同层兄弟元素的文本
 
       // 🆕 提取同层兄弟元素的文本（用于"通讯录"这种场景）
+      // 🔥 修复: 使用栈结构精确追踪父元素,避免找到很远的祖先
       if (xmlContent && boundsString) {
         try {
           const boundsPattern = boundsString.replace(/[[\]]/g, "\\$&");
@@ -490,47 +491,107 @@ export function useIntelligentStepCardIntegration(
           const boundsMatch = xmlContent.match(boundsRegex);
 
           if (boundsMatch) {
-            const matchIndex = boundsMatch.index || 0;
-            const beforeBounds = xmlContent.substring(0, matchIndex);
-
-            // 🔍 向前查找父元素的完整范围
-            const parentNodeMatches = [
-              ...beforeBounds.matchAll(/<node[^>]*>/g),
-            ];
-            if (parentNodeMatches.length >= 1) {
-              // 找到最近的父元素
-              const lastParentMatch =
-                parentNodeMatches[parentNodeMatches.length - 1];
-              const parentStartIndex = lastParentMatch.index || 0;
-
-              // 提取父元素的完整XML片段（从父元素开始到下一个父元素关闭标签）
-              const afterParent = xmlContent.substring(parentStartIndex);
-              const parentClosingMatch = afterParent.match(/<\/node>/);
-              if (parentClosingMatch) {
-                const parentFragment = afterParent.substring(
-                  0,
-                  (parentClosingMatch.index || 0) + 7
+            const targetIndex = boundsMatch.index || 0;
+            
+            // 🔥 步骤1: 使用栈结构计算目标元素的深度
+            let depth = 0;
+            const beforeTarget = xmlContent.substring(0, targetIndex);
+            
+            // 统计目标元素之前的嵌套层级
+            for (let i = 0; i < beforeTarget.length; i++) {
+              if (beforeTarget.substring(i, i + 5) === "<node") {
+                depth++;
+              } else if (beforeTarget.substring(i, i + 7) === "</node>") {
+                depth--;
+              }
+            }
+            
+            const targetDepth = depth;
+            console.log(`🔍 [父元素查找] 目标元素深度: ${targetDepth}`);
+            
+            // 🔥 步骤2: 向前扫描,找到深度为 targetDepth-1 的父元素开始位置
+            let parentStartIndex = -1;
+            let currentDepth = 0;
+            
+            for (let i = 0; i < targetIndex; i++) {
+              if (beforeTarget.substring(i, i + 5) === "<node") {
+                if (currentDepth === targetDepth - 1) {
+                  // 找到父元素开始位置
+                  parentStartIndex = i;
+                }
+                currentDepth++;
+              } else if (beforeTarget.substring(i, i + 7) === "</node>") {
+                currentDepth--;
+              }
+            }
+            
+            if (parentStartIndex === -1) {
+              console.warn("⚠️ [父元素查找] 未找到父元素");
+            } else {
+              console.log(`✅ [父元素查找] 父元素起始位置: ${parentStartIndex}`);
+              
+              // 🔥 步骤3: 从父元素开始,使用栈匹配找到对应的结束标签
+              const afterParentStart = xmlContent.substring(parentStartIndex);
+              let parentDepth = 0;
+              let parentEndIndex = -1;
+              
+              for (let i = 0; i < afterParentStart.length; i++) {
+                if (afterParentStart.substring(i, i + 5) === "<node") {
+                  parentDepth++;
+                } else if (afterParentStart.substring(i, i + 7) === "</node>") {
+                  parentDepth--;
+                  if (parentDepth === 0) {
+                    // 找到匹配的父元素结束标签
+                    parentEndIndex = i + 7;
+                    break;
+                  }
+                }
+              }
+              
+              if (parentEndIndex === -1) {
+                console.warn("⚠️ [父元素查找] 未找到父元素结束标签");
+              } else {
+                const parentFragment = afterParentStart.substring(0, parentEndIndex);
+                console.log(`✅ [父元素查找] 父元素片段长度: ${parentFragment.length} 字符`);
+                
+                // � 步骤4: 只提取父元素的直接子节点的text (深度为1的元素)
+                const directChildTexts: string[] = [];
+                let childDepth = 0;
+                let currentChildStart = -1;
+                
+                for (let i = 0; i < parentFragment.length; i++) {
+                  if (parentFragment.substring(i, i + 5) === "<node") {
+                    childDepth++;
+                    if (childDepth === 1) {
+                      currentChildStart = i;
+                    }
+                  } else if (parentFragment.substring(i, i + 7) === "</node>") {
+                    if (childDepth === 1) {
+                      // 直接子节点结束,提取其text
+                      const childFragment = parentFragment.substring(currentChildStart, i + 7);
+                      const textMatch = childFragment.match(/text="([^"]*)"/);
+                      const descMatch = childFragment.match(/content-desc="([^"]*)"/);
+                      
+                      if (textMatch && textMatch[1] && textMatch[1].trim()) {
+                        directChildTexts.push(textMatch[1]);
+                      }
+                      if (descMatch && descMatch[1] && descMatch[1].trim()) {
+                        directChildTexts.push(descMatch[1]);
+                      }
+                    }
+                    childDepth--;
+                  }
+                }
+                
+                // 过滤: 只保留有意义的文本
+                siblingTexts = directChildTexts.filter(
+                  (t) => t.length > 0 && t.length < 50 && !/^[\d\s]+$/.test(t)
                 );
-
-                // 🔍 在父元素的子节点中查找所有兄弟元素的text和content-desc
-                const siblingTextMatches = [
-                  ...parentFragment.matchAll(/text="([^"]*)"/g),
-                ];
-                const siblingDescMatches = [
-                  ...parentFragment.matchAll(/content-desc="([^"]*)"/g),
-                ];
-
-                siblingTexts = [
-                  ...siblingTextMatches.map((m) => m[1]),
-                  ...siblingDescMatches.map((m) => m[1]),
-                ].filter(
-                  (t) => t && t.trim().length > 0 && t.trim().length < 50
-                );
-
+                
                 if (siblingTexts.length > 0) {
                   console.log(
-                    "✅ [兄弟元素提取] 找到同层兄弟元素的文本/描述:",
-                    siblingTexts
+                    `✅ [兄弟元素提取] 找到 ${siblingTexts.length} 个直接兄弟元素的文本:`,
+                    siblingTexts.slice(0, 5) // 只显示前5个
                   );
                 }
               }
@@ -585,15 +646,15 @@ export function useIntelligentStepCardIntegration(
             finalText
           );
         }
-        // 🥈 第二优先级：兄弟元素的text/desc（如"通讯录"）
-        else if (siblingTexts.length > 0) {
-          finalText = siblingTexts[0];
-          console.log("🎯 [智能选择] 使用兄弟元素文本:", finalText);
-        }
-        // 🥉 第三优先级：子元素的text（如"为你推荐"）
+        // 🥈 第二优先级：子元素的text（如"为你推荐"、"小何老师"）
         else if (childTexts.length > 0) {
           finalText = childTexts[0];
           console.log("🎯 [智能选择] 使用子元素文本:", finalText);
+        }
+        // 🥉 第三优先级：兄弟元素的text/desc（如"通讯录"）⚠️ 最低优先级,避免跨元素污染
+        else if (siblingTexts.length > 0) {
+          finalText = siblingTexts[0];
+          console.log("⚠️ [智能选择] 使用兄弟元素文本 (最后备选):", finalText);
         }
       }
 

@@ -25,6 +25,7 @@ import {
 import TestResultsDisplay from "../../../components/TestResultsDisplay";
 import { ScriptBuilderIntegration } from "../../../modules/smart-script-management/components/ScriptBuilderIntegration";
 import MultiDeviceScriptLauncher from "./MultiDeviceScriptLauncher";
+import { ExecutionControlButtons, AbortButton } from "../../../modules/execution-control";
 import type { ExtendedSmartScriptStep } from "../../../types/loopScript";
 import type {
   ExecutorConfig,
@@ -69,32 +70,45 @@ const ScriptControlPanel: React.FC<ScriptControlPanelProps> = ({
       <Divider />
 
       <Space direction="vertical" style={{ width: "100%" }}>
-        <Button
-          type="primary"
-          icon={<PlayCircleOutlined />}
-          onClick={() => {
-            console.log('🔴🔴🔴 [ScriptControlPanel] ============ 执行脚本按钮被点击! ============');
-            console.log('📋 [ScriptControlPanel] 当前步骤数:', steps.length);
-            console.log('� [ScriptControlPanel] 步骤详情:', steps);
-            console.log('�📱 [ScriptControlPanel] 当前设备ID:', currentDeviceId);
-            console.log('⚡ [ScriptControlPanel] 正在执行状态:', isExecuting);
-            console.log('🎯 [ScriptControlPanel] onExecuteScript函数类型:', typeof onExecuteScript);
-            console.log('🎯 [ScriptControlPanel] onExecuteScript函数:', onExecuteScript);
-            
-            try {
-              console.log('▶️ [ScriptControlPanel] 准备调用 onExecuteScript()...');
-              onExecuteScript();
-              console.log('✅ [ScriptControlPanel] onExecuteScript() 调用完成');
-            } catch (error) {
-              console.error('❌ [ScriptControlPanel] onExecuteScript() 调用失败:', error);
-            }
-          }}
-          loading={isExecuting}
-          disabled={!currentDeviceId || steps.length === 0}
-          block
-        >
-          {isExecuting ? "正在执行脚本..." : "执行脚本"}
-        </Button>
+        {/* 执行控制按钮组 */}
+        <Space direction="horizontal" style={{ width: "100%" }}>
+          <Button
+            type="primary"
+            icon={<PlayCircleOutlined />}
+            onClick={() => {
+              console.log('🔴🔴🔴 [ScriptControlPanel] ============ 执行脚本按钮被点击! ============');
+              console.log('📋 [ScriptControlPanel] 当前步骤数:', steps.length);
+              console.log('� [ScriptControlPanel] 步骤详情:', steps);
+              console.log('�📱 [ScriptControlPanel] 当前设备ID:', currentDeviceId);
+              console.log('⚡ [ScriptControlPanel] 正在执行状态:', isExecuting);
+              console.log('🎯 [ScriptControlPanel] onExecuteScript函数类型:', typeof onExecuteScript);
+              console.log('🎯 [ScriptControlPanel] onExecuteScript函数:', onExecuteScript);
+              
+              try {
+                console.log('▶️ [ScriptControlPanel] 准备调用 onExecuteScript()...');
+                onExecuteScript();
+                console.log('✅ [ScriptControlPanel] onExecuteScript() 调用完成');
+              } catch (error) {
+                console.error('❌ [ScriptControlPanel] onExecuteScript() 调用失败:', error);
+              }
+            }}
+            loading={isExecuting}
+            disabled={!currentDeviceId || steps.length === 0}
+            style={{ flex: 1 }}
+          >
+            {isExecuting ? "正在执行脚本..." : "执行脚本"}
+          </Button>
+          
+          {/* 中止按钮 */}
+          <AbortButton 
+            text="中止" 
+            size="middle"
+            confirmAbort={true}
+            onAbort={() => {
+              console.log('🛑 [ScriptControlPanel] 脚本执行已中止');
+            }}
+          />
+        </Space>
 
         <MultiDeviceScriptLauncher steps={steps} />
 

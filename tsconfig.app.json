@@ -14,6 +14,7 @@
       "@loop-control/*": ["src/modules/loop-control/*"],
       "@prospecting/*": ["src/modules/prospecting/*"],
       "@script/*": ["src/modules/smart-script-management/*"],
+      "@execution-flow/*": ["src/modules/execution-flow-control/*"],
       "@universal/*": ["src/modules/universal-ui/*"],
       "@shared/*": ["src/shared/*"]
     },

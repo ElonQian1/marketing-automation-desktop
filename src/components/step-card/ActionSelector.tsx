@@ -601,35 +601,73 @@ export const ActionSelector: React.FC<ActionSelectorProps> = ({
     const executionChains = [
       { key: 'intelligent_chain', label: '智能·自动链', icon: '🧠', desc: 'Step1→Step6 动态决策，自动回退兜底' },
       { key: 'single_step', label: '智能·单步', icon: '🎯', desc: '指定某一步强制使用' },
-      { key: 'static_strategy', label: '静态策略', icon: '📌', desc: '用户保存/自建的固定策略' }
+      { 
+        key: 'static_strategy', 
+        label: '静态策略', 
+        icon: '📌', 
+        desc: '用户保存/自建的固定策略',
+        children: [
+          { key: 'structural_matching', label: '结构匹配', icon: '🏗️', desc: '基于元素结构相似度匹配' },
+          { key: 'xpath_recovery', label: 'XPath恢复', icon: '🔧', desc: '智能恢复损坏的XPath' },
+        ]
+      }
     ];
 
     return {
-      items: executionChains.map(chain => ({
-        key: chain.key,
-        label: (
-          <div style={{ display: 'flex', alignItems: 'center', gap: '8px', minWidth: '200px' }}>
-            <span>{chain.icon}</span>
-            <div style={{ flex: 1 }}>
-              <div style={{ 
-                fontWeight: smartConfig.executionChain === chain.key ? '600' : '400',
-                color: smartConfig.executionChain === chain.key ? '#6E8BFF' : 'inherit'
+      items: executionChains.map(chain => {
+        const baseItem = {
+          key: chain.key,
+          label: (
+            <div style={{ display: 'flex', alignItems: 'center', gap: '8px', minWidth: '200px' }}>
+              <span>{chain.icon}</span>
+              <div style={{ flex: 1 }}>
+                <div style={{ 
+                  fontWeight: smartConfig.executionChain === chain.key ? '600' : '400',
+                  color: smartConfig.executionChain === chain.key ? '#6E8BFF' : 'inherit'
+                }}>
+                  {chain.label}
+                </div>
+                <div style={{ fontSize: '11px', color: '#64748B', marginTop: '2px' }}>
+                  {chain.desc}
+                </div>
+              </div>
+              <span style={{ 
+                color: smartConfig.executionChain === chain.key ? '#10B981' : '#64748B' 
               }}>
-                {chain.label}
-              </div>
-              <div style={{ fontSize: '11px', color: '#64748B', marginTop: '2px' }}>
-                {chain.desc}
-              </div>
+                {smartConfig.executionChain === chain.key ? '✅' : '○'}
+              </span>
             </div>
-            <span style={{ 
-              color: smartConfig.executionChain === chain.key ? '#10B981' : '#64748B' 
-            }}>
-              {smartConfig.executionChain === chain.key ? '✅' : '○'}
-            </span>
-          </div>
-        ),
-        onClick: () => setSmartConfig(prev => ({ ...prev, executionChain: chain.key as ExecutionChain }))
-      }))
+          ),
+          onClick: chain.children ? undefined : () => setSmartConfig(prev => ({ ...prev, executionChain: chain.key as ExecutionChain }))
+        };
+
+        // 如果有子菜单
+        if (chain.children) {
+          return {
+            ...baseItem,
+            children: chain.children.map(sub => ({
+              key: sub.key,
+              label: (
+                <div style={{ display: 'flex', alignItems: 'center', gap: '8px', minWidth: '180px' }}>
+                  <span>{sub.icon}</span>
+                  <div style={{ flex: 1 }}>
+                    <div>{sub.label}</div>
+                    <div style={{ fontSize: '10px', color: '#64748B', marginTop: '2px' }}>
+                      {sub.desc}
+                    </div>
+                  </div>
+                </div>
+              ),
+              onClick: () => {
+                // TODO: 打开对应的配置模态框
+                console.log(`📌 [ActionSelector] 选择静态策略: ${sub.key}`);
+              }
+            }))
+          };
+        }
+
+        return baseItem;
+      })
     };
   };
 

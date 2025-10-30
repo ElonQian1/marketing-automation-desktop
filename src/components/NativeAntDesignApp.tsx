@@ -66,6 +66,7 @@ import ParameterTestPage from "./ParameterTestPage";
 import { LoopDragTest } from "../debug/loop-drag-test";
 import { SemanticAnalyzerSettingsPage } from "../pages/SemanticAnalyzerSettingsPage";
 import { TextMatchingSettingsPage } from "../pages/TextMatchingSettingsPage";
+import ExecutionControlTestPage from "../pages/ExecutionControlTestPage";
 
 // 业务页面导入
 import { StatisticsPageNative } from "../pages/statistics/StatisticsPageNative";
@@ -187,6 +188,11 @@ const NativeAntDesignApp: React.FC = () => {
       label: "📝 文本匹配设置",
     },
     {
+      key: "execution-control-test",
+      icon: <BugOutlined />,
+      label: "🧪 执行控制测试",
+    },
+    {
       key: "statistics-native",
       icon: <DashboardOutlined />,
       label: "统计页面（原生）",
@@ -252,6 +258,8 @@ const NativeAntDesignApp: React.FC = () => {
         return <SemanticAnalyzerSettingsPage />;
       case "text-matching-settings":
         return <TextMatchingSettingsPage />;
+      case "execution-control-test":
+        return <ExecutionControlTestPage />;
       case "statistics-native":
         return <StatisticsPageNative />;
       case "statistics-optimized":
