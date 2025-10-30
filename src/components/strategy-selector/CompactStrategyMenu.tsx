@@ -30,6 +30,7 @@ import { RandomConfigPanel } from './panels/RandomConfigPanel';
 import { MatchOriginalConfigPanel } from './panels/MatchOriginalConfigPanel';
 import { convertSelectionModeToBackend } from './utils/selection-mode-converter';
 import { saveSelectionConfigWithFeedback } from './utils/selection-config-saver';
+import { StructuralMatchingModal, type StructuralMatchingConfig } from '../../modules/structural-matching';
 import type { 
   BatchConfig, 
   RandomConfig,
@@ -129,6 +130,10 @@ const CompactStrategyMenu: React.FC<CompactStrategyMenuProps> = ({
 
   // 🔧 高级规则面板状态
   const [advancedRulesExpanded, setAdvancedRulesExpanded] = useState(false);
+
+  // 🏗️ 结构匹配模态框状态
+  const [structuralMatchingVisible, setStructuralMatchingVisible] = useState(false);
+  const [structuralMatchingConfig, setStructuralMatchingConfig] = useState<StructuralMatchingConfig | null>(null);
 
   // 🔑 新增：更新步骤参数中的决策链配置
   const updateDecisionChainConfig = React.useCallback((
@@ -331,8 +336,28 @@ const CompactStrategyMenu: React.FC<CompactStrategyMenuProps> = ({
         key: "static",
         icon: <span>📌</span>,
         label: "静态策略",
-        children:
-          (selector.candidates?.static?.length ?? 0) > 0
+        children: [
+          // 🏗️ 结构匹配 - 固定选项
+          {
+            key: "structural_matching",
+            icon: <span>🏗️</span>,
+            label: "结构匹配",
+            onClick: () => {
+              console.log('📌 [CompactStrategyMenu] 打开结构匹配配置');
+              setStructuralMatchingVisible(true);
+            }
+          },
+          // 🔧 XPath恢复 - 固定选项
+          {
+            key: "xpath_recovery",
+            icon: <span>🔧</span>,
+            label: "XPath恢复",
+            disabled: true, // 暂未实现
+          },
+          // 分隔线
+          { type: "divider" },
+          // 动态候选项
+          ...((selector.candidates?.static?.length ?? 0) > 0
             ? selector.candidates.static!.map((candidate) => ({
                 key: `static-${candidate.key}`,
                 label: candidate.name,
@@ -345,10 +370,11 @@ const CompactStrategyMenu: React.FC<CompactStrategyMenuProps> = ({
             : [
                 {
                   key: "no-static",
-                  label: "暂无静态策略",
+                  label: "暂无分析结果",
                   disabled: true,
                 },
-              ],
+              ]),
+        ],
       },
     ];
 
@@ -1429,6 +1455,34 @@ const CompactStrategyMenu: React.FC<CompactStrategyMenuProps> = ({
           </div>
         </div>
       )}
+
+      {/* 🏗️ 结构匹配模态框 */}
+      <StructuralMatchingModal
+        visible={structuralMatchingVisible}
+        selectedElement={selectionContext || {
+          elementText: '',
+          contentDesc: '',
+          textAttr: '',
+          resourceId: '',
+          className: '',
+          bounds: '[0,0][0,0]',
+          smartMatching: {
+            childTexts: [],
+            childContentDescs: [],
+            siblingTexts: [],
+            siblingContentDescs: [],
+            parentContentDesc: ''
+          }
+        }}
+        initialConfig={structuralMatchingConfig}
+        onClose={() => setStructuralMatchingVisible(false)}
+        onConfirm={(config) => {
+          console.log('✅ [CompactStrategyMenu] 保存结构匹配配置', config);
+          setStructuralMatchingConfig(config);
+          setStructuralMatchingVisible(false);
+          message.success('结构匹配配置已保存');
+        }}
+      />
     </div>
   );
 };

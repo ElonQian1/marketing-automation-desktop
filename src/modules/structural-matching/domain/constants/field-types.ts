@@ -58,6 +58,11 @@ export const FIELD_DISPLAY_NAMES: Record<FieldType, string> = {
 };
 
 /**
+ * 字段类型显示名称映射（别名，与 FIELD_DISPLAY_NAMES 相同）
+ */
+export const FIELD_TYPE_DISPLAY_NAMES = FIELD_DISPLAY_NAMES;
+
+/**
  * 字段描述映射
  */
 export const FIELD_DESCRIPTIONS: Record<FieldType, string> = {
@@ -67,4 +72,26 @@ export const FIELD_DESCRIPTIONS: Record<FieldType, string> = {
   [FieldType.CLASS_NAME]: 'Android控件类名',
   [FieldType.CHILDREN_STRUCTURE]: '子元素的结构组成',
   [FieldType.BOUNDS]: '元素在屏幕上的位置和大小',
+};
+
+/**
+ * 匹配模式显示名称映射
+ */
+export const MATCH_MODE_DISPLAY_NAMES: Record<MatchMode, string> = {
+  [MatchMode.EXACT]: '精确匹配',
+  [MatchMode.NON_EMPTY]: '非空匹配',
+  [MatchMode.EMPTY]: '空值匹配',
+  [MatchMode.STRUCTURE]: '结构匹配',
+  [MatchMode.DISABLED]: '不匹配',
+};
+
+/**
+ * 匹配模式描述映射
+ */
+export const MATCH_MODE_DESCRIPTIONS: Record<MatchMode, string> = {
+  [MatchMode.EXACT]: '值必须完全相同',
+  [MatchMode.NON_EMPTY]: '两个字段都非空即可',
+  [MatchMode.EMPTY]: '两个字段都为空即可',
+  [MatchMode.STRUCTURE]: '比较子元素的结构相似度',
+  [MatchMode.DISABLED]: '不参与匹配评分',
 };

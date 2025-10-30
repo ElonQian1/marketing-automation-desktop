@@ -9,6 +9,7 @@ import type { ActionKind, StepAction } from '../../types/smartScript';
 import { ExcludeRuleEditor, type ExcludeRule } from '../smart-selection/ExcludeRuleEditor';
 import { CandidatePreview } from '../smart-selection/CandidatePreview';
 import { ExplanationGenerator } from '../smart-selection/ExplanationGenerator';
+import { StructuralMatchingModal, type StructuralMatchingConfig } from '../../modules/structural-matching';
 
 const { Panel } = Collapse;
 
@@ -36,6 +37,10 @@ export const ActionSelector: React.FC<ActionSelectorProps> = ({
   // 🔧 高级规则编辑器状态
   const [advancedExpanded, setAdvancedExpanded] = useState(false);
   const [previewVisible, setPreviewVisible] = useState(false);
+  
+  // 🏗️ 结构匹配模态框状态
+  const [structuralMatchingVisible, setStructuralMatchingVisible] = useState(false);
+  const [structuralMatchingConfig, setStructuralMatchingConfig] = useState<StructuralMatchingConfig | null>(null);
 
   const handleKindChange = (kind: ActionKind) => {
     const newAction: StepAction = {
@@ -645,6 +650,7 @@ export const ActionSelector: React.FC<ActionSelectorProps> = ({
         if (chain.children) {
           return {
             ...baseItem,
+            type: 'submenu' as const,
             children: chain.children.map(sub => ({
               key: sub.key,
               label: (
@@ -659,8 +665,14 @@ export const ActionSelector: React.FC<ActionSelectorProps> = ({
                 </div>
               ),
               onClick: () => {
-                // TODO: 打开对应的配置模态框
+                // 打开对应的配置模态框
                 console.log(`📌 [ActionSelector] 选择静态策略: ${sub.key}`);
+                if (sub.key === 'structural_matching') {
+                  setStructuralMatchingVisible(true);
+                } else if (sub.key === 'xpath_recovery') {
+                  // TODO: 打开XPath恢复模态框
+                  console.log('🔧 XPath恢复功能待实现');
+                }
               }
             }))
           };
@@ -931,6 +943,26 @@ export const ActionSelector: React.FC<ActionSelectorProps> = ({
           {renderParams()}
         </div>
       )}
+      
+      {/* 🏗️ 结构匹配模态框 */}
+      <StructuralMatchingModal
+        visible={structuralMatchingVisible}
+        selectedElement={{
+          class: 'android.widget.FrameLayout',
+          'resource-id': 'com.xingin.xhs:id/note_item',
+          'content-desc': '笔记 测试标题 来自作者 100赞',
+          bounds: '[0,0][100,100]',
+          text: '',
+          children: []
+        }}
+        initialConfig={structuralMatchingConfig}
+        onClose={() => setStructuralMatchingVisible(false)}
+        onConfirm={(config) => {
+          console.log('✅ [ActionSelector] 保存结构匹配配置', config);
+          setStructuralMatchingConfig(config);
+          setStructuralMatchingVisible(false);
+        }}
+      />
     </div>
   );
 };
