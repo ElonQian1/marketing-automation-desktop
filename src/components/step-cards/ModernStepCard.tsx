@@ -4,23 +4,44 @@
 
 import React from 'react';
 import { CSS } from '@dnd-kit/utilities';
+import { Dropdown, Button } from 'antd';
 import type { ExtendedSmartScriptStep } from '../../types/loopScript';
+import { 
+  extractFailureConfigFromStep, 
+  applyFailureConfigToStep,
+  hasValidFailureHandling 
+} from '../../modules/execution-flow-control/utils/step-type-adapter';
+import type { 
+  ExecutionFailureHandlingConfig
+} from '../../modules/execution-flow-control/domain/failure-handling-strategy';
+import { ExecutionFailureStrategy } from '../../modules/execution-flow-control/domain/failure-handling-strategy';
+
+// 扩展步骤类型以支持分析状态
+interface StepWithAnalysisStatus extends ExtendedSmartScriptStep {
+  analysisStatus?: string;
+}
 
 interface ModernStepCardProps {
   step: ExtendedSmartScriptStep;
   index: number;
+  /** 所有步骤数据（用于失败处理跳转目标选择） */
+  allSteps?: ExtendedSmartScriptStep[];
+  /** 步骤更新回调（包含失败处理配置更新） */
+  onStepUpdate?: (step: ExtendedSmartScriptStep) => void;
   onEdit?: (step: ExtendedSmartScriptStep) => void;
   onToggle?: (step: ExtendedSmartScriptStep) => void;
   onDelete?: (step: ExtendedSmartScriptStep) => void;
   isDragging?: boolean;
-  transform?: any;
-  transition?: any;
+  transform?: import('@dnd-kit/utilities').Transform;
+  transition?: string;
   style?: React.CSSProperties;
 }
 
 export const ModernStepCard: React.FC<ModernStepCardProps> = ({
   step,
   index,
+  allSteps,
+  onStepUpdate,
   onEdit,
   onToggle,
   onDelete,
@@ -29,6 +50,80 @@ export const ModernStepCard: React.FC<ModernStepCardProps> = ({
   transition,
   style
 }) => {
+  // 失败处理配置状态
+  const currentFailureConfig = extractFailureConfigFromStep(step);
+  const hasFailureConfig = hasValidFailureHandling(step);
+
+  // 处理失败配置更新
+  const handleFailureConfigUpdate = (config: ExecutionFailureHandlingConfig | undefined) => {
+    const updatedStep = applyFailureConfigToStep(step, config);
+    onStepUpdate?.(updatedStep);
+  };
+
+  // 失败处理策略选项
+  const getFailureStrategyText = (strategy?: ExecutionFailureStrategy) => {
+    switch (strategy) {
+      case ExecutionFailureStrategy.STOP_SCRIPT:
+        return '失败时🛑 终止';
+      case ExecutionFailureStrategy.CONTINUE_NEXT:
+        return '失败时⏭️ 继续下一步';
+      case ExecutionFailureStrategy.RETRY_CURRENT:
+        return '失败时🔄 重试';
+      case ExecutionFailureStrategy.JUMP_TO_STEP:
+        return '失败时🎯 跳转';
+      default:
+        return '失败时🛑 终止'; // 默认策略
+    }
+  };
+
+  // 失败处理策略下拉菜单
+  const failureStrategyMenuItems = [
+    {
+      key: 'STOP_SCRIPT',
+      label: '🛑 终止整个脚本',
+      onClick: () => handleFailureConfigUpdate({
+        strategy: ExecutionFailureStrategy.STOP_SCRIPT,
+        targetStepId: undefined,
+        retryCount: undefined,
+        retryIntervalMs: undefined,
+        enableDetailedLogging: true
+      })
+    },
+    {
+      key: 'CONTINUE_NEXT', 
+      label: '⏭️ 继续下一步',
+      onClick: () => handleFailureConfigUpdate({
+        strategy: ExecutionFailureStrategy.CONTINUE_NEXT,
+        targetStepId: undefined,
+        retryCount: undefined,
+        retryIntervalMs: undefined,
+        enableDetailedLogging: true
+      })
+    },
+    {
+      key: 'RETRY_CURRENT',
+      label: '🔄 重试当前步骤',
+      onClick: () => handleFailureConfigUpdate({
+        strategy: ExecutionFailureStrategy.RETRY_CURRENT,
+        targetStepId: undefined,
+        retryCount: 3,
+        retryIntervalMs: 1000,
+        enableDetailedLogging: true
+      })
+    },
+    {
+      key: 'JUMP_TO_STEP',
+      label: '🎯 跳转到指定步骤',
+      onClick: () => handleFailureConfigUpdate({
+        strategy: ExecutionFailureStrategy.JUMP_TO_STEP,
+        targetStepId: allSteps?.[0]?.id || '',
+        retryCount: undefined,
+        retryIntervalMs: undefined,
+        enableDetailedLogging: true
+      })
+    }
+  ];
+
   const dragStyle = {
     transform: CSS.Transform.toString(transform),
     transition,
@@ -76,7 +171,7 @@ export const ModernStepCard: React.FC<ModernStepCardProps> = ({
     }
   };
 
-  const statusConfig = getStatusConfig(step.analysisStatus || 'idle');
+  const statusConfig = getStatusConfig((step as ExtendedSmartScriptStep & { analysisStatus?: string }).analysisStatus || 'idle');
 
   return (
     <div
@@ -248,6 +343,7 @@ export const ModernStepCard: React.FC<ModernStepCardProps> = ({
               {step.enabled ? '✅' : '⭕'}
             </button>
 
+            {/* 删除步骤 */}
             <button
               type="button"
               onClick={() => onDelete?.(step)}
@@ -276,8 +372,82 @@ export const ModernStepCard: React.FC<ModernStepCardProps> = ({
           </div>
         </div>
 
+        {/* 策略按钮组 */}
+        <div style={{
+          display: 'flex',
+          alignItems: 'center',
+          gap: '4px',
+          flexWrap: 'wrap',
+          marginBottom: '8px'
+        }}>
+          {/* 智能分析策略按钮 */}
+          <Button
+            size="small"
+            style={{
+              background: 'rgba(110, 139, 255, 0.1)',
+              border: '1px solid rgba(110, 139, 255, 0.3)',
+              color: 'var(--text-1)',
+              fontSize: '12px'
+            }}
+          >
+            🧠 智能·自动链
+            <span style={{ color: '#f59e0b', fontSize: '12px', marginLeft: '4px' }}>🔄 100%</span>
+            <span style={{ marginLeft: '4px' }}>▾</span>
+          </Button>
+
+          {/* 选择模式按钮 */}
+          <Button
+            size="small"
+            style={{
+              background: 'rgba(110, 139, 255, 0.1)',
+              border: '1px solid rgba(110, 139, 255, 0.3)',
+              color: 'var(--text-1)',
+              fontSize: '12px'
+            }}
+          >
+            🎯 第一个
+            <span style={{ color: '#10b981', fontSize: '12px', marginLeft: '4px' }}>✅</span>
+            <span style={{ marginLeft: '4px' }}>▾</span>
+          </Button>
+
+          {/* 操作类型按钮 */}
+          <Button
+            size="small"
+            style={{
+              background: 'rgba(110, 139, 255, 0.1)',
+              border: '1px solid rgba(110, 139, 255, 0.3)',
+              color: 'var(--text-1)',
+              fontSize: '12px'
+            }}
+          >
+            👆 点击
+            <span style={{ color: '#10b981', fontSize: '12px', marginLeft: '4px' }}>✅</span>
+            <span style={{ marginLeft: '4px' }}>▾</span>
+          </Button>
+
+          {/* 失败处理策略按钮 */}
+          <Dropdown
+            menu={{ items: failureStrategyMenuItems }}
+            trigger={['click']}
+            placement="bottomLeft"
+          >
+            <Button
+              size="small"
+              style={{
+                background: hasFailureConfig ? 'rgba(245, 158, 11, 0.1)' : 'rgba(110, 139, 255, 0.1)',
+                border: hasFailureConfig ? '1px solid #f59e0b' : '1px solid rgba(110, 139, 255, 0.3)',
+                color: 'var(--text-1)',
+                fontSize: '12px'
+              }}
+            >
+              {getFailureStrategyText(currentFailureConfig?.strategy)}
+              <span style={{ marginLeft: '4px' }}>▾</span>
+            </Button>
+          </Dropdown>
+        </div>
+
         {/* 状态条 */}
-        {step.analysisStatus && step.analysisStatus !== 'idle' && (
+        {(step as StepWithAnalysisStatus).analysisStatus && (step as StepWithAnalysisStatus).analysisStatus !== 'idle' && (
           <div style={{
             display: 'flex',
             alignItems: 'center',
@@ -310,11 +480,11 @@ export const ModernStepCard: React.FC<ModernStepCardProps> = ({
           fontSize: '13px',
           color: 'var(--text-3)'
         }}>
-          <span>类型: {step.type}</span>
-          {step.selector && (
-            <span>选择器: {step.selector.length > 30 
-              ? step.selector.substring(0, 30) + '...' 
-              : step.selector}
+          <span>类型: {step.step_type}</span>
+          {step.parameters?.selector && typeof step.parameters.selector === 'string' && (
+            <span>选择器: {step.parameters.selector.length > 30
+              ? step.parameters.selector.substring(0, 30) + '...'
+              : step.parameters.selector}
             </span>
           )}
         </div>
