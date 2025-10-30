@@ -913,7 +913,7 @@ const DraggableStepCardInner: React.FC<
                       const failureStrategyMenuItems = [
                         {
                           key: 'STOP_SCRIPT',
-                          label: '� 终止整个脚本',
+                          label: '🛑 终止整个脚本',
                           onClick: () => handleFailureConfigUpdate('STOP_SCRIPT')
                         },
                         {
