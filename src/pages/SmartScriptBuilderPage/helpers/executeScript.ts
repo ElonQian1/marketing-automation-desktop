@@ -189,6 +189,122 @@ export function createHandleExecuteScript(ctx: Ctx) {
             { width: 1080, height: 2340 } // TODO: 从设备信息动态获取
           );
           
+          // 🔧 新增：检查是否需要循环执行
+          if (result.needsLoopExecution && result.loopId) {
+            console.log(`🔄 [循环处理] 检测到循环开始，执行前端循环逻辑`);
+            
+            // 前端循环展开：重复执行循环内的步骤
+            const loopIterations = result.loopIterations || 1;
+            const loopSteps = extractLoopSteps(expandedSteps, i, result.loopId);
+            
+            if (loopSteps.length > 0) {
+              console.log(`🔄 [循环处理] 找到 ${loopSteps.length} 个循环内步骤，将执行 ${loopIterations} 次`);
+              
+              for (let iteration = 1; iteration <= loopIterations; iteration++) {
+                console.log(`\n🔄 [循环执行] 第 ${iteration}/${loopIterations} 次循环开始`);
+                
+                for (let loopStepIndex = 0; loopStepIndex < loopSteps.length; loopStepIndex++) {
+                  const loopStep = loopSteps[loopStepIndex];
+                  console.log(`📜 [循环执行] 循环 ${iteration} - 步骤 ${loopStepIndex + 1}/${loopSteps.length}: ${loopStep.name}`);
+                  
+                  // 执行循环内的单个步骤
+                  const loopStepResult = await routeAndExecuteStep(
+                    selectedDevice,
+                    loopStep,
+                    // V3点击引擎执行函数（复用上面的逻辑）
+                    async (clickStep: ExtendedSmartScriptStep) => {
+                      const params = {
+                        element_path: clickStep.parameters?.selected_xpath || clickStep.parameters?.xpath || "",
+                        targetText: clickStep.parameters?.targetText || clickStep.parameters?.text || "",
+                        target_content_desc: clickStep.parameters?.target_content_desc || "",
+                        original_data: clickStep.parameters?.original_data || {},
+                        smartSelection: {
+                          mode: "first",
+                          minConfidence: 0.8,
+                          targetText: clickStep.parameters?.targetText || clickStep.parameters?.text || "",
+                          batchConfig: {
+                            maxCount: 1,
+                            intervalMs: 1000,
+                            continueOnError: false,
+                            showProgress: true
+                          }
+                        }
+                      };
+                      
+                      const action = clickStep.step_type || "smart_selection";
+                      
+                      const chainSpec = {
+                        chainId: `loop_execution_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
+                        orderedSteps: [{
+                          inline: {
+                            stepId: clickStep.id,
+                            action: action,
+                            params: params
+                          },
+                          ref: null
+                        }],
+                        mode: "execute",
+                        threshold: 0.5,
+                        constraints: {},
+                        quality: {},
+                        validation: {}
+                      };
+
+                      return await invoke("execute_chain_test_v3", {
+                        envelope: {
+                          deviceId: selectedDevice,
+                          app: {
+                            package: "com.ss.android.ugc.aweme",
+                            activity: null
+                          },
+                          snapshot: {
+                            analysisId: null,
+                            screenHash: null,
+                            xmlCacheId: null
+                          },
+                          executionMode: "relaxed"
+                        },
+                        spec: chainSpec
+                      });
+                    },
+                    { width: 1080, height: 2340 }
+                  );
+                  
+                  if (!loopStepResult.success) {
+                    throw new Error(`循环第 ${iteration} 次，步骤 ${loopStepIndex + 1} 失败: ${loopStepResult.message}`);
+                  }
+                  
+                  console.log(`✅ [循环执行] 循环 ${iteration} - 步骤 ${loopStepIndex + 1} 成功`);
+                  
+                  // 步骤间等待
+                  if (loopStepIndex < loopSteps.length - 1) {
+                    await new Promise(resolve => setTimeout(resolve, 500));
+                  }
+                }
+                
+                console.log(`✅ [循环执行] 第 ${iteration}/${loopIterations} 次循环完成`);
+                
+                // 循环间等待（如果不是最后一次循环）
+                if (iteration < loopIterations) {
+                  console.log(`⏱️ [循环执行] 循环间隔等待 1 秒...`);
+                  await new Promise(resolve => setTimeout(resolve, 1000));
+                }
+              }
+              
+              console.log(`🎉 [循环处理] 所有 ${loopIterations} 次循环执行完成`);
+            }
+            
+            // 跳过循环内的所有步骤，直到loop_end
+            const loopEndIndex = findLoopEndIndex(expandedSteps, i, result.loopId);
+            if (loopEndIndex !== -1) {
+              i = loopEndIndex; // 跳转到loop_end位置
+              console.log(`✅ [循环处理] 跳转到步骤 ${i + 1} (loop_end)`);
+            }
+            
+            successCount++;
+            continue;
+          }
+          
           if (result.success) {
             console.log(`✅ [${result.executorType}] 步骤 ${i + 1} 执行成功:`, result.message);
             successCount++;
@@ -283,4 +399,54 @@ export function createHandleExecuteScript(ctx: Ctx) {
       console.log("🏁 [批量执行] 智能脚本执行流程结束");
     }
   };
+}
+
+/**
+ * 🔧 新增：提取循环内的步骤
+ */
+function extractLoopSteps(
+  allSteps: ExtendedSmartScriptStep[],
+  loopStartIndex: number,
+  loopId: string
+): ExtendedSmartScriptStep[] {
+  const loopSteps: ExtendedSmartScriptStep[] = [];
+  
+  for (let i = loopStartIndex + 1; i < allSteps.length; i++) {
+    const step = allSteps[i];
+    
+    // 遇到对应的 loop_end 就停止
+    if (step.step_type === 'loop_end' && step.parameters?.loop_id === loopId) {
+      break;
+    }
+    
+    // 跳过嵌套的循环控制步骤（暂不支持嵌套循环）
+    if (step.step_type === 'loop_start' || step.step_type === 'loop_end') {
+      console.warn(`⚠️ [循环处理] 跳过嵌套循环控制步骤: ${step.step_type}`);
+      continue;
+    }
+    
+    loopSteps.push(step);
+  }
+  
+  console.log(`🔍 [循环处理] 提取到 ${loopSteps.length} 个循环内步骤`, loopSteps.map(s => s.name));
+  return loopSteps;
+}
+
+/**
+ * 🔧 新增：查找循环结束的位置
+ */
+function findLoopEndIndex(
+  steps: ExtendedSmartScriptStep[], 
+  loopStartIndex: number, 
+  loopId: string
+): number {
+  for (let i = loopStartIndex + 1; i < steps.length; i++) {
+    const step = steps[i];
+    if (step.step_type === 'loop_end' && step.parameters?.loop_id === loopId) {
+      return i;
+    }
+  }
+  
+  console.warn(`⚠️ [循环处理] 未找到对应的loop_end: loopId=${loopId}`);
+  return -1;
 }

@@ -15,6 +15,10 @@ export interface StepExecutionResult {
   success: boolean;
   message: string;
   executorType: string;
+  // 🔧 新增：循环执行特殊标记
+  needsLoopExecution?: boolean;
+  loopId?: string;
+  loopIterations?: number;
 }
 
 /**
@@ -123,15 +127,31 @@ async function executeWait(step: ExtendedSmartScriptStep): Promise<StepExecution
 
 /**
  * 处理循环控制步骤（loop_start/loop_end）
- * 这些步骤应该被后端预处理器展开，前端直接跳过即可
+ * 🔧 修复：使用统一的循环执行逻辑，与循环卡片播放按钮保持一致
  */
 async function executeLoopControl(step: ExtendedSmartScriptStep): Promise<StepExecutionResult> {
-  console.log(`🔄 [循环控制] 步骤 ${step.step_type} 已被后端预处理器展开，前端跳过`);
+  console.log(`🔄 [循环控制] 检测到循环控制步骤: ${step.step_type}`);
   
+  // 对于 loop_start，交给统一的循环处理逻辑
+  // 对于 loop_end，标记为已处理（循环在 loop_start 时已完整执行）
+  if (step.step_type === 'loop_end') {
+    console.log(`✅ [循环控制] 循环结束标记已到达，循环已在开始时完整执行`);
+    return {
+      success: true,
+      message: `✅ 循环结束标记已处理`,
+      executorType: "loop_control",
+    };
+  }
+  
+  // 对于 loop_start，返回特殊标记，由上层处理器识别并调用循环执行逻辑
+  console.log(`🎯 [循环控制] 检测到循环开始，需要统一循环处理`);
   return {
     success: true,
-    message: `✅ 循环控制标记 ${step.step_type} 已处理（后端展开）`,
+    message: `🔄 循环开始标记，需要特殊处理`,
     executorType: "loop_control",
+    needsLoopExecution: true, // 特殊标记
+    loopId: step.parameters?.loop_id as string || `loop_${step.id}`,
+    loopIterations: step.parameters?.loop_count as number || 1,
   };
 }
 

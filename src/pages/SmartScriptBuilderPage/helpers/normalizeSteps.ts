@@ -345,12 +345,75 @@ function normalizeTraditionalStepTypes(step: ExtendedSmartScriptStep): ExtendedS
   return step;
 }
 
-// 🚫 原有的 expandInlineLoops 函数已删除
-// 现在使用新的后端循环系统，不再需要前端展开循环
+/**
+ * � 展开循环结构（前端预处理）
+ * 
+ * 由于当前执行路径使用单步执行而非后端脚本预处理器，
+ * 需要在前端展开循环结构
+ * 
+ * @param steps - 包含循环结构的步骤列表
+ * @returns 展开后的纯线性步骤列表
+ */
+function expandLoopsForExecution(steps: ExtendedSmartScriptStep[]): ExtendedSmartScriptStep[] {
+  const result: ExtendedSmartScriptStep[] = [];
+  let i = 0;
+  
+  while (i < steps.length) {
+    const step = steps[i];
+    
+    // 🔧 修复：禁用循环展开，让循环步骤直接传递到 step-type-router
+    // 这样可以确保"执行脚本"和循环卡片播放按钮使用相同的后端API
+    if (step.step_type === 'loop_start') {
+      console.log('🔄 [循环处理] 保持循环开始步骤不变，交给统一路由器处理:', {
+        stepId: step.id,
+        stepType: step.step_type,
+        loopId: step.parameters?.loop_id
+      });
+      
+      // 直接添加循环开始步骤，不展开
+      result.push({
+        ...step,
+        enabled: true,
+      });
+      i++;
+    } else if (step.step_type === 'loop_end') {
+      console.log('🔄 [循环处理] 保持循环结束步骤不变，交给统一路由器处理:', {
+        stepId: step.id,
+        stepType: step.step_type,
+        loopId: step.parameters?.loop_id
+      });
+      
+      // 直接添加循环结束步骤
+      result.push({
+        ...step,
+        enabled: true,
+      });
+      i++;
+    } else {
+      // 非循环步骤，直接添加
+      result.push(step);
+      i++;
+    }
+  }
+  
+  return result;
+}
 
-// 🔄 新的后端循环系统：只过滤和标准化，不再展开循环
-// 循环处理完全由后端 loop_handler 模块负责
+// 🔄 统一入口：过滤 + 标准化 + 循环展开
 export function normalizeScriptStepsForBackend(allSteps: ExtendedSmartScriptStep[]): ExtendedSmartScriptStep[] {
+  console.log('🔍 [脚本规范化] 开始处理:', { totalSteps: allSteps.length });
+  
+  // 1. 过滤禁用的步骤
   const enabled = (allSteps || []).filter((s) => s.enabled);
-  return enabled.map(normalizeStepForBackend);
+  console.log('🔍 [脚本规范化] 过滤后:', { enabledSteps: enabled.length });
+  
+  // 2. 展开循环结构
+  const expanded = expandLoopsForExecution(enabled);
+  console.log('🔍 [脚本规范化] 展开后:', { expandedSteps: expanded.length });
+  
+  // 3. 标准化每个步骤
+  const normalized = expanded.map(normalizeStepForBackend);
+  console.log('✅ [脚本规范化] 最终结果:', { normalizedSteps: normalized.length });
+  
+  return normalized;
 }
