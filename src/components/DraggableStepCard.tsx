@@ -26,6 +26,7 @@
 
 import React, { useState, useMemo, useEffect } from "react";
 import { CSS } from "@dnd-kit/utilities";
+import { Dropdown, Button } from "antd";
 import { SmartActionType } from "../types/smartComponents";
 import { isBackendHealthy } from "../services/backend-health-check";
 import styles from "./DraggableStepCard.module.css";
@@ -34,6 +35,15 @@ import CompactStrategyMenu from "./strategy-selector/CompactStrategyMenu";
 import { TextMatchingInlineControl } from "./text-matching";
 import { ActionParamsPanel } from "./action-system/ActionParamsPanel";
 import type { ActionType, ActionParams } from "../types/action-types";
+// 🎯 执行流控制功能导入
+import { 
+  extractFailureConfigFromStep, 
+  applyFailureConfigToStep
+} from '../modules/execution-flow-control/utils/step-type-adapter';
+import type { 
+  ExecutionFailureHandlingConfig
+} from '../modules/execution-flow-control/domain/failure-handling-strategy';
+import { ExecutionFailureStrategy } from '../modules/execution-flow-control/domain/failure-handling-strategy';
 
 // 设备简化接口
 export interface DeviceInfo {
@@ -679,7 +689,7 @@ const DraggableStepCardInner: React.FC<
               maxWidth: "100%",
             }}
           >
-            {/* 🧠 紧凑策略菜单 */}
+            {/* 🧠 策略选择器 */}
             {step.enableStrategySelector &&
               step.strategySelector &&
               (() => {
@@ -695,29 +705,29 @@ const DraggableStepCardInner: React.FC<
                   randomConfig?: unknown;
                   matchOriginalConfig?: unknown;
                 } | undefined;
-                
-                return (
-                  <CompactStrategyMenu
-                    data-menu-version="v20251020-fix"
-                    selector={(() => {
-                      // ✅ 适配器：将简化的 strategySelector 转换为完整的 StrategySelector 接口
-                      const result = step.strategySelector.analysis.result as
-                        | {
-                            smartCandidates?: Array<{
-                              key: string;
-                              name: string;
-                              confidence: number;
-                              selector: string;
-                              stepName?: string;
-                            }>;
-                            staticCandidates?: Array<{
-                              key: string;
-                              name: string;
-                              selector: string;
-                            }>;
-                            recommendedKey?: string;
-                          }
-                        | undefined;
+                  
+                  return (
+                    <CompactStrategyMenu
+                      data-menu-version="v20251020-fix"
+                      selector={(() => {
+                        // ✅ 适配器：将简化的 strategySelector 转换为完整的 StrategySelector 接口
+                        const result = step.strategySelector.analysis.result as
+                          | {
+                              smartCandidates?: Array<{
+                                key: string;
+                                name: string;
+                                confidence: number;
+                                selector: string;
+                                stepName?: string;
+                              }>;
+                              staticCandidates?: Array<{
+                                key: string;
+                                name: string;
+                                selector: string;
+                              }>;
+                              recommendedKey?: string;
+                            }
+                          | undefined;
 
                       // 转换候选策略为完整的 StrategyCandidate 类型
                       const smartCandidates = (
@@ -831,6 +841,106 @@ const DraggableStepCardInner: React.FC<
                         onUpdateStepParameters(stepId, mergedParams);
                       }
                     }}
+                    extraButtons={(() => {
+                      // 失败处理按钮逻辑
+                      const extendedStep = {
+                        ...step,
+                        order: index + 1,
+                        parent_loop_id: step.parameters?.parent_loop_id
+                      } as import('../types/loopScript').ExtendedSmartScriptStep;
+                      
+                      const currentFailureConfig = extractFailureConfigFromStep(extendedStep);
+
+                      const handleFailureConfigUpdate = (config: ExecutionFailureHandlingConfig | undefined) => {
+                        const updatedStep = applyFailureConfigToStep(extendedStep, config);
+                        onUpdateStepParameters?.(step.id, updatedStep.parameters || {});
+                      };
+
+                      const getFailureStrategyText = (strategy?: ExecutionFailureStrategy) => {
+                        switch (strategy) {
+                          case ExecutionFailureStrategy.STOP_SCRIPT:
+                            return '失败时🛑 终止';
+                          case ExecutionFailureStrategy.CONTINUE_NEXT:
+                            return '失败时⏭️ 继续下一步';
+                          case ExecutionFailureStrategy.RETRY_CURRENT:
+                            return '失败时🔄 重试';
+                          case ExecutionFailureStrategy.JUMP_TO_STEP:
+                            return '失败时🎯 跳转';
+                          default:
+                            return '失败时🛑 终止';
+                        }
+                      };
+
+                      const failureStrategyMenuItems = [
+                        {
+                          key: 'STOP_SCRIPT',
+                          label: '🛑 终止整个脚本',
+                          onClick: () => handleFailureConfigUpdate({
+                            strategy: ExecutionFailureStrategy.STOP_SCRIPT,
+                            targetStepId: undefined,
+                            retryCount: undefined,
+                            retryIntervalMs: undefined,
+                            enableDetailedLogging: true
+                          })
+                        },
+                        {
+                          key: 'CONTINUE_NEXT', 
+                          label: '⏭️ 继续下一步',
+                          onClick: () => handleFailureConfigUpdate({
+                            strategy: ExecutionFailureStrategy.CONTINUE_NEXT,
+                            targetStepId: undefined,
+                            retryCount: undefined,
+                            retryIntervalMs: undefined,
+                            enableDetailedLogging: true
+                          })
+                        },
+                        {
+                          key: 'RETRY_CURRENT',
+                          label: '🔄 重试当前步骤',
+                          onClick: () => handleFailureConfigUpdate({
+                            strategy: ExecutionFailureStrategy.RETRY_CURRENT,
+                            targetStepId: undefined,
+                            retryCount: 3,
+                            retryIntervalMs: 1000,
+                            enableDetailedLogging: true
+                          })
+                        },
+                        {
+                          key: 'JUMP_TO_STEP',
+                          label: '🎯 跳转到指定步骤',
+                          onClick: () => handleFailureConfigUpdate({
+                            strategy: ExecutionFailureStrategy.JUMP_TO_STEP,
+                            targetStepId: 'step-1',
+                            retryCount: undefined,
+                            retryIntervalMs: undefined,
+                            enableDetailedLogging: true
+                          })
+                        }
+                      ];
+
+                      return (
+                        <Dropdown
+                          menu={{ items: failureStrategyMenuItems }}
+                          trigger={['click']}
+                          placement="bottomLeft"
+                        >
+                          <Button
+                            size="small"
+                            type="default"
+                            title="配置失败处理策略"
+                            style={{
+                              background: "rgba(110, 139, 255, 0.1)",
+                              border: "1px solid rgba(110, 139, 255, 0.3)",
+                              color: "#F8FAFC",
+                              fontSize: "12px",
+                            }}
+                          >
+                            {getFailureStrategyText(currentFailureConfig?.strategy)}
+                            <span style={{ marginLeft: "4px" }}>▾</span>
+                          </Button>
+                        </Dropdown>
+                      );
+                    })()}
                   />
                 );
               })()}

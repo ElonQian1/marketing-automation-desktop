@@ -603,83 +603,123 @@ export const ActionSelector: React.FC<ActionSelectorProps> = ({
 
   // 🎯 执行链选择菜单
   const getExecutionChainMenu = () => {
-    const executionChains = [
-      { key: 'intelligent_chain', label: '智能·自动链', icon: '🧠', desc: 'Step1→Step6 动态决策，自动回退兜底' },
-      { key: 'single_step', label: '智能·单步', icon: '🎯', desc: '指定某一步强制使用' },
-      { 
-        key: 'static_strategy', 
-        label: '静态策略', 
-        icon: '📌', 
-        desc: '用户保存/自建的固定策略',
-        children: [
-          { key: 'structural_matching', label: '结构匹配', icon: '🏗️', desc: '基于元素结构相似度匹配' },
-          { key: 'xpath_recovery', label: 'XPath恢复', icon: '🔧', desc: '智能恢复损坏的XPath' },
-        ]
-      }
-    ];
-
     return {
-      items: executionChains.map(chain => {
-        const baseItem = {
-          key: chain.key,
+      items: [
+        // 智能·自动链
+        {
+          key: 'intelligent_chain',
           label: (
             <div style={{ display: 'flex', alignItems: 'center', gap: '8px', minWidth: '200px' }}>
-              <span>{chain.icon}</span>
+              <span>🧠</span>
               <div style={{ flex: 1 }}>
                 <div style={{ 
-                  fontWeight: smartConfig.executionChain === chain.key ? '600' : '400',
-                  color: smartConfig.executionChain === chain.key ? '#6E8BFF' : 'inherit'
+                  fontWeight: smartConfig.executionChain === 'intelligent_chain' ? '600' : '400',
+                  color: smartConfig.executionChain === 'intelligent_chain' ? '#6E8BFF' : 'inherit'
                 }}>
-                  {chain.label}
+                  智能·自动链
                 </div>
                 <div style={{ fontSize: '11px', color: '#64748B', marginTop: '2px' }}>
-                  {chain.desc}
+                  Step1→Step6 动态决策，自动回退兜底
                 </div>
               </div>
               <span style={{ 
-                color: smartConfig.executionChain === chain.key ? '#10B981' : '#64748B' 
+                color: smartConfig.executionChain === 'intelligent_chain' ? '#10B981' : '#64748B' 
               }}>
-                {smartConfig.executionChain === chain.key ? '✅' : '○'}
+                {smartConfig.executionChain === 'intelligent_chain' ? '✅' : '○'}
               </span>
             </div>
           ),
-          onClick: chain.children ? undefined : () => setSmartConfig(prev => ({ ...prev, executionChain: chain.key as ExecutionChain }))
-        };
-
-        // 如果有子菜单
-        if (chain.children) {
-          return {
-            ...baseItem,
-            type: 'submenu' as const,
-            children: chain.children.map(sub => ({
-              key: sub.key,
+          onClick: () => setSmartConfig(prev => ({ ...prev, executionChain: 'intelligent_chain' }))
+        },
+        // 智能·单步
+        {
+          key: 'single_step',
+          label: (
+            <div style={{ display: 'flex', alignItems: 'center', gap: '8px', minWidth: '200px' }}>
+              <span>🎯</span>
+              <div style={{ flex: 1 }}>
+                <div style={{ 
+                  fontWeight: smartConfig.executionChain === 'single_step' ? '600' : '400',
+                  color: smartConfig.executionChain === 'single_step' ? '#6E8BFF' : 'inherit'
+                }}>
+                  智能·单步
+                </div>
+                <div style={{ fontSize: '11px', color: '#64748B', marginTop: '2px' }}>
+                  指定某一步强制使用
+                </div>
+              </div>
+              <span style={{ 
+                color: smartConfig.executionChain === 'single_step' ? '#10B981' : '#64748B' 
+              }}>
+                {smartConfig.executionChain === 'single_step' ? '✅' : '○'}
+              </span>
+            </div>
+          ),
+          onClick: () => setSmartConfig(prev => ({ ...prev, executionChain: 'single_step' }))
+        },
+        // 静态策略（子菜单）
+        {
+          key: 'static_strategy',
+          label: (
+            <div style={{ display: 'flex', alignItems: 'center', gap: '8px', minWidth: '200px' }}>
+              <span>📌</span>
+              <div style={{ flex: 1 }}>
+                <div style={{ 
+                  fontWeight: smartConfig.executionChain === 'static_strategy' ? '600' : '400',
+                  color: smartConfig.executionChain === 'static_strategy' ? '#6E8BFF' : 'inherit'
+                }}>
+                  静态策略
+                </div>
+                <div style={{ fontSize: '11px', color: '#64748B', marginTop: '2px' }}>
+                  用户保存/自建的固定策略
+                </div>
+              </div>
+              <span style={{ 
+                color: smartConfig.executionChain === 'static_strategy' ? '#10B981' : '#64748B' 
+              }}>
+                {smartConfig.executionChain === 'static_strategy' ? '✅' : '○'}
+              </span>
+            </div>
+          ),
+          children: [
+            {
+              key: 'structural_matching',
               label: (
                 <div style={{ display: 'flex', alignItems: 'center', gap: '8px', minWidth: '180px' }}>
-                  <span>{sub.icon}</span>
+                  <span>🏗️</span>
                   <div style={{ flex: 1 }}>
-                    <div>{sub.label}</div>
+                    <div>结构匹配</div>
                     <div style={{ fontSize: '10px', color: '#64748B', marginTop: '2px' }}>
-                      {sub.desc}
+                      基于元素结构相似度匹配
                     </div>
                   </div>
                 </div>
               ),
               onClick: () => {
-                // 打开对应的配置模态框
-                console.log(`📌 [ActionSelector] 选择静态策略: ${sub.key}`);
-                if (sub.key === 'structural_matching') {
-                  setStructuralMatchingVisible(true);
-                } else if (sub.key === 'xpath_recovery') {
-                  // TODO: 打开XPath恢复模态框
-                  console.log('🔧 XPath恢复功能待实现');
-                }
+                console.log('📌 [ActionSelector] 选择静态策略: structural_matching');
+                setStructuralMatchingVisible(true);
               }
-            }))
-          };
+            },
+            {
+              key: 'xpath_recovery',
+              label: (
+                <div style={{ display: 'flex', alignItems: 'center', gap: '8px', minWidth: '180px' }}>
+                  <span>🔧</span>
+                  <div style={{ flex: 1 }}>
+                    <div>XPath恢复</div>
+                    <div style={{ fontSize: '10px', color: '#64748B', marginTop: '2px' }}>
+                      智能恢复损坏的XPath
+                    </div>
+                  </div>
+                </div>
+              ),
+              onClick: () => {
+                console.log('🔧 XPath恢复功能待实现');
+              }
+            }
+          ]
         }
-
-        return baseItem;
-      })
+      ]
     };
   };
 

@@ -90,6 +90,8 @@ interface CompactStrategyMenuProps {
   initialBatchConfig?: BatchConfig;
   initialRandomConfig?: RandomConfig;
   initialMatchOriginalConfig?: MatchOriginalConfig;
+  // 🔧 新增：额外按钮插槽
+  extraButtons?: React.ReactNode;
 }
 
 const CompactStrategyMenu: React.FC<CompactStrategyMenuProps> = ({
@@ -105,6 +107,8 @@ const CompactStrategyMenu: React.FC<CompactStrategyMenuProps> = ({
   initialBatchConfig = DEFAULT_BATCH_CONFIG,
   initialRandomConfig = DEFAULT_RANDOM_CONFIG,
   initialMatchOriginalConfig = DEFAULT_MATCH_ORIGINAL_CONFIG,
+  // 🔧 接收额外按钮
+  extraButtons,
 }) => {
   // 🔇 日志优化：移除组件挂载日志（过于频繁）
   // console.log("🚀 [CompactStrategyMenu] 组件已挂载", { stepId });
@@ -1006,6 +1010,9 @@ const CompactStrategyMenu: React.FC<CompactStrategyMenuProps> = ({
           <span style={{ marginLeft: "4px" }}>▾</span>
         </Button>
       </Dropdown>
+
+      {/* 🔧 额外按钮插槽（放在策略按钮组内部） */}
+      {extraButtons}
 
       {/* 🎯 批量配置面板 */}
       {selectionMode === 'all' && (

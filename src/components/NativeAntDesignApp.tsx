@@ -66,7 +66,6 @@ import ParameterTestPage from "./ParameterTestPage";
 import { LoopDragTest } from "../debug/loop-drag-test";
 import { SemanticAnalyzerSettingsPage } from "../pages/SemanticAnalyzerSettingsPage";
 import { TextMatchingSettingsPage } from "../pages/TextMatchingSettingsPage";
-import ExecutionControlTestPage from "../pages/ExecutionControlTestPage";
 
 // 业务页面导入
 import { StatisticsPageNative } from "../pages/statistics/StatisticsPageNative";
@@ -92,7 +91,8 @@ const NativeAntDesignApp: React.FC = () => {
 
   // 🆕 认证相关
   const { user, logout, getTrialDaysRemaining } = useAuthStore();
-  const trialDaysRemaining = user?.role === 'trial' ? getTrialDaysRemaining() : -1;
+  const trialDaysRemaining =
+    user?.role === "trial" ? getTrialDaysRemaining() : -1;
 
   const {
     token: { colorBgContainer },
@@ -188,11 +188,6 @@ const NativeAntDesignApp: React.FC = () => {
       label: "📝 文本匹配设置",
     },
     {
-      key: "execution-control-test",
-      icon: <BugOutlined />,
-      label: "🧪 执行控制测试",
-    },
-    {
       key: "statistics-native",
       icon: <DashboardOutlined />,
       label: "统计页面（原生）",
@@ -235,7 +230,11 @@ const NativeAntDesignApp: React.FC = () => {
       case "precise-acquisition":
         return <PreciseAcquisitionPage />;
       case "watch-targets-list":
-        return WatchTargetsListComp ? <WatchTargetsListComp /> : <div>加载中...</div>;
+        return WatchTargetsListComp ? (
+          <WatchTargetsListComp />
+        ) : (
+          <div>加载中...</div>
+        );
       case "database-debug":
         return <DatabaseDebugPage />;
       case "button-fix-validation":
@@ -258,8 +257,6 @@ const NativeAntDesignApp: React.FC = () => {
         return <SemanticAnalyzerSettingsPage />;
       case "text-matching-settings":
         return <TextMatchingSettingsPage />;
-      case "execution-control-test":
-        return <ExecutionControlTestPage />;
       case "statistics-native":
         return <StatisticsPageNative />;
       case "statistics-optimized":
@@ -278,20 +275,21 @@ const NativeAntDesignApp: React.FC = () => {
   };
 
   // 动态导入 WatchTargetsListPage，避免主包体积膨胀
-  const [WatchTargetsListComp, setWatchTargetsListComp] = useState<React.ComponentType | null>(null);
-  
+  const [WatchTargetsListComp, setWatchTargetsListComp] =
+    useState<React.ComponentType | null>(null);
+
   useEffect(() => {
-    if (selectedKey === 'watch-targets' && !WatchTargetsListComp) {
-      import('../pages/precise-acquisition/WatchTargetsListPage').then(m => {
+    if (selectedKey === "watch-targets" && !WatchTargetsListComp) {
+      import("../pages/precise-acquisition/WatchTargetsListPage").then((m) => {
         setWatchTargetsListComp(() => m.default);
       });
     }
   }, [selectedKey, WatchTargetsListComp]);
 
   return (
-    <AntApp 
+    <AntApp
       message={{ maxCount: 3 }}
-      notification={{ maxCount: 3, placement: 'topRight' }}
+      notification={{ maxCount: 3, placement: "topRight" }}
     >
       <Layout style={{ minHeight: "100vh" }}>
         <Sider
@@ -375,54 +373,78 @@ const NativeAntDesignApp: React.FC = () => {
                   menu={{
                     items: [
                       {
-                        key: 'user-info',
+                        key: "user-info",
                         label: (
-                          <Space direction="vertical" size="small" style={{ padding: '8px 0' }}>
+                          <Space
+                            direction="vertical"
+                            size="small"
+                            style={{ padding: "8px 0" }}
+                          >
                             <div>
                               <strong>{user?.username}</strong>
-                              {user?.role === 'admin' && (
-                                <Tag color="blue" style={{ marginLeft: 8 }}>管理员</Tag>
+                              {user?.role === "admin" && (
+                                <Tag color="blue" style={{ marginLeft: 8 }}>
+                                  管理员
+                                </Tag>
                               )}
-                              {user?.role === 'trial' && (
-                                <Tag color="orange" style={{ marginLeft: 8 }}>试用</Tag>
+                              {user?.role === "trial" && (
+                                <Tag color="orange" style={{ marginLeft: 8 }}>
+                                  试用
+                                </Tag>
                               )}
                             </div>
                             {user?.email && (
-                              <div style={{ fontSize: 12, color: '#999' }}>{user.email}</div>
+                              <div style={{ fontSize: 12, color: "#999" }}>
+                                {user.email}
+                              </div>
                             )}
                             {trialDaysRemaining >= 0 && (
                               <div style={{ fontSize: 12 }}>
-                                <ClockCircleOutlined style={{ marginRight: 4 }} />
-                                试用期剩余 <strong style={{ color: trialDaysRemaining <= 3 ? '#ff4d4f' : '#faad14' }}>
+                                <ClockCircleOutlined
+                                  style={{ marginRight: 4 }}
+                                />
+                                试用期剩余{" "}
+                                <strong
+                                  style={{
+                                    color:
+                                      trialDaysRemaining <= 3
+                                        ? "#ff4d4f"
+                                        : "#faad14",
+                                  }}
+                                >
                                   {trialDaysRemaining}
-                                </strong> 天
+                                </strong>{" "}
+                                天
                               </div>
                             )}
                           </Space>
                         ),
-                        disabled: true
+                        disabled: true,
                       },
                       {
-                        type: 'divider'
+                        type: "divider",
                       },
                       {
-                        key: 'logout',
+                        key: "logout",
                         icon: <LogoutOutlined />,
-                        label: '退出登录',
+                        label: "退出登录",
                         onClick: () => {
                           logout();
-                        }
-                      }
-                    ]
+                        },
+                      },
+                    ],
                   }}
                   placement="bottomRight"
                 >
-                  <Space style={{ cursor: 'pointer' }}>
-                    <Avatar 
-                      style={{ backgroundColor: user?.role === 'admin' ? '#1677ff' : '#faad14' }}
+                  <Space style={{ cursor: "pointer" }}>
+                    <Avatar
+                      style={{
+                        backgroundColor:
+                          user?.role === "admin" ? "#1677ff" : "#faad14",
+                      }}
                       icon={<UserOutlined />}
                     >
-                      {user?.username?.[0]?.toUpperCase() || 'U'}
+                      {user?.username?.[0]?.toUpperCase() || "U"}
                     </Avatar>
                   </Space>
                 </Dropdown>
