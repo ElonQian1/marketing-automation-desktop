@@ -4,11 +4,11 @@
 
 /**
  * 🎯 智能分析专用的元素选择上下文
- * 
+ *
  * ⚠️ 注意：这与 ui-element-selection-store.ts 中的 ElementSelectionContext 不同！
  * - 本接口：用于智能分析工作流，简化版本，只包含分析必需的字段
  * - Store版本：用于UI元素选择管理，包含完整UIElement和层级关系
- * 
+ *
  * 🔄 数据流：UIElement → convertElementToContext() → IntelligentElementSelectionContext → V3分析
  */
 export interface IntelligentElementSelectionContext {
@@ -55,6 +55,9 @@ export interface IntelligentElementSelectionContext {
   };
   /** 🔥 子元素文本列表 - 用于"关系锚点策略" */
   childrenTexts?: string[];
+  /** 🔥 原始UIElement - 用于策略配置（如结构匹配需要children字段） */
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  originalUIElement?: any; // 使用any避免循环依赖
 }
 
 /**
@@ -71,7 +74,7 @@ export type SelectionHash = string;
 /**
  * 分析状态（向后兼容）
  */
-export type AnalysisState = 'idle' | 'analyzing' | 'completed' | 'failed';
+export type AnalysisState = "idle" | "analyzing" | "completed" | "failed";
 
 /**
  * 分析进度（向后兼容）
@@ -86,12 +89,12 @@ export interface AnalysisProgress {
 /**
  * 分析作业状态
  */
-export type AnalysisJobState = 
-  | 'queued'      // 队列中
-  | 'running'     // 运行中
-  | 'completed'   // 完成
-  | 'failed'      // 失败
-  | 'canceled';   // 已取消
+export type AnalysisJobState =
+  | "queued" // 队列中
+  | "running" // 运行中
+  | "completed" // 完成
+  | "failed" // 失败
+  | "canceled"; // 已取消
 
 /**
  * 分析作业
@@ -113,9 +116,9 @@ export interface AnalysisJob {
  * 策略性能指标
  */
 export interface StrategyPerformance {
-  speed: 'fast' | 'medium' | 'slow';
-  stability: 'high' | 'medium' | 'low';
-  crossDevice: 'excellent' | 'good' | 'fair';
+  speed: "fast" | "medium" | "slow";
+  stability: "high" | "medium" | "low";
+  crossDevice: "excellent" | "good" | "fair";
 }
 
 /**
@@ -126,11 +129,16 @@ export interface StrategyCandidate {
   name: string;
   confidence: number;
   description: string;
-  variant: 'self_anchor' | 'child_driven' | 'region_scoped' | 'neighbor_relative' | 'index_fallback';
+  variant:
+    | "self_anchor"
+    | "child_driven"
+    | "region_scoped"
+    | "neighbor_relative"
+    | "index_fallback";
   xpath?: string;
   enabled: boolean;
   isRecommended: boolean;
-  
+
   // UI展示增强字段（可选）
   performance?: StrategyPerformance;
   pros?: string[];
@@ -154,26 +162,26 @@ export interface AnalysisResult {
 /**
  * 步骤卡片分析状态
  */
-export type StepAnalysisState = 
-  | 'idle'                // 未开始
-  | 'pending_analysis'    // 等待分析
-  | 'analyzing'          // 分析中
-  | 'analysis_completed' // 分析完成
-  | 'analysis_failed'    // 分析失败
-  | 'analysis_stale'     // 分析过期
-  | 'upgrade_available'; // 可升级
+export type StepAnalysisState =
+  | "idle" // 未开始
+  | "pending_analysis" // 等待分析
+  | "analyzing" // 分析中
+  | "analysis_completed" // 分析完成
+  | "analysis_failed" // 分析失败
+  | "analysis_stale" // 分析过期
+  | "upgrade_available"; // 可升级
 
 /**
  * 策略模式
  */
-export type StrategyMode = 
-  | 'intelligent'       // 智能匹配（推荐）
-  | 'smart_variant'     // 智能-单步固定
-  | 'static_user';      // 用户自建静态
+export type StrategyMode =
+  | "intelligent" // 智能匹配（推荐）
+  | "smart_variant" // 智能-单步固定
+  | "static_user"; // 用户自建静态
 
 /**
  * 智能步骤卡片数据
- * 
+ *
  * 🎯 完整字段说明（符合文档7要求）：
  * - 基础信息：stepId, stepName, stepType
  * - 元素上下文：elementContext, selectionHash
@@ -188,11 +196,11 @@ export interface IntelligentStepCard {
   stepId: string;
   stepName: string;
   stepType: string;
-  
+
   // === 元素上下文 ===
   elementContext: IntelligentElementSelectionContext;
   selectionHash: SelectionHash;
-  
+
   // === 分析状态（核心字段） ===
   /** 当前分析状态 */
   analysisState: StepAnalysisState;
@@ -204,13 +212,13 @@ export interface IntelligentStepCard {
   analysisError?: string;
   /** 预计剩余时间（毫秒） */
   estimatedTimeLeft?: number;
-  
+
   // === 兼容字段（向后兼容） ===
   /** 是否等待分析（兼容旧代码） */
   pendingAnalysis?: boolean;
   /** 是否正在分析（兼容旧代码） */
   isAnalyzing?: boolean;
-  
+
   // === 策略信息 ===
   /** 策略模式：intelligent | smart_variant | static_user */
   strategyMode: StrategyMode;
@@ -224,7 +232,7 @@ export interface IntelligentStepCard {
   recommendedStrategy?: StrategyCandidate;
   /** 兜底策略（必需，保底可用） */
   fallbackStrategy: StrategyCandidate;
-  
+
   // === UI 状态字段（新增，文档要求） ===
   /** 是否正在使用兜底策略 */
   isFallbackActive?: boolean;
@@ -232,7 +240,7 @@ export interface IntelligentStepCard {
   canUpgrade?: boolean;
   /** 是否显示升级按钮 */
   showUpgradeButton?: boolean;
-  
+
   // === 配置开关 ===
   /** 是否自动跟随智能推荐（置信度≥阈值时自动切换） */
   autoFollowSmart: boolean;
@@ -240,7 +248,7 @@ export interface IntelligentStepCard {
   lockContainer: boolean;
   /** 智能推荐阈值（默认0.82） */
   smartThreshold: number;
-  
+
   // === 执行配置（可选） ===
   /** 是否允许后端受控回退 */
   allowBackendFallback?: boolean;
@@ -248,7 +256,7 @@ export interface IntelligentStepCard {
   candidateTimeoutMs?: number;
   /** 总预算时间（毫秒） */
   totalBudgetMs?: number;
-  
+
   // === 时间戳 ===
   /** 创建时间 */
   createdAt: number;
@@ -256,7 +264,7 @@ export interface IntelligentStepCard {
   analyzedAt?: number;
   /** 最后更新时间 */
   updatedAt: number;
-  
+
   // === 执行历史（可选） ===
   /** 上次执行结果 */
   lastExecutionResult?: StepExecutionResult;
@@ -279,9 +287,9 @@ export interface StepExecutionResult {
   /** 使用的策略名称 */
   strategy: string;
   /** 策略类型（智能/兜底/用户自建） */
-  strategyType?: 'smart' | 'fallback' | 'user';
+  strategyType?: "smart" | "fallback" | "user";
   /** 执行状态 */
-  status?: 'success' | 'failed' | 'timeout' | 'skipped';
+  status?: "success" | "failed" | "timeout" | "skipped";
   /** 错误信息 */
   error?: string;
   /** 重试次数 */
@@ -319,7 +327,7 @@ export interface SingleStepScore {
   /** 置信度 (0-1) */
   confidence: number;
   /** 来源：auto_chain | static | model */
-  source?: 'auto_chain' | 'static' | 'model';
+  source?: "auto_chain" | "static" | "model";
   /** 评分原因 */
   reasons?: string[];
   /** 评分时间 (ISO字符串) */

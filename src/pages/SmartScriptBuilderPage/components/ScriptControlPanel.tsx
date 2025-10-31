@@ -15,23 +15,21 @@ import {
   Collapse,
   Divider,
   Switch,
-  Tooltip,
 } from "antd";
 import {
   PlayCircleOutlined,
   SettingOutlined,
-  InfoCircleOutlined,
 } from "@ant-design/icons";
 import TestResultsDisplay from "../../../components/TestResultsDisplay";
 import { ScriptBuilderIntegration } from "../../../modules/smart-script-management/components/ScriptBuilderIntegration";
 import MultiDeviceScriptLauncher from "./MultiDeviceScriptLauncher";
-import { ExecutionControlButtons, AbortButton } from "../../../modules/execution-control";
+import { useExecutionControl } from "../../../modules/execution-control";
+import { SimpleAbortButton } from "./SimpleAbortButton";
 import type { ExtendedSmartScriptStep } from "../../../types/loopScript";
 import type {
   ExecutorConfig,
   SmartExecutionResult,
 } from "../../../types/execution";
-import { useSingleStepTest } from "../../../hooks/useSingleStepTest";
 
 const { Title } = Typography;
 // Note: rc-collapse warns against using children Panels; use items API instead.
@@ -61,8 +59,20 @@ const ScriptControlPanel: React.FC<ScriptControlPanelProps> = ({
   onUpdateSteps,
   onUpdateConfig,
 }) => {
-  const { getAllTestResults } = useSingleStepTest();
-  const testResults = getAllTestResults();
+  // 🔥 集成执行控制系统（用于中止按钮状态）
+  const { canAbort } = useExecutionControl();
+
+  // 直接使用原有的执行脚本逻辑（已集成执行控制）
+  const handleExecuteScript = () => {
+    console.log('🔴🔴🔴 [ScriptControlPanel] ============ 执行脚本按钮被点击! ============');
+    console.log('📋 [ScriptControlPanel] 当前步骤数:', steps.length);
+    console.log('📱 [ScriptControlPanel] 当前设备ID:', currentDeviceId);
+    console.log('⚡ [ScriptControlPanel] 正在执行状态:', isExecuting);
+    console.log('🛑 [ScriptControlPanel] 可中止状态:', canAbort);
+    
+    // 调用原有的执行脚本逻辑（executeScript.ts中已集成执行控制）
+    onExecuteScript();
+  };
 
   return (
     <Card>
@@ -75,23 +85,7 @@ const ScriptControlPanel: React.FC<ScriptControlPanelProps> = ({
           <Button
             type="primary"
             icon={<PlayCircleOutlined />}
-            onClick={() => {
-              console.log('🔴🔴🔴 [ScriptControlPanel] ============ 执行脚本按钮被点击! ============');
-              console.log('📋 [ScriptControlPanel] 当前步骤数:', steps.length);
-              console.log('� [ScriptControlPanel] 步骤详情:', steps);
-              console.log('�📱 [ScriptControlPanel] 当前设备ID:', currentDeviceId);
-              console.log('⚡ [ScriptControlPanel] 正在执行状态:', isExecuting);
-              console.log('🎯 [ScriptControlPanel] onExecuteScript函数类型:', typeof onExecuteScript);
-              console.log('🎯 [ScriptControlPanel] onExecuteScript函数:', onExecuteScript);
-              
-              try {
-                console.log('▶️ [ScriptControlPanel] 准备调用 onExecuteScript()...');
-                onExecuteScript();
-                console.log('✅ [ScriptControlPanel] onExecuteScript() 调用完成');
-              } catch (error) {
-                console.error('❌ [ScriptControlPanel] onExecuteScript() 调用失败:', error);
-              }
-            }}
+            onClick={handleExecuteScript}
             loading={isExecuting}
             disabled={!currentDeviceId || steps.length === 0}
             style={{ flex: 1 }}
@@ -99,11 +93,12 @@ const ScriptControlPanel: React.FC<ScriptControlPanelProps> = ({
             {isExecuting ? "正在执行脚本..." : "执行脚本"}
           </Button>
           
-          {/* 中止按钮 */}
-          <AbortButton 
+          {/* 中止按钮 - 简化版，确保能正常显示 */}
+          <SimpleAbortButton 
             text="中止" 
             size="middle"
             confirmAbort={true}
+            forceShow={isExecuting} // 执行时强制显示
             onAbort={() => {
               console.log('🛑 [ScriptControlPanel] 脚本执行已中止');
             }}

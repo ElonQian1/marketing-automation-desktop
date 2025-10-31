@@ -6,7 +6,7 @@ import React from 'react';
 import { Modal, Tabs, Slider, Typography, Space, Divider, Tag } from 'antd';
 import { useStructuralMatchingModal } from '../../../hooks/use-structural-matching-modal';
 import { useStructuralPreview } from '../../../hooks/use-structural-preview';
-import { StructuralFieldConfigList } from '../field-config-list/field-config-list';
+import { ElementStructureTree } from '../element-structure-tree';
 import { StructuralScoringPreview } from '../scoring-preview/scoring-preview';
 import './structural-matching-modal.css';
 
@@ -39,7 +39,6 @@ export const StructuralMatchingModal: React.FC<StructuralMatchingModalProps> = (
 }) => {
   const {
     config,
-    updateField,
     toggleField,
     updateThreshold,
     isConfigValid,
@@ -130,9 +129,9 @@ export const StructuralMatchingModal: React.FC<StructuralMatchingModalProps> = (
         {/* 标签页 */}
         <Tabs defaultActiveKey="fields">
           <TabPane tab="字段配置" key="fields">
-            <StructuralFieldConfigList
-              fields={config.fields}
-              onUpdateField={updateField}
+            <ElementStructureTree
+              selectedElement={selectedElement}
+              fieldConfigs={config.fields}
               onToggleField={toggleField}
             />
           </TabPane>
@@ -147,13 +146,9 @@ export const StructuralMatchingModal: React.FC<StructuralMatchingModalProps> = (
 
         {/* 底部操作 */}
         <div className="structural-modal-footer">
-          <Text
-            type="link"
-            onClick={reset}
-            style={{ cursor: 'pointer' }}
-          >
+          <a onClick={reset} style={{ cursor: 'pointer' }}>
             重置为默认配置
-          </Text>
+          </a>
         </div>
       </div>
     </Modal>

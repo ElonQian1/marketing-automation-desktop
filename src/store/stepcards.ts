@@ -24,6 +24,9 @@ export interface StepCard {
     resourceId?: string;
     className?: string;
   };
+  /** 🔥 原始UIElement - 用于策略配置（如结构匹配需要children字段） */
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  original_element?: any; // 使用any避免循环依赖
   status: StepCardStatus;
   strategy?: {
     primary: string;

@@ -68,6 +68,47 @@ export function useIntelligentStepCardIntegration(
   const { createStepCardQuick, stepCards, isAnalyzing } = analysisWorkflow;
 
   /**
+   * 从现有的 child_elements 构建简单的 children 结构
+   */
+  const buildSimpleChildren = useCallback((element: UIElement): UIElement => {
+    const enhancedElement = { ...element };
+    
+    // 如果有 child_elements，转换为 children 结构
+    if (element.child_elements && element.child_elements.length > 0) {
+      enhancedElement.children = element.child_elements.map((childElement, index) => ({
+        id: `${element.id}_child_${index}`,
+        element_type: 'ChildText',
+        text: typeof childElement === 'string' ? childElement : (childElement.text || ''),
+        content_desc: '',
+        resource_id: '',
+        class_name: 'ChildText',
+        bounds: element.bounds, // 使用父元素的bounds
+        xpath: `${element.xpath}/child[${index}]`,
+        is_clickable: false,
+        is_scrollable: false,
+        is_enabled: true,
+        is_focused: false,
+        checkable: false,
+        checked: false,
+        selected: false,
+        password: false,
+        children: [], // 子元素没有更深层的children
+      }));
+      
+      console.log("🌳 [buildSimpleChildren] 从child_elements构建children结构:", {
+        elementId: element.id,
+        childrenCount: enhancedElement.children.length,
+        childTexts: element.child_elements
+      });
+    } else {
+      enhancedElement.children = [];
+      console.log("🌳 [buildSimpleChildren] 无child_elements，设置空children:", element.id);
+    }
+    
+    return enhancedElement;
+  }, []);
+
+  /**
    * � 提取元素的子元素文本列表（递归）
    * 用于解决"父容器可点击+子元素包含文本"的Android UI模式
    */
@@ -712,6 +753,8 @@ export function useIntelligentStepCardIntegration(
             : undefined,
         childrenTexts: childTexts,
         childrenContentDescs: childContentDescs, // 🆕 新增：子元素content-desc列表
+        // 🔥 原始UIElement - 用于策略配置（如结构匹配需要children字段）
+        originalUIElement: buildSimpleChildren(element),
         // 🎯 附加：父子元素提取结果，供命名等后续使用（避免重复提取）
         _enrichment: {
           parentContentDesc,
@@ -755,7 +798,7 @@ export function useIntelligentStepCardIntegration(
 
       return context;
     },
-    []
+    [buildSimpleChildren]
   );
 
   /**

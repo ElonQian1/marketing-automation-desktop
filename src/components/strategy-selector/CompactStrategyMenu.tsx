@@ -1475,9 +1475,29 @@ const CompactStrategyMenu: React.FC<CompactStrategyMenuProps> = ({
       )}
 
       {/* 🏗️ 结构匹配模态框 */}
+      {structuralMatchingVisible && (() => {
+        // 🔥 修复：优先从步骤卡片的原始数据中获取UIElement
+        const cardElement = card?.original_element;
+        const storeElement = selectionContext?.selectedElement;
+        const elementToUse = cardElement || storeElement;
+        
+        console.log('🔍 [CompactStrategyMenu] 传递给StructuralMatchingModal的元素:', {
+          source: cardElement ? 'card.original_element' : (storeElement ? 'selectionContext' : 'none'),
+          hasCardElement: !!cardElement,
+          hasStoreElement: !!storeElement,
+          hasElement: !!elementToUse,
+          elementKeys: elementToUse ? Object.keys(elementToUse) : [],
+          elementId: elementToUse?.id,
+          elementClassName: elementToUse?.class_name,
+          hasChildren: elementToUse?.children ? elementToUse.children.length : 'undefined',
+          childrenPreview: elementToUse?.children ? elementToUse.children.slice(0, 2).map((c: { class_name?: string; text?: string }) => c.class_name || c.text) : [],
+          fullElement: elementToUse
+        });
+        return null;
+      })()}
       <StructuralMatchingModal
         visible={structuralMatchingVisible}
-        selectedElement={selectionContext || {
+        selectedElement={(card?.original_element || selectionContext?.selectedElement) || {
           elementText: '',
           contentDesc: '',
           textAttr: '',

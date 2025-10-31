@@ -16,7 +16,7 @@ export * from './hooks/use-structural-preview';
 
 // UI Components
 export * from './ui/components/structural-matching-modal';
-export * from './ui/components/field-config-list';
+export * from './ui/components/element-structure-tree';
 export * from './ui/components/scoring-preview';
 
 // Services
