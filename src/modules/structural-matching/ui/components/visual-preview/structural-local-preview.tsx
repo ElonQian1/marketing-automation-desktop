@@ -7,7 +7,6 @@ import { Typography, Spin } from 'antd';
 import { PagePreview } from '../../../../../components/universal-ui/views/visual-view/components/PagePreview';
 import { useElementSelectionManager } from '../../../../../components/universal-ui/element-selection/useElementSelectionManager';
 import type { VisualUIElement, VisualElementCategory } from '../../../../../components/universal-ui/views/visual-view/types/visual-types';
-import type { UIElement } from '../../../../../api/universalUIAPI';
 import XmlCacheManager from '../../../../../services/xml-cache-manager';
 import { parseXML } from '../../../../../components/universal-ui/xml-parser';
 
@@ -50,11 +49,17 @@ function parseBounds(bounds: string | undefined): { x: number; y: number; width:
  * 策略：以选中元素为中心，包含其父元素、子元素、同级元素和视觉接近的元素
  */
 function extractLocalElements(
-  allElements: UIElement[], 
+  allElements: VisualUIElement[], 
   selectedElementData: Record<string, unknown>
-): UIElement[] {
+): VisualUIElement[] {
   const selectedBounds = parseBounds(selectedElementData.bounds as string);
   if (!selectedBounds || allElements.length === 0) return [];
+
+  console.log('🔍 [extractLocalElements] 开始提取局部元素:', {
+    selectedElementData,
+    selectedBounds,
+    totalElements: allElements.length
+  });
 
   // 1. 找到选中元素在XML中的对应项
   const selectedElement = allElements.find(el => {
@@ -62,25 +67,31 @@ function extractLocalElements(
     if (!elBounds) return false;
     
     // 通过位置和文本匹配
-    return Math.abs(elBounds.x - selectedBounds.x) < 5 &&
+    const positionMatch = Math.abs(elBounds.x - selectedBounds.x) < 5 &&
            Math.abs(elBounds.y - selectedBounds.y) < 5 &&
            Math.abs(elBounds.width - selectedBounds.width) < 10 &&
            Math.abs(elBounds.height - selectedBounds.height) < 10;
+           
+    // 也尝试通过文本内容匹配
+    const textMatch = el.text && selectedElementData.text && 
+                     el.text === selectedElementData.text;
+                     
+    return positionMatch || textMatch;
   });
 
   if (!selectedElement) {
-    console.warn('⚠️ [StructuralLocalPreview] 未找到匹配的选中元素');
+    console.warn('⚠️ [StructuralLocalPreview] 未找到匹配的选中元素，使用前20个作为演示');
     return allElements.slice(0, 20); // 兜底：返回前20个元素
   }
 
   console.log('🎯 [StructuralLocalPreview] 找到选中元素:', selectedElement);
 
   // 2. 计算局部区域范围（选中元素周围的扩展区域）
-  const expandRatio = 1.5; // 扩展倍数
+  const expandRatio = 2.0; // 增大扩展倍数
   const centerX = selectedBounds.x + selectedBounds.width / 2;
   const centerY = selectedBounds.y + selectedBounds.height / 2;
-  const expandedWidth = selectedBounds.width * expandRatio;
-  const expandedHeight = selectedBounds.height * expandRatio;
+  const expandedWidth = Math.max(selectedBounds.width * expandRatio, 300); // 最小宽度
+  const expandedHeight = Math.max(selectedBounds.height * expandRatio, 300); // 最小高度
   
   const localRegion = {
     left: centerX - expandedWidth / 2,
@@ -116,42 +127,24 @@ function extractLocalElements(
   console.log(`🔍 [StructuralLocalPreview] 提取局部元素: ${relevantElements.length}/${allElements.length}`, {
     selectedBounds,
     localRegion,
-    relevantElementsCount: relevantElements.length
+    relevantElementsCount: relevantElements.length,
+    sampleElements: relevantElements.slice(0, 3).map(el => ({
+      id: el.id,
+      text: el.text,
+      bounds: el.bounds
+    }))
   });
 
   return relevantElements;
 }
 
 /**
- * 将UIElement转换为VisualUIElement
- */
-function convertToVisualElements(elements: UIElement[]): VisualUIElement[] {
-  return elements.map((element, index) => {
-    const bounds = parseBounds(element.bounds);
-    
-    return {
-      id: element.id || `element_${index}`,
-      userFriendlyName: element.text || element.content_desc || element.class_name || 'Unknown',
-      description: element.content_desc || element.text || '无描述',
-      category: element.clickable ? 'interactive' : 'static',
-      importance: element.clickable ? 'high' : 'medium',
-      clickable: element.clickable || false,
-      position: bounds || { x: 0, y: 0, width: 50, height: 20 },
-      text: element.text || '',
-      class_name: element.class_name || '',
-      content_desc: element.content_desc || '',
-      resource_id: element.resource_id || ''
-    } as VisualUIElement;
-  });
-}
-
-/**
  * 默认元素分类
  */
 const DEFAULT_CATEGORIES: VisualElementCategory[] = [
-  { name: 'interactive', color: '#52c41a', icon: '🎯', elements: [] },
-  { name: 'static', color: '#1890ff', icon: '📝', elements: [] },
-  { name: 'container', color: '#722ed1', icon: '📦', elements: [] }
+  { name: 'interactive', color: '#52c41a', icon: '🎯', description: '可交互元素', elements: [] },
+  { name: 'static', color: '#1890ff', icon: '📝', description: '静态元素', elements: [] },
+  { name: 'container', color: '#722ed1', icon: '📦', description: '容器元素', elements: [] }
 ];
 
 /**
@@ -164,7 +157,7 @@ export const StructuralLocalPreview: React.FC<StructuralLocalPreviewProps> = ({
   loading = false
 }) => {
   const [xmlContent, setXmlContent] = useState<string>('');
-  const [allElements, setAllElements] = useState<UIElement[]>([]);
+  const [allElements, setAllElements] = useState<VisualUIElement[]>([]);
   const [localElements, setLocalElements] = useState<VisualUIElement[]>([]);
   const [isDataLoading, setIsDataLoading] = useState(true);
 
@@ -198,20 +191,12 @@ export const StructuralLocalPreview: React.FC<StructuralLocalPreviewProps> = ({
         
         // 解析XML获取所有元素
         const parseResult = parseXML(cacheEntry.xmlContent);
-        const parsedElements = parseResult.elements.map(visualElement => ({
-          id: visualElement.id,
-          text: visualElement.text || '',
-          content_desc: visualElement.contentDesc || '',
-          class_name: visualElement.className || '',
-          bounds: visualElement.bounds || '',
-          clickable: visualElement.clickable || false,
-          resource_id: visualElement.resourceId || ''
-        } as UIElement));
-        setAllElements(parsedElements);
+        setAllElements(parseResult.elements);
         
         console.log('✅ [StructuralLocalPreview] 加载XML数据成功:', {
           xmlLength: cacheEntry.xmlContent.length,
-          totalElements: parsedElements.length
+          totalElements: parseResult.elements.length,
+          sampleElement: parseResult.elements[0]
         });
 
       } catch (error) {
@@ -231,27 +216,18 @@ export const StructuralLocalPreview: React.FC<StructuralLocalPreviewProps> = ({
       const actualElement = (contextWrapper?.selectedElement as Record<string, unknown>) || selectedElement;
       
       const extracted = extractLocalElements(allElements, actualElement);
-      const visualElements = convertToVisualElements(extracted);
-      setLocalElements(visualElements);
+      setLocalElements(extracted);
       
       console.log('🏗️ [StructuralLocalPreview] 转换局部可视化元素:', {
         extractedCount: extracted.length,
-        visualElementsCount: visualElements.length
+        visualElementsCount: extracted.length
       });
     }
   }, [allElements, selectedElement]);
 
-  // 创建选择管理器
+  // 创建选择管理器（用于高亮管理）
   const selectionManager = useElementSelectionManager(
-    localElements.map(el => ({
-      id: el.id,
-      text: el.text,
-      bounds: `[${el.position.x},${el.position.y}][${el.position.x + el.position.width},${el.position.y + el.position.height}]`,
-      clickable: el.clickable,
-      class_name: el.class_name,
-      content_desc: el.content_desc,
-      resource_id: el.resource_id
-    } as UIElement)),
+    [], // 我们不需要传递具体元素，只需要高亮功能
     undefined,
     { enableHover: true, hoverDelay: 100 }
   );
@@ -359,7 +335,7 @@ export const StructuralLocalPreview: React.FC<StructuralLocalPreviewProps> = ({
           deviceFramePadding={16}
           selectionManager={selectionManager}
           selectedElementId={highlightedElementId || ''}
-          originalUIElements={allElements}
+          originalUIElements={[]}
           showScreenshot={false}
           showGrid={false}
           showCrosshair={false}
