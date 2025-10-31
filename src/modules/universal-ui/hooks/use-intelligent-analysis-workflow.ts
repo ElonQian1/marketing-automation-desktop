@@ -242,11 +242,11 @@ export function useIntelligentAnalysisWorkflow(): UseIntelligentAnalysisWorkflow
                   ) {
                     // 🔇 日志优化：只在进度有大幅变化时打印
                     if (progress % 25 === 0 || progress === 100) {
-                      console.log("🎯 [Workflow] 更新步骤卡片进度", {
-                        stepId: card.stepId,
-                        jobId,
-                        progress,
-                      });
+                      // console.log("🎯 [Workflow] 更新步骤卡片进度", {
+                      //   stepId: card.stepId,
+                      //   jobId,
+                      //   progress,
+                      // });
                     }
                     return {
                       ...card,
@@ -272,12 +272,12 @@ export function useIntelligentAnalysisWorkflow(): UseIntelligentAnalysisWorkflow
                       unifiedStore.updateStatus(cardByJob, "analyzing");
                     }
                     unifiedStore.updateProgress(cardByJob, progress);
-                    console.log("🔗 [Bridge] 同步进度到统一store", {
-                      cardId: cardByJob.slice(-8),
-                      jobId: jobId.slice(-8),
-                      progress,
-                      statusUpdate: progress < 100 ? "analyzing" : "no-change",
-                    });
+                    // console.log("🔗 [Bridge] 同步进度到统一store", {
+                    //   cardId: cardByJob.slice(-8),
+                    //   jobId: jobId.slice(-8),
+                    //   progress,
+                    //   statusUpdate: progress < 100 ? "analyzing" : "no-change",
+                    // });
                   }
                 } catch (err) {
                   console.warn("⚠️ [Bridge] 同步到统一store失败", err);
@@ -297,9 +297,9 @@ export function useIntelligentAnalysisWorkflow(): UseIntelligentAnalysisWorkflow
 
               // 🔒 幂等性保护：检查是否已处理过此完成事件
               if (processedJobs.current.has(jobId)) {
-                console.log("🔒 [Workflow] 完成事件已处理，跳过重复处理", {
-                  jobId: jobId.slice(-8),
-                });
+                // console.log("🔒 [Workflow] 完成事件已处理，跳过重复处理", {
+                //   jobId: jobId.slice(-8),
+                // });
                 return;
               }
               processedJobs.current.add(jobId);
@@ -356,10 +356,10 @@ export function useIntelligentAnalysisWorkflow(): UseIntelligentAnalysisWorkflow
                     completedAt: Date.now(),
                     result,
                   });
-                  console.log("🔗 [Workflow] 更新任务状态为已完成", {
-                    jobId,
-                    stepId: job.stepId,
-                  });
+                  // console.log("🔗 [Workflow] 更新任务状态为已完成", {
+                  //   jobId,
+                  //   stepId: job.stepId,
+                  // });
                 }
 
                 return updated;
@@ -369,10 +369,10 @@ export function useIntelligentAnalysisWorkflow(): UseIntelligentAnalysisWorkflow
               setStepCards((prevCards) => {
                 return prevCards.map((card) => {
                   if (card.analysisJobId === jobId) {
-                    console.log("🎯 [Workflow] 更新步骤卡片为完成状态", {
-                      stepId: card.stepId,
-                      jobId,
-                    });
+                    // console.log("🎯 [Workflow] 更新步骤卡片为完成状态", {
+                    //   stepId: card.stepId,
+                    //   jobId,
+                    // });
                     return {
                       ...card,
                       analysisState: ANALYSIS_STATES.COMPLETED,
@@ -748,11 +748,11 @@ export function useIntelligentAnalysisWorkflow(): UseIntelligentAnalysisWorkflow
               const cardId = unifiedStore.byStepId[stepId];
               if (cardId) {
                 unifiedStore.bindJob(cardId, jobId);
-                console.log("🔗 [Bridge] 启动时注册job映射", {
-                  stepId,
-                  cardId,
-                  jobId,
-                });
+                // console.log("🔗 [Bridge] 启动时注册job映射", {
+                //   stepId,
+                //   cardId,
+                //   jobId,
+                // });
               }
             } catch (err) {
               console.warn("⚠️ [Bridge] 启动时注册job映射失败", err);
@@ -890,11 +890,11 @@ export function useIntelligentAnalysisWorkflow(): UseIntelligentAnalysisWorkflow
               const cardId = unifiedStore.byStepId[stepId];
               if (cardId) {
                 unifiedStore.bindJob(cardId, jobId);
-                console.log("🔗 [Bridge] 绑定job到卡片", {
-                  cardId,
-                  jobId,
-                  stepId,
-                });
+                // console.log("🔗 [Bridge] 绑定job到卡片", {
+                //   cardId,
+                //   jobId,
+                //   stepId,
+                // });
               }
             } catch (err) {
               console.warn("⚠️ [Bridge] 绑定job失败", err);

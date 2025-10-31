@@ -88,7 +88,7 @@ export const useIntelligentAnalysisAdapter = (
       try {
         // 监听进度更新
         await backendService.listenToAnalysisProgress((jobId, progress, step, estimatedTimeLeft) => {
-          console.log('📊 [Adapter] 收到进度更新', { jobId, progress, step, estimatedTimeLeft });
+          // console.log('📊 [Adapter] 收到进度更新', { jobId, progress, step, estimatedTimeLeft });
           setRealAnalysisProgress({
             currentStep: Math.round((progress / 100) * 7), // 进度是百分比，转换为步骤数
             totalSteps: 7,

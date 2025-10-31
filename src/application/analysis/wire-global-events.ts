@@ -121,11 +121,11 @@ export async function wireAnalysisEventsGlobally(): Promise<void> {
           }
         }
       } else {
-        console.warn('⚠️ [GlobalWire] progress事件找不到卡片', { 
-          job_id: job_id.slice(-8), 
-          progress,
-          allJobIds: Object.values(store.cards).map(c => c.jobId?.slice(-8)).filter(Boolean)
-        });
+        // console.warn('⚠️ [GlobalWire] progress事件找不到卡片', { 
+        //   job_id: job_id.slice(-8), 
+        //   progress,
+        //   allJobIds: Object.values(store.cards).map(c => c.jobId?.slice(-8)).filter(Boolean)
+        // });
       }
     });
 

@@ -57,18 +57,164 @@ export const ElementStructureTree: React.FC<ElementStructureTreeProps> = ({
           fullSelectedElement: selectedElement
         });
 
-        // 暂时跳过后端调用，直接使用传入的数据
-        // TODO: 等后端实现 parse_element_with_children 命令后启用
-        if (false && actualElement?.xmlCacheId && actualElement?.id) {
-          const result = await invoke('parse_element_with_children', {
+        // 尝试从XML缓存解析完整元素结构
+        if (actualElement?.xmlCacheId && actualElement?.id) {
+          console.log('🔍 [ElementStructureTree] 尝试从XML缓存解析元素结构:', {
             xmlCacheId: actualElement.xmlCacheId,
-            elementId: actualElement.id,
-            maxDepth: 5
+            elementId: actualElement.id
           });
+          
+          try {
+            const result = await invoke('parse_element_with_children', {
+              xmlCacheId: actualElement.xmlCacheId,
+              elementId: actualElement.id,
+              maxDepth: 5
+            });
 
-          console.log('✅ [ElementStructureTree] XML解析成功:', result);
-          setFullElementData(result as Record<string, unknown>);
-          return;
+            console.log('✅ [ElementStructureTree] XML解析成功:', result);
+            setFullElementData(result as Record<string, unknown>);
+            return;
+          } catch (error) {
+            console.warn('⚠️ [ElementStructureTree] XML解析失败，回退到基础数据:', error);
+            
+            // 🆘 临时fallback方案：尝试从XmlCacheManager直接获取XML内容
+            const errorMessage = error instanceof Error ? error.message : String(error);
+            if (errorMessage.includes('parse_element_with_children not found') || errorMessage.includes('Command parse_element_with_children not found')) {
+              console.log('🔧 [ElementStructureTree] 后端缺少parse_element_with_children命令，尝试前端直接解析XML');
+              
+              try {
+                const { XmlCacheManager } = await import('../../../../../services/xml-cache-manager');
+                const cacheEntry = await XmlCacheManager.getInstance().getCachedXml(actualElement.xmlCacheId as string);
+                
+                if (cacheEntry?.xmlContent) {
+                  console.log('✅ [ElementStructureTree] 获取到XML内容，长度:', cacheEntry.xmlContent.length);
+                  
+                  // 简单的XML解析：查找目标元素及其子元素
+                  const parser = new DOMParser();
+                  const xmlDoc = parser.parseFromString(cacheEntry.xmlContent, 'application/xml');
+                  
+                  // 🔧 正确的查找方式：通过索引查找节点
+                  // element_32 对应 XML 中第32个 <node> 节点
+                  const allNodes = xmlDoc.querySelectorAll("node");
+                  const elementIndexMatch = actualElement.id.toString().match(/element[-_](\d+)/);
+                  const targetIndex = elementIndexMatch ? parseInt(elementIndexMatch[1], 10) : -1;
+                  const targetElement = targetIndex >= 0 && targetIndex < allNodes.length ? allNodes[targetIndex] : null;
+                  
+                  if (targetElement) {
+                    const children = Array.from(targetElement.children);
+                    console.log(`✅ [ElementStructureTree] 从XML找到目标元素 (索引${targetIndex})，子元素数量: ${children.length}`);
+                    
+                    if (children.length > 0) {
+                      // 递归解析子元素结构 - 支持多层嵌套
+                      const parseElementRecursively = (element: Element, depth: number, maxDepth: number = 5): Record<string, unknown> | null => {
+                        if (depth >= maxDepth) {
+                          console.log(`🔄 [ElementStructureTree] 达到最大深度限制 (${maxDepth})，停止递归`);
+                          return null;
+                        }
+                        
+                        const elementChildren = Array.from(element.children);
+                        const childIndex = Array.from(allNodes).indexOf(element);
+                        
+                        const baseElement: Record<string, unknown> = {
+                          id: childIndex >= 0 ? `element_${childIndex}` : `depth_${depth}_element`,
+                          text: element.getAttribute('text') || '',
+                          content_desc: element.getAttribute('content-desc') || '',
+                          class_name: element.getAttribute('class') || element.tagName,
+                          bounds: element.getAttribute('bounds') || '',
+                          clickable: element.getAttribute('clickable') === 'true',
+                          resource_id: element.getAttribute('resource-id') || '',
+                          element_type: element.getAttribute('class')?.split('.').pop() || element.tagName
+                        };
+                        
+                        // 递归解析子元素的子元素
+                        if (elementChildren.length > 0) {
+                          const parsedChildren: Record<string, unknown>[] = [];
+                          
+                          for (let i = 0; i < elementChildren.length; i++) {
+                            const child = elementChildren[i];
+                            const parsedChild = parseElementRecursively(child, depth + 1, maxDepth);
+                            if (parsedChild) {
+                              parsedChildren.push(parsedChild);
+                            }
+                          }
+                          
+                          if (parsedChildren.length > 0) {
+                            baseElement.children = parsedChildren;
+                            console.log(`📊 [ElementStructureTree] 深度${depth} 元素 ${baseElement.class_name} 包含 ${parsedChildren.length} 个子元素`);
+                          }
+                        }
+                        
+                        return baseElement;
+                      };
+                      
+                      // 构建完整的多层子元素数据
+                      const childElements: Record<string, unknown>[] = [];
+                      for (let i = 0; i < children.length; i++) {
+                        const child = children[i];
+                        const parsedChild = parseElementRecursively(child, 1, 5); // 从深度1开始，最大深度5
+                        if (parsedChild) {
+                          childElements.push(parsedChild);
+                        }
+                      }
+                      
+                      console.log(`🌳 [ElementStructureTree] 递归解析完成，根层级子元素数量: ${childElements.length}`);
+                      console.log(`🌳 [ElementStructureTree] 递归解析完成，根层级子元素数量: ${childElements.length}`);
+                      
+                      // 输出完整的元素层级统计
+                      const countElementsRecursively = (elements: Record<string, unknown>[]): { total: number, byDepth: Record<number, number> } => {
+                        const result = { total: 0, byDepth: {} as Record<number, number> };
+                        
+                        const countAtDepth = (elems: Record<string, unknown>[], depth: number) => {
+                          result.byDepth[depth] = (result.byDepth[depth] || 0) + elems.length;
+                          result.total += elems.length;
+                          
+                          elems.forEach(elem => {
+                            if (elem.children && Array.isArray(elem.children)) {
+                              countAtDepth(elem.children as Record<string, unknown>[], depth + 1);
+                            }
+                          });
+                        };
+                        
+                        countAtDepth(elements, 1);
+                        return result;
+                      };
+                      
+                      const elementStats = countElementsRecursively(childElements);
+                      console.log(`📊 [ElementStructureTree] 完整层级统计:`, {
+                        总元素数: elementStats.total,
+                        各层分布: elementStats.byDepth,
+                        与硬编码对比: `真实数据${elementStats.total}个元素 vs 硬编码${9}个元素` // 硬编码有9个元素(1+1+2+4)
+                      });
+                      
+                      const enhancedElement = {
+                        ...actualElement,
+                        children: childElements
+                      };
+                      
+                      console.log('✅ [ElementStructureTree] 成功从XML递归解析多层子元素:', enhancedElement);
+                      setFullElementData(enhancedElement);
+                      return;
+                    } else {
+                      console.log('📋 [ElementStructureTree] 目标元素存在但无子元素');
+                    }
+                  } else {
+                    console.warn('⚠️ [ElementStructureTree] 在XML中未找到目标元素:', {
+                      elementId: actualElement.id,
+                      extractedIndex: targetIndex,
+                      totalNodes: allNodes.length,
+                      isIndexValid: targetIndex >= 0 && targetIndex < allNodes.length
+                    });
+                  }
+                } else {
+                  console.warn('⚠️ [ElementStructureTree] 未获取到XML缓存内容');
+                }
+              } catch (xmlError) {
+                console.error('❌ [ElementStructureTree] 前端XML解析失败:', xmlError);
+              }
+            }
+            
+            // 继续使用下面的逻辑
+          }
         }
 
         // 优先使用真实数据，如果没有子元素，才添加模拟演示数据
@@ -77,7 +223,9 @@ export const ElementStructureTree: React.FC<ElementStructureTreeProps> = ({
         console.log('🔄 [ElementStructureTree] 数据处理决策:', {
           hasRealChildren,
           childrenCount: hasRealChildren ? (actualElement.children as unknown[]).length : 0,
-          willUseRealData: hasRealChildren
+          willUseRealData: hasRealChildren,
+          xmlCacheId: actualElement?.xmlCacheId,
+          elementId: actualElement?.id
         });
 
         if (hasRealChildren) {
@@ -92,6 +240,12 @@ export const ElementStructureTree: React.FC<ElementStructureTreeProps> = ({
           setFullElementData(actualElement);
           return;
         }
+
+        console.log('⚠️ [ElementStructureTree] 真实元素无子元素，使用模拟数据进行演示:', {
+          elementId: actualElement?.id,
+          hasXmlCache: !!actualElement?.xmlCacheId,
+          reason: '真实元素children数组为空或不存在'
+        });
 
         // 当前方案：增强传入的元素数据，添加模拟子元素用于演示
         const enhancedElement = {

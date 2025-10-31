@@ -3,11 +3,11 @@
 // summary: 智能分析后端服务（V2系统），调用Tauri命令与Rust后端通信
 //
 // 🔄 [V2 传统智能分析系统 - 已升级到 V3]
-// 
+//
 // ⚠️  重要提醒：此文件为 V2 传统系统，已有更先进的 V3 替代方案
-// 
+//
 // V2 系统特征：
-//   - ✅ 事件驱动架构 (analysis:progress, analysis:done)  
+//   - ✅ 事件驱动架构 (analysis:progress, analysis:done)
 //   - ❌ 完整数据传输（300-500KB步骤数据）
 //   - ❌ 顺序执行，无智能优化
 //   - ✅ 稳定可靠，适合作为后备方案
@@ -22,8 +22,8 @@
 //   V2: startAnalysis() → start_intelligent_analysis
 //   V3: executeChainV3() → execute_chain_test_v3 (90%数据精简)
 //
-//   V2: 完整步骤数据传输 (~500KB)  
-//   V3: by-ref 引用传递 (~5KB) 
+//   V2: 完整步骤数据传输 (~500KB)
+//   V3: by-ref 引用传递 (~5KB)
 //
 //   V2: 简单顺序执行
 //   V3: 智能短路 + 自动回退 + 缓存优化
@@ -36,11 +36,15 @@
 //
 // ============================================
 
-import { invoke } from '@tauri-apps/api/core';
-import { listen, UnlistenFn } from '@tauri-apps/api/event';
-import { EVENTS } from '../shared/constants/events';
-import type { UIElement } from '../api/universalUIAPI';
-import type { StrategyCandidate, AnalysisResult, StrategyPerformance } from '../modules/universal-ui/types/intelligent-analysis-types';
+import { invoke } from "@tauri-apps/api/core";
+import { listen, UnlistenFn } from "@tauri-apps/api/event";
+import { EVENTS } from "../shared/constants/events";
+import type { UIElement } from "../api/universalUIAPI";
+import type {
+  StrategyCandidate,
+  AnalysisResult,
+  StrategyPerformance,
+} from "../modules/universal-ui/types/intelligent-analysis-types";
 
 /**
  * Tauri后端配置接口
@@ -72,7 +76,7 @@ interface TauriAnalysisJobConfig {
 interface TauriAnalysisJobResponse {
   job_id: string;
   selection_hash: string;
-  state: 'queued' | 'running' | 'completed' | 'failed' | 'canceled';
+  state: "queued" | "running" | "completed" | "failed" | "canceled";
 }
 
 /**
@@ -132,16 +136,18 @@ export class IntelligentAnalysisBackendService {
     // 构建Tauri配置
     const config: TauriAnalysisJobConfig = {
       element_context: {
-        snapshot_id: 'current',
-        element_path: element.xpath || element.id || '',
+        snapshot_id: "current",
+        element_path: element.xpath || element.id || "",
         element_text: element.text,
-        element_bounds: element.bounds ? JSON.stringify(element.bounds) : undefined,
-        element_type: element.element_type || 'unknown',
+        element_bounds: element.bounds
+          ? JSON.stringify(element.bounds)
+          : undefined,
+        element_type: element.element_type || "unknown",
         key_attributes: {
-          'resource-id': element.resource_id || '',
-          'content-desc': element.content_desc || '',
-          'text': element.text || '',
-          'class': element.class_name || '',
+          "resource-id": element.resource_id || "",
+          "content-desc": element.content_desc || "",
+          text: element.text || "",
+          class: element.class_name || "",
         },
       },
       step_id: stepId,
@@ -150,18 +156,18 @@ export class IntelligentAnalysisBackendService {
       enable_static_candidates: enableStaticCandidates,
     };
 
-    console.log('🚀 [BackendService] 启动智能分析', config);
+    console.log("🚀 [BackendService] 启动智能分析", config);
 
     try {
       const response = await invoke<TauriAnalysisJobResponse>(
-        'start_intelligent_analysis',
+        "start_intelligent_analysis",
         { config }
       );
 
-      console.log('✅ [BackendService] 分析任务已启动', response);
+      console.log("✅ [BackendService] 分析任务已启动", response);
       return response;
     } catch (error) {
-      console.error('❌ [BackendService] 启动分析失败', error);
+      console.error("❌ [BackendService] 启动分析失败", error);
       throw error;
     }
   }
@@ -170,13 +176,13 @@ export class IntelligentAnalysisBackendService {
    * 取消智能分析
    */
   async cancelAnalysis(jobId: string): Promise<void> {
-    console.log('⏹️ [BackendService] 取消分析', jobId);
+    console.log("⏹️ [BackendService] 取消分析", jobId);
 
     try {
-      await invoke('cancel_intelligent_analysis', { job_id: jobId });
-      console.log('✅ [BackendService] 分析已取消');
+      await invoke("cancel_intelligent_analysis", { job_id: jobId });
+      console.log("✅ [BackendService] 分析已取消");
     } catch (error) {
-      console.error('❌ [BackendService] 取消分析失败', error);
+      console.error("❌ [BackendService] 取消分析失败", error);
       throw error;
     }
   }
@@ -185,9 +191,14 @@ export class IntelligentAnalysisBackendService {
    * 监听分析进度事件
    */
   async listenToAnalysisProgress(
-    onProgress: (jobId: string, progress: number, step: string, estimatedTimeLeft?: number) => void
+    onProgress: (
+      jobId: string,
+      progress: number,
+      step: string,
+      estimatedTimeLeft?: number
+    ) => void
   ): Promise<UnlistenFn> {
-    console.log('🔧 [BackendService] 设置进度事件监听器');
+    // console.log('🔧 [BackendService] 设置进度事件监听器');
     const unlisten = await listen<TauriAnalysisProgressEvent>(
       EVENTS.ANALYSIS_PROGRESS,
       (event) => {
@@ -202,7 +213,7 @@ export class IntelligentAnalysisBackendService {
     );
 
     this.eventListeners.push(unlisten);
-    console.log('✅ [BackendService] 进度事件监听器已设置');
+    // console.log('✅ [BackendService] 进度事件监听器已设置');
     return unlisten;
   }
 
@@ -212,39 +223,48 @@ export class IntelligentAnalysisBackendService {
   async listenToAnalysisComplete(
     onComplete: (jobId: string, result: AnalysisResult) => void
   ): Promise<UnlistenFn> {
-    console.log('🔧 [BackendService] 设置完成事件监听器');
+    // console.log('🔧 [BackendService] 设置完成事件监听器');
     const unlisten = await listen<TauriAnalysisDoneEvent>(
       EVENTS.ANALYSIS_DONE,
       (event) => {
         // console.log('✅ [BackendService] 收到分析完成事件', event.payload);
-        
+
         // 转换结果格式并增强策略对象
-        const enhanceStrategy = (strategy: StrategyCandidate): StrategyCandidate => ({
+        const enhanceStrategy = (
+          strategy: StrategyCandidate
+        ): StrategyCandidate => ({
           ...strategy,
           // 为后端返回的策略添加默认的UI展示字段
-          scenarios: strategy.scenarios || this.getDefaultScenarios(strategy.variant),
+          scenarios:
+            strategy.scenarios || this.getDefaultScenarios(strategy.variant),
           pros: strategy.pros || this.getDefaultPros(strategy.variant),
           cons: strategy.cons || this.getDefaultCons(strategy.variant),
-          performance: strategy.performance || this.getDefaultPerformance(strategy.variant),
+          performance:
+            strategy.performance ||
+            this.getDefaultPerformance(strategy.variant),
         });
 
         const result: AnalysisResult = {
           selectionHash: event.payload.result.selection_hash,
           stepId: event.payload.result.step_id,
-          smartCandidates: event.payload.result.smart_candidates.map(enhanceStrategy),
-          staticCandidates: event.payload.result.static_candidates.map(enhanceStrategy),
+          smartCandidates:
+            event.payload.result.smart_candidates.map(enhanceStrategy),
+          staticCandidates:
+            event.payload.result.static_candidates.map(enhanceStrategy),
           recommendedKey: event.payload.result.recommended_key,
           recommendedConfidence: event.payload.result.recommended_confidence,
-          fallbackStrategy: enhanceStrategy(event.payload.result.fallback_strategy),
+          fallbackStrategy: enhanceStrategy(
+            event.payload.result.fallback_strategy
+          ),
         };
-        
+
         // console.log('🔄 [BackendService] 转换后的结果', result);
         onComplete(event.payload.job_id, result);
       }
     );
 
     this.eventListeners.push(unlisten);
-    console.log('✅ [BackendService] 完成事件监听器已设置');
+    // console.log('✅ [BackendService] 完成事件监听器已设置');
     return unlisten;
   }
 
@@ -257,7 +277,7 @@ export class IntelligentAnalysisBackendService {
     const unlisten = await listen<TauriAnalysisErrorEvent>(
       EVENTS.ANALYSIS_ERROR,
       (event) => {
-        console.error('❌ [BackendService] 分析错误', event.payload);
+        console.error("❌ [BackendService] 分析错误", event.payload);
         onError(event.payload.error);
       }
     );
@@ -270,8 +290,11 @@ export class IntelligentAnalysisBackendService {
    * 清理所有事件监听器
    */
   cleanup(): void {
-    console.log('🧹 [BackendService] 清理事件监听器', this.eventListeners.length);
-    this.eventListeners.forEach(unlisten => unlisten());
+    console.log(
+      "🧹 [BackendService] 清理事件监听器",
+      this.eventListeners.length
+    );
+    this.eventListeners.forEach((unlisten) => unlisten());
     this.eventListeners = [];
   }
 
@@ -280,13 +303,13 @@ export class IntelligentAnalysisBackendService {
    */
   private getDefaultScenarios(variant: string): string[] {
     const scenarioMap: Record<string, string[]> = {
-      'self_anchor': ['按钮操作', '表单输入', '菜单选择'],
-      'child_driven': ['卡片组件', '列表项操作', '复合按钮'],
-      'region_scoped': ['表格操作', '重复卡片', '分区内容'],
-      'neighbor_relative': ['相对定位', '邻近元素', '布局依赖'],
-      'index_fallback': ['兜底方案', '位置固定', '最后选择'],
+      self_anchor: ["按钮操作", "表单输入", "菜单选择"],
+      child_driven: ["卡片组件", "列表项操作", "复合按钮"],
+      region_scoped: ["表格操作", "重复卡片", "分区内容"],
+      neighbor_relative: ["相对定位", "邻近元素", "布局依赖"],
+      index_fallback: ["兜底方案", "位置固定", "最后选择"],
     };
-    return scenarioMap[variant] || ['通用场景'];
+    return scenarioMap[variant] || ["通用场景"];
   }
 
   /**
@@ -294,13 +317,13 @@ export class IntelligentAnalysisBackendService {
    */
   private getDefaultPros(variant: string): string[] {
     const prosMap: Record<string, string[]> = {
-      'self_anchor': ['执行速度最快', '跨设备兼容性最好', '不依赖页面结构变化'],
-      'child_driven': ['对复合组件效果好', '能处理动态结构', '稳定性较高'],
-      'region_scoped': ['减少误匹配', '提高查找精度', '适用于重复结构'],
-      'neighbor_relative': ['适应性强', '能处理布局变化', '定位相对准确'],
-      'index_fallback': ['简单可靠', '兜底保障', '易于理解'],
+      self_anchor: ["执行速度最快", "跨设备兼容性最好", "不依赖页面结构变化"],
+      child_driven: ["对复合组件效果好", "能处理动态结构", "稳定性较高"],
+      region_scoped: ["减少误匹配", "提高查找精度", "适用于重复结构"],
+      neighbor_relative: ["适应性强", "能处理布局变化", "定位相对准确"],
+      index_fallback: ["简单可靠", "兜底保障", "易于理解"],
     };
-    return prosMap[variant] || ['由AI智能分析生成'];
+    return prosMap[variant] || ["由AI智能分析生成"];
   }
 
   /**
@@ -308,13 +331,13 @@ export class IntelligentAnalysisBackendService {
    */
   private getDefaultCons(variant: string): string[] {
     const consMap: Record<string, string[]> = {
-      'self_anchor': ['需要元素具备唯一性特征', '对动态生成ID的处理较弱'],
-      'child_driven': ['需要遍历子元素', '执行时间稍长'],
-      'region_scoped': ['依赖容器稳定性', '可能受布局变化影响'],
-      'neighbor_relative': ['受相邻元素影响', '在简单布局中可能过度复杂'],
-      'index_fallback': ['脆弱性较高', '页面结构变化易失效'],
+      self_anchor: ["需要元素具备唯一性特征", "对动态生成ID的处理较弱"],
+      child_driven: ["需要遍历子元素", "执行时间稍长"],
+      region_scoped: ["依赖容器稳定性", "可能受布局变化影响"],
+      neighbor_relative: ["受相邻元素影响", "在简单布局中可能过度复杂"],
+      index_fallback: ["脆弱性较高", "页面结构变化易失效"],
     };
-    return consMap[variant] || ['具体限制需要实际测试确认'];
+    return consMap[variant] || ["具体限制需要实际测试确认"];
   }
 
   /**
@@ -322,20 +345,47 @@ export class IntelligentAnalysisBackendService {
    */
   private getDefaultPerformance(variant: string): StrategyPerformance {
     const performanceMap = {
-      'self_anchor': { speed: 'fast' as const, stability: 'high' as const, crossDevice: 'excellent' as const },
-      'child_driven': { speed: 'medium' as const, stability: 'high' as const, crossDevice: 'good' as const },
-      'region_scoped': { speed: 'medium' as const, stability: 'medium' as const, crossDevice: 'good' as const },
-      'neighbor_relative': { speed: 'medium' as const, stability: 'medium' as const, crossDevice: 'fair' as const },
-      'index_fallback': { speed: 'fast' as const, stability: 'low' as const, crossDevice: 'good' as const },
+      self_anchor: {
+        speed: "fast" as const,
+        stability: "high" as const,
+        crossDevice: "excellent" as const,
+      },
+      child_driven: {
+        speed: "medium" as const,
+        stability: "high" as const,
+        crossDevice: "good" as const,
+      },
+      region_scoped: {
+        speed: "medium" as const,
+        stability: "medium" as const,
+        crossDevice: "good" as const,
+      },
+      neighbor_relative: {
+        speed: "medium" as const,
+        stability: "medium" as const,
+        crossDevice: "fair" as const,
+      },
+      index_fallback: {
+        speed: "fast" as const,
+        stability: "low" as const,
+        crossDevice: "good" as const,
+      },
     };
-    return performanceMap[variant as keyof typeof performanceMap] || { speed: 'medium', stability: 'medium', crossDevice: 'good' };
+    return (
+      performanceMap[variant as keyof typeof performanceMap] || {
+        speed: "medium",
+        stability: "medium",
+        crossDevice: "good",
+      }
+    );
   }
 }
 
 /**
  * 单例后端服务实例
  */
-export const intelligentAnalysisBackend = new IntelligentAnalysisBackendService();
+export const intelligentAnalysisBackend =
+  new IntelligentAnalysisBackendService();
 
 /**
  * Hook friendly 接口
