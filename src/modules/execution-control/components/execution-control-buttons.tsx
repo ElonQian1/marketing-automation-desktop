@@ -43,7 +43,7 @@ export const ExecutionControlButtons: React.FC<ExecutionControlButtonsProps> = (
   loading: customLoading,
   onExecute,
   onAbort,
-  confirmAbort = true,
+  confirmAbort = false,
   abortConfirmText = '确定要中止当前执行吗？',
   size = 'middle',
   direction = 'horizontal',
@@ -182,7 +182,7 @@ export const AbortButton: React.FC<{
   onAbort, 
   text = '中止',
   size = 'middle',
-  confirmAbort = true 
+  confirmAbort = false 
 }) => {
   const { canAbort, abortExecution } = useExecutionControl();
 

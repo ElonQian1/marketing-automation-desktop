@@ -93,11 +93,10 @@ const ScriptControlPanel: React.FC<ScriptControlPanelProps> = ({
             {isExecuting ? "正在执行脚本..." : "执行脚本"}
           </Button>
           
-          {/* 中止按钮 - 简化版，确保能正常显示 */}
+          {/* 中止按钮 - 一键立即中止，无需确认 */}
           <SimpleAbortButton 
             text="中止" 
             size="middle"
-            confirmAbort={true}
             forceShow={isExecuting} // 执行时强制显示
             onAbort={() => {
               console.log('🛑 [ScriptControlPanel] 脚本执行已中止');
