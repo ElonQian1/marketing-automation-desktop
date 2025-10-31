@@ -2,24 +2,23 @@
 // module: structural-matching | layer: ui | role: 结构匹配模态框
 // summary: 结构匹配配置的主模态框，包含字段配置和固定悬浮预览
 
-import React, { useState, useEffect } from 'react';
+import React from 'react';
 import { Modal, Slider, Typography, Space, Divider, Tag, Button, Select, Card } from 'antd';
 import { BulbOutlined, ReloadOutlined, ThunderboltOutlined } from '@ant-design/icons';
 import { useHierarchicalMatchingModal } from '../../../hooks/use-hierarchical-matching-modal';
 import { ElementType, ELEMENT_TEMPLATES } from '../../../domain/constants/element-templates';
-import { ElementStructureTree } from '../element-structure-tree';
-import { FloatingElementPreview } from '../hover-preview';
-import XmlCacheManager from '../../../../../services/xml-cache-manager';
+import { ElementStructureTreeWithPreview } from '../element-structure-tree/element-structure-tree-with-preview';
+import type { StructuralMatchingHierarchicalConfig } from '../../../domain/models/hierarchical-field-config';
 import './structural-matching-modal.css';
 
 const { Title, Text } = Typography;
 
 export interface StructuralMatchingModalProps {
   visible: boolean;
-  selectedElement: any;
-  initialConfig?: any;
+  selectedElement: Record<string, unknown>;
+  initialConfig?: Partial<StructuralMatchingHierarchicalConfig>;
   onClose: () => void;
-  onConfirm: (config: any) => void;
+  onConfirm: (config: StructuralMatchingHierarchicalConfig) => void;
 }
 
 export const StructuralMatchingModal: React.FC<StructuralMatchingModalProps> = ({
@@ -29,32 +28,6 @@ export const StructuralMatchingModal: React.FC<StructuralMatchingModalProps> = (
   onClose,
   onConfirm,
 }) => {
-  const [xmlContent, setXmlContent] = useState<string>('');
-  
-  useEffect(() => {
-    const loadXmlContent = async () => {
-      try {
-        const contextWrapper = selectedElement as Record<string, unknown>;
-        const actualElement = (contextWrapper?.selectedElement as Record<string, unknown>) || selectedElement;
-        
-        const xmlCacheId = actualElement?.xmlCacheId as string;
-        if (!xmlCacheId) return;
-
-        const xmlCacheManager = XmlCacheManager.getInstance();
-        const cacheEntry = await xmlCacheManager.getCachedXml(xmlCacheId);
-        if (cacheEntry) {
-          setXmlContent(cacheEntry.xmlContent);
-        }
-      } catch (error) {
-        console.error('加载XML内容失败:', error);
-      }
-    };
-
-    if (visible) {
-      loadXmlContent();
-    }
-  }, [visible, selectedElement]);
-
   const {
     config,
     getFieldConfig,
@@ -192,39 +165,13 @@ export const StructuralMatchingModal: React.FC<StructuralMatchingModalProps> = (
 
         <Divider />
 
-        <div style={{ marginTop: 16, position: 'relative' }}>
-          <div style={{ marginRight: 420 }}>
-            <ElementStructureTree
-              selectedElement={selectedElement}
-              getFieldConfig={getFieldConfig}
-              onToggleField={toggleField}
-              onUpdateField={updateField}
-            />
-          </div>
-          
-          <div
-            style={{
-              position: 'absolute',
-              top: 0,
-              right: 0,
-              width: 400,
-              height: '100%',
-              maxHeight: 600,
-              zIndex: 1000,
-              background: '#fff',
-              border: '1px solid #d9d9d9',
-              borderRadius: 6,
-              boxShadow: '0 4px 12px rgba(0, 0, 0, 0.15)',
-              padding: 16,
-              overflow: 'auto'
-            }}
-            className="light-theme-force"
-          >
-            <FloatingElementPreview
-              selectedElement={selectedElement}
-              xmlContent={xmlContent}
-            />
-          </div>
+        <div style={{ marginTop: 16 }}>
+          <ElementStructureTreeWithPreview
+            selectedElement={selectedElement}
+            getFieldConfig={getFieldConfig}
+            onToggleField={toggleField}
+            onUpdateField={updateField}
+          />
         </div>
       </div>
     </Modal>
