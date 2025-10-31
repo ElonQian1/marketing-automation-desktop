@@ -38,7 +38,7 @@
 
 import { useState, useCallback, useRef, useEffect } from "react";
 import { message } from "antd";
-import { LOG_LEVELS, logOnce, logProgress } from "../../../utils/logger-config";
+import { logOnce, logProgress } from "../../../utils/logger-config";
 
 // ========== V2/V3 智能分析后端服务 ==========
 // 🔄 [V2/V3 动态切换] 根据特性开关选择执行版本
@@ -162,7 +162,7 @@ export function useIntelligentAnalysisWorkflow(): UseIntelligentAnalysisWorkflow
           "intelligent-analysis"
         );
         setCurrentExecutionVersion(version);
-        console.log(`🔄 [V2/V3] 当前执行版本: ${version.toUpperCase()}`);
+        // console.log(`🔄 [V2/V3] 当前执行版本: ${version.toUpperCase()}`);
       } catch (error) {
         console.error("❌ [V2/V3] 版本选择失败，回退到V2:", error);
         setCurrentExecutionVersion("v2");
@@ -290,10 +290,10 @@ export function useIntelligentAnalysisWorkflow(): UseIntelligentAnalysisWorkflow
         const unlistenDone =
           await intelligentAnalysisBackend.listenToAnalysisComplete(
             async (jobId, result) => {
-              console.log("✅ [Workflow] 收到分析完成", {
-                jobId: jobId.slice(-8),
-                result,
-              });
+              // console.log("✅ [Workflow] 收到分析完成", {
+              //   jobId: jobId.slice(-8),
+              //   result,
+              // });
 
               // 🔒 幂等性保护：检查是否已处理过此完成事件
               if (processedJobs.current.has(jobId)) {
@@ -502,7 +502,7 @@ export function useIntelligentAnalysisWorkflow(): UseIntelligentAnalysisWorkflow
     return () => {
       unlistenFunctions.current.forEach((unlisten) => unlisten());
     };
-  }, []);
+  }, [stepCards]);
 
   /**
    * 启动分析
@@ -624,7 +624,7 @@ export function useIntelligentAnalysisWorkflow(): UseIntelligentAnalysisWorkflow
 
         try {
           if (currentExecutionVersion === "v3") {
-            console.log("🚀 [V3] 使用V3统一执行协议启动智能分析");
+            // console.log("🚀 [V3] 使用V3统一执行协议启动智能分析");
 
             // V3 高效执行：构建统一配置和链规格
             const analysisId = `analysis_${Date.now()}_${Math.random()
@@ -677,12 +677,12 @@ export function useIntelligentAnalysisWorkflow(): UseIntelligentAnalysisWorkflow
               chainSpec
             );
             jobId = analysisId; // V3使用analysisId作为jobId
-            console.log("✅ [V3] 智能分析启动成功", {
-              analysisId,
-              success: response.success,
-            });
+            // console.log("✅ [V3] 智能分析启动成功", {
+            //   analysisId,
+            //   success: response.success,
+            // });
           } else {
-            console.log("🔄 [V2] 使用V2传统协议启动智能分析");
+            // console.log("🔄 [V2] 使用V2传统协议启动智能分析");
 
             // V2 传统调用：完整数据传输
             response = await intelligentAnalysisBackend.startAnalysis(
@@ -690,7 +690,7 @@ export function useIntelligentAnalysisWorkflow(): UseIntelligentAnalysisWorkflow
               stepId
             );
             jobId = response.job_id;
-            console.log("✅ [V2] 传统分析启动成功", { jobId });
+            // console.log("✅ [V2] 传统分析启动成功", { jobId });
           }
         } catch (v3Error) {
           if (currentExecutionVersion === "v3") {
@@ -869,7 +869,7 @@ export function useIntelligentAnalysisWorkflow(): UseIntelligentAnalysisWorkflow
               stepId,
               unifiedCardId,
               elementUid: stepId,
-              hasOriginalElement: !!context.selectedElement,
+              hasOriginalElement: !!context.originalUIElement,
             });
           } catch (err) {
             console.warn("⚠️ [Bridge] 创建统一store卡片失败", err);

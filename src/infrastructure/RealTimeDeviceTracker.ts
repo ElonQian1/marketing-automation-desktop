@@ -102,11 +102,11 @@ export class RealTimeDeviceTracker {
       
       // 如果超过60秒没有收到任何事件，可能通道有问题
       if (timeSinceLastEvent > 60000 && this.lastEventTimestamp > 0) {
-        console.warn('⚠️ [RealTimeDeviceTracker] 长时间无事件，检查通道健康状态...');
+        // console.warn('⚠️ [RealTimeDeviceTracker] 长时间无事件，检查通道健康状态...');
         try {
           // 尝试获取设备列表来测试通道
           await this.getCurrentDevices();
-          console.log('✅ [RealTimeDeviceTracker] 通道健康检查通过');
+          // console.log('✅ [RealTimeDeviceTracker] 通道健康检查通过');
         } catch (error) {
           console.error('❌ [RealTimeDeviceTracker] 通道健康检查失败，尝试重启:', error);
           this.recoverFromChannelClosed();
@@ -185,7 +185,7 @@ export class RealTimeDeviceTracker {
   async getCurrentDevices(): Promise<TrackedDevice[]> {
     try {
       const devices = await invoke<TrackedDevice[]>('get_tracked_devices');
-      console.log(`📱 获取到 ${devices.length} 个设备`);
+      // console.log(`📱 获取到 ${devices.length} 个设备`);
       return devices;
     } catch (error) {
       console.error('❌ 获取设备列表失败:', error);
@@ -199,9 +199,9 @@ export class RealTimeDeviceTracker {
   onDeviceChange(callback: (event: DeviceChangeEvent) => void): () => void {
     this.deviceChangeCallbacks.push(callback);
     
-    console.log('🔗 [RealTimeDeviceTracker] 注册设备变化回调:', {
-      callbackCount: this.deviceChangeCallbacks.length
-    });
+    // console.log('🔗 [RealTimeDeviceTracker] 注册设备变化回调:', {
+    //   callbackCount: this.deviceChangeCallbacks.length
+    // });
     
     // 返回取消订阅函数
     return () => {

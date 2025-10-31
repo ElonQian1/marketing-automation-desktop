@@ -86,7 +86,8 @@ class BackendHealthChecker {
           healthy: true,
           lastCheckTime: Date.now(),
         };
-        console.log(`✅ Backend health check passed (${latency}ms)`);
+                // const latency = Date.now() - startTime;
+        // console.log(`✅ Backend health check passed (${latency}ms)`);
       } else {
         throw new Error('Backend ping returned false');
       }

@@ -505,11 +505,11 @@ export const VisualElementView: React.FC<VisualElementViewProps> = ({
   // 优先级：Hook解析 > props传入
   if (parsedElements.length > 0) {
     finalElements = parsedElements;
-    console.log('✅ [VisualElementView] 使用Hook解析的完整元素:', {
-      hookCount: parsedElements.length,
-      propsCount: elements.length,
-      reason: 'Hook包含所有元素（含不可点击）'
-    });
+    // console.log('✅ [VisualElementView] 使用Hook解析的完整元素:', {
+    //   hookCount: parsedElements.length,
+    //   propsCount: elements.length,
+    //   reason: 'Hook包含所有元素（含不可点击）'
+    // });
   } else if (elements.length > 0) {
     finalElements = elements;
     console.log('⚠️ [VisualElementView] Hook解析失败，回退到props:', {

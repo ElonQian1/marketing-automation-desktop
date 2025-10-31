@@ -191,7 +191,7 @@ export class IntelligentAnalysisBackendService {
     const unlisten = await listen<TauriAnalysisProgressEvent>(
       EVENTS.ANALYSIS_PROGRESS,
       (event) => {
-        console.log('📊 [BackendService] 收到分析进度更新', event.payload);
+        // console.log('📊 [BackendService] 收到分析进度更新', event.payload);
         onProgress(
           event.payload.job_id,
           event.payload.progress,
@@ -216,7 +216,7 @@ export class IntelligentAnalysisBackendService {
     const unlisten = await listen<TauriAnalysisDoneEvent>(
       EVENTS.ANALYSIS_DONE,
       (event) => {
-        console.log('✅ [BackendService] 收到分析完成事件', event.payload);
+        // console.log('✅ [BackendService] 收到分析完成事件', event.payload);
         
         // 转换结果格式并增强策略对象
         const enhanceStrategy = (strategy: StrategyCandidate): StrategyCandidate => ({
@@ -238,7 +238,7 @@ export class IntelligentAnalysisBackendService {
           fallbackStrategy: enhanceStrategy(event.payload.result.fallback_strategy),
         };
         
-        console.log('🔄 [BackendService] 转换后的结果', result);
+        // console.log('🔄 [BackendService] 转换后的结果', result);
         onComplete(event.payload.job_id, result);
       }
     );

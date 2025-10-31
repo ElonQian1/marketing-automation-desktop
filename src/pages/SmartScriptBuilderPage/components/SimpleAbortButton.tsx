@@ -32,13 +32,14 @@ export const SimpleAbortButton: React.FC<SimpleAbortButtonProps> = ({
     const checkAbortStatus = () => {
       const service = ExecutionAbortService.getInstance();
       const hasActive = service.hasActiveExecution();
-      const currentId = service.getCurrentExecutionId();
       
-      console.log('🔍 [SimpleAbortButton] 状态检查:', {
-        hasActiveExecution: hasActive,
-        currentExecutionId: currentId,
-        canAbort: hasActive || forceShow
-      });
+      // 调试日志已临时禁用，避免控制台污染
+      // const currentId = service.getCurrentExecutionId();
+      // console.log('🔍 [SimpleAbortButton] 状态检查:', {
+      //   hasActiveExecution: hasActive,
+      //   currentExecutionId: currentId,
+      //   canAbort: hasActive || forceShow
+      // });
       
       setCanAbort(hasActive || forceShow);
     };
@@ -78,11 +79,11 @@ export const SimpleAbortButton: React.FC<SimpleAbortButtonProps> = ({
 
   // 如果不能中止且不强制显示，则不渲染
   if (!canAbort && !forceShow) {
-    console.log('🔍 [SimpleAbortButton] 不显示按钮: canAbort =', canAbort, 'forceShow =', forceShow);
+    // console.log('🔍 [SimpleAbortButton] 不显示按钮: canAbort =', canAbort, 'forceShow =', forceShow);
     return null;
   }
 
-  console.log('🔍 [SimpleAbortButton] 显示按钮: canAbort =', canAbort, 'forceShow =', forceShow);
+  // console.log('🔍 [SimpleAbortButton] 显示按钮: canAbort =', canAbort, 'forceShow =', forceShow);
 
   return (
     <Tooltip title="立即中止当前脚本执行">

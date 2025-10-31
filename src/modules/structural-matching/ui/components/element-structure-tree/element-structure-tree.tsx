@@ -51,7 +51,10 @@ export const ElementStructureTree: React.FC<ElementStructureTreeProps> = ({
         
         console.log('🔍 [ElementStructureTree] 开始解析XML获取完整结构:', {
           actualElement,
-          hasXmlCacheId: !!actualElement?.xmlCacheId
+          hasXmlCacheId: !!actualElement?.xmlCacheId,
+          actualElementKeys: actualElement ? Object.keys(actualElement) : [],
+          actualElementChildren: actualElement?.children,
+          fullSelectedElement: selectedElement
         });
 
         // 暂时跳过后端调用，直接使用传入的数据
@@ -68,12 +71,32 @@ export const ElementStructureTree: React.FC<ElementStructureTreeProps> = ({
           return;
         }
 
+        // 优先使用真实数据，如果没有子元素，才添加模拟演示数据
+        const hasRealChildren = actualElement.children && Array.isArray(actualElement.children) && actualElement.children.length > 0;
+        
+        console.log('🔄 [ElementStructureTree] 数据处理决策:', {
+          hasRealChildren,
+          childrenCount: hasRealChildren ? (actualElement.children as unknown[]).length : 0,
+          willUseRealData: hasRealChildren
+        });
+
+        if (hasRealChildren) {
+          // 直接使用真实的子元素数据
+          console.log('✅ [ElementStructureTree] 使用真实子元素数据，元素信息:', {
+            elementId: actualElement.id,
+            className: actualElement.class_name,
+            text: actualElement.text,
+            childrenCount: (actualElement.children as unknown[]).length,
+            firstChildPreview: (actualElement.children as unknown[])[0]
+          });
+          setFullElementData(actualElement);
+          return;
+        }
+
         // 当前方案：增强传入的元素数据，添加模拟子元素用于演示
         const enhancedElement = {
           ...actualElement,
-          children: actualElement.children && Array.isArray(actualElement.children) && actualElement.children.length > 0 
-            ? actualElement.children 
-            : [
+          children: [
                 // 模拟第1层子元素 - 真正可点击的FrameLayout
                 {
                   id: `${actualElement.id}_child_1`,

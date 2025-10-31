@@ -107,7 +107,7 @@ export const useSmartStrategyAnalysis = ({
         // 监听分析进度
         const progressUnlisten = await backendService.listenToAnalysisProgress(
           (jobId, progress, currentStep, estimatedTimeLeft) => {
-            console.log('📊 [StrategyAnalysis] 进度更新:', { jobId, progress, currentStep, estimatedTimeLeft });
+            // console.log('📊 [StrategyAnalysis] 进度更新:', { jobId, progress, currentStep, estimatedTimeLeft });
             
             // 只处理当前任务的进度更新
             if (!currentJobId.current || currentJobId.current === jobId) {
@@ -127,14 +127,14 @@ export const useSmartStrategyAnalysis = ({
         // 监听分析完成
         const completeUnlisten = await backendService.listenToAnalysisComplete(
           (jobId, result) => {
-            console.log('✅ [StrategyAnalysis] 分析完成:', { jobId, result });
-            console.log('🔍 [StrategyAnalysis] 当前分析状态:', {
-              currentJobId: currentJobId.current,
-              receivedJobId: jobId,
-              isAnalyzing,
-              stepId: step.id,
-              resultSelectionHash: result.selectionHash
-            });
+            // console.log('✅ [StrategyAnalysis] 分析完成:', { jobId, result });
+            // console.log('🔍 [StrategyAnalysis] 当前分析状态:', {
+            //   currentJobId: currentJobId.current,
+            //   receivedJobId: jobId,
+            //   isAnalyzing,
+            //   stepId: step.id,
+            //   resultSelectionHash: result.selectionHash
+            // });
             
             // 转换后端结果为策略选择器格式
             const smartCandidates: StrategyCandidate[] = result.smartCandidates.map((candidate, index) => ({

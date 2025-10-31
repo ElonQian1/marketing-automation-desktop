@@ -125,7 +125,7 @@ export class AdbHealthService {
         console.warn('⚠️ [AdbHealthService] 重新诊断失败:', diagnosticError);
       }
       
-      console.log('✅ [AdbHealthService] 紧急恢复完成');
+      // console.log('✅ [AdbHealthService] 紧急恢复完成');
       
     } catch (error) {
       console.error('❌ [AdbHealthService] 紧急恢复失败:', error);
