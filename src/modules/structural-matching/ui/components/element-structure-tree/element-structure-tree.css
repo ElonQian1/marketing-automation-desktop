@@ -73,6 +73,21 @@
   background: #f0f7ff;
 }
 
+/* 字段行中的策略选择器 */
+.tree-node-content .field-row .ant-select {
+  font-size: 11px;
+}
+
+.tree-node-content .field-row .ant-select-selector {
+  border-radius: 3px;
+  padding: 0 6px;
+}
+
+.tree-node-content .field-row .ant-select-selection-item {
+  font-size: 11px;
+  line-height: 18px;
+}
+
 /* 子元素结构配置 */
 .children-structure-config {
   margin-top: 16px;

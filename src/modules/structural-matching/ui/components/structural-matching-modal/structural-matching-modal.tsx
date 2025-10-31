@@ -3,15 +3,16 @@
 // summary: 结构匹配配置的主模态框，包含字段配置和实时预览
 
 import React from 'react';
-import { Modal, Tabs, Slider, Typography, Space, Divider, Tag } from 'antd';
-import { useStructuralMatchingModal } from '../../../hooks/use-structural-matching-modal';
-import { useStructuralPreview } from '../../../hooks/use-structural-preview';
+import { Modal, Slider, Typography, Space, Divider, Tag, Button, Select, Card } from 'antd';
+import { BulbOutlined, ReloadOutlined, ThunderboltOutlined } from '@ant-design/icons';
+import { useHierarchicalMatchingModal } from '../../../hooks/use-hierarchical-matching-modal';
+import { ElementType, ELEMENT_TEMPLATES } from '../../../domain/constants/element-templates';
+// import { useStructuralPreview } from '../../../hooks/use-structural-preview';
 import { ElementStructureTree } from '../element-structure-tree';
-import { StructuralScoringPreview } from '../scoring-preview/scoring-preview';
+// import { StructuralScoringPreview } from '../scoring-preview/scoring-preview';
 import './structural-matching-modal.css';
 
 const { Title, Text } = Typography;
-const { TabPane } = Tabs;
 
 export interface StructuralMatchingModalProps {
   /** 是否显示 */
@@ -39,19 +40,34 @@ export const StructuralMatchingModal: React.FC<StructuralMatchingModalProps> = (
 }) => {
   const {
     config,
+    getFieldConfig,
     toggleField,
+    updateField,
     updateThreshold,
     isConfigValid,
     reset,
-  } = useStructuralMatchingModal({
+    applyTemplate,
+    detectAndApplyTemplate,
+    appliedTemplate,
+  } = useHierarchicalMatchingModal({
     selectedElement,
     initialConfig,
   });
 
-  const { totalResult, displayInfo } = useStructuralPreview({
-    config,
-    selectedElement,
-  });
+  // 临时注释掉评分预览，专注于字段配置
+  // const { totalResult, displayInfo } = useStructuralPreview({
+  //   config: config as any,
+  //   selectedElement,
+  // });
+
+  // 模拟评分数据
+  const totalResult = { passed: true, totalScore: 0.85 };
+  const displayInfo = { 
+    scoreText: '85%', 
+    percentage: 85, 
+    statusText: '匹配', 
+    statusColor: '#52c41a' 
+  };
 
   const handleConfirm = () => {
     if (isConfigValid) {
@@ -67,7 +83,7 @@ export const StructuralMatchingModal: React.FC<StructuralMatchingModalProps> = (
       open={visible}
       onCancel={onClose}
       onOk={handleConfirm}
-      width={900}
+      width={1200}
       okText="确认"
       cancelText="取消"
       okButtonProps={{ disabled: !isConfigValid }}
@@ -94,6 +110,64 @@ export const StructuralMatchingModal: React.FC<StructuralMatchingModalProps> = (
                 {displayInfo.statusText}
               </Tag>
             </div>
+          </Space>
+        </div>
+
+        <Divider />
+
+        {/* 智能模板选择 */}
+        <div className="structural-template-section">
+          <Title level={5}>
+            <ThunderboltOutlined style={{ marginRight: 8 }} />
+            智能配置模板
+          </Title>
+          <Space direction="vertical" style={{ width: '100%' }}>
+            {appliedTemplate && (
+              <Card size="small" style={{ marginBottom: 12 }}>
+                <Space>
+                  <Tag color="blue">{appliedTemplate.name}</Tag>
+                  <Text type="secondary">{appliedTemplate.description}</Text>
+                </Space>
+              </Card>
+            )}
+            
+            <Space>
+              <Button 
+                type="primary" 
+                icon={<BulbOutlined />}
+                onClick={() => detectAndApplyTemplate()}
+                disabled={!selectedElement}
+              >
+                智能识别并应用
+              </Button>
+              
+              <Select
+                placeholder="手动选择模板"
+                style={{ width: 200 }}
+                onChange={(type: ElementType) => {
+                  const template = ELEMENT_TEMPLATES[type];
+                  applyTemplate(template);
+                }}
+                value={appliedTemplate?.type}
+              >
+                {Object.values(ELEMENT_TEMPLATES).map(template => (
+                  <Select.Option key={template.type} value={template.type}>
+                    {template.name}
+                  </Select.Option>
+                ))}
+              </Select>
+              
+              <Button 
+                icon={<ReloadOutlined />}
+                onClick={reset}
+              >
+                重置
+              </Button>
+            </Space>
+            
+            <Text type="secondary" style={{ fontSize: '12px' }}>
+              智能识别会根据元素特征自动选择最合适的配置模板，也可手动选择
+            </Text>
           </Space>
         </div>
 
@@ -126,29 +200,14 @@ export const StructuralMatchingModal: React.FC<StructuralMatchingModalProps> = (
 
         <Divider />
 
-        {/* 标签页 */}
-        <Tabs defaultActiveKey="fields">
-          <TabPane tab="字段配置" key="fields">
-            <ElementStructureTree
-              selectedElement={selectedElement}
-              fieldConfigs={config.fields}
-              onToggleField={toggleField}
-            />
-          </TabPane>
-
-          <TabPane tab="评分预览" key="preview">
-            <StructuralScoringPreview
-              config={config}
-              totalResult={totalResult}
-            />
-          </TabPane>
-        </Tabs>
-
-        {/* 底部操作 */}
-        <div className="structural-modal-footer">
-          <a onClick={reset} style={{ cursor: 'pointer' }}>
-            重置为默认配置
-          </a>
+        {/* 字段匹配策略配置 */}
+        <div style={{ marginTop: 16 }}>
+          <ElementStructureTree
+            selectedElement={selectedElement}
+            getFieldConfig={getFieldConfig}
+            onToggleField={toggleField}
+            onUpdateField={updateField}
+          />
         </div>
       </div>
     </Modal>

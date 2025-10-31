@@ -3,7 +3,7 @@
 // summary: 可视化展示元素的层级结构，支持展开/收起和字段配置，从XML缓存动态解析子元素
 
 import React, { useState, useEffect } from 'react';
-import { Tree, Switch, Space, Typography, Tag, Tooltip, Badge, Spin } from 'antd';
+import { Tree, Switch, Space, Typography, Tag, Tooltip, Badge, Spin, Select } from 'antd';
 import { 
   DownOutlined, 
   CheckCircleOutlined, 
@@ -11,8 +11,9 @@ import {
   InfoCircleOutlined 
 } from '@ant-design/icons';
 import type { DataNode } from 'antd/es/tree';
-import { StructuralFieldConfig } from '../../../domain/models/structural-field-config';
 import { FieldType } from '../../../domain/constants/field-types';
+import { FieldConfig } from '../../../domain/models/hierarchical-field-config';
+import { MatchStrategy, MATCH_STRATEGY_DISPLAY_NAMES, MATCH_STRATEGY_DESCRIPTIONS } from '../../../domain/constants/match-strategies';
 import { invoke } from '@tauri-apps/api/core';
 import './element-structure-tree.css';
 
@@ -22,17 +23,21 @@ export interface ElementStructureTreeProps {
   /** 选中的元素 */
   selectedElement: Record<string, unknown>;
   
-  /** 字段配置 */
-  fieldConfigs: StructuralFieldConfig[];
+  /** 获取字段配置 */
+  getFieldConfig: (elementPath: string, fieldType: FieldType) => FieldConfig;
   
   /** 切换字段启用状态 */
-  onToggleField: (fieldType: FieldType) => void;
+  onToggleField: (elementPath: string, fieldType: FieldType) => void;
+  
+  /** 更新字段配置 */
+  onUpdateField?: (elementPath: string, fieldType: FieldType, updates: Partial<FieldConfig>) => void;
 }
 
 export const ElementStructureTree: React.FC<ElementStructureTreeProps> = ({
   selectedElement,
-  fieldConfigs,
+  getFieldConfig,
   onToggleField,
+  onUpdateField,
 }) => {
   const [expandedKeys, setExpandedKeys] = useState<string[]>([]);
   const [fullElementData, setFullElementData] = useState<Record<string, unknown> | null>(null);
@@ -295,10 +300,7 @@ export const ElementStructureTree: React.FC<ElementStructureTreeProps> = ({
 
     const allKeys: string[] = [];
 
-    const getFieldConfig = (fieldType: FieldType) => 
-      fieldConfigs.find(f => f.fieldType === fieldType);
-
-    const buildNodeTitle = (element: Record<string, unknown>, depth: number) => {
+    const buildNodeTitle = (element: Record<string, unknown>, depth: number, elementPath: string) => {
       const isRoot = depth === 0;
       const className = String(element.class_name || element.className || 'Unknown');
       const clickable = element.clickable === true;
@@ -350,43 +352,48 @@ export const ElementStructureTree: React.FC<ElementStructureTreeProps> = ({
           <div className="node-properties">
             {/* Resource-ID */}
             {buildFieldRow(
+              elementPath,
               'resource_id',
               'Resource-ID',
               resourceId || '(空)',
-              getFieldConfig(FieldType.RESOURCE_ID)
+              FieldType.RESOURCE_ID
             )}
 
             {/* Content-Desc */}
             {buildFieldRow(
+              elementPath,
               'content_desc',
               'Content-Desc',
               contentDesc || '(空)',
-              getFieldConfig(FieldType.CONTENT_DESC)
+              FieldType.CONTENT_DESC
             )}
 
             {/* Text */}
             {buildFieldRow(
+              elementPath,
               'text',
               'Text',
               text || '(空)',
-              getFieldConfig(FieldType.TEXT)
+              FieldType.TEXT
             )}
 
             {/* Bounds */}
             {buildFieldRow(
+              elementPath,
               'bounds',
               'Bounds',
               bounds,
-              getFieldConfig(FieldType.BOUNDS),
+              FieldType.BOUNDS,
               true // disabled
             )}
 
             {/* Class Name */}
             {buildFieldRow(
+              elementPath,
               'class_name',
               'Class Name',
               className,
-              getFieldConfig(FieldType.CLASS_NAME)
+              FieldType.CLASS_NAME
             )}
           </div>
         </div>
@@ -394,27 +401,27 @@ export const ElementStructureTree: React.FC<ElementStructureTreeProps> = ({
     };
 
     const buildFieldRow = (
+      elementPath: string,
       key: string,
       label: string,
       value: string,
-      config?: StructuralFieldConfig,
+      fieldType: FieldType,
       disabled = false
     ) => {
       const isEmpty = !value || value === '(空)';
-      const isEnabled = config?.enabled && !disabled;
+      const config = getFieldConfig(elementPath, fieldType);
+      const isEnabled = config.enabled && !disabled;
       
       return (
         <div key={key} className="field-row">
           <Space size="small" style={{ width: '100%' }}>
             {/* 启用开关 */}
-            {config && (
-              <Switch
-                size="small"
-                checked={config.enabled}
-                disabled={disabled}
-                onChange={() => onToggleField(config.fieldType)}
-              />
-            )}
+            <Switch
+              size="small"
+              checked={config.enabled}
+              disabled={disabled}
+              onChange={() => onToggleField(elementPath, fieldType)}
+            />
             
             {/* 字段名 */}
             <Text 
@@ -431,7 +438,7 @@ export const ElementStructureTree: React.FC<ElementStructureTreeProps> = ({
                 type={isEmpty ? 'secondary' : undefined}
                 style={{ 
                   fontSize: 11, 
-                  maxWidth: 300,
+                  maxWidth: 200,
                   overflow: 'hidden',
                   textOverflow: 'ellipsis',
                   whiteSpace: 'nowrap',
@@ -441,8 +448,33 @@ export const ElementStructureTree: React.FC<ElementStructureTreeProps> = ({
               </Text>
             </Tooltip>
             
+            {/* 匹配策略选择下拉框 */}
+            {!disabled && (
+              <Select
+                size="small"
+                value={config.strategy || MatchStrategy.CONSISTENT_EMPTINESS}
+                disabled={!isEnabled}
+                style={{ minWidth: 120 }}
+                onChange={(strategy: MatchStrategy) => {
+                  if (onUpdateField) {
+                    onUpdateField(elementPath, fieldType, { strategy });
+                  }
+                }}
+              >
+                {Object.values(MatchStrategy).map((strategy) => (
+                  <Select.Option key={strategy} value={strategy}>
+                    <Tooltip title={MATCH_STRATEGY_DESCRIPTIONS[strategy]} placement="right">
+                      <span style={{ fontSize: 11 }}>
+                        {MATCH_STRATEGY_DISPLAY_NAMES[strategy]}
+                      </span>
+                    </Tooltip>
+                  </Select.Option>
+                ))}
+              </Select>
+            )}
+            
             {/* 配置状态 */}
-            {config && isEnabled && (
+            {isEnabled && (
               <Tag color="blue" style={{ margin: 0, fontSize: 10 }}>
                 权重: {config.weight.toFixed(1)}x
               </Tag>
@@ -466,7 +498,7 @@ export const ElementStructureTree: React.FC<ElementStructureTreeProps> = ({
 
       return {
         key: nodeKey,
-        title: buildNodeTitle(element, depth),
+        title: buildNodeTitle(element, depth, nodeKey),
         children: children.length > 0 
           ? children.map((child: Record<string, unknown>, idx: number) => buildTreeNode(child, depth + 1, nodeKey, idx))
           : undefined,
@@ -560,9 +592,9 @@ export const ElementStructureTree: React.FC<ElementStructureTreeProps> = ({
 
       {/* 子元素结构匹配 */}
       {(() => {
-        const childrenConfig = fieldConfigs.find(f => f.fieldType === FieldType.CHILDREN_STRUCTURE);
-        if (!childrenConfig) return null;
-
+        const rootPath = 'root-0'; // 假设根节点路径
+        const childrenConfig = getFieldConfig(rootPath, FieldType.CHILDREN_STRUCTURE);
+        
         return (
           <div className="children-structure-config">
             <div className="field-row">
@@ -570,7 +602,7 @@ export const ElementStructureTree: React.FC<ElementStructureTreeProps> = ({
                 <Switch
                   size="small"
                   checked={childrenConfig.enabled}
-                  onChange={() => onToggleField(FieldType.CHILDREN_STRUCTURE)}
+                  onChange={() => onToggleField(rootPath, FieldType.CHILDREN_STRUCTURE)}
                 />
                 <Text strong={childrenConfig.enabled}>
                   子元素结构匹配

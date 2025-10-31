@@ -17,7 +17,25 @@ pub enum FieldType {
     Bounds,
 }
 
-/// 匹配模式
+/// 细粒度匹配策略
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, Serialize, Deserialize)]
+#[serde(rename_all = "SCREAMING_SNAKE_CASE")]
+pub enum MatchStrategy {
+    /// 值完全一样（高分），都非空（低分）
+    ExactMatch,
+    /// 都非空即可，用于笔记标题等场景
+    BothNonEmpty,
+    /// 保持空/非空一致，用于Text字段
+    ConsistentEmptiness,
+    /// 结构匹配，用于子元素
+    StructureMatch,
+    /// 值相似匹配
+    ValueSimilarity,
+    /// 禁用字段
+    Disabled,
+}
+
+/// 匹配模式（保持向后兼容）
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
 #[serde(rename_all = "snake_case")]
 pub enum MatchMode {
@@ -31,6 +49,19 @@ pub enum MatchMode {
     Structure,
     /// 禁用
     Disabled,
+}
+
+impl From<MatchStrategy> for MatchMode {
+    fn from(strategy: MatchStrategy) -> Self {
+        match strategy {
+            MatchStrategy::ExactMatch => MatchMode::Exact,
+            MatchStrategy::BothNonEmpty => MatchMode::NonEmpty,
+            MatchStrategy::ConsistentEmptiness => MatchMode::NonEmpty,
+            MatchStrategy::StructureMatch => MatchMode::Structure,
+            MatchStrategy::ValueSimilarity => MatchMode::NonEmpty,
+            MatchStrategy::Disabled => MatchMode::Disabled,
+        }
+    }
 }
 
 /// 评分规则
@@ -54,6 +85,9 @@ pub struct StructuralFieldConfig {
     pub field_type: FieldType,
     pub enabled: bool,
     pub match_mode: MatchMode,
+    /// 新增：细粒度匹配策略
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub strategy: Option<MatchStrategy>,
     pub weight: f64,
     pub scoring_rules: ScoringRules,
     pub display_name: String,
