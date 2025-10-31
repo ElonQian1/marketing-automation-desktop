@@ -13,6 +13,9 @@ use super::types::{
 use std::time::Instant;
 use tauri::AppHandle;
 
+// 🆕 集成执行中止服务
+use crate::services::execution_abort_service::{should_abort_execution, register_execution, finish_execution};
+
 // 添加必要的导入以支持真实设备操作
 use crate::services::intelligent_analysis_service::{ElementInfo, StrategyCandidate};
 use crate::services::legacy_simple_selection_engine::SmartSelectionEngine;
@@ -258,6 +261,10 @@ fn execute_chain_by_inline<'a>(
         let start_time = Instant::now();
         let device_id = &envelope.device_id;
 
+        // 🆕 【执行注册】注册执行到中止服务
+        let execution_id = format!("v3_chain_{}", analysis_id);
+        register_execution(execution_id.clone(), device_id.clone());
+        
         // 🔒 【统一锁定入口】使用 RAII 守卫确保所有路径都能正确释放
         // 这会在函数开始时锁定，在函数结束时（无论成功/失败）自动释放
         let _execution_guard = execution_tracker::lock_with_guard(analysis_id)?;
@@ -389,6 +396,13 @@ fn execute_chain_by_inline<'a>(
         // 4. 按置信度排序，尝试执行分数 ≥ threshold 的步骤 - 真实设备操作
         // 关键修复：必须进行真实的设备点击操作，而不仅仅是分析
         for score in &step_scores {
+            // 🛑 【中止检查】在每个步骤执行前检查是否应该中止
+            if should_abort_execution(&execution_id) {
+                tracing::warn!("🛑 [V3执行] 检测到中止信号，停止执行链: {}", analysis_id);
+                finish_execution(&execution_id);
+                return Err("执行已被用户中止".to_string());
+            }
+
             if score.confidence < threshold {
                 tracing::info!(
                     "⏭️ 跳过低分步骤 {} (置信度: {:.2} < 阈值: {:.2})",
@@ -546,6 +560,9 @@ fn execute_chain_by_inline<'a>(
 
         // 🔓 【执行保护】RAII 守卫会在函数结束时自动释放锁
         // 不再需要手动 unlock，由 _execution_guard 的 Drop 实现自动管理
+
+        // 🆕 【执行清理】完成执行后清理中止服务状态
+        finish_execution(&execution_id);
 
         Ok(())
     })

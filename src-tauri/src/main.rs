@@ -89,6 +89,7 @@ use services::universal_ui_page_analyzer::{
 };
 use services::quick_ui_automation::*; // 新增：快速UI自动化命令
 use services::marketing_storage::commands as marketing_commands; // 营销存储命令
+use services::execution_abort_service::{abort_script_execution, cancel_current_operation, force_stop_all_adb_operations}; // 新增：真正的执行中止服务
 use tracing_subscriber::{layer::SubscriberExt, util::SubscriberInitExt};
 
 fn main() {
@@ -473,7 +474,11 @@ fn main() {
             // 结构匹配命令
             commands::structural_matching::evaluate_structural_match,
             commands::structural_matching::evaluate_structural_match_batch,
-            commands::structural_matching::get_matched_elements
+            commands::structural_matching::get_matched_elements,
+            // 🆕 执行中止命令 (真正停止后端 ADB 操作)
+            abort_script_execution,           // 中止指定脚本执行
+            cancel_current_operation,         // 取消当前操作
+            force_stop_all_adb_operations     // 强制停止所有 ADB 操作
         ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");

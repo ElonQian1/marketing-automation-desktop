@@ -62,3 +62,4 @@ pub mod vcf_utils; // 新增：VCF 工具函数 // 设备镜像（外部 scrcpy 
                    // 已移除：xiaohongshu_* 系列模块（自动关注/长连接/服务），按照需求删除
 pub mod marketing_storage; // 新增：精准获客候选池存储
 pub mod xml_judgment_service; // 新增：XML 判定服务
+pub mod execution_abort_service; // 新增：真正的执行中止服务

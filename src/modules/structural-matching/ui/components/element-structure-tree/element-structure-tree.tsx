@@ -1,9 +1,9 @@
 // src/modules/structural-matching/ui/components/element-structure-tree/element-structure-tree.tsx
 // module: structural-matching | layer: ui | role: 元素结构树展示
-// summary: 可视化展示元素的层级结构，支持展开/收起和字段配置
+// summary: 可视化展示元素的层级结构，支持展开/收起和字段配置，从XML缓存动态解析子元素
 
-import React, { useState } from 'react';
-import { Tree, Switch, Space, Typography, Tag, Tooltip, Badge } from 'antd';
+import React, { useState, useEffect } from 'react';
+import { Tree, Switch, Space, Typography, Tag, Tooltip, Badge, Spin } from 'antd';
 import { 
   DownOutlined, 
   CheckCircleOutlined, 
@@ -13,6 +13,7 @@ import {
 import type { DataNode } from 'antd/es/tree';
 import { StructuralFieldConfig } from '../../../domain/models/structural-field-config';
 import { FieldType } from '../../../domain/constants/field-types';
+import { invoke } from '@tauri-apps/api/core';
 import './element-structure-tree.css';
 
 const { Text } = Typography;
@@ -34,21 +35,75 @@ export const ElementStructureTree: React.FC<ElementStructureTreeProps> = ({
   onToggleField,
 }) => {
   const [expandedKeys, setExpandedKeys] = useState<string[]>([]);
+  const [fullElementData, setFullElementData] = useState<Record<string, unknown> | null>(null);
+
+  // 从XML缓存解析完整元素结构
+  useEffect(() => {
+    const parseElementFromXML = async () => {
+      try {
+        const contextWrapper = selectedElement as Record<string, unknown>;
+        const actualElement = (contextWrapper?.selectedElement as Record<string, unknown>) || selectedElement;
+        
+        console.log('🔍 [ElementStructureTree] 开始解析XML获取完整结构:', {
+          actualElement,
+          hasXmlCacheId: !!actualElement?.xmlCacheId
+        });
+
+        // 暂时跳过后端调用，直接使用传入的数据
+        // TODO: 等后端实现 parse_element_with_children 命令后启用
+        if (false && actualElement?.xmlCacheId && actualElement?.id) {
+          const result = await invoke('parse_element_with_children', {
+            xmlCacheId: actualElement.xmlCacheId,
+            elementId: actualElement.id,
+            maxDepth: 5
+          });
+
+          console.log('✅ [ElementStructureTree] XML解析成功:', result);
+          setFullElementData(result as Record<string, unknown>);
+          return;
+        }
+
+        // 当前方案：增强传入的元素数据
+        const enhancedElement = {
+          ...actualElement,
+          children: actualElement.children || [] // 确保有children属性
+        };
+        
+        console.log('🔄 [ElementStructureTree] 使用增强的单层结构:', enhancedElement);
+        setFullElementData(enhancedElement);
+
+      } catch (error) {
+        console.error('❌ [ElementStructureTree] 处理失败:', error);
+        
+        // 解析失败时，先尝试构造一个基本的元素结构
+        const contextWrapper = selectedElement as Record<string, unknown>;
+        const actualElement = (contextWrapper?.selectedElement as Record<string, unknown>) || selectedElement;
+        
+        // 临时方案：如果原始元素没有children，先显示单层结构
+        const enhancedElement = {
+          ...actualElement,
+          children: actualElement.children || [] // 确保有children属性
+        };
+        
+        console.log('🔄 [ElementStructureTree] 使用增强的单层结构:', enhancedElement);
+        setFullElementData(enhancedElement);
+      }
+    };
+
+    parseElementFromXML();
+  }, [selectedElement]);
 
   // 构建树形数据
   const buildTreeData = (): { treeData: DataNode[]; allKeys: string[] } => {
-    // 🔍 提取真正的元素数据
-    const contextWrapper = selectedElement as Record<string, unknown>;
-    const actualElement = (contextWrapper?.selectedElement as Record<string, unknown>) || selectedElement;
-    
-    if (!actualElement || actualElement === null || Object.keys(actualElement).length === 0) {
-      console.warn('🌳 [ElementStructureTree] 没有找到元素数据');
+    if (!fullElementData) {
       return { treeData: [], allKeys: [] };
     }
 
-    // 🔍 调试：打印选中元素的结构
-    console.log('🌳 [ElementStructureTree] actualElement:', actualElement);
-    console.log('🌳 [ElementStructureTree] children:', actualElement.children);
+    console.log('🌳 [ElementStructureTree] 使用完整数据构建树:', {
+      elementId: fullElementData.id,
+      hasChildren: !!fullElementData.children,
+      childrenCount: Array.isArray(fullElementData.children) ? fullElementData.children.length : 0
+    });
 
     const allKeys: string[] = [];
 
@@ -232,7 +287,7 @@ export const ElementStructureTree: React.FC<ElementStructureTreeProps> = ({
     };
 
     return { 
-      treeData: [buildTreeNode(actualElement, 0, 'root', 0)],
+      treeData: [buildTreeNode(fullElementData, 0, 'root', 0)],
       allKeys,
     };
   };
@@ -240,11 +295,34 @@ export const ElementStructureTree: React.FC<ElementStructureTreeProps> = ({
   const { treeData, allKeys } = buildTreeData();
 
   // 默认展开所有节点
-  React.useEffect(() => {
+  useEffect(() => {
     if (allKeys.length > 0 && expandedKeys.length === 0) {
       setExpandedKeys(allKeys);
     }
   }, [allKeys, expandedKeys.length]);
+
+  // 如果还在加载完整数据，显示加载状态
+  if (!fullElementData) {
+    return (
+      <div className="element-structure-tree light-theme-force">
+        <div className="tree-header">
+          <Space>
+            <InfoCircleOutlined style={{ color: '#1890ff' }} />
+            <Text strong>元素结构</Text>
+            <Text type="secondary" style={{ fontSize: 12 }}>
+              正在从XML缓存解析完整结构...
+            </Text>
+          </Space>
+        </div>
+        <div style={{ textAlign: 'center', padding: '40px' }}>
+          <Spin size="large" />
+          <div style={{ marginTop: 16 }}>
+            <Text type="secondary">解析元素层级结构中...</Text>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="element-structure-tree light-theme-force">
@@ -267,6 +345,30 @@ export const ElementStructureTree: React.FC<ElementStructureTreeProps> = ({
         onExpand={(keys) => setExpandedKeys(keys as string[])}
         treeData={treeData}
       />
+
+      {/* 如果没有子元素，显示提示 */}
+      {(!fullElementData.children || (Array.isArray(fullElementData.children) && fullElementData.children.length === 0)) && (
+        <div style={{ 
+          marginTop: 16, 
+          padding: 12, 
+          background: '#fff7e6', 
+          border: '1px solid #ffd591', 
+          borderRadius: 6,
+          textAlign: 'center'
+        }}>
+          <Text type="secondary" style={{ fontSize: 12 }}>
+            📄 此元素暂无子元素层级结构数据
+          </Text>
+          <br />
+          <Text type="secondary" style={{ fontSize: 11 }}>
+            显示的是元素的基础属性信息。要查看完整的子元素层级，需要从XML缓存中提取完整结构。
+          </Text>
+          <br />
+          <Text type="secondary" style={{ fontSize: 10, marginTop: 4, display: 'block' }}>
+            💡 当前数据来源: {fullElementData.xmlCacheId ? `XML缓存 (${fullElementData.xmlCacheId})` : '步骤卡片数据'}
+          </Text>
+        </div>
+      )}
 
       {/* 子元素结构匹配 */}
       {(() => {

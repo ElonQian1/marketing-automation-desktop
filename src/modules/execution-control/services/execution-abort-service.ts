@@ -133,7 +133,7 @@ export class ExecutionAbortService {
     request: ExecutionAbortRequest
   ): Promise<{ stoppedAt?: { stepIndex: number; stepName: string } }> {
     try {
-      // 尝试调用后端中止接口
+      // 调用新的后端中止接口
       const result = await invoke('abort_script_execution', {
         executionId,
         reason: request.reason || '用户手动中止',
@@ -141,12 +141,12 @@ export class ExecutionAbortService {
       });
 
       console.log(`🎯 [执行控制] 后端中止成功:`, result);
-      return result as any;
+      return result as { stoppedAt?: { stepIndex: number; stepName: string } };
 
     } catch (error) {
-      console.warn(`⚠️ [执行控制] 后端中止接口调用失败，可能后端不支持该功能:`, error);
+      console.warn(`⚠️ [执行控制] 后端中止接口调用失败:`, error);
       
-      // 如果后端不支持中止接口，尝试其他方式
+      // 如果主要中止接口失败，尝试其他方式
       try {
         // 尝试调用通用中止接口
         await invoke('cancel_current_operation');
@@ -162,7 +162,7 @@ export class ExecutionAbortService {
           return {};
         } catch (thirdError) {
           console.error(`❌ [执行控制] 所有中止方式都失败:`, thirdError);
-          throw new Error('无法中止后端执行，请手动重启应用');
+          throw new Error('无法中止后端执行，请检查后端服务状态');
         }
       }
     }
