@@ -1,6 +1,6 @@
 // src/modules/structural-matching/ui/components/structural-matching-modal/structural-matching-modal.tsx
 // module: structural-matching | layer: ui | role: 结构匹配模态框
-// summary: 结构匹配配置的主模态框，包含字段配置和实时预览
+// summary: 结构匹配配置的主模态框，包含字段配置和固定悬浮预览
 
 import React, { useState, useEffect } from 'react';
 import { Modal, Slider, Typography, Space, Divider, Tag, Button, Select, Card } from 'antd';
@@ -8,27 +8,17 @@ import { BulbOutlined, ReloadOutlined, ThunderboltOutlined } from '@ant-design/i
 import { useHierarchicalMatchingModal } from '../../../hooks/use-hierarchical-matching-modal';
 import { ElementType, ELEMENT_TEMPLATES } from '../../../domain/constants/element-templates';
 import { ElementStructureTree } from '../element-structure-tree';
-import { HoverElementPreview } from '../hover-preview';
-import { useTreeHover } from '../element-structure-tree/use-tree-hover';
+import { FloatingElementPreview } from '../hover-preview';
 import XmlCacheManager from '../../../../../services/xml-cache-manager';
 import './structural-matching-modal.css';
 
 const { Title, Text } = Typography;
 
 export interface StructuralMatchingModalProps {
-  /** 是否显示 */
   visible: boolean;
-  
-  /** 选中的元素 */
   selectedElement: any;
-  
-  /** 初始配置 (可选) */
   initialConfig?: any;
-  
-  /** 关闭回调 */
   onClose: () => void;
-  
-  /** 确认回调 */
   onConfirm: (config: any) => void;
 }
 
@@ -41,13 +31,6 @@ export const StructuralMatchingModal: React.FC<StructuralMatchingModalProps> = (
 }) => {
   const [xmlContent, setXmlContent] = useState<string>('');
   
-  // 悬停状态管理
-  const { hoverState, showPreview, hidePreview, updateMousePosition } = useTreeHover({
-    hoverDelay: 300,
-    leaveDelay: 150
-  });
-
-  // 加载XML内容
   useEffect(() => {
     const loadXmlContent = async () => {
       try {
@@ -88,13 +71,6 @@ export const StructuralMatchingModal: React.FC<StructuralMatchingModalProps> = (
     initialConfig,
   });
 
-  // 临时注释掉评分预览，专注于字段配置
-  // const { totalResult, displayInfo } = useStructuralPreview({
-  //   config: config as any,
-  //   selectedElement,
-  // });
-
-  // 模拟评分数据
   const totalResult = { passed: true, totalScore: 0.85 };
   const displayInfo = { 
     scoreText: '85%', 
@@ -117,29 +93,22 @@ export const StructuralMatchingModal: React.FC<StructuralMatchingModalProps> = (
       open={visible}
       onCancel={onClose}
       onOk={handleConfirm}
-      width={1200}
+      width={1400}
       okText="确认"
       cancelText="取消"
       okButtonProps={{ disabled: !isConfigValid }}
+      styles={{ body: { position: 'relative' } }}
     >
       <div className="structural-modal-content">
-        {/* 顶部状态栏 */}
         <div className="structural-status-bar">
           <Space size="large">
             <div>
               <Text type="secondary">预计得分: </Text>
-              <Text strong style={{ color: displayInfo.statusColor }}>
-                {displayInfo.scoreText}
-              </Text>
+              <Tag color={displayInfo.statusColor}>{displayInfo.scoreText}</Tag>
             </div>
+            
             <div>
-              <Text type="secondary">匹配度: </Text>
-              <Text strong style={{ color: displayInfo.statusColor }}>
-                {displayInfo.percentage}%
-              </Text>
-            </div>
-            <div>
-              <Text type="secondary">状态: </Text>
+              <Text type="secondary">匹配状态: </Text>
               <Tag color={totalResult.passed ? 'success' : 'error'}>
                 {displayInfo.statusText}
               </Tag>
@@ -147,9 +116,29 @@ export const StructuralMatchingModal: React.FC<StructuralMatchingModalProps> = (
           </Space>
         </div>
 
+        <div className="structural-threshold-section">
+          <Space direction="vertical" style={{ width: '100%' }}>
+            <Title level={5}>全局匹配阈值</Title>
+            <Slider
+              min={0}
+              max={1}
+              step={0.01}
+              value={config.globalThreshold}
+              onChange={updateThreshold}
+              marks={{
+                0: '0%',
+                0.5: '50%',
+                1: '100%'
+              }}
+            />
+            <Text type="secondary" style={{ fontSize: 12 }}>
+              得分超过此阈值则认为匹配成功 (当前: {(config.globalThreshold * 100).toFixed(0)}%)
+            </Text>
+          </Space>
+        </div>
+
         <Divider />
 
-        {/* 智能模板选择 */}
         <div className="structural-template-section">
           <Title level={5}>
             <ThunderboltOutlined style={{ marginRight: 8 }} />
@@ -198,95 +187,44 @@ export const StructuralMatchingModal: React.FC<StructuralMatchingModalProps> = (
                 重置
               </Button>
             </Space>
-            
-            <Text type="secondary" style={{ fontSize: '12px' }}>
-              智能识别会根据元素特征自动选择最合适的配置模板，也可手动选择
-            </Text>
           </Space>
         </div>
 
         <Divider />
 
-        {/* 阈值设置 */}
-        <div className="structural-threshold-section">
-          <Title level={5}>全局阈值</Title>
-          <div className="threshold-slider-container">
-            <Slider
-              min={0}
-              max={1}
-              step={0.05}
-              value={config.globalThreshold}
-              onChange={updateThreshold}
-              marks={{
-                0: '0%',
-                0.5: '50%',
-                1: '100%',
-              }}
-              tooltip={{
-                formatter: (value) => `${((value || 0) * 100).toFixed(0)}%`,
-              }}
+        <div style={{ marginTop: 16, position: 'relative' }}>
+          <div style={{ marginRight: 420 }}>
+            <ElementStructureTree
+              selectedElement={selectedElement}
+              getFieldConfig={getFieldConfig}
+              onToggleField={toggleField}
+              onUpdateField={updateField}
             />
-            <Text type="secondary" style={{ marginTop: 8, display: 'block' }}>
-              得分超过此阈值则认为匹配成功 (当前: {(config.globalThreshold * 100).toFixed(0)}%)
-            </Text>
           </div>
-        </div>
-
-        <Divider />
-
-        {/* 字段匹配策略配置 */}
-        <div 
-          style={{ marginTop: 16, position: 'relative' }}
-          onMouseMove={(e) => {
-            updateMousePosition(e.clientX, e.clientY);
-            
-            // 检查是否悬停在树节点上
-            const target = e.target as HTMLElement;
-            const treeNode = target.closest('.ant-tree-node-content-wrapper, .ant-tree-title');
-            
-            if (treeNode) {
-              // 尝试从节点文本中提取元素信息
-              const nodeContent = treeNode.textContent || '';
-              
-              // 简单的文本解析，寻找包含bounds的信息
-              const boundsMatch = nodeContent.match(/\[(\d+),(\d+)\]\[(\d+),(\d+)\]/);
-              const textMatch = nodeContent.match(/文本:\s*([^·]+)/);
-              const classMatch = nodeContent.match(/类型:\s*([^·]+)/);
-              
-              if (boundsMatch || textMatch || classMatch) {
-                const elementData = {
-                  bounds: boundsMatch ? boundsMatch[0] : '',
-                  text: textMatch ? textMatch[1].trim() : '',
-                  class_name: classMatch ? classMatch[1].trim() : '',
-                  clickable: nodeContent.includes('可点击'),
-                  content_desc: '', // 从节点内容中提取
-                  resource_id: '' // 从节点内容中提取
-                };
-                
-                showPreview(e.clientX, e.clientY, elementData);
-              }
-            } else {
-              hidePreview();
-            }
-          }}
-          onMouseLeave={() => {
-            hidePreview();
-          }}
-        >
-          <ElementStructureTree
-            selectedElement={selectedElement}
-            getFieldConfig={getFieldConfig}
-            onToggleField={toggleField}
-            onUpdateField={updateField}
-          />
           
-          {/* 悬停预览组件 */}
-          <HoverElementPreview
-            visible={hoverState.visible}
-            mousePosition={hoverState.mousePosition}
-            elementData={hoverState.elementData}
-            xmlContent={xmlContent}
-          />
+          <div
+            style={{
+              position: 'absolute',
+              top: 0,
+              right: 0,
+              width: 400,
+              height: '100%',
+              maxHeight: 600,
+              zIndex: 1000,
+              background: '#fff',
+              border: '1px solid #d9d9d9',
+              borderRadius: 6,
+              boxShadow: '0 4px 12px rgba(0, 0, 0, 0.15)',
+              padding: 16,
+              overflow: 'auto'
+            }}
+            className="light-theme-force"
+          >
+            <FloatingElementPreview
+              selectedElement={selectedElement}
+              xmlContent={xmlContent}
+            />
+          </div>
         </div>
       </div>
     </Modal>

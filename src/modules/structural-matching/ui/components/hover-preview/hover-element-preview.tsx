@@ -91,9 +91,16 @@ export const HoverElementPreview: React.FC<HoverElementPreviewProps> = ({
 }) => {
   const [previewStyle, setPreviewStyle] = useState<React.CSSProperties>({});
 
+  console.log('🖼️ HoverElementPreview render:', { visible, mousePosition, elementData: !!elementData });
+
   // 计算预览窗口位置
   useEffect(() => {
-    if (!visible || !elementData) return;
+    if (!visible || !elementData) {
+      console.log('⚠️ Preview not shown - visible:', visible, 'elementData:', !!elementData);
+      return;
+    }
+
+    console.log('📐 Calculating preview position...');
 
     const previewWidth = 400;
     const previewHeight = 300;
@@ -125,11 +132,16 @@ export const HoverElementPreview: React.FC<HoverElementPreviewProps> = ({
       boxShadow: '0 4px 12px rgba(0, 0, 0, 0.15)',
       border: '1px solid #d9d9d9',
     });
+
+    console.log('✅ Preview style calculated:', previewStyle);
   }, [visible, mousePosition, elementData]);
 
   if (!visible || !elementData) {
+    console.log('🚫 Preview not rendering - visible:', visible, 'elementData:', !!elementData);
     return null;
   }
+
+  console.log('🎨 Rendering preview with elementData:', elementData);
 
   const bounds = elementData.bounds ? parseBounds(elementData.bounds) : null;
   const viewport = xmlContent ? parseViewportFromXml(xmlContent) : { width: 1080, height: 1920 };

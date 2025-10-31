@@ -4,3 +4,6 @@
 
 export { HoverElementPreview } from './hover-element-preview';
 export type { HoverElementPreviewProps } from './hover-element-preview';
+
+export { FloatingElementPreview } from './floating-element-preview';
+export type { FloatingElementPreviewProps } from './floating-element-preview';

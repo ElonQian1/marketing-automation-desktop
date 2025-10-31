@@ -20,6 +20,7 @@ export * from './hooks/use-structural-matching-modal';
 export * from './hooks/use-hierarchical-matching-modal';
 export * from './hooks/use-structural-preview';
 export * from './hooks/use-field-strategy-config';
+export * from './hooks/use-tree-hover';
 
 // UI Components
 export * from './ui/components/structural-matching-modal';
