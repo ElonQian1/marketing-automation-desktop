@@ -5,5 +5,8 @@
 export { StructuralElementVisualPreview } from './structural-element-visual-preview';
 export type { StructuralElementVisualPreviewProps, StructuralElement } from './structural-element-visual-preview';
 
+export { StructuralLocalPreview } from './structural-local-preview';
+export type { StructuralLocalPreviewProps } from './structural-local-preview';
+
 export { useTreeVisualCoordination } from './use-tree-visual-coordination';
 export type { UseTreeVisualCoordinationProps } from './use-tree-visual-coordination';

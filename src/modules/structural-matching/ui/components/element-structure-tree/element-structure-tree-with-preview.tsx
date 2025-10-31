@@ -1,19 +1,17 @@
 // src/modules/structural-matching/ui/components/element-structure-tree/element-structure-tree-with-preview.tsx
 // module: structural-matching | layer: ui | role: 带可视化预览的元素结构树
-// summary: 元素结构树的增强版本，集成了右侧可视化预览面板
+// summary: 元素结构树的增强版本，集成了右侧局部可视化预览面板，支持悬停联动
 
-import React, { useState, useEffect, useMemo } from "react";
+import React, { useState, useMemo, useCallback } from "react";
 import { Row, Col, Typography, Space } from "antd";
 import { InfoCircleOutlined, EyeOutlined } from "@ant-design/icons";
 import { ElementStructureTree } from "./element-structure-tree";
 import { 
-  StructuralElementVisualPreview, 
-  useTreeVisualCoordination,
-  type StructuralElement 
+  StructuralLocalPreview, 
+  useTreeVisualCoordination
 } from "../visual-preview";
 import { FieldType } from "../../../domain/constants/field-types";
 import { FieldConfig } from "../../../domain/models/hierarchical-field-config";
-import XmlCacheManager from "../../../../../services/xml-cache-manager";
 
 const { Text, Title } = Typography;
 
@@ -36,39 +34,8 @@ export interface ElementStructureTreeWithPreviewProps {
 }
 
 /**
- * 将树节点数据转换为可视化元素数据
- */
-function convertTreeDataToVisualElements(elementData: Record<string, unknown>): StructuralElement[] {
-  const elements: StructuralElement[] = [];
-  
-  function processElement(element: any, depth: number = 0): void {
-    if (!element) return;
-    
-    // 添加当前元素
-    elements.push({
-      id: element.id || `element_${elements.length}`,
-      text: element.text || '',
-      content_desc: element.content_desc || '',
-      class_name: element.class_name || '',
-      bounds: element.bounds || '',
-      clickable: element.clickable || false,
-      resource_id: element.resource_id || ''
-    });
-    
-    // 递归处理子元素
-    if (element.children && Array.isArray(element.children)) {
-      element.children.forEach((child: any) => {
-        processElement(child, depth + 1);
-      });
-    }
-  }
-  
-  processElement(elementData);
-  return elements;
-}
-
-/**
  * 带可视化预览的元素结构树组件
+ * 支持左侧树结构与右侧可视化预览的悬停联动
  */
 export const ElementStructureTreeWithPreview: React.FC<ElementStructureTreeWithPreviewProps> = ({
   selectedElement,
@@ -76,89 +43,97 @@ export const ElementStructureTreeWithPreview: React.FC<ElementStructureTreeWithP
   onToggleField,
   onUpdateField
 }) => {
-  const [xmlContent, setXmlContent] = useState<string>('');
-  const [treeElements, setTreeElements] = useState<StructuralElement[]>([]);
   const [hoveredNodeKey, setHoveredNodeKey] = useState<string | null>(null);
 
   // 使用树节点与可视化联动Hook
   const {
     highlightedElementId,
-    handleTreeNodeHover,
-    handleVisualPreviewHover,
-    setHighlight,
-    clearHighlight
+    handleTreeNodeHover
   } = useTreeVisualCoordination({
     hoverDelay: 150,
     enableCoordination: true
   });
 
-  // 从XML缓存获取完整数据
-  useEffect(() => {
-    const loadXmlData = async () => {
-      try {
-        const contextWrapper = selectedElement as Record<string, unknown>;
-        const actualElement = (contextWrapper?.selectedElement as Record<string, unknown>) || selectedElement;
-        
-        // 获取XML缓存ID
-        const xmlCacheId = actualElement?.xmlCacheId as string;
-        if (!xmlCacheId) {
-          console.warn('⚠️ [ElementStructureTreeWithPreview] 无XML缓存ID');
-          return;
-        }
-
-        // 从缓存获取XML内容
-        const xmlCacheManager = XmlCacheManager.getInstance();
-        const cacheEntry = await xmlCacheManager.getCachedXml(xmlCacheId);
-        if (!cacheEntry) {
-          console.warn('⚠️ [ElementStructureTreeWithPreview] 未找到缓存的XML内容');
-          return;
-        }
-
-        setXmlContent(cacheEntry.xmlContent);
-        console.log('✅ [ElementStructureTreeWithPreview] 加载XML内容成功，长度:', cacheEntry.xmlContent.length);
-
-      } catch (error) {
-        console.error('❌ [ElementStructureTreeWithPreview] 加载XML数据失败:', error);
-      }
-    };
-
-    loadXmlData();
-  }, [selectedElement]);
-
-  // 当元素数据变化时，转换为可视化元素
-  useEffect(() => {
-    // 这里需要获取完整的元素数据，包括父元素和子元素
-    // 暂时使用传入的selectedElement作为示例
-    const elements = convertTreeDataToVisualElements(selectedElement);
-    setTreeElements(elements);
+  // 从树节点key推导出元素ID
+  const deriveElementIdFromNodeKey = useCallback((nodeKey: string | null): string | null => {
+    if (!nodeKey) return null;
     
-    console.log('🔍 [ElementStructureTreeWithPreview] 转换可视化元素:', {
-      totalElements: elements.length,
-      elements: elements.slice(0, 3) // 只显示前3个用于调试
-    });
+    // 解析节点key，转换为对应的元素ID
+    // 例：root-0-1-2 -> element_xx_child_1_1_2 或具体的元素ID
+    const keyParts = nodeKey.split('-');
+    
+    if (keyParts.length === 2 && keyParts[0] === 'root') {
+      // 根节点：root-0
+      const actualElement = (selectedElement?.selectedElement as Record<string, unknown>) || selectedElement;
+      return actualElement?.id as string || null;
+    }
+    
+    if (keyParts.length > 2) {
+      // 子节点：root-0-childIndex 或 parent-0-0-childIndex
+      const actualElement = (selectedElement?.selectedElement as Record<string, unknown>) || selectedElement;
+      const baseId = actualElement?.id as string;
+      
+      if (keyParts[0] === 'parent') {
+        // 父节点结构：parent-0-0-... 
+        if (keyParts.length === 3 && keyParts[2] === '0') {
+          // parent-0-0 指向当前选中元素
+          return baseId;
+        } else if (keyParts.length > 3) {
+          // parent-0-0-childIndex 指向子元素
+          const childIndices = keyParts.slice(3);
+          return `${baseId}_child_${childIndices.join('_')}`;
+        }
+      } else {
+        // 直接从根开始：root-0-childIndex
+        const childIndices = keyParts.slice(2);
+        return `${baseId}_child_${childIndices.join('_')}`;
+      }
+    }
+    
+    return null;
   }, [selectedElement]);
+
+  // 处理树节点悬停
+  const handleTreeHover = useCallback((nodeKey: string | null) => {
+    console.log('🐭 [ElementStructureTreeWithPreview] Tree hover:', { nodeKey });
+    setHoveredNodeKey(nodeKey);
+    
+    // 将节点key转换为元素ID
+    const elementId = deriveElementIdFromNodeKey(nodeKey);
+    console.log('🎯 [ElementStructureTreeWithPreview] Derived element ID:', { nodeKey, elementId });
+    
+    handleTreeNodeHover(elementId);
+  }, [deriveElementIdFromNodeKey, handleTreeNodeHover]);
 
   // 创建增强的Tree组件，支持hover事件
   const EnhancedElementStructureTree = useMemo(() => {
-    // 这里我们需要修改原始的ElementStructureTree组件来支持hover事件
-    // 为了不破坏原有组件，我们暂时直接传递原有的props
     return (
       <div
-        onMouseEnter={(e) => {
-          // 从事件目标获取树节点的key
+        onMouseOver={(e) => {
+          // 查找最近的树节点
           const target = e.target as HTMLElement;
-          const treeNode = target.closest('[data-key]');
-          if (treeNode) {
-            const nodeKey = treeNode.getAttribute('data-key');
-            console.log('🐭 [Tree] Mouse enter node:', nodeKey);
-            setHoveredNodeKey(nodeKey);
-            handleTreeNodeHover(nodeKey);
+          const treeNode = target.closest('[data-key]') || target.closest('.ant-tree-node-content-wrapper');
+          
+          if (treeNode && treeNode instanceof HTMLElement) {
+            const nodeKey = treeNode.getAttribute('data-key') || 
+                           treeNode.closest('.ant-tree-treenode')?.getAttribute('data-key');
+            
+            if (nodeKey && nodeKey !== hoveredNodeKey) {
+              console.log('🐭 [Tree] Mouse over node:', nodeKey);
+              handleTreeHover(nodeKey);
+            }
           }
         }}
-        onMouseLeave={() => {
-          console.log('🐭 [Tree] Mouse leave');
-          setHoveredNodeKey(null);
-          handleTreeNodeHover(null);
+        onMouseLeave={(e) => {
+          // 检查是否真的离开了树区域
+          const relatedTarget = e.relatedTarget as HTMLElement;
+          const treeContainer = (e.currentTarget as HTMLElement);
+          
+          if (!relatedTarget || !treeContainer.contains(relatedTarget)) {
+            console.log('🐭 [Tree] Mouse leave tree area');
+            setHoveredNodeKey(null);
+            handleTreeHover(null);
+          }
         }}
       >
         <ElementStructureTree
@@ -169,7 +144,7 @@ export const ElementStructureTreeWithPreview: React.FC<ElementStructureTreeWithP
         />
       </div>
     );
-  }, [selectedElement, getFieldConfig, onToggleField, onUpdateField, handleTreeNodeHover]);
+  }, [selectedElement, getFieldConfig, onToggleField, onUpdateField, hoveredNodeKey, handleTreeHover]);
 
   return (
     <div className="light-theme-force" style={{ 
@@ -191,7 +166,7 @@ export const ElementStructureTreeWithPreview: React.FC<ElementStructureTreeWithP
           </Title>
           <EyeOutlined style={{ color: "#52c41a" }} />
           <Text type="secondary" style={{ fontSize: 14 }}>
-            左侧：层级配置 | 右侧：可视化预览
+            左侧：层级配置 | 右侧：局部可视化预览
           </Text>
         </Space>
       </div>
@@ -212,7 +187,7 @@ export const ElementStructureTreeWithPreview: React.FC<ElementStructureTreeWithP
                 </Text>
                 <br />
                 <Text type="secondary" style={{ fontSize: 13 }}>
-                  悬停节点查看可视化预览，配置字段匹配规则
+                  悬停节点查看局部可视化预览，配置字段匹配规则
                 </Text>
                 {hoveredNodeKey && (
                   <Text style={{ 
@@ -221,7 +196,18 @@ export const ElementStructureTreeWithPreview: React.FC<ElementStructureTreeWithP
                     display: 'block',
                     marginTop: 4
                   }}>
-                    🎯 当前悬停: {hoveredNodeKey}
+                    🎯 当前悬停节点: {hoveredNodeKey}
+                  </Text>
+                )}
+                {highlightedElementId && (
+                  <Text style={{ 
+                    fontSize: 12, 
+                    color: '#ff4d4f',
+                    display: 'block',
+                    marginTop: 2,
+                    fontWeight: 'bold'
+                  }}>
+                    🔍 高亮元素: {highlightedElementId}
                   </Text>
                 )}
               </div>
@@ -230,36 +216,24 @@ export const ElementStructureTreeWithPreview: React.FC<ElementStructureTreeWithP
             </div>
           </Col>
 
-          {/* 右侧：可视化预览 */}
+          {/* 右侧：局部可视化预览 */}
           <Col span={12}>
             <div style={{ height: '100%', paddingLeft: 12 }}>
               <div style={{ marginBottom: 12 }}>
                 <Text strong style={{ fontSize: 16, color: '#333' }}>
-                  👁️ 可视化预览
+                  👁️ 局部可视化预览
                 </Text>
                 <br />
                 <Text type="secondary" style={{ fontSize: 13 }}>
-                  实时显示元素结构的位置关系
+                  实时显示选中元素周围的局部结构与位置关系
                 </Text>
-                {highlightedElementId && (
-                  <Text style={{ 
-                    fontSize: 12, 
-                    color: '#ff4d4f',
-                    display: 'block',
-                    marginTop: 4,
-                    fontWeight: 'bold'
-                  }}>
-                    🔍 高亮元素: {highlightedElementId}
-                  </Text>
-                )}
               </div>
 
-              <StructuralElementVisualPreview
-                elements={treeElements}
+              <StructuralLocalPreview
+                selectedElement={selectedElement}
                 highlightedElementId={highlightedElementId}
-                xmlContent={xmlContent}
                 maxHeight={550}
-                loading={!xmlContent && treeElements.length === 0}
+                loading={false}
               />
             </div>
           </Col>
@@ -275,13 +249,13 @@ export const ElementStructureTreeWithPreview: React.FC<ElementStructureTreeWithP
       }}>
         <Space split>
           <Text type="secondary" style={{ fontSize: 12 }}>
-            📊 数据统计: {treeElements.length} 个元素
+            📊 当前节点: {hoveredNodeKey || '无'}
           </Text>
           <Text type="secondary" style={{ fontSize: 12 }}>
-            📄 XML缓存: {xmlContent ? `${(xmlContent.length / 1024).toFixed(1)}KB` : '未加载'}
+            🎯 高亮元素: {highlightedElementId || '无'}
           </Text>
           <Text type="secondary" style={{ fontSize: 12 }}>
-            🎯 联动状态: {highlightedElementId ? '已激活' : '等待悬停'}
+            🔗 联动状态: {highlightedElementId ? '已激活' : '等待悬停'}
           </Text>
         </Space>
       </div>
