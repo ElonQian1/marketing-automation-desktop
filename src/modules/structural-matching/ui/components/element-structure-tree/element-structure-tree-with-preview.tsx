@@ -124,10 +124,11 @@ export const ElementStructureTreeWithPreview: React.FC<ElementStructureTreeWithP
           }
         }}
         onMouseLeave={(e) => {
-          const relatedTarget = e.relatedTarget as HTMLElement;
+          const relatedTarget = e.relatedTarget as HTMLElement | null;
           const treeContainer = (e.currentTarget as HTMLElement);
           
-          if (!relatedTarget || !treeContainer.contains(relatedTarget)) {
+          // 安全检查：确保relatedTarget存在且是Node类型才调用contains
+          if (!relatedTarget || !(relatedTarget instanceof Node) || !treeContainer.contains(relatedTarget)) {
             handleTreeNodeHover(null);
           }
         }}

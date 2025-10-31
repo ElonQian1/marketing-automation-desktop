@@ -2,11 +2,11 @@
 // module: structural-matching | layer: ui | role: 悬浮可视化覆盖层
 // summary: 悬浮显示的局部结构可视化组件，类似页面分析的可视化视图
 
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { Typography } from 'antd';
 import { PagePreview } from '../../../../../components/universal-ui/views/visual-view/components/PagePreview';
 import { useElementSelectionManager } from '../../../../../components/universal-ui/element-selection/useElementSelectionManager';
-import type { VisualUIElement, VisualElementCategory } from '../../../../../components/universal-ui/views/visual-view/types/visual-types';
+import type { VisualUIElement, VisualElementCategory } from '../../../../../components/universal-ui/types';
 import XmlCacheManager from '../../../../../services/xml-cache-manager';
 import { parseXML } from '../../../../../components/universal-ui/xml-parser';
 
@@ -53,28 +53,131 @@ function extractLocalElements(
   allElements: VisualUIElement[], 
   selectedElementData: Record<string, unknown>
 ): VisualUIElement[] {
-  const selectedBounds = parseBounds(selectedElementData.bounds as string);
-  if (!selectedBounds || allElements.length === 0) return [];
+  console.log('🔍 [FloatingVisualOverlay] extractLocalElements 开始调试:', {
+    selectedElementData,
+    allElementsCount: allElements.length,
+    firstElement: allElements[0],
+    selectedElementDataKeys: Object.keys(selectedElementData)
+  });
 
-  // 找到选中元素
+  // 兼容多种bounds数据格式
+  let selectedBounds: { x: number; y: number; width: number; height: number } | null = null;
+  
+  if (typeof selectedElementData.bounds === 'string') {
+    selectedBounds = parseBounds(selectedElementData.bounds);
+  } else if (selectedElementData.bounds && typeof selectedElementData.bounds === 'object') {
+    // 如果是position对象格式 {x, y, width, height}
+    const pos = selectedElementData.bounds as Record<string, unknown>;
+    if (typeof pos.x === 'number' && typeof pos.y === 'number') {
+      selectedBounds = {
+        x: pos.x,
+        y: pos.y,
+        width: (pos.width as number) || 0,
+        height: (pos.height as number) || 0
+      };
+    }
+    // 如果是标准bounds对象 {left, top, right, bottom}
+    else if (typeof pos.left === 'number' && typeof pos.top === 'number') {
+      selectedBounds = {
+        x: pos.left,
+        y: pos.top,
+        width: (pos.right as number) - pos.left,
+        height: (pos.bottom as number) - pos.top
+      };
+    }
+  }
+  // 如果是position字段
+  else if (selectedElementData.position && typeof selectedElementData.position === 'object') {
+    const pos = selectedElementData.position as Record<string, unknown>;
+    selectedBounds = {
+      x: (pos.x as number) || 0,
+      y: (pos.y as number) || 0,
+      width: (pos.width as number) || 0,
+      height: (pos.height as number) || 0
+    };
+  }
+  
+  console.log('🎯 [FloatingVisualOverlay] 解析后的选中元素边界:', {
+    原始bounds: selectedElementData.bounds,
+    解析后selectedBounds: selectedBounds,
+    所有元素样本: allElements.slice(0, 3).map(el => ({
+      id: el.id,
+      text: el.text,
+      bounds: el.bounds,
+      position: el.position
+    }))
+  });
+  
+  if (!selectedBounds || allElements.length === 0) {
+    console.warn('⚠️ [FloatingVisualOverlay] 无法提取局部元素:', { selectedBounds, allElementsCount: allElements.length });
+    return allElements.slice(0, 15); // 返回前15个元素作为演示
+  }
+
+  // 找到选中元素 - 使用多种匹配策略
   const selectedElement = allElements.find(el => {
-    const elBounds = parseBounds(el.bounds);
-    if (!elBounds) return false;
+    // 策略1：通过bounds字符串匹配
+    if (el.bounds && typeof selectedElementData.bounds === 'string') {
+      if (el.bounds === selectedElementData.bounds) {
+        console.log('✅ [匹配策略1] 通过bounds字符串匹配成功:', el.id);
+        return true;
+      }
+    }
     
-    const positionMatch = Math.abs(elBounds.x - selectedBounds.x) < 5 &&
-           Math.abs(elBounds.y - selectedBounds.y) < 5 &&
-           Math.abs(elBounds.width - selectedBounds.width) < 10 &&
-           Math.abs(elBounds.height - selectedBounds.height) < 10;
-           
+    // 策略2：通过position对象匹配
+    if (el.position && selectedBounds) {
+      const posMatch = Math.abs(el.position.x - selectedBounds.x) < 5 &&
+             Math.abs(el.position.y - selectedBounds.y) < 5 &&
+             Math.abs(el.position.width - selectedBounds.width) < 10 &&
+             Math.abs(el.position.height - selectedBounds.height) < 10;
+      if (posMatch) {
+        console.log('✅ [匹配策略2] 通过position对象匹配成功:', el.id);
+        return true;
+      }
+    }
+    
+    // 策略3：通过bounds解析后匹配
+    if (el.bounds && selectedBounds) {
+      const elBounds = parseBounds(el.bounds);
+      if (elBounds) {
+        const boundsMatch = Math.abs(elBounds.x - selectedBounds.x) < 5 &&
+               Math.abs(elBounds.y - selectedBounds.y) < 5 &&
+               Math.abs(elBounds.width - selectedBounds.width) < 10 &&
+               Math.abs(elBounds.height - selectedBounds.height) < 10;
+        if (boundsMatch) {
+          console.log('✅ [匹配策略3] 通过解析bounds匹配成功:', el.id);
+          return true;
+        }
+      }
+    }
+    
+    // 策略4：通过text和ID匹配
     const textMatch = el.text && selectedElementData.text && 
                      el.text === selectedElementData.text;
-                     
-    return positionMatch || textMatch;
+    const idMatch = el.id && selectedElementData.id &&
+                   el.id === selectedElementData.id;
+                   
+    if (textMatch || idMatch) {
+      console.log('✅ [匹配策略4] 通过text/id匹配成功:', el.id);
+      return true;
+    }
+    
+    return false;
   });
 
   if (!selectedElement) {
+    console.warn('⚠️ [FloatingVisualOverlay] 未找到匹配的选中元素，返回演示数据:', {
+      selectedBounds,
+      totalElements: allElements.length,
+      匹配尝试的数据: {
+        selectedText: selectedElementData.text,
+        selectedId: selectedElementData.id,
+        selectedBounds: selectedElementData.bounds
+      }
+    });
     return allElements.slice(0, 15); // 显示前15个元素作为演示
   }
+
+  console.log('✅ [FloatingVisualOverlay] 找到匹配元素:', selectedElement);
 
   // 计算局部区域范围
   const expandRatio = 2.5; // 更大的扩展区域用于悬浮显示
@@ -140,10 +243,106 @@ export const FloatingVisualOverlay: React.FC<FloatingVisualOverlayProps> = ({
   const [localElements, setLocalElements] = useState<VisualUIElement[]>([]);
   const [isDataLoading, setIsDataLoading] = useState(false);
   const [showOverlay, setShowOverlay] = useState(false);
+  
+  // 🆕 窗口状态管理
+  const [windowSize, setWindowSize] = useState({ width: 500, height: 400 });
+  const [windowPosition, setWindowPosition] = useState({ x: 280, y: 20 });
+  const [isDragging, setIsDragging] = useState(false);
+  const [isResizing, setIsResizing] = useState(false);
+  const [dragStart, setDragStart] = useState({ x: 0, y: 0 });
+  const [resizeStart, setResizeStart] = useState({ x: 0, y: 0, width: 0, height: 0 });
+  const [isCollapsed, setIsCollapsed] = useState(false);
+  
   const overlayRef = useRef<HTMLDivElement>(null);
-  const timeoutRef = useRef<NodeJS.Timeout>();
+  const timeoutRef = useRef<NodeJS.Timeout | null>(null);
 
-  // 组件挂载调试
+  // 🆕 拖拽处理函数
+  const handleMouseDown = useCallback((e: React.MouseEvent) => {
+    if (e.target !== e.currentTarget) return; // 只在标题栏拖拽
+    setIsDragging(true);
+    setDragStart({
+      x: e.clientX - windowPosition.x,
+      y: e.clientY - windowPosition.y
+    });
+  }, [windowPosition]);
+
+  const handleMouseMove = useCallback((e: MouseEvent) => {
+    if (isDragging) {
+      setWindowPosition({
+        x: e.clientX - dragStart.x,
+        y: e.clientY - dragStart.y
+      });
+    }
+    if (isResizing) {
+      const deltaX = e.clientX - resizeStart.x;
+      const deltaY = e.clientY - resizeStart.y;
+      setWindowSize({
+        width: Math.max(300, resizeStart.width + deltaX),
+        height: Math.max(200, resizeStart.height + deltaY)
+      });
+    }
+  }, [isDragging, isResizing, dragStart, resizeStart]);
+
+  const handleMouseUp = useCallback(() => {
+    setIsDragging(false);
+    setIsResizing(false);
+  }, []);
+
+  // 🆕 调整大小处理函数
+  const handleResizeMouseDown = useCallback((e: React.MouseEvent) => {
+    e.stopPropagation();
+    setIsResizing(true);
+    setResizeStart({
+      x: e.clientX,
+      y: e.clientY,
+      width: windowSize.width,
+      height: windowSize.height
+    });
+  }, [windowSize]);
+
+  // 🆕 全局鼠标事件监听
+  useEffect(() => {
+    if (isDragging || isResizing) {
+      document.addEventListener('mousemove', handleMouseMove);
+      document.addEventListener('mouseup', handleMouseUp);
+      return () => {
+        document.removeEventListener('mousemove', handleMouseMove);
+        document.removeEventListener('mouseup', handleMouseUp);
+      };
+    }
+  }, [isDragging, isResizing, handleMouseMove, handleMouseUp]);
+
+  // 🆕 内容自适应高度计算
+  const getContentHeight = useCallback(() => {
+    if (isCollapsed) return 0;
+    if (isDataLoading) return 150;
+    if (localElements.length === 0) return 200;
+    // 根据元素数量动态计算高度
+    const baseHeight = 100;
+    const itemHeight = 30;
+    const calculatedHeight = baseHeight + (localElements.length * itemHeight);
+    return Math.min(calculatedHeight, 600); // 最大高度限制
+  }, [isCollapsed, isDataLoading, localElements.length]);
+
+  // 🆕 自适应窗口大小
+  useEffect(() => {
+    const contentHeight = getContentHeight();
+    const headerHeight = 44;
+    const totalHeight = headerHeight + contentHeight;
+    
+    setWindowSize(prev => ({
+      ...prev,
+      height: Math.max(totalHeight, 200)
+    }));
+  }, [getContentHeight]);
+
+  // 智能定位函数
+  const getOverlayPosition = () => {
+    return {
+      left: windowPosition.x,
+      top: windowPosition.y
+    };
+  };
   useEffect(() => {
     console.log('🎈 [FloatingVisualOverlay] 组件挂载 - 初始状态:', {
       visible,
@@ -209,12 +408,34 @@ export const FloatingVisualOverlay: React.FC<FloatingVisualOverlayProps> = ({
 
         setXmlContent(cacheEntry.xmlContent);
         
+        console.log('🔧 [FloatingVisualOverlay] 准备解析XML:', {
+          xmlContentPreview: cacheEntry.xmlContent.substring(0, 200) + '...',
+          xmlLength: cacheEntry.xmlContent.length
+        });
+        
         const parseResult = parseXML(cacheEntry.xmlContent);
-        setAllElements(parseResult.elements);
+        
+        console.log('🎯 [FloatingVisualOverlay] XML解析结果:', {
+          parseResult: parseResult,
+          elementsCount: parseResult?.elements?.length || 0,
+          hasParseResult: !!parseResult,
+          parseResultKeys: parseResult ? Object.keys(parseResult) : []
+        });
+        
+        if (parseResult && parseResult.elements) {
+          setAllElements(parseResult.elements);
+          console.log('✅ [FloatingVisualOverlay] 设置allElements成功:', {
+            elementsCount: parseResult.elements.length,
+            firstElement: parseResult.elements[0]
+          });
+        } else {
+          console.error('❌ [FloatingVisualOverlay] 解析结果无效:', parseResult);
+          setAllElements([]);
+        }
         
         console.log('🎯 [FloatingVisualOverlay] XML解析完成:', {
-          totalElements: parseResult.elements.length,
-          hasElements: parseResult.elements.length > 0
+          totalElements: parseResult?.elements?.length || 0,
+          hasElements: (parseResult?.elements?.length || 0) > 0
         });
 
       } catch (error) {
@@ -229,6 +450,13 @@ export const FloatingVisualOverlay: React.FC<FloatingVisualOverlayProps> = ({
 
   // 提取局部元素
   useEffect(() => {
+    console.log('🔄 [FloatingVisualOverlay] useEffect [提取局部元素] 触发:', {
+      allElementsCount: allElements.length,
+      visible,
+      hasSelectedElement: !!selectedElement,
+      selectedElement: selectedElement
+    });
+    
     if (allElements.length > 0 && visible) {
       console.log('🔄 [FloatingVisualOverlay] 开始提取局部元素:', {
         totalElements: allElements.length,
@@ -239,12 +467,25 @@ export const FloatingVisualOverlay: React.FC<FloatingVisualOverlayProps> = ({
       const contextWrapper = selectedElement as Record<string, unknown>;
       const actualElement = (contextWrapper?.selectedElement as Record<string, unknown>) || selectedElement;
       
+      console.log('🎯 [FloatingVisualOverlay] 准备调用extractLocalElements:', {
+        allElementsCount: allElements.length,
+        actualElement: actualElement,
+        actualElementKeys: Object.keys(actualElement || {}),
+        contextWrapper: contextWrapper
+      });
+      
       const extracted = extractLocalElements(allElements, actualElement);
       setLocalElements(extracted);
       
       console.log('✅ [FloatingVisualOverlay] 局部元素提取完成:', {
         extractedCount: extracted.length,
         totalCount: allElements.length
+      });
+    } else {
+      console.log('⚠️ [FloatingVisualOverlay] 跳过局部元素提取:', {
+        allElementsCount: allElements.length,
+        visible,
+        reason: allElements.length === 0 ? 'allElements为空' : !visible ? 'visible为false' : '未知原因'
       });
     }
   }, [allElements, selectedElement, visible]);
@@ -264,39 +505,6 @@ export const FloatingVisualOverlay: React.FC<FloatingVisualOverlayProps> = ({
       selectionManager.handleElementHover(null);
     }
   }, [highlightedElementId, selectionManager]);
-
-  // 计算悬浮层位置
-  const getOverlayPosition = () => {
-    if (!mousePosition) {
-      // 默认位置：右上角，确保可见
-      return { 
-        top: '120px', 
-        right: '50px',
-        position: 'fixed' as const
-      };
-    }
-
-    const overlayWidth = 500;
-    const overlayHeight = 400;
-    const viewportWidth = window.innerWidth;
-    const viewportHeight = window.innerHeight;
-    
-    let left = mousePosition.x + 20; // 鼠标右侧偏移
-    let top = mousePosition.y - overlayHeight / 2; // 垂直居中
-
-    // 防止超出视口
-    if (left + overlayWidth > viewportWidth) {
-      left = mousePosition.x - overlayWidth - 20; // 显示在鼠标左侧
-    }
-    if (top < 20) {
-      top = 20;
-    }
-    if (top + overlayHeight > viewportHeight - 20) {
-      top = viewportHeight - overlayHeight - 20;
-    }
-
-    return { top: `${top}px`, left: `${left}px` };
-  };
 
   if (!showOverlay) {
     console.log('🚫 [FloatingVisualOverlay] 悬浮层未显示 - 原因:', { 
@@ -343,8 +551,8 @@ export const FloatingVisualOverlay: React.FC<FloatingVisualOverlayProps> = ({
         style={{
           position: 'fixed',
           ...getOverlayPosition(),
-          width: 500,
-          height: 400,
+          width: windowSize.width,
+          height: isCollapsed ? 44 : windowSize.height,
           backgroundColor: 'var(--bg-light-base, #ffffff)',
           border: '3px solid #1890ff',
           borderRadius: 12,
@@ -353,43 +561,104 @@ export const FloatingVisualOverlay: React.FC<FloatingVisualOverlayProps> = ({
           display: 'flex',
           flexDirection: 'column',
           overflow: 'hidden',
-          animation: 'fadeInScale 0.2s ease-out'
+          animation: 'fadeInScale 0.2s ease-out',
+          cursor: isDragging ? 'grabbing' : 'default',
+          transition: isCollapsed ? 'height 0.3s ease' : 'none'
         }}
       >
-        {/* 标题栏 */}
-        <div style={{
-          padding: '12px 16px',
-          backgroundColor: '#1890ff',
-          color: 'white',
-          borderRadius: '10px 10px 0 0',
-          display: 'flex',
-          justifyContent: 'space-between',
-          alignItems: 'center'
-        }}>
-          <div>
+        {/* 标题栏 - 可拖拽 */}
+        <div 
+          style={{
+            padding: '12px 16px',
+            backgroundColor: '#1890ff',
+            color: 'white',
+            borderRadius: '10px 10px 0 0',
+            display: 'flex',
+            justifyContent: 'space-between',
+            alignItems: 'center',
+            cursor: 'grab',
+            userSelect: 'none',
+            borderBottom: isCollapsed ? 'none' : '1px solid rgba(255,255,255,0.2)'
+          }}
+          onMouseDown={handleMouseDown}
+        >
+          <div style={{ flex: 1 }}>
             <Title level={5} style={{ margin: 0, color: 'white', fontSize: 14 }}>
               🎈 局部结构可视化预览
             </Title>
-            <Text style={{ fontSize: 12, color: 'rgba(255,255,255,0.8)' }}>
-              实时显示选中元素的结构布局
-            </Text>
-          </div>
-          {highlightedElementId && (
-            <div style={{ textAlign: 'right' }}>
-              <Text style={{ 
-                fontSize: 11, 
-                color: '#ffd666',
-                fontWeight: 'bold',
-                display: 'block'
-              }}>
-                🎯 高亮: {highlightedElementId}
+            {!isCollapsed && (
+              <Text style={{ fontSize: 12, color: 'rgba(255,255,255,0.8)' }}>
+                实时显示选中元素的结构布局
               </Text>
-            </div>
-          )}
+            )}
+          </div>
+          
+          {/* 工具按钮 */}
+          <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
+            {highlightedElementId && !isCollapsed && (
+              <div style={{ textAlign: 'right', marginRight: 12 }}>
+                <Text style={{ 
+                  fontSize: 11, 
+                  color: '#ffd666',
+                  fontWeight: 'bold',
+                  display: 'block'
+                }}>
+                  🎯 高亮: {highlightedElementId}
+                </Text>
+              </div>
+            )}
+            
+            {/* 折叠/展开按钮 */}
+            <button
+              onClick={(e) => {
+                e.stopPropagation();
+                setIsCollapsed(!isCollapsed);
+              }}
+              style={{
+                background: 'rgba(255,255,255,0.2)',
+                border: 'none',
+                borderRadius: 4,
+                color: 'white',
+                padding: '4px 8px',
+                cursor: 'pointer',
+                fontSize: 12
+              }}
+              title={isCollapsed ? '展开' : '折叠'}
+            >
+              {isCollapsed ? '▼' : '▲'}
+            </button>
+            
+            {/* 关闭按钮 */}
+            <button
+              onClick={(e) => {
+                e.stopPropagation();
+                // 这里应该调用父组件的关闭回调
+              }}
+              style={{
+                background: 'rgba(255,255,255,0.2)',
+                border: 'none',
+                borderRadius: 4,
+                color: 'white',
+                padding: '4px 8px',
+                cursor: 'pointer',
+                fontSize: 12
+              }}
+              title="关闭"
+            >
+              ✕
+            </button>
+          </div>
         </div>
 
         {/* 可视化内容区域 */}
-        <div style={{ flex: 1, overflow: 'hidden', position: 'relative' }}>
+        {!isCollapsed && (
+          <div style={{ 
+            flex: 1, 
+            overflow: 'hidden', 
+            position: 'relative',
+            display: 'flex',
+            flexDirection: 'column'
+          }}>
           {isDataLoading ? (
             <div style={{
               display: 'flex',
@@ -459,9 +728,29 @@ export const FloatingVisualOverlay: React.FC<FloatingVisualOverlayProps> = ({
             />
           )}
         </div>
+        )}
+
+        {/* 调整大小手柄 */}
+        {!isCollapsed && (
+          <div
+            style={{
+              position: 'absolute',
+              bottom: 0,
+              right: 0,
+              width: 20,
+              height: 20,
+              cursor: 'nw-resize',
+              background: 'linear-gradient(-45deg, transparent 0%, transparent 30%, #1890ff 30%, #1890ff 50%, transparent 50%, transparent 80%, #1890ff 80%)',
+              zIndex: 1
+            }}
+            onMouseDown={handleResizeMouseDown}
+            title="拖拽调整大小"
+          />
+        )}
 
         {/* 底部信息栏 */}
-        <div style={{
+        {!isCollapsed && (
+          <div style={{
           padding: '8px 16px',
           backgroundColor: '#f5f5f5',
           borderRadius: '0 0 10px 10px',
@@ -489,6 +778,7 @@ export const FloatingVisualOverlay: React.FC<FloatingVisualOverlayProps> = ({
             </Text>
           </div>
         </div>
+        )}
       </div>
 
       {/* CSS 动画样式 */}
