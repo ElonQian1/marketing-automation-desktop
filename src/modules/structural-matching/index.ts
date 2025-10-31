@@ -24,6 +24,8 @@ export * from './hooks/use-field-strategy-config';
 // UI Components
 export * from './ui/components/structural-matching-modal';
 export * from './ui/components/element-structure-tree';
+export * from './ui/components/visual-preview';
+export * from './ui/components/hover-preview';
 export * from './ui/components/scoring-preview';
 export * from './ui/components/field-strategy-selector';
 export * from './ui/components/enhanced-field-config-panel';

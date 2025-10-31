@@ -4,3 +4,6 @@
 
 export { ElementStructureTree } from './element-structure-tree';
 export type { ElementStructureTreeProps } from './element-structure-tree';
+
+export { ElementStructureTreeWithPreview } from './element-structure-tree-with-preview';
+export type { ElementStructureTreeWithPreviewProps } from './element-structure-tree-with-preview';

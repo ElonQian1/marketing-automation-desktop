@@ -2,14 +2,15 @@
 // module: structural-matching | layer: ui | role: 结构匹配模态框
 // summary: 结构匹配配置的主模态框，包含字段配置和实时预览
 
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { Modal, Slider, Typography, Space, Divider, Tag, Button, Select, Card } from 'antd';
 import { BulbOutlined, ReloadOutlined, ThunderboltOutlined } from '@ant-design/icons';
 import { useHierarchicalMatchingModal } from '../../../hooks/use-hierarchical-matching-modal';
 import { ElementType, ELEMENT_TEMPLATES } from '../../../domain/constants/element-templates';
-// import { useStructuralPreview } from '../../../hooks/use-structural-preview';
 import { ElementStructureTree } from '../element-structure-tree';
-// import { StructuralScoringPreview } from '../scoring-preview/scoring-preview';
+import { HoverElementPreview } from '../hover-preview';
+import { useTreeHover } from '../element-structure-tree/use-tree-hover';
+import XmlCacheManager from '../../../../../services/xml-cache-manager';
 import './structural-matching-modal.css';
 
 const { Title, Text } = Typography;
@@ -38,6 +39,39 @@ export const StructuralMatchingModal: React.FC<StructuralMatchingModalProps> = (
   onClose,
   onConfirm,
 }) => {
+  const [xmlContent, setXmlContent] = useState<string>('');
+  
+  // 悬停状态管理
+  const { hoverState, showPreview, hidePreview, updateMousePosition } = useTreeHover({
+    hoverDelay: 300,
+    leaveDelay: 150
+  });
+
+  // 加载XML内容
+  useEffect(() => {
+    const loadXmlContent = async () => {
+      try {
+        const contextWrapper = selectedElement as Record<string, unknown>;
+        const actualElement = (contextWrapper?.selectedElement as Record<string, unknown>) || selectedElement;
+        
+        const xmlCacheId = actualElement?.xmlCacheId as string;
+        if (!xmlCacheId) return;
+
+        const xmlCacheManager = XmlCacheManager.getInstance();
+        const cacheEntry = await xmlCacheManager.getCachedXml(xmlCacheId);
+        if (cacheEntry) {
+          setXmlContent(cacheEntry.xmlContent);
+        }
+      } catch (error) {
+        console.error('加载XML内容失败:', error);
+      }
+    };
+
+    if (visible) {
+      loadXmlContent();
+    }
+  }, [visible, selectedElement]);
+
   const {
     config,
     getFieldConfig,
@@ -201,12 +235,57 @@ export const StructuralMatchingModal: React.FC<StructuralMatchingModalProps> = (
         <Divider />
 
         {/* 字段匹配策略配置 */}
-        <div style={{ marginTop: 16 }}>
+        <div 
+          style={{ marginTop: 16, position: 'relative' }}
+          onMouseMove={(e) => {
+            updateMousePosition(e.clientX, e.clientY);
+            
+            // 检查是否悬停在树节点上
+            const target = e.target as HTMLElement;
+            const treeNode = target.closest('.ant-tree-node-content-wrapper, .ant-tree-title');
+            
+            if (treeNode) {
+              // 尝试从节点文本中提取元素信息
+              const nodeContent = treeNode.textContent || '';
+              
+              // 简单的文本解析，寻找包含bounds的信息
+              const boundsMatch = nodeContent.match(/\[(\d+),(\d+)\]\[(\d+),(\d+)\]/);
+              const textMatch = nodeContent.match(/文本:\s*([^·]+)/);
+              const classMatch = nodeContent.match(/类型:\s*([^·]+)/);
+              
+              if (boundsMatch || textMatch || classMatch) {
+                const elementData = {
+                  bounds: boundsMatch ? boundsMatch[0] : '',
+                  text: textMatch ? textMatch[1].trim() : '',
+                  class_name: classMatch ? classMatch[1].trim() : '',
+                  clickable: nodeContent.includes('可点击'),
+                  content_desc: '', // 从节点内容中提取
+                  resource_id: '' // 从节点内容中提取
+                };
+                
+                showPreview(e.clientX, e.clientY, elementData);
+              }
+            } else {
+              hidePreview();
+            }
+          }}
+          onMouseLeave={() => {
+            hidePreview();
+          }}
+        >
           <ElementStructureTree
             selectedElement={selectedElement}
             getFieldConfig={getFieldConfig}
             onToggleField={toggleField}
             onUpdateField={updateField}
+          />
+          
+          {/* 悬停预览组件 */}
+          <HoverElementPreview
+            visible={hoverState.visible}
+            mousePosition={hoverState.mousePosition}
+            elementData={hoverState.elementData}
+            xmlContent={xmlContent}
           />
         </div>
       </div>
