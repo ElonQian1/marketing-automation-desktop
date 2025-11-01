@@ -6,7 +6,7 @@ import React, { useState, useCallback, useMemo } from 'react';
 import { Typography, Space } from 'antd';
 import { InfoCircleOutlined, EyeOutlined } from '@ant-design/icons';
 import { ElementStructureTree } from './element-structure-tree';
-import { FloatingVisualOverlay } from '../visual-preview/floating-visual-overlay';
+import { FloatingVisualOverlay } from '../visual-preview';
 import { FieldType } from '../../../domain/constants/field-types';
 import { FieldConfig } from '../../../domain/models/hierarchical-field-config';
 
