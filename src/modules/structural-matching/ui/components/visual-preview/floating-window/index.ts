@@ -9,6 +9,7 @@ export { FloatingVisualWindow } from "./components/floating-visual-window";
 export { FloatingWindowFrame } from "./components/floating-window-frame";
 export { ScreenshotDisplay } from "./components/screenshot-display";
 export { ElementTreeView } from "./components/element-tree-view";
+export { AlignedImageDisplay } from "./components/aligned-image-display";
 export { FloatingWindowDemo } from "./components/floating-window-demo";
 
 // Hooks
@@ -25,12 +26,23 @@ export {
   calculateDistance,
 } from "./utils/coordinate-transform";
 
+export {
+  calculateViewportAlignment,
+  calculateSmartWindowPosition,
+} from "./utils/viewport-alignment";
+
+export {
+  correctElementBounds,
+  recalculateChildElements,
+} from "./utils/element-bounds-corrector";
+
 // 类型导出
 export type {
   WindowState,
   StepCardData,
   ElementTreeData,
   CropConfig,
+  ViewportAlignment,
   FloatingVisualWindowProps,
   LoadingState,
 } from "./types";

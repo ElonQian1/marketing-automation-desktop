@@ -53,12 +53,13 @@ export function calculatePreciseCrop(
 
   const { rootElement, childElements, bounds: rootBounds } = elementTreeData;
 
-  console.log("🎯 [PreciseCrop] 开始计算精确裁剪:", {
-    rootElement: rootElement.id,
-    childElementsCount: childElements.length,
-    rootBounds,
-    options,
-  });
+  // 调试日志已禁用以避免性能问题
+  // console.log("🎯 [PreciseCrop] 开始计算精确裁剪:", {
+  //   rootElement: rootElement.id,
+  //   childElementsCount: childElements.length,
+  //   rootBounds,
+  //   options,
+  // });
 
   // 1. 收集所有相关元素的边界
   const allRelevantElements = [rootElement, ...childElements];
@@ -100,7 +101,8 @@ export function calculatePreciseCrop(
     };
   });
 
-  console.log("📐 [PreciseCrop] 元素边界信息:", elementBounds);
+  // 调试日志已禁用以避免性能问题
+  // console.log("📐 [PreciseCrop] 元素边界信息:", elementBounds);
 
   // 2. 计算包含所有相关元素的最小边界框
   if (elementBounds.length === 0) {
@@ -185,7 +187,8 @@ export function calculatePreciseCrop(
     },
   };
 
-  console.log("✅ [PreciseCrop] 计算完成:", result);
+  // 调试日志已禁用以避免性能问题
+  // console.log("✅ [PreciseCrop] 计算完成:", result);
 
   return result;
 }

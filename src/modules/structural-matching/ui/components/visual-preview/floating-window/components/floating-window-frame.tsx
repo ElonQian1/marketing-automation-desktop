@@ -29,88 +29,94 @@ export function FloatingWindowFrame({
 }: FloatingWindowFrameProps) {
   const [isDragging, setIsDragging] = useState(false);
   const [isResizing, setIsResizing] = useState(false);
-  const [dragOffset, setDragOffset] = useState({ x: 0, y: 0 });
-  
+
   const windowRef = useRef<HTMLDivElement>(null);
   const headerRef = useRef<HTMLDivElement>(null);
+
+  // 🎯 使用 useRef 存储拖拽偏移量,避免触发 re-render
+  const dragOffsetRef = useRef({ x: 0, y: 0 });
+  const startPositionRef = useRef({ x: 0, y: 0 });
+  const startSizeRef = useRef({ width: 0, height: 0 });
 
   // 处理拖拽开始
   const handleDragStart = (e: React.MouseEvent) => {
     if (windowState.isMinimized) return;
-    
+
     const rect = windowRef.current?.getBoundingClientRect();
     if (!rect) return;
 
-    setDragOffset({
+    dragOffsetRef.current = {
       x: e.clientX - rect.left,
       y: e.clientY - rect.top,
-    });
+    };
+    startPositionRef.current = { ...windowState.position };
     setIsDragging(true);
   };
 
-  // 处理拖拽中
-  const handleDragMove = (e: MouseEvent) => {
-    if (!isDragging) return;
-
-    const newX = e.clientX - dragOffset.x;
-    const newY = e.clientY - dragOffset.y;
-
-    onWindowStateChange({
-      ...windowState,
-      position: { x: newX, y: newY },
-    });
-  };
-
-  // 处理拖拽结束
-  const handleDragEnd = () => {
-    setIsDragging(false);
-  };
-
-  // 处理调整大小
+  // 处理调整大小开始
   const handleResizeStart = (e: React.MouseEvent) => {
     e.stopPropagation();
+
+    startSizeRef.current = { ...windowState.size };
+    startPositionRef.current = { x: e.clientX, y: e.clientY };
     setIsResizing(true);
   };
 
-  const handleResizeMove = (e: MouseEvent) => {
-    if (!isResizing || !windowRef.current) return;
-
-    const rect = windowRef.current.getBoundingClientRect();
-    const newWidth = Math.max(300, e.clientX - rect.left);
-    const newHeight = Math.max(200, e.clientY - rect.top);
-
-    onWindowStateChange({
-      ...windowState,
-      size: { width: newWidth, height: newHeight },
-    });
-  };
-
-  const handleResizeEnd = () => {
-    setIsResizing(false);
-  };
-
-  // 绑定全局鼠标事件
+  // 🎯 绑定全局鼠标事件 - 将处理函数定义在 useEffect 内部
   useEffect(() => {
-    if (isDragging) {
-      document.addEventListener("mousemove", handleDragMove);
-      document.addEventListener("mouseup", handleDragEnd);
-      return () => {
-        document.removeEventListener("mousemove", handleDragMove);
-        document.removeEventListener("mouseup", handleDragEnd);
-      };
-    }
-  }, [isDragging, dragOffset]);
+    if (!isDragging) return;
+
+    const handleDragMove = (e: MouseEvent) => {
+      const newX = e.clientX - dragOffsetRef.current.x;
+      const newY = e.clientY - dragOffsetRef.current.y;
+
+      onWindowStateChange({
+        ...windowState,
+        position: { x: newX, y: newY },
+      });
+    };
+
+    const handleDragEnd = () => {
+      setIsDragging(false);
+    };
+
+    document.addEventListener("mousemove", handleDragMove);
+    document.addEventListener("mouseup", handleDragEnd);
+
+    return () => {
+      document.removeEventListener("mousemove", handleDragMove);
+      document.removeEventListener("mouseup", handleDragEnd);
+    };
+  }, [isDragging, windowState, onWindowStateChange]);
 
   useEffect(() => {
-    if (isResizing) {
-      document.addEventListener("mousemove", handleResizeMove);
-      document.addEventListener("mouseup", handleResizeEnd);
-      return () => {
-        document.removeEventListener("mousemove", handleResizeMove);
-        document.removeEventListener("mouseup", handleResizeEnd);
-      };
-    }
-  }, [isResizing]);
+    if (!isResizing) return;
+
+    const handleResizeMove = (e: MouseEvent) => {
+      if (!windowRef.current) return;
+
+      const rect = windowRef.current.getBoundingClientRect();
+      const newWidth = Math.max(300, e.clientX - rect.left);
+      const newHeight = Math.max(200, e.clientY - rect.top);
+
+      onWindowStateChange({
+        ...windowState,
+        size: { width: newWidth, height: newHeight },
+      });
+    };
+
+    const handleResizeEnd = () => {
+      setIsResizing(false);
+    };
+
+    document.addEventListener("mousemove", handleResizeMove);
+    document.addEventListener("mouseup", handleResizeEnd);
+
+    return () => {
+      document.removeEventListener("mousemove", handleResizeMove);
+      document.removeEventListener("mouseup", handleResizeEnd);
+    };
+  }, [isResizing, windowState, onWindowStateChange]);
 
   // 最小化切换
   const toggleMinimize = () => {
@@ -166,8 +172,11 @@ export function FloatingWindowFrame({
         >
           {title}
         </div>
-        
-        <div className="window-controls" style={{ display: "flex", gap: "8px" }}>
+
+        <div
+          className="window-controls"
+          style={{ display: "flex", gap: "8px" }}
+        >
           <button
             onClick={toggleMinimize}
             style={{
@@ -186,7 +195,7 @@ export function FloatingWindowFrame({
           >
             {windowState.isMinimized ? "□" : "─"}
           </button>
-          
+
           <button
             onClick={onClose}
             style={{
@@ -232,7 +241,8 @@ export function FloatingWindowFrame({
             width: "20px",
             height: "20px",
             cursor: "se-resize",
-            background: "linear-gradient(135deg, transparent 0%, transparent 40%, var(--border-color) 45%, var(--border-color) 55%, transparent 60%)",
+            background:
+              "linear-gradient(135deg, transparent 0%, transparent 40%, var(--border-color) 45%, var(--border-color) 55%, transparent 60%)",
           }}
           onMouseDown={handleResizeStart}
         />

@@ -3,12 +3,14 @@
 // summary: 截图显示组件
 
 import React, { useState, useRef, useEffect } from "react";
-import { ElementTreeData, CropConfig } from "../types";
+import { ElementTreeData, CropConfig, ViewportAlignment } from "../types";
+import { AlignedImageDisplay } from "./aligned-image-display";
 
 interface ScreenshotDisplayProps {
   screenshotUrl: string;
   elementTreeData?: ElementTreeData;
   cropConfig?: CropConfig;
+  viewportAlignment?: ViewportAlignment;
   onElementHover?: (elementId: string | null) => void;
   onElementClick?: (elementId: string) => void;
   className?: string;
@@ -22,6 +24,7 @@ export function ScreenshotDisplay({
   screenshotUrl,
   elementTreeData,
   cropConfig,
+  viewportAlignment,
   onElementHover,
   onElementClick,
   className = "",
@@ -30,7 +33,7 @@ export function ScreenshotDisplay({
   const [imageLoaded, setImageLoaded] = useState(false);
   const [imageSize, setImageSize] = useState({ width: 0, height: 0 });
   const [hoveredElementId, setHoveredElementId] = useState<string | null>(null);
-  
+
   const containerRef = useRef<HTMLDivElement>(null);
   const imageRef = useRef<HTMLImageElement>(null);
 
@@ -60,13 +63,29 @@ export function ScreenshotDisplay({
     }
 
     const { cropArea } = cropConfig;
-    
+
     console.log("🎨 [ScreenshotDisplay] 应用裁剪样式:", {
       cropArea,
       imageSize,
+      viewportAlignment,
       screenshotUrl,
     });
 
+    // 使用视口对齐信息来计算更精确的显示样式
+    if (viewportAlignment) {
+      const { imageDisplay } = viewportAlignment;
+      return {
+        objectFit: "none" as const,
+        objectPosition: `-${cropArea.x}px -${cropArea.y}px`,
+        width: cropArea.width * imageDisplay.scale,
+        height: cropArea.height * imageDisplay.scale,
+        transform: `translate(${imageDisplay.offset.x}px, ${imageDisplay.offset.y}px)`,
+        maxWidth: "none",
+        maxHeight: "none",
+      };
+    }
+
+    // 回退到原始逻辑
     return {
       objectFit: "none" as const,
       objectPosition: `-${cropArea.x}px -${cropArea.y}px`,
@@ -103,22 +122,28 @@ export function ScreenshotDisplay({
     const { rootElement, childElements } = elementTreeData;
     const { cropArea } = cropConfig;
 
-    console.log("🎨 [ScreenshotDisplay] 渲染元素覆盖层:", {
-      rootElement: rootElement.id,
-      childElementsCount: childElements.length,
-      cropArea,
-    });
+    // 调试日志已禁用以避免性能问题
+    // console.log("🎨 [ScreenshotDisplay] 渲染元素覆盖层:", {
+    //   rootElement: rootElement.id,
+    //   childElementsCount: childElements.length,
+    //   cropArea,
+    // });
 
     // 计算元素在裁剪区域内的相对位置
     const calculateRelativePosition = (element: {
       position?: { x: number; y: number; width: number; height: number };
       bounds?: string;
     }) => {
-      let elementBounds: { x: number; y: number; width: number; height: number };
-      
+      let elementBounds: {
+        x: number;
+        y: number;
+        width: number;
+        height: number;
+      };
+
       if (element.position) {
         elementBounds = element.position;
-      } else if (element.bounds && typeof element.bounds === 'string') {
+      } else if (element.bounds && typeof element.bounds === "string") {
         const matches = element.bounds.match(/\[(\d+),(\d+)\]\[(\d+),(\d+)\]/);
         if (matches) {
           const [, left, top, right, bottom] = matches.map(Number);
@@ -173,7 +198,7 @@ export function ScreenshotDisplay({
           if (!relativeBounds) return null;
 
           // 检查元素是否在可见区域内
-          const isVisible = 
+          const isVisible =
             relativeBounds.x + relativeBounds.width > 0 &&
             relativeBounds.y + relativeBounds.height > 0 &&
             relativeBounds.x < cropArea.width &&
@@ -186,7 +211,9 @@ export function ScreenshotDisplay({
           return (
             <div
               key={`child-${element.id}`}
-              className={`element-overlay child-element ${isHovered ? "hovered" : ""}`}
+              className={`element-overlay child-element ${
+                isHovered ? "hovered" : ""
+              }`}
               style={{
                 position: "absolute",
                 left: relativeBounds.x,
@@ -195,8 +222,8 @@ export function ScreenshotDisplay({
                 height: relativeBounds.height,
                 border: `1px solid ${isHovered ? "#ff6b6b" : "#52c41a"}`,
                 borderRadius: "2px",
-                backgroundColor: isHovered 
-                  ? "rgba(255, 107, 107, 0.2)" 
+                backgroundColor: isHovered
+                  ? "rgba(255, 107, 107, 0.2)"
                   : "rgba(82, 196, 26, 0.1)",
                 cursor: "pointer",
                 pointerEvents: "auto",
@@ -206,7 +233,9 @@ export function ScreenshotDisplay({
               onMouseEnter={() => handleElementMouseEnter(element.id)}
               onMouseLeave={handleElementMouseLeave}
               onClick={(e) => handleElementClick(element.id, e)}
-              title={`${element.type || element.className || 'Element'} - ${element.text || element.description || element.id}`}
+              title={`${element.type || element.className || "Element"} - ${
+                element.text || element.description || element.id
+              }`}
             />
           );
         })}
@@ -246,35 +275,47 @@ export function ScreenshotDisplay({
         ...style,
       }}
     >
-      {/* 截图图片 */}
-      <img
-        ref={imageRef}
-        src={screenshotUrl}
-        alt="UI Screenshot"
-        style={{
-          display: imageLoaded ? "block" : "none",
-          maxWidth: "100%",
-          maxHeight: "100%",
-          objectFit: "contain",
-          ...getCropStyle(),
-        }}
-        onLoad={() => setImageLoaded(true)}
-        onError={() => setImageLoaded(false)}
-      />
+      {/* 使用对齐的图片显示组件 */}
+      {viewportAlignment && cropConfig && imageLoaded ? (
+        <AlignedImageDisplay
+          imageUrl={screenshotUrl}
+          cropConfig={cropConfig}
+          viewportAlignment={viewportAlignment}
+          style={{ width: "100%", height: "100%" }}
+        />
+      ) : (
+        <>
+          {/* 回退到原始图片显示 */}
+          <img
+            ref={imageRef}
+            src={screenshotUrl}
+            alt="UI Screenshot"
+            style={{
+              display: imageLoaded ? "block" : "none",
+              maxWidth: "100%",
+              maxHeight: "100%",
+              objectFit: "contain",
+              ...getCropStyle(),
+            }}
+            onLoad={() => setImageLoaded(true)}
+            onError={() => setImageLoaded(false)}
+          />
 
-      {/* 加载状态 */}
-      {!imageLoaded && (
-        <div
-          style={{
-            position: "absolute",
-            top: "50%",
-            left: "50%",
-            transform: "translate(-50%, -50%)",
-            color: "var(--text-2)",
-          }}
-        >
-          加载截图中...
-        </div>
+          {/* 加载状态 */}
+          {!imageLoaded && (
+            <div
+              style={{
+                position: "absolute",
+                top: "50%",
+                left: "50%",
+                transform: "translate(-50%, -50%)",
+                color: "var(--text-2)",
+              }}
+            >
+              加载截图中...
+            </div>
+          )}
+        </>
       )}
 
       {/* 元素覆盖层 */}

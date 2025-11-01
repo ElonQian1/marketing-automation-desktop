@@ -1,8 +1,8 @@
 // src/modules/structural-matching/ui/components/visual-preview/floating-window/types/index.ts
-// module: structural-matching | layer: ui | role: types
+// module: structural-matching | layer: ui | role: 悬浮窗类型定义
 // summary: 悬浮可视化窗口的类型定义
 
-import type { VisualUIElement } from "../../../../../../components/universal-ui/views/visual-view/types/visual-types";
+import type { VisualUIElement } from "../../../../../../components/universal-ui/types/index";
 
 /**
  * 窗口状态接口
@@ -65,6 +65,25 @@ export interface CropConfig {
   offset: {
     x: number;
     y: number;
+  };
+}
+
+/**
+ * 视口对齐配置接口
+ */
+export interface ViewportAlignment {
+  /** 悬浮窗口的最佳尺寸 */
+  windowSize: { width: number; height: number };
+  /** 悬浮窗口的最佳位置 */
+  windowPosition: { x: number; y: number };
+  /** 图片在窗口内的显示配置 */
+  imageDisplay: {
+    /** 图片缩放比例 */
+    scale: number;
+    /** 图片在容器内的位置偏移 */
+    offset: { x: number; y: number };
+    /** 容器尺寸 */
+    containerSize: { width: number; height: number };
   };
 }
 

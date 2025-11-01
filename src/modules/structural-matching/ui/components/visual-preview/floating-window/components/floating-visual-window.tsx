@@ -6,6 +6,11 @@ import React, { useState, useEffect } from "react";
 import { FloatingVisualWindowProps, WindowState } from "../types";
 import { useStepCardData } from "../hooks/use-step-card-data";
 import { calculateSmartCrop } from "../utils/precise-crop-calculator";
+import { calculateViewportAlignment } from "../utils/viewport-alignment";
+import {
+  correctElementBounds,
+  recalculateChildElements,
+} from "../utils/element-bounds-corrector";
 import { FloatingWindowFrame } from "./floating-window-frame";
 import { ScreenshotDisplay } from "./screenshot-display";
 import { ElementTreeView } from "./element-tree-view";
@@ -20,28 +25,57 @@ export function FloatingVisualWindow({
   initialPosition = { x: 100, y: 100 },
   onClose,
 }: FloatingVisualWindowProps) {
-  // 窗口状态管理
-  const [windowState, setWindowState] = useState<WindowState>({
-    position: initialPosition,
-    size: { width: 800, height: 600 },
+  // 使用数据加载Hook
+  const { loadingState, elementTreeData, screenshotUrl, reload } =
+    useStepCardData(stepCardData);
+
+  // 计算裁剪配置
+  const cropConfig = elementTreeData
+    ? calculateSmartCrop(elementTreeData)
+    : undefined;
+
+  // 计算最佳视口对齐
+  const viewportAlignment =
+    elementTreeData && cropConfig
+      ? calculateViewportAlignment(elementTreeData, cropConfig, initialPosition)
+      : null;
+
+  // 窗口状态管理 - 使用计算出的最佳尺寸和位置
+  const [windowState, setWindowState] = useState<WindowState>(() => ({
+    position: viewportAlignment?.windowPosition || initialPosition,
+    size: viewportAlignment?.windowSize || { width: 800, height: 600 },
     isMinimized: false,
-  });
+  }));
+
+  // 当viewport alignment计算完成时,更新窗口状态
+  // 只依赖具体的值,而非整个对象引用,避免无限循环
+  useEffect(() => {
+    if (viewportAlignment) {
+      setWindowState((prev) => ({
+        ...prev,
+        position: viewportAlignment.windowPosition,
+        size: viewportAlignment.windowSize,
+      }));
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [
+    // 只监听具体的值变化
+    viewportAlignment?.windowPosition.x,
+    viewportAlignment?.windowPosition.y,
+    viewportAlignment?.windowSize.width,
+    viewportAlignment?.windowSize.height,
+  ]);
 
   // 选中的元素
-  const [selectedElementId, setSelectedElementId] = useState<string | null>(null);
+  const [selectedElementId, setSelectedElementId] = useState<string | null>(
+    null
+  );
   const [hoveredElementId, setHoveredElementId] = useState<string | null>(null);
 
   // 视图模式：'screenshot' | 'tree' | 'split'
-  const [viewMode, setViewMode] = useState<'screenshot' | 'tree' | 'split'>('split');
-
-  // 使用数据加载Hook
-  const {
-    loadingState,
-    elementTreeData,
-    screenshotUrl,
-    xmlContent,
-    reload,
-  } = useStepCardData(stepCardData);
+  const [viewMode, setViewMode] = useState<"screenshot" | "tree" | "split">(
+    "screenshot"
+  );
 
   // 监听高亮元素变化
   useEffect(() => {
@@ -60,9 +94,6 @@ export function FloatingVisualWindow({
     setHoveredElementId(elementId);
   };
 
-  // 计算裁剪配置
-  const cropConfig = elementTreeData ? calculateSmartCrop(elementTreeData) : undefined;
-
   // 渲染加载状态
   const renderLoadingContent = () => (
     <div
@@ -76,14 +107,17 @@ export function FloatingVisualWindow({
         color: "var(--text-2)",
       }}
     >
-      <div className="loading-spinner" style={{ 
-        width: "24px", 
-        height: "24px", 
-        border: "2px solid var(--border-color)",
-        borderTop: "2px solid #722ed1",
-        borderRadius: "50%",
-        animation: "spin 1s linear infinite",
-      }} />
+      <div
+        className="loading-spinner"
+        style={{
+          width: "24px",
+          height: "24px",
+          border: "2px solid var(--border-color)",
+          borderTop: "2px solid #722ed1",
+          borderRadius: "50%",
+          animation: "spin 1s linear infinite",
+        }}
+      />
       <div>{loadingState.loadingText || "加载中..."}</div>
     </div>
   );
@@ -138,7 +172,7 @@ export function FloatingVisualWindow({
     >
       {/* 视图模式切换 */}
       <div style={{ display: "flex", gap: "4px" }}>
-        {(['screenshot', 'tree', 'split'] as const).map((mode) => (
+        {(["screenshot", "tree", "split"] as const).map((mode) => (
           <button
             key={mode}
             onClick={() => setViewMode(mode)}
@@ -147,14 +181,15 @@ export function FloatingVisualWindow({
               fontSize: "12px",
               border: "1px solid var(--border-color)",
               borderRadius: "4px",
-              backgroundColor: viewMode === mode ? "var(--bg-3)" : "transparent",
+              backgroundColor:
+                viewMode === mode ? "var(--bg-3)" : "transparent",
               color: viewMode === mode ? "var(--text-1)" : "var(--text-2)",
               cursor: "pointer",
             }}
           >
-            {mode === 'screenshot' && '📷 截图'}
-            {mode === 'tree' && '🌳 结构'}
-            {mode === 'split' && '📋 分屏'}
+            {mode === "screenshot" && "📷 截图"}
+            {mode === "tree" && "🌳 结构"}
+            {mode === "split" && "📋 分屏"}
           </button>
         ))}
       </div>
@@ -201,13 +236,14 @@ export function FloatingVisualWindow({
     };
 
     switch (viewMode) {
-      case 'screenshot':
+      case "screenshot":
         return (
           <div style={contentStyle}>
             <ScreenshotDisplay
               screenshotUrl={screenshotUrl}
               elementTreeData={elementTreeData}
               cropConfig={cropConfig}
+              viewportAlignment={viewportAlignment}
               onElementHover={handleElementHover}
               onElementClick={handleElementSelect}
               style={{ height: "100%" }}
@@ -215,7 +251,7 @@ export function FloatingVisualWindow({
           </div>
         );
 
-      case 'tree':
+      case "tree":
         return (
           <div style={contentStyle}>
             <ElementTreeView
@@ -228,14 +264,17 @@ export function FloatingVisualWindow({
           </div>
         );
 
-      case 'split':
+      case "split":
         return (
           <div style={{ ...contentStyle, display: "flex" }}>
-            <div style={{ flex: 1, borderRight: "1px solid var(--border-color)" }}>
+            <div
+              style={{ flex: 1, borderRight: "1px solid var(--border-color)" }}
+            >
               <ScreenshotDisplay
                 screenshotUrl={screenshotUrl}
                 elementTreeData={elementTreeData}
                 cropConfig={cropConfig}
+                viewportAlignment={viewportAlignment}
                 onElementHover={handleElementHover}
                 onElementClick={handleElementSelect}
                 style={{ height: "100%" }}
@@ -275,7 +314,9 @@ export function FloatingVisualWindow({
       </style>
 
       <FloatingWindowFrame
-        title={`可视化窗口 ${stepCardData?.xmlCacheId ? `- ${stepCardData.xmlCacheId}` : ''}`}
+        title={`可视化窗口 ${
+          stepCardData?.xmlCacheId ? `- ${stepCardData.xmlCacheId}` : ""
+        }`}
         windowState={windowState}
         onWindowStateChange={setWindowState}
         onClose={() => onClose?.()}
