@@ -1,0 +1,122 @@
+// src/modules/structural-matching/ui/components/visual-preview/types/index.ts
+// module: structural-matching | layer: ui | role: 类型定义
+// summary: 可视化预览模块类型定义
+
+import type { VisualUIElement } from "@/components/universal-ui/types";
+
+/**
+ * 窗口状态接口
+ */
+export interface WindowState {
+  position: { x: number; y: number };
+  size: { width: number; height: number };
+  isMinimized: boolean;
+}
+
+/**
+ * 步骤卡片数据接口
+ */
+export interface StepCardData {
+  /** 原始元素数据 */
+  original_element?: VisualUIElement;
+  /** XML缓存ID */
+  xmlCacheId?: string;
+  /** 可选：步骤卡片内联的XML/截图快照 */
+  xmlSnapshot?: {
+    /** 直接内联的XML内容（优先使用，避免异步缓存缺失） */
+    xmlContent?: string;
+    /** 可选：XML哈希，用于调试/回查 */
+    xmlHash?: string;
+    /** 直接的截图绝对路径（优先使用，避免推断失败） */
+    screenshotAbsolutePath?: string;
+  };
+  /** 元素上下文信息 */
+  elementContext?: {
+    xpath?: string;
+    bounds?: string;
+    text?: string;
+    resourceId?: string;
+    className?: string;
+  };
+}
+
+/**
+ * 元素结构树数据接口
+ */
+export interface ElementTreeData {
+  /** 根元素信息 */
+  rootElement: VisualUIElement;
+  /** 子元素列表 */
+  childElements: VisualUIElement[];
+  /** 元素边界信息 */
+  bounds: {
+    x: number;
+    y: number;
+    width: number;
+    height: number;
+  };
+}
+
+/**
+ * 截图裁剪配置接口
+ */
+export interface CropConfig {
+  /** 裁剪区域 */
+  cropArea: {
+    x: number;
+    y: number;
+    width: number;
+    height: number;
+  };
+  /** 缩放比例 */
+  scale: number;
+  /** 偏移量 */
+  offset: {
+    x: number;
+    y: number;
+  };
+}
+
+/**
+ * 视口对齐配置接口
+ */
+export interface ViewportAlignment {
+  /** 悬浮窗口的最佳尺寸 */
+  windowSize: { width: number; height: number };
+  /** 悬浮窗口的最佳位置 */
+  windowPosition: { x: number; y: number };
+  /** 图片在窗口内的显示配置 */
+  imageDisplay: {
+    /** 图片缩放比例 */
+    scale: number;
+    /** 图片在容器内的位置偏移 */
+    offset: { x: number; y: number };
+    /** 容器尺寸 */
+    containerSize: { width: number; height: number };
+  };
+}
+
+/**
+ * 悬浮窗口主组件Props
+ */
+export interface FloatingVisualWindowProps {
+  /** 是否显示 */
+  visible: boolean;
+  /** 步骤卡片数据 */
+  stepCardData?: StepCardData;
+  /** 高亮元素ID */
+  highlightedElementId?: string | null;
+  /** 初始位置 */
+  initialPosition?: { x: number; y: number };
+  /** 关闭回调 */
+  onClose?: () => void;
+}
+
+/**
+ * 数据加载状态接口
+ */
+export interface LoadingState {
+  isLoading: boolean;
+  loadingText: string;
+  error?: string;
+}
