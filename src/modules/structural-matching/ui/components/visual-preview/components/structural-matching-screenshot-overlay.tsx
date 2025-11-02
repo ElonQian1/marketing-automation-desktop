@@ -38,6 +38,54 @@ export function StructuralMatchingScreenshotOverlay({
   const containerRef = useRef<HTMLDivElement>(null);
   const imageRef = useRef<HTMLImageElement>(null);
 
+  // 调试：输出实际容器尺寸，核对与 viewportAlignment.imageDisplay.containerSize 一致性
+  useEffect(() => {
+    const el = containerRef.current;
+    if (!el || !viewportAlignment) return;
+
+    const logSize = () => {
+      const rect = el.getBoundingClientRect();
+      const actual = {
+        width: Math.round(rect.width),
+        height: Math.round(rect.height),
+      };
+      // 初次挂载或尚未布局完成时可能为 0×0，避免误报
+      if (actual.width === 0 || actual.height === 0) {
+        console.debug(
+          "📏 [StructuralMatching] 容器尚未完成布局，跳过尺寸校验",
+          actual
+        );
+        return;
+      }
+      const expected = {
+        width: viewportAlignment.imageDisplay.containerSize.width,
+        height: viewportAlignment.imageDisplay.containerSize.height,
+      };
+      if (
+        actual.width !== expected.width ||
+        actual.height !== expected.height
+      ) {
+        console.warn("📏 [StructuralMatching] 叠加层容器尺寸不一致", {
+          actual,
+          expected,
+        });
+      } else {
+        console.log("📏 [StructuralMatching] 叠加层容器尺寸校验通过", {
+          actual,
+          expected,
+        });
+      }
+    };
+
+    // 初次与窗口尺寸变化时校验
+    logSize();
+
+    // 监听尺寸变化（更稳健）
+    const ro = new ResizeObserver(() => logSize());
+    ro.observe(el);
+    return () => ro.disconnect();
+  }, [viewportAlignment]);
+
   // 加载图片并获取尺寸
   useEffect(() => {
     if (!screenshotUrl) {
@@ -281,10 +329,18 @@ export function StructuralMatchingScreenshotOverlay({
       ref={containerRef}
       className={`structural-matching-screenshot-overlay ${className}`}
       style={{
+        // 先合入外部样式，但在有 viewportAlignment 时，后续强制覆盖宽高，避免 100% 抢占
+        ...style,
         position: "relative",
         overflow: "hidden",
         backgroundColor: "var(--bg-2)",
-        ...style,
+        // ✅ 强制容器尺寸与视口对齐算法一致，修复父容器100%导致的错位
+        width: viewportAlignment
+          ? viewportAlignment.imageDisplay.containerSize.width
+          : style?.width,
+        height: viewportAlignment
+          ? viewportAlignment.imageDisplay.containerSize.height
+          : style?.height,
       }}
     >
       {/* 使用对齐的图片显示组件 */}

@@ -115,15 +115,26 @@ function convertToStepCardData(
   })();
 
   // 创建兼容的original_element
+  // 生成稳定的唯一ID：优先使用已有id/resourceId/xpath；否则基于位置和类型生成确定性ID
+  const deterministicId =
+    element.id ||
+    element.resourceId ||
+    element.xpath ||
+    (resolvedPosition
+      ? `cls_${(element.className || 'unknown').replace(/[^a-zA-Z0-9_.$]/g, '_')}` +
+        `_${resolvedPosition.x}_${resolvedPosition.y}_${resolvedPosition.width}_${resolvedPosition.height}`
+      : `cls_${(element.className || 'unknown').replace(/[^a-zA-Z0-9_.$]/g, '_')}_unknown_bounds`);
+
   const compatibleElement: VisualUIElement = {
-    id: element.id || "",
+    id: deterministicId,
     text: element.text || "",
     description:
       element.description || element.contentDesc || element.content_desc || "",
     type: element.className || "",
     category: "unknown", // 默认分类
     position: resolvedPosition || { x: 0, y: 0, width: 0, height: 0 },
-    clickable: element.clickable ?? true,
+    // 不要默认标记为可点击，缺省即为不可点击
+    clickable: element.clickable === true,
     importance: "medium" as const,
     userFriendlyName: element.text || element.id || "",
     resourceId: element.resourceId,
