@@ -2,7 +2,7 @@
 // module: structural-matching | layer: ui | role: 类型定义
 // summary: 可视化预览模块类型定义
 
-import type { VisualUIElement } from "@/components/universal-ui/types";
+import type { VisualUIElement } from "../../../../../../components/universal-ui/xml-parser";
 
 /**
  * 窗口状态接口

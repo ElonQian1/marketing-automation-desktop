@@ -14,6 +14,7 @@ import { calculateViewportAlignment } from "../core/structural-matching-viewport
 import { StructuralMatchingWindowFrame } from "./structural-matching-window-frame";
 import { StructuralMatchingScreenshotOverlay } from "./structural-matching-screenshot-overlay";
 import { StructuralMatchingElementTree } from "./structural-matching-element-tree";
+import { StructuralMatchingRawAttributesPanel } from "./structural-matching-raw-attributes-panel";
 import { extractElementByIdFromXml } from "../utils/structural-matching-subtree-extractor";
 
 /**
@@ -124,6 +125,8 @@ export function StructuralMatchingFloatingWindow({
   const [viewMode, setViewMode] = useState<"screenshot" | "tree" | "split">(
     "screenshot"
   );
+  // 是否展示原始属性面板
+  const [showRawAttrs, setShowRawAttrs] = useState<boolean>(true);
 
   // 监听高亮元素变化
   useEffect(() => {
@@ -291,6 +294,24 @@ export function StructuralMatchingFloatingWindow({
           {elementTreeData.childElements.length} 个元素
         </div>
       )}
+
+      {/* 原始属性开关 */}
+      <div>
+        <button
+          onClick={() => setShowRawAttrs((v) => !v)}
+          style={{
+            padding: "4px 8px",
+            fontSize: "12px",
+            border: "1px solid var(--border-color)",
+            borderRadius: "4px",
+            backgroundColor: showRawAttrs ? "var(--bg-3)" : "transparent",
+            color: showRawAttrs ? "var(--text-1)" : "var(--text-2)",
+            cursor: "pointer",
+          }}
+        >
+          {showRawAttrs ? "🧾 原始属性：开" : "🧾 原始属性：关"}
+        </button>
+      </div>
     </div>
   );
 
@@ -321,9 +342,10 @@ export function StructuralMatchingFloatingWindow({
     }
 
     // 根据视图模式渲染内容
+    const baseContentHeight = showRawAttrs ? "calc(100% - 40px - 164px)" : "calc(100% - 40px)";
     const contentStyle = {
-      height: "calc(100% - 40px)", // 减去工具栏高度
-      overflow: "hidden",
+      height: baseContentHeight, // 减去工具栏和属性面板高度
+      overflow: "hidden" as const,
     };
 
     switch (viewMode) {
@@ -414,6 +436,24 @@ export function StructuralMatchingFloatingWindow({
       >
         {renderToolbar()}
         {renderMainContent()}
+        {/* 原始属性面板（固定在底部） */}
+        {showRawAttrs && elementTreeData && (
+          <StructuralMatchingRawAttributesPanel
+            element={(() => {
+              // 优先显示选中元素；否则根元素
+              const focusId = selectedElementId ?? elementTreeData.rootElement.id;
+              if (elementTreeData.rootElement.id === focusId) return elementTreeData.rootElement;
+              const inTree = elementTreeData.childElements.find((e) => e.id === focusId);
+              if (inTree) return inTree;
+              if (xmlContent) {
+                const fromXml = extractElementByIdFromXml(xmlContent, focusId);
+                if (fromXml) return fromXml;
+              }
+              return elementTreeData.rootElement;
+            })()}
+            style={{ height: 164 }}
+          />
+        )}
       </StructuralMatchingWindowFrame>
     </>
   );

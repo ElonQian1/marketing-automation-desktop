@@ -3,7 +3,7 @@
 // summary: 结构匹配元素边界修正器
 
 import type { ElementTreeData, StepCardData } from "../types";
-import type { VisualUIElement } from "@/components/universal-ui/types";
+import type { VisualUIElement } from "../../../../../../components/universal-ui/xml-parser";
 
 export interface CorrectedElementBounds {
   /** 修正后的根元素（用户实际点击的元素） */

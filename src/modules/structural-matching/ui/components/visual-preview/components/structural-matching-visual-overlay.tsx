@@ -5,7 +5,7 @@
 import React, { useMemo } from "react";
 import { StructuralMatchingFloatingWindow } from "./structural-matching-floating-window";
 import type { StepCardData } from "../types";
-import type { VisualUIElement } from "@/components/universal-ui/types";
+import type { VisualUIElement } from "../../../../../../components/universal-ui/xml-parser";
 
 /**
  * 可视化覆盖层属性接口
@@ -46,11 +46,14 @@ function convertToStepCardData(
     bounds?: string | { left: number; top: number; right: number; bottom: number };
     text?: string;
     resourceId?: string;
+    resource_id?: string;
     className?: string;
+    class_name?: string;
     clickable?: boolean;
     contentDesc?: string;
     content_desc?: string;
     description?: string;
+    // 可能来自XML风格的连字符字段
     [key: string]: unknown;
   };
 
@@ -62,6 +65,18 @@ function convertToStepCardData(
   };
 
   const element = actualElement as KnownElement;
+
+  // 读取字符串工具，兼容连字符字段
+  const pickString = (obj: Record<string, unknown>, key: string) => {
+    const v = obj[key];
+    return typeof v === "string" && v.length > 0 ? v : undefined;
+  };
+  const dashedContentDesc = pickString(actualElement, "content-desc");
+  const dashedResourceId = pickString(actualElement, "resource-id");
+  const dashedClass = pickString(actualElement, "class");
+  // 下划线风格（demo/旧数据常见）
+  const snakeResourceId = pickString(actualElement, "resource_id");
+  const snakeClassName = pickString(actualElement, "class_name");
 
   const parseBoundsString = (bounds: string | undefined) => {
     if (!bounds) return undefined;
@@ -129,30 +144,90 @@ function convertToStepCardData(
     id: deterministicId,
     text: element.text || "",
     description:
-      element.description || element.contentDesc || element.content_desc || "",
-    type: element.className || "",
+      element.description || element.contentDesc || element.content_desc || dashedContentDesc || "",
+    type: element.className || snakeClassName || dashedClass || "",
     category: "unknown", // 默认分类
     position: resolvedPosition || { x: 0, y: 0, width: 0, height: 0 },
     // 不要默认标记为可点击，缺省即为不可点击
     clickable: element.clickable === true,
     importance: "medium" as const,
     userFriendlyName: element.text || element.id || "",
-    resourceId: element.resourceId,
-    className: element.className,
-    contentDesc: element.contentDesc || element.content_desc,
+    resourceId: element.resourceId || snakeResourceId || dashedResourceId,
+    className: element.className || snakeClassName || dashedClass,
+    contentDesc: element.contentDesc || element.content_desc || dashedContentDesc,
     bounds: boundsString, // 使用转换后的字符串格式
   };
+
+  // 开发期调试：观察字段解析来源
+  if (process.env.NODE_ENV === "development") {
+    // 仅输出关键信息，避免刷屏
+    console.log("🧩 [StructuralMatching] 字段解析:", {
+      id: compatibleElement.id,
+      text: compatibleElement.text || "(空)",
+      contentDesc:
+        compatibleElement.contentDesc !== undefined
+          ? compatibleElement.contentDesc || "(空)"
+          : "(未定义)",
+      resourceId: compatibleElement.resourceId || "(空)",
+      className: compatibleElement.className || "(空)",
+      source: {
+        contentDesc: element.contentDesc
+          ? "contentDesc"
+          : element.content_desc
+          ? "content_desc"
+          : dashedContentDesc
+          ? "content-desc"
+          : "none",
+        resourceId: element.resourceId
+          ? "resourceId"
+          : snakeResourceId
+          ? "resource_id"
+          : dashedResourceId
+          ? "resource-id"
+          : "none",
+        className: element.className
+          ? "className"
+          : snakeClassName
+          ? "class_name"
+          : dashedClass
+          ? "class"
+          : "none",
+      },
+    });
+  }
+
+  // 验证XPath有效性 - 只有真正的XPath才应该被使用
+  const validXPath = (() => {
+    const xpathCandidate = element.xpath;
+    if (!xpathCandidate || typeof xpathCandidate !== 'string') {
+      return undefined;
+    }
+    
+    // 检查是否是有效的XPath格式（应该以 / 或 // 开头）
+    if (xpathCandidate.startsWith('/')) {
+      return xpathCandidate;
+    }
+    
+    // 如果看起来像element_id格式，不应该作为XPath使用
+    if (/^element_?\d+$/.test(xpathCandidate)) {
+      console.warn('🚫 [StructuralMatching] 检测到类似元素ID的XPath，跳过:', xpathCandidate);
+      return undefined;
+    }
+    
+    console.warn('🚫 [StructuralMatching] 无效的XPath格式，跳过:', xpathCandidate);
+    return undefined;
+  })();
 
   // 转换为StepCardData格式
   const stepCardData: StepCardData = {
     original_element: compatibleElement,
     xmlCacheId: element.xmlCacheId,
     elementContext: {
-      xpath: element.xpath,
+      xpath: validXPath, // 只使用验证过的有效XPath
       bounds: boundsString,
       text: element.text,
-      resourceId: element.resourceId,
-      className: element.className,
+      resourceId: element.resourceId || snakeResourceId || dashedResourceId,
+      className: element.className || snakeClassName || dashedClass,
     },
   };
 

@@ -9,7 +9,7 @@ import type { ActionKind, StepAction } from '../../types/smartScript';
 import { ExcludeRuleEditor, type ExcludeRule } from '../smart-selection/ExcludeRuleEditor';
 import { CandidatePreview } from '../smart-selection/CandidatePreview';
 import { ExplanationGenerator } from '../smart-selection/ExplanationGenerator';
-import { StructuralMatchingModal, type StructuralMatchingConfig } from '../../modules/structural-matching';
+import { StructuralMatchingModal, type StructuralMatchingHierarchicalConfig } from '../../modules/structural-matching';
 
 const { Panel } = Collapse;
 
@@ -17,12 +17,14 @@ export interface ActionSelectorProps {
   action?: StepAction;
   onChange: (action: StepAction) => void;
   size?: 'small' | 'middle';
+  stepElement?: Record<string, unknown>; // 步骤关联的元素数据
 }
 
 export const ActionSelector: React.FC<ActionSelectorProps> = ({
   action = { kind: 'tap' },
   onChange,
-  size = 'small'
+  size = 'small',
+  stepElement
 }) => {
   // 🎯 智能操作配置状态
   type ExecutionChain = 'intelligent_chain' | 'single_step' | 'static_strategy';
@@ -40,7 +42,7 @@ export const ActionSelector: React.FC<ActionSelectorProps> = ({
   
   // 🏗️ 结构匹配模态框状态
   const [structuralMatchingVisible, setStructuralMatchingVisible] = useState(false);
-  const [structuralMatchingConfig, setStructuralMatchingConfig] = useState<StructuralMatchingConfig | null>(null);
+  const [structuralMatchingConfig, setStructuralMatchingConfig] = useState<StructuralMatchingHierarchicalConfig | null>(null);
 
   const handleKindChange = (kind: ActionKind) => {
     const newAction: StepAction = {
@@ -987,7 +989,7 @@ export const ActionSelector: React.FC<ActionSelectorProps> = ({
       {/* 🏗️ 结构匹配模态框 */}
       <StructuralMatchingModal
         visible={structuralMatchingVisible}
-        selectedElement={{
+        selectedElement={stepElement || {
           class: 'android.widget.FrameLayout',
           'resource-id': 'com.xingin.xhs:id/note_item',
           'content-desc': '笔记 测试标题 来自作者 100赞',

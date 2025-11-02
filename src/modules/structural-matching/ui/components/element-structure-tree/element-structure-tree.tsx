@@ -28,22 +28,15 @@ import {
   MATCH_STRATEGY_DISPLAY_NAMES,
   MATCH_STRATEGY_DESCRIPTIONS,
 } from "../../../domain/constants/match-strategies";
-import { invoke } from "@tauri-apps/api/core";
 import "./element-structure-tree.css";
+import XmlCacheManager from "../../../../../services/xml-cache-manager";
 
 const { Text } = Typography;
 
 export interface ElementStructureTreeProps {
-  /** 选中的元素 */
   selectedElement: Record<string, unknown>;
-
-  /** 获取字段配置 */
   getFieldConfig: (elementPath: string, fieldType: FieldType) => FieldConfig;
-
-  /** 切换字段启用状态 */
   onToggleField: (elementPath: string, fieldType: FieldType) => void;
-
-  /** 更新字段配置 */
   onUpdateField?: (
     elementPath: string,
     fieldType: FieldType,
@@ -58,12 +51,8 @@ export const ElementStructureTree: React.FC<ElementStructureTreeProps> = ({
   onUpdateField,
 }) => {
   const [expandedKeys, setExpandedKeys] = useState<string[]>([]);
-  const [fullElementData, setFullElementData] = useState<Record<
-    string,
-    unknown
-  > | null>(null);
+  const [fullElementData, setFullElementData] = useState<Record<string, unknown> | null>(null);
 
-  // 从XML缓存解析完整元素结构
   useEffect(() => {
     const parseElementFromXML = async () => {
       try {
@@ -72,725 +61,298 @@ export const ElementStructureTree: React.FC<ElementStructureTreeProps> = ({
           (contextWrapper?.selectedElement as Record<string, unknown>) ||
           selectedElement;
 
-        console.log("🔍 [ElementStructureTree] 开始解析XML获取完整结构:", {
-          actualElement,
-          hasXmlCacheId: !!actualElement?.xmlCacheId,
-          actualElementKeys: actualElement ? Object.keys(actualElement) : [],
-          actualElementChildren: actualElement?.children,
-          fullSelectedElement: selectedElement,
-        });
-
-        // 尝试从XML缓存解析完整元素结构
-        if (actualElement?.xmlCacheId && actualElement?.id) {
-          console.log("🔍 [ElementStructureTree] 尝试从XML缓存解析元素结构:", {
-            xmlCacheId: actualElement.xmlCacheId,
-            elementId: actualElement.id,
-          });
-
-          try {
-            const result = await invoke("parse_element_with_children", {
-              xmlCacheId: actualElement.xmlCacheId,
-              elementId: actualElement.id,
-              maxDepth: 5,
-            });
-
-            console.log("✅ [ElementStructureTree] XML解析成功:", result);
-            setFullElementData(result as Record<string, unknown>);
-            return;
-          } catch (error) {
-            console.warn(
-              "⚠️ [ElementStructureTree] XML解析失败，回退到基础数据:",
-              error
-            );
-
-            // 🆘 临时fallback方案：尝试从XmlCacheManager直接获取XML内容
-            const errorMessage =
-              error instanceof Error ? error.message : String(error);
-            if (
-              errorMessage.includes("parse_element_with_children not found") ||
-              errorMessage.includes(
-                "Command parse_element_with_children not found"
-              )
-            ) {
-              console.log(
-                "🔧 [ElementStructureTree] 后端缺少parse_element_with_children命令，尝试前端直接解析XML"
-              );
-
-              try {
-                const { XmlCacheManager } = await import(
-                  "../../../../../services/xml-cache-manager"
-                );
-                const cacheEntry =
-                  await XmlCacheManager.getInstance().getCachedXml(
-                    actualElement.xmlCacheId as string
-                  );
-
-                if (cacheEntry?.xmlContent) {
-                  console.log(
-                    "✅ [ElementStructureTree] 获取到XML内容，长度:",
-                    cacheEntry.xmlContent.length
-                  );
-
-                  // 简单的XML解析：查找目标元素及其子元素
-                  const parser = new DOMParser();
-                  const xmlDoc = parser.parseFromString(
-                    cacheEntry.xmlContent,
-                    "application/xml"
-                  );
-
-                  // 🔧 正确的查找方式：通过索引查找节点
-                  // element_32 对应 XML 中第32个 <node> 节点
-                  const allNodes = xmlDoc.querySelectorAll("node");
-                  const elementIndexMatch = actualElement.id
-                    .toString()
-                    .match(/element[-_](\d+)/);
-                  const targetIndex = elementIndexMatch
-                    ? parseInt(elementIndexMatch[1], 10)
-                    : -1;
-                  const targetElement =
-                    targetIndex >= 0 && targetIndex < allNodes.length
-                      ? allNodes[targetIndex]
-                      : null;
-
-                  if (targetElement) {
-                    const children = Array.from(targetElement.children);
-
-                    // 🔍 增强日志：显示XML中目标元素的原始属性
-                    const xmlAttributes = {
-                      text: targetElement.getAttribute("text"),
-                      contentDesc: targetElement.getAttribute("content-desc"),
-                      resourceId: targetElement.getAttribute("resource-id"),
-                      className: targetElement.getAttribute("class"),
-                      bounds: targetElement.getAttribute("bounds"),
-                      clickable: targetElement.getAttribute("clickable"),
-                      index: targetElement.getAttribute("index"),
-                      package: targetElement.getAttribute("package"),
-                    };
-
-                    console.log(
-                      `✅ [ElementStructureTree] 从XML找到目标元素 (索引${targetIndex})，子元素数量: ${children.length}`
-                    );
-                    console.log(
-                      `🔍 [ElementStructureTree] XML原始属性:`,
-                      xmlAttributes
-                    );
-
-                    // 🔍 检查所有属性是否为空
-                    const emptyFields = Object.entries(xmlAttributes)
-                      .filter(([, value]) => !value || value.trim() === "")
-                      .map(([key]) => key);
-
-                    if (emptyFields.length > 0) {
-                      console.warn(
-                        `⚠️ [ElementStructureTree] XML中以下字段为空:`,
-                        emptyFields
-                      );
-                    }
-
-                    // 🔍 检查父元素和子元素的属性
-                    if (targetElement.parentElement) {
-                      const parentAttrs = {
-                        text: targetElement.parentElement.getAttribute("text"),
-                        contentDesc:
-                          targetElement.parentElement.getAttribute(
-                            "content-desc"
-                          ),
-                        className:
-                          targetElement.parentElement.getAttribute("class"),
-                      };
-                      console.log(
-                        `🔍 [ElementStructureTree] 父元素属性:`,
-                        parentAttrs
-                      );
-
-                      // 🎯 将父元素添加到解析结果中
-                      const parentIndex = Array.from(allNodes).indexOf(
-                        targetElement.parentElement
-                      );
-                      const parentElement = {
-                        id:
-                          parentIndex >= 0
-                            ? `element_${parentIndex}`
-                            : "parent_element",
-                        text: parentAttrs.text || "",
-                        content_desc: parentAttrs.contentDesc || "",
-                        class_name: parentAttrs.className || "Unknown",
-                        bounds:
-                          targetElement.parentElement.getAttribute("bounds") ||
-                          "",
-                        clickable:
-                          targetElement.parentElement.getAttribute(
-                            "clickable"
-                          ) === "true",
-                        resource_id:
-                          targetElement.parentElement.getAttribute(
-                            "resource-id"
-                          ) || "",
-                        element_type:
-                          parentAttrs.className?.split(".").pop() || "Unknown",
-                        is_parent: true, // 标记为父元素
-                      };
-
-                      console.log(
-                        `🔍 [ElementStructureTree] 解析到的父元素:`,
-                        parentElement
-                      );
-                    }
-
-                    if (children.length > 0) {
-                      console.log(`🔍 [ElementStructureTree] 子元素属性预览:`);
-                      children.forEach((child, idx) => {
-                        const childAttrs = {
-                          text: child.getAttribute("text"),
-                          contentDesc: child.getAttribute("content-desc"),
-                          className: child.getAttribute("class"),
-                          resourceId: child.getAttribute("resource-id"),
-                        };
-                        console.log(`  子元素${idx}:`, childAttrs);
-                      });
-                    }
-
-                    if (children.length > 0) {
-                      // 递归解析子元素结构 - 支持多层嵌套
-                      const parseElementRecursively = (
-                        element: Element,
-                        depth: number,
-                        maxDepth: number = 5
-                      ): Record<string, unknown> | null => {
-                        if (depth >= maxDepth) {
-                          console.log(
-                            `🔄 [ElementStructureTree] 达到最大深度限制 (${maxDepth})，停止递归`
-                          );
-                          return null;
-                        }
-
-                        const elementChildren = Array.from(element.children);
-                        const childIndex =
-                          Array.from(allNodes).indexOf(element);
-
-                        const baseElement: Record<string, unknown> = {
-                          id:
-                            childIndex >= 0
-                              ? `element_${childIndex}`
-                              : `depth_${depth}_element`,
-                          text: element.getAttribute("text") || "",
-                          content_desc:
-                            element.getAttribute("content-desc") || "",
-                          class_name:
-                            element.getAttribute("class") || element.tagName,
-                          bounds: element.getAttribute("bounds") || "",
-                          clickable:
-                            element.getAttribute("clickable") === "true",
-                          resource_id:
-                            element.getAttribute("resource-id") || "",
-                          element_type:
-                            element.getAttribute("class")?.split(".").pop() ||
-                            element.tagName,
-                        };
-
-                        // 🔍 增强日志：显示每个元素的字段提取情况
-                        if (depth <= 2) {
-                          // 只显示前2层的详细信息
-                          console.log(
-                            `🔍 [ElementStructureTree] 深度${depth} 元素字段提取:`,
-                            {
-                              id: baseElement.id,
-                              text: baseElement.text || "(空)",
-                              content_desc: baseElement.content_desc || "(空)",
-                              class_name: baseElement.class_name,
-                              resource_id: baseElement.resource_id || "(空)",
-                              clickable: baseElement.clickable,
-                              bounds: baseElement.bounds,
-                              xmlRawText: element.getAttribute("text"),
-                              xmlRawContentDesc:
-                                element.getAttribute("content-desc"),
-                              xmlRawResourceId:
-                                element.getAttribute("resource-id"),
-                            }
-                          );
-                        }
-
-                        // 递归解析子元素的子元素
-                        if (elementChildren.length > 0) {
-                          const parsedChildren: Record<string, unknown>[] = [];
-
-                          for (let i = 0; i < elementChildren.length; i++) {
-                            const child = elementChildren[i];
-                            const parsedChild = parseElementRecursively(
-                              child,
-                              depth + 1,
-                              maxDepth
-                            );
-                            if (parsedChild) {
-                              parsedChildren.push(parsedChild);
-                            }
-                          }
-
-                          if (parsedChildren.length > 0) {
-                            baseElement.children = parsedChildren;
-                            console.log(
-                              `📊 [ElementStructureTree] 深度${depth} 元素 ${baseElement.class_name} 包含 ${parsedChildren.length} 个子元素`
-                            );
-                          }
-                        }
-
-                        return baseElement;
-                      };
-
-                      // 构建完整的多层子元素数据
-                      const childElements: Record<string, unknown>[] = [];
-                      for (let i = 0; i < children.length; i++) {
-                        const child = children[i];
-                        const parsedChild = parseElementRecursively(
-                          child,
-                          1,
-                          5
-                        ); // 从深度1开始，最大深度5
-                        if (parsedChild) {
-                          childElements.push(parsedChild);
-                        }
-                      }
-
-                      console.log(
-                        `🌳 [ElementStructureTree] 递归解析完成，根层级子元素数量: ${childElements.length}`
-                      );
-                      console.log(
-                        `🌳 [ElementStructureTree] 递归解析完成，根层级子元素数量: ${childElements.length}`
-                      );
-
-                      // 输出完整的元素层级统计
-                      const countElementsRecursively = (
-                        elements: Record<string, unknown>[]
-                      ): { total: number; byDepth: Record<number, number> } => {
-                        const result = {
-                          total: 0,
-                          byDepth: {} as Record<number, number>,
-                        };
-
-                        const countAtDepth = (
-                          elems: Record<string, unknown>[],
-                          depth: number
-                        ) => {
-                          result.byDepth[depth] =
-                            (result.byDepth[depth] || 0) + elems.length;
-                          result.total += elems.length;
-
-                          elems.forEach((elem) => {
-                            if (elem.children && Array.isArray(elem.children)) {
-                              countAtDepth(
-                                elem.children as Record<string, unknown>[],
-                                depth + 1
-                              );
-                            }
-                          });
-                        };
-
-                        countAtDepth(elements, 1);
-                        return result;
-                      };
-
-                      const elementStats =
-                        countElementsRecursively(childElements);
-                      console.log(`📊 [ElementStructureTree] 完整层级统计:`, {
-                        总元素数: elementStats.total,
-                        各层分布: elementStats.byDepth,
-                        与硬编码对比: `真实数据${
-                          elementStats.total
-                        }个元素 vs 硬编码${9}个元素`, // 硬编码有9个元素(1+1+2+4)
-                      });
-
-                      // 🎯 构建包含父元素的完整结构
-                      let parentElementData = null;
-                      if (targetElement.parentElement) {
-                        const parentIndex = Array.from(allNodes).indexOf(
-                          targetElement.parentElement
-                        );
-                        parentElementData = {
-                          id:
-                            parentIndex >= 0
-                              ? `element_${parentIndex}`
-                              : "parent_element",
-                          text:
-                            targetElement.parentElement.getAttribute("text") ||
-                            "",
-                          content_desc:
-                            targetElement.parentElement.getAttribute(
-                              "content-desc"
-                            ) || "",
-                          class_name:
-                            targetElement.parentElement.getAttribute("class") ||
-                            "Unknown",
-                          bounds:
-                            targetElement.parentElement.getAttribute(
-                              "bounds"
-                            ) || "",
-                          clickable:
-                            targetElement.parentElement.getAttribute(
-                              "clickable"
-                            ) === "true",
-                          resource_id:
-                            targetElement.parentElement.getAttribute(
-                              "resource-id"
-                            ) || "",
-                          element_type:
-                            (
-                              targetElement.parentElement.getAttribute(
-                                "class"
-                              ) || ""
-                            )
-                              .split(".")
-                              .pop() || "Unknown",
-                          is_parent: true,
-                        };
-                        console.log(
-                          `🎯 [ElementStructureTree] 父元素详细信息:`,
-                          parentElementData
-                        );
-                      }
-
-                      const enhancedElement = {
-                        ...actualElement,
-                        // 从XML更新根元素的字段
-                        text: xmlAttributes.text || actualElement.text || "",
-                        content_desc:
-                          xmlAttributes.contentDesc ||
-                          actualElement.content_desc ||
-                          "",
-                        resource_id:
-                          xmlAttributes.resourceId ||
-                          actualElement.resource_id ||
-                          "",
-                        class_name:
-                          xmlAttributes.className ||
-                          actualElement.class_name ||
-                          "",
-                        bounds:
-                          xmlAttributes.bounds || actualElement.bounds || "",
-                        clickable:
-                          xmlAttributes.clickable === "true" ||
-                          actualElement.clickable,
-                        // 包含父元素和子元素
-                        parent: parentElementData,
-                        children: childElements,
-                      };
-
-                      console.log("✅ [ElementStructureTree] 增强根元素字段:", {
-                        原始字段: {
-                          text: actualElement.text,
-                          content_desc: actualElement.content_desc,
-                          resource_id: actualElement.resource_id,
-                        },
-                        XML字段: {
-                          text: xmlAttributes.text,
-                          content_desc: xmlAttributes.contentDesc,
-                          resource_id: xmlAttributes.resourceId,
-                        },
-                        最终字段: {
-                          text: enhancedElement.text,
-                          content_desc: enhancedElement.content_desc,
-                          resource_id: enhancedElement.resource_id,
-                        },
-                      });
-
-                      console.log(
-                        "✅ [ElementStructureTree] 成功从XML递归解析多层子元素:",
-                        enhancedElement
-                      );
-                      setFullElementData(enhancedElement);
-                      return;
-                    } else {
-                      console.log(
-                        "📋 [ElementStructureTree] 目标元素存在但无子元素"
-                      );
-                    }
-                  } else {
-                    console.warn(
-                      "⚠️ [ElementStructureTree] 在XML中未找到目标元素:",
-                      {
-                        elementId: actualElement.id,
-                        extractedIndex: targetIndex,
-                        totalNodes: allNodes.length,
-                        isIndexValid:
-                          targetIndex >= 0 && targetIndex < allNodes.length,
-                      }
-                    );
-                  }
-                } else {
-                  console.warn("⚠️ [ElementStructureTree] 未获取到XML缓存内容");
-                }
-              } catch (xmlError) {
-                console.error(
-                  "❌ [ElementStructureTree] 前端XML解析失败:",
-                  xmlError
-                );
-              }
-            }
-
-            // 继续使用下面的逻辑
+        // 规范化输入元素字段（仅用于渲染，不修改原始值语义）
+        const ae = actualElement as Record<string, unknown>;
+        const pickStr = (obj: Record<string, unknown>, ...keys: string[]) => {
+          for (const k of keys) {
+            const v = obj[k];
+            if (typeof v === "string" && v.length > 0) return v;
           }
-        }
-
-        // 优先使用真实数据，如果没有子元素，才添加模拟演示数据
-        const hasRealChildren =
-          actualElement.children &&
-          Array.isArray(actualElement.children) &&
-          actualElement.children.length > 0;
-
-        console.log("🔄 [ElementStructureTree] 数据处理决策:", {
-          hasRealChildren,
-          childrenCount: hasRealChildren
-            ? (actualElement.children as unknown[]).length
-            : 0,
-          willUseRealData: hasRealChildren,
-          xmlCacheId: actualElement?.xmlCacheId,
-          elementId: actualElement?.id,
+          return "";
+        };
+        const getBool = (obj: Record<string, unknown>, key: string): boolean => {
+          const v = obj[key];
+          if (typeof v === "boolean") return v;
+          if (typeof v === "string") return v === "true";
+          return false;
+        };
+        const getChildren = (obj: Record<string, unknown>) => {
+          const v = obj["children"] as unknown;
+          return Array.isArray(v) ? (v as unknown[]) : [];
+        };
+        // 🔧 调试：检查传入的元素数据结构
+        console.log('🔍 [ElementStructureTree] 传入的原始元素数据:', {
+          actualElementKeys: Object.keys(ae),
+          actualElementSample: {
+            id: ae.id,
+            text: ae.text,
+            contentDesc: ae.contentDesc,
+            content_desc: ae.content_desc,
+            resourceId: ae.resourceId,
+            resource_id: ae.resource_id,
+            className: ae.className,
+            class_name: ae.class_name,
+          }
         });
 
+        // 🎯 提取 bounds 并转换为字符串格式
+        const extractBoundsString = (obj: Record<string, unknown>): string => {
+          const b = obj["bounds"];
+          if (typeof b === "string") return b;
+          if (typeof b === "object" && b !== null) {
+            const bounds = b as Record<string, unknown>;
+            const left = bounds.left ?? 0;
+            const top = bounds.top ?? 0;
+            const right = bounds.right ?? 0;
+            const bottom = bounds.bottom ?? 0;
+            return `[${left},${top}][${right},${bottom}]`;
+          }
+          return "";
+        };
+
+        const normalizedElement: Record<string, unknown> = {
+          ...actualElement,
+          id: pickStr(ae, "id", "elementId"),
+          class_name: pickStr(ae, "class_name", "className", "class") || "Unknown",
+          resource_id: pickStr(ae, "resource_id", "resourceId", "resource-id"),
+          content_desc: pickStr(ae, "content_desc", "contentDesc", "content-desc"),
+          text: pickStr(ae, "text"),
+          bounds: extractBoundsString(ae),
+          clickable: getBool(ae, "clickable"),
+          xmlCacheId: pickStr(ae, "xmlCacheId", "xml_cache_id"),
+          children: getChildren(ae),
+        };
+
+        // 🔧 调试：检查映射后的数据
+        console.log('🔍 [ElementStructureTree] 映射后的标准化元素数据:', {
+          id: normalizedElement.id,
+          text: normalizedElement.text,
+          content_desc: normalizedElement.content_desc,
+          resource_id: normalizedElement.resource_id,
+          class_name: normalizedElement.class_name,
+        });
+
+        // 如果已有真实子元素，直接使用（不再生成模拟children）
+        const hasRealChildren =
+          normalizedElement.children &&
+          Array.isArray(normalizedElement.children) &&
+          normalizedElement.children.length > 0;
         if (hasRealChildren) {
-          // 直接使用真实的子元素数据
-          console.log(
-            "✅ [ElementStructureTree] 使用真实子元素数据，元素信息:",
-            {
-              elementId: actualElement.id,
-              className: actualElement.class_name,
-              text: actualElement.text,
-              childrenCount: (actualElement.children as unknown[]).length,
-              firstChildPreview: (actualElement.children as unknown[])[0],
-            }
-          );
-          setFullElementData(actualElement);
+          console.log("✅ [ElementStructureTree] 使用真实子元素数据", {
+            id: normalizedElement.id,
+            children: Array.isArray(normalizedElement.children)
+              ? (normalizedElement.children as unknown[]).length
+              : 0,
+          });
+          setFullElementData(normalizedElement);
           return;
         }
 
-        console.log(
-          "⚠️ [ElementStructureTree] 真实元素无子元素，使用模拟数据进行演示:",
-          {
-            elementId: actualElement?.id,
-            hasXmlCache: !!actualElement?.xmlCacheId,
-            reason: "真实元素children数组为空或不存在",
+        // 尝试从XML缓存中解析对应节点与其子节点（递归）
+        if (normalizedElement.xmlCacheId) {
+          try {
+            const cacheEntry = await XmlCacheManager.getInstance().getCachedXml(
+              normalizedElement.xmlCacheId as string
+            );
+            if (cacheEntry?.xmlContent) {
+              const parser = new DOMParser();
+              const xmlDoc = parser.parseFromString(
+                cacheEntry.xmlContent,
+                "application/xml"
+              );
+              const allNodes = xmlDoc.querySelectorAll("node");
+              const elementIndexMatch = String(normalizedElement.id).match(/element[-_](\d+)/);
+              const targetIndex = elementIndexMatch ? parseInt(elementIndexMatch[1], 10) : -1;
+              
+              // 🎯 优先通过 bounds 精确匹配，避免索引定位错误
+              let targetElement: Element | null = null;
+              const boundsStr = String(normalizedElement["bounds"] || "");
+              
+              if (boundsStr) {
+                console.log("🎯 [ElementStructureTree] 优先使用bounds匹配:", boundsStr);
+                const byBounds = xmlDoc.querySelector(`node[bounds="${boundsStr}"]`);
+                if (byBounds) {
+                  targetElement = byBounds;
+                  console.log("✅ [ElementStructureTree] 通过bounds成功匹配到目标元素");
+                }
+              }
+              
+              // 🔁 回退：通过索引匹配
+              if (!targetElement && targetIndex >= 0 && targetIndex < allNodes.length) {
+                targetElement = allNodes[targetIndex];
+                console.log("🔁 [ElementStructureTree] 回退使用索引匹配:", targetIndex);
+              }
+
+              console.log("🔍 [ElementStructureTree] 目标元素定位结果:", {
+                targetIndex,
+                targetElementFound: !!targetElement,
+                targetElementBounds: targetElement?.getAttribute("bounds"),
+                targetElementText: targetElement?.getAttribute("text"),
+                targetElementChildCount: targetElement?.children.length,
+                normalizedElementBounds: normalizedElement["bounds"],
+                normalizedElementText: normalizedElement["text"]
+              });
+
+              const toPojo = (el: Element, idx: number): Record<string, unknown> => ({
+                id: `element_${idx}`,
+                text: el.getAttribute("text") || "",
+                content_desc: el.getAttribute("content-desc") || "",
+                class_name: el.getAttribute("class") || el.tagName,
+                bounds: el.getAttribute("bounds") || "",
+                clickable: el.getAttribute("clickable") === "true",
+                resource_id: el.getAttribute("resource-id") || "",
+                element_type: (el.getAttribute("class") || "").split(".").pop() || el.tagName,
+              });
+
+              // 解析bounds字符串 -> 矩形
+              const parseBounds = (boundsStr?: string) => {
+                if (!boundsStr) return null as null | { x: number; y: number; w: number; h: number };
+                const nums = boundsStr.match(/\d+/g)?.map(Number) || [];
+                if (nums.length !== 4) return null;
+                const [left, top, right, bottom] = nums;
+                return { x: left, y: top, w: right - left, h: bottom - top };
+              };
+
+              // 使用“用户点选元素”的bounds作为严格可视区域过滤（优先），兜底为目标XML节点的bounds
+              const selectedBoundsStr = String(
+                (normalizedElement["bounds"] as string) || targetElement.getAttribute("bounds") || ""
+              );
+              const rootRect = parseBounds(selectedBoundsStr);
+
+              const isWithin = (
+                child: { x: number; y: number; w: number; h: number },
+                root: { x: number; y: number; w: number; h: number }
+              ) => {
+                // 要求子完全落入选中区域，避免把整页其他区域一起带入
+                const withinX = child.x >= root.x && child.x + child.w <= root.x + root.w;
+                const withinY = child.y >= root.y && child.y + child.h <= root.y + root.h;
+                return withinX && withinY;
+              };
+
+              // 🎯 递归解析所有子孙元素（完整树结构展示）
+              const parseRecursively = (el: Element, depth: number = 0): Record<string, unknown> => {
+                const idx = Array.from(allNodes).indexOf(el);
+                const base = toPojo(el, Math.max(0, idx));
+                const elementChildren = Array.from(el.children) as Element[];
+                
+                if (elementChildren.length > 0) {
+                  // 基于选中区域进行严格过滤（只在第一层过滤，避免渲染"整页"）
+                  const filtered = (depth === 0 && rootRect)
+                    ? elementChildren.filter((c) => {
+                        const b = c.getAttribute("bounds") || "";
+                        const rect = parseBounds(b);
+                        return rect ? isWithin(rect, rootRect) : true; // 无bounds的节点保留
+                      })
+                    : elementChildren;
+                  
+                  if (depth === 0) {
+                    console.log(`🎯 [ElementStructureTree] 第一层过滤 - 深度${depth}:`, {
+                      当前元素: el.getAttribute('bounds'),
+                      原始子节点数: elementChildren.length,
+                      过滤后子节点数: filtered.length,
+                      说明: '只过滤第一层子节点，后续层级完全递归'
+                    });
+                  }
+                  
+                  // � 完全递归解析所有子孙节点
+                  (base as Record<string, unknown>)["children"] = filtered.map(c => parseRecursively(c, depth + 1));
+                } else {
+                  (base as Record<string, unknown>)["children"] = [];
+                }
+                return base;
+              };
+
+              if (targetElement) {
+                const enhanced = {
+                  ...normalizedElement,
+                  // 原始值为空就空，不强行覆盖；只在显示字段为空时，用XML补充显示值，不改变“原始值”语义
+                  text:
+                    (normalizedElement["text"] as string) ||
+                    targetElement.getAttribute("text") ||
+                    "",
+                  content_desc:
+                    (normalizedElement["content_desc"] as string) ||
+                    targetElement.getAttribute("content-desc") ||
+                    "",
+                  resource_id:
+                    (normalizedElement["resource_id"] as string) ||
+                    targetElement.getAttribute("resource-id") ||
+                    "",
+                  class_name:
+                    (normalizedElement["class_name"] as string) ||
+                    targetElement.getAttribute("class") ||
+                    "",
+                  bounds:
+                    (normalizedElement["bounds"] as string) ||
+                    targetElement.getAttribute("bounds") ||
+                    "",
+                  clickable:
+                    Boolean(normalizedElement["clickable"]) ||
+                    targetElement.getAttribute("clickable") === "true",
+                  parent: targetElement.parentElement
+                    ? toPojo(
+                        targetElement.parentElement,
+                        Array.from(allNodes).indexOf(targetElement.parentElement)
+                      )
+                    : undefined,
+                  children: (() => {
+                    const children = Array.from(targetElement.children) as Element[];
+                    console.log("🌳 [ElementStructureTree] 构建children数组:", {
+                      targetElement_bounds: targetElement.getAttribute("bounds"),
+                      targetElement_text: targetElement.getAttribute("text"),
+                      children_count: children.length,
+                      children_bounds: children.map(c => c.getAttribute("bounds")).slice(0, 5),
+                      children_text: children.map(c => c.getAttribute("text")).slice(0, 5)
+                    });
+                    
+                    if (children.length === 0) return [] as unknown[];
+                    // 同样对第一层子节点做一次严格可视区域过滤
+                    const filtered = rootRect
+                      ? children.filter((c) => {
+                          const b = c.getAttribute("bounds") || "";
+                          const rect = parseBounds(b);
+                          return rect ? isWithin(rect, rootRect) : true;
+                        })
+                      : children;
+                    
+                    console.log("🎯 [ElementStructureTree] 过滤后children:", {
+                      original_count: children.length,
+                      filtered_count: filtered.length,
+                      rootRect
+                    });
+                    
+                    // 🔁 完全递归解析所有子孙节点（depth=1表示第一层子节点，会继续往下递归）
+                    return filtered.map(c => parseRecursively(c, 1));
+                  })(),
+                } as Record<string, unknown>;
+
+                console.log("✅ [ElementStructureTree] 从XML解析完成", {
+                  id: enhanced.id,
+                  childCount: Array.isArray((enhanced as Record<string, unknown>)["children"] as unknown[])
+                    ? ((enhanced as Record<string, unknown>)["children"] as unknown[]).length
+                    : 0,
+                });
+                setFullElementData(enhanced);
+                return;
+              } else {
+                console.warn("⚠️ [ElementStructureTree] 未在XML中找到目标元素", {
+                  id: normalizedElement.id,
+                  targetIndex,
+                  totalNodes: allNodes.length,
+                });
+              }
+            }
+          } catch (e) {
+            console.warn("⚠️ [ElementStructureTree] XML解析失败，回退到基础数据", e);
           }
-        );
+        }
 
-        // 当前方案：增强传入的元素数据，添加模拟子元素用于演示
-        const enhancedElement = {
-          ...actualElement,
-          children: [
-            // 模拟第1层子元素 - 真正可点击的FrameLayout
-            {
-              id: `${actualElement.id}_child_1`,
-              class_name: "android.widget.FrameLayout",
-              clickable: true,
-              bounds: "[13,1158][534,2023]",
-              text: "",
-              content_desc: "",
-              resource_id: "com.xingin.xhs:id/clickable_container",
-              children: [
-                // 模拟第2层子元素 - ViewGroup容器
-                {
-                  id: `${actualElement.id}_child_1_1`,
-                  class_name: "android.view.ViewGroup",
-                  clickable: false,
-                  bounds: "[13,1158][534,2023]",
-                  text: "",
-                  content_desc: "",
-                  resource_id: "",
-                  children: [
-                    // 模拟图片容器
-                    {
-                      id: `${actualElement.id}_child_1_1_1`,
-                      class_name: "android.widget.ImageView",
-                      clickable: false,
-                      bounds: "[13,1158][534,1800]",
-                      text: "",
-                      content_desc: "笔记封面图片",
-                      resource_id: "com.xingin.xhs:id/cover_image",
-                      children: [],
-                    },
-                    // 模拟底部作者栏
-                    {
-                      id: `${actualElement.id}_child_1_1_2`,
-                      class_name: "android.widget.LinearLayout",
-                      clickable: false,
-                      bounds: "[13,1800][534,2023]",
-                      text: "",
-                      content_desc: "作者信息栏",
-                      resource_id: "com.xingin.xhs:id/author_section",
-                      children: [
-                        // 头像
-                        {
-                          id: `${actualElement.id}_child_1_1_2_1`,
-                          class_name: "android.widget.ImageView",
-                          clickable: false,
-                          bounds: "[20,1810][60,1850]",
-                          text: "",
-                          content_desc: "用户头像",
-                          resource_id: "com.xingin.xhs:id/avatar",
-                          children: [],
-                        },
-                        // 作者名
-                        {
-                          id: `${actualElement.id}_child_1_1_2_2`,
-                          class_name: "android.widget.TextView",
-                          clickable: false,
-                          bounds: "[70,1810][150,1850]",
-                          text: "小何老师",
-                          content_desc: "",
-                          resource_id: "com.xingin.xhs:id/author_name",
-                          children: [],
-                        },
-                        // 点赞按钮
-                        {
-                          id: `${actualElement.id}_child_1_1_2_3`,
-                          class_name: "android.widget.ImageView",
-                          clickable: true,
-                          bounds: "[450,1810],[490,1850]",
-                          text: "",
-                          content_desc: "点赞",
-                          resource_id: "com.xingin.xhs:id/like_button",
-                          children: [],
-                        },
-                        // 点赞数
-                        {
-                          id: `${actualElement.id}_child_1_1_2_4`,
-                          class_name: "android.widget.TextView",
-                          clickable: false,
-                          bounds: "[495,1810],[530,1850]",
-                          text: "147",
-                          content_desc: "",
-                          resource_id: "com.xingin.xhs:id/like_count",
-                          children: [],
-                        },
-                      ],
-                    },
-                  ],
-                },
-              ],
-            },
-          ],
-        };
-
-        console.log(
-          "🔄 [ElementStructureTree] 使用增强的单层结构:",
-          enhancedElement
-        );
-        setFullElementData(enhancedElement);
+        // 默认：不生成模拟children，按真实数据展示（可能没有children）
+        console.log("ℹ️ [ElementStructureTree] 使用基础元素数据（不生成模拟children）");
+        setFullElementData({ ...normalizedElement, children: normalizedElement.children || [] });
       } catch (error) {
         console.error("❌ [ElementStructureTree] 处理失败:", error);
-
-        // 解析失败时，先尝试构造一个基本的元素结构
-        const contextWrapper = selectedElement as Record<string, unknown>;
-        const actualElement =
-          (contextWrapper?.selectedElement as Record<string, unknown>) ||
-          selectedElement;
-
-        // 临时方案：如果原始元素没有children，创建模拟子元素用于演示
-        const enhancedElement = {
-          ...actualElement,
-          children:
-            actualElement.children &&
-            Array.isArray(actualElement.children) &&
-            actualElement.children.length > 0
-              ? actualElement.children
-              : [
-                  // 模拟第1层子元素 - 真正可点击的FrameLayout
-                  {
-                    id: `${actualElement.id}_child_1`,
-                    class_name: "android.widget.FrameLayout",
-                    clickable: true,
-                    bounds: "[13,1158][534,2023]",
-                    text: "",
-                    content_desc: "",
-                    resource_id: "com.xingin.xhs:id/clickable_container",
-                    children: [
-                      // 模拟第2层子元素 - ViewGroup容器
-                      {
-                        id: `${actualElement.id}_child_1_1`,
-                        class_name: "android.view.ViewGroup",
-                        clickable: false,
-                        bounds: "[13,1158][534,2023]",
-                        text: "",
-                        content_desc: "",
-                        resource_id: "",
-                        children: [
-                          // 模拟图片容器
-                          {
-                            id: `${actualElement.id}_child_1_1_1`,
-                            class_name: "android.widget.ImageView",
-                            clickable: false,
-                            bounds: "[13,1158][534,1800]",
-                            text: "",
-                            content_desc: "笔记封面图片",
-                            resource_id: "com.xingin.xhs:id/cover_image",
-                            children: [],
-                          },
-                          // 模拟底部作者栏
-                          {
-                            id: `${actualElement.id}_child_1_1_2`,
-                            class_name: "android.widget.LinearLayout",
-                            clickable: false,
-                            bounds: "[13,1800][534,2023]",
-                            text: "",
-                            content_desc: "作者信息栏",
-                            resource_id: "com.xingin.xhs:id/author_section",
-                            children: [
-                              // 头像
-                              {
-                                id: `${actualElement.id}_child_1_1_2_1`,
-                                class_name: "android.widget.ImageView",
-                                clickable: false,
-                                bounds: "[20,1810][60,1850]",
-                                text: "",
-                                content_desc: "用户头像",
-                                resource_id: "com.xingin.xhs:id/avatar",
-                                children: [],
-                              },
-                              // 作者名
-                              {
-                                id: `${actualElement.id}_child_1_1_2_2`,
-                                class_name: "android.widget.TextView",
-                                clickable: false,
-                                bounds: "[70,1810][150,1850]",
-                                text: "小何老师",
-                                content_desc: "",
-                                resource_id: "com.xingin.xhs:id/author_name",
-                                children: [],
-                              },
-                              // 点赞按钮
-                              {
-                                id: `${actualElement.id}_child_1_1_2_3`,
-                                class_name: "android.widget.ImageView",
-                                clickable: true,
-                                bounds: "[450,1810],[490,1850]",
-                                text: "",
-                                content_desc: "点赞",
-                                resource_id: "com.xingin.xhs:id/like_button",
-                                children: [],
-                              },
-                              // 点赞数
-                              {
-                                id: `${actualElement.id}_child_1_1_2_4`,
-                                class_name: "android.widget.TextView",
-                                clickable: false,
-                                bounds: "[495,1810],[530,1850]",
-                                text: "147",
-                                content_desc: "",
-                                resource_id: "com.xingin.xhs:id/like_count",
-                                children: [],
-                              },
-                            ],
-                          },
-                        ],
-                      },
-                    ],
-                  },
-                ],
-        };
-
-        console.log(
-          "🔄 [ElementStructureTree] 使用增强的单层结构:",
-          enhancedElement
-        );
-        setFullElementData(enhancedElement);
+        setFullElementData({} as Record<string, unknown>);
       }
     };
 
@@ -818,22 +380,39 @@ export const ElementStructureTree: React.FC<ElementStructureTreeProps> = ({
       depth: number,
       elementPath: string
     ) => {
+      const pickString = (obj: Record<string, unknown>, key: string) => {
+        const v = obj[key];
+        return typeof v === "string" && v.length > 0 ? v : undefined;
+      };
       const isRoot = depth === 0;
       const className = String(
-        element.class_name || element.className || "Unknown"
+        element.class_name || element.className || pickString(element, "class") || "Unknown"
       );
       const clickable = element.clickable === true;
       const bounds = String(element.bounds || "");
       const text = String(element.text || "");
-      const contentDesc = String(
-        element.content_desc || element.contentDesc || ""
-      );
-      const resourceId = String(
-        element.resource_id || element.resourceId || ""
-      );
+      const contentDesc =
+        (element.content_desc as string) ||
+        (element.contentDesc as string) ||
+        pickString(element, "content-desc") ||
+        "";
+      const resourceId =
+        (element.resource_id as string) ||
+        (element.resourceId as string) ||
+        pickString(element, "resource-id") ||
+        "";
 
       return (
-        <div className="tree-node-content">
+        <div
+          className="tree-node-content"
+          data-element-info={(() => {
+            try {
+              return JSON.stringify(element);
+            } catch {
+              return undefined;
+            }
+          })()}
+        >
           {/* 节点头部 */}
           <div className="node-header">
             <Space size="small">
@@ -1065,32 +644,16 @@ export const ElementStructureTree: React.FC<ElementStructureTreeProps> = ({
       };
     };
 
-    // 🎯 如果有父元素，从父元素开始构建树形结构
-    if (fullElementData.parent && typeof fullElementData.parent === "object") {
-      console.log("🎯 [ElementStructureTree] 检测到父元素，构建完整层级结构");
+    // 🎯 始终从点选的元素作为根节点开始构建树
+    console.log("🎯 [ElementStructureTree] 从点选元素开始构建树结构", {
+      hasParent: !!fullElementData.parent,
+      hasChildren: Array.isArray(fullElementData.children) && fullElementData.children.length > 0
+    });
 
-      // 创建父元素 -> 当前元素 -> 子元素的完整结构
-      const parentWithCurrentElement = {
-        ...(fullElementData.parent as Record<string, unknown>),
-        children: [
-          {
-            ...fullElementData,
-            children: fullElementData.children || [],
-          },
-        ],
-      };
-
-      return {
-        treeData: [buildTreeNode(parentWithCurrentElement, -1, "parent", 0)], // 从深度-1开始，父元素
-        allKeys,
-      };
-    } else {
-      // 没有父元素，从当前元素开始
-      return {
-        treeData: [buildTreeNode(fullElementData, 0, "root", 0)],
-        allKeys,
-      };
-    }
+    return {
+      treeData: [buildTreeNode(fullElementData, 0, "root", 0)], // depth=0 表示这是根节点（用户点选的）
+      allKeys,
+    };
   };
 
   const { treeData, allKeys } = buildTreeData();
@@ -1227,3 +790,5 @@ export const ElementStructureTree: React.FC<ElementStructureTreeProps> = ({
     </div>
   );
 };
+
+export default ElementStructureTree;

@@ -15,3 +15,15 @@ export {
   extractParentElementFromXml,
   extractElementByIdFromXml,
 } from './structural-matching-subtree-extractor';
+
+export {
+  debugXmlAttributeExtraction,
+  debugVisualUIElements,
+  debugAttributeMapping,
+} from './structural-matching-xml-debug-tool';
+
+export {
+  adaptBackendElementToVisualUI,
+  adaptBackendElementsToVisualUI,
+  type BackendElementData,
+} from './structural-matching-data-adapter';

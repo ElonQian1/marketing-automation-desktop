@@ -32,3 +32,15 @@ export {
 } from './structural-matching-crop-calculator';
 
 export type { PreciseCropResult } from './structural-matching-crop-calculator';
+
+// 🎯 新增：模块化XML和数据加载器
+export {
+  parseXmlWithStrictHierarchy,
+  recalculateHierarchyAfterCorrection,
+  type StructuralMatchingHierarchyResult,
+  type StructuralMatchingXmlParseOptions,
+} from "./structural-matching-xml-hierarchy-parser";
+
+export { StructuralMatchingXmlLoader } from "./structural-matching-xml-loader";
+
+export { StructuralMatchingScreenshotLoader } from "./structural-matching-screenshot-loader";

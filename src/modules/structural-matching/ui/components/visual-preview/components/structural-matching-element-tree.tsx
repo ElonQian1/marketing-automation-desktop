@@ -4,7 +4,7 @@
 
 import React, { useState } from "react";
 import { ElementTreeData } from "../types";
-import type { VisualUIElement } from "@/components/universal-ui/types";
+import type { VisualUIElement } from "../../../../../../components/universal-ui/xml-parser";
 
 interface StructuralMatchingElementTreeProps {
   elementTreeData?: ElementTreeData;

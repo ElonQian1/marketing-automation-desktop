@@ -9,10 +9,28 @@ export * from './domain/constants/match-strategies';
 export * from './domain/constants/field-strategy-presets';
 export * from './domain/constants/element-templates';
 export * from './domain/models/structural-field-config';
-export * from './domain/models/hierarchical-field-config';
+// 避免与应用层同名导出冲突：将分层配置的 updateFieldConfig 以别名导出
+export type {
+	FieldConfig,
+	HierarchicalFieldConfig,
+	StructuralMatchingHierarchicalConfig,
+} from './domain/models/hierarchical-field-config';
+export {
+	DEFAULT_FIELD_CONFIG,
+	getDefaultFieldConfig,
+	createLayerConfig,
+	findFieldConfig,
+	updateFieldConfig as updateHierarchicalFieldConfig,
+} from './domain/models/hierarchical-field-config';
 
 // Application
-export * from './application/create-structural-config';
+// 保持应用层的 updateFieldConfig 为默认名称（用于卡片配置场景）
+export {
+	createStructuralConfigFromElement,
+	updateFieldConfig,
+	toggleFieldEnabled,
+	updateGlobalThreshold,
+} from './application/create-structural-config';
 export * from './application/test-field-matching';
 
 // Hooks

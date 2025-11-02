@@ -2,8 +2,8 @@
 // module: structural-matching | layer: ui | role: 工具
 // summary: 结构匹配子树提取器 - 从XML中按根元素ID提取其子树（拍平列表）
 
-import type { VisualUIElement } from "@/components/universal-ui/types";
-import { parseBounds } from "@/components/universal-ui/xml-parser";
+import type { VisualUIElement } from "../../../../../../components/universal-ui/xml-parser";
+import { parseBounds } from "../../../../../../components/universal-ui/xml-parser";
 
 /**
  * 从 XML 文本中提取以 rootElementId 为根的子树元素，并返回：

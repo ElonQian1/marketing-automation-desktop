@@ -1,67 +1,90 @@
 // src/modules/structural-matching/ui/pages/structural-matching-demo.tsx
-// module: structural-matching | layer: ui | role: 智能配置模板演示页面
-// summary: 用于测试和演示智能配置模板功能的页面
+// module: structural-matching | layer: ui | role: 结构匹配配置入口页面
+// summary: 删除演示数据，直接使用真实 XML/缓存 数据驱动结构匹配配置
 
-import React, { useState } from 'react';
-import { Card, Button, Space, Typography, Descriptions, Tag } from 'antd';
-import { PlayCircleOutlined, SettingOutlined } from '@ant-design/icons';
+import React, { useEffect, useMemo, useState } from 'react';
+import { Card, Space, Typography, Alert } from 'antd';
+import { SettingOutlined } from '@ant-design/icons';
 import { StructuralMatchingModal } from '../components/structural-matching-modal/structural-matching-modal';
+import XmlCacheManager from '../../../../services/xml-cache-manager';
+import { parseXML } from '../../../../components/universal-ui/xml-parser';
 
-const { Title, Text, Paragraph } = Typography;
-
-/**
- * 模拟笔记卡片元素数据
- */
-const MOCK_NOTE_CARD_ELEMENT = {
-  resource_id: 'com.xingin.xhs:id/note_card_container',
-  class_name: 'android.widget.RelativeLayout',
-  content_desc: '笔记 来自@小红书用户 赞342 收藏156',
-  text: '',
-  bounds: '[40,200][360,500]',
-  clickable: true,
-  children: [
-    {
-      resource_id: 'com.xingin.xhs:id/note_image',
-      class_name: 'android.widget.ImageView',
-      content_desc: '笔记封面图',
-    },
-    {
-      resource_id: 'com.xingin.xhs:id/note_title',
-      text: '超好看的夏日穿搭分享',
-      class_name: 'android.widget.TextView',
-    },
-  ],
-};
-
-/**
- * 模拟普通按钮元素数据
- */
-const MOCK_BUTTON_ELEMENT = {
-  resource_id: 'com.xingin.xhs:id/follow_btn',
-  class_name: 'android.widget.Button',
-  text: '关注',
-  content_desc: '关注按钮',
-  bounds: '[300,100][400,140]',
-  clickable: true,
-};
+const { Title, Paragraph } = Typography;
 
 export const StructuralMatchingDemo: React.FC = () => {
   const [modalVisible, setModalVisible] = useState(false);
-  const [selectedElement, setSelectedElement] = useState<any>(null);
+  const [selectedElement, setSelectedElement] = useState<Record<string, unknown> | null>(null);
+  const [loadError, setLoadError] = useState<string | null>(null);
+  const [loading, setLoading] = useState(false);
 
-  const handleOpenModal = (element: any, elementType: string) => {
-    setSelectedElement(element);
-    setModalVisible(true);
-  };
+  const query = useMemo(() => new URLSearchParams(window.location.search), []);
+  const xmlCacheId = query.get('xmlCacheId') || query.get('cache') || undefined;
+  const elementId = query.get('elementId') || query.get('element') || undefined; // 形如 element-43
+
+  // 从 XML 缓存加载真实元素，并构造 selectedElement
+  useEffect(() => {
+    const bootstrap = async () => {
+      if (!xmlCacheId || !elementId) {
+        setLoadError('缺少必要参数：请通过 ?xmlCacheId=...&elementId=element-# 打开本页');
+        return;
+      }
+      setLoading(true);
+      setLoadError(null);
+      try {
+        const cache = await XmlCacheManager.getInstance().getCachedXml(xmlCacheId);
+        if (!cache?.xmlContent) {
+          throw new Error('未找到对应的 XML 缓存内容');
+        }
+        const parsed = await parseXML(cache.xmlContent);
+        const target = parsed.elements.find(e => e.id === elementId);
+        if (!target) {
+          throw new Error(`在 XML 中未找到元素 ${elementId}`);
+        }
+
+        // 组装最小 selectedElement（保持原始值语义：有就有，没有就空）
+        const toBoundsString = () => {
+          if (target.bounds && typeof target.bounds === 'string') return target.bounds;
+          if (target.position) {
+            const l = target.position.x, t = target.position.y;
+            const r = l + target.position.width, b = t + target.position.height;
+            return `[${l},${t}][${r},${b}]`;
+          }
+          return '';
+        };
+
+        const element: Record<string, unknown> = {
+          id: target.id,
+          xmlCacheId,
+          // 原始字段（下划线/连字符风格一并保留，便于不同路径读取）
+          text: target.text || '',
+          content_desc: target.contentDesc || '',
+          'content-desc': target.contentDesc || '',
+          resource_id: target.resourceId || '',
+          'resource-id': target.resourceId || '',
+          class_name: target.className || target.type || '',
+          class: target.className || target.type || '',
+          bounds: toBoundsString(),
+          clickable: !!target.clickable,
+        };
+
+        setSelectedElement(element);
+        setModalVisible(true); // 自动打开
+      } catch (e) {
+        setLoadError(e instanceof Error ? e.message : String(e));
+      } finally {
+        setLoading(false);
+      }
+    };
+    void bootstrap();
+  }, [xmlCacheId, elementId]);
 
   const handleModalClose = () => {
     setModalVisible(false);
-    setSelectedElement(null);
   };
 
-  const handleConfigConfirm = (config: any) => {
-    console.log('配置确认:', config);
-    // 这里可以保存配置或执行其他操作
+  const handleConfigConfirm = () => {
+    // 保留：确认后关闭
+    setModalVisible(false);
   };
 
   return (
@@ -70,141 +93,43 @@ export const StructuralMatchingDemo: React.FC = () => {
         <div>
           <Title level={2}>
             <SettingOutlined style={{ marginRight: 8 }} />
-            智能配置模板演示
+            结构匹配配置
           </Title>
           <Paragraph>
-            本页面用于演示智能配置模板功能。系统能够自动识别不同类型的元素（如笔记卡片、按钮等），
-            并应用最适合的匹配策略配置。
+            本页面已移除演示数据，改为直接使用真实 XML/缓存 数据。请通过 URL 传入参数：
           </Paragraph>
-        </div>
-
-        <div>
-          <Title level={3}>测试样本</Title>
-          <Space direction="vertical" size="middle" style={{ width: '100%' }}>
-            
-            {/* 笔记卡片样本 */}
-            <Card 
-              title={
-                <Space>
-                  <Tag color="blue">笔记卡片</Tag>
-                  <Text>小红书笔记卡片元素</Text>
-                </Space>
-              }
-              extra={
-                <Button 
-                  type="primary" 
-                  icon={<PlayCircleOutlined />}
-                  onClick={() => handleOpenModal(MOCK_NOTE_CARD_ELEMENT, '笔记卡片')}
-                >
-                  测试配置
-                </Button>
-              }
-            >
-              <Descriptions column={2} size="small">
-                <Descriptions.Item label="Resource ID">
-                  {MOCK_NOTE_CARD_ELEMENT.resource_id}
-                </Descriptions.Item>
-                <Descriptions.Item label="Content Desc">
-                  {MOCK_NOTE_CARD_ELEMENT.content_desc}
-                </Descriptions.Item>
-                <Descriptions.Item label="Class Name">
-                  {MOCK_NOTE_CARD_ELEMENT.class_name}
-                </Descriptions.Item>
-                <Descriptions.Item label="子元素数量">
-                  {MOCK_NOTE_CARD_ELEMENT.children.length}
-                </Descriptions.Item>
-              </Descriptions>
-              <div style={{ marginTop: 8 }}>
-                <Text type="secondary">
-                  <strong>特征:</strong> content-desc包含"笔记"、"来自"、"赞"等关键词，
-                  系统应该自动识别为笔记卡片并应用对应的配置模板
-                </Text>
-              </div>
-            </Card>
-
-            {/* 普通按钮样本 */}
-            <Card 
-              title={
-                <Space>
-                  <Tag color="green">普通按钮</Tag>
-                  <Text>通用点击按钮元素</Text>
-                </Space>
-              }
-              extra={
-                <Button 
-                  type="primary" 
-                  icon={<PlayCircleOutlined />}
-                  onClick={() => handleOpenModal(MOCK_BUTTON_ELEMENT, '普通按钮')}
-                >
-                  测试配置
-                </Button>
-              }
-            >
-              <Descriptions column={2} size="small">
-                <Descriptions.Item label="Resource ID">
-                  {MOCK_BUTTON_ELEMENT.resource_id}
-                </Descriptions.Item>
-                <Descriptions.Item label="Text">
-                  {MOCK_BUTTON_ELEMENT.text}
-                </Descriptions.Item>
-                <Descriptions.Item label="Content Desc">
-                  {MOCK_BUTTON_ELEMENT.content_desc}
-                </Descriptions.Item>
-                <Descriptions.Item label="Class Name">
-                  {MOCK_BUTTON_ELEMENT.class_name}
-                </Descriptions.Item>
-              </Descriptions>
-              <div style={{ marginTop: 8 }}>
-                <Text type="secondary">
-                  <strong>特征:</strong> class包含"Button"且clickable为true，
-                  系统应该识别为普通按钮并应用对应的配置模板
-                </Text>
-              </div>
-            </Card>
-
-          </Space>
-        </div>
-
-        <div>
-          <Title level={3}>功能说明</Title>
-          <Card>
-            <Space direction="vertical">
-              <div>
-                <Text strong>🎯 智能识别:</Text>
-                <br />
-                <Text>
-                  系统会根据元素的 content-desc、resource-id、class-name 等特征，
-                  自动识别元素类型并应用最适合的配置模板。
-                </Text>
-              </div>
-              
-              <div>
-                <Text strong>📋 配置模板:</Text>
-                <br />
-                <Text>
-                  • <strong>笔记卡片模板:</strong> Resource-ID完全匹配，Content-Desc都非空即可，Text保持空/非空一致
-                  <br />
-                  • <strong>普通按钮模板:</strong> 重点关注Resource-ID和Text字段的精确匹配
-                </Text>
-              </div>
-              
-              <div>
-                <Text strong>⚙️ 手动调整:</Text>
-                <br />
-                <Text>
-                  即使应用了模板，您仍然可以在配置界面中手动调整每个字段的匹配策略，
-                  以适应特定的业务需求。
-                </Text>
-              </div>
-            </Space>
+          <Card size="small">
+            <div style={{ fontSize: 12, color: '#1f2937' }}>
+              • xmlCacheId: XML 缓存文件名，例如 <code>ui_dump_xxxxx.xml</code>
+              <br />
+              • elementId: 元素 ID，例如 <code>element-43</code>
+              <br />
+              示例：<code>?xmlCacheId=ui_dump_abc.xml&elementId=element-43</code>
+            </div>
           </Card>
+          {loadError && (
+            <div style={{ marginTop: 12 }}>
+              <Alert type="warning" message={loadError} showIcon />
+            </div>
+          )}
+          {!loadError && loading && (
+            <div style={{ marginTop: 12 }}>
+              <Alert type="info" message="正在加载 XML 并定位目标元素..." showIcon />
+            </div>
+          )}
+          {!loading && !loadError && !selectedElement && (
+            <div style={{ marginTop: 12 }}>
+              <Alert type="info" message="请提供 xmlCacheId 与 elementId 参数后刷新本页" showIcon />
+            </div>
+          )}
         </div>
+        <div />
       </Space>
 
       {/* 结构匹配模态框 */}
       <StructuralMatchingModal
         visible={modalVisible}
-        selectedElement={selectedElement}
+        selectedElement={selectedElement || {}}
         onClose={handleModalClose}
         onConfirm={handleConfigConfirm}
       />

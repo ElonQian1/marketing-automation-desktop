@@ -64,43 +64,59 @@ export class XmlParser {
       });
 
       // 🎯 新增：过滤重叠的冗余容器
-      const filteredElements = XmlParser.filterOverlappingContainers(extractedElements);
+      const filteredElements =
+        XmlParser.filterOverlappingContainers(extractedElements);
 
       // 🔍 调试：检查是否解析出"通讯录"元素
-      const contactsElements = extractedElements.filter(el => 
-        el.text?.includes('通讯录') ||
-        el.contentDesc?.includes('通讯录') ||
-        el.description?.includes('通讯录')
+      const contactsElements = extractedElements.filter(
+        (el) =>
+          el.text?.includes("通讯录") ||
+          el.contentDesc?.includes("通讯录") ||
+          el.description?.includes("通讯录")
       );
       if (contactsElements.length > 0) {
         console.log('✅ [XmlParser] 找到"通讯录"元素:');
-        console.table(contactsElements.map(el => ({
-          id: el.id,
-          text: el.text || '(无)',
-          contentDesc: el.contentDesc || '(无)',
-          bounds: `[${el.position.x},${el.position.y}][${el.position.x + el.position.width},${el.position.y + el.position.height}]`,
-          clickable: el.clickable ? '✓' : '✗'
-        })));
+        console.table(
+          contactsElements.map((el) => ({
+            id: el.id,
+            text: el.text || "(无)",
+            contentDesc: el.contentDesc || "(无)",
+            bounds: `[${el.position.x},${el.position.y}][${
+              el.position.x + el.position.width
+            },${el.position.y + el.position.height}]`,
+            clickable: el.clickable ? "✓" : "✗",
+          }))
+        );
       } else {
-        console.warn('⚠️ [XmlParser] 未找到"通讯录"元素，总共解析了', extractedElements.length, '个元素');
+        console.warn(
+          '⚠️ [XmlParser] 未找到"通讯录"元素，总共解析了',
+          extractedElements.length,
+          "个元素"
+        );
         // 输出所有可点击元素的文本
-        const clickableElements = extractedElements.filter(el => el.clickable);
-        console.log('📋 [XmlParser] 所有可点击元素（前20个）:');
-        console.table(clickableElements.slice(0, 20).map(el => ({
-          id: el.id,
-          text: el.text || '(无)',
-          contentDesc: el.contentDesc || '(无)',
-          bounds: `[${el.position.x},${el.position.y}][${el.position.x + el.position.width},${el.position.y + el.position.height}]`,
-          clickable: '✓'
-        })));
-      }      // 分析应用和页面信息
-  const appInfo = AppPageAnalyzer.getSimpleAppAndPageInfo(content);
+        const clickableElements = extractedElements.filter(
+          (el) => el.clickable
+        );
+        console.log("📋 [XmlParser] 所有可点击元素（前20个）:");
+        console.table(
+          clickableElements.slice(0, 20).map((el) => ({
+            id: el.id,
+            text: el.text || "(无)",
+            contentDesc: el.contentDesc || "(无)",
+            bounds: `[${el.position.x},${el.position.y}][${
+              el.position.x + el.position.width
+            },${el.position.y + el.position.height}]`,
+            clickable: "✓",
+          }))
+        );
+      } // 分析应用和页面信息
+      const appInfo = AppPageAnalyzer.getSimpleAppAndPageInfo(content);
 
       // 过滤掉空的类别（此变量已移到下方使用过滤后的元素）
 
       // 🔧 Element_43修复：使用过滤后的元素更新分类
       const updatedCategories = ElementCategorizer.createDefaultCategories();
-      filteredElements.forEach(element => {
+      filteredElements.forEach((element) => {
         const category = updatedCategories[element.category];
         if (category) {
           category.elements.push(element);
@@ -112,7 +128,9 @@ export class XmlParser {
         (cat) => cat.elements.length > 0
       );
 
-      console.log(`🎯 [XmlParser] Element_43修复完成: ${extractedElements.length} -> ${filteredElements.length} 元素`);
+      console.log(
+        `🎯 [XmlParser] Element_43修复完成: ${extractedElements.length} -> ${filteredElements.length} 元素`
+      );
 
       return {
         elements: filteredElements,
@@ -149,28 +167,40 @@ export class XmlParser {
     const position = BoundsParser.parseBounds(bounds);
 
     // 🔍 菜单元素调试：检查是否为菜单元素
-    if (text === '菜单' || contentDesc === '菜单' || bounds === '[39,143][102,206]') {
-      console.log('🎯 [XmlParser] 菜单元素解析过程:', {
-        原始XML属性: { bounds, text, contentDesc, className, clickable, resourceId },
+    if (
+      text === "菜单" ||
+      contentDesc === "菜单" ||
+      bounds === "[39,143][102,206]"
+    ) {
+      console.log("🎯 [XmlParser] 菜单元素解析过程:", {
+        原始XML属性: {
+          bounds,
+          text,
+          contentDesc,
+          className,
+          clickable,
+          resourceId,
+        },
         解析后position: position,
-        elementId: `element-${index}`
+        elementId: `element-${index}`,
       });
     }
 
     // 基本有效性检查
-    if (
-      !this.isValidElement(
-        bounds,
-        text,
-        contentDesc,
-        clickable,
-        position
-      )
-    ) {
+    if (!this.isValidElement(bounds, text, contentDesc, clickable, position)) {
       // 🔍 菜单元素调试：如果菜单元素被过滤
-      if (text === '菜单' || contentDesc === '菜单' || bounds === '[39,143][102,206]') {
-        console.warn('❌ [XmlParser] 菜单元素未通过有效性检查!', {
-          bounds, text, contentDesc, clickable, position, options
+      if (
+        text === "菜单" ||
+        contentDesc === "菜单" ||
+        bounds === "[39,143][102,206]"
+      ) {
+        console.warn("❌ [XmlParser] 菜单元素未通过有效性检查!", {
+          bounds,
+          text,
+          contentDesc,
+          clickable,
+          position,
+          options,
         });
       }
       return null;
@@ -185,7 +215,7 @@ export class XmlParser {
     // 注意：不使用过滤后的 index，而是使用 XML 中的原始顺序
     // 这样 element-41 在前端和后端都指向同一个 XML 节点
     const elementId = `element-${index}`;
-    
+
     return {
       id: elementId,
       text: text,
@@ -198,7 +228,7 @@ export class XmlParser {
       importance,
       userFriendlyName,
       // 🔧 新增：保存原始 XML index 和 bounds 用于精确匹配
-      xmlIndex: index,  // 原始 XML 索引
+      xmlIndex: index, // 原始 XML 索引
       resourceId: resourceId || undefined,
       contentDesc: contentDesc || undefined,
       className: className || undefined,
@@ -210,19 +240,21 @@ export class XmlParser {
    * 🎯 Element_43修复：过滤重叠的冗余容器
    * 解决外层不可点击容器与内层可点击容器重叠的问题
    */
-  private static filterOverlappingContainers(elements: VisualUIElement[]): VisualUIElement[] {
+  private static filterOverlappingContainers(
+    elements: VisualUIElement[]
+  ): VisualUIElement[] {
     const filtered: VisualUIElement[] = [];
     const processedBounds = new Set<string>();
 
-    elements.forEach(element => {
+    elements.forEach((element) => {
       if (!element.bounds) {
         filtered.push(element);
         return;
       }
 
       // 检查是否有相同bounds的其他元素
-      const sameBoundsElements = elements.filter(other => 
-        other.bounds === element.bounds && other.id !== element.id
+      const sameBoundsElements = elements.filter(
+        (other) => other.bounds === element.bounds && other.id !== element.id
       );
 
       if (sameBoundsElements.length === 0) {
@@ -237,16 +269,21 @@ export class XmlParser {
 
         // 找出所有相同bounds的元素，选择最优的保留
         const allSameBounds = [element, ...sameBoundsElements];
-        const bestElement = XmlParser.selectBestElementFromOverlapping(allSameBounds);
-        
+        const bestElement =
+          XmlParser.selectBestElementFromOverlapping(allSameBounds);
+
         filtered.push(bestElement);
         processedBounds.add(element.bounds);
 
-        console.log(`🔧 [XmlParser] 处理重叠bounds ${element.bounds}: 从${allSameBounds.length}个元素中选择了 ${bestElement.id}`);
+        console.log(
+          `🔧 [XmlParser] 处理重叠bounds ${element.bounds}: 从${allSameBounds.length}个元素中选择了 ${bestElement.id}`
+        );
       }
     });
 
-    console.log(`✅ [XmlParser] 重叠过滤完成: ${elements.length} -> ${filtered.length} 元素`);
+    console.log(
+      `✅ [XmlParser] 重叠过滤完成: ${elements.length} -> ${filtered.length} 元素`
+    );
     return filtered;
   }
 
@@ -254,29 +291,31 @@ export class XmlParser {
    * 🎯 从重叠元素中选择最佳元素
    * 优先级：可点击 > 有文本内容 > 有content-desc > XML顺序靠后（更内层）
    */
-  private static selectBestElementFromOverlapping(elements: VisualUIElement[]): VisualUIElement {
+  private static selectBestElementFromOverlapping(
+    elements: VisualUIElement[]
+  ): VisualUIElement {
     // 1. 优先选择可点击的元素
-    const clickableElements = elements.filter(e => e.clickable);
+    const clickableElements = elements.filter((e) => e.clickable);
     if (clickableElements.length === 1) {
       return clickableElements[0];
     }
     if (clickableElements.length > 1) {
       // 多个可点击，选择XML顺序靠后的（更内层）
-      return clickableElements.reduce((best, current) => 
+      return clickableElements.reduce((best, current) =>
         (current.xmlIndex || 0) > (best.xmlIndex || 0) ? current : best
       );
     }
 
     // 2. 没有可点击的，选择有内容的元素
-    const elementsWithContent = elements.filter(e => e.text || e.contentDesc);
+    const elementsWithContent = elements.filter((e) => e.text || e.contentDesc);
     if (elementsWithContent.length > 0) {
-      return elementsWithContent.reduce((best, current) => 
+      return elementsWithContent.reduce((best, current) =>
         (current.xmlIndex || 0) > (best.xmlIndex || 0) ? current : best
       );
     }
 
     // 3. 都没有内容，选择XML顺序靠后的（更内层）
-    return elements.reduce((best, current) => 
+    return elements.reduce((best, current) =>
       (current.xmlIndex || 0) > (best.xmlIndex || 0) ? current : best
     );
   }
@@ -299,7 +338,7 @@ export class XmlParser {
     position: { width: number; height: number }
   ): boolean {
     // 🔥 基础有效性检查
-    
+
     // 边界有效性检查
     if (!bounds || bounds === "[0,0][0,0]") {
       return false;
