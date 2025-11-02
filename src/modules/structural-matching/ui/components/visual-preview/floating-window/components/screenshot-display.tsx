@@ -58,7 +58,8 @@ export function ScreenshotDisplay({
 
   // 计算裁剪样式
   const getCropStyle = (): React.CSSProperties => {
-    if (!cropConfig || !imageLoaded) {
+    // 仅用于回退渲染路径（不走 AlignedImageDisplay）
+    if (!cropConfig) {
       return {};
     }
 
@@ -115,7 +116,7 @@ export function ScreenshotDisplay({
 
   // 渲染元素边框覆盖层
   const renderElementOverlays = () => {
-    if (!elementTreeData || !cropConfig || !imageLoaded) {
+    if (!elementTreeData || !cropConfig) {
       return null;
     }
 
@@ -291,7 +292,7 @@ export function ScreenshotDisplay({
       }}
     >
       {/* 使用对齐的图片显示组件 */}
-      {viewportAlignment && cropConfig && imageLoaded ? (
+      {viewportAlignment && cropConfig ? (
         <AlignedImageDisplay
           imageUrl={screenshotUrl}
           cropConfig={cropConfig}
@@ -334,21 +335,25 @@ export function ScreenshotDisplay({
       )}
 
       {/* 元素覆盖层 */}
-      {imageLoaded && (
+      {
         <div
           className="element-overlays"
           style={{
             position: "absolute",
             top: 0,
             left: 0,
-            width: "100%",
-            height: "100%",
+            width: viewportAlignment
+              ? viewportAlignment.imageDisplay.containerSize.width
+              : "100%",
+            height: viewportAlignment
+              ? viewportAlignment.imageDisplay.containerSize.height
+              : "100%",
             pointerEvents: "none",
           }}
         >
           {renderElementOverlays()}
         </div>
-      )}
+      }
     </div>
   );
 }

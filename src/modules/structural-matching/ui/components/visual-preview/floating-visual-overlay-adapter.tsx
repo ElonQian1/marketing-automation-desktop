@@ -44,12 +44,38 @@ function convertToStepCardData(selectedElement: Record<string, unknown> | null):
     text?: string;
     resourceId?: string;
     className?: string;
+    clickable?: boolean;
+    contentDesc?: string;
+    content_desc?: string;
+    description?: string;
     [key: string]: unknown;
   };
 
   type BoundsObject = { left: number; top: number; right: number; bottom: number };
 
   const element = actualElement as KnownElement;
+
+  const parseBoundsString = (bounds: string | undefined) => {
+    if (!bounds) return undefined;
+
+    const match = bounds.match(/\[(\-?\d+)\s*,\s*(\-?\d+)\]\[(\-?\d+)\s*,\s*(\-?\d+)\]/);
+    if (!match) return undefined;
+
+    const [, left, top, right, bottom] = match.map(Number);
+    const width = right - left;
+    const height = bottom - top;
+
+    if (Number.isNaN(left) || Number.isNaN(top) || Number.isNaN(width) || Number.isNaN(height)) {
+      return undefined;
+    }
+
+    return {
+      x: left,
+      y: top,
+      width,
+      height,
+    };
+  };
 
   // 处理bounds字段 - 确保转换为字符串格式
   let boundsString: string | undefined;
@@ -60,26 +86,33 @@ function convertToStepCardData(selectedElement: Record<string, unknown> | null):
     boundsString = `[${boundsObj.left},${boundsObj.top}][${boundsObj.right},${boundsObj.bottom}]`;
   }
 
+  const resolvedPosition = (() => {
+    if (element.bounds && typeof element.bounds === 'object') {
+      const boundsObj = element.bounds as BoundsObject;
+      return {
+        x: boundsObj.left,
+        y: boundsObj.top,
+        width: boundsObj.right - boundsObj.left,
+        height: boundsObj.bottom - boundsObj.top,
+      };
+    }
+    return parseBoundsString(boundsString);
+  })();
+
   // 创建兼容的original_element
   const compatibleElement: VisualUIElement = {
     id: element.id || '',
     text: element.text || '',
-    description: '', // 默认值
+    description: element.description || element.contentDesc || element.content_desc || '',
     type: element.className || '',
     category: 'unknown', // 默认分类
-    position: element.bounds && typeof element.bounds === 'object' 
-      ? {
-          x: (element.bounds as BoundsObject).left || 0,
-          y: (element.bounds as BoundsObject).top || 0,
-          width: ((element.bounds as BoundsObject).right || 0) - ((element.bounds as BoundsObject).left || 0),
-          height: ((element.bounds as BoundsObject).bottom || 0) - ((element.bounds as BoundsObject).top || 0),
-        }
-      : { x: 0, y: 0, width: 0, height: 0 },
-    clickable: true,
+    position: resolvedPosition || { x: 0, y: 0, width: 0, height: 0 },
+    clickable: element.clickable ?? true,
     importance: 'medium' as const,
     userFriendlyName: element.text || element.id || '',
     resourceId: element.resourceId,
     className: element.className,
+    contentDesc: element.contentDesc || element.content_desc,
     bounds: boundsString, // 使用转换后的字符串格式
   };
 

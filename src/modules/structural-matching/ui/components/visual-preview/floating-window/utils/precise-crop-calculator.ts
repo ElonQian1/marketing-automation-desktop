@@ -257,3 +257,75 @@ function calculateOverlapArea(
 
   return (right - left) * (bottom - top);
 }
+
+/**
+ * 根据目标元素ID计算智能裁剪（以该元素为“预览根”）
+ * - 若找不到目标元素，则退回默认 calculateSmartCrop 行为
+ */
+export function calculateSmartCropForElement(
+  elementTreeData: ElementTreeData,
+  targetElementId: string,
+  screenSize?: { width: number; height: number }
+): CropConfig {
+  const defaultScreenSize = { width: 1080, height: 1920 };
+  const actualScreenSize = screenSize || defaultScreenSize;
+
+  // 命中目标元素（支持根或子元素）
+  const { rootElement, childElements } = elementTreeData;
+  const target =
+    rootElement.id === targetElementId
+      ? rootElement
+      : childElements.find((e) => e.id === targetElementId);
+
+  if (!target || !target.position) {
+    return calculateSmartCrop(elementTreeData, actualScreenSize);
+  }
+
+  // 以目标元素为中心做一个更小的裁剪框（保留少量 padding）
+  const padding = 24;
+  const cropArea = {
+    x: Math.max(0, target.position.x - padding),
+    y: Math.max(0, target.position.y - padding),
+    width: target.position.width + padding * 2,
+    height: target.position.height + padding * 2,
+  };
+
+  // 约束到合理范围（最小/最大），并与屏幕比例协同
+  const minSize = { width: 240, height: 180 };
+  const maxSize = {
+    width: Math.floor(actualScreenSize.width * 0.9),
+    height: Math.floor(actualScreenSize.height * 0.7),
+  };
+
+  let w = cropArea.width;
+  let h = cropArea.height;
+  let x = cropArea.x;
+  let y = cropArea.y;
+
+  if (w < minSize.width) {
+    const d = minSize.width - w;
+    x = Math.max(0, x - d / 2);
+    w = minSize.width;
+  }
+  if (h < minSize.height) {
+    const d = minSize.height - h;
+    y = Math.max(0, y - d / 2);
+    h = minSize.height;
+  }
+  if (w > maxSize.width) {
+    const d = w - maxSize.width;
+    x = x + d / 2;
+    w = maxSize.width;
+  }
+  if (h > maxSize.height) {
+    const d = h - maxSize.height;
+    y = y + d / 2;
+    h = maxSize.height;
+  }
+
+  return {
+    cropArea: { x: Math.round(x), y: Math.round(y), width: Math.round(w), height: Math.round(h) },
+    scale: 1,
+    offset: { x: 0, y: 0 },
+  };
+}

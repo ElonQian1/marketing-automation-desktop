@@ -5,7 +5,8 @@
 import React, { useState, useEffect } from "react";
 import { FloatingVisualWindowProps, WindowState } from "../types";
 import { useStepCardData } from "../hooks/use-step-card-data";
-import { calculateSmartCrop } from "../utils/precise-crop-calculator";
+import { calculateSmartCrop, calculateSmartCropForElement } from "../utils/precise-crop-calculator";
+import type { CropConfig } from "../types";
 import { calculateViewportAlignment } from "../utils/viewport-alignment";
 import {
   correctElementBounds,
@@ -29,10 +30,10 @@ export function FloatingVisualWindow({
   const { loadingState, elementTreeData, screenshotUrl, reload } =
     useStepCardData(stepCardData);
 
-  // 计算裁剪配置
-  const cropConfig = elementTreeData
-    ? calculateSmartCrop(elementTreeData)
-    : undefined;
+  // 裁剪配置（可基于当前选中/高亮元素动态重算）
+  const [cropConfig, setCropConfig] = useState<CropConfig | undefined>(() =>
+    elementTreeData ? calculateSmartCrop(elementTreeData) : undefined
+  );
 
   // 计算最佳视口对齐
   const viewportAlignment =
@@ -47,7 +48,7 @@ export function FloatingVisualWindow({
     isMinimized: false,
   }));
 
-  // 当viewport alignment计算完成时,更新窗口状态
+  // 当计算完成或依赖变化时，更新窗口状态
   // 只依赖具体的值,而非整个对象引用,避免无限循环
   useEffect(() => {
     if (viewportAlignment) {
@@ -65,6 +66,15 @@ export function FloatingVisualWindow({
     viewportAlignment?.windowSize.width,
     viewportAlignment?.windowSize.height,
   ]);
+
+  // 当元素树数据变化时，初始化裁剪为“根元素”
+  useEffect(() => {
+    if (elementTreeData) {
+      setCropConfig(calculateSmartCrop(elementTreeData));
+    } else {
+      setCropConfig(undefined);
+    }
+  }, [elementTreeData]);
 
   // 选中的元素
   const [selectedElementId, setSelectedElementId] = useState<string | null>(
@@ -93,6 +103,17 @@ export function FloatingVisualWindow({
   const handleElementHover = (elementId: string | null) => {
     setHoveredElementId(elementId);
   };
+
+  // 焦点元素变化时，按目标元素重算裁剪区域（优先选中，其次悬停）
+  useEffect(() => {
+    if (!elementTreeData) return;
+    const focusId = selectedElementId || hoveredElementId;
+    if (focusId) {
+      setCropConfig(calculateSmartCropForElement(elementTreeData, focusId));
+    } else {
+      setCropConfig(calculateSmartCrop(elementTreeData));
+    }
+  }, [selectedElementId, hoveredElementId, elementTreeData]);
 
   // 渲染加载状态
   const renderLoadingContent = () => (
