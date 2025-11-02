@@ -228,43 +228,54 @@ export function useStepCardData(stepCardData?: StepCardData) {
       });
 
       try {
-        // 1. 从缓存获取XML
-        console.log("🔍 从缓存获取XML:", data.xmlCacheId);
-        const xmlCacheManager = XmlCacheManager.getInstance();
-        const cacheEntry = await xmlCacheManager.getCachedXml(data.xmlCacheId);
-
-        if (!cacheEntry?.xmlContent) {
-          throw new Error("XML缓存数据不存在");
+        // 1) XML 优先来源：步骤卡片内联快照
+        let effectiveXmlContent: string | null = null;
+        if (data.xmlSnapshot?.xmlContent && data.xmlSnapshot.xmlContent.trim().length > 0) {
+          effectiveXmlContent = data.xmlSnapshot.xmlContent;
+          console.log("✅ 使用步骤卡片内联 XML 内容 (xmlSnapshot.xmlContent)");
+        } else {
+          // 回退：从缓存ID获取
+          console.log("🔍 从缓存获取XML:", data.xmlCacheId);
+          const xmlCacheManager = XmlCacheManager.getInstance();
+          const cacheEntry = await xmlCacheManager.getCachedXml(data.xmlCacheId!);
+          if (!cacheEntry?.xmlContent) {
+            throw new Error("XML缓存数据不存在");
+          }
+          effectiveXmlContent = cacheEntry.xmlContent;
+          console.log("✅ XML加载成功，长度:", cacheEntry.xmlContent.length);
         }
 
-        setXmlContent(cacheEntry.xmlContent);
-        console.log("✅ XML加载成功，长度:", cacheEntry.xmlContent.length);
+        setXmlContent(effectiveXmlContent);
 
-        // 2. 解析元素结构树
+        // 2) 解析元素结构树
         setLoadingState({
           isLoading: true,
           loadingText: "正在解析元素结构...",
         });
 
         const treeData = await parseElementTreeData(
-          cacheEntry.xmlContent,
-          data.original_element,
+          effectiveXmlContent,
+          data.original_element!,
           data
         );
         setElementTreeData(treeData);
 
-        // 3. 加载截图
+        // 3) 截图 优先来源：步骤卡片中提供的绝对路径
         setLoadingState({
           isLoading: true,
           loadingText: "正在加载截图...",
         });
 
-        const screenshotFilename = inferScreenshotPath(data.xmlCacheId);
-        const absolutePath = await getScreenshotAbsolutePath(
-          screenshotFilename
-        );
-        const dataUrl = await imageCache.loadDataUrlWithCache(absolutePath);
+        let screenshotAbsolute: string;
+        if (data.xmlSnapshot?.screenshotAbsolutePath) {
+          screenshotAbsolute = data.xmlSnapshot.screenshotAbsolutePath;
+          console.log("✅ 使用步骤卡片提供的截图绝对路径:", screenshotAbsolute);
+        } else {
+          const screenshotFilename = inferScreenshotPath(data.xmlCacheId!);
+          screenshotAbsolute = await getScreenshotAbsolutePath(screenshotFilename);
+        }
 
+        const dataUrl = await imageCache.loadDataUrlWithCache(screenshotAbsolute);
         setScreenshotUrl(dataUrl);
         console.log("✅ 截图加载成功");
 

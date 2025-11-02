@@ -15,88 +15,109 @@ export function calculateViewportAlignment(
 ): ViewportAlignment {
   const { cropArea } = cropConfig;
 
-  // 调试日志已禁用以避免性能问题
-  // console.log("🎯 [ViewportAlignment] 开始计算视口对齐:", {
-  //   cropArea,
-  //   mousePosition,
-  //   screenSize,
-  // });
-
-  // 1. 计算最佳窗口尺寸
-  // 基于裁剪区域，但添加一些边距用于UI元素
-  const uiPadding = { width: 40, height: 80 }; // 工具栏和边框
+  // 1. 基础参数与安全兜底
+  const uiPadding = { width: 40, height: 80 }; // 工具栏和边框所需的额外空间
   const minWindowSize = { width: 400, height: 300 };
   const maxWindowSize = {
     width: Math.min(1200, screenSize.width * 0.8),
     height: Math.min(900, screenSize.height * 0.8),
   };
 
-  let optimalWidth = Math.max(
-    minWindowSize.width,
-    Math.min(maxWindowSize.width, cropArea.width + uiPadding.width)
-  );
-  let optimalHeight = Math.max(
-    minWindowSize.height,
-    Math.min(maxWindowSize.height, cropArea.height + uiPadding.height)
-  );
+  const safeCropWidth = Math.max(1, cropArea.width);
+  const safeCropHeight = Math.max(1, cropArea.height);
 
-  // 2. 计算图片显示配置
-  const contentArea = {
-    width: optimalWidth - uiPadding.width,
-    height: optimalHeight - uiPadding.height,
+  const innerMinSize = {
+    width: Math.max(0, minWindowSize.width - uiPadding.width),
+    height: Math.max(0, minWindowSize.height - uiPadding.height),
   };
 
-  // 计算缩放比例，确保裁剪区域完整显示
-  const scaleX = contentArea.width / cropArea.width;
-  const scaleY = contentArea.height / cropArea.height;
-  const optimalScale = Math.min(scaleX, scaleY, 1); // 不放大，只缩小
+  const innerMaxSize = {
+    width: Math.max(innerMinSize.width, maxWindowSize.width - uiPadding.width),
+    height: Math.max(
+      innerMinSize.height,
+      maxWindowSize.height - uiPadding.height
+    ),
+  };
 
-  // 如果需要缩放，调整窗口尺寸以匹配
+  // 2. 计算缩放比例，确保裁剪区域完整显示且不放大
+  const scaleToFit = Math.min(
+    1,
+    innerMaxSize.width / safeCropWidth,
+    innerMaxSize.height / safeCropHeight
+  );
+
   const scaledCropSize = {
-    width: cropArea.width * optimalScale,
-    height: cropArea.height * optimalScale,
+    width: safeCropWidth * scaleToFit,
+    height: safeCropHeight * scaleToFit,
   };
 
-  optimalWidth = scaledCropSize.width + uiPadding.width;
-  optimalHeight = scaledCropSize.height + uiPadding.height;
+  // 3. 计算最终容器尺寸，最小不低于 innerMin，最大由 innerMax 限制
+  const containerSize = {
+    width: Math.max(innerMinSize.width, scaledCropSize.width),
+    height: Math.max(innerMinSize.height, scaledCropSize.height),
+  };
 
-  // 3. 计算窗口位置
-  let windowX = 100;
-  let windowY = 100;
+  const windowSize = {
+    width: containerSize.width + uiPadding.width,
+    height: containerSize.height + uiPadding.height,
+  };
+
+  // 4. 当容器尺寸大于缩放后尺寸时，使用偏移量居中图片
+  const imageOffset = {
+    x: (containerSize.width - scaledCropSize.width) / 2,
+    y: (containerSize.height - scaledCropSize.height) / 2,
+  };
+
+  // 5. 计算窗口位置：优先跟随鼠标，其次根据元素边界智能定位
+  let windowPosition: { x: number; y: number };
 
   if (mousePosition) {
-    // 基于鼠标位置，确保窗口不超出屏幕
-    windowX = Math.max(
-      20,
+    const margin = 20;
+    const clampedX = Math.max(
+      margin,
       Math.min(
-        screenSize.width - optimalWidth - 20,
-        mousePosition.x - optimalWidth / 2
+        screenSize.width - windowSize.width - margin,
+        mousePosition.x - windowSize.width / 2
       )
     );
-    windowY = Math.max(
-      20,
-      Math.min(screenSize.height - optimalHeight - 20, mousePosition.y + 30)
+    const clampedY = Math.max(
+      margin,
+      Math.min(
+        screenSize.height - windowSize.height - margin,
+        mousePosition.y + 30
+      )
+    );
+
+    windowPosition = {
+      x: Math.round(clampedX),
+      y: Math.round(clampedY),
+    };
+  } else {
+    windowPosition = calculateSmartWindowPosition(
+      elementTreeData.bounds,
+      { width: windowSize.width, height: windowSize.height },
+      screenSize
     );
   }
 
-  // 4. 计算图片在容器内的位置偏移
-  const imageOffset = {
-    x: (contentArea.width - scaledCropSize.width) / 2,
-    y: (contentArea.height - scaledCropSize.height) / 2,
-  };
-
   const result: ViewportAlignment = {
-    windowSize: { width: optimalWidth, height: optimalHeight },
-    windowPosition: { x: windowX, y: windowY },
+    windowSize: {
+      width: Math.round(windowSize.width),
+      height: Math.round(windowSize.height),
+    },
+    windowPosition,
     imageDisplay: {
-      scale: optimalScale,
-      offset: imageOffset,
-      containerSize: contentArea,
+      scale: scaleToFit,
+      offset: {
+        x: Math.round(imageOffset.x),
+        y: Math.round(imageOffset.y),
+      },
+      containerSize: {
+        width: Math.round(containerSize.width),
+        height: Math.round(containerSize.height),
+      },
     },
   };
-
-  // 调试日志已禁用以避免性能问题
-  // console.log("✅ [ViewportAlignment] 计算完成:", result);
 
   return result;
 }

@@ -119,8 +119,11 @@ export function ScreenshotDisplay({
       return null;
     }
 
-    const { rootElement, childElements } = elementTreeData;
-    const { cropArea } = cropConfig;
+  const { rootElement, childElements } = elementTreeData;
+  const { cropArea } = cropConfig;
+  const displayConfig = viewportAlignment?.imageDisplay;
+  const scale = displayConfig?.scale ?? 1;
+  const offset = displayConfig?.offset ?? { x: 0, y: 0 };
 
     // 调试日志已禁用以避免性能问题
     // console.log("🎨 [ScreenshotDisplay] 渲染元素覆盖层:", {
@@ -172,6 +175,17 @@ export function ScreenshotDisplay({
     const rootBounds = calculateRelativePosition(rootElement);
     if (!rootBounds) return null;
 
+    const toScaledBounds = (
+      bounds: { x: number; y: number; width: number; height: number }
+    ) => ({
+      left: bounds.x * scale + offset.x,
+      top: bounds.y * scale + offset.y,
+      width: Math.max(1, bounds.width * scale),
+      height: Math.max(1, bounds.height * scale),
+    });
+
+    const scaledRoot = toScaledBounds(rootBounds);
+
     return (
       <>
         {/* 根元素边框 */}
@@ -180,10 +194,10 @@ export function ScreenshotDisplay({
           className="element-overlay root-element"
           style={{
             position: "absolute",
-            left: rootBounds.x,
-            top: rootBounds.y,
-            width: rootBounds.width,
-            height: rootBounds.height,
+            left: scaledRoot.left,
+            top: scaledRoot.top,
+            width: scaledRoot.width,
+            height: scaledRoot.height,
             border: "2px solid #722ed1",
             borderRadius: "4px",
             pointerEvents: "none",
@@ -207,6 +221,7 @@ export function ScreenshotDisplay({
           if (!isVisible) return null;
 
           const isHovered = hoveredElementId === element.id;
+          const scaledChild = toScaledBounds(relativeBounds);
 
           return (
             <div
@@ -216,10 +231,10 @@ export function ScreenshotDisplay({
               }`}
               style={{
                 position: "absolute",
-                left: relativeBounds.x,
-                top: relativeBounds.y,
-                width: relativeBounds.width,
-                height: relativeBounds.height,
+                left: scaledChild.left,
+                top: scaledChild.top,
+                width: scaledChild.width,
+                height: scaledChild.height,
                 border: `1px solid ${isHovered ? "#ff6b6b" : "#52c41a"}`,
                 borderRadius: "2px",
                 backgroundColor: isHovered

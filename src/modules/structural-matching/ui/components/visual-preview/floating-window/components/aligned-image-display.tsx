@@ -110,27 +110,36 @@ export function AlignedImageDisplay({
     if (process.env.NODE_ENV === "development") {
       // 使用简化的日志避免性能问题
       console.debug("🎨 [AlignedImageDisplay] 样式计算:", {
-        cropSize: `${cropArea.width}x${cropArea.height}`,
+        cropArea: `[${cropArea.x},${cropArea.y}] ${cropArea.width}x${cropArea.height}`,
         scale: imageDisplay.scale.toFixed(2),
         containerSize: `${imageDisplay.containerSize.width}x${imageDisplay.containerSize.height}`,
+        imageNaturalSize: `${imageNaturalSize.width}x${imageNaturalSize.height}`,
       });
     }
 
-    // 🔧 修复: 分离定位和裁剪逻辑，避免复杂的负值计算
-    return {
+    // 🔧 修复: 直接使用负定位来实现裁剪，不叠加offset和transform
+    // 原理：容器尺寸=裁剪区域尺寸，图片通过负定位让裁剪区域对齐到容器(0,0)
+    const fixedStyle: React.CSSProperties = {
       position: "absolute" as const,
-      left: imageDisplay.offset.x, // 只用offset做容器内居中
-      top: imageDisplay.offset.y, // 只用offset做容器内居中
+      left: imageDisplay.offset.x - cropArea.x * imageDisplay.scale, // ✅ 偏移 + 负定位实现裁剪
+      top: imageDisplay.offset.y - cropArea.y * imageDisplay.scale, // ✅ 偏移 + 负定位实现裁剪
       width: imageNaturalSize.width * imageDisplay.scale,
       height: imageNaturalSize.height * imageDisplay.scale,
-      // 用transform处理裁剪区域偏移，更精确且直观
-      transform: `translate(-${cropArea.x * imageDisplay.scale}px, -${
-        cropArea.y * imageDisplay.scale
-      }px)`,
-      transformOrigin: "0 0", // 确保变换从左上角开始
       maxWidth: "none",
       maxHeight: "none",
+      // 移除 transform，避免与定位叠加导致偏移错误
     };
+
+    if (process.env.NODE_ENV === "development") {
+      console.debug("🎨 [AlignedImageDisplay] 图片定位:", {
+        left: fixedStyle.left,
+        top: fixedStyle.top,
+        width: fixedStyle.width,
+        height: fixedStyle.height,
+      });
+    }
+
+    return fixedStyle;
   }, [imageLoaded, cropConfig, viewportAlignment, imageNaturalSize]);
 
   // 使用useMemo缓存容器样式

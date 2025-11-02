@@ -21,6 +21,15 @@ export interface StepCardData {
   original_element?: VisualUIElement;
   /** XML缓存ID */
   xmlCacheId?: string;
+  /** 可选：步骤卡片内联的XML/截图快照 */
+  xmlSnapshot?: {
+    /** 直接内联的XML内容（优先使用，避免异步缓存缺失） */
+    xmlContent?: string;
+    /** 可选：XML哈希，用于调试/回查 */
+    xmlHash?: string;
+    /** 直接的截图绝对路径（优先使用，避免推断失败） */
+    screenshotAbsolutePath?: string;
+  };
   /** 元素上下文信息 */
   elementContext?: {
     xpath?: string;
