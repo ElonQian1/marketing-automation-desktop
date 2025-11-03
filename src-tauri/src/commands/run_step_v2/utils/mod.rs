@@ -5,6 +5,7 @@
 mod disambiguation;
 mod step_processor;
 mod safety_gates;
+mod sm_matcher;
 
 pub use disambiguation::generate_disambiguation_suggestions;
 pub use step_processor::{
@@ -14,3 +15,4 @@ pub use step_processor::{
     create_dummy_candidate,
 };
 pub use safety_gates::{check_safety_gates, safety_result_to_response, SafetyGateResult};
+pub use sm_matcher::try_structural_matching;

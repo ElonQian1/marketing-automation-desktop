@@ -654,6 +654,7 @@ fn generate_mock_analysis_result(
         is_recommended: false,
         selection_mode: None,
         batch_config: None,
+        structural_signatures: None,  // 🔥 Mock数据不带结构签名
     };
 
     AnalysisResult {

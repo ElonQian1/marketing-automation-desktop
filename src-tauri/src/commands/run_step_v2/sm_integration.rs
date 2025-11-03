@@ -7,7 +7,8 @@ use anyhow::Result;
 use crate::commands::structure_match_runtime::{
     sm_match_once, SmMatchRequest, SmConfigDTO, SmMatchResponse,
 };
-use super::{StructuralSignatures, MatchCandidate, Bounds, BoundsSignature};
+use super::{MatchCandidate, Bounds, BoundsSignature};
+use super::types::StructuralSignatures;
 
 // ================================
 // 临时适配：V2 协议数据结构

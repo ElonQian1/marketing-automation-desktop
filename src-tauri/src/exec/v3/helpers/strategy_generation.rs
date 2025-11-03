@@ -7,6 +7,43 @@ use super::analysis_helpers::truncate_xml_in_json;
 use crate::services::intelligent_analysis_service::{StrategyCandidate, ElementInfo};
 use super::super::types::{StepRefOrInline, InlineStep, SingleStepAction};
 
+/// 从原始参数中提取步骤ID
+/// 
+/// 优先级顺序：
+/// 1. originalParams.stepId 
+/// 2. originalParams.step_id
+/// 3. 顶层参数中的step_id字段
+fn extract_original_step_id(original_params: &serde_json::Value) -> Option<String> {
+    // 策略1: 从 originalParams 中提取
+    if let Some(orig_params) = original_params.get("originalParams") {
+        if let Some(step_id) = orig_params.get("stepId").and_then(|v| v.as_str()) {
+            tracing::info!("🔍 [ID提取] 从 originalParams.stepId 提取: {}", step_id);
+            return Some(step_id.to_string());
+        }
+        if let Some(step_id) = orig_params.get("step_id").and_then(|v| v.as_str()) {
+            tracing::info!("🔍 [ID提取] 从 originalParams.step_id 提取: {}", step_id);
+            return Some(step_id.to_string());
+        }
+    }
+    
+    // 策略2: 从 original_data 中提取
+    if let Some(orig_data) = original_params.get("original_data") {
+        if let Some(step_id) = orig_data.get("step_id").and_then(|v| v.as_str()) {
+            tracing::info!("🔍 [ID提取] 从 original_data.step_id 提取: {}", step_id);
+            return Some(step_id.to_string());
+        }
+    }
+    
+    // 策略3: 从顶层参数提取
+    if let Some(step_id) = original_params.get("step_id").and_then(|v| v.as_str()) {
+        tracing::info!("🔍 [ID提取] 从顶层 step_id 提取: {}", step_id);
+        return Some(step_id.to_string());
+    }
+    
+    tracing::warn!("⚠️ [ID提取] 未找到原始步骤ID，将使用自动生成ID");
+    None
+}
+
 /// 生成策略候选
 /// 
 /// 从评分后的元素列表生成策略候选，取前10个最高分元素
@@ -109,9 +146,12 @@ pub fn select_optimal_strategies(candidates: &[StrategyCandidate]) -> Result<Vec
 /// 转换策略为V3步骤格式
 pub fn convert_strategies_to_v3_steps(
     strategies: &[StrategyCandidate],
-    _original_params: &serde_json::Value
+    original_params: &serde_json::Value
 ) -> Result<Vec<StepRefOrInline>, String> {
     let mut steps = Vec::new();
+    
+    // 🔥 关键修复：提取原始步骤ID以保持配置查找的一致性
+    let original_step_id = extract_original_step_id(original_params);
     
     for (idx, strategy) in strategies.iter().enumerate() {
         // 🔧 关键修复：将策略置信度添加到执行参数中
@@ -129,16 +169,30 @@ pub fn convert_strategies_to_v3_steps(
             }
         }
         
+        // 🔥 使用原始步骤ID（如果存在），否则回退到自动生成ID
+        let step_id = if let Some(orig_id) = &original_step_id {
+            if idx == 0 {
+                // 第一个步骤使用原始ID，以便能找到保存的配置
+                orig_id.clone()
+            } else {
+                // 多个步骤时，其他步骤添加后缀
+                format!("{}_{}", orig_id, idx)
+            }
+        } else {
+            // 回退到原有逻辑
+            format!("intelligent_step_{}", idx + 1)
+        };
+        
         // 🔍 调试：打印实际传递的参数（XML字段简化显示）
         let truncated_params = truncate_xml_in_json(&enhanced_params);
         tracing::info!("🔧 智能步骤参数: step_id={}, params={}", 
-                       format!("intelligent_step_{}", idx + 1), 
+                       &step_id, 
                        serde_json::to_string_pretty(&truncated_params).unwrap_or_default());
         
         let step = StepRefOrInline {
             r#ref: None,
             inline: Some(InlineStep {
-                step_id: format!("intelligent_step_{}", idx + 1),
+                step_id,
                 action: SingleStepAction::SmartTap, // 🔧 修复：使用SmartTap代替SmartSelection
                 params: enhanced_params,
             }),
@@ -270,10 +324,29 @@ pub fn convert_analysis_result_to_v3_steps_with_config(
             }
         }
         
+        // 🔥 使用原始步骤ID（如果存在）
+        let step_id = if let Some(config) = preserved_config {
+            if let Some(orig_id) = extract_original_step_id(config) {
+                if index == 0 {
+                    // 第一个步骤使用原始ID，以便能找到保存的配置
+                    orig_id
+                } else {
+                    // 多个步骤时，其他步骤添加后缀
+                    format!("{}_{}", orig_id, index)
+                }
+            } else {
+                // 回退到原有逻辑
+                format!("intelligent_step_{}", index + 1)
+            }
+        } else {
+            // 没有配置时，使用默认ID
+            format!("intelligent_step_{}", index + 1)
+        };
+
         let step = StepRefOrInline {
             r#ref: None,
             inline: Some(InlineStep {
-                step_id: format!("intelligent_step_{}", index + 1),
+                step_id,
                 action: match candidate.strategy.as_str() {
                     "tap" | "click" | "self_anchor" => SingleStepAction::SmartTap,
                     "find" | "locate" => SingleStepAction::SmartFindElement,

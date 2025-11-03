@@ -56,7 +56,7 @@ pub async fn execute_intelligent_analysis_step(
             let mut found_config = store.get(&inline.step_id)
                 .map(|(strategy, _timestamp)| {
                     tracing::info!("📖 [配置读取] 用 step_id={} 找到配置", inline.step_id);
-                    (strategy.selection_mode.clone(), strategy.batch_config.clone())
+                    strategy.clone()  // 🔥 返回完整的strategy（包括structural_signatures）
                 });
             
             // 🎯 策略2: 如果没找到，尝试从 originalParams 中提取原始 stepId 再查找
@@ -75,9 +75,9 @@ pub async fn execute_intelligent_analysis_step(
                     for possible_key in possible_keys.into_iter().flatten() {
                         if let Some((strategy, _timestamp)) = store.get(possible_key) {
                             tracing::info!("✅ [配置读取-回退] 用原始 step_id={} 找到配置", possible_key);
-                            tracing::info!("   selection_mode={:?}, batch_config={:?}", 
-                                strategy.selection_mode, strategy.batch_config);
-                            found_config = Some((strategy.selection_mode.clone(), strategy.batch_config.clone()));
+                            tracing::info!("   selection_mode={:?}, batch_config={:?}, structural_signatures={:?}", 
+                                strategy.selection_mode, strategy.batch_config, strategy.structural_signatures.is_some());
+                            found_config = Some(strategy.clone());  // 🔥 返回完整的strategy
                             break;
                         }
                     }
@@ -104,8 +104,9 @@ pub async fn execute_intelligent_analysis_step(
     
     // 🔥 合并保存的配置到执行参数
     let mut merged_params = inline.params.clone();
-    if let Some((selection_mode, batch_config)) = saved_config {
-        if let Some(mode) = selection_mode {
+    if let Some(strategy) = saved_config {
+        // 🔥 合并 selection_mode
+        if let Some(mode) = &strategy.selection_mode {
             tracing::info!("🔧 [配置合并] 使用保存的 selection_mode: {}", mode);
             
             // 更新 smartSelection.mode
@@ -115,9 +116,9 @@ pub async fn execute_intelligent_analysis_step(
                     
                     // 如果是批量模式，同时更新 batchConfig
                     if mode == "all" {
-                        if let Some(config) = batch_config {
+                        if let Some(config) = &strategy.batch_config {
                             tracing::info!("🔧 [配置合并] 使用保存的 batchConfig: {:?}", config);
-                            obj.insert("batchConfig".to_string(), config);
+                            obj.insert("batchConfig".to_string(), config.clone());
                         }
                     }
                 }
@@ -128,14 +129,22 @@ pub async fn execute_intelligent_analysis_step(
                     smart_sel.insert("mode".to_string(), serde_json::json!(mode));
                     
                     if mode == "all" {
-                        if let Some(config) = batch_config {
-                            smart_sel.insert("batchConfig".to_string(), config);
+                        if let Some(config) = &strategy.batch_config {
+                            smart_sel.insert("batchConfig".to_string(), config.clone());
                         }
                     }
                     
                     obj.insert("smartSelection".to_string(), serde_json::json!(smart_sel));
                 });
             }
+        }
+        
+        // 🔥 关键修复：合并 structural_signatures
+        if let Some(structural_sigs) = &strategy.structural_signatures {
+            tracing::info!("🏗️ [配置合并] 使用保存的 structural_signatures");
+            merged_params.as_object_mut().map(|obj| {
+                obj.insert("structural_signatures".to_string(), structural_sigs.clone());
+            });
         }
     }
     
