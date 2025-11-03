@@ -7,12 +7,16 @@ mod sm_integration;
 mod validation;
 mod types;
 mod matching;
+mod execution;
 
 // 重导出 types 模块的公共类型（供外部模块使用）
 pub use types::*;
 
 // 重导出 matching 模块的功能
 use matching::{UnifiedScoringCore, resolve_selector_with_priority, SelectorSource, coord_fallback_hit_test};
+
+// 重导出 execution 模块的功能
+use execution::execute_v2_action_with_coords;
 
 use tauri::{command, AppHandle};
 use serde::{Deserialize, Serialize};
@@ -540,154 +544,6 @@ async fn execute_v2_step(app_handle: AppHandle, req: &RunStepRequestV2) -> Resul
             format!("匹配: 置信度{:.1}%", match_info.confidence * 100.0),
             format!("执行: {} ({}ms)", exec_result.action, exec_result.execution_time_ms),
         ]),
-    })
-}
-
-// 执行V2操作（使用匹配到的坐标）
-async fn execute_v2_action_with_coords(step: &serde_json::Value, device_id: &str, match_candidate: &MatchCandidate) -> Result<ExecInfo, String> {
-    let start_time = std::time::Instant::now();
-    
-    // 检测 ADB 路径
-    let adb_path = if std::path::Path::new("platform-tools/adb.exe").exists() {
-        "platform-tools/adb.exe"
-    } else if std::path::Path::new("D:\\leidian\\LDPlayer9\\adb.exe").exists() {
-        "D:\\leidian\\LDPlayer9\\adb.exe"
-    } else {
-        "adb"
-    };
-    
-    // 解析前端 StepPayload 结构中的操作信息
-    let action_type = step.get("action")
-        .and_then(|v| v.as_str())
-        .unwrap_or("tap");
-    
-    let action_result = match action_type {
-        "tap" | "doubleTap" | "longPress" => {
-            // 优先使用匹配元素的坐标，如果匹配失败则使用步骤中的坐标
-            let (x, y) = if match_candidate.confidence > 0.0 {
-                // 使用匹配到的元素中心点
-                let bounds = &match_candidate.bounds;
-                let calc_x = (bounds.left + bounds.right) / 2;
-                let calc_y = (bounds.top + bounds.bottom) / 2;
-                tracing::info!("🐛 V2坐标计算: bounds=({},{},{},{}) -> center=({},{})", 
-                             bounds.left, bounds.top, bounds.right, bounds.bottom, calc_x, calc_y);
-                (calc_x, calc_y)
-            } else if let Some(bounds) = step.get("bounds") {
-                let left = bounds.get("left").and_then(|v| v.as_f64()).unwrap_or(100.0) as i32;
-                let top = bounds.get("top").and_then(|v| v.as_f64()).unwrap_or(100.0) as i32;
-                let right = bounds.get("right").and_then(|v| v.as_f64()).unwrap_or(200.0) as i32;
-                let bottom = bounds.get("bottom").and_then(|v| v.as_f64()).unwrap_or(200.0) as i32;
-                ((left + right) / 2, (top + bottom) / 2) // 计算中心点
-            } else if let Some(offset) = step.get("offset") {
-                let x = offset.get("x").and_then(|v| v.as_f64()).unwrap_or(100.0) as i32;
-                let y = offset.get("y").and_then(|v| v.as_f64()).unwrap_or(100.0) as i32;
-                (x, y)
-            } else {
-                (100, 100) // 默认坐标
-            };
-            
-            tracing::info!("🎯 执行坐标: ({}, {}) (来源: {})", x, y, 
-                          if match_candidate.confidence > 0.0 { "匹配元素" } else { "步骤参数" });
-            
-            tap_injector_first(adb_path, device_id, x, y, None).await
-                .map_err(|e| format!("真机{}失败: {}", action_type, e))?;
-            format!("真机{}执行成功 ({}, {})", action_type, x, y)
-        },
-        "keyevent" => {
-            // 🎯 【新增】系统按键支持
-            let key_code = step.get("key_code")
-                .or_else(|| step.get("keyCode"))
-                .and_then(|v| v.as_i64())
-                .unwrap_or(4) as i32; // 默认返回键
-            
-            tracing::info!("🎯 执行系统按键: keycode={}", key_code);
-            
-            keyevent_code_injector_first(adb_path, device_id, key_code).await
-                .map_err(|e| format!("真机按键失败: {}", e))?;
-            format!("真机按键执行成功 (keycode={})", key_code)
-        },
-        "input" => {
-            // 🎯 【新增】文本输入支持
-            if let Some(text) = step.get("text")
-                .or_else(|| step.get("input_text"))
-                .and_then(|v| v.as_str()) {
-                tracing::info!("🎯 执行文本输入: text={}", text);
-                
-                input_text_injector_first(adb_path, device_id, text).await
-                    .map_err(|e| format!("真机文本输入失败: {}", e))?;
-                format!("真机文本输入成功: {}", text)
-            } else {
-                return Err("文本输入操作缺少内容".to_string());
-            }
-        },
-        "long_press" => {
-            // 🎯 【新增】长按支持
-            let (x, y) = if match_candidate.confidence > 0.0 {
-                let bounds = &match_candidate.bounds;
-                ((bounds.left + bounds.right) / 2, (bounds.top + bounds.bottom) / 2)
-            } else if let Some(x_val) = step.get("x").and_then(|v| v.as_i64()) {
-                let y_val = step.get("y").and_then(|v| v.as_i64()).unwrap_or(100) as i32;
-                (x_val as i32, y_val)
-            } else {
-                (100, 100)
-            };
-            
-            let duration = step.get("duration")
-                .and_then(|v| v.as_u64())
-                .unwrap_or(2000);
-            
-            tracing::info!("🎯 执行长按: ({}, {}) 时长:{}ms", x, y, duration);
-            
-            // 使用 swipe 模拟长按（起止点相同）
-            swipe_injector_first(adb_path, device_id, x, y, x, y, duration as u32).await
-                .map_err(|e| format!("真机长按失败: {}", e))?;
-            format!("真机长按执行成功 ({}, {}) {}ms", x, y, duration)
-        },
-        "back" => {
-            keyevent_code_injector_first(adb_path, device_id, 4).await
-                .map_err(|e| format!("真机返回键失败: {}", e))?;
-            "真机返回键执行成功".to_string()
-        },
-        "type" => {
-            if let Some(text) = step.get("text").and_then(|v| v.as_str()) {
-                input_text_injector_first(adb_path, device_id, text).await
-                    .map_err(|e| format!("真机文本输入失败: {}", e))?;
-                format!("真机文本输入成功: {}", text)
-            } else {
-                return Err("文本输入操作缺少内容".to_string());
-            }
-        },
-        "wait" => {
-            let duration_ms = step.get("duration_ms")
-                .and_then(|v| v.as_u64())
-                .unwrap_or(1000);
-            tokio::time::sleep(tokio::time::Duration::from_millis(duration_ms)).await;
-            format!("等待{}ms完成", duration_ms)
-        },
-        "swipe" => {
-            // 🎯 【关键修复】实现坐标式滑动逻辑
-            let start_x = step.get("start_x").and_then(|v| v.as_i64()).unwrap_or(540) as i32;
-            let start_y = step.get("start_y").and_then(|v| v.as_i64()).unwrap_or(1200) as i32;
-            let end_x = step.get("end_x").and_then(|v| v.as_i64()).unwrap_or(540) as i32;
-            let end_y = step.get("end_y").and_then(|v| v.as_i64()).unwrap_or(600) as i32;
-            let duration = step.get("duration").and_then(|v| v.as_u64()).unwrap_or(300) as u32;
-            
-            tracing::info!("🎯 执行坐标滑动: ({},{}) → ({},{}) 时长:{}ms", start_x, start_y, end_x, end_y, duration);
-            
-            swipe_injector_first(adb_path, device_id, start_x, start_y, end_x, end_y, duration).await
-                .map_err(|e| format!("真机滑动失败: {}", e))?;
-            format!("真机滑动执行成功: ({},{})→({},{})", start_x, start_y, end_x, end_y)
-        },
-        _ => format!("执行了 {} 操作", action_type)
-    };
-    
-    let execution_time = start_time.elapsed().as_millis() as u64;
-    tracing::info!("executed: action={} time={}ms", action_type, execution_time);
-    
-    Ok(ExecInfo {
-        ok: true,
-        action: action_result,
-        execution_time_ms: execution_time,
     })
 }
 
