@@ -172,13 +172,60 @@ pub async fn execute_intelligent_analysis_step(
     let elements = crate::services::ui_reader_service::parse_ui_elements(ui_xml)
         .map_err(|e| format!("解析UI XML失败: {}", e))?;
     
+    // 🏗️ 优先检测结构匹配：如果存在structural_signatures，优先使用Runtime系统
+    let has_structural_sigs = merged_params.get("structural_signatures").is_some()
+        || merged_params.get("original_data")
+            .and_then(|od| od.get("structural_signatures"))
+            .is_some();
+    
+    if has_structural_sigs {
+        tracing::info!("🏗️ [V3执行器] 检测到结构签名，尝试使用Runtime系统");
+        
+        match super::sm_integration::v3_match_with_structural_matching(
+            device_id,
+            ui_xml,
+            &merged_params,
+        ).await {
+            Ok(sm_elements) if !sm_elements.is_empty() => {
+                tracing::info!("✅ [V3执行器] 结构匹配成功，找到 {} 个候选元素", sm_elements.len());
+                
+                // 🎯 直接使用SM的结果进行候选评估（转换为引用）
+                let sm_element_refs: Vec<&UIElement> = sm_elements.iter().collect();
+                let target_element_option = evaluate_best_candidate(
+                    sm_element_refs,
+                    &merged_params,
+                    ui_xml,
+                    None,
+                )?;  // 先unwrap Result
+                
+                // 再unwrap Option
+                let element = target_element_option
+                    .ok_or_else(|| "结构匹配成功但候选评估未返回元素".to_string())?;
+                
+                // helper_parse_bounds 返回 Result<(i32, i32), String>
+                let coords = helper_parse_bounds(&element.bounds.clone().unwrap_or_default())?;
+                
+                tracing::info!("🎯 [V3执行器] 结构匹配最终选择: ({}, {})", coords.0, coords.1);
+                return Ok(coords);
+            }
+            Ok(_) => {
+                tracing::warn!("⚠️ [V3执行器] 结构匹配返回空结果，fallback到传统匹配");
+            }
+            Err(e) => {
+                tracing::warn!("⚠️ [V3执行器] 结构匹配失败: {}，fallback到传统匹配", e);
+            }
+        }
+    } else {
+        tracing::debug!("📋 [V3执行器] 未检测到结构签名，使用传统匹配流程");
+    }
+    
     // � 提取 original_bounds（用于候选预过滤）
     let original_bounds = merged_params.get("original_data")
         .and_then(|od| od.get("element_bounds"))
         .and_then(|v| v.as_str())
         .map(|s| s.to_string());
     
-    // 🔧 修复2：收集候选元素
+    // 🔧 修复2：收集候选元素（传统流程）
     let candidate_elements = collect_candidate_elements(
         &elements, 
         strategy_type, 

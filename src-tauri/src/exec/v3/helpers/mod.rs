@@ -16,6 +16,7 @@ pub mod phase_handlers;
 pub mod intelligent_preprocessing;
 pub mod element_hierarchy_analyzer;
 pub mod batch_executor;  // 🆕 批量执行引擎
+pub mod sm_integration;  // 🏗️ 结构匹配Runtime集成（V3专用）
 
 // 统一导出常用类型和函数
 pub use element_matching::*;
