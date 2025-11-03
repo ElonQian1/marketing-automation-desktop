@@ -21,7 +21,13 @@ use matching::{UnifiedScoringCore, resolve_selector_with_priority, SelectorSourc
 use execution::{execute_v2_action_with_coords, run_decision_chain_v2 as run_decision_chain_v2_impl};
 
 // 重导出 utils 模块的功能
-use utils::generate_disambiguation_suggestions;
+use utils::{
+    generate_disambiguation_suggestions,
+    expand_coordinate_params,
+    is_selector_free_action,
+    is_coordinate_swipe,
+    create_dummy_candidate,
+};
 
 // 重导出 legacy 模块的废弃功能
 pub use legacy::run_step_v2_legacy;
@@ -185,50 +191,16 @@ pub async fn run_step_v2(app_handle: AppHandle, request: RunStepRequestV2) -> Re
 
 // V2 步骤执行（匹配前端数据结构）
 async fn execute_v2_step(app_handle: AppHandle, req: &RunStepRequestV2) -> Result<StepResponseV2, String> {
-    // 🎯 【关键修复】处理coordinateParams参数展开
-    let mut step_with_coords = req.step.clone();
-    
-    // 如果前端发送了coordinateParams，展开到step对象中
-    if let Some(coord_params) = req.step.get("coordinateParams") {
-        if let Some(obj) = coord_params.as_object() {
-            tracing::info!("🔧 展开coordinateParams到step对象: {:?}", obj);
-            for (key, value) in obj {
-                // 🔧 参数名称映射：处理前后端参数名不匹配问题
-                let mapped_key = match key.as_str() {
-                    "duration" => "duration_ms",  // 延时参数映射
-                    _ => key
-                };
-                step_with_coords[mapped_key] = value.clone();
-            }
-        }
-    }
-    
-    // 🎯 【关键优化】对于坐标滑动操作，跳过元素匹配直接执行
-    let has_coordinates = step_with_coords.get("start_x").is_some() && 
-                          step_with_coords.get("start_y").is_some() && 
-                          step_with_coords.get("end_x").is_some() && 
-                          step_with_coords.get("end_y").is_some();
+    // 🎯 处理coordinateParams参数展开
+    let step_with_coords = expand_coordinate_params(&req.step);
     
     let action_type = step_with_coords.get("action").and_then(|v| v.as_str()).unwrap_or("tap");
     
-    tracing::info!("🔍 坐标检测: has_coordinates={}, action_type={}", has_coordinates, action_type);
-    
-    // 🎯 【新增】检测无需选择器的操作类型（系统按键、输入等）
-    let needs_no_selector = matches!(action_type, "keyevent" | "input" | "long_press");
-    
-    if needs_no_selector {
+    // 🎯 检测无需选择器的操作类型（系统按键、输入等）
+    if is_selector_free_action(action_type) {
         tracing::info!("🎯 检测到无选择器操作: {}, 跳过元素匹配直接执行", action_type);
         
-        // 创建虚拟匹配结果（不需要真实元素匹配）
-        let dummy_candidate = MatchCandidate {
-            id: format!("{}_mode", action_type),
-            score: 1.0,
-            confidence: 0.0, // 标记为无选择器模式
-            bounds: Bounds { left: 0, top: 0, right: 0, bottom: 0 },
-            text: Some(format!("{}操作模式", action_type)),
-            class_name: None,
-            package_name: None,
-        };
+        let dummy_candidate = create_dummy_candidate(action_type);
         
         // 直接执行操作
         match execute_v2_action_with_coords(&step_with_coords, &req.device_id, &dummy_candidate).await {
@@ -259,7 +231,8 @@ async fn execute_v2_step(app_handle: AppHandle, req: &RunStepRequestV2) -> Resul
         }
     }
     
-    if has_coordinates && action_type == "swipe" {
+    // 🎯 检测坐标滑动操作
+    if is_coordinate_swipe(&step_with_coords, action_type) {
         tracing::info!("🎯 检测到坐标滑动操作，跳过元素匹配直接执行");
         tracing::info!("📐 坐标参数: start_x={:?}, start_y={:?}, end_x={:?}, end_y={:?}", 
                       step_with_coords.get("start_x"), 
@@ -267,16 +240,7 @@ async fn execute_v2_step(app_handle: AppHandle, req: &RunStepRequestV2) -> Resul
                       step_with_coords.get("end_x"), 
                       step_with_coords.get("end_y"));
         
-        // 创建虚拟匹配结果（不需要真实元素匹配）
-        let dummy_candidate = MatchCandidate {
-            id: "coord_mode".to_string(),
-            score: 1.0,
-            confidence: 0.0, // 标记为坐标模式
-            bounds: Bounds { left: 0, top: 0, right: 0, bottom: 0 },
-            text: Some("坐标滑动模式".to_string()),
-            class_name: None,
-            package_name: None,
-        };
+        let dummy_candidate = create_dummy_candidate("坐标滑动");
         
         // 直接执行坐标操作
         match execute_v2_action_with_coords(&step_with_coords, &req.device_id, &dummy_candidate).await {

@@ -83,6 +83,12 @@ export interface StepExecutionRequest {
       showProgress?: boolean;
     };
   };
+  // 🔥 【结构匹配Runtime系统】结构签名参数
+  structural_signatures?: {
+    anchor_signature?: string;
+    target_relative_signature?: string;
+    container_fingerprint?: string;
+  };
 }
 
 // 统一响应接口
@@ -577,6 +583,8 @@ export class StepExecutionGateway {
               element_path: request.elementPath || request.xpath || '',  // 用户选择的 XPath
               targetText: targetText,  // 目标文本提示
               target_content_desc: request.contentDesc || '',  // 目标描述提示
+              // 🔥 CRITICAL: 传递结构签名（结构匹配Runtime系统的核心参数）
+              structural_signatures: (request as any).structural_signatures || undefined,
               // 🔥 NEW: 传递 original_data（失败恢复关键数据）
               original_data: request.xmlSnapshot ? {
                 original_xml: request.xmlSnapshot.xmlContent || '',

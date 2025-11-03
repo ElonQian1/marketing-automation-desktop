@@ -3,5 +3,12 @@
 // summary: 导出辅助工具函数模块
 
 mod disambiguation;
+mod step_processor;
 
 pub use disambiguation::generate_disambiguation_suggestions;
+pub use step_processor::{
+    expand_coordinate_params,
+    is_selector_free_action,
+    is_coordinate_swipe,
+    create_dummy_candidate,
+};
