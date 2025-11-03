@@ -2,67 +2,56 @@
 // module: run_step_v2 | layer: integration | role: 结构匹配Runtime集成
 // summary: 将sm_match_once集成到V2执行流程，实现结构匹配优先策略
 
-use serde::{Deserialize, Serialize};
 use anyhow::Result;
 
-use crate::services::structural_matching::{SmMatchRequest, SmConfig, SmMatchResponse};
-use crate::services::structural_matching::runtime::sm_match_once;
-use super::{StructuralSignatures, StaticEvidence, MatchCandidate};
+use crate::commands::structure_match_runtime::{
+    sm_match_once, SmMatchRequest, SmConfigDTO, SmMatchResponse,
+};
+use super::{StructuralSignatures, MatchCandidate, Bounds, BoundsSignature};
+
+// ================================
+// 临时适配：V2 协议数据结构
+// ================================
+
+/// 临时 StaticEvidence 定义（用于集成）
+/// 注意：与 mod.rs 中的定义不同，这里简化为只包含必需字段
+#[derive(Debug, Clone)]
+#[allow(dead_code)]
+pub struct SmStaticEvidence {
+    pub resource_id: Option<String>,
+    pub text: Option<String>,
+    pub content_desc: Option<String>,
+    pub class: Option<String>,
+    pub bounds: Option<Bounds>,
+    pub xpath: Option<String>,
+    pub leaf_index: Option<i32>,
+    pub structural_signatures: Option<StructuralSignatures>,
+}
 
 // ================================
 // 类型转换：V2协议 → SM Runtime
 // ================================
 
-/// 将 StructuralSignatures 转换为 SmConfig
-pub fn convert_structural_sigs_to_config(sigs: &StructuralSignatures) -> SmConfig {
-    SmConfig {
-        // 字段权重配置
-        weights: crate::services::structural_matching::SmWeights {
-            resource_id: 0.85,      // 默认权重
-            content_desc: 0.70,
-            text: 0.60,
-            class_name: 0.40,
-            bounds: 0.30,
-        },
+/// 将 StructuralSignatures 转换为 SmConfigDTO
+pub fn convert_structural_sigs_to_config(sigs: &StructuralSignatures) -> SmConfigDTO {
+    SmConfigDTO {
+        // 使用默认模式
+        mode: "default".to_string(),
         
-        // 匹配阈值
-        thresholds: crate::services::structural_matching::SmThresholds {
-            min_score: 0.65,        // 默认最低分数
-            uniqueness_margin: 0.15, // 默认唯一性边距
-        },
+        // 从骨架签名构建规则
+        skeleton_rules: sigs.sibling_signature.clone(),
         
-        // 容器识别配置
-        container_detection: crate::services::structural_matching::SmContainerDetection {
-            enabled: true,
-            ancestor_depth: sigs.ancestor_class_chain.as_ref().map(|chain| chain.len()).unwrap_or(3),
-            min_children: 2,
-        },
+        // 字段规则（暂时为空，后续可扩展）
+        field_rules: None,
         
-        // 骨架匹配配置
-        skeleton_matching: crate::services::structural_matching::SmSkeletonMatching {
-            enabled: true,
-            sibling_signature: sigs.sibling_signature.clone(),
-            bounds_signature: sigs.bounds_signature.as_ref().map(|bs| {
-                crate::services::structural_matching::SmBoundsSignature {
-                    width_ratio: bs.width_ratio,
-                    height_ratio: bs.height_ratio,
-                    center_x_ratio: bs.center_x_ratio,
-                    center_y_ratio: bs.center_y_ratio,
-                }
-            }),
-        },
-        
-        // 安全检查
-        safety: crate::services::structural_matching::SmSafety {
-            forbid_fullscreen: true,
-            forbid_containers: true,
-            require_uniqueness: true,
-        },
+        // 早停开关（默认启用）
+        early_stop_enabled: Some(true),
     }
 }
 
 /// 将 StaticEvidence 转换为模板元素
-pub fn convert_static_evidence_to_template(evidence: &StaticEvidence) -> serde_json::Value {
+#[allow(dead_code)]
+pub fn convert_static_evidence_to_template(evidence: &SmStaticEvidence) -> serde_json::Value {
     serde_json::json!({
         "resource_id": evidence.resource_id,
         "text": evidence.text,
@@ -79,33 +68,28 @@ pub fn convert_static_evidence_to_template(evidence: &StaticEvidence) -> serde_j
 /// 将 SmMatchResponse 转换为 MatchCandidate 列表
 pub fn convert_sm_result_to_candidates(
     response: SmMatchResponse,
-    evidence: &StaticEvidence,
+    _evidence: &SmStaticEvidence,
 ) -> Vec<MatchCandidate> {
-    if !response.matched || response.candidates.is_empty() {
+    if !response.success || response.result.is_none() {
         return vec![];
     }
     
-    response.candidates.into_iter().map(|candidate| {
+    let result = response.result.unwrap();
+    
+    result.items.into_iter().map(|item| {
         MatchCandidate {
-            resource_id: candidate.element.resource_id.clone(),
-            text: candidate.element.text.clone(),
-            content_desc: candidate.element.content_desc.clone(),
-            class: candidate.element.class.clone(),
-            bounds: candidate.element.bounds.map(|b| super::Bounds {
-                left: b[0],
-                top: b[1],
-                right: b[2],
-                bottom: b[3],
-            }),
-            xpath: None,
-            leaf_index: None,
-            score: candidate.score,
-            match_details: Some(format!(
-                "SM匹配 | 容器:{} | 骨架:{} | 字段:{}",
-                if candidate.container_matched { "✅" } else { "❌" },
-                if candidate.skeleton_matched { "✅" } else { "❌" },
-                candidate.matched_fields.join(",")
-            )),
+            id: item.node_id.to_string(),
+            score: item.score as f64,
+            confidence: item.score as f64,
+            bounds: Bounds {
+                left: item.bounds.left,
+                top: item.bounds.top,
+                right: item.bounds.right,
+                bottom: item.bounds.bottom,
+            },
+            text: None,  // 暂时为空，后续可从XML提取
+            class_name: None,
+            package_name: None,
         }
     }).collect()
 }
@@ -127,7 +111,7 @@ pub fn convert_sm_result_to_candidates(
 pub async fn match_with_structural_matching(
     device_id: &str,
     xml_content: &str,
-    evidence: &StaticEvidence,
+    evidence: &SmStaticEvidence,
 ) -> Result<Vec<MatchCandidate>> {
     // 1. 检查是否有结构签名
     let structural_sigs = match &evidence.structural_signatures {
@@ -147,18 +131,14 @@ pub async fn match_with_structural_matching(
     // 2. 转换配置
     let config = convert_structural_sigs_to_config(structural_sigs);
     
-    // 3. 转换模板元素
-    let template_element = convert_static_evidence_to_template(evidence);
-    
-    // 4. 构建请求
+    // 3. 构建请求（不再需要 template_element，因为Runtime系统自动识别）
     let request = SmMatchRequest {
-        device_id: device_id.to_string(),
         xml_content: xml_content.to_string(),
         config,
-        template_element,
+        container_hint: None,  // 可选：后续可从 evidence 提取容器提示
     };
     
-    // 5. 调用 sm_match_once
+    // 4. 调用 sm_match_once
     let response = match sm_match_once(request).await {
         Ok(resp) => resp,
         Err(e) => {
@@ -167,14 +147,14 @@ pub async fn match_with_structural_matching(
         }
     };
     
-    // 6. 转换结果
+    // 5. 转换结果
     let candidates = convert_sm_result_to_candidates(response.clone(), evidence);
     
     tracing::info!(
-        "✅ [SM Integration] SM匹配完成 | 匹配={} | 候选数={} | 最高分={:.2}",
-        response.matched,
+        "✅ [SM Integration] SM匹配完成 | 成功={} | 候选数={} | 耗时={}ms",
+        response.success,
         candidates.len(),
-        candidates.first().map(|c| c.score).unwrap_or(0.0)
+        response.elapsed_ms
     );
     
     Ok(candidates)
@@ -186,10 +166,11 @@ pub async fn match_with_structural_matching(
 /// 1. 如果有 structural_signatures，使用 sm_match_once
 /// 2. SM匹配成功 → 返回结果
 /// 3. SM匹配失败/无结果 → fallback 到 tristate_score
+#[allow(dead_code)]
 pub async fn intelligent_match_with_fallback(
     device_id: &str,
     xml_content: &str,
-    evidence: &StaticEvidence,
+    evidence: &SmStaticEvidence,
     fallback_fn: impl Fn() -> Vec<MatchCandidate>,
 ) -> Vec<MatchCandidate> {
     // 尝试使用SM匹配
@@ -225,7 +206,7 @@ mod tests {
                 "android.widget.FrameLayout".to_string(),
             ]),
             sibling_signature: Some("Button|TextView".to_string()),
-            bounds_signature: Some(super::super::BoundsSignature {
+            bounds_signature: Some(super::BoundsSignature {
                 width_ratio: 0.8,
                 height_ratio: 0.1,
                 center_x_ratio: 0.5,
@@ -235,19 +216,19 @@ mod tests {
         
         let config = convert_structural_sigs_to_config(&sigs);
         
-        assert_eq!(config.container_detection.ancestor_depth, 2);
-        assert_eq!(config.skeleton_matching.sibling_signature, Some("Button|TextView".to_string()));
-        assert!(config.skeleton_matching.enabled);
+        assert_eq!(config.mode, "default");
+        assert_eq!(config.skeleton_rules, Some("Button|TextView".to_string()));
+        assert_eq!(config.early_stop_enabled, Some(true));
     }
     
     #[test]
     fn test_convert_static_evidence_to_template() {
-        let evidence = StaticEvidence {
+        let evidence = SmStaticEvidence {
             resource_id: Some("com.example:id/button".to_string()),
             text: Some("点击我".to_string()),
             content_desc: None,
             class: Some("android.widget.Button".to_string()),
-            bounds: Some(super::super::Bounds {
+            bounds: Some(Bounds {
                 left: 100,
                 top: 200,
                 right: 300,

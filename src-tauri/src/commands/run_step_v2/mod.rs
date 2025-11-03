@@ -1197,6 +1197,73 @@ async fn find_element_in_ui(ui_xml: &str, req: &RunStepRequestV2, selection_mode
     // 🔥 关键调试：输出接收到的selection_mode
     tracing::info!("🔥 [find_element_in_ui] 接收到 selection_mode: {:?}", selection_mode);
     
+    // 🏗️ 【Phase 4 新增】结构匹配优先策略
+    // 如果步骤数据包含 structural_signatures，优先使用 sm_match_once
+    if let Some(structural_sigs_value) = req.step.get("structural_signatures") {
+        tracing::info!("🏗️ [SM Integration] 检测到结构签名，优先使用结构匹配Runtime");
+        
+        // 尝试反序列化 structural_signatures
+        if let Ok(structural_sigs) = serde_json::from_value::<StructuralSignatures>(structural_sigs_value.clone()) {
+            // 构建 SmStaticEvidence（简化版）
+            let sm_evidence = sm_integration::SmStaticEvidence {
+                resource_id: req.step.get("resource_id").and_then(|v| v.as_str()).map(String::from),
+                text: req.step.get("text").and_then(|v| v.as_str()).map(String::from),
+                content_desc: req.step.get("content_desc").and_then(|v| v.as_str()).map(String::from),
+                class: req.step.get("class").and_then(|v| v.as_str()).map(String::from),
+                bounds: req.step.get("bounds").and_then(|v| {
+                    if let Some(arr) = v.as_array() {
+                        if arr.len() == 4 {
+                            Some(Bounds {
+                                left: arr[0].as_i64().unwrap_or(0) as i32,
+                                top: arr[1].as_i64().unwrap_or(0) as i32,
+                                right: arr[2].as_i64().unwrap_or(0) as i32,
+                                bottom: arr[3].as_i64().unwrap_or(0) as i32,
+                            })
+                        } else {
+                            None
+                        }
+                    } else {
+                        None
+                    }
+                }),
+                xpath: req.step.get("xpath").and_then(|v| v.as_str()).map(String::from),
+                leaf_index: req.step.get("leaf_index").and_then(|v| v.as_i64()).map(|i| i as i32),
+                structural_signatures: Some(structural_sigs),
+            };
+            
+            // 🎯 调用结构匹配集成
+            match sm_integration::match_with_structural_matching(&req.device_id, ui_xml, &sm_evidence).await {
+                Ok(candidates) if !candidates.is_empty() => {
+                    let match_info = MatchInfo {
+                        uniqueness: if candidates.len() == 1 { 1 } else { 0 },
+                        confidence: candidates.first().map(|c| c.score).unwrap_or(0.0) as f32,
+                        elements_found: candidates.len() as i32,
+                    };
+                    
+                    tracing::info!(
+                        "✅ [SM Integration] 结构匹配成功 | 候选数={} | 最高分={:.2} | 唯一性={}",
+                        candidates.len(),
+                        match_info.confidence,
+                        match_info.uniqueness
+                    );
+                    
+                    return Ok((match_info, candidates));
+                }
+                Ok(_) => {
+                    tracing::info!("🔄 [SM Integration] 结构匹配无结果，fallback到传统评分");
+                }
+                Err(e) => {
+                    tracing::warn!("⚠️ [SM Integration] 结构匹配失败: {} | fallback到传统评分", e);
+                }
+            }
+        } else {
+            tracing::warn!("⚠️ [SM Integration] structural_signatures 反序列化失败，fallback到传统评分");
+        }
+    }
+    
+    // 🔄 Fallback：传统匹配流程
+    tracing::info!("🔄 [Fallback] 使用传统tristate评分匹配");
+    
     // 解析步骤中的匹配条件
     // 输出完整的步骤参数用于调试
     tracing::info!("🔍 V2引擎收到的完整步骤参数: {:?}", req.step);
