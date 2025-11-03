@@ -5,6 +5,7 @@
 // 🏗️ 子模块声明
 mod sm_integration;
 mod validation;
+mod types;
 
 use tauri::{command, AppHandle};
 use serde::{Deserialize, Serialize};
@@ -19,6 +20,9 @@ use crate::engine::strategy_plugin::{StrategyRegistry, ExecutionEnvironment};
 
 // 导入 validation 模块的安全检查函数
 use validation::{check_fullscreen_node, check_container_node, parse_xml_attribute, parse_bounds_from_string};
+
+// 导入 types 模块的类型定义
+use types::*;
 
 // V2 执行模式（匹配前端枚举）
 #[derive(Debug, Clone, Deserialize)]
