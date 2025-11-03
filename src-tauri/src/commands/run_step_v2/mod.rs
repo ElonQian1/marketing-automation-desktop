@@ -8,6 +8,7 @@ mod validation;
 mod types;
 mod matching;
 mod execution;
+mod utils;
 
 // 重导出 types 模块的公共类型（供外部模块使用）
 pub use types::*;
@@ -17,6 +18,9 @@ use matching::{UnifiedScoringCore, resolve_selector_with_priority, SelectorSourc
 
 // 重导出 execution 模块的功能
 use execution::{execute_v2_action_with_coords, run_decision_chain_v2 as run_decision_chain_v2_impl};
+
+// 重导出 utils 模块的功能
+use utils::generate_disambiguation_suggestions;
 
 use tauri::{command, AppHandle};
 use serde::{Deserialize, Serialize};
@@ -1111,48 +1115,6 @@ struct EnhancedSelectorInfo {
     parent_constraint: Option<String>,
     container_xpath: Option<String>,
     i18n_text_variants: Option<Vec<String>>,
-}
-
-// 生成解歧建议：分析多个匹配元素的差异，提出精确化建议
-fn generate_disambiguation_suggestions(candidates: &[MatchCandidate], _req: &RunStepRequestV2) -> Vec<String> {
-    let mut suggestions = Vec::new();
-    
-    // 检查是否可以通过文本区分
-    let unique_texts: std::collections::HashSet<_> = candidates.iter()
-        .filter_map(|c| c.text.as_ref())
-        .collect();
-    if unique_texts.len() > 1 {
-        suggestions.push("具体文本内容".to_string());
-    }
-    
-    // 检查是否可以通过类名区分
-    let unique_classes: std::collections::HashSet<_> = candidates.iter()
-        .filter_map(|c| c.class_name.as_ref())
-        .collect();
-    if unique_classes.len() > 1 {
-        suggestions.push("更具体的className".to_string());
-    }
-    
-    // 建议使用位置索引
-    if candidates.len() > 1 {
-        suggestions.push("leaf_index定位".to_string());
-    }
-    
-    // 建议使用XPath前缀
-    suggestions.push("xpath_prefix祖先路径".to_string());
-    
-    // 建议使用邻近锚点
-    suggestions.push("邻近文本锚点".to_string());
-    
-    // 如果所有候选都相似，建议使用坐标
-    let similar_score_count = candidates.iter()
-        .filter(|c| (c.confidence - candidates[0].confidence).abs() < 0.1)
-        .count();
-    if similar_score_count == candidates.len() {
-        suggestions.push("坐标精确定位".to_string());
-    }
-    
-    suggestions
 }
 
 // 🚀 新增：插件化决策链执行入口（Command 包装器）
