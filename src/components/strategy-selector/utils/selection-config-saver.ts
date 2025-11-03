@@ -19,6 +19,7 @@ export interface SaveConfigParams {
   batchConfig?: BatchConfig | null;
   randomConfig?: RandomConfig;
   matchOriginalConfig?: MatchOriginalConfig;
+  structuralSignatures?: unknown;  // 🔥 新增：结构签名数据
   message: MessageInstance;
 }
 
@@ -26,7 +27,7 @@ export interface SaveConfigParams {
  * 保存智能选择配置到后端（统一接口）
  */
 export async function saveSelectionConfigWithFeedback(params: SaveConfigParams): Promise<boolean> {
-  const { stepId, selectorId, mode, batchConfig, randomConfig, matchOriginalConfig, message } = params;
+  const { stepId, selectorId, mode, batchConfig, randomConfig, matchOriginalConfig, structuralSignatures, message } = params;
 
   if (!stepId) {
     console.warn('⚠️ [saveSelectionConfig] 无stepId，跳过保存');
@@ -41,12 +42,14 @@ export async function saveSelectionConfigWithFeedback(params: SaveConfigParams):
       batchConfig,
       randomConfig,
       matchOriginalConfig,
+      structuralSignatures,  // 🔥 日志输出
     });
 
     // 准备保存参数
     const saveParams: Record<string, unknown> = {
       stepId: stepId,
       selectionMode: mode,
+      structuralSignatures: structuralSignatures || null,  // 🔥 传递结构签名
     };
 
     // 根据模式添加相应配置

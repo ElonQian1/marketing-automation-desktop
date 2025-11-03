@@ -149,6 +149,10 @@ pub struct StrategyCandidate {
     pub selection_mode: Option<String>, // "first" | "last" | "match-original" | "random" | "all"
     #[serde(skip_serializing_if = "Option::is_none")]
     pub batch_config: Option<serde_json::Value>, // 批量执行配置
+    
+    // 🔥 结构匹配配置 (结构匹配Runtime系统)
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub structural_signatures: Option<serde_json::Value>, // 结构签名数据
 }
 
 /// 分析结果
@@ -536,6 +540,7 @@ fn convert_step_result_to_analysis_result(
             is_recommended: c.key == step_result.recommended,
             selection_mode: None,  // 智能分析结果不带选择模式
             batch_config: None,
+            structural_signatures: None,  // 🔥 智能分析结果不带结构签名
         }
     }).collect();
     
@@ -560,6 +565,7 @@ fn convert_step_result_to_analysis_result(
         is_recommended: false,
         selection_mode: None,
         batch_config: None,
+        structural_signatures: None,  // 🔥 应急兜底策略不带结构签名
     }).clone();
     
     AnalysisResult {
@@ -595,6 +601,7 @@ fn generate_mock_analysis_result(
             is_recommended: true,
             selection_mode: None,
             batch_config: None,
+            structural_signatures: None,  // 🔥 Mock数据不带结构签名
         },
         StrategyCandidate {
             key: "child_driven".to_string(),
@@ -611,6 +618,7 @@ fn generate_mock_analysis_result(
             is_recommended: false,
             selection_mode: None,
             batch_config: None,
+            structural_signatures: None,  // 🔥 Mock数据不带结构签名
         },
         StrategyCandidate {
             key: "region_scoped".to_string(),
@@ -627,6 +635,7 @@ fn generate_mock_analysis_result(
             is_recommended: false,
             selection_mode: None,
             batch_config: None,
+            structural_signatures: None,  // 🔥 Mock数据不带结构签名
         },
     ];
     
@@ -810,12 +819,14 @@ pub async fn save_smart_selection_config(
     step_id: String,
     selection_mode: String,
     batch_config: Option<serde_json::Value>,
+    structural_signatures: Option<serde_json::Value>,  // 🔥 新增：结构签名参数
 ) -> Result<bool, String> {
     tracing::info!(
-        "📥 [save_smart_selection_config] 收到保存请求: step_id={}, mode={}, batch_config={:?}",
+        "📥 [save_smart_selection_config] 收到保存请求: step_id={}, mode={}, batch_config={:?}, structural_signatures={:?}",
         step_id,
         selection_mode,
-        batch_config
+        batch_config,
+        structural_signatures
     );
 
     // 构建简化的策略对象
@@ -840,6 +851,7 @@ pub async fn save_smart_selection_config(
         is_recommended: true,
         selection_mode: Some(selection_mode.clone()),  // ✅ 保存选择模式
         batch_config: batch_config.clone(),  // ✅ 保存批量配置
+        structural_signatures: structural_signatures.clone(),  // 🔥 保存结构签名
     };
 
     // 保存到Store

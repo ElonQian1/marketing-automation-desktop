@@ -27,6 +27,9 @@ use utils::{
     is_selector_free_action,
     is_coordinate_swipe,
     create_dummy_candidate,
+    check_safety_gates,
+    safety_result_to_response,
+    SafetyGateResult,
 };
 
 // 重导出 legacy 模块的废弃功能
@@ -434,61 +437,12 @@ async fn execute_v2_step(app_handle: AppHandle, req: &RunStepRequestV2) -> Resul
     // 非批量模式：使用第一个候选
     let match_candidate = candidates.into_iter().next().unwrap();
 
-
-    // �🛡️ 三道安全闸门检查（仅非批量模式）
-    
-    // 1️⃣ 唯一性闸门：只有唯一匹配才能执行
-    if match_info.uniqueness != 1 {
-        tracing::warn!("❌ 唯一性检查失败: uniq={}, 拒绝执行", match_info.uniqueness);
-        return Ok(StepResponseV2 {
-            ok: false,
-            message: format!("匹配不唯一 (uniq={}), 拒绝执行以防误操作", match_info.uniqueness),
-            matched: Some(match_candidate),
-            executed_action: None,
-            verify_passed: Some(false),
-            error_code: Some("NON_UNIQUE".to_string()),
-            raw_logs: Some(vec![format!("唯一性检查失败: uniq={}", match_info.uniqueness)]),
-        });
+    // 安全闸门检查
+    let safety_result = check_safety_gates(&match_info, &match_candidate);
+    if let Some(error_response) = safety_result_to_response(safety_result, match_candidate.clone()) {
+        return Ok(error_response);
     }
 
-    // 2️⃣ 置信度闸门：低置信度拒绝执行 
-    if match_info.confidence < 0.6 {
-        tracing::warn!("❌ 置信度检查失败: conf={:.2}, 拒绝执行", match_info.confidence);
-        return Ok(StepResponseV2 {
-            ok: false, 
-            message: format!("置信度过低 ({:.1}%), 拒绝执行", match_info.confidence * 100.0),
-            matched: Some(match_candidate),
-            executed_action: None,
-            verify_passed: Some(false),
-            error_code: Some("LOW_CONFIDENCE".to_string()),
-            raw_logs: Some(vec![format!("置信度检查失败: {:.1}%", match_info.confidence * 100.0)]),
-        });
-    }
-
-    // 3️⃣ 整屏/容器节点闸门：禁止执行整屏或容器类节点
-    let bounds_tuple = (match_candidate.bounds.left, match_candidate.bounds.top, 
-                       match_candidate.bounds.right, match_candidate.bounds.bottom);
-    let is_fullscreen_or_container = check_fullscreen_node(&bounds_tuple) || 
-                                     check_container_node(&match_candidate.class_name);
-    if is_fullscreen_or_container {
-        let reason = if check_fullscreen_node(&bounds_tuple) { "整屏节点" } else { "容器节点" };
-        tracing::warn!("❌ {}检查失败: bounds={:?}, class={:?}, 拒绝执行", 
-                       reason, match_candidate.bounds, match_candidate.class_name);
-        return Ok(StepResponseV2 {
-            ok: false,
-            message: format!("匹配到{}, 拒绝执行以防误操作", reason),
-            matched: Some(match_candidate),
-            executed_action: None, 
-            verify_passed: Some(false),
-            error_code: Some("UNSAFE_TARGET".to_string()),
-            raw_logs: Some(vec![format!("{}检查失败", reason)]),
-        });
-    }
-
-    tracing::info!("✅ 安全闸门检查通过: uniq={}, conf={:.2}, 目标安全", 
-                   match_info.uniqueness, match_info.confidence);
-
-    // 检查执行模式
     if matches!(req.mode, StepRunMode::MatchOnly) {
         return Ok(StepResponseV2 {
             ok: true,

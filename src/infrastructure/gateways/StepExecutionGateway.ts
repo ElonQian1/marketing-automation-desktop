@@ -533,13 +533,14 @@ export class StepExecutionGateway {
 
       // 🔥 NEW: 尝试从后端Store读取用户保存的配置
       let savedBatchConfig = null;
+      let savedStructuralSignatures = null;
       try {
         const stepStrategy = await invoke('get_step_strategy', { 
           stepId: request.stepId 
         });
         
         if (stepStrategy && typeof stepStrategy === 'object') {
-          const strategy = stepStrategy as any;
+          const strategy = stepStrategy as Record<string, unknown>;
           if (strategy.batch_config) {
             savedBatchConfig = strategy.batch_config;
             console.log('✅ [StepExecGateway] 从Store读取到批量配置:', savedBatchConfig);
@@ -547,6 +548,11 @@ export class StepExecutionGateway {
           // 如果Store有保存的选择模式，优先使用
           if (strategy.selection_mode) {
             console.log('✅ [StepExecGateway] 从Store读取到选择模式:', strategy.selection_mode);
+          }
+          // 🔥 CRITICAL: 读取结构签名（结构匹配模式的核心参数）
+          if (strategy.structural_signatures) {
+            savedStructuralSignatures = strategy.structural_signatures;
+            console.log('✅ [StepExecGateway] 从Store读取到结构签名（结构匹配模式）:', savedStructuralSignatures);
           }
         }
       } catch (e) {
@@ -584,7 +590,8 @@ export class StepExecutionGateway {
               targetText: targetText,  // 目标文本提示
               target_content_desc: request.contentDesc || '',  // 目标描述提示
               // 🔥 CRITICAL: 传递结构签名（结构匹配Runtime系统的核心参数）
-              structural_signatures: (request as any).structural_signatures || undefined,
+              // 优先级：1) Store中保存的配置 2) request中直接传递的 3) undefined（智能自动链模式）
+              structural_signatures: savedStructuralSignatures || request.structural_signatures || undefined,
               // 🔥 NEW: 传递 original_data（失败恢复关键数据）
               original_data: request.xmlSnapshot ? {
                 original_xml: request.xmlSnapshot.xmlContent || '',

@@ -4,6 +4,7 @@
 
 mod disambiguation;
 mod step_processor;
+mod safety_gates;
 
 pub use disambiguation::generate_disambiguation_suggestions;
 pub use step_processor::{
@@ -12,3 +13,4 @@ pub use step_processor::{
     is_coordinate_swipe,
     create_dummy_candidate,
 };
+pub use safety_gates::{check_safety_gates, safety_result_to_response, SafetyGateResult};

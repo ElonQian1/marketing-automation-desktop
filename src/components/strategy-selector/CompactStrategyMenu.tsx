@@ -1542,6 +1542,20 @@ const CompactStrategyMenu: React.FC<CompactStrategyMenuProps> = ({
             }
           }
           
+          // 🔥 CRITICAL: 保存到后端Store（测试按钮需要从Store读取）
+          if (stepId && structuralSignatures) {
+            saveSelectionConfigWithFeedback({
+              stepId,
+              selectorId: stepId,
+              mode: selectionMode,
+              batchConfig: batchConfig,
+              structuralSignatures: structuralSignatures,  // 🔥 传递结构签名
+              message
+            }).catch((error) => {
+              console.error('❌ [CompactStrategyMenu] 保存结构签名到Store失败:', error);
+            });
+          }
+          
           setStructuralMatchingVisible(false);
           message.success('结构匹配配置已保存');
         }}
