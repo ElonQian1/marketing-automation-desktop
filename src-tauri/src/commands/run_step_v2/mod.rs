@@ -9,6 +9,7 @@ mod types;
 mod matching;
 mod execution;
 mod utils;
+mod legacy;
 
 // 重导出 types 模块的公共类型（供外部模块使用）
 pub use types::*;
@@ -21,6 +22,9 @@ use execution::{execute_v2_action_with_coords, run_decision_chain_v2 as run_deci
 
 // 重导出 utils 模块的功能
 use utils::generate_disambiguation_suggestions;
+
+// 重导出 legacy 模块的废弃功能
+pub use legacy::run_step_v2_legacy;
 
 use tauri::{command, AppHandle};
 use serde::{Deserialize, Serialize};
@@ -548,61 +552,6 @@ async fn execute_v2_step(app_handle: AppHandle, req: &RunStepRequestV2) -> Resul
             format!("匹配: 置信度{:.1}%", match_info.confidence * 100.0),
             format!("执行: {} ({}ms)", exec_result.action, exec_result.execution_time_ms),
         ]),
-    })
-}
-
-// 旧版兼容命令（保持向下兼容）
-#[command]
-pub async fn run_step_v2_legacy(
-    action: StepAction,
-    device_id: String,
-) -> Result<StepExecutionResult, String> {
-    let start_time = tokio::time::Instant::now();
-    
-    // 检测 ADB 路径
-    let adb_path = if std::path::Path::new("platform-tools/adb.exe").exists() {
-        "platform-tools/adb.exe"
-    } else if std::path::Path::new("D:\\leidian\\LDPlayer9\\adb.exe").exists() {
-        "D:\\leidian\\LDPlayer9\\adb.exe"
-    } else {
-        "adb"
-    };
-    
-    let action_result = match action.action_type {
-        ActionType::Tap => {
-            if let Some(coords) = action.coordinates {
-                tap_injector_first(adb_path, &device_id, coords.0 as i32, coords.1 as i32, None).await
-                    .map_err(|e| format!("真机点击失败: {}", e))?;
-                "真机点击执行成功".to_string()
-            } else {
-                return Err("点击操作缺少坐标".to_string());
-            }
-        },
-        ActionType::Back => {
-            keyevent_code_injector_first(adb_path, &device_id, 4).await
-                .map_err(|e| format!("真机返回键失败: {}", e))?;
-            "真机返回键执行成功".to_string()
-        },
-        ActionType::Type => {
-            if let Some(text) = action.input_text {
-                input_text_injector_first(adb_path, &device_id, &text).await
-                    .map_err(|e| format!("真机文本输入失败: {}", e))?;
-                format!("真机文本输入成功: {}", text)
-            } else {
-                return Err("文本输入操作缺少内容".to_string());
-            }
-        },
-        _ => "其他动作类型执行成功".to_string()
-    };
-    
-    let execution_time = start_time.elapsed().as_millis() as u64;
-    
-    Ok(StepExecutionResult {
-        success: true,
-        message: action_result,
-        execution_time_ms: execution_time,
-        verification_passed: true,
-        found_elements: vec![],
     })
 }
 
