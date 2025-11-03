@@ -31,6 +31,7 @@ use utils::{
     safety_result_to_response,
     SafetyGateResult,
     try_structural_matching,
+    resolve_step_strategy,
 };
 
 // 重导出 legacy 模块的废弃功能
@@ -283,33 +284,8 @@ async fn execute_v2_step(app_handle: AppHandle, req: &RunStepRequestV2) -> Resul
         step: step_with_coords,
     };
     
-    // �🔍 第一步：查询 selection_mode 和 batch_config
-    let selector_id = req_with_coords.step.get("step_id").and_then(|v| v.as_str())
-        .or_else(|| req_with_coords.step.get("selector").and_then(|v| v.as_str()));
-
-    let (selection_mode, batch_config) = if let Some(id) = selector_id {
-        let mut strategy_opt = crate::commands::intelligent_analysis::get_step_strategy(id.to_string()).await.ok().flatten();
-        
-        // 尝试用 selector 查询（兜底）
-        if strategy_opt.is_none() {
-            if let Some(selector) = req_with_coords.step.get("selector").and_then(|v| v.as_str()) {
-                if selector != id {
-                    strategy_opt = crate::commands::intelligent_analysis::get_step_strategy(selector.to_string()).await.ok().flatten();
-                }
-            }
-        }
-        
-        match strategy_opt {
-            Some(strategy) => {
-                tracing::info!("🎯 从Store获取执行模式: selection_mode={:?}, has_batch_config={}", 
-                              strategy.selection_mode, strategy.batch_config.is_some());
-                (strategy.selection_mode.clone(), strategy.batch_config.clone())
-            }
-            None => (None, None)
-        }
-    } else {
-        (None, None)
-    };
+    // 🔍 第一步：查询 selection_mode 和 batch_config
+    let (selection_mode, batch_config) = resolve_step_strategy(&req_with_coords.step).await;
     
     // 获取真实的UI dump
     tracing::info!("🔍 开始获取设备UI dump...");
