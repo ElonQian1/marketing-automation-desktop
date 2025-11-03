@@ -32,6 +32,7 @@ use utils::{
     SafetyGateResult,
     try_structural_matching,
     resolve_step_strategy,
+    ResponseBuilder,
 };
 
 // 重导出 legacy 模块的废弃功能
@@ -208,32 +209,16 @@ async fn execute_v2_step(app_handle: AppHandle, req: &RunStepRequestV2) -> Resul
         let dummy_candidate = create_dummy_candidate(action_type);
         
         // 直接执行操作
-        match execute_v2_action_with_coords(&step_with_coords, &req.device_id, &dummy_candidate).await {
+        return match execute_v2_action_with_coords(&step_with_coords, &req.device_id, &dummy_candidate).await {
             Ok(exec_info) => {
                 tracing::info!("✅ {}执行成功: {}", action_type, exec_info.action);
-                return Ok(StepResponseV2 {
-                    ok: true,
-                    message: exec_info.action,
-                    matched: Some(dummy_candidate),
-                    executed_action: Some(action_type.to_string()),
-                    verify_passed: Some(true),
-                    error_code: None,
-                    raw_logs: Some(vec![format!("{}执行成功", action_type)]),
-                });
+                Ok(ResponseBuilder::selector_free_success(action_type, exec_info.action))
             },
             Err(e) => {
                 tracing::error!("❌ {}执行失败: {}", action_type, e);
-                return Ok(StepResponseV2 {
-                    ok: false,
-                    message: format!("{}执行失败: {}", action_type, e),
-                    matched: None,
-                    executed_action: None,
-                    verify_passed: Some(false),
-                    error_code: Some(format!("{}_EXEC_FAILED", action_type.to_uppercase())),
-                    raw_logs: Some(vec![format!("{}失败: {}", action_type, e)]),
-                });
+                Ok(ResponseBuilder::selector_free_error(action_type, e))
             }
-        }
+        };
     }
     
     // 🎯 检测坐标滑动操作
@@ -248,35 +233,19 @@ async fn execute_v2_step(app_handle: AppHandle, req: &RunStepRequestV2) -> Resul
         let dummy_candidate = create_dummy_candidate("坐标滑动");
         
         // 直接执行坐标操作
-        match execute_v2_action_with_coords(&step_with_coords, &req.device_id, &dummy_candidate).await {
+        return match execute_v2_action_with_coords(&step_with_coords, &req.device_id, &dummy_candidate).await {
             Ok(exec_info) => {
                 tracing::info!("✅ 坐标滑动执行成功: {}", exec_info.action);
-                return Ok(StepResponseV2 {
-                    ok: true,
-                    message: exec_info.action,
-                    matched: Some(dummy_candidate),
-                    executed_action: Some("swipe".to_string()),
-                    verify_passed: Some(true),
-                    error_code: None,
-                    raw_logs: Some(vec!["坐标滑动执行成功".to_string()]),
-                });
+                Ok(ResponseBuilder::selector_free_success("swipe", exec_info.action))
             },
             Err(e) => {
                 tracing::error!("❌ 坐标滑动执行失败: {}", e);
-                return Ok(StepResponseV2 {
-                    ok: false,
-                    message: format!("坐标滑动执行失败: {}", e),
-                    matched: None,
-                    executed_action: None,
-                    verify_passed: Some(false),
-                    error_code: Some("COORD_EXEC_FAILED".to_string()),
-                    raw_logs: Some(vec![format!("坐标滑动失败: {}", e)]),
-                });
+                Ok(ResponseBuilder::selector_free_error("坐标滑动", e))
             }
-        }
+        };
     }
     
-    // � 创建使用修改后步骤的请求对象，用于后续函数调用
+    // 📦 创建使用修改后步骤的请求对象，用于后续函数调用
     let req_with_coords = RunStepRequestV2 {
         device_id: req.device_id.clone(),
         mode: req.mode.clone(), 
@@ -303,43 +272,19 @@ async fn execute_v2_step(app_handle: AppHandle, req: &RunStepRequestV2) -> Resul
                 },
                 Err(e) => {
                     tracing::error!("❌ 元素匹配失败: {}", e);
-                    return Ok(StepResponseV2 {
-                        ok: false,
-                        message: format!("元素匹配失败: {}", e),
-                        matched: None,
-                        executed_action: None,
-                        verify_passed: Some(false),
-                        error_code: Some("MATCH_FAILED".to_string()),
-                        raw_logs: Some(vec![format!("匹配失败: {}", e)]),
-                    });
+                    return Ok(ResponseBuilder::match_failed(e));
                 }
             }
         },
         Err(e) => {
             tracing::error!("❌ UI dump获取失败: {}", e);
-            return Ok(StepResponseV2 {
-                ok: false,
-                message: format!("UI dump获取失败: {}", e),
-                matched: None,
-                executed_action: None,
-                verify_passed: Some(false),
-                error_code: Some("UI_DUMP_FAILED".to_string()),
-                raw_logs: Some(vec![format!("UI dump失败: {}", e)]),
-            });
+            return Ok(ResponseBuilder::ui_dump_failed(e));
         }
     };
     
     // 检查是否有候选
     if candidates.is_empty() {
-        return Ok(StepResponseV2 {
-            ok: false,
-            message: "未找到匹配的元素".to_string(),
-            matched: None,
-            executed_action: None,
-            verify_passed: Some(false),
-            error_code: Some("NO_MATCH".to_string()),
-            raw_logs: Some(vec!["未找到匹配元素".to_string()]),
-        });
+        return Ok(ResponseBuilder::no_match());
     }
     
     // 🎯 根据 selection_mode 决定执行策略
@@ -400,15 +345,12 @@ async fn execute_v2_step(app_handle: AppHandle, req: &RunStepRequestV2) -> Resul
             }
         }
         
-        return Ok(StepResponseV2 {
-            ok: success_count > 0,
-            message: format!("批量执行完成：成功 {}/{}，失败 {}", success_count, candidates.len(), failed_count),
-            matched: candidates.first().cloned(),
-            executed_action: Some("batch_tap".to_string()),
-            verify_passed: Some(success_count == candidates.len()),
-            error_code: if failed_count > 0 { Some("PARTIAL_FAILURE".to_string()) } else { None },
-            raw_logs: Some(logs),
-        });
+        return Ok(ResponseBuilder::batch_execution(
+            success_count,
+            failed_count,
+            logs,
+            candidates.first().cloned(),
+        ));
     }
     
     // 非批量模式：使用第一个候选

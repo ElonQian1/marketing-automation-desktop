@@ -7,6 +7,7 @@ mod step_processor;
 mod safety_gates;
 mod sm_matcher;
 mod strategy_resolver;
+mod response_builder;
 
 pub use disambiguation::generate_disambiguation_suggestions;
 pub use step_processor::{
@@ -18,3 +19,4 @@ pub use step_processor::{
 pub use safety_gates::{check_safety_gates, safety_result_to_response, SafetyGateResult};
 pub use sm_matcher::try_structural_matching;
 pub use strategy_resolver::resolve_step_strategy;
+pub use response_builder::ResponseBuilder;

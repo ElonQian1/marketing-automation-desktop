@@ -14,7 +14,13 @@ use super::super::types::{StepRefOrInline, InlineStep, SingleStepAction};
 /// 2. originalParams.step_id
 /// 3. 顶层参数中的step_id字段
 fn extract_original_step_id(original_params: &serde_json::Value) -> Option<String> {
-    // 策略1: 从 originalParams 中提取
+    // 🔥 策略1: 从顶层 stepId 提取（由 intelligent_preprocessing 添加）
+    if let Some(step_id) = original_params.get("stepId").and_then(|v| v.as_str()) {
+        tracing::info!("🔍 [ID提取] 从顶层 stepId 提取: {}", step_id);
+        return Some(step_id.to_string());
+    }
+    
+    // 策略2: 从 originalParams 中提取
     if let Some(orig_params) = original_params.get("originalParams") {
         if let Some(step_id) = orig_params.get("stepId").and_then(|v| v.as_str()) {
             tracing::info!("🔍 [ID提取] 从 originalParams.stepId 提取: {}", step_id);
@@ -26,7 +32,7 @@ fn extract_original_step_id(original_params: &serde_json::Value) -> Option<Strin
         }
     }
     
-    // 策略2: 从 original_data 中提取
+    // 策略3: 从 original_data 中提取
     if let Some(orig_data) = original_params.get("original_data") {
         if let Some(step_id) = orig_data.get("step_id").and_then(|v| v.as_str()) {
             tracing::info!("🔍 [ID提取] 从 original_data.step_id 提取: {}", step_id);
@@ -34,7 +40,7 @@ fn extract_original_step_id(original_params: &serde_json::Value) -> Option<Strin
         }
     }
     
-    // 策略3: 从顶层参数提取
+    // 策略4: 从顶层参数提取 step_id（备选）
     if let Some(step_id) = original_params.get("step_id").and_then(|v| v.as_str()) {
         tracing::info!("🔍 [ID提取] 从顶层 step_id 提取: {}", step_id);
         return Some(step_id.to_string());
@@ -326,15 +332,29 @@ pub fn convert_analysis_result_to_v3_steps_with_config(
         
         // 🔥 使用原始步骤ID（如果存在）
         let step_id = if let Some(config) = preserved_config {
-            if let Some(orig_id) = extract_original_step_id(config) {
+            // 🔧 修复：从 preserved_config 中提取 stepId，而不是从 originalParams
+            let direct_id = config.get("stepId")
+                .and_then(|v| v.as_str())
+                .or_else(|| config.get("step_id").and_then(|v| v.as_str()));
+            
+            let extracted_option = extract_original_step_id(config);
+            let extracted_id = if direct_id.is_some() {
+                direct_id
+            } else {
+                extracted_option.as_deref()
+            };
+                
+            if let Some(orig_id) = extracted_id {
+                tracing::info!("🔍 [ID提取成功] 步骤 {} 使用原始ID: {}", index + 1, orig_id);
                 if index == 0 {
                     // 第一个步骤使用原始ID，以便能找到保存的配置
-                    orig_id
+                    orig_id.to_string()
                 } else {
                     // 多个步骤时，其他步骤添加后缀
                     format!("{}_{}", orig_id, index)
                 }
             } else {
+                tracing::warn!("⚠️ [ID提取失败] 步骤 {} 使用自动生成ID", index + 1);
                 // 回退到原有逻辑
                 format!("intelligent_step_{}", index + 1)
             }

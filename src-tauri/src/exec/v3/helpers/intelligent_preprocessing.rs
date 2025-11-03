@@ -116,12 +116,21 @@ pub async fn optimize_steps_with_intelligent_analysis<'a>(
         None,
     )?;
     
-    // 🔥 【核心修复】提取第一个步骤的 params（包含 original_data）
-    let original_params = ordered_steps
+    // 🔥 【核心修复】提取第一个步骤的完整信息（包含 stepId 和 params）
+    let original_inline_step = ordered_steps
         .first()
-        .and_then(|step| step.inline.as_ref())
-        .map(|inline| inline.params.clone())
-        .unwrap_or(serde_json::Value::Null);
+        .and_then(|step| step.inline.as_ref());
+    
+    let original_params = if let Some(inline) = original_inline_step {
+        // 🔧 构建包含stepId的完整参数对象，以便后续ID提取
+        let mut full_params = inline.params.clone();
+        if let serde_json::Value::Object(ref mut obj) = full_params {
+            obj.insert("stepId".to_string(), serde_json::json!(inline.step_id));
+        }
+        full_params
+    } else {
+        serde_json::Value::Null
+    };
     
     // ✅ FIX: 优先使用步骤保存的 original_xml，避免重新dump导致页面变化
     let ui_xml = if let Some(original_data) = original_params.get("original_data") {
