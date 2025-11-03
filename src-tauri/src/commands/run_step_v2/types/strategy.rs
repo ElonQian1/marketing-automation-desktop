@@ -3,13 +3,13 @@
 // summary: 决策链策略数据结构 - 策略变体、配置、上下文等
 
 use serde::{Serialize, Deserialize};
-use super::selector::VariantSelectors;
+use super::selector::{VariantSelectors, StaticAnalysisContext};
 
 /// 完整决策链计划
 #[derive(Debug, Clone, Deserialize)]
 pub struct DecisionChainPlan {
     pub strategy: StrategyConfig,
-    pub context: StaticAnalysisContext,
+    pub context: StaticAnalysisContext, // 使用完整版的上下文（from selector.rs）
     pub child_anchors: Option<Vec<ChildAnchor>>,
     pub structural_signatures: Option<StructuralSignatures>,
     pub plan: Vec<StrategyVariant>, // 从强到弱排序的可执行配方
@@ -26,18 +26,6 @@ pub struct StrategyConfig {
     pub min_confidence: Option<f32>,
     pub forbid_containers: Option<bool>,
     pub post_assertions: Option<Vec<String>>,
-}
-
-/// 静态分析上下文（策略专用）
-#[derive(Debug, Clone, Deserialize)]
-pub struct StaticAnalysisContext {
-    pub unique_resource_id: bool,
-    pub unique_content_desc: bool,
-    pub has_stable_container: bool,
-    pub has_text_anchor: bool,
-    pub text_language: Option<String>,
-    pub recommended_strategy: String,
-    pub confidence: f32,
 }
 
 /// 子树锚点（解决"父无字段，子有字段"）

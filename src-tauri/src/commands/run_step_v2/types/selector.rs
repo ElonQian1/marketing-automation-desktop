@@ -148,3 +148,16 @@ pub struct ClickableParentHint {
     pub must_be_clickable: Option<bool>,
     pub must_be_enabled: Option<bool>,
 }
+
+/// 静态分析上下文（前端采集固化 - 完整版）
+#[derive(Debug, Clone, Deserialize)]
+pub struct StaticAnalysisContext {
+    pub package: Option<String>,
+    pub activity: Option<String>,
+    pub screen: Option<ScreenInfo>,
+    pub absolute_xpath: Option<String>,
+    pub xml_hash: Option<String>,
+    pub node_fingerprint: Option<String>,
+    pub container_anchor: Option<ContainerAnchor>,
+    pub clickable_parent_hint: Option<ClickableParentHint>,
+}

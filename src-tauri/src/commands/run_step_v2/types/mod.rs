@@ -32,7 +32,6 @@ pub use response::{
 pub use strategy::{
     DecisionChainPlan,
     StrategyConfig,
-    StaticAnalysisContext,
     StrategyVariant,
     VariantKind,
     ChildAnchor,
@@ -60,6 +59,7 @@ pub use selector::{
     ScreenInfo,
     ContainerAnchor,
     ClickableParentHint,
+    StaticAnalysisContext,
 };
 
 // Evidence 类型
