@@ -53,6 +53,12 @@ export interface UseHierarchicalMatchingModalReturn {
   
   /** 当前应用的模板类型 */
   appliedTemplate?: ElementTemplate;
+  
+  /** 🏗️ 生成后端所需的 structural_signatures */
+  generateStructuralSignatures: () => {
+    container: { role: string; depth: number };
+    skeleton: Array<{ tag: string; role: string; index: number }>;
+  } | null;
 }
 
 /**
@@ -201,6 +207,62 @@ export const useHierarchicalMatchingModal = ({
     return hasEnabledField && validThreshold;
   }, [config]);
 
+  // 🏗️ 生成后端所需的 structural_signatures
+  const generateStructuralSignatures = useCallback(() => {
+    if (!selectedElement) {
+      console.warn('⚠️ [StructuralMatching] 无法生成骨架：selectedElement 为空');
+      return null;
+    }
+
+    // 提取容器信息
+    const className = (selectedElement.class_name || selectedElement.className) as string | undefined;
+    const containerRole = className?.split('.').pop() || 'Frame';
+    
+    // 计算深度（从元素路径或ID推断）
+    const elementId = selectedElement.id as string | undefined;
+    const depth = elementId ? (elementId.match(/-/g) || []).length : 0;
+
+    // 从配置的layers中提取启用的字段，构建skeleton
+    const skeleton: Array<{ tag: string; role: string; index: number }> = [];
+    
+    // 遍历所有layers，找到启用的字段
+    config.layers.forEach((layer, layerIndex) => {
+      Object.entries(layer.fields).forEach(([fieldType, fieldConfig]) => {
+        if (fieldConfig?.enabled && fieldType !== FieldType.BOUNDS) {
+          // 从元素中提取对应字段的值作为role
+          const fieldValue = selectedElement[fieldType] as string | undefined;
+          
+          skeleton.push({
+            tag: className?.split('.').pop() || 'View',
+            role: fieldValue || fieldType, // 使用字段值或字段类型作为role
+            index: layerIndex
+          });
+        }
+      });
+    });
+
+    // 如果没有启用的字段，至少添加一个基础节点
+    if (skeleton.length === 0) {
+      const text = (selectedElement.text || selectedElement.elementText) as string | undefined;
+      skeleton.push({
+        tag: containerRole,
+        role: text || 'default',
+        index: 0
+      });
+    }
+
+    const signatures = {
+      container: {
+        role: containerRole,
+        depth: depth
+      },
+      skeleton: skeleton
+    };
+
+    console.log('🏗️ [StructuralMatching] 生成 structural_signatures:', signatures);
+    return signatures;
+  }, [selectedElement, config.layers]);
+
   return {
     config,
     updateThreshold,
@@ -212,5 +274,6 @@ export const useHierarchicalMatchingModal = ({
     detectAndApplyTemplate,
     isConfigValid,
     appliedTemplate,
+    generateStructuralSignatures,
   };
 };

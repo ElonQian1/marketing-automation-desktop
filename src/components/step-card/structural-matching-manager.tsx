@@ -60,9 +60,14 @@ export const StructuralMatchingProvider: React.FC<{ children: React.ReactNode }>
     setModalState(prev => ({ ...prev, visible: false }));
   }, []);
 
-  const handleConfirm = useCallback((config: StructuralMatchingConfig) => {
+  const handleConfirm = useCallback((
+    config: StructuralMatchingHierarchicalConfig,
+    structuralSignatures: { container: { role: string; depth: number }; skeleton: Array<{ tag: string; role: string; index: number }> } | null
+  ) => {
     console.log('✅ [StructuralMatching] 保存配置', config);
-    modalState.onSave?.(config);
+    console.log('🏗️ [StructuralMatching] 结构签名', structuralSignatures);
+    // TODO: 需要更新 onSave 回调以传递 structuralSignatures
+    modalState.onSave?.(config as any);
     setModalState(prev => ({ ...prev, visible: false }));
   }, [modalState.onSave]);
 

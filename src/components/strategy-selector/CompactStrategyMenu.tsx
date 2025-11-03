@@ -30,7 +30,7 @@ import { RandomConfigPanel } from './panels/RandomConfigPanel';
 import { MatchOriginalConfigPanel } from './panels/MatchOriginalConfigPanel';
 import { convertSelectionModeToBackend } from './utils/selection-mode-converter';
 import { saveSelectionConfigWithFeedback } from './utils/selection-config-saver';
-import { StructuralMatchingModal, type StructuralMatchingConfig } from '../../modules/structural-matching';
+import { StructuralMatchingModal, type StructuralMatchingHierarchicalConfig } from '../../modules/structural-matching';
 import type { 
   BatchConfig, 
   RandomConfig,
@@ -137,7 +137,7 @@ const CompactStrategyMenu: React.FC<CompactStrategyMenuProps> = ({
 
   // 🏗️ 结构匹配模态框状态
   const [structuralMatchingVisible, setStructuralMatchingVisible] = useState(false);
-  const [structuralMatchingConfig, setStructuralMatchingConfig] = useState<StructuralMatchingConfig | null>(null);
+  const [structuralMatchingConfig, setStructuralMatchingConfig] = useState<StructuralMatchingHierarchicalConfig | null>(null);
 
   // 🔑 新增：更新步骤参数中的决策链配置
   const updateDecisionChainConfig = React.useCallback((
@@ -1514,9 +1514,34 @@ const CompactStrategyMenu: React.FC<CompactStrategyMenuProps> = ({
         }}
         initialConfig={structuralMatchingConfig}
         onClose={() => setStructuralMatchingVisible(false)}
-        onConfirm={(config) => {
+        onConfirm={(config, structuralSignatures) => {
           console.log('✅ [CompactStrategyMenu] 保存结构匹配配置', config);
+          console.log('🏗️ [CompactStrategyMenu] 收到的 structural_signatures:', structuralSignatures);
+          
+          // 保存到本地状态
           setStructuralMatchingConfig(config);
+          
+          // 🏗️ 【核心修复】直接使用模态框生成的 structural_signatures
+          if (onUpdateStepParameters && stepId && structuralSignatures) {
+            onUpdateStepParameters(stepId, {
+              structural_signatures: structuralSignatures,
+              // 保留原始配置用于UI显示
+              _structural_matching_ui_config: config
+            } as Record<string, unknown>);
+            
+            console.log('✅ [CompactStrategyMenu] structural_signatures 已同步到步骤参数');
+          } else {
+            if (!onUpdateStepParameters) {
+              console.warn('⚠️ [CompactStrategyMenu] onUpdateStepParameters 回调不存在');
+            }
+            if (!stepId) {
+              console.warn('⚠️ [CompactStrategyMenu] stepId 不存在');
+            }
+            if (!structuralSignatures) {
+              console.warn('⚠️ [CompactStrategyMenu] structuralSignatures 为空，未能生成骨架数据');
+            }
+          }
+          
           setStructuralMatchingVisible(false);
           message.success('结构匹配配置已保存');
         }}

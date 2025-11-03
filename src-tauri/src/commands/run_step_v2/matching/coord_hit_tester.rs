@@ -2,7 +2,7 @@
 // module: step-execution | layer: matching | role: 坐标命中测试
 // summary: 坐标兜底策略 - 对指定坐标进行hit-test，找到最小覆盖节点
 
-use super::super::types::*;
+use super::super::{RunStepRequestV2, MatchCandidate};  // 引用 mod.rs 中的运行时类型
 use super::super::validation::{parse_xml_attribute, parse_bounds_from_string, check_fullscreen_node, check_container_node};
 
 /// 坐标兜底：对指定坐标进行hit-test，找到最小覆盖节点

@@ -18,7 +18,10 @@ export interface StructuralMatchingModalProps {
   selectedElement: Record<string, unknown>;
   initialConfig?: Partial<StructuralMatchingHierarchicalConfig>;
   onClose: () => void;
-  onConfirm: (config: StructuralMatchingHierarchicalConfig) => void;
+  onConfirm: (
+    config: StructuralMatchingHierarchicalConfig,
+    structuralSignatures: { container: { role: string; depth: number }; skeleton: Array<{ tag: string; role: string; index: number }> } | null
+  ) => void;
 }
 
 export const StructuralMatchingModal: React.FC<StructuralMatchingModalProps> = ({
@@ -39,6 +42,7 @@ export const StructuralMatchingModal: React.FC<StructuralMatchingModalProps> = (
     applyTemplate,
     detectAndApplyTemplate,
     appliedTemplate,
+    generateStructuralSignatures,
   } = useHierarchicalMatchingModal({
     selectedElement,
     initialConfig,
@@ -54,7 +58,11 @@ export const StructuralMatchingModal: React.FC<StructuralMatchingModalProps> = (
 
   const handleConfirm = () => {
     if (isConfigValid) {
-      onConfirm(config);
+      // 生成结构签名数据
+      const structuralSignatures = generateStructuralSignatures();
+      console.log('[StructuralMatchingModal] 生成的结构签名:', JSON.stringify(structuralSignatures, null, 2));
+      
+      onConfirm(config, structuralSignatures);
       onClose();
     }
   };

@@ -2,7 +2,7 @@
 // module: step-execution | layer: matching | role: 选择器解析
 // summary: 按优先级解析选择器 - Inline > Store > CoordFallback > None
 
-use super::super::types::RunStepRequestV2;
+use super::super::RunStepRequestV2;  // 引用 mod.rs 中的运行时类型
 
 /// 选择器来源枚举
 #[derive(Debug, Clone)]

@@ -3,20 +3,23 @@
 // summary: 集成结构匹配功能到步骤卡片
 
 import { useState, useCallback } from 'react';
-import { StructuralMatchingConfig } from '../../../modules/structural-matching';
+import { StructuralMatchingHierarchicalConfig } from '../../../modules/structural-matching';
 
 export interface UseStructuralMatchingIntegrationProps {
   /** 步骤ID */
   stepId: string;
   
   /** 选中的元素 */
-  selectedElement: any;
+  selectedElement: Record<string, unknown>;
   
   /** 初始配置（如果已保存） */
-  initialConfig?: StructuralMatchingConfig;
+  initialConfig?: StructuralMatchingHierarchicalConfig;
   
   /** 保存回调 */
-  onSave?: (config: StructuralMatchingConfig) => void;
+  onSave?: (
+    config: StructuralMatchingHierarchicalConfig,
+    structuralSignatures: { container: { role: string; depth: number }; skeleton: Array<{ tag: string; role: string; index: number }> } | null
+  ) => void;
 }
 
 export function useStructuralMatchingIntegration({
@@ -26,7 +29,7 @@ export function useStructuralMatchingIntegration({
   onSave,
 }: UseStructuralMatchingIntegrationProps) {
   const [modalVisible, setModalVisible] = useState(false);
-  const [savedConfig, setSavedConfig] = useState<StructuralMatchingConfig | undefined>(initialConfig);
+  const [savedConfig, setSavedConfig] = useState<StructuralMatchingHierarchicalConfig | undefined>(initialConfig);
 
   // 打开模态框
   const openModal = useCallback(() => {
@@ -44,10 +47,13 @@ export function useStructuralMatchingIntegration({
   }, []);
 
   // 确认保存配置
-  const handleConfirm = useCallback((config: StructuralMatchingConfig) => {
-    console.log('✅ [StructuralMatching] 保存配置', { stepId, config });
+  const handleConfirm = useCallback((
+    config: StructuralMatchingHierarchicalConfig,
+    structuralSignatures: { container: { role: string; depth: number }; skeleton: Array<{ tag: string; role: string; index: number }> } | null
+  ) => {
+    console.log('✅ [StructuralMatching] 保存配置', { stepId, config, structuralSignatures });
     setSavedConfig(config);
-    onSave?.(config);
+    onSave?.(config, structuralSignatures);
     setModalVisible(false);
   }, [stepId, onSave]);
 
@@ -55,7 +61,7 @@ export function useStructuralMatchingIntegration({
   const clearConfig = useCallback(() => {
     console.log('🗑️ [StructuralMatching] 清除配置', { stepId });
     setSavedConfig(undefined);
-    onSave?.(undefined as any);
+    onSave?.(undefined as StructuralMatchingHierarchicalConfig, null);
   }, [stepId, onSave]);
 
   return {

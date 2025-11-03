@@ -3,7 +3,8 @@
 // summary: 同构决策链核心 - 统一评分逻辑（前后端复用）
 
 use crate::services::ui_reader_service::UIElement;
-use super::super::types::*;
+use super::super::types::StaticEvidence;  // 从 types 模块引用
+use super::super::MatchCandidate;  // 从 mod.rs 引用运行时类型
 
 /// 三态评分引擎（同构评分逻辑）
 pub struct UnifiedScoringCore;

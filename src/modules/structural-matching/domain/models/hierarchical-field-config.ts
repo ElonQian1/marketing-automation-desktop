@@ -43,6 +43,12 @@ export interface StructuralMatchingHierarchicalConfig {
   
   /** 所有层级的字段配置 */
   layers: HierarchicalFieldConfig[];
+
+  /**
+   * 可选：结构签名（供 V3 执行器触发结构匹配用）
+   * 说明：为保持向后兼容，此字段为可选，未设置时后端可回退到传统匹配。
+   */
+  structural_signatures?: Record<string, unknown>;
 }
 
 /**
