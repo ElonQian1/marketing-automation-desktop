@@ -44,3 +44,12 @@ export {
 export { StructuralMatchingXmlLoader } from "./structural-matching-xml-loader";
 
 export { StructuralMatchingScreenshotLoader } from "./structural-matching-screenshot-loader";
+
+// 🎯 新增：定位策略模块导出
+export type { StructuralMatchingPositioningOptions, StructuralMatchingPositioningMode } from "./positioning/structural-matching-positioning-types";
+export { calculateWindowPositionWithPolicy } from "./positioning/structural-matching-positioning-policy";
+export { getViewportSize } from "./positioning/structural-matching-viewport";
+
+// 🎯 新增：UI偏好模块导出
+export type { StructuralMatchingUIPreferences } from "./preferences/structural-matching-preferences";
+export { getDefaultUIPreferences, loadUIPreferences, saveUIPreferences } from "./preferences/structural-matching-preferences";

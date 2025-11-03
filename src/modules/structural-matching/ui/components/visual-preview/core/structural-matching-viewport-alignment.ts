@@ -3,6 +3,9 @@
 // summary: 结构匹配视口对齐算法
 
 import type { ElementTreeData, CropConfig, ViewportAlignment } from "../types";
+import { getViewportSize } from "./positioning/structural-matching-viewport";
+import type { StructuralMatchingPositioningOptions } from "./positioning/structural-matching-positioning-types";
+import { calculateWindowPositionWithPolicy } from "./positioning/structural-matching-positioning-policy";
 
 /**
  * 计算悬浮窗口的最佳视口对齐配置
@@ -11,7 +14,8 @@ export function calculateViewportAlignment(
   elementTreeData: ElementTreeData,
   cropConfig: CropConfig,
   mousePosition?: { x: number; y: number },
-  screenSize = { width: 1920, height: 1080 }
+  screenSize = getViewportSize(),
+  options?: StructuralMatchingPositioningOptions
 ): ViewportAlignment {
   const { cropArea } = cropConfig;
 
@@ -68,10 +72,11 @@ export function calculateViewportAlignment(
     y: (containerSize.height - scaledCropSize.height) / 2,
   };
 
-  // 5. 计算窗口位置：优先跟随鼠标，其次根据元素边界智能定位
+  // 5. 计算窗口位置
+  // 优先跟随“真实鼠标坐标”；若未提供或无意义，则根据定位策略进行布局（默认右侧优先）
   let windowPosition: { x: number; y: number };
 
-  if (mousePosition) {
+  if (mousePosition && options?.mode !== "right-edge" && options?.mode !== "fixed") {
     const margin = 20;
     const clampedX = Math.max(
       margin,
@@ -93,10 +98,12 @@ export function calculateViewportAlignment(
       y: Math.round(clampedY),
     };
   } else {
-    windowPosition = calculateSmartWindowPosition(
+    // 使用策略模块（默认 auto，会优先右侧吸附；允许通过 options 覆盖）
+    windowPosition = calculateWindowPositionWithPolicy(
       elementTreeData.bounds,
       { width: windowSize.width, height: windowSize.height },
-      screenSize
+      screenSize,
+      options
     );
   }
 

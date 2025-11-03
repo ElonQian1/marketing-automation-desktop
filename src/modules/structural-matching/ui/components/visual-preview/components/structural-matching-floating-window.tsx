@@ -16,6 +16,7 @@ import { StructuralMatchingScreenshotOverlay } from "./structural-matching-scree
 import { StructuralMatchingElementTree } from "./structural-matching-element-tree";
 import { StructuralMatchingRawAttributesPanel } from "./structural-matching-raw-attributes-panel";
 import { extractElementByIdFromXml } from "../utils/structural-matching-subtree-extractor";
+import { loadUIPreferences, saveUIPreferences } from "../core/preferences/structural-matching-preferences";
 
 /**
  * 结构匹配浮窗主组件
@@ -83,7 +84,14 @@ export function StructuralMatchingFloatingWindow({
       ...elementTreeData,
       bounds: anchorBounds,
     } as typeof elementTreeData;
-    return calculateViewportAlignment(temp, cropConfig, initialPosition);
+    // 初始化定位：不再以 initialPosition 当作鼠标位置；默认靠屏幕右侧合理放置
+    return calculateViewportAlignment(
+      temp,
+      cropConfig,
+      undefined,
+      undefined,
+      { mode: "right-edge", margin: 24 }
+    );
   })();
 
   // 窗口状态管理 - 使用计算出的最佳尺寸和位置
@@ -126,7 +134,12 @@ export function StructuralMatchingFloatingWindow({
     "screenshot"
   );
   // 是否展示原始属性面板
-  const [showRawAttrs, setShowRawAttrs] = useState<boolean>(true);
+  const [showRawAttrs, setShowRawAttrs] = useState<boolean>(() => loadUIPreferences().showRawAttributes);
+
+  // 偏好持久化：原始属性开关变化时保存
+  useEffect(() => {
+    saveUIPreferences({ showRawAttributes: showRawAttrs });
+  }, [showRawAttrs]);
 
   // 监听高亮元素变化
   useEffect(() => {
