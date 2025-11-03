@@ -6,9 +6,13 @@
 mod sm_integration;
 mod validation;
 mod types;
+mod matching;
 
 // 重导出 types 模块的公共类型（供外部模块使用）
 pub use types::*;
+
+// 重导出 matching 模块的功能
+use matching::{UnifiedScoringCore, resolve_selector_with_priority, SelectorSource, coord_fallback_hit_test};
 
 use tauri::{command, AppHandle};
 use serde::{Deserialize, Serialize};
