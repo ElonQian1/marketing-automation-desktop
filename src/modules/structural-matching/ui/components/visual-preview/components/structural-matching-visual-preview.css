@@ -1,0 +1,124 @@
+/* src/modules/structural-matching/ui/components/visual-preview/components/structural-matching-visual-preview.css */
+/* module: structural-matching | layer: ui | role: 样式表 */
+/* summary: 结构匹配可视化 - 元素树等通用样式，抽离部分内联样式以统一主题和可读性 */
+
+/* 树容器 */
+.structural-matching-element-tree.sm-tree {
+  height: 100%;
+  overflow: auto;
+  padding: 8px;
+  font-size: 12px;
+  background-color: var(--bg-1);
+}
+
+/* 树节点内容 */
+.structural-matching-element-tree .element-node-content {
+  display: flex;
+  align-items: center;
+  padding-right: 8px;
+  padding-top: 4px;
+  padding-bottom: 4px;
+  cursor: pointer;
+  border-radius: 4px;
+  margin: 1px 0;
+  transition: background-color 0.2s ease;
+}
+
+.structural-matching-element-tree .element-node-content.is-selected {
+  background: var(--bg-3);
+}
+
+.structural-matching-element-tree .element-node-content.is-highlighted:not(.is-selected) {
+  background: rgba(114, 46, 209, 0.15);
+  outline: 1px dashed #722ed1;
+}
+
+/* 展开折叠按钮 */
+.structural-matching-element-tree .expand-toggle {
+  width: 16px;
+  height: 16px;
+  border: none;
+  background: transparent;
+  color: var(--text-2);
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-right: 4px;
+}
+
+/* 元素信息 */
+.structural-matching-element-tree .element-info {
+  flex: 1;
+  min-width: 0;
+}
+
+.structural-matching-element-tree .element-type {
+  font-size: 12px;
+  font-weight: 500;
+  color: var(--text-1);
+  margin-bottom: 2px;
+}
+
+.structural-matching-element-tree .element-type.root {
+  color: #722ed1;
+}
+
+.structural-matching-element-tree .element-type .size {
+  font-size: 10px;
+  color: var(--text-3);
+  margin-left: 8px;
+}
+
+.structural-matching-element-tree .element-text {
+  font-size: 11px;
+  color: var(--text-2);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* 指示器与徽标 */
+.structural-matching-element-tree .element-indicators {
+  margin-left: 8px;
+}
+
+.structural-matching-element-tree .badge {
+  font-size: 10px;
+  color: #fff;
+  padding: 1px 4px;
+  border-radius: 2px;
+  margin-left: 2px;
+}
+
+.structural-matching-element-tree .badge.clickable {
+  background-color: #52c41a;
+}
+
+.structural-matching-element-tree .badge.important {
+  background-color: #ff4d4f;
+}
+
+/* 覆盖层元素角标（在边框附近显示元素摘要） */
+.overlay-badge {
+  position: absolute;
+  top: -18px; /* 边框上方 */
+  left: 0;
+  font-size: 10px;
+  line-height: 1;
+  padding: 2px 4px;
+  border: 1px solid var(--border-color);
+  border-radius: 2px;
+  background: var(--bg-light-base, #ffffff);
+  color: var(--text-inverse, #1e293b);
+  box-shadow: 0 1px 2px rgba(0,0,0,0.15);
+  pointer-events: none; /* 不阻塞 hover/click */
+}
+
+.overlay-badge.is-selected {
+  border-color: #faad14;
+}
+
+.overlay-badge.is-hovered {
+  border-color: #722ed1;
+}

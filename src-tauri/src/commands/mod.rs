@@ -22,6 +22,8 @@ pub mod enhanced_location_commands; // 🆕 新增增强定位算法命令
 pub mod smart_selection; // 🆕 新增智能选择系统命令
 pub mod semantic_analyzer_config; // 🆕 新增语义分析器配置命令
 pub mod structural_matching; // 🆕 新增结构匹配命令
+pub mod structure_match_runtime; // 🚀 新增结构匹配运行时命令
+pub mod ui_dump; // 🆕 新增UI Dump命令
 
 // 可选：统一 re-export，方便 main.rs 引入
 // pub use action_execution::*; // 操作执行命令（暂时注释）
@@ -43,3 +45,5 @@ pub use prospecting::*; // ✅ 导出精准获客命令
 pub use commands_lead_hunt::*; // ✅ 导出Lead Hunt命令
 pub use smart_selection::*; // 🆕 导出智能选择命令
 pub use semantic_analyzer_config::*; // 🆕 导出语义分析器配置命令
+pub use structure_match_runtime::*; // 🚀 导出结构匹配运行时命令
+pub use ui_dump::*; // 🆕 导出UI Dump命令

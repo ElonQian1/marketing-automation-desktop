@@ -3,8 +3,11 @@
 // summary: 结构匹配截图叠加层组件 - 显示背景截图和元素边框
 
 import React, { useState, useRef, useEffect } from "react";
+import "./structural-matching-visual-preview.css";
 import { ElementTreeData, CropConfig, ViewportAlignment } from "../types";
 import { StructuralMatchingAlignedImage } from "./structural-matching-aligned-image";
+import { structuralMatchingCoordinationBus } from "../core";
+import type { VisualUIElement } from "../../../../../../components/universal-ui/xml-parser";
 
 interface StructuralMatchingScreenshotOverlayProps {
   screenshotUrl: string;
@@ -13,6 +16,7 @@ interface StructuralMatchingScreenshotOverlayProps {
   viewportAlignment?: ViewportAlignment;
   onElementHover?: (elementId: string | null) => void;
   onElementClick?: (elementId: string) => void;
+  selectedElementId?: string | null;
   className?: string;
   style?: React.CSSProperties;
 }
@@ -28,12 +32,17 @@ export function StructuralMatchingScreenshotOverlay({
   viewportAlignment,
   onElementHover,
   onElementClick,
+  selectedElementId,
   className = "",
   style = {},
 }: StructuralMatchingScreenshotOverlayProps) {
   const [imageLoaded, setImageLoaded] = useState(false);
   const [imageSize, setImageSize] = useState({ width: 0, height: 0 });
   const [hoveredElementId, setHoveredElementId] = useState<string | null>(null);
+  const [busHighlightId, setBusHighlightId] = useState<string | null>(null);
+  // 轻量节流（rAF 合并）：减少频繁 hover 事件对父组件/总线的压力
+  const hoverRafRef = useRef<number | null>(null);
+  const pendingHoverIdRef = useRef<string | null>(null);
 
   const containerRef = useRef<HTMLDivElement>(null);
   const imageRef = useRef<HTMLImageElement>(null);
@@ -105,6 +114,23 @@ export function StructuralMatchingScreenshotOverlay({
     img.src = screenshotUrl;
   }, [screenshotUrl]);
 
+  // 订阅协调总线高亮事件：来自树的高亮应在叠加层中可见
+  useEffect(() => {
+    const unsubscribe = structuralMatchingCoordinationBus.subscribe((evt) => {
+      if (evt.type === "highlight") {
+        const normalized = evt.elementId
+          ? evt.elementId.replace(/element[_-](\d+)/, (_m, g1) => `element-${g1}`)
+          : null;
+        setBusHighlightId(normalized);
+      } else if (evt.type === "clear") {
+        setBusHighlightId(null);
+      }
+    });
+    return () => {
+      unsubscribe();
+    };
+  }, []);
+
   // 计算裁剪样式（仅用于回退渲染路径）
   const getCropStyle = (): React.CSSProperties => {
     if (!cropConfig) {
@@ -146,15 +172,34 @@ export function StructuralMatchingScreenshotOverlay({
   };
 
   // 处理元素悬停
+  const scheduleHoverEmit = (id: string | null) => {
+    pendingHoverIdRef.current = id;
+    if (hoverRafRef.current == null) {
+      hoverRafRef.current = requestAnimationFrame(() => {
+        hoverRafRef.current = null;
+        const value = pendingHoverIdRef.current ?? null;
+        setHoveredElementId(value);
+        onElementHover?.(value);
+      });
+    }
+  };
+
   const handleElementMouseEnter = (elementId: string) => {
-    setHoveredElementId(elementId);
-    onElementHover?.(elementId);
+    scheduleHoverEmit(elementId);
   };
 
   const handleElementMouseLeave = () => {
-    setHoveredElementId(null);
-    onElementHover?.(null);
+    scheduleHoverEmit(null);
   };
+
+  useEffect(() => {
+    return () => {
+      if (hoverRafRef.current != null) {
+        cancelAnimationFrame(hoverRafRef.current);
+        hoverRafRef.current = null;
+      }
+    };
+  }, []);
 
   // 处理元素点击
   const handleElementClick = (elementId: string, e: React.MouseEvent) => {
@@ -229,7 +274,8 @@ export function StructuralMatchingScreenshotOverlay({
       height: Math.max(1, bounds.height * scale),
     });
 
-    const scaledRoot = toScaledBounds(rootBounds);
+  const scaledRoot = toScaledBounds(rootBounds);
+  const isRootSelected = selectedElementId && rootElement.id === selectedElementId;
 
     return (
       <>
@@ -243,16 +289,16 @@ export function StructuralMatchingScreenshotOverlay({
             top: scaledRoot.top,
             width: scaledRoot.width,
             height: scaledRoot.height,
-            border: "2px solid #722ed1",
+            border: isRootSelected ? "2px solid #faad14" : "2px solid #722ed1",
             borderRadius: "4px",
             pointerEvents: "none",
-            backgroundColor: "rgba(114, 46, 209, 0.1)",
-            zIndex: 10,
+            backgroundColor: isRootSelected ? "rgba(250, 173, 20, 0.12)" : "rgba(114, 46, 209, 0.1)",
+            zIndex: isRootSelected ? 20 : 10,
           }}
         />
 
         {/* 子元素边框 */}
-        {childElements.map((element) => {
+  {childElements.map((element: VisualUIElement) => {
           const relativeBounds = calculateRelativePosition(element);
           if (!relativeBounds) return null;
 
@@ -265,8 +311,20 @@ export function StructuralMatchingScreenshotOverlay({
 
           if (!isVisible) return null;
 
-          const isHovered = hoveredElementId === element.id;
+          const isHovered =
+            hoveredElementId === element.id || busHighlightId === element.id;
+          const isSelected = selectedElementId === element.id;
           const scaledChild = toScaledBounds(relativeBounds);
+
+          const label = ((): string => {
+            const text = element.text?.trim?.();
+            if (text) return `"${text}"`;
+            const desc = element.description?.trim?.();
+            if (desc) return `[${desc}]`;
+            const rid = element.resourceId;
+            if (rid) return `#${rid}`;
+            return element.type || element.className || "Element";
+          })();
 
           return (
             <div
@@ -280,15 +338,19 @@ export function StructuralMatchingScreenshotOverlay({
                 top: scaledChild.top,
                 width: scaledChild.width,
                 height: scaledChild.height,
-                border: `1px solid ${isHovered ? "#ff6b6b" : "#52c41a"}`,
+                border: isSelected
+                  ? "2px solid #faad14"
+                  : `1px solid ${isHovered ? "#ff6b6b" : "#52c41a"}`,
                 borderRadius: "2px",
-                backgroundColor: isHovered
+                backgroundColor: isSelected
+                  ? "rgba(250, 173, 20, 0.15)"
+                  : isHovered
                   ? "rgba(255, 107, 107, 0.2)"
                   : "rgba(82, 196, 26, 0.1)",
                 cursor: "pointer",
                 pointerEvents: "auto",
                 transition: "all 0.2s ease",
-                zIndex: isHovered ? 15 : 11,
+                zIndex: isSelected ? 20 : isHovered ? 15 : 11,
               }}
               onMouseEnter={() => handleElementMouseEnter(element.id)}
               onMouseLeave={handleElementMouseLeave}
@@ -296,7 +358,21 @@ export function StructuralMatchingScreenshotOverlay({
               title={`${element.type || element.className || "Element"} - ${
                 element.text || element.description || element.id
               }`}
-            />
+            >
+              {(isSelected || isHovered) && (
+                <div
+                  className={`overlay-badge light-theme-force ${
+                    isSelected ? "is-selected" : isHovered ? "is-hovered" : ""
+                  }`}
+                  style={{
+                    // 若靠近容器顶部，避免上方溢出（保守处理，必要时可进一步改为可视区域判断）
+                    top: scaledChild.top < 20 ? 0 : undefined,
+                  }}
+                >
+                  {label} · {element.id}
+                </div>
+              )}
+            </div>
           );
         })}
       </>

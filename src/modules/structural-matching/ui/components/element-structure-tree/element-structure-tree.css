@@ -47,6 +47,17 @@
   box-shadow: 0 2px 8px rgba(24, 144, 255, 0.1);
 }
 
+/* 高亮/选中态（叠加层联动） */
+.tree-node-content--highlight {
+  border-color: #1890ff;
+  background: #e6f7ff; /* Antd info-light */
+}
+
+.tree-node-content--selected {
+  border-color: #fa8c16; /* accent for selected */
+  box-shadow: 0 0 0 2px rgba(250, 140, 22, 0.15);
+}
+
 /* 节点头部 */
 .tree-node-content .node-header {
   margin-bottom: 12px;

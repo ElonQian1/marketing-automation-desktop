@@ -2,7 +2,7 @@
 // module: structural-matching | layer: ui | role: 组件
 // summary: 结构匹配浮窗主组件 - 整合截图、元素树、视口对齐等功能
 
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useMemo, useCallback } from "react";
 import { FloatingVisualWindowProps, WindowState } from "../types";
 import { useStructuralMatchingStepData } from "../hooks/use-structural-matching-step-data";
 import {
@@ -16,12 +16,16 @@ import { StructuralMatchingScreenshotOverlay } from "./structural-matching-scree
 import { StructuralMatchingElementTree } from "./structural-matching-element-tree";
 import { StructuralMatchingRawAttributesPanel } from "./structural-matching-raw-attributes-panel";
 import { extractElementByIdFromXml } from "../utils/structural-matching-subtree-extractor";
-import { loadUIPreferences, saveUIPreferences } from "../core/preferences/structural-matching-preferences";
+import {
+  loadUIPreferences,
+  saveUIPreferences,
+} from "../core/preferences/structural-matching-preferences";
+import { structuralMatchingCoordinationBus } from "../core";
+import { StructuralMatchingFloatingToolbar } from "./structural-matching-floating-toolbar.tsx";
 
-/**
- * 结构匹配浮窗主组件
- * 整合截图显示、元素树视图、视口对齐等功能
- */
+const MemoOverlay = React.memo(StructuralMatchingScreenshotOverlay);
+const MemoTree = React.memo(StructuralMatchingElementTree);
+
 export function StructuralMatchingFloatingWindow({
   visible,
   stepCardData,
@@ -29,25 +33,27 @@ export function StructuralMatchingFloatingWindow({
   initialPosition = { x: 100, y: 100 },
   onClose,
 }: FloatingVisualWindowProps) {
-  // 使用数据加载Hook
   const { loadingState, elementTreeData, screenshotUrl, xmlContent, reload } =
     useStructuralMatchingStepData(stepCardData);
 
-  // 裁剪配置（可基于当前选中/高亮元素动态重算）
   const [cropConfig, setCropConfig] = useState<CropConfig | undefined>(() =>
     elementTreeData ? calculateSmartCrop(elementTreeData) : undefined
   );
 
-  // 选中的元素（需在 viewportAlignment 计算前定义，避免引用次序问题）
   const [selectedElementId, setSelectedElementId] = useState<string | null>(
     null
   );
+  const [busHighlightId, setBusHighlightId] = useState<string | null>(null);
 
-  // 计算最佳视口对齐（窗口位置锚定到选中元素的bounds，兜底XML）
-  const viewportAlignment = (() => {
+  // 统一规范 elementId，防止存在 element_123 / element-123 混用导致联动失效
+  const normalizeElementId = useCallback((id: string | null) => {
+    if (!id) return null;
+    return id.replace(/element[_-](\d+)/, (_m, g1) => `element-${g1}`);
+  }, []);
+
+  const viewportAlignment = useMemo(() => {
     if (!elementTreeData || !cropConfig) return null;
 
-    // 窗口定位锚点：优先选中元素在树中的position；否则XML兜底；再否则用root
     let anchorBounds = elementTreeData.bounds;
     const focusId = selectedElementId ?? null;
     if (focusId) {
@@ -80,29 +86,19 @@ export function StructuralMatchingFloatingWindow({
       }
     }
 
-    const temp = {
-      ...elementTreeData,
-      bounds: anchorBounds,
-    } as typeof elementTreeData;
-    // 初始化定位：不再以 initialPosition 当作鼠标位置；默认靠屏幕右侧合理放置
-    return calculateViewportAlignment(
-      temp,
-      cropConfig,
-      undefined,
-      undefined,
-      { mode: "right-edge", margin: 24 }
-    );
-  })();
+    const temp = { ...elementTreeData, bounds: anchorBounds } as typeof elementTreeData;
+    return calculateViewportAlignment(temp, cropConfig, undefined, undefined, {
+      mode: "right-edge",
+      margin: 24,
+    });
+  }, [elementTreeData, cropConfig, selectedElementId, xmlContent]);
 
-  // 窗口状态管理 - 使用计算出的最佳尺寸和位置
   const [windowState, setWindowState] = useState<WindowState>(() => ({
     position: viewportAlignment?.windowPosition || initialPosition,
     size: viewportAlignment?.windowSize || { width: 800, height: 600 },
     isMinimized: false,
   }));
 
-  // 当计算完成或依赖变化时，更新窗口状态
-  // 只依赖具体的值,而非整个对象引用,避免无限循环
   useEffect(() => {
     if (viewportAlignment) {
       setWindowState((prev) => ({
@@ -113,14 +109,12 @@ export function StructuralMatchingFloatingWindow({
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [
-    // 只监听具体的值变化
     viewportAlignment?.windowPosition.x,
     viewportAlignment?.windowPosition.y,
     viewportAlignment?.windowSize.width,
     viewportAlignment?.windowSize.height,
   ]);
 
-  // 当元素树数据变化时，初始化裁剪为"根元素"
   useEffect(() => {
     if (elementTreeData) {
       setCropConfig(calculateSmartCrop(elementTreeData));
@@ -129,22 +123,19 @@ export function StructuralMatchingFloatingWindow({
     }
   }, [elementTreeData]);
 
-  // 视图模式：'screenshot' | 'tree' | 'split'
   const [viewMode, setViewMode] = useState<"screenshot" | "tree" | "split">(
     "screenshot"
   );
-  // 是否展示原始属性面板
-  const [showRawAttrs, setShowRawAttrs] = useState<boolean>(() => loadUIPreferences().showRawAttributes);
+  const [showRawAttrs, setShowRawAttrs] = useState<boolean>(
+    () => loadUIPreferences().showRawAttributes
+  );
 
-  // 偏好持久化：原始属性开关变化时保存
   useEffect(() => {
     saveUIPreferences({ showRawAttributes: showRawAttrs });
   }, [showRawAttrs]);
 
-  // 监听高亮元素变化
   useEffect(() => {
     if (highlightedElementId) {
-      // 规范化ID：支持 element_43 / element-43
       const normalized = highlightedElementId.replace(
         /element[_-](\d+)/,
         (_m, g1) => `element-${g1}`
@@ -153,55 +144,101 @@ export function StructuralMatchingFloatingWindow({
     }
   }, [highlightedElementId]);
 
-  // 处理元素选择
-  const handleElementSelect = (elementId: string) => {
-    setSelectedElementId(elementId);
-  };
+  // 订阅协调总线的高亮事件，用于在工具栏展示“正在查看/高亮”的元素信息
+  useEffect(() => {
+    const unsubscribe = structuralMatchingCoordinationBus.subscribe((evt) => {
+      if (evt.type === "highlight") {
+        setBusHighlightId(evt.elementId ?? null);
+      } else if (evt.type === "clear") {
+        setBusHighlightId(null);
+      }
+    });
+    return () => {
+      unsubscribe();
+    };
+  }, []);
 
-  // 处理元素悬停（保持接口兼容，但不影响视口）
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  const handleElementHover = (_elementId: string | null) => {
-    // 悬停状态仅用于视觉反馈，不触发裁剪重算
-  };
+  const handleTreeElementSelect = useCallback((elementId: string) => {
+    const normalized = normalizeElementId(elementId) as string;
+    setSelectedElementId(normalized);
+    structuralMatchingCoordinationBus.emit({
+      type: "highlight",
+      elementId: normalized,
+      source: "tree",
+    });
+  }, [normalizeElementId]);
 
-  // 焦点元素变化时，按目标元素重算裁剪区域（优先选中）
+  const handleTreeElementHover = useCallback((elementId: string | null) => {
+    const normalized = normalizeElementId(elementId);
+    if (normalized) {
+      structuralMatchingCoordinationBus.emit({
+        type: "highlight",
+        elementId: normalized,
+        source: "tree",
+      });
+    } else {
+      structuralMatchingCoordinationBus.emit({ type: "clear", source: "tree" });
+    }
+  }, [normalizeElementId]);
+
+  const handleOverlayElementHover = useCallback((elementId: string | null) => {
+    const normalized = normalizeElementId(elementId);
+    if (normalized) {
+      structuralMatchingCoordinationBus.emit({
+        type: "highlight",
+        elementId: normalized,
+        source: "overlay",
+      });
+    } else {
+      structuralMatchingCoordinationBus.emit({ type: "clear", source: "overlay" });
+    }
+  }, [normalizeElementId]);
+
+  const handleOverlayElementClick = useCallback((elementId: string) => {
+    const normalized = normalizeElementId(elementId) as string;
+    structuralMatchingCoordinationBus.emit({
+      type: "highlight",
+      elementId: normalized,
+      source: "overlay",
+    });
+  }, [normalizeElementId]);
+
   useEffect(() => {
     if (!elementTreeData) return;
-    
+
     const focusId = selectedElementId ?? null;
     if (!focusId) {
-      // 没有选中元素时，使用默认裁剪
       setCropConfig(calculateSmartCrop(elementTreeData));
       return;
     }
 
-    // 尝试在元素树中查找目标元素
     const targetElement =
       elementTreeData.rootElement.id === focusId
         ? elementTreeData.rootElement
         : elementTreeData.childElements.find((e) => e.id === focusId);
 
     if (targetElement) {
-      // 在树中找到，使用 calculateSmartCropForElement
-      const crop = calculateSmartCropForElement(elementTreeData, targetElement.id);
+      const crop = calculateSmartCropForElement(
+        elementTreeData,
+        targetElement.id
+      );
       setCropConfig(crop);
     } else if (xmlContent) {
-      // 不在树中，尝试从 XML 提取
       const xmlElement = extractElementByIdFromXml(xmlContent, focusId);
       if (xmlElement) {
-        const crop = calculateSmartCropForElement(elementTreeData, xmlElement.id);
+        const crop = calculateSmartCropForElement(
+          elementTreeData,
+          xmlElement.id
+        );
         setCropConfig(crop);
       } else {
-        // 找不到元素，使用默认裁剪
         setCropConfig(calculateSmartCrop(elementTreeData));
       }
     } else {
-      // 没有 XML，使用默认裁剪
       setCropConfig(calculateSmartCrop(elementTreeData));
     }
   }, [selectedElementId, elementTreeData, xmlContent]);
 
-  // 渲染加载状态
   const renderLoadingContent = () => (
     <div
       style={{
@@ -211,7 +248,6 @@ export function StructuralMatchingFloatingWindow({
         height: "100%",
         flexDirection: "column",
         gap: "12px",
-        color: "var(--text-2)",
       }}
     >
       <div
@@ -229,15 +265,14 @@ export function StructuralMatchingFloatingWindow({
     </div>
   );
 
-  // 渲染错误状态
   const renderErrorContent = () => (
     <div
       style={{
         display: "flex",
+        flexDirection: "column",
         alignItems: "center",
         justifyContent: "center",
         height: "100%",
-        flexDirection: "column",
         gap: "12px",
         color: "var(--text-error, #ff4d4f)",
         padding: "20px",
@@ -264,79 +299,63 @@ export function StructuralMatchingFloatingWindow({
     </div>
   );
 
-  // 渲染工具栏
-  const renderToolbar = () => (
-    <div
-      style={{
-        height: "40px",
-        borderBottom: "1px solid var(--border-color)",
-        display: "flex",
-        alignItems: "center",
-        justifyContent: "space-between",
-        padding: "0 12px",
-        backgroundColor: "var(--bg-1)",
-      }}
-    >
-      {/* 视图模式切换 */}
-      <div style={{ display: "flex", gap: "4px" }}>
-        {(["screenshot", "tree", "split"] as const).map((mode) => (
-          <button
-            key={mode}
-            onClick={() => setViewMode(mode)}
-            style={{
-              padding: "4px 8px",
-              fontSize: "12px",
-              border: "1px solid var(--border-color)",
-              borderRadius: "4px",
-              backgroundColor:
-                viewMode === mode ? "var(--bg-3)" : "transparent",
-              color: viewMode === mode ? "var(--text-1)" : "var(--text-2)",
-              cursor: "pointer",
-            }}
-          >
-            {mode === "screenshot" && "📷 截图"}
-            {mode === "tree" && "🌳 结构"}
-            {mode === "split" && "📋 分屏"}
-          </button>
-        ))}
-      </div>
+  const editingInfo = useMemo(() => {
+    if (!elementTreeData) return null;
+    const focusId = selectedElementId;
+    if (!focusId) return null;
+    const fromTree =
+      elementTreeData.rootElement.id === focusId
+        ? elementTreeData.rootElement
+        : elementTreeData.childElements.find((e) => e.id === focusId);
+    const resolved = fromTree || (xmlContent ? extractElementByIdFromXml(xmlContent, focusId) : null);
+    if (!resolved) return null;
+    const label = (() => {
+      if (resolved.text?.trim()) return `"${resolved.text.trim()}"`;
+      if (resolved.description?.trim()) return `[${resolved.description.trim()}]`;
+      if (resolved.resourceId) return `#${resolved.resourceId}`;
+      return resolved.type || "Element";
+    })();
+    return {
+      type: resolved.type || "Element",
+      label,
+      id: resolved.id,
+    };
+  }, [elementTreeData, selectedElementId, xmlContent]);
 
-      {/* 统计信息 */}
-      {elementTreeData && (
-        <div style={{ fontSize: "11px", color: "var(--text-3)" }}>
-          {elementTreeData.childElements.length} 个元素
-        </div>
-      )}
+  const highlightInfo = useMemo(() => {
+    if (!elementTreeData) return null;
+    const focusId = busHighlightId;
+    if (!focusId) return null;
+    const fromTree =
+      elementTreeData.rootElement.id === focusId
+        ? elementTreeData.rootElement
+        : elementTreeData.childElements.find((e) => e.id === focusId);
+    const resolved = fromTree || (xmlContent ? extractElementByIdFromXml(xmlContent, focusId) : null);
+    if (!resolved) return null;
+    const label = (() => {
+      if (resolved.text?.trim()) return `"${resolved.text.trim()}"`;
+      if (resolved.description?.trim()) return `[${resolved.description.trim()}]`;
+      if (resolved.resourceId) return `#${resolved.resourceId}`;
+      return resolved.type || "Element";
+    })();
+    return {
+      type: resolved.type || "Element",
+      label,
+      id: resolved.id,
+    };
+  }, [elementTreeData, busHighlightId, xmlContent]);
 
-      {/* 原始属性开关 */}
-      <div>
-        <button
-          onClick={() => setShowRawAttrs((v) => !v)}
-          style={{
-            padding: "4px 8px",
-            fontSize: "12px",
-            border: "1px solid var(--border-color)",
-            borderRadius: "4px",
-            backgroundColor: showRawAttrs ? "var(--bg-3)" : "transparent",
-            color: showRawAttrs ? "var(--text-1)" : "var(--text-2)",
-            cursor: "pointer",
-          }}
-        >
-          {showRawAttrs ? "🧾 原始属性：开" : "🧾 原始属性：关"}
-        </button>
-      </div>
-    </div>
-  );
+  const handleViewModeChange = useCallback((mode: "screenshot" | "tree" | "split") => {
+    setViewMode(mode);
+  }, []);
 
-  // 渲染主内容
+  const handleToggleRawAttrs = useCallback(() => {
+    setShowRawAttrs((v) => !v);
+  }, []);
+
   const renderMainContent = () => {
-    if (loadingState.isLoading) {
-      return renderLoadingContent();
-    }
-
-    if (loadingState.error) {
-      return renderErrorContent();
-    }
+    if (loadingState.isLoading) return renderLoadingContent();
+    if (loadingState.error) return renderErrorContent();
 
     if (!stepCardData || !elementTreeData || !screenshotUrl) {
       return (
@@ -354,10 +373,11 @@ export function StructuralMatchingFloatingWindow({
       );
     }
 
-    // 根据视图模式渲染内容
-    const baseContentHeight = showRawAttrs ? "calc(100% - 40px - 164px)" : "calc(100% - 40px)";
+    const baseContentHeight = showRawAttrs
+      ? "calc(100% - 40px - 164px)"
+      : "calc(100% - 40px)";
     const contentStyle = {
-      height: baseContentHeight, // 减去工具栏和属性面板高度
+      height: baseContentHeight,
       overflow: "hidden" as const,
     };
 
@@ -365,71 +385,67 @@ export function StructuralMatchingFloatingWindow({
       case "screenshot":
         return (
           <div style={contentStyle}>
-            <StructuralMatchingScreenshotOverlay
+            <MemoOverlay
               screenshotUrl={screenshotUrl}
               elementTreeData={elementTreeData}
               cropConfig={cropConfig}
               viewportAlignment={viewportAlignment}
-              onElementHover={handleElementHover}
-              onElementClick={handleElementSelect}
+              selectedElementId={selectedElementId}
+              onElementHover={handleOverlayElementHover}
+              onElementClick={handleOverlayElementClick}
               style={{ height: "100%" }}
             />
           </div>
         );
-
       case "tree":
         return (
           <div style={contentStyle}>
-            <StructuralMatchingElementTree
+            <MemoTree
               elementTreeData={elementTreeData}
               selectedElementId={selectedElementId}
-              onElementSelect={handleElementSelect}
-              onElementHover={handleElementHover}
+              onElementSelect={handleTreeElementSelect}
+              onElementHover={handleTreeElementHover}
               style={{ height: "100%" }}
             />
           </div>
         );
-
       case "split":
         return (
           <div style={{ ...contentStyle, display: "flex" }}>
             <div
               style={{ flex: 1, borderRight: "1px solid var(--border-color)" }}
             >
-              <StructuralMatchingScreenshotOverlay
+              <MemoOverlay
                 screenshotUrl={screenshotUrl}
                 elementTreeData={elementTreeData}
                 cropConfig={cropConfig}
                 viewportAlignment={viewportAlignment}
-                onElementHover={handleElementHover}
-                onElementClick={handleElementSelect}
+                selectedElementId={selectedElementId}
+                onElementHover={handleOverlayElementHover}
+                onElementClick={handleOverlayElementClick}
                 style={{ height: "100%" }}
               />
             </div>
             <div style={{ width: "300px" }}>
-              <StructuralMatchingElementTree
+              <MemoTree
                 elementTreeData={elementTreeData}
                 selectedElementId={selectedElementId}
-                onElementSelect={handleElementSelect}
-                onElementHover={handleElementHover}
+                onElementSelect={handleTreeElementSelect}
+                onElementHover={handleTreeElementHover}
                 style={{ height: "100%" }}
               />
             </div>
           </div>
         );
-
       default:
         return null;
     }
   };
 
-  if (!visible) {
-    return null;
-  }
+  if (!visible) return null;
 
   return (
     <>
-      {/* 添加旋转动画CSS */}
       <style>
         {`
           @keyframes spin {
@@ -447,19 +463,31 @@ export function StructuralMatchingFloatingWindow({
         onWindowStateChange={setWindowState}
         onClose={() => onClose?.()}
       >
-        {renderToolbar()}
+        <StructuralMatchingFloatingToolbar
+          viewMode={viewMode}
+          onViewModeChange={handleViewModeChange}
+          showRawAttrs={showRawAttrs}
+          onToggleRawAttrs={handleToggleRawAttrs}
+          editingInfo={editingInfo}
+          highlightInfo={highlightInfo && editingInfo && highlightInfo.id === editingInfo.id ? null : highlightInfo}
+        />
         {renderMainContent()}
-        {/* 原始属性面板（固定在底部） */}
         {showRawAttrs && elementTreeData && (
           <StructuralMatchingRawAttributesPanel
             element={(() => {
-              // 优先显示选中元素；否则根元素
-              const focusId = selectedElementId ?? elementTreeData.rootElement.id;
-              if (elementTreeData.rootElement.id === focusId) return elementTreeData.rootElement;
-              const inTree = elementTreeData.childElements.find((e) => e.id === focusId);
+              const focusId =
+                selectedElementId ?? elementTreeData.rootElement.id;
+              if (elementTreeData.rootElement.id === focusId)
+                return elementTreeData.rootElement;
+              const inTree = elementTreeData.childElements.find(
+                (e) => e.id === focusId
+              );
               if (inTree) return inTree;
               if (xmlContent) {
-                const fromXml = extractElementByIdFromXml(xmlContent, focusId);
+                const fromXml = extractElementByIdFromXml(
+                  xmlContent,
+                  focusId
+                );
                 if (fromXml) return fromXml;
               }
               return elementTreeData.rootElement;

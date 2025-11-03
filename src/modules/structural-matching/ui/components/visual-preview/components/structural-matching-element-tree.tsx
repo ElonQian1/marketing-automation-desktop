@@ -2,9 +2,11 @@
 // module: structural-matching | layer: ui | role: 组件
 // summary: 结构匹配元素树视图组件
 
-import React, { useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
+import "./structural-matching-visual-preview.css";
 import { ElementTreeData } from "../types";
 import type { VisualUIElement } from "../../../../../../components/universal-ui/xml-parser";
+import { structuralMatchingCoordinationBus } from "../core";
 
 interface StructuralMatchingElementTreeProps {
   elementTreeData?: ElementTreeData;
@@ -30,11 +32,64 @@ export function StructuralMatchingElementTree({
   const [expandedNodes, setExpandedNodes] = useState<Set<string>>(
     new Set(["root"])
   );
+  const [highlightedId, setHighlightedId] = useState<string | null>(null);
+  const containerRef = useRef<HTMLDivElement | null>(null);
+
+  // rAF 节流：将总线高亮事件合并到动画帧，降低频繁状态更新
+  const rafRef = useRef<number | null>(null);
+  const pendingHighlightRef = useRef<string | null>(null);
+
+  // 订阅协调总线的高亮事件，实现与覆盖层联动（不触发窗口重绘）
+  useEffect(() => {
+    const unsubscribe = structuralMatchingCoordinationBus.subscribe((evt) => {
+      if (evt.type === "highlight") {
+        pendingHighlightRef.current = evt.elementId ?? null;
+      } else if (evt.type === "clear") {
+        pendingHighlightRef.current = null;
+      } else {
+        return;
+      }
+
+      if (rafRef.current == null) {
+        rafRef.current = requestAnimationFrame(() => {
+          rafRef.current = null;
+          setHighlightedId(pendingHighlightRef.current);
+        });
+      }
+    });
+    return () => {
+      if (rafRef.current != null) {
+        cancelAnimationFrame(rafRef.current);
+        rafRef.current = null;
+      }
+      unsubscribe();
+    };
+  }, []);
+
+  // 当高亮变化时，自动展开并滚动到高亮节点
+  useEffect(() => {
+    if (!highlightedId) return;
+    // 确保根展开（当前数据结构为平铺的 childElements）
+    if (!expandedNodes.has("root")) {
+      const next = new Set(expandedNodes);
+      next.add("root");
+      setExpandedNodes(next);
+    }
+    // 滚动到可视区域
+    if (containerRef.current) {
+      const el = containerRef.current.querySelector<HTMLElement>(
+        `[data-node-id="${highlightedId}"]`
+      );
+      if (el) {
+        el.scrollIntoView({ block: "nearest", inline: "nearest" });
+      }
+    }
+  }, [highlightedId, expandedNodes]);
 
   if (!elementTreeData) {
     return (
       <div
-        className={`structural-matching-element-tree-placeholder ${className}`}
+  className={`structural-matching-element-tree-placeholder ${className}`}
         style={{
           padding: "16px",
           color: "var(--text-2)",
@@ -88,46 +143,27 @@ export function StructuralMatchingElementTree({
     const nodeId = isRoot ? "root" : element.id;
     const isExpanded = expandedNodes.has(nodeId);
     const isSelected = selectedElementId === element.id;
-    const hasChildren = !isRoot && childElements.length > 0;
+    const isHighlighted = highlightedId === element.id;
 
     return (
       <div key={nodeId} className="element-tree-node">
         {/* 节点内容 */}
         <div
-          className={`element-node-content ${isSelected ? "selected" : ""}`}
+          className={`element-node-content ${isSelected ? "is-selected" : ""} ${
+            isHighlighted ? "is-highlighted" : ""
+          }`}
           style={{
-            display: "flex",
-            alignItems: "center",
             paddingLeft: depth * 20 + 8,
-            paddingRight: 8,
-            paddingTop: 4,
-            paddingBottom: 4,
-            cursor: "pointer",
-            backgroundColor: isSelected ? "var(--bg-3)" : "transparent",
-            borderRadius: "4px",
-            margin: "1px 0",
-            transition: "background-color 0.2s ease",
           }}
           onClick={() => onElementSelect?.(element.id)}
           onMouseEnter={() => onElementHover?.(element.id)}
           onMouseLeave={() => onElementHover?.(null)}
+          data-node-id={isRoot ? "root" : element.id}
         >
           {/* 展开/折叠按钮 */}
-          {(isRoot || hasChildren) && (
+          {isRoot && (
             <button
               className="expand-toggle"
-              style={{
-                width: "16px",
-                height: "16px",
-                border: "none",
-                background: "transparent",
-                color: "var(--text-2)",
-                cursor: "pointer",
-                display: "flex",
-                alignItems: "center",
-                justifyContent: "center",
-                marginRight: "4px",
-              }}
               onClick={(e) => {
                 e.stopPropagation();
                 toggleNodeExpansion(nodeId);
@@ -138,74 +174,32 @@ export function StructuralMatchingElementTree({
           )}
 
           {/* 元素信息 */}
-          <div className="element-info" style={{ flex: 1, minWidth: 0 }}>
+          <div className="element-info">
             <div
-              className="element-type"
-              style={{
-                fontSize: "12px",
-                fontWeight: "500",
-                color: isRoot ? "#722ed1" : "var(--text-1)",
-                marginBottom: "2px",
-              }}
+              className={`element-type ${isRoot ? "root" : ""}`}
             >
               {isRoot ? "Root Element" : getElementTypeDisplay(element)}
               {element.position && (
-                <span
-                  style={{
-                    fontSize: "10px",
-                    color: "var(--text-3)",
-                    marginLeft: "8px",
-                  }}
-                >
+                <span className="size">
                   {element.position.width}×{element.position.height}
                 </span>
               )}
             </div>
 
-            <div
-              className="element-text"
-              style={{
-                fontSize: "11px",
-                color: "var(--text-2)",
-                overflow: "hidden",
-                textOverflow: "ellipsis",
-                whiteSpace: "nowrap",
-              }}
-              title={getElementDisplayText(element)}
-            >
+            <div className="element-text" title={getElementDisplayText(element)}>
               {getElementDisplayText(element)}
             </div>
           </div>
 
           {/* 元素属性指示器 */}
-          <div className="element-indicators" style={{ marginLeft: "8px" }}>
+          <div className="element-indicators">
             {element.clickable && (
-              <span
-                style={{
-                  fontSize: "10px",
-                  backgroundColor: "#52c41a",
-                  color: "white",
-                  padding: "1px 4px",
-                  borderRadius: "2px",
-                  marginLeft: "2px",
-                }}
-                title="可点击"
-              >
+              <span className="badge clickable" title="可点击">
                 C
               </span>
             )}
             {element.importance === "high" && (
-              <span
-                style={{
-                  fontSize: "10px",
-                  backgroundColor: "#ff4d4f",
-                  color: "white",
-                  padding: "1px 4px",
-                  borderRadius: "2px",
-                  marginLeft: "2px",
-                }}
-                title="高重要性"
-              >
+              <span className="badge important" title="高重要性">
                 !
               </span>
             )}
@@ -226,15 +220,11 @@ export function StructuralMatchingElementTree({
 
   return (
     <div
-      className={`structural-matching-element-tree ${className}`}
+      className={`structural-matching-element-tree sm-tree ${className}`}
       style={{
-        height: "100%",
-        overflow: "auto",
-        padding: "8px",
-        fontSize: "12px",
-        backgroundColor: "var(--bg-1)",
         ...style,
       }}
+      ref={containerRef}
     >
       <div className="tree-header" style={{ marginBottom: "8px" }}>
         <div

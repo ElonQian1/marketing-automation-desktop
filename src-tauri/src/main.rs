@@ -475,6 +475,10 @@ fn main() {
             commands::structural_matching::evaluate_structural_match,
             commands::structural_matching::evaluate_structural_match_batch,
             commands::structural_matching::get_matched_elements,
+            // 🚀 结构匹配运行时命令（新增 - Phase 2 基础集成）
+            commands::structure_match_runtime::sm_match_once,
+            // 🆕 UI Dump 命令
+            commands::ui_dump::get_ui_dump,
             // 🆕 执行中止命令 (真正停止后端 ADB 操作)
             abort_script_execution,           // 中止指定脚本执行
             cancel_current_operation,         // 取消当前操作

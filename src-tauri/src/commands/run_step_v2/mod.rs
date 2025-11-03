@@ -1,6 +1,10 @@
-// src-tauri/src/commands/run_step_v2.rs
+// src-tauri/src/commands/run_step_v2/mod.rs
 // module: v2-execution | layer: commands | role: V2统一执行协议入口
 // summary: 实现三条执行链(static/step/chain)的真机执行，支持完整的V2协议
+
+// 🏗️ 子模块：结构匹配Runtime集成
+mod sm_integration;
+
 use tauri::{command, AppHandle};
 use serde::{Deserialize, Serialize};
 use anyhow::Result;

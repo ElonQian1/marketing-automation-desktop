@@ -66,6 +66,7 @@ import ParameterTestPage from "./ParameterTestPage";
 import { LoopDragTest } from "../debug/loop-drag-test";
 import { SemanticAnalyzerSettingsPage } from "../pages/SemanticAnalyzerSettingsPage";
 import { TextMatchingSettingsPage } from "../pages/TextMatchingSettingsPage";
+import { SmRuntimeTestPage } from "../pages/test/sm-runtime-test-page";
 
 // 业务页面导入
 import { StatisticsPageNative } from "../pages/statistics/StatisticsPageNative";
@@ -145,6 +146,11 @@ const NativeAntDesignApp: React.FC = () => {
             key: "loop-drag-test",
             icon: <SyncOutlined />,
             label: "🔄 循环卡片拖拽测试",
+          },
+          {
+            key: "sm-runtime-test",
+            icon: <ThunderboltOutlined />,
+            label: "🔬 结构匹配运行时测试",
           },
         ]
       : []),
@@ -243,6 +249,8 @@ const NativeAntDesignApp: React.FC = () => {
         return <ParameterTestPage />;
       case "loop-drag-test":
         return <LoopDragTest />;
+      case "sm-runtime-test":
+        return <SmRuntimeTestPage />;
       case "smart-vcf":
         return <SmartVcfImporter />;
       case "smart-script-builder":

@@ -53,3 +53,7 @@ export { getViewportSize } from "./positioning/structural-matching-viewport";
 // 🎯 新增：UI偏好模块导出
 export type { StructuralMatchingUIPreferences } from "./preferences/structural-matching-preferences";
 export { getDefaultUIPreferences, loadUIPreferences, saveUIPreferences } from "./preferences/structural-matching-preferences";
+
+// 🎯 新增：协同事件总线导出
+export { structuralMatchingCoordinationBus } from "./coordination/structural-matching-coordination-bus";
+export type { CoordinationEvent, CoordinationEventType } from "./coordination/structural-matching-coordination-bus";

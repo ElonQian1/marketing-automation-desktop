@@ -2,7 +2,7 @@
 // module: structural-matching | layer: ui | role: 元素结构树展示
 // summary: 可视化展示元素的层级结构，支持展开/收起和字段配置，从XML缓存动态解析子元素
 
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import {
   Tree,
   Switch,
@@ -30,6 +30,7 @@ import {
 } from "../../../domain/constants/match-strategies";
 import "./element-structure-tree.css";
 import XmlCacheManager from "../../../../../services/xml-cache-manager";
+import { structuralMatchingCoordinationBus } from "../visual-preview/core";
 
 const { Text } = Typography;
 
@@ -50,8 +51,82 @@ export const ElementStructureTree: React.FC<ElementStructureTreeProps> = ({
   onToggleField,
   onUpdateField,
 }) => {
+  // 轻去抖窗口（可通过 localStorage 配置 24~40ms）
+  const HOVER_DEBOUNCE_DEFAULT_MS = 32;
+  const getHoverDebounceMs = () => {
+    try {
+      if (typeof window !== "undefined" && window.localStorage) {
+        const raw = window.localStorage.getItem("sm_tree_hover_debounce_ms");
+        if (raw) {
+          const n = parseInt(raw, 10);
+          if (!Number.isNaN(n)) {
+            return Math.min(40, Math.max(24, n));
+          }
+        }
+      }
+    } catch {}
+    return HOVER_DEBOUNCE_DEFAULT_MS;
+  };
   const [expandedKeys, setExpandedKeys] = useState<string[]>([]);
   const [fullElementData, setFullElementData] = useState<Record<string, unknown> | null>(null);
+  // 叠加层 → 树 的联动状态（命令式处理高亮与选中）
+  const listHolderRef = useRef<HTMLDivElement | null>(null);
+  const highlightedDomRef = useRef<HTMLElement | null>(null);
+  const lastHighlightIdRef = useRef<string | null>(null);
+  const selectedDomRef = useRef<HTMLElement | null>(null);
+  const lastSelectedIdRef = useRef<string | null>(null);
+  // 轻去抖（hover -> highlight）与 rAF 发射
+  const hoverDebounceTimerRef = useRef<number | null>(null);
+  const hoverPendingIdRef = useRef<string | null>(null);
+  const hoverRafRef = useRef<number | null>(null);
+  // Tree 视窗自适应：内容较少时不固定高度，内容较多时启用虚拟滚动并固定高度
+  const [treeViewport, setTreeViewport] = useState<{ virtual: boolean; height?: number }>(
+    { virtual: true, height: 480 }
+  );
+
+  // ID 归一化：element_123 -> element-123 （与叠加层事件对齐）
+  const normalizeElementId = (id?: string | null) =>
+    (id || "").replace(/_/g, "-");
+
+  // Virtual 视窗高度配置（可通过 localStorage 调整 360~600）
+  const getTreeVirtualHeight = () => {
+    try {
+      if (typeof window !== "undefined" && window.localStorage) {
+        const raw = window.localStorage.getItem("sm_tree_virtual_height");
+        if (raw) {
+          const n = parseInt(raw, 10);
+          if (!Number.isNaN(n)) {
+            return Math.min(600, Math.max(360, n));
+          }
+        }
+      }
+    } catch {}
+    return 480;
+  };
+
+  // 根据内容高度动态启用/关闭虚拟滚动，以便模态框在内容不多时自适应高度
+  const recalcTreeViewport = () => {
+    if (!listHolderRef.current) return;
+    const run = () => {
+      const inner = listHolderRef.current!.querySelector<HTMLElement>(
+        ".ant-tree-list-holder-inner"
+      );
+      const treeEl = listHolderRef.current!.querySelector<HTMLElement>(
+        ".ant-tree"
+      );
+      const measured = (inner?.scrollHeight ?? 0) || (treeEl?.scrollHeight ?? 0);
+      if (!measured) return;
+      const vh = getTreeVirtualHeight();
+      if (measured <= vh) {
+        // 内容较少：关闭虚拟滚动，不设置固定高度，让外层模态自适应
+        setTreeViewport({ virtual: false });
+      } else {
+        // 内容较多：开启虚拟滚动并限制视窗高度
+        setTreeViewport({ virtual: true, height: vh });
+      }
+    };
+    requestAnimationFrame(run);
+  };
 
   useEffect(() => {
     const parseElementFromXML = async () => {
@@ -359,6 +434,94 @@ export const ElementStructureTree: React.FC<ElementStructureTreeProps> = ({
     parseElementFromXML();
   }, [selectedElement]);
 
+  // 当树数据或展开状态变化时，重新计算视窗策略（自适应高度 / 虚拟滚动）
+  useEffect(() => {
+    recalcTreeViewport();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [expandedKeys, fullElementData]);
+
+  // 监听窗口尺寸变化，保持视窗策略合理
+  useEffect(() => {
+    const onResize = () => recalcTreeViewport();
+    window.addEventListener("resize", onResize);
+    return () => window.removeEventListener("resize", onResize);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  // 订阅协调总线的高亮/选中事件（rAF 合并高亮）；高亮只做命令式 DOM 类名切换，避免整树重渲染
+  useEffect(() => {
+    let raf: number | null = null;
+    let pendingHighlightId: string | null = null;
+    const unsubscribe = structuralMatchingCoordinationBus.subscribe((evt) => {
+      if (evt.type === "highlight") {
+        pendingHighlightId = normalizeElementId(evt.elementId ?? null);
+        if (raf == null) {
+          raf = requestAnimationFrame(() => {
+            raf = null;
+            // 如果高亮ID无变化，跳过
+            if (pendingHighlightId === lastHighlightIdRef.current) return;
+
+            // 移除上一个高亮类
+            if (highlightedDomRef.current) {
+              highlightedDomRef.current.classList.remove("tree-node-content--highlight");
+              highlightedDomRef.current = null;
+            }
+
+            lastHighlightIdRef.current = pendingHighlightId;
+            if (!pendingHighlightId || !listHolderRef.current) return;
+            const el = listHolderRef.current.querySelector<HTMLElement>(
+              `[data-node-id="${pendingHighlightId}"]`
+            );
+            if (el) {
+              // 目标是 .tree-node-content 自己
+              el.classList.add("tree-node-content--highlight");
+              highlightedDomRef.current = el;
+            }
+          });
+        }
+      } else if (evt.type === "select") {
+        const id = normalizeElementId(evt.elementId ?? null);
+        if (id === lastSelectedIdRef.current) return; // 无变化
+
+        // 清除上一次选中
+        if (selectedDomRef.current) {
+          selectedDomRef.current.classList.remove("tree-node-content--selected");
+          selectedDomRef.current = null;
+        }
+
+        lastSelectedIdRef.current = id;
+        if (id && listHolderRef.current) {
+          const el = listHolderRef.current.querySelector<HTMLElement>(
+            `[data-node-id="${id}"]`
+          );
+          if (el) {
+            el.classList.add("tree-node-content--selected");
+            selectedDomRef.current = el;
+            // 仅在选中时滚动定位
+            el.scrollIntoView({ block: "nearest", inline: "nearest" });
+          }
+        }
+      } else if (evt.type === "clear") {
+        pendingHighlightId = null;
+        lastHighlightIdRef.current = null;
+        if (highlightedDomRef.current) {
+          highlightedDomRef.current.classList.remove("tree-node-content--highlight");
+          highlightedDomRef.current = null;
+        }
+        // 同时清理选中态（可选：如不希望clear影响选中，可移除此段）
+        lastSelectedIdRef.current = null;
+        if (selectedDomRef.current) {
+          selectedDomRef.current.classList.remove("tree-node-content--selected");
+          selectedDomRef.current = null;
+        }
+      }
+    });
+    return () => {
+      if (raf != null) cancelAnimationFrame(raf);
+      unsubscribe();
+    };
+  }, []);
+
   // 构建树形数据
   const buildTreeData = (): { treeData: DataNode[]; allKeys: string[] } => {
     if (!fullElementData) {
@@ -380,6 +543,8 @@ export const ElementStructureTree: React.FC<ElementStructureTreeProps> = ({
       depth: number,
       elementPath: string
     ) => {
+  const nodeRawId = String(element.id || "");
+  const nodeId = normalizeElementId(nodeRawId);
       const pickString = (obj: Record<string, unknown>, key: string) => {
         const v = obj[key];
         return typeof v === "string" && v.length > 0 ? v : undefined;
@@ -404,7 +569,8 @@ export const ElementStructureTree: React.FC<ElementStructureTreeProps> = ({
 
       return (
         <div
-          className="tree-node-content"
+          className={`tree-node-content`}
+          data-node-id={nodeId || undefined}
           data-element-info={(() => {
             try {
               return JSON.stringify(element);
@@ -412,6 +578,55 @@ export const ElementStructureTree: React.FC<ElementStructureTreeProps> = ({
               return undefined;
             }
           })()}
+          onMouseEnter={() => {
+            // 轻去抖（~32ms），只点亮稳定停留的节点
+            if (hoverDebounceTimerRef.current != null) {
+              clearTimeout(hoverDebounceTimerRef.current);
+              hoverDebounceTimerRef.current = null;
+            }
+            hoverPendingIdRef.current = nodeId;
+            hoverDebounceTimerRef.current = window.setTimeout(() => {
+              if (hoverRafRef.current == null) {
+                hoverRafRef.current = requestAnimationFrame(() => {
+                  hoverRafRef.current = null;
+                  // 若在等待期间鼠标已离开，放弃发射
+                  if (hoverPendingIdRef.current !== nodeId) return;
+                  structuralMatchingCoordinationBus.emit({
+                    type: "highlight",
+                    elementId: nodeId,
+                    source: "tree",
+                  });
+                });
+              }
+            }, getHoverDebounceMs());
+          }}
+          onMouseLeave={() => {
+            // 轻去抖清理高亮，避免频闪
+            if (hoverDebounceTimerRef.current != null) {
+              clearTimeout(hoverDebounceTimerRef.current);
+              hoverDebounceTimerRef.current = null;
+            }
+            hoverPendingIdRef.current = null;
+            hoverDebounceTimerRef.current = window.setTimeout(() => {
+              if (hoverRafRef.current == null) {
+                hoverRafRef.current = requestAnimationFrame(() => {
+                  hoverRafRef.current = null;
+                  // 确认没有新的 hover 目标
+                  if (hoverPendingIdRef.current != null) return;
+                  structuralMatchingCoordinationBus.emit({ type: "clear", source: "tree" });
+                });
+              }
+            }, getHoverDebounceMs());
+          }}
+          onClick={() => {
+            if (!nodeId) return;
+            // 选中：发射 select，并让树侧命令式添加选中态与滚动
+            structuralMatchingCoordinationBus.emit({
+              type: "select",
+              elementId: nodeId,
+              source: "tree",
+            });
+          }}
         >
           {/* 节点头部 */}
           <div className="node-header">
@@ -700,15 +915,19 @@ export const ElementStructureTree: React.FC<ElementStructureTreeProps> = ({
         </Space>
       </div>
 
-      <Tree
-        className="structural-tree"
-        showLine
-        showIcon={false}
-        switcherIcon={<DownOutlined />}
-        expandedKeys={expandedKeys}
-        onExpand={(keys) => setExpandedKeys(keys as string[])}
-        treeData={treeData}
-      />
+      <div ref={listHolderRef}>
+        <Tree
+          className="structural-tree"
+          showLine
+          showIcon={false}
+          switcherIcon={<DownOutlined />}
+          virtual={treeViewport.virtual}
+          {...(treeViewport.height ? { height: treeViewport.height } : {})}
+          expandedKeys={expandedKeys}
+          onExpand={(keys) => setExpandedKeys(keys as string[])}
+          treeData={treeData}
+        />
+      </div>
 
       {/* 如果没有子元素，显示提示 */}
       {(!fullElementData.children ||
