@@ -2,8 +2,9 @@
 // module: v2-execution | layer: commands | role: V2统一执行协议入口
 // summary: 实现三条执行链(static/step/chain)的真机执行，支持完整的V2协议
 
-// 🏗️ 子模块：结构匹配Runtime集成
+// 🏗️ 子模块声明
 mod sm_integration;
+mod validation;
 
 use tauri::{command, AppHandle};
 use serde::{Deserialize, Serialize};
@@ -13,55 +14,11 @@ use regex;
 use crate::services::ui_reader_service::{get_ui_dump, UIElement};
 use crate::infra::adb::input_helper::{tap_injector_first, input_text_injector_first, swipe_injector_first};
 use crate::infra::adb::keyevent_helper::keyevent_code_injector_first;
-use crate::engine::{
-    FallbackController, XmlIndexer, 
-    SafetyGatekeeper
-};
-use crate::engine::strategy_plugin::{StrategyRegistry, ExecutionEnvironment, STRATEGY_REGISTRY};
+use crate::engine::{FallbackController, XmlIndexer};
+use crate::engine::strategy_plugin::{StrategyRegistry, ExecutionEnvironment};
 
-// 🛡️ 安全检查辅助函数
-
-/// 检查是否为整屏节点（占屏幕95%以上面积）
-fn is_fullscreen_node(bounds: &(i32, i32, i32, i32)) -> bool {
-    let (left, top, right, bottom) = bounds;
-    let width = (right - left) as f32;
-    let height = (bottom - top) as f32;
-    let area = width * height;
-    
-    // 假设屏幕大小为 1080x2400（可以后续从设备信息获取）
-    let screen_area = 1080.0 * 2400.0;
-    let area_ratio = area / screen_area;
-    
-    tracing::debug!("🔍 节点面积检查: {}x{} = {:.1}%, 阈值95%", 
-                    width as i32, height as i32, area_ratio * 100.0);
-    
-    area_ratio > 0.95
-}
-
-/// 检查是否为容器类节点（不应该被直接点击）
-fn is_container_node(class_name: &Option<String>) -> bool {
-    if let Some(class) = class_name {
-        let container_classes = [
-            "android.widget.FrameLayout",
-            "android.widget.LinearLayout", 
-            "android.view.ViewGroup",
-            "com.android.internal.policy.DecorView",
-            "android.widget.RelativeLayout",
-            "android.widget.ScrollView",
-            "androidx.constraintlayout.widget.ConstraintLayout",
-        ];
-        
-        let is_container = container_classes.iter().any(|&container_class| class == container_class);
-        
-        if is_container {
-            tracing::debug!("🔍 容器类检查: {} 被识别为容器节点", class);
-        }
-        
-        is_container
-    } else {
-        false
-    }
-}
+// 导入 validation 模块的安全检查函数
+use validation::{check_fullscreen_node, check_container_node, parse_xml_attribute, parse_bounds_from_string};
 
 // V2 执行模式（匹配前端枚举）
 #[derive(Debug, Clone, Deserialize)]
@@ -930,10 +887,10 @@ async fn execute_v2_step(app_handle: AppHandle, req: &RunStepRequestV2) -> Resul
     // 3️⃣ 整屏/容器节点闸门：禁止执行整屏或容器类节点
     let bounds_tuple = (match_candidate.bounds.left, match_candidate.bounds.top, 
                        match_candidate.bounds.right, match_candidate.bounds.bottom);
-    let is_fullscreen_or_container = is_fullscreen_node(&bounds_tuple) || 
-                                     is_container_node(&match_candidate.class_name);
+    let is_fullscreen_or_container = check_fullscreen_node(&bounds_tuple) || 
+                                     check_container_node(&match_candidate.class_name);
     if is_fullscreen_or_container {
-        let reason = if is_fullscreen_node(&bounds_tuple) { "整屏节点" } else { "容器节点" };
+        let reason = if check_fullscreen_node(&bounds_tuple) { "整屏节点" } else { "容器节点" };
         tracing::warn!("❌ {}检查失败: bounds={:?}, class={:?}, 拒绝执行", 
                        reason, match_candidate.bounds, match_candidate.class_name);
         return Ok(StepResponseV2 {
@@ -1338,11 +1295,11 @@ async fn find_element_in_ui(ui_xml: &str, req: &RunStepRequestV2, selection_mode
         let mut matches = 0;
         
         // 提取节点属性
-        let text = extract_attribute(node_str, "text");
-        let resource_id = extract_attribute(node_str, "resource-id");
-        let class_name = extract_attribute(node_str, "class");
-        let content_desc = extract_attribute(node_str, "content-desc");
-        let bounds_str = extract_attribute(node_str, "bounds");
+        let text = parse_xml_attribute(node_str, "text");
+        let resource_id = parse_xml_attribute(node_str, "resource-id");
+        let class_name = parse_xml_attribute(node_str, "class");
+        let content_desc = parse_xml_attribute(node_str, "content-desc");
+        let bounds_str = parse_xml_attribute(node_str, "bounds");
         
         // 一致性评分：考虑与静态分析结果的一致性
         let mut successful_matches = 0;
@@ -1352,7 +1309,7 @@ async fn find_element_in_ui(ui_xml: &str, req: &RunStepRequestV2, selection_mode
         // Resource ID匹配 - 强证据（通常跨版本稳定）
         if let Some(ref target) = target_resource_id {
             match &resource_id {
-                Some(node_id) if node_id.contains(target.as_str()) || target.contains(node_id) => {
+                Some(node_id) if node_id.contains(target.as_str()) || target.contains(node_id.as_str()) => {
                     score += 0.85; // ResourceId完全匹配 - 强锚点
                     successful_matches += 1;
                     tracing::debug!("🎯 ResourceId强匹配: {} <-> {}", target, node_id);
@@ -1419,7 +1376,7 @@ async fn find_element_in_ui(ui_xml: &str, req: &RunStepRequestV2, selection_mode
         // 文本匹配 - P2级别证据
         if let Some(ref target) = target_text {
             match &text {
-                Some(node_text) if node_text.contains(target.as_str()) || target.contains(node_text) => {
+                Some(node_text) if node_text.contains(target.as_str()) || target.contains(node_text.as_str()) => {
                     score += 0.70; // 文本完全匹配
                     successful_matches += 1;
                     tracing::debug!("✅ 文本匹配: {} <-> {}", target, node_text);
@@ -1450,7 +1407,7 @@ async fn find_element_in_ui(ui_xml: &str, req: &RunStepRequestV2, selection_mode
         // 类名匹配 - P3级别弱证据
         if let Some(ref target) = target_class {
             match &class_name {
-                Some(node_class) if node_class.contains(target.as_str()) || target.contains(node_class) => {
+                Some(node_class) if node_class.contains(target.as_str()) || target.contains(node_class.as_str()) => {
                     score += 0.30; // 类名匹配
                     successful_matches += 1;
                     tracing::debug!("✅ 类名匹配: {} <-> {}", target, node_class);
@@ -1481,7 +1438,7 @@ async fn find_element_in_ui(ui_xml: &str, req: &RunStepRequestV2, selection_mode
         // Content Description匹配 - P2级别证据
         if let Some(ref target) = target_content_desc {
             match &content_desc {
-                Some(node_desc) if node_desc.contains(target.as_str()) || target.contains(node_desc) => {
+                Some(node_desc) if node_desc.contains(target.as_str()) || target.contains(node_desc.as_str()) => {
                     score += 0.60; // Content-desc匹配
                     successful_matches += 1;
                     tracing::debug!("✅ Content-desc匹配: {} <-> {}", target, node_desc);
@@ -1515,14 +1472,14 @@ async fn find_element_in_ui(ui_xml: &str, req: &RunStepRequestV2, selection_mode
         }
         
         // 🛡️ 容器类节点降权处理
-        if is_container_node(&class_name) {
+        if check_container_node(&class_name) {
             tracing::debug!("🔻 容器类节点降权: {} -> {:.2} * 0.1", class_name.as_deref().unwrap_or("unknown"), score);
             score *= 0.1; // 容器类节点大幅降权
         }
         
         // 解析bounds
         let bounds = if let Some(bounds_str) = bounds_str {
-            parse_bounds(&bounds_str).unwrap_or(Bounds { left: 0, top: 0, right: 100, bottom: 100 })
+            parse_bounds_from_string(&bounds_str).unwrap_or(Bounds { left: 0, top: 0, right: 100, bottom: 100 })
         } else {
             Bounds { left: 0, top: 0, right: 100, bottom: 100 }
         };
@@ -1578,8 +1535,8 @@ async fn find_element_in_ui(ui_xml: &str, req: &RunStepRequestV2, selection_mode
                       confidence_gap, uniqueness, is_unique_by_confidence, is_unique_by_gap);
         
         // 🛡️ 双阶段容器拦截检查
-        let is_container = is_container_node(&candidate.class_name);
-        let is_fullscreen = is_fullscreen_node(&(candidate.bounds.left, candidate.bounds.top, candidate.bounds.right, candidate.bounds.bottom));
+        let is_container = check_container_node(&candidate.class_name);
+        let is_fullscreen = check_fullscreen_node(&(candidate.bounds.left, candidate.bounds.top, candidate.bounds.right, candidate.bounds.bottom));
         
         if is_container || is_fullscreen {
             let block_type = if is_container { "容器" } else { "整屏" };
@@ -1619,13 +1576,13 @@ async fn find_element_in_ui(ui_xml: &str, req: &RunStepRequestV2, selection_mode
             let candidate_bounds = (candidate.bounds.left, candidate.bounds.top, candidate.bounds.right, candidate.bounds.bottom);
             
             // 🔍 关键自测点4：容器/整屏拦截验证
-            if is_fullscreen_node(&candidate_bounds) {
+            if check_fullscreen_node(&candidate_bounds) {
                 tracing::warn!("🚫 自测检查: 整屏节点被拦截 bounds=({},{},{},{})", 
                               candidate.bounds.left, candidate.bounds.top, candidate.bounds.right, candidate.bounds.bottom);
                 return Err("FULLSCREEN_BLOCKED: 匹配到整屏节点，拒绝执行".to_string());
             }
             
-            if is_container_node(&candidate.class_name) {
+            if check_container_node(&candidate.class_name) {
                 tracing::warn!("🚫 自测检查: 容器节点被拦截 class={:?}", candidate.class_name);
                 return Err(format!("CONTAINER_BLOCKED: 匹配到容器节点({:?})，拒绝执行", candidate.class_name.as_deref().unwrap_or("unknown")));
             }
@@ -1684,13 +1641,6 @@ async fn find_element_in_ui(ui_xml: &str, req: &RunStepRequestV2, selection_mode
         Err(format!("❌ 未找到匹配的元素。搜索条件: text={:?}, xpath={:?}, resourceId={:?}, className={:?}, contentDesc={:?}",
                    target_text, target_xpath, target_resource_id, target_class, target_content_desc))
     }
-}
-
-// 提取XML属性值
-fn extract_attribute(node_str: &str, attr_name: &str) -> Option<String> {
-    let pattern = format!(r#"{}="([^"]*)"#, attr_name);
-    let regex = regex::Regex::new(&pattern).ok()?;
-    regex.captures(node_str)?.get(1).map(|m| m.as_str().to_string())
 }
 
 // 子锚点→父执行的增强选择器结构
@@ -1885,8 +1835,8 @@ async fn coord_fallback_hit_test(ui_xml: &str, req: &RunStepRequestV2) -> Result
     for node_match in node_regex.find_iter(ui_xml) {
         let node_str = node_match.as_str();
         
-        if let Some(bounds_str) = extract_attribute(node_str, "bounds") {
-            if let Ok(node_bounds) = parse_bounds(&bounds_str) {
+        if let Some(bounds_str) = parse_xml_attribute(node_str, "bounds") {
+            if let Ok(node_bounds) = parse_bounds_from_string(&bounds_str) {
                 // 检查点是否在节点内
                 if center_x >= node_bounds.left && center_x <= node_bounds.right &&
                    center_y >= node_bounds.top && center_y <= node_bounds.bottom {
@@ -1896,15 +1846,15 @@ async fn coord_fallback_hit_test(ui_xml: &str, req: &RunStepRequestV2) -> Result
                     
                     // 选择面积最小的节点（最精确的匹配）
                     if area < smallest_area {
-                        let class_name = extract_attribute(node_str, "class");
+                        let class_name = parse_xml_attribute(node_str, "class");
                         
                         // 🛡️ 安全检查：拒绝整屏或容器类节点
-                        if is_fullscreen_node(&(node_bounds.left, node_bounds.top, node_bounds.right, node_bounds.bottom)) {
+                        if check_fullscreen_node(&(node_bounds.left, node_bounds.top, node_bounds.right, node_bounds.bottom)) {
                             tracing::warn!("🚫 Hit-Test命中整屏节点，跳过");
                             continue;
                         }
                         
-                        if is_container_node(&class_name) {
+                        if check_container_node(&class_name) {
                             tracing::warn!("🚫 Hit-Test命中容器节点: {:?}，跳过", class_name);
                             continue;
                         }
@@ -1919,9 +1869,9 @@ async fn coord_fallback_hit_test(ui_xml: &str, req: &RunStepRequestV2) -> Result
                             score: 0.75, // 坐标兜底给保守分数
                             confidence: 0.75,
                             bounds: node_bounds,
-                            text: extract_attribute(node_str, "text"),
+                            text: parse_xml_attribute(node_str, "text"),
                             class_name,
-                            package_name: extract_attribute(node_str, "package"),
+                            package_name: parse_xml_attribute(node_str, "package"),
                         });
                     }
                 }
@@ -1980,22 +1930,6 @@ fn generate_disambiguation_suggestions(candidates: &[MatchCandidate], req: &RunS
     }
     
     suggestions
-}
-
-// 解析bounds字符串
-fn parse_bounds(bounds_str: &str) -> Result<Bounds, String> {
-    // bounds格式: [left,top][right,bottom]
-    let bounds_regex = regex::Regex::new(r#"\[(\d+),(\d+)\]\[(\d+),(\d+)\]"#).unwrap();
-    if let Some(caps) = bounds_regex.captures(bounds_str) {
-        Ok(Bounds {
-            left: caps[1].parse().unwrap_or(0),
-            top: caps[2].parse().unwrap_or(0),
-            right: caps[3].parse().unwrap_or(100),
-            bottom: caps[4].parse().unwrap_or(100),
-        })
-    } else {
-        Err(format!("无法解析bounds: {}", bounds_str))
-    }
 }
 
 // 🚀 新增：插件化决策链执行入口
