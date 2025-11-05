@@ -91,6 +91,6 @@ export * from './services/step-card-parameter-inference/step-card-inference-serv
 export * from './services/step-card-parameter-inference/runtime-parameter-inference-service';
 
 // Parameter Inference UI
-export * from './ui/components/parameter-inference-indicator';
-export * from './ui/components/xml-snapshot-viewer';
+export { ParameterInferenceIndicator } from './ui/components/parameter-inference-indicator';
+export { XmlSnapshotViewer } from './ui/components/xml-snapshot-viewer';
 export * from './ui/hooks/use-parameter-inference-status';

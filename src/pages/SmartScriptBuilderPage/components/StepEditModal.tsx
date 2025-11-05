@@ -21,7 +21,7 @@ import {
   Tabs,
   message,
 } from "antd";
-import { SettingOutlined, EyeOutlined, BugOutlined, FileCodeOutlined } from "@ant-design/icons";
+import { SettingOutlined, EyeOutlined, BugOutlined, CodeOutlined } from "@ant-design/icons";
 import type { FormInstance } from "antd/es/form";
 import type { ExtendedSmartScriptStep } from "../../../types/loopScript";
 import { SmartActionType } from "../../../types/smartComponents";
@@ -32,11 +32,9 @@ import { renderParameterInput } from "../helpers/parameterRenderers";
 import { noDragProps } from "../../../components/universal-ui/dnd/noDrag";
 import { OverlayThemeSwitch, useOverlayTheme } from "../../../components/ui/overlay";
 import { 
-  XmlSnapshotViewer, 
   ParameterInferenceIndicator,
   useParameterInferenceStatus 
 } from "../../../modules/structural-matching";
-import { useStepCardStore } from "../../../store/stepcards";
 
 const { Option } = Select;
 const { Text } = Typography;
@@ -65,6 +63,21 @@ const StepEditModal: React.FC<StepEditModalProps> = ({
 }) => {
   // 使用通用 Overlay 主题 Hook（默认 inherit：跟随 GUI 全局主题）
   const { theme, setTheme, classes, popupProps } = useOverlayTheme('inherit');
+  
+  // 添加参数推断状态 - 使用步骤ID而不是步骤对象
+  const stepId = editingStep?.id || 'temp-step';
+  const inferenceStatus = useParameterInferenceStatus(stepId);
+  const xmlSnapshot = Form.useWatch('xmlSnapshot', form);
+  
+  // 检查是否有XML数据可以显示
+  const hasXmlData = useMemo(() => {
+    return xmlSnapshot && typeof xmlSnapshot === 'string' && xmlSnapshot.trim().length > 0;
+  }, [xmlSnapshot]);
+  
+  // 检查是否显示调试面板
+  const shouldShowDebugPanel = useMemo(() => {
+    return hasXmlData || (inferenceStatus.status !== 'disabled' && inferenceStatus.status !== 'not_needed');
+  }, [hasXmlData, inferenceStatus.status]);
 
   const titleNode = (
     <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
@@ -387,6 +400,84 @@ const StepEditModal: React.FC<StepEditModalProps> = ({
             );
           }}
         </Form.Item>
+
+        {/* 🆕 调试与分析面板 */}
+        {shouldShowDebugPanel && (
+          <Divider orientation="left" style={{ marginTop: 32, marginBottom: 16 }}>
+            <Space>
+              <BugOutlined />
+              调试与分析
+            </Space>
+          </Divider>
+        )}
+
+        {shouldShowDebugPanel && (
+          <Tabs
+            size="small"
+            style={{ marginBottom: 16 }}
+            items={[
+              ...(hasXmlData ? [{
+                key: 'xml-snapshot',
+                label: (
+                  <Space size="small">
+                    <CodeOutlined />
+                    XML快照
+                  </Space>
+                ),
+                children: (
+                  <div style={{ maxHeight: 400, overflow: 'auto' }}>
+                    {xmlSnapshot ? (
+                      <Card size="small" title="XML快照预览">
+                        <pre style={{
+                          fontSize: '12px',
+                          maxHeight: '300px',
+                          overflow: 'auto',
+                          whiteSpace: 'pre-wrap',
+                          wordBreak: 'break-all',
+                          background: '#f6f8fa',
+                          padding: '12px',
+                          borderRadius: '4px'
+                        }}>
+                          {typeof xmlSnapshot === 'string' ? 
+                            (xmlSnapshot.length > 1000 ? xmlSnapshot.substring(0, 1000) + '\n\n... [数据已截断]' : xmlSnapshot) :
+                            JSON.stringify(xmlSnapshot, null, 2).substring(0, 1000)
+                          }
+                        </pre>
+                      </Card>
+                    ) : (
+                      <Alert
+                        type="info"
+                        message="没有XML快照数据"
+                        description="此步骤尚未生成XML快照数据。"
+                        showIcon
+                      />
+                    )}
+                  </div>
+                ),
+              }] : []),
+              ...(inferenceStatus.status === 'pending' || inferenceStatus.status === 'completed' || inferenceStatus.status === 'failed' ? [{
+                key: 'parameter-inference',
+                label: (
+                  <Space size="small">
+                    <SettingOutlined />
+                    参数推断
+                    {inferenceStatus.inferenceResult && (
+                      <Tag color={inferenceStatus.status === 'completed' ? 'green' : inferenceStatus.status === 'failed' ? 'red' : 'orange'}>
+                        {inferenceStatus.status === 'completed' ? '已完成' : 
+                         inferenceStatus.status === 'failed' ? '失败' : '处理中'}
+                      </Tag>
+                    )}
+                  </Space>
+                ),
+                children: (
+                  <div style={{ maxHeight: 400, overflow: 'auto' }}>
+                    <ParameterInferenceIndicator stepCardId={stepId} showDetails={true} />
+                  </div>
+                ),
+              }] : []),
+            ]}
+          />
+        )}
 
         {/* 🆕 隐藏字段：保存元素属性用于指纹匹配 */}
         <Form.Item name="text" hidden>
