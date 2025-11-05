@@ -188,3 +188,8 @@ analysis/.ai/
 .ai/
 *.ai-cache
 ai-cache.json*
+
+# 实验性重构文件
+src-tauri/src/main_refactored*.rs
+src-tauri/src/main_ultimate.rs
+src-tauri/src/main_example*.rs
