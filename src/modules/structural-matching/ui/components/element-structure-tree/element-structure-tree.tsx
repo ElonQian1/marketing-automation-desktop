@@ -786,27 +786,16 @@ export const ElementStructureTree: React.FC<ElementStructureTreeProps> = ({
                 字段显示模式:
               </Text>
               <Space size="middle" style={{ flexWrap: "wrap" }}>
-                {/* 全局字段显示模式 */}
+                {/* 字段显示模式 */}
                 <Space size="small">
                   <Switch
                     size="small"
-                    checked={Object.values(elementShowAllFields).every(Boolean) && Object.keys(elementShowAllFields).length > 0}
-                    onChange={(checked) => {
-                      // 全局设置所有元素的显示模式
-                      if (element) {
-                        const allPaths = [getElementPath(element)];
-                        // TODO: 收集所有子元素路径
-                        const newState: Record<string, boolean> = {};
-                        allPaths.forEach(path => {
-                          newState[path] = checked;
-                        });
-                        setElementShowAllFields(newState);
-                      }
-                    }}
+                    checked={showAllFields}
+                    onChange={setShowAllFields}
                     checkedChildren="全部"
                     unCheckedChildren="骨架"
                   />
-                  <Tooltip title="全局切换：显示所有元素的全部字段 或 仅显示骨架字段">
+                  <Tooltip title={showAllFields ? "显示所有16个字段，便于精细调整匹配策略" : "仅显示骨架字段（对子树结构有意义的字段），聚焦骨架匹配"}>
                     <InfoCircleOutlined style={{ fontSize: 12, color: "#999" }} />
                   </Tooltip>
                 </Space>
