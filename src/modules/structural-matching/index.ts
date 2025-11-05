@@ -49,6 +49,18 @@ export { CompletenessScorer } from './scoring/structural-matching-completeness-s
 
 // 🎛️ React Hooks
 export { useHierarchicalMatchingModal } from './hooks/use-hierarchical-matching-modal';
+
+// 🧠 智能配置服务
+export {
+  isFieldMeaningful,
+  generateSmartFieldConfig,
+  generateElementSmartConfig,
+  generateTreeSmartConfig,
+  getStructuralMatchingConfigSummary,
+  type StructuralMatchingConfigOptions,
+  type FieldConfigResult,
+  type ElementConfigResult
+} from './services/structural-matching-config-service';
 export type { UseHierarchicalMatchingModalReturn, ElementTemplate } from './hooks/use-hierarchical-matching-modal';
 export * from './hooks/use-structural-preview';
 export * from './hooks/use-field-strategy-config';

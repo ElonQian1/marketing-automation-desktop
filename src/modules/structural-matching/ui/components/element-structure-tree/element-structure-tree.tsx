@@ -772,6 +772,16 @@ export const ElementStructureTree: React.FC<ElementStructureTreeProps> = ({
                   🔼 父元素
                 </Tag>
               )}
+
+              {/* 该元素独立的字段显示开关 */}
+              <Switch
+                size="small"
+                checked={getElementShowAllFields(elementPath)}
+                onChange={(checked) => setElementShowAllFieldsForPath(elementPath, checked)}
+                checkedChildren="全"
+                unCheckedChildren="骨"
+                style={{ marginLeft: 8 }}
+              />
             </Space>
           </div>
 
