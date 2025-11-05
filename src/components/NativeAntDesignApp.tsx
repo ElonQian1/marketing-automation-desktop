@@ -70,7 +70,6 @@ import { TextMatchingSettingsPage } from "../pages/TextMatchingSettingsPage";
 
 // 业务页面导入
 import { StatisticsPageNative } from "../pages/statistics/StatisticsPageNative";
-import { DeviceManagementPageNative } from "../pages/device-management/DeviceManagementPageNative";
 import { LoginPageNative } from "../pages/auth/LoginPageNative";
 import { PreciseAcquisitionPage } from "../pages/precise-acquisition/PreciseAcquisitionPage";
 
@@ -189,11 +188,6 @@ const NativeAntDesignApp: React.FC = () => {
       label: "📊 统计中心（商业版）",
     },
     {
-      key: "device-management-native",
-      icon: <MobileOutlined />,
-      label: "设备管理（原生）",
-    },
-    {
       key: "device-management-optimized",
       icon: <MobileOutlined />,
       label: "📱 设备中心（商业版）",
@@ -248,8 +242,6 @@ const NativeAntDesignApp: React.FC = () => {
         return <StatisticsPageNative />;
       case "statistics-optimized":
         return <StatisticsPageOptimized />;
-      case "device-management-native":
-        return <DeviceManagementPageNative />;
       case "device-management-optimized":
         return <DeviceManagementPageOptimized />;
       case "login-native":
