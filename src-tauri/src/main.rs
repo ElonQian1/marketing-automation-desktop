@@ -36,6 +36,12 @@ use services::log_bridge::LOG_COLLECTOR;
 // ==================== 📋 模块化命令导入 ====================
 use commands::*; // 集中导入所有模块化命令
 
+// ==================== 🚀 V3 执行引擎命令 ====================
+use crate::exec::v3::commands::{
+    execute_single_step_test_v3, execute_chain_test_v3, 
+    execute_static_strategy_test_v3, execute_task_v3
+};
+
 // ==================== 🎯 版本控制系统命令 ====================
 use crate::domain::analysis_cache::version_commands::{
     init_version_control, create_version, query_versions, create_branch, 
@@ -80,7 +86,7 @@ fn main() {
 
     info!("🚀 启动EmployeeGUI应用程序 (重构版本)");
     info!("📊 日志级别: DEBUG (开发模式)");
-    info!("🎯 命令注册: 72个命令按9个功能模块分组");
+    info!("🎯 命令注册: 76个命令按10个功能模块分组");
 
     let employee_service = EmployeeService::new().expect("Failed to initialize employee service");
     let adb_service = AdbService::new();
@@ -176,6 +182,9 @@ fn main() {
             // ==================== 🧠 智能分析V2 (6个命令) ====================
             start_intelligent_analysis, cancel_intelligent_analysis, bind_analysis_result_to_step,
             get_step_strategy, clear_step_strategy, run_step_v2,
+            
+            // ==================== 🚀 V3执行引擎 (4个命令) ====================
+            execute_single_step_test_v3, execute_chain_test_v3, execute_static_strategy_test_v3, execute_task_v3,
             
             // ==================== 🎯 智能选择 (3个命令) ====================
             save_smart_selection_config, get_smart_selection_stats, validate_smart_selection_protocol,
