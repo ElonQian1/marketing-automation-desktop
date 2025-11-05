@@ -268,6 +268,48 @@ export class XmlPersistentStorage {
   }
 
   /**
+   * 🚀 性能优化：获取最新的N个XML缓存条目（按时间戳降序）
+   * 用于启动时的智能预加载，避免加载全量缓存
+   * 
+   * @param limit 限制数量（默认20）
+   * @returns 最新的缓存条目数组
+   */
+  async getRecent(limit: number = 20): Promise<XmlCacheEntry[]> {
+    await this.ensureInitialized();
+
+    if (!this.db) {
+      return [];
+    }
+
+    return new Promise((resolve, reject) => {
+      const transaction = this.db!.transaction([STORE_NAME], 'readonly');
+      const store = transaction.objectStore(STORE_NAME);
+      const index = store.index(INDEX_TIMESTAMP);
+
+      // 按时间戳降序（最新的在前）
+      const request = index.openCursor(null, 'prev');
+      const results: XmlCacheEntry[] = [];
+
+      request.onsuccess = (event) => {
+        const cursor = (event.target as IDBRequest).result as IDBCursorWithValue | null;
+
+        if (cursor && results.length < limit) {
+          results.push(cursor.value);
+          cursor.continue();
+        } else {
+          console.log(`📦 获取最新${results.length}个缓存条目 (性能优化)`);
+          resolve(results);
+        }
+      };
+
+      request.onerror = () => {
+        console.error('❌ 读取最新缓存失败:', request.error);
+        reject(request.error);
+      };
+    });
+  }
+
+  /**
    * 删除XML缓存条目
    */
   async delete(cacheId: string): Promise<void> {

@@ -7,7 +7,7 @@
  * 移除所有自定义样式，使用纯原生Ant Design组件和样式
  */
 
-import React, { useState, useEffect } from "react";
+import React, { useState } from "react";
 import {
   Layout,
   Menu,
@@ -119,11 +119,6 @@ const NativeAntDesignApp: React.FC = () => {
       icon: <AimOutlined />,
       label: "精准获客系统",
     },
-    {
-      key: "watch-targets-list",
-      icon: <AimOutlined />,
-      label: "候选池列表（验证）",
-    },
     ...(import.meta.env.DEV
       ? [
           {
@@ -214,12 +209,6 @@ const NativeAntDesignApp: React.FC = () => {
         return <ContactImportPage />;
       case "precise-acquisition":
         return <PreciseAcquisitionPage />;
-      case "watch-targets-list":
-        return WatchTargetsListComp ? (
-          <WatchTargetsListComp />
-        ) : (
-          <div>加载中...</div>
-        );
       case "database-debug":
         return <DatabaseDebugPage />;
       case "xml-cache-debug":
@@ -251,19 +240,7 @@ const NativeAntDesignApp: React.FC = () => {
       default:
         return <NativeAntDashboard />;
     }
-  };
-
-  // 动态导入 WatchTargetsListPage，避免主包体积膨胀
-  const [WatchTargetsListComp, setWatchTargetsListComp] =
-    useState<React.ComponentType | null>(null);
-
-  useEffect(() => {
-    if (selectedKey === "watch-targets" && !WatchTargetsListComp) {
-      import("../pages/precise-acquisition/WatchTargetsListPage").then((m) => {
-        setWatchTargetsListComp(() => m.default);
-      });
-    }
-  }, [selectedKey, WatchTargetsListComp]);
+  }
 
   return (
     <AntApp

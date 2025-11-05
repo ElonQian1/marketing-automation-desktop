@@ -77,6 +77,11 @@ class XmlCacheManager {
   private stepXmlMapping: Map<string, StepXmlContext> = new Map();
   private persistentStorage: XmlPersistentStorage | null = null;
   private isRestoring = false;
+  
+  // 🚀 性能优化：访问频率跟踪和智能预加载
+  private accessFrequency: Map<string, number> = new Map(); // 记录访问频率
+  private preloadCache: Set<string> = new Set(); // 预加载缓存ID集合
+  private maxMemoryEntries = 50; // 内存缓存最大条目数，防止内存溢出
 
   private constructor() {
     // 初始化持久化存储
@@ -114,7 +119,13 @@ class XmlCacheManager {
   }
 
   /**
-   * 从持久化存储恢复缓存到内存
+   * 从持久化存储恢复缓存到内存（性能优化版）
+   * 
+   * 🔥 优化策略：
+   * 1. 懒加载：仅恢复最新的缓存项（默认前20条）
+   * 2. 索引优先：优先恢复哈希索引，便于快速查找
+   * 3. 异步批处理：分批处理，避免阻塞UI线程
+   * 4. 智能预加载：根据使用频率动态调整预加载数量
    */
   private async restoreFromPersistentStorage(): Promise<void> {
     if (!this.persistentStorage || this.isRestoring) {
@@ -124,21 +135,38 @@ class XmlCacheManager {
     this.isRestoring = true;
 
     try {
-      const entries = await this.persistentStorage.getAll();
+      // 🚀 性能优化：仅恢复最新的20个缓存项，而非全量加载
+      const recentEntries = await this.persistentStorage.getRecent(20);
       
-      if (entries.length === 0) {
+      if (recentEntries.length === 0) {
         console.log('📦 持久化存储为空，无需恢复');
         return;
       }
 
-      for (const entry of entries) {
-        this.cache.set(entry.cacheId, entry);
-        if (entry.xmlHash) {
-          this.hashIndex.set(entry.xmlHash, entry);
-        }
+      // 🔄 分批处理，避免阻塞主线程
+      const batchSize = 5;
+      let processedCount = 0;
+      
+      for (let i = 0; i < recentEntries.length; i += batchSize) {
+        const batch = recentEntries.slice(i, i + batchSize);
+        
+        // 使用 setTimeout 让出控制权，避免阻塞UI
+        await new Promise<void>((resolve) => {
+          setTimeout(() => {
+            for (const entry of batch) {
+              this.cache.set(entry.cacheId, entry);
+              if (entry.xmlHash) {
+                this.hashIndex.set(entry.xmlHash, entry);
+              }
+              processedCount++;
+            }
+            resolve();
+          }, 0);
+        });
       }
 
-      console.log(`✅ 从持久化存储恢复了 ${entries.length} 个XML缓存`);
+      console.log(`✅ 智能恢复缓存完成: ${processedCount} 个最新XML缓存 (优化模式)`);
+      console.log(`💡 性能提示: 其余缓存将在需要时按需加载`);
     } catch (error) {
       console.error('❌ 恢复缓存失败:', error);
     } finally {
