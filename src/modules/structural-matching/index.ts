@@ -83,3 +83,14 @@ export * from './ui/pages/enhanced-field-config-demo';
 // Services
 export * from './services/structural-matching-service';
 export * from './services/structural-snapshot-generator';
+
+// Parameter Inference System
+export * from './services/step-card-parameter-inference/types';
+export * from './services/step-card-parameter-inference/xml-snapshot-analyzer';
+export * from './services/step-card-parameter-inference/step-card-inference-service';
+export * from './services/step-card-parameter-inference/runtime-parameter-inference-service';
+
+// Parameter Inference UI
+export * from './ui/components/parameter-inference-indicator';
+export * from './ui/components/xml-snapshot-viewer';
+export * from './ui/hooks/use-parameter-inference-status';

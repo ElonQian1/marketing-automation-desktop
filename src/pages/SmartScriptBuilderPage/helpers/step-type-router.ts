@@ -7,6 +7,11 @@ import { executeScrollStep } from "./scroll-executor";
 import { executeKeyEventStep } from "./keyevent-executor";
 import { executeLongPress } from "./longpress-executor";
 import { executeInput } from "./input-executor";
+import { 
+  inferParametersForStepCard, 
+  stepCardNeedsInference 
+} from "../../../modules/structural-matching";
+import { useStepCardStore } from "../../../store/stepcards";
 
 /**
  * 步骤执行结果
@@ -137,6 +142,7 @@ async function executeLoopControl(step: ExtendedSmartScriptStep): Promise<StepEx
 
 /**
  * 执行点击步骤（使用V3引擎）
+ * 集成运行时参数推理系统
  */
 async function executeClick(
   deviceId: string,
@@ -146,7 +152,11 @@ async function executeClick(
   console.log(`🎯 [V3点击] 使用V3引擎执行智能点击`);
   
   try {
-    await executeV3Fn(step);
+    // 🧠 Phase 2: 运行时参数推理集成
+    const enhancedStep = await ensureStructuralMatchParameters(step);
+    
+    // 使用增强后的步骤执行
+    await executeV3Fn(enhancedStep);
     
     return {
       success: true,
@@ -160,6 +170,66 @@ async function executeClick(
       message: `❌ V3点击失败: ${errorMsg}`,
       executorType: "click_v3",
     };
+  }
+}
+
+/**
+ * 确保步骤具有结构匹配参数
+ * 如果缺少参数，则使用推理系统自动填充
+ * 
+ * @param step 原始步骤
+ * @returns 增强后的步骤（含结构匹配参数）
+ */
+async function ensureStructuralMatchParameters(step: ExtendedSmartScriptStep): Promise<ExtendedSmartScriptStep> {
+  try {
+    // 获取步骤卡片（通过步骤ID查找）
+    const stepCardStore = useStepCardStore.getState();
+    const stepCard = stepCardStore.byStepId[step.id] ? 
+      stepCardStore.cards[stepCardStore.byStepId[step.id]] : null;
+
+    if (!stepCard) {
+      console.log(`🔍 [参数推理] 步骤 ${step.id} 没有对应的步骤卡片，跳过推理`);
+      return step;
+    }
+
+    // 检查是否需要推理
+    if (!stepCardNeedsInference(stepCard)) {
+      console.log(`🔍 [参数推理] 步骤 ${step.id} 无需推理`);
+      return step;
+    }
+
+    console.log(`🧠 [参数推理] 开始为步骤 ${step.id} 推理结构匹配参数...`);
+    
+    // 执行推理
+    const inferenceResult = await inferParametersForStepCard(stepCard);
+    
+    if (inferenceResult.status === 'completed' && inferenceResult.plan) {
+      console.log(`✅ [参数推理] 步骤 ${step.id} 推理完成，耗时 ${inferenceResult.inferenceTime}ms`);
+      
+      // 将推理结果添加到步骤参数中
+      const enhancedStep: ExtendedSmartScriptStep = {
+        ...step,
+        parameters: {
+          ...step.parameters,
+          // 添加结构匹配参数
+          structuralMatchPlan: inferenceResult.plan,
+          // 标记参数来源
+          _parameterSource: 'runtime_inference',
+          _inferenceMetadata: inferenceResult.metadata,
+        }
+      };
+
+      return enhancedStep;
+    } else {
+      console.warn(`⚠️ [参数推理] 步骤 ${step.id} 推理失败: ${inferenceResult.error || '未知错误'}`);
+      return step;
+    }
+
+  } catch (error) {
+    const errorMsg = error instanceof Error ? error.message : String(error);
+    console.error(`❌ [参数推理] 步骤 ${step.id} 推理过程出错: ${errorMsg}`);
+    // 推理失败时返回原始步骤，不阻断执行
+    return step;
   }
 }
 

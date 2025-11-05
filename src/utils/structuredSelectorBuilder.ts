@@ -152,14 +152,124 @@ function convertStepActionToActionSpec(stepAction: StepCardModel['currentAction'
 }
 
 /**
- * 从选择器ID获取缓存的UIElement信息（如果需要）
- * 这个函数需要与现有的元素缓存系统集成
+ * 从选择器ID获取缓存的UIElement信息
+ * 集成步骤卡片参数推导系统，支持从XML快照重建元素信息
  */
-export function getElementFromSelectorId(selectorId: string): UIElement | null {
-  // TODO: 集成现有的元素缓存系统
-  // 可能需要从 XmlCacheManager 或其他地方获取元素信息
-  console.warn('getElementFromSelectorId 需要与现有缓存系统集成:', selectorId);
-  return null;
+export async function getElementFromSelectorId(selectorId: string): Promise<UIElement | null> {
+  try {
+    console.log('🔍 [SelectorBuilder] 查找元素信息', { selectorId });
+
+    // 方式1: 从步骤卡片获取完整信息
+    const elementFromStepCard = await getElementFromStepCard(selectorId);
+    if (elementFromStepCard) {
+      console.log('✅ [SelectorBuilder] 从步骤卡片获取元素信息');
+      return elementFromStepCard;
+    }
+
+    // 方式2: 从XML缓存重建元素信息  
+    const elementFromXmlCache = await getElementFromXmlCache(selectorId);
+    if (elementFromXmlCache) {
+      console.log('✅ [SelectorBuilder] 从XML缓存重建元素信息');
+      return elementFromXmlCache;
+    }
+
+    console.warn('⚠️ [SelectorBuilder] 无法找到元素信息', { selectorId });
+    return null;
+
+  } catch (error) {
+    console.error('❌ [SelectorBuilder] 元素信息获取失败:', error);
+    return null;
+  }
+}
+
+/**
+ * 从步骤卡片获取元素信息
+ */
+async function getElementFromStepCard(selectorId: string): Promise<UIElement | null> {
+  try {
+    // 导入步骤卡片store（延迟导入避免循环依赖）
+    const { useStepCardStore } = await import('../store/stepcards');
+    const store = useStepCardStore.getState();
+    
+    // 查找包含此selectorId的步骤卡片
+    const cards = store.getAllCards();
+    const targetCard = cards.find(card => 
+      card.elementUid === selectorId || 
+      card.id === selectorId ||
+      card.elementContext?.xpath === selectorId
+    );
+
+    if (!targetCard) return null;
+
+    // 检查是否有原始元素数据
+    if (targetCard.original_element) {
+      console.log('📦 [SelectorBuilder] 找到原始元素数据');
+      return targetCard.original_element;
+    }
+
+    // 从elementContext重建基本信息
+    if (targetCard.elementContext) {
+      const element: UIElement = {
+        id: targetCard.elementUid,
+        element_type: 'reconstructed',
+        text: targetCard.elementContext.text || '',
+        bounds: parseBoundsString(targetCard.elementContext.bounds || '[0,0][0,0]'),
+        xpath: targetCard.elementContext.xpath || '',
+        resource_id: targetCard.elementContext.resourceId,
+        class_name: targetCard.elementContext.className,
+        is_clickable: true, // 默认值
+        is_scrollable: false,
+        is_enabled: true,
+        is_focused: false,
+        checkable: false,
+        checked: false,
+        selected: false,
+        password: false,
+        content_desc: ''
+      };
+      
+      console.log('🔧 [SelectorBuilder] 从elementContext重建元素');
+      return element;
+    }
+
+    return null;
+  } catch (error) {
+    console.error('❌ [SelectorBuilder] 步骤卡片查找失败:', error);
+    return null;
+  }
+}
+
+/**
+ * 从XML缓存重建元素信息
+ */
+async function getElementFromXmlCache(selectorId: string): Promise<UIElement | null> {
+  try {
+    // 这里需要实现从XML缓存中根据selectorId查找元素的逻辑
+    // 目前先返回null，等待后续完善
+    console.log('🔄 [SelectorBuilder] XML缓存查找功能待实现', { selectorId });
+    return null;
+  } catch (error) {
+    console.error('❌ [SelectorBuilder] XML缓存查找失败:', error);
+    return null;
+  }
+}
+
+/**
+ * 解析bounds字符串
+ */
+function parseBoundsString(boundsStr: string): { left: number; top: number; right: number; bottom: number } {
+  try {
+    // 格式：[x1,y1][x2,y2]
+    const match = boundsStr.match(/\[(\d+),(\d+)\]\[(\d+),(\d+)\]/);
+    if (!match) {
+      return { left: 0, top: 0, right: 0, bottom: 0 };
+    }
+
+    const [, x1, y1, x2, y2] = match.map(Number);
+    return { left: x1, top: y1, right: x2, bottom: y2 };
+  } catch {
+    return { left: 0, top: 0, right: 0, bottom: 0 };
+  }
 }
 
 /**

@@ -43,6 +43,68 @@ export interface StepCard {
   /** 🔥 原始UIElement - 用于策略配置（如结构匹配需要children字段） */
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   original_element?: any; // 使用any避免循环依赖
+  
+  /** 📄 XML快照信息 - 支持参数推导 */
+  xmlSnapshot?: {
+    xmlCacheId?: string;           // XML缓存ID
+    xmlContent?: string;           // 直接内嵌的XML内容
+    xmlHash?: string;              // XML内容哈希
+    screenshotPath?: string;       // 配套截图路径
+  };
+  
+  /** 🏗️ 结构匹配参数计划 - 推导生成的完整匹配参数 */
+  structuralMatchPlan?: {
+    version: string;               // 计划版本
+    snapshotHash: string;          // XML快照哈希
+    generatedAt: string;           // 推导生成时间
+    sourceXPath: string;           // 原始静态XPath
+    
+    selectedAnchor: {
+      ancestorChain: Array<{
+        className: string;
+        role: string;
+        depth: number;
+        signature: string;
+      }>;
+      clickableParentSig: string;
+      selfSignature: string;
+    };
+    
+    containerGate: {
+      containerXPath: string;
+      fallbackMode: "nearest_scrollable" | "business_pane";
+      gateMode: "pre" | "post";
+    };
+    
+    fieldMask: {
+      text: "use" | "ignore-numeric" | "pattern-match";
+      contentDesc: "use" | "ignore-numeric" | "pattern-match"; 
+      resourceId: "use" | "soft";
+      bounds: "geom-iou" | "ignore";
+      booleanFields: "exact" | "soft";
+    };
+    
+    layoutGate: {
+      normalizedCenter: [number, number];
+      normalizedSize: [number, number];
+      maxShift: number;
+    };
+    
+    scoring: {
+      weightsProfile: "Speed" | "Default" | "Robust";
+      minConfidence: number;
+      topGap: number;
+      earlyStop: boolean;
+    };
+  };
+  
+  /** 🎯 运行时推导状态 */
+  inferenceState?: {
+    status: "not_needed" | "pending" | "completed" | "failed";
+    lastInferredAt?: string;
+    inferenceVersion?: string;
+    error?: string;
+  };
   status: StepCardStatus;
   strategy?: {
     primary: string;
