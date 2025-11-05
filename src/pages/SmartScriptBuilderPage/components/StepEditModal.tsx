@@ -2,7 +2,7 @@
 // module: ui | layer: ui | role: component
 // summary: UI 组件
 
-import React from "react";
+import React, { useMemo } from "react";
 import {
   Modal,
   Form,
@@ -18,9 +18,10 @@ import {
   Button,
   Typography,
   Collapse,
+  Tabs,
   message,
 } from "antd";
-import { SettingOutlined, EyeOutlined } from "@ant-design/icons";
+import { SettingOutlined, EyeOutlined, BugOutlined, FileCodeOutlined } from "@ant-design/icons";
 import type { FormInstance } from "antd/es/form";
 import type { ExtendedSmartScriptStep } from "../../../types/loopScript";
 import { SmartActionType } from "../../../types/smartComponents";
@@ -30,6 +31,12 @@ import type { LaunchAppComponentParams } from "../../../types/smartComponents";
 import { renderParameterInput } from "../helpers/parameterRenderers";
 import { noDragProps } from "../../../components/universal-ui/dnd/noDrag";
 import { OverlayThemeSwitch, useOverlayTheme } from "../../../components/ui/overlay";
+import { 
+  XmlSnapshotViewer, 
+  ParameterInferenceIndicator,
+  useParameterInferenceStatus 
+} from "../../../modules/structural-matching";
+import { useStepCardStore } from "../../../store/stepcards";
 
 const { Option } = Select;
 const { Text } = Typography;

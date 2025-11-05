@@ -10,6 +10,11 @@ import { Device } from '../../../domain/adb/entities/Device';
 import { App } from 'antd';
 import { SmartActionType } from '../../../types/smartComponents';
 import { generateContactImportWorkflowSteps } from '../../../modules/contact-automation';
+import { 
+  ParameterInferenceIndicator,
+  ParameterInferenceBadge,
+  useParameterInferenceStatus
+} from '../../../modules/structural-matching';
 
 interface StepListPanelProps {
   steps: ExtendedSmartScriptStep[];

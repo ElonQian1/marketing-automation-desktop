@@ -16,9 +16,13 @@ import { LoopStartCard } from "./LoopStartCard";
 import { LoopEndCard } from "./LoopEndCard";
 import { useLoopTestManager } from "../modules/loop-control/application/use-loop-test-manager";
 import { SmartScriptStep } from "../types/smartScript"; // 使用统一的类型定义
-import { message } from "antd";
+import { message, Space } from "antd";
 import { useSmartStrategyAnalysis } from "../hooks/useSmartStrategyAnalysis";
 import type { StrategyCandidate } from "../types/strategySelector";
+import { 
+  ParameterInferenceBadge,
+  useParameterInferenceStatus
+} from "../modules/structural-matching";
 
 interface SmartStepCardWrapperProps {
   step: SmartScriptStep; // 使用统一的SmartScriptStep类型
@@ -70,6 +74,10 @@ export const SmartStepCardWrapper: React.FC<SmartStepCardWrapperProps> = (props)
     // 🔄 循环卡片同步支持
     allSteps = []
   } = props;
+
+  // 🧠 参数推理状态管理（仅对点击步骤启用）
+  const shouldShowInference = step.step_type === 'smart_find_element' || step.step_type === 'tap';
+  const inferenceStatus = useParameterInferenceStatus(step.id, shouldShowInference);
 
   // 🎯 循环测试状态管理器 - 支持多个循环同时存在
   const loopTestManager = useLoopTestManager({
@@ -325,35 +333,52 @@ export const SmartStepCardWrapper: React.FC<SmartStepCardWrapperProps> = (props)
 
   // 普通步骤 - 使用现代化拖拽卡片
   return (
-    <DraggableStepCard
-      step={{
-        ...step,
-        strategySelector: strategySelector || undefined
-      }}
-      index={index}
-      isDragging={isDragging}
-      currentDeviceId={currentDeviceId}
-      devices={devices}
-      onEdit={onEdit}
-      onDelete={onDelete}
-      onToggle={onToggle}
-      onEditStepParams={onEditStepParams}
-      onUpdateStepMeta={onUpdateStepMeta}
-      StepTestButton={StepTestButton}
-      onUpdateStepParameters={onUpdateStepParameters}
-      onBatchMatch={onBatchMatch}
-      ENABLE_BATCH_MATCH={ENABLE_BATCH_MATCH}
-      onOpenPageAnalyzer={onOpenPageAnalyzer}
-      // 🧠 策略选择器回调
-      onStrategyChange={handleStrategyChange}
-      onReanalyze={handleReanalyze}
-      onSaveAsStatic={handleSaveAsStatic}
-      onOpenElementInspector={handleOpenElementInspector}
-      onCancelAnalysis={handleCancelAnalysis}
-      onApplyRecommendation={handleApplyRecommendation}
-      // 🔄 智能分析功能
-      isAnalyzing={isAnalyzing}
-    />
+    <div style={{ position: 'relative' }}>
+      <DraggableStepCard
+        step={{
+          ...step,
+          strategySelector: strategySelector || undefined
+        }}
+        index={index}
+        isDragging={isDragging}
+        currentDeviceId={currentDeviceId}
+        devices={devices}
+        onEdit={onEdit}
+        onDelete={onDelete}
+        onToggle={onToggle}
+        onEditStepParams={onEditStepParams}
+        onUpdateStepMeta={onUpdateStepMeta}
+        StepTestButton={StepTestButton}
+        onUpdateStepParameters={onUpdateStepParameters}
+        onBatchMatch={onBatchMatch}
+        ENABLE_BATCH_MATCH={ENABLE_BATCH_MATCH}
+        onOpenPageAnalyzer={onOpenPageAnalyzer}
+        // 🧠 策略选择器回调
+        onStrategyChange={handleStrategyChange}
+        onReanalyze={handleReanalyze}
+        onSaveAsStatic={handleSaveAsStatic}
+        onOpenElementInspector={handleOpenElementInspector}
+        onCancelAnalysis={handleCancelAnalysis}
+        onApplyRecommendation={handleApplyRecommendation}
+        // 🔄 智能分析功能
+        isAnalyzing={isAnalyzing}
+      />
+      
+      {/* 🧠 参数推理状态徽章 */}
+      {shouldShowInference && (
+        <div style={{
+          position: 'absolute',
+          top: '8px',
+          right: '8px',
+          zIndex: 10,
+        }}>
+          <ParameterInferenceBadge 
+            inferenceResult={inferenceStatus.inferenceResult}
+            size="small"
+          />
+        </div>
+      )}
+    </div>
   );
 };
 
