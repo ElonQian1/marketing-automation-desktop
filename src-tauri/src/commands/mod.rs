@@ -1,6 +1,7 @@
 // Centralized Tauri command module
 // 分领域子模块：确保 main.rs 精简
 
+pub mod macros; // 🎯 命令注册宏系统
 pub mod action_execution; // 新增操作执行命令
 pub mod step_execution; // 新增统一步骤执行命令
 pub mod run_step_v2; // 🚀 新增 V2 统一步骤执行命令

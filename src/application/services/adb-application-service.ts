@@ -2,6 +2,7 @@
 // module: adb | layer: application | role: service
 // summary: ADB应用服务统一入口
 
+import { invoke } from '@tauri-apps/api/core';
 import { 
   Device, 
   AdbConfig, 
@@ -334,10 +335,10 @@ export class AdbApplicationService {
    */
   async autoDetectAdbPath(): Promise<string | null> {
     try {
-      // 这里应该调用 Tauri 命令来自动检测 ADB 路径
-      // 暂时返回null，实际实现需要调用后端
-      console.log('自动检测ADB路径（模拟实现）');
-      return null;
+      console.log('开始自动检测ADB路径...');
+      const adbPath = await invoke<string>('detect_smart_adb_path');
+      console.log('自动检测到ADB路径:', adbPath);
+      return adbPath;
     } catch (error) {
       console.error('自动检测ADB路径失败:', error);
       return null;

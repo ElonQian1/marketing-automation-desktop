@@ -33,7 +33,7 @@ impl XmlRebuilder {
     }
     
     /// 从版本ID重建完整的XML
-    pub fn rebuild_xml_from_version<'a>(&'a mut self, version_id: &'a str) -> std::pin::Pin<Box<dyn std::future::Future<Output = Result<String>> + 'a>> {
+    pub fn rebuild_xml_from_version<'a>(&'a mut self, version_id: &'a str) -> std::pin::Pin<Box<dyn std::future::Future<Output = Result<String>> + Send + 'a>> {
         Box::pin(self.rebuild_xml_from_version_impl(version_id))
     }
     
@@ -93,7 +93,7 @@ impl XmlRebuilder {
     }
     
     /// 增量重建（递归）
-    fn rebuild_incremental<'a>(&'a mut self, version: &'a XmlVersion, depth: usize) -> std::pin::Pin<Box<dyn std::future::Future<Output = Result<String>> + 'a>> {
+    fn rebuild_incremental<'a>(&'a mut self, version: &'a XmlVersion, depth: usize) -> std::pin::Pin<Box<dyn std::future::Future<Output = Result<String>> + Send + 'a>> {
         Box::pin(async move {
             if depth > self.max_rebuild_depth {
                 return Err(anyhow!("重建深度超过限制: {}", self.max_rebuild_depth));

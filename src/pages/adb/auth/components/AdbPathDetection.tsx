@@ -111,12 +111,14 @@ export const AdbPathDetection: React.FC<AdbPathDetectionProps> = ({
     }
   }, [config.detectedPath, customPathInput, onCustomPathChange, onPathValidChange, validateCustomPath]);
 
-  // 组件挂载时自动检测
+  // 组件挂载时自动检测 - 只在组件首次挂载时执行
   useEffect(() => {
     if (!config.detectedPath && !config.isDetecting) {
       handleAutoDetect();
     }
-  }, [config.detectedPath, config.isDetecting, handleAutoDetect]);
+    // 使用空依赖数组，只在组件挂载时执行一次
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   const getStatusAndTitle = () => {
     if (config.isDetecting) {

@@ -192,17 +192,61 @@ pub async fn parse_cached_xml_to_elements(
 }
 
 fn get_debug_xml_dir() -> std::path::PathBuf {
-    // 确保指向项目根目录的 debug_xml 目录
-    // 无论当前工作目录在 src-tauri 还是项目根目录，都能正确找到
-    let current = std::env::current_dir().unwrap_or_else(|_| std::path::PathBuf::from("."));
+    // 🔧 修复：强制使用项目根目录的绝对路径，避免运行时路径混乱
+    let absolute_project_root = std::path::PathBuf::from("D:\\rust\\active-projects\\小红书\\employeeGUI");
+    let debug_xml_path = absolute_project_root.join("debug_xml");
     
-    // 如果当前目录名是 src-tauri，则取父目录
-    if current.file_name().and_then(|name| name.to_str()) == Some("src-tauri") {
-        current.parent().unwrap_or(&current).join("debug_xml")
-    } else {
-        // 否则直接在当前目录下查找
-        current.join("debug_xml")
+    // 记录调试信息
+    info!("🔍 XML缓存目录检查:");
+    info!("  - 当前工作目录: {:?}", std::env::current_dir().unwrap_or_default());
+    info!("  - 选择的debug_xml路径: {}", debug_xml_path.display());
+    info!("  - 路径是否存在: {}", debug_xml_path.exists());
+    
+    debug_xml_path
+}
+
+/// 🔧 调试命令：检查XML缓存路径问题
+#[tauri::command]
+pub async fn debug_xml_cache_paths() -> Result<serde_json::Value, String> {
+    use std::fs;
+    use serde_json::json;
+    
+    let current_dir = std::env::current_dir().unwrap_or_else(|_| std::path::PathBuf::from("."));
+    let debug_dir = get_debug_xml_dir();
+    
+    // 检查多个可能的路径
+    let paths_to_check = vec![
+        current_dir.join("debug_xml"),
+        current_dir.parent().unwrap_or(&current_dir).join("debug_xml"),
+        std::path::PathBuf::from("D:\\rust\\active-projects\\小红书\\employeeGUI\\debug_xml"),
+    ];
+    
+    let mut path_results = Vec::new();
+    
+    for path in &paths_to_check {
+        let exists = path.exists();
+        let file_count = if exists {
+            fs::read_dir(&path)
+                .map(|entries| entries.filter_map(|e| e.ok()).count())
+                .unwrap_or(0)
+        } else {
+            0
+        };
+        
+        path_results.push(json!({
+            "path": path.to_string_lossy(),
+            "exists": exists,
+            "file_count": file_count,
+            "is_current_choice": path == &debug_dir
+        }));
     }
+    
+    Ok(json!({
+        "current_working_directory": current_dir.to_string_lossy(),
+        "chosen_debug_xml_dir": debug_dir.to_string_lossy(),
+        "debug_xml_dir_exists": debug_dir.exists(),
+        "all_paths_checked": path_results
+    }))
 }
 
 // ========================================

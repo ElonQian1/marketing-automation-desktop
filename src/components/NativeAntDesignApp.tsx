@@ -57,6 +57,7 @@ import SmartVcfImporter from "./SmartVcfImporter";
 import TemplateLibrary from "./template/TemplateLibrary";
 import ContactImportPage from "../pages/contact-import/ContactImportPage";
 import DatabaseDebugPage from "../pages/debug/DatabaseDebug";
+import { XmlCacheDebugPanel } from "./debug/XmlCacheDebugPanel";
 import { PageFinderView } from "./universal-ui/page-finder";
 import { ThemeSettingsPage } from "../pages/ThemeSettingsPage";
 import { NativeAntDashboard } from "./native-dashboard/NativeAntDashboard";
@@ -132,6 +133,11 @@ const NativeAntDesignApp: React.FC = () => {
             key: "database-debug",
             icon: <SecurityScanOutlined />,
             label: "🗄️ 数据库调试",
+          },
+          {
+            key: "xml-cache-debug",
+            icon: <BugOutlined />,
+            label: "📄 XML缓存调试",
           },
           {
             key: "button-fix-validation",
@@ -249,6 +255,8 @@ const NativeAntDesignApp: React.FC = () => {
         );
       case "database-debug":
         return <DatabaseDebugPage />;
+      case "xml-cache-debug":
+        return <XmlCacheDebugPanel />;
       case "button-fix-validation":
         return <ButtonFixValidationPage />;
       case "parameter-test":
