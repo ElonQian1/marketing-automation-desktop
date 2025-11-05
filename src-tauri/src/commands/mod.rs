@@ -24,6 +24,7 @@ pub mod semantic_analyzer_config; // 🆕 新增语义分析器配置命令
 pub mod structural_matching; // 🆕 新增结构匹配命令
 pub mod structure_match_runtime; // 🚀 新增结构匹配运行时命令
 pub mod ui_dump; // 🆕 新增UI Dump命令
+pub mod analysis_cache; // 🆕 新增分析缓存命令
 
 // 可选：统一 re-export，方便 main.rs 引入
 // pub use action_execution::*; // 操作执行命令（暂时注释）
@@ -47,3 +48,4 @@ pub use smart_selection::*; // 🆕 导出智能选择命令
 pub use semantic_analyzer_config::*; // 🆕 导出语义分析器配置命令
 pub use structure_match_runtime::*; // 🚀 导出结构匹配运行时命令
 pub use ui_dump::*; // 🆕 导出UI Dump命令
+pub use analysis_cache::*; // 🆕 导出分析缓存命令

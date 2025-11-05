@@ -16,7 +16,6 @@ import {
   Empty
 } from 'antd';
 import { 
-  SettingOutlined, 
   CheckCircleOutlined, 
   ExclamationCircleOutlined,
   CloseCircleOutlined,
@@ -26,7 +25,7 @@ import {
 import { useParameterInferenceStatus } from '../hooks/use-parameter-inference-status';
 import type { RuntimeInferenceResult } from '../../services/step-card-parameter-inference/runtime-parameter-inference-service';
 
-const { Text, Paragraph } = Typography;
+const { Text } = Typography;
 
 export interface ParameterInferenceIndicatorProps {
   /** 步骤卡片ID */
@@ -61,14 +60,14 @@ const getStatusConfig = (status: string, error?: string | null) => {
     case 'pending':
       return {
         icon: <LoadingOutlined style={{ color: '#1890ff' }} />,
-        color: 'processing' as const,
+        color: 'info' as const,
         text: '推理中',
         description: '正在分析XML结构和推断参数'
       };
     case 'not_needed':
       return {
         icon: <CheckCircleOutlined style={{ color: '#52c41a' }} />,
-        color: 'default' as const,
+        color: 'info' as const,
         text: '无需推理',
         description: '此步骤已有完整的结构匹配配置'
       };
@@ -76,7 +75,7 @@ const getStatusConfig = (status: string, error?: string | null) => {
     default:
       return {
         icon: <ExclamationCircleOutlined style={{ color: '#d9d9d9' }} />,
-        color: 'default' as const,
+        color: 'warning' as const,
         text: '不可用',
         description: '此步骤类型不支持参数推理'
       };
@@ -96,56 +95,50 @@ const renderInferenceDetails = (result: RuntimeInferenceResult) => {
   return (
     <Card size="small" title="推理结果详情" style={{ marginTop: 16 }}>
       <Descriptions size="small" column={1} bordered>
-        <Descriptions.Item label="策略类型">
-          {plan.strategy || '未指定'}
+        <Descriptions.Item label="版本">
+          {plan.version}
         </Descriptions.Item>
-        <Descriptions.Item label="字段配置">
-          {plan.fieldConfigs ? Object.keys(plan.fieldConfigs).length : 0} 个字段
+        <Descriptions.Item label="生成时间">
+          {new Date(plan.generatedAt).toLocaleString()}
         </Descriptions.Item>
-        <Descriptions.Item label="阈值设置">
-          总体: {plan.globalThreshold || 0.8}
+        <Descriptions.Item label="源XPath">
+          <Text code style={{ fontSize: '12px' }}>{plan.sourceXPath}</Text>
         </Descriptions.Item>
-        {plan.metadata && (
-          <Descriptions.Item label="元数据">
-            <pre style={{ fontSize: '12px', margin: 0 }}>
-              {JSON.stringify(plan.metadata, null, 2)}
-            </pre>
-          </Descriptions.Item>
-        )}
+        <Descriptions.Item label="评分配置">
+          档案: {plan.scoring.weightsProfile} | 置信度: {plan.scoring.minConfidence}
+        </Descriptions.Item>
       </Descriptions>
       
-      {plan.fieldConfigs && (
-        <>
-          <Divider style={{ margin: '16px 0' }} />
-          <div>
-            <Text strong>字段配置详情:</Text>
-            <div style={{ marginTop: 8 }}>
-              {Object.entries(plan.fieldConfigs).map(([field, config]) => (
-                <Card 
-                  key={field} 
-                  size="small" 
-                  style={{ marginBottom: 8 }}
-                  bodyStyle={{ padding: '8px 12px' }}
-                >
-                  <Space direction="vertical" size="small" style={{ width: '100%' }}>
-                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                      <Text strong>{field}</Text>
-                      <Tag color={config.enabled ? 'green' : 'default'}>
-                        {config.enabled ? '启用' : '禁用'}
-                      </Tag>
-                    </div>
-                    <div>
-                      <Text type="secondary">权重: {config.weight}</Text>
-                      <span style={{ margin: '0 8px', color: '#d9d9d9' }}>|</span>
-                      <Text type="secondary">策略: {config.strategy}</Text>
-                    </div>
-                  </Space>
-                </Card>
-              ))}
-            </div>
-          </div>
-        </>
-      )}
+      <Divider style={{ margin: '16px 0' }} />
+      <div>
+        <Text strong>字段掩码配置:</Text>
+        <div style={{ marginTop: 8 }}>
+          <Card 
+            size="small" 
+            bodyStyle={{ padding: '8px 12px' }}
+          >
+            <Space direction="vertical" size="small" style={{ width: '100%' }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                <Text strong>文本匹配</Text>
+                <Tag color="blue">
+                  {plan.fieldMask.text}
+                </Tag>
+              </div>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                <Text strong>描述匹配</Text>
+                <Tag color="green">
+                  {plan.fieldMask.contentDesc}
+                </Tag>
+              </div>
+              <div>
+                <Text type="secondary">资源ID: {plan.fieldMask.resourceId}</Text>
+                <span style={{ margin: '0 8px', color: '#d9d9d9' }}>|</span>
+                <Text type="secondary">边界: {plan.fieldMask.bounds}</Text>
+              </div>
+            </Space>
+          </Card>
+        </div>
+      </div>
     </Card>
   );
 };
@@ -183,7 +176,6 @@ export const ParameterInferenceIndicator: React.FC<ParameterInferenceIndicatorPr
         type="info"
         message="此步骤不支持参数推理"
         showIcon
-        size="small"
       />
     );
   }

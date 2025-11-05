@@ -42,6 +42,8 @@ dirs = "5.0"
 colored = "2.1"
 md5 = "0.7"
 once_cell = "1.19"
+dashmap = "5.5"
+xxhash-rust = { version = "0.8", features = ["xxh3"] }
 zip = { version = "0.6", default-features = false, features = ["deflate"] }
 filetime = "0.2"
 roxmltree = "0.20"

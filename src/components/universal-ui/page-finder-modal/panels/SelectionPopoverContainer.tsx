@@ -9,6 +9,7 @@ import { isDevDebugEnabled } from '../../../../utils/debug';
 export interface SelectionPopoverContainerProps {
   selectionManager: any;
   xmlContent?: string; // 🆕 新增XML内容支持
+  snapshotId?: string; // 🆕 分析缓存快照ID
   enableIntelligentAnalysis?: boolean; // 🧠 智能分析功能开关
   stepId?: string; // 步骤ID，用于结果回填
   onQuickCreate?: () => Promise<void>; // 🆕 快速创建步骤卡片回调
@@ -17,6 +18,7 @@ export interface SelectionPopoverContainerProps {
 export const SelectionPopoverContainer: React.FC<SelectionPopoverContainerProps> = ({ 
   selectionManager, 
   xmlContent, // 🆕 接收XML内容
+  snapshotId, // 🆕 接收分析缓存快照ID
   enableIntelligentAnalysis = true, // 🧠 默认启用智能分析
   stepId, // 步骤ID
   onQuickCreate // 🆕 快速创建步骤卡片回调

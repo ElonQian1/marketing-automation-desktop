@@ -168,7 +168,7 @@ export function useStepForm(deps: UseStepFormDeps) {
         if (!effectiveXmlContent && (parameters as any).xmlCacheId) {
           try {
             const cm = XmlCacheManager.getInstance();
-            const ce = cm.getCachedXml((parameters as any).xmlCacheId);
+            const ce = await cm.getCachedXml((parameters as any).xmlCacheId);
             if (ce?.xmlContent) {
               effectiveXmlContent = ce.xmlContent;
               effectiveDeviceInfo = effectiveDeviceInfo || {
@@ -343,7 +343,7 @@ export function useStepForm(deps: UseStepFormDeps) {
       if (!newStep.parameters?.xmlSnapshot && (newStep.parameters as any)?.xmlCacheId) {
         try {
           const xmlCacheManager = XmlCacheManager.getInstance();
-          const cacheEntry = xmlCacheManager.getCachedXml((newStep.parameters as any).xmlCacheId);
+          const cacheEntry = await xmlCacheManager.getCachedXml((newStep.parameters as any).xmlCacheId);
           if (cacheEntry?.xmlContent) {
             newStep.parameters = {
               ...newStep.parameters,

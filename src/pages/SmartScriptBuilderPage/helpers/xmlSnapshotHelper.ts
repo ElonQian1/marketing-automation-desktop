@@ -22,7 +22,7 @@ export interface BuildSnapshotOptions {
  * 优先级：currentXmlContent → element.xmlContent → XmlCacheManager(xmlCacheId)
  * 设备与页面信息优先使用对应来源，否则回退到 current* 再到默认值。
  */
-export function buildXmlSnapshotFromContext(opts: BuildSnapshotOptions): XmlSnapshot | undefined {
+export async function buildXmlSnapshotFromContext(opts: BuildSnapshotOptions): Promise<XmlSnapshot | undefined> {
   const {
     currentXmlContent,
     currentDeviceInfo = {},
@@ -45,7 +45,7 @@ export function buildXmlSnapshotFromContext(opts: BuildSnapshotOptions): XmlSnap
   if (!xmlForSnapshot && element?.xmlCacheId) {
     try {
       const cm = XmlCacheManager.getInstance();
-      const ce = cm.getCachedXml(element.xmlCacheId);
+      const ce = await cm.getCachedXml(element.xmlCacheId);
       if (ce?.xmlContent) {
         xmlForSnapshot = ce.xmlContent;
         deviceInfoForSnapshot = {

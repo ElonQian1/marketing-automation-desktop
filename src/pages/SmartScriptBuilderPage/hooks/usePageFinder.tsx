@@ -250,7 +250,7 @@ export function usePageFinder(deps: UsePageFinderDeps) {
         form.setFieldValue("bounds", rectToBoundsString(sb));
       }
 
-      const snap = buildXmlSnapshotFromContext({
+      const snap = await buildXmlSnapshotFromContext({
         currentXmlContent,
         currentDeviceInfo,
         currentPageInfo,
@@ -618,7 +618,7 @@ export function usePageFinder(deps: UsePageFinderDeps) {
     }
   };
 
-  const onApplyCriteria = (criteria: any) => {
+  const onApplyCriteria = async (criteria: any) => {
     console.log('🎯 [usePageFinder] onApplyCriteria 被调用，criteria:', criteria);
     try {
       const matchCriteria: UIMatchCriteria = {
@@ -753,7 +753,7 @@ export function usePageFinder(deps: UsePageFinderDeps) {
           form.setFieldValue("elementLocator", builtLocator);
         }
 
-        const snap = buildXmlSnapshotFromContext({
+        const snap = await buildXmlSnapshotFromContext({
           currentXmlContent,
           currentDeviceInfo,
           currentPageInfo,

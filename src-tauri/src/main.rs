@@ -337,6 +337,13 @@ fn main() {
             get_xml_file_absolute_path,  // 获取XML文件绝对路径
             delete_xml_cache_artifacts,  // 删除XML及关联截图
             parse_cached_xml_to_elements, // 解析缓存XML为UI元素
+            // 分析缓存管理功能 - 新增
+            register_snapshot_cmd,         // 注册XML快照
+            get_subtree_metrics_cmd,       // 获取子树分析指标
+            try_get_subtree_metrics_cmd,   // 尝试从缓存获取指标
+            batch_get_subtree_metrics_cmd, // 批量获取指标
+            cleanup_cache_cmd,             // 清理过期缓存
+            get_cache_stats_cmd,           // 获取缓存统计
             // 设备镜像（scrcpy）
             start_device_mirror,
             stop_device_mirror,

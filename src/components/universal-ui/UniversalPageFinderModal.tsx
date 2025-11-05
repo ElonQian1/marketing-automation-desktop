@@ -112,6 +112,7 @@ const UniversalPageFinderModal: React.FC<UniversalPageFinderModalProps> = ({
     setXmlContent,
     xmlVersion, // 🆕 获取 XML 版本号
     currentXmlCacheId, // 🔥 修复：导出当前 XML 缓存 ID
+    currentSnapshotId, // 🆕 获取分析缓存快照ID
     elements,
     setElements,
     uiElements,
@@ -468,6 +469,7 @@ const UniversalPageFinderModal: React.FC<UniversalPageFinderModalProps> = ({
       <SelectionPopoverContainer 
         selectionManager={selectionManager} 
         xmlContent={xmlContent} // 🆕 传递XML内容给元素发现功能
+        snapshotId={currentSnapshotId} // 🆕 传递分析缓存快照ID
         enableIntelligentAnalysis={true} // 🧠 启用智能分析功能
         stepId={`page-finder-${Date.now()}`} // 生成步骤ID
         // 🆕 快速创建步骤卡片回调 - 连接到智能分析工作流

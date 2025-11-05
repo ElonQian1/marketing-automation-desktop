@@ -27,7 +27,7 @@ export async function handleLoadFromStepXmlCache(
 
   try {
     const xmlCacheManager = XmlCacheManager.getInstance();
-    const cacheEntry = xmlCacheManager.getCachedXml(xmlCacheId);
+    const cacheEntry = await xmlCacheManager.getCachedXml(xmlCacheId);
     if (!cacheEntry) {
       console.warn('⚠️ 未找到XML缓存条目:', xmlCacheId);
       return false;

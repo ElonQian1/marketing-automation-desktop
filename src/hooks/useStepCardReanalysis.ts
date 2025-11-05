@@ -83,7 +83,7 @@ export function useStepCardReanalysis(options: UseStepCardReanalysisOptions) {
   /**
    * 从步骤卡片重新构建元素选择上下文
    */
-  const reconstructElementContext = useCallback((step: ExtendedSmartScriptStep): ElementSelectionContext | null => {
+  const reconstructElementContext = useCallback(async (step: ExtendedSmartScriptStep): Promise<ElementSelectionContext | null> => {
     try {
       const xmlSnapshot = step.parameters?.xmlSnapshot as {
         xmlHash?: string;
@@ -101,7 +101,7 @@ export function useStepCardReanalysis(options: UseStepCardReanalysisOptions) {
       
       // 1) 优先通过hash获取（最稳定）
       if (xmlSnapshot.xmlHash) {
-        const entryByHash = xmlCacheManager.getByHash(xmlSnapshot.xmlHash);
+        const entryByHash = await xmlCacheManager.getByHash(xmlSnapshot.xmlHash);
         if (entryByHash) {
           console.log('✅ [Reanalyze] 通过xmlHash命中缓存:', xmlSnapshot.xmlHash.substring(0, 16) + '...');
           xmlContent = entryByHash.xmlContent;
@@ -113,7 +113,7 @@ export function useStepCardReanalysis(options: UseStepCardReanalysisOptions) {
         
       // 2) 其次通过cacheId获取
       if (!xmlContent && xmlSnapshot.xmlCacheId) {
-        const entryById = xmlCacheManager.getCachedXml(xmlSnapshot.xmlCacheId);
+        const entryById = await xmlCacheManager.getCachedXml(xmlSnapshot.xmlCacheId);
         if (entryById) {
           console.log('✅ [Reanalyze] 通过xmlCacheId命中缓存:', xmlSnapshot.xmlCacheId);
           xmlContent = entryById.xmlContent;
@@ -232,7 +232,7 @@ export function useStepCardReanalysis(options: UseStepCardReanalysisOptions) {
     // 重新构建元素上下文
     let context;
     try {
-      context = reconstructElementContext(step);
+      context = await reconstructElementContext(step);
     } catch (error) {
       if (error instanceof Error && error.message === 'NO_XML_SNAPSHOT') {
         // 显示缺少快照的兜底对话框

@@ -17,6 +17,7 @@ import toDisplayableImageSrc from "../../../../utils/toDisplayableImageSrc";
 import { loadDataUrlWithCache as loadImageDataUrl } from "../../../xml-cache/utils/imageCache";
 import { generateXmlHash } from "../../../../utils/encoding/safeBase64";
 import { XmlCacheManager } from "../../../../services/xml-cache-manager"; // 🔥 修复：导入 XML 缓存管理器
+import { registerSnapshot } from "../../../../api/analysis-cache"; // 🆕 导入分析缓存API
 import type {
   XmlSnapshot,
   VisualUIElement,
@@ -50,6 +51,7 @@ export interface UsePageFinderModalReturn {
   xmlContent: string;
   setXmlContent: (content: string) => void;
   currentXmlCacheId: string;
+  currentSnapshotId: string; // 🆕 当前分析缓存快照ID
   xmlVersion: number; // 🆕 XML 版本号
   viewMode: ViewMode;
   uiElements: UIElement[];
@@ -102,6 +104,7 @@ export const usePageFinderModal = (props: UsePageFinderModalProps): UsePageFinde
   const [loading, setLoading] = useState(false);
   const [currentXmlContent, setCurrentXmlContent] = useState<string>("");
   const [currentXmlCacheId, setCurrentXmlCacheId] = useState<string>("");
+  const [currentSnapshotId, setCurrentSnapshotId] = useState<string>(""); // 🆕 当前分析缓存快照ID
   const [xmlVersion, setXmlVersion] = useState<number>(0); // 🆕 XML 版本号，每次更新递增
   const [viewMode, setViewMode] = useState<ViewMode>(initialViewMode);
   const [uiElements, setUIElements] = useState<UIElement[]>([]);
@@ -159,6 +162,15 @@ export const usePageFinderModal = (props: UsePageFinderModalProps): UsePageFinde
       setCurrentXmlContent(xmlContent);
       setXmlVersion(prev => prev + 1); // 🆕 递增 XML 版本号
       console.log('🔄 [usePageFinderModal] 加载XML内容，版本号递增');
+      
+      // 🆕 注册XML到分析缓存系统
+      try {
+        const snapshotId = await registerSnapshot(xmlContent);
+        setCurrentSnapshotId(snapshotId);
+        console.log('✅ [usePageFinderModal] 分析缓存注册成功:', snapshotId);
+      } catch (error) {
+        console.warn('⚠️ [usePageFinderModal] 分析缓存注册失败，将继续使用传统方式:', error);
+      }
       
       // 当从缓存或外部加载 XML 时，优先通过后端读文件为 data:URL（避免 asset.localhost 拒绝），失败再尝试 convertFileSrc
       if (opts?.screenshotAbsolutePath) {
@@ -448,6 +460,7 @@ export const usePageFinderModal = (props: UsePageFinderModalProps): UsePageFinde
     xmlContent: currentXmlContent,
     setXmlContent: setCurrentXmlContent,
     currentXmlCacheId,
+    currentSnapshotId, // 🆕 导出分析缓存快照ID
     xmlVersion, // 🆕 导出 XML 版本号
     viewMode,
     uiElements,

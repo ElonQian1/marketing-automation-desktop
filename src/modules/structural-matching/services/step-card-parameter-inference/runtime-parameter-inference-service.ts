@@ -11,6 +11,7 @@ import {
 } from './types';
 import { XmlSnapshotAnalyzer } from './xml-snapshot-analyzer';
 import { StepCardInferenceService } from './step-card-inference-service';
+import type { StepCard } from '../../../../store/stepcards';
 
 /**
  * 运行时参数推理服务
@@ -193,6 +194,79 @@ export class RuntimeParameterInferenceService {
       size: this.planCache.size,
       keys: Array.from(this.planCache.keys())
     };
+  }
+
+  /**
+   * 检查步骤卡片是否需要参数推理
+   */
+  needsInference(stepCard: StepCard): boolean {
+    // 检查是否已有结构匹配计划
+    if (stepCard.structuralMatchPlan) {
+      return false;
+    }
+
+    // 检查是否有XML快照
+    if (!stepCard.xmlSnapshot) {
+      return false;
+    }
+
+    // 检查步骤类型是否支持推理
+    const supportedActionTypes = ['click', 'input'];
+    return stepCard.actionType ? supportedActionTypes.includes(stepCard.actionType.type) : false;
+  }
+
+  /**
+   * 为步骤卡片推理参数
+   */
+  async inferParametersForStepCard(stepCard: StepCard): Promise<RuntimeInferenceResult> {
+    try {
+      console.log('🎯 [RuntimeInference] 开始推理步骤卡片参数', stepCard.id);
+
+      // 检查必要数据
+      if (!stepCard.xmlSnapshot) {
+        return {
+          status: 'failed',
+          error: 'XML快照数据缺失'
+        };
+      }
+
+      const xpath = stepCard.elementContext?.xpath;
+      if (!xpath) {
+        return {
+          status: 'failed', 
+          error: '步骤XPath缺失'
+        };
+      }
+
+      // 调用现有的推理方法
+      const result = await this.inferFromStepCard({
+        id: stepCard.id,
+        staticXPath: xpath,
+        xmlSnapshot: typeof stepCard.xmlSnapshot === 'string' ? 
+          stepCard.xmlSnapshot : 
+          stepCard.xmlSnapshot.xmlContent || JSON.stringify(stepCard.xmlSnapshot),
+        existingPlan: stepCard.structuralMatchPlan
+      });
+
+      if (result.success) {
+        return {
+          status: 'completed',
+          plan: result.plan,
+          stats: result.stats
+        };
+      } else {
+        return {
+          status: 'failed',
+          error: result.error
+        };
+      }
+    } catch (error) {
+      console.error('❌ [RuntimeInference] 推理失败:', error);
+      return {
+        status: 'failed',
+        error: error instanceof Error ? error.message : '未知错误'
+      };
+    }
   }
 
   /**
@@ -403,4 +477,22 @@ export class RuntimeParameterInferenceService {
       default: return 0.7;
     }
   }
+}
+
+// 默认实例
+export const defaultRuntimeInferenceService = new RuntimeParameterInferenceService();
+
+// 运行时推理状态枚举
+export type RuntimeInferenceStatus = 'pending' | 'completed' | 'failed' | 'not_needed' | 'disabled';
+
+// 运行时推理结果类型
+export interface RuntimeInferenceResult {
+  status: RuntimeInferenceStatus;
+  plan?: StructuralMatchPlan;
+  error?: string;
+  stats?: {
+    analysisTimeMs: number;
+    elementsAnalyzed: number;
+    featuresExtracted: number;
+  };
 }
