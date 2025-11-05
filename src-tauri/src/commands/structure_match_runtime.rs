@@ -161,10 +161,44 @@ fn convert_config_dto(dto: SmConfigDTO) -> Result<SmConfig, String> {
         _ => return Err(format!("Invalid mode: {}", dto.mode)),
     };
     
-    // 解析骨架规则（简化版：使用默认值）
-    let skeleton_rules = SkeletonRules {
-        require_image_above_text: true,
-        allow_depth_flex: 1,
+    // 🚀 关键修复：解析前端传来的skeleton_rules
+    let skeleton_rules = if let Some(skeleton_rules_str) = &dto.skeleton_rules {
+        tracing::info!("🔧 [SmConfig] 解析前端skeleton_rules: {}", skeleton_rules_str);
+        
+        // 尝试解析JSON格式的skeleton规则
+        match serde_json::from_str::<serde_json::Value>(skeleton_rules_str) {
+            Ok(skeleton_json) => {
+                if let Some(skeleton_array) = skeleton_json.as_array() {
+                    tracing::info!("✅ [SmConfig] 成功解析到 {} 个skeleton规则", skeleton_array.len());
+                    
+                    // 📝 TODO: 这里需要根据实际的skeleton结构来设置规则
+                    // 当前暂用默认值，但会在后续迭代中完善
+                    SkeletonRules {
+                        require_image_above_text: false, // 放宽限制
+                        allow_depth_flex: 2, // 增加深度弹性
+                    }
+                } else {
+                    tracing::warn!("⚠️ [SmConfig] skeleton_rules不是数组格式，使用默认规则");
+                    SkeletonRules {
+                        require_image_above_text: false,
+                        allow_depth_flex: 1,
+                    }
+                }
+            }
+            Err(e) => {
+                tracing::warn!("⚠️ [SmConfig] 解析skeleton_rules失败: {}, 使用默认规则", e);
+                SkeletonRules {
+                    require_image_above_text: false,
+                    allow_depth_flex: 1,
+                }
+            }
+        }
+    } else {
+        tracing::info!("🔧 [SmConfig] 无skeleton_rules，使用默认配置");
+        SkeletonRules {
+            require_image_above_text: true,
+            allow_depth_flex: 1,
+        }
     };
     
     // 解析字段规则（简化版：暂不支持）

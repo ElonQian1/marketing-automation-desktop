@@ -121,8 +121,8 @@ pub async fn optimize_steps_with_intelligent_analysis<'a>(
         .first()
         .and_then(|step| step.inline.as_ref());
     
+    // 🔧 构建包含stepId的完整参数对象，以便后续ID提取
     let original_params = if let Some(inline) = original_inline_step {
-        // 🔧 构建包含stepId的完整参数对象，以便后续ID提取
         let mut full_params = inline.params.clone();
         if let serde_json::Value::Object(ref mut obj) = full_params {
             obj.insert("stepId".to_string(), serde_json::json!(inline.step_id));
@@ -155,7 +155,14 @@ pub async fn optimize_steps_with_intelligent_analysis<'a>(
         if original_params.is_null() { "null (无原始数据)" } 
         else { "包含original_data" });
         
-    // 调用智能策略分析进行执行优化
+    // 🔍 【调试】确认传递给analysis的参数包含stepId
+    if let Some(step_id) = original_params.get("stepId") {
+        tracing::info!("✅ [预处理传参] 传递stepId: {}", step_id);
+    } else {
+        tracing::error!("❌ [预处理传参] original_params缺少stepId！");
+    }
+    
+    // 🐛 FIX: 现在original_params已经包含stepId，可以正确传递
     match perform_intelligent_strategy_analysis_from_raw(device_id, &original_params, &ui_xml, app).await {
         Ok(intelligent_steps) => {
             if !intelligent_steps.is_empty() {

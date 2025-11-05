@@ -84,11 +84,9 @@ export interface StepExecutionRequest {
     };
   };
   // 🔥 【结构匹配Runtime系统】结构签名参数
-  structural_signatures?: {
-    anchor_signature?: string;
-    target_relative_signature?: string;
-    container_fingerprint?: string;
-  };
+  structural_signatures?: unknown; // 允许后端定义的任意结构（由后端消费）
+  // 🏗️ 新增：匹配策略（用于区分是否启用结构匹配）
+  matchingStrategy?: 'structural' | 'intelligent' | string;
 }
 
 // 统一响应接口
@@ -532,8 +530,8 @@ export class StepExecutionGateway {
       });
 
       // 🔥 NEW: 尝试从后端Store读取用户保存的配置
-      let savedBatchConfig = null;
-      let savedStructuralSignatures = null;
+  let savedBatchConfig = null;
+  let savedStructuralSignatures: unknown = null;
       try {
         const stepStrategy = await invoke('get_step_strategy', { 
           stepId: request.stepId 
@@ -559,15 +557,17 @@ export class StepExecutionGateway {
         console.warn('⚠️ [StepExecGateway] 读取Store配置失败，使用默认值:', e);
       }
 
-      // 🎯 修复：构建正确的 ChainSpecV3::ByInline 格式（使用camelCase字段名）
+  // 🎯 修复：构建正确的 ChainSpecV3::ByInline 格式（使用camelCase字段名）
       const spec = {
         chainId: `step_execution_${request.stepId}`,  // ✅ camelCase
         orderedSteps: [{  // ✅ camelCase
           ref: null,  // ByInline模式不使用ref
           inline: {
-            stepId: `step_${request.stepId}`,  // ✅ InlineStep使用camelCase (serde会转换)
+            stepId: request.stepId,  // 🔧 修复：使用原始stepId，不添加前缀（避免Store查找不匹配）
             action: 'smart_selection',  // ✅ SingleStepAction的tag字段 (snake_case)
             params: {
+              // 🏷️ 明确传递匹配策略给后端，用于严格模式判定（避免因缺失而误触发回退）
+              ...(request.matchingStrategy ? { matchingStrategy: request.matchingStrategy } : {}),
               // 🔥 FIX: 传递完整的智能分析数据（XPath + original_data）
               smartSelection: {  // camelCase (params内部使用camelCase)
                 mode: userSelectionMode,
@@ -590,8 +590,10 @@ export class StepExecutionGateway {
               targetText: targetText,  // 目标文本提示
               target_content_desc: request.contentDesc || '',  // 目标描述提示
               // 🔥 CRITICAL: 传递结构签名（结构匹配Runtime系统的核心参数）
-              // 优先级：1) Store中保存的配置 2) request中直接传递的 3) undefined（智能自动链模式）
-              structural_signatures: savedStructuralSignatures || request.structural_signatures || undefined,
+              // 仅当用户显式选择结构匹配时才启用；优先级：显式传入 > Store
+              structural_signatures: (request.matchingStrategy === 'structural')
+                ? (request.structural_signatures || savedStructuralSignatures || undefined)
+                : undefined,
               // 🔥 NEW: 传递 original_data（失败恢复关键数据）
               original_data: request.xmlSnapshot ? {
                 original_xml: request.xmlSnapshot.xmlContent || '',

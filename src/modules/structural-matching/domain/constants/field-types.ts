@@ -23,6 +23,36 @@ export enum FieldType {
   
   /** Bounds (边界，暂不使用) */
   BOUNDS = 'bounds',
+  
+  /** Clickable (可点击) */
+  CLICKABLE = 'clickable',
+  
+  /** Enabled (启用状态) */
+  ENABLED = 'enabled',
+  
+  /** Focusable (可获得焦点) */
+  FOCUSABLE = 'focusable',
+  
+  /** Focused (已获得焦点) */
+  FOCUSED = 'focused',
+  
+  /** Scrollable (可滚动) */
+  SCROLLABLE = 'scrollable',
+  
+  /** Long-Clickable (长按可点击) */
+  LONG_CLICKABLE = 'long_clickable',
+  
+  /** Checkable (可检查) */
+  CHECKABLE = 'checkable',
+  
+  /** Checked (已检查) */
+  CHECKED = 'checked',
+  
+  /** Selected (选中状态) */
+  SELECTED = 'selected',
+  
+  /** Password (密码字段) */
+  PASSWORD = 'password',
 }
 
 /**
@@ -55,6 +85,16 @@ export const FIELD_DISPLAY_NAMES: Record<FieldType, string> = {
   [FieldType.CLASS_NAME]: 'Class Name',
   [FieldType.CHILDREN_STRUCTURE]: '子元素结构',
   [FieldType.BOUNDS]: 'Bounds',
+  [FieldType.CLICKABLE]: 'Clickable',
+  [FieldType.ENABLED]: 'Enabled',
+  [FieldType.FOCUSABLE]: 'Focusable',
+  [FieldType.FOCUSED]: 'Focused',
+  [FieldType.SCROLLABLE]: 'Scrollable',
+  [FieldType.LONG_CLICKABLE]: 'Long-Clickable',
+  [FieldType.CHECKABLE]: 'Checkable',
+  [FieldType.CHECKED]: 'Checked',
+  [FieldType.SELECTED]: 'Selected',
+  [FieldType.PASSWORD]: 'Password',
 };
 
 /**
@@ -72,6 +112,16 @@ export const FIELD_DESCRIPTIONS: Record<FieldType, string> = {
   [FieldType.CLASS_NAME]: 'Android控件类名',
   [FieldType.CHILDREN_STRUCTURE]: '子元素的结构组成',
   [FieldType.BOUNDS]: '元素在屏幕上的位置和大小',
+  [FieldType.CLICKABLE]: '元素是否可点击',
+  [FieldType.ENABLED]: '元素是否启用',
+  [FieldType.FOCUSABLE]: '元素是否可获得焦点',
+  [FieldType.FOCUSED]: '元素是否已获得焦点',
+  [FieldType.SCROLLABLE]: '元素是否可滚动',
+  [FieldType.LONG_CLICKABLE]: '元素是否支持长按',
+  [FieldType.CHECKABLE]: '元素是否可检查',
+  [FieldType.CHECKED]: '元素是否已检查',
+  [FieldType.SELECTED]: '元素是否已选中',
+  [FieldType.PASSWORD]: '元素是否为密码字段',
 };
 
 /**

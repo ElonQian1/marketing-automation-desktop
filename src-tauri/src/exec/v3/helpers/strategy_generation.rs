@@ -166,7 +166,10 @@ pub fn convert_strategies_to_v3_steps(
             obj.insert("confidence".to_string(), serde_json::json!(strategy.confidence));
             obj.insert("strategy_type".to_string(), serde_json::json!(strategy.strategy));
             
-            // 🔧 额外确保xpath信息传递
+            // � 关键修复：保持originalParams传递，确保structural_signatures能被检测
+            obj.insert("originalParams".to_string(), original_params.clone());
+            
+            // �🔧 额外确保xpath信息传递
             if let Some(element_info) = &strategy.element_info.resource_id {
                 if !obj.contains_key("xpath") {
                     let xpath = format!("//*[@resource-id='{}']", element_info);
@@ -319,14 +322,16 @@ pub fn convert_analysis_result_to_v3_steps_with_config(
                     smart_selection.get("mode"));
             }
             
-            // 2. 保留 originalParams（完整的原始参数）
-            if let Some(original_params) = config.get("originalParams") {
-                params["originalParams"] = original_params.clone();
-                tracing::info!("✅ [原始参数保留] 步骤 {} 已继承 originalParams", index + 1);
-            } else if config.get("original_data").is_some() {
-                // 兜底：如果没有 originalParams，但有 original_data，也保存一份
-                params["originalParams"] = config.clone();
-                tracing::info!("✅ [原始参数保留] 步骤 {} 已使用 config 作为 originalParams", index + 1);
+            // 2. 🔥 关键修复：直接将 config 作为 originalParams（因为 config 本身就是原始参数）
+            params["originalParams"] = config.clone();
+            tracing::info!("✅ [原始参数保留] 步骤 {} 已继承完整的原始参数作为 originalParams", index + 1);
+            
+            // 3. 特别确保 structural_signatures 被正确传递
+            if let Some(structural_sigs) = config.get("structural_signatures") {
+                tracing::info!("✅ [结构签名确认] 步骤 {} 包含 structural_signatures: {:?}", 
+                    index + 1,
+                    structural_sigs.as_object().map(|obj| obj.keys().collect::<Vec<_>>())
+                );
             }
         }
         

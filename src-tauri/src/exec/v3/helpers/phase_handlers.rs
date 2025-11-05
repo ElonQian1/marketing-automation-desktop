@@ -123,6 +123,23 @@ pub async fn handle_intelligent_fallback(
     validation: &ValidationSettings,
     threshold: f32,
 ) -> Result<(Option<String>, Option<(i32, i32)>, bool), String> {
+    // 🚫 结构模式兜底：若本次链存在显式结构模式，则禁用智能回退
+    if steps_have_explicit_structural_mode(ordered_steps) {
+        tracing::warn!("🛑 [结构模式] 显式结构模式下禁用智能回退，直接返回失败");
+
+        emit_progress(
+            app,
+            Some(analysis_id.to_string()),
+            None,
+            Phase::Finished,
+            Some(0.0),
+            Some("结构模式严格失败：禁用智能回退".to_string()),
+            None,
+        )?;
+
+        return Ok((None, None, false));
+    }
+
     tracing::warn!("⚠️ 传统步骤执行失败 (没有步骤满足执行条件)，触发智能分析作为后备方案");
     
     emit_progress(
@@ -249,4 +266,34 @@ fn extract_step_id(step: &StepRefOrInline, idx: usize) -> String {
     } else {
         format!("step_{}", idx)
     }
+}
+
+/// 辅助函数：检测是否显式结构模式（matchingStrategy === 'structural'）
+/// 检查 inline.params 顶层以及 originalParams 内的 matchingStrategy
+fn steps_have_explicit_structural_mode(steps: &[StepRefOrInline]) -> bool {
+    for step in steps {
+        if let Some(inline) = &step.inline {
+            // 顶层 matchingStrategy
+            let top = inline
+                .params
+                .get("matchingStrategy")
+                .and_then(|v| v.as_str())
+                .map(|s| s.eq_ignore_ascii_case("structural"))
+                .unwrap_or(false);
+
+            // originalParams 内 matchingStrategy
+            let nested = inline
+                .params
+                .get("originalParams")
+                .and_then(|p| p.get("matchingStrategy"))
+                .and_then(|v| v.as_str())
+                .map(|s| s.eq_ignore_ascii_case("structural"))
+                .unwrap_or(false);
+
+            if top || nested {
+                return true;
+            }
+        }
+    }
+    false
 }

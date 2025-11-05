@@ -1488,7 +1488,11 @@ const CompactStrategyMenu: React.FC<CompactStrategyMenuProps> = ({
           hasElement: !!elementToUse,
           elementKeys: elementToUse ? Object.keys(elementToUse) : [],
           elementId: elementToUse?.id,
-          elementClassName: elementToUse?.class_name,
+          elementClassName: elementToUse?.class_name || elementToUse?.className,
+          elementResourceId: elementToUse?.resource_id || elementToUse?.resourceId,
+          elementContentDesc: elementToUse?.content_desc || elementToUse?.contentDesc,
+          elementText: elementToUse?.text || elementToUse?.elementText,
+          elementBounds: elementToUse?.bounds,
           hasChildren: elementToUse?.children ? elementToUse.children.length : 'undefined',
           childrenPreview: elementToUse?.children ? elementToUse.children.slice(0, 2).map((c: { class_name?: string; text?: string }) => c.class_name || c.text) : [],
           fullElement: elementToUse
@@ -1525,6 +1529,8 @@ const CompactStrategyMenu: React.FC<CompactStrategyMenuProps> = ({
           if (onUpdateStepParameters && stepId && structuralSignatures) {
             onUpdateStepParameters(stepId, {
               structural_signatures: structuralSignatures,
+              // 标记匹配策略为结构匹配，供执行网关进行模式分流
+              matchingStrategy: 'structural',
               // 保留原始配置用于UI显示
               _structural_matching_ui_config: config
             } as Record<string, unknown>);

@@ -28,6 +28,13 @@ import {
   MATCH_STRATEGY_DISPLAY_NAMES,
   MATCH_STRATEGY_DESCRIPTIONS,
 } from "../../../domain/constants/match-strategies";
+import { 
+  SkeletonMatchMode, 
+  FieldMatchStrategy, 
+  BoundsMatchStrategy,
+  getDefaultSkeletonConfig,
+  getDefaultFieldStrategy 
+} from "../../../domain/skeleton-match-strategy";
 import "./element-structure-tree.css";
 import XmlCacheManager from "../../../../../services/xml-cache-manager";
 import { structuralMatchingCoordinationBus } from "../visual-preview/core";
@@ -69,6 +76,14 @@ export const ElementStructureTree: React.FC<ElementStructureTreeProps> = ({
   };
   const [expandedKeys, setExpandedKeys] = useState<string[]>([]);
   const [fullElementData, setFullElementData] = useState<Record<string, unknown> | null>(null);
+  // 全局字段显示模式：骨架模式只显示对子树结构有意义的字段
+  const [showAllFields, setShowAllFields] = useState<boolean>(false);
+  // 骨架匹配模式：Family（同类）vs Clone（精确）
+  const [skeletonMode, setSkeletonMode] = useState<SkeletonMatchMode>(SkeletonMatchMode.FAMILY);
+  // 是否忽略易变字段（数字、时间戳等）
+  const [ignoreVolatileFields, setIgnoreVolatileFields] = useState<boolean>(false);
+  // 是否启用智能配置模式（自动配置字段和策略）
+  const [smartModeEnabled, setSmartModeEnabled] = useState<boolean>(false);
   // 叠加层 → 树 的联动状态（命令式处理高亮与选中）
   const listHolderRef = useRef<HTMLDivElement | null>(null);
   const highlightedDomRef = useRef<HTMLElement | null>(null);
@@ -87,6 +102,48 @@ export const ElementStructureTree: React.FC<ElementStructureTreeProps> = ({
   // ID 归一化：element_123 -> element-123 （与叠加层事件对齐）
   const normalizeElementId = (id?: string | null) =>
     (id || "").replace(/_/g, "-");
+
+  // 判断字段是否有意义（非空、非默认值）
+  const isFieldMeaningful = (fieldType: FieldType, value: string): boolean => {
+    // 🎯 骨架匹配逻辑：聚焦于所点选子树的字段特征，不考虑全局常态
+    
+    // 空值过滤：空值对骨架没有贡献
+    if (!value || value === "(空)" || value === "") return false;
+    
+    switch (fieldType) {
+      // 文本类字段：非空即参与骨架匹配（内容是骨架的一部分）
+      case FieldType.TEXT:
+      case FieldType.RESOURCE_ID:
+      case FieldType.CONTENT_DESC:
+        return true;
+      
+      // 结构字段：总是参与骨架匹配
+      case FieldType.CLASS_NAME:
+      case FieldType.BOUNDS:
+        return true;
+      
+      // 布尔字段：只有非默认状态才是有意义的骨架特征
+      case FieldType.ENABLED:
+        return value === "false"; // 大部分元素enabled=true，禁用状态才有意义
+      
+      case FieldType.CLICKABLE:
+      case FieldType.FOCUSABLE:
+      case FieldType.SCROLLABLE:
+      case FieldType.LONG_CLICKABLE:
+      case FieldType.CHECKABLE:
+      case FieldType.SELECTED:
+      case FieldType.CHECKED:
+      case FieldType.PASSWORD:
+        return value === "true"; // 大部分元素这些属性=false，true状态才有意义
+      
+      case FieldType.FOCUSED:
+        return value === "true"; // focused=false是默认状态，true才有意义
+      
+      // 其他字段：暂不参与骨架匹配
+      default:
+        return false;
+    }
+  };
 
   // Virtual 视窗高度配置（可通过 localStorage 调整 360~600）
   const getTreeVirtualHeight = () => {
@@ -194,6 +251,15 @@ export const ElementStructureTree: React.FC<ElementStructureTreeProps> = ({
           text: pickStr(ae, "text"),
           bounds: extractBoundsString(ae),
           clickable: getBool(ae, "clickable"),
+          enabled: getBool(ae, "enabled"),
+          focusable: getBool(ae, "focusable"),
+          focused: getBool(ae, "focused"),
+          scrollable: getBool(ae, "scrollable"),
+          long_clickable: getBool(ae, "long_clickable") || getBool(ae, "longClickable"),
+          checkable: getBool(ae, "checkable"),
+          checked: getBool(ae, "checked"),
+          selected: getBool(ae, "selected"),
+          password: getBool(ae, "password"),
           xmlCacheId: pickStr(ae, "xmlCacheId", "xml_cache_id"),
           children: getChildren(ae),
         };
@@ -275,6 +341,15 @@ export const ElementStructureTree: React.FC<ElementStructureTreeProps> = ({
                 class_name: el.getAttribute("class") || el.tagName,
                 bounds: el.getAttribute("bounds") || "",
                 clickable: el.getAttribute("clickable") === "true",
+                enabled: el.getAttribute("enabled") === "true",
+                focusable: el.getAttribute("focusable") === "true",
+                focused: el.getAttribute("focused") === "true",
+                scrollable: el.getAttribute("scrollable") === "true",
+                long_clickable: el.getAttribute("long-clickable") === "true",
+                checkable: el.getAttribute("checkable") === "true",
+                checked: el.getAttribute("checked") === "true",
+                selected: el.getAttribute("selected") === "true",
+                password: el.getAttribute("password") === "true",
                 resource_id: el.getAttribute("resource-id") || "",
                 element_type: (el.getAttribute("class") || "").split(".").pop() || el.tagName,
               });
@@ -554,6 +629,15 @@ export const ElementStructureTree: React.FC<ElementStructureTreeProps> = ({
         element.class_name || element.className || pickString(element, "class") || "Unknown"
       );
       const clickable = element.clickable === true;
+      const enabled = element.enabled === true;
+      const focusable = element.focusable === true;
+      const focused = element.focused === true;
+      const scrollable = element.scrollable === true;
+      const longClickable = element.long_clickable === true || element.longClickable === true;
+      const checkable = element.checkable === true;
+      const checked = element.checked === true;
+      const selected = element.selected === true;
+      const password = element.password === true;
       const bounds = String(element.bounds || "");
       const text = String(element.text || "");
       const contentDesc =
@@ -689,10 +773,104 @@ export const ElementStructureTree: React.FC<ElementStructureTreeProps> = ({
             </Space>
           </div>
 
+          {/* 字段显示模式切换 */}
+          <div style={{ 
+            margin: "8px 0", 
+            padding: "6px 8px", 
+            backgroundColor: "#f8f9fa", 
+            borderRadius: "4px",
+            border: "1px solid #e8e8e8"
+          }}>
+            <Space size="small" style={{ width: "100%", justifyContent: "space-between" }}>
+              <Text type="secondary" style={{ fontSize: 11 }}>
+                字段显示模式:
+              </Text>
+              <Space size="middle" style={{ flexWrap: "wrap" }}>
+                {/* 全局字段显示模式 */}
+                <Space size="small">
+                  <Switch
+                    size="small"
+                    checked={Object.values(elementShowAllFields).every(Boolean) && Object.keys(elementShowAllFields).length > 0}
+                    onChange={(checked) => {
+                      // 全局设置所有元素的显示模式
+                      if (element) {
+                        const allPaths = [getElementPath(element)];
+                        // TODO: 收集所有子元素路径
+                        const newState: Record<string, boolean> = {};
+                        allPaths.forEach(path => {
+                          newState[path] = checked;
+                        });
+                        setElementShowAllFields(newState);
+                      }
+                    }}
+                    checkedChildren="全部"
+                    unCheckedChildren="骨架"
+                  />
+                  <Tooltip title="全局切换：显示所有元素的全部字段 或 仅显示骨架字段">
+                    <InfoCircleOutlined style={{ fontSize: 12, color: "#999" }} />
+                  </Tooltip>
+                </Space>
+
+                {/* 骨架匹配模式 */}
+                <Space size="small">
+                  <Select
+                    size="small"
+                    value={skeletonMode}
+                    onChange={setSkeletonMode}
+                    style={{ width: 100 }}
+                    options={[
+                      { 
+                        value: SkeletonMatchMode.FAMILY, 
+                        label: "同类",
+                      },
+                      { 
+                        value: SkeletonMatchMode.CLONE, 
+                        label: "精确",
+                      }
+                    ]}
+                  />
+                  <Tooltip title={skeletonMode === SkeletonMatchMode.FAMILY ? "Family模式：找同类骨架，非空↔非空，布尔等值" : "Clone模式：精确克隆，所有字段值完全一模一样"}>
+                    <InfoCircleOutlined style={{ fontSize: 12, color: "#999" }} />
+                  </Tooltip>
+                </Space>
+
+                {/* 智能配置模式 */}
+                <Space size="small">
+                  <Switch
+                    size="small"
+                    checked={smartModeEnabled}
+                    onChange={setSmartModeEnabled}
+                    checkedChildren="智能"
+                    unCheckedChildren="手动"
+                  />
+                  <Tooltip title={smartModeEnabled ? "智能模式：自动配置有意义字段和策略，限制手动修改" : "手动模式：允许完全自定义字段配置和策略"}>
+                    <InfoCircleOutlined style={{ fontSize: 12, color: "#999" }} />
+                  </Tooltip>
+                </Space>
+
+                {/* 易变字段开关（仅在智能模式下显示） */}
+                {smartModeEnabled && (
+                  <Space size="small">
+                    <Switch
+                      size="small"
+                      checked={ignoreVolatileFields}
+                      onChange={setIgnoreVolatileFields}
+                      checkedChildren="忽略数字"
+                      unCheckedChildren="包含数字"
+                    />
+                    <Tooltip title="忽略易变字段（数字、时间戳、计数）避免因动态内容导致0命中">
+                      <InfoCircleOutlined style={{ fontSize: 12, color: "#999" }} />
+                    </Tooltip>
+                  </Space>
+                )}
+              </Space>
+            </Space>
+          </div>
+
           {/* 节点属性 */}
           <div className="node-properties">
             {/* Resource-ID */}
-            {buildFieldRow(
+            {buildConditionalFieldRow(
               elementPath,
               "resource_id",
               "Resource-ID",
@@ -701,7 +879,7 @@ export const ElementStructureTree: React.FC<ElementStructureTreeProps> = ({
             )}
 
             {/* Content-Desc */}
-            {buildFieldRow(
+            {buildConditionalFieldRow(
               elementPath,
               "content_desc",
               "Content-Desc",
@@ -710,7 +888,7 @@ export const ElementStructureTree: React.FC<ElementStructureTreeProps> = ({
             )}
 
             {/* Text */}
-            {buildFieldRow(
+            {buildConditionalFieldRow(
               elementPath,
               "text",
               "Text",
@@ -719,7 +897,7 @@ export const ElementStructureTree: React.FC<ElementStructureTreeProps> = ({
             )}
 
             {/* Bounds */}
-            {buildFieldRow(
+            {buildConditionalFieldRow(
               elementPath,
               "bounds",
               "Bounds",
@@ -729,16 +907,173 @@ export const ElementStructureTree: React.FC<ElementStructureTreeProps> = ({
             )}
 
             {/* Class Name */}
-            {buildFieldRow(
+            {buildConditionalFieldRow(
               elementPath,
               "class_name",
               "Class Name",
               className,
               FieldType.CLASS_NAME
             )}
+
+            {/* Clickable */}
+            {buildConditionalFieldRow(
+              elementPath,
+              "clickable",
+              "Clickable",
+              clickable ? "true" : "false",
+              FieldType.CLICKABLE
+            )}
+
+            {/* Enabled */}
+            {buildConditionalFieldRow(
+              elementPath,
+              "enabled",
+              "Enabled",
+              enabled ? "true" : "false",
+              FieldType.ENABLED
+            )}
+
+            {/* Focusable */}
+            {buildConditionalFieldRow(
+              elementPath,
+              "focusable",
+              "Focusable",
+              focusable ? "true" : "false",
+              FieldType.FOCUSABLE
+            )}
+
+            {/* Focused */}
+            {buildConditionalFieldRow(
+              elementPath,
+              "focused",
+              "Focused",
+              focused ? "true" : "false",
+              FieldType.FOCUSED
+            )}
+
+            {/* Scrollable */}
+            {buildConditionalFieldRow(
+              elementPath,
+              "scrollable",
+              "Scrollable",
+              scrollable ? "true" : "false",
+              FieldType.SCROLLABLE
+            )}
+
+            {/* Long-Clickable */}
+            {buildConditionalFieldRow(
+              elementPath,
+              "long_clickable",
+              "Long-Clickable",
+              longClickable ? "true" : "false",
+              FieldType.LONG_CLICKABLE
+            )}
+
+            {/* Checkable */}
+            {buildConditionalFieldRow(
+              elementPath,
+              "checkable",
+              "Checkable",
+              checkable ? "true" : "false",
+              FieldType.CHECKABLE
+            )}
+
+            {/* Checked */}
+            {buildConditionalFieldRow(
+              elementPath,
+              "checked",
+              "Checked",
+              checked ? "true" : "false",
+              FieldType.CHECKED
+            )}
+
+            {/* Selected */}
+            {buildConditionalFieldRow(
+              elementPath,
+              "selected",
+              "Selected",
+              selected ? "true" : "false",
+              FieldType.SELECTED
+            )}
+
+            {/* Password */}
+            {buildConditionalFieldRow(
+              elementPath,
+              "password",
+              "Password",
+              password ? "true" : "false",
+              FieldType.PASSWORD
+            )}
           </div>
         </div>
       );
+    };
+
+    // 🎯 骨架匹配配置：根据模式和字段类型自动配置策略
+    const getSmartFieldConfig = (elementPath: string, fieldType: FieldType, value: string) => {
+      const baseConfig = getFieldConfig(elementPath, fieldType);
+      const isMeaningful = isFieldMeaningful(fieldType, value);
+      
+      // 获取字段类型对应的策略配置
+      const fieldTypeStr = Object.keys(FieldType).find(key => FieldType[key as keyof typeof FieldType] === fieldType) || 'OTHER';
+      const strategyConfig = getDefaultFieldStrategy(fieldTypeStr, skeletonMode, ignoreVolatileFields);
+      
+      // 🎯 核心策略：有意义的字段自动启用
+      const smartEnabled = isMeaningful && strategyConfig.enabled;
+      
+      // 🔧 根据骨架匹配模式和字段策略确定匹配策略
+      let smartStrategy = baseConfig.strategy;
+      
+      if (isMeaningful) {
+        // 根据字段策略映射到MatchStrategy
+        switch (strategyConfig.strategy) {
+          case FieldMatchStrategy.EQUALS:
+            smartStrategy = MatchStrategy.EXACT_MATCH;
+            break;
+          case FieldMatchStrategy.EXISTS:
+            if ([FieldType.TEXT, FieldType.CONTENT_DESC].includes(fieldType)) {
+              smartStrategy = MatchStrategy.BOTH_NON_EMPTY;
+            } else {
+              smartStrategy = MatchStrategy.CONSISTENT_EMPTINESS;
+            }
+            break;
+          case FieldMatchStrategy.CONTAINS:
+            // TODO: 需要扩展MatchStrategy支持包含匹配
+            smartStrategy = MatchStrategy.BOTH_NON_EMPTY;
+            break;
+          case FieldMatchStrategy.PATTERN:
+            // TODO: 需要扩展MatchStrategy支持模式匹配
+            smartStrategy = MatchStrategy.BOTH_NON_EMPTY;
+            break;
+          case FieldMatchStrategy.IGNORE:
+            smartStrategy = MatchStrategy.CONSISTENT_EMPTINESS;
+            break;
+          default:
+            smartStrategy = MatchStrategy.CONSISTENT_EMPTINESS;
+        }
+      }
+      
+      return {
+        ...baseConfig,
+        enabled: smartEnabled,
+        strategy: smartStrategy,
+      };
+    };
+
+    // 条件渲染字段行：根据显示模式和字段意义决定是否显示
+    const buildConditionalFieldRow = (
+      elementPath: string,
+      key: string,
+      label: string,
+      value: string,
+      fieldType: FieldType,
+      disabled = false
+    ) => {
+      // 如果显示所有字段，或者字段有意义，则渲染
+      const shouldShow = showAllFields || isFieldMeaningful(fieldType, value);
+      if (!shouldShow) return null;
+
+      return buildFieldRow(elementPath, key, label, value, fieldType, disabled);
     };
 
     const buildFieldRow = (
@@ -750,8 +1085,19 @@ export const ElementStructureTree: React.FC<ElementStructureTreeProps> = ({
       disabled = false
     ) => {
       const isEmpty = !value || value === "(空)";
-      const config = getFieldConfig(elementPath, fieldType);
-      const isEnabled = config.enabled && !disabled;
+      
+      // 🎯 配置选择：智能模式 vs 手动模式
+      const baseConfig = getFieldConfig(elementPath, fieldType);
+      const smartConfig = smartModeEnabled 
+        ? getSmartFieldConfig(elementPath, fieldType, value)
+        : baseConfig;
+      
+      // 判断是否是智能配置的字段
+      const isSkeletonEnabled = smartModeEnabled && smartConfig.enabled && !baseConfig.enabled;
+      const isForceExactMatch = smartModeEnabled && smartConfig.strategy !== baseConfig.strategy;
+      const isMeaningful = isFieldMeaningful(fieldType, value);
+      
+      const isEnabled = smartConfig.enabled && !disabled;
 
       return (
         <div key={key} className="field-row">
@@ -759,10 +1105,19 @@ export const ElementStructureTree: React.FC<ElementStructureTreeProps> = ({
             {/* 启用开关 */}
             <Switch
               size="small"
-              checked={config.enabled}
-              disabled={disabled}
+              checked={smartConfig.enabled}
+              disabled={disabled || (smartModeEnabled && isMeaningful)} // 智能模式下，有意义字段自动启用不可关闭
               onChange={() => onToggleField(elementPath, fieldType)}
             />
+            
+            {/* 骨架字段标识（仅智能模式） */}
+            {smartModeEnabled && isSkeletonEnabled && (
+              <Tooltip title="此字段是骨架特征，已自动启用匹配">
+                <Tag color="green" style={{ margin: 0, fontSize: 9 }}>
+                  骨架字段
+                </Tag>
+              </Tooltip>
+            )}
 
             {/* 字段名 */}
             <Text
@@ -793,8 +1148,8 @@ export const ElementStructureTree: React.FC<ElementStructureTreeProps> = ({
             {!disabled && (
               <Select
                 size="small"
-                value={config.strategy || MatchStrategy.CONSISTENT_EMPTINESS}
-                disabled={!isEnabled}
+                value={smartConfig.strategy || MatchStrategy.CONSISTENT_EMPTINESS}
+                disabled={!isEnabled || (smartModeEnabled && isMeaningful && isForceExactMatch)} // 智能模式下，骨架强制策略不可修改
                 style={{ minWidth: 120 }}
                 onChange={(strategy: MatchStrategy) => {
                   if (onUpdateField) {
@@ -816,11 +1171,20 @@ export const ElementStructureTree: React.FC<ElementStructureTreeProps> = ({
                 ))}
               </Select>
             )}
+            
+            {/* 强制精确匹配标识（仅智能模式） */}
+            {smartModeEnabled && isForceExactMatch && isMeaningful && (
+              <Tooltip title="骨架字段强制使用精确匹配策略，确保子树结构一致性">
+                <Tag color="orange" style={{ margin: 0, fontSize: 9 }}>
+                  强制精确
+                </Tag>
+              </Tooltip>
+            )}
 
             {/* 配置状态 */}
             {isEnabled && (
               <Tag color="blue" style={{ margin: 0, fontSize: 10 }}>
-                权重: {config.weight.toFixed(1)}x
+                权重: {(smartConfig.weight ?? 1.0).toFixed(1)}x
               </Tag>
             )}
 
@@ -990,7 +1354,7 @@ export const ElementStructureTree: React.FC<ElementStructureTreeProps> = ({
                 </Tooltip>
                 {childrenConfig.enabled && (
                   <Tag color="blue" style={{ margin: 0, fontSize: 10 }}>
-                    权重: {childrenConfig.weight.toFixed(1)}x
+                    权重: {(childrenConfig.weight ?? 1.0).toFixed(1)}x
                   </Tag>
                 )}
               </Space>

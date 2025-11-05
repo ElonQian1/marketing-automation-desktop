@@ -52,6 +52,10 @@ pub async fn execute_intelligent_analysis_step(
         use crate::commands::intelligent_analysis::STEP_STRATEGY_STORE;
         
         if let Ok(store) = STEP_STRATEGY_STORE.lock() {
+            // 🔍 Store内容调试
+            tracing::info!("🔍 [Store调试] 当前Store中的所有keys: {:?}", store.keys().collect::<Vec<_>>());
+            tracing::info!("🔍 [Store调试] Store size: {}, 查找key: {}", store.len(), inline.step_id);
+            
             // 🎯 策略1: 尝试用当前 step_id (intelligent_step_X) 查找
             let mut found_config = store.get(&inline.step_id)
                 .map(|(strategy, _timestamp)| {
@@ -78,6 +82,43 @@ pub async fn execute_intelligent_analysis_step(
                             tracing::info!("   selection_mode={:?}, batch_config={:?}, structural_signatures={:?}", 
                                 strategy.selection_mode, strategy.batch_config, strategy.structural_signatures.is_some());
                             found_config = Some(strategy.clone());  // 🔥 返回完整的strategy
+                            break;
+                        }
+                    }
+                }
+            }
+            
+            // 🎯 策略3: 如果还没找到，尝试通过chainId推断原始stepId (step_execution_xxx -> xxx)
+            if found_config.is_none() {
+                // 从全局上下文或参数中获取chainId
+                if let Some(chain_id) = inline.params.get("chainId")
+                    .or_else(|| inline.params.get("originalParams").and_then(|p| p.get("chainId")))
+                    .and_then(|v| v.as_str()) 
+                {
+                    // 如果chainId格式为 "step_execution_xxx"，提取 "xxx" 部分
+                    if let Some(suffix) = chain_id.strip_prefix("step_execution_") {
+                        tracing::info!("🔍 [配置读取-chainId] 从chainId提取可能的stepId: {} -> {}", chain_id, suffix);
+                        if let Some((strategy, _timestamp)) = store.get(suffix) {
+                            tracing::info!("✅ [配置读取-chainId匹配] 通过chainId找到配置: {}", suffix);
+                            tracing::info!("   selection_mode={:?}, batch_config={:?}, structural_signatures={:?}", 
+                                strategy.selection_mode, strategy.batch_config, strategy.structural_signatures.is_some());
+                            found_config = Some(strategy.clone());
+                        }
+                    }
+                }
+            }
+            
+            // 🎯 策略4: 最后的尝试，遍历Store中所有非intelligent_前缀的key
+            if found_config.is_none() && inline.step_id.starts_with("intelligent_step_") {
+                tracing::info!("🔍 [配置读取-遍历] 遍历Store中的所有key寻找匹配配置");
+                for store_key in store.keys() {
+                    // 寻找非智能分析生成的stepId（原始stepId通常包含timestamp）
+                    if !store_key.starts_with("intelligent_step_") && store_key.contains("_") {
+                        if let Some((strategy, _timestamp)) = store.get(store_key) {
+                            tracing::info!("✅ [配置读取-遍历匹配] 使用第一个找到的原始配置: {}", store_key);
+                            tracing::info!("   selection_mode={:?}, batch_config={:?}, structural_signatures={:?}", 
+                                strategy.selection_mode, strategy.batch_config, strategy.structural_signatures.is_some());
+                            found_config = Some(strategy.clone());
                             break;
                         }
                     }
@@ -139,56 +180,88 @@ pub async fn execute_intelligent_analysis_step(
             }
         }
         
-        // 🔥 关键修复：合并 structural_signatures
+        // 🔥 关键修复：合并 structural_signatures（仅在显式结构模式下）
         if let Some(structural_sigs) = &strategy.structural_signatures {
-            tracing::info!("🏗️ [配置合并] 使用保存的 structural_signatures");
-            merged_params.as_object_mut().map(|obj| {
-                obj.insert("structural_signatures".to_string(), structural_sigs.clone());
-            });
+            // 检查是否需要启用结构匹配
+            let explicit_structural_mode = merged_params
+                .get("matchingStrategy")
+                .or_else(|| merged_params.get("originalParams").and_then(|op| op.get("matchingStrategy")))
+                .and_then(|v| v.as_str())
+                .map(|s| s.eq_ignore_ascii_case("structural"))
+                .unwrap_or(false);
+
+            if explicit_structural_mode {
+                tracing::info!("🏗️ [配置合并] 显式结构模式：合并保存的 structural_signatures");
+                merged_params.as_object_mut().map(|obj| {
+                    obj.insert("structural_signatures".to_string(), structural_sigs.clone());
+                });
+            } else {
+                tracing::info!("🛑 [配置合并] 非结构模式：忽略Store中的 structural_signatures（防止误用）");
+            }
         }
     }
     
-    // 🔧 修复1：优先使用原始XPath（用户静态分析时选择的精确路径）
-    let selected_xpath = merged_params.get("original_data")
-        .and_then(|od| od.get("selected_xpath"))
-        .and_then(|v| v.as_str());
-    
-    let xpath = selected_xpath.or_else(|| {
-        merged_params.get("xpath").and_then(|v| v.as_str())
-    }).ok_or_else(|| format!("智能分析步骤 {} 缺少xpath参数", inline.step_id))?;
-    
-    // 🔥 P0修复: 正确提取 targetText（支持多层嵌套）
-    let target_text = extract_target_text_from_params(&merged_params);
-    
-    let confidence = merged_params.get("confidence")
-        .and_then(|v| v.as_f64())
-        .unwrap_or(0.8);
-    
-    let strategy_type = merged_params.get("strategy_type")
+    // 🏗️ 优先检测结构匹配：仅当显式结构模式启用
+    let explicit_structural_mode = merged_params
+        .get("matchingStrategy")
+        .or_else(|| merged_params.get("originalParams").and_then(|op| op.get("matchingStrategy")))
         .and_then(|v| v.as_str())
-        .unwrap_or("智能策略");
-    
-    let xpath_source = if selected_xpath.is_some() {
-        "静态分析精确XPath"
-    } else {
-        "智能分析生成XPath"
-    };
-    
-    tracing::info!("🧠 [智能执行] 策略信息: xpath={} (来源:{}), target='{}', confidence={:.3}, strategy={}",
-        xpath, xpath_source, target_text, confidence, strategy_type);
-    
-    // 解析UI元素
-    let elements = crate::services::ui_reader_service::parse_ui_elements(ui_xml)
-        .map_err(|e| format!("解析UI XML失败: {}", e))?;
-    
-    // 🏗️ 优先检测结构匹配：如果存在structural_signatures，优先使用Runtime系统
+        .map(|s| s.eq_ignore_ascii_case("structural"))
+        .unwrap_or(false);
+
+    let inline_has_structural = merged_params
+        .get("originalParams")
+        .and_then(|op| op.get("structural_signatures"))
+        .is_some() || merged_params.get("structural_signatures").is_some();
+
     let has_structural_sigs = merged_params.get("structural_signatures").is_some()
         || merged_params.get("original_data")
             .and_then(|od| od.get("structural_signatures"))
+            .is_some()
+        || merged_params.get("originalParams")
+            .and_then(|op| op.get("structural_signatures"))
             .is_some();
+
+    let use_structural_matching = explicit_structural_mode && has_structural_sigs;
     
-    if has_structural_sigs {
-        tracing::info!("🏗️ [V3执行器] 检测到结构签名，尝试使用Runtime系统");
+    // 🔍 调试：检查结构签名详细内容
+    tracing::debug!("🔍 [结构签名检测] 
+        - merged_params.structural_signatures: {:?}
+        - merged_params.original_data.structural_signatures: {:?}  
+        - merged_params.originalParams.structural_signatures: {:?}
+        - has_structural_sigs: {}", 
+        merged_params.get("structural_signatures").is_some(),
+        merged_params.get("original_data").and_then(|od| od.get("structural_signatures")).is_some(),
+        merged_params.get("originalParams").and_then(|op| op.get("structural_signatures")).is_some(),
+        has_structural_sigs
+    );
+    
+    // 🔍 详细数据调试
+    tracing::debug!("🔍 [参数结构调试] merged_params keys: {:?}", 
+        merged_params.as_object().map(|obj| obj.keys().collect::<Vec<_>>())
+    );
+    
+    if let Some(orig_params) = merged_params.get("originalParams") {
+        tracing::debug!("🔍 [originalParams详情] 类型: {:?}, keys: {:?}", 
+            orig_params.as_object().map(|_| "Object").unwrap_or("非Object"),
+            orig_params.as_object().map(|obj| obj.keys().collect::<Vec<_>>())
+        );
+        
+        if let Some(structural_sigs) = orig_params.get("structural_signatures") {
+            tracing::debug!("🔍 [structural_signatures找到] 类型: {:?}, 内容预览: {:?}", 
+                if structural_sigs.is_object() { "Object" } else { "其他" },
+                structural_sigs.as_object().map(|obj| obj.keys().collect::<Vec<_>>())
+            );
+        } else {
+            tracing::debug!("🔍 [structural_signatures缺失] originalParams中没有structural_signatures字段");
+        }
+    } else {
+        tracing::debug!("🔍 [originalParams缺失] merged_params中没有originalParams字段");
+    }
+    
+    if use_structural_matching {
+        tracing::info!("🏗️ [V3执行器] 进入结构匹配模式（explicit_structural_mode={}, inline_has_structural={}）",
+            explicit_structural_mode, inline_has_structural);
         
         match super::sm_integration::v3_match_with_structural_matching(
             device_id,
@@ -218,16 +291,67 @@ pub async fn execute_intelligent_analysis_step(
                 return Ok(coords);
             }
             Ok(_) => {
-                tracing::warn!("⚠️ [V3执行器] 结构匹配返回空结果，fallback到传统匹配");
+                if explicit_structural_mode {
+                    // 严格结构模式：不进行智能回退
+                    tracing::warn!("⚠️ [V3执行器] 结构匹配返回空结果（严格结构模式），终止执行");
+                    return Err("结构匹配未找到任何元素（严格结构模式）".to_string());
+                } else {
+                    tracing::warn!("⚠️ [V3执行器] 结构匹配返回空结果，fallback到传统匹配");
+                }
             }
             Err(e) => {
-                tracing::warn!("⚠️ [V3执行器] 结构匹配失败: {}，fallback到传统匹配", e);
+                if explicit_structural_mode {
+                    tracing::warn!("⚠️ [V3执行器] 结构匹配失败（严格结构模式）: {}", e);
+                    return Err(format!("结构匹配失败（严格结构模式）：{}", e));
+                } else {
+                    tracing::warn!("⚠️ [V3执行器] 结构匹配失败: {}，fallback到传统匹配", e);
+                }
             }
         }
     } else {
-        tracing::debug!("📋 [V3执行器] 未检测到结构签名，使用传统匹配流程");
+        tracing::debug!("📋 [V3执行器] 非结构模式或未携带有效签名，使用传统匹配流程");
     }
     
+    // 仅在非结构匹配流程下才需要 XPath 参数
+    // 🔧 修复：避免在结构模式下提前因为缺少XPath而失败
+    let selected_xpath = merged_params
+        .get("original_data")
+        .and_then(|od| od.get("selected_xpath"))
+        .and_then(|v| v.as_str());
+
+    // 🚨 关键修复：只有在非结构匹配模式或允许回退时才要求xpath参数
+    let xpath: &str = selected_xpath
+        .or_else(|| merged_params.get("xpath").and_then(|v| v.as_str()))
+        .ok_or_else(|| format!("智能分析步骤 {} 缺少xpath参数", inline.step_id))?;
+
+    // 🔥 P0修复: 正确提取 targetText（支持多层嵌套）
+    let target_text = extract_target_text_from_params(&merged_params);
+
+    let confidence = merged_params
+        .get("confidence")
+        .and_then(|v| v.as_f64())
+        .unwrap_or(0.8);
+
+    let strategy_type = merged_params
+        .get("strategy_type")
+        .and_then(|v| v.as_str())
+        .unwrap_or("智能策略");
+
+    let xpath_source = if selected_xpath.is_some() {
+        "静态分析精确XPath"
+    } else {
+        "智能分析生成XPath"
+    };
+
+    tracing::info!(
+        "🧠 [智能执行] 进入传统匹配流程: xpath={} (来源:{}), target='{}', confidence={:.3}, strategy={}",
+        xpath, xpath_source, target_text, confidence, strategy_type
+    );
+
+    // 解析UI元素（仅传统匹配流程需要）
+    let elements = crate::services::ui_reader_service::parse_ui_elements(ui_xml)
+        .map_err(|e| format!("解析UI XML失败: {}", e))?;
+
     // � 提取 original_bounds（用于候选预过滤）
     let original_bounds = merged_params.get("original_data")
         .and_then(|od| od.get("element_bounds"))
@@ -237,8 +361,8 @@ pub async fn execute_intelligent_analysis_step(
     // 🔧 修复2：收集候选元素（传统流程）
     let candidate_elements = collect_candidate_elements(
         &elements, 
-        strategy_type, 
-        xpath, 
+    strategy_type, 
+    xpath, 
         &target_text, 
         original_bounds.as_deref(),
         &merged_params  // 🔥 传递完整参数

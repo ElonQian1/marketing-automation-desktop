@@ -531,6 +531,10 @@ export function convertSmartStepToV2Request(
     paramsKeys: Object.keys(params),
   });
 
+  // 🏗️ 结构匹配参数（来自步骤参数）
+  const structuralSignatures = params.structural_signatures as unknown | undefined;
+  const matchingStrategy = (params.matchingStrategy as string | undefined) || undefined; // 'structural' | undefined
+
   return {
     deviceId,
     mode,
@@ -557,6 +561,11 @@ export function convertSmartStepToV2Request(
     coordinateParams,
     // 🔥 【关键修复】传递智能选择配置
     smartSelection,
+    // 🏗️ 传递匹配策略与结构签名（仅当显式选择结构匹配时）
+    ...(matchingStrategy ? { matchingStrategy } : {}),
+    ...(matchingStrategy === 'structural' && structuralSignatures
+      ? { structural_signatures: structuralSignatures as unknown }
+      : {}),
   };
 }
 

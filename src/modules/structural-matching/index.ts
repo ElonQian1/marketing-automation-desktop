@@ -35,13 +35,28 @@ export * from './application/test-field-matching';
 
 // Hooks
 export * from './hooks/use-structural-matching-modal';
-export * from './hooks/use-hierarchical-matching-modal';
+// 🎯 核心协调器
+export { StructuralMatchingCoordinator } from './structural-matching-coordinator';
+
+// 🏗️ 核心类型定义
+export * from './core/structural-matching-types';
+
+// 🔧 工具模块
+export { ContainerAnchorGenerator } from './anchors/structural-matching-container-anchor';
+export { AncestorAnalyzer } from './anchors/structural-matching-ancestor-analyzer';
+export { SkeletonEnhancer } from './core/structural-matching-skeleton-enhancer';
+export { CompletenessScorer } from './scoring/structural-matching-completeness-scorer';
+
+// 🎛️ React Hooks
+export { useHierarchicalMatchingModal } from './hooks/use-hierarchical-matching-modal';
+export type { UseHierarchicalMatchingModalReturn, ElementTemplate } from './hooks/use-hierarchical-matching-modal';
 export * from './hooks/use-structural-preview';
 export * from './hooks/use-field-strategy-config';
 export * from './hooks/use-tree-hover';
 
 // UI Components
-export * from './ui/components/structural-matching-modal';
+// 导出增强后的结构匹配模态框（原有模态框，已集成快照生成功能）
+export { StructuralMatchingModal, type StructuralMatchingModalProps } from './ui/components/structural-matching-modal/structural-matching-modal';
 export * from './ui/components/element-structure-tree';
 export * from './ui/components/visual-preview';
 export * from './ui/components/hover-preview';
@@ -55,3 +70,4 @@ export * from './ui/pages/enhanced-field-config-demo';
 
 // Services
 export * from './services/structural-matching-service';
+export * from './services/structural-snapshot-generator';

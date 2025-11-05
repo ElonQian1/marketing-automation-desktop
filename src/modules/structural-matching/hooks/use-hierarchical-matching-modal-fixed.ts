@@ -1,5 +1,5 @@
-// src/modules/structural-matching/hooks/use-hierarchical-matching-modal.ts
-// module: structural-matching | layer: hooks | role: 层级化匹配模态框钩子
+// src/modules/structural-matching/hooks/use-hierarchical-matching-modal-fixed.ts
+// module: structural-matching | layer: hooks | role: 层级化匹配模态框钩子（修复版）
 // summary: 管理结构化匹配的配置状态和生成逻辑，集成新的增强架构
 
 import { useState, useCallback, useMemo } from 'react';
