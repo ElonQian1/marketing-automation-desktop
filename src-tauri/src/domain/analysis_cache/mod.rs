@@ -12,6 +12,17 @@ pub mod types;
 pub mod lifecycle; // 🚀 Phase 2: 引用计数与生命周期管理
 // pub mod rebuild; // 🚀 Phase 2: 自愈重建机制 (待实现)
 
+// 🚀 Phase 3: 版本控制系统模块
+pub mod version_control;   // 核心数据结构和类型定义
+pub mod version_storage;   // 存储层实现
+pub mod xml_diff;         // XML差异算法
+pub mod xml_rebuilder;    // XML差异应用和重建引擎
+pub mod version_commands; // Tauri 命令接口
+
+// 测试模块
+#[cfg(test)]
+pub mod tests;
+
 // 核心类型定义
 pub type SnapshotId = String; // XML内容哈希
 pub type SubtreeKey = (SnapshotId, String); // (快照ID, 绝对XPath)

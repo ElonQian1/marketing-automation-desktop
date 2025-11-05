@@ -67,6 +67,7 @@ import { LoopDragTest } from "../debug/loop-drag-test";
 import { SemanticAnalyzerSettingsPage } from "../pages/SemanticAnalyzerSettingsPage";
 import { TextMatchingSettingsPage } from "../pages/TextMatchingSettingsPage";
 import { SmRuntimeTestPage } from "../pages/test/sm-runtime-test-page";
+import { VersionControlDemo } from "../modules/version-control";
 
 // 业务页面导入
 import { StatisticsPageNative } from "../pages/statistics/StatisticsPageNative";
@@ -151,6 +152,11 @@ const NativeAntDesignApp: React.FC = () => {
             key: "sm-runtime-test",
             icon: <ThunderboltOutlined />,
             label: "🔬 结构匹配运行时测试",
+          },
+          {
+            key: "version-control-demo",
+            icon: <SyncOutlined />,
+            label: "🗂️ 版本控制系统演示",
           },
         ]
       : []),
@@ -251,6 +257,8 @@ const NativeAntDesignApp: React.FC = () => {
         return <LoopDragTest />;
       case "sm-runtime-test":
         return <SmRuntimeTestPage />;
+      case "version-control-demo":
+        return <VersionControlDemo />;
       case "smart-vcf":
         return <SmartVcfImporter />;
       case "smart-script-builder":

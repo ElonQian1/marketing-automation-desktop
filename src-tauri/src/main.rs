@@ -34,7 +34,14 @@ use std::sync::Mutex; // 为 .manage 使用
 
 use screenshot_service::*;
 use commands::*; // 引入拆分后的命令（所有 #[tauri::command] 均集中）
-use commands::registration::register_all_commands_ultimate; // 新增：模块化命令注册
+use services::script_executor::validate_device_connection;
+use services::smart_app_service::get_device_apps;
+// Phase 3: 版本控制系统命令导入
+use crate::domain::analysis_cache::version_commands::{
+    init_version_control, create_version, query_versions, create_branch, 
+    list_branches, compute_xml_diff, rebuild_version, get_version_storage_stats,
+    check_version_integrity, delete_version, get_version_control_status
+};
 use tracing::info; // 引入info!宏
 // use commands::app_lifecycle_commands::*;
 use services::adb_device_tracker::*;
@@ -162,7 +169,32 @@ fn main() {
                 cleanup_all();
             }
         })
-        .invoke_handler(register_all_commands_ultimate!())
+        .invoke_handler(tauri::generate_handler![
+            // 现有命令（保持原有的大量命令...）
+            get_employees,
+            add_employee,
+            update_employee,
+            delete_employee,
+            // ADB 相关命令
+            validate_device_connection,
+            get_device_apps,
+            test_device_responsiveness,
+            get_adb_path_cmd,
+            get_environment_info,
+            run_full_diagnostic,
+            // Phase 3: 版本控制系统命令
+            init_version_control,
+            create_version,
+            query_versions,
+            create_branch,
+            list_branches,
+            compute_xml_diff,
+            rebuild_version,
+            get_version_storage_stats,
+            check_version_integrity,
+            delete_version,
+            get_version_control_status
+        ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");
 }
