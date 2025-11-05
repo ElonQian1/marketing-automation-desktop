@@ -46,6 +46,9 @@ import type {
   StrategyPerformance,
 } from "../modules/universal-ui/types/intelligent-analysis-types";
 
+// 🚀 [XML缓存集成] 导入缓存分析服务
+import { cachedIntelligentAnalysisService } from "./cached-intelligent-analysis";
+
 /**
  * Tauri后端配置接口
  */
@@ -116,7 +119,7 @@ export class IntelligentAnalysisBackendService {
   private eventListeners: UnlistenFn[] = [];
 
   /**
-   * 启动智能分析
+   * 启动智能分析（集成XML缓存系统）
    */
   async startAnalysis(
     element: UIElement,
@@ -125,18 +128,54 @@ export class IntelligentAnalysisBackendService {
       lockContainer?: boolean;
       enableSmartCandidates?: boolean;
       enableStaticCandidates?: boolean;
+      snapshotId?: string; // 🚀 新增：XML快照ID
     } = {}
   ): Promise<TauriAnalysisJobResponse> {
     const {
       lockContainer = false,
       enableSmartCandidates = true,
       enableStaticCandidates = true,
+      snapshotId,
     } = options;
 
-    // 构建Tauri配置
+    // 🚀 [缓存优先策略] 如果有snapshotId和xpath，先尝试缓存
+    if (snapshotId && element.xpath) {
+      try {
+        console.log("🎯 [缓存检查] 尝试从XML缓存获取分析结果", {
+          snapshotId,
+          xpath: element.xpath
+        });
+
+        const cachedResult = await cachedIntelligentAnalysisService.analyzeElementStrategy(
+          element,
+          snapshotId,
+          element.xpath
+        );
+
+        // 如果缓存命中且结果可信，直接返回模拟的后端响应
+        if (cachedResult.metadata.usedCache && cachedResult.confidence > 0.6) {
+          console.log("✅ [缓存命中] 直接使用缓存结果，跳过后端分析", {
+            strategy: cachedResult.recommendedStrategy,
+            confidence: cachedResult.confidence,
+            fromCache: true
+          });
+
+          // 返回模拟的TauriAnalysisJobResponse格式
+          return {
+            job_id: `cached_${Date.now()}_${stepId || 'unknown'}`,
+            selection_hash: `cache_${snapshotId}_${element.xpath}`,
+            state: "completed"
+          };
+        }
+      } catch (cacheError) {
+        console.warn("⚠️ [缓存失败] 缓存检查失败，继续后端分析", cacheError);
+      }
+    }
+
+    // 构建Tauri配置（使用实际snapshotId或回退到"current"）
     const config: TauriAnalysisJobConfig = {
       element_context: {
-        snapshot_id: "current",
+        snapshot_id: snapshotId || "current", // 🚀 修复：使用实际snapshotId
         element_path: element.xpath || element.id || "",
         element_text: element.text,
         element_bounds: element.bounds
@@ -156,7 +195,7 @@ export class IntelligentAnalysisBackendService {
       enable_static_candidates: enableStaticCandidates,
     };
 
-    console.log("🚀 [BackendService] 启动智能分析", config);
+    console.log("🚀 [BackendService] 启动智能分析（缓存未命中/降级）", config);
 
     try {
       const response = await invoke<TauriAnalysisJobResponse>(

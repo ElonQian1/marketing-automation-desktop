@@ -320,12 +320,12 @@ export class AdbApplicationService {
    */
   async clearAdbKeys(): Promise<boolean> {
     try {
-      // 这里应该调用 Tauri 命令来清除 ADB 密钥
-      // 暂时返回成功，实际实现需要调用后端
-      console.log('清除ADB密钥（模拟实现）');
+      console.log('🔑 [AdbApplicationService] 开始清除ADB密钥...');
+      await this.connectionService.clearAdbKeys();
+      console.log('✅ [AdbApplicationService] ADB密钥清除完成');
       return true;
     } catch (error) {
-      console.error('清除ADB密钥失败:', error);
+      console.error('❌ [AdbApplicationService] 清除ADB密钥失败:', error);
       return false;
     }
   }

@@ -92,7 +92,7 @@ export { RuntimeParameterInferenceService } from './services/step-card-parameter
 
 // Parameter Inference UI
 export { ParameterInferenceIndicator } from './ui/components/parameter-inference-indicator';
-export { XmlSnapshotViewerSimple } from './ui/components/xml-snapshot-viewer-simple';
+export { StructuralXmlViewer } from './ui/components/structural-xml-viewer';
 export * from './ui/hooks/use-parameter-inference-status';
 
 // Parameter Inference Public API

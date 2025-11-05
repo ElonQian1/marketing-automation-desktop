@@ -684,10 +684,16 @@ export function useIntelligentAnalysisWorkflow(): UseIntelligentAnalysisWorkflow
           } else {
             // console.log("🔄 [V2] 使用V2传统协议启动智能分析");
 
-            // V2 传统调用：完整数据传输
+            // V2 传统调用：完整数据传输（集成缓存系统）
             response = await intelligentAnalysisBackend.startAnalysis(
               uiElement,
-              stepId
+              stepId,
+              {
+                lockContainer: false,
+                enableSmartCandidates: true,
+                enableStaticCandidates: true,
+                snapshotId: context.snapshotId, // 🚀 传递实际snapshotId
+              }
             );
             jobId = response.job_id;
             // console.log("✅ [V2] 传统分析启动成功", { jobId });
@@ -699,11 +705,17 @@ export function useIntelligentAnalysisWorkflow(): UseIntelligentAnalysisWorkflow
               v3Error
             );
 
-            // V3失败时自动回退到V2（容错机制）
+            // V3失败时自动回退到V2（容错机制，同样使用缓存）
             try {
               response = await intelligentAnalysisBackend.startAnalysis(
                 uiElement,
-                stepId
+                stepId,
+                {
+                  lockContainer: false,
+                  enableSmartCandidates: true,
+                  enableStaticCandidates: true,
+                  snapshotId: context.snapshotId, // 🚀 回退时也使用缓存
+                }
               );
               jobId = response.job_id;
 

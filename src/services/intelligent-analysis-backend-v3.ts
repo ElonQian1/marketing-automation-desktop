@@ -5,6 +5,9 @@
 import { invoke } from '@tauri-apps/api/core';
 import type { ExecutionResult } from './matching-batch-engine';
 
+// 🚀 [XML缓存集成] 导入缓存分析服务
+import { cachedIntelligentAnalysisService } from "./cached-intelligent-analysis";
+
 // V3 特定结果类型
 export interface SingleStepTestResult {
   success: boolean;
@@ -164,13 +167,70 @@ export class IntelligentAnalysisBackendV3 {
 
   /**
    * 执行链式操作测试（V3协议）
-   * 支持智能短路和失败回退的链式执行
+   * 支持智能短路和失败回退的链式执行（集成XML缓存）
    */
   static async executeChainV3(
     config: V3ExecutionConfig,
     chainSpec: V3ChainSpec
   ): Promise<ExecutionResult> {
     try {
+      // 🚀 [V3缓存优先策略] 对单步链且有xpath的情况尝试缓存
+      if (chainSpec.steps.length === 1) {
+        const step = chainSpec.steps[0];
+        const elementContext = step.params?.elementContext as Record<string, unknown>;
+        
+        if (elementContext?.snapshotId && elementContext?.elementPath) {
+          try {
+            console.log("🎯 [V3缓存检查] 尝试从XML缓存获取分析结果", {
+              snapshotId: elementContext.snapshotId,
+              xpath: elementContext.elementPath
+            });
+
+            // 构建临时UIElement用于缓存查询
+            const keyAttrs = elementContext.keyAttributes as Record<string, string> || {};
+            const tempElement = {
+              xpath: String(elementContext.elementPath || ''),
+              text: String(elementContext.elementText || ''),
+              bounds: String(elementContext.elementBounds || ''),
+              element_type: String(elementContext.elementType || ''),
+              resource_id: keyAttrs['resource-id'] || '',
+              content_desc: keyAttrs['content-desc'] || '',
+              class_name: keyAttrs['class'] || '',
+            };
+
+            const cachedResult = await cachedIntelligentAnalysisService.analyzeElementStrategy(
+              tempElement as import('../api/universalUIAPI').UIElement,
+              String(elementContext.snapshotId || ''),
+              String(elementContext.elementPath || '')
+            );
+
+            // 如果缓存命中且结果可信，返回成功结果
+            if (cachedResult.metadata.usedCache && cachedResult.confidence > 0.7) {
+              console.log("✅ [V3缓存命中] 直接使用缓存结果，跳过后端执行", {
+                strategy: cachedResult.recommendedStrategy,
+                confidence: cachedResult.confidence,
+                fromCache: true
+              });
+
+              return {
+                success: true,
+                elementId: step.step_id,
+                action: 'cached_analysis',
+                message: `V3缓存命中: ${cachedResult.recommendedStrategy}`,
+                executionTime: cachedResult.metadata.analysisTime,
+                metadata: {
+                  fromCache: true,
+                  strategy: cachedResult.recommendedStrategy,
+                  confidence: cachedResult.confidence
+                }
+              };
+            }
+          } catch (cacheError) {
+            console.warn("⚠️ [V3缓存失败] 缓存检查失败，继续后端执行", cacheError);
+          }
+        }
+      }
+
       // 🎯 使用正确的V3调用格式：envelope + spec
       const envelope = {
         deviceId: config.device_id,

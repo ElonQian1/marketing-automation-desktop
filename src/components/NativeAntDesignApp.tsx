@@ -62,9 +62,9 @@ import { PageFinderView } from "./universal-ui/page-finder";
 import { ThemeSettingsPage } from "../pages/ThemeSettingsPage";
 import { NativeAntDashboard } from "./native-dashboard/NativeAntDashboard";
 import EmployeePageNativeWrapper from "../pages/native-wrappers/EmployeePage.native";
-import ButtonFixValidationPage from "../pages/button-fix-validation";
-import ParameterTestPage from "./ParameterTestPage";
-import { LoopDragTest } from "../debug/loop-drag-test";
+
+
+
 import { SemanticAnalyzerSettingsPage } from "../pages/SemanticAnalyzerSettingsPage";
 import { TextMatchingSettingsPage } from "../pages/TextMatchingSettingsPage";
 import { SmRuntimeTestPage } from "../pages/test/sm-runtime-test-page";
@@ -139,21 +139,9 @@ const NativeAntDesignApp: React.FC = () => {
             icon: <BugOutlined />,
             label: "📄 XML缓存调试",
           },
-          {
-            key: "button-fix-validation",
-            icon: <BugOutlined />,
-            label: "🔧 按钮识别修复验证",
-          },
-          {
-            key: "parameter-test",
-            icon: <ThunderboltOutlined />,
-            label: "⚙️ 参数面板集成测试",
-          },
-          {
-            key: "loop-drag-test",
-            icon: <SyncOutlined />,
-            label: "🔄 循环卡片拖拽测试",
-          },
+
+
+
           {
             key: "sm-runtime-test",
             icon: <ThunderboltOutlined />,
@@ -257,12 +245,9 @@ const NativeAntDesignApp: React.FC = () => {
         return <DatabaseDebugPage />;
       case "xml-cache-debug":
         return <XmlCacheDebugPanel />;
-      case "button-fix-validation":
-        return <ButtonFixValidationPage />;
-      case "parameter-test":
-        return <ParameterTestPage />;
-      case "loop-drag-test":
-        return <LoopDragTest />;
+
+
+
       case "sm-runtime-test":
         return <SmRuntimeTestPage />;
       case "version-control-demo":
