@@ -78,6 +78,8 @@ export const ElementStructureTree: React.FC<ElementStructureTreeProps> = ({
   const [fullElementData, setFullElementData] = useState<Record<string, unknown> | null>(null);
   // 全局字段显示模式：骨架模式只显示对子树结构有意义的字段
   const [showAllFields, setShowAllFields] = useState<boolean>(false);
+  // 每个元素独立的字段显示模式（elementPath -> showAllFields）
+  const [elementShowAllFields, setElementShowAllFields] = useState<Record<string, boolean>>({});
   // 骨架匹配模式：Family（同类）vs Clone（精确）
   const [skeletonMode, setSkeletonMode] = useState<SkeletonMatchMode>(SkeletonMatchMode.FAMILY);
   // 是否忽略易变字段（数字、时间戳等）
@@ -1050,6 +1052,19 @@ export const ElementStructureTree: React.FC<ElementStructureTreeProps> = ({
     };
 
     // 条件渲染字段行：根据显示模式和字段意义决定是否显示
+    // 获取元素的显示模式
+    const getElementShowAllFields = (elementPath: string): boolean => {
+      return elementShowAllFields[elementPath] || false;
+    };
+
+    // 设置元素的显示模式
+    const setElementShowAllFieldsForPath = (elementPath: string, showAll: boolean) => {
+      setElementShowAllFields(prev => ({
+        ...prev,
+        [elementPath]: showAll
+      }));
+    };
+
     const buildConditionalFieldRow = (
       elementPath: string,
       key: string,
@@ -1058,8 +1073,9 @@ export const ElementStructureTree: React.FC<ElementStructureTreeProps> = ({
       fieldType: FieldType,
       disabled = false
     ) => {
-      // 如果显示所有字段，或者字段有意义，则渲染
-      const shouldShow = showAllFields || isFieldMeaningful(fieldType, value);
+      // 优先使用元素独立设置，其次使用全局设置，最后看字段意义
+      const elementShowAll = getElementShowAllFields(elementPath);
+      const shouldShow = elementShowAll || showAllFields || isFieldMeaningful(fieldType, value);
       if (!shouldShow) return null;
 
       return buildFieldRow(elementPath, key, label, value, fieldType, disabled);
