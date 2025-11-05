@@ -344,6 +344,14 @@ fn main() {
             batch_get_subtree_metrics_cmd, // 批量获取指标
             cleanup_cache_cmd,             // 清理过期缓存
             get_cache_stats_cmd,           // 获取缓存统计
+            // 🚀 Phase 2: 引用计数管理功能
+            link_step_snapshot,              // 关联步骤与快照
+            unlink_step_snapshot,            // 解除步骤快照关联
+            get_snapshot_reference_info,     // 获取快照引用信息
+            get_all_snapshot_references,     // 获取所有快照引用统计
+            get_cache_system_status,         // 获取缓存系统状态
+            validate_cache_consistency_cmd,  // 验证缓存一致性
+            force_clear_all_caches_cmd,      // 强制清理所有缓存
             // 设备镜像（scrcpy）
             start_device_mirror,
             stop_device_mirror,

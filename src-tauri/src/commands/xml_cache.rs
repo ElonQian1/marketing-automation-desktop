@@ -1,4 +1,15 @@
-use tracing::{info, warn};
+use tracing::{info, warn, debug, error};
+use serde::{Serialize, Deserialize};
+use std::collections::HashMap;
+
+// 🚀 Phase 2: 引入缓存生命周期管理
+use crate::domain::analysis_cache::{
+    lifecycle::{
+        pin_snapshot, unpin_snapshot, get_snapshot_ref_info, get_all_snapshot_refs,
+        validate_cache_consistency, force_clear_all_caches, SnapshotRefInfo
+    },
+    SnapshotId, SNAPSHOT_REFS, DOM_CACHE, SUBTREE_CACHE
+};
 
 #[tauri::command]
 pub async fn list_xml_cache_files() -> Result<Vec<String>, String> {
@@ -191,5 +202,199 @@ fn get_debug_xml_dir() -> std::path::PathBuf {
     } else {
         // 否则直接在当前目录下查找
         current.join("debug_xml")
+    }
+}
+
+// ========================================
+// 🚀 Phase 2: 引用计数管理命令
+// ========================================
+
+/// 将步骤与XML快照关联，增加引用计数
+#[tauri::command]
+pub async fn link_step_snapshot(
+    step_id: String,
+    snapshot_id: SnapshotId,
+    description: Option<String>
+) -> Result<usize, String> {
+    debug!(
+        step_id = %step_id,
+        snapshot_id = %snapshot_id,
+        "Linking step to snapshot"
+    );
+    
+    match pin_snapshot(&snapshot_id, Some(&step_id)) {
+        Ok(ref_count) => {
+            info!(
+                step_id = %step_id,
+                snapshot_id = %snapshot_id,
+                new_ref_count = ref_count,
+                "Successfully linked step to snapshot"
+            );
+            Ok(ref_count)
+        }
+        Err(e) => {
+            error!(
+                step_id = %step_id,
+                snapshot_id = %snapshot_id,
+                error = %e,
+                "Failed to link step to snapshot"
+            );
+            Err(format!("链接步骤到快照失败: {}", e))
+        }
+    }
+}
+
+/// 解除步骤与XML快照关联，减少引用计数
+#[tauri::command]
+pub async fn unlink_step_snapshot(
+    step_id: String,
+    snapshot_id: SnapshotId,
+    force_remove: Option<bool>
+) -> Result<Option<usize>, String> {
+    let force = force_remove.unwrap_or(false);
+    
+    debug!(
+        step_id = %step_id,
+        snapshot_id = %snapshot_id,
+        force_remove = force,
+        "Unlinking step from snapshot"
+    );
+    
+    match unpin_snapshot(&snapshot_id, Some(&step_id), force) {
+        Ok(remaining_count) => {
+            info!(
+                step_id = %step_id,
+                snapshot_id = %snapshot_id,
+                remaining_count = ?remaining_count,
+                force_remove = force,
+                "Successfully unlinked step from snapshot"
+            );
+            Ok(remaining_count)
+        }
+        Err(e) => {
+            error!(
+                step_id = %step_id,
+                snapshot_id = %snapshot_id,
+                error = %e,
+                "Failed to unlink step from snapshot"
+            );
+            Err(format!("解除步骤快照关联失败: {}", e))
+        }
+    }
+}
+
+/// 获取指定快照的引用信息
+#[tauri::command]
+pub async fn get_snapshot_reference_info(snapshot_id: SnapshotId) -> Result<Option<SnapshotRefInfo>, String> {
+    debug!(snapshot_id = %snapshot_id, "Getting snapshot reference info");
+    
+    let info = get_snapshot_ref_info(&snapshot_id);
+    
+    if let Some(ref info) = info {
+        debug!(
+            snapshot_id = %snapshot_id,
+            ref_count = info.ref_count,
+            "Found snapshot reference info"
+        );
+    } else {
+        debug!(snapshot_id = %snapshot_id, "No reference info found for snapshot");
+    }
+    
+    Ok(info)
+}
+
+/// 获取所有快照的引用计数统计
+#[tauri::command]
+pub async fn get_all_snapshot_references() -> Result<HashMap<SnapshotId, usize>, String> {
+    debug!("Getting all snapshot references");
+    
+    let refs = get_all_snapshot_refs();
+    
+    info!(
+        total_snapshots = refs.len(),
+        "Retrieved all snapshot references"
+    );
+    
+    Ok(refs)
+}
+
+/// 获取缓存系统整体状态
+#[derive(Serialize)]
+pub struct CacheSystemStatus {
+    pub dom_cache_size: usize,
+    pub subtree_cache_size: usize,
+    pub reference_count: usize,
+    pub total_references: usize,
+    pub consistency_issues: Vec<String>,
+}
+
+#[tauri::command]
+pub async fn get_cache_system_status() -> Result<CacheSystemStatus, String> {
+    debug!("Getting cache system status");
+    
+    let consistency_issues = validate_cache_consistency()
+        .map_err(|e| format!("缓存一致性检查失败: {}", e))?;
+    
+    let all_refs = get_all_snapshot_refs();
+    let total_references: usize = all_refs.values().sum();
+    
+    let status = CacheSystemStatus {
+        dom_cache_size: DOM_CACHE.len(),
+        subtree_cache_size: SUBTREE_CACHE.len(),
+        reference_count: SNAPSHOT_REFS.len(),
+        total_references,
+        consistency_issues,
+    };
+    
+    info!(
+        dom_cache_size = status.dom_cache_size,
+        subtree_cache_size = status.subtree_cache_size,
+        reference_count = status.reference_count,
+        total_references = status.total_references,
+        issues_found = status.consistency_issues.len(),
+        "Cache system status retrieved"
+    );
+    
+    Ok(status)
+}
+
+/// 验证缓存一致性
+#[tauri::command]
+pub async fn validate_cache_consistency_cmd() -> Result<Vec<String>, String> {
+    debug!("Validating cache consistency");
+    
+    match validate_cache_consistency() {
+        Ok(issues) => {
+            if issues.is_empty() {
+                info!("Cache consistency validation passed - no issues found");
+            } else {
+                warn!(
+                    issues_count = issues.len(),
+                    "Cache consistency validation found issues"
+                );
+            }
+            Ok(issues)
+        }
+        Err(e) => {
+            error!(error = %e, "Cache consistency validation failed");
+            Err(format!("缓存一致性验证失败: {}", e))
+        }
+    }
+}
+
+/// 强制清理所有缓存（调试用）
+#[tauri::command]
+pub async fn force_clear_all_caches_cmd() -> Result<(), String> {
+    warn!("Force clearing all caches - this is a debug operation");
+    
+    match force_clear_all_caches() {
+        Ok(()) => {
+            info!("Successfully force cleared all caches");
+            Ok(())
+        }
+        Err(e) => {
+            error!(error = %e, "Failed to force clear caches");
+            Err(format!("强制清理缓存失败: {}", e))
+        }
     }
 }

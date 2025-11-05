@@ -9,6 +9,7 @@ use std::collections::HashMap;
 
 pub mod api;
 pub mod types;
+pub mod lifecycle; // 🚀 Phase 2: 引用计数与生命周期管理
 // pub mod rebuild; // 🚀 Phase 2: 自愈重建机制 (待实现)
 
 // 核心类型定义
@@ -18,6 +19,9 @@ pub type SubtreeKey = (SnapshotId, String); // (快照ID, 绝对XPath)
 // 全局缓存实例
 pub static DOM_CACHE: Lazy<DashMap<SnapshotId, DomIndex>> = Lazy::new(|| DashMap::new());
 pub static SUBTREE_CACHE: Lazy<DashMap<SubtreeKey, SubtreeMetrics>> = Lazy::new(|| DashMap::new());
+
+// 🚀 Phase 2: 引用计数管理
+pub static SNAPSHOT_REFS: Lazy<DashMap<SnapshotId, usize>> = Lazy::new(|| DashMap::new());
 
 /// DOM索引结构（XML解析后的快速访问结构）
 #[derive(Clone, Debug, Serialize, Deserialize)]
