@@ -387,7 +387,7 @@ class XmlCacheManager {
     let memoryCleanedCount = 0;
 
     // 清理内存缓存
-    for (const [cacheId, entry] of this.cache.entries()) {
+    this.cache.forEach((entry, cacheId) => {
       if (now - entry.timestamp > maxAgeMs) {
         this.cache.delete(cacheId);
         if (entry.xmlHash) {
@@ -395,7 +395,7 @@ class XmlCacheManager {
         }
         memoryCleanedCount++;
       }
-    }
+    });
 
     // 清理持久化存储
     let persistentCleanedCount = 0;
@@ -580,13 +580,13 @@ class XmlCacheManager {
       let lruCacheId = '';
       let minFreq = Infinity;
       
-      for (const [cacheId] of this.cache) {
+      this.cache.forEach((_, cacheId) => {
         const freq = this.accessFrequency.get(cacheId) || 0;
         if (freq < minFreq) {
           minFreq = freq;
           lruCacheId = cacheId;
         }
-      }
+      });
       
       if (lruCacheId) {
         const removedEntry = this.cache.get(lruCacheId);
