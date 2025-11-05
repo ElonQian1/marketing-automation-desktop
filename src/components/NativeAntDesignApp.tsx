@@ -67,7 +67,7 @@ import EmployeePageNativeWrapper from "../pages/native-wrappers/EmployeePage.nat
 
 import { SemanticAnalyzerSettingsPage } from "../pages/SemanticAnalyzerSettingsPage";
 import { TextMatchingSettingsPage } from "../pages/TextMatchingSettingsPage";
-import { SmRuntimeTestPage } from "../pages/test/sm-runtime-test-page";
+
 import { VersionControlDemo } from "../modules/version-control";
 
 // 业务页面导入
@@ -142,11 +142,7 @@ const NativeAntDesignApp: React.FC = () => {
 
 
 
-          {
-            key: "sm-runtime-test",
-            icon: <ThunderboltOutlined />,
-            label: "🔬 结构匹配运行时测试",
-          },
+
           {
             key: "version-control-demo",
             icon: <SyncOutlined />,
@@ -248,8 +244,7 @@ const NativeAntDesignApp: React.FC = () => {
 
 
 
-      case "sm-runtime-test":
-        return <SmRuntimeTestPage />;
+
       case "version-control-demo":
         return <VersionControlDemo />;
       case "smart-vcf":
