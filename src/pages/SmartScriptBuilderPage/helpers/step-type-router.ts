@@ -203,8 +203,8 @@ async function ensureStructuralMatchParameters(step: ExtendedSmartScriptStep): P
     // 执行推理
     const inferenceResult = await inferParametersForStepCard(stepCard);
     
-    if (inferenceResult.status === 'completed' && inferenceResult.plan) {
-      console.log(`✅ [参数推理] 步骤 ${step.id} 推理完成，耗时 ${inferenceResult.inferenceTime}ms`);
+    if (inferenceResult.success && inferenceResult.plan) {
+      console.log(`✅ [参数推理] 步骤 ${step.id} 推理完成，耗时 ${inferenceResult.stats?.analysisTimeMs || 0}ms`);
       
       // 将推理结果添加到步骤参数中
       const enhancedStep: ExtendedSmartScriptStep = {
@@ -215,7 +215,7 @@ async function ensureStructuralMatchParameters(step: ExtendedSmartScriptStep): P
           structuralMatchPlan: inferenceResult.plan,
           // 标记参数来源
           _parameterSource: 'runtime_inference',
-          _inferenceMetadata: inferenceResult.metadata,
+          _inferenceStats: inferenceResult.stats,
         }
       };
 

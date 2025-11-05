@@ -94,3 +94,10 @@ export { RuntimeParameterInferenceService } from './services/step-card-parameter
 export { ParameterInferenceIndicator } from './ui/components/parameter-inference-indicator';
 export { XmlSnapshotViewerSimple } from './ui/components/xml-snapshot-viewer-simple';
 export * from './ui/hooks/use-parameter-inference-status';
+
+// Parameter Inference Public API
+export {
+  inferParametersForStepCard,
+  stepCardNeedsInference,
+  getInferenceServiceInstance
+} from './services/step-card-parameter-inference/public-api';

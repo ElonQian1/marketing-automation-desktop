@@ -20,8 +20,7 @@ import { message, Space } from "antd";
 import { useSmartStrategyAnalysis } from "../hooks/useSmartStrategyAnalysis";
 import type { StrategyCandidate } from "../types/strategySelector";
 import { 
-  ParameterInferenceBadge,
-  useParameterInferenceStatus
+  ParameterInferenceIndicator
 } from "../modules/structural-matching";
 
 interface SmartStepCardWrapperProps {
@@ -77,7 +76,7 @@ export const SmartStepCardWrapper: React.FC<SmartStepCardWrapperProps> = (props)
 
   // 🧠 参数推理状态管理（仅对点击步骤启用）
   const shouldShowInference = step.step_type === 'smart_find_element' || step.step_type === 'tap';
-  const inferenceStatus = useParameterInferenceStatus(step.id, shouldShowInference);
+  // const inferenceStatus = useParameterInferenceStatus(step.id, shouldShowInference);
 
   // 🎯 循环测试状态管理器 - 支持多个循环同时存在
   const loopTestManager = useLoopTestManager({
@@ -372,9 +371,9 @@ export const SmartStepCardWrapper: React.FC<SmartStepCardWrapperProps> = (props)
           right: '8px',
           zIndex: 10,
         }}>
-          <ParameterInferenceBadge 
-            inferenceResult={inferenceStatus.inferenceResult}
-            size="small"
+          <ParameterInferenceIndicator 
+            stepCardId={step.id}
+            compact={true}
           />
         </div>
       )}
