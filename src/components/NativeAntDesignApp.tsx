@@ -29,7 +29,6 @@ import {
   UserAddOutlined,
   RobotOutlined,
   FolderOutlined,
-  EyeOutlined,
   BgColorsOutlined,
   MenuFoldOutlined,
   MenuUnfoldOutlined,
@@ -57,7 +56,6 @@ import TemplateLibrary from "./template/TemplateLibrary";
 import ContactImportPage from "../pages/contact-import/ContactImportPage";
 import DatabaseDebugPage from "../pages/debug/DatabaseDebug";
 import { XmlCachePerformanceBadge } from "./cache/xml-cache-performance-badge";
-import { PageFinderView } from "./universal-ui/page-finder";
 import { ThemeSettingsPage } from "../pages/ThemeSettingsPage";
 import { NativeAntDashboard } from "./native-dashboard/NativeAntDashboard";
 import EmployeePageNativeWrapper from "../pages/native-wrappers/EmployeePage.native";
@@ -147,11 +145,6 @@ const NativeAntDesignApp: React.FC = () => {
       label: "模板库",
     },
     {
-      key: "page-finder",
-      icon: <EyeOutlined />,
-      label: "页面查找器",
-    },
-    {
       key: "theme-settings",
       icon: <BgColorsOutlined />,
       label: "主题设置",
@@ -211,8 +204,6 @@ const NativeAntDesignApp: React.FC = () => {
         return <SmartScriptBuilderPageNativeWrapper />;
       case "template-library":
         return <TemplateLibrary />;
-      case "page-finder":
-        return <PageFinderView />;
       case "theme-settings":
         return <ThemeSettingsPage />;
       case "semantic-analyzer-settings":
