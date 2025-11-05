@@ -2,7 +2,8 @@
 // module: structural-matching | layer: services | role: 步骤卡片参数推导模块导出
 // summary: 导出参数推导相关的所有服务和类型
 
-export { StepCardParameterInferenceService } from './step-card-inference-service';
+export { StepCardInferenceService } from './step-card-inference-service';
+export { RuntimeParameterInferenceService } from './runtime-parameter-inference-service';
 export { XmlSnapshotAnalyzer } from './xml-snapshot-analyzer';
 
 export type {

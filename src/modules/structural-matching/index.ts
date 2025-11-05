@@ -87,10 +87,10 @@ export * from './services/structural-snapshot-generator';
 // Parameter Inference System
 export * from './services/step-card-parameter-inference/types';
 export * from './services/step-card-parameter-inference/xml-snapshot-analyzer';
-export * from './services/step-card-parameter-inference/step-card-inference-service';
-export * from './services/step-card-parameter-inference/runtime-parameter-inference-service';
+export { StepCardInferenceService } from './services/step-card-parameter-inference/step-card-inference-service';
+export { RuntimeParameterInferenceService } from './services/step-card-parameter-inference/runtime-parameter-inference-service';
 
 // Parameter Inference UI
 export { ParameterInferenceIndicator } from './ui/components/parameter-inference-indicator';
-export { XmlSnapshotViewer } from './ui/components/xml-snapshot-viewer';
+export { XmlSnapshotViewerSimple } from './ui/components/xml-snapshot-viewer-simple';
 export * from './ui/hooks/use-parameter-inference-status';
