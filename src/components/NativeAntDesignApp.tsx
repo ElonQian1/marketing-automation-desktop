@@ -68,8 +68,6 @@ import EmployeePageNativeWrapper from "../pages/native-wrappers/EmployeePage.nat
 import { SemanticAnalyzerSettingsPage } from "../pages/SemanticAnalyzerSettingsPage";
 import { TextMatchingSettingsPage } from "../pages/TextMatchingSettingsPage";
 
-import { VersionControlDemo } from "../modules/version-control";
-
 // 业务页面导入
 import { StatisticsPageNative } from "../pages/statistics/StatisticsPageNative";
 import { DeviceManagementPageNative } from "../pages/device-management/DeviceManagementPageNative";
@@ -138,15 +136,6 @@ const NativeAntDesignApp: React.FC = () => {
             key: "xml-cache-debug",
             icon: <BugOutlined />,
             label: "📄 XML缓存调试",
-          },
-
-
-
-
-          {
-            key: "version-control-demo",
-            icon: <SyncOutlined />,
-            label: "🗂️ 版本控制系统演示",
           },
         ]
       : []),
@@ -241,12 +230,6 @@ const NativeAntDesignApp: React.FC = () => {
         return <DatabaseDebugPage />;
       case "xml-cache-debug":
         return <XmlCacheDebugPanel />;
-
-
-
-
-      case "version-control-demo":
-        return <VersionControlDemo />;
       case "smart-vcf":
         return <SmartVcfImporter />;
       case "smart-script-builder":

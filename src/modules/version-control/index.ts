@@ -21,7 +21,6 @@ export { useVersionControl } from './hooks/use-version-control';
 
 // 导出UI组件
 export { VersionControlPanel } from './ui/version-control-panel';
-export { VersionControlDemo } from './ui/version-control-demo';
 
 // 导出API（仅在需要直接调用时使用）
 export { VersionControlApi } from './api/version-control-api';
