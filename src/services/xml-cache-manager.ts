@@ -268,14 +268,23 @@ class XmlCacheManager {
   }
 
   /**
-   * 获取缓存的XML数据
+   * 获取缓存的XML数据（性能优化版）
    * 
-   * 🆕 如果内存中不存在，尝试从持久化存储加载
+   * 🚀 优化策略：
+   * 1. 访问频率跟踪：记录常用缓存
+   * 2. 智能预加载：优先加载高频访问的缓存
+   * 3. 内存管理：LRU淘汰策略，避免内存溢出
+   * 4. 异步预热：后台预加载相关缓存
    */
   async getCachedXml(cacheId: string): Promise<XmlCacheEntry | null> {
+    // 🔥 记录访问频率
+    this.accessFrequency.set(cacheId, (this.accessFrequency.get(cacheId) || 0) + 1);
+
     // 1. 先从内存缓存获取
     let entry = this.cache.get(cacheId);
     if (entry) {
+      // 🔄 触发智能预加载（异步，不影响当前请求）
+      this.scheduleIntelligentPreload(cacheId);
       return entry;
     }
 
@@ -284,12 +293,12 @@ class XmlCacheManager {
       try {
         entry = await this.persistentStorage.get(cacheId);
         if (entry) {
-          // 恢复到内存缓存
-          this.cache.set(entry.cacheId, entry);
-          if (entry.xmlHash) {
-            this.hashIndex.set(entry.xmlHash, entry);
-          }
+          // 恢复到内存缓存（使用LRU策略）
+          this.addToMemoryCache(entry);
           console.log(`✅ 从持久化存储恢复缓存: ${cacheId}`);
+          
+          // 🔄 触发智能预加载
+          this.scheduleIntelligentPreload(cacheId);
           return entry;
         }
       } catch (error) {
@@ -558,6 +567,177 @@ class XmlCacheManager {
 
   private generateCacheId(): string {
     return `xml_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+  }
+
+  /**
+   * 🚀 性能优化：添加到内存缓存（使用LRU策略）
+   * 防止内存缓存无限增长
+   */
+  private addToMemoryCache(entry: XmlCacheEntry): void {
+    // 如果超过内存限制，移除最久未访问的条目
+    if (this.cache.size >= this.maxMemoryEntries) {
+      // 简单LRU：移除访问频率最低的条目
+      let lruCacheId = '';
+      let minFreq = Infinity;
+      
+      for (const [cacheId] of this.cache) {
+        const freq = this.accessFrequency.get(cacheId) || 0;
+        if (freq < minFreq) {
+          minFreq = freq;
+          lruCacheId = cacheId;
+        }
+      }
+      
+      if (lruCacheId) {
+        const removedEntry = this.cache.get(lruCacheId);
+        this.cache.delete(lruCacheId);
+        if (removedEntry?.xmlHash) {
+          this.hashIndex.delete(removedEntry.xmlHash);
+        }
+        console.log(`🗑️ LRU淘汰缓存: ${lruCacheId} (访问频率: ${minFreq})`);
+      }
+    }
+
+    // 添加新条目到内存缓存
+    this.cache.set(entry.cacheId, entry);
+    if (entry.xmlHash) {
+      this.hashIndex.set(entry.xmlHash, entry);
+    }
+  }
+
+  /**
+   * 🚀 性能优化：智能预加载调度
+   * 根据访问模式预测并预加载相关缓存
+   */
+  private scheduleIntelligentPreload(currentCacheId: string): void {
+    // 避免重复预加载
+    if (this.preloadCache.has(currentCacheId)) {
+      return;
+    }
+
+    this.preloadCache.add(currentCacheId);
+
+    // 异步执行预加载，不阻塞当前操作
+    setTimeout(async () => {
+      try {
+        await this.executeIntelligentPreload(currentCacheId);
+      } catch (error) {
+        console.error('❌ 智能预加载失败:', error);
+      } finally {
+        this.preloadCache.delete(currentCacheId);
+      }
+    }, 100); // 延迟100ms执行，避免影响当前请求
+  }
+
+  /**
+   * 🚀 执行智能预加载
+   * 基于时间相关性预加载临近的缓存项
+   */
+  private async executeIntelligentPreload(currentCacheId: string): Promise<void> {
+    if (!this.persistentStorage) {
+      return;
+    }
+
+    try {
+      // 获取当前条目的时间戳
+      const currentEntry = await this.persistentStorage.get(currentCacheId);
+      if (!currentEntry) {
+        return;
+      }
+
+      // 获取时间相近的缓存（前后各2个）
+      const recentEntries = await this.persistentStorage.getRecent(20);
+      const currentIndex = recentEntries.findIndex(e => e.cacheId === currentCacheId);
+      
+      if (currentIndex === -1) {
+        return;
+      }
+
+      // 预加载相邻的缓存项（前后各1个）
+      const preloadTargets: XmlCacheEntry[] = [];
+      
+      if (currentIndex > 0) {
+        preloadTargets.push(recentEntries[currentIndex - 1]);
+      }
+      if (currentIndex < recentEntries.length - 1) {
+        preloadTargets.push(recentEntries[currentIndex + 1]);
+      }
+
+      let preloadedCount = 0;
+      for (const target of preloadTargets) {
+        // 只预加载不在内存中的条目
+        if (!this.cache.has(target.cacheId) && this.cache.size < this.maxMemoryEntries - 5) {
+          this.addToMemoryCache(target);
+          preloadedCount++;
+        }
+      }
+
+      if (preloadedCount > 0) {
+        console.log(`🔄 智能预加载完成: ${preloadedCount}个相关缓存`);
+      }
+    } catch (error) {
+      console.error('❌ 智能预加载执行失败:', error);
+    }
+  }
+
+  /**
+   * 🚀 性能监控：获取性能统计
+   */
+  getPerformanceStats(): {
+    memoryUsage: { current: number; max: number; utilizationRate: number };
+    accessPattern: { mostAccessed: Array<{ cacheId: string; count: number }>; totalAccess: number };
+    preloadStatus: { active: number; memoryHitRate: number };
+  } {
+    // 计算访问模式
+    const accessEntries = Array.from(this.accessFrequency.entries())
+      .sort((a, b) => b[1] - a[1])
+      .slice(0, 5);
+    
+    const totalAccess = Array.from(this.accessFrequency.values()).reduce((sum, count) => sum + count, 0);
+    
+    return {
+      memoryUsage: {
+        current: this.cache.size,
+        max: this.maxMemoryEntries,
+        utilizationRate: this.cache.size / this.maxMemoryEntries,
+      },
+      accessPattern: {
+        mostAccessed: accessEntries.map(([cacheId, count]) => ({ cacheId, count })),
+        totalAccess,
+      },
+      preloadStatus: {
+        active: this.preloadCache.size,
+        memoryHitRate: totalAccess > 0 ? (totalAccess - this.accessFrequency.size) / totalAccess : 0,
+      },
+    };
+  }
+
+  /**
+   * 🚀 手动触发预热：批量预加载最常用的缓存
+   */
+  async warmupCache(limit: number = 10): Promise<void> {
+    if (!this.persistentStorage) {
+      console.warn('⚠️ 持久化存储未初始化，无法执行预热');
+      return;
+    }
+
+    try {
+      console.log(`🔥 开始缓存预热（预加载${limit}个最新缓存）...`);
+      
+      const recentEntries = await this.persistentStorage.getRecent(limit);
+      let warmedCount = 0;
+
+      for (const entry of recentEntries) {
+        if (!this.cache.has(entry.cacheId) && this.cache.size < this.maxMemoryEntries) {
+          this.addToMemoryCache(entry);
+          warmedCount++;
+        }
+      }
+
+      console.log(`✅ 缓存预热完成: ${warmedCount}/${limit}个缓存已加载到内存`);
+    } catch (error) {
+      console.error('❌ 缓存预热失败:', error);
+    }
   }
 }
 

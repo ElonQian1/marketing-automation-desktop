@@ -36,7 +36,6 @@ import {
   SyncOutlined,
   AimOutlined,
   ThunderboltOutlined,
-  BugOutlined,
   UserOutlined,
   LogoutOutlined,
   ClockCircleOutlined,
@@ -57,7 +56,6 @@ import SmartVcfImporter from "./SmartVcfImporter";
 import TemplateLibrary from "./template/TemplateLibrary";
 import ContactImportPage from "../pages/contact-import/ContactImportPage";
 import DatabaseDebugPage from "../pages/debug/DatabaseDebug";
-import { XmlCacheDebugPanel } from "./debug/XmlCacheDebugPanel";
 import { PageFinderView } from "./universal-ui/page-finder";
 import { ThemeSettingsPage } from "../pages/ThemeSettingsPage";
 import { NativeAntDashboard } from "./native-dashboard/NativeAntDashboard";
@@ -125,11 +123,6 @@ const NativeAntDesignApp: React.FC = () => {
             key: "database-debug",
             icon: <SecurityScanOutlined />,
             label: "🗄️ 数据库调试",
-          },
-          {
-            key: "xml-cache-debug",
-            icon: <BugOutlined />,
-            label: "📄 XML缓存调试",
           },
         ]
       : []),
@@ -211,8 +204,6 @@ const NativeAntDesignApp: React.FC = () => {
         return <PreciseAcquisitionPage />;
       case "database-debug":
         return <DatabaseDebugPage />;
-      case "xml-cache-debug":
-        return <XmlCacheDebugPanel />;
       case "smart-vcf":
         return <SmartVcfImporter />;
       case "smart-script-builder":
@@ -314,6 +305,12 @@ const NativeAntDesignApp: React.FC = () => {
               </Space>
 
               <Space>
+                {/* 🚀 XML缓存性能监控 */}
+                <XmlCachePerformanceBadge 
+                  showDetails={true}
+                  refreshInterval={30}
+                />
+                
                 <Badge count={5}>
                   <Button
                     type="text"
