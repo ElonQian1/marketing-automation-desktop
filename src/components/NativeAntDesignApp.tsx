@@ -56,6 +56,7 @@ import SmartVcfImporter from "./SmartVcfImporter";
 import TemplateLibrary from "./template/TemplateLibrary";
 import ContactImportPage from "../pages/contact-import/ContactImportPage";
 import DatabaseDebugPage from "../pages/debug/DatabaseDebug";
+import { XmlCachePerformanceBadge } from "./cache/xml-cache-performance-badge";
 import { PageFinderView } from "./universal-ui/page-finder";
 import { ThemeSettingsPage } from "../pages/ThemeSettingsPage";
 import { NativeAntDashboard } from "./native-dashboard/NativeAntDashboard";
