@@ -35,6 +35,27 @@ export * from './application/test-field-matching';
 
 // Hooks
 export * from './hooks/use-structural-matching-modal';
+
+// 🎯 数据统一服务
+export { 
+  StructuralMatchingDataProvider,
+  type UnifiedElementData,
+  type DataProviderConfig 
+} from './domain/services/structural-matching-data-provider';
+export { 
+  EnhancedDataValidator,
+  type ValidationResult,
+  type ValidationRuleConfig,
+  type ValidationError,
+  type DataQualityReport 
+} from './domain/services/enhanced-data-validator';
+export { 
+  useStructuralMatchingData,
+  useStructuralMatchingElement,
+  type UseStructuralMatchingDataConfig,
+  type UseStructuralMatchingDataResult 
+} from './ui/hooks/use-structural-matching-data';
+
 // 🎯 核心协调器
 export { StructuralMatchingCoordinator } from './structural-matching-coordinator';
 
@@ -101,3 +122,69 @@ export {
   stepCardNeedsInference,
   getInferenceServiceInstance
 } from './services/step-card-parameter-inference/public-api';
+
+// 📡 事件驱动架构
+export { 
+  StructuralMatchingEventBus,
+  type StructuralMatchingEventType,
+  type EventHandler,
+  type EventListenerConfig,
+  type EventStats,
+  type StructuralMatchingEvent,
+  type EventPayload
+} from './domain/events/structural-matching-event-bus';
+export * from './domain/events/structural-matching-event-types';
+export { 
+  useStructuralMatchingEvents,
+  useEventEmitter,
+  useEventListener,
+  type UseEventsConfig,
+  type UseEventsReturn,
+  type EventEmitter,
+  type EventListener
+} from './hooks/use-structural-matching-events';
+
+// 🛡️ 错误恢复和处理系统
+export { 
+  StructuralMatchingErrorRecoveryService,
+  type StructuralMatchingError,
+  type RecoveryResult,
+  type RecoveryConfig,
+  type UserFriendlyMessage,
+  type ErrorCategory,
+  type ErrorSeverity,
+  type RecoveryStrategy
+} from './domain/services/structural-matching-error-recovery-service';
+export { 
+  StructuralMatchingErrorBoundary,
+  withErrorBoundary,
+  useErrorBoundary,
+  type StructuralMatchingErrorBoundaryProps
+} from './ui/components/structural-matching-error-boundary';
+
+// 📊 监控和性能分析系统
+export { 
+  StructuralMatchingMetricsCollector,
+  type MetricType,
+  type MetricUnit,
+  type MetricTags,
+  type Metric,
+  type CounterMetric,
+  type GaugeMetric,
+  type HistogramMetric,
+  type TimerMetric,
+  type SetMetric,
+  type MetricAggregation,
+  type MetricsCollectorConfig
+} from './domain/services/structural-matching-metrics-collector';
+export { 
+  StructuralMatchingMonitoringService,
+  type MonitoringConfig,
+  type MonitoringAlert,
+  type SystemHealth,
+  type MonitoringReport
+} from './domain/services/structural-matching-monitoring-service';
+export { 
+  StructuralMatchingMonitoringDashboard,
+  type StructuralMatchingMonitoringDashboardProps
+} from './ui/components/structural-matching-monitoring-dashboard';
