@@ -289,20 +289,39 @@ private static cachedPages: CachedXmlPage[] | null = null; // 应用重启后重
 
 ## 总结
 
-**本次优化**：
+**三阶段优化**：
+
+### 第一阶段：修复循环依赖（基础优化）
 - 🔧 修复了组件层的循环依赖问题
 - ✅ 确保 Service 层的静态缓存机制生效
 - 📊 增加了缓存命中日志，便于追踪
 - 🚀 再次打开模态框时，从 3-5 秒降至 <100ms
 
+### 第二阶段：后台预加载（演示优化）⭐
+- 🎯 针对客户演示场景优化
+- ✅ 登录后自动在后台预加载缓存
+- 💯 首次打开"页面分析"瞬间显示
+- 🚀 提升演示专业度和客户印象
+
+### 第三阶段：智能策略（未来可选）
+- 📦 可考虑持久化缓存到本地存储（localStorage/IndexedDB）
+- 🔄 增量更新机制（只扫描新文件）
+- ⚡ 懒加载策略（先显示列表，后加载详情）
+
 **关键点**：
 - 静态缓存在应用生命周期内有效
+- 后台预加载不阻塞主界面渲染
 - 只在首次或主动刷新时扫描文件
 - 搜索功能不触发重新加载
+
+**核心价值**：
+- 🎯 **技术层面**：优化性能，提升响应速度
+- 💼 **商业层面**：改善演示体验，增强客户信心
 
 ---
 
 **修复完成时间**：2025-11-06  
-**文件路径**：  
-- `src/components/xml-cache/XmlCachePageSelector.tsx`  
-- `src/services/xml-page-cache-service.ts`
+**修改文件**：  
+- `src/components/xml-cache/XmlCachePageSelector.tsx` - 修复循环依赖
+- `src/services/xml-page-cache-service.ts` - 增强缓存日志
+- `src/components/auth/AuthGuard.tsx` - 登录后台预加载 ⭐

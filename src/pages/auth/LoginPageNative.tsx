@@ -32,6 +32,7 @@ import {
   InfoCircleOutlined,
 } from "@ant-design/icons";
 import { useAuthStore } from "../../stores/authStore";
+import { XmlPageCacheService } from "../../services/xml-page-cache-service";
 
 const { Content } = Layout;
 const { Title, Paragraph, Text } = Typography;
@@ -66,6 +67,33 @@ export const LoginPageNative: React.FC = () => {
     }
   }, [form]);
 
+  // 🚀 [演示优化] 登录页面加载完成后立即在后台预加载 XML 缓存
+  // 利用用户输入账号密码的时间进行预加载，首次打开"页面分析"时瞬间显示
+  React.useEffect(() => {
+    const preloadCache = async () => {
+      try {
+        const startTime = performance.now();
+        console.log('🔄 [LoginPage] 登录页面已加载，开始后台预加载 XML 缓存...');
+        console.log('💡 [LoginPage] 提示：此时用户正在输入账号密码，预加载不影响体验');
+        
+        await XmlPageCacheService.getCachedPages();
+        
+        const duration = (performance.now() - startTime).toFixed(0);
+        console.log(`✅ [LoginPage] XML 缓存预加载完成，耗时 ${duration}ms`);
+        console.log('🎯 [LoginPage] 现在首次打开"页面分析"将瞬间显示，完美演示体验！');
+      } catch (error) {
+        console.warn('⚠️ [LoginPage] XML 缓存预加载失败（不影响登录）:', error);
+      }
+    };
+
+    // 延迟 300ms 后开始预加载，确保登录页面已完全渲染
+    const timer = setTimeout(() => {
+      preloadCache();
+    }, 300);
+
+    return () => clearTimeout(timer);
+  }, []); // 只在组件挂载时执行一次
+
   const handleSubmit = async (values: LoginCredentials) => {
     setLoading(true);
     setError(null);
@@ -86,7 +114,7 @@ export const LoginPageNative: React.FC = () => {
         }
       }
       // 登录成功后，AuthGuard 会自动切换到主应用
-    } catch (err) {
+    } catch {
       setError("登录失败，请重试");
     } finally {
       setLoading(false);
