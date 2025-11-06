@@ -91,7 +91,7 @@ fn main() {
 
     info!("🚀 启动EmployeeGUI应用程序 (重构版本)");
     info!("📊 日志级别: DEBUG (开发模式)");
-    info!("🎯 命令注册: 76个命令按10个功能模块分组");
+    info!("🎯 命令注册: 84个命令按10个功能模块分组");
 
     let employee_service = EmployeeService::new().expect("Failed to initialize employee service");
     let adb_service = AdbService::new();
@@ -201,9 +201,11 @@ fn main() {
             backend_ping, analysis_health_check, get_adb_path_cmd, get_environment_info,
             test_device_responsiveness, run_full_diagnostic,
             
-            // ==================== 🔮 分析缓存 (5个命令) ====================
+            // ==================== 🔮 分析缓存 (10个命令) ====================
             parse_cached_xml_to_elements, link_step_snapshot, unlink_step_snapshot,
             get_snapshot_reference_info, get_all_snapshot_references,
+            register_snapshot_cmd, get_subtree_metrics_cmd, try_get_subtree_metrics_cmd,
+            batch_get_subtree_metrics_cmd, get_cache_stats_cmd,
             
             // ==================== 📋 版本控制 (15个命令) ==================== 
             init_version_control, create_version, query_versions, create_branch,
