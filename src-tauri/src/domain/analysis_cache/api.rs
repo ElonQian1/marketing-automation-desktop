@@ -5,13 +5,17 @@
 use super::{DOM_CACHE, SUBTREE_CACHE, SnapshotId, SubtreeKey, DomIndex, SubtreeMetrics};
 use xxhash_rust::xxh3::xxh3_64;
 use anyhow::Result;
+use std::path::PathBuf;
 
 /// 注册XML快照，返回SnapshotId
 pub fn register_snapshot(xml_content: &str) -> SnapshotId {
-    let snapshot_id = generate_snapshot_id(xml_content);
+    // 尝试从XML内容中提取原始文件名作为snapshot_id
+    let snapshot_id = extract_xml_cache_id_from_content(xml_content)
+        .unwrap_or_else(|| generate_snapshot_id(xml_content));
     
     // 如果已存在则直接返回
     if DOM_CACHE.contains_key(&snapshot_id) {
+        tracing::debug!("快照已存在，直接返回: snapshot_id={}", snapshot_id);
         return snapshot_id;
     }
     
@@ -25,9 +29,77 @@ pub fn register_snapshot(xml_content: &str) -> SnapshotId {
     snapshot_id
 }
 
-/// 获取DOM索引
+/// 获取DOM索引（支持磁盘加载）
 pub fn get_dom(snapshot_id: &SnapshotId) -> Option<DomIndex> {
-    DOM_CACHE.get(snapshot_id).map(|v| v.clone())
+    // 1. 先尝试内存缓存
+    if let Some(dom) = DOM_CACHE.get(snapshot_id).map(|v| v.clone()) {
+        return Some(dom);
+    }
+    
+    // 2. 内存缓存未命中，尝试从磁盘加载
+    if let Some(dom) = load_dom_from_disk(snapshot_id) {
+        // 加载成功后放入内存缓存
+        DOM_CACHE.insert(snapshot_id.clone(), dom.clone());
+        tracing::info!("从磁盘加载快照到内存缓存: snapshot_id={}", snapshot_id);
+        return Some(dom);
+    }
+    
+    None
+}
+
+/// 从磁盘加载DOM索引
+fn load_dom_from_disk(snapshot_id: &SnapshotId) -> Option<DomIndex> {
+    use std::fs;
+    use std::path::PathBuf;
+    
+    // 获取debug_xml目录路径
+    let debug_xml_dir = get_debug_xml_dir();
+    
+    // 如果snapshot_id已经是完整的文件名（ui_dump_xxxxx.xml），直接使用
+    if snapshot_id.ends_with(".xml") {
+        let file_path = debug_xml_dir.join(snapshot_id);
+        if file_path.exists() {
+            if let Ok(xml_content) = fs::read_to_string(&file_path) {
+                tracing::info!("从磁盘加载XML快照: {}", file_path.display());
+                return Some(DomIndex::new(xml_content));
+            }
+        }
+    }
+    
+    // 尝试其他可能的文件名格式
+    let potential_files = [
+        format!("{}.xml", snapshot_id),
+        format!("ui_dump_{}.xml", snapshot_id),
+        snapshot_id.clone(), // 如果snapshot_id本身就是文件名
+    ];
+    
+    for file_name in &potential_files {
+        let file_path = debug_xml_dir.join(file_name);
+        if file_path.exists() {
+            if let Ok(xml_content) = fs::read_to_string(&file_path) {
+                tracing::info!("从磁盘加载XML快照: {}", file_path.display());
+                return Some(DomIndex::new(xml_content));
+            }
+        }
+    }
+    
+    tracing::warn!("未在磁盘找到快照文件: snapshot_id={}, 搜索目录={}", 
+                   snapshot_id, debug_xml_dir.display());
+    None
+}
+
+/// 获取debug_xml目录路径
+fn get_debug_xml_dir() -> PathBuf {
+    use std::env;
+    use std::path::PathBuf;
+    
+    // 使用与xml_cache相同的逻辑
+    if let Ok(current_dir) = env::current_dir() {
+        let project_root = current_dir.parent().unwrap_or(&current_dir);
+        project_root.join("debug_xml")
+    } else {
+        PathBuf::from("debug_xml")
+    }
 }
 
 /// 获取或计算子树指标（核心缓存逻辑）
@@ -58,6 +130,27 @@ pub fn get_or_compute_subtree(snapshot_id: &SnapshotId, abs_xpath: &str) -> Resu
 pub fn try_get_subtree(snapshot_id: &SnapshotId, abs_xpath: &str) -> Option<SubtreeMetrics> {
     let key: SubtreeKey = (snapshot_id.clone(), abs_xpath.to_string());
     SUBTREE_CACHE.get(&key).map(|v| v.clone())
+}
+
+/// 从XML内容中提取原始的xmlCacheId
+fn extract_xml_cache_id_from_content(xml_content: &str) -> Option<String> {
+    // 查找XML注释中的缓存ID信息
+    if let Some(start) = xml_content.find("<!-- XML Cache ID: ") {
+        let start = start + "<!-- XML Cache ID: ".len();
+        if let Some(end) = xml_content[start..].find(" -->") {
+            let cache_id = &xml_content[start..start + end];
+            return Some(cache_id.to_string());
+        }
+    }
+    
+    // 查找文件名模式 (ui_dump_xxxxx_timestamp.xml)
+    if let Ok(re) = regex::Regex::new(r"ui_dump_[a-f0-9]+_\d+\.xml") {
+        if let Some(mat) = re.find(xml_content) {
+            return Some(mat.as_str().to_string());
+        }
+    }
+    
+    None
 }
 
 /// 生成快照ID（基于XML内容哈希）

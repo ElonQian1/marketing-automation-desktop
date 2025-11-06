@@ -7,6 +7,7 @@ import { useAuthStore } from '../../stores/authStore';
 import { LoginPageNative } from '../../pages/auth/LoginPageNative';
 import { Modal, Button, Typography, Space, Progress, Spin } from 'antd';
 import { WarningOutlined, ClockCircleOutlined } from '@ant-design/icons';
+import { XmlPageCacheService } from '../../services/xml-page-cache-service';
 
 const { Title, Text, Paragraph } = Typography;
 
@@ -58,6 +59,29 @@ export const AuthGuard: React.FC<AuthGuardProps> = ({ children }) => {
         }
       }
       setIsChecking(false);
+
+      // 🚀 [优化] 登录成功后在后台预加载 XML 缓存
+      // 这样首次打开"页面分析"时可以瞬间显示，提升演示体验
+      const preloadCache = async () => {
+        try {
+          const startTime = performance.now();
+          console.log('🔄 [AuthGuard] 开始后台预加载 XML 缓存...');
+          
+          await XmlPageCacheService.getCachedPages();
+          
+          const duration = (performance.now() - startTime).toFixed(0);
+          console.log(`✅ [AuthGuard] XML 缓存预加载完成，耗时 ${duration}ms`);
+        } catch (error) {
+          console.warn('⚠️ [AuthGuard] XML 缓存预加载失败（不影响主流程）:', error);
+        }
+      };
+
+      // 延迟 500ms 后开始预加载，避免影响主界面渲染
+      const timer = setTimeout(() => {
+        preloadCache();
+      }, 500);
+
+      return () => clearTimeout(timer);
     } else {
       setIsChecking(false);
     }

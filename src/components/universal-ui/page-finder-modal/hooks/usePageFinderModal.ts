@@ -317,6 +317,16 @@ export const usePageFinderModal = (props: UsePageFinderModalProps): UsePageFinde
       const cacheManager = XmlCacheManager.getInstance();
       cacheManager.putXml(xmlCacheId, xmlContent, `sha256:${snapshot.xmlHash}`);
       
+      // 🆕 注册XML到分析缓存系统，在XML内容前添加缓存ID注释
+      try {
+        const xmlWithCacheId = `<!-- XML Cache ID: ${xmlCacheId} -->\n${xmlContent}`;
+        const snapshotId = await registerSnapshot(xmlWithCacheId);
+        setCurrentSnapshotId(snapshotId);
+        console.log('✅ [usePageFinderModal] 分析缓存注册成功:', { xmlCacheId, snapshotId });
+      } catch (error) {
+        console.error('❌ [usePageFinderModal] 分析缓存注册失败:', error);
+      }
+      
       console.log('✅ [usePageFinderModal] XML已保存到缓存:', {
         xmlCacheId,
         xmlFileName: result.xmlFileName,

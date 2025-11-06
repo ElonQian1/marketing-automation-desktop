@@ -72,7 +72,10 @@ export class XmlPageCacheService {
    */
   static async getCachedPages(): Promise<CachedXmlPage[]> {
     if (this.cachedPages === null) {
+      console.log('📦 [缓存] 首次加载或缓存已清空，开始扫描 XML 文件...');
       await this.loadCachedPages();
+    } else {
+      console.log(`✅ [缓存] 使用内存缓存，已有 ${this.cachedPages.length} 个页面，无需重新扫描`);
     }
     return this.cachedPages || [];
   }

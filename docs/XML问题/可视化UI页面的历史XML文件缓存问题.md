@@ -1,30 +1,3 @@
-UniversalPageFinderModal.tsx:146 🔧 [Debug] 强制重置过滤器配置为无过滤状态
-UniversalPageFinderModal.tsx:146 🔧 [Debug] 强制重置过滤器配置为无过滤状态
-zIndexManager.ts:89 📐 [ZIndexManager] 注销模态框: universal-page-finder-modal {activeModals: Array(0), totalActive: 0}
-useElementSelectionManager.ts:219 🧹 [ElementSelectionManager] 执行全局清理
-useElementSelectionManager.ts:235 ✅ [ElementSelectionManager] 全局清理完成
-zIndexManager.ts:89 📐 [ZIndexManager] 注销模态框: universal-page-finder-modal {activeModals: Array(0), totalActive: 0}
-zIndexManager.ts:120 📐 [ZIndexManager] 清理所有模态框
-useElementSelectionManager.ts:219 🧹 [ElementSelectionManager] 执行全局清理
-useElementSelectionManager.ts:235 ✅ [ElementSelectionManager] 全局清理完成
-zIndexManager.ts:89 📐 [ZIndexManager] 注销模态框: universal-page-finder-modal {activeModals: Array(0), totalActive: 0}
-intelligent-analysis-backend-v3.ts:321 ✅ V3系统可用 - 设备 intelligent-analysis 智能策略分析正常运行
-feature-flags.ts:184 ✅ V3健康检查完成: 健康
-intelligent-analysis-backend-v3.ts:321 ✅ V3系统可用 - 设备 intelligent-analysis 智能策略分析正常运行
-feature-flags.ts:184 ✅ V3健康检查完成: 健康
-adbStore.ts:121 🔄 [adbStore] setDevices 被调用: {deviceCount: 0, deviceIds: Array(0)}
-adbStore.ts:131 ✅ [adbStore] devices 状态已更新
-adb-application-service.ts:495 👁️ [AdbApplicationService] 启动设备监听服务...
-RealTimeDeviceRepository.ts:209 🔌 [RealTimeDeviceRepository] 移除设备变化监听器: {callbackCount: 0}
-RealTimeDeviceRepository.ts:166 🔗 [RealTimeDeviceRepository] 注册设备变化监听器: {callbackCount: 1}
-RealTimeDeviceRepository.ts:242 ✅ [RealTimeDeviceRepository] 监听器健康检查通过，回调数量: 2
-adb-health-service.ts:33 🏥 [AdbHealthService] 启动健康检查...
-adb-health-service.ts:74 🔍 [AdbHealthService] 定期诊断检查已启动
-adb-application-service.ts:118 ✅ [AdbApplicationService] ADB环境初始化完成
-DebounceUpdateStrategy.ts:120 [DebounceStrategy] 📱 收到设备变化: {deviceCount: 0, deviceIds: Array(0)}
-DebounceUpdateStrategy.ts:120 [DebounceStrategy] ✅ 已更新设备列表(兜底): {oldCount: 0, newCount: 0}
-adbStore.ts:121 🔄 [adbStore] setDevices 被调用: {deviceCount: 0, deviceIds: Array(0)}
-adbStore.ts:131 ✅ [adbStore] devices 状态已更新
 zIndexManager.ts:74 📐 [ZIndexManager] 注册模态框: universal-page-finder-modal, z-index: 1060 {activeModals: Array(1), totalActive: 1}
 VisualElementView.tsx:520  ❌ [VisualElementView] 无可用元素数据
 VisualElementView @ VisualElementView.tsx:520
@@ -42,7 +15,7 @@ performWorkUntilDeadline @ scheduler.development.js:45
 <VisualElementView>
 exports.jsxDEV @ react-jsx-dev-runtime.development.js:346
 renderViewContent @ UniversalPageFinderModal.tsx:333
-UniversalPageFinderModal @ UniversalPageFinderModal.tsx:463
+UniversalPageFinderModal @ UniversalPageFinderModal.tsx:466
 react_stack_bottom_frame @ react-dom-client.development.js:23863
 renderWithHooksAgain @ react-dom-client.development.js:5629
 renderWithHooks @ react-dom-client.development.js:5541
@@ -72,7 +45,7 @@ performWorkUntilDeadline @ scheduler.development.js:45
 <VisualElementView>
 exports.jsxDEV @ react-jsx-dev-runtime.development.js:346
 renderViewContent @ UniversalPageFinderModal.tsx:333
-UniversalPageFinderModal @ UniversalPageFinderModal.tsx:463
+UniversalPageFinderModal @ UniversalPageFinderModal.tsx:466
 react_stack_bottom_frame @ react-dom-client.development.js:23863
 renderWithHooksAgain @ react-dom-client.development.js:5629
 renderWithHooks @ react-dom-client.development.js:5541
@@ -135,7 +108,7 @@ performWorkUntilDeadline @ scheduler.development.js:45
 <VisualElementView>
 exports.jsxDEV @ react-jsx-dev-runtime.development.js:346
 renderViewContent @ UniversalPageFinderModal.tsx:333
-UniversalPageFinderModal @ UniversalPageFinderModal.tsx:463
+UniversalPageFinderModal @ UniversalPageFinderModal.tsx:466
 react_stack_bottom_frame @ react-dom-client.development.js:23863
 renderWithHooksAgain @ react-dom-client.development.js:5629
 renderWithHooks @ react-dom-client.development.js:5541
@@ -171,7 +144,7 @@ performWorkUntilDeadline @ scheduler.development.js:45
 <VisualElementView>
 exports.jsxDEV @ react-jsx-dev-runtime.development.js:346
 renderViewContent @ UniversalPageFinderModal.tsx:333
-UniversalPageFinderModal @ UniversalPageFinderModal.tsx:463
+UniversalPageFinderModal @ UniversalPageFinderModal.tsx:466
 react_stack_bottom_frame @ react-dom-client.development.js:23863
 renderWithHooksAgain @ react-dom-client.development.js:5629
 renderWithHooks @ react-dom-client.development.js:5541
@@ -280,18 +253,6 @@ xml-page-cache-service.ts:342 🕐 时间戳解析: 20250928_090516 -> UTC: Sun,
 xml-page-cache-service.ts:277 ℹ️ 未找到对应截图: ui_dump_AHXVCP3526428590_20250928_090341.png 缓存文件不存在: ui_dump_AHXVCP3526428590_20250928_090341.png (尝试于: D:\rust\active-projects\小红书\employeeGUI\debug_xml 与 D:\rust\active-projects\小红书\employeeGUI\src-tauri\debug_xml)
 xml-page-cache-service.ts:342 🕐 时间戳解析: 20250928_090341 -> UTC: Sun, 28 Sep 2025 09:03:41 GMT -> 本地: 2025/9/28 17:03:41
 xml-page-cache-service.ts:242 ✅ 成功加载 41 个缓存页面
-Thumbnail.tsx:78 🔍 尝试加载图片: \\?\D:\rust\active-projects\小红书\employeeGUI\debug_xml\ui_dump_e0d909c3_20251030_122312.png
-imageCache.ts:64 📡 从后端加载图片: \\?\D:\rust\active-projects\小红书\employeeGUI\debug_xml\ui_dump_e0d909c3_20251030_122312.png
-Thumbnail.tsx:78 🔍 尝试加载图片: \\?\D:\rust\active-projects\小红书\employeeGUI\debug_xml\ui_dump_e0d909c3_20251030_115111.png
-imageCache.ts:64 📡 从后端加载图片: \\?\D:\rust\active-projects\小红书\employeeGUI\debug_xml\ui_dump_e0d909c3_20251030_115111.png
 xml-page-cache-service.ts:277 ℹ️ 未找到对应截图: ui_dump_AHXVCP3526428590_20250928_090341.png 缓存文件不存在: ui_dump_AHXVCP3526428590_20250928_090341.png (尝试于: D:\rust\active-projects\小红书\employeeGUI\debug_xml 与 D:\rust\active-projects\小红书\employeeGUI\src-tauri\debug_xml)
 xml-page-cache-service.ts:342 🕐 时间戳解析: 20250928_090341 -> UTC: Sun, 28 Sep 2025 09:03:41 GMT -> 本地: 2025/9/28 17:03:41
 xml-page-cache-service.ts:242 ✅ 成功加载 41 个缓存页面
-debugUtils.ts:47 ⚡ 性能指标 [图片加载-ui_dump_e0d909c3_20251030_115111.png]: 184.50ms
-imageCache.ts:72 ✅ 图片加载成功: \\?\D:\rust\active-projects\小红书\employeeGUI\debug_xml\ui_dump_e0d909c3_20251030_115111.png (820.8KB)
-Thumbnail.tsx:81 📊 设置 data URL 源 (820.8KB)
-debugUtils.ts:47 ⚡ 性能指标 [图片加载-ui_dump_e0d909c3_20251030_122312.png]: 190.20ms
-imageCache.ts:72 ✅ 图片加载成功: \\?\D:\rust\active-projects\小红书\employeeGUI\debug_xml\ui_dump_e0d909c3_20251030_122312.png (1859.0KB)
-Thumbnail.tsx:81 📊 设置 data URL 源 (1859.0KB)
-Thumbnail.tsx:207 ✅ 图片渲染成功: data (1858KB)
-Thumbnail.tsx:207 ✅ 图片渲染成功: data (820KB)

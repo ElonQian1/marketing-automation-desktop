@@ -97,7 +97,7 @@ export const XmlCachePageSelector: React.FC<XmlCachePageSelectorProps> = ({
       const stats = await XmlPageCacheService.getCacheStats();
 
       setCachedPages(pages);
-      setFilteredPages(applyFiltering(pages, searchText));
+      setFilteredPages(applyFiltering(pages, "")); // 首次加载不过滤
       setCacheStats(stats);
 
       if (pages.length === 0) {
@@ -109,11 +109,13 @@ export const XmlCachePageSelector: React.FC<XmlCachePageSelectorProps> = ({
     } finally {
       setLoading(false);
     }
-  }, [applyFiltering, searchText]);
+  }, [applyFiltering, message]);
 
+  // ✅ 只在组件首次挂载时加载一次，利用 Service 层的静态缓存
   useEffect(() => {
     loadCachedPages();
-  }, [loadCachedPages]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []); // 空依赖数组 - 只执行一次
 
   // 刷新缓存
   const handleRefresh = useCallback(async () => {
@@ -125,13 +127,15 @@ export const XmlCachePageSelector: React.FC<XmlCachePageSelectorProps> = ({
       console.error("❌ 刷新缓存失败:", error);
       message.error("刷新缓存失败");
     }
-  }, [loadCachedPages]);
+  }, [loadCachedPages, message]);
 
-  // 搜索过滤
+  // 搜索过滤 - 直接在本地数据上过滤，不触发重新加载
   const handleSearch = useCallback(
     (value: string) => {
       setSearchText(value);
-      setFilteredPages(applyFiltering(cachedPages, value));
+      const filtered = applyFiltering(cachedPages, value);
+      setFilteredPages(filtered);
+      console.log(`🔍 本地搜索过滤: "${value}" -> ${filtered.length}/${cachedPages.length} 个结果`);
     },
     [applyFiltering, cachedPages]
   );
@@ -151,7 +155,7 @@ export const XmlCachePageSelector: React.FC<XmlCachePageSelectorProps> = ({
         message.error("删除页面失败");
       }
     },
-    [loadCachedPages]
+    [loadCachedPages, message]
   );
 
   // 复制绝对路径
@@ -168,7 +172,7 @@ export const XmlCachePageSelector: React.FC<XmlCachePageSelectorProps> = ({
       console.error("❌ 复制 XML 绝对路径失败:", error);
       message.error("复制失败，请检查剪贴板权限");
     }
-  }, []);
+  }, [message]);
 
   // 在文件管理器中打开
   const handleRevealInFileManager = useCallback(async (page: CachedXmlPage) => {
@@ -179,7 +183,7 @@ export const XmlCachePageSelector: React.FC<XmlCachePageSelectorProps> = ({
       console.error("❌ 打开文件管理器失败:", error);
       message.error("打开文件管理器失败");
     }
-  }, []);
+  }, [message]);
 
   // 选择页面
   const handlePageSelect = useCallback(
@@ -198,7 +202,7 @@ export const XmlCachePageSelector: React.FC<XmlCachePageSelectorProps> = ({
         duration: 2,
       });
     },
-    [onPageSelected]
+    [onPageSelected, message]
   );
 
   return (
