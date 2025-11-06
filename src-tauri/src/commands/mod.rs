@@ -26,6 +26,7 @@ pub mod structural_matching; // 🆕 新增结构匹配命令
 pub mod structure_match_runtime; // 🚀 新增结构匹配运行时命令
 pub mod ui_dump; // 🆕 新增UI Dump命令
 pub mod analysis_cache; // 🆕 新增分析缓存命令
+pub mod image_optimization; // 🚀 新增图片优化命令
 
 // 可选：统一 re-export，方便 main.rs 引入
 // pub use action_execution::*; // 操作执行命令（暂时注释）

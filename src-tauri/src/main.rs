@@ -42,6 +42,11 @@ use crate::exec::v3::commands::{
     execute_static_strategy_test_v3, execute_task_v3
 };
 
+// ==================== 🖼️ 图片优化命令 ====================
+use crate::commands::image_optimization::{
+    load_image_optimized, generate_thumbnail_backend, preload_images_batch
+};
+
 // ==================== 🎯 版本控制系统命令 ====================
 use crate::domain::analysis_cache::version_commands::{
     init_version_control, create_version, query_versions, create_branch, 
@@ -186,6 +191,9 @@ fn main() {
             // ==================== 🚀 V3执行引擎 (4个命令) ====================
             execute_single_step_test_v3, execute_chain_test_v3, execute_static_strategy_test_v3, execute_task_v3,
             
+            // ==================== 🖼️ 图片优化 (3个命令) ====================
+            load_image_optimized, generate_thumbnail_backend, preload_images_batch,
+            
             // ==================== 🎯 智能选择 (3个命令) ====================
             save_smart_selection_config, get_smart_selection_stats, validate_smart_selection_protocol,
             
@@ -209,6 +217,7 @@ fn main() {
 }
 
 // ==================== 📊 重构效果总结 ====================
+// ✅ 总命令数: 79个 (原72个 + V3引擎4个 + 图片优化3个)
 // ✅ 代码行数: 保持功能完整性的同时，提升了代码组织结构
 // ✅ 命令组织: 从混乱列表 → 9个清晰功能分组 
 // ✅ 可读性: 从 2/10 → 9/10 (按功能分组，一目了然)

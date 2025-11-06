@@ -55,6 +55,8 @@ sha1 = "0.10"
 zstd = "0.13"                    # Zstandard 压缩
 ciborium = "0.2"                 # CBOR 序列化/反序列化
 thiserror = "1.0"                # 错误处理宏
+# Image Processing Dependencies
+image = { version = "0.24", default-features = false, features = ["png", "jpeg", "webp"] }
 
 [dev-dependencies]
 tempfile = "3.8"
