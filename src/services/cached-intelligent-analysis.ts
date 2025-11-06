@@ -61,6 +61,13 @@ export class CachedIntelligentAnalysisService {
     } catch (error) {
       console.error('❌ [CachedAnalysis] 分析失败:', error);
       
+      // 自愈机制：尝试重建快照
+      const rebuiltResult = await this.tryRebuildSnapshot(snapshotId, element, absXPath);
+      if (rebuiltResult) {
+        console.log('🔧 [CachedAnalysis] 快照自愈成功，重新分析');
+        return rebuiltResult;
+      }
+      
       // 降级处理：返回基于元素信息的简单分析
       return this.fallbackAnalysis(element, Date.now() - startTime);
     }
@@ -196,6 +203,56 @@ export class CachedIntelligentAnalysisService {
     }
     
     return reasons.join('；');
+  }
+  
+  /**
+   * 尝试重建丢失的快照
+   */
+  private async tryRebuildSnapshot(
+    snapshotId: string, 
+    element: UIElement, 
+    absXPath: string
+  ): Promise<CachedAnalysisResult | null> {
+    try {
+      console.log('🔧 [CachedAnalysis] 尝试重建快照:', snapshotId);
+      
+      // 1. 检查是否可以从当前UI重新获取快照
+      const { useAdb } = await import('../application/store/adbStore');
+      const adbStore = useAdb.getState();
+      const selectedDevice = adbStore.getSelectedDevice();
+      
+      if (!selectedDevice) {
+        console.warn('⚠️ [CachedAnalysis] 无选中设备，无法重建快照');
+        return null;
+      }
+      
+      // 2. 重新获取当前页面的XML
+      const { invoke } = await import('@tauri-apps/api/core');
+      const xmlContent = await invoke<string>('get_ui_dump', {
+        deviceId: selectedDevice.id
+      });
+      
+      // 3. 重新注册快照
+      const { registerSnapshot } = await import('../api/analysis-cache');
+      const newSnapshotId = await registerSnapshot(xmlContent);
+      
+      console.log('✅ [CachedAnalysis] 快照重建成功:', {
+        oldSnapshotId: snapshotId,
+        newSnapshotId: newSnapshotId
+      });
+      
+      // 4. 使用新快照重新分析
+      const startTime = Date.now();
+      const { getSubtreeMetrics } = await import('../api/analysis-cache');
+      const metrics = await getSubtreeMetrics(newSnapshotId, absXPath);
+      const analysisTime = Date.now() - startTime;
+      
+      return this.convertMetricsToResult(metrics, analysisTime, false);
+      
+    } catch (error) {
+      console.warn('⚠️ [CachedAnalysis] 快照重建失败:', error);
+      return null;
+    }
   }
   
   /**
