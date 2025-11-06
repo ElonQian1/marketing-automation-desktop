@@ -153,9 +153,10 @@ fn main() {
             // ==================== 🏢 员工管理 (4个命令) ====================
             get_employees, add_employee, update_employee, delete_employee,
             
-            // ==================== 🔧 ADB核心 (8个命令) ====================  
+            // ==================== 🔧 ADB核心 (9个命令) ====================  
             execute_adb_command, get_adb_devices, get_adb_version, connect_adb_device,
             disconnect_adb_device, start_adb_server, kill_adb_server, validate_device_connection,
+            get_ui_dump,
             
             // ==================== 🔧 ADB扩展 (9个命令) ====================
             get_device_properties, start_device_tracking, stop_device_tracking, get_tracked_devices,
