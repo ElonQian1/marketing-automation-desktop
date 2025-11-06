@@ -48,10 +48,7 @@ export const StructuralMatchingModal: React.FC<StructuralMatchingModalProps> = (
     detectAndApplyTemplate,
     appliedTemplate,
     generateStructuralSignatures,
-  } = useHierarchicalMatchingModal({
-    selectedElement,
-    initialConfig,
-  });
+  } = useHierarchicalMatchingModal(selectedElement);
 
   const handleGenerateStructuralSnapshot = useCallback(async () => {
     if (!selectedElement) return;
@@ -106,6 +103,20 @@ export const StructuralMatchingModal: React.FC<StructuralMatchingModalProps> = (
   };
 
   const handleConfirm = () => {
+    console.log('🔥 [关键调试] 模态框确认时的原始数据检查:');
+    console.log('📊 selectedElement详情:', {
+      exists: !!selectedElement,
+      id: selectedElement?.id,
+      resource_id: selectedElement?.resource_id,
+      content_desc: selectedElement?.content_desc,
+      text: selectedElement?.text,
+      class_name: selectedElement?.class_name,
+      bounds: selectedElement?.bounds,
+      xmlCacheId: selectedElement?.xmlCacheId,
+      allKeys: selectedElement ? Object.keys(selectedElement) : [],
+      hasChildren: selectedElement?.children ? Array.isArray(selectedElement.children) ? selectedElement.children.length : 'not array' : 'undefined'
+    });
+    
     if (isConfigValid && selectedElement) {
       try {
         // 🚀 自动生成基于真实DOM的结构快照
@@ -117,6 +128,16 @@ export const StructuralMatchingModal: React.FC<StructuralMatchingModalProps> = (
         });
         
         console.log('🏗️ [Modal] 确认时生成的结构快照:', snapshot);
+        
+        // 🔍 对比Hook生成的数据与StructuralSnapshotGenerator的数据
+        const hookSignatures = generateStructuralSignatures();
+        console.log('📋 [Modal] Hook生成的结构签名:', hookSignatures);
+        console.log('🆚 [Modal] 数据来源对比:', {
+          snapshotGenerator: '使用selectedElement直接生成',
+          hookGenerator: '使用Hook闭包中的selectedElement',
+          selectedElementInModal: !!selectedElement,
+          selectedElementKeys: selectedElement ? Object.keys(selectedElement) : []
+        });
         
         // 从快照中提取结构签名
         let structuralSignatures = null;

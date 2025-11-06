@@ -56,7 +56,7 @@ export function useParsedVisualElements(
       
       // 转换为旧格式以兼容现有代码
       const extracted: VisualUIElement[] = parseResult.elements.map((el, index) => ({
-        id: `element_${index}`,
+        id: el.id || `element_${index}`, // 🔧 修复：使用XML解析器提供的真实ID，确保前后端一致
         text: el.text || "",
         description: el.contentDesc || `${el.text || el.className}${el.clickable ? "（可点击）" : ""}`,
         type: el.className.split(".").pop() || "Unknown",
@@ -75,6 +75,11 @@ export function useParsedVisualElements(
           class: el.className,
           clickable: el.clickable ? "true" : "false",
         } as any),
+        // 🔧 新增：保留原始XML属性，确保convertVisualToUIElement能正确访问
+        resourceId: el.resourceId,
+        contentDesc: el.contentDesc,
+        className: el.className,
+        bounds: el.bounds,
       }));
 
       // 构建分类映射

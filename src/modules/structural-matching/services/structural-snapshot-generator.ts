@@ -84,6 +84,12 @@ export class StructuralSnapshotGenerator {
       hasChildren: !!selectedElement.children,
       childrenCount: Array.isArray(selectedElement.children) ? selectedElement.children.length : 0
     });
+    
+    console.log('🔥 [Critical Debug] 完整selectedElement原始对象:');
+    console.log(selectedElement);
+    console.log('🔥 [Critical Debug] selectedElement.constructor.name:', selectedElement.constructor.name);
+    console.log('🔥 [Critical Debug] JSON.stringify(selectedElement):');
+    console.log(JSON.stringify(selectedElement, null, 2));
 
     // 1. 🏗️ 自动分析容器锚点
     const container = this.analyzeContainer(selectedElement);
@@ -298,14 +304,54 @@ export class StructuralSnapshotGenerator {
       }, {} as Record<string, unknown>)
     });
 
+    // 🔍 详细展开所有字段内容
+    console.log('📋 [详细字段展开] element完整数据结构:');
+    elementFields.forEach(field => {
+      console.log(`  ${field}:`, element[field]);
+    });
+    
+    // 🔍 特别关注的字段详细检查
+    const keyFields = ['resource_id', 'resourceId', 'resource-id', 'content_desc', 'contentDesc', 'content-desc', 'text', 'elementText', 'class_name', 'className', 'bounds', 'clickable'];
+    console.log('🎯 [关键字段检查] 重点字段详情:');
+    keyFields.forEach(field => {
+      if (element.hasOwnProperty(field) || element[field] !== undefined) {
+        console.log(`  ✓ ${field}:`, element[field], `(type: ${typeof element[field]})`);
+      } else {
+        console.log(`  ✗ ${field}: undefined`);
+      }
+    });
+
     // 1. resource_id 规则
-    const resourceId = (targetElement.resource_id || targetElement.resourceId || '').toString().trim();
-    if (resourceId && !resourceId.includes('obfuscated')) {
-      rules.push({
-        resource_id: resourceId,
-        presence_only: true // 有值就匹配，不要求完全相等
-      });
+    const resourceId = (targetElement.resource_id || targetElement.resourceId || targetElement['resource-id'] || '').toString().trim();
+    console.log('🔍 [Debug] resource_id字段详细分析:');
+    console.log('  原始字段值:');
+    console.log('    targetElement.resource_id:', targetElement.resource_id);
+    console.log('    targetElement.resourceId:', targetElement.resourceId);
+    console.log('    targetElement["resource-id"]:', targetElement['resource-id']);
+    console.log('  计算结果:');
+    console.log('    computed_resourceId:', resourceId);
+    console.log('    resourceId_length:', resourceId.length);
+    console.log('    includes_obfuscated:', resourceId.includes('obfuscated'));
+    
+    if (resourceId) {
+      // 🔧 [Bug修复] obfuscated的resource_id也是有效字段，不应该被排除
+      if (resourceId.includes('obfuscated')) {
+        console.log('✅ [Debug] 检测到obfuscated resource_id，生成presence_only规则');
+        // obfuscated的ID用存在性匹配，不要求精确等值
+        rules.push({
+          resource_id: resourceId,
+          presence_only: true // 有obfuscated ID就匹配，不要求完全相等
+        });
+      } else {
+        console.log('✅ [Debug] 检测到普通resource_id，生成presence_only规则');
+        // 非obfuscated的ID可以精确匹配
+        rules.push({
+          resource_id: resourceId,
+          presence_only: true // 有值就匹配
+        });
+      }
     } else {
+      console.log('❌ [Debug] resource_id为空，生成must_be_empty规则');
       rules.push({
         resource_id: '',
         must_be_empty: true // 原来为空，要求继续为空
@@ -319,15 +365,29 @@ export class StructuralSnapshotGenerator {
       targetElement.content_description ||
       targetElement.contentDescription ||
       targetElement.description ||
+      targetElement['content-desc'] ||
       ''
     ).toString().trim();
     
+    console.log('🔍 [Debug] content_desc字段详细分析:');
+    console.log('  原始字段值:');
+    console.log('    targetElement.content_desc:', targetElement.content_desc);
+    console.log('    targetElement.contentDesc:', targetElement.contentDesc);
+    console.log('    targetElement["content-desc"]:', targetElement['content-desc']);
+    console.log('    targetElement.content_description:', targetElement.content_description);
+    console.log('    targetElement.description:', targetElement.description);
+    console.log('  计算结果:');
+    console.log('    computed_contentDesc:', contentDesc);
+    console.log('    contentDesc_length:', contentDesc.length);
+    
     if (contentDesc) {
+      console.log('✅ [Debug] 检测到content_desc内容，生成presence_only规则');
       rules.push({
         content_desc: contentDesc,
         presence_only: true // 有内容描述就算匹配
       });
     } else {
+      console.log('❌ [Debug] content_desc为空，生成must_be_empty规则');
       rules.push({
         content_desc: '',
         must_be_empty: true // 原来无描述，要求继续无描述
@@ -529,13 +589,14 @@ export class StructuralSnapshotGenerator {
 
     // 2. resource_id 分析  
     const resourceId = (element.resource_id || element.resourceId || '').toString().trim();
-    if (resourceId && !resourceId.includes('obfuscated')) {
+    if (resourceId) {
+      // 🔧 [Bug修复] obfuscated的resource_id也是有效字段
       rules.push({
         resource_id: resourceId,
         presence_only: true,
         position_hint: elementPath
       });
-    } else if (resourceId === '') {
+    } else {
       rules.push({
         resource_id: '',
         must_be_empty: true,
