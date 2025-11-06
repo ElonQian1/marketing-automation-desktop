@@ -265,6 +265,88 @@ class XmlCachePerformanceMonitor {
 // 导出单例
 export const xmlCachePerformanceMonitor = XmlCachePerformanceMonitor.getInstance();
 
+// React Hook for using performance monitor
+import { useState, useEffect, useCallback } from 'react';
+
+interface UseXmlCachePerformanceMonitorOptions {
+  enableMetrics?: boolean;
+  onPerformanceUpdate?: (metrics: CachePerformanceMetrics) => void;
+}
+
+interface UseXmlCachePerformanceMonitorReturn {
+  metrics: CachePerformanceMetrics | null;
+  recordRenderTime: (time: number) => void;
+  recordFilterTime: (time: number) => void;
+  recordSortTime: (time: number) => void;
+  reset: () => void;
+}
+
+export const useXmlCachePerformanceMonitor = (
+  options: UseXmlCachePerformanceMonitorOptions = {}
+): UseXmlCachePerformanceMonitorReturn => {
+  const { enableMetrics = true, onPerformanceUpdate } = options;
+  const [metrics, setMetrics] = useState<CachePerformanceMetrics | null>(null);
+  
+  // 获取性能指标
+  const updateMetrics = useCallback(() => {
+    if (enableMetrics) {
+      const currentMetrics = xmlCachePerformanceMonitor.getMetrics();
+      setMetrics(currentMetrics);
+      onPerformanceUpdate?.(currentMetrics);
+    }
+  }, [enableMetrics, onPerformanceUpdate]);
+
+  // 记录渲染时间
+  const recordRenderTime = useCallback((time: number) => {
+    if (enableMetrics) {
+      // 模拟记录渲染时间（扩展现有API）
+      xmlCachePerformanceMonitor.recordCacheLoad(Date.now() - time, 'memory');
+      updateMetrics();
+    }
+  }, [enableMetrics, updateMetrics]);
+
+  // 记录过滤时间
+  const recordFilterTime = useCallback((time: number) => {
+    if (enableMetrics) {
+      console.log(`🔍 [Performance] 过滤时间: ${time}ms`);
+      updateMetrics();
+    }
+  }, [enableMetrics, updateMetrics]);
+
+  // 记录排序时间  
+  const recordSortTime = useCallback((time: number) => {
+    if (enableMetrics) {
+      console.log(`📊 [Performance] 排序时间: ${time}ms`);
+      updateMetrics();
+    }
+  }, [enableMetrics, updateMetrics]);
+
+  // 重置指标
+  const reset = useCallback(() => {
+    xmlCachePerformanceMonitor.resetStats();
+    updateMetrics();
+  }, [updateMetrics]);
+
+  // 初始化时获取指标
+  useEffect(() => {
+    if (enableMetrics) {
+      updateMetrics();
+      
+      // 可选：定期更新指标
+      const interval = setInterval(updateMetrics, 1000);
+      return () => clearInterval(interval);
+    }
+  }, [enableMetrics, updateMetrics]);
+
+  return {
+    metrics,
+    recordRenderTime,
+    recordFilterTime,
+    recordSortTime,
+    reset,
+  };
+};
+
 // 包装原始的getCachedXml方法，添加性能监控
 const originalGetCachedXml = XmlCacheManager.prototype.getCachedXml;
 XmlCacheManager.prototype.getCachedXml = async function(cacheId: string) {

@@ -12,7 +12,7 @@ import { App, Modal, Button, Space, Typography, Row, Col, Alert } from "antd";
 import { CheckOutlined } from "@ant-design/icons";
 
 // 导入模块化组件
-import { ElementList, usePageFinderModal } from "./page-finder-modal";
+import { OptimizedElementList, usePageFinderModal } from "./page-finder-modal";
 import LeftControlPanel from "./page-finder-modal/panels/LeftControlPanel";
 import { FilterSettingsPanel, CompactViewSwitcher } from "./page-finder-modal";
 import type { ElementWithHierarchy } from "./views/tree-view/types";
@@ -369,7 +369,7 @@ const UniversalPageFinderModal: React.FC<UniversalPageFinderModalProps> = ({
       
       case "list":
         return (
-          <ElementList
+          <OptimizedElementList
             elements={uiElements}
             onElementInspect={handleElementSelect}
             onElementCopy={(element) => {
@@ -378,6 +378,9 @@ const UniversalPageFinderModal: React.FC<UniversalPageFinderModalProps> = ({
             }}
             loading={loading}
             filterConfig={filterConfig}
+            title="优化的UI元素列表"
+            maxRenderedItems={50} // 超过50个元素启用分页优化
+            enablePerformanceMonitoring={true}
           />
         );
       
@@ -386,7 +389,7 @@ const UniversalPageFinderModal: React.FC<UniversalPageFinderModalProps> = ({
           <ErrorBoundary>
             <GridElementView
               xmlContent={xmlContent}
-              elements={FilterAdapter.smartFilter(elements as any, 'discovery') as any}
+              elements={FilterAdapter.smartFilter(elements as VisualUIElement[], 'discovery') as VisualUIElement[]}
               onElementSelect={handleVisualElementSelect}
               selectedElementId={selectedElementId}
               locator={preselectLocator}
