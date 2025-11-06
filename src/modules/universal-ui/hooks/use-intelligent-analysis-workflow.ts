@@ -39,6 +39,7 @@
 import { useState, useCallback, useRef, useEffect } from "react";
 import { message } from "antd";
 import { logOnce, logProgress } from "../../../utils/logger-config";
+import { useSelectedDevice } from "../../../application/store/adbStore";
 
 // ========== V2/V3 智能分析后端服务 ==========
 // 🔄 [V2/V3 动态切换] 根据特性开关选择执行版本
@@ -148,6 +149,9 @@ function generateId(): string {
  *   - 健康监控：每30秒检查V3可用性
  */
 export function useIntelligentAnalysisWorkflow(): UseIntelligentAnalysisWorkflowReturn {
+  // ========== 设备管理 ==========
+  const selectedDevice = useSelectedDevice();
+  
   // ========== V2/V3 智能版本选择系统 ==========
   // 🔄 动态选择执行版本，支持实时切换和自动回退
   const [currentExecutionVersion, setCurrentExecutionVersion] = useState<
@@ -630,7 +634,12 @@ export function useIntelligentAnalysisWorkflow(): UseIntelligentAnalysisWorkflow
             const analysisId = `analysis_${Date.now()}_${Math.random()
               .toString(36)
               .substr(2, 9)}`;
-            const deviceId = "default-device"; // TODO: 从设备管理器获取
+            
+            // 动态获取选中设备ID
+            const deviceId = selectedDevice?.id;
+            if (!deviceId) {
+              throw new Error("没有选中的设备，请先连接设备");
+            }
 
             // V3执行配置 - 90%数据精简 + 智能回退优化
             const v3Config: V3ExecutionConfig = {
@@ -778,7 +787,7 @@ export function useIntelligentAnalysisWorkflow(): UseIntelligentAnalysisWorkflow
         throw new Error(`启动分析失败: ${error}`);
       }
     },
-    [currentJobs, currentExecutionVersion]
+    [currentJobs, currentExecutionVersion, selectedDevice]
   );
 
   /**
