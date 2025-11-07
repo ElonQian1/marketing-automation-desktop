@@ -2,7 +2,7 @@
 // module: ui | layer: ui | role: 紧凑策略选择菜单
 // summary: 替代大块策略选择器的紧凑下拉菜单，集成到步骤卡片标题栏
 
-import React, { useState } from "react";
+import React, { useState, useCallback } from "react";
 import { Dropdown, Button, Tooltip, Badge, Tag, message, Collapse } from "antd";
 import { invoke } from '@tauri-apps/api/core';
 import {
@@ -137,7 +137,8 @@ const CompactStrategyMenu: React.FC<CompactStrategyMenuProps> = ({
   const { 
     data: unifiedElementData, 
     loading: dataLoading, 
-    error: dataError
+    error: dataError,
+    fetchData  // ✅ 修复：获取fetchData函数用于手动触发数据获取
   } = useStructuralMatchingData({
     enableValidation: true,
     enableEnhancement: true,
@@ -160,6 +161,64 @@ const CompactStrategyMenu: React.FC<CompactStrategyMenuProps> = ({
   // 🏗️ 结构匹配模态框状态
   const [structuralMatchingVisible, setStructuralMatchingVisible] = useState(false);
   const [structuralMatchingConfig, setStructuralMatchingConfig] = useState<StructuralMatchingHierarchicalConfig | null>(null);
+
+  // ✅ 【核心修复】数据格式标准化函数 - 统一转换为下划线命名
+  const normalizeElementData = useCallback((element: Record<string, unknown> | null | undefined) => {
+    if (!element) return null;
+    
+    return {
+      id: element.id,
+      resource_id: element.resource_id || element.resourceId || element['resource-id'] || '',
+      content_desc: element.content_desc || element.contentDesc || element.contentDescription || element['content-desc'] || '',
+      text: element.text || element.elementText || element.textContent || '',
+      class_name: element.class_name || element.className || '',
+      bounds: element.bounds || '[0,0][0,0]',
+      is_clickable: element.is_clickable || element.clickable || false,
+      xpath: element.xpath || '',
+      xmlCacheId: element.xmlCacheId || '',
+      children: element.children || []
+    };
+  }, []);
+
+  // ✅ 【核心修复】打开结构匹配模态框时触发数据获取
+  const handleOpenStructuralMatching = useCallback(async () => {
+    console.log('🔍 [CompactStrategyMenu] 打开结构匹配模态框');
+    
+    // 1. 获取数据源信息
+    const card = stepId ? cardStore.cards[stepId] : undefined;
+    const elementId = card?.original_element?.id || selectionContext?.selectedElement?.id;
+    const xmlCacheId = card?.xmlSnapshot?.xmlCacheId;  // ✅ 修复：从xmlSnapshot中获取
+    
+    console.log('📊 [CompactStrategyMenu] 数据源信息:', {
+      stepId,
+      hasCard: !!card,
+      elementId,
+      xmlCacheId,
+      cardElement: card?.original_element,
+      selectionElement: selectionContext?.selectedElement
+    });
+    
+    // 2. 触发数据获取
+    if (elementId && fetchData) {
+      try {
+        await fetchData(elementId, xmlCacheId, {
+          stepCard: card?.original_element as unknown as Record<string, unknown> | undefined,
+          selectionContext: selectionContext?.selectedElement as unknown as Record<string, unknown> | undefined
+        });
+        console.log('✅ [CompactStrategyMenu] 数据获取完成');
+      } catch (error) {
+        console.error('❌ [CompactStrategyMenu] 数据获取失败:', error);
+      }
+    } else {
+      console.warn('⚠️ [CompactStrategyMenu] 缺少必要信息，无法获取数据:', {
+        elementId,
+        hasFetchData: !!fetchData
+      });
+    }
+    
+    // 3. 打开模态框
+    setStructuralMatchingVisible(true);
+  }, [stepId, cardStore, selectionContext, fetchData]);
 
   // 🔑 新增：更新步骤参数中的决策链配置
   const updateDecisionChainConfig = React.useCallback((
@@ -375,7 +434,7 @@ const CompactStrategyMenu: React.FC<CompactStrategyMenuProps> = ({
             key: "structural_matching",
             icon: <span>🏗️</span>,
             label: "结构匹配",
-            onClick: () => {
+            onClick: async () => {
               console.log('📌 [CompactStrategyMenu] 切换到结构匹配策略');
               
               // 🎯 【架构升级】检查数据状态
@@ -389,10 +448,13 @@ const CompactStrategyMenu: React.FC<CompactStrategyMenuProps> = ({
                 return;
               }
               
-              // 更新策略状态为静态策略，使用特殊key标识结构匹配
-              events.onStrategyChange({ type: "static", key: "structural_matching" });
-              // 打开配置模态框
-              setStructuralMatchingVisible(true);
+              // ✅ 【核心修复】先触发数据获取和打开模态框，再更新策略状态
+              await handleOpenStructuralMatching();
+              
+              // 延迟更新策略状态，避免组件重渲染干扰
+              setTimeout(() => {
+                events.onStrategyChange({ type: "static", key: "structural_matching" });
+              }, 100);
             }
           },
           // 🔧 XPath恢复 - 固定选项
@@ -427,7 +489,44 @@ const CompactStrategyMenu: React.FC<CompactStrategyMenuProps> = ({
       },
     ];
 
-    return { items };
+    return { 
+      items,
+      onClick: async ({ key, keyPath }) => {
+        console.log('🎯 [CompactStrategyMenu] 菜单点击:', { key, keyPath });
+        
+        // 🏗️ 处理结构匹配
+        if (key === 'structural_matching') {
+          console.log('📌 [CompactStrategyMenu] 切换到结构匹配策略');
+          
+          // 🎯 【架构升级】检查数据状态
+          if (dataError) {
+            message.error(`数据获取失败: ${dataError.message}`);
+            return;
+          }
+          
+          if (dataLoading) {
+            message.info('数据加载中，请稍候...');
+            return;
+          }
+          
+          // ✅ 【核心修复】先触发数据获取和打开模态框，再更新策略状态
+          await handleOpenStructuralMatching();
+          
+          // 延迟更新策略状态，避免组件重渲染干扰
+          setTimeout(() => {
+            events.onStrategyChange({ type: "static", key: "structural_matching" });
+          }, 100);
+          return;
+        }
+        
+        // 其他菜单项保持原有逻辑
+        const item = items.flatMap(i => i.children ? [i, ...i.children] : [i])
+          .find(i => i.key === key);
+        if (item && item.onClick) {
+          item.onClick();
+        }
+      }
+    };
   };
 
   // 分析状态指示器
@@ -1511,20 +1610,59 @@ const CompactStrategyMenu: React.FC<CompactStrategyMenuProps> = ({
       {/* 🏗️ 结构匹配模态框 */}
       <StructuralMatchingModal
         visible={structuralMatchingVisible}
-        selectedElement={unifiedElementData?.element || (() => {
-          // 兜底：如果统一数据不可用，使用处理好的元素数据
-          const card = stepId ? cardStore.cards[stepId] : undefined;
-          const cardElement = card?.original_element;
-          const storeElement = selectionContext?.selectedElement;
-          const elementToUse = cardElement || storeElement;
+        selectedElement={(() => {
+          console.log('🔍 [CompactStrategyMenu] 准备模态框数据:');
+          console.log('  stepId:', stepId);
+          console.log('  unifiedElementData:', unifiedElementData);
+          console.log('  dataLoading:', dataLoading);
+          console.log('  dataError:', dataError);
           
-          return elementToUse || {
-            elementText: '',
-            contentDesc: '',
-            textAttr: '',
-            resourceId: '',
-            className: '',
-            bounds: '[0,0][0,0]'
+          // ✅ 【核心修复】优先使用统一数据服务的结果
+          if (unifiedElementData?.element) {
+            console.log('✅ 使用统一数据服务的元素');
+            return unifiedElementData.element as unknown as Record<string, unknown>;
+          }
+          
+          // Fallback 1: 从步骤卡片获取并标准化
+          const cardId = stepId ? cardStore.byStepId[stepId] : undefined;
+          const card = cardId ? cardStore.cards[cardId] : undefined;
+          console.log('🔍 Fallback 1 检查:', {
+            stepId,
+            cardId,
+            hasCard: !!card,
+            hasOriginalElement: !!card?.original_element,
+            cardKeys: card ? Object.keys(card) : [],
+            originalElementKeys: card?.original_element ? Object.keys(card.original_element) : []
+          });
+          if (card?.original_element) {
+            console.log('⚠️ Fallback 1: 使用步骤卡片数据', card.original_element);
+            return normalizeElementData(card.original_element);
+          }
+          
+          // Fallback 2: 从选择上下文获取并标准化
+          console.log('🔍 Fallback 2 检查:', {
+            hasSelectionContext: !!selectionContext,
+            hasSelectedElement: !!selectionContext?.selectedElement,
+            selectedElement: selectionContext?.selectedElement
+          });
+          if (selectionContext?.selectedElement) {
+            console.log('⚠️ Fallback 2: 使用选择上下文数据');
+            return normalizeElementData(selectionContext.selectedElement as unknown as Record<string, unknown>);
+          }
+          
+          // Fallback 3: 空数据（标准格式）
+          console.warn('⚠️ Fallback 3: 使用空数据 - 所有数据源都为空！');
+          console.warn('  这通常意味着：1) stepId为空 2) card.original_element不存在 3) selectionContext为空');
+          return {
+            id: 'fallback_empty',
+            resource_id: '',
+            content_desc: '',
+            text: '',
+            class_name: '',
+            bounds: '[0,0][0,0]',
+            is_clickable: false,
+            xpath: '',
+            children: []
           };
         })()}
         initialConfig={structuralMatchingConfig}
