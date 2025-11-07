@@ -126,17 +126,114 @@ pub async fn sm_match_once(request: SmMatchRequest) -> Result<SmMatchResponse, S
     // 3. 创建适配器
     let adapter = XmlIndexerAdapter::new(&indexer, xml_hash);
     
-    // 4. 转换前端配置为SmConfig
+    // 🔥 4. 【新增】调用容器限域模块，自动识别容器
+    use crate::domain::structure_runtime_match::container_gate::{
+        resolve_container_scope, ContainerHints, ContainerConfig
+    };
+    
+    // 从前端传来的 container_hint 提取提示信息
+    let container_hints = if let Some(hint_str) = &request.container_hint {
+        tracing::info!("🎯 [SM Runtime] 收到容器提示: {}", hint_str);
+        
+        // 尝试解析 JSON 格式的 hints
+        match serde_json::from_str::<serde_json::Value>(hint_str) {
+            Ok(hints_json) => {
+                let selected_element_id = hints_json
+                    .get("selected_element_id")
+                    .and_then(|v| v.as_str())
+                    .and_then(|s| s.parse::<u32>().ok());
+                
+                let selected_element_bounds = hints_json
+                    .get("selected_element_bounds")
+                    .and_then(|v| v.as_array())
+                    .and_then(|arr| {
+                        if arr.len() == 4 {
+                            Some(crate::domain::structure_runtime_match::container_gate::types::Bounds {
+                                l: arr[0].as_i64()? as i32,
+                                t: arr[1].as_i64()? as i32,
+                                r: arr[2].as_i64()? as i32,
+                                b: arr[3].as_i64()? as i32,
+                            })
+                        } else {
+                            None
+                        }
+                    });
+                
+                tracing::info!(
+                    "✅ [SM Runtime] 解析hints成功: element_id={:?}, bounds={:?}",
+                    selected_element_id,
+                    selected_element_bounds
+                );
+                
+                ContainerHints {
+                    container_xpath: None,
+                    bounds: selected_element_bounds,
+                    ancestor_sign_chain: Vec::new(),
+                }
+            }
+            Err(e) => {
+                tracing::warn!("⚠️ [SM Runtime] 解析hints失败: {}, 使用空hints", e);
+                ContainerHints::default()
+            }
+        }
+    } else {
+        ContainerHints::default()
+    };
+    
+    // 调用容器限域模块（4个参数：tree, anchor, hints, config）
+    // anchor 设为根节点0，让容器限域模块从根开始搜索
+    let container_scope_result = resolve_container_scope(
+        &adapter,
+        0,  // anchor: 从根节点开始搜索
+        &container_hints,
+        &ContainerConfig::default()
+    );
+    
+    let container_id = match container_scope_result {
+        Ok(container_scope) => {
+            tracing::info!(
+                "�️ [SM Runtime] 容器限域完成: container_id={}, reason={}, confidence={:.2}",
+                container_scope.root_id,
+                container_scope.reason,
+                container_scope.confidence
+            );
+            
+            // 如果容器是根节点(id=0)，记录警告
+            if container_scope.root_id == 0 {
+                tracing::warn!(
+                    "⚠️ [SM Runtime] 容器限域返回根节点(id=0)，可能范围过大！reason={}",
+                    container_scope.reason
+                );
+            }
+            
+            Some(container_scope.root_id)
+        }
+        Err(e) => {
+            tracing::warn!("⚠️ [SM Runtime] 容器限域失败: {}, 使用全局搜索", e);
+            None
+        }
+    };
+    
+    // 5. 转换前端配置为SmConfig
     let config = convert_config_dto(request.config)?;
     
-    // 5. 创建NoopCache（因为我们暂时不缓存）
+    // 6. 创建NoopCache（因为我们暂时不缓存）
     use crate::domain::structure_runtime_match::ports::cache::NoopCache;
     let mut cache = NoopCache;
     
-    // 6. 执行匹配算法（注意：sm_run_once 直接返回 SmResult，不是 Result）
+    // 7. 执行匹配算法
+    // 注意：当前 sm_run_once 内部会自动调用 pick_container()
+    // TODO: 未来可以修改 sm_run_once 签名，直接传入 container_id 以避免重复检测
+    if let Some(cid) = container_id {
+        tracing::info!(
+            "🎯 [SM Runtime] 将使用容器 {} 进行匹配（当前版本内部会重新检测）",
+            cid
+        );
+    }
+    
     let result = sm_run_once(&adapter, &mut cache, &config, false);
     
-    // 7. 转换结果为DTO
+    // 8. 转换结果为DTO
     let result_dto = convert_result_to_dto(result);
     
     let elapsed_ms = start_time.elapsed().as_millis() as u64;

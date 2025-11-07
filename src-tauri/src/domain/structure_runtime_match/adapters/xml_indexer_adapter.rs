@@ -4,6 +4,7 @@
 
 use crate::domain::structure_runtime_match::ports::xml_view::SmXmlView;
 use crate::domain::structure_runtime_match::types::{SmBounds, SmNodeId};
+use crate::domain::structure_runtime_match::container_gate::types::{UiTree, NodeId, Bounds};
 use crate::engine::xml_indexer::{XmlIndexer, IndexedNode};
 use std::collections::HashMap;
 
@@ -233,6 +234,121 @@ impl<'a> SmXmlView for XmlIndexerAdapter<'a> {
     fn post(&self, node_id: SmNodeId) -> u32 {
         // 使用节点ID+总数作为后序遍历序号（简化实现）
         node_id + self.indexer.all_nodes.len() as u32
+    }
+}
+
+// 🔥 新增：实现 UiTree trait，供容器限域模块使用
+impl<'a> UiTree for XmlIndexerAdapter<'a> {
+    fn root_id(&self) -> NodeId {
+        0 // 假设根节点ID为0
+    }
+
+    fn parent(&self, id: NodeId) -> Option<NodeId> {
+        self.find_parent(id)
+    }
+
+    fn children(&self, id: NodeId) -> Vec<NodeId> {
+        self.find_children(id)
+    }
+
+    fn class(&self, id: NodeId) -> &str {
+        self.get_node(id)
+            .and_then(|node| node.element.class.as_deref())
+            .unwrap_or("")
+    }
+
+    fn resource_id(&self, id: NodeId) -> Option<&str> {
+        self.get_node(id)
+            .and_then(|node| node.element.resource_id.as_deref())
+    }
+
+    fn content_desc(&self, id: NodeId) -> Option<&str> {
+        self.get_node(id)
+            .and_then(|node| node.element.content_desc.as_deref())
+    }
+
+    fn text(&self, id: NodeId) -> Option<&str> {
+        self.get_node(id)
+            .and_then(|node| node.element.text.as_deref())
+    }
+
+    fn bounds(&self, id: NodeId) -> Bounds {
+        if let Some(node) = self.get_node(id) {
+            let (l, t, r, b) = node.bounds;
+            Bounds { l, t, r, b }
+        } else {
+            Bounds { l: 0, t: 0, r: 0, b: 0 }
+        }
+    }
+
+    fn is_clickable(&self, id: NodeId) -> bool {
+        self.get_node(id)
+            .and_then(|node| node.element.clickable)
+            .unwrap_or(false)
+    }
+
+    fn is_scrollable(&self, id: NodeId) -> bool {
+        // UIElement 没有 scrollable 字段，通过类名判断
+        let class_name = UiTree::class(self, id).to_lowercase();
+        class_name.contains("recyclerview")
+            || class_name.contains("listview")
+            || class_name.contains("scrollview")
+            || class_name.contains("viewpager")
+            || class_name.contains("gridview")
+    }
+
+    fn is_dialog_like(&self, id: NodeId) -> bool {
+        let class_name = UiTree::class(self, id).to_lowercase();
+        class_name.contains("dialog")
+            || class_name.contains("bottomsheet")
+            || class_name.contains("sheet")
+            || class_name.contains("popup")
+    }
+
+    fn node_by_xpath(&self, xpath: &str) -> Option<NodeId> {
+        // 简化实现：通过类名匹配
+        // 例如：//RecyclerView[@scrollable='true']
+        
+        // 提取类名
+        let class_name = if let Some(start) = xpath.find("//") {
+            let rest = &xpath[start + 2..];
+            if let Some(end) = rest.find('[').or_else(|| Some(rest.len())) {
+                &rest[..end]
+            } else {
+                rest
+            }
+        } else {
+            return None;
+        };
+
+        // 查找匹配的节点
+        for (idx, node) in self.indexer.all_nodes.iter().enumerate() {
+            if let Some(node_class) = &node.element.class {
+                if node_class.ends_with(class_name) {
+                    // 检查额外的属性约束（如 @scrollable='true'）
+                    if xpath.contains("@scrollable='true'") {
+                        // 通过类名判断是否可滚动
+                        let class_lower = node_class.to_lowercase();
+                        if class_lower.contains("recyclerview")
+                            || class_lower.contains("listview")
+                            || class_lower.contains("scrollview")
+                        {
+                            return Some(idx as NodeId);
+                        }
+                    } else {
+                        return Some(idx as NodeId);
+                    }
+                }
+            }
+        }
+
+        None
+    }
+
+    fn screen_size(&self) -> (i32, i32) {
+        // 默认屏幕尺寸（1080x1920）
+        // TODO: 从XML或设备信息获取实际屏幕尺寸
+        (1080, 1920)
     }
 }
 

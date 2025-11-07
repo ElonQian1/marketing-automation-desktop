@@ -161,25 +161,12 @@ export class StructuralSnapshotGenerator {
   }
 
   /**
-   * 🏗️ 分析容器锚点
+   * 🏗️ 分析容器锚点 - 改进版：不再瞎猜，提供提示让后端容器限域模块解析
    */
   private analyzeContainer(element: Record<string, unknown>) {
-    // 尝试找到最大的可滚动容器
-    const scrollableContainers = ['RecyclerView', 'ListView', 'ScrollView'];
-    const className = (element.class_name || element.className) as string;
+    console.log('🏗️ [Generator] 容器分析 - 使用后端容器限域模块');
     
-    let containerRole = 'FrameLayout';
-    let scrollable = false;
-    
-    if (className) {
-      const simpleName = className.split('.').pop() || className;
-      if (scrollableContainers.some(type => simpleName.includes(type))) {
-        containerRole = simpleName;
-        scrollable = true;
-      }
-    }
-
-    // 解析bounds
+    // 解析选中元素的bounds
     let boundsHint: number[] = [0, 0, 1080, 2280]; // 默认手机屏幕
     if (element.bounds) {
       try {
@@ -196,12 +183,21 @@ export class StructuralSnapshotGenerator {
       }
     }
 
+    const className = (element.class_name || element.className) as string;
+    const elementId = (element.id || element.node_id) as string | number;
+
+    // 🔥 关键改进：不再直接生成 xpath，而是提供 hints 让后端的 container_gate 模块解析
     return {
-      xpath: scrollable ? `//${containerRole}[@scrollable='true']` : `//${containerRole}`,
+      xpath: null,  // 不填写，让后端容器限域模块自动识别
       fingerprint: {
-        role: containerRole,
-        ...(scrollable && { scrollable: true }),
-        bounds_hint: boundsHint
+        role: 'AUTO_DETECT',  // 标记为自动检测模式
+        // 提供提示信息供后端 container_gate 使用
+        hints: {
+          selected_element_id: elementId?.toString(),
+          selected_element_bounds: boundsHint,
+          selected_element_class: className,
+          strategy: 'scrollable_ancestor'  // 使用"向上查找滚动祖先"策略
+        }
       }
     };
   }
