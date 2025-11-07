@@ -33,10 +33,8 @@ import { saveSelectionConfigWithFeedback } from './utils/selection-config-saver'
 import { 
   StructuralMatchingModal, 
   type StructuralMatchingHierarchicalConfig,
-  StructuralMatchingDataProvider,
   useStructuralMatchingData 
 } from '../../modules/structural-matching';
-import { useParsedVisualElementsCanonical } from '../universal-ui/views/visual-view/hooks/canonical/useParsedVisualElementsCanonical';
 import type { 
   BatchConfig, 
   RandomConfig,
@@ -135,18 +133,11 @@ const CompactStrategyMenu: React.FC<CompactStrategyMenuProps> = ({
   const { context: selectionContext } = useElementSelectionStore();
   const cardStore = useStepCardStore();
 
-  // 🚀 新增：获取完整的视觉元素数据，用于结构匹配
-  const { parsedElements: fullVisualElements } = useParsedVisualElementsCanonical({
-    xmlContent: visualElementContext?.xmlContent,
-    forceRefreshKey: visualElementContext?.forceRefreshKey
-  });
-
   // 🎯 【架构升级】使用统一数据服务替换全局变量
   const { 
     data: unifiedElementData, 
     loading: dataLoading, 
-    error: dataError,
-    fetchData: fetchUnifiedData 
+    error: dataError
   } = useStructuralMatchingData({
     enableValidation: true,
     enableEnhancement: true,
@@ -1518,118 +1509,11 @@ const CompactStrategyMenu: React.FC<CompactStrategyMenuProps> = ({
       )}
 
       {/* 🏗️ 结构匹配模态框 */}
-      {structuralMatchingVisible && (() => {
-        // 🔥 修复：优先从步骤卡片的原始数据中获取UIElement，然后尝试增强数据
-        const cardElement = card?.original_element;
-        const storeElement = selectionContext?.selectedElement;
-        let elementToUse = cardElement || storeElement;
-        
-        // 🚀 新增：尝试从完整视觉元素中获取更完整的数据
-        const findEnhancedElement = (targetElement: Record<string, unknown> | null) => {
-          if (!targetElement?.id || !fullVisualElements || fullVisualElements.length === 0) {
-            return targetElement;
-          }
-          
-          // 尝试通过ID匹配
-          const matchedElement = fullVisualElements.find(elem => elem.id === targetElement.id);
-          if (matchedElement) {
-            console.log('✅ [CompactStrategyMenu] 通过ID找到增强元素:', {
-              originalKeys: targetElement ? Object.keys(targetElement) : [],
-              enhancedKeys: Object.keys(matchedElement),
-              originalResourceId: targetElement?.resource_id,
-              enhancedResourceId: matchedElement.resource_id,
-              originalContentDesc: targetElement?.content_desc,
-              enhancedContentDesc: matchedElement.content_desc,
-              originalText: targetElement?.text,
-              enhancedText: matchedElement.text
-            });
-            return matchedElement;
-          }
-          
-          // 如果ID匹配失败，尝试通过bounds匹配（作为备选）
-          if (targetElement?.bounds) {
-            const boundsMatchedElement = fullVisualElements.find(elem => 
-              elem.bounds && JSON.stringify(elem.bounds) === JSON.stringify(targetElement.bounds)
-            );
-            if (boundsMatchedElement) {
-              console.log('✅ [CompactStrategyMenu] 通过bounds找到增强元素:', {
-                originalBounds: targetElement.bounds,
-                enhancedResourceId: boundsMatchedElement.resource_id,
-                enhancedContentDesc: boundsMatchedElement.content_desc
-              });
-              return boundsMatchedElement;
-            }
-          }
-          
-          console.log('⚠️ [CompactStrategyMenu] 未找到增强元素，使用原始数据:', {
-            targetId: targetElement.id,
-            targetBounds: targetElement.bounds,
-            availableIds: fullVisualElements.slice(0, 5).map(e => e.id)
-          });
-          return targetElement;
-        };
-        
-        // 尝试增强元素数据
-        if (elementToUse) {
-          elementToUse = findEnhancedElement(elementToUse);
-        }
-        
-        console.log('🔍 [CompactStrategyMenu] 传递给StructuralMatchingModal的元素:', {
-          source: cardElement ? 'card.original_element' : (storeElement ? 'selectionContext' : 'none'),
-          hasCardElement: !!cardElement,
-          hasStoreElement: !!storeElement,
-          hasElement: !!elementToUse,
-          elementKeys: elementToUse ? Object.keys(elementToUse) : [],
-          elementId: elementToUse?.id,
-          elementClassName: elementToUse?.class_name || elementToUse?.className,
-          elementResourceId: elementToUse?.resource_id || elementToUse?.resourceId,
-          elementContentDesc: elementToUse?.content_desc || elementToUse?.contentDesc,
-          elementText: elementToUse?.text || elementToUse?.elementText,
-          elementBounds: elementToUse?.bounds,
-          hasChildren: elementToUse?.children ? elementToUse.children.length : 'undefined',
-          childrenPreview: elementToUse?.children ? elementToUse.children.slice(0, 2).map((c: { class_name?: string; text?: string }) => c.class_name || c.text) : [],
-          fullElement: elementToUse,
-          hasFullVisualElements: !!fullVisualElements,
-          fullVisualElementsCount: fullVisualElements?.length || 0
-        });
-        // 🎯 缓存处理好的元素，避免重复计算
-        const processedElement = elementToUse || {
-          elementText: '',
-          contentDesc: '',
-          textAttr: '',
-          resourceId: '',
-          className: '',
-          bounds: '[0,0][0,0]',
-          smartMatching: {
-            childTexts: [],
-            childContentDescs: [],
-            siblingTexts: [],
-            siblingContentDescs: [],
-            parentContentDesc: ''
-          }
-        };
-        
-        // 🎯 【架构升级】使用统一数据服务替换全局变量
-        const elementId = processedElement.id || `element_${Date.now()}`;
-        const xmlCacheId = card?.xmlCacheId;
-        
-        // 获取统一数据并缓存
-        if (elementId && xmlCacheId) {
-          fetchUnifiedData(elementId, xmlCacheId, {
-            stepCard: card,
-            selectionContext: processedElement
-          }).catch(error => {
-            console.warn('⚠️ [CompactStrategyMenu] 统一数据预获取失败:', error);
-          });
-        }
-        
-        return processedElement;
-      })()}
       <StructuralMatchingModal
         visible={structuralMatchingVisible}
         selectedElement={unifiedElementData?.element || (() => {
           // 兜底：如果统一数据不可用，使用处理好的元素数据
-          const card = cardStore.cards.find(c => c.id === stepId);
+          const card = stepId ? cardStore.cards[stepId] : undefined;
           const cardElement = card?.original_element;
           const storeElement = selectionContext?.selectedElement;
           const elementToUse = cardElement || storeElement;

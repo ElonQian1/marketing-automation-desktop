@@ -116,11 +116,14 @@ export function useParsedVisualElements(
 
   // 🐛 修复：强制重新解析 - 基于 XML 标识符而非字符串相等性
   useEffect(() => {
-    // 🔥 修复：处理空值、空字符串、undefined 等情况
-    if (!xmlContent || xmlContent.trim() === '') {
-      console.log('⚠️ [useParsedVisualElements] xmlContent 为空，清空数据');
-      setParsedElements([]);
-      setCategories([]);
+    // 🔥 修复：处理空值、空字符串、undefined、非字符串类型等情况
+    if (!xmlContent || typeof xmlContent !== 'string' || xmlContent.trim() === '') {
+      console.log('⚠️ [useParsedVisualElements] xmlContent 无效，清空数据', { type: typeof xmlContent, value: xmlContent });
+      // 🔧 防止无限循环：只在有数据时才清空
+      if (parsedElements.length > 0 || categories.length > 0) {
+        setParsedElements([]);
+        setCategories([]);
+      }
       lastXmlIdRef.current = '';
       return;
     }
@@ -147,7 +150,10 @@ export function useParsedVisualElements(
     } else {
       console.log('⏭️ [useParsedVisualElements] XML 标识符相同且无强制刷新，跳过重复解析');
     }
-  }, [xmlContent, parseXML, forceRefreshKey]);
+  }, [xmlContent, parseXML, forceRefreshKey, parsedElements.length, categories.length]);
 
   return { parsedElements, categories, parseXML };
 }
+
+// 🔧 别名导出：保持向后兼容
+export const useParsedVisualElementsCanonical = useParsedVisualElements;
