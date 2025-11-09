@@ -13,7 +13,8 @@ use super::scoring::gates::{retain_passed, sort_desc};
 use super::scoring::weights::weights_for;
 use super::signature::learner::learn_or_load;
 use super::signature::matcher::score_tpl;
-use super::skeleton::checker::score_skeleton;
+// use super::skeleton::checker::score_skeleton;  // 🔴 旧版本
+use super::skeleton::checker_v2::score_skeleton_v2;  // 🎯 新版本：基于谓词评估
 use super::skeleton::dsl::SmSkeletonRulesDsl;
 use super::types::{SmItemHit, SmLayoutType, SmResult};
 
@@ -37,14 +38,7 @@ pub fn sm_run_once<V: SmXmlView, C: SmCache>(
     // 早停3：只跑骨架
     if cfg.strict_skeleton_only {
         let mut items = propose_item_roots(view, container.node);
-        score_skeleton(
-            view,
-            &SmSkeletonRulesDsl {
-                require_image_above_text: cfg.skeleton_rules.require_image_above_text,
-                allow_depth_flex: cfg.skeleton_rules.allow_depth_flex,
-            },
-            &mut items,
-        );
+        score_skeleton_v2(view, &mut items);  // 🎯 使用 V2 谓词评估
         score_fields(view, &cfg.field_rules, &mut items);
         let w = weights_for(&cfg.mode);
         combine(&mut items, &w);
@@ -81,14 +75,7 @@ pub fn sm_run_once<V: SmXmlView, C: SmCache>(
     }
 
     // 4) 骨架 + 字段 + 几何分
-    score_skeleton(
-        view,
-        &SmSkeletonRulesDsl {
-            require_image_above_text: cfg.skeleton_rules.require_image_above_text,
-            allow_depth_flex: cfg.skeleton_rules.allow_depth_flex,
-        },
-        &mut items,
-    );
+    score_skeleton_v2(view, &mut items);  // 🎯 使用 V2 谓词评估
     score_fields(view, &cfg.field_rules, &mut items);
     for it in items.iter_mut() {
         it.scores.geom = geom_score_for(layout);

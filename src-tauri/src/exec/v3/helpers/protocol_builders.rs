@@ -10,11 +10,21 @@ use crate::types::{FilterConfig, SortOrder, ExecutionLimits};
 /// 创建用于评分阶段的SmartSelection协议
 /// 
 /// 评分阶段特点：
-/// - 宽松的过滤条件（min_confidence=0.3）
+/// - 使用传入的min_confidence阈值(默认0.8,而非固定0.3)
 /// - 只检查第一个匹配（SelectionMode::First）
 /// - 较短的时间预算（3000ms）
 /// - 同时匹配text_content和content_desc
-pub fn create_smart_selection_protocol_for_scoring(target_text: &str) -> Result<SmartSelectionProtocol, String> {
+/// 
+/// 参数：
+/// - target_text: 目标文本
+/// - min_confidence: 最小置信度阈值(None时使用默认0.8)
+pub fn create_smart_selection_protocol_for_scoring(
+    target_text: &str,
+    min_confidence: Option<f64>,
+) -> Result<SmartSelectionProtocol, String> {
+    // ✅ 使用传入的min_confidence,默认0.8而非0.3
+    let min_conf = min_confidence.unwrap_or(0.8) as f32;
+    
     // 🔧 修复：同时使用text_content和content_desc进行匹配，提高匹配成功率
     let fingerprint = ElementFingerprint {
         text_content: Some(target_text.to_string()),
@@ -35,10 +45,10 @@ pub fn create_smart_selection_protocol_for_scoring(target_text: &str) -> Result<
         package_name: None,
     };
     
-    // 🎯 评分阶段使用宽松的过滤条件
+    // 🎯 评分阶段使用传入的置信度阈值
     let filters = Some(FilterConfig {
         exclude_states: Some(vec!["invisible".to_string()]),
-        min_confidence: Some(0.3), // 评分时使用较低的置信度门槛
+        min_confidence: Some(min_conf), // ✅ 使用传入的阈值
         position_tolerance: Some(20),
     });
     
@@ -67,7 +77,7 @@ pub fn create_smart_selection_protocol_for_scoring(target_text: &str) -> Result<
         fallback: None,
     };
     
-    tracing::info!("📊 [评分协议] 目标文本: '{}', clickable=true, min_confidence=0.3", target_text);
+    tracing::info!("📊 [评分协议] 目标文本: '{}', clickable=true, min_confidence={:.2}", target_text, min_conf);
     Ok(protocol)
 }
 

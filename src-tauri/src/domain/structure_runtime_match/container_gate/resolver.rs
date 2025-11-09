@@ -5,7 +5,7 @@
 use anyhow::{Result, anyhow};
 use super::types::{UiTree, NodeId, ContainerHints, ContainerScope, ContainerConfig, ScopeProfile, HeuristicResult};
 use super::heuristics::{scrollable, semantic, geometry, exclusion, popup, vote};
-use super::providers::{xpath_hint, bounds_hint, ancestor_chain};
+use super::providers::{xpath_hint, element_id_hint, bounds_hint, ancestor_chain};
 
 pub fn resolve_container_scope<T: UiTree>(
     tree: &T,
@@ -19,6 +19,7 @@ pub fn resolve_container_scope<T: UiTree>(
 
     // 0) 强提示（优先）
     cand.extend(xpath_hint::propose(tree, hints, anchor));
+    cand.extend(element_id_hint::propose(tree, hints, anchor));  // ✅ 最优先: 元素ID精确定位
     cand.extend(bounds_hint::propose(tree, hints, anchor));
     cand.extend(ancestor_chain::propose(tree, hints, anchor));
 

@@ -18,6 +18,7 @@ pub mod heuristics {
 
 pub mod providers {
     pub mod xpath_hint;
+    pub mod element_id_hint;  // ✅ 新增: 元素ID精确定位
     pub mod bounds_hint;
     pub mod ancestor_chain;
 }

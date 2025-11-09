@@ -48,6 +48,48 @@ pub async fn score_step_with_smart_selection(
     let (step_id, params) = if let Some(inline) = &step.inline {
         let step_id = &inline.step_id;
         
+        // ✅ 提取minConfidence参数：优先从smartSelection中读取,默认0.8
+        let min_confidence = inline.params
+            .get("smartSelection")
+            .and_then(|ss| ss.get("minConfidence"))
+            .and_then(|v| v.as_f64())
+            .or_else(|| {
+                inline.params
+                    .get("minConfidence")
+                    .and_then(|v| v.as_f64())
+            });
+        
+        // ✅ 检测结构模式：结构模式下评分阶段直接返回高分,实际评分由执行阶段的SM Runtime完成
+        let is_structural = inline.params
+            .get("matchingStrategy")
+            .and_then(|v| v.as_str())
+            .map(|s| s.eq_ignore_ascii_case("structural"))
+            .unwrap_or(false);
+        
+        if is_structural {
+            // 结构模式：检查是否有structural_signatures
+            let has_structural_sigs = inline.params
+                .get("structural_signatures")
+                .and_then(|sigs| sigs.get("skeleton"))
+                .and_then(|sk| sk.as_array())
+                .map(|arr| !arr.is_empty())
+                .unwrap_or(false);
+            
+            if has_structural_sigs {
+                tracing::info!(
+                    "🏗️ 步骤 {} 结构模式评分: 跳过Legacy引擎,返回高置信度 0.90 (实际匹配由SM Runtime执行)",
+                    step_id
+                );
+                return Ok(0.90); // 结构模式下的评分由执行阶段的SM Runtime完成
+            } else {
+                tracing::warn!(
+                    "⚠️ 步骤 {} 声明结构模式但缺少structural_signatures,降级评分",
+                    step_id
+                );
+                return Ok(0.50); // 参数不完整,给予较低分数
+            }
+        }
+        
         // 🔧 关键修复：检测智能分析生成的步骤，直接返回其置信度
         if step_id.starts_with("intelligent_step_") {
             // 智能分析步骤：从步骤参数中提取预计算的置信度
@@ -91,7 +133,7 @@ pub async fn score_step_with_smart_selection(
                 
                 if let Some(text) = target_text {
                     tracing::info!("🎯 SmartSelection目标文本: '{}'", text);
-                    create_smart_selection_protocol_for_scoring(text)?
+                    create_smart_selection_protocol_for_scoring(text, min_confidence)?
                 } else {
                     // 打印所有可用参数用于调试（包括smartSelection子对象）
                     let available_keys: Vec<_> = if let Some(obj) = inline.params.as_object() {
@@ -118,7 +160,7 @@ pub async fn score_step_with_smart_selection(
                 
                 if let Some(text) = target_text {
                     tracing::info!("🎯 Tap目标文本: '{}'", text);
-                    create_smart_selection_protocol_for_scoring(text)?
+                    create_smart_selection_protocol_for_scoring(text, min_confidence)?
                 } else {
                     let available_keys: Vec<_> = if let Some(obj) = inline.params.as_object() {
                         obj.keys().collect()
@@ -141,11 +183,11 @@ pub async fn score_step_with_smart_selection(
                 
                 if let Some(text) = target_text {
                     tracing::info!("🎯 SmartTap目标文本: '{}'", text);
-                    create_smart_selection_protocol_for_scoring(text)?
+                    create_smart_selection_protocol_for_scoring(text, min_confidence)?
                 } else {
                     // SmartTap 允许无文本的智能推理，返回默认评分参数
                     tracing::info!("🧠 SmartTap无明确目标文本，使用智能推理模式");
-                    create_smart_selection_protocol_for_scoring("")?
+                    create_smart_selection_protocol_for_scoring("", min_confidence)?
                 }
             }
             _ => {

@@ -534,12 +534,30 @@ export function convertSmartStepToV2Request(
   // 🏗️ 结构匹配参数（来自步骤参数）
   const structuralSignatures = params.structural_signatures as unknown | undefined;
   const matchingStrategy = (params.matchingStrategy as string | undefined) || undefined; // 'structural' | undefined
+  
+  // ✅ 结构模式兜底：从structural_signatures中提取element_id作为XPath
+  let effectiveXPath = savedXPath;
+  if (!effectiveXPath && matchingStrategy === 'structural' && structuralSignatures) {
+    const sigs = structuralSignatures as {
+      container?: {
+        fingerprint?: {
+          hints?: {
+            selected_element_id?: string;
+          };
+        };
+      };
+    };
+    effectiveXPath = sigs.container?.fingerprint?.hints?.selected_element_id;
+    if (effectiveXPath) {
+      console.log('✅ [结构模式] 从structural_signatures提取element_id作为XPath:', effectiveXPath);
+    }
+  }
 
   return {
     deviceId,
     mode,
     actionParams,
-    selectorId: coordinateParams ? undefined : (savedXPath || step.id), // 🔥 优先使用保存的 XPath
+    selectorId: coordinateParams ? undefined : (effectiveXPath || step.id), // 🔥 优先使用有效XPath
     stepId: step.id,  // ✅ 传递stepId用于Store查询
     bounds: parseBoundsFromParams(params),
     // 🎯 修复：智能提取目标文本信息，解决空文本匹配过度宽泛的问题
@@ -547,8 +565,8 @@ export function convertSmartStepToV2Request(
     contentDesc: xmlSnapshot?.elementSignature?.contentDesc || params.content_desc as string || '',
     resourceId: xmlSnapshot?.elementSignature?.resourceId || params.resource_id as string || '',
     // 🔥 【核心修复】传递 XPath 和 xmlSnapshot（完整数据）
-    elementPath: savedXPath,
-    xpath: savedXPath,
+    elementPath: effectiveXPath,  // ✅ 使用有效XPath
+    xpath: effectiveXPath,  // ✅ 使用有效XPath
     text: xmlSnapshot?.elementSignature?.text || params.text as string || '',
     className: xmlSnapshot?.elementSignature?.class || params.class_name as string || '',
     xmlSnapshot: xmlSnapshot ? {

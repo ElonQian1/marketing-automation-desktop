@@ -208,10 +208,11 @@ function convertToStepCardData(
       return xpathCandidate;
     }
     
-    // 如果看起来像element_id格式，不应该作为XPath使用
+    // 接受元素ID格式（如 element_32）作为元素引用
+    // 后端可以使用此ID结合xmlCacheId来定位元素
     if (/^element_?\d+$/.test(xpathCandidate)) {
-      console.warn('🚫 [StructuralMatching] 检测到类似元素ID的XPath，跳过:', xpathCandidate);
-      return undefined;
+      console.log('✅ [StructuralMatching] 使用元素ID作为引用:', xpathCandidate);
+      return xpathCandidate;
     }
     
     console.warn('🚫 [StructuralMatching] 无效的XPath格式，跳过:', xpathCandidate);

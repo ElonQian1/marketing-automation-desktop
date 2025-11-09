@@ -51,9 +51,10 @@ impl Bounds {
 
 #[derive(Debug, Clone, Serialize, Deserialize, Default)]
 pub struct ContainerHints {
-    pub container_xpath: Option<String>,   // 卡片已知的容器 XPath（强提示）
-    pub bounds: Option<Bounds>,            // 卡片提供的容器屏幕区域（强/弱提示）
-    pub ancestor_sign_chain: Vec<String>,  // 祖先签名链（弱提示，语义/类名片段等）
+    pub container_xpath: Option<String>,       // 卡片已知的容器 XPath（强提示）
+    pub selected_element_id: Option<String>,   // 前端选中的元素ID（如"element_32"）
+    pub bounds: Option<Bounds>,                // 卡片提供的容器屏幕区域（强/弱提示）
+    pub ancestor_sign_chain: Vec<String>,      // 祖先签名链（弱提示，语义/类名片段等）
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -110,6 +111,7 @@ pub trait UiTree {
     fn children(&self, id: NodeId) -> Vec<NodeId>;
 
     fn class(&self, id: NodeId) -> &str;
+    fn element_id(&self, id: NodeId) -> Option<&str>;  // ✅ 新增: 获取元素的id属性(如"element_32")
     fn resource_id(&self, id: NodeId) -> Option<&str>;
     fn content_desc(&self, id: NodeId) -> Option<&str>;
     fn text(&self, id: NodeId) -> Option<&str>;
@@ -120,6 +122,7 @@ pub trait UiTree {
     fn is_dialog_like(&self, id: NodeId) -> bool; // Dialog/BottomSheet/Sheet 等
 
     fn node_by_xpath(&self, xpath: &str) -> Option<NodeId>;
+    fn node_count(&self) -> usize;  // ✅ 新增: 获取节点总数,用于遍历
     fn screen_size(&self) -> (i32, i32); // (w, h)
 
     /// 便利函数：锚点是否在某节点子树内（结构判断）

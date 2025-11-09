@@ -359,10 +359,62 @@ export const useHierarchicalMatchingModal = (
     // 计算深度（简化）
     const depth = elementId ? (elementId.match(/-/g) || []).length : skeleton.length;
 
+    // 🔥 提取bounds信息（用于后端容器限域）
+    let boundsArray: number[] | undefined;
+    
+    console.log('🔍 [Bounds Debug] selectedElement.bounds 原始数据:', {
+      type: typeof selectedElement.bounds,
+      value: selectedElement.bounds,
+      isString: typeof selectedElement.bounds === 'string',
+      isObject: typeof selectedElement.bounds === 'object',
+      keys: selectedElement.bounds && typeof selectedElement.bounds === 'object' ? Object.keys(selectedElement.bounds) : 'N/A'
+    });
+    
+    if (typeof selectedElement.bounds === 'string') {
+      // bounds格式: "[546,225][1067,1083]" → [546, 225, 1067, 1083]
+      const boundsMatch = selectedElement.bounds.match(/\[(\d+),(\d+)\]\[(\d+),(\d+)\]/);
+      if (boundsMatch) {
+        boundsArray = [
+          parseInt(boundsMatch[1], 10),
+          parseInt(boundsMatch[2], 10),
+          parseInt(boundsMatch[3], 10),
+          parseInt(boundsMatch[4], 10)
+        ];
+        console.log('✅ [Bounds Debug] 从字符串提取成功:', boundsArray);
+      }
+    } else if (selectedElement.bounds && typeof selectedElement.bounds === 'object') {
+      // 支持对象格式: {left, top, right, bottom}
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const b = selectedElement.bounds as any;
+      if ('left' in b && 'top' in b && 'right' in b && 'bottom' in b) {
+        boundsArray = [
+          Number(b.left), 
+          Number(b.top), 
+          Number(b.right), 
+          Number(b.bottom)
+        ];
+        console.log('✅ [Bounds Debug] 从对象提取成功:', boundsArray);
+      } else {
+        console.warn('⚠️ [Bounds Debug] bounds对象缺少必要字段:', { hasLeft: 'left' in b, hasTop: 'top' in b, hasRight: 'right' in b, hasBottom: 'bottom' in b });
+      }
+    } else {
+      console.warn('⚠️ [Bounds Debug] bounds格式不支持:', typeof selectedElement.bounds);
+    }
+
     const result = {
       container: { 
         role: containerRole, 
-        depth: Math.max(1, Math.min(depth, 8)) 
+        depth: Math.max(1, Math.min(depth, 8)),
+        // 🔥 添加 fingerprint.hints 供后端 SM Runtime 的 container_gate 使用
+        fingerprint: boundsArray ? {
+          role: 'AUTO_DETECT',
+          hints: {
+            selected_element_id: elementId,
+            selected_element_bounds: boundsArray,
+            selected_element_class: className,
+            strategy: 'scrollable_ancestor'
+          }
+        } : undefined
       },
       skeleton
     };
@@ -373,7 +425,9 @@ export const useHierarchicalMatchingModal = (
       depth: result.container.depth,
       hasResourceId: resourceId !== '',
       hasContentDesc: contentDesc !== '',
-      hasText: text !== ''
+      hasText: text !== '',
+      hasBounds: !!boundsArray,  // 🔥 新增日志
+      bounds: boundsArray  // 🔥 新增日志
     });
 
     return result;

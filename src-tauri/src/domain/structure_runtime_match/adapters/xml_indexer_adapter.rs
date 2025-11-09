@@ -154,20 +154,133 @@ impl<'a> XmlIndexerAdapter<'a> {
 
     /// 查找节点的父节点ID
     /// 
-    /// TODO: 当前 XmlIndexer 没有维护父子关系，需要通过其他方式推断
-    /// 临时实现：返回 None
-    fn find_parent(&self, _node_id: SmNodeId) -> Option<SmNodeId> {
-        // TODO: 实现父子关系查找
-        None
+    /// 通过bounds包含关系推断父子关系：
+    /// 父节点的bounds完全包含子节点的bounds
+    fn find_parent(&self, node_id: SmNodeId) -> Option<SmNodeId> {
+        let child_node = self.get_node(node_id)?;
+        let (c_left, c_top, c_right, c_bottom) = child_node.bounds;
+        
+        // 查找所有包含当前节点的节点
+        let mut candidates: Vec<(SmNodeId, i64)> = Vec::new();
+        
+        for (idx, node) in self.indexer.all_nodes.iter().enumerate() {
+            let idx_id = idx as SmNodeId;
+            if idx_id == node_id {
+                continue; // 跳过自己
+            }
+            
+            let (p_left, p_top, p_right, p_bottom) = node.bounds;
+            
+            // 检查是否完全包含
+            if p_left <= c_left && p_top <= c_top && 
+               p_right >= c_right && p_bottom >= c_bottom {
+                // 计算面积（用于找最近的父节点）
+                let area = ((p_right - p_left) as i64) * ((p_bottom - p_top) as i64);
+                candidates.push((idx_id, area));
+            }
+        }
+        
+        // 返回面积最小的那个（最近的父节点）
+        candidates.sort_by_key(|(_, area)| *area);
+        candidates.first().map(|(id, _)| *id)
     }
 
     /// 查找节点的子节点ID列表
     /// 
-    /// TODO: 当前 XmlIndexer 没有维护父子关系，需要通过其他方式推断
-    /// 临时实现：返回空列表
-    fn find_children(&self, _node_id: SmNodeId) -> Vec<SmNodeId> {
-        // TODO: 实现父子关系查找
-        Vec::new()
+    /// 通过bounds包含关系推断父子关系：
+    /// 子节点的bounds被父节点的bounds完全包含
+    fn find_children(&self, node_id: SmNodeId) -> Vec<SmNodeId> {
+        let parent_node = match self.get_node(node_id) {
+            Some(node) => node,
+            None => return Vec::new(),
+        };
+        
+        let (p_left, p_top, p_right, p_bottom) = parent_node.bounds;
+        let mut children = Vec::new();
+        
+        for (idx, node) in self.indexer.all_nodes.iter().enumerate() {
+            let idx_id = idx as SmNodeId;
+            if idx_id == node_id {
+                continue; // 跳过自己
+            }
+            
+            let (c_left, c_top, c_right, c_bottom) = node.bounds;
+            
+            // 检查是否被完全包含
+            if c_left >= p_left && c_top >= p_top && 
+               c_right <= p_right && c_bottom <= p_bottom {
+                // 验证是否是直接子节点（不是孙子节点）
+                // 通过检查是否有中间层节点来判断
+                let is_direct_child = self.is_direct_child(node_id, idx_id);
+                if is_direct_child {
+                    children.push(idx_id);
+                }
+            }
+        }
+        
+        children
+    }
+    
+    /// 判断是否是直接子节点（非孙子节点）
+    fn is_direct_child(&self, parent_id: SmNodeId, child_id: SmNodeId) -> bool {
+        let parent_node = match self.get_node(parent_id) {
+            Some(node) => node,
+            None => return false,
+        };
+        let child_node = match self.get_node(child_id) {
+            Some(node) => node,
+            None => return false,
+        };
+        
+        let (p_left, p_top, p_right, p_bottom) = parent_node.bounds;
+        let (c_left, c_top, c_right, c_bottom) = child_node.bounds;
+        
+        // 检查是否有中间节点
+        for (idx, node) in self.indexer.all_nodes.iter().enumerate() {
+            let idx_id = idx as SmNodeId;
+            if idx_id == parent_id || idx_id == child_id {
+                continue;
+            }
+            
+            let (m_left, m_top, m_right, m_bottom) = node.bounds;
+            
+            // 如果存在节点M，满足：parent包含M，M包含child
+            // 则child不是parent的直接子节点
+            if m_left >= p_left && m_top >= p_top && m_right <= p_right && m_bottom <= p_bottom &&
+               c_left >= m_left && c_top >= m_top && c_right <= m_right && c_bottom <= m_bottom {
+                return false;
+            }
+        }
+        
+        true
+    }
+    
+    /// 通过bounds查找节点ID
+    pub fn find_node_by_bounds(&self, bounds: (i32, i32, i32, i32)) -> Option<SmNodeId> {
+        tracing::debug!("🔍 [XmlIndexer] 开始查找bounds: {:?}, 共{}个节点", bounds, self.indexer.all_nodes.len());
+        
+        // 查找完全匹配的节点
+        for (idx, node) in self.indexer.all_nodes.iter().enumerate() {
+            if node.bounds == bounds {
+                tracing::info!("✅ [XmlIndexer] 找到匹配节点: idx={}, id={}, bounds={:?}", idx, node.id, node.bounds);
+                return Some(idx as SmNodeId);
+            }
+        }
+        
+        // 如果找不到，打印目标区域附近的节点（index 30-40）
+        tracing::warn!("⚠️ [XmlIndexer] 未找到完全匹配的bounds，打印index 30-40的节点:");
+        for idx in 30..=40 {
+            if let Some(node) = self.indexer.all_nodes.get(idx) {
+                tracing::warn!("   节点{}: id={}, bounds={:?}, class={:?}", 
+                    idx, 
+                    node.id, 
+                    node.bounds,
+                    node.element.class
+                );
+            }
+        }
+        
+        None
     }
 }
 
@@ -257,6 +370,13 @@ impl<'a> UiTree for XmlIndexerAdapter<'a> {
             .unwrap_or("")
     }
 
+    fn element_id(&self, id: NodeId) -> Option<&str> {
+        // ✅ 新增: 返回元素的id属性(如"element_32")
+        // XmlIndexer中每个节点有唯一的id字符串
+        self.get_node(id)
+            .map(|node| node.id.as_str())
+    }
+
     fn resource_id(&self, id: NodeId) -> Option<&str> {
         self.get_node(id)
             .and_then(|node| node.element.resource_id.as_deref())
@@ -343,6 +463,11 @@ impl<'a> UiTree for XmlIndexerAdapter<'a> {
         }
 
         None
+    }
+
+    fn node_count(&self) -> usize {
+        // ✅ 新增: 返回XmlIndexer中的节点总数
+        self.indexer.all_nodes.len()
     }
 
     fn screen_size(&self) -> (i32, i32) {

@@ -27,6 +27,8 @@ pub struct SmStaticEvidence {
     pub xpath: Option<String>,
     pub leaf_index: Option<i32>,
     pub structural_signatures: Option<StructuralSignatures>,
+    // 🔥 新增：保留前端传来的完整 structural_signatures JSON
+    pub structural_signatures_raw: Option<serde_json::Value>,
 }
 
 // ================================
@@ -99,6 +101,46 @@ pub fn convert_sm_result_to_candidates(
 // 核心集成函数
 // ================================
 
+/// 🔧 从 structural_signatures 提取容器提示（bounds信息）
+/// 
+/// # 参数
+/// - `structural_sigs_value`: 前端生成的完整 structural_signatures JSON
+/// 
+/// # 返回
+/// - Some(JSON字符串): 包含 selected_element_bounds 的容器提示
+/// - None: 未找到有效的 bounds 信息
+fn extract_container_hint_from_structural_sigs(
+    structural_sigs_value: &serde_json::Value,
+) -> Option<String> {
+    // 尝试提取: structural_signatures.container.fingerprint.hints.selected_element_bounds
+    let bounds_array = structural_sigs_value
+        .get("container")?
+        .get("fingerprint")?
+        .get("hints")?
+        .get("selected_element_bounds")?
+        .as_array()?;
+    
+    // 验证数组长度和类型
+    if bounds_array.len() != 4 {
+        tracing::warn!("⚠️ [SM Integration] bounds数组长度不正确: {}", bounds_array.len());
+        return None;
+    }
+    
+    // 构建 container_hint JSON 字符串
+    let hint_json = serde_json::json!({
+        "selected_element_bounds": bounds_array
+    });
+    
+    let hint_str = serde_json::to_string(&hint_json).ok()?;
+    
+    tracing::info!(
+        "✅ [SM Integration] 提取容器提示成功: bounds={:?}",
+        bounds_array
+    );
+    
+    Some(hint_str)
+}
+
 /// 使用结构匹配Runtime进行元素匹配
 /// 
 /// # 参数
@@ -132,14 +174,26 @@ pub async fn match_with_structural_matching(
     // 2. 转换配置
     let config = convert_structural_sigs_to_config(structural_sigs);
     
-    // 3. 构建请求（不再需要 template_element，因为Runtime系统自动识别）
+    // 3. 🔥 【核心修复】从完整的 structural_signatures_raw 提取容器提示（bounds信息）
+    let container_hint = evidence
+        .structural_signatures_raw
+        .as_ref()
+        .and_then(|raw_json| extract_container_hint_from_structural_sigs(raw_json));
+    
+    if container_hint.is_some() {
+        tracing::info!("✅ [SM Integration] 容器提示已提取，将传递给SM Runtime");
+    } else {
+        tracing::warn!("⚠️ [SM Integration] 未能提取容器提示，SM将使用根节点作为起点");
+    }
+    
+    // 4. 构建请求
     let request = SmMatchRequest {
         xml_content: xml_content.to_string(),
         config,
-        container_hint: None,  // 可选：后续可从 evidence 提取容器提示
+        container_hint,  // 🔥 传递提取的容器提示
     };
     
-    // 4. 调用 sm_match_once
+    // 5. 调用 sm_match_once
     let response = match sm_match_once(request).await {
         Ok(resp) => resp,
         Err(e) => {
@@ -148,7 +202,7 @@ pub async fn match_with_structural_matching(
         }
     };
     
-    // 5. 转换结果
+    // 6. 转换结果
     let candidates = convert_sm_result_to_candidates(response.clone(), evidence);
     
     tracing::info!(
@@ -238,6 +292,7 @@ mod tests {
             xpath: Some("/hierarchy/LinearLayout/Button".to_string()),
             leaf_index: Some(3),
             structural_signatures: None,
+            structural_signatures_raw: None,  // 🔥 添加新字段
         };
         
         let template = convert_static_evidence_to_template(&evidence);
@@ -245,5 +300,34 @@ mod tests {
         assert_eq!(template["resource_id"], "com.example:id/button");
         assert_eq!(template["text"], "点击我");
         assert_eq!(template["bounds"], serde_json::json!([100, 200, 300, 250]));
+    }
+    
+    #[test]
+    fn test_extract_container_hint() {
+        // 模拟前端传来的完整 structural_signatures JSON
+        let raw_json = serde_json::json!({
+            "container": {
+                "fingerprint": {
+                    "role": "AUTO_DETECT",
+                    "hints": {
+                        "selected_element_id": "32",
+                        "selected_element_bounds": [546, 225, 1067, 1083],
+                        "selected_element_class": "FrameLayout",
+                        "strategy": "scrollable_ancestor"
+                    }
+                }
+            }
+        });
+        
+        let result = extract_container_hint_from_structural_sigs(&raw_json);
+        
+        assert!(result.is_some());
+        let hint_str = result.unwrap();
+        let parsed: serde_json::Value = serde_json::from_str(&hint_str).unwrap();
+        
+        assert_eq!(
+            parsed["selected_element_bounds"],
+            serde_json::json!([546, 225, 1067, 1083])
+        );
     }
 }

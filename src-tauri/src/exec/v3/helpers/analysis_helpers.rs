@@ -190,51 +190,73 @@ pub fn should_trigger_intelligent_analysis(
             // 检查SmartSelection步骤是否有有效的目标文本参数
             match &inline.action {
                 SingleStepAction::SmartSelection => {
-                    // 🎯 修复：检查非空的目标文本参数
-                    let has_valid_target_text = inline
-                        .params
-                        .get("targetText")
-                        .and_then(|v| v.as_str())
-                        .filter(|s| !s.trim().is_empty())
-                        .is_some()
-                        || inline
+                    // ✅ 结构模式下允许空文本：只要有skeleton就算参数完整
+                    let is_structural = is_explicit_structural_mode_from_params(&inline.params);
+                    
+                    if is_structural {
+                        // 结构模式：检查是否有structural_signatures.skeleton
+                        let has_skeleton = inline.params
+                            .get("structural_signatures")
+                            .and_then(|sigs| sigs.get("skeleton"))
+                            .and_then(|sk| sk.as_array())
+                            .map(|arr| !arr.is_empty())
+                            .unwrap_or(false);
+                        
+                        if !has_skeleton {
+                            tracing::warn!(
+                                "🧠 步骤 {} 结构模式缺少skeleton（参数不完整）",
+                                idx
+                            );
+                            has_invalid_steps = true;
+                        }
+                        // ✅ 有skeleton则参数完整，targetText允许为空
+                    } else {
+                        // 非结构模式：必须有目标文本参数
+                        let has_valid_target_text = inline
                             .params
-                            .get("contentDesc")
+                            .get("targetText")
                             .and_then(|v| v.as_str())
                             .filter(|s| !s.trim().is_empty())
                             .is_some()
-                        || inline
-                            .params
-                            .get("text")
-                            .and_then(|v| v.as_str())
-                            .filter(|s| !s.trim().is_empty())
-                            .is_some()
-                        || inline
-                            .params
-                            .get("smartSelection")
-                            .and_then(|ss| {
-                                ss.get("targetText")
-                                    .and_then(|v| v.as_str())
-                                    .filter(|s| !s.trim().is_empty())
-                                    .or_else(|| {
-                                        ss.get("contentDesc")
-                                            .and_then(|v| v.as_str())
-                                            .filter(|s| !s.trim().is_empty())
-                                    })
-                                    .or_else(|| {
-                                        ss.get("text")
-                                            .and_then(|v| v.as_str())
-                                            .filter(|s| !s.trim().is_empty())
-                                    })
-                            })
-                            .is_some();
+                            || inline
+                                .params
+                                .get("contentDesc")
+                                .and_then(|v| v.as_str())
+                                .filter(|s| !s.trim().is_empty())
+                                .is_some()
+                            || inline
+                                .params
+                                .get("text")
+                                .and_then(|v| v.as_str())
+                                .filter(|s| !s.trim().is_empty())
+                                .is_some()
+                            || inline
+                                .params
+                                .get("smartSelection")
+                                .and_then(|ss| {
+                                    ss.get("targetText")
+                                        .and_then(|v| v.as_str())
+                                        .filter(|s| !s.trim().is_empty())
+                                        .or_else(|| {
+                                            ss.get("contentDesc")
+                                                .and_then(|v| v.as_str())
+                                                .filter(|s| !s.trim().is_empty())
+                                        })
+                                        .or_else(|| {
+                                            ss.get("text")
+                                                .and_then(|v| v.as_str())
+                                                .filter(|s| !s.trim().is_empty())
+                                        })
+                                })
+                                .is_some();
 
-                    if !has_valid_target_text {
-                        tracing::warn!(
-                            "🧠 步骤 {} SmartSelection缺少有效目标文本参数（空字符串不算有效）",
-                            idx
-                        );
-                        has_invalid_steps = true;
+                        if !has_valid_target_text {
+                            tracing::warn!(
+                                "🧠 步骤 {} SmartSelection缺少有效目标文本参数（空字符串不算有效）",
+                                idx
+                            );
+                            has_invalid_steps = true;
+                        }
                     }
                 }
                 SingleStepAction::Tap => {
@@ -336,13 +358,40 @@ pub fn should_trigger_intelligent_analysis(
         }
     }
 
-    // 🔧 V3修复：SmartSelection动作应该始终触发智能分析
-    // 因为它就是专门用于智能选择的！
+    // 🔧 V3修复：SmartSelection动作检测
+    // ✅ 结构模式下不应触发智能分析,因为已有structural_signatures
     for step in ordered_steps {
         if let Some(inline) = &step.inline {
             if matches!(inline.action, SingleStepAction::SmartSelection) {
-                tracing::info!("🧠 触发智能分析原因：检测到SmartSelection动作");
-                return true;
+                // ✅ 检查是否是结构模式
+                let is_structural = is_explicit_structural_mode_from_params(&inline.params);
+                
+                if is_structural {
+                    // 结构模式：检查是否有structural_signatures
+                    let has_structural_sigs = inline.params
+                        .get("structural_signatures")
+                        .and_then(|sigs| sigs.get("skeleton"))
+                        .and_then(|sk| sk.as_array())
+                        .map(|arr| !arr.is_empty())
+                        .unwrap_or(false);
+                    
+                    if has_structural_sigs {
+                        tracing::info!(
+                            "🏗️ [结构模式] SmartSelection有完整structural_signatures,不触发智能分析"
+                        );
+                        // ✅ 有结构签名,不需要智能分析
+                        continue;
+                    } else {
+                        tracing::warn!(
+                            "⚠️ [结构模式] SmartSelection缺少structural_signatures,触发智能分析"
+                        );
+                        return true;
+                    }
+                } else {
+                    // 非结构模式：SmartSelection应该触发智能分析
+                    tracing::info!("🧠 触发智能分析原因：检测到SmartSelection动作(非结构模式)");
+                    return true;
+                }
             }
 
             // 🆕 检测通用名称：如果targetText是"智能操作 N"这类通用名称，应该触发智能分析

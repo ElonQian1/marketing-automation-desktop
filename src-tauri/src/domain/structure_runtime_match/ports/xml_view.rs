@@ -16,4 +16,21 @@ pub trait SmXmlView {
     fn attr(&self, n: SmNodeId, k: &str) -> Option<&str>;
     fn pre(&self, n: SmNodeId) -> u32;
     fn post(&self, n: SmNodeId) -> u32;
+    
+    // 🎯 新增：谓词系统需要的属性访问
+    fn is_scrollable(&self, n: SmNodeId) -> bool {
+        self.attr(n, "scrollable").map_or(false, |v| v == "true")
+    }
+    
+    fn is_clickable(&self, n: SmNodeId) -> bool {
+        self.attr(n, "clickable").map_or(false, |v| v == "true")
+    }
+    
+    fn resource_id(&self, n: SmNodeId) -> &str {
+        self.attr(n, "resource-id").unwrap_or("")
+    }
+    
+    fn content_desc(&self, n: SmNodeId) -> &str {
+        self.attr(n, "content-desc").unwrap_or("")
+    }
 }

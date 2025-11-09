@@ -41,18 +41,48 @@ pub async fn try_structural_matching(
     
     // 调用结构匹配集成
     match sm_integration::match_with_structural_matching(&req.device_id, ui_xml, &sm_evidence).await {
-        Ok(candidates) if !candidates.is_empty() => {
+        Ok(mut candidates) if !candidates.is_empty() => {
+            // 按分数降序排序
+            candidates.sort_by(|a, b| b.score.partial_cmp(&a.score).unwrap_or(std::cmp::Ordering::Equal));
+            
+            let top_score = candidates[0].score;
+            
+            // 🎯 改进：唯一性检查不仅看数量，还要看分数差距（top-gap）
+            // - 只有1个候选 → uniqueness=1
+            // - 多个候选但top与第二名差距≥0.15 → uniqueness=1（可信）
+            // - 否则 → uniqueness=0（多命中风险）
+            let uniqueness = if candidates.len() == 1 {
+                1
+            } else {
+                let second_score = candidates[1].score;
+                let gap = top_score - second_score;
+                if gap >= 0.15 {
+                    tracing::info!(
+                        "✅ [SM Integration] 虽有多候选但top-gap={:.3}≥0.15，判定为唯一匹配",
+                        gap
+                    );
+                    1
+                } else {
+                    tracing::warn!(
+                        "⚠️ [SM Integration] 多候选且top-gap={:.3}<0.15，存在混淆风险",
+                        gap
+                    );
+                    0
+                }
+            };
+            
             let match_info = MatchInfo {
-                uniqueness: if candidates.len() == 1 { 1 } else { 0 },
-                confidence: candidates.first().map(|c| c.score).unwrap_or(0.0) as f32,
+                uniqueness,
+                confidence: top_score as f32,
                 elements_found: candidates.len() as i32,
             };
             
             tracing::info!(
-                "✅ [SM Integration] 结构匹配成功 | 候选数={} | 最高分={:.2} | 唯一性={}",
+                "✅ [SM Integration] 结构匹配成功 | 候选数={} | 最高分={:.2} | 唯一性={} | top-gap={:.3}",
                 candidates.len(),
                 match_info.confidence,
-                match_info.uniqueness
+                match_info.uniqueness,
+                if candidates.len() > 1 { top_score - candidates[1].score } else { 0.0 }
             );
             
             Ok(Some((match_info, candidates)))
@@ -90,6 +120,9 @@ fn build_sm_evidence(
         }
     });
     
+    // 🔥 保留完整的 structural_signatures JSON（包含 container.fingerprint.hints）
+    let structural_signatures_raw = req.step.get("structural_signatures").cloned();
+    
     Ok(SmStaticEvidence {
         resource_id: req.step.get("resource_id").and_then(|v| v.as_str()).map(String::from),
         text: req.step.get("text").and_then(|v| v.as_str()).map(String::from),
@@ -99,6 +132,7 @@ fn build_sm_evidence(
         xpath: req.step.get("xpath").and_then(|v| v.as_str()).map(String::from),
         leaf_index: req.step.get("leaf_index").and_then(|v| v.as_i64()).map(|i| i as i32),
         structural_signatures: Some(structural_sigs),
+        structural_signatures_raw,  // 🔥 保留原始 JSON
     })
 }
 

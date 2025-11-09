@@ -93,8 +93,22 @@ impl XmlIndexer {
         
         // 解析bounds
         let bounds = if let Some(bounds_str) = &bounds_str {
-            Self::parse_bounds(bounds_str).unwrap_or((0, 0, 100, 100))
+            match Self::parse_bounds(bounds_str) {
+                Ok(b) => {
+                    // 🎯 性能优化：降低日志级别为 trace（避免逐节点打印）
+                    #[cfg(feature = "trace_xml_bounds")]
+                    tracing::trace!("✅ [XmlIndexer] 成功解析bounds: '{}' -> {:?}", bounds_str, b);
+                    b
+                }
+                Err(e) => {
+                    tracing::error!("❌ [XmlIndexer] 解析bounds失败: '{}', 错误: {}, 使用默认值", bounds_str, e);
+                    (0, 0, 100, 100)
+                }
+            }
         } else {
+            // 🎯 性能优化：降低日志级别为 trace
+            #[cfg(feature = "trace_xml_bounds")]
+            tracing::trace!("⚠️ [XmlIndexer] 节点无bounds属性，使用默认值");
             (0, 0, 100, 100)
         };
         

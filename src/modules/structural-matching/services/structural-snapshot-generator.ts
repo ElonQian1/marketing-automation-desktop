@@ -166,38 +166,72 @@ export class StructuralSnapshotGenerator {
   private analyzeContainer(element: Record<string, unknown>) {
     console.log('🏗️ [Generator] 容器分析 - 使用后端容器限域模块');
     
-    // 解析选中元素的bounds
-    let boundsHint: number[] = [0, 0, 1080, 2280]; // 默认手机屏幕
+    // 解析选中元素的bounds - 支持字符串和对象两种格式
+    let boundsHint: number[] | undefined;
     if (element.bounds) {
       try {
-        const boundsStr = element.bounds.toString();
-        const matches = boundsStr.match(/\[(\d+),(\d+)\]\[(\d+),(\d+)\]/);
-        if (matches) {
-          boundsHint = [
-            parseInt(matches[1]), parseInt(matches[2]),
-            parseInt(matches[3]), parseInt(matches[4])
-          ];
+        // 🔥 关键修复：支持字符串格式 "[x1,y1][x2,y2]" 和对象格式 {left, top, right, bottom}
+        if (typeof element.bounds === 'string') {
+          const boundsStr = element.bounds;
+          const matches = boundsStr.match(/\[(\d+),(\d+)\]\[(\d+),(\d+)\]/);
+          if (matches) {
+            boundsHint = [
+              parseInt(matches[1]), parseInt(matches[2]),
+              parseInt(matches[3]), parseInt(matches[4])
+            ];
+            console.log('✅ [Generator] bounds解析成功(字符串):', boundsHint);
+          }
+        } else if (typeof element.bounds === 'object' && element.bounds !== null) {
+          // 对象格式: {left, top, right, bottom}
+          const b = element.bounds as any;
+          if ('left' in b && 'top' in b && 'right' in b && 'bottom' in b) {
+            boundsHint = [
+              Number(b.left), Number(b.top), 
+              Number(b.right), Number(b.bottom)
+            ];
+            console.log('✅ [Generator] bounds解析成功(对象):', boundsHint);
+          }
         }
-      } catch {
-        console.warn('⚠️ [Generator] 解析bounds失败，使用默认值');
+        
+        if (!boundsHint) {
+          console.warn('⚠️ [Generator] bounds格式不支持:', typeof element.bounds, element.bounds);
+        }
+      } catch (error) {
+        console.warn('⚠️ [Generator] 解析bounds异常:', error);
       }
+    } else {
+      console.warn('⚠️ [Generator] element.bounds不存在');
     }
 
     const className = (element.class_name || element.className) as string;
     const elementId = (element.id || element.node_id) as string | number;
 
-    // 🔥 关键改进：不再直接生成 xpath，而是提供 hints 让后端的 container_gate 模块解析
+    // 🔥 关键改进：只有成功解析bounds才传递给后端
+    const hints: Record<string, unknown> = {
+      selected_element_id: elementId?.toString(),
+      selected_element_class: className,
+      strategy: 'scrollable_ancestor'
+    };
+    
+    // 只在bounds成功解析时才添加
+    if (boundsHint && boundsHint.length === 4) {
+      hints.selected_element_bounds = boundsHint;
+      console.log('✅ [Generator] 将传递bounds给后端:', boundsHint);
+    } else {
+      console.warn('⚠️ [Generator] 未解析到有效bounds，后端将使用根节点', {
+        hasBounds: !!element.bounds,
+        boundsType: typeof element.bounds,
+        boundsValue: element.bounds
+      });
+    }
+
+    // 不再直接生成 xpath，而是提供 hints 让后端的 container_gate 模块解析
     return {
       xpath: null,  // 不填写，让后端容器限域模块自动识别
       fingerprint: {
         role: 'AUTO_DETECT',  // 标记为自动检测模式
         // 提供提示信息供后端 container_gate 使用
-        hints: {
-          selected_element_id: elementId?.toString(),
-          selected_element_bounds: boundsHint,
-          selected_element_class: className,
-          strategy: 'scrollable_ancestor'  // 使用"向上查找滚动祖先"策略
-        }
+        hints
       }
     };
   }

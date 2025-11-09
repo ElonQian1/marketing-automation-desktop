@@ -34,6 +34,72 @@ fn extract_skeleton_rules_from_frontend_format(structural_sigs: &Value) -> Resul
     Ok(Some(skeleton_rules))
 }
 
+/// 🔧 从 structural_signatures 提取容器提示（完整hints信息）
+/// 
+/// 从前端生成的 structural_signatures.container.fingerprint.hints 提取所有字段：
+/// - selected_element_id: 元素ID（如"element_32"）
+/// - selected_element_bounds: 元素边界
+/// - selected_element_class: 元素类名
+/// 并格式化为后端 SM Runtime 期望的 JSON 字符串格式
+fn extract_container_hint_from_structural_sigs(structural_sigs: &Value) -> Option<String> {
+    // 提取 hints 对象
+    let hints_obj = structural_sigs
+        .get("container")?
+        .get("fingerprint")?
+        .get("hints")?;
+    
+    // 提取各个字段（可选）
+    let element_id = hints_obj
+        .get("selected_element_id")
+        .and_then(|v| v.as_str());
+    
+    let bounds_array = hints_obj
+        .get("selected_element_bounds")
+        .and_then(|v| v.as_array());
+    
+    let element_class = hints_obj
+        .get("selected_element_class")
+        .and_then(|v| v.as_str());
+    
+    // 验证bounds数组长度
+    if let Some(bounds) = bounds_array {
+        if bounds.len() != 4 {
+            tracing::warn!("⚠️ [V3 SM Integration] bounds数组长度不正确: {}", bounds.len());
+            return None;
+        }
+    }
+    
+    // 🔥 构建完整的 container_hint JSON（包含所有可用字段）
+    let mut hint_json = serde_json::Map::new();
+    
+    if let Some(id) = element_id {
+        hint_json.insert("selected_element_id".to_string(), Value::String(id.to_string()));
+        tracing::info!("✅ [V3 SM Integration] 提取 element_id: {}", id);
+    }
+    
+    if let Some(bounds) = bounds_array {
+        hint_json.insert("selected_element_bounds".to_string(), Value::Array(bounds.clone()));
+        tracing::info!("✅ [V3 SM Integration] 提取 bounds: {:?}", bounds);
+    }
+    
+    if let Some(class) = element_class {
+        hint_json.insert("selected_element_class".to_string(), Value::String(class.to_string()));
+        tracing::info!("✅ [V3 SM Integration] 提取 class: {}", class);
+    }
+    
+    // 至少需要一个提示字段
+    if hint_json.is_empty() {
+        tracing::warn!("⚠️ [V3 SM Integration] hints对象为空，无法提取容器提示");
+        return None;
+    }
+    
+    let hint_str = serde_json::to_string(&hint_json).ok()?;
+    
+    tracing::info!("✅ [V3 SM Integration] 容器提示提取完成，包含 {} 个字段", hint_json.len());
+    
+    Some(hint_str)
+}
+
 /// 🏗️ V3核心集成函数：使用结构匹配Runtime进行元素匹配
 /// 
 /// 在V3执行流程中，如果检测到structural_signatures，优先使用此函数
@@ -62,7 +128,16 @@ pub async fn v3_match_with_structural_matching(
     // 2️⃣ 解析前端结构签名格式并转换为skeleton_rules
     let skeleton_rules = extract_skeleton_rules_from_frontend_format(structural_sigs)?;
     
-    // 3️⃣ 构建Runtime请求（使用解析的skeleton规则）
+    // 🔥 【核心修复】从 structural_signatures 提取容器提示（bounds信息）
+    let container_hint = extract_container_hint_from_structural_sigs(structural_sigs);
+    
+    if container_hint.is_some() {
+        tracing::info!("✅ [V3 SM Integration] 容器提示已提取，将传递给SM Runtime");
+    } else {
+        tracing::warn!("⚠️ [V3 SM Integration] 未能提取容器提示，SM将使用根节点作为起点");
+    }
+    
+    // 3️⃣ 构建Runtime请求（使用解析的skeleton规则和容器提示）
     let request = SmMatchRequest {
         xml_content: xml_content.to_string(),
         config: SmConfigDTO {
@@ -71,7 +146,7 @@ pub async fn v3_match_with_structural_matching(
             field_rules: None,
             early_stop_enabled: Some(true),
         },
-        container_hint: None,
+        container_hint,  // 🔥 传递提取的容器提示
     };
 
     // 4️⃣ 调用Runtime系统

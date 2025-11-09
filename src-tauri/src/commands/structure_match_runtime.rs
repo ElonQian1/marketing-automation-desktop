@@ -138,10 +138,12 @@ pub async fn sm_match_once(request: SmMatchRequest) -> Result<SmMatchResponse, S
         // 尝试解析 JSON 格式的 hints
         match serde_json::from_str::<serde_json::Value>(hint_str) {
             Ok(hints_json) => {
+                // ✅ 修复: 双向兼容 element_id / selected_element_id
                 let selected_element_id = hints_json
                     .get("selected_element_id")
+                    .or_else(|| hints_json.get("element_id"))  // 双向兼容
                     .and_then(|v| v.as_str())
-                    .and_then(|s| s.parse::<u32>().ok());
+                    .map(|s| s.to_string());
                 
                 let selected_element_bounds = hints_json
                     .get("selected_element_bounds")
@@ -167,6 +169,7 @@ pub async fn sm_match_once(request: SmMatchRequest) -> Result<SmMatchResponse, S
                 
                 ContainerHints {
                     container_xpath: None,
+                    selected_element_id,  // ✅ 修复: 传递element_id给容器定位模块
                     bounds: selected_element_bounds,
                     ancestor_sign_chain: Vec::new(),
                 }
@@ -181,10 +184,56 @@ pub async fn sm_match_once(request: SmMatchRequest) -> Result<SmMatchResponse, S
     };
     
     // 调用容器限域模块（4个参数：tree, anchor, hints, config）
-    // anchor 设为根节点0，让容器限域模块从根开始搜索
+    // 🎯 【核心修复】使用element_id定位到的节点作为锚点，而非根节点0
+    // 原因：
+    // 1. element_id_hint 已经精确定位到目标节点（如 element_32 → node_32）
+    // 2. container_gate 的 must_contain_anchor 要求容器必须是锚点的祖先
+    // 3. 如果 anchor=0（根节点），没有任何节点是根节点的祖先，所有候选都被过滤！
+    let anchor_node_id = if let Some(element_id) = &container_hints.selected_element_id {
+        // 尝试从 element_id 提取索引号
+        let target_index = if let Some(stripped) = element_id.strip_prefix("element_") {
+            stripped.parse::<u32>().ok()
+        } else {
+            element_id.strip_prefix("node_")
+                .and_then(|s| s.parse::<u32>().ok())
+        };
+        
+        if let Some(idx) = target_index {
+            let total_nodes = indexer.all_nodes.len() as u32;
+            if idx < total_nodes {
+                tracing::info!(
+                    "✅ [SM Runtime] 使用element_id定位的节点作为锚点: {} → node_id={}",
+                    element_id,
+                    idx
+                );
+                idx
+            } else {
+                tracing::warn!(
+                    "⚠️ [SM Runtime] element_id索引超出范围: {} (节点总数: {})，回退到根节点0",
+                    idx,
+                    total_nodes
+                );
+                0
+            }
+        } else {
+            tracing::warn!("⚠️ [SM Runtime] 无法解析element_id: {}，使用根节点0", element_id);
+            0
+        }
+    } else {
+        tracing::info!("ℹ️ [SM Runtime] 无element_id提示，使用根节点0作为锚点");
+        0
+    };
+    
+    if let Some(bounds) = &container_hints.bounds {
+        tracing::info!(
+            "📍 [SM Runtime] 收到bounds参考区域提示: ({}, {}, {}, {}), 将作为container_gate的辅助信息",
+            bounds.l, bounds.t, bounds.r, bounds.b
+        );
+    }
+    
     let container_scope_result = resolve_container_scope(
         &adapter,
-        0,  // anchor: 从根节点开始搜索
+        anchor_node_id,  // 使用定位到的节点作为起点
         &container_hints,
         &ContainerConfig::default()
     );

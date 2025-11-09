@@ -30,7 +30,7 @@ export interface StructuralMatchingModalProps {
 export const StructuralMatchingModal: React.FC<StructuralMatchingModalProps> = ({
   visible,
   selectedElement,
-  initialConfig,
+  // initialConfig, // TODO: 未来可能用于初始化配置
   onClose,
   onConfirm,
 }) => {
@@ -146,7 +146,9 @@ export const StructuralMatchingModal: React.FC<StructuralMatchingModalProps> = (
           structuralSignatures = {
             container: {
               role: snapshot.container?.fingerprint?.role || 'Frame',
-              depth: 1 // 默认深度为1
+              depth: 1, // 默认深度为1
+              // 🔥 关键修复：必须复制 fingerprint 字段供后端 SM Runtime 的 container_gate 使用
+              fingerprint: snapshot.container?.fingerprint || undefined
             },
             skeleton: snapshot.field_rules.rules.map((rule, index) => ({
               tag: 'field-rule',
@@ -167,6 +169,13 @@ export const StructuralMatchingModal: React.FC<StructuralMatchingModalProps> = (
               }
             }))
           };
+          
+          console.log('✅ [Modal Fix] 已正确复制 fingerprint 字段:', {
+            hasFingerprint: !!structuralSignatures.container.fingerprint,
+            fingerprintRole: structuralSignatures.container.fingerprint?.role,
+            hasBounds: !!structuralSignatures.container.fingerprint?.hints?.selected_element_bounds,
+            bounds: structuralSignatures.container.fingerprint?.hints?.selected_element_bounds
+          });
         } else {
           // 如果没有生成具体规则，使用hook提供的fallback
           structuralSignatures = generateStructuralSignatures();
