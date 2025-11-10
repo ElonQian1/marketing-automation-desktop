@@ -363,7 +363,26 @@ export const VisualPageAnalyzerContent: React.FC<VisualPageAnalyzerContentProps>
 
     const matchesCategory =
       selectedCategory === "all" || element.category === selectedCategory;
-    const matchesClickable = !showOnlyClickable || element.clickable;
+    
+    // 🔥 智能可点击过滤：元素本身可点击 OR 包含可点击子元素
+    const matchesClickable = !showOnlyClickable || element.clickable || 
+      // 检查是否有可点击的直接子元素（适配瀑布流卡片结构）
+      elements.some(child => {
+        // 检查child是否是element的直接子元素
+        if (!child.clickable) return false;
+        if (!child.position || !element.position) return false;
+        
+        // 子元素必须完全在父元素内
+        const childPos = child.position;
+        const parentPos = element.position;
+        const isDirectChild = 
+          childPos.x >= parentPos.x &&
+          childPos.y >= parentPos.y &&
+          (childPos.x + childPos.width) <= (parentPos.x + parentPos.width) &&
+          (childPos.y + childPos.height) <= (parentPos.y + parentPos.height);
+        
+        return isDirectChild;
+      });
 
     return matchesSearch && matchesCategory && matchesClickable;
   });
