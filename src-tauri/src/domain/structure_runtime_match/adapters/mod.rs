@@ -3,3 +3,4 @@
 // summary: 连接外部依赖的适配器实现 - XmlIndexer适配SmXmlView
 
 pub mod xml_indexer_adapter;
+pub mod debug_tools;

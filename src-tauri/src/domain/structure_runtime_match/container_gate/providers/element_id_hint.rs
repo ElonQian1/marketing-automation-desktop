@@ -50,12 +50,79 @@ pub fn propose<T: UiTree>(tree: &T, hints: &ContainerHints, _anchor: NodeId) -> 
             target_idx
         );
         
-        candidates.push(HeuristicResult {
-            node: target_idx,
-            score: 0.95,  // 极高分数,确保优先选中
-            tag: "hint_element_id",
-            note: format!("索引匹配: {} → node[{}]", element_id, target_idx),
-        });
+        // 🔧 核心修复: 不能把节点自己作为容器候选,因为must_contain_anchor会过滤掉
+        // 原因: 一个节点不是自己的祖先,所以必须向上找适合的容器祖先
+        
+        tracing::info!("🔍 [element_id_hint] 开始向上查找容器祖先...");
+        
+        // 策略1: 找最近的可滚动祖先 (优先)
+        let mut current = tree.parent(target_idx);
+        let mut container_found = false;
+        let mut iteration_count = 0;
+        
+        tracing::info!("🔍 [element_id_hint] 第一个父节点: {:?}", current);
+        
+        while let Some(parent_id) = current {
+            iteration_count += 1;
+            tracing::debug!(
+                "🔍 [element_id_hint] 检查祖先 #{}: node[{}], is_scrollable={}",
+                iteration_count,
+                parent_id,
+                tree.is_scrollable(parent_id)
+            );
+            
+            if iteration_count > 20 {
+                tracing::warn!(
+                    "⚠️ [element_id_hint] 祖先查找循环超过20次，强制停止"
+                );
+                break;
+            }
+            
+            if tree.is_scrollable(parent_id) {
+                tracing::info!(
+                    "🎯 [element_id_hint] 找到可滚动祖先容器: node[{}] → scrollable_ancestor[{}]",
+                    target_idx,
+                    parent_id
+                );
+                candidates.push(HeuristicResult {
+                    node: parent_id,
+                    score: 0.95,  // 极高分数,确保优先选中
+                    tag: "hint_element_id_scrollable_ancestor",
+                    note: format!("可滚动祖先: {} → node[{}] → ancestor[{}]", element_id, target_idx, parent_id),
+                });
+                container_found = true;
+                break;
+            }
+            current = tree.parent(parent_id);
+        }
+        
+        tracing::info!(
+            "🔍 [element_id_hint] 祖先查找完成: container_found={}, iterations={}",
+            container_found,
+            iteration_count
+        );
+        
+        // 策略2: 如果没找到可滚动祖先,使用直接父节点
+        if !container_found {
+            if let Some(parent_id) = tree.parent(target_idx) {
+                tracing::info!(
+                    "🎯 [element_id_hint] 使用直接父节点作为容器: node[{}] → parent[{}]",
+                    target_idx,
+                    parent_id
+                );
+                candidates.push(HeuristicResult {
+                    node: parent_id,
+                    score: 0.85,  // 稍低分数,因为不是最优
+                    tag: "hint_element_id_parent",
+                    note: format!("直接父节点: {} → node[{}] → parent[{}]", element_id, target_idx, parent_id),
+                });
+            } else {
+                tracing::warn!(
+                    "⚠️ [element_id_hint] 节点{}是根节点,无法找到容器祖先",
+                    target_idx
+                );
+            }
+        }
     } else {
         tracing::warn!(
             "⚠️ [element_id_hint] 索引超出范围: {} (节点总数: {})",

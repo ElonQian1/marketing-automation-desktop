@@ -40,11 +40,21 @@ impl<'a> XmlIndexerAdapter<'a> {
         }
     }
 
-    /// 获取节点引用
-    fn get_node(&self, node_id: SmNodeId) -> Option<&IndexedNode> {
+    /// 获取节点引用（公开以供诊断工具使用）
+    pub fn get_node(&self, node_id: SmNodeId) -> Option<&IndexedNode> {
         self.node_map
             .get(&node_id)
             .and_then(|&idx| self.indexer.all_nodes.get(idx))
+    }
+    
+    /// 获取节点总数
+    pub fn node_count(&self) -> usize {
+        self.indexer.all_nodes.len()
+    }
+    
+    /// 获取根节点ID（树的第一个节点，通常是索引0）
+    pub fn root_id(&self) -> SmNodeId {
+        0  // XML树的根节点通常是第一个解析到的节点
     }
 
     /// 解析bounds字符串为SmBounds
@@ -160,8 +170,15 @@ impl<'a> XmlIndexerAdapter<'a> {
         let child_node = self.get_node(node_id)?;
         let (c_left, c_top, c_right, c_bottom) = child_node.bounds;
         
+        tracing::debug!(
+            "🔍 [find_parent] 查找node[{}]的父节点, bounds=({},{},{},{})",
+            node_id, c_left, c_top, c_right, c_bottom
+        );
+        
         // 查找所有包含当前节点的节点
         let mut candidates: Vec<(SmNodeId, i64)> = Vec::new();
+        let mut checked_count = 0;
+        let mut contained_count = 0;
         
         for (idx, node) in self.indexer.all_nodes.iter().enumerate() {
             let idx_id = idx as SmNodeId;
@@ -169,6 +186,7 @@ impl<'a> XmlIndexerAdapter<'a> {
                 continue; // 跳过自己
             }
             
+            checked_count += 1;
             let (p_left, p_top, p_right, p_bottom) = node.bounds;
             
             // 检查是否完全包含
@@ -176,13 +194,37 @@ impl<'a> XmlIndexerAdapter<'a> {
                p_right >= c_right && p_bottom >= c_bottom {
                 // 计算面积（用于找最近的父节点）
                 let area = ((p_right - p_left) as i64) * ((p_bottom - p_top) as i64);
+                contained_count += 1;
+                tracing::trace!(
+                    "  ✓ 候选父节点 node[{}]: bounds=({},{},{},{}), area={}",
+                    idx_id, p_left, p_top, p_right, p_bottom, area
+                );
                 candidates.push((idx_id, area));
             }
         }
         
+        tracing::debug!(
+            "🔍 [find_parent] 检查了{}个节点,找到{}个包含候选",
+            checked_count, contained_count
+        );
+        
         // 返回面积最小的那个（最近的父节点）
         candidates.sort_by_key(|(_, area)| *area);
-        candidates.first().map(|(id, _)| *id)
+        let result = candidates.first().map(|(id, _)| *id);
+        
+        if let Some(parent_id) = result {
+            tracing::info!(
+                "✅ [find_parent] node[{}]的父节点是node[{}]",
+                node_id, parent_id
+            );
+        } else {
+            tracing::warn!(
+                "⚠️ [find_parent] node[{}]没有找到父节点！",
+                node_id
+            );
+        }
+        
+        result
     }
 
     /// 查找节点的子节点ID列表

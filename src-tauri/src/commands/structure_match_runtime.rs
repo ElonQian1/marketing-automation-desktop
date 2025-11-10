@@ -126,6 +126,14 @@ pub async fn sm_match_once(request: SmMatchRequest) -> Result<SmMatchResponse, S
     // 3. 创建适配器
     let adapter = XmlIndexerAdapter::new(&indexer, xml_hash);
     
+    // 🎯 3.5 【诊断】全树父链一致性检查
+    #[cfg(debug_assertions)]
+    {
+        use crate::domain::structure_runtime_match::adapters::debug_tools;
+        let root = adapter.root_id();
+        debug_tools::validate_parent_links(&adapter, root);
+    }
+    
     // 🔥 4. 【新增】调用容器限域模块，自动识别容器
     use crate::domain::structure_runtime_match::container_gate::{
         resolve_container_scope, ContainerHints, ContainerConfig
@@ -206,6 +214,16 @@ pub async fn sm_match_once(request: SmMatchRequest) -> Result<SmMatchResponse, S
                     element_id,
                     idx
                 );
+                
+                // 🎯 诊断工具: 打印该节点的详细信息和祖先链
+                #[cfg(debug_assertions)]
+                {
+                    use crate::domain::structure_runtime_match::adapters::debug_tools;
+                    tracing::info!("🔍 [SM Runtime] 开始诊断 node[{}] 的父子关系...", idx);
+                    debug_tools::debug_node_info(&adapter, idx);
+                    debug_tools::debug_parent_chain(&adapter, idx);
+                }
+                
                 idx
             } else {
                 tracing::warn!(

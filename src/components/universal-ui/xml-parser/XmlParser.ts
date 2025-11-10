@@ -289,12 +289,34 @@ export class XmlParser {
 
   /**
    * 🎯 从重叠元素中选择最佳元素
-   * 优先级：可点击 > 有文本内容 > 有content-desc > XML顺序靠后（更内层）
+   * 优先级：有文本内容/content-desc（语义优先） > 可点击 > XML顺序靠后（更内层）
+   * 
+   * 🔧 BUG修复: 瀑布流卡片结构为 node[31](有content-desc, 不可点) → node[32](可点, 无content-desc)
+   *            之前错误地选择了可点击的node[32]，导致后端收到element_32后无法找到语义信息
    */
   private static selectBestElementFromOverlapping(
     elements: VisualUIElement[]
   ): VisualUIElement {
-    // 1. 优先选择可点击的元素
+    // 1️⃣ 最高优先级：有内容的元素（text 或 content-desc）
+    const elementsWithContent = elements.filter((e) => e.text || e.contentDesc);
+    if (elementsWithContent.length > 0) {
+      // 如果有多个，优先选择有content-desc的（语义更丰富）
+      const withContentDesc = elementsWithContent.filter((e) => e.contentDesc);
+      if (withContentDesc.length > 0) {
+        // 多个有content-desc时，选择content-desc最长的（信息最多）
+        return withContentDesc.reduce((best, current) =>
+          (current.contentDesc?.length || 0) > (best.contentDesc?.length || 0)
+            ? current
+            : best
+        );
+      }
+      // 只有text没有content-desc，选择text最长的
+      return elementsWithContent.reduce((best, current) =>
+        (current.text?.length || 0) > (best.text?.length || 0) ? current : best
+      );
+    }
+
+    // 2️⃣ 次优先级：可点击的元素（但优先级低于有内容的元素）
     const clickableElements = elements.filter((e) => e.clickable);
     if (clickableElements.length === 1) {
       return clickableElements[0];
@@ -306,15 +328,7 @@ export class XmlParser {
       );
     }
 
-    // 2. 没有可点击的，选择有内容的元素
-    const elementsWithContent = elements.filter((e) => e.text || e.contentDesc);
-    if (elementsWithContent.length > 0) {
-      return elementsWithContent.reduce((best, current) =>
-        (current.xmlIndex || 0) > (best.xmlIndex || 0) ? current : best
-      );
-    }
-
-    // 3. 都没有内容，选择XML顺序靠后的（更内层）
+    // 3️⃣ 兜底：都没有内容也不可点击，选择XML顺序靠后的（更内层）
     return elements.reduce((best, current) =>
       (current.xmlIndex || 0) > (best.xmlIndex || 0) ? current : best
     );
