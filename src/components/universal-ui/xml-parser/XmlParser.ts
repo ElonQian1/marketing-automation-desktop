@@ -237,8 +237,16 @@ export class XmlParser {
   }
 
   /**
-   * 🎯 Element_43修复：过滤重叠的冗余容器
-   * 解决外层不可点击容器与内层可点击容器重叠的问题
+   * 🎯 Element_43修复：过滤重叠的冗余容器（改进版）
+   * 
+   * 🔥 新策略：同时保留有语义信息的外层 + 可点击的内层
+   * 
+   * 瀑布流卡片典型结构：
+   * - 外层 FrameLayout(clickable=false, content-desc="笔记...")  ← 语义层，保留
+   * - 内层 FrameLayout(clickable=true, 无content-desc)         ← 交互层，也保留
+   * 
+   * 旧逻辑问题：只保留外层，导致内层不可见
+   * 新逻辑：两层都保留，让用户和可视化系统都能看到
    */
   private static filterOverlappingContainers(
     elements: VisualUIElement[]
@@ -261,22 +269,23 @@ export class XmlParser {
         // 没有重叠，直接保留
         filtered.push(element);
       } else {
-        // 有重叠，应用优先级规则
+        // 有重叠，应用新的智能保留策略
         if (processedBounds.has(element.bounds)) {
           // 这个bounds已经处理过了，跳过
           return;
         }
 
-        // 找出所有相同bounds的元素，选择最优的保留
+        // 🔥 新策略：保留所有有价值的元素（语义层 + 交互层）
         const allSameBounds = [element, ...sameBoundsElements];
-        const bestElement =
-          XmlParser.selectBestElementFromOverlapping(allSameBounds);
+        const valuableElements = XmlParser.selectValuableElementsFromOverlapping(allSameBounds);
 
-        filtered.push(bestElement);
+        // 保留所有有价值的元素
+        filtered.push(...valuableElements);
         processedBounds.add(element.bounds);
 
         console.log(
-          `🔧 [XmlParser] 处理重叠bounds ${element.bounds}: 从${allSameBounds.length}个元素中选择了 ${bestElement.id}`
+          `🔧 [XmlParser] 处理重叠bounds ${element.bounds}: 从${allSameBounds.length}个元素中保留了${valuableElements.length}个有价值元素`,
+          valuableElements.map(e => `${e.id}(clickable:${e.clickable}, hasContent:${!!(e.text || e.contentDesc)})`)
         );
       }
     });
@@ -288,7 +297,46 @@ export class XmlParser {
   }
 
   /**
-   * 🎯 从重叠元素中选择最佳元素
+   * 🔥 新策略：从重叠元素中选择所有有价值的元素
+   * 
+   * 瀑布流卡片场景：
+   * - 外层 FrameLayout(clickable=false, content-desc="笔记...")  ← 语义层，保留
+   * - 内层 FrameLayout(clickable=true, 无content-desc)         ← 交互层，也保留
+   * 
+   * 价值判定：
+   * 1. 有语义信息（text或content-desc）→ 保留
+   * 2. 可点击（clickable=true）→ 保留
+   * 3. 两者都有 → 都保留
+   * 4. 两者都无 → 只保留最内层（xmlIndex最大）
+   */
+  private static selectValuableElementsFromOverlapping(
+    elements: VisualUIElement[]
+  ): VisualUIElement[] {
+    const valuable: VisualUIElement[] = [];
+
+    // 1️⃣ 保留所有有语义信息的元素
+    const semanticElements = elements.filter((e) => e.text || e.contentDesc);
+    valuable.push(...semanticElements);
+
+    // 2️⃣ 保留所有可点击的元素（如果还没被包含）
+    const clickableElements = elements.filter(
+      (e) => e.clickable && !valuable.includes(e)
+    );
+    valuable.push(...clickableElements);
+
+    // 3️⃣ 如果都没有价值，至少保留最内层的一个
+    if (valuable.length === 0) {
+      const innermost = elements.reduce((best, current) =>
+        (current.xmlIndex || 0) > (best.xmlIndex || 0) ? current : best
+      );
+      valuable.push(innermost);
+    }
+
+    return valuable;
+  }
+
+  /**
+   * 🎯 从重叠元素中选择最佳元素（旧逻辑，保留以防需要）
    * 优先级：有文本内容/content-desc（语义优先） > 可点击 > XML顺序靠后（更内层）
    * 
    * 🔧 BUG修复: 瀑布流卡片结构为 node[31](有content-desc, 不可点) → node[32](可点, 无content-desc)
