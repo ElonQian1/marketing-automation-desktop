@@ -185,7 +185,7 @@ impl<'a> SubtreeMatcher<'a> {
 
     fn score_bottom_shape(&self, child_classes: &[String]) -> f32 {
         let ideal = ["View", "TextView", "ImageView", "TextView"];
-        let mut score = 0.0;
+        let mut score: f32 = 0.0;
         
         for (i, class) in child_classes.iter().enumerate() {
             if i < ideal.len() && class.ends_with(ideal[i]) {

@@ -215,12 +215,15 @@ impl<'a> AutoRecommendationService<'a> {
             warnings.push("建议添加备用执行方案".to_string());
         }
 
+        let is_valid = issues.is_empty();
+        let recommendation = if is_valid { "推荐使用" } else { "谨慎使用" }.to_string();
+        
         ValidationResult {
-            is_valid: issues.is_empty(),
+            is_valid,
             confidence_level: if confidence >= 0.8 { "高" } else if confidence >= 0.6 { "中" } else { "低" }.to_string(),
             issues,
             warnings,
-            recommendation: if issues.is_empty() { "推荐使用" } else { "谨慎使用" }.to_string(),
+            recommendation,
         }
     }
 
@@ -290,8 +293,8 @@ impl<'a> AutoRecommendationService<'a> {
     }
 
     fn get_node_bounds(&self, node_index: usize) -> Result<String> {
-        if let Some(node) = self.xml_indexer.nodes.get(node_index) {
-            Ok(node.bounds.clone())
+        if let Some(node) = self.xml_indexer.all_nodes.get(node_index) {
+            Ok(format!("{:?}", node.bounds))
         } else {
             Err(anyhow!("节点索引{}无效", node_index))
         }

@@ -44,6 +44,6 @@ pub use click_normalizer::{ClickNormalizer, ClickNormalizeResult, NormalizedNode
 // 🔥 新增：自动选型系统导出
 pub use auto_mode_selector::{AutoModeSelector, AutoPickConfig, AutoPickResult, RecommendationDetails};
 pub use execution_bridge::{ExecutionBridge, ExecutionMapping, MappingSummary};
-pub use execution_types::{ClickMode, ColumnInfo, ExecutionStrategy};
+pub use execution_types::{ClickMode, ExecutionStrategy}; // 移除重复的 ColumnInfo
 pub use auto_recommendation_service::{AutoRecommendationService, AutoRecommendationResult, AutoRecommendationConfig, RecommendationSummary, ValidationResult};
 pub use scorers::types::{MatchMode, ScoreOutcome, SubtreeFeatures, ContextSig};

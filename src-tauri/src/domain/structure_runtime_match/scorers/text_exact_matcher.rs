@@ -109,7 +109,7 @@ impl<'a> TextExactMatcher<'a> {
     }
 
     fn calculate_text_confidence(&self, text: &str) -> f32 {
-        let mut confidence = 0.60; // 基础分数
+        let mut confidence: f32 = 0.60; // 基础分数
         
         // 高价值关键词加分
         let high_value_keywords = ["关注", "已关注", "Follow", "Following"];

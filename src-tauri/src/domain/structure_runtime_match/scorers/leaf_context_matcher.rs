@@ -175,7 +175,7 @@ impl<'a> LeafContextMatcher<'a> {
 
     fn score_ancestor_pattern(&self, ancestors: &[String]) -> f32 {
         // 位于ViewGroup → FrameLayout（可点父）下方，且上方有Recycler容器时更稳
-        let mut score = 0.0;
+        let mut score: f32 = 0.0;
         
         if ancestors.iter().any(|c| c.ends_with("ViewGroup")) {
             score += 0.5;

@@ -2,7 +2,7 @@
 // module: structure_runtime_match | layer: domain | role: 三路评分公共类型
 // summary: 定义匹配模式、评分结果、特征提取等核心类型
 
-#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, serde::Serialize, serde::Deserialize)]
 pub enum MatchMode { 
     CardSubtree,   // 子孙骨架匹配：卡片根/可点父等有层级元素
     LeafContext,   // 叶子上下文匹配：点赞/头像等无子孙小控件  
@@ -27,7 +27,7 @@ impl MatchMode {
     }
 }
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, serde::Serialize, serde::Deserialize)]
 pub struct ScoreOutcome {
     pub mode: MatchMode,
     pub conf: f32,          // 0.0-1.0 置信度

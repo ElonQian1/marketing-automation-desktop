@@ -149,14 +149,18 @@ impl<'a> ExecutionBridge<'a> {
             .ok_or_else(|| anyhow!("未找到叶子上下文评分结果"))?;
 
         // 检查是否有明显的文本特征
-        let node_text = self.xml_indexer.get_node_text(clicked_node_index);
+        let clicked_node = self.xml_indexer.all_nodes.get(clicked_node_index);
+        let node_text = clicked_node
+            .and_then(|n| n.element.text.as_ref())
+            .map(|s| s.as_str())
+            .unwrap_or("");
         let has_stable_text = !node_text.is_empty() && 
                               !node_text.chars().any(|c| c.is_numeric());
 
         let click_mode = if has_stable_text && node_text.len() >= 2 {
             // 使用文本辅助的相对位置匹配
             ClickMode::TextAugmentedPosition {
-                text_hint: node_text.clone(),
+                text_hint: node_text.to_string(),
                 fallback_bounds: self.get_node_bounds(clickable_parent_index)?,
                 context_description: leaf_outcome.explain.clone(),
             }
@@ -181,8 +185,15 @@ impl<'a> ExecutionBridge<'a> {
             .find(|o| o.mode == MatchMode::TextExact)
             .ok_or_else(|| anyhow!("未找到文本精确评分结果"))?;
 
-        let node_text = self.xml_indexer.get_node_text(clicked_node_index);
-        let content_desc = self.xml_indexer.get_node_content_desc(clicked_node_index);
+        let clicked_node = self.xml_indexer.all_nodes.get(clicked_node_index);
+        let node_text = clicked_node
+            .and_then(|n| n.element.text.as_ref())
+            .map(|s| s.as_str())
+            .unwrap_or("");
+        let content_desc = clicked_node
+            .and_then(|n| n.element.content_desc.as_ref())
+            .map(|s| s.as_str())
+            .unwrap_or("");
 
         // 选择最稳定的文本特征
         let (primary_text, text_type) = if !node_text.is_empty() && text_outcome.conf > 0.75 {
@@ -194,7 +205,7 @@ impl<'a> ExecutionBridge<'a> {
         };
 
         let click_mode = ClickMode::ExactTextMatch {
-            target_text: primary_text.clone(),
+            target_text: primary_text.to_string(),
             text_source: text_type.to_string(),
             confidence_level: text_outcome.conf,
             fallback_bounds: self.get_node_bounds(clicked_node_index)?,
@@ -205,8 +216,8 @@ impl<'a> ExecutionBridge<'a> {
 
     // 辅助方法
     fn get_node_bounds(&self, node_index: usize) -> Result<String> {
-        if let Some(node) = self.xml_indexer.nodes.get(node_index) {
-            Ok(node.bounds.clone())
+        if let Some(node) = self.xml_indexer.all_nodes.get(node_index) {
+            Ok(format!("{:?}", node.bounds))
         } else {
             Err(anyhow!("节点索引{}无效", node_index))
         }
@@ -218,12 +229,18 @@ impl<'a> ExecutionBridge<'a> {
         let mut current_index = target_index;
         
         while current_index != root_index && depth < 10 {
-            if let Some(parent_index) = self.xml_indexer.find_parent_index(current_index) {
-                current_index = parent_index;
-                depth += 1;
+            if let Some(current_node) = self.xml_indexer.all_nodes.get(current_index) {
+                // TODO: 实现parent查找逻辑
+                if let Some(_parent_xpath) = current_node.parent_xpath.as_ref() {
+                    // 暂时跳出循环，需要实现parent索引查找
+                    break;
+                } else {
+                    break;
+                }
             } else {
                 break;
             }
+            depth += 1;
         }
         
         Ok(depth)
@@ -286,13 +303,4 @@ impl ClickMode {
     // 注意：这些是新增的ClickMode变体，需要在step_executor中定义
 }
 
-// 为MatchMode添加显示名称
-impl MatchMode {
-    pub fn display_name(&self) -> &'static str {
-        match self {
-            MatchMode::CardSubtree => "卡片子树",
-            MatchMode::LeafContext => "叶子上下文",
-            MatchMode::TextExact => "文本精确",
-        }
-    }
-}
+// display_name方法已在types.rs中定义，此处删除重复定义
