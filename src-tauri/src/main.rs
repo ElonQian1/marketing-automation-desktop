@@ -275,6 +275,9 @@ fn main() {
             warmup_rebuild_cache,
             get_rebuild_cache_stats,
             clear_rebuild_cache,
+            // ==================== 🧪 测试工具 (2个命令) ====================
+            test_click_normalization,
+            analyze_xml_structure,
         ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");

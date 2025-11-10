@@ -20,6 +20,16 @@ pub mod skeleton;
 pub mod field_refine;
 pub mod scoring;
 
+// 🔥 新增：点击规范化模块
+pub mod click_normalizer;
+
+// 🔥 新增：三路评分器与自动选型系统
+pub mod scorers;
+pub mod auto_mode_selector;
+pub mod execution_bridge;
+pub mod execution_types;
+pub mod auto_recommendation_service;
+
 // 对外唯一入口
 pub use orchestrator::sm_run_once;
 pub use types::{SmBounds, SmContainerHit, SmItemHit, SmLayoutType, SmNodeId, SmResult, SmScores};
@@ -27,3 +37,13 @@ pub use config::{SmConfig, SmMode, SkeletonRules, FieldRule, FieldRules, Contain
 pub use ports::xml_view::SmXmlView;
 pub use ports::cache::SmCache;
 pub use adapters::xml_indexer_adapter::XmlIndexerAdapter;
+
+// 🔥 新增：点击规范化相关导出
+pub use click_normalizer::{ClickNormalizer, ClickNormalizeResult, NormalizedNode, ColumnInfo, WaterfallColumn};
+
+// 🔥 新增：自动选型系统导出
+pub use auto_mode_selector::{AutoModeSelector, AutoPickConfig, AutoPickResult, RecommendationDetails};
+pub use execution_bridge::{ExecutionBridge, ExecutionMapping, MappingSummary};
+pub use execution_types::{ClickMode, ColumnInfo, ExecutionStrategy};
+pub use auto_recommendation_service::{AutoRecommendationService, AutoRecommendationResult, AutoRecommendationConfig, RecommendationSummary, ValidationResult};
+pub use scorers::types::{MatchMode, ScoreOutcome, SubtreeFeatures, ContextSig};
