@@ -273,6 +273,19 @@ impl XmlIndexer {
         candidates
     }
     
+    /// 按xpath查找节点索引 (支持StepCard快照恢复)
+    /// 
+    /// # Arguments
+    /// * `xpath` - 要查找的xpath路径
+    /// 
+    /// # Returns
+    /// * `Some(usize)` - 节点在all_nodes中的索引
+    /// * `None` - 未找到匹配节点
+    pub fn find_node_by_xpath(&self, xpath: &str) -> Option<usize> {
+        self.all_nodes.iter()
+            .position(|node| node.xpath == xpath)
+    }
+    
     /// 工具方法：提取XML属性
     fn extract_attribute(node_str: &str, attr_name: &str) -> Option<String> {
         let pattern = format!(r#"{}="([^"]*)""#, attr_name);

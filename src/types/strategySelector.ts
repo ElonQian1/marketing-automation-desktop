@@ -10,7 +10,7 @@
 export type StrategyType = 'smart-auto' | 'smart-single' | 'static';
 
 // 智能策略步骤
-export type SmartStep = 'step1' | 'step2' | 'step3' | 'step4' | 'step5' | 'step6';
+export type SmartStep = 'step1' | 'step2' | 'step3' | 'step4' | 'step5' | 'step6' | 'step7' | 'step8';
 
 // 候选策略项
 export interface StrategyCandidate {

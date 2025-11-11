@@ -135,36 +135,61 @@ const StructureRecommendModal: React.FC<StructureRecommendModalProps> = ({
     onClose();
   };
 
-  // 渲染评分条
+  // 渲染评分条（增强版）
   const renderOutcomeBar = (outcome: UiOutcome) => {
     const style = getConfidenceStyle(outcome.conf);
     const percentage = Math.round(outcome.conf * 100);
+    const isRecommended = outcome.mode === recommendation?.recommended;
     
     return (
-      <div className="outcome-item" style={{ marginBottom: 16 }}>
-        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 4 }}>
+      <div 
+        className="outcome-item" 
+        style={{ 
+          marginBottom: 16,
+          padding: 12,
+          border: isRecommended ? '2px solid #1890ff' : '1px solid #f0f0f0',
+          borderRadius: 6,
+          backgroundColor: isRecommended ? '#e6f7ff' : 'transparent'
+        }}
+      >
+        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 8 }}>
           <Space>
-            <Text strong>{getModeDisplayName(outcome.mode)}</Text>
+            <Text strong style={{ fontSize: 14 }}>
+              {getModeDisplayName(outcome.mode)}
+            </Text>
+            {isRecommended && (
+              <Text type="success" style={{ fontSize: 12 }}>⭐ 推荐</Text>
+            )}
             {outcome.passed_gate ? (
-              <CheckCircleOutlined style={{ color: "#52c41a" }} />
+              <Tooltip title="通过闸门阈值">
+                <CheckCircleOutlined style={{ color: "#52c41a", fontSize: 16 }} />
+              </Tooltip>
             ) : (
-              <ExclamationCircleOutlined style={{ color: "#faad14" }} />
+              <Tooltip title="未通过闸门">
+                <ExclamationCircleOutlined style={{ color: "#faad14", fontSize: 16 }} />
+              </Tooltip>
             )}
           </Space>
-          <Text style={{ color: style.color }}>
-            {formatConfidence(outcome.conf)}
-          </Text>
+          <Space>
+            <Text strong style={{ color: style.color, fontSize: 16 }}>
+              {formatConfidence(outcome.conf)}
+            </Text>
+            <Text type="secondary" style={{ fontSize: 12 }}>
+              ({style.label}置信度)
+            </Text>
+          </Space>
         </div>
         
         <Progress
           percent={percentage}
-          strokeColor={outcome.passed_gate ? "#52c41a" : "#faad14"}
+          strokeColor={outcome.passed_gate ? "#52c41a" : (percentage >= 60 ? "#faad14" : "#ff4d4f")}
           showInfo={false}
-          size="small"
+          size="default"
+          strokeWidth={8}
         />
         
-        <Text type="secondary" style={{ fontSize: 12 }}>
-          {outcome.explain}
+        <Text type="secondary" style={{ fontSize: 12, display: 'block', marginTop: 8 }}>
+          💡 {outcome.explain}
         </Text>
       </div>
     );
@@ -294,9 +319,9 @@ const StructureRecommendModal: React.FC<StructureRecommendModalProps> = ({
             />
           )}
 
-          {/* 高级详情 */}
-          <Collapse ghost>
-            <Panel header="🔍 评分详情与解释" key="details">
+          {/* 三路评分详情（默认展开） */}
+          <Collapse ghost defaultActiveKey={["details"]}>
+            <Panel header="🔍 三路评分详情" key="details">
               <div style={{ padding: "8px 0" }}>
                 {recommendation.outcomes.map((outcome) => 
                   renderOutcomeBar(outcome)

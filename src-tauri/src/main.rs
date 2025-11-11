@@ -278,9 +278,12 @@ fn main() {
             // ==================== 🧪 测试工具 (2个命令) ====================
             test_click_normalization,
             analyze_xml_structure,
-            // ==================== 🎯 智能推荐 (2个命令) ====================
+            // ==================== 🎯 智能推荐 (5个命令) ====================
             recommend_structure_mode,
             dry_run_structure_match,
+            resolve_from_stepcard_snapshot,
+            recommend_structure_mode_v2,
+            execute_structure_match_step,
         ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");

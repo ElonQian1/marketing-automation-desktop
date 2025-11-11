@@ -79,6 +79,9 @@ const SMART_STEPS: { step: SmartStep; label: string; candidateKey: string }[] = 
   { step: "step4", label: "Step4 - XPath兜底", candidateKey: "xpath_fallback" },
   { step: "step5", label: "Step5 - 索引兜底", candidateKey: "index_fallback" },
   { step: "step6", label: "Step6 - 应急兜底", candidateKey: "emergency_fallback" },
+  // 🆕 三路评分器集成
+  { step: "step7", label: "Step7 - 卡片子树评分", candidateKey: "card_subtree_scoring" },
+  { step: "step8", label: "Step8 - 叶子上下文评分", candidateKey: "leaf_context_scoring" },
 ];
 
 interface CompactStrategyMenuProps {
@@ -418,7 +421,124 @@ const CompactStrategyMenu: React.FC<CompactStrategyMenuProps> = ({
                 </div>
               </div>
             ),
-            onClick: () => {
+            onClick: async () => {
+              // 🆕 三路评分器集成：Step7和Step8需要特殊处理
+              if (step === 'step7' || step === 'step8') {
+                console.log(`🎯 [三路评分] 触发${step === 'step7' ? '卡片子树' : '叶子上下文'}评分`);
+                
+                // 直接使用双模式命令，后端自动处理xpath解析
+                if (!stepId) {
+                  message.warning('请先创建步骤卡片');
+                  return;
+                }
+                
+                try {
+                  const card = cardStore.cards[stepId];
+                  if (!card || !card.xmlSnapshot || !card.elementContext?.xpath) {
+                    message.error('步骤卡片数据不完整，请重新分析页面并选择元素');
+                    return;
+                  }
+                  
+                  console.log('📦 [三路评分] 使用步骤卡片快照:', {
+                    xpath: card.elementContext.xpath,
+                    xmlContentLength: card.xmlSnapshot.xmlContent?.length,
+                    xmlCacheId: card.xmlSnapshot.xmlCacheId,
+                  });
+                  
+                  // 获取XML内容：优先使用缓存，否则使用内嵌内容
+                  let xmlContent: string | null = null;
+                  
+                  if (card.xmlSnapshot.xmlCacheId) {
+                    const XmlCacheManager = (await import('../../services/xml-cache-manager')).default;
+                    const cacheManager = XmlCacheManager.getInstance();
+                    const cacheEntry = await cacheManager.getCachedXml(card.xmlSnapshot.xmlCacheId);
+                    if (cacheEntry) {
+                      xmlContent = cacheEntry.xmlContent;
+                      console.log('✅ [三路评分] 从缓存恢复XML');
+                    }
+                  }
+                  
+                  if (!xmlContent) {
+                    xmlContent = card.xmlSnapshot.xmlContent || null;
+                    console.log('✅ [三路评分] 使用内嵌XML');
+                  }
+                  
+                  if (!xmlContent) {
+                    message.error('无法获取XML内容');
+                    return;
+                  }
+                  
+                  // 调用推荐命令（后端自动解析四节点）
+                  const { invoke } = await import('@tauri-apps/api/core');
+                  const recommendation = await invoke<{
+                    recommended: string;
+                    outcomes: Array<{
+                      mode: string;
+                      conf: number;
+                      explain: string;
+                      passed_gate: boolean;
+                    }>;
+                    step_plan_mode: string;
+                    plan_suggest: Record<string, unknown>;
+                    config_suggest: Record<string, unknown>;
+                    intent_suggest: Record<string, unknown>;
+                    confidence_level: string;
+                    recommendation_reason: string;
+                  }>('recommend_structure_mode_v2', {
+                    input: {
+                      absoluteXpath: card.elementContext.xpath,
+                      xmlSnapshot: xmlContent,
+                      containerXpath: null, // 暂时不使用容器xpath
+                    },
+                  });
+                  
+                  console.log('✅ [三路评分] 评分完成:', recommendation);
+                  
+                  // 根据选择的步骤过滤对应的评分结果
+                  const targetMode = step === 'step7' ? 'CardSubtree' : 'LeafContext';
+                  const targetOutcome = recommendation.outcomes.find(o => o.mode === targetMode);
+                  
+                  if (!targetOutcome) {
+                    message.error(`未找到${targetMode}评分结果`);
+                    return;
+                  }
+                  
+                  // 显示评分信息
+                  const confidence = Math.round(targetOutcome.conf * 100);
+                  const statusIcon = targetOutcome.passed_gate ? '✅' : '⚠️';
+                  message.success(
+                    `${statusIcon} ${step === 'step7' ? '卡片子树' : '叶子上下文'}评分: ${confidence}% - ${targetOutcome.explain}`,
+                    5
+                  );
+                  
+                  // 🔑 自动应用推荐配置到步骤
+                  if (onUpdateStepParameters && stepId) {
+                    const stepPatch = {
+                      strategy: { selected: recommendation.step_plan_mode },
+                      plan: recommendation.plan_suggest,
+                      config: recommendation.config_suggest,
+                      intent: recommendation.intent_suggest,
+                      // 附加元数据
+                      _scoreMetadata: {
+                        mode: targetMode,
+                        confidence: targetOutcome.conf,
+                        passedGate: targetOutcome.passed_gate,
+                        explanation: targetOutcome.explain,
+                      }
+                    };
+                    
+                    onUpdateStepParameters(stepId, stepPatch);
+                    console.log('🔧 [三路评分] 已应用配置到步骤:', stepPatch);
+                  }
+                  
+                } catch (error) {
+                  console.error('❌ [三路评分] 评分失败:', error);
+                  message.error(`评分失败: ${error instanceof Error ? error.message : '未知错误'}`);
+                  return;
+                }
+              }
+              
+              // 正常的策略切换
               events.onStrategyChange({ type: "smart-single", stepName: step });
             },
           };
