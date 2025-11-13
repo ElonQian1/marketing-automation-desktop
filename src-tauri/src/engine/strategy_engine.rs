@@ -1,14 +1,15 @@
 // src-tauri/src/engine/strategy_engine.rs
-// ✅ Step 0-6 智能策略分析核心引擎 - 统一评分逻辑，避免重复计算
+// ✅ Step 1-8 智能策略分析核心引擎 - 统一评分逻辑，避免重复计算
 //
-// 🎯 Step 0-6 策略映射：
-// Step 0: AnalysisContext - 规范化输入
-// Step 1: self_anchor - 自我可定位性检查 (SelfAnchorStrategy)
-// Step 2: child_driven - 子树找锚点 (ChildAnchorStrategy)  
-// Step 3: [通过strategy_plugin.rs] - 上溯到可点父 (ParentClickableStrategy)
-// Step 4: region_scoped - 锚定局部容器 (RegionScopedStrategy)
-// Step 5: [通过strategy_plugin.rs] - 邻居锚点 (NeighborRelativeStrategy)  
-// Step 6: xpath_fallback - 索引兜底 (XPathDirectStrategy)
+// 🎯 V3架构 - 统一步骤序号体系：
+// Step 1: card_subtree_scoring - 卡片子树评分（结构匹配优先）
+// Step 2: leaf_context_scoring - 叶子上下文评分（结构匹配优先）
+// Step 3: self_anchor - 自我可定位性检查 (SelfAnchorStrategy)
+// Step 4: child_driven - 子树找锚点 (ChildAnchorStrategy)  
+// Step 5: region_scoped - 锚定局部容器 (RegionScopedStrategy)
+// Step 6: xpath_fallback - XPath兜底 (XPathDirectStrategy)
+// Step 7: index_fallback - 索引兜底
+// Step 8: emergency_fallback - 应急兜底
 //
 // 🔄 调用路径: V3 chain_engine.rs → 此文件 → strategy_plugin.rs 执行器
 

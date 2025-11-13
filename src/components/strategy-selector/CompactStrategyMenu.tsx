@@ -4,6 +4,7 @@
 
 import React, { useState, useCallback } from "react";
 import { Dropdown, Button, Tooltip, Badge, Tag, message, Collapse } from "antd";
+import { UNIFIED_STEP_SEQUENCE, StepSequenceMapper } from '../../config/step-sequence';
 import { invoke } from '@tauri-apps/api/core';
 import {
   RefreshCcwIcon,
@@ -71,20 +72,14 @@ const STRATEGY_LABELS = {
   static: "静态策略",
 };
 
-// 🔧 修复：将后端候选项key映射到UI步骤，支持实际的候选项
+// ✅ 使用统一配置（从 step-sequence.ts 导入）
 // 🎯 优先级调整：将结构匹配（卡片子树、叶子上下文）提到前两位
-const SMART_STEPS: { step: SmartStep; label: string; candidateKey: string }[] = [
-  // 🆕 结构匹配优先（Step1-2）
-  { step: "step1", label: "Step1 - 卡片子树评分", candidateKey: "card_subtree_scoring" },
-  { step: "step2", label: "Step2 - 叶子上下文评分", candidateKey: "leaf_context_scoring" },
-  // 传统策略（Step3-8）
-  { step: "step3", label: "Step3 - 自锚定策略", candidateKey: "self_anchor" },
-  { step: "step4", label: "Step4 - 子元素驱动", candidateKey: "child_driven" },
-  { step: "step5", label: "Step5 - 区域约束", candidateKey: "region_scoped" },
-  { step: "step6", label: "Step6 - XPath兜底", candidateKey: "xpath_fallback" },
-  { step: "step7", label: "Step7 - 索引兜底", candidateKey: "index_fallback" },
-  { step: "step8", label: "Step8 - 应急兜底", candidateKey: "emergency_fallback" },
-];
+const SMART_STEPS: { step: SmartStep; label: string; candidateKey: string }[] = 
+  UNIFIED_STEP_SEQUENCE.map(config => ({
+    step: config.stepId as SmartStep,
+    label: config.label,
+    candidateKey: config.candidateKey,
+  }));
 
 interface CompactStrategyMenuProps {
   selector: IStrategySelector;
@@ -599,11 +594,33 @@ const CompactStrategyMenu: React.FC<CompactStrategyMenuProps> = ({
                 return;
               }
               
-              // 复用智能单步Step1的逻辑
-              const step1Logic = SMART_STEPS.find(s => s.step === 'step1');
-              if (step1Logic) {
-                // 触发相同的三路评分逻辑
+              // ✅ 共享评分逻辑方案：复用智能单步Step1的评分代码，但标记为静态策略
+              // 步骤1: 先触发评分（复用智能单步的三路评分逻辑）
+              const step1Config = StepSequenceMapper.getByStepId('step1');
+              if (!step1Config) {
+                message.error('步骤配置错误：未找到Step1配置');
+                return;
+              }
+              
+              // 触发评分逻辑（与智能单步Step1共享）
+              // 注意：这里会复用智能单步菜单项的onClick逻辑
+              const step1MenuItem = SMART_STEPS.find(s => s.step === 'step1');
+              if (step1MenuItem) {
+                // 步骤2: 执行评分
+                console.log('🔄 [静态策略-卡片子树] 复用智能单步Step1评分逻辑');
+                // 直接调用智能单步的逻辑（通过策略切换触发）
                 events.onStrategyChange({ type: "smart-single", stepName: "step1" });
+                
+                // 步骤3: 标记为静态策略（延迟执行，避免被智能单步覆盖）
+                setTimeout(() => {
+                  console.log('📌 [静态策略-卡片子树] 标记为静态策略模式');
+                  events.onStrategyChange({ 
+                    type: "static", 
+                    key: "structural_matching_card_subtree",
+                    // @ts-expect-error - 扩展属性，用于追踪共享的基础步骤
+                    _sharedBaseStep: "step1"
+                  });
+                }, 200);
               }
             }
           },
@@ -620,11 +637,32 @@ const CompactStrategyMenu: React.FC<CompactStrategyMenuProps> = ({
                 return;
               }
               
-              // 复用智能单步Step2的逻辑
-              const step2Logic = SMART_STEPS.find(s => s.step === 'step2');
-              if (step2Logic) {
-                // 触发相同的三路评分逻辑
+              // ✅ 共享评分逻辑方案：复用智能单步Step2的评分代码，但标记为静态策略
+              // 步骤1: 先触发评分（复用智能单步的三路评分逻辑）
+              const step2Config = StepSequenceMapper.getByStepId('step2');
+              if (!step2Config) {
+                message.error('步骤配置错误：未找到Step2配置');
+                return;
+              }
+              
+              // 触发评分逻辑（与智能单步Step2共享）
+              const step2MenuItem = SMART_STEPS.find(s => s.step === 'step2');
+              if (step2MenuItem) {
+                // 步骤2: 执行评分
+                console.log('🔄 [静态策略-叶子上下文] 复用智能单步Step2评分逻辑');
+                // 直接调用智能单步的逻辑（通过策略切换触发）
                 events.onStrategyChange({ type: "smart-single", stepName: "step2" });
+                
+                // 步骤3: 标记为静态策略（延迟执行，避免被智能单步覆盖）
+                setTimeout(() => {
+                  console.log('📌 [静态策略-叶子上下文] 标记为静态策略模式');
+                  events.onStrategyChange({ 
+                    type: "static", 
+                    key: "structural_matching_leaf_context",
+                    // @ts-expect-error - 扩展属性，用于追踪共享的基础步骤
+                    _sharedBaseStep: "step2"
+                  });
+                }, 200);
               }
             }
           },

@@ -193,17 +193,21 @@ async fn execute_chain_by_ref(
         None,
         Phase::DeviceReady,
         None,
-        Some("缓存无候选步骤，启动智能策略分析 (Step 0-6)".to_string()),
+        Some("缓存无候选步骤，启动智能策略分析 (Step 1-8)".to_string()),
         None,
     )?;
 
     // TODO: 实现从缓存读取 ordered_steps 和策略详情
     // TODO: 如果缓存为空或无效，调用智能策略系统生成候选策略
     //
+    // 🎯 V3架构 - 统一步骤序号体系：
+    //   Step 1-2: 结构匹配优先（卡片子树、叶子上下文）
+    //   Step 3-8: 传统策略（自锚定、子元素驱动、区域约束、XPath兜底、索引兜底、应急兜底）
+    //
     // 集成步骤：
     // 1. 尝试从缓存读取 ChainResult
     // 2. 如果缓存无效或为空，获取目标元素信息
-    // 3. 调用 StrategyDecisionEngine 进行 Step 0-6 分析
+    // 3. 调用 StrategyDecisionEngine 进行 Step 1-8 分析
     // 4. 将分析结果转换为 ordered_steps 并执行
 
     tracing::warn!("🚧 缓存读取和智能分析集成待实现");
