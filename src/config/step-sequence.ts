@@ -145,6 +145,13 @@ export class StepSequenceMapper {
   }
   
   /**
+   * 获取所有步骤配置
+   */
+  static getAll(): StepConfig[] {
+    return UNIFIED_STEP_SEQUENCE;
+  }
+  
+  /**
    * 获取结构匹配步骤（Step1-2）
    */
   static getStructureMatchingSteps(): StepConfig[] {
