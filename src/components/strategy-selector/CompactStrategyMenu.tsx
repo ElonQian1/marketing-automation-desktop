@@ -46,6 +46,9 @@ import {
   DEFAULT_RANDOM_CONFIG,
   DEFAULT_MATCH_ORIGINAL_CONFIG 
 } from './types/selection-config';
+import { executeSmartAutoScoring } from './scoring/smart-auto-scoring';
+import { executeSmartSingleScoring } from './scoring/smart-single-scoring';
+import { executeStaticCardSubtreeScoring, executeStaticLeafContextScoring } from './scoring/static-scoring';
 
 const { Panel } = Collapse;
 
@@ -357,121 +360,22 @@ const CompactStrategyMenu: React.FC<CompactStrategyMenuProps> = ({
           // ✅ 切换模式
           events.onStrategyChange({ type: "smart-auto" });
           
-          // 🎯 【核心修复】智能·自动链模式也需要触发 Step1-2 结构匹配评分
-          // 与"智能·单步"保持一致，确保三种模式都优先使用卡片子树和叶子上下文评分
-          console.log('🧠 [智能·自动链] 触发 Step1-2 结构匹配评分');
-          
+          // 🎯 触发 Step1-2 结构匹配评分（使用模块化函数）
           if (!stepId) {
             message.warning('请先创建步骤卡片');
             return;
           }
           
+          const card = cardStore.cards[stepId];
+          if (!card) {
+            message.warning('步骤卡片数据不完整，跳过评分');
+            return;
+          }
+          
           try {
-            const card = cardStore.cards[stepId];
-            if (!card || !card.elementContext?.xpath) {
-              message.warning('步骤卡片数据不完整，跳过评分');
-              return;
-            }
-            
-            // ✅ XML缓存获取（三级降级策略）
-            let xmlContent: string | null = null;
-            
-            // 优先级1: 从xmlCacheId获取
-            if (card.xmlSnapshot?.xmlCacheId) {
-              try {
-                const XmlCacheManager = (await import('../../services/xml-cache-manager')).default;
-                const cacheManager = XmlCacheManager.getInstance();
-                const cacheEntry = await cacheManager.getCachedXml(card.xmlSnapshot.xmlCacheId);
-                if (cacheEntry) {
-                  xmlContent = cacheEntry.xmlContent;
-                  console.log('✅ [智能·自动链] 从xmlCacheId恢复XML成功');
-                }
-              } catch (error) {
-                console.warn('⚠️ [智能·自动链] xmlCacheId获取失败，尝试备用方案', error);
-              }
-            }
-            
-            // 优先级2: 使用内嵌XML
-            if (!xmlContent && card.xmlSnapshot?.xmlContent) {
-              xmlContent = card.xmlSnapshot.xmlContent;
-              console.log('✅ [智能·自动链] 使用内嵌XML');
-            }
-            
-            // 优先级3: XML完全丢失，提示用户
-            if (!xmlContent) {
-              console.warn('⚠️ [智能·自动链] XML缓存丢失，跳过评分');
-              message.info('XML缓存已失效，将使用动态分析');
-              return;
-            }
-            
-            const { invoke } = await import('@tauri-apps/api/core');
-            
-            // 🎯 Step1: 卡片子树评分
-            try {
-              const step1Result = await invoke<{
-                outcomes: Array<{ mode: string; conf: number; explain: string; passed_gate: boolean }>;
-              }>('recommend_structure_mode_v2', {
-                input: {
-                  absoluteXpath: card.elementContext.xpath,
-                  xmlSnapshot: xmlContent,
-                  containerXpath: null,
-                },
-              });
-              
-              const cardSubtreeOutcome = step1Result.outcomes.find(o => o.mode === 'CardSubtree');
-              if (cardSubtreeOutcome && cardSubtreeOutcome.conf >= 0 && cardSubtreeOutcome.conf <= 1) {
-                setFinalScores([{
-                  stepId: 'CardSubtree',
-                  confidence: cardSubtreeOutcome.conf,
-                  strategy: '卡片子树评分（智能·自动链）',
-                  metrics: {
-                    source: 'smart_auto_chain',
-                    mode: 'CardSubtree',
-                    timestamp: Date.now(),
-                  }
-                }]);
-                console.log('✅ [智能·自动链] Step1评分完成:', (cardSubtreeOutcome.conf * 100).toFixed(1) + '%');
-              }
-            } catch (error) {
-              console.error('❌ [智能·自动链] Step1评分失败:', error);
-            }
-            
-            // 🎯 Step2: 叶子上下文评分
-            try {
-              const step2Result = await invoke<{
-                outcomes: Array<{ mode: string; conf: number; explain: string; passed_gate: boolean }>;
-              }>('recommend_structure_mode_v2', {
-                input: {
-                  absoluteXpath: card.elementContext.xpath,
-                  xmlSnapshot: xmlContent,
-                  containerXpath: null,
-                },
-              });
-              
-              const leafContextOutcome = step2Result.outcomes.find(o => o.mode === 'LeafContext');
-              if (leafContextOutcome && leafContextOutcome.conf >= 0 && leafContextOutcome.conf <= 1) {
-                setFinalScores([{
-                  stepId: 'LeafContext',
-                  confidence: leafContextOutcome.conf,
-                  strategy: '叶子上下文评分（智能·自动链）',
-                  metrics: {
-                    source: 'smart_auto_chain',
-                    mode: 'LeafContext',
-                    timestamp: Date.now(),
-                  }
-                }]);
-                console.log('✅ [智能·自动链] Step2评分完成:', (leafContextOutcome.conf * 100).toFixed(1) + '%');
-              }
-            } catch (error) {
-              console.error('❌ [智能·自动链] Step2评分失败:', error);
-            }
-            
-            message.success('🧠 智能·自动链评分完成');
-            
+            await executeSmartAutoScoring(card, setFinalScores);
           } catch (error) {
             console.error('❌ [智能·自动链] 评分过程失败:', error);
-            const errorMsg = error instanceof Error ? error.message : String(error);
-            message.error(`评分失败: ${errorMsg}`);
           }
         },
       },
@@ -529,190 +433,35 @@ const CompactStrategyMenu: React.FC<CompactStrategyMenuProps> = ({
               </div>
             ),
             onClick: async () => {
-              // 🆕 三路评分器集成：Step1和Step2（卡片子树、叶子上下文）需要特殊处理
+              // 🆕 三路评分器集成：Step1和Step2（卡片子树、叶子上下文）使用模块化评分
               if (step === 'step1' || step === 'step2') {
-                console.log(`🎯 [三路评分] 触发${step === 'step1' ? '卡片子树' : '叶子上下文'}评分`);
-                
-                // 直接使用双模式命令，后端自动处理xpath解析
                 if (!stepId) {
                   message.warning('请先创建步骤卡片');
                   return;
                 }
                 
-                try {
-                  const card = cardStore.cards[stepId];
-                  if (!card || !card.elementContext?.xpath) {
-                    message.error('步骤卡片数据不完整，请重新分析页面并选择元素');
-                    return;
-                  }
-                  
-                  console.log('📦 [智能单步-三路评分] 使用步骤卡片快照:', {
-                    xpath: card.elementContext.xpath,
-                    xmlContentLength: card.xmlSnapshot?.xmlContent?.length,
-                    xmlCacheId: card.xmlSnapshot?.xmlCacheId,
-                  });
-                  
-                  // ✅ 优化：XML缓存获取（三级降级策略）
-                  let xmlContent: string | null = null;
-                  
-                  // 优先级1: 从xmlCacheId获取
-                  if (card.xmlSnapshot?.xmlCacheId) {
-                    try {
-                      const XmlCacheManager = (await import('../../services/xml-cache-manager')).default;
-                      const cacheManager = XmlCacheManager.getInstance();
-                      const cacheEntry = await cacheManager.getCachedXml(card.xmlSnapshot.xmlCacheId);
-                      if (cacheEntry) {
-                        xmlContent = cacheEntry.xmlContent;
-                        console.log('✅ [降级策略] 从xmlCacheId恢复XML成功');
-                      }
-                    } catch (error) {
-                      console.warn('⚠️ [降级策略] xmlCacheId获取失败，尝试备用方案', error);
-                    }
-                  }
-                  
-                  // 优先级2: 使用内嵌XML
-                  if (!xmlContent && card.xmlSnapshot?.xmlContent) {
-                    xmlContent = card.xmlSnapshot.xmlContent;
-                    console.log('✅ [降级策略] 使用内嵌XML');
-                  }
-                  
-                  // 优先级3: XML完全丢失，提示用户
-                  if (!xmlContent) {
-                    console.error('❌ [降级策略] XML缓存完全丢失');
-                    message.error('XML缓存已失效，请重新分析页面或使用传统策略');
-                    return;
-                  }
-                  
-                  // ✅ 验证数据完整性
-                  if (xmlContent.length < 100) {
-                    console.warn('⚠️ [数据验证] XML内容过短，可能不完整');
-                    message.warning('XML数据可能不完整，评分结果仅供参考');
-                  }
-                  
-                  // 调用推荐命令（后端自动解析四节点）
-                  const { invoke } = await import('@tauri-apps/api/core');
-                  console.log('🔄 [智能单步] 调用后端评分接口:', {
-                    xpath: card.elementContext.xpath,
-                    xmlLength: xmlContent.length,
-                    targetMode: step === 'step1' ? 'CardSubtree' : 'LeafContext',
-                  });
-                  
-                  const recommendation = await invoke<{
-                    recommended: string;
-                    outcomes: Array<{
-                      mode: string;
-                      conf: number;
-                      explain: string;
-                      passed_gate: boolean;
-                    }>;
-                    step_plan_mode: string;
-                    plan_suggest: Record<string, unknown>;
-                    config_suggest: Record<string, unknown>;
-                    intent_suggest: Record<string, unknown>;
-                    confidence_level: string;
-                    recommendation_reason: string;
-                  }>('recommend_structure_mode_v2', {
-                    input: {
-                      absoluteXpath: card.elementContext.xpath,
-                      xmlSnapshot: xmlContent,
-                      containerXpath: null, // 暂时不使用容器xpath
-                    },
-                  });
-                  
-                  console.log('✅ [智能单步] 评分完成:', recommendation);
-                  
-                  // 根据选择的步骤过滤对应的评分结果
-                  const targetMode = step === 'step1' ? 'CardSubtree' : 'LeafContext';
-                  const targetOutcome = recommendation.outcomes.find(o => o.mode === targetMode);
-                  
-                  if (!targetOutcome) {
-                    message.error(`未找到${targetMode}评分结果`);
-                    return;
-                  }
-                  
-                  // ✅ 数据验证：检查置信度范围
-                  if (targetOutcome.conf < 0 || targetOutcome.conf > 1) {
-                    console.error('❌ [数据验证] 置信度超出范围:', targetOutcome.conf);
-                    message.error('评分数据异常，请重试');
-                    return;
-                  }
-                  
-                  // 显示评分信息
-                  const confidence = Math.round(targetOutcome.conf * 100);
-                  const statusIcon = targetOutcome.passed_gate ? '✅' : '⚠️';
-                  const modeName = step === 'step1' ? '卡片子树' : '叶子上下文';
-                  message.success(
-                    `${statusIcon} ${modeName}评分: ${confidence}% - ${targetOutcome.explain}`,
-                    5
-                  );
-                  
-                  // 🔑 存储评分到 analysis-state-store（添加元数据）
-                  if (stepId) {
-                    setFinalScores([{
-                      stepId: candidateKey,
-                      confidence: targetOutcome.conf,
-                      strategy: `${modeName}评分（智能单步）`,
-                      // 添加元数据标记来源
-                      metrics: {
-                        source: 'intelligent_single_step',
-                        mode: targetMode,
-                        timestamp: Date.now(),
-                      }
-                    }]);
-                    
-                    console.log('💾 [智能单步] 已存储评分到 analysis-state-store:', {
-                      stepId: stepId.slice(-8),
-                      candidateKey,
-                      confidence: `${(targetOutcome.conf * 100).toFixed(1)}%`,
-                      dataSource: 'intelligent-single-step',
-                    });
-                    
-                    // ✅ 数据验证：验证存储的数据
-                    import('../../utils/step-scoring-validator').then(({ validateStepScore }) => {
-                      validateStepScore(candidateKey, targetOutcome.conf, 'intelligent_single_step');
-                    });
-                  }
-                  
-                  // 🔑 自动应用推荐配置到步骤
-                  if (onUpdateStepParameters && stepId) {
-                    const stepPatch = {
-                      strategy: { selected: recommendation.step_plan_mode },
-                      plan: recommendation.plan_suggest,
-                      config: recommendation.config_suggest,
-                      intent: recommendation.intent_suggest,
-                      // 附加元数据
-                      _scoreMetadata: {
-                        mode: targetMode,
-                        confidence: targetOutcome.conf,
-                        passedGate: targetOutcome.passed_gate,
-                        explanation: targetOutcome.explain,
-                        source: 'intelligent_single_step',
-                        timestamp: Date.now(),
-                      }
-                    };
-                    
-                    onUpdateStepParameters(stepId, stepPatch);
-                    console.log('🔧 [智能单步] 已应用配置到步骤:', stepPatch);
-                  }
-                  
-                } catch (error) {
-                  console.error('❌ [智能单步] 评分失败:', error);
-                  const errorMessage = error instanceof Error ? error.message : '未知错误';
-                  
-                  // 详细错误日志
-                  console.error('📋 [错误详情]', {
-                    stepId,
-                    targetStep: step,
-                    error: errorMessage,
-                    stack: error instanceof Error ? error.stack : undefined,
-                  });
-                  
-                  message.error(`评分失败: ${errorMessage}`);
+                const card = cardStore.cards[stepId];
+                if (!card) {
+                  message.error('步骤卡片数据不完整，请重新分析页面并选择元素');
                   return;
                 }
+                
+                try {
+                  await executeSmartSingleScoring(
+                    step,
+                    candidateKey,
+                    card,
+                    stepId,
+                    setFinalScores,
+                    onUpdateStepParameters
+                  );
+                } catch (error) {
+                  console.error('❌ [智能·单步] 评分失败:', error);
+                }
+                return;
               }
-              
-              // 正常的策略切换
+
+              // 🔥 其他步骤的常规处理
               events.onStrategyChange({ type: "smart-single", stepName: step });
             },
           };
@@ -757,152 +506,34 @@ const CompactStrategyMenu: React.FC<CompactStrategyMenuProps> = ({
             icon: <span>🌳</span>,
             label: "├─ 卡片子树评分",
             onClick: async () => {
-              console.log('🌳 [静态策略] 触发卡片子树评分');
-              
               if (!stepId) {
                 message.warning('请先创建步骤卡片');
                 return;
               }
               
+              const step1Config = StepSequenceMapper.getByStepId('step1');
+              if (!step1Config) {
+                message.error('步骤配置错误：未找到Step1配置');
+                return;
+              }
+              
+              const card = cardStore.cards[stepId];
+              if (!card) {
+                message.error('步骤卡片不存在');
+                return;
+              }
+              
               try {
-                // ✅ 优化：使用Promise链替代setTimeout，确保状态更新顺序
-                const step1Config = StepSequenceMapper.getByStepId('step1');
-                if (!step1Config) {
-                  message.error('步骤配置错误：未找到Step1配置');
-                  return;
-                }
-                
-                // 步骤1: 获取XML缓存（带降级策略）
-                const card = cardStore.cards[stepId];
-                if (!card) {
-                  message.error('步骤卡片不存在');
-                  return;
-                }
-                
-                let xmlContent: string | null = null;
-                
-                // 优先级1: 从xmlCacheId获取
-                if (card.xmlSnapshot?.xmlCacheId) {
-                  try {
-                    const XmlCacheManager = (await import('../../services/xml-cache-manager')).default;
-                    const cacheManager = XmlCacheManager.getInstance();
-                    const cacheEntry = await cacheManager.getCachedXml(card.xmlSnapshot.xmlCacheId);
-                    if (cacheEntry) {
-                      xmlContent = cacheEntry.xmlContent;
-                      console.log('✅ [降级策略] 从xmlCacheId恢复XML成功');
-                    }
-                  } catch (error) {
-                    console.warn('⚠️ [降级策略] xmlCacheId获取失败，尝试备用方案', error);
-                  }
-                }
-                
-                // 优先级2: 使用内嵌XML
-                if (!xmlContent && card.xmlSnapshot?.xmlContent) {
-                  xmlContent = card.xmlSnapshot.xmlContent;
-                  console.log('✅ [降级策略] 使用内嵌XML');
-                }
-                
-                // 优先级3: 从元素上下文重建
-                if (!xmlContent && card.elementContext?.xpath) {
-                  console.warn('⚠️ [降级策略] XML缓存完全丢失，需要重新分析页面');
-                  message.warning('XML缓存已失效，请重新分析页面或使用传统策略');
-                  return;
-                }
-                
-                if (!xmlContent || !card.elementContext?.xpath) {
-                  message.error('缺少必要数据：XML内容或元素XPath');
-                  return;
-                }
-                
-                // 步骤2: 执行评分（调用后端）
-                console.log('🔄 [静态策略-卡片子树] 开始执行评分');
-                const { invoke } = await import('@tauri-apps/api/core');
-                const recommendation = await invoke<{
-                  recommended: string;
-                  outcomes: Array<{
-                    mode: string;
-                    conf: number;
-                    explain: string;
-                    passed_gate: boolean;
-                  }>;
-                  step_plan_mode: string;
-                  plan_suggest: Record<string, unknown>;
-                  config_suggest: Record<string, unknown>;
-                }>('recommend_structure_mode_v2', {
-                  input: {
-                    absoluteXpath: card.elementContext.xpath,
-                    xmlSnapshot: xmlContent,
-                    containerXpath: null,
-                  },
-                });
-                
-                // 步骤3: 提取卡片子树评分结果
-                const cardSubtreeOutcome = recommendation.outcomes.find(o => o.mode === 'CardSubtree');
-                if (!cardSubtreeOutcome) {
-                  message.error('未找到卡片子树评分结果');
-                  return;
-                }
-                
-                // 步骤4: 存储评分（统一存储）
-                const confidence = cardSubtreeOutcome.conf;
-                setFinalScores([{
-                  stepId: step1Config.candidateKey,
-                  confidence,
-                  strategy: '卡片子树评分（静态策略）',
-                  // 添加元数据标记来源
-                  metrics: {
-                    source: 'static_strategy',
-                    mode: 'CardSubtree',
-                    timestamp: Date.now(),
-                  }
-                }]);
-                
-                console.log('✅ [静态策略-卡片子树] 评分存储成功:', {
-                  candidateKey: step1Config.candidateKey,
-                  confidence: `${(confidence * 100).toFixed(1)}%`,
-                  source: 'static_strategy',
-                });
-                
-                // 步骤5: 显示评分结果
-                const statusIcon = cardSubtreeOutcome.passed_gate ? '✅' : '⚠️';
-                message.success(
-                  `${statusIcon} 卡片子树评分: ${Math.round(confidence * 100)}% - ${cardSubtreeOutcome.explain}`,
-                  5
+                await executeStaticCardSubtreeScoring(
+                  step1Config.candidateKey,
+                  card,
+                  stepId,
+                  setFinalScores,
+                  events,
+                  onUpdateStepParameters
                 );
-                
-                // 步骤6: 应用推荐配置到步骤
-                if (onUpdateStepParameters && stepId) {
-                  onUpdateStepParameters(stepId, {
-                    strategy: { selected: recommendation.step_plan_mode },
-                    plan: recommendation.plan_suggest,
-                    config: recommendation.config_suggest,
-                    _scoreMetadata: {
-                      mode: 'CardSubtree',
-                      confidence,
-                      passedGate: cardSubtreeOutcome.passed_gate,
-                      explanation: cardSubtreeOutcome.explain,
-                      source: 'static_strategy',
-                    }
-                  });
-                }
-                
-                // 步骤7: 更新策略状态（使用Promise确保顺序）
-                await new Promise(resolve => {
-                  events.onStrategyChange({ 
-                    type: "static", 
-                    key: "structural_matching_card_subtree",
-                    // @ts-expect-error - 扩展属性
-                    _sharedBaseStep: "step1",
-                    _scoreApplied: true,
-                  });
-                  resolve(undefined);
-                });
-                
-                console.log('📌 [静态策略-卡片子树] 策略状态更新完成');
-                
               } catch (error) {
                 console.error('❌ [静态策略-卡片子树] 评分失败:', error);
-                message.error(`评分失败: ${error instanceof Error ? error.message : '未知错误'}`);
               }
             }
           },
@@ -912,152 +543,34 @@ const CompactStrategyMenu: React.FC<CompactStrategyMenuProps> = ({
             icon: <span>🍃</span>,
             label: "└─ 叶子上下文评分",
             onClick: async () => {
-              console.log('🍃 [静态策略] 触发叶子上下文评分');
-              
               if (!stepId) {
                 message.warning('请先创建步骤卡片');
                 return;
               }
               
+              const step2Config = StepSequenceMapper.getByStepId('step2');
+              if (!step2Config) {
+                message.error('步骤配置错误：未找到Step2配置');
+                return;
+              }
+              
+              const card = cardStore.cards[stepId];
+              if (!card) {
+                message.error('步骤卡片不存在');
+                return;
+              }
+              
               try {
-                // ✅ 优化：使用Promise链替代setTimeout，确保状态更新顺序
-                const step2Config = StepSequenceMapper.getByStepId('step2');
-                if (!step2Config) {
-                  message.error('步骤配置错误：未找到Step2配置');
-                  return;
-                }
-                
-                // 步骤1: 获取XML缓存（带降级策略）
-                const card = cardStore.cards[stepId];
-                if (!card) {
-                  message.error('步骤卡片不存在');
-                  return;
-                }
-                
-                let xmlContent: string | null = null;
-                
-                // 优先级1: 从xmlCacheId获取
-                if (card.xmlSnapshot?.xmlCacheId) {
-                  try {
-                    const XmlCacheManager = (await import('../../services/xml-cache-manager')).default;
-                    const cacheManager = XmlCacheManager.getInstance();
-                    const cacheEntry = await cacheManager.getCachedXml(card.xmlSnapshot.xmlCacheId);
-                    if (cacheEntry) {
-                      xmlContent = cacheEntry.xmlContent;
-                      console.log('✅ [降级策略] 从xmlCacheId恢复XML成功');
-                    }
-                  } catch (error) {
-                    console.warn('⚠️ [降级策略] xmlCacheId获取失败，尝试备用方案', error);
-                  }
-                }
-                
-                // 优先级2: 使用内嵌XML
-                if (!xmlContent && card.xmlSnapshot?.xmlContent) {
-                  xmlContent = card.xmlSnapshot.xmlContent;
-                  console.log('✅ [降级策略] 使用内嵌XML');
-                }
-                
-                // 优先级3: 从元素上下文重建
-                if (!xmlContent && card.elementContext?.xpath) {
-                  console.warn('⚠️ [降级策略] XML缓存完全丢失，需要重新分析页面');
-                  message.warning('XML缓存已失效，请重新分析页面或使用传统策略');
-                  return;
-                }
-                
-                if (!xmlContent || !card.elementContext?.xpath) {
-                  message.error('缺少必要数据：XML内容或元素XPath');
-                  return;
-                }
-                
-                // 步骤2: 执行评分（调用后端）
-                console.log('🔄 [静态策略-叶子上下文] 开始执行评分');
-                const { invoke } = await import('@tauri-apps/api/core');
-                const recommendation = await invoke<{
-                  recommended: string;
-                  outcomes: Array<{
-                    mode: string;
-                    conf: number;
-                    explain: string;
-                    passed_gate: boolean;
-                  }>;
-                  step_plan_mode: string;
-                  plan_suggest: Record<string, unknown>;
-                  config_suggest: Record<string, unknown>;
-                }>('recommend_structure_mode_v2', {
-                  input: {
-                    absoluteXpath: card.elementContext.xpath,
-                    xmlSnapshot: xmlContent,
-                    containerXpath: null,
-                  },
-                });
-                
-                // 步骤3: 提取叶子上下文评分结果
-                const leafContextOutcome = recommendation.outcomes.find(o => o.mode === 'LeafContext');
-                if (!leafContextOutcome) {
-                  message.error('未找到叶子上下文评分结果');
-                  return;
-                }
-                
-                // 步骤4: 存储评分（统一存储）
-                const confidence = leafContextOutcome.conf;
-                setFinalScores([{
-                  stepId: step2Config.candidateKey,
-                  confidence,
-                  strategy: '叶子上下文评分（静态策略）',
-                  // 添加元数据标记来源
-                  metrics: {
-                    source: 'static_strategy',
-                    mode: 'LeafContext',
-                    timestamp: Date.now(),
-                  }
-                }]);
-                
-                console.log('✅ [静态策略-叶子上下文] 评分存储成功:', {
-                  candidateKey: step2Config.candidateKey,
-                  confidence: `${(confidence * 100).toFixed(1)}%`,
-                  source: 'static_strategy',
-                });
-                
-                // 步骤5: 显示评分结果
-                const statusIcon = leafContextOutcome.passed_gate ? '✅' : '⚠️';
-                message.success(
-                  `${statusIcon} 叶子上下文评分: ${Math.round(confidence * 100)}% - ${leafContextOutcome.explain}`,
-                  5
+                await executeStaticLeafContextScoring(
+                  step2Config.candidateKey,
+                  card,
+                  stepId,
+                  setFinalScores,
+                  events,
+                  onUpdateStepParameters
                 );
-                
-                // 步骤6: 应用推荐配置到步骤
-                if (onUpdateStepParameters && stepId) {
-                  onUpdateStepParameters(stepId, {
-                    strategy: { selected: recommendation.step_plan_mode },
-                    plan: recommendation.plan_suggest,
-                    config: recommendation.config_suggest,
-                    _scoreMetadata: {
-                      mode: 'LeafContext',
-                      confidence,
-                      passedGate: leafContextOutcome.passed_gate,
-                      explanation: leafContextOutcome.explain,
-                      source: 'static_strategy',
-                    }
-                  });
-                }
-                
-                // 步骤7: 更新策略状态（使用Promise确保顺序）
-                await new Promise(resolve => {
-                  events.onStrategyChange({ 
-                    type: "static", 
-                    key: "structural_matching_leaf_context",
-                    // @ts-expect-error - 扩展属性
-                    _sharedBaseStep: "step2",
-                    _scoreApplied: true,
-                  });
-                  resolve(undefined);
-                });
-                
-                console.log('📌 [静态策略-叶子上下文] 策略状态更新完成');
-                
               } catch (error) {
                 console.error('❌ [静态策略-叶子上下文] 评分失败:', error);
-                message.error(`评分失败: ${error instanceof Error ? error.message : '未知错误'}`);
               }
             }
           },
