@@ -23,7 +23,7 @@ import { useIntelligentAnalysis } from "../../hooks/useIntelligentAnalysis";  //
 import { useAdb } from "../../application/hooks/useAdb";
 import type { SelectionMode } from '../../types/smartSelection';
 import type { ActionKind } from '../../types/smartScript';
-import { ExcludeRuleEditor, type ExcludeRule } from '../smart-selection/ExcludeRuleEditor';
+import { ExcludeRuleEditor } from '../smart-selection/ExcludeRuleEditor';
 import { ExplanationGenerator } from '../smart-selection/ExplanationGenerator';
 import { useElementSelectionStore } from '../../stores/ui-element-selection-store';
 import { RandomConfigPanel } from './panels/RandomConfigPanel';
@@ -49,6 +49,8 @@ import { buildStrategyMenu, type StrategyMenuConfig } from './menus/strategy-men
 import { buildSelectionModeMenu, getSelectionModeLabel } from './menus/selection-mode-menu-builder';
 import { buildOperationTypeMenu, getOperationTypeLabel } from './menus/operation-type-menu-builder';
 import { BatchConfigPanel } from './panels/BatchConfigPanel';
+import { parseExcludeTextToRules, formatRulesToExcludeText } from './utils/exclude-rules-parser';
+import { normalizeElementData } from './utils/element-data-normalizer';
 
 const { Panel } = Collapse;
 
@@ -157,24 +159,6 @@ const CompactStrategyMenu: React.FC<CompactStrategyMenuProps> = ({
   const [structuralMatchingVisible, setStructuralMatchingVisible] = useState(false);
   const [structuralMatchingConfig, setStructuralMatchingConfig] = useState<StructuralMatchingHierarchicalConfig | null>(null);
 
-  // ✅ 【核心修复】数据格式标准化函数 - 统一转换为下划线命名
-  const normalizeElementData = useCallback((element: Record<string, unknown> | null | undefined) => {
-    if (!element) return null;
-    
-    return {
-      id: element.id,
-      resource_id: element.resource_id || element.resourceId || element['resource-id'] || '',
-      content_desc: element.content_desc || element.contentDesc || element.contentDescription || element['content-desc'] || '',
-      text: element.text || element.elementText || element.textContent || '',
-      class_name: element.class_name || element.className || '',
-      bounds: element.bounds || '[0,0][0,0]',
-      is_clickable: element.is_clickable || element.clickable || false,
-      xpath: element.xpath || '',
-      xmlCacheId: element.xmlCacheId || '',
-      children: element.children || []
-    };
-  }, []);
-
   // ✅ 【核心修复】打开结构匹配模态框时触发数据获取
   const handleOpenStructuralMatching = useCallback(async () => {
     console.log('🔍 [CompactStrategyMenu] 打开结构匹配模态框');
@@ -247,38 +231,6 @@ const CompactStrategyMenu: React.FC<CompactStrategyMenuProps> = ({
     
     onUpdateStepParameters(stepId, { decisionChain });
   }, [stepId, onUpdateStepParameters]);
-
-  // 🔧 规则转换辅助函数
-  const parseExcludeTextToRules = (excludeText: string | string[] | undefined): ExcludeRule[] => {
-    if (!excludeText) return [];
-    const textArray = Array.isArray(excludeText) ? excludeText : [excludeText];
-    
-    return textArray.map((text, index) => {
-      const parts = text.split(':');
-      if (parts.length === 3) {
-        return {
-          id: `rule-${index}`,
-          attr: parts[0] as 'text' | 'content-desc' | 'resource-id' | 'class',
-          op: parts[1] as 'equals' | 'contains' | 'regex',
-          value: parts[2],
-          enabled: true
-        };
-      }
-      return {
-        id: `rule-${index}`,
-        attr: 'text',
-        op: 'contains',
-        value: text,
-        enabled: true
-      };
-    });
-  };
-
-  const formatRulesToExcludeText = (rules: ExcludeRule[]): string[] => {
-    return rules
-      .filter(r => r.enabled !== false)
-      .map(r => `${r.attr}:${r.op}:${r.value}`);
-  };
 
   // 🔧 临时智能选择配置（TODO: 从 selector 或 card 中获取）
   const smartSelectionConfig = {
