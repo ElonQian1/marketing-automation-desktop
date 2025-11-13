@@ -14,6 +14,7 @@
 import { useState, useCallback, useEffect, useMemo, useRef } from 'react';
 import { invoke } from '@tauri-apps/api/core';
 import { listen, UnlistenFn } from '@tauri-apps/api/event';
+import { buildEnvelope } from '../../../protocol/v3/envelope-builder';
 import { calculateSelectionHash } from '../utils/selection-hash';
 import { EVENTS } from '../../../shared/constants/events';
 import type {
@@ -159,20 +160,13 @@ export function useIntelligentAnalysisReal(options: UseIntelligentAnalysisRealOp
       // 🎯 【修正】调用 V3 智能自动链进行 Step 0-6 策略分析
       // ✅ 正确路径：execute_chain_test_v3 → 完整智能策略分析
       // ❌ 旧路径：start_intelligent_analysis → 绕过策略分析
-      // 🎯 使用正确的V3调用格式：envelope + spec
-      const envelope = {
+      // 🎯 使用统一的 envelope-builder
+      const envelope = buildEnvelope({
         deviceId: elementContext.snapshotId || 'default',
-        app: {
-          package: 'com.xingin.xhs',
-          activity: null
-        },
-        snapshot: {
-          analysisId: stepId,
-          screenHash: null,
-          xmlCacheId: null
-        },
+        analysisId: stepId,
+        xmlContent: null,
         executionMode: 'relaxed'
-      };
+      });
 
       const spec = {
         chainId: `real_analysis_${stepId}`,

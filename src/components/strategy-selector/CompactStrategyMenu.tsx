@@ -17,8 +17,8 @@ import {
   SmartStep,
 } from "../../types/strategySelector";
 import { useStepCardStore } from "../../store/stepcards";
-import { useStepScoreStore } from "../../stores/step-score-store";
-import { useAnalysisState } from "../../stores/analysis-state-store";
+import { useAnalysisStateStore } from "../../stores/analysis-state-store";
+import { useIntelligentAnalysis } from "../../hooks/useIntelligentAnalysis";  // 🆕 智能分析Hook
 import { useAdb } from "../../application/hooks/useAdb";
 import { isValidScore, toPercentInt01 } from "../../utils/score-utils";
 import type { SelectionMode } from '../../types/smartSelection';
@@ -72,16 +72,18 @@ const STRATEGY_LABELS = {
 };
 
 // 🔧 修复：将后端候选项key映射到UI步骤，支持实际的候选项
+// 🎯 优先级调整：将结构匹配（卡片子树、叶子上下文）提到前两位
 const SMART_STEPS: { step: SmartStep; label: string; candidateKey: string }[] = [
-  { step: "step1", label: "Step1 - 自锚定策略", candidateKey: "self_anchor" },
-  { step: "step2", label: "Step2 - 子元素驱动", candidateKey: "child_driven" },
-  { step: "step3", label: "Step3 - 区域约束", candidateKey: "region_scoped" },
-  { step: "step4", label: "Step4 - XPath兜底", candidateKey: "xpath_fallback" },
-  { step: "step5", label: "Step5 - 索引兜底", candidateKey: "index_fallback" },
-  { step: "step6", label: "Step6 - 应急兜底", candidateKey: "emergency_fallback" },
-  // 🆕 三路评分器集成
-  { step: "step7", label: "Step7 - 卡片子树评分", candidateKey: "card_subtree_scoring" },
-  { step: "step8", label: "Step8 - 叶子上下文评分", candidateKey: "leaf_context_scoring" },
+  // 🆕 结构匹配优先（Step1-2）
+  { step: "step1", label: "Step1 - 卡片子树评分", candidateKey: "card_subtree_scoring" },
+  { step: "step2", label: "Step2 - 叶子上下文评分", candidateKey: "leaf_context_scoring" },
+  // 传统策略（Step3-8）
+  { step: "step3", label: "Step3 - 自锚定策略", candidateKey: "self_anchor" },
+  { step: "step4", label: "Step4 - 子元素驱动", candidateKey: "child_driven" },
+  { step: "step5", label: "Step5 - 区域约束", candidateKey: "region_scoped" },
+  { step: "step6", label: "Step6 - XPath兜底", candidateKey: "xpath_fallback" },
+  { step: "step7", label: "Step7 - 索引兜底", candidateKey: "index_fallback" },
+  { step: "step8", label: "Step8 - 应急兜底", candidateKey: "emergency_fallback" },
 ];
 
 interface CompactStrategyMenuProps {
@@ -157,6 +159,9 @@ const CompactStrategyMenu: React.FC<CompactStrategyMenuProps> = ({
   // 🎯 新增：执行状态管理和ADB设备管理
   const [executing, setExecuting] = useState(false);
   const { selectedDevice } = useAdb();
+  
+  // 🆕 智能分析Hook
+  const { startAnalysis, isAnalyzing } = useIntelligentAnalysis();
 
   // 🔧 高级规则面板状态
   const [advancedRulesExpanded, setAdvancedRulesExpanded] = useState(false);
@@ -302,8 +307,8 @@ const CompactStrategyMenu: React.FC<CompactStrategyMenuProps> = ({
   const card = useStepCardStore((state) => cardId ? state.cards[cardId] : undefined);
   const recommendedKey = card?.strategy?.primary;
   
-  // 🔧 获取评分存储（候选项维度修复）
-  const stepScoreStore = useStepScoreStore();
+  // ✅ 统一使用 analysis-state-store 获取评分
+  const { getStepConfidence, setFinalScores } = useAnalysisStateStore();
 
   // 🔍 调试输出置信度和推荐数据（已禁用：频繁渲染导致刷屏）
   // React.useEffect(() => {
@@ -364,19 +369,9 @@ const CompactStrategyMenu: React.FC<CompactStrategyMenuProps> = ({
         children: SMART_STEPS.map(({ step, label, candidateKey }) => {
           const isRecommended = candidateKey === recommendedKey;
 
-          // 🆕 优先从新的分析状态获取置信度
-          const analysisConfidence = useAnalysisState.stepConfidence(candidateKey);
-          
-          // 🔧 回退到旧的评分存储（向后兼容）
-          const candidateScore = stepId ? stepScoreStore.getCandidateScore(stepId, candidateKey) : undefined;
-          const globalScore = stepId ? stepScoreStore.getGlobalScore(stepId) : undefined;
-          
-          // 🎯 置信度优先级：分析状态 > 候选分 > 推荐项的全局分
-          const displayScore = analysisConfidence !== null 
-            ? analysisConfidence
-            : isValidScore(candidateScore)
-            ? candidateScore
-            : (isRecommended && isValidScore(globalScore) ? globalScore : undefined);
+          // ✅ 统一从 analysis-state-store 获取置信度
+          const confidence = getStepConfidence(candidateKey);
+          const displayScore = confidence !== null && isValidScore(confidence) ? confidence : undefined;
 
           // 🔍 调试每一行的数据情况
           console.debug('[StrategyRow]', {
@@ -384,11 +379,10 @@ const CompactStrategyMenu: React.FC<CompactStrategyMenuProps> = ({
             stepId: stepId?.slice(-8),
             candidateKey,
             isRecommended,
-            analysisConfidence,
-            candidateScore,
-            globalScore,
+            confidence,
             displayScore,
-            recommendedKey
+            recommendedKey,
+            dataSource: 'analysis-state-store'
           });
 
           // 🎯 只有有效分数才显示百分比标签
@@ -422,9 +416,9 @@ const CompactStrategyMenu: React.FC<CompactStrategyMenuProps> = ({
               </div>
             ),
             onClick: async () => {
-              // 🆕 三路评分器集成：Step7和Step8需要特殊处理
-              if (step === 'step7' || step === 'step8') {
-                console.log(`🎯 [三路评分] 触发${step === 'step7' ? '卡片子树' : '叶子上下文'}评分`);
+              // 🆕 三路评分器集成：Step1和Step2（卡片子树、叶子上下文）需要特殊处理
+              if (step === 'step1' || step === 'step2') {
+                console.log(`🎯 [三路评分] 触发${step === 'step1' ? '卡片子树' : '叶子上下文'}评分`);
                 
                 // 直接使用双模式命令，后端自动处理xpath解析
                 if (!stepId) {
@@ -495,7 +489,7 @@ const CompactStrategyMenu: React.FC<CompactStrategyMenuProps> = ({
                   console.log('✅ [三路评分] 评分完成:', recommendation);
                   
                   // 根据选择的步骤过滤对应的评分结果
-                  const targetMode = step === 'step7' ? 'CardSubtree' : 'LeafContext';
+                  const targetMode = step === 'step1' ? 'CardSubtree' : 'LeafContext';
                   const targetOutcome = recommendation.outcomes.find(o => o.mode === targetMode);
                   
                   if (!targetOutcome) {
@@ -507,9 +501,24 @@ const CompactStrategyMenu: React.FC<CompactStrategyMenuProps> = ({
                   const confidence = Math.round(targetOutcome.conf * 100);
                   const statusIcon = targetOutcome.passed_gate ? '✅' : '⚠️';
                   message.success(
-                    `${statusIcon} ${step === 'step7' ? '卡片子树' : '叶子上下文'}评分: ${confidence}% - ${targetOutcome.explain}`,
+                    `${statusIcon} ${step === 'step1' ? '卡片子树' : '叶子上下文'}评分: ${confidence}% - ${targetOutcome.explain}`,
                     5
                   );
+                  
+                  // 🔑 存储评分到 analysis-state-store
+                  if (stepId) {
+                    setFinalScores([{
+                      stepId: candidateKey,
+                      confidence: targetOutcome.conf,
+                      strategy: step === 'step1' ? '卡片子树评分' : '叶子上下文评分'
+                    }]);
+                    console.log('💾 [三路评分] 已存储评分到 analysis-state-store:', {
+                      stepId: stepId.slice(-8),
+                      candidateKey,
+                      confidence: targetOutcome.conf,
+                      dataSource: 'structural-matching-v3'
+                    });
+                  }
                   
                   // 🔑 自动应用推荐配置到步骤
                   if (onUpdateStepParameters && stepId) {
@@ -549,7 +558,7 @@ const CompactStrategyMenu: React.FC<CompactStrategyMenuProps> = ({
         icon: <span>📌</span>,
         label: "静态策略",
         children: [
-          // 🏗️ 结构匹配 - 固定选项
+          // 🏗️ 结构匹配 - 主入口
           {
             key: "structural_matching",
             icon: <span>🏗️</span>,
@@ -575,6 +584,48 @@ const CompactStrategyMenu: React.FC<CompactStrategyMenuProps> = ({
               setTimeout(() => {
                 events.onStrategyChange({ type: "static", key: "structural_matching" });
               }, 100);
+            }
+          },
+          // 🆕 结构匹配子选项 - 卡片子树评分
+          {
+            key: "structural_matching_card_subtree",
+            icon: <span>🌳</span>,
+            label: "├─ 卡片子树评分",
+            onClick: async () => {
+              console.log('🌳 [静态策略] 触发卡片子树评分');
+              
+              if (!stepId) {
+                message.warning('请先创建步骤卡片');
+                return;
+              }
+              
+              // 复用智能单步Step1的逻辑
+              const step1Logic = SMART_STEPS.find(s => s.step === 'step1');
+              if (step1Logic) {
+                // 触发相同的三路评分逻辑
+                events.onStrategyChange({ type: "smart-single", stepName: "step1" });
+              }
+            }
+          },
+          // 🆕 结构匹配子选项 - 叶子上下文评分
+          {
+            key: "structural_matching_leaf_context",
+            icon: <span>🍃</span>,
+            label: "└─ 叶子上下文评分",
+            onClick: async () => {
+              console.log('🍃 [静态策略] 触发叶子上下文评分');
+              
+              if (!stepId) {
+                message.warning('请先创建步骤卡片');
+                return;
+              }
+              
+              // 复用智能单步Step2的逻辑
+              const step2Logic = SMART_STEPS.find(s => s.step === 'step2');
+              if (step2Logic) {
+                // 触发相同的三路评分逻辑
+                events.onStrategyChange({ type: "smart-single", stepName: "step2" });
+              }
             }
           },
           // 🔧 XPath恢复 - 固定选项
@@ -1591,19 +1642,60 @@ const CompactStrategyMenu: React.FC<CompactStrategyMenuProps> = ({
             size="small"
             type="text"
             icon={<RefreshCcwIcon size={12} />}
-            onClick={() => {
+            onClick={async () => {
               console.log("🔄 [CompactStrategyMenu] 重新分析按钮点击:", {
                 disabled,
+                stepId,
                 analysisStatus: selector.analysis.status,
                 activeStrategy: selector.activeStrategy,
                 hasSelector: !!selector,
                 timestamp: new Date().toISOString(),
               });
 
-              // 无论当前状态如何，都触发重新分析（这会重置状态）
+              // 🆕 调用智能分析API
+              if (!stepId) {
+                message.warning('请先创建步骤卡片');
+                return;
+              }
+
+              const card = cardStore.cards[stepId];
+              if (!card || !card.elementContext) {
+                message.warning('步骤卡片数据不完整');
+                return;
+              }
+
+              try {
+                // 构建分析配置
+                const analysisConfig = {
+                  element_context: {
+                    snapshot_id: card.xmlSnapshot?.xmlCacheId || '',
+                    element_path: card.elementContext.xpath || '',
+                    element_text: card.elementContext.text,
+                    element_bounds: card.elementContext.bounds,
+                    element_type: card.elementContext.className,
+                    key_attributes: {
+                      resource_id: card.elementContext.resourceId || '',
+                      class_name: card.elementContext.className || ''
+                    }
+                  },
+                  step_id: stepId,
+                  lock_container: false,
+                  enable_smart_candidates: true,
+                  enable_static_candidates: true
+                };
+
+                console.log('🚀 [重新分析] 启动智能分析:', analysisConfig);
+                await startAnalysis(analysisConfig);
+              } catch (error) {
+                console.error('❌ [重新分析] 失败:', error);
+                message.error(`分析失败: ${error instanceof Error ? error.message : '未知错误'}`);
+              }
+
+              // 同时触发原有的重新分析逻辑（向后兼容）
               events.onReanalyze();
             }}
-            disabled={disabled}
+            disabled={disabled || isAnalyzing}
+            loading={isAnalyzing}
             style={{
               color: "#64748B",
               border: "none",

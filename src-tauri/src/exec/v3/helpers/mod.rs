@@ -17,6 +17,7 @@ pub mod intelligent_preprocessing;
 pub mod element_hierarchy_analyzer;
 pub mod batch_executor;  // 🆕 批量执行引擎
 pub mod sm_integration;  // 🏗️ 结构匹配Runtime集成（V3专用）
+pub mod xml_source_resolver;  // 🎯 XML数据源三级降级解析器
 
 // 统一导出常用类型和函数
 pub use element_matching::*;
@@ -33,5 +34,6 @@ pub use phase_handlers::*;
 pub use intelligent_preprocessing::*;
 pub use element_hierarchy_analyzer::*;
 pub use batch_executor::*;  // 🆕 批量执行引擎
+pub use xml_source_resolver::*;  // 🎯 XML数据源解析器
 
 

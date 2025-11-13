@@ -7,8 +7,8 @@
 use super::events::{emit_complete, emit_progress};
 use super::types::{
     ChainMode, ChainSpecV3, ConstraintSettings, ContextEnvelope, ExecutionMode, InlineStep, Phase,
-    Point, QualitySettings, ResultPayload, SingleStepAction, StepRefOrInline, StepScore, Summary,
-    ValidationSettings,
+    Point, QualitySettings, ResultPayload, SingleStepAction, SingleStepSpecV3, StepRefOrInline, 
+    StepScore, Summary, ValidationSettings,
 };
 use std::time::Instant;
 use tauri::AppHandle;
@@ -18,7 +18,6 @@ use crate::services::execution_abort_service::{should_abort_execution, register_
 
 // 添加必要的导入以支持真实设备操作
 use crate::services::intelligent_analysis_service::{ElementInfo, StrategyCandidate};
-use crate::services::legacy_simple_selection_engine::SmartSelectionEngine;
 use crate::services::ui_reader_service::UIElement; // 添加 UIElement 导入
 
 // 🆕 V3 新模块：多候选评估和失败恢复
@@ -344,9 +343,11 @@ fn execute_chain_by_inline<'a>(
             None,
         )?;
 
-        // 2. 获取当前快照（XML + screenshot + analysisId）- 实际设备操作
-        // 关键修复：V3系统必须获取真实UI dump，否则无法进行准确的元素匹配和点击
-        let (ui_xml, screen_hash) = device_manager::get_snapshot_with_hash(device_id).await?;
+        // 2. 🎯 获取 XML 数据源（三级降级：全局缓存 → 步骤快照 → 实时设备）
+        let ui_xml = super::helpers::xml_source_resolver::resolve_xml_source(app, envelope).await?;
+        
+        // 计算当前屏幕哈希（用于判断是否需要重评分）
+        let screen_hash = super::helpers::device_manager::calculate_screen_hash(&ui_xml);
 
         // ====== Phase 3: match_started ======
         if final_ordered_steps.as_ptr() == ordered_steps.as_ptr() {
@@ -448,19 +449,48 @@ fn execute_chain_by_inline<'a>(
                 .as_ref()
                 .ok_or_else(|| format!("步骤 {} 没有inline定义", score.step_id))?;
 
-            // 尝试执行真实的设备操作
-            match step_executor::execute_step_real_operation(
-                device_id,
-                inline_step,
-                &ui_xml,
-                validation,
+            // 🎯 核心修改：调用智能单步执行器，建立包含关系
+            // 智能自动链 = 智能单步的循环执行
+            tracing::info!("🔗 [智能自动链] 调用智能单步执行器: stepId={}", score.step_id);
+            
+            // 构造 SingleStepSpecV3
+            let single_step_spec = SingleStepSpecV3::ByInline {
+                step_id: inline_step.step_id.clone(),
+                action: inline_step.action.clone(),
+                params: inline_step.params.clone(),
+                quality: quality.clone(),
+                constraints: constraints.clone(),
+                validation: validation.clone(),
+            };
+            
+            // 调用智能单步执行器（复用单步逻辑）
+            match super::single_step::execute_single_step_internal(
+                app,
+                envelope,
+                single_step_spec,
             )
             .await
             {
-                Ok(click_coords) => {
+                Ok(result) => {
+                    // 从返回结果中提取坐标信息
+                    let click_coords = if let Some(coords_val) = result.get("coords") {
+                        // 尝试解析坐标
+                        if let (Some(x), Some(y)) = (
+                            coords_val.get(0).and_then(|v| v.as_i64()),
+                            coords_val.get(1).and_then(|v| v.as_i64()),
+                        ) {
+                            (x as i32, y as i32)
+                        } else {
+                            // 如果没有坐标，使用默认值
+                            (0, 0)
+                        }
+                    } else {
+                        (0, 0)
+                    };
+                    
                     // 执行成功，短路返回
                     tracing::info!(
-                        "✅ 步骤 {} 执行成功，坐标: {:?}",
+                        "✅ [智能自动链] 步骤 {} 执行成功 (通过智能单步)，坐标: {:?}",
                         score.step_id,
                         click_coords
                     );
@@ -472,7 +502,7 @@ fn execute_chain_by_inline<'a>(
                 Err(err) => {
                     // 执行失败，记录日志并尝试下一个
                     tracing::warn!(
-                        "❌ 步骤 {} 执行失败: {}，尝试下一个候选步骤",
+                        "❌ [智能自动链] 步骤 {} 执行失败 (通过智能单步): {}，尝试下一个候选步骤",
                         score.step_id,
                         err
                     );

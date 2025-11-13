@@ -7,7 +7,6 @@ use tauri::AppHandle;
 
 use super::types::*;
 use super::events::*;
-use crate::services::legacy_simple_selection_engine::SmartSelectionEngine;
 use crate::types::smart_selection::*;
 
 /// 智能单步执行（内部实现）
@@ -57,18 +56,31 @@ async fn execute_step_by_ref(
     // 1. 发射设备就绪事件
     emit_device_ready(app, Some(analysis_id.to_string()))?;
     
-    // 2. 获取当前屏幕快照
-    tracing::info!("📸 获取当前屏幕快照: device={}", envelope.device_id);
-    // TODO: 调用现有的 get_current_snapshot(&device_id) 函数
-    let screen_hash_now = Some("current-hash-placeholder".to_string());
-    emit_snapshot_ready(app, Some(analysis_id.to_string()), screen_hash_now.clone())?;
+    // 2. 🎯 获取 XML 数据源（三级降级：全局缓存 → 步骤快照 → 实时设备）
+    tracing::info!("📸 获取 XML 数据源: device={}", envelope.device_id);
     
-    // 3. TODO: 从缓存读取 StepSpec(analysis_id, step_id)
-    // let step_spec = CACHE.get_step_spec(analysis_id, step_id)
-    //     .ok_or_else(|| format!("❌ 步骤未找到: {}/{}", analysis_id, step_id))?;
+    let current_ui_xml = super::helpers::xml_source_resolver::resolve_xml_source(app, envelope).await?;
     
-    // 暂时使用模拟数据
-    tracing::warn!("⚠️ TODO: 实现从缓存读取 StepSpec，当前使用模拟数据");
+    // 计算当前屏幕哈希（用于判断是否需要重评分）
+    let screen_hash_now = super::helpers::device_manager::calculate_screen_hash(&current_ui_xml);
+    
+    emit_snapshot_ready(app, Some(analysis_id.to_string()), Some(screen_hash_now.clone()))?;
+    
+    // 3. 从 STEP_STRATEGY_STORE 读取步骤配置
+    tracing::info!("📖 从缓存读取步骤配置: stepId={}", step_id);
+    
+    use crate::commands::intelligent_analysis::STEP_STRATEGY_STORE;
+    let strategy = {
+        let store = STEP_STRATEGY_STORE.lock()
+            .map_err(|e| format!("获取策略存储锁失败: {}", e))?;
+        
+        store.get(step_id)
+            .map(|(s, _timestamp)| s.clone())
+            .ok_or_else(|| format!("步骤配置未找到: {}", step_id))?
+    };
+    
+    tracing::info!("✅ 成功读取步骤配置: stepId={}, selection_mode={:?}", 
+        step_id, strategy.selection_mode);
     
     // 4. 决定是否需要重评
     let should_reevaluate = match envelope.execution_mode {
@@ -78,7 +90,7 @@ async fn execute_step_by_ref(
         }
         ExecutionMode::Relaxed => {
             let cached_hash = envelope.snapshot.screen_hash.as_deref();
-            let current_hash = screen_hash_now.as_deref();
+            let current_hash = Some(screen_hash_now.as_str());
             let needs_reeval = cached_hash != current_hash;
             tracing::info!(
                 "🔍 宽松模式：cached={:?}, current={:?}, 需要重评={}",
@@ -93,50 +105,97 @@ async fn execute_step_by_ref(
     // 5. 开始匹配
     emit_match_started(app, Some(analysis_id.to_string()), step_id.to_string())?;
     
-    // TODO: 从 step_spec 读取 action/params/quality/constraints
-    // 这里先用模拟置信度
-    let confidence = 0.85_f32;
+    // 6. 构造 InlineStep（从策略配置重建）
+    let inline_step = InlineStep {
+        step_id: step_id.to_string(),
+        action: SingleStepAction::SmartSelection, // 从策略配置恢复的步骤默认使用 SmartSelection
+        params: serde_json::to_value(&strategy)
+            .map_err(|e| format!("策略序列化失败: {}", e))?,
+    };
     
-    // 6. 发射匹配成功事件
-    emit_matched(app, Some(analysis_id.to_string()), step_id.to_string(), confidence)?;
+    // 7. 调用统一执行器
+    use super::unified_step_executor::execute_step_unified;
     
-    // 7. TODO: 验证后置条件
-    emit_validated(app, Some(analysis_id.to_string()), step_id.to_string())?;
+    let validation = ValidationSettings {
+        post_action: None, // ByRef 模式默认不需要后置动作
+    };
     
-    // 8. TODO: 执行动作
-    emit_executed(app, Some(analysis_id.to_string()), step_id.to_string())?;
-    
-    // 9. 发射完成事件
-    let elapsed_ms = start_time.elapsed().as_millis() as u64;
-    emit_complete(
-        app,
-        Some(analysis_id.to_string()),
-        Some(Summary {
-            adopted_step_id: Some(step_id.to_string()),
-            elapsed_ms: Some(elapsed_ms),
-            reason: Some("单步执行成功".to_string()),
-        }),
-        Some(vec![StepScore {
-            step_id: step_id.to_string(),
-            confidence,
-        }]),
-        Some(ResultPayload {
-            ok: true,
-            coords: None,
-            candidate_count: Some(1),
-            screen_hash_now,
-            validation: Some(ValidationResult {
-                passed: true,
-                reason: None,
-            }),
-        }),
-    )?;
-    
-    Ok(json!({
-        "ok": true,
-        "confidence": confidence,
-        "elapsedMs": elapsed_ms
-    }))
+    match execute_step_unified(app, envelope, &inline_step, &current_ui_xml, &validation).await {
+        Ok(result) => {
+            let confidence = result.confidence;
+            let coords = result.coords;
+            
+            // 8. 发射匹配成功事件
+            emit_matched(app, Some(analysis_id.to_string()), step_id.to_string(), confidence)?;
+            
+            // 9. 发射验证通过事件
+            emit_validated(app, Some(analysis_id.to_string()), step_id.to_string())?;
+            
+            // 10. 发射执行完成事件
+            emit_executed(app, Some(analysis_id.to_string()), step_id.to_string())?;
+            
+            // 11. 发射完成事件
+            let elapsed_ms = start_time.elapsed().as_millis() as u64;
+            emit_complete(
+                app,
+                Some(analysis_id.to_string()),
+                Some(Summary {
+                    adopted_step_id: Some(step_id.to_string()),
+                    elapsed_ms: Some(elapsed_ms),
+                    reason: Some("ByRef模式执行成功".to_string()),
+                }),
+                Some(vec![StepScore {
+                    step_id: step_id.to_string(),
+                    confidence,
+                }]),
+                Some(ResultPayload {
+                    ok: true,
+                    coords: Some(Point { x: coords.0, y: coords.1 }),
+                    candidate_count: Some(1),
+                    screen_hash_now: Some(screen_hash_now),
+                    validation: Some(ValidationResult {
+                        passed: true,
+                        reason: None,
+                    }),
+                }),
+            )?;
+            
+            Ok(json!({
+                "ok": true,
+                "coords": [coords.0, coords.1],
+                "confidence": confidence,
+                "elapsedMs": elapsed_ms
+            }))
+        }
+        Err(e) => {
+            tracing::error!("❌ 执行失败: {}", e);
+            
+            // 发射失败完成事件
+            let elapsed_ms = start_time.elapsed().as_millis() as u64;
+            emit_complete(
+                app,
+                Some(analysis_id.to_string()),
+                Some(Summary {
+                    adopted_step_id: None,
+                    elapsed_ms: Some(elapsed_ms),
+                    reason: Some(format!("执行失败: {}", e)),
+                }),
+                None,
+                Some(ResultPayload {
+                    ok: false,
+                    coords: None,
+                    candidate_count: Some(0),
+                    screen_hash_now: Some(screen_hash_now),
+                    validation: Some(ValidationResult {
+                        passed: false,
+                        reason: Some(e.clone()),
+                    }),
+                }),
+            )?;
+            
+            Err(e)
+        }
+    }
 }
 
 /// 内联式执行：直接使用传入的 action/params 执行
@@ -168,9 +227,8 @@ async fn execute_step_by_inline(
     // TODO: 根据 action 类型调用对应的旧实现
     let confidence = match action {
         SingleStepAction::SmartNavigation => {
-            tracing::info!("🧭 执行智能导航: params={:?}", params);
-            // TODO: 调用 handle_smart_navigation 并获取置信度
-            0.85
+            tracing::warn!("⚠️ SmartNavigation 功能暂未实现");
+            return Err("SmartNavigation 功能暂未实现，请使用其他动作类型".to_string());
         }
         SingleStepAction::Tap => {
             tracing::info!("👆 执行点击");
@@ -190,29 +248,30 @@ async fn execute_step_by_inline(
         SingleStepAction::SmartSelection => {
             tracing::info!("🧠 执行智能选择: stepId={}", step_id);
             
-            // 从params中提取智能选择协议
-            let protocol = match extract_smart_selection_protocol(&params) {
-                Ok(protocol) => protocol,
-                Err(e) => {
-                    tracing::error!("❌ 智能选择参数解析失败: {}", e);
-                    return Err(format!("智能选择参数解析失败: {}", e));
-                }
+            // 🎯 新方式：使用统一执行器
+            use super::unified_step_executor::execute_step_unified;
+            
+            // 🎯 获取 XML 数据源（三级降级：全局缓存 → 步骤快照 → 实时设备）
+            let ui_xml = super::helpers::xml_source_resolver::resolve_xml_source(app, envelope).await?;
+            
+            // 构造 InlineStep
+            let inline_step = InlineStep {
+                step_id: step_id.to_string(),
+                action: action.clone(),
+                params: params.clone(),
             };
             
-            tracing::info!("🎯 智能选择配置: mode={:?}, target={:?}", 
-                protocol.selection.mode, protocol.anchor.fingerprint.text_content);
-            
-            // 执行智能选择
-            match SmartSelectionEngine::execute_smart_selection(&envelope.device_id, &protocol).await {
+            // 调用统一执行器
+            match execute_step_unified(app, envelope, &inline_step, &ui_xml, &validation).await {
                 Ok(result) => {
-                    tracing::info!("✅ 智能选择执行成功: 选中 {} 个元素", 
-                        result.matched_elements.selected_count
+                    tracing::info!("✅ 统一执行器执行成功: coords=({}, {}), confidence={:.2}", 
+                        result.coords.0, result.coords.1, result.confidence
                     );
-                    result.matched_elements.confidence_scores.get(0).copied().unwrap_or(0.8)
+                    result.confidence
                 }
                 Err(e) => {
-                    tracing::error!("❌ 智能选择执行失败: {}", e);
-                    return Err(format!("智能选择执行失败: {}", e));
+                    tracing::error!("❌ 统一执行器执行失败: {}", e);
+                    return Err(format!("执行失败: {}", e));
                 }
             }
         }

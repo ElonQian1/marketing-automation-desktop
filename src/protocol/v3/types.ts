@@ -72,6 +72,8 @@ export interface ContextEnvelope {
     screenHash?: string;
     /** 原始XML缓存ID，便于复盘 */
     xmlCacheId?: string;
+    /** 🆕 步骤卡片携带的 XML 快照内容（用于跨机器执行） */
+    xmlContent?: string;
   };
   /** 执行模式：strict（默认，每次重评）或 relaxed（hash一致时复用缓存） */
   executionMode?: 'strict' | 'relaxed';

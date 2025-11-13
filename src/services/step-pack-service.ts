@@ -12,6 +12,7 @@
 // - 确保空文本元素不会直接坐标兜底，而是通过智能策略分析
 
 import { invoke } from '@tauri-apps/api/core';
+import { buildEnvelope } from '../protocol/v3/envelope-builder';
 import { useStepScoreStore } from '../stores/step-score-store';
 import { useStepCardStore } from '../store/stepcards';
 
@@ -181,20 +182,13 @@ export async function importStepPack(stepPack: StepPack): Promise<StepPackImport
     // 🚨 重要说明：此调用确保"已关注"按钮被正确识别为"已关注"，而不是"关注"
     //             空文本元素会通过智能策略分析，而不是直接坐标兜底
     console.log('🔄 开始V3智能策略重评步骤包（Step 0-6 完整分析）...', stepPack.id);
-    // 🎯 使用正确的V3调用格式：envelope + spec
-    const envelope = {
+    // 🎯 使用统一的 envelope-builder
+    const envelope = buildEnvelope({
       deviceId: config.element_context.snapshot_id || 'default',
-      app: {
-        package: 'com.xingin.xhs',
-        activity: null
-      },
-      snapshot: {
-        analysisId: stepPack.id,
-        screenHash: null,
-        xmlCacheId: null
-      },
+      analysisId: stepPack.id,
+      xmlContent: null,
       executionMode: 'relaxed'
-    };
+    });
 
     // 🎯 使用 ChainSpecV3::ByInline 格式，匹配 Rust 后端类型定义
     const spec = {

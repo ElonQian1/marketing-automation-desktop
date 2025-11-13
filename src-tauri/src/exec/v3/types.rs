@@ -34,6 +34,8 @@ pub struct SnapshotCtx {
     pub analysis_id: Option<String>,
     pub screen_hash: Option<String>,
     pub xml_cache_id: Option<String>,
+    /// 🆕 步骤卡片携带的 XML 快照内容（用于跨机器执行）
+    pub xml_content: Option<String>,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]

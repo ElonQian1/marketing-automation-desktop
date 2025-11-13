@@ -23,6 +23,7 @@ import React from 'react';
 import { useStepCardStore } from '../store/stepcards';
 import { useUnifiedAnalysisEvents } from '../services/unified-analysis-events';
 import { invoke } from '@tauri-apps/api/core';
+import { buildEnvelope } from '../protocol/v3/envelope-builder';
 import type { UIElement } from '../api/universalUIAPI';
 
 export interface UseUnifiedSmartAnalysisOptions {
@@ -131,20 +132,13 @@ export function useUnifiedSmartAnalysis(_options: UseUnifiedSmartAnalysisOptions
       
 
 
-      // 🎯 使用正确的V3调用格式：envelope + spec
-      const envelope = {
+      // 🎯 使用统一的 envelope-builder
+      const envelope = buildEnvelope({
         deviceId: elementData.uid,
-        app: {
-          package: 'com.xingin.xhs', // 小红书包名
-          activity: null
-        },
-        snapshot: {
-          analysisId: cardId,
-          screenHash: null,
-          xmlCacheId: null
-        },
+        analysisId: cardId,
+        xmlContent: null,
         executionMode: 'relaxed' // 使用宽松模式进行分析
-      };
+      });
 
       const spec = {
         // 🎯 使用 ChainSpecV3::ByInline 格式，匹配 Rust 后端类型定义

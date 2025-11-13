@@ -8,6 +8,7 @@ pub mod commands;
 pub mod single_step;
 pub mod chain_engine; // 已完成重构，支持 by-ref 模式
 pub mod static_exec;
+pub mod unified_step_executor; // 🎯 统一步骤执行器（同时服务于单步和链式执行）
 pub mod xpath_evaluator; // XPath 多候选评估模块（保留向后兼容）
 // pub mod recovery_manager; // ⚠️ 暂时禁用：19个编译错误，待修复（旧代码，未被使用）
 pub mod element_matching; // 🆕 模块化元素匹配系统

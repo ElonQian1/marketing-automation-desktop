@@ -35,6 +35,9 @@ export interface V3ExecutionConfig {
   max_retries?: number;
   dryrun?: boolean;
   enable_fallback?: boolean;
+  /** 🆕 XML快照内容（用于跨机器执行） */
+  xmlContent?: string;
+  xmlCacheId?: string;
 }
 
 export interface V3ChainSpec {
@@ -130,20 +133,20 @@ export class IntelligentAnalysisBackendV3 {
     stepSpec: V3StepSpec
   ): Promise<SingleStepTestResult> {
     try {
-      // 🎯 使用正确的V3调用格式：envelope + spec
-      const envelope = {
+      // 🎯 使用统一的 envelope 构建器
+      const { buildEnvelope } = await import('../protocol/v3/envelope-builder');
+      
+      const envelope = buildEnvelope({
         deviceId: config.device_id,
-        app: {
-          package: 'com.xingin.xhs',
-          activity: null
-        },
-        snapshot: {
-          analysisId: config.analysis_id,
-          screenHash: null,
-          xmlCacheId: null
-        },
+        appPackage: 'com.xingin.xhs',
+        appActivity: null,
+        analysisId: config.analysis_id,
+        screenHash: null,
+        xmlCacheId: null,
+        // 🔑 关键：如果 config 携带了 xmlContent，自动传递
+        xmlContent: config.xmlContent ?? null,
         executionMode: 'relaxed'
-      };
+      });
 
       // 🎯 使用 SingleStepSpecV3::ByRef 格式（简化，只传 analysis_id + step_id）
       const step = {
@@ -231,20 +234,19 @@ export class IntelligentAnalysisBackendV3 {
         }
       }
 
-      // 🎯 使用正确的V3调用格式：envelope + spec
-      const envelope = {
+      // 🎯 使用统一的 envelope 构建器
+      const { buildEnvelope } = await import('../protocol/v3/envelope-builder');
+      
+      const envelope = buildEnvelope({
         deviceId: config.device_id,
-        app: {
-          package: 'com.xingin.xhs',
-          activity: null
-        },
-        snapshot: {
-          analysisId: config.analysis_id,
-          screenHash: null,
-          xmlCacheId: null
-        },
+        appPackage: 'com.xingin.xhs',
+        appActivity: null,
+        analysisId: config.analysis_id,
+        screenHash: null,
+        xmlCacheId: config.xmlCacheId ?? null,
+        xmlContent: config.xmlContent ?? null,
         executionMode: 'relaxed'
-      };
+      });
 
       // 🎯 使用 ChainSpecV3::ByInline 格式，匹配 Rust 后端类型定义
       const spec = {

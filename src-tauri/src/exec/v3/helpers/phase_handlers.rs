@@ -4,6 +4,7 @@
 
 use super::super::types::{
     StepRefOrInline, QualitySettings, ValidationSettings, ExecutionMode, StepScore,
+    SingleStepSpecV3, ConstraintSettings, ContextEnvelope,
 };
 use super::super::events::emit_progress;
 use super::super::types::Phase;
@@ -204,9 +205,53 @@ pub async fn handle_intelligent_fallback(
                         
                         tracing::info!("🧠 尝试执行智能生成步骤: {} (置信度: {:.2})", score.step_id, score.confidence);
                         
-                        match step_executor::execute_step_real_operation(device_id, inline_step, ui_xml, validation).await {
-                            Ok(click_coords) => {
-                                tracing::info!("✅ 智能步骤 {} 执行成功，坐标: {:?}", score.step_id, click_coords);
+                        // 🎯 修改：使用统一的单步执行器，而不是直接调用底层
+                        use super::super::single_step::execute_single_step_internal;
+                        
+                        // 构造 SingleStepSpecV3
+                        let single_step_spec = SingleStepSpecV3::ByInline {
+                            step_id: inline_step.step_id.clone(),
+                            action: inline_step.action.clone(),
+                            params: inline_step.params.clone(),
+                            quality: quality.clone(),
+                            constraints: ConstraintSettings::default(), // 使用默认约束
+                            validation: validation.clone(),
+                        };
+                        
+                        // 构造 ContextEnvelope（临时简化版本）
+                        let envelope = ContextEnvelope {
+                            device_id: device_id.to_string(),
+                            app: super::super::types::AppCtx {
+                                package: "unknown".to_string(),
+                                activity: None,
+                            },
+                            snapshot: super::super::types::SnapshotCtx {
+                                analysis_id: Some(analysis_id.to_string()),
+                                screen_hash: None,
+                                xml_cache_id: None,
+                                xml_content: None,  // 🆕 智能降级功能支持
+                            },
+                            execution_mode: ExecutionMode::Strict,
+                        };
+                        
+                        // 调用统一的单步执行器
+                        match execute_single_step_internal(app, &envelope, single_step_spec).await {
+                            Ok(result) => {
+                                // 从返回结果中提取坐标信息
+                                let click_coords = if let Some(coords_val) = result.get("coords") {
+                                    if let (Some(x), Some(y)) = (
+                                        coords_val.get(0).and_then(|v| v.as_i64()),
+                                        coords_val.get(1).and_then(|v| v.as_i64()),
+                                    ) {
+                                        (x as i32, y as i32)
+                                    } else {
+                                        (0, 0)
+                                    }
+                                } else {
+                                    (0, 0)
+                                };
+                                
+                                tracing::info!("✅ 智能步骤 {} 执行成功 (通过单步执行器)，坐标: {:?}", score.step_id, click_coords);
                                 
                                 // 发送执行成功事件
                                 emit_progress(
@@ -224,7 +269,7 @@ pub async fn handle_intelligent_fallback(
                                 return Ok((Some(score.step_id.clone()), Some(click_coords), true));
                             }
                             Err(err) => {
-                                tracing::warn!("❌ 智能步骤 {} 执行失败: {}", score.step_id, err);
+                                tracing::warn!("❌ 智能步骤 {} 执行失败 (通过单步执行器): {}", score.step_id, err);
                                 continue;
                             }
                         }

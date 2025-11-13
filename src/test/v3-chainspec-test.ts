@@ -3,6 +3,7 @@
 // summary: 测试V3链式执行参数格式的正确性
 
 import { invoke } from '@tauri-apps/api/core';
+import { buildEnvelope } from '../protocol/v3/envelope-builder';
 
 /**
  * 测试ChainSpecV3::ByRef格式是否正确
@@ -11,20 +12,13 @@ export async function testChainSpecV3Format(): Promise<void> {
   console.log('🧪 开始测试ChainSpecV3格式...');
   
   try {
-    // 构建测试参数 - 与StepExecutionGateway.ts保持完全一致
-    const envelope = {
+    // 构建测试参数 - 使用统一的 envelope-builder
+    const envelope = buildEnvelope({
       deviceId: 'test_device',
-      app: {
-        package: 'com.xingin.xhs',
-        activity: null
-      },
-      snapshot: {
-        analysisId: 'test_analysis',
-        screenHash: null,
-        xmlCacheId: null
-      },
+      analysisId: 'test_analysis',
+      xmlContent: null,
       executionMode: 'relaxed'
-    };
+    });
 
     const spec = {
       analysisId: 'step_execution_test_123',
@@ -72,12 +66,12 @@ export async function testChainModeValues(): Promise<void> {
     try {
       console.log(`📝 测试mode: ${mode}`);
       
-      const envelope = {
+      const envelope = buildEnvelope({
         deviceId: 'test_device',
-        app: { package: 'com.xingin.xhs', activity: null },
-        snapshot: { analysisId: `test_${mode}`, screenHash: null, xmlCacheId: null },
+        analysisId: `test_${mode}`,
+        xmlContent: null,
         executionMode: 'relaxed'
-      };
+      });
 
       const spec = {
         analysisId: `test_analysis_${mode}`,

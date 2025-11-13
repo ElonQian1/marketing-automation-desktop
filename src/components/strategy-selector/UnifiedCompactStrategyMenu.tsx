@@ -12,10 +12,10 @@
 // - 执行：testExecuteV3Strategy → execute_chain_test_v3 (dryrun=false)
 
 import React from 'react';
-import { Dropdown, Button, Tooltip, Progress } from 'antd';
+import { Dropdown, Button, Tooltip, Progress, message } from 'antd';
 import { RefreshCcwIcon, LightbulbIcon, CheckCircleIcon, XCircleIcon } from 'lucide-react';
 import { useStepCardStore } from '../../store/stepcards';
-import { useStepScoreStore } from '../../stores/step-score-store';
+import { useAnalysisStateStore } from '../../stores/analysis-state-store';
 import { useUnifiedSmartAnalysis } from '../../hooks/useUnifiedSmartAnalysis';
 import { ConfidenceTag } from '../../modules/universal-ui';
 import type { SelectionMode } from '../../types/smartSelection';
@@ -51,7 +51,7 @@ export const UnifiedCompactStrategyMenu: React.FC<UnifiedCompactStrategyMenuProp
   } = useUnifiedSmartAnalysis();
   
   const { getCard } = useStepCardStore();
-  const { getByCardId, generateKey, get: getScore } = useStepScoreStore();
+  const { getStepConfidence } = useAnalysisStateStore();
   
   const [currentCardId, setCurrentCardId] = React.useState<string | null>(existingCardId || null);
   
@@ -79,6 +79,7 @@ export const UnifiedCompactStrategyMenu: React.FC<UnifiedCompactStrategyMenuProp
     });
 
     if (!currentCard || currentCard.status !== 'ready' || !currentCard.strategy) {
+      message.warning('⚠️ 当前无可用策略，请先启动分析');
       console.warn('❌ 当前无可用策略，请先启动分析');
       return;
     }
@@ -86,23 +87,30 @@ export const UnifiedCompactStrategyMenu: React.FC<UnifiedCompactStrategyMenuProp
     try {
       // 使用invoke直接调用V3执行系统
       const { invoke } = await import('@tauri-apps/api/core');
-      
+      const { buildEnvelopeFromCard, hasXmlSnapshot } = await import('../../protocol/v3/envelope-builder');
 
-
-      // 🚀 调用V3执行命令（不是分析，而是执行）- 使用正确的envelope + spec格式
-      const envelope = {
-        deviceId: elementData.uid,
-        app: {
-          package: 'com.xingin.xhs',
-          activity: null
-        },
-        snapshot: {
+      // 🚀 调用V3执行命令 - 使用统一的 envelope 构建器
+      const envelope = buildEnvelopeFromCard(
+        elementData.uid || 'default',  // 使用 elementData.uid 作为设备ID
+        currentCard,
+        {
           analysisId: `execution_test_${currentCard.id}`,
-          screenHash: null,
-          xmlCacheId: null
-        },
-        executionMode: 'relaxed'
-      };
+          executionMode: 'relaxed'
+        }
+      );
+
+      // ✅ 检查 xmlContent 并提示用户
+      if (!hasXmlSnapshot(envelope)) {
+        message.info('ℹ️ 未使用 XML 快照，将从实时设备读取界面结构', 3);
+      }
+
+      console.log('📦 [UnifiedCompactStrategyMenu] 构建的 envelope:', {
+        deviceId: envelope.deviceId,
+        analysisId: envelope.snapshot.analysisId,
+        hasXmlContent: !!envelope.snapshot.xmlContent,
+        xmlLength: envelope.snapshot.xmlContent?.length || 0,
+        executionMode: envelope.executionMode
+      });
 
       // 🎯 使用 ChainSpecV3::ByRef 格式（简化版本），匹配 Rust 后端类型定义（camelCase）
       const spec = {
@@ -117,6 +125,8 @@ export const UnifiedCompactStrategyMenu: React.FC<UnifiedCompactStrategyMenuProp
         spec
       });
       
+      message.success(`🎯 V3策略执行启动成功! 任务ID: ${jobId.slice(-6)}`);
+      
       console.log('✅ [UnifiedCompactStrategyMenu] V3策略执行已启动', { 
         jobId, 
         strategy: currentCard.strategy.primary,
@@ -124,24 +134,19 @@ export const UnifiedCompactStrategyMenu: React.FC<UnifiedCompactStrategyMenuProp
         operationType 
       });
       
-      // 可以添加成功提示或状态更新
-      console.log(`🎯 V3策略执行启动成功! 
-        策略: ${currentCard.strategy.primary}
-        选择模式: ${selectionMode}
-        操作方式: ${operationType}
-        任务ID: ${jobId.slice(-6)}`);
-      
     } catch (error) {
-      console.error('❌ [UnifiedCompactStrategyMenu] V3策略执行失败', error);
+      const errorMsg = error instanceof Error ? error.message : String(error);
+      message.error(`❌ V3策略执行失败: ${errorMsg}`, 5);
+      console.error('❌ [UnifiedCompactStrategyMenu] V3策略执行失败', {
+        error: errorMsg,
+        stack: error instanceof Error ? error.stack : undefined,
+        cardId: currentCard?.id
+      });
     }
   };
 
   // 当前卡片信息
   const currentCard = currentCardId ? getCard(currentCardId) : null;
-  
-  // 🆕 优先从共享缓存获取置信度（专家建议的核心）
-  const cachedScore = currentCardId ? getByCardId(currentCardId) : null;
-  const elementScore = cachedScore || (elementData.uid ? getScore(generateKey(elementData.uid)) : null);
 
   // 推荐映射（根据朋友的建议）
   const recommendedStrategyKeys = {
@@ -653,11 +658,11 @@ export const UnifiedCompactStrategyMenu: React.FC<UnifiedCompactStrategyMenuProp
         </Button>
       </Dropdown>
 
-      {/* 置信度显示 - 优先使用共享缓存 */}
-      {currentCard?.status === 'ready' && (elementScore?.confidence !== undefined || currentCard.confidence !== undefined) && (
+      {/* 置信度显示 - 从步骤卡片获取 */}
+      {currentCard?.status === 'ready' && currentCard.confidence !== undefined && (
         <ConfidenceTag 
-          confidence={elementScore?.confidence ?? currentCard.confidence ?? 0}
-          evidence={elementScore?.evidence ?? currentCard.evidence}
+          confidence={currentCard.confidence ?? 0}
+          evidence={currentCard.evidence}
           size="small"
           showLabel={false}
         />

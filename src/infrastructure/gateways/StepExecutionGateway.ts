@@ -478,21 +478,20 @@ export class StepExecutionGateway {
     console.log('[StepExecGateway] 🚀 V3智能策略执行开始:', request);
 
     try {
-      // 构建V3执行配置
-      // 🎯 使用正确的V3调用格式：envelope + spec
-      const envelope = {
+      // 🎯 使用统一的 envelope 构建器
+      const { buildEnvelope } = await import('../../protocol/v3/envelope-builder');
+      
+      const envelope = buildEnvelope({
         deviceId: request.deviceId || 'default_device',
-        app: {
-          package: 'com.xingin.xhs', // 小红书包名
-          activity: null
-        },
-        snapshot: {
-          analysisId: request.stepId,
-          screenHash: null,
-          xmlCacheId: null
-        },
-        executionMode: 'relaxed' // 使用宽松模式
-      };
+        appPackage: 'com.xingin.xhs',
+        appActivity: null,
+        analysisId: request.stepId,
+        screenHash: null,
+        xmlCacheId: null,
+        // 🔑 关键：如果 request 携带了 xmlSnapshot，自动传递
+        xmlContent: request.xmlSnapshot?.xmlContent ?? null,
+        executionMode: 'relaxed'
+      });
 
       // 🎯 使用 ChainSpecV3::ByRef 格式 - 尝试snake_case字段名
       // 🎯 获取用户选择模式
