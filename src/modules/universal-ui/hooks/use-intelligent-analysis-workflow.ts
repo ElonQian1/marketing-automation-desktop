@@ -892,6 +892,30 @@ export function useIntelligentAnalysisWorkflow(): UseIntelligentAnalysisWorkflow
               elementUid: stepId,
               hasOriginalElement: !!context.originalUIElement,
             });
+
+            // 🆕 自动触发Step1-2评分（智能·自动链）
+            (async () => {
+              try {
+                const { executeSmartAutoScoring } = await import(
+                  "../../../components/strategy-selector/scoring/smart-auto-scoring"
+                );
+                const { useAnalysisStateStore } = await import(
+                  "../../../stores/analysis-state-store"
+                );
+                
+                const card = unifiedStore.cards[unifiedCardId];
+                if (card) {
+                  const { setFinalScores } = useAnalysisStateStore.getState();
+                  console.log("🎯 [自动评分] 开始执行Step1-2评分", { stepId, cardId: unifiedCardId });
+                  await executeSmartAutoScoring(card, setFinalScores);
+                  console.log("✅ [自动评分] Step1-2评分完成", { stepId });
+                } else {
+                  console.warn("⚠️ [自动评分] 卡片未找到，跳过评分", { unifiedCardId });
+                }
+              } catch (err) {
+                console.warn("⚠️ [自动评分] 评分失败，不影响卡片创建", err);
+              }
+            })();
           } catch (err) {
             console.warn("⚠️ [Bridge] 创建统一store卡片失败", err);
           }
