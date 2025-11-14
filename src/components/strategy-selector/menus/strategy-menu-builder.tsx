@@ -100,7 +100,7 @@ export function buildStrategyMenu(config: StrategyMenuConfig): MenuProps {
         
         try {
           console.log('🚀 [菜单] 开始执行智能·自动链评分...');
-          await executeSmartAutoScoring(card, setFinalScores);
+          await executeSmartAutoScoring(card, setFinalScores, getStepConfidence);
           console.log('✅ [菜单] 智能·自动链评分完成');
         } catch (error) {
           console.error('❌ [智能·自动链] 评分过程失败:', error);
@@ -174,7 +174,8 @@ export function buildStrategyMenu(config: StrategyMenuConfig): MenuProps {
                   card,
                   stepId,
                   setFinalScores,
-                  onUpdateStepParameters
+                  onUpdateStepParameters,
+                  getStepConfidence
                 );
               } catch (error) {
                 console.error('❌ [智能·单步] 评分失败:', error);
@@ -250,7 +251,8 @@ export function buildStrategyMenu(config: StrategyMenuConfig): MenuProps {
                 stepId,
                 setFinalScores,
                 events,
-                onUpdateStepParameters
+                onUpdateStepParameters,
+                getStepConfidence
               );
             } catch (error) {
               console.error('❌ [静态策略-卡片子树] 评分失败:', error);
@@ -288,10 +290,11 @@ export function buildStrategyMenu(config: StrategyMenuConfig): MenuProps {
                 stepId,
                 setFinalScores,
                 events,
-                onUpdateStepParameters
+                onUpdateStepParameters,
+                getStepConfidence
               );
             } catch (error) {
-              console.error('❌ [静态策略-叶子上下文] 评分失败:', error);
+              console.error('❌ [静态策略-叶子上下文] 诅分失败:', error);
             }
           }
         },

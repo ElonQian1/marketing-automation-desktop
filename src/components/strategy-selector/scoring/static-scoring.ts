@@ -52,6 +52,7 @@ export type StepParametersUpdater = (stepId: string, params: Record<string, unkn
  * @param setFinalScores 评分存储函数
  * @param events 策略事件处理器
  * @param onUpdateStepParameters 步骤参数更新回调（可选）
+ * @param getStepConfidence 获取已有评分的函数（可选，用于缓存检查）
  * @returns 是否成功
  */
 export async function executeStaticCardSubtreeScoring(
@@ -60,11 +61,22 @@ export async function executeStaticCardSubtreeScoring(
   stepId: string,
   setFinalScores: (scores: StructureScoringResult[]) => void,
   events: StrategyEvents,
-  onUpdateStepParameters?: StepParametersUpdater
+  onUpdateStepParameters?: StepParametersUpdater,
+  getStepConfidence?: (candidateKey: string) => number | null
 ): Promise<boolean> {
   const context = '静态策略-卡片子树';
   
   console.log(`📌 [${context}] 开始执行评分`);
+
+  // 🔍 缓存检查：避免重复计算
+  if (getStepConfidence) {
+    const existingScore = getStepConfidence(candidateKey);
+    if (existingScore !== null && existingScore > 0) {
+      console.log(`✓ [${context}] 已有评分缓存:`, `${(existingScore * 100).toFixed(1)}%`);
+      message.info(`已有卡片子树评分结果（${Math.round(existingScore * 100)}%），无需重复计算`);
+      return true;
+    }
+  }
 
   // 检查必要数据
   if (!card.elementContext?.xpath) {
@@ -173,6 +185,7 @@ export async function executeStaticCardSubtreeScoring(
  * @param setFinalScores 评分存储函数
  * @param events 策略事件处理器
  * @param onUpdateStepParameters 步骤参数更新回调（可选）
+ * @param getStepConfidence 获取已有评分的函数（可选，用于缓存检查）
  * @returns 是否成功
  */
 export async function executeStaticLeafContextScoring(
@@ -181,11 +194,22 @@ export async function executeStaticLeafContextScoring(
   stepId: string,
   setFinalScores: (scores: StructureScoringResult[]) => void,
   events: StrategyEvents,
-  onUpdateStepParameters?: StepParametersUpdater
+  onUpdateStepParameters?: StepParametersUpdater,
+  getStepConfidence?: (candidateKey: string) => number | null
 ): Promise<boolean> {
   const context = '静态策略-叶子上下文';
   
   console.log(`📌 [${context}] 开始执行评分`);
+
+  // 🔍 缓存检查：避免重复计算
+  if (getStepConfidence) {
+    const existingScore = getStepConfidence(candidateKey);
+    if (existingScore !== null && existingScore > 0) {
+      console.log(`✓ [${context}] 已有评分缓存:`, `${(existingScore * 100).toFixed(1)}%`);
+      message.info(`已有叶子上下文评分结果（${Math.round(existingScore * 100)}%），无需重复计算`);
+      return true;
+    }
+  }
 
   // 检查必要数据
   if (!card.elementContext?.xpath) {

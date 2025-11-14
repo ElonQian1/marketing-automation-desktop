@@ -55,6 +55,7 @@ export type StepParametersUpdater = (stepId: string, params: Record<string, unkn
  * @param stepId 步骤ID（用于存储）
  * @param setFinalScores 评分存储函数
  * @param onUpdateStepParameters 步骤参数更新回调（可选）
+ * @param getStepConfidence 获取已有评分的函数（可选，用于缓存检查）
  * @returns 是否成功
  */
 export async function executeSmartSingleScoring(
@@ -63,12 +64,23 @@ export async function executeSmartSingleScoring(
   card: StepCard,
   stepId: string,
   setFinalScores: (scores: StructureScoringResult[]) => void,
-  onUpdateStepParameters?: StepParametersUpdater
+  onUpdateStepParameters?: StepParametersUpdater,
+  getStepConfidence?: (candidateKey: string) => number | null
 ): Promise<boolean> {
   const context = '智能单步';
   const modeName = step === 'step1' ? '卡片子树' : '叶子上下文';
   
   console.log(`🎯 [${context}] 触发${modeName}评分`);
+
+  // 🔍 缓存检查：避免重复计算
+  if (getStepConfidence) {
+    const existingScore = getStepConfidence(candidateKey);
+    if (existingScore !== null && existingScore > 0) {
+      console.log(`✓ [${context}] 已有${modeName}评分缓存:`, `${(existingScore * 100).toFixed(1)}%`);
+      message.info(`已有${modeName}评分结果（${Math.round(existingScore * 100)}%），无需重复计算`);
+      return true;
+    }
+  }
 
   // 检查必要数据
   if (!card.elementContext?.xpath) {

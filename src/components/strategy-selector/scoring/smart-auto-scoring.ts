@@ -38,15 +38,32 @@ interface RecommendResponse {
  * 
  * @param card 步骤卡片
  * @param setFinalScores 评分存储函数
+ * @param getStepConfidence 获取已有评分的函数（可选，用于缓存检查）
  * @returns 是否成功
  */
 export async function executeSmartAutoScoring(
   card: StepCard,
-  setFinalScores: (scores: StructureScoringResult[]) => void
+  setFinalScores: (scores: StructureScoringResult[]) => void,
+  getStepConfidence?: (candidateKey: string) => number | null
 ): Promise<boolean> {
   const context = '智能·自动链';
   
   console.log(`🧠 [${context}] 触发 Step1-2 结构匹配评分`);
+
+  // 🔍 缓存检查：避免重复计算
+  if (getStepConfidence) {
+    const step1Score = getStepConfidence('card_subtree_scoring');
+    const step2Score = getStepConfidence('leaf_context_scoring');
+    
+    if (step1Score !== null && step2Score !== null && step1Score > 0 && step2Score > 0) {
+      console.log(`✓ [${context}] 已有评分缓存，跳过重复计算:`, {
+        step1: `${(step1Score * 100).toFixed(1)}%`,
+        step2: `${(step2Score * 100).toFixed(1)}%`,
+      });
+      message.info('已有评分结果，无需重复计算');
+      return true;
+    }
+  }
 
   // 检查必要数据
   if (!card.elementContext?.xpath) {
