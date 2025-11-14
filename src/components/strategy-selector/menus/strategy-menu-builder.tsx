@@ -77,21 +77,31 @@ export function buildStrategyMenu(config: StrategyMenuConfig): MenuProps {
       icon: <span>🧠</span>,
       label: "智能·自动链",
       onClick: async () => {
+        console.log('🎯 [菜单] 用户点击：智能·自动链', { stepId });
         events.onStrategyChange({ type: "smart-auto" });
         
         if (!stepId) {
+          console.warn('⚠️ [菜单] 缺少stepId');
           message.warning('请先创建步骤卡片');
           return;
         }
         
         const card = cardStore.cards[stepId];
+        console.log('📊 [菜单] 卡片数据:', { 
+          hasCard: !!card, 
+          cardId: stepId,
+          xpath: card?.elementContext?.xpath
+        });
+        
         if (!card) {
           message.warning('步骤卡片数据不完整，跳过评分');
           return;
         }
         
         try {
+          console.log('🚀 [菜单] 开始执行智能·自动链评分...');
           await executeSmartAutoScoring(card, setFinalScores);
+          console.log('✅ [菜单] 智能·自动链评分完成');
         } catch (error) {
           console.error('❌ [智能·自动链] 评分过程失败:', error);
         }
@@ -108,6 +118,17 @@ export function buildStrategyMenu(config: StrategyMenuConfig): MenuProps {
         const confidence = getStepConfidence(candidateKey);
         const displayScore = confidence !== null && isValidScore(confidence) ? confidence : undefined;
         const confidencePercent = toPercentInt01(displayScore);
+        
+        // 🔍 调试日志：评分查询
+        if (step === 'step1' || step === 'step2') {
+          console.log(`🔍 [菜单显示] ${label}:`, {
+            candidateKey,
+            confidence,
+            displayScore,
+            confidencePercent,
+            hasScore: confidence !== null
+          });
+        }
 
         return {
           key: `smart-single-${step}`,

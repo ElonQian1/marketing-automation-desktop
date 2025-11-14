@@ -133,7 +133,15 @@ export async function executeSmartAutoScoring(
 
   // 存储评分结果
   if (results.length > 0) {
+    console.log('💾 [智能·自动链] 准备存储评分:', results.map(r => ({
+      stepId: r.stepId,
+      confidence: `${(r.confidence * 100).toFixed(1)}%`,
+      strategy: r.strategy
+    })));
+    
     setFinalScores(results);
+    
+    console.log('✅ [智能·自动链] 评分已存储到 analysis-state-store');
     message.success(`🧠 智能·自动链评分完成（${results.length}/2）`);
     return true;
   }
