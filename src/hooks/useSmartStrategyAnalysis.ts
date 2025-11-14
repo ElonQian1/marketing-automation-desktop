@@ -1,10 +1,12 @@
 // src/hooks/useSmartStrategyAnalysis.ts
 // module: hooks | layer: hooks | role: 智能策略分析Hook
-// summary: 集成真实智能分析后端，为策略选择器提供数据和操作
+// summary: 集成真实智能分析后端（V2/V3），为策略选择器提供数据和操作
 
 import { useState, useCallback, useEffect, useRef } from 'react';
 import { message } from 'antd';
 import { useIntelligentAnalysisBackend } from '../services/intelligent-analysis-backend';
+import { IntelligentAnalysisBackendV3 } from '../services/intelligent-analysis-backend-v3';
+import { featureFlagManager } from '../config/feature-flags';
 import type { 
   StrategySelector, 
   StrategyCandidate, 
@@ -41,6 +43,7 @@ export const useSmartStrategyAnalysis = ({
   const [isAnalyzing, setIsAnalyzing] = useState(false);
   const currentJobId = useRef<string | null>(null);
   const cleanupFunctions = useRef<Array<() => void>>([]);
+  const [currentExecutionVersion, setCurrentExecutionVersion] = useState<'v2' | 'v3'>('v2');
 
   // 初始化策略选择器状态
   useEffect(() => {
@@ -100,12 +103,30 @@ export const useSmartStrategyAnalysis = ({
     }
   }, [strategySelector?.analysis?.status, step.id]);
 
+  // 🔄 V2/V3版本切换
+  useEffect(() => {
+    const updateExecutionVersion = async () => {
+      const version = await featureFlagManager.getSmartExecutionVersion('strategy-analysis');
+      setCurrentExecutionVersion(version);
+    };
+
+    updateExecutionVersion();
+    const interval = setInterval(updateExecutionVersion, 30000); // 每30秒检查一次
+
+    return () => clearInterval(interval);
+  }, []);
+
   // 清理函数
   useEffect(() => {
     const setupEventListeners = async () => {
       try {
+        // 🔀 根据版本选择backend
+        const backend = currentExecutionVersion === 'v3'
+          ? IntelligentAnalysisBackendV3
+          : backendService;
+
         // 监听分析进度
-        const progressUnlisten = await backendService.listenToAnalysisProgress(
+        const progressUnlisten = await backend.listenToAnalysisProgress(
           (jobId, progress, currentStep, estimatedTimeLeft) => {
             // console.log('📊 [StrategyAnalysis] 进度更新:', { jobId, progress, currentStep, estimatedTimeLeft });
             
@@ -125,7 +146,7 @@ export const useSmartStrategyAnalysis = ({
         );
 
         // 监听分析完成
-        const completeUnlisten = await backendService.listenToAnalysisComplete(
+        const completeUnlisten = await backend.listenToAnalysisComplete(
           (jobId, result) => {
             // console.log('✅ [StrategyAnalysis] 分析完成:', { jobId, result });
             // console.log('🔍 [StrategyAnalysis] 当前分析状态:', {
@@ -187,7 +208,7 @@ export const useSmartStrategyAnalysis = ({
         );
 
         // 监听分析错误
-        const errorUnlisten = await backendService.listenToAnalysisError(
+        const errorUnlisten = await backend.listenToAnalysisError(
           (error) => {
             console.error('❌ [StrategyAnalysis] 分析失败:', error);
             setStrategySelector(prev => prev ? {
@@ -214,10 +235,14 @@ export const useSmartStrategyAnalysis = ({
 
     // 清理函数
     return () => {
+      // V3需要额外清理
+      if (currentExecutionVersion === 'v3') {
+        IntelligentAnalysisBackendV3.cleanup();
+      }
       cleanupFunctions.current.forEach(cleanup => cleanup());
       cleanupFunctions.current = [];
     };
-  }, [backendService]);
+  }, [backendService, currentExecutionVersion]);
 
   // 手动重置分析状态
   const resetAnalysisState = useCallback(() => {
@@ -272,15 +297,49 @@ export const useSmartStrategyAnalysis = ({
         }
       } : null);
 
-      // 调用后端分析服务
-      const response = await backendService.startAnalysis(element, step.id, {
-        lockContainer: strategySelector.config.enableFallback,
-        enableSmartCandidates: true,
-        enableStaticCandidates: true
-      });
-
-      currentJobId.current = response.job_id;
-      console.log('✅ [StrategyAnalysis] 分析请求已发送:', response);
+      // 🔀 V2/V3执行路由
+      let response: { job_id?: string; analysis_id?: string };
+      if (currentExecutionVersion === 'v3') {
+        try {
+          const v3Response = await IntelligentAnalysisBackendV3.executeChainV3(
+            {
+              snapshot_cache_key: `${element.resource_id || element.text}_${Date.now()}`,
+              cache_ttl_secs: 300,
+              cache_match_threshold: 0.7,
+            },
+            {
+              candidates: [
+                {
+                  mode: { ByRef: { step_id: step.id } },
+                  weight: 1.0,
+                },
+              ],
+            }
+          );
+          response = { analysis_id: v3Response.analysis_id };
+          currentJobId.current = v3Response.analysis_id || null;
+          console.log('✅ [StrategyAnalysis] V3分析请求已发送:', v3Response);
+        } catch (error) {
+          console.warn('⚠️ [StrategyAnalysis] V3执行失败，回退到V2:', error);
+          const v2Response = await backendService.startAnalysis(element, step.id, {
+            lockContainer: strategySelector.config.enableFallback,
+            enableSmartCandidates: true,
+            enableStaticCandidates: true,
+          });
+          response = v2Response;
+          currentJobId.current = v2Response.job_id;
+          console.log('✅ [StrategyAnalysis] V2分析请求已发送（回退）:', v2Response);
+        }
+      } else {
+        // V2执行
+        response = await backendService.startAnalysis(element, step.id, {
+          lockContainer: strategySelector.config.enableFallback,
+          enableSmartCandidates: true,
+          enableStaticCandidates: true,
+        });
+        currentJobId.current = response.job_id;
+        console.log('✅ [StrategyAnalysis] V2分析请求已发送:', response);
+      }
 
     } catch (error) {
       console.error('❌ [StrategyAnalysis] 启动分析失败:', error);
@@ -300,7 +359,12 @@ export const useSmartStrategyAnalysis = ({
     if (!currentJobId.current) return;
 
     try {
-      await backendService.cancelAnalysis(currentJobId.current);
+      // 🔀 V2/V3取消路由
+      if (currentExecutionVersion === 'v3') {
+        await IntelligentAnalysisBackendV3.cancelAnalysis(currentJobId.current);
+      } else {
+        await backendService.cancelAnalysis(currentJobId.current);
+      }
       setIsAnalyzing(false);
       setStrategySelector(prev => prev ? {
         ...prev,
@@ -313,7 +377,7 @@ export const useSmartStrategyAnalysis = ({
     } catch (error) {
       console.error('❌ [StrategyAnalysis] 取消分析失败:', error);
     }
-  }, [backendService]);
+  }, [backendService, currentExecutionVersion]);
 
   // 应用策略
   const applyStrategy = useCallback((strategy: { type: StrategyType; key?: string }) => {

@@ -1,6 +1,6 @@
 // src/hooks/universal-ui/useIntelligentAnalysisAdapter.ts
 // module: universal-ui | layer: hooks | role: adapter
-// summary: 智能分析 Hook 适配器，支持真实后端和模拟版本
+// summary: 智能分析 Hook 适配器，支持真实后端（V2/V3）和模拟版本
 
 import { useCallback, useState, useEffect } from 'react';
 import type { UIElement } from '../../api/universalUIAPI';
@@ -11,6 +11,8 @@ import {
   type AnalysisProgress,
 } from './useStrategyAnalysis';
 import { useIntelligentAnalysisBackend } from '../../services/intelligent-analysis-backend';
+import { IntelligentAnalysisBackendV3 } from '../../services/intelligent-analysis-backend-v3';
+import { featureFlagManager } from '../../config/feature-flags';
 import type { StrategyCandidate, AnalysisResult } from '../../modules/universal-ui/types/intelligent-analysis-types';
 
 // 统一的上下文接口
@@ -77,6 +79,22 @@ export const useIntelligentAnalysisAdapter = (
   const [realAnalysisProgress, setRealAnalysisProgress] = useState<AnalysisProgress | null>(null);
   const [realAnalysisResult, setRealAnalysisResult] = useState<AnalysisResult | null>(null);
   const [currentJobId, setCurrentJobId] = useState<string | null>(null);
+  const [currentExecutionVersion, setCurrentExecutionVersion] = useState<'v2' | 'v3'>('v2');
+
+  // 🔄 V2/V3版本切换
+  useEffect(() => {
+    if (!useRealBackend) return;
+
+    const updateExecutionVersion = async () => {
+      const version = await featureFlagManager.getSmartExecutionVersion('adapter');
+      setCurrentExecutionVersion(version);
+    };
+
+    updateExecutionVersion();
+    const interval = setInterval(updateExecutionVersion, 30000);
+
+    return () => clearInterval(interval);
+  }, [useRealBackend]);
 
   // 设置真实后端事件监听
   useEffect(() => {
@@ -86,8 +104,13 @@ export const useIntelligentAnalysisAdapter = (
 
     const setupEventListeners = async () => {
       try {
+        // 🔀 根据版本选择backend
+        const backend = currentExecutionVersion === 'v3'
+          ? IntelligentAnalysisBackendV3
+          : backendService;
+
         // 监听进度更新
-        await backendService.listenToAnalysisProgress((jobId, progress, step, estimatedTimeLeft) => {
+        await backend.listenToAnalysisProgress((jobId, progress, step, estimatedTimeLeft) => {
           // console.log('📊 [Adapter] 收到进度更新', { jobId, progress, step, estimatedTimeLeft });
           setRealAnalysisProgress({
             currentStep: Math.round((progress / 100) * 7), // 进度是百分比，转换为步骤数
@@ -98,7 +121,7 @@ export const useIntelligentAnalysisAdapter = (
         });
 
         // 监听分析完成 - 使用 jobId 参数
-        await backendService.listenToAnalysisComplete((jobId, result) => {
+        await backend.listenToAnalysisComplete((jobId, result) => {
           // console.log('🎉 [Adapter] 收到分析完成回调', { jobId, result });
           setRealAnalysisState('completed');
           setRealAnalysisResult(result);
@@ -107,7 +130,7 @@ export const useIntelligentAnalysisAdapter = (
         });
 
         // 监听分析错误
-        await backendService.listenToAnalysisError((error) => {
+        await backend.listenToAnalysisError((error) => {
           console.error('❌ [Adapter] 真实后端分析失败', error);
           setRealAnalysisState('failed');
           setRealAnalysisProgress(null);
@@ -118,8 +141,11 @@ export const useIntelligentAnalysisAdapter = (
         // 因为全局监听器已在 main.tsx 中注册，不应在组件卸载时清理
         // cleanup = () => backendService.cleanup();
         cleanup = () => {
-          console.log('🔗 [Adapter] 组件卸载，但保留全局事件监听器');
-          // 只清理组件级的状态，不清理全局监听器
+          console.log('🔗 [Adapter] 组件卸载，清理资源');
+          // V3需要额外清理
+          if (currentExecutionVersion === 'v3') {
+            IntelligentAnalysisBackendV3.cleanup();
+          }
         };
       } catch (error) {
         console.error('❌ [Adapter] 设置事件监听器失败', error);
@@ -131,7 +157,7 @@ export const useIntelligentAnalysisAdapter = (
     return () => {
       cleanup?.();
     };
-  }, [useRealBackend, backendService]);
+  }, [useRealBackend, backendService, currentExecutionVersion]);
 
   // 适配器方法 - 根据配置选择后端
   const startAnalysis = useCallback(async (context: UnifiedAnalysisContext) => {
@@ -151,19 +177,57 @@ export const useIntelligentAnalysisAdapter = (
           stepDescription: '准备智能分析环境',
         });
 
-        // 调用真实后端
-        const response = await backendService.startAnalysis(
-          context.element,
-          context.stepId,
-          {
-            lockContainer: false,
-            enableSmartCandidates: true,
-            enableStaticCandidates: true,
+        // 🔀 V2/V3执行路由
+        let response: { job_id?: string; analysis_id?: string };
+        if (currentExecutionVersion === 'v3') {
+          try {
+            const v3Response = await IntelligentAnalysisBackendV3.executeChainV3(
+              {
+                snapshot_cache_key: `${context.element.resource_id || context.element.text}_${Date.now()}`,
+                cache_ttl_secs: 300,
+                cache_match_threshold: 0.7,
+              },
+              {
+                candidates: [
+                  {
+                    mode: { ByRef: { step_id: context.stepId || 'adapter-step' } },
+                    weight: 1.0,
+                  },
+                ],
+              }
+            );
+            response = { analysis_id: v3Response.analysis_id };
+            setCurrentJobId(v3Response.analysis_id || null);
+            console.log('✅ [Adapter] V3真实后端分析已启动', v3Response);
+          } catch (error) {
+            console.warn('⚠️ [Adapter] V3执行失败，回退到V2:', error);
+            const v2Response = await backendService.startAnalysis(
+              context.element,
+              context.stepId,
+              {
+                lockContainer: false,
+                enableSmartCandidates: true,
+                enableStaticCandidates: true,
+              }
+            );
+            response = v2Response;
+            setCurrentJobId(v2Response.job_id);
+            console.log('✅ [Adapter] V2真实后端分析已启动（回退）', v2Response);
           }
-        );
-
-        setCurrentJobId(response.job_id);
-        console.log('✅ [Adapter] 真实后端分析已启动', response);
+        } else {
+          // V2执行
+          response = await backendService.startAnalysis(
+            context.element,
+            context.stepId,
+            {
+              lockContainer: false,
+              enableSmartCandidates: true,
+              enableStaticCandidates: true,
+            }
+          );
+          setCurrentJobId(response.job_id);
+          console.log('✅ [Adapter] V2真实后端分析已启动', response);
+        }
       } catch (error) {
         console.error('❌ [Adapter] 启动真实后端分析失败', error);
         setRealAnalysisState('failed');
@@ -180,7 +244,12 @@ export const useIntelligentAnalysisAdapter = (
   const cancelAnalysis = useCallback(async () => {
     if (useRealBackend && currentJobId) {
       try {
-        await backendService.cancelAnalysis(currentJobId);
+        // 🔀 V2/V3取消路由
+        if (currentExecutionVersion === 'v3') {
+          await IntelligentAnalysisBackendV3.cancelAnalysis(currentJobId);
+        } else {
+          await backendService.cancelAnalysis(currentJobId);
+        }
         setRealAnalysisState('idle');
         setRealAnalysisProgress(null);
         setCurrentJobId(null);
@@ -190,7 +259,7 @@ export const useIntelligentAnalysisAdapter = (
     } else {
       simulatedHook.cancelAnalysis();
     }
-  }, [useRealBackend, currentJobId, backendService, simulatedHook]);
+  }, [useRealBackend, currentJobId, backendService, simulatedHook, currentExecutionVersion]);
 
   // 重置分析
   const resetAnalysis = useCallback(() => {
