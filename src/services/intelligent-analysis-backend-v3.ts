@@ -3,6 +3,7 @@
 // summary: V3统一执行协议后端接口，提供链式执行、单步执行和静态策略测试
 
 import { invoke } from '@tauri-apps/api/core';
+import { listen, type UnlistenFn } from '@tauri-apps/api/event';
 import type { ExecutionResult } from './matching-batch-engine';
 
 // 🚀 [XML缓存集成] 导入缓存分析服务
@@ -112,6 +113,77 @@ export interface V3ElementInfo {
   click_point?: [number, number];
 }
 
+// V3 事件类型定义（匹配后端 ExecEventV3）
+export interface V3ProgressEvent {
+  type: 'analysis:progress';
+  analysis_id?: string;
+  step_id?: string;
+  phase: V3ExecutionPhase;
+  confidence?: number;
+  message?: string;
+  meta?: Record<string, unknown>;
+}
+
+export interface V3CompleteEvent {
+  type: 'analysis:complete';
+  analysis_id?: string;
+  summary?: {
+    adoptedStepId?: string;
+    elapsedMs?: number;
+    reason?: string;
+  };
+  scores?: Array<{
+    stepId: string;
+    confidence: number;
+  }>;
+  result?: {
+    ok: boolean;
+    coords?: { x: number; y: number };
+    candidateCount?: number;
+    screenHashNow?: string;
+    validation?: {
+      passed: boolean;
+      reason?: string;
+    };
+  };
+}
+
+/**
+ * 将V3的Phase转换为进度百分比
+ */
+function phaseToProgress(phase: V3ExecutionPhase): number {
+  const phaseMap: Record<V3ExecutionPhase, number> = {
+    'initializing': 5,
+    'device_ready': 15,
+    'snapshot_ready': 25,
+    'match_started': 40,
+    'matched': 60,
+    'validated': 75,
+    'executed': 90,
+    'complete': 100,
+    'error': 0
+  };
+  return phaseMap[phase] || 0;
+}
+
+/**
+ * 将V3的Phase转换为步骤描述
+ */
+function phaseToStepMessage(phase: V3ExecutionPhase): string {
+  const messageMap: Record<V3ExecutionPhase, string> = {
+    'initializing': '初始化中...',
+    'device_ready': '设备已就绪',
+    'snapshot_ready': '屏幕快照已获取',
+    'match_started': '开始匹配元素',
+    'matched': '元素匹配成功',
+    'validated': '后置验证通过',
+    'executed': '执行操作完成',
+    'complete': '分析完成',
+    'error': '执行出错'
+  };
+  return messageMap[phase] || phase;
+}
+
 /**
  * V3统一执行协议后端服务
  * 
@@ -202,7 +274,7 @@ export class IntelligentAnalysisBackendV3 {
             };
 
             const cachedResult = await cachedIntelligentAnalysisService.analyzeElementStrategy(
-              tempElement as import('../api/universalUIAPI').UIElement,
+              tempElement as unknown as import('../api/universalUIAPI').UIElement,
               String(elementContext.snapshotId || ''),
               String(elementContext.elementPath || '')
             );
@@ -218,15 +290,10 @@ export class IntelligentAnalysisBackendV3 {
               return {
                 success: true,
                 elementId: step.step_id,
-                action: 'cached_analysis',
-                message: `V3缓存命中: ${cachedResult.recommendedStrategy}`,
+                action: { type: 'click' as const },
                 executionTime: cachedResult.metadata.analysisTime,
-                metadata: {
-                  fromCache: true,
-                  strategy: cachedResult.recommendedStrategy,
-                  confidence: cachedResult.confidence
-                }
-              };
+                coordinates: undefined
+              } as ExecutionResult;
             }
           } catch (cacheError) {
             console.warn("⚠️ [V3缓存失败] 缓存检查失败，继续后端执行", cacheError);
@@ -311,6 +378,136 @@ export class IntelligentAnalysisBackendV3 {
       console.error('❌ V3静态策略执行失败:', error);
       throw new Error(`V3静态策略执行失败: ${error}`);
     }
+  }
+
+  /**
+   * 监听V3执行进度事件
+   * 兼容V2接口：(jobId, progress, step, estimatedTimeLeft) => void
+   */
+  static async listenToAnalysisProgress(
+    onProgress: (
+      jobId: string,
+      progress: number,
+      step: string,
+      estimatedTimeLeft?: number
+    ) => void
+  ): Promise<UnlistenFn> {
+    console.log('🔧 [V3 BackendService] 设置进度事件监听器');
+    
+    const unlisten = await listen<V3ProgressEvent>(
+      'analysis:progress',
+      (event) => {
+        const payload = event.payload;
+        const progress = phaseToProgress(payload.phase);
+        const step = payload.message || phaseToStepMessage(payload.phase);
+        const jobId = payload.analysis_id || payload.step_id || 'v3-unknown';
+        
+        // console.log('📊 [V3 BackendService] 收到分析进度更新', { jobId, progress, step, phase: payload.phase });
+        onProgress(jobId, progress, step, undefined);
+      }
+    );
+
+    this.addListener(unlisten);
+    console.log('✅ [V3 BackendService] 进度事件监听器已设置');
+    return unlisten;
+  }
+
+  /**
+   * 监听V3执行完成事件
+   * 兼容V2接口：(jobId, result) => void
+   */
+  static async listenToAnalysisComplete(
+    onComplete: (jobId: string, result: ExecutionResult) => void
+  ): Promise<UnlistenFn> {
+    console.log('🔧 [V3 BackendService] 设置完成事件监听器');
+    
+    const unlisten = await listen<V3CompleteEvent>(
+      'analysis:complete',
+      (event) => {
+        const payload = event.payload;
+        const jobId = payload.analysis_id || 'v3-complete';
+        
+        // 将V3结果转换为V2兼容格式
+        const result: ExecutionResult = {
+          success: payload.result?.ok ?? true,
+          elementId: payload.summary?.adoptedStepId || 'unknown',
+          action: { type: 'click' as const },
+          executionTime: payload.summary?.elapsedMs || 0,
+          coordinates: payload.result?.coords,
+          error: payload.result?.ok === false ? payload.summary?.reason : undefined
+        };
+
+        console.log('✅ [V3 BackendService] 收到分析完成事件', { jobId, result });
+        onComplete(jobId, result);
+      }
+    );
+
+    this.addListener(unlisten);
+    console.log('✅ [V3 BackendService] 完成事件监听器已设置');
+    return unlisten;
+  }
+
+  /**
+   * 监听V3执行错误事件
+   * 注意：V3使用 analysis:complete 的 result.ok=false 表示错误，不单独发射error事件
+   * 为了兼容V2接口，这里提供一个空实现
+   */
+  static async listenToAnalysisError(
+    onError: (error: string) => void
+  ): Promise<UnlistenFn> {
+    console.log('⚠️ [V3 BackendService] V3不单独发射error事件，错误包含在complete事件中');
+    
+    // 监听complete事件中的失败情况
+    const unlisten = await listen<V3CompleteEvent>(
+      'analysis:complete',
+      (event) => {
+        const payload = event.payload;
+        if (payload.result && !payload.result.ok) {
+          const errorMsg = payload.summary?.reason || '执行失败';
+          console.error('❌ [V3 BackendService] 执行失败', errorMsg);
+          onError(errorMsg);
+        }
+      }
+    );
+
+    this.addListener(unlisten);
+    return unlisten;
+  }
+
+  /**
+   * 取消V3执行
+   * 兼容V2接口：cancelAnalysis(jobId)
+   */
+  static async cancelAnalysis(jobId: string): Promise<void> {
+    console.log(`🛑 [V3 BackendService] 取消分析: ${jobId}`);
+    
+    try {
+      // V3使用analysis_id作为取消标识
+      await invoke('cancel_execution_v3', { analysisId: jobId });
+      console.log('✅ [V3 BackendService] 分析已取消');
+    } catch (error) {
+      // 如果后端未实现cancel_execution_v3命令，降级到空操作
+      console.warn('⚠️ [V3 BackendService] 后端未实现cancel_execution_v3，跳过取消操作');
+    }
+  }
+
+  /**
+   * 清理V3事件监听器
+   * 兼容V2接口：cleanup()
+   */
+  private static eventListeners: UnlistenFn[] = [];
+  
+  static addListener(unlisten: UnlistenFn): void {
+    this.eventListeners.push(unlisten);
+  }
+  
+  static cleanup(): void {
+    console.log(
+      '🧹 [V3 BackendService] 清理事件监听器',
+      this.eventListeners.length
+    );
+    this.eventListeners.forEach((unlisten) => unlisten());
+    this.eventListeners = [];
   }
 
   /**
