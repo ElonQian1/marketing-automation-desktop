@@ -76,36 +76,71 @@ export function buildStrategyMenu(config: StrategyMenuConfig): MenuProps {
       key: "smart-auto",
       icon: <span>🧠</span>,
       label: "智能·自动链",
-      onClick: async () => {
-        console.log('🎯 [菜单] 用户点击：智能·自动链', { stepId });
-        events.onStrategyChange({ type: "smart-auto" });
-        
-        if (!stepId) {
-          console.warn('⚠️ [菜单] 缺少stepId');
-          message.warning('请先创建步骤卡片');
-          return;
-        }
-        
-        const card = cardStore.cards[stepId];
-        console.log('📊 [菜单] 卡片数据:', { 
-          hasCard: !!card, 
-          cardId: stepId,
-          xpath: card?.elementContext?.xpath
-        });
-        
-        if (!card) {
-          message.warning('步骤卡片数据不完整，跳过评分');
-          return;
-        }
-        
-        try {
-          console.log('🚀 [菜单] 开始执行智能·自动链评分...');
-          await executeSmartAutoScoring(card, setFinalScores, getStepConfidence);
-          console.log('✅ [菜单] 智能·自动链评分完成');
-        } catch (error) {
-          console.error('❌ [智能·自动链] 评分过程失败:', error);
-        }
-      },
+      children: [
+        {
+          key: "smart-auto-normal",
+          label: "评分（Step1+2）",
+          onClick: async () => {
+            console.log('🎯 [菜单] 用户点击：智能·自动链（正常评分）', { stepId });
+            events.onStrategyChange({ type: "smart-auto" });
+            
+            if (!stepId) {
+              console.warn('⚠️ [菜单] 缺少stepId');
+              message.warning('请先创建步骤卡片');
+              return;
+            }
+            
+            const card = cardStore.cards[stepId];
+            console.log('📊 [菜单] 卡片数据:', { 
+              hasCard: !!card, 
+              cardId: stepId,
+              xpath: card?.elementContext?.xpath
+            });
+            
+            if (!card) {
+              message.warning('步骤卡片数据不完整，跳过评分');
+              return;
+            }
+            
+            try {
+              console.log('🚀 [菜单] 开始执行智能·自动链评分...');
+              await executeSmartAutoScoring(card, setFinalScores, getStepConfidence, false);
+              console.log('✅ [菜单] 智能·自动链评分完成');
+            } catch (error) {
+              console.error('❌ [智能·自动链] 评分过程失败:', error);
+            }
+          },
+        },
+        {
+          key: "smart-auto-refresh",
+          icon: <span>🔄</span>,
+          label: "强制刷新评分",
+          onClick: async () => {
+            console.log('🎯 [菜单] 用户点击：智能·自动链（强制刷新）', { stepId });
+            events.onStrategyChange({ type: "smart-auto" });
+            
+            if (!stepId) {
+              console.warn('⚠️ [菜单] 缺少stepId');
+              message.warning('请先创建步骤卡片');
+              return;
+            }
+            
+            const card = cardStore.cards[stepId];
+            if (!card) {
+              message.warning('步骤卡片数据不完整，跳过评分');
+              return;
+            }
+            
+            try {
+              console.log('🔄 [菜单] 开始执行智能·自动链评分（强制刷新）...');
+              await executeSmartAutoScoring(card, setFinalScores, getStepConfidence, true);
+              console.log('✅ [菜单] 智能·自动链强制刷新完成');
+            } catch (error) {
+              console.error('❌ [智能·自动链] 强制刷新失败:', error);
+            }
+          },
+        },
+      ],
     },
     
     // 智能·单步
@@ -154,35 +189,73 @@ export function buildStrategyMenu(config: StrategyMenuConfig): MenuProps {
               </div>
             </div>
           ),
-          onClick: async () => {
-            if (step === 'step1' || step === 'step2') {
-              if (!stepId) {
-                message.warning('请先创建步骤卡片');
-                return;
-              }
-              
-              const card = cardStore.cards[stepId];
-              if (!card) {
-                message.error('步骤卡片数据不完整，请重新分析页面并选择元素');
-                return;
-              }
-              
-              try {
-                await executeSmartSingleScoring(
-                  step,
-                  candidateKey,
-                  card,
-                  stepId,
-                  setFinalScores,
-                  onUpdateStepParameters,
-                  getStepConfidence
-                );
-              } catch (error) {
-                console.error('❌ [智能·单步] 评分失败:', error);
-              }
-              return;
-            }
-
+          children: (step === 'step1' || step === 'step2') ? [
+            {
+              key: `smart-single-${step}-normal`,
+              label: "评分",
+              onClick: async () => {
+                if (!stepId) {
+                  message.warning('请先创建步骤卡片');
+                  return;
+                }
+                
+                const card = cardStore.cards[stepId];
+                if (!card) {
+                  message.error('步骤卡片数据不完整，请重新分析页面并选择元素');
+                  return;
+                }
+                
+                try {
+                  await executeSmartSingleScoring(
+                    step,
+                    candidateKey,
+                    card,
+                    stepId,
+                    setFinalScores,
+                    onUpdateStepParameters,
+                    getStepConfidence,
+                    false
+                  );
+                } catch (error) {
+                  console.error('❌ [智能·单步] 评分失败:', error);
+                }
+              },
+            },
+            {
+              key: `smart-single-${step}-refresh`,
+              icon: <span>🔄</span>,
+              label: "强制刷新",
+              onClick: async () => {
+                if (!stepId) {
+                  message.warning('请先创建步骤卡片');
+                  return;
+                }
+                
+                const card = cardStore.cards[stepId];
+                if (!card) {
+                  message.error('步骤卡片数据不完整，请重新分析页面并选择元素');
+                  return;
+                }
+                
+                try {
+                  console.log('🔄 [菜单] 开始强制刷新评分:', label);
+                  await executeSmartSingleScoring(
+                    step,
+                    candidateKey,
+                    card,
+                    stepId,
+                    setFinalScores,
+                    onUpdateStepParameters,
+                    getStepConfidence,
+                    true
+                  );
+                } catch (error) {
+                  console.error('❌ [智能·单步] 强制刷新失败:', error);
+                }
+              },
+            },
+          ] : undefined,
+          onClick: (step === 'step1' || step === 'step2') ? undefined : async () => {
             events.onStrategyChange({ type: "smart-single", stepName: step });
           },
         };
@@ -226,38 +299,84 @@ export function buildStrategyMenu(config: StrategyMenuConfig): MenuProps {
           key: "structural_matching_card_subtree",
           icon: <span>🌳</span>,
           label: "├─ 卡片子树评分",
-          onClick: async () => {
-            if (!stepId) {
-              message.warning('请先创建步骤卡片');
-              return;
+          children: [
+            {
+              key: "structural_matching_card_subtree_normal",
+              label: "评分",
+              onClick: async () => {
+                if (!stepId) {
+                  message.warning('请先创建步骤卡片');
+                  return;
+                }
+                
+                const step1Config = StepSequenceMapper.getByStepId('step1');
+                if (!step1Config) {
+                  message.error('步骤配置错误：未找到Step1配置');
+                  return;
+                }
+                
+                const card = cardStore.cards[stepId];
+                if (!card) {
+                  message.error('步骤卡片不存在');
+                  return;
+                }
+                
+                try {
+                  await executeStaticCardSubtreeScoring(
+                    step1Config.candidateKey,
+                    card,
+                    stepId,
+                    setFinalScores,
+                    events,
+                    onUpdateStepParameters,
+                    getStepConfidence,
+                    false
+                  );
+                } catch (error) {
+                  console.error('❌ [静态策略-卡片子树] 评分失败:', error);
+                }
+              }
+            },
+            {
+              key: "structural_matching_card_subtree_refresh",
+              icon: <span>🔄</span>,
+              label: "强制刷新",
+              onClick: async () => {
+                if (!stepId) {
+                  message.warning('请先创建步骤卡片');
+                  return;
+                }
+                
+                const step1Config = StepSequenceMapper.getByStepId('step1');
+                if (!step1Config) {
+                  message.error('步骤配置错误：未找到Step1配置');
+                  return;
+                }
+                
+                const card = cardStore.cards[stepId];
+                if (!card) {
+                  message.error('步骤卡片不存在');
+                  return;
+                }
+                
+                try {
+                  console.log('🔄 [菜单] 开始强制刷新评分: 卡片子树');
+                  await executeStaticCardSubtreeScoring(
+                    step1Config.candidateKey,
+                    card,
+                    stepId,
+                    setFinalScores,
+                    events,
+                    onUpdateStepParameters,
+                    getStepConfidence,
+                    true
+                  );
+                } catch (error) {
+                  console.error('❌ [静态策略-卡片子树] 强制刷新失败:', error);
+                }
+              }
             }
-            
-            const step1Config = StepSequenceMapper.getByStepId('step1');
-            if (!step1Config) {
-              message.error('步骤配置错误：未找到Step1配置');
-              return;
-            }
-            
-            const card = cardStore.cards[stepId];
-            if (!card) {
-              message.error('步骤卡片不存在');
-              return;
-            }
-            
-            try {
-              await executeStaticCardSubtreeScoring(
-                step1Config.candidateKey,
-                card,
-                stepId,
-                setFinalScores,
-                events,
-                onUpdateStepParameters,
-                getStepConfidence
-              );
-            } catch (error) {
-              console.error('❌ [静态策略-卡片子树] 评分失败:', error);
-            }
-          }
+          ]
         },
         
         // 叶子上下文评分
@@ -265,38 +384,84 @@ export function buildStrategyMenu(config: StrategyMenuConfig): MenuProps {
           key: "structural_matching_leaf_context",
           icon: <span>🍃</span>,
           label: "└─ 叶子上下文评分",
-          onClick: async () => {
-            if (!stepId) {
-              message.warning('请先创建步骤卡片');
-              return;
+          children: [
+            {
+              key: "structural_matching_leaf_context_normal",
+              label: "评分",
+              onClick: async () => {
+                if (!stepId) {
+                  message.warning('请先创建步骤卡片');
+                  return;
+                }
+                
+                const step2Config = StepSequenceMapper.getByStepId('step2');
+                if (!step2Config) {
+                  message.error('步骤配置错误：未找到Step2配置');
+                  return;
+                }
+                
+                const card = cardStore.cards[stepId];
+                if (!card) {
+                  message.error('步骤卡片不存在');
+                  return;
+                }
+                
+                try {
+                  await executeStaticLeafContextScoring(
+                    step2Config.candidateKey,
+                    card,
+                    stepId,
+                    setFinalScores,
+                    events,
+                    onUpdateStepParameters,
+                    getStepConfidence,
+                    false
+                  );
+                } catch (error) {
+                  console.error('❌ [静态策略-叶子上下文] 评分失败:', error);
+                }
+              }
+            },
+            {
+              key: "structural_matching_leaf_context_refresh",
+              icon: <span>🔄</span>,
+              label: "强制刷新",
+              onClick: async () => {
+                if (!stepId) {
+                  message.warning('请先创建步骤卡片');
+                  return;
+                }
+                
+                const step2Config = StepSequenceMapper.getByStepId('step2');
+                if (!step2Config) {
+                  message.error('步骤配置错误：未找到Step2配置');
+                  return;
+                }
+                
+                const card = cardStore.cards[stepId];
+                if (!card) {
+                  message.error('步骤卡片不存在');
+                  return;
+                }
+                
+                try {
+                  console.log('🔄 [菜单] 开始强制刷新评分: 叶子上下文');
+                  await executeStaticLeafContextScoring(
+                    step2Config.candidateKey,
+                    card,
+                    stepId,
+                    setFinalScores,
+                    events,
+                    onUpdateStepParameters,
+                    getStepConfidence,
+                    true
+                  );
+                } catch (error) {
+                  console.error('❌ [静态策略-叶子上下文] 强制刷新失败:', error);
+                }
+              }
             }
-            
-            const step2Config = StepSequenceMapper.getByStepId('step2');
-            if (!step2Config) {
-              message.error('步骤配置错误：未找到Step2配置');
-              return;
-            }
-            
-            const card = cardStore.cards[stepId];
-            if (!card) {
-              message.error('步骤卡片不存在');
-              return;
-            }
-            
-            try {
-              await executeStaticLeafContextScoring(
-                step2Config.candidateKey,
-                card,
-                stepId,
-                setFinalScores,
-                events,
-                onUpdateStepParameters,
-                getStepConfidence
-              );
-            } catch (error) {
-              console.error('❌ [静态策略-叶子上下文] 诅分失败:', error);
-            }
-          }
+          ]
         },
         
         // XPath恢复

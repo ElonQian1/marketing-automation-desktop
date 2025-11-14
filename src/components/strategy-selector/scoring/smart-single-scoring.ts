@@ -56,6 +56,7 @@ export type StepParametersUpdater = (stepId: string, params: Record<string, unkn
  * @param setFinalScores 评分存储函数
  * @param onUpdateStepParameters 步骤参数更新回调（可选）
  * @param getStepConfidence 获取已有评分的函数（可选，用于缓存检查）
+ * @param forceRefresh 是否强制刷新（忽略缓存）
  * @returns 是否成功
  */
 export async function executeSmartSingleScoring(
@@ -65,21 +66,28 @@ export async function executeSmartSingleScoring(
   stepId: string,
   setFinalScores: (scores: StructureScoringResult[]) => void,
   onUpdateStepParameters?: StepParametersUpdater,
-  getStepConfidence?: (candidateKey: string) => number | null
+  getStepConfidence?: (candidateKey: string) => number | null,
+  forceRefresh?: boolean
 ): Promise<boolean> {
   const context = '智能单步';
   const modeName = step === 'step1' ? '卡片子树' : '叶子上下文';
   
-  console.log(`🎯 [${context}] 触发${modeName}评分`);
+  console.log(`🎯 [${context}] 触发${modeName}评分`, { forceRefresh });
 
-  // 🔍 缓存检查：避免重复计算
-  if (getStepConfidence) {
+  // 🔍 缓存检查：避免重复计算（除非强制刷新）
+  if (getStepConfidence && !forceRefresh) {
     const existingScore = getStepConfidence(candidateKey);
     if (existingScore !== null && existingScore > 0) {
       console.log(`✓ [${context}] 已有${modeName}评分缓存:`, `${(existingScore * 100).toFixed(1)}%`);
-      message.info(`已有${modeName}评分结果（${Math.round(existingScore * 100)}%），无需重复计算`);
+      message.info(`已有${modeName}评分结果（${Math.round(existingScore * 100)}%），无需重复计算（可按住Shift点击强制刷新）`);
       return true;
     }
+  }
+
+  // 强制刷新提示
+  if (forceRefresh) {
+    console.log(`🔄 [${context}] 强制刷新模式，忽略缓存重新评分${modeName}`);
+    message.info(`🔄 强制刷新：重新评分${modeName}中...`);
   }
 
   // 检查必要数据

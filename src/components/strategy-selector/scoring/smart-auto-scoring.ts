@@ -39,19 +39,21 @@ interface RecommendResponse {
  * @param card 步骤卡片
  * @param setFinalScores 评分存储函数
  * @param getStepConfidence 获取已有评分的函数（可选，用于缓存检查）
+ * @param forceRefresh 是否强制刷新（忽略缓存）
  * @returns 是否成功
  */
 export async function executeSmartAutoScoring(
   card: StepCard,
   setFinalScores: (scores: StructureScoringResult[]) => void,
-  getStepConfidence?: (candidateKey: string) => number | null
+  getStepConfidence?: (candidateKey: string) => number | null,
+  forceRefresh?: boolean
 ): Promise<boolean> {
   const context = '智能·自动链';
   
-  console.log(`🧠 [${context}] 触发 Step1-2 结构匹配评分`);
+  console.log(`🧠 [${context}] 触发 Step1-2 结构匹配评分`, { forceRefresh });
 
-  // 🔍 缓存检查：避免重复计算
-  if (getStepConfidence) {
+  // 🔍 缓存检查：避免重复计算（除非强制刷新）
+  if (getStepConfidence && !forceRefresh) {
     const step1Score = getStepConfidence('card_subtree_scoring');
     const step2Score = getStepConfidence('leaf_context_scoring');
     
@@ -60,9 +62,15 @@ export async function executeSmartAutoScoring(
         step1: `${(step1Score * 100).toFixed(1)}%`,
         step2: `${(step2Score * 100).toFixed(1)}%`,
       });
-      message.info('已有评分结果，无需重复计算');
+      message.info('已有评分结果，无需重复计算（可按住Shift点击强制刷新）');
       return true;
     }
+  }
+
+  // 强制刷新提示
+  if (forceRefresh) {
+    console.log(`🔄 [${context}] 强制刷新模式，忽略缓存重新评分`);
+    message.info('🔄 强制刷新：重新评分中...');
   }
 
   // 检查必要数据
