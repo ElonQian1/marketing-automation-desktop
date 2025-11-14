@@ -85,7 +85,7 @@ export async function executeSmartAutoScoring(
     
     if (cardSubtreeOutcome && cardSubtreeOutcome.conf >= 0 && cardSubtreeOutcome.conf <= 1) {
       results.push({
-        stepId: 'CardSubtree',
+        stepId: 'card_subtree_scoring',  // ✅ 使用candidateKey与菜单查询匹配
         confidence: cardSubtreeOutcome.conf,
         strategy: '卡片子树评分（智能·自动链）',
         metrics: {
@@ -115,7 +115,7 @@ export async function executeSmartAutoScoring(
     
     if (leafContextOutcome && leafContextOutcome.conf >= 0 && leafContextOutcome.conf <= 1) {
       results.push({
-        stepId: 'LeafContext',
+        stepId: 'leaf_context_scoring',  // ✅ 使用candidateKey与菜单查询匹配
         confidence: leafContextOutcome.conf,
         strategy: '叶子上下文评分（智能·自动链）',
         metrics: {
