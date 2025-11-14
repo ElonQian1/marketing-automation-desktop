@@ -36,7 +36,7 @@
 
 ## 🔄 迁移路径
 
-### Phase 1: 补充V3剩余功能（1天）✅ 已完成80%
+### Phase 1: 补充V3剩余功能（1天）✅ 已完成
 
 **已完成：**
 - ✅ 补充 `listenToAnalysisProgress()` - 兼容V2接口
@@ -44,10 +44,8 @@
 - ✅ 补充 `listenToAnalysisError()` - 监听complete中的失败
 - ✅ 添加 `phaseToProgress()` 工具函数（8阶段→百分比）
 - ✅ 添加 `phaseToStepMessage()` 工具函数（阶段→描述）
-
-**待补充：**
-- ⚠️ `cancelAnalysis(jobId)` - 取消V3执行
-- ⚠️ `cleanup()` - 清理V3事件监听器
+- ✅ `cancelAnalysis(jobId)` - 取消V3执行（降级处理）
+- ✅ `cleanup()` - 清理V3事件监听器
 
 ---
 
@@ -108,16 +106,34 @@ if (currentExecutionVersion === "v3") {
 
 ---
 
-### Phase 3: ~~渐进式迁移17处依赖（5-7天）~~ → 大幅简化
+### Phase 3: ~~渐进式迁移17处依赖（5-7天）~~ → 测试覆盖完成 ✅
 
-#### ~~依赖清单~~ → **已通过Hook内部集成解决**
+#### **Phase 3.1: 测试覆盖V2/V3双模式** ✅ 已完成
 
-由于采用了Hook内部集成方案，**大部分依赖无需迁移**！
+**已完成测试文件**：
+- ✅ `use-intelligent-analysis-workflow-v2-v3.test.ts` - 13项测试全部通过
+  * ✅ V2模式路由测试（4项）
+  * ✅ V3失败回退测试（2项）
+  * ✅ 取消分析路由测试（2项）
+  * ✅ 清理逻辑路由测试（2项）
+  * ✅ 事件监听器管理测试（2项）
+  * ✅ 核心路由逻辑验证（1项）
 
-**仍需检查的依赖**（预计2-3天）：
+**测试覆盖内容**：
+- ✅ V2/V3版本动态切换
+- ✅ 事件监听器路由（progress/complete/error）
+- ✅ 执行方法路由（startAnalysis vs executeChainV3）
+- ✅ 取消方法路由（cancelAnalysis）
+- ✅ 清理方法路由（cleanup）
+- ✅ V3失败回退到V2机制
+- ✅ V3错误结果处理（不回退）
+
+#### **Phase 3.2: 依赖关系审查** 🔄 进行中
+
+**已检查依赖**（参见 V2_DEPENDENCY_AUDIT.md）：
 
 1. **核心工作流（高优先级）**
-   - `src/modules/universal-ui/hooks/use-intelligent-analysis-workflow.ts` - 自身文件
+   - `src/modules/universal-ui/hooks/use-intelligent-analysis-workflow.ts` - ✅ 已集成V3
    
 2. **适配器层（高优先级）**
    - `src/hooks/universal-ui/useIntelligentAnalysisAdapter.ts`
