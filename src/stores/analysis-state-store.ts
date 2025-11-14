@@ -91,6 +91,25 @@ export interface AnalysisStateStore {
     hasChain: boolean;
     analysisStatus: string;
   };
+
+  // === 🆕 评分质量检查模块（从旧API迁移） ===
+  /** 
+   * 检查评分是否达到可用标准
+   * 
+   * 质量判定规则:
+   * 1. 优先: 后端闸门通过 (metrics.passedGate === true)
+   * 2. 兜底: 置信度 >= 0.3 (参考旧API的最低阈值)
+   * 
+   * @param stepId 步骤ID
+   * @returns true=可用于策略选择, false=不建议使用
+   * 
+   * @example
+   * const isUsable = store.isStepScoreUsable('card_subtree_scoring');
+   * if (!isUsable) {
+   *   showWarning('评分质量偏低，建议手动选择');
+   * }
+   */
+  isStepScoreUsable: (stepId: string) => boolean;
 }
 
 /**
@@ -283,6 +302,47 @@ export const useAnalysisStateStore = create<AnalysisStateStore>()(
         hasChain: !!state.smartChain,
         analysisStatus: state.analysisStatus
       };
+    },
+
+    // 🆕 检查评分是否达到可用标准（从旧API迁移的质量检查逻辑）
+    isStepScoreUsable: (stepId: string) => {
+      const state = get();
+      const score = state.stepScores[stepId];
+      
+      if (!score) {
+        console.debug('🔍 [评分质量检查] 步骤未找到', { stepId });
+        return false;
+      }
+
+      // 规则1: 优先检查后端闸门（如果metrics中有passedGate字段）
+      const passedGate = score.metrics?.passedGate;
+      if (typeof passedGate === 'boolean' && passedGate === true) {
+        console.debug('✅ [评分质量检查] 通过闸门', { 
+          stepId: stepId.slice(-12),
+          confidence: Math.round(score.confidence * 100) + '%'
+        });
+        return true;
+      }
+
+      // 规则2: 兜底阈值 0.3（参考旧API的最低可用标准）
+      const MINIMUM_USABLE_THRESHOLD = 0.3;
+      const isUsable = score.confidence >= MINIMUM_USABLE_THRESHOLD;
+      
+      if (isUsable) {
+        console.debug('⚠️ [评分质量检查] 未通过闸门但达到兜底阈值', {
+          stepId: stepId.slice(-12),
+          confidence: Math.round(score.confidence * 100) + '%',
+          threshold: MINIMUM_USABLE_THRESHOLD
+        });
+      } else {
+        console.warn('❌ [评分质量检查] 评分质量偏低', {
+          stepId: stepId.slice(-12),
+          confidence: Math.round(score.confidence * 100) + '%',
+          threshold: MINIMUM_USABLE_THRESHOLD
+        });
+      }
+
+      return isUsable;
     }
   }))
 );
