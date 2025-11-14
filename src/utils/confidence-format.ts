@@ -35,6 +35,29 @@ export function getTierLabel(tier: ConfidenceTier): string {
   }
 }
 
+// 🆕 结构匹配模式名称映射（从旧API迁移）
+export type StructureMatchMode = 'CardSubtree' | 'LeafContext' | 'TextExact';
+
+/**
+ * 将后端结构匹配模式转换为用户友好的中文名称
+ * 
+ * 使用场景:
+ * - 策略选择器显示模式名称
+ * - 推荐摘要生成
+ * - 日志输出
+ * 
+ * @example
+ * getModeDisplayName('CardSubtree') // => "卡片子树"
+ */
+export function getModeDisplayName(mode: StructureMatchMode | string): string {
+  switch (mode) {
+    case 'CardSubtree': return '卡片子树';
+    case 'LeafContext': return '叶子上下文';
+    case 'TextExact': return '文本精确';
+    default: return mode;
+  }
+}
+
 // 证据标签映射
 const EVIDENCE_LABELS: Record<string, string> = {
   text_similarity: '文本相似度',

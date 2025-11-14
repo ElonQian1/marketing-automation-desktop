@@ -5,6 +5,7 @@
 import { create } from 'zustand';
 import { immer } from 'zustand/middleware/immer';
 import { normalizeTo01, isValidScore } from '../utils/score-utils';
+import { formatPercent } from '../utils/confidence-format';
 
 /**
  * 单步评分数据
@@ -110,6 +111,20 @@ export interface AnalysisStateStore {
    * }
    */
   isStepScoreUsable: (stepId: string) => boolean;
+
+  /**
+   * 生成评分推荐摘要文案（从旧API迁移）
+   * 
+   * 根据通过闸门的步骤数量和置信度生成用户友好的说明文字
+   * 
+   * @param stepIds 要分析的步骤ID列表
+   * @returns 推荐摘要文案
+   * 
+   * @example
+   * const summary = store.generateScoreSummary(['card_subtree_scoring', 'leaf_context_scoring']);
+   * // => "2个策略通过闸门，优选 卡片子树 (85%)"
+   */
+  generateScoreSummary: (stepIds: string[]) => string;
 }
 
 /**
@@ -343,6 +358,51 @@ export const useAnalysisStateStore = create<AnalysisStateStore>()(
       }
 
       return isUsable;
+    },
+
+    // 🆕 生成评分推荐摘要（从旧API迁移的文案生成逻辑）
+    generateScoreSummary: (stepIds: string[]) => {
+      const state = get();
+      
+      if (stepIds.length === 0) {
+        return '暂无可用评分';
+      }
+
+      // 统计通过闸门的步骤数
+      const passedSteps = stepIds
+        .map(id => state.stepScores[id])
+        .filter(score => {
+          if (!score) return false;
+          const passedGate = score.metrics?.passedGate;
+          return typeof passedGate === 'boolean' && passedGate === true;
+        });
+      
+      const passedCount = passedSteps.length;
+
+      // 找到最高置信度的步骤
+      const allScores = stepIds
+        .map(id => state.stepScores[id])
+        .filter(score => score && score.confidence > 0);
+      
+      if (allScores.length === 0) {
+        return '所有评分均无效';
+      }
+
+      const topScore = allScores.reduce((max, score) => 
+        score.confidence > max.confidence ? score : max
+      );
+
+      const confidenceText = formatPercent(topScore.confidence);
+      const strategyText = topScore.strategy || topScore.stepId;
+
+      // 根据通过闸门数量生成不同文案
+      if (passedCount === 0) {
+        return `所有策略均未通过闸门，采用兜底策略推荐 ${strategyText}`;
+      } else if (passedCount === 1) {
+        return `推荐使用 ${strategyText}，置信度 ${confidenceText}`;
+      } else {
+        return `${passedCount}个策略通过闸门，优选 ${strategyText} (${confidenceText})`;
+      }
     }
   }))
 );
