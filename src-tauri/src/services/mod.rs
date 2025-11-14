@@ -37,6 +37,7 @@ pub mod multi_brand_vcf_importer; // 新增：多品牌VCF导入器
 pub mod multi_brand_vcf_strategies; // 新增：多品牌策略模块
 pub mod multi_brand_vcf_types; // 新增：多品牌导入类型定义
 pub mod quick_ui_automation; // 新增：快速UI自动化模块
+pub mod resource_monitor; // 新增：开发模式资源泄漏监控
 pub mod safe_adb_manager;
 pub mod safe_adb_shell; // 新增：安全ADB Shell命令执行器
 pub mod scrcpy_manager;

@@ -159,9 +159,13 @@ impl AdbDeviceTracker {
             {
                 let running = is_running.lock().await;
                 if !*running {
+                    info!("⏹️ 收到停止信号，退出设备跟踪循环");
                     break;
                 }
             }
+            
+            // 🔧 防止无限重连导致资源耗尽，添加延迟
+            sleep(Duration::from_millis(500)).await;
         }
 
         info!("🏁 ADB设备跟踪循环结束");
@@ -262,6 +266,10 @@ impl AdbDeviceTracker {
                 }
             }
         }
+
+        // 🔧 显式关闭连接，释放资源
+        let _ = stream.shutdown(std::net::Shutdown::Both);
+        debug!("🧹 TcpStream已关闭");
 
         Ok(())
     }

@@ -71,9 +71,11 @@ export async function executeSmartAutoScoring(
 
   const results: StructureScoringResult[] = [];
 
-  // 🎯 Step1: 卡片子树评分
+  // 🎯 一次调用获取所有评分（Step1 + Step2）
   try {
-    const step1Result = await invoke<RecommendResponse>('recommend_structure_mode_v2', {
+    console.log(`🔄 [${context}] 调用后端评分接口（一次性获取Step1+Step2）`);
+    
+    const recommendation = await invoke<RecommendResponse>('recommend_structure_mode_v2', {
       input: {
         absoluteXpath: card.elementContext.xpath,
         xmlSnapshot: xmlResult.xmlContent,
@@ -81,8 +83,10 @@ export async function executeSmartAutoScoring(
       },
     });
 
-    const cardSubtreeOutcome = step1Result.outcomes.find(o => o.mode === 'CardSubtree');
-    
+    console.log(`✅ [${context}] 后端返回 ${recommendation.outcomes.length} 个评分结果`);
+
+    // 提取 Step1: 卡片子树评分
+    const cardSubtreeOutcome = recommendation.outcomes.find(o => o.mode === 'CardSubtree');
     if (cardSubtreeOutcome && cardSubtreeOutcome.conf >= 0 && cardSubtreeOutcome.conf <= 1) {
       results.push({
         stepId: 'card_subtree_scoring',  // ✅ 使用candidateKey与菜单查询匹配
@@ -94,25 +98,11 @@ export async function executeSmartAutoScoring(
           timestamp: Date.now(),
         }
       });
-      
       console.log(`✅ [${context}] Step1评分完成:`, (cardSubtreeOutcome.conf * 100).toFixed(1) + '%');
     }
-  } catch (error) {
-    console.error(`❌ [${context}] Step1评分失败:`, error);
-  }
 
-  // 🎯 Step2: 叶子上下文评分
-  try {
-    const step2Result = await invoke<RecommendResponse>('recommend_structure_mode_v2', {
-      input: {
-        absoluteXpath: card.elementContext.xpath,
-        xmlSnapshot: xmlResult.xmlContent,
-        containerXpath: null,
-      },
-    });
-
-    const leafContextOutcome = step2Result.outcomes.find(o => o.mode === 'LeafContext');
-    
+    // 提取 Step2: 叶子上下文评分
+    const leafContextOutcome = recommendation.outcomes.find(o => o.mode === 'LeafContext');
     if (leafContextOutcome && leafContextOutcome.conf >= 0 && leafContextOutcome.conf <= 1) {
       results.push({
         stepId: 'leaf_context_scoring',  // ✅ 使用candidateKey与菜单查询匹配
@@ -124,11 +114,12 @@ export async function executeSmartAutoScoring(
           timestamp: Date.now(),
         }
       });
-      
       console.log(`✅ [${context}] Step2评分完成:`, (leafContextOutcome.conf * 100).toFixed(1) + '%');
     }
+
   } catch (error) {
-    console.error(`❌ [${context}] Step2评分失败:`, error);
+    console.error(`❌ [${context}] 评分失败:`, error);
+    message.error(`评分失败: ${error instanceof Error ? error.message : String(error)}`);
   }
 
   // 存储评分结果
