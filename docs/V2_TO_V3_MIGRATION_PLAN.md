@@ -51,48 +51,70 @@
 
 ---
 
-### Phase 2: 创建V3兼容Hook（2天）
+### Phase 2: ~~创建V3兼容Hook（2天）~~ ✅ 已完成（采用更优方案）
 
-创建 `use-intelligent-analysis-workflow-v3.ts`，接口与V2完全相同：
+**实际实施方案**：直接在现有Hook中集成V2/V3动态切换（更优！）
+
+已在 `use-intelligent-analysis-workflow.ts` 中完成集成：
 
 ```typescript
-// src/modules/universal-ui/hooks/use-intelligent-analysis-workflow-v3.ts
-export function useIntelligentAnalysisWorkflow() {
-  // 内部使用 IntelligentAnalysisBackendV3
-  // 但对外暴露与V2完全相同的接口
-  
-  const startAnalysis = async (element, stepId, options) => {
-    // 设置V3事件监听
-    await IntelligentAnalysisBackendV3.listenToAnalysisProgress(...);
-    await IntelligentAnalysisBackendV3.listenToAnalysisComplete(...);
-    await IntelligentAnalysisBackendV3.listenToAnalysisError(...);
-    
-    // 构建V3配置
-    const config = IntelligentAnalysisBackendV3.createStandardConfig(...);
-    const chainSpec = { ... };
-    
-    // 执行V3分析
-    return await IntelligentAnalysisBackendV3.executeChainV3(config, chainSpec);
+// ✅ 已完成：V2/V3动态版本选择
+const [currentExecutionVersion, setCurrentExecutionVersion] = useState<"v2" | "v3">("v2");
+
+useEffect(() => {
+  const updateExecutionVersion = async () => {
+    const version = await featureFlagManager.getSmartExecutionVersion("intelligent-analysis");
+    setCurrentExecutionVersion(version);
   };
-  
-  // 其他方法保持相同签名
-  return {
-    startAnalysis,
-    cancelAnalysis,
-    progress,
-    currentStep,
-    analysisResult,
-    error,
-    // ...
-  };
+  updateExecutionVersion();
+  const interval = setInterval(updateExecutionVersion, 30000); // 每30秒检查
+  return () => clearInterval(interval);
+}, []);
+
+// ✅ 已完成：事件监听动态路由
+const backendService = currentExecutionVersion === "v3" 
+  ? IntelligentAnalysisBackendV3 
+  : intelligentAnalysisBackend;
+
+await backendService.listenToAnalysisProgress(...);
+await backendService.listenToAnalysisComplete(...);
+await backendService.listenToAnalysisError(...);
+
+// ✅ 已完成：执行动态路由
+if (currentExecutionVersion === "v3") {
+  response = await IntelligentAnalysisBackendV3.executeChainV3(v3Config, chainSpec);
+} else {
+  response = await intelligentAnalysisBackend.startAnalysis(uiElement, stepId, options);
+}
+
+// ✅ 已完成：取消动态路由
+if (currentExecutionVersion === "v3") {
+  await IntelligentAnalysisBackendV3.cancelAnalysis(jobId);
+} else {
+  await intelligentAnalysisBackend.cancelAnalysis(jobId);
+}
+
+// ✅ 已完成：清理动态路由
+if (currentExecutionVersion === "v3") {
+  IntelligentAnalysisBackendV3.cleanup();
 }
 ```
 
+**优势**：
+- ✅ 用户代码零修改（透明切换）
+- ✅ 实时动态切换（根据健康检查）
+- ✅ 自动回退机制（V3失败→V2）
+- ✅ 统一接口管理（避免代码重复）
+
 ---
 
-### Phase 3: 渐进式迁移17处依赖（5-7天）
+### Phase 3: ~~渐进式迁移17处依赖（5-7天）~~ → 大幅简化
 
-#### 依赖清单：
+#### ~~依赖清单~~ → **已通过Hook内部集成解决**
+
+由于采用了Hook内部集成方案，**大部分依赖无需迁移**！
+
+**仍需检查的依赖**（预计2-3天）：
 
 1. **核心工作流（高优先级）**
    - `src/modules/universal-ui/hooks/use-intelligent-analysis-workflow.ts` - 自身文件
@@ -176,39 +198,44 @@ await intelligentAnalysisBackend.executeChainV3(...); // 或用V3新方法
 
 | 阶段 | 任务 | 预计时间 | 状态 | 备注 |
 |------|------|---------|------|------|
-| Phase 1 | 补充V3事件监听API | 1天 | ✅ 80% | 已完成progress/complete/error监听 |
-| Phase 1 | 补充cancelAnalysis | 0.5天 | ⚠️ 待做 | 需后端支持 |
-| Phase 1 | 补充cleanup方法 | 0.5天 | ⚠️ 待做 | 清理事件监听器 |
-| Phase 2 | 创建V3 Hook | 2天 | ⚠️ 待做 | 兼容V2接口 |
-| Phase 2 | 单元测试 | 1天 | ⚠️ 待做 | 测试V3 Hook |
-| Phase 3 | 迁移核心工作流 | 1天 | ⚠️ 待做 | 最高优先级 |
-| Phase 3 | 迁移适配器 | 1天 | ⚠️ 待做 | 高优先级 |
-| Phase 3 | 迁移其他Hook | 2天 | ⚠️ 待做 | 中优先级 |
-| Phase 3 | 重写测试mock | 2天 | ⚠️ 待做 | 低优先级 |
+| Phase 1 | 补充V3事件监听API | 1天 | ✅ 100% | 已完成progress/complete/error监听 |
+| Phase 1 | 补充cancelAnalysis | 0.5天 | ✅ 100% | 已完成，支持降级处理 |
+| Phase 1 | 补充cleanup方法 | 0.5天 | ✅ 100% | 已完成，自动管理监听器 |
+| Phase 2 | 集成V3到现有Hook | 1天 | ✅ 100% | ✅ **已完成！** |
+| Phase 2 | 动态事件监听切换 | 0.5天 | ✅ 100% | 根据版本自动选择backend |
+| Phase 2 | 单元测试 | 1天 | ⚠️ 待做 | 测试V2/V3切换逻辑 |
+| Phase 3 | 迁移核心工作流 | 1天 | ✅ 跳过 | 已在Hook内部集成 |
+| Phase 3 | 迁移适配器 | 1天 | ⚠️ 待做 | useIntelligentAnalysisAdapter |
+| Phase 3 | 迁移其他Hook | 2天 | ⚠️ 待做 | 其他依赖Hook |
+| Phase 3 | 重写测试mock | 2天 | ⚠️ 待做 | 支持V2/V3双模式 |
 | Phase 4 | 功能验证 | 2天 | ⚠️ 待做 | 回归测试 |
 | Phase 4 | 稳定性观察 | 7天 | ⚠️ 待做 | 生产环境监控 |
 | Phase 4 | 删除V2代码 | 0.5天 | ⚠️ 待做 | 最后一步 |
 
-**总计**：2-3周（10-15工作日）
+**总计**：~~2-3周~~ → **缩短至1-2周**（Hook内部集成加速）
 
 ---
 
 ## 🎯 关键里程碑
 
-### ✅ Milestone 1: V3功能完整（已完成80%）
+### ✅ Milestone 1: V3功能完整（✅ 已完成100%）
 - ✅ 后端V3完整（事件系统、执行引擎）
 - ✅ 前端V3事件监听API补充
-- ⚠️ 剩余：cancelAnalysis、cleanup
+- ✅ cancelAnalysis支持（降级处理）
+- ✅ cleanup自动管理
 
-### ⚠️ Milestone 2: V3 Hook可用（预计2天）
-- Hook接口与V2完全相同
-- 通过单元测试
-- 可在新功能中使用
+### ✅ Milestone 2: V3集成到Hook（✅ 已完成100%）
+- ✅ Hook内部集成V2/V3动态切换
+- ✅ 事件监听根据版本自动路由
+- ✅ cancelAnalysis支持V2/V3
+- ✅ cleanup根据版本智能清理
+- ✅ 零类型错误
+- ⚠️ 单元测试待补充
 
-### ⚠️ Milestone 3: 17处依赖迁移完成（预计7天）
-- 核心工作流迁移
-- 所有Hook迁移
-- 测试通过
+### ⚠️ Milestone 3: 全面验证（预计7天）
+- 功能回归测试
+- 性能验证（by-ref减少90%）
+- 稳定性观察
 
 ### ⚠️ Milestone 4: V2安全删除（预计10天后）
 - V3稳定运行1周

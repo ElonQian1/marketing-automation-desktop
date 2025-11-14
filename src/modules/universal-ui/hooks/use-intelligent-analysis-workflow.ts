@@ -201,13 +201,21 @@ export function useIntelligentAnalysisWorkflow(): UseIntelligentAnalysisWorkflow
 
   /**
    * 设置事件监听器
+   * 🚀 [V3集成] 根据执行版本动态选择事件监听服务
    */
   useEffect(() => {
     const setupEventListeners = async () => {
       try {
-        // 分析进度事件 - ✅ 现在包含 jobId，可以精准匹配！
+        // 🔄 V2/V3 智能事件监听切换
+        const backendService = currentExecutionVersion === "v3" 
+          ? IntelligentAnalysisBackendV3 
+          : intelligentAnalysisBackend;
+        
+        console.log(`🔧 [EventSetup] 使用${currentExecutionVersion.toUpperCase()}事件监听系统`);
+
+        // 分析进度事件 - ✅ V2/V3统一接口，自动适配
         const unlistenProgress =
-          await intelligentAnalysisBackend.listenToAnalysisProgress(
+          await backendService.listenToAnalysisProgress(
             (jobId, progress, currentStep, estimatedTimeLeft) => {
               // 🔇 日志优化：使用防抖日志，避免重复打印
               logProgress(jobId, progress, "📊 [Workflow] 收到分析进度", {
@@ -291,8 +299,9 @@ export function useIntelligentAnalysisWorkflow(): UseIntelligentAnalysisWorkflow
           );
 
         // 🔒 分析完成事件 - jobId 精确匹配 + 懒绑定防竞态 + ACK确认
+        // 🚀 [V3集成] V2/V3完成事件统一处理
         const unlistenDone =
-          await intelligentAnalysisBackend.listenToAnalysisComplete(
+          await backendService.listenToAnalysisComplete(
             async (jobId, result) => {
               // console.log("✅ [Workflow] 收到分析完成", {
               //   jobId: jobId.slice(-8),
@@ -450,8 +459,9 @@ export function useIntelligentAnalysisWorkflow(): UseIntelligentAnalysisWorkflow
             }
           );
 
+        // 🚀 [V3集成] V2/V3错误事件统一处理
         const unlistenError =
-          await intelligentAnalysisBackend.listenToAnalysisError((error) => {
+          await backendService.listenToAnalysisError((error) => {
             console.error("❌ [Workflow] 收到分析错误", error);
 
             // 找到运行中的任务并标记为失败
@@ -504,9 +514,13 @@ export function useIntelligentAnalysisWorkflow(): UseIntelligentAnalysisWorkflow
     setupEventListeners();
 
     return () => {
+      // 🚀 [V3集成] V2/V3智能cleanup
+      if (currentExecutionVersion === "v3") {
+        IntelligentAnalysisBackendV3.cleanup();
+      }
       unlistenFunctions.current.forEach((unlisten) => unlisten());
     };
-  }, [stepCards]);
+  }, [stepCards, currentExecutionVersion]); // 🔄 添加currentExecutionVersion依赖
 
   /**
    * 启动分析
@@ -792,10 +806,16 @@ export function useIntelligentAnalysisWorkflow(): UseIntelligentAnalysisWorkflow
 
   /**
    * 取消分析
+   * 🚀 [V3集成] V2/V3统一取消接口
    */
   const cancelAnalysis = useCallback(async (jobId: string): Promise<void> => {
     try {
-      await intelligentAnalysisBackend.cancelAnalysis(jobId);
+      // 🔄 V2/V3 智能路由
+      if (currentExecutionVersion === "v3") {
+        await IntelligentAnalysisBackendV3.cancelAnalysis(jobId);
+      } else {
+        await intelligentAnalysisBackend.cancelAnalysis(jobId);
+      }
 
       setCurrentJobs((prev) => {
         const updated = new Map(prev);
@@ -813,7 +833,7 @@ export function useIntelligentAnalysisWorkflow(): UseIntelligentAnalysisWorkflow
       console.error("取消分析失败:", error);
       throw new Error(`取消分析失败: ${error}`);
     }
-  }, []);
+  }, [currentExecutionVersion]); // 🔄 添加currentExecutionVersion依赖
 
   /**
    * 快速创建步骤卡片
