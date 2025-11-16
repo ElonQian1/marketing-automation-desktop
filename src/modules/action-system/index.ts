@@ -16,7 +16,6 @@ export * from '../../hooks/useActionRecommendation';
 export * from '../../components/action-system/ActionSelector';
 export * from '../../components/action-system/ActionParamsPanel';
 export * from '../../components/action-system/ActionPreview';
-export * from '../../components/enhanced-step-card/EnhancedStepCard';
 
 // 工具函数
 export { createActionType, validateActionParams, ACTION_CONFIGS } from '../../types/action-types';

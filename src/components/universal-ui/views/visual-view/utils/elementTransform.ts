@@ -14,6 +14,17 @@ export function parseBounds(bounds: string): { x: number; y: number; width: numb
 
 // VisualUIElement -> 旧 UIElement 桥接（UI 使用结构）
 export function convertVisualToUIElement(element: VisualUIElement, selectedId?: string): BridgeUIElement {
+  // 🔍 调试：检查输入元素的 indexPath
+  if (element.id === 'element_32' || element.id === 'element-32' || !element.indexPath) {
+    console.log('🔍 [convertVisualToUIElement] 输入元素检查:', {
+      id: element.id,
+      hasIndexPath: !!element.indexPath,
+      indexPath: element.indexPath,
+      indexPathLength: element.indexPath?.length,
+      elementKeys: Object.keys(element).slice(0, 20)
+    });
+  }
+
   let position = element.position || { x: 0, y: 0, width: 100, height: 50 };
   
   // 🔧 修复：前端使用 element-N，后端使用 element_N
@@ -80,7 +91,7 @@ export function convertVisualToUIElement(element: VisualUIElement, selectedId?: 
     }
   }
   
-  return {
+  const result = {
     id: backendId,  // 🔧 使用后端格式的 ID (element_N)
     element_type: element.element_type || element.type || '',
     text: element.text || '',
@@ -97,5 +108,17 @@ export function convertVisualToUIElement(element: VisualUIElement, selectedId?: 
     selected: element.selected || element.id === selectedId,
     password: false,
     content_desc: element.content_desc || element.contentDesc || '', // 🔧 保留 content_desc
+    indexPath: element.indexPath, // 🔥 关键：保留 indexPath 用于结构匹配评分
   };
+
+  // 🔍 调试：验证 indexPath 是否保留
+  if (element.indexPath) {
+    console.log('✅ [convertVisualToUIElement] indexPath 已保留:', {
+      id: result.id,
+      hasIndexPath: true,
+      indexPathLength: element.indexPath.length
+    });
+  }
+
+  return result;
 }
