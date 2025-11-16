@@ -496,24 +496,26 @@ export const VisualElementView: React.FC<VisualElementViewProps> = ({
     console.log('  - 将使用:', elements.length > 0 ? 'elements (props)' : 'parsedElements (Hook)');
   }, [xmlContent, elements, parsedElements]);
 
-  // 🔥 修复：智能选择数据源，优先使用包含菜单分类的数据源
+  // 🔥 修复：智能选择数据源
+  // 优先级调整：props传入 > Hook解析
+  // 原因：props传入的elements包含后端生成的indexPath（用于结构匹配评分），
+  // 而Hook从XML重新解析的elements不包含indexPath
   let finalElements: VisualUIElement[];
   
-  // 检查哪个数据源包含菜单元素
-  // 🔧 修复：强制使用Hook解析的完整元素列表
-  // Hook会保留所有元素（包括不可点击的"通讯录"等），而props只有可点击元素
-  // 优先级：Hook解析 > props传入
-  if (parsedElements.length > 0) {
-    finalElements = parsedElements;
-    // console.log('✅ [VisualElementView] 使用Hook解析的完整元素:', {
-    //   hookCount: parsedElements.length,
-    //   propsCount: elements.length,
-    //   reason: 'Hook包含所有元素（含不可点击）'
-    // });
-  } else if (elements.length > 0) {
+  if (elements.length > 0) {
+    // ✅ 优先使用props传入的元素（包含后端的indexPath等关键数据）
     finalElements = elements;
-    console.log('⚠️ [VisualElementView] Hook解析失败，回退到props:', {
-      propsCount: elements.length
+    console.log('✅ [VisualElementView] 使用props传入的元素（包含indexPath）:', {
+      propsCount: elements.length,
+      hookCount: parsedElements.length,
+      reason: 'props元素包含后端生成的indexPath，用于结构匹配评分'
+    });
+  } else if (parsedElements.length > 0) {
+    // ⚠️ 回退：使用Hook解析的元素（不含indexPath）
+    finalElements = parsedElements;
+    console.warn('⚠️ [VisualElementView] props为空，回退到Hook解析:', {
+      hookCount: parsedElements.length,
+      warning: 'Hook解析的元素不包含indexPath，结构匹配评分将失效'
     });
   } else {
     finalElements = [];
