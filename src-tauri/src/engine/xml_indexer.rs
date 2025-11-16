@@ -5,10 +5,15 @@
 use std::collections::HashMap;
 use anyhow::Result;
 use regex::Regex;
+use once_cell::sync::Lazy;
 
 use super::strategy_plugin::ExecutionEnvironment;
 use crate::services::ui_reader_service::UIElement;
 use crate::commands::run_step_v2::{MatchCandidate, Bounds};
+
+// 🎯 性能优化：预编译正则表达式
+static NODE_REGEX: Lazy<Regex> = Lazy::new(|| Regex::new(r#"<node[^>]*>"#).unwrap());
+static BOUNDS_REGEX: Lazy<Regex> = Lazy::new(|| Regex::new(r#"\[(\d+),(\d+)\]\[(\d+),(\d+)\]"#).unwrap());
 
 // 📊 XML索引结构
 pub struct XmlIndexer {
@@ -66,10 +71,8 @@ impl XmlIndexer {
         tracing::info!("🔧 开始构建XML索引...");
         let start_time = std::time::Instant::now();
         
-        // 解析XML节点（简化实现，实际应使用xml-rs）
-        let node_regex = Regex::new(r#"<node[^>]*>"#).unwrap();
-        
-        for (index, node_match) in node_regex.find_iter(ui_xml).enumerate() {
+        // 🎯 性能优化：使用预编译的正则表达式
+        for (index, node_match) in NODE_REGEX.find_iter(ui_xml).enumerate() {
             let node_str = node_match.as_str();
             
             if let Ok(indexed_node) = Self::parse_node_to_indexed(node_str, index) {
@@ -78,6 +81,9 @@ impl XmlIndexer {
                 indexer.all_nodes.push(indexed_node);
             }
         }
+        
+        // 🎯 构建父子关系树（性能优化关键）
+        indexer.build_parent_child_relationships();
         
         let elapsed = start_time.elapsed();
         tracing::info!("✅ XML索引构建完成: {} 个节点，耗时 {}ms", 
@@ -402,11 +408,15 @@ impl XmlIndexer {
     
     
     /// 工具方法：提取XML属性
+    /// 🎯 性能优化版：提取XML属性（手动解析，避免Regex编译开销）
     fn extract_attribute(node_str: &str, attr_name: &str) -> Option<String> {
-        let pattern = format!(r#"{}="([^"]*)""#, attr_name);
-        if let Ok(regex) = Regex::new(&pattern) {
-            if let Some(captures) = regex.captures(node_str) {
-                return captures.get(1).map(|m| m.as_str().to_string());
+        // 查找属性名位置
+        let search_pattern = format!("{}=\"", attr_name);
+        if let Some(start_pos) = node_str.find(&search_pattern) {
+            let value_start = start_pos + search_pattern.len();
+            // 查找结束引号
+            if let Some(end_pos) = node_str[value_start..].find('"') {
+                return Some(node_str[value_start..value_start + end_pos].to_string());
             }
         }
         None
@@ -414,18 +424,67 @@ impl XmlIndexer {
     
     /// 工具方法：解析bounds
     fn parse_bounds(bounds_str: &str) -> Result<(i32, i32, i32, i32)> {
-        // 解析 "[left,top][right,bottom]" 格式
-        let pattern = r#"\[(\d+),(\d+)\]\[(\d+),(\d+)\]"#;
-        if let Ok(regex) = Regex::new(pattern) {
-            if let Some(captures) = regex.captures(bounds_str) {
-                let left = captures.get(1).unwrap().as_str().parse()?;
-                let top = captures.get(2).unwrap().as_str().parse()?;
-                let right = captures.get(3).unwrap().as_str().parse()?;
-                let bottom = captures.get(4).unwrap().as_str().parse()?;
-                return Ok((left, top, right, bottom));
-            }
+        // 🎯 性能优化：使用预编译的正则表达式
+        if let Some(captures) = BOUNDS_REGEX.captures(bounds_str) {
+            let left = captures.get(1).unwrap().as_str().parse()?;
+            let top = captures.get(2).unwrap().as_str().parse()?;
+            let right = captures.get(3).unwrap().as_str().parse()?;
+            let bottom = captures.get(4).unwrap().as_str().parse()?;
+            return Ok((left, top, right, bottom));
         }
         Err(anyhow::anyhow!("Invalid bounds format: {}", bounds_str))
+    }
+
+    /// 🎯 构建父子关系树（性能优化关键）
+    /// 
+    /// 通过XPath层级关系一次性构建所有节点的parent_index和children_indices，
+    /// 避免后续递归调用时重复的O(N)遍历。
+    /// 
+    /// 复杂度: O(N²) 一次性构建，后续查询 O(1)
+    fn build_parent_child_relationships(&mut self) {
+        let start_time = std::time::Instant::now();
+        tracing::debug!("🌲 [XmlIndexer] 开始构建父子关系树...");
+        
+        // 为每个节点找到其父节点和子节点
+        for i in 0..self.all_nodes.len() {
+            let current_xpath = self.all_nodes[i].xpath.clone();
+            let current_level = current_xpath.matches('/').count();
+            
+            // 查找父节点
+            for j in 0..self.all_nodes.len() {
+                if i == j { continue; }
+                
+                let candidate_xpath = &self.all_nodes[j].xpath;
+                let candidate_level = candidate_xpath.matches('/').count();
+                
+                // 如果候选节点层级比当前节点低1，且当前xpath以候选xpath开头，则是父节点
+                if candidate_level == current_level - 1 && current_xpath.starts_with(candidate_xpath) {
+                    self.all_nodes[i].parent_index = Some(j);
+                    self.all_nodes[i].depth = candidate_level + 1;
+                    break; // 找到父节点后退出
+                }
+            }
+        }
+        
+        // 基于parent_index反向构建children_indices
+        let mut children_map: HashMap<usize, Vec<usize>> = HashMap::new();
+        for (child_idx, node) in self.all_nodes.iter().enumerate() {
+            if let Some(parent_idx) = node.parent_index {
+                children_map.entry(parent_idx)
+                    .or_insert_with(Vec::new)
+                    .push(child_idx);
+            }
+        }
+        
+        // 将children_map应用到all_nodes
+        for (parent_idx, children) in children_map {
+            if parent_idx < self.all_nodes.len() {
+                self.all_nodes[parent_idx].children_indices = children;
+            }
+        }
+        
+        let elapsed = start_time.elapsed();
+        tracing::info!("✅ [XmlIndexer] 父子关系树构建完成，耗时 {}ms", elapsed.as_millis());
     }
 }
 

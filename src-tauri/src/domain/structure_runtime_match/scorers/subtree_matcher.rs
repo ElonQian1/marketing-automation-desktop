@@ -202,21 +202,11 @@ impl<'a> SubtreeMatcher<'a> {
     }
 
     fn get_children_indices(&self, parent_index: usize) -> Vec<usize> {
-        // 简化版本：通过XPath层级关系推断子节点
-        // 这里需要根据实际的XmlIndexer API调整
-        let parent_xpath = &self.xml_indexer.all_nodes[parent_index].xpath;
-        let parent_level = parent_xpath.matches('/').count();
-        
-        self.xml_indexer.all_nodes.iter()
-            .enumerate()
-            .filter_map(|(idx, node)| {
-                let node_level = node.xpath.matches('/').count();
-                if node_level == parent_level + 1 && node.xpath.starts_with(parent_xpath) {
-                    Some(idx)
-                } else {
-                    None
-                }
-            })
-            .collect()
+        // 🎯 性能优化：直接使用预构建的children_indices，避免O(N)遍历
+        if parent_index < self.xml_indexer.all_nodes.len() {
+            self.xml_indexer.all_nodes[parent_index].children_indices.clone()
+        } else {
+            Vec::new()
+        }
     }
 }
