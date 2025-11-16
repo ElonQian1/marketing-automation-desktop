@@ -72,6 +72,7 @@ export const convertVisualToUIElement = (element: VisualUIElement): UIElement =>
     selected: element.selected || false,
     password: false, // 添加缺少的password属性
     children: [], // 🎯 添加必需的children字段
+    indexPath: element.indexPath,  // 🎯 关键修复：传递indexPath用于后端定位
   } as UIElement;
 };
 

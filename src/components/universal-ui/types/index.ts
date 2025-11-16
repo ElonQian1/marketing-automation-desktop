@@ -59,6 +59,8 @@ export interface VisualUIElement {
   contentDesc?: string;
   className?: string;
   bounds?: string; // 原始bounds字符串
+  xmlIndex?: number; // 原始 XML 节点索引
+  indexPath?: number[]; // 🎯 绝对下标链（用于静态定位，如 [0,0,0,5,2]）
 }
 
 /**

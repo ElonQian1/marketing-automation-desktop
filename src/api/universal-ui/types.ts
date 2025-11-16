@@ -93,6 +93,9 @@ export interface UIElement {
   password: boolean;
   content_desc: string; // 修正：与Rust后端保持一致，为必需字段
   
+  // 🎯 绝对路径定位（用于精确定位元素，替代不可靠的 element_N）
+  indexPath?: number[];  // 🎯 新增：绝对下标链，如 [0,0,0,5,2]
+  
   // 🆕 上下文关系信息 - 用于精准定位
   parent_element?: UIElementContext;           // 父元素信息
   sibling_elements?: UIElementContext[];       // 兄弟元素信息（同级）
