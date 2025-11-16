@@ -99,8 +99,8 @@ fn build_execution_environment(
         },
         ui_xml: ui_xml.to_string(),
         xml_hash: xml_hash.to_string(),
-        package: plan.context.package.clone().unwrap_or_default(),
-        activity: plan.context.activity.clone().unwrap_or_default(),
+        package: Some(plan.context.package.clone().unwrap_or_default()),
+        activity: Some(plan.context.activity.clone().unwrap_or_default()),
         screen_width: plan.context.screen.as_ref().map(|s| s.width).unwrap_or(1080),
         screen_height: plan.context.screen.as_ref().map(|s| s.height).unwrap_or(2400),
         container_xpath: plan.context.container_anchor.as_ref()

@@ -61,6 +61,8 @@ interface SmartAnalysisPanelProps {
   onSelectChain?: () => void;
   /** 回调：选择单步策略 */
   onSelectStep?: (stepId: string) => void;
+  /** 回调：刷新所有评分 */
+  onRefreshScores?: () => void | Promise<void>;
 }
 
 /**
@@ -69,7 +71,8 @@ interface SmartAnalysisPanelProps {
 export const SmartAnalysisPanel: React.FC<SmartAnalysisPanelProps> = ({
   showDetails = true,
   onSelectChain,
-  onSelectStep
+  onSelectStep,
+  onRefreshScores
 }) => {
   // 获取分析状态
   const analysisStatus = useAnalysisState.status();
@@ -237,9 +240,15 @@ export const SmartAnalysisPanel: React.FC<SmartAnalysisPanelProps> = ({
                   <div className="flex items-center gap-2">
                     <Tag 
                       color={confidenceStyle.color}
-                      style={{ fontWeight: 'bold' }}
+                      style={{ fontWeight: 'bold', cursor: onRefreshScores ? 'pointer' : 'default' }}
+                      className={onRefreshScores ? 'hover:opacity-80 transition-opacity' : ''}
+                      onClick={onRefreshScores ? (e) => {
+                        e.stopPropagation();
+                        onRefreshScores();
+                      } : undefined}
+                      title={onRefreshScores ? '点击刷新所有评分' : undefined}
                     >
-                      {confidencePercent}%
+                      {confidencePercent}% {onRefreshScores && '🔄'}
                     </Tag>
                     
                     {showDetails && step.metrics && (

@@ -52,6 +52,23 @@ export interface StepCard {
     screenshotPath?: string;       // 配套截图路径
   };
   
+  /** 🎯 静态定位信息 - 用于同一份XML的精确定位 */
+  staticLocator?: {
+    indexPath: number[];           // 绝对下标链 [0,0,0,5,2]
+    xmlHash: string;               // 绑定的XML哈希（校验用）
+  };
+  
+  /** 🔍 节点指纹 - 用于调试和校验 */
+  elementFingerprint?: {
+    class?: string;
+    resourceId?: string;
+    text?: string;
+    contentDesc?: string;
+    bounds?: string;
+    clickable?: boolean;
+    childrenTexts?: string[];      // 子元素文本列表
+  };
+  
   /** 🏗️ 结构匹配参数计划 - 推导生成的完整匹配参数 */
   structuralMatchPlan?: {
     version: string;               // 计划版本

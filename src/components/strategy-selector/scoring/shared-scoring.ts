@@ -154,6 +154,18 @@ export async function executeSharedStructuralScoring(
     return false;
   }
 
+  // 🐛 调试：打印卡片完整数据
+  console.log(`🔍 [${contextName}] 卡片数据检查:`, {
+    cardId: card.id,
+    hasElementContext: !!card.elementContext,
+    elementContextKeys: card.elementContext ? Object.keys(card.elementContext) : [],
+    xpath: card.elementContext?.xpath,
+    hasXmlSnapshot: !!card.xmlSnapshot,
+    xmlSnapshotKeys: card.xmlSnapshot ? Object.keys(card.xmlSnapshot) : [],
+    xmlCacheId: card.xmlSnapshot?.xmlCacheId,
+    hasXmlContent: !!card.xmlSnapshot?.xmlContent,
+  });
+
   // 加载XML缓存
   const xmlResult = await loadXmlWithFallback(card, contextName);
   
@@ -174,12 +186,14 @@ export async function executeSharedStructuralScoring(
   try {
     console.log(`🔄 [${contextName}] 调用后端评分接口`, {
       xpath: card.elementContext.xpath,
+      indexPath: card.staticLocator?.indexPath,
       requestedSteps: steps,
     });
     
     const recommendation = await invoke<RecommendResponse>('recommend_structure_mode_v2', {
       input: {
-        absoluteXpath: card.elementContext.xpath,
+        indexPath: card.staticLocator?.indexPath || null,  // 🎯 优先使用 index_path
+        absoluteXpath: card.elementContext.xpath,          // 🔄 回退使用 xpath
         xmlSnapshot: xmlResult.xmlContent,
         containerXpath: null,
       },

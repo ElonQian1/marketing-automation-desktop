@@ -16,6 +16,7 @@ import { BoundsParser } from "./BoundsParser";
 import { ElementCategorizer } from "./ElementCategorizer";
 import { AppPageAnalyzer } from "./AppPageAnalyzer";
 import { cleanXmlContent } from "./cleanXml";
+import { buildIndexPath } from "./IndexPathBuilder";
 
 export class XmlParser {
   /**
@@ -216,6 +217,9 @@ export class XmlParser {
     // 这样 element-41 在前端和后端都指向同一个 XML 节点
     const elementId = `element-${index}`;
 
+    // 🎯 新增：构建绝对下标链（用于静态定位）
+    const indexPath = buildIndexPath(node);
+
     return {
       id: elementId,
       text: text,
@@ -229,6 +233,7 @@ export class XmlParser {
       userFriendlyName,
       // 🔧 新增：保存原始 XML index 和 bounds 用于精确匹配
       xmlIndex: index, // 原始 XML 索引
+      indexPath: indexPath, // 🎯 绝对下标链（用于静态定位）
       resourceId: resourceId || undefined,
       contentDesc: contentDesc || undefined,
       className: className || undefined,

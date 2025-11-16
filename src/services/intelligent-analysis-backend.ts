@@ -138,8 +138,20 @@ export class IntelligentAnalysisBackendService {
       snapshotId,
     } = options;
 
-    // 🚀 [缓存优先策略] 如果有snapshotId和xpath，先尝试缓存
-    if (snapshotId && element.xpath) {
+    // 🚀 [架构简化] 移除策略缓存，统一使用评分系统
+    // 
+    // 原因：
+    // 1. 策略缓存使用简单 if-else 规则，不准确
+    // 2. 评分系统使用精确算法，已包含策略推荐
+    // 3. 两套系统会产生矛盾的推荐结果
+    // 4. 后端已有完整的缓存机制
+    //
+    // 现在统一流程：
+    //   新建步骤 → 评分系统 → recommend_structure_mode_v2
+    //           → 返回 Step1-8 评分 + 最高分策略
+    //
+    // 缓存策略缓存代码已禁用（可删除）
+    if (false && snapshotId && element.xpath) {  // ← 永久禁用
       try {
         console.log("🎯 [缓存检查] 尝试从XML缓存获取分析结果", {
           snapshotId,
@@ -152,15 +164,16 @@ export class IntelligentAnalysisBackendService {
           element.xpath
         );
 
-        // 如果缓存命中且结果可信，直接返回模拟的后端响应
+        // 如果缓存命中且结果可信，直接返回（评分由前端自动执行，无需后端）
         if (cachedResult.metadata.usedCache && cachedResult.confidence > 0.6) {
-          console.log("✅ [缓存命中] 直接使用缓存结果，跳过后端分析", {
+          console.log("✅ [缓存命中] 使用缓存策略，跳过后端分析（评分由前端自动执行）", {
             strategy: cachedResult.recommendedStrategy,
             confidence: cachedResult.confidence,
             fromCache: true
           });
 
           // 返回模拟的TauriAnalysisJobResponse格式
+          // 注意：前端会自动执行 executeSmartAutoScoring 进行评分
           return {
             job_id: `cached_${Date.now()}_${stepId || 'unknown'}`,
             selection_hash: `cache_${snapshotId}_${element.xpath}`,

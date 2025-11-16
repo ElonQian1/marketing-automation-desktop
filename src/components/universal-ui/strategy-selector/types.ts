@@ -98,6 +98,8 @@ export interface UnifiedStrategyConfiguratorProps {
   matchCriteria: MatchCriteria | null;
   /** 匹配条件变化回调 */
   onChange: (criteria: MatchCriteria) => void;
+  /** 刷新所有评分回调 */
+  onRefreshScores?: () => void | Promise<void>;
   
   // === 显示控制 ===
   /** 显示模式 */

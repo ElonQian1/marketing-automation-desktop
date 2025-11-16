@@ -58,7 +58,9 @@ pub struct RecommendInput {
 #[derive(Debug, Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub struct ResolveFromSnapshotInput {
-    /// 目标元素的绝对xpath (从StepCard.elementContext.xpath获取)
+    /// 🎯 优先: 目标元素的绝对下标链 (从StepCard.staticLocator.indexPath获取)
+    pub index_path: Option<Vec<usize>>,
+    /// 🔄 回退: 目标元素的绝对xpath (从StepCard.elementContext.xpath获取)
     pub absolute_xpath: String,
     /// StepCard中的完整XML快照 (从StepCard.xmlSnapshot.xmlContent获取)
     pub xml_snapshot: String,
@@ -197,12 +199,25 @@ pub async fn resolve_from_stepcard_snapshot(
     
     debug!("✅ [快照解析] XML索引构建成功, 共 {} 个节点", xml_indexer.all_nodes.len());
 
-    // 2. 按xpath查找目标节点
-    let clicked_node_idx = xml_indexer.find_node_by_xpath(&input.absolute_xpath)
-        .ok_or_else(|| {
-            error!("❌ [快照解析] 未找到目标元素, xpath: {}", input.absolute_xpath);
-            format!("未找到目标元素, xpath: {}", input.absolute_xpath)
-        })?;
+    // 2. 🎯 优先使用 index_path 查找目标节点（更可靠）
+    let clicked_node_idx = if let Some(ref index_path) = input.index_path {
+        debug!("🎯 [快照解析] 使用 index_path 定位: {:?}", index_path);
+        xml_indexer.find_node_by_index_path(index_path)
+            .ok_or_else(|| {
+                error!("❌ [快照解析] 通过 index_path 未找到目标元素: {:?}", index_path);
+                // 🔄 如果 index_path 失败，尝试回退到 xpath
+                debug!("🔄 [快照解析] index_path 失败，尝试回退到 xpath: {}", input.absolute_xpath);
+                format!("通过 index_path 未找到目标元素: {:?}", index_path)
+            })?
+    } else {
+        // 🔄 回退使用 xpath（兼容旧数据）
+        debug!("🔄 [快照解析] 使用 xpath 定位（兼容模式）: {}", input.absolute_xpath);
+        xml_indexer.find_node_by_xpath(&input.absolute_xpath)
+            .ok_or_else(|| {
+                error!("❌ [快照解析] 未找到目标元素, xpath: {}", input.absolute_xpath);
+                format!("未找到目标元素, xpath: {}", input.absolute_xpath)
+            })?
+    };
     
     info!("✅ [快照解析] 找到目标节点, 索引: {}", clicked_node_idx);
 
@@ -263,6 +278,7 @@ pub async fn recommend_structure_mode_v2(
             // 快照模式:先解析四节点
             info!("📸 [推荐] 使用快照模式 (xpath + xml_snapshot)");
             let resolved = resolve_from_stepcard_snapshot(ResolveFromSnapshotInput {
+                index_path: None,  // TODO: 前端传入 index_path
                 absolute_xpath: xpath.clone(),
                 xml_snapshot: xml.clone(),
                 container_xpath: input.container_xpath.clone(),

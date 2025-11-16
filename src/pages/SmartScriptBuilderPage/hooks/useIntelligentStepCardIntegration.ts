@@ -73,6 +73,11 @@ export function useIntelligentStepCardIntegration(
   const buildSimpleChildren = useCallback((element: UIElement): UIElement => {
     const enhancedElement = { ...element };
     
+    // 🔥 关键：移除原始的 xpath 字段，避免与 elementContext.xpath 冲突
+    // elementContext.xpath 是正确的绝对路径（通过 buildXPath 生成）
+    // 而 element.xpath 可能是相对路径（如 'element_32'）
+    delete (enhancedElement as Partial<UIElement>).xpath;
+    
     // 如果有 child_elements，转换为 children 结构
     if (element.child_elements && element.child_elements.length > 0) {
       enhancedElement.children = element.child_elements.map((childElement, index) => ({

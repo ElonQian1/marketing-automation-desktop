@@ -10,6 +10,7 @@ import type { StepCard } from '../../../store/stepcards';
 import { StepSequenceMapper } from '../../../config/step-sequence';
 import { isValidScore, toPercentInt01 } from '../../../utils/score-utils';
 import { useAnalysisStateStore } from '../../../stores/analysis-state-store';
+import { refreshAllScores, type RefreshAllScoresConfig } from '../scoring/refresh-all-scores';
 
 /**
  * 菜单构建器配置
@@ -32,6 +33,33 @@ export interface StrategyMenuConfig {
   dataError: Error | null;
   dataLoading: boolean;
   startAnalysis?: (config: unknown) => Promise<void>;
+}
+
+/**
+ * 创建刷新所有评分的函数
+ * @param config 菜单配置
+ * @returns 刷新函数
+ */
+export function createRefreshScoresFunction(config: StrategyMenuConfig): (() => Promise<void>) | undefined {
+  const { stepId, cardStore, startAnalysis } = config;
+  
+  if (!stepId || !startAnalysis) {
+    return undefined;
+  }
+
+  return async () => {
+    const card = cardStore.cards[stepId];
+    if (!card) {
+      message.warning('步骤卡片数据不完整');
+      return;
+    }
+
+    await refreshAllScores({
+      stepId,
+      card,
+      startAnalysis,
+    });
+  };
 }
 
 /**
@@ -100,33 +128,8 @@ export function buildStrategyMenu(config: StrategyMenuConfig): MenuProps {
               return;
             }
             
-            try {
-              message.loading({ content: '🔄 重新评分中...', key: 'refresh-all', duration: 0 });
-              
-              // 构建分析配置
-              const analysisConfig = {
-                element_context: {
-                  snapshot_id: card.xmlSnapshot?.xmlCacheId || 'unknown',
-                  element_path: card.elementContext?.xpath || '',
-                  element_text: card.elementContext?.text,
-                  element_bounds: card.elementContext?.bounds,
-                },
-                step_id: stepId,
-                lock_container: false,
-                enable_smart_candidates: true,
-                enable_static_candidates: true,
-              };
-              
-              // 调用 useIntelligentAnalysis Hook 的 startAnalysis
-              await startAnalysis(analysisConfig);
-              
-              console.log('✅ [刷新评分] 智能分析已启动');
-              message.success({ content: '✅ 评分刷新完成！', key: 'refresh-all' });
-              
-            } catch (error) {
-              console.error('❌ [刷新评分] 失败:', error);
-              message.error({ content: `刷新失败: ${error}`, key: 'refresh-all' });
-            }
+            // 使用统一的刷新函数
+            await refreshAllScores({ stepId, card, startAnalysis });
           },
         },
         {

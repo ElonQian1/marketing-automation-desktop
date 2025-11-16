@@ -36,7 +36,9 @@ pub struct ExecuteMatchInput {
 #[derive(Debug, Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub struct StaticReference {
-    /// 目标元素的绝对xpath
+    /// 🎯 优先使用的索引路径（数组形式，如 [0,0,0,5,2]）
+    pub index_path: Option<Vec<usize>>,
+    /// 🔄 回退使用的绝对xpath（兼容旧数据）
     pub absolute_xpath: String,
     /// XML快照内容 (可选，优先使用实时dump)
     pub xml_snapshot: Option<String>,
@@ -141,12 +143,25 @@ pub async fn execute_structure_match_step(
 
     debug!("✅ [真机执行] XML索引构建完成, 节点数: {}", xml_indexer.all_nodes.len());
 
-    // 3. 按xpath查找目标节点
-    let clicked_node_idx = xml_indexer.find_node_by_xpath(&input.static_ref.absolute_xpath)
-        .ok_or_else(|| {
-            error!("❌ [真机执行] 未找到目标元素: {}", input.static_ref.absolute_xpath);
-            format!("未找到目标元素: {}", input.static_ref.absolute_xpath)
-        })?;
+    // 3. 🎯 优先使用 index_path 查找目标节点（更可靠）
+    let clicked_node_idx = if let Some(ref index_path) = input.static_ref.index_path {
+        debug!("🎯 [真机执行] 使用 index_path 定位: {:?}", index_path);
+        xml_indexer.find_node_by_index_path(index_path)
+            .ok_or_else(|| {
+                error!("❌ [真机执行] 通过 index_path 未找到目标元素: {:?}", index_path);
+                // 🔄 如果 index_path 失败，尝试回退到 xpath
+                debug!("🔄 [真机执行] index_path 失败，尝试回退到 xpath: {}", input.static_ref.absolute_xpath);
+                format!("通过 index_path 未找到目标元素: {:?}", index_path)
+            })?
+    } else {
+        // 🔄 回退使用 xpath（兼容旧数据）
+        debug!("🔄 [真机执行] 使用 xpath 定位（兼容模式）: {}", input.static_ref.absolute_xpath);
+        xml_indexer.find_node_by_xpath(&input.static_ref.absolute_xpath)
+            .ok_or_else(|| {
+                error!("❌ [真机执行] 未找到目标元素: {}", input.static_ref.absolute_xpath);
+                format!("未找到目标元素: {}", input.static_ref.absolute_xpath)
+            })?
+    };
 
     info!("✅ [真机执行] 找到目标节点: index={}", clicked_node_idx);
 

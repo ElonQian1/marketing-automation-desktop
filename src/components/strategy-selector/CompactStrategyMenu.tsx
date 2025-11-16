@@ -248,6 +248,23 @@ const CompactStrategyMenu: React.FC<CompactStrategyMenuProps> = ({
   
   // ✅ 统一使用 analysis-state-store 获取评分
   const { getStepConfidence, setFinalScores } = useAnalysisStateStore();
+  
+  // 🔔 订阅 stepScores 变化以触发重新渲染
+  const stepScores = useAnalysisStateStore((state) => state.stepScores);
+  
+  // 🔍 调试：打印评分数据
+  React.useEffect(() => {
+    if (stepId && Object.keys(stepScores).length > 0) {
+      console.log('🔍 [CompactStrategyMenu] 评分数据已更新:', {
+        stepId,
+        totalScores: Object.keys(stepScores).length,
+        scores: Object.entries(stepScores).map(([key, score]) => ({
+          key,
+          confidence: `${Math.round(score.confidence * 100)}%`
+        }))
+      });
+    }
+  }, [stepId, stepScores]);
 
   // 🔍 调试输出置信度和推荐数据（已禁用：频繁渲染导致刷屏）
   // React.useEffect(() => {

@@ -29,6 +29,9 @@ pub struct XmlIndexer {
     
     /// 全部节点列表（用于全局检索）
     pub all_nodes: Vec<IndexedNode>,
+    
+    /// 🎯 原始XML文本（用于支持 index_path 定位）
+    pub raw_xml: String,
 }
 
 // 🏷️ 索引节点结构
@@ -40,6 +43,11 @@ pub struct IndexedNode {
     pub xpath: String,
     pub parent_xpath: Option<String>,
     pub container_xpath: Option<String>, // 所属容器的XPath
+    
+    // 🎯 新增：树结构信息（用于支持 index_path 定位）
+    pub parent_index: Option<usize>,     // 父节点在 all_nodes 中的索引
+    pub children_indices: Vec<usize>,     // 子节点在 all_nodes 中的索引列表
+    pub depth: usize,                     // 节点深度（根节点为0）
 }
 
 impl XmlIndexer {
@@ -52,6 +60,7 @@ impl XmlIndexer {
             content_desc_index: HashMap::new(),
             container_index: HashMap::new(),
             all_nodes: Vec::new(),
+            raw_xml: ui_xml.to_string(), // 🎯 保存原始XML
         };
         
         tracing::info!("🔧 开始构建XML索引...");
@@ -135,6 +144,10 @@ impl XmlIndexer {
             xpath,
             parent_xpath: None, // 需要构建父子关系时填充
             container_xpath: None, // 需要识别容器时填充
+            // 🎯 树结构信息（初始化为默认值，后续构建树时填充）
+            parent_index: None,
+            children_indices: Vec::new(),
+            depth: 0,
         })
     }
     
@@ -275,6 +288,10 @@ impl XmlIndexer {
     
     /// 按xpath查找节点索引 (支持StepCard快照恢复)
     /// 
+    /// 支持多种XPath格式:
+    /// 1. 前端临时ID格式: `//element_32` 或 `element_32`
+    /// 2. 标准XPath格式: `//*[@class='FrameLayout'][32]`
+    /// 
     /// # Arguments
     /// * `xpath` - 要查找的xpath路径
     /// 
@@ -282,9 +299,107 @@ impl XmlIndexer {
     /// * `Some(usize)` - 节点在all_nodes中的索引
     /// * `None` - 未找到匹配节点
     pub fn find_node_by_xpath(&self, xpath: &str) -> Option<usize> {
-        self.all_nodes.iter()
-            .position(|node| node.xpath == xpath)
+        // 🔥 修复：支持前端生成的 element_N 格式
+        // 前端解析XML时生成临时ID: element_0, element_1, element_2...
+        // 这个ID对应节点在all_nodes中的索引
+        
+        let trimmed = xpath.trim_start_matches("//").trim();
+        
+        // 尝试解析 element_N 格式
+        if trimmed.starts_with("element_") {
+            if let Some(index_str) = trimmed.strip_prefix("element_") {
+                if let Ok(index) = index_str.parse::<usize>() {
+                    // 验证索引有效性
+                    if index < self.all_nodes.len() {
+                        tracing::debug!("✅ [XmlIndexer] 通过前端ID找到节点: {} -> index {}", xpath, index);
+                        return Some(index);
+                    } else {
+                        tracing::warn!("⚠️ [XmlIndexer] 索引超出范围: {} (总节点数: {})", 
+                                     index, self.all_nodes.len());
+                        return None;
+                    }
+                }
+            }
+        }
+        
+        // 回退：标准XPath精确匹配
+        let position = self.all_nodes.iter()
+            .position(|node| node.xpath == xpath);
+        
+        if position.is_none() {
+            tracing::warn!("❌ [XmlIndexer] 未找到匹配节点: {}", xpath);
+        }
+        
+        position
     }
+
+    /// 🎯 通过绝对下标链查找节点（推荐使用，比 xpath 更可靠）
+    /// 
+    /// # Arguments
+    /// * `index_path` - 从根到目标节点的下标链，例如 [0, 0, 0, 5, 2]
+    /// 
+    /// # Returns
+    /// * `Some(usize)` - 节点在 all_nodes 中的索引
+    /// * `None` - 路径无效或节点不存在
+    /// 
+    /// # Example
+    /// ```rust
+    /// let indexer = XmlIndexer::build_from_xml(xml)?;
+    /// if let Some(idx) = indexer.find_node_by_index_path(&[0, 0, 5, 2]) {
+    ///     let element = &indexer.all_nodes[idx];
+    ///     // 使用 element...
+    /// }
+    /// ```
+    pub fn find_node_by_index_path(&self, index_path: &[usize]) -> Option<usize> {
+        use crate::engine::index_path_locator::find_node_index_by_index_path;
+        
+        if index_path.is_empty() {
+            tracing::warn!("⚠️ [XmlIndexer] index_path 为空");
+            return None;
+        }
+
+        match find_node_index_by_index_path(&self.raw_xml, index_path) {
+            Ok(idx) => {
+                if idx < self.all_nodes.len() {
+                    tracing::debug!(
+                        "✅ [XmlIndexer] 通过 index_path 找到节点: {:?} -> index {}",
+                        index_path,
+                        idx
+                    );
+                    Some(idx)
+                } else {
+                    tracing::error!(
+                        "❌ [XmlIndexer] index_path 返回的索引超出 all_nodes 范围: {} >= {}",
+                        idx,
+                        self.all_nodes.len()
+                    );
+                    None
+                }
+            }
+            Err(err) => {
+                tracing::warn!(
+                    "⚠️ [XmlIndexer] find_node_by_index_path 失败: index_path={:?}, err={}",
+                    index_path,
+                    err
+                );
+                None
+            }
+        }
+    }
+
+    /// 🎯 通过 index_path 直接获取 UIElement 引用（便捷方法）
+    /// 
+    /// # Arguments
+    /// * `index_path` - 从根到目标节点的下标链
+    /// 
+    /// # Returns
+    /// * `Some(&IndexedNode)` - 节点引用
+    /// * `None` - 路径无效或节点不存在
+    pub fn find_element_by_index_path(&self, index_path: &[usize]) -> Option<&IndexedNode> {
+        self.find_node_by_index_path(index_path)
+            .and_then(|idx| self.all_nodes.get(idx))
+    }
+    
     
     /// 工具方法：提取XML属性
     fn extract_attribute(node_str: &str, attr_name: &str) -> Option<String> {

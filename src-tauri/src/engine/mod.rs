@@ -8,6 +8,7 @@ pub mod self_anchor; // 🆕 新增：模块化Self-Anchor系统
 pub mod strategy_plugin;
 pub mod gating;
 pub mod xml_indexer;
+pub mod index_path_locator; // 🎯 新增：绝对路径定位模块
 
 pub use strategy_engine::{
     StrategyEngine,

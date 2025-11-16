@@ -7,9 +7,9 @@
  * 显示策略的评分信息和推荐状态
  */
 
-import React from 'react';
-import { Badge, Tooltip } from 'antd';
-import { StarFilled } from '@ant-design/icons';
+import React, { useState } from 'react';
+import { Badge, Tooltip, Spin } from 'antd';
+import { StarFilled, ReloadOutlined } from '@ant-design/icons';
 
 export interface StrategyScoreBadgeProps {
   /** 评分 (0-1) */
@@ -22,6 +22,10 @@ export interface StrategyScoreBadgeProps {
   className?: string;
   /** 显示详细信息 */
   showDetails?: boolean;
+  /** 点击刷新回调 */
+  onRefresh?: () => void | Promise<void>;
+  /** 是否正在刷新 */
+  isRefreshing?: boolean;
 }
 
 /**
@@ -42,14 +46,34 @@ export const StrategyScoreBadge: React.FC<StrategyScoreBadgeProps> = ({
   isRecommended = false,
   size = 'default',
   className = '',
-  showDetails = true
+  showDetails = true,
+  onRefresh,
+  isRefreshing = false
 }) => {
+  const [localRefreshing, setLocalRefreshing] = useState(false);
   const percentage = Math.round(score * 100);
   const color = getScoreColor(score);
   const isSmall = size === 'small';
+  const refreshing = isRefreshing || localRefreshing;
+
+  const handleClick = async (e: React.MouseEvent) => {
+    if (!onRefresh || refreshing) return;
+    e.stopPropagation();
+    
+    setLocalRefreshing(true);
+    try {
+      await onRefresh();
+    } finally {
+      setLocalRefreshing(false);
+    }
+  };
 
   const badge = (
-    <div className={`inline-flex items-center gap-1 ${className}`}>
+    <div 
+      className={`inline-flex items-center gap-1 ${className} ${onRefresh ? 'cursor-pointer hover:opacity-80 transition-opacity' : ''}`}
+      onClick={handleClick}
+      title={onRefresh ? '点击刷新所有评分' : undefined}
+    >
       {/* 推荐星标 */}
       {isRecommended && (
         <StarFilled 
@@ -60,18 +84,35 @@ export const StrategyScoreBadge: React.FC<StrategyScoreBadgeProps> = ({
         />
       )}
       
+      {/* 刷新加载图标 */}
+      {refreshing && (
+        <Spin size="small" />
+      )}
+      
       {/* 评分徽章 */}
       <Badge
-        count={`${percentage}%`}
+        count={refreshing ? '🔄' : `${percentage}%`}
         style={{
           backgroundColor: color,
           fontSize: isSmall ? '10px' : '12px',
           height: isSmall ? '16px' : '20px',
           lineHeight: isSmall ? '14px' : '18px',
           minWidth: isSmall ? '24px' : '32px',
-          borderRadius: isSmall ? '8px' : '10px'
+          borderRadius: isSmall ? '8px' : '10px',
+          opacity: refreshing ? 0.7 : 1
         }}
       />
+      
+      {/* 刷新图标提示 */}
+      {onRefresh && !refreshing && (
+        <ReloadOutlined 
+          style={{ 
+            fontSize: isSmall ? '10px' : '12px',
+            color: '#999',
+            marginLeft: '-2px'
+          }} 
+        />
+      )}
     </div>
   );
 
@@ -91,6 +132,7 @@ export const StrategyScoreBadge: React.FC<StrategyScoreBadgeProps> = ({
           score >= 0.4 ? '一般' : '较差'
         }
       </div>
+      {onRefresh && <div className="mt-1 text-blue-400">💡 点击刷新所有评分</div>}
     </div>
   );
 

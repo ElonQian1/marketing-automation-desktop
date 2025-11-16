@@ -60,11 +60,23 @@ const { Option } = Select;
 const InlineScoreBadge: React.FC<{
   score: number;
   isRecommended?: boolean;
-}> = ({ score, isRecommended }) => {
+  onRefresh?: () => void | Promise<void>;
+}> = ({ score, isRecommended, onRefresh }) => {
+  const handleClick = (e: React.MouseEvent) => {
+    if (!onRefresh) return;
+    e.stopPropagation();
+    onRefresh();
+  };
+
   return (
     <Space size={4}>
-      <Tag color={score >= 80 ? 'green' : score >= 60 ? 'orange' : 'red'}>
-        {score}分
+      <Tag 
+        color={score >= 80 ? 'green' : score >= 60 ? 'orange' : 'red'}
+        style={{ cursor: onRefresh ? 'pointer' : 'default' }}
+        onClick={onRefresh ? handleClick : undefined}
+        title={onRefresh ? '点击刷新所有评分' : undefined}
+      >
+        {score}分 {onRefresh && '🔄'}
       </Tag>
       {isRecommended && (
         <Tag color="gold" icon={<ThunderboltOutlined />}>
@@ -84,7 +96,8 @@ const StrategyButtonGroup: React.FC<{
   strategyScores?: Record<string, StrategyScoreInfo>;
   showScores?: boolean;
   recommendedStrategy?: MatchStrategy;
-}> = ({ value, onChange, strategyScores = {}, showScores = false, recommendedStrategy }) => {
+  onRefreshScores?: () => void | Promise<void>;
+}> = ({ value, onChange, strategyScores = {}, showScores = false, recommendedStrategy, onRefreshScores }) => {
   return (
     <div className="flex flex-wrap items-center gap-2">
       <span className="text-xs text-neutral-500">匹配策略：</span>
@@ -118,6 +131,7 @@ const StrategyButtonGroup: React.FC<{
                 <InlineScoreBadge
                   score={scoreInfo.score}
                   isRecommended={isRecommended}
+                  onRefresh={onRefreshScores}
                 />
               )}
             </button>
@@ -149,7 +163,8 @@ export const UnifiedStrategyConfigurator: React.FC<UnifiedStrategyConfiguratorPr
   referenceElement,
   onTestMatch,
   onStrategyChange,
-  onAutoFill
+  onAutoFill,
+  onRefreshScores
 }) => {
   const [selectedFields, setSelectedFields] = useState<string[]>(
     matchCriteria?.fields || []
@@ -381,6 +396,7 @@ export const UnifiedStrategyConfigurator: React.FC<UnifiedStrategyConfiguratorPr
                   <InlineScoreBadge 
                     score={strategyScores[option.value].score}
                     isRecommended={strategyScores[option.value].isRecommended}
+                    onRefresh={onRefreshScores}
                   />
                 )}
               </Space>

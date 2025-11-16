@@ -893,6 +893,11 @@ export function useIntelligentAnalysisWorkflow(): UseIntelligentAnalysisWorkflow
             const unifiedCardId = `card_${Date.now()}_${Math.random()
               .toString(36)
               .substr(2, 9)}`;
+            
+            // 🎯 提取原始UIElement的indexPath
+            const originalElement = context.originalUIElement;
+            const indexPath = originalElement?.indexPath || [];
+            
             unifiedStore.createCard(stepId, unifiedCardId, {
               elementContext: {
                 xpath: context.elementPath,
@@ -903,6 +908,27 @@ export function useIntelligentAnalysisWorkflow(): UseIntelligentAnalysisWorkflow
               },
               // 🔥 保存完整的原始UIElement用于后续策略配置
               original_element: context.originalUIElement || null,
+              // 🔥 关键修复：保存XML快照信息，确保评分系统可以获取XML内容
+              xmlSnapshot: {
+                xmlCacheId: context.snapshotId,
+                xmlContent: context.xmlContent,
+                xmlHash: context.xmlHash,
+              },
+              // 🎯 静态定位信息 - 用于同一份XML的精确定位
+              staticLocator: indexPath.length > 0 ? {
+                indexPath: indexPath,
+                xmlHash: context.xmlHash || '',
+              } : undefined,
+              // 🔍 节点指纹 - 用于调试和校验
+              elementFingerprint: {
+                class: context.keyAttributes?.class,
+                resourceId: context.keyAttributes?.["resource-id"],
+                text: context.elementText,
+                contentDesc: context.keyAttributes?.["content-desc"],
+                bounds: context.elementBounds,
+                clickable: originalElement?.clickable,
+                childrenTexts: originalElement?.child_elements?.map((c: any) => c.text).filter(Boolean) || [],
+              },
               status: "analyzing",
             });
 
@@ -916,14 +942,22 @@ export function useIntelligentAnalysisWorkflow(): UseIntelligentAnalysisWorkflow
             // 🆕 自动触发Step1-2评分（智能·自动链）
             (async () => {
               try {
+                // ⏱️ 短暂延迟，确保卡片和XML缓存都已就绪
+                await new Promise(resolve => setTimeout(resolve, 300));
+                
                 const { executeSmartAutoScoring } = await import(
                   "../../../components/strategy-selector/scoring/smart-auto-scoring"
                 );
                 const { useAnalysisStateStore } = await import(
                   "../../../stores/analysis-state-store"
                 );
+                const { useStepCardStore: getStepCardStore } = await import(
+                  "../../../store/stepcards"
+                );
                 
-                const card = unifiedStore.cards[unifiedCardId];
+                // 🔧 修复：重新获取最新状态，避免使用过时的 unifiedStore 引用
+                const latestStore = getStepCardStore.getState();
+                const card = latestStore.cards[unifiedCardId];
                 if (card) {
                   const { setFinalScores } = useAnalysisStateStore.getState();
                   console.log("🎯 [自动评分] 开始执行Step1-2评分", { stepId, cardId: unifiedCardId });
