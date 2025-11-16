@@ -5,7 +5,6 @@
 // 元素选择模块导出
 export { ElementSelectionPopover } from './ElementSelectionPopover';
 export { useElementSelectionManager } from './useElementSelectionManager';
-export { useEnhancedElementSelectionManager } from './useEnhancedElementSelectionManager';
 export type { ElementSelectionState, ElementSelectionPopoverProps } from './ElementSelectionPopover';
 export { useSmartPopoverPosition, PopoverPositionCalculator } from './utils/popoverPositioning';
 export type { Position, PopoverDimensions, PopoverPlacement } from './utils/popoverPositioning';

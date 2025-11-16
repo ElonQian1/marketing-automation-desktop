@@ -231,6 +231,15 @@ export type ElementCategorizer = (element: UIElement) => string;
  * UIElement转换为VisualUIElement的工具函数
  */
 export const transformUIElement = (element: UIElement): VisualUIElement => {
+  // 🐛 调试：检查 indexPath 是否存在
+  if (element.indexPath && element.indexPath.length > 0) {
+    console.log('✅ [transformUIElement] 元素有 indexPath:', {
+      id: element.id,
+      text: element.text,
+      indexPath: element.indexPath,
+    });
+  }
+  
   // 🔧 DEBUG: 检查所有元素的可点击属性，重点关注菜单
   if (element.content_desc === '菜单' || element.text?.includes('菜单') || JSON.stringify(element).includes('菜单')) {
     console.log('🔍 [transformUIElement] 菜单相关元素:', {

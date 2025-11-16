@@ -1,18 +1,24 @@
 // src/components/universal-ui/element-selection/useElementSelectionManager.ts
 // module: ui | layer: ui | role: component
-// summary: UI 组件
+// summary: 统一的元素选择管理器（合并基础版和层次版）
 
 import { useState, useCallback, useRef, useEffect } from 'react';
 import type { UIElement } from '../../../api/universalUIAPI';
 import type { ElementSelectionState } from './ElementSelectionPopover';
+import type { AlternativeElement } from './hierarchy/types';
 
 // 隐藏元素的状态接口
 interface HiddenElement {
   id: string;
-  hiddenAt: number; // 隐藏时间戳
+  hiddenAt: number;
 }
 
-// 交互管理器的配置选项
+// 扩展的选择状态（支持层次结构）
+interface HierarchicalSelectionState extends ElementSelectionState {
+  allElements?: UIElement[]; // 用于构建父子元素层次
+}
+
+// 统一的配置选项
 interface ElementSelectionManagerOptions {
   /** 隐藏元素的自动恢复时间（毫秒），默认60秒 */
   autoRestoreTime?: number;
@@ -20,25 +26,32 @@ interface ElementSelectionManagerOptions {
   enableHover?: boolean;
   /** 悬停延迟时间（毫秒） */
   hoverDelay?: number;
+  /** 是否启用父子元素层次功能（默认 false） */
+  enableHierarchy?: boolean;
+  /** 完整元素列表（启用层次功能时需要） */
+  allElements?: UIElement[];
 }
 
 /**
- * 元素选择管理器 Hook
- * 专门处理可视化视图中的元素选择交互逻辑
+ * 统一的元素选择管理器 Hook
+ * 支持基础选择功能 + 可选的父子元素层次功能
  */
 export const useElementSelectionManager = (
   elements: UIElement[],
   onElementSelected?: (element: UIElement) => void,
+  onAlternativeSelected?: (alternative: AlternativeElement) => void,
   options: ElementSelectionManagerOptions = {}
 ) => {
   const {
-    autoRestoreTime = 60000, // 60秒后自动恢复隐藏的元素
+    autoRestoreTime = 60000,
     enableHover = true,
-    hoverDelay = 300
+    hoverDelay = 300,
+    enableHierarchy = false,
+    allElements = elements
   } = options;
 
   // 当前选中但未确认的元素
-  const [pendingSelection, setPendingSelection] = useState<ElementSelectionState | null>(null);
+  const [pendingSelection, setPendingSelection] = useState<ElementSelectionState | HierarchicalSelectionState | null>(null);
   
   // 隐藏的元素列表
   const [hiddenElements, setHiddenElements] = useState<HiddenElement[]>([]);
@@ -79,7 +92,8 @@ export const useElementSelectionManager = (
       elementText: element.text,
       clickPosition,
       isHidden: isElementHidden(element.id),
-      currentPendingSelection: pendingSelection
+      currentPendingSelection: pendingSelection,
+      hierarchyEnabled: enableHierarchy
     });
     
     // 如果元素被隐藏，不处理点击
@@ -90,16 +104,23 @@ export const useElementSelectionManager = (
 
     console.log('✅ [useElementSelectionManager] 设置 pendingSelection');
     
-    // 直接设置新的选择状态
-    const newSelection = {
-      element,
-      position: clickPosition,
-      confirmed: false
-    };
+    // 根据是否启用层次功能构建选择状态
+    const newSelection: ElementSelectionState | HierarchicalSelectionState = enableHierarchy
+      ? {
+          element,
+          position: clickPosition,
+          confirmed: false,
+          allElements // 🎯 层次模式：提供完整元素列表用于父子分析
+        }
+      : {
+          element,
+          position: clickPosition,
+          confirmed: false
+        };
     
     console.log('📝 [useElementSelectionManager] 新的 selection 状态:', newSelection);
     setPendingSelection(newSelection);
-  }, [isElementHidden, pendingSelection]);
+  }, [isElementHidden, pendingSelection, enableHierarchy, allElements]);
 
   // 处理元素悬停
   const handleElementHover = useCallback((elementId: string | null) => {
@@ -127,20 +148,31 @@ export const useElementSelectionManager = (
     if (pendingSelection) {
       console.log('✅ 确认选择元素:', pendingSelection.element.text, 'ID:', pendingSelection.element.id);
       
-      // 先清除待确认状态，避免在回调中重新触发
-      console.log('🧹 正在清除pendingSelection...');
+      // 先清除待确认状态
       setPendingSelection(null);
-      console.log('🧹 setPendingSelection(null) 已调用');
       
-      // 延迟调用回调函数，确保状态已经更新
-      setTimeout(() => {
-        console.log('📞 延迟调用 onElementSelected 回调');
-        onElementSelected?.(pendingSelection.element);
-      }, 0);
+      // 调用回调
+      onElementSelected?.(pendingSelection.element);
     } else {
       console.log('❌ confirmSelection: 没有待确认的选择');
     }
   }, [pendingSelection, onElementSelected]);
+
+  // 🎯 处理替代元素选择（层次功能）
+  const handleAlternativeSelection = useCallback((alternative: AlternativeElement) => {
+    console.log('🔄 [层次功能] 选择替代元素:', alternative);
+    
+    // 清除当前选择
+    setPendingSelection(null);
+    
+    // 通知替代元素选择
+    if (onAlternativeSelected) {
+      onAlternativeSelected(alternative);
+    } else {
+      // 如果没有专门的替代元素处理器，就当作普通元素选择
+      onElementSelected?.(alternative.node.element);
+    }
+  }, [onAlternativeSelected, onElementSelected]);
 
   // 隐藏元素
   const hideElement = useCallback(() => {
@@ -268,9 +300,13 @@ export const useElementSelectionManager = (
     handleElementClick,
     handleElementHover,
     confirmSelection,
-  confirmElement,
+    confirmElement,
     hideElement,
     cancelSelection,
+    
+    // 层次功能
+    handleAlternativeSelection,
+    selectAlternative: handleAlternativeSelection, // 别名
     
     // 管理方法
     restoreElement,

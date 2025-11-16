@@ -44,13 +44,21 @@ export const convertUIElementToVisual = (element: UIElement): VisualUIElement =>
  * 转换VisualUIElement到UIElement
  */
 export const convertVisualToUIElement = (element: VisualUIElement): UIElement => {
+  // 🐛 调试：检查转换前后 indexPath 是否保留
+  console.log('🔄 [convertVisualToUIElement] 转换元素:', {
+    id: element.id,
+    text: element.text,
+    hasIndexPath: !!element.indexPath,
+    indexPath: element.indexPath,
+    contentDesc: element.content_desc || element.contentDesc,
+    resourceId: element.resourceId,
+  });
+  
   return {
     id: element.id,
     text: element.text,
-    // 严格保持 content_desc 的“设备XML真实值”语义：
-    // VisualUIElement.description 可能是“未知元素（可点击）”等友好占位，不能回填到 content_desc。
-    // 这里统一置空，由上游在有真实 content-desc 时再赋值。
-    content_desc: '',
+    // 🔥 关键修复：保留原始 content_desc，不要清空！
+    content_desc: element.content_desc || element.contentDesc || '',
     element_type: element.type,
     bounds: {
       left: element.position.x,
@@ -62,8 +70,9 @@ export const convertVisualToUIElement = (element: VisualUIElement): UIElement =>
     is_scrollable: element.scrollable || false,
     is_enabled: element.enabled !== false,
     is_focused: element.focused || false,
-    resource_id: '',
-    class_name: element.type || '',
+    // 🔥 关键修复：保留原始 resource_id 和 className
+    resource_id: element.resourceId || '',
+    class_name: element.className || element.type || '',
     xpath: '',
     parentId: null,
     checkable: false,

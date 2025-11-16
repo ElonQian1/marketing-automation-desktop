@@ -521,6 +521,21 @@ export class XmlPageCacheService {
         xmlContent: xmlContent, 
         enableFiltering: false  // 总是使用false，过滤由ElementFilter模块负责
       });
+      
+      // 🐛 调试：检查后端返回的元素是否有 indexPath
+      console.log('🔍 [parseXmlToElements] 后端返回元素数量:', (elements as any[]).length);
+      const elementsWithIndexPath = (elements as any[]).filter(el => el.indexPath && el.indexPath.length > 0);
+      console.log('🔍 [parseXmlToElements] 有 indexPath 的元素数量:', elementsWithIndexPath.length);
+      if (elementsWithIndexPath.length > 0) {
+        console.log('🔍 [parseXmlToElements] 示例元素 indexPath:', {
+          id: elementsWithIndexPath[0].id,
+          indexPath: elementsWithIndexPath[0].indexPath,
+          text: elementsWithIndexPath[0].text,
+        });
+      } else {
+        console.warn('⚠️ [parseXmlToElements] 后端返回的元素没有 indexPath！');
+      }
+      
       return elements as any[];
     } catch (error) {
       console.error('❌ XML解析失败，使用前端备用解析器:', error);
