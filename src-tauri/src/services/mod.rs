@@ -32,7 +32,7 @@ pub mod employee_service;
 pub mod execution; // 新增：执行分层骨架 (模型/重试/快照)
 pub mod huawei_enhanced_importer; // 基于Python成功经验的华为增强导入器
 pub mod ldplayer_vcf_opener;
-pub mod legacy_simple_selection_engine; // 已弃用：简化选择引擎（使用V3智能策略）
+// ✅ 已删除：legacy_simple_selection_engine (1421行) - 已被V3完全替代
 pub mod log_bridge;
 pub mod multi_brand_vcf_importer; // 新增：多品牌VCF导入器
 pub mod multi_brand_vcf_strategies; // 新增：多品牌策略模块

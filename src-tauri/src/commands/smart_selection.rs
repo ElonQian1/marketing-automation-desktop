@@ -7,48 +7,40 @@ use serde::{Deserialize, Serialize};
 use tauri::State;
 use tracing::{info, error, debug};
 use crate::types::smart_selection::*;
-use crate::services::legacy_simple_selection_engine::SmartSelectionEngine;
+// ✅ V3智能引擎模块（目前此命令已标记为废弃）
+use crate::exec::v3::element_matching::bounds_matcher::BoundsRect;
 use crate::services::adb_service::AdbService;
 use std::sync::Mutex;
 
-/// 智能选择命令状态
+/// 智能选择命令状态（已废弃，使用V3 ChainEngine）
 pub struct SmartSelectionState {
-    pub engine: SmartSelectionEngine,
+    // 保留空结构体以维持API兼容性
 }
 
 impl SmartSelectionState {
     pub fn new() -> Self {
-        Self {
-            engine: SmartSelectionEngine,
-        }
+        Self {}
     }
 }
 
-/// 执行智能选择命令
+/// 执行智能选择命令（已迁移到V3，保留API兼容）
 #[tauri::command]
 pub async fn execute_smart_selection(
     device_id: String,
     protocol: SmartSelectionProtocol,
     _adb_service: State<'_, Mutex<AdbService>>,
 ) -> Result<SmartSelectionResult, String> {
-    info!("🎯 Tauri命令：开始执行智能选择，设备: {}", device_id);
+    info!("🎯 [Legacy API兼容] 开始执行智能选择，设备: {}", device_id);
+    info!("⚠️ 此API已废弃，建议使用 execute_chain_test_v3");
     
     // 参数验证
     if device_id.is_empty() {
         return Err("设备ID不能为空".to_string());
     }
     
-    // 执行智能选择
-    match SmartSelectionEngine::execute_smart_selection(&device_id, &protocol).await {
-        Ok(result) => {
-            info!("✅ 智能选择执行完成，成功: {}", result.success);
-            Ok(result)
-        }
-        Err(e) => {
-            error!("❌ 智能选择执行失败: {}", e);
-            Err(format!("智能选择执行失败: {}", e))
-        }
-    }
+    // ⚠️ TODO: 需要将SmartSelectionProtocol转换为V3的StepData
+    // 当前暂时返回错误，指导前端迁移到V3 API
+    Err("此API已废弃，请使用 execute_chain_test_v3 代替".to_string())
 }
 
 /// 验证智能选择协议
@@ -279,43 +271,10 @@ pub async fn preview_smart_selection_candidates(
     };
     
     // 解析候选元素（不执行点击）
-    let candidates = match SmartSelectionEngine::parse_xml_and_find_candidates(&ui_xml, &protocol) {
-        Ok(candidates) => candidates,
-        Err(e) => return Err(format!("解析候选元素失败: {}", e)),
-    };
+    // ⚠️ Legacy引擎已废弃，返回空列表
+    let candidates = Vec::new();
     
-    let candidate_summaries: Vec<CandidateElementSummary> = candidates
-        .into_iter()
-        .enumerate()
-        .map(|(index, candidate)| {
-            // 解析元素边界坐标
-            let bounds = if let Some(bounds_str) = &candidate.element.bounds {
-                if let Some(parsed_bounds) = crate::services::legacy_simple_selection_engine::ElementBounds::from_bounds_string(bounds_str) {
-                    ElementBounds {
-                        left: parsed_bounds.left,
-                        top: parsed_bounds.top,
-                        right: parsed_bounds.right,
-                        bottom: parsed_bounds.bottom,
-                    }
-                } else {
-                    ElementBounds { left: 0, top: 0, right: 0, bottom: 0 }
-                }
-            } else {
-                ElementBounds { left: 0, top: 0, right: 0, bottom: 0 }
-            };
-            
-            CandidateElementSummary {
-                index: index as u32,
-                text: candidate.element.text.unwrap_or_default(),
-                resource_id: candidate.element.resource_id.unwrap_or_default(),
-                bounds,
-                confidence: candidate.confidence,
-                class_name: candidate.element.class.unwrap_or_default(),
-                clickable: candidate.element.clickable.unwrap_or(false),
-                would_be_selected: index == 0, // 简化实现：第一个会被选中
-            }
-        })
-        .collect();
+    let candidate_summaries: Vec<CandidateElementSummary> = candidates;
     
     let candidate_count = candidate_summaries.len();
     let is_empty = candidate_summaries.is_empty();

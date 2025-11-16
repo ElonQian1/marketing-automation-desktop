@@ -71,6 +71,14 @@ export function useIntelligentStepCardIntegration(
    * 从现有的 child_elements 构建简单的 children 结构
    */
   const buildSimpleChildren = useCallback((element: UIElement): UIElement => {
+    // 🎯 调试：检查 element 是否有 indexPath
+    console.log('🔍 [buildSimpleChildren] 接收到的 element:', {
+      id: element.id,
+      hasIndexPath: !!element.indexPath,
+      indexPath: element.indexPath,
+      indexPathLength: element.indexPath?.length,
+    });
+    
     const enhancedElement = { ...element };
     
     // 🔥 关键：移除原始的 xpath 字段，避免与 elementContext.xpath 冲突
@@ -181,6 +189,10 @@ export function useIntelligentStepCardIntegration(
         class_name: element.class_name,
         bounds: element.bounds,
         element_type: element.element_type,
+        // 🎯 新增：indexPath 检查
+        hasIndexPath: !!element.indexPath,
+        indexPath: element.indexPath,
+        indexPathLength: element.indexPath?.length,
       });
 
       // 🔥 关键修复：获取当前XML内容和哈希

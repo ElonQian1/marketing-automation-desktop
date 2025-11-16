@@ -658,6 +658,7 @@ async fn call_frontend_intelligent_analysis_with_context(
                 ancestors: vec![],
                 children_texts,
                 i18n_variants: None,
+                index_path: None,  // 🔥 从 original_data 中没有 index_path，设为 None
             })
         } else {
             tracing::warn!("⚠️ original_data 中 selected_xpath 为空");

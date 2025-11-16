@@ -59,6 +59,10 @@ pub struct UIElement {
     pub password: bool,             // 前端需要的字段
     pub content_desc: String,       // 保持为必需字段
     
+    // 🔥 关键字段：索引路径，用于精确元素定位
+    #[serde(rename = "indexPath")]
+    pub index_path: Option<Vec<u32>>,  // 从根节点到当前节点的索引路径，如 [0,0,0,5,2]
+    
     // 保留用于内部处理的字段
     pub children: Vec<UIElement>,  // 移除 skip_serializing，允许传递子元素到前端
     #[serde(skip_serializing)]
@@ -161,6 +165,10 @@ impl UniversalUIPageAnalyzer {
         let mut current_depth = 0;
         let mut id_counter = 0;
         
+        // 🔥 关键：维护索引路径栈
+        let mut index_path_stack: Vec<u32> = Vec::new();
+        let mut sibling_count_stack: Vec<u32> = Vec::new();
+        
         loop {
             match reader.read_event_into(&mut buf) {
                 Ok(Event::Start(ref e)) => {
@@ -170,7 +178,20 @@ impl UniversalUIPageAnalyzer {
                         id_counter += 1;
                         let element_id = format!("element_{}", id_counter);
                         
+                        // 🔥 生成当前元素的索引路径
+                        let current_index = sibling_count_stack.last().copied().unwrap_or(0);
+                        let mut current_index_path = index_path_stack.clone();
+                        current_index_path.push(current_index);
+                        
+                        // 递增同级元素计数
+                        if let Some(count) = sibling_count_stack.last_mut() {
+                            *count += 1;
+                        }
+                        
                         if let Ok(mut element) = self.parse_node_attributes(e, &element_id, current_depth) {
+                            // 🔥 设置索引路径
+                            element.index_path = Some(current_index_path.clone());
+                            
                             // 应用智能分类逻辑（基于SmartElementFinderService）
                             element = self.apply_smart_classification(&element, xml_content);
                             
@@ -179,9 +200,18 @@ impl UniversalUIPageAnalyzer {
                                 elements.push(element);
                             }
                         }
+                        
+                        // 🔥 进入子节点：更新栈
+                        index_path_stack.push(current_index);
+                        sibling_count_stack.push(0); // 新层级的第一个子元素索引为0
                     }
                 }
-                Ok(Event::End(_)) => {
+                Ok(Event::End(ref e)) => {
+                    if e.name().as_ref() == b"node" {
+                        // 🔥 退出子节点：恢复栈
+                        index_path_stack.pop();
+                        sibling_count_stack.pop();
+                    }
                     current_depth -= 1;
                 }
                 Ok(Event::Eof) => break,
@@ -198,9 +228,9 @@ impl UniversalUIPageAnalyzer {
         let processed_elements = self.post_process_elements(elements);
         
         if enable_filtering {
-            info!("✅ XML解析完成，提取到 {} 个有价值的UI元素", processed_elements.len());
+            info!("✅ XML解析完成，提取到 {} 个有价值的UI元素（含index_path）", processed_elements.len());
         } else {
-            info!("✅ XML解析完成，提取到 {} 个全部UI元素", processed_elements.len());
+            info!("✅ XML解析完成，提取到 {} 个全部UI元素（含index_path）", processed_elements.len());
         }
         Ok(processed_elements)
     }
@@ -317,6 +347,7 @@ impl UniversalUIPageAnalyzer {
             children: Vec::new(),
             parent: None,
             depth,
+            index_path: None,  // 🔥 初始为 None，在 parse_xml_elements 中设置
         })
     }
 

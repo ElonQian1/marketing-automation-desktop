@@ -15,6 +15,7 @@ pub mod exec;
 pub mod ai;
 pub mod db;
 pub mod engine;
+pub mod matchers;
 pub mod screenshot_service;
 
 // 重新导出常用类型

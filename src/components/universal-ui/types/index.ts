@@ -305,7 +305,9 @@ export const transformUIElement = (element: UIElement): VisualUIElement => {
     selected: element.selected === true,
     element_type: element.element_type,
     is_clickable: element.is_clickable,
-    content_desc: element.content_desc
+    content_desc: element.content_desc,
+    // 🔥 关键修复：保留 indexPath 以支持精确元素定位
+    indexPath: element.indexPath
   };
 
   // 🔧 DEBUG: 输出转换结果，特别关注菜单元素

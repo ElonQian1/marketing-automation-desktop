@@ -7,6 +7,9 @@ use tauri::AppHandle;
 use anyhow::Result;
 use crate::services::ui_reader_service::parse_ui_elements;  // ✅ 导入 UI 解析函数
 use crate::engine::{AnalysisContext, ContainerInfo};  // ✅ 导入分析上下文和容器信息
+use crate::engine::xml_indexer::XmlIndexer;  // 🔥 导入XML索引器
+use crate::domain::structure_runtime_match::scorers::{SubtreeMatcher, LeafContextMatcher, ContextSig};  // 🔥 导入结构匹配评分器
+use crate::domain::structure_runtime_match::ClickNormalizer;  // 🔥 导入点击归一化器
 
 /// 智能分析请求
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -56,6 +59,9 @@ pub struct UserSelectionContext {
     
     /// 国际化变体（如果有）
     pub i18n_variants: Option<Vec<String>>,
+    
+    /// 🔥 索引路径（用于结构匹配评分）
+    pub index_path: Option<Vec<usize>>,
 }
 
 /// 祖先节点信息
@@ -749,14 +755,78 @@ pub async fn mock_intelligent_analysis(
                    analysis_context.content_desc,
                    analysis_context.element_path);
     
-    // 🎯 使用 StrategyEngine 进行完整的 Step 0-6 分析
+    // 🎯 Step 0-2: 结构匹配评分（如果有 index_path）
+    let mut structure_match_scores = Vec::new();
+    if let Some(ref user_selection) = request.user_selection {
+        if let Some(ref index_path) = user_selection.index_path {
+            tracing::info!("🔍 [结构匹配] 开始 Step1-2 评分，index_path: {:?}", index_path);
+            
+            // 构建 XML 索引器
+            match XmlIndexer::build_from_xml(&request.ui_xml_content) {
+                Ok(xml_indexer) => {
+                    // 通过 index_path 找到目标节点
+                    if let Some(clicked_node_idx) = xml_indexer.find_node_by_index_path(index_path) {
+                        tracing::info!("✅ [结构匹配] 找到目标节点: index={}", clicked_node_idx);
+                        
+                        // 推导四节点上下文
+                        let normalizer = ClickNormalizer::new(&xml_indexer);
+                        let clicked_node = &xml_indexer.all_nodes[clicked_node_idx];
+                        
+                        match normalizer.normalize_click(clicked_node.bounds) {
+                            Ok(normalized) => {
+                                let card_root_idx = normalized.card_root.node_index;
+                                let clickable_parent_idx = normalized.clickable_parent.node_index;
+                                
+                                tracing::info!("✅ [结构匹配] 四节点推导完成: card_root={}, clickable_parent={}", 
+                                    card_root_idx, clickable_parent_idx);
+                                
+                                // Step1: 卡片子树评分
+                                let subtree_matcher = SubtreeMatcher::new(&xml_indexer);
+                                let subtree_outcome = subtree_matcher.score_subtree(card_root_idx, clickable_parent_idx);
+                                
+                                tracing::info!("📊 [Step1] 卡片子树评分: {:.3}, 通过闸门: {}", 
+                                    subtree_outcome.conf, subtree_outcome.passed_gate);
+                                
+                                structure_match_scores.push(("card_subtree_scoring", subtree_outcome.conf));
+                                
+                                // Step2: 叶子上下文评分
+                                let leaf_matcher = LeafContextMatcher::new(&xml_indexer);
+                                let leaf_sig = leaf_matcher.build_context_signature(clicked_node_idx, clickable_parent_idx);
+                                let leaf_outcome = leaf_matcher.score_leaf_context(&leaf_sig);
+                                
+                                tracing::info!("📊 [Step2] 叶子上下文评分: {:.3}, 通过闸门: {}", 
+                                    leaf_outcome.conf, leaf_outcome.passed_gate);
+                                
+                                structure_match_scores.push(("leaf_context_scoring", leaf_outcome.conf));
+                            }
+                            Err(e) => {
+                                tracing::warn!("⚠️ [结构匹配] 四节点推导失败: {}", e);
+                            }
+                        }
+                    } else {
+                        tracing::warn!("⚠️ [结构匹配] 通过 index_path 未找到目标节点");
+                    }
+                }
+                Err(e) => {
+                    tracing::warn!("⚠️ [结构匹配] 构建 XML 索引失败: {}", e);
+                }
+            }
+        } else {
+            tracing::info!("ℹ️ [结构匹配] 无 index_path，跳过 Step1-2 评分");
+        }
+    }
+    
+    // 🎯 Step 3-8: 使用 StrategyEngine 进行传统策略分析
     let strategy_engine = StrategyEngine::new();
     let candidate_scores = strategy_engine.score_candidates(&analysis_context);
     
     tracing::warn!("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━");
-    tracing::warn!("🧠 Step 0-6 智能分析完成，生成 {} 个候选策略", candidate_scores.len());
+    tracing::warn!("🧠 智能分析完成，结构匹配: {} 个，传统策略: {} 个", structure_match_scores.len(), candidate_scores.len());
+    for (key, conf) in &structure_match_scores {
+        tracing::warn!("  [结构] {} - 置信度: {:.3}", key, conf);
+    }
     for (i, candidate) in candidate_scores.iter().enumerate() {
-        tracing::warn!("  {}. {} - 置信度: {:.3} ({})", 
+        tracing::warn!("  [传统] {}. {} - 置信度: {:.3} ({})", 
                        i + 1, candidate.name, candidate.confidence, candidate.key);
     }
     tracing::warn!("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━");
@@ -805,7 +875,46 @@ pub async fn mock_intelligent_analysis(
     );
     
     // 🎯 转换 StrategyEngine 结果为 IntelligentAnalysisResult 格式
-    let mut candidates: Vec<StrategyCandidate> = candidate_scores.into_iter()
+    let mut candidates: Vec<StrategyCandidate> = Vec::new();
+    
+    // 🔥 Step1-2: 添加结构匹配评分候选项（优先级最高）
+    for (key, conf) in structure_match_scores {
+        let (name, description) = match key {
+            "card_subtree_scoring" => ("卡片子树评分", "基于卡片结构形态匹配，适用于列表卡片场景"),
+            "leaf_context_scoring" => ("叶子上下文评分", "基于叶子节点上下文匹配，适用于复杂嵌套场景"),
+            _ => (key, "结构匹配策略"),
+        };
+        
+        let mut exec_params = serde_json::json!({
+            "strategy": key,
+            "confidence": conf,
+            "mode": "structure_matching"
+        });
+        
+        // 添加 original_data
+        if let Some(ref original_data) = original_data_from_request {
+            exec_params["original_data"] = original_data.clone();
+        }
+        
+        candidates.push(StrategyCandidate {
+            strategy: key.to_string(),
+            confidence: conf as f64,
+            reasoning: description.to_string(),
+            element_info: ElementInfo {
+                bounds: analysis_context.bounds.clone(),
+                text: analysis_context.element_text.clone(),
+                resource_id: analysis_context.resource_id.clone(),
+                class_name: analysis_context.class_name.clone(),
+                click_point: None,
+            },
+            execution_params: exec_params,
+        });
+        
+        tracing::info!("✅ [候选生成] 添加结构匹配候选: {} - {:.3}", name, conf);
+    }
+    
+    // 🔥 Step3-8: 添加传统策略候选项
+    let traditional_candidates: Vec<StrategyCandidate> = candidate_scores.into_iter()
         .map(|score| {
             // 🔥 构建 execution_params，包含 original_data
             let mut exec_params = serde_json::json!({
@@ -845,6 +954,11 @@ pub async fn mock_intelligent_analysis(
             }
         })
         .collect();
+    
+    // 合并传统策略候选项到总列表
+    candidates.extend(traditional_candidates);
+    
+    tracing::info!("✅ [候选生成] 总计生成 {} 个候选项（结构匹配 + 传统策略）", candidates.len());
     
     // 🎯 填充候选的 bounds 信息（从 XML 中根据 xpath 提取）
     tracing::info!("🔍 [Bounds提取] 开始从 {} 个候选的 xpath 中提取 bounds", candidates.len());
