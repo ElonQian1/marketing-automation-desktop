@@ -61,7 +61,7 @@ impl ElementDeduplicator {
         if let Some(b) = bounds {
             // 计算中心点Y坐标并按容差分桶
             let center_y = b.center().1;
-            let y_bucket = center_y / tolerance;
+            let y_bucket = center_y / tolerance as f32;
 
             // 组合位置和文本作为去重键
             let text_key = element.text.as_deref().unwrap_or("");
