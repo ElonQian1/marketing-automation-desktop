@@ -93,7 +93,11 @@ export const useElementSelectionManager = (
       clickPosition,
       isHidden: isElementHidden(element.id),
       currentPendingSelection: pendingSelection,
-      hierarchyEnabled: enableHierarchy
+      hierarchyEnabled: enableHierarchy,
+      // 🔍 新增：检查indexPath
+      hasIndexPath: !!(element as any).indexPath,
+      indexPath: (element as any).indexPath,
+      indexPathLength: (element as any).indexPath?.length
     });
     
     // 如果元素被隐藏，不处理点击

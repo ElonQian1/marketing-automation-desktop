@@ -12,21 +12,30 @@ import {
   Space, 
   Card,
   Typography,
-  Select 
+  Select,
+  Collapse,
+  Switch,
+  Divider
 } from 'antd';
 import { SettingOutlined } from '@ant-design/icons';
 import type { ActionType, ActionParams } from '../../types/action-types';
 import { getActionConfig } from '../../types/action-types';
+import type { StepActionCommon } from '../../types/stepActions';
+import { DEFAULT_ACTION_COMMON } from '../../types/stepActions';
 import { CoordinateSelector } from './coordinate-selector';
 import type { CoordinateConfig } from './coordinate-selector';
 
 const { Text } = Typography;
 const { TextArea } = Input;
+const { Panel } = Collapse;
 
 interface ActionParamsPanelProps {
   action: ActionType;
   initialParams?: ActionParams; // 🔥 新增：外部传入的初始参数
   onChange: (params: ActionParams) => void;
+  // 🔥 新增：通用执行配置
+  common?: StepActionCommon;
+  onCommonChange?: (common: StepActionCommon) => void;
   size?: 'small' | 'middle' | 'large';
   title?: string;
 }
@@ -35,6 +44,8 @@ export const ActionParamsPanel: React.FC<ActionParamsPanelProps> = ({
   action,
   initialParams,
   onChange,
+  common,
+  onCommonChange,
   size = 'middle',
   title = '操作参数'
 }) => {
@@ -43,6 +54,11 @@ export const ActionParamsPanel: React.FC<ActionParamsPanelProps> = ({
   // 🔥 使用 useState 管理内部参数状态，避免外部循环依赖
   const [params, setParams] = useState<ActionParams>(() => {
     return initialParams || action.params || {};
+  });
+  
+  // 🔥 通用执行配置状态（使用外部传入或默认值）
+  const [commonConfig, setCommonConfig] = useState<StepActionCommon>(() => {
+    return common || DEFAULT_ACTION_COMMON;
   });
 
   // 🔄 使用 useRef 来跟踪上次的外部参数，避免不必要的更新
@@ -76,6 +92,18 @@ export const ActionParamsPanel: React.FC<ActionParamsPanelProps> = ({
     });
     setParams(updatedParams); // 更新内部状态
     onChange(updatedParams);   // 通知外部
+  };
+  
+  // 🔥 更新通用配置
+  const updateCommon = (newCommon: Partial<StepActionCommon>) => {
+    const updatedCommon = { ...commonConfig, ...newCommon };
+    console.log('🔄 [ActionParamsPanel] 通用配置更新:', {
+      oldCommon: commonConfig,
+      newCommon,
+      updatedCommon
+    });
+    setCommonConfig(updatedCommon);
+    onCommonChange?.(updatedCommon);
   };
 
   const renderParamsContent = () => {
@@ -827,6 +855,83 @@ export const ActionParamsPanel: React.FC<ActionParamsPanelProps> = ({
           }}
         >
           {renderParamsContent()}
+          
+          {/* 🔥 新增：高级执行配置 */}
+          <Divider style={{ margin: '12px 0', borderColor: 'rgba(255,255,255,0.1)' }} />
+          
+          <Collapse 
+            ghost
+            className="light-theme-force"
+            style={{ background: 'transparent' }}
+          >
+            <Panel 
+              header={
+                <Text strong style={{ color: 'var(--text-1, #F8FAFC)' }}>
+                  ⚙️ 高级执行配置
+                </Text>
+              } 
+              key="advanced"
+            >
+              <Space direction="vertical" style={{ width: '100%' }} size="small">
+                {/* 选择器优先 */}
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                  <Text style={{ color: 'var(--text-2, #CBD5E1)' }}>选择器优先</Text>
+                  <Switch 
+                    size="small"
+                    checked={commonConfig.useSelector} 
+                    onChange={(v) => updateCommon({ useSelector: v })}
+                  />
+                </div>
+                
+                {/* 坐标兜底 */}
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                  <Text style={{ color: 'var(--text-2, #CBD5E1)' }}>坐标兜底</Text>
+                  <Switch 
+                    size="small"
+                    checked={commonConfig.allowAbsolute} 
+                    onChange={(v) => updateCommon({ allowAbsolute: v })}
+                  />
+                </div>
+                
+                {/* 置信度阈值 */}
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                  <Text style={{ color: 'var(--text-2, #CBD5E1)' }}>置信度阈值</Text>
+                  <InputNumber 
+                    size="small"
+                    min={0.1} 
+                    max={1} 
+                    step={0.05} 
+                    value={commonConfig.confidenceThreshold}
+                    onChange={(v) => updateCommon({ confidenceThreshold: Number(v) || 0.8 })}
+                    style={{ width: 80 }}
+                  />
+                </div>
+                
+                {/* 重试次数 */}
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                  <Text style={{ color: 'var(--text-2, #CBD5E1)' }}>重试次数</Text>
+                  <InputNumber 
+                    size="small"
+                    min={0} 
+                    max={5} 
+                    value={commonConfig.retries}
+                    onChange={(v) => updateCommon({ retries: Number(v) || 1 })}
+                    style={{ width: 60 }}
+                  />
+                </div>
+                
+                {/* 执行后验证 */}
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                  <Text style={{ color: 'var(--text-2, #CBD5E1)' }}>执行后验证</Text>
+                  <Switch 
+                    size="small"
+                    checked={commonConfig.verifyAfter} 
+                    onChange={(v) => updateCommon({ verifyAfter: v })}
+                  />
+                </div>
+              </Space>
+            </Panel>
+          </Collapse>
         </div>
       </Card>
     </>

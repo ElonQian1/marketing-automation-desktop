@@ -66,6 +66,8 @@ interface TauriAnalysisJobConfig {
       item_index?: number;
       total_items?: number;
     };
+    // 🔥 关键修复：添加原始UIElement，用于结构匹配评分
+    original_ui_element?: any; // 使用 any 避免循环依赖
   };
   step_id?: string;
   lock_container: boolean;
@@ -201,6 +203,8 @@ export class IntelligentAnalysisBackendService {
           text: element.text || "",
           class: element.class_name || "",
         },
+        // 🔥🔥🔥 关键修复：传递完整的 UIElement 给后端，用于结构匹配评分
+        original_ui_element: element,
       },
       step_id: stepId,
       lock_container: lockContainer,

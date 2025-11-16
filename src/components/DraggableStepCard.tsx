@@ -35,6 +35,8 @@ import CompactStrategyMenu from "./strategy-selector/CompactStrategyMenu";
 import { TextMatchingInlineControl } from "./text-matching";
 import { ActionParamsPanel } from "./action-system/ActionParamsPanel";
 import type { ActionType, ActionParams } from "../types/action-types";
+import type { StepActionCommon } from "../types/stepActions";
+import { DEFAULT_ACTION_COMMON } from "../types/stepActions";
 // 🎯 执行流控制功能导入
 import { 
   ExecutionFailureStrategy,
@@ -93,6 +95,9 @@ export interface StepParameters {
   class_name?: string;
   resource_id?: string;
   content_desc?: string;
+  
+  // 🔥 新增：通用执行配置
+  common?: StepActionCommon;
 
   // 其他动态参数
   [key: string]: unknown;
@@ -496,6 +501,19 @@ const DraggableStepCardInner: React.FC<
     // 🔑 关键：更新step的实际parameters
     if (onUpdateStepParameters) {
       onUpdateStepParameters(step.id, params as Record<string, unknown>);
+    }
+  };
+  
+  // 🔥 新增：通用配置更新处理函数
+  const handleCommonChange = (common: StepActionCommon) => {
+    console.log('🔄 [DraggableStepCard] 通用配置更新:', { stepId: step.id, common });
+    
+    // 更新到 step.parameters.common
+    if (onUpdateStepParameters) {
+      onUpdateStepParameters(step.id, {
+        ...step.parameters,
+        common
+      });
     }
   };
 
@@ -1342,6 +1360,8 @@ const DraggableStepCardInner: React.FC<
                 action={actionType}
                 initialParams={step.parameters as ActionParams}
                 onChange={handleParametersChange}
+                common={(step.parameters as StepParameters).common || DEFAULT_ACTION_COMMON}
+                onCommonChange={handleCommonChange}
                 size="small"
                 title="操作参数配置"
               />

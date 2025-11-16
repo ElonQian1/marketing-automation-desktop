@@ -30,6 +30,8 @@ interface ElementSelectionContext {
   };
   childrenTexts?: string[];
   childrenContentDescs?: string[]; // 🆕 新增：子元素content-desc列表
+  // 🔥 原始UIElement - 用于策略配置（如结构匹配需要children字段）
+  originalUIElement?: UIElement;
   // 🎯 新增：父子元素提取增强数据（内部使用，不传递给后端）
   _enrichment?: {
     parentContentDesc: string;
@@ -799,6 +801,13 @@ export function useIntelligentStepCardIntegration(
           contentDesc: context.keyAttributes?.["content-desc"],
           textAttr: context.keyAttributes?.["text"],
           resourceId: context.keyAttributes?.["resource-id"],
+          // 🔍 新增：检查originalUIElement是否包含indexPath和children
+          hasOriginalUIElement: !!context.originalUIElement,
+          originalUIElementId: context.originalUIElement?.id,
+          originalUIElementHasIndexPath: !!(context.originalUIElement as any)?.indexPath,
+          originalUIElementIndexPathLength: (context.originalUIElement as any)?.indexPath?.length,
+          originalUIElementHasChildren: !!(context.originalUIElement?.children),
+          originalUIElementChildrenCount: context.originalUIElement?.children?.length,
           // 🚀 新增：智能匹配调试信息
           smartMatching: {
             target: smartMatchingConfig.targetText,

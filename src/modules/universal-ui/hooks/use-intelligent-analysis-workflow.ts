@@ -589,8 +589,9 @@ export function useIntelligentAnalysisWorkflow(): UseIntelligentAnalysisWorkflow
       }
 
       try {
-        // 构建UI元素对象
-        const uiElement = {
+        // 🔥🔥🔥 关键修复：优先使用 context.originalUIElement（包含完整结构信息）
+        // 如果没有，则构建基础UIElement对象
+        const uiElement = context.originalUIElement || {
           id:
             context.keyAttributes?.["resource-id"] || context.elementPath || "",
           xpath: context.elementPath || "",
@@ -634,6 +635,16 @@ export function useIntelligentAnalysisWorkflow(): UseIntelligentAnalysisWorkflow
           selected: false,
           password: false,
         };
+        
+        // 🔍 调试：检查 uiElement 是否包含结构信息
+        console.log('🔍 [Workflow] uiElement 构建结果:', {
+          hasOriginalUIElement: !!context.originalUIElement,
+          uiElementId: uiElement.id,
+          hasIndexPath: !!(uiElement as any).indexPath,
+          indexPathLength: (uiElement as any).indexPath?.length,
+          hasChildren: !!(uiElement as any).children,
+          childrenCount: (uiElement as any).children?.length,
+        });
 
         // ========== V2/V3 智能路由系统 ==========
         // 🚀 根据特性开关和健康状态动态选择执行版本

@@ -187,10 +187,19 @@ export async function executeSharedStructuralScoring(
     console.log(`🔄 [${contextName}] 调用后端评分接口`, {
       xpath: card.elementContext.xpath,
       indexPath: card.staticLocator?.indexPath,
+      indexPathLength: card.staticLocator?.indexPath?.length,
       requestedSteps: steps,
+      xmlLength: xmlResult.xmlContent.length,
     });
     
-    const recommendation = await invoke<RecommendResponse>('recommend_structure_mode_v2', {
+    console.log(`🚀 [${contextName}] 开始调用 recommend_structure_mode_v2...`);
+    
+    // 🎯 添加超时保护（30秒）
+    const timeoutPromise = new Promise<never>((_, reject) => {
+      setTimeout(() => reject(new Error('评分超时（30秒）')), 30000);
+    });
+    
+    const scorePromise = invoke<RecommendResponse>('recommend_structure_mode_v2', {
       input: {
         indexPath: card.staticLocator?.indexPath || null,  // 🎯 优先使用 index_path
         absoluteXpath: card.elementContext.xpath,          // 🔄 回退使用 xpath
@@ -198,8 +207,12 @@ export async function executeSharedStructuralScoring(
         containerXpath: null,
       },
     });
+    
+    const recommendation = await Promise.race([scorePromise, timeoutPromise]);
 
-    console.log(`✅ [${contextName}] 后端返回 ${recommendation.outcomes.length} 个评分结果`);
+    console.log(`✅ [${contextName}] 后端返回 ${recommendation.outcomes.length} 个评分结果`, {
+      outcomes: recommendation.outcomes.map(o => ({ mode: o.mode, conf: o.conf }))
+    });
 
     // 提取请求的步骤评分
     for (const step of steps) {

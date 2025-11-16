@@ -478,6 +478,15 @@ const UniversalPageFinderModal: React.FC<UniversalPageFinderModalProps> = ({
         // 🆕 快速创建步骤卡片回调 - 连接到智能分析工作流
         onQuickCreate={async () => {
           if (selectionManager.pendingSelection?.element) {
+            // 🔍 调试：检查pendingSelection中的元素是否有indexPath
+            console.log('🔍 [UniversalPageFinderModal] pendingSelection.element 检查:', {
+              elementId: selectionManager.pendingSelection.element.id,
+              hasIndexPath: !!(selectionManager.pendingSelection.element as any).indexPath,
+              indexPath: (selectionManager.pendingSelection.element as any).indexPath,
+              indexPathLength: (selectionManager.pendingSelection.element as any).indexPath?.length,
+              elementKeys: Object.keys(selectionManager.pendingSelection.element).slice(0, 30)
+            });
+            
             // 🔥 修复：附加 xmlCacheId 到元素对象
             const enhancedElement = {
               ...selectionManager.pendingSelection.element,
@@ -487,6 +496,9 @@ const UniversalPageFinderModal: React.FC<UniversalPageFinderModalProps> = ({
             console.log('✅ [UniversalPageFinderModal] 附加xmlCacheId到元素:', {
               elementId: enhancedElement.id,
               xmlCacheId: enhancedElement.xmlCacheId,
+              hasIndexPath: !!(enhancedElement as any).indexPath,
+              indexPath: (enhancedElement as any).indexPath,
+              indexPathLength: (enhancedElement as any).indexPath?.length
             });
             
             // 优先使用快速创建回调，如果没有则使用传统的元素选择回调

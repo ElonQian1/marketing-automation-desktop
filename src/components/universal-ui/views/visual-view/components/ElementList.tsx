@@ -57,7 +57,34 @@ export const ElementList: React.FC<ElementListProps> = ({
                 background: 'var(--bg-light-base, #ffffff)',
                 wordBreak: 'break-word'
               }}
-              onClick={e=>{ const clickPosition={x:e.clientX,y:e.clientY}; if(externalSelectionManager){ const uiElement = convertVisualToUIElement(element) as unknown as UIElement; selectionManager.handleElementClick(uiElement, clickPosition);} else { const uiElement = convertedElements.find(el=>el.id===element.id); if (uiElement) selectionManager.handleElementClick(uiElement, clickPosition); } }}
+              onClick={e=>{ 
+                const clickPosition={x:e.clientX,y:e.clientY}; 
+                
+                // 🔍 调试：检查点击的元素是否有indexPath
+                console.log('🖱️ [ElementList] 元素被点击:', {
+                  id: element.id,
+                  hasIndexPath: !!element.indexPath,
+                  indexPath: element.indexPath,
+                  indexPathLength: element.indexPath?.length
+                });
+                
+                if(externalSelectionManager){ 
+                  const uiElement = convertVisualToUIElement(element) as unknown as UIElement;
+                  
+                  // 🔍 调试：检查转换后的元素是否保留indexPath
+                  console.log('🔄 [ElementList] 转换后的UIElement:', {
+                    id: uiElement.id,
+                    hasIndexPath: !!(uiElement as any).indexPath,
+                    indexPath: (uiElement as any).indexPath,
+                    indexPathLength: (uiElement as any).indexPath?.length
+                  });
+                  
+                  selectionManager.handleElementClick(uiElement, clickPosition);
+                } else { 
+                  const uiElement = convertedElements.find(el=>el.id===element.id); 
+                  if (uiElement) selectionManager.handleElementClick(uiElement, clickPosition); 
+                } 
+              }}
               onMouseEnter={e=>{ e.currentTarget.style.borderColor = category?.color || 'var(--brand, #1890ff)'; e.currentTarget.style.boxShadow = `0 2px 8px ${(category?.color||'var(--brand, #1890ff)')}20`; }}
               onMouseLeave={e=>{ e.currentTarget.style.borderColor = 'var(--border-muted, #d9d9d9)'; e.currentTarget.style.boxShadow = 'none'; }}
             >
