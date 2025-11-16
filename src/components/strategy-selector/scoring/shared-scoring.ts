@@ -238,9 +238,56 @@ export async function executeSharedStructuralScoring(
     }
 
   } catch (error) {
-    console.error(`❌ [${contextName}] 评分失败:`, error);
-    message.error(`评分失败: ${error instanceof Error ? error.message : String(error)}`);
-    return false;
+    console.error(`❌ [${contextName}] indexPath评分失败:`, error);
+    
+    // 🔄 回退方案：如果 indexPath 评分超时，尝试只用 xpath 评分
+    if (error instanceof Error && error.message.includes('超时')) {
+      console.warn(`⚠️ [${contextName}] indexPath评分超时，尝试仅使用xpath评分...`);
+      
+      try {
+        const fallbackRecommendation = await invoke<RecommendResponse>('recommend_structure_mode_v2', {
+          input: {
+            indexPath: null,  // 🔄 不使用 indexPath
+            absoluteXpath: card.elementContext.xpath,
+            xmlSnapshot: xmlResult.xmlContent,
+            containerXpath: null,
+          },
+        });
+        
+        console.log(`✅ [${contextName}] xpath回退评分成功，返回 ${fallbackRecommendation.outcomes.length} 个结果`);
+        
+        // 处理回退评分结果
+        for (const step of steps) {
+          const { backendMode, candidateKey, displayName } = MODE_MAP[step];
+          const outcome = fallbackRecommendation.outcomes.find(o => o.mode === backendMode);
+
+          if (outcome && outcome.conf >= 0 && outcome.conf <= 1) {
+            results.push({
+              stepId: candidateKey,
+              confidence: outcome.conf,
+              strategy: `${displayName}评分（${contextName}-xpath回退）`,
+              metrics: {
+                source: `${source}_xpath_fallback`,
+                mode: backendMode,
+                timestamp: Date.now(),
+              }
+            });
+            
+            console.log(`✅ [${contextName}] ${displayName}回退评分完成:`, (outcome.conf * 100).toFixed(1) + '%');
+          }
+        }
+        
+        // xpath回退成功后，继续执行后续逻辑（存储评分结果）
+        
+      } catch (fallbackError) {
+        console.error(`❌ [${contextName}] xpath回退评分也失败:`, fallbackError);
+        message.error(`评分完全失败: ${fallbackError instanceof Error ? fallbackError.message : String(fallbackError)}`);
+        return false;
+      }
+    } else {
+      message.error(`评分失败: ${error instanceof Error ? error.message : String(error)}`);
+      return false;
+    }
   }
 
   // 存储评分结果

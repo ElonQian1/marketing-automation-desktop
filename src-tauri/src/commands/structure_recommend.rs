@@ -89,6 +89,8 @@ pub struct FlexibleRecommendInput {
     pub clickable_parent_node: Option<usize>,
     
     // 方式2: StepCard快照模式
+    /// 🎯 优先: 目标元素的绝对下标链 (性能优化: 直接定位，避免全树遍历)
+    pub index_path: Option<Vec<usize>>,
     pub absolute_xpath: Option<String>,
     pub xml_snapshot: Option<String>,
     pub container_xpath: Option<String>,
@@ -278,7 +280,7 @@ pub async fn recommend_structure_mode_v2(
             // 快照模式:先解析四节点
             info!("📸 [推荐] 使用快照模式 (xpath + xml_snapshot)");
             let resolved = resolve_from_stepcard_snapshot(ResolveFromSnapshotInput {
-                index_path: None,  // TODO: 前端传入 index_path
+                index_path: input.index_path.clone(),  // ✅ 使用前端传来的 index_path（性能优化）
                 absolute_xpath: xpath.clone(),
                 xml_snapshot: xml.clone(),
                 container_xpath: input.container_xpath.clone(),
