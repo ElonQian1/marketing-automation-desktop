@@ -78,7 +78,7 @@ const STRATEGY_TYPES: StrategyTypeOption[] = [
     type: 'smart-auto',
     label: '智能·自动链',
     icon: '🧠',
-    description: 'Step1→Step6 动态决策，自动回退兜底',
+    description: 'Step1→Step8 自动评分+决策+回退',
     color: '#6E8BFF'
   },
   {

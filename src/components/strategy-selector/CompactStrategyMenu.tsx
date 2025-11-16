@@ -304,6 +304,7 @@ const CompactStrategyMenu: React.FC<CompactStrategyMenuProps> = ({
       handleOpenStructuralMatching,
       dataError,
       dataLoading,
+      startAnalysis,
     };
 
     return buildStrategyMenu(menuConfig);
