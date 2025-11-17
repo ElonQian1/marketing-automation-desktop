@@ -42,7 +42,7 @@ pub mod safe_adb_manager;
 pub mod safe_adb_shell; // 新增：安全ADB Shell命令执行器
 pub mod scrcpy_manager;
 pub mod script_execution; // 新增：脚本执行模块（控制流处理系统）
-pub mod script_executor;
+// ✅ 已删除：script_executor (535行) - 基础执行器已被 SmartScriptExecutor 完全替代
 pub mod script_manager; // 新增：智能脚本管理服务
 pub mod smart_app; // 新增：智能应用服务
 pub mod smart_app_manager;

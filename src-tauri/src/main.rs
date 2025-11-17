@@ -75,7 +75,7 @@ use services::diagnostic_service::{
 };
 use services::safe_adb_manager::safe_adb_push;
 use services::safe_adb_shell::safe_adb_shell_command;
-use services::script_executor::validate_device_connection;
+use utils::device_utils::validate_device_connection;
 use services::smart_app_service::{get_device_apps, SmartAppManagerState};
 use services::smart_element_finder_service::{click_detected_element, smart_element_finder};
 use services::smart_vcf_opener::smart_vcf_opener;

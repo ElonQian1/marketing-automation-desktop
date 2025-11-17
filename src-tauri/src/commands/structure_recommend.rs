@@ -296,14 +296,18 @@ pub async fn recommend_structure_mode_v2(
         clicked_node, container_node, card_root_node, clickable_parent_node);
 
     // 1. 获取XML索引器 (快照模式时需要重新构建)
+    info!("🔧 [推荐] 准备获取XML索引器...");
     let xml_indexer_owned;
     let xml_indexer = if let Some(xml_content) = xml_snapshot_opt {
         // 快照模式: 使用快照中的XML重建索引
+        info!("📸 [推荐] 快照模式:重建XML索引 (节点数: ~{})", xml_content.len() / 300);
         xml_indexer_owned = XmlIndexer::build_from_xml(&xml_content)
             .map_err(|e| format!("构建XML索引失败: {}", e))?;
+        info!("✅ [推荐] XML索引重建完成: {} 个节点", xml_indexer_owned.all_nodes.len());
         &xml_indexer_owned
     } else {
         // 传统模式: 使用全局索引器
+        info!("📌 [推荐] 传统模式:使用全局索引器");
         match app.try_state::<XmlIndexer>() {
             Some(indexer) => indexer.inner(),
             None => {
@@ -314,9 +318,12 @@ pub async fn recommend_structure_mode_v2(
     };
 
     // 2. 创建自动推荐服务
+    info!("🔧 [推荐] 创建自动推荐服务...");
     let service = AutoRecommendationService::with_default_config(xml_indexer);
+    info!("✅ [推荐] 自动推荐服务创建完成");
 
     // 3. 生成推荐结果
+    info!("🚀 [推荐] 开始生成推荐结果...");
     let auto_result = service.generate_auto_recommendation(
         clicked_node,
         card_root_node,
@@ -325,6 +332,7 @@ pub async fn recommend_structure_mode_v2(
         error!("❌ [推荐] 生成推荐失败: {}", e);
         format!("生成推荐失败: {}", e)
     })?;
+    info!("✅ [推荐] 推荐结果生成完成");
 
     // 4. 转换为UI友好格式
     let recommended_str = match auto_result.auto_pick_result.recommended {
