@@ -224,21 +224,32 @@ pub async fn resolve_from_stepcard_snapshot(
     info!("✅ [快照解析] 找到目标节点, 索引: {}", clicked_node_idx);
 
     // 3. 使用ClickNormalizer推导四节点
+    info!("🔧 [DEBUG] 创建ClickNormalizer...");
     let normalizer = ClickNormalizer::new(&xml_indexer);
+    info!("🔧 [DEBUG] 获取点击节点: clicked_node_idx={}", clicked_node_idx);
     let clicked_node = &xml_indexer.all_nodes[clicked_node_idx];
+    info!("🔧 [DEBUG] 开始normalize_click, bounds={:?}", clicked_node.bounds);
     let normalized = normalizer.normalize_click(clicked_node.bounds)
         .map_err(|e| {
             error!("❌ [快照解析] 四节点推导失败: {}", e);
             format!("四节点推导失败: {}", e)
         })?;
+    info!("🔧 [DEBUG] normalize_click完成");
     
     // 4. 提取四节点索引
+    info!("🔧 [DEBUG] 开始提取四节点索引...");
+    info!("🔧 [DEBUG] normalized.original_clicked.node_index = {}", normalized.original_clicked.node_index);
+    info!("🔧 [DEBUG] normalized.container.node_index = {}", normalized.container.node_index);
+    info!("🔧 [DEBUG] normalized.card_root.node_index = {}", normalized.card_root.node_index);
+    info!("🔧 [DEBUG] normalized.clickable_parent.node_index = {}", normalized.clickable_parent.node_index);
+    
     let result = ResolvedFourNodes {
         clicked_node: normalized.original_clicked.node_index,
         container_node: normalized.container.node_index,
         card_root_node: normalized.card_root.node_index,
         clickable_parent_node: normalized.clickable_parent.node_index,
     };
+    info!("🔧 [DEBUG] 四节点索引提取完成");
     
     info!("✅ [快照解析] 四节点推导完成: clicked={}, container={}, card_root={}, clickable_parent={}", 
         result.clicked_node, result.container_node, 
@@ -279,14 +290,21 @@ pub async fn recommend_structure_mode_v2(
         } else if let (Some(xpath), Some(xml)) = (&input.absolute_xpath, &xml_snapshot_opt) {
             // 快照模式:先解析四节点
             info!("📸 [推荐] 使用快照模式 (xpath + xml_snapshot)");
+            info!("🔧 [DEBUG] 准备调用 resolve_from_stepcard_snapshot...");
             let resolved = resolve_from_stepcard_snapshot(ResolveFromSnapshotInput {
                 index_path: input.index_path.clone(),  // ✅ 使用前端传来的 index_path（性能优化）
                 absolute_xpath: xpath.clone(),
                 xml_snapshot: xml.clone(),
                 container_xpath: input.container_xpath.clone(),
             }).await?;
-            (resolved.clicked_node, resolved.container_node,
-             resolved.card_root_node, resolved.clickable_parent_node)
+            info!("🔧 [DEBUG] resolve_from_stepcard_snapshot 返回成功");
+            info!("🔧 [DEBUG] 准备解构四节点: clicked={}, container={}, card_root={}, clickable_parent={}", 
+                resolved.clicked_node, resolved.container_node, 
+                resolved.card_root_node, resolved.clickable_parent_node);
+            let result = (resolved.clicked_node, resolved.container_node,
+                         resolved.card_root_node, resolved.clickable_parent_node);
+            info!("🔧 [DEBUG] 四节点解构完成");
+            result
         } else {
             error!("❌ [推荐] 输入参数不完整");
             return Err("必须提供四节点ID 或 xpath+xml_snapshot".to_string());

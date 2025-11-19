@@ -6,7 +6,7 @@ use std::path::Path;
 
 use crate::services::execution::model::SmartScriptStep;
 use crate::services::multi_brand_vcf_importer::MultiBrandVcfImporter;
-use crate::services::vcf_importer::{Contact, VcfImporter};
+use crate::services::vcf_utils::{Contact, generate_vcf_file};
 
 /// 处理 "ContactGenerateVcf" 类型步骤。
 pub async fn run_generate_vcf_step(
@@ -79,7 +79,7 @@ pub async fn run_generate_vcf_step(
                 std::fs::create_dir_all(parent)?;
             }
 
-            match VcfImporter::generate_vcf_file(contacts, &output_path).await {
+            match generate_vcf_file(contacts, &output_path).await {
                 Ok(_) => {
                     logs.push(format!("✅ VCF文件生成成功: {}", output_path));
                     Ok(format!("VCF文件生成成功: {}", output_path))

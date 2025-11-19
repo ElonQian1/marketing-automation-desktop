@@ -49,14 +49,12 @@ pub mod smart_app_manager;
 pub mod smart_app_service;
 pub mod smart_element_finder_service; // 新增：智能元素查找服务
 pub mod smart_script_executor;
-pub mod smart_script_executor_actions; // 公开基础操作实现（点击/滑动/输入/等待等）
+pub mod smart_script_executor_actions; // 公开基础操作实现(点击/滑动/输入/等待等)
 pub mod smart_vcf_opener;
 pub mod ui_reader_service;
 pub mod universal_ui_finder; // Universal UI Finder 核心模块
 pub mod universal_ui_service; // Universal UI Finder 服务桥接
-pub mod vcf_importer;
 pub mod vcf_importer_async;
-pub mod vcf_importer_optimized;
 pub mod vcf_utils; // 新增：VCF 工具函数 // 设备镜像（外部 scrcpy 进程控制）
                    // 注意：util_fs 模块已迁移到 commands/files.rs，避免重复定义
                    // 已移除：xiaohongshu_* 系列模块（自动关注/长连接/服务），按照需求删除

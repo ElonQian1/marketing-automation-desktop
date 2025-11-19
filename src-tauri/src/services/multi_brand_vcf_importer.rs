@@ -347,7 +347,7 @@ impl MultiBrandVcfImporter {
         strategy: &VcfImportStrategy, 
         method: &ImportMethod, 
         vcf_file_path: &str
-    ) -> Result<crate::services::vcf_importer::VcfImportResult> {
+    ) -> Result<crate::services::vcf_utils::VcfImportResult> {
         // 这里将实现具体的导入逻辑
         // 当前先返回一个简化的实现
         
@@ -410,7 +410,7 @@ impl MultiBrandVcfImporter {
             Ok(verification_result) => {
                 if verification_result.success {
                     info!("✅ 验证成功：实际导入 {} 个联系人", verification_result.actual_imported);
-                    Ok(crate::services::vcf_importer::VcfImportResult {
+                    Ok(crate::services::vcf_utils::VcfImportResult {
                         success: true,
                         total_contacts: vcf_contact_count,
                         imported_contacts: verification_result.actual_imported,
