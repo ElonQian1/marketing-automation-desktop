@@ -5,8 +5,7 @@ use std::collections::HashMap;
 use std::path::Path;
 
 use crate::services::execution::model::SmartScriptStep;
-use crate::services::multi_brand_vcf_importer::MultiBrandVcfImporter;
-use crate::services::vcf_utils::{Contact, generate_vcf_file};
+use crate::services::vcf::{MultiBrandVcfImporter, Contact, generate_vcf_file};
 
 /// 处理 "ContactGenerateVcf" 类型步骤。
 pub async fn run_generate_vcf_step(

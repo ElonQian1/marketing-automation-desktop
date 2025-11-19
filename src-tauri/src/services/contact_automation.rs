@@ -4,10 +4,8 @@
 //! 2. 多品牌导入入口
 //! 3. 华为增强导入入口
 
-use crate::services::multi_brand_vcf_importer::MultiBrandVcfImporter;
-use crate::services::multi_brand_vcf_types::MultiBrandImportResult;
+use crate::services::vcf::{MultiBrandVcfImporter, MultiBrandImportResult, Contact, VcfOpenResult, generate_vcf_file as generate_vcf_file_impl};
 use crate::services::huawei_enhanced_importer::{HuaweiEmuiEnhancedStrategy, ImportExecutionResult};
-use crate::services::vcf_utils::{Contact, VcfOpenResult, generate_vcf_file as generate_vcf_file_impl};
 use serde::{Deserialize, Serialize};
 use tracing::{error, info, warn};
 
