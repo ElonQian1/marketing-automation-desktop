@@ -1,34 +1,7 @@
-use crate::services::safe_adb_manager::SafeAdbManager;
+use crate::services::adb::get_device_session;
 use serde::{Deserialize, Serialize};
 use tauri::command;
 use tracing::{info, error};
-use lazy_static::lazy_static;
-use std::sync::Mutex;
-
-// 全局ADB管理器实例，避免重复初始化
-lazy_static! {
-    static ref GLOBAL_ADB: Mutex<Option<SafeAdbManager>> = Mutex::new(None);
-}
-
-/// 获取或初始化全局ADB管理器
-async fn get_global_adb() -> Result<SafeAdbManager, String> {
-    let mut global_adb = GLOBAL_ADB.lock().unwrap();
-    
-    if global_adb.is_none() {
-        info!("🎯 初始化全局ADB管理器");
-        let mut adb = SafeAdbManager::new();
-        
-        // 一次性完成ADB路径查找和验证
-        if let Err(e) = adb.find_safe_adb_path() {
-            return Err(format!("ADB路径不可用: {}", e));
-        }
-        
-        *global_adb = Some(adb);
-        info!("✅ 全局ADB管理器初始化完成");
-    }
-    
-    Ok(global_adb.as_ref().unwrap().clone())
-}
 
 /**
  * 快速UI操作结果
@@ -51,37 +24,23 @@ pub async fn adb_dump_ui_xml(device_id: String) -> Result<String, String> {
     let start_time = std::time::Instant::now();
     info!("🔍 快速抓取UI XML: device={}", device_id);
 
-    // 使用全局ADB管理器，避免重复初始化
-    let safe_adb = get_global_adb().await?;
+    // 获取设备会话
+    let session = get_device_session(&device_id).await
+        .map_err(|e| format!("无法获取设备会话: {}", e))?;
 
     // 执行UI dump
-    let dump_args = vec![
-        "-s", &device_id,
-        "exec-out", "uiautomator", "dump", "/dev/stdout"
-    ];
-
-    match safe_adb.execute_adb_command(&dump_args) {
+    match session.dump_ui().await {
         Ok(output) => {
             let elapsed = start_time.elapsed().as_millis();
             
-            // 检测反自动化保护错误
-            if output.contains("ERROR: could not get idle state") || 
-               output.contains("Timeout") ||
-               output.contains("Permission denied") ||
-               output.contains("Killed") {
-                error!("❌ UI抓取被应用保护机制阻止: {}", output.trim());
-                return Err(format!("应用有反自动化保护（如抖音等），无法获取页面结构：{}", output.trim()));
-            }
-            
             // 验证XML格式
-            let cleaned_xml = clean_ui_dump_output(&output);
-            if cleaned_xml.trim().is_empty() || !cleaned_xml.trim_start().starts_with("<?xml") {
+            if output.trim().is_empty() || !output.trim_start().starts_with("<?xml") {
                 error!("❌ 获取的内容不是有效的XML格式");
                 return Err("获取的页面内容无效，可能是应用保护机制导致".to_string());
             }
             
             info!("✅ UI XML抓取完成: {}ms", elapsed);
-            Ok(cleaned_xml)
+            Ok(output)
         }
         Err(e) => {
             error!("❌ UI XML抓取失败: {}", e);
@@ -100,63 +59,26 @@ pub async fn adb_click_element(
 ) -> Result<bool, String> {
     info!("👆 点击元素: device={}, resource_id={}", device_id, resource_id);
 
-    // 使用全局ADB管理器，避免重复初始化和设备检查
-    let safe_adb = get_global_adb().await?;
+    // 获取设备会话
+    let session = get_device_session(&device_id).await
+        .map_err(|e| format!("无法获取设备会话: {}", e))?;
 
-    // 🚀 极速优化：单次UI抓取 + 直接坐标点击（无备用方案）
-    info!("🎯 使用极速坐标点击（一次抓取，直接点击）");
-    
-    // 一次性抓取UI XML
-    let dump_args = vec![
-        "-s", &device_id,
-        "exec-out", "uiautomator", "dump", "/dev/stdout"
-    ];
+    // 获取UI XML
+    let xml_content = session.dump_ui().await
+        .map_err(|e| format!("获取UI内容失败: {}", e))?;
 
-    let xml_content = match safe_adb.execute_adb_command(&dump_args) {
-        Ok(output) => {
-            // 检测反自动化保护错误
-            if output.contains("ERROR: could not get idle state") || 
-               output.contains("Timeout") ||
-               output.contains("Permission denied") ||
-               output.contains("Killed") {
-                return Err(format!("应用有反自动化保护，无法获取页面结构：{}", output.trim()));
-            }
-            
-            let cleaned = clean_ui_dump_output(&output);
-            if cleaned.trim().is_empty() || !cleaned.trim_start().starts_with("<?xml") {
-                return Err("获取的页面内容无效，可能是应用保护机制导致".to_string());
-            }
-            cleaned
-        }
-        Err(e) => {
-            return Err(format!("获取UI内容失败: {}", e));
-        }
-    };
-
-    // 直接计算坐标并点击
+    // 解析并点击元素
     if let Some((x, y)) = extract_element_coordinates(&xml_content, &resource_id) {
-        info!("� 找到元素坐标: ({}, {})", x, y);
+        info!("📍 找到元素坐标: ({}, {})", x, y);
         
-        // 立即执行点击
-        let x_str = x.to_string();
-        let y_str = y.to_string();
-        let tap_args = vec![
-            "-s", &device_id,
-            "shell", "input", "tap",
-            &x_str, &y_str
-        ];
-
-        match safe_adb.execute_adb_command(&tap_args) {
-            Ok(_) => {
-                info!("✅ 极速坐标点击成功");
-                return Ok(true);
-            }
-            Err(e) => {
-                return Err(format!("坐标点击失败: {}", e));
-            }
-        }
+        // 执行点击
+        session.tap(x, y).await
+            .map_err(|e| format!("坐标点击失败: {}", e))?;
+        
+        info!("✅ 极速坐标点击成功");
+        Ok(true)
     } else {
-        return Err(format!("未找到resource-id为 {} 的可点击元素", resource_id));
+        Err(format!("未找到resource-id为 {} 的可点击元素", resource_id))
     }
 }
 
@@ -171,99 +93,20 @@ pub async fn adb_tap_coordinate(
 ) -> Result<bool, String> {
     info!("🎯 坐标点击: device={}, x={}, y={}", device_id, x, y);
 
-    // 使用全局ADB管理器，跳过重复检查
-    let safe_adb = get_global_adb().await?;
+    // 获取设备会话
+    let session = get_device_session(&device_id).await
+        .map_err(|e| format!("无法获取设备会话: {}", e))?;
 
-    // 直接执行点击，无需重复验证设备
-    let x_str = x.to_string();
-    let y_str = y.to_string();
-    let tap_args = vec![
-        "-s", &device_id,
-        "shell", "input", "tap", 
-        &x_str, &y_str
-    ];
-
-    match safe_adb.execute_adb_command(&tap_args) {
-        Ok(_) => {
-            info!("✅ 坐标点击完成");
-            Ok(true)
-        }
-        Err(e) => {
-            error!("❌ 坐标点击失败: {}", e);
-            Err(format!("坐标点击失败: {}", e))
-        }
-    }
+    // 执行点击
+    session.tap(x, y).await
+        .map_err(|e| format!("坐标点击失败: {}", e))?;
+    
+    info!("✅ 坐标点击完成");
+    Ok(true)
 }
 
 /**
- * 备用方案：通过查找元素坐标然后点击
- */
-async fn try_click_by_coordinates(
-    safe_adb: &mut SafeAdbManager,
-    device_id: &str,
-    resource_id: &str,
-) -> Result<bool, String> {
-    info!("🔄 备用方案：查找元素坐标并点击");
-
-    // 先抓取XML
-    let dump_args = vec![
-        "-s", device_id,
-        "exec-out", "uiautomator", "dump", "/dev/stdout"
-    ];
-
-    let xml_content = match safe_adb.execute_adb_command(&dump_args) {
-        Ok(output) => clean_ui_dump_output(&output),
-        Err(e) => {
-            return Err(format!("获取UI内容失败: {}", e));
-        }
-    };
-
-    // 解析XML找到元素坐标
-    if let Some((x, y)) = extract_element_coordinates(&xml_content, resource_id) {
-        info!("📍 找到元素坐标: ({}, {})", x, y);
-        
-        // 执行点击
-        let x_str = x.to_string();
-        let y_str = y.to_string();
-        let tap_args = vec![
-            "-s", device_id,
-            "shell", "input", "tap",
-            &x_str, &y_str
-        ];
-
-        match safe_adb.execute_adb_command(&tap_args) {
-            Ok(_) => {
-                info!("✅ 备用方案点击成功");
-                Ok(true)
-            }
-            Err(e) => {
-                error!("❌ 备用方案点击失败: {}", e);
-                Err(format!("备用点击失败: {}", e))
-            }
-        }
-    } else {
-        Err(format!("未找到resource-id为 {} 的可点击元素", resource_id))
-    }
-}
-
-/**
- * 清理UI dump输出
- */
-fn clean_ui_dump_output(raw_output: &str) -> String {
-    // 移除可能的提示信息，只保留XML内容
-    if let Some(xml_start) = raw_output.find("<?xml") {
-        raw_output[xml_start..].to_string()
-    } else if let Some(hierarchy_start) = raw_output.find("<hierarchy") {
-        // 有些设备可能直接输出hierarchy
-        format!("<?xml version='1.0' encoding='UTF-8' standalone='yes' ?>{}", &raw_output[hierarchy_start..])
-    } else {
-        // 如果找不到XML标记，返回原始输出
-        raw_output.to_string()
-    }
-}
-
-/**
- * 从XML中提取指定resource-id元素的中心坐标
+ * 从 XML 中提取指定 resource-id 元素的中心坐标
  */
 fn extract_element_coordinates(xml_content: &str, resource_id: &str) -> Option<(i32, i32)> {
     use regex::Regex;

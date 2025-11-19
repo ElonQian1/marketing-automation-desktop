@@ -95,7 +95,7 @@ impl<'a> ClickNormalizer<'a> {
 
     /// 根据bounds找到被点击的节点
     fn find_clicked_node(&self, bounds: (i32, i32, i32, i32)) -> Result<NormalizedNode> {
-        // 首先尝试精确匹配
+        // 1. 首先尝试精确匹配
         for (index, node) in self.xml_indexer.all_nodes.iter().enumerate() {
             if node.bounds == bounds {
                 return Ok(NormalizedNode {
@@ -107,12 +107,51 @@ impl<'a> ClickNormalizer<'a> {
             }
         }
 
-        // 如果精确匹配失败，尝试包含关系匹配（点击在节点内部）
+        // 2. 尝试包含关系匹配（点击在节点内部）
+        // 优先匹配最小的包含节点（最深层的子节点）
+        let mut best_container_index = None;
+        let mut min_area = i32::MAX;
+
         let (left, top, right, bottom) = bounds;
         for (index, node) in self.xml_indexer.all_nodes.iter().enumerate() {
             let (n_left, n_top, n_right, n_bottom) = node.bounds;
             if left >= n_left && top >= n_top && right <= n_right && bottom <= n_bottom {
-                tracing::info!("📍 [ClickNormalizer] 使用包含匹配: 点击{:?} 在节点{:?}内", bounds, node.bounds);
+                let area = (n_right - n_left) * (n_bottom - n_top);
+                if area < min_area && area > 0 {
+                    min_area = area;
+                    best_container_index = Some(index);
+                }
+            }
+        }
+
+        if let Some(index) = best_container_index {
+            let node = &self.xml_indexer.all_nodes[index];
+            tracing::info!("📍 [ClickNormalizer] 使用包含匹配: 点击{:?} 在节点{:?}内", bounds, node.bounds);
+            return Ok(NormalizedNode {
+                node_index: index,
+                element: node.element.clone(),
+                bounds: node.bounds,
+                xpath: node.xpath.clone(),
+            });
+        }
+
+        // 3. 尝试 IOU 匹配 (针对瀑布流等特殊情况放宽阈值)
+        let mut best_iou = 0.0;
+        let mut best_match_index = None;
+
+        for (index, node) in self.xml_indexer.all_nodes.iter().enumerate() {
+            let iou = self.calculate_iou(bounds, node.bounds);
+            if iou > best_iou {
+                best_iou = iou;
+                best_match_index = Some(index);
+            }
+        }
+
+        // 使用宽松阈值 0.1
+        if best_iou > 0.1 {
+            if let Some(index) = best_match_index {
+                let node = &self.xml_indexer.all_nodes[index];
+                tracing::info!("📍 [ClickNormalizer] 使用IOU匹配: IOU={:.2} 点击{:?} 节点{:?}", best_iou, bounds, node.bounds);
                 return Ok(NormalizedNode {
                     node_index: index,
                     element: node.element.clone(),

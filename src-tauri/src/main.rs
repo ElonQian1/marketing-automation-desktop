@@ -73,8 +73,7 @@ use services::device_contact_metrics::get_device_contact_count;
 use services::diagnostic_service::{
     get_adb_path_cmd, get_environment_info, run_full_diagnostic, test_device_responsiveness,
 };
-use services::safe_adb_manager::safe_adb_push;
-use services::safe_adb_shell::safe_adb_shell_command;
+use services::adb::commands::{safe_adb_push, safe_adb_shell_command};
 use utils::device_utils::validate_device_connection;
 use services::smart_app_service::{get_device_apps, SmartAppManagerState};
 use services::smart_element_finder_service::{click_detected_element, smart_element_finder};

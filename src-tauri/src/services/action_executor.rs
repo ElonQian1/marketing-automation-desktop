@@ -4,7 +4,7 @@
 
 use std::time::Instant;
 use crate::types::action_types::*;
-use crate::services::safe_adb_shell::safe_adb_shell_command;
+use crate::services::adb::commands::adb_shell::safe_adb_shell_command;
 
 /// 操作执行器
 pub struct ActionExecutor {

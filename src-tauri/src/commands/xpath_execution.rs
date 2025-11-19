@@ -1,5 +1,6 @@
-use crate::services::safe_adb_manager::SafeAdbManager;
-use crate::services::safe_adb_shell::safe_adb_shell_command;
+use crate::services::adb::commands::adb_shell::safe_adb_shell_command;
+use crate::services::adb::{AdbService, get_device_session};
+use crate::utils::adb_utils;
 use tauri::command;
 use tokio::process::Command as AsyncCommand;
 use tracing::{info, error};
@@ -232,67 +233,23 @@ async fn execute_click(device_id: &str, x: i32, y: i32) -> Result<(), String> {
     Ok(())
 }
 
-/// 安全获取UI dump，使用SafeAdbManager来处理ADB路径
+/// 安全获取UI dump，使用ADB模块处理ADB路径
 async fn get_ui_dump_safe(device_id: &str) -> Result<String, String> {
     info!("📱 正在获取设备 {} 的UI dump...", device_id);
     
-    let mut adb_manager = SafeAdbManager::new();
+    // 获取设备会话
+    let session = get_device_session(device_id).await
+        .map_err(|e| format!("无法获取设备会话: {}", e))?;
     
-    // 查找并获取安全的ADB路径
-    let adb_path = adb_manager.find_safe_adb_path()
-        .map_err(|e| format!("未找到安全的ADB路径: {}", e))?;
-    
-    // 先执行 uiautomator dump 刷新UI dump
-    let mut refresh_cmd = AsyncCommand::new(&adb_path);
-    refresh_cmd.args(&["-s", device_id, "shell", "uiautomator", "dump"]);
-    
-    #[cfg(windows)]
-    {
-        refresh_cmd.creation_flags(0x08000000); // CREATE_NO_WINDOW
-    }
-    
-    let refresh_result = refresh_cmd.output().await;
-    
-    match refresh_result {
-        Ok(output) if output.status.success() => {
-            info!("🔄 UI dump刷新成功");
-        }
-        Ok(output) => {
-            let error = String::from_utf8_lossy(&output.stderr);
-            error!("⚠️ UI dump刷新警告: {}", error);
-        }
-        Err(e) => {
-            error!("⚠️ UI dump刷新失败: {}", e);
-            return Err(format!("UI dump刷新失败: {}", e));
-        }
-    }
-    
-    // 读取UI dump文件内容
-    let mut cat_cmd = AsyncCommand::new(&adb_path);
-    cat_cmd.args(&["-s", device_id, "shell", "cat", "/sdcard/window_dump.xml"]);
-    
-    #[cfg(windows)]
-    {
-        cat_cmd.creation_flags(0x08000000); // CREATE_NO_WINDOW
-    }
-    
-    let cat_result = cat_cmd.output().await;
-    
-    match cat_result {
-        Ok(output) if output.status.success() => {
-            let xml_content = String::from_utf8_lossy(&output.stdout).to_string();
-            if xml_content.trim().is_empty() {
-                return Err("UI dump内容为空".to_string());
-            }
-            info!("✅ 成功获取UI dump，内容长度: {}", xml_content.len());
+    // 使用会话的 dump_ui 方法
+    match session.dump_ui().await {
+        Ok(xml_content) => {
+            info!("✅ UI dump获取成功");
             Ok(xml_content)
         }
-        Ok(output) => {
-            let error = String::from_utf8_lossy(&output.stderr);
-            Err(format!("读取UI dump失败: {}", error))
-        }
         Err(e) => {
-            Err(format!("执行adb命令失败: {}", e))
+            error!("❌ UI dump获取失败: {}", e);
+            Err(format!("UI dump获取失败: {}", e))
         }
     }
 }

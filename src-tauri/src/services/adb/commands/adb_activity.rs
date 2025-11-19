@@ -1,6 +1,7 @@
 use tauri::command;
 use serde::{Deserialize, Serialize};
-use crate::services::safe_adb_manager::SafeAdbManager;
+use crate::services::adb::{AdbService, get_device_session};
+use crate::utils::adb_utils;
 
 #[derive(Debug, Serialize, Deserialize)]
 pub struct AdbActivityResult {
@@ -29,33 +30,34 @@ pub async fn adb_start_activity(
 ) -> Result<AdbActivityResult, String> {
     tracing::info!("🚀 启动Activity: device={}, action={}", device_id, action);
 
-    let mut safe_adb = SafeAdbManager::new();
+    let adb_service = AdbService::new();
+    let adb_path = adb_utils::get_adb_path();
     
-    // 确保找到安全的ADB路径
-    if let Err(e) = safe_adb.find_safe_adb_path() {
+    // 验证ADB路径
+    if !adb_service.validate_adb_path(&adb_path) {
         return Ok(AdbActivityResult {
             success: false,
-            message: format!("无法找到ADB路径: {}", e),
+            message: format!("ADB路径无效: {}", adb_path),
             output: String::new(),
         });
     }
 
-    // 验证设备连接
-    match safe_adb.is_device_online(&device_id) {
-        Ok(false) | Err(_) => {
+    // 验证设备连接（通过获取设备会话）
+    match get_device_session(&device_id).await {
+        Err(_) => {
             return Ok(AdbActivityResult {
                 success: false,
-                message: format!("设备 {} 未连接或检测失败", device_id),
+                message: format!("设备 {} 未连接或无法创建会话", device_id),
                 output: String::new(),
             });
         }
-        Ok(true) => {
-            // 设备在线，继续执行
+        Ok(_session) => {
+            // 设备会话建立成功
         }
     }
 
     // 构建 am start 命令参数
-    let mut cmd_args = vec!["-s".to_string(), device_id.clone(), "shell".to_string(), "am".to_string(), "start".to_string()];
+    let mut cmd_args = vec!["shell".to_string(), "am".to_string(), "start".to_string()];
 
     // 添加 action
     if !action.is_empty() {
@@ -89,9 +91,8 @@ pub async fn adb_start_activity(
 
     tracing::debug!("🔧 ADB命令参数: {:?}", cmd_args);
 
-    // 使用安全ADB执行命令
-    let cmd_args_str: Vec<&str> = cmd_args.iter().map(|s| s.as_str()).collect();
-    match safe_adb.execute_adb_command_async(&cmd_args_str).await {
+    // 使用 ADB 服务执行命令
+    match adb_service.execute_command(&adb_path, &cmd_args) {
         Ok(output) => {
             let success = !output.contains("Error") && !output.contains("error");
             

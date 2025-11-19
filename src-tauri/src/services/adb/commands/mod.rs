@@ -3,6 +3,8 @@
 // 职责：封装 ADB 相关的 Tauri 命令，供前端调用
 
 pub mod adb_activity;
+pub mod adb_shell;
+pub mod adb_file;
 
 // 重新导出公共接口
 pub use adb_activity::{
@@ -10,3 +12,5 @@ pub use adb_activity::{
     StartActivityRequest,
     adb_start_activity,
 };
+pub use adb_shell::safe_adb_shell_command;
+pub use adb_file::safe_adb_push;

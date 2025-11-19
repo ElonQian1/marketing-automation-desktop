@@ -3,3 +3,4 @@
 // summary: 字段/文本细则评分器
 
 pub mod scorer;
+pub mod stable_text;

@@ -31,8 +31,6 @@ pub mod huawei_enhanced_importer; // 基于Python成功经验的华为增强导�
 pub mod log_bridge;
 pub mod vcf; // VCF 导入模块（多品牌策略 + 智能打开器）
 pub mod quick_ui_automation; // 新增：快速UI自动化模块
-pub mod safe_adb_manager;
-pub mod safe_adb_shell; // 新增：安全ADB Shell命令执行器
 pub mod scrcpy_manager;
 pub mod script_execution; // 新增：脚本执行模块（控制流处理系统）
 // ✅ 已删除：script_executor (535行) - 基础执行器已被 SmartScriptExecutor 完全替代
