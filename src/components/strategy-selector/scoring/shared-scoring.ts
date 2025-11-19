@@ -240,9 +240,15 @@ export async function executeSharedStructuralScoring(
   } catch (error) {
     console.error(`❌ [${contextName}] indexPath评分失败:`, error);
     
-    // 🔄 回退方案：如果 indexPath 评分超时，尝试只用 xpath 评分
-    if (error instanceof Error && error.message.includes('超时')) {
-      console.warn(`⚠️ [${contextName}] indexPath评分超时，尝试仅使用xpath评分...`);
+    // 🔄 回退方案：如果 indexPath 评分失败（超时/循环引用/其他错误），尝试只用 xpath 评分
+    const shouldFallback = error instanceof Error && (
+      error.message.includes('超时') || 
+      error.message.includes('循环引用') ||
+      error.message.includes('四节点推导失败')
+    );
+    
+    if (shouldFallback) {
+      console.warn(`⚠️ [${contextName}] indexPath评分失败（${error instanceof Error ? error.message : String(error)}），尝试仅使用xpath评分...`);
       
       try {
         const fallbackRecommendation = await invoke<RecommendResponse>('recommend_structure_mode_v2', {

@@ -128,13 +128,36 @@ impl<'a> ClickNormalizer<'a> {
     /// 向上找最近的滚动容器
     fn find_nearest_container(&self, start_index: usize) -> Result<NormalizedNode> {
         let mut current_index = start_index;
+        let mut visited = std::collections::HashSet::new();
+        let max_depth = 50; // 防止无限循环的最大深度
+        let mut depth = 0;
+
+        tracing::debug!("🔍 [ClickNormalizer] 开始查找容器，起始节点: {}", start_index);
 
         // 向上遍历寻找容器
         loop {
+            depth += 1;
+            
+            // 检查深度限制
+            if depth > max_depth {
+                tracing::error!("❌ [ClickNormalizer] 达到最大深度{}，可能存在循环引用", max_depth);
+                return Err(anyhow!("查找容器超过最大深度，可能存在循环引用"));
+            }
+            
+            // 检查是否已访问过（防止循环）
+            if visited.contains(&current_index) {
+                tracing::error!("❌ [ClickNormalizer] 检测到循环引用: 节点{} 已访问过", current_index);
+                return Err(anyhow!("检测到循环引用，节点索引: {}", current_index));
+            }
+            visited.insert(current_index);
+            
             let current_node = &self.xml_indexer.all_nodes[current_index];
+            tracing::debug!("🔍 [ClickNormalizer] 检查节点{}: class={:?}", 
+                current_index, current_node.element.class);
             
             // 检查是否是容器
             if self.is_scroll_container(&current_node.element) {
+                tracing::info!("✅ [ClickNormalizer] 找到容器 (深度{})", depth);
                 return Ok(NormalizedNode {
                     node_index: current_index,
                     element: current_node.element.clone(),
@@ -145,11 +168,19 @@ impl<'a> ClickNormalizer<'a> {
 
             // 找父节点（通过bounds包含关系）
             match self.find_parent_by_bounds(current_index) {
-                Some(parent_index) => current_index = parent_index,
-                None => break,
+                Some(parent_index) => {
+                    tracing::debug!("🔍 [ClickNormalizer] 向上到父节点: {} -> {}", 
+                        current_index, parent_index);
+                    current_index = parent_index;
+                }
+                None => {
+                    tracing::warn!("⚠️ [ClickNormalizer] 未找到父节点，停止搜索 (深度{})", depth);
+                    break;
+                }
             }
         }
 
+        tracing::error!("❌ [ClickNormalizer] 遍历了{}个节点后未找到滚动容器", depth);
         Err(anyhow!("未找到滚动容器"))
     }
 
@@ -180,7 +211,13 @@ impl<'a> ClickNormalizer<'a> {
 
             let (p_left, p_top, p_right, p_bottom) = node.bounds;
             
-            // 检查是否包含子节点
+            // 🔧 修复：如果bounds完全相同，跳过（避免循环引用）
+            if p_left == c_left && p_top == c_top && p_right == c_right && p_bottom == c_bottom {
+                tracing::debug!("🔍 [ClickNormalizer] 跳过相同bounds的节点: {} 和 {}", index, child_index);
+                continue;
+            }
+            
+            // 检查是否包含子节点（严格包含，不相等）
             if p_left <= c_left && p_top <= c_top && p_right >= c_right && p_bottom >= c_bottom {
                 let area = ((p_right - p_left) as i64) * ((p_bottom - p_top) as i64);
                 
@@ -202,15 +239,37 @@ impl<'a> ClickNormalizer<'a> {
     fn find_card_root_within_container(&self, container_index: usize, clicked_index: usize) -> Result<NormalizedNode> {
         let container_bounds = self.xml_indexer.all_nodes[container_index].bounds;
         let mut current_index = clicked_index;
+        let mut visited = std::collections::HashSet::new();
+        let max_depth = 50;
+        let mut depth = 0;
+
+        tracing::debug!("🔍 [ClickNormalizer] 开始查找卡片根，起始: {}, 容器: {}", 
+            clicked_index, container_index);
 
         // 向上遍历，寻找卡片根
         loop {
+            depth += 1;
+            
+            if depth > max_depth {
+                tracing::error!("❌ [ClickNormalizer] 查找卡片根达到最大深度{}", max_depth);
+                return Err(anyhow!("查找卡片根超过最大深度"));
+            }
+            
+            if visited.contains(&current_index) {
+                tracing::error!("❌ [ClickNormalizer] 查找卡片根时检测到循环: 节点{}", current_index);
+                return Err(anyhow!("查找卡片根时检测到循环引用"));
+            }
+            visited.insert(current_index);
+            
             let current_node = &self.xml_indexer.all_nodes[current_index];
+            tracing::debug!("🔍 [ClickNormalizer] 检查卡片根候选{}: class={:?}, desc={:?}", 
+                current_index, current_node.element.class, current_node.element.content_desc);
             
             // 检查是否是卡片根候选
             if self.is_card_root_candidate(&current_node.element) {
                 // 验证是否在容器内
                 if self.is_node_within_bounds(current_node.bounds, container_bounds) {
+                    tracing::info!("✅ [ClickNormalizer] 找到卡片根 (深度{})", depth);
                     return Ok(NormalizedNode {
                         node_index: current_index,
                         element: current_node.element.clone(),
@@ -223,12 +282,18 @@ impl<'a> ClickNormalizer<'a> {
             // 继续向上
             match self.find_parent_by_bounds(current_index) {
                 Some(parent_index) if parent_index != container_index => {
+                    tracing::debug!("🔍 [ClickNormalizer] 向上查找: {} -> {}", 
+                        current_index, parent_index);
                     current_index = parent_index;
                 }
-                _ => break,
+                _ => {
+                    tracing::warn!("⚠️ [ClickNormalizer] 到达容器或无父节点 (深度{})", depth);
+                    break;
+                }
             }
         }
 
+        tracing::error!("❌ [ClickNormalizer] 遍历{}个节点后未找到卡片根", depth);
         Err(anyhow!("在容器内未找到卡片根"))
     }
 
