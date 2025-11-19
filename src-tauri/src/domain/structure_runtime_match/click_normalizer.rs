@@ -131,23 +131,26 @@ impl<'a> ClickNormalizer<'a> {
         let mut visited = std::collections::HashSet::new();
         let max_depth = 50; // 防止无限循环的最大深度
         let mut depth = 0;
+        
+        // 🎯 收集候选容器（带优先级）
+        let mut container_candidates: Vec<(usize, u8, usize)> = Vec::new(); // (index, priority, depth)
 
         tracing::debug!("🔍 [ClickNormalizer] 开始查找容器，起始节点: {}", start_index);
 
-        // 向上遍历寻找容器
+        // 向上遍历收集所有容器候选
         loop {
             depth += 1;
             
             // 检查深度限制
             if depth > max_depth {
                 tracing::error!("❌ [ClickNormalizer] 达到最大深度{}，可能存在循环引用", max_depth);
-                return Err(anyhow!("查找容器超过最大深度，可能存在循环引用"));
+                break;
             }
             
             // 检查是否已访问过（防止循环）
             if visited.contains(&current_index) {
                 tracing::error!("❌ [ClickNormalizer] 检测到循环引用: 节点{} 已访问过", current_index);
-                return Err(anyhow!("检测到循环引用，节点索引: {}", current_index));
+                break;
             }
             visited.insert(current_index);
             
@@ -155,15 +158,23 @@ impl<'a> ClickNormalizer<'a> {
             tracing::debug!("🔍 [ClickNormalizer] 检查节点{}: class={:?}", 
                 current_index, current_node.element.class);
             
-            // 检查是否是容器
-            if self.is_scroll_container(&current_node.element) {
-                tracing::info!("✅ [ClickNormalizer] 找到容器 (深度{})", depth);
-                return Ok(NormalizedNode {
-                    node_index: current_index,
-                    element: current_node.element.clone(),
-                    bounds: current_node.bounds,
-                    xpath: current_node.xpath.clone(),
-                });
+            // 检查是否是容器并记录优先级
+            let (is_container, priority) = self.get_container_priority(&current_node.element);
+            if is_container {
+                tracing::debug!("📋 [ClickNormalizer] 发现容器候选: index={}, priority={}, depth={}, class={:?}",
+                    current_index, priority, depth, current_node.element.class);
+                container_candidates.push((current_index, priority, depth));
+                
+                // 🎯 如果找到高优先级容器（RecyclerView/GridView/ListView），立即采用就近原则
+                if priority >= 85 {
+                    tracing::info!("✅ [ClickNormalizer] 找到高优先级容器 (深度{}, priority={})", depth, priority);
+                    return Ok(NormalizedNode {
+                        node_index: current_index,
+                        element: current_node.element.clone(),
+                        bounds: current_node.bounds,
+                        xpath: current_node.xpath.clone(),
+                    });
+                }
             }
 
             // 找父节点（通过bounds包含关系）
@@ -174,27 +185,69 @@ impl<'a> ClickNormalizer<'a> {
                     current_index = parent_index;
                 }
                 None => {
-                    tracing::warn!("⚠️ [ClickNormalizer] 未找到父节点，停止搜索 (深度{})", depth);
+                    tracing::debug!("⚠️ [ClickNormalizer] 未找到父节点，停止搜索 (深度{})", depth);
                     break;
                 }
             }
+        }
+        
+        // 🎯 如果没有找到高优先级容器，从候选中选择最优（优先级高 + 深度浅）
+        if !container_candidates.is_empty() {
+            // 按优先级降序、深度升序排序
+            container_candidates.sort_by(|a, b| {
+                b.1.cmp(&a.1).then(a.2.cmp(&b.2))
+            });
+            
+            let (best_index, best_priority, best_depth) = container_candidates[0];
+            let best_node = &self.xml_indexer.all_nodes[best_index];
+            
+            tracing::info!("✅ [ClickNormalizer] 选择最优容器 (深度{}, priority={}, class={:?})",
+                best_depth, best_priority, best_node.element.class);
+            
+            return Ok(NormalizedNode {
+                node_index: best_index,
+                element: best_node.element.clone(),
+                bounds: best_node.bounds,
+                xpath: best_node.xpath.clone(),
+            });
         }
 
         tracing::error!("❌ [ClickNormalizer] 遍历了{}个节点后未找到滚动容器", depth);
         Err(anyhow!("未找到滚动容器"))
     }
 
-    /// 判断是否是滚动容器
-    pub fn is_scroll_container(&self, element: &UIElement) -> bool {
+    /// 判断是否是滚动容器（带优先级）
+    /// 返回 (是否容器, 优先级分数: 0-100)
+    pub fn get_container_priority(&self, element: &UIElement) -> (bool, u8) {
         if let Some(class) = &element.class {
             let class_lower = class.to_lowercase();
-            return class_lower.contains("recyclerview")
-                || class_lower.contains("listview")
-                || class_lower.contains("scrollview")
-                || class_lower.contains("viewpager")
-                || class_lower.contains("gridview");
+            // 🎯 优先级白名单（卡片列表容器）
+            if class_lower.contains("recyclerview") {
+                return (true, 100); // 最高优先级
+            }
+            if class_lower.contains("gridview") {
+                return (true, 90);
+            }
+            if class_lower.contains("listview") {
+                return (true, 85);
+            }
+            if class_lower.contains("scrollview") && !class_lower.contains("nested") {
+                return (true, 70); // 普通滚动容器
+            }
+            if class_lower.contains("nestedscrollview") {
+                return (true, 65);
+            }
+            // ⚠️ ViewPager 是分页容器，不是卡片重复容器，降低优先级
+            if class_lower.contains("viewpager") {
+                return (true, 30); // 低优先级，仅兜底
+            }
         }
-        false
+        (false, 0)
+    }
+    
+    /// 判断是否是滚动容器（兼容旧接口）
+    pub fn is_scroll_container(&self, element: &UIElement) -> bool {
+        self.get_container_priority(element).0
     }
 
     /// 通过bounds包含关系找父节点
@@ -329,35 +382,80 @@ impl<'a> ClickNormalizer<'a> {
         n_left >= c_left && n_top >= c_top && n_right <= c_right && n_bottom <= c_bottom
     }
 
-    /// 找到卡片的可点父
+    /// 找到卡片的可点父（三步法）
+    /// 1. 祖先可点：从卡片根向下查找第一个 clickable=true 的子孙
+    /// 2. 边界差异：要求可点父的 bounds 与卡片根有合理差异
+    /// 3. 兜底降权：如果找不到，允许返回 None（调用方会回退到卡片根但降权）
     fn find_clickable_parent(&self, card_root_index: usize) -> Option<NormalizedNode> {
         let root_bounds = self.xml_indexer.all_nodes[card_root_index].bounds;
+        let (r_left, r_top, r_right, r_bottom) = root_bounds;
         
-        // 查找卡片根的直接子节点
+        // 🎯 步骤1：在卡片根的子孙中查找可点击节点
+        let mut clickable_candidates: Vec<(usize, f32)> = Vec::new();
+        
         for (index, node) in self.xml_indexer.all_nodes.iter().enumerate() {
             if index == card_root_index {
                 continue;
             }
-
-            // 检查是否是直接子节点
-            if self.is_direct_child(card_root_index, index) {
-                // 检查是否是可点击的FrameLayout
-                if let Some(class) = &node.element.class {
-                    if class.ends_with("FrameLayout") && node.element.clickable.unwrap_or(false) {
-                        // 检查bounds重叠度
-                        if self.calculate_iou(root_bounds, node.bounds) > 0.8 {
-                            return Some(NormalizedNode {
-                                node_index: index,
-                                element: node.element.clone(),
-                                bounds: node.bounds,
-                                xpath: node.xpath.clone(),
-                            });
-                        }
-                    }
-                }
+            
+            // 必须是卡片根的子孙（被包含）
+            let (n_left, n_top, n_right, n_bottom) = node.bounds;
+            if n_left < r_left || n_top < r_top || n_right > r_right || n_bottom > r_bottom {
+                continue;
+            }
+            
+            // 必须可点击
+            if !node.element.clickable.unwrap_or(false) {
+                continue;
+            }
+            
+            // 🎯 步骤2：边界差异校验（避免同bounds或几乎同bounds）
+            let bounds_diff = {
+                let left_diff = (n_left - r_left).abs();
+                let top_diff = (n_top - r_top).abs();
+                let right_diff = (n_right - r_right).abs();
+                let bottom_diff = (n_bottom - r_bottom).abs();
+                (left_diff + top_diff + right_diff + bottom_diff) as f32
+            };
+            
+            // 如果bounds完全相同或差异小于10像素，跳过
+            if bounds_diff < 10.0 {
+                tracing::debug!("🔍 [ClickNormalizer] 跳过边界差异过小的可点节点: {} (diff={})",
+                    index, bounds_diff);
+                continue;
+            }
+            
+            // 计算IOU（重叠度）作为评分依据
+            let iou = self.calculate_iou(root_bounds, node.bounds);
+            
+            tracing::debug!("📋 [ClickNormalizer] 发现可点父候选: index={}, iou={:.2}, bounds_diff={}",
+                index, iou, bounds_diff);
+            
+            clickable_candidates.push((index, iou));
+        }
+        
+        // 选择IOU最高的（最贴合卡片根的可点击节点）
+        if !clickable_candidates.is_empty() {
+            clickable_candidates.sort_by(|a, b| b.1.partial_cmp(&a.1).unwrap());
+            let (best_index, best_iou) = clickable_candidates[0];
+            
+            // IOU必须 > 0.5 才认为是有效的可点父
+            if best_iou > 0.5 {
+                let best_node = &self.xml_indexer.all_nodes[best_index];
+                tracing::info!("✅ [ClickNormalizer] 找到可点父: index={}, iou={:.2}, class={:?}",
+                    best_index, best_iou, best_node.element.class);
+                
+                return Some(NormalizedNode {
+                    node_index: best_index,
+                    element: best_node.element.clone(),
+                    bounds: best_node.bounds,
+                    xpath: best_node.xpath.clone(),
+                });
             }
         }
-
+        
+        // 🎯 步骤3：兜底 - 返回None，让调用方回退到卡片根（但会在评分时降权）
+        tracing::debug!("⚠️ [ClickNormalizer] 未找到有效可点父（将回退到卡片根）");
         None
     }
 

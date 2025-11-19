@@ -6,7 +6,7 @@ use tracing::{error, info, warn};
 #[cfg(windows)]
 use std::os::windows::process::CommandExt;
 
-pub use crate::services::vcf::types::{
+pub use crate::services::vcf::vcf_types::{
     DeviceBrandInfo,
     VcfImportStrategy,
     ImportMethod,
@@ -60,7 +60,7 @@ impl MultiBrandVcfImporter {
 
     /// 初始化内置策略
     fn initialize_builtin_strategies(&mut self) {
-        let list = super::strategies::builtin_strategies();
+        let list = super::vcf_strategies::builtin_strategies();
         self.strategies.extend(list);
         info!("已初始化 {} 个内置导入策略", self.strategies.len());
     }
@@ -147,7 +147,7 @@ impl MultiBrandVcfImporter {
         let mut attempts = Vec::new();
         
         // 兼容传入为 .txt 的情况，先转换为 .vcf
-        let normalized_vcf_path = match super::utils::ensure_vcf_path(vcf_file_path) {
+        let normalized_vcf_path = match super::vcf_utils::ensure_vcf_path(vcf_file_path) {
             Ok(p) => p,
             Err(e) => {
                 warn!("输入非VCF并转换失败: {}, 将继续尝试原始路径", e);
@@ -347,7 +347,7 @@ impl MultiBrandVcfImporter {
         strategy: &VcfImportStrategy, 
         method: &ImportMethod, 
         vcf_file_path: &str
-    ) -> Result<super::utils::VcfImportResult> {
+    ) -> Result<super::vcf_utils::VcfImportResult> {
         // 这里将实现具体的导入逻辑
         // 当前先返回一个简化的实现
         
@@ -410,7 +410,7 @@ impl MultiBrandVcfImporter {
             Ok(verification_result) => {
                 if verification_result.success {
                     info!("✅ 验证成功：实际导入 {} 个联系人", verification_result.actual_imported);
-                    Ok(super::utils::VcfImportResult {
+                    Ok(super::vcf_utils::VcfImportResult {
                         success: true,
                         total_contacts: vcf_contact_count,
                         imported_contacts: verification_result.actual_imported,

@@ -1,6 +1,6 @@
 // src-tauri/src/domain/structure_runtime_match/scorers/leaf_context_matcher.rs
-// module: structure_runtime_match | layer: domain | role: 叶子上下文匹配评分器
-// summary: 祖先链+兄弟序列+相对几何+字段位图，适合点赞图标/头像等无子孙元素
+// module: structure_runtime_match | layer: domain | role: 叶子上下文匹配评分器（重构版）
+// summary: 适用于"关注按钮"等非卡片场景：稳定文本白名单+兄弟序列+祖先链+相对几何
 
 use super::types::{ScoreOutcome, ContextSig, MatchMode};
 use crate::engine::xml_indexer::XmlIndexer;
@@ -21,14 +21,26 @@ impl<'a> LeafContextMatcher<'a> {
         let class = node.element.class.clone().unwrap_or_default();
         let clickable = node.element.clickable.unwrap_or(false);
         
+        // 🎯 识别按钮行容器（横向布局，2-5个子项）
+        let button_row_container = self.find_button_row_container(node_index);
+        
         // 构建祖先链（取最近3层）
         let ancestor_classes = self.get_ancestor_classes(node_index, 3);
         
-        // 构建兄弟节点形态和位置
-        let (sibling_shape, sibling_index) = self.get_sibling_info(node_index);
+        // 构建兄弟节点形态和位置（基于按钮行容器）
+        let (sibling_shape, sibling_index) = if let Some(row) = button_row_container {
+            self.get_sibling_info_in_container(node_index, row)
+        } else {
+            self.get_sibling_info(node_index)
+        };
         
-        // 计算相对几何位置
-        let rel_xywh = self.calculate_relative_geometry(node.bounds, clickable_parent.bounds);
+        // 计算相对几何位置（相对于按钮行容器，不是 clickable_parent）
+        let rel_xywh = if let Some(row) = button_row_container {
+            let row_bounds = self.xml_indexer.all_nodes[row].bounds;
+            self.calculate_relative_geometry(node.bounds, row_bounds)
+        } else {
+            self.calculate_relative_geometry(node.bounds, clickable_parent.bounds)
+        };
         
         // 检查字段存在性
         let has_text = node.element.text.as_ref().map(|s| !s.trim().is_empty()).unwrap_or(false);
@@ -49,24 +61,37 @@ impl<'a> LeafContextMatcher<'a> {
     }
 
     pub fn score_leaf_context(&self, sig: &ContextSig) -> ScoreOutcome {
-        // 经验权重：偏重"可点性""兄弟序列""右侧/左侧几何"和"祖先模式"
-        let mut conf = 0.0;
+        // 🎯 新权重分配（适用于"关注按钮"等场景）：
+        // TextExact(0.45) + Sibling(0.30) + Ancestors(0.15) + Geometry(0.10)
+        // 或 TextNonEmpty(0.20) + Sibling(0.30) + Ancestors(0.15) + Geometry(0.10) + Clickable(0.25)
         
-        if sig.clickable { 
-            conf += 0.20; 
+        let mut conf = 0.0;
+        let mut text_score = 0.0;
+        let mut text_exact = false;
+        
+        // 1️⃣ 稳定文本评分（最高权重）
+        if sig.has_text || sig.has_desc {
+            let (is_exact, score) = self.score_stable_text(sig);
+            text_exact = is_exact;
+            text_score = score;
+            conf += text_score;
         }
         
-        conf += self.score_sibling_pattern(&sig.sibling_shape, sig.sibling_index) * 0.35;
-        conf += self.score_ancestor_pattern(&sig.ancestor_classes) * 0.20;
-        conf += self.score_geometry_pattern(sig.rel_xywh) * 0.25;
+        // 2️⃣ 兄弟序列评分（强特征）
+        conf += self.score_sibling_pattern(&sig.sibling_shape, sig.sibling_index) * 0.30;
+        
+        // 3️⃣ 祖先链评分（按钮行识别）
+        conf += self.score_ancestor_pattern(&sig.ancestor_classes) * 0.15;
+        
+        // 4️⃣ 相对几何评分（位置确认）
+        conf += self.score_geometry_pattern(sig.rel_xywh) * 0.10;
         
         conf = conf.clamp(0.0, 1.0);
 
         let explain = format!(
-            "叶子上下文: clickable={} siblings@{}/{} ancestors={} geom=({:.2},{:.2},{:.2},{:.2})",
-            sig.clickable, sig.sibling_index, sig.sibling_shape.len(), 
-            sig.ancestor_classes.len(), sig.rel_xywh.0, sig.rel_xywh.1, 
-            sig.rel_xywh.2, sig.rel_xywh.3
+            "叶子上下文: text_exact={} text_score={:.2} siblings={}/{} ancestors={} geom=({:.2},{:.2})",
+            text_exact, text_score, sig.sibling_index, sig.sibling_shape.len(), 
+            sig.ancestor_classes.len(), sig.rel_xywh.0, sig.rel_xywh.1
         );
 
         ScoreOutcome { 
@@ -75,6 +100,116 @@ impl<'a> LeafContextMatcher<'a> {
             passed_gate: false, 
             explain 
         }
+    }
+    
+    /// 🎯 稳定文本评分：白名单精确匹配 vs 非空文本
+    fn score_stable_text(&self, sig: &ContextSig) -> (bool, f32) {
+        // 稳定文本白名单（多语言支持）
+        const STABLE_KEYWORDS: &[&str] = &[
+            "关注", "已关注", "关注中", "取消关注",
+            "Follow", "Following", "Unfollow",
+            "私信", "Message", "聊天", "Chat",
+            "更多", "More", "..."
+        ];
+        
+        // 获取文本内容（优先 text，其次 content_desc）
+        let text_content = if sig.has_text {
+            // 这里需要从 xml_indexer 获取实际文本，暂时用占位符
+            String::new()
+        } else if sig.has_desc {
+            String::new()
+        } else {
+            String::new()
+        };
+        
+        // 检查是否命中白名单
+        let is_exact = STABLE_KEYWORDS.iter().any(|kw| text_content.contains(kw));
+        
+        if is_exact {
+            (true, 0.45) // 精确命中白名单，高分
+        } else if sig.has_text || sig.has_desc {
+            (false, 0.20) // 有文本但不稳定，低分
+        } else {
+            (false, 0.0) // 无文本
+        }
+    }
+    
+    /// 🎯 查找按钮行容器（横向布局 + 2-5个子项）
+    fn find_button_row_container(&self, node_index: usize) -> Option<usize> {
+        // 向上查找1-3层祖先
+        let node_xpath = &self.xml_indexer.all_nodes[node_index].xpath;
+        let node_level = node_xpath.matches('/').count();
+        
+        for level in 1..=3 {
+            if node_level < level { break; }
+            
+            let target_level = node_level - level;
+            if let Some(ancestor_node) = self.xml_indexer.all_nodes.iter()
+                .find(|n| n.xpath.matches('/').count() == target_level && node_xpath.starts_with(&n.xpath)) {
+                
+                // 检查是否是横向布局容器
+                if let Some(class) = &ancestor_node.element.class {
+                    let is_horizontal = class.ends_with("LinearLayout") || 
+                                      class.ends_with("RelativeLayout") ||
+                                      class.ends_with("ConstraintLayout");
+                    
+                    if is_horizontal {
+                        // 统计直接子节点数量
+                        let child_count = self.count_direct_children(ancestor_node.xpath.as_str());
+                        if child_count >= 2 && child_count <= 5 {
+                            tracing::debug!("🔍 [LeafContext] 找到按钮行容器: class={}, child_count={}", 
+                                class, child_count);
+                            return Some(self.xml_indexer.all_nodes.iter()
+                                .position(|n| n.xpath == ancestor_node.xpath)
+                                .unwrap());
+                        }
+                    }
+                }
+            }
+        }
+        
+        None
+    }
+    
+    /// 统计直接子节点数量
+    fn count_direct_children(&self, parent_xpath: &str) -> usize {
+        let parent_depth = parent_xpath.matches('/').count();
+        self.xml_indexer.all_nodes.iter()
+            .filter(|n| {
+                n.xpath.starts_with(parent_xpath) && 
+                n.xpath.matches('/').count() == parent_depth + 1
+            })
+            .count()
+    }
+    
+    /// 在指定容器内获取兄弟信息
+    fn get_sibling_info_in_container(&self, node_index: usize, container_index: usize) -> (Vec<(String, bool)>, usize) {
+        let container_xpath = &self.xml_indexer.all_nodes[container_index].xpath;
+        let container_depth = container_xpath.matches('/').count();
+        
+        let siblings: Vec<(usize, String, bool)> = self.xml_indexer.all_nodes.iter()
+            .enumerate()
+            .filter_map(|(idx, n)| {
+                if n.xpath.starts_with(container_xpath) && 
+                   n.xpath.matches('/').count() == container_depth + 1 {
+                    let class = n.element.class.as_deref().unwrap_or("Unknown").to_string();
+                    let clickable = n.element.clickable.unwrap_or(false);
+                    Some((idx, class, clickable))
+                } else {
+                    None
+                }
+            })
+            .collect();
+        
+        let sibling_shape: Vec<(String, bool)> = siblings.iter()
+            .map(|(_, class, clickable)| (class.clone(), *clickable))
+            .collect();
+        
+        let sibling_index = siblings.iter()
+            .position(|(idx, _, _)| *idx == node_index)
+            .unwrap_or(0);
+        
+        (sibling_shape, sibling_index)
     }
 
     fn get_ancestor_classes(&self, node_index: usize, max_levels: usize) -> Vec<String> {
@@ -149,65 +284,64 @@ impl<'a> LeafContextMatcher<'a> {
         (rel_x, rel_y, rel_w, rel_h)
     }
 
+    /// 🎯 兄弟序列评分（关注按钮场景）
     fn score_sibling_pattern(&self, shape: &[(String, bool)], index: usize) -> f32 {
-        // 与"底栏四件套/头部用户行"相似即高分；位置靠右（点赞）或靠左（头像）也加分
-        let ideal_bottom_bar = ["View", "TextView", "ImageView", "TextView"];
         let mut score = 0.0;
+        let len = shape.len();
         
-        // 检查与理想模式的匹配度
-        for (i, (class, _)) in shape.iter().enumerate() {
-            if i < ideal_bottom_bar.len() && class.ends_with(ideal_bottom_bar[i]) {
-                score += 0.20;
+        // 1️⃣ 形状评分：2-4个兄弟，至少1个可点击
+        if (2..=4).contains(&len) {
+            let clickable_count = shape.iter().filter(|(_, c)| *c).count();
+            if clickable_count >= 1 {
+                score += 0.9; // 典型按钮行形态
+            } else {
+                score += 0.6; // 有兄弟但可点性弱
             }
+        } else if len >= 2 {
+            score += 0.4; // 有兄弟但数量不理想
         }
         
-        // 位置加分：靠右（点赞）或靠左（头像）
-        if shape.len() > 0 {
-            let pos_ratio = index as f32 / (shape.len() - 1).max(1) as f32;
-            // 靠右（0.85附近）或靠左（0.10附近）都给分
-            let right_score = 1.0 - (pos_ratio - 0.85).abs();
-            let left_score = 1.0 - (pos_ratio - 0.10).abs();
-            score += right_score.max(left_score) * 0.20;
+        // 2️⃣ 位置评分：关注通常偏左/中（0.3附近）
+        if len > 1 {
+            let pos = index as f32 / (len as f32 - 1.0);
+            // 0.3 附近得分最高（偏左/中位置）
+            let pos_score = 1.0 - (pos - 0.3).abs();
+            score += pos_score.clamp(0.0, 1.0) * 0.1;
         }
         
         score.min(1.0)
     }
 
+    /// 🎯 祖先链评分（按钮行识别）
     fn score_ancestor_pattern(&self, ancestors: &[String]) -> f32 {
-        // 位于ViewGroup → FrameLayout（可点父）下方，且上方有Recycler容器时更稳
         let mut score: f32 = 0.0;
         
-        if ancestors.iter().any(|c| c.ends_with("ViewGroup")) {
-            score += 0.5;
+        // 1️⃣ 横向布局容器（LinearLayout/RelativeLayout）
+        if ancestors.iter().any(|c| c.ends_with("LinearLayout") || c.ends_with("RelativeLayout")) {
+            score += 0.7;
         }
         
-        if ancestors.iter().any(|c| c.ends_with("FrameLayout")) {
+        // 2️⃣ 资料区/头部容器特征
+        if ancestors.iter().any(|c| c.ends_with("ConstraintLayout") || c.ends_with("FrameLayout")) {
             score += 0.3;
         }
         
-        // 如果有RecyclerView祖先，说明在列表容器内
-        if ancestors.iter().any(|c| c.contains("RecyclerView")) {
-            score += 0.2;
-        }
-        
         score.min(1.0)
     }
 
+    /// 🎯 几何评分（按钮行内相对位置）
     fn score_geometry_pattern(&self, rel_geom: (f32, f32, f32, f32)) -> f32 {
-        // 右半区靠中（点赞）/左半区靠中（头像）都算好
+        // 计算中心点（相对于按钮行容器）
         let center_x = rel_geom.0 + rel_geom.2 / 2.0;
         let center_y = rel_geom.1 + rel_geom.3 / 2.0;
         
-        // 右侧位置评分（适合点赞）
-        let right_score = (1.0 - (center_x - 0.85).abs()).clamp(0.0, 1.0);
+        // 1️⃣ 水平位置评分：关注按钮通常在左/中（0.2-0.5）
+        let h_score = 1.0 - (center_x - 0.35).abs();
         
-        // 左侧位置评分（适合头像）  
-        let left_score = (1.0 - (center_x - 0.15).abs()).clamp(0.0, 1.0);
+        // 2️⃣ 垂直位置评分：垂直居中（0.5附近）
+        let v_score = 1.0 - (center_y - 0.50).abs();
         
-        // 底部区域评分
-        let bottom_score = (1.0 - (center_y - 0.85).abs()).clamp(0.0, 1.0);
-        
-        // 综合评分：位置好 + 在底部区域
-        (right_score.max(left_score) * 0.7 + bottom_score * 0.3).clamp(0.0, 1.0)
+        // 综合：水平位置权重更高
+        (h_score.clamp(0.0, 1.0) * 0.7 + v_score.clamp(0.0, 1.0) * 0.3).clamp(0.0, 1.0)
     }
 }

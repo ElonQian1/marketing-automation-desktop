@@ -1,5 +1,5 @@
 use std::collections::HashMap;
-use crate::services::vcf::types::{
+use crate::services::vcf::vcf_types::{
     VcfImportStrategy, ImportMethod, ImportStep, ImportStepType, VerificationMethod, VerificationType,
 };
 

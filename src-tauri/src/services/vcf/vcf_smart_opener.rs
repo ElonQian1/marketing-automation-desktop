@@ -1,6 +1,6 @@
 use serde::{Deserialize, Serialize};
 use tokio::process::Command as AsyncCommand;
-use crate::services::vcf::utils::VcfOpenResult;
+use crate::services::vcf::vcf_utils::VcfOpenResult;
 
 /// 基于实时UI状态的智能VCF打开器
 /// 根据当前屏幕内容自动执行正确的操作

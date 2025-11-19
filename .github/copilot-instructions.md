@@ -6,29 +6,81 @@
 
 ## TL;DR
 
-- **目标**：保持"模块优先 + 模块内分层"，避免因同名子目录（如 strategies/services/utils/…）误改他模组。
-- **四件套**：命名前缀 · 门牌导出(index.ts) · 路径别名 · 三行文件头。
-- **唯一硬底线**：`domain` 不得 import `ui/services/api/hooks/pages`。
+- **目标**：保持"模块优先 + 模块内分层"，避免因同名文件（如 strategies/types/utils）误改他模组。
+- **核心原则**：模块前缀 + 文件夹结构 + 统一导出。
+- **硬底线**：`domain` 不得 import `ui/services/api/hooks/pages`。
 
 ---
 
-## 1) 项目结构（模块内分层）
+## 📁 模块化组织原则
 
+### Rust 后端模块结构
+
+**标准目录结构：**
+```
+src/services/<module>/           # 每个功能模块独立文件夹
+  ├── mod.rs                      # 统一导出接口
+  ├── <module>_core.rs            # 核心逻辑（带模块前缀）
+  ├── <module>_types.rs           # 类型定义（带模块前缀）
+  ├── <module>_strategies.rs     # 策略实现（带模块前缀）
+  └── <module>_utils.rs           # 工具函数（带模块前缀）
+```
+
+**✅ 正确示例：**
+```
+src/services/vcf/                 # VCF 导入模块
+  ├── mod.rs                      
+  ├── vcf_importer.rs             # ✅ 带 vcf_ 前缀
+  ├── vcf_types.rs                # ✅ 带 vcf_ 前缀
+  ├── vcf_strategies.rs           # ✅ 带 vcf_ 前缀
+  └── vcf_utils.rs                # ✅ 带 vcf_ 前缀
+
+src/services/prospecting/         # 精准获客模块
+  ├── mod.rs
+  ├── prospecting_engine.rs       # ✅ 带 prospecting_ 前缀
+  └── prospecting_types.rs        # ✅ 带 prospecting_ 前缀
+```
+
+**❌ 错误示例（会导致搜索混乱）：**
+```
+src/services/vcf/
+  ├── importer.rs                 # ❌ 太通用，无法精准搜索
+  ├── types.rs                    # ❌ 项目中已有10+个同名文件
+  ├── strategies.rs               # ❌ 无法区分是哪个模块的策略
+  └── utils.rs                    # ❌ 太通用
+
+# 或者更糟糕的平铺式：
+src/services/
+  ├── vcf_importer.rs             # ❌ 没有文件夹层级
+  ├── vcf_types.rs                # ❌ 污染顶层命名空间
+  ├── vcf_strategies.rs           # ❌ services/mod.rs 需要逐个声明
+```
+
+**services/mod.rs 声明方式：**
+```rust
+// ✅ 正确：单行声明
+pub mod vcf;           // VCF 导入模块
+pub mod prospecting;   // 精准获客模块
+
+// ❌ 错误：逐个文件声明（污染命名空间）
+pub mod vcf_importer;
+pub mod vcf_types;
+pub mod vcf_strategies;
+pub mod vcf_utils;
+```
+
+---
+
+## 2) TypeScript 前端命名前缀
+
+**仅对易重名子目录的文件/类型启用前缀**：
+
+### TypeScript 项目结构
 ```
 src/modules/<module>/{domain,application,services,api,stores,hooks,ui,pages}/
 ```
 
 示例模块：`prospecting`（精准获客）、`script-builder`（智能脚本）、`contact-import`、`adb`。
-
----
-
-## 2) 命名前缀（解决"同名子目录"误改）
-
-**仅对易重名子目录的文件/类型启用前缀**（目录名可不变）：
-
-- 目录：`domain/strategies`, `services`, `utils`, `validators`, `adapters`, `pipelines`, `mappers`, `repositories` …
-- 模块 → 前缀：
-  - `prospecting` → 文件：`prospecting-…`，类型：`Prospecting…`
   - `script-builder` → `script-…`，`Script…`
   - `contact-import` → `contact-…`，`Contact…`
   - `adb` → `adb-…`，`Adb…`
