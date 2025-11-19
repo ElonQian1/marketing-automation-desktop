@@ -29,6 +29,15 @@ pub struct VcfImportResult {
     pub duration: Option<u64>,
 }
 
+/// VCF打开/导入操作结果 (通用结构)
+#[derive(Debug, Serialize, Deserialize)]
+pub struct VcfOpenResult {
+    pub success: bool,
+    pub message: String,
+    pub details: Option<String>,
+    pub steps_completed: Vec<String>,
+}
+
 // ==================== 工具函数 ====================
 
 /// 生成VCF文件

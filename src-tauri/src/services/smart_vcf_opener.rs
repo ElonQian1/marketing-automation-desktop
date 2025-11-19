@@ -1,13 +1,6 @@
 use serde::{Deserialize, Serialize};
 use tokio::process::Command as AsyncCommand;
-
-#[derive(Debug, Serialize, Deserialize)]
-pub struct VcfOpenResult {
-    pub success: bool,
-    pub message: String,
-    pub details: Option<String>,
-    pub steps_completed: Vec<String>,
-}
+use crate::services::vcf_utils::VcfOpenResult;
 
 /// 基于实时UI状态的智能VCF打开器
 /// 根据当前屏幕内容自动执行正确的操作

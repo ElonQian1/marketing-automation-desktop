@@ -7,18 +7,9 @@
 use crate::services::multi_brand_vcf_importer::MultiBrandVcfImporter;
 use crate::services::multi_brand_vcf_types::MultiBrandImportResult;
 use crate::services::huawei_enhanced_importer::{HuaweiEmuiEnhancedStrategy, ImportExecutionResult};
-use crate::services::vcf_utils::{Contact, generate_vcf_file as generate_vcf_file_impl};
+use crate::services::vcf_utils::{Contact, VcfOpenResult, generate_vcf_file as generate_vcf_file_impl};
 use serde::{Deserialize, Serialize};
 use tracing::{error, info, warn};
-
-/// 前端兼容结构:VcfOpenResult
-#[derive(Debug, Serialize, Deserialize)]
-pub struct VcfOpenResult {
-    pub success: bool,
-    pub message: String,
-    pub details: Option<String>,
-    pub steps_completed: Vec<String>,
-}
 
 /// 从联系人列表生成 VCF 文件
 #[tauri::command]
