@@ -1,4 +1,4 @@
-use super::core::AdbService;
+use super::adb_core::AdbService;
 
 impl AdbService {
     /// 获取连接的设备

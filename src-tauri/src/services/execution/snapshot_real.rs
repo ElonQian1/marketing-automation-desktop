@@ -3,7 +3,7 @@
 
 use async_trait::async_trait;
 use crate::services::execution::{UiSnapshotProvider, UiSnapshot};
-use crate::services::adb_session_manager::get_device_session;
+use crate::services::adb::get_device_session;
 
 #[derive(Debug, Default, Clone)]
 pub struct RealSnapshotProvider;

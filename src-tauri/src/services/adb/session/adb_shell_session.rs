@@ -192,14 +192,14 @@ impl AdbShellSession {
 
     /// 点击屏幕坐标（安全夹紧 + 注入器优先，失败回退原始命令）
     pub async fn tap(&self, x: i32, y: i32) -> Result<()> {
-        super::super::infra::adb::input_helper::tap_safe_injector_first(&self.adb_path, &self.device_id, x, y, None).await?;
+        crate::infra::adb::input_helper::tap_safe_injector_first(&self.adb_path, &self.device_id, x, y, None).await?;
         info!("👆 点击坐标: ({}, {})", x, y);
         Ok(())
     }
 
     /// 滑动操作（安全夹紧 + 注入器优先，失败回退原始命令）
     pub async fn swipe(&self, x1: i32, y1: i32, x2: i32, y2: i32, duration_ms: u32) -> Result<()> {
-        super::super::infra::adb::input_helper::swipe_safe_injector_first(&self.adb_path, &self.device_id, x1, y1, x2, y2, duration_ms).await?;
+        crate::infra::adb::input_helper::swipe_safe_injector_first(&self.adb_path, &self.device_id, x1, y1, x2, y2, duration_ms).await?;
         info!("👆 滑动: ({}, {}) -> ({}, {}), 持续: {}ms", x1, y1, x2, y2, duration_ms);
         Ok(())
     }

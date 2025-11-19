@@ -4,7 +4,7 @@ use std::time::{Duration, Instant};
 use tokio::time::{sleep, timeout};
 use tracing::{debug, error, info, warn};
 
-use super::adb_shell_session::AdbShellSession;
+use crate::services::adb::AdbShellSession;
 
 /// 应用启动状态枚举
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]

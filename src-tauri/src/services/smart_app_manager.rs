@@ -1,7 +1,7 @@
 use anyhow::Result;
 use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
-use crate::services::adb_session_manager::get_device_session;
+use crate::services::adb::get_device_session;
 use crate::services::app_detection_framework::{
     DetectorFactory, DetectionResult, AppLaunchState
 };

@@ -2,7 +2,7 @@ use async_trait::async_trait;
 use anyhow::Result;
 use tracing::{info, debug};
 
-use crate::services::adb_shell_session::AdbShellSession;
+use crate::services::adb::AdbShellSession;
 use super::super::core::{
     AppDetector, BaseAppDetector, DetectionResult, AppLaunchState, 
     DetectionConfig, DetectionKeywords

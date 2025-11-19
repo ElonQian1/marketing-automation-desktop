@@ -1,4 +1,4 @@
-use super::core::AdbService;
+use super::adb_core::AdbService;
 
 impl AdbService {
     /// 检测雷电模拟器ADB路径

@@ -1,0 +1,289 @@
+    Blocking waiting for file lock on build directory
+   Compiling employee-gui v0.2.0 (D:\rust\active-projects\灏忕孩涔employeeGUI\src-tauri)
+src\services\adb\basic\adb_initialization.rs:11:29: error[E0252]: the name `info` is defined multiple times: `info` reimported here
+src\services\adb\basic\adb_initialization.rs:11:35: error[E0252]: the name `warn` is defined multiple times: `warn` reimported here
+src\services\adb\basic\adb_commands.rs:3:12: error[E0432]: unresolved import `super::core`: could not find `core` in `super`
+src\services\adb\basic\adb_detection.rs:1:12: error[E0432]: unresolved import `super::core`: could not find `core` in `super`
+src\services\adb\basic\adb_devices.rs:1:12: error[E0432]: unresolved import `super::core`: could not find `core` in `super`
+src\services\adb\basic\adb_file_operations.rs:2:12: error[E0432]: unresolved import `super::core`: could not find `core` in `super`
+src\services\adb\basic\adb_initialization.rs:9:12: error[E0432]: unresolved import `super::core`: could not find `core` in `super`
+src\services\adb\basic\adb_ui_automation.rs:1:12: error[E0432]: unresolved import `super::core`: could not find `core` in `super`
+src\services\app_state_detector.rs:7:12: error[E0432]: unresolved import `super::adb_shell_session`: could not find `adb_shell_session` in `super`
+src\services\adb\session\adb_shell_session.rs:195:23: error[E0433]: failed to resolve: could not find `infra` in `super`: could not find `infra` in `super`
+src\services\adb\session\adb_shell_session.rs:202:23: error[E0433]: failed to resolve: could not find `infra` in `super`: could not find `infra` in `super`
+src\services\universal_ui_page_analyzer.rs:692:40: error[E0433]: failed to resolve: could not find `adb_service` in `services`: could not find `adb_service` in `services`
+src\domain\structural_matching\models.rs:6:5: warning: unused import: `std::collections::HashMap`
+src\domain\structural_matching\structural_scorer.rs:6:70: warning: unused import: `FieldMatchResult`
+src\domain\structure_runtime_match\orchestrator.rs:5:21: warning: unused import: `SkeletonRules`
+src\domain\structure_runtime_match\orchestrator.rs:18:5: warning: unused import: `super::skeleton::dsl::SmSkeletonRulesDsl`
+src\domain\structure_runtime_match\container_gate\resolver.rs:6:85: warning: unused import: `ScopeProfile`
+src\domain\structure_runtime_match\signature\learner.rs:5:32: warning: unused import: `SmFeat`
+src\domain\structure_runtime_match\skeleton\checker_v2.rs:6:27: warning: unused import: `SmNodeId`
+src\domain\structure_runtime_match\scorers\subtree_matcher.rs:7:5: warning: unused import: `crate::services::ui_reader_service::UIElement`
+src\domain\structure_runtime_match\auto_mode_selector.rs:5:54: warning: unused import: `ContextSig`
+src\domain\structure_runtime_match\execution_bridge.rs:6:54: warning: unused import: `ContextSig`
+src\domain\structure_runtime_match\auto_recommendation_service.rs:7:40: warning: unused import: `ScoreOutcome`
+src\domain\structure_runtime_match\auto_recommendation_service.rs:12:28: warning: unused imports: `error` and `warn`
+src\domain\analysis_cache\api.rs:53:9: warning: unused import: `std::path::PathBuf`
+src\domain\analysis_cache\types.rs:6:5: warning: unused import: `std::collections::HashMap`
+src\domain\analysis_cache\version_control.rs:8:5: warning: unused import: `anyhow::Result`
+src\domain\analysis_cache\version_storage.rs:7:14: warning: unused import: `DateTime`
+src\domain\analysis_cache\xml_diff.rs:7:42: warning: unused import: `VecDeque`
+src\domain\analysis_cache\xml_rebuilder.rs:6:30: warning: unused import: `Context`
+src\domain\analysis_cache\xml_rebuilder.rs:12:5: warning: unused import: `DomIndex`
+src\services\adb\basic\adb_initialization.rs:10:5: warning: unused import: `tauri::async_runtime`
+src\services\adb\basic\adb_initialization.rs:11:15: warning: unused imports: `debug`, `error`, `info`, and `warn`
+src\services\adb\session\adb_session_manager.rs:153:1: warning: unused doc comment: rustdoc does not generate documentation for macro invocations
+src\services\adb\tracking\adb_device_tracker.rs:9:24: warning: unused import: `Emitter`
+src\services\contact_automation.rs:9:13: warning: unused imports: `Deserialize` and `Serialize`
+src\services\intelligent_analysis_service.rs:11:91: warning: unused import: `ContextSig`
+src\services\intelligent_analysis_service.rs:603:9: warning: unused import: `std::collections::HashMap`
+src\services\intelligent_analysis_service.rs:690:13: warning: unused import: `std::collections::HashMap`
+src\services\lead_hunt.rs:6:5: warning: unused import: `serde_json::Value`
+src\services\commands\chain_test.rs:5:5: warning: unused import: `std::collections::HashMap`
+src\services\commands\chain_test.rs:10:58: warning: unused import: `SingleStepTestResult`
+src\services\execution\matching\strategies\standard_strategy.rs:83:83: warning: unused import: `DeviceUIState`
+src\services\execution\matching\strategies\enhanced_strategy.rs:14:15: warning: unused imports: `info` and `warn`
+src\services\execution\matching\enhanced_element_matcher.rs:7:5: warning: unused import: `serde_json::Value`
+src\services\execution\matching\enhanced_element_matcher.rs:9:15: warning: unused imports: `debug`, `info`, and `warn`
+src\services\execution\matching\smart_xpath_generator.rs:7:5: warning: unused import: `regex::Regex`
+src\services\execution\matching\smart_xpath_generator.rs:8:22: warning: unused import: `warn`
+src\services\log_bridge.rs:9:24: warning: unused import: `Emitter`
+src\services\vcf\vcf_smart_opener.rs:1:13: warning: unused imports: `Deserialize` and `Serialize`
+src\services\scrcpy_manager.rs:9:5: warning: unused import: `tauri::Emitter`
+src\services\marketing_storage\repositories.rs:4:5: warning: unused import: `crate::services::contact_storage::repositories::database_repo as contact_db`
+src\commands\run_step_v2\sm_integration.rs:10:37: warning: unused import: `BoundsSignature`
+src\commands\run_step_v2\validation\mod.rs:12:71: warning: unused import: `validate_target_safety`
+src\commands\run_step_v2\validation\mod.rs:13:9: warning: unused import: `bounds_validator::validate_bounds_within_screen`
+src\commands\run_step_v2\validation\mod.rs:14:9: warning: unused import: `disambiguation::generate_disambiguation_suggestions`
+src\commands\run_step_v2\types\strategy.rs:5:13: warning: unused import: `Serialize`
+src\commands\run_step_v2\types\selector.rs:5:13: warning: unused import: `Serialize`
+src\commands\run_step_v2\types\mod.rs:25:5: warning: unused imports: `Bounds`, `MatchInfo`, and `StepExecutionResult`
+src\commands\run_step_v2\mod.rs:18:16: warning: unused import: `UnifiedScoringCore`
+src\commands\run_step_v2\mod.rs:32:5: warning: unused import: `SafetyGateResult`
+src\commands\run_step_v2\mod.rs:47:59: warning: unused imports: `input_text_injector_first` and `swipe_injector_first`
+src\commands\run_step_v2\mod.rs:48:5: warning: unused import: `crate::infra::adb::keyevent_helper::keyevent_code_injector_first`
+src\commands\run_step_v2\mod.rs:49:21: warning: unused imports: `FallbackController` and `XmlIndexer`
+src\commands\xml_cache.rs:2:24: warning: unused import: `Deserialize`
+src\commands\smart_selection.rs:8:21: warning: unused import: `error`
+src\commands\smart_selection.rs:11:5: warning: unused import: `crate::exec::v3::element_matching::bounds_matcher::BoundsRect`
+src\commands\semantic_analyzer_config.rs:6:5: warning: unused import: `std::collections::HashMap`
+src\commands\structure_match_runtime.rs:318:73: warning: unused import: `FieldRule`
+src\commands\analysis_cache.rs:6:63: warning: unused import: `StepCardDto`
+src\commands\structure_recommend.rs:10:5: warning: unused imports: `AutoRecommendationConfig` and `ScoreOutcome`
+src\commands\mod.rs:44:9: warning: ambiguous glob re-exports: the name `MatchResult` in the type namespace is first re-exported here
+src\commands\mod.rs:49:9: warning: ambiguous glob re-exports: the name `StepExecutionResult` in the type namespace is first re-exported here
+src\exec\v3\commands.rs:7:24: warning: unused import: `State`
+src\exec\v3\chain_engine.rs:9:66: warning: unused imports: `ExecutionMode`, `InlineStep`, `SingleStepAction`, and `StepScore`
+src\exec\v3\chain_engine.rs:20:53: warning: unused imports: `ElementInfo` and `StrategyCandidate`
+src\exec\v3\chain_engine.rs:21:5: warning: unused import: `crate::services::ui_reader_service::UIElement`
+src\exec\v3\chain_engine.rs:25:5: warning: unused imports: `EvaluationCriteria`, `MultiCandidateEvaluator`, `TextComparator`, `XPathMatcher`, and `calculate_distance`
+src\exec\v3\chain_engine.rs:32:5: warning: unused imports: `convert_uielement_to_candidate as helper_convert_candidate`, `element_has_child_with_text`, `extract_child_text_filter_from_xpath`, `extract_resource_id_from_xpath`, `extract_target_features_from_params as helper_extract_features`, `find_all_elements_by_text_or_desc as helper_find_all_elements`, `find_element_by_text_or_desc as helper_find_element`, and `parse_bounds_center as helper_parse_bounds`
+src\exec\v3\chain_engine.rs:42:5: warning: unused imports: `DeviceInfo`, `InteractiveElement`, `ScoredElement`, `UserIntent`, `analyze_user_intent_from_params`, `calculate_context_fitness`, `calculate_interaction_capability`, `calculate_position_weight`, `calculate_semantic_match`, `calculate_text_relevance`, `determine_semantic_role_from_class`, `extract_all_interactive_elements_from_xml`, `extract_intelligent_targets_from_xml`, `is_potentially_interactive`, and `score_elements_intelligently`
+src\exec\v3\chain_engine.rs:51:5: warning: unused imports: `create_smart_selection_protocol_for_execution` and `create_smart_selection_protocol_for_scoring`
+src\exec\v3\chain_engine.rs:56:5: warning: unused imports: `assess_risk_level`, `convert_analysis_result_to_v3_steps`, `convert_strategies_to_v3_steps`, `create_execution_plan`, `determine_strategy_type`, `generate_fallback_strategy_steps`, `generate_strategy_candidates`, and `select_optimal_strategies`
+src\exec\v3\chain_engine.rs:63:5: warning: unused imports: `check_if_step_duplicate`, `extract_step_target_text`, `get_step_id`, and `merge_and_optimize_steps`
+src\exec\v3\chain_engine.rs:73:5: warning: unused import: `super::helpers::step_executor`
+src\exec\v3\chain_engine.rs:77:5: warning: unused imports: `call_frontend_intelligent_analysis`, `perform_intelligent_strategy_analysis_from_raw`, `should_trigger_intelligent_analysis_early`, and `should_trigger_intelligent_analysis`
+src\exec\v3\chain_engine.rs:82:5: warning: unused import: `super::helpers::step_scoring::score_step_with_smart_selection`
+src\exec\v3\chain_engine.rs:93:5: warning: unused imports: `AnchorInfo`, `ElementFingerprint`, `SelectionConfig`, `SelectionMode`, and `SmartSelectionProtocol`
+src\exec\v3\element_matching\multi_candidate_evaluator.rs:6:5: warning: unused import: `super::spatial_distance::calculate_distance`
+src\exec\v3\element_matching\multi_candidate_evaluator.rs:8:57: warning: unused import: `TextMatchingMode`
+src\exec\v3\helpers\execution_tracker.rs:8:1: warning: unused doc comment
+src\exec\v3\helpers\step_executor.rs:19:5: warning: unused imports: `BatchExecutor` and `should_use_batch_mode`
+src\exec\v3\helpers\analysis_helpers.rs:5:23: warning: unused import: `SingleStepSpecV3`
+src\exec\v3\helpers\analysis_helpers.rs:581:9: warning: unused import: `super::strategy_generation::convert_analysis_result_to_v3_steps`
+src\exec\v3\helpers\phase_handlers.rs:12:5: warning: unused import: `super::step_executor`
+src\exec\v3\helpers\intelligent_preprocessing.rs:6:39: warning: unused imports: `ChainMode`, `ConstraintSettings`, and `ValidationSettings`
+src\exec\v3\helpers\xml_source_resolver.rs:5:24: warning: unused import: `Manager`
+src\exec\v3\helpers\xml_source_resolver.rs:6:5: warning: unused import: `crate::engine::XmlIndexer`
+src\exec\v3\semantic_analyzer\config.rs:6:5: warning: unused import: `std::collections::HashMap`
+src\db\mod.rs:14:28: warning: unused import: `Result`
+src\engine\strategy_engine.rs:17:5: warning: unused import: `std::collections::HashMap`
+src\engine\self_anchor\match_modes.rs:6:5: warning: unused import: `std::collections::HashMap`
+src\engine\strategy_plugin.rs:16:13: warning: unused import: `Deserialize`
+src\engine\strategy_plugin.rs:17:53: warning: unused import: `StaticEvidence`
+src\engine\strategy_plugin.rs:18:5: warning: unused import: `crate::services::ui_reader_service::UIElement`
+src\engine\strategy_plugin.rs:21:21: warning: unused import: `warn`
+src\engine\gating.rs:9:23: warning: unused imports: `MatchSet` and `StrategyExecutor`
+src\engine\gating.rs:11:72: warning: unused import: `StaticEvidence`
+src\engine\xml_indexer.rs:10:5: warning: unused import: `super::strategy_plugin::ExecutionEnvironment`
+src\engine\xml_indexer.rs:114:27: warning: unexpected `cfg` condition value: `trace_xml_bounds`
+src\engine\xml_indexer.rs:125:19: warning: unexpected `cfg` condition value: `trace_xml_bounds`
+src\commands\run_step_v2\mod.rs:39:17: warning: use of deprecated function `commands::run_step_v2::legacy::run_step_v2_legacy`: 浣跨敤 run_step_v2 鏇夸唬锛屾敮鎸佸畬鏁寸殑V2缁熶竴鍗忚
+src\services\app_lifecycle_manager.rs:396:39: error[E0599]: no method named `execute_adb_command` found for struct `AdbService` in the current scope: method not found in `AdbService`
+src\services\app_lifecycle_manager.rs:404:39: error[E0599]: no method named `execute_adb_command` found for struct `AdbService` in the current scope: method not found in `AdbService`
+src\services\app_lifecycle_manager.rs:412:39: error[E0599]: no method named `execute_adb_command` found for struct `AdbService` in the current scope: method not found in `AdbService`
+src\services\app_lifecycle_manager.rs:352:32: error[E0599]: no method named `execute_adb_command` found for struct `AdbService` in the current scope: method not found in `AdbService`
+src\services\app_lifecycle_manager.rs:371:32: error[E0599]: no method named `execute_adb_command` found for struct `AdbService` in the current scope: method not found in `AdbService`
+src\services\app_lifecycle_manager.rs:385:45: warning: unused variable: `device_id`: help: if this is intentional, prefix it with an underscore: `_device_id`
+src\services\batch_analysis.rs:197:20: warning: unused variable: `index`: help: if this is intentional, prefix it with an underscore: `_index`
+src\services\batch_analysis.rs:288:9: warning: unused variable: `app_handle`: help: if this is intentional, prefix it with an underscore: `_app_handle`
+src\services\page_analyzer_service.rs:93:26: error[E0599]: no method named `dump_ui_hierarchy` found for struct `Arc<AdbService>` in the current scope: method not found in `Arc<AdbService>`
+src\services\page_analyzer_service.rs:117:39: error[E0599]: no method named `execute_adb_command` found for struct `Arc<AdbService>` in the current scope: method not found in `Arc<AdbService>`
+src\services\page_analyzer_service.rs:133:47: error[E0599]: no method named `execute_adb_command` found for struct `Arc<AdbService>` in the current scope: method not found in `Arc<AdbService>`
+src\services\execution\matching\unified.rs:35:5: warning: unused variable: `device_id`: help: if this is intentional, prefix it with an underscore: `_device_id`
+src\services\execution\matching\unified.rs:114:13: warning: unused variable: `criteria`: help: if this is intentional, prefix it with an underscore: `_criteria`
+src\services\execution\matching\unified.rs:127:13: warning: unused variable: `strategy_name`: help: if this is intentional, prefix it with an underscore: `_strategy_name`
+src\services\commands\chain_test.rs:176:5: warning: unused variable: `executor`: help: if this is intentional, prefix it with an underscore: `_executor`
+src\services\contact_storage\commands\contact_numbers.rs:122:25: warning: unused variable: `file_name`: help: if this is intentional, prefix it with an underscore: `_file_name`
+src\services\contact_storage\commands\contact_numbers.rs:255:5: warning: unused variable: `only_unconsumed`: help: if this is intentional, prefix it with an underscore: `_only_unconsumed`
+src\services\contact_storage\commands\contact_numbers.rs:391:5: warning: unused variable: `only_used`: help: if this is intentional, prefix it with an underscore: `_only_used`
+src\services\contact_storage\commands\contact_numbers.rs:405:5: warning: unused variable: `industry`: help: if this is intentional, prefix it with an underscore: `_industry`
+src\services\contact_storage\commands\vcf_batches.rs:14:5: warning: unused variable: `source_type`: help: if this is intentional, prefix it with an underscore: `_source_type`
+src\services\contact_storage\commands\vcf_batches.rs:15:5: warning: unused variable: `generation_method`: help: if this is intentional, prefix it with an underscore: `_generation_method`
+src\services\contact_storage\commands\vcf_batches.rs:16:5: warning: unused variable: `description`: help: if this is intentional, prefix it with an underscore: `_description`
+src\services\contact_storage\commands\vcf_batches.rs:99:5: warning: unused variable: `description`: help: if this is intentional, prefix it with an underscore: `_description`
+src\services\contact_storage\commands\vcf_batches.rs:110:5: warning: unused variable: `batch_id`: help: if this is intentional, prefix it with an underscore: `_batch_id`
+src\services\contact_storage\commands\vcf_batches.rs:164:5: warning: unused variable: `file_path`: help: if this is intentional, prefix it with an underscore: `_file_path`
+src\services\contact_storage\commands\vcf_batches.rs:185:5: warning: unused variable: `batch_id`: help: if this is intentional, prefix it with an underscore: `_batch_id`
+src\services\contact_storage\commands\txt_import_records.rs:58:5: warning: unused variable: `status`: help: if this is intentional, prefix it with an underscore: `_status`
+src\services\contact_storage\commands\txt_import_records.rs:59:5: warning: unused variable: `error_message`: help: if this is intentional, prefix it with an underscore: `_error_message`
+src\services\execution\matcher.rs:38:36: warning: unused variable: `step`: help: if this is intentional, prefix it with an underscore: `_step`
+src\services\execution\matching\strategies\standard_strategy.rs:79:9: warning: unused variable: `semantic_fields`: help: if this is intentional, prefix it with an underscore: `_semantic_fields`
+src\services\execution\matching\strategies\xpath_direct_strategy.rs:143:57: warning: unused variable: `logs`: help: if this is intentional, prefix it with an underscore: `_logs`
+src\services\execution\matching\strategies\xpath_first_index_strategy.rs:97:9: warning: unused variable: `context`: help: if this is intentional, prefix it with an underscore: `_context`
+src\services\execution\matching\strategies\xpath_all_elements_strategy.rs:105:9: warning: unused variable: `context`: help: if this is intentional, prefix it with an underscore: `_context`
+src\services\execution\matching\enhanced_element_matcher.rs:119:9: warning: unused variable: `device_id`: help: if this is intentional, prefix it with an underscore: `_device_id`
+src\services\execution\matching\enhanced_element_matcher.rs:245:9: warning: unused variable: `target_criteria`: help: if this is intentional, prefix it with an underscore: `_target_criteria`
+src\services\execution\matching\enhanced_element_matcher.rs:246:9: warning: unused variable: `candidates`: help: if this is intentional, prefix it with an underscore: `_candidates`
+src\services\execution\matching\enhanced_element_matcher.rs:247:9: warning: unused variable: `xml_content`: help: if this is intentional, prefix it with an underscore: `_xml_content`
+src\services\execution\matching\enhanced_element_matcher.rs:264:9: warning: unused variable: `target_criteria`: help: if this is intentional, prefix it with an underscore: `_target_criteria`
+src\services\execution\matching\enhanced_element_matcher.rs:265:9: warning: unused variable: `candidates`: help: if this is intentional, prefix it with an underscore: `_candidates`
+src\services\smart_app\fetch.rs:25:13: warning: value assigned to `app_name` is never read
+src\services\smart_element_finder_service.rs:58:39: error[E0599]: no method named `dump_ui_hierarchy` found for struct `AdbService` in the current scope: method not found in `AdbService`
+src\services\smart_element_finder_service.rs:76:39: error[E0599]: no method named `dump_ui_hierarchy` found for struct `AdbService` in the current scope: method not found in `AdbService`
+src\services\smart_element_finder_service.rs:85:38: error[E0599]: no method named `tap_screen` found for struct `AdbService` in the current scope: method not found in `AdbService`
+src\services\smart_element_finder_service.rs:169:39: error[E0599]: no method named `execute_adb_command` found for struct `AdbService` in the current scope: method not found in `AdbService`
+src\services\smart_element_finder_service.rs:198:39: error[E0599]: no method named `dump_ui_hierarchy` found for struct `AdbService` in the current scope: method not found in `AdbService`
+src\services\universal_ui_finder\mod.rs:68:21: warning: unused variable: `app_name`: help: if this is intentional, prefix it with an underscore: `_app_name`
+src\commands\run_step_v2\mod.rs:199:26: warning: unused variable: `app_handle`: help: if this is intentional, prefix it with an underscore: `_app_handle`
+src\commands\run_step_v2\mod.rs:479:17: warning: unused variable: `matches`: help: if this is intentional, prefix it with an underscore: `_matches`
+src\commands\run_step_v2\mod.rs:738:13: warning: unused variable: `match_info`: help: if this is intentional, prefix it with an underscore: `_match_info`
+src\commands\run_step_v2\mod.rs:479:13: warning: variable does not need to be mutable
+src\engine\strategy_plugin.rs:240:40: warning: unused variable: `env`: help: if this is intentional, prefix it with an underscore: `_env`
+src\commands\adb.rs:9:204: error[E0599]: no method named `execute_command` found for struct `std::sync::MutexGuard<'_, AdbService>` in the current scope: method not found in `MutexGuard<'_, AdbService>`
+src\commands\adb.rs:12:180: error[E0599]: no method named `check_file_exists` found for struct `std::sync::MutexGuard<'_, AdbService>` in the current scope: method not found in `MutexGuard<'_, AdbService>`
+src\commands\adb.rs:15:178: error[E0599]: no method named `detect_ldplayer_adb` found for struct `std::sync::MutexGuard<'_, AdbService>` in the current scope: method not found in `MutexGuard<'_, AdbService>`
+src\commands\adb.rs:18:198: error[E0599]: no method named `detect_ldplayer_adb` found for struct `std::sync::MutexGuard<'_, AdbService>` in the current scope: method not found in `MutexGuard<'_, AdbService>`
+src\commands\adb.rs:18:263: error[E0599]: no method named `execute_command` found for struct `std::sync::MutexGuard<'_, AdbService>` in the current scope: method not found in `MutexGuard<'_, AdbService>`
+src\commands\adb.rs:22:181: error[E0599]: no method named `get_devices` found for struct `std::sync::MutexGuard<'_, AdbService>` in the current scope: method not found in `MutexGuard<'_, AdbService>`
+src\commands\adb.rs:208:201: error[E0599]: no method named `connect_device` found for struct `std::sync::MutexGuard<'_, AdbService>` in the current scope: method not found in `MutexGuard<'_, AdbService>`
+src\commands\adb.rs:211:204: error[E0599]: no method named `disconnect_device` found for struct `std::sync::MutexGuard<'_, AdbService>` in the current scope: method not found in `MutexGuard<'_, AdbService>`
+src\commands\adb.rs:214:182: error[E0599]: no method named `start_server` found for struct `std::sync::MutexGuard<'_, AdbService>` in the current scope: method not found in `MutexGuard<'_, AdbService>`
+src\commands\adb.rs:217:181: error[E0599]: no method named `kill_server` found for struct `std::sync::MutexGuard<'_, AdbService>` in the current scope: method not found in `MutexGuard<'_, AdbService>`
+src\commands\adb.rs:220:206: error[E0599]: no method named `get_device_properties` found for struct `std::sync::MutexGuard<'_, AdbService>` in the current scope: method not found in `MutexGuard<'_, AdbService>`
+src\commands\xml_cache.rs:261:5: warning: unused variable: `description`: help: if this is intentional, prefix it with an underscore: `_description`
+src\commands\prospecting.rs:150:5: warning: unused variable: `state`: help: if this is intentional, prefix it with an underscore: `_state`
+src\commands\prospecting.rs:151:5: warning: unused variable: `plan_id`: help: if this is intentional, prefix it with an underscore: `_plan_id`
+src\commands\smart_selection.rs:30:5: warning: unused variable: `protocol`: help: if this is intentional, prefix it with an underscore: `_protocol`
+src\commands\smart_selection.rs:65:30: warning: unused variable: `batch_config`: help: try ignoring the field: `batch_config: _`
+src\commands\smart_selection.rs:70:33: warning: unused variable: `seed`: help: try ignoring the field: `seed: _`
+src\commands\smart_selection.rs:70:39: warning: unused variable: `ensure_stable_sort`: help: try ignoring the field: `ensure_stable_sort: _`
+src\commands\smart_selection.rs:155:9: warning: unused variable: `adb_check`: help: if this is intentional, prefix it with an underscore: `_adb_check`
+src\commands\smart_selection.rs:186:13: warning: unused variable: `test_protocol`: help: if this is intentional, prefix it with an underscore: `_test_protocol`
+src\commands\smart_selection.rs:277:9: warning: unused variable: `ui_xml`: help: if this is intentional, prefix it with an underscore: `_ui_xml`
+src\commands\structure_recommend.rs:411:9: warning: unused variable: `xml_indexer`: help: if this is intentional, prefix it with an underscore: `_xml_indexer`
+src\commands\execute_structure_match.rs:217:33: warning: unused variable: `app`: help: if this is intentional, prefix it with an underscore: `_app`
+src\commands\execute_structure_match.rs:413:18: warning: unused variable: `app`: help: if this is intentional, prefix it with an underscore: `_app`
+src\exec\v3\single_step.rs:18:9: warning: unused variable: `start_time`: help: if this is intentional, prefix it with an underscore: `_start_time`
+src\exec\v3\single_step.rs:86:9: warning: unused variable: `should_reevaluate`: help: if this is intentional, prefix it with an underscore: `_should_reevaluate`
+src\exec\v3\helpers\xml_source_resolver.rs:27:5: warning: unused variable: `app`: help: if this is intentional, prefix it with an underscore: `_app`
+src\exec\v3\unified_step_executor.rs:33:5: warning: unused variable: `app`: help: if this is intentional, prefix it with an underscore: `_app`
+src\exec\v3\unified_step_executor.rs:37:5: warning: unused variable: `validation`: help: if this is intentional, prefix it with an underscore: `_validation`
+src\exec\v3\helpers\step_executor.rs:530:5: warning: unused variable: `strategy_type`: help: if this is intentional, prefix it with an underscore: `_strategy_type`
+src\exec\v3\single_step.rs:208:5: warning: unused variable: `quality`: help: if this is intentional, prefix it with an underscore: `_quality`
+src\exec\v3\single_step.rs:209:5: warning: unused variable: `constraints`: help: if this is intentional, prefix it with an underscore: `_constraints`
+src\exec\v3\commands.rs:61:54: warning: unused variable: `ordered_steps`
+src\exec\v3\chain_engine.rs:112:9: warning: unused variable: `start_time`: help: if this is intentional, prefix it with an underscore: `_start_time`
+src\exec\v3\chain_engine.rs:113:9: warning: unused variable: `device_id`: help: if this is intentional, prefix it with an underscore: `_device_id`
+src\exec\v3\chain_engine.rs:168:5: warning: unused variable: `threshold`: help: if this is intentional, prefix it with an underscore: `_threshold`
+src\exec\v3\chain_engine.rs:169:5: warning: unused variable: `mode`: help: if this is intentional, prefix it with an underscore: `_mode`
+src\exec\v3\static_exec.rs:66:5: warning: unused variable: `script_id`: help: if this is intentional, prefix it with an underscore: `_script_id`
+src\exec\v3\static_exec.rs:68:5: warning: unused variable: `dryrun`: help: if this is intentional, prefix it with an underscore: `_dryrun`
+src\exec\v3\static_exec.rs:117:5: warning: unused variable: `input_text`: help: if this is intentional, prefix it with an underscore: `_input_text`
+src\exec\v3\static_exec.rs:118:5: warning: unused variable: `click_point_policy`: help: if this is intentional, prefix it with an underscore: `_click_point_policy`
+src\exec\v3\static_exec.rs:120:5: warning: unused variable: `quality`: help: if this is intentional, prefix it with an underscore: `_quality`
+src\exec\v3\static_exec.rs:121:5: warning: unused variable: `constraints`: help: if this is intentional, prefix it with an underscore: `_constraints`
+src\exec\v3\static_exec.rs:122:5: warning: unused variable: `validation`: help: if this is intentional, prefix it with an underscore: `_validation`
+src\exec\v3\commands.rs:120:25: warning: unused variable: `spec`: help: try ignoring the field: `spec: _`
+src\exec\v3\helpers\step_scoring.rs:42:5: warning: unused variable: `device_id`: help: if this is intentional, prefix it with an underscore: `_device_id`
+src\exec\v3\helpers\step_scoring.rs:43:5: warning: unused variable: `ui_xml`: help: if this is intentional, prefix it with an underscore: `_ui_xml`
+src\exec\v3\helpers\step_scoring.rs:45:5: warning: unused variable: `quality`: help: if this is intentional, prefix it with an underscore: `_quality`
+src\exec\v3\helpers\step_scoring.rs:49:10: warning: unused variable: `step_id`: help: if this is intentional, prefix it with an underscore: `_step_id`
+src\exec\v3\helpers\step_scoring.rs:49:19: warning: unused variable: `params`: help: if this is intentional, prefix it with an underscore: `_params`
+src\engine\self_anchor\combination_scorer.rs:237:9: warning: unused variable: `target_element`: help: if this is intentional, prefix it with an underscore: `_target_element`
+src\engine\self_anchor\combination_scorer.rs:239:9: warning: unused variable: `page_elements`: help: if this is intentional, prefix it with an underscore: `_page_elements`
+src\domain\structure_runtime_match\execution_bridge.rs:243:13: warning: unreachable statement: unreachable statement
+src\commands\xpath_execution.rs:8:5: warning: unused import: `std::os::windows::process::CommandExt`
+src\commands\execute_structure_match.rs:6:5: warning: unused import: `tauri::Manager`
+src\domain\structure_runtime_match\adapters\xml_indexer_adapter.rs:30:25: warning: unused variable: `node`: help: if this is intentional, prefix it with an underscore: `_node`
+src\domain\structure_runtime_match\click_normalizer.rs:516:25: warning: unused variable: `card_top`: help: if this is intentional, prefix it with an underscore: `_card_top`
+src\domain\structure_runtime_match\click_normalizer.rs:516:35: warning: unused variable: `card_right`: help: if this is intentional, prefix it with an underscore: `_card_right`
+src\domain\structure_runtime_match\auto_mode_selector.rs:160:13: warning: unused variable: `highest_conf_outcome`: help: if this is intentional, prefix it with an underscore: `_highest_conf_outcome`
+src\domain\structure_runtime_match\execution_bridge.rs:228:13: warning: variable does not need to be mutable
+src\domain\structure_runtime_match\execution_bridge.rs:229:13: warning: variable does not need to be mutable
+src\domain\analysis_cache\api.rs:209:29: warning: unused variable: `xml_content`: help: if this is intentional, prefix it with an underscore: `_xml_content`
+src\domain\analysis_cache\api.rs:209:48: warning: unused variable: `abs_xpath`: help: if this is intentional, prefix it with an underscore: `_abs_xpath`
+src\domain\analysis_cache\xml_diff.rs:161:46: warning: unused variable: `delta`: help: if this is intentional, prefix it with an underscore: `_delta`
+src\domain\analysis_cache\xml_diff.rs:545:32: warning: unused variable: `operations`: help: if this is intentional, prefix it with an underscore: `_operations`
+src\services\app_detection_framework\core\detection_config.rs:282:38: warning: unused variable: `file_path`: help: if this is intentional, prefix it with an underscore: `_file_path`
+src\services\app_detection_framework\core\detection_config.rs:288:32: warning: unused variable: `file_path`: help: if this is intentional, prefix it with an underscore: `_file_path`
+src\services\navigation_bar_detector.rs:402:17: warning: unused variable: `resource_id`: help: if this is intentional, prefix it with an underscore: `_resource_id`
+src\services\navigation_bar_detector.rs:377:9: warning: unused variable: `config`: help: if this is intentional, prefix it with an underscore: `_config`
+src\services\navigation_bar_detector.rs:539:32: warning: unused variable: `bottom`: help: if this is intentional, prefix it with an underscore: `_bottom`
+src\services\page_analyzer_service.rs:229:9: warning: unused variable: `node_name`: help: if this is intentional, prefix it with an underscore: `_node_name`
+src\services\page_analyzer_service.rs:263:9: warning: unused variable: `resource_id`: help: if this is intentional, prefix it with an underscore: `_resource_id`
+src\services\commands\static_test.rs:171:18: warning: unused variable: `ui_dump`: help: if this is intentional, prefix it with an underscore: `_ui_dump`
+src\services\commands\static_test.rs:171:33: warning: unused variable: `xpath`: help: if this is intentional, prefix it with an underscore: `_xpath`
+src\services\contact_storage\parser\mod.rs:76:9: warning: unused variable: `elapsed`: help: if this is intentional, prefix it with an underscore: `_elapsed`
+src\services\contact_storage\queries.rs:17:13: warning: value assigned to `kw_holder` is never read
+src\services\contact_storage\queries.rs:18:13: warning: value assigned to `industry_holder` is never read
+src\services\contact_storage\queries.rs:19:13: warning: value assigned to `status_holder` is never read
+src\services\contact_storage\queries.rs:43:9: warning: value assigned to `first` is never read
+src\services\contact_storage\repositories\vcf_batches\basic_operations.rs:130:9: warning: unused variable: `batch_name`: help: if this is intentional, prefix it with an underscore: `_batch_name`
+src\services\contact_storage\repositories\vcf_batches\basic_operations.rs:131:9: warning: unused variable: `description`: help: if this is intentional, prefix it with an underscore: `_description`
+src\services\contact_storage\repositories\vcf_batches\file_operations.rs:47:9: warning: unused variable: `import_result`: help: if this is intentional, prefix it with an underscore: `_import_result`
+src\services\contact_storage\repositories\vcf_batches\mod.rs:54:9: warning: unused variable: `description`: help: if this is intentional, prefix it with an underscore: `_description`
+src\services\contact_storage\repositories\vcf_batches\mod.rs:89:9: warning: unused variable: `number`: help: if this is intentional, prefix it with an underscore: `_number`
+src\services\contact_storage\repositories\contact_numbers_repo.rs:134:9: warning: unused variable: `device_id`: help: if this is intentional, prefix it with an underscore: `_device_id`
+src\services\contact_storage\repositories\contact_numbers_repo.rs:146:9: warning: unused variable: `batch_id`: help: if this is intentional, prefix it with an underscore: `_batch_id`
+src\services\contact_storage\repositories\vcf_batches_repo.rs:332:9: warning: unused variable: `conn`: help: if this is intentional, prefix it with an underscore: `_conn`
+src\services\contact_storage\repositories\vcf_batches_repo.rs:389:9: warning: unused variable: `conn`: help: if this is intentional, prefix it with an underscore: `_conn`
+src\services\contact_storage\facade\contact_numbers_facade.rs:81:9: warning: unused variable: `search`: help: if this is intentional, prefix it with an underscore: `_search`
+src\services\contact_storage\facade\contact_numbers_facade.rs:82:9: warning: unused variable: `industry`: help: if this is intentional, prefix it with an underscore: `_industry`
+src\services\contact_storage\facade\contact_numbers_facade.rs:83:9: warning: unused variable: `status`: help: if this is intentional, prefix it with an underscore: `_status`
+src\services\contact_storage\facade\contact_numbers_facade.rs:179:9: warning: unused variable: `industry`: help: if this is intentional, prefix it with an underscore: `_industry`
+src\services\contact_storage\facade\vcf_batches_facade.rs:69:9: warning: unused variable: `start_date`: help: if this is intentional, prefix it with an underscore: `_start_date`
+src\services\contact_storage\facade\vcf_batches_facade.rs:70:9: warning: unused variable: `end_date`: help: if this is intentional, prefix it with an underscore: `_end_date`
+src\services\contact_storage\facade\vcf_batches_facade.rs:71:9: warning: unused variable: `batch_type`: help: if this is intentional, prefix it with an underscore: `_batch_type`
+src\services\contact_storage\facade\vcf_batches_facade.rs:72:9: warning: unused variable: `status_filter`: help: if this is intentional, prefix it with an underscore: `_status_filter`
+src\services\contact_storage\facade\vcf_batches_facade.rs:92:9: warning: unused variable: `status`: help: if this is intentional, prefix it with an underscore: `_status`
+src\services\contact_storage\facade\vcf_batches_facade.rs:114:9: warning: unused variable: `industry`: help: if this is intentional, prefix it with an underscore: `_industry`
+src\services\contact_storage\facade\vcf_batches_facade.rs:115:9: warning: unused variable: `device_id`: help: if this is intentional, prefix it with an underscore: `_device_id`
+src\services\contact_storage\facade\vcf_batches_facade.rs:205:9: warning: unused variable: `success_count`: help: if this is intentional, prefix it with an underscore: `_success_count`
+src\services\contact_storage\facade\vcf_batches_facade.rs:206:9: warning: unused variable: `failure_count`: help: if this is intentional, prefix it with an underscore: `_failure_count`
+src\services\contact_storage\facade\import_sessions_facade.rs:28:9: warning: unused variable: `total_contacts`: help: if this is intentional, prefix it with an underscore: `_total_contacts`
+src\services\contact_storage\facade\import_sessions_facade.rs:29:9: warning: unused variable: `session_type`: help: if this is intentional, prefix it with an underscore: `_session_type`
+src\services\contact_storage\facade\txt_import_facade.rs:44:9: warning: unused variable: `batch_id`: help: if this is intentional, prefix it with an underscore: `_batch_id`
+src\services\execution\matching\hierarchy_matcher.rs:109:9: warning: unused variable: `config`: help: if this is intentional, prefix it with an underscore: `_config`
+src\services\execution\matching\hierarchy_matcher.rs:169:9: warning: unused variable: `config`: help: if this is intentional, prefix it with an underscore: `_config`
+src\services\execution\matching\strategies\hidden_element_parent_strategy.rs:255:13: warning: unused variable: `config`: help: if this is intentional, prefix it with an underscore: `_config`
+src\services\smart_element_finder_service.rs:257:14: warning: unused variable: `screen_width`: help: if this is intentional, prefix it with an underscore: `_screen_width`
+src\services\universal_ui_finder\logger.rs:145:39: warning: unused variable: `target`: help: if this is intentional, prefix it with an underscore: `_target`
+src\commands\execute_structure_match.rs:282:9: warning: unused variable: `scope`: help: if this is intentional, prefix it with an underscore: `_scope`
+src\exec\v3\element_matching\xpath_matcher.rs:134:21: warning: unused variable: `required_index`: help: if this is intentional, prefix it with an underscore: `_required_index`
+src\exec\v3\helpers\strategy_generation.rs:495:5: warning: variable does not need to be mutable
+src\exec\v3\helpers\step_executor.rs:823:9: warning: variable does not need to be mutable
+src\exec\v3\helpers\step_executor.rs:1278:5: warning: unused variable: `params`: help: if this is intentional, prefix it with an underscore: `_params`
+src\exec\v3\helpers\step_executor.rs:1279:5: warning: unused variable: `elements`: help: if this is intentional, prefix it with an underscore: `_elements`
+src\exec\v3\helpers\analysis_helpers.rs:176:5: warning: unused variable: `quality`: help: if this is intentional, prefix it with an underscore: `_quality`
+src\exec\v3\semantic_analyzer\antonym_detector.rs:63:24: warning: unused variable: `config`: help: if this is intentional, prefix it with an underscore: `_config`
+src\engine\self_anchor\field_analyzer.rs:239:9: warning: unused variable: `field_name`: help: if this is intentional, prefix it with an underscore: `_field_name`
+src\engine\self_anchor\field_analyzer.rs:240:9: warning: unused variable: `field_value`: help: if this is intentional, prefix it with an underscore: `_field_value`
+src\engine\self_anchor\combination_scorer.rs:374:9: warning: unused variable: `field_values`: help: if this is intentional, prefix it with an underscore: `_field_values`
+src\engine\strategy_plugin.rs:341:13: warning: unused variable: `start`: help: if this is intentional, prefix it with an underscore: `_start`
+src\engine\strategy_plugin.rs:624:18: warning: unused variable: `index`: help: if this is intentional, prefix it with an underscore: `_index`
+src\engine\xml_indexer.rs:281:17: warning: value assigned to `first_condition` is never read
+warning: `employee-gui` (lib) generated 249 warnings
+error: could not compile `employee-gui` (lib) due to 36 previous errors; 249 warnings emitted

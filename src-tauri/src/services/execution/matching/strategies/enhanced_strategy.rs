@@ -81,7 +81,7 @@ impl EnhancedStrategyProcessor {
 
     /// 获取设备 UI dump
     async fn get_device_ui_dump(&self, device_id: &str, logs: &mut Vec<String>) -> Result<String, ProcessingError> {
-        use crate::services::adb_session_manager::get_device_session;
+        use crate::services::adb::get_device_session;
         
         logs.push("📱 获取设备最新 UI 结构...".to_string());
         

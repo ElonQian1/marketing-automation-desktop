@@ -32,7 +32,7 @@
 //! 
 //! ```rust
 //! use app_detection_framework::factory::create_app_detector;
-//! use crate::services::adb_shell_session::AdbShellSession;
+//! use crate::services::adb::AdbShellSession;
 //! 
 //! let shell_session = AdbShellSession::new("device_id".to_string(), "adb_path".to_string());
 //! let detector = create_app_detector("com.xingin.xhs", "小红书", shell_session);

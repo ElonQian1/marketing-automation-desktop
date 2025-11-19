@@ -5,7 +5,7 @@ use std::collections::HashMap;
 use tauri::command;
 use tracing::{error, info, warn};
 
-use crate::services::adb_session_manager::get_device_session;
+use crate::services::adb::get_device_session;
 
 /// 导航栏类型枚举
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]

@@ -3,7 +3,7 @@
 // summary: 提供系统健康检查和心跳检测接口
 
 use serde::{Deserialize, Serialize};
-use crate::services::adb_service::core::AdbService;
+use crate::services::adb::AdbService;
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct PingResponse {

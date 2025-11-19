@@ -2,7 +2,7 @@ use std::sync::Arc;
 
 use anyhow::Result;
 
-use crate::services::adb_session_manager::get_device_session;
+use crate::services::adb::get_device_session;
 use crate::services::execution::ExecutionEnvironment;
 
 /// `UiBridge` 聚合了与设备 UI 交互相关的公共能力，

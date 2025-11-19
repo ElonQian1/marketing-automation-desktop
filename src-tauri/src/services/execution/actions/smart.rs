@@ -2,7 +2,7 @@ use std::collections::HashMap;
 
 use anyhow::Result;
 
-use crate::services::adb_session_manager::get_device_session;
+use crate::services::adb::get_device_session;
 use crate::services::execution::matching::{find_all_follow_buttons, find_element_in_ui};
 use crate::services::execution::model::SmartScriptStep;
 use crate::services::execution::run_unified_match;

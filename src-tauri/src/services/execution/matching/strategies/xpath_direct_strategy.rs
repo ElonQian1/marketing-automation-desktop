@@ -141,7 +141,7 @@ impl XPathDirectStrategyProcessor {
 
     /// 获取设备 UI dump（集成执行环境 Bridge）
     async fn get_device_ui_dump(&self, device_id: &str, logs: &mut Vec<String>) -> Result<String, String> {
-        use crate::services::adb_session_manager::get_device_session;
+        use crate::services::adb::get_device_session;
         
         // 直接使用 ADB session 执行 UI dump（类似 ui_bridge.rs 的实现）
         match get_device_session(device_id).await {

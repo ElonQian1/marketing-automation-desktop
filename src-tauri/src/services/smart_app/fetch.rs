@@ -1,5 +1,5 @@
 use anyhow::Result;
-use crate::services::adb_session_manager::get_device_session;
+use crate::services::adb::get_device_session;
 use crate::services::smart_app_manager::AppInfo;
 
 /// List all packages via single command

@@ -27,7 +27,7 @@ use tracing_subscriber::{layer::SubscriberExt, util::SubscriberInitExt};
 
 // ==================== 🔧 服务层导入 ====================
 use screenshot_service::*;
-use services::adb_service::{AdbService, initialize_adb_system};
+use services::adb::{AdbService, initialize_adb_system};
 use services::employee_service::EmployeeService;
 use services::log_bridge::LOG_COLLECTOR;
 use services::scrcpy_manager::cleanup_all;
@@ -55,7 +55,7 @@ use crate::domain::analysis_cache::version_commands::{
 };
 
 // ==================== 🔌 业务服务命令 ====================
-use services::adb_device_tracker::{
+use services::adb::{
     get_tracked_devices, start_device_tracking, stop_device_tracking,
 };
 use services::contact_service::{get_contact_file_info, parse_contact_file};

@@ -2,7 +2,7 @@ use std::sync::Arc;
 use anyhow::Result;
 use tracing::{info, debug};
 
-use crate::services::adb_shell_session::AdbShellSession;
+use crate::services::adb::AdbShellSession;
 use super::super::core::{AppDetector, AppConfigManager, DetectionConfig};
 use super::super::detectors::{WechatDetector, GenericDetector};
 

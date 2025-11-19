@@ -3,7 +3,7 @@ use async_trait::async_trait;
 use anyhow::Result;
 use super::detection_result::{DetectionResult, AppLaunchState};
 use super::detection_config::DetectionConfig;
-use crate::services::adb_shell_session::AdbShellSession;
+use crate::services::adb::AdbShellSession;
 
 /// 应用状态检测器的核心trait
 /// 所有具体的应用检测器都需要实现这个接口

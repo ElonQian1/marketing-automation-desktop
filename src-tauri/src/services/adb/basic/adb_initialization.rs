@@ -1,13 +1,14 @@
-// src-tauri/src/services/adb_service/initialization.rs
-// module: adb | layer: services | role: ADB 核心初始化服务
+// src-tauri/src/services/adb/basic/adb_initialization.rs
+// module: adb | layer: basic | role: ADB 核心初始化服务
 // summary: 负责 ADB server 启动和设备跟踪器初始化，确保正确的启动顺序
 
-use tracing::{info, warn};
+use tracing::{debug, error, info, warn};
 use std::time::Duration;
 use std::thread;
+use tauri::async_runtime;
 
-use super::core::AdbService;
-use crate::services::adb_device_tracker::initialize_device_tracker;
+use super::adb_core::AdbService;
+use crate::services::adb::tracking::initialize_device_tracker;
 use crate::utils::adb_utils;
 
 /// ADB 核心系统初始化

@@ -7,7 +7,7 @@ use tauri::command;
 use crate::services::app_lifecycle_manager::{
     AppLifecycleManager, AppLifecycleResult, AppLaunchConfig, LaunchMethod
 };
-use crate::services::adb_service::AdbService;
+use crate::services::adb::AdbService;
 
 /// 前端调用的应用启动配置
 #[derive(Debug, Deserialize)]

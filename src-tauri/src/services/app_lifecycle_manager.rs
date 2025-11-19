@@ -12,7 +12,7 @@ use serde::Serialize;
 use std::time::{Duration, Instant};
 use tokio::time::sleep;
 
-use crate::services::adb_service::AdbService;
+use crate::services::adb::AdbService;
 
 /// 应用生命周期操作结果
 #[derive(Debug, Serialize, Clone)]

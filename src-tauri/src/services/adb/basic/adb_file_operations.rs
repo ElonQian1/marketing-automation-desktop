@@ -1,5 +1,5 @@
 use std::path::Path;
-use super::core::AdbService;
+use super::adb_core::AdbService;
 
 impl AdbService {
     /// 检查本地文件是否存在

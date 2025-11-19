@@ -1,6 +1,6 @@
 use serde::{Deserialize, Serialize};
 use tauri::command;
-use crate::services::adb_service::AdbService;
+use crate::services::adb::AdbService;
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct NavigationBarConfig {

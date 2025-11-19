@@ -6,7 +6,7 @@ use tauri::command;
 use crate::services::smart_element_finder_service::{
     SmartElementFinderService, NavigationBarConfig, PositionRatio as ServicePositionRatio, ElementFinderResult, ClickResult
 };
-use crate::services::adb_service::AdbService;
+use crate::services::adb::AdbService;
 use crate::services::app_lifecycle_manager::{AppLifecycleManager, AppLaunchConfig};
 
 /// 前端智能导航参数结构 

@@ -9,7 +9,7 @@ use tracing::{info, error, debug};
 use crate::types::smart_selection::*;
 // ✅ V3智能引擎模块（目前此命令已标记为废弃）
 use crate::exec::v3::element_matching::bounds_matcher::BoundsRect;
-use crate::services::adb_service::AdbService;
+use crate::services::adb::AdbService;
 use std::sync::Mutex;
 
 /// 智能选择命令状态（已废弃，使用V3 ChainEngine）

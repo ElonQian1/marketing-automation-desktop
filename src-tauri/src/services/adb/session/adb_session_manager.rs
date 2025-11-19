@@ -4,7 +4,7 @@ use tokio::sync::Mutex;
 use tracing::{error, info, warn};
 use anyhow::Result;
 
-use crate::services::adb_shell_session::AdbShellSession;
+use crate::services::adb::session::adb_shell_session::AdbShellSession;
 
 /// ADB Shell会话管理器
 /// 负责维护设备到会话的映射，确保会话的生命周期管理

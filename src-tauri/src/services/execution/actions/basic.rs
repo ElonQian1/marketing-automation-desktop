@@ -2,7 +2,7 @@ use std::collections::HashMap;
 
 use anyhow::Result;
 
-use crate::services::adb_session_manager::get_device_session;
+use crate::services::adb::get_device_session;
 use crate::services::smart_script_executor::SmartScriptExecutor;
 use serde_json;
 

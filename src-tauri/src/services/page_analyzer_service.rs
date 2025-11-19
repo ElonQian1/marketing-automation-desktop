@@ -1,4 +1,4 @@
-use crate::services::adb_service::core::AdbService;
+use crate::services::adb::AdbService;
 use crate::types::page_analysis::*;
 use std::collections::HashMap;
 use std::sync::Arc;

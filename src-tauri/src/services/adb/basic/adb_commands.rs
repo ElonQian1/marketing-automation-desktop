@@ -1,6 +1,6 @@
 use std::process::Command;
 use std::time::Instant;
-use super::core::AdbService;
+use super::adb_core::AdbService;
 
 #[cfg(windows)]
 use std::os::windows::process::CommandExt;

@@ -1,4 +1,4 @@
-use super::core::AdbService;
+use super::adb_core::AdbService;
 use crate::infra::adb::input_helper::{tap_safe_injector_first, swipe_safe_injector_first, input_text_injector_first};
 use crate::utils::adb_utils::get_adb_path;
 

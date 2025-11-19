@@ -5,7 +5,7 @@
 use serde::{Deserialize, Serialize};
 use tracing::{error, info};
 
-use crate::services::adb_session_manager::get_device_session;
+use crate::services::adb::get_device_session;
 
 /// 静态定位器类型
 #[derive(Debug, Clone, Serialize, Deserialize)]

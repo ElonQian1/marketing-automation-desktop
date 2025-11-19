@@ -689,7 +689,7 @@ pub async fn analyze_universal_ui_page(
     
     // 1. 获取UI层次结构XML
     info!("📱 获取设备UI层次结构...");
-    let adb_service = crate::services::adb_service::core::AdbService::new();
+    let adb_service = crate::services::adb::AdbService::new();
     let xml_content = adb_service.dump_ui_hierarchy(&device_id).await
         .map_err(|e| format!("获取UI层次结构失败: {}", e))?;
     

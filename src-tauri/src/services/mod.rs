@@ -1,10 +1,6 @@
 pub mod action_executor; // 新增：统一操作执行器
 pub mod action_recommender; // 新增：操作推荐引擎
-pub mod adb_activity; // 新增：ADB Activity 管理
-pub mod adb_device_tracker;
-pub mod adb_service; // 现在是模块化的文件夹结构
-pub mod adb_session_manager; // 新增：ADB会话管理器
-pub mod adb_shell_session;
+pub mod adb; // ADB模块（基础层/会话层/追踪层/命令层）
 pub mod app_detection_framework; // 新增：应用检测框架
 pub mod app_lifecycle_manager; // 新增：应用生命周期管理器
 pub mod app_state_detector;

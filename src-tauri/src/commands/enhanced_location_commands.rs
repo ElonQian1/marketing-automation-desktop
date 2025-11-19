@@ -254,7 +254,7 @@ pub fn update_xpath_strategy_success_rate(
 
 /// 获取设备 UI dump（简化实现）
 async fn get_device_ui_dump(device_id: &str) -> Result<String, String> {
-    use crate::services::adb_session_manager::get_device_session;
+    use crate::services::adb::get_device_session;
     
     match get_device_session(device_id).await {
         Ok(session) => {
