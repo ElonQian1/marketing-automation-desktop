@@ -1,4 +1,6 @@
 // src-tauri/src/services/prospecting/types.rs
+use rusqlite::types::{FromSql, FromSqlResult, ValueRef, ToSql, ToSqlOutput, Value, FromSqlError};
+use rusqlite::Result;
 use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
 
@@ -10,6 +12,20 @@ pub enum SocialPlatform {
     Xhs,
     Weibo,
     Kuaishou,
+}
+
+impl ToSql for SocialPlatform {
+    fn to_sql(&self) -> Result<ToSqlOutput<'_>> {
+        let s = serde_json::to_string(self).map_err(|e| rusqlite::Error::ToSqlConversionFailure(Box::new(e)))?;
+        Ok(ToSqlOutput::Owned(Value::Text(s)))
+    }
+}
+
+impl FromSql for SocialPlatform {
+    fn column_result(value: ValueRef<'_>) -> FromSqlResult<Self> {
+        let s = value.as_str()?;
+        serde_json::from_str(s).map_err(|e| FromSqlError::Other(Box::new(e)))
+    }
 }
 
 /// 意图类型
@@ -29,6 +45,20 @@ pub enum IntentType {
     Comparison,
     #[serde(rename = "无效")]
     Invalid,
+}
+
+impl ToSql for IntentType {
+    fn to_sql(&self) -> Result<ToSqlOutput<'_>> {
+        let s = serde_json::to_string(self).map_err(|e| rusqlite::Error::ToSqlConversionFailure(Box::new(e)))?;
+        Ok(ToSqlOutput::Owned(Value::Text(s)))
+    }
+}
+
+impl FromSql for IntentType {
+    fn column_result(value: ValueRef<'_>) -> FromSqlResult<Self> {
+        let s = value.as_str()?;
+        serde_json::from_str(s).map_err(|e| FromSqlError::Other(Box::new(e)))
+    }
 }
 
 /// 原始评论数据
@@ -91,14 +121,50 @@ pub struct Comment {
 }
 
 /// 回复计划状态
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq)]
 #[serde(rename_all = "lowercase")]
 pub enum ReplyPlanStatus {
     Pending,
     Executing,
     Completed,
     Failed,
-    Cancelled,
+}
+
+impl ToSql for ReplyPlanStatus {
+    fn to_sql(&self) -> Result<ToSqlOutput<'_>> {
+        let s = serde_json::to_string(self).map_err(|e| rusqlite::Error::ToSqlConversionFailure(Box::new(e)))?;
+        Ok(ToSqlOutput::Owned(Value::Text(s)))
+    }
+}
+
+impl FromSql for ReplyPlanStatus {
+    fn column_result(value: ValueRef<'_>) -> FromSqlResult<Self> {
+        let s = value.as_str()?;
+        serde_json::from_str(s).map_err(|e| FromSqlError::Other(Box::new(e)))
+    }
+}
+
+/// 回复步骤类型
+#[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq)]
+#[serde(rename_all = "snake_case")]
+pub enum ReplyStepType {
+    OpenApp,
+    NavigateToVideo,
+    FindComment,
+    InputReply,
+    SendReply,
+    #[serde(other)]
+    Unknown,
+}
+
+/// 回复步骤状态
+#[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq)]
+#[serde(rename_all = "lowercase")]
+pub enum ReplyStepStatus {
+    Pending,
+    Executing,
+    Completed,
+    Failed,
 }
 
 /// 回复步骤
@@ -106,10 +172,10 @@ pub enum ReplyPlanStatus {
 pub struct ReplyStep {
     pub id: String,
     #[serde(rename = "type")]
-    pub step_type: String, // open_app, navigate_to_video, find_comment, input_reply, send_reply
+    pub step_type: ReplyStepType, // open_app, navigate_to_video, find_comment, input_reply, send_reply
     pub description: String,
     pub params: HashMap<String, serde_json::Value>,
-    pub status: String, // pending, executing, completed, failed
+    pub status: ReplyStepStatus, // pending, executing, completed, failed
     pub error: Option<String>,
     pub duration: Option<i64>,
 }

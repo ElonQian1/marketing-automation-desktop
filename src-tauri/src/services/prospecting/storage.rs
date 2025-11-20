@@ -120,7 +120,7 @@ impl ProspectingStorage {
             "#,
             params![
                 comment.id,
-                serde_json::to_string(&comment.platform)?,
+                &comment.platform,
                 comment.video_url,
                 comment.author,
                 comment.content,
@@ -146,7 +146,7 @@ impl ProspectingStorage {
             "#,
             params![
                 analysis.comment_id,
-                serde_json::to_string(&analysis.intent)?,
+                &analysis.intent,
                 analysis.confidence,
                 serde_json::to_string(&analysis.entities)?,
                 analysis.suggested_reply,
@@ -174,17 +174,16 @@ impl ProspectingStorage {
             WHERE 1=1
         "#.to_string();
         
-        // 直接构建带参数的查询
+        let mut params: Vec<Box<dyn rusqlite::ToSql>> = Vec::new();
+
         if let Some(platform) = &filter.platform {
-            sql.push_str(" AND c.platform = '");
-            sql.push_str(&serde_json::to_string(platform)?);
-            sql.push_str("'");
+            sql.push_str(" AND c.platform = ?");
+            params.push(Box::new(platform.clone()));
         }
         
         if let Some(intent) = &filter.intent {
-            sql.push_str(" AND a.intent = '");
-            sql.push_str(&serde_json::to_string(intent)?);
-            sql.push_str("'");
+            sql.push_str(" AND a.intent = ?");
+            params.push(Box::new(intent.clone()));
         }
         
         if let Some(has_analysis) = filter.has_analysis {
@@ -198,7 +197,8 @@ impl ProspectingStorage {
         sql.push_str(" ORDER BY c.timestamp DESC");
         
         let mut stmt = conn.prepare(&sql)?;
-        let comment_iter = stmt.query_map([], |row| {
+        let params_refs: Vec<&dyn rusqlite::ToSql> = params.iter().map(|p| p.as_ref()).collect();
+        let comment_iter = stmt.query_map(params_refs.as_slice(), |row| {
             let metadata_str: String = row.get(8).unwrap_or_default();
             let metadata = if metadata_str.is_empty() {
                 None
@@ -206,13 +206,13 @@ impl ProspectingStorage {
                 serde_json::from_str(&metadata_str).ok()
             };
 
-            let analysis = if let Ok(intent_str) = row.get::<_, String>(9) {
+            let analysis = if let Ok(intent) = row.get::<_, IntentType>(9) {
                 let entities_str: String = row.get(11)?;
                 let tags_str: String = row.get(13)?;
                 
                 Some(AnalysisResult {
                     comment_id: row.get(0)?,
-                    intent: serde_json::from_str(&intent_str).unwrap_or(IntentType::Invalid),
+                    intent,
                     confidence: row.get(10)?,
                     entities: serde_json::from_str(&entities_str).unwrap_or_default(),
                     suggested_reply: row.get(12)?,
@@ -232,7 +232,7 @@ impl ProspectingStorage {
             Ok(Comment {
                 raw: RawComment {
                     id: row.get(0)?,
-                    platform: serde_json::from_str(&row.get::<_, String>(1)?).unwrap_or(SocialPlatform::Douyin),
+                    platform: row.get(1).unwrap_or(SocialPlatform::Douyin),
                     video_url: row.get(2)?,
                     author: row.get(3)?,
                     content: row.get(4)?,
@@ -296,13 +296,13 @@ impl ProspectingStorage {
                 serde_json::from_str(&metadata_str).ok()
             };
 
-            let analysis = if let Ok(intent_str) = row.get::<_, String>(9) {
+            let analysis = if let Ok(intent) = row.get::<_, IntentType>(9) {
                 let entities_str: String = row.get(11)?;
                 let tags_str: String = row.get(13)?;
                 
                 Some(AnalysisResult {
                     comment_id: row.get(0)?,
-                    intent: serde_json::from_str(&intent_str).unwrap_or(IntentType::Invalid),
+                    intent,
                     confidence: row.get(10)?,
                     entities: serde_json::from_str(&entities_str).unwrap_or_default(),
                     suggested_reply: row.get(12)?,
@@ -322,7 +322,7 @@ impl ProspectingStorage {
             Ok(Comment {
                 raw: RawComment {
                     id: row.get(0)?,
-                    platform: serde_json::from_str(&row.get::<_, String>(1)?).unwrap_or(SocialPlatform::Douyin),
+                    platform: row.get(1).unwrap_or(SocialPlatform::Douyin),
                     video_url: row.get(2)?,
                     author: row.get(3)?,
                     content: row.get(4)?,
@@ -361,13 +361,13 @@ impl ProspectingStorage {
             params![
                 plan.id,
                 plan.comment_id,
-                serde_json::to_string(&plan.platform)?,
+                &plan.platform,
                 plan.video_url,
                 plan.target_author,
                 plan.target_comment,
                 plan.reply_content,
                 serde_json::to_string(&plan.steps)?,
-                serde_json::to_string(&plan.status)?,
+                &plan.status,
                 plan.created_at,
                 plan.updated_at,
                 plan.executed_at,
@@ -402,61 +402,56 @@ impl ProspectingStorage {
         let mut intent_distribution = std::collections::HashMap::new();
         let mut stmt = conn.prepare("SELECT intent, COUNT(*) FROM analysis_results GROUP BY intent")?;
         let intent_iter = stmt.query_map([], |row| {
-            Ok((row.get::<_, String>(0)?, row.get::<_, i64>(1)?))
+            Ok((row.get::<_, IntentType>(0)?, row.get::<_, i64>(1)?))
         })?;
         
         for result in intent_iter {
-            let (intent, count) = result?;
-            // 解析JSON中的意图名称
-            if let Ok(intent_type) = serde_json::from_str::<IntentType>(&intent) {
-                let intent_name = match intent_type {
-                    IntentType::Inquiry => "询价",
-                    IntentType::Location => "询地址",
-                    IntentType::AfterSales => "售后",
-                    IntentType::Consultation => "咨询",
-                    IntentType::Purchase => "购买",
-                    IntentType::Comparison => "比较",
-                    IntentType::Invalid => "无效",
-                };
-                intent_distribution.insert(intent_name.to_string(), count);
-            }
+            let (intent_type, count) = result?;
+            let intent_name = match intent_type {
+                IntentType::Inquiry => "询价",
+                IntentType::Location => "询地址",
+                IntentType::AfterSales => "售后",
+                IntentType::Consultation => "咨询",
+                IntentType::Purchase => "购买",
+                IntentType::Comparison => "比较",
+                IntentType::Invalid => "无效",
+            };
+            intent_distribution.insert(intent_name.to_string(), count);
         }
         
         // 平台分布
         let mut platform_distribution = std::collections::HashMap::new();
         let mut stmt = conn.prepare("SELECT platform, COUNT(*) FROM comments GROUP BY platform")?;
         let platform_iter = stmt.query_map([], |row| {
-            Ok((row.get::<_, String>(0)?, row.get::<_, i64>(1)?))
+            Ok((row.get::<_, SocialPlatform>(0)?, row.get::<_, i64>(1)?))
         })?;
         
         for result in platform_iter {
-            let (platform, count) = result?;
-            if let Ok(platform_type) = serde_json::from_str::<SocialPlatform>(&platform) {
-                let platform_name = match platform_type {
-                    SocialPlatform::Douyin => "抖音",
-                    SocialPlatform::Xhs => "小红书",
-                    SocialPlatform::Weibo => "微博",
-                    SocialPlatform::Kuaishou => "快手",
-                };
-                platform_distribution.insert(platform_name.to_string(), count);
-            }
+            let (platform_type, count) = result?;
+            let platform_name = match platform_type {
+                SocialPlatform::Douyin => "抖音",
+                SocialPlatform::Xhs => "小红书",
+                SocialPlatform::Weibo => "微博",
+                SocialPlatform::Kuaishou => "快手",
+            };
+            platform_distribution.insert(platform_name.to_string(), count);
         }
         
         // 回复计划统计
         let total_plans: i64 = conn.query_row("SELECT COUNT(*) FROM reply_plans", [], |row| row.get(0))?;
         let completed_plans: i64 = conn.query_row(
             "SELECT COUNT(*) FROM reply_plans WHERE status = ?", 
-            [serde_json::to_string(&ReplyPlanStatus::Completed)?], 
+            [&ReplyPlanStatus::Completed], 
             |row| row.get(0)
         )?;
         let failed_plans: i64 = conn.query_row(
             "SELECT COUNT(*) FROM reply_plans WHERE status = ?", 
-            [serde_json::to_string(&ReplyPlanStatus::Failed)?], 
+            [&ReplyPlanStatus::Failed], 
             |row| row.get(0)
         )?;
         let pending_plans: i64 = conn.query_row(
             "SELECT COUNT(*) FROM reply_plans WHERE status = ?", 
-            [serde_json::to_string(&ReplyPlanStatus::Pending)?], 
+            [&ReplyPlanStatus::Pending], 
             |row| row.get(0)
         )?;
         
@@ -488,20 +483,20 @@ impl ProspectingStorage {
         let params: Vec<&dyn rusqlite::ToSql> = comment_ids.iter().map(|s| s as &dyn rusqlite::ToSql).collect();
         
         let plan_iter = stmt.query_map(&params[..], |row| {
-            let steps_json: String = row.get(9)?;
+            let steps_json: String = row.get(7)?;
             let steps: Vec<ReplyStep> = serde_json::from_str(&steps_json).unwrap_or_default();
             
             Ok(ReplyPlan {
                 id: row.get(0)?,
                 comment_id: row.get(1)?,
-                platform: serde_json::from_str(&row.get::<_, String>(2)?).unwrap(),
+                platform: row.get(2)?,
                 video_url: row.get(3)?,
                 target_author: row.get(4)?,
                 target_comment: row.get(5)?,
                 reply_content: row.get(6)?,
                 steps,
-                status: serde_json::from_str(&row.get::<_, String>(7)?).unwrap(),
-                created_at: row.get(8)?,
+                status: row.get(8)?,
+                created_at: row.get(9)?,
                 updated_at: row.get(10)?,
                 executed_at: row.get(11)?,
                 completed_at: row.get(12)?,
@@ -527,20 +522,20 @@ impl ProspectingStorage {
         let params: Vec<&dyn rusqlite::ToSql> = ids.iter().map(|s| s as &dyn rusqlite::ToSql).collect();
         
         let plan_iter = stmt.query_map(&params[..], |row| {
-            let steps_json: String = row.get(9)?;
+            let steps_json: String = row.get(7)?;
             let steps: Vec<ReplyStep> = serde_json::from_str(&steps_json).unwrap_or_default();
             
             Ok(ReplyPlan {
                 id: row.get(0)?,
                 comment_id: row.get(1)?,
-                platform: serde_json::from_str(&row.get::<_, String>(2)?).unwrap(),
+                platform: row.get(2)?,
                 video_url: row.get(3)?,
                 target_author: row.get(4)?,
                 target_comment: row.get(5)?,
                 reply_content: row.get(6)?,
                 steps,
-                status: serde_json::from_str(&row.get::<_, String>(7)?).unwrap(),
-                created_at: row.get(8)?,
+                status: row.get(8)?,
+                created_at: row.get(9)?,
                 updated_at: row.get(10)?,
                 executed_at: row.get(11)?,
                 completed_at: row.get(12)?,
