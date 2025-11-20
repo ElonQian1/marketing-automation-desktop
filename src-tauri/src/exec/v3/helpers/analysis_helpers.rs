@@ -273,8 +273,17 @@ pub fn should_trigger_intelligent_analysis(
                                 .and_then(|v| v.as_str())
                                 .is_some();
 
-                    if !has_target_text {
-                        tracing::warn!("🧠 步骤 {} Tap缺少目标文本参数", idx);
+                    // ✅ V3修复：如果已有高置信度的XPath，也视为有效步骤
+                    let has_high_confidence_xpath = inline.params.get("xpath").is_some()
+                        && inline
+                            .params
+                            .get("confidence")
+                            .and_then(|v| v.as_f64())
+                            .unwrap_or(0.0)
+                            >= 0.7;
+
+                    if !has_target_text && !has_high_confidence_xpath {
+                        tracing::warn!("🧠 步骤 {} Tap缺少目标文本参数且置信度不足", idx);
                         has_invalid_steps = true;
                     }
                 }
@@ -345,7 +354,16 @@ pub fn should_trigger_intelligent_analysis(
                             })
                             .is_some();
 
-                    if has_complete_params {
+                    // ✅ V3修复：如果已有高置信度的XPath，也视为有效步骤
+                    let has_high_confidence_xpath = inline.params.get("xpath").is_some()
+                        && inline
+                            .params
+                            .get("confidence")
+                            .and_then(|v| v.as_f64())
+                            .unwrap_or(0.0)
+                            >= 0.7;
+
+                    if has_complete_params || has_high_confidence_xpath {
                         valid_step_count += 1;
                     }
                 }

@@ -919,14 +919,55 @@ enum MatchSource {
 #[cfg(test)]
 mod tests {
     use super::*;
+    use crate::services::universal_ui_page_analyzer::{UIElement, UIElementType};
+    use crate::types::page_analysis::ElementBounds;
+
+    fn create_test_element(text: Option<&str>, bounds_str: Option<&str>, content_desc: Option<&str>, clickable: bool) -> UIElement {
+        let bounds = if let Some(s) = bounds_str {
+            let parts: Vec<&str> = s.split("][").collect();
+            let left_top = parts[0].trim_start_matches('[');
+            let right_bottom = parts[1].trim_end_matches(']');
+            let lt_parts: Vec<i32> = left_top.split(',').map(|s| s.parse().unwrap()).collect();
+            let rb_parts: Vec<i32> = right_bottom.split(',').map(|s| s.parse().unwrap()).collect();
+            ElementBounds {
+                left: lt_parts[0],
+                top: lt_parts[1],
+                right: rb_parts[0],
+                bottom: rb_parts[1],
+            }
+        } else {
+            ElementBounds { left: 0, top: 0, right: 0, bottom: 0 }
+        };
+
+        UIElement {
+            id: "".to_string(),
+            element_type: UIElementType::Other,
+            text: text.unwrap_or("").to_string(),
+            bounds,
+            xpath: "".to_string(),
+            resource_id: None,
+            package_name: None,
+            class_name: None,
+            clickable,
+            scrollable: false,
+            enabled: true,
+            focused: false,
+            checkable: false,
+            checked: false,
+            selected: false,
+            password: false,
+            content_desc: content_desc.unwrap_or("").to_string(),
+            index_path: None,
+            region: None,
+            children: vec![],
+            parent: None,
+            depth: 0,
+        }
+    }
     
     #[test]
     fn test_single_candidate() {
-        let elem = UIElement {
-            text: Some("测试".to_string()),
-            bounds: Some("[0,0][100,100]".to_string()),
-            ..Default::default()
-        };
+        let elem = create_test_element(Some("测试"), Some("[0,0][100,100]"), None, false);
         
         let candidates = vec![&elem];
         let criteria = EvaluationCriteria {
@@ -952,14 +993,7 @@ mod tests {
     #[test]
     fn test_parent_clickable_child_text_pattern() {
         // 测试"父可点击+子文本"的Android核心模式
-        let parent_elem = UIElement {
-            text: None,
-            content_desc: Some("通讯录，".to_string()),  // 父元素content-desc包含子元素文本的聚合
-            resource_id: Some("com.ss.android.ugc.aweme:id/iwk".to_string()),
-            bounds: Some("[45,1059][249,1263]".to_string()),
-            clickable: Some(true),
-            ..Default::default()
-        };
+        let parent_elem = create_test_element(None, Some("[45,1059][249,1263]"), Some("通讯录，"), true);
         
         let xml_content = Some(r#"
 <node resource-id="com.ss.android.ugc.aweme:id/iwk" clickable="true" bounds="[45,1059][249,1263]">
