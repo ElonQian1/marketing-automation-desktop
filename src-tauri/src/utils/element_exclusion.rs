@@ -86,26 +86,23 @@ impl ElementExclusionFilter {
 
     /// 检查元素是否有无效边界（负面积）
     fn has_invalid_bounds(element: &UIElement) -> bool {
-        if let Some(bounds_str) = &element.bounds {
-            if let Some(bounds) = BoundsRect::from_string(bounds_str) {
-                let width = bounds.width();
-                let height = bounds.height();
-                if width <= 0 || height <= 0 {
-                    info!(
-                        "🚨 [异常边界排除] 负面积元素: bounds='{}', parsed=[{},{},{},{}], width={}, height={}, class='{}', text='{}'",
-                        bounds_str,
-                        bounds.left,
-                        bounds.top,
-                        bounds.right,
-                        bounds.bottom,
-                        bounds.width(),
-                        bounds.height(),
-                        element.class.as_deref().unwrap_or("N/A"),
-                        element.text.as_deref().unwrap_or("N/A")
-                    );
-                    return true;
-                }
-            }
+        let bounds = &element.bounds;
+        let width = bounds.width();
+        let height = bounds.height();
+        if width <= 0 || height <= 0 {
+            info!(
+                "🚨 [异常边界排除] 负面积元素: bounds='{}', parsed=[{},{},{},{}], width={}, height={}, class='{}', text='{}'",
+                bounds,
+                bounds.left,
+                bounds.top,
+                bounds.right,
+                bounds.bottom,
+                width,
+                height,
+                element.class_name.as_deref().unwrap_or("N/A"),
+                &element.text
+            );
+            return true;
         }
         false
     }
@@ -113,7 +110,7 @@ impl ElementExclusionFilter {
     /// 检查是否匹配自动排除别名
     fn matches_auto_exclude_aliases(element: &UIElement, target_text: &str) -> bool {
         // 检查text
-        if let Some(element_text) = &element.text {
+        let element_text = &element.text; if !element_text.is_empty() {
             for alias in Self::AUTO_EXCLUDE_ALIASES {
                 if element_text.contains(alias) {
                     // 智能保护：如果目标文本包含该别名，说明用户就是要找这类按钮
@@ -135,7 +132,7 @@ impl ElementExclusionFilter {
         }
 
         // 检查content_desc
-        if let Some(desc) = &element.content_desc {
+        let desc = &element.content_desc; if !desc.is_empty() {
             for alias in Self::AUTO_EXCLUDE_ALIASES {
                 if desc.contains(alias) {
                     if target_text.contains(alias) {
@@ -161,7 +158,7 @@ impl ElementExclusionFilter {
     /// 检查是否匹配手动排除规则
     fn matches_manual_exclude_patterns(element: &UIElement, patterns: &[String]) -> bool {
         // 检查text
-        if let Some(element_text) = &element.text {
+        let element_text = &element.text; if !element_text.is_empty() {
             for pattern in patterns {
                 if element_text.contains(pattern) {
                     debug!(
@@ -174,7 +171,7 @@ impl ElementExclusionFilter {
         }
 
         // 检查content_desc
-        if let Some(desc) = &element.content_desc {
+        let desc = &element.content_desc; if !desc.is_empty() {
             for pattern in patterns {
                 if desc.contains(pattern) {
                     debug!("🚫 手动排除：描述 '{}' 匹配规则 '{}'", desc, pattern);
@@ -222,3 +219,4 @@ mod tests {
         ));
     }
 }
+

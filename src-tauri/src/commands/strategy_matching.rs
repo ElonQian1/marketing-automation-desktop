@@ -166,7 +166,7 @@ pub async fn match_element_by_criteria(
             let matched_elements = if success {
                 vec![serde_json::json!({
                     "text": result.matched_element.unwrap_or_default(),
-                    "bounds": result.bounds.unwrap_or_default(),
+                    "bounds": result.bounds,
                     "coordinates": result.coordinates.map(|(x, y)| format!("({}, {})", x, y)),
                 })]
             } else {

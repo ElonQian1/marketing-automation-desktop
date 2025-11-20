@@ -30,7 +30,7 @@ pub fn validate_parent_links(adapter: &XmlIndexerAdapter, root: SmNodeId) {
                     tracing::warn!(
                         "⚠️ [PARENT-CHK] node={} 无父节点: class={:?} rid={:?} bounds={:?}",
                         id, 
-                        node.element.class.as_deref(),
+                        node.element.class_name.as_deref(),
                         node.element.resource_id.as_deref(),
                         node.bounds
                     );
@@ -44,7 +44,7 @@ pub fn validate_parent_links(adapter: &XmlIndexerAdapter, root: SmNodeId) {
                     tracing::warn!(
                         "⚠️ [PARENT-CHK] node={} 父指向自己(循环): class={:?} rid={:?} bounds={:?}",
                         id,
-                        node.element.class.as_deref(),
+                        node.element.class_name.as_deref(),
                         node.element.resource_id.as_deref(),
                         node.bounds
                     );
@@ -92,9 +92,9 @@ pub fn debug_parent_chain(adapter: &XmlIndexerAdapter, start: SmNodeId) {
                 "  [CHAIN] hop={} node={} class={:?} rid={:?} clickable={} bounds={:?}",
                 hop,
                 cur,
-                node.element.class.as_deref().unwrap_or("N/A"),
+                node.element.class_name.as_deref().unwrap_or("N/A"),
                 node.element.resource_id.as_deref().unwrap_or("N/A"),
-                node.element.clickable.unwrap_or(false),
+                node.element.clickable,
                 node.bounds
             );
         } else {
@@ -139,7 +139,7 @@ pub fn debug_node_info(adapter: &XmlIndexerAdapter, node_id: SmNodeId) {
     tracing::info!("📋 [NODE-INFO] ========== node={} 详细信息 ==========", node_id);
     
     if let Some(node) = adapter.get_node(node_id) {
-        tracing::info!("  class: {:?}", node.element.class);
+        tracing::info!("  class: {:?}", node.element.class_name);
         tracing::info!("  resource-id: {:?}", node.element.resource_id);
         tracing::info!("  text: {:?}", node.element.text);
         tracing::info!("  content-desc: {:?}", node.element.content_desc);
@@ -155,7 +155,7 @@ pub fn debug_node_info(adapter: &XmlIndexerAdapter, node_id: SmNodeId) {
             Some(parent_id) => {
                 tracing::info!("  parent: Some({})", parent_id);
                 if let Some(parent_node) = adapter.get_node(parent_id) {
-                    tracing::info!("    parent.class: {:?}", parent_node.element.class);
+                    tracing::info!("    parent.class_name: {:?}", parent_node.element.class_name);
                     tracing::info!("    parent.bounds: {:?}", parent_node.bounds);
                 }
             }
@@ -169,3 +169,4 @@ pub fn debug_node_info(adapter: &XmlIndexerAdapter, node_id: SmNodeId) {
     
     tracing::info!("📋 [NODE-INFO] ========== 信息打印完成 ==========");
 }
+

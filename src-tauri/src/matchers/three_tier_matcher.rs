@@ -59,7 +59,7 @@ impl ThreeTierMatcher {
         // 第一层：精确文本匹配
         if let Some(target_text) = &target_fingerprint.text_content {
             for candidate in candidates {
-                if let Some(candidate_text) = &candidate.element().text {
+                let candidate_text = &candidate.element().text; if !candidate_text.is_empty() {
                     if candidate_text.trim() == target_text.trim() {
                         debug!(
                             "🎯 精确文本匹配成功: \"{}\" (跳过所有模糊匹配)",
@@ -78,7 +78,9 @@ impl ThreeTierMatcher {
         // 第二层：精确content-desc匹配
         if let Some(target_desc) = &target_fingerprint.content_desc {
             for candidate in candidates {
-                if let Some(candidate_desc) = &candidate.element().content_desc {
+                // 2. 描述匹配
+                let candidate_desc = &candidate.element().content_desc;
+                if !candidate_desc.is_empty() {
                     if candidate_desc.trim() == target_desc.trim() {
                         debug!(
                             "🎯 精确content-desc匹配成功: \"{}\" (跳过所有模糊匹配)",
@@ -206,3 +208,4 @@ mod tests {
         assert_eq!(result.element.text.as_deref(), Some("关注"));
     }
 }
+

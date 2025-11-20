@@ -2,7 +2,7 @@
 // module: exec/v3 | layer: helpers | role: 元素层级关系分析器
 // summary: 分析用户选择的容器与候选元素的空间关系，支持父子关系和邻近关系分析
 
-use crate::services::ui_reader_service::UIElement;
+use crate::services::universal_ui_page_analyzer::UIElement;
 
 /// 元素空间关系类型
 #[derive(Debug, Clone, PartialEq)]
@@ -238,18 +238,15 @@ pub fn find_clickable_children_in_bounds<'a>(
     
     for element in elements {
         // 只考虑可点击的元素
-        if !element.clickable.unwrap_or(false) {
+        if !element.clickable {
             continue;
         }
         
         // 必须有bounds
-        let elem_bounds = match &element.bounds {
-            Some(b) => b,
-            None => continue,
-        };
+        let elem_bounds = &element.bounds;
         
         // 分析空间关系
-        let relation = analyze_spatial_relation(elem_bounds, user_bounds);
+        let relation = analyze_spatial_relation(&elem_bounds.to_string(), user_bounds);
         
         match relation.spatial_relation {
             SpatialRelation::FullyContained => {
@@ -324,3 +321,6 @@ mod tests {
         assert!(matches!(relation.spatial_relation, SpatialRelation::Nearby { .. } | SpatialRelation::Far));
     }
 }
+
+
+

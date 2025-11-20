@@ -3,7 +3,7 @@
 // summary: 将结构匹配Runtime系统集成到V3执行引擎，支持容器识别和骨架匹配
 
 use serde_json::Value;
-use crate::services::ui_reader_service::UIElement;
+use crate::services::universal_ui_page_analyzer::UIElement;
 use crate::commands::structure_match_runtime::{
     sm_match_once, SmMatchRequest, SmConfigDTO,
 };
@@ -164,7 +164,7 @@ pub async fn v3_match_with_structural_matching(
         result.container_id, result.items.len());
 
     // 5️⃣ 将SM结果转换为UIElement（通过bounds匹配）
-    let all_elements = crate::services::ui_reader_service::parse_ui_elements(xml_content)
+    let all_elements = crate::services::universal_ui_page_analyzer::parse_ui_elements_simple(xml_content)
         .map_err(|e| format!("解析UI XML失败: {}", e))?;
 
     let mut matched_elements = Vec::new();
@@ -179,11 +179,7 @@ pub async fn v3_match_with_structural_matching(
         // 在all_elements中查找匹配的bounds
         if let Some(elem) = all_elements.iter()
             .find(|e| {
-                if let Some(elem_bounds) = &e.bounds {
-                    elem_bounds == &bounds_str
-                } else {
-                    false
-                }
+                e.bounds.to_string() == bounds_str
             })
         {
             matched_elements.push(elem.clone());
@@ -215,3 +211,5 @@ mod tests {
         assert_eq!(bounds_str, "[100,200][300,400]");
     }
 }
+
+

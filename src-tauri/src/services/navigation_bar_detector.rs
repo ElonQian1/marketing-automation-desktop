@@ -493,18 +493,26 @@ impl NavigationBarDetector {
     ) -> bool {
         // 检查文本匹配
         if let Some(expected_text) = &config.text {
-            if let Some(button_text) = &button.text {
-                if button_text.contains(expected_text) {
-                    return true;
+            if !expected_text.is_empty() {
+                if let Some(button_text) = &button.text {
+                    if !button_text.is_empty() {
+                        if button_text.contains(expected_text) {
+                            return true;
+                        }
+                    }
                 }
             }
         }
 
         // 检查content-desc匹配
         if let Some(expected_desc) = &config.content_desc {
-            if let Some(button_desc) = &button.content_desc {
-                if button_desc.contains(expected_desc) {
-                    return true;
+            if !expected_desc.is_empty() {
+                if let Some(button_desc) = &button.content_desc {
+                    if !button_desc.is_empty() {
+                        if button_desc.contains(expected_desc) {
+                            return true;
+                        }
+                    }
                 }
             }
         }
@@ -515,14 +523,18 @@ impl NavigationBarDetector {
     /// 模糊匹配按钮
     fn fuzzy_match_button(&self, button: &DetectedNavigationButton, target_name: &str) -> bool {
         if let Some(text) = &button.text {
-            if text.contains(target_name) || target_name.contains(text) {
-                return true;
+            if !text.is_empty() {
+                if text.contains(target_name) || target_name.contains(text) {
+                    return true;
+                }
             }
         }
 
         if let Some(desc) = &button.content_desc {
-            if desc.contains(target_name) || target_name.contains(desc) {
-                return true;
+            if !desc.is_empty() {
+                if desc.contains(target_name) || target_name.contains(desc) {
+                    return true;
+                }
             }
         }
 
@@ -782,3 +794,4 @@ pub fn get_navigation_configs() -> Vec<NavigationBarDetectionConfig> {
         NavigationBarDetector::create_generic_bottom_navigation_config(),
     ]
 }
+

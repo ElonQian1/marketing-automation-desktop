@@ -242,11 +242,13 @@ pub async fn sm_match_once(request: SmMatchRequest) -> Result<SmMatchResponse, S
         0
     };
     
-    if let Some(bounds) = &container_hints.bounds {
-        tracing::info!(
-            "📍 [SM Runtime] 收到bounds参考区域提示: ({}, {}, {}, {}), 将作为container_gate的辅助信息",
-            bounds.l, bounds.t, bounds.r, bounds.b
-        );
+    let bounds = &container_hints.bounds; {
+        if let Some(b) = bounds {
+            tracing::info!(
+                "📍 [SM Runtime] 收到bounds参考区域提示: ({}, {}, {}, {}), 将作为container_gate的辅助信息",
+                b.l, b.t, b.r, b.b
+            );
+        }
     }
     
     let container_scope_result = resolve_container_scope(
@@ -449,3 +451,4 @@ mod tests {
         assert!(config.field_rules.is_some());
     }
 }
+

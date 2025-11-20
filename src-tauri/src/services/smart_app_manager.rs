@@ -21,7 +21,7 @@ pub struct AppInfo {
     pub version_name: Option<String>, // 版本名
     pub version_code: Option<String>, // 版本号
     pub is_system_app: bool,       // 是否系统应用
-    pub is_enabled: bool,          // 是否启用
+    pub enabled: bool,          // 是否启用
     pub main_activity: Option<String>, // 主Activity
     pub icon_path: Option<String>, // 图标路径
 }

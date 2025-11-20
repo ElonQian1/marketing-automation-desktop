@@ -228,7 +228,7 @@ pub fn attempt_recovery(
         "text_and_resource_id".to_string()
     } else if recovery_ctx.element_text.is_some() {
         "text_matching".to_string()
-    } else if recovery_ctx.content_desc.is_some() {
+    } else if recovery_ctx(!.content_desc.is_empty()) {
         "content_desc_matching".to_string()
     } else {
         "unknown_strategy".to_string()
@@ -258,7 +258,7 @@ fn find_target_in_original<'a>(
     // 策略2: 使用文本+resource-id组合匹配
     if let (Some(ref text), Some(ref rid)) = (&ctx.element_text, &ctx.resource_id) {
         if let Some(elem) = elements.iter().find(|e| {
-            e.text.as_ref() == Some(text) && e.resource_id.as_ref() == Some(rid)
+            e.text == text && e.resource_id.as_ref() == Some(rid)
         }) {
             tracing::info!("✅ [原始目标] 通过text+resource-id找到");
             return Ok(elem);
@@ -268,7 +268,7 @@ fn find_target_in_original<'a>(
     // 策略3: 使用文本匹配
     if let Some(ref text) = ctx.element_text {
         if !text.is_empty() {
-            if let Some(elem) = elements.iter().find(|e| e.text.as_ref() == Some(text)) {
+            if let Some(elem) = elements.iter().find(|e| e.text == text) {
                 tracing::info!("✅ [原始目标] 通过text找到: {}", text);
                 return Ok(elem);
             }
@@ -276,7 +276,7 @@ fn find_target_in_original<'a>(
     }
     
     // 策略4: 使用content-desc匹配
-    if let Some(ref desc) = ctx.content_desc {
+    if !ctx.content_desc.is_empty() {
         if !desc.is_empty() {
             if let Some(elem) = elements.iter().find(|e| {
                 e.content_desc.as_ref().map(|d| d.contains(desc)).unwrap_or(false)
@@ -426,22 +426,22 @@ fn try_strategy_router(
         .map(|elem| {
             let mut map = HashMap::new();
             
-            if let Some(ref text) = elem.text {
+            if !elem.text.is_empty() {
                 map.insert("text".to_string(), text.clone());
             }
             if let Some(ref rid) = elem.resource_id {
                 map.insert("resource-id".to_string(), rid.clone());
             }
-            if let Some(ref desc) = elem.content_desc {
+            if !elem.content_desc.is_empty() {
                 map.insert("content-desc".to_string(), desc.clone());
             }
-            if let Some(ref bounds) = elem.bounds {
+            let ref bounds = &elem.bounds; {
                 map.insert("bounds".to_string(), bounds.clone());
             }
-            if let Some(ref clickable) = elem.clickable {
+            let ref clickable = elem.clickable; {
                 map.insert("clickable".to_string(), clickable.to_string());
             }
-            if let Some(ref class) = elem.class {
+            if let Some(ref class) = elem.class_name {
                 map.insert("class".to_string(), class.clone());
             }
             
@@ -515,3 +515,4 @@ fn try_strategy_router(
         original_target: None,
     })
 }
+

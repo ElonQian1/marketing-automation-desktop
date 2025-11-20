@@ -18,7 +18,7 @@ use crate::services::execution_abort_service::{should_abort_execution, register_
 
 // 添加必要的导入以支持真实设备操作
 use crate::services::intelligent_analysis_service::{ElementInfo, StrategyCandidate};
-use crate::services::ui_reader_service::UIElement; // 添加 UIElement 导入
+use crate::services::universal_ui_page_analyzer::UIElement; // 添加 UIElement 导入
 
 // 🆕 V3 新模块：多候选评估和失败恢复
 use super::element_matching::{
@@ -765,3 +765,4 @@ fn execute_chain_by_inline<'a>(
 //   - helper_convert_candidate (原 convert_uielement_to_candidate)
 //   - helper_extract_features (原 extract_target_features_from_params)
 // ============================================
+

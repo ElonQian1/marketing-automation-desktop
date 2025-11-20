@@ -57,3 +57,4 @@ pub fn pick_container<V: SmXmlView>(view: &V) -> Option<SmContainerHit> {
         layout: SmLayoutType::Unknown,
     })
 }
+

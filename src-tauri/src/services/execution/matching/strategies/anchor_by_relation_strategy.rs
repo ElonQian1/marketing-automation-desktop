@@ -194,8 +194,8 @@ impl AnchorByRelationStrategyProcessor {
 
         // 遍历所有元素，查找包含锚点文本的元素
         for ui_elem in ui_elements.iter() {
-            let element_text = ui_elem.text.as_deref().unwrap_or("");
-            let content_desc = ui_elem.content_desc.as_deref().unwrap_or("");
+            let element_text = ui_elem.text.as_str();
+            let content_desc = ui_elem.content_desc.as_str();
 
             // 检查是否包含任一锚点文本
             let has_anchor = anchor_texts.iter().any(|anchor_text| {
@@ -206,22 +206,20 @@ impl AnchorByRelationStrategyProcessor {
                 // 转换为 HashMap
                 let mut map = HashMap::new();
                 
-                if let Some(ref text) = ui_elem.text {
-                    map.insert("text".to_string(), text.clone());
+                if !ui_elem.text.is_empty() {
+                    map.insert("text".to_string(), ui_elem.text.clone());
                 }
-                if let Some(ref desc) = ui_elem.content_desc {
-                    map.insert("content-desc".to_string(), desc.clone());
+                if !ui_elem.content_desc.is_empty() {
+                    map.insert("content-desc".to_string(), ui_elem.content_desc.clone());
                 }
                 if let Some(ref rid) = ui_elem.resource_id {
                     map.insert("resource-id".to_string(), rid.clone());
                 }
-                if let Some(ref bounds) = ui_elem.bounds {
-                    map.insert("bounds".to_string(), bounds.clone());
-                }
-                if let Some(clickable) = ui_elem.clickable {
+                map.insert("bounds".to_string(), ui_elem.bounds.to_string());
+                let clickable = ui_elem.clickable; {
                     map.insert("clickable".to_string(), clickable.to_string());
                 }
-                if let Some(ref class) = ui_elem.class {
+                if let Some(ref class) = ui_elem.class_name {
                     map.insert("class".to_string(), class.clone());
                 }
                 
@@ -231,7 +229,7 @@ impl AnchorByRelationStrategyProcessor {
                     "🔍 [锚点匹配] 找到候选元素: text='{}', desc='{}', bounds='{}'",
                     element_text,
                     content_desc,
-                    ui_elem.bounds.as_deref().unwrap_or("")
+                    ui_elem.bounds.to_string()
                 );
             }
         }
@@ -359,24 +357,21 @@ impl StrategyProcessor for AnchorByRelationStrategyProcessor {
             // 将所有元素转换为候选列表
             ui_elements.iter().map(|ui_elem| {
                 let mut map = HashMap::new();
-                if let Some(ref text) = ui_elem.text {
-                    map.insert("text".to_string(), text.clone());
+                if !ui_elem.text.is_empty() {
+                    map.insert("text".to_string(), ui_elem.text.clone());
                 }
-                if let Some(ref desc) = ui_elem.content_desc {
-                    map.insert("content-desc".to_string(), desc.clone());
+                if !ui_elem.content_desc.is_empty() {
+                    map.insert("content-desc".to_string(), ui_elem.content_desc.clone());
                 }
                 if let Some(ref rid) = ui_elem.resource_id {
                     map.insert("resource-id".to_string(), rid.clone());
                 }
-                if let Some(ref bounds) = ui_elem.bounds {
-                    map.insert("bounds".to_string(), bounds.clone());
-                    // 🆕 根据bounds构造xpath
-                    map.insert("xpath".to_string(), format!("//*[@bounds='{}']", bounds));
-                }
-                if let Some(clickable) = ui_elem.clickable {
-                    map.insert("clickable".to_string(), clickable.to_string());
-                }
-                if let Some(ref class) = ui_elem.class {
+                map.insert("bounds".to_string(), ui_elem.bounds.to_string());
+                // 🆕 根据bounds构造xpath
+                map.insert("xpath".to_string(), format!("//*[@bounds='{}']", ui_elem.bounds));
+                
+                map.insert("clickable".to_string(), ui_elem.clickable.to_string());
+                if let Some(ref class) = ui_elem.class_name {
                     map.insert("class".to_string(), class.clone());
                 }
                 map
@@ -449,3 +444,5 @@ impl Default for AnchorByRelationStrategyProcessor {
         Self::new()
     }
 }
+
+

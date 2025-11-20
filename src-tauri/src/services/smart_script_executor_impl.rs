@@ -150,7 +150,7 @@ impl SmartScriptExecutor {
     /// 检测应用包名
     fn detect_app_package(&self, ui_elements: &[SmartUIElement]) -> f32 {
         let packages: Vec<_> = ui_elements.iter()
-            .filter_map(|e| e.package.as_ref())
+            .filter_map(|e| e.package_name.as_ref())
             .collect();
 
         if packages.is_empty() {
@@ -316,7 +316,7 @@ impl SmartScriptExecutor {
             }
         }
 
-        if let Some(clickable) = condition.clickable {
+        let clickable = condition.clickable; {
             if element.clickable != clickable {
                 return false;
             }

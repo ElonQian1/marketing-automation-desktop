@@ -4,7 +4,7 @@
 
 use anyhow::{Result, anyhow};
 use crate::engine::xml_indexer::XmlIndexer;
-use crate::services::ui_reader_service::UIElement;
+use crate::services::universal_ui_page_analyzer::UIElement;
 
 #[derive(Debug, Clone)]
 pub struct ClickNormalizeResult {
@@ -61,12 +61,12 @@ impl<'a> ClickNormalizer<'a> {
         // 1. 找到被点击的节点
         let clicked_node = self.find_clicked_node(clicked_bounds)?;
         tracing::info!("✅ [ClickNormalizer] 找到点击节点: index={}, class={:?}", 
-                      clicked_node.node_index, clicked_node.element.class);
+                      clicked_node.node_index, clicked_node.element.class_name);
 
         // 2. 向上找最近的滚动容器
         let container = self.find_nearest_container(clicked_node.node_index)?;
         tracing::info!("✅ [ClickNormalizer] 找到容器: index={}, class={:?}", 
-                      container.node_index, container.element.class);
+                      container.node_index, container.element.class_name);
 
         // 3. 在容器内回收到卡片根
         let card_root = self.find_card_root_within_container(container.node_index, clicked_node.node_index)?;
@@ -195,13 +195,13 @@ impl<'a> ClickNormalizer<'a> {
             
             let current_node = &self.xml_indexer.all_nodes[current_index];
             tracing::debug!("🔍 [ClickNormalizer] 检查节点{}: class={:?}", 
-                current_index, current_node.element.class);
+                current_index, current_node.element.class_name);
             
             // 检查是否是容器并记录优先级
             let (is_container, priority) = self.get_container_priority(&current_node.element);
             if is_container {
                 tracing::debug!("📋 [ClickNormalizer] 发现容器候选: index={}, priority={}, depth={}, class={:?}",
-                    current_index, priority, depth, current_node.element.class);
+                    current_index, priority, depth, current_node.element.class_name);
                 container_candidates.push((current_index, priority, depth));
                 
                 // 🎯 如果找到高优先级容器（RecyclerView/GridView/ListView），立即采用就近原则
@@ -241,7 +241,7 @@ impl<'a> ClickNormalizer<'a> {
             let best_node = &self.xml_indexer.all_nodes[best_index];
             
             tracing::info!("✅ [ClickNormalizer] 选择最优容器 (深度{}, priority={}, class={:?})",
-                best_depth, best_priority, best_node.element.class);
+                best_depth, best_priority, best_node.element.class_name);
             
             return Ok(NormalizedNode {
                 node_index: best_index,
@@ -258,7 +258,7 @@ impl<'a> ClickNormalizer<'a> {
     /// 判断是否是滚动容器（带优先级）
     /// 返回 (是否容器, 优先级分数: 0-100)
     pub fn get_container_priority(&self, element: &UIElement) -> (bool, u8) {
-        if let Some(class) = &element.class {
+        if let Some(class) = &element.class_name {
             let class_lower = class.to_lowercase();
             // 🎯 优先级白名单（卡片列表容器）
             if class_lower.contains("recyclerview") {
@@ -355,7 +355,7 @@ impl<'a> ClickNormalizer<'a> {
             
             let current_node = &self.xml_indexer.all_nodes[current_index];
             tracing::debug!("🔍 [ClickNormalizer] 检查卡片根候选{}: class={:?}, desc={:?}", 
-                current_index, current_node.element.class, current_node.element.content_desc);
+                current_index, current_node.element.class_name, current_node.element.content_desc);
             
             // 检查是否是卡片根候选
             if self.is_card_root_candidate(&current_node.element) {
@@ -392,7 +392,7 @@ impl<'a> ClickNormalizer<'a> {
     /// 判断是否是卡片根候选
     pub fn is_card_root_candidate(&self, element: &UIElement) -> bool {
         // 必须是FrameLayout
-        if let Some(class) = &element.class {
+        if let Some(class) = &element.class_name {
             if !class.ends_with("FrameLayout") {
                 return false;
             }
@@ -401,12 +401,12 @@ impl<'a> ClickNormalizer<'a> {
         }
 
         // 必须不可点击（项根通常不可点击）
-        if element.clickable.unwrap_or(false) {
+        if element.clickable {
             return false;
         }
 
         // 必须有content_desc
-        if let Some(desc) = &element.content_desc {
+        let desc = &element.content_desc; if !desc.is_empty() {
             !desc.trim().is_empty()
         } else {
             false
@@ -444,7 +444,7 @@ impl<'a> ClickNormalizer<'a> {
             }
             
             // 必须可点击
-            if !node.element.clickable.unwrap_or(false) {
+            if !node.element.clickable {
                 continue;
             }
             
@@ -491,7 +491,7 @@ impl<'a> ClickNormalizer<'a> {
             if best_iou > 0.5 {
                 let best_node = &self.xml_indexer.all_nodes[best_index];
                 tracing::info!("✅ [ClickNormalizer] 找到可点父: index={}, iou={:.2}, class={:?}",
-                    best_index, best_iou, best_node.element.class);
+                    best_index, best_iou, best_node.element.class_name);
                 
                 return Some(NormalizedNode {
                     node_index: best_index,
@@ -623,7 +623,7 @@ impl<'a> ClickNormalizer<'a> {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::services::ui_reader_service::UIElement;
+    use crate::services::universal_ui_page_analyzer::UIElement;
     use crate::engine::xml_indexer::{XmlIndexer, IndexedNode};
 
     fn create_test_element(class: &str, clickable: bool, content_desc: Option<&str>) -> UIElement {
@@ -749,3 +749,5 @@ mod tests {
         assert!(iou > 0.0 && iou < 1.0);
     }
 }
+
+

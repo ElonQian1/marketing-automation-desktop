@@ -8,9 +8,10 @@ use anyhow::Result;
 use crate::services::universal_ui_page_analyzer::{parse_ui_elements_simple as parse_ui_elements, UIElement};  // ✅ 导入 UI 解析函数
 use crate::engine::{AnalysisContext, ContainerInfo};  // ✅ 导入分析上下文和容器信息
 use crate::engine::xml_indexer::XmlIndexer;  // 🔥 导入XML索引器
-use crate::domain::structure_runtime_match::scorers::{SubtreeMatcher, LeafContextMatcher, ContextSig};  // 🔥 导入结构匹配评分器
+use crate::domain::structure_runtime_match::scorers::{SubtreeMatcher, LeafContextMatcher};  // 🔥 导入结构匹配评分器
 use crate::domain::structure_runtime_match::ClickNormalizer;  // 🔥 导入点击归一化器
 use crate::domain::structure_runtime_match::adapters::xml_indexer_adapter::XmlIndexerAdapter;
+use crate::types::page_analysis::ElementBounds; // ✅ 导入 ElementBounds
 
 /// 智能分析请求
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -71,7 +72,7 @@ pub struct AncestorInfo {
     pub xpath: String,
     pub class_name: String,
     pub resource_id: Option<String>,
-    pub is_scrollable: bool,
+    pub scrollable: bool,
 }
 
 /// 智能分析结果
@@ -366,7 +367,7 @@ fn extract_clickable_texts(xml_content: &str, max_count: usize) -> Vec<String> {
 fn extract_container_from_ancestors(ancestors: &[AncestorInfo]) -> Option<ContainerInfo> {
     // 查找第一个可滚动的祖先作为容器
     ancestors.iter()
-        .find(|a| a.is_scrollable)
+        .find(|a| a.scrollable)
         .map(|container| ContainerInfo {
             container_type: container.class_name.clone(),
             container_path: container.xpath.clone(),
@@ -448,7 +449,7 @@ fn extract_context_from_ui_elements(
         let mut scored_elements: Vec<(f32, &UIElement)> = ui_elements.iter()
             .filter(|elem| {
                 // 可交互元素
-                elem.is_clickable || !elem.content_desc.is_empty()
+                elem.clickable || !elem.content_desc.is_empty()
             })
             .map(|elem| {
                 let mut score = 0.0f32;
@@ -487,7 +488,7 @@ fn extract_context_from_ui_elements(
                 if elem.resource_id.is_some() && !elem.resource_id.as_ref().unwrap().is_empty() {
                     score += 0.15;
                 }
-                if elem.is_clickable {
+                if elem.clickable {
                     score += 0.15;
                 }
                 if !elem.text.trim().is_empty() && elem.text.len() < 20 {
@@ -523,18 +524,19 @@ fn extract_context_from_ui_elements(
     let mut scored_elements: Vec<(f32, &UIElement)> = ui_elements.iter()
         .filter(|elem| {
             // 可点击或有content-desc的元素
-            elem.clickable.unwrap_or(false) || elem.content_desc.is_some()
+            elem.clickable || !elem.content_desc.is_empty()
         })
         .map(|elem| {
             let mut score = 0.0f32;
             
             // 有resource-id：+0.3
-            if elem.resource_id.is_some() && !elem.resource_id.as_ref().unwrap().is_empty() {
+            if elem.resource_id.as_ref().map_or(false, |s| !s.is_empty()) {
                 score += 0.3;
             }
             
             // 有text：+0.2
-            if let Some(ref text) = elem.text {
+            let text = &elem.text;
+            if !text.is_empty() {
                 if !text.trim().is_empty() && text.len() < 20 {
                     score += 0.2;
                     // 短文本更好：+0.1
@@ -545,7 +547,8 @@ fn extract_context_from_ui_elements(
             }
             
             // 有content-desc：+0.2
-            if let Some(ref desc) = elem.content_desc {
+            let desc = &elem.content_desc;
+            if !desc.is_empty() {
                 if !desc.trim().is_empty() && desc.len() < 30 {
                     score += 0.2;
                     // 包含"按钮"等关键词：+0.1
@@ -556,7 +559,7 @@ fn extract_context_from_ui_elements(
             }
             
             // 可点击：+0.2
-            if elem.clickable.unwrap_or(false) {
+            if elem.clickable {
                 score += 0.2;
             }
             
@@ -586,7 +589,7 @@ fn extract_context_from_ui_elements(
          2. 完整的 user_selection 上下文\n\
          3. 具体的 resource-id\n\
          当前可交互元素数: {}",
-        ui_elements.iter().filter(|e| e.clickable.unwrap_or(false)).count()
+        ui_elements.iter().filter(|e| e.clickable).count()
     ))
 }
 
@@ -605,18 +608,16 @@ fn build_context_from_element(
     if let Some(ref rid) = elem.resource_id {
         attributes.insert("resource-id".to_string(), rid.clone());
     }
-    if let Some(ref text) = elem.text {
-        attributes.insert("text".to_string(), text.clone());
+    if !elem.text.is_empty() {
+        attributes.insert("text".to_string(), elem.text.clone());
     }
-    if let Some(ref desc) = elem.content_desc {
-        attributes.insert("content-desc".to_string(), desc.clone());
+    if !elem.content_desc.is_empty() {
+        attributes.insert("content-desc".to_string(), elem.content_desc.clone());
     }
-    if let Some(ref class) = elem.class {
+    if let Some(ref class) = elem.class_name {
         attributes.insert("class".to_string(), class.clone());
     }
-    if let Some(ref bounds) = elem.bounds {
-        attributes.insert("bounds".to_string(), bounds.clone());
-    }
+    attributes.insert("bounds".to_string(), elem.bounds.to_string());
     
     // 使用智能生成器生成最佳 XPath
     let generator = SmartXPathGenerator::new();
@@ -627,11 +628,11 @@ fn build_context_from_element(
         // Fallback：使用简单策略
         if let Some(ref rid) = elem.resource_id {
             format!("//*[@resource-id='{}']", rid)
-        } else if let Some(ref text) = elem.text {
-            format!("//*[@text='{}']", text)
-        } else if let Some(ref desc) = elem.content_desc {
-            format!("//*[@content-desc='{}']", desc)
-        } else if let Some(ref class) = elem.class {
+        } else if !elem.text.is_empty() {
+            format!("//*[@text='{}']", elem.text)
+        } else if !elem.content_desc.is_empty() {
+            format!("//*[@content-desc='{}']", elem.content_desc)
+        } else if let Some(ref class) = elem.class_name {
             format!("//*[@class='{}']", class)
         } else {
             "//*[@clickable='true']".to_string()
@@ -639,8 +640,13 @@ fn build_context_from_element(
     };
     
     // 🎯 提取显示文本（优先 text，回退到 content-desc）
-    let element_text = elem.text.clone()
-        .or_else(|| elem.content_desc.clone());
+    let element_text = if !elem.text.is_empty() {
+        Some(elem.text.clone())
+    } else if !elem.content_desc.is_empty() {
+        Some(elem.content_desc.clone())
+    } else {
+        None
+    };
     
     // 🎯 TODO: 分析祖先链（用于 region_scoped 策略）
     // 可以从 bounds 推断可能的父容器
@@ -648,11 +654,11 @@ fn build_context_from_element(
     Ok(AnalysisContext {
         element_path,
         element_text,
-        element_type: elem.class.clone(),
+        element_type: elem.class_name.clone(),
         resource_id: elem.resource_id.clone(),
-        class_name: elem.class.clone(),
-        bounds: elem.bounds.clone(),
-        content_desc: elem.content_desc.clone(),  // 🆕 传递 content-desc
+        class_name: elem.class_name.clone(),
+        bounds: Some(elem.bounds.to_string()),
+        content_desc: Some(elem.content_desc.clone()),  // 🆕 传递 content-desc
         container_info: None, // TODO: 实现祖先容器分析
     })
 }
@@ -692,10 +698,14 @@ pub async fn mock_intelligent_analysis(
             attributes.insert("resource-id".to_string(), rid.clone());
         }
         if let Some(ref text) = selection.text {
-            attributes.insert("text".to_string(), text.clone());
+            if !text.is_empty() {
+                attributes.insert("text".to_string(), text.clone());
+            }
         }
         if let Some(ref desc) = selection.content_desc {
-            attributes.insert("content-desc".to_string(), desc.clone());
+            if !desc.is_empty() {
+                attributes.insert("content-desc".to_string(), desc.clone());
+            }
         }
         if let Some(ref class) = selection.class_name {
             attributes.insert("class".to_string(), class.clone());
@@ -991,45 +1001,47 @@ pub async fn mock_intelligent_analysis(
     
     // 🎯 根据用户选择的 bounds 重新排序候选（Bug #4 修复）
     if let Some(user_selection) = &request.user_selection {
-        if let Some(user_bounds) = user_selection.bounds.as_deref() {
-            tracing::info!(
-                "🎯 [Bounds过滤] 检测到用户选择bounds，开始智能分析: user_bounds={}",
-                user_bounds
-            );
-            
-            // 🆕 先检查用户选择的区域内是否有可点击的子元素
-            let clickable_children = crate::exec::v3::helpers::element_hierarchy_analyzer::find_clickable_children_in_bounds(
-                &ui_elements,
-                user_bounds
-            );
-            
-            if !clickable_children.is_empty() {
-                tracing::warn!(
-                    "⚠️ [智能修正] 用户选择的区域 {} 包含 {} 个可点击子元素，但生成的候选可能不在此区域内!",
-                    user_bounds, clickable_children.len()
-                );
-                tracing::warn!(
-                    "💡 [建议] 用户可能误选了容器而不是具体按钮，建议前端优化可视化选择"
+        if let Some(bounds_str) = &user_selection.bounds {
+            if let Some(user_bounds) = ElementBounds::from_string(bounds_str) {
+                tracing::info!(
+                    "🎯 [Bounds过滤] 检测到用户选择bounds，开始智能分析: user_bounds={}",
+                    user_bounds
                 );
                 
-                // 打印可点击子元素供调试
-                for (idx, child) in clickable_children.iter().take(5).enumerate() {
-                    if let (Some(text), Some(bounds)) = (&child.text, &child.bounds) {
+                // 🆕 先检查用户选择的区域内是否有可点击的子元素
+                let clickable_children = crate::exec::v3::helpers::element_hierarchy_analyzer::find_clickable_children_in_bounds(
+                    &ui_elements,
+                    bounds_str
+                );
+                
+                if !clickable_children.is_empty() {
+                    tracing::warn!(
+                        "⚠️ [智能修正] 用户选择的区域 {} 包含 {} 个可点击子元素，但生成的候选可能不在此区域内!",
+                        user_bounds, clickable_children.len()
+                    );
+                    tracing::warn!(
+                        "💡 [建议] 用户可能误选了容器而不是具体按钮，建议前端优化可视化选择"
+                    );
+                    
+                    // 打印可点击子元素供调试
+                    for (idx, child) in clickable_children.iter().take(5).enumerate() {
+                        let text = &child.text;
+                        let bounds = &child.bounds;
                         tracing::info!(
                             "  可点击子元素 #{}: text='{}', bounds={}, resource_id={:?}",
                             idx + 1, text, bounds, child.resource_id
                         );
                     }
                 }
+                
+                // 使用原有的bounds重排序逻辑
+                final_candidates = crate::exec::v3::helpers::strategy_generation::rerank_candidates_by_bounds(
+                    final_candidates,
+                    Some(bounds_str)
+                );
+                tracing::info!("✅ [Bounds过滤] 候选重排序完成，最佳候选: {:?}", 
+                    final_candidates.first().map(|c| &c.element_info.text));
             }
-            
-            // 使用原有的bounds重排序逻辑
-            final_candidates = crate::exec::v3::helpers::strategy_generation::rerank_candidates_by_bounds(
-                final_candidates,
-                Some(user_bounds)
-            );
-            tracing::info!("✅ [Bounds过滤] 候选重排序完成，最佳候选: {:?}", 
-                final_candidates.first().map(|c| &c.element_info.text));
         }
     }
     
@@ -1092,32 +1104,20 @@ async fn perform_fallback_analysis(
     // 🎯 修复: 不仅检查 clickable, 还检查 content-desc 是否包含"按钮"
     let clickable_texts: Vec<String> = ui_elements.iter()
         .filter(|elem| {
-            let is_clickable = elem.clickable.unwrap_or(false);
-            let has_button_desc = elem.content_desc.as_ref()
-                .map(|desc| desc.contains("按钮"))
-                .unwrap_or(false);
+            let is_clickable = elem.clickable;
+            let has_button_desc = elem.content_desc.contains("按钮");
             is_clickable || has_button_desc
         })
         .filter_map(|elem| {
             // ✅ 优先使用 text, 如果 text 为空则 fallback 到 content-desc
-            elem.text.as_ref()
-                .filter(|t| !t.trim().is_empty() && t.len() <= 20)
-                .cloned()
-                .or_else(|| {
-                    elem.content_desc.as_ref()
-                        .filter(|d| !d.trim().is_empty() && d.len() <= 30)
-                        .map(|d| {
-                            if let Some(comma_pos) = d.find('，') {
-                                d[..comma_pos].to_string()
-                            } else if let Some(comma_pos) = d.find(',') {
-                                d[..comma_pos].to_string()
-                            } else {
-                                d.clone()
-                            }
-                        })
-                })
+            if !elem.text.trim().is_empty() && elem.text.len() <= 20 {
+                Some(elem.text.clone())
+            } else if !elem.content_desc.trim().is_empty() && elem.content_desc.len() <= 30 {
+                Some(elem.content_desc.clone())
+            } else {
+                None
+            }
         })
-        .take(100)
         .collect();
     
     // 🔍 优先查找常见目标
@@ -1254,12 +1254,13 @@ fn find_element_bounds_by_xpath(
             // 按index查找元素
             for (idx, element) in elements.iter().enumerate() {
                 if idx == target_index {
-                    if let Some(ref bounds) = element.bounds {
+                    let bounds = &element.bounds;
+                    {
                         tracing::debug!(
                             "✅ [XPath匹配] 找到元素: index={} -> bounds={}",
                             target_index, bounds
                         );
-                        return Some(bounds.clone());
+                        return Some(bounds.to_string());
                     }
                 }
             }
@@ -1283,15 +1284,15 @@ fn find_element_bounds_by_xpath(
         );
         
         for element in elements {
-            let class_match = element.class.as_deref() == Some(target_class);
-            let bounds_match = element.bounds.as_deref() == Some(target_bounds);
+            let class_match = element.class_name.as_deref() == Some(target_class);
+            let bounds_match = element.bounds.to_string() == target_bounds;
             
             if class_match && bounds_match {
                 tracing::debug!(
                     "✅ [XPath匹配] 找到元素: class='{}', bounds='{}'",
                     target_class, target_bounds
                 );
-                return Some(target_bounds.to_string());
+                return Some(element.bounds.to_string());
             }
         }
         
@@ -1324,7 +1325,7 @@ fn find_element_bounds_by_xpath(
     for element in elements {
         let matches = match attr_name {
             "resource-id" => element.resource_id.as_deref() == Some(attr_value),
-            "content-desc" => element.content_desc.as_deref() == Some(attr_value),
+            "content-desc" => element.content_desc == attr_value,
             "text" => {
                 // 支持子元素文本匹配: //*[@resource-id='xxx']//*[@text='yyy']
                 if xpath.contains("]//*[@text") {
@@ -1341,27 +1342,27 @@ fn find_element_bounds_by_xpath(
                             
                             // 检查是否有子元素包含目标文本
                             // 简化版本：检查元素自身text或children_texts
-                            element.text.as_deref() == Some(attr_value)
+                            element.text == attr_value
                         } else {
                             false
                         }
                     } else {
-                        element.text.as_deref() == Some(attr_value)
+                        element.text == attr_value
                     }
                 } else {
-                    element.text.as_deref() == Some(attr_value)
+                    element.text == attr_value
                 }
             },
             _ => false,
         };
         
         if matches {
-            if let Some(ref bounds) = element.bounds {
+            let ref bounds = &element.bounds; {
                 tracing::debug!(
                     "✅ [XPath匹配] 找到元素: {}='{}' -> bounds={}",
                     attr_name, attr_value, bounds
                 );
-                return Some(bounds.clone());
+                return Some(bounds.to_string());
             }
         }
     }
@@ -1372,4 +1373,6 @@ fn find_element_bounds_by_xpath(
     );
     None
 }
+
+
 

@@ -119,7 +119,7 @@ pub async fn import_contact_numbers_from_folder(
                 if ext.to_string_lossy().to_lowercase() == "txt" {
                     total_files += 1;
                     let file_path_str = path.to_string_lossy().to_string();
-                    let file_name = path
+                    let _file_name = path
                         .file_name()
                         .and_then(|f| f.to_str())
                         .unwrap_or("unknown.txt")

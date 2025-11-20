@@ -1,5 +1,7 @@
 use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
+use regex::Regex;
+use std::fmt;
 
 /// 页面信息结构
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -55,13 +57,13 @@ pub struct ActionableElement {
     /// 类名
     pub class_name: String,
     /// 是否可点击
-    pub is_clickable: bool,
+    pub clickable: bool,
     /// 是否可编辑
     pub is_editable: bool,
     /// 是否已启用
-    pub is_enabled: bool,
+    pub enabled: bool,
     /// 是否可滚动
-    pub is_scrollable: bool,
+    pub scrollable: bool,
     /// 支持的操作列表
     pub supported_actions: Vec<ElementAction>,
     /// 元素分组信息（用于去重）
@@ -98,12 +100,18 @@ pub enum ElementType {
 }
 
 /// 元素位置和尺寸
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq, Hash)]
 pub struct ElementBounds {
     pub left: i32,
     pub top: i32,
     pub right: i32,
     pub bottom: i32,
+}
+
+impl fmt::Display for ElementBounds {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        write!(f, "[{},{},{},{}]", self.left, self.top, self.right, self.bottom)
+    }
 }
 
 impl ElementBounds {
@@ -121,6 +129,44 @@ impl ElementBounds {
     
     pub fn center_y(&self) -> i32 {
         (self.top + self.bottom) / 2
+    }
+
+    pub fn center(&self) -> (i32, i32) {
+        ((self.left + self.right) / 2, (self.top + self.bottom) / 2)
+    }
+
+    /// 计算与另一个边界框的IoU（交并比）
+    pub fn iou(&self, other: &ElementBounds) -> f64 {
+        let intersection_left = self.left.max(other.left);
+        let intersection_top = self.top.max(other.top);
+        let intersection_right = self.right.min(other.right);
+        let intersection_bottom = self.bottom.min(other.bottom);
+        
+        if intersection_left >= intersection_right || intersection_top >= intersection_bottom {
+            return 0.0;
+        }
+        
+        let intersection_area = ((intersection_right - intersection_left) * (intersection_bottom - intersection_top)) as f64;
+        let self_area = (self.width() * self.height()) as f64;
+        let other_area = (other.width() * other.height()) as f64;
+        
+        let union_area = self_area + other_area - intersection_area;
+        if union_area <= 0.0 {
+            0.0
+        } else {
+            intersection_area / union_area
+        }
+    }
+
+    pub fn from_string(s: &str) -> Option<Self> {
+        let re = regex::Regex::new(r"\[(\d+),(\d+)\]\[(\d+),(\d+)\]").ok()?;
+        let caps = re.captures(s)?;
+        Some(ElementBounds {
+            left: caps[1].parse().ok()?,
+            top: caps[2].parse().ok()?,
+            right: caps[3].parse().ok()?,
+            bottom: caps[4].parse().ok()?,
+        })
     }
 }
 

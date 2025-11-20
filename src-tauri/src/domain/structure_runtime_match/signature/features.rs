@@ -28,3 +28,4 @@ pub fn extract<V: SmXmlView>(view: &V, container: SmNodeId, item: SmNodeId) -> S
         has_text_hint,
     }
 }
+

@@ -8,8 +8,9 @@ use regex::Regex;
 use once_cell::sync::Lazy;
 
 use super::strategy_plugin::ExecutionEnvironment;
-use crate::services::ui_reader_service::UIElement;
+use crate::services::universal_ui_page_analyzer::UIElement;
 use crate::commands::run_step_v2::{MatchCandidate, Bounds};
+use crate::types::page_analysis::ElementBounds;
 
 // 🎯 性能优化：预编译正则表达式
 static NODE_REGEX: Lazy<Regex> = Lazy::new(|| Regex::new(r#"<node[^>]*>"#).unwrap());
@@ -132,15 +133,32 @@ impl XmlIndexer {
                           class_name.as_deref().unwrap_or("unknown"), 
                           index + 1);
         
+        let bounds_obj = bounds_str.as_ref()
+            .and_then(|s| ElementBounds::from_string(s))
+            .unwrap_or(ElementBounds { left: 0, top: 0, right: 0, bottom: 0 });
+
         let element = UIElement {
-            text,
-            resource_id,
-            class: class_name,
-            package,
-            content_desc,
-            clickable: clickable.and_then(|s| s.parse().ok()),
-            enabled: enabled.and_then(|s| s.parse().ok()),
-            bounds: bounds_str,
+            id: "".to_string(),
+            element_type: "Other".to_string(),
+            text: text.clone().unwrap_or_default(),
+            resource_id: resource_id.clone(),
+            class_name: class_name.clone(),
+            package_name: package.clone(),
+            content_desc: content_desc.clone().unwrap_or_default(),
+            clickable: clickable.and_then(|s| s.parse().ok()).unwrap_or(false),
+            enabled: enabled.and_then(|s| s.parse().ok()).unwrap_or(false),
+            bounds: bounds_obj,
+            xpath: xpath.clone(),
+            scrollable: false,
+            focused: false,
+            checkable: false,
+            checked: false,
+            selected: false,
+            password: false,
+            children: Vec::new(),
+            parent: None,
+            depth: 0,
+            index_path: None,
         };
         
         Ok(IndexedNode {
@@ -167,14 +185,14 @@ impl XmlIndexer {
         }
         
         // 类名索引
-        if let Some(class_name) = &node.element.class {
+        if let Some(class_name) = &node.element.class_name {
             self.class_name_index.entry(class_name.clone())
                 .or_insert_with(Vec::new)
                 .push(node.clone());
         }
         
         // 文本索引
-        if let Some(text) = &node.element.text {
+        let text = &node.element.text; if !text.is_empty() {
             if !text.trim().is_empty() {
                 self.text_index.entry(text.clone())
                     .or_insert_with(Vec::new)
@@ -183,7 +201,7 @@ impl XmlIndexer {
         }
         
         // ContentDesc索引
-        if let Some(content_desc) = &node.element.content_desc {
+        let content_desc = &node.element.content_desc; if !content_desc.is_empty() {
             if !content_desc.trim().is_empty() {
                 self.content_desc_index.entry(content_desc.clone())
                     .or_insert_with(Vec::new)
@@ -523,7 +541,7 @@ impl<'a> SearchInterface<'a> {
                         
                         let container_nodes = self.indexer.find_in_container(
                             container_xpath, 
-                            |node| self.matches_text_aliases(&node.element.text, aliases)
+                            |node| self.matches_text_aliases(&Some(node.element.text.clone()), aliases)
                         );
                         
                         results = self.nodes_to_candidates(container_nodes, "RegionTextToParent");
@@ -554,15 +572,15 @@ impl<'a> SearchInterface<'a> {
                     right: node.bounds.2,
                     bottom: node.bounds.3,
                 },
-                text: node.element.text.clone(),
-                class_name: node.element.class.clone(),
-                package_name: node.element.package.clone(),
+                text: Some(node.element.text.clone()),
+                class_name: node.element.class_name.clone(),
+                package_name: node.element.package_name.clone(),
             }
         }).collect()
     }
     
     /// 检查文本是否匹配别名
-    fn matches_text_aliases(&self, element_text: &Option<String>, aliases: &[String]) -> bool {
+    pub fn matches_text_aliases(&self, element_text: &Option<String>, aliases: &[String]) -> bool {
         if let Some(text) = element_text {
             aliases.iter().any(|alias| text.contains(alias) || alias.contains(text))
         } else {
@@ -570,3 +588,5 @@ impl<'a> SearchInterface<'a> {
         }
     }
 }
+
+

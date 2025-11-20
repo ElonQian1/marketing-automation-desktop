@@ -161,7 +161,8 @@ fn score_candidate(elem: &UIElement, context: &EvaluationContext) -> (f32, Strin
     // 🎯 维度1: 文本精确匹配 (0.0-0.4)
     if let Some(ref target_text) = context.target_text {
         if !target_text.is_empty() {
-            if let Some(ref elem_text) = elem.text {
+            if !elem.text.is_empty() {
+                let elem_text = &elem.text;
                 if elem_text == target_text {
                     score += 0.4;
                     reasons.push(format!("文本精确匹配'{}'", target_text));
@@ -186,7 +187,8 @@ fn score_candidate(elem: &UIElement, context: &EvaluationContext) -> (f32, Strin
     // 🎯 维度2: Content-desc匹配 (0.0-0.3)
     if let Some(ref target_desc) = context.target_content_desc {
         if !target_desc.is_empty() {
-            if let Some(ref elem_desc) = elem.content_desc {
+            if !elem.content_desc.is_empty() {
+                let elem_desc = &elem.content_desc;
                 if elem_desc == target_desc {
                     score += 0.3;
                     reasons.push(format!("content-desc精确匹配'{}'", target_desc));
@@ -205,10 +207,10 @@ fn score_candidate(elem: &UIElement, context: &EvaluationContext) -> (f32, Strin
     }
     
     // 🎯 维度3: 空间距离 (0.0-0.2) - 与原始bounds的距离越近越好
-    if let (Some(ref orig_bounds), Some(ref elem_bounds)) = 
-        (&context.original_bounds, &elem.bounds) {
+    if let Some(ref orig_bounds) = &context.original_bounds {
+        let elem_bounds_str = elem.bounds.to_string();
         if let (Some(orig_center), Some(elem_center)) = 
-            (parse_bounds_center(orig_bounds), parse_bounds_center(elem_bounds)) {
+            (parse_bounds_center(orig_bounds), parse_bounds_center(&elem_bounds_str)) {
             let distance = calculate_distance(orig_center, elem_center);
             // 距离 < 100px: 0.2分，距离每增加100px减少0.05分
             let distance_score = (0.2 - (distance / 100.0) * 0.05).max(0.0);
@@ -229,7 +231,7 @@ fn score_candidate(elem: &UIElement, context: &EvaluationContext) -> (f32, Strin
     }
     
     if let (Some(ref orig_class), Some(ref elem_class)) = 
-        (&context.original_class, &elem.class) {  // 修复：使用class而不是class_name
+        (&context.original_class, &elem.class_name) {  // 修复：使用class而不是class_name
         if orig_class == elem_class {
             score += 0.05;
             reasons.push("class匹配".to_string());
@@ -329,3 +331,5 @@ mod tests {
         assert_eq!(calculate_distance((100.0, 100.0), (100.0, 100.0)), 0.0);
     }
 }
+
+

@@ -205,7 +205,9 @@ impl ElementInfo {
         let mut parts = Vec::new();
         
         if let Some(text) = &self.text {
-            parts.push(format!("text='{}'", text));
+            if !text.is_empty() {
+                parts.push(format!("text='{}'", text));
+            }
         }
         if let Some(resource_id) = &self.resource_id {
             parts.push(format!("resource-id='{}'", resource_id));

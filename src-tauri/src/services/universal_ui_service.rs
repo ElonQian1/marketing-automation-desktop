@@ -107,7 +107,7 @@ impl UniversalUIService {
             
             // 确定支持的操作
             let mut supported_actions = Vec::new();
-            if elem.is_clickable { supported_actions.push(ElementAction::Click); }
+            if elem.clickable { supported_actions.push(ElementAction::Click); }
             if elem.element_type.contains("edit") { supported_actions.push(ElementAction::InputText("".to_string())); }
 
             // 构建旧版元素结构
@@ -118,10 +118,10 @@ impl UniversalUIService {
                 bounds: elem.bounds,
                 resource_id: elem.resource_id,
                 class_name: elem.class_name.unwrap_or_default(),
-                is_clickable: elem.is_clickable,
+                clickable: elem.clickable,
                 is_editable: elem.element_type.contains("edit"),
-                is_enabled: elem.is_enabled,
-                is_scrollable: elem.is_scrollable,
+                enabled: elem.enabled,
+                scrollable: elem.scrollable,
                 supported_actions,
                 group_info: ElementGroupInfo {
                     group_key: format!("{}_{}", elem.element_type, index), // 简化分组
@@ -258,7 +258,7 @@ impl UniversalUIService {
                     text: elem.text.clone(),
                     bounds: format!("[{},{}][{},{}]", elem.bounds.left, elem.bounds.top, elem.bounds.right, elem.bounds.bottom),
                     content_desc: elem.content_desc.clone(),
-                    clickable: elem.is_clickable,
+                    clickable: elem.clickable,
                     position: (center_x, center_y),
                 };
                 

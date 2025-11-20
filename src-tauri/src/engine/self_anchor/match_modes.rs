@@ -4,7 +4,8 @@
 
 use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
-use crate::services::ui_reader_service::UIElement;
+use crate::services::universal_ui_page_analyzer::UIElement;
+use crate::types::page_analysis::ElementBounds;
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub enum MatchMode {
@@ -32,45 +33,7 @@ pub struct InstanceFingerprint {
     pub subtree_sig: Option<String>,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct ElementBounds {
-    pub left: i32,
-    pub top: i32,
-    pub right: i32,
-    pub bottom: i32,
-}
 
-impl ElementBounds {
-    /// 计算中心点
-    pub fn center(&self) -> (i32, i32) {
-        ((self.left + self.right) / 2, (self.top + self.bottom) / 2)
-    }
-    
-    /// 计算与另一个边界框的IoU（交并比）
-    pub fn iou(&self, other: &ElementBounds) -> f64 {
-        let intersection_left = self.left.max(other.left);
-        let intersection_top = self.top.max(other.top);
-        let intersection_right = self.right.min(other.right);
-        let intersection_bottom = self.bottom.min(other.bottom);
-        
-        if intersection_left >= intersection_right || intersection_top >= intersection_bottom {
-            return 0.0;
-        }
-        
-        let intersection_area = ((intersection_right - intersection_left) * 
-                                (intersection_bottom - intersection_top)) as f64;
-        
-        let self_area = ((self.right - self.left) * (self.bottom - self.top)) as f64;
-        let other_area = ((other.right - other.left) * (other.bottom - other.top)) as f64;
-        let union_area = self_area + other_area - intersection_area;
-        
-        if union_area > 0.0 {
-            intersection_area / union_area
-        } else {
-            0.0
-        }
-    }
-}
 
 pub struct MatchModeProcessor;
 
@@ -108,16 +71,8 @@ impl MatchModeProcessor {
         let mut indexed_elements: Vec<(usize, &UIElement)> = elements.iter().enumerate().collect();
         indexed_elements.sort_by(|a, b| {
             // 先按Y坐标（上到下），再按X坐标（左到右）
-            let bounds_a = if let Some(bounds_str) = &a.1.bounds {
-                self.parse_bounds(bounds_str)
-            } else {
-                None
-            };
-            let bounds_b = if let Some(bounds_str) = &b.1.bounds {
-                self.parse_bounds(bounds_str)
-            } else {
-                None
-            };
+            let bounds_a = Some(a.1.bounds.clone());
+            let bounds_b = Some(b.1.bounds.clone());
             
             match (bounds_a, bounds_b) {
                 (Some(a_bounds), Some(b_bounds)) => {
@@ -143,16 +98,8 @@ impl MatchModeProcessor {
         
         let mut indexed_elements: Vec<(usize, &UIElement)> = elements.iter().enumerate().collect();
         indexed_elements.sort_by(|a, b| {
-            let bounds_a = if let Some(bounds_str) = &a.1.bounds {
-                self.parse_bounds(bounds_str)
-            } else {
-                None
-            };
-            let bounds_b = if let Some(bounds_str) = &b.1.bounds {
-                self.parse_bounds(bounds_str)
-            } else {
-                None
-            };
+            let bounds_a = Some(a.1.bounds.clone());
+            let bounds_b = Some(b.1.bounds.clone());
             
             match (bounds_a, bounds_b) {
                 (Some(a_bounds), Some(b_bounds)) => {
@@ -212,13 +159,10 @@ impl MatchModeProcessor {
         
         // 1. 边界框IoU（权重：0.4）
         if let Some(tap_bounds) = &fingerprint.tap_bounds {
-            if let Some(bounds_str) = &element.bounds {
-                if let Some(element_bounds) = self.parse_bounds(bounds_str) {
-                    let iou = tap_bounds.iou(&element_bounds);
-                    total_score += iou * 0.4;
-                    weight_sum += 0.4;
-                }
-            }
+            let element_bounds = &element.bounds;
+            let iou = tap_bounds.iou(element_bounds);
+            total_score += iou * 0.4;
+            weight_sum += 0.4;
         }
         
         // 2. 祖先路径签名（权重：0.3）
@@ -300,11 +244,9 @@ pub fn generate_instance_fingerprint(
     
     InstanceFingerprint {
         tap_bounds: user_tap_bounds,
-        bounds_aspect: if let Some(bounds_str) = &element.bounds {
-            processor.parse_bounds(bounds_str)
-                .map(|b| (b.right - b.left) as f64 / (b.bottom - b.top) as f64)
-        } else {
-            None
+        bounds_aspect: {
+            let b = &element.bounds;
+            Some((b.right - b.left) as f64 / (b.bottom - b.top) as f64)
         },
         ancestry_path_sig: processor.generate_ancestry_signature(element),
         clickable_parent_sig: processor.generate_clickable_parent_signature(element),
@@ -312,3 +254,4 @@ pub fn generate_instance_fingerprint(
         subtree_sig: None, // TODO: 实现子树签名生成
     }
 }
+

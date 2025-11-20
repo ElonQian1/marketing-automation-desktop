@@ -5,7 +5,7 @@
 //! 3. 华为增强导入入口
 
 use crate::services::vcf::{MultiBrandVcfImporter, MultiBrandImportResult, Contact, VcfOpenResult, generate_vcf_file as generate_vcf_file_impl};
-// use crate::services::huawei_enhanced_importer::{HuaweiEmuiEnhancedStrategy, ImportExecutionResult};
+// // use crate::services::huawei_enhanced_importer::{HuaweiEmuiEnhancedStrategy, ImportExecutionResult};
 use serde::{Deserialize, Serialize};
 use tracing::{error, info, warn};
 
@@ -76,73 +76,18 @@ pub async fn import_vcf_contacts_multi_brand(
 pub async fn import_vcf_contacts_huawei_enhanced(
     device_id: String,
     contacts_file_path: String,
-) -> Result<ImportExecutionResult, String> {
+) -> Result<(), String> {
     info!(
         "🚀 开始华为增强VCF导入: 设备 {} 文件 {}",
         device_id, contacts_file_path
     );
 
-    // 检查文件是否存在
-    if !std::path::Path::new(&contacts_file_path).exists() {
-        return Err(format!("VCF文件不存在: {}", contacts_file_path));
-    }
-
-    // 检测ADB路径
-    let adb_path = if std::path::Path::new("platform-tools/adb.exe").exists() {
-        "platform-tools/adb.exe".to_string()
+    let result = import_vcf_contacts_multi_brand(device_id, contacts_file_path).await?;
+    if result.success {
+        Ok(())
     } else {
-        "adb".to_string()
-    };
-
-    let strategy = HuaweiEmuiEnhancedStrategy::new(device_id, adb_path);
-    let methods = strategy.get_enhanced_import_methods();
-
-    info!("📋 华为设备有 {} 种增强导入方法可尝试", methods.len());
-
-    // 逐个尝试导入方法，优先使用推荐的Intent导入
-    for (index, method) in methods.iter().enumerate() {
-        info!("🔄 尝试华为导入方法 {}/{}: {}", index + 1, methods.len(), method.name);
-        
-        match strategy.execute_import_method(method, Some(&contacts_file_path)) {
-            Ok(result) => {
-                if result.success {
-                    info!(
-                        "✅ 华为增强导入成功: 方法={} 耗时={}秒",
-                        result.method_name, result.duration_seconds
-                    );
-                    
-                    // 记录命令执行详情
-                    for cmd_result in &result.command_results {
-                        info!("   命令: {} | 成功: {} | 耗时: {}秒", 
-                            cmd_result.command, cmd_result.success, cmd_result.duration);
-                        if !cmd_result.stdout.is_empty() {
-                            info!("   输出: {}", cmd_result.stdout.trim());
-                        }
-                    }
-                    
-                    return Ok(result);
-                } else {
-                    warn!(
-                        "⚠️ 华为导入方法失败: {} | 错误: {:?}",
-                        method.name, result.error_message
-                    );
-                    
-                    // 记录失败的命令详情
-                    for cmd_result in &result.command_results {
-                        if !cmd_result.success {
-                            warn!("   失败命令: {} | 错误: {}", 
-                                cmd_result.command, cmd_result.stderr.trim());
-                        }
-                    }
-                }
-            }
-            Err(e) => {
-                error!("❌ 华为导入方法执行异常: {} | 异常: {}", method.name, e);
-            }
-        }
+        Err(format!("Import failed: {:?}", result.failed_contacts))
     }
-
-    Err("所有华为导入方法都失败了".to_string())
 }
 
 /// 🎯 前端兼容命令：import_and_open_vcf_ldplayer
@@ -205,3 +150,4 @@ pub async fn import_and_open_vcf_ldplayer(
         }
     }
 }
+

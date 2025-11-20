@@ -60,7 +60,7 @@ pub fn convert_static_evidence_to_template(evidence: &SmStaticEvidence) -> serde
         "text": evidence.text,
         "content_desc": evidence.content_desc,
         "class": evidence.class,
-        "bounds": evidence.bounds.as_ref().map(|b| {
+        "bounds": evidence.bounds.clone().map(|b| {
             vec![b.left, b.top, b.right, b.bottom]
         }),
         "xpath": evidence.xpath,
@@ -331,3 +331,4 @@ mod tests {
         );
     }
 }
+

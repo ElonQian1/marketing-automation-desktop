@@ -129,7 +129,7 @@ pub async fn test_smart_selection_connectivity(
     let mut overall_success = true;
     
     // 1. 设备连接检查
-    let device_check = match crate::services::ui_reader_service::get_ui_dump(&device_id).await {
+    let device_check = match crate::services::adb::AdbService::new().dump_ui_hierarchy(&device_id).await {
         Ok(_) => {
             checks.push(ConnectivityCheck {
                 name: "设备UI读取".to_string(),
@@ -274,7 +274,7 @@ pub async fn preview_smart_selection_candidates(
     info!("👁️ 预览智能选择候选元素，设备: {}", device_id);
     
     // 获取UI状态
-    let ui_xml = match crate::services::ui_reader_service::get_ui_dump(&device_id).await {
+    let ui_xml = match crate::services::adb::AdbService::new().dump_ui_hierarchy(&device_id).await {
         Ok(xml) => xml,
         Err(e) => return Err(format!("获取UI状态失败: {}", e)),
     };
@@ -373,4 +373,5 @@ pub struct SelectionPreview {
     pub would_select_count: u32,
     pub estimated_execution_time_ms: u64,
 }
+
 

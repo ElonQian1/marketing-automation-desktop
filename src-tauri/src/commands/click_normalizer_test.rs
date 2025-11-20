@@ -177,11 +177,11 @@ fn convert_to_dto(result: ClickNormalizeResult) -> anyhow::Result<ClickNormalize
 fn convert_node_to_dto(node: crate::domain::structure_runtime_match::NormalizedNode) -> NodeInfoDTO {
     NodeInfoDTO {
         node_index: node.node_index,
-        class_name: node.element.class,
-        text: node.element.text,
-        content_desc: node.element.content_desc,
+        class_name: node.element.class_name,
+        text: Some(node.element.text),
+        content_desc: Some(node.element.content_desc),
         resource_id: node.element.resource_id,
-        clickable: node.element.clickable,
+        clickable: Some(node.element.clickable),
         bounds: node.bounds,
         xpath: node.xpath,
     }
@@ -265,10 +265,10 @@ async fn analyze_xml_structure_impl(xml_content: &str) -> anyhow::Result<Analyze
         let element = &indexed_node.element;
         
         // 统计可点击节点
-        if element.clickable.unwrap_or(false) {
+        if element.clickable {
             clickable_count += 1;
             
-            if let Some(class) = &element.class {
+            if let Some(class) = &element.class_name {
                 if class.ends_with("FrameLayout") {
                     clickable_framelayout_count += 1;
                 }
@@ -276,9 +276,9 @@ async fn analyze_xml_structure_impl(xml_content: &str) -> anyhow::Result<Analyze
         }
         
         // 统计有content-desc的不可点击FrameLayout
-        if !element.clickable.unwrap_or(false) {
-            if let Some(class) = &element.class {
-                if class.ends_with("FrameLayout") && element.content_desc.is_some() {
+        if !element.clickable {
+            if let Some(class) = &element.class_name {
+                if class.ends_with("FrameLayout") && !element.content_desc.is_empty() {
                     desc_framelayout_count += 1;
                 }
             }

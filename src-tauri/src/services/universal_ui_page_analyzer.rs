@@ -40,7 +40,7 @@ pub struct UniversalPageCaptureResult {
 }
 
 /// UI元素结构（与前端接口匹配）
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
 pub struct UIElement {
     pub id: String,
     pub element_type: String,
@@ -48,11 +48,12 @@ pub struct UIElement {
     pub bounds: ElementBounds,
     pub xpath: String,               // 前端需要的 xpath 字段
     pub resource_id: Option<String>,
+    pub package_name: Option<String>, // Added field
     pub class_name: Option<String>,  // 改为 Option 以匹配前端
-    pub is_clickable: bool,
-    pub is_scrollable: bool,
-    pub is_enabled: bool,
-    pub is_focused: bool,
+    pub clickable: bool,
+    pub scrollable: bool,
+    pub enabled: bool,
+    pub focused: bool,
     pub checkable: bool,            // 前端需要的字段
     pub checked: bool,              // 前端需要的字段  
     pub selected: bool,             // 匹配前端的 selected 字段
@@ -334,11 +335,12 @@ impl UniversalUIPageAnalyzer {
             bounds,
             xpath,
             resource_id,
+            package_name: None,
             class_name: if class_name.is_empty() { None } else { Some(class_name) },
-            is_clickable,
-            is_scrollable,
-            is_enabled,
-            is_focused,
+            clickable: is_clickable,
+            scrollable: is_scrollable,
+            enabled: is_enabled,
+            focused: is_focused,
             checkable,
             checked,
             selected: is_selected,
@@ -381,7 +383,7 @@ impl UniversalUIPageAnalyzer {
     }
 
     /// 智能分类元素类型（基于SmartElementFinderService逻辑）
-    fn classify_element_type(&self, class_name: &str, text: &str, is_clickable: bool, content_desc: &str) -> String {
+    fn classify_element_type(&self, class_name: &str, text: &str, clickable: bool, content_desc: &str) -> String {
         let text_lower = text.to_lowercase();
         let content_lower = content_desc.to_lowercase();
         
@@ -391,13 +393,15 @@ impl UniversalUIPageAnalyzer {
         } else if class_name.contains("EditText") {
             "edit_text"
         } else if class_name.contains("TextView") {
-            if is_clickable { "text_button" } else { "text_view" }
+            if clickable { "text_button" } else { "text_view" }
         } else if class_name.contains("ImageView") || class_name.contains("ImageButton") {
-            if is_clickable { "image_button" } else { "image_view" }
+            if clickable { "image_button" } else { "image_view" }
         } else if class_name.contains("RecyclerView") || class_name.contains("ListView") {
             "list_container"
-        } else if is_clickable && !text.is_empty() {
-            "clickable_text"
+        } else if class_name.contains("Layout") {
+            if clickable { "clickable_layout" } else { "layout" }
+        } else if clickable && !text.is_empty() {
+            "text_view"
         } else {
             "other"
         };
@@ -526,8 +530,8 @@ impl UniversalUIPageAnalyzer {
         }
         
         // 保留有意义的元素
-        element.is_clickable 
-            || element.is_scrollable 
+        element.clickable 
+            || element.scrollable 
             || !element.text.trim().is_empty()
             || !element.content_desc.trim().is_empty()
             || element.element_type.contains("edit_text")
@@ -573,10 +577,10 @@ impl UniversalUIPageAnalyzer {
             .iter()
             .filter(|e| {
                 // 可点击，或者有文本内容，或者是输入框
-                e.is_clickable 
+                e.clickable 
                 || !e.text.trim().is_empty() 
                 || e.element_type == "edit_text"
-                || e.is_scrollable
+                || e.scrollable
             })
             .filter(|e| {
                 // 过滤掉太小的元素（可能是装饰性元素）
@@ -594,7 +598,7 @@ impl UniversalUIPageAnalyzer {
         if let Some(nav_patterns) = self.navigation_patterns.get(package_name) {
             for element in elements {
                 for pattern in nav_patterns {
-                    if (element.text.contains(pattern) || element.content_desc.contains(pattern)) && element.is_clickable {
+                    if (element.text.contains(pattern) || element.content_desc.contains(pattern)) && element.clickable {
                         // 检查是否在底部区域（可能是底部导航栏）
                         if element.bounds.top > 1500 {
                             nav_elements.push(element.clone());
@@ -610,7 +614,7 @@ impl UniversalUIPageAnalyzer {
             nav_elements = elements
                 .iter()
                 .filter(|e| {
-                    e.is_clickable && 
+                    e.clickable && 
                     e.bounds.top > 1500 && // 底部区域
                     (!e.text.trim().is_empty() || !e.content_desc.trim().is_empty())
                 })

@@ -4,7 +4,7 @@
 
 use tauri::AppHandle;
 use super::super::{DecisionChainPlan, ExecutionEnvironment, StrategyVariant, VariantKind, VariantSelectors, SelfSelector};
-use crate::services::ui_reader_service::get_ui_dump;
+use crate::services::adb::AdbService;
 use crate::engine::{FallbackController, XmlIndexer, strategy_plugin::StrategyRegistry};
 
 /// 执行插件化决策链
@@ -25,7 +25,7 @@ pub async fn run_decision_chain_v2(
     tracing::info!("📋 Plan验证通过: {} 个策略候选", plan.plan.len());
     
     // 2. 获取真机UI Dump
-    let ui_xml = get_ui_dump(&device_id).await.map_err(|e| format!("获取UI Dump失败: {}", e))?;
+    let ui_xml = AdbService::new().dump_ui_hierarchy(&device_id).await.map_err(|e| format!("获取UI Dump失败: {}", e))?;
     let xml_hash = format!("{:x}", md5::compute(&ui_xml));
     
     tracing::info!("📱 UI Dump获取成功: {} chars, hash={}", ui_xml.len(), &xml_hash[..8]);
@@ -155,3 +155,6 @@ mod tests {
         assert_eq!(response["telemetry"]["plan_version"], "v2");
     }
 }
+
+
+

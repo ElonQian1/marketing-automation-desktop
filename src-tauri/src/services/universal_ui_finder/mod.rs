@@ -310,3 +310,4 @@ impl From<Box<dyn std::error::Error>> for FindError {
         FindError::ExecutionFailed(err.to_string())
     }
 }
+

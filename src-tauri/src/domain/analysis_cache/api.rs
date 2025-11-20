@@ -224,8 +224,8 @@ fn calculate_uniqueness_score(element: &ExtractedElement) -> f32 {
     let mut score: f32 = 0.0;
     
     if element.resource_id.is_some() { score += 0.4; }
-    if element.content_desc.is_some() { score += 0.3; }
-    if element.text.is_some() { score += 0.2; }
+    if element.content_desc.as_ref().map(|s| !s.is_empty()).unwrap_or(false) { score += 0.3; }
+    if element.text.as_ref().map(|s| !s.is_empty()).unwrap_or(false) { score += 0.2; }
     if element.class_name.is_some() { score += 0.1; }
     
     score.min(1.0)
@@ -237,10 +237,10 @@ fn calculate_stability_score(element: &ExtractedElement) -> f32 {
     
     // resource-id和content-desc更稳定
     if element.resource_id.is_some() { score += 0.5; }
-    if element.content_desc.is_some() { score += 0.3; }
+    if element.content_desc.as_ref().map(|s| !s.is_empty()).unwrap_or(false) { score += 0.3; }
     
     // 文本可能变化，评分较低
-    if element.text.is_some() { score += 0.2; }
+    if element.text.as_ref().map(|s| !s.is_empty()).unwrap_or(false) { score += 0.2; }
     
     score.min(1.0)
 }
@@ -249,9 +249,9 @@ fn calculate_stability_score(element: &ExtractedElement) -> f32 {
 fn suggest_strategy(element: &ExtractedElement) -> String {
     if element.resource_id.is_some() {
         "self_anchor".to_string()
-    } else if element.text.is_some() {
+    } else if element.text.as_ref().map(|s| !s.is_empty()).unwrap_or(false) {
         "child_driven".to_string()
-    } else if element.content_desc.is_some() {
+    } else if element.content_desc.as_ref().map(|s| !s.is_empty()).unwrap_or(false) {
         "content_desc".to_string()
     } else {
         "structure_match".to_string()
@@ -263,8 +263,8 @@ fn get_available_fields(element: &ExtractedElement) -> Vec<String> {
     let mut fields = Vec::new();
     
     if element.resource_id.is_some() { fields.push("resource_id".to_string()); }
-    if element.content_desc.is_some() { fields.push("content_desc".to_string()); }
-    if element.text.is_some() { fields.push("text".to_string()); }
+    if element.content_desc.as_ref().map(|s| !s.is_empty()).unwrap_or(false) { fields.push("content_desc".to_string()); }
+    if element.text.as_ref().map(|s| !s.is_empty()).unwrap_or(false) { fields.push("text".to_string()); }
     if element.class_name.is_some() { fields.push("class_name".to_string()); }
     if element.bounds.is_some() { fields.push("bounds".to_string()); }
     

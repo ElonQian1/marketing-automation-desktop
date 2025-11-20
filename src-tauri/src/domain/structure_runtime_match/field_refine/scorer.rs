@@ -30,3 +30,4 @@ pub fn score_fields<V: SmXmlView>(view: &V, fr: &FieldRules, items: &mut [SmItem
         it.scores.field = if cnt > 0.0 { score / cnt } else { 0.5 };
     }
 }
+

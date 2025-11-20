@@ -1,3 +1,4 @@
+// Force recompile check
 use anyhow::Result;
 use crate::services::adb::get_device_session;
 use crate::services::smart_app_manager::AppInfo;
@@ -70,7 +71,7 @@ pub async fn fetch_app_info(device_id: &str, package_name: &str) -> Result<AppIn
         version_name,
         version_code,
         is_system_app,
-        is_enabled,
+        enabled: is_enabled,
         main_activity,
         icon_path: None,
     })

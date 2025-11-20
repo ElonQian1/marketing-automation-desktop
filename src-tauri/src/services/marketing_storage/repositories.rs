@@ -940,3 +940,4 @@ pub fn get_precise_acquisition_stats(conn: &Connection) -> rusqlite::Result<serd
         "reply_templates_count": reply_templates_count,
     }))
 }
+

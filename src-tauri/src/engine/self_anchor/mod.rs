@@ -10,11 +10,12 @@ pub mod match_modes;
 pub mod relation_seed;
 
 use serde::{Deserialize, Serialize};
-use crate::services::ui_reader_service::UIElement;
+use crate::services::universal_ui_page_analyzer::UIElement;
 use strategy_generator::GeneratedSelfAnchor;
 
 // 重新导出关键类型供外部使用
-pub use match_modes::{MatchMode, MatchModeProcessor, InstanceFingerprint, ElementBounds, generate_instance_fingerprint};
+pub use match_modes::{MatchMode, MatchModeProcessor, InstanceFingerprint, generate_instance_fingerprint};
+pub use crate::types::page_analysis::ElementBounds;
 pub use relation_seed::{RelationSeed, RelationSeedGenerator};
 
 /// 自我锚定系统的主入口

@@ -260,8 +260,8 @@ impl XPathSimilarityMatcher {
         let mut ranked = Vec::new();
         
         for candidate in candidates {
-            if let Some(ref bounds) = candidate.bounds {
-                if let Some(dynamic_xpath) = xpath_map.get(bounds) {
+            let ref bounds = &candidate.bounds; {
+                if let Some(dynamic_xpath) = xpath_map.get(&bounds.to_string()) {
                     let similarity = Self::calculate_similarity(static_xpath, dynamic_xpath);
                     
                     if similarity.similarity > 0.0 {
@@ -395,3 +395,4 @@ mod tests {
         ));
     }
 }
+

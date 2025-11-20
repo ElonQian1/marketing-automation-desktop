@@ -15,7 +15,7 @@
 
 use serde::{Deserialize, Serialize};
 use crate::commands::run_step_v2::{StrategyVariant, StaticEvidence, StepExecutionResult, MatchCandidate, Bounds};
-use crate::services::ui_reader_service::UIElement;
+use crate::services::universal_ui_page_analyzer::UIElement;
 use std::collections::HashMap;
 use tauri::AppHandle;
 use tracing::{info, warn};
@@ -389,11 +389,13 @@ impl StrategyExecutor {
         // 从 selectors.self_ 中获取 content_desc
         if let Some(self_selector) = &variant.selectors.self_ {
             if let Some(target_content_desc) = &self_selector.content_desc {
-                // 🎯 智能解析 content-desc（"我，按钮" -> "我"）
-                let core_text = Self::extract_core_content_desc(target_content_desc);
-                tracing::info!("🔍 SelfDesc 策略: 原始='{}', 核心='{}'", target_content_desc, core_text);
-                
-                candidates = self.search_by_content_desc_with_hierarchy(env, &core_text, target_content_desc)?;
+                if !target_content_desc.is_empty() {
+                    // 🎯 智能解析 content-desc（"我，按钮" -> "我"）
+                    let core_text = Self::extract_core_content_desc(target_content_desc);
+                    tracing::info!("🔍 SelfDesc 策略: 原始='{}', 核心='{}'", target_content_desc, core_text);
+                    
+                    candidates = self.search_by_content_desc_with_hierarchy(env, &core_text, target_content_desc)?;
+                }
             }
         }
         
@@ -437,17 +439,17 @@ impl StrategyExecutor {
     /// 🎯 核心算法：智能层级点击目标识别
     /// 解决"TextView有文本但不可点击，需要点击父容器FrameLayout"问题
     fn find_clickable_target<'a>(
-        element: &'a crate::services::ui_reader_service::UIElement,
-        all_elements: &'a [crate::services::ui_reader_service::UIElement]
-    ) -> &'a crate::services::ui_reader_service::UIElement {
+        element: &'a crate::services::universal_ui_page_analyzer::UIElement,
+        all_elements: &'a [crate::services::universal_ui_page_analyzer::UIElement]
+    ) -> &'a crate::services::universal_ui_page_analyzer::UIElement {
         
         // 如果元素本身可点击，直接返回
-        if element.clickable.unwrap_or(false) {
+        if element.clickable {
             return element;
         }
         
         // 🎯 向上查找可点击的父容器（最多向上3层）
-        let element_bounds = Self::parse_bounds(&element.bounds.clone().unwrap_or_default()).ok();
+        let element_bounds = Some((element.bounds.left, element.bounds.top, element.bounds.right, element.bounds.bottom));
         
         if let Some(target_bounds) = element_bounds {
             // 查找包含当前元素且可点击的父容器
@@ -455,11 +457,11 @@ impl StrategyExecutor {
             let mut min_area_diff = f64::MAX;
             
             for candidate in all_elements {
-                if !candidate.clickable.unwrap_or(false) {
+                if !candidate.clickable {
                     continue;
                 }
                 
-                if let Ok(candidate_bounds) = Self::parse_bounds(&candidate.bounds.clone().unwrap_or_default()) {
+                if let Ok(candidate_bounds) = Ok::<_, anyhow::Error>((candidate.bounds.left, candidate.bounds.top, candidate.bounds.right, candidate.bounds.bottom)) {
                     // 检查是否包含目标元素
                     if Self::bounds_contains(candidate_bounds, target_bounds) {
                         // 计算面积差异，选择最小的包含容器
@@ -489,7 +491,7 @@ impl StrategyExecutor {
     
     /// 🎯 计算resource-id置信度（处理重复ID）
     fn calculate_resource_id_confidence(
-        element: &crate::services::ui_reader_service::UIElement,
+        element: &crate::services::universal_ui_page_analyzer::UIElement,
         index: usize,
         total_matches: usize,
         env: &ExecutionEnvironment
@@ -501,7 +503,7 @@ impl StrategyExecutor {
             confidence -= 0.2; // 每有重复ID，降低20%置信度
             
             // 🎯 位置权重：底部导航栏元素权重更高
-            if let Ok(bounds) = Self::parse_bounds(&element.bounds.clone().unwrap_or_default()) {
+            if let Ok(bounds) = Ok::<(i32, i32, i32, i32), anyhow::Error>((element.bounds.left, element.bounds.top, element.bounds.right, element.bounds.bottom)) {
                 let y_position = bounds.1; // top坐标
                 let screen_height = env.screen_height as i32;
                 
@@ -519,7 +521,7 @@ impl StrategyExecutor {
         }
         
         // 🎯 文本内容权重
-        if element.text.is_some() || element.content_desc.is_some() {
+        if !element.text.is_empty() || !element.content_desc.is_empty() {
             confidence += 0.1;
         }
         
@@ -528,7 +530,7 @@ impl StrategyExecutor {
     
     /// 通过resource_id搜索节点（增强版，处理重复ID）
     fn search_by_resource_id(&self, env: &ExecutionEnvironment, resource_id: &str) -> Result<Vec<MatchCandidate>, anyhow::Error> {
-        use crate::services::ui_reader_service::parse_ui_elements;
+        use crate::services::universal_ui_page_analyzer::parse_ui_elements_simple as parse_ui_elements;
         
         // 解析UI元素（优先使用ui_xml，回退到xml_content）
         let xml_to_parse = if !env.ui_xml.is_empty() {
@@ -542,7 +544,7 @@ impl StrategyExecutor {
         let mut candidates = Vec::new();
         
         // 🎯 查找所有匹配的resource_id元素
-        let matching_elements: Vec<&crate::services::ui_reader_service::UIElement> = ui_elements
+        let matching_elements: Vec<&crate::services::universal_ui_page_analyzer::UIElement> = ui_elements
             .iter()
             .filter(|elem| {
                 elem.resource_id.as_ref().map_or(false, |rid| rid == resource_id)
@@ -555,7 +557,7 @@ impl StrategyExecutor {
         for (index, elem) in matching_elements.iter().enumerate() {
             let clickable_target = Self::find_clickable_target(elem, &ui_elements);
             
-            let bounds = Self::parse_bounds(&clickable_target.bounds.clone().unwrap_or_default())?;
+            let bounds = (clickable_target.bounds.left, clickable_target.bounds.top, clickable_target.bounds.right, clickable_target.bounds.bottom);
             let confidence = Self::calculate_resource_id_confidence(elem, index, matching_elements.len(), &env);
             
             candidates.push(MatchCandidate {
@@ -568,9 +570,9 @@ impl StrategyExecutor {
                     right: bounds.2,
                     bottom: bounds.3,
                 },
-                text: clickable_target.text.clone(),
-                class_name: clickable_target.class.clone(),
-                package_name: clickable_target.package.clone(),
+                text: Some(clickable_target.text.clone()),
+                class_name: clickable_target.class_name.clone(),
+                package_name: clickable_target.package_name.clone(),
             });
         }
         
@@ -587,7 +589,7 @@ impl StrategyExecutor {
         core_text: &str, 
         original_desc: &str
     ) -> Result<Vec<MatchCandidate>, anyhow::Error> {
-        use crate::services::ui_reader_service::parse_ui_elements;
+        use crate::services::universal_ui_page_analyzer::parse_ui_elements_simple as parse_ui_elements;
         
         let xml_to_parse = if !env.ui_xml.is_empty() {
             &env.ui_xml
@@ -606,15 +608,15 @@ impl StrategyExecutor {
         ];
         
         for pattern in search_patterns {
-            let matching_elements: Vec<&crate::services::ui_reader_service::UIElement> = ui_elements
+            let matching_elements: Vec<&crate::services::universal_ui_page_analyzer::UIElement> = ui_elements
                 .iter()
                 .filter(|elem| {
                     // content-desc 匹配
-                    if let Some(desc) = &elem.content_desc {
+                    let desc = &elem.content_desc; if !desc.is_empty() {
                         return desc == pattern || desc.contains(pattern);
                     }
                     // text 属性作为备用匹配
-                    if let Some(text) = &elem.text {
+                    let text = &elem.text; if !text.is_empty() {
                         return text == pattern;
                     }
                     false
@@ -624,7 +626,7 @@ impl StrategyExecutor {
             for (index, elem) in matching_elements.iter().enumerate() {
                 let clickable_target = Self::find_clickable_target(elem, &ui_elements);
                 
-                let bounds = Self::parse_bounds(&clickable_target.bounds.clone().unwrap_or_default())?;
+                let bounds = Ok::<_, anyhow::Error>((clickable_target.bounds.left, clickable_target.bounds.top, clickable_target.bounds.right, clickable_target.bounds.bottom))?;
                 let confidence = if pattern == original_desc { 0.95 } else { 0.85 }; // 原始匹配置信度更高
                 
                 candidates.push(MatchCandidate {
@@ -641,9 +643,9 @@ impl StrategyExecutor {
                         right: bounds.2,
                         bottom: bounds.3,
                     },
-                    text: clickable_target.text.clone(),
-                    class_name: clickable_target.class.clone(),
-                    package_name: clickable_target.package.clone(),
+                    text: Some(clickable_target.text.clone()),
+                    class_name: clickable_target.class_name.clone(),
+                    package_name: clickable_target.package_name.clone(),
                 });
             }
         }
@@ -692,3 +694,5 @@ lazy_static::lazy_static! {
     pub static ref STRATEGY_REGISTRY: std::sync::Mutex<StrategyRegistry> = 
         std::sync::Mutex::new(StrategyRegistry::new());
 }
+
+

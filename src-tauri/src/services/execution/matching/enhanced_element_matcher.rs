@@ -326,8 +326,10 @@ impl EnhancedElementMatcher {
         if let Some(target_text) = target.get("text") {
             total_weight += self.config.attribute_weights.text;
             if let Some(candidate_text) = &candidate.text {
-                if target_text == candidate_text {
-                    matched_weight += self.config.attribute_weights.text;
+                if !candidate_text.is_empty() {
+                    if target_text == candidate_text {
+                        matched_weight += self.config.attribute_weights.text;
+                    }
                 }
             }
         }
@@ -336,8 +338,10 @@ impl EnhancedElementMatcher {
         if let Some(target_desc) = target.get("content_desc") {
             total_weight += self.config.attribute_weights.content_desc;
             if let Some(candidate_desc) = &candidate.content_desc {
-                if target_desc == candidate_desc {
-                    matched_weight += self.config.attribute_weights.content_desc;
+                if !candidate_desc.is_empty() {
+                    if target_desc == candidate_desc {
+                        matched_weight += self.config.attribute_weights.content_desc;
+                    }
                 }
             }
         }
@@ -375,8 +379,10 @@ impl EnhancedElementMatcher {
         if let Some(target_text) = target.get("text") {
             total_weight += self.config.attribute_weights.text;
             if let Some(candidate_text) = &candidate.text {
-                let similarity = self.string_similarity(target_text, candidate_text);
-                similarity_sum += similarity * self.config.attribute_weights.text;
+                if !candidate_text.is_empty() {
+                    let similarity = self.string_similarity(target_text, candidate_text);
+                    similarity_sum += similarity * self.config.attribute_weights.text;
+                }
             }
         }
 
@@ -384,8 +390,10 @@ impl EnhancedElementMatcher {
         if let Some(target_desc) = target.get("content_desc") {
             total_weight += self.config.attribute_weights.content_desc;
             if let Some(candidate_desc) = &candidate.content_desc {
-                let similarity = self.string_similarity(target_desc, candidate_desc);
-                similarity_sum += similarity * self.config.attribute_weights.content_desc;
+                if !candidate_desc.is_empty() {
+                    let similarity = self.string_similarity(target_desc, candidate_desc);
+                    similarity_sum += similarity * self.config.attribute_weights.content_desc;
+                }
             }
         }
 

@@ -18,8 +18,8 @@ impl<'a> LeafContextMatcher<'a> {
         let node = &self.xml_indexer.all_nodes[node_index];
         let clickable_parent = &self.xml_indexer.all_nodes[clickable_parent_index];
         
-        let class = node.element.class.clone().unwrap_or_default();
-        let clickable = node.element.clickable.unwrap_or(false);
+        let class = node.element.class_name.clone().unwrap_or_default();
+        let clickable = node.element.clickable;
         
         // 🎯 识别按钮行容器（横向布局，2-5个子项）
         let button_row_container = self.find_button_row_container(node_index);
@@ -43,8 +43,8 @@ impl<'a> LeafContextMatcher<'a> {
         };
         
         // 检查字段存在性
-        let has_text = node.element.text.as_ref().map(|s| !s.trim().is_empty()).unwrap_or(false);
-        let has_desc = node.element.content_desc.as_ref().map(|s| !s.trim().is_empty()).unwrap_or(false);
+        let has_text = !node.element.text.trim().is_empty();
+        let has_desc = !node.element.content_desc.trim().is_empty();
         let has_res_id = node.element.resource_id.as_ref().map(|s| !s.trim().is_empty()).unwrap_or(false);
 
         ContextSig {
@@ -148,7 +148,7 @@ impl<'a> LeafContextMatcher<'a> {
                 .find(|n| n.xpath.matches('/').count() == target_level && node_xpath.starts_with(&n.xpath)) {
                 
                 // 检查是否是横向布局容器
-                if let Some(class) = &ancestor_node.element.class {
+                if let Some(class) = &ancestor_node.element.class_name {
                     let is_horizontal = class.ends_with("LinearLayout") || 
                                       class.ends_with("RelativeLayout") ||
                                       class.ends_with("ConstraintLayout");
@@ -192,8 +192,8 @@ impl<'a> LeafContextMatcher<'a> {
             .filter_map(|(idx, n)| {
                 if n.xpath.starts_with(container_xpath) && 
                    n.xpath.matches('/').count() == container_depth + 1 {
-                    let class = n.element.class.as_deref().unwrap_or("Unknown").to_string();
-                    let clickable = n.element.clickable.unwrap_or(false);
+                    let class = n.element.class_name.as_deref().unwrap_or("Unknown").to_string();
+                    let clickable = n.element.clickable;
                     Some((idx, class, clickable))
                 } else {
                     None
@@ -223,7 +223,7 @@ impl<'a> LeafContextMatcher<'a> {
             let target_level = node_level - level;
             if let Some(ancestor_node) = self.xml_indexer.all_nodes.iter()
                 .find(|n| n.xpath.matches('/').count() == target_level && node_xpath.starts_with(&n.xpath)) {
-                if let Some(class) = &ancestor_node.element.class {
+                if let Some(class) = &ancestor_node.element.class_name {
                     ancestors.push(class.clone());
                 }
             }
@@ -242,8 +242,8 @@ impl<'a> LeafContextMatcher<'a> {
                 .filter_map(|(idx, n)| {
                     if let Some(parent) = self.get_parent_xpath(&n.xpath) {
                         if parent == parent_xpath {
-                            let class = n.element.class.as_deref().unwrap_or("Unknown");
-                            let clickable = n.element.clickable.unwrap_or(false);
+                            let class = n.element.class_name.as_deref().unwrap_or("Unknown");
+                            let clickable = n.element.clickable;
                             Some((idx, class, clickable))
                         } else {
                             None

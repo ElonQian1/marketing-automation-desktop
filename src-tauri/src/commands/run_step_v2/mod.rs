@@ -43,7 +43,8 @@ use serde::{Deserialize, Serialize};
 use anyhow::Result;
 use regex;
 
-use crate::services::ui_reader_service::{get_ui_dump, UIElement};
+use crate::services::universal_ui_page_analyzer::UIElement;
+use crate::services::adb::AdbService;
 use crate::infra::adb::input_helper::{tap_injector_first, input_text_injector_first, swipe_injector_first};
 use crate::infra::adb::keyevent_helper::keyevent_code_injector_first;
 use crate::engine::{FallbackController, XmlIndexer};
@@ -258,7 +259,8 @@ async fn execute_v2_step(app_handle: AppHandle, req: &RunStepRequestV2) -> Resul
     
     // 获取真实的UI dump
     tracing::info!("🔍 开始获取设备UI dump...");
-    let ui_dump_result = get_ui_dump(&req.device_id).await;
+    let ui_dump_result = AdbService::new().dump_ui_hierarchy(&req.device_id).await
+        .map_err(|e| e.to_string());
     
     let (match_info, candidates) = match ui_dump_result {
         Ok(ui_xml) => {
@@ -278,7 +280,7 @@ async fn execute_v2_step(app_handle: AppHandle, req: &RunStepRequestV2) -> Resul
         },
         Err(e) => {
             tracing::error!("❌ UI dump获取失败: {}", e);
-            return Ok(ResponseBuilder::ui_dump_failed(e));
+            return Ok(ResponseBuilder::ui_dump_failed(e.to_string()));
         }
     };
     
@@ -676,7 +678,7 @@ async fn find_element_in_ui(ui_xml: &str, req: &RunStepRequestV2, selection_mode
             bounds,
             text: text.clone(),
             class_name: class_name.clone(),
-            package_name: resource_id.clone().or_else(|| Some("unknown.package".to_string())),
+            package_name: resource_id.clone().or_else(|| Some("unknown.package_name".to_string())),
         };
         
         matching_candidates.push(candidate.clone());
@@ -880,3 +882,6 @@ pub async fn get_decision_chain_stats() -> Result<serde_json::Value, String> {
     
     Ok(stats)
 }
+
+
+

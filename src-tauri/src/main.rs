@@ -58,7 +58,7 @@ use crate::domain::analysis_cache::version_commands::{
 use services::adb::{
     get_tracked_devices, start_device_tracking, stop_device_tracking,
 };
-use services::contact_service::{get_contact_file_info, parse_contact_file};
+// use services::contact_service::{get_contact_file_info, parse_contact_file}; // 已废弃，迁移至 contact_storage
 use services::contact_storage::commands::{
     create_vcf_batch_with_numbers_cmd, delete_txt_import_record_cmd, get_contact_number_stats_cmd,
     get_distinct_industries_cmd, get_numbers_by_files, import_contact_numbers_from_file,
@@ -67,6 +67,7 @@ use services::contact_storage::commands::{
     list_contact_numbers_for_vcf_batch, list_contact_numbers_without_batch,
     list_contact_numbers_without_batch_filtered, list_txt_import_records_cmd,
     list_vcf_batch_records_cmd, set_contact_numbers_industry_by_id_range,
+    get_contact_file_info, parse_contact_file, // ✅ 新增：从 contact_service 迁移而来
 };
 use services::contact_verification::verify_contacts_fast;
 use services::device_contact_metrics::get_device_contact_count;

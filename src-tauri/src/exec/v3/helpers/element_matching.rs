@@ -47,22 +47,22 @@ pub fn element_has_child_with_text(
     child_text: &str
 ) -> bool {
     // 检查元素自身的文本
-    if element.text.as_ref() == Some(&child_text.to_string()) {
+    if element.text == child_text {
         return true;
     }
-    if element.content_desc.as_ref() == Some(&child_text.to_string()) {
+    if element.content_desc == child_text {
         return true;
     }
     
     // 如果元素的 text 包含子元素文本（由 parse_ui_elements 的子文本继承逻辑处理）
     // 我们可以通过检查 text 是否包含目标文本来模糊匹配
-    if let Some(ref text) = element.text {
-        if text.contains(child_text) {
+    if !element.text.is_empty() {
+        if element.text.contains(child_text) {
             return true;
         }
     }
-    if let Some(ref desc) = element.content_desc {
-        if desc.contains(child_text) {
+    if !element.content_desc.is_empty() {
+        if element.content_desc.contains(child_text) {
             return true;
         }
     }
@@ -87,21 +87,21 @@ pub fn find_element_by_text_or_desc<'a>(
     
     // 优先精确匹配text
     if let Some(element) = elements.iter().find(|e| {
-        e.text.as_ref() == Some(&target_text.to_string())
+        e.text == target_text
     }) {
         return Some(element);
     }
     
     // 其次精确匹配content-desc
     if let Some(element) = elements.iter().find(|e| {
-        e.content_desc.as_ref() == Some(&target_text.to_string())
+        e.content_desc == target_text
     }) {
         return Some(element);
     }
     
     // 再次包含匹配text
     if let Some(element) = elements.iter().find(|e| {
-        if let Some(text) = &e.text {
+        let text = &e.text; if !text.is_empty() {
             text.contains(target_text)
         } else {
             false
@@ -112,7 +112,7 @@ pub fn find_element_by_text_or_desc<'a>(
     
     // 最后包含匹配content-desc
     elements.iter().find(|e| {
-        if let Some(desc) = &e.content_desc {
+        let desc = &e.content_desc; if !desc.is_empty() {
             desc.contains(target_text)
         } else {
             false
@@ -136,7 +136,7 @@ pub fn find_all_elements_by_text_or_desc<'a>(
     
     // 优先精确匹配text
     for elem in elements.iter() {
-        if elem.text.as_ref() == Some(&target_text.to_string()) {
+        if elem.text == target_text.to_string() {
             candidates.push(elem);
         }
     }
@@ -148,7 +148,7 @@ pub fn find_all_elements_by_text_or_desc<'a>(
     
     // 其次精确匹配content-desc
     for elem in elements.iter() {
-        if elem.content_desc.as_ref() == Some(&target_text.to_string()) {
+        if elem.content_desc == target_text.to_string() {
             candidates.push(elem);
         }
     }
@@ -160,7 +160,7 @@ pub fn find_all_elements_by_text_or_desc<'a>(
     
     // 再次包含匹配text
     for elem in elements.iter() {
-        if let Some(text) = &elem.text {
+        let text = &elem.text; if !text.is_empty() {
             if text.contains(target_text) {
                 candidates.push(elem);
             }
@@ -174,7 +174,7 @@ pub fn find_all_elements_by_text_or_desc<'a>(
     
     // 最后包含匹配content-desc
     for elem in elements.iter() {
-        if let Some(desc) = &elem.content_desc {
+        let desc = &elem.content_desc; if !desc.is_empty() {
             if desc.contains(target_text) {
                 candidates.push(elem);
             }
@@ -220,12 +220,12 @@ pub fn convert_uielement_to_candidate(
     index: usize,
 ) -> CandidateElement {
     CandidateElement {
-        bounds: elem.bounds.clone(),
-        text: elem.text.clone(),
-        content_desc: elem.content_desc.clone(),
+        bounds: Some(elem.bounds.to_string()),
+        text: Some(elem.text.clone()),
+        content_desc: Some(elem.content_desc.clone()),
         resource_id: elem.resource_id.clone(),
-        clickable: elem.clickable.unwrap_or(false),
-        class_name: elem.class.clone(),  // UIElement使用class字段
+        clickable: elem.clickable,
+        class_name: elem.class_name.clone(),  // UIElement使用class字段
         index: Some(index),
     }
 }
@@ -294,3 +294,5 @@ pub fn extract_target_features_from_params(
         expected_position,
     }
 }
+
+

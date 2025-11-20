@@ -292,33 +292,35 @@ impl ActionRecommender {
         features: &ElementFeatures,
     ) {
         if let Some(text) = &features.text {
-            let text_lower = text.to_lowercase();
+            if !text.is_empty() {
+                let text_lower = text.to_lowercase();
 
-            // 滑动相关的文本提示
-            if text_lower.contains("滑动") || text_lower.contains("swipe") {
-                candidates.push((
-                    ActionType::swipe_left(None, None),
-                    0.75,
-                    "文本提示滑动操作".to_string(),
-                ));
-            }
+                // 滑动相关的文本提示
+                if text_lower.contains("滑动") || text_lower.contains("swipe") {
+                    candidates.push((
+                        ActionType::swipe_left(None, None),
+                        0.75,
+                        "文本提示滑动操作".to_string(),
+                    ));
+                }
 
-            // 长按相关的文本提示
-            if text_lower.contains("长按") || text_lower.contains("hold") {
-                candidates.push((
-                    ActionType::long_press(None),
-                    0.8,
-                    "文本提示长按操作".to_string(),
-                ));
-            }
+                // 长按相关的文本提示
+                if text_lower.contains("长按") || text_lower.contains("hold") {
+                    candidates.push((
+                        ActionType::long_press(None),
+                        0.8,
+                        "文本提示长按操作".to_string(),
+                    ));
+                }
 
-            // 输入相关的文本提示
-            if text_lower.contains("请输入") || text_lower.contains("enter") {
-                candidates.push((
-                    ActionType::input("".to_string(), false),
-                    0.85,
-                    "文本提示输入操作".to_string(),
-                ));
+                // 输入相关的文本提示
+                if text_lower.contains("请输入") || text_lower.contains("enter") {
+                    candidates.push((
+                        ActionType::input("".to_string(), false),
+                        0.85,
+                        "文本提示输入操作".to_string(),
+                    ));
+                }
             }
         }
     }

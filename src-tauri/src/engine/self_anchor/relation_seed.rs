@@ -3,7 +3,7 @@
 // summary: 当自身字段稀薄时，提取父/子/邻接线索供下一步关系锚定使用
 
 use serde::{Deserialize, Serialize};
-use crate::services::ui_reader_service::UIElement;
+use crate::services::universal_ui_page_analyzer::UIElement;
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct RelationSeed {
@@ -26,14 +26,14 @@ impl RelationSeedGenerator {
     pub fn is_empty_self(&self, element: &UIElement) -> bool {
         let meaningful_fields = [
             element.resource_id.as_deref(),
-            element.content_desc.as_deref(),
-            element.text.as_deref(),
+            Some(element.content_desc.as_str()),
+            Some(element.text.as_str()),
         ].iter().filter(|field| {
             field.is_some() && !field.unwrap().trim().is_empty()
         }).count();
         
         // 如果有意义的字段少于2个，且class也是通用类型，则认为是"空自身"
-        meaningful_fields < 2 && self.is_generic_class(&element.class.as_deref().unwrap_or(""))
+        meaningful_fields < 2 && self.is_generic_class(&element.class_name.as_deref().unwrap_or(""))
     }
     
     /// 生成关系线索
@@ -223,3 +223,4 @@ mod tests {
         assert!(seed.container_context.is_some());
     }
 }
+

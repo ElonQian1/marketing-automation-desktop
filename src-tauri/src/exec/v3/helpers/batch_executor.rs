@@ -2,7 +2,7 @@
 // module: v3-exec | layer: helpers | role: 批量执行引擎
 // summary: 处理批量点击、批量操作的核心逻辑，支持并发控制、错误恢复、进度反馈
 
-use crate::services::ui_reader_service::UIElement;  // 🔥 修复：使用正确的导入路径
+use crate::services::universal_ui_page_analyzer::UIElement;  // 🔥 修复：使用正确的导入路径
 use serde_json::Value;
 use std::time::Duration;
 use tokio::time::sleep;
@@ -263,17 +263,14 @@ impl<'a> BatchExecutor<'a> {
 
     /// 格式化元素信息
     fn format_element_info(&self, element: &UIElement) -> String {
-        let text = element
-            .text
-            .as_ref()
-            .map(|t| format!("\"{}\"", t))
-            .unwrap_or_else(|| "无文本".to_string());
+        let text = if !element.text.is_empty() {
+            Some(format!("\"{}\"", element.text))
+        } else {
+            None
+        }
+        .unwrap_or_else(|| "无文本".to_string());
 
-        let bounds = element
-            .bounds
-            .as_ref()
-            .map(|b| b.to_string())
-            .unwrap_or_else(|| "无bounds".to_string());
+        let bounds = element.bounds.to_string();
 
         let resource_id = element
             .resource_id
@@ -360,3 +357,4 @@ mod tests {
         assert_eq!(config.target_text, "测试按钮");
     }
 }
+

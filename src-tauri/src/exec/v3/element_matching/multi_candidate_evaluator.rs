@@ -209,10 +209,10 @@ impl MultiCandidateEvaluator {
             reasons.push("⚠️ [安全模式] 无文本锚点，启用Bounds严格匹配（防止乱点）".to_string());
             
             // 🔥 Bounds严格匹配（XPath安全模式下的主要策略）
-            if let (Some(ref original_bounds), Some(ref elem_bounds)) = 
-                (&criteria.original_bounds, &elem.bounds) {
+            if let Some(ref original_bounds) = &criteria.original_bounds {
+                let elem_bounds_str = elem.bounds.to_string();
                 use super::bounds_matcher::BoundsMatcher;
-                let bounds_match = BoundsMatcher::match_bounds(original_bounds, elem_bounds);
+                let bounds_match = BoundsMatcher::match_bounds(original_bounds, &elem_bounds_str);
                 
                 if bounds_match.is_exact {
                     // Bounds完全匹配，高分
@@ -283,16 +283,16 @@ impl MultiCandidateEvaluator {
         }
         
         // 🔥🔥🔥🔥 评分项0: Bounds完全匹配（0-0.7分）用户精确选择，次高优先级
-        if let (Some(ref original_bounds), Some(ref elem_bounds)) = 
-            (&criteria.original_bounds, &elem.bounds) {
+        if let Some(ref original_bounds) = &criteria.original_bounds {
+            let elem_bounds_str = elem.bounds.to_string();
             // 解析bounds字符串：移除空格，比较
             let normalize = |s: &str| s.replace(" ", "");
             let orig_normalized = normalize(original_bounds);
-            let elem_normalized = normalize(elem_bounds);
+            let elem_normalized = normalize(&elem_bounds_str);
             
             if orig_normalized == elem_normalized {
                 score += 0.7;  // ✅ 提升到0.7 - 用户精确选择
-                reasons.push(format!("✅✅✅✅ Bounds完全匹配: '{}' (用户精确选择!)", elem_bounds));
+                reasons.push(format!("✅✅✅✅ Bounds完全匹配: '{}' (用户精确选择!)", elem_bounds_str));
             }
         }
         
@@ -337,12 +337,16 @@ impl MultiCandidateEvaluator {
         }
         
         // 🔥🔥🔥 评分项2: 自身文本匹配（0-0.5分）
+        let elem_text = &elem.text;
+        let elem_desc = &elem.content_desc;
+
         if let Some(ref target_text) = criteria.target_text {
-            if let Some(ref elem_text) = elem.text {
-                // � 修复：如果content-desc与target完全匹配，则跳过text的严格检查
+
+            if !elem_text.is_empty() {
+                //  修复：如果content-desc与target完全匹配，则跳过text的严格检查
                 // 这是Android常见模式：父容器的content-desc聚合了子元素信息
                 let has_matching_content_desc = if let Some(ref target_desc) = criteria.target_content_desc {
-                    if let Some(ref elem_desc) = elem.content_desc {
+                    if !elem_desc.is_empty() {
                         elem_desc == target_desc || target_desc == target_text
                     } else {
                         false
@@ -402,7 +406,7 @@ impl MultiCandidateEvaluator {
         
         // 🔥🔥 评分项3: Content-desc匹配（0-0.3分）
         if let Some(ref target_desc) = criteria.target_content_desc {
-            if let Some(ref elem_desc) = elem.content_desc {
+            if !elem.content_desc.is_empty() {
                 if elem_desc == target_desc {
                     score += 0.3;  // ✅ 提升到0.3
                     reasons.push(format!("✅✅ Content-desc完全匹配: '{}'", elem_desc));
@@ -416,7 +420,7 @@ impl MultiCandidateEvaluator {
         }
         
         // 🔥 评分项4: 可点击属性（0-0.15分）- 必须是可交互元素
-        if let Some(is_clickable) = elem.clickable {
+        let is_clickable = elem.clickable; {
             if is_clickable {
                 score += 0.15;  // ✅ 提升到0.15 - 可点击性非常重要
                 reasons.push("✅ 元素可点击 (+0.15)".to_string());
@@ -465,49 +469,32 @@ impl MultiCandidateEvaluator {
         xml_content: &Option<String>,
         semantic_analyzer: Option<&SemanticAnalyzer>,
     ) -> ChildTextMatchResult {
-        // 策略0（新增）: 检查父元素的content-desc（可能包含子元素文本的聚合）
-        // 例如: content-desc="通讯录，" 包含目标文本 "通讯录"
-        if let Some(ref elem_desc) = elem.content_desc {
-            // 🚨【语义分析】首先检查是否是语义相反的状态
-            let (should_match, _score_adjustment, reason) = Self::analyze_semantic_match(
-                target_text,
-                elem_desc,
-                semantic_analyzer,
-            );
+        // 策略0（新增）: 检查父元素的content-desc
+        {
+            let elem_desc = &elem.content_desc;
+            if !elem_desc.is_empty() {
+                // 🚨【语义分析】首先检查是否是语义相反的状态
+                let (should_match, _score_adjustment, reason) = Self::analyze_semantic_match(
+                    target_text,
+                    elem_desc,
+                    semantic_analyzer,
+                );
 
-            if !should_match {
-                tracing::warn!("🚨 [语义分析] 检测到不匹配状态: 目标='{}', 候选='{}', 原因: {}", 
-                              target_text, elem_desc, reason);
-                return ChildTextMatchResult {
-                    is_complete: false,
-                    is_partial: false,
-                    matched_text: Some(elem_desc.clone()),
-                    match_source: MatchSource::SemanticOpposite,
-                };
-            }
-            
-            // 完全匹配
-            if elem_desc == target_text {
-                // 🔕 临时禁用：测试时噪音过大
-                // tracing::debug!("✅ [子元素匹配] 策略0成功: 父元素content-desc完全匹配 '{}'", target_text);
-                return ChildTextMatchResult {
-                    is_complete: true,
-                    is_partial: false,
-                    matched_text: Some(elem_desc.clone()),
-                    match_source: MatchSource::ParentContentDesc,
-                };
-            }
-            
-            // 🔥 关键逻辑：检查是否以目标文本开头（可能后面跟着标点符号）
-            // "通讯录，" 以 "通讯录" 开头
-            if elem_desc.starts_with(target_text) {
-                // 检查后面是否是标点符号或空白
-                let after_text = &elem_desc[target_text.len()..];
-                if after_text.is_empty() || after_text.chars().next().map_or(false, |c| {
-                    c.is_whitespace() || "，。、；：！？,. ;:!?".contains(c)
-                }) {
+                if !should_match {
+                    tracing::warn!("🚨 [语义分析] 检测到不匹配状态: 目标='{}', 候选='{}', 原因: {}", 
+                                  target_text, elem_desc, reason);
+                    return ChildTextMatchResult {
+                        is_complete: false,
+                        is_partial: false,
+                        matched_text: Some(elem_desc.clone()),
+                        match_source: MatchSource::SemanticOpposite,
+                    };
+                }
+                
+                // 完全匹配
+                if elem_desc == target_text {
                     // 🔕 临时禁用：测试时噪音过大
-                    // tracing::debug!("✅ [子元素匹配] 策略0成功: 父元素content-desc以目标文本开头 '{}'", elem_desc);
+                    // tracing::debug!("✅ [子元素匹配] 策略0成功: 父元素content-desc完全匹配 '{}'", target_text);
                     return ChildTextMatchResult {
                         is_complete: true,
                         is_partial: false,
@@ -515,92 +502,119 @@ impl MultiCandidateEvaluator {
                         match_source: MatchSource::ParentContentDesc,
                     };
                 }
-            }
-            
-            // 部分包含（但要排除反义词情况）
-            if elem_desc.contains(target_text) {
-                // 🔕 临时禁用：测试时噪音过大
-                // tracing::debug!("🟡 [子元素匹配] 策略0部分成功: 父元素content-desc包含目标文本 '{}'", target_text);
-                return ChildTextMatchResult {
-                    is_complete: false,
-                    is_partial: true,
-                    matched_text: Some(elem_desc.clone()),
-                    match_source: MatchSource::ParentContentDesc,
-                };
+                
+                // 🔥 关键逻辑：检查是否以目标文本开头（可能后面跟着标点符号）
+                // "通讯录，" 以 "通讯录" 开头
+                if elem_desc.starts_with(target_text) {
+                    // 检查后面是否是标点符号或空白
+                    let after_text = &elem_desc[target_text.len()..];
+                    if after_text.is_empty() || after_text.chars().next().map_or(false, |c| {
+                        c.is_whitespace() || "，。、；：！？,. ;:!?".contains(c)
+                    }) {
+                        // 🔕 临时禁用：测试时噪音过大
+                        // tracing::debug!("✅ [子元素匹配] 策略0成功: 父元素content-desc以目标文本开头 '{}'", elem_desc);
+                        return ChildTextMatchResult {
+                            is_complete: true,
+                            is_partial: false,
+                            matched_text: Some(elem_desc.clone()),
+                            match_source: MatchSource::ParentContentDesc,
+                        };
+                    }
+                }
+                
+                // 部分包含（但要排除反义词情况）
+                if elem_desc.contains(target_text) {
+                    // 🔕 临时禁用：测试时噪音过大
+                    // tracing::debug!("🟡 [子元素匹配] 策略0部分成功: 父元素content-desc包含目标文本 '{}'", target_text);
+                    return ChildTextMatchResult {
+                        is_complete: false,
+                        is_partial: true,
+                        matched_text: Some(elem_desc.clone()),
+                        match_source: MatchSource::ParentContentDesc,
+                    };
+                }
             }
         }
         
         // 策略1: 检查元素自身的text属性
-        if let Some(ref elem_text) = elem.text {
-            // 🚨【语义分析】首先检查是否是语义相反的状态
-            let (should_match, _score_adjustment, reason) = Self::analyze_semantic_match(
-                target_text,
-                elem_text,
-                semantic_analyzer,
-            );
+        {
+            let elem_text = &elem.text;
+            if !elem_text.is_empty() {
+                // 🚨【语义分析】首先检查是否是语义相反的状态
+                let (should_match, _score_adjustment, reason) = Self::analyze_semantic_match(
+                    target_text,
+                    elem_text,
+                    semantic_analyzer,
+                );
 
-            if !should_match {
-                tracing::warn!("🚨 [语义分析] 检测到不匹配状态: 目标='{}', 候选='{}', 原因: {}", 
-                              target_text, elem_text, reason);
-                return ChildTextMatchResult {
-                    is_complete: false,
-                    is_partial: false,
-                    matched_text: Some(elem_text.clone()),
-                    match_source: MatchSource::SemanticOpposite,
-                };
-            }
-            
-            if elem_text == target_text {
-                // 🔕 临时禁用：测试时噪音过大
-                // tracing::debug!("✅ [子元素匹配] 策略1成功: 元素自身text完全匹配 '{}'", target_text);
-                return ChildTextMatchResult {
-                    is_complete: true,
-                    is_partial: false,
-                    matched_text: Some(elem_text.clone()),
-                    match_source: MatchSource::SelfText,
-                };
-            } else if elem_text.contains(target_text) {
-                // 🔕 临时禁用：测试时噪音过大
-                // tracing::debug!("🟡 [子元素匹配] 策略1部分成功: 元素自身text包含目标文本 '{}'", target_text);
-                return ChildTextMatchResult {
-                    is_complete: false,
-                    is_partial: true,
-                    matched_text: Some(elem_text.clone()),
-                    match_source: MatchSource::SelfText,
-                };
+                if !should_match {
+                    tracing::warn!("🚨 [语义分析] 检测到不匹配状态: 目标='{}', 候选='{}', 原因: {}", 
+                                  target_text, elem_text, reason);
+                    return ChildTextMatchResult {
+                        is_complete: false,
+                        is_partial: false,
+                        matched_text: Some(elem_text.clone()),
+                        match_source: MatchSource::SemanticOpposite,
+                    };
+                }
+                
+                if elem_text == target_text {
+                    // 🔕 临时禁用：测试时噪音过大
+                    // tracing::debug!("✅ [子元素匹配] 策略1成功: 元素自身text完全匹配 '{}'", target_text);
+                    return ChildTextMatchResult {
+                        is_complete: true,
+                        is_partial: false,
+                        matched_text: Some(elem_text.clone()),
+                        match_source: MatchSource::SelfText,
+                    };
+                } else if elem_text.contains(target_text) {
+                    // 🔕 临时禁用：测试时噪音过大
+                    // tracing::debug!("🟡 [子元素匹配] 策略1部分成功: 元素自身text包含目标文本 '{}'", target_text);
+                    return ChildTextMatchResult {
+                        is_complete: false,
+                        is_partial: true,
+                        matched_text: Some(elem_text.clone()),
+                        match_source: MatchSource::SelfText,
+                    };
+                }
             }
         }
         
         // 策略2: 检查元素自身的content-desc属性（注意：这里是检查精确匹配，与策略0不同）
-        if let Some(ref elem_desc) = elem.content_desc {
-            if elem_desc == target_text {
-                // 🔕 临时禁用：测试时噪音过大
-                // tracing::debug!("✅ [子元素匹配] 策略2成功: 元素自身content-desc完全匹配 '{}'", target_text);
-                return ChildTextMatchResult {
-                    is_complete: true,
-                    is_partial: false,
-                    matched_text: Some(elem_desc.clone()),
-                    match_source: MatchSource::SelfContentDesc,
-                };
-            } else if elem_desc.contains(target_text) {
-                // 🔕 临时禁用：测试时噪音过大
-                // tracing::debug!("🟡 [子元素匹配] 策略2部分成功: 元素自身content-desc包含目标文本 '{}'", target_text);
-                return ChildTextMatchResult {
-                    is_complete: false,
-                    is_partial: true,
-                    matched_text: Some(elem_desc.clone()),
-                    match_source: MatchSource::SelfContentDesc,
-                };
+        {
+            let elem_desc = &elem.content_desc;
+            if !elem_desc.is_empty() {
+                if elem_desc == target_text {
+                    // 🔕 临时禁用：测试时噪音过大
+                    // tracing::debug!("✅ [子元素匹配] 策略2成功: 元素自身content-desc完全匹配 '{}'", target_text);
+                    return ChildTextMatchResult {
+                        is_complete: true,
+                        is_partial: false,
+                        matched_text: Some(elem_desc.clone()),
+                        match_source: MatchSource::SelfContentDesc,
+                    };
+                } else if elem_desc.contains(target_text) {
+                    // 🔕 临时禁用：测试时噪音过大
+                    // tracing::debug!("🟡 [子元素匹配] 策略2部分成功: 元素自身content-desc包含目标文本 '{}'", target_text);
+                    return ChildTextMatchResult {
+                        is_complete: false,
+                        is_partial: true,
+                        matched_text: Some(elem_desc.clone()),
+                        match_source: MatchSource::SelfContentDesc,
+                    };
+                }
             }
         }
         
         // 策略3: 从XML中提取子元素文本（🔥 完整实现）
-        if let (Some(xml), Some(elem_bounds)) = (xml_content, &elem.bounds) {
+        if let Some(xml) = xml_content {
+            let elem_bounds = &elem.bounds;
             // 🔕 临时禁用：测试时噪音过大
             // tracing::debug!("🔍 [子元素匹配] 策略3: 从XML提取子元素文本, bounds={}", elem_bounds);
             
             // 1. 在XML中定位该元素（通过bounds精确匹配）
-            if let Some(element_fragment) = Self::extract_element_fragment_by_bounds(xml, elem_bounds) {
+            let elem_bounds_str = elem_bounds.to_string();
+            if let Some(element_fragment) = Self::extract_element_fragment_by_bounds(xml, &elem_bounds_str) {
                 // 2. 提取该元素的所有子孙节点文本
                 let child_texts = Self::extract_all_child_texts(&element_fragment);
                 
@@ -647,12 +661,12 @@ impl MultiCandidateEvaluator {
                     tracing::warn!("⚠️ [子元素匹配] 策略4: 疑似父容器元素(resource-id={}), 但缺少XML无法验证子元素文本", rid);
                     
                     // 如果父元素的content-desc包含目标文本的一部分，给予部分分数
-                    if let Some(ref desc) = elem.content_desc {
-                        if desc.contains(target_text) {
+                    if !elem.content_desc.is_empty() {
+                        if elem.content_desc.contains(target_text) {
                             return ChildTextMatchResult {
                                 is_complete: false,
                                 is_partial: true,
-                                matched_text: Some(desc.clone()),
+                                matched_text: Some(elem.content_desc.clone()),
                                 match_source: MatchSource::Heuristic,
                             };
                         }
@@ -988,3 +1002,5 @@ mod tests {
         // TODO: 实现测试用例
     }
 }
+
+

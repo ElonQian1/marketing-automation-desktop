@@ -107,35 +107,39 @@ impl XPathMatcher {
                 return false;
             }
         }
-        
+
         // Content-desc匹配
         if let Some(ref required_desc) = conditions.content_desc {
-            if elem.content_desc.as_ref() != Some(required_desc) {
-                return false;
+            if !required_desc.is_empty() {
+                if elem.content_desc != *required_desc {
+                    return false;
+                }
             }
         }
-        
+
         // Text匹配
         if let Some(ref required_text) = conditions.text {
-            if elem.text.as_ref() != Some(required_text) {
-                return false;
+            if !required_text.is_empty() {
+                if elem.text != *required_text {
+                    return false;
+                }
             }
         }
-        
+
         // 子元素text匹配（简化实现：检查元素自身的text）
         // TODO: 实现真正的子元素遍历
         if let Some(ref child_text) = conditions.child_text {
-            if elem.text.as_ref() != Some(child_text) {
+            if elem.text != *child_text {
                 return false;
             }
         }
-        
+
         // Index匹配
         if let Some(required_index) = conditions.index {
             // TODO: 需要在UIElement中添加index字段
             // 暂时忽略index匹配
         }
-        
+
         true
     }
 }
@@ -169,3 +173,4 @@ mod tests {
         assert_eq!(conditions.child_text, Some("确定".to_string()));
     }
 }
+

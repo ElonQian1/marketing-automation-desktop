@@ -496,3 +496,4 @@ mod tests {
         assert!(results[0].total_score > 0.6);
     }
 }
+

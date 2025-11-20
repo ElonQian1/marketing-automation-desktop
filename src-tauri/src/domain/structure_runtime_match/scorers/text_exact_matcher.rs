@@ -17,8 +17,8 @@ impl<'a> TextExactMatcher<'a> {
 
     pub fn score_text_exact(&self, node_index: usize) -> ScoreOutcome {
         let node = &self.xml_indexer.all_nodes[node_index];
-        let text = node.element.text.as_deref().unwrap_or("").trim();
-        let content_desc = node.element.content_desc.as_deref().unwrap_or("").trim();
+        let text = node.element.text.as_str().trim();
+        let content_desc = node.element.content_desc.as_str().trim();
         
         // 优先检查文本，其次检查content-desc
         let target_text = if !text.is_empty() { text } else { content_desc };
@@ -150,13 +150,13 @@ impl<'a> TextExactMatcher<'a> {
         let node = &self.xml_indexer.all_nodes[node_index];
         let mut texts = Vec::new();
         
-        if let Some(text) = &node.element.text {
+        let text = &node.element.text; if !text.is_empty() {
             if !text.trim().is_empty() {
                 texts.push(text.trim().to_string());
             }
         }
         
-        if let Some(desc) = &node.element.content_desc {
+        let desc = &node.element.content_desc; if !desc.is_empty() {
             if !desc.trim().is_empty() {
                 texts.push(desc.trim().to_string());
             }

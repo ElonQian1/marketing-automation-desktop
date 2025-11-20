@@ -279,3 +279,4 @@ impl<'a, V: SmXmlView> SubtreeMatcher<'a, V> {
         score.min(1.0)
     }
 }
+

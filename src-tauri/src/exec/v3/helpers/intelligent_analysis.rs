@@ -63,7 +63,7 @@ pub struct ScoredElement {
 /// 3. 过滤保留有交互潜力的元素
 pub fn extract_all_interactive_elements_from_xml(ui_xml: &str) -> Result<Vec<InteractiveElement>, String> {
     // 使用已验证的ui_reader_service解析方法，避免roxmltree的严格XML解析问题
-    use crate::services::ui_reader_service::parse_ui_elements;
+    use crate::services::universal_ui_page_analyzer::parse_ui_elements_simple as parse_ui_elements;
     
     let ui_elements = parse_ui_elements(ui_xml)
         .map_err(|e| format!("XML解析失败: {}", e))?;
@@ -73,20 +73,20 @@ pub fn extract_all_interactive_elements_from_xml(ui_xml: &str) -> Result<Vec<Int
     // 将UIElement转换为InteractiveElement
     for (index, ui_element) in ui_elements.iter().enumerate() {
         let interactive_element = InteractiveElement {
-            text: ui_element.text.clone(),
+            text: Some(ui_element.text.clone()),
             resource_id: ui_element.resource_id.clone(),
-            content_desc: ui_element.content_desc.clone(),
-            class: ui_element.class.clone(),
-            class_name: ui_element.class.clone(), // 复制class到class_name
-            bounds: ui_element.bounds.clone(),
-            clickable: ui_element.clickable,
-            enabled: ui_element.enabled,
+            content_desc: Some(ui_element.content_desc.clone()),
+            class: ui_element.class_name.clone(),
+            class_name: ui_element.class_name.clone(), // 复制class到class_name
+            bounds: Some(ui_element.bounds.to_string()),
+            clickable: Some(ui_element.clickable),
+            enabled: Some(ui_element.enabled),
             focusable: None, // UIElement没有这个字段
             long_clickable: None, // UIElement没有这个字段
             checkable: None, // UIElement没有这个字段
             xpath: format!("//node[@index='{}']", index), // 简化的xpath
-            ui_role: ui_element.class.clone().unwrap_or_default(),
-            semantic_role: determine_semantic_role_from_class(&ui_element.class),
+            ui_role: ui_element.class_name.clone().unwrap_or_default(),
+            semantic_role: determine_semantic_role_from_class(&ui_element.class_name),
         };
         
         // 只添加可能有交互价值的元素
@@ -102,7 +102,7 @@ pub fn extract_all_interactive_elements_from_xml(ui_xml: &str) -> Result<Vec<Int
 /// 判断元素是否具有交互潜力（基于ui_reader_service的UIElement）
 pub fn is_potentially_interactive(element: &InteractiveElement) -> bool {
     // 1. 显式可交互属性
-    if element.clickable == Some(true) || element.enabled == Some(true) {
+    if element.clickable.unwrap_or(false) || element.enabled.unwrap_or(false) {
         return true;
     }
     
@@ -121,7 +121,7 @@ pub fn is_potentially_interactive(element: &InteractiveElement) -> bool {
     }
     
     // 4. 特定的类名模式
-    if let Some(class) = &element.class {
+    if let Some(class) = &element.class_name {
         if class.contains("Button") || class.contains("Text") || class.contains("View") {
             return true;
         }
@@ -278,7 +278,7 @@ pub fn calculate_text_relevance(element: &InteractiveElement, intent: &UserInten
 pub fn calculate_semantic_match(element: &InteractiveElement, intent: &UserIntent) -> f64 {
     match intent.action_type.as_str() {
         "click" | "intelligent_find" => {
-            if element.clickable == Some(true) { return 1.0; }
+            if element.clickable.unwrap_or(false) { return 1.0; }
             if element.semantic_role == "button" { return 0.9; }
             if element.semantic_role == "text" { return 0.7; }
             0.3
@@ -290,8 +290,8 @@ pub fn calculate_semantic_match(element: &InteractiveElement, intent: &UserInten
 /// 辅助评分函数：交互能力
 pub fn calculate_interaction_capability(element: &InteractiveElement) -> f64 {
     let mut score: f64 = 0.0;
-    if element.clickable == Some(true) { score += 0.4; }
-    if element.enabled == Some(true) { score += 0.2; }
+    if element.clickable.unwrap_or(false) { score += 0.4; }
+    if element.enabled.unwrap_or(false) { score += 0.2; }
     if element.focusable == Some(true) { score += 0.2; }
     if element.long_clickable == Some(true) { score += 0.1; }
     if element.checkable == Some(true) { score += 0.1; }
@@ -339,3 +339,6 @@ pub fn extract_intelligent_targets_from_xml(ui_xml: &str) -> String {
     tracing::warn!("❓ 未在XML中识别出明确目标，使用通用分析");
     "通用交互元素".to_string()
 }
+
+
+

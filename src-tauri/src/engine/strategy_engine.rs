@@ -287,7 +287,7 @@ impl StrategyEngine {
         
         // 3. Content-Desc 策略（新增 - 支持无 resource-id 但有 content-desc 的元素）
         // 🆕 Bug Fix: 支持"添加朋友"等只有 content-desc 的按钮
-        if let Some(ref desc) = context.content_desc {
+        if let Some(desc) = &context.content_desc {
             if !desc.trim().is_empty() && desc.len() < 50 {
                 let mut evidence = Evidence::for_strategy("content_desc");
                 

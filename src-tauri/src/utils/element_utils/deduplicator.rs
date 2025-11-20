@@ -52,26 +52,15 @@ pub fn deduplicate_by_position<T>(
 
 /// 生成去重键：基于位置分桶 + 文本
 fn generate_dedupe_key(element: &UIElement, tolerance: i32) -> String {
-    let bounds = element
-        .bounds
-        .as_ref()
-        .and_then(|b| ElementBounds::from_bounds_string(b));
+    let b = &element.bounds;
 
-    if let Some(b) = bounds {
-        // 计算中心点Y坐标并按容差分桶
-        let center_y = (b.top + b.bottom) / 2;
-        let y_bucket = center_y / tolerance;
+    // 计算中心点Y坐标并按容差分桶
+    let center_y = (b.top + b.bottom) / 2;
+    let y_bucket = center_y / tolerance;
 
-        // 组合位置和文本作为去重键
-        let text_key = element.text.as_deref().unwrap_or("");
-        format!("y{}_t{}", y_bucket, text_key)
-    } else {
-        // 没有边界信息时仅使用文本
-        element
-            .text
-            .clone()
-            .unwrap_or_else(|| "no_text".to_string())
-    }
+    // 组合位置和文本作为去重键
+    let text_key = &element.text;
+    format!("y{}_t{}", y_bucket, text_key)
 }
 
 #[cfg(test)]

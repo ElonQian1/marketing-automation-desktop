@@ -2,7 +2,7 @@
 // module: step-execution | layer: matching | role: 三态评分引擎
 // summary: 同构决策链核心 - 统一评分逻辑（前后端复用）
 
-use crate::services::ui_reader_service::UIElement;
+use crate::services::universal_ui_page_analyzer::UIElement;
 use super::super::types::StaticEvidence;  // 从 types 模块引用
 use super::super::MatchCandidate;  // 从 mod.rs 引用运行时类型
 
@@ -19,14 +19,14 @@ impl UnifiedScoringCore {
         
         // P1: 最强证据 - ResourceId + XPath (权重0.85)
         score += Self::score_resource_id(&static_evidence.resource_id, &runtime_node.resource_id);
-        score += Self::score_xpath(&static_evidence.xpath, &runtime_node.class);
+        score += Self::score_xpath(&static_evidence.xpath, &runtime_node.class_name);
         
         // P2: 中等证据 - Text + ContentDesc (权重0.60-0.70)
         score += Self::score_text(&static_evidence.text, &runtime_node.text);
         score += Self::score_content_desc(&static_evidence.content_desc, &runtime_node.content_desc);
         
         // P3: 弱证据 - ClassName (权重0.30)
-        score += Self::score_class_name(&static_evidence.class_name, &runtime_node.class);
+        score += Self::score_class_name(&static_evidence.class_name, &runtime_node.class_name);
         
         // 结构性奖励
         if static_evidence.container_scoped {
@@ -73,8 +73,9 @@ impl UnifiedScoringCore {
     }
     
     /// 评分单项：Text 匹配（支持I18N别名）
-    fn score_text(static_text: &Option<Vec<String>>, runtime_text: &Option<String>) -> f32 {
-        match (static_text, runtime_text) {
+    fn score_text(static_text: &Option<Vec<String>>, runtime_text: &String) -> f32 {
+        let rt_opt = if runtime_text.is_empty() { None } else { Some(runtime_text) };
+        match (static_text, rt_opt) {
             (Some(aliases), Some(rt)) => {
                 if aliases.iter().any(|alias| rt.contains(alias) || alias.contains(rt)) {
                     0.70 // 文本匹配（含I18N）
@@ -89,8 +90,9 @@ impl UnifiedScoringCore {
     }
     
     /// 评分单项：ContentDesc 匹配
-    fn score_content_desc(static_desc: &Option<String>, runtime_desc: &Option<String>) -> f32 {
-        match (static_desc, runtime_desc) {
+    fn score_content_desc(static_desc: &Option<String>, runtime_desc: &String) -> f32 {
+        let rd_opt = if runtime_desc.is_empty() { None } else { Some(runtime_desc) };
+        match (static_desc, rd_opt) {
             (Some(s), Some(r)) if r.contains(s) || s.contains(r) => 0.60,
             (Some(_), Some(_)) => -0.20,               // ContentDesc不匹配
             (Some(_), None) => -0.15,                  // ContentDesc丢失
@@ -166,3 +168,6 @@ mod tests {
         assert!(UnifiedScoringCore::validate_uniqueness(&candidates, 0.7));
     }
 }
+
+
+

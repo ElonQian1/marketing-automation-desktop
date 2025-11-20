@@ -98,7 +98,7 @@ impl BusinessFilter {
     /// 检查是否为"已关注"按钮
     fn is_followed_button(element: &UIElement) -> bool {
         // 检查text
-        if let Some(text) = &element.text {
+        let text = &element.text; if !text.is_empty() {
             for alias in Self::FOLLOWED_ALIASES {
                 if text.contains(alias) {
                     return true;
@@ -107,7 +107,7 @@ impl BusinessFilter {
         }
 
         // 检查content-desc
-        if let Some(desc) = &element.content_desc {
+        let desc = &element.content_desc; if !desc.is_empty() {
             for alias in Self::FOLLOWED_ALIASES {
                 if desc.contains(alias) {
                     return true;
@@ -121,7 +121,7 @@ impl BusinessFilter {
     /// 检查是否为"已赞"按钮
     fn is_liked_button(element: &UIElement) -> bool {
         // 检查text
-        if let Some(text) = &element.text {
+        let text = &element.text; if !text.is_empty() {
             for alias in Self::LIKED_ALIASES {
                 if text.contains(alias) {
                     return true;
@@ -130,7 +130,7 @@ impl BusinessFilter {
         }
 
         // 检查content-desc
-        if let Some(desc) = &element.content_desc {
+        let desc = &element.content_desc; if !desc.is_empty() {
             for alias in Self::LIKED_ALIASES {
                 if desc.contains(alias) {
                     return true;
@@ -182,3 +182,4 @@ mod tests {
         assert_eq!(filtered[1].text.as_deref(), Some("关注"));
     }
 }
+

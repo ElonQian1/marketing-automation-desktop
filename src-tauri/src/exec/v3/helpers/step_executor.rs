@@ -285,9 +285,7 @@ pub async fn execute_intelligent_analysis_step(
                     .ok_or_else(|| "结构匹配成功但候选评估未返回元素".to_string())?;
                 
                 // helper_parse_bounds 返回 Result<(i32, i32), String>
-                let coords = helper_parse_bounds(&element.bounds.clone().unwrap_or_default())?;
-                
-                tracing::info!("🎯 [V3执行器] 结构匹配最终选择: ({}, {})", coords.0, coords.1);
+                    let coords = helper_parse_bounds(&element.bounds.to_string())?;                tracing::info!("🎯 [V3执行器] 结构匹配最终选择: ({}, {})", coords.0, coords.1);
                 return Ok(coords);
             }
             Ok(_) => {
@@ -889,7 +887,7 @@ fn collect_candidate_elements<'a>(
                     tracing::info!("📋 [DEBUG] 列出所有带 content-desc 的元素:");
                     let mut desc_count = 0;
                     for (i, elem) in elements.iter().enumerate() {
-                        if let Some(cd) = &elem.content_desc {
+                        let cd = &elem.content_desc; if !cd.is_empty() {
                             if !cd.trim().is_empty() {
                                 tracing::info!("  [{}] content_desc='{}', text={:?}, bounds={:?}", 
                                             i, cd, elem.text, elem.bounds);
@@ -908,16 +906,16 @@ fn collect_candidate_elements<'a>(
                     // 收集所有匹配 content-desc 的元素
                     let candidates: Vec<_> = elements.iter().filter(|e| {
                         // 🐛 DEBUG: 更详细的比较逻辑
-                        match &e.content_desc {
-                            Some(cd) if !cd.trim().is_empty() => {
-                                let matches = cd.trim() == content_desc.trim();
-                                if matches {
-                                    tracing::info!("✅ [候选收集] 找到匹配元素: content-desc='{}', bounds='{:?}'", 
-                                                 content_desc, e.bounds);
-                                }
-                                matches
-                            },
-                            _ => false
+                        let cd = &e.content_desc;
+                        if !cd.trim().is_empty() {
+                            let matches = cd.trim() == content_desc.trim();
+                            if matches {
+                                tracing::info!("✅ [候选收集] 找到匹配元素: content-desc='{}', bounds='{:?}'", 
+                                             content_desc, e.bounds);
+                            }
+                            matches
+                        } else {
+                            false
                         }
                     }).collect();
                     
@@ -958,7 +956,7 @@ fn collect_candidate_elements<'a>(
             let clickable_candidates: Vec<_> = candidates.iter()
                 .filter(|e| {
                     // clickable 是 Option<bool>，直接判断
-                    e.clickable.unwrap_or(false)
+                    e.clickable
                 })
                 .copied()
                 .collect();
@@ -984,10 +982,9 @@ fn collect_candidate_elements<'a>(
             // 🎯 单次模式：使用 Bounds 精确过滤
             let exact_match: Vec<_> = candidates.iter()
                 .filter(|e| {
-                    e.bounds.as_ref().map(|b| {
-                        let normalize = |s: &str| s.replace(" ", "");
-                        normalize(b) == normalize(user_bounds)
-                    }).unwrap_or(false)
+                    let b = e.bounds.to_string();
+                    let normalize = |s: &str| s.replace(" ", "");
+                    normalize(&b) == normalize(user_bounds)
                 })
                 .copied()
                 .collect();
@@ -1390,7 +1387,7 @@ fn attempt_element_recovery<'a>(
 
 /// 确保元素可点击
 fn ensure_clickable_element<'a>(element: &'a UIElement) -> &'a UIElement {
-    if element.clickable.unwrap_or(false) {
+    if element.clickable {
         element
     } else {
         tracing::info!("🧠 [智能执行] 目标元素不可点击，查找可点击的父容器");
@@ -1407,20 +1404,18 @@ async fn execute_click_action(
     step_id: &str,
 ) -> Result<(i32, i32), String> {
     // 提取点击坐标
-    let click_point = if let Some(bounds_str) = &element.bounds {
-        tracing::info!("🔍 [坐标计算] 原始bounds字符串: '{}'", bounds_str);
-        let point = helper_parse_bounds(bounds_str)
-            .map_err(|e| format!("解析bounds失败: {}", e))?;
+    let click_point = {
+        let bounds = &element.bounds;
+        tracing::info!("🔍 [坐标计算] 原始bounds: {:?}", bounds);
+        let point = (bounds.left + (bounds.right - bounds.left) / 2, bounds.top + (bounds.bottom - bounds.top) / 2);
         tracing::info!("✅ [坐标计算] 解析结果: center=({}, {})", point.0, point.1);
         point
-    } else {
-        return Err(format!("元素缺少bounds信息，target_text={}", target_text));
     };
     
     tracing::info!("🧠 [智能执行] 准备点击坐标: ({}, {}) for target_text={}", 
         click_point.0, click_point.1, target_text);
     tracing::info!("🔍 [元素信息] class={:?}, resource_id={:?}, clickable={:?}", 
-        element.class, element.resource_id, element.clickable);
+        element.class_name, element.resource_id, element.clickable);
     
     // 执行真实点击操作
     match crate::infra::adb::input_helper::tap_injector_first(
@@ -1441,3 +1436,5 @@ async fn execute_click_action(
         }
     }
 }
+
+

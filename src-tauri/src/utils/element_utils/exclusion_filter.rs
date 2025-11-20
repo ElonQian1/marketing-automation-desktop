@@ -33,18 +33,15 @@ pub fn should_exclude_element(
     protocol: Option<&SmartSelectionProtocol>,
 ) -> bool {
     // 1. 检查负面积（无效边界）
-    if let Some(bounds_str) = &element.bounds {
-        if let Some(bounds) = ElementBounds::from_bounds_string(bounds_str) {
-            if !bounds.is_valid() {
-                debug!(
-                    "🚫 排除负面积元素: bounds='{}', width={}, height={}",
-                    bounds_str,
-                    bounds.width(),
-                    bounds.height()
-                );
-                return true;
-            }
-        }
+    let bounds = &element.bounds;
+    if bounds.width() <= 0 || bounds.height() <= 0 {
+        debug!(
+            "🚫 排除负面积元素: bounds='{}', width={}, height={}",
+            bounds,
+            bounds.width(),
+            bounds.height()
+        );
+        return true;
     }
 
     // 如果没有协议，只检查负面积
@@ -61,7 +58,7 @@ pub fn should_exclude_element(
         .unwrap_or("");
 
     // 检查文本
-    if let Some(element_text) = &element.text {
+    let element_text = &element.text; if !element_text.is_empty() {
         for alias in AUTO_EXCLUDE_ALIASES {
             if element_text.contains(alias) {
                 // 关键修复：如果目标文本包含这个别名，说明用户就是要找这类按钮
@@ -83,7 +80,7 @@ pub fn should_exclude_element(
     }
 
     // 检查content-desc
-    if let Some(desc) = &element.content_desc {
+    let desc = &element.content_desc; if !desc.is_empty() {
         for alias in AUTO_EXCLUDE_ALIASES {
             if desc.contains(alias) {
                 if target_text.contains(alias) {
@@ -112,7 +109,7 @@ pub fn should_exclude_element(
 
     if let Some(patterns) = exclude_patterns {
         // 检查text属性
-        if let Some(element_text) = &element.text {
+        let element_text = &element.text; if !element_text.is_empty() {
             for pattern in patterns {
                 if element_text.contains(pattern) {
                     debug!(
@@ -125,7 +122,7 @@ pub fn should_exclude_element(
         }
 
         // 检查content-desc
-        if let Some(desc) = &element.content_desc {
+        let desc = &element.content_desc; if !desc.is_empty() {
             for pattern in patterns {
                 if desc.contains(pattern) {
                     debug!("🚫 手动排除：描述 '{}' 匹配规则 '{}'", desc, pattern);
@@ -172,3 +169,4 @@ mod tests {
         assert!(!should_exclude_element(&elem, Some(&protocol)));
     }
 }
+

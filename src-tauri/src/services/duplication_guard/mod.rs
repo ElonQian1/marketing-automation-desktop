@@ -142,3 +142,4 @@ pub fn record_duplication_action_cmd(record: ActionRecord) {
     let mut store = DuplicationStore::global().lock().unwrap();
     store.record(record);
 }
+

@@ -86,13 +86,13 @@ pub fn generate_strategy_candidates(
 
 /// 根据元素特征判断策略类型
 pub fn determine_strategy_type(element: &InteractiveElement) -> String {
-    if element.clickable == Some(true) { 
+    if element.clickable.unwrap_or(false) { 
         return "direct_click".to_string(); 
     }
     if element.semantic_role == "button" { 
         return "semantic_click".to_string(); 
     }
-    if element.text.is_some() || element.content_desc.is_some() {
+    if !element.text.as_ref().map_or(true, |s| s.is_empty()) || !element.content_desc.as_ref().map_or(true, |s| s.is_empty()) {
         return "text_based_click".to_string();
     }
     "fallback_click".to_string()
@@ -125,7 +125,7 @@ pub fn create_execution_plan(element: &InteractiveElement, original_params: &ser
 
 /// 评估策略风险等级
 pub fn assess_risk_level(confidence: f64, element: &InteractiveElement) -> String {
-    if confidence > 0.8 && element.clickable == Some(true) {
+    if confidence > 0.8 && element.clickable.unwrap_or(false) {
         "low".to_string()
     } else if confidence > 0.6 {
         "medium".to_string()  
@@ -548,3 +548,4 @@ pub fn rerank_candidates_by_bounds(
     
     reranked
 }
+

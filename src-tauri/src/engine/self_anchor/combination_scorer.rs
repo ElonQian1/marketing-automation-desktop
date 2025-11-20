@@ -3,7 +3,7 @@
 // summary: 当单个字段不足以唯一定位时，生成最优的字段组合策略并评分
 
 use super::{FieldScoreMap, CombinationStrategy, FieldScore};
-use crate::services::ui_reader_service::UIElement;
+use crate::services::universal_ui_page_analyzer::UIElement;
 use std::collections::HashMap;
 
 /// 组合策略评分器 - 负责生成和评分多字段组合策略

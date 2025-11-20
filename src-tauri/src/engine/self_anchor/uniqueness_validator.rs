@@ -3,7 +3,7 @@
 // summary: 在真机XML上验证组合策略的实际唯一性，确保策略可靠性
 
 use super::CombinationStrategy;
-use crate::services::ui_reader_service::parse_ui_elements;
+use crate::services::universal_ui_page_analyzer::parse_ui_elements_simple as parse_ui_elements;
 
 /// 唯一性验证器 - 负责在真机XML上验证策略的实际唯一性
 pub struct UniquenessValidator {
@@ -161,7 +161,7 @@ impl UniquenessValidator {
     fn simulate_xpath_matching(
         &self,
         selector: &str,
-        ui_elements: &[crate::services::ui_reader_service::UIElement],
+        ui_elements: &[crate::services::universal_ui_page_analyzer::UIElement],
     ) -> Result<usize, String> {
         // 解析选择器中的条件
         let conditions = self.parse_selector_conditions(selector)?;
@@ -216,19 +216,19 @@ impl UniquenessValidator {
     /// 检查元素是否匹配条件
     fn element_matches_conditions(
         &self,
-        element: &crate::services::ui_reader_service::UIElement,
+        element: &crate::services::universal_ui_page_analyzer::UIElement,
         conditions: &[(String, String)],
     ) -> bool {
         for (attr, expected_value) in conditions {
-            let element_value = match attr.as_str() {
-                "resource-id" => element.resource_id.as_deref(),
-                "content-desc" => element.content_desc.as_deref(),
-                "text" => element.text.as_deref(),
-                "class" => element.class.as_deref(),
-                "package" => element.package.as_deref(),
-                "clickable" => element.clickable.as_ref().map(|b| if *b { "true" } else { "false" }),
-                "enabled" => element.enabled.as_ref().map(|b| if *b { "true" } else { "false" }),
-                "bounds" => element.bounds.as_deref(),
+            let element_value: Option<String> = match attr.as_str() {
+                "resource-id" => element.resource_id.clone(),
+                "content-desc" => Some(element.content_desc.clone()),
+                "text" => Some(element.text.clone()),
+                "class" => element.class_name.clone(),
+                "package" => element.package_name.clone(),
+                "clickable" => Some(if element.clickable { "true".to_string() } else { "false".to_string() }),
+                "enabled" => Some(if element.enabled { "true".to_string() } else { "false".to_string() }),
+                "bounds" => Some(element.bounds.to_string()),
                 _ => continue,
             };
 
@@ -236,12 +236,12 @@ impl UniquenessValidator {
                 Some(actual_value) => {
                     // 对于布尔值字段，需要特殊处理
                     if attr == "clickable" || attr == "enabled" {
-                        if actual_value != expected_value {
+                        if actual_value != expected_value.as_str() {
                             return false;
                         }
                     } else {
                         // 对于字符串字段
-                        if actual_value != expected_value {
+                        if actual_value != expected_value.as_str() {
                             return false;
                         }
                     }
@@ -369,3 +369,5 @@ impl Default for UniquenessValidator {
         Self::new()
     }
 }
+
+

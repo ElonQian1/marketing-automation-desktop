@@ -312,14 +312,14 @@ fn execute_match_by_mode(
             // 构建上下文签名 (简化实现)
             let clicked_element = &xml_indexer.all_nodes[clicked_node].element;
             let sig = ContextSig {
-                class: clicked_element.class.clone().unwrap_or_default(),
-                clickable: clicked_element.clickable.unwrap_or(false),
+                class: clicked_element.class_name.clone().unwrap_or_default(),
+                clickable: clicked_element.clickable,
                 ancestor_classes: vec![], // 简化：不填充祖先链
                 sibling_shape: vec![],    // 简化：不填充兄弟节点
                 sibling_index: 0,
                 rel_xywh: (0.0, 0.0, 0.0, 0.0), // 简化：不计算相对位置
-                has_text: clicked_element.text.is_some(),
-                has_desc: clicked_element.content_desc.is_some(),
+                has_text: !clicked_element.text.is_empty(),
+                has_desc: !clicked_element.content_desc.is_empty(),
                 has_res_id: clicked_element.resource_id.is_some(),
             };
             
@@ -446,3 +446,4 @@ async fn adb_tap(app: &tauri::AppHandle, x: i32, y: i32) -> Result<(), String> {
     
     Ok(())
 }
+

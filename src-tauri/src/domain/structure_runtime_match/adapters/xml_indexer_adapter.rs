@@ -58,25 +58,12 @@ impl<'a> XmlIndexerAdapter<'a> {
     }
 
     /// 解析bounds字符串为SmBounds
-    fn parse_bounds_to_sm(&self, bounds_str: Option<&String>) -> SmBounds {
-        if let Some(bounds) = bounds_str {
-            // bounds格式: "[left,top][right,bottom]"
-            if let Some((left, top, right, bottom)) = self.parse_bounds_string(bounds) {
-                return SmBounds {
-                    left,
-                    top,
-                    right,
-                    bottom,
-                };
-            }
-        }
-
-        // 默认返回空bounds
+    fn parse_bounds_to_sm(&self, bounds: crate::types::page_analysis::ElementBounds) -> SmBounds {
         SmBounds {
-            left: 0,
-            top: 0,
-            right: 0,
-            bottom: 0,
+            left: bounds.left,
+            top: bounds.top,
+            right: bounds.right,
+            bottom: bounds.bottom,
         }
     }
 
@@ -127,7 +114,7 @@ impl<'a> XmlIndexerAdapter<'a> {
     /// 判断节点是否可能是容器
     fn is_likely_container(&self, node: &IndexedNode) -> bool {
         // 检查类名
-        if let Some(class) = &node.element.class {
+        if let Some(class) = &node.element.class_name {
             let class_lower = class.to_lowercase();
             if class_lower.contains("recyclerview")
                 || class_lower.contains("listview")
@@ -317,7 +304,7 @@ impl<'a> XmlIndexerAdapter<'a> {
                     idx, 
                     node.id, 
                     node.bounds,
-                    node.element.class
+                    node.element.class_name
                 );
             }
         }
@@ -337,7 +324,7 @@ impl<'a> SmXmlView for XmlIndexerAdapter<'a> {
 
     fn bounds(&self, node_id: SmNodeId) -> SmBounds {
         if let Some(node) = self.get_node(node_id) {
-            self.parse_bounds_to_sm(node.element.bounds.as_ref())
+            self.parse_bounds_to_sm(node.element.bounds.clone())
         } else {
             SmBounds {
                 left: 0,
@@ -358,13 +345,13 @@ impl<'a> SmXmlView for XmlIndexerAdapter<'a> {
 
     fn class(&self, node_id: SmNodeId) -> &str {
         self.get_node(node_id)
-            .and_then(|node| node.element.class.as_deref())
+            .and_then(|node| node.element.class_name.as_deref())
             .unwrap_or("")
     }
 
     fn text(&self, node_id: SmNodeId) -> &str {
         self.get_node(node_id)
-            .and_then(|node| node.element.text.as_deref())
+            .map(|node| node.element.text.as_str())
             .unwrap_or("")
     }
 
@@ -373,10 +360,10 @@ impl<'a> SmXmlView for XmlIndexerAdapter<'a> {
         
         match key {
             "resource-id" | "resource_id" => node.element.resource_id.as_deref(),
-            "content-desc" | "content_desc" => node.element.content_desc.as_deref(),
-            "package" => node.element.package.as_deref(),
-            "clickable" => node.element.clickable.as_ref().map(|b| if *b { "true" } else { "false" }),
-            "enabled" => node.element.enabled.as_ref().map(|b| if *b { "true" } else { "false" }),
+            "content-desc" | "content_desc" => Some(node.element.content_desc.as_str()),
+            "package" => node.element.package_name.as_deref(),
+            "clickable" => Some(if node.element.clickable { "true" } else { "false" }),
+            "enabled" => Some(if node.element.enabled { "true" } else { "false" }),
             _ => None,
         }
     }
@@ -408,7 +395,7 @@ impl<'a> UiTree for XmlIndexerAdapter<'a> {
 
     fn class(&self, id: NodeId) -> &str {
         self.get_node(id)
-            .and_then(|node| node.element.class.as_deref())
+            .and_then(|node| node.element.class_name.as_deref())
             .unwrap_or("")
     }
 
@@ -426,12 +413,12 @@ impl<'a> UiTree for XmlIndexerAdapter<'a> {
 
     fn content_desc(&self, id: NodeId) -> Option<&str> {
         self.get_node(id)
-            .and_then(|node| node.element.content_desc.as_deref())
+            .map(|node| node.element.content_desc.as_str())
     }
 
     fn text(&self, id: NodeId) -> Option<&str> {
         self.get_node(id)
-            .and_then(|node| node.element.text.as_deref())
+            .map(|node| node.element.text.as_str())
     }
 
     fn bounds(&self, id: NodeId) -> Bounds {
@@ -445,18 +432,14 @@ impl<'a> UiTree for XmlIndexerAdapter<'a> {
 
     fn is_clickable(&self, id: NodeId) -> bool {
         self.get_node(id)
-            .and_then(|node| node.element.clickable)
+            .and_then(|node| Some(node.element.clickable))
             .unwrap_or(false)
     }
 
     fn is_scrollable(&self, id: NodeId) -> bool {
-        // UIElement 没有 scrollable 字段，通过类名判断
-        let class_name = UiTree::class(self, id).to_lowercase();
-        class_name.contains("recyclerview")
-            || class_name.contains("listview")
-            || class_name.contains("scrollview")
-            || class_name.contains("viewpager")
-            || class_name.contains("gridview")
+        self.get_node(id)
+            .map(|node| node.element.scrollable)
+            .unwrap_or(false)
     }
 
     fn is_dialog_like(&self, id: NodeId) -> bool {
@@ -485,7 +468,7 @@ impl<'a> UiTree for XmlIndexerAdapter<'a> {
 
         // 查找匹配的节点
         for (idx, node) in self.indexer.all_nodes.iter().enumerate() {
-            if let Some(node_class) = &node.element.class {
+            if let Some(node_class) = &node.element.class_name {
                 if node_class.ends_with(class_name) {
                     // 检查额外的属性约束（如 @scrollable='true'）
                     if xpath.contains("@scrollable='true'") {
@@ -543,3 +526,4 @@ mod tests {
         assert_eq!(result, Some((100, 200, 300, 400)));
     }
 }
+

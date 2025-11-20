@@ -60,5 +60,6 @@ pub struct StepExecutionResult {
     pub message: String,
     pub execution_time_ms: u64,
     pub verification_passed: bool,
-    pub found_elements: Vec<crate::services::ui_reader_service::UIElement>,
+    pub found_elements: Vec<crate::services::universal_ui_page_analyzer::UIElement>,
 }
+

@@ -136,7 +136,7 @@ where
                 logs.push(format!("✅ 匹配成功: {}", result.message));
 
                 if let Some(preview) = result.preview {
-                    if let Some(bounds_str) = preview.bounds {
+                    let bounds_str = &preview.bounds; {
                         logs.push(format!("📍 匹配到元素边界: {}", bounds_str));
 
                         match crate::utils::bounds::parse_bounds_str(&bounds_str) {
@@ -205,3 +205,4 @@ where
     logs.push("🔄 回退到传统参数解析".to_string());
     run_traditional_find(actions, step, logs).await
 }
+

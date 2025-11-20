@@ -151,8 +151,7 @@ impl<'a> ExecutionBridge<'a> {
         // 检查是否有明显的文本特征
         let clicked_node = self.xml_indexer.all_nodes.get(clicked_node_index);
         let node_text = clicked_node
-            .and_then(|n| n.element.text.as_ref())
-            .map(|s| s.as_str())
+            .map(|n| n.element.text.as_str())
             .unwrap_or("");
         let has_stable_text = !node_text.is_empty() && 
                               !node_text.chars().any(|c| c.is_numeric());
@@ -187,12 +186,10 @@ impl<'a> ExecutionBridge<'a> {
 
         let clicked_node = self.xml_indexer.all_nodes.get(clicked_node_index);
         let node_text = clicked_node
-            .and_then(|n| n.element.text.as_ref())
-            .map(|s| s.as_str())
+            .map(|n| n.element.text.as_str())
             .unwrap_or("");
         let content_desc = clicked_node
-            .and_then(|n| n.element.content_desc.as_ref())
-            .map(|s| s.as_str())
+            .map(|n| n.element.content_desc.as_str())
             .unwrap_or("");
 
         // 选择最稳定的文本特征

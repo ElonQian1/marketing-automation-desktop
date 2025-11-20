@@ -140,3 +140,4 @@ impl StructuralMatchingConfig {
         self.fields.iter().filter(|f| f.enabled).collect()
     }
 }
+

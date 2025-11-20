@@ -17,7 +17,7 @@ pub mod prospecting; // 新增：精准获客模块
 pub mod universal_ui_page_analyzer; // 新增：Universal UI 页面分析器
                                     // pub mod simple_xml_parser;  // 已删除：简化XML解析器，统一使用智能解析器
 pub mod commands; // Tauri 命令封装
-pub mod contact_service;
+// pub mod contact_service; // 已删除：合并至 contact_storage
 pub mod contact_storage; // 新增：联系人号码存储（TXT导入到SQLite）
 pub mod contact_verification; // 新增：快速号码验证服务
 pub mod crash_debugger;

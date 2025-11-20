@@ -2,7 +2,7 @@
 // module: v3-execution | layer: matching | role: Bounds模糊匹配算法
 // summary: 处理静态XML与动态XML的bounds差异，支持模糊匹配和包含关系检测
 
-use crate::services::ui_reader_service::UIElement;
+use crate::services::universal_ui_page_analyzer::UIElement;
 
 /// Bounds匹配结果
 #[derive(Debug, Clone)]
@@ -271,8 +271,8 @@ impl BoundsMatcher {
         let mut matched = Vec::new();
         
         for candidate in candidates {
-            if let Some(ref candidate_bounds) = candidate.bounds {
-                let match_result = Self::match_bounds(user_bounds, candidate_bounds);
+            let ref candidate_bounds = &candidate.bounds; {
+                let match_result = Self::match_bounds(user_bounds, &candidate_bounds.to_string());
                 
                 if match_result.is_exact {
                     // 精确匹配，立即返回
@@ -322,13 +322,13 @@ impl BoundsMatcher {
         
         for elem in all_elements {
             // 必须可点击
-            if !elem.clickable.unwrap_or(false) {
+            if !elem.clickable {
                 continue;
             }
             
             // 必须在用户bounds范围内
-            if let Some(ref elem_bounds) = elem.bounds {
-                if let Some(elem_rect) = BoundsRect::from_string(elem_bounds) {
+            let ref elem_bounds = &elem.bounds; {
+                if let Some(elem_rect) = BoundsRect::from_string(&elem_bounds.to_string()) {
                     // 检查是否被用户bounds包含
                     if elem_rect.is_contained_in(&user_rect) {
                         let iou = user_rect.calculate_iou(&elem_rect);
@@ -407,3 +407,6 @@ mod tests {
         assert!(result.match_quality > 0.8);
     }
 }
+
+
+
