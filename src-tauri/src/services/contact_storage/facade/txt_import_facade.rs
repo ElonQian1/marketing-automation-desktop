@@ -3,7 +3,7 @@ use tauri::AppHandle;
 use std::path::Path;
 
 use super::super::repositories::txt_import_records_repo;
-use super::super::models::{TxtImportRecordDto, TxtImportRecordList};
+use super::super::models::{TxtImportRecordDto, TxtImportRecordList, ImportRecordStatus};
 use super::common::db_connector::with_db_connection;
 
 /// TXT 导入记录管理门面
@@ -40,8 +40,10 @@ impl TxtImportFacade {
         file_path: &str,
         total_lines: i64,
         valid_numbers: i64,
-        source_info: Option<&str>,
-        batch_id: Option<&str>,
+        imported_numbers: i64,
+        duplicate_numbers: i64,
+        status: ImportRecordStatus,
+        error_message: Option<&str>,
     ) -> Result<TxtImportRecordDto, String> {
         // 提取文件名
         let file_name = Self::extract_file_name(file_path);
@@ -54,10 +56,10 @@ impl TxtImportFacade {
                 &file_name, // 使用提取的文件名
                 total_lines, 
                 valid_numbers, 
-                0, // imported_numbers
-                0, // duplicate_numbers
-                "pending", // status
-                source_info // error_message
+                imported_numbers, 
+                duplicate_numbers, 
+                status.clone(), 
+                error_message
             )?;
             
             // 创建并返回 TxtImportRecordDto
@@ -68,11 +70,11 @@ impl TxtImportFacade {
                 file_size: None,
                 total_lines,
                 valid_numbers,
-                imported_numbers: 0,
-                duplicate_numbers: 0,
+                imported_numbers,
+                duplicate_numbers,
                 invalid_numbers: 0,
-                status: "pending".to_string(),
-                error_message: source_info.map(|s| s.to_string()),
+                status,
+                error_message: error_message.map(|s| s.to_string()),
                 created_at: chrono::Utc::now().to_rfc3339(),
                 imported_at: None,
                 industry: None,
@@ -121,7 +123,7 @@ impl TxtImportFacade {
         processed_lines: i64,
         valid_numbers: i64,
         error_count: i64,
-        status: &str,
+        status: ImportRecordStatus,
     ) -> Result<i64, String> {
         Self::with_db_connection(app_handle, |conn| {
             txt_import_records_repo::update_txt_import_stats(
@@ -143,14 +145,14 @@ impl TxtImportFacade {
         record_id: i64,
         imported_numbers: i64,
         duplicate_numbers: i64,
-        status: &str,
+        status: ImportRecordStatus,
     ) -> Result<(), String> {
         Self::with_db_connection(app_handle, |conn| {
             conn.execute(
                 "UPDATE txt_import_records 
                  SET imported_numbers = ?1, duplicate_numbers = ?2, status = ?3, imported_at = datetime('now')
                  WHERE id = ?4",
-                rusqlite::params![imported_numbers, duplicate_numbers, status, record_id],
+                rusqlite::params![imported_numbers, duplicate_numbers, status.to_string(), record_id],
             )?;
             Ok(())
         })

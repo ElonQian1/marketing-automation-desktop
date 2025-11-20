@@ -1,7 +1,7 @@
 use rusqlite::{Connection, Result as SqliteResult};
 use super::common::database::log_database_error;
 
-use crate::services::contact_storage::models::{ContactNumberDto, ContactNumberList, ContactNumberStats};
+use crate::services::contact_storage::models::{ContactNumberDto, ContactNumberList, ContactNumberStats, ContactStatus};
 
 // 引入子模块化功能
 use super::contact_numbers::{
@@ -61,12 +61,12 @@ impl ContactNumberRepository {
         offset: i64,
         search: Option<String>,
         industry: Option<String>,
-        status: Option<String>,
+        status: Option<ContactStatus>,
     ) -> SqliteResult<ContactNumberList> {
         // 转换 String 参数为 &str 参数
         let search_ref = search.as_deref();
         let industry_ref = industry.as_deref();
-        let status_ref = status.as_deref();
+        let status_ref = status.as_ref();
 
         // 调用子模块，但返回的是 Vec<ContactNumberDto>，需要构造 ContactNumberList
         let numbers = advanced_queries::search_contact_numbers(
@@ -188,12 +188,12 @@ impl ContactNumberRepository {
         offset: i64,
         search: Option<String>,
         industry: Option<String>,
-        status: Option<String>,
+        status: Option<ContactStatus>,
     ) -> SqliteResult<ContactNumberList> {
         // 转换 String 参数为 &str 参数
         let search_ref = search.as_deref();
         let industry_ref = industry.as_deref();
-        let status_ref = status.as_deref();
+        let status_ref = status.as_ref();
 
         // 调用子模块
         let numbers = advanced_queries::search_contact_numbers(
@@ -217,11 +217,11 @@ impl ContactNumberRepository {
         conn: &Connection,
         search: Option<String>,
         industry: Option<String>,
-        status: Option<String>,
+        status: Option<ContactStatus>,
     ) -> SqliteResult<i64> {
         let search_ref = search.as_deref();
         let industry_ref = industry.as_deref();
-        let status_ref = status.as_deref();
+        let status_ref = status.as_ref();
         
         advanced_queries::count_search_results(conn, search_ref, industry_ref, status_ref)
     }
@@ -234,7 +234,7 @@ impl ContactNumberRepository {
         offset: i64,
         keyword: Option<String>,
         industry: Option<String>,
-        status: Option<String>,
+        status: Option<ContactStatus>,
     ) -> SqliteResult<ContactNumberList> {
         // 委托给高级查询，添加"无批次"条件
         let mut search_conditions = vec![];
@@ -253,7 +253,7 @@ impl ContactNumberRepository {
         }
         
         if let Some(st) = status.as_ref() {
-            search_conditions.push(format!("status = '{}'", st.replace("'", "''")));
+            search_conditions.push(format!("status = '{}'", st.to_string().replace("'", "''")));
         }
         
         // 添加"无批次"条件
@@ -334,17 +334,18 @@ impl ContactNumberRepository {
     }
 
     /// 获取所有联系人号码ID
-    pub fn list_all_contact_number_ids(conn: &Connection) -> SqliteResult<Vec<i64>> {
-        let mut stmt = conn.prepare("SELECT id FROM contact_numbers ORDER BY id")?;
-        let rows = stmt.query_map([], |row| {
-            Ok(row.get::<_, i64>(0)?)
-        })?;
+    pub fn list_all_contact_number_ids(
+        conn: &Connection,
+        search: Option<String>,
+        industry: Option<String>,
+        status: Option<ContactStatus>,
+    ) -> SqliteResult<Vec<i64>> {
+        // 转换 String 参数为 &str 参数
+        let search_ref = search.as_deref();
+        let industry_ref = industry.as_deref();
+        let status_ref = status.as_ref();
 
-        let mut ids = Vec::new();
-        for row_result in rows {
-            ids.push(row_result?);
-        }
-        Ok(ids)
+        advanced_queries::list_all_contact_number_ids(conn, search_ref, industry_ref, status_ref)
     }
 
     /// 设置号码行业（兼容性方法，映射到 set_industry_by_id_range）

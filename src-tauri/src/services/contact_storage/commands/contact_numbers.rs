@@ -4,10 +4,11 @@
 
 use tauri::{command, AppHandle};
 use super::super::repository_facade::ContactStorageFacade;
-use super::super::models;
+use super::super::models::{self, ContactStatus, ImportRecordStatus};
 use super::super::parser::extract_numbers_from_text; // 使用 parser 模块的实现
 use std::path::Path;
 use std::fs;
+use std::str::FromStr;
 
 /// 从文件导入联系人号码
 #[command]
@@ -37,7 +38,7 @@ pub async fn import_contact_numbers_from_file(
     let (inserted, duplicates, errors) = facade.insert_numbers(&numbers, &file_path)?;
     
     // 无论导入结果如何都记录到 txt_import_records 表（包括空文件和全部重复）
-    let status = if errors.is_empty() { 
+    let status_str = if errors.is_empty() { 
         if numbers.is_empty() {
             "empty"  // 空文件
         } else if inserted == 0 && duplicates > 0 {
@@ -48,6 +49,9 @@ pub async fn import_contact_numbers_from_file(
     } else { 
         "partial" 
     };
+    
+    let status_enum = ImportRecordStatus::from_str(status_str).unwrap_or(ImportRecordStatus::Pending);
+
     let error_message = if errors.is_empty() { 
         None 
     } else { 
@@ -55,27 +59,18 @@ pub async fn import_contact_numbers_from_file(
     };
     
     // 记录导入结果到 txt_import_records 表（使用 UPSERT 避免重复文件冲突）
-    // 先创建记录，然后更新统计信息
     let record_result = facade.create_txt_import_record(
         &file_path,
         total_lines,
         numbers.len() as i64,
+        inserted,
+        duplicates,
+        status_enum,
         error_message.as_deref(),
-        None, // batch_id
     );
     
     if let Ok(record) = record_result {
-        // 更新导入统计（包括重复号码数）
-        if let Err(e) = facade.update_txt_import_record_stats(
-            record.id,
-            inserted,
-            duplicates,
-            status,
-        ) {
-            tracing::warn!("⚠️  更新TXT导入统计失败: {}", e);
-        } else {
-            tracing::info!("✅ 成功记录TXT导入: {} (导入{}/重复{})", file_name, inserted, duplicates);
-        }
+        tracing::info!("✅ 成功记录TXT导入: {} (导入{}/重复{})", file_name, inserted, duplicates);
     } else if let Err(e) = record_result {
         tracing::warn!("⚠️  创建/更新TXT导入记录失败: {}", e);
         eprintln!("⚠️  创建/更新TXT导入记录失败: {}", e);
@@ -138,7 +133,7 @@ pub async fn import_contact_numbers_from_folder(
                             all_errors.append(&mut errors);
                             
                             // 记录导入结果
-                            let status = if errors.is_empty() { 
+                            let status_str = if errors.is_empty() { 
                                 if numbers.is_empty() {
                                     "empty"
                                 } else if inserted == 0 && duplicates > 0 {
@@ -149,6 +144,9 @@ pub async fn import_contact_numbers_from_folder(
                             } else { 
                                 "partial" 
                             };
+                            
+                            let status_enum = ImportRecordStatus::from_str(status_str).unwrap_or(ImportRecordStatus::Pending);
+
                             let error_message = if errors.is_empty() { 
                                 None 
                             } else { 
@@ -156,20 +154,15 @@ pub async fn import_contact_numbers_from_folder(
                             };
                             
                             // 创建记录并更新统计
-                            if let Ok(record) = facade.create_txt_import_record(
+                            let _ = facade.create_txt_import_record(
                                 &file_path_str,
                                 total_lines,
                                 numbers.len() as i64, // valid_numbers
+                                inserted,
+                                duplicates,
+                                status_enum,
                                 error_message.as_deref(),
-                                None, // batch_id
-                            ) {
-                                let _ = facade.update_txt_import_record_stats(
-                                    record.id,
-                                    inserted,
-                                    duplicates,
-                                    status,
-                                );
-                            }
+                            );
                         }
                         Err(e) => {
                             let err_msg = format!("读取文件失败 {}: {}", path.to_string_lossy(), e);
@@ -222,7 +215,13 @@ pub async fn list_contact_numbers(
     status: Option<String>,
 ) -> Result<models::ContactNumberList, String> {
     let facade = ContactStorageFacade::new(&app_handle);
-    facade.list_numbers_with_filters(limit, offset, search, industry, status)
+    
+    let status_enum = match status {
+        Some(s) => Some(ContactStatus::from_str(&s)?),
+        None => None,
+    };
+
+    facade.list_numbers_with_filters(limit, offset, search, industry, status_enum)
 }
 
 /// 获取满足筛选条件的所有号码ID（不分页）
@@ -234,7 +233,13 @@ pub async fn list_all_contact_number_ids(
     status: Option<String>,
 ) -> Result<Vec<i64>, String> {
     let facade = ContactStorageFacade::new(&app_handle);
-    facade.list_all_contact_number_ids(search, industry, status)
+    
+    let status_enum = match status {
+        Some(s) => Some(ContactStatus::from_str(&s)?),
+        None => None,
+    };
+
+    facade.list_all_contact_number_ids(search, industry, status_enum)
 }
 
 /// 获取联系人号码
@@ -357,7 +362,21 @@ pub async fn list_contact_numbers_without_batch_filtered(
     status: Option<String>,
 ) -> Result<models::ContactNumberList, String> {
     let facade = ContactStorageFacade::new(&app_handle);
-    facade.list_numbers_without_batch_filtered(limit, offset, industry, status)
+    
+    let status_enum = if let Some(s) = status {
+        if s.is_empty() {
+            None
+        } else {
+            match ContactStatus::from_str(&s) {
+                Ok(st) => Some(st),
+                Err(_) => return Err(format!("Invalid status: {}", s)),
+            }
+        }
+    } else {
+        None
+    };
+
+    facade.list_numbers_without_batch_filtered(limit, offset, None, industry, status_enum)
 }
 
 /// 获取所有行业分类
@@ -421,7 +440,13 @@ pub async fn list_contact_numbers_filtered(
     status: Option<String>,
 ) -> Result<models::ContactNumberList, String> {
     let facade = ContactStorageFacade::new(&app_handle);
-    facade.list_numbers_filtered(limit, offset, status.map(|s| s == "used"), industry, search)
+    
+    let status_enum = match status {
+        Some(s) => Some(ContactStatus::from_str(&s)?),
+        None => None,
+    };
+
+    facade.list_numbers_filtered(limit, offset, status_enum, industry, search)
 }
 
 /// 为VCF批次列出联系人号码

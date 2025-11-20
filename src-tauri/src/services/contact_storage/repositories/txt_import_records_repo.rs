@@ -3,7 +3,7 @@
 /// 提供TXT文件导入记录的数据库操作功能
 
 use rusqlite::{Connection, Result as SqliteResult, params};
-use super::super::models::{TxtImportRecordDto, TxtImportRecordList};
+use super::super::models::{TxtImportRecordDto, TxtImportRecordList, ImportRecordStatus};
 
 /// 创建TXT导入记录（使用 UPSERT 处理重复文件路径）
 pub fn create_txt_import_record(
@@ -14,7 +14,7 @@ pub fn create_txt_import_record(
     valid_numbers: i64,
     imported_numbers: i64,
     duplicate_numbers: i64,
-    status: &str,
+    status: ImportRecordStatus,
     error_message: Option<&str>,
 ) -> SqliteResult<i64> {
     let mut stmt = conn.prepare(
@@ -174,7 +174,7 @@ pub fn update_txt_import_stats(
     successful_imports: i64,
     duplicate_numbers: i64,
     invalid_numbers: i64,
-    import_status: &str,
+    import_status: ImportRecordStatus,
     error_message: Option<&str>,
 ) -> SqliteResult<()> {
     let mut stmt = conn.prepare(
@@ -190,7 +190,7 @@ pub fn update_txt_import_stats(
         successful_imports,
         duplicate_numbers,
         invalid_numbers,
-        import_status,
+        import_status.to_string(),
         error_message,
         id
     ])?;

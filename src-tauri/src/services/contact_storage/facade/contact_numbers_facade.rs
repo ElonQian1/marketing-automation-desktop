@@ -2,7 +2,7 @@ use rusqlite::{Connection, Result as SqliteResult};
 use tauri::AppHandle;
 
 use super::super::repositories::contact_numbers_repo::ContactNumberRepository;
-use super::super::models::{ContactNumberDto, ContactNumberList, AllocationResultDto};
+use super::super::models::{ContactNumberDto, ContactNumberList, AllocationResultDto, ContactStatus};
 use super::common::db_connector::with_db_connection;
 
 /// 联系人号码管理门面
@@ -58,12 +58,11 @@ impl ContactNumbersFacade {
         offset: i64,
         search_phone: Option<String>,
         filter_industry: Option<String>,
-        filter_used: Option<bool>,
+        status: Option<ContactStatus>,
     ) -> Result<ContactNumberList, String> {
         Self::with_db_connection(app_handle, |conn| {
-            let status_filter = filter_used.map(|used| if used { "imported".to_string() } else { "available".to_string() });
             ContactNumberRepository::list_numbers_filtered(
-                conn, limit, offset, search_phone, filter_industry, status_filter
+                conn, limit, offset, search_phone, filter_industry, status
             )
         })
     }
@@ -80,10 +79,10 @@ impl ContactNumbersFacade {
         app_handle: &AppHandle,
         search: Option<String>,
         industry: Option<String>, 
-        status: Option<String>,
+        status: Option<ContactStatus>,
     ) -> Result<Vec<i64>, String> {
         Self::with_db_connection(app_handle, |conn| {
-            ContactNumberRepository::list_all_contact_number_ids(conn)
+            ContactNumberRepository::list_all_contact_number_ids(conn, search, industry, status)
         })
     }
 
@@ -124,10 +123,11 @@ impl ContactNumbersFacade {
         offset: i64,
         search_phone: Option<String>,
         filter_industry: Option<String>,
+        status: Option<ContactStatus>,
     ) -> Result<ContactNumberList, String> {
         Self::with_db_connection(app_handle, |conn| {
             ContactNumberRepository::list_numbers_without_batch_filtered(
-                conn, limit, offset, search_phone, filter_industry, None
+                conn, limit, offset, search_phone, filter_industry, status
             )
         })
     }

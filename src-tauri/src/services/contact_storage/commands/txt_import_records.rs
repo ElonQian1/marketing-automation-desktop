@@ -1,7 +1,8 @@
 use tauri::AppHandle;
+use std::str::FromStr;
 
 use crate::services::contact_storage::models::{
-    TxtImportRecordList, DeleteTxtImportRecordResult
+    TxtImportRecordList, DeleteTxtImportRecordResult, ImportRecordStatus
 };
 use crate::services::contact_storage::repository_facade::ContactStorageFacade;
 
@@ -63,13 +64,18 @@ pub async fn create_txt_import_record_internal(
         file_name, total_lines, imported_numbers, duplicate_numbers
     );
     
+    let status_enum = ImportRecordStatus::from_str(status)
+        .map_err(|e| format!("Invalid status: {}", e))?;
+
     let facade = ContactStorageFacade::new(app_handle);
     let result = facade.create_txt_import_record(
         file_path,
         total_lines,
         valid_numbers,
-        Some(&format!("{}", imported_numbers)),
-        Some(&format!("{}", duplicate_numbers)),
+        imported_numbers,
+        duplicate_numbers,
+        status_enum,
+        error_message,
     )?;
     Ok(result.id)
 }

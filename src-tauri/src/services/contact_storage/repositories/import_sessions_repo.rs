@@ -3,7 +3,7 @@ use chrono;
 
 use crate::services::contact_storage::models::{
     ImportSessionDto, ImportSessionList, ImportSessionEventDto, 
-    ImportSessionEventList, DeleteImportSessionResult
+    ImportSessionEventList, DeleteImportSessionResult, ImportSessionStatus
 };
 
 /// 导入会话仓储类
@@ -40,7 +40,7 @@ impl ImportSessionRepository {
     pub fn finish_import_session(
         conn: &Connection,
         session_id: i64,
-        status: &str,
+        status: ImportSessionStatus,
         imported_count: i64,
         failed_count: i64,
         error_message: Option<&str>,
@@ -77,7 +77,7 @@ impl ImportSessionRepository {
     pub fn update_import_session_status(
         conn: &Connection,
         session_id: i64,
-        status: &str,
+        status: ImportSessionStatus,
         imported_count: Option<i64>,
         error_message: Option<&str>,
     ) -> SqliteResult<i64> {

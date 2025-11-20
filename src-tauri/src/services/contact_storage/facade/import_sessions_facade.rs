@@ -1,9 +1,10 @@
 use rusqlite::{Connection, Result as SqliteResult};
 use tauri::AppHandle;
+use std::str::FromStr;
 
-use super::super::repositories::import_sessions_repo::ImportSessionRepository;
-use super::super::models::{ImportSessionDto, ImportSessionList};
-use super::common::db_connector::with_db_connection;
+use crate::services::contact_storage::repositories::import_sessions_repo::ImportSessionRepository;
+use crate::services::contact_storage::models::{ImportSessionDto, ImportSessionList, ImportSessionStatus};
+use crate::services::contact_storage::facade::common::db_connector::with_db_connection;
 
 /// 导入会话管理门面
 /// 
@@ -41,9 +42,12 @@ impl ImportSessionsFacade {
         imported_count: Option<i64>,
         error_message: Option<&str>,
     ) -> Result<i64, String> {
+        let status_enum = ImportSessionStatus::from_str(status)
+            .map_err(|e| format!("Invalid status: {}", e))?;
+
         Self::with_db_connection(app_handle, |conn| {
             ImportSessionRepository::update_import_session_status(
-                conn, session_id, status, imported_count, error_message
+                conn, session_id, status_enum, imported_count, error_message
             )
         })
     }
