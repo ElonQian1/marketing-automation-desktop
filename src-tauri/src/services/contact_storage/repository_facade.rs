@@ -14,7 +14,7 @@ use super::models::{
     AllocationResultDto, ContactNumberDto, VcfBatchDto, VcfBatchList, 
     VcfBatchStatsDto, VcfBatchCreationResult, ImportSessionDto, 
     ImportSessionList, ContactNumberList, TxtImportRecordDto, 
-    TxtImportRecordList
+    TxtImportRecordList, ContactStatus, ImportRecordStatus
 };
 
 /// 联系人存储服务统一门面
@@ -112,12 +112,12 @@ impl ContactStorageFacade {
         &self,
         limit: i64,
         offset: i64,
-        filter_used: Option<bool>,
+        status: Option<ContactStatus>,
         filter_industry: Option<String>,
         search_phone: Option<String>,
     ) -> Result<ContactNumberList, String> {
         ContactNumbersFacade::list_numbers_filtered(
-            &self.app_handle, limit, offset, search_phone, filter_industry, filter_used
+            &self.app_handle, limit, offset, search_phone, filter_industry, status
         )
     }
 
@@ -128,14 +128,9 @@ impl ContactStorageFacade {
         offset: i64,
         search: Option<String>,
         industry: Option<String>,
-        status: Option<String>,
+        status: Option<ContactStatus>,
     ) -> Result<ContactNumberList, String> {
-        let filter_used = match status.as_deref() {
-            Some("available") => Some(false),
-            Some("imported") => Some(true),
-            _ => None,
-        };
-        self.list_numbers_filtered(limit, offset, filter_used, industry, search)
+        self.list_numbers_filtered(limit, offset, status, industry, search)
     }
 
     /// 按ID批量删除联系人号码
@@ -148,7 +143,7 @@ impl ContactStorageFacade {
         &self,
         search: Option<String>,
         industry: Option<String>,
-        status: Option<String>,
+        status: Option<ContactStatus>,
     ) -> Result<Vec<i64>, String> {
         ContactNumbersFacade::list_all_contact_number_ids(&self.app_handle, search, industry, status)
     }
@@ -175,9 +170,10 @@ impl ContactStorageFacade {
         offset: i64,
         search_phone: Option<String>,
         filter_industry: Option<String>,
+        status: Option<ContactStatus>,
     ) -> Result<ContactNumberList, String> {
         ContactNumbersFacade::list_numbers_without_batch_filtered(
-            &self.app_handle, limit, offset, search_phone, filter_industry
+            &self.app_handle, limit, offset, search_phone, filter_industry, status
         )
     }
 
@@ -332,10 +328,21 @@ impl ContactStorageFacade {
         file_path: &str,
         total_lines: i64,
         valid_numbers: i64,
-        source_info: Option<&str>,
-        batch_id: Option<&str>,
+        imported_numbers: i64,
+        duplicate_numbers: i64,
+        status: ImportRecordStatus,
+        error_message: Option<&str>,
     ) -> Result<TxtImportRecordDto, String> {
-        TxtImportFacade::create_txt_import_record(&self.app_handle, file_path, total_lines, valid_numbers, source_info, batch_id)
+        TxtImportFacade::create_txt_import_record(
+            &self.app_handle, 
+            file_path, 
+            total_lines, 
+            valid_numbers, 
+            imported_numbers, 
+            duplicate_numbers, 
+            status, 
+            error_message
+        )
     }
 
     /// 列出TXT导入记录
@@ -365,7 +372,7 @@ impl ContactStorageFacade {
         processed_lines: i64,
         valid_numbers: i64,
         error_count: i64,
-        status: &str,
+        status: ImportRecordStatus,
     ) -> Result<i64, String> {
         TxtImportFacade::update_txt_import_stats(&self.app_handle, record_id, processed_lines, valid_numbers, error_count, status)
     }
@@ -376,7 +383,7 @@ impl ContactStorageFacade {
         record_id: i64,
         imported_numbers: i64,
         duplicate_numbers: i64,
-        status: &str,
+        status: ImportRecordStatus,
     ) -> Result<(), String> {
         TxtImportFacade::update_txt_import_record_stats(&self.app_handle, record_id, imported_numbers, duplicate_numbers, status)
     }

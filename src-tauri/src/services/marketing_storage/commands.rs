@@ -140,8 +140,7 @@ pub fn mark_task_result(
 
 #[tauri::command]
 pub fn insert_audit_log(app_handle: tauri::AppHandle, log: AuditLogPayload) -> Result<String, String> {
-    let conn = repo::get_connection(&app_handle).map_err(|e| e.to_string())?;
-    repo::insert_audit_log(&conn, &log).map_err(|e| e.to_string())
+    MarketingStorageFacade::insert_audit_log(&app_handle, log)
 }
 
 // ==================== 去重索引（带TTL） ====================
@@ -154,8 +153,7 @@ pub fn check_and_reserve_dedup(
     ttl_days: i64,
     by_account: Option<String>,
 ) -> Result<bool, String> {
-    let conn = repo::get_connection(&app_handle).map_err(|e| e.to_string())?;
-    repo::check_and_reserve_dedup(&conn, &key, &scope, ttl_days, by_account.as_deref()).map_err(|e| e.to_string())
+    MarketingStorageFacade::check_and_reserve_dedup(&app_handle, &key, &scope, ttl_days, by_account.as_deref())
 }
 
 // ==================== 扩展审计日志命令 ====================
@@ -169,8 +167,7 @@ pub fn query_audit_logs(
     limit: Option<i64>,
     offset: Option<i64>,
 ) -> Result<Vec<serde_json::Value>, String> {
-    let conn = repo::get_connection(&app_handle).map_err(|e| e.to_string())?;
-    repo::query_audit_logs(&conn, start_time.as_deref(), end_time.as_deref(), action_filter.as_deref(), limit.unwrap_or(100), offset.unwrap_or(0)).map_err(|e| e.to_string())
+    MarketingStorageFacade::query_audit_logs(&app_handle, start_time.as_deref(), end_time.as_deref(), action_filter.as_deref(), limit, offset)
 }
 
 #[tauri::command]
@@ -180,8 +177,7 @@ pub fn export_audit_logs(
     end_time: Option<String>,
     format: Option<String>,
 ) -> Result<String, String> {
-    let conn = repo::get_connection(&app_handle).map_err(|e| e.to_string())?;
-    repo::export_audit_logs(&conn, start_time.as_deref(), end_time.as_deref(), format.as_deref().unwrap_or("csv")).map_err(|e| e.to_string())
+    MarketingStorageFacade::export_audit_logs(&app_handle, start_time.as_deref(), end_time.as_deref(), format.as_deref())
 }
 
 #[tauri::command]
@@ -189,8 +185,7 @@ pub fn cleanup_expired_audit_logs(
     app_handle: tauri::AppHandle,
     retention_days: i64,
 ) -> Result<i64, String> {
-    let conn = repo::get_connection(&app_handle).map_err(|e| e.to_string())?;
-    repo::cleanup_expired_audit_logs(&conn, retention_days).map_err(|e| e.to_string())
+    MarketingStorageFacade::cleanup_expired_audit_logs(&app_handle, retention_days)
 }
 
 #[tauri::command]
@@ -198,8 +193,7 @@ pub fn batch_store_audit_logs(
     app_handle: tauri::AppHandle,
     logs: Vec<AuditLogPayload>,
 ) -> Result<i64, String> {
-    let conn = repo::get_connection(&app_handle).map_err(|e| e.to_string())?;
-    repo::batch_store_audit_logs(&conn, &logs).map_err(|e| e.to_string())
+    MarketingStorageFacade::batch_store_audit_logs(&app_handle, logs)
 }
 
 // ==================== 回复模板相关命令 ====================
@@ -209,8 +203,7 @@ pub fn insert_reply_template(
     app_handle: tauri::AppHandle,
     payload: ReplyTemplatePayload,
 ) -> Result<String, String> {
-    let conn = repo::get_connection(&app_handle).map_err(|e| e.to_string())?;
-    repo::insert_reply_template(&conn, &payload).map_err(|e| e.to_string())
+    MarketingStorageFacade::insert_reply_template(&app_handle, payload)
 }
 
 #[tauri::command]
@@ -221,9 +214,7 @@ pub fn list_reply_templates(
     channel: Option<String>,
     enabled: Option<bool>,
 ) -> Result<Vec<ReplyTemplateRow>, String> {
-    let conn = repo::get_connection(&app_handle).map_err(|e| e.to_string())?;
-    let q = ListReplyTemplatesQuery { limit, offset, channel, enabled };
-    repo::list_reply_templates(&conn, &q).map_err(|e| e.to_string())
+    MarketingStorageFacade::list_reply_templates(&app_handle, limit, offset, channel, enabled)
 }
 
 /// Alias for list_reply_templates (frontend expects get_reply_templates with no params)
@@ -245,9 +236,8 @@ pub fn update_reply_template(
     category: Option<String>,
     enabled: Option<bool>,
 ) -> Result<(), String> {
-    let conn = repo::get_connection(&app_handle).map_err(|e| e.to_string())?;
-    repo::update_reply_template(
-        &conn,
+    MarketingStorageFacade::update_reply_template(
+        &app_handle,
         &id,
         template_name.as_deref(),
         channel.as_deref(),
@@ -255,7 +245,7 @@ pub fn update_reply_template(
         variables.as_deref(),
         category.as_deref(),
         enabled,
-    ).map_err(|e| e.to_string())
+    )
 }
 
 // ==================== 统计相关命令 ====================
@@ -264,6 +254,5 @@ pub fn update_reply_template(
 pub fn get_precise_acquisition_stats(
     app_handle: tauri::AppHandle,
 ) -> Result<serde_json::Value, String> {
-    let conn = repo::get_connection(&app_handle).map_err(|e| e.to_string())?;
-    repo::get_precise_acquisition_stats(&conn).map_err(|e| e.to_string())
+    MarketingStorageFacade::get_precise_acquisition_stats(&app_handle)
 }

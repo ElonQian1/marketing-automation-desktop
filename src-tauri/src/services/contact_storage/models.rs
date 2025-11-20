@@ -1,4 +1,150 @@
 use serde::{Deserialize, Serialize};
+use rusqlite::types::{ToSql, ToSqlOutput, FromSql, FromSqlResult, ValueRef, FromSqlError};
+use std::str::FromStr;
+
+#[derive(Debug, Serialize, Deserialize, Clone, PartialEq)]
+#[serde(rename_all = "lowercase")]
+pub enum ContactStatus {
+    Available,
+    Assigned,
+    Imported,
+}
+
+impl ToString for ContactStatus {
+    fn to_string(&self) -> String {
+        match self {
+            ContactStatus::Available => "available".to_string(),
+            ContactStatus::Assigned => "assigned".to_string(),
+            ContactStatus::Imported => "imported".to_string(),
+        }
+    }
+}
+
+impl FromStr for ContactStatus {
+    type Err = String;
+
+    fn from_str(s: &str) -> Result<Self, Self::Err> {
+        match s.to_lowercase().as_str() {
+            "available" => Ok(ContactStatus::Available),
+            "assigned" => Ok(ContactStatus::Assigned),
+            "imported" => Ok(ContactStatus::Imported),
+            _ => Err(format!("Invalid contact status: {}", s)),
+        }
+    }
+}
+
+impl ToSql for ContactStatus {
+    fn to_sql(&self) -> rusqlite::Result<ToSqlOutput<'_>> {
+        Ok(ToSqlOutput::from(self.to_string()))
+    }
+}
+
+impl FromSql for ContactStatus {
+    fn column_result(value: ValueRef<'_>) -> FromSqlResult<Self> {
+        value.as_str().and_then(|s| {
+            ContactStatus::from_str(s).map_err(|e| FromSqlError::Other(Box::new(std::io::Error::new(std::io::ErrorKind::InvalidData, e))))
+        })
+    }
+}
+
+#[derive(Debug, Serialize, Deserialize, Clone, PartialEq)]
+#[serde(rename_all = "lowercase")]
+pub enum ImportRecordStatus {
+    Pending,
+    Success,
+    Empty,
+    AllDuplicates,
+    Partial,
+    Failed,
+}
+
+impl ToString for ImportRecordStatus {
+    fn to_string(&self) -> String {
+        match self {
+            ImportRecordStatus::Pending => "pending".to_string(),
+            ImportRecordStatus::Success => "success".to_string(),
+            ImportRecordStatus::Empty => "empty".to_string(),
+            ImportRecordStatus::AllDuplicates => "all_duplicates".to_string(),
+            ImportRecordStatus::Partial => "partial".to_string(),
+            ImportRecordStatus::Failed => "failed".to_string(),
+        }
+    }
+}
+
+impl FromStr for ImportRecordStatus {
+    type Err = String;
+
+    fn from_str(s: &str) -> Result<Self, Self::Err> {
+        match s.to_lowercase().as_str() {
+            "pending" => Ok(ImportRecordStatus::Pending),
+            "success" => Ok(ImportRecordStatus::Success),
+            "empty" => Ok(ImportRecordStatus::Empty),
+            "all_duplicates" | "all_duplicate" => Ok(ImportRecordStatus::AllDuplicates),
+            "partial" => Ok(ImportRecordStatus::Partial),
+            "failed" => Ok(ImportRecordStatus::Failed),
+            _ => Err(format!("Invalid import record status: {}", s)),
+        }
+    }
+}
+
+impl ToSql for ImportRecordStatus {
+    fn to_sql(&self) -> rusqlite::Result<ToSqlOutput<'_>> {
+        Ok(ToSqlOutput::from(self.to_string()))
+    }
+}
+
+impl FromSql for ImportRecordStatus {
+    fn column_result(value: ValueRef<'_>) -> FromSqlResult<Self> {
+        value.as_str().and_then(|s| {
+            ImportRecordStatus::from_str(s).map_err(|e| FromSqlError::Other(Box::new(std::io::Error::new(std::io::ErrorKind::InvalidData, e))))
+        })
+    }
+}
+
+#[derive(Debug, Serialize, Deserialize, Clone, PartialEq)]
+#[serde(rename_all = "lowercase")]
+pub enum ImportSessionStatus {
+    Pending,
+    Success,
+    Failed,
+}
+
+impl ToString for ImportSessionStatus {
+    fn to_string(&self) -> String {
+        match self {
+            ImportSessionStatus::Pending => "pending".to_string(),
+            ImportSessionStatus::Success => "success".to_string(),
+            ImportSessionStatus::Failed => "failed".to_string(),
+        }
+    }
+}
+
+impl FromStr for ImportSessionStatus {
+    type Err = String;
+
+    fn from_str(s: &str) -> Result<Self, Self::Err> {
+        match s.to_lowercase().as_str() {
+            "pending" => Ok(ImportSessionStatus::Pending),
+            "success" => Ok(ImportSessionStatus::Success),
+            "failed" => Ok(ImportSessionStatus::Failed),
+            _ => Err(format!("Invalid import session status: {}", s)),
+        }
+    }
+}
+
+impl ToSql for ImportSessionStatus {
+    fn to_sql(&self) -> rusqlite::Result<ToSqlOutput<'_>> {
+        Ok(ToSqlOutput::from(self.to_string()))
+    }
+}
+
+impl FromSql for ImportSessionStatus {
+    fn column_result(value: ValueRef<'_>) -> FromSqlResult<Self> {
+        value.as_str().and_then(|s| {
+            ImportSessionStatus::from_str(s).map_err(|e| FromSqlError::Other(Box::new(std::io::Error::new(std::io::ErrorKind::InvalidData, e))))
+        })
+    }
+}
 
 #[derive(Debug, Serialize, Deserialize, Clone)]
 pub struct ImportNumbersResult {
@@ -19,7 +165,7 @@ pub struct ContactNumberDto {
     pub created_at: String,
     // V2.0 字段：业务元数据
     pub industry: Option<String>,
-    pub status: Option<String>,  // 'available' | 'assigned' | 'imported'
+    pub status: Option<ContactStatus>,  // 'available' | 'assigned' | 'imported'
     pub assigned_at: Option<String>,
     pub assigned_batch_id: Option<String>,
     pub imported_session_id: Option<i64>,
@@ -114,7 +260,7 @@ pub struct TxtImportRecordDto {
     pub imported_numbers: i64,   // 成功导入数
     pub duplicate_numbers: i64,  // 重复号码数
     pub invalid_numbers: i64,    // 无效号码数
-    pub status: String,          // 导入状态: 'success' | 'empty' | 'all_duplicates' | 'partial' | 'failed'
+    pub status: ImportRecordStatus, // 导入状态: 'success' | 'empty' | 'all_duplicates' | 'partial' | 'failed'
     pub error_message: Option<String>,
     pub created_at: String,
     pub imported_at: Option<String>,
@@ -191,7 +337,7 @@ pub struct ImportSessionDto {
     pub batch_id: String,
     pub target_app: String,
     pub session_description: Option<String>,
-    pub status: String, // pending/success/failed
+    pub status: ImportSessionStatus, // pending/success/failed
     pub success_count: i64,
     pub failed_count: i64,
     pub started_at: String,
