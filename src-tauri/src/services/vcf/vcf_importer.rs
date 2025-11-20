@@ -390,6 +390,61 @@ impl MultiBrandVcfImporter {
                 ImportStepType::HandlePermissions => {
                     self.handle_permissions().await?;
                 }
+                ImportStepType::CustomAdbCommand => {
+                    if let Some(command) = step.parameters.get("command") {
+                        info!("执行自定义ADB命令: {}", command);
+                        // 解析命令字符串，移除 "shell " 前缀如果存在，因为 execute_adb_command 会处理
+                        // 注意：这里的 execute_adb_command 只是简单的封装，我们需要更灵活的处理
+                        // 简单起见，我们假设 command 是完整的 shell 命令，如 "shell mkdir -p ..."
+                        // 我们需要将其拆分为 args
+                        let parts: Vec<&str> = command.split_whitespace().collect();
+                        if !parts.is_empty() {
+                            let mut args = vec!["-s", &self.device_id];
+                            args.extend(parts);
+                            self.execute_adb_command(&args)?;
+                        }
+                    }
+                }
+                ImportStepType::SendIntent => {
+                    let action = step.parameters.get("action").map(|s| s.as_str()).unwrap_or("android.intent.action.VIEW");
+                    let data_uri = step.parameters.get("data_uri").map(|s| s.as_str()).unwrap_or("");
+                    let mime_type = step.parameters.get("mime_type").map(|s| s.as_str()).unwrap_or("text/vcard");
+                    
+                    info!("发送Intent: action={}, data={}, type={}", action, data_uri, mime_type);
+                    
+                    let mut args = vec!["-s", &self.device_id, "shell", "am", "start", "-a", action];
+                    if !data_uri.is_empty() {
+                        args.push("-d");
+                        args.push(data_uri);
+                    }
+                    if !mime_type.is_empty() {
+                        args.push("-t");
+                        args.push(mime_type);
+                    }
+                    
+                    self.execute_adb_command(&args)?;
+                }
+                ImportStepType::PushVcfFile => {
+                    let destination = step.parameters.get("destination").map(|s| s.as_str()).unwrap_or("/sdcard/contacts_import.vcf");
+                    info!("推送VCF文件到: {}", destination);
+                    
+                    // 确保目标目录存在
+                    if destination.contains('/') {
+                        let parts: Vec<&str> = destination.rsplitn(2, '/').collect();
+                        if parts.len() == 2 {
+                            let dir = parts[1];
+                            if !dir.is_empty() {
+                                let _ = self.execute_adb_command(&["-s", &self.device_id, "shell", "mkdir", "-p", dir]);
+                            }
+                        }
+                    }
+
+                    let out = self.execute_adb_command(&["-s", &self.device_id, "push", vcf_file_path, destination])?;
+                    let serr = String::from_utf8_lossy(&out.stderr);
+                    if serr.to_lowercase().contains("error") || serr.to_lowercase().contains("failed") {
+                         return Err(anyhow::anyhow!("推送文件失败: {}", serr));
+                    }
+                }
                 _ => {
                     // 其他步骤的实现
                 }

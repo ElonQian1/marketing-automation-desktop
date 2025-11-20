@@ -12,7 +12,7 @@ pub mod error_handling; // 新增：错误处理模块
 pub mod intelligent_analysis_service; // V3智能分析服务
 pub mod lead_hunt; // 新增：精准获客Lead Hunt服务
 pub mod navigation_bar_detector; // 新增：通用导航栏检测器
-pub mod page_analyzer_service; // 新增：页面分析服务
+// pub mod page_analyzer_service; // 已删除：页面分析服务（合并至 UniversalUIService）
 pub mod prospecting; // 新增：精准获客模块
 pub mod universal_ui_page_analyzer; // 新增：Universal UI 页面分析器
                                     // pub mod simple_xml_parser;  // 已删除：简化XML解析器，统一使用智能解析器
@@ -26,22 +26,21 @@ pub mod diagnostic_service; // 新增：系统诊断服务
 pub mod duplication_guard; // 新增：查重防护服务（内存态）
 pub mod employee_service;
 pub mod execution; // 新增：执行分层骨架 (模型/重试/快照)
-pub mod huawei_enhanced_importer; // 基于Python成功经验的华为增强导入器
+// pub mod huawei_enhanced_importer; // 已删除：合并至 vcf 模块
 // ✅ 已删除：legacy_simple_selection_engine (1421行) - 已被V3完全替代
 pub mod log_bridge;
 pub mod vcf; // VCF 导入模块（多品牌策略 + 智能打开器）
-pub mod quick_ui_automation; // 新增：快速UI自动化模块
 pub mod scrcpy_manager;
 pub mod script_execution; // 新增：脚本执行模块（控制流处理系统）
 // ✅ 已删除：script_executor (535行) - 基础执行器已被 SmartScriptExecutor 完全替代
 pub mod script_manager; // 新增：智能脚本管理服务
 pub mod smart_app; // 新增：智能应用服务
 pub mod smart_app_manager;
-pub mod smart_app_service;
-pub mod smart_element_finder_service; // 新增：智能元素查找服务
+// pub mod smart_app_service; // 已删除：应用管理服务（迁移至 commands/apps.rs）
+// pub mod smart_element_finder_service; // 已删除：智能元素查找服务（合并至 UniversalUIService）
 pub mod smart_script_executor;
 pub mod smart_script_executor_actions; // 公开基础操作实现(点击/滑动/输入/等待等)
-pub mod ui_reader_service;
+// pub mod ui_reader_service; // 已删除：合并至 UniversalUIPageAnalyzer
 pub mod universal_ui_finder; // Universal UI Finder 核心模块
 pub mod universal_ui_service; // Universal UI Finder 服务桥接
                    // 注意：util_fs 模块已迁移到 commands/files.rs，避免重复定义

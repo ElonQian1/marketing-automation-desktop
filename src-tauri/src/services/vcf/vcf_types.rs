@@ -47,6 +47,8 @@ pub enum ImportStepType {
     HandlePermissions,         // 处理权限请求
     NavigateToFolder,          // 导航到文件夹
     CustomAdbCommand,          // 自定义ADB命令
+    SendIntent,                // 发送Intent (如: am start -a android.intent.action.VIEW)
+    PushVcfFile,               // 推送VCF文件到设备
 }
 
 /// 验证方法

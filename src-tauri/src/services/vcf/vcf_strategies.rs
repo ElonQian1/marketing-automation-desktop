@@ -17,6 +17,49 @@ pub fn builtin_strategies() -> Vec<VcfImportStrategy> {
             "com.android.contacts".into(),
         ],
         import_methods: vec![
+            // 方法1: Intent 导入 (推荐)
+            ImportMethod {
+                method_name: "EMUI_Intent_Import".into(),
+                steps: vec![
+                    ImportStep { 
+                        step_type: ImportStepType::CustomAdbCommand, 
+                        description: "创建临时目录".into(), 
+                        parameters: {
+                            let mut p = HashMap::new();
+                            p.insert("command".into(), "shell mkdir -p /sdcard/contacts_import".into());
+                            p
+                        }
+                    },
+                    ImportStep { 
+                        step_type: ImportStepType::PushVcfFile, 
+                        description: "推送VCF文件".into(), 
+                        parameters: {
+                            let mut p = HashMap::new();
+                            p.insert("destination".into(), "/sdcard/contacts_import/import_contacts.vcf".into());
+                            p
+                        }
+                    },
+                    ImportStep { 
+                        step_type: ImportStepType::SendIntent, 
+                        description: "发送VCF导入Intent".into(), 
+                        parameters: {
+                            let mut p = HashMap::new();
+                            p.insert("action".into(), "android.intent.action.VIEW".into());
+                            p.insert("data_uri".into(), "file:///sdcard/contacts_import/import_contacts.vcf".into());
+                            p.insert("mime_type".into(), "text/vcard".into());
+                            p
+                        }
+                    },
+                    ImportStep { 
+                        step_type: ImportStepType::ConfirmImport, 
+                        description: "确认导入".into(), 
+                        parameters: HashMap::new() 
+                    },
+                ],
+                timeout_seconds: 60,
+                retry_count: 2,
+            },
+            // 方法2: UI 自动化导入
             ImportMethod {
                 method_name: "EMUI_Standard_Import".into(),
                 steps: vec![
