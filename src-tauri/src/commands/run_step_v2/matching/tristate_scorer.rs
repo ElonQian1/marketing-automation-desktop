@@ -142,7 +142,7 @@ impl UnifiedScoringCore {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::commands::run_step_v2::types::Bounds;
+    use crate::commands::run_step_v2::Bounds;
     
     #[test]
     fn test_resource_id_exact_match() {

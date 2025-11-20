@@ -158,9 +158,8 @@ mod tests {
     fn test_uniqueness_failure() {
         let match_info = MatchInfo {
             confidence: 0.9,
-            uniqueness: 0.5, // 低于0.8
-            xpath: "test".to_string(),
-            total_candidates: 2,
+            uniqueness: 2, // >1 表示不唯一
+            elements_found: 2,
         };
         let candidate = create_test_candidate(
             Bounds { left: 100, top: 100, right: 200, bottom: 200 },
@@ -175,9 +174,8 @@ mod tests {
     fn test_low_confidence() {
         let match_info = MatchInfo {
             confidence: 0.5, // 低于0.6
-            uniqueness: 0.9,
-            xpath: "test".to_string(),
-            total_candidates: 1,
+            uniqueness: 1,
+            elements_found: 1,
         };
         let candidate = create_test_candidate(
             Bounds { left: 100, top: 100, right: 200, bottom: 200 },
@@ -192,9 +190,8 @@ mod tests {
     fn test_safety_pass() {
         let match_info = MatchInfo {
             confidence: 0.9,
-            uniqueness: 0.95,
-            xpath: "test".to_string(),
-            total_candidates: 1,
+            uniqueness: 1,
+            elements_found: 1,
         };
         let candidate = create_test_candidate(
             Bounds { left: 100, top: 100, right: 200, bottom: 200 },

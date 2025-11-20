@@ -59,25 +59,37 @@ pub fn generate_disambiguation_suggestions(
 #[cfg(test)]
 mod tests {
     use super::*;
+    use crate::commands::run_step_v2::{MatchCandidate, RunStepRequestV2, Bounds, StepRunMode, StrategyKind};
+
+    fn create_test_candidate(text: Option<&str>, class_name: Option<&str>, confidence: f64) -> MatchCandidate {
+        MatchCandidate {
+            id: "".to_string(),
+            score: 0.0,
+            confidence,
+            bounds: Bounds { left: 0, top: 0, right: 0, bottom: 0 },
+            text: text.map(|s| s.to_string()),
+            class_name: class_name.map(|s| s.to_string()),
+            package_name: None,
+        }
+    }
+
+    fn create_test_request() -> RunStepRequestV2 {
+        RunStepRequestV2 {
+            device_id: "".to_string(),
+            mode: StepRunMode::ExecuteStep,
+            strategy: StrategyKind::Standard,
+            step: serde_json::Value::Null,
+        }
+    }
 
     #[test]
     fn test_disambiguation_with_unique_text() {
         let candidates = vec![
-            MatchCandidate {
-                text: Some("按钮A".to_string()),
-                class_name: Some("Button".to_string()),
-                confidence: 0.9,
-                ..Default::default()
-            },
-            MatchCandidate {
-                text: Some("按钮B".to_string()),
-                class_name: Some("Button".to_string()),
-                confidence: 0.85,
-                ..Default::default()
-            },
+            create_test_candidate(Some("按钮A"), Some("Button"), 0.9),
+            create_test_candidate(Some("按钮B"), Some("Button"), 0.85),
         ];
 
-        let req = RunStepRequestV2::default();
+        let req = create_test_request();
         let suggestions = generate_disambiguation_suggestions(&candidates, &req);
         
         assert!(suggestions.contains(&"具体文本内容".to_string()));
@@ -87,17 +99,11 @@ mod tests {
     #[test]
     fn test_disambiguation_with_similar_scores() {
         let candidates = vec![
-            MatchCandidate {
-                confidence: 0.90,
-                ..Default::default()
-            },
-            MatchCandidate {
-                confidence: 0.91,
-                ..Default::default()
-            },
+            create_test_candidate(None, None, 0.90),
+            create_test_candidate(None, None, 0.91),
         ];
 
-        let req = RunStepRequestV2::default();
+        let req = create_test_request();
         let suggestions = generate_disambiguation_suggestions(&candidates, &req);
         
         // 分数相似应建议坐标定位

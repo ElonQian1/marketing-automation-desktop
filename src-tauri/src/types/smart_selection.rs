@@ -7,7 +7,7 @@ use std::collections::HashMap;
 use crate::types::page_analysis::ElementBounds;
 
 /// 元素指纹 - Rust版本
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, Default)]
 pub struct ElementFingerprint {
     // 文本特征
     pub text_content: Option<String>,
@@ -41,7 +41,7 @@ pub struct ElementFingerprint {
 }
 
 /// 位置签名（标准化的位置信息）
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, Default)]
 pub struct BoundsSignature {
     pub x: f32,        // 中心X坐标比例 (0-1)
     pub y: f32,        // 中心Y坐标比例 (0-1)
@@ -177,7 +177,7 @@ pub enum SelectionMode {
 }
 
 /// 选择配置
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, Default)]
 pub struct SelectionConfig {
     pub mode: SelectionMode,
     
@@ -299,7 +299,7 @@ pub struct ExecutionLimits {
 }
 
 /// 智能选择协议
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, Default)]
 pub struct SmartSelectionProtocol {
     // 核心定位信息
     pub anchor: AnchorInfo,
@@ -321,7 +321,7 @@ pub struct SmartSelectionProtocol {
 }
 
 /// 锚点信息
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, Default)]
 pub struct AnchorInfo {
     pub container_xpath: Option<String>,
     pub clickable_parent_xpath: Option<String>,
