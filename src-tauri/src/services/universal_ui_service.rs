@@ -7,7 +7,7 @@ use crate::services::universal_ui_finder::{
     UniversalUIFinder, FindRequest, ClickResult as FinderClickResult, UniversalUIElement
 };
 use crate::services::adb::AdbService;
-use crate::services::universal_ui_page_analyzer::UniversalUIPageAnalyzer;
+use crate::services::universal_ui_page_analyzer::{UniversalUIPageAnalyzer, UIElementType};
 use crate::types::page_analysis::{
     PageAnalysisResult, PageInfo, PageType, ActionableElement, ElementType, 
     ElementBounds, ElementAction, ElementGroupInfo, ElementGroupType, ElementStatistics
@@ -108,7 +108,7 @@ impl UniversalUIService {
             // 确定支持的操作
             let mut supported_actions = Vec::new();
             if elem.clickable { supported_actions.push(ElementAction::Click); }
-            if elem.element_type.contains("edit") { supported_actions.push(ElementAction::InputText("".to_string())); }
+            if elem.element_type.is_input() { supported_actions.push(ElementAction::InputText("".to_string())); }
 
             // 构建旧版元素结构
             let actionable = ActionableElement {
@@ -119,18 +119,18 @@ impl UniversalUIService {
                 resource_id: elem.resource_id,
                 class_name: elem.class_name.unwrap_or_default(),
                 clickable: elem.clickable,
-                is_editable: elem.element_type.contains("edit"),
+                is_editable: elem.element_type.is_input(),
                 enabled: elem.enabled,
                 scrollable: elem.scrollable,
                 supported_actions,
                 group_info: ElementGroupInfo {
-                    group_key: format!("{}_{}", elem.element_type, index), // 简化分组
+                    group_key: format!("{}_{}", elem.element_type.as_str(), index), // 简化分组
                     group_type: ElementGroupType::Individual,
                     group_index: 0,
                     group_total: 1,
                     is_representative: true,
                 },
-                description: format!("{} - {}", elem.element_type, elem.text),
+                description: format!("{} - {}", elem.element_type.as_str(), elem.text),
             };
             
             actionable_elements.push(actionable);
@@ -161,19 +161,23 @@ impl UniversalUIService {
         })
     }
 
-    /// 辅助方法：映射元素类型 String -> Enum
-    fn map_element_type(&self, type_str: &str) -> ElementType {
-        match type_str {
-            t if t.contains("button") => ElementType::Button,
-            t if t.contains("edit") => ElementType::EditText,
-            t if t.contains("text") => ElementType::TextView,
-            t if t.contains("image") => ElementType::ImageView,
-            t if t.contains("list") => ElementType::ListItem,
-            t if t.contains("nav") => ElementType::NavigationButton,
-            t if t.contains("tab") => ElementType::Tab,
-            t if t.contains("switch") => ElementType::Switch,
-            t if t.contains("check") => ElementType::CheckBox,
-            _ => ElementType::Other(type_str.to_string()),
+    /// 辅助方法：映射元素类型 UIElementType -> ElementType
+    fn map_element_type(&self, element_type: &UIElementType) -> ElementType {
+        match element_type {
+            UIElementType::Button | UIElementType::TextButton | UIElementType::ImageButton | 
+            UIElementType::SearchButton | UIElementType::ActionButton | UIElementType::SocialButton => ElementType::Button,
+            
+            UIElementType::EditText => ElementType::EditText,
+            
+            UIElementType::TextView => ElementType::TextView,
+            
+            UIElementType::ImageView => ElementType::ImageView,
+            
+            UIElementType::ListContainer | UIElementType::ClickableLayout | UIElementType::Layout => ElementType::Other("Container".to_string()),
+            
+            UIElementType::NavHome | UIElementType::NavMessage | UIElementType::NavProfile | UIElementType::NavDiscover => ElementType::Button,
+            
+            _ => ElementType::Other("Unknown".to_string()),
         }
     }
 

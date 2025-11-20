@@ -39,11 +39,66 @@ pub struct UniversalPageCaptureResult {
     pub screenshot_absolute_path: Option<String>,
 }
 
+/// UI元素类型枚举（强类型替代字符串）
+#[derive(Debug, Clone, PartialEq, Eq, Hash, Serialize, Deserialize)]
+#[serde(rename_all = "snake_case")]
+pub enum UIElementType {
+    Button,
+    EditText,
+    TextView,
+    TextButton,
+    ImageView,
+    ImageButton,
+    ListContainer,
+    ClickableLayout,
+    Layout,
+    SearchButton,
+    ActionButton,
+    SocialButton,
+    NavHome,
+    NavMessage,
+    NavProfile,
+    NavDiscover,
+    Other,
+}
+
+impl UIElementType {
+    pub fn as_str(&self) -> &'static str {
+        match self {
+            Self::Button => "button",
+            Self::EditText => "edit_text",
+            Self::TextView => "text_view",
+            Self::TextButton => "text_button",
+            Self::ImageView => "image_view",
+            Self::ImageButton => "image_button",
+            Self::ListContainer => "list_container",
+            Self::ClickableLayout => "clickable_layout",
+            Self::Layout => "layout",
+            Self::SearchButton => "search_button",
+            Self::ActionButton => "action_button",
+            Self::SocialButton => "social_button",
+            Self::NavHome => "nav_home",
+            Self::NavMessage => "nav_message",
+            Self::NavProfile => "nav_profile",
+            Self::NavDiscover => "nav_discover",
+            Self::Other => "other",
+        }
+    }
+
+    pub fn is_nav(&self) -> bool {
+        matches!(self, Self::NavHome | Self::NavMessage | Self::NavProfile | Self::NavDiscover)
+    }
+
+    pub fn is_input(&self) -> bool {
+        matches!(self, Self::EditText)
+    }
+}
+
 /// UI元素结构（与前端接口匹配）
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
 pub struct UIElement {
     pub id: String,
-    pub element_type: String,
+    pub element_type: UIElementType, // ✅ 强类型化
     pub text: String,
     pub bounds: ElementBounds,
     pub xpath: String,               // 前端需要的 xpath 字段
@@ -64,12 +119,24 @@ pub struct UIElement {
     #[serde(rename = "indexPath")]
     pub index_path: Option<Vec<u32>>,  // 从根节点到当前节点的索引路径，如 [0,0,0,5,2]
     
+    // 区域信息 (header, footer, content)
+    pub region: Option<String>,
+
     // 保留用于内部处理的字段
     pub children: Vec<UIElement>,  // 移除 skip_serializing，允许传递子元素到前端
     #[serde(skip_serializing)]
     pub parent: Option<String>,
     #[serde(skip_serializing)]
     pub depth: u32,
+}
+
+/// 用于去重的零分配签名结构
+#[derive(Hash, PartialEq, Eq)]
+struct UIElementSignature<'a> {
+    element_type: &'a UIElementType,
+    text: &'a str,
+    left: i32,
+    top: i32,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -81,7 +148,7 @@ pub struct PageAnalysisResult {
     pub interactive_elements: usize,
     pub navigation_elements: Vec<UIElement>,
     pub unique_elements: Vec<UIElement>,
-    pub element_groups: HashMap<String, Vec<UIElement>>,
+    pub element_groups: HashMap<String, Vec<UIElement>>, // Key 保持 String 以兼容 JSON 输出
     pub analysis_time_ms: u128,
 }
 
@@ -350,6 +417,7 @@ impl UniversalUIPageAnalyzer {
             parent: None,
             depth,
             index_path: None,  // 🔥 初始为 None，在 parse_xml_elements 中设置
+            region: None,
         })
     }
 
@@ -383,47 +451,47 @@ impl UniversalUIPageAnalyzer {
     }
 
     /// 智能分类元素类型（基于SmartElementFinderService逻辑）
-    fn classify_element_type(&self, class_name: &str, text: &str, clickable: bool, content_desc: &str) -> String {
+    fn classify_element_type(&self, class_name: &str, text: &str, clickable: bool, content_desc: &str) -> UIElementType {
         let text_lower = text.to_lowercase();
         let content_lower = content_desc.to_lowercase();
         
         // 1. 基于类名的基础分类
         let base_type = if class_name.contains("Button") {
-            "button"
+            UIElementType::Button
         } else if class_name.contains("EditText") {
-            "edit_text"
+            UIElementType::EditText
         } else if class_name.contains("TextView") {
-            if clickable { "text_button" } else { "text_view" }
+            if clickable { UIElementType::TextButton } else { UIElementType::TextView }
         } else if class_name.contains("ImageView") || class_name.contains("ImageButton") {
-            if clickable { "image_button" } else { "image_view" }
+            if clickable { UIElementType::ImageButton } else { UIElementType::ImageView }
         } else if class_name.contains("RecyclerView") || class_name.contains("ListView") {
-            "list_container"
+            UIElementType::ListContainer
         } else if class_name.contains("Layout") {
-            if clickable { "clickable_layout" } else { "layout" }
+            if clickable { UIElementType::ClickableLayout } else { UIElementType::Layout }
         } else if clickable && !text.is_empty() {
-            "text_view"
+            UIElementType::TextView
         } else {
-            "other"
+            UIElementType::Other
         };
 
         // 2. 基于内容的智能分类（参考SmartElementFinderService）
         if text_lower.contains("搜索") || content_lower.contains("搜索") || text_lower.contains("search") {
-            return "search_button".to_string();
+            return UIElementType::SearchButton;
         } else if text_lower.contains("发布") || text_lower.contains("发送") || text_lower.contains("post") {
-            return "action_button".to_string();
+            return UIElementType::ActionButton;
         } else if text_lower.contains("关注") || text_lower.contains("follow") {
-            return "social_button".to_string();
+            return UIElementType::SocialButton;
         } else if text_lower.contains("首页") || text_lower.contains("主页") || text_lower.contains("home") {
-            return "nav_home".to_string();
+            return UIElementType::NavHome;
         } else if text_lower.contains("消息") || text_lower.contains("message") || text_lower.contains("通知") {
-            return "nav_message".to_string();
+            return UIElementType::NavMessage;
         } else if text_lower.contains("我") || text_lower.contains("个人") || text_lower.contains("profile") {
-            return "nav_profile".to_string();
+            return UIElementType::NavProfile;
         } else if text_lower.contains("发现") || text_lower.contains("discover") {
-            return "nav_discover".to_string();
+            return UIElementType::NavDiscover;
         }
 
-        base_type.to_string()
+        base_type
     }
 
     /// 🔥 生成智能 XPath（用于跨设备元素定位）
@@ -510,14 +578,7 @@ impl UniversalUIPageAnalyzer {
             "content"
         };
 
-        // 增强元素类型
-        enhanced.element_type = match enhanced.element_type.as_str() {
-            t if t.starts_with("nav_") => t.to_string(), // 导航元素保持原样
-            t if t.starts_with("search_") => t.to_string(), // 搜索元素保持原样
-            t if t.starts_with("action_") => t.to_string(), // 操作元素保持原样
-            t if t.starts_with("social_") => t.to_string(), // 社交元素保持原样
-            other => format!("{}_{}", region, other)
-        };
+        enhanced.region = Some(region.to_string());
 
         enhanced
     }
@@ -534,7 +595,7 @@ impl UniversalUIPageAnalyzer {
             || element.scrollable 
             || !element.text.trim().is_empty()
             || !element.content_desc.trim().is_empty()
-            || element.element_type.contains("edit_text")
+            || matches!(element.element_type, UIElementType::EditText)
     }
 
     /// 后处理元素：排序和优化
@@ -556,17 +617,17 @@ impl UniversalUIPageAnalyzer {
     }
 
     /// 获取元素优先级（用于排序）
-    fn get_element_priority(&self, element_type: &str) -> u32 {
+    fn get_element_priority(&self, element_type: &UIElementType) -> u32 {
         match element_type {
-            t if t.contains("search") => 10,
-            t if t.contains("nav_") => 9,
-            t if t.contains("action_") => 8,
-            t if t.contains("social_") => 7,
-            t if t.contains("button") => 6,
-            t if t.contains("edit_text") => 5,
-            t if t.contains("clickable") => 4,
-            t if t.contains("text") => 3,
-            t if t.contains("image") => 2,
+            UIElementType::SearchButton => 10,
+            UIElementType::NavHome | UIElementType::NavMessage | UIElementType::NavProfile | UIElementType::NavDiscover => 9,
+            UIElementType::ActionButton => 8,
+            UIElementType::SocialButton => 7,
+            UIElementType::Button => 6,
+            UIElementType::EditText => 5,
+            UIElementType::ClickableLayout => 4,
+            UIElementType::TextView | UIElementType::TextButton => 3,
+            UIElementType::ImageView | UIElementType::ImageButton => 2,
             _ => 1
         }
     }
@@ -579,7 +640,7 @@ impl UniversalUIPageAnalyzer {
                 // 可点击，或者有文本内容，或者是输入框
                 e.clickable 
                 || !e.text.trim().is_empty() 
-                || e.element_type == "edit_text"
+                || e.element_type == UIElementType::EditText
                 || e.scrollable
             })
             .filter(|e| {
@@ -632,18 +693,18 @@ impl UniversalUIPageAnalyzer {
         let mut seen_signatures = std::collections::HashSet::new();
 
         for element in elements {
-            // 创建元素签名用于去重
-            let signature = format!("{}_{}_{}_{}", 
-                element.element_type, 
-                element.text, 
-                element.bounds.left, 
-                element.bounds.top
-            );
+            // 创建元素签名用于去重 (零分配)
+            let signature = UIElementSignature {
+                element_type: &element.element_type,
+                text: &element.text,
+                left: element.bounds.left,
+                top: element.bounds.top,
+            };
 
             if seen_signatures.insert(signature) {
                 // 按类型分组
                 element_groups
-                    .entry(element.element_type.clone())
+                    .entry(element.element_type.as_str().to_string())
                     .or_insert_with(Vec::new)
                     .push(element.clone());
 
@@ -774,7 +835,7 @@ pub async fn classify_ui_elements(
     let mut classified: HashMap<String, Vec<UIElement>> = HashMap::new();
     
     for element in elements {
-        let category = element.element_type.clone();
+        let category = element.element_type.as_str().to_string();
         classified.entry(category).or_insert_with(Vec::new).push(element);
     }
     
