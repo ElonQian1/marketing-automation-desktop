@@ -15,6 +15,7 @@ use crate::domain::structure_runtime_match::scorers::{
     ContextSig,
 };
 use crate::engine::xml_indexer::XmlIndexer;
+use crate::domain::structure_runtime_match::adapters::xml_indexer_adapter::XmlIndexerAdapter;
 
 /// 真机执行输入
 #[derive(Debug, Deserialize)]
@@ -284,8 +285,9 @@ fn execute_match_by_mode(
     match mode {
         MatchMode::CardSubtree => {
             info!("📦 [CardSubtree] 执行卡片子树匹配");
-            let matcher = SubtreeMatcher::new(xml_indexer);
-            let outcome = matcher.score_subtree(card_root_node, clickable_parent_node);
+            let adapter = XmlIndexerAdapter::new(xml_indexer, "adhoc".to_string());
+            let matcher = SubtreeMatcher::new(&adapter);
+            let outcome = matcher.score_subtree(card_root_node as u32, clickable_parent_node as u32);
             
             if outcome.conf < 0.70 {
                 warn!("⚠️ [CardSubtree] 置信度过低: {:.3}", outcome.conf);

@@ -668,6 +668,13 @@ impl UniversalUIPageAnalyzer {
     }
 }
 
+/// 简化的静态解析函数，用于兼容旧代码
+/// 默认不启用过滤，返回所有元素
+pub fn parse_ui_elements_simple(xml_content: &str) -> AnyResult<Vec<UIElement>> {
+    let analyzer = UniversalUIPageAnalyzer::new();
+    analyzer.parse_xml_elements(xml_content, false)
+}
+
 // ==================== Tauri Commands ====================
 
 /// 分析Universal UI页面

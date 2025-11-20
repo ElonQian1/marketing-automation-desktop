@@ -2,7 +2,7 @@
 // module: exec | layer: v3/helpers | role: 步骤执行器
 // summary: 执行智能分析生成的步骤，包含元素匹配、失败恢复和真实设备操作
 
-use crate::services::ui_reader_service::UIElement;
+use crate::services::universal_ui_page_analyzer::UIElement;
 use super::super::types::{InlineStep, ValidationSettings};
 use super::super::element_matching::{  // 🔥 修正路径：从v3/element_matching导入
     MultiCandidateEvaluator,  // ✅ 启用多候选评估器
@@ -349,7 +349,7 @@ pub async fn execute_intelligent_analysis_step(
     );
 
     // 解析UI元素（仅传统匹配流程需要）
-    let elements = crate::services::ui_reader_service::parse_ui_elements(ui_xml)
+    let elements = crate::services::universal_ui_page_analyzer::parse_ui_elements_simple(ui_xml)
         .map_err(|e| format!("解析UI XML失败: {}", e))?;
 
     // � 提取 original_bounds（用于候选预过滤）

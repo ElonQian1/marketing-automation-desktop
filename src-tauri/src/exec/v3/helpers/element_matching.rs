@@ -2,7 +2,7 @@
 // module: exec/v3/helpers | layer: application | role: 元素匹配和XPath解析
 // summary: 负责UI元素查找、XPath解析、坐标计算等基础功能
 
-use crate::services::ui_reader_service::UIElement;
+use crate::services::universal_ui_page_analyzer::UIElement;
 use crate::services::execution::matching::{CandidateElement, TargetFeatures};
 
 /// 从XPath提取resource-id

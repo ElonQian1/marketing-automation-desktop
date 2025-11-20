@@ -2,7 +2,7 @@
 // module: utils | layer: utilities | role: 元素排除过滤器
 // summary: 检测并排除无效元素（负面积、排除层等）
 
-use crate::services::ui_reader_service::UIElement;
+use crate::services::universal_ui_page_analyzer::UIElement;
 use crate::types::smart_selection::SmartSelectionProtocol;
 use crate::utils::element_utils::ElementBounds;
 use tracing::debug;

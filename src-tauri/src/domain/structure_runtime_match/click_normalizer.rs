@@ -140,7 +140,7 @@ impl<'a> ClickNormalizer<'a> {
         let mut best_match_index = None;
 
         for (index, node) in self.xml_indexer.all_nodes.iter().enumerate() {
-            let iou = self.calculate_iou(bounds, node.bounds);
+            let iou = Self::calculate_iou(bounds, node.bounds);
             if iou > best_iou {
                 best_iou = iou;
                 best_match_index = Some(index);
@@ -456,16 +456,25 @@ impl<'a> ClickNormalizer<'a> {
                 let bottom_diff = (n_bottom - r_bottom).abs();
                 (left_diff + top_diff + right_diff + bottom_diff) as f32
             };
-            
-            // 如果bounds完全相同或差异小于10像素，跳过
-            if bounds_diff < 10.0 {
-                tracing::debug!("🔍 [ClickNormalizer] 跳过边界差异过小的可点节点: {} (diff={})",
-                    index, bounds_diff);
-                continue;
-            }
-            
+
             // 计算IOU（重叠度）作为评分依据
-            let iou = self.calculate_iou(root_bounds, node.bounds);
+            let iou = Self::calculate_iou(root_bounds, node.bounds);
+            
+            // 如果bounds完全相同或差异小于10像素
+            if bounds_diff < 10.0 {
+                // 特例：如果IOU很高（说明覆盖了整个卡片），则允许作为可点父
+                // 这通常是 "FrameLayout(Root) -> FrameLayout(Clickable Layer)" 的结构
+                // 即使卡片根本身可点，我们也倾向于选择内部这个"全覆盖"的子节点作为可点父，
+                // 这样能保留 "Card -> Clickable" 的结构层级，有助于 SubtreeMatcher 识别结构。
+                if iou > 0.95 {
+                     tracing::debug!("🔍 [ClickNormalizer] 保留同边界可点节点: {} (diff={}, iou={:.2}) - 覆盖全卡片 (保留结构层级)",
+                        index, bounds_diff, iou);
+                } else {
+                    tracing::debug!("🔍 [ClickNormalizer] 跳过边界差异过小的可点节点: {} (diff={})",
+                        index, bounds_diff);
+                    continue;
+                }
+            }
             
             tracing::debug!("📋 [ClickNormalizer] 发现可点父候选: index={}, iou={:.2}, bounds_diff={}",
                 index, iou, bounds_diff);
@@ -525,7 +534,7 @@ impl<'a> ClickNormalizer<'a> {
     }
 
     /// 计算IoU（Intersection over Union）
-    fn calculate_iou(&self, bounds1: (i32, i32, i32, i32), bounds2: (i32, i32, i32, i32)) -> f32 {
+    fn calculate_iou(bounds1: (i32, i32, i32, i32), bounds2: (i32, i32, i32, i32)) -> f32 {
         let (a_left, a_top, a_right, a_bottom) = bounds1;
         let (b_left, b_top, b_right, b_bottom) = bounds2;
 
@@ -728,15 +737,15 @@ mod tests {
         let normalizer = ClickNormalizer::new(&indexer);
 
         // 完全相同的bounds
-        let iou = normalizer.calculate_iou((0, 0, 100, 100), (0, 0, 100, 100));
+        let iou = ClickNormalizer::calculate_iou((0, 0, 100, 100), (0, 0, 100, 100));
         assert_eq!(iou, 1.0);
 
         // 完全不重叠
-        let iou = normalizer.calculate_iou((0, 0, 50, 50), (100, 100, 150, 150));
+        let iou = ClickNormalizer::calculate_iou((0, 0, 50, 50), (100, 100, 150, 150));
         assert_eq!(iou, 0.0);
 
         // 部分重叠
-        let iou = normalizer.calculate_iou((0, 0, 100, 100), (50, 50, 150, 150));
+        let iou = ClickNormalizer::calculate_iou((0, 0, 100, 100), (50, 50, 150, 150));
         assert!(iou > 0.0 && iou < 1.0);
     }
 }

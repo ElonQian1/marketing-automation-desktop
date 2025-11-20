@@ -43,6 +43,7 @@ pub struct SmScores {
     pub geom: f32,
     pub tpl: f32,
     pub skeleton: f32,
+    pub subtree: f32, // 🎯 新增：深度子树结构分
     pub field: f32,
     pub total: f32,
 }

@@ -2,7 +2,7 @@
 // module: utils | layer: infrastructure | role: 元素排除过滤器
 // summary: 智能排除不需要的UI元素（负面积、已处理状态等）
 
-use crate::services::ui_reader_service::UIElement;
+use crate::services::universal_ui_page_analyzer::UIElement;
 use crate::types::smart_selection::SmartSelectionProtocol;
 // ✅ 改用V3的BoundsRect
 use crate::exec::v3::element_matching::bounds_matcher::BoundsRect;

@@ -5,11 +5,12 @@
 use serde::{Deserialize, Serialize};
 use tauri::AppHandle;
 use anyhow::Result;
-use crate::services::ui_reader_service::parse_ui_elements;  // ✅ 导入 UI 解析函数
+use crate::services::universal_ui_page_analyzer::{parse_ui_elements_simple as parse_ui_elements, UIElement};  // ✅ 导入 UI 解析函数
 use crate::engine::{AnalysisContext, ContainerInfo};  // ✅ 导入分析上下文和容器信息
 use crate::engine::xml_indexer::XmlIndexer;  // 🔥 导入XML索引器
 use crate::domain::structure_runtime_match::scorers::{SubtreeMatcher, LeafContextMatcher, ContextSig};  // 🔥 导入结构匹配评分器
 use crate::domain::structure_runtime_match::ClickNormalizer;  // 🔥 导入点击归一化器
+use crate::domain::structure_runtime_match::adapters::xml_indexer_adapter::XmlIndexerAdapter;
 
 /// 智能分析请求
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -382,7 +383,7 @@ fn extract_container_from_ancestors(ancestors: &[AncestorInfo]) -> Option<Contai
 /// 3. 智能回退到常见目标（"我"、"首页"等）
 /// 4. 兜底使用第一个可点击元素
 fn extract_context_from_ui_elements(
-    ui_elements: &[crate::services::ui_reader_service::UIElement],
+    ui_elements: &[UIElement],
     target_hint: Option<&str>,
 ) -> Result<AnalysisContext> {
     // 🎯 策略 1: 精确匹配 hint
@@ -392,8 +393,8 @@ fn extract_context_from_ui_elements(
         let matching_element = ui_elements.iter()
             .find(|elem| {
                 // 优先匹配 text（精确）
-                if let Some(ref text) = elem.text {
-                    if text == hint || text.trim() == hint.trim() {
+                if !elem.text.is_empty() {
+                    if elem.text == hint || elem.text.trim() == hint.trim() {
                         return true;
                     }
                 }
@@ -421,16 +422,12 @@ fn extract_context_from_ui_elements(
         let fuzzy_element = ui_elements.iter()
             .find(|elem| {
                 // 匹配 content-desc（包含）
-                if let Some(ref desc) = elem.content_desc {
-                    if desc.contains(hint) {
-                        return true;
-                    }
+                if !elem.content_desc.is_empty() && elem.content_desc.contains(hint) {
+                    return true;
                 }
                 // 匹配 text（包含）
-                if let Some(ref text) = elem.text {
-                    if text.contains(hint) {
-                        return true;
-                    }
+                if !elem.text.is_empty() && elem.text.contains(hint) {
+                    return true;
                 }
                 false
             });
@@ -448,10 +445,10 @@ fn extract_context_from_ui_elements(
     if let Some(hint) = target_hint {
         tracing::warn!("⚠️ 精确/模糊匹配失败，尝试基于 hint='{}' 的智能相关性评分", hint);
         
-        let mut scored_elements: Vec<(f32, &crate::services::ui_reader_service::UIElement)> = ui_elements.iter()
+        let mut scored_elements: Vec<(f32, &UIElement)> = ui_elements.iter()
             .filter(|elem| {
                 // 可交互元素
-                elem.clickable.unwrap_or(false) || elem.content_desc.is_some()
+                elem.is_clickable || !elem.content_desc.is_empty()
             })
             .map(|elem| {
                 let mut score = 0.0f32;
@@ -460,8 +457,8 @@ fn extract_context_from_ui_elements(
                 let hint_lower = hint.to_lowercase();
                 
                 // text 相关性
-                if let Some(ref text) = elem.text {
-                    let text_lower = text.to_lowercase();
+                if !elem.text.is_empty() {
+                    let text_lower = elem.text.to_lowercase();
                     if text_lower.contains(&hint_lower) {
                         score += 0.4; // 包含完整 hint
                     } else if hint_lower.contains(&text_lower) {
@@ -474,8 +471,8 @@ fn extract_context_from_ui_elements(
                 }
                 
                 // content-desc 相关性
-                if let Some(ref desc) = elem.content_desc {
-                    let desc_lower = desc.to_lowercase();
+                if !elem.content_desc.is_empty() {
+                    let desc_lower = elem.content_desc.to_lowercase();
                     if desc_lower.contains(&hint_lower) {
                         score += 0.5; // content-desc 匹配权重最高
                     } else if hint_lower.contains(&desc_lower) {
@@ -490,10 +487,10 @@ fn extract_context_from_ui_elements(
                 if elem.resource_id.is_some() && !elem.resource_id.as_ref().unwrap().is_empty() {
                     score += 0.15;
                 }
-                if elem.clickable.unwrap_or(false) {
+                if elem.is_clickable {
                     score += 0.15;
                 }
-                if elem.text.as_ref().map(|t| !t.trim().is_empty() && t.len() < 20).unwrap_or(false) {
+                if !elem.text.trim().is_empty() && elem.text.len() < 20 {
                     score += 0.1;
                 }
                 
@@ -523,7 +520,7 @@ fn extract_context_from_ui_elements(
     tracing::warn!("⚠️ 无 hint 提供，尝试通用智能元素评分选择最佳候选");
     
     // 对所有可交互元素进行评分
-    let mut scored_elements: Vec<(f32, &crate::services::ui_reader_service::UIElement)> = ui_elements.iter()
+    let mut scored_elements: Vec<(f32, &UIElement)> = ui_elements.iter()
         .filter(|elem| {
             // 可点击或有content-desc的元素
             elem.clickable.unwrap_or(false) || elem.content_desc.is_some()
@@ -595,8 +592,8 @@ fn extract_context_from_ui_elements(
 
 /// 从 UI 元素构建完整的 AnalysisContext（包含祖先分析）
 fn build_context_from_element(
-    elem: &crate::services::ui_reader_service::UIElement,
-    _all_elements: &[crate::services::ui_reader_service::UIElement],
+    elem: &UIElement,
+    _all_elements: &[UIElement],
 ) -> Result<AnalysisContext> {
     // 🔥 使用 SmartXPathGenerator 生成最佳 XPath（修复 Bug: WRONG_ELEMENT_SELECTION_BUG_REPORT.md）
     use crate::services::execution::matching::{SmartXPathGenerator, ElementAttributes};
@@ -781,8 +778,9 @@ pub async fn mock_intelligent_analysis(
                                     card_root_idx, clickable_parent_idx);
                                 
                                 // Step1: 卡片子树评分
-                                let subtree_matcher = SubtreeMatcher::new(&xml_indexer);
-                                let subtree_outcome = subtree_matcher.score_subtree(card_root_idx, clickable_parent_idx);
+                                let adapter = XmlIndexerAdapter::new(&xml_indexer, "adhoc".to_string());
+                                let subtree_matcher = SubtreeMatcher::new(&adapter);
+                                let subtree_outcome = subtree_matcher.score_subtree(card_root_idx as u32, clickable_parent_idx as u32);
                                 
                                 tracing::info!("📊 [Step1] 卡片子树评分: {:.3}, 通过闸门: {}", 
                                     subtree_outcome.conf, subtree_outcome.passed_gate);
@@ -1086,7 +1084,7 @@ fn extract_resource_id_from_hint(hint: &str) -> Option<String> {
 /// 智能回退分析 - 当主要策略失败时使用
 async fn perform_fallback_analysis(
     request: &IntelligentAnalysisRequest, // 🔥 修复：需要 request 来构建 original_data
-    ui_elements: &[crate::services::ui_reader_service::UIElement],
+    ui_elements: &[UIElement],
 ) -> Result<Vec<StrategyCandidate>> {
     tracing::info!("🔄 执行智能回退分析");
     
@@ -1243,7 +1241,7 @@ fn calculate_string_similarity(s1: &str, s2: &str) -> f32 {
 /// - //node[@index='N']
 /// - //*[@class='xxx' and @bounds='[...]']
 fn find_element_bounds_by_xpath(
-    elements: &[crate::services::ui_reader_service::UIElement],
+    elements: &[UIElement],
     xpath: &str,
 ) -> Option<String> {
     // 🔧 特殊处理: //node[@index='N'] 格式

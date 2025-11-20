@@ -1,6 +1,8 @@
 use anyhow::Result;
 use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
+use std::sync::Arc;
+use tokio::sync::Mutex;
 use crate::services::adb::get_device_session;
 use crate::services::app_detection_framework::{
     DetectorFactory, DetectionResult, AppLaunchState
@@ -420,4 +422,26 @@ impl SmartAppManager {
         apps.sort_by(|a, b| a.app_name.cmp(&b.app_name));
         apps
     }
+}
+
+/// 全局应用管理器状态
+pub struct SmartAppManagerState {
+    pub managers: Mutex<HashMap<String, SmartAppManager>>,
+}
+
+impl SmartAppManagerState {
+    pub fn new() -> Self {
+        Self {
+            managers: Mutex::new(HashMap::new()),
+        }
+    }
+}
+
+#[derive(Serialize)]
+pub struct PagedApps {
+    pub items: Vec<AppInfo>,
+    pub total: usize,
+    pub page: u32,
+    pub page_size: u32,
+    pub has_more: bool,
 }

@@ -2,7 +2,7 @@
 // module: matchers | layer: application | role: 三层精确匹配器
 // summary: 实现text → content-desc → resource-id三层精确匹配，防止误匹配
 
-use crate::services::ui_reader_service::UIElement;
+use crate::services::universal_ui_page_analyzer::UIElement;
 use crate::types::smart_selection::ElementFingerprint;
 use tracing::debug;
 

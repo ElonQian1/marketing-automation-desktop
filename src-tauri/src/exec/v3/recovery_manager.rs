@@ -2,7 +2,7 @@
 // module: exec | layer: v3 | role: 失败恢复管理器
 // summary: 当真机XML匹配失败时，使用原始XML快照进行重新分析和恢复
 
-use crate::services::ui_reader_service::{UIElement, parse_ui_elements};
+use crate::services::universal_ui_page_analyzer::{UIElement, parse_ui_elements_simple as parse_ui_elements};
 use crate::services::execution::matching::strategies::{
     create_strategy_processor, StrategyProcessor, MatchingContext
 };

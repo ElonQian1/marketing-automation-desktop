@@ -9,6 +9,7 @@ pub struct SmWeights {
     pub geom: f32,
     pub tpl: f32,
     pub skeleton: f32,
+    pub subtree: f32, // 🎯 新增
     pub field: f32,
 }
 
@@ -17,20 +18,23 @@ pub fn weights_for(mode: &SmMode) -> SmWeights {
         SmMode::Speed => SmWeights {
             geom: 0.15,
             tpl: 0.0,
-            skeleton: 0.55,
+            skeleton: 0.45,
+            subtree: 0.10,
             field: 0.30,
         },
         SmMode::Default => SmWeights {
-            geom: 0.20,
-            tpl: 0.30,
-            skeleton: 0.30,
-            field: 0.20,
+            geom: 0.15,
+            tpl: 0.20,
+            skeleton: 0.25,
+            subtree: 0.25,
+            field: 0.15,
         },
         SmMode::Robust => SmWeights {
-            geom: 0.25,
-            tpl: 0.35,
+            geom: 0.15,
+            tpl: 0.15,
             skeleton: 0.20,
-            field: 0.20,
+            subtree: 0.40,
+            field: 0.10,
         },
     }
 }

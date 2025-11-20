@@ -1,11 +1,11 @@
 use crate::types::page_analysis::{PageAnalysisResult, PageAnalysisConfig, SelectedElementConfig, ElementAction};
-use crate::services::page_analyzer_service::PageAnalyzerService;
+// use crate::services::page_analyzer_service::PageAnalyzerService; // 已废弃
 use crate::services::universal_ui_service::UniversalUIService;
 
 #[tauri::command]
 pub async fn analyze_current_page(device_id: String, config: Option<PageAnalysisConfig>) -> Result<PageAnalysisResult, String> {
-    let service = PageAnalyzerService::new();
-    service.analyze_current_page(&device_id, config).await.map_err(|e| e.to_string())
+    let service = UniversalUIService::new();
+    service.analyze_page_compatible(&device_id, config).await
 }
 
 #[tauri::command]

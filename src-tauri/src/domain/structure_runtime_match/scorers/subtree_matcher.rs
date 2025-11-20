@@ -4,26 +4,26 @@
 
 use super::types::{MatchMode, ScoreOutcome, SubtreeFeatures};
 use crate::domain::structure_runtime_match::field_refine::stable_text::get_stable_text_signature;
-use crate::engine::xml_indexer::XmlIndexer;
-use std::collections::VecDeque;
+use crate::domain::structure_runtime_match::ports::xml_view::SmXmlView;
+use std::collections::{HashSet, VecDeque};
 
-pub struct SubtreeMatcher<'a> {
-    pub xml_indexer: &'a XmlIndexer,
+pub struct SubtreeMatcher<'a, V: SmXmlView> {
+    pub view: &'a V,
 }
 
-impl<'a> SubtreeMatcher<'a> {
-    pub fn new(xml_indexer: &'a XmlIndexer) -> Self {
-        Self { xml_indexer }
+impl<'a, V: SmXmlView> SubtreeMatcher<'a, V> {
+    pub fn new(view: &'a V) -> Self {
+        Self { view }
     }
 
     /// 对"被点元素所属卡片"做子孙骨架评分
     pub fn score_subtree(
         &self,
-        card_root_index: usize,
-        clickable_parent_index: usize,
+        card_root_id: u32,
+        clickable_parent_id: u32,
     ) -> ScoreOutcome {
         // 1) 提取特征
-        let features = self.extract_features(card_root_index, clickable_parent_index);
+        let features = self.extract_features(card_root_id, clickable_parent_id);
 
         // 2) 打分
         let mut conf = 0.0;
@@ -46,8 +46,8 @@ impl<'a> SubtreeMatcher<'a> {
         // 底栏位置接近0.85时加分
         conf += (1.0 - (features.bottom_bar_pos - 0.85).abs()).clamp(0.0, 1.0) * 0.14;
 
-        // 🌊 瀑布流额外加分
-        let is_waterfall = self.is_waterfall_container(clickable_parent_index);
+        // �� 瀑布流额外加分
+        let is_waterfall = self.is_waterfall_container(clickable_parent_id);
         if is_waterfall {
             conf += 0.15; // 瀑布流结构通常更可信
         }
@@ -75,47 +75,42 @@ impl<'a> SubtreeMatcher<'a> {
 
     fn extract_features(
         &self,
-        card_root_index: usize,
-        clickable_parent_index: usize,
+        card_root_id: u32,
+        clickable_parent_id: u32,
     ) -> SubtreeFeatures {
         // 检查卡片根是否有content-desc (使用稳定文本签名)
-        let card_root = &self.xml_indexer.all_nodes[card_root_index];
-        let has_desc_on_root = card_root
-            .element
-            .content_desc
-            .as_ref()
-            .map(|s| !get_stable_text_signature(s).is_empty())
-            .unwrap_or(false);
+        let desc = self.view.content_desc(card_root_id);
+        let has_desc_on_root = !get_stable_text_signature(desc).is_empty();
 
         // 检查是否有可点击父容器
-        let has_clickable_parent = self.has_clickable_framelayout_child(card_root_index);
+        let has_clickable_parent = self.has_clickable_framelayout_child(card_root_id);
 
         // 🎯 分析媒体区和底栏（增强容错性）
         let (mut media_ratio, mut bottom_bar_pos, mut has_media_area, mut has_bottom_bar) =
             (0.0, 0.0, false, false);
 
-        // 使用 BFS 查找所有可能的内容组
-        let content_groups = self.find_all_content_groups_bfs(clickable_parent_index);
+        // 使用 BFS 查找所有可能的内容组（从卡片根开始找，以支持"透明层与内容层并列"的结构）
+        let content_groups = self.find_all_content_groups_bfs(card_root_id);
 
         // 只要任何一个内容组包含特征，就算命中
-        for group_index in content_groups {
+        for group_id in content_groups {
             // 查找媒体区块
             if !has_media_area {
-                if let Some(media_bounds) = self.find_media_block(group_index) {
-                    let parent_bounds = self.xml_indexer.all_nodes[clickable_parent_index].bounds;
-                    let parent_height = (parent_bounds.3 - parent_bounds.1).max(1);
-                    media_ratio = (media_bounds.3 - media_bounds.1) as f32 / parent_height as f32;
+                if let Some(media_bounds) = self.find_media_block(group_id) {
+                    let parent_bounds = self.view.bounds(clickable_parent_id);
+                    let parent_height = (parent_bounds.bottom - parent_bounds.top).max(1);
+                    media_ratio = (media_bounds.bottom - media_bounds.top) as f32 / parent_height as f32;
                     has_media_area = true;
                 }
             }
 
             // 查找底栏区块
             if !has_bottom_bar {
-                if let Some(bottom_bounds) = self.find_bottom_bar(group_index) {
-                    let parent_bounds = self.xml_indexer.all_nodes[clickable_parent_index].bounds;
-                    let parent_height = (parent_bounds.3 - parent_bounds.1).max(1);
+                if let Some(bottom_bounds) = self.find_bottom_bar(group_id) {
+                    let parent_bounds = self.view.bounds(clickable_parent_id);
+                    let parent_height = (parent_bounds.bottom - parent_bounds.top).max(1);
                     bottom_bar_pos =
-                        (bottom_bounds.1 - parent_bounds.1) as f32 / parent_height as f32;
+                        (bottom_bounds.top - parent_bounds.top) as f32 / parent_height as f32;
                     has_bottom_bar = true;
                 }
             }
@@ -135,108 +130,92 @@ impl<'a> SubtreeMatcher<'a> {
         }
     }
 
-    fn has_clickable_framelayout_child(&self, parent_index: usize) -> bool {
-        for child_index in self.get_children_indices(parent_index) {
-            let child = &self.xml_indexer.all_nodes[child_index];
-            if let Some(class) = &child.element.class {
-                if class.ends_with("FrameLayout") && child.element.clickable.unwrap_or(false) {
-                    return true;
-                }
+    fn has_clickable_framelayout_child(&self, parent_id: u32) -> bool {
+        for child_id in self.view.children(parent_id) {
+            let class = self.view.class(child_id);
+            if class.ends_with("FrameLayout") && self.view.is_clickable(child_id) {
+                return true;
             }
         }
         false
     }
 
     /// 使用 BFS 查找所有内容组（穿透同边界透明层）
-    fn find_all_content_groups_bfs(&self, start_index: usize) -> Vec<usize> {
+    fn find_all_content_groups_bfs(&self, start_id: u32) -> Vec<u32> {
         let mut results = Vec::new();
         let mut queue = VecDeque::new();
-        queue.push_back(start_index);
+        queue.push_back(start_id);
 
-        let start_bounds = self.xml_indexer.all_nodes[start_index].bounds;
-        let mut visited = std::collections::HashSet::new();
-        visited.insert(start_index);
+        let _start_bounds = self.view.bounds(start_id);
+        let mut visited = HashSet::new();
+        visited.insert(start_id);
 
-        while let Some(curr_idx) = queue.pop_front() {
-            let curr_node = &self.xml_indexer.all_nodes[curr_idx];
-            let curr_bounds = curr_node.bounds;
-
-            // 如果当前节点是 ViewGroup/FrameLayout 且边界不同于起始节点，视为内容组
-            if curr_idx != start_index {
-                if let Some(class) = &curr_node.element.class {
-                    if (class.ends_with("ViewGroup") || class.ends_with("FrameLayout"))
-                        && curr_bounds != start_bounds
-                    {
-                        results.push(curr_idx);
-                        // 找到内容组后，通常不需要继续深入该分支，除非内容组内部还有嵌套结构
-                        // 这里我们选择继续深入，以防漏掉嵌套结构
-                    }
+        while let Some(curr_id) = queue.pop_front() {
+            // 如果当前节点是 ViewGroup/FrameLayout，视为内容组
+            if curr_id != start_id {
+                let class = self.view.class(curr_id);
+                if class.ends_with("ViewGroup") || class.ends_with("FrameLayout") {
+                    results.push(curr_id);
                 }
             }
 
             // 继续遍历子节点
-            for child_idx in self.get_children_indices(curr_idx) {
-                if !visited.contains(&child_idx) {
-                    visited.insert(child_idx);
-                    queue.push_back(child_idx);
+            for child_id in self.view.children(curr_id) {
+                if !visited.contains(&child_id) {
+                    visited.insert(child_id);
+                    queue.push_back(child_id);
                 }
             }
         }
 
         // 如果没找到任何子内容组，就把自己作为内容组（Fallback）
         if results.is_empty() {
-            results.push(start_index);
+            results.push(start_id);
         }
 
         results
     }
 
     /// 检测是否为瀑布流容器 (ViewPager / RecyclerView)
-    fn is_waterfall_container(&self, node_index: usize) -> bool {
-        let node = &self.xml_indexer.all_nodes[node_index];
-        if let Some(class) = &node.element.class {
-            if class.contains("ViewPager") || class.contains("RecyclerView") {
-                return true;
-            }
+    fn is_waterfall_container(&self, node_id: u32) -> bool {
+        let class = self.view.class(node_id);
+        if class.contains("ViewPager") || class.contains("RecyclerView") {
+            return true;
         }
+        
         // 也可以检查父级
-        if let Some(parent_idx) = node.parent_index {
-            let parent = &self.xml_indexer.all_nodes[parent_idx];
-            if let Some(class) = &parent.element.class {
-                if class.contains("ViewPager") || class.contains("RecyclerView") {
-                    return true;
-                }
+        if let Some(parent_id) = self.view.parent(node_id) {
+            let parent_class = self.view.class(parent_id);
+            if parent_class.contains("ViewPager") || parent_class.contains("RecyclerView") {
+                return true;
             }
         }
         false
     }
 
-    fn find_media_block(&self, content_group_index: usize) -> Option<(i32, i32, i32, i32)> {
+    fn find_media_block(&self, content_group_id: u32) -> Option<crate::domain::structure_runtime_match::types::SmBounds> {
         // 递归查找ImageView或包含ImageView的容器，限制深度
-        self.find_media_block_recursive(content_group_index, 3) // 增加深度到3
+        self.find_media_block_recursive(content_group_id, 3)
     }
 
     fn find_media_block_recursive(
         &self,
-        node_index: usize,
+        node_id: u32,
         max_depth: usize,
-    ) -> Option<(i32, i32, i32, i32)> {
+    ) -> Option<crate::domain::structure_runtime_match::types::SmBounds> {
         if max_depth == 0 {
             return None;
         }
 
-        let node = &self.xml_indexer.all_nodes[node_index];
-
         // 如果当前节点就是ImageView，返回其bounds
-        if let Some(class) = &node.element.class {
-            if class.ends_with("ImageView") {
-                return Some(node.bounds);
-            }
+        let class = self.view.class(node_id);
+        if class.ends_with("ImageView") {
+            return Some(self.view.bounds(node_id));
         }
 
         // 递归查找子节点
-        for child_index in self.get_children_indices(node_index) {
-            if let Some(bounds) = self.find_media_block_recursive(child_index, max_depth - 1) {
+        for child_id in self.view.children(node_id) {
+            if let Some(bounds) = self.find_media_block_recursive(child_id, max_depth - 1) {
                 return Some(bounds);
             }
         }
@@ -244,47 +223,37 @@ impl<'a> SubtreeMatcher<'a> {
         None
     }
 
-    fn find_bottom_bar(&self, content_group_index: usize) -> Option<(i32, i32, i32, i32)> {
+    fn find_bottom_bar(&self, content_group_id: u32) -> Option<crate::domain::structure_runtime_match::types::SmBounds> {
         // 查找符合底栏模式的ViewGroup
-        self.find_bottom_bar_recursive(content_group_index, 3) // 增加深度到3
+        self.find_bottom_bar_recursive(content_group_id, 3)
     }
 
     fn find_bottom_bar_recursive(
         &self,
-        node_index: usize,
+        node_id: u32,
         max_depth: usize,
-    ) -> Option<(i32, i32, i32, i32)> {
+    ) -> Option<crate::domain::structure_runtime_match::types::SmBounds> {
         if max_depth == 0 {
             return None;
         }
 
-        let node = &self.xml_indexer.all_nodes[node_index];
-
         // 检查当前节点是否是ViewGroup且符合底栏模式
-        if let Some(class) = &node.element.class {
-            if class.ends_with("ViewGroup") {
-                let children_indices = self.get_children_indices(node_index);
-                let child_classes: Vec<String> = children_indices
-                    .iter()
-                    .map(|&idx| {
-                        self.xml_indexer.all_nodes[idx]
-                            .element
-                            .class
-                            .as_ref()
-                            .map(|s| s.clone())
-                            .unwrap_or_default()
-                    })
-                    .collect();
+        let class = self.view.class(node_id);
+        if class.ends_with("ViewGroup") {
+            let children = self.view.children(node_id);
+            let child_classes: Vec<String> = children
+                .iter()
+                .map(|&id| self.view.class(id).to_string())
+                .collect();
 
-                if self.score_bottom_shape(&child_classes) >= 0.6 {
-                    return Some(node.bounds);
-                }
+            if self.score_bottom_shape(&child_classes) >= 0.6 {
+                return Some(self.view.bounds(node_id));
             }
         }
 
         // 递归查找子节点
-        for child_index in self.get_children_indices(node_index) {
-            if let Some(bounds) = self.find_bottom_bar_recursive(child_index, max_depth - 1) {
+        for child_id in self.view.children(node_id) {
+            if let Some(bounds) = self.find_bottom_bar_recursive(child_id, max_depth - 1) {
                 return Some(bounds);
             }
         }
@@ -308,16 +277,5 @@ impl<'a> SubtreeMatcher<'a> {
         }
 
         score.min(1.0)
-    }
-
-    fn get_children_indices(&self, parent_index: usize) -> Vec<usize> {
-        // 🎯 性能优化：直接使用预构建的children_indices，避免O(N)遍历
-        if parent_index < self.xml_indexer.all_nodes.len() {
-            self.xml_indexer.all_nodes[parent_index]
-                .children_indices
-                .clone()
-        } else {
-            Vec::new()
-        }
     }
 }

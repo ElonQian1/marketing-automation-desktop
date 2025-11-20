@@ -2,7 +2,7 @@
 // module: exec | layer: v3/helpers | role: 设备和UI管理
 // summary: 管理设备连接、UI快照获取、屏幕哈希计算等设备相关操作
 
-use crate::services::quick_ui_automation::adb_dump_ui_xml;
+use crate::services::adb::commands::adb_dump_ui_xml;
 use super::intelligent_analysis::DeviceInfo;
 
 /// 获取设备的UI XML快照

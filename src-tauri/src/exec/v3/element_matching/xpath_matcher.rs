@@ -2,7 +2,7 @@
 // module: v3-execution | layer: matching | role: XPath匹配器
 // summary: 使用全局XPath进行元素匹配，支持多候选返回
 
-use crate::services::ui_reader_service::UIElement;
+use crate::services::universal_ui_page_analyzer::UIElement;
 
 /// XPath匹配结果
 #[derive(Debug)]

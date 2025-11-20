@@ -4,16 +4,18 @@
 pub mod core;
 pub mod config;
 pub mod logger;
-pub mod detector;
 pub mod executor;
 
-pub use core::*;
-pub use config::*;
-pub use logger::*;
-pub use detector::*;
-pub use executor::*;
+pub use self::core::UniversalUIElement;
 
-use tokio::time::Duration;
+use crate::services::adb::AdbService;
+use crate::services::app_lifecycle_manager::{AppLifecycleManager, AppLaunchConfig};
+use crate::utils::adb_utils;
+use self::core::{UIFinderCore};
+use self::logger::{InteractiveLogger, AppDetectionStep};
+use self::config::{AppConfigManager, AppConfig};
+use crate::services::universal_ui_finder::executor::ActionExecutor;
+use std::time::Duration;
 
 /// 通用UI查找器 - 主入口
 /// 
@@ -29,7 +31,7 @@ use tokio::time::Duration;
 /// 
 /// # 使用示例
 /// ```rust
-/// let finder = UniversalUIFinder::new("adb", None)?;
+/// let finder = UniversalUIFinder::new(adb_service, "device_123")?;
 /// 
 /// // 查找任意应用的任意按钮
 /// let result = finder.find_and_click(FindRequest {
@@ -43,20 +45,29 @@ use tokio::time::Duration;
 pub struct UniversalUIFinder {
     core: UIFinderCore,
     logger: InteractiveLogger,
-    detector: AppDetector,
+    lifecycle_manager: AppLifecycleManager,
     executor: ActionExecutor,
     config_manager: AppConfigManager,
 }
 
 impl UniversalUIFinder {
     /// 创建新的通用UI查找器实例
-    pub fn new(adb_path: &str, device_id: Option<String>) -> Result<Self, Box<dyn std::error::Error>> {
+    pub fn new(adb_service: AdbService, device_id: Option<String>) -> Result<Self, Box<dyn std::error::Error>> {
+        // 从 adb_utils 获取 adb_path
+        let adb_path = adb_utils::get_adb_path();
+        
+        let core = UIFinderCore::new(&adb_path, device_id.clone())?;
+        let logger = InteractiveLogger::new(true);
+        let lifecycle_manager = AppLifecycleManager::new(adb_service);
+        let executor = ActionExecutor::new(&adb_path, device_id.clone())?;
+        let config_manager = AppConfigManager::new();
+        
         Ok(Self {
-            core: UIFinderCore::new(adb_path, device_id.clone())?,
-            logger: InteractiveLogger::new(true), // 默认启用详细日志
-            detector: AppDetector::new(adb_path, device_id.clone())?,
-            executor: ActionExecutor::new(adb_path, device_id)?,
-            config_manager: AppConfigManager::new(),
+            core,
+            logger,
+            lifecycle_manager,
+            executor,
+            config_manager,
         })
     }
     
@@ -67,7 +78,25 @@ impl UniversalUIFinder {
         // 第一步：应用检测与启动 (可选)
         if let Some(app_name) = &request.app_name {
             // 指定程序模式：执行应用检测和准备步骤
-            let _app_status = self.detector.detect_and_prepare_app(&request, &mut self.logger).await?;
+            // 使用 AppLifecycleManager 替代旧的 detector
+            let device_id = self.core.device_id.clone().unwrap_or_default(); // 需要确保 device_id 存在
+            
+            self.logger.log_app_detection(app_name, AppDetectionStep::Checking);
+            
+            let result = self.lifecycle_manager.ensure_app_running(
+                &device_id,
+                app_name,
+                Some(AppLaunchConfig::default())
+            ).await;
+
+            if !result.success {
+                self.logger.log_app_detection(app_name, AppDetectionStep::NotRunning);
+                return Err(FindError::ExecutionFailed(
+                    result.error_message.unwrap_or_else(|| "应用启动失败".to_string())
+                ));
+            }
+            
+            self.logger.log_app_detection(app_name, AppDetectionStep::Ready);
         } else {
             // 直接ADB模式：跳过应用检测，记录日志
             if self.logger.enabled {
@@ -188,8 +217,14 @@ impl UniversalUIFinder {
     /// 仅查找元素，不执行点击
     pub async fn find_element_only(&mut self, request: FindRequest) -> Result<UniversalUIElement, FindError> {
         // 如果指定了应用名，执行应用检测；否则跳过
-        if let Some(_app_name) = &request.app_name {
-            let _app_status = self.detector.detect_and_prepare_app(&request, &mut self.logger).await?;
+        if let Some(app_name) = &request.app_name {
+            if let Some(device_id) = &self.core.device_id {
+                let _ = self.lifecycle_manager.ensure_app_running(
+                    device_id, 
+                    app_name, 
+                    None
+                ).await;
+            }
         }
         
         self.core.find_element_with_guidance(&request, &mut self.logger).await

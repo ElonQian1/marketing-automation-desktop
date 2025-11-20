@@ -1,4 +1,4 @@
-// Centralized Tauri command module
+// Centralized Tauri command
 // 分领域子模块：确保 main.rs 精简
 
 pub mod macros; // 🎯 命令注册宏系统
@@ -18,18 +18,20 @@ pub mod xpath_execution; // 新增XPath直接执行命令
 pub mod intelligent_analysis; // ✅ 新增智能分析命令
 pub mod health_check; // ✅ 新增后端健康检查命令
 pub mod prospecting; // ✅ 新增精准获客命令
-pub mod commands_lead_hunt; // ✅ 新增精准获客Lead Hunt命令
-pub mod enhanced_location_commands; // 🆕 新增增强定位算法命令
-pub mod smart_selection; // 🆕 新增智能选择系统命令
-pub mod semantic_analyzer_config; // 🆕 新增语义分析器配置命令
-pub mod structural_matching; // 🆕 新增结构匹配命令
-pub mod structure_match_runtime; // 🚀 新增结构匹配运行时命令
-pub mod ui_dump; // 🆕 新增UI Dump命令
-pub mod analysis_cache; // 🆕 新增分析缓存命令
-pub mod image_optimization; // 🚀 新增图片优化命令
+pub mod legacy_smart_finder; // ✅ 新增：兼容旧版智能查找命令
+pub mod image_optimization; // ✅ 新增：图片优化命令
 pub mod click_normalizer_test; // 🆕 新增点击规范化测试命令
 pub mod structure_recommend; // 🎯 新增结构匹配智能推荐命令
 pub mod execute_structure_match; // 🚀 新增结构匹配真机执行命令
+pub mod apps; // ✅ 新增应用管理命令
+
+pub mod enhanced_location_commands;
+pub mod commands_lead_hunt;
+pub mod smart_selection;
+pub mod semantic_analyzer_config;
+pub mod structure_match_runtime;
+pub mod ui_dump;
+pub mod analysis_cache;
 
 // 可选：统一 re-export，方便 main.rs 引入
 // pub use action_execution::*; // 操作执行命令（暂时注释）
@@ -57,3 +59,4 @@ pub use analysis_cache::*; // 🆕 导出分析缓存命令
 pub use click_normalizer_test::*; // 🆕 导出点击规范化测试命令
 pub use structure_recommend::*; // 🎯 导出结构匹配智能推荐命令
 pub use execute_structure_match::*; // 🚀 导出结构匹配真机执行命令
+pub use apps::*; // ✅ 导出应用管理命令

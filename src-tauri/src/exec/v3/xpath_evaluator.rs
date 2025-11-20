@@ -2,7 +2,7 @@
 // module: exec | layer: v3 | role: XPath多候选评估器
 // summary: 当XPath匹配多个元素时，使用文本/描述/空间距离进行二次评估
 
-use crate::services::ui_reader_service::UIElement;
+use crate::services::universal_ui_page_analyzer::UIElement;
 use serde_json::Value;
 
 /// XPath评估结果

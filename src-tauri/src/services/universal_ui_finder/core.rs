@@ -5,10 +5,10 @@ use crate::services::universal_ui_finder::{FindRequest, FindError};
 use crate::services::universal_ui_finder::logger::{InteractiveLogger, ElementSearchStep, PreActionStep};
 
 pub struct UIFinderCore {
-    adb_path: String,
-    device_id: Option<String>,
-    screen_width: i32,
-    screen_height: i32,
+    pub adb_path: String,
+    pub device_id: Option<String>,
+    pub screen_width: i32,
+    pub screen_height: i32,
 }
 
 impl UIFinderCore {

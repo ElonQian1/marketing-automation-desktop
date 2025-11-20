@@ -75,11 +75,13 @@ use services::diagnostic_service::{
 };
 use services::adb::commands::{safe_adb_push, safe_adb_shell_command};
 use utils::device_utils::validate_device_connection;
-use services::smart_app_service::{get_device_apps, SmartAppManagerState};
-use services::smart_element_finder_service::{click_detected_element, smart_element_finder};
+use services::smart_app_manager::SmartAppManagerState;
+// use services::smart_element_finder_service::{click_detected_element, smart_element_finder}; // 已废弃
+use commands::legacy_smart_finder::{click_detected_element, smart_element_finder}; // 兼容层
 use services::vcf::smart_vcf_opener;
-use services::ui_reader_service::read_device_ui_state;
+use commands::ui_dump::read_device_ui_state;
 use services::universal_ui_service::execute_universal_ui_click;
+use services::adb::commands::{adb_dump_ui_xml, adb_tap_coordinate};
 
 fn main() {
     // 初始化日志系统
@@ -201,6 +203,14 @@ fn main() {
             import_contact_numbers_from_folder,
             verify_contacts_fast,
             get_device_contact_count,
+            // ==================== 📱 应用管理 (6个命令) ====================
+            get_device_apps,
+            get_device_apps_paged,
+            get_app_icon,
+            search_device_apps,
+            launch_device_app,
+            get_cached_device_apps,
+            get_popular_apps,
             // ==================== 📞 联系人管理 (8个命令) ====================
             list_contact_numbers,
             list_contact_numbers_without_batch,
@@ -283,6 +293,9 @@ fn main() {
             resolve_from_stepcard_snapshot,
             recommend_structure_mode_v2,
             execute_structure_match_step,
+            // ==================== ⚡ 快速UI自动化 (3个命令) ====================
+            adb_dump_ui_xml,
+            adb_tap_coordinate,
         ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");

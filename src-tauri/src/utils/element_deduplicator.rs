@@ -2,7 +2,7 @@
 // module: utils | layer: infrastructure | role: 元素去重器
 // summary: 基于位置和文本对UI元素进行智能去重
 
-use crate::services::ui_reader_service::UIElement;
+use crate::services::universal_ui_page_analyzer::UIElement;
 // ✅ 改用V3的BoundsRect
 use crate::exec::v3::element_matching::bounds_matcher::BoundsRect;
 use std::collections::HashSet;

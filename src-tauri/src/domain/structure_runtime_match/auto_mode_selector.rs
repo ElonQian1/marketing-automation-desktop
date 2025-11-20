@@ -4,6 +4,7 @@
 
 use super::scorers::types::{ScoreOutcome, MatchMode, ContextSig};
 use super::scorers::{SubtreeMatcher, LeafContextMatcher, TextExactMatcher};
+use crate::domain::structure_runtime_match::adapters::xml_indexer_adapter::XmlIndexerAdapter;
 use crate::engine::xml_indexer::XmlIndexer;
 use anyhow::Result;
 use serde::{Serialize, Deserialize};
@@ -69,7 +70,8 @@ impl<'a> AutoModeSelector<'a> {
         clickable_parent_index: usize,
     ) -> Result<AutoPickResult> {
         // 1. 创建三路评分器
-        let subtree_matcher = SubtreeMatcher::new(self.xml_indexer);
+        let adapter = XmlIndexerAdapter::new(self.xml_indexer, "adhoc".to_string());
+        let subtree_matcher = SubtreeMatcher::new(&adapter);
         let leaf_matcher = LeafContextMatcher::new(self.xml_indexer);
         let text_matcher = TextExactMatcher::new(self.xml_indexer);
 
@@ -77,7 +79,7 @@ impl<'a> AutoModeSelector<'a> {
         let leaf_sig = leaf_matcher.build_context_signature(clicked_node_index, clickable_parent_index);
 
         // 3. 并行调用三路评分
-        let mut subtree_outcome = subtree_matcher.score_subtree(card_root_index, clickable_parent_index);
+        let mut subtree_outcome = subtree_matcher.score_subtree(card_root_index as u32, clickable_parent_index as u32);
         let mut leaf_outcome = leaf_matcher.score_leaf_context(&leaf_sig);
         let mut text_outcome = text_matcher.score_text_exact(clicked_node_index);
 

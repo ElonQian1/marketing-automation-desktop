@@ -10,6 +10,7 @@ pub fn combine(items: &mut [SmItemHit], w: &SmWeights) {
         it.scores.total = w.geom * it.scores.geom
             + w.tpl * it.scores.tpl
             + w.skeleton * it.scores.skeleton
+            + w.subtree * it.scores.subtree
             + w.field * it.scores.field;
     }
 }

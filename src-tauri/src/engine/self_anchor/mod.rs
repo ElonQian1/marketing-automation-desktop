@@ -226,7 +226,7 @@ impl SelfAnchorEngine {
             .await?;
 
         // 3. 组合策略生成
-        let strategies = self.combination_scorer
+        let strategies: Vec<CombinationStrategy> = self.combination_scorer
             .generate_combination_strategies(target_element, &field_scores, page_elements)
             .await?;
 
@@ -398,7 +398,7 @@ impl SelfAnchorEngine {
             .await?;
 
         // Step 2: 组合策略生成
-        let strategies = self.combination_scorer
+        let strategies: Vec<CombinationStrategy> = self.combination_scorer
             .generate_combination_strategies(target_element, &field_scores, page_elements)
             .await?;
 

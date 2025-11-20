@@ -253,10 +253,10 @@ impl XPathSimilarityMatcher {
     /// 用于从多个候选中筛选出XPath最相似的元素
     /// 注意：由于UIElement本身不包含xpath字段，此函数需要额外的xpath映射
     pub fn rank_candidates_by_xpath_with_map<'a>(
-        candidates: &[&'a crate::services::ui_reader_service::UIElement],
+        candidates: &[&'a crate::services::universal_ui_page_analyzer::UIElement],
         xpath_map: &std::collections::HashMap<String, String>, // bounds -> xpath
         static_xpath: &str,
-    ) -> Vec<(&'a crate::services::ui_reader_service::UIElement, XPathSimilarityResult)> {
+    ) -> Vec<(&'a crate::services::universal_ui_page_analyzer::UIElement, XPathSimilarityResult)> {
         let mut ranked = Vec::new();
         
         for candidate in candidates {

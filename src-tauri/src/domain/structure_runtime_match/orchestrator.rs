@@ -13,6 +13,7 @@ use super::scoring::gates::{retain_passed, sort_desc};
 use super::scoring::weights::weights_for;
 use super::signature::learner::learn_or_load;
 use super::signature::matcher::score_tpl;
+use super::scorers::subtree_matcher::SubtreeMatcher; // 🎯 新增
 // use super::skeleton::checker::score_skeleton;  // 🔴 旧版本
 use super::skeleton::checker_v2::score_skeleton_v2;  // 🎯 新版本：基于谓词评估
 use super::skeleton::dsl::SmSkeletonRulesDsl;
@@ -76,6 +77,16 @@ pub fn sm_run_once<V: SmXmlView, C: SmCache>(
 
     // 4) 骨架 + 字段 + 几何分
     score_skeleton_v2(view, &mut items);  // 🎯 使用 V2 谓词评估
+
+    // 🎯 新增：深度子树结构评分 (统一了分析器的高级逻辑)
+    let subtree_matcher = SubtreeMatcher::new(view);
+    for it in items.iter_mut() {
+        // 将 item.node 同时作为 card_root 和 clickable_parent 传入
+        // 这样计算的媒体区占比是相对于卡片自身高度的
+        let outcome = subtree_matcher.score_subtree(it.node, it.node);
+        it.scores.subtree = outcome.conf;
+    }
+
     score_fields(view, &cfg.field_rules, &mut items);
     for it in items.iter_mut() {
         it.scores.geom = geom_score_for(layout);

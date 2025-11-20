@@ -1,33 +1,8 @@
 use tauri::{command, State};
-use tokio::sync::Mutex;
-use std::collections::HashMap;
-use crate::services::smart_app_manager::{SmartAppManager, AppInfo, AppLaunchResult};
 use tracing::{info, error};
-use serde::Serialize;
+use crate::services::smart_app_manager::{SmartAppManager, SmartAppManagerState, AppInfo, AppLaunchResult, PagedApps};
 use crate::services::smart_app::icon::{pull_apk_to_temp, extract_icon_from_apk};
 use crate::services::smart_app::icon_cache::IconDiskCache;
-
-/// 全局应用管理器状态
-pub struct SmartAppManagerState {
-    managers: Mutex<HashMap<String, SmartAppManager>>,
-}
-
-impl SmartAppManagerState {
-    pub fn new() -> Self {
-        Self {
-            managers: Mutex::new(HashMap::new()),
-        }
-    }
-}
-
-#[derive(Serialize)]
-pub struct PagedApps {
-    pub items: Vec<AppInfo>,
-    pub total: usize,
-    pub page: u32,
-    pub page_size: u32,
-    pub has_more: bool,
-}
 
 /// 获取设备应用列表
 /// filter_mode: "all" | "only_user" | "only_system"
@@ -208,43 +183,13 @@ pub async fn get_popular_apps() -> Result<Vec<AppInfo>, String> {
             icon_path: None,
         },
         AppInfo {
-            package_name: "com.tencent.mobileqq".to_string(),
-            app_name: "QQ".to_string(),
-            version_name: None,
-            version_code: None,
-            is_system_app: false,
-            is_enabled: true,
-            main_activity: None,
-            icon_path: None,
-        },
-        AppInfo {
-            package_name: "com.taobao.taobao".to_string(),
-            app_name: "淘宝".to_string(),
-            version_name: None,
-            version_code: None,
-            is_system_app: false,
-            is_enabled: true,
-            main_activity: None,
-            icon_path: None,
-        },
-        AppInfo {
-            package_name: "com.jingdong.app.mall".to_string(),
-            app_name: "京东".to_string(),
-            version_name: None,
-            version_code: None,
-            is_system_app: false,
-            is_enabled: true,
-            main_activity: None,
-            icon_path: None,
-        },
-        AppInfo {
             package_name: "com.ss.android.ugc.aweme".to_string(),
             app_name: "抖音".to_string(),
             version_name: None,
             version_code: None,
             is_system_app: false,
             is_enabled: true,
-            main_activity: None,
+            main_activity: Some("com.ss.android.ugc.aweme.splash.SplashActivity".to_string()),
             icon_path: None,
         },
     ])

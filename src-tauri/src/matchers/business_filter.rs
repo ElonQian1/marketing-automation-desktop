@@ -2,7 +2,7 @@
 // module: matchers | layer: application | role: 业务规则过滤器
 // summary: 针对小红书等业务场景的智能过滤（如过滤"已关注"按钮）
 
-use crate::services::ui_reader_service::UIElement;
+use crate::services::universal_ui_page_analyzer::UIElement;
 use tracing::debug;
 
 /// 业务规则过滤器
