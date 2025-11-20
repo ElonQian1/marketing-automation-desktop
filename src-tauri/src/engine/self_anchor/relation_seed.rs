@@ -168,36 +168,59 @@ impl RelationSeedGenerator {
 #[cfg(test)]
 mod tests {
     use super::*;
+    use crate::services::universal_ui_page_analyzer::{UIElement, UIElementType};
+    use crate::types::page_analysis::ElementBounds;
+
+    fn create_test_element(text: Option<&str>, content_desc: Option<&str>, resource_id: Option<&str>, class: &str, bounds_str: &str) -> UIElement {
+        let parts: Vec<&str> = bounds_str.split("][").collect();
+        let left_top = parts[0].trim_start_matches('[');
+        let right_bottom = parts[1].trim_end_matches(']');
+        let lt_parts: Vec<i32> = left_top.split(',').map(|s| s.parse().unwrap()).collect();
+        let rb_parts: Vec<i32> = right_bottom.split(',').map(|s| s.parse().unwrap()).collect();
+        let bounds = ElementBounds {
+            left: lt_parts[0],
+            top: lt_parts[1],
+            right: rb_parts[0],
+            bottom: rb_parts[1],
+        };
+
+        UIElement {
+            id: "".to_string(),
+            element_type: UIElementType::Other,
+            text: text.unwrap_or("").to_string(),
+            bounds,
+            xpath: "".to_string(),
+            resource_id: resource_id.map(|s| s.to_string()),
+            package_name: Some("com.example".to_string()),
+            class_name: Some(class.to_string()),
+            clickable: true,
+            scrollable: false,
+            enabled: true,
+            focused: false,
+            checkable: false,
+            checked: false,
+            selected: false,
+            password: false,
+            content_desc: content_desc.unwrap_or("").to_string(),
+            index_path: None,
+            region: None,
+            children: vec![],
+            parent: None,
+            depth: 0,
+        }
+    }
     
     #[test]
     fn test_is_empty_self() {
         let generator = RelationSeedGenerator;
         
         // 创建一个字段稀薄的元素
-        let empty_element = UIElement {
-            resource_id: None,
-            content_desc: None,
-            text: Some("".to_string()),
-            class: "android.view.View".to_string(),
-            package: "com.example".to_string(),
-            clickable: Some(true),
-            enabled: Some(true),
-            bounds: "[0,0][100,100]".to_string(),
-        };
+        let empty_element = create_test_element(Some(""), None, None, "android.view.View", "[0,0][100,100]");
         
         assert!(generator.is_empty_self(&empty_element));
         
         // 创建一个有足够信息的元素
-        let rich_element = UIElement {
-            resource_id: Some("btn_follow".to_string()),
-            content_desc: Some("关注按钮".to_string()),
-            text: Some("关注".to_string()),
-            class: "android.widget.Button".to_string(),
-            package: "com.example".to_string(),
-            clickable: Some(true),
-            enabled: Some(true),
-            bounds: "[0,0][100,100]".to_string(),
-        };
+        let rich_element = create_test_element(Some("关注"), Some("关注按钮"), Some("btn_follow"), "android.widget.Button", "[0,0][100,100]");
         
         assert!(!generator.is_empty_self(&rich_element));
     }
@@ -205,16 +228,7 @@ mod tests {
     #[test]
     fn test_generate_relation_seed() {
         let generator = RelationSeedGenerator;
-        let element = UIElement {
-            resource_id: None,
-            content_desc: None,
-            text: None,
-            class: "android.view.View".to_string(),
-            package: "com.example".to_string(),
-            clickable: Some(true),
-            enabled: Some(true),
-            bounds: "[0,0][100,100]".to_string(),
-        };
+        let element = create_test_element(None, None, None, "android.view.View", "[0,0][100,100]");
         
         let seed = generator.generate_relation_seed(&element);
         

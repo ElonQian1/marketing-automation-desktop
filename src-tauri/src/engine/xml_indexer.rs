@@ -8,7 +8,7 @@ use regex::Regex;
 use once_cell::sync::Lazy;
 
 use super::strategy_plugin::ExecutionEnvironment;
-use crate::services::universal_ui_page_analyzer::UIElement;
+use crate::services::universal_ui_page_analyzer::{UIElement, UIElementType};
 use crate::commands::run_step_v2::{MatchCandidate, Bounds};
 use crate::types::page_analysis::ElementBounds;
 
@@ -54,6 +54,21 @@ pub struct IndexedNode {
     pub parent_index: Option<usize>,     // 父节点在 all_nodes 中的索引
     pub children_indices: Vec<usize>,     // 子节点在 all_nodes 中的索引列表
     pub depth: usize,                     // 节点深度（根节点为0）
+}
+
+impl IndexedNode {
+    pub fn area(&self) -> i64 {
+        let w = (self.bounds.2 - self.bounds.0) as i64;
+        let h = (self.bounds.3 - self.bounds.1) as i64;
+        if w < 0 || h < 0 { 0 } else { w * h }
+    }
+
+    pub fn contains(&self, other: &IndexedNode) -> bool {
+        self.bounds.0 <= other.bounds.0 &&
+        self.bounds.1 <= other.bounds.1 &&
+        self.bounds.2 >= other.bounds.2 &&
+        self.bounds.3 >= other.bounds.3
+    }
 }
 
 impl XmlIndexer {
@@ -139,7 +154,7 @@ impl XmlIndexer {
 
         let element = UIElement {
             id: "".to_string(),
-            element_type: "Other".to_string(),
+            element_type: UIElementType::Other,
             text: text.clone().unwrap_or_default(),
             resource_id: resource_id.clone(),
             class_name: class_name.clone(),
@@ -159,6 +174,7 @@ impl XmlIndexer {
             parent: None,
             depth: 0,
             index_path: None,
+            region: None,
         };
         
         Ok(IndexedNode {
@@ -453,34 +469,76 @@ impl XmlIndexer {
         Err(anyhow::anyhow!("Invalid bounds format: {}", bounds_str))
     }
 
-    /// 🎯 构建父子关系树（性能优化关键）
+    pub fn get_children(&self, node_idx: usize) -> Vec<usize> {
+        self.all_nodes.get(node_idx).map(|n| n.children_indices.clone()).unwrap_or_default()
+    }
+
+    pub fn get_siblings_in_container(&self, node_idx: usize) -> Vec<usize> {
+        if let Some(node) = self.all_nodes.get(node_idx) {
+            if let Some(parent_idx) = node.parent_index {
+                if let Some(parent) = self.all_nodes.get(parent_idx) {
+                    return parent.children_indices.clone();
+                }
+            }
+        }
+        vec![]
+    }
+
+    /// 🎯 构建父子关系树（几何包含关系）
     /// 
-    /// 通过XPath层级关系一次性构建所有节点的parent_index和children_indices，
-    /// 避免后续递归调用时重复的O(N)遍历。
-    /// 
-    /// 复杂度: O(N²) 一次性构建，后续查询 O(1)
+    /// 通过Bounds包含关系构建树，解决XML层级与视觉层级不一致的问题。
+    /// 复杂度: O(N²)
+    /// 规则:
+    /// 1. 父节点必须严格包含子节点 (bounds containment).
+    /// 2. 面积最小的父节点优先.
+    /// 3. 如果面积相同，索引更大的父节点优先 (更深层/更晚出现的节点).
     fn build_parent_child_relationships(&mut self) {
         let start_time = std::time::Instant::now();
-        tracing::debug!("🌲 [XmlIndexer] 开始构建父子关系树...");
+        tracing::debug!("🌲 [XmlIndexer] 开始构建几何父子关系树 (Geometric Tree)...");
         
-        // 为每个节点找到其父节点和子节点
-        for i in 0..self.all_nodes.len() {
-            let current_xpath = self.all_nodes[i].xpath.clone();
-            let current_level = current_xpath.matches('/').count();
-            
-            // 查找父节点
-            for j in 0..self.all_nodes.len() {
-                if i == j { continue; }
-                
-                let candidate_xpath = &self.all_nodes[j].xpath;
-                let candidate_level = candidate_xpath.matches('/').count();
-                
-                // 如果候选节点层级比当前节点低1，且当前xpath以候选xpath开头，则是父节点
-                if candidate_level == current_level - 1 && current_xpath.starts_with(candidate_xpath) {
-                    self.all_nodes[i].parent_index = Some(j);
-                    self.all_nodes[i].depth = candidate_level + 1;
-                    break; // 找到父节点后退出
+        // Reset relationships
+        for node in &mut self.all_nodes {
+            node.parent_index = None;
+            node.children_indices.clear();
+            node.depth = 0;
+        }
+
+        let n = self.all_nodes.len();
+        for i in 0..n {
+            let mut best_parent: Option<usize> = None;
+
+            // Only look at nodes before i (j < i) to prevent cycles and enforce document order.
+            for j in 0..i {
+                let parent_cand = &self.all_nodes[j];
+                let child = &self.all_nodes[i];
+
+                if parent_cand.contains(child) {
+                    match best_parent {
+                        None => best_parent = Some(j),
+                        Some(current_best_idx) => {
+                            let current_best = &self.all_nodes[current_best_idx];
+                            
+                            let cand_area = parent_cand.area();
+                            let curr_area = current_best.area();
+
+                            // Rule 2: Smallest area parent wins
+                            if cand_area < curr_area {
+                                best_parent = Some(j);
+                            } else if cand_area == curr_area {
+                                // Rule 3: Higher index wins (closer to the child in the list)
+                                if j > current_best_idx {
+                                    best_parent = Some(j);
+                                }
+                            }
+                        }
+                    }
                 }
+            }
+
+            if let Some(p_idx) = best_parent {
+                self.all_nodes[i].parent_index = Some(p_idx);
+                // Calculate depth
+                self.all_nodes[i].depth = self.all_nodes[p_idx].depth + 1;
             }
         }
         
@@ -502,7 +560,7 @@ impl XmlIndexer {
         }
         
         let elapsed = start_time.elapsed();
-        tracing::info!("✅ [XmlIndexer] 父子关系树构建完成，耗时 {}ms", elapsed.as_millis());
+        tracing::info!("✅ [XmlIndexer] 几何父子关系树构建完成，耗时 {}ms", elapsed.as_millis());
     }
 }
 
@@ -586,6 +644,109 @@ impl<'a> SearchInterface<'a> {
         } else {
             false
         }
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use crate::services::universal_ui_page_analyzer::{UIElement, UIElementType};
+    use crate::types::page_analysis::ElementBounds;
+
+    fn create_dummy_node(index: usize, class: &str, bounds: (i32, i32, i32, i32)) -> IndexedNode {
+        let element = UIElement {
+            id: "".to_string(),
+            element_type: UIElementType::Other,
+            text: "".to_string(),
+            resource_id: None,
+            class_name: Some(class.to_string()),
+            package_name: None,
+            content_desc: "".to_string(),
+            clickable: false,
+            enabled: true,
+            bounds: ElementBounds { left: bounds.0, top: bounds.1, right: bounds.2, bottom: bounds.3 },
+            xpath: format!("//node_{}", index),
+            scrollable: false,
+            focused: false,
+            checkable: false,
+            checked: false,
+            selected: false,
+            password: false,
+            children: Vec::new(),
+            parent: None,
+            depth: 0,
+            index_path: None,
+            region: None,
+        };
+        
+        IndexedNode {
+            id: format!("node_{}", index),
+            element,
+            bounds,
+            xpath: format!("//node_{}", index),
+            parent_xpath: None,
+            container_xpath: None,
+            parent_index: None,
+            children_indices: Vec::new(),
+            depth: 0,
+        }
+    }
+
+    #[test]
+    fn test_geometric_tree_construction() {
+        // Construct nodes manually to simulate the RecyclerView vs ViewGroup scenario
+        // Node 14: ViewGroup [0,0][1080,2000]
+        // Node 19: RecyclerView [0,0][1080,2000] (Same bounds)
+        // Node 20: Item [10,10][100,100] (Inside both)
+
+        let mut nodes = Vec::new();
+        
+        // Fill dummy nodes 0-13
+        for i in 0..14 {
+            nodes.push(create_dummy_node(i, "View", (0, 0, 1, 1)));
+        }
+
+        // Node 14: ViewGroup
+        nodes.push(create_dummy_node(14, "android.view.ViewGroup", (0, 0, 1080, 2000)));
+
+        // Fill dummy nodes 15-18
+        for i in 15..19 {
+            nodes.push(create_dummy_node(i, "View", (0, 0, 1, 1)));
+        }
+
+        // Node 19: RecyclerView
+        nodes.push(create_dummy_node(19, "androidx.recyclerview.widget.RecyclerView", (0, 0, 1080, 2000)));
+
+        // Node 20: Item
+        nodes.push(create_dummy_node(20, "android.widget.FrameLayout", (10, 10, 100, 100)));
+
+        let mut indexer = XmlIndexer {
+            resource_id_index: HashMap::new(),
+            class_name_index: HashMap::new(),
+            text_index: HashMap::new(),
+            content_desc_index: HashMap::new(),
+            container_index: HashMap::new(),
+            all_nodes: nodes,
+            raw_xml: "".to_string(),
+        };
+
+        indexer.build_parent_child_relationships();
+
+        // Check Node 20's parent
+        // Both 14 and 19 contain 20. Areas are equal.
+        // 19 > 14, so 19 should be the parent.
+        let node20 = &indexer.all_nodes[20];
+        assert_eq!(node20.parent_index, Some(19), "Node 20 should be child of Node 19 (RecyclerView)");
+
+        // Check Node 19's parent
+        // 14 contains 19. Areas are equal.
+        // 14 < 19. 14 is the only candidate before 19.
+        let node19 = &indexer.all_nodes[19];
+        assert_eq!(node19.parent_index, Some(14), "Node 19 should be child of Node 14 (ViewGroup)");
+        
+        // Check Node 14's parent (should be None or some earlier node, here None)
+        let node14 = &indexer.all_nodes[14];
+        assert_eq!(node14.parent_index, None);
     }
 }
 

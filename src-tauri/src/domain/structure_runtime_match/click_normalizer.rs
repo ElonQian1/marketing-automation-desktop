@@ -291,6 +291,11 @@ impl<'a> ClickNormalizer<'a> {
 
     /// 通过bounds包含关系找父节点
     fn find_parent_by_bounds(&self, child_index: usize) -> Option<usize> {
+        // 🎯 优先使用 XmlIndexer 构建的几何树
+        if let Some(parent_idx) = self.xml_indexer.all_nodes.get(child_index).and_then(|n| n.parent_index) {
+             return Some(parent_idx);
+        }
+
         let child_bounds = self.xml_indexer.all_nodes[child_index].bounds;
         let (c_left, c_top, c_right, c_bottom) = child_bounds;
 
@@ -628,14 +633,28 @@ mod tests {
 
     fn create_test_element(class: &str, clickable: bool, content_desc: Option<&str>) -> UIElement {
         UIElement {
-            class: Some(class.to_string()),
-            clickable: Some(clickable),
-            content_desc: content_desc.map(|s| s.to_string()),
+            id: "".to_string(),
+            element_type: crate::services::universal_ui_page_analyzer::UIElementType::Other,
+            class_name: Some(class.to_string()),
+            clickable,
+            content_desc: content_desc.unwrap_or("").to_string(),
             resource_id: None,
-            text: None,
-            bounds: None,
-            enabled: Some(true),
-            package: None,
+            text: "".to_string(),
+            bounds: crate::types::page_analysis::ElementBounds { left: 0, top: 0, right: 0, bottom: 0 },
+            enabled: true,
+            package_name: None,
+            xpath: "".to_string(),
+            scrollable: false,
+            focused: false,
+            checkable: false,
+            checked: false,
+            selected: false,
+            password: false,
+            index_path: None,
+            region: None,
+            children: vec![],
+            parent: None,
+            depth: 0,
         }
     }
 
@@ -648,6 +667,7 @@ mod tests {
             content_desc_index: Default::default(),
             container_index: Default::default(),
             all_nodes: vec![],
+            raw_xml: String::new(),
         };
         
         let normalizer = ClickNormalizer::new(&indexer);
@@ -694,6 +714,7 @@ mod tests {
             content_desc_index: Default::default(),
             container_index: Default::default(),
             all_nodes: vec![],
+            raw_xml: String::new(),
         };
         
         let normalizer = ClickNormalizer::new(&indexer);
@@ -732,6 +753,7 @@ mod tests {
             content_desc_index: Default::default(),
             container_index: Default::default(),
             all_nodes: vec![],
+            raw_xml: String::new(),
         };
         
         let normalizer = ClickNormalizer::new(&indexer);

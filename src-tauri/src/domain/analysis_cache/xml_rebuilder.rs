@@ -537,7 +537,10 @@ mod tests {
             moved_nodes: vec![],
             stats: DeltaStats::new(),
         };
-        delta.stats.update(&delta);
+        delta.stats.added_count = delta.added_nodes.len();
+        delta.stats.removed_count = delta.removed_nodes.len();
+        delta.stats.modified_count = delta.modified_nodes.len();
+        delta.stats.moved_count = delta.moved_nodes.len();
         
         let result = rebuilder.apply_diff(base_xml, &delta);
         assert!(result.is_ok(), "差异应用应该成功");

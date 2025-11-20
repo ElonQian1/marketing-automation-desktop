@@ -516,6 +516,7 @@ mod tests {
                 content_desc_index: HashMap::new(),
                 container_index: HashMap::new(),
                 all_nodes: Vec::new(),
+                raw_xml: String::new(),
             },
             node_map: HashMap::new(),
             xml_hash: "test_hash".to_string(),
