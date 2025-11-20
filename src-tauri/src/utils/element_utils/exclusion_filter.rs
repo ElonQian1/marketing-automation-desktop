@@ -138,19 +138,46 @@ pub fn should_exclude_element(
 #[cfg(test)]
 mod tests {
     use super::*;
+    use crate::services::universal_ui_page_analyzer::{UIElement, UIElementType};
+    use crate::types::page_analysis::ElementBounds;
+
+    fn create_test_element(bounds: Option<ElementBounds>, text: Option<&str>) -> UIElement {
+        UIElement {
+            id: "".to_string(),
+            element_type: UIElementType::Other,
+            text: text.unwrap_or("").to_string(),
+            bounds: bounds.unwrap_or(ElementBounds { left: 0, top: 0, right: 0, bottom: 0 }),
+            xpath: "".to_string(),
+            resource_id: None,
+            package_name: None,
+            class_name: None,
+            clickable: false,
+            scrollable: false,
+            enabled: true,
+            focused: false,
+            checkable: false,
+            checked: false,
+            selected: false,
+            password: false,
+            content_desc: "".to_string(),
+            index_path: None,
+            region: None,
+            children: vec![],
+            parent: None,
+            depth: 0,
+        }
+    }
 
     #[test]
     fn test_negative_area_exclusion() {
-        let mut elem = UIElement::default();
-        elem.bounds = Some("[100,200][50,400]".to_string()); // 负宽度
+        let elem = create_test_element(Some(ElementBounds { left: 100, top: 200, right: 50, bottom: 400 }), None); // 负宽度
 
         assert!(should_exclude_element(&elem, None));
     }
 
     #[test]
     fn test_auto_exclude_followed() {
-        let mut elem = UIElement::default();
-        elem.text = Some("已关注".to_string());
+        let elem = create_test_element(None, Some("已关注"));
 
         // 没有目标文本时应该排除
         assert!(should_exclude_element(&elem, None));
@@ -158,12 +185,19 @@ mod tests {
 
     #[test]
     fn test_preserve_target_button() {
-        let mut elem = UIElement::default();
-        elem.text = Some("已关注".to_string());
+        let elem = create_test_element(None, Some("已关注"));
 
         // 模拟用户明确选择"已关注"按钮
-        let mut protocol = SmartSelectionProtocol::default();
-        protocol.anchor.fingerprint.text_content = Some("已关注".to_string());
+        let mut protocol = SmartSelectionProtocol {
+            anchor: crate::types::smart_selection::AnchorInfo {
+                fingerprint: crate::types::smart_selection::ElementFingerprint {
+                    text_content: Some("已关注".to_string()),
+                    ..Default::default()
+                },
+                ..Default::default()
+            },
+            ..Default::default()
+        };
 
         // 应该保留（用户明确要找这个）
         assert!(!should_exclude_element(&elem, Some(&protocol)));

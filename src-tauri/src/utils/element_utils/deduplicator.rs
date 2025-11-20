@@ -69,9 +69,30 @@ mod tests {
 
     #[test]
     fn test_generate_dedupe_key() {
-        let mut elem = UIElement::default();
-        elem.bounds = Some("[100,200][300,400]".to_string());
-        elem.text = Some("测试".to_string());
+        let mut elem = UIElement {
+            id: "".to_string(),
+            element_type: crate::services::universal_ui_page_analyzer::UIElementType::Other,
+            text: "测试".to_string(),
+            bounds: crate::types::page_analysis::ElementBounds { left: 100, top: 200, right: 300, bottom: 400 },
+            xpath: "".to_string(),
+            resource_id: None,
+            package_name: None,
+            class_name: None,
+            clickable: false,
+            scrollable: false,
+            enabled: true,
+            focused: false,
+            checkable: false,
+            checked: false,
+            selected: false,
+            password: false,
+            content_desc: "".to_string(),
+            index_path: None,
+            region: None,
+            children: vec![],
+            parent: None,
+            depth: 0,
+        };
 
         let key = generate_dedupe_key(&elem, 10);
         // center_y = (200 + 400) / 2 = 300
@@ -81,13 +102,55 @@ mod tests {
 
     #[test]
     fn test_deduplicate_same_position() {
-        let mut elem1 = UIElement::default();
-        elem1.bounds = Some("[100,200][300,400]".to_string());
-        elem1.text = Some("测试".to_string());
+        let elem1 = UIElement {
+            id: "".to_string(),
+            element_type: crate::services::universal_ui_page_analyzer::UIElementType::Other,
+            text: "测试".to_string(),
+            bounds: crate::types::page_analysis::ElementBounds { left: 100, top: 200, right: 300, bottom: 400 },
+            xpath: "".to_string(),
+            resource_id: None,
+            package_name: None,
+            class_name: None,
+            clickable: false,
+            scrollable: false,
+            enabled: true,
+            focused: false,
+            checkable: false,
+            checked: false,
+            selected: false,
+            password: false,
+            content_desc: "".to_string(),
+            index_path: None,
+            region: None,
+            children: vec![],
+            parent: None,
+            depth: 0,
+        };
 
-        let mut elem2 = UIElement::default();
-        elem2.bounds = Some("[100,205][300,405]".to_string()); // 稍微偏移，但在容差内
-        elem2.text = Some("测试".to_string());
+        let elem2 = UIElement {
+            id: "".to_string(),
+            element_type: crate::services::universal_ui_page_analyzer::UIElementType::Other,
+            text: "测试".to_string(),
+            bounds: crate::types::page_analysis::ElementBounds { left: 100, top: 205, right: 300, bottom: 405 }, // 稍微偏移，但在容差内
+            xpath: "".to_string(),
+            resource_id: None,
+            package_name: None,
+            class_name: None,
+            clickable: false,
+            scrollable: false,
+            enabled: true,
+            focused: false,
+            checkable: false,
+            checked: false,
+            selected: false,
+            password: false,
+            content_desc: "".to_string(),
+            index_path: None,
+            region: None,
+            children: vec![],
+            parent: None,
+            depth: 0,
+        };
 
         let elements = vec![elem1, elem2];
         let result = deduplicate_by_position(elements, 10, |e| e);

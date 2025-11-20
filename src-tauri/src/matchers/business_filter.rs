@@ -156,30 +156,50 @@ impl HasElement for UIElement {
 #[cfg(test)]
 mod tests {
     use super::*;
+    use crate::services::universal_ui_page_analyzer::{UIElement, UIElementType};
+    use crate::types::page_analysis::ElementBounds;
+
+    fn create_test_element(text: &str) -> UIElement {
+        UIElement {
+            id: "".to_string(),
+            element_type: UIElementType::Other,
+            text: text.to_string(),
+            bounds: ElementBounds { left: 0, top: 0, right: 0, bottom: 0 },
+            xpath: "".to_string(),
+            resource_id: None,
+            package_name: None,
+            class_name: None,
+            clickable: false,
+            scrollable: false,
+            enabled: true,
+            focused: false,
+            checkable: false,
+            checked: false,
+            selected: false,
+            password: false,
+            content_desc: "".to_string(),
+            index_path: None,
+            region: None,
+            children: vec![],
+            parent: None,
+            depth: 0,
+        }
+    }
 
     #[test]
     fn test_filter_followed_buttons() {
         let elements = vec![
-            UIElement {
-                text: Some("关注".to_string()),
-                ..Default::default()
-            },
-            UIElement {
-                text: Some("已关注".to_string()),
-                ..Default::default()
-            },
-            UIElement {
-                text: Some("关注".to_string()),
-                ..Default::default()
-            },
+            create_test_element("关注"),
+            create_test_element("已关注"),
+            create_test_element("关注"),
         ];
 
         let filtered = BusinessFilter::filter_processed_elements(elements, "关注");
         
         // 应该过滤掉1个"已关注"，保留2个"关注"
         assert_eq!(filtered.len(), 2);
-        assert_eq!(filtered[0].text.as_deref(), Some("关注"));
-        assert_eq!(filtered[1].text.as_deref(), Some("关注"));
+        assert_eq!(filtered[0].text, "关注");
+        assert_eq!(filtered[1].text, "关注");
     }
 }
 

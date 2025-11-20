@@ -80,27 +80,58 @@ impl HasElement for UIElement {
 #[cfg(test)]
 mod tests {
     use super::*;
+    use crate::services::universal_ui_page_analyzer::{UIElement, UIElementType};
+    use crate::types::page_analysis::ElementBounds;
+
+    fn create_test_element(bounds_str: &str, text: &str) -> UIElement {
+        // Parse bounds string "[left,top][right,bottom]"
+        let parts: Vec<&str> = bounds_str.split("][").collect();
+        let left_top = parts[0].trim_start_matches('[');
+        let right_bottom = parts[1].trim_end_matches(']');
+        let lt_parts: Vec<i32> = left_top.split(',').map(|s| s.parse().unwrap()).collect();
+        let rb_parts: Vec<i32> = right_bottom.split(',').map(|s| s.parse().unwrap()).collect();
+        
+        let bounds = ElementBounds {
+            left: lt_parts[0],
+            top: lt_parts[1],
+            right: rb_parts[0],
+            bottom: rb_parts[1],
+        };
+
+        UIElement {
+            id: "".to_string(),
+            element_type: UIElementType::Other,
+            text: text.to_string(),
+            bounds,
+            xpath: "".to_string(),
+            resource_id: None,
+            package_name: None,
+            class_name: None,
+            clickable: false,
+            scrollable: false,
+            enabled: true,
+            focused: false,
+            checkable: false,
+            checked: false,
+            selected: false,
+            password: false,
+            content_desc: "".to_string(),
+            index_path: None,
+            region: None,
+            children: vec![],
+            parent: None,
+            depth: 0,
+        }
+    }
 
     #[test]
     fn test_deduplicate() {
         // 创建测试元素
-        let elem1 = UIElement {
-            bounds: Some("[0,100][100,200]".to_string()),
-            text: Some("按钮".to_string()),
-            ..Default::default()
-        };
+        let elem1 = create_test_element("[0,100][100,200]", "按钮");
         
-        let elem2 = UIElement {
-            bounds: Some("[0,105][100,205]".to_string()), // Y坐标在10px容差内
-            text: Some("按钮".to_string()),
-            ..Default::default()
-        };
+        let elem2 = create_test_element("[0,105][100,205]", "按钮"); // Y坐标在10px容差内
         
-        let elem3 = UIElement {
-            bounds: Some("[0,300][100,400]".to_string()), // 不同位置
-            text: Some("按钮".to_string()),
-            ..Default::default()
-        };
+        let elem3 = create_test_element("[0,300][100,400]", "按钮"); // 不同位置
 
         let elements = vec![elem1, elem2, elem3];
         let result = ElementDeduplicator::deduplicate(elements, 10);

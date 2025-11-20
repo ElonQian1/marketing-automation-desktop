@@ -188,23 +188,62 @@ impl ElementExclusionFilter {
 mod tests {
     use super::*;
     use crate::types::smart_selection::*;
+    use crate::services::universal_ui_page_analyzer::{UIElement, UIElementType};
+    use crate::types::page_analysis::ElementBounds;
+
+    fn create_test_element(bounds_str: Option<&str>, text: Option<&str>) -> UIElement {
+        let bounds = if let Some(s) = bounds_str {
+            let parts: Vec<&str> = s.split("][").collect();
+            let left_top = parts[0].trim_start_matches('[');
+            let right_bottom = parts[1].trim_end_matches(']');
+            let lt_parts: Vec<i32> = left_top.split(',').map(|s| s.parse().unwrap()).collect();
+            let rb_parts: Vec<i32> = right_bottom.split(',').map(|s| s.parse().unwrap()).collect();
+            ElementBounds {
+                left: lt_parts[0],
+                top: lt_parts[1],
+                right: rb_parts[0],
+                bottom: rb_parts[1],
+            }
+        } else {
+            ElementBounds { left: 0, top: 0, right: 0, bottom: 0 }
+        };
+
+        UIElement {
+            id: "".to_string(),
+            element_type: UIElementType::Other,
+            text: text.unwrap_or("").to_string(),
+            bounds,
+            xpath: "".to_string(),
+            resource_id: None,
+            package_name: None,
+            class_name: None,
+            clickable: false,
+            scrollable: false,
+            enabled: true,
+            focused: false,
+            checkable: false,
+            checked: false,
+            selected: false,
+            password: false,
+            content_desc: "".to_string(),
+            index_path: None,
+            region: None,
+            children: vec![],
+            parent: None,
+            depth: 0,
+        }
+    }
 
     #[test]
     fn test_invalid_bounds() {
-        let element = UIElement {
-            bounds: Some("[100,200][50,100]".to_string()), // 负面积
-            ..Default::default()
-        };
+        let element = create_test_element(Some("[100,200][50,100]"), None); // 负面积
 
         assert!(ElementExclusionFilter::has_invalid_bounds(&element));
     }
 
     #[test]
     fn test_auto_exclude() {
-        let element = UIElement {
-            text: Some("已关注".to_string()),
-            ..Default::default()
-        };
+        let element = create_test_element(None, Some("已关注"));
 
         // 目标不是"已关注"，应该排除
         assert!(ElementExclusionFilter::matches_auto_exclude_aliases(

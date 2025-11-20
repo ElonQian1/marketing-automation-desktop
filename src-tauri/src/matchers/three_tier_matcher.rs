@@ -176,24 +176,70 @@ impl HasElement for UIElement {
 #[cfg(test)]
 mod tests {
     use super::*;
+    use crate::types::page_analysis::ElementBounds;
+    use crate::services::universal_ui_page_analyzer::{UIElement, UIElementType};
+
+    fn create_test_element(text: Option<&str>) -> UIElement {
+        UIElement {
+            id: uuid::Uuid::new_v4().to_string(),
+            element_type: UIElementType::TextView,
+            text: text.map(|s| s.to_string()).unwrap_or_default(),
+            resource_id: None,
+            content_desc: String::new(),
+            class_name: Some("android.widget.TextView".to_string()),
+            package_name: Some("com.example".to_string()),
+            bounds: ElementBounds {
+                left: 0,
+                top: 0,
+                right: 100,
+                bottom: 100,
+            },
+            xpath: "//node".to_string(),
+            clickable: false,
+            checked: false,
+            enabled: true,
+            focused: false,
+            checkable: false,
+            scrollable: false,
+            password: false,
+            selected: false,
+            index_path: None,
+            region: None,
+            children: vec![],
+            parent: None,
+            depth: 0,
+        }
+    }
+
+    fn create_test_fingerprint(text: Option<&str>) -> ElementFingerprint {
+        ElementFingerprint {
+            text_content: text.map(|s| s.to_string()),
+            text_hash: None,
+            class_chain: None,
+            resource_id: None,
+            resource_id_suffix: None,
+            bounds_signature: None,
+            parent_class: None,
+            sibling_count: None,
+            child_count: None,
+            depth_level: None,
+            relative_index: None,
+            clickable: None,
+            enabled: None,
+            selected: None,
+            content_desc: None,
+            package_name: None,
+        }
+    }
 
     #[test]
     fn test_exact_text_match() {
         let candidates = vec![
-            UIElement {
-                text: Some("关注".to_string()),
-                ..Default::default()
-            },
-            UIElement {
-                text: Some("已关注".to_string()),
-                ..Default::default()
-            },
+            create_test_element(Some("关注")),
+            create_test_element(Some("已关注")),
         ];
 
-        let fingerprint = ElementFingerprint {
-            text_content: Some("关注".to_string()),
-            ..Default::default()
-        };
+        let fingerprint = create_test_fingerprint(Some("关注"));
 
         let result = ThreeTierMatcher::find_best_match(
             &candidates,
@@ -205,7 +251,7 @@ mod tests {
 
         assert_eq!(result.match_type, MatchType::ExactText);
         assert_eq!(result.confidence, 1.0);
-        assert_eq!(result.element.text.as_deref(), Some("关注"));
+        assert_eq!(result.element.text, "关注");
     }
 }
 
