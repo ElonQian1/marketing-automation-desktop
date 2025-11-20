@@ -432,19 +432,7 @@ impl SelfAnchorEngine {
         Ok(generated_anchor)
     }
 
-    /// 快速评估单个字段的唯一性
-    pub fn quick_field_assessment(
-        &self,
-        field_name: &str,
-        field_value: &str,
-        page_elements: &[UIElement],
-    ) -> Result<FieldScore, String> {
-        self.field_analyzer.analyze_single_field(
-            field_name,
-            field_value,
-            page_elements,
-        )
-    }
+    // quick_field_assessment removed as it was unused and incompatible with the new architecture
 }
 
 impl Default for SelfAnchorEngine {
