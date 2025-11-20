@@ -6,7 +6,7 @@ use crate::services::contact_storage::repositories::database_repo as contact_db;
 use super::models::{
     WatchTargetPayload, WatchTargetRow, ListWatchTargetsQuery,
     CommentPayload, CommentRow, ListCommentsQuery,
-    TaskPayload, TaskRow, ListTasksQuery,
+    TaskPayload, TaskRow, ListTasksQuery, TaskStatus, TaskResultCode,
     AuditLogPayload,
     ReplyTemplatePayload, ReplyTemplateRow, ListReplyTemplatesQuery,
 };
@@ -439,8 +439,8 @@ VALUES (?1, ?2, ?3, ?4, ?5, 'NEW', ?6, ?7, ?8, ?9, datetime('now'))
     Ok(id)
 }
 
-pub fn update_task_status(conn: &Connection, task_id: &str, status: &str, result_code: Option<&str>, error_message: Option<&str>) -> rusqlite::Result<()> {
-    let executed_expr = if matches!(status, "DONE" | "FAILED") {
+pub fn update_task_status(conn: &Connection, task_id: &str, status: TaskStatus, result_code: Option<TaskResultCode>, error_message: Option<&str>) -> rusqlite::Result<()> {
+    let executed_expr = if matches!(status, TaskStatus::Done | TaskStatus::Failed) {
         "datetime('now')"
     } else {
         "NULL"
@@ -511,31 +511,31 @@ LIMIT 1
 pub fn mark_task_result(
     conn: &mut Connection,
     task_id: &str,
-    result_code: Option<&str>,
+    result_code: Option<TaskResultCode>,
     error_message: Option<&str>,
 ) -> rusqlite::Result<()> {
     let tx = conn.transaction()?;
-    let (current_status, attempts): (String, i32) = tx.query_row(
+    let (current_status, attempts): (TaskStatus, i32) = tx.query_row(
         "SELECT status, attempts FROM tasks WHERE id = ?",
         params![task_id],
         |row| Ok((row.get(0)?, row.get(1)?)),
     )?;
 
-    let rc = result_code.unwrap_or("OK");
+    let rc = result_code.unwrap_or(TaskResultCode::Ok);
     let mut new_status = match rc {
-        "RATE_LIMITED" | "TEMP_ERROR" => "READY",
-        "OK" | "DUPLICATED" => "DONE",
-        "PERMISSION_DENIED" | "NOT_FOUND" | "BLOCKED" | "PERM_ERROR" => "FAILED",
-        _ => "FAILED",
+        TaskResultCode::RateLimited | TaskResultCode::TempError => TaskStatus::Ready,
+        TaskResultCode::Ok | TaskResultCode::Duplicated => TaskStatus::Done,
+        TaskResultCode::PermissionDenied | TaskResultCode::NotFound | TaskResultCode::Blocked | TaskResultCode::PermError => TaskStatus::Failed,
+        _ => TaskStatus::Failed,
     };
 
-    if rc == "RATE_LIMITED" && current_status == "NEW" {
-        new_status = "READY";
+    if rc == TaskResultCode::RateLimited && current_status == TaskStatus::New {
+        new_status = TaskStatus::Ready;
     }
 
     let lease_delay = match rc {
-        "RATE_LIMITED" => Some(300),
-        "TEMP_ERROR" => {
+        TaskResultCode::RateLimited => Some(300),
+        TaskResultCode::TempError => {
             let delay = match attempts {
                 a if a <= 1 => 30,
                 2 => 60,
@@ -547,7 +547,7 @@ pub fn mark_task_result(
         _ => None,
     };
 
-    let executed_expr = if matches!(new_status, "DONE" | "FAILED") {
+    let executed_expr = if matches!(new_status, TaskStatus::Done | TaskStatus::Failed) {
         "datetime('now')"
     } else {
         "NULL"
@@ -560,9 +560,9 @@ pub fn mark_task_result(
     };
 
     let default_error = match rc {
-        "DUPLICATED" => Some("任务已查重跳过".to_string()),
-        "RATE_LIMITED" => Some("命中频控策略，延迟重试".to_string()),
-        "TEMP_ERROR" => Some("临时错误，稍后重试".to_string()),
+        TaskResultCode::Duplicated => Some("任务已查重跳过".to_string()),
+        TaskResultCode::RateLimited => Some("命中频控策略，延迟重试".to_string()),
+        TaskResultCode::TempError => Some("临时错误，稍后重试".to_string()),
         _ => None,
     };
 
@@ -571,25 +571,13 @@ pub fn mark_task_result(
         final_error = default_error;
     }
 
-    let final_result_code = rc.to_string();
-    let final_result_code_param: Option<&str> = Some(final_result_code.as_str());
-
     let sql = format!(
         "UPDATE tasks SET status = ?, result_code = ?, error_message = ?, executed_at = {} , lock_owner = NULL, lease_until = {} WHERE id = ?",
         executed_expr,
         lease_expr
     );
-
-    tx.execute(
-        &sql,
-        params![
-            new_status,
-            final_result_code_param,
-            final_error.as_deref(),
-            task_id
-        ],
-    )?;
-
+    
+    tx.execute(&sql, params![new_status, rc, final_error, task_id])?;
     tx.commit()?;
     Ok(())
 }

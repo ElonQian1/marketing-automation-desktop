@@ -1,24 +1,23 @@
 use super::models::{
-    WatchTargetPayload, WatchTargetRow, ListWatchTargetsQuery,
-    CommentPayload, CommentRow, ListCommentsQuery,
-    TaskPayload, TaskRow, ListTasksQuery,
+    WatchTargetPayload, WatchTargetRow,
+    CommentPayload, CommentRow,
+    TaskPayload, TaskRow, TaskStatus, TaskType, TaskResultCode,
     AuditLogPayload,
-    ReplyTemplatePayload, ReplyTemplateRow, ListReplyTemplatesQuery,
+    ReplyTemplatePayload, ReplyTemplateRow,
+    MarketingPlatform, TargetType,
 };
-use super::repositories as repo;
+use super::facade::MarketingStorageFacade;
 
 // ==================== 候选池相关命令 ====================
 
 #[tauri::command]
 pub fn bulk_upsert_watch_targets(app_handle: tauri::AppHandle, payloads: Vec<WatchTargetPayload>) -> Result<usize, String> {
-    let mut conn = repo::get_connection(&app_handle).map_err(|e| e.to_string())?;
-    repo::bulk_upsert_watch_targets(&mut conn, &payloads).map_err(|e| e.to_string())
+    MarketingStorageFacade::bulk_upsert_watch_targets(&app_handle, payloads)
 }
 
 #[tauri::command]
 pub fn get_watch_target_by_dedup_key(app_handle: tauri::AppHandle, dedup_key: String) -> Result<Option<WatchTargetRow>, String> {
-    let conn = repo::get_connection(&app_handle).map_err(|e| e.to_string())?;
-    repo::get_watch_target_by_dedup_key(&conn, &dedup_key).map_err(|e| e.to_string())
+    MarketingStorageFacade::get_watch_target_by_dedup_key(&app_handle, &dedup_key)
 }
 
 #[tauri::command]
@@ -29,9 +28,9 @@ pub fn list_watch_targets(
     platform: Option<String>,
     target_type: Option<String>,
 ) -> Result<Vec<WatchTargetRow>, String> {
-    let conn = repo::get_connection(&app_handle).map_err(|e| e.to_string())?;
-    let q = ListWatchTargetsQuery { limit, offset, platform, target_type };
-    repo::list_watch_targets(&conn, &q).map_err(|e| e.to_string())
+    let platform_enum = platform.map(MarketingPlatform::from);
+    let target_type_enum = target_type.map(TargetType::from);
+    MarketingStorageFacade::list_watch_targets(&app_handle, limit, offset, platform_enum, target_type_enum)
 }
 
 /// Alias for list_watch_targets (frontend expects get_watch_targets)
@@ -56,24 +55,22 @@ pub fn update_watch_target(
     notes: Option<String>,
     last_fetch_at: Option<String>,
 ) -> Result<(), String> {
-    let conn = repo::get_connection(&app_handle).map_err(|e| e.to_string())?;
-    repo::update_watch_target(
-        &conn,
+    MarketingStorageFacade::update_watch_target(
+        &app_handle,
         &id,
         title.as_deref(),
         industry_tags.as_deref(),
         region.as_deref(),
         notes.as_deref(),
         last_fetch_at.as_deref(),
-    ).map_err(|e| e.to_string())
+    )
 }
 
 // ==================== 评论相关命令 ====================
 
 #[tauri::command]
 pub fn insert_comment(app_handle: tauri::AppHandle, comment: CommentPayload) -> Result<String, String> {
-    let conn = repo::get_connection(&app_handle).map_err(|e| e.to_string())?;
-    repo::insert_comment(&conn, &comment).map_err(|e| e.to_string())
+    MarketingStorageFacade::insert_comment(&app_handle, comment)
 }
 
 #[tauri::command]
@@ -85,29 +82,26 @@ pub fn list_comments(
     source_target_id: Option<String>,
     region: Option<String>,
 ) -> Result<Vec<CommentRow>, String> {
-    let conn = repo::get_connection(&app_handle).map_err(|e| e.to_string())?;
-    let q = ListCommentsQuery { limit, offset, platform, source_target_id, region };
-    repo::list_comments(&conn, &q).map_err(|e| e.to_string())
+    let platform_enum = platform.map(MarketingPlatform::from);
+    MarketingStorageFacade::list_comments(&app_handle, limit, offset, platform_enum, source_target_id, region)
 }
 
 // ==================== 任务相关命令 ====================
 
 #[tauri::command]
 pub fn insert_task(app_handle: tauri::AppHandle, task: TaskPayload) -> Result<String, String> {
-    let conn = repo::get_connection(&app_handle).map_err(|e| e.to_string())?;
-    repo::insert_task(&conn, &task).map_err(|e| e.to_string())
+    MarketingStorageFacade::insert_task(&app_handle, task)
 }
 
 #[tauri::command]
 pub fn update_task_status(
     app_handle: tauri::AppHandle,
     task_id: String,
-    status: String,
-    result_code: Option<String>,
+    status: TaskStatus,
+    result_code: Option<TaskResultCode>,
     error_message: Option<String>,
 ) -> Result<(), String> {
-    let conn = repo::get_connection(&app_handle).map_err(|e| e.to_string())?;
-    repo::update_task_status(&conn, &task_id, &status, result_code.as_deref(), error_message.as_deref()).map_err(|e| e.to_string())
+    MarketingStorageFacade::update_task_status(&app_handle, &task_id, status, result_code, error_message.as_deref())
 }
 
 #[tauri::command]
@@ -115,13 +109,11 @@ pub fn list_tasks(
     app_handle: tauri::AppHandle,
     limit: Option<i64>,
     offset: Option<i64>,
-    status: Option<String>,
-    task_type: Option<String>,
+    status: Option<TaskStatus>,
+    task_type: Option<TaskType>,
     assign_account_id: Option<String>,
 ) -> Result<Vec<TaskRow>, String> {
-    let conn = repo::get_connection(&app_handle).map_err(|e| e.to_string())?;
-    let q = ListTasksQuery { limit, offset, status, task_type, assign_account_id };
-    repo::list_tasks(&conn, &q).map_err(|e| e.to_string())
+    MarketingStorageFacade::list_tasks(&app_handle, limit, offset, status, task_type, assign_account_id)
 }
 
 #[tauri::command]
@@ -130,20 +122,17 @@ pub fn lock_next_ready_task(
     account_id: String,
     lease_seconds: Option<i64>,
 ) -> Result<Option<TaskRow>, String> {
-    let mut conn = repo::get_connection(&app_handle).map_err(|e| e.to_string())?;
-    let lease = lease_seconds.unwrap_or(120);
-    repo::lock_next_ready_task(&mut conn, &account_id, lease).map_err(|e| e.to_string())
+    MarketingStorageFacade::lock_next_ready_task(&app_handle, &account_id, lease_seconds)
 }
 
 #[tauri::command]
 pub fn mark_task_result(
     app_handle: tauri::AppHandle,
     task_id: String,
-    result_code: Option<String>,
+    result_code: Option<TaskResultCode>,
     error_message: Option<String>,
 ) -> Result<(), String> {
-    let mut conn = repo::get_connection(&app_handle).map_err(|e| e.to_string())?;
-    repo::mark_task_result(&mut conn, &task_id, result_code.as_deref(), error_message.as_deref()).map_err(|e| e.to_string())
+    MarketingStorageFacade::mark_task_result(&app_handle, &task_id, result_code, error_message.as_deref())
 }
 
 

@@ -4,6 +4,7 @@
 
 pub mod models;
 pub mod repositories;
+pub mod facade;
 pub mod commands;
 
 // Re-export commands for easy import in main.rs
