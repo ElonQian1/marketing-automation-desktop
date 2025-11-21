@@ -10,7 +10,7 @@ use tauri::{AppHandle, State, Manager};
 
 use crate::services::prospecting::{
     ProspectingService,
-    types::{Comment, RawComment, CommentFilter, AnalysisResult, ReplyPlan, Statistics},
+    Comment, RawComment, CommentFilter, AnalysisResult, ReplyPlan, Statistics,
 };
 
 /// 精准获客模块的全局状态
@@ -145,8 +145,8 @@ pub async fn prospecting_get_reply_plans_by_ids(
 /// 执行真实回复计划（与模拟设备交互）
 #[tauri::command]
 pub async fn prospecting_execute_real_reply_plan(
-    state: State<'_, ProspectingState>,
-    plan_id: String,
+    _state: State<'_, ProspectingState>,
+    _plan_id: String,
 ) -> Result<bool, String> {
     // 这里暂时返回成功，实际实现需要与 ADB/设备交互
     // 在真实环境中，这里会调用设备自动化服务
