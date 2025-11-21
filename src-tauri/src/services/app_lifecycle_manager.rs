@@ -382,7 +382,7 @@ impl AppLifecycleManager {
     }
 
     /// 通过桌面图标启动（需要UI自动化支持）
-    async fn launch_via_desktop_icon(&self, device_id: &str, app_name: &str, logs: &mut Vec<String>) -> Result<(), String> {
+    async fn launch_via_desktop_icon(&self, _device_id: &str, app_name: &str, logs: &mut Vec<String>) -> Result<(), String> {
         logs.push(format!("🖱️ 尝试通过桌面图标启动 {}", app_name));
         
         // 这里需要集成UI自动化逻辑来点击桌面图标

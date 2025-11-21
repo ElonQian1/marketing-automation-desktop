@@ -1,7 +1,7 @@
 // Force recompile check
-use anyhow::Result;
 use crate::services::adb::get_device_session;
 use crate::services::smart_app_manager::AppInfo;
+use anyhow::Result;
 
 /// List all packages via single command
 pub async fn list_packages(device_id: &str) -> Result<Vec<String>> {
@@ -23,7 +23,7 @@ pub async fn fetch_app_info(device_id: &str, package_name: &str) -> Result<AppIn
         .execute_command(&format!("dumpsys package {}", package_name))
         .await?;
 
-    let mut app_name = package_name.to_string();
+    let app_name;
     let mut version_name = None;
     let mut version_code = None;
     let mut main_activity = None;
@@ -100,7 +100,11 @@ fn trim_label_quotes(s: &str) -> Option<String> {
     if s.starts_with('\'') && s.ends_with('\'') && s.len() >= 2 {
         return Some(s[1..s.len() - 1].to_string());
     }
-    if !s.is_empty() { Some(s.to_string()) } else { None }
+    if !s.is_empty() {
+        Some(s.to_string())
+    } else {
+        None
+    }
 }
 
 fn generate_friendly_name(package_name: &str) -> String {

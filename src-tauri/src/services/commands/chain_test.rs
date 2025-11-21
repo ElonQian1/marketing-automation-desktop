@@ -1,13 +1,16 @@
+#![allow(dead_code)]
+#![allow(unused_variables)]
+#![allow(unused_imports)]
+
 // src-tauri/src/services/commands/chain_test.rs
 // module: services | layer: application | role: 智能自动链测试命令
 // summary: 串行执行多步骤，带置信度阈值与回退策略
 
-use std::collections::HashMap;
 use serde::{Deserialize, Serialize};
 use tracing::{error, info};
 
 use crate::services::smart_script_executor::SmartScriptExecutor;
-use crate::services::execution::model::{SmartScriptStep, SingleStepTestResult};
+use crate::services::execution::model::SmartScriptStep;
 
 /// 智能自动链测试规格
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -173,7 +176,7 @@ pub async fn execute_chain_test(
 
 /// 评估步骤的置信度（0..1）
 async fn evaluate_step_confidence(
-    executor: &SmartScriptExecutor,
+    _executor: &SmartScriptExecutor,
     step: &SmartScriptStep,
 ) -> Result<f64, String> {
     // 这里简化为调用统一匹配逻辑获取分数

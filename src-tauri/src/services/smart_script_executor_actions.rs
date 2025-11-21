@@ -1,3 +1,7 @@
+#![allow(dead_code)]
+#![allow(unused_variables)]
+#![allow(unused_imports)]
+
 // smart_script_executor_actions.rs - 智能脚本执行器的具体操作实现（精简版：仅保留增强滑动路径）
 use anyhow::Result;
 use tracing::{error, info, warn};

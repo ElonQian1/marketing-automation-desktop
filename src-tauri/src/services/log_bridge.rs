@@ -6,7 +6,7 @@
 use serde::{Deserialize, Serialize};
 use std::collections::VecDeque;
 use std::sync::{Arc, Mutex};
-use tauri::{AppHandle, Emitter};
+use tauri::AppHandle;
 use tracing::{info, warn, error};
 
 #[derive(Debug, Clone, Serialize, Deserialize)]

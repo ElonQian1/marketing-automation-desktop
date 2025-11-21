@@ -1,3 +1,7 @@
+#![allow(dead_code)]
+#![allow(unused_variables)]
+#![allow(unused_imports)]
+
 // 通用UI元素查找核心 - 适配所有Android应用的智能UI定位
 
 use regex::Regex;

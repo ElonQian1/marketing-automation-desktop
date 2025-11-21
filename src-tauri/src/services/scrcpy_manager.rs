@@ -1,3 +1,7 @@
+#![allow(dead_code)]
+#![allow(unused_variables)]
+#![allow(unused_imports)]
+
 use std::process::{Command, Stdio, Child};
 use std::collections::HashMap;
 use std::sync::{Mutex, Arc};
@@ -6,7 +10,6 @@ use crate::infrastructure::events::emit_and_trace;
 use anyhow::{anyhow, Result};
 use once_cell::sync::Lazy;
 use tracing::{info, warn, error};
-use tauri::Emitter;
 
 #[derive(Default)]
 pub struct ScrcpyState {

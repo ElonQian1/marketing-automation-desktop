@@ -12,11 +12,9 @@ pub mod tracking;
 pub mod commands;
 
 // 重新导出常用接口，保持向后兼容
-pub use basic::{AdbService, create_adb_service, AdbResult};
-pub use basic::{initialize_adb_system, is_adb_server_running, ensure_adb_server_running};
-pub use session::{AdbShellSession, AdbSessionManager, get_device_session};
+pub use basic::AdbService;
+pub use basic::initialize_adb_system;
+pub use session::{AdbShellSession, get_device_session};
 pub use tracking::{
-    DeviceChangeEvent, DeviceEventType, TrackedDevice,
-    initialize_device_tracker, start_device_tracking, stop_device_tracking, get_tracked_devices
+    start_device_tracking, stop_device_tracking, get_tracked_devices
 };
-pub use commands::{AdbActivityResult, StartActivityRequest, adb_start_activity};

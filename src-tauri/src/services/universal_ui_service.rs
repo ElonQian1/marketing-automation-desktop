@@ -1,23 +1,24 @@
+#![allow(dead_code)]
+#![allow(unused_variables)]
+#![allow(unused_imports)]
+
 // Universal UI Finder Tauri服务
 // 桥接前端智能导航配置，基于现有的smart_element_finder_service实现
 
 use serde::{Deserialize, Serialize};
 use tauri::command;
 use crate::services::universal_ui_finder::{
-    UniversalUIFinder, FindRequest, ClickResult as FinderClickResult, UniversalUIElement
+    UniversalUIFinder, FindRequest
 };
 use crate::services::adb::AdbService;
 use crate::services::universal_ui_page_analyzer::{UniversalUIPageAnalyzer, UIElementType};
 use crate::types::page_analysis::{
-    PageAnalysisResult, PageInfo, PageType, ActionableElement, ElementType, 
-    ElementBounds, ElementAction, ElementGroupInfo, ElementGroupType, ElementStatistics
+    PageAnalysisResult, PageInfo, PageType, ActionableElement, ElementType, ElementAction, ElementGroupInfo, ElementGroupType, ElementStatistics
 };
 use crate::types::smart_finder::{
     NavigationBarConfig, DetectedElement, ElementFinderResult, ClickResult as SmartClickResult, PositionRatio as SmartPositionRatio
 };
 use std::collections::HashMap;
-use std::sync::Arc;
-use tokio::sync::Mutex;
 
 /// 前端智能导航参数结构 
 /// 对应SmartScriptStep的parameters字段
@@ -72,7 +73,7 @@ impl UniversalUIService {
     pub async fn analyze_page_compatible(
         &self, 
         device_id: &str,
-        config: Option<crate::types::page_analysis::PageAnalysisConfig>
+        _config: Option<crate::types::page_analysis::PageAnalysisConfig>
     ) -> Result<PageAnalysisResult, String> {
         let adb_service = AdbService::new();
         

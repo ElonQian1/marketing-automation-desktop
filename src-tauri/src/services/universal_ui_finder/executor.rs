@@ -1,3 +1,7 @@
+#![allow(dead_code)]
+#![allow(unused_variables)]
+#![allow(unused_imports)]
+
 // 操作执行器 - 负责实际的点击操作和结果验证
 
 use std::process::Command;

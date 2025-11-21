@@ -6,8 +6,7 @@
 
 use crate::services::vcf::{MultiBrandVcfImporter, MultiBrandImportResult, Contact, VcfOpenResult, generate_vcf_file as generate_vcf_file_impl};
 // // use crate::services::huawei_enhanced_importer::{HuaweiEmuiEnhancedStrategy, ImportExecutionResult};
-use serde::{Deserialize, Serialize};
-use tracing::{error, info, warn};
+use tracing::{error, info};
 
 /// 从联系人列表生成 VCF 文件
 #[tauri::command]

@@ -1,3 +1,7 @@
+#![allow(dead_code)]
+#![allow(unused_variables)]
+#![allow(unused_imports)]
+
 // 配置管理 - 支持多应用和多场景的配置化管理
 
 use std::collections::HashMap;

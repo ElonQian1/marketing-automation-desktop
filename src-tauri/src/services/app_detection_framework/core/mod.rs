@@ -11,5 +11,5 @@ pub mod detection_config;
 
 // 重新导出核心类型，便于外部使用
 pub use detector_trait::{AppDetector, BaseAppDetector};
-pub use detection_result::{AppLaunchState, DetectionResult, DetectionStats};
+pub use detection_result::{AppLaunchState, DetectionResult};
 pub use detection_config::{DetectionConfig, DetectionKeywords, AppConfigManager};

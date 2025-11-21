@@ -279,13 +279,13 @@ impl AppConfigManager {
     }
     
     /// 从文件加载配置
-    pub fn load_from_file(&mut self, file_path: &str) -> anyhow::Result<()> {
+    pub fn load_from_file(&mut self, _file_path: &str) -> anyhow::Result<()> {
         // TODO: 实现从JSON或TOML文件加载配置
         Ok(())
     }
     
     /// 保存配置到文件
-    pub fn save_to_file(&self, file_path: &str) -> anyhow::Result<()> {
+    pub fn save_to_file(&self, _file_path: &str) -> anyhow::Result<()> {
         // TODO: 实现保存配置到JSON或TOML文件
         Ok(())
     }

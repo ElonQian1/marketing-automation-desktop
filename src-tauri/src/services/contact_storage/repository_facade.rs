@@ -49,7 +49,8 @@ impl ContactStorageFacade {
         };
         
         std::fs::create_dir_all(&db_dir).expect("failed to create data dir");
-        let db_path = db_dir.join("contacts.db");
+        // 统一使用 employees.db，避免多数据库冗余
+        let db_path = db_dir.join("employees.db");
         Ok(db_path)
     }
     

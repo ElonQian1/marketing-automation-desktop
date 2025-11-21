@@ -1,3 +1,7 @@
+#![allow(dead_code)]
+#![allow(unused_variables)]
+#![allow(unused_imports)]
+
 use anyhow::Result;
 use regex::Regex;
 use serde::{Deserialize, Serialize};
@@ -374,7 +378,7 @@ impl NavigationBarDetector {
         &self,
         ui_content: &str,
         area_bounds: (i32, i32, i32, i32),
-        config: &NavigationBarDetectionConfig,
+        _config: &NavigationBarDetectionConfig,
     ) -> Result<Vec<DetectedNavigationButton>> {
         let mut buttons = Vec::new();
         let (area_left, area_top, area_right, area_bottom) = area_bounds;
@@ -399,7 +403,7 @@ impl NavigationBarDetector {
                 .get(7)
                 .map(|m| m.as_str().to_string())
                 .filter(|s| !s.is_empty());
-            let resource_id = caps
+            let _resource_id = caps
                 .get(8)
                 .map(|m| m.as_str().to_string())
                 .filter(|s| !s.is_empty());
@@ -548,7 +552,7 @@ impl NavigationBarDetector {
         bounds: (i32, i32, i32, i32),
         screen_size: (i32, i32),
     ) -> f64 {
-        let (left, top, right, bottom) = bounds;
+        let (left, top, right, _bottom) = bounds;
         let (screen_width, screen_height) = screen_size;
 
         match position_config.bar_type {

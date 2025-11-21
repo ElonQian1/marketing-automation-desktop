@@ -1,3 +1,7 @@
+#![allow(dead_code)]
+#![allow(unused_variables)]
+#![allow(unused_imports)]
+
 /**
  * Universal UI 页面分析器
  * 增强的XML解析和元素分类功能
@@ -745,7 +749,7 @@ pub fn parse_ui_elements_simple(xml_content: &str) -> AnyResult<Vec<UIElement>> 
 /// 分析Universal UI页面
 #[tauri::command]
 pub async fn analyze_universal_ui_page(
-    app_handle: tauri::AppHandle,
+    _app_handle: tauri::AppHandle,
     device_id: String,
 ) -> Result<UniversalPageCaptureResult, String> {
     info!("🔍 开始分析Universal UI页面，设备ID: {}", device_id);

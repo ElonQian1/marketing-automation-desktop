@@ -1,3 +1,7 @@
+#![allow(dead_code)]
+#![allow(unused_variables)]
+#![allow(unused_imports)]
+
 // Universal UI Finder - 通用UI自动化定位模块
 // 支持任意Android应用的UI元素智能查找和用户交互
 

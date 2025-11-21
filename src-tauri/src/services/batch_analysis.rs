@@ -194,7 +194,7 @@ impl BatchAnalysisService {
         let processed_count = Arc::new(tokio::sync::Mutex::new(0));
 
         let results = stream::iter(comments.into_iter().enumerate())
-            .map(|(index, comment)| {
+            .map(|(_index, comment)| {
                 let app_handle = app_handle.clone();
                 let batch_id = batch_id.clone();
                 let processed_count = processed_count.clone();
@@ -285,7 +285,7 @@ impl BatchAnalysisService {
     /// 分析单条评论（调用AI服务）
     async fn analyze_single_comment(
         comment: &db::lead_comments::LeadComment,
-        app_handle: &AppHandle,
+        _app_handle: &AppHandle,
     ) -> anyhow::Result<SingleAnalysisResult> {
         // 构造分析请求
         let prompt = format!(

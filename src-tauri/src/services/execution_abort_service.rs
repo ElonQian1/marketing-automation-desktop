@@ -1,3 +1,7 @@
+#![allow(dead_code)]
+#![allow(unused_variables)]
+#![allow(unused_imports)]
+
 // src-tauri/src/services/execution_abort_service.rs
 // module: services | layer: services | role: 后端执行中止服务
 // summary: 提供真正的后端 ADB 操作中止功能

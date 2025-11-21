@@ -8,10 +8,9 @@ use anyhow::Result;
 use crate::services::universal_ui_page_analyzer::{parse_ui_elements_simple as parse_ui_elements, UIElement};  // ✅ 导入 UI 解析函数
 use crate::engine::{AnalysisContext, ContainerInfo};  // ✅ 导入分析上下文和容器信息
 use crate::engine::xml_indexer::XmlIndexer;  // 🔥 导入XML索引器
-use crate::domain::structure_runtime_match::scorers::{SubtreeMatcher, LeafContextMatcher};  // 🔥 导入结构匹配评分器
-use crate::domain::structure_runtime_match::ClickNormalizer;  // 🔥 导入点击归一化器
-use crate::domain::structure_runtime_match::adapters::xml_indexer_adapter::XmlIndexerAdapter;
 use crate::types::page_analysis::ElementBounds; // ✅ 导入 ElementBounds
+use crate::services::unified_match_service::UnifiedMatchService;
+use crate::domain::structure_runtime_match::ClickNormalizer;  // 🔥 导入点击归一化器
 
 /// 智能分析请求
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -316,6 +315,7 @@ fn count_xml_elements(xml_content: &str) -> usize {
 }
 
 /// 🆕 从 XML 中提取多个有文本的可点击元素（作为候选目标）
+#[allow(dead_code)]
 fn extract_clickable_texts(xml_content: &str, max_count: usize) -> Vec<String> {
     let mut texts = Vec::new();
     let mut pos = 0;
@@ -600,7 +600,7 @@ fn build_context_from_element(
 ) -> Result<AnalysisContext> {
     // 🔥 使用 SmartXPathGenerator 生成最佳 XPath（修复 Bug: WRONG_ELEMENT_SELECTION_BUG_REPORT.md）
     use crate::services::execution::matching::{SmartXPathGenerator, ElementAttributes};
-    use std::collections::HashMap;
+    
     
     let mut attributes = ElementAttributes::new();
     
@@ -690,7 +690,7 @@ pub async fn mock_intelligent_analysis(
         // 🔥 NEW: 使用 SmartXPathGenerator 增强 XPath（子元素文本过滤）
         // Bug Fix: WRONG_ELEMENT_SELECTION_BUG_REPORT.md
         use crate::services::execution::matching::{SmartXPathGenerator, ElementAttributes};
-        use std::collections::HashMap;
+        
         
         let mut attributes = ElementAttributes::new();
         
@@ -771,44 +771,38 @@ pub async fn mock_intelligent_analysis(
             // 构建 XML 索引器
             match XmlIndexer::build_from_xml(&request.ui_xml_content) {
                 Ok(xml_indexer) => {
+                    let xml_indexer_arc = std::sync::Arc::new(xml_indexer);
+                    
                     // 通过 index_path 找到目标节点
-                    if let Some(clicked_node_idx) = xml_indexer.find_node_by_index_path(index_path) {
+                    if let Some(clicked_node_idx) = xml_indexer_arc.find_node_by_index_path(index_path) {
                         tracing::info!("✅ [结构匹配] 找到目标节点: index={}", clicked_node_idx);
                         
-                        // 推导四节点上下文
-                        let normalizer = ClickNormalizer::new(&xml_indexer);
-                        let clicked_node = &xml_indexer.all_nodes[clicked_node_idx];
+                        // 推导四节点上下文 (用于 UnifiedMatchService)
+                        let normalizer = ClickNormalizer::new(&xml_indexer_arc);
+                        let clicked_node = &xml_indexer_arc.all_nodes[clicked_node_idx];
                         
-                        match normalizer.normalize_click(clicked_node.bounds) {
-                            Ok(normalized) => {
-                                let card_root_idx = normalized.card_root.node_index;
-                                let clickable_parent_idx = normalized.clickable_parent.node_index;
-                                
-                                tracing::info!("✅ [结构匹配] 四节点推导完成: card_root={}, clickable_parent={}", 
-                                    card_root_idx, clickable_parent_idx);
-                                
-                                // Step1: 卡片子树评分
-                                let adapter = XmlIndexerAdapter::new(&xml_indexer, "adhoc".to_string());
-                                let subtree_matcher = SubtreeMatcher::new(&adapter);
-                                let subtree_outcome = subtree_matcher.score_subtree(card_root_idx as u32, clickable_parent_idx as u32);
-                                
-                                tracing::info!("📊 [Step1] 卡片子树评分: {:.3}, 通过闸门: {}", 
-                                    subtree_outcome.conf, subtree_outcome.passed_gate);
-                                
-                                structure_match_scores.push(("card_subtree_scoring", subtree_outcome.conf));
-                                
-                                // Step2: 叶子上下文评分
-                                let leaf_matcher = LeafContextMatcher::new(&xml_indexer);
-                                let leaf_sig = leaf_matcher.build_context_signature(clicked_node_idx, clickable_parent_idx);
-                                let leaf_outcome = leaf_matcher.score_leaf_context(&leaf_sig);
-                                
-                                tracing::info!("📊 [Step2] 叶子上下文评分: {:.3}, 通过闸门: {}", 
-                                    leaf_outcome.conf, leaf_outcome.passed_gate);
-                                
-                                structure_match_scores.push(("leaf_context_scoring", leaf_outcome.conf));
+                        // 尝试归一化，如果失败则传递 None (UnifiedMatchService 会处理降级)
+                        let normalize_result = normalizer.normalize_click(clicked_node.bounds).ok();
+                        
+                        if let Some(ref norm) = normalize_result {
+                             tracing::info!("✅ [结构匹配] 四节点推导完成: card_root={}, clickable_parent={}", 
+                                    norm.card_root.node_index, norm.clickable_parent.node_index);
+                        } else {
+                             tracing::warn!("⚠️ [结构匹配] 四节点推导失败，将使用降级模式");
+                        }
+
+                        // 使用 UnifiedMatchService 执行所有匹配器
+                        let unified_service = UnifiedMatchService::new();
+                        match unified_service.analyze_element(xml_indexer_arc.clone(), clicked_node_idx, normalize_result.as_ref()) {
+                            Ok(results) => {
+                                for result in results {
+                                    tracing::info!("📊 [{}] 评分: {:.3}, 通过: {}", 
+                                        result.mode.display_name(), result.confidence, result.passed_gate);
+                                    structure_match_scores.push((result.mode.display_name(), result.confidence as f64));
+                                }
                             }
                             Err(e) => {
-                                tracing::warn!("⚠️ [结构匹配] 四节点推导失败: {}", e);
+                                tracing::error!("❌ [UnifiedMatchService] 分析失败: {}", e);
                             }
                         }
                     } else {
@@ -1079,6 +1073,7 @@ pub async fn mock_intelligent_analysis(
 
 /// 从 hint 中提取 resource-id（已废弃，保留兼容）
 #[deprecated(note = "使用 UserSelectionContext 代替")]
+#[allow(dead_code)]
 fn extract_resource_id_from_hint(hint: &str) -> Option<String> {
     // 简单的启发式提取，可以根据实际情况优化
     if hint.contains("resource-id") {

@@ -10,6 +10,7 @@ pub mod contact;
 pub mod contact_automation;
 pub mod error_handling; // 新增：错误处理模块
 pub mod intelligent_analysis_service; // V3智能分析服务
+pub mod unified_match_service; // 新增：统一元素匹配服务
 pub mod lead_hunt; // 新增：精准获客Lead Hunt服务
 pub mod navigation_bar_detector; // 新增：通用导航栏检测器
 // pub mod page_analyzer_service; // 已删除：页面分析服务（合并至 UniversalUIService）

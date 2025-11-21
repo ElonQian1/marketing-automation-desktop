@@ -35,7 +35,7 @@ impl MatcherService {
         }
     }
 
-    async fn match_absolute(&self, step: &ExecStep) -> Result<MatchResult> {
+    async fn match_absolute(&self, _step: &ExecStep) -> Result<MatchResult> {
         // 占位：未来使用 bounds/index 等位置信息
         Ok(MatchResult { success: true, matched_count: 1, details: Some(serde_json::json!({"strategy":"absolute"})) })
     }

@@ -11,11 +11,9 @@ use tracing::{error, info};
 
 // 🆕 导出智能自动链测试命令
 mod chain_test;
-pub use chain_test::execute_chain_test;
 
 // 🆕 导出静态策略测试命令
 mod static_test;
-pub use static_test::execute_static_strategy_test;
 
 /// 执行单步智能脚本测试。
 #[tauri::command]

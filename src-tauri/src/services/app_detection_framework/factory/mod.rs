@@ -6,4 +6,4 @@
 pub mod detector_factory;
 
 // 重新导出主要类型
-pub use detector_factory::{DetectorFactory, DetectorRegistry, create_app_detector, is_specialized_app};
+pub use detector_factory::DetectorFactory;

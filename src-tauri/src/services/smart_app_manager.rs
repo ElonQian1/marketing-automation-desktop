@@ -1,7 +1,6 @@
 use anyhow::Result;
 use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
-use std::sync::Arc;
 use tokio::sync::Mutex;
 use crate::services::adb::get_device_session;
 use crate::services::app_detection_framework::{

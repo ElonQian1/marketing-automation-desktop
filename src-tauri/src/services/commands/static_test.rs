@@ -1,3 +1,7 @@
+#![allow(dead_code)]
+#![allow(unused_variables)]
+#![allow(unused_imports)]
+
 // src-tauri/src/services/commands/static_test.rs
 // module: services | layer: application | role: 静态策略测试命令
 // summary: 基于固定定位器（id/xpath/bounds）执行测试
@@ -29,7 +33,7 @@ pub struct StaticLocator {
 pub struct StaticStrategyTestSpec {
     /// 动作类型：tap/input/swipe/wait
     pub action: String,
-    /// 静态定位器
+    ///  静态定位器
     pub locator: StaticLocator,
     /// 额外参数（如 input 的文本、swipe 的方向等）
     #[serde(default)]

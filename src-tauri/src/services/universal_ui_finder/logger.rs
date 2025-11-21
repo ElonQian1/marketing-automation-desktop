@@ -1,3 +1,7 @@
+#![allow(dead_code)]
+#![allow(unused_variables)]
+#![allow(unused_imports)]
+
 // 交互式日志记录器 - 提供用户友好的详细日志和交互式错误处理
 
 use std::io::{self, Write};
