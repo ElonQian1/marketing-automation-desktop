@@ -8,11 +8,6 @@ pub mod adb_file;
 pub mod ui_automation;
 
 // 重新导出公共接口
-pub use adb_activity::{
-    AdbActivityResult,
-    StartActivityRequest,
-    adb_start_activity,
-};
 pub use adb_shell::safe_adb_shell_command;
 pub use adb_file::safe_adb_push;
 pub use ui_automation::{adb_dump_ui_xml, adb_tap_coordinate};

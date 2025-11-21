@@ -12,11 +12,7 @@ mod adb_ui_automation;  // UI自动化操作
 
 // 重新导出公共接口
 pub use adb_core::AdbService;
-pub use adb_initialization::{
-    initialize_adb_system, 
-    is_adb_server_running, 
-    ensure_adb_server_running
-};
+pub use adb_initialization::initialize_adb_system;
 
 // 导出常用的结果类型
 pub type AdbResult<T> = Result<T, Box<dyn std::error::Error>>;

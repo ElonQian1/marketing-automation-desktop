@@ -2,10 +2,9 @@
 // module: adb | layer: basic | role: ADB 核心初始化服务
 // summary: 负责 ADB server 启动和设备跟踪器初始化，确保正确的启动顺序
 
-use tracing::{debug, error, info, warn};
+use tracing::{info, warn};
 use std::time::Duration;
 use std::thread;
-use tauri::async_runtime;
 
 use super::adb_core::AdbService;
 use crate::services::adb::tracking::initialize_device_tracker;

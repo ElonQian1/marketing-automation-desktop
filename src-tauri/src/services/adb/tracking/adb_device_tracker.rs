@@ -6,7 +6,7 @@ use tokio::sync::{broadcast, Mutex};
 use tokio::time::sleep;
 use tracing::{debug, error, info, warn};
 use serde::{Deserialize, Serialize};
-use tauri::{AppHandle, Emitter};
+use tauri::AppHandle;
 
 #[cfg(windows)]
 use std::sync::Once;

@@ -6,10 +6,6 @@ pub mod adb_device_tracker;
 
 // 重新导出公共接口
 pub use adb_device_tracker::{
-    DeviceChangeEvent,
-    DeviceEventType,
-    TrackedDevice,
-    AdbDeviceTracker,
     initialize_device_tracker,
     start_device_tracking,
     stop_device_tracking,

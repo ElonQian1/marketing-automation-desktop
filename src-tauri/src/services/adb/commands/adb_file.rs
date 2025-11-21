@@ -6,7 +6,7 @@ use tracing::{info, error};
 use crate::services::adb::get_device_session;
 use tokio::process::Command;
 #[cfg(windows)]
-use std::os::windows::process::CommandExt;
+// use std::os::windows::process::CommandExt;
 
 /// 安全的ADB Push命令
 /// 

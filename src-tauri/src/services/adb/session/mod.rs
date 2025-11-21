@@ -7,4 +7,4 @@ pub mod adb_session_manager; // 会话管理器（多设备映射）
 
 // 重新导出公共接口
 pub use adb_shell_session::AdbShellSession;
-pub use adb_session_manager::{AdbSessionManager, get_device_session};
+pub use adb_session_manager::get_device_session;

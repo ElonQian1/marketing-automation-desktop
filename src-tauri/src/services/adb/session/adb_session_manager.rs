@@ -150,8 +150,8 @@ impl AdbSessionManager {
     }
 }
 
-/// 全局会话管理器实例
 lazy_static::lazy_static! {
+    /// 全局会话管理器实例
     pub static ref GLOBAL_SESSION_MANAGER: AdbSessionManager = AdbSessionManager::new();
 }
 
