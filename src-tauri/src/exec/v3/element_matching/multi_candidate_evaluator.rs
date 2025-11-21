@@ -3,9 +3,8 @@
 // summary: 对多个XPath匹配结果进行综合评分，选择最佳候选
 
 use crate::services::universal_ui_page_analyzer::UIElement;
-use super::spatial_distance::calculate_distance;
 use super::text_comparator::TextComparator;
-use super::super::semantic_analyzer::{SemanticAnalyzer, TextMatchingMode};
+use super::super::semantic_analyzer::SemanticAnalyzer;
 
 /// 匹配候选
 #[derive(Debug, Clone)]

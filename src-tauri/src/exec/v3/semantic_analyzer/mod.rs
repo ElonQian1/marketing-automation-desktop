@@ -9,6 +9,4 @@ pub mod antonym_detector;
 #[cfg(test)]
 mod test;
 
-pub use config::*;
 pub use analyzer::*;
-pub use antonym_detector::*;

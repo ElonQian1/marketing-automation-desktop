@@ -5,13 +5,13 @@
 use std::collections::HashSet;
 use std::sync::{Arc, Mutex};
 
-/// 🚨 【重复执行保护】全局执行追踪器
-/// 
-/// 功能：
-/// - 追踪当前正在执行的 analysis_id
-/// - 防止同一个 analysis_id 被重复执行导致重复点击
-/// - 执行完成后自动释放锁定
 lazy_static::lazy_static! {
+    /// 🚨 【重复执行保护】全局执行追踪器
+    /// 
+    /// 功能：
+    /// - 追踪当前正在执行的 analysis_id
+    /// - 防止同一个 analysis_id 被重复执行导致重复点击
+    /// - 执行完成后自动释放锁定
     static ref EXECUTION_TRACKER: Arc<Mutex<HashSet<String>>> = Arc::new(Mutex::new(HashSet::new()));
 }
 

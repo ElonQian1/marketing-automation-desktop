@@ -9,9 +9,4 @@ pub mod text_comparator;
 pub mod bounds_matcher;
 pub mod xpath_similarity_matcher;
 
-pub use multi_candidate_evaluator::{MultiCandidateEvaluator, MatchCandidate, EvaluationCriteria};
-pub use xpath_matcher::{XPathMatcher, MatchResult};
-pub use spatial_distance::{SpatialDistance, calculate_distance};
-pub use text_comparator::{TextComparator, ComparisonResult};
-pub use bounds_matcher::{BoundsMatcher, BoundsMatchResult, BoundsRect};
-pub use xpath_similarity_matcher::{XPathSimilarityMatcher, XPathSimilarityResult};
+pub use multi_candidate_evaluator::{MultiCandidateEvaluator, EvaluationCriteria};

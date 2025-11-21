@@ -6,5 +6,4 @@ pub mod executor;
 // pub mod factory; // TODO: 待实现
 
 // 重新导出核心接口
-pub use executor::*;
 // pub use factory::*;

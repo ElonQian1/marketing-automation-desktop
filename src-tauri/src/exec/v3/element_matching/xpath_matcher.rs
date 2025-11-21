@@ -135,7 +135,7 @@ impl XPathMatcher {
         }
 
         // Index匹配
-        if let Some(required_index) = conditions.index {
+        if let Some(_required_index) = conditions.index {
             // TODO: 需要在UIElement中添加index字段
             // 暂时忽略index匹配
         }

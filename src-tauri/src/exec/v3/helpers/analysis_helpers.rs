@@ -2,7 +2,7 @@
 // module: v3 | layer: helpers | role: 智能分析辅助函数 - 触发判断与前端调用
 // summary: 提供智能分析的触发条件判断和前端调用功能
 
-use crate::exec::v3::{SingleStepSpecV3, StepRefOrInline};
+use crate::exec::v3::StepRefOrInline;
 use crate::services::intelligent_analysis_service::{
     IntelligentAnalysisRequest, UserSelectionContext,
 };
@@ -173,7 +173,7 @@ pub fn is_explicit_structural_mode_from_params(params: &serde_json::Value) -> bo
 /// - false: 不需要智能分析（Legacy结果可用）
 pub fn should_trigger_intelligent_analysis(
     ordered_steps: &[StepRefOrInline],
-    quality: &crate::exec::v3::QualitySettings,
+    _quality: &crate::exec::v3::QualitySettings,
 ) -> bool {
     use crate::exec::v3::SingleStepAction;
 
@@ -596,7 +596,7 @@ async fn call_frontend_intelligent_analysis_with_context(
     device_id: &str,
     original_params: &serde_json::Value,
 ) -> Result<Vec<StepRefOrInline>, anyhow::Error> {
-    use super::strategy_generation::convert_analysis_result_to_v3_steps;
+    
 
     tracing::info!("🔗 调用增强版前端智能策略分析系统");
 

@@ -60,7 +60,7 @@ impl AntonymDetector {
     }
 
     /// 从配置创建检测器
-    pub fn from_config(config: &SemanticConfig, all_pairs: Vec<&AntonymPair>) -> Self {
+    pub fn from_config(_config: &SemanticConfig, all_pairs: Vec<&AntonymPair>) -> Self {
         let pairs = all_pairs.into_iter().cloned().collect();
         Self::new(pairs)
     }

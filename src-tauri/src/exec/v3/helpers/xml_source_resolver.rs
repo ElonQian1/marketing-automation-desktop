@@ -2,8 +2,7 @@
 // module: exec | layer: helpers | role: XML数据源三级降级解析
 // summary: 统一解析XML数据源：全局XmlIndexer → 步骤卡片xmlSnapshot → 实时设备XML
 
-use tauri::{AppHandle, Manager};
-use crate::engine::XmlIndexer;
+use tauri::AppHandle;
 use super::super::types::ContextEnvelope;
 
 /// 📋 XML 数据源三级降级策略
@@ -24,7 +23,7 @@ use super::super::types::ContextEnvelope;
 /// * `Ok(String)` - 成功解析的 XML 字符串
 /// * `Err(String)` - 解析失败的错误信息
 pub async fn resolve_xml_source(
-    app: &AppHandle,
+    _app: &AppHandle,
     envelope: &ContextEnvelope,
 ) -> Result<String, String> {
     // 🥇 第一优先级：步骤卡片 xmlSnapshot（跨机器执行场景）

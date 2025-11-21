@@ -3,7 +3,7 @@
 // summary: 处理提前智能分析检测、步骤质量评估和步骤合并优化
 
 use super::super::types::{
-    StepRefOrInline, QualitySettings, ConstraintSettings, ValidationSettings, ChainMode,
+    StepRefOrInline, QualitySettings,
 };
 use super::super::events::emit_progress;
 use super::super::types::Phase;

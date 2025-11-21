@@ -16,9 +16,7 @@ use super::element_matching::{  // 从helpers/element_matching导入工具函数
     parse_bounds_center as helper_parse_bounds,
 };
 use super::batch_executor::{  // 🆕 导入批量执行模块
-    BatchExecutor,
     BatchExecutionConfig,
-    should_use_batch_mode,
     validate_batch_prerequisites,
 };
 // ⚠️ 暂时禁用 recovery_manager（编译错误待修复）
@@ -525,7 +523,7 @@ async fn execute_batch_mode_with_first_strategy<'a>(
     step_id: &str,
     ui_xml: &str,
     all_elements: &'a [UIElement],
-    strategy_type: &str,
+    _strategy_type: &str,
     _xpath: &str,
 ) -> Result<(i32, i32), String> {
     // 解析批量配置
@@ -818,7 +816,7 @@ fn collect_candidate_elements<'a>(
     params: &serde_json::Value,     // 🔥 新增：完整参数，用于提取 children_texts
 ) -> Vec<&'a UIElement> {
     // 🔥 P0修复：先按 XPath 或 class 收集初步候选
-    let mut candidates: Vec<&UIElement> = match strategy_type {
+    let candidates: Vec<&UIElement> = match strategy_type {
         "self_anchor" => {
             // 🔥 对于自锚定策略，优先使用resource-id + 子元素文本过滤
             if xpath.contains("@resource-id") {
@@ -1272,8 +1270,8 @@ fn evaluate_best_candidate<'a>(
 
 /// 尝试元素恢复
 fn attempt_element_recovery<'a>(
-    params: &serde_json::Value,
-    elements: &'a [UIElement],
+    _params: &serde_json::Value,
+    _elements: &'a [UIElement],
 ) -> Result<Option<&'a UIElement>, String> {
     tracing::warn!("⚠️ [智能执行] 真机XML中未找到目标元素，启动失败恢复机制");
     

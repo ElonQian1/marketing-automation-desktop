@@ -492,7 +492,7 @@ fn calculate_bounds_match_score(
 /// 
 /// 将最接近用户选择区域的候选排在前面
 pub fn rerank_candidates_by_bounds(
-    mut candidates: Vec<crate::services::intelligent_analysis_service::StrategyCandidate>,
+    candidates: Vec<crate::services::intelligent_analysis_service::StrategyCandidate>,
     user_selected_bounds: Option<&str>,
 ) -> Vec<crate::services::intelligent_analysis_service::StrategyCandidate> {
     // 如果没有用户选择的bounds,直接返回原候选

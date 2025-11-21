@@ -3,7 +3,6 @@
 // summary: 管理文本匹配模式和反义词配置
 
 use serde::{Deserialize, Serialize};
-use std::collections::HashMap;
 
 /// 文本匹配模式
 #[derive(Debug, Clone, Serialize, Deserialize)]

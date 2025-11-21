@@ -39,14 +39,14 @@ use super::protocol_builders::create_smart_selection_protocol_for_scoring;
 /// - Ok(f32): 评分（0.0~1.0）
 /// - Err(String): 评分失败错误
 pub async fn score_step_with_smart_selection(
-    device_id: &str,
-    ui_xml: &str,
+    _device_id: &str,
+    _ui_xml: &str,
     step: &StepRefOrInline,
-    quality: &QualitySettings,
+    _quality: &QualitySettings,
 ) -> Result<f32, String> {
     
     // 从步骤中提取参数
-    let (step_id, params) = if let Some(inline) = &step.inline {
+    let (_step_id, _params) = if let Some(inline) = &step.inline {
         let step_id = &inline.step_id;
         
         // ✅ 提取minConfidence参数：优先从smartSelection中读取,默认0.8
