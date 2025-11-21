@@ -6,6 +6,3 @@ pub mod models;
 pub mod field_scorer;
 pub mod structural_scorer;
 
-pub use models::*;
-pub use field_scorer::*;
-pub use structural_scorer::*;

@@ -4,12 +4,12 @@
 
 use super::auto_mode_selector::{AutoModeSelector, AutoPickConfig, AutoPickResult, RecommendationDetails};
 use super::execution_bridge::{ExecutionBridge, ExecutionMapping, MappingSummary};
-use super::scorers::types::{MatchMode, ScoreOutcome};
+use super::scorers::types::MatchMode;
 use super::execution_types::{ClickMode, ExecutionStrategy};
 use crate::engine::xml_indexer::XmlIndexer;
 use anyhow::{Result, anyhow};
 use serde::{Serialize, Deserialize};
-use tracing::{info, debug, warn, error};
+use tracing::{info, debug};
 
 /// 自动推荐完整结果
 #[derive(Debug, Clone, Serialize, Deserialize)]

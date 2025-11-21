@@ -566,7 +566,7 @@ impl<'a> ClickNormalizer<'a> {
 
     /// 分析瀑布流列信息
     fn analyze_waterfall_column(&self, container: &NormalizedNode, card_root: &NormalizedNode) -> Result<ColumnInfo> {
-        let (card_left, card_top, card_right, _) = card_root.bounds;
+        let (card_left, _card_top, _card_right, _) = card_root.bounds;
         
         // 判断左右列
         let column = if card_left <= 100 {

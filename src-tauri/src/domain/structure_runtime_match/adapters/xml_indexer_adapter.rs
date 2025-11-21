@@ -27,7 +27,7 @@ impl<'a> XmlIndexerAdapter<'a> {
             .all_nodes
             .iter()
             .enumerate()
-            .map(|(idx, node)| {
+            .map(|(idx, _node)| {
                 // 使用节点索引作为 SmNodeId
                 (idx as SmNodeId, idx)
             })

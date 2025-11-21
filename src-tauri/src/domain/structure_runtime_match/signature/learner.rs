@@ -2,7 +2,7 @@
 // module: structure_runtime_match | layer: domain | role: 模板学习器
 // summary: 从容器子节点中学习重复性模板
 
-use super::features::{extract, SmFeat};
+use super::features::extract;
 use crate::domain::structure_runtime_match::ports::xml_view::SmXmlView;
 use crate::domain::structure_runtime_match::types::{SmLayoutType, SmNodeId};
 use std::collections::HashMap;

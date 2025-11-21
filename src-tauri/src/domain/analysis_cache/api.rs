@@ -50,7 +50,7 @@ pub fn get_dom(snapshot_id: &SnapshotId) -> Option<DomIndex> {
 /// 从磁盘加载DOM索引
 fn load_dom_from_disk(snapshot_id: &SnapshotId) -> Option<DomIndex> {
     use std::fs;
-    use std::path::PathBuf;
+    
     
     // 获取debug_xml目录路径
     let debug_xml_dir = get_debug_xml_dir();
@@ -196,17 +196,17 @@ fn compute_subtree_metrics(dom: &DomIndex, abs_xpath: &str) -> Result<SubtreeMet
 
 /// 临时的元素信息结构
 #[derive(Debug)]
-struct ExtractedElement {
-    text: Option<String>,
-    element_type: Option<String>,
-    resource_id: Option<String>,
-    class_name: Option<String>,
-    content_desc: Option<String>,
-    bounds: Option<String>,
+pub struct ExtractedElement {
+    pub text: Option<String>,
+    pub element_type: Option<String>,
+    pub resource_id: Option<String>,
+    pub class_name: Option<String>,
+    pub content_desc: Option<String>,
+    pub bounds: Option<String>,
 }
 
 /// 从XML中提取元素信息（临时实现）
-fn extract_element_from_xml(xml_content: &str, abs_xpath: &str) -> Option<ExtractedElement> {
+pub fn extract_element_from_xml(_xml_content: &str, _abs_xpath: &str) -> Option<ExtractedElement> {
     // TODO: 集成现有的XML解析逻辑
     // 目前返回模拟数据
     Some(ExtractedElement {

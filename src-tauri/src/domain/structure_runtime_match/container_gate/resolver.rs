@@ -3,7 +3,7 @@
 // summary: 统一入口：resolve_container_scope()
 
 use anyhow::{Result, anyhow};
-use super::types::{UiTree, NodeId, ContainerHints, ContainerScope, ContainerConfig, ScopeProfile, HeuristicResult};
+use super::types::{UiTree, NodeId, ContainerHints, ContainerScope, ContainerConfig, HeuristicResult};
 use super::heuristics::{scrollable, semantic, geometry, exclusion, popup, vote};
 use super::providers::{xpath_hint, element_id_hint, bounds_hint, ancestor_chain};
 

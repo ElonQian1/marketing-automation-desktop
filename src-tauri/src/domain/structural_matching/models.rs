@@ -3,7 +3,6 @@
 // summary: 结构匹配的核心数据结构
 
 use serde::{Deserialize, Serialize};
-use std::collections::HashMap;
 
 /// 字段类型
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, Serialize, Deserialize)]

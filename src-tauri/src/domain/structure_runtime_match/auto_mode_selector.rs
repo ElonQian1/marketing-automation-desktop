@@ -2,7 +2,7 @@
 // module: structure_runtime_match | layer: domain | role: 自动选型器
 // summary: 并行调用三路评分器，统一闸门，择优推荐，输出解释
 
-use super::scorers::types::{ScoreOutcome, MatchMode, ContextSig};
+use super::scorers::types::{ScoreOutcome, MatchMode};
 use super::scorers::{SubtreeMatcher, LeafContextMatcher, TextExactMatcher};
 use crate::domain::structure_runtime_match::adapters::xml_indexer_adapter::XmlIndexerAdapter;
 use crate::engine::xml_indexer::XmlIndexer;
@@ -135,7 +135,24 @@ impl<'a> AutoModeSelector<'a> {
         let top = passed_outcomes[0];
         let second = if passed_outcomes.len() > 1 { Some(passed_outcomes[1]) } else { None };
 
-        // 如果最高分与次高分差距不够，且次高分是LeafContext，偏向LeafContext
+        // 🎯 智能仲裁逻辑：
+        // 1. 如果 TextExact 分数极高 (>0.9)，且 LeafContext 也不差 (>0.6)，优先选 TextExact (最稳)
+        if text.passed_gate && text.conf > 0.9 && leaf.conf > 0.6 {
+             return (
+                MatchMode::TextExact,
+                format!("文本极高置信度({:.3})，优先文本匹配", text.conf)
+            );
+        }
+
+        // 2. 如果 Subtree 分数高，说明是复杂卡片，优先 Subtree
+        if subtree.passed_gate && subtree.conf > 0.85 {
+             return (
+                MatchMode::CardSubtree,
+                format!("卡片结构特征明显({:.3})，优先子树匹配", subtree.conf)
+            );
+        }
+
+        // 3. 如果最高分与次高分差距不够，且次高分是LeafContext，偏向LeafContext
         if let Some(sec) = second {
             if (top.conf - sec.conf) < self.config.top_gap && sec.mode == MatchMode::LeafContext {
                 return (
@@ -157,20 +174,30 @@ impl<'a> AutoModeSelector<'a> {
         leaf: &ScoreOutcome,
         text: &ScoreOutcome,
     ) -> (MatchMode, String) {
-        // 兜底策略：Leaf → Card → Text
+        // 兜底策略：Text (最稳) -> Leaf (次稳) -> Card (最难)
+        
+        // 1. 如果有文本分，哪怕没过闸门，只要大于0.5，也优先用文本
+        if text.conf > 0.5 {
+             return (MatchMode::TextExact, "兜底策略：文本置信度尚可".to_string());
+        }
+
+        // 2. 其次看 LeafContext
+        if leaf.conf > 0.4 {
+            return (MatchMode::LeafContext, "兜底策略：叶子上下文尚可".to_string());
+        }
+        
+        // 3. 最后看 Subtree
+        if subtree.conf > 0.4 {
+            return (MatchMode::CardSubtree, "兜底策略：卡片子树尚可".to_string());
+        }
+        
+        // 4. 实在不行，谁分高选谁
         let all_outcomes = [leaf, subtree, text];
-        let highest_conf_outcome = all_outcomes.iter()
+        let highest = all_outcomes.iter()
             .max_by(|a, b| a.conf.partial_cmp(&b.conf).unwrap_or(std::cmp::Ordering::Equal))
             .unwrap();
-
-        // 优先级排序
-        if leaf.conf > 0.1 {
-            (MatchMode::LeafContext, "兜底策略：优先叶子上下文".to_string())
-        } else if subtree.conf > 0.1 {
-            (MatchMode::CardSubtree, "兜底策略：其次卡片子树".to_string())
-        } else {
-            (MatchMode::TextExact, "兜底策略：最后文本精确".to_string())
-        }
+            
+        (highest.mode, "兜底策略：选择最高分".to_string())
     }
 
     /// 生成推荐详情用于UI展示

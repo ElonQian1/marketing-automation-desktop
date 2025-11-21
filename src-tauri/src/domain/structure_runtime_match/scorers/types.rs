@@ -56,4 +56,5 @@ pub struct ContextSig {
     pub has_text: bool,                         // 是否有文本内容
     pub has_desc: bool,                         // 是否有content-desc
     pub has_res_id: bool,                       // 是否有resource-id
+    pub text_content: String,                   // 🎯 实际文本内容（用于白名单匹配）
 }

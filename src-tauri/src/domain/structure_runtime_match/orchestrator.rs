@@ -2,7 +2,7 @@
 // module: structure_runtime_match | layer: domain | role: 流程编排器
 // summary: 结构匹配的唯一入口函数 - 编排容器限域/几何/模板/骨架/字段/评分全流程
 
-use super::config::{SkeletonRules, SmConfig};
+use super::config::SmConfig;
 use super::container_gate::detector::pick_container;
 use super::field_refine::scorer::score_fields;
 use super::layout_gate::classifier::{classify, geom_score_for};
@@ -16,7 +16,6 @@ use super::signature::matcher::score_tpl;
 use super::scorers::subtree_matcher::SubtreeMatcher; // 🎯 新增
 // use super::skeleton::checker::score_skeleton;  // 🔴 旧版本
 use super::skeleton::checker_v2::score_skeleton_v2;  // 🎯 新版本：基于谓词评估
-use super::skeleton::dsl::SmSkeletonRulesDsl;
 use super::types::{SmItemHit, SmLayoutType, SmResult};
 
 pub fn sm_run_once<V: SmXmlView, C: SmCache>(

@@ -3,7 +3,7 @@
 // summary: 将自动选型结果转换为ClickMode执行参数，建立参数映射
 
 use super::auto_mode_selector::{AutoPickResult, AutoModeSelector};
-use super::scorers::types::{MatchMode, ScoreOutcome, ContextSig};
+use super::scorers::types::{MatchMode, ScoreOutcome};
 use super::execution_types::ClickMode;
 use crate::engine::xml_indexer::XmlIndexer;
 use anyhow::{Result, anyhow};
@@ -222,8 +222,8 @@ impl<'a> ExecutionBridge<'a> {
 
     fn calculate_hierarchy_depth(&self, root_index: usize, target_index: usize) -> Result<usize> {
         // 简单计算层级深度
-        let mut depth = 0;
-        let mut current_index = target_index;
+        let depth = 0;
+        let current_index = target_index;
         
         while current_index != root_index && depth < 10 {
             if let Some(current_node) = self.xml_indexer.all_nodes.get(current_index) {
@@ -237,7 +237,7 @@ impl<'a> ExecutionBridge<'a> {
             } else {
                 break;
             }
-            depth += 1;
+            // depth += 1; // Unreachable code
         }
         
         Ok(depth)

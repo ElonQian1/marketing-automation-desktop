@@ -3,7 +3,6 @@
 // summary: 缓存系统的类型定义和数据传输对象
 
 use serde::{Deserialize, Serialize};
-use std::collections::HashMap;
 
 /// 前端使用的SubtreeMetrics DTO
 #[derive(Clone, Debug, Serialize, Deserialize)]

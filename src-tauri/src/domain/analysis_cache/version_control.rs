@@ -5,7 +5,6 @@
 use chrono::{DateTime, Utc};
 use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
-use anyhow::Result;
 
 /// XML 版本控制核心类型
 #[derive(Clone, Debug, Serialize, Deserialize)]

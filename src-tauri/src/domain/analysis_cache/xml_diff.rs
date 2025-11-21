@@ -4,7 +4,7 @@
 
 use super::version_control::*;
 use anyhow::Result;
-use std::collections::{HashMap, HashSet, VecDeque};
+use std::collections::{HashMap, HashSet};
 use std::hash::{Hash, Hasher};
 use xxhash_rust::xxh64::Xxh64;
 
@@ -158,7 +158,7 @@ impl XmlDiffEngine {
     }
     
     /// 应用差异到XML
-    pub fn apply_diff(&self, base_xml: &str, delta: &XmlDelta) -> Result<String> {
+    pub fn apply_delta(&self, base_xml: &str, _delta: &XmlDelta) -> Result<String> {
         // TODO: 实现差异应用逻辑
         // 这是Phase 3第二阶段的重点功能
         Ok(base_xml.to_string())
@@ -542,7 +542,7 @@ pub mod diff_utils {
     }
     
     /// 验证差异操作的正确性
-    pub fn validate_operations(operations: &[DiffOperation]) -> Result<()> {
+    pub fn validate_operations(_operations: &[DiffOperation]) -> Result<()> {
         // TODO: 验证操作序列的一致性
         // 1. 检查XPath格式
         // 2. 验证父子关系

@@ -32,18 +32,14 @@ pub mod auto_recommendation_service;
 
 // 对外唯一入口
 pub use orchestrator::sm_run_once;
-pub use types::{SmBounds, SmContainerHit, SmItemHit, SmLayoutType, SmNodeId, SmResult, SmScores};
-pub use config::{SmConfig, SmMode, SkeletonRules, FieldRule, FieldRules, ContainerHint};
-pub use ports::xml_view::SmXmlView;
-pub use ports::cache::SmCache;
+pub use types::SmResult;
+pub use config::{SmConfig, SmMode, SkeletonRules, FieldRules};
 pub use adapters::xml_indexer_adapter::XmlIndexerAdapter;
 
 // 🔥 新增：点击规范化相关导出
-pub use click_normalizer::{ClickNormalizer, ClickNormalizeResult, NormalizedNode, ColumnInfo, WaterfallColumn};
+pub use click_normalizer::{ClickNormalizer, ClickNormalizeResult, NormalizedNode, WaterfallColumn};
 
 // 🔥 新增：自动选型系统导出
-pub use auto_mode_selector::{AutoModeSelector, AutoPickConfig, AutoPickResult, RecommendationDetails};
-pub use execution_bridge::{ExecutionBridge, ExecutionMapping, MappingSummary};
-pub use execution_types::{ClickMode, ExecutionStrategy}; // 移除重复的 ColumnInfo
-pub use auto_recommendation_service::{AutoRecommendationService, AutoRecommendationResult, AutoRecommendationConfig, RecommendationSummary, ValidationResult};
-pub use scorers::types::{MatchMode, ScoreOutcome, SubtreeFeatures, ContextSig};
+ // 移除重复的 ColumnInfo
+pub use auto_recommendation_service::AutoRecommendationService;
+pub use scorers::types::MatchMode;

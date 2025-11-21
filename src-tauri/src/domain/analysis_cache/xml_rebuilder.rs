@@ -3,14 +3,11 @@
 // summary: 实现XML版本差异应用、增量重建和完整版本恢复算法
 
 use std::collections::HashMap;
-use anyhow::{Result, anyhow, Context};
+use anyhow::{Result, anyhow};
 use quick_xml::{Reader, Writer, events::Event};
 use std::io::Cursor;
 
-use crate::domain::analysis_cache::{
-    version_control::*,
-    DomIndex,
-};
+use crate::domain::analysis_cache::version_control::*;
 
 /// XML重建引擎
 pub struct XmlRebuilder {

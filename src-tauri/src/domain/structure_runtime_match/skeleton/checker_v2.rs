@@ -3,7 +3,7 @@
 // summary: 使用谓词系统评估字段规则，替代旧的"有图或文本"简单逻辑
 
 use super::super::ports::xml_view::SmXmlView;
-use super::super::types::{SmNodeId, SmItemHit};
+use super::super::types::SmItemHit;
 use super::predicates::*;
 
 /// 容器常见滚动类

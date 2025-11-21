@@ -43,9 +43,14 @@ impl<'a> LeafContextMatcher<'a> {
         };
         
         // 检查字段存在性
-        let has_text = !node.element.text.trim().is_empty();
-        let has_desc = !node.element.content_desc.trim().is_empty();
+        let text_str = node.element.text.trim();
+        let desc_str = node.element.content_desc.trim();
+        let has_text = !text_str.is_empty();
+        let has_desc = !desc_str.is_empty();
         let has_res_id = node.element.resource_id.as_ref().map(|s| !s.trim().is_empty()).unwrap_or(false);
+        
+        // 优先取 text，其次取 content_desc
+        let text_content = if has_text { text_str.to_string() } else { desc_str.to_string() };
 
         ContextSig {
             class,
@@ -57,6 +62,7 @@ impl<'a> LeafContextMatcher<'a> {
             has_text,
             has_desc,
             has_res_id,
+            text_content,
         }
     }
 
@@ -112,15 +118,8 @@ impl<'a> LeafContextMatcher<'a> {
             "更多", "More", "..."
         ];
         
-        // 获取文本内容（优先 text，其次 content_desc）
-        let text_content = if sig.has_text {
-            // 这里需要从 xml_indexer 获取实际文本，暂时用占位符
-            String::new()
-        } else if sig.has_desc {
-            String::new()
-        } else {
-            String::new()
-        };
+        // 获取文本内容
+        let text_content = &sig.text_content;
         
         // 检查是否命中白名单
         let is_exact = STABLE_KEYWORDS.iter().any(|kw| text_content.contains(kw));

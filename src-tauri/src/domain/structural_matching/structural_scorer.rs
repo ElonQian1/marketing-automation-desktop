@@ -3,7 +3,7 @@
 // summary: 整体结构匹配评分逻辑
 
 use super::field_scorer::get_field_scorer;
-use super::models::{StructuralMatchResult, StructuralMatchingConfig, FieldMatchResult};
+use super::models::{StructuralMatchResult, StructuralMatchingConfig};
 use serde_json::Value;
 
 /// 结构评分器

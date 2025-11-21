@@ -26,6 +26,5 @@ pub mod providers {
 // 便捷 re-export
 pub use resolver::resolve_container_scope;
 pub use types::{
-    ContainerHints, ContainerScope, ContainerConfig, ScopeProfile, 
-    HeuristicResult, NodeId, Bounds
+    ContainerHints, ContainerConfig
 };
