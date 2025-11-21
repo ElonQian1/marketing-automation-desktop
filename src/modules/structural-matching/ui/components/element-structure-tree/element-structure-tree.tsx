@@ -18,6 +18,8 @@ import {
   DownOutlined,
   CheckCircleOutlined,
   CloseCircleOutlined,
+  PlusSquareOutlined,
+  MinusSquareOutlined,
   InfoCircleOutlined,
 } from "@ant-design/icons";
 import type { DataNode } from "antd/es/tree";
@@ -773,6 +775,25 @@ export const ElementStructureTree: React.FC<ElementStructureTreeProps> = ({
                 </Tag>
               )}
 
+              {/* 特异性分数 (Visual Match Score Feedback) */}
+              {(() => {
+                const score = calculateNodeSpecificity(elementPath, element);
+                if (score <= 0) return null;
+                let color = "default";
+                if (score > 20) color = "success";
+                else if (score > 10) color = "processing";
+                else if (score > 5) color = "warning";
+                else color = "error";
+                
+                return (
+                  <Tooltip title={`匹配特异性分数: ${score} (分数越高，匹配越精准)`}>
+                    <Tag color={color} style={{ margin: 0 }}>
+                      🎯 {score}
+                    </Tag>
+                  </Tooltip>
+                );
+              })()}
+
               {/* 该元素独立的字段显示开关 */}
               <Switch
                 size="small"
@@ -782,89 +803,6 @@ export const ElementStructureTree: React.FC<ElementStructureTreeProps> = ({
                 unCheckedChildren="骨"
                 style={{ marginLeft: 8 }}
               />
-            </Space>
-          </div>
-
-          {/* 字段显示模式切换 */}
-          <div style={{ 
-            margin: "8px 0", 
-            padding: "6px 8px", 
-            backgroundColor: "#f8f9fa", 
-            borderRadius: "4px",
-            border: "1px solid #e8e8e8"
-          }}>
-            <Space size="small" style={{ width: "100%", justifyContent: "space-between" }}>
-              <Text type="secondary" style={{ fontSize: 11 }}>
-                字段显示模式:
-              </Text>
-              <Space size="middle" style={{ flexWrap: "wrap" }}>
-                {/* 字段显示模式 */}
-                <Space size="small">
-                  <Switch
-                    size="small"
-                    checked={showAllFields}
-                    onChange={setShowAllFields}
-                    checkedChildren="全部"
-                    unCheckedChildren="骨架"
-                  />
-                  <Tooltip title={showAllFields ? "显示所有16个字段，便于精细调整匹配策略" : "仅显示骨架字段（对子树结构有意义的字段），聚焦骨架匹配"}>
-                    <InfoCircleOutlined style={{ fontSize: 12, color: "#999" }} />
-                  </Tooltip>
-                </Space>
-
-                {/* 骨架匹配模式 */}
-                <Space size="small">
-                  <Select
-                    size="small"
-                    value={skeletonMode}
-                    onChange={setSkeletonMode}
-                    style={{ width: 100 }}
-                    options={[
-                      { 
-                        value: SkeletonMatchMode.FAMILY, 
-                        label: "同类",
-                      },
-                      { 
-                        value: SkeletonMatchMode.CLONE, 
-                        label: "精确",
-                      }
-                    ]}
-                  />
-                  <Tooltip title={skeletonMode === SkeletonMatchMode.FAMILY ? "Family模式：找同类骨架，非空↔非空，布尔等值" : "Clone模式：精确克隆，所有字段值完全一模一样"}>
-                    <InfoCircleOutlined style={{ fontSize: 12, color: "#999" }} />
-                  </Tooltip>
-                </Space>
-
-                {/* 智能配置模式 */}
-                <Space size="small">
-                  <Switch
-                    size="small"
-                    checked={smartModeEnabled}
-                    onChange={setSmartModeEnabled}
-                    checkedChildren="智能"
-                    unCheckedChildren="手动"
-                  />
-                  <Tooltip title={smartModeEnabled ? "智能模式：自动配置有意义字段和策略，限制手动修改" : "手动模式：允许完全自定义字段配置和策略"}>
-                    <InfoCircleOutlined style={{ fontSize: 12, color: "#999" }} />
-                  </Tooltip>
-                </Space>
-
-                {/* 易变字段开关（仅在智能模式下显示） */}
-                {smartModeEnabled && (
-                  <Space size="small">
-                    <Switch
-                      size="small"
-                      checked={ignoreVolatileFields}
-                      onChange={setIgnoreVolatileFields}
-                      checkedChildren="忽略数字"
-                      unCheckedChildren="包含数字"
-                    />
-                    <Tooltip title="忽略易变字段（数字、时间戳、计数）避免因动态内容导致0命中">
-                      <InfoCircleOutlined style={{ fontSize: 12, color: "#999" }} />
-                    </Tooltip>
-                  </Space>
-                )}
-              </Space>
             </Space>
           </div>
 
@@ -1059,6 +997,38 @@ export const ElementStructureTree: React.FC<ElementStructureTreeProps> = ({
         enabled: smartEnabled,
         strategy: smartStrategy,
       };
+    };
+
+    // 🧮 计算节点特异性分数 (Specificity Score)
+    const calculateNodeSpecificity = (elementPath: string, element: Record<string, unknown>) => {
+      let score = 0;
+      
+      const check = (key: string, type: FieldType, baseWeight: number) => {
+         const val = String(element[key] || "");
+         // 这里的逻辑复用 getSmartFieldConfig 来获取最终生效的配置
+         const config = smartModeEnabled 
+            ? getSmartFieldConfig(elementPath, type, val)
+            : getFieldConfig(elementPath, type);
+         
+         if (config.enabled) {
+            score += baseWeight * (config.weight || 1);
+         }
+      };
+
+      // 核心识别特征
+      check("resource_id", FieldType.RESOURCE_ID, 10);
+      check("text", FieldType.TEXT, 8);
+      check("content_desc", FieldType.CONTENT_DESC, 8);
+      
+      // 辅助特征
+      check("class_name", FieldType.CLASS_NAME, 2);
+      check("bounds", FieldType.BOUNDS, 5);
+      
+      // 状态特征
+      check("clickable", FieldType.CLICKABLE, 1);
+      check("enabled", FieldType.ENABLED, 1);
+      
+      return score;
     };
 
     // 条件渲染字段行：根据显示模式和字段意义决定是否显示
@@ -1284,13 +1254,101 @@ export const ElementStructureTree: React.FC<ElementStructureTreeProps> = ({
 
   return (
     <div className="element-structure-tree light-theme-force">
-      <div className="tree-header">
+      <div className="tree-header" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
         <Space>
           <InfoCircleOutlined style={{ color: "#1890ff" }} />
-          <Text strong>🌳 元素结构树 (新版组件)</Text>
+          <Text strong>元素结构树</Text>
           <Text type="secondary" style={{ fontSize: 12 }}>
-            展开查看层级结构，启用/禁用字段来配置匹配规则
+            配置匹配规则
           </Text>
+        </Space>
+        <Space size="small">
+           <Tooltip title="展开所有节点">
+             <PlusSquareOutlined onClick={() => setExpandedKeys(allKeys)} style={{ cursor: 'pointer', color: '#666', fontSize: 16 }} />
+           </Tooltip>
+           <Tooltip title="折叠所有节点">
+             <MinusSquareOutlined onClick={() => setExpandedKeys([])} style={{ cursor: 'pointer', color: '#666', fontSize: 16 }} />
+           </Tooltip>
+        </Space>
+      </div>
+
+      {/* 全局控制面板 */}
+      <div style={{ 
+        margin: "0 0 8px 0", 
+        padding: "8px 12px", 
+        backgroundColor: "#f0f5ff", 
+        borderBottom: "1px solid #d6e4ff"
+      }}>
+        <Space size="small" style={{ width: "100%", justifyContent: "space-between", flexWrap: "wrap" }}>
+          <Space size="middle" style={{ flexWrap: "wrap" }}>
+            {/* 字段显示模式 */}
+            <Space size="small">
+              <Switch
+                size="small"
+                checked={showAllFields}
+                onChange={setShowAllFields}
+                checkedChildren="全部字段"
+                unCheckedChildren="骨架字段"
+              />
+              <Tooltip title={showAllFields ? "显示所有16个字段，便于精细调整匹配策略" : "仅显示骨架字段（对子树结构有意义的字段），聚焦骨架匹配"}>
+                <InfoCircleOutlined style={{ fontSize: 12, color: "#999" }} />
+              </Tooltip>
+            </Space>
+
+            {/* 骨架匹配模式 */}
+            <Space size="small">
+              <span style={{ fontSize: 12, color: '#666' }}>模式:</span>
+              <Select
+                size="small"
+                value={skeletonMode}
+                onChange={setSkeletonMode}
+                style={{ width: 80 }}
+                options={[
+                  { 
+                    value: SkeletonMatchMode.FAMILY, 
+                    label: "同类",
+                  },
+                  { 
+                    value: SkeletonMatchMode.CLONE, 
+                    label: "精确",
+                  }
+                ]}
+              />
+              <Tooltip title={skeletonMode === SkeletonMatchMode.FAMILY ? "Family模式：找同类骨架，非空↔非空，布尔等值" : "Clone模式：精确克隆，所有字段值完全一模一样"}>
+                <InfoCircleOutlined style={{ fontSize: 12, color: "#999" }} />
+              </Tooltip>
+            </Space>
+
+            {/* 智能配置模式 */}
+            <Space size="small">
+              <Switch
+                size="small"
+                checked={smartModeEnabled}
+                onChange={setSmartModeEnabled}
+                checkedChildren="智能"
+                unCheckedChildren="手动"
+              />
+              <Tooltip title={smartModeEnabled ? "智能模式：自动配置有意义字段和策略，限制手动修改" : "手动模式：允许完全自定义字段配置和策略"}>
+                <InfoCircleOutlined style={{ fontSize: 12, color: "#999" }} />
+              </Tooltip>
+            </Space>
+
+            {/* 易变字段开关（仅在智能模式下显示） */}
+            {smartModeEnabled && (
+              <Space size="small">
+                <Switch
+                  size="small"
+                  checked={ignoreVolatileFields}
+                  onChange={setIgnoreVolatileFields}
+                  checkedChildren="忽略数字"
+                  unCheckedChildren="包含数字"
+                />
+                <Tooltip title="忽略易变字段（数字、时间戳、计数）避免因动态内容导致0命中">
+                  <InfoCircleOutlined style={{ fontSize: 12, color: "#999" }} />
+                </Tooltip>
+              </Space>
+            )}
+          </Space>
         </Space>
       </div>
 
