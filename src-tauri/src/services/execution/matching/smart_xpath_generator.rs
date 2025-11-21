@@ -4,8 +4,7 @@
 //! summary: 提供多策略 XPath 生成，支持容错性和适应性优化
 
 use std::collections::HashMap;
-use regex::Regex;
-use tracing::{debug, warn};
+use tracing::debug;
 
 /// XPath 生成策略
 #[derive(Debug, Clone, PartialEq, Eq, Hash)]

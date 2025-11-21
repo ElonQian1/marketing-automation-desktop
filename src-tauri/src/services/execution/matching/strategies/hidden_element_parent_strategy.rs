@@ -252,7 +252,7 @@ impl StrategyProcessor for HiddenElementParentStrategyProcessor {
         let target_text = context.values.get("target_text")
             .ok_or_else(|| ProcessingError::InvalidParameters("缺少目标文本".to_string()))?;
         
-        let config = HiddenElementParentConfig {
+        let _config = HiddenElementParentConfig {
             target_text: target_text.clone(),
             max_traversal_depth: context.values.get("max_traversal_depth")
                 .and_then(|v| v.parse().ok())

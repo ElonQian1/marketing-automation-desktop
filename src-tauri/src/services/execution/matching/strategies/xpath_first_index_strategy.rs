@@ -94,7 +94,7 @@ impl XPathFirstIndexStrategyProcessor {
     async fn execute_xpath_first_index_query(
         &self,
         xpath: &str,
-        context: &MatchingContext,
+        _context: &MatchingContext,
         logs: &mut Vec<String>
     ) -> Result<StrategyResult, ProcessingError> {
         logs.push(format!("🎯 执行 XPath [1]索引查询: {}", xpath));

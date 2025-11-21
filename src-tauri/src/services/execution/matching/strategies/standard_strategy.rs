@@ -76,7 +76,7 @@ impl StandardStrategyProcessor {
     async fn perform_standard_matching(
         &self,
         context: &MatchingContext,
-        semantic_fields: &[String],
+        _semantic_fields: &[String],
         semantic_values: &std::collections::HashMap<String, String>,
         logs: &mut Vec<String>,
     ) -> Result<StrategyResult, ProcessingError> {

@@ -32,7 +32,7 @@ pub trait LegacyUiActions {
 /// - 匹配失败时回退到传统逻辑
 pub async fn run_unified_match<T>(
     actions: &T,
-    device_id: &str,
+    _device_id: &str,
     step: &SmartScriptStep,
     logs: &mut Vec<String>,
 ) -> Result<String>
@@ -111,7 +111,7 @@ where
             logs.push(format!("❌ 排除条件: {:?}", excludes));
         }
 
-        let criteria = MatchCriteriaDTO {
+        let _criteria = MatchCriteriaDTO {
             strategy: strategy.clone(),
             fields,
             values,
@@ -124,7 +124,7 @@ where
             options: None, // 统一匹配不使用 options
         };
 
-        let strategy_name = strategy.clone();
+        let _strategy_name = strategy.clone();
 
         // 临时禁用：等待重构为使用 universal_ui_page_analyzer
         logs.push("🔄 匹配功能暂时不可用，回退到传统参数解析".to_string());

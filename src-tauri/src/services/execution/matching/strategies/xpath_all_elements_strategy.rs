@@ -102,7 +102,7 @@ impl XPathAllElementsStrategyProcessor {
     async fn execute_xpath_all_elements_query(
         &self,
         xpath: &str,
-        context: &MatchingContext,
+        _context: &MatchingContext,
         logs: &mut Vec<String>
     ) -> Result<StrategyResult, ProcessingError> {
         logs.push(format!("🎯 执行 XPath 获取所有元素: {}", xpath));

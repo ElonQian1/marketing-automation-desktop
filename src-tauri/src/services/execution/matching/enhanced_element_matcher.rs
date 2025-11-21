@@ -4,9 +4,7 @@
 //! summary: 提供多层级匹配策略、模糊匹配和上下文感知的元素定位能力
 
 use std::collections::HashMap;
-use serde_json::Value;
 use anyhow::Result;
-use tracing::{info, warn, debug};
 
 /// 增强型匹配配置
 #[derive(Debug, Clone)]
@@ -116,7 +114,7 @@ impl EnhancedElementMatcher {
         &self,
         target_criteria: &HashMap<String, String>,
         xml_content: &str,
-        device_id: &str,
+        _device_id: &str,
     ) -> Result<MatchResult> {
         let mut debug_info = Vec::new();
         debug_info.push("🎯 启动增强型元素匹配".to_string());
@@ -242,9 +240,9 @@ impl EnhancedElementMatcher {
     /// 上下文感知匹配策略
     async fn try_context_matching(
         &self,
-        target_criteria: &HashMap<String, String>,
-        candidates: &[ElementInfo],
-        xml_content: &str,
+        _target_criteria: &HashMap<String, String>,
+        _candidates: &[ElementInfo],
+        _xml_content: &str,
         debug_info: &mut Vec<String>,
     ) -> Result<Option<MatchResult>> {
         debug_info.push("🧩 尝试上下文感知匹配...".to_string());
@@ -261,8 +259,8 @@ impl EnhancedElementMatcher {
     /// 结构匹配策略
     async fn try_structural_matching(
         &self,
-        target_criteria: &HashMap<String, String>,
-        candidates: &[ElementInfo],
+        _target_criteria: &HashMap<String, String>,
+        _candidates: &[ElementInfo],
         debug_info: &mut Vec<String>,
     ) -> Result<Option<MatchResult>> {
         debug_info.push("🏗️ 尝试结构匹配...".to_string());

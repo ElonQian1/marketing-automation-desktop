@@ -31,7 +31,7 @@ pub use xpath_first_index_strategy::XPathFirstIndexStrategyProcessor;
 pub use xpath_all_elements_strategy::XPathAllElementsStrategyProcessor;
 pub use enhanced_strategy::EnhancedStrategyProcessor; // 🆕 增强型策略处理器
 pub use anchor_by_relation_strategy::AnchorByRelationStrategyProcessor; // 🎯 关系锚点策略处理器
-pub use candidate_scorer::{CandidateScorer, CandidateScore, ScoringConfig}; // 🎯 评分系统
+ // 🎯 评分系统
 
 use std::collections::HashMap;
 use serde_json::Value;

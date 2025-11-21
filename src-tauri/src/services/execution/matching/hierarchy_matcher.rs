@@ -106,7 +106,7 @@ impl HierarchyMatcher {
         node_idx: usize,
         field_name: &str,
         expected_substring: &str,
-        config: &HierarchyMatchConfig
+        _config: &HierarchyMatchConfig
     ) -> bool {
         let nodes = Self::parse_xml_nodes(all_lines);
         if node_idx >= nodes.len() { return false; }
@@ -166,7 +166,7 @@ impl HierarchyMatcher {
         node_idx: usize,
         field_name: &str,
         pattern: &str,
-        config: &HierarchyMatchConfig
+        _config: &HierarchyMatchConfig
     ) -> bool {
         let re = if let Ok(r) = Regex::new(pattern) { r } else { return false; };
         let nodes = Self::parse_xml_nodes(all_lines);
