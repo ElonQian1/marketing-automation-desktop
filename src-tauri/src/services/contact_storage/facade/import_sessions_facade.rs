@@ -26,8 +26,8 @@ impl ImportSessionsFacade {
         app_handle: &AppHandle,
         device_id: &str,
         batch_id: &str,
-        total_contacts: i64,
-        session_type: &str,
+        _total_contacts: i64,
+        _session_type: &str,
     ) -> Result<i64, String> {
         with_db_connection(app_handle, |conn| {
             ImportSessionRepository::create_import_session(conn, batch_id, device_id, None)

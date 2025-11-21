@@ -14,6 +14,5 @@ pub mod preview; // 新增：文件预览命令
 pub use contact_numbers::*;
 pub use vcf_batches::*;
 // pub use import_sessions::*; // TEMPORARILY DISABLED
-pub use management::*;
 pub use txt_import_records::*;
 pub use preview::*; // 导出预览命令

@@ -127,8 +127,8 @@ impl BasicOperations {
     pub fn update_vcf_batch(
         conn: &Connection,
         batch_id: &str,
-        batch_name: Option<&str>,
-        description: Option<&str>,
+        _batch_name: Option<&str>,
+        _description: Option<&str>,
     ) -> SqliteResult<bool> {
         // 简化版本，只更新描述字段（如果表结构支持）
         let updated = conn.execute(

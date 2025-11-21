@@ -44,7 +44,7 @@ impl FileOperations {
     pub fn update_vcf_batch_import_result(
         conn: &Connection,
         batch_id: &str,
-        import_result: &str,
+        _import_result: &str,
     ) -> SqliteResult<bool> {
         // 假设有一个结果字段，这里简化处理
         let updated = conn.execute(

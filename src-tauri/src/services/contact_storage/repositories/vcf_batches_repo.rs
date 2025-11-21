@@ -329,7 +329,7 @@ impl VcfBatchRepository {
 
     /// 创建VCF批次并关联号码
     pub fn create_vcf_batch_with_numbers(
-        conn: &Connection,
+        _conn: &Connection,
         batch_name: &str,
         source_type: &str,
         generation_method: &str,
@@ -386,7 +386,7 @@ impl VcfBatchRepository {
 
     /// 获取VCF批次关联的行业列表
     pub fn get_industries_for_vcf_batch(
-        conn: &Connection,
+        _conn: &Connection,
         _batch_id: &str,
     ) -> SqliteResult<Vec<String>> {
         // 简化实现，返回常见行业列表

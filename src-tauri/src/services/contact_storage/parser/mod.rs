@@ -73,7 +73,7 @@ pub fn extract_numbers_greedy(content: &str) -> ParseResult {
     contacts = deduplicate_by_phone(contacts);
     let after_dedup = contacts.len();
     
-    let elapsed = start_time.elapsed();
+    let _elapsed = start_time.elapsed();
     
     let stats = ParseStats {
         total_lines: before_dedup,

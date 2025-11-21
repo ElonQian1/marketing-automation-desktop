@@ -51,7 +51,7 @@ impl VcfBatchesRepository {
     pub fn create_vcf_batch(
         conn: &Connection,
         batch_id: &str,
-        description: Option<&str>,
+        _description: Option<&str>,
     ) -> rusqlite::Result<bool> {
         // 调用基础操作模块，提供默认值
         BasicOperations::create_vcf_batch(conn, batch_id, "", None, None)
@@ -86,7 +86,7 @@ impl VcfBatchesRepository {
     pub fn create_batch_number_mapping(
         conn: &Connection,
         batch_id: &str,
-        number: &str,
+        _number: &str,
     ) -> rusqlite::Result<bool> {
         BatchManagement::create_batch_number_mapping(conn, batch_id, 0, 0)
             .map(|_| true)

@@ -66,10 +66,10 @@ impl VcfBatchesFacade {
     /// 获取VCF批次统计
     pub fn get_vcf_batch_stats(
         app_handle: &AppHandle,
-        start_date: Option<&str>,
-        end_date: Option<&str>,
-        batch_type: Option<&str>,
-        status_filter: Option<&str>,
+        _start_date: Option<&str>,
+        _end_date: Option<&str>,
+        _batch_type: Option<&str>,
+        _status_filter: Option<&str>,
     ) -> Result<VcfBatchStatsDto, String> {
         Self::with_db_connection(app_handle, |conn| {
             VcfBatchRepository::get_vcf_batch_stats(conn, "default")
@@ -89,7 +89,7 @@ impl VcfBatchesFacade {
         batch_id: &str,
         batch_name: Option<&str>,
         description: Option<&str>,
-        status: Option<&str>,
+        _status: Option<&str>,
     ) -> Result<i64, String> {
         Self::with_db_connection(app_handle, |conn| {
             let updated = VcfBatchRepository::update_vcf_batch(conn, batch_id, batch_name, description)?;
@@ -111,8 +111,8 @@ impl VcfBatchesFacade {
         app_handle: &AppHandle,
         batch_name: &str,
         number_count: i64,
-        industry: &str,
-        device_id: &str,
+        _industry: &str,
+        _device_id: &str,
     ) -> Result<VcfBatchCreationResult, String> {
         Self::with_db_connection(app_handle, |conn| {
             // 创建基础批次
@@ -202,8 +202,8 @@ impl VcfBatchesFacade {
     pub fn mark_vcf_batch_completed_instance(
         app_handle: &AppHandle,
         batch_id: &str,
-        success_count: i64,
-        failure_count: i64,
+        _success_count: i64,
+        _failure_count: i64,
     ) -> Result<i64, String> {
         Self::with_db_connection(app_handle, |conn| {
             let updated = VcfBatchRepository::mark_vcf_batch_completed(

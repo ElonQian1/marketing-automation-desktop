@@ -11,9 +11,9 @@ use super::super::models;
 pub async fn create_vcf_batch_cmd(
     app_handle: AppHandle,
     batch_name: String,
-    source_type: String,
-    generation_method: String,
-    description: Option<String>,
+    _source_type: String,
+    _generation_method: String,
+    _description: Option<String>,
 ) -> Result<models::VcfBatchCreationResult, String> {
     let facade = ContactStorageFacade::new(&app_handle);
     // 创建基础VCF批次，使用默认值
@@ -63,20 +63,20 @@ pub async fn update_vcf_batch_cmd(
     app_handle: AppHandle,
     batch_id: String,
     vcf_file_path: Option<String>,
-    description: Option<String>,
+    _description: Option<String>,
 ) -> Result<i64, String> {
     let facade = ContactStorageFacade::new(&app_handle);
-    facade.update_vcf_batch(&batch_id, vcf_file_path.as_deref(), description.as_deref(), None)
+    facade.update_vcf_batch(&batch_id, vcf_file_path.as_deref(), _description.as_deref(), None)
 }
 
 /// 删除 VCF 批次
 #[command]
 pub async fn delete_vcf_batch_cmd(
     app_handle: AppHandle,
-    batch_id: String,
+    _batch_id: String,
 ) -> Result<i64, String> {
     let facade = ContactStorageFacade::new(&app_handle);
-    facade.delete_vcf_batch(&batch_id)
+    facade.delete_vcf_batch(&_batch_id)
 }
 
 /// 获取最近的 VCF 批次
@@ -96,7 +96,7 @@ pub async fn create_vcf_batch_with_numbers_cmd(
     batch_name: String,
     source_type: String,
     generation_method: String,
-    description: Option<String>,
+    _description: Option<String>,
     number_ids: Vec<i64>,
 ) -> Result<models::VcfBatchCreationResult, String> {
     let facade = ContactStorageFacade::new(&app_handle);
@@ -109,6 +109,7 @@ pub async fn get_vcf_batch_stats_cmd(
     app_handle: AppHandle,
     batch_id: String,
 ) -> Result<models::VcfBatchStatsDto, String> {
+    let _ = batch_id;
     let facade = ContactStorageFacade::new(&app_handle);
     facade.get_vcf_batch_stats()
 }
@@ -161,7 +162,7 @@ pub async fn get_vcf_batch_number_count_cmd(
 pub async fn mark_vcf_batch_completed_cmd(
     app_handle: AppHandle,
     batch_id: String,
-    file_path: Option<String>,
+    _file_path: Option<String>,
 ) -> Result<bool, String> {
     let facade = ContactStorageFacade::new(&app_handle);
     facade.mark_vcf_batch_completed_instance(&batch_id, 0, 0)
@@ -182,7 +183,7 @@ pub async fn get_recent_vcf_batches_by_device_cmd(
 #[command]
 pub async fn get_industries_for_vcf_batch_cmd(
     app_handle: AppHandle,
-    batch_id: String,
+    _batch_id: String,
 ) -> Result<Vec<String>, String> {
     // 临时实现，返回空列表
     // 后续需要在 VcfBatchRepository 和 ContactStorageFacade 中添加此方法

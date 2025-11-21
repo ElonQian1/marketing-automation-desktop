@@ -69,7 +69,7 @@ pub async fn import_contact_numbers_from_file(
         error_message.as_deref(),
     );
     
-    if let Ok(record) = record_result {
+    if let Ok(_record) = record_result {
         tracing::info!("✅ 成功记录TXT导入: {} (导入{}/重复{})", file_name, inserted, duplicates);
     } else if let Err(e) = record_result {
         tracing::warn!("⚠️  创建/更新TXT导入记录失败: {}", e);
@@ -257,7 +257,7 @@ pub async fn fetch_contact_numbers(
 pub async fn fetch_unclassified_contact_numbers(
     app_handle: AppHandle,
     count: i64,
-    only_unconsumed: bool,
+    _only_unconsumed: bool,
 ) -> Result<Vec<models::ContactNumberDto>, String> {
     let facade = ContactStorageFacade::new(&app_handle);
     facade.fetch_unclassified_numbers(count, "")
@@ -394,10 +394,10 @@ pub async fn allocate_contact_numbers_to_device(
     app_handle: AppHandle,
     device_id: String,
     count: i64,
-    industry: Option<String>,
+    _industry: Option<String>,
 ) -> Result<models::AllocationResultDto, String> {
     let facade = ContactStorageFacade::new(&app_handle);
-    let result = facade.allocate_numbers_to_device(&device_id, count, industry)?;
+    let result = facade.allocate_numbers_to_device(&device_id, count, _industry)?;
 
     Ok(result)
 }
@@ -407,7 +407,7 @@ pub async fn allocate_contact_numbers_to_device(
 pub async fn list_contact_numbers_by_batch(
     app_handle: AppHandle,
     batch_id: String,
-    only_used: Option<bool>,
+    _only_used: Option<bool>,
     limit: i64,
     offset: i64,
 ) -> Result<models::ContactNumberList, String> {
@@ -421,7 +421,7 @@ pub async fn list_contact_numbers_by_batch_filtered(
     app_handle: AppHandle,
     batch_id: String,
     only_used: Option<bool>,
-    industry: Option<String>,
+    _industry: Option<String>,
     limit: i64,
     offset: i64,
 ) -> Result<models::ContactNumberList, String> {

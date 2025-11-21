@@ -1,3 +1,4 @@
+#![allow(deprecated)]
 use rusqlite::{Connection, Result as SqliteResult};
 use std::path::PathBuf;
 use crate::services::contact_storage::models::ContactDbConfig;
@@ -9,6 +10,7 @@ use crate::services::contact_storage::models::ContactDbConfig;
 /// - 数据库路径配置
 /// - 数据库初始化和表创建
 /// - 数据库健康检查
+#[deprecated(note = "Use `crate::services::contact_storage::repositories::common::database` instead")]
 pub struct DatabaseRepository;
 
 impl DatabaseRepository {
@@ -16,7 +18,7 @@ impl DatabaseRepository {
     pub fn get_contacts_db_path() -> SqliteResult<PathBuf> {
         let mut db_path = std::env::current_dir().unwrap_or_default();
         db_path.push("data");
-        db_path.push("contacts.db");
+        db_path.push("employees.db");
         Ok(db_path)
     }
 

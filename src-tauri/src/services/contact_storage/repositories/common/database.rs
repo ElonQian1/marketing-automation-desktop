@@ -1,6 +1,7 @@
 use rusqlite::{Connection, Result as SqliteResult};
 use tauri::{AppHandle, Manager};
 use super::schema;
+use crate::infrastructure::database as shared_db;
 
 /// 公共数据库连接管理
 /// 提供统一的数据库连接获取和错误处理
@@ -29,13 +30,17 @@ pub fn get_connection(app_handle: &AppHandle) -> SqliteResult<Connection> {
     
     tracing::debug!("尝试连接数据库: {:?}", db_path);
     
-    let conn = Connection::open(db_path)?;
+    // 使用共享基础设施获取连接 (自动处理 WAL 和 FK)
+    let conn = shared_db::get_connection(&db_path).map_err(|e| {
+        rusqlite::Error::SqliteFailure(
+            rusqlite::ffi::Error::new(rusqlite::ffi::SQLITE_CANTOPEN),
+            Some(format!("Failed to open database via shared infra: {}", e))
+        )
+    })?;
     
-    // 配置数据库连接 (使用 execute_batch 避免 ExecuteReturnedResults 错误)
+    // 配置额外的数据库参数
     conn.execute_batch(
-        "PRAGMA foreign_keys = ON;
-         PRAGMA journal_mode = WAL;
-         PRAGMA synchronous = NORMAL;
+        "PRAGMA synchronous = NORMAL;
          PRAGMA cache_size = 10000;
          PRAGMA temp_store = memory;
          PRAGMA mmap_size = 268435456;

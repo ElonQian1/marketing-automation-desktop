@@ -176,7 +176,7 @@ impl ContactNumbersFacade {
     pub fn fetch_unclassified_numbers(
         app_handle: &AppHandle,
         count: i64,
-        industry: &str,
+        _industry: &str,
     ) -> Result<Vec<ContactNumberDto>, String> {
         Self::with_db_connection(app_handle, |conn| {
             ContactNumberRepository::fetch_unclassified_numbers(conn, count)

@@ -131,7 +131,7 @@ impl ContactNumberRepository {
         start_id: i64,
         end_id: i64,
         batch_id: &str,
-        device_id: &str,
+        _device_id: &str,
     ) -> SqliteResult<i64> {
         // 注意：子模块的函数不需要 device_id 参数，我们忽略它以保持兼容性
         batch_management::mark_numbers_used_by_id_range(conn, start_id, end_id, batch_id)
@@ -143,7 +143,7 @@ impl ContactNumberRepository {
         conn: &Connection,
         device_id: &str,
         count: i64,
-        batch_id: &str,
+        _batch_id: &str,
         industry: Option<&str>,
     ) -> SqliteResult<Vec<ContactNumberDto>> {
         // 注意：子模块的函数不需要 batch_id 参数，我们只使用 device_id、count 和 industry
