@@ -6,6 +6,3 @@ pub mod bounds_parser;
 pub mod deduplicator;
 pub mod exclusion_filter;
 
-pub use bounds_parser::ElementBounds;
-pub use deduplicator::deduplicate_by_position;
-pub use exclusion_filter::should_exclude_element;

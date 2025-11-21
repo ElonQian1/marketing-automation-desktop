@@ -4,7 +4,6 @@
 
 use crate::services::universal_ui_page_analyzer::UIElement;
 use crate::types::smart_selection::SmartSelectionProtocol;
-use crate::utils::element_utils::ElementBounds;
 use tracing::debug;
 
 /// 自动排除别名列表（通用业务规则）

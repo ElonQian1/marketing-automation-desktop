@@ -3,7 +3,6 @@
 // summary: 基于位置+文本的智能去重逻辑
 
 use crate::services::universal_ui_page_analyzer::UIElement;
-use crate::utils::element_utils::ElementBounds;
 use std::collections::HashSet;
 use tracing::{debug, info};
 
