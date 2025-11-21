@@ -58,6 +58,7 @@ use crate::domain::analysis_cache::version_commands::{
 use services::adb::{
     get_tracked_devices, start_device_tracking, stop_device_tracking,
 };
+use services::script_manager::ScriptManagerState;
 // use services::contact_service::{get_contact_file_info, parse_contact_file}; // 已废弃，迁移至 contact_storage
 use services::contact_storage::commands::{
     create_vcf_batch_with_numbers_cmd, delete_txt_import_record_cmd, get_contact_number_stats_cmd,
@@ -114,6 +115,9 @@ fn main() {
     // 🆕 智能选择系统状态
     let smart_selection_state = commands::smart_selection::SmartSelectionState::new();
 
+    // 🆕 智能脚本管理状态
+    let script_manager_state = ScriptManagerState::new();
+
     // 🎯 初始化 ADB 核心系统 (server + 设备跟踪器)
     initialize_adb_system().expect("Failed to initialize ADB system");
 
@@ -147,6 +151,7 @@ fn main() {
         .manage(prospecting_state)
         .manage(xpath_generator_state) // 🆕 注册 XPath 生成器状态
         .manage(smart_selection_state) // 🆕 注册智能选择系统状态
+        .manage(script_manager_state)  // 🆕 注册智能脚本管理状态
         // 应用关闭清理外部进程（scrcpy 等）
         .on_window_event(|_window, event| {
             if let tauri::WindowEvent::CloseRequested { .. } = event {

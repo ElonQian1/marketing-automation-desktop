@@ -9,40 +9,38 @@ use std::path::PathBuf;
 use tauri::{AppHandle, State, Manager};
 
 use crate::services::prospecting::{
-    ProspectingStorage,
+    ProspectingService,
     types::{Comment, RawComment, CommentFilter, AnalysisResult, ReplyPlan, Statistics},
 };
 
 /// 精准获客模块的全局状态
 pub struct ProspectingState {
-    storage: Arc<Mutex<Option<ProspectingStorage>>>,
+    service: Arc<Mutex<Option<ProspectingService>>>,
 }
 
 impl ProspectingState {
     pub fn new() -> Self {
         Self {
-            storage: Arc::new(Mutex::new(None)),
+            service: Arc::new(Mutex::new(None)),
         }
     }
     
-    pub fn init_storage(&self, data_dir: PathBuf) -> Result<()> {
-        // ProspectingStorage::new() 内部会自动添加 "prospecting.db"
-        // 所以这里直接传递 data_dir 即可
-        let storage = ProspectingStorage::new(data_dir)?;
+    pub fn init_service(&self, data_dir: PathBuf) -> Result<()> {
+        let service = ProspectingService::new(data_dir)?;
         
-        let mut guard = self.storage.lock();
-        *guard = Some(storage);
+        let mut guard = self.service.lock();
+        *guard = Some(service);
         Ok(())
     }
     
-    pub fn with_storage<F, R>(&self, f: F) -> Result<R>
+    pub fn with_service<F, R>(&self, f: F) -> Result<R>
     where
-        F: FnOnce(&ProspectingStorage) -> Result<R>,
+        F: FnOnce(&ProspectingService) -> Result<R>,
     {
-        let guard = self.storage.lock();
+        let guard = self.service.lock();
         match guard.as_ref() {
-            Some(storage) => f(storage),
-            None => Err(anyhow::anyhow!("Prospecting storage not initialized")),
+            Some(service) => f(service),
+            None => Err(anyhow::anyhow!("Prospecting service not initialized")),
         }
     }
 }
@@ -57,8 +55,8 @@ pub async fn init_precise_acquisition_storage(
         .app_data_dir()
         .map_err(|e| format!("Failed to get app data dir: {}", e))?;
     
-    state.init_storage(data_dir)
-        .map_err(|e| format!("Failed to initialize storage: {}", e))
+    state.init_service(data_dir)
+        .map_err(|e| format!("Failed to initialize service: {}", e))
 }
 
 /// 保存评论
@@ -67,8 +65,8 @@ pub async fn prospecting_save_comment(
     state: State<'_, ProspectingState>,
     comment: RawComment, // 改为RawComment类型
 ) -> Result<(), String> {
-    state.with_storage(|storage| {
-        storage.save_comment(&comment)
+    state.with_service(|service| {
+        service.save_comment(&comment)
     }).map_err(|e| e.to_string())?;
 
     Ok(()) // 只返回成功状态
@@ -80,8 +78,8 @@ pub async fn prospecting_get_comments(
     state: State<'_, ProspectingState>,
     filter: CommentFilter,
 ) -> Result<Vec<Comment>, String> {
-    state.with_storage(|storage| {
-        storage.get_comments(&filter)
+    state.with_service(|service| {
+        service.get_comments(&filter)
     }).map_err(|e| e.to_string())
 }
 
@@ -91,8 +89,8 @@ pub async fn prospecting_get_comments_by_ids(
     state: State<'_, ProspectingState>,
     ids: Vec<String>,
 ) -> Result<Vec<Comment>, String> {
-    state.with_storage(|storage| {
-        storage.get_comments_by_ids(&ids)
+    state.with_service(|service| {
+        service.get_comments_by_ids(&ids)
     }).map_err(|e| e.to_string())
 }
 
@@ -102,8 +100,8 @@ pub async fn prospecting_save_analysis(
     state: State<'_, ProspectingState>,
     analysis: AnalysisResult,
 ) -> Result<(), String> {
-    state.with_storage(|storage| {
-        storage.save_analysis(&analysis)
+    state.with_service(|service| {
+        service.save_analysis(&analysis)
     }).map_err(|e| e.to_string())?;
 
     Ok(()) // 只返回成功状态
@@ -115,8 +113,8 @@ pub async fn prospecting_save_reply_plan(
     state: State<'_, ProspectingState>,
     plan: ReplyPlan,
 ) -> Result<(), String> {
-    state.with_storage(|storage| {
-        storage.save_reply_plan(&plan)
+    state.with_service(|service| {
+        service.save_reply_plan(&plan)
     }).map_err(|e| e.to_string())?;
 
     Ok(()) // 只返回成功状态
@@ -128,8 +126,8 @@ pub async fn prospecting_get_reply_plans(
     state: State<'_, ProspectingState>,
     comment_ids: Vec<String>,
 ) -> Result<Vec<ReplyPlan>, String> {
-    state.with_storage(|storage| {
-        storage.get_reply_plans(&comment_ids)
+    state.with_service(|service| {
+        service.get_reply_plans(&comment_ids)
     }).map_err(|e| e.to_string())
 }
 
@@ -139,8 +137,8 @@ pub async fn prospecting_get_reply_plans_by_ids(
     state: State<'_, ProspectingState>,
     ids: Vec<String>,
 ) -> Result<Vec<ReplyPlan>, String> {
-    state.with_storage(|storage| {
-        storage.get_reply_plans_by_ids(&ids)
+    state.with_service(|service| {
+        service.get_reply_plans_by_ids(&ids)
     }).map_err(|e| e.to_string())
 }
 
@@ -160,7 +158,7 @@ pub async fn prospecting_execute_real_reply_plan(
 pub async fn prospecting_get_statistics(
     state: State<'_, ProspectingState>,
 ) -> Result<Statistics, String> {
-    state.with_storage(|storage| {
-        storage.get_statistics()
+    state.with_service(|service| {
+        service.get_statistics()
     }).map_err(|e| e.to_string())
 }
