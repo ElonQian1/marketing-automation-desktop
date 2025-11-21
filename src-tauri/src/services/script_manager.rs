@@ -2,11 +2,22 @@ use anyhow::Result;
 use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
 use std::fs;
-use tauri::command;
+use std::sync::Arc;
+use parking_lot::Mutex;
+use tauri::{command, State};
 use tracing::{info, warn};
 use chrono::{DateTime, Utc};
 
 use crate::services::execution::model::{SmartScriptStep, SmartExecutionResult, SmartExecutorConfig};
+
+/// 脚本管理器状态
+pub struct ScriptManagerState(pub Arc<Mutex<ScriptManagerService>>);
+
+impl ScriptManagerState {
+    pub fn new() -> Self {
+        Self(Arc::new(Mutex::new(ScriptManagerService::new())))
+    }
+}
 
 /// 智能脚本完整定义
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -287,8 +298,11 @@ impl ScriptManagerService {
 // ==================== Tauri 命令 ====================
 
 #[command]
-pub async fn save_smart_script(script: SmartScript) -> Result<SmartScript, String> {
-    let service = ScriptManagerService::new();
+pub async fn save_smart_script(
+    state: State<'_, ScriptManagerState>,
+    script: SmartScript
+) -> Result<SmartScript, String> {
+    let service = state.0.lock();
     let mut updated_script = script;
     updated_script.updated_at = Utc::now();
     
@@ -299,50 +313,71 @@ pub async fn save_smart_script(script: SmartScript) -> Result<SmartScript, Strin
 }
 
 #[command]
-pub async fn load_smart_script(script_id: String) -> Result<SmartScript, String> {
-    let service = ScriptManagerService::new();
+pub async fn load_smart_script(
+    state: State<'_, ScriptManagerState>,
+    script_id: String
+) -> Result<SmartScript, String> {
+    let service = state.0.lock();
     service.load_script(&script_id)
         .map_err(|e| format!("加载脚本失败: {}", e))
 }
 
 #[command]
-pub async fn delete_smart_script(script_id: String) -> Result<(), String> {
-    let service = ScriptManagerService::new();
+pub async fn delete_smart_script(
+    state: State<'_, ScriptManagerState>,
+    script_id: String
+) -> Result<(), String> {
+    let service = state.0.lock();
     service.delete_script(&script_id)
         .map_err(|e| format!("删除脚本失败: {}", e))
 }
 
 #[command]
-pub async fn list_smart_scripts() -> Result<Vec<SmartScript>, String> {
-    let service = ScriptManagerService::new();
+pub async fn list_smart_scripts(
+    state: State<'_, ScriptManagerState>
+) -> Result<Vec<SmartScript>, String> {
+    let service = state.0.lock();
     service.list_scripts()
         .map_err(|e| format!("列出脚本失败: {}", e))
 }
 
 #[command]
-pub async fn import_smart_script(file_path: String) -> Result<SmartScript, String> {
-    let service = ScriptManagerService::new();
+pub async fn import_smart_script(
+    state: State<'_, ScriptManagerState>,
+    file_path: String
+) -> Result<SmartScript, String> {
+    let service = state.0.lock();
     service.import_script(&file_path)
         .map_err(|e| format!("导入脚本失败: {}", e))
 }
 
 #[command]
-pub async fn export_smart_script(script_id: String, output_path: String) -> Result<(), String> {
-    let service = ScriptManagerService::new();
+pub async fn export_smart_script(
+    state: State<'_, ScriptManagerState>,
+    script_id: String, 
+    output_path: String
+) -> Result<(), String> {
+    let service = state.0.lock();
     service.export_script(&script_id, &output_path)
         .map_err(|e| format!("导出脚本失败: {}", e))
 }
 
 #[command]
-pub async fn list_script_templates() -> Result<Vec<SmartScript>, String> {
-    let service = ScriptManagerService::new();
+pub async fn list_script_templates(
+    state: State<'_, ScriptManagerState>
+) -> Result<Vec<SmartScript>, String> {
+    let service = state.0.lock();
     service.list_templates()
         .map_err(|e| format!("列出模板失败: {}", e))
 }
 
 #[command]
-pub async fn create_script_from_template(template_id: String, name: String) -> Result<SmartScript, String> {
-    let service = ScriptManagerService::new();
+pub async fn create_script_from_template(
+    state: State<'_, ScriptManagerState>,
+    template_id: String, 
+    name: String
+) -> Result<SmartScript, String> {
+    let service = state.0.lock();
     service.create_from_template(&template_id, &name)
         .map_err(|e| format!("从模板创建脚本失败: {}", e))
 }
