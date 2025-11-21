@@ -2,8 +2,8 @@ use anyhow::Result;
 use std::path::PathBuf;
 use std::sync::Arc;
 
-use super::repository::ProspectingRepository;
-use super::types::*;
+use super::prospecting_repository::ProspectingRepository;
+use super::prospecting_types::*;
 
 /// 精准获客服务
 pub struct ProspectingService {

@@ -1,9 +1,10 @@
 use anyhow::Result;
-use rusqlite::{Connection, params};
+use rusqlite::params;
 use serde_json;
 use std::path::PathBuf;
 
-use super::types::*;
+use crate::infrastructure::database::get_connection;
+use super::prospecting_types::*;
 
 /// 精准获客数据存储仓储
 pub struct ProspectingRepository {
@@ -16,12 +17,12 @@ impl ProspectingRepository {
         let db_path = data_dir.join("prospecting.db");
         let repo = Self { db_path };
         repo.init_database()?;
-        Ok(repo)1
+        Ok(repo)
     }
 
     /// 初始化数据库表结构
     pub fn init_database(&self) -> Result<()> {
-        let conn = Connection::open(&self.db_path)?;
+        let conn = get_connection(&self.db_path)?;
         
         // 创建评论表
         conn.execute(
@@ -104,7 +105,7 @@ impl ProspectingRepository {
 
     /// 保存评论
     pub fn save_comment(&self, comment: &RawComment) -> Result<()> {
-        let conn = Connection::open(&self.db_path)?;
+        let conn = get_connection(&self.db_path)?;
         
         let metadata_json = comment.metadata.as_ref()
             .map(|m| serde_json::to_string(m).unwrap_or_default())
@@ -134,7 +135,7 @@ impl ProspectingRepository {
 
     /// 保存分析结果
     pub fn save_analysis(&self, analysis: &AnalysisResult) -> Result<()> {
-        let conn = Connection::open(&self.db_path)?;
+        let conn = get_connection(&self.db_path)?;
         
         conn.execute(
             r#"
@@ -158,7 +159,7 @@ impl ProspectingRepository {
 
     /// 获取评论列表
     pub fn get_comments(&self, filter: &CommentFilter) -> Result<Vec<Comment>> {
-        let conn = Connection::open(&self.db_path)?;
+        let conn = get_connection(&self.db_path)?;
         
         let mut sql = r#"
             SELECT 
@@ -260,7 +261,7 @@ impl ProspectingRepository {
             return Ok(Vec::new());
         }
 
-        let conn = Connection::open(&self.db_path)?;
+        let conn = get_connection(&self.db_path)?;
         
         // 直接在 SQL 中插入 ID 值，避免参数绑定问题
         let id_list = ids.iter()
@@ -346,7 +347,7 @@ impl ProspectingRepository {
 
     /// 保存回复计划
     pub fn save_reply_plan(&self, plan: &ReplyPlan) -> Result<()> {
-        let conn = Connection::open(&self.db_path)?;
+        let conn = get_connection(&self.db_path)?;
         
         conn.execute(
             r#"
@@ -380,7 +381,7 @@ impl ProspectingRepository {
 
     /// 获取统计信息
     pub fn get_statistics(&self) -> Result<Statistics> {
-        let conn = Connection::open(&self.db_path)?;
+        let conn = get_connection(&self.db_path)?;
         
         // 总评论数
         let total_comments: i64 = conn.query_row(
@@ -473,7 +474,7 @@ impl ProspectingRepository {
             return Ok(vec![]);
         }
 
-        let conn = Connection::open(&self.db_path)?;
+        let conn = get_connection(&self.db_path)?;
         let placeholders = comment_ids.iter().map(|_| "?").collect::<Vec<_>>().join(",");
         let sql = format!("SELECT * FROM reply_plans WHERE comment_id IN ({})", placeholders);
         
@@ -512,7 +513,7 @@ impl ProspectingRepository {
             return Ok(vec![]);
         }
 
-        let conn = Connection::open(&self.db_path)?;
+        let conn = get_connection(&self.db_path)?;
         let placeholders = ids.iter().map(|_| "?").collect::<Vec<_>>().join(",");
         let sql = format!("SELECT * FROM reply_plans WHERE id IN ({})", placeholders);
         
