@@ -1,24 +1,22 @@
-// src-tauri/src/services/prospecting/storage.rs
 use anyhow::Result;
 use rusqlite::{Connection, params};
 use serde_json;
 use std::path::PathBuf;
-// use chrono::Utc;
 
 use super::types::*;
 
-/// 精准获客数据存储服务
-pub struct ProspectingStorage {
+/// 精准获客数据存储仓储
+pub struct ProspectingRepository {
     db_path: PathBuf,
 }
 
-impl ProspectingStorage {
-    /// 创建新的存储服务实例
+impl ProspectingRepository {
+    /// 创建新的仓储实例
     pub fn new(data_dir: PathBuf) -> Result<Self> {
         let db_path = data_dir.join("prospecting.db");
-        let storage = Self { db_path };
-        storage.init_database()?;
-        Ok(storage)
+        let repo = Self { db_path };
+        repo.init_database()?;
+        Ok(repo)
     }
 
     /// 初始化数据库表结构

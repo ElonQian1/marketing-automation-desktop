@@ -1,6 +1,8 @@
 // src-tauri/src/services/prospecting/mod.rs
 pub mod types;
-pub mod storage;
+pub mod repository;
+pub mod service;
 
 pub use types::*;
-pub use storage::ProspectingStorage;
+pub use repository::ProspectingRepository;
+pub use service::ProspectingService;
