@@ -11,55 +11,22 @@ pub mod evidence;
 // ========== 核心类型重导出 ==========
 
 // Request 类型
-pub use request::{
-    StepExecRequest,
-    StepExecMode,
-    BatchConfig,
-    VerificationConfig,
-};
 
 // Response 类型
-pub use response::{
-    StepExecResponse,
-    MatchResult,
-    Bounds,
-    ExecutionInfo,
-    MatchInfo,
-    StepExecutionResult,
-};
 
 // Strategy 类型
 pub use strategy::{
     DecisionChainPlan,
-    StrategyConfig,
     StrategyVariant,
     VariantKind,
-    ChildAnchor,
     StructuralSignatures,
-    BoundsSignature,
-    StructureHint,
-    IndexHint,
     LightCheck,
 };
 
 // Selector 类型
 pub use selector::{
-    ElementSelector,
     VariantSelectors,
-    ParentSelector,
-    ChildSelector,
     SelfSelector,
-    TextMatcher,
-    ElementSelectors,
-    GeometricAids,
-    ValidationAndFallback,
-    ActionSpec,
-    SafetyThresholds,
-    StructuredSelector,
-    ScreenInfo,
-    ContainerAnchor,
-    ClickableParentHint,
-    StaticAnalysisContext,
 };
 
 // Evidence 类型

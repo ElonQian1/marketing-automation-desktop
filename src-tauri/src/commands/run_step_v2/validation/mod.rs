@@ -9,6 +9,4 @@ pub mod disambiguation;
 
 // 重导出公开API
 pub use xml_parser::{parse_xml_attribute, parse_bounds_from_string};
-pub use safety_checker::{check_fullscreen_node, check_container_node, validate_target_safety};
-pub use bounds_validator::validate_bounds_within_screen;
-pub use disambiguation::generate_disambiguation_suggestions;
+pub use safety_checker::{check_fullscreen_node, check_container_node};

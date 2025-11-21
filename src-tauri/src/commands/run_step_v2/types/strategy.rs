@@ -2,7 +2,7 @@
 // module: step-execution | layer: types | role: 策略类型
 // summary: 决策链策略数据结构 - 策略变体、配置、上下文等
 
-use serde::{Serialize, Deserialize};
+use serde::Deserialize;
 use super::selector::{VariantSelectors, StaticAnalysisContext};
 
 /// 完整决策链计划

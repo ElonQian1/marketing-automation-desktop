@@ -7,7 +7,7 @@ use anyhow::Result;
 use crate::commands::structure_match_runtime::{
     sm_match_once, SmMatchRequest, SmConfigDTO, SmMatchResponse,
 };
-use super::{MatchCandidate, Bounds, BoundsSignature};
+use super::{MatchCandidate, Bounds};
 use super::types::StructuralSignatures;
 
 // ================================

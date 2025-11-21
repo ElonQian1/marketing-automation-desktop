@@ -16,7 +16,7 @@ pub use step_processor::{
     is_coordinate_swipe,
     create_dummy_candidate,
 };
-pub use safety_gates::{check_safety_gates, safety_result_to_response, SafetyGateResult};
+pub use safety_gates::{check_safety_gates, safety_result_to_response};
 pub use sm_matcher::try_structural_matching;
 pub use strategy_resolver::resolve_step_strategy;
 pub use response_builder::ResponseBuilder;

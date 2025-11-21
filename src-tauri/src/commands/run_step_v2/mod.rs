@@ -1,3 +1,7 @@
+#![allow(dead_code)]
+#![allow(unused_variables)]
+#![allow(unused_imports)]
+
 // src-tauri/src/commands/run_step_v2/mod.rs
 // module: v2-execution | layer: commands | role: V2统一执行协议入口
 // summary: 实现三条执行链(static/step/chain)的真机执行，支持完整的V2协议
@@ -15,7 +19,7 @@ mod legacy;
 pub use types::*;
 
 // 重导出 matching 模块的功能
-use matching::{UnifiedScoringCore, resolve_selector_with_priority, SelectorSource, coord_fallback_hit_test};
+use matching::{resolve_selector_with_priority, SelectorSource, coord_fallback_hit_test};
 
 // 重导出 execution 模块的功能
 use execution::{execute_v2_action_with_coords, run_decision_chain_v2 as run_decision_chain_v2_impl};
@@ -29,14 +33,12 @@ use utils::{
     create_dummy_candidate,
     check_safety_gates,
     safety_result_to_response,
-    SafetyGateResult,
     try_structural_matching,
     resolve_step_strategy,
     ResponseBuilder,
 };
 
 // 重导出 legacy 模块的废弃功能
-pub use legacy::run_step_v2_legacy;
 
 use tauri::{command, AppHandle};
 use serde::{Deserialize, Serialize};
@@ -45,9 +47,7 @@ use regex;
 
 use crate::services::universal_ui_page_analyzer::UIElement;
 use crate::services::adb::AdbService;
-use crate::infra::adb::input_helper::{tap_injector_first, input_text_injector_first, swipe_injector_first};
-use crate::infra::adb::keyevent_helper::keyevent_code_injector_first;
-use crate::engine::{FallbackController, XmlIndexer};
+use crate::infra::adb::input_helper::tap_injector_first;
 use crate::engine::strategy_plugin::{StrategyRegistry, ExecutionEnvironment};
 
 // 导入 validation 模块的安全检查函数
@@ -197,7 +197,7 @@ pub async fn run_step_v2(app_handle: AppHandle, request: RunStepRequestV2) -> Re
  
 
 // V2 步骤执行（匹配前端数据结构）
-async fn execute_v2_step(app_handle: AppHandle, req: &RunStepRequestV2) -> Result<StepResponseV2, String> {
+async fn execute_v2_step(_app_handle: AppHandle, req: &RunStepRequestV2) -> Result<StepResponseV2, String> {
     // 🎯 处理coordinateParams参数展开
     let step_with_coords = expand_coordinate_params(&req.step);
     
@@ -441,12 +441,12 @@ async fn find_element_in_ui(ui_xml: &str, req: &RunStepRequestV2, selection_mode
         tracing::info!("🎯 执行坐标Hit-Test");
         match coord_fallback_hit_test(ui_xml, req).await {
             Ok(candidate) => {
-                let match_info = MatchInfo {
+                let _match_info = MatchInfo {
                     uniqueness: 1, // Hit-Test保证唯一性
                     confidence: candidate.confidence as f32,
                     elements_found: 1,
                 };
-                return Ok((match_info, vec![candidate])); // 返回Vec而不是单个
+                return Ok((_match_info, vec![candidate])); // 返回Vec而不是单个
             }
             Err(e) => {
                 return Err(format!("坐标兜底失败: {}", e));
@@ -478,7 +478,7 @@ async fn find_element_in_ui(ui_xml: &str, req: &RunStepRequestV2, selection_mode
         let node_str = node_match.as_str();
         
         let mut score = 0.0f64;
-        let mut matches = 0;
+        let _matches = 0;
         
         // 提取节点属性
         let text = parse_xml_attribute(node_str, "text");
@@ -737,7 +737,7 @@ async fn find_element_in_ui(ui_xml: &str, req: &RunStepRequestV2, selection_mode
                           candidate.bounds.right, candidate.bounds.bottom);
         }
         
-        let match_info = MatchInfo {
+        let _match_info = MatchInfo {
             uniqueness,
             confidence: best_score as f32,
             elements_found,

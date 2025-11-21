@@ -2,7 +2,7 @@
 // module: step-execution | layer: types | role: 选择器类型
 // summary: 元素选择器数据结构 - 父/子/自身选择器、文本匹配器等
 
-use serde::{Serialize, Deserialize};
+use serde::Deserialize;
 use super::response::Bounds;
 use super::strategy::BoundsSignature;
 

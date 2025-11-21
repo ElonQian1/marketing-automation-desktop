@@ -7,6 +7,5 @@ pub mod selector_resolver;
 pub mod coord_hit_tester;
 
 // 重导出核心功能
-pub use tristate_scorer::UnifiedScoringCore;
 pub use selector_resolver::{resolve_selector_with_priority, SelectorSource};
 pub use coord_hit_tester::coord_fallback_hit_test;
