@@ -1,3 +1,7 @@
+#![allow(dead_code)]
+#![allow(unused_variables)]
+#![allow(unused_imports)]
+
 /// 模块四：执行上下文管理器
 /// 
 /// 职责：

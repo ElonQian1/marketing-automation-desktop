@@ -14,14 +14,6 @@ mod vcf_smart_opener;
 
 // 公开核心类型和函数
 pub use vcf_importer::MultiBrandVcfImporter;
-pub use vcf_strategies::*;
-pub use vcf_types::{
-    DeviceBrandInfo,
-    VcfImportStrategy,
-    ImportMethod,
-    ImportStepType,
-    MultiBrandImportResult,
-    ImportAttempt,
-};
-pub use vcf_utils::{Contact, VcfOpenResult, VcfImportResult, generate_vcf_file};
+pub use vcf_types::MultiBrandImportResult;
+pub use vcf_utils::{Contact, VcfOpenResult, generate_vcf_file};
 pub use vcf_smart_opener::smart_vcf_opener;

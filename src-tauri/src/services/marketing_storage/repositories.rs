@@ -1,7 +1,10 @@
+#![allow(dead_code)]
+#![allow(unused_variables)]
+#![allow(unused_imports)]
+
 use rusqlite::{params, Connection, OptionalExtension, Row};
 use tauri::AppHandle;
 use uuid::Uuid;
-use crate::services::contact_storage::repositories::database_repo as contact_db;
 
 use super::models::{
     WatchTargetPayload, WatchTargetRow, ListWatchTargetsQuery,

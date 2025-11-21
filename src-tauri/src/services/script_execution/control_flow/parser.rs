@@ -1,3 +1,7 @@
+#![allow(dead_code)]
+#![allow(unused_variables)]
+#![allow(unused_imports)]
+
 /// 模块二：控制流解析器
 /// 
 /// 职责：

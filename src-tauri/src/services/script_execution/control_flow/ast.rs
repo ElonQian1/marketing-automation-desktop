@@ -1,3 +1,7 @@
+#![allow(dead_code)]
+#![allow(unused_variables)]
+#![allow(unused_imports)]
+
 /// 模块一：抽象语法树（AST）定义
 /// 
 /// 职责：

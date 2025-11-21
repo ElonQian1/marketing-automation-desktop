@@ -1,3 +1,7 @@
+#![allow(dead_code)]
+#![allow(unused_variables)]
+#![allow(unused_imports)]
+
 /// 模块六：统一脚本预处理器
 /// 
 /// 职责：

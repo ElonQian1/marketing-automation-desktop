@@ -1,3 +1,7 @@
+#![allow(dead_code)]
+#![allow(unused_variables)]
+#![allow(unused_imports)]
+
 /// 模块五：控制流执行引擎
 /// 
 /// 职责：

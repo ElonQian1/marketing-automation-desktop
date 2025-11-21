@@ -1,3 +1,7 @@
+#![allow(dead_code)]
+#![allow(unused_variables)]
+#![allow(unused_imports)]
+
 use tauri::AppHandle;
 use super::models::{
     WatchTargetPayload, WatchTargetRow, ListWatchTargetsQuery,

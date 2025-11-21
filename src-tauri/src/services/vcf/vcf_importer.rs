@@ -1,3 +1,7 @@
+#![allow(dead_code)]
+#![allow(unused_variables)]
+#![allow(unused_imports)]
+
 use anyhow::{Context, Result};
 use std::process::Command;
 use tokio::time::{sleep, Duration};

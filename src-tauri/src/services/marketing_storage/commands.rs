@@ -1,3 +1,7 @@
+#![allow(dead_code)]
+#![allow(unused_variables)]
+#![allow(unused_imports)]
+
 use super::models::{
     WatchTargetPayload, WatchTargetRow,
     CommentPayload, CommentRow,
