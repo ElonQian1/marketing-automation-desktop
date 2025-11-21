@@ -1,7 +1,7 @@
 use rusqlite::{Connection, Result};
 
 fn main() -> Result<()> {
-    let db_path = "../src-tauri/data/contacts.db";
+    let db_path = "../src-tauri/data/employees.db";
     let conn = Connection::open(db_path)?;
     
     println!("🔍 检查数据库中的UTF-8编码问题...");
