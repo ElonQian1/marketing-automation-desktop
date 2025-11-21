@@ -234,9 +234,9 @@ impl CombinationScorer {
     async fn try_generate_strategy_from_template(
         &self,
         template: &CombinationTemplate,
-        target_element: &UIElement,
+        _: &UIElement,
         field_scores: &FieldScoreMap,
-        page_elements: &[UIElement],
+        _: &[UIElement],
     ) -> Result<Option<CombinationStrategy>, String> {
         // 收集可用字段及其评分
         let mut available_fields = Vec::new();
@@ -371,7 +371,7 @@ impl CombinationScorer {
     fn estimate_combination_matches(
         &self,
         fields: &[String],
-        field_values: &HashMap<String, String>,
+        _field_values: &HashMap<String, String>,
         field_scores: &FieldScoreMap,
     ) -> usize {
         // 使用最严格字段的重复计数作为估算基础

@@ -3,7 +3,6 @@
 // summary: 处理三种匹配模式：第一个、批量、精准定位
 
 use serde::{Deserialize, Serialize};
-use std::collections::HashMap;
 use crate::services::universal_ui_page_analyzer::UIElement;
 use crate::types::page_analysis::ElementBounds;
 

@@ -14,9 +14,9 @@ use crate::services::universal_ui_page_analyzer::UIElement;
 use strategy_generator::GeneratedSelfAnchor;
 
 // 重新导出关键类型供外部使用
-pub use match_modes::{MatchMode, MatchModeProcessor, InstanceFingerprint, generate_instance_fingerprint};
+pub use match_modes::{MatchMode, InstanceFingerprint, generate_instance_fingerprint};
 pub use crate::types::page_analysis::ElementBounds;
-pub use relation_seed::{RelationSeed, RelationSeedGenerator};
+pub use relation_seed::RelationSeed;
 
 /// 自我锚定系统的主入口
 pub struct SelfAnchorEngine {
