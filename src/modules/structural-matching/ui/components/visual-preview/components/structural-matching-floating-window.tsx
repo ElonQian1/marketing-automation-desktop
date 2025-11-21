@@ -196,8 +196,9 @@ export function StructuralMatchingFloatingWindow({
 
   const handleOverlayElementClick = useCallback((elementId: string) => {
     const normalized = normalizeElementId(elementId) as string;
+    setSelectedElementId(normalized); // Update local state
     structuralMatchingCoordinationBus.emit({
-      type: "highlight",
+      type: "select", // Changed from "highlight" to "select" to trigger tree scroll
       elementId: normalized,
       source: "overlay",
     });
