@@ -16,7 +16,7 @@ impl ProspectingRepository {
         let db_path = data_dir.join("prospecting.db");
         let repo = Self { db_path };
         repo.init_database()?;
-        Ok(repo)
+        Ok(repo)1
     }
 
     /// 初始化数据库表结构
