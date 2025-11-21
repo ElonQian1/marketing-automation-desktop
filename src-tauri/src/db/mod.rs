@@ -11,7 +11,7 @@ pub mod replay_plans;
 #[cfg(debug_assertions)]
 pub mod seed;
 
-use rusqlite::{Connection, Result};
+use rusqlite::Connection;
 use std::path::PathBuf;
 use tauri::{AppHandle, Manager};
 

@@ -3,7 +3,6 @@
 // summary: 处理语义分析器配置的保存、加载和管理操作
 
 use serde::{Deserialize, Serialize};
-use std::collections::HashMap;
 use std::fs;
 use std::path::PathBuf;
 use tauri::{AppHandle, Manager};

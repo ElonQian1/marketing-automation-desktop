@@ -5,7 +5,6 @@
 use crate::services::universal_ui_page_analyzer::UIElement;
 use crate::types::smart_selection::SmartSelectionProtocol;
 // ✅ 改用V3的BoundsRect
-use crate::exec::v3::element_matching::bounds_matcher::BoundsRect;
 use tracing::{debug, info};
 
 /// 元素排除过滤器

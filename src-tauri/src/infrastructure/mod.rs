@@ -3,3 +3,4 @@
 // summary: 基础设施模块导出
 
 pub mod events;
+pub mod database;

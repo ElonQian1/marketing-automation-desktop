@@ -1,6 +1,14 @@
 // src/lib.rs - Library interface for testing
 // 为了支持集成测试，将主要模块重新导出
 
+// 🔇 全局抑制警告
+#![allow(dead_code)]
+#![allow(unused_variables)]
+#![allow(unused_imports)]
+#![allow(unused_assignments)]
+#![allow(unused_mut)]
+#![allow(deprecated)]
+
 pub mod application;
 pub mod domain;
 pub mod infra;

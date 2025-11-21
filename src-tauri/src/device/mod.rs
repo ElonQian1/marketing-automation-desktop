@@ -6,6 +6,5 @@ pub mod provider;
 pub mod mock;
 pub mod orchestrator;
 
-pub use provider::{DeviceAction, DumpProvider, ScreenDump, WaitCondition};
 pub use mock::MockDumpProvider;
-pub use orchestrator::{ExecutionStep, ExecutionStatusEvent, ReplayOrchestrator};
+pub use orchestrator::ReplayOrchestrator;

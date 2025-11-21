@@ -14,7 +14,6 @@
 // 🔄 调用路径: V3 chain_engine.rs → 此文件 → strategy_plugin.rs 执行器
 
 use serde::{Deserialize, Serialize};
-use std::collections::HashMap;
 
 /// 八维度证据结构
 #[derive(Debug, Clone, Serialize, Deserialize)]

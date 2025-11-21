@@ -6,9 +6,9 @@ use anyhow::Result;
 use std::time::Instant;
 
 use crate::engine::strategy_plugin::{
-    StrategyRegistry, StrategyExecutor, ExecutionEnvironment, ExecutionResult, MatchSet, 
+    StrategyRegistry, ExecutionEnvironment, ExecutionResult, 
 };
-use crate::commands::run_step_v2::{DecisionChainPlan, StrategyVariant, StaticEvidence, MatchCandidate};
+use crate::commands::run_step_v2::{DecisionChainPlan, StrategyVariant, MatchCandidate};
 
 // 🛡️ 安全闸门：三重验证机制
 pub struct SafetyGatekeeper;

@@ -13,39 +13,14 @@ pub mod index_path_locator; // 🎯 新增：绝对路径定位模块
 pub use strategy_engine::{
     StrategyEngine,
     Evidence,
-    CandidateScore,
-    StepResult,
     AnalysisContext,
     ContainerInfo,
-    EngineWeights,
 };
 
 // 🆕 导出Self-Anchor模块
-pub use self_anchor::{
-    SelfAnchorEngine,
-    SelfAnchorAnalysis,
-    FieldScoreMap,
-    FieldScore,
-    CombinationStrategy,
-};
 
 // 🚀 导出新的插件化接口
-pub use strategy_plugin::{
-    StrategyExecutor,
-    StrategyRegistry,
-    ExecutionEnvironment,
-    MatchSet,
-    ExecutionResult,
-    STRATEGY_REGISTRY,
-};
 
-pub use gating::{
-    SafetyGatekeeper,
-    FallbackController,
-};
+pub use gating::FallbackController;
 
-pub use xml_indexer::{
-    XmlIndexer,
-    SearchInterface,
-    IndexedNode,
-};
+pub use xml_indexer::XmlIndexer;

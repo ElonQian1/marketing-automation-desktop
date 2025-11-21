@@ -17,4 +17,3 @@ pub mod semantic_analyzer; // 🆕 语义分析模块
 
 // 重新导出常用类型
 pub use types::*;
-pub use commands::*;

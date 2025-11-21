@@ -1,5 +1,5 @@
 use tracing::{info, warn, debug, error};
-use serde::{Serialize, Deserialize};
+use serde::Serialize;
 use std::collections::HashMap;
 
 // 🚀 Phase 2: 引入缓存生命周期管理
@@ -255,11 +255,13 @@ pub async fn debug_xml_cache_paths() -> Result<serde_json::Value, String> {
 
 /// 将步骤与XML快照关联，增加引用计数
 #[tauri::command]
+#[allow(unused_variables)]
 pub async fn link_step_snapshot(
     step_id: String,
     snapshot_id: SnapshotId,
     description: Option<String>
 ) -> Result<usize, String> {
+    let _ = description;
     debug!(
         step_id = %step_id,
         snapshot_id = %snapshot_id,

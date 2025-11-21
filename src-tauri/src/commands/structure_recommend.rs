@@ -6,10 +6,8 @@ use serde::{Serialize, Deserialize};
 use anyhow::Result;
 use tauri::Manager;
 use crate::domain::structure_runtime_match::{
-    AutoRecommendationService, 
-    AutoRecommendationConfig,
+    AutoRecommendationService,
     MatchMode,
-    ScoreOutcome,
     ClickNormalizer,
 };
 use crate::engine::xml_indexer::XmlIndexer;
@@ -106,7 +104,7 @@ pub async fn recommend_structure_mode(
 
     // 1. 获取XML索引器
     let xml_indexer = match app.try_state::<XmlIndexer>() {
-        Some(indexer) => indexer.inner().clone(),
+        Some(indexer) => indexer.inner(),
         None => {
             error!("❌ [推荐命令] XML索引器未初始化");
             return Err("XML索引器未初始化".to_string());
@@ -408,8 +406,8 @@ pub async fn dry_run_structure_match(
 ) -> Result<Vec<usize>, String> {
     info!("🧪 [试算命令] 开始试算高亮，模式: {}", mode);
 
-    let xml_indexer = match app.try_state::<XmlIndexer>() {
-        Some(indexer) => indexer.inner().clone(),
+    let _xml_indexer = match app.try_state::<XmlIndexer>() {
+        Some(indexer) => indexer.inner(),
         None => return Err("XML索引器未初始化".to_string()),
     };
 

@@ -4,7 +4,6 @@
 
 use crate::services::universal_ui_page_analyzer::UIElement;
 // ✅ 改用V3的BoundsRect
-use crate::exec::v3::element_matching::bounds_matcher::BoundsRect;
 use std::collections::HashSet;
 use tracing::{debug, info};
 

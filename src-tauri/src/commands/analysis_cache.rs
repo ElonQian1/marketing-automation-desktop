@@ -3,7 +3,7 @@
 // summary: 分析缓存相关的Tauri命令
 
 use crate::domain::analysis_cache::api::{register_snapshot, get_or_compute_subtree, try_get_subtree};
-use crate::domain::analysis_cache::types::{SubtreeMetricsDto, StepCardDto};
+use crate::domain::analysis_cache::types::SubtreeMetricsDto;
 use anyhow::Result;
 
 /// 注册XML快照，返回SnapshotId

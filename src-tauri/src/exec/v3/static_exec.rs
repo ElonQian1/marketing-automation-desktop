@@ -60,12 +60,13 @@ pub async fn execute_static(
 }
 
 /// 引用式执行：从脚本库读取定位器后执行
+#[allow(unused_variables)]
 async fn execute_static_by_ref(
     app: &AppHandle,
     envelope: &ContextEnvelope,
-    script_id: &str,
+    _script_id: &str,
     static_step_id: &str,
-    dryrun: bool,
+    _dryrun: bool,
 ) -> Result<(), String> {
     let start_time = Instant::now();
     let analysis_id = envelope.snapshot.analysis_id.clone();
@@ -108,18 +109,19 @@ async fn execute_static_by_ref(
 }
 
 /// 内联式执行：使用传入的 locator 和 action 执行
+#[allow(unused_variables)]
 async fn execute_static_by_inline(
     app: &AppHandle,
     envelope: &ContextEnvelope,
     step_id: &str,
     action: &StaticAction,
     locator: &Locator,
-    input_text: Option<&str>,
-    click_point_policy: &Option<ClickPointPolicy>,
+    _input_text: Option<&str>,
+    _click_point_policy: &Option<ClickPointPolicy>,
     dryrun: bool,
-    quality: &QualitySettings,
-    constraints: &ConstraintSettings,
-    validation: &ValidationSettings,
+    _quality: &QualitySettings,
+    _constraints: &ConstraintSettings,
+    _validation: &ValidationSettings,
 ) -> Result<(), String> {
     let start_time = Instant::now();
     let analysis_id = envelope.snapshot.analysis_id.clone();

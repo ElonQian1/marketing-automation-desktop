@@ -317,7 +317,7 @@ pub async fn sm_match_once(request: SmMatchRequest) -> Result<SmMatchResponse, S
 
 /// 转换前端配置为内部SmConfig
 fn convert_config_dto(dto: SmConfigDTO) -> Result<SmConfig, String> {
-    use crate::domain::structure_runtime_match::{SmMode, SkeletonRules, FieldRule, FieldRules};
+    use crate::domain::structure_runtime_match::{SmMode, SkeletonRules, FieldRules};
     
     // 解析模式
     let mode = match dto.mode.as_str() {

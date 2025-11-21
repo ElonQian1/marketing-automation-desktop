@@ -5,10 +5,9 @@
 use anyhow::Result;
 use serde::{Deserialize, Serialize};
 use tauri::State;
-use tracing::{info, error, debug};
+use tracing::{info, debug};
 use crate::types::smart_selection::*;
 // ✅ V3智能引擎模块（目前此命令已标记为废弃）
-use crate::exec::v3::element_matching::bounds_matcher::BoundsRect;
 use crate::services::adb::AdbService;
 use std::sync::Mutex;
 
@@ -27,7 +26,7 @@ impl SmartSelectionState {
 #[tauri::command]
 pub async fn execute_smart_selection(
     device_id: String,
-    protocol: SmartSelectionProtocol,
+    _protocol: SmartSelectionProtocol,
     _adb_service: State<'_, Mutex<AdbService>>,
 ) -> Result<SmartSelectionResult, String> {
     info!("🎯 [Legacy API兼容] 开始执行智能选择，设备: {}", device_id);
@@ -62,12 +61,12 @@ pub async fn validate_smart_selection_protocol(
     
     // 验证选择模式特定配置
     match &protocol.selection.mode {
-        SelectionMode::All { batch_config } => {
+        SelectionMode::All { batch_config: _ } => {
             if protocol.selection.batch_config.is_none() {
                 warnings.push("批量模式建议配置批量参数".to_string());
             }
         }
-        SelectionMode::Random { seed, ensure_stable_sort } => {
+        SelectionMode::Random { seed: _, ensure_stable_sort: _ } => {
             if protocol.selection.random_seed.is_none() {
                 warnings.push("随机模式建议设置种子确保可复现".to_string());
             }
@@ -152,7 +151,7 @@ pub async fn test_smart_selection_connectivity(
     };
     
     // 2. ADB连接检查
-    let adb_check = match crate::infra::adb::input_helper::tap_injector_first(
+    let _adb_check = match crate::infra::adb::input_helper::tap_injector_first(
         &crate::utils::adb_utils::get_adb_path(),
         &device_id, 
         100, 
@@ -183,7 +182,7 @@ pub async fn test_smart_selection_connectivity(
     // 3. 智能选择引擎检查
     if device_check {
         // 创建一个简单的测试协议
-        let test_protocol = SmartSelectionProtocol {
+        let _test_protocol = SmartSelectionProtocol {
             anchor: AnchorInfo {
                 container_xpath: None,
                 clickable_parent_xpath: None,
@@ -274,7 +273,7 @@ pub async fn preview_smart_selection_candidates(
     info!("👁️ 预览智能选择候选元素，设备: {}", device_id);
     
     // 获取UI状态
-    let ui_xml = match crate::services::adb::AdbService::new().dump_ui_hierarchy(&device_id).await {
+    let _ui_xml = match crate::services::adb::AdbService::new().dump_ui_hierarchy(&device_id).await {
         Ok(xml) => xml,
         Err(e) => return Err(format!("获取UI状态失败: {}", e)),
     };

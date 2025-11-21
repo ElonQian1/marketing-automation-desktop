@@ -215,7 +215,7 @@ pub async fn execute_structure_match_step(
 }
 
 /// 获取当前设备的UI XML
-async fn get_current_device_xml(app: &tauri::AppHandle) -> Result<String, String> {
+async fn get_current_device_xml(_app: &tauri::AppHandle) -> Result<String, String> {
     use tokio::process::Command as AsyncCommand;
     use std::env;
     
@@ -280,7 +280,7 @@ fn execute_match_by_mode(
     info!("🔍 [匹配执行] 使用模式: {:?}", mode);
 
     // 根据scope决定返回多少个目标
-    let scope = intent.as_ref().map(|i| i.scope.as_str()).unwrap_or("first");
+    let _scope = intent.as_ref().map(|i| i.scope.as_str()).unwrap_or("first");
     
     match mode {
         MatchMode::CardSubtree => {
@@ -321,6 +321,7 @@ fn execute_match_by_mode(
                 has_text: !clicked_element.text.is_empty(),
                 has_desc: !clicked_element.content_desc.is_empty(),
                 has_res_id: clicked_element.resource_id.is_some(),
+                text_content: clicked_element.text.clone(),
             };
             
             let outcome = matcher.score_leaf_context(&sig);
@@ -412,7 +413,7 @@ async fn execute_clicks(
 }
 
 /// 执行 ADB 点击
-async fn adb_tap(app: &tauri::AppHandle, x: i32, y: i32) -> Result<(), String> {
+async fn adb_tap(_app: &tauri::AppHandle, x: i32, y: i32) -> Result<(), String> {
     use tokio::process::Command as AsyncCommand;
     use std::env;
     

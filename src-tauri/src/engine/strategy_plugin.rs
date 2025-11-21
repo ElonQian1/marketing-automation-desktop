@@ -13,12 +13,11 @@
 //
 // 🔄 调用路径: strategy_engine.rs → 此文件执行器 → 实际UI操作
 
-use serde::{Deserialize, Serialize};
-use crate::commands::run_step_v2::{StrategyVariant, StaticEvidence, StepExecutionResult, MatchCandidate, Bounds};
-use crate::services::universal_ui_page_analyzer::UIElement;
+use serde::Serialize;
+use crate::commands::run_step_v2::{StrategyVariant, StepExecutionResult, MatchCandidate, Bounds};
 use std::collections::HashMap;
 use tauri::AppHandle;
-use tracing::{info, warn};
+use tracing::info;
 
 // 📊 匹配结果集合
 #[derive(Debug, Clone)]
@@ -237,7 +236,7 @@ impl StrategyExecutor {
         })
     }
 
-    async fn execute_bounds_tap(&self, env: &ExecutionEnvironment, _resource_id: &str) -> Result<StepExecutionResult, String> {
+    async fn execute_bounds_tap(&self, _env: &ExecutionEnvironment, _resource_id: &str) -> Result<StepExecutionResult, String> {
         info!("Executing bounds_tap strategy");
         
         // 暂时使用默认的 bounds 信息（实际应用中需要从选择器或其他来源获取）
@@ -338,7 +337,7 @@ impl StrategyExecutor {
     // 查找匹配 - 从V2版迁移的完整实现
     pub fn find_matches(&self, env: &ExecutionEnvironment, variant: &StrategyVariant) -> Result<MatchSet, anyhow::Error> {
         use std::time::Instant;
-        let start = Instant::now();
+        let _start = Instant::now();
         
         let result = match self {
             Self::SelfId => self.find_by_self_id(env, variant),
@@ -623,7 +622,7 @@ impl StrategyExecutor {
                 })
                 .collect();
             
-            for (index, elem) in matching_elements.iter().enumerate() {
+            for (_index, elem) in matching_elements.iter().enumerate() {
                 let clickable_target = Self::find_clickable_target(elem, &ui_elements);
                 
                 let bounds = Ok::<_, anyhow::Error>((clickable_target.bounds.left, clickable_target.bounds.top, clickable_target.bounds.right, clickable_target.bounds.bottom))?;

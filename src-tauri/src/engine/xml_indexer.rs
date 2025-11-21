@@ -7,7 +7,6 @@ use anyhow::Result;
 use regex::Regex;
 use once_cell::sync::Lazy;
 
-use super::strategy_plugin::ExecutionEnvironment;
 use crate::services::universal_ui_page_analyzer::{UIElement, UIElementType};
 use crate::commands::run_step_v2::{MatchCandidate, Bounds};
 use crate::types::page_analysis::ElementBounds;
@@ -127,8 +126,8 @@ impl XmlIndexer {
             match Self::parse_bounds(bounds_str) {
                 Ok(b) => {
                     // 🎯 性能优化：降低日志级别为 trace（避免逐节点打印）
-                    #[cfg(feature = "trace_xml_bounds")]
-                    tracing::trace!("✅ [XmlIndexer] 成功解析bounds: '{}' -> {:?}", bounds_str, b);
+                    // #[cfg(feature = "trace_xml_bounds")]
+                    // tracing::trace!("✅ [XmlIndexer] 成功解析bounds: '{}' -> {:?}", bounds_str, b);
                     b
                 }
                 Err(e) => {
@@ -138,8 +137,8 @@ impl XmlIndexer {
             }
         } else {
             // 🎯 性能优化：降低日志级别为 trace
-            #[cfg(feature = "trace_xml_bounds")]
-            tracing::trace!("⚠️ [XmlIndexer] 节点无bounds属性，使用默认值");
+            // #[cfg(feature = "trace_xml_bounds")]
+            // tracing::trace!("⚠️ [XmlIndexer] 节点无bounds属性，使用默认值");
             (0, 0, 100, 100)
         };
         
@@ -312,7 +311,7 @@ impl XmlIndexer {
             let nodes = self.find_by_text(aliases);
             if first_condition {
                 candidates = nodes;
-                first_condition = false;
+                // first_condition = false;
             } else {
                 candidates.retain(|node| nodes.contains(node));
             }

@@ -15,7 +15,8 @@ pub async fn execute_single_step_internal(
     envelope: &ContextEnvelope,
     step: SingleStepSpecV3,
 ) -> Result<Value, String> {
-    let start_time = std::time::Instant::now();
+    // #[allow(unused_variables)]
+    let _start_time = std::time::Instant::now();
     
     // 根据 by-ref 或 by-inline 处理
     match step {
@@ -83,7 +84,7 @@ async fn execute_step_by_ref(
         step_id, strategy.selection_mode);
     
     // 4. 决定是否需要重评
-    let should_reevaluate = match envelope.execution_mode {
+    let _ = match envelope.execution_mode {
         ExecutionMode::Strict => {
             tracing::info!("🔍 严格模式：强制重评");
             true
@@ -205,8 +206,8 @@ async fn execute_step_by_inline(
     step_id: &str,
     action: SingleStepAction,
     params: Value,
-    quality: QualitySettings,
-    constraints: ConstraintSettings,
+    _quality: QualitySettings,
+    _constraints: ConstraintSettings,
     validation: ValidationSettings,
 ) -> Result<Value, String> {
     let start_time = std::time::Instant::now();

@@ -38,22 +38,18 @@ pub mod analysis_cache;
 pub use employees::*;
 pub use adb::*;
 pub use files::*;
-pub use page_analysis::*;
-pub use logging::*;
 pub use xml_cache::*;
 // pub use xpath_execution::*; // XPath执行命令（暂时注释）
-pub use metrics::*;
-pub use strategy_matching::*;
 pub use run_step_v2::*; // 🚀 导出 V2 步骤执行命令
 pub use intelligent_analysis::*; // ✅ 新增导出
 pub use health_check::*; // ✅ 导出健康检查命令
-pub use enhanced_location_commands::*; // 🆕 导出增强定位命令
-pub use step_execution::*; // 🆕 导出统一步骤执行命令
-pub use prospecting::*; // ✅ 导出精准获客命令
-pub use commands_lead_hunt::*; // ✅ 导出Lead Hunt命令
+ // 🆕 导出增强定位命令
+ // 🆕 导出统一步骤执行命令
+ // ✅ 导出精准获客命令
+ // ✅ 导出Lead Hunt命令
 pub use smart_selection::*; // 🆕 导出智能选择命令
-pub use semantic_analyzer_config::*; // 🆕 导出语义分析器配置命令
-pub use structure_match_runtime::*; // 🚀 导出结构匹配运行时命令
+ // 🆕 导出语义分析器配置命令
+ // 🚀 导出结构匹配运行时命令
 pub use ui_dump::*; // 🆕 导出UI Dump命令
 pub use analysis_cache::*; // 🆕 导出分析缓存命令
 pub use click_normalizer_test::*; // 🆕 导出点击规范化测试命令

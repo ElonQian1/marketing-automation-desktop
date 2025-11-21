@@ -1,12 +1,8 @@
 use crate::services::adb::commands::adb_shell::safe_adb_shell_command;
-use crate::services::adb::{AdbService, get_device_session};
-use crate::utils::adb_utils;
+use crate::services::adb::get_device_session;
 use tauri::command;
-use tokio::process::Command as AsyncCommand;
 use tracing::{info, error};
 
-#[cfg(windows)]
-use std::os::windows::process::CommandExt;
 
 #[command]
 pub async fn execute_xpath_action(

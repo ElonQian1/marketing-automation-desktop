@@ -30,11 +30,11 @@ pub struct StepExecutionResult {
 /// - ✅ 支持结构签名 (structural_signatures)
 /// - ✅ 统一错误处理和日志
 pub async fn execute_step_unified(
-    app: &AppHandle,
+    _app: &AppHandle,
     envelope: &ContextEnvelope,
     inline_step: &InlineStep,
     ui_xml: &str,
-    validation: &ValidationSettings,
+    _validation: &ValidationSettings,
 ) -> Result<StepExecutionResult, String> {
     
     tracing::info!("🎯 [统一执行器] 开始执行步骤: {}", inline_step.step_id);

@@ -4,7 +4,7 @@
 
 use anyhow::Result;
 use serde_json::Value;
-use tauri::{AppHandle, State};
+use tauri::AppHandle;
 
 use super::types::*;
 use super::single_step::execute_single_step_internal;
@@ -58,7 +58,7 @@ pub async fn execute_chain_test_v3(
     };
     let (analysis_id, threshold) = match &parsed_spec {
         ChainSpecV3::ByRef { analysis_id, threshold, .. } => (Some(analysis_id.clone()), *threshold),
-        ChainSpecV3::ByInline { chain_id, threshold, ordered_steps, .. } => {
+        ChainSpecV3::ByInline { chain_id, threshold,  .. } => {
             (chain_id.clone(), *threshold)
         }
     };
@@ -117,7 +117,7 @@ pub async fn execute_task_v3(
             tracing::info!("📍 [V3] 任务路由 → 智能单步");
             execute_single_step_test_v3(app, envelope, step).await
         }
-        TaskV3::Chain { spec } => {
+        TaskV3::Chain { spec: _ } => {
             tracing::info!("📍 [V3] 任务路由 → 智能自动链 (暂时禁用)");
             Err("Chain execution temporarily disabled for refactoring".to_string())
         }

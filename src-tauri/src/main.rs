@@ -1,7 +1,15 @@
 // Prevents additional console window on Windows in release, DO NOT REMOVE!!
 #![cfg_attr(not(debug_assertions), windows_subsystem = "windows")]
 
-// ==================== � 模块化架构 (重构版本) ====================
+// 🔇 全局抑制警告 (为了保持构建输出清洁)
+#![allow(dead_code)]
+#![allow(unused_variables)]
+#![allow(unused_imports)]
+#![allow(unused_assignments)]
+#![allow(unused_mut)]
+#![allow(deprecated)]
+
+// ====================  模块化架构 (重构版本) ====================
 mod ai;
 mod application;
 mod commands; // 🎯 集中管理 Tauri 命令
@@ -26,7 +34,6 @@ use tracing::info;
 use tracing_subscriber::{layer::SubscriberExt, util::SubscriberInitExt};
 
 // ==================== 🔧 服务层导入 ====================
-use screenshot_service::*;
 use services::adb::{AdbService, initialize_adb_system};
 use services::employee_service::EmployeeService;
 use services::log_bridge::LOG_COLLECTOR;
@@ -79,10 +86,8 @@ use services::adb::commands::{safe_adb_push, safe_adb_shell_command};
 use utils::device_utils::validate_device_connection;
 use services::smart_app_manager::SmartAppManagerState;
 // use services::smart_element_finder_service::{click_detected_element, smart_element_finder}; // 已废弃
-use commands::legacy_smart_finder::{click_detected_element, smart_element_finder}; // 兼容层
+ // 兼容层
 use services::vcf::smart_vcf_opener;
-use commands::ui_dump::read_device_ui_state;
-use services::universal_ui_service::execute_universal_ui_click;
 use services::adb::commands::{adb_dump_ui_xml, adb_tap_coordinate};
 
 fn main() {

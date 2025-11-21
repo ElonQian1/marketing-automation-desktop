@@ -6,9 +6,8 @@
 
 use super::events::{emit_complete, emit_progress};
 use super::types::{
-    ChainMode, ChainSpecV3, ConstraintSettings, ContextEnvelope, ExecutionMode, InlineStep, Phase,
-    Point, QualitySettings, ResultPayload, SingleStepAction, SingleStepSpecV3, StepRefOrInline, 
-    StepScore, Summary, ValidationSettings,
+    ChainMode, ChainSpecV3, ConstraintSettings, ContextEnvelope, Phase,
+    Point, QualitySettings, ResultPayload, SingleStepSpecV3, StepRefOrInline, Summary, ValidationSettings,
 };
 use std::time::Instant;
 use tauri::AppHandle;
@@ -17,51 +16,21 @@ use tauri::AppHandle;
 use crate::services::execution_abort_service::{should_abort_execution, register_execution, finish_execution};
 
 // 添加必要的导入以支持真实设备操作
-use crate::services::intelligent_analysis_service::{ElementInfo, StrategyCandidate};
-use crate::services::universal_ui_page_analyzer::UIElement; // 添加 UIElement 导入
+ // 添加 UIElement 导入
 
 // 🆕 V3 新模块：多候选评估和失败恢复
-use super::element_matching::{
-    calculate_distance, EvaluationCriteria, MultiCandidateEvaluator, TextComparator, XPathMatcher,
-};
 // ⚠️ 暂时禁用 recovery_manager（编译错误待修复）
 // use super::recovery_manager::{RecoveryContext, attempt_recovery};
 
 // 🆕 导入helpers模块中的辅助函数（避免代码重复）
-use super::helpers::element_matching::{
-    convert_uielement_to_candidate as helper_convert_candidate, element_has_child_with_text,
-    extract_child_text_filter_from_xpath, extract_resource_id_from_xpath,
-    extract_target_features_from_params as helper_extract_features,
-    find_all_elements_by_text_or_desc as helper_find_all_elements,
-    find_element_by_text_or_desc as helper_find_element,
-    parse_bounds_center as helper_parse_bounds,
-};
 
 // 🆕 导入helpers模块中的智能分析功能（避免代码重复）
-use super::helpers::intelligent_analysis::{
-    analyze_user_intent_from_params, calculate_context_fitness, calculate_interaction_capability,
-    calculate_position_weight, calculate_semantic_match, calculate_text_relevance,
-    determine_semantic_role_from_class, extract_all_interactive_elements_from_xml,
-    extract_intelligent_targets_from_xml, is_potentially_interactive, score_elements_intelligently,
-    DeviceInfo, InteractiveElement, ScoredElement, UserIntent,
-};
 
 // 🆕 导入helpers模块中的协议构建功能（避免代码重复）
-use super::helpers::protocol_builders::{
-    create_smart_selection_protocol_for_execution, create_smart_selection_protocol_for_scoring,
-};
 
 // 🆕 导入helpers模块中的策略生成功能（避免代码重复）
-use super::helpers::strategy_generation::{
-    assess_risk_level, convert_analysis_result_to_v3_steps, convert_strategies_to_v3_steps,
-    create_execution_plan, determine_strategy_type, generate_fallback_strategy_steps,
-    generate_strategy_candidates, select_optimal_strategies,
-};
 
 // 🆕 导入helpers模块中的步骤优化功能（避免代码重复）
-use super::helpers::step_optimization::{
-    check_if_step_duplicate, extract_step_target_text, get_step_id, merge_and_optimize_steps,
-};
 
 // 🆕 导入helpers模块中的执行追踪功能（避免代码重复）
 use super::helpers::execution_tracker;
@@ -70,16 +39,10 @@ use super::helpers::execution_tracker;
 use super::helpers::device_manager;
 
 // 🆕 导入helpers模块中的步骤执行功能（避免代码重复）
-use super::helpers::step_executor;
 
 // 🆕 导入helpers模块中的智能分析辅助功能（避免代码重复）
-use super::helpers::analysis_helpers::{
-    call_frontend_intelligent_analysis, perform_intelligent_strategy_analysis_from_raw,
-    should_trigger_intelligent_analysis, should_trigger_intelligent_analysis_early,
-};
 
 // 🆕 导入helpers模块中的步骤评分功能（避免代码重复）
-use super::helpers::step_scoring::score_step_with_smart_selection;
 
 // 🆕 导入helpers模块中的Phase处理功能（避免代码重复）
 use super::helpers::phase_handlers::{handle_intelligent_fallback, score_steps_by_mode};
@@ -89,9 +52,6 @@ use super::helpers::intelligent_preprocessing::{
     check_and_trigger_early_analysis, log_final_steps, optimize_steps_with_intelligent_analysis,
 };
 
-use crate::types::smart_selection::{
-    AnchorInfo, ElementFingerprint, SelectionConfig, SelectionMode, SmartSelectionProtocol,
-};
 
 /// 智能自动链执行器主入口
 ///
@@ -109,8 +69,8 @@ pub async fn execute_chain(
     envelope: &ContextEnvelope,
     chain_spec: &ChainSpecV3,
 ) -> Result<(), String> {
-    let start_time = Instant::now();
-    let device_id = &envelope.device_id;
+    let _start_time = Instant::now();
+    let _device_id = &envelope.device_id;
 
     // 根据 by-ref 或 by-inline 处理
     match chain_spec {
@@ -165,8 +125,8 @@ async fn execute_chain_by_ref(
     app: &AppHandle,
     envelope: &ContextEnvelope,
     analysis_id: &str,
-    threshold: f32,
-    mode: &ChainMode,
+    _threshold: f32,
+    _mode: &ChainMode,
 ) -> Result<(), String> {
     let start_time = Instant::now();
     let device_id = &envelope.device_id;
