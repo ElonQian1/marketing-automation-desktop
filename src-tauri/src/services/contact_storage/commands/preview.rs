@@ -83,7 +83,7 @@ pub async fn parse_contact_file(file_name: String, content: String) -> Result<Pr
     }
 
     // 使用统一解析引擎提取号码
-    // extract_numbers_from_text 内部使用了 StrategyChainParser (CSV -> Plain -> Mixed)
+    // extract_numbers_from_text 内部使用了 ContactFormatParser (CSV -> Plain -> Mixed)
     // 并且已经包含了去重逻辑
     let parse_stats = extract_numbers_from_text(&content);
     

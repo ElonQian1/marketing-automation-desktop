@@ -6,11 +6,11 @@ pub mod types;
 pub mod validators;
 pub mod normalizers;
 pub mod deduplicator;
-pub mod strategies;
+pub mod formats;
 
 use types::{ParseStats, ParseResult};
 use deduplicator::deduplicate_by_phone;
-use strategies::StrategyChainParser;
+use formats::ContactFormatParser;
 
 /// 主解析函数：从文本中提取联系人号码
 /// 
@@ -31,7 +31,7 @@ pub fn extract_numbers_from_text(content: &str) -> ParseResult {
     let start_time = std::time::Instant::now();
     
     // 使用策略链解析器智能解析
-    let parser = StrategyChainParser::new();
+    let parser = ContactFormatParser::new();
     let mut contacts = parser.parse_smart(content);
     
     // 记录解析前的数量
@@ -66,7 +66,7 @@ pub fn extract_numbers_from_text(content: &str) -> ParseResult {
 pub fn extract_numbers_greedy(content: &str) -> ParseResult {
     let start_time = std::time::Instant::now();
     
-    let parser = StrategyChainParser::new();
+    let parser = ContactFormatParser::new();
     let mut contacts = parser.parse_greedy(content);
     
     let before_dedup = contacts.len();
