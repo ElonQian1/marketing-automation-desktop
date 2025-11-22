@@ -26,7 +26,7 @@ $files = @(
     "src/utils/element_utils/exclusion_filter.rs",
     "src/matchers/business_filter.rs",
     "src/matchers/three_tier_matcher.rs",
-    "src/services/execution/matching/strategies/anchor_by_relation_strategy.rs",
+    "src/services/execution/matching/matching_strategies/matching_anchor_relation.rs",
     "src/exec/v3/xpath_evaluator.rs",
     "src/exec/v3/element_matching/multi_candidate_evaluator.rs",
     "src/exec/v3/element_matching/xpath_matcher.rs",
