@@ -26,11 +26,11 @@ pub struct AutoPickConfig {
 impl Default for AutoPickConfig {
     fn default() -> Self {
         Self {
-            min_conf: 0.70,
-            top_gap: 0.15,
-            trigger_subtree: 0.78,
-            trigger_leaf: 0.72,
-            trigger_text: 0.80,
+            min_conf: 0.55,        // 降低最低门槛，适应 Tier 3 (0.60起)
+            top_gap: 0.10,         // 缩小分差敏感度
+            trigger_subtree: 0.60, // Tier 3 起始分
+            trigger_leaf: 0.75,    // Tier 2 起始分略低一点作为容错
+            trigger_text: 0.85,    // Tier 1/2 强文本
         }
     }
 }
@@ -129,39 +129,29 @@ impl<'a> AutoModeSelector<'a> {
             return self.fallback_selection(subtree, leaf, text);
         }
 
-        // 按置信度排序
+        // 按置信度排序 (Tiered Scoring 保证了分数的绝对意义)
+        // Tier 1 (Unique) > 0.95
+        // Tier 2 (Button) > 0.80
+        // Tier 3 (Card)   > 0.60 (Max 0.85)
         passed_outcomes.sort_by(|a, b| b.conf.partial_cmp(&a.conf).unwrap_or(std::cmp::Ordering::Equal));
 
         let top = passed_outcomes[0];
-        let second = if passed_outcomes.len() > 1 { Some(passed_outcomes[1]) } else { None };
-
-        // 🎯 智能仲裁逻辑：
-        // 1. 如果 TextExact 分数极高 (>0.9)，且 LeafContext 也不差 (>0.6)，优先选 TextExact (最稳)
-        if text.passed_gate && text.conf > 0.9 && leaf.conf > 0.6 {
+        
+        // 🎯 智能仲裁逻辑 (简化版，信任 Tiered Scoring):
+        
+        // 1. 如果 TextExact 分数极高 (>0.9)，直接采纳 (Tier 1/2)
+        if text.passed_gate && text.conf > 0.9 {
              return (
                 MatchMode::TextExact,
                 format!("文本极高置信度({:.3})，优先文本匹配", text.conf)
             );
         }
 
-        // 2. 如果 Subtree 分数高，说明是复杂卡片，优先 Subtree
-        if subtree.passed_gate && subtree.conf > 0.85 {
-             return (
-                MatchMode::CardSubtree,
-                format!("卡片结构特征明显({:.3})，优先子树匹配", subtree.conf)
-            );
-        }
-
-        // 3. 如果最高分与次高分差距不够，且次高分是LeafContext，偏向LeafContext
-        if let Some(sec) = second {
-            if (top.conf - sec.conf) < self.config.top_gap && sec.mode == MatchMode::LeafContext {
-                return (
-                    MatchMode::LeafContext,
-                    format!("分差不足({:.3})，偏向叶子上下文模式", top.conf - sec.conf)
-                );
-            }
-        }
-
+        // 2. 移除旧的 "Subtree > 0.85 强制优先" 逻辑
+        // 原因：新的评分体系下，CardSubtree 最高 0.85。如果 LeafContext/TextExact 能超过 0.85，
+        // 说明用户点击的是明确的按钮/文本，应该优先响应用户的"精确点击"意图，而不是强制识别为卡片。
+        
+        // 3. 保持原有的最高分逻辑
         (
             top.mode,
             format!("最高置信度({:.3})，通过闸门", top.conf)
