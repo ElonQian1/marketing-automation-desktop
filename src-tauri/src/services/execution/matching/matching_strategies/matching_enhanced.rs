@@ -3,7 +3,7 @@
 //! 模块: 执行引擎匹配系统 | 层级: 策略层 | 角色: 智能匹配算法
 //! summary: 集成增强型元素匹配器的策略处理器，提供多层级容错匹配
 
-use crate::services::execution::matching::strategies::{
+use crate::services::execution::matching::matching_strategies::{
     StrategyProcessor, MatchingContext, StrategyResult, ProcessingError
 };
 use crate::services::execution::matching::{

@@ -2,8 +2,8 @@
 // module: execution | layer: domain | role: 关系锚点匹配策略
 // summary: 使用子元素/兄弟元素/父元素文本作为锚点进行元素定位
 
-use super::strategy_processor::{StrategyProcessor, MatchingContext, StrategyResult, ProcessingError};
-use super::candidate_scorer::{CandidateScorer, ScoringConfig};
+use super::matching_processor::{StrategyProcessor, MatchingContext, StrategyResult, ProcessingError};
+use super::matching_candidate_scorer::{CandidateScorer, ScoringConfig};
 use crate::services::universal_ui_page_analyzer::parse_ui_elements_simple as parse_ui_elements;
 use crate::exec::v3::helpers::parse_bounds;
 use async_trait::async_trait;

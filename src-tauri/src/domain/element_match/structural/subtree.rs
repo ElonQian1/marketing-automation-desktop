@@ -154,10 +154,26 @@ impl SubtreeMatcher {
         None
     }
 
-    fn is_waterfall_container<V: SmXmlView>(&self, _view: &V, _node_id: u32) -> bool {
-        // 简单判断：如果父容器是 RecyclerView/StaggeredGridLayoutManager
-        // 这里需要向上查找，但在 SmXmlView 接口中通常只提供向下遍历
-        // 暂时简化为 false，或者需要扩展 SmXmlView 接口
+    fn is_waterfall_container<V: SmXmlView>(&self, view: &V, node_id: u32) -> bool {
+        // 向上查找父容器，判断是否为列表容器
+        let mut current = node_id;
+        // 向上查3层
+        for _ in 0..3 {
+            if let Some(parent_id) = view.parent(current) {
+                let class = view.class(parent_id);
+                if class.contains("RecyclerView") 
+                    || class.contains("StaggeredGridLayoutManager")
+                    || class.contains("ListView")
+                    || class.contains("GridView")
+                    || class.contains("WaterFall") // 某些自定义控件可能包含此关键字
+                {
+                    return true;
+                }
+                current = parent_id;
+            } else {
+                break;
+            }
+        }
         false 
     }
 }
@@ -182,35 +198,49 @@ impl ElementMatcher for SubtreeMatcher {
         // 1) 提取特征
         let features = self.extract_features(&adapter, card_root_idx as u32, clickable_parent_idx as u32);
 
-        // 2) 打分
+        // 2) 打分 (Tiered Scoring Implementation)
+        // 目标：结构性卡片(Card)得分应落在 [0.60, 0.85] 区间
+        // 语义性按钮(Button)得分应落在 [0.80, 0.95] 区间 (由 LeafMatcher 处理)
+        // 唯一性定位(Unique)得分应落在 [0.95, 1.0] 区间
+        
         let mut conf = 0.0;
-        if features.has_desc_on_root { conf += 0.18; }
-        if features.has_clickable_parent { conf += 0.18; }
-        if features.has_media_area { conf += 0.18; }
-        if features.has_bottom_bar { conf += 0.18; }
+        
+        // 基础特征权重 (总和 0.60)
+        // 降低单项特征权重，避免非卡片元素因部分特征吻合而得分过高
+        if features.has_desc_on_root { conf += 0.10; }
+        if features.has_clickable_parent { conf += 0.10; }
+        if features.has_media_area { conf += 0.10; }
+        if features.has_bottom_bar { conf += 0.10; }
 
-        conf += (1.0 - (features.media_ratio - 0.65).abs()).clamp(0.0, 1.0) * 0.14;
-        conf += (1.0 - (features.bottom_bar_pos - 0.85).abs()).clamp(0.0, 1.0) * 0.14;
+        // 布局比例特征
+        conf += (1.0 - (features.media_ratio - 0.65).abs()).clamp(0.0, 1.0) * 0.10;
+        conf += (1.0 - (features.bottom_bar_pos - 0.85).abs()).clamp(0.0, 1.0) * 0.10;
 
-        // 瀑布流加分 (暂时简化)
-        // if self.is_waterfall_container(&adapter, clickable_parent_idx as u32) { conf += 0.15; }
+        // 场景增强权重
+        // 瀑布流容器是卡片的强信号，给予显著加分 (+0.25)
+        // 这样 "完美卡片" = 0.60 + 0.25 = 0.85
+        // "普通卡片" (无瀑布流) = 0.60
+        if self.is_waterfall_container(&adapter, clickable_parent_idx as u32) { 
+            conf += 0.25; 
+        }
 
         conf = conf.clamp(0.0, 1.0);
 
         let explain = format!(
-            "子孙骨架: desc={} 可点父={} 媒体区={} 底栏={} ratio={:.2} pos={:.2}",
+            "子孙骨架(Tier3): desc={} 可点父={} 媒体区={} 底栏={} ratio={:.2} pos={:.2} 瀑布流={}",
             features.has_desc_on_root,
             features.has_clickable_parent,
             features.has_media_area,
             features.has_bottom_bar,
             features.media_ratio,
-            features.bottom_bar_pos
+            features.bottom_bar_pos,
+            if conf >= 0.8 { "Yes" } else { "No" } // 简单示意
         );
 
         MatchResult {
             mode: MatchMode::CardSubtree,
             confidence: conf,
-            passed_gate: conf >= 0.78, // 默认阈值
+            passed_gate: conf >= 0.55, // 降低门槛以适应新的分数区间 (0.60起步)
             explain,
         }
     }

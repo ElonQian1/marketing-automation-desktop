@@ -3,7 +3,7 @@
 //! 专门处理 bounds=[0,0][0,0] 的隐藏元素，根据文本内容查找可点击的父容器。
 //! 实现跨设备兼容的父容器查找算法，使用文本语义匹配和DOM层级遍历。
 
-use crate::services::execution::matching::strategies::{
+use crate::services::execution::matching::matching_strategies::{
     StrategyProcessor, MatchingContext, StrategyResult, ProcessingError
 };
 use crate::commands::strategy_matching::HiddenElementParentConfig;

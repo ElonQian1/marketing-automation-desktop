@@ -3,34 +3,34 @@
 //! 提供模块化的匹配策略处理，支持不同的匹配策略和扩展。
 //! 每个策略都有独立的处理器，确保代码清晰和可维护。
 
-mod strategy_processor;
-mod standard_strategy;
-mod absolute_strategy;
-mod custom_strategy;
-mod hidden_element_parent_strategy;
-pub mod xpath_direct_strategy;
-mod xpath_first_index_strategy;
-mod xpath_all_elements_strategy;
-mod enhanced_strategy; // 🆕 增强型匹配策略
-mod anchor_by_relation_strategy; // 🎯 关系锚点匹配策略（用于中层无文本容器）
-mod candidate_scorer; // 🎯 候选元素评分系统
+mod matching_processor;
+mod matching_standard;
+mod matching_absolute;
+mod matching_custom;
+mod matching_hidden_parent;
+pub mod matching_xpath_direct;
+mod matching_xpath_first;
+mod matching_xpath_all;
+mod matching_enhanced; // 🆕 增强型匹配策略
+mod matching_anchor_relation; // 🎯 关系锚点匹配策略（用于中层无文本容器）
+mod matching_candidate_scorer; // 🎯 候选元素评分系统
 
-pub use strategy_processor::{
+pub use matching_processor::{
     StrategyProcessor,
     MatchingContext,
     StrategyResult,
     ProcessingError,
 };
 
-pub use standard_strategy::StandardStrategyProcessor;
-pub use absolute_strategy::AbsoluteStrategyProcessor; 
-pub use custom_strategy::CustomStrategyProcessor;
-pub use hidden_element_parent_strategy::HiddenElementParentStrategyProcessor;
-pub use xpath_direct_strategy::XPathDirectStrategyProcessor;
-pub use xpath_first_index_strategy::XPathFirstIndexStrategyProcessor;
-pub use xpath_all_elements_strategy::XPathAllElementsStrategyProcessor;
-pub use enhanced_strategy::EnhancedStrategyProcessor; // 🆕 增强型策略处理器
-pub use anchor_by_relation_strategy::AnchorByRelationStrategyProcessor; // 🎯 关系锚点策略处理器
+pub use matching_standard::StandardStrategyProcessor;
+pub use matching_absolute::AbsoluteStrategyProcessor; 
+pub use matching_custom::CustomStrategyProcessor;
+pub use matching_hidden_parent::HiddenElementParentStrategyProcessor;
+pub use matching_xpath_direct::XPathDirectStrategyProcessor;
+pub use matching_xpath_first::XPathFirstIndexStrategyProcessor;
+pub use matching_xpath_all::XPathAllElementsStrategyProcessor;
+pub use matching_enhanced::EnhancedStrategyProcessor; // 🆕 增强型策略处理器
+pub use matching_anchor_relation::AnchorByRelationStrategyProcessor; // 🎯 关系锚点策略处理器
  // 🎯 评分系统
 
 use std::collections::HashMap;

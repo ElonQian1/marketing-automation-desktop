@@ -3,7 +3,7 @@
 //! 专门处理返回所有符合条件的同类元素的策略。
 //! 这种策略适用于需要批量操作多个相同元素的场景。
 
-use crate::services::execution::matching::strategies::{
+use crate::services::execution::matching::matching_strategies::{
     StrategyProcessor, MatchingContext, StrategyResult, ProcessingError
 };
 use async_trait::async_trait;

@@ -6,7 +6,7 @@
 //! 重要说明：此策略总是使用设备的最新UI dump，不使用XML快照。
 //! XML快照仅用于重放分析，不应用于真机操作。
 
-use crate::services::execution::matching::strategies::{
+use crate::services::execution::matching::matching_strategies::{
     StrategyProcessor, MatchingContext, StrategyResult, ProcessingError
 };
 use crate::services::execution::matching::{SmartXPathGenerator, ElementAttributes};

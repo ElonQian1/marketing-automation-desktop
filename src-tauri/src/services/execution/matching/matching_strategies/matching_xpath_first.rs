@@ -3,7 +3,7 @@
 //! 专门处理使用 [1] 索引匹配第一个符合条件元素的策略。
 //! 这种策略适用于有多个相同元素，但只需要匹配第一个的场景。
 
-use crate::services::execution::matching::strategies::{
+use crate::services::execution::matching::matching_strategies::{
     StrategyProcessor, MatchingContext, StrategyResult, ProcessingError
 };
 use async_trait::async_trait;

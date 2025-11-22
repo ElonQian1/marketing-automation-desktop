@@ -2,7 +2,7 @@
 
 mod hierarchy_matcher;
 mod legacy_regex;
-pub mod strategies;
+pub mod matching_strategies;
 mod unified;
 mod enhanced_element_matcher; // 🆕 增强型元素匹配器
 pub mod smart_xpath_generator; // 🆕 智能 XPath 生成器

@@ -81,6 +81,10 @@ impl LeafContextMatcher {
     }
 
     fn score_leaf_context(&self, sig: &ContextSig) -> (f32, String) {
+        // Tiered Scoring:
+        // Tier 2 (Button/Semantic): 0.80 - 0.95
+        // Tier 3 (Card/Structural): 0.60 - 0.85
+        
         let mut conf = 0.0;
         let mut text_score = 0.0;
         let mut text_exact = false;
@@ -223,7 +227,8 @@ impl LeafContextMatcher {
         let is_exact = STABLE_KEYWORDS.iter().any(|kw| text_content.contains(kw));
         
         if is_exact {
-            (true, 0.45)
+            // 强语义文本给予高分，确保进入 Tier 2 (0.80-0.95)
+            (true, 0.55)
         } else if sig.has_text || sig.has_desc {
             (false, 0.20)
         } else {
