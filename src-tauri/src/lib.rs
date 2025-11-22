@@ -27,7 +27,7 @@ pub mod matchers;
 pub mod screenshot_service;
 
 // 重新导出常用类型
-pub use exec::v3::{
+pub use exec::{
     types::{StepRefOrInline, InlineStep, SingleStepAction},
     helpers::analysis_helpers::{should_trigger_intelligent_analysis, perform_intelligent_strategy_analysis_from_raw}
 };
