@@ -19,8 +19,10 @@ use super::batch_executor::{  // 🆕 导入批量执行模块
     BatchExecutionConfig,
     validate_batch_prerequisites,
 };
-// ⚠️ 暂时禁用 recovery_manager（编译错误待修复）
-// use super::super::recovery_manager::{RecoveryContext, attempt_recovery};
+// ✅ 启用 recovery_manager
+use super::super::recovery_manager::{RecoveryContext, attempt_recovery};
+use crate::exec::semantic_analyzer::SemanticAnalyzer;
+use crate::exec::semantic_analyzer::config::TextMatchingMode;
 
 /// 🔧 执行真实设备操作（包装函数）
 /// 
@@ -307,6 +309,39 @@ pub async fn execute_intelligent_analysis_step(
     } else {
         tracing::debug!("📋 [V3执行器] 非结构模式或未携带有效签名，使用传统匹配流程");
     }
+
+    // 🔥 动作分发（无需元素匹配的动作）
+    let action_type = merged_params.get("action").and_then(|v| v.as_str()).unwrap_or("tap");
+    
+    if action_type == "wait" {
+        let duration = merged_params.get("wait_ms").and_then(|v| v.as_u64()).unwrap_or(1000);
+        tracing::info!("⏳ [智能执行] 执行等待: {}ms", duration);
+        tokio::time::sleep(tokio::time::Duration::from_millis(duration)).await;
+        return Ok((0, 0));
+    }
+
+    if action_type == "keyevent" {
+        let keycode = merged_params.get("keycode").and_then(|v| v.as_i64()).unwrap_or(0) as i32;
+        return execute_keyevent_action(device_id, keycode, &inline.step_id).await;
+    }
+
+    if action_type == "back" {
+        return execute_keyevent_action(device_id, 4, &inline.step_id).await;
+    }
+    
+    if action_type == "swipe" {
+        // 如果提供了明确的坐标，直接执行滑动，无需匹配元素
+        if let (Some(sx), Some(sy), Some(ex), Some(ey)) = (
+            merged_params.get("start_x").and_then(|v| v.as_i64()),
+            merged_params.get("start_y").and_then(|v| v.as_i64()),
+            merged_params.get("end_x").and_then(|v| v.as_i64()),
+            merged_params.get("end_y").and_then(|v| v.as_i64())
+        ) {
+             let duration = merged_params.get("duration").and_then(|v| v.as_i64()).unwrap_or(1000) as i32;
+             return execute_swipe_action(device_id, sx as i32, sy as i32, ex as i32, ey as i32, duration as i32, &inline.step_id).await;
+        }
+        // 如果没有坐标，继续执行以尝试匹配元素（在元素上滑动）
+    }
     
     // 仅在非结构匹配流程下才需要 XPath 参数
     // 🔧 修复：避免在结构模式下提前因为缺少XPath而失败
@@ -505,8 +540,32 @@ pub async fn execute_intelligent_analysis_step(
     // 🔧 检查元素可点击性
     let clickable_element = ensure_clickable_element(target_element);
     
-    // 执行单次点击
-    execute_click_action(device_id, clickable_element, &target_text, &inline.step_id).await
+    // 根据动作类型执行
+    match action_type {
+        "input" => {
+            // 先点击聚焦
+            execute_click_action(device_id, clickable_element, &target_text, &inline.step_id).await?;
+            // 再输入文本
+            let text = merged_params.get("input").and_then(|v| v.as_str()).unwrap_or("");
+            execute_input_action(device_id, text, &inline.step_id).await
+        },
+        "swipe" => {
+            // 如果走到了这里，说明没有提供坐标，且我们找到了元素。
+            // 暂时报错提示需要坐标。
+            Err(format!("滑动操作需要 start_x/y, end_x/y 坐标"))
+        },
+        "longPress" | "long_press" => {
+             let duration = merged_params.get("duration").and_then(|v| v.as_u64()).unwrap_or(1000) as u32;
+             execute_long_press_action(device_id, clickable_element, duration, &inline.step_id).await
+        },
+        "doubleTap" => {
+             execute_double_tap_action(device_id, clickable_element, &inline.step_id).await
+        },
+        _ => {
+            // 默认为点击 (tap)
+            execute_click_action(device_id, clickable_element, &target_text, &inline.step_id).await
+        }
+    }
 }
 
 /// 🔄 批量模式执行（复用"第一个"的匹配策略）
@@ -1268,121 +1327,6 @@ fn evaluate_best_candidate<'a>(
     }
 }
 
-/// 尝试元素恢复
-fn attempt_element_recovery<'a>(
-    _params: &serde_json::Value,
-    _elements: &'a [UIElement],
-) -> Result<Option<&'a UIElement>, String> {
-    tracing::warn!("⚠️ [智能执行] 真机XML中未找到目标元素，启动失败恢复机制");
-    
-    // ⚠️ 暂时禁用失败恢复逻辑（RecoveryContext 编译错误待修复）
-    // TODO: 修复 RecoveryContext 和 attempt_recovery 的导入问题
-    /*
-    // 尝试构建恢复上下文
-    if let Some(recovery_ctx) = RecoveryContext::from_params(params) {
-        tracing::info!("🔧 [失败恢复] 恢复上下文构建成功，开始恢复流程");
-        
-        // 使用 recovery_manager 进行智能恢复（获取候选列表）
-        match attempt_recovery(&recovery_ctx, elements) {
-            Ok(recovery_result) => {
-                tracing::info!("✅ [失败恢复] 恢复流程完成，找到 {} 个候选元素", 
-                             recovery_result.candidates.len());
-                tracing::info!("   📍 恢复策略: {}", recovery_result.recovery_strategy);
-                
-                if !recovery_result.candidates.is_empty() {
-                    // 🆕 使用新的多候选评估器进行最终选择
-                    tracing::info!("🧠 [失败恢复] 使用多候选评估器进行最终选择");
-                    
-                    // 提取目标特征
-                    let target_text = if let Some(ref original) = recovery_result.original_target {
-                        original.text.clone()
-                    } else {
-                        recovery_ctx.element_text.clone()
-                    };
-                    
-                    let target_content_desc = if let Some(ref original) = recovery_result.original_target {
-                        original.content_desc.clone()
-                    } else {
-                        recovery_ctx.content_desc.clone()
-                    };
-                    
-                    let original_bounds = if let Some(ref original) = recovery_result.original_target {
-                        original.bounds.clone()
-                    } else {
-                        recovery_ctx.element_bounds.clone()
-                    };
-                    
-                    let original_resource_id = if let Some(ref original) = recovery_result.original_target {
-                        original.resource_id.clone()
-                    } else {
-                        recovery_ctx.resource_id.clone()
-                    };
-                    
-                    // ✅ 启用多候选评估器
-                    let mut semantic_analyzer = SemanticAnalyzer::new();
-                    semantic_analyzer.set_text_matching_mode(TextMatchingMode::Partial);
-                    semantic_analyzer.set_antonym_detection(true);
-                    
-                    let criteria = EvaluationCriteria {
-                        target_text,
-                        target_content_desc,
-                        original_bounds,
-                        original_resource_id,
-                        children_texts: vec![],
-                        prefer_last: false, // 恢复场景不需要优先最后一个
-                        selected_xpath: Some(recovery_ctx.selected_xpath.clone()), // 🔥 传递用户选择的XPath
-                        xml_content: None, // 🔥 真机XML已经在当前上下文中
-                        matching_strategy: None, // 恢复场景不使用策略标记
-                        sibling_texts: vec![],
-                        parent_info: None,
-                        semantic_analyzer: Some(semantic_analyzer), // 🆕 NEW: 语义分析器
-                    };
-                    
-                    // 将候选转换为引用列表
-                    let candidate_refs: Vec<&UIElement> = recovery_result.candidates.iter().collect();
-                    
-                    // 使用新的多候选评估器
-                    if let Some(best_candidate) = MultiCandidateEvaluator::evaluate_candidates(candidate_refs, &criteria) {
-                        tracing::info!("✅ [失败恢复] 多候选评估完成，最佳候选评分: {:.3}", best_candidate.score);
-                        tracing::info!("   📍 选中元素: text={:?}, bounds={:?}", 
-                                     best_candidate.element.text, best_candidate.element.bounds);
-                        
-                        // 在 elements 中找到匹配的元素（使用真机XML的元素）
-                        let matched = elements.iter()
-                            .find(|e| e.bounds == best_candidate.element.bounds && e.text == best_candidate.element.text);
-                        
-                        return Ok(matched);
-                    } else {
-                        tracing::error!("❌ [失败恢复] 多候选评估失败：没有合适的候选");
-                    }
-                    
-                    // 从 elements 中找到匹配的元素（返回引用）
-                    if let Some(first_candidate) = recovery_result.candidates.first() {
-                        let matched = elements.iter()
-                            .find(|e| e.bounds == first_candidate.bounds && e.text == first_candidate.text);
-                        return Ok(matched);
-                    }
-                    return Ok(None);
-                } else {
-                    tracing::error!("❌ [失败恢复] 没有找到相似候选元素");
-                }
-            }
-            Err(e) => {
-                tracing::error!("❌ [失败恢复] 恢复失败: {}", e);
-                tracing::error!("   💡 建议：UI结构可能已变化，请重新录制该步骤");
-            }
-        }
-    } else {
-        tracing::warn!("⚠️ [失败恢复] 无法构建恢复上下文（缺少 original_data）");
-        tracing::warn!("   💡 提示：确保前端传递了完整的 original_data 字段");
-    }
-    */
-    
-    // 暂时直接返回 None
-    tracing::warn!("⚠️ 失败恢复逻辑已禁用，返回 None");
-    Ok(None)
-}
-
 /// 确保元素可点击
 fn ensure_clickable_element<'a>(element: &'a UIElement) -> &'a UIElement {
     if element.clickable {
@@ -1435,4 +1379,167 @@ async fn execute_click_action(
     }
 }
 
+/// 执行输入操作
+async fn execute_input_action(
+    device_id: &str,
+    text: &str,
+    step_id: &str,
+) -> Result<(i32, i32), String> {
+    tracing::info!("🧠 [智能执行] 准备输入文本: {}", text);
+    
+    match crate::infra::adb::input_helper::input_text_injector_first(
+        &crate::utils::adb_utils::get_adb_path(),
+        device_id,
+        text,
+    ).await {
+        Ok(_) => {
+            tracing::info!("🧠 ✅ 智能分析步骤执行成功: {} -> 输入文本", step_id);
+            Ok((0, 0)) // 输入操作不返回具体坐标
+        }
+        Err(e) => {
+            tracing::error!("🧠 ❌ 智能分析步骤执行失败: {} -> {}", step_id, e);
+            Err(format!("智能分析步骤执行失败: {}", e))
+        }
+    }
+}
+
+/// 执行按键操作
+async fn execute_keyevent_action(
+    device_id: &str,
+    keycode: i32,
+    step_id: &str,
+) -> Result<(i32, i32), String> {
+    tracing::info!("🧠 [智能执行] 准备发送按键: {}", keycode);
+    
+    match crate::infra::adb::keyevent_helper::keyevent_code_injector_first(
+        &crate::utils::adb_utils::get_adb_path(),
+        device_id,
+        keycode,
+    ).await {
+        Ok(_) => {
+            tracing::info!("🧠 ✅ 智能分析步骤执行成功: {} -> 发送按键", step_id);
+            Ok((0, 0)) // 按键操作不返回具体坐标
+        }
+        Err(e) => {
+            tracing::error!("🧠 ❌ 智能分析步骤执行失败: {} -> {}", step_id, e);
+            Err(format!("智能分析步骤执行失败: {}", e))
+        }
+    }
+}
+
+/// 执行滑动操作
+async fn execute_swipe_action(
+    device_id: &str,
+    start_x: i32,
+    start_y: i32,
+    end_x: i32,
+    end_y: i32,
+    duration_ms: i32,
+    step_id: &str,
+) -> Result<(i32, i32), String> {
+    tracing::info!("🧠 [智能执行] 准备滑动: ({},{}) -> ({},{})", start_x, start_y, end_x, end_y);
+    
+    match crate::infra::adb::input_helper::swipe_injector_first(
+        &crate::utils::adb_utils::get_adb_path(),
+        device_id,
+        start_x,
+        start_y,
+        end_x,
+        end_y,
+        duration_ms as u32,
+    ).await {
+        Ok(_) => {
+            tracing::info!("🧠 ✅ 智能分析步骤执行成功: {} -> 滑动", step_id);
+            Ok((end_x, end_y))
+        }
+        Err(e) => {
+            tracing::error!("🧠 ❌ 智能分析步骤执行失败: {} -> {}", step_id, e);
+            Err(format!("智能分析步骤执行失败: {}", e))
+        }
+    }
+}
+
+/// 执行长按操作
+async fn execute_long_press_action(
+    device_id: &str,
+    element: &UIElement,
+    duration_ms: u32,
+    step_id: &str,
+) -> Result<(i32, i32), String> {
+    // 提取点击坐标
+    let click_point = {
+        let bounds = &element.bounds;
+        let point = (bounds.left + (bounds.right - bounds.left) / 2, bounds.top + (bounds.bottom - bounds.top) / 2);
+        point
+    };
+    
+    tracing::info!("🧠 [智能执行] 准备长按坐标: ({}, {}), duration={}ms", 
+        click_point.0, click_point.1, duration_ms);
+    
+    match crate::infra::adb::input_helper::tap_injector_first(
+        &crate::utils::adb_utils::get_adb_path(),
+        device_id,
+        click_point.0,
+        click_point.1,
+        Some(duration_ms),
+    ).await {
+        Ok(_) => {
+            tracing::info!("🧠 ✅ 智能分析步骤执行成功: {} -> 长按", step_id);
+            Ok(click_point)
+        }
+        Err(e) => {
+            tracing::error!("🧠 ❌ 智能分析步骤执行失败: {} -> {}", step_id, e);
+            Err(format!("智能分析步骤执行失败: {}", e))
+        }
+    }
+}
+
+/// 执行双击操作
+async fn execute_double_tap_action(
+    device_id: &str,
+    element: &UIElement,
+    step_id: &str,
+) -> Result<(i32, i32), String> {
+    // 提取点击坐标
+    let click_point = {
+        let bounds = &element.bounds;
+        let point = (bounds.left + (bounds.right - bounds.left) / 2, bounds.top + (bounds.bottom - bounds.top) / 2);
+        point
+    };
+    
+    tracing::info!("🧠 [智能执行] 准备双击坐标: ({}, {})", click_point.0, click_point.1);
+    
+    let adb_path = crate::utils::adb_utils::get_adb_path();
+    
+    // 第一次点击
+    if let Err(e) = crate::infra::adb::input_helper::tap_injector_first(
+        &adb_path,
+        device_id,
+        click_point.0,
+        click_point.1,
+        None,
+    ).await {
+        return Err(format!("双击失败(第一次): {}", e));
+    }
+    
+    // 间隔
+    tokio::time::sleep(tokio::time::Duration::from_millis(100)).await;
+    
+    // 第二次点击
+    match crate::infra::adb::input_helper::tap_injector_first(
+        &adb_path,
+        device_id,
+        click_point.0,
+        click_point.1,
+        None,
+    ).await {
+        Ok(_) => {
+            tracing::info!("🧠 ✅ 智能分析步骤执行成功: {} -> 双击", step_id);
+            Ok(click_point)
+        }
+        Err(e) => {
+            Err(format!("双击失败(第二次): {}", e))
+        }
+    }
+}
 

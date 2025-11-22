@@ -11,6 +11,38 @@ use serde_json::Value;
 use anyhow::Result;
 use std::collections::HashMap;
 
+// 🛡️ 安全检查：检查是否为整屏节点
+fn check_fullscreen_node(bounds: &ElementBounds) -> bool {
+    let width = (bounds.right - bounds.left) as f32;
+    let height = (bounds.bottom - bounds.top) as f32;
+    let area = width * height;
+    
+    // 假设屏幕大小为 1080x2400（可以后续从设备信息获取）
+    let screen_area = 1080.0 * 2400.0;
+    let area_ratio = area / screen_area;
+    
+    area_ratio > 0.95
+}
+
+// 🛡️ 安全检查：检查是否为容器类节点
+fn check_container_node(class_name: &Option<String>) -> bool {
+    if let Some(class) = class_name {
+        let container_classes = [
+            "android.widget.FrameLayout",
+            "android.widget.LinearLayout", 
+            "android.view.ViewGroup",
+            "com.android.internal.policy.DecorView",
+            "android.widget.RelativeLayout",
+            "android.widget.ScrollView",
+            "androidx.constraintlayout.widget.ConstraintLayout",
+        ];
+        
+        container_classes.iter().any(|c| class.contains(c))
+    } else {
+        false
+    }
+}
+
 fn parse_bounds_string(bounds_str: &str) -> ElementBounds {
     // 格式: [left,top][right,bottom]
     let re = regex::Regex::new(r"\[(\d+),(\d+)\]\[(\d+),(\d+)\]").unwrap();
@@ -301,6 +333,51 @@ fn find_target_in_original<'a>(
             }
         }
     }
+
+    // 策略5: 坐标兜底 (Coordinate Fallback)
+    // 如果所有属性匹配都失败，尝试查找包含原始坐标的最小元素
+    if let Some(ref bounds_str) = ctx.element_bounds {
+        let bounds = parse_bounds_string(bounds_str);
+        let center_x = (bounds.left + bounds.right) / 2;
+        let center_y = (bounds.top + bounds.bottom) / 2;
+        
+        tracing::info!("🎯 [原始目标] 尝试坐标兜底: ({}, {})", center_x, center_y);
+        
+        let mut best_candidate: Option<&UIElement> = None;
+        let mut smallest_area = i64::MAX;
+        
+        for elem in elements {
+            // 检查点是否在元素内
+            if center_x >= elem.bounds.left && center_x <= elem.bounds.right &&
+               center_y >= elem.bounds.top && center_y <= elem.bounds.bottom {
+                
+                let area = ((elem.bounds.right - elem.bounds.left) as i64) * 
+                          ((elem.bounds.bottom - elem.bounds.top) as i64);
+                
+                // 选择面积最小的节点（最精确的匹配）
+                if area < smallest_area {
+                    // 🛡️ 安全检查
+                    if check_fullscreen_node(&elem.bounds) {
+                        tracing::warn!("🚫 [坐标兜底] 命中整屏节点，跳过");
+                        continue;
+                    }
+                    
+                    if check_container_node(&elem.class_name) {
+                        tracing::warn!("🚫 [坐标兜底] 命中容器节点: {:?}，跳过", elem.class_name);
+                        continue;
+                    }
+                    
+                    smallest_area = area;
+                    best_candidate = Some(elem);
+                }
+            }
+        }
+        
+        if let Some(elem) = best_candidate {
+            tracing::info!("✅ [原始目标] 通过坐标兜底找到: {:?} (面积={})", elem.class_name, smallest_area);
+            return Ok(elem);
+        }
+    }
     
     Err(anyhow::anyhow!(
         "在原始XML中无法找到目标元素。XPath={}, text={:?}",
@@ -444,12 +521,8 @@ fn try_strategy_router(
             if !elem.content_desc.is_empty() {
                 map.insert("content-desc".to_string(), elem.content_desc.clone());
             }
-            let ref bounds = &elem.bounds; {
-                map.insert("bounds".to_string(), bounds.clone());
-            }
-            let ref clickable = elem.clickable; {
-                map.insert("clickable".to_string(), clickable.to_string());
-            }
+            map.insert("bounds".to_string(), elem.bounds.to_string());
+            map.insert("clickable".to_string(), elem.clickable.to_string());
             if let Some(ref class) = elem.class_name {
                 map.insert("class".to_string(), class.clone());
             }
