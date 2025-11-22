@@ -108,7 +108,7 @@ fn main() {
     let adb_service = AdbService::new();
     let smart_app_service = SmartAppManagerState::new();
     let ai_state = ai::commands::AppState {
-        settings: parking_lot::RwLock::new(ai::config::load_settings()),
+        settings: parking_lot::RwLock::new(ai::ai_config::load_settings()),
     };
     let prospecting_state = commands::prospecting::ProspectingState::new();
 

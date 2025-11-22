@@ -85,7 +85,7 @@ impl BatchAnalysisService {
         let comment_ids = request.comment_ids.clone();
         
         // 获取配置
-        let ai_settings = ai::config::load_settings();
+        let ai_settings = ai::ai_config::load_settings();
         let concurrency = request.concurrency.unwrap_or(ai_settings.concurrency);
         let max_retries = request.max_retries.unwrap_or(3); // 默认3次重试
 
@@ -296,12 +296,12 @@ impl BatchAnalysisService {
         );
 
         // 调用AI分析
-        let ai_settings = ai::config::load_settings();
+        let ai_settings = ai::ai_config::load_settings();
         let ai_router = ai::router::AIRouter::new(ai_settings);
         
-        let chat_request = crate::ai::types::ChatRequest {
+        let chat_request = crate::ai::ai_types::ChatRequest {
             model: "gpt-3.5-turbo".to_string(), // 使用默认模型
-            messages: vec![crate::ai::types::ChatMessage {
+            messages: vec![crate::ai::ai_types::ChatMessage {
                 role: "user".to_string(),
                 content: prompt,
             }],
