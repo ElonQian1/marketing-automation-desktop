@@ -1003,7 +1003,7 @@ pub async fn mock_intelligent_analysis(
                 );
                 
                 // 🆕 先检查用户选择的区域内是否有可点击的子元素
-                let clickable_children = crate::exec::v3::helpers::element_hierarchy_analyzer::find_clickable_children_in_bounds(
+                let clickable_children = crate::exec::helpers::element_hierarchy_analyzer::find_clickable_children_in_bounds(
                     &ui_elements,
                     bounds_str
                 );
@@ -1029,7 +1029,7 @@ pub async fn mock_intelligent_analysis(
                 }
                 
                 // 使用原有的bounds重排序逻辑
-                final_candidates = crate::exec::v3::helpers::strategy_generation::rerank_candidates_by_bounds(
+                final_candidates = crate::exec::helpers::strategy_generation::rerank_candidates_by_bounds(
                     final_candidates,
                     Some(bounds_str)
                 );

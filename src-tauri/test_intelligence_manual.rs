@@ -1,6 +1,6 @@
 // 手动测试智能分析集成 - 避免编译器问题
-use employee_gui::exec::v3::chain_engine::{should_trigger_intelligent_analysis, perform_intelligent_strategy_analysis};
-use employee_gui::exec::v3::types::{StepRefOrInline, InlineStep, SingleStepAction, QualitySettings, OcrMode};
+use employee_gui::exec::chain_engine::{should_trigger_intelligent_analysis, perform_intelligent_strategy_analysis};
+use employee_gui::exec::types::{StepRefOrInline, InlineStep, SingleStepAction, QualitySettings, OcrMode};
 
 fn main() {
     println!("🚀 开始智能分析集成测试...");

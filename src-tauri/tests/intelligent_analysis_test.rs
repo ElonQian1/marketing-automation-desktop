@@ -1,17 +1,17 @@
 #[cfg(test)]
 mod tests {
     // 使用正确的包名和类型
-    use employee_gui::exec::v3::helpers::analysis_helpers::should_trigger_intelligent_analysis;
-    use employee_gui::exec::v3::types::{StepRefOrInline, InlineStep, SingleStepAction};
+    use employee_gui::exec::helpers::analysis_helpers::should_trigger_intelligent_analysis;
+    use employee_gui::exec::types::{StepRefOrInline, InlineStep, SingleStepAction};
     
     #[test]
     fn test_should_trigger_analysis_empty_candidates() {
         // 测试1：空候选列表应该触发智能分析
-        use employee_gui::exec::v3::types::QualitySettings;
+        use employee_gui::exec::types::QualitySettings;
         
         let candidates: Vec<StepRefOrInline> = vec![];
         let quality = QualitySettings {
-            ocr: Some(employee_gui::exec::v3::types::OcrMode::Auto),
+            ocr: Some(employee_gui::exec::types::OcrMode::Auto),
             text_lang: Some("zh-CN".to_string()),
             normalize: None,
             n_candidates: Some(5),
@@ -25,7 +25,7 @@ mod tests {
     #[test]
     fn test_should_trigger_analysis_low_confidence() {
         // 测试2：低置信度候选应该触发智能分析
-        use employee_gui::exec::v3::types::QualitySettings;
+        use employee_gui::exec::types::QualitySettings;
         
         let candidates = vec![
             StepRefOrInline {
@@ -42,7 +42,7 @@ mod tests {
         ];
         
         let quality = QualitySettings {
-            ocr: Some(employee_gui::exec::v3::types::OcrMode::Auto),
+            ocr: Some(employee_gui::exec::types::OcrMode::Auto),
             text_lang: Some("zh-CN".to_string()),
             normalize: None,
             n_candidates: Some(5),
@@ -56,7 +56,7 @@ mod tests {
     #[test]
     fn test_should_not_trigger_analysis_high_confidence() {
         // 测试3：高置信度候选不应该触发智能分析
-        use employee_gui::exec::v3::types::QualitySettings;
+        use employee_gui::exec::types::QualitySettings;
         
         let candidates = vec![
             StepRefOrInline {
@@ -73,7 +73,7 @@ mod tests {
         ];
         
         let quality = QualitySettings {
-            ocr: Some(employee_gui::exec::v3::types::OcrMode::Auto),
+            ocr: Some(employee_gui::exec::types::OcrMode::Auto),
             text_lang: Some("zh-CN".to_string()),
             normalize: None,
             n_candidates: Some(5),

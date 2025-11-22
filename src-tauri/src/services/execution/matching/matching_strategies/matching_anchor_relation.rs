@@ -5,7 +5,7 @@
 use super::matching_processor::{StrategyProcessor, MatchingContext, StrategyResult, ProcessingError};
 use super::matching_candidate_scorer::{CandidateScorer, ScoringConfig};
 use crate::services::universal_ui_page_analyzer::parse_ui_elements_simple as parse_ui_elements;
-use crate::exec::v3::helpers::parse_bounds;
+use crate::exec::helpers::parse_bounds;
 use async_trait::async_trait;
 use serde_json::{json, Value};
 use std::collections::HashMap;
