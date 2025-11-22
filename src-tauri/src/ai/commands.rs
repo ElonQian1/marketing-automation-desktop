@@ -1,5 +1,5 @@
 // src-tauri/src/ai/commands.rs
-use crate::ai::{config::{self, AISettings}, router::AIRouter, types::*, provider::ChatChunk};
+use crate::ai::{ai_config::{self, AISettings}, router::AIRouter, ai_types::*, provider::ChatChunk};
 use anyhow::Result;
 use serde_json::Value;
 use tauri::{AppHandle, Emitter, State};
@@ -35,7 +35,7 @@ pub async fn save_ai_settings(
     }
 
     // 保存配置到文件（不包含密钥）
-    config::save_settings(&settings).map_err(err)?;
+    ai_config::save_settings(&settings).map_err(err)?;
 
     // 更新内存态
     *state.settings.write() = settings;

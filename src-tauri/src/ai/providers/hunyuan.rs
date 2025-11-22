@@ -1,6 +1,6 @@
 // src-tauri/src/ai/providers/hunyuan.rs
 use super::super::provider::{AIProvider, ChatChunk};
-use crate::ai::types::*;
+use crate::ai::ai_types::*;
 use anyhow::Result;
 use reqwest::Client;
 use serde_json::{json, Value};

@@ -1,4 +1,4 @@
-// src-tauri/src/ai/config.rs
+// src-tauri/src/ai/ai_config.rs
 use serde::{Deserialize, Serialize};
 use anyhow::Result;
 use std::path::PathBuf;

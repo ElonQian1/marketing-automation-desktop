@@ -1,9 +1,9 @@
 // src-tauri/src/ai/router.rs
 use crate::ai::{
-    config::AISettings,
+    ai_config::AISettings,
     provider::AIProvider,
     providers::{hunyuan::HunyuanProvider, openai::OpenAIProvider},
-    types::*,
+    ai_types::*,
 };
 use anyhow::Result;
 use serde_json::Value;

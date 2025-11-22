@@ -1,6 +1,6 @@
 // src-tauri/src/ai/providers/openai.rs
 use super::super::provider::{AIProvider, ChatChunk};
-use crate::ai::types::*;
+use crate::ai::ai_types::*;
 use anyhow::{anyhow, Result};
 use reqwest::{header::HeaderMap, Client};
 use serde_json::{json, Value};

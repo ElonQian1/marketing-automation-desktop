@@ -1,6 +1,6 @@
 // src-tauri/src/ai/provider.rs
 use async_trait::async_trait;
-use crate::ai::types::*;
+use crate::ai::ai_types::*;
 use anyhow::Result;
 use serde_json::Value;
 

@@ -1,4 +1,4 @@
-// src-tauri/src/ai/types.rs
+// src-tauri/src/ai/ai_types.rs
 use serde::{Deserialize, Serialize};
 use serde_json::Value;
 
