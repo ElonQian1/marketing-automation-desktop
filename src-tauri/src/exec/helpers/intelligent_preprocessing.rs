@@ -14,7 +14,7 @@ use super::analysis_helpers::{
 };
 use super::device_manager;
 use super::step_optimization::merge_and_optimize_steps;
-use crate::exec::v3::types::SingleStepAction;
+use crate::exec::types::SingleStepAction;
 use tauri::AppHandle;
 
 /// 提前智能分析检测：在Legacy引擎执行前检查参数

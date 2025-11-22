@@ -1119,7 +1119,7 @@ fn evaluate_best_candidate<'a>(
             .and_then(|od| od.get("parent_info"))
             .and_then(|v| v.as_object())
             .map(|obj| {
-                use crate::exec::v3::element_matching::multi_candidate_evaluator::ParentInfo;
+                use crate::exec::element_matching::multi_candidate_evaluator::ParentInfo;
                 ParentInfo {
                     content_desc: obj.get("contentDesc")
                         .and_then(|v| v.as_str())
@@ -1143,8 +1143,8 @@ fn evaluate_best_candidate<'a>(
         }
         
         // ✅ 创建语义分析器实例
-        use crate::exec::v3::semantic_analyzer::analyzer::SemanticAnalyzer;
-        use crate::exec::v3::semantic_analyzer::config::TextMatchingMode;
+        use crate::exec::semantic_analyzer::analyzer::SemanticAnalyzer;
+        use crate::exec::semantic_analyzer::config::TextMatchingMode;
         
         let mut semantic_analyzer = SemanticAnalyzer::new();
         

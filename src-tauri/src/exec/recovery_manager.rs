@@ -2,13 +2,28 @@
 // module: exec | layer: v3 | role: 失败恢复管理器
 // summary: 当真机XML匹配失败时，使用原始XML快照进行重新分析和恢复
 
-use crate::services::universal_ui_page_analyzer::{UIElement, parse_ui_elements_simple as parse_ui_elements};
-use crate::services::execution::matching::strategies::{
+use crate::services::universal_ui_page_analyzer::{UIElement, parse_ui_elements_simple as parse_ui_elements, UIElementType};
+use crate::types::page_analysis::ElementBounds;
+use crate::services::execution::matching::matching_strategies::{
     create_strategy_processor, StrategyProcessor, MatchingContext
 };
 use serde_json::Value;
 use anyhow::Result;
 use std::collections::HashMap;
+
+fn parse_bounds_string(bounds_str: &str) -> ElementBounds {
+    // 格式: [left,top][right,bottom]
+    let re = regex::Regex::new(r"\[(\d+),(\d+)\]\[(\d+),(\d+)\]").unwrap();
+    if let Some(caps) = re.captures(bounds_str) {
+        let left = caps[1].parse().unwrap_or(0);
+        let top = caps[2].parse().unwrap_or(0);
+        let right = caps[3].parse().unwrap_or(0);
+        let bottom = caps[4].parse().unwrap_or(0);
+        ElementBounds { left, top, right, bottom }
+    } else {
+        ElementBounds { left: 0, top: 0, right: 0, bottom: 0 }
+    }
+}
 
 /// 失败恢复上下文
 #[derive(Debug, Clone)]
@@ -228,7 +243,7 @@ pub fn attempt_recovery(
         "text_and_resource_id".to_string()
     } else if recovery_ctx.element_text.is_some() {
         "text_matching".to_string()
-    } else if recovery_ctx(!.content_desc.is_empty()) {
+    } else if recovery_ctx.content_desc.as_ref().map(|s| !s.is_empty()).unwrap_or(false) {
         "content_desc_matching".to_string()
     } else {
         "unknown_strategy".to_string()
@@ -258,7 +273,7 @@ fn find_target_in_original<'a>(
     // 策略2: 使用文本+resource-id组合匹配
     if let (Some(ref text), Some(ref rid)) = (&ctx.element_text, &ctx.resource_id) {
         if let Some(elem) = elements.iter().find(|e| {
-            e.text == text && e.resource_id.as_ref() == Some(rid)
+            e.text == *text && e.resource_id.as_ref() == Some(rid)
         }) {
             tracing::info!("✅ [原始目标] 通过text+resource-id找到");
             return Ok(elem);
@@ -268,7 +283,7 @@ fn find_target_in_original<'a>(
     // 策略3: 使用文本匹配
     if let Some(ref text) = ctx.element_text {
         if !text.is_empty() {
-            if let Some(elem) = elements.iter().find(|e| e.text == text) {
+            if let Some(elem) = elements.iter().find(|e| e.text == *text) {
                 tracing::info!("✅ [原始目标] 通过text找到: {}", text);
                 return Ok(elem);
             }
@@ -276,10 +291,10 @@ fn find_target_in_original<'a>(
     }
     
     // 策略4: 使用content-desc匹配
-    if !ctx.content_desc.is_empty() {
+    if let Some(ref desc) = ctx.content_desc {
         if !desc.is_empty() {
             if let Some(elem) = elements.iter().find(|e| {
-                e.content_desc.as_ref().map(|d| d.contains(desc)).unwrap_or(false)
+                e.content_desc.contains(desc)
             }) {
                 tracing::info!("✅ [原始目标] 通过content-desc找到: {}", desc);
                 return Ok(elem);
@@ -307,21 +322,15 @@ fn find_similar_elements_in_current(
     // 2. 如果原始元素有这些属性，优先匹配它们
     let mut candidates: Vec<UIElement> = current_elements.iter()
         .filter(|elem| {
-            let has_text_match = original_target.text.as_ref()
-                .and_then(|o_text| elem.text.as_ref().map(|e_text| 
-                    e_text == o_text || e_text.contains(o_text) || o_text.contains(e_text)
-                ))
-                .unwrap_or(false);
+            let has_text_match = !original_target.text.is_empty() && 
+                (elem.text == original_target.text || elem.text.contains(&original_target.text) || original_target.text.contains(&elem.text));
             
             let has_rid_match = original_target.resource_id.as_ref()
                 .and_then(|o_rid| elem.resource_id.as_ref().map(|e_rid| e_rid == o_rid))
                 .unwrap_or(false);
             
-            let has_desc_match = original_target.content_desc.as_ref()
-                .and_then(|o_desc| elem.content_desc.as_ref().map(|e_desc| 
-                    e_desc == o_desc || e_desc.contains(o_desc) || o_desc.contains(e_desc)
-                ))
-                .unwrap_or(false);
+            let has_desc_match = !original_target.content_desc.is_empty() && 
+                (elem.content_desc == original_target.content_desc || elem.content_desc.contains(&original_target.content_desc) || original_target.content_desc.contains(&elem.content_desc));
             
             // 至少有一个关键属性匹配
             has_text_match || has_rid_match || has_desc_match
@@ -427,13 +436,13 @@ fn try_strategy_router(
             let mut map = HashMap::new();
             
             if !elem.text.is_empty() {
-                map.insert("text".to_string(), text.clone());
+                map.insert("text".to_string(), elem.text.clone());
             }
             if let Some(ref rid) = elem.resource_id {
                 map.insert("resource-id".to_string(), rid.clone());
             }
             if !elem.content_desc.is_empty() {
-                map.insert("content-desc".to_string(), desc.clone());
+                map.insert("content-desc".to_string(), elem.content_desc.clone());
             }
             let ref bounds = &elem.bounds; {
                 map.insert("bounds".to_string(), bounds.clone());
@@ -499,14 +508,28 @@ fn try_strategy_router(
     
     // 构建简单的 UIElement（只包含必要字段）
     let ui_element = UIElement {
-        text: None,
+        id: "".to_string(),
+        element_type: UIElementType::Other,
+        text: "".to_string(),
+        bounds: parse_bounds_string(&strategy_result.bounds.clone().unwrap_or_default()),
+        xpath: "".to_string(),
         resource_id: None,
-        content_desc: None,
-        bounds: strategy_result.bounds.clone(),
-        clickable: Some(true),
-        enabled: Some(true),
-        class: None,
-        package: None,
+        package_name: None,
+        class_name: None,
+        clickable: true,
+        scrollable: false,
+        enabled: true,
+        focused: false,
+        checkable: false,
+        checked: false,
+        selected: false,
+        password: false,
+        content_desc: "".to_string(),
+        index_path: None,
+        region: None,
+        children: vec![],
+        parent: None,
+        depth: 0,
     };
     
     Ok(RecoveryResult {

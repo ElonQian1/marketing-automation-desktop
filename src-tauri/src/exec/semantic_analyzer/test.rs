@@ -5,7 +5,7 @@
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::exec::v3::semantic_analyzer::{
+    use crate::exec::semantic_analyzer::{
         SemanticAnalyzer, TextMatchingMode
     };
 

@@ -2,7 +2,7 @@
 // module: v3 | layer: helpers | role: 步骤评分功能 - 基于V3智能匹配
 // summary: 提供步骤可行性评分，使用V3的element_matching进行分析
 
-use crate::exec::v3::{StepRefOrInline, SingleStepAction, QualitySettings};
+use crate::exec::{StepRefOrInline, SingleStepAction, QualitySettings};
 // ✅ 已迁移到V3智能匹配系统
 // use crate::services::legacy_simple_selection_engine::SmartSelectionEngine;
 use super::protocol_builders::create_smart_selection_protocol_for_scoring;
