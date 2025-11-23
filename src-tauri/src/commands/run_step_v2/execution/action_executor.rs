@@ -3,8 +3,9 @@
 // summary: 执行V2操作（点击、滑动、输入等）使用匹配到的坐标
 
 use super::super::{MatchCandidate, ExecInfo};
-use crate::infra::adb::input_helper::{tap_injector_first, input_text_injector_first, swipe_injector_first};
-use crate::infra::adb::keyevent_helper::keyevent_code_injector_first;
+// use crate::infra::adb::input_helper::{tap_injector_first, input_text_injector_first, swipe_injector_first};
+// use crate::infra::adb::keyevent_helper::keyevent_code_injector_first;
+use crate::automation::actions::{tap, swipe, input};
 
 /// 执行V2操作（使用匹配到的坐标）
 pub async fn execute_v2_action_with_coords(
@@ -14,8 +15,8 @@ pub async fn execute_v2_action_with_coords(
 ) -> Result<ExecInfo, String> {
     let start_time = std::time::Instant::now();
     
-    // 检测 ADB 路径
-    let adb_path = detect_adb_path();
+    // 检测 ADB 路径 (Legacy check, kept for compatibility but actions use global get_adb_path)
+    let _adb_path = detect_adb_path();
     
     // 解析前端 StepPayload 结构中的操作信息
     let action_type = step.get("action")
@@ -23,31 +24,35 @@ pub async fn execute_v2_action_with_coords(
         .unwrap_or("tap");
     
     let action_result = match action_type {
-        "tap" | "doubleTap" | "longPress" => {
-            execute_tap_action(step, device_id, match_candidate, &adb_path, action_type).await?
+        "tap" => {
+            execute_tap_action(step, device_id, match_candidate, action_type).await?
+        },
+        "doubleTap" => {
+             // Explicitly handle double tap
+             execute_double_tap_action(step, device_id, match_candidate).await?
+        },
+        "longPress" | "long_press" => {
+            execute_long_press_action(step, device_id, match_candidate).await?
         },
         "keyevent" => {
-            execute_keyevent_action(step, device_id, &adb_path).await?
+            execute_keyevent_action(step, device_id).await?
         },
         "input" => {
-            execute_input_action(step, device_id, &adb_path).await?
-        },
-        "long_press" => {
-            execute_long_press_action(step, device_id, match_candidate, &adb_path).await?
+            execute_input_action(step, device_id).await?
         },
         "back" => {
-            keyevent_code_injector_first(&adb_path, device_id, 4).await
+            input::execute_keyevent(device_id, 4).await
                 .map_err(|e| format!("真机返回键失败: {}", e))?;
             "真机返回键执行成功".to_string()
         },
         "type" => {
-            execute_type_action(step, device_id, &adb_path).await?
+            execute_type_action(step, device_id).await?
         },
         "wait" => {
             execute_wait_action(step).await?
         },
         "swipe" => {
-            execute_swipe_action(step, device_id, &adb_path).await?
+            execute_swipe_action(step, device_id).await?
         },
         _ => format!("执行了 {} 操作", action_type)
     };
@@ -73,16 +78,42 @@ fn detect_adb_path() -> &'static str {
     }
 }
 
-/// 执行点击类动作（tap/doubleTap/longPress）
+/// 执行点击类动作（tap）
 async fn execute_tap_action(
     step: &serde_json::Value,
     device_id: &str,
     match_candidate: &MatchCandidate,
-    adb_path: &str,
     action_type: &str
 ) -> Result<String, String> {
     // 优先使用匹配元素的坐标，如果匹配失败则使用步骤中的坐标
-    let (x, y) = if match_candidate.confidence > 0.0 {
+    let (x, y) = calculate_coords(step, match_candidate);
+    
+    tracing::info!("🎯 执行坐标: ({}, {}) (来源: {})", x, y, 
+                  if match_candidate.confidence > 0.0 { "匹配元素" } else { "步骤参数" });
+    
+    tap::execute_tap(device_id, x, y).await
+        .map_err(|e| format!("真机{}失败: {}", action_type, e))?;
+    Ok(format!("真机{}执行成功 ({}, {})", action_type, x, y))
+}
+
+/// 执行双击动作
+async fn execute_double_tap_action(
+    step: &serde_json::Value,
+    device_id: &str,
+    match_candidate: &MatchCandidate,
+) -> Result<String, String> {
+    let (x, y) = calculate_coords(step, match_candidate);
+    
+    tracing::info!("🎯 执行双击: ({}, {})", x, y);
+    
+    tap::execute_double_tap(device_id, x, y).await
+        .map_err(|e| format!("真机双击失败: {}", e))?;
+    Ok(format!("真机双击执行成功 ({}, {})", x, y))
+}
+
+/// 辅助函数：计算坐标
+fn calculate_coords(step: &serde_json::Value, match_candidate: &MatchCandidate) -> (i32, i32) {
+    if match_candidate.confidence > 0.0 {
         // 使用匹配到的元素中心点
         let bounds = &match_candidate.bounds;
         let calc_x = (bounds.left + bounds.right) / 2;
@@ -102,21 +133,13 @@ async fn execute_tap_action(
         (x, y)
     } else {
         (100, 100) // 默认坐标
-    };
-    
-    tracing::info!("🎯 执行坐标: ({}, {}) (来源: {})", x, y, 
-                  if match_candidate.confidence > 0.0 { "匹配元素" } else { "步骤参数" });
-    
-    tap_injector_first(adb_path, device_id, x, y, None).await
-        .map_err(|e| format!("真机{}失败: {}", action_type, e))?;
-    Ok(format!("真机{}执行成功 ({}, {})", action_type, x, y))
+    }
 }
 
 /// 执行系统按键动作
 async fn execute_keyevent_action(
     step: &serde_json::Value,
-    device_id: &str,
-    adb_path: &str
+    device_id: &str
 ) -> Result<String, String> {
     let key_code = step.get("key_code")
         .or_else(|| step.get("keyCode"))
@@ -125,7 +148,7 @@ async fn execute_keyevent_action(
     
     tracing::info!("🎯 执行系统按键: keycode={}", key_code);
     
-    keyevent_code_injector_first(adb_path, device_id, key_code).await
+    input::execute_keyevent(device_id, key_code).await
         .map_err(|e| format!("真机按键失败: {}", e))?;
     Ok(format!("真机按键执行成功 (keycode={})", key_code))
 }
@@ -133,15 +156,14 @@ async fn execute_keyevent_action(
 /// 执行文本输入动作
 async fn execute_input_action(
     step: &serde_json::Value,
-    device_id: &str,
-    adb_path: &str
+    device_id: &str
 ) -> Result<String, String> {
     if let Some(text) = step.get("text")
         .or_else(|| step.get("input_text"))
         .and_then(|v| v.as_str()) {
         tracing::info!("🎯 执行文本输入: text={}", text);
         
-        input_text_injector_first(adb_path, device_id, text).await
+        input::execute_input(device_id, text).await
             .map_err(|e| format!("真机文本输入失败: {}", e))?;
         Ok(format!("真机文本输入成功: {}", text))
     } else {
@@ -153,27 +175,17 @@ async fn execute_input_action(
 async fn execute_long_press_action(
     step: &serde_json::Value,
     device_id: &str,
-    match_candidate: &MatchCandidate,
-    adb_path: &str
+    match_candidate: &MatchCandidate
 ) -> Result<String, String> {
-    let (x, y) = if match_candidate.confidence > 0.0 {
-        let bounds = &match_candidate.bounds;
-        ((bounds.left + bounds.right) / 2, (bounds.top + bounds.bottom) / 2)
-    } else if let Some(x_val) = step.get("x").and_then(|v| v.as_i64()) {
-        let y_val = step.get("y").and_then(|v| v.as_i64()).unwrap_or(100) as i32;
-        (x_val as i32, y_val)
-    } else {
-        (100, 100)
-    };
+    let (x, y) = calculate_coords(step, match_candidate);
     
     let duration = step.get("duration")
         .and_then(|v| v.as_u64())
-        .unwrap_or(2000);
+        .unwrap_or(2000) as u32;
     
     tracing::info!("🎯 执行长按: ({}, {}) 时长:{}ms", x, y, duration);
     
-    // 使用 swipe 模拟长按（起止点相同）
-    swipe_injector_first(adb_path, device_id, x, y, x, y, duration as u32).await
+    tap::execute_long_press(device_id, x, y, duration).await
         .map_err(|e| format!("真机长按失败: {}", e))?;
     Ok(format!("真机长按执行成功 ({}, {}) {}ms", x, y, duration))
 }
@@ -181,11 +193,10 @@ async fn execute_long_press_action(
 /// 执行文本输入动作（type）
 async fn execute_type_action(
     step: &serde_json::Value,
-    device_id: &str,
-    adb_path: &str
+    device_id: &str
 ) -> Result<String, String> {
     if let Some(text) = step.get("text").and_then(|v| v.as_str()) {
-        input_text_injector_first(adb_path, device_id, text).await
+        input::execute_input(device_id, text).await
             .map_err(|e| format!("真机文本输入失败: {}", e))?;
         Ok(format!("真机文本输入成功: {}", text))
     } else {
@@ -205,8 +216,7 @@ async fn execute_wait_action(step: &serde_json::Value) -> Result<String, String>
 /// 执行滑动动作
 async fn execute_swipe_action(
     step: &serde_json::Value,
-    device_id: &str,
-    adb_path: &str
+    device_id: &str
 ) -> Result<String, String> {
     let start_x = step.get("start_x").and_then(|v| v.as_i64()).unwrap_or(540) as i32;
     let start_y = step.get("start_y").and_then(|v| v.as_i64()).unwrap_or(1200) as i32;
@@ -216,7 +226,7 @@ async fn execute_swipe_action(
     
     tracing::info!("🎯 执行坐标滑动: ({},{}) → ({},{}) 时长:{}ms", start_x, start_y, end_x, end_y, duration);
     
-    swipe_injector_first(adb_path, device_id, start_x, start_y, end_x, end_y, duration).await
+    swipe::execute_swipe(device_id, start_x, start_y, end_x, end_y, duration).await
         .map_err(|e| format!("真机滑动失败: {}", e))?;
     Ok(format!("真机滑动执行成功: ({},{})→({},{})", start_x, start_y, end_x, end_y))
 }

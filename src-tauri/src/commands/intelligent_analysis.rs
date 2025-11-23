@@ -47,6 +47,7 @@ use tauri::AppHandle;
 use sha1::{Sha1, Digest};
 use crate::infrastructure::events::emit_and_trace;
 use crate::engine::{StrategyEngine, AnalysisContext, Evidence, ContainerInfo as EngineContainerInfo};
+use crate::services::intelligent_analysis_service::{self, IntelligentAnalysisRequest, UserSelectionContext};
 
 // ============================================
 // 类型定义
@@ -77,6 +78,8 @@ pub struct ElementSelectionContext {
     #[serde(skip_serializing_if = "Option::is_none")]
     #[serde(rename = "childrenTexts")]
     pub children_texts: Option<Vec<String>>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub index_path: Option<Vec<usize>>,
 }
 
 /// 父元素信息（用于关系锚点策略）
@@ -417,43 +420,96 @@ async fn execute_analysis_workflow(
 ) -> Result<(), String> {
     tracing::info!("📊 开始分析工作流: job_id={}", job_id);
     
-    // TODO: 替换为基于真实工作量的进度计算
-    // 当前使用模拟的阶段性进度，应基于实际的分析任务复杂度动态计算
-    
     // Step 1: 初始化分析环境
     emit_progress(&app_handle, &job_id, 5, "初始化分析环境").await;
-    tokio::time::sleep(tokio::time::Duration::from_millis(200)).await;
     
-    // Step 2: XML解析与结构分析 (主要工作量)
+    // 1. 读取 XML 内容 (用于新服务分析)
+    // 假设 debug_xml 在项目根目录 (根据日志 D:\rust\...\debug_xml)
+    let xml_path = std::path::Path::new("../debug_xml").join(&config.element_context.snapshot_id);
+    let xml_content = std::fs::read_to_string(&xml_path)
+        .map_err(|e| format!("无法读取XML快照: {:?} - {}", xml_path, e))?;
+
     emit_progress(&app_handle, &job_id, 25, "解析页面结构").await;
-    tokio::time::sleep(tokio::time::Duration::from_millis(800)).await;
-    
-    // Step 3: 智能策略生成 (核心算法)
+
+    // 2. 构建 V3 请求
+    let request = IntelligentAnalysisRequest {
+        analysis_id: job_id.clone(),
+        device_id: "unknown".to_string(),
+        ui_xml_content: xml_content,
+        user_selection: Some(UserSelectionContext {
+            selected_xpath: config.element_context.element_path.clone(),
+            bounds: config.element_context.element_bounds.clone(),
+            text: config.element_context.element_text.clone(),
+            resource_id: config.element_context.key_attributes.as_ref().and_then(|m| m.get("resource-id").cloned()),
+            class_name: config.element_context.key_attributes.as_ref().and_then(|m| m.get("class").cloned()),
+            content_desc: config.element_context.key_attributes.as_ref().and_then(|m| m.get("content-desc").cloned()),
+            ancestors: vec![], 
+            children_texts: config.element_context.children_texts.clone().unwrap_or_default(),
+            i18n_variants: None,
+            // ✅ 传递 index_path
+            index_path: config.element_context.index_path.clone(),
+        }),
+        target_element_hint: None,
+        analysis_mode: "step0_to_6".to_string(),
+        max_candidates: 10,
+        min_confidence: 0.5,
+    };
+
     emit_progress(&app_handle, &job_id, 65, "生成智能策略").await;
-    tokio::time::sleep(tokio::time::Duration::from_millis(1000)).await;
-    
-    // Step 4: 策略评分与优选
+
+    // 3. 调用新服务 (mock_intelligent_analysis 已包含 UnifiedMatchService)
+    let service_result = intelligent_analysis_service::mock_intelligent_analysis(request).await
+        .map_err(|e| format!("智能分析服务失败: {}", e))?;
+
     emit_progress(&app_handle, &job_id, 85, "评估策略质量").await;
-    tokio::time::sleep(tokio::time::Duration::from_millis(500)).await;
-    
-    // Step 5: 生成最终分析报告
-    emit_progress(&app_handle, &job_id, 95, "生成分析报告").await;
-    tokio::time::sleep(tokio::time::Duration::from_millis(300)).await;
-    
-    // 🆕 使用共用引擎生成真实的分析结果
-    let engine = StrategyEngine::new();
-    let analysis_context = build_analysis_context(&config.element_context);
-    let step_result = engine.analyze_single_step(&analysis_context);
-    
-    // 转换为旧版AnalysisResult格式 (兼容现有代码)
-    let result = convert_step_result_to_analysis_result(&step_result, &selection_hash, &config);
-    
-    // Step 6: 完成 (100%) - 确保 UI 进度条到 100%
+
+    // 4. 转换结果为 V2 格式 (AnalysisResult)
+    let smart_candidates: Vec<StrategyCandidate> = service_result.candidates.iter().map(|c| {
+        StrategyCandidate {
+            key: c.strategy.clone(),
+            name: c.strategy.clone(),
+            confidence: c.confidence as f32,
+            description: c.reasoning.clone(),
+            variant: "smart".to_string(),
+            xpath: None, // 前端可能需要，但这里暂时为空
+            text: c.element_info.text.clone(),
+            resource_id: c.element_info.resource_id.clone(),
+            class_name: c.element_info.class_name.clone(),
+            content_desc: None,
+            enabled: true,
+            is_recommended: false,
+            selection_mode: None,
+            batch_config: c.execution_params.get("batch_config").cloned(),
+            structural_signatures: None,
+        }
+    }).collect();
+
+    // 找出最佳策略
+    let best_candidate = smart_candidates.first().cloned().unwrap_or_else(|| StrategyCandidate {
+        key: "fallback".to_string(),
+        name: "Fallback".to_string(),
+        confidence: 0.0,
+        description: "No candidates".to_string(),
+        variant: "fallback".to_string(),
+        xpath: None, text: None, resource_id: None, class_name: None, content_desc: None,
+        enabled: true, is_recommended: true, selection_mode: None, batch_config: None, structural_signatures: None,
+    });
+
+    let result = AnalysisResult {
+        selection_hash: selection_hash.clone(),
+        step_id: config.step_id.clone(),
+        smart_candidates,
+        static_candidates: vec![], // 暂时为空
+        recommended_key: best_candidate.key.clone(),
+        recommended_confidence: best_candidate.confidence,
+        fallback_strategy: best_candidate.clone(),
+    };
+
     emit_progress(&app_handle, &job_id, 100, "分析完成").await;
     
     tracing::info!(
         "✅ 分析完成: job_id={}, 推荐策略={}, 置信度={:.1}%", 
-        job_id, result.recommended_key, step_result.confidence * 100.0
+        job_id, result.recommended_key, result.recommended_confidence * 100.0
     );
     
     // 🆕 发送增强的完成事件 (包含置信度和证据)
@@ -461,8 +517,8 @@ async fn execute_analysis_workflow(
         job_id: job_id.clone(),
         selection_hash: selection_hash.clone(),
         result,
-        confidence: step_result.confidence,
-        evidence: step_result.evidence,
+        confidence: best_candidate.confidence,
+        evidence: Evidence::default(), // 简化处理
         origin: "single".to_string(), // 单步分析
         element_uid: Some(config.element_context.element_path.clone()),
         card_id: config.step_id.clone(),

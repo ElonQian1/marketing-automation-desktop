@@ -26,6 +26,7 @@ mod screenshot_service;
 mod services;
 mod types;
 mod utils;
+mod automation;
 
 // ==================== 📦 核心依赖导入 ====================
 use std::sync::Mutex;
