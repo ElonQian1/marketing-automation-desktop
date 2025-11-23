@@ -53,6 +53,7 @@ export async function refreshAllScores(config: RefreshAllScoresConfig): Promise<
         element_path: card.elementContext?.xpath || '',
         element_text: card.elementContext?.text,
         element_bounds: card.elementContext?.bounds,
+        index_path: card.staticLocator?.indexPath,
       },
       step_id: stepId,
       lock_container: false,

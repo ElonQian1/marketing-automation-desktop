@@ -201,7 +201,10 @@ export function buildStrategyMenu(config: StrategyMenuConfig): MenuProps {
               return;
             }
             
-            const card = cardStore.cards[stepId];
+            // 🔧 修复：正确通过 stepId 查找 cardId
+            const cardId = cardStore.byStepId[stepId];
+            const card = cardId ? cardStore.cards[cardId] : undefined;
+            
             if (!card) {
               message.warning('步骤卡片数据不完整，跳过执行');
               return;
@@ -223,6 +226,8 @@ export function buildStrategyMenu(config: StrategyMenuConfig): MenuProps {
                   element_path: card.elementContext?.xpath || '',
                   element_text: card.elementContext?.text,
                   element_bounds: card.elementContext?.bounds,
+                  // 🔥 关键修复：传递 index_path 以启用结构匹配
+                  index_path: card.staticLocator?.indexPath,
                 },
                 step_id: stepId,
                 lock_container: false,
@@ -259,7 +264,10 @@ export function buildStrategyMenu(config: StrategyMenuConfig): MenuProps {
               return;
             }
             
-            const card = cardStore.cards[stepId];
+            // 🔧 修复：正确通过 stepId 查找 cardId
+            const cardId = cardStore.byStepId[stepId];
+            const card = cardId ? cardStore.cards[cardId] : undefined;
+
             if (!card) {
               message.warning('步骤卡片数据不完整');
               return;
@@ -280,6 +288,8 @@ export function buildStrategyMenu(config: StrategyMenuConfig): MenuProps {
                   element_path: card.elementContext?.xpath || '',
                   element_text: card.elementContext?.text,
                   element_bounds: card.elementContext?.bounds,
+                  // 🔥 关键修复：传递 index_path 以启用结构匹配
+                  index_path: card.staticLocator?.indexPath,
                 },
                 step_id: stepId,
                 lock_container: false,

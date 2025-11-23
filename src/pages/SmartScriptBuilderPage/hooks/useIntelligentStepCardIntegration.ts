@@ -20,6 +20,8 @@ interface ElementSelectionContext {
   // 🎯 新增：完整XML快照信息
   xmlContent?: string;
   xmlHash?: string;
+  // 🔥 关键修复：添加 indexPath 字段，确保结构匹配可用
+  indexPath?: number[];
   keyAttributes?: Record<string, string>;
   // 🔥🔥🔥 关键修复：关系锚点数据提升到顶层，传递给后端
   siblingTexts?: string[];
@@ -748,6 +750,8 @@ export function useIntelligentStepCardIntegration(
         // 🎯 新增：完整XML快照信息，支持跨设备复现
         xmlContent,
         xmlHash,
+        // 🔥 关键修复：传递 indexPath，启用结构匹配
+        indexPath: element.indexPath || (element as unknown as { index_path?: number[] }).index_path || [],
         keyAttributes: {
           "resource-id": finalResourceId, // 🔥 使用修正后的resource-id
           "content-desc": finalContentDesc, // 🔥 使用增强后的content-desc（优先父元素）
@@ -1118,8 +1122,7 @@ export function useIntelligentStepCardIntegration(
                   null,
                 bounds: element.bounds ? JSON.stringify(element.bounds) : "",
                 indexPath:
-                  (element as unknown as { index_path?: number[] })
-                    .index_path || [], // 如果有索引路径
+                  element.indexPath || (element as unknown as { index_path?: number[] }).index_path || [], // 优先使用驼峰命名，兼容旧版snake_case
                 // 🔥 提取子元素文本列表（解决"父容器+子文本"模式识别问题）
                 // 从 context._enrichment.allChildTexts 获取（已在 convertElementToContext 中提取）
                 childrenTexts: context._enrichment?.allChildTexts || [],

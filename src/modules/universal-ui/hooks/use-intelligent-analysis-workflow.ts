@@ -634,6 +634,8 @@ export function useIntelligentAnalysisWorkflow(): UseIntelligentAnalysisWorkflow
           checked: false,
           selected: false,
           password: false,
+          // 🔥 关键修复：传递 indexPath，启用结构匹配
+          indexPath: context.indexPath || context.originalUIElement?.indexPath || [],
         };
         
         // 🔍 调试：检查 uiElement 是否包含结构信息
@@ -906,8 +908,8 @@ export function useIntelligentAnalysisWorkflow(): UseIntelligentAnalysisWorkflow
               .substr(2, 9)}`;
             
             // 🎯 提取原始UIElement的indexPath
-            const originalElement = context.originalUIElement;
-            const indexPath = originalElement?.indexPath || [];
+            // 🔥 优先从 context.indexPath 获取（已在 convertElementToContext 中修复）
+            const indexPath = context.indexPath || context.originalUIElement?.indexPath || [];
             
             unifiedStore.createCard(stepId, unifiedCardId, {
               elementContext: {
