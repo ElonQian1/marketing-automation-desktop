@@ -2,12 +2,15 @@
 // module: exec/v3/helpers | layer: infrastructure | role: 子模块聚合
 // summary: 统一导出所有辅助功能模块
 
-pub mod element_matching;
+
 pub mod intelligent_analysis;
 pub mod protocol_builders;
 pub mod strategy_generation;
 pub mod step_optimization;
 pub mod execution_tracker;
+pub mod config_loader;
+pub mod action_dispatcher;
+pub mod legacy_matcher;
 pub mod device_manager;
 pub mod step_executor;
 pub mod analysis_helpers;

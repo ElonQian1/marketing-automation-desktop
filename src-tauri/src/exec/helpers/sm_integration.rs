@@ -7,6 +7,8 @@ use crate::services::universal_ui_page_analyzer::UIElement;
 use crate::commands::structure_match_runtime::{
     sm_match_once, SmMatchRequest, SmConfigDTO,
 };
+use crate::automation::matching::strategy::evaluate_best_candidate;
+use crate::automation::matching::text::parse_bounds_center as helper_parse_bounds;
 
 /// 🔧 从前端格式的structural_signatures中提取skeleton规则
 /// 
@@ -199,6 +201,89 @@ pub async fn v3_match_with_structural_matching(
         matched_elements.len());
 
     Ok(matched_elements)
+}
+
+/// 尝试执行结构化匹配流程
+/// 
+/// 如果启用了结构化匹配且存在签名，则尝试匹配。
+/// 返回：
+/// - Ok(Some(coords)): 匹配成功，返回坐标
+/// - Ok(None): 匹配未命中或未启用，应回退到传统匹配
+/// - Err(e): 匹配出错（严格模式下）
+pub async fn try_structural_matching_flow(
+    device_id: &str,
+    ui_xml: &str,
+    merged_params: &Value,
+) -> Result<Option<(i32, i32)>, String> {
+    // 1. 检测是否启用结构匹配
+    let explicit_structural_mode = merged_params
+        .get("matchingStrategy")
+        .or_else(|| merged_params.get("originalParams").and_then(|op| op.get("matchingStrategy")))
+        .and_then(|v| v.as_str())
+        .map(|s| s.eq_ignore_ascii_case("structural"))
+        .unwrap_or(false);
+
+    let has_structural_sigs = merged_params.get("structural_signatures").is_some()
+        || merged_params.get("original_data")
+            .and_then(|od| od.get("structural_signatures"))
+            .is_some()
+        || merged_params.get("originalParams")
+            .and_then(|op| op.get("structural_signatures"))
+            .is_some();
+
+    let use_structural_matching = explicit_structural_mode && has_structural_sigs;
+    
+    if !use_structural_matching {
+        tracing::debug!("📋 [V3执行器] 非结构模式 or 无签名，跳过结构匹配");
+        return Ok(None);
+    }
+
+    tracing::info!("🏗️ [V3执行器] 进入结构匹配模式（explicit={}, has_sigs={}）",
+        explicit_structural_mode, has_structural_sigs);
+    
+    match v3_match_with_structural_matching(
+        device_id,
+        ui_xml,
+        merged_params,
+    ).await {
+        Ok(sm_elements) if !sm_elements.is_empty() => {
+            tracing::info!("✅ [V3执行器] 结构匹配成功，找到 {} 个候选元素", sm_elements.len());
+            
+            // 🎯 直接使用SM的结果进行候选评估（转换为引用）
+            let sm_element_refs: Vec<&UIElement> = sm_elements.iter().collect();
+            let target_element_option = evaluate_best_candidate(
+                sm_element_refs,
+                merged_params,
+                ui_xml,
+                None,
+            )?;
+            
+            let element = target_element_option
+                .ok_or_else(|| "结构匹配成功但候选评估未返回元素".to_string())?;
+            
+            let coords = helper_parse_bounds(&element.bounds.to_string())?;
+            tracing::info!("🎯 [V3执行器] 结构匹配最终选择: ({}, {})", coords.0, coords.1);
+            return Ok(Some(coords));
+        }
+        Ok(_) => {
+            if explicit_structural_mode {
+                tracing::warn!("⚠️ [V3执行器] 结构匹配返回空结果（严格结构模式），终止执行");
+                return Err("结构匹配未找到任何元素（严格结构模式）".to_string());
+            } else {
+                tracing::warn!("⚠️ [V3执行器] 结构匹配返回空结果，fallback到传统匹配");
+                return Ok(None);
+            }
+        }
+        Err(e) => {
+            if explicit_structural_mode {
+                tracing::warn!("⚠️ [V3执行器] 结构匹配失败（严格结构模式）: {}", e);
+                return Err(format!("结构匹配失败（严格结构模式）：{}", e));
+            } else {
+                tracing::warn!("⚠️ [V3执行器] 结构匹配失败: {}，fallback到传统匹配", e);
+                return Ok(None);
+            }
+        }
+    }
 }
 
 #[cfg(test)]

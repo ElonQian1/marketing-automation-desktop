@@ -288,7 +288,7 @@ impl XPathSimilarityMatcher {
     pub fn should_use_xpath_mode(
         children_texts: &[String],
         sibling_texts: &[String],
-        parent_info: &Option<super::multi_candidate_evaluator::ParentInfo>,
+        parent_info: &Option<crate::automation::matching::scorer::ParentInfo>,
     ) -> bool {
         // 检查是否有任何文本锚点
         let has_children_text = !children_texts.is_empty() && children_texts.iter().any(|t| !t.is_empty());
