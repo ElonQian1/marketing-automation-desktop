@@ -6,7 +6,8 @@ use serde_json::Value;
 use tauri::AppHandle;
 
 use super::types::*;
-use super::helpers::step_executor;
+// use super::helpers::step_executor;
+use crate::automation::engine;
 
 /// 统一的步骤执行结果
 #[derive(Debug, Clone)]
@@ -39,13 +40,13 @@ pub async fn execute_step_unified(
     
     tracing::info!("🎯 [统一执行器] 开始执行步骤: {}", inline_step.step_id);
     
-    // 调用现有的智能分析步骤执行器
+    // 调用新的自动化引擎执行器
     // 这个执行器已经包含了所有高级功能：
     // - 从 STEP_STRATEGY_STORE 读取配置
     // - 批量执行模式
     // - 多候选评估
     // - 结构签名匹配
-    let (coords_x, coords_y) = step_executor::execute_intelligent_analysis_step(
+    let (coords_x, coords_y) = engine::execute_step(
         &envelope.device_id,
         inline_step,
         ui_xml,
