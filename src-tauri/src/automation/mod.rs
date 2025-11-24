@@ -7,6 +7,9 @@
 pub mod domain;
 pub mod services;
 pub mod adapters;
+pub mod analysis;
+
+// Re-export common types
 pub mod pipeline;
 pub mod types;
 pub mod events;
