@@ -1,6 +1,23 @@
 # V3 智能执行系统（Rust）
 
+> ⚠️ **注意**：核心逻辑已迁移至 `src/automation` 目录。本目录目前仅作为兼容层保留。
+
 ## 概述
+
+V3 是新一代“智能自动链 + 策略分析”执行引擎。
+
+新的目录结构请参考 `src/automation`：
+```
+src-tauri/src/automation/
+├── analysis/        # 智能分析 (原 helpers/intelligent_analysis 等)
+├── pipeline/        # 执行管线 (原 chain_engine, single_step 等)
+├── adapters/        # 外部适配器 (device, xml_source)
+├── matching/        # 元素匹配
+├── types.rs         # 核心类型
+└── events.rs        # 事件模型
+```
+
+旧文档归档：
 
 V3 是新一代“智能自动链 + 策略分析”执行引擎，相比 V2 提供：
 - 完整的 Step 0-6 策略分析链路（匹配、验证、容错、回退）

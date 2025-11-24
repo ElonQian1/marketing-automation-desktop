@@ -7,21 +7,22 @@ pub use crate::automation::types;
 // pub mod events; // Moved to automation
 pub use crate::automation::events;
 // pub mod commands; // Moved to commands/automation_commands.rs
-pub mod chain_engine;
-pub mod single_step;
-pub mod unified_step_executor;
-pub mod recovery_manager;
-pub mod xpath_evaluator;
-pub mod static_exec;
-pub mod element_matching;
-pub mod semantic_analyzer;
+// pub mod chain_engine; // Moved
+// pub mod single_step; // Moved
+pub use crate::automation::pipeline::executor as unified_step_executor;
+pub use crate::automation::matching::recovery as recovery_manager;
+pub use crate::automation::matching::evaluator as xpath_evaluator;
+// pub mod static_exec; // Moved
+pub use crate::automation::matching::element_matching;
+pub use crate::automation::analysis::semantic as semantic_analyzer;
 pub mod helpers;
 
 // 重新导出常用类型
 pub use types::*;
 pub use events::*;
 // pub use commands::*;
-pub use chain_engine::*;
-pub use single_step::*;
-pub use unified_step_executor::*;
+pub use crate::automation::pipeline::chain as chain_engine;
+pub use crate::automation::pipeline::single_step;
+pub use crate::automation::pipeline::static_exec;
+pub use crate::automation::pipeline::executor::*;
 
