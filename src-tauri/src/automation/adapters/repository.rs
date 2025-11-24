@@ -2,7 +2,10 @@ use crate::automation::domain::{Comment, CommentId, TaskAction, TaskId};
 use chrono::Utc;
 use tauri::AppHandle;
 
-use crate::services::marketing_storage::models::{CommentPayload, TaskPayload};
+use crate::services::marketing_storage::models::{
+    CommentPayload, ExecutorMode, MarketingPlatform, TaskPayload, TaskResultCode, TaskStatus,
+    TaskType,
+};
 use crate::services::marketing_storage::repositories as repo;
 
 /// Thin adapter that bridges the new automation layer with the existing
@@ -31,7 +34,7 @@ impl MarketingStorageAdapter {
             .ok_or_else(|| anyhow::anyhow!("missing source_target_id for comment {}", comment.id.0))?;
 
         let payload = CommentPayload {
-            platform: comment.platform.clone(),
+            platform: MarketingPlatform::from(comment.platform.clone()),
             video_id,
             author_id: comment.author_id.clone(),
             content: comment.content.clone(),
@@ -55,20 +58,19 @@ impl MarketingStorageAdapter {
     ) -> anyhow::Result<TaskId> {
         let conn = self.conn()?;
 
-        let task_type = match action {
+        let task_type_str = match action {
             TaskAction::Reply => "reply",
             TaskAction::Follow => "follow",
             TaskAction::Ignore => "ignore",
             TaskAction::Escalate => "escalate",
-        }
-        .to_string();
+        };
 
         let payload = TaskPayload {
-            task_type,
+            task_type: TaskType::from(task_type_str.to_string()),
             comment_id: Some(comment_id.0.clone()),
             target_user_id: None,
             assign_account_id: assign_account_id.to_string(),
-            executor_mode: "manual".to_string(),
+            executor_mode: ExecutorMode::Manual,
             dedup_key: dedup_key.unwrap_or_else(|| format!("task:{}", comment_id.0)),
             priority: None,
             deadline_at: None,
@@ -107,8 +109,8 @@ impl MarketingStorageAdapter {
         repo::update_task_status(
             &conn,
             &task_id.0,
-            status,
-            result_code.as_deref(),
+            TaskStatus::from(status.to_string()),
+            result_code.map(TaskResultCode::from),
             error.as_deref(),
         )?;
         Ok(())
