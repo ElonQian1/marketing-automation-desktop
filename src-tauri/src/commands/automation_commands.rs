@@ -7,9 +7,9 @@ use serde_json::Value;
 use tauri::AppHandle;
 
 use crate::automation::types::*;
-use crate::exec::single_step::execute_single_step_internal;
-use crate::exec::chain_engine::execute_chain; // 启用 V3 智能链执行引擎
-use crate::exec::static_exec::execute_static;
+use crate::automation::pipeline::single_step::execute_single_step_internal;
+use crate::automation::pipeline::chain::execute_chain; // 启用 V3 智能链执行引擎
+use crate::automation::pipeline::static_exec::execute_static;
 use crate::exec::helpers::analysis_helpers::truncate_xml_in_json;
 
 /// 执行智能单步测试（V3）
