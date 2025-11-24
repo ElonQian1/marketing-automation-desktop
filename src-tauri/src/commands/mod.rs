@@ -32,6 +32,7 @@ pub mod semantic_analyzer_config;
 pub mod structure_match_runtime;
 pub mod ui_dump;
 pub mod analysis_cache;
+pub mod automation_commands;
 
 // 可选：统一 re-export，方便 main.rs 引入
 // pub use action_execution::*; // 操作执行命令（暂时注释）

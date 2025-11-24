@@ -44,7 +44,7 @@ use services::scrcpy_manager::cleanup_all;
 use commands::*; // 集中导入所有模块化命令
 
 // ==================== 🚀 V3 执行引擎命令 ====================
-use crate::exec::commands::{
+use crate::commands::automation_commands::{
     execute_chain_test_v3, execute_single_step_test_v3, execute_static_strategy_test_v3,
     execute_task_v3,
 };

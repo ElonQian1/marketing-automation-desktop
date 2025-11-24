@@ -38,6 +38,9 @@ use utils::{
     ResponseBuilder,
 };
 
+use crate::automation::engine;
+use crate::automation::types::{InlineStep, SingleStepAction};
+
 // 重导出 legacy 模块的废弃功能
 
 use tauri::{command, AppHandle};
@@ -198,199 +201,47 @@ pub async fn run_step_v2(app_handle: AppHandle, request: RunStepRequestV2) -> Re
 
 // V2 步骤执行（匹配前端数据结构）
 async fn execute_v2_step(_app_handle: AppHandle, req: &RunStepRequestV2) -> Result<StepResponseV2, String> {
-    // 🎯 处理coordinateParams参数展开
+    tracing::info!("🚀 [V2->V3 Migration] Delegating to automation::engine");
+
+    // 1. Expand params
     let step_with_coords = expand_coordinate_params(&req.step);
-    
-    let action_type = step_with_coords.get("action").and_then(|v| v.as_str()).unwrap_or("tap");
-    
-    // 🎯 检测无需选择器的操作类型（系统按键、输入等）
-    if is_selector_free_action(action_type) {
-        tracing::info!("🎯 检测到无选择器操作: {}, 跳过元素匹配直接执行", action_type);
-        
-        let dummy_candidate = create_dummy_candidate(action_type);
-        
-        // 直接执行操作
-        return match execute_v2_action_with_coords(&step_with_coords, &req.device_id, &dummy_candidate).await {
-            Ok(exec_info) => {
-                tracing::info!("✅ {}执行成功: {}", action_type, exec_info.action);
-                Ok(ResponseBuilder::selector_free_success(action_type, exec_info.action))
-            },
-            Err(e) => {
-                tracing::error!("❌ {}执行失败: {}", action_type, e);
-                Ok(ResponseBuilder::selector_free_error(action_type, e))
-            }
-        };
-    }
-    
-    // 🎯 检测坐标滑动操作
-    if is_coordinate_swipe(&step_with_coords, action_type) {
-        tracing::info!("🎯 检测到坐标滑动操作，跳过元素匹配直接执行");
-        tracing::info!("📐 坐标参数: start_x={:?}, start_y={:?}, end_x={:?}, end_y={:?}", 
-                      step_with_coords.get("start_x"), 
-                      step_with_coords.get("start_y"),
-                      step_with_coords.get("end_x"), 
-                      step_with_coords.get("end_y"));
-        
-        let dummy_candidate = create_dummy_candidate("坐标滑动");
-        
-        // 直接执行坐标操作
-        return match execute_v2_action_with_coords(&step_with_coords, &req.device_id, &dummy_candidate).await {
-            Ok(exec_info) => {
-                tracing::info!("✅ 坐标滑动执行成功: {}", exec_info.action);
-                Ok(ResponseBuilder::selector_free_success("swipe", exec_info.action))
-            },
-            Err(e) => {
-                tracing::error!("❌ 坐标滑动执行失败: {}", e);
-                Ok(ResponseBuilder::selector_free_error("坐标滑动", e))
-            }
-        };
-    }
-    
-    // 📦 创建使用修改后步骤的请求对象，用于后续函数调用
-    let req_with_coords = RunStepRequestV2 {
-        device_id: req.device_id.clone(),
-        mode: req.mode.clone(), 
-        strategy: req.strategy.clone(),
-        step: step_with_coords,
-    };
-    
-    // 🔍 第一步：查询 selection_mode 和 batch_config
-    let (selection_mode, batch_config) = resolve_step_strategy(&req_with_coords.step).await;
-    
-    // 获取真实的UI dump
-    tracing::info!("🔍 开始获取设备UI dump...");
-    let ui_dump_result = AdbService::new().dump_ui_hierarchy(&req.device_id).await
-        .map_err(|e| e.to_string());
-    
-    let (match_info, candidates) = match ui_dump_result {
-        Ok(ui_xml) => {
-            tracing::info!("✅ UI dump获取成功，大小: {} 字符", ui_xml.len());
-            
-            // 进行真实的元素匹配，传递 selection_mode
-            match find_element_in_ui(&ui_xml, &req_with_coords, selection_mode.clone()).await {
-                Ok((info, cands)) => {
-                    tracing::info!("matched: uniq={} conf={:.2} candidates={}", info.uniqueness, info.confidence, cands.len());
-                    (info, cands)
-                },
-                Err(e) => {
-                    tracing::error!("❌ 元素匹配失败: {}", e);
-                    return Ok(ResponseBuilder::match_failed(e));
-                }
-            }
-        },
-        Err(e) => {
-            tracing::error!("❌ UI dump获取失败: {}", e);
-            return Ok(ResponseBuilder::ui_dump_failed(e.to_string()));
-        }
-    };
-    
-    // 检查是否有候选
-    if candidates.is_empty() {
-        return Ok(ResponseBuilder::no_match());
-    }
-    
-    // 🎯 根据 selection_mode 决定执行策略
-    let is_batch_mode = selection_mode.as_deref() == Some("all");
-    
-    if is_batch_mode {
-        tracing::info!("� 批量执行模式：将依次点击 {} 个元素", candidates.len());
-        
-        // 获取批量配置
-        let interval_ms = batch_config.as_ref()
-            .and_then(|cfg| cfg.get("interval_ms"))
-            .and_then(|v| v.as_u64())
-            .unwrap_or(500);
-        
-        let mut success_count = 0;
-        let mut failed_count = 0;
-        let mut logs = Vec::new();
-        
-        // 获取 ADB 路径
-        let adb_path = if std::path::Path::new("platform-tools/adb.exe").exists() {
-            "platform-tools/adb.exe"
-        } else if std::path::Path::new("D:\\leidian\\LDPlayer9\\adb.exe").exists() {
-            "D:\\leidian\\LDPlayer9\\adb.exe"
-        } else {
-            "adb"
-        };
-        
-        for (index, candidate) in candidates.iter().enumerate() {
-            tracing::info!("📍 批量执行 {}/{}: bounds=({},{},{},{})", 
-                          index + 1, candidates.len(),
-                          candidate.bounds.left, candidate.bounds.top,
-                          candidate.bounds.right, candidate.bounds.bottom);
-            
-            // 计算点击坐标（元素中心点）
-            let x = (candidate.bounds.left + candidate.bounds.right) / 2;
-            let y = (candidate.bounds.top + candidate.bounds.bottom) / 2;
-            
-            tracing::info!("🎯 批量点击坐标: ({}, {})", x, y);
-            
-            // 执行点击
-            let tap_result = tap_injector_first(adb_path, &req.device_id, x, y, None).await;
-            
-            match tap_result {
-                Ok(_) => {
-                    success_count += 1;
-                    logs.push(format!("✅ 第{}个元素点击成功 ({}, {})", index + 1, x, y));
-                }
-                Err(e) => {
-                    failed_count += 1;
-                    logs.push(format!("❌ 第{}个元素点击失败: {}", index + 1, e));
-                    tracing::warn!("❌ 批量执行失败: {}", e);
-                }
-            }
-            
-            // 间隔延迟
-            if index < candidates.len() - 1 {
-                tokio::time::sleep(tokio::time::Duration::from_millis(interval_ms)).await;
-            }
-        }
-        
-        return Ok(ResponseBuilder::batch_execution(
-            success_count,
-            failed_count,
-            logs,
-            candidates.first().cloned(),
-        ));
-    }
-    
-    // 非批量模式：使用第一个候选
-    let match_candidate = candidates.into_iter().next().unwrap();
+    let action_str = step_with_coords.get("action").and_then(|v| v.as_str()).unwrap_or("tap");
 
-    // 安全闸门检查
-    let safety_result = check_safety_gates(&match_info, &match_candidate);
-    if let Some(error_response) = safety_result_to_response(safety_result, match_candidate.clone()) {
-        return Ok(error_response);
-    }
+    // 2. Check if direct action
+    let is_direct = is_selector_free_action(action_str) || is_coordinate_swipe(&step_with_coords, action_str);
 
-    if matches!(req.mode, StepRunMode::MatchOnly) {
-        return Ok(StepResponseV2 {
-            ok: true,
-            message: "仅匹配模式，未执行操作".to_string(),
-            matched: Some(match_candidate),
-            executed_action: None,
-            verify_passed: None,
-            error_code: None,
-            raw_logs: Some(vec!["匹配成功".to_string()]),
-        });
-    }
+    // 3. Dump UI if needed
+    let ui_xml = if is_direct {
+        String::new()
+    } else {
+        AdbService::new().dump_ui_hierarchy(&req.device_id).await
+            .map_err(|e| format!("Failed to dump hierarchy: {}", e))?
+    };
+
+    // 4. Construct InlineStep
+    let action_enum = serde_json::from_value::<SingleStepAction>(serde_json::Value::String(action_str.to_string()))
+        .unwrap_or(SingleStepAction::Unknown);
     
-    // 执行操作
-    let exec_result = execute_v2_action_with_coords(&req_with_coords.step, &req_with_coords.device_id, &match_candidate).await?;
-    let action_type = req_with_coords.step.get("action").and_then(|v| v.as_str()).unwrap_or("unknown");
-    
+    let step_id = step_with_coords.get("id").and_then(|v| v.as_str()).unwrap_or("v2_step").to_string();
+
+    let inline_step = InlineStep {
+        step_id,
+        action: action_enum,
+        params: step_with_coords.clone(),
+    };
+
+    // 5. Execute via Engine
+    let (x, y) = engine::execute_step(&req.device_id, &inline_step, &ui_xml).await?;
+
+    // 6. Return Response
     Ok(StepResponseV2 {
-        ok: exec_result.ok,
-        message: "V2执行成功".to_string(),
-        matched: Some(match_candidate),
-        executed_action: Some(action_type.to_string()),
+        ok: true,
+        message: "Executed via automation engine".to_string(),
+        matched: None,
+        executed_action: Some(action_str.to_string()),
         verify_passed: Some(true),
         error_code: None,
-        raw_logs: Some(vec![
-            format!("匹配: 置信度{:.1}%", match_info.confidence * 100.0),
-            format!("执行: {} ({}ms)", exec_result.action, exec_result.execution_time_ms),
-        ]),
+        raw_logs: Some(vec![format!("Executed at ({}, {})", x, y)]),
     })
 }
 
