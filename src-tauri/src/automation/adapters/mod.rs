@@ -2,3 +2,5 @@
 
 pub mod openai;
 pub mod repository;
+pub mod device;
+pub mod xml_source;
