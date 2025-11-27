@@ -135,7 +135,9 @@ export class EventAcknowledgmentService {
     eventId: string, 
     additionalData?: Record<string, any>
   ): Promise<void> {
-    // 调用后端确认命令（如果后端实现了的话）
+    // 暂时禁用后端ACK调用，因为后端尚未实现该命令
+    // 避免产生 "Command acknowledge_event not found" 错误日志
+    /*
     try {
       await invoke('acknowledge_event', {
         event_type: eventType,
@@ -144,14 +146,10 @@ export class EventAcknowledgmentService {
         additional_data: additionalData || {}
       });
     } catch (error) {
-      // 如果后端没有实现acknowledge_event命令，这是正常的
-      // 只有当实现了该命令时才会成功
-      if (error?.toString().includes('command acknowledge_event not found')) {
-        console.log('ℹ️ [EventAck] 后端未实现ACK命令，使用纯前端确认');
-        return;
-      }
-      throw error;
+      // ...
     }
+    */
+    return Promise.resolve();
   }
   
   /**

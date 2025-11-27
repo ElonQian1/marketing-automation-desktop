@@ -170,19 +170,31 @@ export async function wireAnalysisEventsGlobally(): Promise<void> {
       const analysisStore = useAnalysisStateStore.getState();
       
       // 通过job_id查找目标卡片
-      const targetCardId = store.findByJob(job_id);
+      let targetCardId = store.findByJob(job_id);
       
       if (!targetCardId) {
+        // 🔍 竞态条件修复：尝试寻找最近创建的、正在分析中的孤儿卡片
+        // 当后端分析极快（如简单子元素）时，可能在前端bindJob之前就完成了
         const allCards = store.getAllCards();
-        console.warn('❌ [ROUTE] completed 找不到卡片', { 
-          job_id: job_id.slice(-8), 
-          availableJobs: allCards.map(c => ({ 
-            cardId: c.id.slice(-8), 
-            jobId: c.jobId?.slice(-8), 
-            status: c.status 
-          }))
-        });
-        return;
+        const orphanCard = allCards
+          .filter(c => c.status === 'analyzing' && !c.jobId)
+          .sort((a, b) => b.createdAt - a.createdAt)[0];
+        
+        if (orphanCard) {
+          console.info(`✅ [ROUTE] 自动修复关联(Race Condition): 将 Job ${job_id.slice(-8)} 绑定到卡片 ${orphanCard.id.slice(-8)}`);
+          store.bindJob(orphanCard.id, job_id);
+          targetCardId = orphanCard.id;
+        } else {
+          console.warn('❌ [ROUTE] completed 找不到卡片且无孤儿卡片', { 
+            job_id: job_id.slice(-8), 
+            availableJobs: allCards.map(c => ({ 
+              cardId: c.id.slice(-8), 
+              jobId: c.jobId?.slice(-8), 
+              status: c.status 
+            }))
+          });
+          return;
+        }
       }
       
       const card = store.getCard(targetCardId);

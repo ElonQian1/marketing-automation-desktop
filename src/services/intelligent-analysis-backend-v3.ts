@@ -428,16 +428,26 @@ export class IntelligentAnalysisBackendV3 {
         const jobId = payload.analysis_id || 'v3-complete';
         
         // 将V3结果转换为V2兼容格式
-        const result: ExecutionResult = {
+        const result: ExecutionResult & { smartCandidates?: any[], recommendedKey?: string } = {
           success: payload.result?.ok ?? true,
           elementId: payload.summary?.adoptedStepId || 'unknown',
           action: { type: 'click' as const },
           executionTime: payload.summary?.elapsedMs || 0,
           coordinates: payload.result?.coords,
-          error: payload.result?.ok === false ? payload.summary?.reason : undefined
+          error: payload.result?.ok === false ? payload.summary?.reason : undefined,
+          // 🎯 映射 V3 scores 到 smartCandidates，解决前端"缺少候选列表"警告
+          // 🔥 修复：增加空数组兜底，防止 undefined 导致前端超时
+          smartCandidates: (payload.scores || []).map(score => ({
+            key: score.stepId,
+            name: score.stepId, // 使用 stepId 作为名称
+            confidence: score.confidence,
+            xpath: '', // V3 StepScore 中不包含 XPath
+            description: `置信度: ${(score.confidence * 100).toFixed(1)}%`
+          })),
+          recommendedKey: payload.summary?.adoptedStepId
         };
 
-        console.log('✅ [V3 BackendService] 收到分析完成事件', { jobId, result });
+        console.log('✅ [V3 BackendService] 收到分析完成事件', { jobId, payload, result });
         onComplete(jobId, result);
       }
     );
