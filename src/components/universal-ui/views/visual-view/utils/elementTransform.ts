@@ -111,14 +111,5 @@ export function convertVisualToUIElement(element: VisualUIElement, selectedId?: 
     indexPath: element.indexPath, // 🔥 关键：保留 indexPath 用于结构匹配评分
   };
 
-  // 🔍 调试：验证 indexPath 是否保留
-  if (element.indexPath) {
-    console.log('✅ [convertVisualToUIElement] indexPath 已保留:', {
-      id: result.id,
-      hasIndexPath: true,
-      indexPathLength: element.indexPath.length
-    });
-  }
-
   return result;
 }

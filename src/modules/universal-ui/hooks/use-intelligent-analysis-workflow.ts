@@ -36,10 +36,13 @@
 //
 // ============================================
 
-import { useState, useCallback, useRef, useEffect } from "react";
+import { useState, useEffect, useCallback, useRef } from "react";
 import { message } from "antd";
 import { logOnce, logProgress } from "../../../utils/logger-config";
 import { useSelectedDevice } from "../../../application/store/adbStore";
+import { useAnalysisStateStore } from "../../../stores/analysis-state-store";
+import { useAdbStore } from "../../../application/store/adbStore";
+import { SNAPSHOT_DEVICE_ID } from "../../../application/constants";
 
 // ========== V2/V3 智能分析后端服务 ==========
 // 🔄 [V2/V3 动态切换] 根据特性开关选择执行版本
@@ -162,6 +165,17 @@ export function useIntelligentAnalysisWorkflow(): UseIntelligentAnalysisWorkflow
   useEffect(() => {
     const updateExecutionVersion = async () => {
       try {
+        // 🚨 关键修复：移除对 offline_snapshot_mode 的强制 V2 降级
+        // 原因：V3 事件监听需要启用 V3 模式，即使在快照模式下也应保持 V3 监听
+        // 至于执行时的设备ID问题，由 startAnalysis 内部处理
+        /*
+        if (!selectedDevice || selectedDevice.id === 'offline_snapshot_mode') {
+          console.log('🔌 [SmartRouting] 无设备连接，强制使用 V2 离线分析引擎');
+          setCurrentExecutionVersion("v2");
+          return;
+        }
+        */
+
         const version = await featureFlagManager.getSmartExecutionVersion(
           "intelligent-analysis"
         );
@@ -177,10 +191,9 @@ export function useIntelligentAnalysisWorkflow(): UseIntelligentAnalysisWorkflow
     updateExecutionVersion();
 
     // 每30秒检查一次V3健康状态
-    const healthCheckInterval = setInterval(updateExecutionVersion, 30000);
-
-    return () => clearInterval(healthCheckInterval);
-  }, []);
+    const interval = setInterval(updateExecutionVersion, 30000);
+    return () => clearInterval(interval);
+  }, [selectedDevice]);
 
   // 状态管理
   const [currentJobs, setCurrentJobs] = useState<Map<string, AnalysisJob>>(
@@ -417,6 +430,24 @@ export function useIntelligentAnalysisWorkflow(): UseIntelligentAnalysisWorkflow
                     const recommendedStrategy = result.smartCandidates?.find(
                       (c) => c.key === result.recommendedKey
                     );
+                    
+                    // 🆕 同步到 AnalysisStateStore (修复评分显示)
+                    const analysisStore = useAnalysisStateStore.getState();
+                    if (result.smartCandidates) {
+                      const scores = result.smartCandidates.map(c => ({
+                        stepId: c.key, // 使用 candidateKey 作为 stepId
+                        confidence: c.confidence,
+                        strategy: c.name,
+                        metrics: {
+                          source: 'intelligent-analysis',
+                          mode: 'v3',
+                          timestamp: Date.now()
+                        }
+                      }));
+                      analysisStore.setFinalScores(scores);
+                      console.log("✅ [Workflow] 同步评分到 AnalysisStateStore", scores);
+                    }
+
                     const strategy = {
                       primary: result.recommendedKey || "fallback",
                       backups:
@@ -467,7 +498,7 @@ export function useIntelligentAnalysisWorkflow(): UseIntelligentAnalysisWorkflow
             // 找到运行中的任务并标记为失败
             setCurrentJobs((prev) => {
               const updated = new Map(prev);
-              for (const [jobId, job] of updated.entries()) {
+              for (const [jobId, job] of Array.from(updated.entries())) {
                 if (job.state === "running") {
                   updated.set(jobId, {
                     ...job,
@@ -635,7 +666,10 @@ export function useIntelligentAnalysisWorkflow(): UseIntelligentAnalysisWorkflow
           selected: false,
           password: false,
           // 🔥 关键修复：传递 indexPath，启用结构匹配
-          indexPath: context.indexPath || context.originalUIElement?.indexPath || [],
+          indexPath:
+            (context as any).indexPath ||
+            (context as any).originalUIElement?.indexPath ||
+            [],
         };
         
         // 🔍 调试：检查 uiElement 是否包含结构信息
@@ -654,7 +688,12 @@ export function useIntelligentAnalysisWorkflow(): UseIntelligentAnalysisWorkflow
         let jobId: string;
 
         try {
-          if (currentExecutionVersion === "v3") {
+          // 🚀 [智能路由] 仅在有真实设备连接时使用 V3 引擎
+          // 离线/快照分析强制使用 V2 引擎，避免 V3 尝试连接 ADB 导致超时和报错
+          const isFakeDevice = selectedDevice?.id === SNAPSHOT_DEVICE_ID;
+          const canUseV3 = currentExecutionVersion === "v3" && selectedDevice?.id && !isFakeDevice;
+
+          if (canUseV3) {
             // console.log("🚀 [V3] 使用V3统一执行协议启动智能分析");
 
             // V3 高效执行：构建统一配置和链规格
@@ -663,9 +702,20 @@ export function useIntelligentAnalysisWorkflow(): UseIntelligentAnalysisWorkflow
               .substr(2, 9)}`;
             
             // 动态获取选中设备ID
-            const deviceId = selectedDevice?.id;
+            let deviceId = selectedDevice?.id;
+            
+            // 🚨 修复：如果当前是离线快照模式，尝试查找真实设备
+            if (!deviceId || deviceId === SNAPSHOT_DEVICE_ID) {
+               const devices = useAdbStore.getState().devices;
+               const realDevice = devices.find(d => d.id !== SNAPSHOT_DEVICE_ID && d.status === 'online');
+               if (realDevice) {
+                 deviceId = realDevice.id;
+                 console.log(`🔌 [SmartRouting] 自动切换到真实设备: ${deviceId}`);
+               }
+            }
+
             if (!deviceId) {
-              throw new Error("没有选中的设备，请先连接设备");
+               throw new Error("没有选中的设备，请先连接设备");
             }
 
             // V3执行配置 - 90%数据精简 + 智能回退优化
@@ -676,6 +726,9 @@ export function useIntelligentAnalysisWorkflow(): UseIntelligentAnalysisWorkflow
               max_retries: 2, // 智能重试：失败时自动V3→V2回退
               dryrun: false, // 生产执行模式
               enable_fallback: true, // 🚀 启用V2回退：确保业务连续性
+              // 🚀 [离线支持] 传递XML缓存ID，允许无设备分析
+              // eslint-disable-next-line @typescript-eslint/no-explicit-any
+              xmlCacheId: (context as any).xmlCacheId || context.snapshotId,
             };
 
             // 🔗 V3链规格构建：将UI元素转换为统一执行步骤
@@ -718,7 +771,11 @@ export function useIntelligentAnalysisWorkflow(): UseIntelligentAnalysisWorkflow
             //   success: response.success,
             // });
           } else {
-            // console.log("🔄 [V2] 使用V2传统协议启动智能分析");
+            if (currentExecutionVersion === "v3") {
+              console.log("🔌 [Workflow] 离线/快照模式：自动切换到 V2 引擎以避免 ADB 连接");
+            } else {
+              // console.log("🔄 [V2] 使用V2传统协议启动智能分析");
+            }
 
             // V2 传统调用：完整数据传输（集成缓存系统）
             response = await intelligentAnalysisBackend.startAnalysis(
@@ -735,7 +792,7 @@ export function useIntelligentAnalysisWorkflow(): UseIntelligentAnalysisWorkflow
             // console.log("✅ [V2] 传统分析启动成功", { jobId });
           }
         } catch (v3Error) {
-          if (currentExecutionVersion === "v3") {
+          if (currentExecutionVersion === "v3" && selectedDevice?.id) {
             console.warn(
               "⚠️ [V3→V2 回退] V3执行失败，自动回退到V2系统",
               v3Error
@@ -909,7 +966,10 @@ export function useIntelligentAnalysisWorkflow(): UseIntelligentAnalysisWorkflow
             
             // 🎯 提取原始UIElement的indexPath
             // 🔥 优先从 context.indexPath 获取（已在 convertElementToContext 中修复）
-            const indexPath = context.indexPath || context.originalUIElement?.indexPath || [];
+            const indexPath =
+              (context as any).indexPath ||
+              (context as any).originalUIElement?.indexPath ||
+              [];
             
             unifiedStore.createCard(stepId, unifiedCardId, {
               elementContext: {
@@ -939,8 +999,8 @@ export function useIntelligentAnalysisWorkflow(): UseIntelligentAnalysisWorkflow
                 text: context.elementText,
                 contentDesc: context.keyAttributes?.["content-desc"],
                 bounds: context.elementBounds,
-                clickable: originalElement?.clickable,
-                childrenTexts: originalElement?.child_elements?.map((c: any) => c.text).filter(Boolean) || [],
+                clickable: context.originalUIElement?.clickable,
+                childrenTexts: context.originalUIElement?.child_elements?.map((c: any) => c.text).filter(Boolean) || [],
               },
               status: "analyzing",
             });
@@ -1002,11 +1062,6 @@ export function useIntelligentAnalysisWorkflow(): UseIntelligentAnalysisWorkflow
               const cardId = unifiedStore.byStepId[stepId];
               if (cardId) {
                 unifiedStore.bindJob(cardId, jobId);
-                // console.log("🔗 [Bridge] 绑定job到卡片", {
-                //   cardId,
-                //   jobId,
-                //   stepId,
-                // });
               }
             } catch (err) {
               console.warn("⚠️ [Bridge] 绑定job失败", err);

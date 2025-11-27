@@ -32,7 +32,8 @@ export interface StrategyMenuConfig {
   handleOpenStructuralMatching: () => Promise<void>;
   dataError: Error | null;
   dataLoading: boolean;
-  startAnalysis?: (config: unknown) => Promise<void>;
+  startAnalysis?: (config: unknown) => Promise<string>;
+  bindJob?: (cardId: string, jobId: string) => void;
 }
 
 /**
@@ -41,24 +42,40 @@ export interface StrategyMenuConfig {
  * @returns 刷新函数
  */
 export function createRefreshScoresFunction(config: StrategyMenuConfig): (() => Promise<void>) | undefined {
-  const { stepId, cardStore, startAnalysis } = config;
+  const { stepId, cardStore, startAnalysis, bindJob } = config;
   
   if (!stepId || !startAnalysis) {
     return undefined;
   }
 
   return async () => {
-    const card = cardStore.cards[stepId];
-    if (!card) {
+    // 尝试查找 cardId
+    let cardId: string | undefined;
+    // @ts-ignore - cardStore might have byStepId
+    if (cardStore.byStepId && cardStore.byStepId[stepId]) {
+      // @ts-ignore
+      cardId = cardStore.byStepId[stepId];
+    } else {
+      // Fallback: iterate cards
+      cardId = Object.keys(cardStore.cards).find(id => cardStore.cards[id].elementUid === stepId);
+    }
+
+    const card = cardId ? cardStore.cards[cardId] : undefined;
+    if (!card || !cardId) {
       message.warning('步骤卡片数据不完整');
       return;
     }
 
-    await refreshAllScores({
+    const jobId = await refreshAllScores({
       stepId,
       card,
       startAnalysis,
     });
+
+    if (jobId && bindJob) {
+      console.log(`🔗 [Refresh] 绑定 Job ${jobId} 到卡片 ${cardId}`);
+      bindJob(cardId, jobId);
+    }
   };
 }
 
@@ -117,7 +134,10 @@ export function buildStrategyMenu(config: StrategyMenuConfig): MenuProps {
               return;
             }
             
-            const card = cardStore.cards[stepId];
+            // 🔧 修复：正确通过 stepId 查找 cardId
+            const cardId = cardStore.byStepId[stepId];
+            const card = cardId ? cardStore.cards[cardId] : undefined;
+
             if (!card) {
               message.warning('步骤卡片数据不完整');
               return;
@@ -129,7 +149,13 @@ export function buildStrategyMenu(config: StrategyMenuConfig): MenuProps {
             }
             
             // 使用统一的刷新函数
-            await refreshAllScores({ stepId, card, startAnalysis });
+            const jobId = await refreshAllScores({ stepId, card, startAnalysis });
+            
+            // 🔗 绑定 Job ID 到卡片
+            if (jobId && config.bindJob && cardId) {
+              console.log(`🔗 [Refresh] 绑定 Job ${jobId} 到卡片 ${cardId}`);
+              config.bindJob(cardId, jobId);
+            }
           },
         },
         {
@@ -145,10 +171,13 @@ export function buildStrategyMenu(config: StrategyMenuConfig): MenuProps {
               return;
             }
             
-            const card = cardStore.cards[stepId];
+            // 🔧 修复：正确通过 stepId 查找 cardId
+            const cardId = cardStore.byStepId[stepId];
+            const card = cardId ? cardStore.cards[cardId] : undefined;
+            
             console.log('📊 [菜单] 卡片数据:', { 
               hasCard: !!card, 
-              cardId: stepId,
+              cardId: cardId,
               xpath: card?.elementContext?.xpath
             });
             
@@ -173,6 +202,8 @@ export function buildStrategyMenu(config: StrategyMenuConfig): MenuProps {
                   element_path: card.elementContext?.xpath || '',
                   element_text: card.elementContext?.text,
                   element_bounds: card.elementContext?.bounds,
+                  // 🔥 关键修复：传递 index_path 以启用结构匹配
+                  index_path: card.staticLocator?.indexPath,
                 },
                 step_id: stepId,
                 lock_container: false,
@@ -180,8 +211,12 @@ export function buildStrategyMenu(config: StrategyMenuConfig): MenuProps {
                 enable_static_candidates: true,
               };
               
-              await startAnalysis(analysisConfig);
+              const jobId = await startAnalysis(analysisConfig);
               console.log('✅ [菜单] 智能·自动链评分已启动');
+              
+              if (jobId && config.bindJob && cardId) {
+                 config.bindJob(cardId, jobId);
+              }
             } catch (error) {
               console.error('❌ [智能·自动链] 执行失败:', error);
             }
@@ -233,10 +268,15 @@ export function buildStrategyMenu(config: StrategyMenuConfig): MenuProps {
                 lock_container: false,
                 enable_smart_candidates: true,
                 enable_static_candidates: true,
+                force_refresh: true // 强制刷新标志
               };
               
-              await startAnalysis(analysisConfig);
+              const jobId = await startAnalysis(analysisConfig);
               console.log('✅ [菜单] 智能·自动链强制刷新评分已启动');
+              
+              if (jobId && config.bindJob && cardId) {
+                 config.bindJob(cardId, jobId);
+              }
             } catch (error) {
               console.error('❌ [智能·自动链] 强制刷新执行失败:', error);
             }
@@ -278,34 +318,13 @@ export function buildStrategyMenu(config: StrategyMenuConfig): MenuProps {
               return;
             }
             
-            try {
-              message.loading({ content: '🔄 重新评分中...', key: 'refresh-all-single', duration: 0 });
-              
-              // 构建分析配置
-              const analysisConfig = {
-                element_context: {
-                  snapshot_id: card.xmlSnapshot?.xmlCacheId || 'unknown',
-                  element_path: card.elementContext?.xpath || '',
-                  element_text: card.elementContext?.text,
-                  element_bounds: card.elementContext?.bounds,
-                  // 🔥 关键修复：传递 index_path 以启用结构匹配
-                  index_path: card.staticLocator?.indexPath,
-                },
-                step_id: stepId,
-                lock_container: false,
-                enable_smart_candidates: true,
-                enable_static_candidates: true,
-              };
-              
-              // 调用 useIntelligentAnalysis Hook 的 startAnalysis
-              await startAnalysis(analysisConfig);
-              
-              console.log('✅ [刷新评分] 智能分析已启动');
-              message.success({ content: '✅ 评分刷新完成！', key: 'refresh-all-single' });
-              
-            } catch (error) {
-              console.error('❌ [刷新评分] 失败:', error);
-              message.error({ content: `刷新失败: ${error}`, key: 'refresh-all-single' });
+            // 使用统一的刷新函数
+            const jobId = await refreshAllScores({ stepId, card, startAnalysis });
+            
+            // 🔗 绑定 Job ID 到卡片
+            if (jobId && config.bindJob && cardId) {
+              console.log(`🔗 [Refresh] 绑定 Job ${jobId} 到卡片 ${cardId}`);
+              config.bindJob(cardId, jobId);
             }
           },
         },
@@ -317,17 +336,6 @@ export function buildStrategyMenu(config: StrategyMenuConfig): MenuProps {
           const displayScore = confidence !== null && isValidScore(confidence) ? confidence : undefined;
           const confidencePercent = toPercentInt01(displayScore);
         
-          // 🔍 调试日志：评分查询
-          if (step === 'step1' || step === 'step2') {
-            console.log(`🔍 [菜单显示] ${label}:`, {
-              candidateKey,
-              confidence,
-              displayScore,
-              confidencePercent,
-              hasScore: confidence !== null
-            });
-          }
-
           return {
             key: `smart-single-${step}`,
             label: (

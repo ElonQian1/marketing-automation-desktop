@@ -4,6 +4,7 @@
 
 import { invoke } from "@tauri-apps/api/core";
 import { message } from "antd";
+import { SNAPSHOT_DEVICE_ID } from "../../../application/constants";
 import { normalizeScriptStepsForBackend } from "../helpers/normalizeSteps";
 import type { ExtendedSmartScriptStep } from "../../../types/loopScript";
 import { 
@@ -77,18 +78,22 @@ export function createHandleExecuteScript(ctx: Ctx) {
     console.log("📱 [批量执行] 可用设备列表:", devices);
     console.log("📱 [批量执行] 当前设备ID:", currentDeviceId);
     
-    if (!currentDeviceId && devices.length === 0) {
-      message.error("没有可用的设备，请先连接设备");
+    // 过滤掉离线快照模式的虚拟设备
+    const realDevices = devices.filter(d => d.id !== SNAPSHOT_DEVICE_ID);
+    const realCurrentDeviceId = currentDeviceId === SNAPSHOT_DEVICE_ID ? null : currentDeviceId;
+
+    if (!realCurrentDeviceId && realDevices.length === 0) {
+      message.error("没有可用的真实设备，请先连接设备");
       return;
     }
     
-    const selectedDevice = currentDeviceId || 
-      devices.find((d) => d.status === "online")?.id || 
-      devices.find((d) => {
+    const selectedDevice = realCurrentDeviceId || 
+      realDevices.find((d) => d.status === "online" || d.status === "device")?.id || 
+      realDevices.find((d) => {
         const deviceWithOnline = d as { isOnline?: () => boolean };
         return deviceWithOnline.isOnline && deviceWithOnline.isOnline();
       })?.id ||
-      devices[0]?.id || 
+      realDevices[0]?.id || 
       "e0d909c3"; // 使用你的实际设备ID作为默认值
     
     console.log("📱 [批量执行] 最终选中的设备:", selectedDevice);
@@ -165,7 +170,15 @@ export function createHandleExecuteScript(ctx: Ctx) {
                 element_path: clickStep.parameters?.selected_xpath || clickStep.parameters?.xpath || "",
                 targetText: clickStep.parameters?.targetText || clickStep.parameters?.text || "",
                 target_content_desc: clickStep.parameters?.target_content_desc || "",
-                original_data: clickStep.parameters?.original_data || {},
+                // 🔥 修复：执行脚本时强制清空XML，确保使用真机实时数据
+                original_data: clickStep.parameters?.original_data ? {
+                  ...clickStep.parameters.original_data,
+                  original_xml: "", // ⚠️ 强制清空XML
+                  data_integrity: {
+                    ...(clickStep.parameters.original_data.data_integrity || {}),
+                    has_original_xml: false
+                  }
+                } : {},
                 smartSelection: {
                   mode: "first",
                   minConfidence: 0.8,

@@ -7,6 +7,7 @@ import { message } from 'antd';
 import { useIntelligentAnalysisBackend } from '../services/intelligent-analysis-backend';
 import { IntelligentAnalysisBackendV3 } from '../services/intelligent-analysis-backend-v3';
 import { featureFlagManager } from '../config/feature-flags';
+import { useAdbStore } from '../application/store/adbStore';
 import type { 
   StrategySelector, 
   StrategyCandidate, 
@@ -145,70 +146,87 @@ export const useSmartStrategyAnalysis = ({
           }
         );
 
-        // 监听分析完成
-        const completeUnlisten = await backend.listenToAnalysisComplete(
-          (jobId, result) => {
-            // console.log('✅ [StrategyAnalysis] 分析完成:', { jobId, result });
-            // console.log('🔍 [StrategyAnalysis] 当前分析状态:', {
-            //   currentJobId: currentJobId.current,
-            //   receivedJobId: jobId,
-            //   isAnalyzing,
-            //   stepId: step.id,
-            //   resultSelectionHash: result.selectionHash
-            // });
-            
-            // 转换后端结果为策略选择器格式
-            const smartCandidates: StrategyCandidate[] = result.smartCandidates.map((candidate, index) => ({
-              key: candidate.key,
-              type: 'smart' as const,
-              name: candidate.name,
-              confidence: candidate.confidence,
-              selector: candidate.xpath || '',
-              description: candidate.description || '',
-              stepName: `step${(index % 6) + 1}` as SmartStep, // 循环分配step1-step6
-              estimatedTime: 150, // 智能策略预估执行时间
-              riskLevel: candidate.confidence > 0.9 ? 'low' : candidate.confidence > 0.7 ? 'medium' : 'high'
-            }));
-
-            const staticCandidates: StrategyCandidate[] = result.staticCandidates.map(candidate => ({
-              key: candidate.key,
-              type: 'static' as const,
-              name: candidate.name,
-              confidence: candidate.confidence,
-              selector: candidate.xpath || '',
-              description: candidate.description || '',
-              estimatedTime: 50, // 静态策略预估执行时间
-              riskLevel: 'high' as const // 静态策略风险较高
-            }));
-
-            // 找到推荐策略
-            const recommendedCandidate = [...smartCandidates, ...staticCandidates]
-              .find(c => c.key === result.recommendedKey);
-
-            setStrategySelector(prev => prev ? {
-              ...prev,
-              analysis: {
-                status: 'completed',
-                progress: 100,
-                completedAt: new Date()
-              },
-              candidates: {
-                smart: smartCandidates,
-                static: staticCandidates
-              },
-              recommended: recommendedCandidate ? {
-                key: result.recommendedKey,
-                confidence: result.recommendedConfidence
-              } : undefined
-            } : null);
-
-            setIsAnalyzing(false);
-            currentJobId.current = null;
+        // 定义统一的处理函数
+        const handleAnalysisComplete = (jobId: string, result: any) => {
+          // console.log('✅ [StrategyAnalysis] 分析完成:', { jobId, result });
+          
+          // 检查是否是当前任务
+          if (currentJobId.current && currentJobId.current !== jobId) {
+            return;
           }
-        );
+
+          // 兼容 V3 ExecutionResult (如果没有 smartCandidates)
+          if (!result.smartCandidates && result.success !== undefined) {
+             // V3 结果处理 - 暂时不支持 V3 纯结果，因为需要候选列表
+             // 如果是 V3 执行但没有候选，可能是纯执行模式，这里我们主要关注 V2 回退的情况
+             console.warn('⚠️ [StrategyAnalysis] 收到 V3 格式结果，但缺少候选列表，可能无法正确显示策略选择器', result);
+             // 尝试构造伪造的候选列表? 或者直接忽略?
+             // 如果是 V2 回退，result 应该是 AnalysisResult 类型，包含 smartCandidates
+             if (!result.smartCandidates) return; 
+          }
+
+          // 转换后端结果为策略选择器格式
+          const smartCandidates: StrategyCandidate[] = (result.smartCandidates || []).map((candidate: any, index: number) => ({
+            key: candidate.key,
+            type: 'smart' as const,
+            name: candidate.name,
+            confidence: candidate.confidence,
+            selector: candidate.xpath || '',
+            description: candidate.description || '',
+            stepName: `step${(index % 6) + 1}` as SmartStep,
+            estimatedTime: 150,
+            riskLevel: candidate.confidence > 0.9 ? 'low' : candidate.confidence > 0.7 ? 'medium' : 'high'
+          }));
+
+          const staticCandidates: StrategyCandidate[] = (result.staticCandidates || []).map((candidate: any) => ({
+            key: candidate.key,
+            type: 'static' as const,
+            name: candidate.name,
+            confidence: candidate.confidence,
+            selector: candidate.xpath || '',
+            description: candidate.description || '',
+            estimatedTime: 50,
+            riskLevel: 'high' as const
+          }));
+
+          // 找到推荐策略
+          const recommendedCandidate = [...smartCandidates, ...staticCandidates]
+            .find(c => c.key === result.recommendedKey);
+
+          setStrategySelector(prev => prev ? {
+            ...prev,
+            analysis: {
+              status: 'completed',
+              progress: 100,
+              completedAt: new Date()
+            },
+            candidates: {
+              smart: smartCandidates,
+              static: staticCandidates
+            },
+            recommended: recommendedCandidate ? {
+              key: result.recommendedKey,
+              confidence: result.recommendedConfidence
+            } : undefined
+          } : null);
+
+          setIsAnalyzing(false);
+          currentJobId.current = null;
+        };
+
+        // 1. 始终监听 V2 事件 (backendService) - 处理 V2 模式和 V3 回退
+        const v2CompleteUnlisten = await backendService.listenToAnalysisComplete(handleAnalysisComplete);
+        
+        // 2. 如果是 V3 模式，也监听 V3 事件
+        let v3CompleteUnlisten = () => {};
+        if (currentExecutionVersion === 'v3') {
+           v3CompleteUnlisten = await IntelligentAnalysisBackendV3.listenToAnalysisComplete(
+            (jobId, result) => handleAnalysisComplete(jobId, result)
+          );
+        }
 
         // 监听分析错误
-        const errorUnlisten = await backend.listenToAnalysisError(
+        const errorUnlisten = await backendService.listenToAnalysisError(
           (error) => {
             console.error('❌ [StrategyAnalysis] 分析失败:', error);
             setStrategySelector(prev => prev ? {
@@ -224,7 +242,7 @@ export const useSmartStrategyAnalysis = ({
         );
 
         // 保存清理函数
-        cleanupFunctions.current = [progressUnlisten, completeUnlisten, errorUnlisten];
+        cleanupFunctions.current = [progressUnlisten, v2CompleteUnlisten, v3CompleteUnlisten, errorUnlisten];
 
       } catch (error) {
         console.error('❌ [StrategyAnalysis] 设置事件监听器失败:', error);

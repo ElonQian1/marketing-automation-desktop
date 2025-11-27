@@ -19,6 +19,9 @@ import type {
   StepCardModel,
   StepActionParams 
 } from '../types/stepActions';
+import { useAdbStore } from '../application/store/adbStore';
+import { SNAPSHOT_DEVICE_ID } from '../application/constants';
+import { message } from 'antd';
 
 export interface UseStepCardStateMachineProps {
   stepId: string;
@@ -48,19 +51,22 @@ export interface UseStepCardStateMachineReturn {
   runStep: (mode: ExecutionMode, stepCard: StepCardModel) => Promise<void>;
 }
 
-export const useStepCardStateMachine = ({
-  // stepId,
-  // initialAction,
+export function useStepCardStateMachine({
+  stepId,
+  initialAction,
   onMatch,
   onExecute,
-  stepParameters, // 🔥 NEW: 接收步骤的完整参数
-}: UseStepCardStateMachineProps): UseStepCardStateMachineReturn => {
+  stepParameters
+}: UseStepCardStateMachineProps): UseStepCardStateMachineReturn {
   const [status, setStatus] = useState<StepStatus>('idle');
-  const [lastMatch, setLastMatch] = useState<MatchResult | undefined>();
+  const [lastMatch, setLastMatch] = useState<MatchResult | undefined>(undefined);
   const abortControllerRef = useRef<AbortController | null>(null);
+  
+  // 获取设备状态
+  const devices = useAdbStore(state => state.devices);
+  const selectedDeviceId = useAdbStore(state => state.selectedDeviceId);
 
-  // 计算是否处于加载状态
-  const isLoading = ['matching', 'executing', 'verifying'].includes(status);
+  const isLoading = status === 'matching' || status === 'executing' || status === 'verifying';
 
   // 状态转换方法
   const startMatching = useCallback(() => {
@@ -122,6 +128,24 @@ export const useStepCardStateMachine = ({
       console.log(`🚀 [状态机] 开始执行步骤: ${stepCard.name}, 模式: ${mode}`);
       console.log(`🎯 [状态机] 执行路径: StepExecutionGateway → V3智能策略 (避免坐标兜底)`);
 
+      // 获取真实设备ID
+      const realDeviceId = (() => {
+        // 1. 如果当前选中的是真实设备，直接使用
+        if (selectedDeviceId && selectedDeviceId !== SNAPSHOT_DEVICE_ID) {
+          return selectedDeviceId;
+        }
+        // 2. 否则查找第一个在线的真实设备
+        const onlineDevice = devices.find(d => d.status === 'online' && d.id !== SNAPSHOT_DEVICE_ID);
+        if (onlineDevice) return onlineDevice.id;
+        
+        return null;
+      })();
+
+      if (!realDeviceId) {
+        message.error("请先连接一台真实设备才能进行测试");
+        return;
+      }
+
       // ✅ 正确：使用执行引擎网关，内部已配置V3智能策略路由
       const { getStepExecutionGateway } = await import('../infrastructure/gateways/StepExecutionGateway');
       const gateway = getStepExecutionGateway();
@@ -173,7 +197,7 @@ export const useStepCardStateMachine = ({
 
       // 准备网关请求参数 - 使用步骤保存的数据
       const gatewayRequest = {
-        deviceId: 'default_device', // TODO: 从实际设备状态获取
+        deviceId: realDeviceId, // 使用真实设备ID
         mode: mode === 'matchOnly' ? 'match-only' as const : 'execute-step' as const,
         actionParams: stepCard.currentAction,
         selectorId: stepCard.selectorId,
@@ -281,7 +305,9 @@ export const useStepCardStateMachine = ({
     setMatchResult, 
     setMatchFailed, 
     setExecuteResult,
-    stepParameters // 🔥 添加 stepParameters 依赖
+    stepParameters, // 🔥 添加 stepParameters 依赖
+    devices,
+    selectedDeviceId
   ]);
 
   return {

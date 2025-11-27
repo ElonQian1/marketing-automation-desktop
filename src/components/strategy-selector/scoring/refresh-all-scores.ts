@@ -14,7 +14,7 @@ export interface RefreshAllScoresConfig {
   /** 步骤卡片数据 */
   card: StepCard;
   /** 启动智能分析的函数 */
-  startAnalysis: (config: unknown) => Promise<void>;
+  startAnalysis: (config: unknown) => Promise<string>;
 }
 
 /**
@@ -26,21 +26,21 @@ export interface RefreshAllScoresConfig {
  * - 其他需要刷新评分的场景
  * 
  * @param config 刷新配置
- * @returns Promise<void>
+ * @returns Promise<string | undefined> 返回 Job ID
  */
-export async function refreshAllScores(config: RefreshAllScoresConfig): Promise<void> {
+export async function refreshAllScores(config: RefreshAllScoresConfig): Promise<string | undefined> {
   const { stepId, card, startAnalysis } = config;
 
   console.log('🎯 [刷新评分] 开始刷新所有评分（Step1-8）', { stepId });
 
   if (!card) {
     message.warning('步骤卡片数据不完整');
-    return;
+    return undefined;
   }
 
   if (!startAnalysis) {
     message.error('智能分析功能不可用');
-    return;
+    return undefined;
   }
 
   try {
@@ -62,13 +62,15 @@ export async function refreshAllScores(config: RefreshAllScoresConfig): Promise<
     };
 
     // 调用智能分析
-    await startAnalysis(analysisConfig);
+    const jobId = await startAnalysis(analysisConfig);
 
-    console.log('✅ [刷新评分] 智能分析已启动');
+    console.log('✅ [刷新评分] 智能分析已启动', { jobId });
     message.success({ content: '✅ 评分刷新完成！', key: 'refresh-all' });
+    return jobId;
   } catch (error) {
     console.error('❌ [刷新评分] 失败:', error);
     message.error({ content: `刷新失败: ${error}`, key: 'refresh-all' });
+    return undefined;
   }
 }
 

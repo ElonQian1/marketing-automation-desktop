@@ -322,6 +322,7 @@ const CompactStrategyMenu: React.FC<CompactStrategyMenuProps> = ({
       dataError,
       dataLoading,
       startAnalysis,
+      bindJob: cardStore.bindJob, // Pass bindJob
     };
 
     return buildStrategyMenu(menuConfig);
@@ -1450,31 +1451,16 @@ const CompactStrategyMenu: React.FC<CompactStrategyMenuProps> = ({
       <StructuralMatchingModal
         visible={structuralMatchingVisible}
         selectedElement={(() => {
-          console.log('🔍 [CompactStrategyMenu] 准备模态框数据:');
-          console.log('  stepId:', stepId);
-          console.log('  unifiedElementData:', unifiedElementData);
-          console.log('  dataLoading:', dataLoading);
-          console.log('  dataError:', dataError);
-          
           // ✅ 【核心修复】优先使用统一数据服务的结果
           if (unifiedElementData?.element) {
-            console.log('✅ 使用统一数据服务的元素');
             return unifiedElementData.element as unknown as Record<string, unknown>;
           }
           
           // Fallback 1: 从步骤卡片获取并标准化
           const cardId = stepId ? cardStore.byStepId[stepId] : undefined;
           const card = cardId ? cardStore.cards[cardId] : undefined;
-          console.log('🔍 Fallback 1 检查:', {
-            stepId,
-            cardId,
-            hasCard: !!card,
-            hasOriginalElement: !!card?.original_element,
-            cardKeys: card ? Object.keys(card) : [],
-            originalElementKeys: card?.original_element ? Object.keys(card.original_element) : []
-          });
+          
           if (card?.original_element) {
-            console.log('⚠️ Fallback 1: 使用步骤卡片数据', card.original_element);
             return normalizeElementData(card.original_element);
           }
           
