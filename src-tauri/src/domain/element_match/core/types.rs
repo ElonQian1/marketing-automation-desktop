@@ -25,6 +25,17 @@ impl MatchMode {
             Self::Unknown => "未知",
         }
     }
+
+    pub fn key(&self) -> &'static str {
+        match self {
+            Self::CardSubtree => "card_subtree_scoring",
+            Self::LeafContext => "leaf_context_scoring",
+            Self::TextExact => "text_exact_scoring",
+            Self::HeuristicId => "heuristic_id_scoring",
+            Self::HeuristicXPath => "heuristic_xpath_scoring",
+            Self::Unknown => "unknown",
+        }
+    }
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]

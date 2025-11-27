@@ -151,29 +151,43 @@ impl<'a> XmlIndexerAdapter<'a> {
 
     /// 查找节点的父节点ID
     /// 
-    /// 通过bounds包含关系推断父子关系：
-    /// 父节点的bounds完全包含子节点的bounds
+    /// 优先使用 XmlIndexer 预构建的 parent_index
+    /// 如果没有，则通过bounds包含关系推断（回退策略）
     fn find_parent(&self, node_id: SmNodeId) -> Option<SmNodeId> {
+        // 1. 优先尝试直接从 Indexer 获取预构建的父节点
+        if let Some(node) = self.get_node(node_id) {
+            if let Some(parent_idx) = node.parent_index {
+                // 验证父节点是否存在
+                if parent_idx < self.indexer.all_nodes.len() {
+                    return Some(parent_idx as SmNodeId);
+                }
+            }
+        }
+
+        // 2. 回退到几何搜索 (仅当预构建索引缺失时)
         let child_node = self.get_node(node_id)?;
         let (c_left, c_top, c_right, c_bottom) = child_node.bounds;
         
         tracing::debug!(
-            "🔍 [find_parent] 查找node[{}]的父节点, bounds=({},{},{},{})",
+            "🔍 [find_parent] (Fallback) 查找node[{}]的父节点, bounds=({},{},{},{})",
             node_id, c_left, c_top, c_right, c_bottom
         );
         
         // 查找所有包含当前节点的节点
         let mut candidates: Vec<(SmNodeId, i64)> = Vec::new();
-        let mut checked_count = 0;
-        let mut contained_count = 0;
         
         for (idx, node) in self.indexer.all_nodes.iter().enumerate() {
             let idx_id = idx as SmNodeId;
             if idx_id == node_id {
                 continue; // 跳过自己
             }
+
+            // 关键修复：强制父节点索引必须小于子节点索引，防止循环引用 (31 <-> 32)
+            // 假设 XML 节点是按文档顺序解析的，父节点通常在子节点之前出现
+            if idx_id > node_id {
+                continue;
+            }
             
-            checked_count += 1;
             let (p_left, p_top, p_right, p_bottom) = node.bounds;
             
             // 检查是否完全包含
@@ -181,33 +195,32 @@ impl<'a> XmlIndexerAdapter<'a> {
                p_right >= c_right && p_bottom >= c_bottom {
                 // 计算面积（用于找最近的父节点）
                 let area = ((p_right - p_left) as i64) * ((p_bottom - p_top) as i64);
-                contained_count += 1;
-                tracing::trace!(
-                    "  ✓ 候选父节点 node[{}]: bounds=({},{},{},{}), area={}",
-                    idx_id, p_left, p_top, p_right, p_bottom, area
-                );
                 candidates.push((idx_id, area));
             }
         }
         
-        tracing::debug!(
-            "🔍 [find_parent] 检查了{}个节点,找到{}个包含候选",
-            checked_count, contained_count
-        );
-        
         // 返回面积最小的那个（最近的父节点）
-        candidates.sort_by_key(|(_, area)| *area);
+        // 如果面积相同，由于我们限制了 idx < node_id，且遍历顺序是从小到大，
+        // candidates 中的顺序隐含了索引顺序。
+        // 我们希望找"最近"的父节点。如果面积相同，通常索引较大的（靠后的）是更内层的容器。
+        // 所以我们应该先按面积排序，再按索引倒序排序（或者取最后一个面积最小的）。
+        
+        candidates.sort_by(|a, b| {
+            let area_cmp = a.1.cmp(&b.1);
+            if area_cmp == std::cmp::Ordering::Equal {
+                // 面积相同时，ID 越大越好（越靠近子节点）
+                b.0.cmp(&a.0)
+            } else {
+                area_cmp
+            }
+        });
+
         let result = candidates.first().map(|(id, _)| *id);
         
         if let Some(parent_id) = result {
             tracing::info!(
-                "✅ [find_parent] node[{}]的父节点是node[{}]",
+                "✅ [find_parent] (Fallback) node[{}]的父节点是node[{}]",
                 node_id, parent_id
-            );
-        } else {
-            tracing::warn!(
-                "⚠️ [find_parent] node[{}]没有找到父节点！",
-                node_id
             );
         }
         
@@ -216,9 +229,16 @@ impl<'a> XmlIndexerAdapter<'a> {
 
     /// 查找节点的子节点ID列表
     /// 
-    /// 通过bounds包含关系推断父子关系：
-    /// 子节点的bounds被父节点的bounds完全包含
+    /// 优先使用 XmlIndexer 预构建的 children_indices
+    /// 如果没有，则通过bounds包含关系推断（回退策略）
     fn find_children(&self, node_id: SmNodeId) -> Vec<SmNodeId> {
+        // 1. 优先尝试直接从 Indexer 获取预构建的子节点列表
+        if let Some(node) = self.get_node(node_id) {
+            if !node.children_indices.is_empty() {
+                return node.children_indices.iter().map(|&idx| idx as SmNodeId).collect();
+            }
+        }
+
         let parent_node = match self.get_node(node_id) {
             Some(node) => node,
             None => return Vec::new(),

@@ -798,7 +798,8 @@ pub async fn mock_intelligent_analysis(
                                 for result in results {
                                     tracing::info!("📊 [{}] 评分: {:.3}, 通过: {}", 
                                         result.mode.display_name(), result.confidence, result.passed_gate);
-                                    structure_match_scores.push((result.mode.display_name(), result.confidence as f64));
+                                    // 🔥 修复：使用 key() 而不是 display_name() 作为 map key
+                                    structure_match_scores.push((result.mode.key(), result.confidence as f64));
                                 }
                             }
                             Err(e) => {

@@ -237,7 +237,10 @@ impl LeafContextMatcher {
     }
 
     fn score_sibling_pattern(&self, siblings: &[(String, bool)], _my_index: usize) -> f32 {
-        if siblings.len() < 2 { return 0.0; }
+        if siblings.len() < 2 { 
+            // 即使只有一个子节点（可能是Wrapper），也给予一定基础分，避免直接0分
+            return 0.5; 
+        }
         // 简单评分：如果在两端或中间有特定模式，给予加分
         // 这里简化实现，只要有兄弟节点就给分
         0.8
@@ -249,7 +252,11 @@ impl LeafContextMatcher {
         let has_layout = ancestors.iter().any(|c| 
             c.ends_with("LinearLayout") || 
             c.ends_with("RelativeLayout") || 
-            c.ends_with("ConstraintLayout")
+            c.ends_with("ConstraintLayout") ||
+            c.ends_with("FrameLayout") ||
+            c.ends_with("CardView") ||
+            c.ends_with("ViewGroup") ||
+            c.ends_with("View")
         );
         if has_layout { 0.8 } else { 0.2 }
     }

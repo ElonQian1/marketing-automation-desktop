@@ -45,7 +45,16 @@ impl SubtreeMatcher {
         let (mut media_ratio, mut bottom_bar_pos, mut has_media_area, mut has_bottom_bar) =
             (0.0, 0.0, false, false);
 
-        let content_groups = self.find_all_content_groups_bfs(view, card_root_id);
+        let mut content_groups = self.find_all_content_groups_bfs(view, card_root_id);
+
+        // 🔍 透视逻辑：如果当前卡片根看起来像个空壳（内容组很少），尝试寻找重叠的兄弟节点
+        // 这解决了 "透明点击层(Node 32)覆盖内容层(Node 31)" 的问题
+        if content_groups.len() <= 2 { 
+             if let Some(sibling_id) = self.find_overlapping_sibling(view, card_root_id) {
+                 let sibling_groups = self.find_all_content_groups_bfs(view, sibling_id);
+                 content_groups.extend(sibling_groups);
+             }
+        }
 
         for group_id in content_groups {
             if !has_media_area {
@@ -80,6 +89,40 @@ impl SubtreeMatcher {
     }
 
     // ... 辅助方法 (从原文件迁移并适配 SmXmlView) ...
+    fn find_overlapping_sibling<V: SmXmlView>(&self, view: &V, node_id: u32) -> Option<u32> {
+        if let Some(parent_id) = view.parent(node_id) {
+            let my_bounds = view.bounds(node_id);
+            for sibling_id in view.children(parent_id) {
+                if sibling_id == node_id { continue; }
+                let sibling_bounds = view.bounds(sibling_id);
+                
+                // 检查重叠度 (IOU > 0.9)
+                if self.calculate_iou(&my_bounds, &sibling_bounds) > 0.9 {
+                    return Some(sibling_id);
+                }
+            }
+        }
+        None
+    }
+
+    fn calculate_iou(&self, b1: &crate::domain::structure_runtime_match::types::SmBounds, b2: &crate::domain::structure_runtime_match::types::SmBounds) -> f32 {
+        let x_left = b1.left.max(b2.left);
+        let y_top = b1.top.max(b2.top);
+        let x_right = b1.right.min(b2.right);
+        let y_bottom = b1.bottom.min(b2.bottom);
+
+        if x_right < x_left || y_bottom < y_top {
+            return 0.0;
+        }
+
+        let intersection_area = ((x_right - x_left) * (y_bottom - y_top)) as f32;
+        let area1 = ((b1.right - b1.left) * (b1.bottom - b1.top)) as f32;
+        let area2 = ((b2.right - b2.left) * (b2.bottom - b2.top)) as f32;
+        
+        let union_area = area1 + area2 - intersection_area;
+        if union_area <= 0.0 { 0.0 } else { intersection_area / union_area }
+    }
+
     fn has_clickable_framelayout_child<V: SmXmlView>(&self, view: &V, root_id: u32) -> bool {
         let mut queue = VecDeque::new();
         queue.push_back(root_id);
@@ -88,8 +131,15 @@ impl SubtreeMatcher {
         while let Some(curr) = queue.pop_front() {
             if !visited.insert(curr) { continue; }
             
-            if view.is_clickable(curr) && view.class(curr).ends_with("FrameLayout") {
-                return true;
+            if view.is_clickable(curr) {
+                let class = view.class(curr);
+                if class.ends_with("FrameLayout") 
+                    || class.ends_with("ConstraintLayout")
+                    || class.ends_with("RelativeLayout")
+                    || class.ends_with("ViewGroup")
+                {
+                    return true;
+                }
             }
 
             for child in view.children(curr) {
@@ -109,7 +159,12 @@ impl SubtreeMatcher {
             if !visited.insert(curr) { continue; }
 
             let class = view.class(curr);
-            if class.ends_with("RelativeLayout") || class.ends_with("ConstraintLayout") {
+            if class.ends_with("RelativeLayout") 
+                || class.ends_with("ConstraintLayout") 
+                || class.ends_with("LinearLayout")
+                || class.ends_with("FrameLayout")
+                || class.ends_with("ViewGroup")
+            {
                 groups.push(curr);
             }
 
@@ -123,12 +178,18 @@ impl SubtreeMatcher {
     fn find_media_block<V: SmXmlView>(&self, view: &V, group_id: u32) -> Option<crate::domain::structure_runtime_match::types::SmBounds> {
         for child in view.children(group_id) {
             let class = view.class(child);
-            if class.ends_with("ImageView") || class.ends_with("View") {
+            if class.ends_with("ImageView") 
+                || class.ends_with("View")
+                || class.ends_with("FrameLayout")
+                || class.ends_with("ConstraintLayout")
+                || class.ends_with("ViewGroup")
+            {
                 let bounds = view.bounds(child);
                 let parent_bounds = view.bounds(group_id);
                 if parent_bounds.height() > 0 {
                     let ratio = bounds.height() as f32 / parent_bounds.height() as f32;
-                    if ratio > 0.4 && ratio < 0.9 {
+                    // 放宽比例限制，适应更多卡片类型
+                    if ratio > 0.2 && ratio <= 1.0 {
                         return Some(bounds);
                     }
                 }
@@ -140,12 +201,18 @@ impl SubtreeMatcher {
     fn find_bottom_bar<V: SmXmlView>(&self, view: &V, group_id: u32) -> Option<crate::domain::structure_runtime_match::types::SmBounds> {
         for child in view.children(group_id) {
             let class = view.class(child);
-            if class.ends_with("LinearLayout") || class.ends_with("RelativeLayout") {
+            if class.ends_with("LinearLayout") 
+                || class.ends_with("RelativeLayout")
+                || class.ends_with("ConstraintLayout")
+                || class.ends_with("FrameLayout")
+                || class.ends_with("ViewGroup")
+            {
                 let bounds = view.bounds(child);
                 let parent_bounds = view.bounds(group_id);
                 if parent_bounds.height() > 0 {
                     let pos = (bounds.top - parent_bounds.top) as f32 / parent_bounds.height() as f32;
-                    if pos > 0.75 {
+                    // 放宽位置限制
+                    if pos > 0.60 {
                         return Some(bounds);
                     }
                 }
@@ -157,8 +224,8 @@ impl SubtreeMatcher {
     fn is_waterfall_container<V: SmXmlView>(&self, view: &V, node_id: u32) -> bool {
         // 向上查找父容器，判断是否为列表容器
         let mut current = node_id;
-        // 向上查3层
-        for _ in 0..3 {
+        // 增加查找深度到6层
+        for _ in 0..6 {
             if let Some(parent_id) = view.parent(current) {
                 let class = view.class(parent_id);
                 if class.contains("RecyclerView") 
@@ -166,6 +233,7 @@ impl SubtreeMatcher {
                     || class.contains("ListView")
                     || class.contains("GridView")
                     || class.contains("WaterFall") // 某些自定义控件可能包含此关键字
+                    || class.contains("ViewPager")
                 {
                     return true;
                 }
