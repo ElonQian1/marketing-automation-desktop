@@ -699,6 +699,8 @@ export class StepExecutionGateway {
                         text: request.text || "",
                         class: request.className || "",
                       },
+                      // 🔥 NEW: 传递 index_path（结构匹配关键数据）
+                      index_path: request.xmlSnapshot.elementSignature?.indexPath || [],
                       children_texts:
                         request.xmlSnapshot.elementSignature?.childrenTexts ||
                         [],

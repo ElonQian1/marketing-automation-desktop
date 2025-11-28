@@ -342,12 +342,20 @@ export function useIntelligentStepCardIntegration(
             absoluteXPath = element.xpath;
             console.log("✅ [XPath] 使用元素自带的绝对XPath:", absoluteXPath);
           } else {
-            // 相对路径，转换为绝对路径
-            absoluteXPath = "//" + element.xpath;
-            console.warn(
-              "⚠️ [XPath] 元素XPath是相对路径，转换为绝对路径:",
-              absoluteXPath
-            );
+            // 🔥 修复：如果xpath看起来像内部ID（如element_27），则忽略它，强制重新生成
+            // 增强判断：去除空格后检查，且检查是否包含 element_
+            const trimmedXPath = element.xpath.trim();
+            if (trimmedXPath.startsWith("element_") || trimmedXPath.includes("element_")) {
+              console.warn("⚠️ [XPath] 忽略无效的内部ID XPath:", element.xpath);
+              // absoluteXPath 保持为空，触发下方的 buildXPath
+            } else {
+              // 相对路径，转换为绝对路径
+              absoluteXPath = "//" + trimmedXPath;
+              console.warn(
+                "⚠️ [XPath] 元素XPath是相对路径，转换为绝对路径:",
+                absoluteXPath
+              );
+            }
           }
         } else {
           // 如果没有xpath，使用buildXPath生成
@@ -406,12 +414,20 @@ export function useIntelligentStepCardIntegration(
       }
 
       // 🚨 严重警告：如果XPath无效，后端将无法定位元素！
-      if (!absoluteXPath || absoluteXPath.length < 5) {
+      // 🆕 修复：如果存在 index_path，则允许 XPath 为空（后端支持 index_fallback）
+      const hasIndexPath = Array.isArray((element as any).index_path) && (element as any).index_path.length > 0;
+
+      if ((!absoluteXPath || absoluteXPath.length < 5) && !hasIndexPath) {
         console.error("❌ [关键数据缺失] XPath为空或无效！", {
           elementId: element.id,
           xpath: absoluteXPath,
+          hasIndexPath,
           warning: "这将导致后端无法定位和执行元素操作！",
         });
+      } else if ((!absoluteXPath || absoluteXPath.length < 5) && hasIndexPath) {
+         console.warn("⚠️ [XPath] XPath为空，但存在 index_path，将使用结构化索引定位", {
+             indexPathLength: (element as any).index_path.length
+         });
       }
 
       // 🔥🔥🔥 关键修复：提取父元素content-desc和子元素text

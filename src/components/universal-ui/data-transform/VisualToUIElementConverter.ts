@@ -63,7 +63,10 @@ export class VisualToUIElementConverter {
       selected: false, // 默认未选择
       password: this.inferPassword(visualElement),
       // 避免把友好描述（如“未知元素（可点击）”）写入 content_desc
-      content_desc: ''
+      content_desc: visualElement.contentDesc || '',
+      resource_id: visualElement.resourceId,
+      class_name: visualElement.className,
+      indexPath: visualElement.indexPath,
     };
     
     // 构建转换结果
