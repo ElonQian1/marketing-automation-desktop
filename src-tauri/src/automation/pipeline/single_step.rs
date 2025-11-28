@@ -226,7 +226,7 @@ async fn execute_step_by_inline(
     tracing::info!("🎯 开始 FastPath 匹配: action={:?}", action);
     
     // TODO: 根据 action 类型调用对应的旧实现
-    let confidence = match action {
+    let (confidence, coords) = match action {
         SingleStepAction::SmartNavigation => {
             tracing::warn!("⚠️ SmartNavigation 功能暂未实现");
             return Err("SmartNavigation 功能暂未实现，请使用其他动作类型".to_string());
@@ -236,13 +236,73 @@ async fn execute_step_by_inline(
             
             // 调用新的操作执行系统
             match execute_action_unified(envelope, &params).await {
-                Ok(confidence) => {
+                Ok((confidence, coords)) => {
                     tracing::info!("✅ 操作执行成功，置信度: {:.2}", confidence);
-                    confidence
+                    (confidence, coords)
                 }
                 Err(e) => {
                     tracing::error!("❌ 操作执行失败: {}", e);
                     return Err(format!("操作执行失败: {}", e));
+                }
+            }
+        }
+        SingleStepAction::SmartTap => {
+            tracing::info!("👆 执行智能点击 (SmartTap)");
+            
+            // 尝试从 params 中直接提取 bounds
+            if let Some(bounds_str) = params.get("bounds").and_then(|v| v.as_str()) {
+                // 解析 bounds: "[left,top,right,bottom]"
+                let re = regex::Regex::new(r"\[(\d+),(\d+),(\d+),(\d+)\]").unwrap();
+                if let Some(caps) = re.captures(bounds_str) {
+                    let left: i32 = caps[1].parse().unwrap_or(0);
+                    let top: i32 = caps[2].parse().unwrap_or(0);
+                    let right: i32 = caps[3].parse().unwrap_or(0);
+                    let bottom: i32 = caps[4].parse().unwrap_or(0);
+                    
+                    use crate::types::action_types::ElementBounds;
+                    let bounds = ElementBounds::new(left, top, right, bottom);
+                    let center_x = (left + right) / 2;
+                    let center_y = (top + bottom) / 2;
+                    
+                    tracing::info!("📍 解析到目标区域: {:?}, 中心点: ({}, {})", bounds, center_x, center_y);
+                    
+                    // 构造 ActionContext
+                    use crate::services::action_executor::ActionExecutor;
+                    use crate::types::action_types::{ActionType, ActionContext};
+                    
+                    let context = ActionContext {
+                        device_id: envelope.device_id.clone(),
+                        target_bounds: Some(bounds),
+                        timeout: Some(5000),
+                        verify_with_screenshot: Some(false),
+                    };
+                    
+                    let executor = ActionExecutor::new();
+                    let action_type = ActionType::Click; // SmartTap 默认为点击
+                    
+                    match executor.execute_action(&action_type, &context).await {
+                        Ok(result) => {
+                            if result.success {
+                                tracing::info!("✅ SmartTap 执行成功");
+                                (0.9, Some((center_x, center_y)))
+                            } else {
+                                return Err(format!("SmartTap 执行失败: {}", result.message));
+                            }
+                        }
+                        Err(e) => return Err(format!("SmartTap 执行器错误: {}", e))
+                    }
+                } else {
+                    tracing::warn!("⚠️ SmartTap bounds 格式无效: {}, 尝试通用执行", bounds_str);
+                    match execute_action_unified(envelope, &params).await {
+                        Ok((conf, coords)) => (conf, coords),
+                        Err(e) => return Err(e)
+                    }
+                }
+            } else {
+                tracing::warn!("⚠️ SmartTap 缺少 bounds 参数, 尝试通用执行");
+                match execute_action_unified(envelope, &params).await {
+                    Ok((conf, coords)) => (conf, coords),
+                    Err(e) => return Err(e)
                 }
             }
         }
@@ -268,7 +328,7 @@ async fn execute_step_by_inline(
                     tracing::info!("✅ 统一执行器执行成功: coords=({}, {}), confidence={:.2}", 
                         result.coords.0, result.coords.1, result.confidence
                     );
-                    result.confidence
+                    (result.confidence, Some(result.coords))
                 }
                 Err(e) => {
                     tracing::error!("❌ 统一执行器执行失败: {}", e);
@@ -287,7 +347,7 @@ async fn execute_step_by_inline(
         _ => {
             tracing::info!("🔧 通用动作执行");
             // TODO: 调用通用执行逻辑
-            0.80
+            (0.80, None)
         }
     };
     
@@ -316,7 +376,7 @@ async fn execute_step_by_inline(
         }]),
         Some(ResultPayload {
             ok: true,
-            coords: None,
+            coords: coords.map(|(x, y)| Point { x, y }),
             candidate_count: Some(1),
             screen_hash_now,
             validation: Some(ValidationResult {
@@ -329,6 +389,7 @@ async fn execute_step_by_inline(
     Ok(json!({
         "ok": true,
         "confidence": confidence,
+        "coords": coords.map(|(x, y)| vec![x, y]),
         "elapsedMs": elapsed_ms
     }))
 }
@@ -337,7 +398,7 @@ async fn execute_step_by_inline(
 async fn execute_action_unified(
     envelope: &ContextEnvelope,
     params: &Value,
-) -> Result<f32, String> {
+) -> Result<(f32, Option<(i32, i32)>), String> {
     use std::collections::HashMap;
     use crate::services::action_executor::ActionExecutor;
     use crate::types::action_types::*;
@@ -410,7 +471,7 @@ async fn execute_action_unified(
     // 4. 创建执行上下文
     let context = ActionContext {
         device_id: envelope.device_id.clone(),
-        target_bounds,
+        target_bounds: target_bounds.clone(),
         timeout: Some(10000), // 10秒超时
         verify_with_screenshot: Some(false),
     };
@@ -422,7 +483,11 @@ async fn execute_action_unified(
     
     if result.success {
         tracing::info!("✅ 操作执行成功: {}", result.message);
-        Ok(match_result.confidence_score as f32)
+        // 计算中心点
+        let bounds = target_bounds.unwrap();
+        let center_x = (bounds.left + bounds.right) / 2;
+        let center_y = (bounds.top + bounds.bottom) / 2;
+        Ok((match_result.confidence_score as f32, Some((center_x, center_y))))
     } else {
         tracing::error!("❌ 操作执行失败: {}", result.message);
         Err(result.message)

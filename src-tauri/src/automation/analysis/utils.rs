@@ -662,13 +662,24 @@ async fn call_frontend_intelligent_analysis_with_context(
             })
             .unwrap_or_default();
 
+        // 🔥 NEW: 提取 index_path
+        let index_path = original_data
+            .get("index_path")
+            .and_then(|v| v.as_array())
+            .map(|arr| {
+                arr.iter()
+                    .filter_map(|v| v.as_u64().map(|i| i as usize))
+                    .collect()
+            });
+
         // 如果有有效的 XPath，构造 UserSelectionContext
         if !selected_xpath.is_empty() {
             tracing::info!(
-                "🔥 [修复验证] 从original_data提取用户选择: xpath={}, content_desc={:?}, text={:?}",
+                "🔥 [修复验证] 从original_data提取用户选择: xpath={}, content_desc={:?}, text={:?}, index_path={:?}",
                 selected_xpath,
                 content_desc,
-                element_text
+                element_text,
+                index_path
             );
 
             Some(UserSelectionContext {
@@ -678,13 +689,14 @@ async fn call_frontend_intelligent_analysis_with_context(
                 resource_id,
                 class_name,
                 content_desc,
-                ancestors: vec![],
+                ancestors: vec![], // 无法从 original_data 恢复
                 children_texts,
                 i18n_variants: None,
-                index_path: None,  // 🔥 从 original_data 中没有 index_path，设为 None
+                index_path, // ✅ 恢复 index_path
+                match_mode: None, // 🆕 初始化 match_mode
             })
         } else {
-            tracing::warn!("⚠️ original_data 中 selected_xpath 为空");
+            tracing::warn!("⚠️ [修复验证] original_data 中缺少 selected_xpath");
             None
         }
     } else {

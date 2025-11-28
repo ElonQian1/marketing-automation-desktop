@@ -134,6 +134,7 @@ pub struct AnalysisContext {
     pub class_name: Option<String>,
     pub bounds: Option<String>,
     pub content_desc: Option<String>,  // 🆕 支持 content-desc
+    pub index_path: Option<Vec<usize>>, // 🆕 支持 index_path
     pub container_info: Option<ContainerInfo>,
 }
 
@@ -342,7 +343,40 @@ impl StrategyEngine {
             });
         }
         
-        // 5. XPath兜底策略
+        // 5. 索引兜底策略 (基于 index_path)
+        if let Some(ref index_path) = context.index_path {
+            if !index_path.is_empty() {
+                let evidence = Evidence {
+                    model: 0.7,
+                    locator: 0.8, // 索引定位通常很准，但容易受结构变化影响
+                    visibility: 0.8,
+                    uniqueness: 0.6,
+                    proximity: 0.7,
+                    screen: 0.8,
+                    history: 0.5,
+                    penalty_margin: 0.2,
+                };
+                let confidence = self.calculate_confidence(&evidence);
+                
+                // 构建 index_path 字符串 (e.g., "0,1,2")
+                let index_str = index_path.iter()
+                    .map(|i| i.to_string())
+                    .collect::<Vec<_>>()
+                    .join(",");
+                
+                candidates.push(CandidateScore {
+                    key: "index_fallback".to_string(),
+                    name: "索引兜底策略".to_string(),
+                    confidence,
+                    evidence,
+                    xpath: None, // 索引策略不使用 XPath，而是依赖 original_data.index_path
+                    description: format!("基于结构索引定位: [{}]", index_str),
+                    variant: "index_fallback".to_string(),
+                });
+            }
+        }
+
+        // 6. XPath兜底策略
         let fallback_evidence = Evidence {
             model: 0.6,
             locator: 0.55,
@@ -421,6 +455,7 @@ mod tests {
             class_name: Some("Button".to_string()),
             bounds: Some("[100,200][300,250]".to_string()),
             content_desc: None,  // 🆕
+            index_path: None, // 🆕
             container_info: None,
         };
         

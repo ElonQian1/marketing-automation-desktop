@@ -448,10 +448,11 @@ async fn execute_analysis_workflow(
             i18n_variants: None,
             // ✅ 传递 index_path
             index_path: config.element_context.index_path.clone(),
+            match_mode: None, // 🆕 初始化 match_mode
         }),
         target_element_hint: None,
         analysis_mode: "step0_to_6".to_string(),
-        max_candidates: 10,
+        max_candidates: 5,
         min_confidence: 0.5,
     };
 
@@ -558,6 +559,7 @@ fn build_analysis_context(element_context: &ElementSelectionContext) -> Analysis
             .as_ref()
             .and_then(|attrs| attrs.get("content-desc"))
             .cloned(),
+        index_path: element_context.index_path.clone(), // ✅ 传递 index_path
         container_info: element_context.container_info.as_ref().map(|ci| EngineContainerInfo {
             container_type: ci.container_type.clone(),
             container_path: ci.container_path.clone(),
