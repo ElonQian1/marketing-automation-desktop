@@ -6,6 +6,7 @@ import React from 'react';
 import { Button, Modal, Spin, Alert, Typography, Tag, Space, Collapse } from 'antd';
 import { PlayCircleOutlined, CheckCircleOutlined, CloseCircleOutlined, InfoCircleOutlined } from '@ant-design/icons';
 import { useV2StepTest } from '../../hooks/useV2StepTest';
+import { useAdbStore } from '../../application/store/adbStore';
 import type { SmartScriptStep } from '../../types/smartScript';
 
 const { Text, Paragraph } = Typography;
@@ -52,10 +53,23 @@ export const V2StepTestButton: React.FC<V2StepTestButtonProps> = ({
    * 执行V2测试
    */
   const handleV2Test = async () => {
-    console.log('🚀 开始V2步骤测试:', { stepId: step.id, stepType: step.step_type, deviceId });
+    // 🔍 智能设备选择：如果传入的 deviceId 无效（如 snapshot-mode），尝试查找真实在线设备
+    let targetDeviceId = deviceId;
+    if (!targetDeviceId || targetDeviceId === 'snapshot-mode') {
+      const devices = useAdbStore.getState().devices;
+      const realDevice = devices.find(d => d.id !== 'snapshot-mode' && d.status === 'online');
+      if (realDevice) {
+        console.log(`🔌 [V2StepTest] 自动切换到真实设备: ${realDevice.id}`);
+        targetDeviceId = realDevice.id;
+      } else {
+        console.warn('⚠️ [V2StepTest] 未找到在线真实设备，仍使用:', targetDeviceId);
+      }
+    }
+
+    console.log('🚀 开始V2步骤测试:', { stepId: step.id, stepType: step.step_type, deviceId: targetDeviceId });
 
     try {
-      const result = await executeStep(step, deviceId, mode);
+      const result = await executeStep(step, targetDeviceId, mode);
       
       console.log('✅ V2测试完成:', result);
       

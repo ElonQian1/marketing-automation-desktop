@@ -297,6 +297,13 @@ function extractTargetTextFromStep(step: SmartScriptStep, params: Record<string,
   
   // 3. 从element_selector xpath提取文本条件（保留原文）
   if (params.element_selector && typeof params.element_selector === 'string') {
+    // 🔥 关键修复：如果XPath包含 descendant::，说明文本属于子元素，不应作为目标元素的文本约束
+    // 这解决了透明容器（如瀑布流卡片）被误判为拥有子元素文本的问题
+    if (params.element_selector.includes('descendant::')) {
+      console.log('🎯 [TargetText] XPath包含descendant，跳过文本提取，避免误判容器文本');
+      return ''; 
+    }
+
     const textMatch = params.element_selector.match(/@text\s*=\s*[""']([^""']+)[""']/);
     if (textMatch && textMatch[1]) {
       console.log('🎯 从XPath提取原文文本:', textMatch[1]);
@@ -567,7 +574,7 @@ export function convertSmartStepToV2Request(
     // 🔥 【核心修复】传递 XPath 和 xmlSnapshot（完整数据）
     elementPath: effectiveXPath,  // ✅ 使用有效XPath
     xpath: effectiveXPath,  // ✅ 使用有效XPath
-    text: xmlSnapshot?.elementSignature?.text || params.text as string || '',
+    text: (params.text !== undefined ? params.text : xmlSnapshot?.elementSignature?.text) as string || '',
     className: xmlSnapshot?.elementSignature?.class || params.class_name as string || '',
     xmlSnapshot: xmlSnapshot ? {
       xmlContent: xmlSnapshot.xmlContent,
