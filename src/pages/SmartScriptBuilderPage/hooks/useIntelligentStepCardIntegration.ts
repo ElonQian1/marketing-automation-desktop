@@ -10,6 +10,8 @@ import type { ExtendedSmartScriptStep } from "../../../types/loopScript";
 import XmlCacheManager from "../../../services/xml-cache-manager";
 import { generateXmlHash } from "../../../types/self-contained/xmlSnapshot";
 import { buildXPath } from "../../../utils/xpath"; // 🔥 导入XPath生成工具
+import { convertVisualToUIElement } from "../../../components/universal-ui/views/visual-view/utils/elementTransform";
+import { VisualUIElement } from "../../../components/universal-ui/xml-parser/types";
 
 interface ElementSelectionContext {
   snapshotId: string;
@@ -333,7 +335,7 @@ export function useIntelligentStepCardIntegration(
 
       // 🔥 关键修复：生成正确的绝对全局XPath
       // 问题：element.xpath可能不准确或者是相对路径
-      // 解决：优先使用element自带的xpath，如果无效则根据属性生成
+      // 解决：优先使用element自带的xpath，如果无效則根據屬性生成
       let absoluteXPath = "";
       try {
         if (element.xpath && element.xpath.trim()) {
@@ -459,88 +461,87 @@ export function useIntelligentStepCardIntegration(
         }
       }
 
-      // 🔄 回退方案：从 XML 字符串正则提取（当 child_elements 不可用时）
-      if (childTexts.length === 0 && xmlContent && boundsString) {
-        console.log(
-          "🔄 [子元素提取-方案2] child_elements 不可用，尝试从 XML 正则提取"
-        );
+      // 🔄 回退方案：从 XML 字符串解析提取（当 child_elements 不可用时，或为了获取更丰富的上下文）
+      // 🔥 修复：使用 DOMParser 替代脆弱的正则/字符串解析，支持深层嵌套和准确的父子关系
+      
+      // 声明后续逻辑需要的变量 (原代码在此处声明)
+      let needsCorrection = false;
+      let siblingTexts: string[] = [];
+
+      if (xmlContent && boundsString) {
+        console.log("🔄 [上下文提取] 尝试使用 DOMParser 解析 XML 结构");
         try {
-          // 提取父元素的 content-desc
-          const boundsPattern = boundsString.replace(/[[\]]/g, "\\$&");
-          const boundsRegex = new RegExp(`bounds="${boundsPattern}"`);
-          const boundsMatch = xmlContent.match(boundsRegex);
+          const parser = new DOMParser();
+          const xmlDoc = parser.parseFromString(xmlContent, "text/xml");
+          
+          // 使用 XPath 精确查找目标元素
+          const xpath = `//*[@bounds='${boundsString}']`;
+          const iterator = xmlDoc.evaluate(xpath, xmlDoc, null, XPathResult.FIRST_ORDERED_NODE_TYPE, null);
+          const targetNode = iterator.singleNodeValue as Element;
 
-          if (boundsMatch) {
-            const matchIndex = boundsMatch.index || 0;
-            // 向前查找最近的两个<node标签（当前元素和父元素）
-            const beforeBounds = xmlContent.substring(0, matchIndex);
-            const nodeMatches = [...beforeBounds.matchAll(/<node[^>]*>/g)];
+          if (targetNode) {
+             // 1. 提取父元素信息 (Bubble Up)
+             let current = targetNode.parentNode as Element;
+             let upCount = 0;
+             while (current && current.nodeType === 1 && upCount < 3) {
+                const desc = current.getAttribute("content-desc");
+                const text = current.getAttribute("text");
+                const resId = current.getAttribute("resource-id");
 
-            // 倒数第二个node是父元素
-            if (nodeMatches.length >= 2) {
-              const parentNodeMatch = nodeMatches[nodeMatches.length - 2][0];
-              const contentDescMatch = parentNodeMatch.match(
-                /content-desc="([^"]*)"/
-              );
-              if (contentDescMatch && contentDescMatch[1]) {
-                parentContentDesc = contentDescMatch[1];
-                console.log(
-                  "✅ [父元素提取] 找到父元素content-desc:",
-                  parentContentDesc
-                );
-              }
-              // 🔥 提取父元素的text和resource-id（XPath安全模式需要）
-              const textMatch = parentNodeMatch.match(/text="([^"]*)"/);
-              if (textMatch && textMatch[1]) {
-                parentText = textMatch[1];
-              }
-              const resourceIdMatch = parentNodeMatch.match(
-                /resource-id="([^"]*)"/
-              );
-              if (resourceIdMatch && resourceIdMatch[1]) {
-                parentResourceId = resourceIdMatch[1];
-              }
-            }
+                if (desc && desc.trim() && !parentContentDesc) {
+                   parentContentDesc = desc;
+                   console.log(`✅ [DOMParser] 找到父元素 content-desc: ${parentContentDesc}`);
+                }
+                if (resId && resId.trim() && !parentResourceId) {
+                   parentResourceId = resId;
+                }
+                if (text && text.trim() && !parentText) {
+                   parentText = text;
+                }
+                if (parentContentDesc) break;
+                current = current.parentNode as Element;
+                upCount++;
+             }
 
-            // 向后查找子元素的text和content-desc属性
-            const afterBounds = xmlContent.substring(matchIndex);
-            const closingTagMatch = afterBounds.match(/<\/node>/);
-            if (closingTagMatch) {
-              const elementFragment = afterBounds.substring(
-                0,
-                closingTagMatch.index
-              );
+             // 2. 提取子元素信息 (Drill Down)
+             if (childTexts.length === 0 && childContentDescs.length === 0) {
+                 const descendants = targetNode.querySelectorAll("*");
+                 descendants.forEach(node => {
+                    const text = node.getAttribute("text");
+                    const desc = node.getAttribute("content-desc");
+                    if (text && text.trim().length > 0 && text.trim().length < 50) {
+                        childTexts.push(text);
+                    }
+                    if (desc && desc.trim().length > 0 && desc.trim().length < 100) {
+                        childContentDescs.push(desc);
+                    }
+                 });
+                 if (childTexts.length > 0 || childContentDescs.length > 0) {
+                    console.log("✅ [DOMParser] 从子节点提取成功:", { texts: childTexts, descs: childContentDescs });
+                 }
+             }
 
-              // 提取text属性
-              const textMatches = [
-                ...elementFragment.matchAll(/text="([^"]*)"/g),
-              ];
-              childTexts = textMatches
-                .map((m) => m[1])
-                .filter(
-                  (t) => t && t.trim().length > 0 && t.trim().length < 50
-                );
-
-              // 🆕 提取content-desc属性
-              const contentDescMatches = [
-                ...elementFragment.matchAll(/content-desc="([^"]*)"/g),
-              ];
-              childContentDescs = contentDescMatches
-                .map((m) => m[1])
-                .filter(
-                  (d) => d && d.trim().length > 0 && d.trim().length < 100
-                );
-
-              if (childTexts.length > 0 || childContentDescs.length > 0) {
-                console.log("✅ [子元素提取-方案2] 从 XML 正则提取成功:", {
-                  texts: childTexts,
-                  contentDescs: childContentDescs,
-                });
-              }
-            }
+             // 3. 提取同层兄弟元素信息 (Sibling)
+             const parent = targetNode.parentNode as Element;
+             if (parent) {
+                const siblings = parent.children;
+                for (let i = 0; i < siblings.length; i++) {
+                   const sibling = siblings[i];
+                   if (sibling === targetNode) continue;
+                   const text = sibling.getAttribute("text");
+                   if (text && text.trim().length > 0 && text.trim().length < 50 && !/^[\d\s]+$/.test(text)) {
+                      siblingTexts.push(text);
+                   }
+                }
+                if (siblingTexts.length > 0) {
+                   console.log("✅ [DOMParser] 找到兄弟元素文本:", siblingTexts);
+                }
+             }
+          } else {
+             console.warn(`⚠️ [DOMParser] 未找到 bounds 为 ${boundsString} 的元素`);
           }
         } catch (error) {
-          console.warn("⚠️ [XML解析] 提取父子元素信息失败:", error);
+          console.warn("⚠️ [DOMParser] XML 解析失败:", error);
         }
       }
 
@@ -556,9 +557,10 @@ export function useIntelligentStepCardIntegration(
         });
       }
 
+      /*
       // 🔥🔥🔥 智能修正：检测是否点击了三层结构的中层（无文本/无描述但有子元素文本）
-      let needsCorrection = false;
-      let siblingTexts: string[] = []; // 🆕 同层兄弟元素的文本
+      // let needsCorrection = false; // Moved up
+      // let siblingTexts: string[] = []; // Moved up
 
       // 🆕 提取同层兄弟元素的文本（用于"通讯录"这种场景）
       // 🔥 修复: 使用栈结构精确追踪父元素,避免找到很远的祖先
@@ -679,6 +681,7 @@ export function useIntelligentStepCardIntegration(
           console.warn("⚠️ [兄弟元素提取] 提取失败:", error);
         }
       }
+      */
 
       // 判断条件：用户点击的元素本身无文本无描述，但找到了子元素文本/描述或兄弟元素文本
       if (
@@ -715,10 +718,13 @@ export function useIntelligentStepCardIntegration(
 
       // 🆕 修复：优先使用子元素的content-desc（包含最详细的语义，如"我，按钮"）
       let finalText = element.text || "";
+      let isDerivedFromChild = false; // 🆕 标记：文本是否来自子元素/兄弟元素
+
       if (!finalText || finalText.trim() === "") {
         // 🥇 最高优先级：子元素的content-desc（如"我，按钮"）
         if (childContentDescs.length > 0) {
           finalText = childContentDescs[0];
+          isDerivedFromChild = true;
           console.log(
             "🎯 [智能选择] 使用子元素content-desc（最详细语义）:",
             finalText
@@ -727,14 +733,20 @@ export function useIntelligentStepCardIntegration(
         // 🥈 第二优先级：子元素的text（如"为你推荐"、"小何老师"）
         else if (childTexts.length > 0) {
           finalText = childTexts[0];
+          isDerivedFromChild = true;
           console.log("🎯 [智能选择] 使用子元素文本:", finalText);
         }
         // 🥉 第三优先级：兄弟元素的text/desc（如"通讯录"）⚠️ 最低优先级,避免跨元素污染
         else if (siblingTexts.length > 0) {
           finalText = siblingTexts[0];
+          isDerivedFromChild = true;
           console.log("⚠️ [智能选择] 使用兄弟元素文本 (最后备选):", finalText);
         }
       }
+
+      // 🔥 关键逻辑：如果文本来自子元素，说明当前元素是容器，其自身 text 应该为空（或保持原样）
+      // 这样后端在匹配时，会匹配容器的 text=""，同时通过 XPath descendant 匹配子元素文本
+      const targetText = isDerivedFromChild ? (element.text || "") : finalText;
 
       const finalBounds = boundsString; // 🔥 保持用户点击的中层bounds，不要修改！
       const finalResourceId = element.resource_id || ""; // 🔥 保持用户点击的中层resource-id，不要修改！
@@ -747,6 +759,7 @@ export function useIntelligentStepCardIntegration(
         内层_子元素text: childTexts,
         内层_子元素contentDesc: childContentDescs, // 🆕 显示子元素content-desc
         最终text: finalText,
+        目标text_后端匹配用: targetText, // 🆕
         外层_父元素contentDesc: parentContentDesc,
         中层_原始contentDesc: element.content_desc,
         最终contentDesc: finalContentDesc,
@@ -755,12 +768,41 @@ export function useIntelligentStepCardIntegration(
         中层_resourceId: element.resource_id,
         最终resourceId: finalResourceId,
         是否检测到三层结构: needsCorrection,
+        是否来自子元素: isDerivedFromChild, // 🆕
       });
+
+      // 🚨 补救措施：如果初始 XPath 生成失败，使用增强后的数据重新生成 XPath
+      // 这对于透明容器点击非常重要，因为初始 XPath 可能因为无文本/无ID而失败
+      if (!absoluteXPath || absoluteXPath.length < 5 || absoluteXPath.includes("//*[@class='']")) {
+          if (finalContentDesc) {
+             absoluteXPath = `//*[@content-desc='${finalContentDesc}']`;
+             console.log("✅ [XPath补救] 使用增强后的 content-desc 生成 XPath:", absoluteXPath);
+          } else if (finalText) {
+             // 🔥 关键修改：保留容器身份！(User Request: 用户想要点选瀑布流卡片，而不是单纯的文本)
+             // 不要直接降级为 //*[@text='...']，而是生成 //ClassName[descendant::*[@text='...']]
+             // 这样后端会识别出这是一个容器（卡片），而不是叶子节点（文本），从而更容易触发结构匹配
+             
+             // 🆕 增强逻辑：即使没有 class_name，如果是容器结构，也必须使用 descendant 语法
+             // 否则 //*[@text='...'] 会被误判为目标元素本身具有该文本
+             // 🔥 如果文本来自子元素(isDerivedFromChild)，则强制视为容器结构
+             const isContainerStructure = needsCorrection || (element.class_name && element.class_name.includes('Layout')) || isDerivedFromChild;
+             
+             if (isContainerStructure) {
+                 const targetTag = (element.class_name && element.class_name.includes('.')) ? element.class_name : '*';
+                 // 使用 descendant::* 确保能匹配到任意深度的子元素
+                 absoluteXPath = `//${targetTag}[descendant::*[@text='${finalText}']]`;
+                 console.log("✅ [XPath补救] 使用容器+子元素文本生成结构化 XPath (强制descendant):", absoluteXPath);
+             } else {
+                 absoluteXPath = `//*[@text='${finalText}']`;
+                 console.log("✅ [XPath补救] 使用增强后的 text 生成 XPath (普通元素):", absoluteXPath);
+             }
+          }
+      }
 
       const context: ElementSelectionContext = {
         snapshotId: xmlCacheId || "current",
         elementPath: absoluteXPath, // 🔥 使用生成的绝对全局XPath
-        elementText: finalText, // 🔥 使用增强后的文本（优先子元素text）
+        elementText: finalText, // 🔥 使用增强后的文本（优先子元素text）- 用于显示标题
         elementBounds: finalBounds, // 🔥 使用修正后的bounds（如果检测到容器点击）
         elementType: element.element_type || "tap",
         // 🎯 新增：完整XML快照信息，支持跨设备复现
@@ -771,7 +813,7 @@ export function useIntelligentStepCardIntegration(
         keyAttributes: {
           "resource-id": finalResourceId, // 🔥 使用修正后的resource-id
           "content-desc": finalContentDesc, // 🔥 使用增强后的content-desc（优先父元素）
-          text: finalText, // 🔥 使用增强后的文本
+          text: targetText, // 🔥 使用修正后的目标文本（如果是容器则为空，避免后端匹配失败）
           class: element.class_name || "",
           // 🚀 新增：智能匹配配置，解决按钮识别混淆
           "smart-matching-target": smartMatchingConfig.targetText,
@@ -824,8 +866,8 @@ export function useIntelligentStepCardIntegration(
           // 🔍 新增：检查originalUIElement是否包含indexPath和children
           hasOriginalUIElement: !!context.originalUIElement,
           originalUIElementId: context.originalUIElement?.id,
-          originalUIElementHasIndexPath: !!(context.originalUIElement as any)?.indexPath,
-          originalUIElementIndexPathLength: (context.originalUIElement as any)?.indexPath?.length,
+          originalUIElementHasIndexPath: !!(context.originalUIElement as unknown as { indexPath?: number[] })?.indexPath,
+          originalUIElementIndexPathLength: (context.originalUIElement as unknown as { indexPath?: number[] })?.indexPath?.length,
           originalUIElementHasChildren: !!(context.originalUIElement?.children),
           originalUIElementChildrenCount: context.originalUIElement?.children?.length,
           // 🚀 新增：智能匹配调试信息
@@ -852,12 +894,22 @@ export function useIntelligentStepCardIntegration(
    * 🆕 分离版本：用于"直接确定"按钮的快速创建流程
    */
   const handleQuickCreateStep = useCallback(
-    async (element: UIElement) => {
+    async (element: UIElement | VisualUIElement) => {
       try {
         console.log("⚡ [智能集成] 快速创建步骤:", element.id);
 
+        let uiElement: UIElement;
+        // 🔄 智能转换：如果传入的是 VisualUIElement（有className但无class_name），则转换为 UIElement
+        // 这解决了 UniversalPageFinderModal 传递 VisualUIElement 导致 class_name 丢失的问题
+        if ('className' in element && !('class_name' in element)) {
+             console.log("🔄 [智能集成] 检测到 VisualUIElement，转换为 UIElement 以保留 class_name");
+             uiElement = convertVisualToUIElement(element as VisualUIElement) as unknown as UIElement;
+        } else {
+             uiElement = element as UIElement;
+        }
+
         // 🔥🔥🔥 关键修复：使用 await 调用异步函数
-        const context = await convertElementToContext(element);
+        const context = await convertElementToContext(uiElement);
 
         // 创建智能步骤卡 (会自动启动后台分析)
         const stepId = await createStepCardQuick(context, false);
@@ -896,15 +948,15 @@ export function useIntelligentStepCardIntegration(
           const enrichedText = context.elementText || "";
           const enrichedContentDesc =
             context.keyAttributes?.["content-desc"] || "";
-          const elementId = element.resource_id || element.id || "";
+          const elementId = uiElement.resource_id || uiElement.id || "";
 
           // 🔍 调试日志：检查命名数据来源
           console.log("🏷️ [智能命名] 生成步骤名称:", {
-            原始element_text: element.text,
+            原始element_text: uiElement.text,
             增强enrichedText: enrichedText,
-            原始element_content_desc: element.content_desc,
+            原始element_content_desc: uiElement.content_desc,
             增强enrichedContentDesc: enrichedContentDesc,
-            是否中层容器: !element.text && enrichedText,
+            是否中层容器: !uiElement.text && enrichedText,
             子元素文本: context._enrichment?.allChildTexts,
             兄弟元素文本: context._enrichment?.siblingTexts,
             父元素content_desc:
@@ -958,31 +1010,31 @@ export function useIntelligentStepCardIntegration(
             scroll: "滚动",
           };
 
-          const actionName = actionMap[element.element_type || "tap"] || "操作";
+          const actionName = actionMap[uiElement.element_type || "tap"] || "操作";
           // 🎯 注意：如果走到这里，说明没有找到任何文本，应该触发后端智能分析
           console.warn(
             "⚠️ [智能命名] 无法找到元素文本，使用通用名称，应触发后端智能分析:",
-            element.id
+            uiElement.id
           );
           return `智能${actionName} ${stepNumber}`;
         };
 
         // 🎯 智能检测：判断是否为"中层无文本容器"模式
-        const isMiddleLayerContainer = !element.text && context.elementText;
+        const isMiddleLayerContainer = !uiElement.text && context.elementText;
         const matchingStrategy = isMiddleLayerContainer
           ? "anchor_by_child_or_parent_text" // 使用子/父元素文本作为锚点
           : "direct_match"; // 直接文本匹配
 
         // 🔍 验证日志：确认增强后的文本正确传递
         console.log("✅ [步骤创建] 验证增强后的数据传递:", {
-          原始_element_text: element.text,
+          原始_element_text: uiElement.text,
           增强_context_elementText: context.elementText,
-          原始_element_content_desc: element.content_desc,
+          原始_element_content_desc: uiElement.content_desc,
           增强_context_content_desc: context.keyAttributes?.["content-desc"],
-          最终使用_text: context.elementText || element.text || "",
+          最终使用_text: context.elementText || uiElement.text || "",
           最终使用_content_desc:
             context.keyAttributes?.["content-desc"] ||
-            element.content_desc ||
+            uiElement.content_desc ||
             "",
           匹配策略: matchingStrategy,
           是否中层容器: isMiddleLayerContainer,
@@ -991,12 +1043,12 @@ export function useIntelligentStepCardIntegration(
         const newStep: ExtendedSmartScriptStep = {
           id: stepId,
           name: generateSmartName(),
-          step_type: normalizeStepType(element.element_type || "tap"),
+          step_type: normalizeStepType(uiElement.element_type || "tap"),
           description: `智能分析 - ${
-            element.text ||
-            element.content_desc ||
-            element.resource_id ||
-            element.id
+            uiElement.text ||
+            uiElement.content_desc ||
+            uiElement.resource_id ||
+            uiElement.id
           }`,
           // 🧠 启用策略选择器
           enableStrategySelector: true,
@@ -1011,14 +1063,19 @@ export function useIntelligentStepCardIntegration(
             },
           },
           parameters: {
-            element_selector: element.xpath || element.id || "",
-            // 🔥 关键修复：使用增强后的文本（来自兄弟/子元素提取），而不是原始 element.text
-            text: context.elementText || element.text || "",
+            // 🔥 关键修复：使用 context.elementPath (增强后的XPath)，而不是原始 uiElement.xpath
+            // 原始 xpath 可能只是简单的 //*[@text='...']，而增强版包含了 descendant:: 逻辑
+            element_selector: context.elementPath || uiElement.xpath || uiElement.id || "",
+            // 🔥 关键修复：如果是中层容器（本身无文本），不要将子元素文本作为 targetText 传递给后端
+            // 否则后端会尝试匹配文本，导致无法匹配到容器本身
+            // 我们只在 XPath 中使用子元素文本作为锚点
+            // 🆕 优先使用 context.keyAttributes.text (已在 convertElementToContext 中正确计算)
+            text: context.keyAttributes?.text ?? (isMiddleLayerContainer ? (uiElement.text || "") : (context.elementText || uiElement.text || "")),
             // 🔥 【关键修复】添加完整的 smartSelection 默认配置
             // 防止保存到脚本管理器后重新加载时丢失必要字段
             smartSelection: {
               mode: 'first',
-              targetText: context.elementText || element.text || "",
+              targetText: context.elementText || uiElement.text || "",
               textMatchingMode: 'exact',
               antonymCheckEnabled: false,
               semanticAnalysisEnabled: false,
@@ -1032,29 +1089,29 @@ export function useIntelligentStepCardIntegration(
             },
             bounds: (() => {
               // 🔧 修复：菜单元素bounds验证和修复
-              if (!element.bounds) return "";
+              if (!uiElement.bounds) return "";
 
               // 🔍 验证菜单元素bounds
               const isMenuElement =
-                element.text === "菜单" ||
-                (element.id || "").includes("menu") ||
-                element.content_desc === "菜单" ||
-                element.id === "element_71";
+                uiElement.text === "菜单" ||
+                (uiElement.id || "").includes("menu") ||
+                uiElement.content_desc === "菜单" ||
+                uiElement.id === "element_71";
 
               if (isMenuElement) {
                 console.warn(
                   "⚠️ [菜单bounds检查] 检测到菜单元素，验证bounds:",
                   {
-                    elementId: element.id,
-                    elementText: element.text,
-                    elementContentDesc: element.content_desc,
-                    originalBounds: element.bounds,
+                    elementId: uiElement.id,
+                    elementText: uiElement.text,
+                    elementContentDesc: uiElement.content_desc,
+                    originalBounds: uiElement.bounds,
                   }
                 );
 
                 // 🚨 强制使用正确的菜单bounds，不管输入是什么格式
-                if (typeof element.bounds === "object") {
-                  const bounds = element.bounds as unknown as Record<
+                if (typeof uiElement.bounds === "object") {
+                  const bounds = uiElement.bounds as unknown as Record<
                     string,
                     number
                   >;
@@ -1089,15 +1146,15 @@ export function useIntelligentStepCardIntegration(
                   }][${bounds.right || bounds.x + bounds.width},${
                     bounds.bottom || bounds.y + bounds.height
                   }]`;
-                } else if (typeof element.bounds === "string") {
+                } else if (typeof uiElement.bounds === "string") {
                   // 字符串格式，检查是否是正确的菜单bounds
-                  if (element.bounds === "[0,1246][1080,2240]") {
+                  if (uiElement.bounds === "[0,1246][1080,2240]") {
                     console.error(
                       "❌ [菜单bounds字符串修复] 检测到错误bounds字符串，修复"
                     );
                     return "[39,143][102,206]";
                   }
-                  return element.bounds;
+                  return uiElement.bounds;
                 }
 
                 // 如果检测失败，使用默认正确值
@@ -1108,37 +1165,37 @@ export function useIntelligentStepCardIntegration(
               }
 
               // 非菜单元素的正常处理
-              return typeof element.bounds === "string"
-                ? element.bounds
-                : JSON.stringify(element.bounds);
+              return typeof uiElement.bounds === "string"
+                ? uiElement.bounds
+                : JSON.stringify(uiElement.bounds);
             })(),
-            resource_id: element.resource_id || "",
+            resource_id: uiElement.resource_id || "",
             // 🔥 关键修复：使用增强后的 content_desc（来自父元素提取）
             content_desc:
               context.keyAttributes?.["content-desc"] ||
-              element.content_desc ||
+              uiElement.content_desc ||
               "",
-            class_name: element.class_name || "",
+            class_name: uiElement.class_name || "",
             // 🧠 智能分析相关参数 - 完整XML快照信息
             xmlSnapshot: {
               xmlCacheId: context.snapshotId,
               xmlContent: context.xmlContent || "", // 保存完整XML内容以支持跨设备复现
               xmlHash: context.xmlHash || "",
               timestamp: Date.now(),
-              elementGlobalXPath: context.elementPath || element.xpath || "", // 🔥 使用convertElementToContext生成的绝对全局XPath
+              elementGlobalXPath: context.elementPath || uiElement.xpath || "", // 🔥 使用convertElementToContext生成的绝对全局XPath
               elementSignature: {
-                class: element.class_name || "",
-                resourceId: element.resource_id || "",
+                class: uiElement.class_name || "",
+                resourceId: uiElement.resource_id || "",
                 // 🔥 关键修复：使用增强后的文本（来自兄弟/子元素提取）
-                text: context.elementText || element.text || null,
+                text: context.elementText || uiElement.text || null,
                 // 🔥 关键修复：使用增强后的 content_desc（来自父元素提取）
                 contentDesc:
                   context.keyAttributes?.["content-desc"] ||
-                  element.content_desc ||
+                  uiElement.content_desc ||
                   null,
-                bounds: element.bounds ? JSON.stringify(element.bounds) : "",
+                bounds: uiElement.bounds ? JSON.stringify(uiElement.bounds) : "",
                 indexPath:
-                  element.indexPath || (element as unknown as { index_path?: number[] }).index_path || [], // 优先使用驼峰命名，兼容旧版snake_case
+                  uiElement.indexPath || (uiElement as unknown as { index_path?: number[] }).index_path || [], // 优先使用驼峰命名，兼容旧版snake_case
                 // 🔥 提取子元素文本列表（解决"父容器+子文本"模式识别问题）
                 // 从 context._enrichment.allChildTexts 获取（已在 convertElementToContext 中提取）
                 childrenTexts: context._enrichment?.allChildTexts || [],
@@ -1170,9 +1227,9 @@ export function useIntelligentStepCardIntegration(
                   ] // 中层容器：子/兄弟元素优先
                 : ["resource-id", "text", "content-desc"], // 普通元素：直接匹配
               values: {
-                "resource-id": element.resource_id || "",
-                text: element.text || "",
-                "content-desc": element.content_desc || "",
+                "resource-id": uiElement.resource_id || "",
+                text: uiElement.text || "",
+                "content-desc": uiElement.content_desc || "",
                 // 🔥 NEW: 增强字段
                 children_texts: context._enrichment?.allChildTexts || [],
                 sibling_texts: context._enrichment?.siblingTexts || [],
@@ -1206,7 +1263,7 @@ export function useIntelligentStepCardIntegration(
 
         console.log("✅ [智能集成] 步骤卡创建成功:", {
           stepId,
-          elementId: element.id,
+          elementId: uiElement.id,
           analysisStarted: true,
           addedToMainList: true,
           currentStepsCount: steps.length,

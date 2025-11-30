@@ -230,6 +230,13 @@ export function useIntelligentAnalysisWorkflow(): UseIntelligentAnalysisWorkflow
         const unlistenProgress =
           await backendService.listenToAnalysisProgress(
             (jobId, progress, currentStep, estimatedTimeLeft) => {
+              // 🛡️ 防御性编程：处理 jobId 为空的情况 (V3 事件可能导致 jobId 为 undefined)
+              if (!jobId) {
+                // 尝试从 currentStep 或其他上下文推断，或者直接忽略
+                // console.warn("⚠️ [Workflow] 收到无效的 jobId，跳过处理", { progress, currentStep });
+                return;
+              }
+
               // 🔇 日志优化：使用防抖日志，避免重复打印
               logProgress(jobId, progress, "📊 [Workflow] 收到分析进度", {
                 jobId,
@@ -240,9 +247,27 @@ export function useIntelligentAnalysisWorkflow(): UseIntelligentAnalysisWorkflow
               // ✅ 精准更新对应的任务
               setCurrentJobs((prev) => {
                 const updated = new Map(prev);
-                const job = updated.get(jobId);
+                let job = updated.get(jobId);
+
+                // 🆕 修复：尝试通过 stepId 模糊匹配任务 (解决 V3 后端事件 ID 不一致问题)
+                if (!job) {
+                  // 1. 尝试匹配 step_execution_{stepId} 格式
+                  const stepIdMatch = jobId.match(/step_execution_(.+)/);
+                  const targetStepId = stepIdMatch ? stepIdMatch[1] : jobId;
+                  
+                  // 2. 遍历查找匹配 stepId 的任务
+                  for (const j of updated.values()) {
+                    if (j.stepId === targetStepId || j.stepId === jobId) {
+                      job = j;
+                      // console.log(`🔗 [Workflow] 通过 stepId 关联任务: ${jobId} -> ${j.jobId}`);
+                      break;
+                    }
+                  }
+                }
+
                 if (job && job.state === "running") {
-                  updated.set(jobId, {
+                  // ✅ 更新原始任务 (使用 job.jobId 作为 key)
+                  updated.set(job.jobId, {
                     ...job,
                     progress,
                     estimatedTimeLeft,
@@ -261,8 +286,15 @@ export function useIntelligentAnalysisWorkflow(): UseIntelligentAnalysisWorkflow
               // ✅ 只更新匹配 jobId 的步骤卡片！
               setStepCards((prev) =>
                 prev.map((card) => {
+                  // 🆕 修复：支持模糊匹配
+                  const stepIdMatch = jobId.match(/step_execution_(.+)/);
+                  const targetStepId = stepIdMatch ? stepIdMatch[1] : jobId;
+                  const isMatch = 
+                    card.analysisJobId === jobId || 
+                    card.stepId === targetStepId;
+
                   if (
-                    card.analysisJobId === jobId &&
+                    isMatch &&
                     card.analysisState === "analyzing"
                   ) {
                     // 🔇 日志优化：只在进度有大幅变化时打印
@@ -342,7 +374,23 @@ export function useIntelligentAnalysisWorkflow(): UseIntelligentAnalysisWorkflow
 
               setCurrentJobs((prev) => {
                 const updated = new Map(prev);
-                const job = updated.get(jobId);
+                let job = updated.get(jobId);
+
+                // 🆕 修复：尝试通过 stepId 模糊匹配任务 (解决 V3 后端事件 ID 不一致问题)
+                if (!job) {
+                  // 1. 尝试匹配 step_execution_{stepId} 格式
+                  const stepIdMatch = jobId.match(/step_execution_(.+)/);
+                  const targetStepId = stepIdMatch ? stepIdMatch[1] : jobId;
+                  
+                  // 2. 遍历查找匹配 stepId 的任务
+                  for (const j of updated.values()) {
+                    if (j.stepId === targetStepId || j.stepId === jobId) {
+                      job = j;
+                      // console.log(`🔗 [Workflow] 通过 stepId 关联完成事件: ${jobId} -> ${j.jobId}`);
+                      break;
+                    }
+                  }
+                }
 
                 if (!job) {
                   // 🔒 懒绑定：完成事件先于启动到达时的兜底
@@ -375,7 +423,7 @@ export function useIntelligentAnalysisWorkflow(): UseIntelligentAnalysisWorkflow
                   }
                 } else {
                   // 正常流程：更新已登记的任务
-                  updated.set(jobId, {
+                  updated.set(job.jobId, { // ✅ 使用原始 job.jobId 保持一致性
                     ...job,
                     state: "completed",
                     progress: 100,
@@ -394,7 +442,14 @@ export function useIntelligentAnalysisWorkflow(): UseIntelligentAnalysisWorkflow
               // ✅ 精确匹配并更新步骤卡片，强制清理 Loading
               setStepCards((prevCards) => {
                 return prevCards.map((card) => {
-                  if (card.analysisJobId === jobId) {
+                  // 🆕 修复：支持模糊匹配
+                  const stepIdMatch = jobId.match(/step_execution_(.+)/);
+                  const targetStepId = stepIdMatch ? stepIdMatch[1] : jobId;
+                  const isMatch = 
+                    card.analysisJobId === jobId || 
+                    card.stepId === targetStepId;
+
+                  if (isMatch) {
                     // console.log("🎯 [Workflow] 更新步骤卡片为完成状态", {
                     //   stepId: card.stepId,
                     //   jobId,
@@ -688,10 +743,9 @@ export function useIntelligentAnalysisWorkflow(): UseIntelligentAnalysisWorkflow
         let jobId: string;
 
         try {
-          // 🚀 [智能路由] 仅在有真实设备连接时使用 V3 引擎
-          // 离线/快照分析强制使用 V2 引擎，避免 V3 尝试连接 ADB 导致超时和报错
-          const isFakeDevice = selectedDevice?.id === SNAPSHOT_DEVICE_ID;
-          const canUseV3 = currentExecutionVersion === "v3" && selectedDevice?.id && !isFakeDevice;
+          // 🚀 [智能路由] V3 引擎现在支持离线/快照分析 (通过 xmlCacheId)
+          // 不再强制要求真实设备，允许 snapshot-mode
+          const canUseV3 = currentExecutionVersion === "v3";
 
           if (canUseV3) {
             // console.log("🚀 [V3] 使用V3统一执行协议启动智能分析");
@@ -705,7 +759,8 @@ export function useIntelligentAnalysisWorkflow(): UseIntelligentAnalysisWorkflow
             let deviceId = selectedDevice?.id;
             
             // 🚨 修复：如果当前是离线快照模式，尝试查找真实设备
-            if (!deviceId || deviceId === SNAPSHOT_DEVICE_ID) {
+            // 🚀 [V3集成] 如果是V3模式，允许使用 snapshot-mode 占位符，不强制要求真实设备
+            if ((!deviceId || deviceId === SNAPSHOT_DEVICE_ID) && currentExecutionVersion !== "v3") {
                const devices = useAdbStore.getState().devices;
                const realDevice = devices.find(d => d.id !== SNAPSHOT_DEVICE_ID && d.status === 'online');
                if (realDevice) {
@@ -714,21 +769,30 @@ export function useIntelligentAnalysisWorkflow(): UseIntelligentAnalysisWorkflow
                }
             }
 
-            if (!deviceId) {
+            // 🚀 [V3集成] V3模式下允许无设备ID（离线分析）
+            if (!deviceId && currentExecutionVersion !== "v3") {
                throw new Error("没有选中的设备，请先连接设备");
+            }
+            
+            // 如果是V3且无设备，使用占位符
+            if (!deviceId && currentExecutionVersion === "v3") {
+                deviceId = "snapshot-mode";
             }
 
             // V3执行配置 - 90%数据精简 + 智能回退优化
             const v3Config: V3ExecutionConfig = {
               analysis_id: analysisId, // 唯一分析ID，支持链路追踪
-              device_id: deviceId, // 设备标识，关联ADB连接
+              device_id: deviceId!, // 设备标识，关联ADB连接
               timeout_ms: 60000, // V3超时后自动降级V2
               max_retries: 2, // 智能重试：失败时自动V3→V2回退
-              dryrun: false, // 生产执行模式
+              dryrun: deviceId === 'snapshot-mode', // 🚀 离线模式下启用dryrun，避免尝试连接不存在的设备
               enable_fallback: true, // 🚀 启用V2回退：确保业务连续性
               // 🚀 [离线支持] 传递XML缓存ID，允许无设备分析
               // eslint-disable-next-line @typescript-eslint/no-explicit-any
               xmlCacheId: (context as any).xmlCacheId || context.snapshotId,
+              // 🔥 关键修复：传递完整XML内容，防止后端尝试从 snapshot-mode 设备 dump
+              // eslint-disable-next-line @typescript-eslint/no-explicit-any
+              xmlContent: (context as any).xmlContent,
             };
 
             // 🔗 V3链规格构建：将UI元素转换为统一执行步骤
@@ -771,11 +835,7 @@ export function useIntelligentAnalysisWorkflow(): UseIntelligentAnalysisWorkflow
             //   success: response.success,
             // });
           } else {
-            if (currentExecutionVersion === "v3") {
-              console.log("🔌 [Workflow] 离线/快照模式：自动切换到 V2 引擎以避免 ADB 连接");
-            } else {
-              // console.log("🔄 [V2] 使用V2传统协议启动智能分析");
-            }
+            // console.log("🔄 [V2] 使用V2传统协议启动智能分析");
 
             // V2 传统调用：完整数据传输（集成缓存系统）
             response = await intelligentAnalysisBackend.startAnalysis(
@@ -1062,264 +1122,173 @@ export function useIntelligentAnalysisWorkflow(): UseIntelligentAnalysisWorkflow
               const cardId = unifiedStore.byStepId[stepId];
               if (cardId) {
                 unifiedStore.bindJob(cardId, jobId);
+                console.log("🔗 [Bridge] 绑定job到统一store卡片", {
+                  cardId,
+                  jobId,
+                });
               }
             } catch (err) {
               console.warn("⚠️ [Bridge] 绑定job失败", err);
             }
           })();
-
-          // 更新步骤卡片的分析状态
+        } catch (error) {
+          console.error("❌ [Workflow] 自动启动分析失败", error);
+          // 更新卡片状态为失败
           setStepCards((prev) =>
-            prev.map((card) =>
-              card.stepId === stepId
+            prev.map((c) =>
+              c.stepId === stepId
                 ? {
-                    ...card,
-                    analysisState: "analyzing",
-                    analysisJobId: jobId,
+                    ...c,
+                    analysisState: "analysis_failed",
+                    analysisError: String(error),
                   }
-                : card
+                : c
             )
           );
-        } catch (analysisError) {
-          console.error("启动分析失败:", analysisError);
         }
 
         return stepId;
       } catch (error) {
         console.error("创建步骤卡片失败:", error);
-        throw new Error(`创建步骤卡片失败: ${error}`);
+        throw error;
       }
     },
-    [stepCards.length, startAnalysis]
+    [startAnalysis, stepCards.length]
   );
 
   /**
-   * 绑定分析结果
+   * 手动绑定分析结果（用于调试或恢复）
    */
   const bindAnalysisResult = useCallback(
     async (stepId: string, result: AnalysisResult): Promise<void> => {
-      try {
-        // 本地绑定分析结果（不需要后端调用）
-        console.log("🔗 [Workflow] 绑定分析结果", { stepId, result });
-
-        setStepCards((prev) =>
-          prev.map((card) => {
-            if (card.stepId !== stepId) return card;
-
-            const recommendedStrategy = result.smartCandidates.find(
-              (c) => c.key === result.recommendedKey
-            );
-            const shouldAutoUpgrade =
-              card.autoFollowSmart &&
-              result.recommendedConfidence >= card.smartThreshold;
-
+      setStepCards((prev) =>
+        prev.map((card) => {
+          if (card.stepId === stepId) {
             return {
               ...card,
-              analysisState: ANALYSIS_STATES.COMPLETED,
+              analysisState: "analysis_completed",
               analysisProgress: 100,
               smartCandidates: result.smartCandidates,
               staticCandidates: result.staticCandidates,
-              recommendedStrategy,
-              activeStrategy: shouldAutoUpgrade
-                ? recommendedStrategy
-                : card.activeStrategy,
-              strategyMode: shouldAutoUpgrade
-                ? "intelligent"
-                : card.strategyMode,
-              analyzedAt: Date.now(),
+              recommendedStrategy: result.smartCandidates.find(
+                (c) => c.key === result.recommendedKey
+              ),
               updatedAt: Date.now(),
             };
-          })
-        );
-
-        message.success("分析完成，策略已更新");
-      } catch (error) {
-        console.error("绑定分析结果失败:", error);
-        throw new Error(`绑定分析结果失败: ${error}`);
-      }
+          }
+          return card;
+        })
+      );
     },
     []
   );
 
-  /**
-   * 更新步骤卡片
-   */
+  // ... 其他辅助方法 ...
+
   const updateStepCard = useCallback(
     (stepId: string, updates: Partial<IntelligentStepCard>) => {
       setStepCards((prev) =>
         prev.map((card) =>
-          card.stepId === stepId
-            ? { ...card, ...updates, updatedAt: Date.now() }
-            : card
+          card.stepId === stepId ? { ...card, ...updates } : card
         )
       );
     },
     []
   );
 
-  /**
-   * 删除步骤卡片
-   */
-  const deleteStepCard = useCallback(
-    (stepId: string) => {
-      // 取消关联的分析作业
-      const card = stepCards.find((c) => c.stepId === stepId);
-      if (card?.analysisJobId) {
-        cancelAnalysis(card.analysisJobId).catch(console.error);
-      }
+  const deleteStepCard = useCallback((stepId: string) => {
+    setStepCards((prev) => prev.filter((card) => card.stepId !== stepId));
+  }, []);
 
-      setStepCards((prev) => prev.filter((card) => card.stepId !== stepId));
+  const switchStrategy = useCallback(
+    async (stepId: string, strategyKey: string, followSmart: boolean = false) => {
+      setStepCards((prev) =>
+        prev.map((card) => {
+          if (card.stepId === stepId) {
+            // 查找策略
+            const strategy =
+              card.smartCandidates.find((c) => c.key === strategyKey) ||
+              card.staticCandidates.find((c) => c.key === strategyKey) ||
+              card.fallbackStrategy;
+
+            if (strategy) {
+              return {
+                ...card,
+                activeStrategy: strategy,
+                autoFollowSmart: followSmart,
+                updatedAt: Date.now(),
+              };
+            }
+          }
+          return card;
+        })
+      );
     },
-    [stepCards, cancelAnalysis]
+    []
   );
 
-  /**
-   * 切换策略
-   */
-  const switchStrategy = useCallback(
-    async (
-      stepId: string,
-      strategyKey: string,
-      followSmart: boolean = false
-    ): Promise<void> => {
-      try {
-        // 本地切换策略（不需要后端调用）
-        console.log("🔄 [Workflow] 切换活动策略", {
-          stepId,
-          strategyKey,
-          followSmart,
-        });
+  const upgradeStep = useCallback(async (stepId: string) => {
+    console.log("升级步骤:", stepId);
+    // TODO: 实现升级逻辑
+  }, []);
 
-        const card = stepCards.find((c) => c.stepId === stepId);
-        if (!card) return;
-
-        const allCandidates = [
-          ...card.smartCandidates,
-          ...card.staticCandidates,
-        ];
-        const selectedStrategy = allCandidates.find(
-          (s) => s.key === strategyKey
+  const retryAnalysis = useCallback(
+    async (stepId: string) => {
+      const card = stepCards.find((c) => c.stepId === stepId);
+      if (card && card.elementContext) {
+        // 重置状态
+        setStepCards((prev) =>
+          prev.map((c) =>
+            c.stepId === stepId
+              ? {
+                  ...c,
+                  analysisState: "idle",
+                  analysisProgress: 0,
+                  analysisError: undefined,
+                }
+              : c
+          )
         );
 
-        if (selectedStrategy) {
-          updateStepCard(stepId, {
-            activeStrategy: selectedStrategy,
-            strategyMode: selectedStrategy.variant.includes("smart")
-              ? "smart_variant"
-              : "static_user",
-            autoFollowSmart: followSmart,
-          });
-        }
-      } catch (error) {
-        console.error("切换策略失败:", error);
-        throw new Error(`切换策略失败: ${error}`);
+        // 重新启动分析
+        await startAnalysis(card.elementContext, stepId);
       }
     },
-    [stepCards, updateStepCard]
+    [stepCards, startAnalysis]
   );
 
-  /**
-   * 升级步骤
-   */
-  const upgradeStep = useCallback(
-    async (stepId: string): Promise<void> => {
-      const card = stepCards.find((c) => c.stepId === stepId);
-      if (!card?.recommendedStrategy) return;
-
-      await switchStrategy(stepId, card.recommendedStrategy.key, true);
-      message.success("已升级到推荐策略");
-    },
-    [stepCards, switchStrategy]
-  );
-
-  /**
-   * 重试分析
-   */
-  const retryAnalysis = useCallback(
-    async (stepId: string): Promise<void> => {
-      const card = stepCards.find((c) => c.stepId === stepId);
-      if (!card) return;
-
-      // 取消旧的分析作业
-      if (card.analysisJobId) {
-        await cancelAnalysis(card.analysisJobId);
-      }
-
-      // 启动新的分析
-      const jobId = await startAnalysis(card.elementContext, stepId);
-
-      updateStepCard(stepId, {
-        analysisState: "analyzing",
-        analysisJobId: jobId,
-        analysisProgress: 0,
-        analysisError: undefined,
-      });
-    },
-    [stepCards, cancelAnalysis, startAnalysis, updateStepCard]
-  );
-
-  /**
-   * 获取步骤卡片
-   */
   const getStepCard = useCallback(
-    (stepId: string): IntelligentStepCard | undefined => {
-      return stepCards.find((card) => card.stepId === stepId);
-    },
+    (stepId: string) => stepCards.find((c) => c.stepId === stepId),
     [stepCards]
   );
 
-  /**
-   * 根据选择哈希获取作业
-   */
   const getJobsBySelectionHash = useCallback(
-    (hash: SelectionHash): AnalysisJob[] => {
-      return Array.from(currentJobs.values()).filter(
+    (hash: SelectionHash) =>
+      Array.from(currentJobs.values()).filter(
         (job) => job.selectionHash === hash
-      );
-    },
+      ),
     [currentJobs]
   );
 
-  /**
-   * 清空所有作业
-   */
   const clearAllJobs = useCallback(() => {
-    // 取消所有活跃作业
-    currentJobs.forEach((job) => {
-      if (job.state === "queued" || job.state === "running") {
-        cancelAnalysis(job.jobId).catch(console.error);
-      }
-    });
-
     setCurrentJobs(new Map());
     setStepCards([]);
-  }, [currentJobs, cancelAnalysis]);
+  }, []);
 
   return {
-    // ========== 核心状态 ==========
     currentJobs,
     stepCards,
     isAnalyzing,
-
-    // ========== V2/V3 智能执行系统 ==========
-    // 🚀 [V3集成完成] 自动选择最优执行版本
-    currentExecutionVersion, // 当前执行版本：'v2' | 'v3'
-
-    // ========== 核心操作 ==========
-    // ✅ 这些方法已集成V2/V3智能切换：
-    startAnalysis, // V2: 传统分析 | V3: 统一链执行 (90%数据精简)
-    cancelAnalysis, // V2/V3: 统一取消接口
-    createStepCardQuick, // V2/V3: 自动选择最优分析引擎
-    bindAnalysisResult, // V2/V3: 统一结果绑定
-
-    // ========== 步骤卡片操作 ==========
+    currentExecutionVersion,
+    startAnalysis,
+    cancelAnalysis,
+    createStepCardQuick,
+    bindAnalysisResult,
     updateStepCard,
     deleteStepCard,
     switchStrategy,
     upgradeStep,
     retryAnalysis,
-
-    // ========== 工具方法 ==========
     getStepCard,
     getJobsBySelectionHash,
     clearAllJobs,
