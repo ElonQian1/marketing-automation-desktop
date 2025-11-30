@@ -35,6 +35,12 @@ export class UIElementToVisualConverter {
       clickable: !!element.is_clickable,
       importance: "medium",
       userFriendlyName: element.text || element.element_type || "元素",
+      // 🔧 补充关键属性，确保 convertVisualToUIElement 能还原完整信息
+      className: element.class_name,
+      resourceId: element.resource_id,
+      contentDesc: element.content_desc,
+      bounds: `[${bounds.left},${bounds.top}][${bounds.right},${bounds.bottom}]`,
+      indexPath: element.indexPath,
     };
   }
 

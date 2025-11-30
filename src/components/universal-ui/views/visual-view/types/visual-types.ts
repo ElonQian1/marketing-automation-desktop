@@ -25,4 +25,8 @@ export interface BridgeUIElement {
   selected: boolean;
   password: boolean;
   content_desc: string;
+  // 🔥 关键修复：添加 child_elements 以支持结构匹配
+  child_elements?: BridgeUIElement[];
+  indexPath?: number[];
+  xmlCacheId?: string;
 }

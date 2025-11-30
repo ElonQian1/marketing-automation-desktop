@@ -97,8 +97,8 @@ export function convertVisualToUIElement(element: VisualUIElement, selectedId?: 
     text: element.text || '',
     bounds: bounds,  // 🔧 使用计算好的 bounds 对象
     xpath: backendId,  // 🔧 XPath 也使用后端格式
-    resource_id: element.resourceId || '',  // 🔧 保留 resource_id
-    class_name: element.className || '',  // 🔧 保留 class_name
+    resource_id: element.resourceId || (element as any).resource_id || '',  // 🔧 保留 resource_id
+    class_name: element.className || (element as any).class_name || '',  // 🔧 保留 class_name
     is_clickable: element.is_clickable || element.clickable || false,
     is_scrollable: element.scrollable || false,
     is_enabled: element.enabled !== false,
@@ -109,6 +109,9 @@ export function convertVisualToUIElement(element: VisualUIElement, selectedId?: 
     password: false,
     content_desc: element.content_desc || element.contentDesc || '', // 🔧 保留 content_desc
     indexPath: element.indexPath, // 🔥 关键：保留 indexPath 用于结构匹配评分
+    xmlCacheId: element.xmlCacheId, // 🔥 关键：保留 xmlCacheId 用于后端分析
+    // 🔥 关键修复：递归转换子元素，确保结构匹配可用
+    child_elements: element.children ? element.children.map(child => convertVisualToUIElement(child, selectedId)) : [],
   };
 
   return result;
