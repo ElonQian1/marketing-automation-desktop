@@ -8,6 +8,7 @@ use async_trait::async_trait;
 use anyhow::Result;
 use tracing::{info, debug};
 use std::collections::HashSet;
+use crate::utils::bounds;
 
 /// Standard 策略处理器
 /// 
@@ -37,7 +38,8 @@ impl StandardStrategyProcessor {
     
     /// 判断字段是否为位置相关字段
     fn is_position_field(&self, field: &str) -> bool {
-        matches!(field, "bounds" | "index" | "x" | "y" | "center_x" | "center_y")
+        // 允许 bounds 和 index 通过，以便在无文本元素（透明层）时作为兜底匹配依据
+        matches!(field, "x" | "y" | "center_x" | "center_y")
     }
     
     /// 过滤值中的位置相关字段
@@ -174,6 +176,27 @@ impl StandardStrategyProcessor {
                                 } else {
                                     0.0
                                 }
+                            } else {
+                                0.0
+                            }
+                        } else {
+                            0.0
+                        }
+                    }
+                    "bounds" => {
+                        // 尝试解析目标 bounds
+                        if let Ok(target_rect) = bounds::parse_bounds_str(target_value) {
+                            let (tx, ty) = target_rect.center();
+                            let (ex, ey) = element.bounds.center();
+                            
+                            // 计算中心点距离
+                            let dist = (tx - ex).abs() + (ty - ey).abs();
+                            
+                            // 允许一定的误差 (例如 30px)
+                            // 注意：Standard 策略本应忽略位置，但作为兜底，如果用户明确提供了 bounds，我们应该使用它
+                            if dist < 30 { 
+                                match_reasons.push(format!("bounds匹配: center({},{}) vs center({},{}) (dist: {})", ex, ey, tx, ty, dist));
+                                0.4 // bounds 权重中等
                             } else {
                                 0.0
                             }
