@@ -355,3 +355,57 @@ export function normalizeStepType(elementType: string): string {
 
   return typeMap[withoutRegion.toLowerCase()] || "smart_find_element";
 }
+
+/**
+ * 从现有的 child_elements 构建简单的 children 结构
+ * 用于策略配置（如结构匹配需要children字段）
+ */
+export function buildSimpleChildren(element: UIElement): UIElement {
+  console.log('🔍 [buildSimpleChildren] 接收到的 element:', {
+    id: element.id,
+    hasIndexPath: !!element.indexPath,
+    indexPath: element.indexPath,
+    indexPathLength: element.indexPath?.length,
+  });
+  
+  const enhancedElement = { ...element };
+  
+  // 🔥 关键：移除原始的 xpath 字段，避免与 elementContext.xpath 冲突
+  // elementContext.xpath 是正确的绝对路径（通过 buildXPath 生成）
+  // 而 element.xpath 可能是相对路径（如 'element_32'）
+  delete (enhancedElement as Partial<UIElement>).xpath;
+  
+  // 如果有 child_elements，转换为 children 结构
+  if (element.child_elements && element.child_elements.length > 0) {
+    enhancedElement.children = element.child_elements.map((childElement, index) => ({
+      id: `${element.id}_child_${index}`,
+      element_type: 'ChildText',
+      text: typeof childElement === 'string' ? childElement : (childElement.text || ''),
+      content_desc: '',
+      resource_id: '',
+      class_name: 'ChildText',
+      bounds: element.bounds, // 使用父元素的bounds
+      xpath: `${element.xpath}/child[${index}]`,
+      is_clickable: false,
+      is_scrollable: false,
+      is_enabled: true,
+      is_focused: false,
+      checkable: false,
+      checked: false,
+      selected: false,
+      password: false,
+      children: [], // 子元素没有更深层的children
+    }));
+    
+    console.log("🌳 [buildSimpleChildren] 从child_elements构建children结构:", {
+      elementId: element.id,
+      childrenCount: enhancedElement.children.length,
+      childTexts: element.child_elements
+    });
+  } else {
+    enhancedElement.children = [];
+    console.log("🌳 [buildSimpleChildren] 无child_elements，设置空children:", element.id);
+  }
+  
+  return enhancedElement;
+}

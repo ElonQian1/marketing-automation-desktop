@@ -25,6 +25,7 @@ import {
   buildSmartMatchingConfig,
   isMenuElementCheck,
   generateSmartStepName,
+  buildSimpleChildren,
 } from "./step-card-integration";
 
 interface UseIntelligentStepCardIntegrationOptions {
@@ -141,11 +142,19 @@ export function useIntelligentStepCardIntegrationRefactored(
         xmlContent,
         xmlHash,
         indexPath: element.indexPath || (element as unknown as { index_path?: number[] }).index_path,
+        // 🔥 关键属性 - 用于智能命名和后端匹配
+        keyAttributes: {
+          "resource-id": element.resource_id || "",
+          "content-desc": element.content_desc || enrichmentData?.parentContentDesc || "",
+          text: element.text || "",
+          class: element.class_name || "",
+        },
         siblingTexts: enrichmentData?.siblingTexts,
         parentElement: enrichmentData?.parentElement,
         childrenTexts,
         childrenContentDescs,
-        originalUIElement: element,
+        // 🔥 原始UIElement - 用于策略配置（如结构匹配需要children字段）
+        originalUIElement: buildSimpleChildren(element),
         _enrichment: enrichmentData,
       };
 
