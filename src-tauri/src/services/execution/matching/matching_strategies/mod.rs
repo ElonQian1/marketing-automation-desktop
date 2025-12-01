@@ -211,6 +211,12 @@ pub fn extract_matching_context(params: &HashMap<String, Value>) -> Option<Match
                 .map(|s| s.to_string())
         });
 
+    // 🆕 提取选择模式 (smartSelection.mode)
+    let selection_mode = params.get("smartSelection")
+        .and_then(|ss| ss.get("mode"))
+        .and_then(|m| m.as_str())
+        .map(|s| s.to_string());
+
     Some(MatchingContext {
         strategy,
         fields,
@@ -223,5 +229,6 @@ pub fn extract_matching_context(params: &HashMap<String, Value>) -> Option<Match
         fallback_bounds,
         device_id: String::new(), // 将在调用时设置
         original_xml,
+        selection_mode, // 🆕 传递选择模式
     })
 }

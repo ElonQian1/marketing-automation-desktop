@@ -1,22 +1,25 @@
 //! custom_strategy.rs - Custom 匹配策略处理器
 //! 
-//! Custom 策略根据实际情况智能选择 absolute 或 standard 策略。
+//! Custom 策略根据实际情况智能选择 xpath-direct、absolute 或 standard 策略。
+//! 🔥 关键修复：当检测到高质量结构化XPath（如 descendant::）时，优先使用 xpath-direct 策略
 
 use super::{StrategyProcessor, MatchingContext, StrategyResult, ProcessingError};
-use super::{StandardStrategyProcessor, AbsoluteStrategyProcessor};
+use super::{StandardStrategyProcessor, AbsoluteStrategyProcessor, XPathDirectStrategyProcessor};
 use async_trait::async_trait;
 use anyhow::Result;
-use tracing::{info, debug};
+use tracing::{info, debug, warn};
 
 /// Custom 策略处理器
 /// 
 /// 特点：
+/// - 🆕 优先检测高质量XPath（descendant::等），使用 xpath-direct 策略
 /// - 智能选择策略：有位置约束时使用 absolute，否则使用 standard
 /// - 提供向后兼容性
 /// - 自适应匹配模式
 pub struct CustomStrategyProcessor {
     standard_processor: StandardStrategyProcessor,
     absolute_processor: AbsoluteStrategyProcessor,
+    xpath_direct_processor: XPathDirectStrategyProcessor,
 }
 
 impl CustomStrategyProcessor {
@@ -24,7 +27,31 @@ impl CustomStrategyProcessor {
         Self {
             standard_processor: StandardStrategyProcessor::new(),
             absolute_processor: AbsoluteStrategyProcessor::new(),
+            xpath_direct_processor: XPathDirectStrategyProcessor::new(),
         }
+    }
+    
+    /// 🆕 检测是否有高质量结构化XPath
+    /// 如果有 descendant::、ancestor:: 等高级XPath语法，应该优先使用 xpath-direct 策略
+    fn has_high_quality_xpath(&self, context: &MatchingContext) -> bool {
+        if let Some(xpath) = context.values.get("xpath") {
+            let is_high_quality = xpath.contains("descendant::")
+                || xpath.contains("ancestor::")
+                || xpath.contains("following-sibling::")
+                || xpath.contains("preceding-sibling::")
+                || xpath.contains("child::")
+                || xpath.contains("parent::")
+                // 子元素文本匹配模式
+                || (xpath.contains("[") && xpath.contains("@text=") && xpath.contains("//*"))
+                // 内容描述匹配
+                || (xpath.contains("[") && xpath.contains("@content-desc=") && xpath.contains("//*"));
+            
+            if is_high_quality {
+                info!("🎯 [Custom策略] 检测到高质量结构化XPath: {}", xpath);
+                return true;
+            }
+        }
+        false
     }
     
     /// 判断是否应该使用位置匹配（absolute 策略）
@@ -77,10 +104,24 @@ impl CustomStrategyProcessor {
 impl StrategyProcessor for CustomStrategyProcessor {
     async fn process(&self, context: &mut MatchingContext, logs: &mut Vec<String>) -> Result<StrategyResult, ProcessingError> {
         logs.push("🎨 使用 Custom 策略进行智能匹配".to_string());
-        logs.push("📋 Custom 策略特点: 根据参数智能选择 absolute 或 standard".to_string());
+        logs.push("📋 Custom 策略特点: 智能选择 xpath-direct、absolute 或 standard".to_string());
         
         // 验证参数
         self.validate_parameters(context)?;
+        
+        // 🆕 优先检测高质量XPath，使用 xpath-direct 策略
+        if self.has_high_quality_xpath(context) {
+            logs.push("🎯 选择 xpath-direct 策略: 检测到高质量结构化XPath（如 descendant::）".to_string());
+            warn!("🆕 Custom 策略 -> XPath Direct (结构化匹配)");
+            info!("🎯 [Custom策略] 使用XPath直接匹配，跳过语义匹配");
+            
+            // 临时修改策略名称以便日志记录
+            let original_strategy = context.strategy.clone();
+            context.strategy = "xpath-direct".to_string();
+            let result = self.xpath_direct_processor.process(context, logs).await;
+            context.strategy = original_strategy;
+            return result;
+        }
         
         // 判断使用哪种策略
         let use_absolute = self.should_use_absolute_strategy(context);

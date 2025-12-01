@@ -250,6 +250,7 @@ mod tests {
             regex_excludes: HashMap::new(),
             fallback_bounds: None,
             original_xml: None, // 测试不使用原始XML
+            selection_mode: None, // 测试不指定选择模式
         };
 
         let xpath = processor.build_all_elements_xpath(&context).unwrap();

@@ -242,13 +242,230 @@ impl XPathDirectStrategyProcessor {
         Err("所有候选 XPath 都无法匹配元素".to_string())
     }
 
+    /// 🆕 从 XPath 中提取 descendant 语法的目标文本
+    /// 支持格式:
+    /// - //*[descendant::*[@text='知恩']]
+    /// - //*[descendant::*[@content-desc='xxx']]
+    /// - //*[descendant::*[contains(@text,'知恩')]]
+    fn extract_descendant_text(&self, xpath: &str) -> Option<String> {
+        use regex::Regex;
+        
+        // 匹配 descendant::*[@text='xxx'] 格式
+        if let Ok(re) = Regex::new(r#"descendant::\*\[@text='([^']+)'\]"#) {
+            if let Some(cap) = re.captures(xpath) {
+                return Some(cap[1].to_string());
+            }
+        }
+        
+        // 匹配 descendant::*[@content-desc='xxx'] 格式
+        if let Ok(re) = Regex::new(r#"descendant::\*\[@content-desc='([^']+)'\]"#) {
+            if let Some(cap) = re.captures(xpath) {
+                return Some(cap[1].to_string());
+            }
+        }
+        
+        // 匹配 descendant::*[contains(@text,'xxx')] 格式
+        if let Ok(re) = Regex::new(r#"descendant::\*\[contains\(@text,\s*'([^']+)'\)"#) {
+            if let Some(cap) = re.captures(xpath) {
+                return Some(cap[1].to_string());
+            }
+        }
+        
+        // 匹配 descendant::*[contains(@content-desc,'xxx')] 格式
+        if let Ok(re) = Regex::new(r#"descendant::\*\[contains\(@content-desc,\s*'([^']+)'\)"#) {
+            if let Some(cap) = re.captures(xpath) {
+                return Some(cap[1].to_string());
+            }
+        }
+        
+        None
+    }
+
+    /// 🆕 通过子元素文本查找父容器并返回可点击坐标
+    /// 
+    /// 算法思路:
+    /// 1. 在 XML 中找到包含目标文本的元素
+    /// 2. 向上回溯找到可点击的父容器（clickable=true 或有 bounds 的容器）
+    /// 3. 返回容器的中心坐标
+    /// 
+    /// 🆕 降级策略: 如果找不到特定文本的卡片，尝试找第一个同类结构的瀑布流卡片
+    fn find_container_by_descendant_text(&self, xml_content: &str, target_text: &str, logs: &mut Vec<String>) -> Result<(i32, i32), String> {
+        use regex::Regex;
+        
+        logs.push(format!("🔍 开始搜索包含子元素 '{}' 的父容器...", target_text));
+        
+        // 策略1: 查找 content-desc 中包含目标文本的元素（小红书卡片常见格式）
+        // 例如: content-desc="笔记  来海边吃吃玩玩 来自知恩 147赞"
+        if let Ok(content_desc_re) = Regex::new(&format!(
+            r#"<node[^>]*content-desc="[^"]*{}[^"]*"[^>]*bounds="\[(\d+),(\d+)\]\[(\d+),(\d+)\]"[^>]*>"#,
+            regex::escape(target_text)
+        )) {
+            let matches: Vec<_> = content_desc_re.captures_iter(xml_content).collect();
+            if !matches.is_empty() {
+                logs.push(format!("📍 在 content-desc 中找到 {} 个包含 '{}' 的元素", matches.len(), target_text));
+                
+                // 返回第一个匹配（通常是最相关的）
+                if let (Ok(left), Ok(top), Ok(right), Ok(bottom)) = (
+                    matches[0][1].parse::<i32>(),
+                    matches[0][2].parse::<i32>(),
+                    matches[0][3].parse::<i32>(),
+                    matches[0][4].parse::<i32>(),
+                ) {
+                    let center_x = (left + right) / 2;
+                    let center_y = (top + bottom) / 2;
+                    logs.push(format!("✅ 找到目标容器，坐标: ({}, {}), bounds=[{},{},{},{}]", 
+                                     center_x, center_y, left, top, right, bottom));
+                    return Ok((center_x, center_y));
+                }
+            }
+        }
+        
+        // 策略2: 查找 text 属性包含目标文本的元素
+        if let Ok(text_re) = Regex::new(&format!(
+            r#"<node[^>]*text="[^"]*{}[^"]*"[^>]*bounds="\[(\d+),(\d+)\]\[(\d+),(\d+)\]"[^>]*>"#,
+            regex::escape(target_text)
+        )) {
+            let matches: Vec<_> = text_re.captures_iter(xml_content).collect();
+            if !matches.is_empty() {
+                logs.push(format!("📍 在 text 属性中找到 {} 个包含 '{}' 的元素", matches.len(), target_text));
+                
+                // 返回第一个匹配
+                if let (Ok(left), Ok(top), Ok(right), Ok(bottom)) = (
+                    matches[0][1].parse::<i32>(),
+                    matches[0][2].parse::<i32>(),
+                    matches[0][3].parse::<i32>(),
+                    matches[0][4].parse::<i32>(),
+                ) {
+                    let center_x = (left + right) / 2;
+                    let center_y = (top + bottom) / 2;
+                    logs.push(format!("✅ 找到目标元素，坐标: ({}, {})", center_x, center_y));
+                    return Ok((center_x, center_y));
+                }
+            }
+        }
+        
+        // 策略3: bounds 可能在前面，调整正则顺序
+        if let Ok(alt_re) = Regex::new(&format!(
+            r#"<node[^>]*bounds="\[(\d+),(\d+)\]\[(\d+),(\d+)\]"[^>]*content-desc="[^"]*{}[^"]*"[^>]*>"#,
+            regex::escape(target_text)
+        )) {
+            let matches: Vec<_> = alt_re.captures_iter(xml_content).collect();
+            if !matches.is_empty() {
+                logs.push(format!("📍 (备用正则) 在 content-desc 中找到 {} 个元素", matches.len()));
+                
+                if let (Ok(left), Ok(top), Ok(right), Ok(bottom)) = (
+                    matches[0][1].parse::<i32>(),
+                    matches[0][2].parse::<i32>(),
+                    matches[0][3].parse::<i32>(),
+                    matches[0][4].parse::<i32>(),
+                ) {
+                    let center_x = (left + right) / 2;
+                    let center_y = (top + bottom) / 2;
+                    logs.push(format!("✅ 找到目标容器，坐标: ({}, {})", center_x, center_y));
+                    return Ok((center_x, center_y));
+                }
+            }
+        }
+        
+        // 🆕 策略4 (降级): 找不到特定文本时，找第一个同类结构的瀑布流卡片
+        // 这是 mode="first" 时的核心逻辑：用户想找任意瀑布流卡片，而不是特定的
+        logs.push(format!("⚠️ 未找到包含 '{}' 的元素，尝试降级策略：找第一个瀑布流卡片", target_text));
+        
+        if let Some((x, y)) = self.find_first_waterfall_card(xml_content, logs) {
+            logs.push(format!("✅ [降级成功] 找到第一个瀑布流卡片，坐标: ({}, {})", x, y));
+            return Ok((x, y));
+        }
+        
+        logs.push(format!("❌ 未找到包含 '{}' 的元素，且降级策略也失败", target_text));
+        Err(format!("在当前 XML 中未找到包含 '{}' 的元素，也未找到同类瀑布流卡片", target_text))
+    }
+    
+    /// 🆕 查找第一个瀑布流卡片（不依赖具体文本）
+    /// 
+    /// 瀑布流卡片的特征：
+    /// 1. 通常是 FrameLayout 或 ViewGroup
+    /// 2. 有 content-desc 且包含 "笔记"、"视频"、"直播" 等关键词
+    /// 3. 或者是 clickable=true 的大区域容器
+    fn find_first_waterfall_card(&self, xml_content: &str, logs: &mut Vec<String>) -> Option<(i32, i32)> {
+        use regex::Regex;
+        
+        logs.push("🔍 [降级策略] 查找第一个瀑布流卡片...".to_string());
+        
+        // 策略A: 查找 content-desc 包含 "笔记"、"视频"、"直播" 的卡片（小红书特征）
+        let card_keywords = ["笔记", "视频", "直播"];
+        
+        for keyword in &card_keywords {
+            if let Ok(re) = Regex::new(&format!(
+                r#"<node[^>]*content-desc="[^"]*{}[^"]*"[^>]*bounds="\[(\d+),(\d+)\]\[(\d+),(\d+)\]"[^>]*>"#,
+                keyword
+            )) {
+                if let Some(cap) = re.captures(xml_content) {
+                    if let (Ok(left), Ok(top), Ok(right), Ok(bottom)) = (
+                        cap[1].parse::<i32>(),
+                        cap[2].parse::<i32>(),
+                        cap[3].parse::<i32>(),
+                        cap[4].parse::<i32>(),
+                    ) {
+                        // 验证尺寸（瀑布流卡片通常较大）
+                        let width = right - left;
+                        let height = bottom - top;
+                        if width > 200 && height > 300 {
+                            let center_x = (left + right) / 2;
+                            let center_y = (top + bottom) / 2;
+                            logs.push(format!("📍 找到 {} 类型卡片，尺寸 {}x{}，坐标 ({}, {})", 
+                                             keyword, width, height, center_x, center_y));
+                            return Some((center_x, center_y));
+                        }
+                    }
+                }
+            }
+            
+            // 也尝试 bounds 在前的格式
+            if let Ok(re) = Regex::new(&format!(
+                r#"<node[^>]*bounds="\[(\d+),(\d+)\]\[(\d+),(\d+)\]"[^>]*content-desc="[^"]*{}[^"]*"[^>]*>"#,
+                keyword
+            )) {
+                if let Some(cap) = re.captures(xml_content) {
+                    if let (Ok(left), Ok(top), Ok(right), Ok(bottom)) = (
+                        cap[1].parse::<i32>(),
+                        cap[2].parse::<i32>(),
+                        cap[3].parse::<i32>(),
+                        cap[4].parse::<i32>(),
+                    ) {
+                        let width = right - left;
+                        let height = bottom - top;
+                        if width > 200 && height > 300 {
+                            let center_x = (left + right) / 2;
+                            let center_y = (top + bottom) / 2;
+                            logs.push(format!("📍 找到 {} 类型卡片 (备用正则)，坐标 ({}, {})", 
+                                             keyword, center_x, center_y));
+                            return Some((center_x, center_y));
+                        }
+                    }
+                }
+            }
+        }
+        
+        logs.push("❌ [降级策略] 未找到瀑布流卡片".to_string());
+        None
+    }
+
     /// 简化的 XPath 搜索实现
     /// 
     /// 🔥 增强: 支持多元素匹配时的空间距离过滤（修复 Bug: WRONG_ELEMENT_SELECTION_BUG_REPORT.md）
+    /// 🆕 支持 descendant::*[@text='xxx'] 语法用于瀑布流卡片等结构化匹配
     fn simple_xpath_search(&self, xml_content: &str, xpath: &str, logs: &mut Vec<String>) -> Result<(i32, i32), String> {
         use regex::Regex;
         
-        logs.push("🔧 使用简化 XPath 搜索算法 (支持空间过滤)...".to_string());
+        logs.push("🔧 使用简化 XPath 搜索算法 (支持空间过滤 + descendant 语法)...".to_string());
+        
+        // 🆕 [优先检查] 检测 descendant::*[@text='xxx'] 或 descendant::*[@content-desc contains 'xxx'] 语法
+        // 这是瀑布流卡片等结构化元素的典型 XPath
+        let descendant_text = self.extract_descendant_text(xpath);
+        if let Some(ref text) = descendant_text {
+            logs.push(format!("🎯 检测到 descendant 语法，目标子元素文本: '{}'", text));
+            return self.find_container_by_descendant_text(xml_content, text, logs);
+        }
         
         // 提取 XPath 中的属性条件
         let mut conditions = Vec::new();
@@ -260,9 +477,10 @@ impl XPathDirectStrategyProcessor {
             }
         }
         
-        // 匹配子元素条件 [.//*[@text='xxx']]
+        // 匹配子元素条件 [.//*[@text='xxx']] 或 [descendant::*[@text='xxx']]
         let mut child_text_condition: Option<String> = None;
-        if let Ok(child_re) = Regex::new(r#"\[\./\*\*\[@text='([^']+)'\]\]"#) {
+        // 支持两种格式: [.//*[@text='xxx']] 和 [descendant::*[@text='xxx']]
+        if let Ok(child_re) = Regex::new(r#"\[(?:\./\*\*|descendant::\*)\[@text='([^']+)'\]\]"#) {
             if let Some(cap) = child_re.captures(xpath) {
                 child_text_condition = Some(cap[1].to_string());
                 logs.push(format!("🎯 检测到子元素文本条件: {}", cap[1].to_string()));
@@ -447,6 +665,7 @@ mod tests {
             regex_excludes: HashMap::new(),
             fallback_bounds: None,
             original_xml: None, // 测试不使用原始XML
+            selection_mode: None, // 测试不指定选择模式
         };
         
         assert!(processor.validate_parameters(&context).is_ok());
@@ -477,6 +696,7 @@ mod tests {
             regex_excludes: HashMap::new(),
             fallback_bounds: None,
             original_xml: None, // 测试不使用原始XML
+            selection_mode: None, // 测试不指定选择模式
         };
         
         let result = processor.execute_xpath_query("invalid_xpath", &context, &mut logs).await;

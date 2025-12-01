@@ -17,14 +17,17 @@ pub struct MatchingContext {
     pub excludes: HashMap<String, Vec<String>>,
     /// 每字段匹配模式：equals | contains | regex
     pub match_mode: HashMap<String, String>,
-    /// 每字段“必须匹配”的正则
+    /// 每字段"必须匹配"的正则
     pub regex_includes: HashMap<String, Vec<String>>,
-    /// 每字段“不可匹配”的正则
+    /// 每字段"不可匹配"的正则
     pub regex_excludes: HashMap<String, Vec<String>>,
     pub fallback_bounds: Option<Value>,
     pub device_id: String,
     /// 🆕 原始XML快照（仅用于重放分析，真机操作时不使用）
     pub original_xml: Option<String>,
+    /// 🆕 选择模式: "first" | "exact" | "last" | "random" | "all"
+    /// 当 mode="first" 且有结构化 XPath 时，应忽略文本约束，找第一个同结构卡片
+    pub selection_mode: Option<String>,
 }
 
 /// 策略处理结果
