@@ -63,16 +63,54 @@ export function useIntelligentStepCardIntegrationRefactored(
       let xmlContent = "";
       let xmlHash = "";
       const xmlCacheId = (element as unknown as { xmlCacheId?: string }).xmlCacheId || "";
+      // 🔥 备份：从元素对象获取附带的 XML 内容
+      const backupXmlContent = (element as unknown as { _xmlContent?: string })._xmlContent || "";
+
+      console.log("[convertElementToContext] 🔍 XML缓存检查:", {
+        elementId: element.id,
+        xmlCacheId,
+        hasXmlCacheId: !!xmlCacheId,
+        hasBackupXmlContent: !!backupXmlContent,
+        backupXmlContentLength: backupXmlContent?.length || 0,
+      });
 
       if (xmlCacheId) {
         try {
           const cacheEntry = await XmlCacheManager.getInstance().getCachedXml(xmlCacheId);
+          console.log("[convertElementToContext] 🔍 缓存查询结果:", {
+            xmlCacheId,
+            found: !!cacheEntry,
+            xmlContentLength: cacheEntry?.xmlContent?.length || 0,
+          });
           if (cacheEntry) {
             xmlContent = cacheEntry.xmlContent;
             xmlHash = cacheEntry.xmlHash || generateXmlHash(xmlContent);
+          } else {
+            console.error("[convertElementToContext] ❌ 缓存未命中! xmlCacheId:", xmlCacheId);
+            // 🔥🔥 使用备份的 XML 内容
+            if (backupXmlContent) {
+              console.log("[convertElementToContext] 🔄 使用备份的 XML 内容");
+              xmlContent = backupXmlContent;
+              xmlHash = generateXmlHash(xmlContent);
+              // 🔥 将 XML 内容存入缓存，避免后续再次缓存未命中
+              XmlCacheManager.getInstance().putXml(xmlCacheId, xmlContent, `sha256:${xmlHash}`);
+              console.log("[convertElementToContext] ✅ 已将备份 XML 存入缓存:", xmlCacheId);
+            }
           }
         } catch (error) {
           console.warn("[convertElementToContext] 获取XML缓存失败:", error);
+          // 🔥🔥 异常时也使用备份
+          if (backupXmlContent) {
+            console.log("[convertElementToContext] 🔄 异常后使用备份的 XML 内容");
+            xmlContent = backupXmlContent;
+            xmlHash = generateXmlHash(xmlContent);
+          }
+        }
+      } else {
+        console.warn("[convertElementToContext] ⚠️ 元素没有xmlCacheId，尝试使用备份 XML");
+        if (backupXmlContent) {
+          xmlContent = backupXmlContent;
+          xmlHash = generateXmlHash(xmlContent);
         }
       }
 

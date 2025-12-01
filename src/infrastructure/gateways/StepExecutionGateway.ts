@@ -67,6 +67,7 @@ export interface StepExecutionRequest {
       text?: string;
       contentDesc?: string;
       bounds?: string;
+      indexPath?: number[]; // 🔧 FIX: 添加 indexPath 类型定义
     };
   };
   // 🔥 【关键修复】智能选择配置参数
@@ -545,8 +546,9 @@ export class StepExecutionGateway {
         screenHash: null,
         xmlCacheId: null,
         // 🔑 关键：如果 request 携带了 xmlSnapshot，自动传递
-        // ⚠️ 修正：仅在非执行模式（如分析/回放）下使用快照，真实执行必须使用实时XML
-        xmlContent: (request.mode === 'execute-step') ? null : (request.xmlSnapshot?.xmlContent ?? null),
+        // 🔧 FIX: 始终传递xmlContent用于结构匹配特征提取
+        // 后端会自动dump实时XML进行匹配，两者不冲突
+        xmlContent: request.xmlSnapshot?.xmlContent ?? null,
         executionMode: "relaxed",
       });
 
@@ -678,10 +680,13 @@ export class StepExecutionGateway {
                       undefined
                     : undefined,
                 // 🔥 NEW: 传递 original_data（失败恢复关键数据）
+                // 🔧 FIX: 结构匹配需要原始XML来提取特征模式，后端会自己dump实时XML进行匹配
+                // 之前的逻辑在execute-step模式下清空original_xml，导致结构匹配失效
                 original_data: request.xmlSnapshot
                   ? {
-                      // ⚠️ 修正：仅在非执行模式（如分析/回放）下传递XML内容，真实执行必须使用实时XML
-                      original_xml: (request.mode === 'execute-step') ? "" : (request.xmlSnapshot.xmlContent || ""),
+                      // 🔧 FIX: 始终传递original_xml，这是用于特征提取的参考XML
+                      // 后端会自动dump实时XML用于匹配，两者不冲突
+                      original_xml: request.xmlSnapshot.xmlContent || "",
                       xml_hash: request.xmlSnapshot.xmlHash || "",
                       selected_xpath:
                         request.xmlSnapshot.elementGlobalXPath ||
@@ -707,8 +712,8 @@ export class StepExecutionGateway {
                       strategy_type: "intelligent",
                       confidence: 0.8,
                       data_integrity: {
-                        // ⚠️ 修正：真实执行模式下标记为无XML
-                        has_original_xml: (request.mode === 'execute-step') ? false : !!request.xmlSnapshot?.xmlContent,
+                        // 🔧 FIX: 正确标记XML状态
+                        has_original_xml: !!request.xmlSnapshot?.xmlContent,
                         has_user_xpath: !!(
                           request.xmlSnapshot?.elementGlobalXPath ||
                           request.elementPath

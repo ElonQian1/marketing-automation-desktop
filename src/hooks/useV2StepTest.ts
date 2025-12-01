@@ -497,6 +497,7 @@ export function convertSmartStepToV2Request(
       contentDesc?: string;
       class?: string;
       childrenTexts?: string[];
+      indexPath?: number[]; // 🔧 FIX: 添加 indexPath 类型定义
     };
   } | undefined;
 

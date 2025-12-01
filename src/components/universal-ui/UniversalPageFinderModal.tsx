@@ -487,15 +487,19 @@ const UniversalPageFinderModal: React.FC<UniversalPageFinderModalProps> = ({
               elementKeys: Object.keys(selectionManager.pendingSelection.element).slice(0, 30)
             });
             
-            // 🔥 修复：附加 xmlCacheId 到元素对象
+            // 🔥 修复：附加 xmlCacheId 和 xmlContent 到元素对象
+            // 🔥🔥 重要：同时附加 xmlContent，确保即使缓存未命中也能正确处理
             const enhancedElement = {
               ...selectionManager.pendingSelection.element,
               xmlCacheId: currentXmlCacheId || `xml_${Date.now()}`, // 确保有有效的缓存 ID
+              _xmlContent: xmlContent, // 🔥 附加 XML 内容作为备份
             };
             
             console.log('✅ [UniversalPageFinderModal] 附加xmlCacheId到元素:', {
               elementId: enhancedElement.id,
               xmlCacheId: enhancedElement.xmlCacheId,
+              hasXmlContent: !!xmlContent,
+              xmlContentLength: xmlContent?.length || 0,
               hasIndexPath: !!(enhancedElement as any).indexPath,
               indexPath: (enhancedElement as any).indexPath,
               indexPathLength: (enhancedElement as any).indexPath?.length
@@ -504,11 +508,15 @@ const UniversalPageFinderModal: React.FC<UniversalPageFinderModalProps> = ({
             // 优先使用快速创建回调，如果没有则使用传统的元素选择回调
             if (onQuickCreate) {
               onQuickCreate(enhancedElement);
+              // 🔥 修复：快速创建后只清理状态，不调用 confirmSelection
+              // confirmSelection 会触发 onElementSelected，导致重复调用 handleQuickCreateStep
+              // 第二次调用的元素没有附加 xmlCacheId 和 _xmlContent，会覆盖第一次的正确数据
+              selectionManager.cancelSelection(); // 只清除 pendingSelection，不触发回调
             } else {
               onElementSelected?.(enhancedElement);
+              // 传统模式下仍然调用 confirmSelection
+              selectionManager.confirmSelection();
             }
-            // 清理选择状态
-            selectionManager.confirmSelection();
           }
         }}
       />
