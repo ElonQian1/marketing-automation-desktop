@@ -415,6 +415,8 @@ async fn execute_action_unified(
     
     // 2. 进行策略匹配，获取目标元素信息
     let mut values = HashMap::new();
+    let mut fields = vec!["text".to_string(), "resource-id".to_string()];
+    
     if let Some(text) = params.get("text").and_then(|v| v.as_str()) {
         values.insert("text".to_string(), text.to_string());
     }
@@ -422,9 +424,44 @@ async fn execute_action_unified(
         values.insert("resource-id".to_string(), resource_id.to_string());
     }
     
+    // 🆕 关键修复：传递 XPath 到策略匹配
+    // 尝试从多个可能的字段名获取 XPath（包括嵌套结构）
+    let xpath = params.get("xpath")
+        .and_then(|v| v.as_str())
+        .filter(|s| !s.is_empty() && *s != "//*[@clickable='true']") // 过滤无效的兜底xpath
+        .or_else(|| params.get("element_path").and_then(|v| v.as_str()))
+        .or_else(|| params.get("selected_xpath").and_then(|v| v.as_str()))
+        // 🆕 从嵌套的 originalParams.original_data.selected_xpath 中提取
+        .or_else(|| {
+            params.get("originalParams")
+                .and_then(|p| p.get("original_data"))
+                .and_then(|d| d.get("selected_xpath"))
+                .and_then(|v| v.as_str())
+        })
+        // 🆕 从嵌套的 originalParams.element_path 中提取
+        .or_else(|| {
+            params.get("originalParams")
+                .and_then(|p| p.get("element_path"))
+                .and_then(|v| v.as_str())
+        })
+        // 🆕 从嵌套的 original_data.selected_xpath 中提取
+        .or_else(|| {
+            params.get("original_data")
+                .and_then(|d| d.get("selected_xpath"))
+                .and_then(|v| v.as_str())
+        });
+    
+    if let Some(xpath_str) = xpath {
+        if !xpath_str.is_empty() {
+            tracing::info!("🎯 [XPath传递] 将XPath添加到匹配条件: {}", xpath_str);
+            values.insert("xpath".to_string(), xpath_str.to_string());
+            fields.push("xpath".to_string());
+        }
+    }
+    
     let criteria = MatchCriteriaDTO {
         strategy: "intelligent".to_string(),
-        fields: vec!["text".to_string(), "resource-id".to_string()],
+        fields,
         values,
         excludes: HashMap::new(),
         includes: HashMap::new(),

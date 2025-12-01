@@ -678,11 +678,28 @@ fn build_context_from_element(
 /// 1. 从 user_selection 中提取核心文本（如 "来自知恩"）
 /// 2. 在当前 XML 中全局搜索包含该文本的叶子节点
 /// 3. 向上查找最近的可点击容器（clickable=true）
+/// 🔥 关键修复：保留高质量的结构化XPath（如 descendant::）
 fn semantic_reverse_lookup(
     xml_content: &str,
     selection: &UserSelectionContext,
     exact_match: bool, // 🆕 新增参数：是否精确匹配
 ) -> Option<AnalysisContext> {
+    // 🆕 预先检测原始XPath是否是高质量的结构化XPath
+    let original_xpath = &selection.selected_xpath;
+    let is_high_quality_xpath = original_xpath.contains("descendant::")
+        || original_xpath.contains("ancestor::")
+        || original_xpath.contains("following-sibling::")
+        || original_xpath.contains("preceding-sibling::")
+        || original_xpath.contains("child::")
+        || original_xpath.contains("parent::")
+        || (original_xpath.contains("@text=") && original_xpath.contains("//*["));
+    
+    if is_high_quality_xpath {
+        tracing::info!("🎯 [语义反向查找] 检测到高质量结构化XPath，跳过语义查找，保留原始: {}", original_xpath);
+        // 对于高质量XPath，直接返回None，让调用者使用else分支保留原始XPath
+        return None;
+    }
+    
     // 1. 提取搜索关键词
     let mut keywords = Vec::new();
     
@@ -860,43 +877,64 @@ pub async fn mock_intelligent_analysis(
             tracing::info!("🚀 [语义反向查找] 成功锁定目标! bounds={:?}", ctx.bounds);
             ctx
         } else {
-            // 🔥 NEW: 使用 SmartXPathGenerator 增强 XPath（子元素文本过滤）
-//             Bug Fix: WRONG_ELEMENT_SELECTION_BUG_REPORT.md
-            use crate::services::execution::matching::{SmartXPathGenerator, ElementAttributes};
+            // 🔥 关键修复：检查原始XPath是否已经是高质量的结构化XPath
+            // 如果前端已经生成了 descendant:: 或其他高级XPath，应该直接使用，而不是覆盖
+            let original_xpath = &selection.selected_xpath;
+            let is_high_quality_xpath = original_xpath.contains("descendant::")
+                || original_xpath.contains("ancestor::")
+                || original_xpath.contains("following-sibling::")
+                || original_xpath.contains("preceding-sibling::")
+                || (original_xpath.contains("@text=") && original_xpath.contains("["))
+                || (original_xpath.contains("@content-desc=") && original_xpath.contains("["));
             
-            
-            let mut attributes = ElementAttributes::new();
-            
-            // 构建元素属性映射
-            if let Some(ref rid) = selection.resource_id {
-                attributes.insert("resource-id".to_string(), rid.clone());
-            }
-            if let Some(ref text) = selection.text {
-                if !text.is_empty() {
-                    attributes.insert("text".to_string(), text.clone());
-                }
-            }
-            if let Some(ref desc) = selection.content_desc {
-                if !desc.is_empty() {
-                    attributes.insert("content-desc".to_string(), desc.clone());
-                }
-            }
-            if let Some(ref class) = selection.class_name {
-                attributes.insert("class".to_string(), class.clone());
-            }
-            if let Some(ref bounds) = selection.bounds {
-                attributes.insert("bounds".to_string(), bounds.clone());
-            }
-            
-            // 使用智能生成器生成最佳 XPath（会自动使用子元素文本过滤）
-            let generator = SmartXPathGenerator::new();
-            let enhanced_xpath = if let Some(best_xpath) = generator.generate_best_xpath(&attributes) {
-                tracing::info!("✨ [XPath增强] 智能生成 XPath: {} (置信度: {:.2})", best_xpath.xpath, best_xpath.confidence);
-                tracing::info!("   原始XPath: {}", selection.selected_xpath);
-                best_xpath.xpath
+            let enhanced_xpath = if is_high_quality_xpath {
+                // ✅ 保留前端已生成的高质量结构化XPath，不要覆盖！
+                tracing::info!("🎯 [XPath保护] 检测到高质量结构化XPath，保留原始: {}", original_xpath);
+                original_xpath.clone()
             } else {
-                tracing::warn!("⚠️ [XPath增强] 智能生成失败，使用原始XPath");
-                selection.selected_xpath.clone()
+                // 只有当原始XPath不是高质量时，才尝试增强
+                use crate::services::execution::matching::{SmartXPathGenerator, ElementAttributes};
+                
+                let mut attributes = ElementAttributes::new();
+                
+                // 构建元素属性映射
+                if let Some(ref rid) = selection.resource_id {
+                    attributes.insert("resource-id".to_string(), rid.clone());
+                }
+                if let Some(ref text) = selection.text {
+                    if !text.is_empty() {
+                        attributes.insert("text".to_string(), text.clone());
+                    }
+                }
+                if let Some(ref desc) = selection.content_desc {
+                    if !desc.is_empty() {
+                        attributes.insert("content-desc".to_string(), desc.clone());
+                    }
+                }
+                if let Some(ref class) = selection.class_name {
+                    attributes.insert("class".to_string(), class.clone());
+                }
+                if let Some(ref bounds) = selection.bounds {
+                    attributes.insert("bounds".to_string(), bounds.clone());
+                }
+                
+                // 使用智能生成器生成最佳 XPath
+                let generator = SmartXPathGenerator::new();
+                if let Some(best_xpath) = generator.generate_best_xpath(&attributes) {
+                    // 只有当生成的XPath比原始的更好时才使用
+                    if best_xpath.confidence > 0.5 && !best_xpath.xpath.contains("@bounds=") {
+                        tracing::info!("✨ [XPath增强] 智能生成 XPath: {} (置信度: {:.2})", best_xpath.xpath, best_xpath.confidence);
+                        tracing::info!("   原始XPath: {}", selection.selected_xpath);
+                        best_xpath.xpath
+                    } else {
+                        // 生成的XPath质量不高，保留原始
+                        tracing::info!("🔒 [XPath保留] 生成的XPath质量不高(bounds fallback)，使用原始: {}", original_xpath);
+                        original_xpath.clone()
+                    }
+                } else {
+                    tracing::warn!("⚠️ [XPath增强] 智能生成失败，使用原始XPath");
+                    selection.selected_xpath.clone()
+                }
             };
             
             AnalysisContext {

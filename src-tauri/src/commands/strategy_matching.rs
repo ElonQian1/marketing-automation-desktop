@@ -118,6 +118,11 @@ pub async fn match_element_by_criteria(
     // 创建策略处理器
     let processor = create_strategy_processor(&criteria.strategy);
     
+    // 🆕 从 values 中提取 selection_mode（前端传入的 smartSelection.mode）
+    let selection_mode = criteria.values.get("selection_mode")
+        .or_else(|| criteria.values.get("mode"))
+        .cloned();
+    
     // 构造匹配上下文 - 根据正确的 MatchingContext 结构
     let mut context = MatchingContext {
         strategy: criteria.strategy.clone(),
@@ -131,6 +136,7 @@ pub async fn match_element_by_criteria(
         fallback_bounds: None, // 策略匹配不使用固化坐标
         device_id: device_id.clone(),
         original_xml: None, // 策略匹配命令不传递原始XML（总是获取最新）
+        selection_mode, // 🆕 传递选择模式
     };
 
     let mut logs = Vec::new();

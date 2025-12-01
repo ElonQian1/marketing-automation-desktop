@@ -262,7 +262,28 @@ pub fn convert_analysis_result_to_v3_steps_with_config(
                 s.to_string()
             })
             .or_else(|| {
-                // ⚠️ 只有在智能分析完全没有提供xpath时，才回退到简单生成
+                // 🆕 优先尝试从 preserved_config 中提取用户原始的结构化 XPath
+                if let Some(config) = preserved_config {
+                    // 尝试多个可能的路径
+                    let user_xpath = config.get("originalParams")
+                        .and_then(|p| p.get("original_data"))
+                        .and_then(|d| d.get("selected_xpath"))
+                        .and_then(|v| v.as_str())
+                        .or_else(|| config.get("originalParams")
+                            .and_then(|p| p.get("element_path"))
+                            .and_then(|v| v.as_str()))
+                        .or_else(|| config.get("element_path")
+                            .and_then(|v| v.as_str()));
+                    
+                    if let Some(xpath_str) = user_xpath {
+                        if !xpath_str.is_empty() && xpath_str != "//*[@clickable='true']" {
+                            tracing::info!("✅ [用户XPath恢复] 从preserved_config提取到用户原始XPath: {}", xpath_str);
+                            return Some(xpath_str.to_string());
+                        }
+                    }
+                }
+                
+                // ⚠️ 只有在智能分析完全没有提供xpath，且无法从config中恢复时，才回退到简单生成
                 tracing::warn!("⚠️ [XPath回退] 智能分析未提供XPath，使用策略回退生成");
                 match candidate.strategy.as_str() {
                     "self_anchor" => {
