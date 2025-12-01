@@ -327,7 +327,8 @@ export class IntelligentAnalysisBackendV3 {
           }
         })),
         threshold: chainSpec.threshold || 0.8,
-        mode: config.dryrun ? 'dryrun' : 'execute',
+        // 🔥 关键修复：如果设备ID是snapshot-mode，强制使用dryrun模式，防止尝试连接设备导致超时
+        mode: (config.dryrun || config.device_id === 'snapshot-mode') ? 'dryrun' : 'execute',
         // 可选配置保持默认值 (移除不存在的selection_mode字段)
         quality: {},
         constraints: {},

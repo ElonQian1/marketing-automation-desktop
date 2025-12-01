@@ -574,7 +574,11 @@ export function convertSmartStepToV2Request(
     // 🔥 【核心修复】传递 XPath 和 xmlSnapshot（完整数据）
     elementPath: effectiveXPath,  // ✅ 使用有效XPath
     xpath: effectiveXPath,  // ✅ 使用有效XPath
-    text: (params.text !== undefined ? params.text : xmlSnapshot?.elementSignature?.text) as string || '',
+    // 🔥 【核心修复】如果XPath包含descendant，说明是容器匹配，必须清除text/resourceId/contentDesc字段
+    // 避免后端错误地将"标题文本"（如子元素文本）当作容器自身的属性进行匹配
+    text: (effectiveXPath && effectiveXPath.includes('descendant::')) ? '' : ((params.text !== undefined ? params.text : xmlSnapshot?.elementSignature?.text) as string || ''),
+    contentDesc: (effectiveXPath && effectiveXPath.includes('descendant::')) ? '' : (xmlSnapshot?.elementSignature?.contentDesc || params.content_desc as string || ''),
+    resourceId: (effectiveXPath && effectiveXPath.includes('descendant::')) ? '' : (xmlSnapshot?.elementSignature?.resourceId || params.resource_id as string || ''),
     className: xmlSnapshot?.elementSignature?.class || params.class_name as string || '',
     xmlSnapshot: xmlSnapshot ? {
       xmlContent: xmlSnapshot.xmlContent,

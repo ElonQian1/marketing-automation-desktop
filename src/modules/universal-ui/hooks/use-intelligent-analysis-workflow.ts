@@ -788,8 +788,9 @@ export function useIntelligentAnalysisWorkflow(): UseIntelligentAnalysisWorkflow
               dryrun: deviceId === 'snapshot-mode', // 🚀 离线模式下启用dryrun，避免尝试连接不存在的设备
               enable_fallback: true, // 🚀 启用V2回退：确保业务连续性
               // 🚀 [离线支持] 传递XML缓存ID，允许无设备分析
+              // 如果是snapshot-mode，强制清空xmlCacheId，确保后端使用xmlContent而不是尝试查找缓存或连接设备
               // eslint-disable-next-line @typescript-eslint/no-explicit-any
-              xmlCacheId: (context as any).xmlCacheId || context.snapshotId,
+              xmlCacheId: (deviceId === 'snapshot-mode') ? undefined : ((context as any).xmlCacheId || context.snapshotId),
               // 🔥 关键修复：传递完整XML内容，防止后端尝试从 snapshot-mode 设备 dump
               // eslint-disable-next-line @typescript-eslint/no-explicit-any
               xmlContent: (context as any).xmlContent,
