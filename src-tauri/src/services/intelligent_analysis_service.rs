@@ -978,56 +978,61 @@ pub async fn mock_intelligent_analysis(
                    analysis_context.element_path);
     
     // 🎯 Step 0-2: 结构匹配评分（如果有 index_path）
-    let structure_match_scores: Vec<(&str, f64)> = Vec::new();
-//     let mut structure_match_scores = Vec::new();
-//     if let Some(ref user_selection) = request.user_selection {
-//         if let Some(ref index_path) = user_selection.index_path {
-//             tracing::info!("🔍 [结构匹配] 开始 Step1-2 评分，index_path: {:?}", index_path);
+    let mut structure_match_scores: Vec<(&str, f64)> = Vec::new();
+    if let Some(ref user_selection) = request.user_selection {
+        if let Some(ref index_path) = user_selection.index_path {
+            tracing::info!("🔍 [结构匹配] 开始 Step1-2 评分，index_path: {:?}", index_path);
             
-//             // 构建 XML 索引器
-//             match XmlIndexer::build_from_xml(&request.ui_xml_content) {
-//                 Ok(xml_indexer) => {
-//                     let xml_indexer_arc = std::sync::Arc::new(xml_indexer);
+            // 构建 XML 索引器
+            match XmlIndexer::build_from_xml(&request.ui_xml_content) {
+                Ok(xml_indexer) => {
+                    let xml_indexer_arc = std::sync::Arc::new(xml_indexer);
                     
-//                     // 通过 index_path 找到目标节点
-//                     if let Some(clicked_node_idx) = xml_indexer_arc.find_node_by_index_path(index_path) {
-//                         tracing::info!("✅ [结构匹配] 找到目标节点: index={}", clicked_node_idx);
+                    // 通过 index_path 找到目标节点
+                    if let Some(clicked_node_idx) = xml_indexer_arc.find_node_by_index_path(index_path) {
+                        tracing::info!("✅ [结构匹配] 找到目标节点: index={}", clicked_node_idx);
                         
-//                         // 推导四节点上下文 (用于 UnifiedMatchService)
-//                         let normalizer = ClickNormalizer::new(&xml_indexer_arc);
-//                         let clicked_node = &xml_indexer_arc.all_nodes[clicked_node_idx];
+                        // 推导四节点上下文 (用于 UnifiedMatchService)
+                        let normalizer = ClickNormalizer::new(&xml_indexer_arc);
+                        let clicked_node = &xml_indexer_arc.all_nodes[clicked_node_idx];
                         
-//                         // 尝试归一化，如果失败则传递 None (UnifiedMatchService 会处理降级)
-//                         let normalize_result = normalizer.normalize_click(clicked_node.bounds).ok();
+                        // 尝试归一化，如果失败则传递 None (UnifiedMatchService 会处理降级)
+                        let normalize_result = normalizer.normalize_click(clicked_node.bounds).ok();
                         
-//                         if let Some(ref norm) = normalize_result {
-//                              tracing::info!("✅ [结构匹配] 四节点推导完成: card_root={}, clickable_parent={}", 
-//                                    norm.card_root.node_index, norm.clickable_parent.node_index);
-//                         } else {
-//                              tracing::warn!("⚠️ [结构匹配] 四节点推导失败，将使用降级模式");
-//                         }
+                        if let Some(ref norm) = normalize_result {
+                             tracing::info!("✅ [结构匹配] 四节点推导完成: card_root={}, clickable_parent={}", 
+                                   norm.card_root.node_index, norm.clickable_parent.node_index);
+                        } else {
+                             tracing::warn!("⚠️ [结构匹配] 四节点推导失败，将使用降级模式");
+                        }
 
-//                         // 使用 UnifiedMatchService 执行所有匹配器
-//                         let unified_service = UnifiedMatchService::new();
-//                         match unified_service.analyze_element(xml_indexer_arc.clone(), clicked_node_idx, normalize_result.as_ref()) {
-//                             Ok(results) => {
-//                                 for result in results {
-//                                     tracing::info!("📊 [{}] 评分: {:.3}, 通过: {}", 
-//                                         result.mode.display_name(), result.confidence, result.passed_gate);
-//                                     // 🔥 修复：使用 key() 而不是 display_name() 作为 map key
-//                                     structure_match_scores.push((result.mode.key(), result.confidence as f64));
-//                     } else {
-//                         tracing::warn!("⚠️ [结构匹配] 通过 index_path 未找到目标节点");
-//                     }
-//                 }
-//                 Err(e) => {
-//                     tracing::warn!("⚠️ [结构匹配] 构建 XML 索引失败: {}", e);
-//                 }
-//             }
-//         } else {
-//             tracing::info!("ℹ️ [结构匹配] 无 index_path，跳过 Step1-2 评分");
-//         }
-//     }
+                        // 使用 UnifiedMatchService 执行所有匹配器
+                        let unified_service = UnifiedMatchService::new();
+                        match unified_service.analyze_element(xml_indexer_arc.clone(), clicked_node_idx, normalize_result.as_ref()) {
+                            Ok(results) => {
+                                for result in results {
+                                    tracing::info!("📊 [{}] 评分: {:.3}, 通过: {}", 
+                                        result.mode.display_name(), result.confidence, result.passed_gate);
+                                    // 🔥 修复：使用 key() 而不是 display_name() 作为 map key
+                                    structure_match_scores.push((result.mode.key(), result.confidence as f64));
+                                }
+                            }
+                            Err(e) => {
+                                tracing::warn!("⚠️ [结构匹配] UnifiedMatchService 分析失败: {}", e);
+                            }
+                        }
+                    } else {
+                        tracing::warn!("⚠️ [结构匹配] 通过 index_path 未找到目标节点");
+                    }
+                }
+                Err(e) => {
+                    tracing::warn!("⚠️ [结构匹配] 构建 XML 索引失败: {}", e);
+                }
+            }
+        } else {
+            tracing::info!("ℹ️ [结构匹配] 无 index_path，跳过 Step1-2 评分");
+        }
+    }
     
     // 🎯 Step 3-8: 使用 StrategyEngine 进行传统策略分析
     let strategy_engine = StrategyEngine::new();
@@ -1068,14 +1073,18 @@ pub async fn mock_intelligent_analysis(
                     "content-desc": us.content_desc.clone(),
                 },
                 
+                // 🔥 关键修复：添加 index_path（结构匹配执行必需）
+                "index_path": us.index_path.clone(),
+                
                 // 🔥 子元素文本列表（解决父容器+子文本模式）
-//                 "children_texts": us.children_texts.clone(),
+                "children_texts": us.children_texts.clone(),
                 
                 // 数据完整性标记
                 "data_integrity": {
                     "has_original_xml": !request.ui_xml_content.is_empty(),
                     "has_user_xpath": !us.selected_xpath.is_empty(),
                     "has_children_texts": !us.children_texts.is_empty(),
+                    "has_index_path": us.index_path.is_some(),
                     "extraction_timestamp": chrono::Utc::now().timestamp_millis()
                 }
             })

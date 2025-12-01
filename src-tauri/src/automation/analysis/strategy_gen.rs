@@ -325,6 +325,14 @@ pub fn convert_analysis_result_to_v3_steps_with_config(
             "mode": candidate.execution_params.get("mode").unwrap_or(&serde_json::json!("first"))
         });
         
+        // 🔥 关键修复：添加 bounds 参数，SmartTap 执行时需要用来直接点击
+        if let Some(bounds) = &candidate.element_info.bounds {
+            params["bounds"] = serde_json::json!(bounds);
+            tracing::info!("✅ [Bounds传递] 步骤 {} 添加 bounds: {}", index + 1, bounds);
+        } else {
+            tracing::warn!("⚠️ [Bounds缺失] 步骤 {} 没有 bounds 信息", index + 1);
+        }
+        
         // 🆕 关键修复：如果智能分析结果包含original_data，传递给执行步骤
         if let Some(original_data) = candidate.execution_params.get("original_data") {
             params["original_data"] = original_data.clone();

@@ -249,60 +249,72 @@ async fn execute_step_by_inline(
         SingleStepAction::SmartTap => {
             tracing::info!("👆 执行智能点击 (SmartTap)");
             
-            // 尝试从 params 中直接提取 bounds
-            if let Some(bounds_str) = params.get("bounds").and_then(|v| v.as_str()) {
-                // 解析 bounds: "[left,top,right,bottom]"
-                let re = regex::Regex::new(r"\[(\d+),(\d+),(\d+),(\d+)\]").unwrap();
-                if let Some(caps) = re.captures(bounds_str) {
-                    let left: i32 = caps[1].parse().unwrap_or(0);
-                    let top: i32 = caps[2].parse().unwrap_or(0);
-                    let right: i32 = caps[3].parse().unwrap_or(0);
-                    let bottom: i32 = caps[4].parse().unwrap_or(0);
+            // 🎯 关键修复：检测是否是结构匹配模式，如果是则使用真机结构匹配执行
+            let mode = params.get("mode").and_then(|v| v.as_str()).unwrap_or("traditional");
+            
+            if mode == "structure_matching" {
+                tracing::info!("🔍 检测到结构匹配模式，使用真机结构匹配执行");
+                
+                // 提取 index_path 和 original_data
+                let index_path = params.get("original_data")
+                    .and_then(|d| d.get("index_path"))
+                    .and_then(|v| v.as_array())
+                    .map(|arr| arr.iter()
+                        .filter_map(|v| v.as_u64().map(|n| n as usize))
+                        .collect::<Vec<_>>());
+                
+                let bounds_str = params.get("bounds").and_then(|v| v.as_str())
+                    .or_else(|| params.get("original_data")
+                        .and_then(|d| d.get("element_bounds"))
+                        .and_then(|v| v.as_str()));
+                
+                if let Some(index_path) = index_path {
+                    tracing::info!("📍 [结构匹配执行] 使用 index_path: {:?}", index_path);
                     
-                    use crate::types::action_types::ElementBounds;
-                    let bounds = ElementBounds::new(left, top, right, bottom);
-                    let center_x = (left + right) / 2;
-                    let center_y = (top + bottom) / 2;
-                    
-                    tracing::info!("📍 解析到目标区域: {:?}, 中心点: ({}, {})", bounds, center_x, center_y);
-                    
-                    // 构造 ActionContext
-                    use crate::services::action_executor::ActionExecutor;
-                    use crate::types::action_types::{ActionType, ActionContext};
-                    
-                    let context = ActionContext {
-                        device_id: envelope.device_id.clone(),
-                        target_bounds: Some(bounds),
-                        timeout: Some(5000),
-                        verify_with_screenshot: Some(false),
-                    };
-                    
-                    let executor = ActionExecutor::new();
-                    let action_type = ActionType::Click; // SmartTap 默认为点击
-                    
-                    match executor.execute_action(&action_type, &context).await {
-                        Ok(result) => {
-                            if result.success {
-                                tracing::info!("✅ SmartTap 执行成功");
-                                (0.9, Some((center_x, center_y)))
+                    // 🎯 调用真机结构匹配执行器
+                    match execute_structure_match_for_smart_tap(
+                        app,
+                        &envelope.device_id,
+                        &index_path,
+                        bounds_str.map(|s| s.to_string()),
+                    ).await {
+                        Ok((confidence, coords)) => {
+                            tracing::info!("✅ [结构匹配执行] 成功，置信度: {:.2}, 坐标: {:?}", confidence, coords);
+                            (confidence, coords)
+                        }
+                        Err(e) => {
+                            tracing::warn!("⚠️ [结构匹配执行] 失败: {}，回退到 bounds 直接点击", e);
+                            // 回退到 bounds 直接点击
+                            if let Some(bounds_str) = bounds_str {
+                                execute_smart_tap_by_bounds(&envelope.device_id, bounds_str).await?
                             } else {
-                                return Err(format!("SmartTap 执行失败: {}", result.message));
+                                return Err(format!("结构匹配执行失败且无 bounds 可回退: {}", e));
                             }
                         }
-                        Err(e) => return Err(format!("SmartTap 执行器错误: {}", e))
                     }
                 } else {
-                    tracing::warn!("⚠️ SmartTap bounds 格式无效: {}, 尝试通用执行", bounds_str);
+                    tracing::warn!("⚠️ [结构匹配执行] 缺少 index_path，回退到 bounds 直接点击");
+                    if let Some(bounds_str) = bounds_str {
+                        execute_smart_tap_by_bounds(&envelope.device_id, bounds_str).await?
+                    } else {
+                        // 最终回退到通用执行
+                        match execute_action_unified(envelope, &params).await {
+                            Ok((conf, coords)) => (conf, coords),
+                            Err(e) => return Err(e)
+                        }
+                    }
+                }
+            } else {
+                // 传统模式：直接使用 bounds 点击
+                // 尝试从 params 中直接提取 bounds
+                if let Some(bounds_str) = params.get("bounds").and_then(|v| v.as_str()) {
+                    execute_smart_tap_by_bounds(&envelope.device_id, bounds_str).await?
+                } else {
+                    tracing::warn!("⚠️ SmartTap 缺少 bounds 参数, 尝试通用执行");
                     match execute_action_unified(envelope, &params).await {
                         Ok((conf, coords)) => (conf, coords),
                         Err(e) => return Err(e)
                     }
-                }
-            } else {
-                tracing::warn!("⚠️ SmartTap 缺少 bounds 参数, 尝试通用执行");
-                match execute_action_unified(envelope, &params).await {
-                    Ok((conf, coords)) => (conf, coords),
-                    Err(e) => return Err(e)
                 }
             }
         }
@@ -658,4 +670,111 @@ fn extract_smart_selection_protocol(params: &Value) -> Result<SmartSelectionProt
         mode, target_text, min_confidence);
     
     Ok(protocol)
+}
+
+/// 🎯 真机结构匹配执行器
+/// 
+/// 使用 index_path 在真机上执行结构匹配，找到同类瀑布流卡片并点击
+async fn execute_structure_match_for_smart_tap(
+    _app: &AppHandle,
+    device_id: &str,
+    index_path: &[usize],
+    _bounds_str: Option<String>,
+) -> Result<(f32, Option<(i32, i32)>), String> {
+    use crate::services::adb::commands::adb_dump_ui_xml;
+    use crate::services::adb::commands::adb_tap_coordinate;
+    use crate::engine::XmlIndexer;
+    use crate::domain::structure_runtime_match::ClickNormalizer;
+    
+    tracing::info!("🔍 [结构匹配执行] 开始，device={}, index_path={:?}", device_id, index_path);
+    
+    // 1. 实时 dump 真机 XML
+    let ui_xml = adb_dump_ui_xml(device_id.to_string()).await
+        .map_err(|e| format!("获取真机UI XML失败: {}", e))?;
+    
+    tracing::info!("✅ [结构匹配执行] 获取真机XML成功，长度: {}", ui_xml.len());
+    
+    // 2. 构建 XML 索引器
+    let xml_indexer = XmlIndexer::build_from_xml(&ui_xml)
+        .map_err(|e| format!("构建XML索引失败: {}", e))?;
+    
+    // 3. 使用 index_path 查找目标节点
+    let clicked_node_idx = xml_indexer.find_node_by_index_path(index_path)
+        .ok_or_else(|| format!("通过 index_path 未找到目标元素: {:?}", index_path))?;
+    
+    tracing::info!("✅ [结构匹配执行] 找到目标节点: index={}", clicked_node_idx);
+    
+    // 4. 推导四节点上下文
+    let normalizer = ClickNormalizer::new(&xml_indexer);
+    let clicked_node = &xml_indexer.all_nodes[clicked_node_idx];
+    let normalized = normalizer.normalize_click(clicked_node.bounds)
+        .map_err(|e| format!("四节点推导失败: {}", e))?;
+    
+    tracing::info!("✅ [结构匹配执行] 四节点推导完成: clickable_parent={}", 
+        normalized.clickable_parent.node_index);
+    
+    // 5. 获取可点击父节点的 bounds 并计算中心点
+    let clickable_node = &xml_indexer.all_nodes[normalized.clickable_parent.node_index];
+    let (left, top, right, bottom) = clickable_node.bounds;
+    let center_x = (left + right) / 2;
+    let center_y = (top + bottom) / 2;
+    
+    tracing::info!("📍 [结构匹配执行] 目标点击坐标: ({}, {}), bounds={:?}", 
+        center_x, center_y, clickable_node.bounds);
+    
+    // 6. 执行点击
+    adb_tap_coordinate(device_id.to_string(), center_x, center_y).await
+        .map_err(|e| format!("点击执行失败: {}", e))?;
+    
+    tracing::info!("✅ [结构匹配执行] 点击成功");
+    
+    Ok((0.95, Some((center_x, center_y))))
+}
+
+/// 🎯 通过 bounds 直接点击
+async fn execute_smart_tap_by_bounds(
+    device_id: &str,
+    bounds_str: &str,
+) -> Result<(f32, Option<(i32, i32)>), String> {
+    use crate::services::action_executor::ActionExecutor;
+    use crate::types::action_types::{ActionType, ActionContext, ElementBounds};
+    
+    // 解析 bounds: "[left,top][right,bottom]"
+    let re = regex::Regex::new(r"\[(\d+),(\d+)\]\[(\d+),(\d+)\]").unwrap();
+    if let Some(caps) = re.captures(bounds_str) {
+        let left: i32 = caps[1].parse().unwrap_or(0);
+        let top: i32 = caps[2].parse().unwrap_or(0);
+        let right: i32 = caps[3].parse().unwrap_or(0);
+        let bottom: i32 = caps[4].parse().unwrap_or(0);
+        
+        let bounds = ElementBounds::new(left, top, right, bottom);
+        let center_x = (left + right) / 2;
+        let center_y = (top + bottom) / 2;
+        
+        tracing::info!("📍 [Bounds点击] 解析到目标区域: {:?}, 中心点: ({}, {})", bounds, center_x, center_y);
+        
+        let context = ActionContext {
+            device_id: device_id.to_string(),
+            target_bounds: Some(bounds),
+            timeout: Some(5000),
+            verify_with_screenshot: Some(false),
+        };
+        
+        let executor = ActionExecutor::new();
+        let action_type = ActionType::Click;
+        
+        match executor.execute_action(&action_type, &context).await {
+            Ok(result) => {
+                if result.success {
+                    tracing::info!("✅ [Bounds点击] 执行成功");
+                    Ok((0.9, Some((center_x, center_y))))
+                } else {
+                    Err(format!("Bounds点击失败: {}", result.message))
+                }
+            }
+            Err(e) => Err(format!("Bounds点击执行器错误: {}", e))
+        }
+    } else {
+        Err(format!("Bounds格式无效: {}", bounds_str))
+    }
 }
