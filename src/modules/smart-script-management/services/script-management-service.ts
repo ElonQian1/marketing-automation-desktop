@@ -23,7 +23,7 @@ export class ScriptManagementService {
    */
   static async saveScript(script: SmartScript): Promise<SmartScript> {
     try {
-      const result = await invoke('save_smart_script', {
+      const result = await invoke('plugin:script_manager|save_smart_script', {
         script: script
       }) as SmartScript;
       
@@ -41,7 +41,7 @@ export class ScriptManagementService {
   static async loadScript(scriptId: string): Promise<SmartScript> {
     try {
       console.log('🔍 调用load_smart_script，参数:', { scriptId: scriptId });
-      const result = await invoke('load_smart_script', {
+      const result = await invoke('plugin:script_manager|load_smart_script', {
         scriptId: scriptId
       }) as SmartScript;
       
@@ -58,7 +58,7 @@ export class ScriptManagementService {
    */
   static async deleteScript(scriptId: string): Promise<void> {
     try {
-      await invoke('delete_smart_script', {
+      await invoke('plugin:script_manager|delete_smart_script', {
         scriptId: scriptId
       });
       
@@ -74,7 +74,7 @@ export class ScriptManagementService {
    */
   static async getScriptList(): Promise<ScriptListItem[]> {
     try {
-      const result = await invoke('list_smart_scripts') as ScriptListItem[];
+      const result = await invoke('plugin:script_manager|list_smart_scripts') as ScriptListItem[];
       
       console.log('✅ 脚本列表获取成功:', result.length);
       return result;
@@ -115,7 +115,7 @@ export class ScriptManagementService {
       });
       
       // 执行脚本
-      const result = await invoke('execute_smart_automation_script', invokeParams) as ScriptExecutionResult;
+      const result = await invoke('plugin:script_manager|execute_smart_automation_script', invokeParams) as ScriptExecutionResult;
       
       console.log('✅ [ScriptManagementService] 脚本执行完成:', result);
       return result;
@@ -130,7 +130,7 @@ export class ScriptManagementService {
    */
   static async exportScript(scriptId: string): Promise<ScriptExportData> {
     try {
-      const result = await invoke('export_smart_script', {
+      const result = await invoke('plugin:script_manager|export_smart_script', {
         scriptId: scriptId
       }) as ScriptExportData;
       
@@ -147,7 +147,7 @@ export class ScriptManagementService {
    */
   static async importScript(exportData: ScriptExportData): Promise<SmartScript[]> {
     try {
-      const result = await invoke('import_smart_script', {
+      const result = await invoke('plugin:script_manager|import_smart_script', {
         export_data: exportData
       }) as SmartScript[];
       
@@ -164,7 +164,7 @@ export class ScriptManagementService {
    */
   static async getTemplateList(): Promise<ScriptTemplate[]> {
     try {
-      const result = await invoke('list_script_templates') as ScriptTemplate[];
+      const result = await invoke('plugin:script_manager|list_script_templates') as ScriptTemplate[];
       
       console.log('✅ 模板列表获取成功:', result.length);
       return result;
@@ -183,7 +183,7 @@ export class ScriptManagementService {
     scriptDescription?: string
   ): Promise<SmartScript> {
     try {
-      const result = await invoke('create_script_from_template', {
+      const result = await invoke('plugin:script_manager|create_script_from_template', {
         template_id: templateId,
         script_name: scriptName,
         script_description: scriptDescription
