@@ -52,9 +52,9 @@ use services::contact_storage::commands::{
 };
 use services::contact_verification::verify_contacts_fast;
 use services::device_contact_metrics::get_device_contact_count;
-use services::diagnostic_service::{
-    get_adb_path_cmd, get_environment_info, run_full_diagnostic, test_device_responsiveness,
-};
+// use services::diagnostic_service::{
+//    get_adb_path_cmd, get_environment_info, run_full_diagnostic, test_device_responsiveness,
+// };
 
 // ==================== 📋 模块化命令导入 ====================
 use commands::*; // 集中导入所有模块化命令
@@ -109,6 +109,8 @@ fn main() {
         .plugin(modules::employees::init())       // ✅ 注册员工管理插件
         .plugin(modules::contacts::init())        // ✅ 注册联系人插件
         .plugin(modules::image_optimization::init()) // ✅ 注册图片优化插件
+        .plugin(modules::system_diagnostic::init())  // ✅ 注册系统诊断插件
+        .plugin(modules::file_manager::init())       // ✅ 注册文件管理插件
         .manage(Mutex::new(AdbService::new()))
         .manage(Mutex::new(EmployeeService::new()))
         .manage(SmartAppManagerState::new())
@@ -141,8 +143,8 @@ fn main() {
             // disconnect_adb_device, // Moved to plugin:adb
             // start_adb_server, // Moved to plugin:adb
             // kill_adb_server, // Moved to plugin:adb
-            validate_device_connection,
-            get_ui_dump,
+            // validate_device_connection, // Moved to plugin:adb
+            // get_ui_dump, // Moved to plugin:adb
             // ==================== 🔧 ADB扩展 (9个命令) ====================
             // get_device_properties, // Moved to plugin:adb
             // start_device_tracking, // Moved to plugin:adb
@@ -154,13 +156,13 @@ fn main() {
             // detect_smart_adb_path, // Moved to plugin:adb
             // detect_ldplayer_adb, // Moved to plugin:adb
             // ==================== 📁 文件操作 (7个命令) ====================
-            read_file_content,
-            save_file_dialog,
-            write_file,
-            delete_file,
-            read_file_as_data_url,
-            reveal_in_file_manager,
-            clear_adb_keys,
+            // read_file_content, // Moved to plugin:file_manager
+            // save_file_dialog, // Moved to plugin:file_manager
+            // write_file, // Moved to plugin:file_manager
+            // delete_file, // Moved to plugin:file_manager
+            // read_file_as_data_url, // Moved to plugin:file_manager
+            // reveal_in_file_manager, // Moved to plugin:file_manager
+            // clear_adb_keys, // Moved to plugin:file_manager
             // ==================== 🗂️ 缓存管理 (9个命令) ====================
             debug_xml_cache_paths,
             list_xml_cache_files,
@@ -182,10 +184,10 @@ fn main() {
             // get_device_apps, // Moved to plugin:adb
             // get_device_apps_paged, // Moved to plugin:adb
             // get_app_icon, // Moved to plugin:adb
-            search_device_apps,
-            launch_device_app,
-            get_cached_device_apps,
-            get_popular_apps,
+            // search_device_apps, // Moved to plugin:adb
+            // launch_device_app, // Moved to plugin:adb
+            // get_cached_device_apps, // Moved to plugin:adb
+            // get_popular_apps, // Moved to plugin:adb
             // ==================== 📞 联系人管理 (8个命令) ====================
             // list_contact_numbers, // Moved to plugin:contacts
             // list_contact_numbers_without_batch, // Moved to plugin:contacts
@@ -225,12 +227,12 @@ fn main() {
             // get_smart_selection_stats, // Moved to plugin
             // validate_smart_selection_protocol, // Moved to plugin
             // ==================== 🔍 系统诊断 (6个命令) ====================
-            backend_ping,
-            analysis_health_check,
-            get_adb_path_cmd,
-            get_environment_info,
-            test_device_responsiveness,
-            run_full_diagnostic,
+            // backend_ping, // Moved to plugin:system_diagnostic
+            // analysis_health_check, // Moved to plugin:system_diagnostic
+            // get_adb_path_cmd, // Moved to plugin:system_diagnostic
+            // get_environment_info, // Moved to plugin:system_diagnostic
+            // test_device_responsiveness, // Moved to plugin:system_diagnostic
+            // run_full_diagnostic, // Moved to plugin:system_diagnostic
             // ==================== 🔮 分析缓存 (10个命令) ====================
             parse_cached_xml_to_elements,
             link_step_snapshot,
