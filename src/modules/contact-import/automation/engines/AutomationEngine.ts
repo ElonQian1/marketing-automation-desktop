@@ -141,7 +141,7 @@ export class AutomationEngine {
    */
   private async capturePageXml(): Promise<string | null> {
     try {
-      const result = await invokeCompat<string>('adb_dump_ui_xml', {
+      const result = await invokeCompat<string>('plugin:adb|dump_ui', {
         deviceId: this.deviceId
       });
       return result || null;
@@ -215,20 +215,11 @@ export class AutomationEngine {
    */
   private async performElementClick(elementMatch: any): Promise<boolean> {
     try {
-      // 通过resource-id点击
-      if (elementMatch.resourceId) {
-        const result = await invokeCompat('adb_click_element', {
-          deviceId: this.deviceId,
-          resourceId: elementMatch.resourceId
-        });
-        return result === true;
-      }
-
       // 通过坐标点击（备用方案）
       if (elementMatch.bounds) {
         const bounds = this.parseBounds(elementMatch.bounds);
         if (bounds) {
-          const result = await invokeCompat('adb_tap_coordinate', {
+          const result = await invokeCompat('plugin:adb|tap', {
             deviceId: this.deviceId,
             x: bounds.centerX,
             y: bounds.centerY

@@ -271,20 +271,20 @@ export class ImportStrategyExecutor {
     try {
       // 先创建目录（如果不存在）
       try {
-        await invokeCompat('safe_adb_shell_command', {
+        await invokeCompat('plugin:adb|shell', {
           deviceId,
-          shellCommand: 'mkdir -p /sdcard/Android/data/com.android.contacts/files'
-        }, { forceCamel: true });
+          command: 'mkdir -p /sdcard/Android/data/com.android.contacts/files'
+        });
         console.log('✅ 确保专属目录存在');
       } catch (mkdirError) {
         console.warn('⚠️ 创建目录失败（可能已存在）:', mkdirError);
       }
 
-      const result = await invokeCompat('safe_adb_push', {
+      const result = await invokeCompat('plugin:adb|push', {
         deviceId,
         localPath: localVcfPath,
         remotePath: devicePath
-      }, { forceCamel: true });
+      });
 
       console.log(`✅ 文件推送成功: ${result}`);
       return devicePath;
@@ -294,11 +294,11 @@ export class ImportStrategyExecutor {
       const fallbackPath = '/sdcard/temp_import.vcf';
       
       try {
-        const result = await invokeCompat('safe_adb_push', {
+        const result = await invokeCompat('plugin:adb|push', {
           deviceId,
           localPath: localVcfPath,
           remotePath: fallbackPath
-        }, { forceCamel: true });
+        });
         
         console.log(`✅ 文件推送成功（备用路径）: ${result}`);
         return fallbackPath;
@@ -440,10 +440,10 @@ export class ImportStrategyExecutor {
   async cleanup(deviceId: string): Promise<void> {
     try {
       // 清理两个可能的路径
-      await invokeCompat('safe_adb_shell_command', {
+      await invokeCompat('plugin:adb|shell', {
         deviceId,
-        shellCommand: 'rm -f /sdcard/Android/data/com.android.contacts/files/temp_import.vcf /sdcard/temp_import.vcf'
-      }, { forceCamel: true });
+        command: 'rm -f /sdcard/Android/data/com.android.contacts/files/temp_import.vcf /sdcard/temp_import.vcf'
+      });
       
       console.log('🧹 清理临时文件完成');
     } catch (error) {
