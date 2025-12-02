@@ -119,18 +119,17 @@ fn main() {
         .plugin(modules::enhanced_location::init())  // ✅ 注册增强定位插件
         .plugin(modules::lead_hunt::init())          // ✅ 注册精准获客插件
         .plugin(modules::script_manager::init())     // ✅ 注册脚本管理插件
+        .plugin(modules::prospecting::init())        // ✅ 注册潜客挖掘插件
         .manage(Mutex::new(AdbService::new()))
         .manage(Mutex::new(EmployeeService::new()))
         .manage(SmartAppManagerState::new())
-        .manage(ai::commands::AppState {
-            settings: parking_lot::RwLock::new(ai::ai_config::load_settings()),
-        })
-        .manage(commands::prospecting::ProspectingState::new())
+
+
         .manage(commands::enhanced_location_commands::XPathGeneratorState::new(
             services::execution::matching::SmartXPathGenerator::new(),
         ))
         // .manage(commands::smart_selection::SmartSelectionState::new()) // Removed as part of refactoring
-        .manage(ScriptManagerState::new())
+
         // 应用关闭清理外部进程（scrcpy 等）
         .on_window_event(|_window, event| {
             if let tauri::WindowEvent::CloseRequested { .. } = event {
