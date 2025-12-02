@@ -111,6 +111,7 @@ fn main() {
         .plugin(modules::image_optimization::init()) // ✅ 注册图片优化插件
         .plugin(modules::system_diagnostic::init())  // ✅ 注册系统诊断插件
         .plugin(modules::file_manager::init())       // ✅ 注册文件管理插件
+        .plugin(modules::xml_cache::init())          // ✅ 注册XML缓存插件
         .manage(Mutex::new(AdbService::new()))
         .manage(Mutex::new(EmployeeService::new()))
         .manage(SmartAppManagerState::new())
@@ -164,15 +165,15 @@ fn main() {
             // reveal_in_file_manager, // Moved to plugin:file_manager
             // clear_adb_keys, // Moved to plugin:file_manager
             // ==================== 🗂️ 缓存管理 (9个命令) ====================
-            debug_xml_cache_paths,
-            list_xml_cache_files,
-            read_xml_cache_file,
-            get_xml_file_size,
-            get_xml_file_absolute_path,
-            delete_xml_cache_artifacts,
-            get_cache_system_status,
-            validate_cache_consistency_cmd,
-            force_clear_all_caches_cmd,
+            // debug_xml_cache_paths, // Moved to plugin:xml_cache
+            // list_xml_cache_files, // Moved to plugin:xml_cache
+            // read_xml_cache_file, // Moved to plugin:xml_cache
+            // get_xml_file_size, // Moved to plugin:xml_cache
+            // get_xml_file_absolute_path, // Moved to plugin:xml_cache
+            // delete_xml_cache_artifacts, // Moved to plugin:xml_cache
+            // get_cache_system_status, // Moved to plugin:xml_cache
+            // validate_cache_consistency_cmd, // Moved to plugin:xml_cache
+            // force_clear_all_caches_cmd, // Moved to plugin:xml_cache
             // ==================== 📞 联系人核心 (6个命令) ====================
             // parse_contact_file, // Moved to plugin:contacts
             // get_contact_file_info, // Moved to plugin:contacts
@@ -234,16 +235,16 @@ fn main() {
             // test_device_responsiveness, // Moved to plugin:system_diagnostic
             // run_full_diagnostic, // Moved to plugin:system_diagnostic
             // ==================== 🔮 分析缓存 (10个命令) ====================
-            parse_cached_xml_to_elements,
-            link_step_snapshot,
-            unlink_step_snapshot,
-            get_snapshot_reference_info,
-            get_all_snapshot_references,
-            register_snapshot_cmd,
-            get_subtree_metrics_cmd,
-            try_get_subtree_metrics_cmd,
-            batch_get_subtree_metrics_cmd,
-            get_cache_stats_cmd,
+            // parse_cached_xml_to_elements, // Moved to plugin:xml_cache
+            // link_step_snapshot, // Moved to plugin:xml_cache
+            // unlink_step_snapshot, // Moved to plugin:xml_cache
+            // get_snapshot_reference_info, // Moved to plugin:xml_cache
+            // get_all_snapshot_references, // Moved to plugin:xml_cache
+            // register_snapshot_cmd, // Moved to plugin:xml_cache
+            // get_subtree_metrics_cmd, // Moved to plugin:xml_cache
+            // try_get_subtree_metrics_cmd, // Moved to plugin:xml_cache
+            // batch_get_subtree_metrics_cmd, // Moved to plugin:xml_cache
+            // get_cache_stats_cmd, // Moved to plugin:xml_cache
             // ==================== 📋 版本控制 (15个命令) ====================
             init_version_control,
             create_version,
