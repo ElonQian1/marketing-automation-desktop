@@ -36,15 +36,27 @@ pub fn emit_complete(
     scores: Option<Vec<StepScore>>,
     result: Option<ResultPayload>,
 ) -> Result<(), String> {
-    let event = ExecEventV3::Complete {
+    tracing::info!(
+        "📤 [事件] 准备发射 analysis:complete 事件 - analysis_id={:?}, ok={:?}",
         analysis_id,
+        result.as_ref().map(|r| r.ok)
+    );
+    
+    let event = ExecEventV3::Complete {
+        analysis_id: analysis_id.clone(),
         summary,
         scores,
         result,
     };
     
-    app.emit("analysis:complete", &event)
-        .map_err(|e| format!("发射 complete 事件失败: {}", e))
+    let emit_result = app.emit("analysis:complete", &event);
+    
+    match &emit_result {
+        Ok(_) => tracing::info!("✅ [事件] analysis:complete 事件发射成功 - analysis_id={:?}", analysis_id),
+        Err(e) => tracing::error!("❌ [事件] analysis:complete 事件发射失败 - error={}", e),
+    }
+    
+    emit_result.map_err(|e| format!("发射 complete 事件失败: {}", e))
 }
 
 /// 便捷方法：发射设备就绪阶段
