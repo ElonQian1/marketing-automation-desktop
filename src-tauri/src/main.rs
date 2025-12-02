@@ -112,6 +112,7 @@ fn main() {
         .plugin(modules::system_diagnostic::init())  // ✅ 注册系统诊断插件
         .plugin(modules::file_manager::init())       // ✅ 注册文件管理插件
         .plugin(modules::xml_cache::init())          // ✅ 注册XML缓存插件
+        .plugin(modules::intelligent_analysis::init()) // ✅ 注册智能分析插件
         .manage(Mutex::new(AdbService::new()))
         .manage(Mutex::new(EmployeeService::new()))
         .manage(SmartAppManagerState::new())
@@ -208,12 +209,12 @@ fn main() {
             // create_vcf_batch_with_numbers_cmd, // Moved to plugin:contacts
             // smart_vcf_opener, // Moved to plugin:contacts
             // ==================== 🧠 智能分析V2 (6个命令) ====================
-            start_intelligent_analysis,
-            cancel_intelligent_analysis,
-            bind_analysis_result_to_step,
-            get_step_strategy,
-            clear_step_strategy,
-            run_step_v2,
+            // start_intelligent_analysis, // Moved to plugin:intelligent_analysis
+            // cancel_intelligent_analysis, // Moved to plugin:intelligent_analysis
+            // bind_analysis_result_to_step, // Moved to plugin:intelligent_analysis
+            // get_step_strategy, // Moved to plugin:intelligent_analysis
+            // clear_step_strategy, // Moved to plugin:intelligent_analysis
+            // run_step_v2, // Moved to plugin:intelligent_analysis
             // ==================== 🚀 V3执行引擎 (4个命令) ====================
             execute_single_step_test_v3,
             execute_chain_test_v3,

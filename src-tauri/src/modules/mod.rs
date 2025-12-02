@@ -7,3 +7,5 @@ pub mod image_optimization;
 pub mod system_diagnostic;
 pub mod file_manager;
 pub mod xml_cache;
+pub mod intelligent_analysis;
+pub mod execution_v3;
