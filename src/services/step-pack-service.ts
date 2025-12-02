@@ -209,7 +209,7 @@ export async function importStepPack(stepPack: StepPack): Promise<StepPackImport
       validation: {}
     };
 
-    await invoke('execute_chain_test_v3', {
+    await invoke('plugin:execution_v3|execute_chain_test_v3', {
       envelope,
       spec
     });
