@@ -594,7 +594,7 @@ export class StepExecutionGateway {
       let savedBatchConfig = null;
       let savedStructuralSignatures: unknown = null;
       try {
-        const stepStrategy = await invoke("get_step_strategy", {
+        const stepStrategy = await invoke("plugin:intelligent_analysis|get_step_strategy", {
           stepId: request.stepId,
         });
 

@@ -129,7 +129,7 @@ export function useAnalysisAutoFill(config: AutoFillConfig = {}) {
         };
         
         const response = await invoke<BindAnalysisResultResponse>(
-          'bind_analysis_result_to_step',
+          'plugin:intelligent_analysis|bind_analysis_result_to_step',
           { request }
         );
         

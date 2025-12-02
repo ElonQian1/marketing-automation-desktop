@@ -220,7 +220,7 @@ export class IntelligentAnalysisBackendService {
 
     try {
       const response = await invoke<TauriAnalysisJobResponse>(
-        "start_intelligent_analysis",
+        "plugin:intelligent_analysis|start_intelligent_analysis",
         { config }
       );
 
@@ -239,7 +239,7 @@ export class IntelligentAnalysisBackendService {
     console.log("⏹️ [BackendService] 取消分析", jobId);
 
     try {
-      await invoke("cancel_intelligent_analysis", { job_id: jobId });
+      await invoke("plugin:intelligent_analysis|cancel_intelligent_analysis", { job_id: jobId });
       console.log("✅ [BackendService] 分析已取消");
     } catch (error) {
       console.error("❌ [BackendService] 取消分析失败", error);
