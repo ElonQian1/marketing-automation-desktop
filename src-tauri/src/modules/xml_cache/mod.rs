@@ -15,6 +15,8 @@ use crate::domain::analysis_cache::{
 use crate::domain::analysis_cache::api::{register_snapshot, get_or_compute_subtree, try_get_subtree};
 use crate::domain::analysis_cache::types::SubtreeMetricsDto;
 
+mod enhanced; // ✅ Add enhanced cache module
+
 // ==================== 📁 XML Cache Management ====================
 
 #[tauri::command]
@@ -555,6 +557,17 @@ pub fn init<R: Runtime>() -> TauriPlugin<R> {
             parse_cached_xml_to_elements,
             debug_xml_cache_paths,
             
+            // Enhanced Cache
+            enhanced::enhanced_cache_file_exists,
+            enhanced::get_enhanced_cache_stats,
+            enhanced::cleanup_enhanced_cache,
+            enhanced::clear_all_enhanced_cache,
+            enhanced::read_enhanced_cache_file,
+            enhanced::save_enhanced_cache_file,
+            enhanced::get_enhanced_cache_metadata,
+            enhanced::clear_enhanced_cache_directory,
+            enhanced::delete_enhanced_cache_file,
+
             // Analysis Cache
             link_step_snapshot,
             unlink_step_snapshot,

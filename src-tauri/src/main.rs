@@ -115,6 +115,7 @@ fn main() {
         .plugin(modules::intelligent_analysis::init()) // ✅ 注册智能分析插件
         .plugin(modules::execution_v3::init())       // ✅ 注册V3执行引擎插件
         .plugin(modules::version_control::init())    // ✅ 注册版本控制插件
+        .plugin(modules::automation::init())         // ✅ 注册自动化插件
         .manage(Mutex::new(AdbService::new()))
         .manage(Mutex::new(EmployeeService::new()))
         .manage(SmartAppManagerState::new())
