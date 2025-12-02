@@ -230,7 +230,7 @@ export function useIntelligentAnalysisReal(options: UseIntelligentAnalysisRealOp
     try {
       console.log('⏹️ [真实调用] 取消分析', currentJob.jobId);
       
-      await invoke('cancel_intelligent_analysis', {
+      await invoke('plugin:intelligent_analysis|cancel_intelligent_analysis', {
         jobId: currentJob.jobId,
       });
       
