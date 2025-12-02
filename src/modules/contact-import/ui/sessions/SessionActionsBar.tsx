@@ -127,8 +127,8 @@ const SessionActionsBar: React.FC<Props> = ({ mode, batch, numbers, targetDevice
       const rows = numbers.items.map(n => ({ id: n.id, phone: n.phone, name: n.name ?? '', source: n.source_file ?? '', created_at: n.created_at }));
       const csv = toCsvWithLabels(rows, ['id', 'phone', 'name', 'source', 'created_at'], ['ID', '号码', '姓名', '来源', '时间']);
       const filename = buildCsvNameFromTemplate(undefined, { prefix: batch ? `numbers-${batch.batch_id}` : 'numbers-view' });
-      await invoke('write_file', { path: filename, content: csv });
-      await invoke('reveal_in_file_manager', { path: filename });
+      await invoke('plugin:file_manager|write_text', { path: filename, content: csv });
+      await invoke('plugin:file_manager|reveal', { path: filename });
       message.success(`已导出 CSV 至: ${filename}`);
     } catch (e: any) {
       message.error(`导出失败: ${e?.message ?? e}`);
@@ -143,7 +143,7 @@ const SessionActionsBar: React.FC<Props> = ({ mode, batch, numbers, targetDevice
     try {
       setLoading('exportVcf');
       const path = await VcfActions.regenerateVcfForBatch(batch, numbers.items as any);
-      await invoke('reveal_in_file_manager', { path });
+      await invoke('plugin:file_manager|reveal', { path });
       message.success(`已导出 VCF 至: ${path}`);
     } catch (e: any) {
       message.error(`导出失败: ${e?.message ?? e}`);

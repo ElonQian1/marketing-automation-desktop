@@ -431,7 +431,7 @@ export class ContactImporterUseCase {
 
     // 创建临时文件
     const tempFilePath = `temp_contacts_${group.deviceId}_${Date.now()}.vcf`;
-    await invoke("write_file", {
+    await invoke("plugin:file_manager|write_text", {
       path: tempFilePath,
       content: vcfContent,
     });
@@ -440,7 +440,7 @@ export class ContactImporterUseCase {
       // 🚀 优先使用多品牌导入（批量尝试不同品牌的导入方式）
       try {
         console.log(`🔄 尝试多品牌VCF导入 - 设备: ${group.deviceId}`);
-        const multiBrandResult = await invoke<ImportResult>("import_vcf_contacts_multi_brand", {
+        const multiBrandResult = await invoke<ImportResult>("plugin:contacts|import_vcf_contacts_multi_brand", {
           deviceId: group.deviceId,
           contactsFilePath: tempFilePath,
         });
@@ -461,7 +461,7 @@ export class ContactImporterUseCase {
     } finally {
       // 清理临时文件
       try {
-        await invoke("delete_file", { path: tempFilePath });
+        await invoke("plugin:file_manager|delete", { path: tempFilePath });
       } catch (error) {
         console.warn("清理临时文件失败:", error);
       }

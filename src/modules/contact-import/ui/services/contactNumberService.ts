@@ -100,7 +100,7 @@ export async function markContactNumbersUsedByIdRange(startId: number, endId: nu
 export async function markContactNumbersAsNotImported(numberIds: number[]): Promise<number> {
   if (numberIds.length === 0) return 0;
   // 同时传递 snake_case 与 camelCase，兼容不同命名约定的命令参数
-  return invoke<number>('mark_contact_numbers_as_not_imported', {
+  return invoke<number>('plugin:contacts|mark_as_not_imported', {
     number_ids: numberIds,
     numberIds: numberIds,
   } as any);
@@ -139,7 +139,7 @@ export async function deleteContactNumbersBatch(keys: Array<number | string>, ch
   for (let i = 0; i < uniq.length; i += chunkSize) {
     const slice = uniq.slice(i, i + chunkSize);
     // 调用永久删除命令
-    const affected = await invoke<number>('delete_contact_numbers', { numberIds: slice });
+    const affected = await invoke<number>('plugin:contacts|delete_numbers', { numberIds: slice });
     total += affected;
   }
   return total;
@@ -193,7 +193,7 @@ export interface AllocationResultDto {
 
 export async function createVcfBatchRecord(params: { batchId: string; vcfFilePath: string; sourceStartId?: number; sourceEndId?: number; }): Promise<void> {
   const { batchId, vcfFilePath, sourceStartId, sourceEndId } = params;
-  return invoke<void>('create_vcf_batch_cmd', { batch_id: batchId, vcf_file_path: vcfFilePath, source_start_id: sourceStartId, source_end_id: sourceEndId });
+  return invoke<void>('plugin:contacts|create_batch_with_numbers', { batch_id: batchId, vcf_file_path: vcfFilePath, source_start_id: sourceStartId, source_end_id: sourceEndId });
 }
 
 export async function listVcfBatchRecords(params: { limit?: number; offset?: number } = {}): Promise<VcfBatchList> {
@@ -213,7 +213,7 @@ export async function listNumbersByVcfBatch(batchId: string, onlyUsed?: boolean,
   // 兼容后端参数命名差异：同时发送 snake_case 与 camelCase，避免 "missing required key batchId" 错误
   const payload = { batch_id: batchId, batchId, only_used: onlyUsed, onlyUsed, limit, offset } as const;
   console.debug('[numbers] listNumbersByVcfBatch payload (mixed):', payload);
-  return invoke<ContactNumberList>('list_numbers_by_vcf_batch', payload as any);
+  return invoke<ContactNumberList>('plugin:contacts|list_by_batch', payload as any);
 }
 
 export async function listNumbersByVcfBatchFiltered(batchId: string, params: { industry?: string; status?: string; limit?: number; offset?: number } = {}): Promise<ContactNumberList> {
@@ -226,7 +226,7 @@ export async function listNumbersByVcfBatchFiltered(batchId: string, params: { i
 export async function listNumbersWithoutVcfBatch(params: { limit?: number; offset?: number; industry?: string; status?: string } = {}): Promise<ContactNumberList> {
   const { limit, offset, industry, status } = params;
   const payload = { limit, offset, industry, status, Industry: industry, Status: status } as const;
-  return invoke<ContactNumberList>('list_numbers_without_vcf_batch', payload as any);
+  return invoke<ContactNumberList>('plugin:contacts|list_without_batch', payload as any);
 }
 
 // ---- 行业下拉缓存（避免仅当前页可见行业） ----

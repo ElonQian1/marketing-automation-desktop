@@ -59,7 +59,7 @@ export class ImportStrategyExecutor {
           }>;
           message: string;
           duration_seconds: number;
-        }>('import_vcf_contacts_multi_brand', {
+        }>('plugin:contacts|import_vcf_contacts_multi_brand', {
           deviceId: deviceId,
           contactsFilePath: vcfFilePath
         }, { forceCamel: true });

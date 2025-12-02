@@ -17,17 +17,17 @@ export const VcfActions = {
   async regenerateVcfForBatch(batch: VcfBatchDto, numbers: ContactNumberDto[]): Promise<string> {
     const content = buildVcfFromNumbers(numbers);
     const path = batch.vcf_file_path || `contacts_batch_${batch.batch_id}.vcf`;
-    await invoke("write_file", { path, content });
+    await invoke("plugin:file_manager|write_text", { path, content });
     return path;
   },
 
   async revealVcfFile(path: string): Promise<void> {
-    await invoke("reveal_in_file_manager", { path });
+    await invoke("plugin:file_manager|reveal", { path });
   },
 
   async importVcfToDevice(vcfPath: string, deviceId: string): Promise<ImportOutcome> {
     try {
-      const res = await invoke<any>("import_vcf_contacts_multi_brand", {
+      const res = await invoke<any>("plugin:contacts|import_vcf_contacts_multi_brand", {
         deviceId: deviceId,
         contactsFilePath: vcfPath,
       });
