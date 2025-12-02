@@ -24,7 +24,7 @@ pub mod click_normalizer_test; // 🆕 新增点击规范化测试命令
 pub mod structure_recommend; // 🎯 新增结构匹配智能推荐命令
 pub mod execute_structure_match; // 🚀 新增结构匹配真机执行命令
 pub mod apps; // ✅ 新增应用管理命令
-pub mod universal_ui; // 🆕 Universal UI分析命令（采集当前页面）
+// pub mod universal_ui; // 🆕 Universal UI分析命令（采集当前页面） - Moved to plugin:universal_ui
 
 pub mod enhanced_location_commands;
 pub mod commands_lead_hunt;
@@ -58,4 +58,4 @@ pub use click_normalizer_test::*; // 🆕 导出点击规范化测试命令
 pub use structure_recommend::*; // 🎯 导出结构匹配智能推荐命令
 pub use execute_structure_match::*; // 🚀 导出结构匹配真机执行命令
 pub use apps::*; // ✅ 导出应用管理命令
-pub use universal_ui::*; // 🆕 导出Universal UI分析命令
+// pub use universal_ui::*; // 🆕 导出Universal UI分析命令 - Moved to plugin:universal_ui

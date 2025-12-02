@@ -271,11 +271,11 @@ fn main() {
             // adb_dump_ui_xml, // Moved to plugin:adb
             // adb_tap_coordinate, // Moved to plugin:adb
             // ==================== 📱 Universal UI分析 (5个命令) ====================
-            analyze_universal_ui_page,
-            extract_page_elements,
-            classify_ui_elements,
-            deduplicate_elements,
-            identify_page_type,
+            // analyze_universal_ui_page, // Moved to plugin:universal_ui
+            // extract_page_elements, // Moved to plugin:universal_ui
+            // classify_ui_elements, // Moved to plugin:universal_ui
+            // deduplicate_elements, // Moved to plugin:universal_ui
+            // identify_page_type, // Moved to plugin:universal_ui
         ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");
