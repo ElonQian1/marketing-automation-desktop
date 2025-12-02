@@ -27,7 +27,7 @@ export class ContactImportDebugger {
 
     try {
       // 1. 抓取XML
-      const xmlContent = await invokeCompat<string>('adb_dump_ui_xml', {
+      const xmlContent = await invokeCompat<string>('plugin:adb|dump_ui', {
         deviceId: this.deviceId
       });
 
@@ -171,7 +171,7 @@ export class ContactImportDebugger {
 
     try {
       // 1. 抓取当前XML
-      const xmlContent = await invokeCompat<string>('adb_dump_ui_xml', {
+      const xmlContent = await invokeCompat<string>('plugin:adb|dump_ui', {
         deviceId: this.deviceId
       });
 
@@ -192,7 +192,8 @@ export class ContactImportDebugger {
       const bounds = confirmMatch[1];
       console.log('🎯 找到确定按钮，bounds:', bounds);
 
-      // 3. 方案1：通过resource-id点击
+      // 3. 方案1：通过resource-id点击 (已废弃，直接使用坐标点击)
+      /*
       console.log('🚀 方案1：通过resource-id点击...');
       try {
         const result1 = await invokeCompat('adb_click_element', {
@@ -208,13 +209,14 @@ export class ContactImportDebugger {
       } catch (error) {
         console.warn('⚠️ resource-id点击失败:', error);
       }
+      */
 
       // 4. 方案2：通过坐标点击
       console.log('🚀 方案2：通过坐标点击...');
       const coords = this.parseBounds(bounds);
       if (coords) {
         try {
-          const result2 = await invokeCompat('adb_tap_coordinate', {
+          const result2 = await invokeCompat('plugin:adb|tap', {
             deviceId: this.deviceId,
             x: coords.centerX,
             y: coords.centerY

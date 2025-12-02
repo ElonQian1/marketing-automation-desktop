@@ -37,7 +37,7 @@ export class SmartAppService {
         return includeSystemApps ? cached.apps : cached.apps.filter(a => !a.is_system_app);
       }
 
-      const apps = await invoke<AppInfo[]>('get_device_apps', {
+      const apps = await invoke<AppInfo[]>('plugin:adb|list_apps', {
         device_id: deviceId,
         include_system_apps: includeSystemApps,
         force_refresh: forceRefresh,
@@ -76,7 +76,7 @@ export class SmartAppService {
   ): Promise<{ items: AppInfo[]; total: number; page: number; page_size: number; has_more: boolean }>
   {
     const { filterMode, refreshStrategy, page = 1, pageSize = 60, query } = options || {};
-    return invoke('get_device_apps_paged', {
+    return invoke('plugin:adb|list_apps_paged', {
       device_id: deviceId,
       filter_mode: filterMode,
       refresh_strategy: (refreshStrategy ?? this.refreshStrategy),
@@ -96,7 +96,7 @@ export class SmartAppService {
    */
   async getAppIcon(deviceId: string, packageName: string, forceRefresh = false): Promise<string | null> {
     try {
-      const bytes = await invoke<number[]>('get_app_icon', {
+      const bytes = await invoke<number[]>('plugin:adb|get_icon', {
         device_id: deviceId,
         package_name: packageName,
         force_refresh: forceRefresh
