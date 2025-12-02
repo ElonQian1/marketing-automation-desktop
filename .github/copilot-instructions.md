@@ -12,6 +12,70 @@
 
 ---
 
+## 🦀 Rust 后端架构强制规范 (Tauri v2 插件模式)
+
+**核心原则**：禁止在 `main.rs` 中手动注册命令。所有新功能模块必须实现为 **Tauri 本地插件 (Local Plugin)**。
+
+### 1. 插件化开发流程 (The "Lego" Pattern)
+后端代码不再是单体巨石，而是由一个个独立的“乐高积木（插件）”组成。
+
+- **❌ 严禁做法 (Legacy)**：
+  - 在 `main.rs` 的 `generate_handler!` 宏中手动添加函数名。
+  - 创建散落在 `src-tauri/src` 根目录下的孤立 `_cmd` 函数。
+
+- **✅ 强制做法 (Plugin)**：
+  1. **创建模块**：在 `src-tauri/src/modules/<module_name>/` 中创建 `lib.rs`。
+  2. **定义插件**：使用 `tauri::plugin::Builder` 构建插件并导出 `init()` 函数。
+  3. **注册插件**：在 `main.rs` 中仅添加一行 `.plugin(modules::<module_name>::init())`。
+
+### 2. 代码模板 (AI Copy-Paste Friendly)
+
+**模块定义 (`src-tauri/src/modules/adb/lib.rs`):**
+```rust
+use tauri::{plugin::{Builder, TauriPlugin}, Runtime, Manager};
+
+// 1. 定义命令 (无需加 _cmd 后缀，无需加模块前缀)
+#[tauri::command]
+fn connect() { /* ... */ }
+
+#[tauri::command]
+fn list() { /* ... */ }
+
+// 2. 导出插件初始化函数
+pub fn init<R: Runtime>() -> TauriPlugin<R> {
+    Builder::new("adb") // 🔌 插件命名空间：决定了前端如何调用
+        .invoke_handler(tauri::generate_handler![
+            connect,
+            list
+        ])
+        .build()
+}
+```
+
+**主程序注册 (`src-tauri/src/main.rs`):**
+```rust
+fn main() {
+    tauri::Builder::default()
+        .plugin(modules::adb::init()) // ✅ 仅需一行
+        .run(tauri::generate_context!())
+        .expect("error while running tauri application");
+}
+```
+
+### 3. 前端调用规范 (Namespaced Invocation)
+
+由于使用了插件模式，前端调用必须带上插件前缀。
+
+- **❌ 错误**: `invoke('adb_connect_device_cmd')` (旧模式，禁止新代码使用)
+- **✅ 正确**: `invoke('plugin:adb|connect')`
+  - 格式: `plugin:<插件名>|<命令名>`
+  - 优点: 即使不同模块都有 `connect` 命令也不会冲突。
+
+### 4. 命名清洗
+- **Rust 函数名**: 保持简洁，动词开头。例如 `connect`, `save`, `load`。**不要**加 `_cmd` 后缀，**不要**加模块前缀（因为插件本身就是命名空间）。
+
+---
+
 ## 📁 模块化组织原则
 
 ### Rust 后端模块结构
