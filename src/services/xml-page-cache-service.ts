@@ -223,7 +223,7 @@ export class XmlPageCacheService {
       console.log('🔍 开始扫描XML缓存页面...');
       
       // 调用Tauri命令获取debug_xml目录中的所有XML文件
-      const xmlFiles: string[] = await invoke('list_xml_cache_files');
+      const xmlFiles: string[] = await invoke('plugin:xml_cache|list_xml_cache_files');
       
       const pages: CachedXmlPage[] = [];
       
@@ -262,20 +262,20 @@ export class XmlPageCacheService {
       }
 
       // 读取XML文件内容
-      const xmlContent: string = await invoke('read_xml_cache_file', { fileName });
+      const xmlContent: string = await invoke('plugin:xml_cache|read_xml_cache_file', { fileName });
       
       // 获取文件大小
-      const fileSize: number = await invoke('get_xml_file_size', { fileName });
+      const fileSize: number = await invoke('plugin:xml_cache|get_xml_file_size', { fileName });
       
       // 使用RealXMLAnalysisService进行智能分析
       const appPackage = this.detectAppPackage(xmlContent);
       const pageAnalysis = this.analyzePageContent(xmlContent, appPackage);
-      const absoluteFilePath: string = await invoke('get_xml_file_absolute_path', { fileName });
+      const absoluteFilePath: string = await invoke('plugin:xml_cache|get_xml_file_absolute_path', { fileName });
 
       const screenshotFileName = fileName.replace(/\.xml$/, '.png');
       let screenshotAbsolutePath: string | undefined;
       try {
-        screenshotAbsolutePath = await invoke('get_xml_file_absolute_path', { fileName: screenshotFileName });
+        screenshotAbsolutePath = await invoke('plugin:xml_cache|get_xml_file_absolute_path', { fileName: screenshotFileName });
       } catch (error) {
         console.info(`ℹ️ 未找到对应截图: ${screenshotFileName}`, error);
       }
@@ -481,7 +481,7 @@ export class XmlPageCacheService {
       console.log(`📅 时间戳: ${cachedPage.timestamp}`);
       
       // 读取XML内容
-      const xmlContent: string = await invoke('read_xml_cache_file', { 
+      const xmlContent: string = await invoke('plugin:xml_cache|read_xml_cache_file', { 
         fileName: cachedPage.fileName 
       });
       
@@ -517,7 +517,7 @@ export class XmlPageCacheService {
 
     try {
       // 🔧 强制使用非过滤模式，确保这是纯解析函数
-      const elements = await invoke('parse_cached_xml_to_elements', { 
+      const elements = await invoke('plugin:xml_cache|parse_cached_xml_to_elements', { 
         xmlContent: xmlContent, 
         enableFiltering: false  // 总是使用false，过滤由ElementFilter模块负责
       });
@@ -597,7 +597,7 @@ export class XmlPageCacheService {
    */
   static async deleteCachedPage(fileName: string, screenshotFileName?: string): Promise<void> {
     try {
-      await invoke('delete_xml_cache_artifacts', {
+      await invoke('plugin:xml_cache|delete_xml_cache_artifacts', {
         xmlFileName: fileName,
         screenshotFileName: screenshotFileName ?? null,
       });

@@ -224,7 +224,7 @@ export class XmlEnhancedCacheService {
   // 私有方法
 
   private static async loadXmlContent(fileName: string): Promise<string> {
-    return await invoke('read_xml_cache_file', { fileName });
+    return await invoke('plugin:xml_cache|read_xml_cache_file', { fileName });
   }
 
   private static async loadFromDisk(cachedPage: CachedXmlPage): Promise<CachedViewData | null> {
