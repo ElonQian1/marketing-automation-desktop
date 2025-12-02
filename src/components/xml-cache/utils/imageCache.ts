@@ -63,7 +63,7 @@ export async function loadDataUrlWithCache(path: string): Promise<string | undef
   try {
     cacheDebug.log(`📡 从后端加载图片: ${path}`);
     const { invoke } = await import("@tauri-apps/api/core");
-    const dataUrl: string = await invoke("read_file_as_data_url", { path });
+    const dataUrl: string = await invoke("plugin:file_manager|read_as_data_url", { path });
     
     performance.mark(`${perfKey}-end`);
     performance.measure(`图片加载-${path.split(/[\\/]/).pop()}`, `${perfKey}-start`, `${perfKey}-end`);

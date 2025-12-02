@@ -71,9 +71,9 @@ class BackendHealthChecker {
 
     try {
       // 使用轻量级 Tauri command 进行健康检查
-      // 假设存在 'backend_ping' 命令，返回 { success: boolean }
+      // 假设存在 'plugin:system_diagnostic|ping' 命令，返回 { success: boolean }
       const result = await Promise.race([
-        invoke<{ success: boolean }>('backend_ping'),
+        invoke<{ success: boolean }>('plugin:system_diagnostic|ping'),
         new Promise<never>((_, reject) =>
           setTimeout(() => reject(new Error('Timeout')), this.TIMEOUT_MS)
         ),

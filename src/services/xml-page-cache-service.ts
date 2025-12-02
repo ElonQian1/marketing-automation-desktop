@@ -208,7 +208,7 @@ export class XmlPageCacheService {
 
     try {
       console.log('📂 打开缓存文件所在位置:', targetPath);
-      await invoke('reveal_in_file_manager', { path: targetPath });
+      await invoke('plugin:file_manager|reveal', { path: targetPath });
     } catch (error) {
       console.error('❌ 打开文件管理器失败:', error);
       throw error;

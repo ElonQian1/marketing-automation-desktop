@@ -35,7 +35,7 @@ export class ContactVcfImportService {
 
       // 使用带自动化功能的导入方法
       const importPromise = invoke<any>(
-        "import_vcf_contacts_multi_brand",
+        "plugin:contacts|import_vcf_contacts_multi_brand",
         {
           deviceId: deviceId,
           contactsFilePath: vcfFilePath,
@@ -215,7 +215,7 @@ export class ContactVcfImportService {
    */
   static async writeVcfFile(filePath: string, content: string): Promise<void> {
     try {
-      await invoke("write_file", {
+      await invoke("plugin:file_manager|write_text", {
         path: filePath,
         content: content,
       });
@@ -230,7 +230,7 @@ export class ContactVcfImportService {
    */
   static async deleteTempFile(filePath: string): Promise<void> {
     try {
-      await invoke("delete_file", {
+      await invoke("plugin:file_manager|delete", {
         path: filePath,
       });
     } catch (error) {

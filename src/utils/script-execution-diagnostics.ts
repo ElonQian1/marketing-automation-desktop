@@ -48,7 +48,7 @@ export class ScriptExecutionDiagnostics {
     
     // 2. 检查ADB路径
     try {
-      const adbPath = await invoke("get_adb_path_cmd") as string;
+      const adbPath = await invoke("plugin:system_diagnostic|get_adb_path") as string;
       results.push({
         check: "ADB路径",
         status: "pass", 
@@ -64,7 +64,7 @@ export class ScriptExecutionDiagnostics {
     
     // 3. 检查环境变量
     try {
-      const envInfo = await invoke("get_environment_info") as any;
+      const envInfo = await invoke("plugin:system_diagnostic|get_env_info") as any;
       if (envInfo.USE_NEW_BACKEND === "1") {
         results.push({
           check: "执行引擎",
@@ -89,7 +89,7 @@ export class ScriptExecutionDiagnostics {
     
     // 4. 测试设备响应
     try {
-      const testResult = await invoke("test_device_responsiveness", {
+      const testResult = await invoke("plugin:system_diagnostic|test_device", {
         deviceId: deviceId
       }) as any;
       

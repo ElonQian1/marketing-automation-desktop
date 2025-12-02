@@ -359,7 +359,7 @@ export class UnifiedDailyReportService {
 
     try {
       if (outputPath) {
-        await invoke('write_file', { path: filePath, content: csvContent });
+        await invoke('plugin:file_manager|write_text', { path: filePath, content: csvContent });
         return filePath;
       } else {
         const savedPath = await save({
@@ -368,7 +368,7 @@ export class UnifiedDailyReportService {
         });
         
         if (savedPath) {
-          await invoke('write_file', { path: savedPath, content: csvContent });
+          await invoke('plugin:file_manager|write_text', { path: savedPath, content: csvContent });
           return savedPath;
         }
         
@@ -405,7 +405,7 @@ export class UnifiedDailyReportService {
 
     try {
       if (outputPath) {
-        await invoke('write_file', { path: filePath, content: csvContent });
+        await invoke('plugin:file_manager|write_text', { path: filePath, content: csvContent });
         return filePath;
       } else {
         const savedPath = await save({
@@ -414,7 +414,7 @@ export class UnifiedDailyReportService {
         });
         
         if (savedPath) {
-          await invoke('write_file', { path: savedPath, content: csvContent });
+          await invoke('plugin:file_manager|write_text', { path: savedPath, content: csvContent });
           return savedPath;
         }
         
