@@ -97,7 +97,7 @@ const ClickNormalizerTest: React.FC = () => {
 
     setLoading(true);
     try {
-      const response = await invoke<ClickNormalizeResponse>('test_click_normalization', { request });
+      const response = await invoke<ClickNormalizeResponse>('plugin:system_diagnostic|test_click_normalization', { request });
       
       if (response.success && response.result) {
         setResult(response.result);
@@ -123,7 +123,7 @@ const ClickNormalizerTest: React.FC = () => {
 
     setLoading(true);
     try {
-      const response = await invoke<AnalyzeResponse>('analyze_xml_structure', { xmlContent });
+      const response = await invoke<AnalyzeResponse>('plugin:system_diagnostic|analyze_xml_structure', { xmlContent });
       
       if (response.success && response.result) {
         setAnalyzeResult(response.result);
