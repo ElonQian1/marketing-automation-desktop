@@ -166,7 +166,7 @@ export class TauriAdbRepository implements IAdbRepository {
 
   async clearAdbKeys(): Promise<void> {
     try {
-      await invoke('clear_adb_keys');
+      await invoke('plugin:file_manager|clear_adb_keys');
     } catch (error) {
       throw new Error(`清理本机ADB密钥失败: ${error}`);
     }

@@ -12,7 +12,7 @@ import type {
 export class TauriContactAutomationRepository implements IContactAutomationRepository {
   async importVcfMultiBrand(deviceId: string, contactsFilePath: string): Promise<MultiBrandImportResult> {
     if (!isTauri()) throw new Error('Not running in Tauri environment');
-    const res = await invoke<MultiBrandImportResult>('import_vcf_contacts_multi_brand', {
+    const res = await invoke<MultiBrandImportResult>('plugin:contacts|import_vcf_contacts_multi_brand', {
       deviceId,
       contactsFilePath,
     } as any);

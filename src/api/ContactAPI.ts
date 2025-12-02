@@ -165,14 +165,14 @@ export class ContactAPI {
    * 写入文件内容
    */
   static async writeFile(path: string, content: string): Promise<void> {
-    await invoke("write_file", { path, content });
+    await invoke("plugin:file_manager|write_text", { path, content });
   }
 
   /**
    * 删除文件
    */
   static async deleteFile(path: string): Promise<void> {
-    await invoke("delete_file", { path });
+    await invoke("plugin:file_manager|delete", { path });
   }
 
   // 已移除小红书相关增强流程方法
