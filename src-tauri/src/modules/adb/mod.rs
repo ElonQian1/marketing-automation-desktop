@@ -6,6 +6,13 @@ use crate::services::log_bridge::LOG_COLLECTOR;
 use std::os::windows::process::CommandExt;
 use std::process::Command;
 use std::time::Instant;
+use tauri::AppHandle;
+use crate::services::smart_app_manager::SmartAppManagerState;
+use crate::services::smart_app_manager::{AppInfo, PagedApps};
+
+use crate::services::adb::commands::adb_file::safe_adb_push;
+use crate::services::adb::commands::ui_automation::{adb_dump_ui_xml, adb_tap_coordinate};
+use crate::services::adb::tracking::adb_device_tracker::{start_device_tracking, stop_device_tracking, get_tracked_devices};
 
 #[tauri::command]
 async fn execute(adb_path: String, args: Vec<String>, service: State<'_, Mutex<AdbService>>) -> Result<String, String> {
@@ -263,6 +270,90 @@ async fn get_properties(adb_path: String, device_id: String, service: State<'_, 
     service.get_device_properties(&adb_path, &device_id).map_err(|e| e.to_string())
 }
 
+#[tauri::command]
+async fn shell(device_id: String, command: String) -> Result<String, String> {
+    crate::services::adb::commands::adb_shell::safe_adb_shell_command(device_id, command).await
+}
+
+#[tauri::command]
+async fn push(device_id: String, local_path: String, remote_path: String) -> Result<String, String> {
+    crate::services::adb::commands::adb_file::safe_adb_push(device_id, local_path, remote_path).await
+}
+
+#[tauri::command]
+async fn dump_ui(device_id: String) -> Result<String, String> {
+    crate::services::adb::commands::ui_automation::adb_dump_ui_xml(device_id).await
+}
+
+#[tauri::command]
+async fn tap(device_id: String, x: i32, y: i32) -> Result<bool, String> {
+    crate::services::adb::commands::ui_automation::adb_tap_coordinate(device_id, x, y).await
+}
+
+#[tauri::command]
+async fn start_tracking(device_id: String, app_handle: AppHandle) -> Result<(), String> {
+    crate::services::adb::tracking::adb_device_tracker::start_device_tracking(device_id, app_handle).await
+}
+
+#[tauri::command]
+async fn stop_tracking(device_id: String) -> Result<(), String> {
+    crate::services::adb::tracking::adb_device_tracker::stop_device_tracking(device_id).await
+}
+
+#[tauri::command]
+async fn get_tracking_list() -> Result<Vec<String>, String> {
+    crate::services::adb::tracking::adb_device_tracker::get_tracked_devices().await
+}
+
+#[tauri::command]
+async fn list_apps(
+    device_id: String,
+    include_system_apps: Option<bool>,
+    force_refresh: Option<bool>,
+    filter_mode: Option<String>,
+    refresh_strategy: Option<String>,
+    state: State<'_, SmartAppManagerState>,
+) -> Result<Vec<AppInfo>, String> {
+    crate::commands::apps::get_device_apps(
+        device_id,
+        include_system_apps,
+        force_refresh,
+        filter_mode,
+        refresh_strategy,
+        state,
+    ).await
+}
+
+#[tauri::command]
+async fn list_apps_paged(
+    device_id: String,
+    filter_mode: Option<String>,
+    refresh_strategy: Option<String>,
+    page: Option<u32>,
+    page_size: Option<u32>,
+    query: Option<String>,
+    state: State<'_, SmartAppManagerState>,
+) -> Result<PagedApps, String> {
+    crate::commands::apps::get_device_apps_paged(
+        device_id,
+        filter_mode,
+        refresh_strategy,
+        page,
+        page_size,
+        query,
+        state,
+    ).await
+}
+
+#[tauri::command]
+async fn get_icon(
+    device_id: String,
+    package_name: String,
+    force_refresh: Option<bool>,
+) -> Result<Vec<u8>, String> {
+    crate::commands::apps::get_app_icon(device_id, package_name, force_refresh).await
+}
+
 pub fn init<R: Runtime>() -> TauriPlugin<R> {
     Builder::new("adb")
         .invoke_handler(tauri::generate_handler![
@@ -279,7 +370,17 @@ pub fn init<R: Runtime>() -> TauriPlugin<R> {
             disconnect,
             start_server,
             kill_server,
-            get_properties
+            get_properties,
+            shell,
+            push,
+            dump_ui,
+            tap,
+            start_tracking,
+            stop_tracking,
+            get_tracking_list,
+            list_apps,
+            list_apps_paged,
+            get_icon
         ])
         .build()
 }
