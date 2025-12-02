@@ -40,6 +40,21 @@ use services::adb::{AdbService, initialize_adb_system};
 use services::employee_service::EmployeeService;
 use services::log_bridge::LOG_COLLECTOR;
 use services::scrcpy_manager::cleanup_all;
+use services::contact_storage::commands::{
+    create_vcf_batch_with_numbers_cmd, delete_txt_import_record_cmd, get_contact_number_stats_cmd,
+    get_distinct_industries_cmd, get_numbers_by_files, import_contact_numbers_from_file,
+    import_contact_numbers_from_folder, list_contact_numbers, list_contact_numbers_by_batch,
+    list_contact_numbers_by_batch_filtered, list_contact_numbers_filtered,
+    list_contact_numbers_for_vcf_batch, list_contact_numbers_without_batch,
+    list_contact_numbers_without_batch_filtered, list_txt_import_records_cmd,
+    list_vcf_batch_records_cmd, set_contact_numbers_industry_by_id_range,
+    get_contact_file_info, parse_contact_file, // ✅ 新增：从 contact_service 迁移而来
+};
+use services::contact_verification::verify_contacts_fast;
+use services::device_contact_metrics::get_device_contact_count;
+use services::diagnostic_service::{
+    get_adb_path_cmd, get_environment_info, run_full_diagnostic, test_device_responsiveness,
+};
 
 // ==================== 📋 模块化命令导入 ====================
 use commands::*; // 集中导入所有模块化命令
@@ -64,33 +79,17 @@ use crate::domain::analysis_cache::version_commands::{
 };
 
 // ==================== 🔌 业务服务命令 ====================
-use services::adb::{
-    get_tracked_devices, start_device_tracking, stop_device_tracking,
-};
 use services::script_manager::ScriptManagerState;
-// use services::contact_service::{get_contact_file_info, parse_contact_file}; // 已废弃，迁移至 contact_storage
-use services::contact_storage::commands::{
-    create_vcf_batch_with_numbers_cmd, delete_txt_import_record_cmd, get_contact_number_stats_cmd,
-    get_distinct_industries_cmd, get_numbers_by_files, import_contact_numbers_from_file,
-    import_contact_numbers_from_folder, list_contact_numbers, list_contact_numbers_by_batch,
-    list_contact_numbers_by_batch_filtered, list_contact_numbers_filtered,
-    list_contact_numbers_for_vcf_batch, list_contact_numbers_without_batch,
-    list_contact_numbers_without_batch_filtered, list_txt_import_records_cmd,
-    list_vcf_batch_records_cmd, set_contact_numbers_industry_by_id_range,
-    get_contact_file_info, parse_contact_file, // ✅ 新增：从 contact_service 迁移而来
-};
-use services::contact_verification::verify_contacts_fast;
-use services::device_contact_metrics::get_device_contact_count;
-use services::diagnostic_service::{
-    get_adb_path_cmd, get_environment_info, run_full_diagnostic, test_device_responsiveness,
-};
-use services::adb::commands::{safe_adb_push, safe_adb_shell_command};
+// use services::adb::{
+//    get_tracked_devices, start_device_tracking, stop_device_tracking,
+// };
+// use services::adb::commands::{safe_adb_push, safe_adb_shell_command};
 use utils::device_utils::validate_device_connection;
 use services::smart_app_manager::SmartAppManagerState;
 // use services::smart_element_finder_service::{click_detected_element, smart_element_finder}; // 已废弃
  // 兼容层
 use services::vcf::smart_vcf_opener;
-use services::adb::commands::{adb_dump_ui_xml, adb_tap_coordinate};
+// use services::adb::commands::{adb_dump_ui_xml, adb_tap_coordinate};
 
 fn main() {
     // 初始化日志系统
@@ -145,12 +144,12 @@ fn main() {
             get_ui_dump,
             // ==================== 🔧 ADB扩展 (9个命令) ====================
             // get_device_properties, // Moved to plugin:adb
-            start_device_tracking,
-            stop_device_tracking,
-            get_tracked_devices,
-            safe_adb_push,
-            safe_adb_shell_command,
-            get_device_apps,
+            // start_device_tracking, // Moved to plugin:adb
+            // stop_device_tracking, // Moved to plugin:adb
+            // get_tracked_devices, // Moved to plugin:adb
+            // safe_adb_push, // Moved to plugin:adb
+            // safe_adb_shell_command, // Moved to plugin:adb
+            // get_device_apps, // Moved to plugin:adb
             // detect_smart_adb_path, // Moved to plugin:adb
             // detect_ldplayer_adb, // Moved to plugin:adb
             // ==================== 📁 文件操作 (7个命令) ====================
@@ -179,9 +178,9 @@ fn main() {
             // verify_contacts_fast, // Moved to plugin:contacts
             // get_device_contact_count, // Moved to plugin:contacts
             // ==================== 📱 应用管理 (6个命令) ====================
-            get_device_apps,
-            get_device_apps_paged,
-            get_app_icon,
+            // get_device_apps, // Moved to plugin:adb
+            // get_device_apps_paged, // Moved to plugin:adb
+            // get_app_icon, // Moved to plugin:adb
             search_device_apps,
             launch_device_app,
             get_cached_device_apps,
@@ -269,8 +268,8 @@ fn main() {
             recommend_structure_mode_v2,
             execute_structure_match_step,
             // ==================== ⚡ 快速UI自动化 (3个命令) ====================
-            adb_dump_ui_xml,
-            adb_tap_coordinate,
+            // adb_dump_ui_xml, // Moved to plugin:adb
+            // adb_tap_coordinate, // Moved to plugin:adb
             // ==================== 📱 Universal UI分析 (5个命令) ====================
             analyze_universal_ui_page,
             extract_page_elements,
