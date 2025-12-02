@@ -236,8 +236,8 @@ export class OptimizedDebugXmlLoader {
 
     try {
       console.log(`📖 加载XML内容: ${fileEntry.fileName}`);
-      const xmlContent = await invoke<string>('read_file_content', {
-        filePath: fileEntry.filePath
+      const xmlContent = await invoke<string>('plugin:file_manager|read_text', {
+        path: fileEntry.filePath
       });
       
       // 标记为已加载

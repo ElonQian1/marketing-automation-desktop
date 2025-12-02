@@ -257,8 +257,8 @@ export class PageHistoryCache {
 
     try {
       console.log(`📖 加载XML内容: ${entry.fileName}`);
-      const xmlContent = await invoke<string>('read_file_content', {
-        filePath: entry.filePath
+      const xmlContent = await invoke<string>('plugin:file_manager|read_text', {
+        path: entry.filePath
       });
       
       // 标记为已解析
