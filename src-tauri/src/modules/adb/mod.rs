@@ -9,6 +9,7 @@ use std::time::Instant;
 use tauri::AppHandle;
 use crate::services::smart_app_manager::SmartAppManagerState;
 use crate::services::smart_app_manager::{AppInfo, PagedApps};
+use crate::services::adb::tracking::adb_device_tracker::TrackedDevice;
 
 use crate::services::adb::commands::adb_file::safe_adb_push;
 use crate::services::adb::commands::ui_automation::{adb_dump_ui_xml, adb_tap_coordinate};
@@ -291,17 +292,17 @@ async fn tap(device_id: String, x: i32, y: i32) -> Result<bool, String> {
 }
 
 #[tauri::command]
-async fn start_tracking(device_id: String, app_handle: AppHandle) -> Result<(), String> {
-    crate::services::adb::tracking::adb_device_tracker::start_device_tracking(device_id, app_handle).await
+async fn start_tracking(app_handle: AppHandle) -> Result<(), String> {
+    crate::services::adb::tracking::adb_device_tracker::start_device_tracking(app_handle).await
 }
 
 #[tauri::command]
-async fn stop_tracking(device_id: String) -> Result<(), String> {
-    crate::services::adb::tracking::adb_device_tracker::stop_device_tracking(device_id).await
+async fn stop_tracking() -> Result<(), String> {
+    crate::services::adb::tracking::adb_device_tracker::stop_device_tracking().await
 }
 
 #[tauri::command]
-async fn get_tracking_list() -> Result<Vec<String>, String> {
+async fn get_tracking_list() -> Result<Vec<TrackedDevice>, String> {
     crate::services::adb::tracking::adb_device_tracker::get_tracked_devices().await
 }
 
@@ -354,7 +355,7 @@ async fn get_icon(
     crate::commands::apps::get_app_icon(device_id, package_name, force_refresh).await
 }
 
-pub fn init<R: Runtime>() -> TauriPlugin<R> {
+pub fn init() -> TauriPlugin<tauri::Wry> {
     Builder::new("adb")
         .invoke_handler(tauri::generate_handler![
             execute,
