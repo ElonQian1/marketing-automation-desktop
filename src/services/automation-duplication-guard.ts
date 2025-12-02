@@ -21,10 +21,12 @@ export interface DuplicationCheckResult {
 
 export async function checkDuplication(req: DuplicationCheckRequest): Promise<DuplicationCheckResult> {
   // Tauri invoke expects an object map of args; spread into a plain record
-  const res = await invoke<DuplicationCheckResult>('check_duplication_action_cmd', { 
-    target_id: req.target_id,
-    action: req.action,
-    device_id: req.device_id,
+  const res = await invoke<DuplicationCheckResult>('plugin:automation|check_duplication', { 
+    req: {
+      target_id: req.target_id,
+      action: req.action,
+      device_id: req.device_id,
+    }
   });
   return res;
 }
@@ -36,5 +38,5 @@ export async function recordDuplicationAction(record: { target_id: string; actio
     device_id: record.device_id,
     timestamp: record.timestamp ?? Date.now()
   };
-  await invoke('record_duplication_action_cmd', payload as Record<string, unknown>);
+  await invoke('plugin:automation|record_action', { record: payload });
 }
