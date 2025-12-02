@@ -113,6 +113,8 @@ fn main() {
         .plugin(modules::file_manager::init())       // ✅ 注册文件管理插件
         .plugin(modules::xml_cache::init())          // ✅ 注册XML缓存插件
         .plugin(modules::intelligent_analysis::init()) // ✅ 注册智能分析插件
+        .plugin(modules::execution_v3::init())       // ✅ 注册V3执行引擎插件
+        .plugin(modules::version_control::init())    // ✅ 注册版本控制插件
         .manage(Mutex::new(AdbService::new()))
         .manage(Mutex::new(EmployeeService::new()))
         .manage(SmartAppManagerState::new())
@@ -216,10 +218,10 @@ fn main() {
             // clear_step_strategy, // Moved to plugin:intelligent_analysis
             // run_step_v2, // Moved to plugin:intelligent_analysis
             // ==================== 🚀 V3执行引擎 (4个命令) ====================
-            execute_single_step_test_v3,
-            execute_chain_test_v3,
-            execute_static_strategy_test_v3,
-            execute_task_v3,
+            // execute_single_step_test_v3, // Moved to plugin:execution_v3
+            // execute_chain_test_v3, // Moved to plugin:execution_v3
+            // execute_static_strategy_test_v3, // Moved to plugin:execution_v3
+            // execute_task_v3, // Moved to plugin:execution_v3
             // ==================== 🖼️ 图片优化 (3个命令) ====================
             // load_image_optimized, // Moved to plugin:image_optimization
             // generate_thumbnail_backend, // Moved to plugin:image_optimization
@@ -246,32 +248,32 @@ fn main() {
             // try_get_subtree_metrics_cmd, // Moved to plugin:xml_cache
             // batch_get_subtree_metrics_cmd, // Moved to plugin:xml_cache
             // get_cache_stats_cmd, // Moved to plugin:xml_cache
-            // ==================== 📋 版本控制 (15个命令) ====================
-            init_version_control,
-            create_version,
-            query_versions,
-            create_branch,
-            list_branches,
-            compute_xml_diff,
-            rebuild_version,
-            get_version_storage_stats,
-            check_version_integrity,
-            delete_version,
-            get_version_control_status,
-            rebuild_xml_from_version,
-            apply_xml_diff,
-            warmup_rebuild_cache,
-            get_rebuild_cache_stats,
-            clear_rebuild_cache,
+            // ==================== 🎯 版本控制系统命令 (16个命令) ====================
+            // init_version_control, // Moved to plugin:version_control
+            // create_version, // Moved to plugin:version_control
+            // query_versions, // Moved to plugin:version_control
+            // create_branch, // Moved to plugin:version_control
+            // list_branches, // Moved to plugin:version_control
+            // compute_xml_diff, // Moved to plugin:version_control
+            // rebuild_version, // Moved to plugin:version_control
+            // get_version_storage_stats, // Moved to plugin:version_control
+            // check_version_integrity, // Moved to plugin:version_control
+            // delete_version, // Moved to plugin:version_control
+            // get_version_control_status, // Moved to plugin:version_control
+            // rebuild_xml_from_version, // Moved to plugin:version_control
+            // apply_xml_diff, // Moved to plugin:version_control
+            // warmup_rebuild_cache, // Moved to plugin:version_control
+            // get_rebuild_cache_stats, // Moved to plugin:version_control
+            // clear_rebuild_cache, // Moved to plugin:version_control
             // ==================== 🧪 测试工具 (2个命令) ====================
-            test_click_normalization,
-            analyze_xml_structure,
+            // test_click_normalization, // Moved to plugin:system_diagnostic
+            // analyze_xml_structure, // Moved to plugin:system_diagnostic
             // ==================== 🎯 智能推荐 (5个命令) ====================
-            recommend_structure_mode,
-            dry_run_structure_match,
-            resolve_from_stepcard_snapshot,
-            recommend_structure_mode_v2,
-            execute_structure_match_step,
+            // recommend_structure_mode, // Moved to plugin:intelligent_analysis
+            // dry_run_structure_match, // Moved to plugin:intelligent_analysis
+            // resolve_from_stepcard_snapshot, // Moved to plugin:intelligent_analysis
+            // recommend_structure_mode_v2, // Moved to plugin:intelligent_analysis
+            // execute_structure_match_step, // Moved to plugin:intelligent_analysis
             // ==================== ⚡ 快速UI自动化 (3个命令) ====================
             // adb_dump_ui_xml, // Moved to plugin:adb
             // adb_tap_coordinate, // Moved to plugin:adb
