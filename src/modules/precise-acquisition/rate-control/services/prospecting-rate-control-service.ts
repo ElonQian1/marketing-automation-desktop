@@ -329,7 +329,7 @@ export class RateControlService {
    */
   private async initializeDeviceId(): Promise<void> {
     try {
-      this.deviceId = await invoke('get_device_id');
+      this.deviceId = await invoke('plugin:prospecting|get_device_id');
     } catch (error) {
       console.error('获取设备ID失败:', error);
       this.deviceId = `device_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
@@ -612,7 +612,7 @@ export class RateControlService {
   ): Promise<DeduplicationCheckResult> {
     
     try {
-      const crossDeviceOperations = await invoke('get_cross_device_operations', {
+      const crossDeviceOperations = await invoke('plugin:prospecting|get_cross_device_operations', {
         platform,
         taskType,
         targetUserId,
@@ -674,7 +674,7 @@ export class RateControlService {
       this.operationCache.set(cacheKey, cached);
       
       // 持久化存储
-      await invoke('record_operation', {
+      await invoke('plugin:prospecting|record_operation', {
         operation: {
           ...operation,
           timestamp: operation.timestamp.toISOString()
@@ -706,7 +706,7 @@ export class RateControlService {
       
       // 如果缓存为空，从持久化存储加载
       if (operations.length === 0) {
-        const storedOps = await invoke('get_operation_history', {
+        const storedOps = await invoke('plugin:prospecting|get_operation_history', {
           platform,
           taskType,
           limit: 1000
@@ -748,7 +748,7 @@ export class RateControlService {
    */
   private async calculateContentHash(content: string): Promise<string> {
     try {
-      return await invoke('calculate_content_hash', { content });
+      return await invoke('plugin:prospecting|calculate_content_hash', { content });
     } catch (error) {
       // 备用实现
       const encoder = new TextEncoder();
@@ -764,7 +764,7 @@ export class RateControlService {
    */
   private async calculateContentSimilarity(content1: string, contentHash2: string): Promise<number> {
     try {
-      return await invoke('calculate_content_similarity', { content1, contentHash2 });
+      return await invoke('plugin:prospecting|calculate_content_similarity', { content1, contentHash2 });
     } catch (error) {
       // 简化的相似度计算
       const hash1 = await this.calculateContentHash(content1);
@@ -820,7 +820,7 @@ export class RateControlService {
       });
       
       if (localOperations.length > 0) {
-        await invoke('sync_operations_to_cloud', {
+        await invoke('plugin:prospecting|sync_operations_to_cloud', {
           operations: localOperations.map(op => ({
             ...op,
             timestamp: op.timestamp.toISOString()
@@ -829,7 +829,7 @@ export class RateControlService {
       }
       
       // 获取其他设备的操作记录
-      const remoteOperations = await invoke('sync_operations_from_cloud', {
+      const remoteOperations = await invoke('plugin:prospecting|sync_operations_from_cloud', {
         deviceId: this.deviceId,
         sinceDuration: 3600 // 1小时内
       });

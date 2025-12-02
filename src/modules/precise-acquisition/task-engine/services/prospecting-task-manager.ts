@@ -24,10 +24,10 @@ export class ProspectingTaskManager {
       const assignmentTime = new Date();
       
       // 更新任务状态为已分配
-      await invoke('assign_tasks_to_device', {
-        device_id: deviceId,
-        task_ids: taskIds,
-        assigned_at: assignmentTime.toISOString()
+      await invoke('plugin:prospecting|assign_tasks_to_device', {
+        deviceId: deviceId,
+        taskIds: taskIds,
+        assignedAt: assignmentTime.toISOString()
       });
 
       // 获取已分配的任务详情
@@ -55,11 +55,11 @@ export class ProspectingTaskManager {
     errorMessage?: string
   ): Promise<void> {
     try {
-      await invoke('update_task_status', {
-        task_id: taskId,
+      await invoke('plugin:prospecting|update_task_status', {
+        taskId: taskId,
         status,
-        error_message: errorMessage || null,
-        updated_at: new Date().toISOString()
+        errorMessage: errorMessage || null,
+        updatedAt: new Date().toISOString()
       });
 
       // 如果任务失败，处理失败逻辑
@@ -78,10 +78,10 @@ export class ProspectingTaskManager {
    */
   async cancelTask(taskId: string, reason?: string): Promise<void> {
     try {
-      await invoke('cancel_task', {
-        task_id: taskId,
+      await invoke('plugin:prospecting|cancel_task', {
+        taskId: taskId,
         reason: reason || 'User cancelled',
-        cancelled_at: new Date().toISOString()
+        cancelledAt: new Date().toISOString()
       });
 
       console.log(`Task ${taskId} cancelled: ${reason}`);
