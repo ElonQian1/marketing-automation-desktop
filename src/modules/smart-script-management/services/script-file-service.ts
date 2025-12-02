@@ -34,8 +34,8 @@ export class ScriptFileService {
 
       if (savePath) {
         // 使用 Tauri 命令保存文件
-        await invoke('save_file_dialog', {
-          filePath: savePath,
+        await invoke('plugin:file_manager|write_text', {
+          path: savePath,
           content: JSON.stringify(script, null, 2)
         });
         
@@ -67,8 +67,8 @@ export class ScriptFileService {
 
       if (selectedPath && typeof selectedPath === 'string') {
         // 使用 Tauri 命令读取文件内容
-        const content = await invoke('read_file_content', {
-          filePath: selectedPath
+        const content = await invoke('plugin:file_manager|read_text', {
+          path: selectedPath
         }) as string;
         
         // 解析 JSON 内容
