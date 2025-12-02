@@ -13,6 +13,7 @@ use quick_xml::{Reader, events::Event};
 use serde::{Deserialize, Serialize};
 use anyhow::Result as AnyResult;
 use tracing::{info, warn, error};
+use tauri::Runtime;
 // use tauri::Manager;  // 暂时未使用
 use crate::types::page_analysis::ElementBounds;
 // use crate::screenshot_service::ScreenshotService;  // 暂时未使用
@@ -748,8 +749,8 @@ pub fn parse_ui_elements_simple(xml_content: &str) -> AnyResult<Vec<UIElement>> 
 
 /// 分析Universal UI页面
 #[tauri::command]
-pub async fn analyze_universal_ui_page(
-    _app_handle: tauri::AppHandle,
+pub async fn analyze_universal_ui_page<R: Runtime>(
+    _app_handle: tauri::AppHandle<R>,
     device_id: String,
 ) -> Result<UniversalPageCaptureResult, String> {
     info!("🔍 开始分析Universal UI页面，设备ID: {}", device_id);

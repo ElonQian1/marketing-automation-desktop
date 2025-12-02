@@ -21,8 +21,8 @@ use crate::services::universal_ui_page_analyzer::{
 
 /// 分析Universal UI页面 - 采集设备当前页面的XML和截图
 #[tauri::command]
-async fn analyze_page(
-    app_handle: tauri::AppHandle,
+async fn analyze_page<R: Runtime>(
+    app_handle: tauri::AppHandle<R>,
     device_id: String,
 ) -> Result<UniversalPageCaptureResult, String> {
     info!("🔌 [Plugin:universal_ui] 调用 analyze_page，设备: {}", device_id);
