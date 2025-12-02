@@ -177,7 +177,7 @@ async fn cancel_task(
 #[tauri::command]
 async fn get_rate_control_stats(
     _device_id: String,
-    _platform: String,
+    _since: String,
 ) -> Result<Value, String> {
     Ok(serde_json::json!({}))
 }
@@ -239,7 +239,7 @@ async fn sync_operations_to_cloud(
 #[tauri::command]
 async fn sync_operations_from_cloud(
     _device_id: String,
-    _last_sync_time: String,
+    _since_duration: i32,
 ) -> Result<Vec<Value>, String> {
     Ok(vec![])
 }
