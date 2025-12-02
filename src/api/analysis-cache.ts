@@ -46,7 +46,7 @@ export interface CacheStats {
  */
 export async function registerSnapshot(xmlContent: string): Promise<string> {
   try {
-    const snapshotId = await invoke<string>("register_snapshot_cmd", {
+    const snapshotId = await invoke<string>("plugin:xml_cache|register_snapshot_cmd", {
       xmlContent
     });
     console.log(`✅ [AnalysisCache] 注册XML快照: ${snapshotId}`);
@@ -65,7 +65,7 @@ export async function getSubtreeMetrics(
   absXPath: string
 ): Promise<SubtreeMetricsDto> {
   try {
-    const metrics = await invoke<SubtreeMetricsDto>("get_subtree_metrics_cmd", {
+    const metrics = await invoke<SubtreeMetricsDto>("plugin:xml_cache|get_subtree_metrics_cmd", {
       snapshotId,
       absXpath: absXPath
     });
@@ -85,7 +85,7 @@ export async function tryGetSubtreeMetrics(
   absXPath: string
 ): Promise<SubtreeMetricsDto | null> {
   try {
-    const metrics = await invoke<SubtreeMetricsDto | null>("try_get_subtree_metrics_cmd", {
+    const metrics = await invoke<SubtreeMetricsDto | null>("plugin:xml_cache|try_get_subtree_metrics_cmd", {
       snapshotId,
       absXpath: absXPath
     });
@@ -109,7 +109,7 @@ export async function batchGetSubtreeMetrics(
   xpathList: string[]
 ): Promise<SubtreeMetricsDto[]> {
   try {
-    const metricsList = await invoke<SubtreeMetricsDto[]>("batch_get_subtree_metrics_cmd", {
+    const metricsList = await invoke<SubtreeMetricsDto[]>("plugin:xml_cache|batch_get_subtree_metrics_cmd", {
       snapshotId,
       xpathList
     });
@@ -126,7 +126,7 @@ export async function batchGetSubtreeMetrics(
  */
 export async function getCacheStats(): Promise<CacheStats> {
   try {
-    const stats = await invoke<CacheStats>("get_cache_stats_cmd");
+    const stats = await invoke<CacheStats>("plugin:xml_cache|get_cache_stats_cmd");
     return stats;
   } catch (error) {
     console.error("❌ [AnalysisCache] 获取缓存统计失败:", error);
@@ -139,7 +139,7 @@ export async function getCacheStats(): Promise<CacheStats> {
  */
 export async function cleanupCache(maxAgeHours: number = 24): Promise<number> {
   try {
-    const cleanedCount = await invoke<number>("cleanup_cache_cmd", {
+    const cleanedCount = await invoke<number>("plugin:xml_cache|cleanup_cache_cmd", {
       maxAgeHours
     });
     console.log(`🧹 [AnalysisCache] 清理完成: ${cleanedCount}个条目`);
