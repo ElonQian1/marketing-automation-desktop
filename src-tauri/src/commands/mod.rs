@@ -19,7 +19,7 @@ pub mod intelligent_analysis; // ✅ 新增智能分析命令
 pub mod health_check; // ✅ 新增后端健康检查命令
 pub mod prospecting; // ✅ 新增精准获客命令
 pub mod legacy_smart_finder; // ✅ 新增：兼容旧版智能查找命令
-pub mod image_optimization; // ✅ 新增：图片优化命令
+// pub mod image_optimization; // ✅ 新增：图片优化命令 - Moved to plugin:image_optimization
 pub mod click_normalizer_test; // 🆕 新增点击规范化测试命令
 pub mod structure_recommend; // 🎯 新增结构匹配智能推荐命令
 pub mod execute_structure_match; // 🚀 新增结构匹配真机执行命令

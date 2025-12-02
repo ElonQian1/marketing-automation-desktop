@@ -66,9 +66,9 @@ use crate::commands::automation_commands::{
 };
 
 // ==================== 🖼️ 图片优化命令 ====================
-use crate::commands::image_optimization::{
-    generate_thumbnail_backend, load_image_optimized, preload_images_batch,
-};
+// use crate::commands::image_optimization::{
+//    generate_thumbnail_backend, load_image_optimized, preload_images_batch,
+// };
 
 // ==================== 🎯 版本控制系统命令 ====================
 use crate::domain::analysis_cache::version_commands::{
@@ -108,6 +108,7 @@ fn main() {
         .plugin(modules::adb::init())             // ✅ 注册ADB插件
         .plugin(modules::employees::init())       // ✅ 注册员工管理插件
         .plugin(modules::contacts::init())        // ✅ 注册联系人插件
+        .plugin(modules::image_optimization::init()) // ✅ 注册图片优化插件
         .manage(Mutex::new(AdbService::new()))
         .manage(Mutex::new(EmployeeService::new()))
         .manage(SmartAppManagerState::new())
@@ -216,9 +217,9 @@ fn main() {
             execute_static_strategy_test_v3,
             execute_task_v3,
             // ==================== 🖼️ 图片优化 (3个命令) ====================
-            load_image_optimized,
-            generate_thumbnail_backend,
-            preload_images_batch,
+            // load_image_optimized, // Moved to plugin:image_optimization
+            // generate_thumbnail_backend, // Moved to plugin:image_optimization
+            // preload_images_batch, // Moved to plugin:image_optimization
             // ==================== 🎯 智能选择 (已迁移至插件) ====================
             // save_smart_selection_config, // Moved to plugin
             // get_smart_selection_stats, // Moved to plugin
