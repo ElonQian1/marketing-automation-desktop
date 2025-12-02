@@ -24,10 +24,11 @@ pub mod click_normalizer_test; // 🆕 新增点击规范化测试命令
 pub mod structure_recommend; // 🎯 新增结构匹配智能推荐命令
 pub mod execute_structure_match; // 🚀 新增结构匹配真机执行命令
 pub mod apps; // ✅ 新增应用管理命令
+pub mod universal_ui; // 🆕 Universal UI分析命令（采集当前页面）
 
 pub mod enhanced_location_commands;
 pub mod commands_lead_hunt;
-pub mod smart_selection;
+// pub mod smart_selection; // Moved to modules/smart_selection
 pub mod semantic_analyzer_config;
 pub mod structure_match_runtime;
 pub mod ui_dump;
@@ -48,7 +49,7 @@ pub use health_check::*; // ✅ 导出健康检查命令
  // 🆕 导出统一步骤执行命令
  // ✅ 导出精准获客命令
  // ✅ 导出Lead Hunt命令
-pub use smart_selection::*; // 🆕 导出智能选择命令
+// pub use smart_selection::*; // 🆕 导出智能选择命令 (Moved to modules)
  // 🆕 导出语义分析器配置命令
  // 🚀 导出结构匹配运行时命令
 pub use ui_dump::*; // 🆕 导出UI Dump命令
@@ -57,3 +58,4 @@ pub use click_normalizer_test::*; // 🆕 导出点击规范化测试命令
 pub use structure_recommend::*; // 🎯 导出结构匹配智能推荐命令
 pub use execute_structure_match::*; // 🚀 导出结构匹配真机执行命令
 pub use apps::*; // ✅ 导出应用管理命令
+pub use universal_ui::*; // 🆕 导出Universal UI分析命令

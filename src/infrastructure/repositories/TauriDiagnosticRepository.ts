@@ -115,7 +115,7 @@ export class TauriDiagnosticRepository implements IDiagnosticRepository {
 
   async checkAdbPath(): Promise<DiagnosticResult> {
     try {
-      const adbPath = await invoke<string>('detect_smart_adb_path');
+      const adbPath = await invoke<string>('plugin:adb|detect_path');
       return DiagnosticResult.success(
         'adb-path',
         'ADB路径检测',
@@ -136,7 +136,7 @@ export class TauriDiagnosticRepository implements IDiagnosticRepository {
   async checkAdbServer(): Promise<DiagnosticResult> {
     try {
       // 检查服务器状态
-      const version = await invoke<string>('get_adb_version');
+      const version = await invoke<string>('plugin:adb|version');
       
       return DiagnosticResult.success(
         'adb-server',
@@ -153,9 +153,9 @@ export class TauriDiagnosticRepository implements IDiagnosticRepository {
         true,
         async () => {
           try {
-            await invoke('kill_adb_server_simple');
+            await invoke('plugin:adb|kill_server_simple');
             await new Promise(resolve => setTimeout(resolve, 1000));
-            await invoke('start_adb_server_simple');
+            await invoke('plugin:adb|start_server_simple');
             return true;
           } catch {
             return false;

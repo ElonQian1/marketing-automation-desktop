@@ -166,10 +166,13 @@ export class ContactVcfImportService {
    */
   static async getAdbDevices(): Promise<string[]> {
     try {
-      const devices = await invoke<string[]>("get_adb_devices", { 
+      const devicesOutput = await invoke<string>("plugin:adb|list_devices", { 
         adbPath: "platform-tools/adb.exe"
       });
-      return devices;
+      // Simple parsing to maintain compatibility, though this service seems to expect array
+      // Assuming the caller handles parsing or this code was already broken for raw string
+      // But to be safe, let's try to split by newline if it's a string
+      return devicesOutput.split('\n').filter(line => line.trim().length > 0 && !line.startsWith('List of devices'));
     } catch (error) {
       console.error("获取设备列表失败:", error);
       return ["127.0.0.1:5555"]; // 返回默认设备作为备选

@@ -88,7 +88,7 @@ export class AndroidDeviceManager implements IDeviceManager {
       const { invoke } = await import("@tauri-apps/api/core");
 
       // 调用后端的ADB设备检测方法
-      const adbOutput = await invoke<string>("get_adb_devices", { 
+      const adbOutput = await invoke<string>("plugin:adb|list_devices", { 
         adbPath: "platform-tools/adb.exe"
       });
       return this.parseAdbDevices(adbOutput);
@@ -182,8 +182,9 @@ export class AndroidDeviceManager implements IDeviceManager {
       const { invoke } = await import("@tauri-apps/api/core");
 
       // 尝试连接设备
-      const result = await invoke<boolean>("connect_adb_device", {
-        deviceId: device.connection.address,
+      const result = await invoke<boolean>("plugin:adb|connect", {
+        adbPath: "platform-tools/adb.exe",
+        address: device.connection.address,
       });
 
       if (result) {
@@ -207,8 +208,9 @@ export class AndroidDeviceManager implements IDeviceManager {
 
       const { invoke } = await import("@tauri-apps/api/core");
 
-      const result = await invoke<boolean>("disconnect_adb_device", {
-        deviceId: device.connection.address,
+      const result = await invoke<boolean>("plugin:adb|disconnect", {
+        adbPath: "platform-tools/adb.exe",
+        address: device.connection.address,
       });
 
       if (result) {

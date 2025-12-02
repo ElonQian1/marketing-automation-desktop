@@ -1,3 +1,24 @@
+// ⚠️ DEPRECATED: This file is kept for reference only.
+// All ADB commands have been migrated to the new plugin architecture.
+// Please refer to `src-tauri/src/modules/adb/mod.rs` for the new implementation.
+//
+// Migration Map:
+// - execute_adb_command -> plugin:adb|execute
+// - check_file_exists -> plugin:adb|check_file
+// - detect_ldplayer_adb -> plugin:adb|detect_ldplayer
+// - detect_smart_adb_path -> plugin:adb|detect_path
+// - get_adb_devices -> plugin:adb|list_devices
+// - get_adb_version -> plugin:adb|version
+// - start_adb_server_simple -> plugin:adb|start_server_simple
+// - kill_adb_server_simple -> plugin:adb|kill_server_simple
+// - execute_adb_command_simple -> plugin:adb|execute_simple
+// - connect_adb_device -> plugin:adb|connect
+// - disconnect_adb_device -> plugin:adb|disconnect
+// - start_adb_server -> plugin:adb|start_server
+// - kill_adb_server -> plugin:adb|kill_server
+// - get_device_properties -> plugin:adb|get_properties
+
+/*
 use tauri::State;
 use std::sync::Mutex;
 use crate::services::adb::AdbService;
@@ -218,3 +239,4 @@ pub async fn kill_adb_server(adb_path: String, service: State<'_, Mutex<AdbServi
 
 #[tauri::command]
 pub async fn get_device_properties(adb_path: String, device_id: String, service: State<'_, Mutex<AdbService>>) -> Result<String, String> { let service = service.lock().map_err(|e| e.to_string())?; service.get_device_properties(&adb_path, &device_id).map_err(|e| e.to_string()) }
+*/

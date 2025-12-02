@@ -27,6 +27,7 @@ mod services;
 mod types;
 mod utils;
 mod automation;
+mod modules; // ✅ 新增模块化插件系统
 
 // ==================== 📦 核心依赖导入 ====================
 use std::sync::Mutex;
@@ -101,63 +102,23 @@ fn main() {
         .with(tracing_subscriber::fmt::layer())
         .init();
 
-    info!("🚀 启动EmployeeGUI应用程序 (重构版本)");
-    info!("📊 日志级别: DEBUG (开发模式)");
-    info!("🎯 命令注册: 84个命令按10个功能模块分组");
-
-    let employee_service = EmployeeService::new().expect("Failed to initialize employee service");
-    let adb_service = AdbService::new();
-    let smart_app_service = SmartAppManagerState::new();
-    let ai_state = ai::commands::AppState {
-        settings: parking_lot::RwLock::new(ai::ai_config::load_settings()),
-    };
-    let prospecting_state = commands::prospecting::ProspectingState::new();
-
-    // 🆕 初始化智能 XPath 生成器状态
-    let xpath_generator_state = commands::enhanced_location_commands::XPathGeneratorState::new(
-        services::execution::matching::SmartXPathGenerator::new(),
-    );
-
-    // 🆕 智能选择系统状态
-    let smart_selection_state = commands::smart_selection::SmartSelectionState::new();
-
-    // 🆕 智能脚本管理状态
-    let script_manager_state = ScriptManagerState::new();
-
-    // 🎯 初始化 ADB 核心系统 (server + 设备跟踪器)
-    initialize_adb_system().expect("Failed to initialize ADB system");
-
-    info!("✅ 所有服务初始化完成");
-
     tauri::Builder::default()
         .plugin(tauri_plugin_dialog::init())
-        .setup(|app| {
-            // 设置日志收集器的 app handle，以便实时向前端 emit 事件
-            // 由于 LOG_COLLECTOR 为静态对象，这里采用受控的 unsafe 可变引用写入 app_handle
-            unsafe {
-                let ptr: *const services::log_bridge::LogCollector = &*LOG_COLLECTOR;
-                // 将不可变指针转换为可变引用（仅在初始化时调用，避免数据竞争）
-                let collector_mut = (ptr as *mut services::log_bridge::LogCollector)
-                    .as_mut()
-                    .expect("LOG_COLLECTOR pointer should be valid");
-                collector_mut.set_app_handle(app.handle().clone());
-            }
-
-            // 初始化 Lead Hunt 数据库
-            if let Err(e) = db::initialize(app.handle()) {
-                eprintln!("[DB] Failed to initialize database: {}", e);
-            }
-
-            Ok(())
+        .plugin(modules::smart_selection::init()) // ✅ 注册智能选择插件
+        .plugin(modules::universal_ui::init())    // ✅ 注册Universal UI分析插件
+        .plugin(modules::adb::init())             // ✅ 注册ADB插件
+        .manage(Mutex::new(AdbService::new()))
+        .manage(Mutex::new(EmployeeService::new()))
+        .manage(SmartAppManagerState::new())
+        .manage(ai::commands::AppState {
+            settings: parking_lot::RwLock::new(ai::ai_config::load_settings()),
         })
-        .manage(Mutex::new(employee_service))
-        .manage(Mutex::new(adb_service))
-        .manage(smart_app_service)
-        .manage(ai_state)
-        .manage(prospecting_state)
-        .manage(xpath_generator_state) // 🆕 注册 XPath 生成器状态
-        .manage(smart_selection_state) // 🆕 注册智能选择系统状态
-        .manage(script_manager_state)  // 🆕 注册智能脚本管理状态
+        .manage(commands::prospecting::ProspectingState::new())
+        .manage(commands::enhanced_location_commands::XPathGeneratorState::new(
+            services::execution::matching::SmartXPathGenerator::new(),
+        ))
+        // .manage(commands::smart_selection::SmartSelectionState::new()) // Removed as part of refactoring
+        .manage(ScriptManagerState::new())
         // 应用关闭清理外部进程（scrcpy 等）
         .on_window_event(|_window, event| {
             if let tauri::WindowEvent::CloseRequested { .. } = event {
@@ -171,25 +132,25 @@ fn main() {
             update_employee,
             delete_employee,
             // ==================== 🔧 ADB核心 (9个命令) ====================
-            execute_adb_command,
-            get_adb_devices,
-            get_adb_version,
-            connect_adb_device,
-            disconnect_adb_device,
-            start_adb_server,
-            kill_adb_server,
+            // execute_adb_command, // Moved to plugin:adb
+            // get_adb_devices, // Moved to plugin:adb
+            // get_adb_version, // Moved to plugin:adb
+            // connect_adb_device, // Moved to plugin:adb
+            // disconnect_adb_device, // Moved to plugin:adb
+            // start_adb_server, // Moved to plugin:adb
+            // kill_adb_server, // Moved to plugin:adb
             validate_device_connection,
             get_ui_dump,
             // ==================== 🔧 ADB扩展 (9个命令) ====================
-            get_device_properties,
+            // get_device_properties, // Moved to plugin:adb
             start_device_tracking,
             stop_device_tracking,
             get_tracked_devices,
             safe_adb_push,
             safe_adb_shell_command,
             get_device_apps,
-            detect_smart_adb_path,
-            detect_ldplayer_adb,
+            // detect_smart_adb_path, // Moved to plugin:adb
+            // detect_ldplayer_adb, // Moved to plugin:adb
             // ==================== 📁 文件操作 (7个命令) ====================
             read_file_content,
             save_file_dialog,
@@ -257,10 +218,10 @@ fn main() {
             load_image_optimized,
             generate_thumbnail_backend,
             preload_images_batch,
-            // ==================== 🎯 智能选择 (3个命令) ====================
-            save_smart_selection_config,
-            get_smart_selection_stats,
-            validate_smart_selection_protocol,
+            // ==================== 🎯 智能选择 (已迁移至插件) ====================
+            // save_smart_selection_config, // Moved to plugin
+            // get_smart_selection_stats, // Moved to plugin
+            // validate_smart_selection_protocol, // Moved to plugin
             // ==================== 🔍 系统诊断 (6个命令) ====================
             backend_ping,
             analysis_health_check,
@@ -308,6 +269,12 @@ fn main() {
             // ==================== ⚡ 快速UI自动化 (3个命令) ====================
             adb_dump_ui_xml,
             adb_tap_coordinate,
+            // ==================== 📱 Universal UI分析 (5个命令) ====================
+            analyze_universal_ui_page,
+            extract_page_elements,
+            classify_ui_elements,
+            deduplicate_elements,
+            identify_page_type,
         ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");

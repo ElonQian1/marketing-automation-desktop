@@ -17,7 +17,7 @@ export class TauriAdbRepository implements IAdbRepository {
       if (!isTauri()) {
         throw new Error('Not running in Tauri environment');
       }
-      const result = await invoke<string>('detect_smart_adb_path');
+      const result = await invoke<string>('plugin:adb|detect_path');
       return result;
     } catch (error) {
       console.error('Smart ADB detection failed:', error);
@@ -31,7 +31,7 @@ export class TauriAdbRepository implements IAdbRepository {
         console.warn('Not running in Tauri environment, LDPlayer detection unavailable');
         return null;
       }
-      const result = await invoke<string | null>('detect_ldplayer_adb');
+      const result = await invoke<string | null>('plugin:adb|detect_ldplayer');
       return result;
     } catch (error) {
       console.error('LDPlayer ADB detection failed:', error);
@@ -41,7 +41,7 @@ export class TauriAdbRepository implements IAdbRepository {
 
   async checkFileExists(path: string): Promise<boolean> {
     try {
-      const result = await invoke<boolean>('check_file_exists', { path });
+      const result = await invoke<boolean>('plugin:adb|check_file', { path });
       return result;
     } catch (error) {
       console.error(`Failed to check file existence: ${path}`, error);
@@ -51,7 +51,7 @@ export class TauriAdbRepository implements IAdbRepository {
 
   async getAdbVersion(adbPath?: string): Promise<string> {
     try {
-      const result = await invoke<string>('get_adb_version', { 
+      const result = await invoke<string>('plugin:adb|version', { 
         adbPath: adbPath || 'auto' 
       });
       return result;
@@ -63,9 +63,9 @@ export class TauriAdbRepository implements IAdbRepository {
   async startAdbServer(adbPath?: string): Promise<void> {
     try {
       if (adbPath) {
-        await invoke('start_adb_server', { adbPath });
+        await invoke('plugin:adb|start_server', { adbPath });
       } else {
-        await invoke('start_adb_server_simple');
+        await invoke('plugin:adb|start_server_simple');
       }
     } catch (error) {
       throw new Error(`启动ADB服务器失败: ${error}`);
@@ -75,9 +75,9 @@ export class TauriAdbRepository implements IAdbRepository {
   async stopAdbServer(adbPath?: string): Promise<void> {
     try {
       if (adbPath) {
-        await invoke('kill_adb_server', { adbPath });
+        await invoke('plugin:adb|kill_server', { adbPath });
       } else {
-        await invoke('kill_adb_server_simple');
+        await invoke('plugin:adb|kill_server_simple');
       }
     } catch (error) {
       throw new Error(`停止ADB服务器失败: ${error}`);
@@ -103,7 +103,7 @@ export class TauriAdbRepository implements IAdbRepository {
 
   async executeAdbCommand(args: string[], adbPath?: string): Promise<string> {
     try {
-      const result = await invoke<string>('execute_adb_command', {
+      const result = await invoke<string>('plugin:adb|execute', {
         args,
         adbPath: adbPath || 'auto'
       });
@@ -177,7 +177,7 @@ export class TauriAdbRepository implements IAdbRepository {
       // 通过简化命令执行器执行 adb pair
       // 注意：底层 main.rs 的 execute_adb_command_simple 会在固定 adb 路径下执行
       const cmd = `pair ${hostPort} ${code}`;
-      const result = await invoke<string>('execute_adb_command_simple', { command: cmd });
+      const result = await invoke<string>('plugin:adb|execute_simple', { command: cmd });
       return result;
     } catch (error) {
       throw new Error(`无线调试配对失败: ${error}`);
