@@ -7,7 +7,8 @@ import { invoke } from '@tauri-apps/api/core';
 export async function queryDeviceContactCount(deviceId: string): Promise<number> {
   // 兼容多命令名：新旧后端可能命名不同
   const candidates = [
-    'get_device_contact_count', // 假设新命令
+    'plugin:contacts|get_device_contact_count', // 假设新命令
+    'get_device_contact_count', // 假设旧命令
     'query_device_contact_count', // 假设旧命令
     'get_contacts_count', // 备用
   ];

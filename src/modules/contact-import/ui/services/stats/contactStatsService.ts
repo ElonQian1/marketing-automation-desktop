@@ -17,7 +17,7 @@ export interface ContactNumberStatsDto {
 }
 
 export async function getContactNumberStats(): Promise<ContactNumberStatsDto> {
-  return invoke<ContactNumberStatsDto>('get_contact_number_stats_cmd');
+  return invoke<ContactNumberStatsDto>('plugin:contacts|get_stats');
 }
 
 export async function setIndustryByIdRange(startId: number, endId: number, industry: string): Promise<number> {

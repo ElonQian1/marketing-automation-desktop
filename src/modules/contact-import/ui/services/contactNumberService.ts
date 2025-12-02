@@ -21,7 +21,7 @@ export async function importNumbersFromTxtFile(filePath: string): Promise<Import
 }
 
 export async function importNumbersFromFolder(folderPath: string): Promise<ImportNumbersResult> {
-  return invoke<ImportNumbersResult>('import_contact_numbers_from_folder', { folderPath });
+  return invoke<ImportNumbersResult>('plugin:contacts|import_folder', { folderPath });
 }
 
 export async function importNumbersFromFolders(folderPaths: string[]): Promise<ImportNumbersResult> {
@@ -74,22 +74,22 @@ export async function listContactNumbers(params: { limit?: number; offset?: numb
 }
 
 export async function fetchContactNumbers(count: number): Promise<ContactNumberDto[]> {
-  return invoke<ContactNumberDto[]>('fetch_contact_numbers', { count });
+  return invoke<ContactNumberDto[]>('plugin:contacts|fetch_contact_numbers', { count });
 }
 
 export async function fetchContactNumbersByIdRange(startId: number, endId: number): Promise<ContactNumberDto[]> {
   if (endId < startId) return [];
-  return invoke<ContactNumberDto[]>('fetch_contact_numbers_by_id_range', { start_id: startId, end_id: endId, startId, endId });
+  return invoke<ContactNumberDto[]>('plugin:contacts|fetch_contact_numbers_by_id_range', { start_id: startId, end_id: endId, startId, endId });
 }
 
 export async function fetchContactNumbersByIdRangeUnconsumed(startId: number, endId: number): Promise<ContactNumberDto[]> {
   if (endId < startId) return [];
-  return invoke<ContactNumberDto[]>('fetch_contact_numbers_by_id_range_unconsumed', { start_id: startId, end_id: endId, startId, endId });
+  return invoke<ContactNumberDto[]>('plugin:contacts|fetch_contact_numbers_by_id_range_unconsumed', { start_id: startId, end_id: endId, startId, endId });
 }
 
 export async function markContactNumbersUsedByIdRange(startId: number, endId: number, batchId: string): Promise<number> {
   if (endId < startId) return 0;
-  return invoke<number>('mark_contact_numbers_used_by_id_range', { start_id: startId, end_id: endId, batch_id: batchId });
+  return invoke<number>('plugin:contacts|mark_contact_numbers_used_by_id_range', { start_id: startId, end_id: endId, batch_id: batchId });
 }
 
 /**
@@ -233,7 +233,7 @@ export async function listNumbersWithoutVcfBatch(params: { limit?: number; offse
 let cachedIndustries: string[] | null = null;
 export async function getDistinctIndustries(forceRefresh = false): Promise<string[]> {
   if (cachedIndustries && !forceRefresh) return cachedIndustries;
-  const list = await invoke<string[]>('get_distinct_industries_cmd');
+  const list = await invoke<string[]>('plugin:contacts|get_distinct_industries');
   cachedIndustries = list;
   return list;
 }
@@ -452,7 +452,7 @@ export async function getImportedFileList(): Promise<FileInfoDto[]> {
  * @param onlyAvailable 是否只获取可用号码（未分配、未导入）
  */
 export async function getNumbersByFiles(filePaths: string[], onlyAvailable: boolean = false): Promise<ContactNumberDto[]> {
-  return invoke<ContactNumberDto[]>('get_numbers_by_files', {
+  return invoke<ContactNumberDto[]>('plugin:contacts|get_numbers_by_files', {
     file_paths: filePaths,
     filePaths,
     only_available: onlyAvailable,

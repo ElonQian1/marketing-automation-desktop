@@ -86,7 +86,7 @@ export class ImportStrategyExecutor {
                   estimatedImported: number;
                   method: string;
                   verifiedPhones: string[];
-                }>('verify_contacts_fast', {
+                }>('plugin:contacts|verify_contacts_fast', {
                   device_id: deviceId,
                   phone_numbers: phones
                 });
@@ -196,7 +196,7 @@ export class ImportStrategyExecutor {
               estimatedImported: number;
               method: string;
               verifiedPhones: string[];
-            }>('verify_contacts_fast', {
+            }>('plugin:contacts|verify_contacts_fast', {
               deviceId,
               phoneNumbers: phones
             });

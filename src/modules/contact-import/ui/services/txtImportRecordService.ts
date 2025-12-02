@@ -48,7 +48,7 @@ export async function listTxtImportRecords(params: {
   offset?: number; 
 } = {}): Promise<TxtImportRecordList> {
   const { limit, offset } = params;
-  return invoke<TxtImportRecordList>('list_txt_import_records_cmd', { 
+  return invoke<TxtImportRecordList>('plugin:contacts|list_import_records', { 
     limit, 
     offset 
   });
@@ -63,7 +63,7 @@ export async function deleteTxtImportRecord(
   recordId: number, 
   archiveNumbers: boolean = false
 ): Promise<DeleteTxtImportRecordResult> {
-  return invoke<DeleteTxtImportRecordResult>('delete_txt_import_record_cmd', {
+  return invoke<DeleteTxtImportRecordResult>('plugin:contacts|delete_import_record', {
     recordId,           // Tauri 2.0 使用 camelCase
     archiveNumbers,     // Tauri 2.0 使用 camelCase
   });
