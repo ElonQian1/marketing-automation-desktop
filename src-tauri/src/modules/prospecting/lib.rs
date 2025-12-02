@@ -246,7 +246,7 @@ async fn sync_operations_from_cloud(
 
 #[tauri::command]
 async fn cleanup_expired_operations(
-    _retention_days: i32,
+    _cutoff_time: String,
 ) -> Result<i32, String> {
     Ok(0)
 }

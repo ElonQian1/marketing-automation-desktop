@@ -856,7 +856,7 @@ export class RateControlService {
       const platformStats: Record<Platform, any> = {} as any;
       
       // 从持久化存储获取统计数据
-      const stats = await invoke('get_rate_control_stats', {
+      const stats = await invoke('plugin:prospecting|get_rate_control_stats', {
         since: cutoffTime.toISOString(),
         deviceId: this.deviceId
       });
@@ -891,7 +891,7 @@ export class RateControlService {
       const cutoffTime = new Date();
       cutoffTime.setDate(cutoffTime.getDate() - retentionDays);
       
-      await invoke('cleanup_expired_operations', {
+      await invoke('plugin:prospecting|cleanup_expired_operations', {
         cutoffTime: cutoffTime.toISOString()
       });
       
