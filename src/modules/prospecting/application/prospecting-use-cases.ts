@@ -73,7 +73,7 @@ export class ProspectingUseCases {
           }
 
           // 保存到后端
-          await invoke('prospecting_save_comment', { comment });
+          await invoke('plugin:prospecting|save_comment', { comment });
           imported++;
         } catch (error) {
           skipped++;
@@ -106,7 +106,7 @@ export class ProspectingUseCases {
     hasAnalysis?: boolean;
   }): Promise<ProspectingComment[]> {
     try {
-      const comments: ProspectingComment[] = await invoke('prospecting_get_comments', { filter });
+      const comments: ProspectingComment[] = await invoke('plugin:prospecting|get_comments', { filter });
       return comments;
     } catch (error) {
       console.error('[ProspectingUseCases] 获取评论列表失败:', error);
@@ -152,8 +152,7 @@ export class ProspectingUseCases {
 
       for (const result of results) {
         try {
-          await invoke('prospecting_save_analysis', { 
-            commentId: result.commentId, 
+          await invoke('plugin:prospecting|save_analysis', { 
             analysis: result 
           });
           analyzed++;
@@ -265,7 +264,7 @@ export class ProspectingUseCases {
     };
   }> {
     try {
-      return await invoke('prospecting_get_statistics');
+      return await invoke('plugin:prospecting|get_statistics');
     } catch (error) {
       console.error('[ProspectingUseCases] 获取统计信息失败:', error);
       return {
@@ -311,7 +310,7 @@ export class ProspectingUseCases {
 
   private async getCommentsByIds(ids: string[]): Promise<ProspectingComment[]> {
     try {
-      return await invoke('prospecting_get_comments_by_ids', { ids });
+      return await invoke('plugin:prospecting|get_comments_by_ids', { ids });
     } catch (error) {
       console.error('[ProspectingUseCases] 获取指定评论失败:', error);
       return [];
@@ -320,7 +319,7 @@ export class ProspectingUseCases {
 
   private async getReplyPlansByIds(ids: string[]): Promise<ProspectingReplyPlan[]> {
     try {
-      return await invoke('prospecting_get_reply_plans_by_ids', { ids });
+      return await invoke('plugin:prospecting|get_reply_plans_by_ids', { ids });
     } catch (error) {
       console.error('[ProspectingUseCases] 获取指定回复计划失败:', error);
       return [];

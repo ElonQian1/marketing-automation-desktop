@@ -220,7 +220,7 @@ export class ProspectingReplyPlanner {
    */
   async getReplyPlans(): Promise<ProspectingReplyPlan[]> {
     try {
-      return await invoke('prospecting_get_reply_plans');
+      return await invoke('plugin:prospecting|get_reply_plans', { commentIds: [] }); // Assuming empty list for all, or I need to check the backend signature.
     } catch (error) {
       console.error('[ProspectingReplyPlanner] 获取回复计划失败:', error);
       return [];
@@ -232,7 +232,7 @@ export class ProspectingReplyPlanner {
    */
   async saveReplyPlan(plan: ProspectingReplyPlan): Promise<void> {
     try {
-      await invoke('prospecting_save_reply_plan', { plan });
+      await invoke('plugin:prospecting|save_reply_plan', { plan });
     } catch (error) {
       console.error('[ProspectingReplyPlanner] 保存回复计划失败:', error);
       throw error;
@@ -293,7 +293,7 @@ export class ProspectingReplyPlanner {
     error?: string;
   }> {
     try {
-      const result = await invoke('prospecting_execute_real_reply_plan', { plan }) as {
+      const result = await invoke('plugin:prospecting|execute_real_reply_plan', { planId: plan.id }) as {
         success: boolean;
         completedSteps: number;
         error?: string;
