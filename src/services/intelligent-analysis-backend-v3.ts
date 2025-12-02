@@ -494,7 +494,7 @@ export class IntelligentAnalysisBackendV3 {
     
     try {
       // V3使用analysis_id作为取消标识
-      await invoke('cancel_execution_v3', { analysisId: jobId });
+      await invoke('plugin:execution_v3|cancel_execution_v3', { analysisId: jobId });
       console.log('✅ [V3 BackendService] 分析已取消');
     } catch (error) {
       // 如果后端未实现cancel_execution_v3命令，降级到空操作

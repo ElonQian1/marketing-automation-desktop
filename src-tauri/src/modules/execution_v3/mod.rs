@@ -44,13 +44,21 @@ async fn execute_task_v3(
     execute_task_v3_impl(app, envelope, task).await
 }
 
+#[tauri::command]
+async fn cancel_execution_v3(analysis_id: String) -> Result<(), String> {
+    // TODO: Implement cancellation logic
+    tracing::warn!("cancel_execution_v3 not implemented yet for {}", analysis_id);
+    Ok(())
+}
+
 pub fn init() -> TauriPlugin<Wry> {
     Builder::new("execution_v3")
         .invoke_handler(tauri::generate_handler![
             execute_single_step_test_v3,
             execute_chain_test_v3,
             execute_static_strategy_test_v3,
-            execute_task_v3
+            execute_task_v3,
+            cancel_execution_v3 // ✅ Register cancel command
         ])
         .build()
 }
