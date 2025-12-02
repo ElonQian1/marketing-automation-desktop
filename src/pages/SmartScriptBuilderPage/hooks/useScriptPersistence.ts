@@ -49,7 +49,7 @@ export function useScriptPersistence({
         metadata: {},
       } as const;
 
-      const savedScriptId = await invoke("save_smart_script", {
+      const savedScriptId = await invoke("plugin:script_manager|save_smart_script", {
         script: scriptData,
       });
 
