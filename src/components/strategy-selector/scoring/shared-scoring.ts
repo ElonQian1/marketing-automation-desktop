@@ -199,7 +199,7 @@ export async function executeSharedStructuralScoring(
       setTimeout(() => reject(new Error('评分超时（30秒）')), 30000);
     });
     
-    const scorePromise = invoke<RecommendResponse>('recommend_structure_mode_v2', {
+    const scorePromise = invoke<RecommendResponse>('plugin:intelligent_analysis|recommend_structure_mode_v2', {
       input: {
         indexPath: card.staticLocator?.indexPath || null,  // 🎯 优先使用 index_path
         absoluteXpath: card.elementContext.xpath,          // 🔄 回退使用 xpath
@@ -251,7 +251,7 @@ export async function executeSharedStructuralScoring(
       console.warn(`⚠️ [${contextName}] indexPath评分失败（${error instanceof Error ? error.message : String(error)}），尝试仅使用xpath评分...`);
       
       try {
-        const fallbackRecommendation = await invoke<RecommendResponse>('recommend_structure_mode_v2', {
+        const fallbackRecommendation = await invoke<RecommendResponse>('plugin:intelligent_analysis|recommend_structure_mode_v2', {
           input: {
             indexPath: null,  // 🔄 不使用 indexPath
             absoluteXpath: card.elementContext.xpath,
