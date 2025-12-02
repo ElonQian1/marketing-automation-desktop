@@ -120,8 +120,8 @@ export class SmartAppService {
    */
   async searchDeviceApps(deviceId: string, query: string): Promise<AppInfo[]> {
     try {
-      return await invoke<AppInfo[]>('search_device_apps', {
-        deviceId,
+      return await invoke<AppInfo[]>('plugin:adb|search_apps', {
+        device_id: deviceId,
         query
       });
     } catch (error) {
@@ -135,9 +135,9 @@ export class SmartAppService {
    */
   async launchDeviceApp(deviceId: string, packageName: string): Promise<AppLaunchResult> {
     try {
-      return await invoke<AppLaunchResult>('launch_device_app', {
-        deviceId,
-        packageName
+      return await invoke<AppLaunchResult>('plugin:adb|launch_app', {
+        device_id: deviceId,
+        package_name: packageName
       });
     } catch (error) {
       console.error('启动应用失败:', error);
@@ -150,8 +150,8 @@ export class SmartAppService {
    */
   async getCachedDeviceApps(deviceId: string): Promise<AppInfo[]> {
     try {
-      return await invoke<AppInfo[]>('get_cached_device_apps', {
-        deviceId
+      return await invoke<AppInfo[]>('plugin:adb|get_cached_apps', {
+        device_id: deviceId
       });
     } catch (error) {
       console.error('获取缓存应用失败:', error);
@@ -164,7 +164,7 @@ export class SmartAppService {
    */
   async getPopularApps(): Promise<AppInfo[]> {
     try {
-      return await invoke<AppInfo[]>('get_popular_apps');
+      return await invoke<AppInfo[]>('plugin:adb|get_popular_apps');
     } catch (error) {
       console.error('获取热门应用失败:', error);
       return [];
