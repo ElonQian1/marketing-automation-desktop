@@ -9,6 +9,9 @@ use tauri::{
 use serde::{Deserialize, Serialize};
 use serde_json::Value;
 use crate::services::adb::AdbService;
+use crate::commands::click_normalizer_test::{
+    self, ClickNormalizeRequest, ClickNormalizeResponse, AnalyzeResponse
+};
 
 // ==================== 类型定义 ====================
 
@@ -99,6 +102,17 @@ async fn run_diagnostic() -> Result<Value, String> {
     crate::services::diagnostic_service::run_full_diagnostic().await
 }
 
+// Wrappers for click_normalizer_test
+#[tauri::command]
+async fn test_click_normalization(request: ClickNormalizeRequest) -> ClickNormalizeResponse {
+    click_normalizer_test::test_click_normalization(request).await
+}
+
+#[tauri::command]
+async fn analyze_xml_structure(xml_content: String) -> AnalyzeResponse {
+    click_normalizer_test::analyze_xml_structure(xml_content).await
+}
+
 // ==================== 辅助函数 ====================
 
 /// 检查ADB连接状态
@@ -124,7 +138,9 @@ pub fn init<R: Runtime>() -> TauriPlugin<R> {
             get_adb_path,
             get_env_info,
             test_device,
-            run_diagnostic
+            run_diagnostic,
+            test_click_normalization,
+            analyze_xml_structure
         ])
         .build()
 }
