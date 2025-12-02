@@ -91,7 +91,7 @@ export class EnhancedLocationService {
     config?: EnhancedMatchingConfig
   ): Promise<EnhancedMatchResult> {
     try {
-      const result = await invoke<EnhancedMatchResult>('match_element_enhanced', {
+      const result = await invoke<EnhancedMatchResult>('plugin:enhanced_location|match_element_enhanced', {
         targetCriteria,
         deviceId,
         config: config || this.getDefaultConfig()
@@ -117,7 +117,7 @@ export class EnhancedLocationService {
     elementAttributes: Record<string, string>
   ): Promise<XPathCandidate[]> {
     try {
-      const candidates = await invoke<XPathCandidate[]>('generate_xpath_candidates', {
+      const candidates = await invoke<XPathCandidate[]>('plugin:enhanced_location|generate_xpath_candidates', {
         attributes: elementAttributes
       });
 
@@ -135,7 +135,7 @@ export class EnhancedLocationService {
     elementAttributes: Record<string, string>
   ): Promise<XPathCandidate | null> {
     try {
-      const bestCandidate = await invoke<XPathCandidate | null>('generate_best_xpath', {
+      const bestCandidate = await invoke<XPathCandidate | null>('plugin:enhanced_location|generate_best_xpath', {
         attributes: elementAttributes
       });
 
@@ -151,7 +151,7 @@ export class EnhancedLocationService {
    */
   static async validateXPath(xpath: string): Promise<boolean> {
     try {
-      const isValid = await invoke<boolean>('validate_xpath', {
+      const isValid = await invoke<boolean>('plugin:enhanced_location|validate_xpath', {
         xpath
       });
 
@@ -170,7 +170,7 @@ export class EnhancedLocationService {
     success: boolean
   ): Promise<void> {
     try {
-      await invoke('update_xpath_strategy_success_rate', {
+      await invoke('plugin:enhanced_location|update_xpath_strategy_success_rate', {
         strategy,
         success
       });
