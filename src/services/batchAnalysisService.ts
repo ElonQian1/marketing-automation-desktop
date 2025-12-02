@@ -45,7 +45,7 @@ export class BatchAnalysisService {
     }
 
     try {
-      await invoke('lh_analyze_comments', {
+      await invoke('plugin:lead_hunt|lh_analyze_comments', {
         commentIds,
         batchId,
         concurrency: options?.concurrency,

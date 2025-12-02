@@ -21,7 +21,7 @@ export class ScriptExecutionDiagnostics {
     
     // 1. 检查设备连接
     try {
-      const devices = await invoke("get_adb_devices_safe") as string[];
+      const devices = await invoke("plugin:adb|list_devices") as string[];
       const isDeviceConnected = devices.includes(deviceId);
       
       if (!isDeviceConnected) {
