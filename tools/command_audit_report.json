@@ -1,0 +1,2303 @@
+{
+  "broken": [
+    {
+      "cmd": "execute_action_command",
+      "isDefined": false,
+      "files": [
+        "D:\\rust\\active-projects\\小红书\\employeeGUI\\src\\api\\action-execution.ts"
+      ]
+    },
+    {
+      "cmd": "recommend_action_command",
+      "isDefined": false,
+      "files": [
+        "D:\\rust\\active-projects\\小红书\\employeeGUI\\src\\api\\action-execution.ts"
+      ]
+    },
+    {
+      "cmd": "batch_recommend_actions_command",
+      "isDefined": false,
+      "files": [
+        "D:\\rust\\active-projects\\小红书\\employeeGUI\\src\\api\\action-execution.ts"
+      ]
+    },
+    {
+      "cmd": "validate_action_params_command",
+      "isDefined": false,
+      "files": [
+        "D:\\rust\\active-projects\\小红书\\employeeGUI\\src\\api\\action-execution.ts"
+      ]
+    },
+    {
+      "cmd": "cleanup_cache_cmd",
+      "isDefined": false,
+      "files": [
+        "D:\\rust\\active-projects\\小红书\\employeeGUI\\src\\api\\analysis-cache.ts"
+      ]
+    },
+    {
+      "cmd": "upload_contact_document",
+      "isDefined": false,
+      "files": [
+        "D:\\rust\\active-projects\\小红书\\employeeGUI\\src\\api\\ContactAPI.ts"
+      ]
+    },
+    {
+      "cmd": "parse_contact_document",
+      "isDefined": false,
+      "files": [
+        "D:\\rust\\active-projects\\小红书\\employeeGUI\\src\\api\\ContactAPI.ts"
+      ]
+    },
+    {
+      "cmd": "get_contact_documents",
+      "isDefined": false,
+      "files": [
+        "D:\\rust\\active-projects\\小红书\\employeeGUI\\src\\api\\ContactAPI.ts"
+      ]
+    },
+    {
+      "cmd": "delete_contact_document",
+      "isDefined": false,
+      "files": [
+        "D:\\rust\\active-projects\\小红书\\employeeGUI\\src\\api\\ContactAPI.ts"
+      ]
+    },
+    {
+      "cmd": "get_contacts",
+      "isDefined": false,
+      "files": [
+        "D:\\rust\\active-projects\\小红书\\employeeGUI\\src\\api\\ContactAPI.ts"
+      ]
+    },
+    {
+      "cmd": "search_contacts",
+      "isDefined": false,
+      "files": [
+        "D:\\rust\\active-projects\\小红书\\employeeGUI\\src\\api\\ContactAPI.ts"
+      ]
+    },
+    {
+      "cmd": "update_contact",
+      "isDefined": false,
+      "files": [
+        "D:\\rust\\active-projects\\小红书\\employeeGUI\\src\\api\\ContactAPI.ts"
+      ]
+    },
+    {
+      "cmd": "delete_contact",
+      "isDefined": false,
+      "files": [
+        "D:\\rust\\active-projects\\小红书\\employeeGUI\\src\\api\\ContactAPI.ts"
+      ]
+    },
+    {
+      "cmd": "delete_contacts",
+      "isDefined": false,
+      "files": [
+        "D:\\rust\\active-projects\\小红书\\employeeGUI\\src\\api\\ContactAPI.ts"
+      ]
+    },
+    {
+      "cmd": "create_contact_task",
+      "isDefined": false,
+      "files": [
+        "D:\\rust\\active-projects\\小红书\\employeeGUI\\src\\api\\ContactAPI.ts"
+      ]
+    },
+    {
+      "cmd": "get_contact_tasks",
+      "isDefined": false,
+      "files": [
+        "D:\\rust\\active-projects\\小红书\\employeeGUI\\src\\api\\ContactAPI.ts"
+      ]
+    },
+    {
+      "cmd": "start_contact_task",
+      "isDefined": false,
+      "files": [
+        "D:\\rust\\active-projects\\小红书\\employeeGUI\\src\\api\\ContactAPI.ts"
+      ]
+    },
+    {
+      "cmd": "pause_contact_task",
+      "isDefined": false,
+      "files": [
+        "D:\\rust\\active-projects\\小红书\\employeeGUI\\src\\api\\ContactAPI.ts"
+      ]
+    },
+    {
+      "cmd": "stop_contact_task",
+      "isDefined": false,
+      "files": [
+        "D:\\rust\\active-projects\\小红书\\employeeGUI\\src\\api\\ContactAPI.ts"
+      ]
+    },
+    {
+      "cmd": "delete_contact_task",
+      "isDefined": false,
+      "files": [
+        "D:\\rust\\active-projects\\小红书\\employeeGUI\\src\\api\\ContactAPI.ts"
+      ]
+    },
+    {
+      "cmd": "get_contact_statistics",
+      "isDefined": false,
+      "files": [
+        "D:\\rust\\active-projects\\小红书\\employeeGUI\\src\\api\\ContactAPI.ts"
+      ]
+    },
+    {
+      "cmd": "execute_vcf_import",
+      "isDefined": false,
+      "files": [
+        "D:\\rust\\active-projects\\小红书\\employeeGUI\\src\\api\\ContactAPI.ts"
+      ]
+    },
+    {
+      "cmd": "check_vcf_import_tool",
+      "isDefined": false,
+      "files": [
+        "D:\\rust\\active-projects\\小红书\\employeeGUI\\src\\api\\ContactAPI.ts"
+      ]
+    },
+    {
+      "cmd": "execute_adb_command",
+      "isDefined": false,
+      "files": [
+        "D:\\rust\\active-projects\\小红书\\employeeGUI\\src\\api\\ContactAPI.ts",
+        "D:\\rust\\active-projects\\小红书\\employeeGUI\\src\\infrastructure\\repositories\\TauriAdbRepository.ts"
+      ]
+    },
+    {
+      "cmd": "adb_screenshot",
+      "isDefined": false,
+      "files": [
+        "D:\\rust\\active-projects\\小红书\\employeeGUI\\src\\api\\ContactAPI.ts"
+      ]
+    },
+    {
+      "cmd": "adb_tap",
+      "isDefined": false,
+      "files": [
+        "D:\\rust\\active-projects\\小红书\\employeeGUI\\src\\api\\ContactAPI.ts",
+        "D:\\rust\\active-projects\\小红书\\employeeGUI\\src\\services\\matching-integration.ts"
+      ]
+    },
+    {
+      "cmd": "adb_swipe",
+      "isDefined": false,
+      "files": [
+        "D:\\rust\\active-projects\\小红书\\employeeGUI\\src\\api\\ContactAPI.ts"
+      ]
+    },
+    {
+      "cmd": "adb_input_text",
+      "isDefined": false,
+      "files": [
+        "D:\\rust\\active-projects\\小红书\\employeeGUI\\src\\api\\ContactAPI.ts"
+      ]
+    },
+    {
+      "cmd": "adb_press_key",
+      "isDefined": false,
+      "files": [
+        "D:\\rust\\active-projects\\小红书\\employeeGUI\\src\\api\\ContactAPI.ts"
+      ]
+    },
+    {
+      "cmd": "adb_launch_app",
+      "isDefined": false,
+      "files": [
+        "D:\\rust\\active-projects\\小红书\\employeeGUI\\src\\api\\ContactAPI.ts"
+      ]
+    },
+    {
+      "cmd": "adb_close_app",
+      "isDefined": false,
+      "files": [
+        "D:\\rust\\active-projects\\小红书\\employeeGUI\\src\\api\\ContactAPI.ts"
+      ]
+    },
+    {
+      "cmd": "adb_install_apk",
+      "isDefined": false,
+      "files": [
+        "D:\\rust\\active-projects\\小红书\\employeeGUI\\src\\api\\ContactAPI.ts"
+      ]
+    },
+    {
+      "cmd": "adb_uninstall_app",
+      "isDefined": false,
+      "files": [
+        "D:\\rust\\active-projects\\小红书\\employeeGUI\\src\\api\\ContactAPI.ts"
+      ]
+    },
+    {
+      "cmd": "adb_get_screen_size",
+      "isDefined": false,
+      "files": [
+        "D:\\rust\\active-projects\\小红书\\employeeGUI\\src\\api\\ContactAPI.ts"
+      ]
+    },
+    {
+      "cmd": "create_adb_operation",
+      "isDefined": false,
+      "files": [
+        "D:\\rust\\active-projects\\小红书\\employeeGUI\\src\\api\\ContactAPI.ts"
+      ]
+    },
+    {
+      "cmd": "get_adb_operations",
+      "isDefined": false,
+      "files": [
+        "D:\\rust\\active-projects\\小红书\\employeeGUI\\src\\api\\ContactAPI.ts"
+      ]
+    },
+    {
+      "cmd": "import_vcf_contacts",
+      "isDefined": false,
+      "files": [
+        "D:\\rust\\active-projects\\小红书\\employeeGUI\\src\\api\\ContactAPI.ts"
+      ]
+    },
+    {
+      "cmd": "import_vcf_contacts_with_intent_fallback",
+      "isDefined": false,
+      "files": [
+        "D:\\rust\\active-projects\\小红书\\employeeGUI\\src\\api\\ContactAPI.ts"
+      ]
+    },
+    {
+      "cmd": "generate_vcf_file",
+      "isDefined": false,
+      "files": [
+        "D:\\rust\\active-projects\\小红书\\employeeGUI\\src\\api\\ContactAPI.ts"
+      ]
+    },
+    {
+      "cmd": "verify_vcf_import",
+      "isDefined": false,
+      "files": [
+        "D:\\rust\\active-projects\\小红书\\employeeGUI\\src\\api\\ContactAPI.ts"
+      ]
+    },
+    {
+      "cmd": "test_vcf_import_with_permission",
+      "isDefined": false,
+      "files": [
+        "D:\\rust\\active-projects\\小红书\\employeeGUI\\src\\api\\ContactAPI.ts"
+      ]
+    },
+    {
+      "cmd": "get_devices",
+      "isDefined": false,
+      "files": [
+        "D:\\rust\\active-projects\\小红书\\employeeGUI\\src\\api\\deviceAPI.ts"
+      ]
+    },
+    {
+      "cmd": "connect_device",
+      "isDefined": false,
+      "files": [
+        "D:\\rust\\active-projects\\小红书\\employeeGUI\\src\\api\\deviceAPI.ts"
+      ]
+    },
+    {
+      "cmd": "disconnect_device",
+      "isDefined": false,
+      "files": [
+        "D:\\rust\\active-projects\\小红书\\employeeGUI\\src\\api\\deviceAPI.ts"
+      ]
+    },
+    {
+      "cmd": "check_device_status",
+      "isDefined": false,
+      "files": [
+        "D:\\rust\\active-projects\\小红书\\employeeGUI\\src\\api\\deviceAPI.ts"
+      ]
+    },
+    {
+      "cmd": "get_employees",
+      "isDefined": false,
+      "files": [
+        "D:\\rust\\active-projects\\小红书\\employeeGUI\\src\\api\\employeeAPI.ts"
+      ]
+    },
+    {
+      "cmd": "submit_contact_task",
+      "isDefined": false,
+      "files": [
+        "D:\\rust\\active-projects\\小红书\\employeeGUI\\src\\api\\taskAPI.ts"
+      ]
+    },
+    {
+      "cmd": "submit_acquisition_task",
+      "isDefined": false,
+      "files": [
+        "D:\\rust\\active-projects\\小红书\\employeeGUI\\src\\api\\taskAPI.ts"
+      ]
+    },
+    {
+      "cmd": "get_task_progress",
+      "isDefined": false,
+      "files": [
+        "D:\\rust\\active-projects\\小红书\\employeeGUI\\src\\api\\taskAPI.ts"
+      ]
+    },
+    {
+      "cmd": "pause_task",
+      "isDefined": false,
+      "files": [
+        "D:\\rust\\active-projects\\小红书\\employeeGUI\\src\\api\\taskAPI.ts"
+      ]
+    },
+    {
+      "cmd": "resume_task",
+      "isDefined": false,
+      "files": [
+        "D:\\rust\\active-projects\\小红书\\employeeGUI\\src\\api\\taskAPI.ts"
+      ]
+    },
+    {
+      "cmd": "stop_task",
+      "isDefined": false,
+      "files": [
+        "D:\\rust\\active-projects\\小红书\\employeeGUI\\src\\api\\taskAPI.ts"
+      ]
+    },
+    {
+      "cmd": "get_user_balance",
+      "isDefined": false,
+      "files": [
+        "D:\\rust\\active-projects\\小红书\\employeeGUI\\src\\api\\taskAPI.ts"
+      ]
+    },
+    {
+      "cmd": "check_balance",
+      "isDefined": false,
+      "files": [
+        "D:\\rust\\active-projects\\小红书\\employeeGUI\\src\\api\\taskAPI.ts"
+      ]
+    },
+    {
+      "cmd": "get_follow_statistics",
+      "isDefined": false,
+      "files": [
+        "D:\\rust\\active-projects\\小红书\\employeeGUI\\src\\api\\taskAPI.ts"
+      ]
+    },
+    {
+      "cmd": "get_today_follow_count",
+      "isDefined": false,
+      "files": [
+        "D:\\rust\\active-projects\\小红书\\employeeGUI\\src\\api\\taskAPI.ts"
+      ]
+    },
+    {
+      "cmd": "execute_universal_ui_click",
+      "isDefined": false,
+      "files": [
+        "D:\\rust\\active-projects\\小红书\\employeeGUI\\src\\api\\universal-ui\\UniversalUIService.ts",
+        "D:\\rust\\active-projects\\小红书\\employeeGUI\\src\\examples\\TestUniversalUIClick.tsx",
+        "D:\\rust\\active-projects\\小红书\\employeeGUI\\src\\examples\\TestUniversalUIClick.tsx"
+      ]
+    },
+    {
+      "cmd": "get_collected_comments",
+      "isDefined": false,
+      "files": [
+        "D:\\rust\\active-projects\\小红书\\employeeGUI\\src\\application\\services\\comment-collection\\EnhancedCommentAdapterManager.ts"
+      ]
+    },
+    {
+      "cmd": "schedule_auto_collection",
+      "isDefined": false,
+      "files": [
+        "D:\\rust\\active-projects\\小红书\\employeeGUI\\src\\application\\services\\comment-collection\\EnhancedCommentAdapterManager.ts"
+      ]
+    },
+    {
+      "cmd": "save_collection_result",
+      "isDefined": false,
+      "files": [
+        "D:\\rust\\active-projects\\小红书\\employeeGUI\\src\\application\\services\\comment-collection\\EnhancedCommentAdapterManager.ts"
+      ]
+    },
+    {
+      "cmd": "log_audit_event",
+      "isDefined": false,
+      "files": [
+        "D:\\rust\\active-projects\\小红书\\employeeGUI\\src\\application\\services\\comment-collection\\EnhancedCommentAdapterManager.ts"
+      ]
+    },
+    {
+      "cmd": "log_collection_error",
+      "isDefined": false,
+      "files": [
+        "D:\\rust\\active-projects\\小红书\\employeeGUI\\src\\application\\services\\comment-collection\\EnhancedCommentAdapterManager.ts"
+      ]
+    },
+    {
+      "cmd": "insert_audit_log",
+      "isDefined": false,
+      "files": [
+        "D:\\rust\\active-projects\\小红书\\employeeGUI\\src\\application\\services\\precise-acquisition\\AuditTrailService.ts",
+        "D:\\rust\\active-projects\\小红书\\employeeGUI\\src\\application\\services\\PreciseAcquisitionApplicationService.ts",
+        "D:\\rust\\active-projects\\小红书\\employeeGUI\\src\\application\\services\\reporting\\UnifiedDailyReportService.ts",
+        "D:\\rust\\active-projects\\小红书\\employeeGUI\\src\\modules\\precise-acquisition\\shared\\services\\prospecting-backend-validation-service.ts"
+      ]
+    },
+    {
+      "cmd": "insert_comment",
+      "isDefined": false,
+      "files": [
+        "D:\\rust\\active-projects\\小红书\\employeeGUI\\src\\application\\services\\precise-acquisition\\CommentService.ts",
+        "D:\\rust\\active-projects\\小红书\\employeeGUI\\src\\application\\services\\PreciseAcquisitionApplicationService.ts",
+        "D:\\rust\\active-projects\\小红书\\employeeGUI\\src\\modules\\precise-acquisition\\shared\\services\\prospecting-backend-validation-service.ts"
+      ]
+    },
+    {
+      "cmd": "list_comments",
+      "isDefined": false,
+      "files": [
+        "D:\\rust\\active-projects\\小红书\\employeeGUI\\src\\application\\services\\precise-acquisition\\CommentService.ts",
+        "D:\\rust\\active-projects\\小红书\\employeeGUI\\src\\application\\services\\PreciseAcquisitionApplicationService.ts",
+        "D:\\rust\\active-projects\\小红书\\employeeGUI\\src\\modules\\precise-acquisition\\shared\\services\\prospecting-backend-validation-service.ts"
+      ]
+    },
+    {
+      "cmd": "check_and_reserve_dedup",
+      "isDefined": false,
+      "files": [
+        "D:\\rust\\active-projects\\小红书\\employeeGUI\\src\\application\\services\\precise-acquisition\\DeduplicationService.ts",
+        "D:\\rust\\active-projects\\小红书\\employeeGUI\\src\\application\\services\\PreciseAcquisitionApplicationService.ts",
+        "D:\\rust\\active-projects\\小红书\\employeeGUI\\src\\application\\services\\PreciseAcquisitionApplicationService.ts",
+        "D:\\rust\\active-projects\\小红书\\employeeGUI\\src\\modules\\precise-acquisition\\shared\\services\\prospecting-backend-validation-service.ts"
+      ]
+    },
+    {
+      "cmd": "list_tasks",
+      "isDefined": false,
+      "files": [
+        "D:\\rust\\active-projects\\小红书\\employeeGUI\\src\\application\\services\\precise-acquisition\\DeduplicationService.ts",
+        "D:\\rust\\active-projects\\小红书\\employeeGUI\\src\\application\\services\\precise-acquisition\\prospecting-rate-limit-service.ts",
+        "D:\\rust\\active-projects\\小红书\\employeeGUI\\src\\application\\services\\precise-acquisition\\TaskQueueService.ts",
+        "D:\\rust\\active-projects\\小红书\\employeeGUI\\src\\application\\services\\PreciseAcquisitionApplicationService.ts",
+        "D:\\rust\\active-projects\\小红书\\employeeGUI\\src\\application\\services\\reporting\\UnifiedDailyReportService.ts",
+        "D:\\rust\\active-projects\\小红书\\employeeGUI\\src\\application\\services\\reporting\\UnifiedDailyReportService.ts",
+        "D:\\rust\\active-projects\\小红书\\employeeGUI\\src\\modules\\precise-acquisition\\shared\\services\\prospecting-backend-validation-service.ts"
+      ]
+    },
+    {
+      "cmd": "insert_task",
+      "isDefined": false,
+      "files": [
+        "D:\\rust\\active-projects\\小红书\\employeeGUI\\src\\application\\services\\precise-acquisition\\TaskQueueService.ts",
+        "D:\\rust\\active-projects\\小红书\\employeeGUI\\src\\application\\services\\PreciseAcquisitionApplicationService.ts",
+        "D:\\rust\\active-projects\\小红书\\employeeGUI\\src\\modules\\precise-acquisition\\shared\\services\\prospecting-backend-validation-service.ts"
+      ]
+    },
+    {
+      "cmd": "update_task_status",
+      "isDefined": false,
+      "files": [
+        "D:\\rust\\active-projects\\小红书\\employeeGUI\\src\\application\\services\\precise-acquisition\\TaskQueueService.ts",
+        "D:\\rust\\active-projects\\小红书\\employeeGUI\\src\\application\\services\\PreciseAcquisitionApplicationService.ts",
+        "D:\\rust\\active-projects\\小红书\\employeeGUI\\src\\modules\\precise-acquisition\\shared\\services\\prospecting-backend-validation-service.ts",
+        "D:\\rust\\active-projects\\小红书\\employeeGUI\\src\\modules\\precise-acquisition\\task-engine\\services\\prospecting-task-executor-service.ts",
+        "D:\\rust\\active-projects\\小红书\\employeeGUI\\src\\modules\\precise-acquisition\\task-engine\\services\\prospecting-task-manager.ts"
+      ]
+    },
+    {
+      "cmd": "bulk_upsert_watch_targets",
+      "isDefined": false,
+      "files": [
+        "D:\\rust\\active-projects\\小红书\\employeeGUI\\src\\application\\services\\precise-acquisition\\WatchTargetService.ts",
+        "D:\\rust\\active-projects\\小红书\\employeeGUI\\src\\application\\services\\precise-acquisition\\WatchTargetService.ts",
+        "D:\\rust\\active-projects\\小红书\\employeeGUI\\src\\application\\services\\PreciseAcquisitionApplicationService.ts",
+        "D:\\rust\\active-projects\\小红书\\employeeGUI\\src\\application\\services\\PreciseAcquisitionApplicationService.ts",
+        "D:\\rust\\active-projects\\小红书\\employeeGUI\\src\\infrastructure\\repositories\\TauriWatchTargetRepository.ts",
+        "D:\\rust\\active-projects\\小红书\\employeeGUI\\src\\infrastructure\\repositories\\TauriWatchTargetRepository.ts",
+        "D:\\rust\\active-projects\\小红书\\employeeGUI\\src\\modules\\precise-acquisition\\shared\\services\\prospecting-backend-validation-service.ts"
+      ]
+    },
+    {
+      "cmd": "list_watch_targets",
+      "isDefined": false,
+      "files": [
+        "D:\\rust\\active-projects\\小红书\\employeeGUI\\src\\application\\services\\precise-acquisition\\WatchTargetService.ts",
+        "D:\\rust\\active-projects\\小红书\\employeeGUI\\src\\application\\services\\PreciseAcquisitionApplicationService.ts",
+        "D:\\rust\\active-projects\\小红书\\employeeGUI\\src\\infrastructure\\repositories\\TauriWatchTargetRepository.ts",
+        "D:\\rust\\active-projects\\小红书\\employeeGUI\\src\\modules\\precise-acquisition\\shared\\services\\prospecting-backend-validation-service.ts",
+        "D:\\rust\\active-projects\\小红书\\employeeGUI\\src\\modules\\precise-acquisition\\shared\\services\\prospecting-backend-validation-service.ts"
+      ]
+    },
+    {
+      "cmd": "get_watch_target_by_dedup_key",
+      "isDefined": false,
+      "files": [
+        "D:\\rust\\active-projects\\小红书\\employeeGUI\\src\\application\\services\\precise-acquisition\\WatchTargetService.ts",
+        "D:\\rust\\active-projects\\小红书\\employeeGUI\\src\\application\\services\\PreciseAcquisitionApplicationService.ts",
+        "D:\\rust\\active-projects\\小红书\\employeeGUI\\src\\infrastructure\\repositories\\TauriWatchTargetRepository.ts",
+        "D:\\rust\\active-projects\\小红书\\employeeGUI\\src\\modules\\precise-acquisition\\shared\\services\\prospecting-backend-validation-service.ts"
+      ]
+    },
+    {
+      "cmd": "delete_watch_target",
+      "isDefined": false,
+      "files": [
+        "D:\\rust\\active-projects\\小红书\\employeeGUI\\src\\application\\services\\PreciseAcquisitionApplicationService.ts",
+        "D:\\rust\\active-projects\\小红书\\employeeGUI\\src\\modules\\precise-acquisition\\candidate-pool\\services\\prospecting-candidate-pool-service.ts"
+      ]
+    },
+    {
+      "cmd": "init_precise_acquisition_storage",
+      "isDefined": false,
+      "files": [
+        "D:\\rust\\active-projects\\小红书\\employeeGUI\\src\\application\\services\\prospecting-acquisition-service.ts"
+      ]
+    },
+    {
+      "cmd": "get_reply_templates",
+      "isDefined": false,
+      "files": [
+        "D:\\rust\\active-projects\\小红书\\employeeGUI\\src\\application\\services\\prospecting-acquisition-service.ts"
+      ]
+    },
+    {
+      "cmd": "add_reply_template",
+      "isDefined": false,
+      "files": [
+        "D:\\rust\\active-projects\\小红书\\employeeGUI\\src\\application\\services\\prospecting-acquisition-service.ts"
+      ]
+    },
+    {
+      "cmd": "get_precise_acquisition_stats",
+      "isDefined": false,
+      "files": [
+        "D:\\rust\\active-projects\\小红书\\employeeGUI\\src\\application\\services\\prospecting-acquisition-service.ts"
+      ]
+    },
+    {
+      "cmd": "generate_daily_report",
+      "isDefined": false,
+      "files": [
+        "D:\\rust\\active-projects\\小红书\\employeeGUI\\src\\application\\services\\prospecting-acquisition-service.ts"
+      ]
+    },
+    {
+      "cmd": "insert_daily_report",
+      "isDefined": false,
+      "files": [
+        "D:\\rust\\active-projects\\小红书\\employeeGUI\\src\\application\\services\\reporting\\UnifiedDailyReportService.ts"
+      ]
+    },
+    {
+      "cmd": "get_comment_by_id",
+      "isDefined": false,
+      "files": [
+        "D:\\rust\\active-projects\\小红书\\employeeGUI\\src\\application\\services\\reporting\\UnifiedDailyReportService.ts"
+      ]
+    },
+    {
+      "cmd": "get_watch_target_by_id",
+      "isDefined": false,
+      "files": [
+        "D:\\rust\\active-projects\\小红书\\employeeGUI\\src\\application\\services\\reporting\\UnifiedDailyReportService.ts"
+      ]
+    },
+    {
+      "cmd": "check_scrcpy_available",
+      "isDefined": false,
+      "files": [
+        "D:\\rust\\active-projects\\小红书\\employeeGUI\\src\\application\\services\\ScrcpyApplicationService.ts"
+      ]
+    },
+    {
+      "cmd": "start_device_mirror",
+      "isDefined": false,
+      "files": [
+        "D:\\rust\\active-projects\\小红书\\employeeGUI\\src\\application\\services\\ScrcpyApplicationService.ts",
+        "D:\\rust\\active-projects\\小红书\\employeeGUI\\src\\components\\QuickPhoneMirror.tsx"
+      ]
+    },
+    {
+      "cmd": "stop_device_mirror",
+      "isDefined": false,
+      "files": [
+        "D:\\rust\\active-projects\\小红书\\employeeGUI\\src\\application\\services\\ScrcpyApplicationService.ts"
+      ]
+    },
+    {
+      "cmd": "stop_device_mirror_session",
+      "isDefined": false,
+      "files": [
+        "D:\\rust\\active-projects\\小红书\\employeeGUI\\src\\application\\services\\ScrcpyApplicationService.ts"
+      ]
+    },
+    {
+      "cmd": "list_device_mirror_sessions",
+      "isDefined": false,
+      "files": [
+        "D:\\rust\\active-projects\\小红书\\employeeGUI\\src\\application\\services\\ScrcpyApplicationService.ts"
+      ]
+    },
+    {
+      "cmd": "get_scrcpy_capabilities",
+      "isDefined": false,
+      "files": [
+        "D:\\rust\\active-projects\\小红书\\employeeGUI\\src\\application\\services\\ScrcpyApplicationService.ts"
+      ]
+    },
+    {
+      "cmd": "parse_contact_file",
+      "isDefined": false,
+      "files": [
+        "D:\\rust\\active-projects\\小红书\\employeeGUI\\src\\components\\contact\\ContactReader.tsx"
+      ]
+    },
+    {
+      "cmd": "capture_device_screenshot",
+      "isDefined": false,
+      "files": [
+        "D:\\rust\\active-projects\\小红书\\employeeGUI\\src\\components\\device\\CoordinateCapture.tsx",
+        "D:\\rust\\active-projects\\小红书\\employeeGUI\\src\\infrastructure\\repositories\\TauriPageAnalysisRepository.ts"
+      ]
+    },
+    {
+      "cmd": "execute_script_with_monitoring",
+      "isDefined": false,
+      "files": [
+        "D:\\rust\\active-projects\\小红书\\employeeGUI\\src\\components\\execution\\ScriptExecutionMonitor.tsx",
+        "D:\\rust\\active-projects\\小红书\\employeeGUI\\src\\components\\execution\\SimpleExecutionMonitor.tsx"
+      ]
+    },
+    {
+      "cmd": "pause_script_execution",
+      "isDefined": false,
+      "files": [
+        "D:\\rust\\active-projects\\小红书\\employeeGUI\\src\\components\\execution\\ScriptExecutionMonitor.tsx",
+        "D:\\rust\\active-projects\\小红书\\employeeGUI\\src\\components\\execution\\SimpleExecutionMonitor.tsx"
+      ]
+    },
+    {
+      "cmd": "resume_script_execution",
+      "isDefined": false,
+      "files": [
+        "D:\\rust\\active-projects\\小红书\\employeeGUI\\src\\components\\execution\\ScriptExecutionMonitor.tsx",
+        "D:\\rust\\active-projects\\小红书\\employeeGUI\\src\\components\\execution\\SimpleExecutionMonitor.tsx"
+      ]
+    },
+    {
+      "cmd": "stop_script_execution",
+      "isDefined": false,
+      "files": [
+        "D:\\rust\\active-projects\\小红书\\employeeGUI\\src\\components\\execution\\ScriptExecutionMonitor.tsx",
+        "D:\\rust\\active-projects\\小红书\\employeeGUI\\src\\components\\execution\\SimpleExecutionMonitor.tsx"
+      ]
+    },
+    {
+      "cmd": "execute_automation_script",
+      "isDefined": false,
+      "files": [
+        "D:\\rust\\active-projects\\小红书\\employeeGUI\\src\\components\\flow-builder\\services\\flowExecutionService.ts"
+      ]
+    },
+    {
+      "cmd": "get_navigation_configs",
+      "isDefined": false,
+      "files": [
+        "D:\\rust\\active-projects\\小红书\\employeeGUI\\src\\components\\navigation\\NavigationBarDetector.tsx"
+      ]
+    },
+    {
+      "cmd": "detect_navigation_bar",
+      "isDefined": false,
+      "files": [
+        "D:\\rust\\active-projects\\小红书\\employeeGUI\\src\\components\\navigation\\NavigationBarDetector.tsx"
+      ]
+    },
+    {
+      "cmd": "click_navigation_button",
+      "isDefined": false,
+      "files": [
+        "D:\\rust\\active-projects\\小红书\\employeeGUI\\src\\components\\navigation\\NavigationBarDetector.tsx"
+      ]
+    },
+    {
+      "cmd": "get_ai_settings",
+      "isDefined": false,
+      "files": [
+        "D:\\rust\\active-projects\\小红书\\employeeGUI\\src\\components\\settings\\ai-settings.tsx",
+        "D:\\rust\\active-projects\\小红书\\employeeGUI\\src\\features\\leadHunt\\analyzeLead.ts",
+        "D:\\rust\\active-projects\\小红书\\employeeGUI\\src\\lib\\aiClient.ts"
+      ]
+    },
+    {
+      "cmd": "list_models",
+      "isDefined": false,
+      "files": [
+        "D:\\rust\\active-projects\\小红书\\employeeGUI\\src\\components\\settings\\ai-settings.tsx",
+        "D:\\rust\\active-projects\\小红书\\employeeGUI\\src\\lib\\aiClient.ts"
+      ]
+    },
+    {
+      "cmd": "save_ai_settings",
+      "isDefined": false,
+      "files": [
+        "D:\\rust\\active-projects\\小红书\\employeeGUI\\src\\components\\settings\\ai-settings.tsx",
+        "D:\\rust\\active-projects\\小红书\\employeeGUI\\src\\lib\\aiClient.ts"
+      ]
+    },
+    {
+      "cmd": "smart_element_finder",
+      "isDefined": false,
+      "files": [
+        "D:\\rust\\active-projects\\小红书\\employeeGUI\\src\\components\\smart-element-finder\\SmartElementFinder.tsx"
+      ]
+    },
+    {
+      "cmd": "click_detected_element",
+      "isDefined": false,
+      "files": [
+        "D:\\rust\\active-projects\\小红书\\employeeGUI\\src\\components\\smart-element-finder\\SmartElementFinder.tsx",
+        "D:\\rust\\active-projects\\小红书\\employeeGUI\\src\\components\\smart-navigation-finder\\SmartNavigationFinder.tsx"
+      ]
+    },
+    {
+      "cmd": "read_device_ui_state",
+      "isDefined": false,
+      "files": [
+        "D:\\rust\\active-projects\\小红书\\employeeGUI\\src\\components\\SmartVcfImporter.tsx",
+        "D:\\rust\\active-projects\\小红书\\employeeGUI\\src\\components\\UIAnalyzer.tsx"
+      ]
+    },
+    {
+      "cmd": "import_and_open_vcf_ldplayer",
+      "isDefined": false,
+      "files": [
+        "D:\\rust\\active-projects\\小红书\\employeeGUI\\src\\components\\SmartVcfImporter.tsx",
+        "D:\\rust\\active-projects\\小红书\\employeeGUI\\src\\services\\contact-ldplayer-vcf-service.ts"
+      ]
+    },
+    {
+      "cmd": "save_smart_selection_config",
+      "isDefined": false,
+      "files": [
+        "D:\\rust\\active-projects\\小红书\\employeeGUI\\src\\components\\strategy-selector\\CompactStrategyMenu.tsx",
+        "D:\\rust\\active-projects\\小红书\\employeeGUI\\src\\components\\strategy-selector\\CompactStrategyMenu.tsx",
+        "D:\\rust\\active-projects\\小红书\\employeeGUI\\src\\components\\strategy-selector\\CompactStrategyMenu.tsx",
+        "D:\\rust\\active-projects\\小红书\\employeeGUI\\src\\components\\strategy-selector\\CompactStrategyMenu.tsx",
+        "D:\\rust\\active-projects\\小红书\\employeeGUI\\src\\components\\strategy-selector\\CompactStrategyMenu.tsx",
+        "D:\\rust\\active-projects\\小红书\\employeeGUI\\src\\components\\strategy-selector\\panels\\BatchConfigPanel.tsx",
+        "D:\\rust\\active-projects\\小红书\\employeeGUI\\src\\components\\strategy-selector\\panels\\BatchConfigPanel.tsx",
+        "D:\\rust\\active-projects\\小红书\\employeeGUI\\src\\components\\strategy-selector\\utils\\selection-config-saver.ts",
+        "D:\\rust\\active-projects\\小红书\\employeeGUI\\src\\components\\strategy-selector\\utils\\selection-config-saver.ts",
+        "D:\\rust\\active-projects\\小红书\\employeeGUI\\src\\components\\strategy-selector\\utils\\selection-config-saver.ts"
+      ]
+    },
+    {
+      "cmd": "find_ui_elements",
+      "isDefined": false,
+      "files": [
+        "D:\\rust\\active-projects\\小红书\\employeeGUI\\src\\components\\UIAnalyzer.tsx"
+      ]
+    },
+    {
+      "cmd": "ensure_app_running",
+      "isDefined": false,
+      "files": [
+        "D:\\rust\\active-projects\\小红书\\employeeGUI\\src\\examples\\AppLifecycleExample.tsx",
+        "D:\\rust\\active-projects\\小红书\\employeeGUI\\src\\examples\\AppLifecycleExample.tsx"
+      ]
+    },
+    {
+      "cmd": "detect_app_state",
+      "isDefined": false,
+      "files": [
+        "D:\\rust\\active-projects\\小红书\\employeeGUI\\src\\examples\\AppLifecycleExample.tsx"
+      ]
+    },
+    {
+      "cmd": "execute_smart_automation_script",
+      "isDefined": false,
+      "files": [
+        "D:\\rust\\active-projects\\小红书\\employeeGUI\\src\\hooks\\singleStepTest\\backendLoop.ts",
+        "D:\\rust\\active-projects\\小红书\\employeeGUI\\src\\infrastructure\\repositories\\script-tauri-repository.ts",
+        "D:\\rust\\active-projects\\小红书\\employeeGUI\\src\\modules\\smart-script-management\\services\\script-management-service.ts"
+      ]
+    },
+    {
+      "cmd": "execute_single_step_test",
+      "isDefined": false,
+      "files": [
+        "D:\\rust\\active-projects\\小红书\\employeeGUI\\src\\hooks\\singleStepTest\\singleAction.ts"
+      ]
+    },
+    {
+      "cmd": "execute_xpath_action",
+      "isDefined": false,
+      "files": [
+        "D:\\rust\\active-projects\\小红书\\employeeGUI\\src\\hooks\\singleStepTest\\xpathDirectExecution.ts"
+      ]
+    },
+    {
+      "cmd": "start_intelligent_analysis",
+      "isDefined": false,
+      "files": [
+        "D:\\rust\\active-projects\\小红书\\employeeGUI\\src\\hooks\\useIntelligentAnalysis.ts",
+        "D:\\rust\\active-projects\\小红书\\employeeGUI\\src\\protocol\\v3\\types.ts",
+        "D:\\rust\\active-projects\\小红书\\employeeGUI\\src\\services\\intelligent-analysis-backend.ts"
+      ]
+    },
+    {
+      "cmd": "clear_logs",
+      "isDefined": false,
+      "files": [
+        "D:\\rust\\active-projects\\小红书\\employeeGUI\\src\\hooks\\useLogManager.ts"
+      ]
+    },
+    {
+      "cmd": "get_logs",
+      "isDefined": false,
+      "files": [
+        "D:\\rust\\active-projects\\小红书\\employeeGUI\\src\\hooks\\useLogManager.ts"
+      ]
+    },
+    {
+      "cmd": "get_adb_command_logs",
+      "isDefined": false,
+      "files": [
+        "D:\\rust\\active-projects\\小红书\\employeeGUI\\src\\hooks\\useLogManager.ts"
+      ]
+    },
+    {
+      "cmd": "add_log_entry",
+      "isDefined": false,
+      "files": [
+        "D:\\rust\\active-projects\\小红书\\employeeGUI\\src\\hooks\\useLogManager.ts"
+      ]
+    },
+    {
+      "cmd": "check_file_exists",
+      "isDefined": false,
+      "files": [
+        "D:\\rust\\active-projects\\小红书\\employeeGUI\\src\\infrastructure\\repositories\\TauriAdbRepository.ts"
+      ]
+    },
+    {
+      "cmd": "start_adb_server_simple",
+      "isDefined": false,
+      "files": [
+        "D:\\rust\\active-projects\\小红书\\employeeGUI\\src\\infrastructure\\repositories\\TauriAdbRepository.ts",
+        "D:\\rust\\active-projects\\小红书\\employeeGUI\\src\\infrastructure\\repositories\\TauriDiagnosticRepository.ts"
+      ]
+    },
+    {
+      "cmd": "kill_adb_server_simple",
+      "isDefined": false,
+      "files": [
+        "D:\\rust\\active-projects\\小红书\\employeeGUI\\src\\infrastructure\\repositories\\TauriAdbRepository.ts",
+        "D:\\rust\\active-projects\\小红书\\employeeGUI\\src\\infrastructure\\repositories\\TauriDiagnosticRepository.ts"
+      ]
+    },
+    {
+      "cmd": "execute_adb_command_simple",
+      "isDefined": false,
+      "files": [
+        "D:\\rust\\active-projects\\小红书\\employeeGUI\\src\\infrastructure\\repositories\\TauriAdbRepository.ts"
+      ]
+    },
+    {
+      "cmd": "import_vcf_contacts_multi_brand",
+      "isDefined": false,
+      "files": [
+        "D:\\rust\\active-projects\\小红书\\employeeGUI\\src\\infrastructure\\repositories\\TauriContactAutomationRepository.ts",
+        "D:\\rust\\active-projects\\小红书\\employeeGUI\\src\\modules\\contact-import\\application\\usecases\\ContactImporterUseCase.ts",
+        "D:\\rust\\active-projects\\小红书\\employeeGUI\\src\\modules\\contact-import\\ui\\services\\vcfActions.ts",
+        "D:\\rust\\active-projects\\小红书\\employeeGUI\\src\\services\\contact-vcf-import-service.ts",
+        "D:\\rust\\active-projects\\小红书\\employeeGUI\\src\\services\\contact-vcf-import-service.ts"
+      ]
+    },
+    {
+      "cmd": "import_vcf_contacts_huawei_enhanced",
+      "isDefined": false,
+      "files": [
+        "D:\\rust\\active-projects\\小红书\\employeeGUI\\src\\infrastructure\\repositories\\TauriContactAutomationRepository.ts"
+      ]
+    },
+    {
+      "cmd": "get_adb_devices_safe",
+      "isDefined": false,
+      "files": [
+        "D:\\rust\\active-projects\\小红书\\employeeGUI\\src\\infrastructure\\repositories\\TauriDeviceRepository.ts",
+        "D:\\rust\\active-projects\\小红书\\employeeGUI\\src\\infrastructure\\repositories\\TauriDiagnosticRepository.ts",
+        "D:\\rust\\active-projects\\小红书\\employeeGUI\\src\\infrastructure\\repositories\\TauriDiagnosticRepository.ts",
+        "D:\\rust\\active-projects\\小红书\\employeeGUI\\src\\infrastructure\\repositories\\TauriDiagnosticRepository.ts",
+        "D:\\rust\\active-projects\\小红书\\employeeGUI\\src\\utils\\script-execution-diagnostics.ts"
+      ]
+    },
+    {
+      "cmd": "get_device_properties",
+      "isDefined": false,
+      "files": [
+        "D:\\rust\\active-projects\\小红书\\employeeGUI\\src\\infrastructure\\repositories\\TauriDeviceRepository.ts"
+      ]
+    },
+    {
+      "cmd": "save_page_analysis",
+      "isDefined": false,
+      "files": [
+        "D:\\rust\\active-projects\\小红书\\employeeGUI\\src\\infrastructure\\repositories\\TauriPageAnalysisRepository.ts"
+      ]
+    },
+    {
+      "cmd": "get_page_analysis_by_id",
+      "isDefined": false,
+      "files": [
+        "D:\\rust\\active-projects\\小红书\\employeeGUI\\src\\infrastructure\\repositories\\TauriPageAnalysisRepository.ts"
+      ]
+    },
+    {
+      "cmd": "get_page_analyses_by_device",
+      "isDefined": false,
+      "files": [
+        "D:\\rust\\active-projects\\小红书\\employeeGUI\\src\\infrastructure\\repositories\\TauriPageAnalysisRepository.ts"
+      ]
+    },
+    {
+      "cmd": "get_page_analyses_by_app",
+      "isDefined": false,
+      "files": [
+        "D:\\rust\\active-projects\\小红书\\employeeGUI\\src\\infrastructure\\repositories\\TauriPageAnalysisRepository.ts"
+      ]
+    },
+    {
+      "cmd": "get_page_analyses_by_type",
+      "isDefined": false,
+      "files": [
+        "D:\\rust\\active-projects\\小红书\\employeeGUI\\src\\infrastructure\\repositories\\TauriPageAnalysisRepository.ts"
+      ]
+    },
+    {
+      "cmd": "cleanup_old_page_analyses",
+      "isDefined": false,
+      "files": [
+        "D:\\rust\\active-projects\\小红书\\employeeGUI\\src\\infrastructure\\repositories\\TauriPageAnalysisRepository.ts"
+      ]
+    },
+    {
+      "cmd": "get_page_analysis_statistics",
+      "isDefined": false,
+      "files": [
+        "D:\\rust\\active-projects\\小红书\\employeeGUI\\src\\infrastructure\\repositories\\TauriPageAnalysisRepository.ts"
+      ]
+    },
+    {
+      "cmd": "delete_page_analysis",
+      "isDefined": false,
+      "files": [
+        "D:\\rust\\active-projects\\小红书\\employeeGUI\\src\\infrastructure\\repositories\\TauriPageAnalysisRepository.ts"
+      ]
+    },
+    {
+      "cmd": "delete_page_analyses_by_device",
+      "isDefined": false,
+      "files": [
+        "D:\\rust\\active-projects\\小红书\\employeeGUI\\src\\infrastructure\\repositories\\TauriPageAnalysisRepository.ts"
+      ]
+    },
+    {
+      "cmd": "get_device_ui_xml",
+      "isDefined": false,
+      "files": [
+        "D:\\rust\\active-projects\\小红书\\employeeGUI\\src\\infrastructure\\repositories\\TauriPageAnalysisRepository.ts"
+      ]
+    },
+    {
+      "cmd": "get_current_app_info",
+      "isDefined": false,
+      "files": [
+        "D:\\rust\\active-projects\\小红书\\employeeGUI\\src\\infrastructure\\repositories\\TauriPageAnalysisRepository.ts"
+      ]
+    },
+    {
+      "cmd": "get_screen_resolution",
+      "isDefined": false,
+      "files": [
+        "D:\\rust\\active-projects\\小红书\\employeeGUI\\src\\infrastructure\\repositories\\TauriPageAnalysisRepository.ts"
+      ]
+    },
+    {
+      "cmd": "execute_ui_action",
+      "isDefined": false,
+      "files": [
+        "D:\\rust\\active-projects\\小红书\\employeeGUI\\src\\infrastructure\\repositories\\TauriPageAnalysisRepository.ts"
+      ]
+    },
+    {
+      "cmd": "match_element_by_criteria",
+      "isDefined": false,
+      "files": [
+        "D:\\rust\\active-projects\\小红书\\employeeGUI\\src\\infrastructure\\repositories\\TauriUiMatcherRepository.ts"
+      ]
+    },
+    {
+      "cmd": "ai_chat",
+      "isDefined": false,
+      "files": [
+        "D:\\rust\\active-projects\\小红书\\employeeGUI\\src\\lib\\aiClient.ts",
+        "D:\\rust\\active-projects\\小红书\\employeeGUI\\src\\lib\\aiClient.ts",
+        "D:\\rust\\active-projects\\小红书\\employeeGUI\\src\\modules\\ai\\services\\ai-tauri-client.ts",
+        "D:\\rust\\active-projects\\小红书\\employeeGUI\\src\\modules\\ai\\services\\ai-tauri-client.ts",
+        "D:\\rust\\active-projects\\小红书\\employeeGUI\\src\\modules\\prospecting\\services\\prospecting-intent-analyzer.ts"
+      ]
+    },
+    {
+      "cmd": "ai_embed",
+      "isDefined": false,
+      "files": [
+        "D:\\rust\\active-projects\\小红书\\employeeGUI\\src\\lib\\aiClient.ts",
+        "D:\\rust\\active-projects\\小红书\\employeeGUI\\src\\modules\\ai\\services\\ai-tauri-client.ts"
+      ]
+    },
+    {
+      "cmd": "import_contacts_to_device",
+      "isDefined": false,
+      "files": [
+        "D:\\rust\\active-projects\\小红书\\employeeGUI\\src\\modules\\contact-automation\\utils\\contactImporter.ts"
+      ]
+    },
+    {
+      "cmd": "delete_imported_contacts",
+      "isDefined": false,
+      "files": [
+        "D:\\rust\\active-projects\\小红书\\employeeGUI\\src\\modules\\contact-automation\\utils\\contactImporter.ts"
+      ]
+    },
+    {
+      "cmd": "backup_device_contacts",
+      "isDefined": false,
+      "files": [
+        "D:\\rust\\active-projects\\小红书\\employeeGUI\\src\\modules\\contact-automation\\utils\\contactImporter.ts"
+      ]
+    },
+    {
+      "cmd": "import_vcf_contacts_python_version",
+      "isDefined": false,
+      "files": [
+        "D:\\rust\\active-projects\\小红书\\employeeGUI\\src\\modules\\contact-import\\application\\usecases\\ContactImporterUseCase.ts"
+      ]
+    },
+    {
+      "cmd": "check_adb_device_connection",
+      "isDefined": false,
+      "files": [
+        "D:\\rust\\active-projects\\小红书\\employeeGUI\\src\\modules\\contact-import\\devices\\IDeviceManager.ts"
+      ]
+    },
+    {
+      "cmd": "check_device_contact_permission",
+      "isDefined": false,
+      "files": [
+        "D:\\rust\\active-projects\\小红书\\employeeGUI\\src\\modules\\contact-import\\devices\\IDeviceManager.ts"
+      ]
+    },
+    {
+      "cmd": "list_contact_numbers",
+      "isDefined": false,
+      "files": [
+        "D:\\rust\\active-projects\\小红书\\employeeGUI\\src\\modules\\contact-import\\ui\\services\\contactNumberService.ts"
+      ]
+    },
+    {
+      "cmd": "fetch_contact_numbers",
+      "isDefined": false,
+      "files": [
+        "D:\\rust\\active-projects\\小红书\\employeeGUI\\src\\modules\\contact-import\\ui\\services\\contactNumberService.ts"
+      ]
+    },
+    {
+      "cmd": "fetch_contact_numbers_by_id_range",
+      "isDefined": false,
+      "files": [
+        "D:\\rust\\active-projects\\小红书\\employeeGUI\\src\\modules\\contact-import\\ui\\services\\contactNumberService.ts"
+      ]
+    },
+    {
+      "cmd": "fetch_contact_numbers_by_id_range_unconsumed",
+      "isDefined": false,
+      "files": [
+        "D:\\rust\\active-projects\\小红书\\employeeGUI\\src\\modules\\contact-import\\ui\\services\\contactNumberService.ts"
+      ]
+    },
+    {
+      "cmd": "mark_contact_numbers_used_by_id_range",
+      "isDefined": false,
+      "files": [
+        "D:\\rust\\active-projects\\小红书\\employeeGUI\\src\\modules\\contact-import\\ui\\services\\contactNumberService.ts"
+      ]
+    },
+    {
+      "cmd": "mark_contact_numbers_as_not_imported",
+      "isDefined": false,
+      "files": [
+        "D:\\rust\\active-projects\\小红书\\employeeGUI\\src\\modules\\contact-import\\ui\\services\\contactNumberService.ts"
+      ]
+    },
+    {
+      "cmd": "delete_contact_numbers",
+      "isDefined": false,
+      "files": [
+        "D:\\rust\\active-projects\\小红书\\employeeGUI\\src\\modules\\contact-import\\ui\\services\\contactNumberService.ts"
+      ]
+    },
+    {
+      "cmd": "create_vcf_batch_cmd",
+      "isDefined": false,
+      "files": [
+        "D:\\rust\\active-projects\\小红书\\employeeGUI\\src\\modules\\contact-import\\ui\\services\\contactNumberService.ts"
+      ]
+    },
+    {
+      "cmd": "get_vcf_batch_cmd",
+      "isDefined": false,
+      "files": [
+        "D:\\rust\\active-projects\\小红书\\employeeGUI\\src\\modules\\contact-import\\ui\\services\\contactNumberService.ts"
+      ]
+    },
+    {
+      "cmd": "list_numbers_by_vcf_batch",
+      "isDefined": false,
+      "files": [
+        "D:\\rust\\active-projects\\小红书\\employeeGUI\\src\\modules\\contact-import\\ui\\services\\contactNumberService.ts"
+      ]
+    },
+    {
+      "cmd": "list_numbers_by_vcf_batch_filtered",
+      "isDefined": false,
+      "files": [
+        "D:\\rust\\active-projects\\小红书\\employeeGUI\\src\\modules\\contact-import\\ui\\services\\contactNumberService.ts"
+      ]
+    },
+    {
+      "cmd": "list_numbers_without_vcf_batch",
+      "isDefined": false,
+      "files": [
+        "D:\\rust\\active-projects\\小红书\\employeeGUI\\src\\modules\\contact-import\\ui\\services\\contactNumberService.ts"
+      ]
+    },
+    {
+      "cmd": "get_distinct_industries_cmd",
+      "isDefined": false,
+      "files": [
+        "D:\\rust\\active-projects\\小红书\\employeeGUI\\src\\modules\\contact-import\\ui\\services\\contactNumberService.ts"
+      ]
+    },
+    {
+      "cmd": "allocate_contact_numbers_to_device",
+      "isDefined": false,
+      "files": [
+        "D:\\rust\\active-projects\\小红书\\employeeGUI\\src\\modules\\contact-import\\ui\\services\\contactNumberService.ts"
+      ]
+    },
+    {
+      "cmd": "update_import_session_industry_cmd",
+      "isDefined": false,
+      "files": [
+        "D:\\rust\\active-projects\\小红书\\employeeGUI\\src\\modules\\contact-import\\ui\\services\\contactNumberService.ts"
+      ]
+    },
+    {
+      "cmd": "revert_import_session_to_failed_cmd",
+      "isDefined": false,
+      "files": [
+        "D:\\rust\\active-projects\\小红书\\employeeGUI\\src\\modules\\contact-import\\ui\\services\\contactNumberService.ts"
+      ]
+    },
+    {
+      "cmd": "list_import_session_events_cmd",
+      "isDefined": false,
+      "files": [
+        "D:\\rust\\active-projects\\小红书\\employeeGUI\\src\\modules\\contact-import\\ui\\services\\contactNumberService.ts"
+      ]
+    },
+    {
+      "cmd": "delete_import_session_cmd",
+      "isDefined": false,
+      "files": [
+        "D:\\rust\\active-projects\\小红书\\employeeGUI\\src\\modules\\contact-import\\ui\\services\\contactNumberService.ts"
+      ]
+    },
+    {
+      "cmd": "get_imported_file_list",
+      "isDefined": false,
+      "files": [
+        "D:\\rust\\active-projects\\小红书\\employeeGUI\\src\\modules\\contact-import\\ui\\services\\contactNumberService.ts"
+      ]
+    },
+    {
+      "cmd": "check_file_imported",
+      "isDefined": false,
+      "files": [
+        "D:\\rust\\active-projects\\小红书\\employeeGUI\\src\\modules\\contact-import\\ui\\services\\contactNumberService.ts"
+      ]
+    },
+    {
+      "cmd": "get_file_stats",
+      "isDefined": false,
+      "files": [
+        "D:\\rust\\active-projects\\小红书\\employeeGUI\\src\\modules\\contact-import\\ui\\services\\contactNumberService.ts"
+      ]
+    },
+    {
+      "cmd": "list_all_contact_number_ids",
+      "isDefined": false,
+      "files": [
+        "D:\\rust\\active-projects\\小红书\\employeeGUI\\src\\modules\\contact-import\\ui\\services\\numberIdsService.ts"
+      ]
+    },
+    {
+      "cmd": "fetch_unclassified_contact_numbers",
+      "isDefined": false,
+      "files": [
+        "D:\\rust\\active-projects\\小红书\\employeeGUI\\src\\modules\\contact-import\\ui\\services\\unclassifiedService.ts"
+      ]
+    },
+    {
+      "cmd": "save_safety_config",
+      "isDefined": false,
+      "files": [
+        "D:\\rust\\active-projects\\小红书\\employeeGUI\\src\\modules\\deduplication-control\\hooks\\useSafetyControl.ts"
+      ]
+    },
+    {
+      "cmd": "record_circuit_breaker_operation",
+      "isDefined": false,
+      "files": [
+        "D:\\rust\\active-projects\\小红书\\employeeGUI\\src\\modules\\deduplication-control\\services\\dedup-circuit-breaker-service.ts"
+      ]
+    },
+    {
+      "cmd": "update_circuit_breaker_state",
+      "isDefined": false,
+      "files": [
+        "D:\\rust\\active-projects\\小红书\\employeeGUI\\src\\modules\\deduplication-control\\services\\dedup-circuit-breaker-service.ts"
+      ]
+    },
+    {
+      "cmd": "reset_circuit_breaker",
+      "isDefined": false,
+      "files": [
+        "D:\\rust\\active-projects\\小红书\\employeeGUI\\src\\modules\\deduplication-control\\services\\dedup-circuit-breaker-service.ts"
+      ]
+    },
+    {
+      "cmd": "get_failure_statistics",
+      "isDefined": false,
+      "files": [
+        "D:\\rust\\active-projects\\小红书\\employeeGUI\\src\\modules\\deduplication-control\\services\\dedup-circuit-breaker-service.ts"
+      ]
+    },
+    {
+      "cmd": "check_comment_duplicate",
+      "isDefined": false,
+      "files": [
+        "D:\\rust\\active-projects\\小红书\\employeeGUI\\src\\modules\\deduplication-control\\services\\dedup-deduplication-service.ts"
+      ]
+    },
+    {
+      "cmd": "check_user_duplicate",
+      "isDefined": false,
+      "files": [
+        "D:\\rust\\active-projects\\小红书\\employeeGUI\\src\\modules\\deduplication-control\\services\\dedup-deduplication-service.ts"
+      ]
+    },
+    {
+      "cmd": "check_content_duplicate",
+      "isDefined": false,
+      "files": [
+        "D:\\rust\\active-projects\\小红书\\employeeGUI\\src\\modules\\deduplication-control\\services\\dedup-deduplication-service.ts"
+      ]
+    },
+    {
+      "cmd": "check_cross_device_duplicate",
+      "isDefined": false,
+      "files": [
+        "D:\\rust\\active-projects\\小红书\\employeeGUI\\src\\modules\\deduplication-control\\services\\dedup-deduplication-service.ts"
+      ]
+    },
+    {
+      "cmd": "record_interaction",
+      "isDefined": false,
+      "files": [
+        "D:\\rust\\active-projects\\小红书\\employeeGUI\\src\\modules\\deduplication-control\\services\\dedup-deduplication-service.ts"
+      ]
+    },
+    {
+      "cmd": "generate_device_fingerprint",
+      "isDefined": false,
+      "files": [
+        "D:\\rust\\active-projects\\小红书\\employeeGUI\\src\\modules\\deduplication-control\\services\\dedup-deduplication-service.ts"
+      ]
+    },
+    {
+      "cmd": "get_operation_count",
+      "isDefined": false,
+      "files": [
+        "D:\\rust\\active-projects\\小红书\\employeeGUI\\src\\modules\\deduplication-control\\services\\dedup-rate-limit-service.ts"
+      ]
+    },
+    {
+      "cmd": "get_last_operation_time",
+      "isDefined": false,
+      "files": [
+        "D:\\rust\\active-projects\\小红书\\employeeGUI\\src\\modules\\deduplication-control\\services\\dedup-rate-limit-service.ts"
+      ]
+    },
+    {
+      "cmd": "record_operation",
+      "isDefined": false,
+      "files": [
+        "D:\\rust\\active-projects\\小红书\\employeeGUI\\src\\modules\\deduplication-control\\services\\dedup-rate-limit-service.ts",
+        "D:\\rust\\active-projects\\小红书\\employeeGUI\\src\\modules\\precise-acquisition\\rate-control\\services\\prospecting-rate-control-service.ts"
+      ]
+    },
+    {
+      "cmd": "get_today_statistics",
+      "isDefined": false,
+      "files": [
+        "D:\\rust\\active-projects\\小红书\\employeeGUI\\src\\modules\\deduplication-control\\services\\dedup-rate-limit-service.ts"
+      ]
+    },
+    {
+      "cmd": "abort_script_execution",
+      "isDefined": false,
+      "files": [
+        "D:\\rust\\active-projects\\小红书\\employeeGUI\\src\\modules\\execution-control\\services\\execution-abort-service.ts"
+      ]
+    },
+    {
+      "cmd": "cancel_current_operation",
+      "isDefined": false,
+      "files": [
+        "D:\\rust\\active-projects\\小红书\\employeeGUI\\src\\modules\\execution-control\\services\\execution-abort-service.ts"
+      ]
+    },
+    {
+      "cmd": "force_stop_all_adb_operations",
+      "isDefined": false,
+      "files": [
+        "D:\\rust\\active-projects\\小红书\\employeeGUI\\src\\modules\\execution-control\\services\\execution-abort-service.ts"
+      ]
+    },
+    {
+      "cmd": "execute_loop_test",
+      "isDefined": false,
+      "files": [
+        "D:\\rust\\active-projects\\小红书\\employeeGUI\\src\\modules\\loop-control\\application\\use-loop-test-execution.ts"
+      ]
+    },
+    {
+      "cmd": "stop_loop_test",
+      "isDefined": false,
+      "files": [
+        "D:\\rust\\active-projects\\小红书\\employeeGUI\\src\\modules\\loop-control\\application\\use-loop-test-execution.ts",
+        "D:\\rust\\active-projects\\小红书\\employeeGUI\\src\\modules\\loop-control\\application\\use-loop-test-manager.ts"
+      ]
+    },
+    {
+      "cmd": "read_file_content",
+      "isDefined": false,
+      "files": [
+        "D:\\rust\\active-projects\\小红书\\employeeGUI\\src\\modules\\page-analysis\\services\\optimized-debug-xml-loader.ts",
+        "D:\\rust\\active-projects\\小红书\\employeeGUI\\src\\modules\\page-analysis\\services\\page-history-cache.ts",
+        "D:\\rust\\active-projects\\小红书\\employeeGUI\\src\\modules\\smart-script-management\\services\\script-file-service.ts"
+      ]
+    },
+    {
+      "cmd": "read_image_as_base64",
+      "isDefined": false,
+      "files": [
+        "D:\\rust\\active-projects\\小红书\\employeeGUI\\src\\modules\\page-analysis\\services\\optimized-debug-xml-loader.ts"
+      ]
+    },
+    {
+      "cmd": "get_device_id",
+      "isDefined": false,
+      "files": [
+        "D:\\rust\\active-projects\\小红书\\employeeGUI\\src\\modules\\precise-acquisition\\audit-system\\services\\prospecting-audit-service.ts",
+        "D:\\rust\\active-projects\\小红书\\employeeGUI\\src\\modules\\precise-acquisition\\rate-control\\services\\prospecting-rate-control-service.ts"
+      ]
+    },
+    {
+      "cmd": "query_audit_logs",
+      "isDefined": false,
+      "files": [
+        "D:\\rust\\active-projects\\小红书\\employeeGUI\\src\\modules\\precise-acquisition\\audit-system\\services\\prospecting-audit-service.ts",
+        "D:\\rust\\active-projects\\小红书\\employeeGUI\\src\\modules\\precise-acquisition\\shared\\services\\prospecting-backend-validation-service.ts"
+      ]
+    },
+    {
+      "cmd": "get_audit_stats",
+      "isDefined": false,
+      "files": [
+        "D:\\rust\\active-projects\\小红书\\employeeGUI\\src\\modules\\precise-acquisition\\audit-system\\services\\prospecting-audit-service.ts"
+      ]
+    },
+    {
+      "cmd": "export_audit_logs",
+      "isDefined": false,
+      "files": [
+        "D:\\rust\\active-projects\\小红书\\employeeGUI\\src\\modules\\precise-acquisition\\audit-system\\services\\prospecting-audit-service.ts"
+      ]
+    },
+    {
+      "cmd": "cleanup_expired_audit_logs",
+      "isDefined": false,
+      "files": [
+        "D:\\rust\\active-projects\\小红书\\employeeGUI\\src\\modules\\precise-acquisition\\audit-system\\services\\prospecting-audit-service.ts"
+      ]
+    },
+    {
+      "cmd": "batch_store_audit_logs",
+      "isDefined": false,
+      "files": [
+        "D:\\rust\\active-projects\\小红书\\employeeGUI\\src\\modules\\precise-acquisition\\audit-system\\services\\prospecting-audit-service.ts",
+        "D:\\rust\\active-projects\\小红书\\employeeGUI\\src\\modules\\precise-acquisition\\shared\\services\\prospecting-backend-validation-service.ts"
+      ]
+    },
+    {
+      "cmd": "get_watch_targets",
+      "isDefined": false,
+      "files": [
+        "D:\\rust\\active-projects\\小红书\\employeeGUI\\src\\modules\\precise-acquisition\\candidate-pool\\services\\prospecting-candidate-pool-service.ts"
+      ]
+    },
+    {
+      "cmd": "add_watch_target",
+      "isDefined": false,
+      "files": [
+        "D:\\rust\\active-projects\\小红书\\employeeGUI\\src\\modules\\precise-acquisition\\candidate-pool\\services\\prospecting-candidate-pool-service.ts"
+      ]
+    },
+    {
+      "cmd": "update_watch_target",
+      "isDefined": false,
+      "files": [
+        "D:\\rust\\active-projects\\小红书\\employeeGUI\\src\\modules\\precise-acquisition\\candidate-pool\\services\\prospecting-candidate-pool-service.ts"
+      ]
+    },
+    {
+      "cmd": "batch_delete_watch_targets",
+      "isDefined": false,
+      "files": [
+        "D:\\rust\\active-projects\\小红书\\employeeGUI\\src\\modules\\precise-acquisition\\candidate-pool\\services\\prospecting-candidate-pool-service.ts"
+      ]
+    },
+    {
+      "cmd": "import_watch_targets_from_csv",
+      "isDefined": false,
+      "files": [
+        "D:\\rust\\active-projects\\小红书\\employeeGUI\\src\\modules\\precise-acquisition\\candidate-pool\\services\\prospecting-candidate-pool-service.ts"
+      ]
+    },
+    {
+      "cmd": "get_candidate_pool_stats",
+      "isDefined": false,
+      "files": [
+        "D:\\rust\\active-projects\\小红书\\employeeGUI\\src\\modules\\precise-acquisition\\candidate-pool\\services\\prospecting-candidate-pool-service.ts"
+      ]
+    },
+    {
+      "cmd": "check_watch_target_duplication",
+      "isDefined": false,
+      "files": [
+        "D:\\rust\\active-projects\\小红书\\employeeGUI\\src\\modules\\precise-acquisition\\candidate-pool\\services\\prospecting-candidate-pool-service.ts"
+      ]
+    },
+    {
+      "cmd": "get_recommended_keywords",
+      "isDefined": false,
+      "files": [
+        "D:\\rust\\active-projects\\小红书\\employeeGUI\\src\\modules\\precise-acquisition\\candidate-pool\\services\\prospecting-candidate-pool-service.ts"
+      ]
+    },
+    {
+      "cmd": "get_cross_device_operations",
+      "isDefined": false,
+      "files": [
+        "D:\\rust\\active-projects\\小红书\\employeeGUI\\src\\modules\\precise-acquisition\\rate-control\\services\\prospecting-rate-control-service.ts"
+      ]
+    },
+    {
+      "cmd": "get_operation_history",
+      "isDefined": false,
+      "files": [
+        "D:\\rust\\active-projects\\小红书\\employeeGUI\\src\\modules\\precise-acquisition\\rate-control\\services\\prospecting-rate-control-service.ts"
+      ]
+    },
+    {
+      "cmd": "calculate_content_hash",
+      "isDefined": false,
+      "files": [
+        "D:\\rust\\active-projects\\小红书\\employeeGUI\\src\\modules\\precise-acquisition\\rate-control\\services\\prospecting-rate-control-service.ts"
+      ]
+    },
+    {
+      "cmd": "calculate_content_similarity",
+      "isDefined": false,
+      "files": [
+        "D:\\rust\\active-projects\\小红书\\employeeGUI\\src\\modules\\precise-acquisition\\rate-control\\services\\prospecting-rate-control-service.ts"
+      ]
+    },
+    {
+      "cmd": "sync_operations_to_cloud",
+      "isDefined": false,
+      "files": [
+        "D:\\rust\\active-projects\\小红书\\employeeGUI\\src\\modules\\precise-acquisition\\rate-control\\services\\prospecting-rate-control-service.ts"
+      ]
+    },
+    {
+      "cmd": "sync_operations_from_cloud",
+      "isDefined": false,
+      "files": [
+        "D:\\rust\\active-projects\\小红书\\employeeGUI\\src\\modules\\precise-acquisition\\rate-control\\services\\prospecting-rate-control-service.ts"
+      ]
+    },
+    {
+      "cmd": "get_rate_control_stats",
+      "isDefined": false,
+      "files": [
+        "D:\\rust\\active-projects\\小红书\\employeeGUI\\src\\modules\\precise-acquisition\\rate-control\\services\\prospecting-rate-control-service.ts"
+      ]
+    },
+    {
+      "cmd": "cleanup_expired_operations",
+      "isDefined": false,
+      "files": [
+        "D:\\rust\\active-projects\\小红书\\employeeGUI\\src\\modules\\precise-acquisition\\rate-control\\services\\prospecting-rate-control-service.ts"
+      ]
+    },
+    {
+      "cmd": "find_dedup_record",
+      "isDefined": false,
+      "files": [
+        "D:\\rust\\active-projects\\小红书\\employeeGUI\\src\\modules\\precise-acquisition\\rate-limit\\services\\DedupChecker.ts",
+        "D:\\rust\\active-projects\\小红书\\employeeGUI\\src\\modules\\precise-acquisition\\rate-limit\\services\\RecordManager.ts"
+      ]
+    },
+    {
+      "cmd": "find_dedup_records",
+      "isDefined": false,
+      "files": [
+        "D:\\rust\\active-projects\\小红书\\employeeGUI\\src\\modules\\precise-acquisition\\rate-limit\\services\\DedupChecker.ts",
+        "D:\\rust\\active-projects\\小红书\\employeeGUI\\src\\modules\\precise-acquisition\\rate-limit\\services\\RecordManager.ts"
+      ]
+    },
+    {
+      "cmd": "get_recent_operations",
+      "isDefined": false,
+      "files": [
+        "D:\\rust\\active-projects\\小红书\\employeeGUI\\src\\modules\\precise-acquisition\\rate-limit\\services\\RateLimiter.ts"
+      ]
+    },
+    {
+      "cmd": "find_dedup_records_by_device",
+      "isDefined": false,
+      "files": [
+        "D:\\rust\\active-projects\\小红书\\employeeGUI\\src\\modules\\precise-acquisition\\rate-limit\\services\\RecordManager.ts"
+      ]
+    },
+    {
+      "cmd": "find_dedup_records_by_platform",
+      "isDefined": false,
+      "files": [
+        "D:\\rust\\active-projects\\小红书\\employeeGUI\\src\\modules\\precise-acquisition\\rate-limit\\services\\RecordManager.ts"
+      ]
+    },
+    {
+      "cmd": "clean_expired_dedup_records",
+      "isDefined": false,
+      "files": [
+        "D:\\rust\\active-projects\\小红书\\employeeGUI\\src\\modules\\precise-acquisition\\rate-limit\\services\\RecordManager.ts"
+      ]
+    },
+    {
+      "cmd": "delete_dedup_records",
+      "isDefined": false,
+      "files": [
+        "D:\\rust\\active-projects\\小红书\\employeeGUI\\src\\modules\\precise-acquisition\\rate-limit\\services\\RecordManager.ts"
+      ]
+    },
+    {
+      "cmd": "get_dedup_stats",
+      "isDefined": false,
+      "files": [
+        "D:\\rust\\active-projects\\小红书\\employeeGUI\\src\\modules\\precise-acquisition\\rate-limit\\services\\RecordManager.ts"
+      ]
+    },
+    {
+      "cmd": "export_dedup_records",
+      "isDefined": false,
+      "files": [
+        "D:\\rust\\active-projects\\小红书\\employeeGUI\\src\\modules\\precise-acquisition\\rate-limit\\services\\RecordManager.ts"
+      ]
+    },
+    {
+      "cmd": "save_dedup_records",
+      "isDefined": false,
+      "files": [
+        "D:\\rust\\active-projects\\小红书\\employeeGUI\\src\\modules\\precise-acquisition\\rate-limit\\services\\RecordManager.ts"
+      ]
+    },
+    {
+      "cmd": "get_daily_task_stats",
+      "isDefined": false,
+      "files": [
+        "D:\\rust\\active-projects\\小红书\\employeeGUI\\src\\modules\\precise-acquisition\\reporting\\services\\prospecting-reporting-service.ts"
+      ]
+    },
+    {
+      "cmd": "get_platform_daily_stats",
+      "isDefined": false,
+      "files": [
+        "D:\\rust\\active-projects\\小红书\\employeeGUI\\src\\modules\\precise-acquisition\\reporting\\services\\prospecting-reporting-service.ts"
+      ]
+    },
+    {
+      "cmd": "get_task_type_daily_stats",
+      "isDefined": false,
+      "files": [
+        "D:\\rust\\active-projects\\小红书\\employeeGUI\\src\\modules\\precise-acquisition\\reporting\\services\\prospecting-reporting-service.ts"
+      ]
+    },
+    {
+      "cmd": "get_daily_performance_metrics",
+      "isDefined": false,
+      "files": [
+        "D:\\rust\\active-projects\\小红书\\employeeGUI\\src\\modules\\precise-acquisition\\reporting\\services\\prospecting-reporting-service.ts"
+      ]
+    },
+    {
+      "cmd": "get_daily_compliance_stats",
+      "isDefined": false,
+      "files": [
+        "D:\\rust\\active-projects\\小红书\\employeeGUI\\src\\modules\\precise-acquisition\\reporting\\services\\prospecting-reporting-service.ts"
+      ]
+    },
+    {
+      "cmd": "analyze_daily_errors",
+      "isDefined": false,
+      "files": [
+        "D:\\rust\\active-projects\\小红书\\employeeGUI\\src\\modules\\precise-acquisition\\reporting\\services\\prospecting-reporting-service.ts"
+      ]
+    },
+    {
+      "cmd": "analyze_time_distribution",
+      "isDefined": false,
+      "files": [
+        "D:\\rust\\active-projects\\小红书\\employeeGUI\\src\\modules\\precise-acquisition\\reporting\\services\\prospecting-reporting-service.ts"
+      ]
+    },
+    {
+      "cmd": "analyze_trends",
+      "isDefined": false,
+      "files": [
+        "D:\\rust\\active-projects\\小红书\\employeeGUI\\src\\modules\\precise-acquisition\\reporting\\services\\prospecting-reporting-service.ts"
+      ]
+    },
+    {
+      "cmd": "save_daily_report",
+      "isDefined": false,
+      "files": [
+        "D:\\rust\\active-projects\\小红书\\employeeGUI\\src\\modules\\precise-acquisition\\reporting\\services\\prospecting-reporting-service.ts"
+      ]
+    },
+    {
+      "cmd": "get_historical_reports",
+      "isDefined": false,
+      "files": [
+        "D:\\rust\\active-projects\\小红书\\employeeGUI\\src\\modules\\precise-acquisition\\reporting\\services\\prospecting-reporting-service.ts"
+      ]
+    },
+    {
+      "cmd": "save_weekly_report",
+      "isDefined": false,
+      "files": [
+        "D:\\rust\\active-projects\\小红书\\employeeGUI\\src\\modules\\precise-acquisition\\reporting\\services\\prospecting-reporting-service.ts"
+      ]
+    },
+    {
+      "cmd": "export_report",
+      "isDefined": false,
+      "files": [
+        "D:\\rust\\active-projects\\小红书\\employeeGUI\\src\\modules\\precise-acquisition\\reporting\\services\\prospecting-reporting-service.ts"
+      ]
+    },
+    {
+      "cmd": "cleanup_expired_reports",
+      "isDefined": false,
+      "files": [
+        "D:\\rust\\active-projects\\小红书\\employeeGUI\\src\\modules\\precise-acquisition\\reporting\\services\\prospecting-reporting-service.ts"
+      ]
+    },
+    {
+      "cmd": "lock_next_ready_task",
+      "isDefined": false,
+      "files": [
+        "D:\\rust\\active-projects\\小红书\\employeeGUI\\src\\modules\\precise-acquisition\\shared\\services\\prospecting-backend-validation-service.ts"
+      ]
+    },
+    {
+      "cmd": "open_manual_task_execution",
+      "isDefined": false,
+      "files": [
+        "D:\\rust\\active-projects\\小红书\\employeeGUI\\src\\modules\\precise-acquisition\\task-engine\\services\\prospecting-task-executor-service.ts"
+      ]
+    },
+    {
+      "cmd": "confirm_manual_task_completion",
+      "isDefined": false,
+      "files": [
+        "D:\\rust\\active-projects\\小红书\\employeeGUI\\src\\modules\\precise-acquisition\\task-engine\\services\\prospecting-task-executor-service.ts"
+      ]
+    },
+    {
+      "cmd": "assign_tasks_to_device",
+      "isDefined": false,
+      "files": [
+        "D:\\rust\\active-projects\\小红书\\employeeGUI\\src\\modules\\precise-acquisition\\task-engine\\services\\prospecting-task-manager.ts"
+      ]
+    },
+    {
+      "cmd": "cancel_task",
+      "isDefined": false,
+      "files": [
+        "D:\\rust\\active-projects\\小红书\\employeeGUI\\src\\modules\\precise-acquisition\\task-engine\\services\\prospecting-task-manager.ts"
+      ]
+    },
+    {
+      "cmd": "retry_failed_task",
+      "isDefined": false,
+      "files": [
+        "D:\\rust\\active-projects\\小红书\\employeeGUI\\src\\modules\\precise-acquisition\\task-engine\\services\\prospecting-task-manager.ts"
+      ]
+    },
+    {
+      "cmd": "batch_update_task_status",
+      "isDefined": false,
+      "files": [
+        "D:\\rust\\active-projects\\小红书\\employeeGUI\\src\\modules\\precise-acquisition\\task-engine\\services\\prospecting-task-manager.ts"
+      ]
+    },
+    {
+      "cmd": "cleanup_completed_tasks",
+      "isDefined": false,
+      "files": [
+        "D:\\rust\\active-projects\\小红书\\employeeGUI\\src\\modules\\precise-acquisition\\task-engine\\services\\prospecting-task-manager.ts"
+      ]
+    },
+    {
+      "cmd": "get_tasks_by_ids",
+      "isDefined": false,
+      "files": [
+        "D:\\rust\\active-projects\\小红书\\employeeGUI\\src\\modules\\precise-acquisition\\task-engine\\services\\prospecting-task-manager.ts"
+      ]
+    },
+    {
+      "cmd": "get_task_by_id",
+      "isDefined": false,
+      "files": [
+        "D:\\rust\\active-projects\\小红书\\employeeGUI\\src\\modules\\precise-acquisition\\task-engine\\services\\prospecting-task-manager.ts",
+        "D:\\rust\\active-projects\\小红书\\employeeGUI\\src\\modules\\precise-acquisition\\task-engine\\services\\prospecting-task-query-service.ts"
+      ]
+    },
+    {
+      "cmd": "log_task_failure",
+      "isDefined": false,
+      "files": [
+        "D:\\rust\\active-projects\\小红书\\employeeGUI\\src\\modules\\precise-acquisition\\task-engine\\services\\prospecting-task-manager.ts"
+      ]
+    },
+    {
+      "cmd": "query_tasks",
+      "isDefined": false,
+      "files": [
+        "D:\\rust\\active-projects\\小红书\\employeeGUI\\src\\modules\\precise-acquisition\\task-engine\\services\\prospecting-task-query-service.ts"
+      ]
+    },
+    {
+      "cmd": "get_task_execution_stats",
+      "isDefined": false,
+      "files": [
+        "D:\\rust\\active-projects\\小红书\\employeeGUI\\src\\modules\\precise-acquisition\\task-engine\\services\\prospecting-task-query-service.ts"
+      ]
+    },
+    {
+      "cmd": "get_assignable_tasks",
+      "isDefined": false,
+      "files": [
+        "D:\\rust\\active-projects\\小红书\\employeeGUI\\src\\modules\\precise-acquisition\\task-engine\\services\\prospecting-task-query-service.ts"
+      ]
+    },
+    {
+      "cmd": "count_tasks",
+      "isDefined": false,
+      "files": [
+        "D:\\rust\\active-projects\\小红书\\employeeGUI\\src\\modules\\precise-acquisition\\task-engine\\services\\prospecting-task-query-service.ts"
+      ]
+    },
+    {
+      "cmd": "get_recent_failed_tasks",
+      "isDefined": false,
+      "files": [
+        "D:\\rust\\active-projects\\小红书\\employeeGUI\\src\\modules\\precise-acquisition\\task-engine\\services\\prospecting-task-query-service.ts"
+      ]
+    },
+    {
+      "cmd": "get_retryable_tasks",
+      "isDefined": false,
+      "files": [
+        "D:\\rust\\active-projects\\小红书\\employeeGUI\\src\\modules\\precise-acquisition\\task-engine\\services\\prospecting-task-query-service.ts"
+      ]
+    },
+    {
+      "cmd": "save_tasks_batch",
+      "isDefined": false,
+      "files": [
+        "D:\\rust\\active-projects\\小红书\\employeeGUI\\src\\modules\\precise-acquisition\\task-engine\\services\\TaskGenerator.ts"
+      ]
+    },
+    {
+      "cmd": "log_task_generation",
+      "isDefined": false,
+      "files": [
+        "D:\\rust\\active-projects\\小红书\\employeeGUI\\src\\modules\\precise-acquisition\\task-engine\\services\\TaskGenerator.ts"
+      ]
+    },
+    {
+      "cmd": "prospecting_save_comment",
+      "isDefined": false,
+      "files": [
+        "D:\\rust\\active-projects\\小红书\\employeeGUI\\src\\modules\\prospecting\\application\\prospecting-use-cases.ts"
+      ]
+    },
+    {
+      "cmd": "prospecting_get_comments",
+      "isDefined": false,
+      "files": [
+        "D:\\rust\\active-projects\\小红书\\employeeGUI\\src\\modules\\prospecting\\application\\prospecting-use-cases.ts"
+      ]
+    },
+    {
+      "cmd": "prospecting_save_analysis",
+      "isDefined": false,
+      "files": [
+        "D:\\rust\\active-projects\\小红书\\employeeGUI\\src\\modules\\prospecting\\application\\prospecting-use-cases.ts"
+      ]
+    },
+    {
+      "cmd": "prospecting_get_statistics",
+      "isDefined": false,
+      "files": [
+        "D:\\rust\\active-projects\\小红书\\employeeGUI\\src\\modules\\prospecting\\application\\prospecting-use-cases.ts"
+      ]
+    },
+    {
+      "cmd": "prospecting_get_comments_by_ids",
+      "isDefined": false,
+      "files": [
+        "D:\\rust\\active-projects\\小红书\\employeeGUI\\src\\modules\\prospecting\\application\\prospecting-use-cases.ts"
+      ]
+    },
+    {
+      "cmd": "prospecting_get_reply_plans_by_ids",
+      "isDefined": false,
+      "files": [
+        "D:\\rust\\active-projects\\小红书\\employeeGUI\\src\\modules\\prospecting\\application\\prospecting-use-cases.ts"
+      ]
+    },
+    {
+      "cmd": "prospecting_get_reply_plans",
+      "isDefined": false,
+      "files": [
+        "D:\\rust\\active-projects\\小红书\\employeeGUI\\src\\modules\\prospecting\\services\\prospecting-reply-planner.ts"
+      ]
+    },
+    {
+      "cmd": "prospecting_save_reply_plan",
+      "isDefined": false,
+      "files": [
+        "D:\\rust\\active-projects\\小红书\\employeeGUI\\src\\modules\\prospecting\\services\\prospecting-reply-planner.ts"
+      ]
+    },
+    {
+      "cmd": "prospecting_execute_real_reply_plan",
+      "isDefined": false,
+      "files": [
+        "D:\\rust\\active-projects\\小红书\\employeeGUI\\src\\modules\\prospecting\\services\\prospecting-reply-planner.ts"
+      ]
+    },
+    {
+      "cmd": "save_smart_script",
+      "isDefined": false,
+      "files": [
+        "D:\\rust\\active-projects\\小红书\\employeeGUI\\src\\modules\\smart-script-management\\services\\script-management-service.ts",
+        "D:\\rust\\active-projects\\小红书\\employeeGUI\\src\\pages\\SmartScriptBuilderPage\\hooks\\useScriptPersistence.ts"
+      ]
+    },
+    {
+      "cmd": "load_smart_script",
+      "isDefined": false,
+      "files": [
+        "D:\\rust\\active-projects\\小红书\\employeeGUI\\src\\modules\\smart-script-management\\services\\script-management-service.ts"
+      ]
+    },
+    {
+      "cmd": "delete_smart_script",
+      "isDefined": false,
+      "files": [
+        "D:\\rust\\active-projects\\小红书\\employeeGUI\\src\\modules\\smart-script-management\\services\\script-management-service.ts"
+      ]
+    },
+    {
+      "cmd": "list_smart_scripts",
+      "isDefined": false,
+      "files": [
+        "D:\\rust\\active-projects\\小红书\\employeeGUI\\src\\modules\\smart-script-management\\services\\script-management-service.ts"
+      ]
+    },
+    {
+      "cmd": "export_smart_script",
+      "isDefined": false,
+      "files": [
+        "D:\\rust\\active-projects\\小红书\\employeeGUI\\src\\modules\\smart-script-management\\services\\script-management-service.ts"
+      ]
+    },
+    {
+      "cmd": "import_smart_script",
+      "isDefined": false,
+      "files": [
+        "D:\\rust\\active-projects\\小红书\\employeeGUI\\src\\modules\\smart-script-management\\services\\script-management-service.ts"
+      ]
+    },
+    {
+      "cmd": "list_script_templates",
+      "isDefined": false,
+      "files": [
+        "D:\\rust\\active-projects\\小红书\\employeeGUI\\src\\modules\\smart-script-management\\services\\script-management-service.ts"
+      ]
+    },
+    {
+      "cmd": "create_script_from_template",
+      "isDefined": false,
+      "files": [
+        "D:\\rust\\active-projects\\小红书\\employeeGUI\\src\\modules\\smart-script-management\\services\\script-management-service.ts"
+      ]
+    },
+    {
+      "cmd": "sm_match_once",
+      "isDefined": false,
+      "files": [
+        "D:\\rust\\active-projects\\小红书\\employeeGUI\\src\\modules\\structural-matching\\services\\structural-matching-service.ts",
+        "D:\\rust\\active-projects\\小红书\\employeeGUI\\src\\modules\\structural-matching\\services\\structural-matching-service.ts"
+      ]
+    },
+    {
+      "cmd": "acknowledge_event",
+      "isDefined": false,
+      "files": [
+        "D:\\rust\\active-projects\\小红书\\employeeGUI\\src\\modules\\universal-ui\\infrastructure\\event-acknowledgment-service.ts"
+      ]
+    },
+    {
+      "cmd": "list_numbers_for_vcf_batch_cmd",
+      "isDefined": false,
+      "files": [
+        "D:\\rust\\active-projects\\小红书\\employeeGUI\\src\\modules\\vcf-sessions\\services\\vcf-session-service.ts"
+      ]
+    },
+    {
+      "cmd": "tag_numbers_industry_by_vcf_batch_cmd",
+      "isDefined": false,
+      "files": [
+        "D:\\rust\\active-projects\\小红书\\employeeGUI\\src\\modules\\vcf-sessions\\services\\vcf-session-service.ts"
+      ]
+    },
+    {
+      "cmd": "get_versions",
+      "isDefined": false,
+      "files": [
+        "D:\\rust\\active-projects\\小红书\\employeeGUI\\src\\modules\\version-control\\api\\version-control-api.ts"
+      ]
+    },
+    {
+      "cmd": "switch_to_version",
+      "isDefined": false,
+      "files": [
+        "D:\\rust\\active-projects\\小红书\\employeeGUI\\src\\modules\\version-control\\api\\version-control-api.ts"
+      ]
+    },
+    {
+      "cmd": "get_current_version",
+      "isDefined": false,
+      "files": [
+        "D:\\rust\\active-projects\\小红书\\employeeGUI\\src\\modules\\version-control\\api\\version-control-api.ts"
+      ]
+    },
+    {
+      "cmd": "get_branches",
+      "isDefined": false,
+      "files": [
+        "D:\\rust\\active-projects\\小红书\\employeeGUI\\src\\modules\\version-control\\api\\version-control-api.ts"
+      ]
+    },
+    {
+      "cmd": "switch_branch",
+      "isDefined": false,
+      "files": [
+        "D:\\rust\\active-projects\\小红书\\employeeGUI\\src\\modules\\version-control\\api\\version-control-api.ts"
+      ]
+    },
+    {
+      "cmd": "get_current_branch",
+      "isDefined": false,
+      "files": [
+        "D:\\rust\\active-projects\\小红书\\employeeGUI\\src\\modules\\version-control\\api\\version-control-api.ts"
+      ]
+    },
+    {
+      "cmd": "compare_versions",
+      "isDefined": false,
+      "files": [
+        "D:\\rust\\active-projects\\小红书\\employeeGUI\\src\\modules\\version-control\\api\\version-control-api.ts"
+      ]
+    },
+    {
+      "cmd": "merge_branch",
+      "isDefined": false,
+      "files": [
+        "D:\\rust\\active-projects\\小红书\\employeeGUI\\src\\modules\\version-control\\api\\version-control-api.ts"
+      ]
+    },
+    {
+      "cmd": "test_click_normalization",
+      "isDefined": false,
+      "files": [
+        "D:\\rust\\active-projects\\小红书\\employeeGUI\\src\\pages\\click-normalizer-test.tsx"
+      ]
+    },
+    {
+      "cmd": "lh_list_comments",
+      "isDefined": false,
+      "files": [
+        "D:\\rust\\active-projects\\小红书\\employeeGUI\\src\\pages\\lead-hunt\\LeadHunt.tsx"
+      ]
+    },
+    {
+      "cmd": "lh_import_comments",
+      "isDefined": false,
+      "files": [
+        "D:\\rust\\active-projects\\小红书\\employeeGUI\\src\\pages\\lead-hunt\\LeadHunt.tsx"
+      ]
+    },
+    {
+      "cmd": "lh_create_replay_plan",
+      "isDefined": false,
+      "files": [
+        "D:\\rust\\active-projects\\小红书\\employeeGUI\\src\\pages\\lead-hunt\\LeadHunt.tsx"
+      ]
+    },
+    {
+      "cmd": "lh_run_replay_plan",
+      "isDefined": false,
+      "files": [
+        "D:\\rust\\active-projects\\小红书\\employeeGUI\\src\\pages\\lead-hunt\\LeadHunt.tsx"
+      ]
+    },
+    {
+      "cmd": "check_duplication_action_cmd",
+      "isDefined": false,
+      "files": [
+        "D:\\rust\\active-projects\\小红书\\employeeGUI\\src\\services\\automation-duplication-guard.ts"
+      ]
+    },
+    {
+      "cmd": "record_duplication_action_cmd",
+      "isDefined": false,
+      "files": [
+        "D:\\rust\\active-projects\\小红书\\employeeGUI\\src\\services\\automation-duplication-guard.ts"
+      ]
+    },
+    {
+      "cmd": "backend_ping",
+      "isDefined": false,
+      "files": [
+        "D:\\rust\\active-projects\\小红书\\employeeGUI\\src\\services\\backend-health-check.ts"
+      ]
+    },
+    {
+      "cmd": "lh_analyze_comments",
+      "isDefined": false,
+      "files": [
+        "D:\\rust\\active-projects\\小红书\\employeeGUI\\src\\services\\batchAnalysisService.ts"
+      ]
+    },
+    {
+      "cmd": "open_vcf_file_ldplayer",
+      "isDefined": false,
+      "files": [
+        "D:\\rust\\active-projects\\小红书\\employeeGUI\\src\\services\\contact-ldplayer-vcf-service.ts"
+      ]
+    },
+    {
+      "cmd": "match_element_enhanced",
+      "isDefined": false,
+      "files": [
+        "D:\\rust\\active-projects\\小红书\\employeeGUI\\src\\services\\enhancedLocationService.ts"
+      ]
+    },
+    {
+      "cmd": "generate_xpath_candidates",
+      "isDefined": false,
+      "files": [
+        "D:\\rust\\active-projects\\小红书\\employeeGUI\\src\\services\\enhancedLocationService.ts"
+      ]
+    },
+    {
+      "cmd": "generate_best_xpath",
+      "isDefined": false,
+      "files": [
+        "D:\\rust\\active-projects\\小红书\\employeeGUI\\src\\services\\enhancedLocationService.ts"
+      ]
+    },
+    {
+      "cmd": "validate_xpath",
+      "isDefined": false,
+      "files": [
+        "D:\\rust\\active-projects\\小红书\\employeeGUI\\src\\services\\enhancedLocationService.ts"
+      ]
+    },
+    {
+      "cmd": "update_xpath_strategy_success_rate",
+      "isDefined": false,
+      "files": [
+        "D:\\rust\\active-projects\\小红书\\employeeGUI\\src\\services\\enhancedLocationService.ts"
+      ]
+    },
+    {
+      "cmd": "execute_single_step_test_v3",
+      "isDefined": false,
+      "files": [
+        "D:\\rust\\active-projects\\小红书\\employeeGUI\\src\\services\\intelligent-analysis-backend-v3.ts"
+      ]
+    },
+    {
+      "cmd": "cancel_execution_v3",
+      "isDefined": false,
+      "files": [
+        "D:\\rust\\active-projects\\小红书\\employeeGUI\\src\\services\\intelligent-analysis-backend-v3.ts"
+      ]
+    },
+    {
+      "cmd": "execute_smart_selection",
+      "isDefined": false,
+      "files": [
+        "D:\\rust\\active-projects\\小红书\\employeeGUI\\src\\services\\smartSelectionService.ts"
+      ]
+    },
+    {
+      "cmd": "test_smart_selection_connectivity",
+      "isDefined": false,
+      "files": [
+        "D:\\rust\\active-projects\\小红书\\employeeGUI\\src\\services\\smartSelectionService.ts"
+      ]
+    },
+    {
+      "cmd": "preview_smart_selection_candidates",
+      "isDefined": false,
+      "files": [
+        "D:\\rust\\active-projects\\小红书\\employeeGUI\\src\\services\\smartSelectionService.ts"
+      ]
+    },
+    {
+      "cmd": "enhanced_cache_file_exists",
+      "isDefined": false,
+      "files": [
+        "D:\\rust\\active-projects\\小红书\\employeeGUI\\src\\services\\xml-enhanced-cache-service.ts",
+        "D:\\rust\\active-projects\\小红书\\employeeGUI\\src\\services\\xml-enhanced-cache-service.ts"
+      ]
+    },
+    {
+      "cmd": "get_enhanced_cache_stats",
+      "isDefined": false,
+      "files": [
+        "D:\\rust\\active-projects\\小红书\\employeeGUI\\src\\services\\xml-enhanced-cache-service.ts"
+      ]
+    },
+    {
+      "cmd": "cleanup_enhanced_cache",
+      "isDefined": false,
+      "files": [
+        "D:\\rust\\active-projects\\小红书\\employeeGUI\\src\\services\\xml-enhanced-cache-service.ts"
+      ]
+    },
+    {
+      "cmd": "clear_all_enhanced_cache",
+      "isDefined": false,
+      "files": [
+        "D:\\rust\\active-projects\\小红书\\employeeGUI\\src\\services\\xml-enhanced-cache-service.ts"
+      ]
+    },
+    {
+      "cmd": "read_enhanced_cache_file",
+      "isDefined": false,
+      "files": [
+        "D:\\rust\\active-projects\\小红书\\employeeGUI\\src\\services\\xml-enhanced-cache-service.ts"
+      ]
+    },
+    {
+      "cmd": "save_enhanced_cache_file",
+      "isDefined": false,
+      "files": [
+        "D:\\rust\\active-projects\\小红书\\employeeGUI\\src\\services\\xml-enhanced-cache-service.ts"
+      ]
+    },
+    {
+      "cmd": "get_enhanced_cache_metadata",
+      "isDefined": false,
+      "files": [
+        "D:\\rust\\active-projects\\小红书\\employeeGUI\\src\\services\\xml-enhanced-cache-service.ts"
+      ]
+    },
+    {
+      "cmd": "clear_enhanced_cache_directory",
+      "isDefined": false,
+      "files": [
+        "D:\\rust\\active-projects\\小红书\\employeeGUI\\src\\services\\xml-enhanced-cache-service.ts"
+      ]
+    },
+    {
+      "cmd": "delete_enhanced_cache_file",
+      "isDefined": false,
+      "files": [
+        "D:\\rust\\active-projects\\小红书\\employeeGUI\\src\\services\\xml-enhanced-cache-service.ts"
+      ]
+    },
+    {
+      "cmd": "parse_cached_xml_to_elements",
+      "isDefined": false,
+      "files": [
+        "D:\\rust\\active-projects\\小红书\\employeeGUI\\src\\services\\xml-page-cache-service.ts"
+      ]
+    }
+  ],
+  "zombies": [],
+  "stats": {
+    "defined": 0,
+    "registered": 109,
+    "invoked": 382
+  }
+}
