@@ -59,7 +59,7 @@ export class RealTimeDeviceTracker {
       console.log('🚀 启动实时ADB设备跟踪...');
 
       // 启动后端设备跟踪
-      await invoke('start_device_tracking');
+      await invoke('plugin:adb|start_tracking');
 
       // 监听设备变化事件，增加错误处理和自动恢复
       this.unlistenFn = await listen(EVENTS.DEVICE_CHANGE, (event) => {
@@ -168,7 +168,7 @@ export class RealTimeDeviceTracker {
       }
 
       // 停止后端跟踪
-      await invoke('stop_device_tracking');
+      await invoke('plugin:adb|stop_tracking');
 
       this.isTracking = false;
       console.log('⏹️ 设备跟踪已停止');
@@ -184,7 +184,7 @@ export class RealTimeDeviceTracker {
    */
   async getCurrentDevices(): Promise<TrackedDevice[]> {
     try {
-      const devices = await invoke<TrackedDevice[]>('get_tracked_devices');
+      const devices = await invoke<TrackedDevice[]>('plugin:adb|get_tracking_list');
       // console.log(`📱 获取到 ${devices.length} 个设备`);
       return devices;
     } catch (error) {

@@ -19,7 +19,7 @@ export class TauriDeviceRepository implements IDeviceRepository {
         return [];
       }
       // 使用安全的ADB设备获取命令
-      const deviceIds = await invoke<string[]>('get_adb_devices_safe');
+      const deviceIds = await invoke<string[]>('plugin:adb|list_devices', { adbPath: 'platform-tools/adb.exe' });
       const devices: Device[] = [];
 
       for (const deviceId of deviceIds) {
@@ -71,7 +71,7 @@ export class TauriDeviceRepository implements IDeviceRepository {
 
   async getDeviceInfo(deviceId: string): Promise<Record<string, string> | null> {
     try {
-      const result = await invoke<string>('get_device_properties', { deviceId });
+      const result = await invoke<string>('plugin:adb|get_properties', { adbPath: 'platform-tools/adb.exe', deviceId });
       return this.parseProperties(result);
     } catch (error) {
       console.error(`Failed to get device info for ${deviceId}:`, error);
@@ -92,7 +92,7 @@ export class TauriDeviceRepository implements IDeviceRepository {
 
   async connectToDevice(address: string): Promise<void> {
     try {
-      await invoke('connect_adb_device', { address });
+      await invoke('plugin:adb|connect', { adbPath: 'platform-tools/adb.exe', address });
     } catch (error) {
       throw new Error(`连接设备失败: ${error}`);
     }
@@ -100,7 +100,7 @@ export class TauriDeviceRepository implements IDeviceRepository {
 
   async disconnectDevice(deviceId: string): Promise<void> {
     try {
-      await invoke('disconnect_adb_device', { address: deviceId });
+      await invoke('plugin:adb|disconnect', { adbPath: 'platform-tools/adb.exe', address: deviceId });
     } catch (error) {
       throw new Error(`断开设备连接失败: ${error}`);
     }

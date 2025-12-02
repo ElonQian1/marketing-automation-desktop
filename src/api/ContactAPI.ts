@@ -187,21 +187,21 @@ export class AdbAPI {
    * 获取连接的ADB设备列表
    */
   static async getAdbDevices(adbPath: string = "platform-tools/adb.exe"): Promise<string[]> {
-    return await invoke<string[]>("get_adb_devices", { adbPath: adbPath });
+    return await invoke<string[]>("plugin:adb|list_devices", { adbPath: adbPath });
   }
 
   /**
    * 连接ADB设备
    */
   static async connectAdbDevice(deviceId: string): Promise<void> {
-    await invoke("connect_adb_device", { deviceId });
+    await invoke("plugin:adb|connect", { adbPath: "platform-tools/adb.exe", address: deviceId });
   }
 
   /**
    * 断开ADB设备连接
    */
   static async disconnectAdbDevice(deviceId: string): Promise<void> {
-    await invoke("disconnect_adb_device", { deviceId });
+    await invoke("plugin:adb|disconnect", { adbPath: "platform-tools/adb.exe", address: deviceId });
   }
 
   /**
@@ -211,7 +211,7 @@ export class AdbAPI {
     deviceId: string,
     command: string
   ): Promise<string> {
-    return await invoke<string>("execute_adb_command", { 
+    return await invoke<string>("plugin:adb|execute", { 
       adbPath: "platform-tools/adb.exe", 
       args: ['-s', deviceId, 'shell', command] 
     });
