@@ -449,6 +449,14 @@ async fn force_clear_all_caches_cmd() -> Result<(), String> {
     }
 }
 
+/// 清理过期缓存
+#[tauri::command]
+async fn cleanup_cache_cmd(max_age_hours: u32) -> Result<usize, String> {
+    // TODO: 实现基于时间的缓存清理
+    tracing::info!("缓存清理: 最大年龄{}小时", max_age_hours);
+    Ok(0)
+}
+
 // ==================== 🧠 Analysis Cache Commands (from analysis_cache.rs) ====================
 
 /// 注册XML快照，返回SnapshotId
@@ -559,6 +567,7 @@ pub fn init<R: Runtime>() -> TauriPlugin<R> {
             get_subtree_metrics_cmd,
             try_get_subtree_metrics_cmd,
             batch_get_subtree_metrics_cmd,
+            cleanup_cache_cmd,
             get_cache_stats_cmd
         ])
         .build()

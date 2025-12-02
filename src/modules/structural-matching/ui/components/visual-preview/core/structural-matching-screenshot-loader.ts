@@ -31,7 +31,7 @@ export class StructuralMatchingScreenshotLoader {
   private static async getScreenshotAbsolutePath(filename: string): Promise<string> {
     try {
       const absolutePath = await invoke<string>(
-        "get_xml_file_absolute_path",
+        "plugin:xml_cache|get_xml_file_absolute_path",
         {
           fileName: filename,
         }
