@@ -42,7 +42,7 @@ export class AnalysisHealthService {
     try {
       console.log('🔍 [HealthService] 开始系统健康检查...');
       
-      const checks = await invoke<SystemHealthCheck>('analysis_health_check', {});
+      const checks = await invoke<SystemHealthCheck>('plugin:system_diagnostic|health_check', {});
       const errors: string[] = [];
       const warnings: string[] = [];
 

@@ -49,7 +49,7 @@ describe('AnalysisHealthService', () => {
       expect(result.errors).toHaveLength(0);
       expect(result.warnings).toHaveLength(0);
       expect(result.checks).toEqual(mockHealthCheck);
-      expect(mockInvoke).toHaveBeenCalledWith('analysis_health_check', {});
+      expect(mockInvoke).toHaveBeenCalledWith('plugin:system_diagnostic|health_check', {});
     });
 
     it('应该返回错误当ADB未连接', async () => {
