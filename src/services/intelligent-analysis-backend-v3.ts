@@ -226,7 +226,7 @@ export class IntelligentAnalysisBackendV3 {
         stepId: stepSpec.step_id
       };
 
-      const result = await invoke<SingleStepTestResult>('execute_single_step_test_v3', {
+      const result = await invoke<SingleStepTestResult>('plugin:execution_v3|execute_single_step_test_v3', {
         envelope,
         step
       });
@@ -335,7 +335,7 @@ export class IntelligentAnalysisBackendV3 {
         validation: {}
       };
 
-      const result = await invoke<ExecutionResult>('execute_chain_test_v3', {
+      const result = await invoke<ExecutionResult>('plugin:execution_v3|execute_chain_test_v3', {
         envelope,
         spec
       });
@@ -361,7 +361,7 @@ export class IntelligentAnalysisBackendV3 {
     clickPointPolicy?: 'center' | 'smart' | 'bounds'
   ): Promise<StaticStrategyTestResult> {
     try {
-      const result = await invoke<StaticStrategyTestResult>('execute_static_strategy_test_v3', {
+      const result = await invoke<StaticStrategyTestResult>('plugin:execution_v3|execute_static_strategy_test_v3', {
         analysisId: config.analysis_id,
         deviceId: config.device_id,
         scriptId: strategyId,

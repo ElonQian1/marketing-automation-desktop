@@ -33,7 +33,7 @@ export async function testChainSpecV3Format(): Promise<void> {
     });
 
     // 尝试调用V3执行命令
-    const result = await invoke('execute_chain_test_v3', {
+    const result = await invoke('plugin:execution_v3|execute_chain_test_v3', {
       envelope,
       spec
     });
@@ -79,7 +79,7 @@ export async function testChainModeValues(): Promise<void> {
         mode: mode
       };
 
-      await invoke('execute_chain_test_v3', { envelope, spec });
+      await invoke('plugin:execution_v3|execute_chain_test_v3', { envelope, spec });
       console.log(`✅ Mode "${mode}" 测试成功`);
       
     } catch (error) {
