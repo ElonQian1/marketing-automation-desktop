@@ -9,7 +9,7 @@ use tokio::process::Command as AsyncCommand;
 use std::process::Command;
 use serde::{Deserialize, Serialize};
 use crate::utils::adb_utils::execute_adb_command;
-use crate::services::vcf::VcfOpenResult;
+use crate::services::vcf::{VcfOpenResult, MultiBrandVcfImporter, MultiBrandImportResult};
 use tracing::{info, warn};
 
 // ==================== Contact Numbers ====================
@@ -968,9 +968,20 @@ pub async fn smart_vcf_opener(device_id: String) -> Result<VcfOpenResult, String
     Err(format!("超过最大尝试次数 ({})，操作未完成", MAX_ATTEMPTS))
 }
 
+#[tauri::command]
+async fn import_vcf_contacts_multi_brand(
+    device_id: String,
+    contacts_file_path: String,
+) -> Result<MultiBrandImportResult, String> {
+    let mut importer = MultiBrandVcfImporter::new(device_id);
+    importer.import_vcf_contacts_multi_brand(&contacts_file_path).await
+        .map_err(|e| e.to_string())
+}
+
 pub fn init() -> TauriPlugin<tauri::Wry> {
     Builder::new("contacts")
         .invoke_handler(tauri::generate_handler![
+            import_vcf_contacts_multi_brand,
             import_file,
             import_folder,
             list,
