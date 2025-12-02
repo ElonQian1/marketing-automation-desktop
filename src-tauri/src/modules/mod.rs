@@ -9,3 +9,4 @@ pub mod file_manager;
 pub mod xml_cache;
 pub mod intelligent_analysis;
 pub mod execution_v3;
+pub mod version_control;
