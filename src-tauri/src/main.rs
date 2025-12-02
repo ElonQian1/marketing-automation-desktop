@@ -176,8 +176,8 @@ fn main() {
             // get_contact_file_info, // Moved to plugin:contacts
             // import_contact_numbers_from_file, // Moved to plugin:contacts
             // import_contact_numbers_from_folder, // Moved to plugin:contacts
-            verify_contacts_fast,
-            get_device_contact_count,
+            // verify_contacts_fast, // Moved to plugin:contacts
+            // get_device_contact_count, // Moved to plugin:contacts
             // ==================== 📱 应用管理 (6个命令) ====================
             get_device_apps,
             get_device_apps_paged,
@@ -203,7 +203,7 @@ fn main() {
             // delete_txt_import_record_cmd, // Moved to plugin:contacts
             // list_vcf_batch_records_cmd, // Moved to plugin:contacts
             // create_vcf_batch_with_numbers_cmd, // Moved to plugin:contacts
-            smart_vcf_opener,
+            // smart_vcf_opener, // Moved to plugin:contacts
             // ==================== 🧠 智能分析V2 (6个命令) ====================
             start_intelligent_analysis,
             cancel_intelligent_analysis,

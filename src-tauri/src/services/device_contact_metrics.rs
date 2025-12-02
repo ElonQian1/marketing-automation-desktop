@@ -75,7 +75,7 @@ async fn try_query_contact_count(device_id: &str) -> Result<i32, String> {
 }
 
 /// 获取设备内联系人数量（兼容 `{ device_id }` 与 `{ deviceId }` 两种写法）
-#[command]
+// #[command] - Moved to plugin:contacts
 #[allow(non_snake_case)]
 pub async fn get_device_contact_count(
     device_id: Option<String>,

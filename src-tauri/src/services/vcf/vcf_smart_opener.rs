@@ -3,7 +3,7 @@ use crate::services::vcf::vcf_utils::VcfOpenResult;
 
 /// 基于实时UI状态的智能VCF打开器
 /// 根据当前屏幕内容自动执行正确的操作
-#[tauri::command]
+// #[tauri::command] - Moved to plugin:contacts
 pub async fn smart_vcf_opener(device_id: String) -> Result<VcfOpenResult, String> {
     println!("🤖 启动智能VCF打开器，设备: {}", device_id);
     

@@ -243,7 +243,7 @@ pub async fn list_all_contact_number_ids(
 }
 
 /// 获取联系人号码
-#[command]
+// #[command] - Moved to plugin:contacts
 pub async fn fetch_contact_numbers(
     app_handle: AppHandle,
     count: i64,
@@ -253,7 +253,7 @@ pub async fn fetch_contact_numbers(
 }
 
 /// 获取未分类的联系人号码
-#[command]
+// #[command] - Moved to plugin:contacts
 pub async fn fetch_unclassified_contact_numbers(
     app_handle: AppHandle,
     count: i64,
@@ -264,7 +264,7 @@ pub async fn fetch_unclassified_contact_numbers(
 }
 
 /// 按ID区间获取联系人号码
-#[command]
+// #[command] - Moved to plugin:contacts
 pub async fn fetch_contact_numbers_by_id_range(
     app_handle: AppHandle,
     start_id: i64,
@@ -275,7 +275,7 @@ pub async fn fetch_contact_numbers_by_id_range(
 }
 
 /// 按ID区间获取未消费的联系人号码
-#[command]
+// #[command] - Moved to plugin:contacts
 pub async fn fetch_contact_numbers_by_id_range_unconsumed(
     app_handle: AppHandle,
     start_id: i64,
@@ -286,7 +286,7 @@ pub async fn fetch_contact_numbers_by_id_range_unconsumed(
 }
 
 /// 标记ID区间内的号码为已使用
-#[command]
+// #[command] - Moved to plugin:contacts
 pub async fn mark_contact_numbers_used_by_id_range(
     app_handle: AppHandle,
     start_id: i64,

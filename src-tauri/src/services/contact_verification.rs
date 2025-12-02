@@ -22,7 +22,7 @@ pub struct VerificationResult {
 }
 
 /// 🚀 快速验证联系人（Tauri命令）
-#[tauri::command]
+// #[tauri::command] - Moved to plugin:contacts
 pub async fn verify_contacts_fast(
     device_id: String,
     phone_numbers: Vec<String>,
