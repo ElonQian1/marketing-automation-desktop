@@ -8,7 +8,7 @@ pub mod run_step_v2; // 🚀 新增 V2 统一步骤执行命令
 pub mod app_lifecycle_commands; // 现有（保留）
 pub mod employees;
 pub mod adb;
-pub mod files;
+// pub mod files; // Moved to plugin:file_manager
 pub mod page_analysis;
 pub mod logging;
 pub mod xml_cache;
@@ -16,7 +16,7 @@ pub mod metrics;
 pub mod strategy_matching; // 新增策略匹配命令
 pub mod xpath_execution; // 新增XPath直接执行命令
 pub mod intelligent_analysis; // ✅ 新增智能分析命令
-pub mod health_check; // ✅ 新增后端健康检查命令
+// pub mod health_check; // ✅ 新增后端健康检查命令 - Moved to plugin:system_diagnostic
 pub mod prospecting; // ✅ 新增精准获客命令
 pub mod legacy_smart_finder; // ✅ 新增：兼容旧版智能查找命令
 // pub mod image_optimization; // ✅ 新增：图片优化命令 - Moved to plugin:image_optimization
@@ -39,12 +39,12 @@ pub mod automation_commands;
 // pub use action_execution::*; // 操作执行命令（暂时注释）
 pub use employees::*;
 pub use adb::*;
-pub use files::*;
+// pub use files::*; // Moved to plugin:file_manager
 pub use xml_cache::*;
 // pub use xpath_execution::*; // XPath执行命令（暂时注释）
 pub use run_step_v2::*; // 🚀 导出 V2 步骤执行命令
 pub use intelligent_analysis::*; // ✅ 新增导出
-pub use health_check::*; // ✅ 导出健康检查命令
+// pub use health_check::*; // ✅ 导出健康检查命令 - Moved to plugin:system_diagnostic
  // 🆕 导出增强定位命令
  // 🆕 导出统一步骤执行命令
  // ✅ 导出精准获客命令
