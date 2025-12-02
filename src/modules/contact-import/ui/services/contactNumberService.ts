@@ -17,7 +17,7 @@ export interface ImportNumbersResult {
 }
 
 export async function importNumbersFromTxtFile(filePath: string): Promise<ImportNumbersResult> {
-  return invoke<ImportNumbersResult>('import_contact_numbers_from_file', { filePath });
+  return invoke<ImportNumbersResult>('plugin:contacts|import_file', { filePath });
 }
 
 export async function importNumbersFromFolder(folderPath: string): Promise<ImportNumbersResult> {
@@ -70,7 +70,7 @@ export async function listContactNumbers(params: { limit?: number; offset?: numb
   const { limit, offset, search, industry, status } = params;
   // 混合大小写键，兼容后端命名差异；行业“未分类”用特殊键传递 __UNCLASSIFIED__
   const payload = { limit, offset, search, industry, status, Industry: industry, Status: status } as const;
-  return invoke<ContactNumberList>('list_contact_numbers', payload as any);
+  return invoke<ContactNumberList>('plugin:contacts|list', payload as any);
 }
 
 export async function fetchContactNumbers(count: number): Promise<ContactNumberDto[]> {
@@ -198,7 +198,7 @@ export async function createVcfBatchRecord(params: { batchId: string; vcfFilePat
 
 export async function listVcfBatchRecords(params: { limit?: number; offset?: number } = {}): Promise<VcfBatchList> {
   const { limit, offset } = params;
-  return invoke<VcfBatchList>('list_vcf_batch_records_cmd', { limit, offset });
+  return invoke<VcfBatchList>('plugin:contacts|list_batches', { limit, offset });
 }
 
 export async function getVcfBatchRecord(batchId: string): Promise<VcfBatchDto | null> {

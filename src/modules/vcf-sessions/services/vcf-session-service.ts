@@ -25,7 +25,7 @@ export async function createVcfBatchWithNumbers(params: {
   };
   
   console.debug('[vcfSession] createVcfBatchWithNumbers payload:', payload);
-  return invoke<number>('create_vcf_batch_with_numbers_cmd', payload);
+  return invoke<number>('plugin:contacts|create_batch_with_numbers', payload);
 }
 
 export async function listNumbersForVcfBatch(batchId: string, params: { limit?: number; offset?: number } = {}): Promise<ContactNumberList> {

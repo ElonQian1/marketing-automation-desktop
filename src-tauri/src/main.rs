@@ -107,6 +107,8 @@ fn main() {
         .plugin(modules::smart_selection::init()) // ✅ 注册智能选择插件
         .plugin(modules::universal_ui::init())    // ✅ 注册Universal UI分析插件
         .plugin(modules::adb::init())             // ✅ 注册ADB插件
+        .plugin(modules::employees::init())       // ✅ 注册员工管理插件
+        .plugin(modules::contacts::init())        // ✅ 注册联系人插件
         .manage(Mutex::new(AdbService::new()))
         .manage(Mutex::new(EmployeeService::new()))
         .manage(SmartAppManagerState::new())
@@ -127,10 +129,10 @@ fn main() {
         })
         .invoke_handler(tauri::generate_handler![
             // ==================== 🏢 员工管理 (4个命令) ====================
-            get_employees,
-            add_employee,
-            update_employee,
-            delete_employee,
+            // get_employees, // Moved to plugin:employees
+            // add_employee, // Moved to plugin:employees
+            // update_employee, // Moved to plugin:employees
+            // delete_employee, // Moved to plugin:employees
             // ==================== 🔧 ADB核心 (9个命令) ====================
             // execute_adb_command, // Moved to plugin:adb
             // get_adb_devices, // Moved to plugin:adb
@@ -170,10 +172,10 @@ fn main() {
             validate_cache_consistency_cmd,
             force_clear_all_caches_cmd,
             // ==================== 📞 联系人核心 (6个命令) ====================
-            parse_contact_file,
-            get_contact_file_info,
-            import_contact_numbers_from_file,
-            import_contact_numbers_from_folder,
+            // parse_contact_file, // Moved to plugin:contacts
+            // get_contact_file_info, // Moved to plugin:contacts
+            // import_contact_numbers_from_file, // Moved to plugin:contacts
+            // import_contact_numbers_from_folder, // Moved to plugin:contacts
             verify_contacts_fast,
             get_device_contact_count,
             // ==================== 📱 应用管理 (6个命令) ====================
@@ -185,22 +187,22 @@ fn main() {
             get_cached_device_apps,
             get_popular_apps,
             // ==================== 📞 联系人管理 (8个命令) ====================
-            list_contact_numbers,
-            list_contact_numbers_without_batch,
-            list_contact_numbers_without_batch_filtered,
-            list_contact_numbers_by_batch,
-            list_contact_numbers_by_batch_filtered,
-            list_contact_numbers_filtered,
-            list_contact_numbers_for_vcf_batch,
-            get_contact_number_stats_cmd,
+            // list_contact_numbers, // Moved to plugin:contacts
+            // list_contact_numbers_without_batch, // Moved to plugin:contacts
+            // list_contact_numbers_without_batch_filtered, // Moved to plugin:contacts
+            // list_contact_numbers_by_batch, // Moved to plugin:contacts
+            // list_contact_numbers_by_batch_filtered, // Moved to plugin:contacts
+            // list_contact_numbers_filtered, // Moved to plugin:contacts
+            // list_contact_numbers_for_vcf_batch, // Moved to plugin:contacts
+            // get_contact_number_stats_cmd, // Moved to plugin:contacts
             // ==================== 📇 VCF操作 (9个命令) ====================
-            get_distinct_industries_cmd,
-            get_numbers_by_files,
-            set_contact_numbers_industry_by_id_range,
-            list_txt_import_records_cmd,
-            delete_txt_import_record_cmd,
-            list_vcf_batch_records_cmd,
-            create_vcf_batch_with_numbers_cmd,
+            // get_distinct_industries_cmd, // Moved to plugin:contacts
+            // get_numbers_by_files, // Moved to plugin:contacts
+            // set_contact_numbers_industry_by_id_range, // Moved to plugin:contacts
+            // list_txt_import_records_cmd, // Moved to plugin:contacts
+            // delete_txt_import_record_cmd, // Moved to plugin:contacts
+            // list_vcf_batch_records_cmd, // Moved to plugin:contacts
+            // create_vcf_batch_with_numbers_cmd, // Moved to plugin:contacts
             smart_vcf_opener,
             // ==================== 🧠 智能分析V2 (6个命令) ====================
             start_intelligent_analysis,
