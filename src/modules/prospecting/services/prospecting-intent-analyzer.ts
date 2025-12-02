@@ -70,7 +70,7 @@ export class ProspectingIntentAnalyzer {
   async analyzeComment(comment: ProspectingRawComment): Promise<ProspectingAnalysisResult> {
     try {
       // 调用 Tauri 后端的 AI 聊天接口
-      const response = await invoke('ai_chat', {
+      const response = await invoke('plugin:ai|chat', {
         messages: [
           {
             role: "system",
