@@ -13,3 +13,4 @@ pub mod version_control;
 pub mod automation;
 pub mod enhanced_location;
 pub mod lead_hunt;
+pub mod script_manager;

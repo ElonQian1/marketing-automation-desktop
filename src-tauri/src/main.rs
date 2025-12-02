@@ -118,6 +118,7 @@ fn main() {
         .plugin(modules::automation::init())         // ✅ 注册自动化插件
         .plugin(modules::enhanced_location::init())  // ✅ 注册增强定位插件
         .plugin(modules::lead_hunt::init())          // ✅ 注册精准获客插件
+        .plugin(modules::script_manager::init())     // ✅ 注册脚本管理插件
         .manage(Mutex::new(AdbService::new()))
         .manage(Mutex::new(EmployeeService::new()))
         .manage(SmartAppManagerState::new())
