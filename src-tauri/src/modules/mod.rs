@@ -3,3 +3,4 @@ pub mod universal_ui;
 pub mod adb;
 pub mod employees;
 pub mod contacts;
+pub mod image_optimization;
