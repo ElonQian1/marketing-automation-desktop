@@ -152,7 +152,7 @@ async function executeSingleSwipe(
     `📜 [V2滚动-单次] 坐标: (${coords.start_x},${coords.start_y}) → (${coords.end_x},${coords.end_y}), 时长:${duration}ms`
   );
   
-  return await invoke("run_step_v2", {
+  return await invoke("plugin:intelligent_analysis|run_step_v2", {
     request: {
       device_id: deviceId,
       mode: "execute-step",

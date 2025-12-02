@@ -62,7 +62,7 @@ export async function executeInput(
   console.log(`⌨️ [V2输入] 清空原文本: ${inputParams.clear_before}`);
   
   try {
-    const result = await invoke("run_step_v2", {
+    const result = await invoke("plugin:intelligent_analysis|run_step_v2", {
       request: {
         device_id: deviceId,
         mode: "execute-step",

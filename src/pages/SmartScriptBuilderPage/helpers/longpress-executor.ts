@@ -61,7 +61,7 @@ export async function executeLongPress(
     console.log(`👆 [V2长按] 坐标模式: (${lpParams.x}, ${lpParams.y})`);
     
     try {
-      const result = await invoke("run_step_v2", {
+      const result = await invoke("plugin:intelligent_analysis|run_step_v2", {
         request: {
           device_id: deviceId,
           mode: "execute-step",
@@ -101,7 +101,7 @@ export async function executeLongPress(
   console.log(`👆 [V2长按] 元素模式: xpath=${lpParams.xpath || "auto"}, text=${lpParams.targetText || "auto"}`);
   
   try {
-    const result = await invoke("run_step_v2", {
+    const result = await invoke("plugin:intelligent_analysis|run_step_v2", {
       request: {
         device_id: deviceId,
         mode: "execute-step",

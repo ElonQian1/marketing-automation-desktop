@@ -228,7 +228,7 @@ export async function executeKeyEvent(
   console.log(`🔑 [V2按键] 执行系统按键: ${keyName || `code=${keyCode}`}`);
   
   try {
-    const result = await invoke("run_step_v2", {
+    const result = await invoke("plugin:intelligent_analysis|run_step_v2", {
       request: {
         device_id: deviceId,
         mode: "execute-step",
@@ -281,7 +281,7 @@ export async function executeEdgeGesture(
   console.log(`📱 [V2手势] 坐标: (${config.start_x},${config.start_y}) → (${config.end_x},${config.end_y})`);
   
   try {
-    const result = await invoke("run_step_v2", {
+    const result = await invoke("plugin:intelligent_analysis|run_step_v2", {
       request: {
         device_id: deviceId,
         mode: "execute-step",

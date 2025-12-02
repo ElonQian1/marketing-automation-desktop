@@ -214,7 +214,7 @@ export function createHandleExecuteScript(ctx: Ctx) {
 
               console.log("📤 [V3点击] 发送ChainSpec:", JSON.stringify(chainSpec, null, 2));
 
-              return await invoke("execute_chain_test_v3", {
+              return await invoke("plugin:execution_v3|execute_chain_test_v3", {
                 envelope: {
                   deviceId: selectedDevice,
                   app: {
