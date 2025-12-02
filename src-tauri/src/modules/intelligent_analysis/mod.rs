@@ -11,6 +11,12 @@ use crate::commands::intelligent_analysis::{
     StrategyCandidate, ANALYSIS_SERVICE, STEP_STRATEGY_STORE
 };
 use crate::commands::run_step_v2::{RunStepRequestV2, StepResponseV2, run_step_v2 as run_step_v2_impl};
+use crate::commands::structure_recommend::{
+    self, RecommendInput, UiRecommendation, FlexibleRecommendInput, ResolveFromSnapshotInput, ResolvedFourNodes
+};
+use crate::commands::execute_structure_match::{
+    self, ExecuteMatchInput, ExecutionResult
+};
 
 // ==================== 🧠 Intelligent Analysis V2 Commands ====================
 
@@ -134,6 +140,33 @@ async fn run_step_v2(app_handle: AppHandle, request: RunStepRequestV2) -> Result
     run_step_v2_impl(app_handle, request).await
 }
 
+// Wrappers for structure_recommend and execute_structure_match
+
+#[tauri::command]
+async fn recommend_structure_mode(app_handle: AppHandle, input: RecommendInput) -> Result<UiRecommendation, String> {
+    structure_recommend::recommend_structure_mode(app_handle, input).await.map_err(|e| e.to_string())
+}
+
+#[tauri::command]
+async fn recommend_structure_mode_v2(app_handle: AppHandle, input: FlexibleRecommendInput) -> Result<UiRecommendation, String> {
+    structure_recommend::recommend_structure_mode_v2(app_handle, input).await.map_err(|e| e.to_string())
+}
+
+#[tauri::command]
+async fn dry_run_structure_match(app_handle: AppHandle, input: RecommendInput, mode: String) -> Result<Vec<usize>, String> {
+    structure_recommend::dry_run_structure_match(app_handle, input, mode).await
+}
+
+#[tauri::command]
+async fn resolve_from_stepcard_snapshot(input: ResolveFromSnapshotInput) -> Result<ResolvedFourNodes, String> {
+    structure_recommend::resolve_from_stepcard_snapshot(input).await.map_err(|e| e.to_string())
+}
+
+#[tauri::command]
+async fn execute_structure_match_step(app_handle: AppHandle, input: ExecuteMatchInput) -> Result<ExecutionResult, String> {
+    execute_structure_match::execute_structure_match_step(app_handle, input).await
+}
+
 // ==================== 🔌 Plugin Initialization ====================
 
 pub fn init() -> TauriPlugin<Wry> {
@@ -144,7 +177,12 @@ pub fn init() -> TauriPlugin<Wry> {
             bind_analysis_result_to_step,
             get_step_strategy,
             clear_step_strategy,
-            run_step_v2
+            run_step_v2,
+            recommend_structure_mode,
+            recommend_structure_mode_v2,
+            dry_run_structure_match,
+            resolve_from_stepcard_snapshot,
+            execute_structure_match_step
         ])
         .build()
 }
