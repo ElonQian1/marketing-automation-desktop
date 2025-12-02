@@ -419,7 +419,7 @@ const CompactStrategyMenu: React.FC<CompactStrategyMenuProps> = ({
       });
 
       // ✅ 用 stepId 保存配置
-      await invoke('save_smart_selection_config', {
+      await invoke('plugin:smart_selection|save_config', {
         stepId: stepId,
         selectionMode: mode,
         batchConfig: batchConfigToSave
@@ -450,7 +450,7 @@ const CompactStrategyMenu: React.FC<CompactStrategyMenuProps> = ({
         const selectorId = card.elementUid;  // 已经是完整的 elementUid
         console.log('🔄 [CompactStrategyMenu] 同时用selectorId保存兜底配置:', { selectorId });
         
-        await invoke('save_smart_selection_config', {
+        await invoke('plugin:smart_selection|save_config', {
           stepId: selectorId,  // 复用相同接口，但用 selectorId 作为key
           selectionMode: mode,
           batchConfig: batchConfigToSave
@@ -536,7 +536,7 @@ const CompactStrategyMenu: React.FC<CompactStrategyMenuProps> = ({
           batchConfig: batchCfg
         });
 
-        await invoke('save_smart_selection_config', {
+        await invoke('plugin:smart_selection|save_config', {
           stepId: stepId,
           selectionMode: mode,
           batchConfig: batchCfg
@@ -548,7 +548,7 @@ const CompactStrategyMenu: React.FC<CompactStrategyMenuProps> = ({
         const card = canonicalId ? state.cards[canonicalId] : undefined;
         
         if (card?.elementUid) {
-          await invoke('save_smart_selection_config', {
+          await invoke('plugin:smart_selection|save_config', {
             stepId: card.elementUid,
             selectionMode: mode,
             batchConfig: batchCfg
@@ -1106,7 +1106,7 @@ const CompactStrategyMenu: React.FC<CompactStrategyMenuProps> = ({
                   if (selectionMode === 'all' && stepId) {
                     console.log('🔧 [匹配方向修改] 保存配置:', newDirection);
                     try {
-                      await invoke('save_smart_selection_config', {
+                      await invoke('plugin:smart_selection|save_config', {
                         stepId: stepId,
                         selectionMode: 'all',
                         batchConfig: newBatchConfig  // ✅ 使用最新配置

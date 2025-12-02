@@ -83,7 +83,7 @@ export class SmartSelectionService {
     protocol: SmartSelectionProtocol
   ): Promise<SmartSelectionResult> {
     try {
-      const result = await invoke<SmartSelectionResult>('execute_smart_selection', {
+      const result = await invoke<SmartSelectionResult>('plugin:smart_selection|execute', {
         deviceId,
         protocol,
       });
@@ -101,7 +101,7 @@ export class SmartSelectionService {
     protocol: SmartSelectionProtocol
   ): Promise<ValidationResult> {
     try {
-      const result = await invoke<ValidationResult>('validate_smart_selection_protocol', {
+      const result = await invoke<ValidationResult>('plugin:smart_selection|validate', {
         protocol,
       });
       return result;
@@ -116,7 +116,7 @@ export class SmartSelectionService {
    */
   static async getStats(): Promise<SmartSelectionStats> {
     try {
-      const result = await invoke<SmartSelectionStats>('get_smart_selection_stats');
+      const result = await invoke<SmartSelectionStats>('plugin:smart_selection|get_stats');
       return result;
     } catch (error) {
       console.error('❌ 获取统计信息失败:', error);
@@ -129,7 +129,7 @@ export class SmartSelectionService {
    */
   static async testConnectivity(deviceId: string): Promise<ConnectivityTestResult> {
     try {
-      const result = await invoke<ConnectivityTestResult>('test_smart_selection_connectivity', {
+      const result = await invoke<ConnectivityTestResult>('plugin:smart_selection|test_connectivity', {
         deviceId,
       });
       return result;
@@ -147,7 +147,7 @@ export class SmartSelectionService {
     protocol: SmartSelectionProtocol
   ): Promise<CandidatePreviewResult> {
     try {
-      const result = await invoke<CandidatePreviewResult>('preview_smart_selection_candidates', {
+      const result = await invoke<CandidatePreviewResult>('plugin:smart_selection|preview', {
         deviceId,
         protocol,
       });
