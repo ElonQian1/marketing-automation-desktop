@@ -355,6 +355,47 @@ async fn get_icon(
     crate::commands::apps::get_app_icon(device_id, package_name, force_refresh).await
 }
 
+#[tauri::command]
+async fn validate_connection(device_id: String) -> Result<bool, String> {
+    crate::utils::device_utils::validate_device_connection(device_id).await
+}
+
+#[tauri::command]
+async fn get_ui_dump(device_id: String) -> Result<String, String> {
+    crate::commands::ui_dump::get_ui_dump(device_id).await
+}
+
+#[tauri::command]
+async fn search_apps(
+    device_id: String,
+    query: String,
+    state: State<'_, SmartAppManagerState>,
+) -> Result<Vec<AppInfo>, String> {
+    crate::commands::apps::search_device_apps(device_id, query, state).await
+}
+
+#[tauri::command]
+async fn launch_app(
+    device_id: String,
+    package_name: String,
+    state: State<'_, SmartAppManagerState>,
+) -> Result<crate::services::smart_app_manager::AppLaunchResult, String> {
+    crate::commands::apps::launch_device_app(device_id, package_name, state).await
+}
+
+#[tauri::command]
+async fn get_cached_apps(
+    device_id: String,
+    state: State<'_, SmartAppManagerState>,
+) -> Result<Vec<AppInfo>, String> {
+    crate::commands::apps::get_cached_device_apps(device_id, state).await
+}
+
+#[tauri::command]
+async fn get_popular_apps() -> Result<Vec<AppInfo>, String> {
+    crate::commands::apps::get_popular_apps().await
+}
+
 pub fn init() -> TauriPlugin<tauri::Wry> {
     Builder::new("adb")
         .invoke_handler(tauri::generate_handler![
@@ -381,7 +422,13 @@ pub fn init() -> TauriPlugin<tauri::Wry> {
             get_tracking_list,
             list_apps,
             list_apps_paged,
-            get_icon
+            get_icon,
+            validate_connection,
+            get_ui_dump,
+            search_apps,
+            launch_app,
+            get_cached_apps,
+            get_popular_apps
         ])
         .build()
 }
