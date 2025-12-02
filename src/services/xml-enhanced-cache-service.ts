@@ -142,7 +142,7 @@ export class XmlEnhancedCacheService {
   static async hasEnhancedCache(cachedPage: CachedXmlPage): Promise<boolean> {
     try {
       const fileName = this.getEnhancedFileName(cachedPage);
-      const exists: boolean = await invoke('enhanced_cache_file_exists', { fileName });
+      const exists: boolean = await invoke('plugin:xml_cache|enhanced_cache_file_exists', { fileName });
       return exists;
     } catch (error) {
       return false;
@@ -160,7 +160,7 @@ export class XmlEnhancedCacheService {
     newestCache: Date | null;
   }> {
     try {
-      const stats = await invoke('get_enhanced_cache_stats') as any;
+      const stats = await invoke('plugin:xml_cache|get_enhanced_cache_stats') as any;
       return {
         totalFiles: stats.totalFiles || 0,
         totalSize: stats.totalSize || 0,
@@ -185,7 +185,7 @@ export class XmlEnhancedCacheService {
    */
   static async cleanupExpiredCache(maxAge: number = 7 * 24 * 60 * 60 * 1000): Promise<number> {
     try {
-      const deletedCount: number = await invoke('cleanup_enhanced_cache', { maxAge });
+      const deletedCount: number = await invoke('plugin:xml_cache|cleanup_enhanced_cache', { maxAge });
       
       // 清理内存缓存
       const now = Date.now();
@@ -211,7 +211,7 @@ export class XmlEnhancedCacheService {
    */
   static async clearAllEnhancedCache(): Promise<void> {
     try {
-      await invoke('clear_all_enhanced_cache');
+      await invoke('plugin:xml_cache|clear_all_enhanced_cache');
       this.memoryCache.clear();
       UnifiedViewDataManager.clearCache();
       console.log('🗑️ 所有增强缓存已清除');
@@ -230,11 +230,11 @@ export class XmlEnhancedCacheService {
   private static async loadFromDisk(cachedPage: CachedXmlPage): Promise<CachedViewData | null> {
     try {
       const fileName = this.getEnhancedFileName(cachedPage);
-      const exists: boolean = await invoke('enhanced_cache_file_exists', { fileName });
+      const exists: boolean = await invoke('plugin:xml_cache|enhanced_cache_file_exists', { fileName });
       
       if (!exists) return null;
 
-      const data: string = await invoke('read_enhanced_cache_file', { fileName });
+      const data: string = await invoke('plugin:xml_cache|read_enhanced_cache_file', { fileName });
       const parsed = JSON.parse(data);
       
       // 检查数据版本兼容性
@@ -259,7 +259,7 @@ export class XmlEnhancedCacheService {
       const fileName = this.getEnhancedFileName(cachedViewData.pageInfo);
       const data = JSON.stringify(cachedViewData, null, 2);
       
-      await invoke('save_enhanced_cache_file', { 
+      await invoke('plugin:xml_cache|save_enhanced_cache_file', { 
         fileName, 
         content: data,
         metadata: {
@@ -309,7 +309,7 @@ export class XmlEnhancedCacheService {
     if (hasCache) {
       try {
         const fileName = this.getEnhancedFileName(cachedPage);
-        const metadata = await invoke('get_enhanced_cache_metadata', { fileName }) as any;
+        const metadata = await invoke('plugin:xml_cache|get_enhanced_cache_metadata', { fileName }) as any;
         lastCacheTime = new Date(metadata.lastModified);
       } catch (error) {
         console.warn('获取缓存元数据失败:', error);
@@ -351,7 +351,7 @@ export class XmlEnhancedCacheService {
       UnifiedViewDataManager.clearCache();
 
       // 清除磁盘缓存
-      await invoke('clear_enhanced_cache_directory');
+      await invoke('plugin:xml_cache|clear_enhanced_cache_directory');
       console.log('🗑️ 磁盘缓存已清除');
 
       console.log('✅ 所有增强缓存已清除');
@@ -374,7 +374,7 @@ export class XmlEnhancedCacheService {
     try {
       // 删除磁盘缓存文件
       const fileName = this.getEnhancedFileName(cachedPage);
-      await invoke('delete_enhanced_cache_file', { fileName });
+      await invoke('plugin:xml_cache|delete_enhanced_cache_file', { fileName });
     } catch (error) {
       // 文件可能不存在，忽略错误
       console.warn('删除磁盘缓存文件失败:', error);
