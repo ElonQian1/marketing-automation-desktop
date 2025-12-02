@@ -9,6 +9,7 @@
 
 import { invoke } from '@tauri-apps/api/core';
 import type { UIElement, ElementBounds } from './types';
+import { PluginCommands } from './commands/registry';
 
 /**
  * Universal UI 工具类
@@ -20,7 +21,7 @@ export class UniversalUIUtils {
    */
   static async deduplicateElements(elements: UIElement[]): Promise<UIElement[]> {
     try {
-      return await invoke<UIElement[]>('deduplicate_elements', { elements });
+      return await invoke<UIElement[]>(PluginCommands.deduplicateElements, { elements });
     } catch (error) {
       console.error('Failed to deduplicate elements:', error);
       throw new Error(`去重元素失败: ${error}`);
