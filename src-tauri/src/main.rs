@@ -116,6 +116,8 @@ fn main() {
         .plugin(modules::execution_v3::init())       // ✅ 注册V3执行引擎插件
         .plugin(modules::version_control::init())    // ✅ 注册版本控制插件
         .plugin(modules::automation::init())         // ✅ 注册自动化插件
+        .plugin(modules::enhanced_location::init())  // ✅ 注册增强定位插件
+        .plugin(modules::lead_hunt::init())          // ✅ 注册精准获客插件
         .manage(Mutex::new(AdbService::new()))
         .manage(Mutex::new(EmployeeService::new()))
         .manage(SmartAppManagerState::new())

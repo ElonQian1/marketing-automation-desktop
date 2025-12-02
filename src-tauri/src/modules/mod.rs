@@ -11,3 +11,5 @@ pub mod intelligent_analysis;
 pub mod execution_v3;
 pub mod version_control;
 pub mod automation;
+pub mod enhanced_location;
+pub mod lead_hunt;
