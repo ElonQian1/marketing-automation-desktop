@@ -121,6 +121,21 @@ async fn execute_chain_test_v3(_device_id: String, _steps: Vec<Value>, _threshol
     Ok(serde_json::json!({}))
 }
 
+#[tauri::command]
+async fn execute_xpath_action(_device_id: String, _xpath: String, _action: String) -> Result<String, String> {
+    Ok("stub_result".to_string())
+}
+
+#[tauri::command]
+async fn execute_single_step_test(_device_id: String, _step: Value) -> Result<Value, String> {
+    Ok(serde_json::json!({}))
+}
+
+#[tauri::command]
+async fn execute_smart_automation_script(_device_id: String, _script: Value) -> Result<Value, String> {
+    Ok(serde_json::json!({}))
+}
+
 pub fn init<R: Runtime>() -> TauriPlugin<R> {
     Builder::<R>::new("automation")
         .invoke_handler(tauri::generate_handler![
@@ -142,7 +157,10 @@ pub fn init<R: Runtime>() -> TauriPlugin<R> {
             stop_script_execution,
             click_detected_element,
             run_step_v2,
-            execute_chain_test_v3
+            execute_chain_test_v3,
+            execute_xpath_action,
+            execute_single_step_test,
+            execute_smart_automation_script
         ])
         .build()
 }
