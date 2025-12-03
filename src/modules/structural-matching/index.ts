@@ -31,7 +31,6 @@ export {
 	toggleFieldEnabled,
 	updateGlobalThreshold,
 } from './application/create-structural-config';
-export * from './application/test-field-matching';
 
 // Hooks
 export * from './hooks/use-structural-matching-modal';
