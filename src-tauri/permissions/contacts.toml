@@ -1,0 +1,49 @@
+[[permission]]
+identifier = "allow-contacts"
+description = "Enables all contacts commands"
+commands.allow = [
+    "plugin:contacts|import_vcf_contacts_multi_brand",
+    "plugin:contacts|import_file",
+    "plugin:contacts|import_folder",
+    "plugin:contacts|list",
+    "plugin:contacts|list_without_batch",
+    "plugin:contacts|list_by_batch",
+    "plugin:contacts|list_for_vcf_batch",
+    "plugin:contacts|get_stats",
+    "plugin:contacts|get_distinct_industries",
+    "plugin:contacts|set_industry_by_id_range",
+    "plugin:contacts|mark_as_not_imported",
+    "plugin:contacts|delete_numbers",
+    "plugin:contacts|list_import_records",
+    "plugin:contacts|delete_import_record",
+    "plugin:contacts|get_imported_files",
+    "plugin:contacts|get_numbers_by_files",
+    "plugin:contacts|check_file_imported",
+    "plugin:contacts|get_file_stats",
+    "plugin:contacts|list_batches",
+    "plugin:contacts|create_batch_with_numbers",
+    "plugin:contacts|tag_numbers_industry_by_vcf_batch",
+    "plugin:contacts|fetch_contact_numbers",
+    "plugin:contacts|fetch_unclassified_contact_numbers",
+    "plugin:contacts|fetch_contact_numbers_by_id_range",
+    "plugin:contacts|fetch_contact_numbers_by_id_range_unconsumed",
+    "plugin:contacts|mark_contact_numbers_used_by_id_range",
+    "plugin:contacts|get_device_contact_count",
+    "plugin:contacts|verify_contacts_fast",
+    "plugin:contacts|smart_vcf_opener",
+    "plugin:contacts|delete_contact_document",
+    "plugin:contacts|update_contact",
+    "plugin:contacts|delete_contact",
+    "plugin:contacts|delete_contacts",
+    "plugin:contacts|start_contact_task",
+    "plugin:contacts|pause_contact_task",
+    "plugin:contacts|stop_contact_task",
+    "plugin:contacts|delete_contact_task",
+    "plugin:contacts|create_contact_task",
+    "plugin:contacts|submit_contact_task"
+]
+
+[[set]]
+identifier = "contacts-default"
+description = "Default permissions for contacts"
+permissions = ["allow-contacts"]

@@ -1,0 +1,13 @@
+[[permission]]
+identifier = "allow-image-optimization"
+description = "Enables all image optimization commands"
+commands.allow = [
+    "plugin:image_optimization|load",
+    "plugin:image_optimization|generate_thumbnail",
+    "plugin:image_optimization|preload_batch"
+]
+
+[[set]]
+identifier = "image-optimization-default"
+description = "Default permissions for image optimization"
+permissions = ["allow-image-optimization"]

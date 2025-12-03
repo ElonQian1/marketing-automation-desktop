@@ -1,0 +1,16 @@
+[[permission]]
+identifier = "allow-lead-hunt"
+description = "Enables all lead hunt commands"
+commands.allow = [
+    "plugin:lead_hunt|lh_save_comments",
+    "plugin:lead_hunt|lh_list_comments",
+    "plugin:lead_hunt|lh_import_comments",
+    "plugin:lead_hunt|lh_create_replay_plan",
+    "plugin:lead_hunt|lh_run_replay_plan",
+    "plugin:lead_hunt|lh_analyze_comments"
+]
+
+[[set]]
+identifier = "lead-hunt-default"
+description = "Default permissions for lead hunt"
+permissions = ["allow-lead-hunt"]

@@ -1,0 +1,25 @@
+[[permission]]
+identifier = "allow-universal-ui"
+description = "Enables all universal ui commands"
+commands.allow = [
+    "plugin:universal_ui|analyze_page",
+    "plugin:universal_ui|extract_elements",
+    "plugin:universal_ui|acknowledge_event",
+    "plugin:universal_ui|classify_elements",
+    "plugin:universal_ui|deduplicate",
+    "plugin:universal_ui|identify_page",
+    "plugin:universal_ui|save_page_analysis",
+    "plugin:universal_ui|get_page_analysis_by_id",
+    "plugin:universal_ui|get_page_analyses_by_device",
+    "plugin:universal_ui|get_page_analyses_by_app",
+    "plugin:universal_ui|get_page_analyses_by_type",
+    "plugin:universal_ui|cleanup_old_page_analyses",
+    "plugin:universal_ui|get_page_analysis_statistics",
+    "plugin:universal_ui|delete_page_analysis",
+    "plugin:universal_ui|delete_page_analyses_by_device"
+]
+
+[[set]]
+identifier = "universal-ui-default"
+description = "Default permissions for universal ui"
+permissions = ["allow-universal-ui"]

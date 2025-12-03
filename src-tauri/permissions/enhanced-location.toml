@@ -1,0 +1,17 @@
+[[permission]]
+identifier = "allow-enhanced-location"
+description = "Enables all enhanced location commands"
+commands.allow = [
+    "plugin:enhanced_location|match_element_enhanced",
+    "plugin:enhanced_location|generate_xpath_candidates",
+    "plugin:enhanced_location|generate_best_xpath",
+    "plugin:enhanced_location|validate_xpath",
+    "plugin:enhanced_location|update_xpath_strategy_success_rate",
+    "plugin:enhanced_location|match_element_by_criteria",
+    "plugin:enhanced_location|save_smart_selection_config"
+]
+
+[[set]]
+identifier = "enhanced-location-default"
+description = "Default permissions for enhanced location"
+permissions = ["allow-enhanced-location"]

@@ -1,0 +1,32 @@
+[[permission]]
+identifier = "allow-automation"
+description = "Enables all automation commands"
+commands.allow = [
+    "plugin:automation|check_duplication",
+    "plugin:automation|record_action",
+    "plugin:automation|execute_script",
+    "plugin:automation|abort_script_execution",
+    "plugin:automation|cancel_current_operation",
+    "plugin:automation|force_stop_all_adb_operations",
+    "plugin:automation|stop_loop_test",
+    "plugin:automation|record_circuit_breaker_operation",
+    "plugin:automation|update_circuit_breaker_state",
+    "plugin:automation|reset_circuit_breaker",
+    "plugin:automation|get_circuit_breaker_status",
+    "plugin:automation|get_failure_statistics",
+    "plugin:automation|execute_script_with_monitoring",
+    "plugin:automation|pause_script_execution",
+    "plugin:automation|resume_script_execution",
+    "plugin:automation|stop_script_execution",
+    "plugin:automation|click_detected_element",
+    "plugin:automation|run_step_v2",
+    "plugin:automation|execute_chain_test_v3",
+    "plugin:automation|execute_xpath_action",
+    "plugin:automation|execute_single_step_test",
+    "plugin:automation|execute_smart_automation_script"
+]
+
+[[set]]
+identifier = "automation-default"
+description = "Default permissions for automation"
+permissions = ["allow-automation"]

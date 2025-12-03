@@ -1,0 +1,14 @@
+[[permission]]
+identifier = "allow-employees"
+description = "Enables all employees commands"
+commands.allow = [
+    "plugin:employees|list",
+    "plugin:employees|add",
+    "plugin:employees|update",
+    "plugin:employees|delete"
+]
+
+[[set]]
+identifier = "employees-default"
+description = "Default permissions for employees"
+permissions = ["allow-employees"]

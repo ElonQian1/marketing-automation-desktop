@@ -1,0 +1,20 @@
+[[permission]]
+identifier = "allow-version-control"
+description = "Enables all version control commands"
+commands.allow = [
+    "plugin:version_control|init_version_control",
+    "plugin:version_control|create_version",
+    "plugin:version_control|query_versions",
+    "plugin:version_control|create_branch",
+    "plugin:version_control|list_branches",
+    "plugin:version_control|compute_xml_diff",
+    "plugin:version_control|rebuild_version",
+    "plugin:version_control|get_version_storage_stats",
+    "plugin:version_control|check_version_integrity",
+    "plugin:version_control|delete_version"
+]
+
+[[set]]
+identifier = "version-control-default"
+description = "Default permissions for version control"
+permissions = ["allow-version-control"]

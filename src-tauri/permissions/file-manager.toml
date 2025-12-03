@@ -1,0 +1,16 @@
+[[permission]]
+identifier = "allow-file-manager"
+description = "Enables all file manager commands"
+commands.allow = [
+    "plugin:file_manager|read_text",
+    "plugin:file_manager|write_text",
+    "plugin:file_manager|delete",
+    "plugin:file_manager|read_as_data_url",
+    "plugin:file_manager|reveal",
+    "plugin:file_manager|clear_adb_keys"
+]
+
+[[set]]
+identifier = "file-manager-default"
+description = "Default permissions for file manager"
+permissions = ["allow-file-manager"]

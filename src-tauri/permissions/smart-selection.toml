@@ -1,0 +1,16 @@
+[[permission]]
+identifier = "allow-smart-selection"
+description = "Enables all smart selection commands"
+commands.allow = [
+    "plugin:smart_selection|execute",
+    "plugin:smart_selection|validate",
+    "plugin:smart_selection|get_stats",
+    "plugin:smart_selection|test_connectivity",
+    "plugin:smart_selection|preview",
+    "plugin:smart_selection|save_config"
+]
+
+[[set]]
+identifier = "smart-selection-default"
+description = "Default permissions for smart selection"
+permissions = ["allow-smart-selection"]

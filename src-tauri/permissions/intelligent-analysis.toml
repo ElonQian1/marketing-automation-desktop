@@ -1,0 +1,21 @@
+[[permission]]
+identifier = "allow-intelligent-analysis"
+description = "Enables all intelligent analysis commands"
+commands.allow = [
+    "plugin:intelligent_analysis|start_intelligent_analysis",
+    "plugin:intelligent_analysis|cancel_intelligent_analysis",
+    "plugin:intelligent_analysis|bind_analysis_result_to_step",
+    "plugin:intelligent_analysis|get_step_strategy",
+    "plugin:intelligent_analysis|clear_step_strategy",
+    "plugin:intelligent_analysis|run_step_v2",
+    "plugin:intelligent_analysis|recommend_structure_mode",
+    "plugin:intelligent_analysis|recommend_structure_mode_v2",
+    "plugin:intelligent_analysis|dry_run_structure_match",
+    "plugin:intelligent_analysis|resolve_from_stepcard_snapshot",
+    "plugin:intelligent_analysis|execute_structure_match_step"
+]
+
+[[set]]
+identifier = "intelligent-analysis-default"
+description = "Default permissions for intelligent analysis"
+permissions = ["allow-intelligent-analysis"]
