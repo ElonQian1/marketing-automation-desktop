@@ -237,7 +237,7 @@ export function useLoopTestExecution(options: UseLoopTestExecutionOptions) {
     if (!canStop) return;
 
     try {
-      await invoke('stop_loop_test', {
+      await invoke('plugin:automation|stop_loop_test', {
         loopId: state.loopId,
       });
 

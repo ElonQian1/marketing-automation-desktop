@@ -228,8 +228,8 @@ export function useLoopTestManager(callbacks?: LoopTestCallbacks): LoopTestManag
 
       console.log(`🛑 停止循环测试: ${loopId}`);
 
-      // TODO: 调用后端 Tauri 命令停止
-      // await invoke('stop_loop_test', { loopId });
+      // 调用后端 Tauri 命令停止
+      await invoke('plugin:automation|stop_loop_test', { loopId });
 
     } catch (error) {
       const errorMsg = error instanceof Error ? error.message : '停止失败';
