@@ -441,6 +441,41 @@ async fn stop_device_mirror_session(_device_id: String, _session_name: String) -
     Ok(())
 }
 
+#[tauri::command]
+async fn adb_swipe(_device_id: String, _start_x: i32, _start_y: i32, _end_x: i32, _end_y: i32, _duration: i32) -> Result<(), String> {
+    Ok(())
+}
+
+#[tauri::command]
+async fn adb_input_text(_device_id: String, _text: String) -> Result<(), String> {
+    Ok(())
+}
+
+#[tauri::command]
+async fn adb_screenshot(_device_id: String) -> Result<String, String> {
+    Ok("stub_path.png".to_string())
+}
+
+#[tauri::command]
+async fn adb_press_key(_device_id: String, _key_code: i32) -> Result<(), String> {
+    Ok(())
+}
+
+#[tauri::command]
+async fn adb_close_app(_device_id: String, _package_name: String) -> Result<(), String> {
+    Ok(())
+}
+
+#[tauri::command]
+async fn adb_install_apk(_device_id: String, _apk_path: String) -> Result<(), String> {
+    Ok(())
+}
+
+#[tauri::command]
+async fn adb_uninstall_app(_device_id: String, _package_name: String) -> Result<(), String> {
+    Ok(())
+}
+
 pub fn init() -> TauriPlugin<tauri::Wry> {
     Builder::new("adb")
         .invoke_handler(tauri::generate_handler![
@@ -480,7 +515,14 @@ pub fn init() -> TauriPlugin<tauri::Wry> {
             get_screen_resolution,
             execute_ui_action,
             stop_device_mirror,
-            stop_device_mirror_session
+            stop_device_mirror_session,
+            adb_swipe,
+            adb_input_text,
+            adb_screenshot,
+            adb_press_key,
+            adb_close_app,
+            adb_install_apk,
+            adb_uninstall_app
         ])
         .build()
 }
