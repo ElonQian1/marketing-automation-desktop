@@ -273,7 +273,7 @@ const SmartNavigationFinder: React.FC<SmartNavigationFinderProps> = ({
       setLoading(true);
       const config = getCurrentConfig();
       
-      const result = await invoke('click_detected_element', {
+      const result = await invoke('plugin:automation|click_detected_element', {
         deviceId,
         element,
         clickType: config.click_action

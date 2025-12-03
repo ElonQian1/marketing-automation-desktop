@@ -48,7 +48,7 @@ export const BatchConfigPanel: React.FC<BatchConfigPanelProps> = ({
     if (!stepId) return;
     
     try {
-      await invoke('save_smart_selection_config', {
+      await invoke('plugin:enhanced_location|save_smart_selection_config', {
         stepId,
         selectionMode: 'all',
         batchConfig: config
@@ -170,7 +170,7 @@ export const BatchConfigPanel: React.FC<BatchConfigPanelProps> = ({
               
               if (stepId) {
                 try {
-                  await invoke('save_smart_selection_config', {
+                  await invoke('plugin:enhanced_location|save_smart_selection_config', {
                     stepId,
                     selectionMode: 'all',
                     batchConfig: newConfig
