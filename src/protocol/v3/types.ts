@@ -31,13 +31,13 @@
 //   5️⃣ 错误处理统一：标准化错误码和回退机制
 //
 // 📋 使用示例对比：
-//   invoke('start_intelligent_analysis', { 
+//   invoke('plugin:intelligent_analysis|start_intelligent_analysis', { 
 //     element_context: {...}, // 几百行配置
 //     step_id: 'xxx'
 //   });
 //
 //   // V3 调用（简洁）
-//   invoke('execute_chain_test_v3', {
+//   invoke('plugin:execution_v3|execute_chain_test_v3', {
 //     spec: { analysis_id: 'xxx', threshold: 0.7 }, // 只需 2 个字段
 //     context: { deviceId, app: {...} }
 //   });
