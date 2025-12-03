@@ -211,7 +211,7 @@ export class EnhancedCommentAdapterManager {
     total: number;
   }> {
     try {
-      const result = await invoke('get_collected_comments', {
+      const result = await invoke('plugin:prospecting|get_collected_comments', {
         limit: params.limit || 50,
         offset: params.offset || 0,
         platform: params.platform || null,
@@ -254,7 +254,7 @@ export class EnhancedCommentAdapterManager {
    */
   async scheduleAutoCollection(config: AutoCollectionConfig): Promise<ScheduleResult> {
     try {
-      const result = await invoke('schedule_auto_collection', {
+      const result = await invoke('plugin:prospecting|schedule_auto_collection', {
         targets: config.targets.map(t => t.id),
         intervalHours: config.interval_hours,
         maxCommentsPerTarget: config.max_comments_per_target,
@@ -368,7 +368,7 @@ export class EnhancedCommentAdapterManager {
    */
   private async saveCollectionResult(result: CommentCollectionResult): Promise<void> {
     try {
-      await invoke('save_collection_result', {
+      await invoke('plugin:prospecting|save_collection_result', {
         targetId: result.target_id,
         platform: result.source_platform,
         comments: result.comments,
@@ -391,7 +391,7 @@ export class EnhancedCommentAdapterManager {
     operator: string;
   }): Promise<void> {
     try {
-      await invoke('log_audit_event', {
+      await invoke('plugin:prospecting|log_audit_event', {
         action: event.action,
         targetId: event.target_id,
         platform: event.platform,
@@ -411,7 +411,7 @@ export class EnhancedCommentAdapterManager {
    */
   private async logCollectionError(target: WatchTarget, error: any): Promise<void> {
     try {
-      await invoke('log_collection_error', {
+      await invoke('plugin:prospecting|log_collection_error', {
         targetId: target.id,
         platform: target.platform,
         error: error instanceof Error ? error.message : String(error),
