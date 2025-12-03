@@ -14,6 +14,9 @@ interface EventLog {
 const EVENT_LOG_KEY = 'dev_event_logs';
 const MAX_LOGS = 500; // 最多保留500条日志
 
+// 防止 React StrictMode 导致的重复初始化
+let isTracerInitialized = false;
+
 /**
  * 开发期事件追踪器
  * 
@@ -22,9 +25,14 @@ const MAX_LOGS = 500; // 最多保留500条日志
  */
 export async function attachDevTracer() {
   if (import.meta.env.MODE !== 'development') {
-    console.log('[DevTracer] 非开发模式,跳过事件追踪');
     return;
   }
+
+  // 防止 StrictMode 重复初始化
+  if (isTracerInitialized) {
+    return;
+  }
+  isTracerInitialized = true;
 
   console.log('🔧 [DevTracer] 启动事件追踪器...');
 

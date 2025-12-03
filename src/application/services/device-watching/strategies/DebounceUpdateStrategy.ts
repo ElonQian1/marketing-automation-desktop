@@ -32,15 +32,14 @@ export class DebounceUpdateStrategy implements IDeviceUpdateStrategy {
   }
 
   handleDeviceChange(devices: Device[], onUpdate: (devices: Device[]) => void): void {
-    this.log('📱 收到设备变化:', {
-      deviceCount: devices.length,
-      deviceIds: devices.map(d => d.id)
-    });
+    // 只在设备数量变化时打印日志
+    if (devices.length !== this.lastDeviceCount) {
+      this.log('📱 设备数量变化:', { from: this.lastDeviceCount, to: devices.length });
+    }
 
     // 清除之前的定时器
     if (this.debounceTimer) {
       clearTimeout(this.debounceTimer);
-      this.log('🔄 清除之前的防抖定时器');
     }
 
     // 记录最新一次收到的设备列表
@@ -51,14 +50,10 @@ export class DebounceUpdateStrategy implements IDeviceUpdateStrategy {
       this.lastNonEmptyAt = Date.now();
     }
 
-    // 非空：立即更新（同步调用），保证“重要情况即时刷新”，且避免微任务顺序导致的丢更新
+    // 非空：立即更新（同步调用），保证"重要情况即时刷新"，且避免微任务顺序导致的丢更新
     if (devices.length > 0) {
       const toApply = devices;
       this.lastDeviceCount = toApply.length;
-      this.log('⚡ 立即提交设备列表（非空，同步）', {
-        newCount: toApply.length,
-        ids: toApply.map(d => d.id)
-      });
       onUpdate(toApply);
       return;
     }

@@ -118,17 +118,16 @@ export const useAdbStore = create<AdbState & AdbActions>()(
 
     // === 设备管理 ===
     setDevices: (devices) => {
-      console.log('🔄 [adbStore] setDevices 被调用:', {
-        deviceCount: devices.length,
-        deviceIds: devices.map(d => d.id)
-      });
+      // 只在设备数量变化时打印日志，减少噪音
+      const currentCount = get().devices.length;
+      if (devices.length !== currentCount) {
+        console.log('📱 [adbStore] 设备数量变化:', { from: currentCount, to: devices.length });
+      }
       
       set({ 
         devices,
         lastRefreshTime: new Date()
       });
-      
-      console.log('✅ [adbStore] devices 状态已更新');
     },
     
     addDevice: (device) => set((state) => ({
