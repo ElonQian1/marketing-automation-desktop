@@ -177,6 +177,78 @@
       "description": "Permission identifier",
       "oneOf": [
         {
+          "description": "Default permissions for adb\n#### This permission set includes:\n\n- `allow-adb`",
+          "type": "string",
+          "const": "adb-default",
+          "markdownDescription": "Default permissions for adb\n#### This permission set includes:\n\n- `allow-adb`"
+        },
+        {
+          "description": "Default permissions for execution v3\n#### This permission set includes:\n\n- `allow-execution-v3`",
+          "type": "string",
+          "const": "execution-v3-default",
+          "markdownDescription": "Default permissions for execution v3\n#### This permission set includes:\n\n- `allow-execution-v3`"
+        },
+        {
+          "description": "Default permissions for prospecting\n#### This permission set includes:\n\n- `allow-prospecting`",
+          "type": "string",
+          "const": "prospecting-default",
+          "markdownDescription": "Default permissions for prospecting\n#### This permission set includes:\n\n- `allow-prospecting`"
+        },
+        {
+          "description": "Default permissions for script manager\n#### This permission set includes:\n\n- `allow-script-manager`",
+          "type": "string",
+          "const": "script-manager-default",
+          "markdownDescription": "Default permissions for script manager\n#### This permission set includes:\n\n- `allow-script-manager`"
+        },
+        {
+          "description": "Default permissions for system diagnostic\n#### This permission set includes:\n\n- `allow-system-diagnostic`",
+          "type": "string",
+          "const": "system-diagnostic-default",
+          "markdownDescription": "Default permissions for system diagnostic\n#### This permission set includes:\n\n- `allow-system-diagnostic`"
+        },
+        {
+          "description": "Default permissions for xml cache\n#### This permission set includes:\n\n- `allow-xml-cache`",
+          "type": "string",
+          "const": "xml-cache-default",
+          "markdownDescription": "Default permissions for xml cache\n#### This permission set includes:\n\n- `allow-xml-cache`"
+        },
+        {
+          "description": "Enables all adb commands",
+          "type": "string",
+          "const": "allow-adb",
+          "markdownDescription": "Enables all adb commands"
+        },
+        {
+          "description": "Enables all execution v3 commands",
+          "type": "string",
+          "const": "allow-execution-v3",
+          "markdownDescription": "Enables all execution v3 commands"
+        },
+        {
+          "description": "Enables all prospecting commands",
+          "type": "string",
+          "const": "allow-prospecting",
+          "markdownDescription": "Enables all prospecting commands"
+        },
+        {
+          "description": "Enables all script manager commands",
+          "type": "string",
+          "const": "allow-script-manager",
+          "markdownDescription": "Enables all script manager commands"
+        },
+        {
+          "description": "Enables all system diagnostic commands",
+          "type": "string",
+          "const": "allow-system-diagnostic",
+          "markdownDescription": "Enables all system diagnostic commands"
+        },
+        {
+          "description": "Enables all xml cache commands",
+          "type": "string",
+          "const": "allow-xml-cache",
+          "markdownDescription": "Enables all xml cache commands"
+        },
+        {
           "description": "Default core plugins set.\n#### This default permission set includes:\n\n- `core:path:default`\n- `core:event:default`\n- `core:window:default`\n- `core:webview:default`\n- `core:app:default`\n- `core:image:default`\n- `core:resources:default`\n- `core:menu:default`\n- `core:tray:default`",
           "type": "string",
           "const": "core:default",
