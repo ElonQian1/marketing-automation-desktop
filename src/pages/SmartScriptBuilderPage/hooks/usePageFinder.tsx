@@ -208,6 +208,13 @@ export function usePageFinder(deps: UsePageFinderDeps) {
       const stepInfo = SmartStepGenerator.generateStepInfo(element);
 
       form.setFieldValue("step_type", SmartActionType.SMART_FIND_ELEMENT);
+      
+      // 尝试从元素中获取包名并保存
+      const pkgName = (element as any).package || (element as any).packageName || (element as any).package_name;
+      if (pkgName) {
+        form.setFieldValue("package_name", pkgName);
+      }
+
       form.setFieldValue("search_criteria", stepInfo.searchCriteria);
       form.setFieldValue("name", stepInfo.name);
       form.setFieldValue("description", stepInfo.description);
@@ -669,6 +676,13 @@ export function usePageFinder(deps: UsePageFinderDeps) {
             if (criteria.values["content-desc"]) p.content_desc = criteria.values["content-desc"];
             if (criteria.values["class"]) p.class_name = criteria.values["class"];
 
+            // 🆕 保存包名
+            if (criteria.preview?.package) {
+              p.package_name = criteria.preview.package;
+            } else if (criteria.values["package"]) {
+              p.package_name = criteria.values["package"];
+            }
+
             // 🆕 保存元素绑定（elementBinding）：需要 xmlSnapshot 与 preview.xpath（优先来自 enhancedElement.nodePath.xpath）
             try {
               const snap = (p.xmlSnapshot || form.getFieldValue("xmlSnapshot")) as XmlSnapshot | undefined;
@@ -716,6 +730,13 @@ export function usePageFinder(deps: UsePageFinderDeps) {
           ...(criteria.regexExcludes ? { regexExcludes: criteria.regexExcludes } : {}),
           updatedAt: Date.now(),
         });
+
+        // 保存包名以便在步骤卡片中显示
+        if (criteria.preview?.package) {
+          form.setFieldValue("package_name", criteria.preview.package);
+        } else if (criteria.values["package"]) {
+          form.setFieldValue("package_name", criteria.values["package"]);
+        }
 
         const additionalInfo = {
           xpath: criteria.preview?.xpath,
