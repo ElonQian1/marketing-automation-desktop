@@ -35,7 +35,7 @@ const { Option } = Select;
 const { Text, Title } = Typography;
 
 export interface LaunchAppSmartComponentProps {
-  deviceId: string;
+  deviceId?: string;
   value?: LaunchAppComponentParams;
   onChange?: (value: LaunchAppComponentParams) => void;
   onPreview?: () => void;
@@ -107,6 +107,11 @@ export const LaunchAppSmartComponent: React.FC<LaunchAppSmartComponentProps> = (
 
   // 测试启动应用
   const handleTestLaunch = async () => {
+    if (!deviceId) {
+      message.warning('请先连接设备以测试启动');
+      return;
+    }
+
     if (!selectedApp) {
       message.warning('请先选择要启动的应用');
       return;
@@ -144,6 +149,11 @@ export const LaunchAppSmartComponent: React.FC<LaunchAppSmartComponentProps> = (
 
   // 执行组件操作
   const handleExecute = async () => {
+    if (!deviceId) {
+      message.warning('请先连接设备以执行测试');
+      return;
+    }
+
     const formValues = form.getFieldsValue();
     const params: LaunchAppComponentParams = {
       ...formValues,
@@ -193,7 +203,7 @@ export const LaunchAppSmartComponent: React.FC<LaunchAppSmartComponentProps> = (
             size="small"
             loading={executing}
             onClick={handleExecute}
-            disabled={!selectedApp}
+            disabled={!selectedApp || !deviceId}
           >
             执行测试
           </Button>
@@ -207,6 +217,16 @@ export const LaunchAppSmartComponent: React.FC<LaunchAppSmartComponentProps> = (
         showIcon
         style={{ marginBottom: 16 }}
       />
+
+      {!deviceId && (
+        <Alert
+          message="离线模式"
+          description="当前未连接设备，您可以配置步骤参数并保存，但无法进行测试启动。"
+          type="warning"
+          showIcon
+          style={{ marginBottom: 16 }}
+        />
+      )}
 
       <Form
         form={form}
@@ -263,6 +283,7 @@ export const LaunchAppSmartComponent: React.FC<LaunchAppSmartComponentProps> = (
                       type="link"
                       loading={executing}
                       onClick={handleTestLaunch}
+                      disabled={!deviceId}
                     >
                       测试启动
                     </Button>

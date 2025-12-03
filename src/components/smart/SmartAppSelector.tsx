@@ -18,7 +18,10 @@ import {
   Typography,
   Row,
   Col,
-  Card
+  Card,
+  Tabs,
+  Form,
+  Alert
 } from 'antd';
 import { 
   SearchOutlined, 
@@ -27,7 +30,10 @@ import {
   SettingOutlined,
   StarOutlined,
   RocketOutlined,
-  CloseOutlined
+  CloseOutlined,
+  HistoryOutlined,
+  EditOutlined,
+  MobileOutlined
 } from '@ant-design/icons';
 import type { AppInfo } from '../../types/smartComponents';
 import { smartAppService } from '../../services/smart-app-service';
@@ -36,14 +42,17 @@ import { useOverlayTheme } from '../ui/overlay';
 const { Search } = Input;
 const { Text } = Typography;
 const { Option } = Select;
+const { TabPane } = Tabs;
 
 export interface SmartAppSelectorProps {
   visible: boolean;
   onClose: () => void;
   onSelect: (app: AppInfo) => void;
-  deviceId: string;
+  deviceId?: string;
   selectedApp?: AppInfo | null;
 }
+
+const HISTORY_STORAGE_KEY = 'smart_app_selector_history';
 
 export const SmartAppSelector: React.FC<SmartAppSelectorProps> = ({
   visible,
@@ -54,6 +63,7 @@ export const SmartAppSelector: React.FC<SmartAppSelectorProps> = ({
 }) => {
   // 统一该组件内部所有下拉的弹层主题为暗色（黑底白字）
   const { popupProps } = useOverlayTheme('dark');
+  const [activeTab, setActiveTab] = useState<string>('device');
   const [apps, setApps] = useState<AppInfo[]>([]);
   const [loading, setLoading] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
@@ -67,9 +77,43 @@ export const SmartAppSelector: React.FC<SmartAppSelectorProps> = ({
   const [pageSize, setPageSize] = useState(60);
   const [total, setTotal] = useState(0);
 
+  // 历史记录状态
+  const [historyApps, setHistoryApps] = useState<AppInfo[]>([]);
+  
+  // 手动输入表单
+  const [manualForm] = Form.useForm();
+
+  // 加载历史记录
+  useEffect(() => {
+    try {
+      const stored = localStorage.getItem(HISTORY_STORAGE_KEY);
+      if (stored) {
+        setHistoryApps(JSON.parse(stored));
+      }
+    } catch (e) {
+      console.error('读取历史记录失败', e);
+    }
+  }, []);
+
+  // 保存历史记录
+  const saveToHistory = (app: AppInfo) => {
+    try {
+      const newHistory = [app, ...historyApps.filter(h => h.package_name !== app.package_name)].slice(0, 20);
+      setHistoryApps(newHistory);
+      localStorage.setItem(HISTORY_STORAGE_KEY, JSON.stringify(newHistory));
+    } catch (e) {
+      console.error('保存历史记录失败', e);
+    }
+  };
+
   // 加载设备应用
   const loadDeviceApps = async () => {
-    if (!deviceId) return;
+    if (!deviceId) {
+      if (activeTab === 'device') {
+        setActiveTab('history'); // 如果没有设备，自动切到历史记录
+      }
+      return;
+    }
 
     setLoading(true);
     try {
@@ -95,9 +139,13 @@ export const SmartAppSelector: React.FC<SmartAppSelectorProps> = ({
 
   // 初始化加载
   useEffect(() => {
-    if (visible && deviceId) {
-      // 加载全量应用一次，前端本地过滤
-      loadDeviceApps();
+    if (visible) {
+      if (deviceId) {
+        loadDeviceApps();
+        setActiveTab('device');
+      } else {
+        setActiveTab('history');
+      }
     }
     // 仅在打开或设备变化时拉取
   }, [visible, deviceId]);
@@ -175,9 +223,26 @@ export const SmartAppSelector: React.FC<SmartAppSelectorProps> = ({
 
   // 处理应用选择
   const handleSelectApp = (app: AppInfo) => {
+    saveToHistory(app);
     onSelect(app);
     onClose();
     message.success(`已选择应用: ${app.app_name}`);
+  };
+
+  // 处理手动提交
+  const handleManualSubmit = async () => {
+    try {
+      const values = await manualForm.validateFields();
+      const app: AppInfo = {
+        package_name: values.package_name,
+        app_name: values.app_name || values.package_name,
+        is_system_app: false,
+        is_enabled: true
+      };
+      handleSelectApp(app);
+    } catch (error) {
+      // 验证失败
+    }
   };
 
   // 获取应用图标
@@ -218,215 +283,308 @@ export const SmartAppSelector: React.FC<SmartAppSelectorProps> = ({
       footer={null}
       width={800}
       style={{ top: 20 }}
-      bodyStyle={{ maxHeight: '70vh', overflowY: 'auto' }}
+      bodyStyle={{ maxHeight: '80vh', overflowY: 'auto', padding: '0 24px 24px' }}
     >
-      {/* 搜索和过滤工具栏 */}
-      <div style={{ marginBottom: 16 }}>
-        <Row gutter={[16, 16]}>
-          <Col span={12}>
-            <Search
-              placeholder="搜索应用名称或包名..."
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              onSearch={(value) => setSearchQuery(value)}
-              allowClear
-              prefix={<SearchOutlined />}
-            />
-          </Col>
-          <Col span={4}>
-            <Select
-              style={{ width: '100%' }}
-              value={viewMode}
-              onChange={setViewMode}
-              placeholder="视图模式"
-              {...popupProps}
-            >
-              <Option value="popular">热门应用</Option>
-              <Option value="all">全部应用</Option>
-            </Select>
-          </Col>
-          <Col span={4}>
-            <Select
-              style={{ width: '100%' }}
-              value={categoryFilter}
-              onChange={setCategoryFilter}
-              placeholder="应用类型"
-              {...popupProps}
-            >
-              <Option value="all">全部</Option>
-              <Option value="user">用户应用</Option>
-              <Option value="system">系统应用</Option>
-            </Select>
-          </Col>
-          <Col span={4}>
-            <Select
-              style={{ width: '100%' }}
-              value={statusFilter}
-              onChange={setStatusFilter}
-              placeholder="状态"
-              {...popupProps}
-            >
-              <Option value="all">全部</Option>
-              <Option value="enabled">已启用</Option>
-              <Option value="disabled">已禁用</Option>
-            </Select>
-          </Col>
-          <Col span={12}>
-            <Space>
-              <Select
-                style={{ width: 160 }}
-                value={refreshStrategy}
-                onChange={(v) => {
-                  setRefreshStrategy(v);
-                  setPage(1);
-                }}
-                placeholder="刷新策略"
-                {...popupProps}
-              >
-                <Option value="cache_first">缓存优先</Option>
-                <Option value="force_refresh">强制刷新</Option>
-              </Select>
-              <Select style={{ width: 120 }} value={pageSize} onChange={(v) => { setPageSize(v); setPage(1); }} {...popupProps}>
-                <Option value={30}>每页30</Option>
-                <Option value={60}>每页60</Option>
-                <Option value={100}>每页100</Option>
-              </Select>
-              <Button onClick={() => { setPage(1); loadDeviceApps(); }}>刷新</Button>
-            </Space>
-          </Col>
-        </Row>
-      </div>
-
-      {/* 快速选择热门应用 */}
-      {viewMode === 'popular' && popularApps.length > 0 && (
-        <Card 
-          title="热门应用快捷选择" 
-          size="small"
-          style={{ marginBottom: 16 }}
-          bodyStyle={{ padding: '12px' }}
+      <Tabs activeKey={activeTab} onChange={setActiveTab}>
+        <TabPane 
+          tab={<span><MobileOutlined />设备应用</span>} 
+          key="device"
         >
-          <Row gutter={[8, 8]}>
-            {popularApps.map((app) => (
-              <Col span={6} key={app.package_name}>
-                <Button
-                  block
-                  size="small"
-                  icon={getAppIcon(app)}
-                  onClick={() => handleSelectApp(app)}
-                  style={{
-                    height: 'auto',
-                    whiteSpace: 'normal',
-                    textAlign: 'left'
-                  }}
-                >
-                  <div style={{ fontSize: '12px', marginTop: '2px' }}>
-                    {app.app_name}
-                  </div>
-                </Button>
-              </Col>
-            ))}
-          </Row>
-        </Card>
-      )}
-
-      {/* 应用列表 */}
-      <Spin spinning={loading}>
-        {filteredApps.length === 0 ? (
-          <Empty
-            image={Empty.PRESENTED_IMAGE_SIMPLE}
-            description={
-              searchQuery ? '没有找到匹配的应用' : '没有可用的应用'
-            }
-          />
-        ) : (
-          <List
-            itemLayout="horizontal"
-            dataSource={filteredApps}
-            style={{ maxHeight: '400px', overflowY: 'auto' }}
-            renderItem={(app) => (
-              <List.Item
-                actions={[
-                  <Button 
-                    type="primary" 
-                    size="small"
-                    onClick={() => handleSelectApp(app)}
-                  >
-                    选择
-                  </Button>
-                ]}
-                style={{
-                  cursor: 'pointer',
-                  backgroundColor: selectedApp?.package_name === app.package_name ? '#f0f8ff' : undefined
-                }}
-                onClick={() => handleSelectApp(app)}
-              >
-                <List.Item.Meta
-                  avatar={
-                    <Avatar 
-                      src={icons[app.package_name] || undefined}
-                      icon={!icons[app.package_name] ? getAppIcon(app) : undefined}
-                      style={{
-                        backgroundColor: app.is_system_app ? 'var(--bg-elevated)' : 'var(--brand-100)'
-                      }}
+          {!deviceId ? (
+            <Empty
+              image={Empty.PRESENTED_IMAGE_SIMPLE}
+              description="未连接设备，无法加载实时应用列表"
+            >
+              <Button type="primary" onClick={() => setActiveTab('history')}>
+                查看历史记录
+              </Button>
+            </Empty>
+          ) : (
+            <>
+              {/* 搜索和过滤工具栏 */}
+              <div style={{ marginBottom: 16 }}>
+                <Row gutter={[16, 16]}>
+                  <Col span={12}>
+                    <Search
+                      placeholder="搜索应用名称或包名..."
+                      value={searchQuery}
+                      onChange={(e) => setSearchQuery(e.target.value)}
+                      onSearch={(value) => setSearchQuery(value)}
+                      allowClear
+                      prefix={<SearchOutlined />}
                     />
-                  }
-                  title={
+                  </Col>
+                  <Col span={4}>
+                    <Select
+                      style={{ width: '100%' }}
+                      value={viewMode}
+                      onChange={setViewMode}
+                      placeholder="视图模式"
+                      {...popupProps}
+                    >
+                      <Option value="popular">热门应用</Option>
+                      <Option value="all">全部应用</Option>
+                    </Select>
+                  </Col>
+                  <Col span={4}>
+                    <Select
+                      style={{ width: '100%' }}
+                      value={categoryFilter}
+                      onChange={setCategoryFilter}
+                      placeholder="应用类型"
+                      {...popupProps}
+                    >
+                      <Option value="all">全部</Option>
+                      <Option value="user">用户应用</Option>
+                      <Option value="system">系统应用</Option>
+                    </Select>
+                  </Col>
+                  <Col span={4}>
+                    <Select
+                      style={{ width: '100%' }}
+                      value={statusFilter}
+                      onChange={setStatusFilter}
+                      placeholder="状态"
+                      {...popupProps}
+                    >
+                      <Option value="all">全部</Option>
+                      <Option value="enabled">已启用</Option>
+                      <Option value="disabled">已禁用</Option>
+                    </Select>
+                  </Col>
+                  <Col span={12}>
                     <Space>
-                      <Text strong>{app.app_name}</Text>
-                      {smartAppService.isPopularApp(app.package_name) && (
-                        <Tag color="orange" icon={<StarOutlined />}>
-                          热门
-                        </Tag>
-                      )}
-                      {app.is_system_app && (
-                        <Tag color="purple">
-                          系统
-                        </Tag>
-                      )}
-                      {!app.is_enabled && (
-                        <Tag color="red">
-                          已禁用
-                        </Tag>
-                      )}
+                      <Select
+                        style={{ width: 160 }}
+                        value={refreshStrategy}
+                        onChange={(v) => {
+                          setRefreshStrategy(v);
+                          setPage(1);
+                        }}
+                        placeholder="刷新策略"
+                        {...popupProps}
+                      >
+                        <Option value="cache_first">缓存优先</Option>
+                        <Option value="force_refresh">强制刷新</Option>
+                      </Select>
+                      <Select style={{ width: 120 }} value={pageSize} onChange={(v) => { setPageSize(v); setPage(1); }} {...popupProps}>
+                        <Option value={30}>每页30</Option>
+                        <Option value={60}>每页60</Option>
+                        <Option value={100}>每页100</Option>
+                      </Select>
+                      <Button onClick={() => { setPage(1); loadDeviceApps(); }}>刷新</Button>
                     </Space>
-                  }
-                  description={
-                    <div>
-                      <Text type="secondary" style={{ fontSize: '12px' }}>
-                        {app.package_name}
-                      </Text>
-                      {app.version_name && (
-                        <Text type="secondary" style={{ fontSize: '12px', marginLeft: '8px' }}>
-                          v{app.version_name}
-                        </Text>
-                      )}
-                    </div>
-                  }
-                />
-              </List.Item>
-            )}
-          />
-        )}
-      </Spin>
+                  </Col>
+                </Row>
+              </div>
 
-      {/* 底部统计信息 */}
-      <div style={{ 
-        marginTop: 16, 
-        padding: '8px 0', 
-        borderTop: '1px solid #f0f0f0',
-        textAlign: 'center'
-      }}>
-        <Space direction="vertical" size={4}>
-          <Text type="secondary" style={{ fontSize: '12px' }}>
-            共 {total} 个应用，当前第 {page} / {Math.max(1, Math.ceil(total / pageSize))} 页，展示 {apps.length} 个
-            {searchQuery && ` (搜索: "${searchQuery}")`}
-          </Text>
-          <Space>
-            <Button size="small" disabled={page <= 1} onClick={() => setPage((p) => Math.max(1, p - 1))}>上一页</Button>
-            <Button size="small" disabled={page >= Math.max(1, Math.ceil(total / pageSize))} onClick={() => setPage((p) => p + 1)}>下一页</Button>
-          </Space>
-        </Space>
-      </div>
+              {/* 快速选择热门应用 */}
+              {viewMode === 'popular' && popularApps.length > 0 && (
+                <Card 
+                  title="热门应用快捷选择" 
+                  size="small"
+                  style={{ marginBottom: 16 }}
+                  bodyStyle={{ padding: '12px' }}
+                >
+                  <Row gutter={[8, 8]}>
+                    {popularApps.map((app) => (
+                      <Col span={6} key={app.package_name}>
+                        <Button
+                          block
+                          size="small"
+                          icon={getAppIcon(app)}
+                          onClick={() => handleSelectApp(app)}
+                          style={{
+                            height: 'auto',
+                            whiteSpace: 'normal',
+                            textAlign: 'left'
+                          }}
+                        >
+                          <div style={{ fontSize: '12px', marginTop: '2px' }}>
+                            {app.app_name}
+                          </div>
+                        </Button>
+                      </Col>
+                    ))}
+                  </Row>
+                </Card>
+              )}
+
+              {/* 应用列表 */}
+              <Spin spinning={loading}>
+                {filteredApps.length === 0 ? (
+                  <Empty
+                    image={Empty.PRESENTED_IMAGE_SIMPLE}
+                    description={
+                      searchQuery ? '没有找到匹配的应用' : '没有可用的应用'
+                    }
+                  />
+                ) : (
+                  <List
+                    itemLayout="horizontal"
+                    dataSource={filteredApps}
+                    style={{ maxHeight: '400px', overflowY: 'auto' }}
+                    renderItem={(app) => (
+                      <List.Item
+                        actions={[
+                          <Button 
+                            type="primary" 
+                            size="small"
+                            onClick={() => handleSelectApp(app)}
+                          >
+                            选择
+                          </Button>
+                        ]}
+                        style={{
+                          cursor: 'pointer',
+                          backgroundColor: selectedApp?.package_name === app.package_name ? '#f0f8ff' : undefined
+                        }}
+                        onClick={() => handleSelectApp(app)}
+                      >
+                        <List.Item.Meta
+                          avatar={
+                            <Avatar 
+                              src={icons[app.package_name] || undefined}
+                              icon={!icons[app.package_name] ? getAppIcon(app) : undefined}
+                              style={{
+                                backgroundColor: app.is_system_app ? 'var(--bg-elevated)' : 'var(--brand-100)'
+                              }}
+                            />
+                          }
+                          title={
+                            <Space>
+                              <Text strong>{app.app_name}</Text>
+                              {smartAppService.isPopularApp(app.package_name) && (
+                                <Tag color="orange" icon={<StarOutlined />}>
+                                  热门
+                                </Tag>
+                              )}
+                              {app.is_system_app && (
+                                <Tag color="purple">
+                                  系统
+                                </Tag>
+                              )}
+                              {!app.is_enabled && (
+                                <Tag color="red">
+                                  已禁用
+                                </Tag>
+                              )}
+                            </Space>
+                          }
+                          description={
+                            <div>
+                              <Text type="secondary" style={{ fontSize: '12px' }}>
+                                {app.package_name}
+                              </Text>
+                              {app.version_name && (
+                                <Text type="secondary" style={{ fontSize: '12px', marginLeft: '8px' }}>
+                                  v{app.version_name}
+                                </Text>
+                              )}
+                            </div>
+                          }
+                        />
+                      </List.Item>
+                    )}
+                  />
+                )}
+              </Spin>
+
+              {/* 底部统计信息 */}
+              <div style={{ 
+                marginTop: 16, 
+                padding: '8px 0', 
+                borderTop: '1px solid #f0f0f0',
+                textAlign: 'center'
+              }}>
+                <Space direction="vertical" size={4}>
+                  <Text type="secondary" style={{ fontSize: '12px' }}>
+                    共 {total} 个应用，当前第 {page} / {Math.max(1, Math.ceil(total / pageSize))} 页，展示 {apps.length} 个
+                    {searchQuery && ` (搜索: "${searchQuery}")`}
+                  </Text>
+                  <Space>
+                    <Button size="small" disabled={page <= 1} onClick={() => setPage((p) => Math.max(1, p - 1))}>上一页</Button>
+                    <Button size="small" disabled={page >= Math.max(1, Math.ceil(total / pageSize))} onClick={() => setPage((p) => p + 1)}>下一页</Button>
+                  </Space>
+                </Space>
+              </div>
+            </>
+          )}
+        </TabPane>
+
+        <TabPane 
+          tab={<span><HistoryOutlined />历史记录</span>} 
+          key="history"
+        >
+          {historyApps.length === 0 ? (
+            <Empty description="暂无历史记录" />
+          ) : (
+            <List
+              itemLayout="horizontal"
+              dataSource={historyApps}
+              renderItem={(app) => (
+                <List.Item
+                  actions={[
+                    <Button 
+                      type="primary" 
+                      size="small"
+                      onClick={() => handleSelectApp(app)}
+                    >
+                      选择
+                    </Button>
+                  ]}
+                >
+                  <List.Item.Meta
+                    avatar={<Avatar icon={<AppstoreOutlined />} style={{ backgroundColor: '#87d068' }} />}
+                    title={app.app_name}
+                    description={app.package_name}
+                  />
+                </List.Item>
+              )}
+            />
+          )}
+        </TabPane>
+
+        <TabPane 
+          tab={<span><EditOutlined />手动输入</span>} 
+          key="manual"
+        >
+          <Alert
+            message="手动输入应用信息"
+            description="如果您知道应用的包名，可以直接输入。这在未连接设备或编写离线脚本时非常有用。"
+            type="info"
+            showIcon
+            style={{ marginBottom: 24 }}
+          />
+          <Form
+            form={manualForm}
+            layout="vertical"
+            onFinish={handleManualSubmit}
+          >
+            <Form.Item
+              name="package_name"
+              label="应用包名 (Package Name)"
+              required
+              rules={[{ required: true, message: '请输入应用包名' }]}
+              tooltip="例如: com.xingin.xhs (小红书)"
+            >
+              <Input placeholder="请输入应用包名，如 com.example.app" />
+            </Form.Item>
+            <Form.Item
+              name="app_name"
+              label="应用名称 (可选)"
+              tooltip="用于显示的名称，不填则默认使用包名"
+            >
+              <Input placeholder="请输入应用名称" />
+            </Form.Item>
+            <Form.Item>
+              <Button type="primary" htmlType="submit" block icon={<CheckCircleOutlined />}>
+                确认使用
+              </Button>
+            </Form.Item>
+          </Form>
+        </TabPane>
+      </Tabs>
     </Modal>
   );
 };
