@@ -113,7 +113,6 @@ const PageHeader: React.FC<PageHeaderProps> = ({
                 <Button
                   icon={<RocketOutlined />}
                   onClick={onQuickAddApp}
-                  disabled={!currentDeviceId}
                 >
                   快速添加应用
                 </Button>

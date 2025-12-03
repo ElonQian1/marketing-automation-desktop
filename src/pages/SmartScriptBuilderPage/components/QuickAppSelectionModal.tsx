@@ -76,6 +76,7 @@ const QuickAppSelectionModal: React.FC<QuickAppSelectionModalProps> = ({
 
       <LaunchAppSmartComponent
         deviceId={currentDeviceId}
+        value={currentParams}
         onChange={(params) => {
           setCurrentParams(params);
         }}

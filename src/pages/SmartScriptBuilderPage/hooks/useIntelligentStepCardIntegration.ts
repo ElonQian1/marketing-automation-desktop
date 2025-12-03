@@ -13,6 +13,7 @@ import XmlCacheManager from "../../../services/xml-cache-manager";
 import { generateXmlHash } from "../../../types/self-contained/xmlSnapshot";
 import { convertVisualToUIElement } from "../../../components/universal-ui/views/visual-view/utils/elementTransform";
 import { VisualUIElement } from "../../../components/universal-ui/xml-parser/types";
+import { SmartActionType } from "../../../types/smartComponents";
 
 // 从拆分模块导入类型和工具
 import type { ElementSelectionContext, ElementEnrichmentData } from "./step-card-integration";
@@ -347,14 +348,77 @@ export function useIntelligentStepCardIntegrationRefactored(
           post_conditions: [],
         };
 
+        // 🆕 自动检测并添加启动应用步骤
+        const packageName = (uiElement as any).package || (uiElement as any).packageName || (uiElement as any).package_name;
+        let launchStepToAdd: ExtendedSmartScriptStep | null = null;
+
+        if (packageName) {
+          // 检查是否已存在启动该应用的步骤
+          const hasLaunchStep = steps.some(s => 
+            (s.step_type === SmartActionType.LAUNCH_APP || s.step_type === 'launch_app') && 
+            (s.parameters?.package_name === packageName || s.parameters?.selected_app?.package_name === packageName)
+          );
+
+          if (!hasLaunchStep) {
+            console.log(`[handleQuickCreateStep] 💡 未检测到启动步骤，自动添加启动应用: ${packageName}`);
+            const launchStepId = `step_${Date.now()}_launch`;
+            
+            launchStepToAdd = {
+              id: launchStepId,
+              name: `启动应用`,
+              step_type: SmartActionType.LAUNCH_APP,
+              description: `自动添加: 启动应用 ${packageName}`,
+              enabled: true,
+              order: stepNumber, // 占位，稍后调整
+              enableStrategySelector: false,
+              parameters: {
+                package_name: packageName,
+                app_selection_method: 'manual',
+                wait_after_launch: 5000,
+                verify_launch: true,
+                selected_app: {
+                  package_name: packageName,
+                  app_name: packageName, // 暂时使用包名作为应用名
+                  is_system_app: false,
+                  is_enabled: true
+                }
+              },
+              find_condition: null,
+              verification: null,
+              retry_config: null,
+              fallback_actions: [],
+              pre_conditions: [],
+              post_conditions: [],
+            };
+          }
+        }
+
         // 添加到步骤列表
-        setSteps((prevSteps) => [...prevSteps, newStep]);
-        message.success(`已创建智能步骤卡: ${stepName}`);
+        setSteps((prevSteps) => {
+          const nextSteps = [...prevSteps];
+          if (launchStepToAdd) {
+            launchStepToAdd.order = nextSteps.length;
+            newStep.order = nextSteps.length + 1;
+            nextSteps.push(launchStepToAdd);
+            message.info(`已自动添加启动应用步骤: ${packageName}`);
+          } else {
+            newStep.order = nextSteps.length;
+          }
+          nextSteps.push(newStep);
+          return nextSteps;
+        });
+        
+        if (!launchStepToAdd) {
+           message.success(`已创建智能步骤卡: ${stepName}`);
+        } else {
+           message.success(`已创建智能步骤卡: ${stepName} (并自动添加了启动步骤)`);
+        }
 
         console.log("[handleQuickCreateStep] ✅ 步骤创建成功:", {
           stepId,
           name: stepName,
           type: newStep.step_type,
+          autoAddedLaunchStep: !!launchStepToAdd
         });
 
         // 关闭页面查找器
