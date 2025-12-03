@@ -26,7 +26,7 @@ export class WatchTargetService {
     }
 
     const payload = watchTarget.toDatabasePayload();
-    const result = await invoke('bulk_upsert_watch_targets', {
+    const result = await invoke('plugin:prospecting|bulk_upsert_watch_targets', {
       payloads: [payload],
     }) as number;
 
@@ -77,7 +77,7 @@ export class WatchTargetService {
     }
 
     if (payloads.length > 0) {
-      await invoke('bulk_upsert_watch_targets', { payloads });
+      await invoke('plugin:prospecting|bulk_upsert_watch_targets', { payloads });
       await this.auditTrail.record(AuditLog.createImport({
         operator: 'system',
         importData: { action: 'bulk_import_watch_targets', count: payloads.length },
@@ -93,7 +93,7 @@ export class WatchTargetService {
     platform?: string;
     target_type?: string;
   } = {}): Promise<WatchTarget[]> {
-    const rows = await invoke('list_watch_targets', {
+    const rows = await invoke('plugin:prospecting|list_watch_targets', {
       limit: params.limit || null,
       offset: params.offset || null,
       platform: params.platform || null,
@@ -104,7 +104,7 @@ export class WatchTargetService {
   }
 
   async getByDedupKey(dedupKey: string): Promise<WatchTarget | null> {
-    const row = await invoke('get_watch_target_by_dedup_key', { dedupKey }) as WatchTargetRow | null;
+    const row = await invoke('plugin:prospecting|get_watch_target_by_dedup_key', { dedupKey }) as WatchTargetRow | null;
     return row ? WatchTarget.fromDatabaseRow(row) : null;
   }
 }

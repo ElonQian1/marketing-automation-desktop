@@ -41,7 +41,7 @@ export class TaskQueueService {
     const persisted: TaskEntity[] = [];
     for (const task of generated) {
       const payload = task.toDatabasePayload();
-      const taskId = await invoke('insert_task', { task: payload }) as string;
+      const taskId = await invoke('plugin:prospecting|insert_task', { task: payload }) as string;
 
       await this.auditTrail.record(AuditLog.createTaskCreation({
         taskId,
@@ -65,7 +65,7 @@ export class TaskQueueService {
     task_type?: TaskType;
     assign_account_id?: string;
   } = {}): Promise<TaskEntity[]> {
-    const rows = await invoke('list_tasks', {
+    const rows = await invoke('plugin:prospecting|list_tasks', {
       limit: params.limit || null,
       offset: params.offset || null,
       status: params.status || null,
