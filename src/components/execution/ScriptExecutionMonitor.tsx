@@ -206,7 +206,7 @@ const ScriptExecutionMonitor: React.FC<ScriptExecutionMonitorProps> = ({ script,
       addLog('info', `总步骤数: ${script.steps.length}`);
 
       // 调用后端执行脚本
-      const result = await invoke('execute_script_with_monitoring', {
+      const result = await invoke('plugin:automation|execute_script_with_monitoring', {
         script: {
           id: script.id,
           name: script.name,
@@ -230,7 +230,7 @@ const ScriptExecutionMonitor: React.FC<ScriptExecutionMonitorProps> = ({ script,
       setExecutionStatus(ExecutionStatus.PAUSED);
       addLog('warn', '暂停脚本执行');
       
-      await invoke('pause_script_execution', { executionId });
+      await invoke('plugin:automation|pause_script_execution', { executionId });
     } catch (error) {
       console.error('暂停执行失败:', error);
       addLog('error', `暂停执行失败: ${error}`);
@@ -243,7 +243,7 @@ const ScriptExecutionMonitor: React.FC<ScriptExecutionMonitorProps> = ({ script,
       setExecutionStatus(ExecutionStatus.RUNNING);
       addLog('info', '恢复脚本执行');
       
-      await invoke('resume_script_execution', { executionId });
+      await invoke('plugin:automation|resume_script_execution', { executionId });
     } catch (error) {
       console.error('恢复执行失败:', error);
       addLog('error', `恢复执行失败: ${error}`);
@@ -256,7 +256,7 @@ const ScriptExecutionMonitor: React.FC<ScriptExecutionMonitorProps> = ({ script,
       setExecutionStatus(ExecutionStatus.STOPPED);
       addLog('warn', '停止脚本执行');
       
-      await invoke('stop_script_execution', { executionId });
+      await invoke('plugin:automation|stop_script_execution', { executionId });
     } catch (error) {
       console.error('停止执行失败:', error);
       addLog('error', `停止执行失败: ${error}`);
