@@ -101,6 +101,12 @@ fn main() {
         .with(tracing_subscriber::fmt::layer())
         .init();
 
+    // ✅ 初始化 ADB 系统 (启动 Server + 初始化跟踪器)
+    if let Err(e) = initialize_adb_system() {
+        tracing::error!("❌ ADB 系统初始化失败: {}", e);
+        // 不阻断启动，但记录错误
+    }
+
     tauri::Builder::default()
         .plugin(tauri_plugin_dialog::init())
         .plugin(modules::smart_selection::init()) // ✅ 注册智能选择插件
