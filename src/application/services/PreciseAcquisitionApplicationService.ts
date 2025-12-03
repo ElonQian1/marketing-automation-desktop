@@ -76,7 +76,7 @@ export class PreciseAcquisitionApplicationService {
 
       // 转换为数据库载荷并保存
       const payload = watchTarget.toDatabasePayload();
-      const result = await invoke('bulk_upsert_watch_targets', { 
+      const result = await invoke('plugin:prospecting|bulk_upsert_watch_targets', { 
         payloads: [payload] 
       }) as number;
 
@@ -149,7 +149,7 @@ export class PreciseAcquisitionApplicationService {
     // 批量插入有效的目标
     if (validPayloads.length > 0) {
       try {
-        await invoke('bulk_upsert_watch_targets', { payloads: validPayloads });
+        await invoke('plugin:prospecting|bulk_upsert_watch_targets', { payloads: validPayloads });
         
         // 记录审计日志
         await this.logAuditEvent(AuditLog.createImport({
@@ -181,7 +181,7 @@ export class PreciseAcquisitionApplicationService {
     target_type?: TargetType;
   } = {}): Promise<WatchTarget[]> {
     try {
-      const rows = await invoke('list_watch_targets', {
+      const rows = await invoke('plugin:prospecting|list_watch_targets', {
         limit: params.limit || null,
         offset: params.offset || null,
         platform: params.platform || null,
@@ -200,7 +200,7 @@ export class PreciseAcquisitionApplicationService {
    */
   async getWatchTargetByDedupKey(dedupKey: string): Promise<WatchTarget | null> {
     try {
-      const row = await invoke('get_watch_target_by_dedup_key', {
+      const row = await invoke('plugin:prospecting|get_watch_target_by_dedup_key', {
         dedupKey,
       }) as WatchTargetRow | null;
 
@@ -223,7 +223,7 @@ export class PreciseAcquisitionApplicationService {
       }));
 
       // 执行删除操作
-      await invoke('delete_watch_target', { id });
+      await invoke('plugin:prospecting|delete_watch_target', { id });
       
       return true;
     } catch (error) {
@@ -244,7 +244,7 @@ export class PreciseAcquisitionApplicationService {
       
       // 转换为数据库载荷并保存
       const payload = comment.toDatabasePayload();
-      const commentId = await invoke('insert_comment', { comment: payload }) as string;
+      const commentId = await invoke('plugin:prospecting|insert_comment', { comment: payload }) as string;
 
       // 记录审计日志
       await this.logAuditEvent(AuditLog.createCommentFetch({
@@ -275,7 +275,7 @@ export class PreciseAcquisitionApplicationService {
     region?: RegionTag;
   } = {}): Promise<CommentEntity[]> {
     try {
-      const rows = await invoke('list_comments', {
+      const rows = await invoke('plugin:prospecting|list_comments', {
         limit: params.limit || null,
         offset: params.offset || null,
         platform: params.platform || null,
@@ -326,7 +326,7 @@ export class PreciseAcquisitionApplicationService {
           // 检查去重
           try {
             const commentDedupKey = comment.generateDedupKey();
-            const reserved = await invoke('check_and_reserve_dedup', {
+            const reserved = await invoke('plugin:prospecting|check_and_reserve_dedup', {
               key: commentDedupKey,
               scope: 'comment',
               ttlDays: 90,
@@ -359,7 +359,7 @@ export class PreciseAcquisitionApplicationService {
           // 检查去重
           try {
             const userDedupKey = comment.generateUserDedupKey();
-            const reserved = await invoke('check_and_reserve_dedup', {
+            const reserved = await invoke('plugin:prospecting|check_and_reserve_dedup', {
               key: userDedupKey,
               scope: 'user',
               ttlDays: 7,
@@ -379,7 +379,7 @@ export class PreciseAcquisitionApplicationService {
       // 批量插入任务
       for (const task of generatedTasks) {
         const payload = task.toDatabasePayload();
-        await invoke('insert_task', { task: payload });
+        await invoke('plugin:prospecting|insert_task', { task: payload });
 
         // 记录审计日志
         await this.logAuditEvent(AuditLog.createTaskCreation({
@@ -410,7 +410,7 @@ export class PreciseAcquisitionApplicationService {
     assign_account_id?: string;
   } = {}): Promise<TaskEntity[]> {
     try {
-      const rows = await invoke('list_tasks', {
+      const rows = await invoke('plugin:prospecting|list_tasks', {
         limit: params.limit || null,
         offset: params.offset || null,
         status: params.status || null,
@@ -435,7 +435,7 @@ export class PreciseAcquisitionApplicationService {
     errorMessage?: string
   ): Promise<void> {
     try {
-      await invoke('update_task_status', {
+      await invoke('plugin:prospecting|update_task_status', {
         taskId,
         status,
         resultCode: resultCode || null,
@@ -616,7 +616,7 @@ export class PreciseAcquisitionApplicationService {
   private async logAuditEvent(auditLog: AuditLog): Promise<void> {
     try {
       const payload = auditLog.toDatabasePayload();
-      await invoke('insert_audit_log', { log: payload });
+      await invoke('plugin:prospecting|insert_audit_log', { log: payload });
     } catch (error) {
       console.error('Failed to log audit event:', error);
       // 审计日志失败不应该影响主要业务流程，所以这里只记录错误
