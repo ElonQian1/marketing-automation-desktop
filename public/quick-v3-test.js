@@ -23,15 +23,11 @@ async function testV3ParameterFixQuick() {
             orderedSteps: []
         };
 
-        const envelope = {
-            deviceId: "test-device", 
-            sessionId: `quick-test-${Date.now()}`,
-            spec: testSpec,
-            constraints: {
-                timeoutMs: 5000,
-                maxRetries: 1,
-                screenChangeRequired: false
-            }
+        const realEnvelope = {
+            deviceId: "test-device",
+            app: { package: "com.xingin.xhs", activity: null },
+            snapshot: {},
+            executionMode: "strict"
         };
 
         console.log('📤 测试参数结构:');
@@ -45,7 +41,10 @@ async function testV3ParameterFixQuick() {
         const { invoke } = window.__TAURI__.core;
         console.log('⏳ 调用 V3 执行引擎...');
         
-        const result = await invoke('execute_chain_by_inline_v3', { envelope });
+        const result = await invoke('plugin:execution_v3|execute_chain_test_v3', { 
+            envelope: realEnvelope,
+            spec: testSpec 
+        });
         
         console.log('✅ V3 执行结果:');
         console.log(result);
