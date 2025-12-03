@@ -324,7 +324,7 @@ export const VisualPageAnalyzerContent: React.FC<VisualPageAnalyzerContentProps>
       });
       
       // 使用新的模块化解析器
-      const parseResult = parseXML(xmlString);
+      const parseResult = await parseXML(xmlString);
       
       setElements(parseResult.elements);
       setCategories(parseResult.categories);

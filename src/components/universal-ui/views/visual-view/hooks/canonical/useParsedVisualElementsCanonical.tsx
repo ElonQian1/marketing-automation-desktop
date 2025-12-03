@@ -36,7 +36,7 @@ export function useParsedVisualElements(
   const lastXmlIdRef = useRef<string>('');
   const parseCountRef = useRef<number>(0);
 
-  const parseXML = useCallback((xmlString: string) => {
+  const parseXML = useCallback(async (xmlString: string) => {
     if (!xmlString) {
       // 🐛 修复：清空旧数据
       console.log('⚠️ [useParsedVisualElements] xmlString 为空，清空数据');
@@ -48,18 +48,18 @@ export function useParsedVisualElements(
     parseCountRef.current += 1;
     const parseId = parseCountRef.current;
     console.log(`🔄 [useParsedVisualElements #${parseId}] 开始解析 XML，长度: ${xmlString.length}`);
-    console.log(`🔧 [useParsedVisualElements] 使用修复后的 XmlParser.parseXML (包含策略2)`);
+    console.log(`🔧 [useParsedVisualElements] 调用后端 Rust 解析器`);
     
     try {
-      // ✅ 使用修复后的 XmlParser.parseXML，包含策略2（跳过不可点击的父容器）
-      const parseResult = parseXMLFromXmlParser(xmlString);
+      // ✅ 调用后端 Rust 解析器
+      const parseResult = await parseXMLFromXmlParser(xmlString);
       
       // 转换为旧格式以兼容现有代码
       const extracted: VisualUIElement[] = parseResult.elements.map((el, index) => ({
         id: el.id || `element_${index}`, // 🔧 修复：使用XML解析器提供的真实ID，确保前后端一致
         text: el.text || "",
         description: el.contentDesc || `${el.text || el.className}${el.clickable ? "（可点击）" : ""}`,
-        type: el.className.split(".").pop() || "Unknown",
+        type: el.className?.split(".").pop() || "Unknown",
         category: (categorizeElement({
           "content-desc": el.contentDesc,
           text: el.text,
@@ -80,6 +80,7 @@ export function useParsedVisualElements(
         contentDesc: el.contentDesc,
         className: el.className,
         bounds: el.bounds,
+        indexPath: el.indexPath, // 🔥 保留后端的 indexPath
       }));
 
       // 构建分类映射
@@ -146,7 +147,10 @@ export function useParsedVisualElements(
       console.log('🔄 [useParsedVisualElements] 检测到新的 XML 数据或强制刷新，开始解析');
       console.log('  - 原因:', currentXmlId !== lastXmlIdRef.current ? 'XML内容变化' : 'forceRefreshKey 变化');
       lastXmlIdRef.current = forceRefreshKey !== undefined ? String(forceRefreshKey) : currentXmlId;
-      parseXML(xmlContent);
+      // 🔧 异步调用，不阻塞 useEffect
+      parseXML(xmlContent).catch(err => {
+        console.error('❌ [useParsedVisualElements] 解析失败:', err);
+      });
     } else {
       console.log('⏭️ [useParsedVisualElements] XML 标识符相同且无强制刷新，跳过重复解析');
     }
