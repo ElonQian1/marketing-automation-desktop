@@ -91,7 +91,7 @@ export function AISettingsComponent() {
       const values = form.getFieldsValue();
       
       setLoading(true);
-      await invoke('save_ai_settings', {
+      await invoke('plugin:ai|save_settings', {
         settings: {
           ...settings,
           ...values,
