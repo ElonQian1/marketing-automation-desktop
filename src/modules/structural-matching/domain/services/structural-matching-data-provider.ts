@@ -176,7 +176,7 @@ export class StructuralMatchingDataProvider {
       throw new Error(`XML cache not found: ${xmlCacheId}`);
     }
 
-    const parseResult = parseXML(xmlCacheEntry.xmlContent);
+    const parseResult = await parseXML(xmlCacheEntry.xmlContent);
     const targetElement = parseResult.elements.find(el => el.id === elementId);
     
     if (!targetElement) {
