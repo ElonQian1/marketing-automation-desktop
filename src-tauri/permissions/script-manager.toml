@@ -1,0 +1,21 @@
+[[permission]]
+identifier = "allow-script-manager"
+description = "Enables all script manager commands"
+commands.allow = [
+    "plugin:script_manager|save_smart_script",
+    "plugin:script_manager|load_smart_script",
+    "plugin:script_manager|delete_smart_script",
+    "plugin:script_manager|list_smart_scripts",
+    "plugin:script_manager|import_smart_script",
+    "plugin:script_manager|export_smart_script",
+    "plugin:script_manager|list_script_templates",
+    "plugin:script_manager|create_script_from_template",
+    "plugin:script_manager|execute_single_step_test",
+    "plugin:script_manager|execute_smart_automation_script",
+    "plugin:script_manager|execute_smart_automation_script_multi"
+]
+
+[[set]]
+identifier = "script-manager-default"
+description = "Default permissions for script manager"
+permissions = ["allow-script-manager"]

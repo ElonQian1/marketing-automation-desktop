@@ -1,0 +1,54 @@
+[[permission]]
+identifier = "allow-adb"
+description = "Enables all adb commands"
+commands.allow = [
+    "plugin:adb|execute",
+    "plugin:adb|check_file",
+    "plugin:adb|detect_ldplayer",
+    "plugin:adb|detect_path",
+    "plugin:adb|list_devices",
+    "plugin:adb|version",
+    "plugin:adb|start_server_simple",
+    "plugin:adb|kill_server_simple",
+    "plugin:adb|execute_simple",
+    "plugin:adb|connect",
+    "plugin:adb|disconnect",
+    "plugin:adb|start_server",
+    "plugin:adb|kill_server",
+    "plugin:adb|get_properties",
+    "plugin:adb|shell",
+    "plugin:adb|push",
+    "plugin:adb|dump_ui",
+    "plugin:adb|tap",
+    "plugin:adb|start_tracking",
+    "plugin:adb|stop_tracking",
+    "plugin:adb|get_tracking_list",
+    "plugin:adb|list_apps",
+    "plugin:adb|list_apps_paged",
+    "plugin:adb|get_icon",
+    "plugin:adb|validate_connection",
+    "plugin:adb|get_ui_dump",
+    "plugin:adb|search_apps",
+    "plugin:adb|launch_app",
+    "plugin:adb|get_cached_apps",
+    "plugin:adb|get_popular_apps",
+    "plugin:adb|capture_device_screenshot",
+    "plugin:adb|get_device_ui_xml",
+    "plugin:adb|get_current_app_info",
+    "plugin:adb|get_screen_resolution",
+    "plugin:adb|execute_ui_action",
+    "plugin:adb|stop_device_mirror",
+    "plugin:adb|stop_device_mirror_session",
+    "plugin:adb|adb_swipe",
+    "plugin:adb|adb_input_text",
+    "plugin:adb|adb_screenshot",
+    "plugin:adb|adb_press_key",
+    "plugin:adb|adb_close_app",
+    "plugin:adb|adb_install_apk",
+    "plugin:adb|adb_uninstall_app"
+]
+
+[[set]]
+identifier = "adb-default"
+description = "Default permissions for adb"
+permissions = ["allow-adb"]

@@ -1,0 +1,15 @@
+[[permission]]
+identifier = "allow-execution-v3"
+description = "Enables all execution v3 commands"
+commands.allow = [
+    "plugin:execution_v3|execute_single_step_test_v3",
+    "plugin:execution_v3|execute_chain_test_v3",
+    "plugin:execution_v3|execute_static_strategy_test_v3",
+    "plugin:execution_v3|execute_task_v3",
+    "plugin:execution_v3|cancel_execution_v3"
+]
+
+[[set]]
+identifier = "execution-v3-default"
+description = "Default permissions for execution v3"
+permissions = ["allow-execution-v3"]

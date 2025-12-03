@@ -1,0 +1,39 @@
+[[permission]]
+identifier = "allow-xml-cache"
+description = "Enables all xml cache commands"
+commands.allow = [
+    "plugin:xml_cache|list_xml_cache_files",
+    "plugin:xml_cache|read_xml_cache_file",
+    "plugin:xml_cache|get_xml_file_size",
+    "plugin:xml_cache|get_xml_file_absolute_path",
+    "plugin:xml_cache|delete_xml_cache_artifacts",
+    "plugin:xml_cache|parse_cached_xml_to_elements",
+    "plugin:xml_cache|debug_xml_cache_paths",
+    "plugin:xml_cache|enhanced_cache_file_exists",
+    "plugin:xml_cache|get_enhanced_cache_stats",
+    "plugin:xml_cache|cleanup_enhanced_cache",
+    "plugin:xml_cache|clear_all_enhanced_cache",
+    "plugin:xml_cache|read_enhanced_cache_file",
+    "plugin:xml_cache|save_enhanced_cache_file",
+    "plugin:xml_cache|get_enhanced_cache_metadata",
+    "plugin:xml_cache|clear_enhanced_cache_directory",
+    "plugin:xml_cache|delete_enhanced_cache_file",
+    "plugin:xml_cache|link_step_snapshot",
+    "plugin:xml_cache|unlink_step_snapshot",
+    "plugin:xml_cache|get_snapshot_reference_info",
+    "plugin:xml_cache|get_all_snapshot_references",
+    "plugin:xml_cache|get_cache_system_status",
+    "plugin:xml_cache|validate_cache_consistency_cmd",
+    "plugin:xml_cache|force_clear_all_caches_cmd",
+    "plugin:xml_cache|register_snapshot_cmd",
+    "plugin:xml_cache|get_subtree_metrics_cmd",
+    "plugin:xml_cache|try_get_subtree_metrics_cmd",
+    "plugin:xml_cache|batch_get_subtree_metrics_cmd",
+    "plugin:xml_cache|cleanup_cache_cmd",
+    "plugin:xml_cache|get_cache_stats_cmd"
+]
+
+[[set]]
+identifier = "xml-cache-default"
+description = "Default permissions for xml cache"
+permissions = ["allow-xml-cache"]

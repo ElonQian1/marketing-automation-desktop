@@ -1,0 +1,60 @@
+[[permission]]
+identifier = "allow-prospecting"
+description = "Enables all prospecting commands"
+commands.allow = [
+    "plugin:prospecting|init_storage",
+    "plugin:prospecting|save_comment",
+    "plugin:prospecting|get_comments",
+    "plugin:prospecting|get_comments_by_ids",
+    "plugin:prospecting|save_analysis",
+    "plugin:prospecting|save_reply_plan",
+    "plugin:prospecting|get_reply_plans",
+    "plugin:prospecting|get_reply_plans_by_ids",
+    "plugin:prospecting|execute_real_reply_plan",
+    "plugin:prospecting|get_statistics",
+    "plugin:prospecting|assign_tasks_to_device",
+    "plugin:prospecting|update_task_status",
+    "plugin:prospecting|cancel_task",
+    "plugin:prospecting|get_rate_control_stats",
+    "plugin:prospecting|get_device_id",
+    "plugin:prospecting|get_cross_device_operations",
+    "plugin:prospecting|record_operation",
+    "plugin:prospecting|get_operation_history",
+    "plugin:prospecting|calculate_content_hash",
+    "plugin:prospecting|calculate_content_similarity",
+    "plugin:prospecting|sync_operations_to_cloud",
+    "plugin:prospecting|sync_operations_from_cloud",
+    "plugin:prospecting|cleanup_expired_operations",
+    "plugin:prospecting|bulk_upsert_watch_targets",
+    "plugin:prospecting|list_watch_targets",
+    "plugin:prospecting|get_watch_target_by_dedup_key",
+    "plugin:prospecting|insert_task",
+    "plugin:prospecting|list_tasks",
+    "plugin:prospecting|get_task_progress",
+    "plugin:prospecting|submit_acquisition_task",
+    "plugin:prospecting|pause_task",
+    "plugin:prospecting|resume_task",
+    "plugin:prospecting|stop_task",
+    "plugin:prospecting|check_and_reserve_dedup",
+    "plugin:prospecting|insert_comment",
+    "plugin:prospecting|list_comments",
+    "plugin:prospecting|insert_daily_report",
+    "plugin:prospecting|insert_audit_log",
+    "plugin:prospecting|get_comment_by_id",
+    "plugin:prospecting|get_watch_target_by_id",
+    "plugin:prospecting|init_precise_acquisition_storage",
+    "plugin:prospecting|get_reply_templates",
+    "plugin:prospecting|add_reply_template",
+    "plugin:prospecting|get_precise_acquisition_stats",
+    "plugin:prospecting|generate_daily_report",
+    "plugin:prospecting|get_collected_comments",
+    "plugin:prospecting|schedule_auto_collection",
+    "plugin:prospecting|save_collection_result",
+    "plugin:prospecting|log_collection_error",
+    "plugin:prospecting|save_safety_config"
+]
+
+[[set]]
+identifier = "prospecting-default"
+description = "Default permissions for prospecting"
+permissions = ["allow-prospecting"]

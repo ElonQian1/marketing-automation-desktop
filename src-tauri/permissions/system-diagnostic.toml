@@ -1,0 +1,20 @@
+[[permission]]
+identifier = "allow-system-diagnostic"
+description = "Enables all system diagnostic commands"
+commands.allow = [
+    "plugin:system_diagnostic|ping",
+    "plugin:system_diagnostic|health_check",
+    "plugin:system_diagnostic|get_adb_path",
+    "plugin:system_diagnostic|get_env_info",
+    "plugin:system_diagnostic|test_device",
+    "plugin:system_diagnostic|run_diagnostic",
+    "plugin:system_diagnostic|test_click_normalization",
+    "plugin:system_diagnostic|analyze_xml_structure",
+    "plugin:system_diagnostic|clear_logs",
+    "plugin:system_diagnostic|add_log_entry"
+]
+
+[[set]]
+identifier = "system-diagnostic-default"
+description = "Default permissions for system diagnostic"
+permissions = ["allow-system-diagnostic"]
