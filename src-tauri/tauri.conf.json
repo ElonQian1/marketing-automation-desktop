@@ -50,7 +50,18 @@
             "xml-cache-default",
             "prospecting-default",
             "execution-v3-default",
-            "script-manager-default"
+            "script-manager-default",
+            "file-manager-default",
+            "image-optimization-default",
+            "smart-selection-default",
+            "universal-ui-default",
+            "employees-default",
+            "contacts-default",
+            "intelligent-analysis-default",
+            "version-control-default",
+            "automation-default",
+            "enhanced-location-default",
+            "lead-hunt-default"
           ]
         }
       ]
