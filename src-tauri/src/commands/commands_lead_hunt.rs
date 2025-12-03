@@ -2,7 +2,7 @@
 // module: lead-hunt | layer: commands | role: 精准获客 Tauri 命令
 // summary: 暴露给前端的精准获客相关命令
 
-use tauri::AppHandle;
+use tauri::{AppHandle, Runtime};
 use std::sync::Arc;
 
 use crate::services::lead_hunt::{RawComment, ReplayPlan, save_comments, list_comments, write_replay_plan, get_replay_plan};
