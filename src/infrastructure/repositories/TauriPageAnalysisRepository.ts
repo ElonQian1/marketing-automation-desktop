@@ -119,7 +119,7 @@ export class TauriPageAnalysisRepository implements IPageAnalysisRepository {
 
   async delete(id: string): Promise<void> {
     try {
-      await invoke('delete_page_analysis', { analysisId: id });
+      await invoke('plugin:universal_ui|delete_page_analysis', { analysisId: id });
     } catch (error) {
       console.error('删除页面分析失败:', error);
       throw new Error(`删除页面分析失败: ${error}`);
@@ -128,7 +128,7 @@ export class TauriPageAnalysisRepository implements IPageAnalysisRepository {
 
   async deleteByDeviceId(deviceId: string): Promise<void> {
     try {
-      await invoke('delete_page_analyses_by_device', { deviceId });
+      await invoke('plugin:universal_ui|delete_page_analyses_by_device', { deviceId });
     } catch (error) {
       console.error('删除设备页面分析历史失败:', error);
       throw new Error(`删除设备页面分析历史失败: ${error}`);
@@ -142,7 +142,7 @@ export class TauriPageAnalysisRepository implements IPageAnalysisRepository {
 export class TauriDeviceUIStateRepository implements IDeviceUIStateRepository {
   async getCurrentUIXml(deviceId: string): Promise<string> {
     try {
-      const result = await invoke('get_device_ui_xml', { deviceId });
+      const result = await invoke('plugin:adb|get_device_ui_xml', { deviceId });
       return result as string;
     } catch (error) {
       console.error('获取设备UI XML失败:', error);
@@ -152,7 +152,7 @@ export class TauriDeviceUIStateRepository implements IDeviceUIStateRepository {
 
   async getCurrentAppInfo(deviceId: string): Promise<CurrentAppInfo> {
     try {
-      const result = await invoke('get_current_app_info', { deviceId });
+      const result = await invoke('plugin:adb|get_current_app_info', { deviceId });
       const appInfo = result as { packageName: string; activityName: string; appName?: string };
       return {
         packageName: appInfo.packageName,
@@ -167,7 +167,7 @@ export class TauriDeviceUIStateRepository implements IDeviceUIStateRepository {
 
   async getScreenResolution(deviceId: string): Promise<{ width: number; height: number }> {
     try {
-      const result = await invoke('get_screen_resolution', { deviceId });
+      const result = await invoke('plugin:adb|get_screen_resolution', { deviceId });
       return result as { width: number; height: number };
     } catch (error) {
       console.error('获取屏幕分辨率失败:', error);
@@ -177,7 +177,7 @@ export class TauriDeviceUIStateRepository implements IDeviceUIStateRepository {
 
   async executeUIAction(deviceId: string, command: UIActionCommand): Promise<ActionResult> {
     try {
-      const result = await invoke('execute_ui_action', { 
+      const result = await invoke('plugin:adb|execute_ui_action', { 
         deviceId, 
         command: {
           type: command.type,
@@ -197,7 +197,7 @@ export class TauriDeviceUIStateRepository implements IDeviceUIStateRepository {
 
   async takeScreenshot(deviceId: string): Promise<string> {
     try {
-      const result = await invoke('capture_device_screenshot', { deviceId });
+      const result = await invoke('plugin:adb|capture_device_screenshot', { deviceId });
       return result as string;
     } catch (error) {
       console.error('截取设备屏幕失败:', error);
