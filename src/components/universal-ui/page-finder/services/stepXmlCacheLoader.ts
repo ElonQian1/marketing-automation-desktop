@@ -65,7 +65,7 @@ export async function handleLoadFromStepXmlCache(
     setUIElements(elements);
 
     try {
-      const parseResult = parseXML(cacheEntry.xmlContent);
+      const parseResult = await parseXML(cacheEntry.xmlContent);
       setElements(parseResult.elements);
       setCategories(parseResult.categories);
       console.log('✅ 步骤XML解析完成:', {

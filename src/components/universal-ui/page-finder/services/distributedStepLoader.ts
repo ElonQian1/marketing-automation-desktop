@@ -84,7 +84,7 @@ export async function handleLoadFromDistributedStep(
     setUIElements(elements);
 
     try {
-      const parseResult = parseXML(xmlSnapshot.xmlContent);
+      const parseResult = await parseXML(xmlSnapshot.xmlContent);
       setElements(parseResult.elements);
       setCategories(parseResult.categories);
       console.log("✅ 分布式XML快照解析完成:", {

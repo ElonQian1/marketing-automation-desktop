@@ -77,7 +77,7 @@ export async function handleLoadFromDirectXmlContent(
     setUIElements(elements);
 
     try {
-      const parseResult = parseXML(info.xmlContent);
+      const parseResult = await parseXML(info.xmlContent);
       setElements(parseResult.elements);
       setCategories(parseResult.categories);
       console.log("✅ 步骤XML直接解析完成:", {

@@ -55,7 +55,7 @@ export async function handleLoadFromLocalStep(
     setUIElements(elements);
     if (xml) {
       try {
-        const parseResult = parseXML(xml);
+        const parseResult = await parseXML(xml);
         setElements(parseResult.elements);
         setCategories(parseResult.categories);
         console.log('✅ 从步骤快照解析完成', { count: parseResult.elements.length });
