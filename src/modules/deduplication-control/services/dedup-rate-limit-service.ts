@@ -68,7 +68,7 @@ export class DedupRateLimitStorageService {
     deviceId?: string
   ): Promise<void> {
     try {
-      await invoke('record_operation', {
+      await invoke('plugin:prospecting|record_operation', {
         accountId,
         taskType,
         deviceId,

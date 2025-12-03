@@ -232,13 +232,13 @@ export class DedupDeduplicationStorageService {
     content?: string
   ): Promise<void> {
     try {
-      await invoke('record_interaction', {
-        targetUserId,
-        accountId,
-        deviceId,
-        taskType,
-        content,
-        timestamp: new Date().toISOString()
+      await invoke('plugin:automation|record_action', {
+        record: {
+          target_id: targetUserId,
+          action: taskType,
+          device_id: deviceId,
+          timestamp: Date.now()
+        }
       });
     } catch (error) {
       console.error('记录交互失败:', error);
