@@ -358,7 +358,7 @@ export class StepExecutionGateway {
       console.log("[StepExecGateway] Tauri调用参数:", tauriArgs);
 
       // 调用V2后端命令，使用正确的参数格式
-      const result = (await invoke("run_step_v2", tauriArgs)) as Record<
+      const result = (await invoke("plugin:automation|run_step_v2", tauriArgs)) as Record<
         string,
         unknown
       >;
@@ -745,7 +745,7 @@ export class StepExecutionGateway {
         specFields: Object.keys(spec),
         targetTextInfo: { targetText, contentDesc: request.contentDesc },
       });
-      const result = await invoke("execute_chain_test_v3", {
+      const result = await invoke("plugin:automation|execute_chain_test_v3", {
         envelope,
         spec,
       });
