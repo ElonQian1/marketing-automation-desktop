@@ -62,7 +62,7 @@ export async function saveSelectionConfigWithFeedback(params: SaveConfigParams):
     }
 
     // 保存到主步骤ID
-    await invoke('save_smart_selection_config', saveParams);
+    await invoke('plugin:smart_selection|save_config', saveParams);
 
     // 同时用 selectorId 保存一份（兜底，支持跨步骤复用）
     if (selectorId) {
@@ -71,7 +71,7 @@ export async function saveSelectionConfigWithFeedback(params: SaveConfigParams):
         stepId: selectorId,
       };
       console.log('🔄 [saveSelectionConfig] 用selectorId保存兜底配置:', { selectorId });
-      await invoke('save_smart_selection_config', saveParamsForSelector);
+      await invoke('plugin:smart_selection|save_config', saveParamsForSelector);
     } else {
       // 如果没有提供 selectorId，尝试从 store 获取
       const state = useStepCardStore.getState();
@@ -85,7 +85,7 @@ export async function saveSelectionConfigWithFeedback(params: SaveConfigParams):
           stepId: fallbackSelectorId,
         };
         console.log('🔄 [saveSelectionConfig] 用elementUid保存兜底配置:', { fallbackSelectorId });
-        await invoke('save_smart_selection_config', saveParamsForSelector);
+        await invoke('plugin:smart_selection|save_config', saveParamsForSelector);
       }
     }
 

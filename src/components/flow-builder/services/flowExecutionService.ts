@@ -23,7 +23,7 @@ export async function executeFlowSteps(deviceId: string, steps: FlowBuilderStep[
     }
   }));
   try {
-    const result = await invoke('execute_automation_script', { deviceId, steps: scriptSteps });
+    const result = await invoke('plugin:automation|execute_script', { deviceId, steps: scriptSteps });
     return { success: true, raw: result };
   } catch (e: any) {
     return { success: false, raw: null, error: String(e) };
