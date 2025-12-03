@@ -13,7 +13,7 @@ pub struct AiState {
 impl AiState {
     pub fn new() -> Self {
         // Load settings from file or default
-        let settings = ai_config::load_settings().unwrap_or_default();
+        let settings = ai_config::load_settings();
         Self {
             settings: parking_lot::RwLock::new(settings),
         }
@@ -72,8 +72,8 @@ async fn list_models(state: State<'_, AiState>) -> Result<Vec<String>, String> {
 }
 
 #[tauri::command]
-async fn chat(
-    app: AppHandle,
+async fn chat<R: Runtime>(
+    app: AppHandle<R>,
     state: State<'_, AiState>,
     messages: Vec<ChatMessage>,
     tools: Option<Vec<ToolSpec>>,
@@ -141,7 +141,7 @@ fn err<E: std::fmt::Display>(e: E) -> String {
 }
 
 pub fn init<R: Runtime>() -> TauriPlugin<R> {
-    Builder::new("ai")
+    Builder::<R>::new("ai")
         .setup(|app, _api| {
             app.manage(AiState::new());
             Ok(())

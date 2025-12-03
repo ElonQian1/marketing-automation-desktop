@@ -23,13 +23,13 @@ pub struct AISettings {
 impl Default for AISettings {
     fn default() -> Self {
         Self {
-            provider: "openai".into(),
-            default_chat_model: "gpt-4o-mini".into(),
-            default_embed_model: "text-embedding-3-large".into(),
-            temperature: 0.2,
+            provider: "openai".to_string(),
+            default_chat_model: "gpt-3.5-turbo".to_string(),
+            default_embed_model: "text-embedding-ada-002".to_string(),
+            temperature: 0.7,
             stream: true,
             max_retries: 3,
-            concurrency: 4, // 默认4并发
+            concurrency: 5,
             base_url_openai: None,
             base_url_hunyuan: None,
             openai_api_key: String::new(),
