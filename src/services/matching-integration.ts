@@ -328,7 +328,7 @@ export class CustomMatchingManager {
     console.log(`👆 点击坐标: (${centerX}, ${centerY})`);
     
     // TODO: 实际的ADB调用
-    // await invoke('adb_tap', { x: centerX, y: centerY });
+    // await invoke('plugin:adb|tap', { x: centerX, y: centerY });
     
     return { action: 'tap', x: centerX, y: centerY };
   }

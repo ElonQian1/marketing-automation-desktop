@@ -143,7 +143,7 @@ export const useSafetyControl = () => {
       setCircuitBreakerConfig(newConfig.circuitBreaker);
       
       // 保存到后端
-      // await invoke('save_safety_config', { config: newConfig });
+      // await invoke('plugin:prospecting|save_safety_config', { config: newConfig });
     } catch (err) {
       setError(err instanceof Error ? err.message : '配置更新失败');
       throw err;
