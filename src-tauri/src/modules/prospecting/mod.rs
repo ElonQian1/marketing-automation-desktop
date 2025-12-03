@@ -276,6 +276,91 @@ async fn list_tasks(_status: Option<String>, _limit: Option<i32>) -> Result<Vec<
     Ok(vec![])
 }
 
+#[tauri::command]
+async fn get_task_progress(_task_id: String) -> Result<Value, String> {
+    Ok(serde_json::json!({}))
+}
+
+#[tauri::command]
+async fn submit_acquisition_task(_data: Value) -> Result<Value, String> {
+    Ok(serde_json::json!({}))
+}
+
+#[tauri::command]
+async fn pause_task(_task_id: i64) -> Result<bool, String> {
+    Ok(true)
+}
+
+#[tauri::command]
+async fn resume_task(_task_id: i64) -> Result<bool, String> {
+    Ok(true)
+}
+
+#[tauri::command]
+async fn stop_task(_task_id: i64) -> Result<bool, String> {
+    Ok(true)
+}
+
+#[tauri::command]
+async fn check_and_reserve_dedup(_key: String) -> Result<bool, String> {
+    Ok(true)
+}
+
+#[tauri::command]
+async fn insert_comment(_comment: Value) -> Result<String, String> {
+    Ok("stub_id".to_string())
+}
+
+#[tauri::command]
+async fn list_comments(_filter: Value) -> Result<Vec<Value>, String> {
+    Ok(vec![])
+}
+
+#[tauri::command]
+async fn insert_daily_report(_report: Value) -> Result<(), String> {
+    Ok(())
+}
+
+#[tauri::command]
+async fn insert_audit_log(_log: Value) -> Result<(), String> {
+    Ok(())
+}
+
+#[tauri::command]
+async fn get_comment_by_id(_id: String) -> Result<Option<Value>, String> {
+    Ok(None)
+}
+
+#[tauri::command]
+async fn get_watch_target_by_id(_id: String) -> Result<Option<Value>, String> {
+    Ok(None)
+}
+
+#[tauri::command]
+async fn init_precise_acquisition_storage() -> Result<(), String> {
+    Ok(())
+}
+
+#[tauri::command]
+async fn get_reply_templates() -> Result<Vec<Value>, String> {
+    Ok(vec![])
+}
+
+#[tauri::command]
+async fn add_reply_template(_template: Value) -> Result<String, String> {
+    Ok("stub_id".to_string())
+}
+
+#[tauri::command]
+async fn get_precise_acquisition_stats() -> Result<Value, String> {
+    Ok(serde_json::json!({}))
+}
+
+#[tauri::command]
+async fn generate_daily_report(_date: String) -> Result<Value, String> {
+    Ok(serde_json::json!({}))
+}
+
 pub fn init<R: Runtime>() -> TauriPlugin<R> {
     Builder::<R>::new("prospecting")
         .setup(|app, _api| {
@@ -310,7 +395,24 @@ pub fn init<R: Runtime>() -> TauriPlugin<R> {
             list_watch_targets,
             get_watch_target_by_dedup_key,
             insert_task,
-            list_tasks
+            list_tasks,
+            get_task_progress,
+            submit_acquisition_task,
+            pause_task,
+            resume_task,
+            stop_task,
+            check_and_reserve_dedup,
+            insert_comment,
+            list_comments,
+            insert_daily_report,
+            insert_audit_log,
+            get_comment_by_id,
+            get_watch_target_by_id,
+            init_precise_acquisition_storage,
+            get_reply_templates,
+            add_reply_template,
+            get_precise_acquisition_stats,
+            generate_daily_report
         ])
         .build()
 }
