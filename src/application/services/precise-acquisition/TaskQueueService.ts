@@ -77,7 +77,7 @@ export class TaskQueueService {
   }
 
   async updateStatus(taskId: string, status: TaskStatus, resultCode?: ResultCode, errorMessage?: string): Promise<void> {
-    await invoke('update_task_status', {
+    await invoke('plugin:prospecting|update_task_status', {
       taskId,
       status,
       resultCode: resultCode || null,

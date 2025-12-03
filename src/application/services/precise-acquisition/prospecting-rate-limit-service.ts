@@ -50,7 +50,7 @@ export class ProspectingRateLimitService {
       const jitterRange = Math.max(0, maxInterval - config.min_interval_seconds);
       const recommendedInterval = config.min_interval_seconds + (jitterRange > 0 ? Math.round(jitterRange * 0.6) : 0);
 
-      const recentTasks = await invoke('list_tasks', {
+      const recentTasks = await invoke('plugin:prospecting|list_tasks', {
         assign_account_id: accountId,
         limit: 1000,
       }) as TaskRow[];

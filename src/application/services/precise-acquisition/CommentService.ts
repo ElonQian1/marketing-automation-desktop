@@ -18,7 +18,7 @@ export class CommentService {
   async add(params: EntityCreationParams['comment']): Promise<CommentEntity> {
     const comment = CommentEntity.create(params);
     const payload = comment.toDatabasePayload();
-    const commentId = await invoke('insert_comment', { comment: payload }) as string;
+    const commentId = await invoke('plugin:prospecting|insert_comment', { comment: payload }) as string;
 
     await this.auditTrail.record(AuditLog.createCommentFetch({
       operator: 'system',
@@ -39,7 +39,7 @@ export class CommentService {
     source_target_id?: string;
     region?: RegionTag;
   } = {}): Promise<CommentEntity[]> {
-    const rows = await invoke('list_comments', {
+    const rows = await invoke('plugin:prospecting|list_comments', {
       limit: params.limit || null,
       offset: params.offset || null,
       platform: params.platform || null,

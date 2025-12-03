@@ -59,7 +59,7 @@ export class DeduplicationService {
     accountId: string,
   ): Promise<boolean> {
     try {
-      const reserved = await invoke('check_and_reserve_dedup', {
+      const reserved = await invoke('plugin:prospecting|check_and_reserve_dedup', {
         key,
         scope,
         ttlDays,
@@ -78,7 +78,7 @@ export class DeduplicationService {
    */
   async isDuplicateTask(task: TaskEntity): Promise<boolean> {
     try {
-      const rows = await invoke('list_tasks', {
+      const rows = await invoke('plugin:prospecting|list_tasks', {
         limit: 100,
         offset: 0,
       }) as TaskRow[];
