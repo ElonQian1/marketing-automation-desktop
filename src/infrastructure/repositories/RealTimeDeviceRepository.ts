@@ -34,29 +34,16 @@ export class RealTimeDeviceRepository implements IDeviceRepository {
     
     // 监听设备变化事件
     const unsubscribe = tracker.onDeviceChange((event) => {
-      console.log('🎯 [RealTimeDeviceRepository] 回调被调用 - 开始处理设备变化事件...');
-      console.log('📱 [RealTimeDeviceRepository] 检测到设备变化:', {
-        deviceCount: event.devices.length,
-        callbackCount: this.deviceChangeCallbacks.length,
-        eventType: event.event_type
-      });
-      
       const devices = event.devices.map(device => this.convertToDevice(device));
-      
-      console.log(`🔔 [RealTimeDeviceRepository] 开始通知 ${this.deviceChangeCallbacks.length} 个上层监听器...`);
       
       // 通知所有监听器
       this.deviceChangeCallbacks.forEach((callback, index) => {
         try {
-          console.log(`🔔 [RealTimeDeviceRepository] 调用上层回调 #${index + 1}...`);
           callback(devices);
-          console.log(`✅ [RealTimeDeviceRepository] 上层回调 #${index + 1} 执行成功`);
         } catch (error) {
-          console.error(`❌ [RealTimeDeviceRepository] 上层回调 #${index + 1} 执行失败:`, error);
+          console.error(`❌ [RealTimeDeviceRepository] 回调 #${index + 1} 执行失败:`, error);
         }
       });
-      
-      console.log(`✅ [RealTimeDeviceRepository] 所有上层回调通知完成`);
     });
 
     // 保存取消订阅函数，用于清理
@@ -64,19 +51,14 @@ export class RealTimeDeviceRepository implements IDeviceRepository {
 
     // 确保跟踪器已启动
     if (!tracker.isRunning()) {
-      console.log('🚀 [RealTimeDeviceRepository] 跟踪器未运行，正在启动...');
       try {
         await tracker.startTracking();
-        console.log('✅ [RealTimeDeviceRepository] 实时设备跟踪器已启动');
       } catch (error) {
         console.error('❌ [RealTimeDeviceRepository] 启动实时设备跟踪失败:', error);
       }
-    } else {
-      console.log('✅ [RealTimeDeviceRepository] 跟踪器已在运行');
     }
 
     this.isInitialized = true;
-    console.log('✅ RealTimeDeviceRepository 初始化完成 (替代轮询)');
   }
 
   /**
@@ -163,10 +145,6 @@ export class RealTimeDeviceRepository implements IDeviceRepository {
   watchDeviceChanges(callback: (devices: Device[]) => void): () => void {
     this.deviceChangeCallbacks.push(callback);
 
-    console.log('🔗 [RealTimeDeviceRepository] 注册设备变化监听器:', {
-      callbackCount: this.deviceChangeCallbacks.length
-    });
-
     // 确保事件监听器正常工作
     this.ensureEventListeners();
 
@@ -206,9 +184,6 @@ export class RealTimeDeviceRepository implements IDeviceRepository {
       const index = this.deviceChangeCallbacks.indexOf(callback);
       if (index > -1) {
         this.deviceChangeCallbacks.splice(index, 1);
-        console.log('🔌 [RealTimeDeviceRepository] 移除设备变化监听器:', {
-          callbackCount: this.deviceChangeCallbacks.length
-        });
       }
     };
   }
@@ -238,9 +213,8 @@ export class RealTimeDeviceRepository implements IDeviceRepository {
       }
       
       await this.initializeEventListeners();
-    } else {
-      console.log('✅ [RealTimeDeviceRepository] 监听器健康检查通过，回调数量:', callbackCount);
     }
+    // 健康检查通过时不打印日志，减少噪音
   }
 
   /**

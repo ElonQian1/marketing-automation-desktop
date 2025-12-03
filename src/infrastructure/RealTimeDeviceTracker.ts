@@ -226,8 +226,6 @@ export class RealTimeDeviceTracker {
    * 处理设备变化事件
    */
   private handleDeviceChange(event: DeviceChangeEvent): void {
-    console.log('🔄 收到设备变化事件:', event);
-    
     // 更新最后事件时间戳
     this.lastEventTimestamp = Date.now();
 
@@ -273,7 +271,6 @@ export class RealTimeDeviceTracker {
           });
           break;
         default:
-          console.log('🔍 收到未知事件类型(字符串):', eventType);
           this.eventManager.emit('unknown-device-event', {
             eventType: eventType,
             devices: event.devices,
@@ -294,24 +291,20 @@ export class RealTimeDeviceTracker {
           devices: event.devices,
         });
       } else if ('DevicesChanged' in eventType) {
-        console.log('🔄 设备状态已变化');
         this.eventManager.emit('devices-changed', {
           devices: event.devices,
         });
       } else if ('InitialList' in eventType) {
-        console.log('📋 收到初始设备列表');
         this.eventManager.emit('devices-initialized', {
           devices: event.devices,
         });
       } else {
-        console.log('🔍 收到未知事件类型(对象):', eventType);
         this.eventManager.emit('unknown-device-event', {
           eventType: eventType,
           devices: event.devices,
         });
       }
     } else {
-      console.log('🔍 收到未知事件类型结构:', eventType);
       this.eventManager.emit('unknown-device-event', {
         eventType: eventType,
         devices: event.devices,
@@ -319,19 +312,13 @@ export class RealTimeDeviceTracker {
     }
 
     // ✅ 修复：无论事件类型如何，都要通知所有订阅者
-    console.log(`🔔 [RealTimeDeviceTracker] 开始通知 ${this.deviceChangeCallbacks.length} 个回调监听器...`);
-    
     this.deviceChangeCallbacks.forEach((callback, index) => {
       try {
-        console.log(`🔔 [RealTimeDeviceTracker] 调用回调 #${index + 1}...`);
         callback(event);
-        console.log(`✅ [RealTimeDeviceTracker] 回调 #${index + 1} 执行成功`);
       } catch (error) {
         console.error(`❌ [RealTimeDeviceTracker] 回调 #${index + 1} 执行失败:`, error);
       }
     });
-
-    console.log(`✅ [RealTimeDeviceTracker] 所有回调通知完成`);
 
     // 发送通用设备更新事件
     this.eventManager.emit('device-list-updated', {
