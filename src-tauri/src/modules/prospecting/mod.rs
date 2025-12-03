@@ -361,6 +361,62 @@ async fn generate_daily_report(_date: String) -> Result<Value, String> {
     Ok(serde_json::json!({}))
 }
 
+#[tauri::command]
+async fn get_collected_comments(
+    _limit: Option<i32>,
+    _offset: Option<i32>,
+    _platform: Option<String>,
+    _source_target_id: Option<String>,
+    _region: Option<String>,
+    _min_like_count: Option<i32>,
+    _time_range: Option<Value>,
+) -> Result<Value, String> {
+    Ok(serde_json::json!({
+        "comments": [],
+        "total": 0
+    }))
+}
+
+#[tauri::command]
+async fn schedule_auto_collection(
+    _targets: Vec<String>,
+    _interval_hours: i32,
+    _max_comments_per_target: i32,
+    _respect_rate_limits: bool,
+) -> Result<Value, String> {
+    Ok(serde_json::json!({
+        "scheduled": true,
+        "next_run_time": "2024-01-01T00:00:00Z",
+        "scheduled_targets": 0
+    }))
+}
+
+#[tauri::command]
+async fn save_collection_result(
+    _target_id: String,
+    _platform: String,
+    _comments: Vec<Value>,
+    _total_count: i32,
+    _collected_at: String,
+) -> Result<(), String> {
+    Ok(())
+}
+
+#[tauri::command]
+async fn log_collection_error(
+    _target_id: String,
+    _platform: String,
+    _error: String,
+    _timestamp: String,
+) -> Result<(), String> {
+    Ok(())
+}
+
+#[tauri::command]
+async fn save_safety_config(_config: Value) -> Result<(), String> {
+    Ok(())
+}
+
 pub fn init<R: Runtime>() -> TauriPlugin<R> {
     Builder::<R>::new("prospecting")
         .setup(|app, _api| {
@@ -412,7 +468,12 @@ pub fn init<R: Runtime>() -> TauriPlugin<R> {
             get_reply_templates,
             add_reply_template,
             get_precise_acquisition_stats,
-            generate_daily_report
+            generate_daily_report,
+            get_collected_comments,
+            schedule_auto_collection,
+            save_collection_result,
+            log_collection_error,
+            save_safety_config
         ])
         .build()
 }
