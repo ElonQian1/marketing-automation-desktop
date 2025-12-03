@@ -237,7 +237,7 @@ export class TauriUiMatcherRepository implements IUiMatcherRepository {
       const backendCriteria = this.convertToBackendFormat(criteria);
       
       // 调用策略匹配命令
-      const result = await invoke('match_element_by_criteria', {
+      const result = await invoke('plugin:enhanced_location|match_element_by_criteria', {
         deviceId,
         criteria: backendCriteria
       }) as {

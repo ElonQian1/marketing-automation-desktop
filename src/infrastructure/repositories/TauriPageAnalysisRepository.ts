@@ -23,8 +23,8 @@ import { PageAnalysisEntity } from '../../domain/page-analysis/entities/PageAnal
 export class TauriPageAnalysisRepository implements IPageAnalysisRepository {
   async save(analysis: PageAnalysisEntity): Promise<void> {
     try {
-      await invoke('save_page_analysis', {
-        analysisData: {
+      await invoke('plugin:universal_ui|save_page_analysis', {
+        analysis: {
           id: analysis.id,
           pageInfo: analysis.pageInfo,
           elements: analysis.elements.map(element => ({
@@ -55,7 +55,7 @@ export class TauriPageAnalysisRepository implements IPageAnalysisRepository {
 
   async findById(id: string): Promise<PageAnalysisEntity | null> {
     try {
-      const result = await invoke('get_page_analysis_by_id', { analysisId: id });
+      const result = await invoke('plugin:universal_ui|get_page_analysis_by_id', { analysisId: id });
       return result as PageAnalysisEntity | null;
     } catch (error) {
       console.error('获取页面分析结果失败:', error);
@@ -65,7 +65,7 @@ export class TauriPageAnalysisRepository implements IPageAnalysisRepository {
 
   async findByDeviceId(deviceId: string, limit?: number): Promise<PageAnalysisEntity[]> {
     try {
-      const results = await invoke('get_page_analyses_by_device', { deviceId, limit });
+      const results = await invoke('plugin:universal_ui|get_page_analyses_by_device', { deviceId, limit });
       return results as PageAnalysisEntity[];
     } catch (error) {
       console.error('获取设备页面分析历史失败:', error);
@@ -75,7 +75,7 @@ export class TauriPageAnalysisRepository implements IPageAnalysisRepository {
 
   async findByAppPackage(appPackage: string, limit?: number): Promise<PageAnalysisEntity[]> {
     try {
-      const results = await invoke('get_page_analyses_by_app', { appPackage, limit });
+      const results = await invoke('plugin:universal_ui|get_page_analyses_by_app', { appPackage, limit });
       return results as PageAnalysisEntity[];
     } catch (error) {
       console.error('获取应用页面分析历史失败:', error);
@@ -85,7 +85,7 @@ export class TauriPageAnalysisRepository implements IPageAnalysisRepository {
 
   async findByPageType(pageType: string, limit?: number): Promise<PageAnalysisEntity[]> {
     try {
-      const results = await invoke('get_page_analyses_by_type', { pageType, limit });
+      const results = await invoke('plugin:universal_ui|get_page_analyses_by_type', { pageType, limit });
       return results as PageAnalysisEntity[];
     } catch (error) {
       console.error('获取页面类型分析历史失败:', error);
@@ -95,7 +95,7 @@ export class TauriPageAnalysisRepository implements IPageAnalysisRepository {
 
   async cleanupOldRecords(olderThanDays: number): Promise<number> {
     try {
-      const result = await invoke('cleanup_old_page_analyses', { olderThanDays });
+      const result = await invoke('plugin:universal_ui|cleanup_old_page_analyses', { olderThanDays });
       return result as number;
     } catch (error) {
       console.error('清理旧页面分析记录失败:', error);
@@ -105,7 +105,7 @@ export class TauriPageAnalysisRepository implements IPageAnalysisRepository {
 
   async getStatistics(): Promise<RepositoryStatistics> {
     try {
-      const result = await invoke('get_page_analysis_statistics');
+      const result = await invoke('plugin:universal_ui|get_page_analysis_statistics');
       return result as RepositoryStatistics;
     } catch (error) {
       console.error('获取页面分析统计失败:', error);
