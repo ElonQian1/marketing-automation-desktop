@@ -128,6 +128,16 @@ async fn get_page_analysis_statistics() -> Result<serde_json::Value, String> {
     }))
 }
 
+#[tauri::command]
+async fn delete_page_analysis(_analysis_id: String) -> Result<(), String> {
+    Ok(())
+}
+
+#[tauri::command]
+async fn delete_page_analyses_by_device(_device_id: String) -> Result<usize, String> {
+    Ok(0)
+}
+
 // ==================== 插件初始化 ====================
 
 /// 导出插件初始化函数
@@ -155,7 +165,9 @@ pub fn init<R: Runtime>() -> TauriPlugin<R> {
             get_page_analyses_by_app,
             get_page_analyses_by_type,
             cleanup_old_page_analyses,
-            get_page_analysis_statistics
+            get_page_analysis_statistics,
+            delete_page_analysis,
+            delete_page_analyses_by_device
         ])
         .build()
 }

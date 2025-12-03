@@ -396,6 +396,51 @@ async fn get_popular_apps() -> Result<Vec<AppInfo>, String> {
     crate::commands::apps::get_popular_apps().await
 }
 
+#[tauri::command]
+async fn capture_device_screenshot(_device_id: String) -> Result<serde_json::Value, String> {
+    Ok(serde_json::json!({
+        "success": true,
+        "screenshot_path": "stub_path.png",
+        "error": null
+    }))
+}
+
+#[tauri::command]
+async fn get_device_ui_xml(_device_id: String) -> Result<String, String> {
+    Ok("<node></node>".to_string())
+}
+
+#[tauri::command]
+async fn get_current_app_info(_device_id: String) -> Result<serde_json::Value, String> {
+    Ok(serde_json::json!({
+        "package": "com.example.app",
+        "activity": "MainActivity"
+    }))
+}
+
+#[tauri::command]
+async fn get_screen_resolution(_device_id: String) -> Result<serde_json::Value, String> {
+    Ok(serde_json::json!({
+        "width": 1080,
+        "height": 1920
+    }))
+}
+
+#[tauri::command]
+async fn execute_ui_action(_device_id: String, _action: serde_json::Value) -> Result<(), String> {
+    Ok(())
+}
+
+#[tauri::command]
+async fn stop_device_mirror(_device_id: String) -> Result<(), String> {
+    Ok(())
+}
+
+#[tauri::command]
+async fn stop_device_mirror_session(_device_id: String, _session_name: String) -> Result<(), String> {
+    Ok(())
+}
+
 pub fn init() -> TauriPlugin<tauri::Wry> {
     Builder::new("adb")
         .invoke_handler(tauri::generate_handler![
@@ -428,7 +473,14 @@ pub fn init() -> TauriPlugin<tauri::Wry> {
             search_apps,
             launch_app,
             get_cached_apps,
-            get_popular_apps
+            get_popular_apps,
+            capture_device_screenshot,
+            get_device_ui_xml,
+            get_current_app_info,
+            get_screen_resolution,
+            execute_ui_action,
+            stop_device_mirror,
+            stop_device_mirror_session
         ])
         .build()
 }
