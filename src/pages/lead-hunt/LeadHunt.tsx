@@ -125,7 +125,7 @@ export default function LeadHunt() {
   const importMock = async () => {
     try {
       setImporting(true);
-      await invoke("lh_import_comments");
+      await invoke("plugin:lead_hunt|lh_import_comments");
       message.success("已导入 mock 评论数据");
       await refresh();
     } catch (error) {
@@ -231,7 +231,7 @@ export default function LeadHunt() {
         suggestedReply: row.analysis?.reply_suggestion || undefined,
       };
       
-      await invoke("lh_create_replay_plan", { plan });
+      await invoke("plugin:lead_hunt|lh_create_replay_plan", { plan });
       message.success(`已生成回放计划: ${row.id}`);
       message.info("查看文件: debug/outbox/replay_plans.json");
     } catch (error) {
@@ -245,7 +245,7 @@ export default function LeadHunt() {
       setCurrentPlanId(row.id);
       setExecutionSteps([]); // 清空之前的步骤
       
-      await invoke("lh_run_replay_plan", { planId: row.id });
+      await invoke("plugin:lead_hunt|lh_run_replay_plan", { planId: row.id });
       message.success("回放计划已启动，请查看执行步骤");
     } catch (error) {
       message.error(`启动回放失败: ${error}`);
