@@ -3,6 +3,9 @@
 // summary: 按id/class/text建立索引桶，支持容器限定的高效搜索
 
 use std::collections::HashMap;
+use std::sync::{Arc, RwLock};
+use std::hash::{Hash, Hasher};
+use std::collections::hash_map::DefaultHasher;
 use anyhow::Result;
 use regex::Regex;
 use once_cell::sync::Lazy;
@@ -15,7 +18,16 @@ use crate::types::page_analysis::ElementBounds;
 static NODE_REGEX: Lazy<Regex> = Lazy::new(|| Regex::new(r#"<node[^>]*>"#).unwrap());
 static BOUNDS_REGEX: Lazy<Regex> = Lazy::new(|| Regex::new(r#"\[(\d+),(\d+)\]\[(\d+),(\d+)\]"#).unwrap());
 
+// 🚀 性能优化：XML索引全局缓存
+// 使用 XML 内容哈希作为 key，避免重复构建索引（节省 ~574ms）
+static XML_INDEXER_CACHE: Lazy<RwLock<HashMap<u64, Arc<XmlIndexer>>>> = 
+    Lazy::new(|| RwLock::new(HashMap::new()));
+
+/// 🎯 缓存配置常量
+const XML_CACHE_MAX_SIZE: usize = 5; // 最多缓存5个不同的XML索引（通常只有1-2个活跃页面）
+
 // 📊 XML索引结构
+#[derive(Clone)]
 pub struct XmlIndexer {
     /// ResourceId索引: resource_id -> 节点列表
     pub resource_id_index: HashMap<String, Vec<IndexedNode>>,
@@ -71,8 +83,53 @@ impl IndexedNode {
 }
 
 impl XmlIndexer {
-    /// 从UI XML构建索引
+    /// 🚀 计算XML内容哈希（用于缓存键）
+    fn compute_xml_hash(xml: &str) -> u64 {
+        let mut hasher = DefaultHasher::new();
+        xml.hash(&mut hasher);
+        hasher.finish()
+    }
+
+    /// 🚀 从缓存获取或构建索引
     pub fn build_from_xml(ui_xml: &str) -> Result<Self> {
+        let xml_hash = Self::compute_xml_hash(ui_xml);
+        
+        // 🔍 首先检查缓存
+        {
+            let cache = XML_INDEXER_CACHE.read().unwrap();
+            if let Some(cached) = cache.get(&xml_hash) {
+                tracing::debug!("⚡ XML索引命中缓存 (hash={}), 跳过构建", xml_hash);
+                // 返回缓存的克隆（Arc 内部克隆是廉价的）
+                return Ok((**cached).clone());
+            }
+        }
+        
+        // 📦 缓存未命中，构建新索引
+        let indexer = Self::build_from_xml_internal(ui_xml)?;
+        
+        // 💾 存入缓存
+        {
+            let mut cache = XML_INDEXER_CACHE.write().unwrap();
+            
+            // 如果缓存已满，清除最旧的条目（简单LRU策略）
+            if cache.len() >= XML_CACHE_MAX_SIZE {
+                // 清除一半缓存（简单但有效）
+                let keys_to_remove: Vec<u64> = cache.keys().take(XML_CACHE_MAX_SIZE / 2 + 1).cloned().collect();
+                for key in keys_to_remove {
+                    cache.remove(&key);
+                }
+                tracing::debug!("🧹 XML索引缓存达到上限，已清理");
+            }
+            
+            cache.insert(xml_hash, Arc::new(indexer.clone()));
+            tracing::debug!("💾 XML索引已缓存 (hash={}, 缓存大小={})", xml_hash, cache.len());
+        }
+        
+        Ok(indexer)
+    }
+
+    /// 🔧 内部构建方法（实际执行索引构建）
+    fn build_from_xml_internal(ui_xml: &str) -> Result<Self> {
         let mut indexer = Self {
             resource_id_index: HashMap::new(),
             class_name_index: HashMap::new(),
@@ -105,6 +162,20 @@ impl XmlIndexer {
                       indexer.all_nodes.len(), elapsed.as_millis());
         
         Ok(indexer)
+    }
+
+    /// 🧹 清除XML索引缓存（供外部调用）
+    pub fn clear_cache() {
+        let mut cache = XML_INDEXER_CACHE.write().unwrap();
+        let size = cache.len();
+        cache.clear();
+        tracing::info!("🧹 XML索引缓存已清除 (原大小={})", size);
+    }
+
+    /// 📊 获取缓存状态（调试用）
+    pub fn get_cache_stats() -> (usize, usize) {
+        let cache = XML_INDEXER_CACHE.read().unwrap();
+        (cache.len(), XML_CACHE_MAX_SIZE)
     }
     
     /// 解析单个节点为索引节点

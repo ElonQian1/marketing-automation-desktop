@@ -66,10 +66,13 @@ impl AdbSessionManager {
     async fn is_session_alive(&self, session: &Arc<AdbShellSession>) -> bool {
         // 基于设备ID做轻量节流，避免频繁 echo
         let device_id = session.get_device_id().to_string();
+        // 🚀 性能优化：将默认TTL从2秒提高到5秒
+        // 原因：echo test 需要 ~180ms，频繁检测会累积开销
+        // 5秒内的会话假定仍然有效，减少不必要的探测
         let ttl_ms: u64 = std::env::var("ADB_SESSION_HEALTH_TTL_MS")
             .ok()
             .and_then(|v| v.parse::<u64>().ok())
-            .unwrap_or(2000);
+            .unwrap_or(5000); // 🎯 从 2000 改为 5000
         let map = self.last_health_check.lock().await;
         if let Some(last) = map.get(&device_id) {
             if last.elapsed() < std::time::Duration::from_millis(ttl_ms) {
