@@ -111,6 +111,16 @@ async fn click_detected_element(_device_id: String, _element: Value, _click_type
     Ok(())
 }
 
+#[tauri::command]
+async fn run_step_v2(_step: Value, _device_id: String) -> Result<Value, String> {
+    Ok(serde_json::json!({}))
+}
+
+#[tauri::command]
+async fn execute_chain_test_v3(_device_id: String, _steps: Vec<Value>, _threshold: Option<f64>, _dry_run: Option<bool>) -> Result<Value, String> {
+    Ok(serde_json::json!({}))
+}
+
 pub fn init<R: Runtime>() -> TauriPlugin<R> {
     Builder::<R>::new("automation")
         .invoke_handler(tauri::generate_handler![
@@ -130,7 +140,9 @@ pub fn init<R: Runtime>() -> TauriPlugin<R> {
             pause_script_execution,
             resume_script_execution,
             stop_script_execution,
-            click_detected_element
+            click_detected_element,
+            run_step_v2,
+            execute_chain_test_v3
         ])
         .build()
 }

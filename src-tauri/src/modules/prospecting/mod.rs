@@ -251,6 +251,31 @@ async fn cleanup_expired_operations(
     Ok(0)
 }
 
+#[tauri::command]
+async fn bulk_upsert_watch_targets(_payloads: Vec<Value>) -> Result<(), String> {
+    Ok(())
+}
+
+#[tauri::command]
+async fn list_watch_targets(_limit: Option<i32>, _offset: Option<i32>) -> Result<Vec<Value>, String> {
+    Ok(vec![])
+}
+
+#[tauri::command]
+async fn get_watch_target_by_dedup_key(_dedup_key: String) -> Result<Option<Value>, String> {
+    Ok(None)
+}
+
+#[tauri::command]
+async fn insert_task(_task: Value) -> Result<String, String> {
+    Ok("stub_task_id".to_string())
+}
+
+#[tauri::command]
+async fn list_tasks(_status: Option<String>, _limit: Option<i32>) -> Result<Vec<Value>, String> {
+    Ok(vec![])
+}
+
 pub fn init<R: Runtime>() -> TauriPlugin<R> {
     Builder::<R>::new("prospecting")
         .setup(|app, _api| {
@@ -281,6 +306,11 @@ pub fn init<R: Runtime>() -> TauriPlugin<R> {
             sync_operations_to_cloud,
             sync_operations_from_cloud,
             cleanup_expired_operations,
+            bulk_upsert_watch_targets,
+            list_watch_targets,
+            get_watch_target_by_dedup_key,
+            insert_task,
+            list_tasks
         ])
         .build()
 }
