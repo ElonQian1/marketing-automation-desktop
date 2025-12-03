@@ -31,21 +31,20 @@ async function testV3ParameterExtraction() {
             orderedSteps: []
         }
 
-        const envelope = {
+        const realEnvelope = {
             deviceId: "test-device",
-            sessionId: `test-${Date.now()}`,
-            spec: v3Spec,
-            constraints: {
-                timeoutMs: 30000,
-                maxRetries: 2,
-                screenChangeRequired: false
-            }
-        }
+            app: { package: "com.xingin.xhs", activity: null },
+            snapshot: {},
+            executionMode: "strict"
+        };
 
         console.log('📤 发送 V3 执行请求...')
-        console.log('参数结构：', JSON.stringify(envelope.spec.steps[0].params, null, 2))
+        console.log('参数结构：', JSON.stringify(v3Spec.steps[0].params, null, 2))
         
-        const result = await invoke('execute_chain_by_inline_v3', { envelope })
+        const result = await invoke('plugin:execution_v3|execute_chain_test_v3', { 
+            envelope: realEnvelope,
+            spec: v3Spec 
+        })
         
         console.log('✅ V3 执行结果：')
         console.log(JSON.stringify(result, null, 2))

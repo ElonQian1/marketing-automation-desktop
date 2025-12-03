@@ -118,15 +118,11 @@
                     orderedSteps: []
                 };
 
-                const envelope = {
+                const realEnvelope = {
                     deviceId: "test-device",
-                    sessionId: `test-${Date.now()}`,
-                    spec: basicSpec,
-                    constraints: {
-                        timeoutMs: 10000,
-                        maxRetries: 1,
-                        screenChangeRequired: false
-                    }
+                    app: { package: "com.xingin.xhs", activity: null },
+                    snapshot: {},
+                    executionMode: "strict"
                 };
 
                 addResult('📤 发送基本参数测试请求...');
@@ -136,7 +132,10 @@
                 }
 
                 const { invoke } = window.__TAURI__.core;
-                const result = await invoke('execute_chain_by_inline_v3', { envelope });
+                const result = await invoke('plugin:execution_v3|execute_chain_test_v3', { 
+                    envelope: realEnvelope,
+                    spec: basicSpec 
+                });
                 
                 addResult(`✅ 基本参数提取成功: ${result.status}`, 'success');
                 addResult(`结果详情: ${JSON.stringify(result, null, 2)}`);
@@ -170,15 +169,11 @@
                     orderedSteps: []
                 };
 
-                const envelope = {
+                const realEnvelope = {
                     deviceId: "test-device",
-                    sessionId: `test-${Date.now()}`,
-                    spec: nestedSpec,
-                    constraints: {
-                        timeoutMs: 10000,
-                        maxRetries: 1,
-                        screenChangeRequired: false
-                    }
+                    app: { package: "com.xingin.xhs", activity: null },
+                    snapshot: {},
+                    executionMode: "strict"
                 };
 
                 addResult('📤 发送嵌套参数测试请求...');
@@ -189,7 +184,10 @@
                 }
 
                 const { invoke } = window.__TAURI__.core;
-                const result = await invoke('execute_chain_by_inline_v3', { envelope });
+                const result = await invoke('plugin:execution_v3|execute_chain_test_v3', { 
+                    envelope: realEnvelope,
+                    spec: nestedSpec 
+                });
                 
                 addResult(`✅ 嵌套参数提取成功: ${result.status}`, 'success');
                 
@@ -250,15 +248,11 @@
                         orderedSteps: []
                     };
 
-                    const envelope = {
+                    const realEnvelope = {
                         deviceId: "test-device",
-                        sessionId: `test-${Date.now()}`,
-                        spec: spec,
-                        constraints: {
-                            timeoutMs: 5000,
-                            maxRetries: 1,
-                            screenChangeRequired: false
-                        }
+                        app: { package: "com.xingin.xhs", activity: null },
+                        snapshot: {},
+                        executionMode: "strict"
                     };
 
                     if (typeof window.__TAURI__ === 'undefined') {
@@ -266,7 +260,10 @@
                     }
 
                     const { invoke } = window.__TAURI__.core;
-                    const result = await invoke('execute_chain_by_inline_v3', { envelope });
+                    const result = await invoke('plugin:execution_v3|execute_chain_test_v3', { 
+                        envelope: realEnvelope,
+                        spec: spec 
+                    });
                     
                     addResult(`   ✅ ${testCase.name}: ${result.status}`, 'success');
                     
