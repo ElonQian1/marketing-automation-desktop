@@ -43,7 +43,8 @@ export function useFilteredVisualElements({ elements, searchText, selectedCatego
       filtered = filtered.filter(element => element.category === selectedCategory);
     }
 
-    // 基础可点击过滤（兼容旧开关）
+    // 可点击过滤：只显示真正可点击的元素
+    // 用户选择可点击元素后，结构匹配会自动识别是瀑布流卡片还是普通按钮
     if (showOnlyClickable) {
       filtered = filtered.filter(element => element.clickable);
     }
