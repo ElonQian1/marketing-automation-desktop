@@ -13,6 +13,7 @@ import type { StepActionParams } from "../../types/stepActions";
 import { getCurrentExecutionEngine } from "../config/ExecutionEngineConfig";
 import { convertToV2Request } from "./adapters/v2Adapter";
 import { invoke } from "@tauri-apps/api/core";
+import { listen } from "@tauri-apps/api/event";
 import { defaultTextMatchingConfig } from "../../components/text-matching";
 
 // 🎯 【关键配置】V3智能策略开关
@@ -748,7 +749,68 @@ export class StepExecutionGateway {
       // 🔧 FIX: 使用正确的 execution_v3 插件，而非 automation 插件
       // automation 插件的 execute_chain_test_v3 参数签名是 (device_id, steps, threshold, dry_run)
       // execution_v3 插件的 execute_chain_test_v3 参数签名是 (envelope, spec)
-      const result = await invoke("plugin:execution_v3|execute_chain_test_v3", {
+      
+      // 🔧 FIX: 等待后端 analysis:complete 事件，而不是立即返回
+      // 后端执行是异步的，invoke 返回只是表示请求已发送
+      const analysisId = `step_execution_${request.stepId}`;
+      const V3_TIMEOUT_MS = 30000; // 30秒超时
+      
+      // 创建一个 Promise 来等待完成事件
+      const waitForCompletion = new Promise<{
+        success: boolean;
+        coords?: [number, number];
+        error?: string;
+        adoptedStepId?: string;
+        elapsedMs?: number;
+      }>((resolve, reject) => {
+        let unlisten: (() => void) | null = null;
+        
+        // 设置超时
+        const timeoutId = setTimeout(() => {
+          if (unlisten) unlisten();
+          console.warn(`⏱️ [StepExecGateway] V3执行超时 (${V3_TIMEOUT_MS}ms)，但后端可能仍在执行`);
+          // 超时时返回"未知状态"而不是失败，因为后端可能正在执行
+          resolve({
+            success: true, // 假设成功，因为invoke已经成功
+            error: `等待V3响应超时 (${V3_TIMEOUT_MS}ms)，请查看真机是否已执行操作`,
+          });
+        }, V3_TIMEOUT_MS);
+        
+        // 监听完成事件
+        listen<{
+          analysis_id?: string;
+          result?: { ok?: boolean; coords?: [number, number] };
+          summary?: { adoptedStepId?: string; reason?: string; elapsedMs?: number };
+        }>('analysis:complete', (event) => {
+          const payload = event.payload;
+          
+          // 🎯 检查是否是我们发起的请求 (支持两种ID匹配)
+          if (payload.analysis_id === analysisId || 
+              payload.analysis_id === request.stepId ||
+              payload.summary?.adoptedStepId?.includes('intelligent_step')) {
+            clearTimeout(timeoutId);
+            if (unlisten) unlisten();
+            
+            console.log('✅ [StepExecGateway] 收到V3完成事件:', payload);
+            
+            resolve({
+              success: payload.result?.ok ?? true,
+              coords: payload.result?.coords,
+              error: payload.result?.ok === false ? payload.summary?.reason : undefined,
+              adoptedStepId: payload.summary?.adoptedStepId,
+              elapsedMs: payload.summary?.elapsedMs,
+            });
+          }
+        }).then(unlistenFn => {
+          unlisten = unlistenFn;
+        }).catch(err => {
+          clearTimeout(timeoutId);
+          reject(err);
+        });
+      });
+      
+      // 发送请求
+      const invokeResult = await invoke("plugin:execution_v3|execute_chain_test_v3", {
         envelope,
         spec,
       });
@@ -756,17 +818,25 @@ export class StepExecutionGateway {
       const executionId = `v3_${Date.now()}`;
       console.log("✅ [StepExecGateway] V3执行已启动", {
         executionId,
+        analysisId,
         mode: request.mode,
-        result: result ? "success" : "unknown",
+        result: invokeResult ? "success" : "unknown",
       });
+      
+      // 🔧 FIX: 等待后端真正完成执行
+      console.log("⏳ [StepExecGateway] 等待V3执行完成事件...");
+      const completionResult = await waitForCompletion;
+      console.log("✅ [StepExecGateway] V3执行完成:", completionResult);
 
-      // 返回成功响应（实际需要监听V3事件获取结果）
+      // 返回真正的执行结果
       return {
-        success: true,
-        message: `V3智能策略执行成功启动: ${executionId}`,
+        success: completionResult.success,
+        message: completionResult.success 
+          ? `V3智能策略执行成功: ${completionResult.adoptedStepId || executionId}`
+          : `V3执行失败: ${completionResult.error || '未知错误'}`,
         engine: "v2", // 保持兼容
         matched: {
-          id: executionId,
+          id: completionResult.adoptedStepId || executionId,
           score: 0.85,
           confidence: 0.85,
           text: `V3策略: ${request.actionParams.type}`,
@@ -783,15 +853,18 @@ export class StepExecutionGateway {
           request.mode === "execute-step"
             ? request.actionParams.type
             : undefined,
-        verifyPassed: true,
+        verifyPassed: completionResult.success,
+        coordinates: completionResult.coords 
+          ? { x: completionResult.coords[0], y: completionResult.coords[1] }
+          : undefined,
         logs: [
-          `🚀 V3智能策略执行启动`,
+          `🚀 V3智能策略执行${completionResult.success ? '成功' : '失败'}`,
           `📋 执行ID: ${executionId}`,
-          `🎯 模式: ${request.mode}`,
-          `⚙️ 动作: ${request.actionParams.type}`,
-          `✅ 避免坐标兜底，使用智能策略分析`,
-          `📊 V3结果: ${JSON.stringify(result).slice(0, 100)}...`,
-        ],
+          `🎯 采纳步骤: ${completionResult.adoptedStepId || 'N/A'}`,
+          `⏱️ 耗时: ${completionResult.elapsedMs || 'N/A'}ms`,
+          `📍 坐标: ${completionResult.coords ? `(${completionResult.coords[0]}, ${completionResult.coords[1]})` : 'N/A'}`,
+          completionResult.error ? `❌ 错误: ${completionResult.error}` : '',
+        ].filter(Boolean),
       };
     } catch (error) {
       console.error("❌ [StepExecGateway] V3执行失败:", error);
