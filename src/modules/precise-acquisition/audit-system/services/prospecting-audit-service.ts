@@ -213,7 +213,7 @@ export class AuditService {
    */
   private async initializeAuditSystem(): Promise<void> {
     try {
-      this.deviceId = await invoke('get_device_id');
+      this.deviceId = await invoke('plugin:prospecting|get_device_id');
       this.sessionId = `session_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
       
       // 记录系统启动事件
@@ -522,7 +522,7 @@ export class AuditService {
   }> {
     
     try {
-      const result = await invoke('query_audit_logs', {
+      const result = await invoke('plugin:prospecting|query_audit_logs', {
         query: {
           ...query,
           start_time: query.start_time?.toISOString(),
@@ -558,7 +558,7 @@ export class AuditService {
   ): Promise<AuditStats> {
     
     try {
-      const stats = await invoke('get_audit_stats', {
+      const stats = await invoke('plugin:prospecting|get_audit_stats', {
         start_time: startTime?.toISOString(),
         end_time: endTime?.toISOString()
       }) as AuditStats & { recent_errors: any[] };
@@ -596,7 +596,7 @@ export class AuditService {
   ): Promise<string> {
     
     try {
-      const filePath = await invoke('export_audit_logs', {
+      const filePath = await invoke('plugin:prospecting|export_audit_logs', {
         query: {
           ...query,
           start_time: query.start_time?.toISOString(),
@@ -635,7 +635,7 @@ export class AuditService {
    */
   async cleanupExpiredLogs(retentionDays: number): Promise<number> {
     try {
-      const deletedCount = await invoke('cleanup_expired_audit_logs', {
+      const deletedCount = await invoke('plugin:prospecting|cleanup_expired_audit_logs', {
         retention_days: retentionDays
       }) as number;
       
@@ -689,7 +689,7 @@ export class AuditService {
     this.logBuffer.length = 0;
     
     try {
-      await invoke('batch_store_audit_logs', {
+      await invoke('plugin:prospecting|batch_store_audit_logs', {
         logs: logsToFlush.map(log => ({
           ...log,
           timestamp: log.timestamp.toISOString()

@@ -222,7 +222,7 @@ export class RecordManager {
 
   private async saveDedupRecords(records: DedupRecord[]): Promise<void> {
     try {
-      await invoke('save_dedup_records', { records });
+      await invoke('plugin:prospecting|save_dedup_records', { records });
     } catch (error) {
       console.error('Failed to save dedup records:', error);
       throw error;

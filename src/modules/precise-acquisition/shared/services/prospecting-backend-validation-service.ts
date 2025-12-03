@@ -98,12 +98,12 @@ export class BackendInterfaceValidationService {
         updated_at: new Date().toISOString()
       }];
       
-      return await invoke('bulk_upsert_watch_targets', { payloads: testData });
+      return await invoke('plugin:prospecting|bulk_upsert_watch_targets', { payloads: testData });
     }));
     
     // 测试查询候选池列表
     results.push(await this.testInterface('list_watch_targets', async () => {
-      return await invoke('list_watch_targets', {
+      return await invoke('plugin:prospecting|list_watch_targets', {
         limit: 10,
         offset: 0,
         platform: null,
@@ -113,7 +113,7 @@ export class BackendInterfaceValidationService {
     
     // 测试通过去重键获取候选池
     results.push(await this.testInterface('get_watch_target_by_dedup_key', async () => {
-      return await invoke('get_watch_target_by_dedup_key', {
+      return await invoke('plugin:prospecting|get_watch_target_by_dedup_key', {
         dedup_key: 'test_dedup_key'
       });
     }));
@@ -142,12 +142,12 @@ export class BackendInterfaceValidationService {
         inserted_at: new Date().toISOString()
       };
       
-      return await invoke('insert_comment', { comment: testComment });
+      return await invoke('plugin:prospecting|insert_comment', { comment: testComment });
     }));
     
     // 测试查询评论列表
     results.push(await this.testInterface('list_comments', async () => {
-      return await invoke('list_comments', {
+      return await invoke('plugin:prospecting|list_comments', {
         limit: 10,
         offset: 0,
         platform: null,
@@ -187,12 +187,12 @@ export class BackendInterfaceValidationService {
         lease_until: null
       };
       
-      return await invoke('insert_task', { task: testTask });
+      return await invoke('plugin:prospecting|insert_task', { task: testTask });
     }));
     
     // 测试查询任务列表
     results.push(await this.testInterface('list_tasks', async () => {
-      return await invoke('list_tasks', {
+      return await invoke('plugin:prospecting|list_tasks', {
         limit: 10,
         offset: 0,
         status: null,
@@ -203,7 +203,7 @@ export class BackendInterfaceValidationService {
     
     // 测试更新任务状态
     results.push(await this.testInterface('update_task_status', async () => {
-      return await invoke('update_task_status', {
+      return await invoke('plugin:prospecting|update_task_status', {
         task_id: 'test_task_id',
         status: 'EXECUTING',
         result_code: null,
@@ -213,7 +213,7 @@ export class BackendInterfaceValidationService {
     
     // 测试锁定下一个准备好的任务
     results.push(await this.testInterface('lock_next_ready_task', async () => {
-      return await invoke('lock_next_ready_task', {
+      return await invoke('plugin:prospecting|lock_next_ready_task', {
         account_id: 'test_account',
         lease_seconds: 120
       });
@@ -240,12 +240,12 @@ export class BackendInterfaceValidationService {
         timestamp: new Date().toISOString()
       };
       
-      return await invoke('insert_audit_log', { log: testLog });
+      return await invoke('plugin:prospecting|insert_audit_log', { log: testLog });
     }));
     
     // 测试查询审计日志
     results.push(await this.testInterface('query_audit_logs', async () => {
-      return await invoke('query_audit_logs', {
+      return await invoke('plugin:prospecting|query_audit_logs', {
         start_time: null,
         end_time: null,
         action_filter: null,
@@ -266,7 +266,7 @@ export class BackendInterfaceValidationService {
         timestamp: new Date().toISOString()
       }];
       
-      return await invoke('batch_store_audit_logs', { logs: testLogs });
+      return await invoke('plugin:prospecting|batch_store_audit_logs', { logs: testLogs });
     }));
     
     return results;
@@ -280,7 +280,7 @@ export class BackendInterfaceValidationService {
     
     // 测试检查和预留去重键
     results.push(await this.testInterface('check_and_reserve_dedup', async () => {
-      return await invoke('check_and_reserve_dedup', {
+      return await invoke('plugin:prospecting|check_and_reserve_dedup', {
         key: 'test_dedup_key_' + Date.now(),
         scope: 'task',
         ttl_days: 7,
@@ -379,7 +379,7 @@ export class BackendInterfaceValidationService {
   async testDatabaseConnection(): Promise<BackendTestResult> {
     return await this.testInterface('database_connection', async () => {
       // 通过查询候选池列表来测试数据库连接
-      return await invoke('list_watch_targets', {
+      return await invoke('plugin:prospecting|list_watch_targets', {
         limit: 1,
         offset: 0,
         platform: null,

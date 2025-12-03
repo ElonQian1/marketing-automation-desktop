@@ -34,7 +34,7 @@ export class CandidatePoolService {
    */
   async getWatchTargets(params: WatchTargetQueryParams = {}): Promise<WatchTarget[]> {
     try {
-      const rows = await invoke('get_watch_targets', {
+      const rows = await invoke('plugin:prospecting|get_watch_targets', {
         limit: params.limit || null,
         offset: params.offset || null,
         platform: params.platform || null,
@@ -63,7 +63,7 @@ export class CandidatePoolService {
         throw new Error(`合规检查失败: ${compliance.violations.join(', ')}`);
       }
 
-      const result = await invoke('add_watch_target', {
+      const result = await invoke('plugin:prospecting|add_watch_target', {
         targetType: target.target_type,
         platform: target.platform,
         platformIdOrUrl: target.platform_id_or_url,
@@ -86,7 +86,7 @@ export class CandidatePoolService {
    */
   async updateWatchTarget(id: string, updates: Partial<WatchTarget>): Promise<WatchTarget> {
     try {
-      const result = await invoke('update_watch_target', {
+      const result = await invoke('plugin:prospecting|update_watch_target', {
         id,
         updates: {
           title: updates.title,
@@ -108,7 +108,7 @@ export class CandidatePoolService {
    */
   async deleteWatchTarget(id: string): Promise<void> {
     try {
-      await invoke('delete_watch_target', { id });
+      await invoke('plugin:prospecting|delete_watch_target', { id });
     } catch (error) {
       console.error('Failed to delete watch target:', error);
       throw error;
@@ -120,7 +120,7 @@ export class CandidatePoolService {
    */
   async batchDeleteWatchTargets(ids: string[]): Promise<{ success: number; failed: number }> {
     try {
-      const result = await invoke('batch_delete_watch_targets', { ids });
+      const result = await invoke('plugin:prospecting|batch_delete_watch_targets', { ids });
       return result as { success: number; failed: number };
     } catch (error) {
       console.error('Failed to batch delete watch targets:', error);
@@ -151,7 +151,7 @@ export class CandidatePoolService {
     errors: Array<{ target: WatchTarget; error: string }>;
   }> {
     try {
-      const result = await invoke('import_watch_targets_from_csv', {
+      const result = await invoke('plugin:prospecting|import_watch_targets_from_csv', {
         targets: validatedData,
         updateExisting: options.update_existing || false,
         skipDuplicates: options.skip_duplicates || true
@@ -211,7 +211,7 @@ export class CandidatePoolService {
    */
   async getStats(): Promise<CandidatePoolStats> {
     try {
-      const result = await invoke('get_candidate_pool_stats');
+      const result = await invoke('plugin:prospecting|get_candidate_pool_stats');
       return result as CandidatePoolStats;
     } catch (error) {
       console.error('Failed to get candidate pool stats:', error);
@@ -228,7 +228,7 @@ export class CandidatePoolService {
   }> {
     try {
       const dedupKey = generateDedupKey(platform, identifier);
-      const result = await invoke('check_watch_target_duplication', { dedupKey });
+      const result = await invoke('plugin:prospecting|check_watch_target_duplication', { dedupKey });
       return result as { exists: boolean; existing_target?: WatchTarget };
     } catch (error) {
       console.error('Failed to check duplication:', error);
@@ -254,7 +254,7 @@ export class CandidatePoolService {
    */
   async getRecommendedKeywords(industryTags: string[]): Promise<string[]> {
     try {
-      const result = await invoke('get_recommended_keywords', { industryTags });
+      const result = await invoke('plugin:prospecting|get_recommended_keywords', { industryTags });
       return result as string[];
     } catch (error) {
       console.error('Failed to get recommended keywords:', error);

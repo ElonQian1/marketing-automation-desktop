@@ -294,7 +294,7 @@ export class ReportingService {
    */
   private async collectBasicStats(startTime: Date, endTime: Date): Promise<DailyReport['summary']> {
     try {
-      const stats = await invoke('get_daily_task_stats', {
+      const stats = await invoke('plugin:prospecting|get_daily_task_stats', {
         start_time: startTime.toISOString(),
         end_time: endTime.toISOString()
       }) as {
@@ -333,7 +333,7 @@ export class ReportingService {
     
     for (const platform of platforms) {
       try {
-        const stats = await invoke('get_platform_daily_stats', {
+        const stats = await invoke('plugin:prospecting|get_platform_daily_stats', {
           platform,
           start_time: startTime.toISOString(),
           end_time: endTime.toISOString()
@@ -381,7 +381,7 @@ export class ReportingService {
     
     for (const taskType of taskTypes) {
       try {
-        const stats = await invoke('get_task_type_daily_stats', {
+        const stats = await invoke('plugin:prospecting|get_task_type_daily_stats', {
           task_type: taskType,
           start_time: startTime.toISOString(),
           end_time: endTime.toISOString()
@@ -417,7 +417,7 @@ export class ReportingService {
    */
   private async collectPerformanceMetrics(startTime: Date, endTime: Date): Promise<DailyReport['performance_metrics']> {
     try {
-      const metrics = await invoke('get_daily_performance_metrics', {
+      const metrics = await invoke('plugin:prospecting|get_daily_performance_metrics', {
         start_time: startTime.toISOString(),
         end_time: endTime.toISOString()
       }) as DailyReport['performance_metrics'];
@@ -442,7 +442,7 @@ export class ReportingService {
    */
   private async collectComplianceData(startTime: Date, endTime: Date): Promise<DailyReport['compliance_check']> {
     try {
-      const complianceData = await invoke('get_daily_compliance_stats', {
+      const complianceData = await invoke('plugin:prospecting|get_daily_compliance_stats', {
         start_time: startTime.toISOString(),
         end_time: endTime.toISOString()
       }) as DailyReport['compliance_check'];
@@ -465,7 +465,7 @@ export class ReportingService {
    */
   private async analyzeErrors(startTime: Date, endTime: Date, auditStats: any): Promise<DailyReport['error_analysis']> {
     try {
-      const errorAnalysis = await invoke('analyze_daily_errors', {
+      const errorAnalysis = await invoke('plugin:prospecting|analyze_daily_errors', {
         start_time: startTime.toISOString(),
         end_time: endTime.toISOString()
       }) as DailyReport['error_analysis'];
@@ -489,7 +489,7 @@ export class ReportingService {
    */
   private async analyzeTimeDistribution(startTime: Date, endTime: Date): Promise<DailyReport['time_distribution']> {
     try {
-      const timeDistribution = await invoke('analyze_time_distribution', {
+      const timeDistribution = await invoke('plugin:prospecting|analyze_time_distribution', {
         start_time: startTime.toISOString(),
         end_time: endTime.toISOString()
       }) as DailyReport['time_distribution'];
@@ -516,7 +516,7 @@ export class ReportingService {
       const startDate = new Date(currentDate);
       startDate.setDate(startDate.getDate() - 7);
       
-      const trends = await invoke('analyze_trends', {
+      const trends = await invoke('plugin:prospecting|analyze_trends', {
         start_date: startDate.toISOString(),
         end_date: endDate.toISOString()
       }) as DailyReport['trends'];
@@ -618,7 +618,7 @@ export class ReportingService {
    */
   private async saveReport(report: DailyReport): Promise<void> {
     try {
-      await invoke('save_daily_report', {
+      await invoke('plugin:prospecting|save_daily_report', {
         report: {
           ...report,
           date: report.date.toISOString(),
@@ -641,7 +641,7 @@ export class ReportingService {
   ): Promise<DailyReport[]> {
     
     try {
-      const reports = await invoke('get_historical_reports', {
+      const reports = await invoke('plugin:prospecting|get_historical_reports', {
         start_date: startDate.toISOString(),
         end_date: endDate.toISOString(),
         limit
@@ -692,7 +692,7 @@ export class ReportingService {
       };
       
       // 保存周报
-      await invoke('save_weekly_report', {
+      await invoke('plugin:prospecting|save_weekly_report', {
         report: {
           ...weeklyReport,
           week_start: weeklyReport.week_start.toISOString(),
@@ -844,7 +844,7 @@ export class ReportingService {
   ): Promise<string> {
     
     try {
-      const filePath = await invoke('export_report', {
+      const filePath = await invoke('plugin:prospecting|export_report', {
         report_id: reportId,
         format
       }) as string;
@@ -878,7 +878,7 @@ export class ReportingService {
    */
   async cleanupExpiredReports(retentionDays: number = 90): Promise<number> {
     try {
-      const deletedCount = await invoke('cleanup_expired_reports', {
+      const deletedCount = await invoke('plugin:prospecting|cleanup_expired_reports', {
         retention_days: retentionDays
       }) as number;
       

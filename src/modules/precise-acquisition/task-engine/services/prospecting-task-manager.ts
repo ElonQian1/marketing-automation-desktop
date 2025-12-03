@@ -98,7 +98,7 @@ export class ProspectingTaskManager {
   async retryFailedTask(taskId: string): Promise<void> {
     try {
       // 重置任务状态和错误信息
-      await invoke('retry_failed_task', {
+      await invoke('plugin:prospecting|retry_failed_task', {
         task_id: taskId,
         reset_at: new Date().toISOString()
       });
@@ -122,7 +122,7 @@ export class ProspectingTaskManager {
     }>
   ): Promise<void> {
     try {
-      await invoke('batch_update_task_status', {
+      await invoke('plugin:prospecting|batch_update_task_status', {
         updates: updates.map(update => ({
           ...update,
           updated_at: new Date().toISOString()
@@ -213,7 +213,7 @@ export class ProspectingTaskManager {
   private async handleTaskFailure(taskId: string): Promise<void> {
     try {
       // 记录失败日志
-      await invoke('log_task_failure', {
+      await invoke('plugin:prospecting|log_task_failure', {
         task_id: taskId,
         failed_at: new Date().toISOString()
       });

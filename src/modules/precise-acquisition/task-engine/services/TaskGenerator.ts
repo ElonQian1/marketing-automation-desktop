@@ -198,7 +198,7 @@ export class TaskGenerator {
 
   private async saveTasks(tasks: Task[]): Promise<void> {
     try {
-      await invoke('save_tasks_batch', { tasks });
+      await invoke('plugin:prospecting|save_tasks_batch', { tasks });
     } catch (error) {
       console.error('Failed to save tasks:', error);
       throw error;
@@ -214,7 +214,7 @@ export class TaskGenerator {
 
   private async logTaskGeneration(result: TaskGenerationResult): Promise<void> {
     try {
-      await invoke('log_task_generation', {
+      await invoke('plugin:prospecting|log_task_generation', {
         target_id: result.target_id,
         task_count: result.total_count,
         generation_time: result.generation_time.toISOString()

@@ -293,7 +293,7 @@ export class ProspectingTaskExecutorService {
       const manualActionUrl = await this.generateManualActionUrl(task, content);
       
       // 调用Tauri命令打开浏览器或显示操作界面
-      await invoke('open_manual_task_execution', {
+      await invoke('plugin:prospecting|open_manual_task_execution', {
         taskId: task.id,
         actionUrl: manualActionUrl,
         content: content,
@@ -416,7 +416,7 @@ export class ProspectingTaskExecutorService {
    */
   private async updateTaskStatus(taskId: string, status: TaskStatus, errorMessage?: string): Promise<void> {
     try {
-      await invoke('update_task_status', {
+      await invoke('plugin:prospecting|update_task_status', {
         taskId,
         status,
         errorMessage,
@@ -477,7 +477,7 @@ export class ProspectingTaskExecutorService {
       const status = successful ? TaskStatus.DONE : TaskStatus.FAILED;
       const resultCode = successful ? ResultCode.OK : ResultCode.PERM_ERROR;
       
-      await invoke('confirm_manual_task_completion', {
+      await invoke('plugin:prospecting|confirm_manual_task_completion', {
         taskId,
         status,
         resultCode,
