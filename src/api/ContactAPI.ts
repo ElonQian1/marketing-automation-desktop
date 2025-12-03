@@ -25,7 +25,7 @@ export class ContactAPI {
   static async uploadContactDocument(
     filePath: string
   ): Promise<ContactDocument> {
-    return await invoke<ContactDocument>("upload_contact_document", {
+    return await invoke<ContactDocument>("plugin:contacts|upload_contact_document", {
       filePath,
     });
   }
@@ -34,28 +34,28 @@ export class ContactAPI {
    * 解析通讯录文档
    */
   static async parseContactDocument(documentId: string): Promise<Contact[]> {
-    return await invoke<Contact[]>("parse_contact_document", { documentId });
+    return await invoke<Contact[]>("plugin:contacts|parse_contact_document", { documentId });
   }
 
   /**
    * 获取所有通讯录文档
    */
   static async getContactDocuments(): Promise<ContactDocument[]> {
-    return await invoke<ContactDocument[]>("get_contact_documents");
+    return await invoke<ContactDocument[]>("plugin:contacts|get_contact_documents");
   }
 
   /**
    * 删除通讯录文档
    */
   static async deleteContactDocument(documentId: string): Promise<void> {
-    await invoke("delete_contact_document", { documentId });
+    await invoke("plugin:contacts|delete_contact_document", { documentId });
   }
 
   /**
    * 获取联系人列表
    */
   static async getContacts(documentId?: string): Promise<Contact[]> {
-    return await invoke<Contact[]>("get_contacts", { documentId });
+    return await invoke<Contact[]>("plugin:contacts|get_contacts", { documentId });
   }
 
   /**
@@ -65,28 +65,28 @@ export class ContactAPI {
     query: string,
     documentId?: string
   ): Promise<Contact[]> {
-    return await invoke<Contact[]>("search_contacts", { query, documentId });
+    return await invoke<Contact[]>("plugin:contacts|search_contacts", { query, documentId });
   }
 
   /**
    * 更新联系人信息
    */
   static async updateContact(contact: Contact): Promise<void> {
-    await invoke("update_contact", { contact });
+    await invoke("plugin:contacts|update_contact", { contact });
   }
 
   /**
    * 删除联系人
    */
   static async deleteContact(contactId: string): Promise<void> {
-    await invoke("delete_contact", { contactId });
+    await invoke("plugin:contacts|delete_contact", { contactId });
   }
 
   /**
    * 批量删除联系人
    */
   static async deleteContacts(contactIds: string[]): Promise<void> {
-    await invoke("delete_contacts", { contactIds });
+    await invoke("plugin:contacts|delete_contacts", { contactIds });
   }
 
   /**
@@ -95,42 +95,42 @@ export class ContactAPI {
   static async createContactTask(
     task: Omit<ContactTask, "id" | "createdAt">
   ): Promise<ContactTask> {
-    return await invoke<ContactTask>("create_contact_task", { task });
+    return await invoke<ContactTask>("plugin:contacts|create_contact_task", { task });
   }
 
   /**
    * 获取联系任务列表
    */
   static async getContactTasks(): Promise<ContactTask[]> {
-    return await invoke<ContactTask[]>("get_contact_tasks");
+    return await invoke<ContactTask[]>("plugin:contacts|get_contact_tasks");
   }
 
   /**
    * 开始执行联系任务
    */
   static async startContactTask(taskId: string): Promise<void> {
-    await invoke("start_contact_task", { taskId });
+    await invoke("plugin:contacts|start_contact_task", { taskId });
   }
 
   /**
    * 暂停联系任务
    */
   static async pauseContactTask(taskId: string): Promise<void> {
-    await invoke("pause_contact_task", { taskId });
+    await invoke("plugin:contacts|pause_contact_task", { taskId });
   }
 
   /**
    * 停止联系任务
    */
   static async stopContactTask(taskId: string): Promise<void> {
-    await invoke("stop_contact_task", { taskId });
+    await invoke("plugin:contacts|stop_contact_task", { taskId });
   }
 
   /**
    * 删除联系任务
    */
   static async deleteContactTask(taskId: string): Promise<void> {
-    await invoke("delete_contact_task", { taskId });
+    await invoke("plugin:contacts|delete_contact_task", { taskId });
   }
 
   /**
@@ -139,7 +139,7 @@ export class ContactAPI {
   static async getContactStatistics(
     timeRange?: "today" | "week" | "month" | "all"
   ): Promise<ContactStatistics> {
-    return await invoke<ContactStatistics>("get_contact_statistics", {
+    return await invoke<ContactStatistics>("plugin:contacts|get_contact_statistics", {
       timeRange,
     });
   }
@@ -151,14 +151,14 @@ export class ContactAPI {
     vcfFilePath: string,
     deviceId: string
   ): Promise<VcfImportResult> {
-    return await invoke<VcfImportResult>("execute_vcf_import", { vcfFilePath, deviceId });
+    return await invoke<VcfImportResult>("plugin:contacts|execute_vcf_import", { vcfFilePath, deviceId });
   }
 
   /**
    * 检查VCF导入工具是否可用
    */
   static async checkVcfImportTool(): Promise<boolean> {
-    return await invoke<boolean>("check_vcf_import_tool");
+    return await invoke<boolean>("plugin:contacts|check_vcf_import_tool");
   }
 
   /**
@@ -221,7 +221,7 @@ export class AdbAPI {
    * 屏幕截图
    */
   static async takeScreenshot(deviceId: string): Promise<string> {
-    return await invoke<string>("adb_screenshot", { deviceId });
+    return await invoke<string>("plugin:adb|adb_screenshot", { deviceId });
   }
 
   /**
@@ -246,7 +246,7 @@ export class AdbAPI {
     endY: number,
     duration?: number
   ): Promise<void> {
-    await invoke("adb_swipe", {
+    await invoke("plugin:adb|adb_swipe", {
       deviceId,
       startX,
       startY,
@@ -260,35 +260,35 @@ export class AdbAPI {
    * 输入文本
    */
   static async inputText(deviceId: string, text: string): Promise<void> {
-    await invoke("adb_input_text", { deviceId, text });
+    await invoke("plugin:adb|adb_input_text", { deviceId, text });
   }
 
   /**
    * 按键操作
    */
   static async pressKey(deviceId: string, keyCode: number): Promise<void> {
-    await invoke("adb_press_key", { deviceId, keyCode });
+    await invoke("plugin:adb|adb_press_key", { deviceId, keyCode });
   }
 
   /**
    * 启动应用
    */
   static async launchApp(deviceId: string, packageName: string): Promise<void> {
-    await invoke("adb_launch_app", { deviceId, packageName });
+    await invoke("plugin:adb|launch_app", { deviceId, packageName });
   }
 
   /**
    * 关闭应用
    */
   static async closeApp(deviceId: string, packageName: string): Promise<void> {
-    await invoke("adb_close_app", { deviceId, packageName });
+    await invoke("plugin:adb|adb_close_app", { deviceId, packageName });
   }
 
   /**
    * 安装APK
    */
   static async installApk(deviceId: string, apkPath: string): Promise<void> {
-    await invoke("adb_install_apk", { deviceId, apkPath });
+    await invoke("plugin:adb|adb_install_apk", { deviceId, apkPath });
   }
 
   /**
@@ -298,7 +298,7 @@ export class AdbAPI {
     deviceId: string,
     packageName: string
   ): Promise<void> {
-    await invoke("adb_uninstall_app", { deviceId, packageName });
+    await invoke("plugin:adb|adb_uninstall_app", { deviceId, packageName });
   }
 
   /**

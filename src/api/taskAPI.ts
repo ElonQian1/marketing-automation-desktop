@@ -19,7 +19,7 @@ export class TaskAPI {
     selectedDevices: number[];
   }): Promise<ContactTask> {
     try {
-      return await invoke<ContactTask>('submit_contact_task', data);
+      return await invoke<ContactTask>('plugin:contacts|submit_contact_task', data);
     } catch (error) {
       console.error('Failed to submit contact task:', error);
       throw new Error(`提交通讯录任务失败: ${error}`);
@@ -39,7 +39,7 @@ export class TaskAPI {
     selectedDevices: number[];
   }): Promise<PreciseAcquisitionTask> {
     try {
-      return await invoke<PreciseAcquisitionTask>('submit_acquisition_task', data);
+      return await invoke<PreciseAcquisitionTask>('plugin:prospecting|submit_acquisition_task', data);
     } catch (error) {
       console.error('Failed to submit acquisition task:', error);
       throw new Error(`提交获客任务失败: ${error}`);
@@ -55,7 +55,7 @@ export class TaskAPI {
     status: string;
   }> {
     try {
-      return await invoke('get_task_progress', { taskId });
+      return await invoke('plugin:prospecting|get_task_progress', { taskId });
     } catch (error) {
       console.error('Failed to get task progress:', error);
       throw new Error(`获取任务进度失败: ${error}`);
@@ -67,7 +67,7 @@ export class TaskAPI {
    */
   static async pauseTask(taskId: number): Promise<boolean> {
     try {
-      return await invoke<boolean>('pause_task', { taskId });
+      return await invoke<boolean>('plugin:prospecting|pause_task', { taskId });
     } catch (error) {
       console.error('Failed to pause task:', error);
       throw new Error(`暂停任务失败: ${error}`);
@@ -79,7 +79,7 @@ export class TaskAPI {
    */
   static async resumeTask(taskId: number): Promise<boolean> {
     try {
-      return await invoke<boolean>('resume_task', { taskId });
+      return await invoke<boolean>('plugin:prospecting|resume_task', { taskId });
     } catch (error) {
       console.error('Failed to resume task:', error);
       throw new Error(`恢复任务失败: ${error}`);
@@ -91,7 +91,7 @@ export class TaskAPI {
    */
   static async stopTask(taskId: number): Promise<boolean> {
     try {
-      return await invoke<boolean>('stop_task', { taskId });
+      return await invoke<boolean>('plugin:prospecting|stop_task', { taskId });
     } catch (error) {
       console.error('Failed to stop task:', error);
       throw new Error(`停止任务失败: ${error}`);
