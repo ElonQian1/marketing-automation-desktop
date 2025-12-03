@@ -33,7 +33,8 @@ import {
   CloseOutlined,
   HistoryOutlined,
   EditOutlined,
-  MobileOutlined
+  MobileOutlined,
+  CheckCircleOutlined
 } from '@ant-design/icons';
 import type { AppInfo } from '../../types/smartComponents';
 import { smartAppService } from '../../services/smart-app-service';

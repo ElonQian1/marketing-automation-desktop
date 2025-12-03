@@ -54,6 +54,27 @@ export interface CachedXmlPage {
   screenshotAbsolutePath?: string;
 }
 
+/**
+ * 🚀 后端批量返回的元数据接口（与 Rust XmlCacheFileMetadata 对应）
+ */
+interface BackendXmlCacheMetadata {
+  fileName: string;
+  absolutePath: string;
+  fileSize: number;
+  deviceId: string;
+  timestamp: string;
+  screenshotFileName: string | null;
+  screenshotAbsolutePath: string | null;
+  appPackage: string;
+  pageType: string;
+  elementCount: number;
+  clickableCount: number;
+  description: string;
+  mainButtons: string[];
+  mainTexts: string[];
+  inputCount: number;
+}
+
 export interface XmlPageContent {
   /** XML原始内容 */
   xmlContent: string;
@@ -216,15 +237,77 @@ export class XmlPageCacheService {
   }
 
   /**
-   * 加载所有缓存页面的元数据
+   * 🚀 加载所有缓存页面的元数据（优化版：一次IPC调用）
+   * 
+   * 优化前：N个文件 × 4次IPC调用 = 4N次调用（约1000ms+）
+   * 优化后：1次批量IPC调用（目标 <300ms）
    */
   private static async loadCachedPages(): Promise<void> {
     try {
-      console.log('🔍 开始扫描XML缓存页面...');
+      const startTime = performance.now();
+      console.log('🚀 [性能优化] 开始批量加载XML缓存元数据...');
       
-      // 调用Tauri命令获取debug_xml目录中的所有XML文件
+      // 🔥 一次调用获取所有文件的完整元数据
+      const metadataList: BackendXmlCacheMetadata[] = await invoke(
+        'plugin:xml_cache|list_xml_cache_files_with_metadata'
+      );
+      
+      // 转换为前端格式
+      const pages: CachedXmlPage[] = metadataList.map(meta => 
+        this.convertBackendMetadataToPage(meta)
+      );
+      
+      this.cachedPages = pages;
+      
+      const elapsed = performance.now() - startTime;
+      console.log(`✅ 成功加载 ${pages.length} 个缓存页面，耗时 ${elapsed.toFixed(0)}ms`);
+      
+    } catch (error) {
+      console.error('❌ 批量加载XML缓存失败，回退到逐个加载:', error);
+      // 回退到旧的逐个加载方式（兼容性保障）
+      await this.loadCachedPagesLegacy();
+    }
+  }
+
+  /**
+   * 将后端元数据转换为前端 CachedXmlPage 格式
+   */
+  private static convertBackendMetadataToPage(meta: BackendXmlCacheMetadata): CachedXmlPage {
+    const pageTitle = `${meta.pageType} - ${this.formatTimestamp(meta.timestamp)}`;
+    
+    return {
+      filePath: `${this.DEBUG_XML_DIR}/${meta.fileName}`,
+      absoluteFilePath: meta.absolutePath,
+      fileName: meta.fileName,
+      deviceId: meta.deviceId,
+      timestamp: meta.timestamp,
+      pageTitle,
+      appPackage: meta.appPackage,
+      pageType: meta.pageType,
+      elementCount: meta.elementCount,
+      clickableCount: meta.clickableCount,
+      fileSize: meta.fileSize,
+      createdAt: this.parseTimestampToDate(meta.timestamp),
+      description: meta.description,
+      preview: {
+        mainTexts: meta.mainTexts,
+        mainButtons: meta.mainButtons,
+        inputCount: meta.inputCount,
+      },
+      screenshotFileName: meta.screenshotFileName ?? undefined,
+      screenshotAbsolutePath: meta.screenshotAbsolutePath ?? undefined,
+    };
+  }
+
+  /**
+   * 🔄 旧版逐个加载方法（作为回退方案保留）
+   * @deprecated 请使用 loadCachedPages() 的批量版本
+   */
+  private static async loadCachedPagesLegacy(): Promise<void> {
+    try {
+      console.log('🔍 [Legacy] 开始逐个扫描XML缓存页面...');
+      
       const xmlFiles: string[] = await invoke('plugin:xml_cache|list_xml_cache_files');
-      
       const pages: CachedXmlPage[] = [];
       
       for (const fileName of xmlFiles) {
@@ -238,11 +321,9 @@ export class XmlPageCacheService {
         }
       }
       
-      // 按时间戳降序排序（最新的在前面）
       pages.sort((a, b) => b.createdAt.getTime() - a.createdAt.getTime());
-      
       this.cachedPages = pages;
-      console.log(`✅ 成功加载 ${pages.length} 个缓存页面`);
+      console.log(`✅ [Legacy] 成功加载 ${pages.length} 个缓存页面`);
       
     } catch (error) {
       console.error('❌ 加载XML缓存页面失败:', error);
@@ -341,8 +422,8 @@ export class XmlPageCacheService {
     // 创建UTC时间对象，避免时区转换问题
     const utcDate = new Date(Date.UTC(year, month, day, hour, minute, second));
     
-    // 调试日志：验证时间解析是否正确
-    console.log(`🕐 时间戳解析: ${timestamp} -> UTC: ${utcDate.toUTCString()} -> 本地: ${utcDate.toLocaleString('zh-CN')}`);
+    // 🔕 移除每次解析都输出的调试日志（42个文件 = 42行日志太多了）
+    // 如需调试，可使用 window.loggerConfig.enableAll() 启用
     
     return utcDate;
   }
