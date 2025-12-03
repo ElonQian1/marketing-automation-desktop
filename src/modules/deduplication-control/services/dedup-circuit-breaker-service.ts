@@ -40,7 +40,7 @@ export class DedupCircuitBreakerStorageService {
           timestamp: string;
           reason: string;
         }>;
-      }>("get_circuit_breaker_status", {
+      }>("plugin:automation|get_circuit_breaker_status", {
         accountId,
         taskType,
       });
@@ -88,7 +88,7 @@ export class DedupCircuitBreakerStorageService {
     errorMessage?: string
   ): Promise<void> {
     try {
-      await invoke("record_circuit_breaker_operation", {
+      await invoke("plugin:automation|record_circuit_breaker_operation", {
         accountId,
         taskType,
         success,
@@ -110,7 +110,7 @@ export class DedupCircuitBreakerStorageService {
     reason: string
   ): Promise<void> {
     try {
-      await invoke("update_circuit_breaker_state", {
+      await invoke("plugin:automation|update_circuit_breaker_state", {
         accountId,
         taskType,
         newState,
@@ -130,7 +130,7 @@ export class DedupCircuitBreakerStorageService {
     taskType: "follow" | "reply"
   ): Promise<void> {
     try {
-      await invoke("reset_circuit_breaker", {
+      await invoke("plugin:automation|reset_circuit_breaker", {
         accountId,
         taskType,
       });
@@ -156,7 +156,7 @@ export class DedupCircuitBreakerStorageService {
         total_operations: number;
         failure_count: number;
         failure_rate: number;
-      }>("get_failure_statistics", {
+      }>("plugin:automation|get_failure_statistics", {
         accountId,
         taskType,
         timeWindowMinutes,
