@@ -275,7 +275,7 @@ export class UnifiedDailyReportService {
 
   private async getTasksByDate(dateStr: string): Promise<Task[]> {
     try {
-      return await invoke('list_tasks', {
+      return await invoke('plugin:prospecting|list_tasks', {
         created_since: `${dateStr}T00:00:00.000Z`,
         created_until: `${dateStr}T23:59:59.999Z`
       }) as Task[];
@@ -455,7 +455,7 @@ export class UnifiedDailyReportService {
     file_path: string;
   }): Promise<void> {
     try {
-      await invoke('insert_daily_report', {
+      await invoke('plugin:prospecting|insert_daily_report', {
         payload: {
           date: data.date,
           follow_count: data.follow_count,
@@ -474,7 +474,7 @@ export class UnifiedDailyReportService {
     result: UnifiedDailyReportResult
   ): Promise<string> {
     try {
-      return await invoke('insert_audit_log', {
+      return await invoke('plugin:prospecting|insert_audit_log', {
         payload: {
           action: AuditAction.EXPORT,
           operator: 'system',
@@ -502,7 +502,7 @@ export class UnifiedDailyReportService {
     if (!commentId) return null;
     
     try {
-      return await invoke('get_comment_by_id', { id: commentId });
+      return await invoke('plugin:prospecting|get_comment_by_id', { id: commentId });
     } catch (error) {
       console.error('获取评论信息失败:', error);
       return null;
@@ -513,7 +513,7 @@ export class UnifiedDailyReportService {
     if (!videoId) return null;
     
     try {
-      return await invoke('get_watch_target_by_id', { id: videoId });
+      return await invoke('plugin:prospecting|get_watch_target_by_id', { id: videoId });
     } catch (error) {
       console.error('获取视频信息失败:', error);
       return null;

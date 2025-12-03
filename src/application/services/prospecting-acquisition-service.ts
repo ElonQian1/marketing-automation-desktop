@@ -95,7 +95,7 @@ export class ProspectingAcquisitionService {
     
     try {
       // 初始化数据库和配置
-      await invoke('init_precise_acquisition_storage');
+      await invoke('plugin:prospecting|init_precise_acquisition_storage');
       
       console.log('精准获客服务初始化完成');
       this.isInitialized = true;
@@ -419,7 +419,7 @@ export class ProspectingAcquisitionService {
     await this.ensureInitialized();
     
     try {
-      const templates = await invoke('get_reply_templates') as ReplyTemplateRow[];
+      const templates = await invoke('plugin:prospecting|get_reply_templates') as ReplyTemplateRow[];
       return templates;
     } catch (error) {
       console.error('获取回复模板失败:', error);
@@ -439,7 +439,7 @@ export class ProspectingAcquisitionService {
   }): Promise<ReplyTemplateRow> {
     await this.ensureInitialized();
     
-    const template = await invoke('add_reply_template', {
+    const template = await invoke('plugin:prospecting|add_reply_template', {
       title: payload.title,
       content: payload.content,
       category: payload.category || '默认',
@@ -459,7 +459,7 @@ export class ProspectingAcquisitionService {
     await this.ensureInitialized();
     
     try {
-      const stats = await invoke('get_precise_acquisition_stats');
+      const stats = await invoke('plugin:prospecting|get_precise_acquisition_stats');
       return stats as PreciseAcquisitionStats;
     } catch (error) {
       console.error('获取统计数据失败:', error);
@@ -505,7 +505,7 @@ export class ProspectingAcquisitionService {
     const dateStr = date.toISOString().split('T')[0];
     
     try {
-      const report = await invoke('generate_daily_report', { date: dateStr });
+      const report = await invoke('plugin:prospecting|generate_daily_report', { date: dateStr });
       return report as {
         report_date: string;
         summary: {
@@ -522,20 +522,7 @@ export class ProspectingAcquisitionService {
       };
     } catch (error) {
       console.error('生成日报失败:', error);
-      return {
-        report_date: dateStr,
-        summary: {
-          new_targets: 0,
-          new_comments: 0,
-          tasks_generated: 0,
-          tasks_completed: 0,
-          success_rate: 0
-        },
-        details: {
-          follow_tasks: [],
-          reply_tasks: []
-        }
-      };
+      throw error;
     }
   }
 
