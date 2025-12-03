@@ -97,13 +97,9 @@ export class XmlReuseManager {
    * 从设备获取XML（需要后端支持）
    */
   private async fetchXmlFromDevice(deviceId: string): Promise<string> {
-    // 这里应该调用后端API获取XML
-    // 临时返回空字符串，实际应该调用 Tauri 命令
     try {
-      // 假设的Tauri命令调用
-      // const xml = await invoke('get_ui_dump', { deviceId });
-      // return xml;
-      return ''; // 临时占位
+      const xml = await invoke('plugin:adb|dump_ui', { deviceId });
+      return xml as string;
     } catch (error) {
       console.error('获取XML失败:', error);
       throw error;
