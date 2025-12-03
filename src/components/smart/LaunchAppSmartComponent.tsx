@@ -231,7 +231,7 @@ export const LaunchAppSmartComponent: React.FC<LaunchAppSmartComponentProps> = (
       <Form
         form={form}
         layout="vertical"
-        onChange={handleFormChange}
+        onValuesChange={handleFormChange}
       >
         {/* 应用选择方式 */}
         <Form.Item
