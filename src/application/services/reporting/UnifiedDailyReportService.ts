@@ -261,7 +261,7 @@ export class UnifiedDailyReportService {
 
   private async getCompletedTasks(dateStr: string): Promise<Task[]> {
     try {
-      return await invoke('list_tasks', {
+      return await invoke('plugin:prospecting|list_tasks', {
         status: TaskStatus.DONE,
         result_code: ResultCode.OK,
         created_since: `${dateStr}T00:00:00.000Z`,

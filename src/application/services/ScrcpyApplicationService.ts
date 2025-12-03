@@ -35,11 +35,11 @@ export class ScrcpyApplicationService {
   }
 
   async stopAll(deviceId: string): Promise<void> {
-    await invoke('stop_device_mirror', { deviceId });
+    await invoke('plugin:adb|stop_device_mirror', { deviceId });
   }
 
   async stopSession(deviceId: string, sessionName: string): Promise<void> {
-    await invoke('stop_device_mirror_session', { deviceId, sessionName });
+    await invoke('plugin:adb|stop_device_mirror_session', { deviceId, sessionName });
   }
 
   async listSessions(deviceId: string): Promise<string[]> {
