@@ -19,6 +19,26 @@ mod enhanced; // ✅ Add enhanced cache module
 
 // ==================== 📁 XML Cache Management ====================
 
+/// 🚀 轻量版元数据（仅文件系统信息，不读取内容，毫秒级响应）
+#[derive(Debug, Serialize, Deserialize)]
+#[serde(rename_all = "camelCase")]
+pub struct XmlCacheFileQuickMetadata {
+    /// 文件名（如 ui_dump_e0d909c3_20251203_123223.xml）
+    pub file_name: String,
+    /// 文件绝对路径
+    pub absolute_path: String,
+    /// 文件大小（字节）
+    pub file_size: u64,
+    /// 设备ID（从文件名解析）
+    pub device_id: String,
+    /// 时间戳（从文件名解析，格式如 20251203_123223）
+    pub timestamp: String,
+    /// 截图文件名（如果存在）
+    pub screenshot_file_name: Option<String>,
+    /// 截图绝对路径（如果存在）
+    pub screenshot_absolute_path: Option<String>,
+}
+
 /// 📦 XML缓存文件元数据（一次性返回所有文件的完整信息）
 #[derive(Debug, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
@@ -72,6 +92,96 @@ async fn list_xml_cache_files() -> Result<Vec<String>, String> {
         }
         Err(e) => Err(format!("读取debug_xml目录失败: {}", e))
     }
+}
+
+/// 🚀 快速获取所有XML缓存文件的轻量元数据（不读取文件内容，毫秒级响应）
+/// 
+/// 这是性能优化的关键：只获取文件系统信息，延迟内容分析到用户选择时
+/// 预期性能：42个文件 < 50ms（仅文件系统操作）
+#[tauri::command]
+async fn list_xml_cache_files_quick() -> Result<Vec<XmlCacheFileQuickMetadata>, String> {
+    use std::fs;
+    use std::time::Instant;
+    use regex::Regex;
+    
+    let start = Instant::now();
+    let debug_dir = get_debug_xml_dir();
+    
+    if !debug_dir.exists() {
+        info!("📂 debug_xml 目录不存在，返回空列表");
+        return Ok(vec![]);
+    }
+    
+    let entries = fs::read_dir(&debug_dir)
+        .map_err(|e| format!("读取debug_xml目录失败: {}", e))?;
+    
+    // 文件名正则：ui_dump_{deviceId}_{timestamp}.xml
+    let filename_regex = Regex::new(r"^ui_dump_([^_]+)_(\d{8}_\d{6})\.xml$")
+        .map_err(|e| format!("正则编译失败: {}", e))?;
+    
+    let mut results = Vec::new();
+    
+    for entry in entries.flatten() {
+        let path = entry.path();
+        if !path.is_file() { continue; }
+        
+        let file_name = match path.file_name().and_then(|f| f.to_str()) {
+            Some(name) if name.ends_with(".xml") && name.starts_with("ui_dump_") => name.to_string(),
+            _ => continue,
+        };
+        
+        // 解析文件名获取 deviceId 和 timestamp
+        let (device_id, timestamp) = match filename_regex.captures(&file_name) {
+            Some(caps) => (
+                caps.get(1).map(|m| m.as_str().to_string()).unwrap_or_default(),
+                caps.get(2).map(|m| m.as_str().to_string()).unwrap_or_default()
+            ),
+            None => {
+                warn!("⚠️ 无法解析文件名: {}", file_name);
+                continue;
+            }
+        };
+        
+        // 获取文件大小（仅stat操作，不读取内容）
+        let file_size = fs::metadata(&path)
+            .map(|m| m.len())
+            .unwrap_or(0);
+        
+        // 获取绝对路径
+        let absolute_path = fs::canonicalize(&path)
+            .map(|p| p.to_string_lossy().to_string())
+            .unwrap_or_else(|_| path.to_string_lossy().to_string());
+        
+        // 检查截图是否存在（仅stat操作）
+        let screenshot_file_name = file_name.replace(".xml", ".png");
+        let screenshot_path = debug_dir.join(&screenshot_file_name);
+        let (screenshot_file_name, screenshot_absolute_path) = if screenshot_path.exists() {
+            let abs_path = fs::canonicalize(&screenshot_path)
+                .map(|p| p.to_string_lossy().to_string())
+                .ok();
+            (Some(screenshot_file_name), abs_path)
+        } else {
+            (None, None)
+        };
+        
+        results.push(XmlCacheFileQuickMetadata {
+            file_name,
+            absolute_path,
+            file_size,
+            device_id,
+            timestamp,
+            screenshot_file_name,
+            screenshot_absolute_path,
+        });
+    }
+    
+    // 按时间戳降序排序（最新的在前）
+    results.sort_by(|a, b| b.timestamp.cmp(&a.timestamp));
+    
+    let elapsed = start.elapsed();
+    info!("⚡ 快速加载 {} 个XML缓存文件轻量元数据完成，耗时 {:?}", results.len(), elapsed);
+    
+    Ok(results)
 }
 
 /// 🚀 批量获取所有XML缓存文件的完整元数据（一次IPC调用替代 N×4 次调用）
@@ -296,6 +406,63 @@ async fn read_xml_cache_file(file_name: String) -> Result<String, String> {
     let file_path = debug_dir.join(&file_name);
     if !file_path.exists() { return Err(format!("XML缓存文件不存在: {}", file_name)); }
     fs::read_to_string(&file_path).map_err(|e| format!("读取XML缓存文件失败: {} - {}", file_name, e))
+}
+
+/// 📊 按需分析指定XML文件的内容（用于用户选择页面时的延迟加载）
+/// 
+/// 返回完整的内容分析结果，包括：appPackage、pageType、元素统计、主要按钮等
+#[derive(Debug, Serialize, Deserialize)]
+#[serde(rename_all = "camelCase")]
+pub struct XmlContentAnalysis {
+    /// 应用包名
+    pub app_package: String,
+    /// 页面类型
+    pub page_type: String,
+    /// 元素数量
+    pub element_count: u32,
+    /// 可点击元素数量
+    pub clickable_count: u32,
+    /// 页面描述
+    pub description: String,
+    /// 主要按钮文本（最多8个）
+    pub main_buttons: Vec<String>,
+    /// 主要文本内容（最多10个）
+    pub main_texts: Vec<String>,
+    /// 输入框数量
+    pub input_count: u32,
+}
+
+#[tauri::command]
+async fn analyze_xml_cache_file(file_name: String) -> Result<XmlContentAnalysis, String> {
+    use std::fs;
+    use std::time::Instant;
+    
+    let start = Instant::now();
+    let debug_dir = get_debug_xml_dir();
+    let file_path = debug_dir.join(&file_name);
+    
+    if !file_path.exists() { 
+        return Err(format!("XML缓存文件不存在: {}", file_name)); 
+    }
+    
+    let xml_content = fs::read_to_string(&file_path)
+        .map_err(|e| format!("读取XML缓存文件失败: {} - {}", file_name, e))?;
+    
+    let analysis = analyze_xml_content_fast(&xml_content);
+    
+    let elapsed = start.elapsed();
+    debug!("📊 分析文件 {} 完成，耗时 {:?}", file_name, elapsed);
+    
+    Ok(XmlContentAnalysis {
+        app_package: analysis.app_package,
+        page_type: analysis.page_type,
+        element_count: analysis.element_count,
+        clickable_count: analysis.clickable_count,
+        description: analysis.description,
+        main_buttons: analysis.main_buttons,
+        main_texts: analysis.main_texts,
+        input_count: analysis.input_count,
+    })
 }
 
 #[tauri::command]
@@ -801,8 +968,10 @@ pub fn init<R: Runtime>() -> TauriPlugin<R> {
         .invoke_handler(tauri::generate_handler![
             // XML Cache
             list_xml_cache_files,
-            list_xml_cache_files_with_metadata, // 🚀 新增：批量获取元数据
+            list_xml_cache_files_quick, // 🚀 快速元数据（仅文件系统信息，<50ms）
+            list_xml_cache_files_with_metadata, // 完整元数据（包含内容分析）
             read_xml_cache_file,
+            analyze_xml_cache_file, // 🚀 按需分析（用户选择时调用）
             get_xml_file_size,
             get_xml_file_absolute_path,
             delete_xml_cache_artifacts,
