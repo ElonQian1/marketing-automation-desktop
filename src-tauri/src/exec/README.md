@@ -56,14 +56,14 @@ src-tauri/src/exec/v3_new/
 import { invoke } from '@tauri-apps/api/core';
 
 // 1) 单步执行（V3）
-await invoke('execute_single_step_test_v3', {
+await invoke('plugin:execution_v3|execute_single_step_test_v3', {
   deviceId: 'emulator-5554',
   step: {/* Step 数据（与 AI/步骤卡片对齐） */},
   mode: 'execute-step' // 或 'match-only'
 });
 
 // 2) 智能自动链（推荐）
-const result = await invoke('execute_chain_test_v3', {
+const result = await invoke('plugin:execution_v3|execute_chain_test_v3', {
   deviceId: 'emulator-5554',
   steps: [/* 多个 Step */],
   threshold: 0.72,             // 置信度阈值
@@ -72,7 +72,7 @@ const result = await invoke('execute_chain_test_v3', {
 });
 
 // 3) 静态策略执行（无需设备）
-await invoke('execute_static_strategy_test_v3', {
+await invoke('plugin:execution_v3|execute_static_strategy_test_v3', {
   scenario: {/* 策略与元素的静态描述 */}
 });
 ```
