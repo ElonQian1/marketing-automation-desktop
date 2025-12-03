@@ -279,6 +279,38 @@ impl UniversalUIPageAnalyzer {
                         sibling_count_stack.push(0); // 新层级的第一个子元素索引为0
                     }
                 }
+                // 🔥 关键修复：处理自闭合标签 <node ... />
+                // 在 quick_xml 中，自闭合标签生成 Event::Empty 而不是 Event::Start
+                Ok(Event::Empty(ref e)) => {
+                    if e.name().as_ref() == b"node" {
+                        id_counter += 1;
+                        let element_id = format!("element_{}", id_counter);
+                        
+                        // 生成当前元素的索引路径
+                        let current_index = sibling_count_stack.last().copied().unwrap_or(0);
+                        let mut current_index_path = index_path_stack.clone();
+                        current_index_path.push(current_index);
+                        
+                        // 递增同级元素计数（自闭合标签也是一个同级元素）
+                        if let Some(count) = sibling_count_stack.last_mut() {
+                            *count += 1;
+                        }
+                        
+                        if let Ok(mut element) = self.parse_node_attributes(e, &element_id, current_depth + 1) {
+                            // 设置索引路径
+                            element.index_path = Some(current_index_path.clone());
+                            
+                            // 应用智能分类逻辑
+                            element = self.apply_smart_classification(&element, xml_content);
+                            
+                            // 根据 enable_filtering 参数决定是否应用过滤器
+                            if !enable_filtering || self.is_valuable_element(&element) {
+                                elements.push(element);
+                            }
+                        }
+                        // 注意：自闭合标签不需要更新栈，因为它没有子元素
+                    }
+                }
                 Ok(Event::End(ref e)) => {
                     if e.name().as_ref() == b"node" {
                         // 🔥 退出子节点：恢复栈
