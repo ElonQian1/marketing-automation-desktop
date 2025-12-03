@@ -183,10 +183,58 @@
           "markdownDescription": "Default permissions for adb\n#### This permission set includes:\n\n- `allow-adb`"
         },
         {
+          "description": "Default permissions for automation\n#### This permission set includes:\n\n- `allow-automation`",
+          "type": "string",
+          "const": "automation-default",
+          "markdownDescription": "Default permissions for automation\n#### This permission set includes:\n\n- `allow-automation`"
+        },
+        {
+          "description": "Default permissions for contacts\n#### This permission set includes:\n\n- `allow-contacts`",
+          "type": "string",
+          "const": "contacts-default",
+          "markdownDescription": "Default permissions for contacts\n#### This permission set includes:\n\n- `allow-contacts`"
+        },
+        {
+          "description": "Default permissions for employees\n#### This permission set includes:\n\n- `allow-employees`",
+          "type": "string",
+          "const": "employees-default",
+          "markdownDescription": "Default permissions for employees\n#### This permission set includes:\n\n- `allow-employees`"
+        },
+        {
+          "description": "Default permissions for enhanced location\n#### This permission set includes:\n\n- `allow-enhanced-location`",
+          "type": "string",
+          "const": "enhanced-location-default",
+          "markdownDescription": "Default permissions for enhanced location\n#### This permission set includes:\n\n- `allow-enhanced-location`"
+        },
+        {
           "description": "Default permissions for execution v3\n#### This permission set includes:\n\n- `allow-execution-v3`",
           "type": "string",
           "const": "execution-v3-default",
           "markdownDescription": "Default permissions for execution v3\n#### This permission set includes:\n\n- `allow-execution-v3`"
+        },
+        {
+          "description": "Default permissions for file manager\n#### This permission set includes:\n\n- `allow-file-manager`",
+          "type": "string",
+          "const": "file-manager-default",
+          "markdownDescription": "Default permissions for file manager\n#### This permission set includes:\n\n- `allow-file-manager`"
+        },
+        {
+          "description": "Default permissions for image optimization\n#### This permission set includes:\n\n- `allow-image-optimization`",
+          "type": "string",
+          "const": "image-optimization-default",
+          "markdownDescription": "Default permissions for image optimization\n#### This permission set includes:\n\n- `allow-image-optimization`"
+        },
+        {
+          "description": "Default permissions for intelligent analysis\n#### This permission set includes:\n\n- `allow-intelligent-analysis`",
+          "type": "string",
+          "const": "intelligent-analysis-default",
+          "markdownDescription": "Default permissions for intelligent analysis\n#### This permission set includes:\n\n- `allow-intelligent-analysis`"
+        },
+        {
+          "description": "Default permissions for lead hunt\n#### This permission set includes:\n\n- `allow-lead-hunt`",
+          "type": "string",
+          "const": "lead-hunt-default",
+          "markdownDescription": "Default permissions for lead hunt\n#### This permission set includes:\n\n- `allow-lead-hunt`"
         },
         {
           "description": "Default permissions for prospecting\n#### This permission set includes:\n\n- `allow-prospecting`",
@@ -201,10 +249,28 @@
           "markdownDescription": "Default permissions for script manager\n#### This permission set includes:\n\n- `allow-script-manager`"
         },
         {
+          "description": "Default permissions for smart selection\n#### This permission set includes:\n\n- `allow-smart-selection`",
+          "type": "string",
+          "const": "smart-selection-default",
+          "markdownDescription": "Default permissions for smart selection\n#### This permission set includes:\n\n- `allow-smart-selection`"
+        },
+        {
           "description": "Default permissions for system diagnostic\n#### This permission set includes:\n\n- `allow-system-diagnostic`",
           "type": "string",
           "const": "system-diagnostic-default",
           "markdownDescription": "Default permissions for system diagnostic\n#### This permission set includes:\n\n- `allow-system-diagnostic`"
+        },
+        {
+          "description": "Default permissions for universal ui\n#### This permission set includes:\n\n- `allow-universal-ui`",
+          "type": "string",
+          "const": "universal-ui-default",
+          "markdownDescription": "Default permissions for universal ui\n#### This permission set includes:\n\n- `allow-universal-ui`"
+        },
+        {
+          "description": "Default permissions for version control\n#### This permission set includes:\n\n- `allow-version-control`",
+          "type": "string",
+          "const": "version-control-default",
+          "markdownDescription": "Default permissions for version control\n#### This permission set includes:\n\n- `allow-version-control`"
         },
         {
           "description": "Default permissions for xml cache\n#### This permission set includes:\n\n- `allow-xml-cache`",
@@ -219,10 +285,58 @@
           "markdownDescription": "Enables all adb commands"
         },
         {
+          "description": "Enables all automation commands",
+          "type": "string",
+          "const": "allow-automation",
+          "markdownDescription": "Enables all automation commands"
+        },
+        {
+          "description": "Enables all contacts commands",
+          "type": "string",
+          "const": "allow-contacts",
+          "markdownDescription": "Enables all contacts commands"
+        },
+        {
+          "description": "Enables all employees commands",
+          "type": "string",
+          "const": "allow-employees",
+          "markdownDescription": "Enables all employees commands"
+        },
+        {
+          "description": "Enables all enhanced location commands",
+          "type": "string",
+          "const": "allow-enhanced-location",
+          "markdownDescription": "Enables all enhanced location commands"
+        },
+        {
           "description": "Enables all execution v3 commands",
           "type": "string",
           "const": "allow-execution-v3",
           "markdownDescription": "Enables all execution v3 commands"
+        },
+        {
+          "description": "Enables all file manager commands",
+          "type": "string",
+          "const": "allow-file-manager",
+          "markdownDescription": "Enables all file manager commands"
+        },
+        {
+          "description": "Enables all image optimization commands",
+          "type": "string",
+          "const": "allow-image-optimization",
+          "markdownDescription": "Enables all image optimization commands"
+        },
+        {
+          "description": "Enables all intelligent analysis commands",
+          "type": "string",
+          "const": "allow-intelligent-analysis",
+          "markdownDescription": "Enables all intelligent analysis commands"
+        },
+        {
+          "description": "Enables all lead hunt commands",
+          "type": "string",
+          "const": "allow-lead-hunt",
+          "markdownDescription": "Enables all lead hunt commands"
         },
         {
           "description": "Enables all prospecting commands",
@@ -237,10 +351,28 @@
           "markdownDescription": "Enables all script manager commands"
         },
         {
+          "description": "Enables all smart selection commands",
+          "type": "string",
+          "const": "allow-smart-selection",
+          "markdownDescription": "Enables all smart selection commands"
+        },
+        {
           "description": "Enables all system diagnostic commands",
           "type": "string",
           "const": "allow-system-diagnostic",
           "markdownDescription": "Enables all system diagnostic commands"
+        },
+        {
+          "description": "Enables all universal ui commands",
+          "type": "string",
+          "const": "allow-universal-ui",
+          "markdownDescription": "Enables all universal ui commands"
+        },
+        {
+          "description": "Enables all version control commands",
+          "type": "string",
+          "const": "allow-version-control",
+          "markdownDescription": "Enables all version control commands"
         },
         {
           "description": "Enables all xml cache commands",
