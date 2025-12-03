@@ -134,7 +134,7 @@ export class ExecutionAbortService {
   ): Promise<{ stoppedAt?: { stepIndex: number; stepName: string } }> {
     try {
       // 调用新的后端中止接口
-      const result = await invoke('abort_script_execution', {
+      const result = await invoke('plugin:automation|abort_script_execution', {
         executionId,
         reason: request.reason || '用户手动中止',
         force: request.force || false
@@ -149,7 +149,7 @@ export class ExecutionAbortService {
       // 如果主要中止接口失败，尝试其他方式
       try {
         // 尝试调用通用中止接口
-        await invoke('cancel_current_operation');
+        await invoke('plugin:automation|cancel_current_operation');
         console.log(`🔄 [执行控制] 使用通用中止接口成功`);
         return {};
       } catch (secondError) {
@@ -157,7 +157,7 @@ export class ExecutionAbortService {
         
         // 最后尝试：强制终止所有 ADB 操作
         try {
-          await invoke('force_stop_all_adb_operations');
+          await invoke('plugin:automation|force_stop_all_adb_operations');
           console.log(`🔨 [执行控制] 强制停止 ADB 操作成功`);
           return {};
         } catch (thirdError) {
