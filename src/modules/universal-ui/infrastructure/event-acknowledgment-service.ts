@@ -135,21 +135,16 @@ export class EventAcknowledgmentService {
     eventId: string, 
     additionalData?: Record<string, any>
   ): Promise<void> {
-    // 暂时禁用后端ACK调用，因为后端尚未实现该命令
-    // 避免产生 "Command acknowledge_event not found" 错误日志
-    /*
     try {
-      await invoke('acknowledge_event', {
-        event_type: eventType,
-        event_id: eventId,
-        acknowledged_at: Date.now(),
-        additional_data: additionalData || {}
+      await invoke('plugin:universal_ui|acknowledge_event', {
+        eventId,
+        eventType,
+        acknowledgedAt: Date.now(),
+        additionalData: additionalData || {}
       });
     } catch (error) {
-      // ...
+      console.warn(`⚠️ [EventAck] Failed to send ack to backend:`, error);
     }
-    */
-    return Promise.resolve();
   }
   
   /**

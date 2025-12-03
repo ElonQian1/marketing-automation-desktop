@@ -42,6 +42,18 @@ async fn extract_elements(
     crate::services::universal_ui_page_analyzer::extract_page_elements(xml_content).await
 }
 
+/// 确认事件处理
+#[tauri::command]
+async fn acknowledge_event(
+    _event_id: String,
+    _event_type: String,
+    _acknowledged_at: Option<i64>,
+    _additional_data: Option<serde_json::Value>,
+) -> Result<(), String> {
+    // Stub implementation
+    Ok(())
+}
+
 /// 分类UI元素 - 按元素类型分组
 #[tauri::command]
 async fn classify_elements(
@@ -76,6 +88,46 @@ async fn identify_page(
     crate::services::universal_ui_page_analyzer::identify_page_type(xml_content, app_package).await
 }
 
+#[tauri::command]
+async fn save_page_analysis(_analysis: serde_json::Value) -> Result<String, String> {
+    Ok("stub_id".to_string())
+}
+
+#[tauri::command]
+async fn get_page_analysis_by_id(_analysis_id: String) -> Result<serde_json::Value, String> {
+    Ok(serde_json::json!({}))
+}
+
+#[tauri::command]
+async fn get_page_analyses_by_device(_device_id: String, _limit: Option<u32>) -> Result<Vec<serde_json::Value>, String> {
+    Ok(vec![])
+}
+
+#[tauri::command]
+async fn get_page_analyses_by_app(_app_package: String, _limit: Option<u32>) -> Result<Vec<serde_json::Value>, String> {
+    Ok(vec![])
+}
+
+#[tauri::command]
+async fn get_page_analyses_by_type(_page_type: String, _limit: Option<u32>) -> Result<Vec<serde_json::Value>, String> {
+    Ok(vec![])
+}
+
+#[tauri::command]
+async fn cleanup_old_page_analyses(_older_than_days: i32) -> Result<usize, String> {
+    Ok(0)
+}
+
+#[tauri::command]
+async fn get_page_analysis_statistics() -> Result<serde_json::Value, String> {
+    Ok(serde_json::json!({
+        "total_count": 0,
+        "total_size_bytes": 0,
+        "oldest_analysis": null,
+        "newest_analysis": null
+    }))
+}
+
 // ==================== 插件初始化 ====================
 
 /// 导出插件初始化函数
@@ -93,9 +145,17 @@ pub fn init<R: Runtime>() -> TauriPlugin<R> {
         .invoke_handler(tauri::generate_handler![
             analyze_page,
             extract_elements,
+            acknowledge_event,
             classify_elements,
             deduplicate,
             identify_page,
+            save_page_analysis,
+            get_page_analysis_by_id,
+            get_page_analyses_by_device,
+            get_page_analyses_by_app,
+            get_page_analyses_by_type,
+            cleanup_old_page_analyses,
+            get_page_analysis_statistics
         ])
         .build()
 }
