@@ -570,8 +570,6 @@ export function convertSmartStepToV2Request(
     bounds: parseBoundsFromParams(params),
     // 🎯 修复：智能提取目标文本信息，解决空文本匹配过度宽泛的问题
     targetText: extractTargetTextFromStep(step, params),
-    contentDesc: xmlSnapshot?.elementSignature?.contentDesc || params.content_desc as string || '',
-    resourceId: xmlSnapshot?.elementSignature?.resourceId || params.resource_id as string || '',
     // 🔥 【核心修复】传递 XPath 和 xmlSnapshot（完整数据）
     elementPath: effectiveXPath,  // ✅ 使用有效XPath
     xpath: effectiveXPath,  // ✅ 使用有效XPath
