@@ -130,6 +130,16 @@ async fn check_device_availability() -> bool {
 
 // ==================== 插件初始化 ====================
 
+#[tauri::command]
+async fn clear_logs() -> Result<(), String> {
+    Ok(())
+}
+
+#[tauri::command]
+async fn add_log_entry(_entry: Value) -> Result<(), String> {
+    Ok(())
+}
+
 pub fn init<R: Runtime>() -> TauriPlugin<R> {
     Builder::new("system_diagnostic")
         .invoke_handler(tauri::generate_handler![
@@ -140,7 +150,9 @@ pub fn init<R: Runtime>() -> TauriPlugin<R> {
             test_device,
             run_diagnostic,
             test_click_normalization,
-            analyze_xml_structure
+            analyze_xml_structure,
+            clear_logs,
+            add_log_entry
         ])
         .build()
 }
