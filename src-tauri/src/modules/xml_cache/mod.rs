@@ -1,6 +1,6 @@
 use tauri::{plugin::{Builder, TauriPlugin}, Runtime};
 use tracing::{info, warn, debug, error};
-use serde::Serialize;
+use serde::{Serialize, Deserialize};
 use std::collections::HashMap;
 use anyhow::Result;
 
@@ -19,6 +19,42 @@ mod enhanced; // ✅ Add enhanced cache module
 
 // ==================== 📁 XML Cache Management ====================
 
+/// 📦 XML缓存文件元数据（一次性返回所有文件的完整信息）
+#[derive(Debug, Serialize, Deserialize)]
+#[serde(rename_all = "camelCase")]
+pub struct XmlCacheFileMetadata {
+    /// 文件名（如 ui_dump_e0d909c3_20251203_123223.xml）
+    pub file_name: String,
+    /// 文件绝对路径
+    pub absolute_path: String,
+    /// 文件大小（字节）
+    pub file_size: u64,
+    /// 设备ID（从文件名解析）
+    pub device_id: String,
+    /// 时间戳（从文件名解析，格式如 20251203_123223）
+    pub timestamp: String,
+    /// 截图文件名（如果存在）
+    pub screenshot_file_name: Option<String>,
+    /// 截图绝对路径（如果存在）
+    pub screenshot_absolute_path: Option<String>,
+    /// 应用包名（通过扫描XML内容检测）
+    pub app_package: String,
+    /// 页面类型（通过扫描XML内容识别）
+    pub page_type: String,
+    /// 元素数量（通过统计XML节点）
+    pub element_count: u32,
+    /// 可点击元素数量
+    pub clickable_count: u32,
+    /// 页面描述
+    pub description: String,
+    /// 主要按钮文本（最多8个）
+    pub main_buttons: Vec<String>,
+    /// 主要文本内容（最多10个）
+    pub main_texts: Vec<String>,
+    /// 输入框数量
+    pub input_count: u32,
+}
+
 #[tauri::command]
 async fn list_xml_cache_files() -> Result<Vec<String>, String> {
     use std::fs;
@@ -35,6 +71,221 @@ async fn list_xml_cache_files() -> Result<Vec<String>, String> {
             Ok(xml_files)
         }
         Err(e) => Err(format!("读取debug_xml目录失败: {}", e))
+    }
+}
+
+/// 🚀 批量获取所有XML缓存文件的完整元数据（一次IPC调用替代 N×4 次调用）
+/// 
+/// 优化前：每个文件需要 4 次 IPC 调用（list + read + size + path）
+/// 优化后：一次调用返回所有文件的完整元数据
+#[tauri::command]
+async fn list_xml_cache_files_with_metadata() -> Result<Vec<XmlCacheFileMetadata>, String> {
+    use std::fs;
+    use std::time::Instant;
+    use regex::Regex;
+    
+    let start = Instant::now();
+    let debug_dir = get_debug_xml_dir();
+    
+    if !debug_dir.exists() {
+        info!("📂 debug_xml 目录不存在，返回空列表");
+        return Ok(vec![]);
+    }
+    
+    let entries = fs::read_dir(&debug_dir)
+        .map_err(|e| format!("读取debug_xml目录失败: {}", e))?;
+    
+    // 文件名正则：ui_dump_{deviceId}_{timestamp}.xml
+    let filename_regex = Regex::new(r"^ui_dump_([^_]+)_(\d{8}_\d{6})\.xml$")
+        .map_err(|e| format!("正则编译失败: {}", e))?;
+    
+    let mut results = Vec::new();
+    
+    for entry in entries.flatten() {
+        let path = entry.path();
+        if !path.is_file() { continue; }
+        
+        let file_name = match path.file_name().and_then(|f| f.to_str()) {
+            Some(name) if name.ends_with(".xml") && name.starts_with("ui_dump_") => name.to_string(),
+            _ => continue,
+        };
+        
+        // 解析文件名获取 deviceId 和 timestamp
+        let (device_id, timestamp) = match filename_regex.captures(&file_name) {
+            Some(caps) => (
+                caps.get(1).map(|m| m.as_str().to_string()).unwrap_or_default(),
+                caps.get(2).map(|m| m.as_str().to_string()).unwrap_or_default()
+            ),
+            None => {
+                warn!("⚠️ 无法解析文件名: {}", file_name);
+                continue;
+            }
+        };
+        
+        // 获取文件大小
+        let file_size = fs::metadata(&path)
+            .map(|m| m.len())
+            .unwrap_or(0);
+        
+        // 获取绝对路径
+        let absolute_path = fs::canonicalize(&path)
+            .map(|p| p.to_string_lossy().to_string())
+            .unwrap_or_else(|_| path.to_string_lossy().to_string());
+        
+        // 检查截图是否存在
+        let screenshot_file_name = file_name.replace(".xml", ".png");
+        let screenshot_path = debug_dir.join(&screenshot_file_name);
+        let (screenshot_file_name, screenshot_absolute_path) = if screenshot_path.exists() {
+            let abs_path = fs::canonicalize(&screenshot_path)
+                .map(|p| p.to_string_lossy().to_string())
+                .ok();
+            (Some(screenshot_file_name), abs_path)
+        } else {
+            (None, None)
+        };
+        
+        // 读取 XML 内容并分析
+        let xml_content = match fs::read_to_string(&path) {
+            Ok(content) => content,
+            Err(e) => {
+                warn!("⚠️ 读取文件失败 {}: {}", file_name, e);
+                continue;
+            }
+        };
+        
+        // 分析 XML 内容（使用高效的正则扫描，避免完整 DOM 解析）
+        let analysis = analyze_xml_content_fast(&xml_content);
+        
+        results.push(XmlCacheFileMetadata {
+            file_name,
+            absolute_path,
+            file_size,
+            device_id,
+            timestamp,
+            screenshot_file_name,
+            screenshot_absolute_path,
+            app_package: analysis.app_package,
+            page_type: analysis.page_type,
+            element_count: analysis.element_count,
+            clickable_count: analysis.clickable_count,
+            description: analysis.description,
+            main_buttons: analysis.main_buttons,
+            main_texts: analysis.main_texts,
+            input_count: analysis.input_count,
+        });
+    }
+    
+    // 按时间戳降序排序（最新的在前）
+    results.sort_by(|a, b| b.timestamp.cmp(&a.timestamp));
+    
+    let elapsed = start.elapsed();
+    info!("✅ 批量加载 {} 个XML缓存文件元数据完成，耗时 {:?}", results.len(), elapsed);
+    
+    Ok(results)
+}
+
+/// 快速分析 XML 内容（使用正则而非 DOM 解析，提升性能）
+struct XmlAnalysisResult {
+    app_package: String,
+    page_type: String,
+    element_count: u32,
+    clickable_count: u32,
+    description: String,
+    main_buttons: Vec<String>,
+    main_texts: Vec<String>,
+    input_count: u32,
+}
+
+fn analyze_xml_content_fast(xml_content: &str) -> XmlAnalysisResult {
+    use regex::Regex;
+    
+    // 检测应用包名（高效字符串搜索）
+    let app_package = if xml_content.contains("com.xingin.xhs") {
+        "com.xingin.xhs".to_string()
+    } else if xml_content.contains("com.tencent.mm") {
+        "com.tencent.mm".to_string()
+    } else if xml_content.contains("com.ss.android.ugc.aweme") {
+        "com.ss.android.ugc.aweme".to_string()
+    } else if xml_content.contains("com.android.contacts") {
+        "com.android.contacts".to_string()
+    } else {
+        "unknown".to_string()
+    };
+    
+    // 统计元素数量（统计 <node 出现次数）
+    let element_count = xml_content.matches("<node ").count() as u32;
+    
+    // 统计可点击元素（统计 clickable="true" 出现次数）
+    let clickable_count = xml_content.matches(r#"clickable="true""#).count() as u32;
+    
+    // 统计输入框（统计 EditText 出现次数）
+    let input_count = xml_content.matches("EditText").count() as u32;
+    
+    // 提取主要文本（正则匹配 text="..."）
+    let text_regex = Regex::new(r#"text="([^"]{1,20})""#).unwrap();
+    let main_texts: Vec<String> = text_regex.captures_iter(xml_content)
+        .filter_map(|cap| cap.get(1).map(|m| m.as_str().trim().to_string()))
+        .filter(|s| !s.is_empty())
+        .take(10)
+        .collect();
+    
+    // 提取可点击元素的文本作为主要按钮
+    // 简化：匹配 clickable="true" 前后的 text 属性
+    let button_regex = Regex::new(r#"text="([^"]{1,15})"[^>]*clickable="true"|clickable="true"[^>]*text="([^"]{1,15})""#).unwrap();
+    let main_buttons: Vec<String> = button_regex.captures_iter(xml_content)
+        .filter_map(|cap| {
+            cap.get(1).or_else(|| cap.get(2))
+                .map(|m| m.as_str().trim().to_string())
+        })
+        .filter(|s| !s.is_empty())
+        .take(8)
+        .collect();
+    
+    // 识别页面类型
+    let page_type = identify_page_type_fast(&app_package, xml_content);
+    
+    // 生成描述
+    let description = format!("{} • {}个可点击元素", page_type, clickable_count);
+    
+    XmlAnalysisResult {
+        app_package,
+        page_type,
+        element_count,
+        clickable_count,
+        description,
+        main_buttons,
+        main_texts,
+        input_count,
+    }
+}
+
+fn identify_page_type_fast(app_package: &str, xml_content: &str) -> String {
+    match app_package {
+        "com.xingin.xhs" => {
+            if xml_content.contains("发现") && xml_content.contains("首页") {
+                "小红书首页".to_string()
+            } else if xml_content.contains("搜索") {
+                "小红书搜索页".to_string()
+            } else if xml_content.contains("消息") || xml_content.contains("聊天") {
+                "小红书消息页".to_string()
+            } else if xml_content.contains("粉丝") || xml_content.contains("关注") {
+                "小红书个人中心".to_string()
+            } else if xml_content.contains("评论") {
+                "小红书详情页".to_string()
+            } else {
+                "小红书页面".to_string()
+            }
+        }
+        "com.tencent.mm" => "微信页面".to_string(),
+        "com.ss.android.ugc.aweme" => {
+            if xml_content.contains("首页") {
+                "抖音首页".to_string()
+            } else {
+                "抖音页面".to_string()
+            }
+        }
+        "com.android.contacts" => "系统通讯录".to_string(),
+        _ => "未知页面".to_string(),
     }
 }
 
@@ -550,6 +801,7 @@ pub fn init<R: Runtime>() -> TauriPlugin<R> {
         .invoke_handler(tauri::generate_handler![
             // XML Cache
             list_xml_cache_files,
+            list_xml_cache_files_with_metadata, // 🚀 新增：批量获取元数据
             read_xml_cache_file,
             get_xml_file_size,
             get_xml_file_absolute_path,

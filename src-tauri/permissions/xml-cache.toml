@@ -3,6 +3,7 @@ identifier = "allow-xml-cache"
 description = "Enables all xml cache commands"
 commands.allow = [
     "plugin:xml_cache|list_xml_cache_files",
+    "plugin:xml_cache|list_xml_cache_files_with_metadata",
     "plugin:xml_cache|read_xml_cache_file",
     "plugin:xml_cache|get_xml_file_size",
     "plugin:xml_cache|get_xml_file_absolute_path",
