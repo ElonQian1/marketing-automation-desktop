@@ -44,8 +44,8 @@ impl ProspectingState {
 }
 
 #[tauri::command]
-async fn init_storage(
-    app: AppHandle,
+async fn init_storage<R: Runtime>(
+    app: AppHandle<R>,
     state: State<'_, ProspectingState>,
 ) -> Result<(), String> {
     let data_dir = app.path()
@@ -252,7 +252,7 @@ async fn cleanup_expired_operations(
 }
 
 pub fn init<R: Runtime>() -> TauriPlugin<R> {
-    Builder::new("prospecting")
+    Builder::<R>::new("prospecting")
         .setup(|app, _api| {
             app.manage(ProspectingState::new());
             Ok(())
