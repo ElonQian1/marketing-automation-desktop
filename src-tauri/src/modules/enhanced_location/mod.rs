@@ -3,6 +3,7 @@ use tauri::{
     Runtime,
 };
 use crate::commands::enhanced_location_commands::*;
+use crate::commands::strategy_matching::match_element_by_criteria;
 
 pub fn init<R: Runtime>() -> TauriPlugin<R> {
     Builder::new("enhanced_location")
@@ -11,7 +12,8 @@ pub fn init<R: Runtime>() -> TauriPlugin<R> {
             generate_xpath_candidates,
             generate_best_xpath,
             validate_xpath,
-            update_xpath_strategy_success_rate
+            update_xpath_strategy_success_rate,
+            match_element_by_criteria
         ])
         .build()
 }
