@@ -36,13 +36,15 @@ export function buildXPath(
   const segments: string[] = [];
 
   // 优先使用 resource-id（Android 特有）
-  if (useAttributes && element['resource-id']) {
-    return `//*[@resource-id="${element['resource-id']}"]`;
+  const resourceId = element['resource-id'] || element['resource_id'];
+  if (useAttributes && resourceId) {
+    return `//*[@resource-id="${resourceId}"]`;
   }
 
   // 使用 content-desc
-  if (useAttributes && element['content-desc']) {
-    return `//*[@content-desc="${element['content-desc']}"]`;
+  const contentDesc = element['content-desc'] || element['content_desc'];
+  if (useAttributes && contentDesc) {
+    return `//*[@content-desc="${contentDesc}"]`;
   }
 
   // 使用 text 属性
@@ -52,8 +54,9 @@ export function buildXPath(
   }
 
   // 使用 class 属性
-  if (useAttributes && element.class) {
-    segments.push(`@class="${element.class}"`);
+  const className = element.class || element.class_name || element['class'];
+  if (useAttributes && className) {
+    segments.push(`@class="${className}"`);
   }
 
   // 构建基础 XPath
@@ -84,21 +87,26 @@ export function buildHierarchicalXPath(
   }
 
   // 如果有明确的 resource-id，直接使用
-  if (element['resource-id']) {
-    return `//*[@resource-id="${element['resource-id']}"]`;
+  const resourceId = element['resource-id'] || element['resource_id'];
+  if (resourceId) {
+    return `//*[@resource-id="${resourceId}"]`;
   }
 
   const segments: string[] = [];
 
   // 构建父级路径
   for (const parent of parentElements) {
-    if (parent['resource-id']) {
-      segments.push(`//*[@resource-id="${parent['resource-id']}"]`);
+    const parentResourceId = parent['resource-id'] || parent['resource_id'];
+    if (parentResourceId) {
+      segments.push(`//*[@resource-id="${parentResourceId}"]`);
       break; // 找到有 ID 的父级就停止
-    } else if (parent.class) {
-      segments.push(`//${parent.tagName || '*'}[@class="${parent.class}"]`);
     } else {
-      segments.push(`//${parent.tagName || '*'}`);
+      const parentClass = parent.class || parent.class_name || parent['class'];
+      if (parentClass) {
+        segments.push(`//${parent.tagName || '*'}[@class="${parentClass}"]`);
+      } else {
+        segments.push(`//${parent.tagName || '*'}`);
+      }
     }
   }
 
