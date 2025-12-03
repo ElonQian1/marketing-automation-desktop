@@ -3,7 +3,18 @@ use tauri::{
     Runtime,
 };
 use crate::commands::enhanced_location_commands::*;
-use crate::commands::strategy_matching::match_element_by_criteria;
+use crate::commands::strategy_matching::{match_element_by_criteria as match_element_impl, MatchCriteriaDTO, MatchResult};
+use serde_json::Value;
+
+#[tauri::command]
+async fn match_element_by_criteria(device_id: String, criteria: MatchCriteriaDTO) -> Result<MatchResult, String> {
+    match_element_impl(device_id, criteria).await
+}
+
+#[tauri::command]
+async fn save_smart_selection_config(_step_id: String, _selection_mode: String, _batch_config: Value) -> Result<(), String> {
+    Ok(())
+}
 
 pub fn init<R: Runtime>() -> TauriPlugin<R> {
     Builder::new("enhanced_location")
@@ -13,7 +24,8 @@ pub fn init<R: Runtime>() -> TauriPlugin<R> {
             generate_best_xpath,
             validate_xpath,
             update_xpath_strategy_success_rate,
-            match_element_by_criteria
+            match_element_by_criteria,
+            save_smart_selection_config
         ])
         .build()
 }
