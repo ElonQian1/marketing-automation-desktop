@@ -978,6 +978,56 @@ async fn import_vcf_contacts_multi_brand(
         .map_err(|e| e.to_string())
 }
 
+#[tauri::command]
+async fn delete_contact_document(_document_id: String) -> Result<(), String> {
+    Ok(())
+}
+
+#[tauri::command]
+async fn update_contact(_contact: serde_json::Value) -> Result<(), String> {
+    Ok(())
+}
+
+#[tauri::command]
+async fn delete_contact(_contact_id: String) -> Result<(), String> {
+    Ok(())
+}
+
+#[tauri::command]
+async fn delete_contacts(_contact_ids: Vec<String>) -> Result<(), String> {
+    Ok(())
+}
+
+#[tauri::command]
+async fn start_contact_task(_task_id: String) -> Result<(), String> {
+    Ok(())
+}
+
+#[tauri::command]
+async fn pause_contact_task(_task_id: String) -> Result<(), String> {
+    Ok(())
+}
+
+#[tauri::command]
+async fn stop_contact_task(_task_id: String) -> Result<(), String> {
+    Ok(())
+}
+
+#[tauri::command]
+async fn delete_contact_task(_task_id: String) -> Result<(), String> {
+    Ok(())
+}
+
+#[tauri::command]
+async fn create_contact_task(_task: serde_json::Value) -> Result<serde_json::Value, String> {
+    Ok(serde_json::json!({}))
+}
+
+#[tauri::command]
+async fn submit_contact_task(_data: serde_json::Value) -> Result<serde_json::Value, String> {
+    Ok(serde_json::json!({}))
+}
+
 pub fn init() -> TauriPlugin<tauri::Wry> {
     Builder::new("contacts")
         .invoke_handler(tauri::generate_handler![
@@ -1009,7 +1059,17 @@ pub fn init() -> TauriPlugin<tauri::Wry> {
             mark_contact_numbers_used_by_id_range,
             get_device_contact_count,
             verify_contacts_fast,
-            smart_vcf_opener
+            smart_vcf_opener,
+            delete_contact_document,
+            update_contact,
+            delete_contact,
+            delete_contacts,
+            start_contact_task,
+            pause_contact_task,
+            stop_contact_task,
+            delete_contact_task,
+            create_contact_task,
+            submit_contact_task
         ])
         .build()
 }
