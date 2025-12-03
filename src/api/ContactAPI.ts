@@ -232,7 +232,7 @@ export class AdbAPI {
     x: number,
     y: number
   ): Promise<void> {
-    await invoke("adb_tap", { deviceId, x, y });
+    await invoke("plugin:adb|tap", { deviceId, x, y });
   }
 
   /**
