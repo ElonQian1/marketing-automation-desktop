@@ -328,7 +328,7 @@ export const ImportStrategyDialog: React.FC<ImportStrategyDialogProps> = ({
       onCancel={onClose}
       footer={getModalFooter()}
       width={800}
-      destroyOnClose
+      destroyOnHidden
     >
       <div style={{ marginBottom: 24 }}>
         <Steps current={currentStep} size="small">

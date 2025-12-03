@@ -411,7 +411,7 @@ export const TemplateManager: React.FC = () => {
         }}
         onOk={() => form.submit()}
         width={800}
-        destroyOnClose
+        destroyOnHidden
       >
         <Form
           form={form}

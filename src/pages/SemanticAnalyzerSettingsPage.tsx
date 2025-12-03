@@ -489,7 +489,7 @@ export const SemanticAnalyzerSettingsPage: React.FC = () => {
         open={editModalVisible}
         onOk={handleSavePair}
         onCancel={() => setEditModalVisible(false)}
-        destroyOnClose
+        destroyOnHidden
       >
         <Form form={form} layout="vertical">
           <Form.Item

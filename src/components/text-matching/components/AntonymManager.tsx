@@ -367,7 +367,7 @@ export const AntonymManager: React.FC<AntonymManagerProps> = ({
           }}
           okText="保存"
           cancelText="取消"
-          destroyOnClose
+          destroyOnHidden
         >
           <Form
             form={form}

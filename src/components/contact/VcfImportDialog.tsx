@@ -365,7 +365,7 @@ export const VcfImportDialog: React.FC<VcfImportDialogProps> = ({
       onCancel={handleClose}
       footer={null}
       width={800}
-      destroyOnClose
+      destroyOnHidden
     >
       <div className="p-4">
         <Steps current={currentStep} className="mb-6">

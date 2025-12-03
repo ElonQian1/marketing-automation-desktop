@@ -486,7 +486,7 @@ export const TaskExecutionCenter: React.FC<TaskExecutionCenterProps> = ({
           setEditModalVisible(false);
           setEditingTask(null);
         }}
-        destroyOnClose
+        destroyOnHidden
       >
         <Form form={form} layout="vertical">
           <Form.Item

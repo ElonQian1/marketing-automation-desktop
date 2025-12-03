@@ -149,7 +149,7 @@ export const AdvancedFailureConfigModal: React.FC<AdvancedFailureConfigModalProp
         disabled: !isConfigValid(),
         icon: <CheckCircleOutlined />
       }}
-      destroyOnClose
+      destroyOnHidden
     >
       <div style={{ marginBottom: 16 }}>
         <Alert
