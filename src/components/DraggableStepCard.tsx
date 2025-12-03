@@ -56,6 +56,7 @@ export interface DeviceInfo {
 export interface StepParameters {
   // 基础参数
   element_selector?: string;
+  package_name?: string;
   bounds?: string;
   text?: string;
   timeout?: number;
@@ -1280,6 +1281,10 @@ const DraggableStepCardInner: React.FC<
                   ? step.parameters.element_selector.substring(0, 30) + "..."
                   : step.parameters.element_selector}
               </span>
+            )}
+
+            {step.parameters?.package_name && (
+              <span>包名: {step.parameters.package_name}</span>
             )}
 
             {currentDevice && <span>设备: {currentDevice.name}</span>}
