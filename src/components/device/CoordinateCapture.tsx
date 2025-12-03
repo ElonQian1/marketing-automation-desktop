@@ -56,7 +56,7 @@ const CoordinateCapture: React.FC<CoordinateCaptureProps> = ({
   const takeScreenshot = async () => {
     setLoading(true);
     try {
-      const result = await invoke('capture_device_screenshot', {
+      const result = await invoke('plugin:adb|capture_device_screenshot', {
         deviceId: deviceId
       }) as ScreenshotResult;
 
