@@ -34,7 +34,7 @@ export async function executeActionOnce(step: SmartScriptStep, deviceId: string)
     originalType: payloadStep.step_type,
   });
   
-  const result = await invoke('execute_single_step_test', {
+  const result = await invoke('plugin:automation|execute_single_step_test', {
     deviceId,
     step: {
       ...payloadStep,

@@ -44,7 +44,7 @@ export async function runBackendLoop(step: SmartScriptStep, inlineCount: number,
     detailed_logging: true,
   };
 
-  const execResult = await invoke('execute_smart_automation_script', {
+  const execResult = await invoke('plugin:automation|execute_smart_automation_script', {
     deviceId,
     steps: [loopStart, payloadStep, loopEnd],
     config: backendConfig,

@@ -69,7 +69,7 @@ export async function executeXPathDirect(
   
   try {
     // 调用简化的后端命令：device_id, xpath_expr, action
-    const result: string = await invoke('execute_xpath_action', {
+    const result: string = await invoke('plugin:automation|execute_xpath_action', {
       deviceId,
       xpathExpr: xpathExpression,
       action: actionType
