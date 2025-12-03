@@ -75,6 +75,33 @@ interface BackendXmlCacheMetadata {
   inputCount: number;
 }
 
+/**
+ * ⚡ 轻量版元数据接口（仅文件系统信息，不包含内容分析）
+ */
+interface BackendXmlCacheQuickMetadata {
+  fileName: string;
+  absolutePath: string;
+  fileSize: number;
+  deviceId: string;
+  timestamp: string;
+  screenshotFileName: string | null;
+  screenshotAbsolutePath: string | null;
+}
+
+/**
+ * 📊 按需分析结果接口（用户选择页面时返回）
+ */
+interface BackendXmlContentAnalysis {
+  appPackage: string;
+  pageType: string;
+  elementCount: number;
+  clickableCount: number;
+  description: string;
+  mainButtons: string[];
+  mainTexts: string[];
+  inputCount: number;
+}
+
 export interface XmlPageContent {
   /** XML原始内容 */
   xmlContent: string;
@@ -237,15 +264,121 @@ export class XmlPageCacheService {
   }
 
   /**
-   * 🚀 加载所有缓存页面的元数据（优化版：一次IPC调用）
+   * 🚀 加载所有缓存页面的元数据（优化版：延迟内容分析）
    * 
-   * 优化前：N个文件 × 4次IPC调用 = 4N次调用（约1000ms+）
-   * 优化后：1次批量IPC调用（目标 <300ms）
+   * 优化前：读取所有XML文件内容并分析（1480ms）
+   * 优化后：仅获取文件系统信息，内容分析延迟到用户选择时（目标 <50ms）
    */
   private static async loadCachedPages(): Promise<void> {
     try {
       const startTime = performance.now();
-      console.log('🚀 [性能优化] 开始批量加载XML缓存元数据...');
+      console.log('⚡ [性能优化] 开始快速加载XML缓存元数据（仅文件系统信息）...');
+      
+      // 🔥 一次调用获取所有文件的轻量元数据（不读取文件内容）
+      const quickMetadataList: BackendXmlCacheQuickMetadata[] = await invoke(
+        'plugin:xml_cache|list_xml_cache_files_quick'
+      );
+      
+      // 转换为前端格式（使用占位符，等待用户选择时再分析）
+      const pages: CachedXmlPage[] = quickMetadataList.map(meta => 
+        this.convertQuickMetadataToPage(meta)
+      );
+      
+      this.cachedPages = pages;
+      
+      const elapsed = performance.now() - startTime;
+      console.log(`⚡ 快速加载 ${pages.length} 个缓存页面完成，耗时 ${elapsed.toFixed(0)}ms`);
+      
+    } catch (error) {
+      console.error('❌ 快速加载XML缓存失败，回退到完整加载:', error);
+      // 回退到完整加载方式
+      await this.loadCachedPagesFull();
+    }
+  }
+
+  /**
+   * 将轻量元数据转换为前端 CachedXmlPage 格式（使用占位符）
+   */
+  private static convertQuickMetadataToPage(meta: BackendXmlCacheQuickMetadata): CachedXmlPage {
+    // 使用文件大小估算元素数量（约 1KB = 10 个元素）
+    const estimatedElementCount = Math.round(meta.fileSize / 100);
+    const estimatedClickableCount = Math.round(estimatedElementCount * 0.15);
+    
+    const pageTitle = `快照 ${this.formatTimestamp(meta.timestamp)}`;
+    const description = `${(meta.fileSize / 1024).toFixed(1)}KB • 点击查看详情`;
+    
+    return {
+      filePath: `${this.DEBUG_XML_DIR}/${meta.fileName}`,
+      absoluteFilePath: meta.absolutePath,
+      fileName: meta.fileName,
+      deviceId: meta.deviceId,
+      timestamp: meta.timestamp,
+      pageTitle,
+      appPackage: 'pending', // 延迟分析
+      pageType: 'pending', // 延迟分析
+      elementCount: estimatedElementCount,
+      clickableCount: estimatedClickableCount,
+      fileSize: meta.fileSize,
+      createdAt: this.parseTimestampToDate(meta.timestamp),
+      description,
+      preview: {
+        mainTexts: [],
+        mainButtons: [],
+        inputCount: 0,
+      },
+      screenshotFileName: meta.screenshotFileName ?? undefined,
+      screenshotAbsolutePath: meta.screenshotAbsolutePath ?? undefined,
+    };
+  }
+
+  /**
+   * 📊 按需分析指定页面的内容（用户选择时调用）
+   */
+  static async analyzePageOnDemand(fileName: string): Promise<BackendXmlContentAnalysis> {
+    console.log(`📊 [按需分析] 分析页面: ${fileName}`);
+    const startTime = performance.now();
+    
+    const analysis: BackendXmlContentAnalysis = await invoke(
+      'plugin:xml_cache|analyze_xml_cache_file',
+      { fileName }
+    );
+    
+    const elapsed = performance.now() - startTime;
+    console.log(`📊 [按需分析] 完成，耗时 ${elapsed.toFixed(0)}ms`);
+    
+    return analysis;
+  }
+
+  /**
+   * 📊 更新页面的分析数据（分析完成后更新缓存）
+   */
+  static updatePageWithAnalysis(fileName: string, analysis: BackendXmlContentAnalysis): void {
+    if (!this.cachedPages) return;
+    
+    const pageIndex = this.cachedPages.findIndex(p => p.fileName === fileName);
+    if (pageIndex === -1) return;
+    
+    const page = this.cachedPages[pageIndex];
+    page.appPackage = analysis.appPackage;
+    page.pageType = analysis.pageType;
+    page.elementCount = analysis.elementCount;
+    page.clickableCount = analysis.clickableCount;
+    page.description = analysis.description;
+    page.pageTitle = `${analysis.pageType} - ${this.formatTimestamp(page.timestamp)}`;
+    page.preview = {
+      mainTexts: analysis.mainTexts,
+      mainButtons: analysis.mainButtons,
+      inputCount: analysis.inputCount,
+    };
+  }
+
+  /**
+   * 🔄 完整加载方法（包含内容分析，作为回退方案）
+   */
+  private static async loadCachedPagesFull(): Promise<void> {
+    try {
+      const startTime = performance.now();
+      console.log('🚀 [回退] 开始完整加载XML缓存元数据...');
       
       // 🔥 一次调用获取所有文件的完整元数据
       const metadataList: BackendXmlCacheMetadata[] = await invoke(
@@ -260,10 +393,10 @@ export class XmlPageCacheService {
       this.cachedPages = pages;
       
       const elapsed = performance.now() - startTime;
-      console.log(`✅ 成功加载 ${pages.length} 个缓存页面，耗时 ${elapsed.toFixed(0)}ms`);
+      console.log(`✅ 完整加载 ${pages.length} 个缓存页面，耗时 ${elapsed.toFixed(0)}ms`);
       
     } catch (error) {
-      console.error('❌ 批量加载XML缓存失败，回退到逐个加载:', error);
+      console.error('❌ 完整加载XML缓存失败，回退到逐个加载:', error);
       // 回退到旧的逐个加载方式（兼容性保障）
       await this.loadCachedPagesLegacy();
     }

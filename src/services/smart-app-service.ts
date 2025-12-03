@@ -38,11 +38,11 @@ export class SmartAppService {
       }
 
       const apps = await invoke<AppInfo[]>('plugin:adb|list_apps', {
-        device_id: deviceId,
-        include_system_apps: includeSystemApps,
-        force_refresh: forceRefresh,
-        filter_mode: filterMode ?? (includeSystemApps ? 'all' : 'only_user'),
-        refresh_strategy: (refreshStrategy ?? this.refreshStrategy) ?? (forceRefresh ? 'force_refresh' : 'cache_first')
+        deviceId: deviceId,
+        includeSystemApps: includeSystemApps,
+        forceRefresh: forceRefresh,
+        filterMode: filterMode ?? (includeSystemApps ? 'all' : 'only_user'),
+        refreshStrategy: (refreshStrategy ?? this.refreshStrategy) ?? (forceRefresh ? 'force_refresh' : 'cache_first')
       });
       // 缓存结果（总是缓存全量，前端过滤系统/用户）
       this.cachedApps.set(deviceId, { apps, ts: now });
@@ -77,11 +77,11 @@ export class SmartAppService {
   {
     const { filterMode, refreshStrategy, page = 1, pageSize = 60, query } = options || {};
     return invoke('plugin:adb|list_apps_paged', {
-      device_id: deviceId,
-      filter_mode: filterMode,
-      refresh_strategy: (refreshStrategy ?? this.refreshStrategy),
+      deviceId: deviceId,
+      filterMode: filterMode,
+      refreshStrategy: (refreshStrategy ?? this.refreshStrategy),
       page,
-      page_size: pageSize,
+      pageSize: pageSize,
       query,
     });
   }
@@ -97,9 +97,9 @@ export class SmartAppService {
   async getAppIcon(deviceId: string, packageName: string, forceRefresh = false): Promise<string | null> {
     try {
       const bytes = await invoke<number[]>('plugin:adb|get_icon', {
-        device_id: deviceId,
-        package_name: packageName,
-        force_refresh: forceRefresh
+        deviceId: deviceId,
+        packageName: packageName,
+        forceRefresh: forceRefresh
       });
       // 将 number[] 转为 Uint8Array -> Blob -> data URL
       const u8 = new Uint8Array(bytes);
@@ -121,7 +121,7 @@ export class SmartAppService {
   async searchDeviceApps(deviceId: string, query: string): Promise<AppInfo[]> {
     try {
       return await invoke<AppInfo[]>('plugin:adb|search_apps', {
-        device_id: deviceId,
+        deviceId: deviceId,
         query
       });
     } catch (error) {
@@ -136,8 +136,8 @@ export class SmartAppService {
   async launchDeviceApp(deviceId: string, packageName: string): Promise<AppLaunchResult> {
     try {
       return await invoke<AppLaunchResult>('plugin:adb|launch_app', {
-        device_id: deviceId,
-        package_name: packageName
+        deviceId: deviceId,
+        packageName: packageName
       });
     } catch (error) {
       console.error('启动应用失败:', error);
@@ -151,7 +151,7 @@ export class SmartAppService {
   async getCachedDeviceApps(deviceId: string): Promise<AppInfo[]> {
     try {
       return await invoke<AppInfo[]>('plugin:adb|get_cached_apps', {
-        device_id: deviceId
+        deviceId: deviceId
       });
     } catch (error) {
       console.error('获取缓存应用失败:', error);
