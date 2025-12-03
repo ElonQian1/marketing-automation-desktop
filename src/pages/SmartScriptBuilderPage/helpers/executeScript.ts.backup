@@ -140,7 +140,7 @@ export function createHandleExecuteScript(ctx: Ctx) {
           console.log("📤 [V3批量执行] 发送ChainSpec:", JSON.stringify(chainSpec, null, 2));
 
           // 调用V3执行接口
-          const result = await invoke("execute_chain_test_v3", {
+          const result = await invoke("plugin:execution_v3|execute_chain_test_v3", {
             envelope: {
               deviceId: selectedDevice,
               app: {
