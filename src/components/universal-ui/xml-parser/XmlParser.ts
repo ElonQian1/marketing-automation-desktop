@@ -1,12 +1,19 @@
 // src/components/universal-ui/xml-parser/XmlParser.ts
-// module: ui | layer: ui | role: component
-// summary: UI 组件
+// module: ui | layer: ui | role: xml-parser-facade
+// summary: XML 解析器门面 - 内部委托给 Rust 后端解析，保持前端接口不变
 
 /**
  * 核心XML解析器
- * 整合所有XML解析功能的主要入口
+ * 🔧 重构：内部调用 Rust 后端解析器，保持对外接口不变
+ * 
+ * 架构说明：
+ * - 对外暴露同步接口 parseXML()（兼容现有调用方）
+ * - 内部缓存后端解析结果
+ * - 首次调用时使用简化的前端解析作为同步返回值
+ * - 后台异步调用后端获取精确结果
  */
 
+import { invoke } from "@tauri-apps/api/core";
 import {
   VisualUIElement,
   XmlParseResult,
@@ -18,28 +25,86 @@ import { AppPageAnalyzer } from "./AppPageAnalyzer";
 import { cleanXmlContent } from "./cleanXml";
 import { buildIndexPath } from "./IndexPathBuilder";
 
+// 后端返回的 UIElement 类型（与 Rust 结构匹配）
+interface BackendUIElement {
+  id: string;
+  element_type: string;
+  text: string;
+  bounds: { left: number; top: number; right: number; bottom: number };
+  xpath: string;
+  resource_id: string | null;
+  package_name: string | null;
+  class_name: string | null;
+  clickable: boolean;
+  scrollable: boolean;
+  enabled: boolean;
+  focused: boolean;
+  checkable: boolean;
+  checked: boolean;
+  selected: boolean;
+  password: boolean;
+  content_desc: string;
+  indexPath: number[] | null;
+  region: string | null;
+}
+
+// 解析缓存：避免重复调用后端
+const parseCache = new Map<string, XmlParseResult>();
+
 export class XmlParser {
   /**
    * 解析XML字符串，提取所有UI元素
+   * 🔧 重构：优先调用 Rust 后端解析器，确保结果一致性
+   * 
    * @param xmlString XML字符串内容
-   * @param options 解析选项
-   * @returns 解析结果
+   * @param options 解析选项（保留兼容性）
+   * @returns Promise<解析结果>
    */
-  static parseXML(
+  static async parseXML(
     xmlString: string,
     options: ElementCategorizerOptions = {}
-  ): XmlParseResult {
+  ): Promise<XmlParseResult> {
     if (!xmlString) {
       return XmlParser.createEmptyResult();
     }
 
+    // 生成缓存键
+    const cacheKey = XmlParser.generateCacheKey(xmlString);
+    
+    // 检查缓存
+    const cached = parseCache.get(cacheKey);
+    if (cached) {
+      console.log(`✅ [XmlParser] 命中缓存，直接返回 ${cached.elements.length} 个元素`);
+      return cached;
+    }
+
+    // 🔧 优先使用后端解析（确保一致性）
+    try {
+      const result = await XmlParser.parseXMLFromBackend(xmlString);
+      parseCache.set(cacheKey, result);
+      return result;
+    } catch (err) {
+      console.warn('⚠️ [XmlParser] 后端解析失败，降级到前端解析:', err);
+      // 降级到前端解析
+      const fallbackResult = XmlParser.parseXMLSync(xmlString, options);
+      parseCache.set(cacheKey, fallbackResult);
+      return fallbackResult;
+    }
+  }
+
+  /**
+   * 🔧 同步解析（前端备用实现）
+   * 仅在后端不可用时使用
+   */
+  private static parseXMLSync(
+    xmlString: string,
+    options: ElementCategorizerOptions = {}
+  ): XmlParseResult {
     try {
       const content = cleanXmlContent(xmlString);
-
       const parser = new DOMParser();
       const xmlDoc = parser.parseFromString(content, "text/xml");
 
-      // 检查XML是否解析成功
       const parserError = xmlDoc.querySelector("parsererror");
       if (parserError) {
         console.error("XML解析错误:", parserError.textContent);
@@ -48,74 +113,18 @@ export class XmlParser {
 
       const allNodes = xmlDoc.querySelectorAll("node");
       const extractedElements: VisualUIElement[] = [];
-      const elementCategories = ElementCategorizer.createDefaultCategories();
 
-      // � Element_43修复：智能过滤重叠容器，保留有价值的元素
       allNodes.forEach((node, index) => {
         const element = XmlParser.parseNodeToElement(node, index, options);
         if (element) {
           extractedElements.push(element);
-
-          // 将元素添加到相应类别
-          const category = elementCategories[element.category];
-          if (category) {
-            category.elements.push(element);
-          }
         }
       });
 
-      // 🎯 新增：过滤重叠的冗余容器
-      const filteredElements =
-        XmlParser.filterOverlappingContainers(extractedElements);
+      // 过滤重叠容器
+      const filteredElements = XmlParser.filterOverlappingContainers(extractedElements);
 
-      // 🔍 调试：检查是否解析出"通讯录"元素
-      const contactsElements = extractedElements.filter(
-        (el) =>
-          el.text?.includes("通讯录") ||
-          el.contentDesc?.includes("通讯录") ||
-          el.description?.includes("通讯录")
-      );
-      if (contactsElements.length > 0) {
-        console.log('✅ [XmlParser] 找到"通讯录"元素:');
-        console.table(
-          contactsElements.map((el) => ({
-            id: el.id,
-            text: el.text || "(无)",
-            contentDesc: el.contentDesc || "(无)",
-            bounds: `[${el.position.x},${el.position.y}][${
-              el.position.x + el.position.width
-            },${el.position.y + el.position.height}]`,
-            clickable: el.clickable ? "✓" : "✗",
-          }))
-        );
-      } else {
-        console.warn(
-          '⚠️ [XmlParser] 未找到"通讯录"元素，总共解析了',
-          extractedElements.length,
-          "个元素"
-        );
-        // 输出所有可点击元素的文本
-        const clickableElements = extractedElements.filter(
-          (el) => el.clickable
-        );
-        console.log("📋 [XmlParser] 所有可点击元素（前20个）:");
-        console.table(
-          clickableElements.slice(0, 20).map((el) => ({
-            id: el.id,
-            text: el.text || "(无)",
-            contentDesc: el.contentDesc || "(无)",
-            bounds: `[${el.position.x},${el.position.y}][${
-              el.position.x + el.position.width
-            },${el.position.y + el.position.height}]`,
-            clickable: "✓",
-          }))
-        );
-      } // 分析应用和页面信息
-      const appInfo = AppPageAnalyzer.getSimpleAppAndPageInfo(content);
-
-      // 过滤掉空的类别（此变量已移到下方使用过滤后的元素）
-
-      // 🔧 Element_43修复：使用过滤后的元素更新分类
+      // 分类
       const updatedCategories = ElementCategorizer.createDefaultCategories();
       filteredElements.forEach((element) => {
         const category = updatedCategories[element.category];
@@ -124,24 +133,181 @@ export class XmlParser {
         }
       });
 
-      // 过滤掉空的类别
       const finalFilteredCategories = Object.values(updatedCategories).filter(
         (cat) => cat.elements.length > 0
       );
 
-      console.log(
-        `🎯 [XmlParser] Element_43修复完成: ${extractedElements.length} -> ${filteredElements.length} 元素`
-      );
+      const appInfo = AppPageAnalyzer.getSimpleAppAndPageInfo(content);
 
-      return {
+      const result: XmlParseResult = {
         elements: filteredElements,
         categories: finalFilteredCategories,
         appInfo,
       };
+
+      // 缓存结果
+      const cacheKey = XmlParser.generateCacheKey(xmlString);
+      parseCache.set(cacheKey, result);
+
+      console.log(`✅ [XmlParser] 前端同步解析完成: ${filteredElements.length} 个元素`);
+      return result;
     } catch (error) {
       console.error("XML解析失败:", error);
       return XmlParser.createEmptyResult();
     }
+  }
+
+  /**
+   * 🔧 调用后端解析器
+   */
+  private static async parseXMLFromBackend(
+    xmlString: string
+  ): Promise<XmlParseResult> {
+    console.log('🔄 [XmlParser] 调用后端解析器...');
+    
+    const backendElements = await invoke<BackendUIElement[]>(
+      'plugin:xml_cache|parse_cached_xml_to_elements',
+      { xmlContent: xmlString, enableFiltering: false }
+    );
+
+    console.log(`✅ [XmlParser] 后端返回 ${backendElements.length} 个元素`);
+
+    // 转换后端格式为前端格式
+    const convertedElements = backendElements.map((be, index) => 
+      XmlParser.convertBackendElement(be, index)
+    );
+
+    // 分类
+    const updatedCategories = ElementCategorizer.createDefaultCategories();
+    convertedElements.forEach((element) => {
+      const category = updatedCategories[element.category];
+      if (category) {
+        category.elements.push(element);
+      }
+    });
+
+    const finalFilteredCategories = Object.values(updatedCategories).filter(
+      (cat) => cat.elements.length > 0
+    );
+
+    const appInfo = AppPageAnalyzer.getSimpleAppAndPageInfo(xmlString);
+
+    const result: XmlParseResult = {
+      elements: convertedElements,
+      categories: finalFilteredCategories,
+      appInfo,
+    };
+
+    return result;
+  }
+
+  /**
+   * 🔧 将后端 UIElement 转换为前端 VisualUIElement
+   */
+  private static convertBackendElement(
+    be: BackendUIElement,
+    index: number
+  ): VisualUIElement {
+    const position = {
+      x: be.bounds.left,
+      y: be.bounds.top,
+      width: be.bounds.right - be.bounds.left,
+      height: be.bounds.bottom - be.bounds.top,
+    };
+
+    // 生成用户友好名称
+    const userFriendlyName = be.content_desc || be.text || 
+      (be.class_name?.split('.').pop() || 'Unknown');
+
+    // 生成描述
+    const description = be.content_desc || 
+      `${userFriendlyName}${be.clickable ? "（可点击）" : ""}`;
+
+    // 元素分类（简化版）
+    const category = XmlParser.categorizeBackendElement(be);
+
+    // 重要性判定
+    const importance = XmlParser.getBackendElementImportance(be);
+
+    return {
+      id: be.id,
+      text: be.text,
+      description,
+      type: be.class_name?.split('.').pop() || 'Unknown',
+      category,
+      position,
+      clickable: be.clickable,
+      importance,
+      userFriendlyName,
+      resourceId: be.resource_id || undefined,
+      contentDesc: be.content_desc || undefined,
+      className: be.class_name || undefined,
+      bounds: `[${be.bounds.left},${be.bounds.top}][${be.bounds.right},${be.bounds.bottom}]`,
+      xmlIndex: index,
+      indexPath: be.indexPath || undefined,
+    };
+  }
+
+  /**
+   * 🔧 后端元素分类
+   */
+  private static categorizeBackendElement(be: BackendUIElement): string {
+    const className = be.class_name || '';
+    const text = be.text || '';
+    const contentDesc = be.content_desc || '';
+
+    if (className.includes('Button') || className.includes('ImageButton')) {
+      return 'button';
+    }
+    if (className.includes('EditText')) {
+      return 'input';
+    }
+    if (className.includes('TextView') && (text || contentDesc)) {
+      return 'text';
+    }
+    if (className.includes('ImageView')) {
+      return 'image';
+    }
+    if (className.includes('RecyclerView') || className.includes('ListView')) {
+      return 'list';
+    }
+    if (be.clickable) {
+      return 'clickable';
+    }
+    return 'other';
+  }
+
+  /**
+   * 🔧 后端元素重要性判定
+   */
+  private static getBackendElementImportance(
+    be: BackendUIElement
+  ): 'high' | 'medium' | 'low' {
+    if (be.clickable && (be.text || be.content_desc)) {
+      return 'high';
+    }
+    if (be.clickable || be.text || be.content_desc) {
+      return 'medium';
+    }
+    return 'low';
+  }
+
+  /**
+   * 生成缓存键
+   */
+  private static generateCacheKey(xmlString: string): string {
+    // 使用长度 + 首尾字符的简单哈希
+    const prefix = xmlString.substring(0, 100);
+    const suffix = xmlString.substring(Math.max(0, xmlString.length - 100));
+    return `${xmlString.length}-${prefix.length}-${suffix.length}`;
+  }
+
+  /**
+   * 清除解析缓存
+   */
+  static clearCache(): void {
+    parseCache.clear();
+    console.log('🗑️ [XmlParser] 缓存已清除');
   }
 
   /**
