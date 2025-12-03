@@ -44,7 +44,13 @@
           "permissions": [
             "core:event:allow-listen",
             "core:event:default",
-            "dialog:default"
+            "dialog:default",
+            "adb-default",
+            "system-diagnostic-default",
+            "xml-cache-default",
+            "prospecting-default",
+            "execution-v3-default",
+            "script-manager-default"
           ]
         }
       ]
