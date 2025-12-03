@@ -745,7 +745,10 @@ export class StepExecutionGateway {
         specFields: Object.keys(spec),
         targetTextInfo: { targetText, contentDesc: request.contentDesc },
       });
-      const result = await invoke("plugin:automation|execute_chain_test_v3", {
+      // 🔧 FIX: 使用正确的 execution_v3 插件，而非 automation 插件
+      // automation 插件的 execute_chain_test_v3 参数签名是 (device_id, steps, threshold, dry_run)
+      // execution_v3 插件的 execute_chain_test_v3 参数签名是 (envelope, spec)
+      const result = await invoke("plugin:execution_v3|execute_chain_test_v3", {
         envelope,
         spec,
       });
