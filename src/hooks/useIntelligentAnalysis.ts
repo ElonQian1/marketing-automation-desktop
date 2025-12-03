@@ -159,7 +159,7 @@ export const useIntelligentAnalysis = () => {
 
       // 调用后端命令
       const response = await invoke<{ job_id: string; selection_hash: string; state: string }>(
-        'start_intelligent_analysis',
+        'plugin:intelligent_analysis|start_intelligent_analysis',
         { config }
       );
 
@@ -261,7 +261,7 @@ export const useIntelligentAnalysis = () => {
    */
   const cancelAnalysis = useCallback(async (jobId: string) => {
     try {
-      await invoke('cancel_intelligent_analysis', { jobId });
+      await invoke('plugin:intelligent_analysis|cancel_intelligent_analysis', { jobId });
       setIsAnalyzing(false);
       message.info('已取消分析');
     } catch (err) {

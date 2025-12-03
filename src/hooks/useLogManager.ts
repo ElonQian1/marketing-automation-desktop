@@ -73,7 +73,7 @@ export const useLogManager = (): UseLogManagerReturn => {
 
   const clearLogs = useCallback(async () => {
     try {
-      await invoke('clear_logs');
+      await invoke('plugin:system_diagnostic|clear_logs');
       setLogs([]);
       setAdbCommandLogs([]);
     } catch (error) {
@@ -85,8 +85,8 @@ export const useLogManager = (): UseLogManagerReturn => {
     setIsLoading(true);
     try {
       const [generalLogs, commandLogs] = await Promise.all([
-        invoke<LogEntry[]>('get_logs'),
-        invoke<AdbCommandLog[]>('get_adb_command_logs')
+        invoke<LogEntry[]>('plugin:system_diagnostic|get_logs'),
+        invoke<AdbCommandLog[]>('plugin:system_diagnostic|get_adb_command_logs')
       ]);
       
       setLogs(generalLogs);
@@ -107,7 +107,7 @@ export const useLogManager = (): UseLogManagerReturn => {
     deviceId?: string
   ) => {
     try {
-      await invoke('add_log_entry', {
+      await invoke('plugin:system_diagnostic|add_log_entry', {
         level,
         category,
         source,
