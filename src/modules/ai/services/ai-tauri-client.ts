@@ -81,7 +81,7 @@ export class TauriAIClient implements IAIClient {
       const streamPromise = new Promise<void>(async (resolve, reject) => {
         try {
           // 启动流式请求
-          await invoke('ai_chat', {
+          await invoke('plugin:ai|chat', {
             messages: request.messages,
             tools: request.tools,
             toolChoice: request.responseSchema ? 'auto' : undefined,

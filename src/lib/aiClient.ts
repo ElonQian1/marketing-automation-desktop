@@ -36,13 +36,13 @@ export async function aiChat(payload: {
     });
     
     try {
-      const res = await invoke('ai_chat', payload);
+      const res = await invoke('plugin:ai|chat', payload);
       return res;
     } finally {
       unlisten();
     }
   } else {
-    return invoke('ai_chat', payload);
+    return invoke('plugin:ai|chat', payload);
   }
 }
 
@@ -57,7 +57,7 @@ export async function aiEmbed(input: string[]): Promise<number[][]> {
  * 获取 AI 设置
  */
 export async function getAISettings() {
-  return invoke('get_ai_settings');
+  return invoke('plugin:ai|get_settings');
 }
 
 /**
@@ -68,7 +68,7 @@ export async function saveAISettings(
   openaiKey?: string,
   hunyuanKey?: string
 ) {
-  return invoke('save_ai_settings', {
+  return invoke('plugin:ai|save_settings', {
     settings,
     openaiKey: openaiKey || null,
     hunyuanKey: hunyuanKey || null,
