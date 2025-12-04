@@ -249,71 +249,201 @@ async fn execute_step_by_inline(
         SingleStepAction::SmartTap => {
             tracing::info!("👆 执行智能点击 (SmartTap)");
             
-            // 🎯 关键修复：检测是否是结构匹配模式，如果是则使用真机结构匹配执行
+            // 🎯 关键修复：根据执行模式选择正确的执行策略
             let mode = params.get("mode").and_then(|v| v.as_str()).unwrap_or("traditional");
             
-            if mode == "structure_matching" {
-                tracing::info!("🔍 检测到结构匹配模式，使用真机结构匹配执行");
-                
-                // 提取 index_path 和 original_data
-                let index_path = params.get("original_data")
-                    .and_then(|d| d.get("index_path"))
-                    .and_then(|v| v.as_array())
-                    .map(|arr| arr.iter()
-                        .filter_map(|v| v.as_u64().map(|n| n as usize))
-                        .collect::<Vec<_>>());
-                
-                let bounds_str = params.get("bounds").and_then(|v| v.as_str())
-                    .or_else(|| params.get("original_data")
-                        .and_then(|d| d.get("element_bounds"))
-                        .and_then(|v| v.as_str()));
-                
-                if let Some(index_path) = index_path {
-                    tracing::info!("📍 [结构匹配执行] 使用 index_path: {:?}", index_path);
+            // 提取 bounds（所有模式都需要作为回退）
+            let bounds_str = params.get("bounds").and_then(|v| v.as_str())
+                .or_else(|| params.get("original_data")
+                    .and_then(|d| d.get("element_bounds"))
+                    .and_then(|v| v.as_str()));
+            
+            match mode {
+                // 🎯 文本匹配模式：直接使用 content-desc 或 text 查找，不需要找卡片根
+                "text_matching" => {
+                    tracing::info!("🔤 检测到文本匹配模式，使用 content-desc/text 查找");
                     
-                    // 🎯 调用真机结构匹配执行器
-                    match execute_structure_match_for_smart_tap(
-                        app,
-                        &envelope.device_id,
-                        &index_path,
-                        bounds_str.map(|s| s.to_string()),
-                    ).await {
-                        Ok((confidence, coords)) => {
-                            tracing::info!("✅ [结构匹配执行] 成功，置信度: {:.2}, 坐标: {:?}", confidence, coords);
-                            (confidence, coords)
+                    // 提取 content_desc
+                    let content_desc = params.get("contentDesc").and_then(|v| v.as_str())
+                        .or_else(|| params.get("original_data")
+                            .and_then(|d| d.get("key_attributes"))
+                            .and_then(|k| k.get("content-desc"))
+                            .and_then(|v| v.as_str()));
+                    
+                    if let Some(desc) = content_desc {
+                        if !desc.is_empty() {
+                            tracing::info!("🎯 [文本匹配执行] 使用 content-desc=\"{}\"", desc);
+                            // 直接使用 XPath 查找，比结构匹配更快更可靠
+                            match execute_smart_tap_by_xpath(
+                                app,
+                                &envelope.device_id,
+                                &format!("//*[@content-desc='{}']", desc),
+                            ).await {
+                                Ok((confidence, coords)) => {
+                                    tracing::info!("✅ [文本匹配执行] 成功，置信度: {:.2}, 坐标: {:?}", confidence, coords);
+                                    (confidence, coords)
+                                }
+                                Err(e) => {
+                                    tracing::warn!("⚠️ [文本匹配执行] 失败: {}，回退到 bounds 直接点击", e);
+                                    if let Some(bounds_str) = bounds_str {
+                                        execute_smart_tap_by_bounds(&envelope.device_id, bounds_str).await?
+                                    } else {
+                                        return Err(format!("文本匹配执行失败且无 bounds 可回退: {}", e));
+                                    }
+                                }
+                            }
+                        } else if let Some(bounds_str) = bounds_str {
+                            tracing::warn!("⚠️ [文本匹配执行] content-desc 为空，回退到 bounds");
+                            execute_smart_tap_by_bounds(&envelope.device_id, bounds_str).await?
+                        } else {
+                            return Err("文本匹配执行失败：content-desc 和 bounds 都为空".to_string());
                         }
-                        Err(e) => {
-                            tracing::warn!("⚠️ [结构匹配执行] 失败: {}，回退到 bounds 直接点击", e);
-                            // 回退到 bounds 直接点击
-                            if let Some(bounds_str) = bounds_str {
-                                execute_smart_tap_by_bounds(&envelope.device_id, bounds_str).await?
-                            } else {
-                                return Err(format!("结构匹配执行失败且无 bounds 可回退: {}", e));
+                    } else if let Some(bounds_str) = bounds_str {
+                        tracing::warn!("⚠️ [文本匹配执行] 缺少 content-desc，回退到 bounds");
+                        execute_smart_tap_by_bounds(&envelope.device_id, bounds_str).await?
+                    } else {
+                        return Err("文本匹配执行失败：无法提取 content-desc 且无 bounds".to_string());
+                    }
+                }
+                
+                // 🎯 ID匹配模式：使用 resource-id 查找
+                "id_matching" => {
+                    tracing::info!("🆔 检测到ID匹配模式，使用 resource-id 查找");
+                    
+                    let resource_id = params.get("resourceId").and_then(|v| v.as_str())
+                        .or_else(|| params.get("original_data")
+                            .and_then(|d| d.get("key_attributes"))
+                            .and_then(|k| k.get("resource-id"))
+                            .and_then(|v| v.as_str()));
+                    
+                    if let Some(rid) = resource_id {
+                        if !rid.is_empty() {
+                            tracing::info!("🎯 [ID匹配执行] 使用 resource-id=\"{}\"", rid);
+                            match execute_smart_tap_by_xpath(
+                                app,
+                                &envelope.device_id,
+                                &format!("//*[@resource-id='{}']", rid),
+                            ).await {
+                                Ok((confidence, coords)) => {
+                                    tracing::info!("✅ [ID匹配执行] 成功，置信度: {:.2}, 坐标: {:?}", confidence, coords);
+                                    (confidence, coords)
+                                }
+                                Err(e) => {
+                                    tracing::warn!("⚠️ [ID匹配执行] 失败: {}，回退到 bounds", e);
+                                    if let Some(bounds_str) = bounds_str {
+                                        execute_smart_tap_by_bounds(&envelope.device_id, bounds_str).await?
+                                    } else {
+                                        return Err(format!("ID匹配执行失败且无 bounds 可回退: {}", e));
+                                    }
+                                }
+                            }
+                        } else if let Some(bounds_str) = bounds_str {
+                            execute_smart_tap_by_bounds(&envelope.device_id, bounds_str).await?
+                        } else {
+                            return Err("ID匹配执行失败：resource-id 和 bounds 都为空".to_string());
+                        }
+                    } else if let Some(bounds_str) = bounds_str {
+                        execute_smart_tap_by_bounds(&envelope.device_id, bounds_str).await?
+                    } else {
+                        return Err("ID匹配执行失败：无法提取 resource-id".to_string());
+                    }
+                }
+                
+                // 🎯 XPath匹配模式：直接使用 XPath 查找
+                "xpath_matching" => {
+                    tracing::info!("📍 检测到XPath匹配模式");
+                    
+                    let xpath = params.get("xpath").and_then(|v| v.as_str())
+                        .or_else(|| params.get("original_data")
+                            .and_then(|d| d.get("selected_xpath"))
+                            .and_then(|v| v.as_str()));
+                    
+                    if let Some(xp) = xpath {
+                        tracing::info!("🎯 [XPath匹配执行] 使用 xpath=\"{}\"", xp);
+                        match execute_smart_tap_by_xpath(
+                            app,
+                            &envelope.device_id,
+                            xp,
+                        ).await {
+                            Ok((confidence, coords)) => {
+                                tracing::info!("✅ [XPath匹配执行] 成功，置信度: {:.2}, 坐标: {:?}", confidence, coords);
+                                (confidence, coords)
+                            }
+                            Err(e) => {
+                                tracing::warn!("⚠️ [XPath匹配执行] 失败: {}，回退到 bounds", e);
+                                if let Some(bounds_str) = bounds_str {
+                                    execute_smart_tap_by_bounds(&envelope.device_id, bounds_str).await?
+                                } else {
+                                    return Err(format!("XPath匹配执行失败且无 bounds 可回退: {}", e));
+                                }
+                            }
+                        }
+                    } else if let Some(bounds_str) = bounds_str {
+                        execute_smart_tap_by_bounds(&envelope.device_id, bounds_str).await?
+                    } else {
+                        return Err("XPath匹配执行失败：无法提取 xpath".to_string());
+                    }
+                }
+                
+                // 🎯 结构匹配模式：需要找卡片根
+                "structure_matching" => {
+                    tracing::info!("🔍 检测到结构匹配模式，使用真机结构匹配执行");
+                    
+                    // 提取 index_path
+                    let index_path = params.get("original_data")
+                        .and_then(|d| d.get("index_path"))
+                        .and_then(|v| v.as_array())
+                        .map(|arr| arr.iter()
+                            .filter_map(|v| v.as_u64().map(|n| n as usize))
+                            .collect::<Vec<_>>());
+                    
+                    if let Some(index_path) = index_path {
+                        tracing::info!("📍 [结构匹配执行] 使用 index_path: {:?}", index_path);
+                        
+                        // 🎯 调用真机结构匹配执行器
+                        match execute_structure_match_for_smart_tap(
+                            app,
+                            &envelope.device_id,
+                            &index_path,
+                            bounds_str.map(|s| s.to_string()),
+                        ).await {
+                            Ok((confidence, coords)) => {
+                                tracing::info!("✅ [结构匹配执行] 成功，置信度: {:.2}, 坐标: {:?}", confidence, coords);
+                                (confidence, coords)
+                            }
+                            Err(e) => {
+                                tracing::warn!("⚠️ [结构匹配执行] 失败: {}，回退到 bounds 直接点击", e);
+                                if let Some(bounds_str) = bounds_str {
+                                    execute_smart_tap_by_bounds(&envelope.device_id, bounds_str).await?
+                                } else {
+                                    return Err(format!("结构匹配执行失败且无 bounds 可回退: {}", e));
+                                }
+                            }
+                        }
+                    } else {
+                        tracing::warn!("⚠️ [结构匹配执行] 缺少 index_path，回退到 bounds 直接点击");
+                        if let Some(bounds_str) = bounds_str {
+                            execute_smart_tap_by_bounds(&envelope.device_id, bounds_str).await?
+                        } else {
+                            match execute_action_unified(envelope, &params).await {
+                                Ok((conf, coords)) => (conf, coords),
+                                Err(e) => return Err(e)
                             }
                         }
                     }
-                } else {
-                    tracing::warn!("⚠️ [结构匹配执行] 缺少 index_path，回退到 bounds 直接点击");
+                }
+                
+                // 🎯 传统模式/其他：直接使用 bounds 点击
+                _ => {
+                    tracing::info!("📍 使用传统模式（bounds直接点击）: mode={}", mode);
                     if let Some(bounds_str) = bounds_str {
                         execute_smart_tap_by_bounds(&envelope.device_id, bounds_str).await?
                     } else {
-                        // 最终回退到通用执行
+                        tracing::warn!("⚠️ SmartTap 缺少 bounds 参数, 尝试通用执行");
                         match execute_action_unified(envelope, &params).await {
                             Ok((conf, coords)) => (conf, coords),
                             Err(e) => return Err(e)
                         }
-                    }
-                }
-            } else {
-                // 传统模式：直接使用 bounds 点击
-                // 尝试从 params 中直接提取 bounds
-                if let Some(bounds_str) = params.get("bounds").and_then(|v| v.as_str()) {
-                    execute_smart_tap_by_bounds(&envelope.device_id, bounds_str).await?
-                } else {
-                    tracing::warn!("⚠️ SmartTap 缺少 bounds 参数, 尝试通用执行");
-                    match execute_action_unified(envelope, &params).await {
-                        Ok((conf, coords)) => (conf, coords),
-                        Err(e) => return Err(e)
                     }
                 }
             }
@@ -729,6 +859,143 @@ async fn execute_structure_match_for_smart_tap(
     tracing::info!("✅ [结构匹配执行] 点击成功");
     
     Ok((0.95, Some((center_x, center_y))))
+}
+
+/// 🎯 通过 XPath 查找并点击元素（用于 text_matching, id_matching, xpath_matching 模式）
+/// 
+/// 集成了执行网关验证，确保：
+/// 1. 策略在真机上确实能匹配到目标
+/// 2. 不会因多匹配导致误操作
+/// 3. 混淆ID会被降权处理
+async fn execute_smart_tap_by_xpath(
+    _app: &tauri::AppHandle,
+    device_id: &str,
+    xpath: &str,
+) -> Result<(f32, Option<(i32, i32)>), String> {
+    use crate::services::adb::commands::ui_automation::{adb_dump_ui_xml, adb_tap_coordinate};
+    use crate::engine::XmlIndexer;
+    use crate::automation::pipeline::execution_gate::{ExecutionGate, GateConfig, GateRecommendation};
+    
+    tracing::info!("🔍 [XPath查找] 开始执行: xpath=\"{}\"", xpath);
+    
+    // 1. 获取真机 XML
+    let ui_xml = adb_dump_ui_xml(device_id.to_string()).await
+        .map_err(|e| format!("获取设备UI失败: {}", e))?;
+    
+    tracing::info!("✅ [XPath查找] 获取真机XML成功，长度: {}", ui_xml.len());
+    
+    // 🔒 2. 执行网关验证（长期主义：先验证再执行）
+    let gate = ExecutionGate::new(GateConfig {
+        min_confidence: 0.5,
+        max_allowed_matches: 3,
+        strict_mode: false,
+        check_id_stability: true,
+    });
+    
+    let verification = gate.verify_xpath_strategy(xpath, &ui_xml, 0.95)?;
+    
+    // 根据验证结果决定如何执行
+    match verification.recommendation {
+        GateRecommendation::Abort => {
+            return Err(format!(
+                "执行网关拒绝执行: {} (matches={}, confidence={:.2})",
+                verification.reason,
+                verification.actual_matches,
+                verification.adjusted_confidence
+            ));
+        }
+        GateRecommendation::UseBoundsDirectly => {
+            // 不在这里处理，让上层决定是否使用 bounds fallback
+            return Err(format!(
+                "建议使用bounds直接点击: {} (matches={})",
+                verification.reason,
+                verification.actual_matches
+            ));
+        }
+        GateRecommendation::UseFallback => {
+            tracing::warn!(
+                "⚠️ [XPath查找] 网关建议使用备选策略: {}",
+                verification.reason
+            );
+            // 继续尝试，但记录警告
+        }
+        GateRecommendation::Proceed => {
+            tracing::info!(
+                "✅ [XPath查找] 网关验证通过: confidence={:.2}",
+                verification.adjusted_confidence
+            );
+        }
+    }
+    
+    // 3. 构建索引并查找
+    let indexer = XmlIndexer::build_from_xml(&ui_xml)
+        .map_err(|e| format!("构建XML索引失败: {}", e))?;
+    
+    // 4. 尝试用 XPath 查找元素
+    let target_node = if xpath.contains("@content-desc=") {
+        // 提取 content-desc 值
+        let re = regex::Regex::new(r#"@content-desc=['"](.*?)['"]"#).unwrap();
+        if let Some(caps) = re.captures(xpath) {
+            let desc = &caps[1];
+            tracing::info!("🔍 [XPath查找] 提取 content-desc: {}", desc);
+            
+            // 在索引中查找，通过 element.content_desc
+            indexer.all_nodes.iter().enumerate()
+                .find(|(_, n)| n.element.content_desc == desc)
+                .map(|(i, _)| i)
+        } else {
+            None
+        }
+    } else if xpath.contains("@resource-id=") {
+        // 提取 resource-id 值
+        let re = regex::Regex::new(r#"@resource-id=['"](.*?)['"]"#).unwrap();
+        if let Some(caps) = re.captures(xpath) {
+            let rid = &caps[1];
+            tracing::info!("🔍 [XPath查找] 提取 resource-id: {}", rid);
+            
+            indexer.all_nodes.iter().enumerate()
+                .find(|(_, n)| n.element.resource_id.as_deref() == Some(rid))
+                .map(|(i, _)| i)
+        } else {
+            None
+        }
+    } else if xpath.contains("@text=") {
+        // 提取 text 值
+        let re = regex::Regex::new(r#"@text=['"](.*?)['"]"#).unwrap();
+        if let Some(caps) = re.captures(xpath) {
+            let text = &caps[1];
+            tracing::info!("🔍 [XPath查找] 提取 text: {}", text);
+            
+            indexer.all_nodes.iter().enumerate()
+                .find(|(_, n)| n.element.text == text)
+                .map(|(i, _)| i)
+        } else {
+            None
+        }
+    } else {
+        None
+    };
+    
+    if let Some(node_idx) = target_node {
+        let node = &indexer.all_nodes[node_idx];
+        let (left, top, right, bottom) = node.bounds;
+        let center_x = (left + right) / 2;
+        let center_y = (top + bottom) / 2;
+        
+        tracing::info!("✅ [XPath查找] 找到目标节点: index={}, bounds=({},{},{},{}), 中心点=({},{})",
+            node_idx, left, top, right, bottom, center_x, center_y);
+        
+        // 5. 执行点击
+        adb_tap_coordinate(device_id.to_string(), center_x, center_y).await
+            .map_err(|e| format!("XPath点击执行失败: {}", e))?;
+        
+        tracing::info!("✅ [XPath查找] 点击成功");
+        
+        // 使用验证后调整的置信度
+        Ok((verification.adjusted_confidence as f32, Some((center_x, center_y))))
+    } else {
+        Err(format!("XPath未找到匹配元素: {}", xpath))
+    }
 }
 
 /// 🎯 通过 bounds 直接点击

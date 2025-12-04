@@ -12,3 +12,6 @@ pub mod executor;
 pub mod tracker;
 pub mod phases;
 pub mod protocol;
+pub mod execution_gate;
+
+pub use execution_gate::{ExecutionGate, GateConfig, GateVerification, GateRecommendation};
