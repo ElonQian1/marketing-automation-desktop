@@ -1,4 +1,4 @@
-use tauri::{plugin::{Builder, TauriPlugin}, Runtime, Manager, State};
+use tauri::{plugin::{Builder, TauriPlugin}, Wry, Manager, State};
 use std::sync::Mutex;
 use crate::services::adb::AdbService;
 use crate::services::log_bridge::LOG_COLLECTOR;
@@ -347,6 +347,15 @@ async fn list_apps_paged(
 }
 
 #[tauri::command]
+async fn scan_apps(
+    app_handle: AppHandle,
+    device_id: String,
+    filter_mode: Option<String>,
+) -> Result<(), String> {
+    crate::commands::apps::scan_device_apps(app_handle, device_id, filter_mode).await
+}
+
+#[tauri::command]
 async fn get_icon(
     device_id: String,
     package_name: String,
@@ -476,7 +485,7 @@ async fn adb_uninstall_app(_device_id: String, _package_name: String) -> Result<
     Ok(())
 }
 
-pub fn init() -> TauriPlugin<tauri::Wry> {
+pub fn init() -> TauriPlugin<Wry> {
     Builder::new("adb")
         .invoke_handler(tauri::generate_handler![
             execute,
@@ -502,6 +511,7 @@ pub fn init() -> TauriPlugin<tauri::Wry> {
             get_tracking_list,
             list_apps,
             list_apps_paged,
+            scan_apps,
             get_icon,
             validate_connection,
             get_ui_dump,

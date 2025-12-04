@@ -1,8 +1,10 @@
-use tauri::{command, State};
+use tauri::{command, State, AppHandle, Emitter};
+use futures::{stream, StreamExt};
 use tracing::{info, error};
 use crate::services::smart_app_manager::{SmartAppManager, SmartAppManagerState, AppInfo, AppLaunchResult, PagedApps};
 use crate::services::smart_app::icon::{pull_apk_to_temp, extract_icon_from_apk};
 use crate::services::smart_app::icon_cache::IconDiskCache;
+use crate::services::smart_app::fetch::{list_packages, fetch_app_info};
 
 /// 获取设备应用列表
 /// filter_mode: "all" | "only_user" | "only_system"
@@ -193,4 +195,68 @@ pub async fn get_popular_apps() -> Result<Vec<AppInfo>, String> {
             icon_path: None,
         },
     ])
+}
+
+/// 流式扫描设备应用
+#[command]
+pub async fn scan_device_apps(
+    app_handle: AppHandle,
+    device_id: String,
+    filter_mode: Option<String>,
+) -> Result<(), String> {
+    info!("📡 开始流式扫描设备 {} 的应用", device_id);
+    
+    let device_id_clone = device_id.clone();
+    let fm = filter_mode.unwrap_or_else(|| "only_user".into());
+
+    tokio::spawn(async move {
+        // 1. 获取包名列表
+        let packages = match list_packages(&device_id_clone).await {
+            Ok(pkgs) => pkgs,
+            Err(e) => {
+                let event_name = format!("scan-error://{}", device_id_clone);
+                let _ = app_handle.emit(&event_name, format!("获取包列表失败: {}", e));
+                return;
+            }
+        };
+
+        // 2. 并发获取详情
+        let concurrency = 10usize; // 稍微提高并发度
+        let mut stream = stream::iter(packages.into_iter())
+            .map(|pkg| {
+                let did = device_id_clone.clone();
+                async move {
+                    match fetch_app_info(&did, &pkg).await {
+                        Ok(info) => Some(info),
+                        Err(_) => None
+                    }
+                }
+            })
+            .buffer_unordered(concurrency);
+
+        let mut count = 0;
+        while let Some(maybe_info) = stream.next().await {
+            if let Some(info) = maybe_info {
+                // 应用过滤逻辑
+                let keep = match fm.as_str() {
+                    "only_system" => info.is_system_app,
+                    "only_user" => !info.is_system_app,
+                    _ => true
+                };
+
+                if keep {
+                    // 发送事件
+                    let event_name = format!("app-scanned://{}", device_id_clone);
+                    let _ = app_handle.emit(&event_name, info);
+                    count += 1;
+                }
+            }
+        }
+
+        info!("✅ 流式扫描完成，共找到 {} 个应用", count);
+        let event_name = format!("scan-complete://{}", device_id_clone);
+        let _ = app_handle.emit(&event_name, ());
+    });
+
+    Ok(())
 }
