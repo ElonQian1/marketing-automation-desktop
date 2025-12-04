@@ -118,12 +118,12 @@ pub async fn search_device_apps(
 ) -> Result<Vec<AppInfo>, String> {
     info!("🔍 在设备 {} 上搜索应用: {}", device_id, query);
     
-    let managers = state.managers.lock().await;
-    if let Some(manager) = managers.get(&device_id) {
-        Ok(manager.search_apps(&query))
-    } else {
-        Err("设备管理器未初始化，请先获取应用列表".to_string())
-    }
+    let mut managers = state.managers.lock().await;
+    let manager = managers
+        .entry(device_id.clone())
+        .or_insert_with(|| SmartAppManager::new(device_id.clone()));
+
+    Ok(manager.search_apps(&query))
 }
 
 /// 启动应用
@@ -135,15 +135,15 @@ pub async fn launch_device_app(
 ) -> Result<AppLaunchResult, String> {
     info!("🚀 在设备 {} 上启动应用: {}", device_id, package_name);
     
-    let managers = state.managers.lock().await;
-    if let Some(manager) = managers.get(&device_id) {
-        manager.launch_app(&package_name).await.map_err(|e| {
-            error!("启动应用失败: {}", e);
-            format!("启动应用失败: {}", e)
-        })
-    } else {
-        Err("设备管理器未初始化".to_string())
-    }
+    let mut managers = state.managers.lock().await;
+    let manager = managers
+        .entry(device_id.clone())
+        .or_insert_with(|| SmartAppManager::new(device_id.clone()));
+
+    manager.launch_app(&package_name).await.map_err(|e| {
+        error!("启动应用失败: {}", e);
+        format!("启动应用失败: {}", e)
+    })
 }
 
 /// 获取缓存的应用列表

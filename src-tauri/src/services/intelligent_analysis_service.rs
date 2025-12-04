@@ -1100,17 +1100,25 @@ pub async fn mock_intelligent_analysis(
     let mut candidates: Vec<StrategyCandidate> = Vec::new();
     
     // 🔥 Step1-2: 添加结构匹配评分候选项（优先级最高）
+    // 🎯 关键修复：根据评分类型选择正确的执行模式，而不是全部使用 structure_matching
     for (key, conf) in structure_match_scores {
-        let (name, description) = match key {
-            "card_subtree_scoring" => ("卡片子树评分", "基于卡片结构形态匹配，适用于列表卡片场景"),
-            "leaf_context_scoring" => ("叶子上下文评分", "基于叶子节点上下文匹配，适用于复杂嵌套场景"),
-            _ => (key, "结构匹配策略"),
+        let (name, description, exec_mode) = match key {
+            // 只有卡片子树和叶子上下文才需要真正的结构匹配（需要找卡片根）
+            "card_subtree_scoring" => ("卡片子树评分", "基于卡片结构形态匹配，适用于列表卡片场景", "structure_matching"),
+            "leaf_context_scoring" => ("叶子上下文评分", "基于叶子节点上下文匹配，适用于复杂嵌套场景", "structure_matching"),
+            // 文本匹配：直接使用 content-desc 或 text 查找，不需要找卡片根
+            "text_exact_scoring" => ("文本强等值", "基于唯一文本/content-desc匹配，适用于按钮、菜单等独立元素", "text_matching"),
+            // ID锚点：直接使用 resource-id 查找
+            "heuristic_id_scoring" => ("ID锚点评分", "基于resource-id匹配，适用于有稳定ID的元素", "id_matching"),
+            // XPath匹配：直接使用 XPath 查找
+            "heuristic_xpath_scoring" => ("XPath路径评分", "基于XPath路径匹配，作为兜底策略", "xpath_matching"),
+            _ => (key, "智能匹配策略", "traditional"),
         };
         
         let mut exec_params = serde_json::json!({
             "strategy": key,
             "confidence": conf,
-            "mode": "structure_matching"
+            "mode": exec_mode
         });
         
         // 添加 original_data
