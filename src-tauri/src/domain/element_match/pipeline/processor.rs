@@ -27,7 +27,16 @@ impl MatchPipeline {
         let mut results = Vec::new();
         
         for matcher in &self.matchers {
-            // 可以在这里添加前置检查，例如 is_applicable
+            // 🔧 修复：先检查 is_applicable，避免在不适用的情况下调用 match_element
+            // 这可以防止某些 matcher 在缺少必要上下文时 panic
+            if !matcher.is_applicable(ctx) {
+                tracing::debug!(
+                    "⏭️ [MatchPipeline] 跳过不适用的匹配器: {}",
+                    matcher.id()
+                );
+                continue;
+            }
+            
             let result = matcher.match_element(ctx);
             results.push(result);
         }

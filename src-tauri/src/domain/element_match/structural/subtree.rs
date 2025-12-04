@@ -257,7 +257,20 @@ impl ElementMatcher for SubtreeMatcher {
     }
 
     fn match_element(&self, ctx: &MatchContext) -> MatchResult {
-        let card_root_idx = ctx.get_card_root_index().unwrap(); // is_applicable 保证了安全
+        // 🔧 安全检查：如果 card_root 不存在，返回低置信度结果
+        // 这种情况发生在：导航栏按钮、独立按钮等非卡片元素
+        let card_root_idx = match ctx.get_card_root_index() {
+            Some(idx) => idx,
+            None => {
+                tracing::debug!("⏭️ [SubtreeMatcher] 无卡片根节点，跳过子树匹配（可能是导航按钮或独立元素）");
+                return MatchResult {
+                    mode: MatchMode::CardSubtree,
+                    confidence: 0.0,
+                    passed_gate: false,
+                    explain: "无卡片根节点 - 非结构性卡片元素（导航按钮/独立元素）".to_string(),
+                };
+            }
+        };
         let clickable_parent_idx = ctx.get_clickable_parent_index();
 
         // 使用 Adapter 适配 XmlIndexer
