@@ -10,7 +10,8 @@ export type ActionType =
   | 'type'
   | 'wait'
   | 'back'
-  | 'keyevent';
+  | 'keyevent'
+  | 'launch_app'; // ✅ 新增：启动应用动作
 
 export type SwipeDirection = 'up' | 'down' | 'left' | 'right';
 
@@ -48,10 +49,9 @@ export interface TapLikeParams {
 // 滑动动作参数
 export interface SwipeParams {
   direction: SwipeDirection;
-  distance: number;                  // 0~1 (屏占比) 或 px
-  durationMs: number;                // 50~1000ms
-  startFrom: 'element' | 'screenCenter' | 'custom';
-  customStart?: { x: number; y: number };
+  distance?: number;                 // 像素距离
+  durationMs?: number;               // 滑动耗时
+  startFrom?: 'center' | 'element';  // 起点参考
 }
 
 // 输入动作参数
@@ -75,16 +75,25 @@ export interface KeyEventParams {
   keyCode: number; // Android KeyEvent code
 }
 
+// ✅ 新增：启动应用参数
+export interface LaunchAppParams {
+  packageName: string;
+  activityName?: string;
+  waitAfterLaunch?: number;
+  stopBeforeLaunch?: boolean;
+}
+
 // 动作参数联合类型
-export type StepActionParams =
-  | { type: 'tap'; params: TapLikeParams }
-  | { type: 'doubleTap'; params: TapLikeParams }
-  | { type: 'longPress'; params: TapLikeParams }
-  | { type: 'swipe'; params: SwipeParams }
-  | { type: 'type'; params: TypeParams }
-  | { type: 'wait'; params: WaitParams }
-  | { type: 'back'; params: BackParams }
-  | { type: 'keyevent'; params: KeyEventParams };
+export type StepActionParams = 
+  | { type: 'tap'; params: TapLikeParams & StepActionCommon }
+  | { type: 'doubleTap'; params: TapLikeParams & StepActionCommon }
+  | { type: 'longPress'; params: TapLikeParams & StepActionCommon }
+  | { type: 'swipe'; params: SwipeParams & StepActionCommon }
+  | { type: 'type'; params: { text: string; clearBefore?: boolean; keyboardEnter?: boolean } & StepActionCommon }
+  | { type: 'wait'; params: { waitMs: number } }
+  | { type: 'back'; params: StepActionCommon }
+  | { type: 'keyevent'; params: { keyCode: number } & StepActionCommon }
+  | { type: 'launch_app'; params: LaunchAppParams }; // ✅ 新增
 
 // 匹配结果
 export interface MatchResult {
@@ -163,6 +172,7 @@ export const ACTION_LABELS: Record<ActionType, string> = {
   wait: '等待 Wait',
   back: '返回 Back',
   keyevent: '按键 KeyEvent',
+  launch_app: '启动应用 Launch App', // ✅ 新增
 };
 
 // 获取默认动作参数
@@ -184,6 +194,8 @@ export function getDefaultActionParams(actionType: ActionType): StepActionParams
       return { type: 'back', params: DEFAULT_BACK_PARAMS };
     case 'keyevent':
       return { type: 'keyevent', params: DEFAULT_KEYEVENT_PARAMS };
+    case 'launch_app':
+      return { type: 'launch_app', params: { packageName: '' } }; // ✅ 新增 默认值
     default:
       return { type: 'tap', params: DEFAULT_TAP_PARAMS };
   }

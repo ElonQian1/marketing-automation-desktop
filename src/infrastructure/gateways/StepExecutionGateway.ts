@@ -179,6 +179,43 @@ export class StepExecutionGateway {
   async executeStep(
     request: StepExecutionRequest
   ): Promise<StepExecutionResponse> {
+    // ✅ 拦截 launch_app 动作，直接调用 smartAppService
+    // V3引擎不支持 launch_app 作为链步骤，必须独立执行
+    if (request.actionParams.type === 'launch_app') {
+      console.log('[StepExecGateway] 🚀 拦截 launch_app 动作，直接调用 smartAppService');
+      try {
+        const { packageName, waitAfterLaunch } = request.actionParams.params;
+        
+        // 动态导入以避免循环依赖
+        const { smartAppService } = await import('../../services/smart-app-service');
+        
+        const result = await smartAppService.launchDeviceApp(
+          request.deviceId,
+          packageName
+        );
+
+        if (waitAfterLaunch && waitAfterLaunch > 0) {
+             await new Promise(resolve => setTimeout(resolve, waitAfterLaunch));
+        }
+
+        return {
+          success: result.success,
+          message: result.message,
+          engine: 'v2', // 标记为 v2 引擎执行
+          executedAction: 'launch_app',
+          logs: [`启动应用: ${packageName}`, result.message],
+        };
+      } catch (error) {
+        console.error('[StepExecGateway] launch_app 执行失败:', error);
+        return {
+          success: false,
+          message: `启动应用失败: ${error instanceof Error ? error.message : String(error)}`,
+          engine: 'v2',
+          errorCode: 'LAUNCH_APP_ERROR',
+        };
+      }
+    }
+
     // 🎯 【关键路由】V3智能策略优先判断 - 只处理需要元素选择的操作
     if (USE_V3_INTELLIGENT_STRATEGY && this.shouldUseV3Strategy(request)) {
       console.log(`[StepExecGateway] 🚀 使用V3智能策略系统，避免坐标兜底`);

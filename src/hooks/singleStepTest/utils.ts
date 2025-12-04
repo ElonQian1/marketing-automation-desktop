@@ -191,6 +191,11 @@ export const normalizeStepForExecution = (step: SmartScriptStep): SmartScriptSte
         } as SmartScriptStep;
       }
     }
+
+    // ✅ 修复：确保 launch_app 步骤不被错误修改
+    if (String(step.step_type) === 'launch_app') {
+      return step;
+    }
   } catch (e) {
     console.warn('标准化步骤失败，按原样下发:', e);
   }

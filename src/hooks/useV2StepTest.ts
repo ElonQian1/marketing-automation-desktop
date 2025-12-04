@@ -459,6 +459,26 @@ export function convertSmartStepToV2Request(
       };
       break;
 
+    case 'launch_app':
+      // 🎯 启动应用步骤
+      // 提取包名和Activity
+      const packageName = params.package_name as string || params.packageName as string || '';
+      console.log('🚀 [useV2StepTest] launch_app参数提取:', {
+        packageName,
+        params
+      });
+      
+      actionParams = {
+        type: 'launch_app',
+        params: {
+          packageName: packageName,
+          activityName: params.activity_name as string || params.activityName as string,
+          waitAfterLaunch: Number(params.wait_after_launch || params.waitAfterLaunch) || 5000,
+          stopBeforeLaunch: params.stop_before_launch !== false && params.stopBeforeLaunch !== false,
+        },
+      };
+      break;
+
     default:
       // 默认点击动作，修复：使用tap代替click
       actionParams = {
