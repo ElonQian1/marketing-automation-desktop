@@ -3,46 +3,16 @@
 // summary: UI 组件
 
 import React, { useState, useEffect, useMemo } from 'react';
-import { 
-  Modal, 
-  Input, 
-  List, 
-  Avatar, 
-  Button, 
-  Select, 
-  Space, 
-  Tag, 
-  Empty,
-  Spin,
-  message,
-  Typography,
-  Row,
-  Col,
-  Card,
-  Tabs,
-  Form,
-  Alert
-} from 'antd';
-import { 
-  SearchOutlined, 
-  AppstoreOutlined,
-  AndroidOutlined,
-  SettingOutlined,
-  StarOutlined,
-  RocketOutlined,
-  CloseOutlined,
-  HistoryOutlined,
-  EditOutlined,
-  MobileOutlined,
-  CheckCircleOutlined
-} from '@ant-design/icons';
-import type { AppInfo } from '../../types/smartComponents';
+import { Modal, Tabs, Card, Row, Col, Button, Space, Typography, Alert, Form, message, Input, Empty, Tag } from 'antd';
+import { RocketOutlined, MobileOutlined, HistoryOutlined, EditOutlined, CheckCircleOutlined, AppstoreOutlined, StarOutlined } from '@ant-design/icons';
+import { listen } from '@tauri-apps/api/event';
 import { smartAppService } from '../../services/smart-app-service';
+import { appRegistryService } from '../../services/app-registry-service';
+import { AppInfo } from '../../types/smartComponents';
 import { useOverlayTheme } from '../ui/overlay';
+import { SmartAppFilterBar } from './SmartAppFilterBar';
+import { SmartAppList } from './SmartAppList';
 
-const { Search } = Input;
-const { Text } = Typography;
-const { Option } = Select;
 const { TabPane } = Tabs;
 
 export interface SmartAppSelectorProps {
@@ -64,8 +34,9 @@ export const SmartAppSelector: React.FC<SmartAppSelectorProps> = ({
 }) => {
   // 统一该组件内部所有下拉的弹层主题为暗色（黑底白字）
   const { popupProps } = useOverlayTheme('dark');
-  const [activeTab, setActiveTab] = useState<string>('device');
+  const [activeTab, setActiveTab] = useState<string>('library'); // 默认显示应用库
   const [apps, setApps] = useState<AppInfo[]>([]);
+  const [libraryApps, setLibraryApps] = useState<AppInfo[]>([]); // 全局应用库
   const [loading, setLoading] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
   const [categoryFilter, setCategoryFilter] = useState<'all' | 'user' | 'system'>('all');
@@ -83,6 +54,18 @@ export const SmartAppSelector: React.FC<SmartAppSelectorProps> = ({
   
   // 手动输入表单
   const [manualForm] = Form.useForm();
+
+  // 初始化：加载应用库
+  useEffect(() => {
+    if (visible) {
+      const allKnownApps = appRegistryService.getAllApps();
+      setLibraryApps(allKnownApps);
+      // 如果没有连接设备，默认显示库中的应用
+      if (!deviceId) {
+        setApps(allKnownApps);
+      }
+    }
+  }, [visible, deviceId]);
 
   // 加载历史记录
   useEffect(() => {
@@ -107,64 +90,125 @@ export const SmartAppSelector: React.FC<SmartAppSelectorProps> = ({
     }
   };
 
-  // 加载设备应用
-  const loadDeviceApps = async () => {
+  // 加载设备应用（流式）
+  const loadDeviceApps = React.useCallback(async () => {
     if (!deviceId) {
+      // 如果在设备标签页且无设备，切回库
       if (activeTab === 'device') {
-        setActiveTab('history'); // 如果没有设备，自动切到历史记录
+        setActiveTab('library');
       }
       return;
     }
 
+    // 只有在设备标签页才自动扫描
+    if (activeTab !== 'device') return;
+
     setLoading(true);
+    setApps([]); // 清空列表，准备接收新数据
+    // setTotal(0); // total 将随着扫描动态增加
+
     try {
       smartAppService.setRefreshStrategy(refreshStrategy);
       const filterMode: 'all' | 'only_user' | 'only_system' =
         categoryFilter === 'all' ? 'all' : categoryFilter === 'user' ? 'only_user' : 'only_system';
-      const res = await smartAppService.getDeviceAppsPaged(deviceId, {
-        filterMode,
-        refreshStrategy,
-        page,
-        pageSize,
-        query: searchQuery,
-      });
-      setApps(res.items);
-      setTotal(res.total);
+      
+      // 启动流式扫描
+      await smartAppService.scanDeviceApps(deviceId, filterMode);
     } catch (error) {
-      message.error('加载设备应用失败');
-      console.error('加载设备应用失败:', error);
-    } finally {
+      message.error('启动应用扫描失败');
+      console.error('启动应用扫描失败:', error);
       setLoading(false);
     }
-  };
+  }, [deviceId, activeTab, refreshStrategy, categoryFilter]);
+
+  // 监听流式事件
+  useEffect(() => {
+    if (!visible || !deviceId) return;
+
+    let unlistenScanned: () => void;
+    let unlistenComplete: () => void;
+    let unlistenError: () => void;
+
+    const setupListeners = async () => {
+      // 监听扫描到的应用
+      unlistenScanned = await listen<AppInfo>(`app-scanned://${deviceId}`, (event) => {
+        const app = event.payload;
+        
+        // 1. 更新当前设备列表
+        setApps(prev => {
+          if (prev.some(a => a.package_name === app.package_name)) return prev;
+          return [...prev, app];
+        });
+        
+        // 2. 自动学习到应用库
+        appRegistryService.learnApp(app);
+        
+        setTotal(prev => prev + 1);
+      });
+
+      // 监听扫描完成
+      unlistenComplete = await listen(`scan-complete://${deviceId}`, () => {
+        setLoading(false);
+        // 扫描完成后刷新库列表，确保新学习的应用可见
+        setLibraryApps(appRegistryService.getAllApps());
+      });
+
+      // 监听扫描错误
+      unlistenError = await listen(`scan-error://${deviceId}`, (event) => {
+        console.error('扫描出错:', event.payload);
+        message.error('应用扫描过程中发生错误');
+        setLoading(false);
+      });
+    };
+
+    setupListeners();
+
+    return () => {
+      if (unlistenScanned) unlistenScanned();
+      if (unlistenComplete) unlistenComplete();
+      if (unlistenError) unlistenError();
+    };
+  }, [visible, deviceId]);
 
   // 初始化加载
   useEffect(() => {
     if (visible) {
-      if (deviceId) {
-        loadDeviceApps();
-        setActiveTab('device');
-      } else {
-        setActiveTab('history');
+      // 总是先加载库
+      setLibraryApps(appRegistryService.getAllApps());
+      
+      // 如果没有选定标签，默认去库
+      if (!activeTab) {
+        setActiveTab('library');
       }
     }
-    // 仅在打开或设备变化时拉取
-  }, [visible, deviceId]);
+  }, [visible, activeTab]);
 
-  // 当过滤/策略/分页变化时刷新
+  // 当过滤/策略/标签变化时刷新
   useEffect(() => {
-    if (visible && deviceId) {
+    if (visible && deviceId && activeTab === 'device') {
       loadDeviceApps();
     }
-    // 仅当会影响后端返回的数据时才重新加载
-  }, [categoryFilter, refreshStrategy, page, pageSize, deviceId, visible, searchQuery]);
+  }, [categoryFilter, refreshStrategy, deviceId, visible, activeTab, loadDeviceApps]);
 
   // 过滤和搜索应用
   const filteredApps = useMemo(() => {
-    let result = [...apps];
+    // 根据标签页决定数据源
+    let sourceApps = activeTab === 'library' ? libraryApps : apps;
+    let result = [...sourceApps];
 
     // 按类别过滤
-    result = smartAppService.filterAppsByCategory(result, categoryFilter);
+    if (activeTab === 'device') {
+        // 设备模式下，后端已经过滤了一部分，但前端可能还需要二次过滤（如果后端只支持部分过滤）
+        // 这里假设后端已经处理了 user/system 过滤，但为了保险起见，前端也保留逻辑
+        result = smartAppService.filterAppsByCategory(result, categoryFilter);
+    } else {
+        // 库模式下，完全由前端过滤
+        if (categoryFilter === 'user') {
+            result = result.filter(a => !a.is_system_app);
+        } else if (categoryFilter === 'system') {
+            result = result.filter(a => a.is_system_app);
+        }
+    }
     
     // 按状态过滤
     result = smartAppService.filterAppsByStatus(result, statusFilter);
@@ -185,12 +229,19 @@ export const SmartAppSelector: React.FC<SmartAppSelectorProps> = ({
     }
 
     return result;
-  }, [apps, categoryFilter, statusFilter, searchQuery, viewMode]);
+  }, [apps, libraryApps, activeTab, categoryFilter, statusFilter, searchQuery, viewMode]);
+
+  // 前端分页切片
+  const currentPageApps = useMemo(() => {
+    const start = (page - 1) * pageSize;
+    const end = start + pageSize;
+    return filteredApps.slice(start, end);
+  }, [filteredApps, page, pageSize]);
 
   // 懒加载当前可见列表的图标（限制并发）
   useEffect(() => {
     let cancelled = false;
-    const toLoad = filteredApps
+    const toLoad = currentPageApps // 修改为只加载当前页的图标
       .filter((a) => icons[a.package_name] === undefined && !iconLoadingSet.has(a.package_name))
       .slice(0, 12); // 每次最多加载12个
 
@@ -220,7 +271,7 @@ export const SmartAppSelector: React.FC<SmartAppSelectorProps> = ({
     return () => {
       cancelled = true;
     };
-  }, [filteredApps, deviceId]);
+  }, [currentPageApps, deviceId, icons, iconLoadingSet]);
 
   // 处理应用选择
   const handleSelectApp = (app: AppInfo) => {
@@ -241,7 +292,7 @@ export const SmartAppSelector: React.FC<SmartAppSelectorProps> = ({
         is_enabled: true
       };
       handleSelectApp(app);
-    } catch (error) {
+    } catch {
       // 验证失败
     }
   };
@@ -261,10 +312,97 @@ export const SmartAppSelector: React.FC<SmartAppSelectorProps> = ({
 
   // 快速选择热门应用
   const popularApps = useMemo(() => {
-    return apps.filter(app => smartAppService.isPopularApp(app.package_name))
+    const source = activeTab === 'library' ? libraryApps : apps;
+    return source.filter(app => smartAppService.isPopularApp(app.package_name))
       .sort((a, b) => a.app_name.localeCompare(b.app_name))
       .slice(0, 8);
-  }, [apps]);
+  }, [apps, libraryApps, activeTab]);
+
+  const renderAppList = () => (
+    <>
+      <SmartAppFilterBar
+        searchQuery={searchQuery}
+        setSearchQuery={setSearchQuery}
+        viewMode={viewMode}
+        setViewMode={setViewMode}
+        categoryFilter={categoryFilter}
+        setCategoryFilter={setCategoryFilter}
+        statusFilter={statusFilter}
+        setStatusFilter={setStatusFilter}
+        refreshStrategy={refreshStrategy}
+        setRefreshStrategy={setRefreshStrategy}
+        pageSize={pageSize}
+        setPageSize={setPageSize}
+        setPage={setPage}
+        onRefresh={() => { if(activeTab === 'device') loadDeviceApps(); }}
+        showRefresh={activeTab === 'device'}
+        popupProps={popupProps}
+      />
+
+      {/* 快速选择热门应用 */}
+      {viewMode === 'popular' && popularApps.length > 0 && (
+        <Card 
+          title="热门应用快捷选择" 
+          size="small"
+          style={{ marginBottom: 16 }}
+          bodyStyle={{ padding: '12px' }}
+        >
+          <Row gutter={[8, 8]}>
+            {popularApps.map((app) => (
+              <Col span={6} key={app.package_name}>
+                <Button
+                  block
+                  size="small"
+                  icon={getAppIcon(app)}
+                  onClick={() => handleSelectApp(app)}
+                  style={{
+                    height: 'auto',
+                    whiteSpace: 'normal',
+                    textAlign: 'left'
+                  }}
+                >
+                  <div style={{ fontSize: '12px', marginTop: '2px' }}>
+                    {app.app_name}
+                  </div>
+                </Button>
+              </Col>
+            ))}
+          </Row>
+        </Card>
+      )}
+
+      <SmartAppList
+        loading={loading && activeTab === 'device'}
+        total={total}
+        apps={currentPageApps}
+        selectedApp={selectedApp}
+        onSelect={handleSelectApp}
+        icons={icons}
+        searchQuery={searchQuery}
+        activeTab={activeTab}
+        onAppsChanged={() => setLibraryApps(appRegistryService.getAllApps())}
+      />
+
+      {/* 底部统计信息 */}
+      <div style={{ 
+        marginTop: 16, 
+        padding: '8px 0', 
+        borderTop: '1px solid #f0f0f0',
+        textAlign: 'center'
+      }}>
+        <Space direction="vertical" size={4}>
+          <Typography.Text type="secondary" style={{ fontSize: '12px' }}>
+            共 {filteredApps.length} 个应用，当前第 {page} / {Math.max(1, Math.ceil(filteredApps.length / pageSize))} 页
+            {searchQuery && ` (搜索: "${searchQuery}")`}
+          </Typography.Text>
+          <Space>
+            <Button size="small" disabled={page <= 1} onClick={() => setPage((p) => Math.max(1, p - 1))}>上一页</Button>
+            <Button size="small" disabled={page >= Math.max(1, Math.ceil(filteredApps.length / pageSize))} onClick={() => setPage((p) => p + 1)}>下一页</Button>
+          </Space>
+        </Space>
+      </div>
+    </>
+  );
 
   return (
     <Modal
@@ -288,7 +426,14 @@ export const SmartAppSelector: React.FC<SmartAppSelectorProps> = ({
     >
       <Tabs activeKey={activeTab} onChange={setActiveTab}>
         <TabPane 
-          tab={<span><MobileOutlined />设备应用</span>} 
+          tab={<span><AppstoreOutlined />应用库</span>} 
+          key="library"
+        >
+          {renderAppList()}
+        </TabPane>
+
+        <TabPane 
+          tab={<span><MobileOutlined />设备扫描</span>} 
           key="device"
         >
           {!deviceId ? (
@@ -301,215 +446,7 @@ export const SmartAppSelector: React.FC<SmartAppSelectorProps> = ({
               </Button>
             </Empty>
           ) : (
-            <>
-              {/* 搜索和过滤工具栏 */}
-              <div style={{ marginBottom: 16 }}>
-                <Row gutter={[16, 16]}>
-                  <Col span={12}>
-                    <Search
-                      placeholder="搜索应用名称或包名..."
-                      value={searchQuery}
-                      onChange={(e) => setSearchQuery(e.target.value)}
-                      onSearch={(value) => setSearchQuery(value)}
-                      allowClear
-                      prefix={<SearchOutlined />}
-                    />
-                  </Col>
-                  <Col span={4}>
-                    <Select
-                      style={{ width: '100%' }}
-                      value={viewMode}
-                      onChange={setViewMode}
-                      placeholder="视图模式"
-                      {...popupProps}
-                    >
-                      <Option value="popular">热门应用</Option>
-                      <Option value="all">全部应用</Option>
-                    </Select>
-                  </Col>
-                  <Col span={4}>
-                    <Select
-                      style={{ width: '100%' }}
-                      value={categoryFilter}
-                      onChange={setCategoryFilter}
-                      placeholder="应用类型"
-                      {...popupProps}
-                    >
-                      <Option value="all">全部</Option>
-                      <Option value="user">用户应用</Option>
-                      <Option value="system">系统应用</Option>
-                    </Select>
-                  </Col>
-                  <Col span={4}>
-                    <Select
-                      style={{ width: '100%' }}
-                      value={statusFilter}
-                      onChange={setStatusFilter}
-                      placeholder="状态"
-                      {...popupProps}
-                    >
-                      <Option value="all">全部</Option>
-                      <Option value="enabled">已启用</Option>
-                      <Option value="disabled">已禁用</Option>
-                    </Select>
-                  </Col>
-                  <Col span={12}>
-                    <Space>
-                      <Select
-                        style={{ width: 160 }}
-                        value={refreshStrategy}
-                        onChange={(v) => {
-                          setRefreshStrategy(v);
-                          setPage(1);
-                        }}
-                        placeholder="刷新策略"
-                        {...popupProps}
-                      >
-                        <Option value="cache_first">缓存优先</Option>
-                        <Option value="force_refresh">强制刷新</Option>
-                      </Select>
-                      <Select style={{ width: 120 }} value={pageSize} onChange={(v) => { setPageSize(v); setPage(1); }} {...popupProps}>
-                        <Option value={30}>每页30</Option>
-                        <Option value={60}>每页60</Option>
-                        <Option value={100}>每页100</Option>
-                      </Select>
-                      <Button onClick={() => { setPage(1); loadDeviceApps(); }}>刷新</Button>
-                    </Space>
-                  </Col>
-                </Row>
-              </div>
-
-              {/* 快速选择热门应用 */}
-              {viewMode === 'popular' && popularApps.length > 0 && (
-                <Card 
-                  title="热门应用快捷选择" 
-                  size="small"
-                  style={{ marginBottom: 16 }}
-                  bodyStyle={{ padding: '12px' }}
-                >
-                  <Row gutter={[8, 8]}>
-                    {popularApps.map((app) => (
-                      <Col span={6} key={app.package_name}>
-                        <Button
-                          block
-                          size="small"
-                          icon={getAppIcon(app)}
-                          onClick={() => handleSelectApp(app)}
-                          style={{
-                            height: 'auto',
-                            whiteSpace: 'normal',
-                            textAlign: 'left'
-                          }}
-                        >
-                          <div style={{ fontSize: '12px', marginTop: '2px' }}>
-                            {app.app_name}
-                          </div>
-                        </Button>
-                      </Col>
-                    ))}
-                  </Row>
-                </Card>
-              )}
-
-              {/* 应用列表 */}
-              <Spin spinning={loading}>
-                {filteredApps.length === 0 ? (
-                  <Empty
-                    image={Empty.PRESENTED_IMAGE_SIMPLE}
-                    description={
-                      searchQuery ? '没有找到匹配的应用' : '没有可用的应用'
-                    }
-                  />
-                ) : (
-                  <List
-                    itemLayout="horizontal"
-                    dataSource={filteredApps}
-                    style={{ maxHeight: '400px', overflowY: 'auto' }}
-                    renderItem={(app) => (
-                      <List.Item
-                        actions={[
-                          <Button 
-                            type="primary" 
-                            size="small"
-                            onClick={() => handleSelectApp(app)}
-                          >
-                            选择
-                          </Button>
-                        ]}
-                        style={{
-                          cursor: 'pointer',
-                          backgroundColor: selectedApp?.package_name === app.package_name ? '#f0f8ff' : undefined
-                        }}
-                        onClick={() => handleSelectApp(app)}
-                      >
-                        <List.Item.Meta
-                          avatar={
-                            <Avatar 
-                              src={icons[app.package_name] || undefined}
-                              icon={!icons[app.package_name] ? getAppIcon(app) : undefined}
-                              style={{
-                                backgroundColor: app.is_system_app ? 'var(--bg-elevated)' : 'var(--brand-100)'
-                              }}
-                            />
-                          }
-                          title={
-                            <Space>
-                              <Text strong>{app.app_name}</Text>
-                              {smartAppService.isPopularApp(app.package_name) && (
-                                <Tag color="orange" icon={<StarOutlined />}>
-                                  热门
-                                </Tag>
-                              )}
-                              {app.is_system_app && (
-                                <Tag color="purple">
-                                  系统
-                                </Tag>
-                              )}
-                              {!app.is_enabled && (
-                                <Tag color="red">
-                                  已禁用
-                                </Tag>
-                              )}
-                            </Space>
-                          }
-                          description={
-                            <div>
-                              <Text type="secondary" style={{ fontSize: '12px' }}>
-                                {app.package_name}
-                              </Text>
-                              {app.version_name && (
-                                <Text type="secondary" style={{ fontSize: '12px', marginLeft: '8px' }}>
-                                  v{app.version_name}
-                                </Text>
-                              )}
-                            </div>
-                          }
-                        />
-                      </List.Item>
-                    )}
-                  />
-                )}
-              </Spin>
-
-              {/* 底部统计信息 */}
-              <div style={{ 
-                marginTop: 16, 
-                padding: '8px 0', 
-                borderTop: '1px solid #f0f0f0',
-                textAlign: 'center'
-              }}>
-                <Space direction="vertical" size={4}>
-                  <Text type="secondary" style={{ fontSize: '12px' }}>
-                    共 {total} 个应用，当前第 {page} / {Math.max(1, Math.ceil(total / pageSize))} 页，展示 {apps.length} 个
-                    {searchQuery && ` (搜索: "${searchQuery}")`}
-                  </Text>
-                  <Space>
-                    <Button size="small" disabled={page <= 1} onClick={() => setPage((p) => Math.max(1, p - 1))}>上一页</Button>
-                    <Button size="small" disabled={page >= Math.max(1, Math.ceil(total / pageSize))} onClick={() => setPage((p) => p + 1)}>下一页</Button>
-                  </Space>
-                </Space>
-              </div>
-            </>
+            renderAppList()
           )}
         </TabPane>
 
@@ -517,33 +454,16 @@ export const SmartAppSelector: React.FC<SmartAppSelectorProps> = ({
           tab={<span><HistoryOutlined />历史记录</span>} 
           key="history"
         >
-          {historyApps.length === 0 ? (
-            <Empty description="暂无历史记录" />
-          ) : (
-            <List
-              itemLayout="horizontal"
-              dataSource={historyApps}
-              renderItem={(app) => (
-                <List.Item
-                  actions={[
-                    <Button 
-                      type="primary" 
-                      size="small"
-                      onClick={() => handleSelectApp(app)}
-                    >
-                      选择
-                    </Button>
-                  ]}
-                >
-                  <List.Item.Meta
-                    avatar={<Avatar icon={<AppstoreOutlined />} style={{ backgroundColor: '#87d068' }} />}
-                    title={app.app_name}
-                    description={app.package_name}
-                  />
-                </List.Item>
-              )}
-            />
-          )}
+          <SmartAppList
+            loading={false}
+            total={historyApps.length}
+            apps={historyApps}
+            selectedApp={selectedApp}
+            onSelect={handleSelectApp}
+            icons={icons}
+            searchQuery=""
+            activeTab="history"
+          />
         </TabPane>
 
         <TabPane 

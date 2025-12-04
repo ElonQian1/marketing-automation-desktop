@@ -10,9 +10,13 @@ export interface AppInfo {
   version_name?: string;     // 版本名
   version_code?: string;     // 版本号
   is_system_app: boolean;    // 是否系统应用
-  is_enabled: boolean;       // 是否启用
+  enabled: boolean;       // 是否启用
   main_activity?: string;    // 主Activity
   icon_path?: string;        // 图标路径
+  // 新增字段
+  category?: string; // 'social' | 'video' | 'shopping' | 'tool' | 'life' | 'other'
+  source?: 'preset' | 'learned';
+  last_seen?: number;
 }
 
 export interface AppLaunchResult {

@@ -326,6 +326,25 @@ export class SmartAppService {
     // 可能需要后端支持提取应用图标
     return null;
   }
+
+  /**
+   * 流式扫描设备应用
+   * 触发后端扫描，通过事件 'app-scanned' 接收数据
+   */
+  async scanDeviceApps(
+    deviceId: string,
+    filterMode: 'all' | 'only_user' | 'only_system' = 'only_user'
+  ): Promise<void> {
+    try {
+      await invoke('plugin:adb|scan_apps', {
+        deviceId,
+        filterMode
+      });
+    } catch (error) {
+      console.error('启动应用扫描失败:', error);
+      throw error;
+    }
+  }
 }
 
 // 导出服务实例
