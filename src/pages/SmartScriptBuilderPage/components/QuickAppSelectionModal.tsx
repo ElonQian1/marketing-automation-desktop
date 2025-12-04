@@ -88,6 +88,7 @@ const QuickAppSelectionModal: React.FC<QuickAppSelectionModalProps> = ({
           }
           return false;
         }}
+        embedSelector={true}
       />
     </Modal>
   );

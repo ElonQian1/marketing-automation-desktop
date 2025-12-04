@@ -25,12 +25,22 @@ export interface SmartAppSelectorProps {
 
 const HISTORY_STORAGE_KEY = 'smart_app_selector_history';
 
-export const SmartAppSelector: React.FC<SmartAppSelectorProps> = ({
-  visible,
-  onClose,
+export interface SmartAppSelectorContentProps {
+  onSelect: (app: AppInfo) => void;
+  deviceId?: string;
+  selectedApp?: AppInfo | null;
+  visible?: boolean;
+  style?: React.CSSProperties;
+  className?: string;
+}
+
+export const SmartAppSelectorContent: React.FC<SmartAppSelectorContentProps> = ({
   onSelect,
   deviceId,
-  selectedApp
+  selectedApp,
+  visible = true,
+  style,
+  className
 }) => {
   // 统一该组件内部所有下拉的弹层主题为暗色（黑底白字）
   const { popupProps } = useOverlayTheme('dark');
@@ -277,7 +287,6 @@ export const SmartAppSelector: React.FC<SmartAppSelectorProps> = ({
   const handleSelectApp = (app: AppInfo) => {
     saveToHistory(app);
     onSelect(app);
-    onClose();
     message.success(`已选择应用: ${app.app_name}`);
   };
 
@@ -405,25 +414,7 @@ export const SmartAppSelector: React.FC<SmartAppSelectorProps> = ({
   );
 
   return (
-    <Modal
-      title={
-        <Space>
-          <RocketOutlined />
-          智能应用选择器
-          {selectedApp && (
-            <Tag color="green">
-              已选: {selectedApp.app_name}
-            </Tag>
-          )}
-        </Space>
-      }
-      open={visible}
-      onCancel={onClose}
-      footer={null}
-      width={800}
-      style={{ top: 20 }}
-      bodyStyle={{ maxHeight: '80vh', overflowY: 'auto', padding: '0 24px 24px' }}
-    >
+    <div style={style} className={className}>
       <Tabs activeKey={activeTab} onChange={setActiveTab}>
         <TabPane 
           tab={<span><AppstoreOutlined />应用库</span>} 
@@ -506,6 +497,46 @@ export const SmartAppSelector: React.FC<SmartAppSelectorProps> = ({
           </Form>
         </TabPane>
       </Tabs>
+    </div>
+  );
+};
+
+export const SmartAppSelector: React.FC<SmartAppSelectorProps> = ({
+  visible,
+  onClose,
+  onSelect,
+  deviceId,
+  selectedApp
+}) => {
+  return (
+    <Modal
+      title={
+        <Space>
+          <RocketOutlined />
+          智能应用选择器
+          {selectedApp && (
+            <Tag color="green">
+              已选: {selectedApp.app_name}
+            </Tag>
+          )}
+        </Space>
+      }
+      open={visible}
+      onCancel={onClose}
+      footer={null}
+      width={800}
+      style={{ top: 20 }}
+      bodyStyle={{ maxHeight: '80vh', overflowY: 'auto', padding: '0 24px 24px' }}
+    >
+      <SmartAppSelectorContent
+        onSelect={(app) => {
+          onSelect(app);
+          onClose();
+        }}
+        deviceId={deviceId}
+        selectedApp={selectedApp}
+        visible={visible}
+      />
     </Modal>
   );
 };

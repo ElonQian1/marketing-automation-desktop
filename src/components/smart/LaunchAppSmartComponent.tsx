@@ -26,7 +26,7 @@ import {
   CheckCircleOutlined,
   ExclamationCircleOutlined
 } from '@ant-design/icons';
-import { SmartAppSelector } from './SmartAppSelector';
+import { SmartAppSelector, SmartAppSelectorContent } from './SmartAppSelector';
 import { smartAppService } from '../../services/smart-app-service';
 import type { AppInfo, LaunchAppComponentParams } from '../../types/smartComponents';
 import { LAUNCH_APP_COMPONENT } from '../../types/smartComponents';
@@ -40,6 +40,7 @@ export interface LaunchAppSmartComponentProps {
   onChange?: (value: LaunchAppComponentParams) => void;
   onPreview?: () => void;
   onExecute?: (params: LaunchAppComponentParams) => Promise<boolean>;
+  embedSelector?: boolean;
 }
 
 export const LaunchAppSmartComponent: React.FC<LaunchAppSmartComponentProps> = ({
@@ -47,7 +48,8 @@ export const LaunchAppSmartComponent: React.FC<LaunchAppSmartComponentProps> = (
   value,
   onChange,
   onPreview,
-  onExecute
+  onExecute,
+  embedSelector = false
 }) => {
   const [form] = Form.useForm<LaunchAppComponentParams>();
   const [selectorVisible, setSelectorVisible] = useState(false);
@@ -248,50 +250,70 @@ export const LaunchAppSmartComponent: React.FC<LaunchAppSmartComponentProps> = (
 
         {/* 应用选择器 */}
         <Form.Item label="选择应用" required>
-          <div>
-            <Button
-              icon={<AppstoreOutlined />}
-              onClick={() => setSelectorVisible(true)}
-              style={{ marginBottom: 8 }}
-            >
-              {selectedApp ? '更换应用' : '选择应用'}
-            </Button>
-            
-            {selectedApp && (
-              <div style={{ 
-                padding: '8px 12px', 
-                border: '1px solid #d9d9d9',
-                borderRadius: '6px',
-                backgroundColor: '#fafafa'
-              }}>
-                <Row align="middle">
-                  <Col span={18}>
+          {embedSelector ? (
+            <div style={{ border: '1px solid #d9d9d9', borderRadius: '6px', padding: '12px' }}>
+               {selectedApp && (
+                  <div style={{ marginBottom: 12, padding: '8px 12px', backgroundColor: '#f6ffed', border: '1px solid #b7eb8f', borderRadius: '4px' }}>
                     <Space>
-                      <AppstoreOutlined style={{ color: '#1890ff' }} />
-                      <div>
-                        <Text strong>{selectedApp.app_name}</Text>
-                        <br />
-                        <Text type="secondary" style={{ fontSize: '12px' }}>
-                          {selectedApp.package_name}
-                        </Text>
-                      </div>
+                      <CheckCircleOutlined style={{ color: '#52c41a' }} />
+                      <Text strong>已选应用: {selectedApp.app_name}</Text>
+                      <Text type="secondary">({selectedApp.package_name})</Text>
                     </Space>
-                  </Col>
-                  <Col span={6} style={{ textAlign: 'right' }}>
-                    <Button 
-                      size="small"
-                      type="link"
-                      loading={executing}
-                      onClick={handleTestLaunch}
-                      disabled={!deviceId}
-                    >
-                      测试启动
-                    </Button>
-                  </Col>
-                </Row>
-              </div>
-            )}
-          </div>
+                  </div>
+               )}
+               <SmartAppSelectorContent
+                  onSelect={handleAppSelect}
+                  deviceId={deviceId}
+                  selectedApp={selectedApp}
+                  visible={true}
+               />
+            </div>
+          ) : (
+            <div>
+              <Button
+                icon={<AppstoreOutlined />}
+                onClick={() => setSelectorVisible(true)}
+                style={{ marginBottom: 8 }}
+              >
+                {selectedApp ? '更换应用' : '选择应用'}
+              </Button>
+              
+              {selectedApp && (
+                <div style={{ 
+                  padding: '8px 12px', 
+                  border: '1px solid #d9d9d9',
+                  borderRadius: '6px',
+                  backgroundColor: '#fafafa'
+                }}>
+                  <Row align="middle">
+                    <Col span={18}>
+                      <Space>
+                        <AppstoreOutlined style={{ color: '#1890ff' }} />
+                        <div>
+                          <Text strong>{selectedApp.app_name}</Text>
+                          <br />
+                          <Text type="secondary" style={{ fontSize: '12px' }}>
+                            {selectedApp.package_name}
+                          </Text>
+                        </div>
+                      </Space>
+                    </Col>
+                    <Col span={6} style={{ textAlign: 'right' }}>
+                      <Button 
+                        size="small"
+                        type="link"
+                        loading={executing}
+                        onClick={handleTestLaunch}
+                        disabled={!deviceId}
+                      >
+                        测试启动
+                      </Button>
+                    </Col>
+                  </Row>
+                </div>
+              )}
+            </div>
+          )}
         </Form.Item>
 
         <Divider orientation="left">启动配置</Divider>
@@ -386,13 +408,15 @@ export const LaunchAppSmartComponent: React.FC<LaunchAppSmartComponentProps> = (
       </Form>
 
       {/* 应用选择器 */}
-      <SmartAppSelector
-        visible={selectorVisible}
-        onClose={() => setSelectorVisible(false)}
-        onSelect={handleAppSelect}
-        deviceId={deviceId}
-        selectedApp={selectedApp}
-      />
+      {!embedSelector && (
+        <SmartAppSelector
+          visible={selectorVisible}
+          onClose={() => setSelectorVisible(false)}
+          onSelect={handleAppSelect}
+          deviceId={deviceId}
+          selectedApp={selectedApp}
+        />
+      )}
     </Card>
   );
 };
