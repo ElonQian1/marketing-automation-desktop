@@ -365,6 +365,57 @@ background: '#f8fafc'
 
 ---
 
+## 🔍 易混淆组件索引（AI 代理必读）
+
+### ⚠️ 修改前必须确认调用链
+
+本项目存在多套功能相似的组件系统。**修改任何代码前，必须先追踪调用链确认目标组件。**
+
+**禁止行为**：看到文件名相似就开始修改，不确认是否是用户实际使用的组件。
+
+### 📊 XML 可视化系统对照表
+
+| 组件路径 | 用途 | 调用入口 | 数据类型 |
+|----------|------|----------|----------|
+| `components/adb-xml-inspector/` | 🔧 **调试工具** - XML结构分析、XPath生成 | ElementNameEditor → "XML检查器" Tab | `UiNode` |
+| `components/universal-ui/views/grid-view/` | 🎨 **元素选择器** - 网格/树形模式 | UniversalPageFinderModal → 网格模式 | `UiNode` |
+| `components/universal-ui/views/visual-view/` | 🎨 **元素选择器** - 可视化模式 | UniversalPageFinderModal → 可视化模式 | `VisualUIElement` |
+
+### 📊 屏幕预览组件对照表
+
+| 组件 | 完整路径 | 被谁使用 |
+|------|----------|----------|
+| `ScreenPreview` (adb-xml-inspector) | `adb-xml-inspector/AdbXmlInspector.tsx` 内部定义 | AdbXmlInspector 自身 |
+| `ScreenPreview` (grid-view) | `universal-ui/views/grid-view/ScreenPreview.tsx` | GridElementView |
+| `VisualPagePreview` | `universal-ui/views/visual-view/VisualPagePreview.tsx` | VisualElementView |
+
+### 🔄 修改前的确认流程
+
+```
+1. 用户报告问题："XX功能有bug"
+   ↓
+2. 询问调用入口："你是通过什么路径进入这个页面的？"
+   ↓
+3. 追踪调用链：入口页面 → 使用的组件 → 具体文件
+   ↓
+4. 确认后再修改："我找到了3个相似组件，确认你用的是..."
+```
+
+### 🏷️ 组件文件头注释规范
+
+所有易混淆的组件文件顶部必须包含调用链注释：
+
+```tsx
+// src/components/universal-ui/views/grid-view/ScreenPreview.tsx
+// module: universal-ui/grid-view | layer: ui | role: screen-preview
+// 📍 调用链: UniversalPageFinderModal → GridElementView → ScreenPreview
+// 📍 用途: 智能页面查找器的网格视图中的屏幕预览
+// 📍 数据类型: UiNode (原始XML树)
+// ⚠️ 注意: 与 adb-xml-inspector 和 visual-view 中的类似组件不同！
+```
+
+---
+
 ## 📋 快速检查清单
 
 **开发完成后必须检查：**
@@ -381,6 +432,7 @@ background: '#f8fafc'
 10. ✅ **样式检查**：是否存在白底白字等可读性问题
 11. ✅ **颜色对比度**：是否满足 WCAG AA 标准（4.5:1）
 12. ✅ **命名前缀**：易重名文件和类型是否添加模块前缀
+13. ✅ **调用链确认**：修改的是用户实际使用的组件吗？
 
 ---
 
