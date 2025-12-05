@@ -1,13 +1,26 @@
 // src/components/adb-xml-inspector/AdbXmlInspector.tsx
-// module: ui | layer: ui | role: component
-// summary: UI 组件
+// module: adb-xml-inspector | layer: ui | role: main-component
+// summary: ADB XML检查器主组件 - 可视化展示和分析Android UI层级结构（调试工具）
+// 
+// 📍 调用链: ElementNameEditor → TabPane("XML检查器") → AdbXmlInspector
+// 📍 用途: 开发者/高级用户调试XML结构、生成XPath的工具
+// 📍 数据类型: UiNode (原始XML树结构)
+// ⚠️ 注意: 这是独立的调试工具，与以下【元素选择器】组件不同：
+//    - universal-ui/views/grid-view/ (智能页面查找器-网格模式)
+//    - universal-ui/views/visual-view/ (智能页面查找器-可视化模式)
 
 /**
  * ADB XML检查器主组件
  * 用于可视化展示和分析Android UiAutomator导出的XML层级结构
+ * 
+ * 功能特性：
+ * - XML解析与树状结构展示
+ * - 屏幕预览与节点可视化
+ * - 支持正确的层级渲染（DrawerLayout、Dialog等覆盖层）
+ * - 点击预览区域可选择最顶层节点
  */
 
-import React, { useMemo, useRef, useState } from 'react';
+import React, { useMemo, useRef, useState, useCallback } from 'react';
 import {
   Card,
   Button,
@@ -28,7 +41,8 @@ import {
   SearchOutlined,
   CopyOutlined,
   EyeOutlined,
-  BugOutlined
+  BugOutlined,
+  AppstoreOutlined
 } from '@ant-design/icons';
 import { UiNode, AdbXmlInspectorProps } from './types';
 import {
@@ -40,8 +54,8 @@ import {
   matchNode,
   getDemoXml,
   inferScreenSize,
-  flattenNodesWithBounds
 } from './utils';
+import { LayerAnalyzer, RenderableNode, LayerAnalysisResult } from './rendering';
 import './styles.css';
 
 const { Text } = Typography;
@@ -279,23 +293,47 @@ function NodeDetail({ node }: NodeDetailProps) {
   );
 }
 
-/** 屏幕预览卡片 */
+/** 屏幕预览卡片 - 使用LayerAnalyzer进行正确的层级渲染 */
 interface ScreenPreviewProps {
   root: UiNode | null;
   selected: UiNode | null;
+  onNodeSelect?: (node: UiNode) => void;
 }
 
-function ScreenPreview({ root, selected }: ScreenPreviewProps) {
-  // 估计屏幕尺寸
-  const screen = useMemo(() => inferScreenSize(root), [root]);
-
-  // 扁平化所有有bounds的节点
-  const boxes = useMemo(() => flattenNodesWithBounds(root), [root]);
+function ScreenPreview({ root, selected, onNodeSelect }: ScreenPreviewProps) {
+  // 使用 LayerAnalyzer 进行层级分析
+  const analysisResult = useMemo<LayerAnalysisResult>(
+    () => LayerAnalyzer.analyze(root), 
+    [root]
+  );
+  
+  const { renderOrder, screenSize, metadata } = analysisResult;
 
   // 画布尺寸
   const viewW = 220;
-  const scale = screen.width > 0 ? viewW / screen.width : 1;
-  const viewH = Math.max(80, Math.round(screen.height * scale));
+  const scale = screenSize.width > 0 ? viewW / screenSize.width : 1;
+  const viewH = Math.max(80, Math.round(screenSize.height * scale));
+
+  /**
+   * 处理预览区域点击 - 选择最顶层节点
+   */
+  const handlePreviewClick = useCallback((e: React.MouseEvent<HTMLDivElement>) => {
+    if (!onNodeSelect) return;
+    
+    const rect = e.currentTarget.getBoundingClientRect();
+    const clickX = (e.clientX - rect.left) / scale;
+    const clickY = (e.clientY - rect.top) / scale;
+    
+    // 使用 LayerAnalyzer 进行点击测试，找到最顶层节点
+    const hitResult = LayerAnalyzer.hitTest(renderOrder, {
+      point: { x: clickX, y: clickY },
+      topMostOnly: true,
+    });
+    
+    if (hitResult.topMost) {
+      onNodeSelect(hitResult.topMost.node);
+    }
+  }, [renderOrder, scale, onNodeSelect]);
 
   return (
     <Card 
@@ -305,15 +343,38 @@ function ScreenPreview({ root, selected }: ScreenPreviewProps) {
             <BugOutlined />
             屏幕预览
           </Space>
-          <Text type="secondary" style={{ fontSize: '11px' }}>
-            {screen.width}×{screen.height}
-          </Text>
+          <Space size={4}>
+            {metadata.hasDrawerLayout && (
+              <Tooltip title="检测到 DrawerLayout">
+                <Tag color="blue" style={{ fontSize: '10px', margin: 0 }}>Drawer</Tag>
+              </Tooltip>
+            )}
+            <Text type="secondary" style={{ fontSize: '11px' }}>
+              {screenSize.width}×{screenSize.height}
+            </Text>
+          </Space>
         </div>
       }
       size="small"
     >
       <Space direction="vertical" style={{ width: '100%' }} size="small">
+        {/* 层级统计信息 */}
+        <div style={{ 
+          display: 'flex', 
+          gap: '8px', 
+          fontSize: '10px', 
+          color: 'var(--dark-text-secondary, #a0a0a0)' 
+        }}>
+          <span>节点: {metadata.totalNodes}</span>
+          <span>可点击: {metadata.clickableNodes}</span>
+          {analysisResult.overlayCount > 0 && (
+            <span style={{ color: '#faad14' }}>覆盖层: {analysisResult.overlayCount}</span>
+          )}
+        </div>
+        
+        {/* 可视化预览区域 */}
         <div
+          onClick={handlePreviewClick}
           style={{ 
             position: 'relative',
             background: 'var(--dark-bg-tertiary, #1f1f1f)',
@@ -323,50 +384,54 @@ function ScreenPreview({ root, selected }: ScreenPreviewProps) {
             width: viewW,
             height: viewH,
             minHeight: 120,
-            margin: '0 auto'
+            margin: '0 auto',
+            cursor: 'crosshair',
           }}
         >
-          {boxes.map(({ n, b }, i) => {
-            const isSelected = n === selected;
+          {/* 按 zIndex 顺序渲染节点（先画底层，后画顶层） */}
+          {renderOrder.map((item, i) => {
+            const { node, bounds, zIndex, isOverlay, semanticType } = item;
+            const isSelected = node === selected;
+            
+            // 为覆盖层节点添加特殊样式
+            const overlayStyle = isOverlay ? {
+              borderColor: '#faad14',
+              borderStyle: 'dashed' as const,
+            } : {};
+            
             return (
               <div
-                key={i}
+                key={`${zIndex}-${i}`}
                 style={{
                   position: 'absolute',
                   border: isSelected 
                     ? '2px solid #1890ff' 
-                    : '1px solid #d9d9d9',
+                    : `1px solid ${isOverlay ? '#faad14' : '#d9d9d9'}`,
+                  borderStyle: isOverlay && !isSelected ? 'dashed' : 'solid',
                   backgroundColor: isSelected 
-                    ? 'rgba(24, 144, 255, 0.08)' 
-                    : 'transparent',
+                    ? 'rgba(24, 144, 255, 0.15)' 
+                    : isOverlay 
+                      ? 'rgba(250, 173, 20, 0.05)'
+                      : 'transparent',
                   boxShadow: isSelected 
-                    ? '0 0 0 1px rgba(24, 144, 255, 0.3)' 
+                    ? '0 0 0 2px rgba(24, 144, 255, 0.3)' 
                     : 'none',
-                  left: Math.round(b.x1 * scale),
-                  top: Math.round(b.y1 * scale),
-                  width: Math.max(1, Math.round(b.w * scale)),
-                  height: Math.max(1, Math.round(b.h * scale)),
-                  cursor: 'pointer',
-                  transition: 'all 0.2s ease'
+                  left: Math.round(bounds.x1 * scale),
+                  top: Math.round(bounds.y1 * scale),
+                  width: Math.max(1, Math.round(bounds.w * scale)),
+                  height: Math.max(1, Math.round(bounds.h * scale)),
+                  // 使用实际的 zIndex 确保正确的层叠顺序
+                  zIndex: zIndex,
+                  pointerEvents: 'none', // 让点击穿透到容器，由容器统一处理
+                  transition: 'all 0.15s ease',
+                  ...overlayStyle,
                 }}
-                title={getNodeLabel(n)}
-                onMouseEnter={(e) => {
-                  if (!isSelected) {
-                    e.currentTarget.style.borderColor = '#52c41a';
-                    e.currentTarget.style.backgroundColor = 'rgba(82, 196, 26, 0.05)';
-                  }
-                }}
-                onMouseLeave={(e) => {
-                  if (!isSelected) {
-                    e.currentTarget.style.borderColor = '#d9d9d9';
-                    e.currentTarget.style.backgroundColor = 'transparent';
-                  }
-                }}
+                title={`${getNodeLabel(node)} (z:${zIndex})`}
               />
             );
           })}
           
-          {boxes.length === 0 && (
+          {renderOrder.length === 0 && (
             <div style={{ 
               position: 'absolute', 
               inset: 0, 
@@ -381,6 +446,7 @@ function ScreenPreview({ root, selected }: ScreenPreviewProps) {
           )}
         </div>
         
+        {/* 选中节点信息 */}
         {selected?.attrs["bounds"] && (
           <div style={{ fontSize: '11px', color: 'var(--dark-text-secondary, #e6e6e6)' }}>
             <Text type="secondary" style={{ fontSize: '11px' }}>选中元素bounds:</Text>
@@ -399,6 +465,15 @@ function ScreenPreview({ root, selected }: ScreenPreviewProps) {
             </div>
           </div>
         )}
+        
+        {/* 提示信息 */}
+        <div style={{ 
+          fontSize: '10px', 
+          color: 'var(--dark-text-tertiary, #666)',
+          textAlign: 'center',
+        }}>
+          点击预览区域选择最顶层节点
+        </div>
       </Space>
     </Card>
   );
@@ -590,7 +665,11 @@ const AdbXmlInspector: React.FC<AdbXmlInspectorProps> = ({
         <Col span={12}>
           <Space direction="vertical" style={{ width: '100%' }} size="small">
             <NodeDetail node={selected} />
-            <ScreenPreview root={root} selected={selected} />
+            <ScreenPreview 
+              root={root} 
+              selected={selected} 
+              onNodeSelect={handleNodeSelect}
+            />
           </Space>
         </Col>
       </Row>

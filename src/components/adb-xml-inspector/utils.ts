@@ -178,6 +178,8 @@ export function getDemoXml(): string {
  * @returns 屏幕尺寸对象
  */
 export function inferScreenSize(root: UiNode | null): { width: number; height: number } {
+  // 委托给新的 LayerAnalyzer（保持向后兼容）
+  // 注意：直接导入会造成循环依赖，所以保留原有实现
   function findBounds(n?: UiNode | null): ElementBounds | null {
     if (!n) return null;
     const b = parseBounds(n.attrs["bounds"]);
@@ -194,24 +196,22 @@ export function inferScreenSize(root: UiNode | null): { width: number; height: n
 }
 
 /**
- * 扁平化所有有bounds的节点
+ * 扁平化所有有bounds的节点（兼容旧版接口）
+ * 
+ * @deprecated 请使用 LayerAnalyzer.analyze() 获取更准确的层级分析结果
  * @param root 根节点
- * @returns 包含节点和bounds信息的数组
+ * @returns 包含节点、bounds信息和层级深度的数组，按渲染顺序排列
  */
-export function flattenNodesWithBounds(root: UiNode | null): Array<{ n: UiNode; b: ElementBounds }> {
-  const result: Array<{ n: UiNode; b: ElementBounds }> = [];
+export function flattenNodesWithBounds(root: UiNode | null): Array<{ n: UiNode; b: ElementBounds; zIndex: number }> {
+  // 延迟导入避免循环依赖
+  const { LayerAnalyzer } = require('./rendering/layer-analyzer');
   
-  function walk(n?: UiNode | null) {
-    if (!n) return;
-    const b = parseBounds(n.attrs["bounds"]);
-    if (b && b.w > 0 && b.h > 0) {
-      result.push({ n: n, b });
-    }
-    for (const c of n.children) {
-      walk(c);
-    }
-  }
+  const result = LayerAnalyzer.analyze(root);
   
-  walk(root);
-  return result;
+  // 转换为旧版格式以保持向后兼容
+  return result.renderOrder.map((item: { node: UiNode; bounds: ElementBounds; zIndex: number }) => ({
+    n: item.node,
+    b: item.bounds,
+    zIndex: item.zIndex,
+  }));
 }
