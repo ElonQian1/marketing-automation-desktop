@@ -1,13 +1,20 @@
 // src/components/universal-ui/views/visual-view/VisualPagePreview.tsx
-// module: ui | layer: ui | role: component
-// summary: UI 组件
+// module: universal-ui/visual-view | layer: ui | role: page-preview
+// summary: 可视化视图的页面预览组件 - 展示解析后的UI元素，支持语义层级渲染
+// 
+// 📍 调用链: UniversalPageFinderModal → VisualElementView → VisualPagePreview
+// 📍 用途: 智能页面查找器的【可视化模式】中的页面预览
+// 📍 数据类型: VisualUIElement[] (解析转换后的元素数组)
+// ⚠️ 注意: 与以下组件功能相似但完全独立：
+//    - adb-xml-inspector/AdbXmlInspector.tsx 内部的 ScreenPreview（调试工具用）
+//    - grid-view/ScreenPreview.tsx（网格模式用，数据类型不同）
 
 /**
  * 可视化页面预览组件
  * 从 UniversalPageFinderModal 的 renderPagePreview 函数提取
  */
 
-import React from "react";
+import React, { useMemo } from "react";
 import { Typography } from "antd";
 import type { VisualUIElement, VisualElementCategory } from "../../types";
 import type { UIElement } from "../../../../api/universalUIAPI";
@@ -23,6 +30,212 @@ import {
 } from "./VisualViewUtils";
 
 const { Text, Title } = Typography;
+
+// ============================================================================
+// 语义层级分析 - 用于正确处理 DrawerLayout、底部导航等覆盖层
+// ============================================================================
+
+/**
+ * Android 布局语义类型
+ */
+enum SemanticNodeType {
+  NORMAL = 0,           // 普通节点
+  DRAWER_MAIN = 1,      // DrawerLayout 主内容 (第一个子元素)
+  DRAWER_CONTENT = 2,   // DrawerLayout 抽屉内容 (覆盖层)
+  BOTTOM_NAV = 3,       // 底部导航栏
+  TAB_BAR = 4,          // 顶部 Tab 栏
+  DIALOG = 5,           // 对话框/弹窗
+  SYSTEM_UI = 6,        // 系统 UI (状态栏、导航栏)
+}
+
+/**
+ * DrawerLayout 信息 - 从 XML 中解析
+ */
+interface DrawerLayoutInfo {
+  /** DrawerLayout 的 indexPath */
+  path: number[];
+  /** 主内容的 indexPath 前缀 (第一个子元素) */
+  mainContentPrefix: number[];
+  /** 抽屉内容的 indexPath 前缀列表 (第二个及后续子元素) */
+  drawerPrefixes: number[][];
+}
+
+/**
+ * 从元素列表中查找 DrawerLayout 信息
+ * 🚀 改进：直接从 VisualUIElement 列表查找，确保 indexPath 与渲染元素完全一致
+ * 避免了 XML 解析与 Rust 解析不一致的问题
+ */
+function findDrawerLayoutsFromElements(elements: VisualUIElement[]): DrawerLayoutInfo[] {
+  const drawerLayouts: DrawerLayoutInfo[] = [];
+  
+  // 1. 找到所有 DrawerLayout 元素
+  const drawerElements = elements.filter(e => 
+    e.className?.includes('DrawerLayout') && e.indexPath
+  );
+  
+  for (const drawer of drawerElements) {
+    if (!drawer.indexPath) continue;
+    
+    const parentPath = drawer.indexPath;
+    const parentDepth = parentPath.length;
+    
+    // 2. 找到该 DrawerLayout 的所有直接子节点
+    // 直接子节点特征：路径以父路径开头，且长度恰好 +1
+    const children = elements.filter(e => {
+      if (!e.indexPath || e.indexPath.length !== parentDepth + 1) return false;
+      // 检查前缀匹配
+      for (let i = 0; i < parentDepth; i++) {
+        if (e.indexPath[i] !== parentPath[i]) return false;
+      }
+      return true;
+    });
+    
+    // 3. 按最后一个索引排序 (DOM 顺序)
+    children.sort((a, b) => {
+      const idxA = a.indexPath![parentDepth];
+      const idxB = b.indexPath![parentDepth];
+      return idxA - idxB;
+    });
+    
+    if (children.length >= 2) {
+      // 第一个子节点是主内容
+      const mainContent = children[0];
+      // 后续子节点是抽屉内容
+      const drawerContents = children.slice(1);
+      
+      drawerLayouts.push({
+        path: parentPath,
+        mainContentPrefix: mainContent.indexPath!,
+        drawerPrefixes: drawerContents.map(c => c.indexPath!),
+      });
+      
+      console.log('[VisualPagePreview] 📦 发现 DrawerLayout:', {
+        path: parentPath,
+        main: mainContent.indexPath,
+        drawers: drawerContents.map(c => c.indexPath)
+      });
+    }
+  }
+  
+  return drawerLayouts;
+}
+
+/**
+ * 检查 indexPath 是否以指定前缀开头
+ */
+function startsWithPath(indexPath: number[] | undefined, prefix: number[]): boolean {
+  if (!indexPath || indexPath.length < prefix.length) return false;
+  return prefix.every((v, i) => indexPath[i] === v);
+}
+
+/**
+ * 语义类型对应的 z-index 提升值
+ */
+const SEMANTIC_Z_BOOST: Record<SemanticNodeType, number> = {
+  [SemanticNodeType.NORMAL]: 0,
+  [SemanticNodeType.DRAWER_MAIN]: 0,
+  [SemanticNodeType.DRAWER_CONTENT]: 30000,  // 抽屉在主内容之上
+  [SemanticNodeType.BOTTOM_NAV]: 10000,      // 底部导航较高
+  [SemanticNodeType.TAB_BAR]: 8000,          // Tab 栏
+  [SemanticNodeType.DIALOG]: 50000,          // 对话框最高
+  [SemanticNodeType.SYSTEM_UI]: 100000,      // 系统 UI
+};
+
+/**
+ * 检测元素的语义类型（使用预解析的 DrawerLayout 信息）
+ */
+function detectSemanticType(
+  element: VisualUIElement,
+  drawerLayouts: DrawerLayoutInfo[]
+): SemanticNodeType {
+  const className = element.className || '';
+  const indexPath = element.indexPath;
+  
+  // 1. 检测系统 UI
+  if (className.includes('StatusBar') || className.includes('NavigationBar')) {
+    return SemanticNodeType.SYSTEM_UI;
+  }
+  
+  // 2. 检测对话框
+  if (className.includes('Dialog') || className.includes('AlertDialog') || className.includes('PopupWindow')) {
+    return SemanticNodeType.DIALOG;
+  }
+  
+  // 3. 检测底部导航
+  if (className.includes('BottomNavigation') || className.includes('BottomBar')) {
+    return SemanticNodeType.BOTTOM_NAV;
+  }
+  
+  // 4. 检测 Tab 栏
+  if (className.includes('TabLayout') || className.includes('TabBar')) {
+    return SemanticNodeType.TAB_BAR;
+  }
+  
+  // 5. 使用预解析的 DrawerLayout 信息检测抽屉
+  if (indexPath && drawerLayouts.length > 0) {
+    for (const drawer of drawerLayouts) {
+      // 检查是否是抽屉内容（第二个及后续子元素的后代）
+      for (const drawerPrefix of drawer.drawerPrefixes) {
+        if (startsWithPath(indexPath, drawerPrefix)) {
+          return SemanticNodeType.DRAWER_CONTENT;
+        }
+      }
+      // 检查是否是主内容（第一个子元素的后代）
+      if (startsWithPath(indexPath, drawer.mainContentPrefix)) {
+        return SemanticNodeType.DRAWER_MAIN;
+      }
+    }
+  }
+  
+  // 6. 直接检测自身是否是抽屉相关（回退方案）
+  if (className.includes('NavigationView') || 
+      className.includes('DrawerContent') ||
+      className.includes('Drawer')) {
+    // 检查位置：如果靠左或靠右边缘，可能是侧边抽屉
+    const pos = element.position;
+    if (pos && (pos.x <= 0 || pos.x + pos.width >= 1080)) {
+      return SemanticNodeType.DRAWER_CONTENT;
+    }
+  }
+  
+  return SemanticNodeType.NORMAL;
+}
+
+/**
+ * 计算元素的渲染 z-index
+ * 
+ * 策略 A：回归自然流
+ * 不再进行复杂的 z-index 计算，而是依赖 DOM 顺序。
+ * 此函数现在仅用于返回语义类型和是否为覆盖层，z-index 将由列表索引决定。
+ */
+function calculateElementZIndex(
+  element: VisualUIElement,
+  drawerLayouts: DrawerLayoutInfo[],
+  elementIndex: number
+): { zIndex: number; semanticType: SemanticNodeType; isOverlay: boolean } {
+  // 仅检测语义类型，不再计算复杂的 z-index
+  const semanticType = detectSemanticType(element, drawerLayouts);
+  
+  const isOverlay = semanticType === SemanticNodeType.DRAWER_CONTENT || 
+                    semanticType === SemanticNodeType.DIALOG ||
+                    semanticType === SemanticNodeType.SYSTEM_UI;
+  
+  return { 
+    zIndex: 0, // 占位符，实际 z-index 由 map 索引决定
+    semanticType, 
+    isOverlay 
+  };
+}
+
+/**
+ * 带层级信息的可渲染元素
+ */
+interface RenderableVisualElement {
+  element: VisualUIElement;
+  zIndex: number;
+  semanticType: SemanticNodeType;
+  isOverlay: boolean;
+}
 
 interface VisualPagePreviewProps {
   xmlContent: string;
@@ -75,6 +288,48 @@ export const VisualPagePreview: React.FC<VisualPagePreviewProps> = ({
 
   // 智能分析APP和页面信息
   const { appName, pageName }: AppPageInfo = analyzeAppAndPageInfo(xmlContent);
+
+  // ============================================================================
+  // 从元素列表解析 DrawerLayout 信息 - 用于正确识别抽屉内容
+  // ============================================================================
+  const drawerLayouts = useMemo(() => {
+    // 🚀 使用 elements (全量列表) 而不是 xmlContent 解析
+    // 这样能保证 indexPath 的一致性
+    const layouts = findDrawerLayoutsFromElements(elements);
+    if (layouts.length > 0) {
+      console.log('[VisualPagePreview] 检测到 DrawerLayout:', layouts.length, '个');
+    }
+    return layouts;
+  }, [elements]);
+
+  // ============================================================================
+  // 计算带语义层级的元素列表 - 确保 DrawerLayout 抽屉在主内容之上
+  // ============================================================================
+  const sortedElements = useMemo((): RenderableVisualElement[] => {
+    // 策略 A：回归自然流
+    // 1. 移除手动 z-index 计算，依赖 DOM 顺序（sortedElements 已经是按 XML 顺序排列的）
+    // 2. 使用 pointer-events 控制交互
+    return filteredElements.map((element, index): RenderableVisualElement => {
+      // 仍然保留语义类型检测用于样式区分，但不再用于 z-index
+      const semanticType = detectSemanticType(element, drawerLayouts);
+      const isOverlay = semanticType === SemanticNodeType.DRAWER_CONTENT || 
+                        semanticType === SemanticNodeType.DIALOG ||
+                        semanticType === SemanticNodeType.SYSTEM_UI;
+      
+      // 策略 A+：自然流 + 语义层级保障
+      // 虽然自然流（DOM顺序）通常是正确的，但为了防止 hover 状态下的 z-index 提升导致
+      // 底层元素（如主内容区的头像）意外覆盖顶层元素（如侧边栏按钮），
+      // 我们必须强制应用语义层级提升。
+      const semanticBoost = SEMANTIC_Z_BOOST[semanticType] || 0;
+      
+      return { 
+        element, 
+        zIndex: index + semanticBoost, // 基础索引 + 语义提升 = 稳健的层级
+        semanticType, 
+        isOverlay 
+      };
+    });
+  }, [filteredElements, drawerLayouts]);
 
   return (
     <div
@@ -150,7 +405,7 @@ export const VisualPagePreview: React.FC<VisualPagePreviewProps> = ({
               overflow: "hidden",
             }}
           >
-            {filteredElements.map((element) => {
+            {sortedElements.map(({ element, zIndex: semanticZIndex, isOverlay }) => {
               const category = categories.find(
                 (cat) => cat.name === element.category
               );
@@ -162,6 +417,23 @@ export const VisualPagePreview: React.FC<VisualPagePreviewProps> = ({
               const displayState = selectionManager.getElementDisplayState(
                 element.id
               );
+
+              // 计算最终 z-index：语义层级 + 交互状态提升
+              // 策略 A：仅在 hover/pending 时提升 z-index，否则使用自然层级
+              // 修正：interactionBoost 不应超过层级之间的间隙 (30000)，否则 hover 底层元素会覆盖顶层
+              const interactionBoost = displayState.isPending
+                ? 2000  // pending 状态局部提升
+                : displayState.isHovered
+                ? 1000  // hover 局部提升
+                : 0;
+              const finalZIndex = semanticZIndex + interactionBoost;
+
+              // 策略 A：使用 pointer-events 控制交互
+              // 1. 可点击元素 -> auto
+              // 2. 覆盖层元素 (Drawer/Dialog) -> auto (即使不可点击，也要作为背景遮挡下层)
+              // 3. Pending 状态 -> auto
+              const shouldBlockClicks = element.clickable || displayState.isPending || isOverlay;
+              const pointerEvents = shouldBlockClicks ? 'auto' : 'none';
 
               return (
                 <div
@@ -178,16 +450,20 @@ export const VisualPagePreview: React.FC<VisualPagePreviewProps> = ({
                       ? 0.1
                       : displayState.isPending
                       ? 1
+                      : isOverlay && !element.clickable 
+                      ? 0.4 // 覆盖层背景稍微不透明一点，以便视觉上遮挡
                       : element.clickable
                       ? 0.7
-                      : 0.4,
+                      : 0.2, // 普通非交互元素更透明
                     border: displayState.isPending
                       ? "2px solid #52c41a"
                       : displayState.isHovered
                       ? "2px solid #faad14"
+                      : isOverlay
+                      ? "2px dashed #f59e0b"  // 覆盖层使用琥珀色虚线
                       : element.clickable
                       ? "1px solid #fff"
-                      : "1px solid rgba(255,255,255,0.3)",
+                      : "1px solid rgba(255,255,255,0.1)", // 非交互元素边框更淡
                     borderRadius:
                       Math.min(scaledBounds.width, scaledBounds.height) > 10
                         ? "2px"
@@ -197,14 +473,9 @@ export const VisualPagePreview: React.FC<VisualPagePreviewProps> = ({
                       : element.clickable
                       ? "pointer"
                       : "default",
+                    pointerEvents: pointerEvents as any, // 关键：控制鼠标穿透
                     transition: "all 0.2s ease",
-                    zIndex: displayState.isPending
-                      ? 50
-                      : displayState.isHovered
-                      ? 30
-                      : element.clickable
-                      ? 10
-                      : 5,
+                    zIndex: finalZIndex,
                     transform: displayState.isPending
                       ? "scale(1.1)"
                       : displayState.isHovered
@@ -214,12 +485,20 @@ export const VisualPagePreview: React.FC<VisualPagePreviewProps> = ({
                       ? "0 4px 16px rgba(82, 196, 26, 0.4)"
                       : displayState.isHovered
                       ? "0 2px 8px rgba(0,0,0,0.2)"
+                      : isOverlay
+                      ? "0 2px 8px rgba(245, 158, 11, 0.3)"  // 覆盖层阴影
                       : "none",
                     filter: displayState.isHidden
                       ? "grayscale(100%) blur(1px)"
                       : "none",
                   }}
                   onClick={(e) => {
+                    // 如果是覆盖层背景（不可点击），阻止冒泡但不触发点击事件
+                    if (isOverlay && !element.clickable) {
+                      e.stopPropagation();
+                      return;
+                    }
+
                     if (!element.clickable || displayState.isHidden) return;
 
                     // 阻止事件冒泡

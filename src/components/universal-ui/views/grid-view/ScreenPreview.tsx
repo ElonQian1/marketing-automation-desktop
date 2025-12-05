@@ -1,6 +1,13 @@
 // src/components/universal-ui/views/grid-view/ScreenPreview.tsx
-// module: ui | layer: ui | role: component
-// summary: UI 组件
+// module: universal-ui/grid-view | layer: ui | role: screen-preview
+// summary: 网格视图的屏幕预览组件 - 可视化Android UI元素，支持正确的层级渲染
+// 
+// 📍 调用链: UniversalPageFinderModal → GridElementView → ScreenPreview
+// 📍 用途: 智能页面查找器的【网格模式】中的屏幕预览
+// 📍 数据类型: UiNode (原始XML树结构)
+// ⚠️ 注意: 与以下组件功能相似但完全独立：
+//    - adb-xml-inspector/AdbXmlInspector.tsx 内部的 ScreenPreview（调试工具用）
+//    - visual-view/VisualPagePreview.tsx（可视化模式用，数据类型不同）
 
 import React, { useEffect, useMemo, useRef, useState } from "react";
 import { UiNode } from "./types";
@@ -8,6 +15,102 @@ import { parseBounds } from "./utils";
 import styles from "./GridElementView.module.css";
 
 type ScaleMode = "fit" | "actual" | "custom";
+
+/**
+ * 语义节点类型 - 用于识别需要特殊层级处理的Android布局容器
+ */
+enum SemanticNodeType {
+  NORMAL = 'normal',
+  DRAWER_LAYOUT = 'drawer_layout',
+  DRAWER_CONTENT = 'drawer_content',
+  MAIN_CONTENT = 'main_content',
+  BOTTOM_NAVIGATION = 'bottom_navigation',
+  DIALOG = 'dialog',
+  POPUP = 'popup',
+  SYSTEM_UI = 'system_ui',
+}
+
+/**
+ * 可渲染节点 - 包含层级信息
+ */
+interface RenderableBox {
+  n: UiNode;
+  b: ReturnType<typeof parseBounds>;
+  zIndex: number;
+  isOverlay: boolean;
+  semanticType: SemanticNodeType;
+}
+
+/**
+ * 检测节点的语义类型
+ */
+function detectSemanticType(
+  node: UiNode, 
+  parentType?: SemanticNodeType,
+  siblingIndex?: number
+): SemanticNodeType {
+  const className = node.attrs['class'] || '';
+  const resourceId = node.attrs['resource-id'] || '';
+  
+  // DrawerLayout
+  if (className.includes('DrawerLayout')) {
+    return SemanticNodeType.DRAWER_LAYOUT;
+  }
+  
+  // DrawerLayout 的子节点
+  if (parentType === SemanticNodeType.DRAWER_LAYOUT) {
+    if (siblingIndex === 0) return SemanticNodeType.MAIN_CONTENT;
+    if (siblingIndex !== undefined && siblingIndex >= 1) return SemanticNodeType.DRAWER_CONTENT;
+  }
+  
+  // 系统UI
+  if (resourceId.includes('navigationBarBackground') || resourceId.includes('statusBarBackground')) {
+    return SemanticNodeType.SYSTEM_UI;
+  }
+  
+  // 底部导航检测
+  const bounds = node.attrs['bounds'];
+  if (bounds) {
+    const match = bounds.match(/\[(\d+),(\d+)\]\[(\d+),(\d+)\]/);
+    if (match) {
+      const y1 = parseInt(match[2]);
+      const y2 = parseInt(match[4]);
+      // 在屏幕底部区域，且包含常见导航文字
+      if (y1 > 2000 && y2 <= 2500) {
+        if (hasBottomNavContent(node)) {
+          return SemanticNodeType.BOTTOM_NAVIGATION;
+        }
+      }
+    }
+  }
+  
+  return SemanticNodeType.NORMAL;
+}
+
+function hasBottomNavContent(node: UiNode): boolean {
+  const navTexts = ['首页', '发现', '消息', '我', '市集', '购物', '发布'];
+  const text = node.attrs['text'] || '';
+  const desc = node.attrs['content-desc'] || '';
+  
+  if (navTexts.some(t => text.includes(t) || desc.includes(t))) {
+    return true;
+  }
+  
+  for (const child of node.children) {
+    if (hasBottomNavContent(child)) return true;
+  }
+  return false;
+}
+
+
+function isOverlayType(type: SemanticNodeType): boolean {
+  return [
+    SemanticNodeType.DRAWER_CONTENT,
+    SemanticNodeType.DIALOG,
+    SemanticNodeType.POPUP,
+    SemanticNodeType.BOTTOM_NAVIGATION,
+  ].includes(type);
+}
 
 export const ScreenPreview: React.FC<{
   root: UiNode | null;
@@ -42,15 +145,15 @@ export const ScreenPreview: React.FC<{
   const lastUserScrollRef = useRef<number>(0);
   const lastCenteredNodeRef = useRef<UiNode | null>(null);
   const screen = useMemo(() => {
-    function findBounds(n?: UiNode | null): ReturnType<typeof parseBounds> {
-      if (!n) return null as any;
+    function findBounds(n?: UiNode | null): ReturnType<typeof parseBounds> | null {
+      if (!n) return null;
       const b = parseBounds(n.attrs["bounds"]);
       if (b) return b;
       for (const c of n.children) {
         const r = findBounds(c);
         if (r) return r;
       }
-      return null as any;
+      return null;
     }
     const fb = findBounds(root) || {
       x1: 0,
@@ -63,15 +166,49 @@ export const ScreenPreview: React.FC<{
     return { width: fb.w, height: fb.h };
   }, [root]);
 
+  /**
+   * 扁平化节点并计算正确的层级顺序
+   * 策略 A：回归自然流
+   * 1. 移除手动 z-index 计算，依赖 DOM 顺序
+   * 2. 使用 pointer-events 控制交互
+   */
   const boxes = useMemo(() => {
-    const result: { n: UiNode; b: ReturnType<typeof parseBounds> }[] = [];
-    function walk(n?: UiNode | null) {
+    const result: RenderableBox[] = [];
+    
+    function walk(
+      n: UiNode | null | undefined, 
+      depth: number, 
+      siblingIndex: number, 
+      parentType?: SemanticNodeType
+    ) {
       if (!n) return;
+      
       const b = parseBounds(n.attrs["bounds"]);
-      if (b && b.w > 0 && b.h > 0) result.push({ n, b });
-      for (const c of n.children) walk(c);
+      const semanticType = detectSemanticType(n, parentType, siblingIndex);
+      
+      if (b && b.w > 0 && b.h > 0) {
+        // 策略 A：不再计算复杂的 z-index，仅记录语义类型
+        // 实际渲染顺序由 result 数组顺序决定（DFS 遍历顺序）
+        result.push({ 
+          n, 
+          b, 
+          zIndex: 0, // 占位符
+          isOverlay: isOverlayType(semanticType),
+          semanticType,
+        });
+      }
+      
+      // 递归处理子节点
+      n.children.forEach((child, idx) => {
+        walk(child, depth + 1, idx, semanticType);
+      });
     }
-    walk(root);
+    
+    walk(root, 0, 0);
+    
+    // 策略 A：不需要排序，DFS 遍历顺序即为正确的渲染顺序（后进先出）
+    // result.sort((a, b) => a.zIndex - b.zIndex);
+    
     return result;
   }, [root]);
 
@@ -220,13 +357,18 @@ export const ScreenPreview: React.FC<{
             }}
           />
         )}
-        {boxes.map(({ n, b }, i) => {
+        {/* 按 z-index 顺序渲染节点（先画底层，后画顶层） */}
+        {boxes.map(({ n, b, zIndex, isOverlay }, i) => {
           const sel = n === selected;
           const matched = matchedSet?.has(n);
           const isHL = highlightNode === n;
+          
+          // 覆盖层使用特殊样式
+          const overlayClassName = isOverlay ? styles.elementRectOverlay : '';
+          
           return (
             <div
-              key={i}
+              key={`${zIndex}-${i}`}
               ref={(el) => {
                 rectRefs.current[i] = el;
               }}
@@ -234,14 +376,16 @@ export const ScreenPreview: React.FC<{
                 matched ? styles.elementRectMatched : ""
               } ${sel ? styles.elementRectActive : ""} ${
                 isHL && enableFlashHighlight ? styles.elementRectFlash : ""
-              }`}
+              } ${overlayClassName}`}
               style={{
                 left: Math.round(b.x1 * scale),
                 top: Math.round(b.y1 * scale),
                 width: Math.max(1, Math.round(b.w * scale)),
                 height: Math.max(1, Math.round(b.h * scale)),
+                // 使用实际 z-index 确保正确的层叠顺序
+                zIndex: zIndex,
               }}
-              title={n.attrs["class"] || n.tag}
+              title={`${n.attrs["class"] || n.tag}${isOverlay ? ' [覆盖层]' : ''}`}
               onClick={() => {
                 if (onElementClick) {
                   onElementClick(n);

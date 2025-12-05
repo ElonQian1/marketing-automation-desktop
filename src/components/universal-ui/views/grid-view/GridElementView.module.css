@@ -183,6 +183,17 @@
   100% { box-shadow: 0 0 0 0 rgba(59, 130, 246, 0); }
 }
 
+/* 覆盖层（DrawerLayout抽屉、底部导航等）特殊样式 */
+.elementRectOverlay {
+  border-color: #f59e0b; /* amber-500 */
+  border-style: dashed;
+  background-color: rgba(245, 158, 11, 0.08);
+}
+.elementRectOverlay:hover {
+  border-color: #d97706; /* amber-600 */
+  background-color: rgba(245, 158, 11, 0.15);
+}
+
 .hint {
   margin-top: 16px;
   font-size: 12px;
