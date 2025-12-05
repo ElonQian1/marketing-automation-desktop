@@ -62,26 +62,31 @@ impl WechatDetector {
     
     /// 微信专用的首页检测逻辑
     async fn check_wechat_homepage(&self, ui_content: &str) -> bool {
-        // 检查底部四个主要标签
-        let has_main_tabs = (ui_content.contains("微信") || ui_content.contains("聊天")) &&
-                           ui_content.contains("通讯录") &&
-                           ui_content.contains("发现") &&
-                           ui_content.contains("我");
+        // 1. 检查底部标签 (支持中文和英文)
+        // 只要满足其中任意2个标签存在，就认为是在主页
+        let tab_indicators = [
+            "通讯录", "Contacts",
+            "发现", "Discover",
+            "我", "Me",
+            "微信", "WeChat", "聊天", "Chats"
+        ];
+        
+        let match_count = tab_indicators.iter()
+            .filter(|&indicator| ui_content.contains(indicator))
+            .count();
+            
+        let has_enough_tabs = match_count >= 2;
 
-        // 检查微信特有的UI元素
+        // 2. 检查微信特有的UI元素 ID
         let has_wechat_elements = ui_content.contains("com.tencent.mm:id/") ||
                                  ui_content.contains("TabWidget") ||
-                                 ui_content.contains("MainTabUI");
+                                 ui_content.contains("MainTabUI") ||
+                                 ui_content.contains("LauncherUI"); // 微信主界面Activity名
 
-        // 检查聊天列表
-        let has_chat_list = ui_content.contains("ListView") ||
-                           ui_content.contains("RecyclerView") ||
-                           ui_content.contains("对话");
+        debug!("🔍 微信首页检测 - 标签匹配数: {}, 微信元素: {}", match_count, has_wechat_elements);
 
-        debug!("🔍 微信首页检测 - 主标签: {}, 微信元素: {}, 聊天列表: {}", 
-               has_main_tabs, has_wechat_elements, has_chat_list);
-
-        has_main_tabs && has_wechat_elements
+        // 只要有足够的标签 或者 (有微信元素且没有明显的启动/登录特征)
+        has_enough_tabs || (has_wechat_elements && !self.check_wechat_splash(ui_content).await)
     }
     
     /// 检测是否在微信启动画面

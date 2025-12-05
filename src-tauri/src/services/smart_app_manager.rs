@@ -149,7 +149,7 @@ impl SmartAppManager {
         info!("⏳ 等待应用完全启动并进入可操作状态...");
         
         // 使用新的检测框架
-        let detector = DetectorFactory::create_detector_for(package_name, &self.device_id)?;
+        let detector = DetectorFactory::create_detector_for(package_name, &self.device_id).await?;
 
         let ready_start_time = std::time::Instant::now();
         let app_state_result = detector.wait_for_app_ready().await?;

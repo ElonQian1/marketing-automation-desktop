@@ -111,7 +111,7 @@ impl DetectorFactory {
     }
     
     /// 便捷静态方法：直接创建检测器
-    pub fn create_detector_for(
+    pub async fn create_detector_for(
         package_name: &str,
         device_id: &str
     ) -> Result<Arc<dyn AppDetector>> {
@@ -121,6 +121,9 @@ impl DetectorFactory {
         let adb_path = crate::utils::adb_utils::get_adb_path();
         let shell_session = AdbShellSession::new(device_id.to_string(), adb_path);
         
+        // 🔌 建立连接
+        shell_session.connect().await?;
+
         let detector: Arc<dyn AppDetector> = match package_name {
             "com.tencent.mm" => {
                 debug!("💬 使用微信专用检测器");

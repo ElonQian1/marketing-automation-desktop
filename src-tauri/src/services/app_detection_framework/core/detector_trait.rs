@@ -89,17 +89,25 @@ pub trait AppDetector: Send + Sync {
     
     /// 快速状态检查（用于轮询）
     async fn quick_state_check(&self) -> Result<AppLaunchState> {
-        // 获取当前UI内容
-        let ui_content = match self.get_shell_session().execute_command("uiautomator dump /data/local/tmp/ui.xml > /dev/null && cat /data/local/tmp/ui.xml").await {
-            Ok(content) => content,
-            Err(_) => return Ok(AppLaunchState::Error("UI内容获取失败".to_string())),
-        };
-
-        // 获取当前Activity
+        // 1. 获取当前Activity (作为兜底判断)
         let current_activity = self.get_shell_session()
             .execute_command("dumpsys activity activities | grep mResumedActivity")
             .await
             .ok();
+
+        // 2. 获取当前UI内容
+        let ui_content = match self.get_shell_session().execute_command("uiautomator dump /data/local/tmp/ui.xml > /dev/null && cat /data/local/tmp/ui.xml").await {
+            Ok(content) => content,
+            Err(e) => {
+                // 🚨 容错处理：如果UI获取失败，但Activity在前台，则认为正在启动中（可能是动画导致dump超时）
+                if let Some(ref activity_log) = current_activity {
+                    if activity_log.contains(self.package_name()) {
+                        return Ok(AppLaunchState::Starting);
+                    }
+                }
+                return Ok(AppLaunchState::Error(format!("UI内容获取失败: {}", e)));
+            }
+        };
 
         // 分析应用状态
         Ok(self.analyze_app_state(&ui_content, &current_activity).await)
