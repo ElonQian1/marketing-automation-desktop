@@ -297,9 +297,11 @@ export class XmlParser {
    */
   private static generateCacheKey(xmlString: string): string {
     // 使用长度 + 首尾字符的简单哈希
+    // 🔧 添加版本号以强制刷新缓存 (v3: 修复DrawerLayout子容器被过滤的问题)
+    const version = "v3";
     const prefix = xmlString.substring(0, 100);
     const suffix = xmlString.substring(Math.max(0, xmlString.length - 100));
-    return `${xmlString.length}-${prefix.length}-${suffix.length}`;
+    return `${version}-${xmlString.length}-${prefix.length}-${suffix.length}`;
   }
 
   /**
@@ -488,6 +490,40 @@ export class XmlParser {
     // 1️⃣ 保留所有有语义信息的元素
     const semanticElements = elements.filter((e) => e.text || e.contentDesc);
     valuable.push(...semanticElements);
+
+    // 1.5️⃣ 保留特殊的布局容器 (DrawerLayout, SlidingPaneLayout)
+    // 这些容器虽然不可点击且无文本，但对层级分析至关重要
+    const layoutContainers = elements.filter(
+      (e) =>
+        e.className &&
+        (e.className.includes("DrawerLayout") ||
+          e.className.includes("SlidingPaneLayout")) &&
+        !valuable.includes(e)
+    );
+    valuable.push(...layoutContainers);
+
+    // 1.6️⃣ 保留 DrawerLayout 的直接子容器 (用于区分主内容和抽屉内容)
+    // 即使它们是空的 FrameLayout，也必须保留，否则无法识别抽屉结构
+    const drawerChildren = elements.filter(e => {
+      if (valuable.includes(e)) return false;
+      
+      // 检查是否是 DrawerLayout 的直接子元素
+      // 逻辑：如果存在一个已保留的 DrawerLayout，且当前元素的 indexPath 是其直接子路径
+      return layoutContainers.some(drawer => {
+        if (!drawer.indexPath || !e.indexPath) return false;
+        // 长度必须恰好 +1
+        if (e.indexPath.length !== drawer.indexPath.length + 1) return false;
+        // 前缀必须匹配
+        for (let i = 0; i < drawer.indexPath.length; i++) {
+          if (e.indexPath[i] !== drawer.indexPath[i]) return false;
+        }
+        return true;
+      });
+    });
+    if (drawerChildren.length > 0) {
+      console.log(`🔧 [XmlParser] 保留 DrawerLayout 子容器: ${drawerChildren.length} 个`);
+      valuable.push(...drawerChildren);
+    }
 
     // 2️⃣ 保留所有可点击的元素（如果还没被包含）
     const clickableElements = elements.filter(
