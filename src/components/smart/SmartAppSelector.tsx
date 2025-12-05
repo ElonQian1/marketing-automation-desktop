@@ -12,8 +12,8 @@ import { AppInfo } from '../../types/smartComponents';
 import { useOverlayTheme } from '../ui/overlay';
 import { SmartAppFilterBar } from './SmartAppFilterBar';
 import { SmartAppList } from './SmartAppList';
-
-const { TabPane } = Tabs;
+import { PhoneFrame } from '../ui/PhoneFrame';
+import { Switch } from 'antd';
 
 export interface SmartAppSelectorProps {
   visible: boolean;
@@ -44,6 +44,7 @@ export const SmartAppSelectorContent: React.FC<SmartAppSelectorContentProps> = (
 }) => {
   // 统一该组件内部所有下拉的弹层主题为暗色（黑底白字）
   const { popupProps } = useOverlayTheme('dark');
+  const [messageApi, contextHolder] = message.useMessage();
   const [activeTab, setActiveTab] = useState<string>('library'); // 默认显示应用库
   const [apps, setApps] = useState<AppInfo[]>([]);
   const [libraryApps, setLibraryApps] = useState<AppInfo[]>([]); // 全局应用库
@@ -58,10 +59,18 @@ export const SmartAppSelectorContent: React.FC<SmartAppSelectorContentProps> = (
   const [page, setPage] = useState(1);
   const [pageSize, setPageSize] = useState(60);
   const [total, setTotal] = useState(0);
+  const [layoutMode, setLayoutMode] = useState<'list' | 'grid'>('grid'); // 默认使用网格(拟真)模式
 
   // 历史记录状态
   const [historyApps, setHistoryApps] = useState<AppInfo[]>([]);
   
+  // 当切换到拟真模式时，自动切换到"全部应用"视图，因为手机桌面通常显示所有应用
+  useEffect(() => {
+    if (layoutMode === 'grid' && viewMode === 'popular') {
+      setViewMode('all');
+    }
+  }, [layoutMode, viewMode]);
+
   // 手动输入表单
   const [manualForm] = Form.useForm();
 
@@ -287,7 +296,7 @@ export const SmartAppSelectorContent: React.FC<SmartAppSelectorContentProps> = (
   const handleSelectApp = (app: AppInfo) => {
     saveToHistory(app);
     onSelect(app);
-    message.success(`已选择应用: ${app.app_name}`);
+    messageApi.success(`已选择应用: ${app.app_name}`);
   };
 
   // 处理手动提交
@@ -327,8 +336,11 @@ export const SmartAppSelectorContent: React.FC<SmartAppSelectorContentProps> = (
       .slice(0, 8);
   }, [apps, libraryApps, activeTab]);
 
-  const renderAppList = () => (
-    <>
+  const renderAppList = () => {
+    // 在拟真模式下，强制显示全部应用，并隐藏视图模式选择器
+    // 并在 useEffect 中监听 layoutMode 变化来更新 viewMode
+
+    const filterBar = (
       <SmartAppFilterBar
         searchQuery={searchQuery}
         setSearchQuery={setSearchQuery}
@@ -346,53 +358,25 @@ export const SmartAppSelectorContent: React.FC<SmartAppSelectorContentProps> = (
         onRefresh={() => { if(activeTab === 'device') loadDeviceApps(); }}
         showRefresh={activeTab === 'device'}
         popupProps={popupProps}
+        showViewModeSelector={layoutMode !== 'grid'}
       />
+    );
 
-      {/* 快速选择热门应用 */}
-      {viewMode === 'popular' && popularApps.length > 0 && (
-        <Card 
-          title="热门应用快捷选择" 
-          size="small"
-          style={{ marginBottom: 16 }}
-          bodyStyle={{ padding: '12px' }}
-        >
-          <Row gutter={[8, 8]}>
-            {popularApps.map((app) => (
-              <Col span={6} key={app.package_name}>
-                <Button
-                  block
-                  size="small"
-                  icon={getAppIcon(app)}
-                  onClick={() => handleSelectApp(app)}
-                  style={{
-                    height: 'auto',
-                    whiteSpace: 'normal',
-                    textAlign: 'left'
-                  }}
-                >
-                  <div style={{ fontSize: '12px', marginTop: '2px' }}>
-                    {app.app_name}
-                  </div>
-                </Button>
-              </Col>
-            ))}
-          </Row>
-        </Card>
-      )}
+    const modeSwitch = (
+      <div style={{ display: 'flex', justifyContent: 'flex-end', marginBottom: 16, alignItems: 'center' }}>
+        <Space>
+          <span style={{ fontSize: '12px', color: '#888' }}>拟真模式</span>
+          <Switch 
+            checked={layoutMode === 'grid'} 
+            onChange={(checked) => setLayoutMode(checked ? 'grid' : 'list')}
+            checkedChildren={<MobileOutlined />}
+            unCheckedChildren={<AppstoreOutlined />}
+          />
+        </Space>
+      </div>
+    );
 
-      <SmartAppList
-        loading={loading && activeTab === 'device'}
-        total={total}
-        apps={currentPageApps}
-        selectedApp={selectedApp}
-        onSelect={handleSelectApp}
-        icons={icons}
-        searchQuery={searchQuery}
-        activeTab={activeTab}
-        onAppsChanged={() => setLibraryApps(appRegistryService.getAllApps())}
-      />
-
-      {/* 底部统计信息 */}
+    const stats = (
       <div style={{ 
         marginTop: 16, 
         padding: '8px 0', 
@@ -410,57 +394,133 @@ export const SmartAppSelectorContent: React.FC<SmartAppSelectorContentProps> = (
           </Space>
         </Space>
       </div>
-    </>
-  );
+    );
 
-  return (
-    <div style={style} className={className}>
-      <Tabs activeKey={activeTab} onChange={setActiveTab}>
-        <TabPane 
-          tab={<span><AppstoreOutlined />应用库</span>} 
-          key="library"
-        >
-          {renderAppList()}
-        </TabPane>
+    if (layoutMode === 'grid') {
+      return (
+        <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', paddingTop: 10 }}>
+          <PhoneFrame scale={0.85}>
+            <SmartAppList
+              loading={loading && activeTab === 'device'}
+              total={total}
+              apps={currentPageApps}
+              selectedApp={selectedApp}
+              onSelect={handleSelectApp}
+              icons={icons}
+              searchQuery={searchQuery}
+              activeTab={activeTab}
+              onAppsChanged={() => setLibraryApps(appRegistryService.getAllApps())}
+              viewMode="grid"
+            />
+          </PhoneFrame>
+          
+          <div style={{ width: '100%', marginTop: 24, maxWidth: '600px' }}>
+             {modeSwitch}
+             {filterBar}
+             {stats}
+          </div>
+        </div>
+      );
+    }
 
-        <TabPane 
-          tab={<span><MobileOutlined />设备扫描</span>} 
-          key="device"
-        >
-          {!deviceId ? (
-            <Empty
-              image={Empty.PRESENTED_IMAGE_SIMPLE}
-              description="未连接设备，无法加载实时应用列表"
-            >
-              <Button type="primary" onClick={() => setActiveTab('history')}>
-                查看历史记录
-              </Button>
-            </Empty>
-          ) : (
-            renderAppList()
-          )}
-        </TabPane>
+    return (
+      <>
+        {filterBar}
+        {modeSwitch}
 
-        <TabPane 
-          tab={<span><HistoryOutlined />历史记录</span>} 
-          key="history"
-        >
-          <SmartAppList
-            loading={false}
-            total={historyApps.length}
-            apps={historyApps}
-            selectedApp={selectedApp}
-            onSelect={handleSelectApp}
-            icons={icons}
-            searchQuery=""
-            activeTab="history"
-          />
-        </TabPane>
+        {/* 快速选择热门应用 */}
+        {viewMode === 'popular' && popularApps.length > 0 && (
+          <Card 
+            title="热门应用快捷选择" 
+            size="small"
+            style={{ marginBottom: 16 }}
+            bodyStyle={{ padding: '12px' }}
+          >
+            <Row gutter={[8, 8]}>
+              {popularApps.map((app) => (
+                <Col span={6} key={app.package_name}>
+                  <Button
+                    block
+                    size="small"
+                    icon={getAppIcon(app)}
+                    onClick={() => handleSelectApp(app)}
+                    style={{
+                      height: 'auto',
+                      whiteSpace: 'normal',
+                      textAlign: 'left'
+                    }}
+                  >
+                    <div style={{ fontSize: '12px', marginTop: '2px' }}>
+                      {app.app_name}
+                    </div>
+                  </Button>
+                </Col>
+              ))}
+            </Row>
+          </Card>
+        )}
 
-        <TabPane 
-          tab={<span><EditOutlined />手动输入</span>} 
-          key="manual"
+        <SmartAppList
+          loading={loading && activeTab === 'device'}
+          total={total}
+          apps={currentPageApps}
+          selectedApp={selectedApp}
+          onSelect={handleSelectApp}
+          icons={icons}
+          searchQuery={searchQuery}
+          activeTab={activeTab}
+          onAppsChanged={() => setLibraryApps(appRegistryService.getAllApps())}
+          viewMode="list"
+        />
+
+        {stats}
+      </>
+    );
+  };
+
+  const tabItems = [
+    {
+      key: 'library',
+      label: <span><AppstoreOutlined />应用库</span>,
+      children: renderAppList(),
+    },
+    {
+      key: 'device',
+      label: <span><MobileOutlined />设备扫描</span>,
+      children: !deviceId ? (
+        <Empty
+          image={Empty.PRESENTED_IMAGE_SIMPLE}
+          description="未连接设备，无法加载实时应用列表"
         >
+          <Button type="primary" onClick={() => setActiveTab('history')}>
+            查看历史记录
+          </Button>
+        </Empty>
+      ) : (
+        renderAppList()
+      ),
+    },
+    {
+      key: 'history',
+      label: <span><HistoryOutlined />历史记录</span>,
+      children: (
+        <SmartAppList
+          loading={false}
+          total={historyApps.length}
+          apps={historyApps}
+          selectedApp={selectedApp}
+          onSelect={handleSelectApp}
+          icons={icons}
+          searchQuery=""
+          activeTab="history"
+        />
+      ),
+    },
+    {
+      key: 'manual',
+      label: <span><EditOutlined />手动输入</span>,
+      children: (
+        <>
           <Alert
             message="手动输入应用信息"
             description="如果您知道应用的包名，可以直接输入。这在未连接设备或编写离线脚本时非常有用。"
@@ -495,8 +555,15 @@ export const SmartAppSelectorContent: React.FC<SmartAppSelectorContentProps> = (
               </Button>
             </Form.Item>
           </Form>
-        </TabPane>
-      </Tabs>
+        </>
+      ),
+    }
+  ];
+
+  return (
+    <div style={style} className={className}>
+      {contextHolder}
+      <Tabs activeKey={activeTab} onChange={setActiveTab} items={tabItems} />
     </div>
   );
 };

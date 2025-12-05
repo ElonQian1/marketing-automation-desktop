@@ -21,6 +21,7 @@ export interface SmartAppListProps {
   searchQuery: string;
   activeTab: string;
   onAppsChanged?: () => void;
+  viewMode?: 'list' | 'grid';
 }
 
 export const SmartAppList: React.FC<SmartAppListProps> = ({
@@ -32,7 +33,8 @@ export const SmartAppList: React.FC<SmartAppListProps> = ({
   icons,
   searchQuery,
   activeTab,
-  onAppsChanged
+  onAppsChanged,
+  viewMode = 'list'
 }) => {
 
   const getAppIcon = (app: AppInfo) => {
@@ -53,6 +55,82 @@ export const SmartAppList: React.FC<SmartAppListProps> = ({
     message.success(`已移除应用: ${app.app_name}`);
     onAppsChanged?.();
   };
+
+  if (viewMode === 'grid') {
+    return (
+      <Spin spinning={loading} tip={`正在扫描应用... (${total})`}>
+        {apps.length === 0 ? (
+          <Empty
+            image={Empty.PRESENTED_IMAGE_SIMPLE}
+            description={searchQuery ? '没有找到匹配的应用' : '没有可用的应用'}
+            style={{ marginTop: '50%' }}
+          />
+        ) : (
+          <div style={{ 
+            display: 'grid', 
+            gridTemplateColumns: 'repeat(4, 1fr)', 
+            gap: '16px', 
+            padding: '16px',
+            overflowY: 'auto',
+            height: '100%',
+            alignContent: 'start'
+          }}>
+            {apps.map((app) => {
+              const iconUrl = icons[app.package_name];
+              return (
+                <div
+                  key={app.package_name}
+                  onClick={() => onSelect(app)}
+                  style={{
+                    display: 'flex',
+                    flexDirection: 'column',
+                    alignItems: 'center',
+                    cursor: 'pointer',
+                    gap: '8px'
+                  }}
+                >
+                  <div style={{
+                    width: '56px',
+                    height: '56px',
+                    borderRadius: '12px',
+                    backgroundColor: '#f0f0f0',
+                    display: 'flex',
+                    justifyContent: 'center',
+                    alignItems: 'center',
+                    overflow: 'hidden',
+                    boxShadow: selectedApp?.package_name === app.package_name ? '0 0 0 2px #1890ff' : 'none',
+                    transition: 'all 0.2s'
+                  }}>
+                    {iconUrl ? (
+                      <img src={iconUrl} alt={app.app_name} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                    ) : (
+                      <Avatar size={40} icon={getAppIcon(app)} style={{ backgroundColor: 'transparent' }} />
+                    )}
+                  </div>
+                  <Text 
+                    style={{ 
+                      fontSize: '12px', 
+                      textAlign: 'center', 
+                      lineHeight: '1.2',
+                      maxWidth: '100%',
+                      overflow: 'hidden',
+                      textOverflow: 'ellipsis',
+                      display: '-webkit-box',
+                      WebkitLineClamp: 2,
+                      WebkitBoxOrient: 'vertical',
+                      color: '#333'
+                    }}
+                  >
+                    {app.app_name}
+                  </Text>
+                </div>
+              );
+            })}
+          </div>
+        )}
+      </Spin>
+    );
+  }
 
   return (
     <Spin spinning={loading} tip={`正在扫描应用... (${total})`}>

@@ -27,6 +27,7 @@ export interface SmartAppFilterBarProps {
   onRefresh?: () => void;
   showRefresh?: boolean;
   popupProps?: OverlayPopupProps;
+  showViewModeSelector?: boolean;
 }
 
 export const SmartAppFilterBar: React.FC<SmartAppFilterBarProps> = ({
@@ -45,7 +46,8 @@ export const SmartAppFilterBar: React.FC<SmartAppFilterBarProps> = ({
   setPage,
   onRefresh,
   showRefresh = false,
-  popupProps = {}
+  popupProps = {},
+  showViewModeSelector = true
 }) => {
   return (
     <div style={{ marginBottom: 16 }}>
@@ -60,38 +62,43 @@ export const SmartAppFilterBar: React.FC<SmartAppFilterBarProps> = ({
             prefix={<SearchOutlined />}
           />
         </Col>
-        <Col span={4}>
-          <Select
-            style={{ width: '100%' }}
-            value={viewMode}
-            onChange={setViewMode}
-            placeholder="视图模式"
-            {...popupProps}
-          >
-            <Option value="popular">热门应用</Option>
-            <Option value="all">全部应用</Option>
-          </Select>
-        </Col>
-        <Col span={4}>
+        {showViewModeSelector && (
+          <Col span={4}>
+            <Select
+              style={{ width: '100%' }}
+              value={viewMode}
+              onChange={setViewMode}
+              placeholder="视图模式"
+              getPopupContainer={popupProps.getPopupContainer}
+              popupClassName={popupProps.popupClassName}
+            >
+              <Option value="popular">热门应用</Option>
+              <Option value="all">全部应用</Option>
+            </Select>
+          </Col>
+        )}
+        <Col span={showViewModeSelector ? 4 : 6}>
           <Select
             style={{ width: '100%' }}
             value={categoryFilter}
             onChange={setCategoryFilter}
             placeholder="应用类型"
-            {...popupProps}
+            getPopupContainer={popupProps.getPopupContainer}
+            popupClassName={popupProps.popupClassName}
           >
             <Option value="all">全部</Option>
             <Option value="user">用户应用</Option>
             <Option value="system">系统应用</Option>
           </Select>
         </Col>
-        <Col span={4}>
+        <Col span={showViewModeSelector ? 4 : 6}>
           <Select
             style={{ width: '100%' }}
             value={statusFilter}
             onChange={setStatusFilter}
             placeholder="状态"
-            {...popupProps}
+            getPopupContainer={popupProps.getPopupContainer}
+            popupClassName={popupProps.popupClassName}
           >
             <Option value="all">全部</Option>
             <Option value="enabled">已启用</Option>
@@ -108,7 +115,8 @@ export const SmartAppFilterBar: React.FC<SmartAppFilterBarProps> = ({
                 setPage(1);
               }}
               placeholder="刷新策略"
-              {...popupProps}
+              getPopupContainer={popupProps.getPopupContainer}
+              popupClassName={popupProps.popupClassName}
             >
               <Option value="cache_first">缓存优先</Option>
               <Option value="force_refresh">强制刷新</Option>
@@ -120,7 +128,8 @@ export const SmartAppFilterBar: React.FC<SmartAppFilterBarProps> = ({
                 setPageSize(v); 
                 setPage(1); 
               }} 
-              {...popupProps}
+              getPopupContainer={popupProps.getPopupContainer}
+              popupClassName={popupProps.popupClassName}
             >
               <Option value={30}>每页30</Option>
               <Option value={60}>每页60</Option>

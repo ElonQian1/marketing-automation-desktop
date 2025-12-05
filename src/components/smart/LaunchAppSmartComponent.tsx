@@ -7,6 +7,7 @@ import {
   Card,
   Form,
   Select,
+  Input,
   InputNumber,
   Switch,
   Button,
@@ -235,17 +236,13 @@ export const LaunchAppSmartComponent: React.FC<LaunchAppSmartComponentProps> = (
         layout="vertical"
         onValuesChange={handleFormChange}
       >
-        {/* 应用选择方式 */}
+        {/* 应用选择方式 - 已隐藏，默认使用手动选择 */}
         <Form.Item
           name="app_selection_method"
-          label="应用选择方式"
-          tooltip="选择如何确定要启动的应用"
+          hidden
+          initialValue="manual"
         >
-          <Select>
-            <Option value="manual">手动选择</Option>
-            <Option value="auto_detect">自动检测</Option>
-            <Option value="popular">热门应用</Option>
-          </Select>
+          <input type="hidden" />
         </Form.Item>
 
         {/* 应用选择器 */}
