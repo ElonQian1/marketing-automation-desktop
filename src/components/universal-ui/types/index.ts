@@ -61,6 +61,10 @@ export interface VisualUIElement {
   bounds?: string; // 原始bounds字符串
   xmlIndex?: number; // 原始 XML 节点索引
   indexPath?: number[]; // 🎯 绝对下标链（用于静态定位，如 [0,0,0,5,2]）
+  /** 🎯 新增：语义层级信息（用于处理 DrawerLayout 等覆盖层） */
+  semanticLayer?: 'main' | 'drawer' | 'dialog' | 'popup' | 'system' | 'normal';
+  /** 🎯 新增：在 DrawerLayout 内的子树索引（0=主内容，1+=抽屉层） */
+  drawerChildIndex?: number;
 }
 
 /**

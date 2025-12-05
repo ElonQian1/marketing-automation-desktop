@@ -46,7 +46,24 @@ export function useFilteredVisualElements({ elements, searchText, selectedCatego
     // 可点击过滤：只显示真正可点击的元素
     // 用户选择可点击元素后，结构匹配会自动识别是瀑布流卡片还是普通按钮
     if (showOnlyClickable) {
-      filtered = filtered.filter(element => element.clickable);
+      filtered = filtered.filter(element => {
+        // 1. 真正可点击的元素
+        if (element.clickable) return true;
+        
+        // 2. 重要的容器组件 (Drawer, ScrollView, RecyclerView 等)
+        // 这些组件虽然本身不可点击，但承载了交互结构，必须保留
+        const type = element.type || '';
+        if (type.includes('DrawerLayout') || 
+            type.includes('SlidingPaneLayout') || 
+            type.includes('RecyclerView') || 
+            type.includes('ListView') || 
+            type.includes('ScrollView') || 
+            type.includes('ViewPager')) {
+          return true;
+        }
+        
+        return false;
+      });
     }
 
     // 使用FilterAdapter进行高级过滤

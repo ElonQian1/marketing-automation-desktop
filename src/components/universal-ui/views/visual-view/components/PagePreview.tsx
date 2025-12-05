@@ -14,6 +14,122 @@ import { createCoordinateTransform, type CoordinateCalibration, createBoundsTran
 
 const { Title } = Typography;
 
+/**
+ * 🎯 分析 XML 中的 DrawerLayout 结构，返回元素的语义层级映射和抽屉边界
+ * 
+ * Android DrawerLayout 的渲染规则：
+ * - 第一个子节点：主内容区（被抽屉覆盖）
+ * - 第二个及以后的子节点：抽屉内容（覆盖在主内容上）
+ * 
+ * 返回：{ layerMap, drawerBounds }
+ */
+interface DrawerAnalysisResult {
+  layerMap: Map<string, { layer: 'main' | 'drawer' | 'normal', zBoost: number }>;
+  drawerBounds: { left: number; top: number; right: number; bottom: number } | null;
+}
+
+function analyzeDrawerLayerFromXml(xmlContent: string, elements: VisualUIElement[]): DrawerAnalysisResult {
+  const layerMap = new Map<string, { layer: 'main' | 'drawer' | 'normal', zBoost: number }>();
+  let drawerBounds: { left: number; top: number; right: number; bottom: number } | null = null;
+  
+  if (!xmlContent) {
+    elements.forEach(el => layerMap.set(el.id, { layer: 'normal', zBoost: 0 }));
+    return { layerMap, drawerBounds };
+  }
+  
+  try {
+    const parser = new DOMParser();
+    const xmlDoc = parser.parseFromString(xmlContent, 'text/xml');
+    
+    // 查找所有 DrawerLayout 节点
+    const allNodes = xmlDoc.querySelectorAll('node');
+    const drawerLayoutNodes: Element[] = [];
+    
+    allNodes.forEach(node => {
+      const className = node.getAttribute('class') || '';
+      if (className.includes('DrawerLayout')) {
+        drawerLayoutNodes.push(node);
+      }
+    });
+    
+    if (drawerLayoutNodes.length === 0) {
+      elements.forEach(el => layerMap.set(el.id, { layer: 'normal', zBoost: 0 }));
+      return { layerMap, drawerBounds };
+    }
+    
+    // 获取每个 DrawerLayout 的子节点 bounds
+    const drawerContentBounds: Set<string> = new Set();
+    const mainContentBounds: Set<string> = new Set();
+    
+    drawerLayoutNodes.forEach(drawerNode => {
+      const children = Array.from(drawerNode.children).filter(c => c.tagName === 'node');
+      
+      children.forEach((child, idx) => {
+        // 递归收集该子树下所有节点的 bounds
+        const collectBounds = (node: Element, boundsSet: Set<string>) => {
+          const bounds = node.getAttribute('bounds');
+          if (bounds) boundsSet.add(bounds);
+          Array.from(node.children)
+            .filter(c => c.tagName === 'node')
+            .forEach(c => collectBounds(c, boundsSet));
+        };
+        
+        if (idx === 0) {
+          // 第一个子节点是主内容
+          collectBounds(child, mainContentBounds);
+        } else {
+          // 后续子节点是抽屉内容（覆盖层）
+          collectBounds(child, drawerContentBounds);
+          
+          // 🆕 解析抽屉根节点的 bounds 作为抽屉边界
+          if (!drawerBounds) {
+            const boundsAttr = child.getAttribute('bounds');
+            if (boundsAttr) {
+              const match = boundsAttr.match(/\[(\d+),(\d+)\]\[(\d+),(\d+)\]/);
+              if (match) {
+                drawerBounds = {
+                  left: parseInt(match[1], 10),
+                  top: parseInt(match[2], 10),
+                  right: parseInt(match[3], 10),
+                  bottom: parseInt(match[4], 10)
+                };
+              }
+            }
+          }
+        }
+      });
+    });
+    
+    // 根据 bounds 匹配元素到层级
+    elements.forEach(el => {
+      const bounds = el.bounds || `[${el.position.x},${el.position.y}][${el.position.x + el.position.width},${el.position.y + el.position.height}]`;
+      
+      if (drawerContentBounds.has(bounds)) {
+        layerMap.set(el.id, { layer: 'drawer', zBoost: 30000 });
+      } else if (mainContentBounds.has(bounds)) {
+        layerMap.set(el.id, { layer: 'main', zBoost: 0 });
+      } else {
+        layerMap.set(el.id, { layer: 'normal', zBoost: 0 });
+      }
+    });
+    
+    console.log('🔍 [PagePreview] DrawerLayout 层级分析:', {
+      drawerLayoutCount: drawerLayoutNodes.length,
+      mainContentCount: mainContentBounds.size,
+      drawerContentCount: drawerContentBounds.size,
+      totalElements: elements.length,
+      drawerElements: Array.from(layerMap.entries()).filter(([_, v]) => v.layer === 'drawer').length,
+      drawerBounds
+    });
+    
+  } catch (err) {
+    console.error('❌ [PagePreview] DrawerLayout 分析失败:', err);
+    elements.forEach(el => layerMap.set(el.id, { layer: 'normal', zBoost: 0 }));
+  }
+  
+  return { layerMap, drawerBounds };
+}
+
 export interface PagePreviewProps {
   finalElements: VisualUIElement[];
   filteredElements: VisualUIElement[];
@@ -88,6 +204,11 @@ export const PagePreview: React.FC<PagePreviewProps> = ({
     setImgError(null);
     setImgNatural(null);
   }, [screenshotUrl]);
+  
+  // 🎯 分析 DrawerLayout 层级，用于正确渲染 z-index 和动态遮挡隐藏
+  const { layerMap: drawerLayerMap, drawerBounds } = React.useMemo(() => {
+    return analyzeDrawerLayerFromXml(xmlContent, filteredElements);
+  }, [xmlContent, filteredElements]);
   
   // 🔍 坐标系诊断：使用新的坐标转换模块
   React.useEffect(() => {
@@ -288,30 +409,50 @@ export const PagePreview: React.FC<PagePreviewProps> = ({
                 ? `${element.userFriendlyName}: ${element.description} | 语义: ${originalElement?.content_desc || originalElement?.resource_id || '有标识'}`
                 : `${element.userFriendlyName}: ${element.description}`;
 
-              // 🎯 智能 z-index：小元素（子元素）永远在大元素（父容器）上面
-              // 通过元素面积来判断层级：面积越小，z-index 越高
-              const elementArea = elementWidth * elementHeight;
-              const areaBonus = Math.max(0, 30 - Math.floor(elementArea / 10000)); // 面积越小，bonus越高（最高30）
-
-              // 🔍 调试：检测"通讯录"元素
-              const isContactElement = 
-                element.text?.includes('通讯录') || 
-                element.description?.includes('通讯录') ||
-                originalElement?.text?.includes('通讯录') ||
-                originalElement?.content_desc?.includes('通讯录');
+              // 🎯 获取 DrawerLayout 语义层级信息
+              const layerInfo = drawerLayerMap.get(element.id) || { layer: 'normal', zBoost: 0 };
+              const isDrawerContent = layerInfo.layer === 'drawer';
+              const isMainContent = layerInfo.layer === 'main';
               
-              if (isContactElement) {
-                console.log('🔴 [PagePreview] 渲染"通讯录"元素:', {
-                  id: element.id,
-                  text: element.text || '(无)',
-                  description: element.description || '(无)',
-                  clickable: element.clickable,
-                  bounds: `[${element.position.x},${element.position.y}][${element.position.x + element.position.width},${element.position.y + element.position.height}]`,
-                  area: elementArea,
-                  calculatedZIndex: 10 + areaBonus + (hasSemanticInfo ? 10 : 0) + (element.clickable ? 5 : 0)
-                });
+              // 🎯 动态遮挡检测：当抽屉打开时，隐藏被遮挡的主内容元素
+              // 检查抽屉是否已打开（有 drawerBounds 说明抽屉存在且打开）
+              const hasDrawerOpen = drawerBounds !== null;
+              
+              // 如果抽屉打开且当前元素是主内容，检查是否被抽屉遮挡
+              let isOccludedByDrawer = false;
+              if (hasDrawerOpen && isMainContent && drawerBounds) {
+                // 使用动态获取的抽屉边界进行遮挡检测
+                const elementLeft = element.position.x;
+                const elementRight = element.position.x + element.position.width;
+                const elementTop = element.position.y;
+                const elementBottom = element.position.y + element.position.height;
+                
+                // 计算重叠区域
+                const overlapLeft = Math.max(elementLeft, drawerBounds.left);
+                const overlapRight = Math.min(elementRight, drawerBounds.right);
+                const overlapTop = Math.max(elementTop, drawerBounds.top);
+                const overlapBottom = Math.min(elementBottom, drawerBounds.bottom);
+                
+                // 如果有重叠
+                if (overlapLeft < overlapRight && overlapTop < overlapBottom) {
+                  const overlapArea = (overlapRight - overlapLeft) * (overlapBottom - overlapTop);
+                  const elementArea = (elementRight - elementLeft) * (elementBottom - elementTop);
+                  // 如果超过 30% 的面积被遮挡，则隐藏
+                  isOccludedByDrawer = overlapArea > elementArea * 0.3;
+                }
+              }
+              
+              // 被遮挡的主内容元素：完全不渲染
+              if (isOccludedByDrawer) {
+                return null;
               }
 
+              // 🎨 配色策略：侧边栏使用柔和的金橙色调，与主内容区紫蓝色形成对比
+              // 侧边栏：暖色调(金橙) | 主内容：冷色调(紫蓝)
+              const drawerBgColor = 'rgba(251, 191, 36, 0.45)';     // 柔和金黄
+              const drawerBorderColor = '#f59e0b';                   // 琥珀色边框
+              const drawerGlow = '0 0 12px rgba(245, 158, 11, 0.5)'; // 暖光晕
+              
               return (
                 <div
                   key={element.id}
@@ -322,23 +463,25 @@ export const PagePreview: React.FC<PagePreviewProps> = ({
                     top: elementTop,
                     width: elementWidth,
                     height: elementHeight,
-                    backgroundColor: isContactElement ? 'rgba(255, 0, 0, 0.6)' : category?.color || '#8b5cf6',
-                    opacity: (!hideCompletely && displayState.isHidden) ? 0.12 : (isContactElement ? 0.7 : overlayOpacity),
-                    border: isContactElement ? '4px solid red' : (displayState.isPending ? '2px solid #52c41a' : displayState.isHovered ? '2px solid #faad14' : semanticBorder),
-                    borderRadius: Math.min(elementWidth, elementHeight) > 10 ? 2 : 1,
+                    // 🎨 侧边栏使用金橙色，主内容用原分类色
+                    backgroundColor: isDrawerContent ? drawerBgColor : category?.color || '#8b5cf6',
+                    opacity: (!hideCompletely && displayState.isHidden) ? 0.12 : overlayOpacity,
+                    // 🎨 侧边栏用琥珀色边框，清晰区分
+                    border: isDrawerContent 
+                      ? `2px solid ${drawerBorderColor}` 
+                      : (displayState.isPending ? '2px solid #52c41a' : displayState.isHovered ? '2px solid #faad14' : semanticBorder),
+                    borderRadius: Math.min(elementWidth, elementHeight) > 10 ? 4 : 2,
                     cursor: !hideCompletely && displayState.isHidden ? 'default' : element.clickable ? 'pointer' : 'default',
                     transition: 'all .2s ease',
-                    // 🎯 新的 z-index 计算：
-                    // 基础层(10) + 面积bonus(0-30，越小越高) + 状态bonus(pending 40 / hovered 20) + 语义bonus(10) + 可点击bonus(5)
-                    // 🔴 "通讯录"元素强制最高层
-                    zIndex: isContactElement ? 9999 : 
-                            (element.id === 'element_71' || element.category === 'menu') ? 50 : 
-                            10 + areaBonus + (displayState.isPending ? 40 : displayState.isHovered ? 20 : 0) + (hasSemanticInfo ? 10 : 0) + (element.clickable ? 5 : 0),
+                    // 🎯 z-index: 基础层(10) + DrawerLayout语义层提升 + 交互状态
+                    zIndex: 10 + layerInfo.zBoost + (displayState.isPending ? 100 : displayState.isHovered ? 50 : 0),
                     transform: displayState.isPending ? 'scale(1.1)' : displayState.isHovered ? 'scale(1.05)' : 'scale(1)',
                     boxShadow: displayState.isPending
                       ? '0 4px 16px rgba(82,196,26,0.4)'
                       : displayState.isHovered
                       ? '0 2px 8px rgba(0,0,0,0.2)'
+                      : isDrawerContent
+                      ? drawerGlow  // 侧边栏暖光晕效果
                       : hasSemanticInfo
                       ? '0 0 4px rgba(82,196,26,0.6)'
                       : 'none',
@@ -358,8 +501,8 @@ export const PagePreview: React.FC<PagePreviewProps> = ({
                     console.log('📐 显示Bounds:', `[${element.position.x},${element.position.y}][${element.position.x + element.position.width},${element.position.y + element.position.height}]`);
                     console.log('👆 可点击:', element.clickable ? '✓' : '✗');
                     console.log('📏 面积:', elementWidth * elementHeight, 'px²');
-                    console.log('🎚️ Z-Index:', isContactElement ? 9999 : 10 + areaBonus + (displayState.isPending ? 40 : displayState.isHovered ? 20 : 0) + (hasSemanticInfo ? 10 : 0) + (element.clickable ? 5 : 0));
-                    console.log('⚠️ 是否为"通讯录":', isContactElement ? '是！' : '否');
+                    console.log('🏷️ 语义层:', layerInfo.layer, 'zBoost:', layerInfo.zBoost);
+                    console.log('🚪 是否侧边栏内容:', isDrawerContent ? '是！' : '否');
                     
                     if (originalElement) {
                       console.log('🔍 原始UIElement数据:');
