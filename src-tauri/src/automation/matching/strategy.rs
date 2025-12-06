@@ -212,6 +212,68 @@ pub fn collect_candidate_elements<'a>(
         }
     }
     
+    // 🔥 关键修复：应用排除规则，过滤掉"已关注"等已处理状态的元素
+    let text_matching_mode = params.get("smartSelection")
+        .and_then(|v| v.get("textMatchingMode"))
+        .and_then(|v| v.as_str())
+        .unwrap_or("exact");
+    
+    // 只有在精确匹配模式下才应用排除规则
+    if text_matching_mode == "exact" {
+        // 自动排除别名列表（与 ElementExclusionFilter 保持一致）
+        const EXCLUDE_ALIASES: &[&str] = &[
+            "已关注", "Following", "Followed", "互相关注", "Mutual", "Follow Back", "已互关",
+            "已赞", "Liked", "已收藏", "Favorited", "已分享", "Shared",
+            "已完成", "Completed", "已处理", "Processed",
+        ];
+        
+        let original_count = candidates.len();
+        let filtered_candidates: Vec<_> = candidates.into_iter()
+            .filter(|elem| {
+                let text = &elem.text;
+                let desc = &elem.content_desc;
+                
+                // 检查是否匹配任何排除别名
+                for alias in EXCLUDE_ALIASES {
+                    // 检查 text
+                    if !text.is_empty() && text.contains(alias) {
+                        // 智能保护：如果目标文本就是这个别名，不排除
+                        if !target_text.is_empty() && target_text.contains(alias) {
+                            continue;
+                        }
+                        tracing::info!(
+                            "🚫 [排除过滤] 过滤掉已处理状态元素: text='{}' 匹配别名 '{}', target='{}'",
+                            text, alias, target_text
+                        );
+                        return false;
+                    }
+                    // 检查 content-desc
+                    if !desc.is_empty() && desc.contains(alias) {
+                        if !target_text.is_empty() && target_text.contains(alias) {
+                            continue;
+                        }
+                        tracing::info!(
+                            "🚫 [排除过滤] 过滤掉已处理状态元素: desc='{}' 匹配别名 '{}', target='{}'",
+                            desc, alias, target_text
+                        );
+                        return false;
+                    }
+                }
+                true
+            })
+            .collect();
+        
+        if filtered_candidates.len() < original_count {
+            tracing::info!(
+                "✅ [排除过滤] 从 {} 个候选过滤到 {} 个（排除了 {} 个已处理状态元素）",
+                original_count, filtered_candidates.len(), 
+                original_count - filtered_candidates.len()
+            );
+        }
+        
+        return filtered_candidates;
+    }
+    
     candidates
 }
 
