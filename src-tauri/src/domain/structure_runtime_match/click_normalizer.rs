@@ -395,27 +395,60 @@ impl<'a> ClickNormalizer<'a> {
     }
 
     /// 判断是否是卡片根候选
+    /// 🎯 核心判断逻辑：瀑布流卡片根通常具有「有意义的 content-desc」
+    /// 
+    /// 卡片根特征（正例）：
+    /// - "优兔美术京溪中心, 2个共同联系人" - 有逗号分隔的复合信息
+    /// - "大麦智能科技, 2个共同联系人" - 有逗号分隔的复合信息
+    /// 
+    /// 按钮标签（反例，需排除）：
+    /// - "关注"、"已关注" - 短文本按钮
+    /// - "通讯录" - 短标签
     pub fn is_card_root_candidate(&self, element: &UIElement) -> bool {
-        // 必须是FrameLayout
+        // 🔧 放宽类名限制：接受 FrameLayout、ViewGroup 等常见布局类
         if let Some(class) = &element.class_name {
-            if !class.ends_with("FrameLayout") {
+            let is_layout_class = class.ends_with("FrameLayout") 
+                || class.ends_with("ViewGroup")
+                || class.ends_with("LinearLayout")
+                || class.ends_with("RelativeLayout")
+                || class.ends_with("ConstraintLayout");
+            
+            if !is_layout_class {
                 return false;
             }
         } else {
             return false;
         }
 
-        // 必须不可点击（项根通常不可点击）
-        if element.clickable {
+        // 🎯 核心特征：有意义的 content-desc
+        // 瀑布流卡片根通常有描述性的 content-desc，如 "优兔美术京溪中心, 2个共同联系人"
+        let desc = &element.content_desc;
+        if desc.is_empty() || desc.trim().is_empty() {
             return false;
         }
-
-        // 必须有content_desc
-        let desc = &element.content_desc; if !desc.is_empty() {
-            !desc.trim().is_empty()
-        } else {
-            false
+        
+        // 🔧 智能判断：使用字符数（不是字节数）+ 逗号检测
+        // 排除简单标签如 "关注"、"已关注"、"通讯录" 等短按钮标签
+        let desc_trimmed = desc.trim();
+        let char_count = desc_trimmed.chars().count();
+        
+        // 🎯 卡片根的判断条件（需要满足至少一个）：
+        // 1. 包含逗号分隔符（如 "优兔美术京溪中心, 2个共同联系人"）
+        // 2. 字符数 > 6（较长的描述，不是简单按钮标签）
+        let has_separator = desc_trimmed.contains(',') || desc_trimmed.contains('，');
+        let is_long_desc = char_count > 6;
+        
+        if !has_separator && !is_long_desc {
+            // 短描述且无分隔符 = 可能是按钮标签，不是卡片根
+            tracing::debug!("🔍 [ClickNormalizer] 跳过短描述节点: desc={:?} (字符数={}, 可能是按钮)", 
+                desc, char_count);
+            return false;
         }
+        
+        tracing::debug!("✅ [ClickNormalizer] 识别为卡片根候选: class={:?}, desc={:?} (字符数={})", 
+            element.class_name, desc, char_count);
+        
+        true
     }
 
     /// 检查节点是否在指定bounds内
@@ -672,23 +705,39 @@ mod tests {
         
         let normalizer = ClickNormalizer::new(&indexer);
 
-        // 正确的卡片根
+        // ✅ 正确的卡片根：有逗号分隔的复合信息
         let card_root = create_test_element(
             "android.widget.FrameLayout", 
             false, 
-            Some("笔记 来海边吃吃玩玩 来自知恩 147赞")
+            Some("优兔美术京溪中心, 2个共同联系人")
         );
         assert!(normalizer.is_card_root_candidate(&card_root));
 
-        // 可点击的FrameLayout（不是卡片根）
-        let clickable_frame = create_test_element(
-            "android.widget.FrameLayout", 
-            true, 
-            Some("some content")
+        // ✅ 正确的卡片根：较长的描述（字符数 > 6）
+        let long_desc = create_test_element(
+            "android.view.ViewGroup", 
+            false, 
+            Some("笔记 来海边吃吃玩玩 来自知恩 147赞")
         );
-        assert!(!normalizer.is_card_root_candidate(&clickable_frame));
+        assert!(normalizer.is_card_root_candidate(&long_desc));
 
-        // 没有content_desc的FrameLayout
+        // ❌ 短按钮标签：不是卡片根
+        let button_label = create_test_element(
+            "android.view.ViewGroup", 
+            false, 
+            Some("关注")  // 只有2个字符，没有逗号
+        );
+        assert!(!normalizer.is_card_root_candidate(&button_label));
+
+        // ❌ 稍长但仍是按钮：不是卡片根
+        let followed_label = create_test_element(
+            "android.view.ViewGroup", 
+            false, 
+            Some("已关注")  // 只有3个字符，没有逗号
+        );
+        assert!(!normalizer.is_card_root_candidate(&followed_label));
+
+        // ❌ 没有content_desc的布局
         let no_desc_frame = create_test_element(
             "android.widget.FrameLayout", 
             false, 
@@ -696,13 +745,13 @@ mod tests {
         );
         assert!(!normalizer.is_card_root_candidate(&no_desc_frame));
 
-        // 不是FrameLayout
-        let view_group = create_test_element(
-            "android.view.ViewGroup", 
-            false, 
-            Some("some content")
+        // ❌ 不是布局类（如 Button）
+        let button = create_test_element(
+            "android.widget.Button", 
+            true, 
+            Some("some content with many characters")
         );
-        assert!(!normalizer.is_card_root_candidate(&view_group));
+        assert!(!normalizer.is_card_root_candidate(&button));
     }
 
     #[test]
