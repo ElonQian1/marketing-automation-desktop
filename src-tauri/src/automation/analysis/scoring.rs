@@ -205,19 +205,68 @@ pub async fn score_step_with_smart_selection(
         return Err("步骤缺少有效的内联或引用定义".to_string());
     };
     
-    // 🎯 【评分阶段核心】：只进行分析评分，绝不执行真实设备操作！
+    // 🎯 【评分阶段核心】：从预计算的置信度中提取评分
     // 
-    // ⚠️ TODO: 迁移到V3的智能匹配系统进行评分
-    // ✅ 正确做法：使用V3的XPathMatcher + TextComparator进行候选匹配
-    // ❌ Legacy方法已删除：SmartSelectionEngine::parse_xml_and_find_candidates
-    // 
-    // 📊 临时方案：返回中等分数，避免编译错误
-    tracing::warn!("⚠️ 步骤评分功能待迁移到V3，暂时返回默认分数 0.5");
-    Ok(0.5)
+    // ✅ 已迁移：使用 intelligent_analysis_service 预计算的置信度
+    // 置信度存储在 execution_params.confidence 或 params.confidence 中
     
-    // 📝 迁移计划：
-    // 1. 使用 XPathMatcher::match_all() 查找候选元素
-    // 2. 使用 TextComparator::calculate_similarity() 计算匹配度
-    // 3. 使用 BoundsMatcher::match_bounds() 计算位置相似度
-    // 4. 综合评分返回步骤可行性
+    // 🔧 尝试从多个位置提取预计算的置信度
+    if let Some(inline) = &step.inline {
+        // 位置1: 直接从 params.confidence 提取
+        if let Some(confidence_value) = inline.params.get("confidence") {
+            if let Some(confidence) = confidence_value.as_f64() {
+                tracing::info!(
+                    "✅ [评分] 步骤 {} 使用预计算置信度: {:.3}",
+                    _step_id, confidence
+                );
+                return Ok(confidence as f32);
+            }
+        }
+        
+        // 位置2: 从 execution_params.confidence 提取
+        if let Some(exec_params) = inline.params.get("execution_params") {
+            if let Some(confidence_value) = exec_params.get("confidence") {
+                if let Some(confidence) = confidence_value.as_f64() {
+                    tracing::info!(
+                        "✅ [评分] 步骤 {} 使用 execution_params 置信度: {:.3}",
+                        _step_id, confidence
+                    );
+                    return Ok(confidence as f32);
+                }
+            }
+        }
+        
+        // 位置3: 从 original_data.confidence 提取（智能分析保存的结果）
+        if let Some(original_data) = inline.params.get("original_data") {
+            if let Some(confidence_value) = original_data.get("confidence") {
+                if let Some(confidence) = confidence_value.as_f64() {
+                    tracing::info!(
+                        "✅ [评分] 步骤 {} 使用 original_data 置信度: {:.3}",
+                        _step_id, confidence
+                    );
+                    return Ok(confidence as f32);
+                }
+            }
+        }
+        
+        // 位置4: 从 smartSelection.minConfidence 提取作为基准
+        if let Some(smart_selection) = inline.params.get("smartSelection") {
+            if let Some(min_conf) = smart_selection.get("minConfidence") {
+                if let Some(confidence) = min_conf.as_f64() {
+                    tracing::info!(
+                        "⚠️ [评分] 步骤 {} 使用 minConfidence 作为基准: {:.3}",
+                        _step_id, confidence
+                    );
+                    return Ok(confidence as f32);
+                }
+            }
+        }
+    }
+    
+    // 🔧 最终回退：返回中等分数（表示无预计算置信度）
+    tracing::warn!(
+        "⚠️ [评分] 步骤 {} 无预计算置信度，返回默认分数 0.5",
+        _step_id
+    );
+    Ok(0.5)
 }

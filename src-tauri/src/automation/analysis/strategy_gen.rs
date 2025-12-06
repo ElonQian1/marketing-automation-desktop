@@ -341,6 +341,12 @@ pub fn convert_analysis_result_to_v3_steps_with_config(
             tracing::warn!("⚠️ [数据传递] 步骤 {} 缺少original_data，失败恢复能力受限", index + 1);
         }
         
+        // 🆕 关键修复：传递结构指纹（用于叶子上下文结构匹配）
+        if let Some(structure_fingerprint) = candidate.execution_params.get("structure_fingerprint") {
+            params["structure_fingerprint"] = structure_fingerprint.clone();
+            tracing::info!("🔄 [结构指纹传递] 步骤 {} 包含structure_fingerprint，已传递到执行层", index + 1);
+        }
+        
         // 🔥 【批量模式修复】保留原始的 smartSelection 和 originalParams 配置
         if let Some(config) = preserved_config {
             // 1. 保留 smartSelection（批量模式配置）
@@ -553,8 +559,23 @@ pub fn rerank_candidates_by_bounds(
         })
         .collect();
     
-    // 按bounds匹配得分降序排序
-    scored_candidates.sort_by(|a, b| b.1.partial_cmp(&a.1).unwrap_or(std::cmp::Ordering::Equal));
+    // 按综合得分降序排序：原始置信度 + Bounds匹配得分 + 策略加权
+    // 这样既考虑了位置匹配，又保留了智能分析的语义判断
+    scored_candidates.sort_by(|(cand_a, score_a), (cand_b, score_b)| {
+        // 策略加权：结构化策略给予额外加分，防止被单纯的位置匹配覆盖
+        let get_strategy_bonus = |strategy: &str| -> f64 {
+            match strategy {
+                "leaf_context_scoring" | "card_subtree_scoring" | "structure_matching" => 0.2,
+                s if s.contains("structure") => 0.15,
+                _ => 0.0
+            }
+        };
+
+        let final_a = cand_a.confidence + score_a + get_strategy_bonus(&cand_a.strategy);
+        let final_b = cand_b.confidence + score_b + get_strategy_bonus(&cand_b.strategy);
+        
+        final_b.partial_cmp(&final_a).unwrap_or(std::cmp::Ordering::Equal)
+    });
     
     // 提取排序后的候选
     let reranked: Vec<_> = scored_candidates
