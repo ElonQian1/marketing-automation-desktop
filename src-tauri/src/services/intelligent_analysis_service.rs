@@ -1,6 +1,16 @@
 // src-tauri/src/services/intelligent_analysis_service.rs
 // module: intelligent-analysis | layer: services | role: V3 intelligent analysis service
 // summary: V3智能分析服务，桥接后端V3执行系统与前端智能策略系统
+//
+// ┌─────────────────────────────────────────────────────────────────────────────┐
+// │  🎯 策略序号映射（V3架构 - 10步）                                             │
+// │                                                                             │
+// │  本服务整合两套匹配系统的输出：                                               │
+// │  1. UnifiedMatchService (Step 1,2,5,6,9): 新架构结构匹配                     │
+// │  2. StrategyEngine (Step 3,4,7,8,10): 传统策略引擎                           │
+// │                                                                             │
+// │  📍 策略名称必须与前端 step-sequence.ts 的 candidateKey 完全一致             │
+// └─────────────────────────────────────────────────────────────────────────────┘
 
 use serde::{Deserialize, Serialize};
 use tauri::AppHandle;
@@ -731,8 +741,18 @@ fn semantic_reverse_lookup(
             }
             // 如果没有 "来自"，尝试使用整个 desc 的前段（标题）
             if keywords.is_empty() {
-                let title_end = desc.find(' ').unwrap_or(desc.len().min(10));
-                keywords.push(desc[..title_end].to_string());
+                // 🔥 修复：使用字符边界安全的切分方式，避免中文字符被截断
+                let keyword = if let Some(space_idx) = desc.find(' ') {
+                    desc[..space_idx].to_string()
+                } else {
+                    // 取前 10 个字符（不是字节），安全处理中文
+                    desc.chars().take(10).collect::<String>()
+                };
+                if !keyword.is_empty() {
+                    keywords.push(keyword);
+                } else {
+                    keywords.push(desc.clone());
+                }
             }
         }
         
@@ -1103,9 +1123,10 @@ pub async fn mock_intelligent_analysis(
     // 🎯 关键修复：根据评分类型选择正确的执行模式，而不是全部使用 structure_matching
     for (key, conf) in structure_match_scores {
         let (name, description, exec_mode) = match key {
-            // 只有卡片子树和叶子上下文才需要真正的结构匹配（需要找卡片根）
+            // 卡片子树：需要找卡片根（真正的结构匹配）
             "card_subtree_scoring" => ("卡片子树评分", "基于卡片结构形态匹配，适用于列表卡片场景", "structure_matching"),
-            "leaf_context_scoring" => ("叶子上下文评分", "基于叶子节点上下文匹配，适用于复杂嵌套场景", "structure_matching"),
+            // 叶子上下文：直接点击叶子节点本身，不需要回溯卡片根
+            "leaf_context_scoring" => ("叶子上下文评分", "基于叶子节点上下文匹配，直接点击目标元素", "direct_click"),
             // 文本匹配：直接使用 content-desc 或 text 查找，不需要找卡片根
             "text_exact_scoring" => ("文本强等值", "基于唯一文本/content-desc匹配，适用于按钮、菜单等独立元素", "text_matching"),
             // ID锚点：直接使用 resource-id 查找
@@ -1118,12 +1139,74 @@ pub async fn mock_intelligent_analysis(
         let mut exec_params = serde_json::json!({
             "strategy": key,
             "confidence": conf,
-            "mode": exec_mode
+            "mode": exec_mode,
+            "xpath": analysis_context.element_path // 🔥 修复：确保结构匹配候选包含 XPath
         });
         
-        // 添加 original_data
-        if let Some(ref original_data) = original_data_from_request {
-            exec_params["original_data"] = original_data.clone();
+        // 🎯 对于叶子上下文匹配，提取完整的结构特征（而不是传递完整 XML）
+        if key == "leaf_context_scoring" {
+            if let Some(ref original_data) = original_data_from_request {
+                if let Some(index_path) = original_data.get("index_path").and_then(|v| v.as_array()) {
+                    // 提取静态元素的结构指纹
+                    if let Ok(static_indexer) = crate::engine::XmlIndexer::build_from_xml(&request.ui_xml_content) {
+                        let static_path: Vec<usize> = index_path.iter()
+                            .filter_map(|v| v.as_u64().map(|n| n as usize))
+                            .collect();
+                        
+                        if let Some(static_node_idx) = static_indexer.find_node_by_index_path(&static_path) {
+                            if static_node_idx < static_indexer.all_nodes.len() {
+                                let static_node = &static_indexer.all_nodes[static_node_idx];
+                                
+                                // 📋 提取父节点链（3层）
+                                let parent_classes = extract_parent_classes(&static_indexer, static_node_idx, 3);
+                                
+                                // 📋 统计兄弟节点数量
+                                let sibling_count = count_siblings(&static_indexer, static_node_idx);
+                                
+                                // 📋 计算节点深度
+                                let depth_level = calculate_depth(&static_indexer, static_node_idx);
+                                
+                                // 提取结构特征
+                                exec_params["structure_fingerprint"] = serde_json::json!({
+                                    "content_desc": static_node.element.content_desc,
+                                    "text": static_node.element.text,
+                                    "class_name": static_node.element.class_name,
+                                    "resource_id": static_node.element.resource_id,
+                                    "clickable": static_node.element.clickable,
+                                    "parent_classes": parent_classes,      // 🆕 父节点链
+                                    "sibling_count": sibling_count,        // 🆕 兄弟节点数
+                                    "depth_level": depth_level,            // 🆕 树深度
+                                });
+                                
+                                tracing::info!("🔍 [叶子上下文] 已提取结构指纹: content-desc='{}', text='{}', class='{:?}', parents={:?}, siblings={}, depth={}",
+                                    static_node.element.content_desc,
+                                    static_node.element.text,
+                                    static_node.element.class_name,
+                                    parent_classes,
+                                    sibling_count,
+                                    depth_level
+                                );
+                            }
+                        }
+                    }
+                }
+                
+                // 保留 index_path（用于回退）
+                exec_params["original_data"] = serde_json::json!({
+                    "index_path": original_data.get("index_path"),
+                    "element_bounds": original_data.get("element_bounds"),
+                });
+            }
+        } else {
+            // 其他策略：添加完整 original_data（不包含 XML）
+            if let Some(ref original_data) = original_data_from_request {
+                let mut trimmed_data = original_data.clone();
+                // 移除 original_xml 字段以减少序列化大小
+                if let Some(obj) = trimmed_data.as_object_mut() {
+                    obj.remove("original_xml");
+                }
+                exec_params["original_data"] = trimmed_data;
+            }
         }
         
         candidates.push(StrategyCandidate {
@@ -1277,6 +1360,48 @@ fn find_element_bounds_by_xpath(xml_content: &str, xpath: &str) -> Option<String
         }
     }
     None
+}
+
+/// 📐 辅助函数：提取父节点类名链
+fn extract_parent_classes(indexer: &crate::engine::XmlIndexer, node_idx: usize, depth: usize) -> Vec<String> {
+    let mut classes = Vec::new();
+    let mut current_idx = node_idx;
+    
+    for _ in 0..depth {
+        if let Some(parent_idx) = indexer.all_nodes.get(current_idx).and_then(|n| n.parent_index) {
+            if let Some(parent_class) = indexer.all_nodes[parent_idx].element.class_name.as_ref() {
+                classes.push(parent_class.clone());
+            }
+            current_idx = parent_idx;
+        } else {
+            break;
+        }
+    }
+    classes
+}
+
+/// 📐 辅助函数：统计兄弟节点数量
+fn count_siblings(indexer: &crate::engine::XmlIndexer, node_idx: usize) -> usize {
+    if let Some(parent_idx) = indexer.all_nodes.get(node_idx).and_then(|n| n.parent_index) {
+        // 统计同一父节点下的所有子节点
+        indexer.all_nodes.iter()
+            .filter(|n| n.parent_index == Some(parent_idx))
+            .count()
+    } else {
+        0
+    }
+}
+
+/// 📐 辅助函数：计算节点深度
+fn calculate_depth(indexer: &crate::engine::XmlIndexer, node_idx: usize) -> usize {
+    let mut depth = 0;
+    let mut current_idx = node_idx;
+    
+    while let Some(parent_idx) = indexer.all_nodes.get(current_idx).and_then(|n| n.parent_index) {
+        depth += 1;
+        current_idx = parent_idx;
+    }
+    depth
 }
 
 /// 辅助函数：执行回退分析策略
