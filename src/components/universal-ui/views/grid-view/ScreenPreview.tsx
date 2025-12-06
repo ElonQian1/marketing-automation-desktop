@@ -1,5 +1,5 @@
 // src/components/universal-ui/views/grid-view/ScreenPreview.tsx
-// module: universal-ui/grid-view | layer: ui | role: screen-preview
+// module: universal-ui-grid-view | layer: ui | role: screen-preview
 // summary: 网格视图的屏幕预览组件 - 可视化Android UI元素，支持正确的层级渲染
 // 
 // 📍 调用链: UniversalPageFinderModal → GridElementView → ScreenPreview

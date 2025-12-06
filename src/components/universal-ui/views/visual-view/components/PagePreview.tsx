@@ -64,6 +64,16 @@ function analyzeDrawerLayerFromXml(xmlContent: string, elements: VisualUIElement
     drawerLayoutNodes.forEach(drawerNode => {
       const children = Array.from(drawerNode.children).filter(c => c.tagName === 'node');
       
+      // 🔍 获取 DrawerLayout 自身的 bounds 作为参考
+      const drawerLayoutBoundsAttr = drawerNode.getAttribute('bounds');
+      let drawerLayoutWidth = 1080; // 默认值
+      if (drawerLayoutBoundsAttr) {
+        const dlMatch = drawerLayoutBoundsAttr.match(/\[(\d+),(\d+)\]\[(\d+),(\d+)\]/);
+        if (dlMatch) {
+          drawerLayoutWidth = parseInt(dlMatch[3], 10) - parseInt(dlMatch[1], 10);
+        }
+      }
+      
       children.forEach((child, idx) => {
         // 递归收集该子树下所有节点的 bounds
         const collectBounds = (node: Element, boundsSet: Set<string>) => {
@@ -78,21 +88,36 @@ function analyzeDrawerLayerFromXml(xmlContent: string, elements: VisualUIElement
           // 第一个子节点是主内容
           collectBounds(child, mainContentBounds);
         } else {
-          // 后续子节点是抽屉内容（覆盖层）
-          collectBounds(child, drawerContentBounds);
-          
-          // 🆕 解析抽屉根节点的 bounds 作为抽屉边界
-          if (!drawerBounds) {
-            const boundsAttr = child.getAttribute('bounds');
-            if (boundsAttr) {
-              const match = boundsAttr.match(/\[(\d+),(\d+)\]\[(\d+),(\d+)\]/);
-              if (match) {
-                drawerBounds = {
-                  left: parseInt(match[1], 10),
-                  top: parseInt(match[2], 10),
-                  right: parseInt(match[3], 10),
-                  bottom: parseInt(match[4], 10)
-                };
+          // 🎯 关键修复：检查这个子节点是否是真正的侧边抽屉
+          // 真正的侧边抽屉特征：宽度小于 DrawerLayout 的 90%（不是全屏覆盖）
+          const boundsAttr = child.getAttribute('bounds');
+          if (boundsAttr) {
+            const match = boundsAttr.match(/\[(\d+),(\d+)\]\[(\d+),(\d+)\]/);
+            if (match) {
+              const childLeft = parseInt(match[1], 10);
+              const childRight = parseInt(match[3], 10);
+              const childWidth = childRight - childLeft;
+              
+              // 🔍 判断是否为真正的侧边抽屉：
+              // 1. 宽度小于父容器的 90%
+              // 2. 不是底部导航栏（y 起点不在底部）
+              const isRealDrawer = childWidth < drawerLayoutWidth * 0.9;
+              
+              if (isRealDrawer) {
+                // 这是真正的侧边抽屉
+                collectBounds(child, drawerContentBounds);
+                
+                if (!drawerBounds) {
+                  drawerBounds = {
+                    left: childLeft,
+                    top: parseInt(match[2], 10),
+                    right: childRight,
+                    bottom: parseInt(match[4], 10)
+                  };
+                }
+              } else {
+                // 全屏覆盖的不是抽屉，可能是底部导航等，标记为 normal
+                collectBounds(child, mainContentBounds);
               }
             }
           }

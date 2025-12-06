@@ -1,5 +1,5 @@
 // src/components/universal-ui/views/visual-view/VisualPagePreview.tsx
-// module: universal-ui/visual-view | layer: ui | role: page-preview
+// module: universal-ui-visual-view | layer: ui | role: page-preview
 // summary: 可视化视图的页面预览组件 - 展示解析后的UI元素，支持语义层级渲染
 // 
 // 📍 调用链: UniversalPageFinderModal → VisualElementView → VisualPagePreview
