@@ -170,15 +170,9 @@ export function createHandleExecuteScript(ctx: Ctx) {
                 element_path: clickStep.parameters?.selected_xpath || clickStep.parameters?.xpath || "",
                 targetText: clickStep.parameters?.targetText || clickStep.parameters?.text || "",
                 target_content_desc: clickStep.parameters?.target_content_desc || "",
-                // 🔥 修复：执行脚本时强制清空XML，确保使用真机实时数据
-                original_data: clickStep.parameters?.original_data ? {
-                  ...clickStep.parameters.original_data,
-                  original_xml: "", // ⚠️ 强制清空XML
-                  data_integrity: {
-                    ...(clickStep.parameters.original_data.data_integrity || {}),
-                    has_original_xml: false
-                  }
-                } : {},
+                // ✅ 保留完整的 original_data，包括 original_xml
+                // 静态分析需要XML提取结构指纹，真机执行会重新dump
+                original_data: clickStep.parameters?.original_data || {},
                 smartSelection: {
                   mode: "first",
                   minConfidence: 0.8,
@@ -192,15 +186,14 @@ export function createHandleExecuteScript(ctx: Ctx) {
                 }
               };
               
-              // 🔥 修复：从步骤类型动态获取action，而不是硬编码
-              const action = clickStep.step_type || "smart_selection";
-              
+              // ✅ 修复：强制使用 smart_selection 触发智能分析
+              // smart_find_element 不会触发Step0-8分析，导致无法使用结构匹配
               const chainSpec = {
                 chainId: `step_execution_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
                 orderedSteps: [{
                   inline: {
                     stepId: clickStep.id,
-                    action: action,  // ✅ 使用步骤实际类型
+                    action: "smart_selection",  // ✅ 强制使用smart_selection
                     params: params
                   },
                   ref: null

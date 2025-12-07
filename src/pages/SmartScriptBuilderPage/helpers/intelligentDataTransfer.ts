@@ -54,6 +54,9 @@ export interface IntelligentStepDataPackage {
     resourceId?: string;
   } | null;
 
+  // 🎯 元素层级路径（用于Step1-2结构匹配）
+  indexPath?: number[];
+
   // 🔥 NEW: 匹配策略标记（告诉后端如何匹配）
   /**
    * 🎯 匹配策略类型：
@@ -192,6 +195,13 @@ export function extractIntelligentStepData(
   // 🔥 NEW: 提取父元素信息（用于上下文匹配）
   const parentInfo = snapshot?.elementSignature?.parentInfo || null;
 
+  // 🎯 提取元素层级路径（用于Step1-2结构匹配）
+  const indexPath = snapshot?.elementSignature?.indexPath;
+  console.log(
+    "🔍 [层级路径提取] 发现 indexPath:",
+    indexPath || "(无)"
+  );
+
   // 🔥 NEW: 匹配策略标记
   const matchingStrategy =
     snapshot?.elementSignature?.matchingStrategy ||
@@ -240,6 +250,8 @@ export function extractIntelligentStepData(
     siblingTexts,
     // 🔥 NEW: 父元素信息
     parentInfo,
+    // 🎯 元素层级路径（用于Step1-2结构匹配）
+    indexPath,
     // 🔥 NEW: 匹配策略标记
     matchingStrategy,
 
@@ -291,6 +303,9 @@ export function buildBackendParameters(
 
     // 用户选择的精确XPath（静态分析结果）
     selected_xpath: dataPackage.userSelectedXPath,
+
+    // 🎯 元素层级路径（用于Step1-2结构匹配）
+    index_path: dataPackage.indexPath,
 
     // 元素特征信息
     element_text: dataPackage.elementText,
