@@ -973,6 +973,16 @@ async fn execute_leaf_context_match_first(
     
     tracing::info!("✅ [叶子上下文匹配] 真机XML节点数: {}", runtime_indexer.all_nodes.len());
     
+    // 🔍 诊断：输出真机可点击元素
+    tracing::info!("🔍 [诊断] 真机可点击元素列表 (前20个):");
+    for (idx, node) in runtime_indexer.all_nodes.iter().enumerate().take(20) {
+        if node.element.clickable {
+            tracing::info!("  #{}: content='{}', text='{}', class='{}', bounds={:?}", 
+                idx, node.element.content_desc, node.element.text, 
+                node.element.class_name.as_deref().unwrap_or(""), node.bounds);
+        }
+    }
+    
     // 3. 在真机 XML 中搜索所有匹配的候选节点
     let mut candidates = Vec::new();
     
@@ -981,21 +991,54 @@ async fn execute_leaf_context_match_first(
         let node_text = node.element.text.as_str();
         let node_class = node.element.class_name.as_deref().unwrap_or("");
         
-        // 🎯 第一步：基本属性过滤（content-desc 或 text 相同，且 class 相同）
+        // 🎯 第一步：基本属性过滤 - 放宽匹配条件
+        // 瀑布流卡片：透明层可能没有 content-desc/text，依赖结构匹配
+        // 独立按钮：需要 content-desc/text 匹配
+        let has_target_text = !target_content_desc.is_empty() || !target_text.is_empty();
+        
         let content_match = !target_content_desc.is_empty() && node_content_desc == target_content_desc;
         let text_match = !target_text.is_empty() && node_text == target_text;
+        
+        // 🆕 语义匹配：支持"已关注"→"关注"互通
+        let semantic_match = if !target_content_desc.is_empty() {
+            let target_normalized = target_content_desc.replace("已", "").replace("取消", "");
+            let node_normalized = node_content_desc.replace("已", "").replace("取消", "");
+            !target_normalized.is_empty() && target_normalized == node_normalized
+        } else if !target_text.is_empty() {
+            let target_normalized = target_text.replace("已", "").replace("取消", "");
+            let node_normalized = node_text.replace("已", "").replace("取消", "");
+            !target_normalized.is_empty() && target_normalized == node_normalized
+        } else {
+            false
+        };
+        
         let class_match = target_class.is_empty() || node_class == target_class;
         
-        if !(content_match || text_match) || !class_match {
-            continue; // 基本属性不匹配，跳过
+        // 🔍 如果目标有文本/描述，必须匹配（精确或语义）；如果没有，则只匹配结构
+        let text_filter_passed = if has_target_text {
+            content_match || text_match || semantic_match  // ✅ 语义匹配
+        } else {
+            class_match && node.element.clickable  // 透明层：可点击 + 类名匹配
+        };
+        
+        if !text_filter_passed || !class_match {
+            continue; // 基本过滤不通过，跳过
         }
+        
+        tracing::debug!("🎯 [候选预筛] node_idx={}, content='{}', text='{}', semantic={}", 
+            node_idx, node_content_desc, node_text, semantic_match);
         
         // 🎯 第二步：结构相似度评分（层级上下文匹配）
         let mut score = 0.0f32;
         
         // (1) 文本/描述匹配 (40%)
-        if content_match { score += 0.25; }
-        if text_match { score += 0.15; }
+        if content_match { 
+            score += 0.30;  // 精确匹配
+        } else if text_match {
+            score += 0.30;  // 精确文本匹配
+        } else if semantic_match {
+            score += 0.25;  // 语义匹配（"已关注"→"关注"）
+        }
         
         // (2) 祖先链匹配 (20%) - 检查父节点类名是否相似
         if !static_parent_classes.is_empty() {
