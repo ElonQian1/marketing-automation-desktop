@@ -103,8 +103,8 @@ export class LoopExecutionEngine {
           try {
             console.log(`📝 [LoopExecutionEngine] 执行步骤: ${step.name} (${step.step_type})`);
 
-            // 调用后端执行单个步骤
-            const stepResult = await this.executeSingleStep(step, deviceId);
+            // 🆕 传递当前循环轮次（从0开始）
+            const stepResult = await this.executeSingleStep(step, deviceId, iteration - 1);
             
             if (stepResult.success) {
               console.log(`✅ [LoopExecutionEngine] 步骤执行成功: ${step.name}`);
@@ -186,7 +186,11 @@ export class LoopExecutionEngine {
   /**
    * 执行单个步骤 - 使用与单步测试按钮完全相同的路径（包括repeat逻辑）
    */
-  private async executeSingleStep(step: SmartScriptStep, deviceId: string): Promise<{
+  private async executeSingleStep(
+    step: SmartScriptStep, 
+    deviceId: string,
+    currentIteration?: number  // 🆕 当前循环轮次（从0开始）
+  ): Promise<{
     success: boolean;
     error?: string;
     logs?: string[];
@@ -210,12 +214,28 @@ export class LoopExecutionEngine {
       const waitBetween = params.wait_between === true;
       const waitDuration = Number(params.wait_duration) || 500;
 
+      // 🆕 循环模式下动态调整 smartSelection.mode
+      if (currentIteration !== undefined && params.smartSelection) {
+        const originalMode = params.smartSelection.mode;
+        
+        // 如果原始模式是 "first"，改为使用递增索引
+        if (originalMode === 'first') {
+          params.smartSelection = {
+            ...params.smartSelection,
+            mode: `nth:${currentIteration}`, // 第1轮用nth:0，第2轮用nth:1...
+          };
+          console.log(`🔄 [循环递增] 原模式: ${originalMode}, 当前轮次: ${currentIteration + 1}, 新模式: nth:${currentIteration}`);
+        }
+      }
+
       console.log('🔄 [LoopExecutionEngine] 重复执行配置:', {
         stepName: step.name,
         repeatCount,
         waitBetween,
         waitDuration,
-        stepType: step.step_type
+        stepType: step.step_type,
+        currentIteration,
+        smartSelectionMode: params.smartSelection?.mode
       });
 
       // 2. 转换为V2请求格式（和useV2StepTest相同）

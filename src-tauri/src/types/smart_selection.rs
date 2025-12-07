@@ -164,6 +164,11 @@ pub enum SelectionMode {
     First,
     /// 选择最后一个（按sort_baseline排序后的最后一个）
     Last,
+    /// 选择第N个（按sort_baseline排序后的第N个，用于循环递增）
+    Nth {
+        /// 索引（从0开始）
+        index: usize,
+    },
     /// 随机选择一个（可复现：基于sort_baseline + seed）
     Random {
         seed: u64,

@@ -444,9 +444,19 @@ async fn execute_step_by_inline(
                     
                     // 🎯 根据 smartSelection.mode 决定执行策略
                     match smart_selection_mode {
-                        // 🔍 "first" 模式：使用叶子上下文结构匹配，找到第一个结构相似的元素
-                        Some("first") => {
-                            tracing::info!("🔍 [叶子上下文-第一个] 使用结构匹配搜索第一个同类元素");
+                        // 🔍 "first" 或 "nth:N" 模式：使用叶子上下文结构匹配
+                        Some(mode) if mode == "first" || mode.starts_with("nth:") => {
+                            let target_index = if mode == "first" {
+                                0
+                            } else {
+                                mode.strip_prefix("nth:").and_then(|s| s.parse::<usize>().ok()).unwrap_or(0)
+                            };
+                            
+                            tracing::info!(
+                                "🔍 [叶子上下文-{}] 使用结构匹配搜索第{}个同类元素",
+                                mode,
+                                target_index + 1
+                            );
                             
                             // 提取静态 XML 中的 index_path（用于提取结构特征）
                             let static_index_path = params.get("original_data")
@@ -457,18 +467,23 @@ async fn execute_step_by_inline(
                                     .collect::<Vec<_>>());
                             
                             if let Some(static_path) = static_index_path {
-                                // 🎯 使用结构匹配查找第一个同类元素
-                                match execute_leaf_context_match_first(
+                                // 🎯 使用结构匹配查找第N个同类元素
+                                match execute_leaf_context_match_nth(
                                     &envelope.device_id,
                                     &static_path,
                                     &params,
+                                    target_index,
                                 ).await {
                                     Ok((confidence, coords)) => {
-                                        tracing::info!("✅ [叶子上下文-第一个] 找到并点击第一个结构匹配元素");
+                                        tracing::info!(
+                                            "✅ [叶子上下文-{}] 找到并点击第{}个结构匹配元素",
+                                            mode,
+                                            target_index + 1
+                                        );
                                         (confidence, coords)
                                     }
                                     Err(e) => {
-                                        tracing::warn!("⚠️ [叶子上下文-第一个] 结构匹配失败: {}, 回退bounds", e);
+                                        tracing::warn!("⚠️ [叶子上下文-{}] 结构匹配失败: {}, 回退bounds", mode, e);
                                         if let Some(bounds_str) = bounds_str {
                                             execute_smart_tap_by_bounds(&envelope.device_id, bounds_str).await?
                                         } else {
@@ -477,7 +492,7 @@ async fn execute_step_by_inline(
                                     }
                                 }
                             } else {
-                                tracing::warn!("⚠️ [叶子上下文-第一个] 缺少 index_path，回退精准定位");
+                                tracing::warn!("⚠️ [叶子上下文-{}] 缺少 index_path，回退精准定位", mode);
                                 execute_by_index_path_or_bounds(
                                     app,
                                     envelope,
@@ -767,7 +782,14 @@ fn extract_smart_selection_protocol(params: &Value) -> Result<SmartSelectionProt
     // 构建选择模式
     let selection_mode = match mode {
         "first" => SelectionMode::First,
-        "last" => SelectionMode::Last, 
+        "last" => SelectionMode::Last,
+        mode_str if mode_str.starts_with("nth:") => {
+            // 🆕 支持 nth:N 格式（用于循环递增）
+            let index_str = mode_str.strip_prefix("nth:").unwrap_or("0");
+            let index = index_str.parse::<usize>().unwrap_or(0);
+            tracing::info!("🔄 [循环递增模式] 使用 nth:{} 选择第{}个元素", index, index + 1);
+            SelectionMode::Nth { index }
+        }
         "random" => {
             let seed = smart_selection.get("randomSeed")
                 .and_then(|v| v.as_u64())
@@ -1111,6 +1133,174 @@ async fn execute_leaf_context_match_first(
     tracing::info!("🎯 [叶子上下文匹配] 点击第一个匹配元素: coords={:?}, confidence={:.3}", coords, confidence);
     
     // 执行点击
+    adb_tap_coordinate(device_id.to_string(), coords.0, coords.1).await
+        .map_err(|e| format!("点击坐标失败: {}", e))?;
+    
+    Ok((*confidence, Some(coords)))
+}
+
+/// 🔄 叶子上下文结构匹配 - 选择第N个
+/// 
+/// 与 `execute_leaf_context_match_first` 类似，但选择第N个匹配元素
+async fn execute_leaf_context_match_nth(
+    device_id: &str,
+    static_index_path: &[usize],
+    params: &Value,
+    target_index: usize,
+) -> Result<(f32, Option<(i32, i32)>), String> {
+    // 复用 execute_leaf_context_match_first 的逻辑，但选择第N个
+    use crate::services::adb::commands::{adb_dump_ui_xml, adb_tap_coordinate};
+    use crate::engine::XmlIndexer;
+    
+    tracing::info!("🔍 [叶子上下文匹配-第{}个] 开始结构匹配搜索", target_index + 1);
+    
+    // 1. 获取结构指纹
+    let fingerprint = params.get("structure_fingerprint")
+        .ok_or_else(|| "缺少结构指纹数据".to_string())?;
+    
+    let target_content_desc = fingerprint.get("content_desc")
+        .and_then(|v| v.as_str())
+        .unwrap_or("");
+    let target_text = fingerprint.get("text")
+        .and_then(|v| v.as_str())
+        .unwrap_or("");
+    let target_class = fingerprint.get("class_name")
+        .and_then(|v| v.as_str())
+        .unwrap_or("");
+    
+    let static_parent_classes = fingerprint.get("parent_classes")
+        .and_then(|v| v.as_array())
+        .map(|arr| arr.iter().filter_map(|v| v.as_str().map(|s| s.to_string())).collect::<Vec<_>>())
+        .unwrap_or_default();
+    
+    let static_sibling_count = fingerprint.get("sibling_count")
+        .and_then(|v| v.as_u64())
+        .unwrap_or(0) as usize;
+    
+    let static_depth = fingerprint.get("depth_level")
+        .and_then(|v| v.as_u64())
+        .unwrap_or(0) as usize;
+    
+    tracing::info!("📋 [叶子上下文匹配-第{}个] 目标特征: content-desc='{}', text='{}', class='{}', parents={:?}, siblings={}, depth={}", 
+        target_index + 1, target_content_desc, target_text, target_class, static_parent_classes, static_sibling_count, static_depth);
+    
+    // 2. 实时 dump 真机 XML
+    let runtime_xml = adb_dump_ui_xml(device_id.to_string()).await
+        .map_err(|e| format!("获取真机UI XML失败: {}", e))?;
+    
+    let runtime_indexer = XmlIndexer::build_from_xml(&runtime_xml)
+        .map_err(|e| format!("构建真机XML索引失败: {}", e))?;
+    
+    tracing::info!("✅ [叶子上下文匹配-第{}个] 真机XML节点数: {}", target_index + 1, runtime_indexer.all_nodes.len());
+    
+    // 3. 搜索候选节点（代码与 first 版本相同）
+    let mut candidates = Vec::new();
+    
+    for (node_idx, node) in runtime_indexer.all_nodes.iter().enumerate() {
+        let node_content_desc = node.element.content_desc.as_str();
+        let node_text = node.element.text.as_str();
+        let node_class = node.element.class_name.as_deref().unwrap_or("");
+        
+        let has_target_text = !target_content_desc.is_empty() || !target_text.is_empty();
+        
+        let content_match = !target_content_desc.is_empty() && node_content_desc == target_content_desc;
+        let text_match = !target_text.is_empty() && node_text == target_text;
+        
+        let semantic_match = if !target_content_desc.is_empty() {
+            let target_normalized = target_content_desc.replace("已", "").replace("取消", "");
+            let node_normalized = node_content_desc.replace("已", "").replace("取消", "");
+            !target_normalized.is_empty() && target_normalized == node_normalized
+        } else if !target_text.is_empty() {
+            let target_normalized = target_text.replace("已", "").replace("取消", "");
+            let node_normalized = node_text.replace("已", "").replace("取消", "");
+            !target_normalized.is_empty() && target_normalized == node_normalized
+        } else {
+            false
+        };
+        
+        let class_match = target_class.is_empty() || node_class == target_class;
+        
+        let text_filter_passed = if has_target_text {
+            content_match || text_match || semantic_match
+        } else {
+            class_match && node.element.clickable
+        };
+        
+        if !text_filter_passed || !class_match {
+            continue;
+        }
+        
+        // 计算结构相似度评分
+        let mut score = 0.0f32;
+        
+        if content_match { 
+            score += 0.30;
+        } else if text_match {
+            score += 0.30;
+        } else if semantic_match {
+            score += 0.25;
+        }
+        
+        if !static_parent_classes.is_empty() {
+            let runtime_parent_classes = extract_parent_classes(&runtime_indexer, node_idx, static_parent_classes.len());
+            let parent_similarity = calculate_parent_similarity(&static_parent_classes, &runtime_parent_classes);
+            score += parent_similarity * 0.20;
+        }
+        
+        if static_sibling_count > 0 {
+            let count = count_siblings(&runtime_indexer, node_idx);
+            let sibling_similarity = calculate_count_similarity(static_sibling_count, count);
+            score += sibling_similarity * 0.15;
+        }
+        
+        if static_depth > 0 {
+            let depth = calculate_depth(&runtime_indexer, node_idx);
+            let depth_similarity = calculate_count_similarity(static_depth, depth);
+            score += depth_similarity * 0.10;
+        }
+        
+        if class_match && !target_class.is_empty() { 
+            score += 0.15; 
+        }
+        
+        candidates.push((node_idx, score, node.clone()));
+    }
+    
+    if candidates.is_empty() {
+        return Err(format!("真机上未找到匹配的元素: content-desc='{}', text='{}'", 
+            target_content_desc, target_text));
+    }
+    
+    // 4. 按评分排序
+    candidates.sort_by(|a, b| b.1.partial_cmp(&a.1).unwrap_or(std::cmp::Ordering::Equal));
+    
+    tracing::info!("📊 [叶子上下文匹配-第{}个] 找到 {} 个候选，TOP 3:", target_index + 1, candidates.len());
+    for (i, (idx, score, node)) in candidates.iter().take(3).enumerate() {
+        tracing::info!("  {}. node_idx={}, score={:.3}, content='{}', class='{}'", 
+            i+1, idx, score, node.element.content_desc, node.element.class_name.as_deref().unwrap_or(""));
+    }
+    
+    // 5. 选择第N个（检查边界）
+    if target_index >= candidates.len() {
+        return Err(format!("候选元素不足：需要第{}个，但只找到{}个", target_index + 1, candidates.len()));
+    }
+    
+    let (selected_node_idx, confidence, selected_node) = &candidates[target_index];
+    
+    tracing::info!("🔍 [叶子上下文-第{}个-诊断] 选中的元素详情:", target_index + 1);
+    tracing::info!("  - node_idx: {}", selected_node_idx);
+    tracing::info!("  - content-desc: '{}'", selected_node.element.content_desc);
+    tracing::info!("  - text: '{}'", selected_node.element.text);
+    tracing::info!("  - class: '{}'", selected_node.element.class_name.as_deref().unwrap_or(""));
+    tracing::info!("  - bounds: {:?}", selected_node.bounds);
+    tracing::info!("  - clickable: {}", selected_node.element.clickable);
+    
+    // 6. 点击
+    let (left, top, right, bottom) = selected_node.bounds;
+    let coords = ((left + right) / 2, (top + bottom) / 2);
+    
+    tracing::info!("🎯 [叶子上下文匹配-第{}个] 点击元素: coords={:?}, confidence={:.3}", target_index + 1, coords, confidence);
+    
     adb_tap_coordinate(device_id.to_string(), coords.0, coords.1).await
         .map_err(|e| format!("点击坐标失败: {}", e))?;
     
