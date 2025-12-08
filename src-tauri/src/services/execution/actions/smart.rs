@@ -80,7 +80,8 @@ pub async fn handle_batch_match(
 ) -> Result<String> {
     logs.push("🚀 执行批量匹配操作（动态元素查找）".to_string());
 
-    let ui_dump = executor.execute_ui_dump_with_retry(logs).await?;
+    // 🔥 使用条件性 dump，支持循环场景下的缓存复用
+    let ui_dump = executor.execute_ui_dump_conditional(&step.parameters, logs).await?;
 
     let params: HashMap<String, serde_json::Value> =
         serde_json::from_value(step.parameters.clone())?;

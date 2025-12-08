@@ -217,6 +217,11 @@ impl SmartScriptExecutor {
     pub(crate) async fn execute_ui_dump_with_retry(&self, logs: &mut Vec<String>) -> Result<String> {
         self.ui_bridge.execute_ui_dump_with_retry(logs).await
     }
+    
+    /// 🔥 条件性 UI dump（支持循环场景优化）
+    pub(crate) async fn execute_ui_dump_conditional(&self, step_params: &serde_json::Value, logs: &mut Vec<String>) -> Result<String> {
+        self.ui_bridge.execute_ui_dump_conditional(step_params, logs).await
+    }
 
     /// LegacyUiActions trait 会通过 async_trait 生成 dyn Future，因此保持签名稳定。
 
@@ -270,5 +275,13 @@ impl LegacyUiActions for SmartScriptExecutor {
 
     async fn execute_ui_dump_with_retry(&self, logs: &mut Vec<String>) -> Result<String> {
         SmartScriptExecutor::execute_ui_dump_with_retry(self, logs).await
+    }
+    
+    async fn execute_ui_dump_conditional(
+        &self,
+        step_params: &serde_json::Value,
+        logs: &mut Vec<String>,
+    ) -> Result<String> {
+        self.ui_bridge.execute_ui_dump_conditional(step_params, logs).await
     }
 }

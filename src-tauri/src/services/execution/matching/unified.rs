@@ -23,6 +23,13 @@ pub trait LegacyUiActions {
     ) -> Result<String>;
 
     async fn execute_ui_dump_with_retry(&self, logs: &mut Vec<String>) -> Result<String>;
+    
+    /// 🔥 条件性 UI dump：根据步骤参数决定是否跳过 dump（支持循环优化）
+    async fn execute_ui_dump_conditional(
+        &self,
+        step_params: &serde_json::Value,
+        logs: &mut Vec<String>,
+    ) -> Result<String>;
 }
 
 /// 统一元素匹配入口：

@@ -27,8 +27,8 @@ where
 {
     logs.push("🔍 执行智能元素查找测试（带错误处理）".to_string());
 
-    // 执行UI dump操作，用传统的重试逻辑
-    let ui_dump = actions.execute_ui_dump_with_retry(logs).await?;
+    // 🔥 使用条件性 dump，支持循环场景下的缓存复用
+    let ui_dump = actions.execute_ui_dump_conditional(&step.parameters, logs).await?;
 
     let params: std::collections::HashMap<String, Value> =
         serde_json::from_value(step.parameters.clone())?;

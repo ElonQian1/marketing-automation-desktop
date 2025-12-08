@@ -36,6 +36,78 @@ pub enum SmartActionType {
     Unknown,
 }
 
+impl SmartActionType {
+    /// 判断该操作类型是否会导致页面结构大幅变化
+    /// 这类操作后必须重新 dump XML
+    /// 
+    /// 注意：这只是基于类型的判断，完整判断需要结合参数 `may_cause_page_change`
+    pub fn causes_page_change(&self) -> bool {
+        matches!(
+            self,
+            SmartActionType::Swipe
+                | SmartActionType::SmartScroll
+                | SmartActionType::SmartNavigation
+                | SmartActionType::KeyEvent  // 返回键等会改变页面
+        )
+    }
+    
+    /// 🔥 增强版：结合参数判断是否会导致页面变化
+    /// 
+    /// - 首先检查参数中的 `may_cause_page_change` 标记（用户显式指定）
+    /// - 其次检查操作类型的默认行为
+    pub fn causes_page_change_with_params(&self, params: &serde_json::Value) -> bool {
+        // 优先检查用户显式标记
+        if let Some(marked) = params.get("may_cause_page_change").and_then(|v| v.as_bool()) {
+            return marked;
+        }
+        
+        // 回退到类型默认判断
+        self.causes_page_change()
+    }
+    
+    /// 判断该操作类型是否需要元素定位（需要 XML）
+    pub fn needs_element_locating(&self) -> bool {
+        matches!(
+            self,
+            SmartActionType::Tap
+                | SmartActionType::SmartTap
+                | SmartActionType::LongPress
+                | SmartActionType::Input
+                | SmartActionType::SmartFindElement
+                | SmartActionType::BatchMatch
+                | SmartActionType::ExtractElement
+                | SmartActionType::VerifyAction
+                | SmartActionType::RecognizePage
+        )
+    }
+    
+    /// 判断该操作类型是否可以跳过 dump（纯延时/控制流）
+    pub fn can_skip_dump(&self) -> bool {
+        matches!(
+            self,
+            SmartActionType::Wait
+                | SmartActionType::WaitForPageState
+                | SmartActionType::LoopStart
+                | SmartActionType::LoopEnd
+                | SmartActionType::ContactGenerateVcf
+                | SmartActionType::ContactImportToDevice
+        )
+    }
+    
+    /// 🔥 增强版：结合参数判断是否可以跳过 dump
+    /// 
+    /// - 如果用户标记了 `may_cause_page_change`，则不能跳过
+    /// - 否则使用类型默认判断
+    pub fn can_skip_dump_with_params(&self, params: &serde_json::Value) -> bool {
+        // 如果用户标记此操作会导致页面变化，则不能跳过
+        if let Some(true) = params.get("may_cause_page_change").and_then(|v| v.as_bool()) {
+            return false;
+        }
+        
+        self.can_skip_dump()
+    }
+}
+
 /// 前端传入的原始智能脚本步骤结构。
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct SmartScriptStep {

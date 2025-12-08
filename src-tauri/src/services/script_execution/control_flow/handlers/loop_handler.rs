@@ -68,7 +68,10 @@ impl LoopHandler {
         match &child.flow_type {
             ControlFlowType::Sequential => {
                 // 处理顺序执行的步骤
-                for step in &child.steps {
+                let steps = &child.steps;
+                let total_steps_in_loop = steps.len();
+                
+                for (step_index, step) in steps.iter().enumerate() {
                     let mut expanded_step = step.clone();
                     
                     // 为循环步骤生成唯一标识
@@ -76,8 +79,24 @@ impl LoopHandler {
                     expanded_step.name = format!("{} (第{}次)", step.name, iteration);
                     expanded_step.order = linear_steps.len() as i32 + 1;
                     
-                    // 注入循环上下文信息
-                    self.inject_loop_context(&mut expanded_step, iteration, &child.id)?;
+                    // 获取上一步的类型和参数（用于智能推断）
+                    let (prev_step_type, prev_step_params) = if step_index > 0 {
+                        let prev_step = &steps[step_index - 1];
+                        (Some(format!("{:?}", prev_step.step_type)), Some(prev_step.parameters.clone()))
+                    } else {
+                        (None, None)
+                    };
+                    
+                    // 🔥 注入循环上下文信息（包含步骤位置和上一步参数）
+                    self.inject_loop_context_enhanced(
+                        &mut expanded_step,
+                        iteration,
+                        &child.id,
+                        step_index,
+                        total_steps_in_loop,
+                        prev_step_type,
+                        prev_step_params,
+                    )?;
                     
                     let linear_step = LinearStep {
                         step: expanded_step,
@@ -108,12 +127,27 @@ impl LoopHandler {
         Ok(())
     }
     
-    /// 注入循环上下文信息到步骤参数中
+    /// 注入循环上下文信息到步骤参数中（旧版，保持兼容）
+    #[allow(dead_code)]
     fn inject_loop_context(
         &self,
         step: &mut SmartScriptStep,
         iteration: i32,
         loop_node_id: &str
+    ) -> Result<()> {
+        self.inject_loop_context_enhanced(step, iteration, loop_node_id, 0, 1, None, None)
+    }
+    
+    /// 🔥 增强版：注入循环上下文信息（包含步骤位置和上一步类型）
+    fn inject_loop_context_enhanced(
+        &self,
+        step: &mut SmartScriptStep,
+        iteration: i32,
+        loop_node_id: &str,
+        step_index: usize,
+        total_steps: usize,
+        prev_step_type: Option<String>,
+        prev_step_params: Option<serde_json::Value>,
     ) -> Result<()> {
         // 解析现有参数
         let mut params = if let Ok(obj) = serde_json::from_value::<serde_json::Map<String, serde_json::Value>>(step.parameters.clone()) {
@@ -122,16 +156,186 @@ impl LoopHandler {
             serde_json::Map::new()
         };
         
-        // 注入循环上下文
+        // 基础循环上下文
         params.insert("__loop_iteration".to_string(), serde_json::Value::Number(serde_json::Number::from(iteration)));
         params.insert("__loop_node_id".to_string(), serde_json::Value::String(loop_node_id.to_string()));
         params.insert("__original_step_id".to_string(), serde_json::Value::String(step.id.clone()));
         params.insert("__expanded_at".to_string(), serde_json::Value::Number(serde_json::Number::from(chrono::Utc::now().timestamp_millis())));
         
+        // 🔥 新增：步骤位置信息
+        params.insert("__step_index_in_loop".to_string(), serde_json::Value::Number(serde_json::Number::from(step_index)));
+        params.insert("__total_steps_in_loop".to_string(), serde_json::Value::Number(serde_json::Number::from(total_steps)));
+        params.insert("__is_first_step_in_iteration".to_string(), serde_json::Value::Bool(step_index == 0));
+        params.insert("__is_last_step_in_iteration".to_string(), serde_json::Value::Bool(step_index == total_steps - 1));
+        
+        // 🔥 新增：上一步类型（用于智能推断）
+        if let Some(prev_type) = &prev_step_type {
+            params.insert("__prev_step_type".to_string(), serde_json::Value::String(prev_type.clone()));
+        }
+        
+        // 🔥 新增：当前步骤类型
+        params.insert("__current_step_type".to_string(), serde_json::Value::String(format!("{:?}", step.step_type)));
+        
+        // 🔥 智能 dump 模式处理
+        // 先提取需要的值，避免借用冲突
+        let dump_mode = params.get("dump_mode")
+            .and_then(|v| v.as_str())
+            .unwrap_or("auto")
+            .to_string();
+        
+        // 构建当前步骤参数的 Value 引用
+        let step_params_value = serde_json::Value::Object(params.clone());
+        
+        let should_skip_dump = self.calculate_skip_dump(
+            &dump_mode,
+            iteration,
+            step_index,
+            &step.step_type,
+            prev_step_type.as_deref(),
+            &step_params_value,
+            prev_step_params.as_ref(),
+        );
+        
+        params.insert("__skip_dump".to_string(), serde_json::Value::Bool(should_skip_dump));
+        params.insert("__dump_decision_reason".to_string(), serde_json::Value::String(
+            self.get_dump_decision_reason(&dump_mode, iteration, step_index, should_skip_dump)
+        ));
+        
         // 更新步骤参数
         step.parameters = serde_json::Value::Object(params);
         
         Ok(())
+    }
+    
+    /// 🔥 核心：计算是否应该跳过 dump
+    fn calculate_skip_dump(
+        &self,
+        dump_mode: &str,
+        iteration: i32,
+        step_index: usize,
+        step_type: &SmartActionType,
+        prev_step_type: Option<&str>,
+        step_params: &serde_json::Value,
+        prev_step_params: Option<&serde_json::Value>,
+    ) -> bool {
+        match dump_mode {
+            "always" => {
+                // 保守策略：每次都 dump
+                false
+            }
+            "skip" => {
+                // 始终跳过
+                true
+            }
+            "first_only" => {
+                // 仅整个循环的第一次迭代的第一个步骤 dump
+                !(iteration == 1 && step_index == 0)
+            }
+            "loop_entry" => {
+                // 每次迭代的第一个步骤 dump
+                step_index != 0
+            }
+            "auto" | _ => {
+                // 🤖 智能推断逻辑
+                self.auto_infer_skip_dump_enhanced(iteration, step_index, step_type, prev_step_type, step_params, prev_step_params)
+            }
+        }
+    }
+    
+    /// 🤖 增强版智能推断是否跳过 dump
+    /// 
+    /// 考虑因素：
+    /// 1. 当前步骤类型和参数
+    /// 2. 上一步类型和参数（特别是 may_cause_page_change 标记）
+    /// 3. 迭代位置
+    fn auto_infer_skip_dump_enhanced(
+        &self,
+        iteration: i32,
+        step_index: usize,
+        step_type: &SmartActionType,
+        prev_step_type: Option<&str>,
+        step_params: &serde_json::Value,
+        prev_step_params: Option<&serde_json::Value>,
+    ) -> bool {
+        // 规则1：当前步骤不需要元素定位 → 跳过 dump（但要检查参数）
+        if step_type.can_skip_dump_with_params(step_params) {
+            info!("🤖 智能推断：步骤类型 {:?} 不需要 dump", step_type);
+            return true;
+        }
+        
+        // 规则2：循环第一次迭代的第一个步骤 → 必须 dump（获取初始状态）
+        if iteration == 1 && step_index == 0 {
+            info!("🤖 智能推断：循环首次入口，必须 dump");
+            return false;
+        }
+        
+        // 规则3：每次迭代的第一个步骤 → dump（上次迭代结束后状态未知）
+        if step_index == 0 {
+            info!("🤖 智能推断：迭代入口（第{}次），执行 dump", iteration);
+            return false;
+        }
+        
+        // 规则4：检查上一步的 may_cause_page_change 参数标记
+        if let Some(prev_params) = prev_step_params {
+            if let Some(true) = prev_params.get("may_cause_page_change").and_then(|v| v.as_bool()) {
+                info!("🤖 智能推断：上一步标记了 may_cause_page_change=true，执行 dump");
+                return false;
+            }
+        }
+        
+        // 规则5：上一步是页面变化型操作 → 必须 dump
+        if let Some(prev_type_str) = prev_step_type {
+            let prev_causes_change = prev_type_str.contains("Swipe")
+                || prev_type_str.contains("Scroll")
+                || prev_type_str.contains("Navigation")
+                || prev_type_str.contains("KeyEvent");
+            
+            if prev_causes_change {
+                info!("🤖 智能推断：上一步 {} 会改变页面，执行 dump", prev_type_str);
+                return false;
+            }
+        }
+        
+        // 规则6：当前步骤需要元素定位但上一步不改变页面 → 可以复用缓存
+        if step_type.needs_element_locating() {
+            info!("🤖 智能推断：步骤 {:?} 需要定位，但上一步未改变页面，复用缓存", step_type);
+            return true;
+        }
+        
+        // 默认：不跳过（保守）
+        false
+    }
+    
+    /// 🤖 智能推断是否跳过 dump（旧版兼容，内部调用增强版）
+    #[allow(dead_code)]
+    fn auto_infer_skip_dump(
+        &self,
+        iteration: i32,
+        step_index: usize,
+        step_type: &SmartActionType,
+        prev_step_type: Option<&str>,
+    ) -> bool {
+        self.auto_infer_skip_dump_enhanced(
+            iteration,
+            step_index,
+            step_type,
+            prev_step_type,
+            &serde_json::Value::Null,
+            None,
+        )
+    }
+    
+    /// 获取 dump 决策原因（用于调试日志）
+    fn get_dump_decision_reason(&self, dump_mode: &str, iteration: i32, step_index: usize, skip: bool) -> String {
+        let action = if skip { "跳过" } else { "执行" };
+        match dump_mode {
+            "always" => format!("{}dump（模式: always）", action),
+            "skip" => format!("{}dump（模式: skip）", action),
+            "first_only" => format!("{}dump（模式: first_only，迭代{}，步骤{}）", action, iteration, step_index),
+            "loop_entry" => format!("{}dump（模式: loop_entry，步骤{}）", action, step_index),
+            "auto" => format!("{}dump（智能推断，迭代{}，步骤{}）", action, iteration, step_index),
+            _ => format!("{}dump（未知模式: {}）", action, dump_mode),
+        }
     }
     
     /// 优化循环展开

@@ -995,27 +995,107 @@ const DraggableStepCardInner: React.FC<
                         }
                       ];
 
+                      // 🔥 Dump控制 - 检查步骤是否在循环体内
+                      const isInLoop = !!(step.parent_loop_id || step.parentLoopId);
+                      // 🤖 默认智能推断，让系统自动决定
+                      type DumpModeType = 'always' | 'auto' | 'loop_entry' | 'first_only' | 'skip';
+                      const currentDumpMode = (step.parameters?.dump_mode as DumpModeType | undefined) ?? 'auto';
+                      
+                      const handleDumpModeChange = (mode: DumpModeType) => {
+                        onUpdateStepParameters?.(step.id, {
+                          ...step.parameters,
+                          dump_mode: mode
+                        });
+                      };
+
+                      const getDumpModeLabel = (mode: DumpModeType) => {
+                        switch (mode) {
+                          case 'always': return '🔄 每次';
+                          case 'auto': return '🤖 智能';
+                          case 'loop_entry': return '🚪 入口';
+                          case 'first_only': return '🎯 首次';
+                          case 'skip': return '📋 跳过';
+                          default: return '🤖 智能';
+                        }
+                      };
+
+                      const dumpMenuItems = [
+                        {
+                          key: 'auto',
+                          label: '🤖 智能推断（根据步骤类型自动决定，推荐）',
+                          onClick: () => handleDumpModeChange('auto')
+                        },
+                        {
+                          key: 'loop_entry',
+                          label: '🚪 循环入口dump（每次迭代开始时刷新）',
+                          onClick: () => handleDumpModeChange('loop_entry')
+                        },
+                        {
+                          key: 'first_only',
+                          label: '🎯 仅首次dump（整个循环只dump一次）',
+                          onClick: () => handleDumpModeChange('first_only')
+                        },
+                        {
+                          key: 'always',
+                          label: '🔄 每次dump（保守策略，每步都刷新）',
+                          onClick: () => handleDumpModeChange('always')
+                        },
+                        {
+                          key: 'skip',
+                          label: '📋 跳过dump（使用XML快照，不刷新）',
+                          onClick: () => handleDumpModeChange('skip')
+                        }
+                      ];
+
                       return (
-                        <Dropdown
-                          menu={{ items: failureStrategyMenuItems }}
-                          trigger={['click']}
-                          placement="bottomLeft"
-                        >
-                          <Button
-                            size="small"
-                            type="default"
-                            title="配置失败处理策略"
-                            style={{
-                              background: "rgba(110, 139, 255, 0.1)",
-                              border: "1px solid rgba(110, 139, 255, 0.3)",
-                              color: "#F8FAFC",
-                              fontSize: "12px",
-                            }}
+                        <>
+                          {/* 失败处理策略 */}
+                          <Dropdown
+                            menu={{ items: failureStrategyMenuItems }}
+                            trigger={['click']}
+                            placement="bottomLeft"
                           >
-                            {getFailureStrategyText(currentStrategy)}
-                            <span style={{ marginLeft: "4px" }}>▾</span>
-                          </Button>
-                        </Dropdown>
+                            <Button
+                              size="small"
+                              type="default"
+                              title="配置失败处理策略"
+                              style={{
+                                background: "rgba(110, 139, 255, 0.1)",
+                                border: "1px solid rgba(110, 139, 255, 0.3)",
+                                color: "#F8FAFC",
+                                fontSize: "12px",
+                              }}
+                            >
+                              {getFailureStrategyText(currentStrategy)}
+                              <span style={{ marginLeft: "4px" }}>▾</span>
+                            </Button>
+                          </Dropdown>
+                          
+                          {/* Dump控制下拉菜单 */}
+                          <Dropdown
+                            menu={{ items: dumpMenuItems }}
+                            trigger={['click']}
+                            placement="bottomLeft"
+                          >
+                            <Button
+                              size="small"
+                              type="default"
+                              title={`Dump模式: ${currentDumpMode === 'always' ? '每次都重新dump' : currentDumpMode === 'first_only' ? '仅初次dump（循环推荐）' : '跳过dump'}`}
+                              style={{
+                                background: "rgba(110, 139, 255, 0.1)",
+                                border: "1px solid rgba(110, 139, 255, 0.3)",
+                                color: "#F8FAFC",
+                                fontSize: "12px",
+                              }}
+                            >
+                              {getDumpModeLabel(currentDumpMode)}
+                              {isInLoop && step.parameters?.dump_mode === undefined && (
+                                <span style={{ fontSize: "10px", opacity: 0.7, marginLeft: "2px" }}>(自动)</span>
+                              )}
+                              <span style={{ marginLeft: "4px" }}>▾</span>
+                            </Button>
+                          </Dropdown>
+                        </>
                       );
                     })()}
                   />

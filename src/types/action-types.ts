@@ -50,6 +50,13 @@ export interface ActionParams {
   end_x?: number;
   end_y?: number;
   use_custom_coordinates?: boolean;
+  
+  // 🔥 循环优化：Dump 模式控制
+  dump_mode?: 'always' | 'auto' | 'loop_entry' | 'first_only' | 'skip';
+  skip_fresh_dump?: boolean;  // [已废弃] 请使用 dump_mode
+  
+  // 🎯 页面跳转标记（用于智能推断）
+  may_cause_page_change?: boolean;  // 此操作可能导致页面跳转
 }
 
 export interface ActionType {

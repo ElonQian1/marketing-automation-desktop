@@ -309,6 +309,26 @@ export const ActionParamsPanel: React.FC<ActionParamsPanelProps> = ({
                 />
               </div>
             )}
+            
+            {/* 🔥 循环场景优化：Dump模式 */}
+            <div style={{ marginTop: 12 }}>
+              <Text style={{ color: 'var(--text-2, #CBD5E1)', fontSize: 12 }}>
+                Dump模式
+              </Text>
+              <Select
+                value={params.dump_mode || 'auto'}
+                onChange={(value) => updateParams({ dump_mode: value })}
+                size={size}
+                style={{ width: '100%', marginTop: 4 }}
+                options={[
+                  { value: 'auto', label: '🤖 智能推断（根据步骤类型自动决定）' },
+                  { value: 'loop_entry', label: '🚪 循环入口dump（每次迭代开始）' },
+                  { value: 'first_only', label: '🎯 仅首次dump（整个循环一次）' },
+                  { value: 'always', label: '🔄 每次dump（保守策略）' },
+                  { value: 'skip', label: '📋 跳过dump（使用缓存）' },
+                ]}
+              />
+            </div>
 
             {/* 🎯 智能坐标配置模块 */}
             <div style={{ marginTop: 16 }}>
@@ -591,6 +611,26 @@ export const ActionParamsPanel: React.FC<ActionParamsPanelProps> = ({
                 />
               </div>
             )}
+            
+            {/* 🔥 循环场景优化：Dump模式 */}
+            <div style={{ marginTop: 12 }}>
+              <Text style={{ color: 'var(--text-2, #CBD5E1)', fontSize: 12 }}>
+                Dump模式
+              </Text>
+              <Select
+                value={params.dump_mode || 'auto'}
+                onChange={(value) => updateParams({ dump_mode: value })}
+                size={size}
+                style={{ width: '100%', marginTop: 4 }}
+                options={[
+                  { value: 'auto', label: '🤖 智能推断（根据步骤类型自动决定）' },
+                  { value: 'loop_entry', label: '🚪 循环入口dump（每次迭代开始）' },
+                  { value: 'first_only', label: '🎯 仅首次dump（整个循环一次）' },
+                  { value: 'always', label: '🔄 每次dump（保守策略）' },
+                  { value: 'skip', label: '📋 跳过dump（使用缓存）' },
+                ]}
+              />
+            </div>
           </Space>
         );
 

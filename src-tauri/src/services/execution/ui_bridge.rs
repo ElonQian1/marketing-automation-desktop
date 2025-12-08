@@ -1,9 +1,34 @@
 use std::sync::Arc;
+use std::sync::RwLock;
 
 use anyhow::Result;
+use tracing::info;
 
 use crate::services::adb::get_device_session;
 use crate::services::execution::ExecutionEnvironment;
+
+/// 全局 XML 缓存，用于循环中复用上次的 dump 结果
+static XML_CACHE: RwLock<Option<CachedXml>> = RwLock::new(None);
+
+#[derive(Clone)]
+struct CachedXml {
+    content: String,
+    timestamp: std::time::Instant,
+}
+
+impl CachedXml {
+    fn new(content: String) -> Self {
+        Self {
+            content,
+            timestamp: std::time::Instant::now(),
+        }
+    }
+    
+    /// 检查缓存是否仍然有效（默认 5 秒过期）
+    fn is_valid(&self, ttl_ms: u64) -> bool {
+        self.timestamp.elapsed().as_millis() < ttl_ms as u128
+    }
+}
 
 /// `UiBridge` 聚合了与设备 UI 交互相关的公共能力，
 /// 例如快照捕获、UI dump 与点击操作的重试封装。
@@ -44,6 +69,10 @@ impl UiBridge {
         match self.capture_snapshot().await {
             Ok(Some(xml)) if !xml.is_empty() => {
                 logs.push(format!("✅ 快照获取成功（snapshot_provider），长度: {} 字符", xml.len()));
+                // 更新缓存
+                if let Ok(mut cache) = XML_CACHE.write() {
+                    *cache = Some(CachedXml::new(xml.clone()));
+                }
                 return Ok(xml);
             }
             Ok(Some(_)) | Ok(None) => {
@@ -88,11 +117,132 @@ impl UiBridge {
         match result {
             Ok(dump) => {
                 logs.push(format!("✅ UI结构获取成功（回退路径），长度: {} 字符", dump.len()));
+                // 更新缓存
+                if let Ok(mut cache) = XML_CACHE.write() {
+                    *cache = Some(CachedXml::new(dump.clone()));
+                }
                 Ok(dump)
             }
             Err(e) => {
                 logs.push(format!("❌ UI结构获取失败: {}", e));
                 Err(e)
+            }
+        }
+    }
+
+    /// 🔥 条件性 UI dump：根据步骤参数决定是否跳过 dump
+    /// 
+    /// 智能决策流程：
+    /// 1. 检查 `__skip_dump` 参数（由循环处理器注入）
+    /// 2. 如果没有循环上下文，检查 `dump_mode` 和 `may_cause_page_change` 参数
+    /// 3. 如果应该跳过且缓存有效，使用缓存
+    /// 4. 否则执行真实 dump
+    pub async fn execute_ui_dump_conditional(
+        &self,
+        step_params: &serde_json::Value,
+        logs: &mut Vec<String>,
+    ) -> Result<String> {
+        // 🔥 记录决策原因（如果有）
+        if let Some(reason) = step_params.get("__dump_decision_reason").and_then(|v| v.as_str()) {
+            logs.push(format!("🤖 Dump决策: {}", reason));
+        }
+        
+        // 获取缓存 TTL（默认 5 秒）
+        let cache_ttl_ms = step_params
+            .get("dump_cache_ttl_ms")
+            .and_then(|v| v.as_u64())
+            .unwrap_or(5000);
+        
+        // 🔥 决定是否跳过 dump
+        let should_skip = self.should_skip_dump_smart(step_params, logs);
+        
+        // 🔥 记录上下文信息
+        if let Some(iteration) = step_params.get("__loop_iteration").and_then(|v| v.as_i64()) {
+            if let Some(step_idx) = step_params.get("__step_index_in_loop").and_then(|v| v.as_u64()) {
+                logs.push(format!("📍 循环上下文: 第{}次迭代，步骤#{}", iteration, step_idx));
+            }
+        }
+        
+        if should_skip {
+            // 尝试使用缓存
+            if let Ok(cache) = XML_CACHE.read() {
+                if let Some(cached) = cache.as_ref() {
+                    if cached.is_valid(cache_ttl_ms) {
+                        let elapsed = cached.timestamp.elapsed().as_millis();
+                        logs.push(format!("📋 跳过dump：使用缓存XML（{}ms前获取，长度: {} 字符）", elapsed, cached.content.len()));
+                        info!("📋 使用缓存XML，缓存年龄: {}ms", elapsed);
+                        return Ok(cached.content.clone());
+                    } else {
+                        logs.push(format!("⚠️ 缓存已过期（{}ms > {}ms），需要重新dump", cached.timestamp.elapsed().as_millis(), cache_ttl_ms));
+                    }
+                } else {
+                    logs.push("⚠️ 缓存为空，需要执行dump".to_string());
+                }
+            }
+        } else {
+            logs.push("🔄 执行dump（按策略要求）".to_string());
+        }
+        
+        // 执行正常的 dump
+        self.execute_ui_dump_with_retry(logs).await
+    }
+    
+    /// 🤖 智能判断是否应该跳过 dump
+    /// 
+    /// 支持两种场景：
+    /// 1. 循环内步骤：使用 `__skip_dump` 标记（由循环处理器预计算）
+    /// 2. 非循环步骤：根据 `dump_mode` 和缓存状态实时判断
+    fn should_skip_dump_smart(&self, step_params: &serde_json::Value, logs: &mut Vec<String>) -> bool {
+        // 场景1：循环内步骤，使用预计算的 __skip_dump
+        if let Some(skip) = step_params.get("__skip_dump").and_then(|v| v.as_bool()) {
+            return skip;
+        }
+        
+        // 场景2：非循环步骤，根据 dump_mode 判断
+        let dump_mode = step_params
+            .get("dump_mode")
+            .and_then(|v| v.as_str())
+            .unwrap_or("auto");
+        
+        match dump_mode {
+            "always" => {
+                logs.push("🔄 dump_mode=always，执行dump".to_string());
+                false
+            }
+            "skip" => {
+                logs.push("📋 dump_mode=skip，尝试跳过dump".to_string());
+                true
+            }
+            "auto" => {
+                // 非循环步骤的智能推断：检查缓存是否存在且有效
+                // 如果用户标记了 may_cause_page_change，则不能跳过
+                if let Some(true) = step_params.get("may_cause_page_change").and_then(|v| v.as_bool()) {
+                    logs.push("🤖 智能推断：标记了 may_cause_page_change=true，执行dump".to_string());
+                    return false;
+                }
+                
+                // 检查缓存是否存在
+                if let Ok(cache) = XML_CACHE.read() {
+                    if let Some(cached) = cache.as_ref() {
+                        let cache_ttl_ms = step_params
+                            .get("dump_cache_ttl_ms")
+                            .and_then(|v| v.as_u64())
+                            .unwrap_or(5000);
+                        
+                        if cached.is_valid(cache_ttl_ms) {
+                            logs.push("🤖 智能推断：有效缓存存在，可以复用".to_string());
+                            return true;
+                        }
+                    }
+                }
+                
+                logs.push("🤖 智能推断：无有效缓存，执行dump".to_string());
+                false
+            }
+            _ => {
+                // 其他模式（如 loop_entry, first_only）在非循环场景下等同于 always
+                logs.push(format!("🔄 dump_mode={}（非循环场景），执行dump", dump_mode));
+                false
             }
         }
     }

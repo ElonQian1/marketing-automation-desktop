@@ -26,15 +26,31 @@ export type StepStatus =
   | 'success' 
   | 'failed';
 
+// 🔥 XML Dump 模式（循环场景优化）
+export type DumpMode = 
+  | 'always'      // 每次都重新 dump
+  | 'auto'        // 智能推断（根据步骤类型和上下文自动决定）
+  | 'loop_entry'  // 仅循环入口 dump（每次迭代开始时）
+  | 'first_only'  // 仅初次 dump（第一次迭代的第一个步骤）
+  | 'skip';       // 始终跳过 dump
+
 // 通用执行参数
 export interface StepActionCommon {
   useSelector: boolean;               // 选择器优先
-  allowAbsolute: boolean;            // 允许坐标兜底
+  allowAbsolute: boolean;            // 允许坐标兖底
   confidenceThreshold: number;       // 0~1, 默认0.8
-  retries: number;                   // 兜底重试次数
-  retryBackoffMs: number;            // 兜底退避
+  retries: number;                   // 兖底重试次数
+  retryBackoffMs: number;            // 兖底退避
   verifyAfter: boolean;              // 执行后验证
   postDelayMs?: number;              // 执行后延时
+  
+  // 🔥 XML dump 控制（循环场景优化）
+  skipFreshDump?: boolean;           // [已废弃] 请使用 dumpMode
+  dumpMode?: DumpMode;               // dump模式：always/first_only/skip
+  dumpCacheTtlMs?: number;           // dump缓存有效期，默认5000ms
+  
+  // 🎯 页面跳转标记（用于智能推断）
+  mayChangePageAfter?: boolean;      // 此操作可能导致页面跳转（如点击“下一步”按钮）
 }
 
 // 点击类动作参数
