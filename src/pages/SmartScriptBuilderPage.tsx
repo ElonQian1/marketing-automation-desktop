@@ -7,7 +7,6 @@ import { Col, Row, Space, theme } from "antd";
 import { XmlSnapshot } from "../types/self-contained/xmlSnapshot";
 import {
   PageHeader,
-  ControlPanel,
   StepEditModal,
   QuickAppSelectionModal,
   QualityCheckModal,
@@ -19,7 +18,6 @@ import { UniversalPageFinderModal } from "../components/universal-ui/UniversalPa
 import { useIntelligentStepCardIntegration } from "./SmartScriptBuilderPage/hooks/useIntelligentStepCardIntegration";
 import { ContactWorkflowSelector } from "../modules/contact-automation";
 import { useSmartScriptBuilder } from "./SmartScriptBuilderPage/hooks/useSmartScriptBuilder";
-import StepBundleManager from "../components/StepBundleManager";
 import { useIntelligentAnalysisWorkflow } from "../modules/universal-ui/hooks/use-intelligent-analysis-workflow";
 
 
@@ -37,7 +35,6 @@ const SmartScriptBuilderPage: React.FC = () => {
     headerProps,
     stepListProps,
     scriptControlPanelProps,
-    controlPanelProps,
     stepEditModalProps,
     quickAppModalProps,
     navigationModalProps,
@@ -82,42 +79,6 @@ const SmartScriptBuilderPage: React.FC = () => {
       <Space direction="vertical" size="large" style={{ width: '100%' }}>
         <div>
           <PageHeader {...headerProps} />
-          
-          {/* 🎯 步骤包管理器 */}
-          <div style={{ 
-            marginTop: token.marginSM, 
-            padding: `${token.paddingSM}px ${token.padding}px`,
-            background: token.colorBgContainer,
-            borderRadius: token.borderRadius,
-            border: `1px solid ${token.colorBorderSecondary}`
-          }}>
-            <div style={{ 
-              display: 'flex', 
-              alignItems: 'center', 
-              justifyContent: 'space-between',
-              marginBottom: token.marginXS
-            }}>
-              <Space>
-                <span style={{ color: token.colorTextSecondary, fontSize: token.fontSizeSM }}>
-                  📦 步骤包管理
-                </span>
-                <span style={{ color: token.colorTextTertiary, fontSize: '12px' }}>
-                  导出脚本和XML快照，支持跨设备分享和复现
-                </span>
-              </Space>
-              <StepBundleManager 
-                steps={stepListProps.steps}
-                onImportSteps={(importedSteps) => {
-                  stepListProps.setSteps(prev => [...prev, ...importedSteps]);
-                }}
-                deviceInfo={{
-                  brand: 'Unknown',
-                  model: 'Unknown', 
-                  size: '1080x2340'
-                }}
-              />
-            </div>
-          </div>
         </div>
 
         <Row gutter={[12, 16]}>
@@ -127,7 +88,6 @@ const SmartScriptBuilderPage: React.FC = () => {
           <Col xs={24} lg={8}>
             <Space direction="vertical" size="large" style={{ width: "100%" }}>
               <ScriptControlPanel {...scriptControlPanelProps} />
-              <ControlPanel {...controlPanelProps} />
             </Space>
           </Col>
         </Row>

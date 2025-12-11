@@ -215,10 +215,7 @@ export function useSmartScriptBuilder(options: UseSmartScriptBuilderOptions) {
   );
 
   const {
-    handleSaveScript,
-    handleExportScript,
     handleLoadScript,
-    handleLoadScriptFromFile,
   } = useScriptPersistence({
     steps,
     setSteps,
@@ -330,23 +327,15 @@ export function useSmartScriptBuilder(options: UseSmartScriptBuilderOptions) {
       onLoadScript: handleLoadScript,
       onUpdateSteps: setSteps,
       onUpdateConfig: setExecutorConfig,
-    },
-    controlPanelProps: {
-      steps,
-      isExecuting,
-      isScriptValid,
-      onExecuteScript: handleExecuteScript,
-      onSaveScript: handleSaveScript,
-      onLoadScript: handleLoadScriptFromFile,
-      onExportScript: handleExportScript,
+      // New props migrated from ControlPanel
       onShowQualityPanel: () => setShowQualityPanel(true),
       onTestElementMapping: workflowIntegrations.handleTestElementMapping,
       onTestSmartStepGenerator: workflowIntegrations.handleTestSmartStepGenerator,
-      // 皮肤设置
       loopTheme,
       nonLoopTheme,
       onApplyLoopTheme: applyLoopTheme,
       onApplyNonLoopTheme: applyNonLoopTheme,
+      isScriptValid,
     },
     stepEditModalProps: {
   open: isModalVisible,

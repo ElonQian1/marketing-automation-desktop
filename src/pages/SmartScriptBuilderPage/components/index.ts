@@ -3,7 +3,6 @@
 // summary: UI 组件
 
 export { default as PageHeader } from './PageHeader';
-export { default as ControlPanel } from './ControlPanel';
 export { default as ExecutorConfigPanel } from './ExecutorConfigPanel';
 export { default as StepEditModal } from './StepEditModal';
 export { default as QuickAppSelectionModal } from './QuickAppSelectionModal';

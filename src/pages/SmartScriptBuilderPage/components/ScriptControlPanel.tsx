@@ -15,10 +15,18 @@ import {
   Collapse,
   Divider,
   Switch,
+  Select,
+  App,
 } from "antd";
 import {
   PlayCircleOutlined,
   SettingOutlined,
+  BulbOutlined,
+  RobotOutlined,
+  CheckCircleOutlined,
+  WarningOutlined,
+  SkinOutlined,
+  ToolOutlined,
 } from "@ant-design/icons";
 import TestResultsDisplay from "../../../components/TestResultsDisplay";
 import { ScriptBuilderIntegration } from "../../../modules/smart-script-management/components/ScriptBuilderIntegration";
@@ -45,6 +53,15 @@ interface ScriptControlPanelProps {
   onLoadScript: (script: any) => void;
   onUpdateSteps: (steps: any[]) => void;
   onUpdateConfig: (config: any) => void;
+  // New props from ControlPanel
+  onShowQualityPanel?: () => void;
+  onTestElementMapping?: () => void;
+  onTestSmartStepGenerator?: () => void;
+  loopTheme?: string | null;
+  nonLoopTheme?: string | null;
+  onApplyLoopTheme?: (theme: string | null) => void;
+  onApplyNonLoopTheme?: (theme: string | null) => void;
+  isScriptValid?: boolean;
 }
 
 const ScriptControlPanel: React.FC<ScriptControlPanelProps> = ({
@@ -58,7 +75,16 @@ const ScriptControlPanel: React.FC<ScriptControlPanelProps> = ({
   onLoadScript,
   onUpdateSteps,
   onUpdateConfig,
+  onShowQualityPanel,
+  onTestElementMapping,
+  onTestSmartStepGenerator,
+  loopTheme,
+  nonLoopTheme,
+  onApplyLoopTheme,
+  onApplyNonLoopTheme,
+  isScriptValid = true,
 }) => {
+  const { message } = App.useApp();
   // 🔥 集成执行控制系统（用于中止按钮状态）
   const { canAbort } = useExecutionControl();
 
@@ -211,6 +237,93 @@ const ScriptControlPanel: React.FC<ScriptControlPanelProps> = ({
               />
             </Form.Item>
           </Form>
+          )
+        },
+        {
+          key: '2',
+          label: '外观与调试',
+          extra: <ToolOutlined />,
+          children: (
+            <Space direction="vertical" style={{ width: '100%' }}>
+              <Divider orientation="left" plain><SkinOutlined /> 外观换肤</Divider>
+              <Row gutter={16}>
+                <Col span={12}>
+                  <div style={{ fontSize: 12, color: '#8c8c8c', marginBottom: 4 }}>循环体皮肤</div>
+                  <Select
+                    size="small"
+                    value={loopTheme ?? ''}
+                    placeholder="默认皮肤"
+                    onChange={(v) => onApplyLoopTheme?.(v || null)}
+                    options={[
+                      { label: '默认', value: '' },
+                      { label: '玫瑰（rose）', value: 'rose' },
+                      { label: '晴空（sky）', value: 'sky' },
+                    ]}
+                    style={{ width: '100%' }}
+                  />
+                </Col>
+                <Col span={12}>
+                  <div style={{ fontSize: 12, color: '#8c8c8c', marginBottom: 4 }}>非循环步骤皮肤</div>
+                  <Select
+                    size="small"
+                    value={nonLoopTheme ?? ''}
+                    placeholder="默认皮肤"
+                    onChange={(v) => onApplyNonLoopTheme?.(v || null)}
+                    options={[
+                      { label: '默认', value: '' },
+                      { label: '玫瑰（rose）', value: 'rose' },
+                      { label: '晴空（sky）', value: 'sky' },
+                    ]}
+                    style={{ width: '100%' }}
+                  />
+                </Col>
+              </Row>
+
+              <Divider orientation="left" plain><ToolOutlined /> 调试工具</Divider>
+              
+              {/* 分布式脚本质量检查按钮 */}
+              <Button
+                size="small"
+                type={isScriptValid ? "default" : "primary"}
+                danger={!isScriptValid}
+                block
+                icon={isScriptValid ? <CheckCircleOutlined /> : <WarningOutlined />}
+                onClick={onShowQualityPanel}
+                disabled={steps.length === 0}
+              >
+                {isScriptValid ? "质量检查通过" : "需要质量修复"} ({steps.length} 步骤)
+              </Button>
+
+              <Row gutter={8} style={{ marginTop: 8 }}>
+                <Col span={12}>
+                  <Button
+                    size="small"
+                    block
+                    icon={<BulbOutlined />}
+                    onClick={() => {
+                      console.log("🧪 运行元素名称映射测试...");
+                      onTestElementMapping?.();
+                      message.info("元素名称映射测试功能暂时禁用");
+                    }}
+                  >
+                    测试映射
+                  </Button>
+                </Col>
+                <Col span={12}>
+                  <Button
+                    size="small"
+                    block
+                    icon={<RobotOutlined />}
+                    onClick={() => {
+                      console.log("🧪 运行智能步骤生成器测试...");
+                      onTestSmartStepGenerator?.();
+                    }}
+                  >
+                    测试生成
+                  </Button>
+                </Col>
+              </Row>
+            </Space>
           )
         }]}>
       </Collapse>
