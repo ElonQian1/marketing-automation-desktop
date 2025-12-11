@@ -13,7 +13,7 @@
     "active": true,
     "targets": "all",
     "icon": ["icons/icon.ico", "icons/icon.png"],
-    "resources": ["../platform-tools"],
+    "resources": ["../platform-tools", "../agent-apk"],
     "windows": {
       "wix": {
         "language": "zh-CN"
