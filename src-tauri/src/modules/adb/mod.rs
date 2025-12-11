@@ -475,14 +475,141 @@ async fn adb_close_app(_device_id: String, _package_name: String) -> Result<(), 
     Ok(())
 }
 
+/// 安装 APK 到指定设备
+/// - device_id: 目标设备 ID (如 "emulator-5554" 或 "192.168.1.100:5555")
+/// - apk_path: APK 文件的完整路径
 #[tauri::command]
-async fn adb_install_apk(_device_id: String, _apk_path: String) -> Result<(), String> {
-    Ok(())
+async fn adb_install_apk(device_id: String, apk_path: String) -> Result<String, String> {
+    let adb_path = "platform-tools/adb.exe";
+    
+    // 检查 APK 文件是否存在
+    if !std::path::Path::new(&apk_path).exists() {
+        return Err(format!("APK 文件不存在: {}", apk_path));
+    }
+    
+    let mut cmd = Command::new(adb_path);
+    cmd.args(&["-s", &device_id, "install", "-r", &apk_path]); // -r 表示替换安装
+    
+    #[cfg(windows)]
+    { cmd.creation_flags(0x08000000); } // 隐藏窗口
+    
+    let start = Instant::now();
+    let res = cmd.output();
+    let dur = start.elapsed();
+    
+    match res {
+        Ok(output) => {
+            let out_str = String::from_utf8_lossy(&output.stdout).to_string();
+            let err_str = String::from_utf8_lossy(&output.stderr).to_string();
+            
+            LOG_COLLECTOR.add_adb_command_log(
+                adb_path,
+                &vec!["-s".to_string(), device_id.clone(), "install".to_string(), "-r".to_string(), apk_path.clone()],
+                &out_str,
+                if err_str.is_empty() { None } else { Some(err_str.as_str()) },
+                output.status.code(),
+                dur.as_millis() as u64,
+            );
+            
+            // ADB install 成功时 stdout 会包含 "Success"
+            if out_str.contains("Success") {
+                Ok(format!("APK 安装成功 (耗时 {:.1}s)", dur.as_secs_f32()))
+            } else if out_str.contains("INSTALL_FAILED") || err_str.contains("INSTALL_FAILED") {
+                // 解析常见安装失败原因
+                let reason = if out_str.contains("INSTALL_FAILED_ALREADY_EXISTS") {
+                    "应用已存在且版本相同"
+                } else if out_str.contains("INSTALL_FAILED_INSUFFICIENT_STORAGE") {
+                    "设备存储空间不足"
+                } else if out_str.contains("INSTALL_FAILED_INVALID_APK") {
+                    "APK 文件无效或损坏"
+                } else if out_str.contains("INSTALL_FAILED_VERSION_DOWNGRADE") {
+                    "无法降级安装，请先卸载旧版本"
+                } else if out_str.contains("INSTALL_FAILED_USER_RESTRICTED") {
+                    "请在手机上允许 USB 安装应用"
+                } else {
+                    "安装失败"
+                };
+                Err(format!("{}: {}", reason, out_str.trim()))
+            } else if output.status.success() {
+                // 有些设备不输出 Success 但状态码是 0
+                Ok(format!("APK 安装完成 (耗时 {:.1}s)", dur.as_secs_f32()))
+            } else {
+                Err(format!("安装失败: {}{}", out_str, err_str))
+            }
+        }
+        Err(e) => {
+            LOG_COLLECTOR.add_adb_command_log(
+                adb_path,
+                &vec!["-s".to_string(), device_id, "install".to_string(), "-r".to_string(), apk_path],
+                "",
+                Some(&format!("{}", e)),
+                None,
+                dur.as_millis() as u64,
+            );
+            Err(format!("无法执行 ADB 安装命令: {}", e))
+        }
+    }
 }
 
 #[tauri::command]
 async fn adb_uninstall_app(_device_id: String, _package_name: String) -> Result<(), String> {
     Ok(())
+}
+
+/// 获取内置 Agent APK 的路径
+/// 开发环境: 直接返回项目目录下的路径
+/// 生产环境: 返回打包后资源目录下的路径
+#[tauri::command]
+async fn get_bundled_agent_apk() -> Result<String, String> {
+    // 方法1: 检查当前目录的 agent-apk 文件夹 (开发环境 - 如果从项目根目录运行)
+    let dev_path = std::path::Path::new("agent-apk/employee-agent.apk");
+    if dev_path.exists() {
+        return Ok(dev_path.canonicalize()
+            .map_err(|e| format!("无法获取绝对路径: {}", e))?
+            .to_string_lossy()
+            .to_string());
+    }
+    
+    // 方法2: 检查父目录的 agent-apk 文件夹 (开发环境 - 如果从 src-tauri 目录运行)
+    let parent_dev_path = std::path::Path::new("../agent-apk/employee-agent.apk");
+    if parent_dev_path.exists() {
+        return Ok(parent_dev_path.canonicalize()
+            .map_err(|e| format!("无法获取绝对路径: {}", e))?
+            .to_string_lossy()
+            .to_string());
+    }
+    
+    // 方法3: 检查 exe 同级目录 (生产环境打包后)
+    if let Ok(exe_path) = std::env::current_exe() {
+        if let Some(exe_dir) = exe_path.parent() {
+            let prod_path = exe_dir.join("agent-apk").join("employee-agent.apk");
+            if prod_path.exists() {
+                return Ok(prod_path.to_string_lossy().to_string());
+            }
+        }
+    }
+    
+    // 方法4: 检查 exe 的父级目录 (某些打包方式)
+    if let Ok(exe_path) = std::env::current_exe() {
+        if let Some(exe_dir) = exe_path.parent() {
+            if let Some(parent_dir) = exe_dir.parent() {
+                let alt_path = parent_dir.join("agent-apk").join("employee-agent.apk");
+                if alt_path.exists() {
+                    return Ok(alt_path.to_string_lossy().to_string());
+                }
+            }
+        }
+    }
+    
+    // 获取当前目录用于调试信息
+    let cwd = std::env::current_dir()
+        .map(|p| p.to_string_lossy().to_string())
+        .unwrap_or_else(|_| "unknown".to_string());
+    
+    Err(format!(
+        "未找到内置的 Agent APK 文件。当前目录: {}，请确保 agent-apk/employee-agent.apk 存在。",
+        cwd
+    ))
 }
 
 pub fn init() -> TauriPlugin<Wry> {
@@ -532,7 +659,8 @@ pub fn init() -> TauriPlugin<Wry> {
             adb_press_key,
             adb_close_app,
             adb_install_apk,
-            adb_uninstall_app
+            adb_uninstall_app,
+            get_bundled_agent_apk
         ])
         .build()
 }

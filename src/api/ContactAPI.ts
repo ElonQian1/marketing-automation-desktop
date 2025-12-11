@@ -286,9 +286,26 @@ export class AdbAPI {
 
   /**
    * 安装APK
+   * @returns 安装结果消息
    */
-  static async installApk(deviceId: string, apkPath: string): Promise<void> {
-    await invoke("plugin:adb|adb_install_apk", { deviceId, apkPath });
+  static async installApk(deviceId: string, apkPath: string): Promise<string> {
+    return await invoke<string>("plugin:adb|adb_install_apk", { deviceId, apkPath });
+  }
+
+  /**
+   * 获取内置 Agent APK 路径
+   */
+  static async getBundledAgentApk(): Promise<string> {
+    return await invoke<string>("plugin:adb|get_bundled_agent_apk");
+  }
+
+  /**
+   * 一键安装内置 Agent 到设备
+   * 便捷方法：自动获取内置 APK 路径并安装
+   */
+  static async installAgent(deviceId: string): Promise<string> {
+    const apkPath = await this.getBundledAgentApk();
+    return await this.installApk(deviceId, apkPath);
   }
 
   /**

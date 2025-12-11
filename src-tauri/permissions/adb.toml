@@ -45,7 +45,8 @@ commands.allow = [
     "plugin:adb|adb_press_key",
     "plugin:adb|adb_close_app",
     "plugin:adb|adb_install_apk",
-    "plugin:adb|adb_uninstall_app"
+    "plugin:adb|adb_uninstall_app",
+    "plugin:adb|get_bundled_agent_apk"
 ]
 
 [[set]]
