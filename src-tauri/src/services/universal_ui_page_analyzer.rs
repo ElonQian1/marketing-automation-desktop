@@ -18,8 +18,8 @@ use tauri::Runtime;
 use crate::types::page_analysis::ElementBounds;
 // use crate::screenshot_service::ScreenshotService;  // 暂时未使用
 
-// 添加获取debug_xml目录的函数
-fn get_debug_xml_dir() -> std::path::PathBuf {
+// 添加获取debug_xml目录的函数 (pub 供 ui_dump 模块使用)
+pub fn get_debug_xml_dir() -> std::path::PathBuf {
     // 确保指向项目根目录的 debug_xml 目录
     // 无论当前工作目录在 src-tauri 还是项目根目录，都能正确找到
     let current = std::env::current_dir().unwrap_or_else(|_| std::path::PathBuf::from("."));
