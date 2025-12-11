@@ -2,11 +2,11 @@
 // module: ui_dump | layer: strategies | role: adb-file
 // summary: 传统 ADB 文件策略 - 使用 uiautomator dump + pull
 
-use anyhow::{Context, Result};
+use anyhow::Result;
 use async_trait::async_trait;
 use std::time::{Duration, Instant};
 use tokio::time::timeout;
-use tracing::{debug, info, warn};
+use tracing::{debug, info};
 
 use crate::modules::ui_dump::domain::capturer_trait::ScreenCapturer;
 use crate::modules::ui_dump::ui_dump_types::{DumpMode, DumpResult};
@@ -43,11 +43,11 @@ impl ScreenCapturer for AdbFileStrategy {
         };
 
         // 1. 清理旧文件
-        let _ = session.shell(&["rm", "/sdcard/ui_dump.xml"]).await;
+        let _ = session.execute_command("rm /sdcard/ui_dump.xml").await;
 
         // 2. 执行 dump
-        let dump_cmd = session.shell(&["uiautomator", "dump", "/sdcard/ui_dump.xml"]);
-        match timeout(Duration::from_millis(self.timeout_ms), dump_cmd).await {
+        let dump_future = session.execute_command("uiautomator dump /sdcard/ui_dump.xml");
+        match timeout(Duration::from_millis(self.timeout_ms), dump_future).await {
             Ok(Ok(_)) => {},
             Ok(Err(e)) => return Ok(DumpResult::failure(
                 device_id.to_string(),
@@ -64,9 +64,8 @@ impl ScreenCapturer for AdbFileStrategy {
         }
 
         // 3. 读取文件 (cat)
-        // 使用 cat 而不是 pull，减少一次文件 I/O 开销
-        let cat_cmd = session.shell(&["cat", "/sdcard/ui_dump.xml"]);
-        let output = match timeout(Duration::from_millis(5000), cat_cmd).await {
+        let cat_future = session.execute_command("cat /sdcard/ui_dump.xml");
+        let xml_content = match timeout(Duration::from_millis(5000), cat_future).await {
             Ok(Ok(out)) => out,
             Ok(Err(e)) => return Ok(DumpResult::failure(
                 device_id.to_string(),
@@ -82,8 +81,6 @@ impl ScreenCapturer for AdbFileStrategy {
             )),
         };
 
-        let xml_content = String::from_utf8_lossy(&output).to_string();
-        
         // 简单验证
         if !xml_content.contains("hierarchy") {
             return Ok(DumpResult::failure(

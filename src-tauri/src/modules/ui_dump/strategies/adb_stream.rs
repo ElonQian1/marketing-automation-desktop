@@ -2,11 +2,11 @@
 // module: ui_dump | layer: strategies | role: adb-stream
 // summary: ADB 流式策略 - 使用 exec-out uiautomator dump /dev/stdout
 
-use anyhow::{Context, Result};
+use anyhow::Result;
 use async_trait::async_trait;
 use std::time::{Duration, Instant};
 use tokio::time::timeout;
-use tracing::{debug, info, warn};
+use tracing::{debug, info};
 
 use crate::modules::ui_dump::domain::capturer_trait::ScreenCapturer;
 use crate::modules::ui_dump::ui_dump_types::{DumpMode, DumpResult};
@@ -42,15 +42,10 @@ impl ScreenCapturer for AdbStreamStrategy {
             )),
         };
 
-        // 直接输出到 stdout
-        // 注意：exec-out 是 adb client 的功能，rust adb client 可能需要特殊处理
-        // 这里假设 session.shell 支持 exec-out 或者我们用 shell 命令模拟
-        // 实际上 `adb shell uiautomator dump /dev/tty` 或者直接捕获 stdout
+        // 使用 uiautomator dump 直接输出到 /dev/tty
+        let dump_future = session.execute_command("uiautomator dump /dev/tty");
         
-        // 尝试使用 shell 命令直接输出
-        let dump_cmd = session.shell(&["uiautomator", "dump", "/dev/tty"]);
-        
-        let output = match timeout(Duration::from_millis(self.timeout_ms), dump_cmd).await {
+        let xml_content = match timeout(Duration::from_millis(self.timeout_ms), dump_future).await {
             Ok(Ok(out)) => out,
             Ok(Err(e)) => return Ok(DumpResult::failure(
                 device_id.to_string(),
@@ -65,8 +60,6 @@ impl ScreenCapturer for AdbStreamStrategy {
                 start.elapsed().as_millis() as u64
             )),
         };
-
-        let xml_content = String::from_utf8_lossy(&output).to_string();
 
         // 验证内容
         if !xml_content.contains("hierarchy") {
