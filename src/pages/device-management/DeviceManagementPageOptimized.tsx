@@ -26,6 +26,11 @@ export const DeviceManagementPageOptimized: React.FC = () => {
   const connectedCount = devices.filter(d => d.isOnline()).length;
   const totalCount = devices.length;
   const offlineCount = totalCount - connectedCount;
+  
+  // 获取所有在线设备（用于安装 Agent 的设备选择）
+  const onlineDevices = devices
+    .filter(d => d.isOnline())
+    .map(d => ({ serial: d.serial, model: d.model }));
 
   return (
     <div
@@ -44,6 +49,7 @@ export const DeviceManagementPageOptimized: React.FC = () => {
         <DevicePageHeader
           refreshDevices={refreshDevices}
           isLoading={isLoading}
+          onlineDevices={onlineDevices}
         />
 
         {/* 统计卡片 */}

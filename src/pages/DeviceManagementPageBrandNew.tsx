@@ -21,8 +21,11 @@ import {
   ReloadOutlined,
   SettingOutlined,
   CheckCircleOutlined,
-  ExclamationCircleOutlined
+  ExclamationCircleOutlined,
+  AndroidOutlined,
+  DownloadOutlined
 } from '@ant-design/icons';
+import { message } from 'antd';
 
 // Layout 适配器 - Employee D 合规
 import { Row, Col, Space, Divider } from '../components/adapters/layout/LayoutAdapter';
@@ -36,6 +39,9 @@ import { PageShell } from '../components/layout/PageShell';
 
 // 统一 ADB 接口
 import { useAdb } from '../application/hooks/useAdb';
+
+// API 接口
+import { ContactAPI } from '../api/ContactAPI';
 
 /**
  * 设备状态映射
@@ -145,6 +151,7 @@ const DeviceManagementPageBrandNew: React.FC = () => {
   } = useAdb();
   
   const [refreshing, setRefreshing] = useState(false);
+  const [installingAgent, setInstallingAgent] = useState(false);
 
   // 页面加载时刷新设备列表
   useEffect(() => {
@@ -158,6 +165,24 @@ const DeviceManagementPageBrandNew: React.FC = () => {
       await refreshDevices();
     } finally {
       setRefreshing(false);
+    }
+  };
+
+  // 安装 Agent 到选中设备
+  const handleInstallAgent = async () => {
+    if (!selectedDevice) {
+      message.warning('请先选择一个设备');
+      return;
+    }
+    
+    setInstallingAgent(true);
+    try {
+      const result = await ContactAPI.installAgent(selectedDevice.id);
+      message.success(result);
+    } catch (error) {
+      message.error(`安装失败: ${error instanceof Error ? error.message : String(error)}`);
+    } finally {
+      setInstallingAgent(false);
     }
   };
 
@@ -331,6 +356,22 @@ const DeviceManagementPageBrandNew: React.FC = () => {
                   )}
                 </Col>
               </Row>
+              
+              {/* 设备操作按钮 */}
+              <Divider />
+              <div className="flex gap-3">
+                <Button
+                  variant="solid"
+                  leftIcon={<AndroidOutlined />}
+                  onClick={handleInstallAgent}
+                  loading={installingAgent}
+                >
+                  {installingAgent ? '正在安装...' : '安装 Agent'}
+                </Button>
+                <Text type="secondary" className="self-center text-sm">
+                  安装辅助应用以获取更精准的 UI 信息
+                </Text>
+              </div>
             </CardShell>
           </motion.div>
         )}
