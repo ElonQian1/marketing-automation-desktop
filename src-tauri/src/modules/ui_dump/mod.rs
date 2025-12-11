@@ -1,0 +1,402 @@
+// src-tauri/src/modules/ui_dump/mod.rs
+// module: ui_dump | layer: plugin | role: entry
+// summary: UI Dump Tauri 插件入口 - 命令注册、状态管理、模块导出
+
+pub mod ui_dump_config;
+pub mod ui_dump_diagnostics;
+pub mod ui_dump_exec_out;
+pub mod ui_dump_legacy;
+pub mod ui_dump_provider;
+pub mod ui_dump_types;
+pub mod domain;
+pub mod strategies;
+
+use std::sync::Arc;
+use tauri::{
+    plugin::{Builder, TauriPlugin},
+    AppHandle, Manager, Runtime, State,
+};
+use tokio::sync::RwLock;
+use tracing::{error, info, warn};
+
+use ui_dump_config::{ConfigSummary, UiDumpConfigManager};
+use ui_dump_diagnostics::{DiagnosticsBuffer, DiagnosticSummary};
+use ui_dump_provider::UiDumpProvider;
+use ui_dump_types::{DiagnosticEntry, DumpMode, DumpResult, DumpAndSaveResult};
+
+// ============================================================================
+// 插件状态
+// ============================================================================
+
+/// UI Dump 插件状态
+pub struct UiDumpState {
+    pub provider: Arc<UiDumpProvider>,
+    pub config_manager: Arc<RwLock<UiDumpConfigManager>>,
+    pub diagnostics: Arc<RwLock<DiagnosticsBuffer>>,
+}
+
+impl UiDumpState {
+    /// 创建新的插件状态（内存模式，用于测试）
+    pub fn new_memory() -> Self {
+        let config_manager = Arc::new(RwLock::new(UiDumpConfigManager::new_memory()));
+        let diagnostics = Arc::new(RwLock::new(DiagnosticsBuffer::new(50)));
+        let provider = Arc::new(UiDumpProvider::new(
+            Arc::clone(&config_manager),
+            Arc::clone(&diagnostics),
+        ));
+        
+        Self {
+            provider,
+            config_manager,
+            diagnostics,
+        }
+    }
+}
+
+// ============================================================================
+// Tauri 命令
+// ============================================================================
+
+/// 获取当前模式配置
+#[tauri::command]
+async fn get_mode(state: State<'_, UiDumpState>) -> Result<DumpMode, String> {
+    let manager = state.config_manager.read().await;
+    Ok(manager.get_preferred_mode())
+}
+
+/// 设置首选模式
+#[tauri::command]
+async fn set_mode(mode: DumpMode, state: State<'_, UiDumpState>) -> Result<(), String> {
+    let mut manager = state.config_manager.write().await;
+    manager.set_preferred_mode(mode);
+    manager.save().await.map_err(|e| e.to_string())?;
+    info!("✅ UI Dump 模式已设置为: {:?}", mode);
+    Ok(())
+}
+
+/// 执行 UI Dump
+#[tauri::command]
+async fn dump(device_id: String, state: State<'_, UiDumpState>) -> Result<DumpResult, String> {
+    state.provider
+        .dump(&device_id)
+        .await
+        .map_err(|e| e.to_string())
+}
+
+/// 执行 UI Dump 并保存到文件
+/// 
+/// 结合 exec-out 快速模式和文件保存机制：
+/// - 使用首选模式获取 XML
+/// - 保存到 debug_xml 目录
+/// - 可选截图
+#[tauri::command]
+async fn dump_and_save(
+    device_id: String,
+    save_dir: Option<String>,
+    take_screenshot: Option<bool>,
+    state: State<'_, UiDumpState>,
+) -> Result<DumpAndSaveResult, String> {
+    let save_path = save_dir.map(std::path::PathBuf::from);
+    let screenshot = take_screenshot.unwrap_or(false);
+    
+    state.provider
+        .dump_and_save(&device_id, save_path, screenshot)
+        .await
+        .map_err(|e| e.to_string())
+}
+
+/// 测试指定模式
+#[tauri::command]
+async fn test_mode(
+    device_id: String,
+    mode: DumpMode,
+    state: State<'_, UiDumpState>,
+) -> Result<DumpResult, String> {
+    state.provider
+        .test_mode(&device_id, mode)
+        .await
+        .map_err(|e| e.to_string())
+}
+
+/// 获取诊断日志
+#[tauri::command]
+async fn get_diagnostics(state: State<'_, UiDumpState>) -> Result<Vec<DiagnosticEntry>, String> {
+    Ok(state.provider.get_diagnostics().await)
+}
+
+/// 获取诊断摘要
+#[tauri::command]
+async fn get_diagnostic_summary(state: State<'_, UiDumpState>) -> Result<DiagnosticSummary, String> {
+    let diagnostics = state.diagnostics.read().await;
+    Ok(diagnostics.generate_summary())
+}
+
+/// 清空诊断日志
+#[tauri::command]
+async fn clear_diagnostics(state: State<'_, UiDumpState>) -> Result<(), String> {
+    state.provider.clear_diagnostics().await;
+    Ok(())
+}
+
+/// 获取配置摘要
+#[tauri::command]
+async fn get_config(state: State<'_, UiDumpState>) -> Result<ConfigSummary, String> {
+    let manager = state.config_manager.read().await;
+    Ok(ConfigSummary::from(manager.get_config()))
+}
+
+/// 设置 ExecOut 超时时间
+#[tauri::command]
+async fn set_exec_out_timeout(timeout_ms: u64, state: State<'_, UiDumpState>) -> Result<(), String> {
+    let mut manager = state.config_manager.write().await;
+    manager.set_exec_out_timeout(timeout_ms);
+    manager.save().await.map_err(|e| e.to_string())?;
+    Ok(())
+}
+
+/// 设置 DumpPull 超时时间
+#[tauri::command]
+async fn set_dump_pull_timeout(timeout_ms: u64, state: State<'_, UiDumpState>) -> Result<(), String> {
+    let mut manager = state.config_manager.write().await;
+    manager.set_dump_pull_timeout(timeout_ms);
+    manager.save().await.map_err(|e| e.to_string())?;
+    Ok(())
+}
+
+/// 清除设备兼容性缓存
+#[tauri::command]
+async fn clear_device_compat(
+    device_id: Option<String>,
+    state: State<'_, UiDumpState>,
+) -> Result<(), String> {
+    let mut manager = state.config_manager.write().await;
+    if let Some(id) = device_id {
+        manager.clear_device_compat(&id);
+    } else {
+        manager.clear_device_compat_cache();
+    }
+    manager.save().await.map_err(|e| e.to_string())?;
+    Ok(())
+}
+
+/// 重置配置为默认值
+#[tauri::command]
+async fn reset_config(state: State<'_, UiDumpState>) -> Result<(), String> {
+    let mut manager = state.config_manager.write().await;
+    manager.reset_to_default();
+    manager.save().await.map_err(|e| e.to_string())?;
+    Ok(())
+}
+
+/// 获取所有可用模式列表
+#[tauri::command]
+async fn list_modes() -> Result<Vec<ModeInfo>, String> {
+    Ok(vec![
+        ModeInfo {
+            mode: DumpMode::Auto,
+            name: "自动 (推荐)".to_string(),
+            description: "自动选择最优模式，失败时自动降级".to_string(),
+            implemented: true,
+        },
+        ModeInfo {
+            mode: DumpMode::ExecOut,
+            name: "ExecOut 快速模式".to_string(),
+            description: "跳过文件I/O，直接输出到stdout，速度快30-40%".to_string(),
+            implemented: true,
+        },
+        ModeInfo {
+            mode: DumpMode::DumpPull,
+            name: "DumpPull 兼容模式".to_string(),
+            description: "传统方式，兼容性最好".to_string(),
+            implemented: true,
+        },
+        ModeInfo {
+            mode: DumpMode::A11y,
+            name: "AccessibilityService (预留)".to_string(),
+            description: "通过Android App实时获取，速度最快（需安装辅助App）".to_string(),
+            implemented: false,
+        },
+    ])
+}
+
+/// 模式信息（用于前端显示）
+#[derive(Debug, Clone, serde::Serialize)]
+pub struct ModeInfo {
+    pub mode: DumpMode,
+    pub name: String,
+    pub description: String,
+    pub implemented: bool,
+}
+
+// ============================================================================
+// 插件初始化
+// ============================================================================
+
+/// 初始化 UI Dump 插件（带文件持久化）
+/// 
+/// 使用方式：在 main.rs 中添加 `.plugin(modules::ui_dump::init())`
+/// 
+/// 配置文件保存位置: `<app_data_dir>/dump_config.json`
+/// - Windows: `%APPDATA%/<app>/dump_config.json`
+/// - macOS: `~/Library/Application Support/<app>/dump_config.json`
+/// - Linux: `~/.config/<app>/dump_config.json`
+pub fn init<R: Runtime>() -> TauriPlugin<R> {
+    Builder::new("ui_dump")
+        .invoke_handler(tauri::generate_handler![
+            get_mode,
+            set_mode,
+            dump,
+            dump_and_save,
+            test_mode,
+            get_diagnostics,
+            get_diagnostic_summary,
+            clear_diagnostics,
+            get_config,
+            set_exec_out_timeout,
+            set_dump_pull_timeout,
+            clear_device_compat,
+            reset_config,
+            list_modes,
+        ])
+        .setup(|app, _api| {
+            // 获取应用数据目录
+            let app_data_dir = match app.path().app_data_dir() {
+                Ok(dir) => dir,
+                Err(e) => {
+                    error!("⚠️ 无法获取应用数据目录: {}，使用内存模式", e);
+                    let state = UiDumpState::new_memory();
+                    app.manage(state);
+                    info!("🔌 UI Dump 插件已初始化（内存模式）");
+                    return Ok(());
+                }
+            };
+            
+            // 使用 tokio runtime 异步初始化
+            let state = tauri::async_runtime::block_on(async {
+                init_state_with_persistence(app_data_dir).await
+            });
+            
+            app.manage(state);
+            info!("🔌 UI Dump 插件已初始化（带持久化）");
+            Ok(())
+        })
+        .build()
+}
+
+/// 异步初始化状态（内部使用）
+async fn init_state_with_persistence(app_data_dir: std::path::PathBuf) -> UiDumpState {
+    // 尝试加载持久化配置
+    match UiDumpConfigManager::new(app_data_dir).await {
+        Ok(manager) => {
+            let buffer_size = manager.get_config().diagnostic_buffer_size;
+            let config_manager = Arc::new(RwLock::new(manager));
+            let diagnostics = Arc::new(RwLock::new(DiagnosticsBuffer::new(buffer_size)));
+            let provider = Arc::new(UiDumpProvider::new(
+                Arc::clone(&config_manager),
+                Arc::clone(&diagnostics),
+            ));
+            
+            info!("✅ 配置已从文件加载");
+            
+            UiDumpState {
+                provider,
+                config_manager,
+                diagnostics,
+            }
+        }
+        Err(e) => {
+            warn!("⚠️ 加载持久化配置失败: {}，使用内存模式", e);
+            UiDumpState::new_memory()
+        }
+    }
+}
+
+/// 异步初始化（供外部调用）
+/// 
+/// 用于需要在已有 AppHandle 上初始化的场景
+pub async fn init_with_persistence<R: Runtime>(app: &AppHandle<R>) -> Result<(), Box<dyn std::error::Error>> {
+    // 获取应用数据目录
+    let app_data_dir = app.path().app_data_dir()
+        .map_err(|e| format!("无法获取应用数据目录: {}", e))?;
+    
+    // 创建配置管理器
+    let config_manager = Arc::new(RwLock::new(
+        UiDumpConfigManager::new(app_data_dir).await?
+    ));
+    
+    // 读取配置中的缓冲区大小
+    let buffer_size = {
+        let manager = config_manager.read().await;
+        manager.get_config().diagnostic_buffer_size
+    };
+    
+    // 创建诊断缓冲区
+    let diagnostics = Arc::new(RwLock::new(DiagnosticsBuffer::new(buffer_size)));
+    
+    // 创建提供器
+    let provider = Arc::new(UiDumpProvider::new(
+        Arc::clone(&config_manager),
+        Arc::clone(&diagnostics),
+    ));
+    
+    // 创建状态
+    let state = UiDumpState {
+        provider,
+        config_manager,
+        diagnostics,
+    };
+    
+    app.manage(state);
+    
+    info!("🔌 UI Dump 插件已初始化（带持久化）");
+    Ok(())
+}
+
+// ============================================================================
+// 公共 API（供其他模块调用）
+// ============================================================================
+
+/// 获取全局 Provider（如果已初始化）
+/// 
+/// 用于其他 Rust 模块直接调用 UI Dump 功能
+pub fn get_provider<R: Runtime>(app: &AppHandle<R>) -> Option<Arc<UiDumpProvider>> {
+    app.try_state::<UiDumpState>()
+        .map(|state| Arc::clone(&state.provider))
+}
+
+/// 直接执行 UI Dump（便捷函数）
+/// 
+/// 用于其他 Rust 模块直接调用
+pub async fn unified_dump<R: Runtime>(
+    app: &AppHandle<R>,
+    device_id: &str,
+) -> Result<DumpResult, String> {
+    let provider = get_provider(app)
+        .ok_or_else(|| "UI Dump 插件未初始化".to_string())?;
+    
+    provider.dump(device_id)
+        .await
+        .map_err(|e| e.to_string())
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    
+    #[test]
+    fn test_state_creation() {
+        let state = UiDumpState::new_memory();
+        // 状态应该成功创建
+        assert!(Arc::strong_count(&state.provider) >= 1);
+    }
+    
+    #[tokio::test]
+    async fn test_list_modes() {
+        let modes = list_modes().await.unwrap();
+        assert_eq!(modes.len(), 4);
+        assert!(modes[0].implemented); // Auto
+        assert!(modes[1].implemented); // ExecOut
+        assert!(modes[2].implemented); // DumpPull
+        assert!(!modes[3].implemented); // A11y (预留)
+    }
+}

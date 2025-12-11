@@ -1,0 +1,166 @@
+// src-tauri/src/modules/ui_dump/strategies/android_service.rs
+// module: ui_dump | layer: strategies | role: android-service
+// summary: Android Agent 服务策略 - 通过 Socket 连接手机端 App 获取数据
+
+use anyhow::{Context, Result};
+use async_trait::async_trait;
+use serde::{Deserialize, Serialize};
+use std::time::{Duration, Instant};
+use tokio::io::{AsyncBufReadExt, AsyncWriteExt, BufReader};
+use tokio::net::TcpStream;
+use tracing::{debug, info, warn};
+
+use crate::modules::ui_dump::domain::capturer_trait::ScreenCapturer;
+use crate::modules::ui_dump::ui_dump_types::{DumpMode, DumpResult};
+use crate::services::adb::get_device_session;
+
+/// Android Agent 服务策略
+pub struct AndroidServiceStrategy {
+    port: u16,
+    timeout_ms: u64,
+}
+
+impl AndroidServiceStrategy {
+    pub fn new(port: u16, timeout_ms: u64) -> Self {
+        Self { port, timeout_ms }
+    }
+
+    /// 确保端口转发已设置
+    async fn ensure_port_forward(&self, device_id: &str) -> Result<()> {
+        // TODO: 检查是否已转发，如果没有则执行 adb forward
+        // 目前假设外部已经做好了转发，或者在这里调用 adb 命令
+        // 为了简单起见，这里先调用一次 adb forward
+        let session = get_device_session(device_id).await?;
+        // 注意：这里需要一个能够执行 adb forward 的方法
+        // 暂时略过，假设用户或上层已经配置好
+        Ok(())
+    }
+
+    /// 将 JSON 节点转换为 XML 字符串 (递归)
+    fn json_to_xml(&self, node: &NodeData, depth: usize) -> String {
+        let indent = "  ".repeat(depth);
+        let mut xml = String::new();
+
+        // 构建属性
+        let resource_id = node.resource_id.as_deref().unwrap_or("");
+        let text = node.text.as_deref().unwrap_or("");
+        let content_desc = node.content_description.as_deref().unwrap_or("");
+        let class_name = &node.class_name;
+        let bounds = &node.bounds;
+
+        // 简单的 XML 转义 (需要更完善的转义)
+        let text = text.replace("&", "&amp;").replace("<", "&lt;").replace(">", "&gt;").replace("\"", "&quot;");
+        let content_desc = content_desc.replace("&", "&amp;").replace("<", "&lt;").replace(">", "&gt;").replace("\"", "&quot;");
+
+        // 模拟 uiautomator 的 XML 格式
+        xml.push_str(&format!(
+            "{}<node index=\"0\" text=\"{}\" resource-id=\"{}\" class=\"{}\" package=\"\" content-desc=\"{}\" checkable=\"false\" checked=\"false\" clickable=\"false\" enabled=\"true\" focusable=\"false\" focused=\"false\" scrollable=\"false\" long-clickable=\"false\" password=\"false\" selected=\"false\" bounds=\"[{}]\">\n",
+            indent, text, resource_id, class_name, content_desc, bounds.replace(",", "][")
+        ));
+
+        for child in &node.children {
+            xml.push_str(&self.json_to_xml(child, depth + 1));
+        }
+
+        xml.push_str(&format!("{}</node>\n", indent));
+        xml
+    }
+}
+
+#[async_trait]
+impl ScreenCapturer for AndroidServiceStrategy {
+    fn name(&self) -> &'static str {
+        "AndroidService"
+    }
+
+    async fn capture(&self, device_id: &str) -> Result<DumpResult> {
+        let start = Instant::now();
+        debug!("🚀 AndroidService 模式开始: device={}", device_id);
+
+        // 1. 确保端口转发 (简化版：假设已转发)
+        // self.ensure_port_forward(device_id).await?;
+
+        // 2. 连接 Socket
+        let addr = format!("127.0.0.1:{}", self.port);
+        let mut stream = match tokio::time::timeout(
+            Duration::from_millis(self.timeout_ms),
+            TcpStream::connect(&addr)
+        ).await {
+            Ok(Ok(s)) => s,
+            Ok(Err(e)) => return Ok(DumpResult::failure(
+                device_id.to_string(),
+                DumpMode::A11y,
+                format!("连接失败: {}", e),
+                start.elapsed().as_millis() as u64
+            )),
+            Err(_) => return Ok(DumpResult::failure(
+                device_id.to_string(),
+                DumpMode::A11y,
+                "连接超时".to_string(),
+                start.elapsed().as_millis() as u64
+            )),
+        };
+
+        // 3. 发送 DUMP 命令
+        if let Err(e) = stream.write_all(b"DUMP\n").await {
+            return Ok(DumpResult::failure(
+                device_id.to_string(),
+                DumpMode::A11y,
+                format!("发送命令失败: {}", e),
+                start.elapsed().as_millis() as u64
+            ));
+        }
+
+        // 4. 读取响应
+        let mut reader = BufReader::new(stream);
+        let mut response = String::new();
+        if let Err(e) = reader.read_line(&mut response).await {
+            return Ok(DumpResult::failure(
+                device_id.to_string(),
+                DumpMode::A11y,
+                format!("读取响应失败: {}", e),
+                start.elapsed().as_millis() as u64
+            ));
+        }
+
+        // 5. 解析 JSON
+        let node_data: NodeData = match serde_json::from_str(&response) {
+            Ok(data) => data,
+            Err(e) => return Ok(DumpResult::failure(
+                device_id.to_string(),
+                DumpMode::A11y,
+                format!("JSON 解析失败: {}", e),
+                start.elapsed().as_millis() as u64
+            )),
+        };
+
+        // 6. 转换为 XML
+        // 添加 XML 头和根 hierarchy 节点
+        let mut xml_content = String::from("<?xml version='1.0' encoding='UTF-8' standalone='yes' ?>\n<hierarchy rotation=\"0\">\n");
+        xml_content.push_str(&self.json_to_xml(&node_data, 1));
+        xml_content.push_str("</hierarchy>");
+
+        let elapsed = start.elapsed().as_millis() as u64;
+        info!("✅ AndroidService 采集成功: {}ms, length={}", elapsed, xml_content.len());
+
+        Ok(DumpResult::success(
+            device_id.to_string(),
+            DumpMode::A11y,
+            xml_content,
+            elapsed
+        ))
+    }
+}
+
+#[derive(Debug, Serialize, Deserialize)]
+struct NodeData {
+    #[serde(rename = "className")]
+    class_name: String,
+    text: Option<String>,
+    #[serde(rename = "contentDescription")]
+    content_description: Option<String>,
+    #[serde(rename = "resourceId")]
+    resource_id: Option<String>,
+    bounds: String,
+    children: Vec<NodeData>,
+}

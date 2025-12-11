@@ -4,4 +4,5 @@
 
 export { DeviceList } from './DeviceList';
 export { RealDeviceManager } from './RealDeviceManager';
+export { UiDumpModePanel } from './ui-dump-mode-panel';
 

@@ -126,6 +126,7 @@ fn main() {
         .plugin(modules::lead_hunt::init())          // ✅ 注册精准获客插件
         .plugin(modules::script_manager::init())     // ✅ 注册脚本管理插件
         .plugin(modules::prospecting::init())        // ✅ 注册潜客挖掘插件
+        .plugin(modules::ui_dump::init())             // ✅ 注册 UI Dump 多模式插件
         .manage(Mutex::new(AdbService::new()))
         .manage(Mutex::new(EmployeeService::new()))
         .manage(SmartAppManagerState::new())
