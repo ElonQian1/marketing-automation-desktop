@@ -6,6 +6,9 @@ use tokio::sync::Mutex;
 use tokio::time::{timeout, Duration};
 use tracing::{debug, error, info, warn};
 use crate::infra::adb::input_helper::{input_text_injector_first};
+use crate::modules::ui_dump::ui_dump_exec_out::ExecOutExecutor;
+use crate::modules::ui_dump::strategies::android_service::AndroidServiceStrategy;
+use crate::modules::ui_dump::domain::capturer_trait::ScreenCapturer;
 
 /// ADB Shell长连接会话管理器
 /// 维护到指定设备的持久shell连接，减少命令执行开销
@@ -220,8 +223,49 @@ impl AdbShellSession {
     }
 
     /// 获取当前界面UI层次结构
+    /// 
+    /// 优先级: A11y (最快) > ExecOut (快速) > DumpPull (兼容)
     pub async fn dump_ui(&self) -> Result<String> {
-        // 使用标准方法：dump到文件然后读取文件内容
+        // ========== 1. 优先尝试 A11y 模式（需要 Android App 运行）==========
+        debug!("🚀 尝试 A11y 模式 (Android App)...");
+        let a11y_strategy = AndroidServiceStrategy::new(11451, 3000); // 3秒超时
+        
+        match a11y_strategy.capture(&self.device_id).await {
+            Ok(result) if result.success => {
+                if let Some(xml_content) = result.xml_content {
+                    info!("✅ A11y 模式成功: {}ms, {} 字符", result.elapsed_ms, xml_content.len());
+                    return Ok(xml_content);
+                }
+            }
+            Ok(result) => {
+                debug!("⚠️ A11y 模式不可用: {:?}, 尝试 ExecOut", result.error);
+            }
+            Err(e) => {
+                debug!("⚠️ A11y 模式异常: {}, 尝试 ExecOut", e);
+            }
+        }
+        
+        // ========== 2. 尝试 ExecOut 快速模式 ==========
+        debug!("🚀 尝试 ExecOut 快速模式...");
+        let exec_out = ExecOutExecutor::new(3000); // 3秒超时
+        
+        match exec_out.execute(&self.device_id).await {
+            Ok(result) if result.success => {
+                if let Some(xml_content) = result.xml_content {
+                    info!("✅ ExecOut 快速模式成功: {}ms, {} 字符", result.elapsed_ms, xml_content.len());
+                    return Ok(xml_content);
+                }
+            }
+            Ok(result) => {
+                warn!("⚠️ ExecOut 模式失败: {:?}, 回退到传统模式", result.error);
+            }
+            Err(e) => {
+                warn!("⚠️ ExecOut 模式异常: {}, 回退到传统模式", e);
+            }
+        }
+        
+        // ========== 3. 回退到传统 DumpPull 方式 ==========
+        info!("📦 使用传统 DumpPull 模式...");
         let command = "uiautomator dump > /dev/null && cat /sdcard/window_dump.xml";
         let result = self.execute_command_with_timeout(command, Duration::from_secs(15)).await?;
         

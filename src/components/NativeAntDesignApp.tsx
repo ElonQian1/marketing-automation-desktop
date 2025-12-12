@@ -44,7 +44,7 @@ import type { MenuProps } from "antd";
 
 import { GlobalAdbProvider } from "../providers";
 import { featureFlags } from "../config/featureFlags";
-import { EnhancedThemeProvider } from "../components/feature-modules/theme-system";
+import { EnhancedThemeProvider } from "./feature-modules/theme-system";
 import { useAuthStore } from "../stores/authStore";
 
 // 页面组件导入

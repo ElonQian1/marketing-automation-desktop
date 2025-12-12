@@ -77,7 +77,9 @@ impl AndroidServiceStrategy {
         let text = node.text.as_deref().unwrap_or("");
         let content_desc = node.content_description.as_deref().unwrap_or("");
         let class_name = &node.class_name;
-        let bounds = &node.bounds;
+        
+        // 转换 bounds 格式: "left,top,right,bottom" -> "[left,top][right,bottom]"
+        let bounds_formatted = self.format_bounds(&node.bounds);
 
         // 简单的 XML 转义 (需要更完善的转义)
         let text = text.replace("&", "&amp;").replace("<", "&lt;").replace(">", "&gt;").replace("\"", "&quot;");
@@ -85,8 +87,8 @@ impl AndroidServiceStrategy {
 
         // 模拟 uiautomator 的 XML 格式
         xml.push_str(&format!(
-            "{}<node index=\"0\" text=\"{}\" resource-id=\"{}\" class=\"{}\" package=\"\" content-desc=\"{}\" checkable=\"false\" checked=\"false\" clickable=\"false\" enabled=\"true\" focusable=\"false\" focused=\"false\" scrollable=\"false\" long-clickable=\"false\" password=\"false\" selected=\"false\" bounds=\"[{}]\">\n",
-            indent, text, resource_id, class_name, content_desc, bounds.replace(",", "][")
+            "{}<node index=\"0\" text=\"{}\" resource-id=\"{}\" class=\"{}\" package=\"\" content-desc=\"{}\" checkable=\"false\" checked=\"false\" clickable=\"false\" enabled=\"true\" focusable=\"false\" focused=\"false\" scrollable=\"false\" long-clickable=\"false\" password=\"false\" selected=\"false\" bounds=\"{}\">\n",
+            indent, text, resource_id, class_name, content_desc, bounds_formatted
         ));
 
         for child in &node.children {
@@ -95,6 +97,22 @@ impl AndroidServiceStrategy {
 
         xml.push_str(&format!("{}</node>\n", indent));
         xml
+    }
+    
+    /// 格式化 bounds: "left,top,right,bottom" -> "[left,top][right,bottom]"
+    fn format_bounds(&self, bounds: &str) -> String {
+        // 尝试解析 "left,top,right,bottom" 格式
+        let parts: Vec<&str> = bounds.split(',').collect();
+        if parts.len() == 4 {
+            // 标准格式 "left,top,right,bottom"
+            format!("[{},{}][{},{}]", parts[0], parts[1], parts[2], parts[3])
+        } else if bounds.starts_with('[') && bounds.contains("][") {
+            // 已经是 "[left,top][right,bottom]" 格式
+            bounds.to_string()
+        } else {
+            // 未知格式，尝试包装
+            format!("[{}]", bounds)
+        }
     }
 }
 

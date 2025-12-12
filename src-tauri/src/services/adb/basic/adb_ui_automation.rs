@@ -1,11 +1,43 @@
 use super::adb_core::AdbService;
 use crate::infra::adb::input_helper::{tap_safe_injector_first, swipe_safe_injector_first, input_text_injector_first};
 use crate::utils::adb_utils::get_adb_path;
+use crate::modules::ui_dump::ui_dump_exec_out::ExecOutExecutor;
+use tracing::{info, warn, debug};
 
 impl AdbService {
     /// 获取设备UI层次结构（XML格式）
+    /// 
+    /// 优先使用 ExecOut 快速模式（跳过文件 I/O），失败后回退到传统 DumpPull 方式。
     /// 用于智能元素查找、UI分析等自动化操作
     pub async fn dump_ui_hierarchy(&self, device_id: &str) -> Result<String, Box<dyn std::error::Error>> {
+        // ========== 1. 优先尝试 ExecOut 快速模式 ==========
+        debug!("🚀 尝试 ExecOut 快速模式...");
+        let exec_out = ExecOutExecutor::new(3000); // 3秒超时
+        
+        match exec_out.execute(device_id).await {
+            Ok(result) if result.success => {
+                if let Some(xml_content) = result.xml_content {
+                    info!("✅ ExecOut 快速模式成功: {}ms, {} 字符", result.elapsed_ms, xml_content.len());
+                    return Ok(xml_content);
+                }
+            }
+            Ok(result) => {
+                warn!("⚠️ ExecOut 模式失败: {:?}, 回退到传统模式", result.error);
+            }
+            Err(e) => {
+                warn!("⚠️ ExecOut 模式异常: {}, 回退到传统模式", e);
+            }
+        }
+        
+        // ========== 2. 回退到传统 DumpPull 方式 ==========
+        info!("📦 使用传统 DumpPull 模式...");
+        self.dump_ui_hierarchy_legacy(device_id).await
+    }
+    
+    /// 传统的 UI Dump 方式（DumpPull）
+    /// 
+    /// 使用 `uiautomator dump` + `cat` 方式，兼容性最好
+    async fn dump_ui_hierarchy_legacy(&self, device_id: &str) -> Result<String, Box<dyn std::error::Error>> {
         // 首先在设备上生成UI dump文件 (使用shell命令)
         let dump_result = self.execute_adb_command(device_id, "shell uiautomator dump /sdcard/ui_hierarchy.xml").await?;
         
