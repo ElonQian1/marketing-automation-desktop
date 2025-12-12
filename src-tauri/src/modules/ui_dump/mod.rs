@@ -19,6 +19,8 @@ use tauri::{
 use tokio::sync::RwLock;
 use tracing::{error, info, warn};
 
+use crate::utils::adb_utils::get_adb_path;
+
 use ui_dump_config::{ConfigSummary, UiDumpConfigManager};
 use ui_dump_diagnostics::{DiagnosticsBuffer, DiagnosticSummary};
 use ui_dump_provider::UiDumpProvider;
@@ -229,7 +231,8 @@ async fn check_android_app_status(device_id: String) -> Result<AndroidAppStatus,
     const PORT: u16 = 11451;
     
     // 1. 先设置端口转发
-    let forward_result = tokio::process::Command::new("adb")
+    let adb_path = get_adb_path();
+    let forward_result = tokio::process::Command::new(&adb_path)
         .args(["-s", &device_id, "forward", &format!("tcp:{}", PORT), &format!("tcp:{}", PORT)])
         .output()
         .await;
@@ -288,7 +291,8 @@ async fn diagnose_android_app(device_id: String) -> Result<AndroidAppDiagnosis, 
     
     // ============ Step 1: 检查设备连接 ============
     let step1_start = Instant::now();
-    let devices_output = tokio::process::Command::new("adb")
+    let adb_path = get_adb_path();
+    let devices_output = tokio::process::Command::new(&adb_path)
         .args(["devices", "-l"])
         .output()
         .await;
@@ -333,7 +337,7 @@ async fn diagnose_android_app(device_id: String) -> Result<AndroidAppDiagnosis, 
     
     // ============ Step 2: 检查 App 安装 ============
     let step2_start = Instant::now();
-    let package_output = tokio::process::Command::new("adb")
+    let package_output = tokio::process::Command::new(&adb_path)
         .args(["-s", &device_id, "shell", "pm", "list", "packages", "com.employee.agent"])
         .output()
         .await;
@@ -366,7 +370,7 @@ async fn diagnose_android_app(device_id: String) -> Result<AndroidAppDiagnosis, 
     
     // ============ Step 3: 检查无障碍服务 ============
     let step3_start = Instant::now();
-    let a11y_output = tokio::process::Command::new("adb")
+    let a11y_output = tokio::process::Command::new(&adb_path)
         .args(["-s", &device_id, "shell", "settings", "get", "secure", "enabled_accessibility_services"])
         .output()
         .await;
@@ -396,7 +400,7 @@ async fn diagnose_android_app(device_id: String) -> Result<AndroidAppDiagnosis, 
     
     // ============ Step 4: 设置端口转发 ============
     let step4_start = Instant::now();
-    let forward_output = tokio::process::Command::new("adb")
+    let forward_output = tokio::process::Command::new(&adb_path)
         .args(["-s", &device_id, "forward", &format!("tcp:{}", PORT), &format!("tcp:{}", PORT)])
         .output()
         .await;

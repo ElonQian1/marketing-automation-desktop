@@ -7,7 +7,6 @@ use serde::{Deserialize, Serialize};
 use std::collections::VecDeque;
 use std::sync::{Arc, Mutex};
 use tauri::AppHandle;
-use tracing::{info, warn, error};
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct LogEntry {
@@ -97,13 +96,10 @@ impl LogCollector {
             use crate::infrastructure::events::emit_and_trace;
             let _ = emit_and_trace(app_handle, "log-entry", &log_entry);
         }
-
-        // 同时记录到标准日志
-        match level {
-            "ERROR" => error!("[{}] {}: {}", category, source, message),
-            "WARN" => warn!("[{}] {}: {}", category, source, message),
-            _ => info!("[{}] {}: {}", category, source, message),
-        }
+        
+        // 🐛 修复：移除 tracing 输出，避免日志重复
+        // 调用方通常已经使用 tracing::info/error 记录过了
+        // 这里只负责存储到内存和发送到前端
     }
 
     /// 添加ADB命令日志

@@ -12,6 +12,7 @@ use tracing::{debug, info, warn};
 
 use crate::modules::ui_dump::domain::capturer_trait::ScreenCapturer;
 use crate::modules::ui_dump::ui_dump_types::{DumpMode, DumpResult};
+use crate::utils::adb_utils::get_adb_path;
 
 /// Android Agent 服务策略
 pub struct AndroidServiceStrategy {
@@ -32,9 +33,10 @@ impl AndroidServiceStrategy {
         
         let port_str = self.port.to_string();
         let local_remote = format!("tcp:{}", port_str);
+        let adb_path = get_adb_path();
         
         // 先检查是否已转发 (通过 adb forward --list)
-        let list_output = Command::new("adb")
+        let list_output = Command::new(&adb_path)
             .args(["-s", device_id, "forward", "--list"])
             .output()
             .await
@@ -50,7 +52,7 @@ impl AndroidServiceStrategy {
         
         // 执行 adb forward
         info!("📡 设置端口转发: {} -> tcp:{}", device_id, self.port);
-        let output = Command::new("adb")
+        let output = Command::new(&adb_path)
             .args(["-s", device_id, "forward", &local_remote, &local_remote])
             .output()
             .await

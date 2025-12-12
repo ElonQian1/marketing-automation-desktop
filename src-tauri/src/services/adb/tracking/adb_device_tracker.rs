@@ -78,10 +78,18 @@ impl AdbDeviceTracker {
     }
 
     /// 设置应用句柄（用于发送事件到前端）
+    /// 只在首次设置时打印日志，避免重复调用产生噪音
     pub async fn set_app_handle(&self, handle: AppHandle) {
         let mut app_handle = self.app_handle.lock().await;
+        let was_none = app_handle.is_none();
         *app_handle = Some(handle);
-        info!("🎯 ADB设备跟踪器已设置应用句柄");
+        
+        // 只在首次设置时记录，避免重复调用产生日志噪音
+        if was_none {
+            info!("🎯 ADB设备跟踪器已设置应用句柄");
+        } else {
+            debug!("🔄 ADB设备跟踪器应用句柄已更新");
+        }
     }
 
     /// 启动设备跟踪 - 使用host:track-devices协议
@@ -257,12 +265,14 @@ impl AdbDeviceTracker {
                                 .as_secs(),
                         };
 
-                        // 发送内部事件
+                        // 发送内部事件（broadcast channel）
+                        // 🔧 优化：如果没有内部订阅者，channel closed 是正常的
+                        // 主要依赖 emit_and_trace 发送到前端，所以这里用 debug 级别
                         if let Err(e) = sender.send(event.clone()) {
-                            warn!("发送设备变化事件失败: {}", e);
+                            debug!("内部广播通道无订阅者: {} (这是正常的，前端通过 Tauri 事件接收)", e);
                         }
 
-                        // 发送事件到前端
+                        // 发送事件到前端（主要的通知方式）
                         if let Some(handle) = app_handle.lock().await.as_ref() {
                             use crate::infrastructure::events::emit_and_trace;
                             if let Err(e) = emit_and_trace(handle, "device-change", &event) {

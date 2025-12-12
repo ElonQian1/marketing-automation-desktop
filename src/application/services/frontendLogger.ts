@@ -182,5 +182,21 @@ export const frontendLogger = new FrontendLogger();
 
 // 自动初始化
 frontendLogger.init().catch(e => {
+  // 🐛 修复：使用原始 console，因为此时 hook 可能还没生效
+   
   console.warn('前端日志初始化失败:', e);
 });
+
+// 🐛 修复：窗口关闭时确保日志被刷新，避免缓冲区中的日志丢失
+if (typeof window !== 'undefined') {
+  window.addEventListener('beforeunload', () => {
+    frontendLogger.flush();
+  });
+  
+  // 页面隐藏时也刷新（移动端或标签页切换）
+  document.addEventListener('visibilitychange', () => {
+    if (document.visibilityState === 'hidden') {
+      frontendLogger.flush();
+    }
+  });
+}

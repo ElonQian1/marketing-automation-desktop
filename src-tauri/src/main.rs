@@ -135,7 +135,10 @@ fn main() {
     
     // 创建日志文件 appender（后端日志）
     let file_appender = tracing_appender::rolling::daily(&log_dir, "backend.log");
-    let (non_blocking, _guard) = tracing_appender::non_blocking(file_appender);
+    // ⚠️ 重要：_log_guard 必须在整个程序运行期间保持存活！
+    // 如果它被 drop，日志写入线程会停止，导致日志丢失。
+    // 使用明确的变量名提醒开发者不要删除它。
+    let (non_blocking, _log_guard) = tracing_appender::non_blocking(file_appender);
     
     // 初始化日志系统 - 同时输出到控制台和文件
     tracing_subscriber::registry()
