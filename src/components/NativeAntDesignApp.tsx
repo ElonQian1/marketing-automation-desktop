@@ -172,7 +172,7 @@ const NativeAntDesignApp: React.FC = () => {
     {
       key: "device-management-optimized",
       icon: <MobileOutlined />,
-      label: "📱 设备中心（商业版）",
+      label: "📱 设备中心",
     },
     {
       key: "login-native",

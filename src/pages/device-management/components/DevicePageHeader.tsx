@@ -46,7 +46,8 @@ export const DevicePageHeader: React.FC<DevicePageHeaderProps> = ({
     try {
       // 先获取内置 APK 路径
       const apkPath = await invoke<string>('plugin:adb|get_bundled_agent_apk');
-      // 然后安装到设备 (Tauri 自动将 snake_case 转为 camelCase)
+      console.log('调用 adb_install_apk，参数:', { deviceId: deviceSerial, apkPath });
+      // Tauri 自动将 camelCase 转为 snake_case
       const result = await invoke<string>('plugin:adb|adb_install_apk', { 
         deviceId: deviceSerial, 
         apkPath: apkPath 

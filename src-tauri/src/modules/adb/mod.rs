@@ -10,6 +10,7 @@ use tauri::AppHandle;
 use crate::services::smart_app_manager::SmartAppManagerState;
 use crate::services::smart_app_manager::{AppInfo, PagedApps};
 use crate::services::adb::tracking::adb_device_tracker::TrackedDevice;
+use crate::utils::adb_utils::get_adb_path;
 
 use crate::services::adb::commands::adb_file::safe_adb_push;
 use crate::services::adb::commands::ui_automation::{adb_dump_ui_xml, adb_tap_coordinate};
@@ -476,18 +477,18 @@ async fn adb_close_app(_device_id: String, _package_name: String) -> Result<(), 
 }
 
 /// 安装 APK 到指定设备
-/// - device_id: 目标设备 ID (如 "emulator-5554" 或 "192.168.1.100:5555")
-/// - apk_path: APK 文件的完整路径
+/// - deviceId: 目标设备 ID (如 "emulator-5554" 或 "192.168.1.100:5555")
+/// - apkPath: APK 文件的完整路径
 #[tauri::command]
 async fn adb_install_apk(device_id: String, apk_path: String) -> Result<String, String> {
-    let adb_path = "platform-tools/adb.exe";
+    let adb_path = get_adb_path();
     
     // 检查 APK 文件是否存在
     if !std::path::Path::new(&apk_path).exists() {
         return Err(format!("APK 文件不存在: {}", apk_path));
     }
     
-    let mut cmd = Command::new(adb_path);
+    let mut cmd = Command::new(&adb_path);
     cmd.args(&["-s", &device_id, "install", "-r", &apk_path]); // -r 表示替换安装
     
     #[cfg(windows)]
@@ -503,7 +504,7 @@ async fn adb_install_apk(device_id: String, apk_path: String) -> Result<String, 
             let err_str = String::from_utf8_lossy(&output.stderr).to_string();
             
             LOG_COLLECTOR.add_adb_command_log(
-                adb_path,
+                &adb_path,
                 &vec!["-s".to_string(), device_id.clone(), "install".to_string(), "-r".to_string(), apk_path.clone()],
                 &out_str,
                 if err_str.is_empty() { None } else { Some(err_str.as_str()) },
@@ -539,7 +540,7 @@ async fn adb_install_apk(device_id: String, apk_path: String) -> Result<String, 
         }
         Err(e) => {
             LOG_COLLECTOR.add_adb_command_log(
-                adb_path,
+                &adb_path,
                 &vec!["-s".to_string(), device_id, "install".to_string(), "-r".to_string(), apk_path],
                 "",
                 Some(&format!("{}", e)),

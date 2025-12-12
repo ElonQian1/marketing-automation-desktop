@@ -28,9 +28,10 @@ export const DeviceManagementPageOptimized: React.FC = () => {
   const offlineCount = totalCount - connectedCount;
   
   // 获取所有在线设备（用于安装 Agent 的设备选择）
+  // 注意：Device 实体使用 id 属性作为设备序列号
   const onlineDevices = devices
     .filter(d => d.isOnline())
-    .map(d => ({ serial: d.serial, model: d.model }));
+    .map(d => ({ serial: d.id, model: d.model }));
 
   return (
     <div
