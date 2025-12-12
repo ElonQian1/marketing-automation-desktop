@@ -146,7 +146,8 @@ impl AdbDeviceTracker {
 
             match Self::connect_and_track(&sender, &last_devices, &app_handle).await {
                 Ok(_) => {
-                    info!("🔄 ADB设备跟踪连接正常结束，准备重连");
+                    // 🔧 优化：长连接正常断开只用 debug 级别
+                    debug!("🔄 ADB设备跟踪连接结束，准备重连");
                 }
                 Err(e) => {
                     error!("❌ ADB设备跟踪连接失败: {}", e);
@@ -194,9 +195,21 @@ impl AdbDeviceTracker {
             }
         };
 
-        // 设置读取超时
-        stream.set_read_timeout(Some(Duration::from_secs(30)))
+        // 🔧 修复：track-devices 是长连接协议，不设置读取超时
+        // ADB server 只在设备变化时才推送数据，可能几小时都没有数据
+        // 不设置超时，让连接永久保持
+        stream.set_read_timeout(None)
             .map_err(|e| format!("设置读取超时失败: {}", e))?;
+        
+        // 设置写入超时（连接握手时使用）
+        stream.set_write_timeout(Some(Duration::from_secs(10)))
+            .map_err(|e| format!("设置写入超时失败: {}", e))?;
+        
+        // 🔧 使用 socket2 crate 或标准库的 set_nodelay 优化连接
+        // 禁用 Nagle 算法，减少延迟
+        let _ = stream.set_nodelay(true);
+        
+        debug!("🔧 TCP 连接配置完成: 无读取超时, 写入超时10秒, nodelay=true");
 
         // 发送host:track-devices协议命令
         let command = "host:track-devices";
@@ -256,9 +269,8 @@ impl AdbDeviceTracker {
                                 warn!("发送设备变化事件到前端失败: {}", e);
                             }
                         }
-                    } else {
-                        debug!("📱 设备状态无变化 ({} 个设备)", devices.len());
                     }
+                    // 🔧 优化：设备无变化时保持静默，不输出任何日志
                 }
                 Err(e) => {
                     error!("读取设备列表失败: {}", e);

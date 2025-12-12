@@ -1,5 +1,9 @@
 use super::adb_core::AdbService;
-use tracing::{info, warn};
+use std::sync::OnceLock;
+use tracing::{debug, info, warn};
+
+/// 🔧 ADB 路径缓存 - 避免重复检测
+static CACHED_ADB_PATH: OnceLock<Option<String>> = OnceLock::new();
 
 impl AdbService {
     /// 获取项目内的 ADB 路径（最高优先级）
@@ -13,18 +17,18 @@ impl AdbService {
         if let Ok(current_dir) = std::env::current_dir() {
             // 首先尝试当前目录的 platform-tools
             let adb_path = current_dir.join("platform-tools").join("adb.exe");
-            info!("🔍 检查当前目录ADB路径: {:?}", adb_path);
+            debug!("🔍 检查当前目录ADB路径: {:?}", adb_path);
             if adb_path.exists() {
-                info!("✅ 找到当前目录ADB路径");
+                debug!("✅ 找到当前目录ADB路径");
                 return adb_path.to_str().map(|s| s.to_string());
             }
             
             // 然后尝试上级目录的 platform-tools（处理从src-tauri运行的情况）
             if let Some(parent_dir) = current_dir.parent() {
                 let parent_adb_path = parent_dir.join("platform-tools").join("adb.exe");
-                info!("🔍 检查父级目录ADB路径: {:?}", parent_adb_path);
+                debug!("🔍 检查父级目录ADB路径: {:?}", parent_adb_path);
                 if parent_adb_path.exists() {
-                    info!("✅ 找到父级目录ADB路径");
+                    debug!("✅ 找到父级目录ADB路径");
                     return parent_adb_path.to_str().map(|s| s.to_string());
                 }
             }
@@ -32,13 +36,13 @@ impl AdbService {
 
         // 尝试从可执行文件路径查找
         if let Ok(exe_path) = std::env::current_exe() {
-            info!("🔍 从可执行文件路径查找: {:?}", exe_path);
+            debug!("🔍 从可执行文件路径查找: {:?}", exe_path);
             // 从exe路径向上查找项目根目录
             let mut parent = exe_path.parent();
             while let Some(dir) = parent {
                 let adb_path = dir.join("platform-tools").join("adb.exe");
                 if adb_path.exists() {
-                    info!("✅ 找到可执行文件相对ADB路径");
+                    debug!("✅ 找到可执行文件相对ADB路径");
                     return adb_path.to_str().map(|s| s.to_string());
                 }
                 
@@ -46,7 +50,7 @@ impl AdbService {
                 if let Some(parent_dir) = dir.parent() {
                     let parent_adb_path = parent_dir.join("platform-tools").join("adb.exe");
                     if parent_adb_path.exists() {
-                        info!("✅ 找到可执行文件上级相对ADB路径");
+                        debug!("✅ 找到可执行文件上级相对ADB路径");
                         return parent_adb_path.to_str().map(|s| s.to_string());
                     }
                 }
@@ -74,12 +78,24 @@ impl AdbService {
     /// 3. 标准 Android SDK 安装路径
     /// 4. 雷电模拟器路径（仅作为最后回退，且会跳过已知有问题的版本）
     pub fn detect_ldplayer_adb(&self) -> Option<String> {
-        info!("🔍 开始智能ADB路径检测...");
+        // 🔧 使用缓存避免重复检测
+        if let Some(cached) = CACHED_ADB_PATH.get() {
+            if let Some(path) = cached {
+                debug!("🔧 使用缓存的ADB路径: {}", path);
+                return Some(path.clone());
+            } else {
+                debug!("🔧 缓存显示无可用ADB路径");
+                return None;
+            }
+        }
+        
+        info!("🔍 首次检测ADB路径...");
         
         // 1. 最高优先级：项目内的 ADB（避免使用模拟器自带的有问题版本）
         if let Some(project_path) = Self::get_project_adb_path() {
             if self.validate_adb_path(&project_path) {
-                info!("✅ 使用项目内ADB路径（最高优先级）: {}", project_path);
+                info!("✅ 使用项目内ADB路径: {}", project_path);
+                let _ = CACHED_ADB_PATH.set(Some(project_path.clone()));
                 return Some(project_path);
             }
         }
@@ -120,35 +136,45 @@ impl AdbService {
         for path in adb_paths {
             // 跳过雷电模拟器黑名单路径
             if Self::is_ldplayer_blacklisted(path) {
-                warn!("⚠️ 跳过雷电模拟器ADB (已知崩溃问题): {}", path);
+                debug!("⚠️ 跳过雷电模拟器ADB (已知崩溃问题): {}", path);
                 continue;
             }
             
             if self.check_file_exists(path) {
-                info!("🧪 测试ADB路径: {}", path);
+                debug!("🧪 测试ADB路径: {}", path);
                 
                 // 验证路径可用性
                 if self.validate_adb_path(path) {
                     info!("✅ 找到可用的ADB: {}", path);
                     
                     // 如果是相对路径，尝试转换为绝对路径
-                    if path.starts_with("platform-tools") {
+                    let result_path = if path.starts_with("platform-tools") {
                         if let Ok(current_dir) = std::env::current_dir() {
                             let absolute_path = current_dir.join(path);
                             if absolute_path.exists() {
-                                return Some(absolute_path.to_string_lossy().to_string());
+                                absolute_path.to_string_lossy().to_string()
+                            } else {
+                                path.to_string()
                             }
+                        } else {
+                            path.to_string()
                         }
-                        return Some(path.to_string());
-                    }
-                    return Some(path.to_string());
+                    } else {
+                        path.to_string()
+                    };
+                    
+                    // 缓存结果
+                    let _ = CACHED_ADB_PATH.set(Some(result_path.clone()));
+                    return Some(result_path);
                 } else {
-                    warn!("⚠️ ADB路径存在但验证失败: {}", path);
+                    debug!("⚠️ ADB路径存在但验证失败: {}", path);
                 }
             }
         }
 
         warn!("❌ 未找到可用的ADB路径");
+        // 缓存失败结果，避免重复检测
+        let _ = CACHED_ADB_PATH.set(None);
         None
     }
 

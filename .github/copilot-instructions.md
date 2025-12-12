@@ -451,6 +451,10 @@ background: '#f8fafc'
 | **后端日志 (Rust)** | `src-tauri/logs/backend.log.YYYY-MM-DD` | 所有 `tracing::info/warn/error` 输出 |
 | **前端日志 (TS/JS)** | `logs/frontend-YYYY-MM-DD.log` | 所有 `console.log/warn/error` 输出 |
 
+### ⚡ 自动清空（开发模式）
+
+**每次 Ctrl+F5 热重载时，日志会自动清空**，无需手动操作。仅在 `debug_assertions` 开发模式生效。
+
 ### 查看日志命令
 
 ```powershell

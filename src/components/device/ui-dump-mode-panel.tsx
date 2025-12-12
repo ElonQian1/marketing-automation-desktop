@@ -12,9 +12,9 @@ import {
   Space,
   Tag,
   Typography,
-  message,
   InputNumber,
   Divider,
+  App,
 } from 'antd';
 import {
   CheckCircleOutlined,
@@ -43,7 +43,6 @@ import {
 import { useAdb } from '../../application/hooks/useAdb';
 
 const { Text } = Typography;
-const { Panel } = Collapse;
 
 interface UiDumpModePanelProps {
   /** 当前选中的设备 ID */
@@ -66,6 +65,7 @@ export const UiDumpModePanel: React.FC<UiDumpModePanelProps> = ({
   deviceId: propDeviceId,
   compact = false,
 }) => {
+  const { message } = App.useApp();
   const store = useUiDumpStore();
   const currentMode = useCurrentDumpMode();
   const config = useDumpConfig();
@@ -600,16 +600,17 @@ export const UiDumpModePanel: React.FC<UiDumpModePanelProps> = ({
       )}
       
       {/* 诊断日志面板 */}
-      <Collapse ghost>
-        <Panel
-          header={
+      <Collapse 
+        ghost
+        items={[{
+          key: 'diagnostics',
+          label: (
             <Space>
               <span>诊断日志</span>
               <Tag color="blue">{diagnostics.length} 条</Tag>
             </Space>
-          }
-          key="diagnostics"
-          extra={
+          ),
+          extra: (
             <Space onClick={(e) => e.stopPropagation()}>
               <Button
                 size="small"
@@ -628,19 +629,20 @@ export const UiDumpModePanel: React.FC<UiDumpModePanelProps> = ({
                 清空
               </Button>
             </Space>
-          }
-        >
-          <div style={{ maxHeight: 300, overflowY: 'auto' }}>
-            {diagnostics.length === 0 ? (
-              <Text type="secondary">暂无诊断日志</Text>
-            ) : (
-              diagnostics.slice().reverse().map((entry, index) => 
-                renderDiagnosticEntry(entry, index)
-              )
-            )}
-          </div>
-        </Panel>
-      </Collapse>
+          ),
+          children: (
+            <div style={{ maxHeight: 300, overflowY: 'auto' }}>
+              {diagnostics.length === 0 ? (
+                <Text type="secondary">暂无诊断日志</Text>
+              ) : (
+                diagnostics.slice().reverse().map((entry, index) => 
+                  renderDiagnosticEntry(entry, index)
+                )
+              )}
+            </div>
+          ),
+        }]}
+      />
     </Card>
   );
 };

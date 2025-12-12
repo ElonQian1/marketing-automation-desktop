@@ -147,8 +147,10 @@ export const LogConsole: React.FC = () => {
       <Card
         title={<span style={{ color: 'var(--text-primary)' }}>诊断结果</span>}
         style={{ backgroundColor: 'var(--bg-secondary)', color: 'var(--text-primary)' }}
-        headStyle={{ backgroundColor: 'var(--bg-secondary)', borderBottom: '1px solid var(--border-primary)' }}
-        bodyStyle={{ backgroundColor: 'var(--bg-secondary)' }}
+        styles={{
+          header: { backgroundColor: 'var(--bg-secondary)', borderBottom: '1px solid var(--border-primary)' },
+          body: { backgroundColor: 'var(--bg-secondary)' }
+        }}
         extra={
           <Space direction="vertical" size={8} style={{ backgroundColor: 'var(--bg-secondary)', padding: 8, borderRadius: 6 }}>
             <SessionTimelinePanel
