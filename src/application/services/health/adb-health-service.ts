@@ -55,9 +55,10 @@ export class AdbHealthService {
     }
 
     this.diagnosticsInterval = setInterval(async () => {
-      console.log('🔍 [AdbHealthService] 执行定期诊断检查...');
+      // 🔧 使用 runPeriodicCheck 而非 runQuickDiagnostic
+      // 跳过不会改变的 ADB 路径检测，减少不必要的后端调用
       try {
-        const diagnosticSummary = await this.diagnosticService.runQuickDiagnostic();
+        const diagnosticSummary = await this.diagnosticService.runPeriodicCheck();
         const store = StoreOperations.getStore();
         store.setDiagnosticResults(this.diagnosticService.getLastDiagnosticResults());
         

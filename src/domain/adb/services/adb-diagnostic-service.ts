@@ -73,6 +73,33 @@ export class AdbDiagnosticService {
   }
 
   /**
+   * 🔄 运行定期检查（用于后台定时任务，跳过静态检测项）
+   * 
+   * 与 runQuickDiagnostic 的区别：
+   * - 跳过 checkAdbPath()，因为路径在运行时不会改变
+   * - 只检查运行时可能变化的状态：服务器连接、设备列表
+   */
+  async runPeriodicCheck(): Promise<DiagnosticSummary> {
+    try {
+      // 🔧 只检查运行时可能变化的项目，跳过静态配置
+      const periodicChecks = [
+        this.diagnosticRepository.checkAdbServer(),
+        this.diagnosticRepository.scanDevices()
+      ];
+      
+      const results = await Promise.all(periodicChecks);
+      this.lastDiagnosticResults = results;
+      
+      const summary = DiagnosticSummary.fromResults(results);
+      
+      // 定期检查不触发事件，避免日志噪音
+      return summary;
+    } catch (error) {
+      throw new Error(`定期检查失败: ${error}`);
+    }
+  }
+
+  /**
    * 按类别运行诊断
    */
   async runDiagnosticByCategory(category: DiagnosticCategory): Promise<DiagnosticResult[]> {
