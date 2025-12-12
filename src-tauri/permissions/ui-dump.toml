@@ -1,0 +1,26 @@
+[[permission]]
+identifier = "allow-ui-dump"
+description = "Enables all ui dump commands"
+commands.allow = [
+    "plugin:ui_dump|get_mode",
+    "plugin:ui_dump|set_mode",
+    "plugin:ui_dump|dump",
+    "plugin:ui_dump|dump_and_save",
+    "plugin:ui_dump|test_mode",
+    "plugin:ui_dump|get_diagnostics",
+    "plugin:ui_dump|get_diagnostic_summary",
+    "plugin:ui_dump|clear_diagnostics",
+    "plugin:ui_dump|get_config",
+    "plugin:ui_dump|set_exec_out_timeout",
+    "plugin:ui_dump|set_dump_pull_timeout",
+    "plugin:ui_dump|clear_device_compat",
+    "plugin:ui_dump|reset_config",
+    "plugin:ui_dump|list_modes",
+    "plugin:ui_dump|check_android_app_status",
+    "plugin:ui_dump|diagnose_android_app",
+]
+
+[[set]]
+identifier = "ui-dump-default"
+description = "Default permissions for ui dump"
+permissions = ["allow-ui-dump"]

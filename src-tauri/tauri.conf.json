@@ -61,7 +61,8 @@
             "version-control-default",
             "automation-default",
             "enhanced-location-default",
-            "lead-hunt-default"
+            "lead-hunt-default",
+            "ui-dump-default"
           ]
         }
       ]

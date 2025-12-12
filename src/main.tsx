@@ -20,6 +20,9 @@ import { wireAnalysisEventsGlobally } from './application/analysis/wire-global-e
 // 🚨 紧急修复工具：智能分析100%卡住问题
 import './hotfix/analysis-completion-force-fix';
 
+// 📝 前端日志系统 - 自动保存到文件
+import './application/services/frontendLogger';
+
 if (typeof document !== 'undefined') {
   document.documentElement.setAttribute('data-theme', 'dark');
   document.documentElement.classList.add('dark');

@@ -437,3 +437,46 @@ background: '#f8fafc'
 ---
 
 **重要提醒**：本项目已完成 DDD 重构，任何开发都必须基于新架构。违反架构约束的代码将被拒绝合并。
+
+---
+
+## 📝 日志系统（AI 代理必读）
+
+### 日志文件位置
+
+前后端日志会**自动保存**到文件，方便调试和问题排查：
+
+| 日志类型 | 文件路径 | 说明 |
+|---------|---------|------|
+| **后端日志 (Rust)** | `src-tauri/logs/backend.log.YYYY-MM-DD` | 所有 `tracing::info/warn/error` 输出 |
+| **前端日志 (TS/JS)** | `logs/frontend-YYYY-MM-DD.log` | 所有 `console.log/warn/error` 输出 |
+
+### 查看日志命令
+
+```powershell
+# 查看后端日志（最后50行）
+Get-Content ".\src-tauri\logs\backend.log*" -Tail 50
+
+# 查看前端日志（最后50行）
+Get-Content ".\logs\frontend-*.log" -Tail 50
+
+# 实时跟踪后端日志
+Get-Content ".\src-tauri\logs\backend.log*" -Wait -Tail 20
+```
+
+### 清空日志
+
+在 PC 端程序中：**设备中心 → 日志查看 → 清空日志文件** 按钮
+
+或手动删除：
+```powershell
+Remove-Item ".\src-tauri\logs\*" -Force
+Remove-Item ".\logs\frontend-*.log" -Force
+```
+
+### AI 代理调试提示
+
+- 如果功能不工作，先检查**前端日志**查看 JS 错误
+- 如果后端命令失败，检查**后端日志**查看 Rust panic 或错误信息
+- 日志文件按日期滚动，每天生成新文件
+

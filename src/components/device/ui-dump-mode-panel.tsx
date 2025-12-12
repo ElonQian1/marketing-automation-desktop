@@ -10,9 +10,7 @@ import {
   Collapse,
   Radio,
   Space,
-  Spin,
   Tag,
-  Tooltip,
   Typography,
   message,
   InputNumber,
@@ -39,9 +37,12 @@ import {
   useUiDumpLoading,
   type DumpMode,
   type DiagnosticEntry,
+  type AndroidAppStatus,
+  type AndroidAppDiagnosis,
 } from '../../application/store/uiDumpStore';
+import { useAdb } from '../../application/hooks/useAdb';
 
-const { Text, Title } = Typography;
+const { Text } = Typography;
 const { Panel } = Collapse;
 
 interface UiDumpModePanelProps {
@@ -59,9 +60,10 @@ interface UiDumpModePanelProps {
  * 2. 测试当前模式按钮
  * 3. 可折叠诊断日志面板
  * 4. 超时配置
+ * 5. 内置设备选择器（如果没有传入 deviceId）
  */
 export const UiDumpModePanel: React.FC<UiDumpModePanelProps> = ({
-  deviceId,
+  deviceId: propDeviceId,
   compact = false,
 }) => {
   const store = useUiDumpStore();
@@ -72,12 +74,40 @@ export const UiDumpModePanel: React.FC<UiDumpModePanelProps> = ({
   const lastTestResult = useLastTestResult();
   const isLoading = useUiDumpLoading();
   
+  // 获取设备列表
+  const { devices, selectedDevice: globalSelectedDevice } = useAdb();
+  
+  // 使用传入的 deviceId，否则使用全局选中的设备，或者使用第一个在线设备
+  const [localDeviceId, setLocalDeviceId] = useState<string | undefined>(propDeviceId);
+  
+  // 获取在线设备列表
+  const onlineDevices = devices.filter(d => d.isOnline());
+  
+  // 计算实际使用的设备ID（确保类型为 string）
+  const effectiveDeviceId: string | undefined = propDeviceId 
+    || localDeviceId 
+    || (typeof globalSelectedDevice === 'string' ? globalSelectedDevice : globalSelectedDevice?.id) 
+    || undefined;
+  
+  // 自动选择第一个在线设备
+  useEffect(() => {
+    if (!effectiveDeviceId && onlineDevices.length > 0) {
+      const firstOnline = onlineDevices[0];
+      setLocalDeviceId(firstOnline.id);
+    }
+  }, [effectiveDeviceId, onlineDevices]);
+  
   const [diagnostics, setDiagnostics] = useState<DiagnosticEntry[]>([]);
   const [showSettings, setShowSettings] = useState(false);
+  const [androidAppStatus, setAndroidAppStatus] = useState<AndroidAppStatus | null>(null);
+  const [isCheckingApp, setIsCheckingApp] = useState(false);
+  const [isDiagnosing, setIsDiagnosing] = useState(false);
+  const [diagnosisResult, setDiagnosisResult] = useState<AndroidAppDiagnosis | null>(null);
   
   // 初始化
   useEffect(() => {
     store.initialize();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
   
   // 处理模式切换
@@ -92,13 +122,13 @@ export const UiDumpModePanel: React.FC<UiDumpModePanelProps> = ({
   
   // 处理测试
   const handleTest = async () => {
-    if (!deviceId) {
+    if (!effectiveDeviceId) {
       message.warning('请先选择设备');
       return;
     }
     
     try {
-      const result = await store.testMode(deviceId, currentMode);
+      const result = await store.testMode(effectiveDeviceId, currentMode);
       if (result.success) {
         message.success(`测试成功! 耗时: ${result.elapsed_ms}ms, 大小: ${result.xml_length}字符`);
       } else {
@@ -108,6 +138,53 @@ export const UiDumpModePanel: React.FC<UiDumpModePanelProps> = ({
       await refreshDiagnostics();
     } catch (error) {
       message.error(`测试失败: ${error}`);
+    }
+  };
+  
+  // 检查 Android App 连接状态
+  const handleCheckAndroidApp = async () => {
+    if (!effectiveDeviceId) {
+      message.warning('请先选择设备');
+      return;
+    }
+    
+    setIsCheckingApp(true);
+    try {
+      const status = await store.checkAndroidAppStatus(effectiveDeviceId);
+      setAndroidAppStatus(status);
+      if (status.connected) {
+        message.success(status.message);
+      } else {
+        message.warning(`${status.message} - ${status.suggestion}`);
+      }
+    } catch (error) {
+      message.error(`检查失败: ${error}`);
+    } finally {
+      setIsCheckingApp(false);
+    }
+  };
+  
+  // 完整诊断 Android App
+  const handleDiagnoseAndroidApp = async () => {
+    if (!effectiveDeviceId) {
+      message.warning('请先选择设备');
+      return;
+    }
+    
+    setIsDiagnosing(true);
+    setDiagnosisResult(null);
+    try {
+      const result = await store.diagnoseAndroidApp(effectiveDeviceId);
+      setDiagnosisResult(result);
+      if (result.success) {
+        message.success('诊断完成：所有测试通过！');
+      } else {
+        message.warning('诊断完成：存在失败项');
+      }
+    } catch (error) {
+      message.error(`诊断失败: ${error}`);
+    } finally {
+      setIsDiagnosing(false);
     }
   };
   
@@ -205,7 +282,7 @@ export const UiDumpModePanel: React.FC<UiDumpModePanelProps> = ({
           size="small"
           icon={<ExperimentOutlined />}
           loading={isTestRunning}
-          disabled={!deviceId}
+          disabled={!effectiveDeviceId}
           onClick={handleTest}
         >
           测试
@@ -251,7 +328,7 @@ export const UiDumpModePanel: React.FC<UiDumpModePanelProps> = ({
             type="primary"
             icon={<ExperimentOutlined />}
             loading={isTestRunning}
-            disabled={!deviceId}
+            disabled={!effectiveDeviceId}
             onClick={handleTest}
           >
             测试当前模式
@@ -259,6 +336,41 @@ export const UiDumpModePanel: React.FC<UiDumpModePanelProps> = ({
         </Space>
       }
     >
+      {/* 设备选择器 */}
+      <div style={{ marginBottom: 16 }}>
+        <Text type="secondary" style={{ display: 'block', marginBottom: 8 }}>
+          当前设备：
+        </Text>
+        {onlineDevices.length === 0 ? (
+          <Alert
+            type="warning"
+            message="未检测到在线设备"
+            description="请确保设备已连接并开启 USB 调试"
+            showIcon
+          />
+        ) : (
+          <Radio.Group
+            value={effectiveDeviceId}
+            onChange={(e) => setLocalDeviceId(e.target.value)}
+            style={{ width: '100%' }}
+          >
+            <Space direction="vertical" style={{ width: '100%' }}>
+              {onlineDevices.map(device => (
+                <Radio key={device.id} value={device.id}>
+                  <Space>
+                    <Tag color="green">在线</Tag>
+                    <span>{device.id}</span>
+                    {device.model && <Text type="secondary">({device.model})</Text>}
+                  </Space>
+                </Radio>
+              ))}
+            </Space>
+          </Radio.Group>
+        )}
+      </div>
+
+      <Divider style={{ margin: '12px 0' }} />
+
       {/* 模式选择 */}
       <div style={{ marginBottom: 16 }}>
         <Text type="secondary" style={{ display: 'block', marginBottom: 8 }}>
@@ -282,6 +394,11 @@ export const UiDumpModePanel: React.FC<UiDumpModePanelProps> = ({
                   {getModeIcon(mode.mode)}
                   <span>{mode.name}</span>
                   {!mode.implemented && <Tag color="orange">预留</Tag>}
+                  {mode.mode === 'a11y' && androidAppStatus && (
+                    <Tag color={androidAppStatus.connected ? 'green' : 'red'}>
+                      {androidAppStatus.connected ? '已连接' : '未连接'}
+                    </Tag>
+                  )}
                 </Space>
                 <br />
                 <Text type="secondary" style={{ fontSize: 12, marginLeft: 24 }}>
@@ -292,6 +409,125 @@ export const UiDumpModePanel: React.FC<UiDumpModePanelProps> = ({
           </Space>
         </Radio.Group>
       </div>
+      
+      {/* Android App 连接状态与诊断 */}
+      {(currentMode === 'a11y' || currentMode === 'auto') && (
+        <Card size="small" title="Android App 连接诊断" style={{ marginBottom: 16 }}>
+          <Space direction="vertical" style={{ width: '100%' }}>
+            {/* 操作按钮 */}
+            <Space wrap>
+              <Button
+                icon={<ReloadOutlined spin={isCheckingApp} />}
+                onClick={handleCheckAndroidApp}
+                loading={isCheckingApp}
+                disabled={!effectiveDeviceId || isDiagnosing}
+              >
+                快速检测
+              </Button>
+              <Button
+                type="primary"
+                icon={<ExperimentOutlined />}
+                onClick={handleDiagnoseAndroidApp}
+                loading={isDiagnosing}
+                disabled={!effectiveDeviceId || isCheckingApp}
+              >
+                完整诊断
+              </Button>
+              {androidAppStatus && (
+                <Tag 
+                  color={androidAppStatus.connected ? 'success' : 'error'}
+                  icon={androidAppStatus.connected ? <CheckCircleOutlined /> : <CloseCircleOutlined />}
+                >
+                  {androidAppStatus.message}
+                </Tag>
+              )}
+            </Space>
+            
+            {/* 快速检测结果 */}
+            {androidAppStatus && !androidAppStatus.connected && !diagnosisResult && (
+              <Alert
+                type="warning"
+                message={androidAppStatus.suggestion}
+                showIcon
+              />
+            )}
+            
+            {/* 完整诊断结果 */}
+            {diagnosisResult && (
+              <div style={{ marginTop: 8 }}>
+                <Alert
+                  type={diagnosisResult.success ? 'success' : 'warning'}
+                  message={diagnosisResult.summary}
+                  description={`总耗时: ${diagnosisResult.total_elapsed_ms}ms`}
+                  showIcon
+                  style={{ marginBottom: 12 }}
+                />
+                
+                {/* 诊断步骤列表 */}
+                <div 
+                  className="light-theme-force"
+                  style={{ 
+                    background: 'var(--bg-light-base, #f8fafc)',
+                    borderRadius: 8,
+                    padding: 12,
+                  }}
+                >
+                  <Text strong style={{ color: '#1e293b', display: 'block', marginBottom: 8 }}>
+                    诊断步骤详情:
+                  </Text>
+                  <Space direction="vertical" style={{ width: '100%' }}>
+                    {diagnosisResult.steps.map((step, index) => (
+                      <div 
+                        key={index}
+                        style={{
+                          padding: '8px 12px',
+                          background: step.passed ? 'rgba(82, 196, 26, 0.1)' : 'rgba(255, 77, 79, 0.1)',
+                          borderRadius: 4,
+                          borderLeft: `3px solid ${step.passed ? '#52c41a' : '#ff4d4f'}`,
+                        }}
+                      >
+                        <Space style={{ width: '100%', justifyContent: 'space-between' }}>
+                          <Space>
+                            {step.passed ? (
+                              <CheckCircleOutlined style={{ color: '#52c41a' }} />
+                            ) : (
+                              <CloseCircleOutlined style={{ color: '#ff4d4f' }} />
+                            )}
+                            <Text strong style={{ color: '#1e293b' }}>{step.name}</Text>
+                            <Tag color="cyan">{step.elapsed_ms}ms</Tag>
+                          </Space>
+                        </Space>
+                        <div style={{ marginTop: 4, paddingLeft: 22 }}>
+                          <Text style={{ color: '#374151', fontSize: 13 }}>{step.message}</Text>
+                          {step.details && (
+                            <div style={{ marginTop: 4 }}>
+                              <Text 
+                                type="secondary" 
+                                style={{ 
+                                  fontSize: 11, 
+                                  fontFamily: 'monospace',
+                                  wordBreak: 'break-all',
+                                  color: '#6b7280',
+                                }}
+                              >
+                                {step.details}
+                              </Text>
+                            </div>
+                          )}
+                        </div>
+                      </div>
+                    ))}
+                  </Space>
+                </div>
+              </div>
+            )}
+            
+            <Text type="secondary" style={{ fontSize: 12 }}>
+              A11y 模式需要安装并启动 Android Agent App，并授权无障碍权限
+            </Text>
+          </Space>
+        </Card>
+      )}
       
       {/* 最后测试结果 */}
       {lastTestResult && (

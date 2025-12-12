@@ -28,6 +28,7 @@ import {
 } from '@ant-design/icons';
 import { useAdb } from '../../application/hooks/useAdb';
 import { Device } from '../../domain/adb';
+import { UiDumpModePanel } from './ui-dump-mode-panel';
 
 const { Text } = Typography;
 
@@ -176,6 +177,9 @@ export const RealDeviceManager: React.FC<DeviceManagerProps> = ({
           </div>
         </Card>
       </div>
+
+      {/* UI Dump 模式选择面板 */}
+      <UiDumpModePanel deviceId={globalSelectedDevice || undefined} />
 
       {/* 设备列表 */}
       <Card title="设备列表" extra={

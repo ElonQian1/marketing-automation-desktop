@@ -11,18 +11,24 @@ import RealTimeDeviceMonitorPage from '../device-monitor/RealTimeDeviceMonitorPa
 import EnhancedADBAuthWizard from './auth/EnhancedADBAuthWizard';
 import HeaderToolbar from './HeaderToolbar';
 import LogConsole from './LogConsole';
+import { UiDumpModePanel } from '../../components/device/ui-dump-mode-panel';
 
 const { Title, Paragraph } = Typography;
 
 export const AdbCenterPage: React.FC = () => {
   const [activeTab, setActiveTab] = useState('monitor');
-  const { devices, isLoading } = useAdb();
+  const { devices, isLoading, selectedDevice } = useAdb();
 
   const items: TabsProps['items'] = [
     {
       key: 'monitor',
       label: '实时设备监控',
       children: <RealTimeDeviceMonitorPage />,
+    },
+    {
+      key: 'ui-dump',
+      label: 'UI Dump 模式',
+      children: <UiDumpModePanel deviceId={selectedDevice || undefined} />,
     },
     {
       key: 'auth',

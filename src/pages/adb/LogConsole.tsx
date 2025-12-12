@@ -14,6 +14,7 @@ import { LogQuickPresets } from './logs/LogQuickPresets';
 import { SessionTimelinePanel } from './logs/SessionTimelinePanel';
 import { LogMessage } from './logs/LogMessage';
 import { DetailsBlock } from './logs/DetailsBlock';
+import { LogFileManager } from './logs/LogFileManager';
 
 const { Text } = Typography;
 
@@ -137,7 +138,10 @@ export const LogConsole: React.FC = () => {
   const resetAll = React.useCallback(() => { clearFilters(); }, [clearFilters]);
 
   return (
-    <Space direction="vertical" style={{ width: '100%' }}>
+    <Space direction="vertical" style={{ width: '100%' }} size="large">
+      {/* 日志文件管理面板 */}
+      <LogFileManager />
+
       {lastError && (<Alert type="error" showIcon message="最近错误" description={String(lastError)} />)}
 
       <Card

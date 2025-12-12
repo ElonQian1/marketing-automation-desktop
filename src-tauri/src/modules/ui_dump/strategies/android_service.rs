@@ -12,7 +12,6 @@ use tracing::{debug, info, warn};
 
 use crate::modules::ui_dump::domain::capturer_trait::ScreenCapturer;
 use crate::modules::ui_dump::ui_dump_types::{DumpMode, DumpResult};
-use crate::services::adb::get_device_session;
 
 /// Android Agent 服务策略
 pub struct AndroidServiceStrategy {
@@ -26,13 +25,43 @@ impl AndroidServiceStrategy {
     }
 
     /// 确保端口转发已设置
+    /// 
+    /// 执行 `adb -s <device_id> forward tcp:11451 tcp:11451`
     async fn ensure_port_forward(&self, device_id: &str) -> Result<()> {
-        // TODO: 检查是否已转发，如果没有则执行 adb forward
-        // 目前假设外部已经做好了转发，或者在这里调用 adb 命令
-        // 为了简单起见，这里先调用一次 adb forward
-        let session = get_device_session(device_id).await?;
-        // 注意：这里需要一个能够执行 adb forward 的方法
-        // 暂时略过，假设用户或上层已经配置好
+        use tokio::process::Command;
+        
+        let port_str = self.port.to_string();
+        let local_remote = format!("tcp:{}", port_str);
+        
+        // 先检查是否已转发 (通过 adb forward --list)
+        let list_output = Command::new("adb")
+            .args(["-s", device_id, "forward", "--list"])
+            .output()
+            .await
+            .context("执行 adb forward --list 失败")?;
+        
+        let list_str = String::from_utf8_lossy(&list_output.stdout);
+        let expected_forward = format!("{} tcp:{} tcp:{}", device_id, self.port, self.port);
+        
+        if list_str.contains(&expected_forward) {
+            debug!("📡 端口转发已存在: {}", expected_forward);
+            return Ok(());
+        }
+        
+        // 执行 adb forward
+        info!("📡 设置端口转发: {} -> tcp:{}", device_id, self.port);
+        let output = Command::new("adb")
+            .args(["-s", device_id, "forward", &local_remote, &local_remote])
+            .output()
+            .await
+            .context("执行 adb forward 失败")?;
+        
+        if !output.status.success() {
+            let stderr = String::from_utf8_lossy(&output.stderr);
+            anyhow::bail!("adb forward 失败: {}", stderr);
+        }
+        
+        debug!("✅ 端口转发设置成功");
         Ok(())
     }
 
@@ -77,8 +106,16 @@ impl ScreenCapturer for AndroidServiceStrategy {
         let start = Instant::now();
         debug!("🚀 AndroidService 模式开始: device={}", device_id);
 
-        // 1. 确保端口转发 (简化版：假设已转发)
-        // self.ensure_port_forward(device_id).await?;
+        // 1. 确保端口转发
+        if let Err(e) = self.ensure_port_forward(device_id).await {
+            warn!("⚠️ 设置端口转发失败: {}", e);
+            return Ok(DumpResult::failure(
+                device_id.to_string(),
+                DumpMode::A11y,
+                format!("端口转发失败: {}", e),
+                start.elapsed().as_millis() as u64
+            ));
+        }
 
         // 2. 连接 Socket
         let addr = format!("127.0.0.1:{}", self.port);
@@ -90,13 +127,13 @@ impl ScreenCapturer for AndroidServiceStrategy {
             Ok(Err(e)) => return Ok(DumpResult::failure(
                 device_id.to_string(),
                 DumpMode::A11y,
-                format!("连接失败: {}", e),
+                format!("连接失败 (请确认 Android App 已启动): {}", e),
                 start.elapsed().as_millis() as u64
             )),
             Err(_) => return Ok(DumpResult::failure(
                 device_id.to_string(),
                 DumpMode::A11y,
-                "连接超时".to_string(),
+                "连接超时 (请确认 Android App 已启动并授权无障碍权限)".to_string(),
                 start.elapsed().as_millis() as u64
             )),
         };

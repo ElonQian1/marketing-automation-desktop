@@ -261,6 +261,12 @@
           "markdownDescription": "Default permissions for system diagnostic\n#### This permission set includes:\n\n- `allow-system-diagnostic`"
         },
         {
+          "description": "Default permissions for ui dump\n#### This permission set includes:\n\n- `allow-ui-dump`",
+          "type": "string",
+          "const": "ui-dump-default",
+          "markdownDescription": "Default permissions for ui dump\n#### This permission set includes:\n\n- `allow-ui-dump`"
+        },
+        {
           "description": "Default permissions for universal ui\n#### This permission set includes:\n\n- `allow-universal-ui`",
           "type": "string",
           "const": "universal-ui-default",
@@ -361,6 +367,12 @@
           "type": "string",
           "const": "allow-system-diagnostic",
           "markdownDescription": "Enables all system diagnostic commands"
+        },
+        {
+          "description": "Enables all ui dump commands",
+          "type": "string",
+          "const": "allow-ui-dump",
+          "markdownDescription": "Enables all ui dump commands"
         },
         {
           "description": "Enables all universal ui commands",

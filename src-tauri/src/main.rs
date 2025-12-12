@@ -33,7 +33,7 @@ mod modules; // ✅ 新增模块化插件系统
 use std::sync::Mutex;
 use tauri_plugin_dialog;
 use tracing::info;
-use tracing_subscriber::{layer::SubscriberExt, util::SubscriberInitExt};
+use tracing_subscriber::{layer::SubscriberExt, util::SubscriberInitExt, fmt::format::FmtSpan};
 
 // ==================== 🔧 服务层导入 ====================
 use services::adb::{AdbService, initialize_adb_system};
@@ -92,14 +92,72 @@ use services::vcf::smart_vcf_opener;
 // use services::adb::commands::{adb_dump_ui_xml, adb_tap_coordinate};
 
 fn main() {
-    // 初始化日志系统
+    // 创建日志目录
+    let log_dir = std::env::current_dir()
+        .unwrap_or_else(|_| std::path::PathBuf::from("."))
+        .join("logs");
+    std::fs::create_dir_all(&log_dir).ok();
+    
+    // 🧹 开发模式下：启动时清空旧日志文件
+    #[cfg(debug_assertions)]
+    {
+        // 清空后端日志 (src-tauri/logs/)
+        let backend_log_dir = std::path::PathBuf::from("src-tauri/logs");
+        if backend_log_dir.exists() {
+            if let Ok(entries) = std::fs::read_dir(&backend_log_dir) {
+                for entry in entries.flatten() {
+                    let path = entry.path();
+                    if path.is_file() {
+                        let _ = std::fs::remove_file(&path);
+                    }
+                }
+            }
+        }
+        
+        // 清空前端日志 (logs/frontend-*.log)
+        let frontend_log_dir = std::path::PathBuf::from("logs");
+        if frontend_log_dir.exists() {
+            if let Ok(entries) = std::fs::read_dir(&frontend_log_dir) {
+                for entry in entries.flatten() {
+                    let path = entry.path();
+                    if path.is_file() && path.file_name()
+                        .map(|n| n.to_string_lossy().starts_with("frontend-"))
+                        .unwrap_or(false)
+                    {
+                        let _ = std::fs::remove_file(&path);
+                    }
+                }
+            }
+        }
+        
+        eprintln!("🧹 [DEV] 已清空旧日志文件");
+    }
+    
+    // 创建日志文件 appender（后端日志）
+    let file_appender = tracing_appender::rolling::daily(&log_dir, "backend.log");
+    let (non_blocking, _guard) = tracing_appender::non_blocking(file_appender);
+    
+    // 初始化日志系统 - 同时输出到控制台和文件
     tracing_subscriber::registry()
         .with(
             tracing_subscriber::EnvFilter::try_from_default_env()
                 .unwrap_or_else(|_| "info,employee_gui=debug".into()),
         )
-        .with(tracing_subscriber::fmt::layer())
+        // 控制台输出层
+        .with(tracing_subscriber::fmt::layer()
+            .with_target(true)
+            .with_thread_ids(false))
+        // 文件输出层
+        .with(tracing_subscriber::fmt::layer()
+            .with_writer(non_blocking)
+            .with_ansi(false)  // 文件不需要 ANSI 颜色
+            .with_target(true)
+            .with_thread_ids(true)
+            .with_file(true)
+            .with_line_number(true))
         .init();
+    
+    info!("📁 后端日志保存到: {}", log_dir.join("backend.log").display());
 
     // ✅ 初始化 ADB 系统 (启动 Server + 初始化跟踪器)
     if let Err(e) = initialize_adb_system() {

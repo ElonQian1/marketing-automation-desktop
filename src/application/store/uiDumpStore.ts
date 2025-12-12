@@ -77,6 +77,31 @@ export interface ModeInfo {
   implemented: boolean;
 }
 
+/** Android App 连接状态 */
+export interface AndroidAppStatus {
+  connected: boolean;
+  port: number;
+  message: string;
+  suggestion: string;
+}
+
+/** 诊断步骤结果 */
+export interface DiagnosticStep {
+  name: string;
+  passed: boolean;
+  message: string;
+  elapsed_ms: number;
+  details: string | null;
+}
+
+/** 完整诊断结果 */
+export interface AndroidAppDiagnosis {
+  success: boolean;
+  steps: DiagnosticStep[];
+  total_elapsed_ms: number;
+  summary: string;
+}
+
 // ============================================================================
 // Store 状态接口
 // ============================================================================
@@ -141,6 +166,12 @@ interface UiDumpState {
   
   /** 获取可用模式列表 */
   fetchAvailableModes: () => Promise<void>;
+  
+  /** 检查 Android App 连接状态（简单版） */
+  checkAndroidAppStatus: (deviceId: string) => Promise<AndroidAppStatus>;
+  
+  /** 完整诊断 Android App 连接 */
+  diagnoseAndroidApp: (deviceId: string) => Promise<AndroidAppDiagnosis>;
 }
 
 // ============================================================================
@@ -345,6 +376,36 @@ export const useUiDumpStore = create<UiDumpState>((set, get) => ({
       console.error('获取可用模式列表失败:', error);
     }
   },
+  
+  checkAndroidAppStatus: async (deviceId: string) => {
+    try {
+      const status = await invoke<AndroidAppStatus>('plugin:ui_dump|check_android_app_status', { deviceId });
+      return status;
+    } catch (error) {
+      console.error('检查 Android App 状态失败:', error);
+      return {
+        connected: false,
+        port: 11451,
+        message: error instanceof Error ? error.message : String(error),
+        suggestion: '请检查设备连接',
+      };
+    }
+  },
+  
+  diagnoseAndroidApp: async (deviceId: string) => {
+    try {
+      const diagnosis = await invoke<AndroidAppDiagnosis>('plugin:ui_dump|diagnose_android_app', { deviceId });
+      return diagnosis;
+    } catch (error) {
+      console.error('诊断 Android App 失败:', error);
+      return {
+        success: false,
+        steps: [],
+        total_elapsed_ms: 0,
+        summary: error instanceof Error ? error.message : String(error),
+      };
+    }
+  },
 }));
 
 // ============================================================================
@@ -385,4 +446,5 @@ export const useUiDumpActions = () => useUiDumpStore(state => ({
   setExecOutTimeout: state.setExecOutTimeout,
   setDumpPullTimeout: state.setDumpPullTimeout,
   clearDeviceCompat: state.clearDeviceCompat,
+  checkAndroidAppStatus: state.checkAndroidAppStatus,
 }));
