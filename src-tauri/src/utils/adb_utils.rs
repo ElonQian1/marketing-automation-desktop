@@ -1,13 +1,28 @@
-use tracing::{info, warn};
+use tracing::{debug, info, warn};
 use std::process::{Command, Output};
+use std::sync::OnceLock;
 use anyhow::Result;
 
 #[cfg(windows)]
 use std::os::windows::process::CommandExt;
 
+/// 🔧 ADB 路径缓存 - 避免重复检测文件系统
+static CACHED_ADB_PATH: OnceLock<String> = OnceLock::new();
+
 /// 获取 ADB 可执行文件的路径
 /// 在开发环境和生产环境中都能正确找到 ADB 工具
+/// 
+/// ⚡ 使用 OnceLock 缓存，首次调用后不再重复检测文件系统
 pub fn get_adb_path() -> String {
+    // 🔧 使用缓存避免重复文件系统检测
+    CACHED_ADB_PATH.get_or_init(|| {
+        debug!("🔍 首次检测ADB路径...");
+        detect_adb_path_internal()
+    }).clone()
+}
+
+/// 内部实际检测逻辑（仅首次调用时执行）
+fn detect_adb_path_internal() -> String {
     let possible_adb_paths = vec![
         // 1. 开发环境: 项目根目录的platform-tools
         std::env::current_dir()
@@ -34,13 +49,11 @@ pub fn get_adb_path() -> String {
 
     // 找到第一个存在的ADB路径
     for path in &possible_adb_paths {
-        info!("🔍 检查ADB路径: {}", path.display());
+        debug!("🔍 检查ADB路径: {}", path.display());
         if path.exists() {
             let path_str = path.to_string_lossy().to_string();
             info!("✅ 找到可用的ADB路径: {}", path_str);
             return path_str;
-        } else {
-            info!("❌ ADB路径不存在: {}", path.display());
         }
     }
     
