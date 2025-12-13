@@ -17,3 +17,4 @@ pub mod script_manager;
 pub mod prospecting;
 pub mod ai;
 pub mod ui_dump;  // ✅ UI Dump 多模式系统
+pub mod agent;    // ✅ AI Agent 插件（内嵌 AI 代理）
