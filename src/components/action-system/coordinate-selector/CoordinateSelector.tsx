@@ -200,7 +200,7 @@ export const CoordinateSelector: React.FC<CoordinateSelectorProps> = ({
             <span>{title}</span>
           </Space>
         }
-        bodyStyle={{ padding: '12px' }}
+        styles={{ body: { padding: '12px' } }}
       >
       <Space direction="vertical" style={{ width: '100%' }} size="small">
         

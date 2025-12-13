@@ -85,23 +85,25 @@ export const ResizablePanel: React.FC<ResizablePanelProps> = ({
         </Space>
       }
       extra={headerControls}
-      bodyStyle={{
-        height: 'calc(100% - 56px)', // 减去头部高度
-        overflow: 'auto',
-        padding: '16px',
-        ...bodyStyle,
-      }}
       style={{
         height: '100%',
         border: '1px solid #f0f0f0',
         borderRadius: '8px',
         boxShadow: '0 2px 8px rgba(0, 0, 0, 0.1)',
       }}
-      headStyle={{
-        borderBottom: '1px solid #f0f0f0',
-        minHeight: '56px',
-        padding: '0 16px',
-        background: '#fafafa',
+      styles={{ 
+        header: {
+          borderBottom: '1px solid #f0f0f0',
+          minHeight: '56px',
+          padding: '0 16px',
+          background: '#fafafa',
+        },
+        body: {
+          height: 'calc(100% - 56px)', // 减去头部高度
+          overflow: 'auto',
+          padding: '16px',
+          ...bodyStyle,
+        }
       }}
     >
       {children}

@@ -184,11 +184,13 @@ export const DraggableHeaderPanel: React.FC<DraggableHeaderPanelProps> = ({
       extra={buildHeaderExtra()}
       className={`draggable-panel ${className}`}
       style={style}
-      bodyStyle={bodyStyle}
-      headStyle={{
-        cursor: 'move',
-        userSelect: 'none',
-        ...headerStyle
+      styles={{ 
+        body: bodyStyle,
+        header: {
+          cursor: 'move',
+          userSelect: 'none',
+          ...headerStyle
+        }
       }}
     >
       <div

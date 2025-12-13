@@ -25,8 +25,7 @@ export const AdbCommandsCard: React.FC<AdbCommandsCardProps> = ({ commands }) =>
       size="small"
       title={<span style={{ color: '#fff' }}>⚡ 推荐 ADB 命令 <Tag color="blue">{commands.length} 条</Tag></span>}
       style={{ background: colors.surface, border: `1px solid ${colors.border}` }}
-      headStyle={{ background: colors.surfaceAlt, borderBottom: `1px solid ${colors.border}`, color: '#fff' }}
-      bodyStyle={{ background: colors.surface }}
+      styles={{ header: { background: colors.surfaceAlt, borderBottom: `1px solid ${colors.border}`, color: '#fff' }, body: { background: colors.surface } }}
     >
       <div style={{ display: 'flex', flexDirection: 'column', gap: 8, maxHeight: 200, overflowY: 'auto' }}>
         {commands.slice(0, 3).map((cmd, index) => (

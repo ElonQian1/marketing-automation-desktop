@@ -78,7 +78,7 @@ export const CacheToolbar: React.FC<CacheToolbarProps> = ({
           <Card
             size="small"
             style={{ textAlign: "center", padding: "8px 4px", minHeight: "auto" }}
-            bodyStyle={{ padding: "8px 4px" }}
+            styles={{ body: { padding: "8px 4px" } }}
           >
             <div style={{ fontSize: "10px", color: "#666", marginBottom: "2px" }}>总页面数</div>
             <div style={{ fontSize: "14px", fontWeight: "bold", color: "#1890ff" }}>
@@ -88,7 +88,7 @@ export const CacheToolbar: React.FC<CacheToolbarProps> = ({
           <Card
             size="small"
             style={{ textAlign: "center", padding: "8px 4px", minHeight: "auto" }}
-            bodyStyle={{ padding: "8px 4px" }}
+            styles={{ body: { padding: "8px 4px" } }}
           >
             <div style={{ fontSize: "10px", color: "#666", marginBottom: "2px" }}>缓存大小</div>
             <div style={{ fontSize: "14px", fontWeight: "bold", color: "#52c41a" }}>

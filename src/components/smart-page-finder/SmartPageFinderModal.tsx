@@ -277,7 +277,7 @@ export const SmartPageFinderModal: React.FC<SmartPageFinderModalProps> = ({
               }
               size="small"
               style={{ flex: 1, display: 'flex', flexDirection: 'column' }}
-              bodyStyle={{ flex: 1, padding: '12px', overflow: 'hidden' }}
+              styles={{ body: { flex: 1, padding: '12px', overflow: 'hidden' } }}
             >
               {isReady() ? (
                 <ElementHierarchyTree
@@ -319,7 +319,7 @@ export const SmartPageFinderModal: React.FC<SmartPageFinderModalProps> = ({
               title="选中的元素" 
               size="small"
               style={{ marginBottom: 16, flex: 1 }}
-              bodyStyle={{ padding: '12px', maxHeight: '300px', overflow: 'auto' }}
+              styles={{ body: { padding: '12px', maxHeight: '300px', overflow: 'auto' } }}
             >
               <SelectedElementsList
                 selectedElements={selectedElements}

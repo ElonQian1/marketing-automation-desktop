@@ -140,7 +140,7 @@ export const ExcludeRuleEditor: React.FC<ExcludeRuleEditorProps> = ({
               background: rule.enabled ? '#fff' : '#f5f5f5',
               border: `1px solid ${rule.enabled ? '#d9d9d9' : '#e8e8e8'}`,
             }}
-            bodyStyle={{ padding: '8px 12px' }}
+            styles={{ body: { padding: '8px 12px' } }}
           >
             <Space size={8} wrap style={{ width: '100%' }}>
               {/* 规则编号 */}

@@ -109,7 +109,7 @@ export const ParentElementCard: React.FC<ElementCardProps> = ({
         background: 'var(--bg-light-elevated, #ffffff)',
         color: 'var(--text-inverse, #1e293b)'
       }}
-      bodyStyle={{ padding: compact ? 8 : 12 }}
+      styles={{ body: { padding: compact ? 8 : 12 } }}
       title={
         <Space size="small">
           <ArrowUpOutlined style={{ color: 'var(--brand, #1890ff)' }} />

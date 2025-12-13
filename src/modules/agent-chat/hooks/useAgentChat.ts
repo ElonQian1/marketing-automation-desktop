@@ -56,7 +56,7 @@ export function useAgentChat(options: UseAgentChatOptions = {}): UseAgentChatRet
   const [hasSavedConfig, setHasSavedConfig] = useState(false);
   
   const messagesEndRef = useRef<HTMLDivElement>(null);
-  const restoredRef = useRef(false);
+  const initDoneRef = useRef(false); // 防止重复初始化
 
   // 滚动到底部
   const scrollToBottom = useCallback(() => {
@@ -358,43 +358,81 @@ export function useAgentChat(options: UseAgentChatOptions = {}): UseAgentChatRet
     }
   }, [isConfigured, restoreConfig]);
 
-  // 自动检查和恢复配置
+  // 组件挂载时自动检查和恢复配置（只执行一次）
   useEffect(() => {
-    // 注意：热重载时 restoredRef 会保留状态，所以我们需要检查当前配置状态
-    const checkAndRestore = async () => {
-      const status = await agentChatService.getConfigStatus();
-      setHasSavedConfig(status.hasSavedConfig);
+    // 防止 StrictMode 或其他原因导致重复执行
+    if (initDoneRef.current) {
+      console.log('⏭️ [useAgentChat] 已初始化过，跳过');
+      return;
+    }
+    initDoneRef.current = true;
+    
+    let cancelled = false;
+    
+    const initConfig = async () => {
+      console.log('🚀 [useAgentChat] 初始化配置检查...');
       
-      // 如果后端已配置但前端状态不同步，更新前端状态
-      if (status.isConfigured && !isConfigured) {
-        console.log('🔄 后端已配置，同步前端状态...');
-        setIsConfigured(true);
-        if (status.provider) {
-          setCurrentProvider(status.provider as AgentProvider);
-        }
-        const toolList = await agentChatService.listTools();
-        setTools(toolList);
+      try {
+        const status = await agentChatService.getConfigStatus();
+        if (cancelled) return;
         
-        // 如果没有消息，添加欢迎消息
-        if (messages.length === 0) {
-          addMessage({
-            role: 'assistant',
-            content: `🔄 配置已恢复 (${status.provider})\n\n可用工具: ${toolList.length} 个`,
-          });
+        console.log('📊 配置状态:', status);
+        setHasSavedConfig(status.hasSavedConfig);
+        
+        // 情况1：后端已配置（热重载后后端状态保留的情况）
+        if (status.isConfigured) {
+          console.log('✅ 后端已配置，同步前端状态');
+          setIsConfigured(true);
+          if (status.provider) {
+            setCurrentProvider(status.provider as AgentProvider);
+          }
+          const toolList = await agentChatService.listTools();
+          if (!cancelled) {
+            setTools(toolList);
+            addMessage({
+              role: 'assistant',
+              content: `🔄 配置已恢复 (${status.provider})\n\n可用工具: ${toolList.length} 个`,
+            });
+          }
+          return;
         }
-        return;
-      }
-      
-      // 如果启用自动恢复，且有保存的配置，且尚未配置，且尚未恢复过
-      if (autoRestore && status.hasSavedConfig && !status.isConfigured && !restoredRef.current) {
-        console.log('🔄 检测到保存的配置，自动恢复...');
-        restoredRef.current = true;
-        await restoreConfig();
+        
+        // 情况2：后端未配置但有保存的配置（常见的热重载场景）
+        if (autoRestore && status.hasSavedConfig && !status.isConfigured) {
+          console.log('🔄 检测到保存的配置，自动恢复...');
+          const result = await agentChatService.restoreConfig();
+          if (cancelled) return;
+          
+          if (result.success) {
+            console.log('✅ 配置恢复成功');
+            setIsConfigured(true);
+            if (status.provider) {
+              setCurrentProvider(status.provider as AgentProvider);
+            }
+            const toolList = await agentChatService.listTools();
+            if (!cancelled) {
+              setTools(toolList);
+              addMessage({
+                role: 'assistant',
+                content: `🔄 配置已自动恢复 (${status.provider})\n\n可用工具: ${toolList.length} 个`,
+              });
+            }
+          } else {
+            console.warn('⚠️ 配置恢复失败:', result.error);
+          }
+        }
+      } catch (error) {
+        console.error('❌ 初始化配置检查失败:', error);
       }
     };
     
-    checkAndRestore();
-  }, [autoRestore, restoreConfig, isConfigured, messages.length, addMessage]);
+    initConfig();
+    
+    return () => {
+      cancelled = true;
+    };
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []); // 空依赖，只在挂载时执行一次（intentional）
 
   return {
     messages,

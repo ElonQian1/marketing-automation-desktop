@@ -32,7 +32,7 @@ export const FlowConstructionCard: React.FC<FlowConstructionCardProps> = ({ flow
     <Card 
       title="2. 构建流程步骤" 
       style={{ marginBottom: 16 }}
-      headStyle={{ background: '#f0f9ff' }}
+      styles={{ header: { background: '#f0f9ff' } }}
       extra={
         <Space>
           <Button 

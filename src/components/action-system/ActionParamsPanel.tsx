@@ -880,10 +880,10 @@ export const ActionParamsPanel: React.FC<ActionParamsPanelProps> = ({
             <span style={{ color: 'var(--text-1, #F8FAFC) !important' }}>{title}</span>
           </Space>
         }
-        bodyStyle={{ 
+        styles={{ body: { 
           padding: '12px',
           color: 'var(--text-1, #F8FAFC) !important'
-        }}
+        } }}
         style={{
           color: 'var(--text-1, #F8FAFC) !important'
         }}

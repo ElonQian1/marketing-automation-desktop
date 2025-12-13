@@ -25,8 +25,7 @@ export const CachedMappingCard: React.FC<CachedMappingCardProps> = ({ values }) 
       size="small"
       title={<span style={{ color: '#fff' }}>💾 映射缓存详情 <Tag color="purple">已存储</Tag></span>}
       style={{ background: colors.surface, border: `1px solid ${colors.border}` }}
-      headStyle={{ background: colors.surfaceAlt, borderBottom: `1px solid ${colors.border}`, color: '#fff' }}
-      bodyStyle={{ background: colors.surface }}
+      styles={{ header: { background: colors.surfaceAlt, borderBottom: `1px solid ${colors.border}`, color: '#fff' }, body: { background: colors.surface } }}
     >
       <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
         <div style={{ padding: 8, background: colors.accentInfoBg, borderRadius: 4, border: `1px solid ${colors.accentBlue}` }}>

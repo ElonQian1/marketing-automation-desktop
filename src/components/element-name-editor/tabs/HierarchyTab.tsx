@@ -21,9 +21,8 @@ const HierarchyTab: React.FC<HierarchyTabProps> = ({ element, onSelectElement })
     <Card
       size="small"
       style={{ background: colors.surface, border: `1px solid ${colors.border}` }}
-      headStyle={{ background: colors.surfaceAlt, borderBottom: `1px solid ${colors.border}`, color: '#fff' }}
       title={<span style={{ color: '#fff' }}>XML 层级结构查看器</span>}
-      bodyStyle={{ background: colors.surface }}
+      styles={{ header: { background: colors.surfaceAlt, borderBottom: `1px solid ${colors.border}`, color: '#fff' }, body: { background: colors.surface } }}
     >
       <div className="space-y-4 p-2">
         <Alert

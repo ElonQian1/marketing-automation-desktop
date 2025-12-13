@@ -147,7 +147,7 @@ export const InfoBubble: React.FC<InfoBubbleProps> = ({
                       ? 'border-green-400 bg-green-50' 
                       : 'border-gray-200'
                   }`}
-                  bodyStyle={{ padding: '8px 12px' }}
+                  styles={{ body: { padding: '8px 12px' } }}
                   onClick={(e) => {
                     e.stopPropagation();
                     onSelectChildElement?.(element);

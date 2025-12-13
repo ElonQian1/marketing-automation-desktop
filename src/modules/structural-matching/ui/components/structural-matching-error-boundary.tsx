@@ -253,7 +253,7 @@ export class StructuralMatchingErrorBoundary extends Component<
       <div className={`structural-matching-error-boundary ${className || ''}`.trim()}>
         <Card 
           style={{ margin: '16px', maxWidth: '800px' }}
-          bodyStyle={{ padding: '24px' }}
+          styles={{ body: { padding: '24px' } }}
         >
           {/* 错误标题和图标 */}
           <Space align="start" style={{ marginBottom: '16px' }}>

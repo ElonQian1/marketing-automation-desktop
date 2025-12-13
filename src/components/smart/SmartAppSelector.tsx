@@ -434,7 +434,7 @@ export const SmartAppSelectorContent: React.FC<SmartAppSelectorContentProps> = (
             title="热门应用快捷选择" 
             size="small"
             style={{ marginBottom: 16 }}
-            bodyStyle={{ padding: '12px' }}
+            styles={{ body: { padding: '12px' } }}
           >
             <Row gutter={[8, 8]}>
               {popularApps.map((app) => (
@@ -593,7 +593,7 @@ export const SmartAppSelector: React.FC<SmartAppSelectorProps> = ({
       footer={null}
       width={800}
       style={{ top: 20 }}
-      bodyStyle={{ maxHeight: '80vh', overflowY: 'auto', padding: '0 24px 24px' }}
+      styles={{ body: { maxHeight: '80vh', overflowY: 'auto', padding: '0 24px 24px' } }}
     >
       <SmartAppSelectorContent
         onSelect={(app) => {

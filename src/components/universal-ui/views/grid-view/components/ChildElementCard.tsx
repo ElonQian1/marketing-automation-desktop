@@ -97,7 +97,7 @@ export const ChildElementCard: React.FC<ChildElementCardProps> = ({
     <Card
       size="small"
       className={cardClassName}
-      bodyStyle={{ padding: '12px 16px' }}
+      styles={{ body: { padding: '12px 16px' } }}
       onClick={() => onSelect(node)}
       actions={[
         <Tooltip key="select" title="选择此元素">

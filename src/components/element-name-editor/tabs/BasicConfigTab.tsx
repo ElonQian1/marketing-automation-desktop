@@ -64,8 +64,7 @@ const BasicConfigTab: React.FC<BasicConfigTabProps> = ({
           </Space>
         }
         style={{ background: colors.surface, border: `1px solid ${colors.border}` }}
-        headStyle={{ background: colors.surfaceAlt, borderBottom: `1px solid ${colors.border}`, color: '#fff' }}
-        bodyStyle={{ background: colors.surface }}
+        styles={{ header: { background: colors.surfaceAlt, borderBottom: `1px solid ${colors.border}`, color: '#fff' }, body: { background: colors.surface } }}
       >
         <Alert
           message={<Text style={{ color: '#fff' }}><strong>🧩 元素基本信息</strong></Text>}
@@ -125,8 +124,7 @@ const BasicConfigTab: React.FC<BasicConfigTabProps> = ({
           size="small"
           title={<Space><BulbOutlined /> 智能命名建议 <Tag color="purple">AI</Tag></Space>}
           style={{ background: colors.surface, border: `1px solid ${colors.border}` }}
-          headStyle={{ background: colors.surfaceAlt, borderBottom: `1px solid ${colors.border}`, color: '#fff' }}
-          bodyStyle={{ background: colors.surface }}
+          styles={{ header: { background: colors.surfaceAlt, borderBottom: `1px solid ${colors.border}`, color: '#fff' }, body: { background: colors.surface } }}
         >
           <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8 }}>
             {suggestions.map(s => (

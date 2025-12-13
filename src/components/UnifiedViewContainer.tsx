@@ -122,7 +122,7 @@ const UnifiedViewContainer: React.FC<UnifiedViewContainerProps> = ({
       <Card 
         size="small" 
         style={{ marginBottom: '12px' }}
-        bodyStyle={{ padding: '8px 16px' }}
+        styles={{ body: { padding: '8px 16px' } }}
       >
         <div style={{ 
           display: 'flex', 
@@ -478,7 +478,7 @@ const UnifiedViewContainer: React.FC<UnifiedViewContainerProps> = ({
           {renderFilterPanel()}
           
           <Card 
-            bodyStyle={{ padding: '16px', height: 'calc(100% - 120px)' }}
+            styles={{ body: { padding: '16px', height: 'calc(100% - 120px)' } }}
             style={{ height: '100%' }}
           >
             {renderViewContent()}

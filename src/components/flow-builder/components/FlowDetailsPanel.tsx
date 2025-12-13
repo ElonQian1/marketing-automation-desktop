@@ -19,7 +19,7 @@ export const FlowDetailsPanel: React.FC<FlowDetailsPanelProps> = ({ flow }) => {
     <Card 
       title="流程详情" 
       style={{ marginBottom: 16 }}
-      headStyle={{ background: '#fff7e6' }}
+      styles={{ header: { background: '#fff7e6' } }}
     >
       {currentFlow.length === 0 ? (
         <div style={{ textAlign: 'center', padding: 32, color: '#999' }}>

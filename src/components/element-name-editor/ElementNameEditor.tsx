@@ -201,7 +201,7 @@ const ElementNameEditor: React.FC<ElementNameEditorProps> = ({
       onCancel={onClose}
       width={1000}
       style={{ maxHeight: '90vh' }}
-      bodyStyle={{ maxHeight: '70vh', overflow: 'auto' }}
+      styles={{ body: { maxHeight: '70vh', overflow: 'auto' } }}
       footer={
         <Space>
           <Button onClick={onClose}>取消</Button>

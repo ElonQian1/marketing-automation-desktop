@@ -438,7 +438,7 @@ const LoopBuilder: React.FC = () => {
                 hoverable
                 size="small"
                 style={{ border: '1px solid #d9d9d9' }}
-                bodyStyle={{ padding: 12 }}
+                styles={{ body: { padding: 12 } }}
                 onClick={() => handleAddLoop(template)}
               >
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>

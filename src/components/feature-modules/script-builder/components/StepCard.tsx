@@ -440,7 +440,7 @@ export const ScriptStepCard: React.FC<StepCardProps> = ({
         transition: 'all 0.2s ease',
         boxShadow: isHovered ? '0 4px 12px rgba(0,0,0,0.1)' : undefined,
       }}
-      bodyStyle={{ padding: '12px 16px' }}
+      styles={{ body: { padding: '12px 16px' } }}
       draggable={draggable && !isExecuting}
       onDragStart={(e) => onDragStart?.(e, step, index)}
       onDragEnd={onDragEnd}

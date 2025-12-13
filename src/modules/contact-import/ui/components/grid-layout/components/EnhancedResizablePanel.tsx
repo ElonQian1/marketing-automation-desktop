@@ -144,12 +144,12 @@ export const EnhancedResizablePanel: React.FC<EnhancedResizablePanelProps> = ({
         flexDirection: 'column',
         margin: 0,
       }}
-      bodyStyle={{
+      styles={{ body: {
         flex: 1,
         padding: 0,
         overflow: 'hidden',
         height: contentHeight ? `${contentHeight}px` : 'auto',
-      }}
+      } }}
     >
       <div
         ref={contentRef}

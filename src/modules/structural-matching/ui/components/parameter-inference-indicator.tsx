@@ -115,7 +115,7 @@ const renderInferenceDetails = (result: RuntimeInferenceResult) => {
         <div style={{ marginTop: 8 }}>
           <Card 
             size="small" 
-            bodyStyle={{ padding: '8px 12px' }}
+            styles={{ body: { padding: '8px 12px' } }}
           >
             <Space direction="vertical" size="small" style={{ width: '100%' }}>
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>

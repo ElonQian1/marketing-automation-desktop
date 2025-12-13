@@ -295,7 +295,7 @@ const DraggablePanel: React.FC<DraggablePanelProps> = ({
           />
         }
         style={{ height: '100%' }}
-        bodyStyle={{ height: 'calc(100% - 57px)', overflow: 'auto' }}
+        styles={{ body: { height: 'calc(100% - 57px)', overflow: 'auto' } }}
       >
         {item.content}
       </Card>

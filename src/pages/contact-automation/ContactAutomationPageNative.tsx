@@ -194,12 +194,12 @@ export const ContactAutomationPageNative: React.FC = () => {
                   <Card
                     hoverable
                     style={{ height: '100%' }}
-                    bodyStyle={{ 
+                    styles={{ body: { 
                       display: 'flex', 
                       flexDirection: 'column', 
                       justifyContent: 'space-between',
                       height: 200
-                    }}
+                    } }}
                   >
                     <Space direction="vertical" align="center" style={{ width: '100%' }}>
                       <div style={{ 

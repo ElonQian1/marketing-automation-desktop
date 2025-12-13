@@ -15,7 +15,7 @@ interface TemplateSelectorProps {
 export const TemplateSelector: React.FC<TemplateSelectorProps> = ({ flow }) => {
   const { APP_TEMPLATES, selectedTemplate, selectTemplate } = flow;
   return (
-    <Card title="1. 选择应用模板" style={{ marginBottom: 16 }} headStyle={{ background: '#f6ffed' }}>
+    <Card title="1. 选择应用模板" style={{ marginBottom: 16 }} styles={{ header: { background: '#f6ffed' } }}>
       <Row gutter={16}>
         {APP_TEMPLATES.map(template => (
           <Col span={8} key={template.id}>

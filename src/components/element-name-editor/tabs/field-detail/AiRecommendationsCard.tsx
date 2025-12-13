@@ -16,8 +16,7 @@ export const AiRecommendationsCard: React.FC<AiRecommendationsCardProps> = ({ re
       size="small"
       title={<span style={{ color: '#fff' }}>🤖 AI 优化建议 <Tag color="green">智能分析</Tag></span>}
       style={{ background: colors.surface, border: `1px solid ${colors.border}` }}
-      headStyle={{ background: colors.surfaceAlt, borderBottom: `1px solid ${colors.border}`, color: '#fff' }}
-      bodyStyle={{ background: colors.surface }}
+      styles={{ header: { background: colors.surfaceAlt, borderBottom: `1px solid ${colors.border}`, color: '#fff' }, body: { background: colors.surface } }}
     >
       <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
         {recommendations.map((rec, index) => (

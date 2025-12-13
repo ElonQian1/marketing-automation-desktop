@@ -226,7 +226,7 @@ export const UnifiedVisualizationView: React.FC<UnifiedVisualizationViewProps> =
                   title="页面布局预览" 
                   size="small"
                   style={{ height: '100%' }}
-                  bodyStyle={{ padding: token.paddingXS }}
+                  styles={{ body: { padding: token.paddingXS } }}
                 >
                   <div style={{ 
                     width: '100%', 
@@ -288,7 +288,7 @@ export const UnifiedVisualizationView: React.FC<UnifiedVisualizationViewProps> =
                   title="元素详情" 
                   size="small"
                   style={{ height: '100%' }}
-                  bodyStyle={{ padding: token.paddingXS, maxHeight: '450px', overflowY: 'auto' }}
+                  styles={{ body: { padding: token.paddingXS, maxHeight: '450px', overflowY: 'auto' } }}
                 >
                   <Row gutter={[8, 8]}>
                     {filteredElements.map((element, index) => (
@@ -303,7 +303,7 @@ export const UnifiedVisualizationView: React.FC<UnifiedVisualizationViewProps> =
                               ? 'linear-gradient(135deg, #065f46, #047857)'
                               : 'linear-gradient(135deg, #4b5563, #6b7280)'
                           }}
-                          bodyStyle={{ padding: token.paddingXS }}
+                          styles={{ body: { padding: token.paddingXS } }}
                         >
                           <div>
                             <Text strong style={{ color: token.colorText, fontSize: token.fontSizeSM }}>
@@ -358,7 +358,7 @@ export const UnifiedVisualizationView: React.FC<UnifiedVisualizationViewProps> =
                         cursor: 'pointer',
                         transition: 'all 0.3s ease'
                       }}
-                      bodyStyle={{ padding: '12px' }}
+                      styles={{ body: { padding: '12px' } }}
                     >
                       <div>
                         <Text strong style={{ color: token.colorText, fontSize: token.fontSizeSM }}>

@@ -96,7 +96,7 @@ export const MetricCard: React.FC<MetricCardProps> = ({
   return (
     <Card
       style={getCardStyle()}
-      bodyStyle={{ padding: token.paddingLG }}
+      styles={{ body: { padding: token.paddingLG } }}
       hoverable={!!onClick}
       onClick={onClick}
     >

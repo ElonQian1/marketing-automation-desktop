@@ -424,7 +424,7 @@ export const ScriptBuilderContainer: React.FC<ScriptBuilderContainerProps> = ({
       title="脚本步骤" 
       size="small"
       style={{ height: '100%' }}
-      bodyStyle={{ padding: 8, height: 'calc(100% - 57px)', overflow: 'auto' }}
+      styles={{ body: { padding: 8, height: 'calc(100% - 57px)', overflow: 'auto' } }}
     >
       <StepList
         steps={currentScript?.steps || []}

@@ -37,8 +37,7 @@ export const FieldListCard: React.FC<FieldListCardProps> = ({ fields }) => {
         </Space>
       }
       style={{ background: colors.surface, border: `1px solid ${colors.border}` }}
-      headStyle={{ background: colors.surfaceAlt, borderBottom: `1px solid ${colors.border}`, color: '#fff' }}
-      bodyStyle={{ background: colors.surface }}
+      styles={{ header: { background: colors.surfaceAlt, borderBottom: `1px solid ${colors.border}`, color: '#fff' }, body: { background: colors.surface } }}
     >
       <Alert
         message={<Text style={{ color: '#fff' }}><strong>📋 字段用途说明</strong></Text>}

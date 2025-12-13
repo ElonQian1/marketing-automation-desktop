@@ -58,7 +58,7 @@ export const StepItem: React.FC<StepItemProps> = ({ step, draggingStyle, onToggl
           </div>
         }
         style={{ touchAction: 'none' }}
-        bodyStyle={{ padding: 8 }}
+        styles={{ body: { padding: 8 } }}
       >
         <div style={{ fontSize: 12, color: '#555', lineHeight: 1.4 }}>
           {step.description || <span style={{ fontStyle: 'italic', color: '#999' }}>(无描述)</span>}

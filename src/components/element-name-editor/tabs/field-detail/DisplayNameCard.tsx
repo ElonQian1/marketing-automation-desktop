@@ -19,8 +19,7 @@ export const DisplayNameCard: React.FC<DisplayNameCardProps> = ({ currentName, e
       size="small"
       title={<span style={{ color: '#fff' }}>✏️ 自定义显示名称 <Tag color="orange">用户定义</Tag></span>}
       style={{ background: colors.surface, border: `1px solid ${colors.border}` }}
-      headStyle={{ background: colors.surfaceAlt, borderBottom: `1px solid ${colors.border}`, color: '#fff' }}
-      bodyStyle={{ background: colors.surface }}
+      styles={{ header: { background: colors.surfaceAlt, borderBottom: `1px solid ${colors.border}`, color: '#fff' }, body: { background: colors.surface } }}
     >
       <div style={{ padding: 12, background: colors.accentInfoBg, borderRadius: 6, border: `1px solid ${colors.accentBlue}`, marginBottom: 12 }}>
         <div style={{ marginBottom: 8 }}><Text type="secondary" style={{ color: textStyles.subtle.color, fontSize: 11 }}>当前显示名称</Text></div>
