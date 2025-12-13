@@ -70,6 +70,9 @@ import { StatisticsPageNative } from "../pages/statistics/StatisticsPageNative";
 import { LoginPageNative } from "../pages/auth/LoginPageNative";
 import { PreciseAcquisitionPage } from "../pages/precise-acquisition/PreciseAcquisitionPage";
 
+// AI Agent 对话组件
+import { AgentChatPanel } from "../modules/agent-chat";
+
 // 优化后的商业化页面
 import { StatisticsPageOptimized } from "../pages/statistics/StatisticsPageOptimized";
 import { DeviceManagementPageOptimized } from "../pages/device-management/DeviceManagementPageOptimized";
@@ -175,6 +178,11 @@ const NativeAntDesignApp: React.FC = () => {
       label: "📱 设备中心",
     },
     {
+      key: "ai-assistant",
+      icon: <RobotOutlined />,
+      label: "🤖 AI 助手",
+    },
+    {
       key: "login-native",
       icon: <UserAddOutlined />,
       label: "登录页面（原生）",
@@ -216,6 +224,8 @@ const NativeAntDesignApp: React.FC = () => {
         return <StatisticsPageOptimized />;
       case "device-management-optimized":
         return <DeviceManagementPageOptimized />;
+      case "ai-assistant":
+        return <AgentChatPanel style={{ height: 'calc(100vh - 120px)' }} />;
       case "login-native":
         return <LoginPageNative />;
       case "employee-native":

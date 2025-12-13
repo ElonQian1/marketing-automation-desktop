@@ -5,27 +5,22 @@
 // === Domain Types ===
 export type {
   AgentProvider,
-  ChatMessage,
-  ToolCallInfo,
+  AgentMessage,
+  AgentMessageRole,
+  AgentToolCall,
+  SessionStatus,
+  AgentSession,
   AgentConfigRequest,
-  AgentConfigResponse,
-  AgentChatRequest,
-  AgentChatResponse,
-  AgentStatusResponse,
-  AgentToolInfo,
+  AgentResponse,
+  ChatResponse,
+  ToolInfo,
 } from './domain/agent-chat-types';
 
 // === Services ===
-export {
-  AgentChatService,
-} from './services/agent-chat-service';
+export { agentChatService } from './services/agent-chat-service';
 
 // === Hooks ===
-export {
-  useAgentChat,
-  type UseAgentChatOptions,
-  type UseAgentChatReturn,
-} from './hooks/useAgentChat';
+export { useAgentChat } from './hooks/useAgentChat';
 
 // === UI Components ===
 export { AgentChatPanel } from './ui/AgentChatPanel';
