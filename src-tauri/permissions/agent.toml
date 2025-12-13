@@ -1,0 +1,19 @@
+[[permission]]
+identifier = "allow-agent"
+description = "Enables all AI Agent commands"
+commands.allow = [
+    "plugin:agent|configure",
+    "plugin:agent|chat",
+    "plugin:agent|analyze_script",
+    "plugin:agent|fix_script",
+    "plugin:agent|execute_task",
+    "plugin:agent|get_session",
+    "plugin:agent|clear_session",
+    "plugin:agent|list_tools",
+    "plugin:agent|test_connection"
+]
+
+[[set]]
+identifier = "agent-default"
+description = "Default permissions for AI Agent"
+permissions = ["allow-agent"]

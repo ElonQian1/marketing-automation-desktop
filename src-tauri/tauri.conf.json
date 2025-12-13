@@ -62,7 +62,8 @@
             "automation-default",
             "enhanced-location-default",
             "lead-hunt-default",
-            "ui-dump-default"
+            "ui-dump-default",
+            "agent-default"
           ]
         }
       ]
