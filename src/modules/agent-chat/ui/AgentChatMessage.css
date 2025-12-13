@@ -1,0 +1,138 @@
+/* src/modules/agent-chat/ui/AgentChatMessage.css */
+/* module: agent-chat | layer: ui | role: 消息样式 */
+
+.agent-chat-message {
+  display: flex;
+  gap: 12px;
+  padding: 12px 16px;
+  animation: fadeIn 0.3s ease;
+}
+
+.agent-chat-message.user {
+  flex-direction: row-reverse;
+}
+
+.agent-chat-message-avatar {
+  flex-shrink: 0;
+}
+
+.agent-chat-message-content {
+  max-width: 75%;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.agent-chat-message.user .agent-chat-message-content {
+  align-items: flex-end;
+}
+
+.agent-chat-message-header {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+  padding: 0 4px;
+}
+
+.agent-chat-message.user .agent-chat-message-header {
+  flex-direction: row-reverse;
+}
+
+.agent-chat-message-role {
+  font-size: 12px;
+}
+
+.agent-chat-message-time {
+  font-size: 11px;
+}
+
+.agent-chat-message-bubble {
+  padding: 12px 16px;
+  border-radius: 12px;
+  background: var(--agent-bubble-bg, rgba(255, 255, 255, 0.08));
+  border: 1px solid var(--agent-bubble-border, rgba(255, 255, 255, 0.1));
+}
+
+.agent-chat-message.user .agent-chat-message-bubble {
+  background: var(--agent-user-bubble-bg, #1890ff);
+  border-color: transparent;
+}
+
+.agent-chat-message-bubble.error {
+  background: rgba(255, 77, 79, 0.1);
+  border-color: rgba(255, 77, 79, 0.3);
+}
+
+.agent-chat-message-loading {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  color: var(--text-2, rgba(255, 255, 255, 0.65));
+}
+
+.agent-chat-message-error {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  color: #ff4d4f;
+}
+
+.agent-chat-message-text {
+  line-height: 1.6;
+  word-break: break-word;
+}
+
+.agent-chat-message-text p {
+  margin: 0 0 8px;
+}
+
+.agent-chat-message-text p:last-child {
+  margin-bottom: 0;
+}
+
+.agent-chat-message-text code {
+  background: rgba(0, 0, 0, 0.2);
+  padding: 2px 6px;
+  border-radius: 4px;
+  font-family: 'Fira Code', monospace;
+  font-size: 0.9em;
+}
+
+.agent-chat-message-text pre {
+  background: rgba(0, 0, 0, 0.3);
+  padding: 12px;
+  border-radius: 8px;
+  overflow-x: auto;
+  margin: 8px 0;
+}
+
+.agent-chat-message-text pre code {
+  background: transparent;
+  padding: 0;
+}
+
+.agent-chat-message-text ul,
+.agent-chat-message-text ol {
+  margin: 8px 0;
+  padding-left: 24px;
+}
+
+.agent-chat-message-tools {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+  margin-top: 8px;
+  padding-top: 8px;
+  border-top: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
