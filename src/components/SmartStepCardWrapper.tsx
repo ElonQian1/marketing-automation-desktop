@@ -363,20 +363,8 @@ export const SmartStepCardWrapper: React.FC<SmartStepCardWrapperProps> = (props)
         isAnalyzing={isAnalyzing}
       />
       
-      {/* 🧠 参数推理状态徽章 */}
-      {shouldShowInference && (
-        <div style={{
-          position: 'absolute',
-          top: '8px',
-          right: '8px',
-          zIndex: 10,
-        }}>
-          <ParameterInferenceIndicator 
-            stepCardId={step.id}
-            compact={true}
-          />
-        </div>
-      )}
+      {/* 🧠 参数推理状态徽章 - 暂时隐藏，功能不成熟且对普通用户没有价值 */}
+      {/* shouldShowInference 功能已禁用：用户反馈"不可用"提示造成困惑 */}
     </div>
   );
 };
