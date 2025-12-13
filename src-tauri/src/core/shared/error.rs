@@ -22,6 +22,9 @@ pub enum ErrorCode {
     InvalidInput,
     NotFound,
     AlreadyExists,
+    NotConfigured,
+    Internal,
+    ExternalService,
     
     // 脚本相关
     ScriptNotFound,
@@ -67,6 +70,18 @@ impl CoreError {
 
     pub fn invalid_input(msg: impl Into<String>) -> Self {
         Self::new(ErrorCode::InvalidInput, msg)
+    }
+
+    pub fn not_configured(msg: impl Into<String>) -> Self {
+        Self::new(ErrorCode::NotConfigured, msg)
+    }
+
+    pub fn internal(msg: impl Into<String>) -> Self {
+        Self::new(ErrorCode::Internal, msg)
+    }
+
+    pub fn external_service(msg: impl Into<String>) -> Self {
+        Self::new(ErrorCode::ExternalService, msg)
     }
 }
 

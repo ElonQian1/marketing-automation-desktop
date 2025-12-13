@@ -4,7 +4,9 @@
 
 pub mod script;
 pub mod device;
+pub mod agent;
 
 // 导出核心类型
 pub use script::{Script, ScriptStep, ScriptSummary, ScriptRepository};
 pub use device::{Device, DeviceStatus};
+pub use agent::{AgentSession, AgentMessage, AiProvider, ToolProvider, AiProviderConfig};
