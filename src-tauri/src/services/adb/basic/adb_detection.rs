@@ -1,6 +1,6 @@
 use super::adb_core::AdbService;
 use std::sync::OnceLock;
-use tracing::{debug, info, warn};
+use tracing::{debug, info, trace, warn};
 
 /// 🔧 ADB 路径缓存 - 避免重复检测
 static CACHED_ADB_PATH: OnceLock<Option<String>> = OnceLock::new();
@@ -81,10 +81,11 @@ impl AdbService {
         // 🔧 使用缓存避免重复检测
         if let Some(cached) = CACHED_ADB_PATH.get() {
             if let Some(path) = cached {
-                debug!("🔧 使用缓存的ADB路径: {}", path);
+                // ✅ 降级为 trace! - 缓存命中是正常高频操作，无需在 debug 级别输出
+                trace!("🔧 使用缓存的ADB路径: {}", path);
                 return Some(path.clone());
             } else {
-                debug!("🔧 缓存显示无可用ADB路径");
+                trace!("🔧 缓存显示无可用ADB路径");
                 return None;
             }
         }
