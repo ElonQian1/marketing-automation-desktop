@@ -4,6 +4,8 @@
 
 mod file_script_repository;
 mod legacy_script_executor;
+pub mod ai_agent;
 
 pub use file_script_repository::FileScriptRepository;
 pub use legacy_script_executor::LegacyScriptExecutor;
+pub use ai_agent::{OpenAiCompatibleProvider, McpToolProvider};

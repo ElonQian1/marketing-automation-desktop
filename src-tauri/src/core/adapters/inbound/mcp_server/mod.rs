@@ -3,9 +3,9 @@
 // summary: MCP (Model Context Protocol) 服务器 - 供 AI 代理调用
 
 mod server;
-mod protocol;
-mod tools;
+pub mod protocol;  // 公开以供 ai_agent 使用
+pub mod tools;     // 公开以供 ai_agent 使用
 
 pub use server::McpServer;
-pub use protocol::{McpRequest, McpResponse, McpTool, ToolResult};
-pub use tools::register_tools;
+pub use protocol::{McpRequest, McpResponse, McpTool, ToolResult, ToolContent};
+pub use tools::{register_tools, execute_tool};
