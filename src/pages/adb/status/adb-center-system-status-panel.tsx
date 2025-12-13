@@ -123,7 +123,7 @@ const StatusCard: React.FC<StatusCardProps> = ({
         borderColor: borderColorMap[status],
         borderRadius: '8px',
       }}
-      bodyStyle={{ padding: '16px' }}
+      styles={{ body: { padding: '16px' } }}
     >
       <Space direction="vertical" style={{ width: '100%' }}>
         <Space>

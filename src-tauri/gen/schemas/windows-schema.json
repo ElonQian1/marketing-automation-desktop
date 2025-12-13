@@ -183,6 +183,12 @@
           "markdownDescription": "Default permissions for adb\n#### This permission set includes:\n\n- `allow-adb`"
         },
         {
+          "description": "Default permissions for AI Agent\n#### This permission set includes:\n\n- `allow-agent`",
+          "type": "string",
+          "const": "agent-default",
+          "markdownDescription": "Default permissions for AI Agent\n#### This permission set includes:\n\n- `allow-agent`"
+        },
+        {
           "description": "Default permissions for automation\n#### This permission set includes:\n\n- `allow-automation`",
           "type": "string",
           "const": "automation-default",
@@ -289,6 +295,12 @@
           "type": "string",
           "const": "allow-adb",
           "markdownDescription": "Enables all adb commands"
+        },
+        {
+          "description": "Enables all AI Agent commands",
+          "type": "string",
+          "const": "allow-agent",
+          "markdownDescription": "Enables all AI Agent commands"
         },
         {
           "description": "Enables all automation commands",

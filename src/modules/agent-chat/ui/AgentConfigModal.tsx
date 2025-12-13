@@ -107,7 +107,7 @@ export const AgentConfigModal: React.FC<AgentConfigModalProps> = ({
       onCancel={onClose}
       footer={null}
       width={500}
-      destroyOnClose
+      destroyOnHidden
     >
       {success ? (
         <div style={{ textAlign: 'center', padding: '40px 0' }}>
@@ -178,7 +178,24 @@ export const AgentConfigModal: React.FC<AgentConfigModalProps> = ({
                 <span>API Key</span>
               </Space>
             }
-            rules={[{ required: true, message: '请输入 API Key' }]}
+            rules={[
+              { required: true, message: '请输入 API Key' },
+              { 
+                validator: async (_, value) => {
+                  if (!value) return;
+                  const trimmed = value.trim();
+                  // 检查是否有重复的 API Key（常见粘贴错误）
+                  if (trimmed.length > 60 && /^(sk-[A-Za-z0-9]+)\1$/.test(trimmed)) {
+                    throw new Error('检测到 API Key 重复粘贴，请检查输入');
+                  }
+                  // 基本格式检查
+                  if (trimmed.startsWith('sk-') && trimmed.length < 20) {
+                    throw new Error('API Key 格式不正确');
+                  }
+                },
+              },
+            ]}
+            normalize={(value) => value?.trim()}
             extra={
               PROVIDER_INFO[provider].docsUrl && (
                 <Text type="secondary">

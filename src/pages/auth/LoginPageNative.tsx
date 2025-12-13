@@ -138,7 +138,7 @@ export const LoginPageNative: React.FC = () => {
             maxWidth: 460,
             boxShadow: themeToken.boxShadowTertiary,
           }}
-          bodyStyle={{ padding: themeToken.paddingXL }}
+          styles={{ body: { padding: themeToken.paddingXL } }}
         >
           {/* 头部 */}
           <Space

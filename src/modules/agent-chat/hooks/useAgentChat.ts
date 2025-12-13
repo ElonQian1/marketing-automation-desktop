@@ -2,7 +2,7 @@
 // module: agent-chat | layer: hooks | role: 状态管理
 // summary: AI Agent 对话状态管理 Hook
 
-import { useState, useCallback, useRef } from 'react';
+import { useState, useCallback, useRef, useEffect } from 'react';
 import { agentChatService } from '../services/agent-chat-service';
 import type {
   AgentMessage,
@@ -13,6 +13,7 @@ import type {
 
 interface UseAgentChatOptions {
   onError?: (error: string) => void;
+  autoRestore?: boolean; // 是否自动恢复保存的配置
 }
 
 interface UseAgentChatReturn {
@@ -20,9 +21,11 @@ interface UseAgentChatReturn {
   messages: AgentMessage[];
   isConfigured: boolean;
   isLoading: boolean;
+  isRestoring: boolean;
   status: SessionStatus;
   tools: ToolInfo[];
   currentProvider: AgentProvider | null;
+  hasSavedConfig: boolean;
   
   // 操作
   configure: (provider: AgentProvider, apiKey: string, model?: string) => Promise<boolean>;
@@ -32,22 +35,28 @@ interface UseAgentChatReturn {
   executeTask: (task: string) => Promise<void>;
   clearChat: () => Promise<void>;
   testConnection: () => Promise<boolean>;
+  restoreConfig: () => Promise<boolean>;
+  clearSavedConfig: () => Promise<void>;
+  recheckConfig: () => Promise<void>; // 手动重新检查配置状态
 }
 
 /**
  * AI Agent 对话 Hook
  */
 export function useAgentChat(options: UseAgentChatOptions = {}): UseAgentChatReturn {
-  const { onError } = options;
+  const { onError, autoRestore = true } = options;
   
   const [messages, setMessages] = useState<AgentMessage[]>([]);
   const [isConfigured, setIsConfigured] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
+  const [isRestoring, setIsRestoring] = useState(false);
   const [status, setStatus] = useState<SessionStatus>('idle');
   const [tools, setTools] = useState<ToolInfo[]>([]);
   const [currentProvider, setCurrentProvider] = useState<AgentProvider | null>(null);
+  const [hasSavedConfig, setHasSavedConfig] = useState(false);
   
   const messagesEndRef = useRef<HTMLDivElement>(null);
+  const restoredRef = useRef(false);
 
   // 滚动到底部
   const scrollToBottom = useCallback(() => {
@@ -284,13 +293,118 @@ export function useAgentChat(options: UseAgentChatOptions = {}): UseAgentChatRet
     return result.success;
   }, []);
 
+  // 恢复保存的配置
+  const restoreConfig = useCallback(async (): Promise<boolean> => {
+    setIsRestoring(true);
+    try {
+      const result = await agentChatService.restoreConfig();
+      if (result.success) {
+        setIsConfigured(true);
+        
+        // 从 message 中解析 provider
+        const providerMatch = result.message.match(/\((\w+)\)/);
+        if (providerMatch) {
+          setCurrentProvider(providerMatch[1] as AgentProvider);
+        }
+        
+        // 获取可用工具
+        const toolList = await agentChatService.listTools();
+        setTools(toolList);
+        
+        // 添加欢迎消息
+        addMessage({
+          role: 'assistant',
+          content: `🔄 配置已自动恢复\n\n可用工具: ${toolList.length} 个`,
+        });
+        
+        return true;
+      }
+      return false;
+    } catch (error) {
+      console.error('恢复配置失败:', error);
+      return false;
+    } finally {
+      setIsRestoring(false);
+    }
+  }, [addMessage]);
+
+  // 清除保存的配置
+  const clearSavedConfig = useCallback(async () => {
+    await agentChatService.clearSavedConfig();
+    setIsConfigured(false);
+    setCurrentProvider(null);
+    setTools([]);
+    setHasSavedConfig(false);
+  }, []);
+
+  // 手动重新检查配置状态（用于热重载后同步）
+  const recheckConfig = useCallback(async () => {
+    console.log('🔍 手动检查配置状态...');
+    const status = await agentChatService.getConfigStatus();
+    setHasSavedConfig(status.hasSavedConfig);
+    
+    if (status.isConfigured && !isConfigured) {
+      console.log('🔄 检测到后端已配置，同步前端状态...');
+      setIsConfigured(true);
+      if (status.provider) {
+        setCurrentProvider(status.provider as AgentProvider);
+      }
+      const toolList = await agentChatService.listTools();
+      setTools(toolList);
+    } else if (!status.isConfigured && status.hasSavedConfig) {
+      // 后端未配置但有保存的配置，尝试恢复
+      console.log('🔄 后端未配置但有保存配置，尝试恢复...');
+      await restoreConfig();
+    }
+  }, [isConfigured, restoreConfig]);
+
+  // 自动检查和恢复配置
+  useEffect(() => {
+    // 注意：热重载时 restoredRef 会保留状态，所以我们需要检查当前配置状态
+    const checkAndRestore = async () => {
+      const status = await agentChatService.getConfigStatus();
+      setHasSavedConfig(status.hasSavedConfig);
+      
+      // 如果后端已配置但前端状态不同步，更新前端状态
+      if (status.isConfigured && !isConfigured) {
+        console.log('🔄 后端已配置，同步前端状态...');
+        setIsConfigured(true);
+        if (status.provider) {
+          setCurrentProvider(status.provider as AgentProvider);
+        }
+        const toolList = await agentChatService.listTools();
+        setTools(toolList);
+        
+        // 如果没有消息，添加欢迎消息
+        if (messages.length === 0) {
+          addMessage({
+            role: 'assistant',
+            content: `🔄 配置已恢复 (${status.provider})\n\n可用工具: ${toolList.length} 个`,
+          });
+        }
+        return;
+      }
+      
+      // 如果启用自动恢复，且有保存的配置，且尚未配置，且尚未恢复过
+      if (autoRestore && status.hasSavedConfig && !status.isConfigured && !restoredRef.current) {
+        console.log('🔄 检测到保存的配置，自动恢复...');
+        restoredRef.current = true;
+        await restoreConfig();
+      }
+    };
+    
+    checkAndRestore();
+  }, [autoRestore, restoreConfig, isConfigured, messages.length, addMessage]);
+
   return {
     messages,
     isConfigured,
     isLoading,
+    isRestoring,
     status,
     tools,
     currentProvider,
+    hasSavedConfig,
     configure,
     sendMessage,
     analyzeScript,
@@ -298,5 +412,8 @@ export function useAgentChat(options: UseAgentChatOptions = {}): UseAgentChatRet
     executeTask,
     clearChat,
     testConnection,
+    restoreConfig,
+    clearSavedConfig,
+    recheckConfig,
   };
 }

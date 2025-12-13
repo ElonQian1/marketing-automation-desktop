@@ -10,7 +10,10 @@ commands.allow = [
     "plugin:agent|get_session",
     "plugin:agent|clear_session",
     "plugin:agent|list_tools",
-    "plugin:agent|test_connection"
+    "plugin:agent|test_connection",
+    "plugin:agent|get_config_status",
+    "plugin:agent|restore_config",
+    "plugin:agent|clear_saved_config"
 ]
 
 [[set]]

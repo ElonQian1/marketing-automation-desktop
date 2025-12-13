@@ -38,7 +38,7 @@ export const StatisticsCards: React.FC<StatisticsCardsProps> = ({
             borderRadius: token.borderRadiusLG,
             background: `linear-gradient(135deg, ${token.colorPrimary}, ${token.colorPrimaryHover})`
           }}
-          bodyStyle={{ padding: token.paddingLG }}
+          styles={{ body: { padding: token.paddingLG } }}
         >
           <Space direction="vertical" size={token.sizeXS} style={{ width: '100%' }}>
             <Space align="center">
@@ -74,7 +74,7 @@ export const StatisticsCards: React.FC<StatisticsCardsProps> = ({
             borderRadius: token.borderRadiusLG,
             background: `linear-gradient(135deg, ${token.colorSuccess}, ${token.colorSuccessBg})`
           }}
-          bodyStyle={{ padding: token.paddingLG }}
+          styles={{ body: { padding: token.paddingLG } }}
         >
           <Space direction="vertical" size={token.sizeXS} style={{ width: '100%' }}>
             <Space align="center">
@@ -111,7 +111,7 @@ export const StatisticsCards: React.FC<StatisticsCardsProps> = ({
             background: token.colorBgContainer,
             border: `1px solid ${token.colorBorder}`
           }}
-          bodyStyle={{ padding: token.paddingLG }}
+          styles={{ body: { padding: token.paddingLG } }}
         >
           <Space direction="vertical" size={token.sizeXS} style={{ width: '100%' }}>
             <Space align="center">
@@ -152,7 +152,7 @@ export const StatisticsCards: React.FC<StatisticsCardsProps> = ({
             background: token.colorBgContainer,
             border: `1px solid ${token.colorBorder}`
           }}
-          bodyStyle={{ padding: token.paddingLG }}
+          styles={{ body: { padding: token.paddingLG } }}
         >
           <Space direction="vertical" size={token.sizeXS} style={{ width: '100%' }}>
             <Space align="center">

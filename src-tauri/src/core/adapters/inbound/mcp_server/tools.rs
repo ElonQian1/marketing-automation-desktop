@@ -274,6 +274,42 @@ pub fn register_tools() -> Vec<McpTool> {
                 "required": ["device_id"]
             }),
         ),
+        McpTool::new(
+            "launch_app",
+            "在设备上启动指定应用",
+            json!({
+                "type": "object",
+                "properties": {
+                    "device_id": {
+                        "type": "string",
+                        "description": "设备ID"
+                    },
+                    "package_name": {
+                        "type": "string",
+                        "description": "应用包名，如 com.tencent.mm (微信), com.xingin.xhs (小红书)"
+                    }
+                },
+                "required": ["device_id", "package_name"]
+            }),
+        ),
+        McpTool::new(
+            "run_adb_command",
+            "在设备上执行ADB shell命令（谨慎使用）",
+            json!({
+                "type": "object",
+                "properties": {
+                    "device_id": {
+                        "type": "string",
+                        "description": "设备ID"
+                    },
+                    "command": {
+                        "type": "string",
+                        "description": "要执行的 shell 命令"
+                    }
+                },
+                "required": ["device_id", "command"]
+            }),
+        ),
     ]
 }
 
@@ -299,6 +335,8 @@ pub async fn execute_tool(
         "delete_script" => handle_delete_script(params, ctx).await,
         "list_devices" => handle_list_devices(ctx).await,
         "get_screen" => handle_get_screen(params, ctx).await,
+        "launch_app" => handle_launch_app(params, ctx).await,
+        "run_adb_command" => handle_run_adb_command(params, ctx).await,
         _ => ToolResult::error(format!("未知工具: {}", tool_name)),
     }
 }
@@ -634,5 +672,116 @@ fn build_step_action(action_type: &str, params: &Value) -> Result<StepAction, St
             }))
         }
         _ => Err(format!("不支持的动作类型: {}", action_type)),
+    }
+}
+
+// ====== 新增的 ADB 直接命令工具 ======
+
+/// 启动应用
+async fn handle_launch_app(params: Value, _ctx: &Arc<AppContext>) -> ToolResult {
+    let device_id = params
+        .get("device_id")
+        .and_then(|v| v.as_str())
+        .ok_or_else(|| "缺少 device_id 参数".to_string());
+    
+    let package_name = params
+        .get("package_name")
+        .and_then(|v| v.as_str())
+        .ok_or_else(|| "缺少 package_name 参数".to_string());
+
+    match (device_id, package_name) {
+        (Ok(device_id), Ok(package_name)) => {
+            info!("🚀 启动应用: {} on {}", package_name, device_id);
+            
+            let adb_path = crate::utils::adb_utils::get_adb_path();
+            
+            // 使用 monkey 命令启动应用（简单可靠）
+            let cmd = format!(
+                "monkey -p {} -c android.intent.category.LAUNCHER 1",
+                package_name
+            );
+            
+            let mut command = std::process::Command::new(&adb_path);
+            command.args(&["-s", device_id, "shell", &cmd]);
+            
+            #[cfg(windows)]
+            {
+                use std::os::windows::process::CommandExt;
+                command.creation_flags(0x08000000); // CREATE_NO_WINDOW
+            }
+            
+            match command.output() {
+                Ok(output) => {
+                    if output.status.success() {
+                        ToolResult::success(format!("✅ 已启动应用: {}", package_name))
+                    } else {
+                        let stderr = String::from_utf8_lossy(&output.stderr);
+                        ToolResult::error(format!("启动失败: {}", stderr))
+                    }
+                }
+                Err(e) => ToolResult::error(format!("执行ADB失败: {}", e)),
+            }
+        }
+        (Err(e), _) | (_, Err(e)) => ToolResult::error(e),
+    }
+}
+
+/// 执行 ADB shell 命令
+async fn handle_run_adb_command(params: Value, _ctx: &Arc<AppContext>) -> ToolResult {
+    let device_id = params
+        .get("device_id")
+        .and_then(|v| v.as_str())
+        .ok_or_else(|| "缺少 device_id 参数".to_string());
+    
+    let shell_command = params
+        .get("command")
+        .and_then(|v| v.as_str())
+        .ok_or_else(|| "缺少 command 参数".to_string());
+
+    match (device_id, shell_command) {
+        (Ok(device_id), Ok(shell_command)) => {
+            info!("🔧 执行 ADB 命令: {} on {}", shell_command, device_id);
+            
+            // 安全检查：禁止危险命令
+            let dangerous_commands = ["rm -rf", "format", "factory_reset", "reboot"];
+            for dangerous in dangerous_commands {
+                if shell_command.contains(dangerous) {
+                    return ToolResult::error(format!(
+                        "安全限制：禁止执行危险命令 '{}'", dangerous
+                    ));
+                }
+            }
+            
+            let adb_path = crate::utils::adb_utils::get_adb_path();
+            
+            let mut command = std::process::Command::new(&adb_path);
+            command.args(&["-s", device_id, "shell", shell_command]);
+            
+            #[cfg(windows)]
+            {
+                use std::os::windows::process::CommandExt;
+                command.creation_flags(0x08000000); // CREATE_NO_WINDOW
+            }
+            
+            match command.output() {
+                Ok(output) => {
+                    let stdout = String::from_utf8_lossy(&output.stdout);
+                    let stderr = String::from_utf8_lossy(&output.stderr);
+                    
+                    if output.status.success() {
+                        let result = if stdout.is_empty() { 
+                            "命令执行成功（无输出）".to_string() 
+                        } else { 
+                            stdout.to_string() 
+                        };
+                        ToolResult::success(result)
+                    } else {
+                        ToolResult::error(format!("命令失败: {}", stderr))
+                    }
+                }
+                Err(e) => ToolResult::error(format!("执行ADB失败: {}", e)),
+            }
+        }
+        (Err(e), _) | (_, Err(e)) => ToolResult::error(e),
     }
 }

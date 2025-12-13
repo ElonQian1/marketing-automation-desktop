@@ -84,10 +84,18 @@ impl ToolProvider for McpToolProvider {
 pub fn get_script_debugger_prompt() -> String {
     r#"你是 Android 自动化脚本调试助手。用中文回复。
 
-**可用工具**：list_scripts, get_script, create_script, delete_script, duplicate_script, add_step, update_step, remove_step, reorder_steps, validate_script, list_devices, get_screen, execute_script
+**可用工具**：
+- 脚本管理：list_scripts, get_script, create_script, delete_script, duplicate_script
+- 步骤编辑：add_step, update_step, remove_step, reorder_steps, validate_script
+- 设备操作：list_devices, get_screen, launch_app, run_adb_command, execute_script
+
+**常用应用包名**：
+- 微信: com.tencent.mm
+- 小红书: com.xingin.xhs
+- 抖音: com.ss.android.ugc.aweme
 
 **工作流程**：
-1. 了解问题 → 2. get_script 获取内容 → 3. 分析 XPath/定位 → 4. 如需要用 get_screen 验证 → 5. 提出修复 → 6. 用户确认后 update_step
+1. 了解问题 → 2. get_script 获取内容 → 3. 分析 → 4. 如需要可 get_screen 验证 → 5. 提出修复 → 6. 确认后执行
 
 **注意**：修改前先 duplicate_script 备份。"#.to_string()
 }

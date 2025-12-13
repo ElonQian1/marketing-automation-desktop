@@ -44,6 +44,7 @@ export const AgentChatPanel: React.FC<AgentChatPanelProps> = ({
     configure,
     sendMessage,
     clearChat,
+    recheckConfig,
   } = useAgentChat({
     onError: (error) => {
       console.error('Agent Chat Error:', error);
@@ -54,6 +55,15 @@ export const AgentChatPanel: React.FC<AgentChatPanelProps> = ({
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   }, [messages]);
+
+  // 面板获得焦点时自动检查配置（处理热重载场景）
+  useEffect(() => {
+    const handleFocus = () => {
+      recheckConfig();
+    };
+    window.addEventListener('focus', handleFocus);
+    return () => window.removeEventListener('focus', handleFocus);
+  }, [recheckConfig]);
 
   const handleConfigure = async (
     provider: AgentProvider,
@@ -122,7 +132,7 @@ export const AgentChatPanel: React.FC<AgentChatPanelProps> = ({
           </Space>
         </div>
       }
-      bodyStyle={{ padding: 0, display: 'flex', flexDirection: 'column', height: 'calc(100% - 57px)' }}
+      styles={{ body: { padding: 0, display: 'flex', flexDirection: 'column', height: 'calc(100% - 57px)' } }}
     >
       {/* 消息列表 */}
       <div className="agent-chat-messages">

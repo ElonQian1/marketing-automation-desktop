@@ -170,4 +170,62 @@ export const agentChatService = {
       };
     }
   },
+
+  /**
+   * 获取配置状态
+   */
+  async getConfigStatus(): Promise<ConfigStatus> {
+    try {
+      const result = await invoke<ConfigStatus>('plugin:agent|get_config_status');
+      return result;
+    } catch (error) {
+      console.error('获取配置状态失败:', error);
+      return {
+        hasSavedConfig: false,
+        provider: null,
+        isConfigured: false,
+      };
+    }
+  },
+
+  /**
+   * 从保存的配置恢复
+   */
+  async restoreConfig(): Promise<AgentResponse> {
+    try {
+      const result = await invoke<AgentResponse>('plugin:agent|restore_config');
+      return result;
+    } catch (error) {
+      return {
+        success: false,
+        message: '恢复配置失败',
+        error: String(error),
+      };
+    }
+  },
+
+  /**
+   * 清除保存的配置
+   */
+  async clearSavedConfig(): Promise<AgentResponse> {
+    try {
+      const result = await invoke<AgentResponse>('plugin:agent|clear_saved_config');
+      return result;
+    } catch (error) {
+      return {
+        success: false,
+        message: '清除配置失败',
+        error: String(error),
+      };
+    }
+  },
 };
+
+/**
+ * 配置状态
+ */
+export interface ConfigStatus {
+  hasSavedConfig: boolean;
+  provider: string | null;
+  isConfigured: boolean;
+}

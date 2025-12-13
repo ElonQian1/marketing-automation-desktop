@@ -7,3 +7,5 @@
 
 那么我的程序相当于 可以给mcp ai代理 通过我的pc端程序直接操控adb 来操控手机设备是吗？
 用户可以通过对话，就可以不用学会adb命令，就可以执行一连串的 adb 工作是吗？
+
+sk-QDhYLPS4UPEmAMNPtysycBLEjOiMef9pgZwtzhXS7nOtQInF
