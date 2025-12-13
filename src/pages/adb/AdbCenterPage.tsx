@@ -12,6 +12,7 @@ import EnhancedADBAuthWizard from './auth/EnhancedADBAuthWizard';
 import HeaderToolbar from './HeaderToolbar';
 import LogConsole from './LogConsole';
 import { UiDumpModePanel } from '../../components/device/ui-dump-mode-panel';
+import { AdbCenterSystemStatusPanel } from './status/adb-center-system-status-panel';
 
 const { Title, Paragraph } = Typography;
 
@@ -43,7 +44,7 @@ export const AdbCenterPage: React.FC = () => {
     {
       key: 'status',
       label: '系统状态',
-      children: <SystemStatusPanel />,
+      children: <AdbCenterSystemStatusPanel />,
     },
   ];
 
@@ -81,31 +82,6 @@ export const AdbCenterPage: React.FC = () => {
         </Card>
       </Col>
     </Row>
-  );
-};
-
-const SystemStatusPanel: React.FC = () => {
-  return (
-    <div>
-      <Row gutter={[16, 16]}>
-        <Col span={24}>
-          <Alert
-            type="success"
-            message="模块集成状态"
-            description={
-              <Space direction="vertical">
-                <div>✅ 设备监控模块 - 已激活</div>
-                <div>✅ ADB 授权向导 - 已集成</div>
-                <div>✅ 路径检测 - 可用</div>
-                <div>✅ useAdb() 统一接口 - 强制使用</div>
-                <div>✅ DDD 分层 - 已遵循</div>
-              </Space>
-            }
-            showIcon
-          />
-        </Col>
-      </Row>
-    </div>
   );
 };
 
