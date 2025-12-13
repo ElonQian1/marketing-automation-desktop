@@ -4,9 +4,11 @@
 
 pub mod script_service;
 pub mod device_service;
+pub mod agent_service;
 
 pub use script_service::ScriptAppService;
 pub use device_service::DeviceAppService;
+pub use agent_service::AgentAppService;
 
 use std::sync::Arc;
 use crate::core::domain::script::{ScriptRepository, ScriptExecutor};
