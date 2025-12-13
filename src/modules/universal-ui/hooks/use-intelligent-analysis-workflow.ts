@@ -284,11 +284,29 @@ export function useIntelligentAnalysisWorkflow(): UseIntelligentAnalysisWorkflow
               });
 
               // ✅ 只更新匹配 jobId 的步骤卡片！
-              setStepCards((prev) =>
-                prev.map((card) => {
-                  // 🆕 修复：支持模糊匹配
-                  const stepIdMatch = jobId.match(/step_execution_(.+)/);
-                  const targetStepId = stepIdMatch ? stepIdMatch[1] : jobId;
+              // 🔧 性能优化：先检查是否有需要更新的卡片，避免不必要的 setStepCards 调用
+              setStepCards((prev) => {
+                // 🆕 修复：区分分析事件和执行事件
+                // 执行脚本时的 chainId 格式：step_execution_{timestamp}_{randomId}
+                // 分析任务时的 jobId 格式：直接使用 stepId 或其他格式
+                const stepIdMatch = jobId.match(/step_execution_(.+)/);
+                const targetStepId = stepIdMatch ? stepIdMatch[1] : jobId;
+                
+                // 🔒 检查是否有匹配的卡片需要更新
+                const hasMatchingCard = prev.some((card) => {
+                  const isMatch = 
+                    card.analysisJobId === jobId || 
+                    card.stepId === targetStepId;
+                  return isMatch && card.analysisState === "analyzing";
+                });
+                
+                // 🚫 如果没有匹配的卡片，直接返回原数组，避免触发不必要的重渲染
+                if (!hasMatchingCard) {
+                  return prev;
+                }
+                
+                // ✅ 有匹配的卡片，执行更新
+                return prev.map((card) => {
                   const isMatch = 
                     card.analysisJobId === jobId || 
                     card.stepId === targetStepId;
@@ -312,8 +330,8 @@ export function useIntelligentAnalysisWorkflow(): UseIntelligentAnalysisWorkflow
                     };
                   }
                   return card;
-                })
-              );
+                });
+              });
 
               // 🔄 桥接到统一StepCard Store (修复可视化分析页面状态同步)
               (async () => {
@@ -440,11 +458,27 @@ export function useIntelligentAnalysisWorkflow(): UseIntelligentAnalysisWorkflow
               });
 
               // ✅ 精确匹配并更新步骤卡片，强制清理 Loading
+              // 🔧 性能优化：先检查是否有需要更新的卡片，避免不必要的 setStepCards 调用
               setStepCards((prevCards) => {
+                // 🆕 修复：区分分析事件和执行事件
+                const stepIdMatch = jobId.match(/step_execution_(.+)/);
+                const targetStepId = stepIdMatch ? stepIdMatch[1] : jobId;
+                
+                // 🔒 检查是否有匹配的卡片需要更新
+                const hasMatchingCard = prevCards.some((card) => {
+                  const isMatch = 
+                    card.analysisJobId === jobId || 
+                    card.stepId === targetStepId;
+                  return isMatch;
+                });
+                
+                // 🚫 如果没有匹配的卡片，直接返回原数组，避免触发不必要的重渲染
+                if (!hasMatchingCard) {
+                  return prevCards;
+                }
+                
+                // ✅ 有匹配的卡片，执行更新
                 return prevCards.map((card) => {
-                  // 🆕 修复：支持模糊匹配
-                  const stepIdMatch = jobId.match(/step_execution_(.+)/);
-                  const targetStepId = stepIdMatch ? stepIdMatch[1] : jobId;
                   const isMatch = 
                     card.analysisJobId === jobId || 
                     card.stepId === targetStepId;
@@ -568,8 +602,13 @@ export function useIntelligentAnalysisWorkflow(): UseIntelligentAnalysisWorkflow
             });
 
             // 更新关联的步骤卡片（更新所有分析中的卡片为失败状态）
-            setStepCards((prev) =>
-              prev.map((card) =>
+            // 🔧 性能优化：先检查是否有分析中的卡片，避免不必要的 setStepCards 调用
+            setStepCards((prev) => {
+              const hasAnalyzingCard = prev.some((card) => card.analysisState === "analyzing");
+              if (!hasAnalyzingCard) {
+                return prev; // 没有分析中的卡片，直接返回原数组
+              }
+              return prev.map((card) =>
                 card.analysisState === "analyzing"
                   ? {
                       ...card,
@@ -578,8 +617,8 @@ export function useIntelligentAnalysisWorkflow(): UseIntelligentAnalysisWorkflow
                       analysisProgress: 0,
                     }
                   : card
-              )
-            );
+              );
+            });
 
             if (error !== "canceled") {
               console.error(`❌ 分析失败: ${error}`);
