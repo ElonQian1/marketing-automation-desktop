@@ -11,6 +11,15 @@ import {
 } from '../../domain/adb/entities/DiagnosticResult';
 
 /**
+ * 跟踪的设备信息（来自 plugin:adb|get_tracking_list）
+ */
+interface TrackedDevice {
+  id: string;
+  status: string;
+  connection_type: string;
+}
+
+/**
  * Tauri诊断仓储实现
  * 通过Tauri接口执行诊断检查
  */
@@ -167,13 +176,26 @@ export class TauriDiagnosticRepository implements IDiagnosticRepository {
 
   async scanDevices(): Promise<DiagnosticResult> {
     try {
-      const devices = await invoke<string[]>('get_adb_devices_safe');
+      // 🔧 修复: 使用插件命令获取跟踪的设备列表
+      // 旧命令 'get_adb_devices_safe' 已废弃，导致每次调用都失败
+      const devices = await invoke<TrackedDevice[]>('plugin:adb|get_tracking_list');
+      // 只计算在线设备（status === 'device'）
+      const onlineDevices = devices.filter(d => d.status === 'device');
       
-      if (devices.length > 0) {
+      if (onlineDevices.length > 0) {
         return DiagnosticResult.success(
           'device-scan',
           '设备扫描',
-          `检测到 ${devices.length} 个设备: ${devices.join(', ')}`
+          `检测到 ${onlineDevices.length} 个在线设备: ${onlineDevices.map(d => d.id).join(', ')}`
+        );
+      } else if (devices.length > 0) {
+        // 有设备但不在线（可能是 offline 或 authorizing 状态）
+        const statusList = devices.map(d => `${d.id}(${d.status})`).join(', ');
+        return DiagnosticResult.warning(
+          'device-scan',
+          '设备扫描',
+          `检测到 ${devices.length} 个设备，但无在线: ${statusList}`,
+          '请检查设备USB调试授权状态'
         );
       } else {
         return DiagnosticResult.warning(
@@ -196,8 +218,12 @@ export class TauriDiagnosticRepository implements IDiagnosticRepository {
 
   async checkUsbDebugging(): Promise<DiagnosticResult> {
     try {
-      const devices = await invoke<string[]>('get_adb_devices_safe');
-      const unauthorizedDevices = devices.filter(device => device.includes('unauthorized'));
+      // 🔧 修复: 使用插件命令获取跟踪的设备列表
+      const devices = await invoke<TrackedDevice[]>('plugin:adb|get_tracking_list');
+      // 未授权设备的 status 是 'unauthorized' 或 'authorizing'
+      const unauthorizedDevices = devices.filter(d => 
+        d.status === 'unauthorized' || d.status === 'authorizing'
+      );
       
       if (unauthorizedDevices.length > 0) {
         return DiagnosticResult.warning(
@@ -226,8 +252,9 @@ export class TauriDiagnosticRepository implements IDiagnosticRepository {
   async checkDrivers(): Promise<DiagnosticResult> {
     // 这是一个简化的驱动检查，实际实现可能需要更复杂的逻辑
     try {
-      // 尝试列出USB设备来间接检查驱动状态
-      const devices = await invoke<string[]>('get_adb_devices_safe');
+      // 🔧 修复: 使用插件命令获取跟踪的设备列表
+      // 尝试获取设备列表来间接检查驱动状态
+      await invoke<TrackedDevice[]>('plugin:adb|get_tracking_list');
       
       return DiagnosticResult.success(
         'drivers',
