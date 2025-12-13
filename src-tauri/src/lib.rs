@@ -27,6 +27,7 @@ pub mod matchers;
 pub mod screenshot_service;
 pub mod automation;
 pub mod modules; // ✅ UI Dump 等模块化插件系统
+pub mod core;    // 🏛️ 六边形架构核心
 
 // 重新导出常用类型
 pub use exec::{

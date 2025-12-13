@@ -14,6 +14,7 @@ mod ai;
 mod application;
 mod commands; // 🎯 集中管理 Tauri 命令
 mod config;
+mod core; // 🏛️ 六边形架构核心
 mod db;
 mod device;
 mod domain;
@@ -168,6 +169,8 @@ fn main() {
         // 不阻断启动，但记录错误
     }
 
+    // 注意: MCP 服务器在 Tauri setup hook 中启动，确保 Tokio runtime 已就绪
+
     tauri::Builder::default()
         .plugin(tauri_plugin_dialog::init())
         .plugin(modules::smart_selection::init()) // ✅ 注册智能选择插件
@@ -197,6 +200,16 @@ fn main() {
             services::execution::matching::SmartXPathGenerator::new(),
         ))
         // .manage(commands::smart_selection::SmartSelectionState::new()) // Removed as part of refactoring
+        
+        // ✅ 在 Tauri runtime 就绪后启动 MCP 服务器
+        .setup(|_app| {
+            // 在 Tauri 的异步 runtime 中启动 MCP 服务器
+            tauri::async_runtime::spawn(async {
+                info!("🔌 正在启动 MCP 服务器...");
+                core::start_mcp_server().await;
+            });
+            Ok(())
+        })
 
         // 应用关闭清理外部进程（scrcpy 等）
         .on_window_event(|_window, event| {
