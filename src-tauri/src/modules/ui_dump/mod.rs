@@ -22,6 +22,7 @@ use tracing::{error, info, warn};
 use crate::utils::adb_utils::get_adb_path;
 
 use ui_dump_config::{ConfigSummary, UiDumpConfigManager};
+pub use ui_dump_config::get_global_preferred_mode; // 导出供 AdbShellSession 使用
 use ui_dump_diagnostics::{DiagnosticsBuffer, DiagnosticSummary};
 use ui_dump_provider::UiDumpProvider;
 use ui_dump_types::{DiagnosticEntry, DumpMode, DumpResult, DumpAndSaveResult};

@@ -4,10 +4,51 @@
 
 use anyhow::{Context, Result};
 use std::path::PathBuf;
+use std::sync::atomic::{AtomicU8, Ordering};
 use tokio::fs;
 use tracing::{debug, info, warn};
 
 use super::ui_dump_types::{DumpMode, UiDumpConfig};
+
+// ============================================================================
+// 全局模式访问器 - 供 AdbShellSession 等外部模块使用
+// ============================================================================
+
+/// 全局当前首选模式 (使用 AtomicU8 存储: 0=Auto, 1=ExecOut, 2=DumpPull, 3=A11y)
+static GLOBAL_PREFERRED_MODE: AtomicU8 = AtomicU8::new(0);
+
+impl DumpMode {
+    /// 转换为 u8 用于原子存储
+    fn to_u8(&self) -> u8 {
+        match self {
+            DumpMode::Auto => 0,
+            DumpMode::ExecOut => 1,
+            DumpMode::DumpPull => 2,
+            DumpMode::A11y => 3,
+        }
+    }
+    
+    /// 从 u8 恢复
+    fn from_u8(v: u8) -> Self {
+        match v {
+            1 => DumpMode::ExecOut,
+            2 => DumpMode::DumpPull,
+            3 => DumpMode::A11y,
+            _ => DumpMode::Auto,
+        }
+    }
+}
+
+/// 获取全局首选模式（供 AdbShellSession 等外部模块使用）
+pub fn get_global_preferred_mode() -> DumpMode {
+    DumpMode::from_u8(GLOBAL_PREFERRED_MODE.load(Ordering::Relaxed))
+}
+
+/// 设置全局首选模式（供配置管理器同步使用）
+pub fn set_global_preferred_mode(mode: DumpMode) {
+    GLOBAL_PREFERRED_MODE.store(mode.to_u8(), Ordering::Relaxed);
+    info!("🌐 全局 UI Dump 模式已同步: {:?}", mode);
+}
 
 /// 配置文件名
 const CONFIG_FILE_NAME: &str = "dump_config.json";
@@ -46,6 +87,9 @@ impl UiDumpConfigManager {
             info!("📂 配置文件不存在，使用默认配置");
             UiDumpConfig::default()
         };
+        
+        // 初始化时同步全局模式
+        set_global_preferred_mode(config.preferred_mode);
         
         Ok(Self {
             config,
@@ -126,6 +170,8 @@ impl UiDumpConfigManager {
         if self.config.preferred_mode != mode {
             self.config.preferred_mode = mode;
             self.dirty = true;
+            // 同步到全局，供 AdbShellSession 等外部模块使用
+            set_global_preferred_mode(mode);
             info!("⚙️ 首选模式已更改为: {:?}", mode);
         }
     }

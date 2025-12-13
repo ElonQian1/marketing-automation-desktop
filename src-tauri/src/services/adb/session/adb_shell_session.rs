@@ -9,6 +9,8 @@ use crate::infra::adb::input_helper::{input_text_injector_first};
 use crate::modules::ui_dump::ui_dump_exec_out::ExecOutExecutor;
 use crate::modules::ui_dump::strategies::android_service::AndroidServiceStrategy;
 use crate::modules::ui_dump::domain::capturer_trait::ScreenCapturer;
+use crate::modules::ui_dump::ui_dump_types::DumpMode;
+use crate::modules::ui_dump::get_global_preferred_mode;
 
 /// ADB Shell长连接会话管理器
 /// 维护到指定设备的持久shell连接，减少命令执行开销
@@ -224,11 +226,43 @@ impl AdbShellSession {
 
     /// 获取当前界面UI层次结构
     /// 
-    /// 优先级: A11y (最快) > ExecOut (快速) > DumpPull (兼容)
+    /// 根据配置的模式执行:
+    /// - Auto: A11y > ExecOut > DumpPull
+    /// - 指定模式: 仅使用该模式
     pub async fn dump_ui(&self) -> Result<String> {
-        // ========== 1. 优先尝试 A11y 模式（需要 Android App 运行）==========
+        // 读取全局配置的模式
+        let preferred_mode = get_global_preferred_mode();
+        
+        info!("🔍 UI Dump 使用模式: {:?}", preferred_mode);
+        
+        match preferred_mode {
+            DumpMode::Auto => self.dump_ui_auto().await,
+            DumpMode::A11y => self.dump_ui_a11y().await,
+            DumpMode::ExecOut => self.dump_ui_exec_out().await,
+            DumpMode::DumpPull => self.dump_ui_dump_pull().await,
+        }
+    }
+    
+    /// Auto 模式: A11y > ExecOut > DumpPull
+    async fn dump_ui_auto(&self) -> Result<String> {
+        // 1. 尝试 A11y
+        if let Ok(xml) = self.dump_ui_a11y().await {
+            return Ok(xml);
+        }
+        
+        // 2. 尝试 ExecOut
+        if let Ok(xml) = self.dump_ui_exec_out().await {
+            return Ok(xml);
+        }
+        
+        // 3. 回退到 DumpPull
+        self.dump_ui_dump_pull().await
+    }
+    
+    /// A11y 模式
+    async fn dump_ui_a11y(&self) -> Result<String> {
         debug!("🚀 尝试 A11y 模式 (Android App)...");
-        let a11y_strategy = AndroidServiceStrategy::new(11451, 3000); // 3秒超时
+        let a11y_strategy = AndroidServiceStrategy::new(11451, 3000);
         
         match a11y_strategy.capture(&self.device_id).await {
             Ok(result) if result.success => {
@@ -236,46 +270,50 @@ impl AdbShellSession {
                     info!("✅ A11y 模式成功: {}ms, {} 字符", result.elapsed_ms, xml_content.len());
                     return Ok(xml_content);
                 }
+                Err(anyhow::anyhow!("A11y 模式返回空内容"))
             }
             Ok(result) => {
-                debug!("⚠️ A11y 模式不可用: {:?}, 尝试 ExecOut", result.error);
+                Err(anyhow::anyhow!("A11y 模式失败: {:?}", result.error))
             }
             Err(e) => {
-                debug!("⚠️ A11y 模式异常: {}, 尝试 ExecOut", e);
+                Err(anyhow::anyhow!("A11y 模式异常: {}", e))
             }
         }
-        
-        // ========== 2. 尝试 ExecOut 快速模式 ==========
+    }
+    
+    /// ExecOut 模式
+    async fn dump_ui_exec_out(&self) -> Result<String> {
         debug!("🚀 尝试 ExecOut 快速模式...");
-        let exec_out = ExecOutExecutor::new(3000); // 3秒超时
+        let exec_out = ExecOutExecutor::new(3000);
         
         match exec_out.execute(&self.device_id).await {
             Ok(result) if result.success => {
                 if let Some(xml_content) = result.xml_content {
-                    info!("✅ ExecOut 快速模式成功: {}ms, {} 字符", result.elapsed_ms, xml_content.len());
+                    info!("✅ ExecOut 模式成功: {}ms, {} 字符", result.elapsed_ms, xml_content.len());
                     return Ok(xml_content);
                 }
+                Err(anyhow::anyhow!("ExecOut 模式返回空内容"))
             }
             Ok(result) => {
-                warn!("⚠️ ExecOut 模式失败: {:?}, 回退到传统模式", result.error);
+                Err(anyhow::anyhow!("ExecOut 模式失败: {:?}", result.error))
             }
             Err(e) => {
-                warn!("⚠️ ExecOut 模式异常: {}, 回退到传统模式", e);
+                Err(anyhow::anyhow!("ExecOut 模式异常: {}", e))
             }
         }
-        
-        // ========== 3. 回退到传统 DumpPull 方式 ==========
-        info!("📦 使用传统 DumpPull 模式...");
+    }
+    
+    /// DumpPull 模式
+    async fn dump_ui_dump_pull(&self) -> Result<String> {
+        info!("📦 使用 DumpPull 模式...");
         let command = "uiautomator dump > /dev/null && cat /sdcard/window_dump.xml";
         let result = self.execute_command_with_timeout(command, Duration::from_secs(15)).await?;
         
-        // 检查是否包含XML内容
         if result.contains("<?xml") {
-            debug!("📱 UI结构获取成功，长度: {} 字符", result.len());
+            debug!("📱 DumpPull 成功，长度: {} 字符", result.len());
             Ok(result)
         } else {
-            debug!("⚠️  UI dump 失败，输出: {}", result);
-            Err(anyhow::anyhow!("UI dump 未返回有效的XML内容: {}", result))
+            Err(anyhow::anyhow!("DumpPull 未返回有效XML: {}", result))
         }
     }
 
