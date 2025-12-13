@@ -202,12 +202,16 @@ fn main() {
         ))
         // .manage(commands::smart_selection::SmartSelectionState::new()) // Removed as part of refactoring
         
-        // ✅ 在 Tauri runtime 就绪后启动 MCP 服务器
-        .setup(|_app| {
+        // ✅ 在 Tauri runtime 就绪后启动 MCP 服务器，并将 AppContext 传递给 Agent 插件
+        .setup(|app| {
+            let app_handle = app.handle().clone();
             // 在 Tauri 的异步 runtime 中启动 MCP 服务器
-            tauri::async_runtime::spawn(async {
+            tauri::async_runtime::spawn(async move {
                 info!("🔌 正在启动 MCP 服务器...");
-                core::start_mcp_server().await;
+                if let Some(ctx) = core::start_mcp_server_with_context().await {
+                    // 将 AppContext 设置到 Agent 插件
+                    modules::agent::set_app_context(&app_handle, ctx).await;
+                }
             });
             Ok(())
         })

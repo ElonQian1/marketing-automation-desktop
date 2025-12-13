@@ -9,4 +9,4 @@ pub mod shared;
 pub mod bootstrap;
 
 // 重导出启动器
-pub use bootstrap::{CoreBootstrap, quick_start, start_mcp_server};
+pub use bootstrap::{CoreBootstrap, quick_start, start_mcp_server, start_mcp_server_with_context};

@@ -84,16 +84,23 @@ pub async fn quick_start() -> Result<Arc<AppContext>, Box<dyn std::error::Error 
     bootstrap.get_context().ok_or_else(|| "上下文初始化失败".into())
 }
 
-/// 启动 MCP 服务器（供 main.rs 调用）
-pub async fn start_mcp_server() {
+/// 启动 MCP 服务器并返回 AppContext（供 main.rs 调用）
+pub async fn start_mcp_server_with_context() -> Option<Arc<AppContext>> {
     info!("🔌 正在启动 MCP 服务器...");
     
     match quick_start().await {
-        Ok(_ctx) => {
+        Ok(ctx) => {
             info!("✅ 六边形架构核心已启动");
+            Some(ctx)
         }
         Err(e) => {
             error!("❌ 六边形架构启动失败: {}", e);
+            None
         }
     }
+}
+
+/// 启动 MCP 服务器（向后兼容）
+pub async fn start_mcp_server() {
+    let _ = start_mcp_server_with_context().await;
 }
