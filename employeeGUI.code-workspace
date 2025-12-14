@@ -5,6 +5,10 @@
     },
     {
       "path": "docs"
+    },
+    {
+      "path": "D:\\rust\\active-projects\\小红书\\android-agent",
+      "name": "android-agent"
     }
   ],
   "settings": {
