@@ -5,10 +5,17 @@
 pub mod script_service;
 pub mod device_service;
 pub mod agent_service;
+pub mod agent_runtime_service;
+pub mod agent_loop;
 
 pub use script_service::ScriptAppService;
 pub use device_service::DeviceAppService;
 pub use agent_service::AgentAppService;
+pub use agent_runtime_service::{
+    AgentRuntime, AgentCommand, AgentEvent,
+    SharedAgentRuntime, create_shared_runtime,
+};
+pub use agent_loop::{AgentLoop, AgentLoopConfig};
 
 use std::sync::Arc;
 use crate::core::domain::script::{ScriptRepository, ScriptExecutor};

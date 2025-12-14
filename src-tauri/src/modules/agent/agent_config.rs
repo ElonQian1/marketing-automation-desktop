@@ -114,7 +114,7 @@ pub fn load_config() -> Option<AgentConfig> {
         Ok(content) => {
             match serde_json::from_str::<AgentConfig>(&content) {
                 Ok(config) => {
-                    info!("📂 已加载 Agent 配置: provider={}", config.provider);
+                    debug!("📂 已加载 Agent 配置: provider={}", config.provider);
                     Some(config)
                 }
                 Err(e) => {

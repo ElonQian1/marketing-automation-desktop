@@ -192,6 +192,7 @@ fn main() {
         .plugin(modules::prospecting::init())        // ✅ 注册潜客挖掘插件
         .plugin(modules::ui_dump::init())            // ✅ 注册 UI Dump 多模式插件
         .plugin(modules::agent::init())              // ✅ 注册 AI Agent 插件
+        .plugin(modules::agent_runtime::init())      // ✅ 注册 Agent 自主运行时插件
         .manage(Mutex::new(AdbService::new()))
         .manage(Mutex::new(EmployeeService::new()))
         .manage(SmartAppManagerState::new())

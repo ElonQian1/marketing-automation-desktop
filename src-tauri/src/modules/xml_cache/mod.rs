@@ -622,11 +622,11 @@ fn get_debug_xml_dir() -> std::path::PathBuf {
     let absolute_project_root = std::path::PathBuf::from("D:\\rust\\active-projects\\小红书\\employeeGUI");
     let debug_xml_path = absolute_project_root.join("debug_xml");
     
-    // 记录调试信息
-    info!("🔍 XML缓存目录检查:");
-    info!("  - 当前工作目录: {:?}", std::env::current_dir().unwrap_or_default());
-    info!("  - 选择的debug_xml路径: {}", debug_xml_path.display());
-    info!("  - 路径是否存在: {}", debug_xml_path.exists());
+    // 记录调试信息 (降级为 debug 减少日志冗余)
+    debug!("🔍 XML缓存目录检查:");
+    debug!("  - 当前工作目录: {:?}", std::env::current_dir().unwrap_or_default());
+    debug!("  - 选择的debug_xml路径: {}", debug_xml_path.display());
+    debug!("  - 路径是否存在: {}", debug_xml_path.exists());
     
     debug_xml_path
 }

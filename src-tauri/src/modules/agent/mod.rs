@@ -35,6 +35,20 @@ impl AgentState {
         let mut context = self.app_context.write().await;
         *context = Some(ctx);
     }
+
+    /// 公共接口：发送消息给 AI（供其他模块调用）
+    pub async fn chat_with_ai(&self, message: &str) -> Result<String, String> {
+        let service = self.service.read().await;
+        let agent = service.as_ref()
+            .ok_or("AI Agent 未配置，请先调用 configure")?;
+
+        agent.chat(message).await.map_err(|e| e.to_string())
+    }
+
+    /// 公共接口：检查 AI 是否已配置
+    pub async fn is_configured(&self) -> bool {
+        self.service.read().await.is_some()
+    }
 }
 
 // ============================================================================
@@ -64,11 +78,23 @@ pub struct AgentResponse {
 }
 
 #[derive(Debug, Serialize)]
+#[serde(rename_all = "camelCase")]
 pub struct ChatResponse {
     pub success: bool,
     pub reply: String,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub error: Option<String>,
+    /// Token 使用统计
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub token_usage: Option<TokenUsage>,
+}
+
+#[derive(Debug, Serialize, Clone)]
+#[serde(rename_all = "camelCase")]
+pub struct TokenUsage {
+    pub prompt_tokens: u32,
+    pub completion_tokens: u32,
+    pub total_tokens: u32,
 }
 
 #[derive(Debug, Serialize)]
@@ -206,6 +232,7 @@ async fn chat(
                 success: true,
                 reply,
                 error: None,
+                token_usage: None, // TODO: 从 AI 响应中获取
             })
         }
         Err(e) => {
@@ -214,6 +241,7 @@ async fn chat(
                 success: false,
                 reply: String::new(),
                 error: Some(e.to_string()),
+                token_usage: None,
             })
         }
     }
@@ -236,11 +264,13 @@ async fn analyze_script(
             success: true,
             reply: analysis,
             error: None,
+            token_usage: None,
         }),
         Err(e) => Ok(ChatResponse {
             success: false,
             reply: String::new(),
             error: Some(e.to_string()),
+            token_usage: None,
         }),
     }
 }
@@ -263,11 +293,13 @@ async fn fix_script(
             success: true,
             reply: result,
             error: None,
+            token_usage: None,
         }),
         Err(e) => Ok(ChatResponse {
             success: false,
             reply: String::new(),
             error: Some(e.to_string()),
+            token_usage: None,
         }),
     }
 }
@@ -289,11 +321,13 @@ async fn execute_task(
             success: true,
             reply: result,
             error: None,
+            token_usage: None,
         }),
         Err(e) => Ok(ChatResponse {
             success: false,
             reply: String::new(),
             error: Some(e.to_string()),
+            token_usage: None,
         }),
     }
 }
@@ -373,6 +407,7 @@ async fn test_connection(
 
 /// 获取配置状态
 #[derive(Debug, Serialize)]
+#[serde(rename_all = "camelCase")]
 pub struct ConfigStatus {
     pub has_saved_config: bool,
     pub provider: Option<String>,

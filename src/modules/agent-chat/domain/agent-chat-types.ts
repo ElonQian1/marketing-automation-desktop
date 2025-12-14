@@ -83,12 +83,23 @@ export interface AgentResponse {
 }
 
 /**
+ * Token 使用统计
+ */
+export interface TokenUsage {
+  promptTokens: number;
+  completionTokens: number;
+  totalTokens: number;
+}
+
+/**
  * 对话响应
  */
 export interface ChatResponse {
   success: boolean;
   reply: string;
   error?: string;
+  /** Token 使用统计 */
+  tokenUsage?: TokenUsage;
 }
 
 /**

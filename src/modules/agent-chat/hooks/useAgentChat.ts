@@ -44,7 +44,8 @@ interface UseAgentChatReturn {
  * AI Agent 对话 Hook
  */
 export function useAgentChat(options: UseAgentChatOptions = {}): UseAgentChatReturn {
-  const { onError, autoRestore = true } = options;
+  const { onError } = options;
+  // autoRestore 功能已内置在 useEffect 中，始终自动恢复
   
   const [messages, setMessages] = useState<AgentMessage[]>([]);
   const [isConfigured, setIsConfigured] = useState(false);
@@ -56,7 +57,7 @@ export function useAgentChat(options: UseAgentChatOptions = {}): UseAgentChatRet
   const [hasSavedConfig, setHasSavedConfig] = useState(false);
   
   const messagesEndRef = useRef<HTMLDivElement>(null);
-  const initDoneRef = useRef(false); // 防止重复初始化
+  // 注意：不使用 ref 来防止重复初始化，因为热重载时 ref 会被保留但实际需要重新初始化
 
   // 滚动到底部
   const scrollToBottom = useCallback(() => {
@@ -358,15 +359,9 @@ export function useAgentChat(options: UseAgentChatOptions = {}): UseAgentChatRet
     }
   }, [isConfigured, restoreConfig]);
 
-  // 组件挂载时自动检查和恢复配置（只执行一次）
+  // 组件挂载时自动检查和恢复配置
+  // 注意：Vite HMR 会保留 React 状态，所以不能依赖 isConfigured 状态判断
   useEffect(() => {
-    // 防止 StrictMode 或其他原因导致重复执行
-    if (initDoneRef.current) {
-      console.log('⏭️ [useAgentChat] 已初始化过，跳过');
-      return;
-    }
-    initDoneRef.current = true;
-    
     let cancelled = false;
     
     const initConfig = async () => {
@@ -376,10 +371,10 @@ export function useAgentChat(options: UseAgentChatOptions = {}): UseAgentChatRet
         const status = await agentChatService.getConfigStatus();
         if (cancelled) return;
         
-        console.log('📊 配置状态:', status);
+        console.log('📊 后端配置状态:', JSON.stringify(status));
         setHasSavedConfig(status.hasSavedConfig);
         
-        // 情况1：后端已配置（热重载后后端状态保留的情况）
+        // 优先级1：后端已经配置好了（热重载后 Rust 后端状态可能保留）
         if (status.isConfigured) {
           console.log('✅ 后端已配置，同步前端状态');
           setIsConfigured(true);
@@ -389,22 +384,18 @@ export function useAgentChat(options: UseAgentChatOptions = {}): UseAgentChatRet
           const toolList = await agentChatService.listTools();
           if (!cancelled) {
             setTools(toolList);
-            addMessage({
-              role: 'assistant',
-              content: `🔄 配置已恢复 (${status.provider})\n\n可用工具: ${toolList.length} 个`,
-            });
           }
           return;
         }
         
-        // 情况2：后端未配置但有保存的配置（常见的热重载场景）
-        if (autoRestore && status.hasSavedConfig && !status.isConfigured) {
-          console.log('🔄 检测到保存的配置，自动恢复...');
+        // 优先级2：后端未配置，但有保存的配置可恢复
+        if (status.hasSavedConfig) {
+          console.log('🔄 后端未配置，自动恢复保存的配置...');
           const result = await agentChatService.restoreConfig();
           if (cancelled) return;
           
           if (result.success) {
-            console.log('✅ 配置恢复成功');
+            console.log('✅ 配置恢复成功:', status.provider);
             setIsConfigured(true);
             if (status.provider) {
               setCurrentProvider(status.provider as AgentProvider);
@@ -412,17 +403,34 @@ export function useAgentChat(options: UseAgentChatOptions = {}): UseAgentChatRet
             const toolList = await agentChatService.listTools();
             if (!cancelled) {
               setTools(toolList);
-              addMessage({
-                role: 'assistant',
-                content: `🔄 配置已自动恢复 (${status.provider})\n\n可用工具: ${toolList.length} 个`,
+              // 添加恢复成功提示（仅当没有消息时）
+              setMessages(prev => {
+                if (prev.length === 0) {
+                  return [{
+                    id: crypto.randomUUID(),
+                    role: 'assistant',
+                    content: `🔄 配置已自动恢复 (${status.provider})\n\n可用工具: ${toolList.length} 个`,
+                    timestamp: new Date(),
+                  }];
+                }
+                return prev;
               });
             }
           } else {
             console.warn('⚠️ 配置恢复失败:', result.error);
+            // 恢复失败，重置前端状态
+            setIsConfigured(false);
           }
+          return;
         }
+        
+        // 优先级3：没有任何配置
+        console.log('ℹ️ 没有保存的配置，需要用户手动配置');
+        setIsConfigured(false);
+        
       } catch (error) {
         console.error('❌ 初始化配置检查失败:', error);
+        setIsConfigured(false);
       }
     };
     
@@ -431,8 +439,7 @@ export function useAgentChat(options: UseAgentChatOptions = {}): UseAgentChatRet
     return () => {
       cancelled = true;
     };
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []); // 空依赖，只在挂载时执行一次（intentional）
+  }, []); // 空依赖，只在挂载时执行一次
 
   return {
     messages,

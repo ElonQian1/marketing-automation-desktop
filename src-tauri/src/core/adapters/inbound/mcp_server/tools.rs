@@ -310,6 +310,127 @@ pub fn register_tools() -> Vec<McpTool> {
                 "required": ["device_id", "command"]
             }),
         ),
+        // ====== 直接设备控制工具（AI Agent 实时操作）======
+        McpTool::new(
+            "tap",
+            "点击屏幕指定坐标",
+            json!({
+                "type": "object",
+                "properties": {
+                    "device_id": {
+                        "type": "string",
+                        "description": "设备ID"
+                    },
+                    "x": {
+                        "type": "integer",
+                        "description": "X坐标"
+                    },
+                    "y": {
+                        "type": "integer",
+                        "description": "Y坐标"
+                    }
+                },
+                "required": ["device_id", "x", "y"]
+            }),
+        ),
+        McpTool::new(
+            "tap_element",
+            "点击屏幕上的元素（通过文本匹配）。先调用 get_screen 获取元素，再用此工具点击",
+            json!({
+                "type": "object",
+                "properties": {
+                    "device_id": {
+                        "type": "string",
+                        "description": "设备ID"
+                    },
+                    "text": {
+                        "type": "string",
+                        "description": "要点击的元素文本（精确匹配或包含）"
+                    },
+                    "match_type": {
+                        "type": "string",
+                        "enum": ["exact", "contains"],
+                        "description": "匹配类型：exact=精确匹配，contains=包含匹配。默认contains"
+                    }
+                },
+                "required": ["device_id", "text"]
+            }),
+        ),
+        McpTool::new(
+            "swipe_screen",
+            "在屏幕上滑动",
+            json!({
+                "type": "object",
+                "properties": {
+                    "device_id": {
+                        "type": "string",
+                        "description": "设备ID"
+                    },
+                    "direction": {
+                        "type": "string",
+                        "enum": ["up", "down", "left", "right"],
+                        "description": "滑动方向"
+                    },
+                    "distance": {
+                        "type": "string",
+                        "enum": ["short", "medium", "long"],
+                        "description": "滑动距离。默认medium"
+                    }
+                },
+                "required": ["device_id", "direction"]
+            }),
+        ),
+        McpTool::new(
+            "input_text",
+            "在当前焦点输入文本",
+            json!({
+                "type": "object",
+                "properties": {
+                    "device_id": {
+                        "type": "string",
+                        "description": "设备ID"
+                    },
+                    "text": {
+                        "type": "string",
+                        "description": "要输入的文本"
+                    }
+                },
+                "required": ["device_id", "text"]
+            }),
+        ),
+        McpTool::new(
+            "press_key",
+            "按下设备按键",
+            json!({
+                "type": "object",
+                "properties": {
+                    "device_id": {
+                        "type": "string",
+                        "description": "设备ID"
+                    },
+                    "key": {
+                        "type": "string",
+                        "enum": ["back", "home", "menu", "enter", "delete"],
+                        "description": "按键名称"
+                    }
+                },
+                "required": ["device_id", "key"]
+            }),
+        ),
+        McpTool::new(
+            "wait",
+            "等待指定时间",
+            json!({
+                "type": "object",
+                "properties": {
+                    "milliseconds": {
+                        "type": "integer",
+                        "description": "等待时间（毫秒）"
+                    }
+                },
+                "required": ["milliseconds"]
+            }),
+        ),
     ]
 }
 
@@ -337,6 +458,13 @@ pub async fn execute_tool(
         "get_screen" => handle_get_screen(params, ctx).await,
         "launch_app" => handle_launch_app(params, ctx).await,
         "run_adb_command" => handle_run_adb_command(params, ctx).await,
+        // 直接设备控制工具
+        "tap" => handle_tap(params).await,
+        "tap_element" => handle_tap_element(params).await,
+        "swipe_screen" => handle_swipe_screen(params).await,
+        "input_text" => handle_input_text(params).await,
+        "press_key" => handle_press_key(params).await,
+        "wait" => handle_wait(params).await,
         _ => ToolResult::error(format!("未知工具: {}", tool_name)),
     }
 }
@@ -783,5 +911,302 @@ async fn handle_run_adb_command(params: Value, _ctx: &Arc<AppContext>) -> ToolRe
             }
         }
         (Err(e), _) | (_, Err(e)) => ToolResult::error(e),
+    }
+}
+
+// ============================================================================
+// 直接设备控制工具处理函数
+// ============================================================================
+
+/// 点击屏幕坐标
+async fn handle_tap(params: Value) -> ToolResult {
+    let device_id = params.get("device_id")
+        .and_then(|v| v.as_str())
+        .ok_or_else(|| "缺少 device_id".to_string());
+    let x = params.get("x")
+        .and_then(|v| v.as_i64())
+        .ok_or_else(|| "缺少 x 坐标".to_string());
+    let y = params.get("y")
+        .and_then(|v| v.as_i64())
+        .ok_or_else(|| "缺少 y 坐标".to_string());
+
+    match (device_id, x, y) {
+        (Ok(device_id), Ok(x), Ok(y)) => {
+            info!("👆 点击坐标: ({}, {}) on {}", x, y, device_id);
+            execute_adb_command(device_id, &format!("input tap {} {}", x, y)).await
+        }
+        (Err(e), _, _) | (_, Err(e), _) | (_, _, Err(e)) => ToolResult::error(e),
+    }
+}
+
+/// 点击元素（通过文本匹配）
+async fn handle_tap_element(params: Value) -> ToolResult {
+    let device_id = params.get("device_id")
+        .and_then(|v| v.as_str())
+        .ok_or_else(|| "缺少 device_id".to_string());
+    let text = params.get("text")
+        .and_then(|v| v.as_str())
+        .ok_or_else(|| "缺少 text".to_string());
+    let match_type = params.get("match_type")
+        .and_then(|v| v.as_str())
+        .unwrap_or("contains");
+
+    match (device_id, text) {
+        (Ok(device_id), Ok(text)) => {
+            info!("🔍 查找并点击元素: '{}' (match: {}) on {}", text, match_type, device_id);
+            
+            // 1. 获取屏幕 UI 结构
+            let xml = match get_device_screen_xml(device_id).await {
+                Ok(xml) => xml,
+                Err(e) => return ToolResult::error(format!("获取屏幕失败: {}", e)),
+            };
+            
+            // 2. 解析 XML 查找元素
+            match find_element_by_text(&xml, text, match_type == "exact") {
+                Some((center_x, center_y)) => {
+                    info!("✅ 找到元素 '{}' 中心坐标: ({}, {})", text, center_x, center_y);
+                    execute_adb_command(device_id, &format!("input tap {} {}", center_x, center_y)).await
+                }
+                None => ToolResult::error(format!(
+                    "未找到包含 '{}' 的元素。请用 get_screen 查看可用元素", text
+                )),
+            }
+        }
+        (Err(e), _) | (_, Err(e)) => ToolResult::error(e),
+    }
+}
+
+/// 滑动屏幕
+async fn handle_swipe_screen(params: Value) -> ToolResult {
+    let device_id = params.get("device_id")
+        .and_then(|v| v.as_str())
+        .ok_or_else(|| "缺少 device_id".to_string());
+    let direction = params.get("direction")
+        .and_then(|v| v.as_str())
+        .ok_or_else(|| "缺少 direction".to_string());
+    let distance = params.get("distance")
+        .and_then(|v| v.as_str())
+        .unwrap_or("medium");
+
+    match (device_id, direction) {
+        (Ok(device_id), Ok(direction)) => {
+            info!("👆 滑动屏幕: {} ({}) on {}", direction, distance, device_id);
+            
+            // 基于屏幕中心计算滑动坐标（假设 1080x1920 屏幕）
+            let (start_x, start_y, end_x, end_y) = calculate_swipe_coords(direction, distance);
+            
+            let cmd = format!("input swipe {} {} {} {} 300", start_x, start_y, end_x, end_y);
+            execute_adb_command(device_id, &cmd).await
+        }
+        (Err(e), _) | (_, Err(e)) => ToolResult::error(e),
+    }
+}
+
+/// 输入文本
+async fn handle_input_text(params: Value) -> ToolResult {
+    let device_id = params.get("device_id")
+        .and_then(|v| v.as_str())
+        .ok_or_else(|| "缺少 device_id".to_string());
+    let text = params.get("text")
+        .and_then(|v| v.as_str())
+        .ok_or_else(|| "缺少 text".to_string());
+
+    match (device_id, text) {
+        (Ok(device_id), Ok(text)) => {
+            info!("⌨️ 输入文本: '{}' on {}", text, device_id);
+            // 转义特殊字符
+            let escaped = text.replace(' ', "%s")
+                              .replace('&', "\\&")
+                              .replace('<', "\\<")
+                              .replace('>', "\\>")
+                              .replace('\'', "\\'")
+                              .replace('"', "\\\"");
+            execute_adb_command(device_id, &format!("input text '{}'", escaped)).await
+        }
+        (Err(e), _) | (_, Err(e)) => ToolResult::error(e),
+    }
+}
+
+/// 按下按键
+async fn handle_press_key(params: Value) -> ToolResult {
+    let device_id = params.get("device_id")
+        .and_then(|v| v.as_str())
+        .ok_or_else(|| "缺少 device_id".to_string());
+    let key = params.get("key")
+        .and_then(|v| v.as_str())
+        .ok_or_else(|| "缺少 key".to_string());
+
+    match (device_id, key) {
+        (Ok(device_id), Ok(key)) => {
+            let keycode = match key {
+                "back" => "KEYCODE_BACK",
+                "home" => "KEYCODE_HOME",
+                "menu" => "KEYCODE_MENU",
+                "enter" => "KEYCODE_ENTER",
+                "delete" => "KEYCODE_DEL",
+                _ => return ToolResult::error(format!("不支持的按键: {}", key)),
+            };
+            info!("🔘 按键: {} on {}", keycode, device_id);
+            execute_adb_command(device_id, &format!("input keyevent {}", keycode)).await
+        }
+        (Err(e), _) | (_, Err(e)) => ToolResult::error(e),
+    }
+}
+
+/// 等待
+async fn handle_wait(params: Value) -> ToolResult {
+    let ms = params.get("milliseconds")
+        .and_then(|v| v.as_u64())
+        .unwrap_or(1000);
+
+    info!("⏳ 等待 {}ms", ms);
+    tokio::time::sleep(tokio::time::Duration::from_millis(ms)).await;
+    ToolResult::success(format!("已等待 {}ms", ms))
+}
+
+// ============================================================================
+// 辅助函数
+// ============================================================================
+
+/// 执行 ADB 命令
+async fn execute_adb_command(device_id: &str, shell_command: &str) -> ToolResult {
+    let adb_path = crate::utils::adb_utils::get_adb_path();
+    
+    let mut command = std::process::Command::new(&adb_path);
+    command.args(&["-s", device_id, "shell", shell_command]);
+    
+    #[cfg(windows)]
+    {
+        use std::os::windows::process::CommandExt;
+        command.creation_flags(0x08000000); // CREATE_NO_WINDOW
+    }
+    
+    match command.output() {
+        Ok(output) => {
+            if output.status.success() {
+                ToolResult::success("✅ 操作成功")
+            } else {
+                let stderr = String::from_utf8_lossy(&output.stderr);
+                ToolResult::error(format!("操作失败: {}", stderr))
+            }
+        }
+        Err(e) => ToolResult::error(format!("执行ADB失败: {}", e)),
+    }
+}
+
+/// 获取设备屏幕 XML
+async fn get_device_screen_xml(device_id: &str) -> Result<String, String> {
+    let adb_path = crate::utils::adb_utils::get_adb_path();
+    
+    // 先 dump UI
+    let mut dump_cmd = std::process::Command::new(&adb_path);
+    dump_cmd.args(&["-s", device_id, "shell", "uiautomator dump /sdcard/window_dump.xml"]);
+    
+    #[cfg(windows)]
+    {
+        use std::os::windows::process::CommandExt;
+        dump_cmd.creation_flags(0x08000000);
+    }
+    
+    dump_cmd.output().map_err(|e| e.to_string())?;
+    
+    // 读取内容
+    let mut cat_cmd = std::process::Command::new(&adb_path);
+    cat_cmd.args(&["-s", device_id, "shell", "cat /sdcard/window_dump.xml"]);
+    
+    #[cfg(windows)]
+    {
+        use std::os::windows::process::CommandExt;
+        cat_cmd.creation_flags(0x08000000);
+    }
+    
+    let output = cat_cmd.output().map_err(|e| e.to_string())?;
+    
+    if output.status.success() {
+        Ok(String::from_utf8_lossy(&output.stdout).to_string())
+    } else {
+        Err("无法读取屏幕 XML".to_string())
+    }
+}
+
+/// 从 XML 中查找元素并返回中心坐标
+fn find_element_by_text(xml: &str, text: &str, exact: bool) -> Option<(i32, i32)> {
+    // 简单解析：查找包含指定 text 属性的节点，提取 bounds
+    // bounds 格式: [left,top][right,bottom]
+    
+    for line in xml.lines() {
+        let matches = if exact {
+            line.contains(&format!("text=\"{}\"", text))
+        } else {
+            // 检查 text 属性是否包含目标文本
+            if let Some(start) = line.find("text=\"") {
+                let text_start = start + 6;
+                if let Some(end) = line[text_start..].find('"') {
+                    let text_value = &line[text_start..text_start + end];
+                    text_value.contains(text)
+                } else {
+                    false
+                }
+            } else {
+                false
+            }
+        };
+        
+        if matches {
+            // 提取 bounds
+            if let Some(bounds_start) = line.find("bounds=\"[") {
+                let bounds_str = &line[bounds_start + 8..];
+                if let Some(bounds_end) = bounds_str.find(']') {
+                    // 解析 [left,top][right,bottom]
+                    let coords = &bounds_str[1..];
+                    if let Some(mid) = coords.find("][") {
+                        let first = &coords[..mid];
+                        let second = &coords[mid + 2..];
+                        if let Some(second_end) = second.find(']') {
+                            let second = &second[..second_end];
+                            
+                            let first_parts: Vec<&str> = first.split(',').collect();
+                            let second_parts: Vec<&str> = second.split(',').collect();
+                            
+                            if first_parts.len() == 2 && second_parts.len() == 2 {
+                                if let (Ok(left), Ok(top), Ok(right), Ok(bottom)) = (
+                                    first_parts[0].parse::<i32>(),
+                                    first_parts[1].parse::<i32>(),
+                                    second_parts[0].parse::<i32>(),
+                                    second_parts[1].parse::<i32>(),
+                                ) {
+                                    let center_x = (left + right) / 2;
+                                    let center_y = (top + bottom) / 2;
+                                    return Some((center_x, center_y));
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
+    
+    None
+}
+
+/// 计算滑动坐标
+fn calculate_swipe_coords(direction: &str, distance: &str) -> (i32, i32, i32, i32) {
+    // 假设屏幕 1080x1920，从中心开始滑动
+    let center_x = 540;
+    let center_y = 960;
+    
+    let offset = match distance {
+        "short" => 200,
+        "long" => 600,
+        _ => 400, // medium
+    };
+    
+    match direction {
+        "up" => (center_x, center_y + offset, center_x, center_y - offset),
+        "down" => (center_x, center_y - offset, center_x, center_y + offset),
+        "left" => (center_x + offset, center_y, center_x - offset, center_y),
+        "right" => (center_x - offset, center_y, center_x + offset, center_y),
+        _ => (center_x, center_y, center_x, center_y),
     }
 }

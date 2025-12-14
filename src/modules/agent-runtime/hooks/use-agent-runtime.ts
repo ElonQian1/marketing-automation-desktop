@@ -1,0 +1,221 @@
+// src/modules/agent-runtime/hooks/use-agent-runtime.ts
+// module: agent-runtime | layer: hooks | role: Agent 运行时 Hook
+// summary: 提供 Agent 状态管理和控制的 React Hook
+
+import { useState, useEffect, useCallback, useRef } from 'react';
+import { message } from 'antd';
+import type {
+  AgentRunState,
+  AgentStateSnapshot,
+  AgentEvent,
+  StartAgentParams,
+} from '../domain/agent-runtime-types';
+import {
+  startAgent,
+  pauseAgent,
+  resumeAgent,
+  stopAgent,
+  approveAction,
+  rejectAction,
+  getAgentStatus,
+  getAgentEvents,
+} from '../api/agent-runtime-api';
+
+export interface UseAgentRuntimeResult {
+  // 状态
+  state: AgentRunState;
+  snapshot: AgentStateSnapshot | null;
+  isRunning: boolean;
+  events: AgentEvent[];
+  loading: boolean;
+
+  // 操作
+  start: (params: StartAgentParams) => Promise<boolean>;
+  pause: () => Promise<boolean>;
+  resume: () => Promise<boolean>;
+  stop: () => Promise<boolean>;
+  approve: () => Promise<boolean>;
+  reject: () => Promise<boolean>;
+  refresh: () => Promise<void>;
+}
+
+export function useAgentRuntime(pollInterval = 500): UseAgentRuntimeResult {
+  const [state, setState] = useState<AgentRunState>('Idle');
+  const [snapshot, setSnapshot] = useState<AgentStateSnapshot | null>(null);
+  const [isRunning, setIsRunning] = useState(false);
+  const [events, setEvents] = useState<AgentEvent[]>([]);
+  const [loading, setLoading] = useState(false);
+  
+  const pollRef = useRef<ReturnType<typeof setInterval> | null>(null);
+
+  // 刷新状态
+  const refresh = useCallback(async () => {
+    try {
+      const status = await getAgentStatus();
+      if (status.success && status.snapshot) {
+        setState(status.snapshot.runState);
+        setSnapshot(status.snapshot);
+        setIsRunning(status.isRunning);
+      }
+    } catch (error) {
+      console.error('获取 Agent 状态失败:', error);
+    }
+  }, []);
+
+  // 获取事件
+  const fetchEvents = useCallback(async () => {
+    try {
+      const result = await getAgentEvents();
+      if (result.success && result.events.length > 0) {
+        setEvents(prev => [...prev, ...result.events].slice(-100));
+      }
+    } catch (error) {
+      console.error('获取 Agent 事件失败:', error);
+    }
+  }, []);
+
+  // 启动 Agent
+  const start = useCallback(async (params: StartAgentParams): Promise<boolean> => {
+    setLoading(true);
+    try {
+      setEvents([]); // 清空事件
+      const result = await startAgent(params);
+      if (result.success) {
+        message.success(result.message);
+        await refresh();
+        return true;
+      } else {
+        message.error(result.error || '启动失败');
+        return false;
+      }
+    } catch (error) {
+      message.error(`启动失败: ${error}`);
+      return false;
+    } finally {
+      setLoading(false);
+    }
+  }, [refresh]);
+
+  // 暂停 Agent
+  const pause = useCallback(async (): Promise<boolean> => {
+    try {
+      const result = await pauseAgent();
+      if (result.success) {
+        message.info(result.message);
+        await refresh();
+        return true;
+      } else {
+        message.error(result.error || '暂停失败');
+        return false;
+      }
+    } catch (error) {
+      message.error(`暂停失败: ${error}`);
+      return false;
+    }
+  }, [refresh]);
+
+  // 恢复 Agent
+  const resume = useCallback(async (): Promise<boolean> => {
+    try {
+      const result = await resumeAgent();
+      if (result.success) {
+        message.success(result.message);
+        await refresh();
+        return true;
+      } else {
+        message.error(result.error || '恢复失败');
+        return false;
+      }
+    } catch (error) {
+      message.error(`恢复失败: ${error}`);
+      return false;
+    }
+  }, [refresh]);
+
+  // 停止 Agent
+  const stop = useCallback(async (): Promise<boolean> => {
+    try {
+      const result = await stopAgent();
+      if (result.success) {
+        message.info(result.message);
+        await refresh();
+        return true;
+      } else {
+        message.error(result.error || '停止失败');
+        return false;
+      }
+    } catch (error) {
+      message.error(`停止失败: ${error}`);
+      return false;
+    }
+  }, [refresh]);
+
+  // 批准行动
+  const approve = useCallback(async (): Promise<boolean> => {
+    try {
+      const result = await approveAction();
+      if (result.success) {
+        message.success(result.message);
+        await refresh();
+        return true;
+      } else {
+        message.error(result.error || '批准失败');
+        return false;
+      }
+    } catch (error) {
+      message.error(`批准失败: ${error}`);
+      return false;
+    }
+  }, [refresh]);
+
+  // 拒绝行动
+  const reject = useCallback(async (): Promise<boolean> => {
+    try {
+      const result = await rejectAction();
+      if (result.success) {
+        message.info(result.message);
+        await refresh();
+        return true;
+      } else {
+        message.error(result.error || '拒绝失败');
+        return false;
+      }
+    } catch (error) {
+      message.error(`拒绝失败: ${error}`);
+      return false;
+    }
+  }, [refresh]);
+
+  // 轮询状态和事件
+  useEffect(() => {
+    // 初始加载
+    refresh();
+
+    // 启动轮询
+    pollRef.current = setInterval(() => {
+      refresh();
+      fetchEvents();
+    }, pollInterval);
+
+    return () => {
+      if (pollRef.current) {
+        clearInterval(pollRef.current);
+      }
+    };
+  }, [refresh, fetchEvents, pollInterval]);
+
+  return {
+    state,
+    snapshot,
+    isRunning,
+    events,
+    loading,
+    start,
+    pause,
+    resume,
+    stop,
+    approve,
+    reject,
+    refresh,
+  };
+}
