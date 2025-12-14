@@ -295,25 +295,32 @@ async fn run_agent_loop<R: Runtime>(
         r#"你是一个自主执行任务的 AI Agent。你的当前目标是：{goal}
 设备 ID：{device_id}
 
-你可以使用以下工具来控制 Android 设备：
-- direct_tap_element: 点击屏幕元素
-- direct_swipe: 滑动屏幕
-- direct_input_text: 输入文字
-- direct_press_key: 按键（home, back, enter 等）
-- direct_open_app: 打开应用
-- direct_screenshot: 截图查看当前屏幕
-- get_contacts_list: 获取通讯录
-- adb_get_screen_xml: 获取当前屏幕 UI 结构
+## 📱 Android 设备控制工具
+- tap: 点击坐标 {{"x": 540, "y": 960}}
+- tap_element: 点击元素 {{"text": "微信"}}
+- swipe: 滑动屏幕 {{"direction": "up|down|left|right", "distance": "short|medium|long"}}
+- input_text: 输入文字 {{"text": "你好"}}
+- press_key: 按键 {{"key": "back|home|enter|delete"}}
+- launch_app: 打开应用 {{"package_name": "com.tencent.mm"}}
+- get_screen: 获取屏幕 UI 结构
+
+## 💻 PC 命令行工具（谨慎使用）
+- run_command: 执行命令 {{"command": "dir"}} 
+- read_file: 读取文件 {{"path": "C:\\test.txt"}}
+- list_dir: 列出目录 {{"path": "."}}
+
+## ⏱️ 其他
+- wait: 等待 {{"milliseconds": 1000}}
 
 请分析当前情况，决定下一步行动。以 JSON 格式回复：
 {{
     "thought": "你的思考过程",
-    "action": "要执行的工具名称（如果需要执行操作）",
+    "action": "工具名称",
     "params": {{ 工具参数 }},
-    "is_complete": false // 如果目标已完成设为 true
+    "is_complete": false
 }}
 
-如果目标已完成，设置 "is_complete": true 并省略 action 和 params。"#,
+目标完成时设置 "is_complete": true 并省略 action/params。"#,
         goal = goal,
         device_id = device_id
     );
@@ -649,6 +656,19 @@ async fn execute_agent_tool(
                 message: format!("已等待 {}ms", ms),
             }
         }
+        // ========== 通用 CLI 命令（带安全限制）==========
+        "run_command" | "execute_command" | "shell" => {
+            let command = params.get("command").and_then(|v| v.as_str()).unwrap_or("");
+            execute_cli_command(command).await
+        }
+        "read_file" => {
+            let path = params.get("path").and_then(|v| v.as_str()).unwrap_or("");
+            read_local_file(path).await
+        }
+        "list_dir" | "ls" => {
+            let path = params.get("path").and_then(|v| v.as_str()).unwrap_or(".");
+            list_directory(path).await
+        }
         _ => {
             ToolExecutionResult {
                 success: false,
@@ -687,6 +707,179 @@ async fn execute_shell_command(adb_path: &str, device_id: &str, shell_cmd: &str)
         Err(e) => ToolExecutionResult {
             success: false,
             message: format!("执行ADB失败: {}", e),
+        },
+    }
+}
+
+// ========== 通用 CLI 命令执行（带安全限制）==========
+
+/// 危险命令黑名单
+const DANGEROUS_COMMANDS: &[&str] = &[
+    "rm -rf", "del /f", "format", "mkfs",          // 删除/格式化
+    "shutdown", "reboot", "poweroff",               // 系统控制
+    "reg delete", "reg add",                        // 注册表
+    "net user", "net localgroup",                   // 用户管理
+    "taskkill /f", "kill -9",                       // 强制杀进程
+    "curl", "wget", "Invoke-WebRequest",            // 网络下载（防止恶意下载）
+    "powershell -enc", "cmd /c",                    // 编码执行
+    ":(){:|:&};:",                                  // Fork bomb
+];
+
+/// 允许的安全命令前缀（白名单模式更安全）
+const SAFE_COMMAND_PREFIXES: &[&str] = &[
+    "echo", "type", "cat", "head", "tail",          // 读取
+    "dir", "ls", "Get-ChildItem",                   // 列目录
+    "cd", "pwd", "Get-Location",                    // 导航
+    "findstr", "grep", "Select-String",             // 搜索
+    "date", "time", "Get-Date",                     // 时间
+    "hostname", "whoami",                           // 系统信息
+    "ping", "nslookup",                             // 网络诊断
+    "node", "npm", "python", "cargo",               // 开发工具
+    "git status", "git log", "git diff",            // Git 只读
+];
+
+/// 执行通用 CLI 命令（带安全检查）
+async fn execute_cli_command(command: &str) -> ToolExecutionResult {
+    let command_lower = command.to_lowercase();
+    
+    // 1. 黑名单检查
+    for dangerous in DANGEROUS_COMMANDS {
+        if command_lower.contains(&dangerous.to_lowercase()) {
+            return ToolExecutionResult {
+                success: false,
+                message: format!("🚫 安全限制：禁止执行危险命令 '{}'", dangerous),
+            };
+        }
+    }
+    
+    // 2. 白名单检查（可选：启用后只允许白名单命令）
+    // let is_safe = SAFE_COMMAND_PREFIXES.iter().any(|prefix| 
+    //     command_lower.starts_with(&prefix.to_lowercase())
+    // );
+    // if !is_safe {
+    //     return ToolExecutionResult {
+    //         success: false,
+    //         message: format!("🚫 命令不在白名单中: {}", command),
+    //     };
+    // }
+    
+    info!("💻 执行 CLI 命令: {}", command);
+    
+    // 3. 执行命令
+    #[cfg(windows)]
+    let output = {
+        use std::os::windows::process::CommandExt;
+        std::process::Command::new("powershell")
+            .args(&["-NoProfile", "-Command", command])
+            .creation_flags(0x08000000) // CREATE_NO_WINDOW
+            .output()
+    };
+    
+    #[cfg(not(windows))]
+    let output = {
+        std::process::Command::new("sh")
+            .args(&["-c", command])
+            .output()
+    };
+    
+    match output {
+        Ok(output) => {
+            let stdout = String::from_utf8_lossy(&output.stdout);
+            let stderr = String::from_utf8_lossy(&output.stderr);
+            
+            // 截断过长输出
+            let result = if stdout.len() > 4000 {
+                format!("{}...(截断，共{}字符)", &stdout[..4000], stdout.len())
+            } else if stdout.is_empty() && !stderr.is_empty() {
+                stderr.to_string()
+            } else if stdout.is_empty() {
+                "命令执行完成（无输出）".to_string()
+            } else {
+                stdout.to_string()
+            };
+            
+            ToolExecutionResult {
+                success: output.status.success(),
+                message: result,
+            }
+        }
+        Err(e) => ToolExecutionResult {
+            success: false,
+            message: format!("命令执行失败: {}", e),
+        },
+    }
+}
+
+/// 读取本地文件（带安全限制）
+async fn read_local_file(path: &str) -> ToolExecutionResult {
+    use std::path::Path;
+    
+    let path = Path::new(path);
+    
+    // 安全检查：禁止读取敏感路径
+    let path_str = path.to_string_lossy().to_lowercase();
+    let forbidden_paths = [
+        "c:\\windows", "/etc/passwd", "/etc/shadow",
+        ".ssh", ".gnupg", "credentials", "secrets",
+        "password", "token", "api_key",
+    ];
+    
+    for forbidden in forbidden_paths {
+        if path_str.contains(forbidden) {
+            return ToolExecutionResult {
+                success: false,
+                message: format!("🚫 安全限制：禁止访问敏感路径 '{}'", forbidden),
+            };
+        }
+    }
+    
+    match std::fs::read_to_string(path) {
+        Ok(content) => {
+            let truncated = if content.len() > 8000 {
+                format!("{}...(截断，共{}字符)", &content[..8000], content.len())
+            } else {
+                content
+            };
+            ToolExecutionResult {
+                success: true,
+                message: truncated,
+            }
+        }
+        Err(e) => ToolExecutionResult {
+            success: false,
+            message: format!("读取文件失败: {}", e),
+        },
+    }
+}
+
+/// 列出目录内容
+async fn list_directory(path: &str) -> ToolExecutionResult {
+    use std::path::Path;
+    
+    let path = Path::new(path);
+    
+    match std::fs::read_dir(path) {
+        Ok(entries) => {
+            let mut items: Vec<String> = Vec::new();
+            for entry in entries.take(100) {  // 限制最多100项
+                if let Ok(entry) = entry {
+                    let name = entry.file_name().to_string_lossy().to_string();
+                    let file_type = if entry.path().is_dir() { "📁" } else { "📄" };
+                    items.push(format!("{} {}", file_type, name));
+                }
+            }
+            ToolExecutionResult {
+                success: true,
+                message: if items.is_empty() {
+                    "目录为空".to_string()
+                } else {
+                    items.join("\n")
+                },
+            }
+        }
+        Err(e) => ToolExecutionResult {
+            success: false,
+            message: format!("读取目录失败: {}", e),
         },
     }
 }

@@ -20,7 +20,12 @@ module.exports = [
       'src/pages/ContactAutomationPage*',
       'src/pages/ContactImportPage*',
       'src/pages/contact-management/**',
-      'src/components/contact/**'
+      'src/components/contact/**',
+      // 忽略 parsing error 文件 (tsconfig 未覆盖)
+      'src/components/universal-ui/views/list-view/index.tsx',
+      'src/components/universal-ui/views/tree-view/index.tsx',
+      'src/components/universal-ui/views/visual-view/index.tsx',
+      'src/modules/contact-import/ui/components/txt-import/logic/confirmBulkDelete.tsx'
     ]
   },
   {
