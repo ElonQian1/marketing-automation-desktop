@@ -1,5 +1,62 @@
 # Copilot 项目内规（简版，面向 AI 代理）
 
+---
+
+## 🚨 多仓库架构警告 (Multi-Repo Architecture)
+
+**本项目由多个独立 Git 仓库组成，请务必注意！**
+
+### 仓库结构
+
+| 仓库名称 | 路径 | GitHub | 技术栈 | 说明 |
+|---------|------|--------|--------|------|
+| **marketing-automation-desktop** | `employeeGUI/` | `ElonQian1/marketing-automation-desktop` | Tauri v2 + React + TypeScript + Rust | 🖥️ **主仓库** - 桌面端应用 |
+| **Android-Agent** | `employeeGUI/android-agent/` (submodule) | `ElonQian1/Android-Agent` | Kotlin + Android | 📱 **独立仓库** - 手机端 Agent 应用 |
+
+### ⚠️ AI 代理必读规则
+
+1. **Git 操作分离**：
+   - 修改 `employeeGUI/` 下的文件 → 在主仓库提交
+   - 修改 `android-agent/` 下的文件 → **必须在 android-agent 目录下单独 git commit/push**
+
+2. **Submodule 关系**：
+   - `android-agent/` 是 Git Submodule，指向独立仓库
+   - 主仓库只记录 submodule 的版本指针，不包含实际代码
+
+3. **正确的提交流程**：
+   ```powershell
+   # 提交 android-agent 修改
+   cd android-agent
+   git add .
+   git commit -m "feat: xxx"
+   git push
+   
+   # 提交主仓库修改（如果 submodule 版本更新）
+   cd ..
+   git add android-agent
+   git commit -m "chore: update android-agent submodule"
+   git push
+   ```
+
+4. **禁止操作**：
+   - ❌ 在主仓库根目录执行 `git add android-agent/*`（这不会正确提交子模块内容）
+   - ❌ 混淆两个仓库的修改
+
+---
+
+## 📋 快速检查：我该在哪个仓库操作？
+
+| 修改内容 | 所属仓库 | Git 操作目录 |
+|---------|---------|-------------|
+| TypeScript/React 前端代码 | 主仓库 | `employeeGUI/` |
+| Rust/Tauri 后端代码 | 主仓库 | `employeeGUI/` |
+| Kotlin/Android 代码 | Android-Agent | `employeeGUI/android-agent/` |
+| `.github/copilot-instructions.md` | 主仓库 | `employeeGUI/` |
+
+---
+
+## 🔧 开发环境说明
+
 项目通常都会 npm run tauri dev 热重载启动着，编译好代码后不要重新启动，只需要执行 cargo check 这样的命令检查 Rust 代码即可。
 
 没事不要执行 cargo clean
