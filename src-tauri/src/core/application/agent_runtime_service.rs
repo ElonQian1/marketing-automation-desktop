@@ -295,6 +295,22 @@ impl AgentRuntime {
         self.pending_action_name = None;
         self.pending_action_params = None;
     }
+
+    /// 获取连续失败次数
+    pub fn consecutive_failures(&self) -> u32 {
+        self.consecutive_failures
+    }
+
+    /// 获取最后一次错误信息
+    pub fn last_error(&self) -> Option<String> {
+        // 从工作记忆中获取最后的失败结果
+        if let Some(result) = &self.memory.working.last_result {
+            if result.contains("失败") || result.contains("error") || result.contains("Error") {
+                return Some(result.clone());
+            }
+        }
+        None
+    }
 }
 
 /// 共享的 Agent 运行时状态

@@ -6,6 +6,7 @@ pub mod script;
 pub mod device;
 pub mod agent;
 pub mod agent_runtime;
+pub mod mde_extraction;
 
 // 导出核心类型
 pub use script::{Script, ScriptStep, ScriptSummary, ScriptRepository};

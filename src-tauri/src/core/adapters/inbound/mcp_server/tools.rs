@@ -12,7 +12,7 @@ use crate::core::domain::script::{Script, ScriptStep, ClickTarget, StepAction, I
 
 /// 注册所有 MCP 工具
 pub fn register_tools() -> Vec<McpTool> {
-    vec![
+    let mut tools = vec![
         // ====== 脚本管理工具 ======
         McpTool::new(
             "list_scripts",
@@ -431,7 +431,13 @@ pub fn register_tools() -> Vec<McpTool> {
                 "required": ["milliseconds"]
             }),
         ),
-    ]
+    ];
+    
+    // 添加 MDE 数据提取工具
+    let mde_tools = super::mde_tools::register_mde_tools();
+    tools.extend(mde_tools);
+    
+    tools
 }
 
 /// 执行工具调用
@@ -441,6 +447,11 @@ pub async fn execute_tool(
     ctx: &Arc<AppContext>,
 ) -> ToolResult {
     info!("🔧 MCP 工具调用: {} with {:?}", tool_name, params);
+
+    // 先尝试 MDE 工具
+    if let Some(result) = super::mde_tools::execute_mde_tool(tool_name, params.clone(), ctx).await {
+        return result;
+    }
 
     match tool_name {
         "list_scripts" => handle_list_scripts(ctx).await,

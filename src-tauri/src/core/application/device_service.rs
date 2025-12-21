@@ -183,3 +183,84 @@ impl Default for DeviceAppService {
         Self::new()
     }
 }
+
+// ============================================================================
+// MDE 扩展方法 - 滑动和截图
+// ============================================================================
+
+impl DeviceAppService {
+    /// 滑动屏幕
+    /// 
+    /// # Arguments
+    /// * `device_id` - 设备 ID
+    /// * `start_x`, `start_y` - 起始坐标
+    /// * `end_x`, `end_y` - 结束坐标
+    /// * `duration_ms` - 滑动持续时间（毫秒）
+    pub async fn swipe(
+        &self,
+        device_id: &str,
+        start_x: i32,
+        start_y: i32,
+        end_x: i32,
+        end_y: i32,
+        duration_ms: u32,
+    ) -> CoreResult<()> {
+        info!(
+            "👆 滑动屏幕: {} ({},{}) -> ({},{}) {}ms",
+            device_id, start_x, start_y, end_x, end_y, duration_ms
+        );
+        
+        let _ = self.execute_adb_command(&[
+            "-s", device_id,
+            "shell", "input", "swipe",
+            &start_x.to_string(),
+            &start_y.to_string(),
+            &end_x.to_string(),
+            &end_y.to_string(),
+            &duration_ms.to_string(),
+        ]).await?;
+        
+        Ok(())
+    }
+
+    /// 向上滑动（用于翻页）
+    pub async fn swipe_up(&self, device_id: &str) -> CoreResult<()> {
+        // 默认在屏幕中央向上滑动 500 像素
+        self.swipe(device_id, 540, 1400, 540, 700, 300).await
+    }
+
+    /// 向下滑动
+    pub async fn swipe_down(&self, device_id: &str) -> CoreResult<()> {
+        self.swipe(device_id, 540, 700, 540, 1400, 300).await
+    }
+
+    /// 获取屏幕截图（PNG 字节）
+    pub async fn take_screenshot(&self, device_id: &str) -> CoreResult<Vec<u8>> {
+        info!("📸 获取设备截图: {}", device_id);
+        
+        let output = std::process::Command::new(&self.adb_path)
+            .args(["-s", device_id, "exec-out", "screencap", "-p"])
+            .output()
+            .map_err(|e| CoreError::new(
+                ErrorCode::DeviceError,
+                format!("执行截图命令失败: {}", e)
+            ))?;
+        
+        if output.status.success() {
+            if output.stdout.is_empty() {
+                return Err(CoreError::new(
+                    ErrorCode::DeviceError,
+                    "截图输出为空"
+                ));
+            }
+            info!("📸 截图获取成功: {} bytes", output.stdout.len());
+            Ok(output.stdout)
+        } else {
+            let stderr = String::from_utf8_lossy(&output.stderr);
+            Err(CoreError::new(
+                ErrorCode::DeviceError,
+                format!("截图命令失败: {}", stderr)
+            ))
+        }
+    }
+}

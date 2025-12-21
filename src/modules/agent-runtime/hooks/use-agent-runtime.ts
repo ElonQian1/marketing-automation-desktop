@@ -4,6 +4,7 @@
 
 import { useState, useEffect, useCallback, useRef } from 'react';
 import { message } from 'antd';
+import { listen, type UnlistenFn } from '@tauri-apps/api/event';
 import type {
   AgentRunState,
   AgentStateSnapshot,
@@ -20,6 +21,16 @@ import {
   getAgentStatus,
   getAgentEvents,
 } from '../api/agent-runtime-api';
+
+// ========== 事件名称常量（与后端保持一致）==========
+const AGENT_RUNTIME_EVENTS = {
+  STATE_CHANGED: 'agent_runtime:state_changed',
+  PROGRESS: 'agent_runtime:progress',
+  ACTION: 'agent_runtime:action',
+  THINKING: 'agent_runtime:thinking',
+  ERROR: 'agent_runtime:error',
+  COMPLETED: 'agent_runtime:completed',
+} as const;
 
 export interface UseAgentRuntimeResult {
   // 状态
@@ -39,7 +50,7 @@ export interface UseAgentRuntimeResult {
   refresh: () => Promise<void>;
 }
 
-export function useAgentRuntime(pollInterval = 500): UseAgentRuntimeResult {
+export function useAgentRuntime(pollInterval = 2000): UseAgentRuntimeResult {
   const [state, setState] = useState<AgentRunState>('Idle');
   const [snapshot, setSnapshot] = useState<AgentStateSnapshot | null>(null);
   const [isRunning, setIsRunning] = useState(false);
@@ -47,6 +58,7 @@ export function useAgentRuntime(pollInterval = 500): UseAgentRuntimeResult {
   const [loading, setLoading] = useState(false);
   
   const pollRef = useRef<ReturnType<typeof setInterval> | null>(null);
+  const unlistenRefs = useRef<UnlistenFn[]>([]);
 
   // 刷新状态
   const refresh = useCallback(async () => {
@@ -62,7 +74,17 @@ export function useAgentRuntime(pollInterval = 500): UseAgentRuntimeResult {
     }
   }, []);
 
-  // 获取事件
+  // 处理事件推送（替代轮询）
+  const handleAgentEvent = useCallback((event: AgentEvent) => {
+    setEvents(prev => [...prev, event].slice(-100));
+    
+    // 根据事件类型更新状态
+    if ('state' in event && event.state) {
+      setState(event.state as AgentRunState);
+    }
+  }, []);
+
+  // 获取事件（兼容旧的轮询方式，作为备用）
   const fetchEvents = useCallback(async () => {
     try {
       const result = await getAgentEvents();
@@ -186,23 +208,42 @@ export function useAgentRuntime(pollInterval = 500): UseAgentRuntimeResult {
     }
   }, [refresh]);
 
-  // 轮询状态和事件
+  // 轮询状态（降低频率，主要依赖事件推送）
   useEffect(() => {
     // 初始加载
     refresh();
 
-    // 启动轮询
+    // 订阅 Tauri 事件（实时推送）
+    const setupListeners = async () => {
+      const eventNames = Object.values(AGENT_RUNTIME_EVENTS);
+      for (const eventName of eventNames) {
+        try {
+          const unlisten = await listen<AgentEvent>(eventName, (e) => {
+            handleAgentEvent(e.payload);
+          });
+          unlistenRefs.current.push(unlisten);
+        } catch (err) {
+          console.warn(`监听事件 ${eventName} 失败:`, err);
+        }
+      }
+    };
+    setupListeners();
+
+    // 备用轮询（频率降低到 2 秒，主要用于状态同步）
     pollRef.current = setInterval(() => {
       refresh();
-      fetchEvents();
     }, pollInterval);
 
     return () => {
+      // 清理事件监听
+      unlistenRefs.current.forEach(unlisten => unlisten());
+      unlistenRefs.current = [];
+      
       if (pollRef.current) {
         clearInterval(pollRef.current);
       }
     };
-  }, [refresh, fetchEvents, pollInterval]);
+  }, [refresh, handleAgentEvent, pollInterval]);
 
   return {
     state,
