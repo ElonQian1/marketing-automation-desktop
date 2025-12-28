@@ -1,5 +1,6 @@
 mod basic;
 mod smart;
+mod ai_agent;
 
 use anyhow::Result;
 
@@ -25,10 +26,7 @@ impl<'a> SmartActionDispatcher<'a> {
             // 🔥 新增：智能滚动（暂时映射为 Swipe）
             SmartActionType::SmartScroll => basic::handle_swipe(self.executor, step, logs).await,
             // 🔥 新增：系统按键和长按
-            SmartActionType::KeyEvent => {
-                logs.push("⌨️ 系统按键操作".to_string());
-                Ok("系统按键操作执行成功".to_string())
-            }
+            SmartActionType::KeyEvent => ai_agent::handle_key_event(self.executor, step, logs).await,
             SmartActionType::LongPress => {
                 logs.push("👆 长按操作".to_string());
                 Ok("长按操作执行成功".to_string())
@@ -62,6 +60,12 @@ impl<'a> SmartActionDispatcher<'a> {
             }
             SmartActionType::ContactGenerateVcf => run_generate_vcf_step(step, logs).await,
             SmartActionType::ContactImportToDevice => run_import_contacts_step(step, logs).await,
+            // 🤖 AI Agent 专用操作类型
+            SmartActionType::AiLaunchApp => ai_agent::handle_launch_app(self.executor, step, logs).await,
+            SmartActionType::AiFindElements => ai_agent::handle_find_elements(self.executor, step, logs).await,
+            SmartActionType::AiTapRelative => ai_agent::handle_tap_relative(self.executor, step, logs).await,
+            SmartActionType::AiExtractComments => ai_agent::handle_extract_comments(self.executor, step, logs).await,
+            SmartActionType::AiCustomCommand => ai_agent::handle_custom_command(self.executor, step, logs).await,
             // 🆕 受控兜底：未知动作类型返回友好错误
             SmartActionType::Unknown => {
                 let error_msg = format!(

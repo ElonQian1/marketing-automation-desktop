@@ -1,0 +1,75 @@
+   Compiling employee-gui v0.2.0 (D:\rust\active-projects\灏忕孩涔employeeGUI\src-tauri)
+error[E0308]: mismatched types
+    --> src\core\adapters\inbound\mcp_server\tools.rs:1933:71
+     |
+1933 |             let element_type = classify_engagement_type(display_text, resource_id);
+     |                                ------------------------               ^^^^^^^^^^^ expected `&str`, found `&Option<String>`
+     |                                |
+     |                                arguments to this function are incorrect
+     |
+     = note: expected reference `&str`
+                found reference `&std::option::Option<std::string::String>`
+note: function defined here
+    --> src\core\adapters\inbound\mcp_server\tools.rs:2053:4
+     |
+2053 | fn classify_engagement_type(text: &str, resource_id: &str) -> &'static str {
+     |    ^^^^^^^^^^^^^^^^^^^^^^^^             -----------------
+
+error[E0599]: no method named `to_lowercase` found for reference `&std::option::Option<std::string::String>` in the current scope
+    --> src\core\adapters\inbound\mcp_server\tools.rs:1954:38
+     |
+1954 |         let class_lower = class_name.to_lowercase();
+     |                                      ^^^^^^^^^^^^ method not found in `&std::option::Option<std::string::String>`
+
+error[E0599]: no method named `contains` found for reference `&std::option::Option<std::string::String>` in the current scope
+    --> src\core\adapters\inbound\mcp_server\tools.rs:1957:28
+     |
+1957 |                resource_id.contains("tab") || resource_id.contains("nav") {
+     |                            ^^^^^^^^ method not found in `&std::option::Option<std::string::String>`
+     |
+     = help: items from traits can only be used if the trait is in scope
+help: trait `OptionExt` which provides `contains` is implemented but not in scope; perhaps you want to import it
+     |
+   5 + use option_ext::OptionExt;
+     |
+
+error[E0599]: no method named `contains` found for reference `&std::option::Option<std::string::String>` in the current scope
+    --> src\core\adapters\inbound\mcp_server\tools.rs:1957:59
+     |
+1957 |                resource_id.contains("tab") || resource_id.contains("nav") {
+     |                                                           ^^^^^^^^ method not found in `&std::option::Option<std::string::String>`
+     |
+     = help: items from traits can only be used if the trait is in scope
+help: trait `OptionExt` which provides `contains` is implemented but not in scope; perhaps you want to import it
+     |
+   5 + use option_ext::OptionExt;
+     |
+
+error[E0308]: mismatched types
+    --> src\core\adapters\inbound\mcp_server\tools.rs:2157:79
+     |
+2157 |     let comment_count = extract_number_from_goal(&goal_lower, "璇勮").unwrap_or(5);
+     |                                                                       --------- ^ expected `f64`, found integer
+     |                                                                       |
+     |                                                                       arguments to this method are incorrect
+     |
+help: the return type of this call is `{integer}` due to the type of the argument passed
+    --> src\core\adapters\inbound\mcp_server\tools.rs:2157:25
+     |
+2157 |     let comment_count = extract_number_from_goal(&goal_lower, "璇勮").unwrap_or(5);
+     |                         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^-^
+     |                                                                                 |
+     |                                                                                 this argument influences the return type of `unwrap_or`
+note: method defined here
+    --> C:\Users\ELon\.rustup\toolchains\stable-x86_64-pc-windows-msvc\lib/rustlib/src/rust\library\core\src\option.rs:1037:18
+     |
+1037 |     pub const fn unwrap_or(self, default: T) -> T
+     |                  ^^^^^^^^^
+help: use a float literal
+     |
+2157 |     let comment_count = extract_number_from_goal(&goal_lower, "璇勮").unwrap_or(5.0);
+     |                                                                                  ++
+
+Some errors have detailed explanations: E0308, E0599.
+For more information about an error, try `rustc --explain E0308`.
+error: could not compile `employee-gui` (lib) due to 5 previous errors

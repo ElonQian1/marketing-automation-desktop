@@ -33,7 +33,6 @@ import { ScriptBuilderIntegration } from "../../../modules/smart-script-manageme
 import MultiDeviceScriptLauncher from "./MultiDeviceScriptLauncher";
 import { useExecutionControl } from "../../../modules/execution-control";
 import { SimpleAbortButton } from "./SimpleAbortButton";
-import DumpModeTester from "./DumpModeTester";
 import type { ExtendedSmartScriptStep } from "../../../types/loopScript";
 import type {
   ExecutorConfig,
@@ -120,7 +119,7 @@ const ScriptControlPanel: React.FC<ScriptControlPanelProps> = ({
             {isExecuting ? "正在执行脚本..." : "执行脚本"}
           </Button>
           
-                  {/* 中止按钮 - 一键立即中止，无需确认 */}
+          {/* 中止按钮 - 一键立即中止，无需确认 */}
           <SimpleAbortButton 
             text="中止" 
             size="middle"
@@ -129,9 +128,6 @@ const ScriptControlPanel: React.FC<ScriptControlPanelProps> = ({
               console.log('🛑 [ScriptControlPanel] 脚本执行已中止');
             }}
           />
-          
-          {/* Dump模式测试器 - 测试各模式性能 */}
-          <DumpModeTester deviceId={currentDeviceId} compact />
         </Space>
 
         <MultiDeviceScriptLauncher steps={steps} />

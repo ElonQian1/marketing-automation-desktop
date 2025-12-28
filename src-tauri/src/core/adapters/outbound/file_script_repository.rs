@@ -67,9 +67,10 @@ impl ScriptRepository for FileScriptRepository {
             CoreError::new(ErrorCode::FileReadError, format!("读取文件失败: {}", e))
         })?;
         
-        let script: Script = serde_json::from_str(&content)?;
+        // 🔥 使用统一加载函数，自动检测并转换脚本格式
+        let script = crate::core::domain::script::load_script_from_json(&content)?;
         
-        debug!("📂 脚本已加载: {:?}", path);
+        debug!("📂 脚本已加载: {:?} (格式自动检测)", path);
         Ok(script)
     }
 
@@ -104,7 +105,8 @@ impl ScriptRepository for FileScriptRepository {
             if path.extension().map(|e| e == "json").unwrap_or(false) {
                 match fs::read_to_string(&path).await {
                     Ok(content) => {
-                        match serde_json::from_str::<Script>(&content) {
+                        // 🔥 使用统一加载函数
+                        match crate::core::domain::script::load_script_from_json(&content) {
                             Ok(script) => scripts.push(script.to_summary()),
                             Err(e) => {
                                 warn!("⚠️ 解析脚本失败 {:?}: {}", path, e);

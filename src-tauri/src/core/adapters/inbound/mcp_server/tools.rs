@@ -431,6 +431,156 @@ pub fn register_tools() -> Vec<McpTool> {
                 "required": ["milliseconds"]
             }),
         ),
+        // ====== AI Agent 智能查找和数据提取工具 ======
+        McpTool::new(
+            "find_elements",
+            "在屏幕上查找所有匹配条件的元素。支持正则表达式匹配和数值条件过滤。用于 AI Agent 动态查找元素，如\"找到所有点赞超过1万的卡片\"",
+            json!({
+                "type": "object",
+                "properties": {
+                    "device_id": {
+                        "type": "string",
+                        "description": "设备ID"
+                    },
+                    "pattern": {
+                        "type": "string",
+                        "description": "正则表达式模式，如 '\\\\d+(\\\\.\\\\d+)?万赞' 匹配万赞元素，'\\\\d+赞' 匹配所有带赞的元素"
+                    },
+                    "search_in": {
+                        "type": "string",
+                        "enum": ["text", "content-desc", "both"],
+                        "description": "搜索范围：text=文本属性，content-desc=描述属性，both=两者都搜索。默认both"
+                    },
+                    "min_value": {
+                        "type": "number",
+                        "description": "最小数值过滤（可选）。如设置为10000，则只返回数值>=10000的元素（用于\"点赞上万\"这类条件）"
+                    },
+                    "max_results": {
+                        "type": "integer",
+                        "description": "最多返回几个结果。默认10"
+                    }
+                },
+                "required": ["device_id", "pattern"]
+            }),
+        ),
+        McpTool::new(
+            "extract_comments",
+            "从当前屏幕提取评论列表。返回结构化的评论数据（用户名、内容、点赞数、时间）",
+            json!({
+                "type": "object",
+                "properties": {
+                    "device_id": {
+                        "type": "string",
+                        "description": "设备ID"
+                    },
+                    "max_count": {
+                        "type": "integer",
+                        "description": "最多提取几条评论。默认5"
+                    }
+                },
+                "required": ["device_id"]
+            }),
+        ),
+        McpTool::new(
+            "save_agent_script",
+            "将 AI Agent 的操作流程保存为可重复执行的算法脚本。脚本使用通用条件而非固定值，其他 AI Agent 也能执行",
+            json!({
+                "type": "object",
+                "properties": {
+                    "name": {
+                        "type": "string",
+                        "description": "脚本名称"
+                    },
+                    "description": {
+                        "type": "string",
+                        "description": "脚本描述，说明这个脚本做什么"
+                    },
+                    "goal": {
+                        "type": "string",
+                        "description": "任务目标的自然语言描述，如\"找到点赞上万的笔记并获取前5条评论\""
+                    },
+                    "steps": {
+                        "type": "array",
+                        "description": "步骤列表",
+                        "items": {
+                            "type": "object",
+                            "properties": {
+                                "name": { "type": "string", "description": "步骤名称" },
+                                "action": { 
+                                    "type": "string", 
+                                    "enum": ["find_and_tap", "tap", "swipe", "wait", "extract_comments", "back"],
+                                    "description": "动作类型"
+                                },
+                                "condition": {
+                                    "type": "object",
+                                    "description": "查找条件（用于 find_and_tap）",
+                                    "properties": {
+                                        "pattern": { "type": "string", "description": "正则表达式" },
+                                        "min_value": { "type": "number", "description": "最小数值" }
+                                    }
+                                },
+                                "params": {
+                                    "type": "object",
+                                    "description": "其他参数（坐标、方向、等待时间等）"
+                                }
+                            }
+                        }
+                    },
+                    "output": {
+                        "type": "object",
+                        "description": "期望输出格式",
+                        "properties": {
+                            "type": { "type": "string", "enum": ["comments", "posts", "users", "custom"] },
+                            "fields": { "type": "array", "items": { "type": "string" } }
+                        }
+                    }
+                },
+                "required": ["name", "goal", "steps"]
+            }),
+        ),
+        // ====== AI 代理智能分析与脚本生成工具 ======
+        McpTool::new(
+            "analyze_screen",
+            "AI 代理智能分析当前屏幕。不仅获取 UI 结构，还会自动识别页面类型、可交互元素、数据元素等，返回结构化的分析结论",
+            json!({
+                "type": "object",
+                "properties": {
+                    "device_id": {
+                        "type": "string",
+                        "description": "设备ID"
+                    },
+                    "focus": {
+                        "type": "string",
+                        "enum": ["all", "interactive", "data", "navigation"],
+                        "description": "分析重点：all=全面分析，interactive=可点击元素，data=数据元素（点赞数、评论等），navigation=导航结构。默认all"
+                    }
+                },
+                "required": ["device_id"]
+            }),
+        ),
+        McpTool::new(
+            "generate_script",
+            "AI 代理根据任务目标自动生成脚本。会先分析当前屏幕状态，然后规划步骤并生成可执行脚本",
+            json!({
+                "type": "object",
+                "properties": {
+                    "device_id": {
+                        "type": "string",
+                        "description": "设备ID"
+                    },
+                    "goal": {
+                        "type": "string",
+                        "description": "任务目标的自然语言描述，如\"找到点赞上万的笔记，点击进去获取前5条评论\""
+                    },
+                    "app_context": {
+                        "type": "string",
+                        "enum": ["xiaohongshu", "weixin", "douyin", "weibo", "other"],
+                        "description": "应用上下文，帮助 AI 理解界面结构。默认根据当前屏幕自动识别"
+                    }
+                },
+                "required": ["device_id", "goal"]
+            }),
+        ),
     ];
     
     // 添加 MDE 数据提取工具
@@ -476,6 +626,13 @@ pub async fn execute_tool(
         "input_text" => handle_input_text(params).await,
         "press_key" => handle_press_key(params).await,
         "wait" => handle_wait(params).await,
+        // AI 代理智能查找和数据提取工具
+        "find_elements" => handle_find_elements(params).await,
+        "extract_comments" => handle_extract_comments(params).await,
+        "save_agent_script" => handle_save_agent_script(params, ctx).await,
+        // AI 代理智能分析与脚本生成工具
+        "analyze_screen" => handle_analyze_screen(params, ctx).await,
+        "generate_script" => handle_generate_script(params, ctx).await,
         _ => ToolResult::error(format!("未知工具: {}", tool_name)),
     }
 }
@@ -1141,63 +1298,75 @@ async fn get_device_screen_xml(device_id: &str) -> Result<String, String> {
 }
 
 /// 从 XML 中查找元素并返回中心坐标
+/// 支持搜索 text 和 content-desc 两个属性
 fn find_element_by_text(xml: &str, text: &str, exact: bool) -> Option<(i32, i32)> {
-    // 简单解析：查找包含指定 text 属性的节点，提取 bounds
+    // 解析：查找包含指定 text 或 content-desc 属性的节点，提取 bounds
     // bounds 格式: [left,top][right,bottom]
     
     for line in xml.lines() {
-        let matches = if exact {
-            line.contains(&format!("text=\"{}\"", text))
-        } else {
-            // 检查 text 属性是否包含目标文本
-            if let Some(start) = line.find("text=\"") {
-                let text_start = start + 6;
-                if let Some(end) = line[text_start..].find('"') {
-                    let text_value = &line[text_start..text_start + end];
-                    text_value.contains(text)
-                } else {
-                    false
-                }
-            } else {
-                false
-            }
-        };
+        // 检查 text 属性
+        let text_matches = check_attribute_match(line, "text", text, exact);
+        // 检查 content-desc 属性（小红书的点赞数等信息通常在这里）
+        let desc_matches = check_attribute_match(line, "content-desc", text, exact);
         
-        if matches {
+        if text_matches || desc_matches {
             // 提取 bounds
-            if let Some(bounds_start) = line.find("bounds=\"[") {
-                let bounds_str = &line[bounds_start + 8..];
-                if let Some(bounds_end) = bounds_str.find(']') {
-                    // 解析 [left,top][right,bottom]
-                    let coords = &bounds_str[1..];
-                    if let Some(mid) = coords.find("][") {
-                        let first = &coords[..mid];
-                        let second = &coords[mid + 2..];
-                        if let Some(second_end) = second.find(']') {
-                            let second = &second[..second_end];
-                            
-                            let first_parts: Vec<&str> = first.split(',').collect();
-                            let second_parts: Vec<&str> = second.split(',').collect();
-                            
-                            if first_parts.len() == 2 && second_parts.len() == 2 {
-                                if let (Ok(left), Ok(top), Ok(right), Ok(bottom)) = (
-                                    first_parts[0].parse::<i32>(),
-                                    first_parts[1].parse::<i32>(),
-                                    second_parts[0].parse::<i32>(),
-                                    second_parts[1].parse::<i32>(),
-                                ) {
-                                    let center_x = (left + right) / 2;
-                                    let center_y = (top + bottom) / 2;
-                                    return Some((center_x, center_y));
-                                }
-                            }
-                        }
+            if let Some(coords) = extract_bounds(line) {
+                return Some(coords);
+            }
+        }
+    }
+    
+    None
+}
+
+/// 检查 XML 行中指定属性是否匹配文本
+fn check_attribute_match(line: &str, attr_name: &str, text: &str, exact: bool) -> bool {
+    let pattern = format!("{}=\"", attr_name);
+    if let Some(start) = line.find(&pattern) {
+        let attr_start = start + pattern.len();
+        if let Some(end) = line[attr_start..].find('"') {
+            let attr_value = &line[attr_start..attr_start + end];
+            if exact {
+                return attr_value == text;
+            } else {
+                return attr_value.contains(text);
+            }
+        }
+    }
+    false
+}
+
+/// 从 XML 行中提取 bounds 并计算中心坐标
+fn extract_bounds(line: &str) -> Option<(i32, i32)> {
+    if let Some(bounds_start) = line.find("bounds=\"[") {
+        let bounds_str = &line[bounds_start + 8..];
+        // 解析 [left,top][right,bottom]
+        let coords = &bounds_str[1..];
+        if let Some(mid) = coords.find("][") {
+            let first = &coords[..mid];
+            let second = &coords[mid + 2..];
+            if let Some(second_end) = second.find(']') {
+                let second = &second[..second_end];
+                
+                let first_parts: Vec<&str> = first.split(',').collect();
+                let second_parts: Vec<&str> = second.split(',').collect();
+                
+                if first_parts.len() == 2 && second_parts.len() == 2 {
+                    if let (Ok(left), Ok(top), Ok(right), Ok(bottom)) = (
+                        first_parts[0].parse::<i32>(),
+                        first_parts[1].parse::<i32>(),
+                        second_parts[0].parse::<i32>(),
+                        second_parts[1].parse::<i32>(),
+                    ) {
+                        let center_x = (left + right) / 2;
+                        let center_y = (top + bottom) / 2;
+                        return Some((center_x, center_y));
                     }
                 }
             }
         }
     }
-    
     None
 }
 
@@ -1220,4 +1389,903 @@ fn calculate_swipe_coords(direction: &str, distance: &str) -> (i32, i32, i32, i3
         "right" => (center_x - offset, center_y, center_x + offset, center_y),
         _ => (center_x, center_y, center_x, center_y),
     }
+}
+
+// ============================================================================
+// AI Agent 智能查找和数据提取工具
+// ============================================================================
+
+use regex::Regex;
+
+/// 表示找到的元素
+#[derive(serde::Serialize)]
+struct FoundElement {
+    text: String,
+    content_desc: String,
+    bounds: String,
+    center_x: i32,
+    center_y: i32,
+    numeric_value: Option<f64>,
+}
+
+/// 表示提取的评论
+#[derive(serde::Serialize)]
+struct ExtractedComment {
+    username: String,
+    content: String,
+    likes: String,
+    time_location: String,
+}
+
+/// 查找所有匹配条件的元素
+async fn handle_find_elements(params: Value) -> ToolResult {
+    let device_id = match params.get("device_id").and_then(|v| v.as_str()) {
+        Some(id) => id,
+        None => return ToolResult::error("缺少 device_id"),
+    };
+    
+    let pattern = match params.get("pattern").and_then(|v| v.as_str()) {
+        Some(p) => p,
+        None => return ToolResult::error("缺少 pattern"),
+    };
+    
+    let search_in = params.get("search_in")
+        .and_then(|v| v.as_str())
+        .unwrap_or("both");
+    
+    let min_value = params.get("min_value")
+        .and_then(|v| v.as_f64());
+    
+    let max_results = params.get("max_results")
+        .and_then(|v| v.as_u64())
+        .unwrap_or(10) as usize;
+
+    info!("🔍 AI Agent 查找元素: pattern='{}', min_value={:?}", pattern, min_value);
+
+    // 获取屏幕 XML
+    let xml = match get_device_screen_xml(device_id).await {
+        Ok(xml) => xml,
+        Err(e) => return ToolResult::error(format!("获取屏幕失败: {}", e)),
+    };
+
+    // 编译正则表达式
+    let regex = match Regex::new(pattern) {
+        Ok(r) => r,
+        Err(e) => return ToolResult::error(format!("无效的正则表达式: {}", e)),
+    };
+
+    let mut results: Vec<FoundElement> = Vec::new();
+
+    // 按 <node 标签分割 XML（因为 uiautomator dump 输出是单行 XML）
+    // 这样每个 node 都能独立处理
+    let nodes: Vec<&str> = xml.split("<node ").collect();
+    info!("🔍 XML 分割为 {} 个节点", nodes.len());
+
+    for node_str in nodes.iter().skip(1) { // 跳过第一个（空或 header）
+        // 重建完整的节点字符串以便提取属性
+        let line = format!("<node {}", node_str);
+        
+        // 提取 text 和 content-desc 属性
+        let text = extract_attribute(&line, "text").unwrap_or_default();
+        let content_desc = extract_attribute(&line, "content-desc").unwrap_or_default();
+        
+        // 根据 search_in 参数决定搜索哪个字段
+        let search_text = match search_in {
+            "text" => text.clone(),
+            "content-desc" => content_desc.clone(),
+            _ => format!("{} {}", text, content_desc), // both
+        };
+
+        // 检查是否匹配正则
+        if let Some(mat) = regex.find(&search_text) {
+            let matched_str = mat.as_str();
+            
+            // 提取数值（如 "1.8万" -> 18000, "2475" -> 2475）
+            let numeric_value = parse_chinese_number(matched_str);
+            
+            // 如果设置了 min_value，检查数值条件
+            if let Some(min) = min_value {
+                if let Some(val) = numeric_value {
+                    if val < min {
+                        continue; // 不满足最小值条件，跳过
+                    }
+                } else {
+                    continue; // 无法解析数值，跳过
+                }
+            }
+            
+            // 提取坐标
+            if let Some((cx, cy)) = extract_bounds(&line) {
+                let bounds = extract_attribute(&line, "bounds").unwrap_or_default();
+                
+                results.push(FoundElement {
+                    text,
+                    content_desc,
+                    bounds,
+                    center_x: cx,
+                    center_y: cy,
+                    numeric_value,
+                });
+                
+                if results.len() >= max_results {
+                    break;
+                }
+            }
+        }
+    }
+
+    if results.is_empty() {
+        ToolResult::success_json(&json!({
+            "found": false,
+            "count": 0,
+            "elements": [],
+            "message": format!("未找到匹配 '{}' 的元素", pattern)
+        }))
+    } else {
+        info!("✅ 找到 {} 个匹配元素", results.len());
+        ToolResult::success_json(&json!({
+            "found": true,
+            "count": results.len(),
+            "elements": results,
+            "message": format!("找到 {} 个匹配元素", results.len())
+        }))
+    }
+}
+
+/// 从当前屏幕提取评论
+async fn handle_extract_comments(params: Value) -> ToolResult {
+    let device_id = match params.get("device_id").and_then(|v| v.as_str()) {
+        Some(id) => id,
+        None => return ToolResult::error("缺少 device_id"),
+    };
+    
+    let max_count = params.get("max_count")
+        .and_then(|v| v.as_u64())
+        .unwrap_or(5) as usize;
+
+    info!("📝 提取评论，最多 {} 条", max_count);
+
+    // 获取屏幕 XML
+    let xml = match get_device_screen_xml(device_id).await {
+        Ok(xml) => xml,
+        Err(e) => return ToolResult::error(format!("获取屏幕失败: {}", e)),
+    };
+
+    // 使用 catch_unwind 捕获任何 panic
+    let comments = match std::panic::catch_unwind(|| {
+        extract_comments_from_xml(&xml, max_count)
+    }) {
+        Ok(c) => c,
+        Err(e) => {
+            let msg = if let Some(s) = e.downcast_ref::<&str>() {
+                s.to_string()
+            } else if let Some(s) = e.downcast_ref::<String>() {
+                s.clone()
+            } else {
+                "Unknown panic".to_string()
+            };
+            tracing::error!("📝 提取评论时发生 panic: {}", msg);
+            return ToolResult::error(format!("提取评论时发生错误: {}", msg));
+        }
+    };
+    
+    info!("📝 返回 {} 条评论", comments.len());
+
+    ToolResult::success_json(&json!({
+        "success": true,
+        "count": comments.len(),
+        "comments": comments
+    }))
+}
+
+/// 从 XML 提取评论（小红书评论格式）
+fn extract_comments_from_xml(xml: &str, max_count: usize) -> Vec<ExtractedComment> {
+    let mut comments = Vec::new();
+    
+    // 按 <node 分割 XML（因为是单行 XML）
+    let nodes: Vec<&str> = xml.split("<node ").collect();
+    tracing::info!("📝 extract_comments: 找到 {} 个 node 分段", nodes.len());
+    
+    // 小红书评论的模式：用户名 + 内容（包含时间地点和"回复"）
+    // 格式如: "好 昨天 22:10 山西 回复" 或 "[赞R]  3小时前 山东 回复"
+    let reply_pattern = Regex::new(r"(\d+分钟前|\d+小时前|昨天|前天|\d+天前)").ok();
+    
+    // 收集所有文本节点
+    let mut text_nodes: Vec<(usize, String)> = Vec::new();
+    for (i, node_str) in nodes.iter().enumerate() {
+        let line = format!("<node {}", node_str);
+        if let Some(text) = extract_attribute(&line, "text") {
+            if !text.is_empty() {
+                text_nodes.push((i, text));
+            }
+        }
+    }
+    
+    tracing::info!("📝 extract_comments: 收集到 {} 个文本节点", text_nodes.len());
+    
+    // 遍历文本节点，查找包含时间和"回复"的行
+    for (idx, (_node_idx, text)) in text_nodes.iter().enumerate() {
+        if comments.len() >= max_count {
+            break;
+        }
+        
+        // 检查是否是评论行（包含时间词和"回复"）
+        if let Some(ref pattern) = reply_pattern {
+            if pattern.is_match(text) && text.contains("回复") {
+                // 这是评论内容行，向前查找用户名
+                let mut username = String::new();
+                
+                // 向前搜索用户名（在前几个文本节点中）
+                for j in (0..idx).rev().take(5) {
+                    let prev_text = &text_nodes[j].1;
+                    
+                    // 用户名通常是短文本，不包含时间词和特殊词
+                    // 也排除纯数字（点赞数）
+                    if prev_text.len() < 30 
+                       && prev_text.len() > 0
+                       && !prev_text.contains("分钟前")
+                       && !prev_text.contains("小时前")
+                       && !prev_text.contains("昨天")
+                       && !prev_text.contains("回复")
+                       && !prev_text.contains("展开")
+                       && !prev_text.contains("条评论")
+                       && !prev_text.starts_with('[')
+                       && !prev_text.contains("关注")
+                       && prev_text.parse::<i32>().is_err() {  // 排除纯数字
+                        username = prev_text.clone();
+                        break;
+                    }
+                }
+                
+                // 解析内容和时间
+                let (content, time_location) = parse_comment_text(text);
+                
+                // 向后查找点赞数
+                let mut likes = String::new();
+                for j in idx+1..std::cmp::min(idx+5, text_nodes.len()) {
+                    let next_text = &text_nodes[j].1;
+                    if let Ok(_num) = next_text.parse::<i32>() {
+                        likes = next_text.clone();
+                        break;
+                    }
+                }
+                
+                // 过滤无意义的评论
+                if !username.is_empty() && is_meaningful_comment(&content) {
+                    tracing::info!("📝 ✅ 添加评论: {} -> {} (👍{})", username, content, likes);
+                    comments.push(ExtractedComment {
+                        username,
+                        content,
+                        likes,
+                        time_location,
+                    });
+                } else if !username.is_empty() {
+                    tracing::debug!("📝 ⏭️ 跳过无意义评论: {} -> '{}'", username, content);
+                }
+            }
+        }
+    }
+    
+    tracing::info!("📝 提取完成，共 {} 条评论", comments.len());
+    comments
+}
+
+/// 判断评论内容是否有意义
+fn is_meaningful_comment(content: &str) -> bool {
+    let trimmed = content.trim();
+    
+    // 1. 空内容无意义
+    if trimmed.is_empty() {
+        tracing::debug!("📝 过滤: '{}' -> 空内容", content);
+        return false;
+    }
+    
+    // 2. 去除所有表情后检查是否还有内容
+    let without_emoji = Regex::new(r"\[[^\]]*R?\]")
+        .map(|re| re.replace_all(trimmed, "").to_string())
+        .unwrap_or_else(|_| trimmed.to_string());
+    
+    let cleaned = without_emoji.trim();
+    tracing::debug!("📝 过滤检查: '{}' -> 去除表情后: '{}'", trimmed, cleaned);
+    
+    // 3. 纯表情无意义
+    if cleaned.is_empty() {
+        tracing::debug!("📝 过滤: '{}' -> 纯表情", content);
+        return false;
+    }
+    
+    // 4. 过短无意义（去除表情后少于2个字符）
+    let actual_chars: Vec<char> = cleaned.chars().collect();
+    if actual_chars.len() < 2 {
+        tracing::debug!("📝 过滤: '{}' -> 过短 ({}字符)", content, actual_chars.len());
+        return false;
+    }
+    
+    // 5. 纯数字无意义
+    if trimmed.parse::<i64>().is_ok() {
+        tracing::debug!("📝 过滤: '{}' -> 纯数字", content);
+        return false;
+    }
+    
+    // 6. 纯标点符号无意义
+    let has_meaningful_char = actual_chars.iter().any(|c| {
+        c.is_alphanumeric() || (*c >= '\u{4E00}' && *c <= '\u{9FFF}')  // 中文字符范围
+    });
+    if !has_meaningful_char {
+        tracing::debug!("📝 过滤: '{}' -> 无有效字符", content);
+        return false;
+    }
+    
+    true
+}
+
+/// 解析评论文本，分离内容和时间地点
+/// 输入格式: "评论内容 时间 地点 回复" 或 "[表情R] 时间 地点 回复"
+fn parse_comment_text(text: &str) -> (String, String) {
+    // 时间模式正则：匹配 "数字分钟前/小时前/天前" 或 "昨天/前天 时:分"
+    let time_regex = Regex::new(
+        r"(\d+分钟前|\d+小时前|\d+天前|昨天\s*\d{1,2}:\d{2}|前天\s*\d{1,2}:\d{2}|昨天|前天)"
+    ).ok();
+    
+    if let Some(ref regex) = time_regex {
+        if let Some(m) = regex.find(text) {
+            // 时间之前的是内容
+            let content = text[..m.start()].trim();
+            // 时间及之后的是时间地点（去掉"回复"）
+            let time_loc = text[m.start()..].trim()
+                .trim_end_matches("回复")
+                .trim();
+            
+            return (content.to_string(), time_loc.to_string());
+        }
+    }
+    
+    // 如果没有匹配到时间模式，返回原文
+    (text.trim_end_matches("回复").trim().to_string(), String::new())
+}
+
+/// 保存 AI Agent 脚本
+async fn handle_save_agent_script(params: Value, ctx: &Arc<AppContext>) -> ToolResult {
+    let name = match params.get("name").and_then(|v| v.as_str()) {
+        Some(n) => n.to_string(),
+        None => return ToolResult::error("缺少 name"),
+    };
+    
+    let goal = match params.get("goal").and_then(|v| v.as_str()) {
+        Some(g) => g.to_string(),
+        None => return ToolResult::error("缺少 goal"),
+    };
+    
+    let description = params.get("description")
+        .and_then(|v| v.as_str())
+        .unwrap_or(&goal)
+        .to_string();
+    
+    let steps = params.get("steps")
+        .cloned()
+        .unwrap_or(json!([]));
+    
+    let output = params.get("output")
+        .cloned()
+        .unwrap_or(json!({}));
+
+    // 创建 AI Agent 脚本格式
+    let agent_script = json!({
+        "format": "ai_agent_script",
+        "version": "1.0.0",
+        "name": name,
+        "description": description,
+        "goal": goal,
+        "steps": steps,
+        "output": output,
+        "created_at": chrono::Utc::now().to_rfc3339(),
+        "metadata": {
+            "type": "algorithm",
+            "reusable": true,
+            "requires_ai": true
+        }
+    });
+
+    // 保存到文件
+    let script_id = format!("agent_script_{}", chrono::Utc::now().timestamp_millis());
+    let scripts_dir = std::path::Path::new("data/scripts");
+    
+    if !scripts_dir.exists() {
+        std::fs::create_dir_all(scripts_dir).ok();
+    }
+    
+    let file_path = scripts_dir.join(format!("{}.json", script_id));
+    
+    match std::fs::write(&file_path, serde_json::to_string_pretty(&agent_script).unwrap()) {
+        Ok(_) => {
+            info!("✅ AI Agent 脚本已保存: {}", script_id);
+            ToolResult::success_json(&json!({
+                "success": true,
+                "script_id": script_id,
+                "file_path": file_path.to_string_lossy(),
+                "message": format!("AI Agent 脚本 '{}' 已保存", name)
+            }))
+        }
+        Err(e) => ToolResult::error(format!("保存脚本失败: {}", e))
+    }
+}
+
+/// 提取 XML 属性值
+fn extract_attribute(line: &str, attr_name: &str) -> Option<String> {
+    let pattern = format!("{}=\"", attr_name);
+    if let Some(start) = line.find(&pattern) {
+        let attr_start = start + pattern.len();
+        if let Some(end) = line[attr_start..].find('"') {
+            return Some(line[attr_start..attr_start + end].to_string());
+        }
+    }
+    None
+}
+
+/// 解析中文数字（如 "1.8万" -> 18000, "2475" -> 2475）
+fn parse_chinese_number(s: &str) -> Option<f64> {
+    // 去除非数字字符（保留数字和小数点）
+    let clean: String = s.chars()
+        .filter(|c| c.is_ascii_digit() || *c == '.')
+        .collect();
+    
+    if clean.is_empty() {
+        return None;
+    }
+    
+    let base_num: f64 = clean.parse().ok()?;
+    
+    // 检查单位
+    if s.contains("万") {
+        Some(base_num * 10000.0)
+    } else if s.contains("千") {
+        Some(base_num * 1000.0)
+    } else if s.contains("亿") {
+        Some(base_num * 100000000.0)
+    } else {
+        Some(base_num)
+    }
+}
+
+// ============================================================================
+// AI 代理智能分析与脚本生成工具
+// ============================================================================
+
+/// AI 代理智能分析屏幕
+/// 返回结构化的分析结论，而非原始 XML
+async fn handle_analyze_screen(params: Value, ctx: &Arc<AppContext>) -> ToolResult {
+    let device_id = match params.get("device_id").and_then(|v| v.as_str()) {
+        Some(id) => id.to_string(),
+        None => return ToolResult::error("缺少 device_id"),
+    };
+    
+    let focus = params.get("focus")
+        .and_then(|v| v.as_str())
+        .unwrap_or("all");
+
+    info!("🔍 AI 代理分析屏幕 - 设备: {}, 重点: {}", device_id, focus);
+
+    // 1. 获取屏幕 XML (通过 device_service)
+    let xml = match ctx.device_service.get_screen_content(&device_id).await {
+        Ok(xml) => xml,
+        Err(e) => return ToolResult::error(format!("获取屏幕失败: {}", e)),
+    };
+
+    // 2. 解析 UI 树 (使用 XmlIndexer)
+    let indexer = match crate::engine::xml_indexer::XmlIndexer::build_from_xml(&xml) {
+        Ok(idx) => idx,
+        Err(e) => return ToolResult::error(format!("解析 UI 树失败: {}", e)),
+    };
+
+    // 3. 智能分析
+    let analysis = analyze_ui_tree(&indexer, &xml, focus);
+    
+    info!("✅ 屏幕分析完成: 页面类型={}, 发现{}个可交互元素, {}个数据元素", 
+        analysis["page_type"].as_str().unwrap_or("unknown"),
+        analysis["interactive_elements"].as_array().map(|a| a.len()).unwrap_or(0),
+        analysis["data_elements"].as_array().map(|a| a.len()).unwrap_or(0)
+    );
+
+    ToolResult::success_json(&analysis)
+}
+
+/// 分析 UI 树，提取结构化信息
+/// 使用 XmlIndexer 的 all_nodes 列表遍历
+fn analyze_ui_tree(indexer: &crate::engine::xml_indexer::XmlIndexer, xml: &str, focus: &str) -> Value {
+    let mut result = json!({
+        "page_type": "unknown",
+        "app_context": detect_app_context(xml),
+        "interactive_elements": [],
+        "data_elements": [],
+        "navigation": {},
+        "hot_content": [],
+        "summary": ""
+    });
+
+    let mut interactive: Vec<Value> = vec![];
+    let mut data_elements: Vec<Value> = vec![];
+    let mut hot_content: Vec<Value> = vec![];
+    let mut nav_elements: Vec<Value> = vec![];
+
+    // 遍历所有节点
+    for node in &indexer.all_nodes {
+        // 分析当前节点
+        let is_clickable = node.element.clickable;
+        let text = &node.element.text;
+        let desc = &node.element.content_desc;
+        let resource_id = node.element.resource_id.as_deref().unwrap_or("");
+        let class_name = node.element.class_name.as_deref().unwrap_or("");
+        let display_text = if !text.is_empty() { text.as_str() } else { desc.as_str() };
+        
+        // 可交互元素
+        if is_clickable && !display_text.is_empty() {
+            interactive.push(json!({
+                "type": "clickable",
+                "text": display_text,
+                "bounds": [node.bounds.0, node.bounds.1, node.bounds.2, node.bounds.3],
+                "resource_id": resource_id,
+                "class": class_name
+            }));
+        }
+
+        // 数据元素（点赞数、评论数等）
+        if let Some(num) = extract_engagement_number(display_text) {
+            let element_type = classify_engagement_type(display_text, resource_id);
+            data_elements.push(json!({
+                "type": element_type,
+                "raw_text": display_text,
+                "value": num,
+                "bounds": [node.bounds.0, node.bounds.1, node.bounds.2, node.bounds.3]
+            }));
+
+            // 高热度内容（点赞 > 10000）
+            if element_type == "likes" && num >= 10000.0 {
+                hot_content.push(json!({
+                    "text": display_text,
+                    "value": num,
+                    "bounds": [node.bounds.0, node.bounds.1, node.bounds.2, node.bounds.3],
+                    "clickable": is_clickable
+                }));
+            }
+        }
+
+        // 导航元素（底部 Tab、顶部标签等）
+        let y = node.bounds.1;  // bounds.1 是顶部 y 坐标
+        let class_lower = class_name.to_lowercase();
+        if (y > 1800 || y < 200) && is_clickable && !display_text.is_empty() {
+            if class_lower.contains("tab") || class_lower.contains("button") || 
+               resource_id.contains("tab") || resource_id.contains("nav") {
+                nav_elements.push(json!({
+                    "text": display_text,
+                    "bounds": [node.bounds.0, node.bounds.1, node.bounds.2, node.bounds.3],
+                    "position": if y < 200 { "top" } else { "bottom" }
+                }));
+            }
+        }
+    }
+
+    // 根据 focus 过滤结果
+    match focus {
+        "interactive" => {
+            result["interactive_elements"] = json!(interactive);
+        }
+        "data" => {
+            result["data_elements"] = json!(data_elements);
+            result["hot_content"] = json!(hot_content);
+        }
+        "navigation" => {
+            result["navigation"] = json!({
+                "elements": nav_elements
+            });
+        }
+        _ => {
+            // all - 返回所有
+            result["interactive_elements"] = json!(interactive);
+            result["data_elements"] = json!(data_elements);
+            result["hot_content"] = json!(hot_content);
+            result["navigation"] = json!({
+                "elements": nav_elements
+            });
+        }
+    }
+
+    // 推断页面类型
+    result["page_type"] = json!(infer_page_type(&interactive, &data_elements, &nav_elements));
+    
+    // 生成摘要
+    let hot_count = hot_content.len();
+    let interactive_count = interactive.len();
+    result["summary"] = json!(format!(
+        "发现 {} 个可交互元素，{} 个数据元素，其中 {} 个高热度内容（点赞过万）",
+        interactive_count,
+        data_elements.len(),
+        hot_count
+    ));
+
+    result
+}
+
+/// 检测应用上下文
+fn detect_app_context(xml: &str) -> &'static str {
+    if xml.contains("com.xingin.xhs") {
+        "xiaohongshu"
+    } else if xml.contains("com.tencent.mm") {
+        "weixin"
+    } else if xml.contains("com.ss.android.ugc.aweme") {
+        "douyin"
+    } else if xml.contains("com.sina.weibo") {
+        "weibo"
+    } else {
+        "other"
+    }
+}
+
+/// 提取互动数据（点赞数、评论数等）
+fn extract_engagement_number(text: &str) -> Option<f64> {
+    // 匹配：1.8万、2475、10w+、1000+ 等
+    let patterns = [
+        r"(\d+\.?\d*)\s*[万w]",  // 万/w
+        r"(\d+\.?\d*)\s*[千k]",  // 千/k
+        r"^(\d+)\+?$",           // 纯数字
+        r"(\d+)\s*(?:赞|评|藏|转)",  // 点赞/评论/收藏/转发
+    ];
+    
+    for pattern in patterns {
+        if let Ok(re) = Regex::new(pattern) {
+            if let Some(caps) = re.captures(text) {
+                if let Some(m) = caps.get(1) {
+                    let num: f64 = m.as_str().parse().ok()?;
+                    if text.contains("万") || text.to_lowercase().contains("w") {
+                        return Some(num * 10000.0);
+                    } else if text.contains("千") || text.to_lowercase().contains("k") {
+                        return Some(num * 1000.0);
+                    } else {
+                        return Some(num);
+                    }
+                }
+            }
+        }
+    }
+    None
+}
+
+/// 分类互动数据类型
+fn classify_engagement_type(text: &str, resource_id: &str) -> &'static str {
+    let combined = format!("{} {}", text.to_lowercase(), resource_id.to_lowercase());
+    if combined.contains("like") || combined.contains("赞") || combined.contains("❤") {
+        "likes"
+    } else if combined.contains("comment") || combined.contains("评论") {
+        "comments"
+    } else if combined.contains("collect") || combined.contains("收藏") || combined.contains("⭐") {
+        "favorites"
+    } else if combined.contains("share") || combined.contains("转发") || combined.contains("分享") {
+        "shares"
+    } else {
+        "unknown"
+    }
+}
+
+/// 推断页面类型
+fn infer_page_type(interactive: &[Value], data_elements: &[Value], nav_elements: &[Value]) -> &'static str {
+    // 简单启发式规则
+    let has_bottom_nav = nav_elements.iter().any(|e| e["position"] == "bottom");
+    let has_many_data = data_elements.len() > 5;
+    let has_engagement = data_elements.iter().any(|e| 
+        e["type"] == "likes" || e["type"] == "comments"
+    );
+    
+    if has_bottom_nav && has_many_data {
+        "feed_list"  // 信息流/首页
+    } else if has_engagement && !has_bottom_nav {
+        "detail_page"  // 详情页
+    } else if nav_elements.len() > 3 {
+        "navigation_page"
+    } else {
+        "unknown"
+    }
+}
+
+/// AI 代理根据目标生成脚本
+async fn handle_generate_script(params: Value, ctx: &Arc<AppContext>) -> ToolResult {
+    let device_id = match params.get("device_id").and_then(|v| v.as_str()) {
+        Some(id) => id.to_string(),
+        None => return ToolResult::error("缺少 device_id"),
+    };
+    
+    let goal = match params.get("goal").and_then(|v| v.as_str()) {
+        Some(g) => g.to_string(),
+        None => return ToolResult::error("缺少 goal"),
+    };
+    
+    let _app_context = params.get("app_context")
+        .and_then(|v| v.as_str())
+        .unwrap_or("auto");
+
+    info!("🤖 AI 代理生成脚本 - 目标: {}", goal);
+
+    // 1. 先分析当前屏幕状态 (通过 device_service)
+    let analysis = match ctx.device_service.get_screen_content(&device_id).await {
+        Ok(xml) => {
+            match crate::engine::xml_indexer::XmlIndexer::build_from_xml(&xml) {
+                Ok(indexer) => analyze_ui_tree(&indexer, &xml, "all"),
+                Err(_) => json!({"error": "无法解析屏幕"})
+            }
+        }
+        Err(e) => {
+            return ToolResult::error(format!("获取屏幕失败: {}", e));
+        }
+    };
+
+    let app_context = analysis["app_context"].as_str().unwrap_or("unknown");
+    let page_type = analysis["page_type"].as_str().unwrap_or("unknown");
+    let hot_content = analysis["hot_content"].as_array();
+
+    // 2. 根据目标和上下文生成脚本
+    let script = generate_script_for_goal(&goal, app_context, page_type, hot_content, &device_id);
+
+    info!("✅ 脚本生成完成: {} 步", script["steps"].as_array().map(|a| a.len()).unwrap_or(0));
+
+    ToolResult::success_json(&json!({
+        "script": script,
+        "analysis": analysis,
+        "generation_context": {
+            "goal": goal,
+            "app_context": app_context,
+            "page_type": page_type,
+            "hot_content_found": hot_content.map(|a| a.len()).unwrap_or(0)
+        }
+    }))
+}
+
+/// 根据目标生成脚本
+fn generate_script_for_goal(
+    goal: &str,
+    app_context: &str,
+    page_type: &str,
+    hot_content: Option<&Vec<Value>>,
+    _device_id: &str
+) -> Value {
+    let goal_lower = goal.to_lowercase();
+    
+    // 解析目标中的关键词
+    let wants_hot_content = goal_lower.contains("热") || goal_lower.contains("万") || 
+                           goal_lower.contains("高赞") || goal_lower.contains("点赞");
+    let wants_comments = goal_lower.contains("评论");
+    let wants_xiaohongshu = goal_lower.contains("小红书") || app_context == "xiaohongshu";
+    
+    // 解析数量
+    let comment_count = extract_number_from_goal(&goal_lower, "评论").unwrap_or(5.0) as i32;
+    let like_threshold = extract_number_from_goal(&goal_lower, "万").map(|n| n * 10000.0).unwrap_or(10000.0);
+
+    let mut steps = vec![];
+    let mut step_id = 1;
+
+    // 步骤 1：启动应用（如果需要）
+    if wants_xiaohongshu && page_type != "feed_list" {
+        steps.push(json!({
+            "step_id": step_id,
+            "action": "launch_app",
+            "params": {
+                "package": "com.xingin.xhs",
+                "activity": "com.xingin.xhs.index.v2.IndexActivityV2"
+            },
+            "description": "启动小红书"
+        }));
+        step_id += 1;
+    }
+
+    // 步骤 2：查找高热度内容（如果需要）
+    if wants_hot_content {
+        // 检查是否已有热门内容
+        if let Some(hot) = hot_content {
+            if !hot.is_empty() {
+                // 直接使用已发现的热门内容
+                let first_hot = &hot[0];
+                let bounds = first_hot["bounds"].as_array();
+                if let Some(b) = bounds {
+                    let center_x = (b[0].as_i64().unwrap_or(0) + b[2].as_i64().unwrap_or(0)) / 2;
+                    let center_y = (b[1].as_i64().unwrap_or(0) + b[3].as_i64().unwrap_or(0)) / 2;
+                    
+                    steps.push(json!({
+                        "step_id": step_id,
+                        "action": "tap",
+                        "params": {
+                            "x": center_x,
+                            "y": center_y
+                        },
+                        "description": format!("点击高热度内容 ({}赞)", first_hot["value"].as_f64().unwrap_or(0.0))
+                    }));
+                    step_id += 1;
+                }
+            } else {
+                // 需要查找
+                steps.push(json!({
+                    "step_id": step_id,
+                    "action": "find_elements",
+                    "params": {
+                        "selector": {
+                            "type": "engagement",
+                            "min_value": like_threshold,
+                            "metric": "likes"
+                        },
+                        "limit": 1
+                    },
+                    "output_key": "hot_notes",
+                    "description": format!("查找点赞超过{}的笔记", like_threshold)
+                }));
+                step_id += 1;
+
+                steps.push(json!({
+                    "step_id": step_id,
+                    "action": "tap_relative",
+                    "params": {
+                        "relative_to": "hot_notes[0]",
+                        "position": "center"
+                    },
+                    "description": "点击找到的高热度笔记"
+                }));
+                step_id += 1;
+            }
+        }
+    }
+
+    // 步骤 3：等待页面加载
+    steps.push(json!({
+        "step_id": step_id,
+        "action": "wait",
+        "params": {
+            "duration_ms": 2000
+        },
+        "description": "等待详情页加载"
+    }));
+    step_id += 1;
+
+    // 步骤 4：提取评论（如果需要）
+    if wants_comments {
+        steps.push(json!({
+            "step_id": step_id,
+            "action": "extract_comments",
+            "params": {
+                "count": comment_count,
+                "scroll_if_needed": true,
+                "filter": {
+                    "min_length": 5,
+                    "exclude_author": true
+                }
+            },
+            "output_key": "extracted_comments",
+            "description": format!("提取前{}条有意义评论", comment_count)
+        }));
+    }
+
+    json!({
+        "format": "ai_agent_script",
+        "version": "1.0.0",
+        "name": format!("auto_generated_{}", chrono::Utc::now().timestamp()),
+        "description": format!("AI 自动生成的脚本，目标：{}", goal),
+        "goal": goal,
+        "steps": steps,
+        "output": {
+            "primary_key": if wants_comments { "extracted_comments" } else { "hot_notes" }
+        },
+        "metadata": {
+            "generated_by": "ai_agent",
+            "app_context": app_context,
+            "page_context": page_type
+        }
+    })
+}
+
+/// 从目标描述中提取数字
+fn extract_number_from_goal(goal: &str, context: &str) -> Option<f64> {
+    // 查找 context 附近的数字
+    if let Some(idx) = goal.find(context) {
+        // 向前查找数字
+        let before = &goal[..idx];
+        let re = Regex::new(r"(\d+)").ok()?;
+        if let Some(caps) = re.captures_iter(before).last() {
+            return caps.get(1)?.as_str().parse().ok();
+        }
+    }
+    None
 }

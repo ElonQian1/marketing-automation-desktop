@@ -107,10 +107,18 @@ impl LegacyScriptExecutor {
                 (SmartActionType::Unknown, serde_json::json!({}))
             }
             StepAction::Custom(cmd) => {
+                // 🤖 根据 command_type 映射到正确的 AI Agent 操作类型
+                let action_type = match cmd.command_type.as_str() {
+                    "launch_app" => SmartActionType::AiLaunchApp,
+                    "find_elements" => SmartActionType::AiFindElements,
+                    "tap_relative" => SmartActionType::AiTapRelative,
+                    "extract_comments" => SmartActionType::AiExtractComments,
+                    _ => SmartActionType::AiCustomCommand,
+                };
                 let mut params = serde_json::Map::new();
                 params.insert("command_type".to_string(), serde_json::json!(cmd.command_type));
                 params.insert("params".to_string(), cmd.params.clone());
-                (SmartActionType::Unknown, serde_json::Value::Object(params))
+                (action_type, serde_json::Value::Object(params))
             }
         }
     }

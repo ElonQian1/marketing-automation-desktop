@@ -31,6 +31,12 @@ pub enum SmartActionType {
     // 通讯录自动化操作
     ContactGenerateVcf,
     ContactImportToDevice,
+    // 🤖 AI Agent 专用操作类型
+    AiLaunchApp,       // 启动应用
+    AiFindElements,    // 智能查找元素
+    AiTapRelative,     // 相对位置点击
+    AiExtractComments, // 提取评论数据
+    AiCustomCommand,   // 通用自定义命令
     // 🆕 受控兜底：未知动作类型（避免 serde 硬崩）
     #[serde(other)]
     Unknown,
