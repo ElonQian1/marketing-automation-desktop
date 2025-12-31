@@ -52,6 +52,10 @@ roxmltree = "0.20"
 windows-core = "=0.62.0"
 base64 = { version = "0.22", default-features = false, features = ["std"] }
 sha1 = "0.10"
+# Cloud Sync Dependencies
+hostname = "0.4"
+sha2 = "0.10"
+hex = "0.4"
 # Phase 3 Version Control System Dependencies
 zstd = "0.13"                    # Zstandard 压缩
 ciborium = "0.2"                 # CBOR 序列化/反序列化
