@@ -1,0 +1,15 @@
+[Unit]
+Description=Lead Server - 小红书评论数据云端服务
+After=network.target postgresql.service
+
+[Service]
+Type=simple
+User=ubuntu
+WorkingDirectory=/opt/lead-server
+ExecStart=/opt/lead-server/lead-server
+Restart=always
+RestartSec=5
+Environment=RUST_LOG=lead_server=info
+
+[Install]
+WantedBy=multi-user.target

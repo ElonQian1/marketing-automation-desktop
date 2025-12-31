@@ -1,0 +1,32 @@
+[package]
+name = "lead-server"
+version = "0.1.0"
+description = "小红书评论数据云端服务"
+edition = "2021"
+
+[dependencies]
+# 从 workspace 继承的依赖
+serde.workspace = true
+serde_json.workspace = true
+tokio.workspace = true
+futures.workspace = true
+anyhow.workspace = true
+thiserror.workspace = true
+tracing.workspace = true
+tracing-subscriber.workspace = true
+chrono.workspace = true
+uuid.workspace = true
+axum.workspace = true
+tower.workspace = true
+tower-http.workspace = true
+
+# 服务器特有依赖
+sqlx = { version = "0.7", features = ["runtime-tokio", "postgres", "chrono", "uuid"] }
+dotenvy = "0.15"
+sha2 = "0.10"
+hex = "0.4"
+base64 = "0.22"
+
+[[bin]]
+name = "lead-server"
+path = "src/main.rs"
