@@ -50,7 +50,7 @@ pub struct UserInfo {
 }
 
 /// 密码哈希
-fn hash_password(password: &str) -> String {
+pub fn hash_password(password: &str) -> String {
     let mut hasher = Sha256::new();
     // 添加盐值
     hasher.update(b"lead-hunt-salt-2024");

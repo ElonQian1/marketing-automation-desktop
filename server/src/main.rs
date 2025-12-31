@@ -38,6 +38,12 @@ async fn main() -> anyhow::Result<()> {
     let app = Router::new()
         // 健康检查
         .route("/health", get(|| async { "OK" }))
+        // 管理后台页面
+        .route("/admin", get(api::admin::admin_page))
+        // 管理 API
+        .route("/api/admin/users", get(api::admin::list_users))
+        .route("/api/admin/users/:user_id", put(api::admin::update_user))
+        .route("/api/admin/users/:user_id", axum::routing::delete(api::admin::delete_user))
         // 认证 API
         .route("/api/auth/register", post(api::auth::register))
         .route("/api/auth/login", post(api::auth::login))

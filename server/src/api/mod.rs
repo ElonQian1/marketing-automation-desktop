@@ -5,4 +5,6 @@
 pub mod device;
 pub mod comments;
 pub mod ai_config;
-pub mod stats;pub mod auth;
+pub mod stats;
+pub mod auth;
+pub mod admin;
