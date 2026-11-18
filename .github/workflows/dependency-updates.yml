@@ -14,6 +14,9 @@ jobs:
         uses: actions/checkout@v4
         with:
           token: ${{ secrets.GITHUB_TOKEN }}
+      - name: Check project build source and storage
+        shell: pwsh
+        run: "& (Join-Path $env:GITHUB_WORKSPACE 'scripts/build-preflight.ps1') -Intent Build -ExpectedCommit $env:GITHUB_SHA"
 
       - name: 🟦 安装 Node 20
         uses: actions/setup-node@v4
@@ -124,6 +127,9 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+      - name: Check project build source and storage
+        shell: pwsh
+        run: "& (Join-Path $env:GITHUB_WORKSPACE 'scripts/build-preflight.ps1') -Intent Build -ExpectedCommit $env:GITHUB_SHA"
       - uses: actions/setup-node@v4
         with: { node-version: 20, cache: 'npm' }
       - uses: dtolnay/rust-toolchain@stable
