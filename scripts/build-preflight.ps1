@@ -3,10 +3,11 @@
 param(
     [ValidateSet('Inspect','Build','Publish')][string]$Intent='Inspect',
     [string]$ExpectedCommit,
-    [string]$PackagePath
+    [string]$PackagePath,
+    [string]$ProjectRoot = (Join-Path $PSScriptRoot '..')
 )
 $ErrorActionPreference='Stop'
-$root=[IO.Path]::GetFullPath((Join-Path $PSScriptRoot '..'))
+$root=[IO.Path]::GetFullPath($ProjectRoot)
 $gitRoot=(& git -C $root rev-parse --show-toplevel)
 if ($LASTEXITCODE -ne 0 -or [IO.Path]::GetFullPath($gitRoot) -ne $root) { throw 'Invalid project root.' }
 $commit=(& git -C $root rev-parse --verify HEAD)
