@@ -1,0 +1,11 @@
+{
+  "schema_version": 1,
+  "project_id": "employeegui",
+  "default_domain": "dev-windows-msvc",
+  "allowed_domains": [
+    "agent-validation",
+    "dev-windows-msvc"
+  ],
+  "unknown_domain_fallback": "agent-validation",
+  "shared_partition_domains": {}
+}

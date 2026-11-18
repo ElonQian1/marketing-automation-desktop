@@ -8,6 +8,7 @@ param(
 )
 
 $ErrorActionPreference = "Stop"
+& (Join-Path $PSScriptRoot '../scripts/build-preflight.ps1') -Intent Build | ForEach-Object { Write-Host $_ }
 
 Write-Host "=== Lead Server 部署脚本 ===" -ForegroundColor Cyan
 
@@ -30,14 +31,15 @@ rustup target add x86_64-unknown-linux-gnu
 # 3. 交叉编译
 Write-Host "`n[3/5] 交叉编译 Linux 版本..." -ForegroundColor Yellow
 Set-Location $PSScriptRoot
-cargo zigbuild --release --target x86_64-unknown-linux-gnu
-
-if ($LASTEXITCODE -ne 0) {
-    Write-Host "编译失败!" -ForegroundColor Red
-    exit 1
+$repo = Split-Path -Parent $PSScriptRoot
+if ($env:OS -eq 'Windows_NT') {
+    . (Join-Path $repo 'scripts/managed-cargo-binary.ps1')
+    $BinaryPath = Get-ProjectManagedCargoBinary $repo 'server/Cargo.toml' 'lead-server' @('zigbuild','--release','--target','x86_64-unknown-linux-gnu')
+} else {
+    cargo zigbuild --release --target x86_64-unknown-linux-gnu
+    if ($LASTEXITCODE -ne 0) { throw 'Cargo cross compilation failed.' }
+    $BinaryPath = Join-Path $repo 'target/x86_64-unknown-linux-gnu/release/lead-server'
 }
-
-$BinaryPath = "..\target\x86_64-unknown-linux-gnu\release\lead-server"
 if (-not (Test-Path $BinaryPath)) {
     Write-Host "找不到编译产物: $BinaryPath" -ForegroundColor Red
     exit 1
