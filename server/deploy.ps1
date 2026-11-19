@@ -32,18 +32,14 @@ rustup target add x86_64-unknown-linux-gnu
 Write-Host "`n[3/5] 交叉编译 Linux 版本..." -ForegroundColor Yellow
 Set-Location $PSScriptRoot
 $repo = Split-Path -Parent $PSScriptRoot
-if ($env:OS -eq 'Windows_NT') {
-    . (Join-Path $repo 'scripts/managed-cargo-binary.ps1')
-    $BinaryPath = Get-ProjectManagedCargoBinary $repo 'server/Cargo.toml' 'lead-server' @('zigbuild','--release','--target','x86_64-unknown-linux-gnu')
-} else {
-    cargo zigbuild --release --target x86_64-unknown-linux-gnu
-    if ($LASTEXITCODE -ne 0) { throw 'Cargo cross compilation failed.' }
-    $BinaryPath = Join-Path $repo 'target/x86_64-unknown-linux-gnu/release/lead-server'
+. (Join-Path $repo 'scripts/managed-cargo-binary.ps1')
+$runner=@{}
+if ($env:OS -ne 'Windows_NT') {
+    $runner.PreparedCargo = { param($arguments) & cargo @arguments }
 }
-if (-not (Test-Path $BinaryPath)) {
-    Write-Host "找不到编译产物: $BinaryPath" -ForegroundColor Red
-    exit 1
-}
+$receipt=Get-ProjectManagedCargoBinary $repo 'server/Cargo.toml' 'lead-server' @('zigbuild','--release','--target','x86_64-unknown-linux-gnu') -PassThru @runner
+$BinaryPath=$receipt.path
+Assert-ProjectBuildArtifact $receipt $BinaryPath
 
 Write-Host "编译成功: $BinaryPath" -ForegroundColor Green
 
@@ -54,7 +50,13 @@ Write-Host "`n[4/5] 上传到服务器 $ServerUser@$ServerIP..." -ForegroundColo
 ssh "${ServerUser}@${ServerIP}" "sudo mkdir -p $RemotePath && sudo chown $ServerUser $RemotePath"
 
 # 上传二进制文件
-scp $BinaryPath "${ServerUser}@${ServerIP}:${RemotePath}/lead-server"
+$incoming='lead-server-'+[Guid]::NewGuid().ToString('N')
+$escapedPath="'"+$RemotePath.Replace("'","'\''")+"'"
+scp $BinaryPath "${ServerUser}@${ServerIP}:${RemotePath}/$incoming"
+if ($LASTEXITCODE) {throw 'Upload failed.'}
+$checkAndInstall="cd $escapedPath && echo '$($receipt.sha256)  $incoming' | sha256sum -c --status && mv -f -- '$incoming' lead-server"
+ssh "${ServerUser}@${ServerIP}" $checkAndInstall
+if ($LASTEXITCODE) {throw 'Staged binary did not pass its build receipt.'}
 
 # 上传 .env.example
 scp "$PSScriptRoot\.env.example" "${ServerUser}@${ServerIP}:${RemotePath}/.env.example"
