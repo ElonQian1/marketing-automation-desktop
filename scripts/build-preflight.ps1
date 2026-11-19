@@ -21,7 +21,7 @@ $manifest=[IO.File]::ReadAllText((Join-Path $root 'rust-cache.project.json')) | 
 if ($manifest.schema_version -ne 1 -or -not $manifest.project_id) { throw 'Invalid project cache manifest.' }
 # CI and product publishers use the same reviewed output reader.
 $reader=Join-Path $PSScriptRoot 'managed-cargo-binary.ps1'
-$expectedReader='2b57abef14de6029ae571795b85dac358fde157e95f8c0de09fa1bfc6268b8e4'
+$expectedReader='9b37e1b1787ae77bf601ac501ed5afddfd418c924104c085ed6dafb408ff3540'
 $readerText=[IO.File]::ReadAllText($reader).Replace([string][char]13+[char]10,[string][char]10)
 $sha=[Security.Cryptography.SHA256]::Create()
 try {$actualReader=[BitConverter]::ToString($sha.ComputeHash([Text.Encoding]::UTF8.GetBytes($readerText))).Replace('-','').ToLowerInvariant()}

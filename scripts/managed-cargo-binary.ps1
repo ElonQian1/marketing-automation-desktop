@@ -18,6 +18,7 @@ function Get-ProjectManagedCargoBinary {
     $source=& git -C $Root rev-parse --verify HEAD
     if ($LASTEXITCODE -ne 0 -or $source -cnotmatch '^[0-9a-f]{40,64}$') {throw 'Cannot bind Cargo result to source.'}
     $artifact=$null
+    $observedDigest=$null
     $fresh=$null
     $reused=0
     $compiled=0
@@ -47,6 +48,9 @@ function Get-ProjectManagedCargoBinary {
             $message.manifest_path -and [IO.Path]::GetFullPath($message.manifest_path) -eq $manifestPath -and $message.executable) {
             if ($artifact -and $artifact -cne $message.executable) {throw 'Conflicting executable paths from this invocation.'}
             $artifact=[string]$message.executable
+            if (![IO.Path]::IsPathRooted($artifact)) {throw 'Cargo returned a relative executable.'}
+            # Observe the bytes while the invoking managed runner still holds its build lock.
+            $observedDigest=(Get-FileHash -LiteralPath $artifact -Algorithm SHA256 -ErrorAction Stop).Hash.ToLowerInvariant()
             $fresh=$message.fresh
         }
     }
@@ -58,7 +62,8 @@ function Get-ProjectManagedCargoBinary {
     $receipt=[pscustomobject][ordered]@{schema='elon.project_cargo_output.v1';source=$source;manifest=$manifestPath
         binary=$Binary;arguments=$arguments;domain=$Domain;path=$file.FullName;output_directory=$file.DirectoryName
         fresh=$fresh;cargo_fresh_units=$reused;cargo_compiled_units=$compiled;bytes=$file.Length
-        sha256=(Get-FileHash -LiteralPath $file.FullName -Algorithm SHA256).Hash.ToLowerInvariant()}
+        sha256=$observedDigest}
+    Assert-ProjectBuildArtifact $receipt $file.FullName -ExpectedCommit $source
     Write-Host ('ELON_BUILD_OUTPUT='+($receipt|ConvertTo-Json -Depth 4 -Compress))
     if ($PassThru) {return $receipt}
     return $file.FullName
