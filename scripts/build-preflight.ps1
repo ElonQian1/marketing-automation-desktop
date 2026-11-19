@@ -19,6 +19,14 @@ foreach ($path in @('rust-cache.project.json','scripts/rust-cache.ps1')) {
 }
 $manifest=[IO.File]::ReadAllText((Join-Path $root 'rust-cache.project.json')) | ConvertFrom-Json
 if ($manifest.schema_version -ne 1 -or -not $manifest.project_id) { throw 'Invalid project cache manifest.' }
+# CI and product publishers use the same reviewed output reader.
+$reader=Join-Path $PSScriptRoot 'managed-cargo-binary.ps1'
+$expectedReader='9b37e1b1787ae77bf601ac501ed5afddfd418c924104c085ed6dafb408ff3540'
+$readerText=[IO.File]::ReadAllText($reader).Replace([string][char]13+[char]10,[string][char]10)
+$sha=[Security.Cryptography.SHA256]::Create()
+try {$actualReader=[BitConverter]::ToString($sha.ComputeHash([Text.Encoding]::UTF8.GetBytes($readerText))).Replace('-','').ToLowerInvariant()}
+finally {$sha.Dispose()}
+if ($actualReader -cne $expectedReader) { throw 'Build output reader differs from the project preflight contract.' }
 $locations=[ordered]@{workspace=$root;temp=[IO.Path]::GetTempPath()}
 if ($PackagePath) { $locations['package']=$PackagePath }
 foreach ($name in @('CARGO_TARGET_DIR','CARGO_BUILD_BUILD_DIR','SCCACHE_DIR','GRADLE_USER_HOME','RUNNER_TEMP')) {
